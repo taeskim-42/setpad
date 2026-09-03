@@ -82,7 +82,31 @@ class _EditorPageState extends State<EditorPage> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560),
-            child: RoutineEditor(controller: _editor),
+            child: Column(
+              children: [
+                ListenableBuilder(
+                  listenable: _editor,
+                  builder: (context, _) => _editor.blocks.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              '운동 이름을 치고 Enter → 세트를 치고 Enter → '
+                              '빈 줄에서 Enter면 다음 운동',
+                              style: TextStyle(
+                                fontSize: 12,
+                                height: 1.5,
+                                color: Colors.black.withValues(alpha: 0.35),
+                              ),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+                Expanded(child: RoutineEditor(controller: _editor)),
+              ],
+            ),
           ),
         ),
       ),
