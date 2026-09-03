@@ -92,8 +92,7 @@ class _EditorPageState extends State<EditorPage> {
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              '운동 이름을 치고 Enter → 세트를 치고 Enter → '
-                              '빈 줄에서 Enter면 다음 운동',
+                              '운동 이름을 치고 Enter → 숫자만 눌러 세트를 쌓는다',
                               style: TextStyle(
                                 fontSize: 12,
                                 height: 1.5,
