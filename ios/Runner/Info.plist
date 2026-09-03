@@ -47,6 +47,10 @@
 			</array>
 		</dict>
 	</dict>
+	<!-- 이 앱은 네트워크를 쓰지 않고 암호화도 하지 않는다. 명시해 두면
+	     업로드할 때마다 수출 규정 문답이 뜨지 않는다. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

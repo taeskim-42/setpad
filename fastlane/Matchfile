@@ -1,0 +1,5 @@
+git_url("https://github.com/taeskim-42/darak-certificates.git")
+storage_mode("git")
+type("appstore")
+app_identifier(["com.tskim.workoutlog"])
+team_id("KC564L7GQ8")
