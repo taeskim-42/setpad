@@ -41,6 +41,14 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
+  <script>
+    // CanvasKit을 gstatic에서 받는다. 로컬 번들은 37MB라 배포마다 그걸
+    // 통째로 올리게 되는데, 엔진 리비전별 CDN 사본이 이미 존재한다.
+    window.flutterConfiguration = {
+      canvasKitBaseUrl:
+        "https://www.gstatic.com/flutter-canvaskit/0cd610717bde95fd88343c64f81c11ba4e5c0010/",
+    };
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
