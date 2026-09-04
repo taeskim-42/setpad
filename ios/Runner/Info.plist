@@ -14,6 +14,19 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<!-- iOS 는 여기 적힌 언어만 앱에 알려준다. 빠지면 일본어 기기에서도
+	     개발 언어로 떨어진다. lib/l10n 의 arb 목록과 같이 유지할 것. -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>ko</string>
+		<string>en</string>
+		<string>ja</string>
+		<string>zh-Hans</string>
+		<string>zh-Hant</string>
+		<string>es</string>
+		<string>vi</string>
+		<string>th</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>setpad</string>
 	<key>CFBundlePackageType</key>
