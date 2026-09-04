@@ -7,10 +7,14 @@ import 'parser.dart';
 const seal = Color(0xFFC3372A);
 
 class LoggedSet {
-  const LoggedSet({this.kg, this.reps, this.note});
+  LoggedSet({this.kg, this.reps, this.note, this.done = true});
   final double? kg;
   final int? reps;
   final String? note;
+
+  /// 실제로 해낸 세트인가. 넣는 순간은 해낸 것이라 켜진 채로 시작하고,
+  /// 계획만 적어두거나 잘못 넣었을 때 손으로 끈다.
+  bool done;
 }
 
 class ExerciseBlock {
@@ -98,6 +102,28 @@ class RoutineEditorController extends ChangeNotifier {
     }
   }
 
+  /// 해낸 세트인지 뒤집는다. 잘못 눌렀을 때 되돌릴 방법이 있어야 한다.
+  void toggleDone(int block, int set) {
+    blocks[block].sets[set].done = !blocks[block].sets[set].done;
+    notifyListeners();
+  }
+
+  /// 세트 하나 취소.
+  void removeSet(int block, int set) {
+    final b = blocks[block];
+    b.sets.removeAt(set);
+    // 세트가 하나도 안 남은 운동은 남길 이유가 없다.
+    if (b.sets.isEmpty && block != blocks.length - 1) blocks.removeAt(block);
+    notifyListeners();
+  }
+
+  /// 운동 통째로 삭제.
+  void removeBlock(int block) {
+    blocks.removeAt(block);
+    if (blocks.isEmpty) _closed = true;
+    notifyListeners();
+  }
+
   /// 빈 칸에서 지우기 — 마지막 세트부터, 세트가 없으면 운동을 뗀다.
   void backspace() {
     if (blocks.isEmpty) return;
@@ -123,9 +149,11 @@ class RoutineEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  int get totalSets => blocks.fold(0, (n, b) => n + b.sets.length);
+  int get totalSets =>
+      blocks.fold(0, (n, b) => n + b.sets.where((s) => s.done).length);
 
   String asText() => blocks
+      .map((b) => (name: b.name, sets: b.sets.where((s) => s.done).toList()))
       .where((b) => b.sets.isNotEmpty)
       .map((b) {
         final lines = <String>[b.name];
@@ -285,6 +313,9 @@ class _RoutineEditorState extends State<RoutineEditor> {
                   return _BlockView(
                     block: blocks[i],
                     input: i == openIndex ? _buildInput() : null,
+                    onToggle: (set) => _c.toggleDone(i, set),
+                    onRemoveSet: (set) => _c.removeSet(i, set),
+                    onRemoveBlock: () => _c.removeBlock(i),
                   );
                 }
                 // 카드 밖 — 새 운동 이름 자리
@@ -312,6 +343,19 @@ class _RoutineEditorState extends State<RoutineEditor> {
               setState(() => _wantText = true);
               _focus.requestFocus();
             },
+            onAdjust: (direction) {
+              final next = bumpLastNumber(_input.text, direction);
+              _input.value = TextEditingValue(
+                text: next,
+                selection: TextSelection.collapsed(offset: next.length),
+              );
+              setState(() {});
+            },
+            // 무게를 치는 중이면 원판 단위, kg 를 지나 횟수를 치는 중이면 하나.
+            stepLabel: RegExp(r'(kg|킬로|파운드|lb)\s*[\d.]*$', caseSensitive: false)
+                    .hasMatch(_input.text)
+                ? '1'
+                : '2.5',
             repeatLabel: _c.lastSet == null
                 ? null
                 : setLabel(kg: _c.lastSet!.kg, reps: _c.lastSet!.reps),
@@ -355,7 +399,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: bold ? 10 : 6),
-          hintText: bold ? '운동 이름' : '100kg 20회 x5',
+          hintText: bold ? '운동 이름' : '100  20',
           hintStyle: TextStyle(
             fontSize: bold ? 15.5 : 14,
             fontWeight: bold ? FontWeight.w800 : FontWeight.w500,
@@ -368,11 +412,21 @@ class _RoutineEditorState extends State<RoutineEditor> {
 }
 
 class _BlockView extends StatelessWidget {
-  const _BlockView({required this.block, this.input});
+  const _BlockView({
+    required this.block,
+    this.input,
+    required this.onToggle,
+    required this.onRemoveSet,
+    required this.onRemoveBlock,
+  });
+
   final ExerciseBlock block;
 
   /// 이 운동이 아직 세트를 받는 중이면 입력 줄이 카드 안에 들어온다.
   final Widget? input;
+  final ValueChanged<int> onToggle;
+  final ValueChanged<int> onRemoveSet;
+  final VoidCallback onRemoveBlock;
 
   @override
   Widget build(BuildContext context) {
@@ -393,9 +447,30 @@ class _BlockView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(block.name,
-              style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800)),
-          ...block.sets.asMap().entries.map((e) => _SetRow(index: e.key, set: e.value)),
+          Row(
+            children: [
+              Expanded(
+                child: Text(block.name,
+                    style: const TextStyle(
+                        fontSize: 15.5, fontWeight: FontWeight.w800)),
+              ),
+              GestureDetector(
+                onTap: onRemoveBlock,
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8, bottom: 2),
+                  child: Icon(Icons.delete_outline,
+                      size: 18, color: Colors.black.withValues(alpha: 0.22)),
+                ),
+              ),
+            ],
+          ),
+          ...block.sets.asMap().entries.map((e) => _SetRow(
+                index: e.key,
+                set: e.value,
+                onToggle: () => onToggle(e.key),
+                onRemove: () => onRemoveSet(e.key),
+              )),
           if (input != null)
             Padding(
               padding: EdgeInsets.only(top: block.sets.isEmpty ? 2 : 4, left: 46),
@@ -408,33 +483,80 @@ class _BlockView extends StatelessWidget {
 }
 
 class _SetRow extends StatelessWidget {
-  const _SetRow({required this.index, required this.set});
+  const _SetRow({
+    required this.index,
+    required this.set,
+    required this.onToggle,
+    required this.onRemove,
+  });
+
   final int index;
   final LoggedSet set;
+  final VoidCallback onToggle;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
+    final off = !set.done;
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      decoration: BoxDecoration(
+        // 해낸 세트는 바탕이 깔린다 — 멀리서 봐도 몇 개 했는지 보인다.
+        color: off ? null : const Color(0xFFF1F7F4),
+        borderRadius: BorderRadius.circular(6),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
         children: [
-          SizedBox(
-            width: 46,
-            child: Text('${index + 1}세트',
-                style: TextStyle(fontSize: 12, color: Colors.black.withValues(alpha: 0.35))),
+          GestureDetector(
+            onTap: onToggle,
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: 32,
+              child: Icon(
+                off ? Icons.circle_outlined : Icons.check_circle,
+                size: 19,
+                color: off
+                    ? Colors.black.withValues(alpha: 0.18)
+                    : const Color(0xFF1E7A5A),
+              ),
+            ),
           ),
-          Text(setLabel(kg: set.kg, reps: set.reps),
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          SizedBox(
+            width: 42,
+            child: Text('${index + 1}세트',
+                style: TextStyle(
+                    fontSize: 12, color: Colors.black.withValues(alpha: 0.35))),
+          ),
+          Text(
+            setLabel(kg: set.kg, reps: set.reps),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: off ? Colors.black.withValues(alpha: 0.35) : null,
+              decoration: off ? TextDecoration.lineThrough : null,
+            ),
+          ),
           if (set.note != null) ...[
             const SizedBox(width: 8),
             Expanded(
               child: Text(set.note!,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12.5, color: Colors.black.withValues(alpha: 0.5))),
+                  style: TextStyle(
+                      fontSize: 12.5,
+                      color: Colors.black.withValues(alpha: 0.5))),
             ),
-          ],
+          ] else
+            const Spacer(),
+          GestureDetector(
+            onTap: onRemove,
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Icon(Icons.close,
+                  size: 15, color: Colors.black.withValues(alpha: 0.2)),
+            ),
+          ),
         ],
       ),
     );

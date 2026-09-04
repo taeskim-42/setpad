@@ -78,4 +78,40 @@ void main() {
       expect(setLabel(reps: 12), '12회');
     });
   });
+
+  bumpTests();
+}
+
+void bumpTests() {
+  group('숫자 밀기', () {
+    test('무게 자리는 원판 단위로', () {
+      expect(bumpLastNumber('100', 1), '102.5');
+      expect(bumpLastNumber('100', -1), '97.5');
+      expect(bumpLastNumber('벤치프레스 60', 1), '벤치프레스 62.5');
+    });
+
+    test('kg 뒤의 숫자는 횟수라 하나씩', () {
+      expect(bumpLastNumber('100kg 20', 1), '100kg 21');
+      expect(bumpLastNumber('100kg 20', -1), '100kg 19');
+    });
+
+    test('소수는 소수로 남는다', () {
+      expect(bumpLastNumber('22.5', 1), '25');
+      expect(bumpLastNumber('20', 1), '22.5');
+    });
+
+    test('빈 줄에서 올리면 한 단계를 세워 준다', () {
+      expect(bumpLastNumber('', 1), '2.5');
+      expect(bumpLastNumber('', -1), '');
+    });
+
+    test('0 아래로는 내려가지 않고 숫자가 사라진다', () {
+      expect(bumpLastNumber('2', -1), '');
+      expect(bumpLastNumber('100kg 1', -1), '100kg ');
+    });
+
+    test('뒤에 붙은 공백은 지키고 민다', () {
+      expect(bumpLastNumber('100kg 20 ', 1), '100kg 21 ');
+    });
+  });
 }

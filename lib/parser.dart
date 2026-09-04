@@ -168,3 +168,33 @@ String setLabel({double? kg, int? reps}) => [
       if (kg != null) formatKg(kg),
       if (reps != null) '$reps회',
     ].join(' · ');
+
+/// 치고 있는 줄의 **마지막 숫자**를 한 단계 민다.
+///
+/// 칸이 나뉘어 있지 않으니 어느 숫자를 밀지 정해야 한다. 지금 치고 있는 것,
+/// 곧 맨 뒤의 숫자다. 단위는 그 앞을 보고 안다 — "100kg 20" 의 20 은 횟수라
+/// 1씩, "100" 은 무게라 원판 단위인 2.5씩 움직인다.
+///
+/// 숫자가 아예 없으면 무게 한 단계를 세워 준다.
+String bumpLastNumber(String line, int direction) {
+  final match = RegExp(r'(\d+(?:\.\d+)?)(\s*)$').firstMatch(line);
+  if (match == null) {
+    final seed = direction > 0 ? 2.5 : 0.0;
+    return seed == 0 ? line : '${line.trimRight()}${line.isEmpty ? '' : ' '}2.5';
+  }
+
+  final before = line.substring(0, match.start);
+  // 이 숫자 앞에 무게 단위가 이미 나왔으면, 이건 횟수 자리다.
+  final isReps = RegExp(r'(kg|킬로|파운드|lb)\s*$', caseSensitive: false)
+      .hasMatch(before.trimRight().isEmpty ? '' : before);
+  final step = isReps ? 1.0 : 2.5;
+
+  final current = double.parse(match.group(1)!);
+  final next = (current + direction * step).clamp(0, 9999);
+  if (next == 0) return before.trimRight() + (before.trimRight().isEmpty ? '' : ' ');
+
+  final text = next == next.roundToDouble()
+      ? next.round().toString()
+      : next.toStringAsFixed(1);
+  return '$before$text${match.group(2)}';
+}

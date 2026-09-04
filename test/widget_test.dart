@@ -118,6 +118,56 @@ void main() {
   });
 
   keypadTests();
+
+  markAndRemoveTests();
+}
+
+void markAndRemoveTests() {
+  group('세트 표시와 취소', () {
+    test('넣는 순간은 해낸 세트다', () {
+      final c = RoutineEditorController()..commit('벤치프레스');
+      c.commit('100kg 10회');
+      expect(c.blocks.single.sets.single.done, isTrue);
+      expect(c.totalSets, 1);
+    });
+
+    test('완료를 끄면 집계에서 빠지고 내보내기에도 안 담긴다', () {
+      final c = RoutineEditorController()..commit('벤치프레스');
+      c.commit('100kg 10회');
+      c.commit('90kg 8회');
+      c.toggleDone(0, 1);
+      expect(c.totalSets, 1);
+      expect(c.asText(), '벤치프레스\n1세트 100kg · 10회');
+    });
+
+    test('세트를 취소하면 그 줄만 빠진다', () {
+      final c = RoutineEditorController()..commit('벤치프레스');
+      c.commit('100kg 10회');
+      c.commit('90kg 8회');
+      c.removeSet(0, 0);
+      expect(c.blocks.single.sets.length, 1);
+      expect(c.blocks.single.sets.single.kg, 90);
+    });
+
+    test('운동을 삭제하면 통째로 사라진다', () {
+      final c = RoutineEditorController()..commit('벤치프레스');
+      c.commit('100kg 10회');
+      c.commit('');
+      c.commit('스쿼트');
+      c.commit('120kg 5회');
+      c.removeBlock(0);
+      expect(c.blocks.length, 1);
+      expect(c.blocks.single.name, '스쿼트');
+    });
+
+    test('모두 지워도 터지지 않고 처음 상태로 돌아간다', () {
+      final c = RoutineEditorController()..commit('벤치프레스');
+      c.commit('100kg 10회');
+      c.removeBlock(0);
+      expect(c.blocks, isEmpty);
+      expect(c.naming, isTrue);
+    });
+  });
 }
 
 void keypadTests() {
@@ -171,7 +221,8 @@ void keypadTests() {
             of: find.byType(SetKeypad),
             matching: find.text(label),
           );
-      for (final k in ['1', '0', '0', 'kg', '2', '0', '회']) {
+      // 단위 키는 없다 — 파서가 "100 20" 을 100kg 20회로 읽는다.
+      for (final k in ['1', '0', '0', '␣', '2', '0']) {
         await tester.tap(key(k));
         await tester.pump();
       }
