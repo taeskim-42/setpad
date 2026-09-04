@@ -114,4 +114,27 @@ void bumpTests() {
       expect(bumpLastNumber('100kg 20 ', 1), '100kg 21 ');
     });
   });
+
+  group('영어 검색', () {
+    test('bench 로 벤치프레스가 먼저 나온다', () {
+      expect(suggest('bench', seedExercises).first, '벤치프레스');
+    });
+
+    test('표시 이름은 한글 그대로다', () {
+      for (final name in suggest('press', seedExercises)) {
+        expect(RegExp(r'[a-z]', caseSensitive: false).hasMatch(name), isFalse);
+      }
+    });
+
+    test('약어와 부분어도 잡는다', () {
+      expect(suggest('rdl', seedExercises), contains('루마니안 데드리프트'));
+      expect(suggest('ohp', seedExercises), contains('오버헤드프레스'));
+      expect(suggest('squat', seedExercises), contains('스쿼트'));
+      expect(suggest('curl', seedExercises), contains('바벨컬'));
+    });
+
+    test('한글 검색은 그대로 동작한다', () {
+      expect(suggest('벤', seedExercises).first, '벤치프레스');
+    });
+  });
 }

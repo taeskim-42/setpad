@@ -25,6 +25,71 @@ const seedExercises = <String>[
   '러닝', '사이클', '로잉', '버피', '점핑잭',
 ];
 
+/// 영어로 치는 사람도 많다. 표시 이름은 한글 그대로 두고 **검색 키만** 늘린다
+/// — "bench" 로 찾아도 카드에는 벤치프레스라고 적힌다. 씨앗에만 붙는다.
+/// 사용자가 직접 만든 이름은 친 그대로가 곧 검색 키다.
+const _english = <String, String>{
+  '벤치프레스': 'bench press bp',
+  '인클라인 벤치프레스': 'incline bench press',
+  '디클라인 벤치프레스': 'decline bench press',
+  '덤벨 프레스': 'dumbbell press db press',
+  '인클라인 덤벨 프레스': 'incline dumbbell press',
+  '체스트 프레스': 'chest press',
+  '펙덱 플라이': 'pec deck fly',
+  '케이블 크로스오버': 'cable crossover',
+  '푸시업': 'push up pushup',
+  '데드리프트': 'deadlift dead lift dl',
+  '루마니안 데드리프트': 'romanian deadlift rdl',
+  '랫풀다운': 'lat pulldown pull down',
+  '풀업': 'pull up pullup',
+  '턱걸이': 'pull up pullup',
+  '친업': 'chin up chinup',
+  '바벨로우': 'barbell row',
+  '덤벨로우': 'dumbbell row db row',
+  '시티드 로우': 'seated row',
+  '케이블 로우': 'cable row',
+  '티바로우': 't bar row tbar',
+  '스쿼트': 'squat',
+  '프론트 스쿼트': 'front squat',
+  '핵스쿼트': 'hack squat',
+  '레그프레스': 'leg press',
+  '레그익스텐션': 'leg extension',
+  '레그컬': 'leg curl',
+  '런지': 'lunge',
+  '불가리안 스플릿 스쿼트': 'bulgarian split squat',
+  '힙쓰러스트': 'hip thrust',
+  '카프레이즈': 'calf raise',
+  '레그레이즈': 'leg raise',
+  '오버헤드프레스': 'overhead press ohp',
+  '숄더프레스': 'shoulder press',
+  '덤벨 숄더프레스': 'dumbbell shoulder press',
+  '사이드 레터럴 레이즈': 'side lateral raise',
+  '프론트 레이즈': 'front raise',
+  '벤트오버 레터럴 레이즈': 'bent over lateral raise rear delt',
+  '업라이트 로우': 'upright row',
+  '슈러그': 'shrug',
+  '바벨컬': 'barbell curl',
+  '덤벨컬': 'dumbbell curl db curl',
+  '해머컬': 'hammer curl',
+  '프리처컬': 'preacher curl',
+  '케이블컬': 'cable curl',
+  '트라이셉스 익스텐션': 'triceps extension tricep',
+  '케이블 푸시다운': 'cable pushdown push down',
+  '딥스': 'dips dip',
+  '킥백': 'kickback kick back',
+  '플랭크': 'plank',
+  '사이드 플랭크': 'side plank',
+  '크런치': 'crunch',
+  '싯업': 'sit up situp',
+  '행잉 레그레이즈': 'hanging leg raise',
+  '러시안 트위스트': 'russian twist',
+  '러닝': 'running run treadmill',
+  '사이클': 'cycling bike',
+  '로잉': 'rowing row machine',
+  '버피': 'burpee',
+  '점핑잭': 'jumping jack',
+};
+
 /// 친 글자에 맞는 후보를 순위대로.
 ///
 /// 앞글자 일치가 먼저다 — "벤"을 친 사람이 원하는 건 벤치프레스지
@@ -36,16 +101,11 @@ List<String> suggest(String query, List<String> pool, {int limit = 6}) {
 
   final scored = <({String name, int rank})>[];
   for (final name in pool) {
-    final lower = name.toLowerCase();
+    // 한글 이름과 영어 검색 키 중 더 좋은 쪽을 그 운동의 점수로 삼는다.
     int? rank;
-    if (lower == q) {
-      rank = 0;
-    } else if (lower.startsWith(q)) {
-      rank = 1;
-    } else if (lower.split(RegExp(r'\s+')).any((w) => w.startsWith(q))) {
-      rank = 2;
-    } else if (lower.contains(q)) {
-      rank = 3;
+    for (final key in [name.toLowerCase(), ?_english[name]]) {
+      final r = _rank(key, q);
+      if (r != null && (rank == null || r < rank)) rank = r;
     }
     if (rank != null) scored.add((name: name, rank: rank));
   }
@@ -55,6 +115,14 @@ List<String> suggest(String query, List<String> pool, {int limit = 6}) {
     return byRank != 0 ? byRank : a.name.length.compareTo(b.name.length);
   });
   return scored.take(limit).map((e) => e.name).toList();
+}
+
+int? _rank(String key, String q) {
+  if (key == q) return 0;
+  if (key.startsWith(q)) return 1;
+  if (key.split(RegExp(r'\s+')).any((w) => w.startsWith(q))) return 2;
+  if (key.contains(q)) return 3;
+  return null;
 }
 
 class ParsedSet {
