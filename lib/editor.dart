@@ -198,6 +198,11 @@ class _RoutineEditorState extends State<RoutineEditor> {
   void initState() {
     super.initState();
     _c.addListener(_onChanged);
+    // 시스템 키보드를 스와이프로 내리면 포커스가 풀린다. 그대로 두면 키패드도
+    // 사라진 채 남아서, 세트를 하나 커밋하기 전에는 되돌릴 방법이 없었다.
+    _focus.addListener(() {
+      if (!_focus.hasFocus && _wantText) setState(() => _wantText = false);
+    });
   }
 
   @override
@@ -226,6 +231,16 @@ class _RoutineEditorState extends State<RoutineEditor> {
             duration: const Duration(milliseconds: 160), curve: Curves.easeOut);
       }
     });
+  }
+
+  /// 포커스를 쥔 채 키보드만 내려간 경우 requestFocus 는 아무 일도 하지 않는다.
+  /// 그때는 입력 연결을 직접 다시 연다.
+  void _reopen() {
+    if (!_focus.hasFocus) {
+      _focus.requestFocus();
+    } else if (!_padMode) {
+      SystemChannels.textInput.invokeMethod('TextInput.show');
+    }
   }
 
   List<String> get _matches =>
@@ -302,7 +317,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
         Expanded(
           child: GestureDetector(
             // 빈 곳을 눌러도 커서를 잃지 않는다.
-            onTap: () => _focus.requestFocus(),
+            onTap: _reopen,
             behavior: HitTestBehavior.opaque,
             child: ListView.builder(
               controller: _scroll,
@@ -341,7 +356,8 @@ class _RoutineEditorState extends State<RoutineEditor> {
             onSubmit: () => _commit(),
             onText: () {
               setState(() => _wantText = true);
-              _focus.requestFocus();
+              // 읽기 전용이 풀린 뒤라야 키보드가 글자판으로 열린다.
+              WidgetsBinding.instance.addPostFrameCallback((_) => _reopen());
             },
             onAdjust: (direction) {
               final next = bumpLastNumber(_input.text, direction);
@@ -360,6 +376,27 @@ class _RoutineEditorState extends State<RoutineEditor> {
                 ? null
                 : setLabel(kg: _c.lastSet!.kg, reps: _c.lastSet!.reps),
             onRepeat: _c.repeatLastSet,
+          ),
+        // 메모를 치는 동안에도 돌아올 문은 열어 둔다.
+        if (_c.inBlock && _wantText)
+          Material(
+            color: const Color(0xFFD8D9DE),
+            child: SafeArea(
+              top: false,
+              child: SizedBox(
+                height: 42,
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: () {
+                    setState(() => _wantText = false);
+                    _focus.requestFocus();
+                  },
+                  icon: const Icon(Icons.dialpad, size: 17),
+                  label: const Text('숫자 키패드'),
+                  style: TextButton.styleFrom(foregroundColor: seal),
+                ),
+              ),
+            ),
           ),
       ],
     );
@@ -385,6 +422,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
         showCursor: true,
         keyboardType: readOnly ? TextInputType.none : TextInputType.text,
         textInputAction: TextInputAction.done,
+        onTap: _reopen,
         onSubmitted: (_) =>
             _commit(_matches.isNotEmpty ? _matches[_highlight] : null),
         onChanged: (_) => setState(() => _highlight = 0),

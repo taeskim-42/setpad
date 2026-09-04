@@ -232,4 +232,24 @@ void keypadTests() {
       expect(find.text('100kg · 20회'), findsOneWidget);
     });
   });
+
+  group('키보드 전환', () {
+    testWidgets('메모로 넘어갔다가 키패드로 돌아온다', (tester) async {
+      await tester.pumpWidget(const SetpadApp());
+      await tester.enterText(find.byType(TextField).last, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(find.byType(SetKeypad), findsOneWidget);
+
+      // ⌨ — 시스템 키보드로 넘어간다
+      await tester.tap(find.byIcon(Icons.keyboard_alt_outlined));
+      await tester.pumpAndSettle();
+      expect(find.byType(SetKeypad), findsNothing);
+
+      // 되돌아올 문이 남아 있어야 한다
+      await tester.tap(find.text('숫자 키패드'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SetKeypad), findsOneWidget);
+    });
+  });
 }
