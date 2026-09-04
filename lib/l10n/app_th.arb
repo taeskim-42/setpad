@@ -1,0 +1,13 @@
+{
+  "@@locale": "th",
+  "appTitle": "การฝึกวันนี้",
+  "copy": "คัดลอก",
+  "copied": "คัดลอกแล้ว",
+  "howTo": "พิมพ์ชื่อท่าแล้วกด Enter → พิมพ์เซ็ตแล้วกด Enter → กด Enter ที่บรรทัดว่างเพื่อไปท่าถัดไป",
+  "exerciseNameHint": "ชื่อท่า",
+  "repeatPrevious": "เหมือนเซ็ตก่อน",
+  "addSet": "เพิ่มเซ็ต",
+  "numberKeypad": "แป้นตัวเลข",
+  "setOrdinal": "เซ็ต {n}",
+  "repsCount": "{n} ครั้ง"
+}

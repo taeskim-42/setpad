@@ -1,0 +1,38 @@
+{
+  "@@locale": "ko",
+  "appTitle": "오늘 운동",
+  "@appTitle": {
+    "description": "앱 바 제목"
+  },
+  "copy": "복사",
+  "copied": "복사했습니다",
+  "howTo": "운동 이름을 치고 Enter → 세트를 치고 Enter → 빈 줄에서 Enter면 다음 운동",
+  "@howTo": {
+    "description": "첫 화면 안내. 화살표는 그대로 둔다"
+  },
+  "exerciseNameHint": "운동 이름",
+  "repeatPrevious": "이전과 같이",
+  "@repeatPrevious": {
+    "description": "키패드 맨 위. 뒤에 직전 세트가 붙는다"
+  },
+  "addSet": "세트 추가",
+  "numberKeypad": "숫자 키패드",
+  "setOrdinal": "{n}세트",
+  "@setOrdinal": {
+    "description": "세트 번호",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "repsCount": "{n}회",
+  "@repsCount": {
+    "description": "횟수",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  }
+}

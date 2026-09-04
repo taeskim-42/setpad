@@ -4,6 +4,23 @@ import 'package:setpad/editor.dart';
 import 'package:setpad/keypad.dart';
 import 'package:setpad/main.dart';
 
+/// pumpAndSettle 의 기본 한도는 10분이다. 무언가 프레임을 계속 잡으면
+/// 테스트가 멈춘 것처럼 보이므로 5초로 줄여 빨리 터지게 한다.
+Future<void> settle(WidgetTester tester) => tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 5));
+
+/// 위젯 테스트의 기본 기기 언어는 en 이다. 한국어 문구를 확인하려면
+/// 기기 언어를 정해 놓고 띄워야 한다.
+Future<void> pumpApp(WidgetTester tester,
+    {Locale locale = const Locale('ko')}) async {
+  tester.platformDispatcher.localesTestValue = [locale];
+  addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+  await tester.pumpWidget(const SetpadApp());
+  await tester.pump();
+}
+
 void main() {
   group('에디터 상태', () {
     test('처음에는 이름을 받고, 이름을 넣으면 세트를 받는다', () {
@@ -70,7 +87,7 @@ void main() {
 
     test('친 이름이 씨앗 목록보다 먼저 제안된다', () {
       final c = RoutineEditorController()..commit('벤치 살짝 기울여서');
-      expect(c.vocabulary.first, '벤치 살짝 기울여서');
+      expect(c.vocabulary('ko').first, '벤치 살짝 기울여서');
     });
 
     test('복사용 텍스트는 세트가 있는 운동만 담는다', () {
@@ -83,11 +100,11 @@ void main() {
 
   group('화면', () {
     testWidgets('이름을 치면 화면에 뜨고, 세트 칸으로 넘어간다', (tester) async {
-      await tester.pumpWidget(const SetpadApp());
+      await pumpApp(tester);
 
       await tester.enterText(find.byType(TextField), '벤치프레스');
       await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pumpAndSettle();
+      await settle(tester);
       expect(find.text('벤치프레스'), findsOneWidget);
 
       // 세트 칸은 터치 기기에서 읽기 전용이다 — 시스템 키보드를 부르지 않고
@@ -98,21 +115,21 @@ void main() {
     });
 
     testWidgets('"벤"을 치면 후보가 뜨고 눌러서 고를 수 있다', (tester) async {
-      await tester.pumpWidget(const SetpadApp());
+      await pumpApp(tester);
 
       await tester.enterText(find.byType(TextField), '벤');
-      await tester.pumpAndSettle();
+      await settle(tester);
       expect(find.widgetWithText(ActionChip, '벤치프레스'), findsOneWidget);
 
       await tester.tap(find.widgetWithText(ActionChip, '벤치프레스'));
-      await tester.pumpAndSettle();
+      await settle(tester);
       // 후보는 사라지고 운동 블록이 생긴다
       expect(find.widgetWithText(ActionChip, '벤치프레스'), findsNothing);
       expect(find.text('벤치프레스'), findsOneWidget);
     });
 
     testWidgets('빈 화면에는 쓰는 법이 적혀 있다', (tester) async {
-      await tester.pumpWidget(const SetpadApp());
+      await pumpApp(tester);
       expect(find.textContaining('운동 이름을 치고 Enter'), findsOneWidget);
     });
   });
@@ -200,21 +217,21 @@ void keypadTests() {
 
   group('키패드 화면', () {
     testWidgets('세트를 받는 중에만 키패드가 뜬다', (tester) async {
-      await tester.pumpWidget(const SetpadApp());
+      await pumpApp(tester);
       // 처음엔 운동 이름을 받으므로 키패드가 없다
       expect(find.byType(SetKeypad), findsNothing);
 
       await tester.enterText(find.byType(TextField), '벤치프레스');
       await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pumpAndSettle();
+      await settle(tester);
       expect(find.byType(SetKeypad), findsOneWidget);
     });
 
     testWidgets('키패드만으로 세트 한 줄이 완성된다', (tester) async {
-      await tester.pumpWidget(const SetpadApp());
+      await pumpApp(tester);
       await tester.enterText(find.byType(TextField), '스쿼트');
       await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pumpAndSettle();
+      await settle(tester);
 
       // 키패드 안에서만 찾는다 — 화면에도 같은 숫자가 떠 있을 수 있다.
       Finder key(String label) => find.descendant(
@@ -227,7 +244,7 @@ void keypadTests() {
         await tester.pump();
       }
       await tester.tap(key('세트 추가'));
-      await tester.pumpAndSettle();
+      await settle(tester);
 
       expect(find.text('100kg · 20회'), findsOneWidget);
     });
@@ -235,21 +252,76 @@ void keypadTests() {
 
   group('키보드 전환', () {
     testWidgets('메모로 넘어갔다가 키패드로 돌아온다', (tester) async {
-      await tester.pumpWidget(const SetpadApp());
+      await pumpApp(tester);
       await tester.enterText(find.byType(TextField).last, '벤치프레스');
       await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pumpAndSettle();
+      await settle(tester);
       expect(find.byType(SetKeypad), findsOneWidget);
 
       // ⌨ — 시스템 키보드로 넘어간다
       await tester.tap(find.byIcon(Icons.keyboard_alt_outlined));
-      await tester.pumpAndSettle();
+      await settle(tester);
       expect(find.byType(SetKeypad), findsNothing);
 
       // 되돌아올 문이 남아 있어야 한다
       await tester.tap(find.text('숫자 키패드'));
-      await tester.pumpAndSettle();
+      await settle(tester);
       expect(find.byType(SetKeypad), findsOneWidget);
+    });
+  });
+
+  group('다국어 화면', () {
+    testWidgets('영어 기기에서는 영어로 뜬다', (tester) async {
+      await pumpApp(tester, locale: const Locale('en'));
+      expect(find.text("Today's Workout"), findsOneWidget);
+      expect(find.text('Copy'), findsOneWidget);
+      expect(find.textContaining('Type an exercise'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).last, 'bench');
+      await settle(tester);
+      expect(find.text('Bench Press'), findsOneWidget);
+
+      await tester.tap(find.text('Bench Press'));
+      await settle(tester);
+      expect(find.text('Add Set'), findsOneWidget);
+
+      // 세트 칸은 읽기 전용이라 키패드로만 친다 — 실제 사용 경로도 그쪽이다.
+      Finder key(String label) => find.descendant(
+            of: find.byType(SetKeypad), matching: find.text(label));
+      for (final k in ['1', '0', '0', '␣', '1', '0']) {
+        await tester.tap(key(k));
+        await tester.pump();
+      }
+      await tester.tap(key('Add Set'));
+      await settle(tester);
+      expect(find.text('Set 1'), findsOneWidget);
+      expect(find.text('100kg · 10 reps'), findsOneWidget);
+    });
+
+    testWidgets('일본어 기기에서는 일본어 이름이 나온다', (tester) async {
+      await pumpApp(tester, locale: const Locale('ja'));
+      expect(find.text('今日のトレーニング'), findsOneWidget);
+      // 한글로 쳐도 일본어 이름으로 나온다
+      await tester.enterText(find.byType(TextField).last, '벤치');
+      await settle(tester);
+      expect(find.text('ベンチプレス'), findsOneWidget);
+    });
+
+    testWidgets('zh-TW 처럼 문자 체계 없이 와도 번체로 붙는다', (tester) async {
+      await pumpApp(tester, locale: const Locale('zh', 'TW'));
+      expect(find.text('今日訓練'), findsOneWidget);
+
+      await pumpApp(tester, locale: const Locale('zh', 'CN'));
+      expect(find.text('今日训练'), findsOneWidget);
+    });
+
+    testWidgets('번체 중국어는 간체와 다른 이름을 낸다', (tester) async {
+      await pumpApp(tester,
+          locale: const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'));
+      expect(find.text('今日訓練'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).last, 'bench');
+      await settle(tester);
+      expect(find.text('臥推'), findsOneWidget);
     });
   });
 }

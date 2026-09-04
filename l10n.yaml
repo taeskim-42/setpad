@@ -1,0 +1,12 @@
+# 번역 파일 → L 코드 생성. attamama-flutter 와 같은 배선이다.
+#
+# app_ko.arb 가 **키의 원천**이다. 다른 언어는 여기 있는 키만 채운다.
+# untranslated-messages-file 이 빠진 키를 파일로 뱉으므로, 번역이 빈 채로
+# 머지되는 걸 눈으로 잡을 수 있다.
+arb-dir: lib/l10n
+template-arb-file: app_ko.arb
+output-localization-file: app_localizations.dart
+output-dir: lib/l10n/generated
+output-class: L
+nullable-getter: false
+untranslated-messages-file: lib/l10n/untranslated.json

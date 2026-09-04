@@ -1,0 +1,13 @@
+{
+  "@@locale": "en",
+  "appTitle": "Today's Workout",
+  "copy": "Copy",
+  "copied": "Copied",
+  "howTo": "Type an exercise and hit Enter → type a set and hit Enter → Enter on an empty line for the next exercise",
+  "exerciseNameHint": "Exercise name",
+  "repeatPrevious": "Same as last",
+  "addSet": "Add Set",
+  "numberKeypad": "Number Keypad",
+  "setOrdinal": "Set {n}",
+  "repsCount": "{n} reps"
+}

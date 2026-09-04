@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'editor.dart';
+import 'l10n/generated/app_localizations.dart';
 
 void main() => runApp(const SetpadApp());
 
@@ -18,6 +19,27 @@ class SetpadApp extends StatelessWidget {
     return MaterialApp(
       title: 'Setpad',
       debugShowCheckedModeBanner: false,
+      // 지원 언어를 하나 더하거나 뺄 때 여기를 같이 고칠 일이 없도록
+      // 생성된 목록을 그대로 쓴다. arb 파일이 곧 지원 언어 목록이다.
+      supportedLocales: L.supportedLocales,
+      localizationsDelegates: L.localizationsDelegates,
+      // 기기는 zh-TW / zh-HK 처럼 **문자 체계 없이** 보낸다. 그대로 두면
+      // 번체에 못 붙고 기본 zh(간체)로 떨어져 대만 사용자가 간체를 본다.
+      // 나라 코드를 보고 문자 체계를 채운 뒤 평소 규칙에 넘긴다.
+      localeListResolutionCallback: (locales, supported) =>
+          basicLocaleListResolution([
+            for (final l in locales ?? const <Locale>[])
+              if (l.languageCode == 'zh' && l.scriptCode == null)
+                Locale.fromSubtags(
+                  languageCode: 'zh',
+                  scriptCode: const ['TW', 'HK', 'MO'].contains(l.countryCode)
+                      ? 'Hant'
+                      : 'Hans',
+                  countryCode: l.countryCode,
+                )
+              else
+                l,
+          ], supported),
       theme: ThemeData(
         colorScheme: base.copyWith(primary: _seal, surface: Colors.white),
         scaffoldBackgroundColor: const Color(0xFFE9E9EC),
@@ -48,32 +70,41 @@ class _EditorPageState extends State<EditorPage> {
   }
 
   void _copy() {
-    final text = _editor.asText();
+    final l = L.of(context);
+    final text = _editor.asText(
+      setOrdinal: l.setOrdinal,
+      formatReps: l.repsCount,
+    );
     if (text.isEmpty) return;
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(
-        const SnackBar(content: Text('복사했습니다'), duration: Duration(seconds: 2)),
+        SnackBar(
+          content: Text(L.of(context).copied),
+          duration: const Duration(seconds: 2),
+        ),
       );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = L.of(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
-        title: const Text(
-          '오늘 운동',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: -0.3),
+        title: Text(
+          l.appTitle,
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: -0.3),
         ),
         actions: [
           ListenableBuilder(
             listenable: _editor,
             builder: (context, _) => TextButton(
               onPressed: _editor.blocks.isEmpty ? null : _copy,
-              child: const Text('복사', style: TextStyle(fontWeight: FontWeight.w700)),
+              child: Text(l.copy,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
           ),
         ],
@@ -92,8 +123,7 @@ class _EditorPageState extends State<EditorPage> {
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              '운동 이름을 치고 Enter → 세트를 치고 Enter → '
-                              '빈 줄에서 Enter면 다음 운동',
+                              l.howTo,
                               style: TextStyle(
                                 fontSize: 12,
                                 height: 1.5,

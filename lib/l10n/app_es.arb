@@ -1,0 +1,13 @@
+{
+  "@@locale": "es",
+  "appTitle": "Entrenamiento de Hoy",
+  "copy": "Copiar",
+  "copied": "Copiado",
+  "howTo": "Escribe el ejercicio y pulsa Enter → escribe la serie y pulsa Enter → Enter en línea vacía para el siguiente",
+  "exerciseNameHint": "Nombre del ejercicio",
+  "repeatPrevious": "Igual que antes",
+  "addSet": "Añadir Serie",
+  "numberKeypad": "Teclado Numérico",
+  "setOrdinal": "Serie {n}",
+  "repsCount": "{n} reps"
+}

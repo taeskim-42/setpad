@@ -1,0 +1,13 @@
+{
+  "@@locale": "ja",
+  "appTitle": "今日のトレーニング",
+  "copy": "コピー",
+  "copied": "コピーしました",
+  "howTo": "種目名を入力して Enter → セットを入力して Enter → 空行で Enter を押すと次の種目",
+  "exerciseNameHint": "種目名",
+  "repeatPrevious": "前回と同じ",
+  "addSet": "セット追加",
+  "numberKeypad": "数字キーパッド",
+  "setOrdinal": "{n}セット",
+  "repsCount": "{n}回"
+}

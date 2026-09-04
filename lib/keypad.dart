@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'l10n/generated/app_localizations.dart';
+
 const _seal = Color(0xFFC3372A);
 
 /// 세트를 칠 때만 뜨는 키패드.
@@ -62,7 +64,7 @@ class SetKeypad extends StatelessWidget {
                 child: SizedBox(
                   width: double.infinity,
                   child: _Key(
-                    label: '이전과 같이  $repeatLabel',
+                    label: '${L.of(context).repeatPrevious}  $repeatLabel',
                     onTap: onRepeat!,
                     tone: _Tone.accent,
                     height: 38,
@@ -120,7 +122,7 @@ class SetKeypad extends StatelessWidget {
                         ],
                       ),
                       _pad(_Key(
-                        label: '세트 추가',
+                        label: L.of(context).addSet,
                         onTap: onSubmit,
                         tone: _Tone.primary,
                         height: 46,

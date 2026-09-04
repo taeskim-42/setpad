@@ -1,0 +1,13 @@
+{
+  "@@locale": "zh",
+  "appTitle": "今日训练",
+  "copy": "复制",
+  "copied": "已复制",
+  "howTo": "输入动作名称后按 Enter → 输入组数后按 Enter → 空行按 Enter 换下一个动作",
+  "exerciseNameHint": "动作名称",
+  "repeatPrevious": "同上一组",
+  "addSet": "添加组",
+  "numberKeypad": "数字键盘",
+  "setOrdinal": "第{n}组",
+  "repsCount": "{n}次"
+}

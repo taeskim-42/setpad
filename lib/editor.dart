@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'keypad.dart';
+import 'l10n/generated/app_localizations.dart';
+import 'exercises.dart';
 import 'parser.dart';
 
 const seal = Color(0xFFC3372A);
@@ -30,9 +32,10 @@ class RoutineEditorController extends ChangeNotifier {
   final List<String> _learned = [];
 
   /// 이 기기에서 실제로 친 이름이 씨앗 목록보다 앞선다.
-  List<String> get vocabulary => [
+  /// 씨앗은 화면 언어의 이름으로 낸다 — 검색은 어느 언어로 하든 잡힌다.
+  List<String> vocabulary(String lang) => [
         ..._learned,
-        ...seedExercises.where((e) => !_learned.contains(e)),
+        ...seedNames(lang).where((e) => !_learned.contains(e)),
       ];
 
   /// 마지막 운동이 아직 세트를 받는 중인가.
@@ -152,7 +155,12 @@ class RoutineEditorController extends ChangeNotifier {
   int get totalSets =>
       blocks.fold(0, (n, b) => n + b.sets.where((s) => s.done).length);
 
-  String asText() => blocks
+  /// 클립보드로 나가는 글. 세트·횟수 표기는 화면 언어를 탄다.
+  String asText({
+    String Function(int n)? setOrdinal,
+    String Function(int n)? formatReps,
+  }) =>
+      blocks
       .map((b) => (name: b.name, sets: b.sets.where((s) => s.done).toList()))
       .where((b) => b.sets.isNotEmpty)
       .map((b) {
@@ -160,8 +168,11 @@ class RoutineEditorController extends ChangeNotifier {
         for (var i = 0; i < b.sets.length; i++) {
           final s = b.sets[i];
           lines.add([
-            '${i + 1}세트',
-            setLabel(kg: s.kg, reps: s.reps),
+            setOrdinal?.call(i + 1) ?? '${i + 1}세트',
+            setLabel(
+                kg: s.kg,
+                reps: s.reps,
+                formatReps: formatReps ?? (n) => '$n회'),
             if (s.note != null) s.note!,
           ].join(' '));
         }
@@ -244,7 +255,13 @@ class _RoutineEditorState extends State<RoutineEditor> {
   }
 
   List<String> get _matches =>
-      _c.naming ? suggest(_input.text, _c.vocabulary) : const [];
+      _c.naming ? suggest(_input.text, _c.vocabulary(_lang)) : const [];
+
+  /// 사전에서 어느 언어의 이름을 낼지. 검색은 언어를 가리지 않는다.
+  String get _lang {
+    final locale = Localizations.localeOf(context);
+    return langKeyOf(locale.languageCode, locale.scriptCode, locale.countryCode);
+  }
 
   void _commit([String? pick]) {
     final value = pick ?? _input.text;
@@ -374,7 +391,10 @@ class _RoutineEditorState extends State<RoutineEditor> {
                 : '2.5',
             repeatLabel: _c.lastSet == null
                 ? null
-                : setLabel(kg: _c.lastSet!.kg, reps: _c.lastSet!.reps),
+                : setLabel(
+                    kg: _c.lastSet!.kg,
+                    reps: _c.lastSet!.reps,
+                    formatReps: L.of(context).repsCount),
             onRepeat: _c.repeatLastSet,
           ),
         // 메모를 치는 동안에도 돌아올 문은 열어 둔다.
@@ -392,7 +412,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
                     _focus.requestFocus();
                   },
                   icon: const Icon(Icons.dialpad, size: 17),
-                  label: const Text('숫자 키패드'),
+                  label: Text(L.of(context).numberKeypad),
                   style: TextButton.styleFrom(foregroundColor: seal),
                 ),
               ),
@@ -437,7 +457,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: bold ? 10 : 6),
-          hintText: bold ? '운동 이름' : '100  20',
+          hintText: bold ? L.of(context).exerciseNameHint : '100  20',
           hintStyle: TextStyle(
             fontSize: bold ? 15.5 : 14,
             fontWeight: bold ? FontWeight.w800 : FontWeight.w500,
@@ -562,12 +582,15 @@ class _SetRow extends StatelessWidget {
           ),
           SizedBox(
             width: 42,
-            child: Text('${index + 1}세트',
+            child: Text(L.of(context).setOrdinal(index + 1),
                 style: TextStyle(
                     fontSize: 12, color: Colors.black.withValues(alpha: 0.35))),
           ),
           Text(
-            setLabel(kg: set.kg, reps: set.reps),
+            setLabel(
+                kg: set.kg,
+                reps: set.reps,
+                formatReps: L.of(context).repsCount),
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,

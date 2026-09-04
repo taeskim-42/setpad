@@ -1,0 +1,13 @@
+{
+  "@@locale": "vi",
+  "appTitle": "Buổi Tập Hôm Nay",
+  "copy": "Sao chép",
+  "copied": "Đã sao chép",
+  "howTo": "Nhập tên bài tập rồi Enter → nhập hiệp rồi Enter → Enter ở dòng trống để sang bài kế",
+  "exerciseNameHint": "Tên bài tập",
+  "repeatPrevious": "Như hiệp trước",
+  "addSet": "Thêm Hiệp",
+  "numberKeypad": "Bàn Phím Số",
+  "setOrdinal": "Hiệp {n}",
+  "repsCount": "{n} lần"
+}

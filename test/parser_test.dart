@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:setpad/exercises.dart';
 import 'package:setpad/parser.dart';
 
 void main() {
@@ -117,24 +118,92 @@ void bumpTests() {
 
   group('영어 검색', () {
     test('bench 로 벤치프레스가 먼저 나온다', () {
-      expect(suggest('bench', seedExercises).first, '벤치프레스');
+      expect(suggest('bench', seedNames('ko')).first, '벤치프레스');
     });
 
     test('표시 이름은 한글 그대로다', () {
-      for (final name in suggest('press', seedExercises)) {
+      for (final name in suggest('press', seedNames('ko'))) {
         expect(RegExp(r'[a-z]', caseSensitive: false).hasMatch(name), isFalse);
       }
     });
 
     test('약어와 부분어도 잡는다', () {
-      expect(suggest('rdl', seedExercises), contains('루마니안 데드리프트'));
-      expect(suggest('ohp', seedExercises), contains('오버헤드프레스'));
-      expect(suggest('squat', seedExercises), contains('스쿼트'));
-      expect(suggest('curl', seedExercises), contains('바벨컬'));
+      expect(suggest('rdl', seedNames('ko')), contains('루마니안 데드리프트'));
+      expect(suggest('ohp', seedNames('ko')), contains('오버헤드프레스'));
+      expect(suggest('squat', seedNames('ko')), contains('스쿼트'));
+      expect(suggest('curl', seedNames('ko')), contains('바벨컬'));
     });
 
     test('한글 검색은 그대로 동작한다', () {
-      expect(suggest('벤', seedExercises).first, '벤치프레스');
+      expect(suggest('벤', seedNames('ko')).first, '벤치프레스');
+    });
+  });
+
+  group('다국어 사전', () {
+    test('여덟 언어가 다 채워져 있다', () {
+      for (final e in exercises) {
+        for (final n in [e.ko, e.en, e.ja, e.zhHans, e.zhHant, e.es, e.vi, e.th]) {
+          expect(n.trim(), isNotEmpty, reason: '${e.ko} 에 빈 이름');
+        }
+      }
+    });
+
+    test('표시 이름은 화면 언어를 따른다', () {
+      expect(seedNames('en').first, 'Bench Press');
+      expect(seedNames('ja').first, 'ベンチプレス');
+      expect(seedNames('zh_Hant').first, '臥推');
+      expect(seedNames('vi').first, 'Đẩy Ngực');
+      expect(seedNames('ko').first, '벤치프레스');
+    });
+
+    test('어느 언어로 쳐도 화면 언어의 이름이 나온다', () {
+      // 영어 화면에서 한글로 치는 트레이너
+      expect(suggest('벤치', seedNames('en')).first, 'Bench Press');
+      // 한글 화면에서 영어로 치는 회원
+      expect(suggest('squat', seedNames('ko')).first, '스쿼트');
+      expect(suggest('卧推', seedNames('ko')).first, '벤치프레스');
+      expect(suggest('sentadilla', seedNames('ja')).first, 'スクワット');
+    });
+
+    test('중국어는 문자 체계를 갈라 본다', () {
+      expect(langKeyOf('zh', 'Hant', null), 'zh_Hant');
+      expect(langKeyOf('zh', null, 'TW'), 'zh_Hant');
+      expect(langKeyOf('zh', null, 'CN'), 'zh_Hans');
+      expect(langKeyOf('ja', null, 'JP'), 'ja');
+    });
+
+    test('사전에 없는 이름은 친 그대로가 검색 키다', () {
+      expect(suggest('벤치 살짝', ['벤치 살짝 기울여서']), ['벤치 살짝 기울여서']);
+    });
+  });
+
+  group('초성 검색', () {
+    test('ㅂㅊㅍㄹㅅ 로 벤치프레스를 찾는다', () {
+      expect(chosungOf('벤치프레스'), 'ㅂㅊㅍㄹㅅ');
+      expect(suggest('ㅂㅊㅍㄹㅅ', seedNames('ko')), contains('벤치프레스'));
+      expect(suggest('ㅅㅋㅌ', seedNames('ko')), contains('스쿼트'));
+      expect(suggest('ㄷㄷㄹㅍㅌ', seedNames('ko')), contains('데드리프트'));
+    });
+
+    test('앞 몇 글자만 쳐도 잡힌다', () {
+      expect(suggest('ㅂㅊ', seedNames('ko')).first, '벤치프레스');
+    });
+
+    test('한글 아닌 글자는 그대로 둔다', () {
+      expect(chosungOf('T바 로우'), 'Tㅂ ㄹㅇ');
+    });
+  });
+
+  group('다른 언어 단위', () {
+    test('세트 단위를 언어별로 읽는다', () {
+      expect(parseSetLine('100kg 10회 3세트')!.count, 3);
+      expect(parseSetLine('100kg 10回 3セット')!.count, 3);
+      expect(parseSetLine('100kg 10次 3组')!.count, 3);
+      expect(parseSetLine('100kg 10 lần 3 hiệp')!.count, 3);
+    });
+
+    test('lbs 도 kg 으로 환산한다', () {
+      expect(parseSetLine('225lbs 5reps')!.kg, closeTo(102.1, 0.2));
     });
   });
 }

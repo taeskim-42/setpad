@@ -2,99 +2,16 @@
 /// 유일하게 틀릴 수 있는 곳이고, 화면 없이 테스트할 수 있어야 해서다.
 library;
 
-/// 새 헬스장이 첫날부터 이름을 다 타이핑하지 않도록 하는 씨앗 목록.
-/// 마스터 테이블이 아니다 — 실제 어휘는 사용자가 친 이름에서 자란다.
-const seedExercises = <String>[
-  // 가슴
-  '벤치프레스', '인클라인 벤치프레스', '디클라인 벤치프레스', '덤벨 프레스',
-  '인클라인 덤벨 프레스', '체스트 프레스', '펙덱 플라이', '케이블 크로스오버', '푸시업',
-  // 등
-  '데드리프트', '루마니안 데드리프트', '랫풀다운', '풀업', '턱걸이', '친업',
-  '바벨로우', '덤벨로우', '시티드 로우', '케이블 로우', '티바로우',
-  // 하체
-  '스쿼트', '프론트 스쿼트', '핵스쿼트', '레그프레스', '레그익스텐션', '레그컬',
-  '런지', '불가리안 스플릿 스쿼트', '힙쓰러스트', '카프레이즈', '레그레이즈',
-  // 어깨
-  '오버헤드프레스', '숄더프레스', '덤벨 숄더프레스', '사이드 레터럴 레이즈',
-  '프론트 레이즈', '벤트오버 레터럴 레이즈', '업라이트 로우', '슈러그',
-  // 팔
-  '바벨컬', '덤벨컬', '해머컬', '프리처컬', '케이블컬',
-  '트라이셉스 익스텐션', '케이블 푸시다운', '딥스', '킥백',
-  // 코어·유산소
-  '플랭크', '사이드 플랭크', '크런치', '싯업', '행잉 레그레이즈', '러시안 트위스트',
-  '러닝', '사이클', '로잉', '버피', '점핑잭',
-];
-
-/// 영어로 치는 사람도 많다. 표시 이름은 한글 그대로 두고 **검색 키만** 늘린다
-/// — "bench" 로 찾아도 카드에는 벤치프레스라고 적힌다. 씨앗에만 붙는다.
-/// 사용자가 직접 만든 이름은 친 그대로가 곧 검색 키다.
-const _english = <String, String>{
-  '벤치프레스': 'bench press bp',
-  '인클라인 벤치프레스': 'incline bench press',
-  '디클라인 벤치프레스': 'decline bench press',
-  '덤벨 프레스': 'dumbbell press db press',
-  '인클라인 덤벨 프레스': 'incline dumbbell press',
-  '체스트 프레스': 'chest press',
-  '펙덱 플라이': 'pec deck fly',
-  '케이블 크로스오버': 'cable crossover',
-  '푸시업': 'push up pushup',
-  '데드리프트': 'deadlift dead lift dl',
-  '루마니안 데드리프트': 'romanian deadlift rdl',
-  '랫풀다운': 'lat pulldown pull down',
-  '풀업': 'pull up pullup',
-  '턱걸이': 'pull up pullup',
-  '친업': 'chin up chinup',
-  '바벨로우': 'barbell row',
-  '덤벨로우': 'dumbbell row db row',
-  '시티드 로우': 'seated row',
-  '케이블 로우': 'cable row',
-  '티바로우': 't bar row tbar',
-  '스쿼트': 'squat',
-  '프론트 스쿼트': 'front squat',
-  '핵스쿼트': 'hack squat',
-  '레그프레스': 'leg press',
-  '레그익스텐션': 'leg extension',
-  '레그컬': 'leg curl',
-  '런지': 'lunge',
-  '불가리안 스플릿 스쿼트': 'bulgarian split squat',
-  '힙쓰러스트': 'hip thrust',
-  '카프레이즈': 'calf raise',
-  '레그레이즈': 'leg raise',
-  '오버헤드프레스': 'overhead press ohp',
-  '숄더프레스': 'shoulder press',
-  '덤벨 숄더프레스': 'dumbbell shoulder press',
-  '사이드 레터럴 레이즈': 'side lateral raise',
-  '프론트 레이즈': 'front raise',
-  '벤트오버 레터럴 레이즈': 'bent over lateral raise rear delt',
-  '업라이트 로우': 'upright row',
-  '슈러그': 'shrug',
-  '바벨컬': 'barbell curl',
-  '덤벨컬': 'dumbbell curl db curl',
-  '해머컬': 'hammer curl',
-  '프리처컬': 'preacher curl',
-  '케이블컬': 'cable curl',
-  '트라이셉스 익스텐션': 'triceps extension tricep',
-  '케이블 푸시다운': 'cable pushdown push down',
-  '딥스': 'dips dip',
-  '킥백': 'kickback kick back',
-  '플랭크': 'plank',
-  '사이드 플랭크': 'side plank',
-  '크런치': 'crunch',
-  '싯업': 'sit up situp',
-  '행잉 레그레이즈': 'hanging leg raise',
-  '러시안 트위스트': 'russian twist',
-  '러닝': 'running run treadmill',
-  '사이클': 'cycling bike',
-  '로잉': 'rowing row machine',
-  '버피': 'burpee',
-  '점핑잭': 'jumping jack',
-};
+import 'exercises.dart';
 
 /// 친 글자에 맞는 후보를 순위대로.
 ///
 /// 앞글자 일치가 먼저다 — "벤"을 친 사람이 원하는 건 벤치프레스지
 /// 이름 안쪽에 '벤'이 든 무언가가 아니다. 그래도 안쪽 일치를 버리지는 않아서
 /// "덤벨"로 "인클라인 덤벨 프레스"를 찾을 수 있다.
+///
+/// 화면 언어와 상관없이 여덟 언어와 초성을 전부 받는다 — 사전에 있는 운동은
+/// 어느 이름으로 쳐도 찾히고, 나오는 건 화면 언어의 이름이다.
 List<String> suggest(String query, List<String> pool, {int limit = 6}) {
   final q = query.trim().toLowerCase();
   if (q.isEmpty) return const [];
@@ -103,7 +20,8 @@ List<String> suggest(String query, List<String> pool, {int limit = 6}) {
   for (final name in pool) {
     // 한글 이름과 영어 검색 키 중 더 좋은 쪽을 그 운동의 점수로 삼는다.
     int? rank;
-    for (final key in [name.toLowerCase(), ?_english[name]]) {
+    for (final key in exerciseByName[name.toLowerCase()]?.keys ??
+        [name.toLowerCase()]) {
       final r = _rank(key, q);
       if (r != null && (rank == null || r < rank)) rank = r;
     }
@@ -152,10 +70,18 @@ class ParsedSet {
   int get hashCode => Object.hash(kg, reps, note, count);
 }
 
-final _unit = RegExp(
-  r'^(\d+(?:\.\d+)?)\s*(kg|킬로|파운드|lb|회|개|rep|reps|세트|set|sets)$',
-  caseSensitive: false,
-);
+/// 여덟 언어의 단위어. 어느 언어로 치든 같은 뜻으로 읽는다.
+const _units = 'kg|킬로|kilo|kilos|lb|lbs|파운드|'
+    '세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต|'
+    '회|개|rep|reps|回|次|lần|ครั้ง|veces';
+
+final _unit = RegExp('^(\\d+(?:\\.\\d+)?)\\s*($_units)\$',
+    caseSensitive: false);
+
+/// 숫자와 단위를 띄어 쓰는 언어가 있다 — "10 lần", "100 kg". 붙여 놓고
+/// 시작해야 한 토큰으로 읽힌다.
+final _spacedUnit =
+    RegExp('(\\d)\\s+($_units)(?=\\s|\$)', caseSensitive: false);
 final _repeat = RegExp(r'^[x×*](\d+)$', caseSensitive: false);
 final _bare = RegExp(r'^\d+(?:\.\d+)?$');
 
@@ -165,7 +91,9 @@ final _bare = RegExp(r'^\d+(?:\.\d+)?$');
 /// 없으면 첫 숫자가 무게, 둘째가 횟수다. 다만 숫자가 하나뿐이면 항상 횟수로
 /// 읽는다. 맨몸 운동이 그렇게 적히기 때문이다.
 ParsedSet? parseSetLine(String line) {
-  final text = line.trim();
+  final text = line
+      .trim()
+      .replaceAllMapped(_spacedUnit, (m) => '${m[1]}${m[2]}');
   if (text.isEmpty) return null;
 
   double? kg;
@@ -179,15 +107,12 @@ ParsedSet? parseSetLine(String line) {
     if (unit != null) {
       final value = double.parse(unit.group(1)!);
       switch (unit.group(2)!.toLowerCase()) {
-        case 'kg':
-        case '킬로':
+        case 'kg' || '킬로' || 'kilo' || 'kilos':
           kg = value;
-        case 'lb':
-        case '파운드':
+        case 'lb' || 'lbs' || '파운드':
           kg = (value * 0.4536 * 10).round() / 10;
-        case '세트':
-        case 'set':
-        case 'sets':
+        case '세트' || 'set' || 'sets' || 'セット' || '组' || '組' ||
+              'serie' || 'series' || 'hiệp' || 'เซ็ต':
           count = value.round();
         default:
           reps = value.round();
@@ -231,10 +156,20 @@ ParsedSet? parseSetLine(String line) {
 String formatKg(double kg) =>
     kg == kg.roundToDouble() ? '${kg.round()}kg' : '${kg}kg';
 
-/// "100kg · 20회"
-String setLabel({double? kg, int? reps}) => [
+/// "100kg · 20회" / "100kg · 20 reps"
+///
+/// 횟수 단위는 화면 언어를 타므로 밖에서 넣는다(L.repsCount). 기본값은
+/// 한국어 — 파서만 떼어 테스트할 때 화면을 세우지 않아도 되게.
+String _koReps(int n) => '$n회';
+
+String setLabel({
+  double? kg,
+  int? reps,
+  String Function(int n) formatReps = _koReps,
+}) =>
+    [
       if (kg != null) formatKg(kg),
-      if (reps != null) '$reps회',
+      if (reps != null) formatReps(reps),
     ].join(' · ');
 
 /// 치고 있는 줄의 **마지막 숫자**를 한 단계 민다.
