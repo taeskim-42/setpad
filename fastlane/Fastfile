@@ -11,7 +11,11 @@
 # 필요한 환경변수 (~/.zshrc 에 있다):
 #   ASC_KEY_ID  ASC_ISSUER_ID  MATCH_PASSWORD
 
-APP_ID = "com.taeskim.setpad"
+# App Store Connect 의 앱 레코드('벌리', id 6757940370)가 이 ID 로 묶여 있고
+# 빌드 37 까지 올라가 있다. 레코드는 첫 빌드가 올라간 뒤 번들 ID 를 못 바꾼다.
+# 이름(setpad)과 안 맞지만 번들 ID 는 사용자에게 안 보이고, 살아 있는 스토어
+# 레코드를 버리는 값이 훨씬 크다. Android 도 같은 ID 로 맞춰 둔다.
+APP_ID = "com.tskim.workoutlog"
 
 default_platform(:ios)
 
@@ -97,7 +101,7 @@ platform :ios do
     upload_to_testflight(
       api_key: asc_key,
       app_identifier: APP_ID,
-      ipa: "../build/ios/ipa/setpad.ipa",
+      ipa: "build/ios/ipa/setpad.ipa",
       # 처리 완료를 기다리지 않는다. 몇 분씩 붙잡고 있을 이유가 없다.
       skip_waiting_for_build_processing: true,
     )
@@ -115,7 +119,7 @@ platform :android do
     upload_to_play_store(
       package_name: APP_ID,
       track: "internal",
-      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      aab: "build/app/outputs/bundle/release/app-release.aab",
       # 등록정보·그래픽은 콘솔에서 사람이 쥔다. 여기서는 바이너리만 올린다.
       skip_upload_metadata: true,
       skip_upload_images: true,

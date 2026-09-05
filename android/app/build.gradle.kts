@@ -17,7 +17,7 @@ plugins {
 }
 
 android {
-    namespace = "com.taeskim.setpad"
+    namespace = "com.tskim.workoutlog"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -38,7 +38,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.taeskim.setpad"
+        applicationId = "com.tskim.workoutlog"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
