@@ -40,7 +40,71 @@ int? _rank(String key, String q) {
   if (key.startsWith(q)) return 1;
   if (key.split(RegExp(r'\s+')).any((w) => w.startsWith(q))) return 2;
   if (key.contains(q)) return 3;
-  return null;
+
+  // 여기부터는 **덜 정확해도 보여주는** 단계다. 위 네 줄에 걸리는 것이 있으면
+  // 늘 먼저 오므로, 잘 되던 검색의 순서는 그대로다.
+
+  // 공백만 다른 경우. "benchpress" 처럼 붙여 치는 사람이 많고, 한글 이름도
+  // "벤치 프레스" 와 "벤치프레스" 가 섞인다.
+  final bare = key.replaceAll(RegExp(r'\s+'), '');
+  if (bare.startsWith(q)) return 4;
+  if (bare.contains(q)) return 5;
+
+  // 오타. 자모로 풀어 **비율**로 잰다 — 몇 글자가 아니라 얼마나 틀렸는지다.
+  //
+  // 길이도 자모로 잰다. String.length 는 UTF-16 낱개를 세므로 한글에서
+  // 뜻대로 안 움직인다 — '스퀏' 이 2 로 나와 짧은 질의로 걸러졌었다.
+  final jq = jamoOf(q);
+  if (jq.length < 4) return null;
+  final budget = (jq.length * _typoRatio).floor();
+  if (budget == 0) return null;
+  final d = _typoDistance(jamoOf(bare), jq, budget);
+  return d == null ? null : 6 + d;
+}
+
+/// 친 자모의 몇 할까지 틀려도 후보로 올릴 것인가. 3분의 1을 넘으면 그건
+/// 오타가 아니라 다른 말이다 — 재보니 이 값에서 '스퀏→스쿼트'는 잡히고
+/// 'ㅋㅋ' 같은 잡음은 걸러진다.
+const _typoRatio = 0.34;
+
+/// 친 글자가 [key]의 **어느 앞부분**과 몇 글자 다른가. [max]를 넘으면 null.
+///
+/// 앞부분과 견주는 이유는 사람이 이름을 끝까지 치지 않아서다 — "bech" 는
+/// "benchpress" 전체가 아니라 "bench" 를 겨눈 것이고, 그 사이가 한 글자다.
+/// 자리바꿈(bnech→bench)을 한 번으로 세는 것도 그게 가장 흔한 오타라서다.
+int? _typoDistance(String key, String q, int max) {
+  if (key.length + max < q.length) return null;
+  // row[j] = q 를 다 쓰고 key 를 j 까지 썼을 때의 거리.
+  var prev2 = <int>[];
+  var prev = List<int>.generate(key.length + 1, (j) => j);
+  for (var i = 1; i <= q.length; i++) {
+    final row = List<int>.filled(key.length + 1, 0);
+    row[0] = i;
+    var best = i;
+    for (var j = 1; j <= key.length; j++) {
+      final cost = q.codeUnitAt(i - 1) == key.codeUnitAt(j - 1) ? 0 : 1;
+      var v = prev[j] + 1;
+      if (row[j - 1] + 1 < v) v = row[j - 1] + 1;
+      if (prev[j - 1] + cost < v) v = prev[j - 1] + cost;
+      // 자리바꿈 한 번.
+      if (i > 1 &&
+          j > 1 &&
+          q.codeUnitAt(i - 1) == key.codeUnitAt(j - 2) &&
+          q.codeUnitAt(i - 2) == key.codeUnitAt(j - 1) &&
+          prev2[j - 2] + 1 < v) {
+        v = prev2[j - 2] + 1;
+      }
+      row[j] = v;
+      if (v < best) best = v;
+    }
+    // 이 줄이 통째로 한도를 넘었으면 더 가도 줄지 않는다.
+    if (best > max) return null;
+    prev2 = prev;
+    prev = row;
+  }
+  // key 를 어디까지 쓰든 상관없다 — 이름을 끝까지 치지 않은 것뿐이다.
+  final best = prev.reduce((a, b) => a < b ? a : b);
+  return best <= max ? best : null;
 }
 
 class ParsedSet {

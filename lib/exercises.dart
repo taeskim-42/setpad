@@ -57,6 +57,38 @@ String chosungOf(String text) => String.fromCharCodes(text.runes.expand((r) {
       return _cho[(r - 0xAC00) ~/ 28 ~/ 21].runes;
     }));
 
+const _jung = [
+  'ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ',
+  'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ',
+];
+const _jong = [
+  '', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ',
+  'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ',
+  'ㅌ', 'ㅍ', 'ㅎ',
+];
+
+/// 한글을 자모로 푼다. 벤 → ㅂㅔㄴ. 한글이 아니면 그대로 둔다.
+///
+/// **왜 자모로 재는가.** 오타를 음절 단위로 세면 '밴치프레스'는 다섯 자 중
+/// 한 자가 틀린 것(20%)이지만, 실제로 틀린 건 ㅔ/ㅐ 하나다 — 자모로는 열한
+/// 개 중 하나(9%)다. 음절로 세면 한글에만 유독 가혹해서, 오타를 봐주려고
+/// 한도를 올리면 이번엔 영어에서 엉뚱한 것이 걸린다. 자모로 재면 언어마다
+/// 다른 한도를 둘 이유가 없어진다.
+String jamoOf(String text) {
+  final out = StringBuffer();
+  for (final r in text.runes) {
+    if (r < 0xAC00 || r > 0xD7A3) {
+      out.writeCharCode(r);
+      continue;
+    }
+    final code = r - 0xAC00;
+    out.write(_cho[code ~/ 588]);
+    out.write(_jung[(code % 588) ~/ 28]);
+    out.write(_jong[code % 28]);
+  }
+  return out.toString();
+}
+
 /// ko, en, ja, 简体, 繁體, es, vi, th, [별칭]
 const exercises = <Exercise>[
   // 가슴
