@@ -22,6 +22,7 @@ class SetKeypad extends StatelessWidget {
     required this.onText,
     required this.onAdjust,
     required this.stepLabel,
+    required this.hasInput,
     this.repeatLabel,
     this.onRepeat,
   });
@@ -39,6 +40,10 @@ class SetKeypad extends StatelessWidget {
 
   /// 지금 밀면 얼마가 움직이는지. 누르기 전에 보여야 한다.
   final String stepLabel;
+
+  /// 칠 것이 들어 있는가. 비었으면 더할 세트가 없으므로 같은 키가 운동을
+  /// 닫는 일을 한다 — 동작은 원래 그랬고, 이름만 그때그때 맞춘다.
+  final bool hasInput;
 
   /// 직전 세트를 그대로 한 번 더 — 운동 기록에서 가장 흔한 동작이다.
   final String? repeatLabel;
@@ -122,7 +127,9 @@ class SetKeypad extends StatelessWidget {
                         ],
                       ),
                       _pad(_Key(
-                        label: L.of(context).addSet,
+                        label: hasInput
+                            ? L.of(context).addSet
+                            : L.of(context).finishExercise,
                         onTap: onSubmit,
                         tone: _Tone.primary,
                         height: 46,

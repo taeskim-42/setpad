@@ -43,10 +43,30 @@ class RoutineEditorController extends ChangeNotifier {
   /// 이 값이 참이면 커서는 그 운동 카드 **안**에 있고, 거짓이면 카드 밖에서
   /// 새 운동 이름을 기다린다. 화면에서 커서가 있는 자리가 곧 모드라서
   /// 따로 안내할 것이 없다.
-  bool get inBlock => blocks.isNotEmpty && !_closed;
-  bool _closed = true;
+  bool get inBlock => _active >= 0 && _active < blocks.length;
+
+  /// 지금 세트를 받고 있는 운동. -1 이면 카드 밖이고 새 운동 이름을 기다린다.
+  ///
+  /// 예전에는 "닫혔나" 하나였고 세트는 늘 마지막 운동으로 갔다. 그러면 앞서
+  /// 끝낸 운동에 한 세트를 더 붙일 방법이 없다 — 실제로는 한 운동을 끝내고
+  /// 다른 걸 하다가 돌아오는 일이 흔하다. 어느 카드가 열려 있는지를 들고
+  /// 있으면 카드를 눌러 그리로 옮겨갈 수 있다.
+  int get activeIndex => _active;
+  int _active = -1;
 
   bool get naming => !inBlock;
+
+  /// 카드를 눌러 그 운동을 다시 연다.
+  void openBlock(int index) {
+    if (index < 0 || index >= blocks.length || index == _active) return;
+    // 열려 있던 운동이 빈 채로 남으면 치우고 나간다 — closeBlock 과 같은 규칙.
+    if (inBlock && blocks[_active].sets.isEmpty) {
+      blocks.removeAt(_active);
+      if (index > _active) index -= 1;
+    }
+    _active = index;
+    notifyListeners();
+  }
 
   void addExercise(String name) {
     final clean = name.trim();
@@ -54,28 +74,28 @@ class RoutineEditorController extends ChangeNotifier {
     blocks.add(ExerciseBlock(clean));
     _learned.remove(clean);
     _learned.insert(0, clean);
-    _closed = false;
+    _active = blocks.length - 1;
     notifyListeners();
   }
 
   bool addSet(String line) {
     final parsed = parseSetLine(line);
-    if (parsed == null || blocks.isEmpty || _closed) return false;
+    if (parsed == null || !inBlock) return false;
     final set = LoggedSet(kg: parsed.kg, reps: parsed.reps, note: parsed.note);
-    blocks.last.sets.addAll(List.generate(parsed.count, (_) => set));
+    blocks[_active].sets.addAll(List.generate(parsed.count, (_) => set));
     notifyListeners();
     return true;
   }
 
   /// 직전 세트 — 키패드의 "이전과 같이" 가 보여줄 것.
   LoggedSet? get lastSet =>
-      inBlock && blocks.last.sets.isNotEmpty ? blocks.last.sets.last : null;
+      inBlock && blocks[_active].sets.isNotEmpty ? blocks[_active].sets.last : null;
 
   /// 같은 세트를 한 번 더. 운동 기록에서 가장 흔한 동작이라 한 번에 준다.
   void repeatLastSet() {
     final s = lastSet;
     if (s == null) return;
-    blocks.last.sets.add(s);
+    blocks[_active].sets.add(s);
     notifyListeners();
   }
 
@@ -84,8 +104,8 @@ class RoutineEditorController extends ChangeNotifier {
   void closeBlock() {
     if (!inBlock) return;
     // 세트를 하나도 안 적은 운동은 남길 이유가 없다.
-    if (blocks.last.sets.isEmpty) blocks.removeLast();
-    _closed = true;
+    if (blocks[_active].sets.isEmpty) blocks.removeAt(_active);
+    _active = -1;
     notifyListeners();
   }
 
@@ -100,7 +120,7 @@ class RoutineEditorController extends ChangeNotifier {
       addExercise(text);
     } else if (!addSet(text)) {
       // 세트를 받는 중에 숫자 없는 줄이 오면 그 운동은 끝났고 다음 운동이다.
-      _closed = true;
+      _active = -1;
       addExercise(text);
     }
   }
@@ -115,40 +135,67 @@ class RoutineEditorController extends ChangeNotifier {
   void removeSet(int block, int set) {
     final b = blocks[block];
     b.sets.removeAt(set);
-    // 세트가 하나도 안 남은 운동은 남길 이유가 없다.
-    if (b.sets.isEmpty && block != blocks.length - 1) blocks.removeAt(block);
+    // 세트가 안 남은 운동은 치운다. 단 지금 치고 있는 운동은 남긴다 — 커서가
+    // 그 안에 있는데 카드가 사라지면 어디에 치는지 알 수 없다.
+    if (b.sets.isEmpty && block != _active) {
+      blocks.removeAt(block);
+      if (_active > block) _active -= 1;
+    }
     notifyListeners();
   }
 
   /// 운동 통째로 삭제.
   void removeBlock(int block) {
     blocks.removeAt(block);
-    if (blocks.isEmpty) _closed = true;
+    if (_active == block) {
+      _active = -1;
+    } else if (_active > block) {
+      _active -= 1;
+    }
     notifyListeners();
   }
+
+  /// 다음 지우기가 운동을 통째로 뗄 상황인가. 화면이 물어볼지 정하는 데 쓴다.
+  bool get backspaceRemovesBlock => inBlock && blocks[_active].sets.isEmpty;
 
   /// 빈 칸에서 지우기 — 마지막 세트부터, 세트가 없으면 운동을 뗀다.
   void backspace() {
     if (blocks.isEmpty) return;
-    if (_closed) {
+    if (!inBlock) {
       // 카드 밖이면 마지막 운동 안으로 다시 들어간다.
-      _closed = false;
+      _active = blocks.length - 1;
       notifyListeners();
       return;
     }
-    final last = blocks.last;
-    if (last.sets.isNotEmpty) {
-      last.sets.removeLast();
+    final open = blocks[_active];
+    if (open.sets.isNotEmpty) {
+      open.sets.removeLast();
     } else {
-      blocks.removeLast();
-      _closed = true;
+      blocks.removeAt(_active);
+      _active = -1;
     }
     notifyListeners();
   }
 
   void clear() {
     blocks.clear();
-    _closed = true;
+    _active = -1;
+    notifyListeners();
+  }
+
+  /// 저장해 둔 메모를 열 때. 커서는 카드 **밖**에서 시작한다 — 다시 연 사람은
+  /// 대개 다음 운동을 치지, 마지막 운동에 세트를 더 붙이지 않는다. 붙이려면
+  /// 그 카드를 누르면 된다.
+  void restore(List<ExerciseBlock> saved) {
+    blocks
+      ..clear()
+      ..addAll(saved);
+    // 저장된 이름도 이 기기에서 친 이름이다. 자동완성이 알아야 한다.
+    for (final b in saved.reversed) {
+      _learned.remove(b.name);
+      _learned.insert(0, b.name);
+    }
+    _active = -1;
     notifyListeners();
   }
 
@@ -181,6 +228,35 @@ class RoutineEditorController extends ChangeNotifier {
       .join('\n\n');
 }
 
+/// 운동을 통째로 지우기 전에 묻는다.
+///
+/// 부르는 곳이 둘이다 — 카드의 지우기 버튼, 그리고 백스페이스를 계속 눌러
+/// 세트가 다 빠진 뒤의 마지막 한 번. 결과가 같으므로 묻는 말도 같아야 한다.
+Future<bool> confirmRemoveExercise(BuildContext context, ExerciseBlock block) async {
+  final l = L.of(context);
+  final yes = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(l.deleteExerciseTitle(block.name)),
+      content: Text(block.sets.isEmpty
+          ? l.deleteExerciseEmptyBody
+          : l.deleteExerciseBody(block.sets.length)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(l.cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, true),
+          style: TextButton.styleFrom(foregroundColor: seal),
+          child: Text(l.delete),
+        ),
+      ],
+    ),
+  );
+  return yes ?? false;
+}
+
 /// 하나의 편집 흐름. 결과를 보는 곳과 치는 곳이 나뉘어 있지 않고,
 /// 커서가 늘 "지금 쓰는 자리"에 있다.
 class RoutineEditor extends StatefulWidget {
@@ -203,6 +279,10 @@ class _RoutineEditorState extends State<RoutineEditor> {
   /// 다시 키패드로 돌아온다 — 메모는 세트마다 붙는 게 아니라 가끔 붙는다.
   bool _wantText = false;
 
+  /// 칠 것이 들어 있는가. 키패드의 큰 키가 "세트 추가"인지 "운동 완료"인지를
+  /// 가른다. 뒤집힐 때만 다시 그린다 — 글자마다 그릴 이유가 없다.
+  bool _hasInput = false;
+
   RoutineEditorController get _c => widget.controller;
 
   @override
@@ -214,11 +294,27 @@ class _RoutineEditorState extends State<RoutineEditor> {
     _focus.addListener(() {
       if (!_focus.hasFocus && _wantText) setState(() => _wantText = false);
     });
+    _input.addListener(_onInput);
+  }
+
+  /// 닫힌 카드를 눌렀을 때. 커서를 그 카드로 옮기고 입력칸을 비운다 —
+  /// 치던 글자가 다른 운동으로 딸려 가면 안 된다.
+  void _openBlock(int index) {
+    _input.clear();
+    setState(() => _wantText = false);
+    _c.openBlock(index);
+    _reopen();
+  }
+
+  void _onInput() {
+    final has = _input.text.trim().isNotEmpty;
+    if (has != _hasInput && mounted) setState(() => _hasInput = has);
   }
 
   @override
   void dispose() {
     _c.removeListener(_onChanged);
+    _input.removeListener(_onInput);
     _input.dispose();
     _focus.dispose();
     _scroll.dispose();
@@ -290,6 +386,15 @@ class _RoutineEditorState extends State<RoutineEditor> {
   void _keypadBackspace() {
     final v = _input.value;
     if (v.text.isEmpty) {
+      // 세트가 다 빠진 뒤의 한 번은 운동 자체를 뗀다. 지우기 버튼과 같은
+      // 결과이므로 같은 것을 묻는다.
+      if (_c.backspaceRemovesBlock) {
+        final block = _c.blocks[_c.activeIndex];
+        confirmRemoveExercise(context, block).then((yes) {
+          if (yes && mounted) _c.backspace();
+        });
+        return;
+      }
       _c.backspace();
       return;
     }
@@ -326,8 +431,8 @@ class _RoutineEditorState extends State<RoutineEditor> {
   Widget build(BuildContext context) {
     final matches = _matches;
     final blocks = _c.blocks;
-    // 커서가 카드 안에 있으면 마지막 카드가 입력 줄을 품는다.
-    final openIndex = _c.inBlock ? blocks.length - 1 : -1;
+    // 커서가 든 카드가 입력 줄을 품는다.
+    final openIndex = _c.activeIndex;
 
     return Column(
       children: [
@@ -348,6 +453,8 @@ class _RoutineEditorState extends State<RoutineEditor> {
                     onToggle: (set) => _c.toggleDone(i, set),
                     onRemoveSet: (set) => _c.removeSet(i, set),
                     onRemoveBlock: () => _c.removeBlock(i),
+                    // 열려 있는 카드는 이미 거기다 — 누를 것이 없다.
+                    onOpen: i == openIndex ? null : () => _openBlock(i),
                   );
                 }
                 // 카드 밖 — 새 운동 이름 자리
@@ -368,6 +475,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
         // 세트를 받는 중일 때만. 운동 이름은 어휘가 무한해서 시스템 키보드가 맞다.
         if (_c.inBlock && !_wantText)
           SetKeypad(
+            hasInput: _hasInput,
             onKey: _insert,
             onBackspace: _keypadBackspace,
             onSubmit: () => _commit(),
@@ -476,6 +584,7 @@ class _BlockView extends StatelessWidget {
     required this.onToggle,
     required this.onRemoveSet,
     required this.onRemoveBlock,
+    required this.onOpen,
   });
 
   final ExerciseBlock block;
@@ -486,8 +595,24 @@ class _BlockView extends StatelessWidget {
   final ValueChanged<int> onRemoveSet;
   final VoidCallback onRemoveBlock;
 
+  /// 닫힌 카드를 눌러 그 운동을 다시 연다. 열려 있으면 null 이다.
+  final VoidCallback? onOpen;
+
+  Future<void> _confirmRemove(BuildContext context) async {
+    if (await confirmRemoveExercise(context, block)) onRemoveBlock();
+  }
+
+
   @override
   Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onOpen,
+      behavior: HitTestBehavior.opaque,
+      child: _card(context),
+    );
+  }
+
+  Widget _card(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
@@ -513,7 +638,7 @@ class _BlockView extends StatelessWidget {
                         fontSize: 15.5, fontWeight: FontWeight.w800)),
               ),
               GestureDetector(
-                onTap: onRemoveBlock,
+                onTap: () => _confirmRemove(context),
                 behavior: HitTestBehavior.opaque,
                 child: Padding(
                   padding: const EdgeInsets.only(left: 8, bottom: 2),

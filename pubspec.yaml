@@ -38,6 +38,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # 노트를 둘 곳. Flutter 에서 앱 문서 디렉터리를 얻으려면 플랫폼 채널이
+  # 필요해서 플러그인을 피할 수 없다. Flutter 팀이 관리하는 것으로 쓴다.
+  path_provider: ^2.1.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -168,6 +168,108 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{n}회'**
   String repsCount(int n);
+
+  /// No description provided for @allNotes.
+  ///
+  /// In ko, this message translates to:
+  /// **'모든 운동'**
+  String get allNotes;
+
+  /// No description provided for @noteCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}개의 운동'**
+  String noteCount(int n);
+
+  /// No description provided for @previous7Days.
+  ///
+  /// In ko, this message translates to:
+  /// **'이전 7일'**
+  String get previous7Days;
+
+  /// No description provided for @previous30Days.
+  ///
+  /// In ko, this message translates to:
+  /// **'이전 30일'**
+  String get previous30Days;
+
+  /// 30일보다 오래된 묶음의 제목
+  ///
+  /// In ko, this message translates to:
+  /// **'{m}월'**
+  String monthLabel(int m);
+
+  /// No description provided for @search.
+  ///
+  /// In ko, this message translates to:
+  /// **'검색'**
+  String get search;
+
+  /// No description provided for @newNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 운동'**
+  String get newNote;
+
+  /// No description provided for @untitledNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 운동'**
+  String get untitledNote;
+
+  /// No description provided for @noNotesYet.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 기록이 없습니다'**
+  String get noNotesYet;
+
+  /// No description provided for @noSearchResults.
+  ///
+  /// In ko, this message translates to:
+  /// **'찾는 기록이 없습니다'**
+  String get noSearchResults;
+
+  /// 목록의 날짜. 요일 또는 날짜
+  ///
+  /// In ko, this message translates to:
+  /// **'{d}'**
+  String dayLabel(DateTime d);
+
+  /// 키패드 큰 키. 칠 것이 없을 때 — 이 운동을 닫고 다음 운동으로
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 완료'**
+  String get finishExercise;
+
+  /// No description provided for @cancel.
+  ///
+  /// In ko, this message translates to:
+  /// **'취소'**
+  String get cancel;
+
+  /// No description provided for @delete.
+  ///
+  /// In ko, this message translates to:
+  /// **'삭제'**
+  String get delete;
+
+  /// No description provided for @deleteExerciseTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 삭제'**
+  String deleteExerciseTitle(String name);
+
+  /// No description provided for @deleteExerciseBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}개 세트가 함께 지워집니다. 되돌릴 수 없습니다.'**
+  String deleteExerciseBody(int n);
+
+  /// No description provided for @deleteExerciseEmptyBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 운동을 지웁니다.'**
+  String get deleteExerciseEmptyBody;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

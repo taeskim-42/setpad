@@ -34,5 +34,63 @@
         "type": "int"
       }
     }
-  }
+  },
+  "allNotes": "모든 운동",
+  "noteCount": "{n}개의 운동",
+  "@noteCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "previous7Days": "이전 7일",
+  "previous30Days": "이전 30일",
+  "monthLabel": "{m}월",
+  "@monthLabel": {
+    "description": "30일보다 오래된 묶음의 제목",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "search": "검색",
+  "newNote": "새 운동",
+  "untitledNote": "새 운동",
+  "noNotesYet": "아직 기록이 없습니다",
+  "noSearchResults": "찾는 기록이 없습니다",
+  "dayLabel": "{d}",
+  "@dayLabel": {
+    "description": "목록의 날짜. 요일 또는 날짜",
+    "placeholders": {
+      "d": {
+        "type": "DateTime",
+        "format": "yMd"
+      }
+    }
+  },
+  "finishExercise": "운동 완료",
+  "@finishExercise": {
+    "description": "키패드 큰 키. 칠 것이 없을 때 — 이 운동을 닫고 다음 운동으로"
+  },
+  "cancel": "취소",
+  "delete": "삭제",
+  "deleteExerciseTitle": "{name} 삭제",
+  "@deleteExerciseTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteExerciseBody": "{n}개 세트가 함께 지워집니다. 되돌릴 수 없습니다.",
+  "@deleteExerciseBody": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteExerciseEmptyBody": "이 운동을 지웁니다."
 }

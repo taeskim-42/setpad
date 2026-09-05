@@ -42,4 +42,68 @@ class LEn extends L {
   String repsCount(int n) {
     return '$n reps';
   }
+
+  @override
+  String get allNotes => 'All Workouts';
+
+  @override
+  String noteCount(int n) {
+    return '$n workouts';
+  }
+
+  @override
+  String get previous7Days => 'Previous 7 Days';
+
+  @override
+  String get previous30Days => 'Previous 30 Days';
+
+  @override
+  String monthLabel(int m) {
+    return '$m';
+  }
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String get newNote => 'New workout';
+
+  @override
+  String get untitledNote => 'New workout';
+
+  @override
+  String get noNotesYet => 'Nothing logged yet';
+
+  @override
+  String get noSearchResults => 'No matching records';
+
+  @override
+  String dayLabel(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.yMd(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
+
+  @override
+  String get finishExercise => 'Done';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String deleteExerciseTitle(String name) {
+    return 'Delete $name';
+  }
+
+  @override
+  String deleteExerciseBody(int n) {
+    return '$n sets will be deleted. This cannot be undone.';
+  }
+
+  @override
+  String get deleteExerciseEmptyBody => 'This exercise will be removed.';
 }

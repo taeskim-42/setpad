@@ -9,5 +9,22 @@
   "addSet": "Add Set",
   "numberKeypad": "Number Keypad",
   "setOrdinal": "Set {n}",
-  "repsCount": "{n} reps"
+  "repsCount": "{n} reps",
+  "allNotes": "All Workouts",
+  "noteCount": "{n} workouts",
+  "previous7Days": "Previous 7 Days",
+  "previous30Days": "Previous 30 Days",
+  "monthLabel": "{m}",
+  "search": "Search",
+  "newNote": "New workout",
+  "untitledNote": "New workout",
+  "noNotesYet": "Nothing logged yet",
+  "noSearchResults": "No matching records",
+  "dayLabel": "{d}",
+  "finishExercise": "Done",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "deleteExerciseTitle": "Delete {name}",
+  "deleteExerciseBody": "{n} sets will be deleted. This cannot be undone.",
+  "deleteExerciseEmptyBody": "This exercise will be removed."
 }

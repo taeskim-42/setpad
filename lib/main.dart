@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'notes.dart';
+import 'notes_list.dart';
 
 void main() => runApp(const SetpadApp());
 
@@ -10,7 +11,11 @@ void main() => runApp(const SetpadApp());
 const _seal = Color(0xFFC3372A);
 
 class SetpadApp extends StatelessWidget {
-  const SetpadApp({super.key});
+  /// [store] 는 테스트가 임시 폴더를 물릴 자리다. 비워 두면 앱 문서 디렉터리를
+  /// 쓰는 것을 스스로 만든다 — 그건 플랫폼 채널이라 테스트에서는 못 쓴다.
+  const SetpadApp({super.key, this.store});
+
+  final NotesStore? store;
 
   @override
   Widget build(BuildContext context) {
@@ -48,13 +53,94 @@ class SetpadApp extends StatelessWidget {
         fontFamilyFallback: const ['Apple SD Gothic Neo', 'Noto Sans KR', 'sans-serif'],
         useMaterial3: true,
       ),
-      home: const EditorPage(),
+      home: _Home(store: store),
     );
   }
 }
 
+/// 앱이 켜지는 자리.
+///
+/// **목록이 아니라 패드로 연다.** 헬스장에서 앱을 여는 이유는 세트를 하나
+/// 적으려는 것이지 지난 기록을 넘겨보려는 것이 아니다. 그래서 오늘 것이 있으면
+/// 그것을, 없으면 새 기록을 곧바로 펴고, 목록은 뒤로가기 한 번 뒤에 둔다.
+class _Home extends StatefulWidget {
+  const _Home({this.store});
+
+  final NotesStore? store;
+
+  @override
+  State<_Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<_Home> with WidgetsBindingObserver {
+  late final NotesStore _store = widget.store ?? NotesStore();
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _boot();
+  }
+
+  Future<void> _boot() async {
+    await _store.load();
+    if (!mounted) return;
+    setState(() => _ready = true);
+    // 첫 프레임이 그려진 뒤에 밀어 넣어야 목록이 뒤에 남는다.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _open(_todayOrNew()));
+  }
+
+  /// 오늘 고친 메모가 있으면 이어 쓴다. 하루에 앱을 여러 번 여는 흐름에서
+  /// 열 때마다 새 기록이 쌓이면 목록이 못 쓰게 된다.
+  Note _todayOrNew() {
+    final now = DateTime.now();
+    for (final n in _store.notes) {
+      final d = n.updatedAt;
+      if (d.year == now.year && d.month == now.month && d.day == now.day) return n;
+    }
+    return _store.create();
+  }
+
+  Future<void> _open(Note note) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => EditorPage(store: _store, note: note)),
+    );
+    // 아무것도 안 치고 나온 새 기록은 남기지 않는다.
+    _store.discardIfEmpty(note);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 앱이 내려갈 때는 디바운스를 기다리지 않는다.
+    if (state != AppLifecycleState.resumed) _store.flush();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _store.flush();
+    if (widget.store == null) _store.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_ready) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFE9E9EC),
+        body: SizedBox.shrink(),
+      );
+    }
+    return NotesListPage(store: _store, onOpen: _open);
+  }
+}
+
 class EditorPage extends StatefulWidget {
-  const EditorPage({super.key});
+  const EditorPage({super.key, required this.store, required this.note});
+
+  final NotesStore store;
+  final Note note;
 
   @override
   State<EditorPage> createState() => _EditorPageState();
@@ -64,28 +150,22 @@ class _EditorPageState extends State<EditorPage> {
   final _editor = RoutineEditorController();
 
   @override
+  void initState() {
+    super.initState();
+    _editor.restore(widget.note.blocks);
+    _editor.addListener(_persist);
+  }
+
+  void _persist() => widget.store.update(widget.note, _editor.blocks);
+
+  @override
   void dispose() {
+    _editor.removeListener(_persist);
+    widget.store.flush();
     _editor.dispose();
     super.dispose();
   }
 
-  void _copy() {
-    final l = L.of(context);
-    final text = _editor.asText(
-      setOrdinal: l.setOrdinal,
-      formatReps: l.repsCount,
-    );
-    if (text.isEmpty) return;
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context)
-      ..clearSnackBars()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(L.of(context).copied),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,20 +174,14 @@ class _EditorPageState extends State<EditorPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
-        title: Text(
-          l.appTitle,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: -0.3),
-        ),
-        actions: [
-          ListenableBuilder(
-            listenable: _editor,
-            builder: (context, _) => TextButton(
-              onPressed: _editor.blocks.isEmpty ? null : _copy,
-              child: Text(l.copy,
-                  style: const TextStyle(fontWeight: FontWeight.w700)),
-            ),
+        title: ListenableBuilder(
+          listenable: _editor,
+          builder: (context, _) => Text(
+            _editor.blocks.isEmpty ? l.appTitle : _editor.blocks.first.name,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: -0.3),
           ),
-        ],
+        ),
       ),
       body: SafeArea(
         child: Center(
