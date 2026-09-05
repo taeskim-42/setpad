@@ -836,5 +836,37 @@ void keypadTests() {
       }
     });
   });
-}
 
+  group('키패드 배치', () {
+    testWidgets('지우기가 0 옆에 있고, 큰 키는 다음이다', (tester) async {
+      await pumpApp(tester);
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+
+      Finder inPad_(Finder f) =>
+          find.descendant(of: find.byType(SetKeypad), matching: f);
+      // 아랫줄: . 0 ⌫ — Strong 과 같은 자리다.
+      for (final k in ['.', '0']) {
+        expect(inPad_(find.text(k)), findsOneWidget, reason: k);
+      }
+      expect(inPad_(find.byIcon(CupertinoIcons.delete_left)), findsOneWidget);
+      // 공백은 오른쪽 열로 옮겼다. 메모를 칠 때 손으로 띄울 일이 남아 있다.
+      expect(inPad_(find.text('␣')), findsOneWidget);
+      expect(inPad_(find.byIcon(CupertinoIcons.keyboard)), findsOneWidget);
+    });
+
+    testWidgets('아랫줄 지우기가 실제로 지운다', (tester) async {
+      await pumpApp(tester);
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      await tapKeys(tester, '100');
+      await tester.tap(find.descendant(
+          of: find.byType(SetKeypad),
+          matching: find.byIcon(CupertinoIcons.delete_left)));
+      await settle(tester);
+      expect(tester.widget<CupertinoTextField>(padField).controller!.text, '10');
+    });
+  });
+}

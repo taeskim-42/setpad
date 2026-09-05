@@ -118,6 +118,14 @@ class LZh extends L {
   String kcal(int n) {
     return '${n}kcal';
   }
+
+  @override
+  String weekdayLabel(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.EEEE(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).

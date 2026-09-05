@@ -96,9 +96,9 @@ class SetKeypad extends StatelessWidget {
                       _row(const ['1', '2', '3']),
                       _row(const ['4', '5', '6']),
                       _row(const ['7', '8', '9']),
-                      // 공백은 뺄 수 없다 — 칸이 나뉘어 있지 않아서
-                      // 무게와 횟수를 가르는 유일한 구분자다.
-                      _row(const ['.', '0', '␣']),
+                      // Strong 과 같은 자리에 지우기를 둔다. 숫자를 치다가
+                      // 틀렸을 때 손이 가장 가까운 곳이 여기다.
+                      _row(const ['.', '0', '⌫']),
                     ],
                   ),
                 ),
@@ -107,13 +107,17 @@ class SetKeypad extends StatelessWidget {
                   child: Column(
                     children: [
                       _pad(_Key(
-                        icon: CupertinoIcons.delete_left,
-                        onTap: onBackspace,
-                        tone: _Tone.dim,
-                      )),
-                      _pad(_Key(
                         icon: CupertinoIcons.keyboard,
                         onTap: onText,
+                        tone: _Tone.dim,
+                      )),
+                      // 공백. 예전에는 아랫줄에 있었는데 '다음' 키가 무게에서
+                      // 횟수로 넘기는 일을 맡으면서 자리를 내줬다. 메모를 칠
+                      // 때처럼 손으로 띄워야 하는 경우가 남아 있어 없애지는
+                      // 않는다.
+                      _pad(_Key(
+                        label: '␣',
+                        onTap: () => onKey(' '),
                         tone: _Tone.dim,
                       )),
                       Row(
@@ -159,11 +163,21 @@ class SetKeypad extends StatelessWidget {
         children: [
           for (final k in keys)
             Expanded(
-              child: _pad(_Key(
-                label: k,
-                onTap: () => onKey(k == '␣' ? ' ' : k),
-                tone: _Tone.plain,
-              )),
+              child: _pad(
+                k == '⌫'
+                    // 지우기는 글자가 아니라 동작이다. 숫자 키 사이에 있지만
+                    // 아이콘으로 내야 무엇인지 바로 보인다.
+                    ? _Key(
+                        icon: CupertinoIcons.delete_left,
+                        onTap: onBackspace,
+                        tone: _Tone.plain,
+                      )
+                    : _Key(
+                        label: k,
+                        onTap: () => onKey(k == '␣' ? ' ' : k),
+                        tone: _Tone.plain,
+                      ),
+              ),
             ),
         ],
       );

@@ -119,4 +119,12 @@ class LTh extends L {
   String kcal(int n) {
     return '${n}kcal';
   }
+
+  @override
+  String weekdayLabel(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.EEEE(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
 }

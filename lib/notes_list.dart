@@ -182,6 +182,16 @@ class _Group extends StatelessWidget {
   }
 }
 
+/// 목록에 붙는 시각.
+///
+/// 이번 주 것은 요일로, 그보다 오래된 것은 날짜로 낸다. 메모 앱이 그렇게 하고,
+/// 실제로도 어제 친 것을 "2026. 9. 4." 로 읽는 사람은 없다.
+String _when(L l, DateTime at) {
+  final now = DateTime.now();
+  final days = now.difference(at).inDays;
+  return days < 7 ? l.weekdayLabel(at) : l.dayLabel(at);
+}
+
 class _Row extends StatelessWidget {
   const _Row({required this.note, required this.onOpen, required this.onDelete});
 
@@ -239,7 +249,7 @@ class _Row extends StatelessWidget {
                     ...[
                       const SizedBox(height: 2),
                       Text(
-                        [l.dayLabel(note.updatedAt), if (summary.isNotEmpty) summary]
+                        [_when(l, note.updatedAt), if (summary.isNotEmpty) summary]
                             .join('  '),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

@@ -29,5 +29,6 @@
   "deleteExerciseEmptyBody": "This exercise will be removed.",
   "next": "Next",
   "stepSizeTitle": "{unit} step",
-  "kcal": "{n} kcal"
+  "kcal": "{n} kcal",
+  "weekdayLabel": "{d}"
 }

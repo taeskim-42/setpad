@@ -288,6 +288,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{n}kcal'**
   String kcal(int n);
+
+  /// 최근 기록의 요일. 메모 앱이 최근 것을 요일로 낸다
+  ///
+  /// In ko, this message translates to:
+  /// **'{d}'**
+  String weekdayLabel(DateTime d);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
