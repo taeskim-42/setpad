@@ -44,3 +44,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 .last_build_id
+
+# fastlane 실행 산출물. 매번 바뀌고 남길 값이 없다.
+fastlane/report.xml
+fastlane/test_output/
