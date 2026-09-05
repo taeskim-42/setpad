@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:health/health.dart';
 
 /// 건강 앱 연동.
@@ -82,6 +83,51 @@ class HealthLink {
     } catch (e) {
       debugPrint('활동 칼로리 읽기 실패: $e');
       return null;
+    }
+  }
+
+  /// 워치가 심박을 쓸 때마다 iOS 가 앱을 깨워 올려 보내는 값.
+  ///
+  /// health 플러그인에는 이 경로가 없다 — iOS 쪽이 일회성 쿼리만 구현하고
+  /// HKObserverQuery 와 enableBackgroundDelivery 가 빠져 있다. 그 두 개만
+  /// 우리가 붙였다(ios/Runner/HeartRateObserver.swift).
+  static const _channel = MethodChannel('setpad/heart_rate');
+
+  /// 심박이 올 때마다 부른다. [sinceLastWake] 는 직전 깨어남과의 간격 —
+  /// HealthKit 이 실제로 얼마나 자주 깨워 주는지가 여기 드러난다. 심박으로
+  /// 휴식을 끊어 줄 수 있는지가 이 숫자에 달려 있어서 같이 낸다.
+  void onBeat(
+      void Function({required int bpm, required Duration lag, Duration? sinceLastWake}) f) {
+    _channel.setMethodCallHandler((call) async {
+      if (call.method != 'beat') return null;
+      final a = (call.arguments as Map).cast<String, dynamic>();
+      final since = a['sinceLastWakeSeconds'] as int?;
+      f(
+        bpm: a['bpm'] as int,
+        lag: Duration(seconds: a['lagSeconds'] as int),
+        sinceLastWake: since == null ? null : Duration(seconds: since),
+      );
+      return null;
+    });
+  }
+
+  /// 관찰을 시작한다. 권한을 거절하거나 기기가 안 되면 false.
+  Future<bool> watchHeartRate() async {
+    if (!Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('start') ?? false;
+    } catch (e) {
+      debugPrint('심박 관찰 시작 실패: $e');
+      return false;
+    }
+  }
+
+  Future<void> unwatchHeartRate() async {
+    if (!Platform.isIOS) return;
+    try {
+      await _channel.invokeMethod<bool>('stop');
+    } catch (e) {
+      debugPrint('심박 관찰 중지 실패: $e');
     }
   }
 

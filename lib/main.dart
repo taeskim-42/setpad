@@ -84,6 +84,13 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // 심박이 올 때마다 남긴다. HealthKit 이 실제로 얼마나 자주 깨워 주는지를
+    // 재는 것이 지금 목적이다 — 그 값에 따라 휴식 타이머가 성립하는지가
+    // 갈린다. 문서로 확인하지 못한 빈도 제한을 실측으로 대신한다.
+    _health.onBeat(({required bpm, required lag, sinceLastWake}) {
+      debugPrint('[심박] ${bpm}bpm · 지연 ${lag.inSeconds}초'
+          '${sinceLastWake == null ? ' · 첫 신호' : ' · 직전 신호와 ${sinceLastWake.inSeconds}초 간격'}');
+    });
     _boot();
   }
 
@@ -129,6 +136,8 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     if (!end.isAfter(start)) return;
 
     if (!await _health.authorize()) return;
+    // 관찰은 한 번만 걸면 계속 산다.
+    unawaited(_health.watchHeartRate());
 
     // 심박이 얼마나 늦게 도착하는지 남긴다. 심박으로 휴식을 끊어 주는 기능을
     // 만들지 말지가 이 값에 달려 있다 — 몇 초면 되고 몇 분이면 못 한다.
