@@ -1,13 +1,16 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
-import 'editor.dart' show seal;
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 
-/// 메모 목록. 메모 앱과 같은 짜임 — 날짜로 묶고, 검색은 화면 맨 아래에 둔다.
+/// 운동 기록 목록.
 ///
-/// 검색을 아래에 두는 이유는 한 손으로 드는 기기에서 엄지가 닿는 자리가
-/// 거기여서다. 헬스장에서 한 손에 기기를 들고 쓰는 앱이라 더 그렇다.
+/// 메모 앱의 짜임을 그대로 따른다 — 큰 제목, 날짜로 묶인 카드, 화면 맨 아래
+/// 검색. 검색을 아래에 두는 이유는 한 손으로 든 기기에서 엄지가 닿는 자리가
+/// 거기여서다. 헬스장에서 한 손으로 쓰는 앱이라 더 그렇다.
+///
+/// 치수는 Flutter 의 Cupertino 소스가 쥔 iOS 값을 따른다 — 큰 제목 34pt/w700
+/// 자간 +0.38, 본문 17pt 자간 -0.41, 좌우 여백 16, 최소 터치 44.
 class NotesListPage extends StatefulWidget {
   const NotesListPage({super.key, required this.store, required this.onOpen});
 
@@ -58,69 +61,74 @@ class _NotesListPageState extends State<NotesListPage> {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    return Scaffold(
-      backgroundColor: const Color(0xFFE9E9EC),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFE9E9EC),
-        surfaceTintColor: Colors.transparent,
-        centerTitle: true,
-        title: Column(
-          children: [
-            Text(l.allNotes,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
-            ListenableBuilder(
-              listenable: widget.store,
-              builder: (context, _) => Text(
-                l.noteCount(widget.store.notes.length),
-                style: TextStyle(fontSize: 12, color: Colors.black.withValues(alpha: 0.45)),
-              ),
-            ),
-          ],
-        ),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.systemGroupedBackground,
+      child: Column(
+        children: [
+          Expanded(
             child: ListenableBuilder(
               listenable: widget.store,
               builder: (context, _) {
                 final groups = _grouped(_visible, l);
-                if (groups.isEmpty) {
-                  return Center(
-                    child: Text(
-                      _query.text.isEmpty ? l.noNotesYet : l.noSearchResults,
-                      style: TextStyle(color: Colors.black.withValues(alpha: 0.4)),
+                return CustomScrollView(
+                  slivers: [
+                    // 큰 제목은 스크롤하면 가운데 작은 제목으로 접힌다. iOS
+                    // 목록 화면의 기본 동작이고, 직접 흉내 내면 티가 난다.
+                    CupertinoSliverNavigationBar(
+                      largeTitle: Text(l.allNotes),
+                      trailing: CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(44, 44),
+                        onPressed: () => widget.onOpen(widget.store.create()),
+                        child: const Icon(CupertinoIcons.square_pencil, size: 24),
+                      ),
                     ),
-                  );
-                }
-                return ListView.builder(
-                  // 하단 검색바에 마지막 항목이 가리지 않도록 띄운다.
-                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 96),
-                  itemCount: groups.length,
-                  itemBuilder: (context, i) => _Group(
-                    title: groups[i].$1,
-                    notes: groups[i].$2,
-                    onOpen: widget.onOpen,
-                    onDelete: widget.store.delete,
-                  ),
+                    if (groups.isEmpty)
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: Text(
+                            _query.text.isEmpty ? l.noNotesYet : l.noSearchResults,
+                            style: TextStyle(
+                              fontSize: 17,
+                              letterSpacing: -0.41,
+                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      SliverList.builder(
+                        itemCount: groups.length,
+                        itemBuilder: (context, i) => _Group(
+                          title: groups[i].$1,
+                          notes: groups[i].$2,
+                          onOpen: widget.onOpen,
+                          onDelete: widget.store.delete,
+                        ),
+                      ),
+                    // 검색창에 마지막 줄이 가리지 않도록 띄운다.
+                    const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                  ],
                 );
               },
             ),
           ),
-        ),
-      ),
-      bottomNavigationBar: _SearchBar(
-        controller: _query,
-        onChanged: (_) => setState(() {}),
-        onNew: () => widget.onOpen(widget.store.create()),
+          _SearchBar(controller: _query, onChanged: (_) => setState(() {})),
+        ],
       ),
     );
   }
 }
 
+/// 날짜 묶음 하나. iOS 의 inset grouped 표 한 덩이다.
 class _Group extends StatelessWidget {
-  const _Group({required this.title, required this.notes, required this.onOpen, required this.onDelete});
+  const _Group({
+    required this.title,
+    required this.notes,
+    required this.onOpen,
+    required this.onDelete,
+  });
 
   final String title;
   final List<Note> notes;
@@ -133,22 +141,36 @@ class _Group extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(6, 18, 6, 8),
-          child: Text(title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
+          // 좌우 16 은 iOS 의 기본 여백(_kNavBarEdgePadding)과 같은 값이다.
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.35,
+            ),
+          ),
         ),
         Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
+            borderRadius: BorderRadius.circular(10),
           ),
+          clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
               for (var i = 0; i < notes.length; i++) ...[
                 if (i > 0)
+                  // 구분선은 글자가 시작하는 자리부터 그린다. 왼쪽 끝까지
+                  // 긋는 것은 안드로이드 쪽 관습이다.
                   Padding(
                     padding: const EdgeInsets.only(left: 16),
-                    child: Divider(height: 1, thickness: 0.5, color: Colors.black.withValues(alpha: 0.08)),
+                    child: Container(
+                      height: 0.5,
+                      color: CupertinoColors.separator.resolveFrom(context),
+                    ),
                   ),
                 _Row(note: notes[i], onOpen: onOpen, onDelete: onDelete),
               ],
@@ -175,49 +197,67 @@ class _Row extends StatelessWidget {
       // 워치가 잰 값이 있을 때만. 앱이 추정한 숫자가 아니다.
       if (note.calories != null) l.kcal(note.calories!.round()),
     ].where((s) => s.isNotEmpty).join(' · ');
+
     return Dismissible(
       key: ValueKey(note.id),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        color: seal,
-        child: const Icon(Icons.delete_outline, color: Colors.white),
+        color: CupertinoColors.systemRed,
+        child: const Icon(CupertinoIcons.delete, color: CupertinoColors.white),
       ),
       onDismissed: (_) => onDelete(note),
-      child: InkWell(
-        onTap: () => onOpen(note),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        borderRadius: BorderRadius.zero,
+        onPressed: () => onOpen(note),
+        child: Container(
+          // 최소 44 는 iOS 의 최소 터치 크기(kMinInteractiveDimensionCupertino).
+          constraints: const BoxConstraints(minHeight: 44),
+          padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+          child: Row(
             children: [
-              Text(
-                note.title ?? l.untitledNote,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.3,
-                  color: note.title == null ? Colors.black.withValues(alpha: 0.35) : null,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      note.title ?? l.untitledNote,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        // 본문 17pt, 자간 -0.41 — iOS 의 body 다.
+                        fontSize: 17,
+                        letterSpacing: -0.41,
+                        color: note.title == null
+                            ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                            : CupertinoColors.label.resolveFrom(context),
+                      ),
+                    ),
+                    ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        [l.dayLabel(note.updatedAt), if (summary.isNotEmpty) summary]
+                            .join('  '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          // 부제는 footnote 13pt.
+                          fontSize: 13,
+                          letterSpacing: -0.08,
+                          color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              const SizedBox(height: 3),
-              Row(
-                children: [
-                  Text(l.dayLabel(note.updatedAt),
-                      style: TextStyle(fontSize: 13, color: Colors.black.withValues(alpha: 0.45))),
-                  if (summary.isNotEmpty) ...[
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(summary,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 13, color: Colors.black.withValues(alpha: 0.45))),
-                    ),
-                  ],
-                ],
+              Icon(
+                CupertinoIcons.chevron_forward,
+                size: 16,
+                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
               ),
             ],
           ),
@@ -227,73 +267,33 @@ class _Row extends StatelessWidget {
   }
 }
 
-/// 화면 맨 아래 — 검색과 새 운동 기록. 두 화면이 같은 것을 쓴다.
+/// 화면 맨 아래 검색.
 class _SearchBar extends StatelessWidget {
-  const _SearchBar({required this.controller, required this.onChanged, required this.onNew});
+  const _SearchBar({required this.controller, required this.onChanged});
 
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
-  final VoidCallback onNew;
 
   @override
   Widget build(BuildContext context) {
-    final l = L.of(context);
-    return SafeArea(
-      minimum: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(22),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 12),
-                  Icon(Icons.search, size: 20, color: Colors.black.withValues(alpha: 0.45)),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: TextField(
-                      controller: controller,
-                      onChanged: onChanged,
-                      textInputAction: TextInputAction.search,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        border: InputBorder.none,
-                        hintText: l.search,
-                        hintStyle: TextStyle(color: Colors.black.withValues(alpha: 0.4)),
-                      ),
-                    ),
-                  ),
-                  if (controller.text.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 18),
-                      onPressed: () {
-                        controller.clear();
-                        onChanged('');
-                      },
-                    ),
-                ],
-              ),
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
+        border: Border(
+          top: BorderSide(
+            color: CupertinoColors.separator.resolveFrom(context),
+            width: 0.5,
           ),
-          const SizedBox(width: 10),
-          Semantics(
-            button: true,
-            label: l.newNote,
-            child: GestureDetector(
-              onTap: onNew,
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(color: seal, shape: BoxShape.circle),
-                child: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
-              ),
-            ),
-          ),
-        ],
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: CupertinoSearchTextField(
+          controller: controller,
+          onChanged: onChanged,
+          placeholder: L.of(context).search,
+        ),
       ),
     );
   }

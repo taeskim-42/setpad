@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'keypad.dart';
@@ -249,21 +250,22 @@ class RoutineEditorController extends ChangeNotifier {
 /// 세트가 다 빠진 뒤의 마지막 한 번. 결과가 같으므로 묻는 말도 같아야 한다.
 Future<bool> confirmRemoveExercise(BuildContext context, ExerciseBlock block) async {
   final l = L.of(context);
-  final yes = await showDialog<bool>(
+  final yes = await showCupertinoDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (context) => CupertinoAlertDialog(
       title: Text(l.deleteExerciseTitle(block.name)),
       content: Text(block.sets.isEmpty
           ? l.deleteExerciseEmptyBody
           : l.deleteExerciseBody(block.sets.length)),
       actions: [
-        TextButton(
+        CupertinoDialogAction(
           onPressed: () => Navigator.pop(context, false),
           child: Text(l.cancel),
         ),
-        TextButton(
+        // 되돌릴 수 없는 쪽을 destructive 로 낸다 — iOS 는 색으로 알린다.
+        CupertinoDialogAction(
+          isDestructiveAction: true,
           onPressed: () => Navigator.pop(context, true),
-          style: TextButton.styleFrom(foregroundColor: seal),
           child: Text(l.delete),
         ),
       ],
@@ -325,27 +327,25 @@ class _RoutineEditorState extends State<RoutineEditor> {
   /// 폭이 다르다 — 2.5 를 박아두면 파운드로 하는 사람은 매번 손으로 친다.
   Future<void> _pickStep() async {
     final u = unitById[_unit] ?? unitById[defaultUnit]!;
-    final picked = await showModalBottomSheet<double>(
+    final picked = await showCupertinoModalPopup<double>(
       context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(L.of(context).stepSizeTitle(u.label),
-                    style: const TextStyle(fontWeight: FontWeight.w800)),
+      builder: (context) => CupertinoActionSheet(
+        title: Text(L.of(context).stepSizeTitle(u.label)),
+        actions: [
+          for (final v in u.steps)
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(context, v),
+              child: Text(
+                formatNumber(v),
+                style: TextStyle(
+                  fontWeight: v == _stepSize ? FontWeight.w600 : FontWeight.w400,
+                ),
               ),
             ),
-            for (final v in u.steps)
-              ListTile(
-                title: Text(formatNumber(v)),
-                trailing: v == _stepSize ? const Icon(Icons.check, color: seal) : null,
-                onTap: () => Navigator.pop(context, v),
-              ),
-          ],
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: Text(L.of(context).cancel),
         ),
       ),
     );
@@ -527,10 +527,22 @@ class _RoutineEditorState extends State<RoutineEditor> {
                     onAddSet: i == openIndex ? () => _commit() : null,
                   );
                 }
-                // 카드 밖 — 새 운동 이름 자리
-                return Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: _buildInput(bold: true),
+                // 카드 밖 — 새 운동 이름 자리. 이것도 카드 안에 넣는다.
+                // 회색 배경 위에 글자만 떠 있으면 어디에 치는 것인지 보이지
+                // 않고, iOS 화면에서 혼자 미완성으로 읽힌다.
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  constraints: const BoxConstraints(minHeight: 44),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.secondarySystemGroupedBackground
+                        .resolveFrom(context),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: _buildInput(bold: true),
+                  ),
                 );
               },
             ),
@@ -590,21 +602,29 @@ class _RoutineEditorState extends State<RoutineEditor> {
           ),
         // 메모를 치는 동안에도 돌아올 문은 열어 둔다.
         if (_c.inBlock && _wantText)
-          Material(
+          ColoredBox(
             color: const Color(0xFFD8D9DE),
             child: SafeArea(
               top: false,
               child: SizedBox(
-                height: 42,
+                height: 44,
                 width: double.infinity,
-                child: TextButton.icon(
+                child: CupertinoButton(
+                  padding: EdgeInsets.zero,
                   onPressed: () {
                     setState(() => _wantText = false);
                     _focus.requestFocus();
                   },
-                  icon: const Icon(Icons.dialpad, size: 17),
-                  label: Text(L.of(context).numberKeypad),
-                  style: TextButton.styleFrom(foregroundColor: seal),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(CupertinoIcons.keyboard, size: 19, color: seal),
+                      const SizedBox(width: 6),
+                      Text(L.of(context).numberKeypad,
+                          style: const TextStyle(
+                              fontSize: 17, letterSpacing: -0.41, color: seal)),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -614,7 +634,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
   }
 
   Widget _buildInput({bool bold = false}) {
-    final platform = Theme.of(context).platform;
+    final platform = defaultTargetPlatform;
     final touch =
         platform == TargetPlatform.iOS || platform == TargetPlatform.android;
     final readOnly = touch && !bold && !_wantText && _c.inBlock;
@@ -622,7 +642,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
     return Focus(
       key: _inputKey,
       onKeyEvent: _onKey,
-      child: TextField(
+      child: CupertinoTextField(
         controller: _input,
         focusNode: _focus,
         autofocus: true,
@@ -637,23 +657,25 @@ class _RoutineEditorState extends State<RoutineEditor> {
         onSubmitted: (_) =>
             _commit(_matches.isNotEmpty ? _matches[_highlight] : null),
         onChanged: (_) => setState(() => _highlight = 0),
+        // 운동 이름은 본문(17), 세트 줄은 숫자가 자리를 지켜야 해서 고정폭이다.
         style: TextStyle(
-          fontSize: bold ? 15.5 : 14,
-          fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
+          fontSize: 17,
+          letterSpacing: bold ? -0.41 : 0,
+          fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+          fontFamily: bold ? null : 'Menlo',
+          color: CupertinoColors.label.resolveFrom(context),
         ),
         cursorColor: seal,
-        decoration: InputDecoration(
-          isDense: true,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: bold ? 10 : 6),
-          hintText: bold ? L.of(context).exerciseNameHint : '100  20',
-          hintStyle: TextStyle(
-            fontSize: bold ? 15.5 : 14,
-            fontWeight: bold ? FontWeight.w800 : FontWeight.w500,
-            color: Colors.black.withValues(alpha: 0.22),
-          ),
+        // 카드 안에 이미 면이 있으므로 입력 칸은 테두리를 두지 않는다.
+        decoration: const BoxDecoration(),
+        padding: EdgeInsets.symmetric(vertical: bold ? 10 : 6),
+        placeholder: bold ? L.of(context).exerciseNameHint : '100  20',
+        placeholderStyle: TextStyle(
+          fontSize: 17,
+          letterSpacing: bold ? -0.41 : 0,
+          fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+          fontFamily: bold ? null : 'Menlo',
+          color: CupertinoColors.placeholderText.resolveFrom(context),
         ),
       ),
     );
@@ -704,15 +726,10 @@ class _BlockView extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
+        color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
+        // iOS 의 목록 카드는 그림자를 쓰지 않는다. 회색 배경 위의 흰 면과
+        // 모서리 10 으로 나눈다 — 그림자는 안드로이드 쪽 관습이다.
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -722,15 +739,18 @@ class _BlockView extends StatelessWidget {
               Expanded(
                 child: Text(block.name,
                     style: const TextStyle(
-                        fontSize: 15.5, fontWeight: FontWeight.w800)),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.41)),
               ),
               GestureDetector(
                 onTap: () => _confirmRemove(context),
                 behavior: HitTestBehavior.opaque,
                 child: Padding(
                   padding: const EdgeInsets.only(left: 8, bottom: 2),
-                  child: Icon(Icons.delete_outline,
-                      size: 18, color: Colors.black.withValues(alpha: 0.22)),
+                  child: Icon(CupertinoIcons.trash,
+                      size: 18,
+                      color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
                 ),
               ),
             ],
@@ -753,15 +773,22 @@ class _BlockView extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8),
                 child: SizedBox(
                   width: double.infinity,
-                  child: TextButton.icon(
+                  // iOS 의 은은한 채움 버튼. 최소 높이 44 를 지킨다.
+                  child: CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size.fromHeight(44),
+                    borderRadius: BorderRadius.circular(10),
+                    color: const Color(0xFFF7E9E6),
                     onPressed: onAddSet,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(L.of(context).addSet),
-                    style: TextButton.styleFrom(
-                      foregroundColor: seal,
-                      backgroundColor: const Color(0xFFF7E9E6),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(CupertinoIcons.add, size: 18, color: seal),
+                        const SizedBox(width: 6),
+                        Text(L.of(context).addSet,
+                            style: const TextStyle(
+                                fontSize: 17, letterSpacing: -0.41, color: seal)),
+                      ],
                     ),
                   ),
                 ),
@@ -805,19 +832,22 @@ class _SetRow extends StatelessWidget {
             child: SizedBox(
               width: 32,
               child: Icon(
-                off ? Icons.circle_outlined : Icons.check_circle,
+                off ? CupertinoIcons.circle : CupertinoIcons.check_mark_circled_solid,
                 size: 19,
                 color: off
-                    ? Colors.black.withValues(alpha: 0.18)
-                    : const Color(0xFF1E7A5A),
+                    ? CupertinoColors.tertiaryLabel.resolveFrom(context)
+                    : CupertinoColors.systemGreen.resolveFrom(context),
               ),
             ),
           ),
           SizedBox(
             width: 42,
             child: Text(L.of(context).setOrdinal(index + 1),
+                // caption 자리. 세트 번호는 값이 아니라 이름표다.
                 style: TextStyle(
-                    fontSize: 12, color: Colors.black.withValues(alpha: 0.35))),
+                    fontSize: 13,
+                    letterSpacing: -0.08,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context))),
           ),
           Text(
             setLabel(
@@ -826,9 +856,12 @@ class _SetRow extends StatelessWidget {
                 reps: set.reps,
                 formatReps: L.of(context).repsCount),
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: off ? Colors.black.withValues(alpha: 0.35) : null,
+              // 숫자가 줄 서는 자리라 고정폭이다.
+              fontSize: 16,
+              fontFamily: 'Menlo',
+              color: off
+                  ? CupertinoColors.tertiaryLabel.resolveFrom(context)
+                  : CupertinoColors.label.resolveFrom(context),
               decoration: off ? TextDecoration.lineThrough : null,
             ),
           ),
@@ -838,8 +871,9 @@ class _SetRow extends StatelessWidget {
               child: Text(set.note!,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                      fontSize: 12.5,
-                      color: Colors.black.withValues(alpha: 0.5))),
+                      fontSize: 13,
+                      letterSpacing: -0.08,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(context))),
             ),
           ] else
             const Spacer(),
@@ -848,8 +882,9 @@ class _SetRow extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             child: Padding(
               padding: const EdgeInsets.only(left: 8),
-              child: Icon(Icons.close,
-                  size: 15, color: Colors.black.withValues(alpha: 0.2)),
+              child: Icon(CupertinoIcons.xmark,
+                  size: 15,
+                  color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
             ),
           ),
         ],
@@ -875,8 +910,12 @@ class _Suggestions extends StatelessWidget {
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.08))),
+        color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
+        // iOS 의 구분선은 0.5pt 다. 1pt 면 굵어서 눈에 걸린다.
+        border: Border(
+          top: BorderSide(
+              color: CupertinoColors.separator.resolveFrom(context), width: 0.5),
+        ),
       ),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
@@ -885,22 +924,66 @@ class _Suggestions extends StatelessWidget {
         itemBuilder: (context, i) {
           final on = i == highlight;
           return Center(
-            child: ActionChip(
-              label: Text(matches[i]),
-              labelStyle: TextStyle(
-                fontSize: 13,
-                fontWeight: on ? FontWeight.w800 : FontWeight.w500,
-                color: on ? seal : Colors.black.withValues(alpha: 0.7),
-              ),
-              backgroundColor: on ? const Color(0xFFF7E9E6) : Colors.white,
-              side: BorderSide(
-                color: on ? seal : Colors.black.withValues(alpha: 0.12),
-              ),
-              visualDensity: VisualDensity.compact,
-              onPressed: () => onPick(matches[i]),
+            child: SuggestionChip(
+              label: matches[i],
+              selected: on,
+              onTap: () => onPick(matches[i]),
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// 이름 후보 알약.
+///
+/// Material 의 ActionChip 을 걷어냈다 — 리플과 모서리 모양이 안드로이드
+/// 그대로라 iOS 화면에서 혼자 튄다. iOS 는 눌린 것을 색으로 알리고, 누를 때는
+/// 리플 대신 잠깐 흐려진다(CupertinoButton 이 그렇게 한다).
+class SuggestionChip extends StatelessWidget {
+  const SuggestionChip({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      minimumSize: Size.zero,
+      onPressed: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected
+              ? const Color(0xFFF7E9E6)
+              : CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
+          // 알약은 완전한 원형 끝이다. iOS 의 필터 칩이 그렇게 생겼다.
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(
+            color: selected
+                ? seal
+                : CupertinoColors.separator.resolveFrom(context),
+            width: 0.5,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            // footnote 13pt.
+            fontSize: 13,
+            letterSpacing: -0.08,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            color: selected ? seal : CupertinoColors.label.resolveFrom(context),
+          ),
+        ),
       ),
     );
   }

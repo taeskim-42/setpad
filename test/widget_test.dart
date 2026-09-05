@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/exercises.dart';
@@ -22,7 +22,7 @@ Future<void> settle(WidgetTester tester) => tester.pumpAndSettle(
 /// 목록 화면이 아래에 깔려 있고 거기에도 검색 칸이 있어서, 그냥 TextField 를
 /// 찾으면 둘이 잡힌다. 패드 안의 것만 집는다.
 final padField =
-    find.descendant(of: find.byType(RoutineEditor), matching: find.byType(TextField));
+    find.descendant(of: find.byType(RoutineEditor), matching: find.byType(CupertinoTextField));
 
 /// 패드 안의 글자. 첫 운동 이름은 앱바 제목에도 나오므로(메모 앱처럼 첫 줄이
 /// 제목이다) 그냥 find.text 로 세면 둘이 잡힌다.
@@ -31,13 +31,19 @@ Finder inPad(String text) =>
 
 /// 카드 안의 '세트 추가' 버튼. 키패드의 큰 키는 '다음'을 맡는다.
 final addSetButton =
-    find.descendant(of: find.byType(TextButton), matching: find.text('세트 추가'));
+    find.descendant(of: find.byType(CupertinoButton), matching: find.text('세트 추가'));
+
+/// 취소/삭제 같은 iOS 경고창 버튼.
+Finder dialogAction(String label) =>
+    find.widgetWithText(CupertinoDialogAction, label);
 
 /// 키패드로 친다. 세트 칸은 읽기 전용이라 enterText 로는 글자가 안 들어간다 —
 /// 실제 기기에서도 시스템 키보드가 아니라 이 키패드가 넣는다.
 Future<void> tapKeys(WidgetTester tester, String text) async {
   for (final ch in text.split('')) {
-    await tester.tap(find.widgetWithText(InkWell, ch == ' ' ? '␣' : ch).last);
+    await tester.tap(find.descendant(
+        of: find.byType(SetKeypad),
+        matching: find.text(ch == ' ' ? '␣' : ch)));
     await tester.pump();
   }
   await tester.pumpAndSettle();
@@ -145,12 +151,13 @@ void main() {
       await settle(tester);
       expect(inPad('벤치프레스'), findsOneWidget);
       // 첫 운동 이름이 곧 메모 제목이다 — 앱바에도 같이 뜬다.
-      expect(find.descendant(of: find.byType(AppBar), matching: find.text('벤치프레스')),
+      expect(find.descendant(
+              of: find.byType(CupertinoNavigationBar), matching: find.text('벤치프레스')),
           findsOneWidget);
 
       // 세트 칸은 터치 기기에서 읽기 전용이다 — 시스템 키보드를 부르지 않고
       // 키패드가 글자를 넣는다. 실제 사용 경로가 그쪽이므로 여기서도 그렇게 친다.
-      final field = tester.widget<TextField>(padField);
+      final field = tester.widget<CupertinoTextField>(padField);
       expect(field.readOnly, isTrue);
       expect(find.byType(SetKeypad), findsOneWidget);
     });
@@ -160,12 +167,12 @@ void main() {
 
       await tester.enterText(padField, '벤');
       await settle(tester);
-      expect(find.widgetWithText(ActionChip, '벤치프레스'), findsOneWidget);
+      expect(find.widgetWithText(SuggestionChip, '벤치프레스'), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(ActionChip, '벤치프레스'));
+      await tester.tap(find.widgetWithText(SuggestionChip, '벤치프레스'));
       await settle(tester);
       // 후보는 사라지고 운동 블록이 생긴다
-      expect(find.widgetWithText(ActionChip, '벤치프레스'), findsNothing);
+      expect(find.widgetWithText(SuggestionChip, '벤치프레스'), findsNothing);
       expect(inPad('벤치프레스'), findsOneWidget);
     });
 
@@ -301,7 +308,7 @@ void keypadTests() {
       expect(find.byType(SetKeypad), findsOneWidget);
 
       // ⌨ — 시스템 키보드로 넘어간다
-      await tester.tap(find.byIcon(Icons.keyboard_alt_outlined));
+      await tester.tap(find.byIcon(CupertinoIcons.keyboard));
       await settle(tester);
       expect(find.byType(SetKeypad), findsNothing);
 
@@ -336,7 +343,7 @@ void keypadTests() {
       }
       // 키패드 큰 키는 'Next'. 세트를 넣는 것은 화면 버튼이다.
       await tester.tap(find.descendant(
-          of: find.byType(TextButton), matching: find.text('Add Set')));
+          of: find.byType(CupertinoButton), matching: find.text('Add Set')));
       await settle(tester);
       expect(find.text('Set 1'), findsOneWidget);
       expect(find.text('100kg · 10 reps'), findsOneWidget);
@@ -415,9 +422,8 @@ void keypadTests() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
 
-      // pageBack() 은 툴팁이 'Back' 인 것을 찾는다. 이 앱은 한국어라 '뒤로'여서
-      // 못 찾는다 — 뒤로가기 위젯을 직접 누른다.
-      await tester.tap(find.byType(BackButton));
+      // Cupertino 의 뒤로가기 버튼. Material 의 BackButton 이 아니다.
+      await tester.tap(find.byType(CupertinoNavigationBarBackButton));
       await settle(tester);
       expect(find.text('모든 운동'), findsOneWidget);
       expect(find.text('스쿼트'), findsOneWidget);
@@ -434,15 +440,20 @@ void keypadTests() {
       addTearDown(tester.platformDispatcher.clearLocalesTestValue);
       await tester.pumpWidget(SetpadApp(store: store));
       await settle(tester);
-      // pageBack() 은 툴팁이 'Back' 인 것을 찾는다. 이 앱은 한국어라 '뒤로'여서
-      // 못 찾는다 — 뒤로가기 위젯을 직접 누른다.
-      await tester.tap(find.byType(BackButton));
+      // Cupertino 의 뒤로가기 버튼. Material 의 BackButton 이 아니다.
+      await tester.tap(find.byType(CupertinoNavigationBarBackButton));
       await settle(tester);
 
       expect(find.text('벤치프레스'), findsOneWidget);
       expect(find.text('데드리프트'), findsOneWidget);
 
-      await tester.enterText(find.widgetWithText(TextField, '검색'), '데드');
+      // CupertinoSearchTextField 안의 실제 입력 위젯에 친다.
+      expect(find.byType(CupertinoSearchTextField), findsOneWidget);
+      await tester.enterText(
+          find.descendant(
+              of: find.byType(CupertinoSearchTextField),
+              matching: find.byType(EditableText)),
+          '데드');
       await settle(tester);
       expect(find.text('벤치프레스'), findsNothing);
       expect(find.text('데드리프트'), findsOneWidget);
@@ -593,7 +604,7 @@ void keypadTests() {
 
     testWidgets('삭제는 물어보고, 취소하면 남는다', (tester) async {
       await twoExercises(tester);
-      await tester.tap(find.byIcon(Icons.delete_outline).first);
+      await tester.tap(find.byIcon(CupertinoIcons.trash).first);
       await settle(tester);
 
       expect(find.text('벤치프레스 삭제'), findsOneWidget);
@@ -606,9 +617,9 @@ void keypadTests() {
 
     testWidgets('삭제를 누르면 지워진다', (tester) async {
       await twoExercises(tester);
-      await tester.tap(find.byIcon(Icons.delete_outline).first);
+      await tester.tap(find.byIcon(CupertinoIcons.trash).first);
       await settle(tester);
-      await tester.tap(find.widgetWithText(TextButton, '삭제'));
+      await tester.tap(find.widgetWithText(CupertinoDialogAction, '삭제'));
       await settle(tester);
 
       expect(inPad('벤치프레스'), findsNothing);
@@ -626,7 +637,7 @@ void keypadTests() {
       await tester.tap(addSetButton);
       await settle(tester);
 
-      final back = find.byIcon(Icons.backspace_outlined);
+      final back = find.byIcon(CupertinoIcons.delete_left);
       await tester.tap(back);          // 세트 하나 — 묻지 않는다
       await settle(tester);
       expect(find.text('벤치프레스 삭제'), findsNothing);
@@ -643,7 +654,7 @@ void keypadTests() {
 
       await tester.tap(back);
       await settle(tester);
-      await tester.tap(find.widgetWithText(TextButton, '삭제'));
+      await tester.tap(find.widgetWithText(CupertinoDialogAction, '삭제'));
       await settle(tester);
       expect(inPad('벤치프레스'), findsNothing);
     });
@@ -790,7 +801,7 @@ void keypadTests() {
       await tapKeys(tester, '100 10');
       await tester.tap(addSetButton);
       await settle(tester);
-      await tester.tap(find.byType(BackButton));
+      await tester.tap(find.byType(CupertinoNavigationBarBackButton));
       await settle(tester);
 
       expect(find.text('벤치프레스'), findsOneWidget);

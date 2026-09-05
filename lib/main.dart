@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -9,9 +9,6 @@ import 'notes.dart';
 import 'notes_list.dart';
 
 void main() => runApp(const SetpadApp());
-
-/// 인주색 — 한국 도장의 붉은색. 강조는 이 하나뿐이고 나머지는 무채색이다.
-const _seal = Color(0xFFC3372A);
 
 class SetpadApp extends StatelessWidget {
   /// [store] 는 테스트가 임시 폴더를 물릴 자리다. 비워 두면 앱 문서 디렉터리를
@@ -22,9 +19,7 @@ class SetpadApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final base = ColorScheme.fromSeed(seedColor: _seal, brightness: Brightness.light);
-
-    return MaterialApp(
+    return CupertinoApp(
       title: 'Setpad',
       debugShowCheckedModeBanner: false,
       // 지원 언어를 하나 더하거나 뺄 때 여기를 같이 고칠 일이 없도록
@@ -48,13 +43,13 @@ class SetpadApp extends StatelessWidget {
               else
                 l,
           ], supported),
-      theme: ThemeData(
-        colorScheme: base.copyWith(primary: _seal, surface: Colors.white),
-        scaffoldBackgroundColor: const Color(0xFFE9E9EC),
-        // 숫자가 줄지어 서는 화면이라 자릿수 폭이 고정된 서체가 필요하다.
-        fontFamily: 'monospace',
-        fontFamilyFallback: const ['Apple SD Gothic Neo', 'Noto Sans KR', 'sans-serif'],
-        useMaterial3: true,
+      // 기본 서체를 monospace 로 못 박지 않는다. 숫자가 줄 서는 자리에만
+      // 붙이면 되고, 화면 전체를 고정폭으로 두면 한글이 성기게 벌어져 iOS
+      // 앱처럼 안 보인다. 나머지는 시스템 서체(SF Pro / Apple SD Gothic Neo)를
+      // 그대로 쓴다.
+      theme: const CupertinoThemeData(
+        primaryColor: seal,
+        scaffoldBackgroundColor: CupertinoColors.systemGroupedBackground,
       ),
       home: _Home(store: store),
     );
@@ -115,7 +110,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
 
   Future<void> _open(Note note) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => EditorPage(store: _store, note: note)),
+      CupertinoPageRoute(builder: (_) => EditorPage(store: _store, note: note)),
     );
     // 아무것도 안 치고 나온 새 기록은 남기지 않는다.
     _store.discardIfEmpty(note);
@@ -176,10 +171,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     if (!_ready) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFE9E9EC),
-        body: SizedBox.shrink(),
-      );
+      return const CupertinoPageScaffold(child: SizedBox.shrink());
     }
     return NotesListPage(store: _store, onOpen: _open);
   }
@@ -219,20 +211,21 @@ class _EditorPageState extends State<EditorPage> {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        title: ListenableBuilder(
+    return CupertinoPageScaffold(
+      // 배경은 흰색이 아니라 그룹 배경이다. 카드(흰색)가 그 위에 떠 보여야
+      // iOS 의 목록처럼 읽힌다.
+      backgroundColor: CupertinoColors.systemGroupedBackground,
+      navigationBar: CupertinoNavigationBar(
+        // 가운데 제목은 17pt w600, 자간 -0.41 — Cupertino 가 쥔 iOS 값이다.
+        middle: ListenableBuilder(
           listenable: _editor,
           builder: (context, _) => Text(
             _editor.blocks.isEmpty ? l.appTitle : _editor.blocks.first.name,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: -0.3),
           ),
         ),
       ),
-      body: SafeArea(
+      child: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560),
@@ -247,10 +240,13 @@ class _EditorPageState extends State<EditorPage> {
                             alignment: Alignment.centerLeft,
                             child: Text(
                               l.howTo,
+                              // 안내문은 footnote 자리다. 본문(17)보다 작고
+                              // 회색이라 눈이 먼저 가지 않는다.
                               style: TextStyle(
-                                fontSize: 12,
-                                height: 1.5,
-                                color: Colors.black.withValues(alpha: 0.35),
+                                fontSize: 13,
+                                height: 1.4,
+                                letterSpacing: -0.08,
+                                color: CupertinoColors.secondaryLabel.resolveFrom(context),
                               ),
                             ),
                           ),

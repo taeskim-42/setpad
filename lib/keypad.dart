@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'l10n/generated/app_localizations.dart';
 
@@ -63,8 +63,11 @@ class SetKeypad extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       decoration: BoxDecoration(
         color: const Color(0xFFD8D9DE),
-        border:
-            Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.12))),
+        // iOS 의 구분선은 0.5pt.
+        border: Border(
+          top: BorderSide(
+              color: CupertinoColors.separator.resolveFrom(context), width: 0.5),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -105,12 +108,12 @@ class SetKeypad extends StatelessWidget {
                   child: Column(
                     children: [
                       _pad(_Key(
-                        icon: Icons.backspace_outlined,
+                        icon: CupertinoIcons.delete_left,
                         onTap: onBackspace,
                         tone: _Tone.dim,
                       )),
                       _pad(_Key(
-                        icon: Icons.keyboard_alt_outlined,
+                        icon: CupertinoIcons.keyboard,
                         onTap: onText,
                         tone: _Tone.dim,
                       )),
@@ -198,23 +201,35 @@ class _Key extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (bg, fg) = switch (tone) {
-      _Tone.plain => (Colors.white, Colors.black.withValues(alpha: 0.85)),
-      _Tone.dim =>
-        (const Color(0xFFBEC0C7), Colors.black.withValues(alpha: 0.8)),
-      _Tone.primary => (_seal, Colors.white),
+      // iOS 숫자 키패드의 색 얼개 — 숫자는 흰 키, 기능키는 한 단계 어둡게.
+      _Tone.plain => (CupertinoColors.white, CupertinoColors.label),
+      _Tone.dim => (const Color(0xFFBEC0C7), CupertinoColors.label),
+      _Tone.primary => (_seal, CupertinoColors.white),
       _Tone.accent => (const Color(0xFFF7E9E6), _seal),
     };
 
     return SizedBox(
       height: height,
-      child: Material(
-        color: bg,
-        borderRadius: BorderRadius.circular(6),
-        elevation: tone == _Tone.dim ? 0 : 0.5,
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
-          borderRadius: BorderRadius.circular(6),
+      // iOS 는 눌림을 리플이 아니라 잠깐 흐려지는 것으로 알린다.
+      child: GestureDetector(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        behavior: HitTestBehavior.opaque,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: bg,
+            // iOS 키패드의 키는 모서리 5 에 아주 옅은 그림자 하나다.
+            borderRadius: BorderRadius.circular(5),
+            boxShadow: tone == _Tone.dim
+                ? null
+                : const [
+                    BoxShadow(
+                      color: Color(0x33000000),
+                      blurRadius: 0,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+          ),
           child: Center(
             child: icon != null
                 ? Icon(icon, size: 19, color: fg)
