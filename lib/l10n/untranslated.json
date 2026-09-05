@@ -20,8 +20,7 @@
     "next",
     "stepSizeTitle",
     "kcal",
-    "weekdayLabel",
-    "unitTitle"
+    "weekdayLabel"
   ],
 
   "ja": [
@@ -45,8 +44,7 @@
     "next",
     "stepSizeTitle",
     "kcal",
-    "weekdayLabel",
-    "unitTitle"
+    "weekdayLabel"
   ],
 
   "th": [
@@ -70,8 +68,7 @@
     "next",
     "stepSizeTitle",
     "kcal",
-    "weekdayLabel",
-    "unitTitle"
+    "weekdayLabel"
   ],
 
   "vi": [
@@ -95,8 +92,7 @@
     "next",
     "stepSizeTitle",
     "kcal",
-    "weekdayLabel",
-    "unitTitle"
+    "weekdayLabel"
   ],
 
   "zh": [
@@ -120,8 +116,7 @@
     "next",
     "stepSizeTitle",
     "kcal",
-    "weekdayLabel",
-    "unitTitle"
+    "weekdayLabel"
   ],
 
   "zh_Hans": [
@@ -145,8 +140,7 @@
     "next",
     "stepSizeTitle",
     "kcal",
-    "weekdayLabel",
-    "unitTitle"
+    "weekdayLabel"
   ],
 
   "zh_Hant": [
@@ -170,7 +164,6 @@
     "next",
     "stepSizeTitle",
     "kcal",
-    "weekdayLabel",
-    "unitTitle"
+    "weekdayLabel"
   ]
 }

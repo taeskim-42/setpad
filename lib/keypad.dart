@@ -24,9 +24,6 @@ class SetKeypad extends StatelessWidget {
     required this.hasInput,
     required this.submitLabel,
     required this.onStepPick,
-    required this.unitLabel,
-    required this.onUnit,
-    required this.onUnitPick,
     this.repeatLabel,
     this.onRepeat,
   });
@@ -55,15 +52,6 @@ class SetKeypad extends StatelessWidget {
   /// +/- 를 길게 눌렀을 때. 미는 폭을 고르게 한다.
   final VoidCallback onStepPick;
 
-  /// 지금 쓰는 단위. 키에 그대로 적힌다.
-  final String unitLabel;
-
-  /// 단위 키를 눌렀을 때 — 치던 줄에 그 단위를 붙인다.
-  final VoidCallback onUnit;
-
-  /// 길게 눌렀을 때 — 다른 단위를 고른다.
-  final VoidCallback onUnitPick;
-
   /// 직전 세트를 그대로 한 번 더 — 운동 기록에서 가장 흔한 동작이다.
   final String? repeatLabel;
   final VoidCallback? onRepeat;
@@ -77,7 +65,9 @@ class SetKeypad extends StatelessWidget {
         // iOS 의 구분선은 0.5pt.
         border: Border(
           top: BorderSide(
-              color: CupertinoColors.separator.resolveFrom(context), width: 0.5),
+            color: CupertinoColors.separator.resolveFrom(context),
+            width: 0.5,
+          ),
         ),
       ),
       child: SafeArea(
@@ -98,77 +88,93 @@ class SetKeypad extends StatelessWidget {
                   ),
                 ),
               ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    children: [
-                      _row(const ['1', '2', '3']),
-                      _row(const ['4', '5', '6']),
-                      _row(const ['7', '8', '9']),
-                      // Strong 과 같은 자리에 지우기를 둔다. 숫자를 치다가
-                      // 틀렸을 때 손이 가장 가까운 곳이 여기다.
-                      _row(const ['.', '0', '⌫']),
-                    ],
+            // 오른쪽 열이 왼쪽 격자와 같은 높이를 갖게 한다. 그래야 그 안에서
+            // Expanded 로 나눌 수 있다 — 바깥 Column 이 높이를 정하지
+            // 않으므로(MainAxisSize.min) 이것 없이는 설 자리가 없다.
+            //
+            // ponytail: IntrinsicHeight 는 자식을 한 번 더 재므로 공짜가
+            // 아니다. 여기는 키 열몇 개짜리 트리라 값이 안 느껴진다. 키패드가
+            // 더 복잡해지면 왼쪽 격자 높이를 직접 계산해 넘기는 쪽으로.
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      children: [
+                        _row(const ['1', '2', '3']),
+                        _row(const ['4', '5', '6']),
+                        _row(const ['7', '8', '9']),
+                        // Strong 과 같은 자리에 지우기를 둔다. 숫자를 치다가
+                        // 틀렸을 때 손이 가장 가까운 곳이 여기다.
+                        _row(const ['.', '0', '⌫']),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Column(
-                    children: [
-                      _pad(_Key(
-                        icon: CupertinoIcons.keyboard,
-                        onTap: onText,
-                        tone: _Tone.dim,
-                      )),
-                      // 단위. 공백 키가 있던 자리다 — '다음' 이 무게에서
-                      // 횟수로 넘기는 일을 맡으면서 공백은 칠 이유가
-                      // 없어졌다.
-                      //
-                      // 이 자리에 단위를 둔 이유: 숫자만 있는 키패드에서
-                      // '5km', '225lb', '60초' 를 칠 방법이 달리 없다.
-                      // 시스템 키보드로 넘어갔다 와야 했다. 세트 반복(x3)은
-                      // '이전과 같이' 가 대신해 주지만 단위는 대안이 없다.
-                      _pad(_Key(
-                        label: unitLabel,
-                        onTap: onUnit,
-                        onLongPress: onUnitPick,
-                        tone: _Tone.dim,
-                      )),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _pad(_Key(
-                              label: '−',
-                              sub: stepLabel,
-                              onTap: () => onAdjust(-1),
-                              onLongPress: onStepPick,
+                  const SizedBox(width: 4),
+                  Expanded(
+                    // 왼쪽이 네 줄이므로 오른쪽도 그 높이를 셋이 나눈다.
+                    // '다음' 은 맨 아래에 붙박고 두 몫을 준다 — 여기서 제일
+                    // 자주 누르는 키이고, 헬스장에서는 큰 편이 낫다.
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: _pad(
+                            _Key(
+                              icon: CupertinoIcons.keyboard,
+                              onTap: onText,
                               tone: _Tone.dim,
-                            )),
+                              height: null,
+                            ),
                           ),
-                          Expanded(
-                            child: _pad(_Key(
-                              label: '+',
-                              sub: stepLabel,
-                              onTap: () => onAdjust(1),
-                              onLongPress: onStepPick,
-                              tone: _Tone.dim,
-                            )),
+                        ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _pad(
+                                  _Key(
+                                    label: '−',
+                                    sub: stepLabel,
+                                    onTap: () => onAdjust(-1),
+                                    onLongPress: onStepPick,
+                                    tone: _Tone.dim,
+                                    height: null,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: _pad(
+                                  _Key(
+                                    label: '+',
+                                    sub: stepLabel,
+                                    onTap: () => onAdjust(1),
+                                    onLongPress: onStepPick,
+                                    tone: _Tone.dim,
+                                    height: null,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      _pad(_Key(
-                        label: submitLabel,
-                        onTap: onSubmit,
-                        tone: _Tone.primary,
-                        height: 46,
-                      )),
-                    ],
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: _pad(
+                            _Key(
+                              label: submitLabel,
+                              onTap: onSubmit,
+                              tone: _Tone.primary,
+                              height: null,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -177,27 +183,27 @@ class SetKeypad extends StatelessWidget {
   }
 
   Widget _row(List<String> keys) => Row(
-        children: [
-          for (final k in keys)
-            Expanded(
-              child: _pad(
-                k == '⌫'
-                    // 지우기는 글자가 아니라 동작이다. 숫자 키 사이에 있지만
-                    // 아이콘으로 내야 무엇인지 바로 보인다.
-                    ? _Key(
-                        icon: CupertinoIcons.delete_left,
-                        onTap: onBackspace,
-                        tone: _Tone.plain,
-                      )
-                    : _Key(
-                        label: k,
-                        onTap: () => onKey(k == '␣' ? ' ' : k),
-                        tone: _Tone.plain,
-                      ),
-              ),
-            ),
-        ],
-      );
+    children: [
+      for (final k in keys)
+        Expanded(
+          child: _pad(
+            k == '⌫'
+                // 지우기는 글자가 아니라 동작이다. 숫자 키 사이에 있지만
+                // 아이콘으로 내야 무엇인지 바로 보인다.
+                ? _Key(
+                    icon: CupertinoIcons.delete_left,
+                    onTap: onBackspace,
+                    tone: _Tone.plain,
+                  )
+                : _Key(
+                    label: k,
+                    onTap: () => onKey(k == '␣' ? ' ' : k),
+                    tone: _Tone.plain,
+                  ),
+          ),
+        ),
+    ],
+  );
 
   Widget _pad(Widget child) =>
       Padding(padding: const EdgeInsets.all(3), child: child);
@@ -226,14 +232,22 @@ class _Key extends StatelessWidget {
   final IconData? icon;
   final VoidCallback onTap;
   final _Tone tone;
-  final double height;
+
+  /// null 이면 부모가 준 높이를 그대로 쓴다(Expanded 안에 있을 때).
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
     final (bg, fg) = switch (tone) {
       // iOS 숫자 키패드의 색 얼개 — 숫자는 흰 키, 기능키는 한 단계 어둡게.
-      _Tone.plain => (keyFace.resolveFrom(context), CupertinoColors.label.resolveFrom(context)),
-      _Tone.dim => (keyDim.resolveFrom(context), CupertinoColors.label.resolveFrom(context)),
+      _Tone.plain => (
+        keyFace.resolveFrom(context),
+        CupertinoColors.label.resolveFrom(context),
+      ),
+      _Tone.dim => (
+        keyDim.resolveFrom(context),
+        CupertinoColors.label.resolveFrom(context),
+      ),
       _Tone.primary => (seal, CupertinoColors.white),
       _Tone.accent => (sealTint.resolveFrom(context), seal),
     };

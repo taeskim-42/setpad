@@ -322,45 +322,6 @@ class _RoutineEditorState extends State<RoutineEditor> {
           .hasMatch(_input.text) ||
       _input.text.trimRight().contains(' ');
 
-  /// 길게 눌러 단위를 고른다.
-  ///
-  /// 고른 단위는 바로 줄에 붙인다 — 고르기만 하고 다시 눌러야 하면 두 번
-  /// 일이다. 이미 단위가 붙어 있으면 그것을 갈아 끼운다.
-  Future<void> _pickUnit() async {
-    final picked = await showCupertinoModalPopup<Unit>(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: Text(L.of(context).unitTitle),
-        actions: [
-          for (final u in units)
-            CupertinoActionSheetAction(
-              onPressed: () => Navigator.pop(context, u),
-              child: Text(
-                u.label,
-                style: TextStyle(
-                  fontWeight: u.id == _unit ? FontWeight.w600 : FontWeight.w400,
-                ),
-              ),
-            ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(context),
-          child: Text(L.of(context).cancel),
-        ),
-      ),
-    );
-    if (picked == null || !mounted) return;
-    // 붙어 있던 단위를 떼고 새것을 붙인다.
-    final stripped = _input.text.replaceFirst(
-        RegExp('($unitPattern)\\s*\$', caseSensitive: false), '');
-    _input.value = TextEditingValue(
-      text: '$stripped${picked.label}',
-      selection: TextSelection.collapsed(offset: stripped.length + picked.label.length),
-    );
-    // 미는 폭은 단위를 따라간다 — kg 는 2.5, lb 는 5 다.
-    setState(() => _step = null);
-  }
-
   /// 길게 눌러 미는 폭을 고른다. 원판이 나라마다 다르고 사람마다 올리는
   /// 폭이 다르다 — 2.5 를 박아두면 파운드로 하는 사람은 매번 손으로 친다.
   Future<void> _pickStep() async {
@@ -629,9 +590,6 @@ class _RoutineEditorState extends State<RoutineEditor> {
                 ? L.of(context).next
                 : L.of(context).finishExercise,
             onStepPick: _pickStep,
-            unitLabel: (unitById[_unit] ?? unitById[defaultUnit]!).label,
-            onUnit: () => _insert((unitById[_unit] ?? unitById[defaultUnit]!).label),
-            onUnitPick: _pickUnit,
             repeatLabel: _c.lastSet == null
                 ? null
                 : setLabel(

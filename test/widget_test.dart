@@ -872,39 +872,4 @@ void keypadTests() {
     });
   });
 
-  group('단위 키', () {
-    testWidgets('누르면 지금 단위가 줄에 붙는다', (tester) async {
-      await pumpApp(tester);
-      await tester.enterText(padField, '러닝');
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await settle(tester);
-      await tapKeys(tester, '5');
-
-      await tester.tap(find.descendant(
-          of: find.byType(SetKeypad), matching: find.text('kg')));
-      await settle(tester);
-      expect(tester.widget<CupertinoTextField>(padField).controller!.text, '5kg');
-    });
-
-    testWidgets('길게 누르면 단위를 고르고, 고른 것이 줄에 붙는다', (tester) async {
-      await pumpApp(tester);
-      await tester.enterText(padField, '러닝');
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await settle(tester);
-      await tapKeys(tester, '5');
-
-      final unitKey = find.descendant(
-          of: find.byType(SetKeypad), matching: find.text('kg'));
-      await tester.longPress(unitKey);
-      await settle(tester);
-
-      // 액션 시트에서 km 를 고른다.
-      await tester.tap(find.widgetWithText(CupertinoActionSheetAction, 'km'));
-      await settle(tester);
-      expect(tester.widget<CupertinoTextField>(padField).controller!.text, '5km');
-      // 키에 적힌 것도 따라 바뀐다.
-      expect(find.descendant(of: find.byType(SetKeypad), matching: find.text('km')),
-          findsOneWidget);
-    });
-  });
 }

@@ -126,7 +126,4 @@ class LJa extends L {
 
     return '$dString';
   }
-
-  @override
-  String get unitTitle => '단위';
 }

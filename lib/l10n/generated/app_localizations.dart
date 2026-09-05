@@ -294,12 +294,6 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{d}'**
   String weekdayLabel(DateTime d);
-
-  /// No description provided for @unitTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'단위'**
-  String get unitTitle;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
