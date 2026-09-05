@@ -270,6 +270,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'이 운동을 지웁니다.'**
   String get deleteExerciseEmptyBody;
+
+  /// No description provided for @next.
+  ///
+  /// In ko, this message translates to:
+  /// **'다음'**
+  String get next;
+
+  /// +/- 롱프레스 시트 제목
+  ///
+  /// In ko, this message translates to:
+  /// **'{unit} 단위'**
+  String stepSizeTitle(String unit);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

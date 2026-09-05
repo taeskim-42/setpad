@@ -105,4 +105,12 @@ class LJa extends L {
 
   @override
   String get deleteExerciseEmptyBody => '이 운동을 지웁니다.';
+
+  @override
+  String get next => '다음';
+
+  @override
+  String stepSizeTitle(String unit) {
+    return '$unit 단위';
+  }
 }

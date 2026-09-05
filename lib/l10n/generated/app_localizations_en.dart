@@ -106,4 +106,12 @@ class LEn extends L {
 
   @override
   String get deleteExerciseEmptyBody => 'This exercise will be removed.';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String stepSizeTitle(String unit) {
+    return '$unit step';
+  }
 }

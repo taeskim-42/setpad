@@ -23,6 +23,8 @@ class SetKeypad extends StatelessWidget {
     required this.onAdjust,
     required this.stepLabel,
     required this.hasInput,
+    required this.submitLabel,
+    required this.onStepPick,
     this.repeatLabel,
     this.onRepeat,
   });
@@ -44,6 +46,12 @@ class SetKeypad extends StatelessWidget {
   /// 칠 것이 들어 있는가. 비었으면 더할 세트가 없으므로 같은 키가 운동을
   /// 닫는 일을 한다 — 동작은 원래 그랬고, 이름만 그때그때 맞춘다.
   final bool hasInput;
+
+  /// 큰 키에 쓸 말. 맥락마다 하는 일이 달라서 밖에서 정한다.
+  final String submitLabel;
+
+  /// +/- 를 길게 눌렀을 때. 미는 폭을 고르게 한다.
+  final VoidCallback onStepPick;
 
   /// 직전 세트를 그대로 한 번 더 — 운동 기록에서 가장 흔한 동작이다.
   final String? repeatLabel;
@@ -113,6 +121,7 @@ class SetKeypad extends StatelessWidget {
                               label: '−',
                               sub: stepLabel,
                               onTap: () => onAdjust(-1),
+                              onLongPress: onStepPick,
                               tone: _Tone.dim,
                             )),
                           ),
@@ -121,15 +130,14 @@ class SetKeypad extends StatelessWidget {
                               label: '+',
                               sub: stepLabel,
                               onTap: () => onAdjust(1),
+                              onLongPress: onStepPick,
                               tone: _Tone.dim,
                             )),
                           ),
                         ],
                       ),
                       _pad(_Key(
-                        label: hasInput
-                            ? L.of(context).addSet
-                            : L.of(context).finishExercise,
+                        label: submitLabel,
                         onTap: onSubmit,
                         tone: _Tone.primary,
                         height: 46,
@@ -171,10 +179,14 @@ class _Key extends StatelessWidget {
     this.icon,
     required this.onTap,
     required this.tone,
+    this.onLongPress,
     this.height = 46,
   });
 
   final String? label;
+
+  /// 길게 눌렀을 때. 없으면 길게 눌러도 아무 일도 없다.
+  final VoidCallback? onLongPress;
 
   /// 버튼 아래 작게 붙는 설명. −/+ 가 얼마씩 미는지 여기 적는다.
   final String? sub;
@@ -201,6 +213,7 @@ class _Key extends StatelessWidget {
         elevation: tone == _Tone.dim ? 0 : 0.5,
         child: InkWell(
           onTap: onTap,
+          onLongPress: onLongPress,
           borderRadius: BorderRadius.circular(6),
           child: Center(
             child: icon != null

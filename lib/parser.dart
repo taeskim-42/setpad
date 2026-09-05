@@ -3,6 +3,7 @@
 library;
 
 import 'exercises.dart';
+import 'units.dart';
 
 /// 친 글자에 맞는 후보를 순위대로.
 ///
@@ -108,9 +109,13 @@ int? _typoDistance(String key, String q, int max) {
 }
 
 class ParsedSet {
-  const ParsedSet({this.kg, this.reps, this.note, this.count = 1});
+  const ParsedSet({this.value, this.unit, this.reps, this.note, this.count = 1});
 
-  final double? kg;
+  /// 무게든 거리든 시간이든, 친 숫자 그대로. 단위는 [unit] 이 들고 있다.
+  final double? value;
+
+  /// 친 단위. 안 쳤으면 null 이고, 쓰는 쪽이 기본값을 정한다.
+  final String? unit;
   final int? reps;
 
   /// 숫자를 다 먹고 남은 것. 외울 구분자가 없다는 게 요점이다.
@@ -120,24 +125,27 @@ class ParsedSet {
   final int count;
 
   @override
-  String toString() => 'ParsedSet(kg: $kg, reps: $reps, note: $note, count: $count)';
+  String toString() =>
+      'ParsedSet(value: $value, unit: $unit, reps: $reps, note: $note, count: $count)';
 
   @override
   bool operator ==(Object other) =>
       other is ParsedSet &&
-      other.kg == kg &&
+      other.value == value &&
+      other.unit == unit &&
       other.reps == reps &&
       other.note == note &&
       other.count == count;
 
   @override
-  int get hashCode => Object.hash(kg, reps, note, count);
+  int get hashCode => Object.hash(value, unit, reps, note, count);
 }
 
-/// 여덟 언어의 단위어. 어느 언어로 치든 같은 뜻으로 읽는다.
-const _units = 'kg|킬로|kilo|kilos|lb|lbs|파운드|'
-    '세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต|'
+/// 세트 수와 횟수를 뜻하는 말. 무게·거리·시간 단위는 units.dart 가 쥔다.
+const _counters = '세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต|'
     '회|개|rep|reps|回|次|lần|ครั้ง|veces';
+
+final _units = '$unitPattern|$_counters';
 
 final _unit = RegExp('^(\\d+(?:\\.\\d+)?)\\s*($_units)\$',
     caseSensitive: false);
@@ -160,26 +168,32 @@ ParsedSet? parseSetLine(String line) {
       .replaceAllMapped(_spacedUnit, (m) => '${m[1]}${m[2]}');
   if (text.isEmpty) return null;
 
-  double? kg;
+  double? value;
+  String? unit;
   int? reps;
   var count = 1;
   final bare = <double>[];
   final rest = <String>[];
 
   for (final token in text.split(RegExp(r'\s+'))) {
-    final unit = _unit.firstMatch(token);
-    if (unit != null) {
-      final value = double.parse(unit.group(1)!);
-      switch (unit.group(2)!.toLowerCase()) {
-        case 'kg' || '킬로' || 'kilo' || 'kilos':
-          kg = value;
-        case 'lb' || 'lbs' || '파운드':
-          kg = (value * 0.4536 * 10).round() / 10;
-        case '세트' || 'set' || 'sets' || 'セット' || '组' || '組' ||
-              'serie' || 'series' || 'hiệp' || 'เซ็ต':
-          count = value.round();
-        default:
-          reps = value.round();
+    final m = _unit.firstMatch(token);
+    if (m != null) {
+      final n = double.parse(m.group(1)!);
+      final word = m.group(2)!.toLowerCase();
+      final known = unitOf(word);
+      if (known != null) {
+        // 친 단위를 그대로 남긴다. 예전에는 lb 를 kg 로 바꿔 저장해서
+        // 파운드로 하는 사람의 숫자가 사라졌다.
+        value = n;
+        unit = known;
+      } else if (RegExp('^($_counters)\$', caseSensitive: false).hasMatch(word)) {
+        if (RegExp(r'^(세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต)$',
+                caseSensitive: false)
+            .hasMatch(word)) {
+          count = n.round();
+        } else {
+          reps = n.round();
+        }
       }
       continue;
     }
@@ -195,30 +209,29 @@ ParsedSet? parseSetLine(String line) {
     rest.add(token);
   }
 
-  for (final value in bare) {
-    if (kg == null && reps == null && bare.length > 1) {
-      kg = value;
+  for (final n in bare) {
+    if (value == null && reps == null && bare.length > 1) {
+      value = n;
     } else if (reps == null) {
-      reps = value.round();
+      reps = n.round();
     } else {
-      kg ??= value;
+      value ??= n;
     }
   }
 
-  if (kg == null && reps == null) return null;
+  if (value == null && reps == null) return null;
   count = count.clamp(1, 20);
 
   return ParsedSet(
-    kg: kg,
+    value: value,
+    unit: unit,
     reps: reps,
     note: rest.isEmpty ? null : rest.join(' '),
     count: count,
   );
 }
 
-/// 소수점이 필요 없으면 떼고 보여준다. 100.0kg은 아무도 그렇게 안 읽는다.
-String formatKg(double kg) =>
-    kg == kg.roundToDouble() ? '${kg.round()}kg' : '${kg}kg';
+
 
 /// "100kg · 20회" / "100kg · 20 reps"
 ///
@@ -227,12 +240,13 @@ String formatKg(double kg) =>
 String _koReps(int n) => '$n회';
 
 String setLabel({
-  double? kg,
+  double? value,
+  String? unit,
   int? reps,
   String Function(int n) formatReps = _koReps,
 }) =>
     [
-      if (kg != null) formatKg(kg),
+      if (value != null) formatValue(value, unit ?? defaultUnit),
       if (reps != null) formatReps(reps),
     ].join(' · ');
 

@@ -8,6 +8,7 @@ import 'package:setpad/parser.dart';
 import 'package:setpad/keypad.dart';
 import 'package:setpad/main.dart';
 import 'package:setpad/notes.dart';
+import 'package:setpad/units.dart';
 
 /// pumpAndSettle 의 기본 한도는 10분이다. 무언가 프레임을 계속 잡으면
 /// 테스트가 멈춘 것처럼 보이므로 5초로 줄여 빨리 터지게 한다.
@@ -27,6 +28,10 @@ final padField =
 /// 제목이다) 그냥 find.text 로 세면 둘이 잡힌다.
 Finder inPad(String text) =>
     find.descendant(of: find.byType(RoutineEditor), matching: find.text(text));
+
+/// 카드 안의 '세트 추가' 버튼. 키패드의 큰 키는 '다음'을 맡는다.
+final addSetButton =
+    find.descendant(of: find.byType(TextButton), matching: find.text('세트 추가'));
 
 /// 키패드로 친다. 세트 칸은 읽기 전용이라 enterText 로는 글자가 안 들어간다 —
 /// 실제 기기에서도 시스템 키보드가 아니라 이 키패드가 넣는다.
@@ -199,7 +204,7 @@ void markAndRemoveTests() {
       c.commit('90kg 8회');
       c.removeSet(0, 0);
       expect(c.blocks.single.sets.length, 1);
-      expect(c.blocks.single.sets.single.kg, 90);
+      expect(c.blocks.single.sets.single.value, 90);
     });
 
     test('운동을 삭제하면 통째로 사라진다', () {
@@ -231,7 +236,7 @@ void keypadTests() {
       c.repeatLastSet();
       expect(c.blocks.single.sets.length, 2);
       final last = c.blocks.single.sets.last;
-      expect(last.kg, 100);
+      expect(last.value, 100);
       expect(last.reps, 20);
       expect(last.note, '어깨 뻐근');
     });
@@ -279,7 +284,8 @@ void keypadTests() {
         await tester.tap(key(k));
         await tester.pump();
       }
-      await tester.tap(key('세트 추가'));
+      // 키패드의 큰 키는 '다음'이고, 세트를 넣는 것은 화면 버튼이다.
+      await tester.tap(addSetButton);
       await settle(tester);
 
       expect(find.text('100kg · 20회'), findsOneWidget);
@@ -318,7 +324,7 @@ void keypadTests() {
 
       await tester.tap(find.text('Bench Press'));
       await settle(tester);
-      // 아직 아무 숫자도 안 쳤으므로 큰 키는 "더할 세트"가 아니라 "끝내기"다.
+      // 아직 아무 숫자도 안 쳤으므로 큰 키는 '다음'이 아니라 '끝내기'다.
       expect(find.text('Done'), findsOneWidget);
 
       // 세트 칸은 읽기 전용이라 키패드로만 친다 — 실제 사용 경로도 그쪽이다.
@@ -328,7 +334,9 @@ void keypadTests() {
         await tester.tap(key(k));
         await tester.pump();
       }
-      await tester.tap(key('Add Set'));
+      // 키패드 큰 키는 'Next'. 세트를 넣는 것은 화면 버튼이다.
+      await tester.tap(find.descendant(
+          of: find.byType(TextButton), matching: find.text('Add Set')));
       await settle(tester);
       expect(find.text('Set 1'), findsOneWidget);
       expect(find.text('100kg · 10 reps'), findsOneWidget);
@@ -454,8 +462,8 @@ void keypadTests() {
     test('요약은 첫 운동의 세트 수와 무게·횟수를 낸다', () {
       final n = Note(id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now(), blocks: [
         ExerciseBlock('벤치프레스', [
-          LoggedSet(kg: 80, reps: 25),
-          LoggedSet(kg: 80, reps: 20),
+          LoggedSet(value: 80, reps: 25),
+          LoggedSet(value: 80, reps: 20),
         ]),
       ]);
       expect(n.title, '벤치프레스');
@@ -464,7 +472,7 @@ void keypadTests() {
   });
 
   group('키패드 큰 키', () {
-    testWidgets('칠 것이 있으면 "세트 추가", 비어 있으면 "운동 완료"', (tester) async {
+    testWidgets('칠 것이 있으면 "다음", 비어 있으면 "운동 완료"', (tester) async {
       await pumpApp(tester);
       await tester.enterText(padField, '벤치프레스');
       await tester.testTextInput.receiveAction(TextInputAction.done);
@@ -472,12 +480,14 @@ void keypadTests() {
 
       // 세트를 받는 중이고 아직 아무것도 안 쳤다 — 더할 세트가 없다.
       expect(find.text('운동 완료'), findsOneWidget);
-      expect(find.text('세트 추가'), findsNothing);
+      expect(find.text('다음'), findsNothing);
 
       // 세트 칸은 읽기 전용이다 — enterText 가 안 먹는다. 실제 경로대로 친다.
       await tapKeys(tester, '100 20');
-      expect(find.text('세트 추가'), findsOneWidget);
+      expect(find.text('다음'), findsOneWidget);
       expect(find.text('운동 완료'), findsNothing);
+      // 세트를 넣는 것은 화면 버튼이다.
+      expect(addSetButton, findsOneWidget);
     });
 
     testWidgets('빈 칸에서 누르면 운동이 닫히고 다음은 새 운동 이름이다', (tester) async {
@@ -486,7 +496,7 @@ void keypadTests() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
       await tapKeys(tester, '100 20');
-      await tester.tap(find.text('세트 추가'));
+      await tester.tap(addSetButton);
       await settle(tester);
 
       await tester.tap(find.text('운동 완료'));
@@ -516,7 +526,7 @@ void keypadTests() {
         await tester.testTextInput.receiveAction(TextInputAction.done);
         await settle(tester);
         await tapKeys(tester, '100 10');
-        await tester.tap(find.text('세트 추가'));
+        await tester.tap(addSetButton);
         await settle(tester);
         await tester.tap(find.text('운동 완료'));
         await settle(tester);
@@ -613,7 +623,7 @@ void keypadTests() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
       await tapKeys(tester, '100 10');
-      await tester.tap(find.text('세트 추가'));
+      await tester.tap(addSetButton);
       await settle(tester);
 
       final back = find.byIcon(Icons.backspace_outlined);
@@ -698,6 +708,51 @@ void keypadTests() {
         expect(name.toLowerCase().contains('벤'), isTrue, reason: name);
       }
       expect(find_('ㅋㅋ'), isEmpty);
+    });
+  });
+
+  group('단위', () {
+    test('한 운동 안에서는 단위가 이어진다', () {
+      // 첫 세트에 lb 를 쳤으면 다음 줄에 안 붙여도 파운드다. 한 운동 안에서
+      // 세트마다 단위가 바뀌는 일은 없다.
+      final c = RoutineEditorController()
+        ..commit('벤치프레스')
+        ..commit('225lb 5')
+        ..commit('225 5');
+      expect(c.blocks.single.sets.map((s) => s.unit), ['lb', 'lb']);
+    });
+
+    test('단위를 안 쳤으면 kg 이다', () {
+      final c = RoutineEditorController()..commit('스쿼트')..commit('100 10');
+      expect(c.blocks.single.sets.single.unit, 'kg');
+    });
+
+    test('표시는 친 단위 그대로다', () {
+      expect(setLabel(value: 225, unit: 'lb', reps: 5), '225lb · 5회');
+      expect(setLabel(value: 5, unit: 'km'), '5km');
+      expect(setLabel(value: 60, unit: 's'), '60초');
+    });
+
+    test('단위마다 미는 폭이 다르다', () {
+      // 2.5kg 은 국내 원판 한 쌍, 5lb 는 파운드 원판 한 쌍이다.
+      expect(unitById['kg']!.step, 2.5);
+      expect(unitById['lb']!.step, 5);
+      expect(unitById['s']!.steps, contains(30));
+    });
+
+    test('예전 기록(kg 필드)도 읽힌다', () {
+      // 단위가 생기기 전 저장분이다. 그때는 무게가 늘 kg 였다.
+      final n = Note.fromJson({
+        'id': '1',
+        'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+        'blocks': [
+          {'name': '벤치프레스', 'sets': [{'kg': 80, 'reps': 10, 'done': true}]},
+        ],
+      });
+      final set = n.blocks.single.sets.single;
+      expect(set.value, 80);
+      expect(set.unit, 'kg');
     });
   });
 }

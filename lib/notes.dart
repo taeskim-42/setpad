@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'editor.dart';
+import 'units.dart';
 
 /// 한 번의 운동 기록. 메모 앱의 메모 한 장에 해당한다.
 ///
@@ -31,7 +32,7 @@ class Note {
       final first = done.first;
       final parts = [
         setOrdinal(done.length),
-        if (first.kg != null) '${_num(first.kg!)}kg',
+        if (first.value != null) formatValue(first.value!, first.unit),
         if (first.reps != null) reps(first.reps!),
       ];
       return parts.join(' · ');
@@ -53,7 +54,13 @@ class Note {
               'name': b.name,
               'sets': [
                 for (final s in b.sets)
-                  {'kg': s.kg, 'reps': s.reps, 'note': s.note, 'done': s.done},
+                  {
+                    'value': s.value,
+                    'unit': s.unit,
+                    'reps': s.reps,
+                    'note': s.note,
+                    'done': s.done,
+                  },
               ],
             },
         ],
@@ -70,7 +77,10 @@ class Note {
               [
                 for (final s in (b['sets'] as List? ?? const []))
                   LoggedSet(
-                    kg: (s['kg'] as num?)?.toDouble(),
+                    // 'kg' 는 단위가 생기기 전에 저장된 기록이다. 그때는
+                    // 무게가 늘 kg 였으므로 그대로 읽어 준다.
+                    value: ((s['value'] ?? s['kg']) as num?)?.toDouble(),
+                    unit: s['unit'] as String? ?? defaultUnit,
                     reps: s['reps'] as int?,
                     note: s['note'] as String?,
                     done: s['done'] as bool? ?? true,
@@ -80,8 +90,6 @@ class Note {
         ],
       );
 }
-
-String _num(double v) => v == v.roundToDouble() ? v.round().toString() : v.toString();
 
 /// 노트 전부를 들고 있고 디스크와 맞춰 두는 곳.
 ///

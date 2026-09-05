@@ -5,12 +5,19 @@ import 'keypad.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'exercises.dart';
 import 'parser.dart';
+import 'units.dart';
 
 const seal = Color(0xFFC3372A);
 
 class LoggedSet {
-  LoggedSet({this.kg, this.reps, this.note, this.done = true});
-  final double? kg;
+  LoggedSet({this.value, this.unit = defaultUnit, this.reps, this.note, this.done = true});
+
+  /// 무게든 거리든 시간이든, 친 숫자 그대로.
+  final double? value;
+
+  /// 그 숫자의 단위. 친 것을 그대로 남긴다 — 예전에는 lb 를 kg 로 바꿔
+  /// 저장해서 파운드로 하는 사람의 숫자가 사라졌다.
+  final String unit;
   final int? reps;
   final String? note;
 
@@ -81,7 +88,14 @@ class RoutineEditorController extends ChangeNotifier {
   bool addSet(String line) {
     final parsed = parseSetLine(line);
     if (parsed == null || !inBlock) return false;
-    final set = LoggedSet(kg: parsed.kg, reps: parsed.reps, note: parsed.note);
+    final set = LoggedSet(
+      value: parsed.value,
+      // 단위를 안 쳤으면 이 운동에서 쓰던 것을 잇는다. 한 운동 안에서
+      // 세트마다 단위가 바뀌는 일은 없다.
+      unit: parsed.unit ?? blocks[_active].sets.lastOrNull?.unit ?? defaultUnit,
+      reps: parsed.reps,
+      note: parsed.note,
+    );
     blocks[_active].sets.addAll(List.generate(parsed.count, (_) => set));
     notifyListeners();
     return true;
@@ -217,7 +231,8 @@ class RoutineEditorController extends ChangeNotifier {
           lines.add([
             setOrdinal?.call(i + 1) ?? '${i + 1}세트',
             setLabel(
-                kg: s.kg,
+                value: s.value,
+                unit: s.unit,
                 reps: s.reps,
                 formatReps: formatReps ?? (n) => '$n회'),
             if (s.note != null) s.note!,
@@ -279,9 +294,63 @@ class _RoutineEditorState extends State<RoutineEditor> {
   /// 다시 키패드로 돌아온다 — 메모는 세트마다 붙는 게 아니라 가끔 붙는다.
   bool _wantText = false;
 
-  /// 칠 것이 들어 있는가. 키패드의 큰 키가 "세트 추가"인지 "운동 완료"인지를
-  /// 가른다. 뒤집힐 때만 다시 그린다 — 글자마다 그릴 이유가 없다.
+  /// 칠 것이 들어 있는가. 키패드의 큰 키가 하는 일이 여기 따라 달라진다.
+  /// 뒤집힐 때만 다시 그린다 — 글자마다 그릴 이유가 없다.
   bool _hasInput = false;
+
+  /// +/- 가 한 번에 미는 폭. 길게 눌러 바꾼다. null 이면 단위의 기본값이다.
+  double? _step;
+
+  /// 지금 치는 자리의 단위. 아직 안 쳤으면 이 운동에서 쓰던 것을 잇는다.
+  String get _unit {
+    final typed = parseSetLine(_input.text)?.unit;
+    if (typed != null) return typed;
+    final sets = _c.inBlock ? _c.blocks[_c.activeIndex].sets : const <LoggedSet>[];
+    return sets.isEmpty ? defaultUnit : sets.last.unit;
+  }
+
+  /// 지금 미는 폭. 횟수를 치는 중이면 1이다 — 횟수를 2.5씩 미는 일은 없다.
+  double get _stepSize {
+    if (_typingReps) return 1;
+    return _step ?? (unitById[_unit] ?? unitById[defaultUnit]!).step;
+  }
+
+  /// 무게(또는 거리·시간)를 지나 횟수를 치고 있는가.
+  bool get _typingReps =>
+      RegExp('($unitPattern)\\s*[\\d.]*\$', caseSensitive: false)
+          .hasMatch(_input.text) ||
+      _input.text.trimRight().contains(' ');
+
+  /// 길게 눌러 미는 폭을 고른다. 원판이 나라마다 다르고 사람마다 올리는
+  /// 폭이 다르다 — 2.5 를 박아두면 파운드로 하는 사람은 매번 손으로 친다.
+  Future<void> _pickStep() async {
+    final u = unitById[_unit] ?? unitById[defaultUnit]!;
+    final picked = await showModalBottomSheet<double>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(L.of(context).stepSizeTitle(u.label),
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
+              ),
+            ),
+            for (final v in u.steps)
+              ListTile(
+                title: Text(formatNumber(v)),
+                trailing: v == _stepSize ? const Icon(Icons.check, color: seal) : null,
+                onTap: () => Navigator.pop(context, v),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked != null && mounted) setState(() => _step = picked);
+  }
 
   RoutineEditorController get _c => widget.controller;
 
@@ -455,6 +524,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
                     onRemoveBlock: () => _c.removeBlock(i),
                     // 열려 있는 카드는 이미 거기다 — 누를 것이 없다.
                     onOpen: i == openIndex ? null : () => _openBlock(i),
+                    onAddSet: i == openIndex ? () => _commit() : null,
                   );
                 }
                 // 카드 밖 — 새 운동 이름 자리
@@ -478,7 +548,16 @@ class _RoutineEditorState extends State<RoutineEditor> {
             hasInput: _hasInput,
             onKey: _insert,
             onBackspace: _keypadBackspace,
-            onSubmit: () => _commit(),
+            onSubmit: () {
+              // 참조 앱의 Next 와 같다 — 아직 한 칸도 안 띄웠으면 다음 자리로
+              // 옮기고, 이미 옮겨 왔으면 그 줄을 세트로 넣는다.
+              final t = _input.text.trimRight();
+              if (t.isNotEmpty && !t.contains(' ')) {
+                _insert(' ');
+                return;
+              }
+              _commit();
+            },
             onText: () {
               setState(() => _wantText = true);
               // 읽기 전용이 풀린 뒤라야 키보드가 글자판으로 열린다.
@@ -493,14 +572,18 @@ class _RoutineEditorState extends State<RoutineEditor> {
               setState(() {});
             },
             // 무게를 치는 중이면 원판 단위, kg 를 지나 횟수를 치는 중이면 하나.
-            stepLabel: RegExp(r'(kg|킬로|파운드|lb)\s*[\d.]*$', caseSensitive: false)
-                    .hasMatch(_input.text)
-                ? '1'
-                : '2.5',
+            stepLabel: formatNumber(_stepSize),
+            // 칠 것이 있으면 늘 '다음'이다. 세트를 넣는 일은 화면 버튼이
+            // 맡으므로, 같은 이름의 버튼이 둘이 되지 않게 한다.
+            submitLabel: _hasInput
+                ? L.of(context).next
+                : L.of(context).finishExercise,
+            onStepPick: _pickStep,
             repeatLabel: _c.lastSet == null
                 ? null
                 : setLabel(
-                    kg: _c.lastSet!.kg,
+                    value: _c.lastSet!.value,
+                    unit: _c.lastSet!.unit,
                     reps: _c.lastSet!.reps,
                     formatReps: L.of(context).repsCount),
             onRepeat: _c.repeatLastSet,
@@ -585,6 +668,7 @@ class _BlockView extends StatelessWidget {
     required this.onRemoveSet,
     required this.onRemoveBlock,
     required this.onOpen,
+    this.onAddSet,
   });
 
   final ExerciseBlock block;
@@ -597,6 +681,9 @@ class _BlockView extends StatelessWidget {
 
   /// 닫힌 카드를 눌러 그 운동을 다시 연다. 열려 있으면 null 이다.
   final VoidCallback? onOpen;
+
+  /// 카드 안의 '세트 추가'. 열려 있는 카드에만 있다.
+  final VoidCallback? onAddSet;
 
   Future<void> _confirmRemove(BuildContext context) async {
     if (await confirmRemoveExercise(context, block)) onRemoveBlock();
@@ -654,11 +741,32 @@ class _BlockView extends StatelessWidget {
                 onToggle: () => onToggle(e.key),
                 onRemove: () => onRemoveSet(e.key),
               )),
-          if (input != null)
+          if (input != null) ...[
             Padding(
               padding: EdgeInsets.only(top: block.sets.isEmpty ? 2 : 4, left: 46),
               child: input!,
             ),
+            // 키패드의 큰 키는 '다음'(무게→횟수)을 맡는다. 세트를 넣는 일은
+            // 화면에 둔다 — 지금 무엇을 넣는지가 보이는 자리에 있어야 한다.
+            if (onAddSet != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: onAddSet,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(L.of(context).addSet),
+                    style: TextButton.styleFrom(
+                      foregroundColor: seal,
+                      backgroundColor: const Color(0xFFF7E9E6),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ],
       ),
     );
@@ -713,7 +821,8 @@ class _SetRow extends StatelessWidget {
           ),
           Text(
             setLabel(
-                kg: set.kg,
+                value: set.value,
+                unit: set.unit,
                 reps: set.reps,
                 formatReps: L.of(context).repsCount),
             style: TextStyle(

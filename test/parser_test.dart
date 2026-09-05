@@ -1,12 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/exercises.dart';
 import 'package:setpad/parser.dart';
+import 'package:setpad/units.dart';
 
 void main() {
   group('세트 줄 읽기', () {
     test('단위를 붙였든 안 붙였든 읽는다', () {
-      expect(parseSetLine('100kg 20회'), const ParsedSet(kg: 100, reps: 20));
-      expect(parseSetLine('100 20'), const ParsedSet(kg: 100, reps: 20));
+      expect(parseSetLine('100kg 20회'),
+          const ParsedSet(value: 100, unit: 'kg', reps: 20));
+      // 단위를 안 쳤으면 비워 둔다 — 무엇으로 볼지는 쓰는 쪽이 정한다.
+      expect(parseSetLine('100 20'), const ParsedSet(value: 100, reps: 20));
     });
 
     test('숫자가 하나면 횟수다 — 맨몸 운동이 그렇게 적힌다', () {
@@ -26,14 +29,39 @@ void main() {
 
     test('숫자를 다 먹고 남은 것이 메모다', () {
       final parsed = parseSetLine('100kg 20회 마지막에 힘들었음');
-      expect(parsed?.kg, 100);
+      expect(parsed?.value, 100);
       expect(parsed?.reps, 20);
       expect(parsed?.note, '마지막에 힘들었음');
       expect(parseSetLine('20회 어깨 불편')?.note, '어깨 불편');
     });
 
-    test('파운드는 kg으로 바꿔 적는다', () {
-      expect(parseSetLine('225lb 5회')?.kg, 102.1);
+    test('친 단위를 그대로 남긴다 — 몰래 환산하지 않는다', () {
+      // 예전에는 lb 를 kg 으로 바꿔 저장했다. 파운드로 운동하는 사람에게는
+      // 자기가 친 숫자가 사라지는 셈이라 못 쓴다.
+      final p = parseSetLine('225lb 5회')!;
+      expect(p.value, 225);
+      expect(p.unit, 'lb');
+    });
+
+    test('무게 말고 거리·시간도 읽는다', () {
+      expect(parseSetLine('5km')?.unit, 'km');
+      expect(parseSetLine('400m')?.value, 400);
+      expect(parseSetLine('400m')?.unit, 'm');
+      expect(parseSetLine('60초')?.unit, 's');
+      expect(parseSetLine('3분')?.unit, 'min');
+      expect(parseSetLine('1mi')?.unit, 'mi');
+    });
+
+    test('단위를 여러 언어로 쳐도 같은 것으로 읽는다', () {
+      for (final t in ['100kg', '100킬로', '100公斤', '100キロ']) {
+        expect(parseSetLine(t)?.unit, 'kg', reason: t);
+      }
+      for (final t in ['225lb', '225lbs', '225파운드', '225磅']) {
+        expect(parseSetLine(t)?.unit, 'lb', reason: t);
+      }
+      for (final t in ['30초', '30s', '30sec', '30秒']) {
+        expect(parseSetLine(t)?.unit, 's', reason: t);
+      }
     });
 
     test('숫자가 없으면 세트가 아니다', () {
@@ -42,7 +70,7 @@ void main() {
     });
 
     test('소수 무게도 읽는다', () {
-      expect(parseSetLine('22.5kg 12회')?.kg, 22.5);
+      expect(parseSetLine('22.5kg 12회')?.value, 22.5);
     });
   });
 
@@ -70,12 +98,12 @@ void main() {
 
   group('표시', () {
     test('소수점이 필요 없으면 뗀다', () {
-      expect(formatKg(100), '100kg');
-      expect(formatKg(22.5), '22.5kg');
+      expect(formatValue(100, 'kg'), '100kg');
+      expect(formatValue(22.5, 'kg'), '22.5kg');
     });
 
     test('무게가 없는 운동은 횟수만 적는다', () {
-      expect(setLabel(kg: 100, reps: 20), '100kg · 20회');
+      expect(setLabel(value: 100, reps: 20), '100kg · 20회');
       expect(setLabel(reps: 12), '12회');
     });
   });
@@ -202,8 +230,11 @@ void bumpTests() {
       expect(parseSetLine('100kg 10 lần 3 hiệp')!.count, 3);
     });
 
-    test('lbs 도 kg 으로 환산한다', () {
-      expect(parseSetLine('225lbs 5reps')!.kg, closeTo(102.1, 0.2));
+    test('lbs 를 쳐도 파운드 그대로다', () {
+      final p = parseSetLine('225lbs 5reps')!;
+      expect(p.value, 225);
+      expect(p.unit, 'lb');
+      expect(p.reps, 5);
     });
   });
 }

@@ -92,5 +92,15 @@
       }
     }
   },
-  "deleteExerciseEmptyBody": "이 운동을 지웁니다."
+  "deleteExerciseEmptyBody": "이 운동을 지웁니다.",
+  "next": "다음",
+  "stepSizeTitle": "{unit} 단위",
+  "@stepSizeTitle": {
+    "description": "+/- 롱프레스 시트 제목",
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  }
 }

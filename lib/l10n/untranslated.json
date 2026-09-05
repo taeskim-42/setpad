@@ -16,7 +16,9 @@
     "delete",
     "deleteExerciseTitle",
     "deleteExerciseBody",
-    "deleteExerciseEmptyBody"
+    "deleteExerciseEmptyBody",
+    "next",
+    "stepSizeTitle"
   ],
 
   "ja": [
@@ -36,7 +38,9 @@
     "delete",
     "deleteExerciseTitle",
     "deleteExerciseBody",
-    "deleteExerciseEmptyBody"
+    "deleteExerciseEmptyBody",
+    "next",
+    "stepSizeTitle"
   ],
 
   "th": [
@@ -56,7 +60,9 @@
     "delete",
     "deleteExerciseTitle",
     "deleteExerciseBody",
-    "deleteExerciseEmptyBody"
+    "deleteExerciseEmptyBody",
+    "next",
+    "stepSizeTitle"
   ],
 
   "vi": [
@@ -76,7 +82,9 @@
     "delete",
     "deleteExerciseTitle",
     "deleteExerciseBody",
-    "deleteExerciseEmptyBody"
+    "deleteExerciseEmptyBody",
+    "next",
+    "stepSizeTitle"
   ],
 
   "zh": [
@@ -96,7 +104,9 @@
     "delete",
     "deleteExerciseTitle",
     "deleteExerciseBody",
-    "deleteExerciseEmptyBody"
+    "deleteExerciseEmptyBody",
+    "next",
+    "stepSizeTitle"
   ],
 
   "zh_Hans": [
@@ -116,7 +126,9 @@
     "delete",
     "deleteExerciseTitle",
     "deleteExerciseBody",
-    "deleteExerciseEmptyBody"
+    "deleteExerciseEmptyBody",
+    "next",
+    "stepSizeTitle"
   ],
 
   "zh_Hant": [
@@ -136,6 +148,8 @@
     "delete",
     "deleteExerciseTitle",
     "deleteExerciseBody",
-    "deleteExerciseEmptyBody"
+    "deleteExerciseEmptyBody",
+    "next",
+    "stepSizeTitle"
   ]
 }

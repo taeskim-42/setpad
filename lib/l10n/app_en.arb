@@ -26,5 +26,7 @@
   "delete": "Delete",
   "deleteExerciseTitle": "Delete {name}",
   "deleteExerciseBody": "{n} sets will be deleted. This cannot be undone.",
-  "deleteExerciseEmptyBody": "This exercise will be removed."
+  "deleteExerciseEmptyBody": "This exercise will be removed.",
+  "next": "Next",
+  "stepSizeTitle": "{unit} step"
 }
