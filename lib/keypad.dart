@@ -1,8 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'l10n/generated/app_localizations.dart';
-
-const _seal = Color(0xFFC3372A);
+import 'palette.dart';
 
 /// 세트를 칠 때만 뜨는 키패드.
 ///
@@ -62,7 +61,7 @@ class SetKeypad extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFD8D9DE),
+        color: keypadBackground.resolveFrom(context),
         // iOS 의 구분선은 0.5pt.
         border: Border(
           top: BorderSide(
@@ -202,10 +201,10 @@ class _Key extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bg, fg) = switch (tone) {
       // iOS 숫자 키패드의 색 얼개 — 숫자는 흰 키, 기능키는 한 단계 어둡게.
-      _Tone.plain => (CupertinoColors.white, CupertinoColors.label),
-      _Tone.dim => (const Color(0xFFBEC0C7), CupertinoColors.label),
-      _Tone.primary => (_seal, CupertinoColors.white),
-      _Tone.accent => (const Color(0xFFF7E9E6), _seal),
+      _Tone.plain => (keyFace.resolveFrom(context), CupertinoColors.label.resolveFrom(context)),
+      _Tone.dim => (keyDim.resolveFrom(context), CupertinoColors.label.resolveFrom(context)),
+      _Tone.primary => (seal, CupertinoColors.white),
+      _Tone.accent => (sealTint.resolveFrom(context), seal),
     };
 
     return SizedBox(
@@ -222,11 +221,11 @@ class _Key extends StatelessWidget {
             borderRadius: BorderRadius.circular(5),
             boxShadow: tone == _Tone.dim
                 ? null
-                : const [
+                : [
                     BoxShadow(
-                      color: Color(0x33000000),
+                      color: keyShadow.resolveFrom(context),
                       blurRadius: 0,
-                      offset: Offset(0, 1),
+                      offset: const Offset(0, 1),
                     ),
                   ],
           ),

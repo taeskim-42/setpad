@@ -5,10 +5,9 @@ import 'package:flutter/services.dart';
 import 'keypad.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'exercises.dart';
+import 'palette.dart';
 import 'parser.dart';
 import 'units.dart';
-
-const seal = Color(0xFFC3372A);
 
 class LoggedSet {
   LoggedSet({this.value, this.unit = defaultUnit, this.reps, this.note, this.done = true});
@@ -603,7 +602,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
         // 메모를 치는 동안에도 돌아올 문은 열어 둔다.
         if (_c.inBlock && _wantText)
           ColoredBox(
-            color: const Color(0xFFD8D9DE),
+            color: keypadBackground.resolveFrom(context),
             child: SafeArea(
               top: false,
               child: SizedBox(
@@ -778,7 +777,7 @@ class _BlockView extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     minimumSize: const Size.fromHeight(44),
                     borderRadius: BorderRadius.circular(10),
-                    color: const Color(0xFFF7E9E6),
+                    color: sealTint.resolveFrom(context),
                     onPressed: onAddSet,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -821,7 +820,7 @@ class _SetRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 3),
       decoration: BoxDecoration(
         // 해낸 세트는 바탕이 깔린다 — 멀리서 봐도 몇 개 했는지 보인다.
-        color: off ? null : const Color(0xFFF1F7F4),
+        color: off ? null : doneTint.resolveFrom(context),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -963,7 +962,7 @@ class SuggestionChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFFF7E9E6)
+              ? sealTint.resolveFrom(context)
               : CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
           // 알약은 완전한 원형 끝이다. iOS 의 필터 칩이 그렇게 생겼다.
           borderRadius: BorderRadius.circular(100),

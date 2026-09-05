@@ -6,6 +6,7 @@ import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'health.dart';
 import 'notes.dart';
+import 'palette.dart';
 import 'notes_list.dart';
 
 void main() => runApp(const SetpadApp());

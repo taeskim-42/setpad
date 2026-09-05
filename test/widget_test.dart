@@ -8,6 +8,7 @@ import 'package:setpad/parser.dart';
 import 'package:setpad/keypad.dart';
 import 'package:setpad/main.dart';
 import 'package:setpad/notes.dart';
+import 'package:setpad/palette.dart';
 import 'package:setpad/units.dart';
 
 /// pumpAndSettle 의 기본 한도는 10분이다. 무언가 프레임을 계속 잡으면
@@ -808,4 +809,32 @@ void keypadTests() {
       expect(store.notes.single.blocks.single.sets.single.value, 100);
     });
   });
+
+  group('다크 모드', () {
+    testWidgets('밝기는 앱이 정하지 않고 시스템을 따른다', (tester) async {
+      // 메모 앱과 같다. 밤에 어두워지는 것은 iOS 설정(디스플레이 및 밝기 >
+      // 자동)이 하는 일이지 앱이 하는 일이 아니다. 앱은 따라가기만 한다.
+      final dir = Directory.systemTemp.createTempSync('setpad_dark');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final store = NotesStore(directory: dir);
+
+      for (final b in [Brightness.light, Brightness.dark]) {
+        tester.platformDispatcher.platformBrightnessTestValue = b;
+        addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+        await tester.pumpWidget(SetpadApp(store: store));
+        await settle(tester);
+        final ctx = tester.element(find.byType(CupertinoPageScaffold).first);
+        expect(CupertinoTheme.brightnessOf(ctx), b, reason: '$b');
+      }
+    });
+
+    test('색은 모두 밝기 두 벌을 든다', () {
+      // 한 벌만 든 색이 하나라도 섞이면 밤에 그 부분만 눈을 찌른다.
+      // context 없이 두 값을 바로 견준다 — 확인하려는 것이 그것이다.
+      for (final c in [sealTint, doneTint, keypadBackground, keyFace, keyDim, keyShadow]) {
+        expect(c.color, isNot(c.darkColor), reason: c.toString());
+      }
+    });
+  });
 }
+
