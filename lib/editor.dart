@@ -14,9 +14,9 @@ class LoggedSet {
     this.value,
     this.unit = defaultUnit,
     this.reps,
-    this.note,
+    List<String>? notes,
     this.done = true,
-  });
+  }) : notes = notes ?? [];
 
   /// 무게든 거리든 시간이든, 친 숫자 그대로.
   final double? value;
@@ -25,7 +25,10 @@ class LoggedSet {
   /// 저장해서 파운드로 하는 사람의 숫자가 사라졌다.
   final String unit;
   final int? reps;
-  final String? note;
+
+  /// 이 세트에 남긴 메모들. 하나만 들면 나중에 적은 것이 앞의 것을 덮어쓴다 —
+  /// 세트를 끝내고 떠오르는 생각은 대개 하나가 아니다.
+  final List<String> notes;
 
   /// 실제로 해낸 세트인가. 넣는 순간은 해낸 것이라 켜진 채로 시작하고,
   /// 계획만 적어두거나 잘못 넣었을 때 손으로 끈다.
@@ -100,7 +103,7 @@ class RoutineEditorController extends ChangeNotifier {
       // 세트마다 단위가 바뀌는 일은 없다.
       unit: parsed.unit ?? blocks[_active].sets.lastOrNull?.unit ?? defaultUnit,
       reps: parsed.reps,
-      note: parsed.note,
+      notes: parsed.note == null ? null : [parsed.note!],
     );
     blocks[_active].sets.addAll(List.generate(parsed.count, (_) => set));
     notifyListeners();
@@ -146,24 +149,41 @@ class RoutineEditorController extends ChangeNotifier {
     }
   }
 
-  /// 마지막 세트에 메모를 붙인다.
+  /// 마지막 세트에 메모를 **더한다**.
   ///
   /// 예전에는 세트를 칠 때 같은 줄에 적어 넣는 수밖에 없었다. 그러면 이미
   /// 넣은 세트에는 메모를 달 방법이 없어서 지우고 다시 쳐야 했다 — 정작
   /// 메모를 적고 싶어지는 것은 세트를 끝낸 다음이다.
+  ///
+  /// 덮어쓰지 않고 쌓는다. 세트를 끝내고 떠오르는 생각은 대개 하나가 아니다.
   void noteLastSet(String text) {
     if (!inBlock) return;
     final sets = blocks[_active].sets;
     if (sets.isEmpty) return;
     final clean = text.trim();
-    final last = sets.last;
-    sets[sets.length - 1] = LoggedSet(
-      value: last.value,
-      unit: last.unit,
-      reps: last.reps,
-      note: clean.isEmpty ? null : clean,
-      done: last.done,
-    );
+    if (clean.isEmpty) return;
+    sets.last.notes.add(clean);
+    notifyListeners();
+  }
+
+  /// 메모 한 줄을 고친다. 빈 글이면 지운 것으로 본다.
+  void editNote(int block, int set, int index, String text) {
+    final notes = blocks[block].sets[set].notes;
+    if (index < 0 || index >= notes.length) return;
+    final clean = text.trim();
+    if (clean.isEmpty) {
+      notes.removeAt(index);
+    } else {
+      notes[index] = clean;
+    }
+    notifyListeners();
+  }
+
+  /// 메모 한 줄을 지운다.
+  void removeNote(int block, int set, int index) {
+    final notes = blocks[block].sets[set].notes;
+    if (index < 0 || index >= notes.length) return;
+    notes.removeAt(index);
     notifyListeners();
   }
 
@@ -264,7 +284,7 @@ class RoutineEditorController extends ChangeNotifier {
                 reps: s.reps,
                 formatReps: formatReps ?? (n) => '$n회',
               ),
-              if (s.note != null) s.note!,
+              ...s.notes,
             ].join(' '),
           );
         }
@@ -337,6 +357,20 @@ class _RoutineEditorState extends State<RoutineEditor> {
 
   /// +/- 가 한 번에 미는 폭. 길게 눌러 바꾼다. null 이면 단위의 기본값이다.
   double? _step;
+
+  /// 지금 고치고 있는 메모의 자리 (운동, 세트, 메모). null 이면 새로 다는 중.
+  (int, int, int)? _editing;
+
+  /// 메모 한 줄을 입력칸으로 불러온다. 커밋하면 그 자리를 덮어쓴다.
+  void _startEditNote(int block, int set, int note) {
+    _input.text = _c.blocks[block].sets[set].notes[note];
+    _input.selection = TextSelection.collapsed(offset: _input.text.length);
+    setState(() {
+      _editing = (block, set, note);
+      _wantText = true;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reopen());
+  }
 
   /// 지금 치는 자리의 단위. 아직 안 쳤으면 이 운동에서 쓰던 것을 잇는다.
   String get _unit {
@@ -482,6 +516,17 @@ class _RoutineEditorState extends State<RoutineEditor> {
     final value = pick ?? _input.text;
     // 메모 모드에서 친 것은 마지막 세트의 메모다. 그냥 넘기면 숫자가 없는
     // 줄이라 파서가 새 운동 이름으로 읽어 버린다.
+    if (pick == null && _editing != null) {
+      final (b, st, n) = _editing!;
+      _c.editNote(b, st, n, value);
+      _input.clear();
+      setState(() {
+        _editing = null;
+        _wantText = false;
+      });
+      _focus.requestFocus();
+      return;
+    }
     if (pick == null && _wantText && _c.lastSet != null) {
       _c.noteLastSet(value);
       _input.clear();
@@ -587,6 +632,8 @@ class _RoutineEditorState extends State<RoutineEditor> {
                     onToggle: (set) => _c.toggleDone(i, set),
                     onRemoveSet: (set) => _c.removeSet(i, set),
                     onRemoveBlock: () => _c.removeBlock(i),
+                    onEditNote: (set, note) => _startEditNote(i, set, note),
+                    onRemoveNote: (set, note) => _c.removeNote(i, set, note),
                     // 열려 있는 카드는 이미 거기다 — 누를 것이 없다.
                     onOpen: i == openIndex ? null : () => _openBlock(i),
                     onAddSet: i == openIndex ? () => _commit() : null,
@@ -772,6 +819,8 @@ class _BlockView extends StatelessWidget {
     required this.onRemoveSet,
     required this.onRemoveBlock,
     required this.onOpen,
+    required this.onEditNote,
+    required this.onRemoveNote,
     this.onAddSet,
   });
 
@@ -782,6 +831,10 @@ class _BlockView extends StatelessWidget {
   final ValueChanged<int> onToggle;
   final ValueChanged<int> onRemoveSet;
   final VoidCallback onRemoveBlock;
+
+  /// (세트 번호, 메모 번호).
+  final void Function(int, int) onEditNote;
+  final void Function(int, int) onRemoveNote;
 
   /// 닫힌 카드를 눌러 그 운동을 다시 연다. 열려 있으면 null 이다.
   final VoidCallback? onOpen;
@@ -849,6 +902,8 @@ class _BlockView extends StatelessWidget {
               set: e.value,
               onToggle: () => onToggle(e.key),
               onRemove: () => onRemoveSet(e.key),
+              onEditNote: (i) => onEditNote(e.key, i),
+              onRemoveNote: (i) => onRemoveNote(e.key, i),
             ),
           ),
           if (input != null) ...[
@@ -904,10 +959,16 @@ class _SetRow extends StatelessWidget {
     required this.set,
     required this.onToggle,
     required this.onRemove,
+    required this.onEditNote,
+    required this.onRemoveNote,
   });
 
   final int index;
   final LoggedSet set;
+
+  /// 메모 한 줄을 눌렀을 때 — 그 줄을 입력칸으로 불러 고친다.
+  final ValueChanged<int> onEditNote;
+  final ValueChanged<int> onRemoveNote;
   final VoidCallback onToggle;
   final VoidCallback onRemove;
 
@@ -989,17 +1050,39 @@ class _SetRow extends StatelessWidget {
           ),
           // 메모는 세트 아래 제 줄에 둔다. 같은 줄에 붙이면 자리가 없어
           // 잘리는데, 메모는 잘리면 쓸모가 없다 — 길게 적으라고 있는 것이다.
-          if (set.note != null)
+          for (final e in set.notes.asMap().entries)
             Padding(
-              padding: const EdgeInsets.fromLTRB(74, 1, 24, 3),
-              child: Text(
-                set.note!,
-                style: TextStyle(
-                  fontSize: 13,
-                  height: 1.35,
-                  letterSpacing: -0.08,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                ),
+              padding: const EdgeInsets.fromLTRB(74, 1, 8, 3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    // 눌러서 고친다. 세트를 눌러 여는 것과 같은 규칙이다.
+                    child: GestureDetector(
+                      onTap: () => onEditNote(e.key),
+                      behavior: HitTestBehavior.opaque,
+                      child: Text(
+                        e.value,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.35,
+                          letterSpacing: -0.08,
+                          color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                        ),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => onRemoveNote(e.key),
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8, top: 1),
+                      child: Icon(CupertinoIcons.xmark,
+                          size: 12,
+                          color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                    ),
+                  ),
+                ],
               ),
             ),
         ],

@@ -248,7 +248,7 @@ void keypadTests() {
       final last = c.blocks.single.sets.last;
       expect(last.value, 100);
       expect(last.reps, 20);
-      expect(last.note, '어깨 뻐근');
+      expect(last.notes, ['어깨 뻐근']);
     });
 
     test('세트가 없으면 반복할 것도 없다', () {
@@ -933,22 +933,48 @@ void keypadTests() {
       final c = RoutineEditorController()
         ..commit('벤치프레스')
         ..commit('100 10');
-      expect(c.lastSet!.note, isNull);
+      expect(c.lastSet!.notes, isEmpty);
 
       c.noteLastSet('어깨 불편');
-      expect(c.lastSet!.note, '어깨 불편');
+      expect(c.lastSet!.notes, ['어깨 불편']);
       // 세트 값은 그대로다.
       expect(c.lastSet!.value, 100);
       expect(c.lastSet!.reps, 10);
     });
 
-    test('빈 메모는 지운 것으로 본다', () {
+    test('메모는 쌓인다 — 덮어쓰지 않는다', () {
+      // 세트를 끝내고 떠오르는 생각은 대개 하나가 아니다.
       final c = RoutineEditorController()
         ..commit('벤치프레스')
         ..commit('100 10')
-        ..noteLastSet('오타');
-      c.noteLastSet('   ');
-      expect(c.lastSet!.note, isNull);
+        ..noteLastSet('어깨 불편')
+        ..noteLastSet('다음엔 95로');
+      expect(c.lastSet!.notes, ['어깨 불편', '다음엔 95로']);
+    });
+
+    test('빈 글은 메모로 치지 않는다', () {
+      final c = RoutineEditorController()
+        ..commit('벤치프레스')
+        ..commit('100 10')
+        ..noteLastSet('   ');
+      expect(c.lastSet!.notes, isEmpty);
+    });
+
+    test('메모를 고치고 지운다', () {
+      final c = RoutineEditorController()
+        ..commit('벤치프레스')
+        ..commit('100 10')
+        ..noteLastSet('오타')
+        ..noteLastSet('둘째 줄');
+      c.editNote(0, 0, 0, '고친 글');
+      expect(c.lastSet!.notes, ['고친 글', '둘째 줄']);
+
+      // 빈 글로 고치면 지운 것으로 본다.
+      c.editNote(0, 0, 0, '  ');
+      expect(c.lastSet!.notes, ['둘째 줄']);
+
+      c.removeNote(0, 0, 0);
+      expect(c.lastSet!.notes, isEmpty);
     });
 
     test('세트가 없으면 아무 일도 없다', () {
@@ -978,6 +1004,46 @@ void keypadTests() {
       // 새 운동이 생기지 않고 메모로 붙어야 한다.
       expect(inPad('어깨가 불편해서 무게를 낮췄다'), findsOneWidget);
       expect(inPad('벤치프레스'), findsOneWidget);
+    });
+  });
+
+  group('메모 저장', () {
+    test('여러 줄이 저장되고 다시 읽힌다', () {
+      final n = Note(
+        id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now(),
+        blocks: [
+          ExerciseBlock('벤치프레스', [
+            LoggedSet(value: 100, reps: 10, notes: ['어깨 불편', '다음엔 95로']),
+          ]),
+        ],
+      );
+      expect(Note.fromJson(n.toJson()).blocks.single.sets.single.notes,
+          ['어깨 불편', '다음엔 95로']);
+    });
+
+    test("예전 저장분('note' 단수)도 읽힌다", () {
+      // 메모가 하나뿐이던 시절의 파일이다.
+      final n = Note.fromJson({
+        'id': '1',
+        'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+        'blocks': [
+          {'name': '벤치프레스', 'sets': [
+            {'value': 100, 'unit': 'kg', 'reps': 10, 'note': '어깨 불편', 'done': true},
+          ]},
+        ],
+      });
+      expect(n.blocks.single.sets.single.notes, ['어깨 불편']);
+    });
+
+    test('메모도 검색에 걸린다', () {
+      final n = Note(
+        id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now(),
+        blocks: [
+          ExerciseBlock('벤치프레스', [LoggedSet(reps: 10, notes: ['어깨 불편'])]),
+        ],
+      );
+      expect(n.searchText, contains('어깨 불편'));
     });
   });
 }

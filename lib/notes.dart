@@ -52,7 +52,10 @@ class Note {
 
   /// 검색이 훑는 글. 운동 이름과 메모만 본다 — 숫자로 찾는 사람은 없다.
   String get searchText =>
-      blocks.map((b) => [b.name, ...b.sets.map((s) => s.note ?? '')].join(' ')).join(' ').toLowerCase();
+      blocks
+          .map((b) => [b.name, ...b.sets.expand((s) => s.notes)].join(' '))
+          .join(' ')
+          .toLowerCase();
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -69,7 +72,7 @@ class Note {
                     'value': s.value,
                     'unit': s.unit,
                     'reps': s.reps,
-                    'note': s.note,
+                    'notes': s.notes,
                     'done': s.done,
                   },
               ],
@@ -94,7 +97,9 @@ class Note {
                     value: ((s['value'] ?? s['kg']) as num?)?.toDouble(),
                     unit: s['unit'] as String? ?? defaultUnit,
                     reps: s['reps'] as int?,
-                    note: s['note'] as String?,
+                    // 'note'(단수)는 메모가 하나뿐이던 시절의 저장분이다.
+                    notes: ((s['notes'] as List?)?.cast<String>()) ??
+                        (s['note'] == null ? null : [s['note'] as String]),
                     done: s['done'] as bool? ?? true,
                   ),
               ],
