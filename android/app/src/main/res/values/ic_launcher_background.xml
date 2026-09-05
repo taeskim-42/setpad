@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 인주색. lib/main.dart 의 _seal 과 같은 값이다. -->
+    <color name="ic_launcher_background">#C3372A</color>
+</resources>
