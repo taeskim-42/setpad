@@ -102,5 +102,14 @@
         "type": "String"
       }
     }
+  },
+  "kcal": "{n}kcal",
+  "@kcal": {
+    "description": "목록에 붙는 소모 칼로리. 워치가 잰 값만 뜬다",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -282,6 +282,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{unit} 단위'**
   String stepSizeTitle(String unit);
+
+  /// 목록에 붙는 소모 칼로리. 워치가 잰 값만 뜬다
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}kcal'**
+  String kcal(int n);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

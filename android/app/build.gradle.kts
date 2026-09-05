@@ -41,7 +41,11 @@ android {
         applicationId = "com.taeskim.setpad"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // health 플러그인이 26 을 요구한다. Flutter 기본값은 24 지만
+        // Android 8.0(2017) 미만은 지금 남아 있는 몫이 거의 없다.
+        // 우회하는 tools:overrideLibrary 는 문서가 "may lead to runtime
+        // failures" 라고 경고하므로 쓰지 않는다.
+        minSdk = 26
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

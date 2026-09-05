@@ -113,6 +113,11 @@ class LZh extends L {
   String stepSizeTitle(String unit) {
     return '$unit 단위';
   }
+
+  @override
+  String kcal(int n) {
+    return '${n}kcal';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).

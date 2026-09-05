@@ -170,7 +170,11 @@ class _Row extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final summary = note.summary(setOrdinal: l.setOrdinal, reps: l.repsCount);
+    final summary = [
+      note.summary(setOrdinal: l.setOrdinal, reps: l.repsCount),
+      // 워치가 잰 값이 있을 때만. 앱이 추정한 숫자가 아니다.
+      if (note.calories != null) l.kcal(note.calories!.round()),
+    ].where((s) => s.isNotEmpty).join(' · ');
     return Dismissible(
       key: ValueKey(note.id),
       direction: DismissDirection.endToStart,

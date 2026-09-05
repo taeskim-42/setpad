@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'health.dart';
 import 'notes.dart';
 import 'notes_list.dart';
 
@@ -74,6 +77,7 @@ class _Home extends StatefulWidget {
 
 class _HomeState extends State<_Home> with WidgetsBindingObserver {
   late final NotesStore _store = widget.store ?? NotesStore();
+  final _health = HealthLink();
   bool _ready = false;
 
   @override
@@ -108,6 +112,34 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     );
     // 아무것도 안 치고 나온 새 기록은 남기지 않는다.
     _store.discardIfEmpty(note);
+    unawaited(_syncHealth(note));
+  }
+
+  /// 편집을 마치고 나올 때 건강 앱과 맞춘다.
+  ///
+  /// 기다리지 않는다 — 권한 창이 뜨든 안 뜨든 목록은 이미 보여야 한다.
+  /// 실패해도 조용하다. 연동은 덤이지 기록의 전제가 아니다.
+  Future<void> _syncHealth(Note note) async {
+    final sets = note.blocks.expand((b) => b.sets).where((s) => s.done);
+    if (sets.isEmpty) return;
+    // 시작과 끝. 세트마다 시각을 남기지 않으므로 노트가 만들어진 때와 마지막에
+    // 고친 때로 잡는다. 실제로 그 사이에 운동을 한 것이 맞다.
+    final start = note.createdAt;
+    final end = note.updatedAt;
+    if (!end.isAfter(start)) return;
+
+    if (!await _health.authorize()) return;
+    final kcal = await _health.activeEnergy(start, end);
+    await _health.writeWorkout(
+      start: start,
+      end: end,
+      title: note.title,
+      energyBurned: kcal,
+    );
+    if (kcal != null && mounted) {
+      note.calories = kcal;
+      _store.touch();
+    }
   }
 
   @override

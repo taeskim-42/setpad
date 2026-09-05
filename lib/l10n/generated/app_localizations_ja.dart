@@ -113,4 +113,9 @@ class LJa extends L {
   String stepSizeTitle(String unit) {
     return '$unit 단위';
   }
+
+  @override
+  String kcal(int n) {
+    return '${n}kcal';
+  }
 }

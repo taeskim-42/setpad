@@ -114,4 +114,9 @@ class LEn extends L {
   String stepSizeTitle(String unit) {
     return '$unit step';
   }
+
+  @override
+  String kcal(int n) {
+    return '$n kcal';
+  }
 }

@@ -13,13 +13,22 @@ import 'units.dart';
 /// 제목을 따로 받지 않는다 — 첫 운동 이름이 곧 제목이다. 메모 앱이 첫 줄을
 /// 제목으로 쓰는 것과 같고, 치는 사람이 제목을 고민할 일이 없다.
 class Note {
-  Note({required this.id, required this.createdAt, required this.updatedAt, List<ExerciseBlock>? blocks})
-      : blocks = blocks ?? [];
+  Note({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    List<ExerciseBlock>? blocks,
+    this.calories,
+  }) : blocks = blocks ?? [];
 
   final String id;
   final DateTime createdAt;
   DateTime updatedAt;
   List<ExerciseBlock> blocks;
+
+  /// 이 운동 동안 **애플워치가 잰** 활동 칼로리. 잰 것이 없으면 null 이다.
+  /// 앱이 추정하지 않는다 — 0 과 "아무도 안 쟀다"는 다른 말이다.
+  double? calories;
 
   /// 목록에 뜨는 제목. 빈 메모는 제목이 없고, 부르는 쪽에서 문구를 정한다.
   String? get title => blocks.isEmpty ? null : blocks.first.name;
@@ -48,6 +57,7 @@ class Note {
         'id': id,
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
+        if (calories != null) 'calories': calories,
         'blocks': [
           for (final b in blocks)
             {
@@ -70,6 +80,7 @@ class Note {
         id: j['id'] as String,
         createdAt: DateTime.parse(j['createdAt'] as String),
         updatedAt: DateTime.parse(j['updatedAt'] as String),
+        calories: (j['calories'] as num?)?.toDouble(),
         blocks: [
           for (final b in (j['blocks'] as List? ?? const []))
             ExerciseBlock(
@@ -161,6 +172,13 @@ class NotesStore extends ChangeNotifier {
     note.blocks = blocks;
     note.updatedAt = DateTime.now();
     _sort();
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  /// 노트 안을 직접 고친 뒤 알리고 저장한다. 순서는 건드리지 않는다 —
+  /// 칼로리가 뒤늦게 붙었다고 목록이 재배열되면 사람이 놓친다.
+  void touch() {
     notifyListeners();
     _scheduleSave();
   }

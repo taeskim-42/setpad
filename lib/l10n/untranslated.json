@@ -18,7 +18,8 @@
     "deleteExerciseBody",
     "deleteExerciseEmptyBody",
     "next",
-    "stepSizeTitle"
+    "stepSizeTitle",
+    "kcal"
   ],
 
   "ja": [
@@ -40,7 +41,8 @@
     "deleteExerciseBody",
     "deleteExerciseEmptyBody",
     "next",
-    "stepSizeTitle"
+    "stepSizeTitle",
+    "kcal"
   ],
 
   "th": [
@@ -62,7 +64,8 @@
     "deleteExerciseBody",
     "deleteExerciseEmptyBody",
     "next",
-    "stepSizeTitle"
+    "stepSizeTitle",
+    "kcal"
   ],
 
   "vi": [
@@ -84,7 +87,8 @@
     "deleteExerciseBody",
     "deleteExerciseEmptyBody",
     "next",
-    "stepSizeTitle"
+    "stepSizeTitle",
+    "kcal"
   ],
 
   "zh": [
@@ -106,7 +110,8 @@
     "deleteExerciseBody",
     "deleteExerciseEmptyBody",
     "next",
-    "stepSizeTitle"
+    "stepSizeTitle",
+    "kcal"
   ],
 
   "zh_Hans": [
@@ -128,7 +133,8 @@
     "deleteExerciseBody",
     "deleteExerciseEmptyBody",
     "next",
-    "stepSizeTitle"
+    "stepSizeTitle",
+    "kcal"
   ],
 
   "zh_Hant": [
@@ -150,6 +156,7 @@
     "deleteExerciseBody",
     "deleteExerciseEmptyBody",
     "next",
-    "stepSizeTitle"
+    "stepSizeTitle",
+    "kcal"
   ]
 }

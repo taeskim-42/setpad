@@ -755,4 +755,46 @@ void keypadTests() {
       expect(set.unit, 'kg');
     });
   });
+
+  group('건강 앱 연동', () {
+    test('칼로리는 저장되고 다시 읽힌다', () {
+      final n = Note(
+        id: '1', createdAt: DateTime(2026, 9, 5, 10), updatedAt: DateTime(2026, 9, 5, 11),
+        blocks: [ExerciseBlock('벤치프레스', [LoggedSet(value: 80, reps: 10)])],
+      )..calories = 231.4;
+      final back = Note.fromJson(n.toJson());
+      expect(back.calories, 231.4);
+    });
+
+    test('칼로리를 안 잰 기록은 그 칸이 아예 없다', () {
+      // 0 과 "아무도 안 쟀다"는 다른 말이다. 앱이 추정해 채우지 않는다.
+      final n = Note(id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now());
+      expect(n.toJson().containsKey('calories'), isFalse);
+      expect(Note.fromJson(n.toJson()).calories, isNull);
+    });
+
+    testWidgets('건강 앱이 없어도 기록은 그대로 된다', (tester) async {
+      // 연동은 덤이지 기록의 전제가 아니다. 테스트에는 플랫폼 채널이 없으므로
+      // 실제로 연동이 실패하는 상황이고, 그래도 다 돌아가야 한다.
+      final dir = Directory.systemTemp.createTempSync('setpad_health');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      tester.platformDispatcher.localesTestValue = [const Locale('ko')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+      final store = NotesStore(directory: dir);
+      await tester.pumpWidget(SetpadApp(store: store));
+      await settle(tester);
+
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      await tapKeys(tester, '100 10');
+      await tester.tap(addSetButton);
+      await settle(tester);
+      await tester.tap(find.byType(BackButton));
+      await settle(tester);
+
+      expect(find.text('벤치프레스'), findsOneWidget);
+      expect(store.notes.single.blocks.single.sets.single.value, 100);
+    });
+  });
 }

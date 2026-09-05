@@ -83,5 +83,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSHealthShareUsageDescription</key>
+	<string>애플워치가 잰 소모 칼로리를 운동 기록에 함께 남기기 위해 건강 데이터를 읽습니다.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>여기서 친 운동을 건강 앱의 운동 기록으로 남깁니다.</string>
 </dict>
 </plist>
