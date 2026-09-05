@@ -31,6 +31,14 @@ Apple Developer 포털에 App ID 를 등록한다 (한 번만)
 
 기기 실행용 개발 프로파일
 
+### ios dist
+
+```sh
+[bundle exec] fastlane ios dist
+```
+
+배포용 프로파일만 받아 둔다
+
 ### ios beta
 
 ```sh
@@ -38,6 +46,19 @@ Apple Developer 포털에 App ID 를 등록한다 (한 번만)
 ```
 
 빌드해서 TestFlight 로
+
+----
+
+
+## Android
+
+### android beta
+
+```sh
+[bundle exec] fastlane android beta
+```
+
+빌드해서 Play 내부 테스트로
 
 ----
 

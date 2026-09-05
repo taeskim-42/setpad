@@ -66,19 +66,61 @@ platform :ios do
     )
   end
 
+  desc "배포용 프로파일만 받아 둔다"
+  lane :dist do
+    match(type: "appstore", app_identifier: APP_ID, api_key: asc_key)
+
+    # dev 레인이 Debug 를 수동으로 바꾼 것과 같은 이유다. Release 를 자동인
+    # 채로 두면 아카이브할 때 Xcode 가 다시 계정을 찾는다. Release 와
+    # Profile 둘 다 바꾼다 — flutter build ipa 는 Release 로 아카이브한다.
+    update_code_signing_settings(
+      path: "ios/Runner.xcodeproj",
+      use_automatic_signing: false,
+      team_id: ENV.fetch("FASTLANE_TEAM_ID", "KC564L7GQ8"),
+      targets: ["Runner"],
+      build_configurations: ["Release", "Profile"],
+      code_sign_identity: "Apple Distribution",
+      profile_name: "match AppStore #{APP_ID}",
+    )
+  end
+
   desc "빌드해서 TestFlight 로"
   lane :beta do
-    match(type: "appstore", app_identifier: APP_ID, api_key: asc_key)
+    dist
+
     # 빌드 번호는 시각으로 준다. pubspec 의 +37 을 사람이 올리는 것을 잊어도
     # TestFlight 가 "이미 있는 빌드" 라고 거절하지 않는다.
     build_number = Time.now.strftime("%Y%m%d%H%M")
-    sh("cd .. && flutter build ipa --release --build-number=#{build_number} " \
-       "--export-options-plist=ios/ExportOptions.plist")
+    sh("cd .. && flutter build ipa --release " \
+       "--build-number=#{build_number} --export-method app-store")
+
     upload_to_testflight(
       api_key: asc_key,
       app_identifier: APP_ID,
       ipa: "../build/ios/ipa/setpad.ipa",
+      # 처리 완료를 기다리지 않는다. 몇 분씩 붙잡고 있을 이유가 없다.
       skip_waiting_for_build_processing: true,
+    )
+  end
+end
+
+platform :android do
+  desc "빌드해서 Play 내부 테스트로"
+  lane :beta do
+    # versionCode 는 32비트 정수라 상한이 2,100,000,000 이다. 시각을 그대로
+    # 쓰면(예: 2609051747) 넘는다. 2020년부터의 분(分)으로 센다 — 지금
+    # 350만쯤이고, 올릴 때마다 반드시 커지며, 한참 뒤에도 상한에 안 닿는다.
+    build_number = ((Time.now.to_i - Time.utc(2020, 1, 1).to_i) / 60).to_s
+    sh("cd .. && flutter build appbundle --release --build-number=#{build_number}")
+    upload_to_play_store(
+      package_name: APP_ID,
+      track: "internal",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      # 등록정보·그래픽은 콘솔에서 사람이 쥔다. 여기서는 바이너리만 올린다.
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: "draft",
     )
   end
 end
