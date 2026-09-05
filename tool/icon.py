@@ -32,23 +32,24 @@ GREY = (0.9137, 0.9137, 0.9255)            # #E9E9EC — scaffoldBackgroundColor
 
 
 def draw(size, *, scale=1.0, transparent=False):
-    """'100 / 10▮' 마크. scale<1 이면 안쪽으로 축소한다."""
+    """'80▮' 마크 — 무게 한 줄과 텍스트 커서.
+
+    두 줄('100' 위 '10▮')이던 것을 한 줄로 줄였다. 홈 화면 크기(80px 안팎)
+    에서 두 줄은 뭉쳐 읽히고, 숫자가 둘이면 계산기처럼 보인다. 한 줄이면
+    '80'이 무게로 읽히고, 뒤에 붙은 커서가 "여기다 친다"를 말한다.
+    """
     im = Image.new('RGBA', (size * SS, size * SS), (0, 0, 0, 0) if transparent else SEAL)
     d = ImageDraw.Draw(im)
     u = size / 1024.0 * SS                 # 1024 기준 좌표 → 실제 픽셀
-    f = ImageFont.truetype(MONO, int(300 * u * scale), index=1)
-    l1, t1, r1, b1 = d.textbbox((0, 0), '100', font=f)
-    l2, t2, r2, b2 = d.textbbox((0, 0), '10', font=f)
-    gap, cw, csp = 56 * u * scale, 104 * u * scale, 20 * u * scale
-    h1, h2 = b1 - t1, b2 - t2
-    block_w = max(r1 - l1, (r2 - l2) + csp + cw)
-    ox = (size * SS - block_w) / 2
-    oy = (size * SS - (h1 + gap + h2)) / 2
-    d.text((ox - l1, oy - t1), '100', font=f, fill=WHITE)
-    y2 = oy + h1 + gap
-    d.text((ox - l2, y2 - t2), '10', font=f, fill=WHITE)
-    cx = ox + (r2 - l2) + csp
-    d.rounded_rectangle([cx, y2, cx + cw, y2 + h2], radius=14 * u * scale, fill=WHITE)
+    f = ImageFont.truetype(MONO, int(390 * u * scale), index=1)
+    l, t, r, b = d.textbbox((0, 0), '80', font=f)
+    tw, th = r - l, b - t
+    cursor, gap = 118 * u * scale, 34 * u * scale
+    ox = (size * SS - (tw + gap + cursor)) / 2
+    oy = (size * SS - th) / 2
+    d.text((ox - l, oy - t), '80', font=f, fill=WHITE)
+    cx = ox + tw + gap
+    d.rounded_rectangle([cx, oy, cx + cursor, oy + th], radius=20 * u * scale, fill=WHITE)
     return im.resize((size, size), Image.LANCZOS)
 
 
