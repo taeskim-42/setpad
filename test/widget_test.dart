@@ -42,9 +42,11 @@ Finder dialogAction(String label) =>
 /// 실제 기기에서도 시스템 키보드가 아니라 이 키패드가 넣는다.
 Future<void> tapKeys(WidgetTester tester, String text) async {
   for (final ch in text.split('')) {
-    await tester.tap(find.descendant(
-        of: find.byType(SetKeypad),
-        matching: find.text(ch == ' ' ? '␣' : ch)));
+    // 공백 키는 없앴다. 무게에서 횟수로 넘기는 것은 큰 키('다음')가 한다.
+    final f = ch == ' '
+        ? find.descendant(of: find.byType(SetKeypad), matching: find.text('다음'))
+        : find.descendant(of: find.byType(SetKeypad), matching: find.text(ch));
+    await tester.tap(f);
     await tester.pump();
   }
   await tester.pumpAndSettle();
@@ -288,7 +290,7 @@ void keypadTests() {
             matching: find.text(label),
           );
       // 단위 키는 없다 — 파서가 "100 20" 을 100kg 20회로 읽는다.
-      for (final k in ['1', '0', '0', '␣', '2', '0']) {
+      for (final k in ['1', '0', '0', '다음', '2', '0']) {
         await tester.tap(key(k));
         await tester.pump();
       }
@@ -338,7 +340,7 @@ void keypadTests() {
       // 세트 칸은 읽기 전용이라 키패드로만 친다 — 실제 사용 경로도 그쪽이다.
       Finder key(String label) => find.descendant(
             of: find.byType(SetKeypad), matching: find.text(label));
-      for (final k in ['1', '0', '0', '␣', '1', '0']) {
+      for (final k in ['1', '0', '0', 'Next', '1', '0']) {
         await tester.tap(key(k));
         await tester.pump();
       }
@@ -846,17 +848,17 @@ void keypadTests() {
 
       Finder inPad_(Finder f) =>
           find.descendant(of: find.byType(SetKeypad), matching: f);
-      // 아랫줄: . 0 ⌫ — Strong 과 같은 자리다.
       for (final k in ['.', '0']) {
         expect(inPad_(find.text(k)), findsOneWidget, reason: k);
       }
       expect(inPad_(find.byIcon(CupertinoIcons.delete_left)), findsOneWidget);
-      // 공백은 오른쪽 열로 옮겼다. 메모를 칠 때 손으로 띄울 일이 남아 있다.
-      expect(inPad_(find.text('␣')), findsOneWidget);
       expect(inPad_(find.byIcon(CupertinoIcons.keyboard)), findsOneWidget);
+      // 공백 키는 없다. '다음'이 무게에서 횟수로 넘기고, 메모는 시스템
+      // 키보드로 치므로 여기 둘 이유가 없다.
+      expect(inPad_(find.text('␣')), findsNothing);
     });
 
-    testWidgets('아랫줄 지우기가 실제로 지운다', (tester) async {
+    testWidgets('지우기가 실제로 지운다', (tester) async {
       await pumpApp(tester);
       await tester.enterText(padField, '벤치프레스');
       await tester.testTextInput.receiveAction(TextInputAction.done);
@@ -867,6 +869,42 @@ void keypadTests() {
           matching: find.byIcon(CupertinoIcons.delete_left)));
       await settle(tester);
       expect(tester.widget<CupertinoTextField>(padField).controller!.text, '10');
+    });
+  });
+
+  group('단위 키', () {
+    testWidgets('누르면 지금 단위가 줄에 붙는다', (tester) async {
+      await pumpApp(tester);
+      await tester.enterText(padField, '러닝');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      await tapKeys(tester, '5');
+
+      await tester.tap(find.descendant(
+          of: find.byType(SetKeypad), matching: find.text('kg')));
+      await settle(tester);
+      expect(tester.widget<CupertinoTextField>(padField).controller!.text, '5kg');
+    });
+
+    testWidgets('길게 누르면 단위를 고르고, 고른 것이 줄에 붙는다', (tester) async {
+      await pumpApp(tester);
+      await tester.enterText(padField, '러닝');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      await tapKeys(tester, '5');
+
+      final unitKey = find.descendant(
+          of: find.byType(SetKeypad), matching: find.text('kg'));
+      await tester.longPress(unitKey);
+      await settle(tester);
+
+      // 액션 시트에서 km 를 고른다.
+      await tester.tap(find.widgetWithText(CupertinoActionSheetAction, 'km'));
+      await settle(tester);
+      expect(tester.widget<CupertinoTextField>(padField).controller!.text, '5km');
+      // 키에 적힌 것도 따라 바뀐다.
+      expect(find.descendant(of: find.byType(SetKeypad), matching: find.text('km')),
+          findsOneWidget);
     });
   });
 }

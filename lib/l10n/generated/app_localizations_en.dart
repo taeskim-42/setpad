@@ -127,4 +127,7 @@ class LEn extends L {
 
     return '$dString';
   }
+
+  @override
+  String get unitTitle => 'Unit';
 }

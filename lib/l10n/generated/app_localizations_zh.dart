@@ -126,6 +126,9 @@ class LZh extends L {
 
     return '$dString';
   }
+
+  @override
+  String get unitTitle => '단위';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).

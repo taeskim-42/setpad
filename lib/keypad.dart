@@ -24,6 +24,9 @@ class SetKeypad extends StatelessWidget {
     required this.hasInput,
     required this.submitLabel,
     required this.onStepPick,
+    required this.unitLabel,
+    required this.onUnit,
+    required this.onUnitPick,
     this.repeatLabel,
     this.onRepeat,
   });
@@ -51,6 +54,15 @@ class SetKeypad extends StatelessWidget {
 
   /// +/- 를 길게 눌렀을 때. 미는 폭을 고르게 한다.
   final VoidCallback onStepPick;
+
+  /// 지금 쓰는 단위. 키에 그대로 적힌다.
+  final String unitLabel;
+
+  /// 단위 키를 눌렀을 때 — 치던 줄에 그 단위를 붙인다.
+  final VoidCallback onUnit;
+
+  /// 길게 눌렀을 때 — 다른 단위를 고른다.
+  final VoidCallback onUnitPick;
 
   /// 직전 세트를 그대로 한 번 더 — 운동 기록에서 가장 흔한 동작이다.
   final String? repeatLabel;
@@ -111,13 +123,18 @@ class SetKeypad extends StatelessWidget {
                         onTap: onText,
                         tone: _Tone.dim,
                       )),
-                      // 공백. 예전에는 아랫줄에 있었는데 '다음' 키가 무게에서
-                      // 횟수로 넘기는 일을 맡으면서 자리를 내줬다. 메모를 칠
-                      // 때처럼 손으로 띄워야 하는 경우가 남아 있어 없애지는
-                      // 않는다.
+                      // 단위. 공백 키가 있던 자리다 — '다음' 이 무게에서
+                      // 횟수로 넘기는 일을 맡으면서 공백은 칠 이유가
+                      // 없어졌다.
+                      //
+                      // 이 자리에 단위를 둔 이유: 숫자만 있는 키패드에서
+                      // '5km', '225lb', '60초' 를 칠 방법이 달리 없다.
+                      // 시스템 키보드로 넘어갔다 와야 했다. 세트 반복(x3)은
+                      // '이전과 같이' 가 대신해 주지만 단위는 대안이 없다.
                       _pad(_Key(
-                        label: '␣',
-                        onTap: () => onKey(' '),
+                        label: unitLabel,
+                        onTap: onUnit,
+                        onLongPress: onUnitPick,
                         tone: _Tone.dim,
                       )),
                       Row(
