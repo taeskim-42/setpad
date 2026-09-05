@@ -11,11 +11,15 @@
 # 필요한 환경변수 (~/.zshrc 에 있다):
 #   ASC_KEY_ID  ASC_ISSUER_ID  MATCH_PASSWORD
 
-# App Store Connect 의 앱 레코드('벌리', id 6757940370)가 이 ID 로 묶여 있고
-# 빌드 37 까지 올라가 있다. 레코드는 첫 빌드가 올라간 뒤 번들 ID 를 못 바꾼다.
-# 이름(setpad)과 안 맞지만 번들 ID 는 사용자에게 안 보이고, 살아 있는 스토어
-# 레코드를 버리는 값이 훨씬 크다. Android 도 같은 ID 로 맞춰 둔다.
-APP_ID = "com.tskim.workoutlog"
+# **플랫폼마다 다르다.** 스토어가 각자 다른 ID 에 앱을 묶어 놨고, 둘 다 첫
+# 등록 뒤로는 못 바꾼다. 번들 ID 는 사용자에게 보이지 않으므로 맞출 이유가
+# 없고, 억지로 맞추려다 살아 있는 레코드를 버리는 쪽이 훨씬 비싸다.
+#
+#   iOS      App Store Connect 앱 'setpad'(id 6757940370)가 이 ID 로 묶여
+#            있고 빌드 38 까지 올라가 있다.
+#   Android  Play Console 에 이 패키지로 앱을 만들었다.
+IOS_APP_ID = "com.tskim.workoutlog"
+ANDROID_APP_ID = "com.taeskim.setpad"
 
 default_platform(:ios)
 
@@ -38,7 +42,7 @@ platform :ios do
     # 여기서는 포털의 번들 ID 만 만든다. App Store Connect 의 앱 레코드(=이름
     # 'setpad' 선점)는 별개의 결정이라 건드리지 않는다.
     produce(
-      app_identifier: APP_ID,
+      app_identifier: IOS_APP_ID,
       app_name: "setpad",
       api_key: asc_key,
       skip_itc: true,
@@ -49,7 +53,7 @@ platform :ios do
   lane :dev do
     match(
       type: "development",
-      app_identifier: APP_ID,
+      app_identifier: IOS_APP_ID,
       api_key: asc_key,
       # 새 기기가 붙었으면 프로파일을 다시 만든다. 이걸 끄면 기기를 바꿀 때마다
       # "프로파일에 없는 기기" 로 조용히 막힌다.
@@ -66,13 +70,13 @@ platform :ios do
       targets: ["Runner"],
       build_configurations: ["Debug"],
       code_sign_identity: "Apple Development",
-      profile_name: "match Development #{APP_ID}",
+      profile_name: "match Development #{IOS_APP_ID}",
     )
   end
 
   desc "배포용 프로파일만 받아 둔다"
   lane :dist do
-    match(type: "appstore", app_identifier: APP_ID, api_key: asc_key)
+    match(type: "appstore", app_identifier: IOS_APP_ID, api_key: asc_key)
 
     # dev 레인이 Debug 를 수동으로 바꾼 것과 같은 이유다. Release 를 자동인
     # 채로 두면 아카이브할 때 Xcode 가 다시 계정을 찾는다. Release 와
@@ -84,7 +88,7 @@ platform :ios do
       targets: ["Runner"],
       build_configurations: ["Release", "Profile"],
       code_sign_identity: "Apple Distribution",
-      profile_name: "match AppStore #{APP_ID}",
+      profile_name: "match AppStore #{IOS_APP_ID}",
     )
   end
 
@@ -92,15 +96,23 @@ platform :ios do
   lane :beta do
     dist
 
-    # 빌드 번호는 시각으로 준다. pubspec 의 +37 을 사람이 올리는 것을 잊어도
-    # TestFlight 가 "이미 있는 빌드" 라고 거절하지 않는다.
-    build_number = Time.now.strftime("%Y%m%d%H%M")
+    # TestFlight 에 올라간 것 다음 수. 사람이 pubspec 을 올리는 것을 잊어도
+    # "이미 있는 빌드"로 거절당하지 않는다.
+    #
+    # 시각(20260905...)을 쓴 적이 있는데 목록에서 37, 38 사이에 끼면 사람이
+    # 읽을 수가 없다. iOS 는 Android 와 달리 자릿수 제약이 없으니 연번이 맞다.
+    # 그 빌드는 만료시켰지만 값 자체는 남아 있어서, 사람이 쓰는 자릿수만 본다.
+    latest = latest_testflight_build_number(
+      api_key: asc_key, app_identifier: IOS_APP_ID, initial_build_number: 0,
+    )
+    latest = 0 if latest > 100_000
+    build_number = latest + 1
     sh("cd .. && flutter build ipa --release " \
        "--build-number=#{build_number} --export-method app-store")
 
     upload_to_testflight(
       api_key: asc_key,
-      app_identifier: APP_ID,
+      app_identifier: IOS_APP_ID,
       ipa: "build/ios/ipa/setpad.ipa",
       # 처리 완료를 기다리지 않는다. 몇 분씩 붙잡고 있을 이유가 없다.
       skip_waiting_for_build_processing: true,
@@ -117,7 +129,7 @@ platform :android do
     build_number = ((Time.now.to_i - Time.utc(2020, 1, 1).to_i) / 60).to_s
     sh("cd .. && flutter build appbundle --release --build-number=#{build_number}")
     upload_to_play_store(
-      package_name: APP_ID,
+      package_name: ANDROID_APP_ID,
       track: "internal",
       aab: "build/app/outputs/bundle/release/app-release.aab",
       # 등록정보·그래픽은 콘솔에서 사람이 쥔다. 여기서는 바이너리만 올린다.
