@@ -129,6 +129,14 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     if (!end.isAfter(start)) return;
 
     if (!await _health.authorize()) return;
+
+    // 심박이 얼마나 늦게 도착하는지 남긴다. 심박으로 휴식을 끊어 주는 기능을
+    // 만들지 말지가 이 값에 달려 있다 — 몇 초면 되고 몇 분이면 못 한다.
+    final hr = await _health.latestHeartRate();
+    debugPrint(hr == null
+        ? '[심박] 최근 30분에 잰 것이 없다'
+        : '[심박] ${hr.bpm}bpm · 잰 시각 ${hr.at} · 지연 ${hr.lag.inSeconds}초');
+
     final kcal = await _health.activeEnergy(start, end);
     await _health.writeWorkout(
       start: start,

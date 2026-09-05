@@ -22,7 +22,10 @@ class HealthLink {
   bool _configured = false;
 
   static const _write = [HealthDataType.WORKOUT];
-  static const _read = [HealthDataType.ACTIVE_ENERGY_BURNED];
+  static const _read = [
+    HealthDataType.ACTIVE_ENERGY_BURNED,
+    HealthDataType.HEART_RATE,
+  ];
 
   /// 이 기기에서 쓸 수 있는가. Android 는 Health Connect 가 깔려 있어야 한다.
   bool get supported => Platform.isIOS || Platform.isAndroid;
@@ -78,6 +81,38 @@ class HealthLink {
       return total == 0 ? null : total;
     } catch (e) {
       debugPrint('활동 칼로리 읽기 실패: $e');
+      return null;
+    }
+  }
+
+  /// 가장 최근 심박과 **그것이 언제 측정된 것인지**.
+  ///
+  /// 시각을 같이 돌려주는 게 요점이다. 심박으로 휴식을 끊어 주려면 값이
+  /// 최신이어야 하는데, 워치 앱 없이 아이폰이 워치 심박을 얼마나 빨리 받는지는
+  /// 재보기 전에는 알 수 없다. 몇 초면 쓸 수 있고 몇 분이면 못 쓴다.
+  /// 그 판단을 하려고 지연을 같이 낸다.
+  Future<({int bpm, DateTime at, Duration lag})?> latestHeartRate() async {
+    if (!supported) return null;
+    try {
+      await _ensureConfigured();
+      final now = DateTime.now();
+      final points = await _health.getHealthDataFromTypes(
+        types: [HealthDataType.HEART_RATE],
+        startTime: now.subtract(const Duration(minutes: 30)),
+        endTime: now,
+      );
+      if (points.isEmpty) return null;
+      points.sort((a, b) => a.dateTo.compareTo(b.dateTo));
+      final last = points.last;
+      final v = last.value;
+      if (v is! NumericHealthValue) return null;
+      return (
+        bpm: v.numericValue.round(),
+        at: last.dateTo,
+        lag: now.difference(last.dateTo),
+      );
+    } catch (e) {
+      debugPrint('심박 읽기 실패: $e');
       return null;
     }
   }
