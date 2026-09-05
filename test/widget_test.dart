@@ -473,15 +473,27 @@ void keypadTests() {
       expect(store.notes.single.blocks.single.name, '풀업');
     });
 
-    test('요약은 첫 운동의 세트 수와 무게·횟수를 낸다', () {
+    test('제목은 그날 한 운동 전부, 요약은 총 세트 수다', () {
+      // 첫 운동만 내면 그날을 대표하지 못한다 — 그냥 먼저 친 것뿐이다.
       final n = Note(id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now(), blocks: [
         ExerciseBlock('벤치프레스', [
           LoggedSet(value: 80, reps: 25),
           LoggedSet(value: 80, reps: 20),
         ]),
+        ExerciseBlock('딥스', [LoggedSet(reps: 12)]),
       ]);
-      expect(n.title, '벤치프레스');
-      expect(n.summary(setOrdinal: (x) => '$x세트', reps: (x) => '$x회'), '2세트 · 80kg · 25회');
+      expect(n.title, '벤치프레스 · 딥스');
+      expect(n.summary(setOrdinal: (x) => '$x세트', reps: (x) => '$x회'), '3세트');
+    });
+
+    test('취소한 세트는 총계에서 빠진다', () {
+      final n = Note(id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now(), blocks: [
+        ExerciseBlock('벤치프레스', [
+          LoggedSet(value: 80, reps: 10),
+          LoggedSet(value: 80, reps: 8, done: false),
+        ]),
+      ]);
+      expect(n.summary(setOrdinal: (x) => '$x세트', reps: (x) => '$x회'), '1세트');
     });
   });
 
@@ -911,6 +923,61 @@ void keypadTests() {
       await settle(tester);
       expect(find.widgetWithText(CupertinoActionSheetAction, '5kg'), findsOneWidget);
       expect(find.widgetWithText(CupertinoActionSheetAction, '20kg'), findsOneWidget);
+    });
+  });
+
+  group('세트 메모', () {
+    test('이미 넣은 세트에 메모를 단다', () {
+      // 예전에는 세트를 칠 때 같은 줄에 적어 넣는 수밖에 없었다. 정작 메모를
+      // 적고 싶어지는 것은 세트를 끝낸 다음이다.
+      final c = RoutineEditorController()
+        ..commit('벤치프레스')
+        ..commit('100 10');
+      expect(c.lastSet!.note, isNull);
+
+      c.noteLastSet('어깨 불편');
+      expect(c.lastSet!.note, '어깨 불편');
+      // 세트 값은 그대로다.
+      expect(c.lastSet!.value, 100);
+      expect(c.lastSet!.reps, 10);
+    });
+
+    test('빈 메모는 지운 것으로 본다', () {
+      final c = RoutineEditorController()
+        ..commit('벤치프레스')
+        ..commit('100 10')
+        ..noteLastSet('오타');
+      c.noteLastSet('   ');
+      expect(c.lastSet!.note, isNull);
+    });
+
+    test('세트가 없으면 아무 일도 없다', () {
+      final c = RoutineEditorController()..commit('벤치프레스');
+      c.noteLastSet('메모');
+      expect(c.blocks.single.sets, isEmpty);
+    });
+
+    testWidgets('글자판으로 넘어가 친 것은 메모가 된다', (tester) async {
+      await pumpApp(tester);
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      await tapKeys(tester, '100 10');
+      await tester.tap(addSetButton);
+      await settle(tester);
+
+      // 글자판으로 넘어간다 = 메모를 적겠다는 뜻.
+      await tester.tap(find.descendant(
+          of: find.byType(SetKeypad), matching: find.byIcon(CupertinoIcons.keyboard)));
+      await settle(tester);
+
+      await tester.enterText(padField, '어깨가 불편해서 무게를 낮췄다');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+
+      // 새 운동이 생기지 않고 메모로 붙어야 한다.
+      expect(inPad('어깨가 불편해서 무게를 낮췄다'), findsOneWidget);
+      expect(inPad('벤치프레스'), findsOneWidget);
     });
   });
 }

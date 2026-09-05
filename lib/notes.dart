@@ -30,23 +30,24 @@ class Note {
   /// 앱이 추정하지 않는다 — 0 과 "아무도 안 쟀다"는 다른 말이다.
   double? calories;
 
-  /// 목록에 뜨는 제목. 빈 메모는 제목이 없고, 부르는 쪽에서 문구를 정한다.
-  String? get title => blocks.isEmpty ? null : blocks.first.name;
+  /// 목록에 뜨는 제목 — 그날 한 운동 이름 전부.
+  ///
+  /// 첫 운동만 내던 것을 바꿨다. 메모 앱은 첫 줄이 곧 제목이라 그게 맞지만
+  /// 운동 기록은 다르다. 목록에서 찾는 것은 대개 "저번에 벤치 언제 했지" 나
+  /// "화요일에 뭐 했지" 인데, 둘 다 그날 한 것 전부를 봐야 답이 나온다.
+  /// 첫 운동은 그날을 대표하지 않는다 — 그냥 먼저 친 것뿐이다.
+  ///
+  /// 길면 화면이 잘라 준다. 앞의 몇 개만 보여도 첫 하나보다 낫다.
+  String? get title =>
+      blocks.isEmpty ? null : blocks.map((b) => b.name).join(' · ');
 
-  /// 제목 아래 한 줄. 스크린샷의 "1세트 80kg · 25회" 자리다.
+  /// 제목 아래 한 줄 — 그날 총계.
+  ///
+  /// 첫 운동의 첫 세트만 내던 것을 바꿨다. 그날 열두 세트를 했는데
+  /// "1세트 · 80kg · 10회" 라고 뜨면 틀린 말은 아니지만 쓸모가 없다.
   String summary({required String Function(int) setOrdinal, required String Function(int) reps}) {
-    for (final b in blocks) {
-      final done = b.sets.where((s) => s.done).toList();
-      if (done.isEmpty) continue;
-      final first = done.first;
-      final parts = [
-        setOrdinal(done.length),
-        if (first.value != null) formatValue(first.value!, first.unit),
-        if (first.reps != null) reps(first.reps!),
-      ];
-      return parts.join(' · ');
-    }
-    return '';
+    final total = blocks.fold(0, (n, b) => n + b.sets.where((s) => s.done).length);
+    return total == 0 ? '' : setOrdinal(total);
   }
 
   /// 검색이 훑는 글. 운동 이름과 메모만 본다 — 숫자로 찾는 사람은 없다.

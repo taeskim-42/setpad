@@ -126,6 +126,9 @@ class LZh extends L {
 
     return '$dString';
   }
+
+  @override
+  String get noteHint => '이 세트에 남길 메모';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).

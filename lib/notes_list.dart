@@ -74,15 +74,7 @@ class _NotesListPageState extends State<NotesListPage> {
                   slivers: [
                     // 큰 제목은 스크롤하면 가운데 작은 제목으로 접힌다. iOS
                     // 목록 화면의 기본 동작이고, 직접 흉내 내면 티가 난다.
-                    CupertinoSliverNavigationBar(
-                      largeTitle: Text(l.allNotes),
-                      trailing: CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(44, 44),
-                        onPressed: () => widget.onOpen(widget.store.create()),
-                        child: const Icon(CupertinoIcons.square_pencil, size: 24),
-                      ),
-                    ),
+                    CupertinoSliverNavigationBar(largeTitle: Text(l.allNotes)),
                     if (groups.isEmpty)
                       SliverFillRemaining(
                         hasScrollBody: false,
@@ -114,7 +106,11 @@ class _NotesListPageState extends State<NotesListPage> {
               },
             ),
           ),
-          _SearchBar(controller: _query, onChanged: (_) => setState(() {})),
+          _SearchBar(
+            controller: _query,
+            onChanged: (_) => setState(() {}),
+            onNew: () => widget.onOpen(widget.store.create()),
+          ),
         ],
       ),
     );
@@ -278,11 +274,21 @@ class _Row extends StatelessWidget {
 }
 
 /// 화면 맨 아래 검색.
+/// 화면 맨 아래 — 검색과 새 기록.
+///
+/// 메모 앱이 둘을 나란히 둔다. 한 손으로 든 기기에서 엄지가 닿는 자리가
+/// 거기이고, 새 기록은 이 화면에서 가장 자주 누르는 것이라 위쪽 구석보다
+/// 여기가 맞다.
 class _SearchBar extends StatelessWidget {
-  const _SearchBar({required this.controller, required this.onChanged});
+  const _SearchBar({
+    required this.controller,
+    required this.onChanged,
+    required this.onNew,
+  });
 
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final VoidCallback onNew;
 
   @override
   Widget build(BuildContext context) {
@@ -299,10 +305,23 @@ class _SearchBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         minimum: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-        child: CupertinoSearchTextField(
-          controller: controller,
-          onChanged: onChanged,
-          placeholder: L.of(context).search,
+        child: Row(
+          children: [
+            Expanded(
+              child: CupertinoSearchTextField(
+                controller: controller,
+                onChanged: onChanged,
+                placeholder: L.of(context).search,
+              ),
+            ),
+            const SizedBox(width: 8),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(44, 44),
+              onPressed: onNew,
+              child: const Icon(CupertinoIcons.square_pencil, size: 24),
+            ),
+          ],
         ),
       ),
     );

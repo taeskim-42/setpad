@@ -127,4 +127,7 @@ class LTh extends L {
 
     return '$dString';
   }
+
+  @override
+  String get noteHint => '이 세트에 남길 메모';
 }

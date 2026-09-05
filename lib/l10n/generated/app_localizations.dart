@@ -294,6 +294,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{d}'**
   String weekdayLabel(DateTime d);
+
+  /// No description provided for @noteHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 세트에 남길 메모'**
+  String get noteHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

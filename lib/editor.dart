@@ -10,7 +10,13 @@ import 'parser.dart';
 import 'units.dart';
 
 class LoggedSet {
-  LoggedSet({this.value, this.unit = defaultUnit, this.reps, this.note, this.done = true});
+  LoggedSet({
+    this.value,
+    this.unit = defaultUnit,
+    this.reps,
+    this.note,
+    this.done = true,
+  });
 
   /// 무게든 거리든 시간이든, 친 숫자 그대로.
   final double? value;
@@ -41,9 +47,9 @@ class RoutineEditorController extends ChangeNotifier {
   /// 이 기기에서 실제로 친 이름이 씨앗 목록보다 앞선다.
   /// 씨앗은 화면 언어의 이름으로 낸다 — 검색은 어느 언어로 하든 잡힌다.
   List<String> vocabulary(String lang) => [
-        ..._learned,
-        ...seedNames(lang).where((e) => !_learned.contains(e)),
-      ];
+    ..._learned,
+    ...seedNames(lang).where((e) => !_learned.contains(e)),
+  ];
 
   /// 마지막 운동이 아직 세트를 받는 중인가.
   ///
@@ -102,8 +108,9 @@ class RoutineEditorController extends ChangeNotifier {
   }
 
   /// 직전 세트 — 키패드의 "이전과 같이" 가 보여줄 것.
-  LoggedSet? get lastSet =>
-      inBlock && blocks[_active].sets.isNotEmpty ? blocks[_active].sets.last : null;
+  LoggedSet? get lastSet => inBlock && blocks[_active].sets.isNotEmpty
+      ? blocks[_active].sets.last
+      : null;
 
   /// 같은 세트를 한 번 더. 운동 기록에서 가장 흔한 동작이라 한 번에 준다.
   void repeatLastSet() {
@@ -137,6 +144,27 @@ class RoutineEditorController extends ChangeNotifier {
       _active = -1;
       addExercise(text);
     }
+  }
+
+  /// 마지막 세트에 메모를 붙인다.
+  ///
+  /// 예전에는 세트를 칠 때 같은 줄에 적어 넣는 수밖에 없었다. 그러면 이미
+  /// 넣은 세트에는 메모를 달 방법이 없어서 지우고 다시 쳐야 했다 — 정작
+  /// 메모를 적고 싶어지는 것은 세트를 끝낸 다음이다.
+  void noteLastSet(String text) {
+    if (!inBlock) return;
+    final sets = blocks[_active].sets;
+    if (sets.isEmpty) return;
+    final clean = text.trim();
+    final last = sets.last;
+    sets[sets.length - 1] = LoggedSet(
+      value: last.value,
+      unit: last.unit,
+      reps: last.reps,
+      note: clean.isEmpty ? null : clean,
+      done: last.done,
+    );
+    notifyListeners();
   }
 
   /// 해낸 세트인지 뒤집는다. 잘못 눌렀을 때 되돌릴 방법이 있어야 한다.
@@ -220,23 +248,25 @@ class RoutineEditorController extends ChangeNotifier {
   String asText({
     String Function(int n)? setOrdinal,
     String Function(int n)? formatReps,
-  }) =>
-      blocks
+  }) => blocks
       .map((b) => (name: b.name, sets: b.sets.where((s) => s.done).toList()))
       .where((b) => b.sets.isNotEmpty)
       .map((b) {
         final lines = <String>[b.name];
         for (var i = 0; i < b.sets.length; i++) {
           final s = b.sets[i];
-          lines.add([
-            setOrdinal?.call(i + 1) ?? '${i + 1}세트',
-            setLabel(
+          lines.add(
+            [
+              setOrdinal?.call(i + 1) ?? '${i + 1}세트',
+              setLabel(
                 value: s.value,
                 unit: s.unit,
                 reps: s.reps,
-                formatReps: formatReps ?? (n) => '$n회'),
-            if (s.note != null) s.note!,
-          ].join(' '));
+                formatReps: formatReps ?? (n) => '$n회',
+              ),
+              if (s.note != null) s.note!,
+            ].join(' '),
+          );
         }
         return lines.join('\n');
       })
@@ -247,15 +277,20 @@ class RoutineEditorController extends ChangeNotifier {
 ///
 /// 부르는 곳이 둘이다 — 카드의 지우기 버튼, 그리고 백스페이스를 계속 눌러
 /// 세트가 다 빠진 뒤의 마지막 한 번. 결과가 같으므로 묻는 말도 같아야 한다.
-Future<bool> confirmRemoveExercise(BuildContext context, ExerciseBlock block) async {
+Future<bool> confirmRemoveExercise(
+  BuildContext context,
+  ExerciseBlock block,
+) async {
   final l = L.of(context);
   final yes = await showCupertinoDialog<bool>(
     context: context,
     builder: (context) => CupertinoAlertDialog(
       title: Text(l.deleteExerciseTitle(block.name)),
-      content: Text(block.sets.isEmpty
-          ? l.deleteExerciseEmptyBody
-          : l.deleteExerciseBody(block.sets.length)),
+      content: Text(
+        block.sets.isEmpty
+            ? l.deleteExerciseEmptyBody
+            : l.deleteExerciseBody(block.sets.length),
+      ),
       actions: [
         CupertinoDialogAction(
           onPressed: () => Navigator.pop(context, false),
@@ -287,6 +322,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
   final _input = TextEditingController();
   final _focus = FocusNode();
   final _scroll = ScrollController();
+
   /// 입력 줄이 트리의 다른 자리로 옮겨가도 같은 위젯으로 유지되게 한다.
   final _inputKey = GlobalKey();
   int _highlight = 0;
@@ -306,7 +342,9 @@ class _RoutineEditorState extends State<RoutineEditor> {
   String get _unit {
     final typed = parseSetLine(_input.text)?.unit;
     if (typed != null) return typed;
-    final sets = _c.inBlock ? _c.blocks[_c.activeIndex].sets : const <LoggedSet>[];
+    final sets = _c.inBlock
+        ? _c.blocks[_c.activeIndex].sets
+        : const <LoggedSet>[];
     return sets.isEmpty ? defaultUnit : sets.last.unit;
   }
 
@@ -318,8 +356,10 @@ class _RoutineEditorState extends State<RoutineEditor> {
 
   /// 무게(또는 거리·시간)를 지나 횟수를 치고 있는가.
   bool get _typingReps =>
-      RegExp('($unitPattern)\\s*[\\d.]*\$', caseSensitive: false)
-          .hasMatch(_input.text) ||
+      RegExp(
+        '($unitPattern)\\s*[\\d.]*\$',
+        caseSensitive: false,
+      ).hasMatch(_input.text) ||
       _input.text.trimRight().contains(' ');
 
   /// 길게 눌러 미는 폭을 고른다. 원판이 나라마다 다르고 사람마다 올리는
@@ -339,7 +379,9 @@ class _RoutineEditorState extends State<RoutineEditor> {
                 // 무엇의 2.5 인지 다시 위를 봐야 한다.
                 formatValue(v, u.id),
                 style: TextStyle(
-                  fontWeight: v == _stepSize ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: v == _stepSize
+                      ? FontWeight.w600
+                      : FontWeight.w400,
                 ),
               ),
             ),
@@ -404,8 +446,11 @@ class _RoutineEditorState extends State<RoutineEditor> {
       // 자리를 옮긴 뒤에도 계속 칠 수 있어야 한다.
       if (mounted && !_focus.hasFocus) _focus.requestFocus();
       if (_scroll.hasClients) {
-        _scroll.animateTo(_scroll.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 160), curve: Curves.easeOut);
+        _scroll.animateTo(
+          _scroll.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
@@ -426,11 +471,27 @@ class _RoutineEditorState extends State<RoutineEditor> {
   /// 사전에서 어느 언어의 이름을 낼지. 검색은 언어를 가리지 않는다.
   String get _lang {
     final locale = Localizations.localeOf(context);
-    return langKeyOf(locale.languageCode, locale.scriptCode, locale.countryCode);
+    return langKeyOf(
+      locale.languageCode,
+      locale.scriptCode,
+      locale.countryCode,
+    );
   }
 
   void _commit([String? pick]) {
     final value = pick ?? _input.text;
+    // 메모 모드에서 친 것은 마지막 세트의 메모다. 그냥 넘기면 숫자가 없는
+    // 줄이라 파서가 새 운동 이름으로 읽어 버린다.
+    if (pick == null && _wantText && _c.lastSet != null) {
+      _c.noteLastSet(value);
+      _input.clear();
+      setState(() {
+        _highlight = 0;
+        _wantText = false;
+      });
+      _focus.requestFocus();
+      return;
+    }
     _c.commit(value);
     _input.clear();
     setState(() {
@@ -480,7 +541,8 @@ class _RoutineEditorState extends State<RoutineEditor> {
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
-    if (event.logicalKey == LogicalKeyboardKey.backspace && _input.text.isEmpty) {
+    if (event.logicalKey == LogicalKeyboardKey.backspace &&
+        _input.text.isEmpty) {
       _c.backspace();
       return KeyEventResult.handled;
     }
@@ -491,7 +553,9 @@ class _RoutineEditorState extends State<RoutineEditor> {
       return KeyEventResult.handled;
     }
     if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-      setState(() => _highlight = (_highlight - 1 + matches.length) % matches.length);
+      setState(
+        () => _highlight = (_highlight - 1 + matches.length) % matches.length,
+      );
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -572,6 +636,9 @@ class _RoutineEditorState extends State<RoutineEditor> {
               _commit();
             },
             onText: () {
+              // 글자판으로 넘어가는 것은 곧 메모를 적겠다는 뜻이다. 이 화면에
+              // 글자가 필요한 자리는 거기뿐이다 — 운동 이름은 카드 밖에서
+              // 치고 그때는 애초에 키패드가 안 뜬다.
               setState(() => _wantText = true);
               // 읽기 전용이 풀린 뒤라야 키보드가 글자판으로 열린다.
               WidgetsBinding.instance.addPostFrameCallback((_) => _reopen());
@@ -602,7 +669,8 @@ class _RoutineEditorState extends State<RoutineEditor> {
                     value: _c.lastSet!.value,
                     unit: _c.lastSet!.unit,
                     reps: _c.lastSet!.reps,
-                    formatReps: L.of(context).repsCount),
+                    formatReps: L.of(context).repsCount,
+                  ),
             onRepeat: _c.repeatLastSet,
           ),
         // 메모를 치는 동안에도 돌아올 문은 열어 둔다.
@@ -623,11 +691,20 @@ class _RoutineEditorState extends State<RoutineEditor> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(CupertinoIcons.keyboard, size: 19, color: seal),
+                      const Icon(
+                        CupertinoIcons.keyboard,
+                        size: 19,
+                        color: seal,
+                      ),
                       const SizedBox(width: 6),
-                      Text(L.of(context).numberKeypad,
-                          style: const TextStyle(
-                              fontSize: 17, letterSpacing: -0.41, color: seal)),
+                      Text(
+                        L.of(context).numberKeypad,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          letterSpacing: -0.41,
+                          color: seal,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -716,7 +793,6 @@ class _BlockView extends StatelessWidget {
     if (await confirmRemoveExercise(context, block)) onRemoveBlock();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -731,7 +807,9 @@ class _BlockView extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
       decoration: BoxDecoration(
-        color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
+        color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
+          context,
+        ),
         // iOS 의 목록 카드는 그림자를 쓰지 않는다. 회색 배경 위의 흰 면과
         // 모서리 10 으로 나눈다 — 그림자는 안드로이드 쪽 관습이다.
         borderRadius: BorderRadius.circular(10),
@@ -742,33 +820,43 @@ class _BlockView extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(block.name,
-                    style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.41)),
+                child: Text(
+                  block.name,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.41,
+                  ),
+                ),
               ),
               GestureDetector(
                 onTap: () => _confirmRemove(context),
                 behavior: HitTestBehavior.opaque,
                 child: Padding(
                   padding: const EdgeInsets.only(left: 8, bottom: 2),
-                  child: Icon(CupertinoIcons.trash,
-                      size: 18,
-                      color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+                  child: Icon(
+                    CupertinoIcons.trash,
+                    size: 18,
+                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                  ),
                 ),
               ),
             ],
           ),
-          ...block.sets.asMap().entries.map((e) => _SetRow(
-                index: e.key,
-                set: e.value,
-                onToggle: () => onToggle(e.key),
-                onRemove: () => onRemoveSet(e.key),
-              )),
+          ...block.sets.asMap().entries.map(
+            (e) => _SetRow(
+              index: e.key,
+              set: e.value,
+              onToggle: () => onToggle(e.key),
+              onRemove: () => onRemoveSet(e.key),
+            ),
+          ),
           if (input != null) ...[
             Padding(
-              padding: EdgeInsets.only(top: block.sets.isEmpty ? 2 : 4, left: 46),
+              padding: EdgeInsets.only(
+                top: block.sets.isEmpty ? 2 : 4,
+                left: 46,
+              ),
               child: input!,
             ),
             // 키패드의 큰 키는 '다음'(무게→횟수)을 맡는다. 세트를 넣는 일은
@@ -790,9 +878,14 @@ class _BlockView extends StatelessWidget {
                       children: [
                         const Icon(CupertinoIcons.add, size: 18, color: seal),
                         const SizedBox(width: 6),
-                        Text(L.of(context).addSet,
-                            style: const TextStyle(
-                                fontSize: 17, letterSpacing: -0.41, color: seal)),
+                        Text(
+                          L.of(context).addSet,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            letterSpacing: -0.41,
+                            color: seal,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -829,69 +922,86 @@ class _SetRow extends StatelessWidget {
         color: off ? null : doneTint.resolveFrom(context),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onTap: onToggle,
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: 32,
-              child: Icon(
-                off ? CupertinoIcons.circle : CupertinoIcons.check_mark_circled_solid,
-                size: 19,
-                color: off
-                    ? CupertinoColors.tertiaryLabel.resolveFrom(context)
-                    : CupertinoColors.systemGreen.resolveFrom(context),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: onToggle,
+                behavior: HitTestBehavior.opaque,
+                child: SizedBox(
+                  width: 32,
+                  child: Icon(
+                    off
+                        ? CupertinoIcons.circle
+                        : CupertinoIcons.check_mark_circled_solid,
+                    size: 19,
+                    color: off
+                        ? CupertinoColors.tertiaryLabel.resolveFrom(context)
+                        : CupertinoColors.systemGreen.resolveFrom(context),
+                  ),
+                ),
               ),
-            ),
-          ),
-          SizedBox(
-            width: 42,
-            child: Text(L.of(context).setOrdinal(index + 1),
-                // caption 자리. 세트 번호는 값이 아니라 이름표다.
-                style: TextStyle(
+              SizedBox(
+                width: 42,
+                child: Text(
+                  L.of(context).setOrdinal(index + 1),
+                  // caption 자리. 세트 번호는 값이 아니라 이름표다.
+                  style: TextStyle(
                     fontSize: 13,
                     letterSpacing: -0.08,
-                    color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
+                ),
+              ),
+              Text(
+                setLabel(
+                  value: set.value,
+                  unit: set.unit,
+                  reps: set.reps,
+                  formatReps: L.of(context).repsCount,
+                ),
+                style: TextStyle(
+                  // 숫자가 줄 서는 자리라 고정폭이다.
+                  fontSize: 16,
+                  fontFamily: 'Menlo',
+                  color: off
+                      ? CupertinoColors.tertiaryLabel.resolveFrom(context)
+                      : CupertinoColors.label.resolveFrom(context),
+                  decoration: off ? TextDecoration.lineThrough : null,
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: onRemove,
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Icon(
+                    CupertinoIcons.xmark,
+                    size: 15,
+                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                  ),
+                ),
+              ),
+            ],
           ),
-          Text(
-            setLabel(
-                value: set.value,
-                unit: set.unit,
-                reps: set.reps,
-                formatReps: L.of(context).repsCount),
-            style: TextStyle(
-              // 숫자가 줄 서는 자리라 고정폭이다.
-              fontSize: 16,
-              fontFamily: 'Menlo',
-              color: off
-                  ? CupertinoColors.tertiaryLabel.resolveFrom(context)
-                  : CupertinoColors.label.resolveFrom(context),
-              decoration: off ? TextDecoration.lineThrough : null,
+          // 메모는 세트 아래 제 줄에 둔다. 같은 줄에 붙이면 자리가 없어
+          // 잘리는데, 메모는 잘리면 쓸모가 없다 — 길게 적으라고 있는 것이다.
+          if (set.note != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(74, 1, 24, 3),
+              child: Text(
+                set.note!,
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.35,
+                  letterSpacing: -0.08,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
+              ),
             ),
-          ),
-          if (set.note != null) ...[
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(set.note!,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      fontSize: 13,
-                      letterSpacing: -0.08,
-                      color: CupertinoColors.secondaryLabel.resolveFrom(context))),
-            ),
-          ] else
-            const Spacer(),
-          GestureDetector(
-            onTap: onRemove,
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: Icon(CupertinoIcons.xmark,
-                  size: 15,
-                  color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-            ),
-          ),
         ],
       ),
     );
@@ -915,11 +1025,15 @@ class _Suggestions extends StatelessWidget {
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
+        color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
+          context,
+        ),
         // iOS 의 구분선은 0.5pt 다. 1pt 면 굵어서 눈에 걸린다.
         border: Border(
           top: BorderSide(
-              color: CupertinoColors.separator.resolveFrom(context), width: 0.5),
+            color: CupertinoColors.separator.resolveFrom(context),
+            width: 0.5,
+          ),
         ),
       ),
       child: ListView.separated(
@@ -969,7 +1083,9 @@ class SuggestionChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? sealTint.resolveFrom(context)
-              : CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
+              : CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
+                  context,
+                ),
           // 알약은 완전한 원형 끝이다. iOS 의 필터 칩이 그렇게 생겼다.
           borderRadius: BorderRadius.circular(100),
           border: Border.all(

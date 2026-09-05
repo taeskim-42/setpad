@@ -30,5 +30,6 @@
   "next": "Next",
   "stepSizeTitle": "{unit} step",
   "kcal": "{n} kcal",
-  "weekdayLabel": "{d}"
+  "weekdayLabel": "{d}",
+  "noteHint": "Note for this set"
 }
