@@ -872,4 +872,45 @@ void keypadTests() {
     });
   });
 
+  group('미는 폭 표시', () {
+    testWidgets('+/- 에 단위가 함께 뜬다', (tester) async {
+      await pumpApp(tester);
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+
+      // 무엇의 2.5 인지 보여야 한다.
+      expect(find.descendant(of: find.byType(SetKeypad), matching: find.text('2.5kg')),
+          findsNWidgets(2));
+      expect(find.descendant(of: find.byType(SetKeypad), matching: find.text('2.5')),
+          findsNothing);
+    });
+
+    testWidgets('횟수를 치는 중이면 숫자만 뜬다', (tester) async {
+      await pumpApp(tester);
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      await tapKeys(tester, '100 ');   // '다음'으로 횟수 자리로 넘어간다
+
+      // 횟수는 늘 1씩이고 붙일 단위가 없다.
+      expect(find.descendant(of: find.byType(SetKeypad), matching: find.text('1')),
+          findsWidgets);
+      expect(find.descendant(of: find.byType(SetKeypad), matching: find.text('1kg')),
+          findsNothing);
+    });
+
+    testWidgets('길게 누른 시트에도 단위가 붙는다', (tester) async {
+      await pumpApp(tester);
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+
+      await tester.longPress(find.descendant(
+          of: find.byType(SetKeypad), matching: find.text('2.5kg')).first);
+      await settle(tester);
+      expect(find.widgetWithText(CupertinoActionSheetAction, '5kg'), findsOneWidget);
+      expect(find.widgetWithText(CupertinoActionSheetAction, '20kg'), findsOneWidget);
+    });
+  });
 }

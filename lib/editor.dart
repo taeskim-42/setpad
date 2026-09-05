@@ -335,7 +335,9 @@ class _RoutineEditorState extends State<RoutineEditor> {
             CupertinoActionSheetAction(
               onPressed: () => Navigator.pop(context, v),
               child: Text(
-                formatNumber(v),
+                // 시트에도 단위를 붙인다. 제목에만 있으면 항목을 훑을 때
+                // 무엇의 2.5 인지 다시 위를 봐야 한다.
+                formatValue(v, u.id),
                 style: TextStyle(
                   fontWeight: v == _stepSize ? FontWeight.w600 : FontWeight.w400,
                 ),
@@ -583,7 +585,11 @@ class _RoutineEditorState extends State<RoutineEditor> {
               setState(() {});
             },
             // 무게를 치는 중이면 원판 단위, kg 를 지나 횟수를 치는 중이면 하나.
-            stepLabel: formatNumber(_stepSize),
+            // 무엇의 2.5 인지 보여야 한다. 횟수를 치는 중이면 단위가 없으므로
+            // 숫자만 낸다 — "1회" 는 늘 1이라 붙일 값이 없다.
+            stepLabel: _typingReps
+                ? formatNumber(_stepSize)
+                : formatValue(_stepSize, _unit),
             // 칠 것이 있으면 늘 '다음'이다. 세트를 넣는 일은 화면 버튼이
             // 맡으므로, 같은 이름의 버튼이 둘이 되지 않게 한다.
             submitLabel: _hasInput
