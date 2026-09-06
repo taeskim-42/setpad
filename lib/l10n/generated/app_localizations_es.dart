@@ -44,38 +44,38 @@ class LEs extends L {
   }
 
   @override
-  String get allNotes => '모든 운동';
+  String get allNotes => 'Todos los registros';
 
   @override
   String noteCount(int n) {
-    return '$n개의 운동';
+    return '$n registros';
   }
 
   @override
-  String get previous7Days => '이전 7일';
+  String get previous7Days => 'Últimos 7 días';
 
   @override
-  String get previous30Days => '이전 30일';
+  String get previous30Days => 'Últimos 30 días';
 
   @override
   String monthLabel(int m) {
-    return '$m월';
+    return '$m';
   }
 
   @override
-  String get search => '검색';
+  String get search => 'Buscar';
 
   @override
-  String get newNote => '새 운동';
+  String get newNote => 'Nuevo registro';
 
   @override
-  String get untitledNote => '새 운동';
+  String get untitledNote => 'Nuevo registro';
 
   @override
-  String get noNotesYet => '아직 기록이 없습니다';
+  String get noNotesYet => 'Aún no hay registros';
 
   @override
-  String get noSearchResults => '찾는 기록이 없습니다';
+  String get noSearchResults => 'Sin resultados';
 
   @override
   String dayLabel(DateTime d) {
@@ -86,38 +86,38 @@ class LEs extends L {
   }
 
   @override
-  String get finishExercise => '운동 완료';
+  String get finishExercise => 'Listo';
 
   @override
-  String get cancel => '취소';
+  String get cancel => 'Cancelar';
 
   @override
-  String get delete => '삭제';
+  String get delete => 'Eliminar';
 
   @override
   String deleteExerciseTitle(String name) {
-    return '$name 삭제';
+    return 'Eliminar $name';
   }
 
   @override
   String deleteExerciseBody(int n) {
-    return '$n개 세트가 함께 지워집니다. 되돌릴 수 없습니다.';
+    return 'Se eliminarán $n series. No se puede deshacer.';
   }
 
   @override
-  String get deleteExerciseEmptyBody => '이 운동을 지웁니다.';
+  String get deleteExerciseEmptyBody => 'Se eliminará este ejercicio.';
 
   @override
-  String get next => '다음';
+  String get next => 'Siguiente';
 
   @override
   String stepSizeTitle(String unit) {
-    return '$unit 단위';
+    return 'Paso de $unit';
   }
 
   @override
   String kcal(int n) {
-    return '${n}kcal';
+    return '$n kcal';
   }
 
   @override
@@ -129,5 +129,5 @@ class LEs extends L {
   }
 
   @override
-  String get noteHint => '이 세트에 남길 메모';
+  String get noteHint => 'Nota para esta serie';
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -1082,6 +1083,84 @@ void keypadTests() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
       expect(inPad('어깨 불편'), findsNothing);
+    });
+  });
+
+  group('화면 출렁임', () {
+    testWidgets('세트를 켜고 꺼도 화면이 안 움직인다', (tester) async {
+      // 예전에는 컨트롤러가 바뀔 때마다 무조건 맨 아래로 내렸다. 세트를 켜고
+      // 끄거나 메모를 고칠 때도 화면이 출렁였다.
+      await pumpApp(tester);
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      // 화면을 넘칠 만큼 채운다.
+      for (var i = 0; i < 12; i++) {
+        await tapKeys(tester, '100 10');
+        await tester.tap(addSetButton);
+        await settle(tester);
+      }
+
+      final scroll = tester.widget<ListView>(
+              find.descendant(of: find.byType(RoutineEditor), matching: find.byType(ListView)))
+          .controller!;
+      final before = scroll.offset;
+
+      // 세트 하나를 껐다 켠다 — 줄 수는 그대로다. 화면에 보이는 것을 누른다.
+      await tester.tap(find.byIcon(CupertinoIcons.check_mark_circled_solid).last);
+      await settle(tester);
+      expect(scroll.offset, before, reason: '껐을 때');
+
+      await tester.tap(find.byIcon(CupertinoIcons.circle).last);
+      await settle(tester);
+      expect(scroll.offset, before, reason: '다시 켰을 때');
+    });
+
+    testWidgets('세트를 더하면 따라 내려간다', (tester) async {
+      await pumpApp(tester);
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      for (var i = 0; i < 12; i++) {
+        await tapKeys(tester, '100 10');
+        await tester.tap(addSetButton);
+        await settle(tester);
+      }
+
+      final scroll = tester.widget<ListView>(
+              find.descendant(of: find.byType(RoutineEditor), matching: find.byType(ListView)))
+          .controller!;
+      // 줄이 늘었으니 바닥까지 내려와 있어야 한다 — 방금 친 것이 보여야 한다.
+      expect(scroll.offset, scroll.position.maxScrollExtent);
+    });
+  });
+
+  group('여덟 언어', () {
+    test('빠진 번역이 없다', () {
+      // ko 가 키의 원천이다. 나머지가 그 키를 다 채워야 화면 일부만 한국어로
+      // 남는 일이 없다.
+      final dir = Directory('lib/l10n');
+      final ko = jsonDecode(File('${dir.path}/app_ko.arb').readAsStringSync())
+          as Map<String, dynamic>;
+      final keys = ko.keys.where((k) => !k.startsWith('@')).toSet();
+
+      for (final f in dir.listSync().whereType<File>()
+          .where((f) => f.path.endsWith('.arb') && !f.path.endsWith('app_ko.arb'))) {
+        final d = jsonDecode(f.readAsStringSync()) as Map<String, dynamic>;
+        final missing = keys.difference(d.keys.toSet());
+        expect(missing, isEmpty, reason: '${f.path.split('/').last}: $missing');
+      }
+    });
+
+    testWidgets('일본어 기기에서 새 문구가 일본어로 뜬다', (tester) async {
+      await pumpApp(tester, locale: const Locale('ja'));
+      await tester.enterText(padField.last, 'ベンチ');
+      await settle(tester);
+      await tester.tap(find.text('ベンチプレス'));
+      await settle(tester);
+      // 아직 아무것도 안 쳤으니 큰 키는 '완了' 자리다.
+      expect(find.descendant(of: find.byType(SetKeypad), matching: find.text('完了')),
+          findsOneWidget);
     });
   });
 }

@@ -43,38 +43,38 @@ class LJa extends L {
   }
 
   @override
-  String get allNotes => '모든 운동';
+  String get allNotes => 'すべての記録';
 
   @override
   String noteCount(int n) {
-    return '$n개의 운동';
+    return '$n件の記録';
   }
 
   @override
-  String get previous7Days => '이전 7일';
+  String get previous7Days => '過去7日間';
 
   @override
-  String get previous30Days => '이전 30일';
+  String get previous30Days => '過去30日間';
 
   @override
   String monthLabel(int m) {
-    return '$m월';
+    return '$m月';
   }
 
   @override
-  String get search => '검색';
+  String get search => '検索';
 
   @override
-  String get newNote => '새 운동';
+  String get newNote => '新規記録';
 
   @override
-  String get untitledNote => '새 운동';
+  String get untitledNote => '新規記録';
 
   @override
-  String get noNotesYet => '아직 기록이 없습니다';
+  String get noNotesYet => 'まだ記録がありません';
 
   @override
-  String get noSearchResults => '찾는 기록이 없습니다';
+  String get noSearchResults => '該当する記録がありません';
 
   @override
   String dayLabel(DateTime d) {
@@ -85,33 +85,33 @@ class LJa extends L {
   }
 
   @override
-  String get finishExercise => '운동 완료';
+  String get finishExercise => '完了';
 
   @override
-  String get cancel => '취소';
+  String get cancel => 'キャンセル';
 
   @override
-  String get delete => '삭제';
+  String get delete => '削除';
 
   @override
   String deleteExerciseTitle(String name) {
-    return '$name 삭제';
+    return '$nameを削除';
   }
 
   @override
   String deleteExerciseBody(int n) {
-    return '$n개 세트가 함께 지워집니다. 되돌릴 수 없습니다.';
+    return '$nセットも一緒に削除されます。元に戻せません。';
   }
 
   @override
-  String get deleteExerciseEmptyBody => '이 운동을 지웁니다.';
+  String get deleteExerciseEmptyBody => 'この種目を削除します。';
 
   @override
-  String get next => '다음';
+  String get next => '次へ';
 
   @override
   String stepSizeTitle(String unit) {
-    return '$unit 단위';
+    return '$unitの刻み';
   }
 
   @override
@@ -128,5 +128,5 @@ class LJa extends L {
   }
 
   @override
-  String get noteHint => '이 세트에 남길 메모';
+  String get noteHint => 'このセットのメモ';
 }

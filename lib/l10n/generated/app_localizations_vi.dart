@@ -44,38 +44,38 @@ class LVi extends L {
   }
 
   @override
-  String get allNotes => '모든 운동';
+  String get allNotes => 'Tất cả bản ghi';
 
   @override
   String noteCount(int n) {
-    return '$n개의 운동';
+    return '$n bản ghi';
   }
 
   @override
-  String get previous7Days => '이전 7일';
+  String get previous7Days => '7 ngày qua';
 
   @override
-  String get previous30Days => '이전 30일';
+  String get previous30Days => '30 ngày qua';
 
   @override
   String monthLabel(int m) {
-    return '$m월';
+    return 'Tháng $m';
   }
 
   @override
-  String get search => '검색';
+  String get search => 'Tìm kiếm';
 
   @override
-  String get newNote => '새 운동';
+  String get newNote => 'Bản ghi mới';
 
   @override
-  String get untitledNote => '새 운동';
+  String get untitledNote => 'Bản ghi mới';
 
   @override
-  String get noNotesYet => '아직 기록이 없습니다';
+  String get noNotesYet => 'Chưa có bản ghi nào';
 
   @override
-  String get noSearchResults => '찾는 기록이 없습니다';
+  String get noSearchResults => 'Không có kết quả';
 
   @override
   String dayLabel(DateTime d) {
@@ -86,38 +86,38 @@ class LVi extends L {
   }
 
   @override
-  String get finishExercise => '운동 완료';
+  String get finishExercise => 'Xong';
 
   @override
-  String get cancel => '취소';
+  String get cancel => 'Huỷ';
 
   @override
-  String get delete => '삭제';
+  String get delete => 'Xoá';
 
   @override
   String deleteExerciseTitle(String name) {
-    return '$name 삭제';
+    return 'Xoá $name';
   }
 
   @override
   String deleteExerciseBody(int n) {
-    return '$n개 세트가 함께 지워집니다. 되돌릴 수 없습니다.';
+    return '$n hiệp cũng sẽ bị xoá. Không thể hoàn tác.';
   }
 
   @override
-  String get deleteExerciseEmptyBody => '이 운동을 지웁니다.';
+  String get deleteExerciseEmptyBody => 'Bài tập này sẽ bị xoá.';
 
   @override
-  String get next => '다음';
+  String get next => 'Tiếp';
 
   @override
   String stepSizeTitle(String unit) {
-    return '$unit 단위';
+    return 'Bước $unit';
   }
 
   @override
   String kcal(int n) {
-    return '${n}kcal';
+    return '$n kcal';
   }
 
   @override
@@ -129,5 +129,5 @@ class LVi extends L {
   }
 
   @override
-  String get noteHint => '이 세트에 남길 메모';
+  String get noteHint => 'Ghi chú cho hiệp này';
 }

@@ -470,22 +470,37 @@ class _RoutineEditorState extends State<RoutineEditor> {
   /// 세트를 받는 중이면 시스템 키보드가 있을 자리가 없다 — 키패드가 그 자리다.
   bool get _padMode => _c.inBlock && !_wantText;
 
+  /// 화면에 놓인 줄 수. 이것이 늘었을 때만 따라 내린다.
+  int get _lineCount =>
+      _c.blocks.length +
+      _c.blocks.fold(0, (n, b) => n + b.sets.length + b.sets.fold(0, (m, s) => m + s.notes.length));
+  int _lastLineCount = 0;
+
   void _onChanged() {
     if (mounted) setState(() {});
     // keyboardType 을 바꾸는 것만으로는 **이미 올라와 있는** 키보드가 내려가지
     // 않는다. 운동 이름을 칠 때 뜬 키보드가 세트 모드에서도 그대로 남아
     // 키패드를 덮었다.
     if (_padMode) SystemChannels.textInput.invokeMethod('TextInput.hide');
+
+    // 줄이 늘었을 때만 따라 내린다. 예전에는 컨트롤러가 바뀔 때마다 무조건
+    // 맨 아래로 내렸는데, 세트를 켜고 끄거나 메모를 고칠 때도 화면이 출렁였다.
+    // 키패드가 뜨고 지면서 뷰포트 높이가 바뀌면 그때마다 또 움직였다.
+    final grew = _lineCount > _lastLineCount;
+    _lastLineCount = _lineCount;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 자리를 옮긴 뒤에도 계속 칠 수 있어야 한다.
       if (mounted && !_focus.hasFocus) _focus.requestFocus();
-      if (_scroll.hasClients) {
-        _scroll.animateTo(
-          _scroll.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 160),
-          curve: Curves.easeOut,
-        );
-      }
+      if (!grew || !_scroll.hasClients) return;
+      final max = _scroll.position.maxScrollExtent;
+      // 이미 바닥이면 움직일 것이 없다.
+      if (max <= _scroll.offset) return;
+      _scroll.animateTo(
+        max,
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOut,
+      );
     });
   }
 

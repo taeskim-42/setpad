@@ -44,38 +44,38 @@ class LTh extends L {
   }
 
   @override
-  String get allNotes => '모든 운동';
+  String get allNotes => 'บันทึกทั้งหมด';
 
   @override
   String noteCount(int n) {
-    return '$n개의 운동';
+    return '$n รายการ';
   }
 
   @override
-  String get previous7Days => '이전 7일';
+  String get previous7Days => '7 วันที่ผ่านมา';
 
   @override
-  String get previous30Days => '이전 30일';
+  String get previous30Days => '30 วันที่ผ่านมา';
 
   @override
   String monthLabel(int m) {
-    return '$m월';
+    return 'เดือน $m';
   }
 
   @override
-  String get search => '검색';
+  String get search => 'ค้นหา';
 
   @override
-  String get newNote => '새 운동';
+  String get newNote => 'บันทึกใหม่';
 
   @override
-  String get untitledNote => '새 운동';
+  String get untitledNote => 'บันทึกใหม่';
 
   @override
-  String get noNotesYet => '아직 기록이 없습니다';
+  String get noNotesYet => 'ยังไม่มีบันทึก';
 
   @override
-  String get noSearchResults => '찾는 기록이 없습니다';
+  String get noSearchResults => 'ไม่พบรายการ';
 
   @override
   String dayLabel(DateTime d) {
@@ -86,38 +86,38 @@ class LTh extends L {
   }
 
   @override
-  String get finishExercise => '운동 완료';
+  String get finishExercise => 'เสร็จ';
 
   @override
-  String get cancel => '취소';
+  String get cancel => 'ยกเลิก';
 
   @override
-  String get delete => '삭제';
+  String get delete => 'ลบ';
 
   @override
   String deleteExerciseTitle(String name) {
-    return '$name 삭제';
+    return 'ลบ $name';
   }
 
   @override
   String deleteExerciseBody(int n) {
-    return '$n개 세트가 함께 지워집니다. 되돌릴 수 없습니다.';
+    return 'จะลบ $n เซ็ตด้วย ย้อนกลับไม่ได้';
   }
 
   @override
-  String get deleteExerciseEmptyBody => '이 운동을 지웁니다.';
+  String get deleteExerciseEmptyBody => 'จะลบท่านี้';
 
   @override
-  String get next => '다음';
+  String get next => 'ถัดไป';
 
   @override
   String stepSizeTitle(String unit) {
-    return '$unit 단위';
+    return 'ขั้นของ $unit';
   }
 
   @override
   String kcal(int n) {
-    return '${n}kcal';
+    return '$n kcal';
   }
 
   @override
@@ -129,5 +129,5 @@ class LTh extends L {
   }
 
   @override
-  String get noteHint => '이 세트에 남길 메모';
+  String get noteHint => 'บันทึกสำหรับเซ็ตนี้';
 }
