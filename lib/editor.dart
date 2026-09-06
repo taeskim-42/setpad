@@ -492,14 +492,23 @@ class _RoutineEditorState extends State<RoutineEditor> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 자리를 옮긴 뒤에도 계속 칠 수 있어야 한다.
       if (mounted && !_focus.hasFocus) _focus.requestFocus();
-      if (!grew || !_scroll.hasClients) return;
-      final max = _scroll.position.maxScrollExtent;
-      // 이미 바닥이면 움직일 것이 없다.
-      if (max <= _scroll.offset) return;
-      _scroll.animateTo(
-        max,
-        duration: const Duration(milliseconds: 160),
+      if (!grew) return;
+      final ctx = _inputKey.currentContext;
+      if (ctx == null) return;
+
+      // **맨 아래로 던지지 않는다.** 치는 자리가 보일 만큼만 움직인다.
+      //
+      // maxScrollExtent 로 내리던 것을 바꿨다. 운동 이름을 넣는 순간에는
+      // 시스템 키보드가 내려가고 키패드가 올라오는데, 그 도중에 재면 뷰포트가
+      // 실제보다 좁아 maxScrollExtent 가 크게 나온다. 그 값으로 던지면 앞의
+      // 카드가 화면 위로 사라졌다가, 레이아웃이 자리를 잡으면 되돌아온다 —
+      // 화면이 튀는 것이 이것이었다. ensureVisible 은 모자란 만큼만 움직이므로
+      // 도중에 재도 넘치지 않는다.
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
       );
     });
   }

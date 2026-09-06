@@ -39,15 +39,20 @@ final addSetButton =
 Finder dialogAction(String label) =>
     find.widgetWithText(CupertinoDialogAction, label);
 
+/// 키패드의 **키 글자**. +/- 아래 붙는 미는 폭(11pt)에도 같은 숫자가 뜨므로
+/// 글자 크기로 갈라낸다 — 숫자 키는 20pt 다.
+Finder padKey(String label) => find.descendant(
+      of: find.byType(SetKeypad),
+      matching: find.byWidgetPredicate(
+          (w) => w is Text && w.data == label && (w.style?.fontSize ?? 0) >= 14),
+    );
+
 /// 키패드로 친다. 세트 칸은 읽기 전용이라 enterText 로는 글자가 안 들어간다 —
 /// 실제 기기에서도 시스템 키보드가 아니라 이 키패드가 넣는다.
 Future<void> tapKeys(WidgetTester tester, String text) async {
   for (final ch in text.split('')) {
     // 공백 키는 없앴다. 무게에서 횟수로 넘기는 것은 큰 키('다음')가 한다.
-    final f = ch == ' '
-        ? find.descendant(of: find.byType(SetKeypad), matching: find.text('다음'))
-        : find.descendant(of: find.byType(SetKeypad), matching: find.text(ch));
-    await tester.tap(f);
+    await tester.tap(padKey(ch == ' ' ? '다음' : ch));
     await tester.pump();
   }
   await tester.pumpAndSettle();
@@ -1094,10 +1099,11 @@ void keypadTests() {
       await tester.enterText(padField, '벤치프레스');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
-      // 화면을 넘칠 만큼 채운다.
+      // 화면을 넘칠 만큼 채운다. 넣는 것은 키패드의 '다음' 으로 한다 —
+      // 화면 버튼은 목록이 길어지면 키패드에 가린다.
       for (var i = 0; i < 12; i++) {
         await tapKeys(tester, '100 10');
-        await tester.tap(addSetButton);
+        await tester.tap(padKey('다음'));
         await settle(tester);
       }
 
@@ -1116,7 +1122,11 @@ void keypadTests() {
       expect(scroll.offset, before, reason: '다시 켰을 때');
     });
 
-    testWidgets('세트를 더하면 따라 내려간다', (tester) async {
+    // 주의: 이 테스트는 "치는 자리가 보인다"는 성질만 지킨다. 화면이 튀는
+    // 증상 자체는 못 잡는다 — 위젯 테스트에는 시스템 키보드가 내려가는
+    // 애니메이션이 없어서 그 순간의 어긋난 뷰포트가 재현되지 않는다.
+    // 튀는지는 기기나 시뮬레이터에서 봐야 안다.
+    testWidgets('세트를 더하면 치는 자리가 보인다', (tester) async {
       await pumpApp(tester);
       await tester.enterText(padField, '벤치프레스');
       await tester.testTextInput.receiveAction(TextInputAction.done);
@@ -1127,11 +1137,13 @@ void keypadTests() {
         await settle(tester);
       }
 
-      final scroll = tester.widget<ListView>(
-              find.descendant(of: find.byType(RoutineEditor), matching: find.byType(ListView)))
-          .controller!;
-      // 줄이 늘었으니 바닥까지 내려와 있어야 한다 — 방금 친 것이 보여야 한다.
-      expect(scroll.offset, scroll.position.maxScrollExtent);
+      // 바닥에 딱 붙어 있을 필요는 없다. 방금 친 자리가 **보이면** 된다 —
+      // 맨 아래로 던지면 앞 카드가 화면 밖으로 튀어 나갔다 되돌아온다.
+      final view = tester.getRect(
+          find.descendant(of: find.byType(RoutineEditor), matching: find.byType(ListView)));
+      final input = tester.getRect(padField);
+      expect(input.bottom, lessThanOrEqualTo(view.bottom + 1), reason: '입력칸이 아래로 넘쳤다');
+      expect(input.top, greaterThanOrEqualTo(view.top - 1), reason: '입력칸이 위로 밀렸다');
     });
   });
 
