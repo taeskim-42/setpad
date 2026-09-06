@@ -1163,4 +1163,46 @@ void keypadTests() {
           findsOneWidget);
     });
   });
+
+  group('메모 끝내고', () {
+    testWidgets('키패드로 돌아오고 메모가 붙는다', (tester) async {
+      await pumpApp(tester);
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      await tapKeys(tester, '100 10');
+      await tester.tap(addSetButton);
+      await settle(tester);
+
+      await tester.tap(find.descendant(
+          of: find.byType(SetKeypad), matching: find.byIcon(CupertinoIcons.keyboard)));
+      await settle(tester);
+      expect(find.byType(SetKeypad), findsNothing, reason: '메모를 칠 땐 키패드가 없다');
+
+      await tester.enterText(padField, '어깨 불편');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+
+      expect(inPad('어깨 불편'), findsOneWidget);
+      expect(find.byType(SetKeypad), findsOneWidget, reason: '키패드로 돌아와야 한다');
+    });
+
+    testWidgets('빈 메모로 넘겨도 키패드로 돌아온다', (tester) async {
+      await pumpApp(tester);
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      await tapKeys(tester, '100 10');
+      await tester.tap(addSetButton);
+      await settle(tester);
+      await tester.tap(find.descendant(
+          of: find.byType(SetKeypad), matching: find.byIcon(CupertinoIcons.keyboard)));
+      await settle(tester);
+
+      await tester.enterText(padField, '');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      expect(find.byType(SetKeypad), findsOneWidget);
+    });
+  });
 }

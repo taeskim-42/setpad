@@ -529,35 +529,35 @@ class _RoutineEditorState extends State<RoutineEditor> {
 
   void _commit([String? pick]) {
     final value = pick ?? _input.text;
+    final editing = _editing;
     // 메모 모드에서 친 것은 마지막 세트의 메모다. 그냥 넘기면 숫자가 없는
     // 줄이라 파서가 새 운동 이름으로 읽어 버린다.
-    if (pick == null && _editing != null) {
-      final (b, st, n) = _editing!;
-      _c.editNote(b, st, n, value);
-      _input.clear();
-      setState(() {
-        _editing = null;
-        _wantText = false;
-      });
-      _focus.requestFocus();
-      return;
-    }
-    if (pick == null && _wantText && _c.lastSet != null) {
-      _c.noteLastSet(value);
-      _input.clear();
-      setState(() {
-        _highlight = 0;
-        _wantText = false;
-      });
-      _focus.requestFocus();
-      return;
-    }
-    _c.commit(value);
+    final memo = pick == null && (editing != null || (_wantText && _c.lastSet != null));
+    final wasText = _wantText;
+
+    // **모드를 먼저 되돌린다.** 컨트롤러를 먼저 건드리면 _onChanged 가 아직
+    // 메모 모드인 줄 알고 시스템 키보드를 안 내린다. 그 상태에서 키패드가
+    // 올라와 둘이 겹치고, iOS 가 뒤늦게 키보드를 내리면서 화면이 튄다.
     _input.clear();
     setState(() {
       _highlight = 0;
       _wantText = false;
+      _editing = null;
     });
+    // 빈 메모처럼 컨트롤러가 알림을 안 보내는 경우도 있으므로 여기서 직접
+    // 내린다 — 옆 효과에 기대지 않는다.
+    if (wasText) SystemChannels.textInput.invokeMethod('TextInput.hide');
+
+    if (memo) {
+      if (editing != null) {
+        final (b, st, n) = editing;
+        _c.editNote(b, st, n, value);
+      } else {
+        _c.noteLastSet(value);
+      }
+    } else {
+      _c.commit(value);
+    }
     _focus.requestFocus();
   }
 
