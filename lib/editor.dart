@@ -1050,39 +1050,36 @@ class _SetRow extends StatelessWidget {
           ),
           // 메모는 세트 아래 제 줄에 둔다. 같은 줄에 붙이면 자리가 없어
           // 잘리는데, 메모는 잘리면 쓸모가 없다 — 길게 적으라고 있는 것이다.
+          // 지우기는 밀어서 한다. × 를 줄마다 달면 카드 하나에 지우기 표시가
+          // 셋이 되고, 두 줄로 접힌 메모에서는 첫 줄에만 붙어 세로로 들쭉
+          // 날쭉해진다. 목록에서 기록을 지우는 방법과 같은 몸짓이기도 하다.
           for (final e in set.notes.asMap().entries)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(74, 1, 8, 3),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    // 눌러서 고친다. 세트를 눌러 여는 것과 같은 규칙이다.
-                    child: GestureDetector(
-                      onTap: () => onEditNote(e.key),
-                      behavior: HitTestBehavior.opaque,
-                      child: Text(
-                        e.value,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.35,
-                          letterSpacing: -0.08,
-                          color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                        ),
-                      ),
+            Dismissible(
+              key: ValueKey('${set.hashCode}-${e.key}-${e.value}'),
+              direction: DismissDirection.endToStart,
+              onDismissed: (_) => onRemoveNote(e.key),
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 12),
+                child: Icon(CupertinoIcons.delete,
+                    size: 15, color: CupertinoColors.systemRed.resolveFrom(context)),
+              ),
+              child: GestureDetector(
+                // 눌러서 고친다. 세트를 눌러 여는 것과 같은 규칙이다.
+                onTap: () => onEditNote(e.key),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(74, 1, 24, 3),
+                  child: Text(
+                    e.value,
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.35,
+                      letterSpacing: -0.08,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(context),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => onRemoveNote(e.key),
-                    behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 8, top: 1),
-                      child: Icon(CupertinoIcons.xmark,
-                          size: 12,
-                          color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
         ],

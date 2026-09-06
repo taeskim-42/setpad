@@ -1046,4 +1046,35 @@ void keypadTests() {
       expect(n.searchText, contains('어깨 불편'));
     });
   });
+
+  group('메모 지우기', () {
+    testWidgets('밀면 지워진다 — 줄마다 × 를 달지 않는다', (tester) async {
+      await pumpApp(tester);
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      await tapKeys(tester, '100 10');
+      await tester.tap(addSetButton);
+      await settle(tester);
+
+      await tester.tap(find.descendant(
+          of: find.byType(SetKeypad), matching: find.byIcon(CupertinoIcons.keyboard)));
+      await settle(tester);
+      await tester.enterText(padField, '어깨 불편');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      expect(inPad('어깨 불편'), findsOneWidget);
+
+      // 카드 하나에 × 는 세트 줄 것 하나뿐이다. 메모마다 달면 셋이 된다.
+      expect(
+          find.descendant(
+              of: find.byType(RoutineEditor),
+              matching: find.byIcon(CupertinoIcons.xmark)),
+          findsOneWidget);
+
+      await tester.drag(inPad('어깨 불편'), const Offset(-500, 0));
+      await settle(tester);
+      expect(inPad('어깨 불편'), findsNothing);
+    });
+  });
 }
