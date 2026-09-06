@@ -794,7 +794,9 @@ class _RoutineEditorState extends State<RoutineEditor> {
           fontFamily: bold ? null : 'Menlo',
           color: CupertinoColors.label.resolveFrom(context),
         ),
-        cursorColor: seal,
+        // 커서는 글자 색을 따른다. 인주색은 강조하는 자리에 쓰는 것이고,
+        // 글을 쓰는 자리에서 빨간 막대가 서 있으면 무언가 잘못된 것처럼 읽힌다.
+        cursorColor: CupertinoColors.label.resolveFrom(context),
         // 카드 안에 이미 면이 있으므로 입력 칸은 테두리를 두지 않는다.
         decoration: const BoxDecoration(),
         padding: EdgeInsets.symmetric(vertical: bold ? 10 : 6),
@@ -910,7 +912,9 @@ class _BlockView extends StatelessWidget {
             Padding(
               padding: EdgeInsets.only(
                 top: block.sets.isEmpty ? 2 : 4,
-                left: 46,
+                // 세트 값이 시작하는 자리와 같다(체크 32 + 세트 번호 42).
+                // 치는 숫자와 들어간 숫자가 한 줄로 서야 눈이 안 흔들린다.
+                left: 74,
               ),
               child: input!,
             ),
@@ -1050,34 +1054,22 @@ class _SetRow extends StatelessWidget {
           ),
           // 메모는 세트 아래 제 줄에 둔다. 같은 줄에 붙이면 자리가 없어
           // 잘리는데, 메모는 잘리면 쓸모가 없다 — 길게 적으라고 있는 것이다.
-          // 지우기는 밀어서 한다. × 를 줄마다 달면 카드 하나에 지우기 표시가
-          // 셋이 되고, 두 줄로 접힌 메모에서는 첫 줄에만 붙어 세로로 들쭉
-          // 날쭉해진다. 목록에서 기록을 지우는 방법과 같은 몸짓이기도 하다.
+          // 지우기 위한 표시를 따로 두지 않는다. 눌러서 글을 불러온 뒤 지우기로
+          // 다 지우면 그 줄이 없어진다 — 문서에서 글을 지우는 것과 같다.
+          // 밀어서 지우기도 붙여 봤지만, 글줄에 대고 미는 것이 어색했다.
           for (final e in set.notes.asMap().entries)
-            Dismissible(
-              key: ValueKey('${set.hashCode}-${e.key}-${e.value}'),
-              direction: DismissDirection.endToStart,
-              onDismissed: (_) => onRemoveNote(e.key),
-              background: Container(
-                alignment: Alignment.centerRight,
-                padding: const EdgeInsets.only(right: 12),
-                child: Icon(CupertinoIcons.delete,
-                    size: 15, color: CupertinoColors.systemRed.resolveFrom(context)),
-              ),
-              child: GestureDetector(
-                // 눌러서 고친다. 세트를 눌러 여는 것과 같은 규칙이다.
-                onTap: () => onEditNote(e.key),
-                behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(74, 1, 24, 3),
-                  child: Text(
-                    e.value,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.35,
-                      letterSpacing: -0.08,
-                      color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                    ),
+            GestureDetector(
+              onTap: () => onEditNote(e.key),
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(74, 1, 24, 3),
+                child: Text(
+                  e.value,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.35,
+                    letterSpacing: -0.08,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
                   ),
                 ),
               ),

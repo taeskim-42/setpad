@@ -1048,7 +1048,7 @@ void keypadTests() {
   });
 
   group('메모 지우기', () {
-    testWidgets('밀면 지워진다 — 줄마다 × 를 달지 않는다', (tester) async {
+    testWidgets('눌러서 불러온 뒤 다 지우면 그 줄이 없어진다', (tester) async {
       await pumpApp(tester);
       await tester.enterText(padField, '벤치프레스');
       await tester.testTextInput.receiveAction(TextInputAction.done);
@@ -1072,7 +1072,14 @@ void keypadTests() {
               matching: find.byIcon(CupertinoIcons.xmark)),
           findsOneWidget);
 
-      await tester.drag(inPad('어깨 불편'), const Offset(-500, 0));
+      // 눌러서 글을 불러온다 — 문서에서 고치는 것과 같다.
+      await tester.tap(inPad('어깨 불편'));
+      await settle(tester);
+      expect(tester.widget<CupertinoTextField>(padField).controller!.text, '어깨 불편');
+
+      // 다 지우고 넘기면 그 줄이 없어진다.
+      await tester.enterText(padField, '');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
       expect(inPad('어깨 불편'), findsNothing);
     });
