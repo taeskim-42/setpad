@@ -141,4 +141,116 @@ class LKo extends L {
 
   @override
   String get doneEditing => '완료';
+
+  @override
+  String get setInputHint => '무게  횟수';
+
+  @override
+  String get setRequired => '세트를 먼저 입력해 주세요. 예: 60 12';
+
+  @override
+  String get aiTitle => '한 줄 설정';
+
+  @override
+  String get aiReady => '사용 가능';
+
+  @override
+  String get aiChecking => '확인 중';
+
+  @override
+  String get aiSetupNeeded => '설정 필요';
+
+  @override
+  String get aiPreparing => '준비 중';
+
+  @override
+  String get aiUnavailable => '기본 입력';
+
+  @override
+  String get aiReadyBody =>
+      '운동 이름 칸에 “벤치 80kg 100개 채우기”처럼 적고 엔터를 누르세요. 무게와 목표를 자동으로 설정합니다. 문장은 기기 안에서 처리됩니다.';
+
+  @override
+  String get aiDisabledBody =>
+      '설정 앱 → Apple Intelligence 및 Siri에서 Apple Intelligence를 켜 주세요. 모델 준비가 끝난 뒤 앱으로 돌아오면 자동으로 다시 확인합니다.';
+
+  @override
+  String get aiOsBody =>
+      '한 줄 설정에는 iOS 26 이상과 Apple Intelligence 지원 기기가 필요합니다. 지원 기기라면 설정 → 일반 → 소프트웨어 업데이트를 확인해 주세요.';
+
+  @override
+  String get aiDeviceBody =>
+      '이 기기는 Apple Intelligence를 지원하지 않아 한 줄 설정을 사용할 수 없습니다.';
+
+  @override
+  String get aiPreparingBody =>
+      '기기에서 AI 모델을 준비하고 있습니다. Wi-Fi에 연결한 뒤 잠시 후 다시 확인해 주세요.';
+
+  @override
+  String get aiDownloadBody =>
+      '한 줄 설정에 필요한 AI 모델을 다운로드할 수 있습니다. Wi-Fi 연결을 권장하며, 다운로드에는 시간과 저장 공간이 필요합니다. 준비가 끝나면 문장은 기기 안에서 처리됩니다.';
+
+  @override
+  String get aiLanguageBody =>
+      '현재 기기의 AI 모델이 앱 언어를 지원하지 않습니다. 지원되는 언어로 변경한 뒤 다시 확인해 주세요.';
+
+  @override
+  String get aiPlatformBody =>
+      '이 환경에서는 기기 내 AI를 사용할 수 없습니다. 지원되는 iPhone 또는 Android 기기의 앱에서 사용할 수 있습니다.';
+
+  @override
+  String get aiUnavailableBody =>
+      '현재 기기에서 AI를 사용할 수 없습니다. 기기·OS·시스템 AI 서비스의 지원 및 준비 상태에 따라 달라집니다. 새 기기를 설정한 직후라면 네트워크에 연결한 뒤 다시 확인해 주세요.';
+
+  @override
+  String get aiManualBody =>
+      '기본 운동 기록은 그대로 사용할 수 있습니다. 운동 이름을 선택한 뒤 세트마다 “80 20” 또는 횟수만 입력하세요.';
+
+  @override
+  String get aiPrepare => '모델 준비';
+
+  @override
+  String get aiRetry => '다시 확인';
+
+  @override
+  String get aiWorking => '운동 설정 중…';
+
+  @override
+  String get aiFailure => '문장을 해석하지 못했습니다. 내용을 고쳐 다시 입력하거나 운동 이름으로 사용할 수 있습니다.';
+
+  @override
+  String get aiUseName => '운동 이름으로 사용';
+
+  @override
+  String goalProgress(int done, int goal) {
+    return '$done/$goal회';
+  }
+
+  @override
+  String repsPerSetLabel(int n) {
+    return '세트당 $n회';
+  }
+
+  @override
+  String setProgress(int done, int goal) {
+    return '$done/$goal세트';
+  }
+
+  @override
+  String get repsInputHint => '횟수';
+
+  @override
+  String get setupTitle => '운동 설정';
+
+  @override
+  String get setupWeight => '기본 무게';
+
+  @override
+  String get setupTotalReps => '총 목표 횟수';
+
+  @override
+  String get setupSetReps => '세트당 횟수';
+
+  @override
+  String get setupTotalSets => '목표 세트 수';
 }

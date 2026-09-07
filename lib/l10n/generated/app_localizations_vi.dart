@@ -141,4 +141,117 @@ class LVi extends L {
 
   @override
   String get doneEditing => 'Xong';
+
+  @override
+  String get setInputHint => 'Tạ  Số lần';
+
+  @override
+  String get setRequired => 'Nhập hiệp trước, ví dụ: 60 12.';
+
+  @override
+  String get aiTitle => 'Thiết lập bằng một câu';
+
+  @override
+  String get aiReady => 'Sẵn sàng';
+
+  @override
+  String get aiChecking => 'Đang kiểm tra';
+
+  @override
+  String get aiSetupNeeded => 'Cần thiết lập';
+
+  @override
+  String get aiPreparing => 'Đang chuẩn bị';
+
+  @override
+  String get aiUnavailable => 'Nhập thủ công';
+
+  @override
+  String get aiReadyBody =>
+      'Nhập “đẩy ngực 80kg, đạt tổng 100 lần” rồi nhấn Enter. Tạ và mục tiêu được thiết lập tự động. Văn bản được xử lý trên thiết bị.';
+
+  @override
+  String get aiDisabledBody =>
+      'Mở Cài đặt → Apple Intelligence & Siri và bật Apple Intelligence. Quay lại khi mô hình sẵn sàng; ứng dụng sẽ tự kiểm tra lại.';
+
+  @override
+  String get aiOsBody =>
+      'Cần iOS 26 trở lên và thiết bị hỗ trợ Apple Intelligence. Kiểm tra Cài đặt → Cài đặt chung → Cập nhật phần mềm.';
+
+  @override
+  String get aiDeviceBody =>
+      'Thiết bị này không hỗ trợ Apple Intelligence nên không thể thiết lập bằng một câu.';
+
+  @override
+  String get aiPreparingBody =>
+      'Thiết bị đang chuẩn bị mô hình AI. Kết nối Wi-Fi và kiểm tra lại sau.';
+
+  @override
+  String get aiDownloadBody =>
+      'Có thể tải mô hình AI. Nên dùng Wi-Fi; quá trình tải cần thời gian và dung lượng. Khi sẵn sàng, văn bản được xử lý trên thiết bị.';
+
+  @override
+  String get aiLanguageBody =>
+      'Mô hình AI chưa hỗ trợ ngôn ngữ ứng dụng. Chuyển sang ngôn ngữ được hỗ trợ và kiểm tra lại.';
+
+  @override
+  String get aiPlatformBody =>
+      'AI trên thiết bị không khả dụng trong môi trường này. Hãy dùng ứng dụng trên iPhone hoặc Android được hỗ trợ.';
+
+  @override
+  String get aiUnavailableBody =>
+      'AI hiện chưa khả dụng. Điều này phụ thuộc thiết bị, hệ điều hành và dịch vụ AI hệ thống. Nếu vừa thiết lập thiết bị, hãy kết nối mạng và kiểm tra lại sau.';
+
+  @override
+  String get aiManualBody =>
+      'Bạn vẫn có thể ghi bài tập bình thường. Chọn bài tập rồi nhập “80 20” hoặc chỉ số lần cho mỗi hiệp.';
+
+  @override
+  String get aiPrepare => 'Chuẩn bị mô hình';
+
+  @override
+  String get aiRetry => 'Kiểm tra lại';
+
+  @override
+  String get aiWorking => 'Đang thiết lập bài tập…';
+
+  @override
+  String get aiFailure =>
+      'Không hiểu được nội dung. Hãy sửa rồi thử lại, hoặc dùng làm tên bài tập.';
+
+  @override
+  String get aiUseName => 'Dùng làm tên bài tập';
+
+  @override
+  String goalProgress(int done, int goal) {
+    return '$done/$goal lần';
+  }
+
+  @override
+  String repsPerSetLabel(int n) {
+    return '$n lần mỗi hiệp';
+  }
+
+  @override
+  String setProgress(int done, int goal) {
+    return '$done/$goal hiệp';
+  }
+
+  @override
+  String get repsInputHint => 'Số lần';
+
+  @override
+  String get setupTitle => 'Thiết lập bài tập';
+
+  @override
+  String get setupWeight => 'Mức tạ mặc định';
+
+  @override
+  String get setupTotalReps => 'Mục tiêu tổng số lần';
+
+  @override
+  String get setupSetReps => 'Số lần mỗi hiệp';
+
+  @override
+  String get setupTotalSets => 'Mục tiêu số hiệp';
 }

@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'keypad.dart';
+import 'local_ai.dart';
+import 'local_ai_help.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'exercises.dart';
 import 'palette.dart';
@@ -36,9 +38,13 @@ class LoggedSet {
 }
 
 class ExerciseBlock {
-  ExerciseBlock(this.name, [List<LoggedSet>? sets]) : sets = sets ?? [];
-  final String name;
+  ExerciseBlock(this.name, [List<LoggedSet>? sets, this.setup])
+    : sets = sets ?? [];
+  String name;
   final List<LoggedSet> sets;
+  WorkoutSetup? setup;
+  int get completedReps =>
+      sets.where((s) => s.done).fold(0, (n, s) => n + (s.reps ?? 0));
 }
 
 /// 에디터의 상태. 화면과 떼어 둔 이유는 상위 화면(복사 버튼 등)이 같은 상태를
@@ -76,7 +82,9 @@ class RoutineEditorController extends ChangeNotifier {
   void openBlock(int index) {
     if (index < 0 || index >= blocks.length || index == _active) return;
     // 열려 있던 운동이 빈 채로 남으면 치우고 나간다 — closeBlock 과 같은 규칙.
-    if (inBlock && blocks[_active].sets.isEmpty) {
+    if (inBlock &&
+        blocks[_active].sets.isEmpty &&
+        blocks[_active].setup == null) {
       blocks.removeAt(_active);
       if (index > _active) index -= 1;
     }
@@ -84,10 +92,10 @@ class RoutineEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addExercise(String name) {
+  void addExercise(String name, {WorkoutSetup? setup}) {
     final clean = name.trim();
     if (clean.isEmpty) return;
-    blocks.add(ExerciseBlock(clean));
+    blocks.add(ExerciseBlock(clean, null, setup));
     _learned.remove(clean);
     _learned.insert(0, clean);
     _active = blocks.length - 1;
@@ -97,15 +105,19 @@ class RoutineEditorController extends ChangeNotifier {
   bool addSet(String line) {
     final parsed = parseSetLine(line);
     if (parsed == null || !inBlock) return false;
-    final set = LoggedSet(
-      value: parsed.value,
+    LoggedSet makeSet() => LoggedSet(
+      value: parsed.value ?? blocks[_active].setup?.weight,
       // 단위를 안 쳤으면 이 운동에서 쓰던 것을 잇는다. 한 운동 안에서
       // 세트마다 단위가 바뀌는 일은 없다.
-      unit: parsed.unit ?? blocks[_active].sets.lastOrNull?.unit ?? defaultUnit,
+      unit:
+          parsed.unit ??
+          blocks[_active].setup?.unit ??
+          blocks[_active].sets.lastOrNull?.unit ??
+          defaultUnit,
       reps: parsed.reps,
       notes: parsed.note == null ? null : [parsed.note!],
     );
-    blocks[_active].sets.addAll(List.generate(parsed.count, (_) => set));
+    blocks[_active].sets.addAll(List.generate(parsed.count, (_) => makeSet()));
     notifyListeners();
     return true;
   }
@@ -119,7 +131,14 @@ class RoutineEditorController extends ChangeNotifier {
   void repeatLastSet() {
     final s = lastSet;
     if (s == null) return;
-    blocks[_active].sets.add(s);
+    blocks[_active].sets.add(
+      LoggedSet(
+        value: s.value,
+        unit: s.unit,
+        reps: s.reps,
+        notes: [...s.notes],
+      ),
+    );
     notifyListeners();
   }
 
@@ -128,7 +147,9 @@ class RoutineEditorController extends ChangeNotifier {
   void closeBlock() {
     if (!inBlock) return;
     // 세트를 하나도 안 적은 운동은 남길 이유가 없다.
-    if (blocks[_active].sets.isEmpty) blocks.removeAt(_active);
+    if (blocks[_active].sets.isEmpty && blocks[_active].setup == null) {
+      blocks.removeAt(_active);
+    }
     _active = -1;
     notifyListeners();
   }
@@ -147,6 +168,13 @@ class RoutineEditorController extends ChangeNotifier {
       _active = -1;
       addExercise(text);
     }
+  }
+
+  void updateSetup(int index, WorkoutSetup setup) {
+    if (index < 0 || index >= blocks.length) return;
+    blocks[index].name = setup.name;
+    blocks[index].setup = setup;
+    notifyListeners();
   }
 
   /// 마지막 세트에 메모를 **더한다**.
@@ -199,7 +227,7 @@ class RoutineEditorController extends ChangeNotifier {
     b.sets.removeAt(set);
     // 세트가 안 남은 운동은 치운다. 단 지금 치고 있는 운동은 남긴다 — 커서가
     // 그 안에 있는데 카드가 사라지면 어디에 치는지 알 수 없다.
-    if (b.sets.isEmpty && block != _active) {
+    if (b.sets.isEmpty && block != _active && b.setup == null) {
       blocks.removeAt(block);
       if (_active > block) _active -= 1;
     }
@@ -331,22 +359,41 @@ Future<bool> confirmRemoveExercise(
 /// 하나의 편집 흐름. 결과를 보는 곳과 치는 곳이 나뉘어 있지 않고,
 /// 커서가 늘 "지금 쓰는 자리"에 있다.
 class RoutineEditor extends StatefulWidget {
-  const RoutineEditor({super.key, required this.controller, this.header});
+  const RoutineEditor({
+    super.key,
+    required this.controller,
+    this.header,
+    this.localAi = const LocalAi(),
+  });
   final RoutineEditorController controller;
   final Widget? header;
+  final LocalAi localAi;
 
   @override
   State<RoutineEditor> createState() => _RoutineEditorState();
 }
 
-class _RoutineEditorState extends State<RoutineEditor> {
+class _RoutineEditorState extends State<RoutineEditor>
+    with WidgetsBindingObserver {
   final _input = TextEditingController();
   final _focus = FocusNode();
   final _scroll = ScrollController();
 
   /// 입력 줄이 트리의 다른 자리로 옮겨가도 같은 위젯으로 유지되게 한다.
   final _inputKey = GlobalKey();
+  bool _invalidSet = false;
+  TextEditingValue? _setDraft;
   int _highlight = 0;
+  LocalAiStatus _aiStatus = LocalAiStatus.checking;
+  bool _aiBusy = false;
+  bool _aiFailed = false;
+  int _aiRequest = 0;
+  int _statusRequest = 0;
+  String? _locale;
+  String? _submittedText;
+  String? _pendingSubmission;
+  WorkoutSetup? get _setup =>
+      _c.inBlock ? _c.blocks[_c.activeIndex].setup : null;
 
   /// 메모를 칠 때만 잠깐 시스템 키보드로 넘어간다. 세트를 하나 넣으면
   /// 다시 키패드로 돌아온다 — 메모는 세트마다 붙는 게 아니라 가끔 붙는다.
@@ -364,13 +411,21 @@ class _RoutineEditorState extends State<RoutineEditor> {
 
   /// 메모 한 줄을 입력칸으로 불러온다. 커밋하면 그 자리를 덮어쓴다.
   void _startEditNote(int block, int set, int note) {
-    _input.text = _c.blocks[block].sets[set].notes[note];
+    final text = _c.blocks[block].sets[set].notes[note];
+    if (!_wantText && _c.activeIndex == block) _setDraft = _input.value;
+    _c.openBlock(block);
+    _input.text = text;
     _input.selection = TextSelection.collapsed(offset: _input.text.length);
     setState(() {
-      _editing = (block, set, note);
+      _editing = (_c.activeIndex, set, note);
       _wantText = true;
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) => _reopen());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _reopen();
+      final ctx = _inputKey.currentContext;
+      if (ctx != null) Scrollable.ensureVisible(ctx);
+    });
   }
 
   /// 지금 치는 자리의 단위. 아직 안 쳤으면 이 운동에서 쓰던 것을 잇는다.
@@ -380,7 +435,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
     final sets = _c.inBlock
         ? _c.blocks[_c.activeIndex].sets
         : const <LoggedSet>[];
-    return sets.isEmpty ? defaultUnit : sets.last.unit;
+    return _setup?.unit ?? (sets.isEmpty ? defaultUnit : sets.last.unit);
   }
 
   /// 지금 미는 폭. 횟수를 치는 중이면 1이다 — 횟수를 2.5씩 미는 일은 없다.
@@ -391,11 +446,12 @@ class _RoutineEditorState extends State<RoutineEditor> {
 
   /// 무게(또는 거리·시간)를 지나 횟수를 치고 있는가.
   bool get _typingReps =>
+      (_setup?.countsReps ?? false) ||
       RegExp(
         '($unitPattern)\\s*[\\d.]*\$',
         caseSensitive: false,
       ).hasMatch(_input.text) ||
-      _input.text.trimRight().contains(' ');
+      _input.text.trimLeft().contains(' ');
 
   /// 길게 눌러 미는 폭을 고른다. 원판이 나라마다 다르고 사람마다 올리는
   /// 폭이 다르다 — 2.5 를 박아두면 파운드로 하는 사람은 매번 손으로 친다.
@@ -436,30 +492,142 @@ class _RoutineEditorState extends State<RoutineEditor> {
   void initState() {
     super.initState();
     _c.addListener(_onChanged);
-    // 시스템 키보드를 스와이프로 내리면 포커스가 풀린다. 그대로 두면 키패드도
-    // 사라진 채 남아서, 세트를 하나 커밋하기 전에는 되돌릴 방법이 없었다.
-    _focus.addListener(() {
-      if (!_focus.hasFocus && _wantText) setState(() => _wantText = false);
-    });
+    // Keep memo mode until it is explicitly saved, even if the IME loses focus.
     _input.addListener(_onInput);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    if (locale != _locale) {
+      _locale = locale;
+      _refreshAi();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshAi();
+    } else if (state == AppLifecycleState.paused && _aiBusy) {
+      _aiRequest++;
+      widget.localAi.cancel();
+      setState(() => _aiBusy = false);
+    }
+  }
+
+  Future<void> _refreshAi() async {
+    final request = ++_statusRequest;
+    setState(() => _aiStatus = LocalAiStatus.checking);
+    final status = await widget.localAi.status(_locale ?? 'en');
+    if (mounted && request == _statusRequest) {
+      setState(() => _aiStatus = status);
+      final pending = _pendingSubmission;
+      _pendingSubmission = null;
+      if (pending != null && pending == _input.text && _c.naming) _commit();
+    }
+  }
+
+  Future<void> _prepareAi() async {
+    setState(() => _aiStatus = LocalAiStatus.downloading);
+    try {
+      await widget.localAi.prepare();
+    } catch (_) {
+      if (mounted) setState(() => _aiStatus = LocalAiStatus.unavailable);
+      return;
+    }
+    if (mounted) await _refreshAi();
+  }
+
+  Future<void> _interpret(String text) async {
+    if (_aiBusy) return;
+    final request = ++_aiRequest;
+    _submittedText = text;
+    setState(() {
+      _aiBusy = true;
+      _aiFailed = false;
+    });
+    try {
+      final setup = await widget.localAi.interpret(
+        text,
+        _locale ?? 'en',
+        _c.vocabulary(_lang),
+      );
+      if (!mounted ||
+          request != _aiRequest ||
+          !_c.naming ||
+          _input.text != text) {
+        return;
+      }
+      setState(() => _aiBusy = false);
+      _input.clear();
+      _c.addExercise(setup.name, setup: setup);
+      _focus.requestFocus();
+    } catch (_) {
+      if (mounted && request == _aiRequest) {
+        setState(() {
+          _aiBusy = false;
+          _aiFailed = true;
+        });
+        _refreshAi();
+        _focus.requestFocus();
+      }
+    } finally {
+      if (mounted && request == _aiRequest) setState(() => _aiBusy = false);
+    }
+  }
+
+  Future<void> _editSetup(int index) async {
+    final block = _c.blocks[index];
+    _focus.unfocus();
+    final setup = await editWorkoutSetup(context, block.setup!);
+    if (!mounted) return;
+    if (setup != null) _c.updateSetup(_c.blocks.indexOf(block), setup);
+    _reopen();
   }
 
   /// 닫힌 카드를 눌렀을 때. 커서를 그 카드로 옮기고 입력칸을 비운다 —
   /// 치던 글자가 다른 운동으로 딸려 가면 안 된다.
   void _openBlock(int index) {
+    if (_wantText) {
+      _commit();
+      if (_wantText) return;
+    }
     _input.clear();
-    setState(() => _wantText = false);
+    setState(() {
+      _wantText = false;
+      _editing = null;
+      _invalidSet = false;
+      _setDraft = null;
+    });
     _c.openBlock(index);
     _reopen();
   }
 
   void _onInput() {
+    if (_pendingSubmission != _input.text) _pendingSubmission = null;
+    if (_aiBusy && _input.text != _submittedText) {
+      _aiRequest++;
+      widget.localAi.cancel();
+      _aiBusy = false;
+    }
     final has = _input.text.trim().isNotEmpty;
-    if (has != _hasInput && mounted) setState(() => _hasInput = has);
+    if (mounted) {
+      setState(() {
+        _hasInput = has;
+        _invalidSet = false;
+        _aiFailed = false;
+      });
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _aiRequest++;
+    widget.localAi.cancel();
     _c.removeListener(_onChanged);
     _input.removeListener(_onInput);
     _input.dispose();
@@ -543,12 +711,35 @@ class _RoutineEditorState extends State<RoutineEditor> {
 
   void _commit([String? pick]) {
     final value = pick ?? _input.text;
+    if (pick == null &&
+        _c.naming &&
+        value.trim().isNotEmpty &&
+        _aiStatus == LocalAiStatus.checking) {
+      _pendingSubmission = value;
+      return;
+    }
+    if (pick == null &&
+        _c.naming &&
+        value.trim().isNotEmpty &&
+        _aiStatus == LocalAiStatus.available) {
+      _interpret(value);
+      return;
+    }
     final editing = _editing;
     // 메모 모드에서 친 것은 마지막 세트의 메모다. 그냥 넘기면 숫자가 없는
     // 줄이라 파서가 새 운동 이름으로 읽어 버린다.
     final memo =
         pick == null && (editing != null || (_wantText && _c.lastSet != null));
     final wasText = _wantText;
+    // Text entered inside an exercise must never become another exercise name.
+    if (pick == null &&
+        _c.inBlock &&
+        !memo &&
+        value.trim().isNotEmpty &&
+        parseSetLine(value) == null) {
+      setState(() => _invalidSet = true);
+      return;
+    }
 
     // **모드를 먼저 되돌린다.** 컨트롤러를 먼저 건드리면 _onChanged 가 아직
     // 메모 모드인 줄 알고 시스템 키보드를 안 내린다. 그 상태에서 키패드가
@@ -558,6 +749,7 @@ class _RoutineEditorState extends State<RoutineEditor> {
       _highlight = 0;
       _wantText = false;
       _editing = null;
+      _invalidSet = false;
     });
     // 빈 메모처럼 컨트롤러가 알림을 안 보내는 경우도 있으므로 여기서 직접
     // 내린다 — 옆 효과에 기대지 않는다.
@@ -570,10 +762,23 @@ class _RoutineEditorState extends State<RoutineEditor> {
       } else {
         _c.noteLastSet(value);
       }
-    } else {
+      if (_setDraft != null) _input.value = _setDraft!;
+      _setDraft = null;
+    } else if (!wasText || value.trim().isNotEmpty) {
       _c.commit(value);
     }
     _focus.requestFocus();
+  }
+
+  void _nextSet() {
+    final text = _input.text.trimRight();
+    if (!(_setup?.countsReps ?? false) &&
+        text.isNotEmpty &&
+        !text.contains(' ')) {
+      _insert(' ');
+      return;
+    }
+    _commit();
   }
 
   /// 키패드가 커서 자리에 글자를 넣는다.
@@ -664,11 +869,14 @@ class _RoutineEditorState extends State<RoutineEditor> {
                   return _BlockView(
                     block: blocks[i],
                     input: i == openIndex ? _buildInput() : null,
+                    inputSet: _editing?.$2 ?? blocks[i].sets.length - 1,
+                    isMemo: _wantText,
                     onToggle: (set) => _c.toggleDone(i, set),
                     onRemoveSet: (set) => _c.removeSet(i, set),
                     onRemoveBlock: () => _c.removeBlock(i),
                     onEditNote: (set, note) => _startEditNote(i, set, note),
                     onRemoveNote: (set, note) => _c.removeNote(i, set, note),
+                    onEditSetup: () => _editSetup(i),
                     // 열려 있는 카드는 이미 거기다 — 누를 것이 없다.
                     onOpen: i == openIndex ? null : () => _openBlock(i),
                   );
@@ -677,6 +885,41 @@ class _RoutineEditorState extends State<RoutineEditor> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildInput(bold: true),
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size.fromHeight(36),
+                      onPressed: () => showLocalAiHelp(
+                        context,
+                        _aiStatus,
+                        onRetry: _refreshAi,
+                        onPrepare: _prepareAi,
+                      ),
+                      child: Text(
+                        _aiBusy
+                            ? L.of(context).aiWorking
+                            : '${L.of(context).aiTitle} · ${aiStatusLabel(L.of(context), _aiStatus)}',
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    if (_aiFailed) ...[
+                      Text(
+                        L.of(context).aiFailure,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: CupertinoColors.secondaryLabel.resolveFrom(
+                            context,
+                          ),
+                        ),
+                      ),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => _commit(_input.text),
+                        child: Text(
+                          L.of(context).aiUseName,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
                     if (blocks.isEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
@@ -717,23 +960,23 @@ class _RoutineEditorState extends State<RoutineEditor> {
               ),
               child: _padMode
                   ? SetKeypad(
-                      hasInput: _hasInput,
                       onKey: _insert,
                       onBackspace: _keypadBackspace,
-                      onSubmit: () {
-                        // 참조 앱의 Next 와 같다 — 아직 한 칸도 안 띄웠으면 다음 자리로
-                        // 옮기고, 이미 옮겨 왔으면 그 줄을 세트로 넣는다.
-                        final t = _input.text.trimRight();
-                        if (t.isNotEmpty && !t.contains(' ')) {
-                          _insert(' ');
-                          return;
-                        }
-                        _commit();
-                      },
+                      onAddSet: parseSetLine(_input.text) == null
+                          ? null
+                          : () => _commit(),
+                      onSubmit: _nextSet,
+                      submitLabel: _hasInput
+                          ? L.of(context).next
+                          : L.of(context).finishExercise,
                       onText: () {
                         // 글자판으로 넘어가는 것은 곧 메모를 적겠다는 뜻이다. 이 화면에
                         // 글자가 필요한 자리는 거기뿐이다 — 운동 이름은 카드 밖에서
                         // 치고 그때는 애초에 키패드가 안 뜬다.
+                        if (_c.lastSet != null) {
+                          _setDraft = _input.value;
+                          _input.clear();
+                        }
                         setState(() => _wantText = true);
                         // 읽기 전용이 풀린 뒤라야 키보드가 글자판으로 열린다.
                         WidgetsBinding.instance.addPostFrameCallback(
@@ -756,11 +999,6 @@ class _RoutineEditorState extends State<RoutineEditor> {
                       stepLabel: _typingReps
                           ? formatNumber(_stepSize)
                           : formatValue(_stepSize, _unit),
-                      // 칠 것이 있으면 늘 '다음'이다. 세트를 넣는 일은 화면 버튼이
-                      // 맡으므로, 같은 이름의 버튼이 둘이 되지 않게 한다.
-                      submitLabel: _hasInput
-                          ? L.of(context).next
-                          : L.of(context).finishExercise,
                       onStepPick: _pickStep,
                       repeatLabel: _c.lastSet == null
                           ? null
@@ -781,34 +1019,34 @@ class _RoutineEditorState extends State<RoutineEditor> {
                         child: SizedBox(
                           height: 44,
                           width: double.infinity,
-                          child: CupertinoButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: () {
-                              setState(() => _wantText = false);
-                              SystemChannels.textInput.invokeMethod(
-                                'TextInput.hide',
-                              );
-                              _focus.requestFocus();
-                            },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  CupertinoIcons.keyboard,
-                                  size: 19,
-                                  color: seal.resolveFrom(context),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  L.of(context).numberKeypad,
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    letterSpacing: -0.41,
-                                    color: seal.resolveFrom(context),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => _commit(),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        CupertinoIcons.keyboard,
+                                        size: 19,
+                                        color: seal.resolveFrom(context),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        L.of(context).numberKeypad,
+                                        style: TextStyle(
+                                          fontSize: 17,
+                                          letterSpacing: -0.41,
+                                          color: seal.resolveFrom(context),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -833,7 +1071,6 @@ class _RoutineEditorState extends State<RoutineEditor> {
     return Focus(
       key: _inputKey,
       onKeyEvent: _onKey,
-      // Reveal the field and its submit action as one editing position.
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -842,61 +1079,50 @@ class _RoutineEditorState extends State<RoutineEditor> {
             controller: _input,
             focusNode: _focus,
             autofocus: true,
-            // 터치 기기에서 세트를 받는 중이면 읽기 전용 — 시스템 키보드를 아예
-            // 부르지 않는다. 글자는 아래 키패드가 넣는다. 데스크톱·웹에서는 물리
-            // 키보드로 그냥 치는 편이 빨라서 걸지 않는다.
             readOnly: readOnly,
-            showCursor: true,
-            keyboardType: readOnly ? TextInputType.none : TextInputType.text,
+            showCursor: !_padMode,
+            keyboardType: readOnly
+                ? TextInputType.none
+                : _wantText
+                ? TextInputType.multiline
+                : TextInputType.text,
             textInputAction: TextInputAction.done,
+            minLines: _wantText ? 2 : 1,
+            maxLines: _wantText ? null : 1,
             onTap: _reopen,
             onSubmitted: (_) =>
                 _commit(_matches.isNotEmpty ? _matches[_highlight] : null),
             onChanged: (_) => setState(() => _highlight = 0),
-            // System text with tabular figures keeps the document easy to scan.
             style: TextStyle(
               fontSize: 17,
+              height: _wantText ? 1.5 : null,
               letterSpacing: bold ? -0.41 : 0,
               fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
               fontFeatures: const [FontFeature.tabularFigures()],
               color: CupertinoColors.label.resolveFrom(context),
             ),
-            // The insertion cursor follows the document ink.
             cursorColor: CupertinoColors.label.resolveFrom(context),
-            // Inline editing needs no extra field border.
             decoration: const BoxDecoration(),
             padding: EdgeInsets.symmetric(vertical: bold ? 10 : 6),
-            placeholder: bold ? L.of(context).exerciseNameHint : '100  20',
+            placeholder: bold
+                ? L.of(context).exerciseNameHint
+                : _wantText && _c.lastSet != null
+                ? L.of(context).noteHint
+                : (_setup?.countsReps ?? false)
+                ? L.of(context).repsInputHint
+                : L.of(context).setInputHint,
             placeholderStyle: TextStyle(
               fontSize: 17,
-              letterSpacing: bold ? -0.41 : 0,
               fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
-              fontFeatures: const [FontFeature.tabularFigures()],
               color: CupertinoColors.placeholderText.resolveFrom(context),
             ),
           ),
-          if (!bold)
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              minimumSize: const Size.fromHeight(44),
-              onPressed: () => _commit(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    CupertinoIcons.add,
-                    size: 17,
-                    color: seal.resolveFrom(context),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    L.of(context).addSet,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: seal.resolveFrom(context),
-                    ),
-                  ),
-                ],
+          if (_invalidSet)
+            Text(
+              L.of(context).setRequired,
+              style: TextStyle(
+                fontSize: 13,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
               ),
             ),
         ],
@@ -909,18 +1135,23 @@ class _BlockView extends StatelessWidget {
   const _BlockView({
     required this.block,
     this.input,
+    required this.inputSet,
+    required this.isMemo,
     required this.onToggle,
     required this.onRemoveSet,
     required this.onRemoveBlock,
     required this.onOpen,
     required this.onEditNote,
     required this.onRemoveNote,
+    required this.onEditSetup,
   });
 
   final ExerciseBlock block;
 
   /// 이 운동이 아직 세트를 받는 중이면 입력 줄이 카드 안에 들어온다.
   final Widget? input;
+  final int inputSet;
+  final bool isMemo;
   final ValueChanged<int> onToggle;
   final ValueChanged<int> onRemoveSet;
   final VoidCallback onRemoveBlock;
@@ -928,6 +1159,7 @@ class _BlockView extends StatelessWidget {
   /// (세트 번호, 메모 번호).
   final void Function(int, int) onEditNote;
   final void Function(int, int) onRemoveNote;
+  final VoidCallback onEditSetup;
 
   /// 닫힌 카드를 눌러 그 운동을 다시 연다. 열려 있으면 null 이다.
   final VoidCallback? onOpen;
@@ -979,8 +1211,26 @@ class _BlockView extends StatelessWidget {
               ),
             ],
           ),
-          ...block.sets.asMap().entries.map(
-            (e) => _SetRow(
+          if (block.setup != null)
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size.fromHeight(32),
+              onPressed: onEditSetup,
+              child: Text(
+                setupSummary(
+                  block.setup!,
+                  L.of(context),
+                  block.completedReps,
+                  block.sets.where((s) => s.done).length,
+                ),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
+              ),
+            ),
+          for (final e in block.sets.asMap().entries) ...[
+            _SetRow(
               index: e.key,
               set: e.value,
               onToggle: () => onToggle(e.key),
@@ -988,13 +1238,17 @@ class _BlockView extends StatelessWidget {
               onEditNote: (i) => onEditNote(e.key, i),
               onRemoveNote: (i) => onRemoveNote(e.key, i),
             ),
-          ),
-          if (input != null) ...[
+            if (input != null && isMemo && e.key == inputSet)
+              Padding(
+                padding: const EdgeInsets.only(left: 36, right: 8),
+                child: input,
+              ),
+          ],
+          if (input != null && (!isMemo || block.sets.isEmpty)) ...[
             Padding(
               padding: EdgeInsets.only(
                 top: block.sets.isEmpty ? 2 : 4,
-                // Align the input with the values in the checklist above it.
-                left: 86,
+                left: isMemo ? 0 : 86,
               ),
               child: input!,
             ),
@@ -1109,7 +1363,7 @@ class _SetRow extends StatelessWidget {
               onTap: () => onEditNote(e.key),
               behavior: HitTestBehavior.opaque,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(86, 1, 24, 6),
+                padding: const EdgeInsets.fromLTRB(36, 1, 8, 6),
                 child: Text(
                   e.value,
                   style: TextStyle(

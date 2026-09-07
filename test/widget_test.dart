@@ -31,9 +31,9 @@ final padField =
 Finder inPad(String text) =>
     find.descendant(of: find.byType(RoutineEditor), matching: find.text(text));
 
-/// 카드 안의 '세트 추가' 버튼. 키패드의 큰 키는 '다음'을 맡는다.
+/// The fixed keypad action stays reachable while the document scrolls.
 final addSetButton =
-    find.descendant(of: find.byType(CupertinoButton), matching: find.text('세트 추가'));
+    find.descendant(of: find.byType(SetKeypad), matching: find.text('세트 추가'));
 
 /// 취소/삭제 같은 iOS 경고창 버튼.
 Finder dialogAction(String label) =>
@@ -298,7 +298,7 @@ void keypadTests() {
         await tester.tap(key(k));
         await tester.pump();
       }
-      // 키패드의 큰 키는 '다음'이고, 세트를 넣는 것은 화면 버튼이다.
+      // Add the completed entry with the keypad action.
       await tester.tap(addSetButton);
       await settle(tester);
 
@@ -343,14 +343,14 @@ void keypadTests() {
 
       // 세트 칸은 읽기 전용이라 키패드로만 친다 — 실제 사용 경로도 그쪽이다.
       Finder key(String label) => find.descendant(
-            of: find.byType(SetKeypad), matching: find.text(label));
+            of: find.byType(SetKeypad), matching: find.byWidgetPredicate((w) => w is Text && w.data == label && (w.style?.fontSize ?? 0) >= 14));
       for (final k in ['1', '0', '0', 'Next', '1', '0']) {
         await tester.tap(key(k));
         await tester.pump();
       }
-      // 키패드 큰 키는 'Next'. 세트를 넣는 것은 화면 버튼이다.
+      // Both actions remain in the keypad in every locale.
       await tester.tap(find.descendant(
-          of: find.byType(CupertinoButton), matching: find.text('Add Set')));
+          of: find.byType(SetKeypad), matching: find.text('Add Set')));
       await settle(tester);
       expect(find.text('Set 1'), findsOneWidget);
       expect(find.text('100kg · 10 reps'), findsOneWidget);
@@ -502,13 +502,13 @@ void keypadTests() {
   });
 
   group('키패드 큰 키', () {
-    testWidgets('칠 것이 있으면 "다음", 비어 있으면 "운동 완료"', (tester) async {
+    testWidgets('입력하면 하단 키가 운동 완료에서 다음으로 바뀐다', (tester) async {
       await pumpApp(tester);
       await tester.enterText(padField, '벤치프레스');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
 
-      // 세트를 받는 중이고 아직 아무것도 안 쳤다 — 더할 세트가 없다.
+      // Only an empty draft exposes the finish action.
       expect(find.text('운동 완료'), findsOneWidget);
       expect(find.text('다음'), findsNothing);
 
@@ -516,7 +516,7 @@ void keypadTests() {
       await tapKeys(tester, '100 20');
       expect(find.text('다음'), findsOneWidget);
       expect(find.text('운동 완료'), findsNothing);
-      // 세트를 넣는 것은 화면 버튼이다.
+      // The explicit add action stays directly above the contextual action.
       expect(addSetButton, findsOneWidget);
     });
 
@@ -1097,11 +1097,10 @@ void keypadTests() {
       await tester.enterText(padField, '벤치프레스');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
-      // 화면을 넘칠 만큼 채운다. 넣는 것은 키패드의 '다음' 으로 한다 —
-      // 화면 버튼은 목록이 길어지면 키패드에 가린다.
+      // Fill the document using the fixed keypad action.
       for (var i = 0; i < 12; i++) {
         await tapKeys(tester, '100 10');
-        await tester.tap(padKey('다음'));
+        await tester.tap(addSetButton);
         await settle(tester);
       }
 
@@ -1131,8 +1130,8 @@ void keypadTests() {
       await settle(tester);
       for (var i = 0; i < 12; i++) {
         await tapKeys(tester, '100 10');
-        // The inline button can be below the viewport in a long card.
-        await tester.tap(padKey('다음'));
+        // The keypad action remains reachable in a long document.
+        await tester.tap(addSetButton);
         await settle(tester);
       }
       expect(tester.widget<RoutineEditor>(find.byType(RoutineEditor))
@@ -1143,8 +1142,8 @@ void keypadTests() {
       final view = tester.getRect(
           find.descendant(of: find.byType(RoutineEditor), matching: find.byType(ListView)));
       final input = tester.getRect(padField);
-      expect(input.bottom, lessThanOrEqualTo(view.bottom + 1), reason: '입력칸이 아래로 넘쳤다');
-      expect(input.top, greaterThanOrEqualTo(view.top - 1), reason: '입력칸이 위로 밀렸다');
+      expect(input.bottom, lessThanOrEqualTo(view.bottom + 1));
+      expect(input.top, greaterThanOrEqualTo(view.top - 1));
     });
   });
 

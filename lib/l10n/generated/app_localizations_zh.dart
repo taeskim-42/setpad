@@ -141,6 +141,112 @@ class LZh extends L {
 
   @override
   String get doneEditing => '完成';
+
+  @override
+  String get setInputHint => '重量  次数';
+
+  @override
+  String get setRequired => '请先输入一组，例如：60 12';
+
+  @override
+  String get aiTitle => '一句话设置';
+
+  @override
+  String get aiReady => '可用';
+
+  @override
+  String get aiChecking => '正在检查';
+
+  @override
+  String get aiSetupNeeded => '需要设置';
+
+  @override
+  String get aiPreparing => '准备中';
+
+  @override
+  String get aiUnavailable => '手动输入';
+
+  @override
+  String get aiReadyBody =>
+      '在动作名称栏输入“卧推80kg，累计完成100次”并按回车，即可自动设置重量和目标。文字在设备内处理。';
+
+  @override
+  String get aiDisabledBody =>
+      '请在设置 → Apple Intelligence与Siri中开启Apple Intelligence。模型准备完成后返回应用，将自动重新检查。';
+
+  @override
+  String get aiOsBody =>
+      '一句话设置需要iOS 26或更新版本和支持Apple Intelligence的设备。请在设置 → 通用 → 软件更新中检查。';
+
+  @override
+  String get aiDeviceBody => '此设备不支持Apple Intelligence，无法使用一句话设置。';
+
+  @override
+  String get aiPreparingBody => '设备正在准备AI模型。请连接Wi-Fi，稍后再检查。';
+
+  @override
+  String get aiDownloadBody => '可以下载AI模型。建议连接Wi-Fi；下载需要时间和储存空间。准备完成后，文字在设备内处理。';
+
+  @override
+  String get aiLanguageBody => '设备的AI模型不支持应用语言。请切换到支持的语言后重试。';
+
+  @override
+  String get aiPlatformBody => '此环境无法使用设备内AI。请在支持的iPhone或Android设备上使用应用。';
+
+  @override
+  String get aiUnavailableBody =>
+      '目前无法使用AI，取决于设备、系统及系统AI服务的支持和准备情况。刚完成设备设置时，请联网后稍后重试。';
+
+  @override
+  String get aiManualBody => '仍可正常记录运动。选择动作后，每组输入“80 20”或仅输入次数。';
+
+  @override
+  String get aiPrepare => '准备模型';
+
+  @override
+  String get aiRetry => '重新检查';
+
+  @override
+  String get aiWorking => '正在设置动作…';
+
+  @override
+  String get aiFailure => '无法理解此内容。请修改后重试，或将其作为动作名称。';
+
+  @override
+  String get aiUseName => '用作动作名称';
+
+  @override
+  String goalProgress(int done, int goal) {
+    return '$done/$goal次';
+  }
+
+  @override
+  String repsPerSetLabel(int n) {
+    return '每组$n次';
+  }
+
+  @override
+  String setProgress(int done, int goal) {
+    return '$done/$goal组';
+  }
+
+  @override
+  String get repsInputHint => '次数';
+
+  @override
+  String get setupTitle => '动作设置';
+
+  @override
+  String get setupWeight => '默认重量';
+
+  @override
+  String get setupTotalReps => '累计次数目标';
+
+  @override
+  String get setupSetReps => '每组次数';
+
+  @override
+  String get setupTotalSets => '组数目标';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -280,6 +386,112 @@ class LZhHans extends LZh {
 
   @override
   String get doneEditing => '完成';
+
+  @override
+  String get setInputHint => '重量  次数';
+
+  @override
+  String get setRequired => '请先输入一组，例如：60 12';
+
+  @override
+  String get aiTitle => '一句话设置';
+
+  @override
+  String get aiReady => '可用';
+
+  @override
+  String get aiChecking => '正在检查';
+
+  @override
+  String get aiSetupNeeded => '需要设置';
+
+  @override
+  String get aiPreparing => '准备中';
+
+  @override
+  String get aiUnavailable => '手动输入';
+
+  @override
+  String get aiReadyBody =>
+      '在动作名称栏输入“卧推80kg，累计完成100次”并按回车，即可自动设置重量和目标。文字在设备内处理。';
+
+  @override
+  String get aiDisabledBody =>
+      '请在设置 → Apple Intelligence与Siri中开启Apple Intelligence。模型准备完成后返回应用，将自动重新检查。';
+
+  @override
+  String get aiOsBody =>
+      '一句话设置需要iOS 26或更新版本和支持Apple Intelligence的设备。请在设置 → 通用 → 软件更新中检查。';
+
+  @override
+  String get aiDeviceBody => '此设备不支持Apple Intelligence，无法使用一句话设置。';
+
+  @override
+  String get aiPreparingBody => '设备正在准备AI模型。请连接Wi-Fi，稍后再检查。';
+
+  @override
+  String get aiDownloadBody => '可以下载AI模型。建议连接Wi-Fi；下载需要时间和储存空间。准备完成后，文字在设备内处理。';
+
+  @override
+  String get aiLanguageBody => '设备的AI模型不支持应用语言。请切换到支持的语言后重试。';
+
+  @override
+  String get aiPlatformBody => '此环境无法使用设备内AI。请在支持的iPhone或Android设备上使用应用。';
+
+  @override
+  String get aiUnavailableBody =>
+      '目前无法使用AI，取决于设备、系统及系统AI服务的支持和准备情况。刚完成设备设置时，请联网后稍后重试。';
+
+  @override
+  String get aiManualBody => '仍可正常记录运动。选择动作后，每组输入“80 20”或仅输入次数。';
+
+  @override
+  String get aiPrepare => '准备模型';
+
+  @override
+  String get aiRetry => '重新检查';
+
+  @override
+  String get aiWorking => '正在设置动作…';
+
+  @override
+  String get aiFailure => '无法理解此内容。请修改后重试，或将其作为动作名称。';
+
+  @override
+  String get aiUseName => '用作动作名称';
+
+  @override
+  String goalProgress(int done, int goal) {
+    return '$done/$goal次';
+  }
+
+  @override
+  String repsPerSetLabel(int n) {
+    return '每组$n次';
+  }
+
+  @override
+  String setProgress(int done, int goal) {
+    return '$done/$goal组';
+  }
+
+  @override
+  String get repsInputHint => '次数';
+
+  @override
+  String get setupTitle => '动作设置';
+
+  @override
+  String get setupWeight => '默认重量';
+
+  @override
+  String get setupTotalReps => '累计次数目标';
+
+  @override
+  String get setupSetReps => '每组次数';
+
+  @override
+  String get setupTotalSets => '组数目标';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -419,4 +631,110 @@ class LZhHant extends LZh {
 
   @override
   String get doneEditing => '完成';
+
+  @override
+  String get setInputHint => '重量  次數';
+
+  @override
+  String get setRequired => '請先輸入一組，例如：60 12';
+
+  @override
+  String get aiTitle => '一句話設定';
+
+  @override
+  String get aiReady => '可用';
+
+  @override
+  String get aiChecking => '正在檢查';
+
+  @override
+  String get aiSetupNeeded => '需要設定';
+
+  @override
+  String get aiPreparing => '準備中';
+
+  @override
+  String get aiUnavailable => '手動輸入';
+
+  @override
+  String get aiReadyBody =>
+      '在動作名稱欄輸入「臥推80kg，累計完成100次」並按Enter，即可自動設定重量和目標。文字在裝置內處理。';
+
+  @override
+  String get aiDisabledBody =>
+      '請在設定 → Apple Intelligence與Siri中開啟Apple Intelligence。模型準備完成後返回App，將自動重新檢查。';
+
+  @override
+  String get aiOsBody =>
+      '一句話設定需要iOS 26或更新版本和支援Apple Intelligence的裝置。請在設定 → 一般 → 軟體更新中檢查。';
+
+  @override
+  String get aiDeviceBody => '此裝置不支援Apple Intelligence，無法使用一句話設定。';
+
+  @override
+  String get aiPreparingBody => '裝置正在準備AI模型。請連接Wi-Fi，稍後再檢查。';
+
+  @override
+  String get aiDownloadBody => '可以下載AI模型。建議連接Wi-Fi；下載需要時間和儲存空間。準備完成後，文字在裝置內處理。';
+
+  @override
+  String get aiLanguageBody => '裝置的AI模型不支援App語言。請切換到支援的語言後重試。';
+
+  @override
+  String get aiPlatformBody => '此環境無法使用裝置內AI。請在支援的iPhone或Android裝置上使用App。';
+
+  @override
+  String get aiUnavailableBody =>
+      '目前無法使用AI，取決於裝置、系統及系統AI服務的支援和準備情況。剛完成裝置設定時，請連網後稍後重試。';
+
+  @override
+  String get aiManualBody => '仍可正常記錄運動。選擇動作後，每組輸入「80 20」或僅輸入次數。';
+
+  @override
+  String get aiPrepare => '準備模型';
+
+  @override
+  String get aiRetry => '重新檢查';
+
+  @override
+  String get aiWorking => '正在設定動作…';
+
+  @override
+  String get aiFailure => '無法理解此內容。請修改後重試，或將其作為動作名稱。';
+
+  @override
+  String get aiUseName => '用作動作名稱';
+
+  @override
+  String goalProgress(int done, int goal) {
+    return '$done/$goal次';
+  }
+
+  @override
+  String repsPerSetLabel(int n) {
+    return '每組$n次';
+  }
+
+  @override
+  String setProgress(int done, int goal) {
+    return '$done/$goal組';
+  }
+
+  @override
+  String get repsInputHint => '次數';
+
+  @override
+  String get setupTitle => '動作設定';
+
+  @override
+  String get setupWeight => '預設重量';
+
+  @override
+  String get setupTotalReps => '累計次數目標';
+
+  @override
+  String get setupSetReps => '每組次數';
+
+  @override
+  String get setupTotalSets => '組數目標';
 }

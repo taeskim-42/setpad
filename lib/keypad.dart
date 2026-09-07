@@ -17,12 +17,12 @@ class SetKeypad extends StatelessWidget {
     super.key,
     required this.onKey,
     required this.onBackspace,
+    required this.onAddSet,
     required this.onSubmit,
+    required this.submitLabel,
     required this.onText,
     required this.onAdjust,
     required this.stepLabel,
-    required this.hasInput,
-    required this.submitLabel,
     required this.onStepPick,
     this.repeatLabel,
     this.onRepeat,
@@ -30,7 +30,9 @@ class SetKeypad extends StatelessWidget {
 
   final ValueChanged<String> onKey;
   final VoidCallback onBackspace;
+  final VoidCallback? onAddSet;
   final VoidCallback onSubmit;
+  final String submitLabel;
 
   /// 메모처럼 글자가 필요할 때 시스템 키보드로 넘긴다.
   final VoidCallback onText;
@@ -41,13 +43,6 @@ class SetKeypad extends StatelessWidget {
 
   /// 지금 밀면 얼마가 움직이는지. 누르기 전에 보여야 한다.
   final String stepLabel;
-
-  /// 칠 것이 들어 있는가. 비었으면 더할 세트가 없으므로 같은 키가 운동을
-  /// 닫는 일을 한다 — 동작은 원래 그랬고, 이름만 그때그때 맞춘다.
-  final bool hasInput;
-
-  /// 큰 키에 쓸 말. 맥락마다 하는 일이 달라서 밖에서 정한다.
-  final String submitLabel;
 
   /// +/- 를 길게 눌렀을 때. 미는 폭을 고르게 한다.
   final VoidCallback onStepPick;
@@ -77,19 +72,21 @@ class SetKeypad extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (repeatLabel != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: _Key(
-                    label: '${L.of(context).repeatPrevious}  $repeatLabel',
-                    onTap: onRepeat!,
-                    tone: _Tone.accent,
-                    height: 38,
-                  ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: SizedBox(
+                width: double.infinity,
+                child: _Key(
+                  label: [
+                    L.of(context).repeatPrevious,
+                    ?repeatLabel,
+                  ].join('  '),
+                  onTap: repeatLabel == null ? null : onRepeat,
+                  tone: _Tone.accent,
+                  height: 38,
                 ),
               ),
+            ),
             // 오른쪽 열이 왼쪽 격자와 같은 높이를 갖게 한다. 그래야 그 안에서
             // Expanded 로 나눌 수 있다 — 바깥 Column 이 높이를 정하지
             // 않으므로(MainAxisSize.min) 이것 없이는 설 자리가 없다.
@@ -116,9 +113,7 @@ class SetKeypad extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Expanded(
-                    // 왼쪽이 네 줄이므로 오른쪽도 그 높이를 셋이 나눈다.
-                    // '다음' 은 맨 아래에 붙박고 두 몫을 준다 — 여기서 제일
-                    // 자주 누르는 키이고, 헬스장에서는 큰 편이 낫다.
+                    // Keep the two actions in separate, fixed rows.
                     child: Column(
                       children: [
                         Expanded(
@@ -162,13 +157,23 @@ class SetKeypad extends StatelessWidget {
                           ),
                         ),
                         Expanded(
-                          flex: 2,
+                          child: _pad(
+                            _Key(
+                              label: L.of(context).addSet,
+                              onTap: onAddSet,
+                              tone: _Tone.primary,
+                              height: null,
+                            ),
+                          ),
+                        ),
+                        Expanded(
                           child: _pad(
                             _Key(
                               label: submitLabel,
                               onTap: onSubmit,
                               tone: _Tone.primary,
                               height: null,
+                              compact: true,
                             ),
                           ),
                         ),
@@ -222,6 +227,7 @@ class _Key extends StatelessWidget {
     required this.tone,
     this.onLongPress,
     this.height = 46,
+    this.compact = false,
   });
 
   final String? label;
@@ -232,8 +238,9 @@ class _Key extends StatelessWidget {
   /// 버튼 아래 작게 붙는 설명. −/+ 가 얼마씩 미는지 여기 적는다.
   final String? sub;
   final IconData? icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final _Tone tone;
+  final bool compact;
 
   /// null 이면 부모가 준 높이를 그대로 쓴다(Expanded 안에 있을 때).
   final double? height;
@@ -263,61 +270,66 @@ class _Key extends StatelessWidget {
     return SizedBox(
       height: height,
       // iOS 는 눌림을 리플이 아니라 잠깐 흐려지는 것으로 알린다.
-      child: GestureDetector(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        behavior: HitTestBehavior.opaque,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: bg,
-            // iOS 키패드의 키는 모서리 5 에 아주 옅은 그림자 하나다.
-            borderRadius: BorderRadius.circular(9),
-            boxShadow: tone == _Tone.dim
-                ? null
-                : [
-                    BoxShadow(
-                      color: keyShadow.resolveFrom(context),
-                      blurRadius: 0,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-          ),
-          child: Center(
-            child: icon != null
-                ? Icon(icon, size: 19, color: fg)
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        label!,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: switch (tone) {
-                            _Tone.primary => 14.0,
-                            _Tone.accent => 13.5,
-                            _Tone.dim => 18.0,
-                            _Tone.plain => 24.0,
-                          },
-                          fontWeight: tone == _Tone.plain
-                              ? FontWeight.w400
-                              : FontWeight.w600,
-                          color: fg,
-                        ),
+      child: Opacity(
+        opacity: onTap == null ? 0.4 : 1,
+        child: GestureDetector(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          behavior: HitTestBehavior.opaque,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: bg,
+              // iOS 키패드의 키는 모서리 5 에 아주 옅은 그림자 하나다.
+              borderRadius: BorderRadius.circular(9),
+              boxShadow: tone == _Tone.dim
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: keyShadow.resolveFrom(context),
+                        blurRadius: 0,
+                        offset: const Offset(0, 1),
                       ),
-                      if (sub != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 3),
-                          child: Text(
-                            sub!,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: fg.withValues(alpha: 0.7),
-                            ),
+                    ],
+            ),
+            child: Center(
+              child: icon != null
+                  ? Icon(icon, size: 19, color: fg)
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          label!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: compact
+                                ? 14
+                                : switch (tone) {
+                                    _Tone.primary => 14.0,
+                                    _Tone.accent => 13.5,
+                                    _Tone.dim => 18.0,
+                                    _Tone.plain => 24.0,
+                                  },
+                            fontWeight: tone == _Tone.plain
+                                ? FontWeight.w400
+                                : FontWeight.w600,
+                            color: fg,
                           ),
                         ),
-                    ],
-                  ),
+                        if (sub != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 3),
+                            child: Text(
+                              sub!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: fg.withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+            ),
           ),
         ),
       ),

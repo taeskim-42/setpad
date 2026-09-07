@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'editor.dart';
+import 'local_ai.dart';
 import 'units.dart';
 
 /// 한 번의 운동 기록. 메모 앱의 메모 한 장에 해당한다.
@@ -45,67 +46,75 @@ class Note {
   ///
   /// 첫 운동의 첫 세트만 내던 것을 바꿨다. 그날 열두 세트를 했는데
   /// "1세트 · 80kg · 10회" 라고 뜨면 틀린 말은 아니지만 쓸모가 없다.
-  String summary({required String Function(int) setOrdinal, required String Function(int) reps}) {
-    final total = blocks.fold(0, (n, b) => n + b.sets.where((s) => s.done).length);
+  String summary({
+    required String Function(int) setOrdinal,
+    required String Function(int) reps,
+  }) {
+    final total = blocks.fold(
+      0,
+      (n, b) => n + b.sets.where((s) => s.done).length,
+    );
     return total == 0 ? '' : setOrdinal(total);
   }
 
   /// 검색이 훑는 글. 운동 이름과 메모만 본다 — 숫자로 찾는 사람은 없다.
-  String get searchText =>
-      blocks
-          .map((b) => [b.name, ...b.sets.expand((s) => s.notes)].join(' '))
-          .join(' ')
-          .toLowerCase();
+  String get searchText => blocks
+      .map((b) => [b.name, ...b.sets.expand((s) => s.notes)].join(' '))
+      .join(' ')
+      .toLowerCase();
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-        if (calories != null) 'calories': calories,
-        'blocks': [
-          for (final b in blocks)
-            {
-              'name': b.name,
-              'sets': [
-                for (final s in b.sets)
-                  {
-                    'value': s.value,
-                    'unit': s.unit,
-                    'reps': s.reps,
-                    'notes': s.notes,
-                    'done': s.done,
-                  },
-              ],
-            },
-        ],
-      };
+    'id': id,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    if (calories != null) 'calories': calories,
+    'blocks': [
+      for (final b in blocks)
+        {
+          'name': b.name,
+          if (b.setup != null) 'setup': b.setup!.toJson(),
+          'sets': [
+            for (final s in b.sets)
+              {
+                'value': s.value,
+                'unit': s.unit,
+                'reps': s.reps,
+                'notes': s.notes,
+                'done': s.done,
+              },
+          ],
+        },
+    ],
+  };
 
   static Note fromJson(Map<String, dynamic> j) => Note(
-        id: j['id'] as String,
-        createdAt: DateTime.parse(j['createdAt'] as String),
-        updatedAt: DateTime.parse(j['updatedAt'] as String),
-        calories: (j['calories'] as num?)?.toDouble(),
-        blocks: [
-          for (final b in (j['blocks'] as List? ?? const []))
-            ExerciseBlock(
-              b['name'] as String,
-              [
-                for (final s in (b['sets'] as List? ?? const []))
-                  LoggedSet(
-                    // 'kg' 는 단위가 생기기 전에 저장된 기록이다. 그때는
-                    // 무게가 늘 kg 였으므로 그대로 읽어 준다.
-                    value: ((s['value'] ?? s['kg']) as num?)?.toDouble(),
-                    unit: s['unit'] as String? ?? defaultUnit,
-                    reps: s['reps'] as int?,
-                    // 'note'(단수)는 메모가 하나뿐이던 시절의 저장분이다.
-                    notes: ((s['notes'] as List?)?.cast<String>()) ??
-                        (s['note'] == null ? null : [s['note'] as String]),
-                    done: s['done'] as bool? ?? true,
-                  ),
-              ],
-            ),
-        ],
-      );
+    id: j['id'] as String,
+    createdAt: DateTime.parse(j['createdAt'] as String),
+    updatedAt: DateTime.parse(j['updatedAt'] as String),
+    calories: (j['calories'] as num?)?.toDouble(),
+    blocks: [
+      for (final b in (j['blocks'] as List? ?? const []))
+        ExerciseBlock(
+          b['name'] as String,
+          [
+            for (final s in (b['sets'] as List? ?? const []))
+              LoggedSet(
+                // 'kg' 는 단위가 생기기 전에 저장된 기록이다. 그때는
+                // 무게가 늘 kg 였으므로 그대로 읽어 준다.
+                value: ((s['value'] ?? s['kg']) as num?)?.toDouble(),
+                unit: s['unit'] as String? ?? defaultUnit,
+                reps: s['reps'] as int?,
+                // 'note'(단수)는 메모가 하나뿐이던 시절의 저장분이다.
+                notes:
+                    ((s['notes'] as List?)?.cast<String>()) ??
+                    (s['note'] == null ? null : [s['note'] as String]),
+                done: s['done'] as bool? ?? true,
+              ),
+          ],
+          WorkoutSetup.tryFromJson(b['setup']),
+        ),
+    ],
+  );
 }
 
 /// 노트 전부를 들고 있고 디스크와 맞춰 두는 곳.
@@ -166,7 +175,11 @@ class NotesStore extends ChangeNotifier {
 
   Note create() {
     final now = DateTime.now();
-    final note = Note(id: now.microsecondsSinceEpoch.toString(), createdAt: now, updatedAt: now);
+    final note = Note(
+      id: now.microsecondsSinceEpoch.toString(),
+      createdAt: now,
+      updatedAt: now,
+    );
     _notes.insert(0, note);
     notifyListeners();
     _scheduleSave();

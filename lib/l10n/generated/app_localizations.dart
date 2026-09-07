@@ -324,6 +324,198 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'완료'**
   String get doneEditing;
+
+  /// No description provided for @setInputHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'무게  횟수'**
+  String get setInputHint;
+
+  /// No description provided for @setRequired.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트를 먼저 입력해 주세요. 예: 60 12'**
+  String get setRequired;
+
+  /// No description provided for @aiTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 줄 설정'**
+  String get aiTitle;
+
+  /// No description provided for @aiReady.
+  ///
+  /// In ko, this message translates to:
+  /// **'사용 가능'**
+  String get aiReady;
+
+  /// No description provided for @aiChecking.
+  ///
+  /// In ko, this message translates to:
+  /// **'확인 중'**
+  String get aiChecking;
+
+  /// No description provided for @aiSetupNeeded.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정 필요'**
+  String get aiSetupNeeded;
+
+  /// No description provided for @aiPreparing.
+  ///
+  /// In ko, this message translates to:
+  /// **'준비 중'**
+  String get aiPreparing;
+
+  /// No description provided for @aiUnavailable.
+  ///
+  /// In ko, this message translates to:
+  /// **'기본 입력'**
+  String get aiUnavailable;
+
+  /// No description provided for @aiReadyBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 이름 칸에 “벤치 80kg 100개 채우기”처럼 적고 엔터를 누르세요. 무게와 목표를 자동으로 설정합니다. 문장은 기기 안에서 처리됩니다.'**
+  String get aiReadyBody;
+
+  /// No description provided for @aiDisabledBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정 앱 → Apple Intelligence 및 Siri에서 Apple Intelligence를 켜 주세요. 모델 준비가 끝난 뒤 앱으로 돌아오면 자동으로 다시 확인합니다.'**
+  String get aiDisabledBody;
+
+  /// No description provided for @aiOsBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 줄 설정에는 iOS 26 이상과 Apple Intelligence 지원 기기가 필요합니다. 지원 기기라면 설정 → 일반 → 소프트웨어 업데이트를 확인해 주세요.'**
+  String get aiOsBody;
+
+  /// No description provided for @aiDeviceBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 기기는 Apple Intelligence를 지원하지 않아 한 줄 설정을 사용할 수 없습니다.'**
+  String get aiDeviceBody;
+
+  /// No description provided for @aiPreparingBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'기기에서 AI 모델을 준비하고 있습니다. Wi-Fi에 연결한 뒤 잠시 후 다시 확인해 주세요.'**
+  String get aiPreparingBody;
+
+  /// No description provided for @aiDownloadBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 줄 설정에 필요한 AI 모델을 다운로드할 수 있습니다. Wi-Fi 연결을 권장하며, 다운로드에는 시간과 저장 공간이 필요합니다. 준비가 끝나면 문장은 기기 안에서 처리됩니다.'**
+  String get aiDownloadBody;
+
+  /// No description provided for @aiLanguageBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'현재 기기의 AI 모델이 앱 언어를 지원하지 않습니다. 지원되는 언어로 변경한 뒤 다시 확인해 주세요.'**
+  String get aiLanguageBody;
+
+  /// No description provided for @aiPlatformBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 환경에서는 기기 내 AI를 사용할 수 없습니다. 지원되는 iPhone 또는 Android 기기의 앱에서 사용할 수 있습니다.'**
+  String get aiPlatformBody;
+
+  /// No description provided for @aiUnavailableBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'현재 기기에서 AI를 사용할 수 없습니다. 기기·OS·시스템 AI 서비스의 지원 및 준비 상태에 따라 달라집니다. 새 기기를 설정한 직후라면 네트워크에 연결한 뒤 다시 확인해 주세요.'**
+  String get aiUnavailableBody;
+
+  /// No description provided for @aiManualBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'기본 운동 기록은 그대로 사용할 수 있습니다. 운동 이름을 선택한 뒤 세트마다 “80 20” 또는 횟수만 입력하세요.'**
+  String get aiManualBody;
+
+  /// No description provided for @aiPrepare.
+  ///
+  /// In ko, this message translates to:
+  /// **'모델 준비'**
+  String get aiPrepare;
+
+  /// No description provided for @aiRetry.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 확인'**
+  String get aiRetry;
+
+  /// No description provided for @aiWorking.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 설정 중…'**
+  String get aiWorking;
+
+  /// No description provided for @aiFailure.
+  ///
+  /// In ko, this message translates to:
+  /// **'문장을 해석하지 못했습니다. 내용을 고쳐 다시 입력하거나 운동 이름으로 사용할 수 있습니다.'**
+  String get aiFailure;
+
+  /// No description provided for @aiUseName.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 이름으로 사용'**
+  String get aiUseName;
+
+  /// No description provided for @goalProgress.
+  ///
+  /// In ko, this message translates to:
+  /// **'{done}/{goal}회'**
+  String goalProgress(int done, int goal);
+
+  /// No description provided for @repsPerSetLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트당 {n}회'**
+  String repsPerSetLabel(int n);
+
+  /// No description provided for @setProgress.
+  ///
+  /// In ko, this message translates to:
+  /// **'{done}/{goal}세트'**
+  String setProgress(int done, int goal);
+
+  /// No description provided for @repsInputHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'횟수'**
+  String get repsInputHint;
+
+  /// No description provided for @setupTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 설정'**
+  String get setupTitle;
+
+  /// No description provided for @setupWeight.
+  ///
+  /// In ko, this message translates to:
+  /// **'기본 무게'**
+  String get setupWeight;
+
+  /// No description provided for @setupTotalReps.
+  ///
+  /// In ko, this message translates to:
+  /// **'총 목표 횟수'**
+  String get setupTotalReps;
+
+  /// No description provided for @setupSetReps.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트당 횟수'**
+  String get setupSetReps;
+
+  /// No description provided for @setupTotalSets.
+  ///
+  /// In ko, this message translates to:
+  /// **'목표 세트 수'**
+  String get setupTotalSets;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -141,4 +141,117 @@ class LTh extends L {
 
   @override
   String get doneEditing => 'เสร็จสิ้น';
+
+  @override
+  String get setInputHint => 'น้ำหนัก  ครั้ง';
+
+  @override
+  String get setRequired => 'ป้อนเซ็ตก่อน เช่น 60 12';
+
+  @override
+  String get aiTitle => 'ตั้งค่าด้วยประโยคเดียว';
+
+  @override
+  String get aiReady => 'พร้อมใช้งาน';
+
+  @override
+  String get aiChecking => 'กำลังตรวจสอบ';
+
+  @override
+  String get aiSetupNeeded => 'ต้องตั้งค่า';
+
+  @override
+  String get aiPreparing => 'กำลังเตรียม';
+
+  @override
+  String get aiUnavailable => 'ป้อนเอง';
+
+  @override
+  String get aiReadyBody =>
+      'พิมพ์เช่น “เบนช์เพรส 80kg ให้ครบ 100 ครั้ง” แล้วกด Enter เพื่อตั้งค่าน้ำหนักและเป้าหมาย ข้อความจะประมวลผลบนอุปกรณ์นี้';
+
+  @override
+  String get aiDisabledBody =>
+      'เปิดการตั้งค่า → Apple Intelligence และ Siri แล้วเปิด Apple Intelligence เมื่อโมเดลพร้อม กลับเข้าแอปเพื่อตรวจสอบอัตโนมัติ';
+
+  @override
+  String get aiOsBody =>
+      'ต้องใช้ iOS 26 ขึ้นไปและอุปกรณ์ที่รองรับ Apple Intelligence ตรวจสอบการตั้งค่า → ทั่วไป → รายการอัปเดตซอฟต์แวร์';
+
+  @override
+  String get aiDeviceBody =>
+      'อุปกรณ์นี้ไม่รองรับ Apple Intelligence จึงใช้การตั้งค่าด้วยประโยคเดียวไม่ได้';
+
+  @override
+  String get aiPreparingBody =>
+      'อุปกรณ์กำลังเตรียมโมเดล AI เชื่อมต่อ Wi-Fi แล้วตรวจสอบอีกครั้งภายหลัง';
+
+  @override
+  String get aiDownloadBody =>
+      'ดาวน์โหลดโมเดล AI ได้ แนะนำให้ใช้ Wi-Fi การดาวน์โหลดต้องใช้เวลาและพื้นที่จัดเก็บ เมื่อพร้อมแล้ว ข้อความจะประมวลผลบนอุปกรณ์';
+
+  @override
+  String get aiLanguageBody =>
+      'โมเดล AI ไม่รองรับภาษาของแอป เปลี่ยนเป็นภาษาที่รองรับแล้วตรวจสอบอีกครั้ง';
+
+  @override
+  String get aiPlatformBody =>
+      'ใช้ AI บนอุปกรณ์ในสภาพแวดล้อมนี้ไม่ได้ โปรดใช้แอปบน iPhone หรือ Android ที่รองรับ';
+
+  @override
+  String get aiUnavailableBody =>
+      'ยังใช้ AI ไม่ได้ ขึ้นอยู่กับอุปกรณ์ ระบบปฏิบัติการ และบริการ AI ของระบบ หากเพิ่งตั้งค่าอุปกรณ์ ให้เชื่อมต่ออินเทอร์เน็ตแล้วตรวจสอบอีกครั้ง';
+
+  @override
+  String get aiManualBody =>
+      'ยังบันทึกการออกกำลังกายได้ตามปกติ เลือกท่าแล้วป้อน “80 20” หรือจำนวนครั้งสำหรับแต่ละเซ็ต';
+
+  @override
+  String get aiPrepare => 'เตรียมโมเดล';
+
+  @override
+  String get aiRetry => 'ตรวจสอบอีกครั้ง';
+
+  @override
+  String get aiWorking => 'กำลังตั้งค่าท่า…';
+
+  @override
+  String get aiFailure =>
+      'ตีความข้อความไม่ได้ โปรดแก้ไขแล้วลองใหม่ หรือใช้เป็นชื่อท่า';
+
+  @override
+  String get aiUseName => 'ใช้เป็นชื่อท่า';
+
+  @override
+  String goalProgress(int done, int goal) {
+    return '$done/$goal ครั้ง';
+  }
+
+  @override
+  String repsPerSetLabel(int n) {
+    return '$n ครั้งต่อเซ็ต';
+  }
+
+  @override
+  String setProgress(int done, int goal) {
+    return '$done/$goal เซ็ต';
+  }
+
+  @override
+  String get repsInputHint => 'จำนวนครั้ง';
+
+  @override
+  String get setupTitle => 'ตั้งค่าท่า';
+
+  @override
+  String get setupWeight => 'น้ำหนักเริ่มต้น';
+
+  @override
+  String get setupTotalReps => 'เป้าหมายครั้งรวม';
+
+  @override
+  String get setupSetReps => 'จำนวนครั้งต่อเซ็ต';
+
+  @override
+  String get setupTotalSets => 'เป้าหมายเซ็ต';
 }
