@@ -18,7 +18,7 @@ class LKo extends L {
   String get copied => '복사했습니다';
 
   @override
-  String get howTo => '운동 이름을 치고 Enter → 세트를 치고 Enter → 빈 줄에서 Enter면 다음 운동';
+  String get howTo => '운동 이름을 검색하고 세트를 기록하세요.';
 
   @override
   String get exerciseNameHint => '운동 이름';
@@ -129,4 +129,16 @@ class LKo extends L {
 
   @override
   String get noteHint => '이 세트에 남길 메모';
+
+  @override
+  String get activeEnergy => '활동 칼로리';
+
+  @override
+  String get energyUnavailable => '기록 없음';
+
+  @override
+  String get energySource => '건강 앱 · 기록 시간대';
+
+  @override
+  String get doneEditing => '완료';
 }

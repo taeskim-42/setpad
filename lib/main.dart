@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'health.dart';
+import 'health_summary.dart';
 import 'notes.dart';
 import 'palette.dart';
 import 'notes_list.dart';
@@ -84,8 +85,10 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     // 재는 것이 지금 목적이다 — 그 값에 따라 휴식 타이머가 성립하는지가
     // 갈린다. 문서로 확인하지 못한 빈도 제한을 실측으로 대신한다.
     _health.onBeat(({required bpm, required lag, sinceLastWake}) {
-      debugPrint('[심박] ${bpm}bpm · 지연 ${lag.inSeconds}초'
-          '${sinceLastWake == null ? ' · 첫 신호' : ' · 직전 신호와 ${sinceLastWake.inSeconds}초 간격'}');
+      debugPrint(
+        '[심박] ${bpm}bpm · 지연 ${lag.inSeconds}초'
+        '${sinceLastWake == null ? ' · 첫 신호' : ' · 직전 신호와 ${sinceLastWake.inSeconds}초 간격'}',
+      );
     });
     _boot();
   }
@@ -104,14 +107,18 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     final now = DateTime.now();
     for (final n in _store.notes) {
       final d = n.updatedAt;
-      if (d.year == now.year && d.month == now.month && d.day == now.day) return n;
+      if (d.year == now.year && d.month == now.month && d.day == now.day) {
+        return n;
+      }
     }
     return _store.create();
   }
 
   Future<void> _open(Note note) async {
     await Navigator.of(context).push(
-      CupertinoPageRoute(builder: (_) => EditorPage(store: _store, note: note)),
+      CupertinoPageRoute(
+        builder: (_) => EditorPage(store: _store, note: note),
+      ),
     );
     // 아무것도 안 치고 나온 새 기록은 남기지 않는다.
     _store.discardIfEmpty(note);
@@ -138,9 +145,11 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     // 심박이 얼마나 늦게 도착하는지 남긴다. 심박으로 휴식을 끊어 주는 기능을
     // 만들지 말지가 이 값에 달려 있다 — 몇 초면 되고 몇 분이면 못 한다.
     final hr = await _health.latestHeartRate();
-    debugPrint(hr == null
-        ? '[심박] 최근 30분에 잰 것이 없다'
-        : '[심박] ${hr.bpm}bpm · 잰 시각 ${hr.at} · 지연 ${hr.lag.inSeconds}초');
+    debugPrint(
+      hr == null
+          ? '[심박] 최근 30분에 잰 것이 없다'
+          : '[심박] ${hr.bpm}bpm · 잰 시각 ${hr.at} · 지연 ${hr.lag.inSeconds}초',
+    );
 
     final kcal = await _health.activeEnergy(start, end);
     await _health.writeWorkout(
@@ -208,57 +217,78 @@ class _EditorPageState extends State<EditorPage> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     return CupertinoPageScaffold(
-      // 배경은 흰색이 아니라 그룹 배경이다. 카드(흰색)가 그 위에 떠 보여야
-      // iOS 의 목록처럼 읽힌다.
-      backgroundColor: CupertinoColors.systemGroupedBackground,
+      // One shared keyboard area is managed by the editor.
+      resizeToAvoidBottomInset: false,
+      backgroundColor: CupertinoColors.systemBackground,
       navigationBar: CupertinoNavigationBar(
-        // 가운데 제목은 17pt w600, 자간 -0.41 — Cupertino 가 쥔 iOS 값이다.
-        middle: ListenableBuilder(
-          listenable: _editor,
-          builder: (context, _) => Text(
-            _editor.blocks.isEmpty ? l.appTitle : _editor.blocks.first.name,
-            overflow: TextOverflow.ellipsis,
+        backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
+        border: null,
+        previousPageTitle: l.allNotes,
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(
+            l.doneEditing,
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
       ),
       child: SafeArea(
+        // The keypad owns the bottom safe area, including during IME transitions.
+        bottom: false,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560),
-            child: Column(
-              children: [
-                ListenableBuilder(
-                  listenable: _editor,
-                  builder: (context, _) => _editor.blocks.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              l.howTo,
-                              // 안내문은 footnote 자리다. 본문(17)보다 작고
-                              // 회색이라 눈이 먼저 가지 않는다.
-                              style: TextStyle(
-                                fontSize: 13,
-                                height: 1.4,
-                                letterSpacing: -0.08,
-                                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                              ),
-                            ),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-                Expanded(child: RoutineEditor(controller: _editor)),
-              ],
+            child: RoutineEditor(
+              controller: _editor,
+              header: _DocumentHeader(note: widget.note),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _DocumentHeader extends StatelessWidget {
+  const _DocumentHeader({required this.note});
+  final Note note;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final now = DateTime.now();
+    final at = note.createdAt;
+    final today =
+        at.year == now.year && at.month == now.month && at.day == now.day;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${l.dayLabel(at)} · ${l.weekdayLabel(at)}',
+            style: TextStyle(
+              fontSize: 13,
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            today ? l.appTitle : l.dayLabel(at),
+            style: const TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.8,
+            ),
+          ),
+          const SizedBox(height: 14),
+          HealthSummary(calories: note.calories, showSource: true),
+        ],
       ),
     );
   }

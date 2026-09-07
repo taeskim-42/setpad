@@ -39,7 +39,7 @@ class Note {
   ///
   /// 길면 화면이 잘라 준다. 앞의 몇 개만 보여도 첫 하나보다 낫다.
   String? get title =>
-      blocks.isEmpty ? null : blocks.map((b) => b.name).join(' · ');
+      blocks.isEmpty ? null : blocks.map((b) => b.name).toSet().join(' · ');
 
   /// 제목 아래 한 줄 — 그날 총계.
   ///

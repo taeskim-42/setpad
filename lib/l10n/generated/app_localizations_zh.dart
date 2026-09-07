@@ -18,7 +18,7 @@ class LZh extends L {
   String get copied => '已复制';
 
   @override
-  String get howTo => '输入动作名称后按 Enter → 输入组数后按 Enter → 空行按 Enter 换下一个动作';
+  String get howTo => '搜索运动名称，记录每一组。';
 
   @override
   String get exerciseNameHint => '动作名称';
@@ -129,6 +129,18 @@ class LZh extends L {
 
   @override
   String get noteHint => '这一组的备注';
+
+  @override
+  String get activeEnergy => '活动热量';
+
+  @override
+  String get energyUnavailable => '暂无记录';
+
+  @override
+  String get energySource => '健康 · 本次记录时段';
+
+  @override
+  String get doneEditing => '完成';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -145,7 +157,7 @@ class LZhHans extends LZh {
   String get copied => '已复制';
 
   @override
-  String get howTo => '输入动作名称后按 Enter → 输入组数后按 Enter → 空行按 Enter 换下一个动作';
+  String get howTo => '搜索运动名称，记录每一组。';
 
   @override
   String get exerciseNameHint => '动作名称';
@@ -256,6 +268,18 @@ class LZhHans extends LZh {
 
   @override
   String get noteHint => '这一组的备注';
+
+  @override
+  String get activeEnergy => '活动热量';
+
+  @override
+  String get energyUnavailable => '暂无记录';
+
+  @override
+  String get energySource => '健康 · 本次记录时段';
+
+  @override
+  String get doneEditing => '完成';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -272,7 +296,7 @@ class LZhHant extends LZh {
   String get copied => '已複製';
 
   @override
-  String get howTo => '輸入動作名稱後按 Enter → 輸入組數後按 Enter → 空行按 Enter 換下一個動作';
+  String get howTo => '搜尋運動名稱，記錄每一組。';
 
   @override
   String get exerciseNameHint => '動作名稱';
@@ -383,4 +407,16 @@ class LZhHant extends LZh {
 
   @override
   String get noteHint => '這一組的備註';
+
+  @override
+  String get activeEnergy => '活動熱量';
+
+  @override
+  String get energyUnavailable => '暫無紀錄';
+
+  @override
+  String get energySource => '健康 · 本次紀錄時段';
+
+  @override
+  String get doneEditing => '完成';
 }

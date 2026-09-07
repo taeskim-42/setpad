@@ -18,8 +18,7 @@ class LEn extends L {
   String get copied => 'Copied';
 
   @override
-  String get howTo =>
-      'Type an exercise and hit Enter → type a set and hit Enter → Enter on an empty line for the next exercise';
+  String get howTo => 'Type an exercise, then log your sets.';
 
   @override
   String get exerciseNameHint => 'Exercise name';
@@ -130,4 +129,16 @@ class LEn extends L {
 
   @override
   String get noteHint => 'Note for this set';
+
+  @override
+  String get activeEnergy => 'Active energy';
+
+  @override
+  String get energyUnavailable => 'No data';
+
+  @override
+  String get energySource => 'Health · During this entry';
+
+  @override
+  String get doneEditing => 'Done';
 }

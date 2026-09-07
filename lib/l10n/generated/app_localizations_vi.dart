@@ -18,8 +18,7 @@ class LVi extends L {
   String get copied => 'Đã sao chép';
 
   @override
-  String get howTo =>
-      'Nhập tên bài tập rồi Enter → nhập hiệp rồi Enter → Enter ở dòng trống để sang bài kế';
+  String get howTo => 'Tìm bài tập rồi ghi lại các hiệp.';
 
   @override
   String get exerciseNameHint => 'Tên bài tập';
@@ -130,4 +129,16 @@ class LVi extends L {
 
   @override
   String get noteHint => 'Ghi chú cho hiệp này';
+
+  @override
+  String get activeEnergy => 'Năng lượng hoạt động';
+
+  @override
+  String get energyUnavailable => 'Chưa có dữ liệu';
+
+  @override
+  String get energySource => 'Sức khỏe · Trong thời gian ghi lại';
+
+  @override
+  String get doneEditing => 'Xong';
 }

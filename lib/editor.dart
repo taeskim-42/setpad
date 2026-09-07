@@ -331,8 +331,9 @@ Future<bool> confirmRemoveExercise(
 /// 하나의 편집 흐름. 결과를 보는 곳과 치는 곳이 나뉘어 있지 않고,
 /// 커서가 늘 "지금 쓰는 자리"에 있다.
 class RoutineEditor extends StatefulWidget {
-  const RoutineEditor({super.key, required this.controller});
+  const RoutineEditor({super.key, required this.controller, this.header});
   final RoutineEditorController controller;
+  final Widget? header;
 
   @override
   State<RoutineEditor> createState() => _RoutineEditorState();
@@ -473,7 +474,11 @@ class _RoutineEditorState extends State<RoutineEditor> {
   /// 화면에 놓인 줄 수. 이것이 늘었을 때만 따라 내린다.
   int get _lineCount =>
       _c.blocks.length +
-      _c.blocks.fold(0, (n, b) => n + b.sets.length + b.sets.fold(0, (m, s) => m + s.notes.length));
+      _c.blocks.fold(
+        0,
+        (n, b) =>
+            n + b.sets.length + b.sets.fold(0, (m, s) => m + s.notes.length),
+      );
   int _lastLineCount = 0;
 
   void _onChanged() {
@@ -541,7 +546,8 @@ class _RoutineEditorState extends State<RoutineEditor> {
     final editing = _editing;
     // 메모 모드에서 친 것은 마지막 세트의 메모다. 그냥 넘기면 숫자가 없는
     // 줄이라 파서가 새 운동 이름으로 읽어 버린다.
-    final memo = pick == null && (editing != null || (_wantText && _c.lastSet != null));
+    final memo =
+        pick == null && (editing != null || (_wantText && _c.lastSet != null));
     final wasText = _wantText;
 
     // **모드를 먼저 되돌린다.** 컨트롤러를 먼저 건드리면 _onChanged 가 아직
@@ -646,9 +652,14 @@ class _RoutineEditorState extends State<RoutineEditor> {
             behavior: HitTestBehavior.opaque,
             child: ListView.builder(
               controller: _scroll,
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              itemCount: blocks.length + (_c.naming ? 1 : 0),
-              itemBuilder: (context, i) {
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+              itemCount:
+                  blocks.length +
+                  (_c.naming ? 1 : 0) +
+                  (widget.header == null ? 0 : 1),
+              itemBuilder: (context, index) {
+                if (widget.header != null && index == 0) return widget.header!;
+                final i = index - (widget.header == null ? 0 : 1);
                 if (i < blocks.length) {
                   return _BlockView(
                     block: blocks[i],
@@ -660,25 +671,27 @@ class _RoutineEditorState extends State<RoutineEditor> {
                     onRemoveNote: (set, note) => _c.removeNote(i, set, note),
                     // 열려 있는 카드는 이미 거기다 — 누를 것이 없다.
                     onOpen: i == openIndex ? null : () => _openBlock(i),
-                    onAddSet: i == openIndex ? () => _commit() : null,
                   );
                 }
-                // 카드 밖 — 새 운동 이름 자리. 이것도 카드 안에 넣는다.
-                // 회색 배경 위에 글자만 떠 있으면 어디에 치는 것인지 보이지
-                // 않고, iOS 화면에서 혼자 미완성으로 읽힌다.
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  constraints: const BoxConstraints(minHeight: 44),
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.secondarySystemGroupedBackground
-                        .resolveFrom(context),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: _buildInput(bold: true),
-                  ),
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInput(bold: true),
+                    if (blocks.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          L.of(context).howTo,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.5,
+                            color: CupertinoColors.secondaryLabel.resolveFrom(
+                              context,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 );
               },
             ),
@@ -690,98 +703,123 @@ class _RoutineEditorState extends State<RoutineEditor> {
             highlight: _highlight,
             onPick: (name) => _commit(name),
           ),
-        // 세트를 받는 중일 때만. 운동 이름은 어휘가 무한해서 시스템 키보드가 맞다.
-        if (_c.inBlock && !_wantText)
-          SetKeypad(
-            hasInput: _hasInput,
-            onKey: _insert,
-            onBackspace: _keypadBackspace,
-            onSubmit: () {
-              // 참조 앱의 Next 와 같다 — 아직 한 칸도 안 띄웠으면 다음 자리로
-              // 옮기고, 이미 옮겨 왔으면 그 줄을 세트로 넣는다.
-              final t = _input.text.trimRight();
-              if (t.isNotEmpty && !t.contains(' ')) {
-                _insert(' ');
-                return;
-              }
-              _commit();
-            },
-            onText: () {
-              // 글자판으로 넘어가는 것은 곧 메모를 적겠다는 뜻이다. 이 화면에
-              // 글자가 필요한 자리는 거기뿐이다 — 운동 이름은 카드 밖에서
-              // 치고 그때는 애초에 키패드가 안 뜬다.
-              setState(() => _wantText = true);
-              // 읽기 전용이 풀린 뒤라야 키보드가 글자판으로 열린다.
-              WidgetsBinding.instance.addPostFrameCallback((_) => _reopen());
-            },
-            onAdjust: (direction) {
-              final next = bumpLastNumber(_input.text, direction);
-              _input.value = TextEditingValue(
-                text: next,
-                selection: TextSelection.collapsed(offset: next.length),
-              );
-              setState(() {});
-            },
-            // 무게를 치는 중이면 원판 단위, kg 를 지나 횟수를 치는 중이면 하나.
-            // 무엇의 2.5 인지 보여야 한다. 횟수를 치는 중이면 단위가 없으므로
-            // 숫자만 낸다 — "1회" 는 늘 1이라 붙일 값이 없다.
-            stepLabel: _typingReps
-                ? formatNumber(_stepSize)
-                : formatValue(_stepSize, _unit),
-            // 칠 것이 있으면 늘 '다음'이다. 세트를 넣는 일은 화면 버튼이
-            // 맡으므로, 같은 이름의 버튼이 둘이 되지 않게 한다.
-            submitLabel: _hasInput
-                ? L.of(context).next
-                : L.of(context).finishExercise,
-            onStepPick: _pickStep,
-            repeatLabel: _c.lastSet == null
-                ? null
-                : setLabel(
-                    value: _c.lastSet!.value,
-                    unit: _c.lastSet!.unit,
-                    reps: _c.lastSet!.reps,
-                    formatReps: L.of(context).repsCount,
-                  ),
-            onRepeat: _c.repeatLastSet,
+        // Both keyboards share one bottom area. Keep the keypad anchored while
+        // the system inset shrinks; only text mode needs space above the IME.
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.viewInsetsOf(context).bottom,
           ),
-        // 메모를 치는 동안에도 돌아올 문은 열어 둔다.
-        if (_c.inBlock && _wantText)
-          ColoredBox(
-            color: keypadBackground.resolveFrom(context),
-            child: SafeArea(
-              top: false,
-              child: SizedBox(
-                height: 44,
-                width: double.infinity,
-                child: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () {
-                    setState(() => _wantText = false);
-                    _focus.requestFocus();
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        CupertinoIcons.keyboard,
-                        size: 19,
-                        color: seal,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        L.of(context).numberKeypad,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          letterSpacing: -0.41,
-                          color: seal,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: _padMode ? 0 : MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              child: _padMode
+                  ? SetKeypad(
+                      hasInput: _hasInput,
+                      onKey: _insert,
+                      onBackspace: _keypadBackspace,
+                      onSubmit: () {
+                        // 참조 앱의 Next 와 같다 — 아직 한 칸도 안 띄웠으면 다음 자리로
+                        // 옮기고, 이미 옮겨 왔으면 그 줄을 세트로 넣는다.
+                        final t = _input.text.trimRight();
+                        if (t.isNotEmpty && !t.contains(' ')) {
+                          _insert(' ');
+                          return;
+                        }
+                        _commit();
+                      },
+                      onText: () {
+                        // 글자판으로 넘어가는 것은 곧 메모를 적겠다는 뜻이다. 이 화면에
+                        // 글자가 필요한 자리는 거기뿐이다 — 운동 이름은 카드 밖에서
+                        // 치고 그때는 애초에 키패드가 안 뜬다.
+                        setState(() => _wantText = true);
+                        // 읽기 전용이 풀린 뒤라야 키보드가 글자판으로 열린다.
+                        WidgetsBinding.instance.addPostFrameCallback(
+                          (_) => _reopen(),
+                        );
+                      },
+                      onAdjust: (direction) {
+                        final next = bumpLastNumber(_input.text, direction);
+                        _input.value = TextEditingValue(
+                          text: next,
+                          selection: TextSelection.collapsed(
+                            offset: next.length,
+                          ),
+                        );
+                        setState(() {});
+                      },
+                      // 무게를 치는 중이면 원판 단위, kg 를 지나 횟수를 치는 중이면 하나.
+                      // 무엇의 2.5 인지 보여야 한다. 횟수를 치는 중이면 단위가 없으므로
+                      // 숫자만 낸다 — "1회" 는 늘 1이라 붙일 값이 없다.
+                      stepLabel: _typingReps
+                          ? formatNumber(_stepSize)
+                          : formatValue(_stepSize, _unit),
+                      // 칠 것이 있으면 늘 '다음'이다. 세트를 넣는 일은 화면 버튼이
+                      // 맡으므로, 같은 이름의 버튼이 둘이 되지 않게 한다.
+                      submitLabel: _hasInput
+                          ? L.of(context).next
+                          : L.of(context).finishExercise,
+                      onStepPick: _pickStep,
+                      repeatLabel: _c.lastSet == null
+                          ? null
+                          : setLabel(
+                              value: _c.lastSet!.value,
+                              unit: _c.lastSet!.unit,
+                              reps: _c.lastSet!.reps,
+                              formatReps: L.of(context).repsCount,
+                            ),
+                      onRepeat: _c.repeatLastSet,
+                    )
+                  // 메모를 치는 동안에도 돌아올 문은 열어 둔다.
+                  : (_c.inBlock && _wantText)
+                  ? ColoredBox(
+                      color: keypadBackground.resolveFrom(context),
+                      child: SafeArea(
+                        top: false,
+                        child: SizedBox(
+                          height: 44,
+                          width: double.infinity,
+                          child: CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () {
+                              setState(() => _wantText = false);
+                              SystemChannels.textInput.invokeMethod(
+                                'TextInput.hide',
+                              );
+                              _focus.requestFocus();
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.keyboard,
+                                  size: 19,
+                                  color: seal.resolveFrom(context),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  L.of(context).numberKeypad,
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    letterSpacing: -0.41,
+                                    color: seal.resolveFrom(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    )
+                  : const SafeArea(
+                      top: false,
+                      child: SizedBox(width: double.infinity),
+                    ),
             ),
           ),
+        ),
       ],
     );
   }
@@ -795,43 +833,73 @@ class _RoutineEditorState extends State<RoutineEditor> {
     return Focus(
       key: _inputKey,
       onKeyEvent: _onKey,
-      child: CupertinoTextField(
-        controller: _input,
-        focusNode: _focus,
-        autofocus: true,
-        // 터치 기기에서 세트를 받는 중이면 읽기 전용 — 시스템 키보드를 아예
-        // 부르지 않는다. 글자는 아래 키패드가 넣는다. 데스크톱·웹에서는 물리
-        // 키보드로 그냥 치는 편이 빨라서 걸지 않는다.
-        readOnly: readOnly,
-        showCursor: true,
-        keyboardType: readOnly ? TextInputType.none : TextInputType.text,
-        textInputAction: TextInputAction.done,
-        onTap: _reopen,
-        onSubmitted: (_) =>
-            _commit(_matches.isNotEmpty ? _matches[_highlight] : null),
-        onChanged: (_) => setState(() => _highlight = 0),
-        // 운동 이름은 본문(17), 세트 줄은 숫자가 자리를 지켜야 해서 고정폭이다.
-        style: TextStyle(
-          fontSize: 17,
-          letterSpacing: bold ? -0.41 : 0,
-          fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
-          fontFamily: bold ? null : 'Menlo',
-          color: CupertinoColors.label.resolveFrom(context),
-        ),
-        // 커서는 글자 색을 따른다. 인주색은 강조하는 자리에 쓰는 것이고,
-        // 글을 쓰는 자리에서 빨간 막대가 서 있으면 무언가 잘못된 것처럼 읽힌다.
-        cursorColor: CupertinoColors.label.resolveFrom(context),
-        // 카드 안에 이미 면이 있으므로 입력 칸은 테두리를 두지 않는다.
-        decoration: const BoxDecoration(),
-        padding: EdgeInsets.symmetric(vertical: bold ? 10 : 6),
-        placeholder: bold ? L.of(context).exerciseNameHint : '100  20',
-        placeholderStyle: TextStyle(
-          fontSize: 17,
-          letterSpacing: bold ? -0.41 : 0,
-          fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
-          fontFamily: bold ? null : 'Menlo',
-          color: CupertinoColors.placeholderText.resolveFrom(context),
-        ),
+      // Reveal the field and its submit action as one editing position.
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CupertinoTextField(
+            controller: _input,
+            focusNode: _focus,
+            autofocus: true,
+            // 터치 기기에서 세트를 받는 중이면 읽기 전용 — 시스템 키보드를 아예
+            // 부르지 않는다. 글자는 아래 키패드가 넣는다. 데스크톱·웹에서는 물리
+            // 키보드로 그냥 치는 편이 빨라서 걸지 않는다.
+            readOnly: readOnly,
+            showCursor: true,
+            keyboardType: readOnly ? TextInputType.none : TextInputType.text,
+            textInputAction: TextInputAction.done,
+            onTap: _reopen,
+            onSubmitted: (_) =>
+                _commit(_matches.isNotEmpty ? _matches[_highlight] : null),
+            onChanged: (_) => setState(() => _highlight = 0),
+            // System text with tabular figures keeps the document easy to scan.
+            style: TextStyle(
+              fontSize: 17,
+              letterSpacing: bold ? -0.41 : 0,
+              fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+              fontFeatures: const [FontFeature.tabularFigures()],
+              color: CupertinoColors.label.resolveFrom(context),
+            ),
+            // The insertion cursor follows the document ink.
+            cursorColor: CupertinoColors.label.resolveFrom(context),
+            // Inline editing needs no extra field border.
+            decoration: const BoxDecoration(),
+            padding: EdgeInsets.symmetric(vertical: bold ? 10 : 6),
+            placeholder: bold ? L.of(context).exerciseNameHint : '100  20',
+            placeholderStyle: TextStyle(
+              fontSize: 17,
+              letterSpacing: bold ? -0.41 : 0,
+              fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+              fontFeatures: const [FontFeature.tabularFigures()],
+              color: CupertinoColors.placeholderText.resolveFrom(context),
+            ),
+          ),
+          if (!bold)
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size.fromHeight(44),
+              onPressed: () => _commit(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    CupertinoIcons.add,
+                    size: 17,
+                    color: seal.resolveFrom(context),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    L.of(context).addSet,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: seal.resolveFrom(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -847,7 +915,6 @@ class _BlockView extends StatelessWidget {
     required this.onOpen,
     required this.onEditNote,
     required this.onRemoveNote,
-    this.onAddSet,
   });
 
   final ExerciseBlock block;
@@ -865,9 +932,6 @@ class _BlockView extends StatelessWidget {
   /// 닫힌 카드를 눌러 그 운동을 다시 연다. 열려 있으면 null 이다.
   final VoidCallback? onOpen;
 
-  /// 카드 안의 '세트 추가'. 열려 있는 카드에만 있다.
-  final VoidCallback? onAddSet;
-
   Future<void> _confirmRemove(BuildContext context) async {
     if (await confirmRemoveExercise(context, block)) onRemoveBlock();
   }
@@ -883,16 +947,8 @@ class _BlockView extends StatelessWidget {
 
   Widget _card(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-      decoration: BoxDecoration(
-        color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
-          context,
-        ),
-        // iOS 의 목록 카드는 그림자를 쓰지 않는다. 회색 배경 위의 흰 면과
-        // 모서리 10 으로 나눈다 — 그림자는 안드로이드 쪽 관습이다.
-        borderRadius: BorderRadius.circular(10),
-      ),
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -902,17 +958,18 @@ class _BlockView extends StatelessWidget {
                 child: Text(
                   block.name,
                   style: const TextStyle(
-                    fontSize: 17,
+                    fontSize: 21,
                     fontWeight: FontWeight.w600,
-                    letterSpacing: -0.41,
+                    letterSpacing: -0.5,
                   ),
                 ),
               ),
               GestureDetector(
                 onTap: () => _confirmRemove(context),
                 behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8, bottom: 2),
+                child: SizedBox(
+                  width: 44,
+                  height: 44,
                   child: Icon(
                     CupertinoIcons.trash,
                     size: 18,
@@ -936,44 +993,11 @@ class _BlockView extends StatelessWidget {
             Padding(
               padding: EdgeInsets.only(
                 top: block.sets.isEmpty ? 2 : 4,
-                // 세트 값이 시작하는 자리와 같다(체크 32 + 세트 번호 42).
-                // 치는 숫자와 들어간 숫자가 한 줄로 서야 눈이 안 흔들린다.
-                left: 74,
+                // Align the input with the values in the checklist above it.
+                left: 86,
               ),
               child: input!,
             ),
-            // 키패드의 큰 키는 '다음'(무게→횟수)을 맡는다. 세트를 넣는 일은
-            // 화면에 둔다 — 지금 무엇을 넣는지가 보이는 자리에 있어야 한다.
-            if (onAddSet != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: SizedBox(
-                  width: double.infinity,
-                  // iOS 의 은은한 채움 버튼. 최소 높이 44 를 지킨다.
-                  child: CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    minimumSize: const Size.fromHeight(44),
-                    borderRadius: BorderRadius.circular(10),
-                    color: sealTint.resolveFrom(context),
-                    onPressed: onAddSet,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(CupertinoIcons.add, size: 18, color: seal),
-                        const SizedBox(width: 6),
-                        Text(
-                          L.of(context).addSet,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            letterSpacing: -0.41,
-                            color: seal,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
           ],
         ],
       ),
@@ -1004,13 +1028,8 @@ class _SetRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final off = !set.done;
     return Container(
-      margin: const EdgeInsets.only(top: 4),
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      decoration: BoxDecoration(
-        // 해낸 세트는 바탕이 깔린다 — 멀리서 봐도 몇 개 했는지 보인다.
-        color: off ? null : doneTint.resolveFrom(context),
-        borderRadius: BorderRadius.circular(6),
-      ),
+      constraints: const BoxConstraints(minHeight: 44),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1020,7 +1039,8 @@ class _SetRow extends StatelessWidget {
                 onTap: onToggle,
                 behavior: HitTestBehavior.opaque,
                 child: SizedBox(
-                  width: 32,
+                  width: 36,
+                  height: 36,
                   child: Icon(
                     off
                         ? CupertinoIcons.circle
@@ -1028,12 +1048,12 @@ class _SetRow extends StatelessWidget {
                     size: 19,
                     color: off
                         ? CupertinoColors.tertiaryLabel.resolveFrom(context)
-                        : CupertinoColors.systemGreen.resolveFrom(context),
+                        : seal.resolveFrom(context),
                   ),
                 ),
               ),
               SizedBox(
-                width: 42,
+                width: 50,
                 child: Text(
                   L.of(context).setOrdinal(index + 1),
                   // caption 자리. 세트 번호는 값이 아니라 이름표다.
@@ -1044,29 +1064,32 @@ class _SetRow extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                setLabel(
-                  value: set.value,
-                  unit: set.unit,
-                  reps: set.reps,
-                  formatReps: L.of(context).repsCount,
-                ),
-                style: TextStyle(
-                  // 숫자가 줄 서는 자리라 고정폭이다.
-                  fontSize: 16,
-                  fontFamily: 'Menlo',
-                  color: off
-                      ? CupertinoColors.tertiaryLabel.resolveFrom(context)
-                      : CupertinoColors.label.resolveFrom(context),
-                  decoration: off ? TextDecoration.lineThrough : null,
+              Expanded(
+                child: Text(
+                  setLabel(
+                    value: set.value,
+                    unit: set.unit,
+                    reps: set.reps,
+                    formatReps: L.of(context).repsCount,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                    color: off
+                        ? CupertinoColors.tertiaryLabel.resolveFrom(context)
+                        : CupertinoColors.label.resolveFrom(context),
+                    decoration: off ? TextDecoration.lineThrough : null,
+                  ),
                 ),
               ),
-              const Spacer(),
               GestureDetector(
                 onTap: onRemove,
                 behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8),
+                child: SizedBox(
+                  width: 32,
+                  height: 36,
                   child: Icon(
                     CupertinoIcons.xmark,
                     size: 15,
@@ -1086,7 +1109,7 @@ class _SetRow extends StatelessWidget {
               onTap: () => onEditNote(e.key),
               behavior: HitTestBehavior.opaque,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(74, 1, 24, 3),
+                padding: const EdgeInsets.fromLTRB(86, 1, 24, 6),
                 child: Text(
                   e.value,
                   style: TextStyle(
@@ -1186,7 +1209,7 @@ class SuggestionChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(100),
           border: Border.all(
             color: selected
-                ? seal
+                ? seal.resolveFrom(context)
                 : CupertinoColors.separator.resolveFrom(context),
             width: 0.5,
           ),
@@ -1198,7 +1221,9 @@ class SuggestionChip extends StatelessWidget {
             fontSize: 13,
             letterSpacing: -0.08,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-            color: selected ? seal : CupertinoColors.label.resolveFrom(context),
+            color: selected
+                ? seal.resolveFrom(context)
+                : CupertinoColors.label.resolveFrom(context),
           ),
         ),
       ),

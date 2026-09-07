@@ -18,8 +18,7 @@ class LEs extends L {
   String get copied => 'Copiado';
 
   @override
-  String get howTo =>
-      'Escribe el ejercicio y pulsa Enter → escribe la serie y pulsa Enter → Enter en línea vacía para el siguiente';
+  String get howTo => 'Busca un ejercicio y registra tus series.';
 
   @override
   String get exerciseNameHint => 'Nombre del ejercicio';
@@ -130,4 +129,16 @@ class LEs extends L {
 
   @override
   String get noteHint => 'Nota para esta serie';
+
+  @override
+  String get activeEnergy => 'Energía activa';
+
+  @override
+  String get energyUnavailable => 'Sin datos';
+
+  @override
+  String get energySource => 'Salud · Durante este registro';
+
+  @override
+  String get doneEditing => 'Listo';
 }

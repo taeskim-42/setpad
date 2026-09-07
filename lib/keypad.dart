@@ -72,6 +72,8 @@ class SetKeypad extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
+        // Keep the home-indicator space while the system keyboard is closing.
+        maintainBottomViewPadding: true,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -248,8 +250,14 @@ class _Key extends StatelessWidget {
         keyDim.resolveFrom(context),
         CupertinoColors.label.resolveFrom(context),
       ),
-      _Tone.primary => (seal, CupertinoColors.white),
-      _Tone.accent => (sealTint.resolveFrom(context), seal),
+      _Tone.primary => (
+        sealTint.resolveFrom(context),
+        seal.resolveFrom(context),
+      ),
+      _Tone.accent => (
+        sealTint.resolveFrom(context),
+        seal.resolveFrom(context),
+      ),
     };
 
     return SizedBox(
@@ -263,7 +271,7 @@ class _Key extends StatelessWidget {
           decoration: BoxDecoration(
             color: bg,
             // iOS 키패드의 키는 모서리 5 에 아주 옅은 그림자 하나다.
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(9),
             boxShadow: tone == _Tone.dim
                 ? null
                 : [
@@ -288,9 +296,11 @@ class _Key extends StatelessWidget {
                             _Tone.primary => 14.0,
                             _Tone.accent => 13.5,
                             _Tone.dim => 18.0,
-                            _Tone.plain => 20.0,
+                            _Tone.plain => 24.0,
                           },
-                          fontWeight: FontWeight.w700,
+                          fontWeight: tone == _Tone.plain
+                              ? FontWeight.w400
+                              : FontWeight.w600,
                           color: fg,
                         ),
                       ),

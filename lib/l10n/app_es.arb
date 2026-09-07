@@ -3,7 +3,7 @@
   "appTitle": "Entrenamiento de Hoy",
   "copy": "Copiar",
   "copied": "Copiado",
-  "howTo": "Escribe el ejercicio y pulsa Enter → escribe la serie y pulsa Enter → Enter en línea vacía para el siguiente",
+  "howTo": "Busca un ejercicio y registra tus series.",
   "exerciseNameHint": "Nombre del ejercicio",
   "repeatPrevious": "Igual que antes",
   "addSet": "Añadir Serie",
@@ -31,5 +31,9 @@
   "stepSizeTitle": "Paso de {unit}",
   "kcal": "{n} kcal",
   "weekdayLabel": "{d}",
-  "noteHint": "Nota para esta serie"
+  "noteHint": "Nota para esta serie",
+  "activeEnergy": "Energía activa",
+  "energyUnavailable": "Sin datos",
+  "energySource": "Salud · Durante este registro",
+  "doneEditing": "Listo"
 }

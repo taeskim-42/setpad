@@ -3,7 +3,7 @@
   "appTitle": "今日のトレーニング",
   "copy": "コピー",
   "copied": "コピーしました",
-  "howTo": "種目名を入力して Enter → セットを入力して Enter → 空行で Enter を押すと次の種目",
+  "howTo": "種目を検索してセットを記録しましょう。",
   "exerciseNameHint": "種目名",
   "repeatPrevious": "前回と同じ",
   "addSet": "セット追加",
@@ -31,5 +31,9 @@
   "stepSizeTitle": "{unit}の刻み",
   "kcal": "{n}kcal",
   "weekdayLabel": "{d}",
-  "noteHint": "このセットのメモ"
+  "noteHint": "このセットのメモ",
+  "activeEnergy": "アクティブカロリー",
+  "energyUnavailable": "記録なし",
+  "energySource": "ヘルスケア · この記録の時間帯",
+  "doneEditing": "完了"
 }

@@ -3,7 +3,7 @@
   "appTitle": "การฝึกวันนี้",
   "copy": "คัดลอก",
   "copied": "คัดลอกแล้ว",
-  "howTo": "พิมพ์ชื่อท่าแล้วกด Enter → พิมพ์เซ็ตแล้วกด Enter → กด Enter ที่บรรทัดว่างเพื่อไปท่าถัดไป",
+  "howTo": "ค้นหาท่าออกกำลังกายแล้วบันทึกเซต",
   "exerciseNameHint": "ชื่อท่า",
   "repeatPrevious": "เหมือนเซ็ตก่อน",
   "addSet": "เพิ่มเซ็ต",
@@ -31,5 +31,9 @@
   "stepSizeTitle": "ขั้นของ {unit}",
   "kcal": "{n} kcal",
   "weekdayLabel": "{d}",
-  "noteHint": "บันทึกสำหรับเซ็ตนี้"
+  "noteHint": "บันทึกสำหรับเซ็ตนี้",
+  "activeEnergy": "พลังงานจากกิจกรรม",
+  "energyUnavailable": "ไม่มีข้อมูล",
+  "energySource": "สุขภาพ · ช่วงเวลาของบันทึกนี้",
+  "doneEditing": "เสร็จสิ้น"
 }

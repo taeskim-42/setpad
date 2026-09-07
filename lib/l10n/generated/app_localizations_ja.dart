@@ -18,7 +18,7 @@ class LJa extends L {
   String get copied => 'コピーしました';
 
   @override
-  String get howTo => '種目名を入力して Enter → セットを入力して Enter → 空行で Enter を押すと次の種目';
+  String get howTo => '種目を検索してセットを記録しましょう。';
 
   @override
   String get exerciseNameHint => '種目名';
@@ -129,4 +129,16 @@ class LJa extends L {
 
   @override
   String get noteHint => 'このセットのメモ';
+
+  @override
+  String get activeEnergy => 'アクティブカロリー';
+
+  @override
+  String get energyUnavailable => '記録なし';
+
+  @override
+  String get energySource => 'ヘルスケア · この記録の時間帯';
+
+  @override
+  String get doneEditing => '完了';
 }

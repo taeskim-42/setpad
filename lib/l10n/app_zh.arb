@@ -3,7 +3,7 @@
   "appTitle": "今日训练",
   "copy": "复制",
   "copied": "已复制",
-  "howTo": "输入动作名称后按 Enter → 输入组数后按 Enter → 空行按 Enter 换下一个动作",
+  "howTo": "搜索运动名称，记录每一组。",
   "exerciseNameHint": "动作名称",
   "repeatPrevious": "同上一组",
   "addSet": "添加组",
@@ -31,5 +31,9 @@
   "stepSizeTitle": "{unit} 步进",
   "kcal": "{n} 千卡",
   "weekdayLabel": "{d}",
-  "noteHint": "这一组的备注"
+  "noteHint": "这一组的备注",
+  "activeEnergy": "活动热量",
+  "energyUnavailable": "暂无记录",
+  "energySource": "健康 · 本次记录时段",
+  "doneEditing": "完成"
 }

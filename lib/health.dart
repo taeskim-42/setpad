@@ -17,19 +17,32 @@ import 'package:health/health.dart';
 /// **실패해도 조용하다.** 권한을 안 줬거나 기기에 건강 앱이 없어도 기록 자체는
 /// 되어야 한다. 연동은 덤이지 전제가 아니다.
 class HealthLink {
-  HealthLink({Health? health}) : _health = health ?? Health();
+  HealthLink({Health? health, TargetPlatform? platform})
+    : _health = health ?? Health(),
+      _platform = platform ?? _nativePlatform;
 
   final Health _health;
+  final TargetPlatform? _platform;
   bool _configured = false;
 
-  static const _write = [HealthDataType.WORKOUT];
-  static const _read = [
-    HealthDataType.ACTIVE_ENERGY_BURNED,
-    HealthDataType.HEART_RATE,
-  ];
+  // Keep each data type and its access together so the lists cannot diverge.
+  static const _access = {
+    HealthDataType.WORKOUT: HealthDataAccess.WRITE,
+    HealthDataType.ACTIVE_ENERGY_BURNED: HealthDataAccess.READ,
+    HealthDataType.HEART_RATE: HealthDataAccess.READ,
+  };
+
+  static TargetPlatform? get _nativePlatform {
+    if (kIsWeb) return null;
+    if (Platform.isIOS) return TargetPlatform.iOS;
+    if (Platform.isAndroid) return TargetPlatform.android;
+    return null;
+  }
 
   /// 이 기기에서 쓸 수 있는가. Android 는 Health Connect 가 깔려 있어야 한다.
-  bool get supported => Platform.isIOS || Platform.isAndroid;
+  bool get supported =>
+      !kIsWeb &&
+      (_platform == TargetPlatform.iOS || _platform == TargetPlatform.android);
 
   Future<void> _ensureConfigured() async {
     if (_configured) return;
@@ -44,15 +57,13 @@ class HealthLink {
     if (!supported) return false;
     try {
       await _ensureConfigured();
-      final types = [..._write, ..._read];
-      final has = await _health.hasPermissions(
-        types,
-        permissions: [HealthDataAccess.READ_WRITE, HealthDataAccess.READ],
-      );
+      final types = _access.keys.toList();
+      final permissions = _access.values.toList();
+      final has = await _health.hasPermissions(types, permissions: permissions);
       if (has ?? false) return true;
       return await _health.requestAuthorization(
         types,
-        permissions: [HealthDataAccess.READ_WRITE, HealthDataAccess.READ],
+        permissions: permissions,
       );
     } catch (e) {
       debugPrint('건강 권한 요청 실패: $e');
@@ -69,17 +80,19 @@ class HealthLink {
     try {
       await _ensureConfigured();
       final points = await _health.getHealthDataFromTypes(
-        types: _read,
+        types: [HealthDataType.ACTIVE_ENERGY_BURNED],
         startTime: start,
         endTime: end,
       );
-      if (points.isEmpty) return null;
-      var total = 0.0;
+      double? total;
       for (final p in points) {
+        if (p.type != HealthDataType.ACTIVE_ENERGY_BURNED) continue;
         final v = p.value;
-        if (v is NumericHealthValue) total += v.numericValue.toDouble();
+        if (v is NumericHealthValue) {
+          total = (total ?? 0) + v.numericValue.toDouble();
+        }
       }
-      return total == 0 ? null : total;
+      return total;
     } catch (e) {
       debugPrint('활동 칼로리 읽기 실패: $e');
       return null;
@@ -97,7 +110,13 @@ class HealthLink {
   /// HealthKit 이 실제로 얼마나 자주 깨워 주는지가 여기 드러난다. 심박으로
   /// 휴식을 끊어 줄 수 있는지가 이 숫자에 달려 있어서 같이 낸다.
   void onBeat(
-      void Function({required int bpm, required Duration lag, Duration? sinceLastWake}) f) {
+    void Function({
+      required int bpm,
+      required Duration lag,
+      Duration? sinceLastWake,
+    })
+    f,
+  ) {
     _channel.setMethodCallHandler((call) async {
       if (call.method != 'beat') return null;
       final a = (call.arguments as Map).cast<String, dynamic>();
@@ -113,7 +132,7 @@ class HealthLink {
 
   /// 관찰을 시작한다. 권한을 거절하거나 기기가 안 되면 false.
   Future<bool> watchHeartRate() async {
-    if (!Platform.isIOS) return false;
+    if (!supported || _platform != TargetPlatform.iOS) return false;
     try {
       return await _channel.invokeMethod<bool>('start') ?? false;
     } catch (e) {
@@ -123,7 +142,7 @@ class HealthLink {
   }
 
   Future<void> unwatchHeartRate() async {
-    if (!Platform.isIOS) return;
+    if (!supported || _platform != TargetPlatform.iOS) return;
     try {
       await _channel.invokeMethod<bool>('stop');
     } catch (e) {

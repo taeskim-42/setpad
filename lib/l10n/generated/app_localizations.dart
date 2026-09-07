@@ -127,10 +127,10 @@ abstract class L {
   /// **'복사했습니다'**
   String get copied;
 
-  /// 첫 화면 안내. 화살표는 그대로 둔다
+  /// Short guidance for starting a workout entry.
   ///
   /// In ko, this message translates to:
-  /// **'운동 이름을 치고 Enter → 세트를 치고 Enter → 빈 줄에서 Enter면 다음 운동'**
+  /// **'운동 이름을 검색하고 세트를 기록하세요.'**
   String get howTo;
 
   /// No description provided for @exerciseNameHint.
@@ -300,6 +300,30 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'이 세트에 남길 메모'**
   String get noteHint;
+
+  /// No description provided for @activeEnergy.
+  ///
+  /// In ko, this message translates to:
+  /// **'활동 칼로리'**
+  String get activeEnergy;
+
+  /// No description provided for @energyUnavailable.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록 없음'**
+  String get energyUnavailable;
+
+  /// No description provided for @energySource.
+  ///
+  /// In ko, this message translates to:
+  /// **'건강 앱 · 기록 시간대'**
+  String get energySource;
+
+  /// No description provided for @doneEditing.
+  ///
+  /// In ko, this message translates to:
+  /// **'완료'**
+  String get doneEditing;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

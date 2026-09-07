@@ -3,7 +3,7 @@
   "appTitle": "Buổi Tập Hôm Nay",
   "copy": "Sao chép",
   "copied": "Đã sao chép",
-  "howTo": "Nhập tên bài tập rồi Enter → nhập hiệp rồi Enter → Enter ở dòng trống để sang bài kế",
+  "howTo": "Tìm bài tập rồi ghi lại các hiệp.",
   "exerciseNameHint": "Tên bài tập",
   "repeatPrevious": "Như hiệp trước",
   "addSet": "Thêm Hiệp",
@@ -31,5 +31,9 @@
   "stepSizeTitle": "Bước {unit}",
   "kcal": "{n} kcal",
   "weekdayLabel": "{d}",
-  "noteHint": "Ghi chú cho hiệp này"
+  "noteHint": "Ghi chú cho hiệp này",
+  "activeEnergy": "Năng lượng hoạt động",
+  "energyUnavailable": "Chưa có dữ liệu",
+  "energySource": "Sức khỏe · Trong thời gian ghi lại",
+  "doneEditing": "Xong"
 }

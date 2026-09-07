@@ -15,14 +15,16 @@ library;
 
 import 'package:flutter/cupertino.dart';
 
-/// 인주색. 이 앱의 유일한 강조색이고 밝기와 무관하게 같다 —
-/// 아이콘·앱스토어 자산이 이 색이라 바뀌면 앱이 달라 보인다.
-const seal = Color(0xFFC3372A);
+/// Warm ink for document actions, with readable contrast in either appearance.
+const seal = CupertinoDynamicColor.withBrightness(
+  color: Color(0xFF966300),
+  darkColor: Color(0xFFE9B949),
+);
 
-/// 인주색을 아주 옅게 깐 바탕. 강조 버튼과 고른 항목에 쓴다.
+/// Soft amber fill for document actions and selected suggestions.
 const sealTint = CupertinoDynamicColor.withBrightness(
-  color: Color(0xFFF7E9E6),
-  darkColor: Color(0xFF3A2321),
+  color: Color(0xFFF8F0DB),
+  darkColor: Color(0xFF332B19),
 );
 
 /// 해낸 세트 줄에 깔리는 옅은 초록.
@@ -33,7 +35,7 @@ const doneTint = CupertinoDynamicColor.withBrightness(
 
 /// 키패드 바탕. iOS 키보드가 자판 뒤에 까는 그 회색 자리다.
 const keypadBackground = CupertinoDynamicColor.withBrightness(
-  color: Color(0xFFD8D9DE),
+  color: Color(0xFFE9E9ED),
   darkColor: Color(0xFF1C1C1E),
 );
 
@@ -45,7 +47,7 @@ const keyFace = CupertinoDynamicColor.withBrightness(
 
 /// 기능 키. 숫자 키보다 한 단계 눌러 둔다 — iOS 키보드의 얼개다.
 const keyDim = CupertinoDynamicColor.withBrightness(
-  color: Color(0xFFBEC0C7),
+  color: Color(0xFFD8D9DF),
   darkColor: Color(0xFF2C2C2E),
 );
 

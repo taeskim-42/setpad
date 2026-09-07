@@ -18,8 +18,7 @@ class LTh extends L {
   String get copied => 'คัดลอกแล้ว';
 
   @override
-  String get howTo =>
-      'พิมพ์ชื่อท่าแล้วกด Enter → พิมพ์เซ็ตแล้วกด Enter → กด Enter ที่บรรทัดว่างเพื่อไปท่าถัดไป';
+  String get howTo => 'ค้นหาท่าออกกำลังกายแล้วบันทึกเซต';
 
   @override
   String get exerciseNameHint => 'ชื่อท่า';
@@ -130,4 +129,16 @@ class LTh extends L {
 
   @override
   String get noteHint => 'บันทึกสำหรับเซ็ตนี้';
+
+  @override
+  String get activeEnergy => 'พลังงานจากกิจกรรม';
+
+  @override
+  String get energyUnavailable => 'ไม่มีข้อมูล';
+
+  @override
+  String get energySource => 'สุขภาพ · ช่วงเวลาของบันทึกนี้';
+
+  @override
+  String get doneEditing => 'เสร็จสิ้น';
 }

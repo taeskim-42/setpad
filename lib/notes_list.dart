@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
+import 'health_summary.dart';
+import 'palette.dart';
 
 /// 운동 기록 목록.
 ///
@@ -33,7 +35,9 @@ class _NotesListPageState extends State<NotesListPage> {
   List<Note> get _visible {
     final q = _query.text.trim().toLowerCase();
     final all = widget.store.notes;
-    return q.isEmpty ? all : all.where((n) => n.searchText.contains(q)).toList();
+    return q.isEmpty
+        ? all
+        : all.where((n) => n.searchText.contains(q)).toList();
   }
 
   /// 이전 7일 / 이전 30일 / 그 앞은 달로. 메모 앱과 같은 구간이다.
@@ -74,17 +78,38 @@ class _NotesListPageState extends State<NotesListPage> {
                   slivers: [
                     // 큰 제목은 스크롤하면 가운데 작은 제목으로 접힌다. iOS
                     // 목록 화면의 기본 동작이고, 직접 흉내 내면 티가 난다.
-                    CupertinoSliverNavigationBar(largeTitle: Text(l.allNotes)),
+                    CupertinoSliverNavigationBar(
+                      largeTitle: Text(l.allNotes),
+                      border: null,
+                    ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
+                        child: Text(
+                          l.noteCount(_visible.length),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: CupertinoColors.secondaryLabel.resolveFrom(
+                              context,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     if (groups.isEmpty)
                       SliverFillRemaining(
                         hasScrollBody: false,
                         child: Center(
                           child: Text(
-                            _query.text.isEmpty ? l.noNotesYet : l.noSearchResults,
+                            _query.text.isEmpty
+                                ? l.noNotesYet
+                                : l.noSearchResults,
                             style: TextStyle(
                               fontSize: 17,
                               letterSpacing: -0.41,
-                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                              color: CupertinoColors.secondaryLabel.resolveFrom(
+                                context,
+                              ),
                             ),
                           ),
                         ),
@@ -138,21 +163,23 @@ class _Group extends StatelessWidget {
       children: [
         Padding(
           // 좌우 16 은 iOS 의 기본 여백(_kNavBarEdgePadding)과 같은 값이다.
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
           child: Text(
             title,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.35,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
             ),
           ),
         ),
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
+          margin: const EdgeInsets.symmetric(horizontal: 20),
           decoration: BoxDecoration(
-            color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context),
-            borderRadius: BorderRadius.circular(10),
+            color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
+              context,
+            ),
+            borderRadius: BorderRadius.circular(16),
           ),
           clipBehavior: Clip.antiAlias,
           child: Column(
@@ -178,18 +205,12 @@ class _Group extends StatelessWidget {
   }
 }
 
-/// 목록에 붙는 시각.
-///
-/// 이번 주 것은 요일로, 그보다 오래된 것은 날짜로 낸다. 메모 앱이 그렇게 하고,
-/// 실제로도 어제 친 것을 "2026. 9. 4." 로 읽는 사람은 없다.
-String _when(L l, DateTime at) {
-  final now = DateTime.now();
-  final days = now.difference(at).inDays;
-  return days < 7 ? l.weekdayLabel(at) : l.dayLabel(at);
-}
-
 class _Row extends StatelessWidget {
-  const _Row({required this.note, required this.onOpen, required this.onDelete});
+  const _Row({
+    required this.note,
+    required this.onOpen,
+    required this.onDelete,
+  });
 
   final Note note;
   final void Function(Note) onOpen;
@@ -198,11 +219,7 @@ class _Row extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final summary = [
-      note.summary(setOrdinal: l.setOrdinal, reps: l.repsCount),
-      // 워치가 잰 값이 있을 때만. 앱이 추정한 숫자가 아니다.
-      if (note.calories != null) l.kcal(note.calories!.round()),
-    ].where((s) => s.isNotEmpty).join(' · ');
+    final summary = note.summary(setOrdinal: l.setOrdinal, reps: l.repsCount);
 
     return Dismissible(
       key: ValueKey(note.id),
@@ -221,7 +238,7 @@ class _Row extends StatelessWidget {
         child: Container(
           // 최소 44 는 iOS 의 최소 터치 크기(kMinInteractiveDimensionCupertino).
           constraints: const BoxConstraints(minHeight: 44),
-          padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+          padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
           child: Row(
             children: [
               Expanded(
@@ -231,38 +248,49 @@ class _Row extends StatelessWidget {
                   children: [
                     Text(
                       note.title ?? l.untitledNote,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         // 본문 17pt, 자간 -0.41 — iOS 의 body 다.
                         fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
                         letterSpacing: -0.41,
                         color: note.title == null
-                            ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                            ? CupertinoColors.secondaryLabel.resolveFrom(
+                                context,
+                              )
                             : CupertinoColors.label.resolveFrom(context),
                       ),
                     ),
                     ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 5),
                       Text(
-                        [_when(l, note.updatedAt), if (summary.isNotEmpty) summary]
-                            .join('  '),
+                        [
+                          l.dayLabel(note.createdAt),
+                          l.weekdayLabel(note.createdAt),
+                          if (summary.isNotEmpty) summary,
+                        ].join('  '),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           // 부제는 footnote 13pt.
                           fontSize: 13,
                           letterSpacing: -0.08,
-                          color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                          color: CupertinoColors.secondaryLabel.resolveFrom(
+                            context,
+                          ),
                         ),
                       ),
+                      const SizedBox(height: 9),
+                      HealthSummary(calories: note.calories, showSource: true),
                     ],
                   ],
                 ),
               ),
               Icon(
                 CupertinoIcons.chevron_forward,
-                size: 16,
+                size: 13,
                 color: CupertinoColors.tertiaryLabel.resolveFrom(context),
               ),
             ],
@@ -312,12 +340,19 @@ class _SearchBar extends StatelessWidget {
                 controller: controller,
                 onChanged: onChanged,
                 placeholder: L.of(context).search,
+                borderRadius: BorderRadius.circular(22),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 11,
+                ),
               ),
             ),
             const SizedBox(width: 8),
             CupertinoButton(
               padding: EdgeInsets.zero,
               minimumSize: const Size(44, 44),
+              color: sealTint.resolveFrom(context),
+              borderRadius: BorderRadius.circular(22),
               onPressed: onNew,
               child: const Icon(CupertinoIcons.square_pencil, size: 24),
             ),

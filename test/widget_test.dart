@@ -159,10 +159,8 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
       expect(inPad('벤치프레스'), findsOneWidget);
-      // 첫 운동 이름이 곧 메모 제목이다 — 앱바에도 같이 뜬다.
-      expect(find.descendant(
-              of: find.byType(CupertinoNavigationBar), matching: find.text('벤치프레스')),
-          findsOneWidget);
+      // The exercise lives in the document; navigation remains a toolbar.
+      expect(inPad('오늘 운동'), findsOneWidget);
 
       // 세트 칸은 터치 기기에서 읽기 전용이다 — 시스템 키보드를 부르지 않고
       // 키패드가 글자를 넣는다. 실제 사용 경로가 그쪽이므로 여기서도 그렇게 친다.
@@ -187,7 +185,7 @@ void main() {
 
     testWidgets('빈 화면에는 쓰는 법이 적혀 있다', (tester) async {
       await pumpApp(tester);
-      expect(find.textContaining('운동 이름을 치고 Enter'), findsOneWidget);
+      expect(find.textContaining('운동 이름을 검색하고'), findsOneWidget);
     });
   });
 
@@ -341,7 +339,7 @@ void keypadTests() {
       await tester.tap(find.text('Bench Press'));
       await settle(tester);
       // 아직 아무 숫자도 안 쳤으므로 큰 키는 '다음'이 아니라 '끝내기'다.
-      expect(find.text('Done'), findsOneWidget);
+      expect(inPad('Done'), findsOneWidget);
 
       // 세트 칸은 읽기 전용이라 키패드로만 친다 — 실제 사용 경로도 그쪽이다.
       Finder key(String label) => find.descendant(
@@ -425,7 +423,7 @@ void keypadTests() {
       // 열자마자 패드다 — 목록을 거치게 하지 않는다. (키패드는 운동 이름을
       // 친 뒤 세트를 받을 때 뜨므로, 여는 순간의 증거는 패드 자체다.)
       expect(find.byType(RoutineEditor), findsOneWidget);
-      expect(find.text('모든 운동'), findsNothing);
+      expect(find.byType(CupertinoSliverNavigationBar), findsNothing);
 
       await tester.enterText(padField, '스쿼트');
       await tester.testTextInput.receiveAction(TextInputAction.done);
@@ -1133,9 +1131,12 @@ void keypadTests() {
       await settle(tester);
       for (var i = 0; i < 12; i++) {
         await tapKeys(tester, '100 10');
-        await tester.tap(addSetButton);
+        // The inline button can be below the viewport in a long card.
+        await tester.tap(padKey('다음'));
         await settle(tester);
       }
+      expect(tester.widget<RoutineEditor>(find.byType(RoutineEditor))
+          .controller.blocks.single.sets, hasLength(12));
 
       // 바닥에 딱 붙어 있을 필요는 없다. 방금 친 자리가 **보이면** 된다 —
       // 맨 아래로 던지면 앞 카드가 화면 밖으로 튀어 나갔다 되돌아온다.

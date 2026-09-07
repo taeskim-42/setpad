@@ -3,7 +3,7 @@
   "appTitle": "今日訓練",
   "copy": "複製",
   "copied": "已複製",
-  "howTo": "輸入動作名稱後按 Enter → 輸入組數後按 Enter → 空行按 Enter 換下一個動作",
+  "howTo": "搜尋運動名稱，記錄每一組。",
   "exerciseNameHint": "動作名稱",
   "repeatPrevious": "同上一組",
   "addSet": "新增組",
@@ -31,5 +31,9 @@
   "stepSizeTitle": "{unit} 級距",
   "kcal": "{n} 千卡",
   "weekdayLabel": "{d}",
-  "noteHint": "這一組的備註"
+  "noteHint": "這一組的備註",
+  "activeEnergy": "活動熱量",
+  "energyUnavailable": "暫無紀錄",
+  "energySource": "健康 · 本次紀錄時段",
+  "doneEditing": "完成"
 }

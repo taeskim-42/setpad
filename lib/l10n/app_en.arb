@@ -3,7 +3,7 @@
   "appTitle": "Today's Workout",
   "copy": "Copy",
   "copied": "Copied",
-  "howTo": "Type an exercise and hit Enter → type a set and hit Enter → Enter on an empty line for the next exercise",
+  "howTo": "Type an exercise, then log your sets.",
   "exerciseNameHint": "Exercise name",
   "repeatPrevious": "Same as last",
   "addSet": "Add Set",
@@ -31,5 +31,9 @@
   "stepSizeTitle": "{unit} step",
   "kcal": "{n} kcal",
   "weekdayLabel": "{d}",
-  "noteHint": "Note for this set"
+  "noteHint": "Note for this set",
+  "activeEnergy": "Active energy",
+  "energyUnavailable": "No data",
+  "energySource": "Health · During this entry",
+  "doneEditing": "Done"
 }
