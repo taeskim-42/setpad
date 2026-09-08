@@ -25,7 +25,10 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 SS = 4                                     # 수퍼샘플링 배율
-SEAL = (0xC3, 0x37, 0x2A, 255)             # 인주색 — lib/main.dart 의 _seal
+# 앱 안의 강조색과 같아야 한다 — lib/palette.dart 의 seal(밝을 때 값).
+# 예전에는 인주 빨강(0xC3372A)이었는데 앱이 호박색으로 바뀌면서 아이콘만
+# 남아 어긋났다. 아이콘과 앱이 다른 색이면 같은 앱으로 안 읽힌다.
+SEAL = (0x96, 0x63, 0x00, 255)             # #966300
 WHITE = (255, 255, 255, 255)
 MONO = '/System/Library/Fonts/Menlo.ttc'   # index 1 = Bold. 앱의 monospace 와 결을 맞춘다
 GREY = (0.9137, 0.9137, 0.9255)            # #E9E9EC — scaffoldBackgroundColor
