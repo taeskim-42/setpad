@@ -312,7 +312,7 @@ class LTh extends L {
 
   @override
   String answerChart(String name, int n) {
-    return '$name · น้ำหนักที่บันทึก $n วัน';
+    return '$name · บันทึก $n วัน';
   }
 
   @override
@@ -323,5 +323,110 @@ class LTh extends L {
   @override
   String answerSets(int n) {
     return '$n เซต';
+  }
+
+  @override
+  String timingBpm(int n) {
+    return '$n BPM';
+  }
+
+  @override
+  String timingProtocol(int work, int rest, int rounds) {
+    return 'ทาบาตะ $workวิ / $restวิ · $rounds รอบ';
+  }
+
+  @override
+  String timingRound(int n, int total) {
+    return 'รอบ $n/$total';
+  }
+
+  @override
+  String get timingMetronome => 'เครื่องเคาะจังหวะ';
+
+  @override
+  String get timingReady => 'เตรียม';
+
+  @override
+  String get timingWork => 'ออกแรง';
+
+  @override
+  String get timingRest => 'พัก';
+
+  @override
+  String get timingComplete => 'เสร็จสิ้น';
+
+  @override
+  String get timingStart => 'เริ่ม';
+
+  @override
+  String get timingPause => 'หยุดชั่วคราว';
+
+  @override
+  String get timingReset => 'รีเซ็ต';
+
+  @override
+  String get timingInvalid =>
+      'ใช้ 20–300 BPM ออกแรง/พัก 1–600 วินาที และ 1–99 รอบ';
+
+  @override
+  String get timingSoundFailed => 'เล่นเสียงไม่ได้ แต่ตัวจับเวลายังทำงาน';
+
+  @override
+  String get queryTitle => 'ถามจากบันทึก';
+
+  @override
+  String get queryReadyBody =>
+      'ถามว่า “สควอตหนักสุดเท่าไร” “เดือนก่อนวิดพื้นกี่ครั้ง” หรือ “เบนช์เดือนนี้ดีขึ้นไหม” AI บนอุปกรณ์ตีความคำถามแล้วคำนวณจากบันทึก';
+
+  @override
+  String get queryManualBody =>
+      'คำถามภาษาธรรมชาติต้องใช้ AI บนอุปกรณ์ที่พร้อมใช้งาน ค้นหาชื่อท่าและโน้ตได้เสมอ';
+
+  @override
+  String get queryWorking => 'กำลังตีความคำถาม…';
+
+  @override
+  String get queryFailed => 'ไม่สามารถโหลดคำตอบได้ โปรดลองอีกครั้ง';
+
+  @override
+  String get queryUnsupported => 'โปรดถามเกี่ยวกับบันทึกการออกกำลังกายของคุณ';
+
+  @override
+  String get queryNoData =>
+      'ไม่มีบันทึกที่ทำสำเร็จตรงเงื่อนไข หรือข้อมูลที่จำเป็นไม่ครบ';
+
+  @override
+  String queryPeriod(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get queryAllTime => 'ทุกช่วงเวลา';
+
+  @override
+  String get queryPresent => 'ปัจจุบัน';
+
+  @override
+  String get queryRepUnit => 'ครั้ง';
+
+  @override
+  String get querySetUnit => 'เซต';
+
+  @override
+  String get queryDayUnit => 'วัน';
+
+  @override
+  String get queryAverage => 'น้ำหนักเฉลี่ยต่อเซต';
+
+  @override
+  String get queryMissingData =>
+      'บันทึกไม่มีท่าหรือค่าที่วัดซึ่งจำเป็นต่อคำถามนี้';
+
+  @override
+  String get queryAmbiguous => 'โปรดระบุท่าและบันทึกที่ต้องการให้ชัดเจนขึ้น';
+
+  @override
+  String queryRank(int n) {
+    return 'อันดับ $n';
   }
 }

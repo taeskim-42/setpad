@@ -304,7 +304,7 @@ class LZh extends L {
 
   @override
   String answerChart(String name, int n) {
-    return '$name · $n天重量记录';
+    return '$name · $n天记录';
   }
 
   @override
@@ -315,6 +315,107 @@ class LZh extends L {
   @override
   String answerSets(int n) {
     return '$n组';
+  }
+
+  @override
+  String timingBpm(int n) {
+    return '$n BPM';
+  }
+
+  @override
+  String timingProtocol(int work, int rest, int rounds) {
+    return '塔巴塔 $work秒 / $rest秒 · $rounds轮';
+  }
+
+  @override
+  String timingRound(int n, int total) {
+    return '第$n/$total轮';
+  }
+
+  @override
+  String get timingMetronome => '节拍器';
+
+  @override
+  String get timingReady => '准备';
+
+  @override
+  String get timingWork => '运动';
+
+  @override
+  String get timingRest => '休息';
+
+  @override
+  String get timingComplete => '完成';
+
+  @override
+  String get timingStart => '开始';
+
+  @override
+  String get timingPause => '暂停';
+
+  @override
+  String get timingReset => '重置';
+
+  @override
+  String get timingInvalid => '请输入20–300 BPM、运动/休息1–600秒、1–99轮。';
+
+  @override
+  String get timingSoundFailed => '无法播放声音，计时器仍在运行。';
+
+  @override
+  String get queryTitle => '询问记录';
+
+  @override
+  String get queryReadyBody =>
+      '可以问“深蹲最重是多少？”“上个月做了多少俯卧撑？”“这个月卧推有进步吗？”。设备端AI理解问题，并从已保存的记录计算数值。';
+
+  @override
+  String get queryManualBody => '自然语言提问需要设备端AI准备就绪。运动名称和备注搜索始终可用。';
+
+  @override
+  String get queryWorking => '正在理解问题…';
+
+  @override
+  String get queryFailed => '无法获取回答，请重试。';
+
+  @override
+  String get queryUnsupported => '请提出与运动记录有关的问题。';
+
+  @override
+  String get queryNoData => '没有符合条件的已完成记录，或缺少计算所需数值。';
+
+  @override
+  String queryPeriod(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get queryAllTime => '全部时间';
+
+  @override
+  String get queryPresent => '现在';
+
+  @override
+  String get queryRepUnit => '次';
+
+  @override
+  String get querySetUnit => '组';
+
+  @override
+  String get queryDayUnit => '天';
+
+  @override
+  String get queryAverage => '每组平均重量';
+
+  @override
+  String get queryMissingData => '记录中没有此问题所需的运动或测量信息。';
+
+  @override
+  String get queryAmbiguous => '请具体说明你指的是哪项运动的什么记录。';
+
+  @override
+  String queryRank(int n) {
+    return '第$n名';
   }
 }
 
@@ -618,7 +719,7 @@ class LZhHans extends LZh {
 
   @override
   String answerChart(String name, int n) {
-    return '$name · $n天重量记录';
+    return '$name · $n天记录';
   }
 
   @override
@@ -629,6 +730,107 @@ class LZhHans extends LZh {
   @override
   String answerSets(int n) {
     return '$n组';
+  }
+
+  @override
+  String timingBpm(int n) {
+    return '$n BPM';
+  }
+
+  @override
+  String timingProtocol(int work, int rest, int rounds) {
+    return '塔巴塔 $work秒 / $rest秒 · $rounds轮';
+  }
+
+  @override
+  String timingRound(int n, int total) {
+    return '第$n/$total轮';
+  }
+
+  @override
+  String get timingMetronome => '节拍器';
+
+  @override
+  String get timingReady => '准备';
+
+  @override
+  String get timingWork => '运动';
+
+  @override
+  String get timingRest => '休息';
+
+  @override
+  String get timingComplete => '完成';
+
+  @override
+  String get timingStart => '开始';
+
+  @override
+  String get timingPause => '暂停';
+
+  @override
+  String get timingReset => '重置';
+
+  @override
+  String get timingInvalid => '请输入20–300 BPM、运动/休息1–600秒、1–99轮。';
+
+  @override
+  String get timingSoundFailed => '无法播放声音，计时器仍在运行。';
+
+  @override
+  String get queryTitle => '询问记录';
+
+  @override
+  String get queryReadyBody =>
+      '可以问“深蹲最重是多少？”“上个月做了多少俯卧撑？”“这个月卧推有进步吗？”。设备端AI理解问题，并从已保存的记录计算数值。';
+
+  @override
+  String get queryManualBody => '自然语言提问需要设备端AI准备就绪。运动名称和备注搜索始终可用。';
+
+  @override
+  String get queryWorking => '正在理解问题…';
+
+  @override
+  String get queryFailed => '无法获取回答，请重试。';
+
+  @override
+  String get queryUnsupported => '请提出与运动记录有关的问题。';
+
+  @override
+  String get queryNoData => '没有符合条件的已完成记录，或缺少计算所需数值。';
+
+  @override
+  String queryPeriod(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get queryAllTime => '全部时间';
+
+  @override
+  String get queryPresent => '现在';
+
+  @override
+  String get queryRepUnit => '次';
+
+  @override
+  String get querySetUnit => '组';
+
+  @override
+  String get queryDayUnit => '天';
+
+  @override
+  String get queryAverage => '每组平均重量';
+
+  @override
+  String get queryMissingData => '记录中没有此问题所需的运动或测量信息。';
+
+  @override
+  String get queryAmbiguous => '请具体说明你指的是哪项运动的什么记录。';
+
+  @override
+  String queryRank(int n) {
+    return '第$n名';
   }
 }
 
@@ -932,7 +1134,7 @@ class LZhHant extends LZh {
 
   @override
   String answerChart(String name, int n) {
-    return '$name · $n天重量紀錄';
+    return '$name · $n天紀錄';
   }
 
   @override
@@ -943,5 +1145,106 @@ class LZhHant extends LZh {
   @override
   String answerSets(int n) {
     return '$n組';
+  }
+
+  @override
+  String timingBpm(int n) {
+    return '$n BPM';
+  }
+
+  @override
+  String timingProtocol(int work, int rest, int rounds) {
+    return '塔巴塔 $work秒 / $rest秒 · $rounds輪';
+  }
+
+  @override
+  String timingRound(int n, int total) {
+    return '第$n/$total輪';
+  }
+
+  @override
+  String get timingMetronome => '節拍器';
+
+  @override
+  String get timingReady => '準備';
+
+  @override
+  String get timingWork => '運動';
+
+  @override
+  String get timingRest => '休息';
+
+  @override
+  String get timingComplete => '完成';
+
+  @override
+  String get timingStart => '開始';
+
+  @override
+  String get timingPause => '暫停';
+
+  @override
+  String get timingReset => '重設';
+
+  @override
+  String get timingInvalid => '請輸入20–300 BPM、運動/休息1–600秒、1–99輪。';
+
+  @override
+  String get timingSoundFailed => '無法播放聲音，計時器仍在運行。';
+
+  @override
+  String get queryTitle => '詢問紀錄';
+
+  @override
+  String get queryReadyBody =>
+      '可以問「深蹲最重是多少？」「上個月做了多少伏地挺身？」「這個月臥推有進步嗎？」。裝置端AI理解問題，並從已儲存的紀錄計算數值。';
+
+  @override
+  String get queryManualBody => '自然語言提問需要裝置端AI準備就緒。運動名稱和備註搜尋隨時可用。';
+
+  @override
+  String get queryWorking => '正在理解問題…';
+
+  @override
+  String get queryFailed => '無法取得回答，請再試一次。';
+
+  @override
+  String get queryUnsupported => '請提出與運動紀錄有關的問題。';
+
+  @override
+  String get queryNoData => '沒有符合條件的已完成紀錄，或缺少計算所需數值。';
+
+  @override
+  String queryPeriod(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get queryAllTime => '全部時間';
+
+  @override
+  String get queryPresent => '現在';
+
+  @override
+  String get queryRepUnit => '次';
+
+  @override
+  String get querySetUnit => '組';
+
+  @override
+  String get queryDayUnit => '天';
+
+  @override
+  String get queryAverage => '每組平均重量';
+
+  @override
+  String get queryMissingData => '紀錄中沒有此問題所需的運動或測量資訊。';
+
+  @override
+  String get queryAmbiguous => '請具體說明你指的是哪項運動的什麼紀錄。';
+
+  @override
+  String queryRank(int n) {
+    return '第$n名';
   }
 }

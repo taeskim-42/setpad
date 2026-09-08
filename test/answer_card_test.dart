@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import 'package:setpad/local_ai.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/answer_card.dart';
@@ -58,21 +61,6 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
-
-  test('questions require an explicit metric and unambiguous exercise', () {
-    const names = ['벤치프레스', '스쿼트'];
-    expect(recordQuestion('벤치 최고', names), (
-      metric: Metric.max,
-      exercise: '벤치프레스',
-    ));
-    expect(recordQuestion('스쿼트 추이', names)?.metric, Metric.trend);
-    for (final text in ['', '벤치', '최고', '없는 운동 최고', '벤치 최고 머신']) {
-      expect(recordQuestion(text, names), isNull);
-    }
-    expect(recordQuestion('벤치 최고', ['벤치프레스', '인클라인 벤치프레스']), isNull);
-    expect(recordQuestion('최고 머신', ['최고 머신']), isNull);
-    expect(recordQuestion('bench best', ['Bench press'])?.metric, Metric.max);
-  });
 
   test('weight units are comparable without mutating saved records', () {
     final mixed = [
@@ -163,25 +151,73 @@ void main() {
   testWidgets(
     'search places an answer above matching records and clears it for ordinary searches',
     (tester) async {
+      const channel = MethodChannel('test/answer_query');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == 'status') return 'available';
+            if (call.method == 'cancel') return null;
+            final question =
+                jsonDecode(
+                      (call.arguments as Map)['prompt'] as String,
+                    )['question']
+                    as String;
+            if (!question.contains('최고') && !question.contains('추이')) {
+              return {
+                'kind': 'search',
+                'compare': false,
+                'queries': [],
+                'searchNames': [],
+              };
+            }
+            if (question.contains('데드리프트')) {
+              return {
+                'kind': 'unsupported',
+                'compare': false,
+                'queries': [],
+                'searchNames': [],
+              };
+            }
+            return {
+              'kind': 'answer',
+              'compare': false,
+              'searchNames': [],
+              'queries': [
+                {
+                  'exercise': question.contains('스쿼트') ? '스쿼트' : '벤치프레스',
+                  'metric': 'max',
+                },
+              ],
+            };
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
       final store = _Records(notes);
       await tester.pumpWidget(
         CupertinoApp(
           locale: const Locale('ko'),
           localizationsDelegates: L.localizationsDelegates,
           supportedLocales: L.supportedLocales,
-          home: NotesListPage(store: store, onOpen: (_) {}),
+          home: NotesListPage(
+            store: store,
+            onOpen: (_) {},
+            localAi: const LocalAi(channel: channel, nativeSupported: true),
+          ),
         ),
       );
       await tester.pumpAndSettle();
       final search = find.byType(CupertinoSearchTextField);
       for (final text in ['벤치 최고', '스쿼트 추이']) {
         await tester.enterText(search, text);
+        await tester.pump(const Duration(seconds: 1));
         await tester.pumpAndSettle();
         expect(find.byType(AnswerCard), findsOneWidget);
         expect(find.text('검색 결과가 없습니다'), findsNothing);
       }
       for (final text in ['벤치', '', '데드리프트 최고']) {
         await tester.enterText(search, text);
+        await tester.pump(const Duration(seconds: 1));
         await tester.pumpAndSettle();
         expect(find.byType(AnswerCard), findsNothing);
       }

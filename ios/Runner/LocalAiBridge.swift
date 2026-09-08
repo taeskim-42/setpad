@@ -21,6 +21,17 @@ private struct ExerciseSetupResponse: Codable {
   var repsOnly: Bool
 }
 
+@available(iOS 26.0, *)
+@Generable
+private struct RecordAnswerResponse: Codable {
+  @Guide(description: "A concise answer in the user's language grounded in the supplied record facts, or a specific explanation of missing evidence.")
+  var text: String
+  @Guide(description: "True only when the evidence supports the answer.")
+  var hasEvidence: Bool
+  @Guide(description: "Exact IDs of the supplied facts supporting the answer. Never invent IDs.")
+  var sources: [String]
+}
+
 @MainActor
 final class LocalAiBridge {
   private let channel: FlutterMethodChannel
@@ -36,6 +47,8 @@ final class LocalAiBridge {
         switch call.method {
         case "status": result(self.status(locale))
         case "interpret": self.interpret(args, locale: locale, result: result)
+        case "query": self.query(args, locale: locale, result: result)
+        case "answerRecords": self.query(args, locale: locale, answering: true, result: result)
         case "cancel": self.generation?.cancel(); result(nil)
         // Apple manages model downloads and Apple Intelligence settings.
         case "prepare": result(nil)
@@ -55,6 +68,33 @@ final class LocalAiBridge {
     case .unavailable(.appleIntelligenceNotEnabled): return "intelligenceDisabled"
     case .unavailable(.modelNotReady): return "modelNotReady"
     @unknown default: return "unavailable"
+    }
+  }
+
+  private func query(_ args: [String: Any], locale: String, answering: Bool = false, result: @escaping FlutterResult) {
+    guard #available(iOS 26.0, *), status(locale) == "available" else {
+      result(FlutterError(code: "unavailable", message: nil, details: nil)); return
+    }
+    guard generation == nil else { result(FlutterError(code: "busy", message: nil, details: nil)); return }
+    guard let prompt = args["input"] as? String, let instructions = args["instructions"] as? String,
+          prompt.count <= 12000 else { result(FlutterError(code: "invalidInput", message: nil, details: nil)); return }
+    generation = Task { @MainActor in
+      defer { generation = nil }
+      do {
+        let session = LanguageModelSession(instructions: instructions)
+        let data: Data
+        if answering {
+          let response = try await session.respond(to: prompt, generating: RecordAnswerResponse.self,
+            options: GenerationOptions(sampling: .greedy, maximumResponseTokens: 700))
+          data = try JSONEncoder().encode(response.content)
+        } else {
+          let response = try await session.respond(to: prompt,
+            options: GenerationOptions(sampling: .greedy, maximumResponseTokens: 1000))
+          data = Data(response.content.utf8)
+        }
+        try Task.checkCancellation()
+        result(String(decoding: data, as: UTF8.self))
+      } catch { result(FlutterError(code: "generationFailed", message: nil, details: nil)) }
     }
   }
 

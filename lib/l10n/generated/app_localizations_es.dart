@@ -312,7 +312,7 @@ class LEs extends L {
 
   @override
   String answerChart(String name, int n) {
-    return '$name · peso en $n días registrados';
+    return '$name · $n días registrados';
   }
 
   @override
@@ -323,5 +323,113 @@ class LEs extends L {
   @override
   String answerSets(int n) {
     return '$n series';
+  }
+
+  @override
+  String timingBpm(int n) {
+    return '$n BPM';
+  }
+
+  @override
+  String timingProtocol(int work, int rest, int rounds) {
+    return 'Tabata ${work}s / ${rest}s · $rounds rondas';
+  }
+
+  @override
+  String timingRound(int n, int total) {
+    return 'Ronda $n/$total';
+  }
+
+  @override
+  String get timingMetronome => 'Metrónomo';
+
+  @override
+  String get timingReady => 'Preparación';
+
+  @override
+  String get timingWork => 'Ejercicio';
+
+  @override
+  String get timingRest => 'Descanso';
+
+  @override
+  String get timingComplete => 'Completado';
+
+  @override
+  String get timingStart => 'Iniciar';
+
+  @override
+  String get timingPause => 'Pausar';
+
+  @override
+  String get timingReset => 'Reiniciar';
+
+  @override
+  String get timingInvalid =>
+      'Usa 20–300 BPM, 1–600 segundos de ejercicio/descanso y 1–99 rondas.';
+
+  @override
+  String get timingSoundFailed =>
+      'No se puede reproducir sonido. El temporizador sigue activo.';
+
+  @override
+  String get queryTitle => 'Pregunta a tus registros';
+
+  @override
+  String get queryReadyBody =>
+      'Pregunta “¿Cuál es mi máximo en sentadilla?”, “¿Cuántas flexiones hice el mes pasado?” o “¿Mejoró mi press este mes?”. La IA del dispositivo interpreta la pregunta; los cálculos usan tus registros.';
+
+  @override
+  String get queryManualBody =>
+      'Las preguntas en lenguaje natural requieren la IA del dispositivo. La búsqueda de ejercicios y notas siempre está disponible.';
+
+  @override
+  String get queryWorking => 'Interpretando tu pregunta…';
+
+  @override
+  String get queryFailed =>
+      'No se pudo obtener la respuesta. Inténtalo de nuevo.';
+
+  @override
+  String get queryUnsupported =>
+      'Haz una pregunta sobre tus registros de entrenamiento.';
+
+  @override
+  String get queryNoData =>
+      'No hay registros completados coincidentes o faltan valores necesarios.';
+
+  @override
+  String queryPeriod(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get queryAllTime => 'Todo el período';
+
+  @override
+  String get queryPresent => 'Actualidad';
+
+  @override
+  String get queryRepUnit => 'reps';
+
+  @override
+  String get querySetUnit => 'series';
+
+  @override
+  String get queryDayUnit => 'días';
+
+  @override
+  String get queryAverage => 'Peso medio por serie';
+
+  @override
+  String get queryMissingData =>
+      'Tus registros no contienen el ejercicio o medición necesarios.';
+
+  @override
+  String get queryAmbiguous => 'Aclara a qué ejercicio y registro te refieres.';
+
+  @override
+  String queryRank(int n) {
+    return 'Puesto $n';
   }
 }

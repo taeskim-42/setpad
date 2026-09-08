@@ -1,0 +1,21 @@
+{
+  "imported": 151,
+  "added": 151,
+  "preserved": 2,
+  "total": 153,
+  "start": "2025-09-10",
+  "end": "2026-09-05",
+  "exercises": [
+    "덤벨컬",
+    "데드리프트",
+    "랫풀다운",
+    "레그프레스",
+    "바벨로우",
+    "벤치프레스",
+    "사이드레터럴레이즈",
+    "스쿼트",
+    "오버헤드프레스",
+    "케이블 푸시다운"
+  ],
+  "backup": "/Users/ts/dev/setpad/artifacts/record-ai/recovery/before-151-import-20260909-081659"
+}

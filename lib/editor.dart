@@ -11,6 +11,7 @@ import 'exercises.dart';
 import 'palette.dart';
 import 'parser.dart';
 import 'units.dart';
+import 'workout_timing.dart';
 
 class EditorDraft {
   const EditorDraft({
@@ -474,6 +475,8 @@ class _RoutineEditorState extends State<RoutineEditor>
   final _input = TextEditingController();
   final _focus = FocusNode();
   final _scroll = ScrollController();
+  late final _workoutTimer = WorkoutTimer();
+  bool _timingKeyboardHidden = false;
   final _listKey = GlobalKey();
   final _headerKey = GlobalKey();
   final _handleKeys = <ExerciseBlock, GlobalKey>{};
@@ -882,6 +885,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   Future<Offset?> _prepareReorder(ExerciseBlock block, Offset pointer) async {
+    _workoutTimer.pause();
     if (_editingRecord && !_finishRecordEdit()) return null;
     if (!mounted || _reordering) return null;
     final index = _c.blocks.indexOf(block);
@@ -949,6 +953,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     _input.dispose();
     _focus.dispose();
     _scroll.dispose();
+    _workoutTimer.dispose();
     super.dispose();
   }
 
@@ -966,6 +971,12 @@ class _RoutineEditorState extends State<RoutineEditor>
   int _lastLineCount = 0;
 
   void _onChanged() {
+    final timed = _workoutTimer.owner;
+    if (timed is ExerciseBlock &&
+        (!_c.blocks.contains(timed) ||
+            TimingSpec.parse(timed.name) != _workoutTimer.spec)) {
+      _workoutTimer.clear();
+    }
     _saveDraft();
     if (mounted) setState(() {});
     // keyboardType 을 바꾸는 것만으로는 **이미 올라와 있는** 키보드가 내려가지
@@ -981,7 +992,9 @@ class _RoutineEditorState extends State<RoutineEditor>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 자리를 옮긴 뒤에도 계속 칠 수 있어야 한다.
-      if (mounted && !_reordering && !_focus.hasFocus) _focus.requestFocus();
+      if (mounted && !_reordering && !_timingKeyboardHidden && !_focus.hasFocus) {
+        _focus.requestFocus();
+      }
       if (!grew) return;
       final ctx = _inputKey.currentContext;
       if (ctx == null) return;
@@ -1006,6 +1019,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 포커스를 쥔 채 키보드만 내려간 경우 requestFocus 는 아무 일도 하지 않는다.
   /// 그때는 입력 연결을 직접 다시 연다.
   void _reopen() {
+    if (_timingKeyboardHidden) setState(() => _timingKeyboardHidden = false);
     if (!_focus.hasFocus) {
       _focus.requestFocus();
     } else if (!_padMode) {
@@ -1039,6 +1053,12 @@ class _RoutineEditorState extends State<RoutineEditor>
       return;
     }
     final value = pick ?? _input.text;
+    if (_c.naming && TimingSpec.parse(value) != null) {
+      _input.clear();
+      _c.addExercise(value.trim());
+      _reopen();
+      return;
+    }
     if (pick == null &&
         _c.naming &&
         value.trim().isNotEmpty &&
@@ -1250,6 +1270,22 @@ class _RoutineEditorState extends State<RoutineEditor>
                             ),
                           ),
                           block: blocks[i],
+                          timing: TimingSpec.parse(blocks[i].name) == null
+                              ? null
+                              : WorkoutTimingControls(
+                                  owner: blocks[i],
+                                  spec: TimingSpec.parse(blocks[i].name)!,
+                                  timer: _workoutTimer,
+                                  onStart: () {
+                                    _focus.unfocus();
+                                    SystemChannels.textInput.invokeMethod(
+                                      'TextInput.hide',
+                                    );
+                                    setState(
+                                      () => _timingKeyboardHidden = true,
+                                    );
+                                  },
+                                ),
                           titleInput:
                               i == openIndex && _recordTitle && !_reordering
                               ? _buildInput(bold: true)
@@ -1359,7 +1395,9 @@ class _RoutineEditorState extends State<RoutineEditor>
               padding: EdgeInsets.only(
                 bottom: _padMode ? 0 : MediaQuery.viewInsetsOf(context).bottom,
               ),
-              child: _padMode
+              child: _timingKeyboardHidden
+                  ? const SizedBox.shrink()
+                  : _padMode
                   ? SetKeypad(
                       addLabel: _recordSet == null
                           ? null
@@ -1498,7 +1536,9 @@ class _RoutineEditorState extends State<RoutineEditor>
             maxLines: _wantText ? null : 1,
             onTap: _reopen,
             onSubmitted: (_) => _commit(
-              _input.text.trim().isNotEmpty && _matches.isNotEmpty
+              _input.text.trim().isNotEmpty &&
+                      TimingSpec.parse(_input.text) == null &&
+                      _matches.isNotEmpty
                   ? _matches[_highlight.clamp(0, _matches.length - 1)]
                   : null,
             ),
@@ -1547,6 +1587,7 @@ class _BlockView extends StatelessWidget {
     required this.dragHandle,
     this.collapsed = false,
     this.titleInput,
+    this.timing,
     this.editingSet,
     required this.onEditTitle,
     required this.onEditSet,
@@ -1567,6 +1608,7 @@ class _BlockView extends StatelessWidget {
   final Widget dragHandle;
   final bool collapsed;
   final Widget? titleInput;
+  final Widget? timing;
   final int? editingSet;
   final VoidCallback onEditTitle;
   final ValueChanged<int> onEditSet;
@@ -1645,6 +1687,7 @@ class _BlockView extends StatelessWidget {
             ],
           ),
           if (!collapsed) ...[
+            ?timing,
             if (block.setup != null)
               CupertinoButton(
                 padding: EdgeInsets.zero,

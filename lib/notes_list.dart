@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 import 'answer_card.dart';
-import 'stats.dart';
+import 'record_query.dart';
+import 'local_ai.dart';
+import 'local_ai_help.dart';
 import 'health_summary.dart';
 import 'palette.dart';
 import 'parser.dart';
@@ -18,32 +21,127 @@ import 'settings.dart';
 /// 치수는 Flutter 의 Cupertino 소스가 쥔 iOS 값을 따른다 — 큰 제목 34pt/w700
 /// 자간 +0.38, 본문 17pt 자간 -0.41, 좌우 여백 16, 최소 터치 44.
 class NotesListPage extends StatefulWidget {
-  const NotesListPage({super.key, required this.store, required this.onOpen});
+  const NotesListPage({
+    super.key,
+    required this.store,
+    required this.onOpen,
+    this.localAi = const LocalAi(),
+  });
 
   final NotesStore store;
+  final LocalAi localAi;
   final void Function(Note) onOpen;
 
   @override
   State<NotesListPage> createState() => _NotesListPageState();
 }
 
-class _NotesListPageState extends State<NotesListPage> {
+class _NotesListPageState extends State<NotesListPage>
+    with WidgetsBindingObserver {
   final _query = TextEditingController();
+  late final _search = RecordSearch(widget.localAi);
+  String? _locale;
+  List<String> get _names => widget.store.notes
+      .expand((n) => n.blocks.map((b) => b.name))
+      .toSet()
+      .toList();
+  @override
+  void initState() {
+    super.initState();
+    _search.addListener(_changed);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  void _changed() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    if (locale != _locale) {
+      _locale = locale;
+      unawaited(_search.refresh(locale));
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_search.refresh(_locale ?? 'en'));
+    } else {
+      _search.cancel();
+    }
+  }
+
+  void _ask({bool immediately = false}) => _search.search(
+    _query.text,
+    _locale ?? 'en',
+    _names,
+    widget.store.weightUnit,
+    immediately: immediately,
+    notes: widget.store.notes,
+  );
+  void _open(Note note) {
+    _search.cancel();
+    widget.onOpen(note);
+  }
+
+  Future<void> _help() => showLocalAiHelp(
+    context,
+    _search.status,
+    title: L.of(context).queryTitle,
+    readyBody: L.of(context).queryReadyBody,
+    manualBody: L.of(context).queryManualBody,
+    onRetry: () async {
+      await _search.refresh(_locale ?? 'en');
+      if (mounted) _ask(immediately: true);
+    },
+    onPrepare: () async {
+      try {
+        await widget.localAi.prepare();
+      } catch (_) {}
+      if (mounted) {
+        await _search.refresh(_locale ?? 'en');
+        if (mounted) _ask(immediately: true);
+      }
+    },
+  );
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _search.removeListener(_changed);
+    _search.dispose();
     _query.dispose();
     super.dispose();
   }
 
-  ({Metric metric, String exercise})? get _question => recordQuestion(
-    _query.text,
-    widget.store.notes.expand((n) => n.blocks.map((b) => b.name)),
-  );
-
   List<Note> get _visible {
-    final q = (_question?.exercise ?? _query.text).trim().toLowerCase();
+    final q = _query.text.trim().toLowerCase();
     final all = widget.store.notes;
+    final plan = _search.plan;
+    if (plan?.kind == 'insight') {
+      return all.where((n) => recordNoteMatches(n, plan!)).toList();
+    }
+    if (plan?.kind == 'answer') {
+      final ids = {
+        for (final request in plan!.requests)
+          for (final note in recordsForRequest(
+            all,
+            request,
+            widget.store.weightUnit,
+          ))
+            if (note.blocks.any((b) => b.sets.isNotEmpty)) note.id,
+      };
+      return all.where((n) => ids.contains(n.id)).toList();
+    }
+    if (plan?.searchNames.isNotEmpty == true) {
+      return all
+          .where((n) => n.blocks.any((b) => plan!.searchNames.contains(b.name)))
+          .toList();
+    }
     return q.isEmpty
         ? all
         : all
@@ -89,15 +187,14 @@ class _NotesListPageState extends State<NotesListPage> {
               listenable: widget.store,
               builder: (context, _) {
                 final groups = _grouped(_visible, l);
-                final question = _question;
-                final result = question == null
-                    ? null
-                    : answer(
+                final plan = _search.plan;
+                final answers = plan == null
+                    ? const []
+                    : executeRecordPlan(
+                        plan,
                         widget.store.notes,
-                        question.metric,
-                        question.exercise,
-                        labels: l,
-                        unit: widget.store.weightUnit,
+                        l,
+                        widget.store.weightUnit,
                       );
                 return CustomScrollView(
                   slivers: [
@@ -113,8 +210,88 @@ class _NotesListPageState extends State<NotesListPage> {
                       ),
                       border: null,
                     ),
-                    if (result != null && !result.isEmpty)
-                      SliverToBoxAdapter(child: AnswerCard(answer: result)),
+                    if (_query.text.trim().isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (_search.busy)
+                                Text(
+                                  l.queryWorking,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              if (_search.failed)
+                                Text(
+                                  l.queryFailed,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              if (plan?.kind == 'unsupported')
+                                Text(switch (plan?.reason) {
+                                  'missingData' => l.queryMissingData,
+                                  'ambiguous' => l.queryAmbiguous,
+                                  _ => l.queryUnsupported,
+                                }, style: const TextStyle(fontSize: 14)),
+                              if (plan?.kind == 'answer' && answers.isEmpty)
+                                Text(
+                                  l.queryNoData,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                onPressed: _help,
+                                child: Text(
+                                  '${l.queryTitle} · ${aiStatusLabel(l, _search.status)}',
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    if (_search.reply case final reply?)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                          child: GrainWash(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    reply.text,
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      height: 1.5,
+                                      color: answerInk.resolveFrom(context),
+                                    ),
+                                  ),
+                                  for (final fact
+                                      in reply.sourceFacts
+                                          .where((f) => f['date'] != null)
+                                          .take(3))
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 12),
+                                      child: Text(
+                                        '${fact['date']} · ${fact['exercise']}',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: answerInk
+                                              .resolveFrom(context)
+                                              .withValues(alpha: 0.65),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    for (final answer in answers)
+                      SliverToBoxAdapter(child: AnswerCard(answer: answer)),
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
@@ -153,7 +330,7 @@ class _NotesListPageState extends State<NotesListPage> {
                         itemBuilder: (context, i) => _Group(
                           title: groups[i].$1,
                           notes: groups[i].$2,
-                          onOpen: widget.onOpen,
+                          onOpen: _open,
                           onDelete: widget.store.delete,
                         ),
                       ),
@@ -166,8 +343,9 @@ class _NotesListPageState extends State<NotesListPage> {
           ),
           _SearchBar(
             controller: _query,
-            onChanged: (_) => setState(() {}),
-            onNew: () => widget.onOpen(widget.store.create()),
+            onChanged: (_) => _ask(),
+            onSubmitted: (_) => _ask(immediately: true),
+            onNew: () => _open(widget.store.create()),
           ),
         ],
       ),
@@ -344,11 +522,13 @@ class _SearchBar extends StatelessWidget {
   const _SearchBar({
     required this.controller,
     required this.onChanged,
+    required this.onSubmitted,
     required this.onNew,
   });
 
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final ValueChanged<String> onSubmitted;
   final VoidCallback onNew;
 
   @override
@@ -372,6 +552,7 @@ class _SearchBar extends StatelessWidget {
               child: CupertinoSearchTextField(
                 controller: controller,
                 onChanged: onChanged,
+                onSubmitted: onSubmitted,
                 placeholder: L.of(context).search,
                 borderRadius: BorderRadius.circular(22),
                 padding: const EdgeInsets.symmetric(

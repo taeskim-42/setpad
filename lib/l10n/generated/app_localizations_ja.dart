@@ -309,7 +309,7 @@ class LJa extends L {
 
   @override
   String answerChart(String name, int n) {
-    return '$name · $n日分の重量記録';
+    return '$name · $n日分の記録';
   }
 
   @override
@@ -320,5 +320,106 @@ class LJa extends L {
   @override
   String answerSets(int n) {
     return '$nセット';
+  }
+
+  @override
+  String timingBpm(int n) {
+    return '$n BPM';
+  }
+
+  @override
+  String timingProtocol(int work, int rest, int rounds) {
+    return 'タバタ $work秒 / $rest秒 · $roundsラウンド';
+  }
+
+  @override
+  String timingRound(int n, int total) {
+    return '$n/$totalラウンド';
+  }
+
+  @override
+  String get timingMetronome => 'メトロノーム';
+
+  @override
+  String get timingReady => '準備';
+
+  @override
+  String get timingWork => '運動';
+
+  @override
+  String get timingRest => '休憩';
+
+  @override
+  String get timingComplete => '完了';
+
+  @override
+  String get timingStart => '開始';
+
+  @override
+  String get timingPause => '一時停止';
+
+  @override
+  String get timingReset => 'リセット';
+
+  @override
+  String get timingInvalid => 'BPMは20〜300、運動・休憩は1〜600秒、ラウンドは1〜99で入力してください。';
+
+  @override
+  String get timingSoundFailed => '音を再生できません。タイマーは動作しています。';
+
+  @override
+  String get queryTitle => '記録に質問';
+
+  @override
+  String get queryReadyBody =>
+      '「スクワットの最高重量は？」「先月の腕立ては何回？」「今月のベンチは先月より伸びた？」などと質問できます。端末内AIが意味を読み取り、保存した記録から計算します。';
+
+  @override
+  String get queryManualBody => '自然な言葉での質問には端末内AIの準備が必要です。運動名やメモの検索はいつでも使えます。';
+
+  @override
+  String get queryWorking => '質問を読み取っています…';
+
+  @override
+  String get queryFailed => '回答を取得できませんでした。もう一度お試しください。';
+
+  @override
+  String get queryUnsupported => '運動記録に関する質問をしてください。';
+
+  @override
+  String get queryNoData => '条件に合う完了記録がないか、計算に必要な値が不足しています。';
+
+  @override
+  String queryPeriod(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get queryAllTime => '全期間';
+
+  @override
+  String get queryPresent => '現在';
+
+  @override
+  String get queryRepUnit => '回';
+
+  @override
+  String get querySetUnit => 'セット';
+
+  @override
+  String get queryDayUnit => '日';
+
+  @override
+  String get queryAverage => 'セットあたりの平均重量';
+
+  @override
+  String get queryMissingData => '質問に必要な運動や測定情報が記録にありません。';
+
+  @override
+  String get queryAmbiguous => 'どの運動のどの記録か、もう少し具体的に入力してください。';
+
+  @override
+  String queryRank(int n) {
+    return '$n位';
   }
 }

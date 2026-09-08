@@ -312,7 +312,7 @@ class LEn extends L {
 
   @override
   String answerChart(String name, int n) {
-    return '$name · weight on $n recorded days';
+    return '$name · $n recorded days';
   }
 
   @override
@@ -323,5 +323,113 @@ class LEn extends L {
   @override
   String answerSets(int n) {
     return '$n sets';
+  }
+
+  @override
+  String timingBpm(int n) {
+    return '$n BPM';
+  }
+
+  @override
+  String timingProtocol(int work, int rest, int rounds) {
+    return 'Tabata ${work}s / ${rest}s · $rounds rounds';
+  }
+
+  @override
+  String timingRound(int n, int total) {
+    return 'Round $n/$total';
+  }
+
+  @override
+  String get timingMetronome => 'Metronome';
+
+  @override
+  String get timingReady => 'Ready';
+
+  @override
+  String get timingWork => 'Work';
+
+  @override
+  String get timingRest => 'Rest';
+
+  @override
+  String get timingComplete => 'Complete';
+
+  @override
+  String get timingStart => 'Start';
+
+  @override
+  String get timingPause => 'Pause';
+
+  @override
+  String get timingReset => 'Reset';
+
+  @override
+  String get timingInvalid =>
+      'Use 20–300 BPM, 1–600 seconds of work/rest, and 1–99 rounds.';
+
+  @override
+  String get timingSoundFailed =>
+      'Sound is unavailable. The timer is still running.';
+
+  @override
+  String get queryTitle => 'Ask your records';
+
+  @override
+  String get queryReadyBody =>
+      'Ask “What is my squat best?”, “How many push-ups last month?”, or “Has my bench improved this month?”. On-device AI interprets the question; saved records supply the numbers.';
+
+  @override
+  String get queryManualBody =>
+      'Natural-language questions need on-device AI to be ready. Exercise-name and note searches always work.';
+
+  @override
+  String get queryWorking => 'Interpreting your question…';
+
+  @override
+  String get queryFailed => 'Could not load the answer. Please try again.';
+
+  @override
+  String get queryUnsupported =>
+      'Please ask a question about your workout records.';
+
+  @override
+  String get queryNoData =>
+      'No matching completed records, or required values are missing.';
+
+  @override
+  String queryPeriod(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get queryAllTime => 'All time';
+
+  @override
+  String get queryPresent => 'Present';
+
+  @override
+  String get queryRepUnit => 'reps';
+
+  @override
+  String get querySetUnit => 'sets';
+
+  @override
+  String get queryDayUnit => 'days';
+
+  @override
+  String get queryAverage => 'Average weight per set';
+
+  @override
+  String get queryMissingData =>
+      'The exercise or measurement needed for this question is not in your records.';
+
+  @override
+  String get queryAmbiguous =>
+      'Please clarify which exercise and record you mean.';
+
+  @override
+  String queryRank(int n) {
+    return 'Rank $n';
   }
 }

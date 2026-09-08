@@ -310,7 +310,7 @@ class LKo extends L {
 
   @override
   String answerChart(String name, int n) {
-    return '$name · $n일 무게 기록';
+    return '$name · $n일 기록';
   }
 
   @override
@@ -321,5 +321,107 @@ class LKo extends L {
   @override
   String answerSets(int n) {
     return '$n세트';
+  }
+
+  @override
+  String timingBpm(int n) {
+    return '$n BPM';
+  }
+
+  @override
+  String timingProtocol(int work, int rest, int rounds) {
+    return '타바타 $work초 / $rest초 · $rounds라운드';
+  }
+
+  @override
+  String timingRound(int n, int total) {
+    return '$n/$total라운드';
+  }
+
+  @override
+  String get timingMetronome => '메트로놈';
+
+  @override
+  String get timingReady => '준비';
+
+  @override
+  String get timingWork => '운동';
+
+  @override
+  String get timingRest => '휴식';
+
+  @override
+  String get timingComplete => '완료';
+
+  @override
+  String get timingStart => '시작';
+
+  @override
+  String get timingPause => '일시정지';
+
+  @override
+  String get timingReset => '초기화';
+
+  @override
+  String get timingInvalid => 'BPM 20–300, 운동·휴식 1–600초, 라운드 1–99로 입력하세요.';
+
+  @override
+  String get timingSoundFailed => '소리를 재생할 수 없습니다. 타이머는 계속 동작합니다.';
+
+  @override
+  String get queryTitle => '기록에 질문';
+
+  @override
+  String get queryReadyBody =>
+      '“스쿼트 최대 무게”, “지난달 푸시업 몇 개 했어?”, “이번 달 벤치는 지난달보다 늘었어?”처럼 물어보세요. 기기 내 AI가 질문을 해석하고 저장된 기록으로 계산합니다.';
+
+  @override
+  String get queryManualBody =>
+      '자연어 질문은 기기 내 AI가 준비되면 사용할 수 있습니다. 일반 운동명·메모 검색은 항상 가능합니다.';
+
+  @override
+  String get queryWorking => '질문을 해석하고 있습니다…';
+
+  @override
+  String get queryFailed => '답변을 가져오지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get queryUnsupported => '운동 기록과 관련된 질문을 해주세요.';
+
+  @override
+  String get queryNoData => '조건에 맞는 완료 기록이 없거나 계산에 필요한 값이 부족합니다.';
+
+  @override
+  String queryPeriod(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get queryAllTime => '전체 기간';
+
+  @override
+  String get queryPresent => '현재';
+
+  @override
+  String get queryRepUnit => '회';
+
+  @override
+  String get querySetUnit => '세트';
+
+  @override
+  String get queryDayUnit => '일';
+
+  @override
+  String get queryAverage => '세트당 평균 중량';
+
+  @override
+  String get queryMissingData => '질문에 필요한 운동이나 측정 정보가 기록에 없습니다.';
+
+  @override
+  String get queryAmbiguous => '어떤 운동의 어떤 기록을 말하는지 조금 더 구체적으로 적어 주세요.';
+
+  @override
+  String queryRank(int n) {
+    return '$n위';
   }
 }

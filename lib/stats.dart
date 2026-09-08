@@ -15,7 +15,7 @@ import 'editor.dart';
 import 'notes.dart';
 
 /// 무엇을 물었는가.
-enum Metric { max, trend, last, sessions, volume }
+enum Metric { max, trend, last, sessions, volume, reps, sets, average }
 
 /// 한 운동의 하루치. 그날 가장 무겁게 든 세트를 그날의 값으로 삼는다.
 class DayPoint {
@@ -33,6 +33,7 @@ class Answer {
     required this.exercise,
     required this.points,
     this.headline,
+    this.numericValue,
     this.lines = const [],
   });
 
@@ -44,6 +45,7 @@ class Answer {
 
   /// 한 줄 답. 없으면 화면이 점만 보여준다.
   final String? headline;
+  final double? numericValue;
 
   /// 번호를 붙여 아래에 까는 짧은 사실들.
   final List<String> lines;
@@ -104,6 +106,132 @@ Answer answer(
   final l = labels ?? lookupL(const Locale('ko'));
   String date(DateTime d) => DateFormat.MMMd(l.localeName).format(d);
   final today = now ?? DateTime.now();
+  if ([Metric.reps, Metric.sets, Metric.sessions].contains(metric)) {
+    final byDay = <DateTime, List<LoggedSet>>{};
+    for (final note in notes) {
+      final d = _day(note.createdAt);
+      if (since != null && d.isBefore(_day(since))) continue;
+      for (final block in note.blocks) {
+        if (block.name != exercise) continue;
+        for (final set in block.sets.where((s) => s.done)) {
+          if (metric == Metric.reps && set.reps == null) continue;
+          byDay.putIfAbsent(d, () => []).add(set);
+        }
+      }
+    }
+    final unitLabel = metric == Metric.reps
+        ? l.queryRepUnit
+        : metric == Metric.sets
+        ? l.querySetUnit
+        : l.queryDayUnit;
+    final points = [
+      for (final entry in byDay.entries)
+        DayPoint(
+          entry.key,
+          metric == Metric.reps
+              ? entry.value.fold<double>(0, (n, s) => n + s.reps!)
+              : metric == Metric.sets
+              ? entry.value.length.toDouble()
+              : 1,
+          0,
+          unitLabel,
+        ),
+    ]..sort((a, b) => a.day.compareTo(b.day));
+    if (points.isEmpty) {
+      return Answer(metric: metric, exercise: exercise, points: const []);
+    }
+    final total = points.fold<double>(0, (n, p) => n + p.value);
+    return Answer(
+      metric: metric,
+      exercise: exercise,
+      points: points,
+      numericValue: total,
+      headline: metric == Metric.reps
+          ? l.repsCount(total.toInt())
+          : metric == Metric.sets
+          ? l.answerSets(total.toInt())
+          : l.answerDays(total.toInt()),
+      lines: [
+        l.answerSince(date(points.first.day)),
+        l.answerDays(points.length),
+      ],
+    );
+  }
+  if (metric == Metric.last) {
+    final byDay = <DateTime, List<LoggedSet>>{};
+    for (final note in notes) {
+      final day = _day(note.createdAt);
+      if (since != null && day.isBefore(_day(since))) continue;
+      for (final block in note.blocks.where((b) => b.name == exercise)) {
+        for (final set in block.sets.where(
+          (s) => s.done && (s.value != null || s.reps != null),
+        )) {
+          byDay.putIfAbsent(day, () => []).add(set);
+        }
+      }
+    }
+    if (byDay.isEmpty) {
+      return Answer(metric: metric, exercise: exercise, points: const []);
+    }
+    final days = byDay.keys.toList()..sort();
+    final allSets = byDay.values.expand((s) => s).toList();
+    final allWeighted = allSets.every(
+      (s) => s.value != null && ['kg', 'lb'].contains(s.unit),
+    );
+    final sameUnit =
+        allSets.map((s) => s.unit).toSet().length == 1 &&
+        allSets.every((s) => s.value != null);
+    final allReps = allSets.every((s) => s.reps != null);
+    final points = allWeighted
+        ? dailyBest(
+            notes,
+            exercise,
+            unit: unit,
+          ).where((p) => byDay.containsKey(p.day)).toList()
+        : [
+            for (final day in days)
+              DayPoint(
+                day,
+                sameUnit
+                    ? byDay[day]!
+                          .map((s) => s.value!)
+                          .reduce((a, b) => a > b ? a : b)
+                    : allReps
+                    ? byDay[day]!.fold<double>(0, (n, s) => n + s.reps!)
+                    : byDay[day]!.length.toDouble(),
+                0,
+                sameUnit
+                    ? allSets.first.unit
+                    : allReps
+                    ? l.queryRepUnit
+                    : l.querySetUnit,
+              ),
+          ];
+    final sets = byDay[days.last]!;
+    String label(LoggedSet set) {
+      final weight = set.value == null
+          ? null
+          : ['kg', 'lb'].contains(set.unit)
+          ? '${NumberFormat('0.##', l.localeName).format(_weight(set, unit))}$unit'
+          : '${NumberFormat('0.##', l.localeName).format(set.value)}${set.unit}';
+      if (weight == null) return l.repsCount(set.reps!);
+      return set.reps == null
+          ? weight
+          : l.answerWeightReps(weight, l.repsCount(set.reps!));
+    }
+
+    return Answer(
+      metric: metric,
+      exercise: exercise,
+      points: points,
+      headline: sets.map(label).join('  '),
+      lines: [
+        date(days.last),
+        l.answerSets(sets.length),
+        l.answerAgo(today.difference(days.last).inDays.clamp(0, 99999)),
+      ],
+    );
+  }
   var points = dailyBest(notes, exercise, unit: unit);
   if (since != null) {
     points = points.where((p) => !p.day.isBefore(_day(since))).toList();
@@ -121,6 +249,7 @@ Answer answer(
         metric: metric,
         exercise: exercise,
         points: points,
+        numericValue: top.value,
         headline: top.reps == 0
             ? '${fmt(top.value)}${top.unit}'
             : l.answerWeightReps(
@@ -141,6 +270,7 @@ Answer answer(
         metric: metric,
         exercise: exercise,
         points: points,
+        numericValue: gap,
         headline: '${gap >= 0 ? '+' : ''}${fmt(gap)}${last.unit}',
         lines: [
           l.answerChange(
@@ -161,46 +291,27 @@ Answer answer(
       );
 
     case Metric.last:
-      final day = points.last.day;
-      final that = [
-        for (final (at, s) in _sets(notes, exercise))
-          if (_day(at) == day) s,
-      ];
-      return Answer(
-        metric: metric,
-        exercise: exercise,
-        points: points,
-        headline: that
-            .map(
-              (s) => s.reps == null
-                  ? '${fmt(_weight(s, unit))}$unit'
-                  : l.answerWeightReps(
-                      '${fmt(_weight(s, unit))}$unit',
-                      l.repsCount(s.reps!),
-                    ),
-            )
-            .join('  '),
-        lines: [
-          date(day),
-          l.answerSets(that.length),
-          l.answerAgo(today.difference(day).inDays.clamp(0, 99999)),
-        ],
-      );
-
+    case Metric.reps:
+    case Metric.sets:
     case Metric.sessions:
+      throw StateError('Count metrics are handled before weight metrics');
+    case Metric.average:
+      final values = [
+        for (final (at, s) in _sets(notes, exercise))
+          if (since == null || !_day(at).isBefore(_day(since)))
+            _weight(s, unit),
+      ];
+      final mean = values.reduce((a, b) => a + b) / values.length;
       return Answer(
         metric: metric,
         exercise: exercise,
         points: points,
-        headline: l.answerDays(points.length),
+        numericValue: mean,
+        headline: '${fmt(mean)}$unit',
         lines: [
-          l.answerSince(date(points.first.day)),
-          l.answerFrequency(
-            NumberFormat(
-              '0.0',
-              l.localeName,
-            ).format(points.length / _weeks(points.first.day, points.last.day)),
-          ),
+          l.queryAverage,
+          l.answerSets(values.length),
+          l.answerDays(points.length),
         ],
       );
 
@@ -220,6 +331,7 @@ Answer answer(
         metric: metric,
         exercise: exercise,
         points: points,
+        numericValue: total,
         headline: '${fmt(total)}${points.last.unit}',
         lines: [
           l.answerSets(count),
@@ -253,104 +365,4 @@ String? _plateau(List<DayPoint> p, L l) {
   final lastBest = p.lastIndexWhere((e) => e.value >= best);
   if (lastBest >= p.length - 2) return null; // 아직 갱신 중이다
   return l.answerNoPeak(_weeks(p[lastBest].day, p.last.day));
-}
-
-/// A question must name one unambiguous exercise and an explicit metric.
-/// This is query routing, not generated advice or AI-authored statistics.
-({Metric metric, String exercise})? recordQuestion(
-  String query,
-  Iterable<String> names,
-) {
-  final all = names.toSet().toList();
-  final text = query
-      .trim()
-      .toLowerCase()
-      .replaceAll(RegExp(r'[?？]$'), '')
-      .trim();
-  if (text.isEmpty || all.any((n) => searchKey(n) == searchKey(text))) {
-    return null;
-  }
-  const terms = {
-    Metric.max: [
-      '최고 기록',
-      '최고',
-      '최대',
-      'personal best',
-      'best',
-      'max',
-      '最高',
-      '最大',
-      'máximo',
-      'mejor',
-      'สูงสุด',
-      'cao nhất',
-    ],
-    Metric.trend: [
-      '추이',
-      '변화',
-      'trend',
-      'progress',
-      '推移',
-      '趋势',
-      '趨勢',
-      'tendencia',
-      'แนวโน้ม',
-      'xu hướng',
-    ],
-    Metric.last: [
-      '마지막',
-      '최근 기록',
-      'last',
-      'latest',
-      '前回',
-      '最近记录',
-      '最近紀錄',
-      'último',
-      'ล่าสุด',
-      'gần nhất',
-    ],
-    Metric.sessions: [
-      '빈도',
-      '몇 번',
-      'frequency',
-      'sessions',
-      '頻度',
-      '频率',
-      '頻率',
-      'frecuencia',
-      'ความถี่',
-      'tần suất',
-    ],
-    Metric.volume: [
-      '볼륨',
-      '총중량',
-      'volume',
-      '総重量',
-      '总重量',
-      '總重量',
-      'volumen',
-      'ปริมาณ',
-      'khối lượng',
-    ],
-  };
-  for (final entry in terms.entries) {
-    for (final term in entry.value) {
-      String? exercise;
-      if (text.endsWith(' $term')) {
-        exercise = text.substring(0, text.length - term.length).trim();
-      }
-      if (text.startsWith('$term ')) {
-        exercise = text.substring(term.length).trim();
-      }
-      if (exercise == null || exercise.isEmpty) continue;
-      final exact = all
-          .where((n) => searchKey(n) == searchKey(exercise!))
-          .toList();
-      final matches = exact.isNotEmpty ? exact : suggest(exercise, all);
-      if (matches.length == 1) {
-        return (metric: entry.key, exercise: matches.single);
-      }
-    }
-  }
-  return null;
 }

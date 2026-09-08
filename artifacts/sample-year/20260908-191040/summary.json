@@ -1,0 +1,11 @@
+{
+  "fictional": true,
+  "sessions": 200,
+  "blocks": 1200,
+  "sets": 4095,
+  "retained": 1,
+  "first": "2025-09-09T18:30:00",
+  "last": "2026-09-07T18:30:00",
+  "backup": "/Users/ts/dev/setpad/artifacts/sample-year/20260908-191040",
+  "fixture": "/Users/ts/dev/setpad/artifacts/sample-year/20260908-191040/sample-notes.json"
+}

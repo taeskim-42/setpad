@@ -312,7 +312,7 @@ class LVi extends L {
 
   @override
   String answerChart(String name, int n) {
-    return '$name · mức tạ trong $n ngày ghi nhận';
+    return '$name · $n ngày ghi nhận';
   }
 
   @override
@@ -323,5 +323,112 @@ class LVi extends L {
   @override
   String answerSets(int n) {
     return '$n hiệp';
+  }
+
+  @override
+  String timingBpm(int n) {
+    return '$n BPM';
+  }
+
+  @override
+  String timingProtocol(int work, int rest, int rounds) {
+    return 'Tabata ${work}giây / ${rest}giây · $rounds vòng';
+  }
+
+  @override
+  String timingRound(int n, int total) {
+    return 'Vòng $n/$total';
+  }
+
+  @override
+  String get timingMetronome => 'Máy đếm nhịp';
+
+  @override
+  String get timingReady => 'Chuẩn bị';
+
+  @override
+  String get timingWork => 'Tập';
+
+  @override
+  String get timingRest => 'Nghỉ';
+
+  @override
+  String get timingComplete => 'Hoàn tất';
+
+  @override
+  String get timingStart => 'Bắt đầu';
+
+  @override
+  String get timingPause => 'Tạm dừng';
+
+  @override
+  String get timingReset => 'Đặt lại';
+
+  @override
+  String get timingInvalid =>
+      'Nhập 20–300 BPM, tập/nghỉ 1–600 giây, 1–99 vòng.';
+
+  @override
+  String get timingSoundFailed =>
+      'Không phát được âm thanh. Bộ đếm giờ vẫn chạy.';
+
+  @override
+  String get queryTitle => 'Hỏi về bản ghi';
+
+  @override
+  String get queryReadyBody =>
+      'Hỏi “Squat nặng nhất bao nhiêu?”, “Tháng trước chống đẩy bao nhiêu lần?” hoặc “Bench tháng này có tiến bộ không?”. AI trên thiết bị hiểu câu hỏi; số liệu được tính từ bản ghi.';
+
+  @override
+  String get queryManualBody =>
+      'Câu hỏi tự nhiên cần AI trên thiết bị sẵn sàng. Luôn có thể tìm tên bài tập và ghi chú.';
+
+  @override
+  String get queryWorking => 'Đang hiểu câu hỏi…';
+
+  @override
+  String get queryFailed => 'Không thể tải câu trả lời. Vui lòng thử lại.';
+
+  @override
+  String get queryUnsupported =>
+      'Hãy đặt câu hỏi về nhật ký tập luyện của bạn.';
+
+  @override
+  String get queryNoData =>
+      'Không có bản ghi hoàn thành phù hợp hoặc thiếu giá trị cần thiết.';
+
+  @override
+  String queryPeriod(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get queryAllTime => 'Toàn bộ thời gian';
+
+  @override
+  String get queryPresent => 'Hiện tại';
+
+  @override
+  String get queryRepUnit => 'lần';
+
+  @override
+  String get querySetUnit => 'hiệp';
+
+  @override
+  String get queryDayUnit => 'ngày';
+
+  @override
+  String get queryAverage => 'Mức tạ trung bình mỗi hiệp';
+
+  @override
+  String get queryMissingData =>
+      'Bản ghi không có bài tập hoặc dữ liệu đo cần thiết.';
+
+  @override
+  String get queryAmbiguous => 'Hãy làm rõ bài tập và bản ghi bạn muốn hỏi.';
+
+  @override
+  String queryRank(int n) {
+    return 'Hạng $n';
   }
 }

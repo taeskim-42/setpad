@@ -264,7 +264,7 @@
       }
     }
   },
-  "answerChart": "{name} · {n}일 무게 기록",
+  "answerChart": "{name} · {n}일 기록",
   "@answerChart": {
     "placeholders": {
       "name": {
@@ -288,6 +288,83 @@
   },
   "answerSets": "{n}세트",
   "@answerSets": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timingBpm": "{n} BPM",
+  "@timingBpm": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timingProtocol": "타바타 {work}초 / {rest}초 · {rounds}라운드",
+  "@timingProtocol": {
+    "placeholders": {
+      "work": {
+        "type": "int"
+      },
+      "rest": {
+        "type": "int"
+      },
+      "rounds": {
+        "type": "int"
+      }
+    }
+  },
+  "timingRound": "{n}/{total}라운드",
+  "@timingRound": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "timingMetronome": "메트로놈",
+  "timingReady": "준비",
+  "timingWork": "운동",
+  "timingRest": "휴식",
+  "timingComplete": "완료",
+  "timingStart": "시작",
+  "timingPause": "일시정지",
+  "timingReset": "초기화",
+  "timingInvalid": "BPM 20–300, 운동·휴식 1–600초, 라운드 1–99로 입력하세요.",
+  "timingSoundFailed": "소리를 재생할 수 없습니다. 타이머는 계속 동작합니다.",
+  "queryTitle": "기록에 질문",
+  "queryReadyBody": "“스쿼트 최대 무게”, “지난달 푸시업 몇 개 했어?”, “이번 달 벤치는 지난달보다 늘었어?”처럼 물어보세요. 기기 내 AI가 질문을 해석하고 저장된 기록으로 계산합니다.",
+  "queryManualBody": "자연어 질문은 기기 내 AI가 준비되면 사용할 수 있습니다. 일반 운동명·메모 검색은 항상 가능합니다.",
+  "queryWorking": "질문을 해석하고 있습니다…",
+  "queryFailed": "답변을 가져오지 못했습니다. 다시 시도해 주세요.",
+  "queryUnsupported": "운동 기록과 관련된 질문을 해주세요.",
+  "queryNoData": "조건에 맞는 완료 기록이 없거나 계산에 필요한 값이 부족합니다.",
+  "queryPeriod": "{start} – {end}",
+  "@queryPeriod": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "queryAllTime": "전체 기간",
+  "queryPresent": "현재",
+  "queryRepUnit": "회",
+  "querySetUnit": "세트",
+  "queryDayUnit": "일",
+  "queryAverage": "세트당 평균 중량",
+  "queryMissingData": "질문에 필요한 운동이나 측정 정보가 기록에 없습니다.",
+  "queryAmbiguous": "어떤 운동의 어떤 기록을 말하는지 조금 더 구체적으로 적어 주세요.",
+  "queryRank": "{n}위",
+  "@queryRank": {
     "placeholders": {
       "n": {
         "type": "int"

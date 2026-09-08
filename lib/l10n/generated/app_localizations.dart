@@ -592,7 +592,7 @@ abstract class L {
   /// No description provided for @answerChart.
   ///
   /// In ko, this message translates to:
-  /// **'{name} · {n}일 무게 기록'**
+  /// **'{name} · {n}일 기록'**
   String answerChart(String name, int n);
 
   /// No description provided for @answerWeightReps.
@@ -606,6 +606,186 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{n}세트'**
   String answerSets(int n);
+
+  /// No description provided for @timingBpm.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n} BPM'**
+  String timingBpm(int n);
+
+  /// No description provided for @timingProtocol.
+  ///
+  /// In ko, this message translates to:
+  /// **'타바타 {work}초 / {rest}초 · {rounds}라운드'**
+  String timingProtocol(int work, int rest, int rounds);
+
+  /// No description provided for @timingRound.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}/{total}라운드'**
+  String timingRound(int n, int total);
+
+  /// No description provided for @timingMetronome.
+  ///
+  /// In ko, this message translates to:
+  /// **'메트로놈'**
+  String get timingMetronome;
+
+  /// No description provided for @timingReady.
+  ///
+  /// In ko, this message translates to:
+  /// **'준비'**
+  String get timingReady;
+
+  /// No description provided for @timingWork.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동'**
+  String get timingWork;
+
+  /// No description provided for @timingRest.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식'**
+  String get timingRest;
+
+  /// No description provided for @timingComplete.
+  ///
+  /// In ko, this message translates to:
+  /// **'완료'**
+  String get timingComplete;
+
+  /// No description provided for @timingStart.
+  ///
+  /// In ko, this message translates to:
+  /// **'시작'**
+  String get timingStart;
+
+  /// No description provided for @timingPause.
+  ///
+  /// In ko, this message translates to:
+  /// **'일시정지'**
+  String get timingPause;
+
+  /// No description provided for @timingReset.
+  ///
+  /// In ko, this message translates to:
+  /// **'초기화'**
+  String get timingReset;
+
+  /// No description provided for @timingInvalid.
+  ///
+  /// In ko, this message translates to:
+  /// **'BPM 20–300, 운동·휴식 1–600초, 라운드 1–99로 입력하세요.'**
+  String get timingInvalid;
+
+  /// No description provided for @timingSoundFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'소리를 재생할 수 없습니다. 타이머는 계속 동작합니다.'**
+  String get timingSoundFailed;
+
+  /// No description provided for @queryTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록에 질문'**
+  String get queryTitle;
+
+  /// No description provided for @queryReadyBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'“스쿼트 최대 무게”, “지난달 푸시업 몇 개 했어?”, “이번 달 벤치는 지난달보다 늘었어?”처럼 물어보세요. 기기 내 AI가 질문을 해석하고 저장된 기록으로 계산합니다.'**
+  String get queryReadyBody;
+
+  /// No description provided for @queryManualBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'자연어 질문은 기기 내 AI가 준비되면 사용할 수 있습니다. 일반 운동명·메모 검색은 항상 가능합니다.'**
+  String get queryManualBody;
+
+  /// No description provided for @queryWorking.
+  ///
+  /// In ko, this message translates to:
+  /// **'질문을 해석하고 있습니다…'**
+  String get queryWorking;
+
+  /// No description provided for @queryFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'답변을 가져오지 못했습니다. 다시 시도해 주세요.'**
+  String get queryFailed;
+
+  /// No description provided for @queryUnsupported.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 기록과 관련된 질문을 해주세요.'**
+  String get queryUnsupported;
+
+  /// No description provided for @queryNoData.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건에 맞는 완료 기록이 없거나 계산에 필요한 값이 부족합니다.'**
+  String get queryNoData;
+
+  /// No description provided for @queryPeriod.
+  ///
+  /// In ko, this message translates to:
+  /// **'{start} – {end}'**
+  String queryPeriod(String start, String end);
+
+  /// No description provided for @queryAllTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'전체 기간'**
+  String get queryAllTime;
+
+  /// No description provided for @queryPresent.
+  ///
+  /// In ko, this message translates to:
+  /// **'현재'**
+  String get queryPresent;
+
+  /// No description provided for @queryRepUnit.
+  ///
+  /// In ko, this message translates to:
+  /// **'회'**
+  String get queryRepUnit;
+
+  /// No description provided for @querySetUnit.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트'**
+  String get querySetUnit;
+
+  /// No description provided for @queryDayUnit.
+  ///
+  /// In ko, this message translates to:
+  /// **'일'**
+  String get queryDayUnit;
+
+  /// No description provided for @queryAverage.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트당 평균 중량'**
+  String get queryAverage;
+
+  /// No description provided for @queryMissingData.
+  ///
+  /// In ko, this message translates to:
+  /// **'질문에 필요한 운동이나 측정 정보가 기록에 없습니다.'**
+  String get queryMissingData;
+
+  /// No description provided for @queryAmbiguous.
+  ///
+  /// In ko, this message translates to:
+  /// **'어떤 운동의 어떤 기록을 말하는지 조금 더 구체적으로 적어 주세요.'**
+  String get queryAmbiguous;
+
+  /// No description provided for @queryRank.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}위'**
+  String queryRank(int n);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

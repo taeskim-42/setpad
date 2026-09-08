@@ -38,7 +38,7 @@ class LocalAiBridge(messenger: BinaryMessenger) {
                         result.success(null)
                     } catch (_: Exception) { result.error("downloadFailed", null, null) }
                 }
-                "interpret" -> {
+                "interpret", "query", "answerRecords" -> {
                     if (generation?.isActive == true) {
                         result.error("busy", null, null)
                     } else {
@@ -52,7 +52,7 @@ class LocalAiBridge(messenger: BinaryMessenger) {
                                 val response = withTimeout(29000) {
                                     model.generateContent(generateContentRequest(
                                         TextPart("$instructions\nInput data:\n$prompt")
-                                    ) { temperature = 0.0f; maxOutputTokens = 600 })
+                                    ) { temperature = 0.0f; maxOutputTokens = if (call.method == "query") 1200 else 600 })
                                 }
                                 ensureActive()
                                 result.success(response.candidates.firstOrNull()?.text)

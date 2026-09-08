@@ -19,10 +19,13 @@ Future<void> showLocalAiHelp(
   LocalAiStatus status, {
   required VoidCallback onRetry,
   required VoidCallback onPrepare,
+  String? title,
+  String? readyBody,
+  String? manualBody,
 }) {
   final l = L.of(context);
   final explanation = switch (status) {
-    LocalAiStatus.available => l.aiReadyBody,
+    LocalAiStatus.available => readyBody ?? l.aiReadyBody,
     LocalAiStatus.intelligenceDisabled => l.aiDisabledBody,
     LocalAiStatus.osUpdateRequired => l.aiOsBody,
     LocalAiStatus.deviceNotEligible => l.aiDeviceBody,
@@ -36,8 +39,8 @@ Future<void> showLocalAiHelp(
   return showCupertinoModalPopup<void>(
     context: context,
     builder: (ctx) => CupertinoActionSheet(
-      title: Text('${l.aiTitle} · ${aiStatusLabel(l, status)}'),
-      message: Text('$explanation\n\n${l.aiManualBody}'),
+      title: Text('${title ?? l.aiTitle} · ${aiStatusLabel(l, status)}'),
+      message: Text('$explanation\n\n${manualBody ?? l.aiManualBody}'),
       actions: [
         if (status == LocalAiStatus.downloadable)
           CupertinoActionSheetAction(
