@@ -38,8 +38,9 @@ class FakeAi extends LocalAi {
   Future<WorkoutSetup> interpret(
     String text,
     String locale,
-    List<String> names,
-  ) async {
+    List<String> names, {
+    String defaultWeightUnit = 'kg',
+  }) async {
     calls++;
     if (fail) throw const FormatException('Cannot parse');
     return pending?.future ?? setup;
@@ -157,7 +158,7 @@ void main() {
         .setMockMethodCallHandler(channel, (call) async {
           calls.add(call);
           if (call.method == 'status') return 'intelligenceDisabled';
-          return jsonEncode({'isExercise': true, 'name': setup.name, 'unit': 'kg', 'repsOnly': true, 'parameters': [{'kind': 'weight', 'value': 80, 'evidence': '80kg'}, {'kind': 'totalReps', 'value': 100, 'evidence': '100개 채우기'}]});
+          return jsonEncode({'isExercise': true, ...setup.toJson()});
         });
     addTearDown(
       () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -169,6 +170,13 @@ void main() {
     expect(calls.map((c) => c.method), ['status', 'interpret']);
     expect((calls.last.arguments as Map)['prompt'], contains(example));
     expect((calls.last.arguments as Map)['input'], example);
+    final args = calls.last.arguments as Map;
+    expect(args['instructions'], contains('"name":"벤치프레스"'));
+    await ai.interpret(example, 'ko', ['벤치프레스'], defaultWeightUnit: 'lb');
+    expect(
+      (calls.last.arguments as Map)['instructions'],
+      contains('Default weight unit when not specified: lb'),
+    );
   });
 
   test('a response that silently drops stated numbers is rejected', () async {

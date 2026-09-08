@@ -153,7 +153,9 @@ class NotesStore extends ChangeNotifier {
           _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
           _exerciseHistory
             ..clear()
-            ..addAll((data['exercises'] as List? ?? []).whereType<String>().toSet());
+            ..addAll(
+              (data['exercises'] as List? ?? []).whereType<String>().toSet(),
+            );
         }
       } catch (e) {
         debugPrint('Could not load preferences: $e');

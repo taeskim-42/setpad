@@ -52,7 +52,17 @@ def feature_graphic(subtitle: str) -> Image.Image:
     return img
 
 
+def app_icon() -> Image.Image:
+    """Play 스토어 아이콘은 512x512 다. iOS 의 1024 짜리를 줄여 쓴다 —
+    아이콘을 두 벌 들고 있으면 한쪽만 고치는 날이 온다."""
+    src = Image.open(
+        ROOT / 'ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png'
+    ).convert('RGB')
+    return src.resize((512, 512), Image.LANCZOS)
+
+
 def main():
+    icon = app_icon()
     n_shots = n_feat = 0
     for key, (_, play_dir) in LOCALES.items():
         shot_key = {'zh-Hans': 'zhHans', 'zh-Hant': 'zhHant'}.get(key, key)
@@ -71,8 +81,9 @@ def main():
                 pad_to_ratio(Image.open(src)).save(tablet / f'{i}_{shot}.png')
                 n_shots += 1
         feature_graphic(T[key]['subtitle']).save(images / 'featureGraphic.png')
+        icon.save(images / 'icon.png', 'PNG')
         n_feat += 1
-    print(f'스크린샷 {n_shots}장, 피처 그래픽 {n_feat}장')
+    print(f'스크린샷 {n_shots}장, 피처 그래픽·아이콘 {n_feat}쌍')
 
 
 if __name__ == '__main__':

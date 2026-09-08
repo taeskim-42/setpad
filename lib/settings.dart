@@ -26,6 +26,5 @@ Future<void> showWeightSettings(BuildContext context, NotesStore store) async {
   );
   if (unit != null) {
     store.setWeightUnit(unit);
-    await store.flush();
   }
 }

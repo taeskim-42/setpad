@@ -3,12 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'keypad.dart';
+import 'collapsing_drag.dart';
 import 'local_ai.dart';
 import 'local_ai_help.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'exercises.dart';
 import 'palette.dart';
 import 'parser.dart';
+import 'record_editing.dart';
 import 'units.dart';
 
 class EditorDraft {
@@ -211,6 +213,46 @@ class RoutineEditorController extends ChangeNotifier {
     if (index < 0 || index >= blocks.length) return;
     blocks[index].name = setup.name;
     blocks[index].setup = setup;
+    notifyListeners();
+  }
+
+  void renameBlock(int index, String name) {
+    final clean = name.trim();
+    if (index < 0 ||
+        index >= blocks.length ||
+        clean.isEmpty ||
+        clean.length > 120 ||
+        clean.contains('\n')) {
+      return;
+    }
+    final block = blocks[index];
+    block.name = clean;
+    if (block.setup != null) {
+      block.setup = WorkoutSetup.fromJson({
+        ...block.setup!.toJson(),
+        'name': clean,
+      });
+    }
+    _learned.remove(clean);
+    _learned.insert(0, clean);
+    notifyListeners();
+  }
+
+  void updateSet(int block, int index, LoggedSet value) {
+    if (block < 0 ||
+        block >= blocks.length ||
+        index < 0 ||
+        index >= blocks[block].sets.length) {
+      return;
+    }
+    final previous = blocks[block].sets[index];
+    blocks[block].sets[index] = LoggedSet(
+      value: value.value,
+      unit: value.unit,
+      reps: value.reps,
+      notes: [...previous.notes],
+      done: previous.done,
+    );
     notifyListeners();
   }
 
@@ -423,6 +465,11 @@ class _RoutineEditorState extends State<RoutineEditor>
   final _input = TextEditingController();
   final _focus = FocusNode();
   final _scroll = ScrollController();
+  final _listKey = GlobalKey();
+  final _headerKey = GlobalKey();
+  final _handleKeys = <ExerciseBlock, GlobalKey>{};
+  bool _reordering = false;
+  bool _restoreFocus = false;
 
   /// 입력 줄이 트리의 다른 자리로 옮겨가도 같은 위젯으로 유지되게 한다.
   final _inputKey = GlobalKey();
@@ -620,6 +667,7 @@ class _RoutineEditorState extends State<RoutineEditor>
         text,
         _locale ?? 'en',
         _c.vocabulary(_lang),
+        defaultWeightUnit: _c.weightUnit,
       );
       if (!mounted ||
           request != _aiRequest ||
@@ -654,6 +702,29 @@ class _RoutineEditorState extends State<RoutineEditor>
     final setup = await editWorkoutSetup(context, block.setup!);
     if (!mounted) return;
     if (setup != null) _c.updateSetup(_c.blocks.indexOf(block), setup);
+    _reopen();
+  }
+
+  Future<void> _editTitle(ExerciseBlock block) async {
+    _focus.unfocus();
+    final name = await editExerciseTitle(context, block.name);
+    if (!mounted) return;
+    if (name != null) _c.renameBlock(_c.blocks.indexOf(block), name);
+    _reopen();
+  }
+
+  Future<void> _editSet(ExerciseBlock block, int index) async {
+    final previous = block.sets[index];
+    _focus.unfocus();
+    final value = await editRecordedSet(context, previous, index);
+    if (!mounted) return;
+    if (value != null) {
+      _c.updateSet(
+        _c.blocks.indexOf(block),
+        block.sets.indexOf(previous),
+        value,
+      );
+    }
     _reopen();
   }
 
@@ -692,6 +763,36 @@ class _RoutineEditorState extends State<RoutineEditor>
     }
     _c.moveBlock(from, to);
     assert(block == null || identical(_c.blocks[_editing!.$1], block));
+  }
+
+  Future<Offset?> _prepareReorder(ExerciseBlock block, Offset pointer) async {
+    if (!mounted || _reordering) return null;
+    final index = _c.blocks.indexOf(block);
+    if (index < 0) return null;
+    _restoreFocus = _focus.hasFocus;
+    _focus.unfocus();
+    final listBox = _listKey.currentContext?.findRenderObject() as RenderBox?;
+    final headerHeight = _headerKey.currentContext?.size?.height ?? 0;
+    final top = listBox?.localToGlobal(Offset.zero).dy ?? 0;
+    setState(() => _reordering = true);
+    if (_scroll.hasClients) {
+      final offset = (16 + headerHeight + index * 72 - (pointer.dy - top - 22))
+          .clamp(0.0, _scroll.position.maxScrollExtent);
+      _scroll.jumpTo(offset);
+    }
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || !_reordering) return null;
+    final box =
+        _handleKeys[block]?.currentContext?.findRenderObject() as RenderBox?;
+    return box?.localToGlobal(const Offset(18, 22));
+  }
+
+  void _finishReorder() {
+    if (!mounted || !_reordering) return;
+    setState(() => _reordering = false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _restoreFocus) _focus.requestFocus();
+    });
   }
 
   void _onInput() {
@@ -769,7 +870,7 @@ class _RoutineEditorState extends State<RoutineEditor>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 자리를 옮긴 뒤에도 계속 칠 수 있어야 한다.
-      if (mounted && !_focus.hasFocus) _focus.requestFocus();
+      if (mounted && !_reordering && !_focus.hasFocus) _focus.requestFocus();
       if (!grew) return;
       final ctx = _inputKey.currentContext;
       if (ctx == null) return;
@@ -826,6 +927,13 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (pick == null &&
         _c.naming &&
         value.trim().isNotEmpty &&
+        !hasSetupIntent(value)) {
+      _commit(value);
+      return;
+    }
+    if (pick == null &&
+        _c.naming &&
+        value.trim().isNotEmpty &&
         _aiStatus == LocalAiStatus.checking) {
       _pendingSubmission = value;
       return;
@@ -879,6 +987,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     } else if (!wasText || value.trim().isNotEmpty) {
       _c.commit(value);
     }
+    _saveDraft();
     _focus.requestFocus();
   }
 
@@ -968,6 +1077,7 @@ class _RoutineEditorState extends State<RoutineEditor>
             onTap: _reopen,
             behavior: HitTestBehavior.opaque,
             child: CustomScrollView(
+              key: _listKey,
               controller: _scroll,
               slivers: [
                 SliverPadding(
@@ -975,20 +1085,44 @@ class _RoutineEditorState extends State<RoutineEditor>
                   sliver: SliverMainAxisGroup(
                     slivers: [
                       if (widget.header != null)
-                        SliverToBoxAdapter(child: widget.header!),
+                        SliverToBoxAdapter(
+                          child: KeyedSubtree(
+                            key: _headerKey,
+                            child: widget.header!,
+                          ),
+                        ),
                       SliverReorderableList(
                         itemCount: blocks.length,
                         onReorderItem: _moveBlock,
+                        proxyDecorator: (child, index, animation) =>
+                            ReorderProxy(
+                              onRemoved: _finishReorder,
+                              child: ColoredBox(
+                                color: CupertinoColors.systemBackground
+                                    .resolveFrom(context),
+                                child: child,
+                              ),
+                            ),
                         itemBuilder: (context, i) => _BlockView(
                           key: ObjectKey(blocks[i]),
-                          dragHandle: ReorderableDragStartListener(
+                          collapsed: _reordering,
+                          onEditTitle: () => _editTitle(blocks[i]),
+                          onEditSet: (set) => _editSet(blocks[i], set),
+                          dragHandle: CollapsingDragStartListener(
                             index: i,
+                            prepare: (pointer) =>
+                                _prepareReorder(blocks[i], pointer),
+                            onCanceled: _finishReorder,
                             child: Semantics(
                               label: L.of(context).moveExercise,
-                              child: const SizedBox(
+                              child: SizedBox(
+                                key: _handleKeys.putIfAbsent(
+                                  blocks[i],
+                                  GlobalKey.new,
+                                ),
                                 width: 36,
                                 height: 44,
-                                child: Icon(
+                                child: const Icon(
                                   CupertinoIcons.line_horizontal_3,
                                   size: 18,
                                   color: CupertinoColors.systemGrey,
@@ -997,7 +1131,9 @@ class _RoutineEditorState extends State<RoutineEditor>
                             ),
                           ),
                           block: blocks[i],
-                          input: i == openIndex ? _buildInput() : null,
+                          input: i == openIndex && !_reordering
+                              ? _buildInput()
+                              : null,
                           inputSet: _editing?.$2 ?? blocks[i].sets.length - 1,
                           isMemo: _wantText,
                           onToggle: (set) => _c.toggleDone(i, set),
@@ -1273,6 +1409,9 @@ class _BlockView extends StatelessWidget {
   const _BlockView({
     super.key,
     required this.dragHandle,
+    this.collapsed = false,
+    required this.onEditTitle,
+    required this.onEditSet,
     required this.block,
     this.input,
     required this.inputSet,
@@ -1288,6 +1427,9 @@ class _BlockView extends StatelessWidget {
 
   final ExerciseBlock block;
   final Widget dragHandle;
+  final bool collapsed;
+  final VoidCallback onEditTitle;
+  final ValueChanged<int> onEditSet;
 
   /// 이 운동이 아직 세트를 받는 중이면 입력 줄이 카드 안에 들어온다.
   final Widget? input;
@@ -1312,7 +1454,7 @@ class _BlockView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onOpen,
+      onTap: collapsed ? null : onOpen,
       behavior: HitTestBehavior.opaque,
       child: _card(context),
     );
@@ -1320,7 +1462,7 @@ class _BlockView extends StatelessWidget {
 
   Widget _card(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: EdgeInsets.only(bottom: collapsed ? 16 : 24),
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1328,72 +1470,82 @@ class _BlockView extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  block.name,
-                  style: const TextStyle(
-                    fontSize: 21,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.5,
+                child: GestureDetector(
+                  onTap: collapsed ? null : onEditTitle,
+                  behavior: HitTestBehavior.opaque,
+                  child: Text(
+                    block.name,
+                    maxLines: collapsed ? 1 : null,
+                    overflow: collapsed ? TextOverflow.ellipsis : null,
+                    style: const TextStyle(
+                      fontSize: 21,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5,
+                    ),
                   ),
                 ),
               ),
               dragHandle,
-              GestureDetector(
-                onTap: () => _confirmRemove(context),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: Icon(
-                    CupertinoIcons.trash,
-                    size: 18,
-                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+              if (!collapsed)
+                GestureDetector(
+                  onTap: () => _confirmRemove(context),
+                  behavior: HitTestBehavior.opaque,
+                  child: SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Icon(
+                      CupertinoIcons.trash,
+                      size: 18,
+                      color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          if (!collapsed) ...[
+            if (block.setup != null)
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size.fromHeight(32),
+                onPressed: onEditSetup,
+                child: Text(
+                  setupSummary(
+                    block.setup!,
+                    L.of(context),
+                    block.completedReps,
+                    block.sets.where((s) => s.done).length,
+                  ),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
                   ),
                 ),
               ),
+            for (final e in block.sets.asMap().entries) ...[
+              _SetRow(
+                index: e.key,
+                set: e.value,
+                onEdit: () => onEditSet(e.key),
+                onToggle: () => onToggle(e.key),
+                onRemove: () => onRemoveSet(e.key),
+                onEditNote: (i) => onEditNote(e.key, i),
+                onRemoveNote: (i) => onRemoveNote(e.key, i),
+              ),
+              if (input != null && isMemo && e.key == inputSet)
+                Padding(
+                  padding: const EdgeInsets.only(left: 36, right: 8),
+                  child: input,
+                ),
             ],
-          ),
-          if (block.setup != null)
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              minimumSize: const Size.fromHeight(32),
-              onPressed: onEditSetup,
-              child: Text(
-                setupSummary(
-                  block.setup!,
-                  L.of(context),
-                  block.completedReps,
-                  block.sets.where((s) => s.done).length,
-                ),
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                ),
-              ),
-            ),
-          for (final e in block.sets.asMap().entries) ...[
-            _SetRow(
-              index: e.key,
-              set: e.value,
-              onToggle: () => onToggle(e.key),
-              onRemove: () => onRemoveSet(e.key),
-              onEditNote: (i) => onEditNote(e.key, i),
-              onRemoveNote: (i) => onRemoveNote(e.key, i),
-            ),
-            if (input != null && isMemo && e.key == inputSet)
+            if (input != null && (!isMemo || block.sets.isEmpty)) ...[
               Padding(
-                padding: const EdgeInsets.only(left: 36, right: 8),
-                child: input,
+                padding: EdgeInsets.only(
+                  top: block.sets.isEmpty ? 2 : 4,
+                  left: isMemo ? 0 : 86,
+                ),
+                child: input!,
               ),
-          ],
-          if (input != null && (!isMemo || block.sets.isEmpty)) ...[
-            Padding(
-              padding: EdgeInsets.only(
-                top: block.sets.isEmpty ? 2 : 4,
-                left: isMemo ? 0 : 86,
-              ),
-              child: input!,
-            ),
+            ],
           ],
         ],
       ),
@@ -1409,6 +1561,7 @@ class _SetRow extends StatelessWidget {
     required this.onRemove,
     required this.onEditNote,
     required this.onRemoveNote,
+    required this.onEdit,
   });
 
   final int index;
@@ -1419,6 +1572,7 @@ class _SetRow extends StatelessWidget {
   final ValueChanged<int> onRemoveNote;
   final VoidCallback onToggle;
   final VoidCallback onRemove;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -1448,32 +1602,46 @@ class _SetRow extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(
-                width: 50,
-                child: Text(
-                  L.of(context).setOrdinal(index + 1),
-                  // caption 자리. 세트 번호는 값이 아니라 이름표다.
-                  style: TextStyle(
-                    fontSize: 13,
-                    letterSpacing: -0.08,
-                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              GestureDetector(
+                onTap: onEdit,
+                behavior: HitTestBehavior.opaque,
+                child: SizedBox(
+                  width: 50,
+                  height: 36,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      L.of(context).setOrdinal(index + 1),
+                      // caption 자리. 세트 번호는 값이 아니라 이름표다.
+                      style: TextStyle(
+                        fontSize: 13,
+                        letterSpacing: -0.08,
+                        color: CupertinoColors.secondaryLabel.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
               Expanded(
-                child: Text(
-                  setLabel(
-                    value: set.value,
-                    unit: set.unit,
-                    reps: set.reps,
-                    formatReps: L.of(context).repsCount,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                    color: CupertinoColors.label.resolveFrom(context),
+                child: GestureDetector(
+                  onTap: onEdit,
+                  behavior: HitTestBehavior.opaque,
+                  child: Text(
+                    setLabel(
+                      value: set.value,
+                      unit: set.unit,
+                      reps: set.reps,
+                      formatReps: L.of(context).repsCount,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: CupertinoColors.label.resolveFrom(context),
+                    ),
                   ),
                 ),
               ),

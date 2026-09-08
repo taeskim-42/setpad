@@ -66,7 +66,8 @@ int? _rank(String key, String q) {
       .split(RegExp(r'[\s\-_]+'))
       .where((s) => s.isNotEmpty)
       .toList();
-  if (words.length > 1 && words.every((word) => bare.contains(searchKey(word)))) {
+  if (words.length > 1 &&
+      words.every((word) => bare.contains(searchKey(word)))) {
     return 5;
   }
 
@@ -84,6 +85,16 @@ int? _rank(String key, String q) {
 
 String searchKey(String text) =>
     text.toLowerCase().replaceAll(RegExp(r'[\s\-_·]+'), '');
+
+/// Route quantitative requests to the model; never turn a name into a workout plan.
+/// This only selects the input path. The model interprets the requested parameters.
+bool hasSetupIntent(String text) => RegExp(
+  r'(?:^|\s)\d+(?:\.\d+)?(?:\s|$)|\d+(?:\.\d+)?\s*(?:kg|lb|회|개|세트|reps?|sets?)|'
+  r'채우|총\s|키로|킬로|파운드|(?:백|천|십|한|두|세|네|다섯|열|스무)\s*(?:개|회|세트)|'
+  r'\b(?:kg|lb|reps?|sets?|total|reach|hundred|fifty|twenty|ten)\b|'
+  r'公斤|千克|磅|总共|總共|回|キロ|セット|repeticiones|series|lần|hiệp|ครั้ง|เซ็ต',
+  caseSensitive: false,
+).hasMatch(text);
 
 /// Retrieve a bounded name reference for local generation, including personal names.
 List<String> retrieveExercises(

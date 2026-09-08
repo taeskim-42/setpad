@@ -15,16 +15,19 @@ import 'package:setpad/units.dart';
 /// pumpAndSettle 의 기본 한도는 10분이다. 무언가 프레임을 계속 잡으면
 /// 테스트가 멈춘 것처럼 보이므로 5초로 줄여 빨리 터지게 한다.
 Future<void> settle(WidgetTester tester) => tester.pumpAndSettle(
-    const Duration(milliseconds: 100),
-    EnginePhase.sendSemanticsUpdate,
-    const Duration(seconds: 5));
+  const Duration(milliseconds: 100),
+  EnginePhase.sendSemanticsUpdate,
+  const Duration(seconds: 5),
+);
 
 /// 패드의 입력 칸.
 ///
 /// 목록 화면이 아래에 깔려 있고 거기에도 검색 칸이 있어서, 그냥 TextField 를
 /// 찾으면 둘이 잡힌다. 패드 안의 것만 집는다.
-final padField =
-    find.descendant(of: find.byType(RoutineEditor), matching: find.byType(CupertinoTextField));
+final padField = find.descendant(
+  of: find.byType(RoutineEditor),
+  matching: find.byType(CupertinoTextField),
+);
 
 /// 패드 안의 글자. 첫 운동 이름은 앱바 제목에도 나오므로(메모 앱처럼 첫 줄이
 /// 제목이다) 그냥 find.text 로 세면 둘이 잡힌다.
@@ -48,9 +51,16 @@ Finder inPad(String text) => find.byElementPredicate((e) {
   return inEditor && !inChip;
 });
 
+Finder blockTitle(String text) => find.descendant(
+  of: find.byType(SliverReorderableList),
+  matching: find.text(text),
+);
+
 /// The fixed keypad action stays reachable while the document scrolls.
-final addSetButton =
-    find.descendant(of: find.byType(SetKeypad), matching: find.text('세트 추가'));
+final addSetButton = find.descendant(
+  of: find.byType(SetKeypad),
+  matching: find.text('세트 추가'),
+);
 
 /// 취소/삭제 같은 iOS 경고창 버튼.
 Finder dialogAction(String label) =>
@@ -59,10 +69,11 @@ Finder dialogAction(String label) =>
 /// 키패드의 **키 글자**. +/- 아래 붙는 미는 폭(11pt)에도 같은 숫자가 뜨므로
 /// 글자 크기로 갈라낸다 — 숫자 키는 20pt 다.
 Finder padKey(String label) => find.descendant(
-      of: find.byType(SetKeypad),
-      matching: find.byWidgetPredicate(
-          (w) => w is Text && w.data == label && (w.style?.fontSize ?? 0) >= 14),
-    );
+  of: find.byType(SetKeypad),
+  matching: find.byWidgetPredicate(
+    (w) => w is Text && w.data == label && (w.style?.fontSize ?? 0) >= 14,
+  ),
+);
 
 /// 키패드로 친다. 세트 칸은 읽기 전용이라 enterText 로는 글자가 안 들어간다 —
 /// 실제 기기에서도 시스템 키보드가 아니라 이 키패드가 넣는다.
@@ -77,8 +88,10 @@ Future<void> tapKeys(WidgetTester tester, String text) async {
 
 /// 위젯 테스트의 기본 기기 언어는 en 이다. 한국어 문구를 확인하려면
 /// 기기 언어를 정해 놓고 띄워야 한다.
-Future<void> pumpApp(WidgetTester tester,
-    {Locale locale = const Locale('ko')}) async {
+Future<void> pumpApp(
+  WidgetTester tester, {
+  Locale locale = const Locale('ko'),
+}) async {
   tester.platformDispatcher.localesTestValue = [locale];
   addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
@@ -308,9 +321,9 @@ void keypadTests() {
 
       // 키패드 안에서만 찾는다 — 화면에도 같은 숫자가 떠 있을 수 있다.
       Finder key(String label) => find.descendant(
-            of: find.byType(SetKeypad),
-            matching: find.text(label),
-          );
+        of: find.byType(SetKeypad),
+        matching: find.text(label),
+      );
       // 단위 키는 없다 — 파서가 "100 20" 을 100kg 20회로 읽는다.
       for (final k in ['1', '0', '0', '다음', '2', '0']) {
         await tester.tap(key(k));
@@ -361,14 +374,22 @@ void keypadTests() {
 
       // 세트 칸은 읽기 전용이라 키패드로만 친다 — 실제 사용 경로도 그쪽이다.
       Finder key(String label) => find.descendant(
-            of: find.byType(SetKeypad), matching: find.byWidgetPredicate((w) => w is Text && w.data == label && (w.style?.fontSize ?? 0) >= 14));
+        of: find.byType(SetKeypad),
+        matching: find.byWidgetPredicate(
+          (w) => w is Text && w.data == label && (w.style?.fontSize ?? 0) >= 14,
+        ),
+      );
       for (final k in ['1', '0', '0', 'Next', '1', '0']) {
         await tester.tap(key(k));
         await tester.pump();
       }
       // Both actions remain in the keypad in every locale.
-      await tester.tap(find.descendant(
-          of: find.byType(SetKeypad), matching: find.text('Add Set')));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SetKeypad),
+          matching: find.text('Add Set'),
+        ),
+      );
       await settle(tester);
       expect(find.text('Set 1'), findsOneWidget);
       expect(find.text('100kg · 10 reps'), findsOneWidget);
@@ -392,8 +413,13 @@ void keypadTests() {
     });
 
     testWidgets('번체 중국어는 간체와 다른 이름을 낸다', (tester) async {
-      await pumpApp(tester,
-          locale: const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'));
+      await pumpApp(
+        tester,
+        locale: const Locale.fromSubtags(
+          languageCode: 'zh',
+          scriptCode: 'Hant',
+        ),
+      );
       expect(find.text('今日訓練'), findsOneWidget);
       await tester.enterText(padField.last, 'bench');
       await settle(tester);
@@ -426,7 +452,9 @@ void keypadTests() {
       var flushed = false;
       store.flush().then((_) => flushed = true);
       for (var i = 0; i < 100 && !flushed; i++) {
-        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 10)));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
         await tester.pump();
       }
       expect(flushed, isTrue);
@@ -481,10 +509,12 @@ void keypadTests() {
       // CupertinoSearchTextField 안의 실제 입력 위젯에 친다.
       expect(find.byType(CupertinoSearchTextField), findsOneWidget);
       await tester.enterText(
-          find.descendant(
-              of: find.byType(CupertinoSearchTextField),
-              matching: find.byType(EditableText)),
-          '데드');
+        find.descendant(
+          of: find.byType(CupertinoSearchTextField),
+          matching: find.byType(EditableText),
+        ),
+        '데드',
+      );
       await settle(tester);
       expect(find.text('벤치프레스'), findsNothing);
       expect(find.text('데드리프트'), findsOneWidget);
@@ -503,24 +533,34 @@ void keypadTests() {
 
     test('제목은 그날 한 운동 전부, 요약은 총 세트 수다', () {
       // 첫 운동만 내면 그날을 대표하지 못한다 — 그냥 먼저 친 것뿐이다.
-      final n = Note(id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now(), blocks: [
-        ExerciseBlock('벤치프레스', [
-          LoggedSet(value: 80, reps: 25),
-          LoggedSet(value: 80, reps: 20),
-        ]),
-        ExerciseBlock('딥스', [LoggedSet(reps: 12)]),
-      ]);
+      final n = Note(
+        id: '1',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        blocks: [
+          ExerciseBlock('벤치프레스', [
+            LoggedSet(value: 80, reps: 25),
+            LoggedSet(value: 80, reps: 20),
+          ]),
+          ExerciseBlock('딥스', [LoggedSet(reps: 12)]),
+        ],
+      );
       expect(n.title, '벤치프레스 · 딥스');
       expect(n.summary(setOrdinal: (x) => '$x세트', reps: (x) => '$x회'), '3세트');
     });
 
     test('취소한 세트는 총계에서 빠진다', () {
-      final n = Note(id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now(), blocks: [
-        ExerciseBlock('벤치프레스', [
-          LoggedSet(value: 80, reps: 10),
-          LoggedSet(value: 80, reps: 8, done: false),
-        ]),
-      ]);
+      final n = Note(
+        id: '1',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        blocks: [
+          ExerciseBlock('벤치프레스', [
+            LoggedSet(value: 80, reps: 10),
+            LoggedSet(value: 80, reps: 8, done: false),
+          ]),
+        ],
+      );
       expect(n.summary(setOrdinal: (x) => '$x세트', reps: (x) => '$x회'), '1세트');
     });
   });
@@ -591,13 +631,13 @@ void keypadTests() {
       final c = RoutineEditorController()
         ..commit('벤치프레스')
         ..commit('100 10')
-        ..commit('')            // 벤치프레스 닫기
+        ..commit('') // 벤치프레스 닫기
         ..commit('스쿼트')
         ..commit('120 5')
-        ..commit('');           // 스쿼트 닫기
+        ..commit(''); // 스쿼트 닫기
       expect(c.inBlock, isFalse);
 
-      c.openBlock(0);           // 벤치프레스 카드를 눌렀다
+      c.openBlock(0); // 벤치프레스 카드를 눌렀다
       expect(c.inBlock, isTrue);
       expect(c.activeIndex, 0);
 
@@ -612,7 +652,7 @@ void keypadTests() {
         ..commit('벤치프레스')
         ..commit('100 10')
         ..commit('')
-        ..commit('스쿼트');     // 세트 없이 열려만 있다
+        ..commit('스쿼트'); // 세트 없이 열려만 있다
       expect(c.blocks.length, 2);
 
       c.openBlock(0);
@@ -623,26 +663,41 @@ void keypadTests() {
 
     test('가운데 운동을 지워도 커서가 엉뚱한 곳으로 가지 않는다', () {
       final c = RoutineEditorController()
-        ..commit('A')..commit('10 10')..commit('')
-        ..commit('B')..commit('20 10')..commit('')
-        ..commit('C')..commit('30 10');
+        ..commit('A')
+        ..commit('10 10')
+        ..commit('')
+        ..commit('B')
+        ..commit('20 10')
+        ..commit('')
+        ..commit('C')
+        ..commit('30 10');
       expect(c.activeIndex, 2);
 
-      c.removeBlock(0);                    // 앞의 것을 지웠다
-      expect(c.activeIndex, 1);            // C 를 계속 가리켜야 한다
+      c.removeBlock(0); // 앞의 것을 지웠다
+      expect(c.activeIndex, 1); // C 를 계속 가리켜야 한다
       expect(c.blocks[c.activeIndex].name, 'C');
 
       c.commit('30 8');
       expect(c.blocks.last.sets.length, 2);
     });
 
-    testWidgets('카드를 누르면 그 운동이 열린다', (tester) async {
+    testWidgets('제목을 누르면 운동명 수정 화면이 열린다', (tester) async {
       await twoExercises(tester);
-      expect(find.byType(SetKeypad), findsNothing);   // 카드 밖
+      expect(find.byType(SetKeypad), findsNothing); // 카드 밖
 
-      await tester.tap(inPad('벤치프레스'));
+      await tester.tap(blockTitle('벤치프레스'));
       await settle(tester);
-      expect(find.byType(SetKeypad), findsOneWidget); // 세트를 받는 중
+      expect(find.byType(CupertinoTextFormFieldRow), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(CupertinoNavigationBar),
+          matching: find.text('운동 이름'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('취소'));
+      await settle(tester);
+      expect(blockTitle('벤치프레스'), findsOneWidget);
     });
 
     testWidgets('삭제는 물어보고, 취소하면 남는다', (tester) async {
@@ -655,7 +710,7 @@ void keypadTests() {
 
       await tester.tap(find.text('취소'));
       await settle(tester);
-      expect(inPad('벤치프레스'), findsOneWidget);
+      expect(blockTitle('벤치프레스'), findsOneWidget);
     });
 
     testWidgets('삭제를 누르면 지워진다', (tester) async {
@@ -665,8 +720,8 @@ void keypadTests() {
       await tester.tap(find.widgetWithText(CupertinoDialogAction, '삭제'));
       await settle(tester);
 
-      expect(inPad('벤치프레스'), findsNothing);
-      expect(inPad('스쿼트'), findsOneWidget);
+      expect(blockTitle('벤치프레스'), findsNothing);
+      expect(blockTitle('스쿼트'), findsOneWidget);
     });
   });
 
@@ -681,36 +736,36 @@ void keypadTests() {
       await settle(tester);
 
       final back = find.byIcon(CupertinoIcons.delete_left);
-      await tester.tap(back);          // 세트 하나 — 묻지 않는다
+      await tester.tap(back); // 세트 하나 — 묻지 않는다
       await settle(tester);
       expect(find.text('벤치프레스 삭제'), findsNothing);
-      expect(inPad('벤치프레스'), findsOneWidget);
+      expect(blockTitle('벤치프레스'), findsOneWidget);
 
-      await tester.tap(back);          // 이제 운동 차례 — 물어야 한다
+      await tester.tap(back); // 이제 운동 차례 — 물어야 한다
       await settle(tester);
       expect(find.text('벤치프레스 삭제'), findsOneWidget);
       expect(find.textContaining('이 운동을 지웁니다'), findsOneWidget);
 
       await tester.tap(find.text('취소'));
       await settle(tester);
-      expect(inPad('벤치프레스'), findsOneWidget);   // 취소했으니 남는다
+      expect(blockTitle('벤치프레스'), findsOneWidget); // 취소했으니 남는다
 
       await tester.tap(back);
       await settle(tester);
       await tester.tap(find.widgetWithText(CupertinoDialogAction, '삭제'));
       await settle(tester);
-      expect(inPad('벤치프레스'), findsNothing);
+      expect(blockTitle('벤치프레스'), findsNothing);
     });
 
     test('다음 지우기가 운동을 뗄 상황인지 알린다', () {
       final c = RoutineEditorController()..commit('벤치프레스');
-      expect(c.backspaceRemovesBlock, isTrue);     // 세트가 없다
+      expect(c.backspaceRemovesBlock, isTrue); // 세트가 없다
       c.commit('100 10');
-      expect(c.backspaceRemovesBlock, isFalse);    // 뗄 세트가 있다
+      expect(c.backspaceRemovesBlock, isFalse); // 뗄 세트가 있다
       c.backspace();
       expect(c.backspaceRemovesBlock, isTrue);
-      c.commit('');                                // 카드 밖으로
-      expect(c.backspaceRemovesBlock, isFalse);    // 열린 운동이 없다
+      c.commit(''); // 카드 밖으로
+      expect(c.backspaceRemovesBlock, isFalse); // 열린 운동이 없다
     });
   });
 
@@ -722,21 +777,21 @@ void keypadTests() {
       expect(find_('벤치프레스').first, '벤치프레스');
       expect(find_('벤치').first, '벤치프레스');
       expect(find_('bench').first, '벤치프레스');
-      expect(find_('ㅂㅊ').first, '벤치프레스');       // 초성
+      expect(find_('ㅂㅊ').first, '벤치프레스'); // 초성
       expect(find_('데드').first, '데드리프트');
     });
 
     test('한 글자 틀려도 찾는다', () {
-      expect(find_('벤치프래스'), contains('벤치프레스'));   // 레→래
-      expect(find_('밴치프레스'), contains('벤치프레스'));   // 벤→밴
+      expect(find_('벤치프래스'), contains('벤치프레스')); // 레→래
+      expect(find_('밴치프레스'), contains('벤치프레스')); // 벤→밴
       expect(find_('벤치프레스으'), contains('벤치프레스')); // 덧붙임
-      expect(find_('데트리프트'), contains('데드리프트'));   // 드→트
+      expect(find_('데트리프트'), contains('데드리프트')); // 드→트
       expect(find_('스콰트'), contains('스쿼트'));
     });
 
     test('영문 오타와 자리바꿈도 잡는다', () {
-      expect(find_('bnech'), contains('벤치프레스'));   // 자리바꿈
-      expect(find_('bech'), contains('벤치프레스'));    // 글자 빠짐
+      expect(find_('bnech'), contains('벤치프레스')); // 자리바꿈
+      expect(find_('bech'), contains('벤치프레스')); // 글자 빠짐
     });
 
     test('공백을 안 띄워도 찾는다', () {
@@ -777,7 +832,9 @@ void keypadTests() {
     });
 
     test('단위를 안 쳤으면 kg 이다', () {
-      final c = RoutineEditorController()..commit('스쿼트')..commit('100 10');
+      final c = RoutineEditorController()
+        ..commit('스쿼트')
+        ..commit('100 10');
       expect(c.blocks.single.sets.single.unit, 'kg');
     });
 
@@ -801,7 +858,12 @@ void keypadTests() {
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
         'blocks': [
-          {'name': '벤치프레스', 'sets': [{'kg': 80, 'reps': 10, 'done': true}]},
+          {
+            'name': '벤치프레스',
+            'sets': [
+              {'kg': 80, 'reps': 10, 'done': true},
+            ],
+          },
         ],
       });
       final set = n.blocks.single.sets.single;
@@ -813,8 +875,12 @@ void keypadTests() {
   group('건강 앱 연동', () {
     test('칼로리는 저장되고 다시 읽힌다', () {
       final n = Note(
-        id: '1', createdAt: DateTime(2026, 9, 5, 10), updatedAt: DateTime(2026, 9, 5, 11),
-        blocks: [ExerciseBlock('벤치프레스', [LoggedSet(value: 80, reps: 10)])],
+        id: '1',
+        createdAt: DateTime(2026, 9, 5, 10),
+        updatedAt: DateTime(2026, 9, 5, 11),
+        blocks: [
+          ExerciseBlock('벤치프레스', [LoggedSet(value: 80, reps: 10)]),
+        ],
       )..calories = 231.4;
       final back = Note.fromJson(n.toJson());
       expect(back.calories, 231.4);
@@ -822,7 +888,11 @@ void keypadTests() {
 
     test('칼로리를 안 잰 기록은 그 칸이 아예 없다', () {
       // 0 과 "아무도 안 쟀다"는 다른 말이다. 앱이 추정해 채우지 않는다.
-      final n = Note(id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now());
+      final n = Note(
+        id: '1',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
       expect(n.toJson().containsKey('calories'), isFalse);
       expect(Note.fromJson(n.toJson()).calories, isNull);
     });
@@ -873,7 +943,14 @@ void keypadTests() {
     test('색은 모두 밝기 두 벌을 든다', () {
       // 한 벌만 든 색이 하나라도 섞이면 밤에 그 부분만 눈을 찌른다.
       // context 없이 두 값을 바로 견준다 — 확인하려는 것이 그것이다.
-      for (final c in [sealTint, doneTint, keypadBackground, keyFace, keyDim, keyShadow]) {
+      for (final c in [
+        sealTint,
+        doneTint,
+        keypadBackground,
+        keyFace,
+        keyDim,
+        keyShadow,
+      ]) {
         expect(c.color, isNot(c.darkColor), reason: c.toString());
       }
     });
@@ -904,11 +981,17 @@ void keypadTests() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
       await tapKeys(tester, '100');
-      await tester.tap(find.descendant(
+      await tester.tap(
+        find.descendant(
           of: find.byType(SetKeypad),
-          matching: find.byIcon(CupertinoIcons.delete_left)));
+          matching: find.byIcon(CupertinoIcons.delete_left),
+        ),
+      );
       await settle(tester);
-      expect(tester.widget<CupertinoTextField>(padField).controller!.text, '10');
+      expect(
+        tester.widget<CupertinoTextField>(padField).controller!.text,
+        '10',
+      );
     });
   });
 
@@ -920,10 +1003,17 @@ void keypadTests() {
       await settle(tester);
 
       // 무엇의 2.5 인지 보여야 한다.
-      expect(find.descendant(of: find.byType(SetKeypad), matching: find.text('2.5kg')),
-          findsNWidgets(2));
-      expect(find.descendant(of: find.byType(SetKeypad), matching: find.text('2.5')),
-          findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(SetKeypad),
+          matching: find.text('2.5kg'),
+        ),
+        findsNWidgets(2),
+      );
+      expect(
+        find.descendant(of: find.byType(SetKeypad), matching: find.text('2.5')),
+        findsNothing,
+      );
     });
 
     testWidgets('횟수를 치는 중이면 숫자만 뜬다', (tester) async {
@@ -931,13 +1021,17 @@ void keypadTests() {
       await tester.enterText(padField, '벤치프레스');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
-      await tapKeys(tester, '100 ');   // '다음'으로 횟수 자리로 넘어간다
+      await tapKeys(tester, '100 '); // '다음'으로 횟수 자리로 넘어간다
 
       // 횟수는 늘 1씩이고 붙일 단위가 없다.
-      expect(find.descendant(of: find.byType(SetKeypad), matching: find.text('1')),
-          findsWidgets);
-      expect(find.descendant(of: find.byType(SetKeypad), matching: find.text('1kg')),
-          findsNothing);
+      expect(
+        find.descendant(of: find.byType(SetKeypad), matching: find.text('1')),
+        findsWidgets,
+      );
+      expect(
+        find.descendant(of: find.byType(SetKeypad), matching: find.text('1kg')),
+        findsNothing,
+      );
     });
 
     testWidgets('길게 누른 시트에도 단위가 붙는다', (tester) async {
@@ -946,11 +1040,23 @@ void keypadTests() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
 
-      await tester.longPress(find.descendant(
-          of: find.byType(SetKeypad), matching: find.text('2.5kg')).first);
+      await tester.longPress(
+        find
+            .descendant(
+              of: find.byType(SetKeypad),
+              matching: find.text('2.5kg'),
+            )
+            .first,
+      );
       await settle(tester);
-      expect(find.widgetWithText(CupertinoActionSheetAction, '5kg'), findsOneWidget);
-      expect(find.widgetWithText(CupertinoActionSheetAction, '20kg'), findsOneWidget);
+      expect(
+        find.widgetWithText(CupertinoActionSheetAction, '5kg'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(CupertinoActionSheetAction, '20kg'),
+        findsOneWidget,
+      );
     });
   });
 
@@ -1021,8 +1127,12 @@ void keypadTests() {
       await settle(tester);
 
       // 글자판으로 넘어간다 = 메모를 적겠다는 뜻.
-      await tester.tap(find.descendant(
-          of: find.byType(SetKeypad), matching: find.byIcon(CupertinoIcons.keyboard)));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SetKeypad),
+          matching: find.byIcon(CupertinoIcons.keyboard),
+        ),
+      );
       await settle(tester);
 
       await tester.enterText(padField, '어깨가 불편해서 무게를 낮췄다');
@@ -1038,15 +1148,19 @@ void keypadTests() {
   group('메모 저장', () {
     test('여러 줄이 저장되고 다시 읽힌다', () {
       final n = Note(
-        id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now(),
+        id: '1',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
         blocks: [
           ExerciseBlock('벤치프레스', [
             LoggedSet(value: 100, reps: 10, notes: ['어깨 불편', '다음엔 95로']),
           ]),
         ],
       );
-      expect(Note.fromJson(n.toJson()).blocks.single.sets.single.notes,
-          ['어깨 불편', '다음엔 95로']);
+      expect(Note.fromJson(n.toJson()).blocks.single.sets.single.notes, [
+        '어깨 불편',
+        '다음엔 95로',
+      ]);
     });
 
     test("예전 저장분('note' 단수)도 읽힌다", () {
@@ -1056,9 +1170,18 @@ void keypadTests() {
         'createdAt': DateTime.now().toIso8601String(),
         'updatedAt': DateTime.now().toIso8601String(),
         'blocks': [
-          {'name': '벤치프레스', 'sets': [
-            {'value': 100, 'unit': 'kg', 'reps': 10, 'note': '어깨 불편', 'done': true},
-          ]},
+          {
+            'name': '벤치프레스',
+            'sets': [
+              {
+                'value': 100,
+                'unit': 'kg',
+                'reps': 10,
+                'note': '어깨 불편',
+                'done': true,
+              },
+            ],
+          },
         ],
       });
       expect(n.blocks.single.sets.single.notes, ['어깨 불편']);
@@ -1066,9 +1189,13 @@ void keypadTests() {
 
     test('메모도 검색에 걸린다', () {
       final n = Note(
-        id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now(),
+        id: '1',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
         blocks: [
-          ExerciseBlock('벤치프레스', [LoggedSet(reps: 10, notes: ['어깨 불편'])]),
+          ExerciseBlock('벤치프레스', [
+            LoggedSet(reps: 10, notes: ['어깨 불편']),
+          ]),
         ],
       );
       expect(n.searchText, contains('어깨 불편'));
@@ -1085,8 +1212,12 @@ void keypadTests() {
       await tester.tap(addSetButton);
       await settle(tester);
 
-      await tester.tap(find.descendant(
-          of: find.byType(SetKeypad), matching: find.byIcon(CupertinoIcons.keyboard)));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SetKeypad),
+          matching: find.byIcon(CupertinoIcons.keyboard),
+        ),
+      );
       await settle(tester);
       await tester.enterText(padField, '어깨 불편');
       await tester.testTextInput.receiveAction(TextInputAction.done);
@@ -1095,15 +1226,20 @@ void keypadTests() {
 
       // 카드 하나에 × 는 세트 줄 것 하나뿐이다. 메모마다 달면 셋이 된다.
       expect(
-          find.descendant(
-              of: find.byType(RoutineEditor),
-              matching: find.byIcon(CupertinoIcons.xmark)),
-          findsOneWidget);
+        find.descendant(
+          of: find.byType(RoutineEditor),
+          matching: find.byIcon(CupertinoIcons.xmark),
+        ),
+        findsOneWidget,
+      );
 
       // 눌러서 글을 불러온다 — 문서에서 고치는 것과 같다.
       await tester.tap(inPad('어깨 불편'));
       await settle(tester);
-      expect(tester.widget<CupertinoTextField>(padField).controller!.text, '어깨 불편');
+      expect(
+        tester.widget<CupertinoTextField>(padField).controller!.text,
+        '어깨 불편',
+      );
 
       // 다 지우고 넘기면 그 줄이 없어진다.
       await tester.enterText(padField, '');
@@ -1128,13 +1264,20 @@ void keypadTests() {
         await settle(tester);
       }
 
-      final scroll = tester.widget<CustomScrollView>(
-              find.descendant(of: find.byType(RoutineEditor), matching: find.byType(CustomScrollView)))
+      final scroll = tester
+          .widget<CustomScrollView>(
+            find.descendant(
+              of: find.byType(RoutineEditor),
+              matching: find.byType(CustomScrollView),
+            ),
+          )
           .controller!;
       final before = scroll.offset;
 
       // 세트 하나를 껐다 켠다 — 줄 수는 그대로다. 화면에 보이는 것을 누른다.
-      await tester.tap(find.byIcon(CupertinoIcons.check_mark_circled_solid).last);
+      await tester.tap(
+        find.byIcon(CupertinoIcons.check_mark_circled_solid).last,
+      );
       await settle(tester);
       expect(scroll.offset, before, reason: '껐을 때');
 
@@ -1158,13 +1301,24 @@ void keypadTests() {
         await tester.tap(addSetButton);
         await settle(tester);
       }
-      expect(tester.widget<RoutineEditor>(find.byType(RoutineEditor))
-          .controller.blocks.single.sets, hasLength(12));
+      expect(
+        tester
+            .widget<RoutineEditor>(find.byType(RoutineEditor))
+            .controller
+            .blocks
+            .single
+            .sets,
+        hasLength(12),
+      );
 
       // 바닥에 딱 붙어 있을 필요는 없다. 방금 친 자리가 **보이면** 된다 —
       // 맨 아래로 던지면 앞 카드가 화면 밖으로 튀어 나갔다 되돌아온다.
       final view = tester.getRect(
-          find.descendant(of: find.byType(RoutineEditor), matching: find.byType(CustomScrollView)));
+        find.descendant(
+          of: find.byType(RoutineEditor),
+          matching: find.byType(CustomScrollView),
+        ),
+      );
       final input = tester.getRect(padField);
       expect(input.bottom, lessThanOrEqualTo(view.bottom + 1));
       expect(input.top, greaterThanOrEqualTo(view.top - 1));
@@ -1176,12 +1330,14 @@ void keypadTests() {
       // ko 가 키의 원천이다. 나머지가 그 키를 다 채워야 화면 일부만 한국어로
       // 남는 일이 없다.
       final dir = Directory('lib/l10n');
-      final ko = jsonDecode(File('${dir.path}/app_ko.arb').readAsStringSync())
-          as Map<String, dynamic>;
+      final ko =
+          jsonDecode(File('${dir.path}/app_ko.arb').readAsStringSync())
+              as Map<String, dynamic>;
       final keys = ko.keys.where((k) => !k.startsWith('@')).toSet();
 
-      for (final f in dir.listSync().whereType<File>()
-          .where((f) => f.path.endsWith('.arb') && !f.path.endsWith('app_ko.arb'))) {
+      for (final f in dir.listSync().whereType<File>().where(
+        (f) => f.path.endsWith('.arb') && !f.path.endsWith('app_ko.arb'),
+      )) {
         final d = jsonDecode(f.readAsStringSync()) as Map<String, dynamic>;
         final missing = keys.difference(d.keys.toSet());
         expect(missing, isEmpty, reason: '${f.path.split('/').last}: $missing');
@@ -1195,8 +1351,10 @@ void keypadTests() {
       await tester.tap(find.text('ベンチプレス'));
       await settle(tester);
       // 아직 아무것도 안 쳤으니 큰 키는 '완了' 자리다.
-      expect(find.descendant(of: find.byType(SetKeypad), matching: find.text('完了')),
-          findsOneWidget);
+      expect(
+        find.descendant(of: find.byType(SetKeypad), matching: find.text('完了')),
+        findsOneWidget,
+      );
     });
   });
 
@@ -1210,8 +1368,12 @@ void keypadTests() {
       await tester.tap(addSetButton);
       await settle(tester);
 
-      await tester.tap(find.descendant(
-          of: find.byType(SetKeypad), matching: find.byIcon(CupertinoIcons.keyboard)));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SetKeypad),
+          matching: find.byIcon(CupertinoIcons.keyboard),
+        ),
+      );
       await settle(tester);
       expect(find.byType(SetKeypad), findsNothing, reason: '메모를 칠 땐 키패드가 없다');
 
@@ -1231,8 +1393,12 @@ void keypadTests() {
       await tapKeys(tester, '100 10');
       await tester.tap(addSetButton);
       await settle(tester);
-      await tester.tap(find.descendant(
-          of: find.byType(SetKeypad), matching: find.byIcon(CupertinoIcons.keyboard)));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SetKeypad),
+          matching: find.byIcon(CupertinoIcons.keyboard),
+        ),
+      );
       await settle(tester);
 
       await tester.enterText(padField, '');
