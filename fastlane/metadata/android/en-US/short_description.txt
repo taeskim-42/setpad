@@ -1,0 +1,1 @@
+Type the exercise, type the weight and reps. That is the whole app.

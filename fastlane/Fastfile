@@ -21,6 +21,16 @@
 IOS_APP_ID = "com.tskim.workoutlog"
 ANDROID_APP_ID = "com.taeskim.setpad"
 
+# pubspec.yaml 의 `version: 1.0.0+44` 에서 앞부분만. **버전은 한 곳에서만
+# 읽는다** — App Store 버전 레코드와 빌드의 CFBundleShortVersionString 이
+# 어긋나면 빌드가 그 버전에 안 붙는다(1.0 레코드에 1.0.0 빌드가 안 붙어서
+# 2026-09-08 에 실제로 막혔다).
+def version_name
+  line = File.readlines("../pubspec.yaml").find { |l| l.start_with?("version:") }
+  UI.user_error!("pubspec.yaml 에서 version 을 못 찾았습니다") unless line
+  line.split(":", 2).last.strip.split("+").first
+end
+
 default_platform(:ios)
 
 platform :ios do
@@ -118,7 +128,88 @@ platform :ios do
       skip_waiting_for_build_processing: true,
     )
   end
+
+  desc "등록 정보와 스크린샷을 올린다 (빌드는 안 만든다)"
+  lane :metadata do
+    # **여덟 언어를 한꺼번에 올린다.** 손으로 넣으면 반드시 몇 개가 빠지고,
+    # 빠진 언어는 App Store 에서 영어로 떨어진다 — 앱은 그 말로 뜨는데
+    # 소개만 영어인 상태가 된다.
+    #
+    # 스크린샷도 여기서 같이 간다. 문구와 그림이 따로 올라가면 심사에
+    # 어느 쪽이 최신인지 사람이 대조해야 한다.
+    upload_to_app_store(
+      api_key: asc_key,
+      app_identifier: IOS_APP_ID,
+      app_version: version_name,
+      metadata_path: "fastlane/metadata",
+      screenshots_path: "fastlane/screenshots",
+      skip_binary_upload: true,
+      # 그림은 `screenshots` 레인이 따로 올린다 — 한 번에 하면 실패했을 때
+      # 문구가 올라갔는지 그림이 올라갔는지 로그에서 갈라내기 어렵다.
+      skip_screenshots: true,
+      submit_for_review: false,
+      force: true,
+      precheck_include_in_app_purchases: false,
+    )
+  end
+
+  desc "스크린샷만 올린다"
+  lane :screenshots do
+    upload_to_app_store(
+      api_key: asc_key,
+      app_identifier: IOS_APP_ID,
+      app_version: version_name,
+      screenshots_path: "fastlane/screenshots",
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_screenshots: false,
+      overwrite_screenshots: true,
+      submit_for_review: false,
+      force: true,
+      precheck_include_in_app_purchases: false,
+    )
+  end
+
+  desc "TestFlight 에 올라간 빌드를 심사에 제출 (승인 시 자동 출시)"
+  lane :submit do
+    version = version_name
+    # App Store Connect 가 **실제로 받은** 번호를 쓴다. pubspec 만 고치고
+    # 빌드를 안 올렸으면 여기서 어긋난 채 제출되어 옛 빌드가 심사에 들어간다.
+    build = latest_testflight_build_number(
+      api_key: asc_key, app_identifier: IOS_APP_ID, version: version,
+    )
+    UI.message("제출: #{version} (#{build})")
+
+    deliver(
+      api_key: asc_key,
+      app_identifier: IOS_APP_ID,
+      app_version: version,
+      build_number: build.to_s,
+      # 바이너리·등록정보는 앞 레인들이 이미 올렸다. 여기서는 제출만.
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: true,
+      force: true,
+      run_precheck_before_submit: false,
+      submit_for_review: true,
+      automatic_release: true,
+      submission_information: {
+        # Info.plist 의 ITSAppUsesNonExemptEncryption=false 와 같은 값이어야
+        # 한다 — 다르면 심사에서 되돌아온다.
+        export_compliance_uses_encryption: false,
+        content_rights_contains_third_party_content: false,
+      },
+    )
+  end
+
+  desc "원커맨드 출시 — 등록정보·스크린샷 올리고 심사 제출"
+  lane :release do
+    metadata
+    screenshots
+    submit
+  end
 end
+
 
 platform :android do
   desc "빌드해서 Play 내부 테스트로"
@@ -138,5 +229,74 @@ platform :android do
       skip_upload_screenshots: true,
       release_status: "draft",
     )
+  end
+
+  desc "스토어 등록정보(제목·설명)만 올린다. AAB·이미지는 안 건드린다"
+  lane :metadata do
+    upload_to_play_store(
+      package_name: ANDROID_APP_ID,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true,
+      metadata_path: "fastlane/metadata/android",
+      track: "internal",
+      version_code: google_play_track_version_codes(
+        package_name: ANDROID_APP_ID, track: "internal",
+      ).first,
+    )
+  end
+
+  desc "스크린샷·그래픽만 올린다. 문구·AAB 는 안 건드린다"
+  lane :images do
+    # 문구와 갈라 두는 이유: 그림을 안 고친 날에도 수십 장을 매번 덮어쓰면
+    # 느리고, 무엇이 언제 바뀌었는지 흐려진다.
+    upload_to_play_store(
+      package_name: ANDROID_APP_ID,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      skip_upload_changelogs: true,
+      metadata_path: "fastlane/metadata/android",
+      track: "internal",
+      version_code: google_play_track_version_codes(
+        package_name: ANDROID_APP_ID, track: "internal",
+      ).first,
+    )
+  end
+
+  desc "프로덕션 트랙에 올린다 — 구글 심사 통과 시 자동 출시"
+  lane :production do
+    build_number = ((Time.now.to_i - Time.utc(2020, 1, 1).to_i) / 60).to_s
+    sh("cd .. && flutter build appbundle --release " \
+       "--build-name=#{version_name} --build-number=#{build_number}")
+    upload_to_play_store(
+      package_name: ANDROID_APP_ID,
+      track: "production",
+      aab: "build/app/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true,
+      # **초안 앱에는 초안 릴리스만 만들 수 있다.** Google 이 그렇게 답한다:
+      # "Only releases with status draft may be created on draft app."
+      # 첫 출시는 콘솔에서 데이터 보안·콘텐츠 등급·타겟층을 채우고 사람이
+      # 한 번 눌러야 앱이 초안을 벗는다. 그다음부터 completed 로 바꿔도 된다.
+      release_status: "draft",
+    )
+  end
+
+  desc "트랙별 현재 버전코드"
+  lane :status do
+    %w[internal alpha beta production].each do |track|
+      codes = google_play_track_version_codes(package_name: ANDROID_APP_ID, track: track)
+      UI.message("#{track}: #{codes.empty? ? '없음' : codes.join(', ')}")
+    rescue StandardError => e
+      UI.important("#{track}: 조회 실패 (#{e.message.lines.first.to_s.strip})")
+    end
   end
 end

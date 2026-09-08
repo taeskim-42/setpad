@@ -1,0 +1,7 @@
+Bản phát hành đầu tiên.
+
+· Ghi hiệp bằng cách gõ
+· Thiết lập một dòng trên máy hỗ trợ (AI trên máy)
+· Ghi chú dưới từng hiệp
+· Kết nối app Sức khoẻ — năng lượng do Apple Watch đo
+· Tám ngôn ngữ, chế độ tối

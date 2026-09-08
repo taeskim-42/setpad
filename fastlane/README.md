@@ -47,6 +47,38 @@ Apple Developer 포털에 App ID 를 등록한다 (한 번만)
 
 빌드해서 TestFlight 로
 
+### ios metadata
+
+```sh
+[bundle exec] fastlane ios metadata
+```
+
+등록 정보와 스크린샷을 올린다 (빌드는 안 만든다)
+
+### ios screenshots
+
+```sh
+[bundle exec] fastlane ios screenshots
+```
+
+스크린샷만 올린다
+
+### ios submit
+
+```sh
+[bundle exec] fastlane ios submit
+```
+
+TestFlight 에 올라간 빌드를 심사에 제출 (승인 시 자동 출시)
+
+### ios release
+
+```sh
+[bundle exec] fastlane ios release
+```
+
+원커맨드 출시 — 등록정보·스크린샷 올리고 심사 제출
+
 ----
 
 
@@ -59,6 +91,38 @@ Apple Developer 포털에 App ID 를 등록한다 (한 번만)
 ```
 
 빌드해서 Play 내부 테스트로
+
+### android metadata
+
+```sh
+[bundle exec] fastlane android metadata
+```
+
+스토어 등록정보(제목·설명)만 올린다. AAB·이미지는 안 건드린다
+
+### android images
+
+```sh
+[bundle exec] fastlane android images
+```
+
+스크린샷·그래픽만 올린다. 문구·AAB 는 안 건드린다
+
+### android production
+
+```sh
+[bundle exec] fastlane android production
+```
+
+프로덕션 트랙에 올린다 — 구글 심사 통과 시 자동 출시
+
+### android status
+
+```sh
+[bundle exec] fastlane android status
+```
+
+트랙별 현재 버전코드
 
 ----
 

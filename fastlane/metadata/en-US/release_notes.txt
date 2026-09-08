@@ -1,0 +1,7 @@
+First release.
+
+· Sets logged by typing
+· One-line setup on supported devices (on-device AI)
+· A note under any set
+· Health app — active energy measured by Apple Watch
+· Eight languages, dark mode

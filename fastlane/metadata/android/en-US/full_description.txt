@@ -1,0 +1,31 @@
+Type the exercise, type the weight and reps. That is the whole app.
+
+setpad is not a routine builder. The moment a set is done you type the numbers, the way you would in a notes app. No screens to move between, no dropdowns to pick.
+
+■ Typing is logging
+· Type "Bench Press" and the exercise opens; type "80 12" and a set is logged
+· A keypad built for sets — digits and +/-, stepping by 2.5 kg
+· Same as last set? One tap
+· Search tolerates typos and matches partial words
+
+■ One-line setup
+· Write "bench 80kg, work up to 100 reps" and the weight and goal are filled in
+· The sentence is processed on your device — it is never sent anywhere
+· Requires iPhone 15 Pro or later, iOS 26 or later, Apple Intelligence on
+· On other devices the app works exactly the same; it just tells you why this part is off
+
+■ A note under any set
+· Write what you were thinking, right under the set. Notes stack up
+· Tap to edit, backspace to remove — like writing a document
+
+■ Health app
+· Your workout is written to the Health app as a workout
+· Active energy measured by Apple Watch is read back in
+· The app never invents a calorie number. If nothing measured it, it says so
+
+■ Also
+· kg, lb, km, minutes, seconds — the unit that fits what you are doing
+· Dark mode follows your system setting
+· English, Korean, Japanese, Spanish, Thai, Vietnamese, Chinese (Simplified and Traditional)
+
+No account. No ads. Your log stays on your device.

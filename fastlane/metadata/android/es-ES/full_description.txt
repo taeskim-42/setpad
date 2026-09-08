@@ -1,0 +1,31 @@
+Escribe el ejercicio, escribe el peso y las repeticiones. Eso es toda la app.
+
+setpad no es un creador de rutinas. En cuanto terminas una serie escribes los números, como lo harías en una app de notas. Sin pantallas por las que navegar, sin desplegables que elegir.
+
+■ Escribir es registrar
+· Escribe "Press banca" y el ejercicio se abre; escribe "80 12" y la serie queda registrada
+· Un teclado hecho para series — dígitos y +/-, en pasos de 2,5 kg
+· ¿Igual que la serie anterior? Un solo toque
+· La búsqueda tolera erratas y encuentra palabras parciales
+
+■ Configuración en una línea
+· Escribe "banca 80kg hasta 100 repeticiones" y el peso y el objetivo se rellenan solos
+· La frase se procesa en tu dispositivo — nunca se envía a ningún sitio
+· Requiere iPhone 15 Pro o posterior, iOS 26 o posterior y Apple Intelligence activado
+· En otros dispositivos la app funciona igual; solo te explica por qué esta parte no está disponible
+
+■ Una nota bajo cualquier serie
+· Anota lo que estabas pensando, justo debajo de la serie. Las notas se acumulan
+· Toca para editar, retroceso para borrar — como al escribir un documento
+
+■ App Salud
+· Tu entrenamiento se guarda en Salud como un entrenamiento
+· Se lee la energía activa medida por el Apple Watch
+· La app nunca se inventa las calorías. Si nadie las midió, lo dice
+
+■ Además
+· kg, lb, km, minutos, segundos — la unidad que corresponde a lo que haces
+· El modo oscuro sigue la configuración del sistema
+· Español, inglés, coreano, japonés, tailandés, vietnamita y chino (simplificado y tradicional)
+
+Sin cuenta. Sin anuncios. Tu registro se queda en tu dispositivo.

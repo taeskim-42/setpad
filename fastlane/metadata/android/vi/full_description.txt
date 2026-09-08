@@ -1,0 +1,31 @@
+Gõ tên bài tập, gõ mức tạ và số lần. Cả ứng dụng chỉ có vậy.
+
+setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ số ngay lúc đó, như viết vào ứng dụng ghi chú. Không phải chuyển qua lại giữa các màn hình, không phải chọn từ danh sách xổ xuống.
+
+■ Gõ là ghi
+· Gõ "Đẩy ngực" là bài tập mở ra; gõ "80 12" là một hiệp được ghi
+· Bàn phím làm riêng cho hiệp — chỉ có số và +/-, bước 2,5 kg
+· Giống hiệp trước? Chạm một lần
+· Tìm kiếm vẫn ra kết quả dù gõ sai hoặc gõ thiếu
+
+■ Thiết lập một dòng
+· Viết "đẩy ngực 80kg cho đủ 100 lần" là mức tạ và mục tiêu tự được điền
+· Câu chữ được xử lý ngay trên máy — không gửi đi đâu cả
+· Cần iPhone 15 Pro trở lên, iOS 26 trở lên và bật Apple Intelligence
+· Máy khác vẫn dùng ứng dụng bình thường; ứng dụng sẽ nói rõ vì sao phần này chưa dùng được
+
+■ Ghi chú dưới từng hiệp
+· Viết điều bạn đang nghĩ, ngay dưới hiệp vừa xong. Ghi chú xếp chồng lên nhau
+· Chạm để sửa, xoá lùi để bỏ — như đang viết một tài liệu
+
+■ Ứng dụng Sức khoẻ
+· Buổi tập được ghi vào Sức khoẻ như một buổi tập
+· Năng lượng hoạt động do Apple Watch đo được đọc về
+· Ứng dụng không tự bịa ra con số calo. Không ai đo thì nó nói là chưa có
+
+■ Ngoài ra
+· kg, lb, km, phút, giây — đơn vị hợp với việc bạn đang làm
+· Chế độ tối theo cài đặt hệ thống
+· Tiếng Việt, Anh, Hàn, Nhật, Tây Ban Nha, Thái và Trung (giản thể, phồn thể)
+
+Không cần tài khoản. Không quảng cáo. Nhật ký nằm trên máy của bạn.

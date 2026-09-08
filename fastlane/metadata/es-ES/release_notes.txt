@@ -1,0 +1,7 @@
+Primera versión.
+
+· Series registradas al escribir
+· Configuración en una línea en dispositivos compatibles (IA en el dispositivo)
+· Una nota bajo cualquier serie
+· App Salud — energía activa medida por el Apple Watch
+· Ocho idiomas, modo oscuro

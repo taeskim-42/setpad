@@ -48,3 +48,7 @@ app.*.map.json
 # fastlane 실행 산출물. 매번 바뀌고 남길 값이 없다.
 fastlane/report.xml
 fastlane/test_output/
+
+# 스크린샷 원본. 올라가는 것은 fastlane/screenshots 와
+# fastlane/metadata/android/*/images 다 — 원본까지 두면 같은 그림이 두 벌 된다.
+/shots/
