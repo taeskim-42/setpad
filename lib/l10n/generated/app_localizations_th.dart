@@ -254,4 +254,14 @@ class LTh extends L {
 
   @override
   String get setupTotalSets => 'เป้าหมายเซ็ต';
+
+  @override
+  String get moveExercise => 'ย้ายท่าออกกำลังกาย';
+
+  @override
+  String get weightUnitSetting => 'หน่วยน้ำหนักเริ่มต้น';
+
+  @override
+  String get weightUnitHelp =>
+      'ใช้กับท่าออกกำลังกายใหม่ น้ำหนักและหน่วยที่บันทึกไว้จะไม่เปลี่ยน';
 }

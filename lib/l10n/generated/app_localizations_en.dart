@@ -254,4 +254,14 @@ class LEn extends L {
 
   @override
   String get setupTotalSets => 'Set goal';
+
+  @override
+  String get moveExercise => 'Move exercise';
+
+  @override
+  String get weightUnitSetting => 'Default weight unit';
+
+  @override
+  String get weightUnitHelp =>
+      'Used for new exercises. Existing weights and units stay as recorded.';
 }

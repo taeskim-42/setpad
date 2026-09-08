@@ -254,4 +254,14 @@ class LEs extends L {
 
   @override
   String get setupTotalSets => 'Meta de series';
+
+  @override
+  String get moveExercise => 'Mover ejercicio';
+
+  @override
+  String get weightUnitSetting => 'Unidad de peso predeterminada';
+
+  @override
+  String get weightUnitHelp =>
+      'Se usa en ejercicios nuevos. Los pesos y unidades registrados no cambian.';
 }

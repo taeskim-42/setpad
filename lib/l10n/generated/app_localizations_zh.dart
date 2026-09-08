@@ -247,6 +247,15 @@ class LZh extends L {
 
   @override
   String get setupTotalSets => '组数目标';
+
+  @override
+  String get moveExercise => '移动动作';
+
+  @override
+  String get weightUnitSetting => '默认重量单位';
+
+  @override
+  String get weightUnitHelp => '用于新输入的动作。已有记录的重量和单位保持不变。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -492,6 +501,15 @@ class LZhHans extends LZh {
 
   @override
   String get setupTotalSets => '组数目标';
+
+  @override
+  String get moveExercise => '移动动作';
+
+  @override
+  String get weightUnitSetting => '默认重量单位';
+
+  @override
+  String get weightUnitHelp => '用于新输入的动作。已有记录的重量和单位保持不变。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -737,4 +755,13 @@ class LZhHant extends LZh {
 
   @override
   String get setupTotalSets => '組數目標';
+
+  @override
+  String get moveExercise => '移動動作';
+
+  @override
+  String get weightUnitSetting => '預設重量單位';
+
+  @override
+  String get weightUnitHelp => '用於新輸入的動作。已有紀錄的重量和單位保持不變。';
 }

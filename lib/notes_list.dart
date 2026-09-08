@@ -4,6 +4,8 @@ import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 import 'health_summary.dart';
 import 'palette.dart';
+import 'parser.dart';
+import 'settings.dart';
 
 /// 운동 기록 목록.
 ///
@@ -37,7 +39,13 @@ class _NotesListPageState extends State<NotesListPage> {
     final all = widget.store.notes;
     return q.isEmpty
         ? all
-        : all.where((n) => n.searchText.contains(q)).toList();
+        : all
+              .where(
+                (n) =>
+                    searchKey(n.searchText).contains(searchKey(q)) ||
+                    suggest(q, n.blocks.map((b) => b.name).toList()).isNotEmpty,
+              )
+              .toList();
   }
 
   /// 이전 7일 / 이전 30일 / 그 앞은 달로. 메모 앱과 같은 구간이다.
@@ -80,6 +88,12 @@ class _NotesListPageState extends State<NotesListPage> {
                     // 목록 화면의 기본 동작이고, 직접 흉내 내면 티가 난다.
                     CupertinoSliverNavigationBar(
                       largeTitle: Text(l.allNotes),
+                      trailing: CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () =>
+                            showWeightSettings(context, widget.store),
+                        child: const Icon(CupertinoIcons.gear, size: 21),
+                      ),
                       border: null,
                     ),
                     SliverToBoxAdapter(

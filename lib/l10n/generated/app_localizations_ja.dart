@@ -252,4 +252,13 @@ class LJa extends L {
 
   @override
   String get setupTotalSets => 'セット数の目標';
+
+  @override
+  String get moveExercise => '種目を移動';
+
+  @override
+  String get weightUnitSetting => '重量の既定単位';
+
+  @override
+  String get weightUnitHelp => '新しく入力する種目に使います。既存の重量と単位は変更しません。';
 }

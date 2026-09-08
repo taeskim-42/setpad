@@ -9,6 +9,7 @@ import 'health_summary.dart';
 import 'notes.dart';
 import 'palette.dart';
 import 'notes_list.dart';
+import 'settings.dart';
 
 void main() => runApp(const SetpadApp());
 
@@ -198,16 +199,28 @@ class EditorPage extends StatefulWidget {
 }
 
 class _EditorPageState extends State<EditorPage> {
-  final _editor = RoutineEditorController();
+  late final _editor = RoutineEditorController(
+    history: widget.store.exerciseHistory,
+    weightUnit: widget.store.weightUnit,
+  );
+  String? _lastLearned;
 
   @override
   void initState() {
     super.initState();
     _editor.restore(widget.note.blocks);
+    _lastLearned = _editor.recentExercises.firstOrNull;
     _editor.addListener(_persist);
   }
 
-  void _persist() => widget.store.update(widget.note, _editor.blocks);
+  void _persist() {
+    final recent = _editor.recentExercises.firstOrNull;
+    if (recent != null && recent != _lastLearned) {
+      widget.store.rememberExercise(recent);
+      _lastLearned = recent;
+    }
+    widget.store.update(widget.note, _editor.blocks);
+  }
 
   @override
   void dispose() {
@@ -228,13 +241,28 @@ class _EditorPageState extends State<EditorPage> {
         backgroundColor: CupertinoColors.systemBackground.resolveFrom(context),
         border: null,
         previousPageTitle: l.allNotes,
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(
-            l.doneEditing,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoButton(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              onPressed: () async {
+                await showWeightSettings(context, widget.store);
+                if (mounted) {
+                  setState(() => _editor.weightUnit = widget.store.weightUnit);
+                }
+              },
+              child: const Icon(CupertinoIcons.gear, size: 21),
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                l.doneEditing,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
         ),
       ),
       child: SafeArea(
@@ -246,6 +274,9 @@ class _EditorPageState extends State<EditorPage> {
             child: RoutineEditor(
               controller: _editor,
               header: _DocumentHeader(note: widget.note),
+              initialDraft: widget.note.draft,
+              onDraftChanged: (draft) =>
+                  widget.store.updateDraft(widget.note, draft),
             ),
           ),
         ),

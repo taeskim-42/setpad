@@ -185,5 +185,8 @@
         "type": "int"
       }
     }
-  }
+  },
+  "moveExercise": "운동 이동",
+  "weightUnitSetting": "기본 무게 단위",
+  "weightUnitHelp": "새로 입력하는 운동의 기본 단위입니다. 기존 기록의 무게와 단위는 바뀌지 않습니다."
 }

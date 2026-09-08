@@ -52,7 +52,7 @@ class LocalAiBridge(messenger: BinaryMessenger) {
                                 val response = withTimeout(29000) {
                                     model.generateContent(generateContentRequest(
                                         TextPart("$instructions\nInput data:\n$prompt")
-                                    ) { temperature = 0.0f; maxOutputTokens = 400 })
+                                    ) { temperature = 0.0f; maxOutputTokens = 600 })
                                 }
                                 ensureActive()
                                 result.success(response.candidates.firstOrNull()?.text)

@@ -67,5 +67,8 @@
   "setupWeight": "Peso predeterminado",
   "setupTotalReps": "Meta total de reps",
   "setupSetReps": "Reps por serie",
-  "setupTotalSets": "Meta de series"
+  "setupTotalSets": "Meta de series",
+  "moveExercise": "Mover ejercicio",
+  "weightUnitSetting": "Unidad de peso predeterminada",
+  "weightUnitHelp": "Se usa en ejercicios nuevos. Los pesos y unidades registrados no cambian."
 }

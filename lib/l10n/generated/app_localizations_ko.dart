@@ -253,4 +253,13 @@ class LKo extends L {
 
   @override
   String get setupTotalSets => '목표 세트 수';
+
+  @override
+  String get moveExercise => '운동 이동';
+
+  @override
+  String get weightUnitSetting => '기본 무게 단위';
+
+  @override
+  String get weightUnitHelp => '새로 입력하는 운동의 기본 단위입니다. 기존 기록의 무게와 단위는 바뀌지 않습니다.';
 }

@@ -157,7 +157,7 @@ void main() {
         .setMockMethodCallHandler(channel, (call) async {
           calls.add(call);
           if (call.method == 'status') return 'intelligenceDisabled';
-          return jsonEncode({'isExercise': true, ...setup.toJson()});
+          return jsonEncode({'isExercise': true, 'name': setup.name, 'unit': 'kg', 'repsOnly': true, 'parameters': [{'kind': 'weight', 'value': 80, 'evidence': '80kg'}, {'kind': 'totalReps', 'value': 100, 'evidence': '100개 채우기'}]});
         });
     addTearDown(
       () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -179,6 +179,7 @@ void main() {
           (_) async => jsonEncode({
             'isExercise': true,
             'name': '벤치프레스',
+            'parameters': [],
             'unit': 'kg',
             'repsOnly': true,
           }),

@@ -20,6 +20,7 @@ class Note {
     required this.updatedAt,
     List<ExerciseBlock>? blocks,
     this.calories,
+    this.draft,
   }) : blocks = blocks ?? [];
 
   final String id;
@@ -30,6 +31,7 @@ class Note {
   /// 이 운동 동안 **애플워치가 잰** 활동 칼로리. 잰 것이 없으면 null 이다.
   /// 앱이 추정하지 않는다 — 0 과 "아무도 안 쟀다"는 다른 말이다.
   double? calories;
+  EditorDraft? draft;
 
   /// 목록에 뜨는 제목 — 그날 한 운동 이름 전부.
   ///
@@ -39,8 +41,9 @@ class Note {
   /// 첫 운동은 그날을 대표하지 않는다 — 그냥 먼저 친 것뿐이다.
   ///
   /// 길면 화면이 잘라 준다. 앞의 몇 개만 보여도 첫 하나보다 낫다.
-  String? get title =>
-      blocks.isEmpty ? null : blocks.map((b) => b.name).toSet().join(' · ');
+  String? get title => blocks.isEmpty
+      ? draft?.text.trim()
+      : blocks.map((b) => b.name).toSet().join(' · ');
 
   /// 제목 아래 한 줄 — 그날 총계.
   ///
@@ -68,6 +71,7 @@ class Note {
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
     if (calories != null) 'calories': calories,
+    if (draft != null) 'draft': draft!.toJson(),
     'blocks': [
       for (final b in blocks)
         {
@@ -92,27 +96,24 @@ class Note {
     createdAt: DateTime.parse(j['createdAt'] as String),
     updatedAt: DateTime.parse(j['updatedAt'] as String),
     calories: (j['calories'] as num?)?.toDouble(),
+    draft: EditorDraft.fromJson(j['draft']),
     blocks: [
       for (final b in (j['blocks'] as List? ?? const []))
-        ExerciseBlock(
-          b['name'] as String,
-          [
-            for (final s in (b['sets'] as List? ?? const []))
-              LoggedSet(
-                // 'kg' 는 단위가 생기기 전에 저장된 기록이다. 그때는
-                // 무게가 늘 kg 였으므로 그대로 읽어 준다.
-                value: ((s['value'] ?? s['kg']) as num?)?.toDouble(),
-                unit: s['unit'] as String? ?? defaultUnit,
-                reps: s['reps'] as int?,
-                // 'note'(단수)는 메모가 하나뿐이던 시절의 저장분이다.
-                notes:
-                    ((s['notes'] as List?)?.cast<String>()) ??
-                    (s['note'] == null ? null : [s['note'] as String]),
-                done: s['done'] as bool? ?? true,
-              ),
-          ],
-          WorkoutSetup.tryFromJson(b['setup']),
-        ),
+        ExerciseBlock(b['name'] as String, [
+          for (final s in (b['sets'] as List? ?? const []))
+            LoggedSet(
+              // 'kg' 는 단위가 생기기 전에 저장된 기록이다. 그때는
+              // 무게가 늘 kg 였으므로 그대로 읽어 준다.
+              value: ((s['value'] ?? s['kg']) as num?)?.toDouble(),
+              unit: s['unit'] as String? ?? defaultUnit,
+              reps: s['reps'] as int?,
+              // 'note'(단수)는 메모가 하나뿐이던 시절의 저장분이다.
+              notes:
+                  ((s['notes'] as List?)?.cast<String>()) ??
+                  (s['note'] == null ? null : [s['note'] as String]),
+              done: s['done'] as bool? ?? true,
+            ),
+        ], WorkoutSetup.tryFromJson(b['setup'])),
     ],
   );
 }
@@ -128,6 +129,11 @@ class NotesStore extends ChangeNotifier {
   final Directory? _override;
   final List<Note> _notes = [];
   Timer? _debounce;
+  Future<void> _writes = Future.value();
+  final List<String> _exerciseHistory = [];
+  List<String> get exerciseHistory => List.unmodifiable(_exerciseHistory);
+  String _weightUnit = defaultUnit;
+  String get weightUnit => _weightUnit;
 
   /// 최근에 고친 것이 위로. 메모 앱과 같은 순서다.
   List<Note> get notes => List.unmodifiable(_notes);
@@ -140,12 +146,29 @@ class NotesStore extends ChangeNotifier {
   Future<void> load() async {
     try {
       final f = await _file();
+      try {
+        final preferences = File('${f.parent.path}/preferences.json');
+        if (preferences.existsSync()) {
+          final data = jsonDecode(await preferences.readAsString()) as Map;
+          _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
+          _exerciseHistory
+            ..clear()
+            ..addAll((data['exercises'] as List? ?? []).whereType<String>().toSet());
+        }
+      } catch (e) {
+        debugPrint('Could not load preferences: $e');
+      }
       if (!f.existsSync()) return;
       final raw = jsonDecode(await f.readAsString()) as List;
       _notes
         ..clear()
         ..addAll(raw.map((e) => Note.fromJson(e as Map<String, dynamic>)));
       _sort();
+      for (final n in _notes) {
+        for (final b in n.blocks.reversed) {
+          if (!_exerciseHistory.contains(b.name)) _exerciseHistory.add(b.name);
+        }
+      }
       notifyListeners();
     } catch (e) {
       // 파일이 깨졌다고 앱이 안 뜨면 안 된다. 빈 목록으로 시작하고, 원본은
@@ -161,14 +184,54 @@ class NotesStore extends ChangeNotifier {
   }
 
   /// 지금 당장 쓴다. 화면을 떠날 때와 앱이 내려갈 때 부른다.
-  Future<void> flush() async {
+  Future<void> flush() {
     _debounce?.cancel();
-    try {
-      final f = await _file();
-      await f.writeAsString(jsonEncode(_notes.map((n) => n.toJson()).toList()));
-    } catch (e) {
-      debugPrint('notes.json 을 쓰지 못했다: $e');
-    }
+    final notes = jsonEncode(_notes.map((n) => n.toJson()).toList());
+    final preferences = jsonEncode({
+      'weightUnit': _weightUnit,
+      'exercises': _exerciseHistory,
+    });
+    return _writes = _writes.then((_) async {
+      try {
+        final f = await _file();
+        await _atomicWrite(f, notes);
+        await _atomicWrite(
+          File('${f.parent.path}/preferences.json'),
+          preferences,
+        );
+      } catch (e) {
+        debugPrint('Could not save notes: $e');
+      }
+    });
+  }
+
+  Future<void> _atomicWrite(File file, String text) async {
+    final temporary = File('${file.path}.tmp');
+    await temporary.writeAsString(text, flush: true);
+    await temporary.rename(file.path);
+  }
+
+  void setWeightUnit(String unit) {
+    if (unit != 'kg' && unit != 'lb') return;
+    _weightUnit = unit;
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  void rememberExercise(String name) {
+    if (name.trim().isEmpty) return;
+    _exerciseHistory.remove(name);
+    _exerciseHistory.insert(0, name);
+    _scheduleSave();
+  }
+
+  void updateDraft(Note note, EditorDraft? draft) {
+    if (mapEquals(note.draft?.toJson(), draft?.toJson())) return;
+    note.draft = draft;
+    note.updatedAt = DateTime.now();
+    _sort();
+    notifyListeners();
+    _scheduleSave();
   }
 
   void _sort() => _notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
@@ -210,7 +273,9 @@ class NotesStore extends ChangeNotifier {
 
   /// 아무것도 안 친 메모는 목록에 남길 이유가 없다. 메모 앱과 같다.
   void discardIfEmpty(Note note) {
-    if (note.blocks.isEmpty) delete(note);
+    if (note.blocks.isEmpty && (note.draft?.text.trim().isEmpty ?? true)) {
+      delete(note);
+    }
   }
 
   @override

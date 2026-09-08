@@ -54,7 +54,7 @@ void main() {
       final viewport = tester.getRect(
         find.descendant(
           of: find.byType(RoutineEditor),
-          matching: find.byType(ListView),
+          matching: find.byType(CustomScrollView),
         ),
       );
       expect(

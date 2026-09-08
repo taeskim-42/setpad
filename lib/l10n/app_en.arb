@@ -67,5 +67,8 @@
   "setupWeight": "Default weight",
   "setupTotalReps": "Total rep goal",
   "setupSetReps": "Reps per set",
-  "setupTotalSets": "Set goal"
+  "setupTotalSets": "Set goal",
+  "moveExercise": "Move exercise",
+  "weightUnitSetting": "Default weight unit",
+  "weightUnitHelp": "Used for new exercises. Existing weights and units stay as recorded."
 }

@@ -28,8 +28,25 @@ final padField =
 
 /// 패드 안의 글자. 첫 운동 이름은 앱바 제목에도 나오므로(메모 앱처럼 첫 줄이
 /// 제목이다) 그냥 find.text 로 세면 둘이 잡힌다.
-Finder inPad(String text) =>
-    find.descendant(of: find.byType(RoutineEditor), matching: find.text(text));
+/// 문서 본문에 있는 글자. **추천 칩은 뺀다.**
+///
+/// 칩에는 이미 적어 둔 운동도 뜬다 — 한 운동을 끝내고 다른 걸 하다 돌아오는
+/// 일이 흔해서 그게 맞다. 그냥 찾으면 카드 제목과 칩이 같이 걸려
+/// "하나만 있어야 한다"가 깨진다. 찾는 것은 늘 문서 쪽이다.
+Finder inPad(String text) => find.byElementPredicate((e) {
+  final w = e.widget;
+  if (w is! Text || w.data != text) return false;
+  var inEditor = false, inChip = false;
+  e.visitAncestorElements((a) {
+    if (a.widget is SuggestionChip) inChip = true;
+    if (a.widget is RoutineEditor) {
+      inEditor = true;
+      return false;
+    }
+    return true;
+  });
+  return inEditor && !inChip;
+});
 
 /// The fixed keypad action stays reachable while the document scrolls.
 final addSetButton =
@@ -102,10 +119,11 @@ void main() {
       expect(c.blocks.length, 2);
     });
 
-    test('세트를 하나도 안 적고 닫으면 그 운동은 남지 않는다', () {
+    test('세트를 하나도 안 적고 닫아도 운동 계획은 남는다', () {
       final c = RoutineEditorController()..commit('벤치프레스');
       c.commit('');
-      expect(c.blocks, isEmpty);
+      expect(c.blocks.single.name, '벤치프레스');
+      expect(c.blocks.single.sets, isEmpty);
     });
 
     test('반복 세트는 그 수만큼 쌓인다', () {
@@ -405,8 +423,14 @@ void keypadTests() {
       // testWidgets 는 가짜 비동기 안에서 돈다. 진짜 파일 IO 를 그냥 await 하면
       // 완료 신호가 오지 않아 테스트가 멈춘다 — runAsync 로 진짜 시간에 맡긴다.
       late NotesStore reopened;
+      var flushed = false;
+      store.flush().then((_) => flushed = true);
+      for (var i = 0; i < 100 && !flushed; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 10)));
+        await tester.pump();
+      }
+      expect(flushed, isTrue);
       await tester.runAsync(() async {
-        await store.flush();
         expect(File('${dir.path}/notes.json').existsSync(), isTrue);
         // 앱을 새로 켠 것과 같다 — 저장소를 처음부터 만들어 읽는다.
         reopened = NotesStore(directory: dir);
@@ -583,7 +607,7 @@ void keypadTests() {
       expect(c.blocks[1].sets.length, 1);
     });
 
-    test('열려 있던 빈 운동은 다른 카드로 옮길 때 치운다', () {
+    test('열려 있던 빈 운동은 다른 카드로 옮겨도 남는다', () {
       final c = RoutineEditorController()
         ..commit('벤치프레스')
         ..commit('100 10')
@@ -592,8 +616,8 @@ void keypadTests() {
       expect(c.blocks.length, 2);
 
       c.openBlock(0);
-      expect(c.blocks.length, 1);          // 빈 스쿼트는 사라진다
-      expect(c.blocks.single.name, '벤치프레스');
+      expect(c.blocks.length, 2);
+      expect(c.blocks.last.name, '스쿼트');
       expect(c.activeIndex, 0);
     });
 
@@ -1104,8 +1128,8 @@ void keypadTests() {
         await settle(tester);
       }
 
-      final scroll = tester.widget<ListView>(
-              find.descendant(of: find.byType(RoutineEditor), matching: find.byType(ListView)))
+      final scroll = tester.widget<CustomScrollView>(
+              find.descendant(of: find.byType(RoutineEditor), matching: find.byType(CustomScrollView)))
           .controller!;
       final before = scroll.offset;
 
@@ -1140,7 +1164,7 @@ void keypadTests() {
       // 바닥에 딱 붙어 있을 필요는 없다. 방금 친 자리가 **보이면** 된다 —
       // 맨 아래로 던지면 앞 카드가 화면 밖으로 튀어 나갔다 되돌아온다.
       final view = tester.getRect(
-          find.descendant(of: find.byType(RoutineEditor), matching: find.byType(ListView)));
+          find.descendant(of: find.byType(RoutineEditor), matching: find.byType(CustomScrollView)));
       final input = tester.getRect(padField);
       expect(input.bottom, lessThanOrEqualTo(view.bottom + 1));
       expect(input.top, greaterThanOrEqualTo(view.top - 1));

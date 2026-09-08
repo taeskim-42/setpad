@@ -67,5 +67,8 @@
   "setupWeight": "基本重量",
   "setupTotalReps": "合計回数の目標",
   "setupSetReps": "セットあたりの回数",
-  "setupTotalSets": "セット数の目標"
+  "setupTotalSets": "セット数の目標",
+  "moveExercise": "種目を移動",
+  "weightUnitSetting": "重量の既定単位",
+  "weightUnitHelp": "新しく入力する種目に使います。既存の重量と単位は変更しません。"
 }

@@ -11,6 +11,45 @@ import 'palette.dart';
 import 'parser.dart';
 import 'units.dart';
 
+class EditorDraft {
+  const EditorDraft({
+    required this.text,
+    this.block = -1,
+    this.memo = false,
+    this.editingSet,
+    this.editingNote,
+    this.setText,
+  });
+  final String text;
+  final int block;
+  final bool memo;
+  final int? editingSet, editingNote;
+  final String? setText;
+  Map<String, Object?> toJson() => {
+    'text': text,
+    'block': block,
+    'memo': memo,
+    'editingSet': editingSet,
+    'editingNote': editingNote,
+    'setText': setText,
+  };
+  static EditorDraft? fromJson(Object? value) {
+    if (value is! Map || value['text'] is! String) return null;
+    return EditorDraft(
+      text: value['text'] as String,
+      block: value['block'] is int ? value['block'] as int : -1,
+      memo: value['memo'] == true,
+      editingSet: value['editingSet'] is int
+          ? value['editingSet'] as int
+          : null,
+      editingNote: value['editingNote'] is int
+          ? value['editingNote'] as int
+          : null,
+      setText: value['setText'] is String ? value['setText'] as String : null,
+    );
+  }
+}
+
 class LoggedSet {
   LoggedSet({
     this.value,
@@ -50,8 +89,17 @@ class ExerciseBlock {
 /// 에디터의 상태. 화면과 떼어 둔 이유는 상위 화면(복사 버튼 등)이 같은 상태를
 /// 봐야 하고, 위젯 테스트에서 직접 찔러볼 수 있어야 해서다.
 class RoutineEditorController extends ChangeNotifier {
+  RoutineEditorController({
+    Iterable<String> history = const [],
+    this.weightUnit = defaultUnit,
+  }) {
+    _learned.addAll(history);
+  }
+
+  String weightUnit;
   final List<ExerciseBlock> blocks = [];
   final List<String> _learned = [];
+  List<String> get recentExercises => List.unmodifiable(_learned);
 
   /// 이 기기에서 실제로 친 이름이 씨앗 목록보다 앞선다.
   /// 씨앗은 화면 언어의 이름으로 낸다 — 검색은 어느 언어로 하든 잡힌다.
@@ -81,13 +129,6 @@ class RoutineEditorController extends ChangeNotifier {
   /// 카드를 눌러 그 운동을 다시 연다.
   void openBlock(int index) {
     if (index < 0 || index >= blocks.length || index == _active) return;
-    // 열려 있던 운동이 빈 채로 남으면 치우고 나간다 — closeBlock 과 같은 규칙.
-    if (inBlock &&
-        blocks[_active].sets.isEmpty &&
-        blocks[_active].setup == null) {
-      blocks.removeAt(_active);
-      if (index > _active) index -= 1;
-    }
     _active = index;
     notifyListeners();
   }
@@ -113,7 +154,7 @@ class RoutineEditorController extends ChangeNotifier {
           parsed.unit ??
           blocks[_active].setup?.unit ??
           blocks[_active].sets.lastOrNull?.unit ??
-          defaultUnit,
+          weightUnit,
       reps: parsed.reps,
       notes: parsed.note == null ? null : [parsed.note!],
     );
@@ -146,10 +187,6 @@ class RoutineEditorController extends ChangeNotifier {
   /// 노션에서 빈 리스트 항목에 Enter를 치면 리스트를 벗어나는 것과 같다.
   void closeBlock() {
     if (!inBlock) return;
-    // 세트를 하나도 안 적은 운동은 남길 이유가 없다.
-    if (blocks[_active].sets.isEmpty && blocks[_active].setup == null) {
-      blocks.removeAt(_active);
-    }
     _active = -1;
     notifyListeners();
   }
@@ -174,6 +211,16 @@ class RoutineEditorController extends ChangeNotifier {
     if (index < 0 || index >= blocks.length) return;
     blocks[index].name = setup.name;
     blocks[index].setup = setup;
+    notifyListeners();
+  }
+
+  void moveBlock(int from, int to) {
+    if (from < 0 || from >= blocks.length || to < 0 || to >= blocks.length) {
+      return;
+    }
+    final active = inBlock ? blocks[_active] : null;
+    blocks.insert(to, blocks.removeAt(from));
+    _active = active == null ? -1 : blocks.indexOf(active);
     notifyListeners();
   }
 
@@ -225,12 +272,6 @@ class RoutineEditorController extends ChangeNotifier {
   void removeSet(int block, int set) {
     final b = blocks[block];
     b.sets.removeAt(set);
-    // 세트가 안 남은 운동은 치운다. 단 지금 치고 있는 운동은 남긴다 — 커서가
-    // 그 안에 있는데 카드가 사라지면 어디에 치는지 알 수 없다.
-    if (b.sets.isEmpty && block != _active && b.setup == null) {
-      blocks.removeAt(block);
-      if (_active > block) _active -= 1;
-    }
     notifyListeners();
   }
 
@@ -364,10 +405,14 @@ class RoutineEditor extends StatefulWidget {
     required this.controller,
     this.header,
     this.localAi = const LocalAi(),
+    this.initialDraft,
+    this.onDraftChanged,
   });
   final RoutineEditorController controller;
   final Widget? header;
   final LocalAi localAi;
+  final EditorDraft? initialDraft;
+  final ValueChanged<EditorDraft?>? onDraftChanged;
 
   @override
   State<RoutineEditor> createState() => _RoutineEditorState();
@@ -435,7 +480,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     final sets = _c.inBlock
         ? _c.blocks[_c.activeIndex].sets
         : const <LoggedSet>[];
-    return _setup?.unit ?? (sets.isEmpty ? defaultUnit : sets.last.unit);
+    return _setup?.unit ?? (sets.isEmpty ? _c.weightUnit : sets.last.unit);
   }
 
   /// 지금 미는 폭. 횟수를 치는 중이면 1이다 — 횟수를 2.5씩 미는 일은 없다.
@@ -491,6 +536,27 @@ class _RoutineEditorState extends State<RoutineEditor>
   @override
   void initState() {
     super.initState();
+    final draft = widget.initialDraft;
+    if (draft != null) {
+      if (draft.block >= 0 && draft.block < _c.blocks.length) {
+        _c.openBlock(draft.block);
+        _wantText = draft.memo;
+        final st = draft.editingSet, n = draft.editingNote;
+        if (st != null &&
+            n != null &&
+            st >= 0 &&
+            st < _c.blocks[draft.block].sets.length &&
+            n >= 0 &&
+            n < _c.blocks[draft.block].sets[st].notes.length) {
+          _editing = (draft.block, st, n);
+        }
+      }
+      _input.text = draft.text;
+      _hasInput = draft.text.trim().isNotEmpty;
+      if (draft.setText != null) {
+        _setDraft = TextEditingValue(text: draft.setText!);
+      }
+    }
     _c.addListener(_onChanged);
     // Keep memo mode until it is explicitly saved, even if the IME loses focus.
     _input.addListener(_onInput);
@@ -563,7 +629,10 @@ class _RoutineEditorState extends State<RoutineEditor>
       }
       setState(() => _aiBusy = false);
       _input.clear();
-      _c.addExercise(setup.name, setup: setup);
+      _c.addExercise(
+        setup.name,
+        setup: setup.hasPlan || setup.repsOnly ? setup : null,
+      );
       _focus.requestFocus();
     } catch (_) {
       if (mounted && request == _aiRequest) {
@@ -606,6 +675,25 @@ class _RoutineEditorState extends State<RoutineEditor>
     _reopen();
   }
 
+  void _moveBlock(int from, int to) {
+    final editing = _editing;
+    final block = editing == null ? null : _c.blocks[editing.$1];
+    if (editing != null) {
+      final destination = to;
+      final oldIndex = editing.$1;
+      final nextIndex = oldIndex == from
+          ? destination
+          : from < oldIndex && destination >= oldIndex
+          ? oldIndex - 1
+          : from > oldIndex && destination <= oldIndex
+          ? oldIndex + 1
+          : oldIndex;
+      _editing = (nextIndex, editing.$2, editing.$3);
+    }
+    _c.moveBlock(from, to);
+    assert(block == null || identical(_c.blocks[_editing!.$1], block));
+  }
+
   void _onInput() {
     if (_pendingSubmission != _input.text) _pendingSubmission = null;
     if (_aiBusy && _input.text != _submittedText) {
@@ -621,6 +709,22 @@ class _RoutineEditorState extends State<RoutineEditor>
         _aiFailed = false;
       });
     }
+    _saveDraft();
+  }
+
+  void _saveDraft() {
+    widget.onDraftChanged?.call(
+      _input.text.isEmpty && _setDraft == null
+          ? null
+          : EditorDraft(
+              text: _input.text,
+              block: _c.activeIndex,
+              memo: _wantText,
+              editingSet: _editing?.$2,
+              editingNote: _editing?.$3,
+              setText: _setDraft?.text,
+            ),
+    );
   }
 
   @override
@@ -650,6 +754,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   int _lastLineCount = 0;
 
   void _onChanged() {
+    _saveDraft();
     if (mounted) setState(() {});
     // keyboardType 을 바꾸는 것만으로는 **이미 올라와 있는** 키보드가 내려가지
     // 않는다. 운동 이름을 칠 때 뜬 키보드가 세트 모드에서도 그대로 남아
@@ -696,8 +801,15 @@ class _RoutineEditorState extends State<RoutineEditor>
     }
   }
 
-  List<String> get _matches =>
-      _c.naming ? suggest(_input.text, _c.vocabulary(_lang)) : const [];
+  List<String> get _matches => !_c.naming
+      ? const []
+      : _input.text.trim().isEmpty
+      ? _c.recentExercises.take(6).toList()
+      : suggest(
+          _input.text,
+          _c.vocabulary(_lang),
+          preferred: _c.recentExercises,
+        );
 
   /// 사전에서 어느 언어의 이름을 낼지. 검색은 언어를 가리지 않는다.
   String get _lang {
@@ -855,88 +967,111 @@ class _RoutineEditorState extends State<RoutineEditor>
             // 빈 곳을 눌러도 커서를 잃지 않는다.
             onTap: _reopen,
             behavior: HitTestBehavior.opaque,
-            child: ListView.builder(
+            child: CustomScrollView(
               controller: _scroll,
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-              itemCount:
-                  blocks.length +
-                  (_c.naming ? 1 : 0) +
-                  (widget.header == null ? 0 : 1),
-              itemBuilder: (context, index) {
-                if (widget.header != null && index == 0) return widget.header!;
-                final i = index - (widget.header == null ? 0 : 1);
-                if (i < blocks.length) {
-                  return _BlockView(
-                    block: blocks[i],
-                    input: i == openIndex ? _buildInput() : null,
-                    inputSet: _editing?.$2 ?? blocks[i].sets.length - 1,
-                    isMemo: _wantText,
-                    onToggle: (set) => _c.toggleDone(i, set),
-                    onRemoveSet: (set) => _c.removeSet(i, set),
-                    onRemoveBlock: () => _c.removeBlock(i),
-                    onEditNote: (set, note) => _startEditNote(i, set, note),
-                    onRemoveNote: (set, note) => _c.removeNote(i, set, note),
-                    onEditSetup: () => _editSetup(i),
-                    // 열려 있는 카드는 이미 거기다 — 누를 것이 없다.
-                    onOpen: i == openIndex ? null : () => _openBlock(i),
-                  );
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInput(bold: true),
-                    CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size.fromHeight(36),
-                      onPressed: () => showLocalAiHelp(
-                        context,
-                        _aiStatus,
-                        onRetry: _refreshAi,
-                        onPrepare: _prepareAi,
-                      ),
-                      child: Text(
-                        _aiBusy
-                            ? L.of(context).aiWorking
-                            : '${L.of(context).aiTitle} · ${aiStatusLabel(L.of(context), _aiStatus)}',
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                    ),
-                    if (_aiFailed) ...[
-                      Text(
-                        L.of(context).aiFailure,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: CupertinoColors.secondaryLabel.resolveFrom(
-                            context,
-                          ),
-                        ),
-                      ),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () => _commit(_input.text),
-                        child: Text(
-                          L.of(context).aiUseName,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      ),
-                    ],
-                    if (blocks.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          L.of(context).howTo,
-                          style: TextStyle(
-                            fontSize: 13,
-                            height: 1.5,
-                            color: CupertinoColors.secondaryLabel.resolveFrom(
-                              context,
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                  sliver: SliverMainAxisGroup(
+                    slivers: [
+                      if (widget.header != null)
+                        SliverToBoxAdapter(child: widget.header!),
+                      SliverReorderableList(
+                        itemCount: blocks.length,
+                        onReorderItem: _moveBlock,
+                        itemBuilder: (context, i) => _BlockView(
+                          key: ObjectKey(blocks[i]),
+                          dragHandle: ReorderableDragStartListener(
+                            index: i,
+                            child: Semantics(
+                              label: L.of(context).moveExercise,
+                              child: const SizedBox(
+                                width: 36,
+                                height: 44,
+                                child: Icon(
+                                  CupertinoIcons.line_horizontal_3,
+                                  size: 18,
+                                  color: CupertinoColors.systemGrey,
+                                ),
+                              ),
                             ),
                           ),
+                          block: blocks[i],
+                          input: i == openIndex ? _buildInput() : null,
+                          inputSet: _editing?.$2 ?? blocks[i].sets.length - 1,
+                          isMemo: _wantText,
+                          onToggle: (set) => _c.toggleDone(i, set),
+                          onRemoveSet: (set) => _c.removeSet(i, set),
+                          onRemoveBlock: () => _c.removeBlock(i),
+                          onEditNote: (set, note) =>
+                              _startEditNote(i, set, note),
+                          onRemoveNote: (set, note) =>
+                              _c.removeNote(i, set, note),
+                          onEditSetup: () => _editSetup(i),
+                          // 열려 있는 카드는 이미 거기다 — 누를 것이 없다.
+                          onOpen: i == openIndex ? null : () => _openBlock(i),
                         ),
                       ),
-                  ],
-                );
-              },
+                      if (_c.naming)
+                        SliverToBoxAdapter(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildInput(bold: true),
+                              CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                minimumSize: const Size.fromHeight(36),
+                                onPressed: () => showLocalAiHelp(
+                                  context,
+                                  _aiStatus,
+                                  onRetry: _refreshAi,
+                                  onPrepare: _prepareAi,
+                                ),
+                                child: Text(
+                                  _aiBusy
+                                      ? L.of(context).aiWorking
+                                      : '${L.of(context).aiTitle} · ${aiStatusLabel(L.of(context), _aiStatus)}',
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ),
+                              if (_aiFailed) ...[
+                                Text(
+                                  L.of(context).aiFailure,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: CupertinoColors.secondaryLabel
+                                        .resolveFrom(context),
+                                  ),
+                                ),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => _commit(_input.text),
+                                  child: Text(
+                                    L.of(context).aiUseName,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              ],
+                              if (blocks.isEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    L.of(context).howTo,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      height: 1.5,
+                                      color: CupertinoColors.secondaryLabel
+                                          .resolveFrom(context),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -1090,8 +1225,11 @@ class _RoutineEditorState extends State<RoutineEditor>
             minLines: _wantText ? 2 : 1,
             maxLines: _wantText ? null : 1,
             onTap: _reopen,
-            onSubmitted: (_) =>
-                _commit(_matches.isNotEmpty ? _matches[_highlight] : null),
+            onSubmitted: (_) => _commit(
+              _input.text.trim().isNotEmpty && _matches.isNotEmpty
+                  ? _matches[_highlight.clamp(0, _matches.length - 1)]
+                  : null,
+            ),
             onChanged: (_) => setState(() => _highlight = 0),
             style: TextStyle(
               fontSize: 17,
@@ -1133,6 +1271,8 @@ class _RoutineEditorState extends State<RoutineEditor>
 
 class _BlockView extends StatelessWidget {
   const _BlockView({
+    super.key,
+    required this.dragHandle,
     required this.block,
     this.input,
     required this.inputSet,
@@ -1147,6 +1287,7 @@ class _BlockView extends StatelessWidget {
   });
 
   final ExerciseBlock block;
+  final Widget dragHandle;
 
   /// 이 운동이 아직 세트를 받는 중이면 입력 줄이 카드 안에 들어온다.
   final Widget? input;
@@ -1196,6 +1337,7 @@ class _BlockView extends StatelessWidget {
                   ),
                 ),
               ),
+              dragHandle,
               GestureDetector(
                 onTap: () => _confirmRemove(context),
                 behavior: HitTestBehavior.opaque,
@@ -1331,10 +1473,7 @@ class _SetRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 17,
                     fontFeatures: const [FontFeature.tabularFigures()],
-                    color: off
-                        ? CupertinoColors.tertiaryLabel.resolveFrom(context)
-                        : CupertinoColors.label.resolveFrom(context),
-                    decoration: off ? TextDecoration.lineThrough : null,
+                    color: CupertinoColors.label.resolveFrom(context),
                   ),
                 ),
               ),

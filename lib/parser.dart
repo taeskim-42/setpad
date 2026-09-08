@@ -13,16 +13,22 @@ import 'units.dart';
 ///
 /// 화면 언어와 상관없이 여덟 언어와 초성을 전부 받는다 — 사전에 있는 운동은
 /// 어느 이름으로 쳐도 찾히고, 나오는 건 화면 언어의 이름이다.
-List<String> suggest(String query, List<String> pool, {int limit = 6}) {
+List<String> suggest(
+  String query,
+  List<String> pool, {
+  int limit = 6,
+  List<String> preferred = const [],
+}) {
   final q = query.trim().toLowerCase();
   if (q.isEmpty) return const [];
 
   final scored = <({String name, int rank})>[];
-  for (final name in pool) {
+  for (final name in pool.toSet()) {
     // 한글 이름과 영어 검색 키 중 더 좋은 쪽을 그 운동의 점수로 삼는다.
     int? rank;
-    for (final key in exerciseByName[name.toLowerCase()]?.keys ??
-        [name.toLowerCase()]) {
+    for (final key
+        in exerciseByName[name.toLowerCase()]?.keys ??
+            [name.toLowerCase(), chosungOf(name.toLowerCase())]) {
       final r = _rank(key, q);
       if (r != null && (rank == null || r < rank)) rank = r;
     }
@@ -31,7 +37,12 @@ List<String> suggest(String query, List<String> pool, {int limit = 6}) {
 
   scored.sort((a, b) {
     final byRank = a.rank.compareTo(b.rank);
-    return byRank != 0 ? byRank : a.name.length.compareTo(b.name.length);
+    if (byRank != 0) return byRank;
+    final ai = preferred.indexOf(a.name), bi = preferred.indexOf(b.name);
+    final recent = (ai < 0 ? preferred.length : ai).compareTo(
+      bi < 0 ? preferred.length : bi,
+    );
+    return recent != 0 ? recent : a.name.length.compareTo(b.name.length);
   });
   return scored.take(limit).map((e) => e.name).toList();
 }
@@ -47,20 +58,55 @@ int? _rank(String key, String q) {
 
   // 공백만 다른 경우. "benchpress" 처럼 붙여 치는 사람이 많고, 한글 이름도
   // "벤치 프레스" 와 "벤치프레스" 가 섞인다.
-  final bare = key.replaceAll(RegExp(r'\s+'), '');
-  if (bare.startsWith(q)) return 4;
-  if (bare.contains(q)) return 5;
+  final bare = searchKey(key), compactQuery = searchKey(q);
+  if (bare == compactQuery) return 0;
+  if (bare.startsWith(compactQuery)) return 4;
+  if (bare.contains(compactQuery)) return 5;
+  final words = q
+      .split(RegExp(r'[\s\-_]+'))
+      .where((s) => s.isNotEmpty)
+      .toList();
+  if (words.length > 1 && words.every((word) => bare.contains(searchKey(word)))) {
+    return 5;
+  }
 
   // 오타. 자모로 풀어 **비율**로 잰다 — 몇 글자가 아니라 얼마나 틀렸는지다.
   //
   // 길이도 자모로 잰다. String.length 는 UTF-16 낱개를 세므로 한글에서
   // 뜻대로 안 움직인다 — '스퀏' 이 2 로 나와 짧은 질의로 걸러졌었다.
-  final jq = jamoOf(q);
+  final jq = jamoOf(compactQuery);
   if (jq.length < 4) return null;
   final budget = (jq.length * _typoRatio).floor();
   if (budget == 0) return null;
   final d = _typoDistance(jamoOf(bare), jq, budget);
   return d == null ? null : 6 + d;
+}
+
+String searchKey(String text) =>
+    text.toLowerCase().replaceAll(RegExp(r'[\s\-_·]+'), '');
+
+/// Retrieve a bounded name reference for local generation, including personal names.
+List<String> retrieveExercises(
+  String input,
+  List<String> pool, {
+  int limit = 8,
+}) {
+  final found = <String>{...suggest(input, pool, limit: limit)};
+  final compact = searchKey(input);
+  for (final name in pool) {
+    final keys = exerciseByName[name.toLowerCase()]?.keys ?? [name];
+    if (keys.any(
+      (key) => searchKey(key).length >= 2 && compact.contains(searchKey(key)),
+    )) {
+      found.add(name);
+    }
+  }
+  for (final word in input.split(RegExp(r'\s+'))) {
+    if (word.length >= 2 && !RegExp(r'\d').hasMatch(word)) {
+      found.addAll(suggest(word, pool, limit: 3));
+    }
+  }
+  return found.take(limit).toList();
 }
 
 /// 친 자모의 몇 할까지 틀려도 후보로 올릴 것인가. 3분의 1을 넘으면 그건
@@ -109,7 +155,13 @@ int? _typoDistance(String key, String q, int max) {
 }
 
 class ParsedSet {
-  const ParsedSet({this.value, this.unit, this.reps, this.note, this.count = 1});
+  const ParsedSet({
+    this.value,
+    this.unit,
+    this.reps,
+    this.note,
+    this.count = 1,
+  });
 
   /// 무게든 거리든 시간이든, 친 숫자 그대로. 단위는 [unit] 이 들고 있다.
   final double? value;
@@ -142,18 +194,23 @@ class ParsedSet {
 }
 
 /// 세트 수와 횟수를 뜻하는 말. 무게·거리·시간 단위는 units.dart 가 쥔다.
-const _counters = '세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต|'
+const _counters =
+    '세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต|'
     '회|개|rep|reps|回|次|lần|ครั้ง|veces';
 
 final _units = '$unitPattern|$_counters';
 
-final _unit = RegExp('^(\\d+(?:\\.\\d+)?)\\s*($_units)\$',
-    caseSensitive: false);
+final _unit = RegExp(
+  '^(\\d+(?:\\.\\d+)?)\\s*($_units)\$',
+  caseSensitive: false,
+);
 
 /// 숫자와 단위를 띄어 쓰는 언어가 있다 — "10 lần", "100 kg". 붙여 놓고
 /// 시작해야 한 토큰으로 읽힌다.
-final _spacedUnit =
-    RegExp('(\\d)\\s+($_units)(?=\\s|\$)', caseSensitive: false);
+final _spacedUnit = RegExp(
+  '(\\d)\\s+($_units)(?=\\s|\$)',
+  caseSensitive: false,
+);
 final _repeat = RegExp(r'^[x×*](\d+)$', caseSensitive: false);
 final _bare = RegExp(r'^\d+(?:\.\d+)?$');
 
@@ -163,9 +220,10 @@ final _bare = RegExp(r'^\d+(?:\.\d+)?$');
 /// 없으면 첫 숫자가 무게, 둘째가 횟수다. 다만 숫자가 하나뿐이면 항상 횟수로
 /// 읽는다. 맨몸 운동이 그렇게 적히기 때문이다.
 ParsedSet? parseSetLine(String line) {
-  final text = line
-      .trim()
-      .replaceAllMapped(_spacedUnit, (m) => '${m[1]}${m[2]}');
+  final text = line.trim().replaceAllMapped(
+    _spacedUnit,
+    (m) => '${m[1]}${m[2]}',
+  );
   if (text.isEmpty) return null;
 
   double? value;
@@ -186,10 +244,14 @@ ParsedSet? parseSetLine(String line) {
         // 파운드로 하는 사람의 숫자가 사라졌다.
         value = n;
         unit = known;
-      } else if (RegExp('^($_counters)\$', caseSensitive: false).hasMatch(word)) {
-        if (RegExp(r'^(세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต)$',
-                caseSensitive: false)
-            .hasMatch(word)) {
+      } else if (RegExp(
+        '^($_counters)\$',
+        caseSensitive: false,
+      ).hasMatch(word)) {
+        if (RegExp(
+          r'^(세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต)$',
+          caseSensitive: false,
+        ).hasMatch(word)) {
           count = n.round();
         } else {
           reps = n.round();
@@ -231,8 +293,6 @@ ParsedSet? parseSetLine(String line) {
   );
 }
 
-
-
 /// "100kg · 20회" / "100kg · 20 reps"
 ///
 /// 횟수 단위는 화면 언어를 타므로 밖에서 넣는다(L.repsCount). 기본값은
@@ -244,11 +304,10 @@ String setLabel({
   String? unit,
   int? reps,
   String Function(int n) formatReps = _koReps,
-}) =>
-    [
-      if (value != null) formatValue(value, unit ?? defaultUnit),
-      if (reps != null) formatReps(reps),
-    ].join(' · ');
+}) => [
+  if (value != null) formatValue(value, unit ?? defaultUnit),
+  if (reps != null) formatReps(reps),
+].join(' · ');
 
 /// 치고 있는 줄의 **마지막 숫자**를 한 단계 민다.
 ///
@@ -261,18 +320,24 @@ String bumpLastNumber(String line, int direction) {
   final match = RegExp(r'(\d+(?:\.\d+)?)(\s*)$').firstMatch(line);
   if (match == null) {
     final seed = direction > 0 ? 2.5 : 0.0;
-    return seed == 0 ? line : '${line.trimRight()}${line.isEmpty ? '' : ' '}2.5';
+    return seed == 0
+        ? line
+        : '${line.trimRight()}${line.isEmpty ? '' : ' '}2.5';
   }
 
   final before = line.substring(0, match.start);
   // 이 숫자 앞에 무게 단위가 이미 나왔으면, 이건 횟수 자리다.
-  final isReps = RegExp(r'(kg|킬로|파운드|lb)\s*$', caseSensitive: false)
-      .hasMatch(before.trimRight().isEmpty ? '' : before);
+  final isReps = RegExp(
+    r'(kg|킬로|파운드|lb)\s*$',
+    caseSensitive: false,
+  ).hasMatch(before.trimRight().isEmpty ? '' : before);
   final step = isReps ? 1.0 : 2.5;
 
   final current = double.parse(match.group(1)!);
   final next = (current + direction * step).clamp(0, 9999);
-  if (next == 0) return before.trimRight() + (before.trimRight().isEmpty ? '' : ' ');
+  if (next == 0) {
+    return before.trimRight() + (before.trimRight().isEmpty ? '' : ' ');
+  }
 
   final text = next == next.roundToDouble()
       ? next.round().toString()

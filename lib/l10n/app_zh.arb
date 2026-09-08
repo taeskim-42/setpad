@@ -67,5 +67,8 @@
   "setupWeight": "默认重量",
   "setupTotalReps": "累计次数目标",
   "setupSetReps": "每组次数",
-  "setupTotalSets": "组数目标"
+  "setupTotalSets": "组数目标",
+  "moveExercise": "移动动作",
+  "weightUnitSetting": "默认重量单位",
+  "weightUnitHelp": "用于新输入的动作。已有记录的重量和单位保持不变。"
 }

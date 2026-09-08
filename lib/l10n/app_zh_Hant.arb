@@ -67,5 +67,8 @@
   "setupWeight": "預設重量",
   "setupTotalReps": "累計次數目標",
   "setupSetReps": "每組次數",
-  "setupTotalSets": "組數目標"
+  "setupTotalSets": "組數目標",
+  "moveExercise": "移動動作",
+  "weightUnitSetting": "預設重量單位",
+  "weightUnitHelp": "用於新輸入的動作。已有紀錄的重量和單位保持不變。"
 }

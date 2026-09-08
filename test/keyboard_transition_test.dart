@@ -15,7 +15,7 @@ final _field = find.descendant(
 final _list = find.descendant(
   of: find.byType(RoutineEditor),
   matching: find.byWidgetPredicate(
-    (widget) => widget is ListView && widget.controller != null,
+    (widget) => widget is CustomScrollView && widget.controller != null,
   ),
 );
 
@@ -97,7 +97,7 @@ void main() {
           await _inset(tester, 336);
           await tester.enterText(_field, '벤치');
           await tester.pumpAndSettle();
-          final scroll = tester.widget<ListView>(_list).controller!;
+          final scroll = tester.widget<CustomScrollView>(_list).controller!;
           final before = scroll.offset;
           final offsets = <double>[];
 

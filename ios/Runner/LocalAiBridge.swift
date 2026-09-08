@@ -3,21 +3,29 @@ import FoundationModels
 
 @available(iOS 26.0, *)
 @Generable
+private enum SetupKind: String, Codable { case weight, totalReps, repsPerSet, totalSets }
+
+@available(iOS 26.0, *)
+@Generable
+private struct SetupParameter: Codable {
+  var kind: SetupKind
+  @Guide(description: "Exact phrase copied from the user input that states this quantity. Never invent or translate the evidence.")
+  var evidence: String
+  @Guide(description: "The numeric value explicitly stated by the evidence, including written-out numbers.")
+  var value: Double
+}
+
+@available(iOS 26.0, *)
+@Generable
 private struct ExerciseSetupResponse: Codable {
-  @Guide(description: "True only when the input describes one identifiable exercise.")
   var isExercise: Bool
-  @Guide(description: "The exercise name in the user's language, without its weight or goal.")
+  @Guide(description: "Exercise name only, preserving custom machine names. The name reference can resolve abbreviations.")
   var name: String
-  @Guide(description: "Explicit weight. Extract 80 from '80kg' or '팔십 키로'. Use 0 only if no weight is stated.")
-  var weight: Double
-  @Guide(description: "Weight unit: kg or lb. Use kg when no weight is stated.")
+  @Guide(description: "Only quantities explicitly requested in the INPUT. An exercise or machine name alone has an EMPTY array. No default quantities.")
+  var parameters: [SetupParameter]
+  @Guide(description: "kg or lb, using the default weight unit unless the input specifies one.")
   var unit: String
-  @Guide(description: "Cumulative goal: '100개 채우기', '총 백 개' and '백 개 채울래' each mean 100. Use 0 only when no cumulative goal is stated.")
-  var totalReps: Int
-  @Guide(description: "Explicit reps in each set, such as 10 in '10회 5세트'. A cumulative goal is NOT reps per set. Use 0 if absent.")
-  var repsPerSet: Int
-  @Guide(description: "Explicit number of sets, such as 5 in '5세트'. Use 0 if absent.")
-  var totalSets: Int
+  @Guide(description: "Whether the exercise is bodyweight. Do not invent a repetition goal.")
   var repsOnly: Bool
 }
 
@@ -74,21 +82,12 @@ final class LocalAiBridge {
     generation = Task { @MainActor in
       defer { generation = nil }
       do {
-        let session = LanguageModelSession(instructions: instructions +
-          "\nFor the numeric fields in this generated schema, represent missing numbers as 0. Extract every explicitly stated number into its correct field.")
+        let session = LanguageModelSession(instructions: instructions)
         let response = try await session.respond(
           to: prompt, generating: ExerciseSetupResponse.self,
-          options: GenerationOptions(sampling: .greedy, maximumResponseTokens: 400))
+          options: GenerationOptions(sampling: .greedy, maximumResponseTokens: 600))
         try Task.checkCancellation()
-        let value = response.content
-        let data = try JSONSerialization.data(withJSONObject: [
-          "isExercise": value.isExercise, "name": value.name, "unit": value.unit,
-          "weight": value.weight == 0 ? NSNull() : value.weight as Any,
-          "totalReps": value.totalReps == 0 ? NSNull() : value.totalReps as Any,
-          "repsPerSet": value.repsPerSet == 0 ? NSNull() : value.repsPerSet as Any,
-          "totalSets": value.totalSets == 0 ? NSNull() : value.totalSets as Any,
-          "repsOnly": value.repsOnly,
-        ])
+        let data = try JSONEncoder().encode(response.content)
         result(String(decoding: data, as: UTF8.self))
       } catch {
         result(FlutterError(code: "generationFailed", message: nil, details: nil))

@@ -67,5 +67,8 @@
   "setupWeight": "น้ำหนักเริ่มต้น",
   "setupTotalReps": "เป้าหมายครั้งรวม",
   "setupSetReps": "จำนวนครั้งต่อเซ็ต",
-  "setupTotalSets": "เป้าหมายเซ็ต"
+  "setupTotalSets": "เป้าหมายเซ็ต",
+  "moveExercise": "ย้ายท่าออกกำลังกาย",
+  "weightUnitSetting": "หน่วยน้ำหนักเริ่มต้น",
+  "weightUnitHelp": "ใช้กับท่าออกกำลังกายใหม่ น้ำหนักและหน่วยที่บันทึกไว้จะไม่เปลี่ยน"
 }

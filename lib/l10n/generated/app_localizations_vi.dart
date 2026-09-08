@@ -254,4 +254,14 @@ class LVi extends L {
 
   @override
   String get setupTotalSets => 'Mục tiêu số hiệp';
+
+  @override
+  String get moveExercise => 'Di chuyển bài tập';
+
+  @override
+  String get weightUnitSetting => 'Đơn vị cân nặng mặc định';
+
+  @override
+  String get weightUnitHelp =>
+      'Dùng cho bài tập mới. Giữ nguyên mức tạ và đơn vị đã ghi.';
 }

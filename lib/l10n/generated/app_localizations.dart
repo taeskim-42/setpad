@@ -516,6 +516,24 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'목표 세트 수'**
   String get setupTotalSets;
+
+  /// No description provided for @moveExercise.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 이동'**
+  String get moveExercise;
+
+  /// No description provided for @weightUnitSetting.
+  ///
+  /// In ko, this message translates to:
+  /// **'기본 무게 단위'**
+  String get weightUnitSetting;
+
+  /// No description provided for @weightUnitHelp.
+  ///
+  /// In ko, this message translates to:
+  /// **'새로 입력하는 운동의 기본 단위입니다. 기존 기록의 무게와 단위는 바뀌지 않습니다.'**
+  String get weightUnitHelp;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
