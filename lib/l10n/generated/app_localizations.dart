@@ -534,6 +534,78 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'새로 입력하는 운동의 기본 단위입니다. 기존 기록의 무게와 단위는 바뀌지 않습니다.'**
   String get weightUnitHelp;
+
+  /// No description provided for @answerDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}일 기록'**
+  String answerDays(int n);
+
+  /// No description provided for @answerWeeks.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}주'**
+  String answerWeeks(int n);
+
+  /// No description provided for @answerFrequency.
+  ///
+  /// In ko, this message translates to:
+  /// **'주 {n}회'**
+  String answerFrequency(String n);
+
+  /// No description provided for @answerPeak.
+  ///
+  /// In ko, this message translates to:
+  /// **'최고 {value}'**
+  String answerPeak(String value);
+
+  /// No description provided for @answerNoPeak.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}주간 최고 기록 유지'**
+  String answerNoPeak(int n);
+
+  /// No description provided for @answerSince.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date}부터'**
+  String answerSince(String date);
+
+  /// No description provided for @answerAgo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}일 전'**
+  String answerAgo(int n);
+
+  /// No description provided for @answerPerSet.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트당 {value}'**
+  String answerPerSet(String value);
+
+  /// No description provided for @answerChange.
+  ///
+  /// In ko, this message translates to:
+  /// **'{weeks} · {value}'**
+  String answerChange(String weeks, String value);
+
+  /// No description provided for @answerChart.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} · {n}일 무게 기록'**
+  String answerChart(String name, int n);
+
+  /// No description provided for @answerWeightReps.
+  ///
+  /// In ko, this message translates to:
+  /// **'{value} × {reps}'**
+  String answerWeightReps(String value, String reps);
+
+  /// No description provided for @answerSets.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}세트'**
+  String answerSets(int n);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

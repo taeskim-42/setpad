@@ -70,5 +70,17 @@
   "setupTotalSets": "组数目标",
   "moveExercise": "移动动作",
   "weightUnitSetting": "默认重量单位",
-  "weightUnitHelp": "用于新输入的动作。已有记录的重量和单位保持不变。"
+  "weightUnitHelp": "用于新输入的动作。已有记录的重量和单位保持不变。",
+  "answerDays": "{n}天记录",
+  "answerWeeks": "{n}周",
+  "answerFrequency": "每周{n}次",
+  "answerPeak": "最高 {value}",
+  "answerNoPeak": "{n}周未刷新最高纪录",
+  "answerSince": "自{date}起",
+  "answerAgo": "{n}天前",
+  "answerPerSet": "每组 {value}",
+  "answerChange": "{weeks} · {value}",
+  "answerChart": "{name} · {n}天重量记录",
+  "answerWeightReps": "{value} × {reps}",
+  "answerSets": "{n}组"
 }

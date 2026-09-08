@@ -70,5 +70,17 @@
   "setupTotalSets": "Meta de series",
   "moveExercise": "Mover ejercicio",
   "weightUnitSetting": "Unidad de peso predeterminada",
-  "weightUnitHelp": "Se usa en ejercicios nuevos. Los pesos y unidades registrados no cambian."
+  "weightUnitHelp": "Se usa en ejercicios nuevos. Los pesos y unidades registrados no cambian.",
+  "answerDays": "{n} días registrados",
+  "answerWeeks": "{n} semanas",
+  "answerFrequency": "{n}/semana",
+  "answerPeak": "Máximo {value}",
+  "answerNoPeak": "Máximo sin cambios durante {n} semanas",
+  "answerSince": "Desde {date}",
+  "answerAgo": "Hace {n} días",
+  "answerPerSet": "{value} por serie",
+  "answerChange": "{weeks} · {value}",
+  "answerChart": "{name} · peso en {n} días registrados",
+  "answerWeightReps": "{value} × {reps}",
+  "answerSets": "{n} series"
 }

@@ -24,6 +24,7 @@ class SetKeypad extends StatelessWidget {
     required this.onAdjust,
     required this.stepLabel,
     required this.onStepPick,
+    this.addLabel,
     this.repeatLabel,
     this.onRepeat,
   });
@@ -33,6 +34,7 @@ class SetKeypad extends StatelessWidget {
   final VoidCallback? onAddSet;
   final VoidCallback onSubmit;
   final String submitLabel;
+  final String? addLabel;
 
   /// 메모처럼 글자가 필요할 때 시스템 키보드로 넘긴다.
   final VoidCallback onText;
@@ -159,7 +161,7 @@ class SetKeypad extends StatelessWidget {
                         Expanded(
                           child: _pad(
                             _Key(
-                              label: L.of(context).addSet,
+                              label: addLabel ?? L.of(context).addSet,
                               onTap: onAddSet,
                               tone: _Tone.primary,
                               height: null,

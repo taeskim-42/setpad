@@ -681,23 +681,20 @@ void keypadTests() {
       expect(c.blocks.last.sets.length, 2);
     });
 
-    testWidgets('제목을 누르면 운동명 수정 화면이 열린다', (tester) async {
+    testWidgets('제목은 화면을 옮기지 않고 그 자리에서 수정한다', (tester) async {
       await twoExercises(tester);
-      expect(find.byType(SetKeypad), findsNothing); // 카드 밖
-
       await tester.tap(blockTitle('벤치프레스'));
       await settle(tester);
-      expect(find.byType(CupertinoTextFormFieldRow), findsOneWidget);
+      expect(find.byType(CupertinoTextFormFieldRow), findsNothing);
+      final field = find.byType(CupertinoTextField);
       expect(
-        find.descendant(
-          of: find.byType(CupertinoNavigationBar),
-          matching: find.text('운동 이름'),
-        ),
-        findsOneWidget,
+        tester.widget<CupertinoTextField>(field).controller!.text,
+        '벤치프레스',
       );
-      await tester.tap(find.text('취소'));
+      await tester.enterText(field, '인클라인 벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
-      expect(blockTitle('벤치프레스'), findsOneWidget);
+      expect(blockTitle('인클라인 벤치프레스'), findsOneWidget);
     });
 
     testWidgets('삭제는 물어보고, 취소하면 남는다', (tester) async {

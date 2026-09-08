@@ -261,4 +261,64 @@ class LJa extends L {
 
   @override
   String get weightUnitHelp => '新しく入力する種目に使います。既存の重量と単位は変更しません。';
+
+  @override
+  String answerDays(int n) {
+    return '$n日分の記録';
+  }
+
+  @override
+  String answerWeeks(int n) {
+    return '$n週間';
+  }
+
+  @override
+  String answerFrequency(String n) {
+    return '週$n回';
+  }
+
+  @override
+  String answerPeak(String value) {
+    return '最高 $value';
+  }
+
+  @override
+  String answerNoPeak(int n) {
+    return '$n週間、最高記録の更新なし';
+  }
+
+  @override
+  String answerSince(String date) {
+    return '$dateから';
+  }
+
+  @override
+  String answerAgo(int n) {
+    return '$n日前';
+  }
+
+  @override
+  String answerPerSet(String value) {
+    return '1セットあたり $value';
+  }
+
+  @override
+  String answerChange(String weeks, String value) {
+    return '$weeks · $value';
+  }
+
+  @override
+  String answerChart(String name, int n) {
+    return '$name · $n日分の重量記録';
+  }
+
+  @override
+  String answerWeightReps(String value, String reps) {
+    return '$value × $reps';
+  }
+
+  @override
+  String answerSets(int n) {
+    return '$nセット';
+  }
 }

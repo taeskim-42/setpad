@@ -70,5 +70,17 @@
   "setupTotalSets": "Set goal",
   "moveExercise": "Move exercise",
   "weightUnitSetting": "Default weight unit",
-  "weightUnitHelp": "Used for new exercises. Existing weights and units stay as recorded."
+  "weightUnitHelp": "Used for new exercises. Existing weights and units stay as recorded.",
+  "answerDays": "{n} recorded days",
+  "answerWeeks": "{n} weeks",
+  "answerFrequency": "{n}/week",
+  "answerPeak": "Best {value}",
+  "answerNoPeak": "Best unchanged for {n} weeks",
+  "answerSince": "Since {date}",
+  "answerAgo": "{n} days ago",
+  "answerPerSet": "{value} per set",
+  "answerChange": "{weeks} · {value}",
+  "answerChart": "{name} · weight on {n} recorded days",
+  "answerWeightReps": "{value} × {reps}",
+  "answerSets": "{n} sets"
 }

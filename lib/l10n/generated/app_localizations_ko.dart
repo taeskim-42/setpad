@@ -262,4 +262,64 @@ class LKo extends L {
 
   @override
   String get weightUnitHelp => '새로 입력하는 운동의 기본 단위입니다. 기존 기록의 무게와 단위는 바뀌지 않습니다.';
+
+  @override
+  String answerDays(int n) {
+    return '$n일 기록';
+  }
+
+  @override
+  String answerWeeks(int n) {
+    return '$n주';
+  }
+
+  @override
+  String answerFrequency(String n) {
+    return '주 $n회';
+  }
+
+  @override
+  String answerPeak(String value) {
+    return '최고 $value';
+  }
+
+  @override
+  String answerNoPeak(int n) {
+    return '$n주간 최고 기록 유지';
+  }
+
+  @override
+  String answerSince(String date) {
+    return '$date부터';
+  }
+
+  @override
+  String answerAgo(int n) {
+    return '$n일 전';
+  }
+
+  @override
+  String answerPerSet(String value) {
+    return '세트당 $value';
+  }
+
+  @override
+  String answerChange(String weeks, String value) {
+    return '$weeks · $value';
+  }
+
+  @override
+  String answerChart(String name, int n) {
+    return '$name · $n일 무게 기록';
+  }
+
+  @override
+  String answerWeightReps(String value, String reps) {
+    return '$value × $reps';
+  }
+
+  @override
+  String answerSets(int n) {
+    return '$n세트';
+  }
 }

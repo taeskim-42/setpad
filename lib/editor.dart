@@ -10,7 +10,6 @@ import 'l10n/generated/app_localizations.dart';
 import 'exercises.dart';
 import 'palette.dart';
 import 'parser.dart';
-import 'record_editing.dart';
 import 'units.dart';
 
 class EditorDraft {
@@ -21,12 +20,16 @@ class EditorDraft {
     this.editingSet,
     this.editingNote,
     this.setText,
+    this.title = false,
+    this.resume,
   });
   final String text;
   final int block;
   final bool memo;
   final int? editingSet, editingNote;
   final String? setText;
+  final bool title;
+  final EditorDraft? resume;
   Map<String, Object?> toJson() => {
     'text': text,
     'block': block,
@@ -34,11 +37,15 @@ class EditorDraft {
     'editingSet': editingSet,
     'editingNote': editingNote,
     'setText': setText,
+    'title': title,
+    'resume': resume?.toJson(),
   };
   static EditorDraft? fromJson(Object? value) {
     if (value is! Map || value['text'] is! String) return null;
     return EditorDraft(
       text: value['text'] as String,
+      title: value['title'] == true,
+      resume: fromJson(value['resume']),
       block: value['block'] is int ? value['block'] as int : -1,
       memo: value['memo'] == true,
       editingSet: value['editingSet'] is int
@@ -216,7 +223,7 @@ class RoutineEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void renameBlock(int index, String name) {
+  void renameBlock(int index, String name, {bool learn = true}) {
     final clean = name.trim();
     if (index < 0 ||
         index >= blocks.length ||
@@ -233,8 +240,10 @@ class RoutineEditorController extends ChangeNotifier {
         'name': clean,
       });
     }
-    _learned.remove(clean);
-    _learned.insert(0, clean);
+    if (learn) {
+      _learned.remove(clean);
+      _learned.insert(0, clean);
+    }
     notifyListeners();
   }
 
@@ -475,6 +484,10 @@ class _RoutineEditorState extends State<RoutineEditor>
   final _inputKey = GlobalKey();
   bool _invalidSet = false;
   TextEditingValue? _setDraft;
+  bool _recordTitle = false;
+  int? _recordSet;
+  EditorDraft? _resume;
+  bool get _editingRecord => _recordTitle || _recordSet != null;
   int _highlight = 0;
   LocalAiStatus _aiStatus = LocalAiStatus.checking;
   bool _aiBusy = false;
@@ -503,6 +516,7 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   /// 메모 한 줄을 입력칸으로 불러온다. 커밋하면 그 자리를 덮어쓴다.
   void _startEditNote(int block, int set, int note) {
+    if (_editingRecord && !_finishRecordEdit()) return;
     final text = _c.blocks[block].sets[set].notes[note];
     if (!_wantText && _c.activeIndex == block) _setDraft = _input.value;
     _c.openBlock(block);
@@ -527,6 +541,9 @@ class _RoutineEditorState extends State<RoutineEditor>
     final sets = _c.inBlock
         ? _c.blocks[_c.activeIndex].sets
         : const <LoggedSet>[];
+    if (_recordSet != null && _recordSet! < sets.length) {
+      return sets[_recordSet!].unit;
+    }
     return _setup?.unit ?? (sets.isEmpty ? _c.weightUnit : sets.last.unit);
   }
 
@@ -583,27 +600,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   @override
   void initState() {
     super.initState();
-    final draft = widget.initialDraft;
-    if (draft != null) {
-      if (draft.block >= 0 && draft.block < _c.blocks.length) {
-        _c.openBlock(draft.block);
-        _wantText = draft.memo;
-        final st = draft.editingSet, n = draft.editingNote;
-        if (st != null &&
-            n != null &&
-            st >= 0 &&
-            st < _c.blocks[draft.block].sets.length &&
-            n >= 0 &&
-            n < _c.blocks[draft.block].sets[st].notes.length) {
-          _editing = (draft.block, st, n);
-        }
-      }
-      _input.text = draft.text;
-      _hasInput = draft.text.trim().isNotEmpty;
-      if (draft.setText != null) {
-        _setDraft = TextEditingValue(text: draft.setText!);
-      }
-    }
+    if (widget.initialDraft != null) _restoreDraft(widget.initialDraft!);
     _c.addListener(_onChanged);
     // Keep memo mode until it is explicitly saved, even if the IME loses focus.
     _input.addListener(_onInput);
@@ -697,6 +694,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   Future<void> _editSetup(int index) async {
+    if (_editingRecord && !_finishRecordEdit()) return;
     final block = _c.blocks[index];
     _focus.unfocus();
     final setup = await editWorkoutSetup(context, block.setup!);
@@ -705,32 +703,150 @@ class _RoutineEditorState extends State<RoutineEditor>
     _reopen();
   }
 
-  Future<void> _editTitle(ExerciseBlock block) async {
-    _focus.unfocus();
-    final name = await editExerciseTitle(context, block.name);
-    if (!mounted) return;
-    if (name != null) _c.renameBlock(_c.blocks.indexOf(block), name);
-    _reopen();
+  EditorDraft get _draft => EditorDraft(
+    text: _input.text,
+    block: _c.activeIndex,
+    memo: _wantText,
+    editingSet: _recordSet ?? _editing?.$2,
+    editingNote: _editing?.$3,
+    setText: _setDraft?.text,
+    title: _recordTitle,
+    resume: _resume,
+  );
+
+  void _restoreDraft(EditorDraft draft) {
+    _recordTitle = false;
+    _recordSet = null;
+    _editing = null;
+    _wantText = false;
+    _resume = draft.resume;
+    if (draft.block >= 0 && draft.block < _c.blocks.length) {
+      _c.openBlock(draft.block);
+      _wantText = draft.memo;
+      _recordTitle = draft.title;
+      final st = draft.editingSet, n = draft.editingNote;
+      if (st != null && st >= 0 && st < _c.blocks[draft.block].sets.length) {
+        if (draft.memo &&
+            n != null &&
+            n >= 0 &&
+            n < _c.blocks[draft.block].sets[st].notes.length) {
+          _editing = (draft.block, st, n);
+        } else if (!draft.memo) {
+          _recordSet = st;
+        }
+      }
+    } else {
+      _c.closeBlock();
+    }
+    _setDraft = draft.setText == null
+        ? null
+        : TextEditingValue(text: draft.setText!);
+    _input.value = TextEditingValue(
+      text: draft.text,
+      selection: TextSelection.collapsed(offset: draft.text.length),
+    );
+    _hasInput = draft.text.trim().isNotEmpty;
   }
 
-  Future<void> _editSet(ExerciseBlock block, int index) async {
-    final previous = block.sets[index];
+  void _editTitle(ExerciseBlock block) => _beginRecordEdit(block, null);
+  void _editSet(ExerciseBlock block, int index) =>
+      _beginRecordEdit(block, index);
+
+  void _beginRecordEdit(ExerciseBlock block, int? index) {
+    if (_editingRecord && !_finishRecordEdit()) return;
+    final resume = _draft;
+    final set = index == null ? null : block.sets[index];
     _focus.unfocus();
-    final value = await editRecordedSet(context, previous, index);
-    if (!mounted) return;
-    if (value != null) {
-      _c.updateSet(
-        _c.blocks.indexOf(block),
-        block.sets.indexOf(previous),
-        value,
-      );
+    _wantText = false;
+    _editing = null;
+    _recordTitle = index == null;
+    _recordSet = index;
+    _resume = resume;
+    _c.openBlock(_c.blocks.indexOf(block));
+    _input.value = TextEditingValue(
+      text: set == null
+          ? block.name
+          : [
+              if (set.value != null) '${formatNumber(set.value!)}${set.unit}',
+              if (set.reps != null) '${set.reps}',
+            ].join(' '),
+    );
+    _input.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _input.text.length,
+    );
+    setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _reopen();
+      final ctx = _inputKey.currentContext;
+      if (ctx != null) Scrollable.ensureVisible(ctx);
+    });
+    _saveDraft();
+  }
+
+  bool _applyRecordEdit() {
+    if (!_editingRecord || !_c.inBlock) return false;
+    if (_input.value.composing.isValid && !_input.value.composing.isCollapsed) {
+      return false;
     }
-    _reopen();
+    if (_recordTitle) {
+      final name = _input.text.trim();
+      if (name.isEmpty || name.length > 120 || name.contains('\n')) {
+        return false;
+      }
+      if (_c.blocks[_c.activeIndex].name != name) {
+        _c.renameBlock(_c.activeIndex, name, learn: false);
+      }
+      return true;
+    }
+    final parsed = parseSetLine(_input.text);
+    final index = _recordSet!;
+    if (parsed == null || index >= _c.blocks[_c.activeIndex].sets.length) {
+      return false;
+    }
+    final previous = _c.blocks[_c.activeIndex].sets[index];
+    if (previous.value == parsed.value &&
+        previous.reps == parsed.reps &&
+        previous.unit == (parsed.unit ?? previous.unit)) {
+      return true;
+    }
+    _c.updateSet(
+      _c.activeIndex,
+      index,
+      LoggedSet(
+        value: parsed.value,
+        unit: parsed.unit ?? previous.unit,
+        reps: parsed.reps,
+      ),
+    );
+    return true;
+  }
+
+  bool _finishRecordEdit({bool validate = true}) {
+    if (!_editingRecord) return true;
+    if (validate && !_applyRecordEdit()) {
+      if (!_recordTitle) setState(() => _invalidSet = true);
+      return false;
+    }
+    if (_recordTitle && validate) _c.renameBlock(_c.activeIndex, _input.text);
+    final resume = _resume ?? const EditorDraft(text: '');
+    _recordTitle = false;
+    _recordSet = null;
+    _resume = null;
+    _restoreDraft(resume);
+    setState(() {});
+    _saveDraft();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _reopen();
+    });
+    return true;
   }
 
   /// 닫힌 카드를 눌렀을 때. 커서를 그 카드로 옮기고 입력칸을 비운다 —
   /// 치던 글자가 다른 운동으로 딸려 가면 안 된다.
   void _openBlock(int index) {
+    if (_editingRecord && !_finishRecordEdit()) return;
     if (_wantText) {
       _commit();
       if (_wantText) return;
@@ -766,6 +882,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   Future<Offset?> _prepareReorder(ExerciseBlock block, Offset pointer) async {
+    if (_editingRecord && !_finishRecordEdit()) return null;
     if (!mounted || _reordering) return null;
     final index = _c.blocks.indexOf(block);
     if (index < 0) return null;
@@ -796,6 +913,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   void _onInput() {
+    if (_editingRecord) _applyRecordEdit();
     if (_pendingSubmission != _input.text) _pendingSubmission = null;
     if (_aiBusy && _input.text != _submittedText) {
       _aiRequest++;
@@ -815,16 +933,9 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   void _saveDraft() {
     widget.onDraftChanged?.call(
-      _input.text.isEmpty && _setDraft == null
+      _input.text.isEmpty && _setDraft == null && !_editingRecord
           ? null
-          : EditorDraft(
-              text: _input.text,
-              block: _c.activeIndex,
-              memo: _wantText,
-              editingSet: _editing?.$2,
-              editingNote: _editing?.$3,
-              setText: _setDraft?.text,
-            ),
+          : _draft,
     );
   }
 
@@ -842,7 +953,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   /// 세트를 받는 중이면 시스템 키보드가 있을 자리가 없다 — 키패드가 그 자리다.
-  bool get _padMode => _c.inBlock && !_wantText;
+  bool get _padMode => _c.inBlock && !_wantText && !_recordTitle;
 
   /// 화면에 놓인 줄 수. 이것이 늘었을 때만 따라 내린다.
   int get _lineCount =>
@@ -923,6 +1034,10 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   void _commit([String? pick]) {
+    if (_editingRecord) {
+      _finishRecordEdit();
+      return;
+    }
     final value = pick ?? _input.text;
     if (pick == null &&
         _c.naming &&
@@ -992,6 +1107,10 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   void _nextSet() {
+    if (_editingRecord) {
+      _finishRecordEdit();
+      return;
+    }
     final text = _input.text.trimRight();
     if (!(_setup?.countsReps ?? false) &&
         text.isNotEmpty &&
@@ -1017,7 +1136,7 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   void _keypadBackspace() {
     final v = _input.value;
-    if (v.text.isEmpty) {
+    if (v.text.isEmpty && !_editingRecord) {
       // 세트가 다 빠진 뒤의 한 번은 운동 자체를 뗀다. 지우기 버튼과 같은
       // 결과이므로 같은 것을 묻는다.
       if (_c.backspaceRemovesBlock) {
@@ -1131,14 +1250,25 @@ class _RoutineEditorState extends State<RoutineEditor>
                             ),
                           ),
                           block: blocks[i],
-                          input: i == openIndex && !_reordering
+                          titleInput:
+                              i == openIndex && _recordTitle && !_reordering
+                              ? _buildInput(bold: true)
+                              : null,
+                          editingSet: i == openIndex ? _recordSet : null,
+                          input: i == openIndex && !_reordering && !_recordTitle
                               ? _buildInput()
                               : null,
                           inputSet: _editing?.$2 ?? blocks[i].sets.length - 1,
                           isMemo: _wantText,
                           onToggle: (set) => _c.toggleDone(i, set),
-                          onRemoveSet: (set) => _c.removeSet(i, set),
-                          onRemoveBlock: () => _c.removeBlock(i),
+                          onRemoveSet: (set) {
+                            _finishRecordEdit(validate: false);
+                            _c.removeSet(i, set);
+                          },
+                          onRemoveBlock: () {
+                            _finishRecordEdit(validate: false);
+                            _c.removeBlock(i);
+                          },
                           onEditNote: (set, note) =>
                               _startEditNote(i, set, note),
                           onRemoveNote: (set, note) =>
@@ -1231,16 +1361,22 @@ class _RoutineEditorState extends State<RoutineEditor>
               ),
               child: _padMode
                   ? SetKeypad(
+                      addLabel: _recordSet == null
+                          ? null
+                          : L.of(context).doneEditing,
                       onKey: _insert,
                       onBackspace: _keypadBackspace,
                       onAddSet: parseSetLine(_input.text) == null
                           ? null
                           : () => _commit(),
                       onSubmit: _nextSet,
-                      submitLabel: _hasInput
+                      submitLabel: _recordSet != null
+                          ? L.of(context).doneEditing
+                          : _hasInput
                           ? L.of(context).next
                           : L.of(context).finishExercise,
                       onText: () {
+                        if (_editingRecord && !_finishRecordEdit()) return;
                         // 글자판으로 넘어가는 것은 곧 메모를 적겠다는 뜻이다. 이 화면에
                         // 글자가 필요한 자리는 거기뿐이다 — 운동 이름은 카드 밖에서
                         // 치고 그때는 애초에 키패드가 안 뜬다.
@@ -1279,10 +1415,10 @@ class _RoutineEditorState extends State<RoutineEditor>
                               reps: _c.lastSet!.reps,
                               formatReps: L.of(context).repsCount,
                             ),
-                      onRepeat: _c.repeatLastSet,
+                      onRepeat: _recordSet != null ? null : _c.repeatLastSet,
                     )
                   // 메모를 치는 동안에도 돌아올 문은 열어 둔다.
-                  : (_c.inBlock && _wantText)
+                  : (_c.inBlock && _wantText && !_recordTitle)
                   ? ColoredBox(
                       color: keypadBackground.resolveFrom(context),
                       child: SafeArea(
@@ -1368,7 +1504,7 @@ class _RoutineEditorState extends State<RoutineEditor>
             ),
             onChanged: (_) => setState(() => _highlight = 0),
             style: TextStyle(
-              fontSize: 17,
+              fontSize: _recordTitle ? 21 : 17,
               height: _wantText ? 1.5 : null,
               letterSpacing: bold ? -0.41 : 0,
               fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
@@ -1410,6 +1546,8 @@ class _BlockView extends StatelessWidget {
     super.key,
     required this.dragHandle,
     this.collapsed = false,
+    this.titleInput,
+    this.editingSet,
     required this.onEditTitle,
     required this.onEditSet,
     required this.block,
@@ -1428,6 +1566,8 @@ class _BlockView extends StatelessWidget {
   final ExerciseBlock block;
   final Widget dragHandle;
   final bool collapsed;
+  final Widget? titleInput;
+  final int? editingSet;
   final VoidCallback onEditTitle;
   final ValueChanged<int> onEditSet;
 
@@ -1470,20 +1610,22 @@ class _BlockView extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: GestureDetector(
-                  onTap: collapsed ? null : onEditTitle,
-                  behavior: HitTestBehavior.opaque,
-                  child: Text(
-                    block.name,
-                    maxLines: collapsed ? 1 : null,
-                    overflow: collapsed ? TextOverflow.ellipsis : null,
-                    style: const TextStyle(
-                      fontSize: 21,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.5,
+                child:
+                    titleInput ??
+                    GestureDetector(
+                      onTap: collapsed ? null : onEditTitle,
+                      behavior: HitTestBehavior.opaque,
+                      child: Text(
+                        block.name,
+                        maxLines: collapsed ? 1 : null,
+                        overflow: collapsed ? TextOverflow.ellipsis : null,
+                        style: const TextStyle(
+                          fontSize: 21,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
               ),
               dragHandle,
               if (!collapsed)
@@ -1524,6 +1666,7 @@ class _BlockView extends StatelessWidget {
             for (final e in block.sets.asMap().entries) ...[
               _SetRow(
                 index: e.key,
+                input: e.key == editingSet ? input : null,
                 set: e.value,
                 onEdit: () => onEditSet(e.key),
                 onToggle: () => onToggle(e.key),
@@ -1537,11 +1680,13 @@ class _BlockView extends StatelessWidget {
                   child: input,
                 ),
             ],
-            if (input != null && (!isMemo || block.sets.isEmpty)) ...[
+            if (input != null &&
+                editingSet == null &&
+                (!isMemo || block.sets.isEmpty)) ...[
               Padding(
                 padding: EdgeInsets.only(
                   top: block.sets.isEmpty ? 2 : 4,
-                  left: isMemo ? 0 : 86,
+                  left: isMemo ? 0 : 70,
                 ),
                 child: input!,
               ),
@@ -1562,10 +1707,12 @@ class _SetRow extends StatelessWidget {
     required this.onEditNote,
     required this.onRemoveNote,
     required this.onEdit,
+    this.input,
   });
 
   final int index;
   final LoggedSet set;
+  final Widget? input;
 
   /// 메모 한 줄을 눌렀을 때 — 그 줄을 입력칸으로 불러 고친다.
   final ValueChanged<int> onEditNote;
@@ -1589,7 +1736,7 @@ class _SetRow extends StatelessWidget {
                 onTap: onToggle,
                 behavior: HitTestBehavior.opaque,
                 child: SizedBox(
-                  width: 36,
+                  width: 30,
                   height: 36,
                   child: Icon(
                     off
@@ -1606,7 +1753,7 @@ class _SetRow extends StatelessWidget {
                 onTap: onEdit,
                 behavior: HitTestBehavior.opaque,
                 child: SizedBox(
-                  width: 50,
+                  width: 40,
                   height: 36,
                   child: Align(
                     alignment: Alignment.centerLeft,
@@ -1625,25 +1772,27 @@ class _SetRow extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: GestureDetector(
-                  onTap: onEdit,
-                  behavior: HitTestBehavior.opaque,
-                  child: Text(
-                    setLabel(
-                      value: set.value,
-                      unit: set.unit,
-                      reps: set.reps,
-                      formatReps: L.of(context).repsCount,
+                child:
+                    input ??
+                    GestureDetector(
+                      onTap: onEdit,
+                      behavior: HitTestBehavior.opaque,
+                      child: Text(
+                        setLabel(
+                          value: set.value,
+                          unit: set.unit,
+                          reps: set.reps,
+                          formatReps: L.of(context).repsCount,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                          color: CupertinoColors.label.resolveFrom(context),
+                        ),
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                      color: CupertinoColors.label.resolveFrom(context),
-                    ),
-                  ),
-                ),
               ),
               GestureDetector(
                 onTap: onRemove,

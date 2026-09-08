@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/keypad.dart';
 import 'package:setpad/collapsing_drag.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/local_ai.dart';
@@ -345,18 +346,19 @@ void main() {
       );
       await tester.tap(find.text('벤치프레스'));
       await tester.pumpAndSettle();
-      final fields = find.byType(CupertinoTextFormFieldRow);
+      final fields = find.byType(CupertinoTextField);
+      expect(find.byType(CupertinoTextFormFieldRow), findsNothing);
       await tester.enterText(fields, '인클라인 벤치프레스');
-      await tester.tap(find.text('완료'));
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
       expect(c.blocks.single.name, '인클라인 벤치프레스');
       expect(c.blocks.single.setup!.name, '인클라인 벤치프레스');
       expect(c.blocks.single.setup!.totalReps, 100);
       await tester.tap(find.text('80kg · 10회'));
       await tester.pumpAndSettle();
-      await tester.enterText(fields.first, '75');
-      await tester.enterText(fields.last, '9');
-      await tester.tap(find.text('완료'));
+      tester.widget<SetKeypad>(find.byType(SetKeypad)).onKey('75 9');
+      expect(c.blocks.single.sets.first.value, 75);
+      tester.widget<SetKeypad>(find.byType(SetKeypad)).onSubmit();
       await tester.pumpAndSettle();
       final set = c.blocks.single.sets.first;
       expect(set.value, 75);
@@ -367,12 +369,73 @@ void main() {
       expect(tester.widget<CupertinoTextField>(input).controller!.text, '80 8');
       await tester.tap(find.text('75kg · 9회'));
       await tester.pumpAndSettle();
-      await tester.enterText(fields.last, '999');
-      await tester.tap(find.text('취소'));
+      tester.widget<SetKeypad>(find.byType(SetKeypad)).onKey('75 999');
+      tester.widget<SetKeypad>(find.byType(SetKeypad)).onSubmit();
       await tester.pumpAndSettle();
-      expect(c.blocks.single.sets.first.reps, 9);
+      expect(c.blocks.single.sets.first.reps, 999);
     },
   );
+
+  testWidgets(
+    'inline edits restore their target and pending set after reopening',
+    (tester) async {
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 10')
+        ..noteLastSet('천천히');
+      EditorDraft? saved;
+      await pumpPage(
+        tester,
+        CupertinoPageScaffold(
+          child: RoutineEditor(
+            controller: c,
+            initialDraft: const EditorDraft(text: '70 8', block: 0),
+            onDraftChanged: (draft) => saved = draft,
+          ),
+        ),
+      );
+      await tester.tap(find.text('80kg · 10회'));
+      await tester.pumpAndSettle();
+      tester.widget<SetKeypad>(find.byType(SetKeypad)).onKey('75 9');
+      await tester.pump();
+      final restored = EditorDraft.fromJson(saved!.toJson())!;
+      expect(restored.editingSet, 0);
+      expect(restored.resume!.text, '70 8');
+      expect(c.blocks.single.sets.single.value, 75);
+      await tester.pumpWidget(const SizedBox());
+      await pumpPage(
+        tester,
+        CupertinoPageScaffold(
+          child: RoutineEditor(controller: c, initialDraft: restored),
+        ),
+      );
+      expect(tester.widget<CupertinoTextField>(input).controller!.text, '75 9');
+      tester.widget<SetKeypad>(find.byType(SetKeypad)).onSubmit();
+      await tester.pumpAndSettle();
+      expect(tester.widget<CupertinoTextField>(input).controller!.text, '70 8');
+      expect(c.blocks.single.sets.single.notes, ['천천히']);
+    },
+  );
+
+  testWidgets('deleting an edited set cannot overwrite the following set', (
+    tester,
+  ) async {
+    final c = RoutineEditorController()
+      ..addExercise('벤치프레스')
+      ..addSet('80 10')
+      ..addSet('60 12');
+    await pumpPage(
+      tester,
+      CupertinoPageScaffold(child: RoutineEditor(controller: c)),
+    );
+    await tester.tap(find.text('80kg · 10회'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(CupertinoIcons.xmark).first);
+    await tester.pumpAndSettle();
+    expect(c.blocks.single.sets.single.value, 60);
+    expect(c.blocks.single.sets.single.reps, 12);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'early cancellation and an unchanged drop both expand the records',

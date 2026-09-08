@@ -188,5 +188,110 @@
   },
   "moveExercise": "운동 이동",
   "weightUnitSetting": "기본 무게 단위",
-  "weightUnitHelp": "새로 입력하는 운동의 기본 단위입니다. 기존 기록의 무게와 단위는 바뀌지 않습니다."
+  "weightUnitHelp": "새로 입력하는 운동의 기본 단위입니다. 기존 기록의 무게와 단위는 바뀌지 않습니다.",
+  "answerDays": "{n}일 기록",
+  "@answerDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerWeeks": "{n}주",
+  "@answerWeeks": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerFrequency": "주 {n}회",
+  "@answerFrequency": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "answerPeak": "최고 {value}",
+  "@answerPeak": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "answerNoPeak": "{n}주간 최고 기록 유지",
+  "@answerNoPeak": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerSince": "{date}부터",
+  "@answerSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "answerAgo": "{n}일 전",
+  "@answerAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerPerSet": "세트당 {value}",
+  "@answerPerSet": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "answerChange": "{weeks} · {value}",
+  "@answerChange": {
+    "placeholders": {
+      "weeks": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "answerChart": "{name} · {n}일 무게 기록",
+  "@answerChart": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerWeightReps": "{value} × {reps}",
+  "@answerWeightReps": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "reps": {
+        "type": "String"
+      }
+    }
+  },
+  "answerSets": "{n}세트",
+  "@answerSets": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  }
 }

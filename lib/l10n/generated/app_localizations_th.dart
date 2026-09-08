@@ -264,4 +264,64 @@ class LTh extends L {
   @override
   String get weightUnitHelp =>
       'ใช้กับท่าออกกำลังกายใหม่ น้ำหนักและหน่วยที่บันทึกไว้จะไม่เปลี่ยน';
+
+  @override
+  String answerDays(int n) {
+    return 'บันทึก $n วัน';
+  }
+
+  @override
+  String answerWeeks(int n) {
+    return '$n สัปดาห์';
+  }
+
+  @override
+  String answerFrequency(String n) {
+    return '$n ครั้ง/สัปดาห์';
+  }
+
+  @override
+  String answerPeak(String value) {
+    return 'สูงสุด $value';
+  }
+
+  @override
+  String answerNoPeak(int n) {
+    return 'ไม่ทำลายสถิติใน $n สัปดาห์';
+  }
+
+  @override
+  String answerSince(String date) {
+    return 'ตั้งแต่ $date';
+  }
+
+  @override
+  String answerAgo(int n) {
+    return '$n วันที่แล้ว';
+  }
+
+  @override
+  String answerPerSet(String value) {
+    return '$value ต่อเซต';
+  }
+
+  @override
+  String answerChange(String weeks, String value) {
+    return '$weeks · $value';
+  }
+
+  @override
+  String answerChart(String name, int n) {
+    return '$name · น้ำหนักที่บันทึก $n วัน';
+  }
+
+  @override
+  String answerWeightReps(String value, String reps) {
+    return '$value × $reps';
+  }
+
+  @override
+  String answerSets(int n) {
+    return '$n เซต';
+  }
 }

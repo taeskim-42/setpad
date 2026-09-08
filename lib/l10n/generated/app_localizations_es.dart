@@ -264,4 +264,64 @@ class LEs extends L {
   @override
   String get weightUnitHelp =>
       'Se usa en ejercicios nuevos. Los pesos y unidades registrados no cambian.';
+
+  @override
+  String answerDays(int n) {
+    return '$n días registrados';
+  }
+
+  @override
+  String answerWeeks(int n) {
+    return '$n semanas';
+  }
+
+  @override
+  String answerFrequency(String n) {
+    return '$n/semana';
+  }
+
+  @override
+  String answerPeak(String value) {
+    return 'Máximo $value';
+  }
+
+  @override
+  String answerNoPeak(int n) {
+    return 'Máximo sin cambios durante $n semanas';
+  }
+
+  @override
+  String answerSince(String date) {
+    return 'Desde $date';
+  }
+
+  @override
+  String answerAgo(int n) {
+    return 'Hace $n días';
+  }
+
+  @override
+  String answerPerSet(String value) {
+    return '$value por serie';
+  }
+
+  @override
+  String answerChange(String weeks, String value) {
+    return '$weeks · $value';
+  }
+
+  @override
+  String answerChart(String name, int n) {
+    return '$name · peso en $n días registrados';
+  }
+
+  @override
+  String answerWeightReps(String value, String reps) {
+    return '$value × $reps';
+  }
+
+  @override
+  String answerSets(int n) {
+    return '$n series';
+  }
 }

@@ -264,4 +264,64 @@ class LVi extends L {
   @override
   String get weightUnitHelp =>
       'Dùng cho bài tập mới. Giữ nguyên mức tạ và đơn vị đã ghi.';
+
+  @override
+  String answerDays(int n) {
+    return '$n ngày ghi nhận';
+  }
+
+  @override
+  String answerWeeks(int n) {
+    return '$n tuần';
+  }
+
+  @override
+  String answerFrequency(String n) {
+    return '$n lần/tuần';
+  }
+
+  @override
+  String answerPeak(String value) {
+    return 'Cao nhất $value';
+  }
+
+  @override
+  String answerNoPeak(int n) {
+    return 'Chưa vượt kỷ lục trong $n tuần';
+  }
+
+  @override
+  String answerSince(String date) {
+    return 'Từ $date';
+  }
+
+  @override
+  String answerAgo(int n) {
+    return '$n ngày trước';
+  }
+
+  @override
+  String answerPerSet(String value) {
+    return '$value mỗi hiệp';
+  }
+
+  @override
+  String answerChange(String weeks, String value) {
+    return '$weeks · $value';
+  }
+
+  @override
+  String answerChart(String name, int n) {
+    return '$name · mức tạ trong $n ngày ghi nhận';
+  }
+
+  @override
+  String answerWeightReps(String value, String reps) {
+    return '$value × $reps';
+  }
+
+  @override
+  String answerSets(int n) {
+    return '$n hiệp';
+  }
 }

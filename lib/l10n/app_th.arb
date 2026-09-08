@@ -70,5 +70,17 @@
   "setupTotalSets": "เป้าหมายเซ็ต",
   "moveExercise": "ย้ายท่าออกกำลังกาย",
   "weightUnitSetting": "หน่วยน้ำหนักเริ่มต้น",
-  "weightUnitHelp": "ใช้กับท่าออกกำลังกายใหม่ น้ำหนักและหน่วยที่บันทึกไว้จะไม่เปลี่ยน"
+  "weightUnitHelp": "ใช้กับท่าออกกำลังกายใหม่ น้ำหนักและหน่วยที่บันทึกไว้จะไม่เปลี่ยน",
+  "answerDays": "บันทึก {n} วัน",
+  "answerWeeks": "{n} สัปดาห์",
+  "answerFrequency": "{n} ครั้ง/สัปดาห์",
+  "answerPeak": "สูงสุด {value}",
+  "answerNoPeak": "ไม่ทำลายสถิติใน {n} สัปดาห์",
+  "answerSince": "ตั้งแต่ {date}",
+  "answerAgo": "{n} วันที่แล้ว",
+  "answerPerSet": "{value} ต่อเซต",
+  "answerChange": "{weeks} · {value}",
+  "answerChart": "{name} · น้ำหนักที่บันทึก {n} วัน",
+  "answerWeightReps": "{value} × {reps}",
+  "answerSets": "{n} เซต"
 }

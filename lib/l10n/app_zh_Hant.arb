@@ -70,5 +70,17 @@
   "setupTotalSets": "組數目標",
   "moveExercise": "移動動作",
   "weightUnitSetting": "預設重量單位",
-  "weightUnitHelp": "用於新輸入的動作。已有紀錄的重量和單位保持不變。"
+  "weightUnitHelp": "用於新輸入的動作。已有紀錄的重量和單位保持不變。",
+  "answerDays": "{n}天紀錄",
+  "answerWeeks": "{n}週",
+  "answerFrequency": "每週{n}次",
+  "answerPeak": "最高 {value}",
+  "answerNoPeak": "{n}週未刷新最高紀錄",
+  "answerSince": "自{date}起",
+  "answerAgo": "{n}天前",
+  "answerPerSet": "每組 {value}",
+  "answerChange": "{weeks} · {value}",
+  "answerChart": "{name} · {n}天重量紀錄",
+  "answerWeightReps": "{value} × {reps}",
+  "answerSets": "{n}組"
 }

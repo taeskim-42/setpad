@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
+import 'answer_card.dart';
+import 'stats.dart';
 import 'health_summary.dart';
 import 'palette.dart';
 import 'parser.dart';
@@ -34,8 +36,13 @@ class _NotesListPageState extends State<NotesListPage> {
     super.dispose();
   }
 
+  ({Metric metric, String exercise})? get _question => recordQuestion(
+    _query.text,
+    widget.store.notes.expand((n) => n.blocks.map((b) => b.name)),
+  );
+
   List<Note> get _visible {
-    final q = _query.text.trim().toLowerCase();
+    final q = (_question?.exercise ?? _query.text).trim().toLowerCase();
     final all = widget.store.notes;
     return q.isEmpty
         ? all
@@ -82,6 +89,16 @@ class _NotesListPageState extends State<NotesListPage> {
               listenable: widget.store,
               builder: (context, _) {
                 final groups = _grouped(_visible, l);
+                final question = _question;
+                final result = question == null
+                    ? null
+                    : answer(
+                        widget.store.notes,
+                        question.metric,
+                        question.exercise,
+                        labels: l,
+                        unit: widget.store.weightUnit,
+                      );
                 return CustomScrollView(
                   slivers: [
                     // 큰 제목은 스크롤하면 가운데 작은 제목으로 접힌다. iOS
@@ -96,6 +113,8 @@ class _NotesListPageState extends State<NotesListPage> {
                       ),
                       border: null,
                     ),
+                    if (result != null && !result.isEmpty)
+                      SliverToBoxAdapter(child: AnswerCard(answer: result)),
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),

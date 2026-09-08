@@ -264,4 +264,64 @@ class LEn extends L {
   @override
   String get weightUnitHelp =>
       'Used for new exercises. Existing weights and units stay as recorded.';
+
+  @override
+  String answerDays(int n) {
+    return '$n recorded days';
+  }
+
+  @override
+  String answerWeeks(int n) {
+    return '$n weeks';
+  }
+
+  @override
+  String answerFrequency(String n) {
+    return '$n/week';
+  }
+
+  @override
+  String answerPeak(String value) {
+    return 'Best $value';
+  }
+
+  @override
+  String answerNoPeak(int n) {
+    return 'Best unchanged for $n weeks';
+  }
+
+  @override
+  String answerSince(String date) {
+    return 'Since $date';
+  }
+
+  @override
+  String answerAgo(int n) {
+    return '$n days ago';
+  }
+
+  @override
+  String answerPerSet(String value) {
+    return '$value per set';
+  }
+
+  @override
+  String answerChange(String weeks, String value) {
+    return '$weeks · $value';
+  }
+
+  @override
+  String answerChart(String name, int n) {
+    return '$name · weight on $n recorded days';
+  }
+
+  @override
+  String answerWeightReps(String value, String reps) {
+    return '$value × $reps';
+  }
+
+  @override
+  String answerSets(int n) {
+    return '$n sets';
+  }
 }

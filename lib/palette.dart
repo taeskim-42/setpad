@@ -57,3 +57,15 @@ const keyShadow = CupertinoDynamicColor.withBrightness(
   color: Color(0x33000000),
   darkColor: Color(0x00000000),
 );
+
+// Neutral document tones derived from the existing system palette.
+final _documentInk = Color.lerp(CupertinoColors.black, keyFace.color, 1 / 15)!;
+final _documentPaper = Color.lerp(keyFace.color, keypadBackground.color, 0.23)!;
+final answerInk = CupertinoDynamicColor.withBrightness(
+  color: _documentInk,
+  darkColor: _documentPaper,
+);
+final answerPaper = CupertinoDynamicColor.withBrightness(
+  color: _documentPaper,
+  darkColor: _documentInk,
+);

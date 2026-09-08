@@ -256,6 +256,66 @@ class LZh extends L {
 
   @override
   String get weightUnitHelp => '用于新输入的动作。已有记录的重量和单位保持不变。';
+
+  @override
+  String answerDays(int n) {
+    return '$n天记录';
+  }
+
+  @override
+  String answerWeeks(int n) {
+    return '$n周';
+  }
+
+  @override
+  String answerFrequency(String n) {
+    return '每周$n次';
+  }
+
+  @override
+  String answerPeak(String value) {
+    return '最高 $value';
+  }
+
+  @override
+  String answerNoPeak(int n) {
+    return '$n周未刷新最高纪录';
+  }
+
+  @override
+  String answerSince(String date) {
+    return '自$date起';
+  }
+
+  @override
+  String answerAgo(int n) {
+    return '$n天前';
+  }
+
+  @override
+  String answerPerSet(String value) {
+    return '每组 $value';
+  }
+
+  @override
+  String answerChange(String weeks, String value) {
+    return '$weeks · $value';
+  }
+
+  @override
+  String answerChart(String name, int n) {
+    return '$name · $n天重量记录';
+  }
+
+  @override
+  String answerWeightReps(String value, String reps) {
+    return '$value × $reps';
+  }
+
+  @override
+  String answerSets(int n) {
+    return '$n组';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -510,6 +570,66 @@ class LZhHans extends LZh {
 
   @override
   String get weightUnitHelp => '用于新输入的动作。已有记录的重量和单位保持不变。';
+
+  @override
+  String answerDays(int n) {
+    return '$n天记录';
+  }
+
+  @override
+  String answerWeeks(int n) {
+    return '$n周';
+  }
+
+  @override
+  String answerFrequency(String n) {
+    return '每周$n次';
+  }
+
+  @override
+  String answerPeak(String value) {
+    return '最高 $value';
+  }
+
+  @override
+  String answerNoPeak(int n) {
+    return '$n周未刷新最高纪录';
+  }
+
+  @override
+  String answerSince(String date) {
+    return '自$date起';
+  }
+
+  @override
+  String answerAgo(int n) {
+    return '$n天前';
+  }
+
+  @override
+  String answerPerSet(String value) {
+    return '每组 $value';
+  }
+
+  @override
+  String answerChange(String weeks, String value) {
+    return '$weeks · $value';
+  }
+
+  @override
+  String answerChart(String name, int n) {
+    return '$name · $n天重量记录';
+  }
+
+  @override
+  String answerWeightReps(String value, String reps) {
+    return '$value × $reps';
+  }
+
+  @override
+  String answerSets(int n) {
+    return '$n组';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -764,4 +884,64 @@ class LZhHant extends LZh {
 
   @override
   String get weightUnitHelp => '用於新輸入的動作。已有紀錄的重量和單位保持不變。';
+
+  @override
+  String answerDays(int n) {
+    return '$n天紀錄';
+  }
+
+  @override
+  String answerWeeks(int n) {
+    return '$n週';
+  }
+
+  @override
+  String answerFrequency(String n) {
+    return '每週$n次';
+  }
+
+  @override
+  String answerPeak(String value) {
+    return '最高 $value';
+  }
+
+  @override
+  String answerNoPeak(int n) {
+    return '$n週未刷新最高紀錄';
+  }
+
+  @override
+  String answerSince(String date) {
+    return '自$date起';
+  }
+
+  @override
+  String answerAgo(int n) {
+    return '$n天前';
+  }
+
+  @override
+  String answerPerSet(String value) {
+    return '每組 $value';
+  }
+
+  @override
+  String answerChange(String weeks, String value) {
+    return '$weeks · $value';
+  }
+
+  @override
+  String answerChart(String name, int n) {
+    return '$name · $n天重量紀錄';
+  }
+
+  @override
+  String answerWeightReps(String value, String reps) {
+    return '$value × $reps';
+  }
+
+  @override
+  String answerSets(int n) {
+    return '$n組';
+  }
 }
