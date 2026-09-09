@@ -12,6 +12,10 @@ class FakeAudio extends TimingAudio {
     calls.add((active: active, bpm: bpm, cue: cue));
   }
 
+  final spoken = <String>[];
+  @override
+  Future<void> speak(String text, String locale) async => spoken.add(text);
+
   @override
   Future<void> dispose() async {}
 }
@@ -126,6 +130,49 @@ void main() {
   );
   _adjustable();
   _counting();
+  _aloud();
+}
+
+void _aloud() {
+  group('소리내어 세기', () {
+    // 이 파일의 다른 테스트와 같은 얼개다 — 시계를 손으로 밀고, 끝에서 직접
+    // 치운다. addTearDown 은 남은 타이머 검사보다 늦게 돌아 통과하지 못한다.
+    Future<List<String>> run(
+      WidgetTester tester, {
+      required bool aloud,
+      required String locale,
+      required int ticks,
+    }) async {
+      var now = Duration.zero;
+      final audio = FakeAudio();
+      final timer = WorkoutTimer(audio: audio, now: () => now)
+        ..countAloud = aloud
+        ..voiceLocale = locale;
+      timer.toggle(Object(), const TimingSpec(bpm: 60));   // 1초에 한 박
+      for (var i = 1; i <= ticks; i++) {
+        now = Duration(seconds: i);
+        timer.tick();
+      }
+      timer.pause();
+      await tester.idle();       // 소리 명령이 차례로 흘러가게 둔다
+      timer.dispose();
+      return audio.spoken;
+    }
+
+    testWidgets('켜면 박자마다 세는 말을 읽는다', (tester) async {
+      expect(await run(tester, aloud: true, locale: 'ko', ticks: 3),
+          ['하나', '둘', '셋', '넷']);
+    });
+
+    testWidgets('꺼져 있으면 아무 말도 안 한다', (tester) async {
+      expect(await run(tester, aloud: false, locale: 'ko', ticks: 2), isEmpty);
+    });
+
+    testWidgets('언어를 따라 말이 바뀐다', (tester) async {
+      // 일본어는 숫자를 읽는 말이 곧 세는 말이라 숫자를 그대로 넘긴다.
+      expect(await run(tester, aloud: true, locale: 'ja', ticks: 1), ['1', '2']);
+    });
+  });
 }
 
 void _counting() {

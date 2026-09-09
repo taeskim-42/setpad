@@ -444,4 +444,7 @@ class LKo extends L {
   String timingBeat(String count) {
     return '$count';
   }
+
+  @override
+  String get countAloud => '박자를 소리내어 세기';
 }

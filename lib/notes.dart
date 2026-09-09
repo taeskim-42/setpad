@@ -135,6 +135,11 @@ class NotesStore extends ChangeNotifier {
   String _weightUnit = defaultUnit;
   String get weightUnit => _weightUnit;
 
+  /// 박자마다 몇 번째인지 읽어 줄까. 기본은 꺼짐 — 헬스장에서 소리가 갑자기
+  /// 나오면 곤란한 사람이 있고, 켜는 것이 끄는 것보다 쉬워야 한다.
+  bool _countAloud = false;
+  bool get countAloud => _countAloud;
+
   /// 최근에 고친 것이 위로. 메모 앱과 같은 순서다.
   List<Note> get notes => List.unmodifiable(_notes);
 
@@ -151,6 +156,7 @@ class NotesStore extends ChangeNotifier {
         if (preferences.existsSync()) {
           final data = jsonDecode(await preferences.readAsString()) as Map;
           _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
+          _countAloud = data['countAloud'] == true;
           _exerciseHistory
             ..clear()
             ..addAll(
@@ -191,6 +197,7 @@ class NotesStore extends ChangeNotifier {
     final notes = jsonEncode(_notes.map((n) => n.toJson()).toList());
     final preferences = jsonEncode({
       'weightUnit': _weightUnit,
+      'countAloud': _countAloud,
       'exercises': _exerciseHistory,
     });
     return _writes = _writes.then((_) async {
@@ -216,6 +223,13 @@ class NotesStore extends ChangeNotifier {
   void setWeightUnit(String unit) {
     if (unit != 'kg' && unit != 'lb') return;
     _weightUnit = unit;
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  void setCountAloud(bool value) {
+    if (value == _countAloud) return;
+    _countAloud = value;
     notifyListeners();
     _scheduleSave();
   }

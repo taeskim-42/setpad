@@ -272,6 +272,7 @@ class _EditorPageState extends State<EditorPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560),
             child: RoutineEditor(
+              countAloud: widget.store.countAloud,
               controller: _editor,
               header: _DocumentHeader(note: widget.note),
               initialDraft: widget.note.draft,

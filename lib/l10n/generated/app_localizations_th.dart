@@ -449,4 +449,7 @@ class LTh extends L {
   String timingBeat(String count) {
     return 'จังหวะที่ $count';
   }
+
+  @override
+  String get countAloud => 'นับจังหวะออกเสียง';
 }

@@ -173,6 +173,12 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   Object? owner;
   TimingSpec? spec;
   bool running = false, soundFailed = false, _disposed = false;
+
+  /// 박자마다 몇 번째인지 읽어 줄까. 화면을 안 보고 운동할 때 쓴다.
+  bool countAloud = false;
+
+  /// 어느 말로 읽을까. 화면 언어를 그대로 따른다.
+  String voiceLocale = 'en';
   Duration _elapsed = Duration.zero, _started = Duration.zero;
   Future<void> _commands = Future.value();
   Duration get elapsed =>
@@ -237,6 +243,8 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _lastPhase = phase;
     _lastRound = round;
     _lastRemaining = remaining;
+    _lastBeat = beat;
+    if (countAloud && _lastBeat > 0) _say(_lastBeat);
     _sound(
       cue: spec!.tabata
           ? (phase == TimingPhase.ready ? 'ready' : 'work')
@@ -248,6 +256,18 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
 
   TimingPhase? _lastPhase;
   int? _lastRound, _lastRemaining;
+  int _lastBeat = 0;
+
+  void _say(int n) {
+    final word = spokenCount(n, voiceLocale);
+    _commands = _commands.then((_) async {
+      if (_disposed) return;
+      // 읽다 실패해도 박자는 계속 간다. 소리는 덤이지 타이머의 전제가 아니다.
+      try {
+        await _audio.speak(word, voiceLocale);
+      } catch (_) {}
+    });
+  }
   void tick() {
     if (!running) return;
     final next = phase;
@@ -263,6 +283,11 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
       _sound(cue: next == TimingPhase.work ? 'work' : 'rest');
     } else if (next == TimingPhase.ready && remaining != _lastRemaining) {
       _sound(cue: 'ready');
+    }
+    final counted = beat;
+    if (counted != _lastBeat) {
+      _lastBeat = counted;
+      if (countAloud && counted > 0) _say(counted);
     }
     if (next != _lastPhase ||
         remaining != _lastRemaining ||

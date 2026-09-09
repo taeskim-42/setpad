@@ -451,4 +451,7 @@ class LVi extends L {
   String timingBeat(String count) {
     return 'Nhịp $count';
   }
+
+  @override
+  String get countAloud => 'Đếm nhịp thành tiếng';
 }

@@ -452,4 +452,7 @@ class LEs extends L {
   String timingBeat(String count) {
     return 'Pulso $count';
   }
+
+  @override
+  String get countAloud => 'Contar los pulsos en voz alta';
 }

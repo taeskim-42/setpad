@@ -5,7 +5,7 @@ import 'notes.dart';
 
 Future<void> showWeightSettings(BuildContext context, NotesStore store) async {
   final l = L.of(context);
-  final unit = await showCupertinoModalPopup<String>(
+  final choice = await showCupertinoModalPopup<String>(
     context: context,
     builder: (ctx) => CupertinoActionSheet(
       title: Text(l.weightUnitSetting),
@@ -17,6 +17,11 @@ Future<void> showWeightSettings(BuildContext context, NotesStore store) async {
             onPressed: () => Navigator.pop(ctx, unit),
             child: Text('${unit == store.weightUnit ? '✓ ' : ''}$unit'),
           ),
+        // 같은 자리에 둔다. 설정이 둘뿐인데 화면을 따로 만들 이유가 없다.
+        CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx, 'countAloud'),
+          child: Text('${store.countAloud ? '✓ ' : ''}${l.countAloud}'),
+        ),
       ],
       cancelButton: CupertinoActionSheetAction(
         onPressed: () => Navigator.pop(ctx),
@@ -24,7 +29,9 @@ Future<void> showWeightSettings(BuildContext context, NotesStore store) async {
       ),
     ),
   );
-  if (unit != null) {
-    store.setWeightUnit(unit);
+  if (choice == 'countAloud') {
+    store.setCountAloud(!store.countAloud);
+  } else if (choice != null) {
+    store.setWeightUnit(choice);
   }
 }

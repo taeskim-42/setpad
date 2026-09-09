@@ -116,5 +116,6 @@
   "timingWorkSeconds": "Tập {n}s",
   "timingRestSeconds": "Nghỉ {n}s",
   "timingRounds": "{n} hiệp",
-  "timingBeat": "Nhịp {count}"
+  "timingBeat": "Nhịp {count}",
+  "countAloud": "Đếm nhịp thành tiếng"
 }

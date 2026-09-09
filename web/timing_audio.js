@@ -28,3 +28,13 @@
   document.addEventListener('visibilitychange', () => { if (document.hidden) { stop(); if (context) context.suspend(); } });
   window.addEventListener('pagehide', stop);
 })();
+
+// 세는 말. 앞의 말이 아직 나오는 중이면 그 박자는 건너뛴다 — 겹치면 뭉개진다.
+setpadTiming.speak = function (text, locale) {
+  const s = window.speechSynthesis;
+  if (!s || s.speaking || s.pending) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = locale;
+  u.rate = 1.2;
+  s.speak(u);
+};

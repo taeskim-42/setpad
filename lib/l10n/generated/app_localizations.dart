@@ -810,6 +810,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{count}'**
   String timingBeat(String count);
+
+  /// No description provided for @countAloud.
+  ///
+  /// In ko, this message translates to:
+  /// **'박자를 소리내어 세기'**
+  String get countAloud;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

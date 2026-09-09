@@ -9,12 +9,19 @@ final class TimingBridge {
   private var cue: AVAudioPlayer?
   private var tempo: Int?
   private var observers: [NSObjectProtocol] = []
+  private let speech = AVSpeechSynthesizer()
 
   init(messenger: FlutterBinaryMessenger) {
     channel = FlutterMethodChannel(name: "setpad/timing", binaryMessenger: messenger)
     channel.setMethodCallHandler { [weak self] call, result in
-      guard let self, call.method == "configure" else { result(FlutterMethodNotImplemented); return }
+      guard let self else { result(FlutterMethodNotImplemented); return }
       let args = call.arguments as? [String: Any] ?? [:]
+      if call.method == "speak" {
+        self.speak(args["text"] as? String ?? "", locale: args["locale"] as? String ?? "en")
+        result(nil)
+        return
+      }
+      guard call.method == "configure" else { result(FlutterMethodNotImplemented); return }
       do {
         try self.configure(active: args["active"] as? Bool ?? false,
                            bpm: args["bpm"] as? Int, cueName: args["cue"] as? String)
@@ -29,6 +36,17 @@ final class TimingBridge {
         Task { @MainActor in self?.stop(); self?.channel.invokeMethod("interrupted", arguments: nil) }
       })
     }
+  }
+
+  /// Skip a beat rather than let two counts overlap; at a fast tempo the words
+  /// are longer than the interval and stacking them is unintelligible.
+  private func speak(_ text: String, locale: String) {
+    guard !text.isEmpty, !speech.isSpeaking else { return }
+    let utterance = AVSpeechUtterance(string: text)
+    utterance.voice = AVSpeechSynthesisVoice(language: locale)
+      ?? AVSpeechSynthesisVoice(language: Locale.current.identifier)
+    utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 1.15
+    speech.speak(utterance)
   }
 
   private func configure(active: Bool, bpm: Int?, cueName: String?) throws {
@@ -59,6 +77,7 @@ final class TimingBridge {
   }
 
   private func stop() {
+    speech.stopSpeaking(at: .immediate)
     beat?.stop(); beat = nil; cue?.stop(); cue = nil; tempo = nil
     UIApplication.shared.isIdleTimerDisabled = false
     try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])

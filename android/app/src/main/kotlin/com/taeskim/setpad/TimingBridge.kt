@@ -6,7 +6,9 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.media.ToneGenerator
+import android.speech.tts.TextToSpeech
 import android.view.WindowManager
+import java.util.Locale
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 import kotlin.math.PI
@@ -17,9 +19,31 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
     private var track: AudioTrack? = null
     private var tempo: Int? = null
     private var tone: ToneGenerator? = null
+    private var speech: TextToSpeech? = null
+    private var speechReady = false
+
+    /// 세는 말. 앞의 말이 아직 나오는 중이면 그 박자는 건너뛴다 — 빠른 박자에서는
+    /// 말이 박자 간격보다 길어서 겹치면 뭉개진다.
+    private fun speak(text: String, locale: String) {
+        if (text.isEmpty()) return
+        val engine = speech ?: TextToSpeech(activity) { status ->
+            speechReady = status == TextToSpeech.SUCCESS
+        }.also { speech = it }
+        if (!speechReady || engine.isSpeaking) return
+        runCatching { engine.language = Locale.forLanguageTag(locale) }
+        engine.setSpeechRate(1.15f)
+        engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "count")
+    }
+
     init {
         channel.setMethodCallHandler { call, result ->
-            if (call.method != "configure") { result.notImplemented() }
+            if (call.method == "speak") {
+                runCatching {
+                    speak(call.argument<String>("text") ?: "", call.argument<String>("locale") ?: "en")
+                }
+                result.success(null)
+            }
+            else if (call.method != "configure") { result.notImplemented() }
             else try {
                 val active = call.argument<Boolean>("active") == true
                 val bpm = if (active) call.argument<Int>("bpm")?.takeIf { it in 20..300 } else null
@@ -54,7 +78,7 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
         }
     }
     private fun stopBeat() { track?.let { runCatching { it.stop() }; it.release() }; track = null; tempo = null }
-    private fun stop() { stopBeat(); tone?.release(); tone = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
+    private fun stop() { stopBeat(); runCatching { speech?.stop() }; tone?.release(); tone = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     fun interrupt() { stop(); channel.invokeMethod("interrupted", null) }
-    fun close() { stop(); channel.setMethodCallHandler(null) }
+    fun close() { stop(); speech?.shutdown(); speech = null; speechReady = false; channel.setMethodCallHandler(null) }
 }

@@ -452,4 +452,7 @@ class LEn extends L {
   String timingBeat(String count) {
     return 'Beat $count';
   }
+
+  @override
+  String get countAloud => 'Count beats aloud';
 }

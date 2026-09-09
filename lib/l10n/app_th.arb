@@ -116,5 +116,6 @@
   "timingWorkSeconds": "ออกกำลัง {n} วิ",
   "timingRestSeconds": "พัก {n} วิ",
   "timingRounds": "{n} รอบ",
-  "timingBeat": "จังหวะที่ {count}"
+  "timingBeat": "จังหวะที่ {count}",
+  "countAloud": "นับจังหวะออกเสียง"
 }

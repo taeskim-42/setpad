@@ -442,4 +442,7 @@ class LJa extends L {
   String timingBeat(String count) {
     return '$count拍目';
   }
+
+  @override
+  String get countAloud => '拍を声に出して数える';
 }

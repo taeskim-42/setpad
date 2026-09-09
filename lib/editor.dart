@@ -455,12 +455,16 @@ class RoutineEditor extends StatefulWidget {
   const RoutineEditor({
     super.key,
     required this.controller,
+    this.countAloud = false,
     this.header,
     this.localAi = const LocalAi(),
     this.initialDraft,
     this.onDraftChanged,
   });
   final RoutineEditorController controller;
+
+  /// 박자마다 몇 번째인지 읽어 줄까. 설정에서 켠다.
+  final bool countAloud;
   final Widget? header;
   final LocalAi localAi;
   final EditorDraft? initialDraft;
@@ -1216,6 +1220,10 @@ class _RoutineEditorState extends State<RoutineEditor>
     // 커서가 든 카드가 입력 줄을 품는다.
     final openIndex = _c.activeIndex;
 
+    // 읽어 줄지와 어느 말로 읽을지는 화면이 정한다 — 타이머는 소리만 낸다.
+    _workoutTimer
+      ..countAloud = widget.countAloud
+      ..voiceLocale = Localizations.localeOf(context).toLanguageTag();
     return Column(
       children: [
         Expanded(

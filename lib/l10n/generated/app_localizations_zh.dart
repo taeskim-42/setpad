@@ -437,6 +437,9 @@ class LZh extends L {
   String timingBeat(String count) {
     return '第 $count 拍';
   }
+
+  @override
+  String get countAloud => '朗读节拍计数';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -872,6 +875,9 @@ class LZhHans extends LZh {
   String timingBeat(String count) {
     return '第 $count 拍';
   }
+
+  @override
+  String get countAloud => '朗读节拍计数';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1307,4 +1313,7 @@ class LZhHant extends LZh {
   String timingBeat(String count) {
     return '第 $count 拍';
   }
+
+  @override
+  String get countAloud => '朗讀節拍計數';
 }

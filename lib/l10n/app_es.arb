@@ -116,5 +116,6 @@
   "timingWorkSeconds": "Trabajo {n}s",
   "timingRestSeconds": "Descanso {n}s",
   "timingRounds": "{n} rondas",
-  "timingBeat": "Pulso {count}"
+  "timingBeat": "Pulso {count}",
+  "countAloud": "Contar los pulsos en voz alta"
 }

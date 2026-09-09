@@ -116,5 +116,6 @@
   "timingWorkSeconds": "运动 {n} 秒",
   "timingRestSeconds": "休息 {n} 秒",
   "timingRounds": "{n} 轮",
-  "timingBeat": "第 {count} 拍"
+  "timingBeat": "第 {count} 拍",
+  "countAloud": "朗读节拍计数"
 }
