@@ -117,5 +117,10 @@
   "timingRestSeconds": "Descanso {n}s",
   "timingRounds": "{n} rondas",
   "timingBeat": "Pulso {count}",
-  "countAloud": "Contar los pulsos en voz alta"
+  "countAloud": "Contar los pulsos en voz alta",
+  "metricMax": "Máximo",
+  "metricTrend": "Tendencia",
+  "metricLast": "Última",
+  "metricSessions": "Días",
+  "metricVolume": "Volumen"
 }

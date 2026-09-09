@@ -117,5 +117,10 @@
   "timingRestSeconds": "พัก {n} วิ",
   "timingRounds": "{n} รอบ",
   "timingBeat": "จังหวะที่ {count}",
-  "countAloud": "นับจังหวะออกเสียง"
+  "countAloud": "นับจังหวะออกเสียง",
+  "metricMax": "สูงสุด",
+  "metricTrend": "แนวโน้ม",
+  "metricLast": "ล่าสุด",
+  "metricSessions": "จำนวนวัน",
+  "metricVolume": "ปริมาณ"
 }

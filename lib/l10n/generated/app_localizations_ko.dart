@@ -447,4 +447,19 @@ class LKo extends L {
 
   @override
   String get countAloud => '박자를 소리내어 세기';
+
+  @override
+  String get metricMax => '최고';
+
+  @override
+  String get metricTrend => '추이';
+
+  @override
+  String get metricLast => '마지막';
+
+  @override
+  String get metricSessions => '운동한 날';
+
+  @override
+  String get metricVolume => '볼륨';
 }

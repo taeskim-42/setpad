@@ -5,6 +5,8 @@ import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 import 'answer_card.dart';
 import 'record_query.dart';
+import 'stats.dart' as stats;
+import 'editor.dart' show SuggestionChip;
 import 'local_ai.dart';
 import 'local_ai_help.dart';
 import 'health_summary.dart';
@@ -41,6 +43,18 @@ class _NotesListPageState extends State<NotesListPage>
   final _query = TextEditingController();
   late final _search = RecordSearch(widget.localAi);
   String? _locale;
+
+  /// 칩으로 고른 것. 질문을 해석하는 자리가 아니라 **고르는** 자리다 — 고르면
+  /// 틀릴 것이 없고 기다릴 것도 없다. 문장 해석은 부차 경로로 남아 있다.
+  stats.Metric? _pick;
+
+  /// 검색어가 잡은 운동 하나. 오타·초성은 퍼지 검색이 이미 받아 준다.
+  String? get _matched {
+    final q = _query.text.trim();
+    if (q.isEmpty) return null;
+    final hit = suggest(q, _names, limit: 1);
+    return hit.isEmpty ? null : hit.first;
+  }
   List<String> get _names => widget.store.notes
       .expand((n) => n.blocks.map((b) => b.name))
       .toSet()
@@ -250,6 +264,52 @@ class _NotesListPageState extends State<NotesListPage>
                           ),
                         ),
                       ),
+                    if (_matched case final name?)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                name,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: -0.23,
+                                  color: CupertinoColors.label.resolveFrom(context),
+                                ),
+                              ),
+                              for (final (metric, label) in [
+                                (stats.Metric.max, l.metricMax),
+                                (stats.Metric.trend, l.metricTrend),
+                                (stats.Metric.last, l.metricLast),
+                                (stats.Metric.sessions, l.metricSessions),
+                                (stats.Metric.volume, l.metricVolume),
+                              ])
+                                SuggestionChip(
+                                  label: label,
+                                  selected: _pick == metric,
+                                  onTap: () => setState(
+                                    () => _pick = _pick == metric ? null : metric,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    if (_pick case final metric? when _matched != null)
+                      SliverToBoxAdapter(
+                        child: AnswerCard(
+                          answer: stats.answer(
+                            widget.store.notes,
+                            metric,
+                            _matched!,
+                          ),
+                        ),
+                      ),
                     if (_search.reply case final reply?)
                       SliverToBoxAdapter(
                         child: Padding(
@@ -330,6 +390,7 @@ class _NotesListPageState extends State<NotesListPage>
                         itemBuilder: (context, i) => _Group(
                           title: groups[i].$1,
                           notes: groups[i].$2,
+                          query: _query.text.trim(),
                           onOpen: _open,
                           onDelete: widget.store.delete,
                         ),
@@ -343,7 +404,10 @@ class _NotesListPageState extends State<NotesListPage>
           ),
           _SearchBar(
             controller: _query,
-            onChanged: (_) => _ask(),
+            onChanged: (_) {
+              _pick = null;
+              _ask();
+            },
             onSubmitted: (_) => _ask(immediately: true),
             onNew: () => _open(widget.store.create()),
           ),
@@ -358,12 +422,14 @@ class _Group extends StatelessWidget {
   const _Group({
     required this.title,
     required this.notes,
+    required this.query,
     required this.onOpen,
     required this.onDelete,
   });
 
   final String title;
   final List<Note> notes;
+  final String query;
   final void Function(Note) onOpen;
   final void Function(Note) onDelete;
 
@@ -406,7 +472,12 @@ class _Group extends StatelessWidget {
                       color: CupertinoColors.separator.resolveFrom(context),
                     ),
                   ),
-                _Row(note: notes[i], onOpen: onOpen, onDelete: onDelete),
+                _Row(
+                  note: notes[i],
+                  query: query,
+                  onOpen: onOpen,
+                  onDelete: onDelete,
+                ),
               ],
             ],
           ),
@@ -419,11 +490,13 @@ class _Group extends StatelessWidget {
 class _Row extends StatelessWidget {
   const _Row({
     required this.note,
+    required this.query,
     required this.onOpen,
     required this.onDelete,
   });
 
   final Note note;
+  final String query;
   final void Function(Note) onOpen;
   final void Function(Note) onDelete;
 
@@ -457,8 +530,14 @@ class _Row extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      note.title ?? l.untitledNote,
+                    Text.rich(
+                      TextSpan(
+                        children: highlightMatch(
+                          note.title ?? l.untitledNote,
+                          query,
+                          hit: TextStyle(color: seal.resolveFrom(context)),
+                        ),
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -575,4 +654,34 @@ class _SearchBar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 제목에서 검색어가 잡은 자리를 강조한다.
+///
+/// 글자 그대로 들어 있으면 그 글자만, 오타나 초성으로 잡힌 것이면 그 운동
+/// 이름 전체를 칠한다. 초성 매칭은 원문의 어느 글자에 대응하는지가 정해져
+/// 있지 않아서, 억지로 일부만 칠하면 엉뚱한 자리가 색이 든다.
+List<InlineSpan> highlightMatch(String title, String query, {required TextStyle hit}) {
+  final q = query.trim();
+  if (q.isEmpty) return [TextSpan(text: title)];
+
+  final at = title.toLowerCase().indexOf(q.toLowerCase());
+  if (at >= 0) {
+    return [
+      if (at > 0) TextSpan(text: title.substring(0, at)),
+      TextSpan(text: title.substring(at, at + q.length), style: hit),
+      if (at + q.length < title.length) TextSpan(text: title.substring(at + q.length)),
+    ];
+  }
+
+  // 제목은 '벤치프레스 · 스쿼트' 꼴이다. 운동 이름 단위로 퍼지 매칭을 본다.
+  const sep = ' · ';
+  final parts = title.split(sep);
+  final spans = <InlineSpan>[];
+  for (var i = 0; i < parts.length; i++) {
+    if (i > 0) spans.add(const TextSpan(text: sep));
+    final matched = suggest(q, [parts[i]], limit: 1).isNotEmpty;
+    spans.add(TextSpan(text: parts[i], style: matched ? hit : null));
+  }
+  return spans;
 }

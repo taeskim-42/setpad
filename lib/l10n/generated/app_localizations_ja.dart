@@ -445,4 +445,19 @@ class LJa extends L {
 
   @override
   String get countAloud => '拍を声に出して数える';
+
+  @override
+  String get metricMax => '最高';
+
+  @override
+  String get metricTrend => '推移';
+
+  @override
+  String get metricLast => '前回';
+
+  @override
+  String get metricSessions => '日数';
+
+  @override
+  String get metricVolume => 'ボリューム';
 }

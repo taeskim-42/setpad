@@ -452,4 +452,19 @@ class LTh extends L {
 
   @override
   String get countAloud => 'นับจังหวะออกเสียง';
+
+  @override
+  String get metricMax => 'สูงสุด';
+
+  @override
+  String get metricTrend => 'แนวโน้ม';
+
+  @override
+  String get metricLast => 'ล่าสุด';
+
+  @override
+  String get metricSessions => 'จำนวนวัน';
+
+  @override
+  String get metricVolume => 'ปริมาณ';
 }

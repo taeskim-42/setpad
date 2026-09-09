@@ -816,6 +816,36 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'박자를 소리내어 세기'**
   String get countAloud;
+
+  /// 검색창 아래 칩. 운동 이름이 잡히면 무엇을 볼지 고르는 다섯 개.
+  ///
+  /// In ko, this message translates to:
+  /// **'최고'**
+  String get metricMax;
+
+  /// No description provided for @metricTrend.
+  ///
+  /// In ko, this message translates to:
+  /// **'추이'**
+  String get metricTrend;
+
+  /// No description provided for @metricLast.
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막'**
+  String get metricLast;
+
+  /// No description provided for @metricSessions.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동한 날'**
+  String get metricSessions;
+
+  /// No description provided for @metricVolume.
+  ///
+  /// In ko, this message translates to:
+  /// **'볼륨'**
+  String get metricVolume;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

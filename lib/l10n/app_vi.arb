@@ -117,5 +117,10 @@
   "timingRestSeconds": "Nghỉ {n}s",
   "timingRounds": "{n} hiệp",
   "timingBeat": "Nhịp {count}",
-  "countAloud": "Đếm nhịp thành tiếng"
+  "countAloud": "Đếm nhịp thành tiếng",
+  "metricMax": "Tốt nhất",
+  "metricTrend": "Xu hướng",
+  "metricLast": "Lần cuối",
+  "metricSessions": "Số ngày",
+  "metricVolume": "Khối lượng"
 }

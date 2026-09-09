@@ -117,5 +117,10 @@
   "timingRestSeconds": "休息 {n} 秒",
   "timingRounds": "{n} 輪",
   "timingBeat": "第 {count} 拍",
-  "countAloud": "朗讀節拍計數"
+  "countAloud": "朗讀節拍計數",
+  "metricMax": "最高",
+  "metricTrend": "趨勢",
+  "metricLast": "上次",
+  "metricSessions": "天數",
+  "metricVolume": "總量"
 }

@@ -455,4 +455,19 @@ class LEs extends L {
 
   @override
   String get countAloud => 'Contar los pulsos en voz alta';
+
+  @override
+  String get metricMax => 'Máximo';
+
+  @override
+  String get metricTrend => 'Tendencia';
+
+  @override
+  String get metricLast => 'Última';
+
+  @override
+  String get metricSessions => 'Días';
+
+  @override
+  String get metricVolume => 'Volumen';
 }

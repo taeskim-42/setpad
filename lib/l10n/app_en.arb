@@ -117,5 +117,10 @@
   "timingRestSeconds": "Rest {n}s",
   "timingRounds": "{n} rounds",
   "timingBeat": "Beat {count}",
-  "countAloud": "Count beats aloud"
+  "countAloud": "Count beats aloud",
+  "metricMax": "Best",
+  "metricTrend": "Trend",
+  "metricLast": "Last",
+  "metricSessions": "Days",
+  "metricVolume": "Volume"
 }

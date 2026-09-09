@@ -455,4 +455,19 @@ class LEn extends L {
 
   @override
   String get countAloud => 'Count beats aloud';
+
+  @override
+  String get metricMax => 'Best';
+
+  @override
+  String get metricTrend => 'Trend';
+
+  @override
+  String get metricLast => 'Last';
+
+  @override
+  String get metricSessions => 'Days';
+
+  @override
+  String get metricVolume => 'Volume';
 }

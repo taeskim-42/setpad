@@ -454,4 +454,19 @@ class LVi extends L {
 
   @override
   String get countAloud => 'Đếm nhịp thành tiếng';
+
+  @override
+  String get metricMax => 'Tốt nhất';
+
+  @override
+  String get metricTrend => 'Xu hướng';
+
+  @override
+  String get metricLast => 'Lần cuối';
+
+  @override
+  String get metricSessions => 'Số ngày';
+
+  @override
+  String get metricVolume => 'Khối lượng';
 }

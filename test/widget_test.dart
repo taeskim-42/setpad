@@ -503,8 +503,14 @@ void keypadTests() {
       await tester.tap(find.byType(CupertinoNavigationBarBackButton));
       await settle(tester);
 
-      expect(find.text('벤치프레스'), findsOneWidget);
-      expect(find.text('데드리프트'), findsOneWidget);
+      // 목록 줄의 제목만 센다. 검색어가 운동을 잡으면 칩 줄에도 그 이름이
+      // 한 번 더 뜨므로, 글자로 찾으면 둘이 걸려 "한 줄 남았다"를 못 잰다.
+      // 줄 제목은 Text.rich(강조 때문)이고 칩 줄의 이름은 보통 Text 다.
+      Finder rowTitle(String name) => find.byWidgetPredicate(
+        (w) => w is Text && w.textSpan?.toPlainText() == name,
+      );
+      expect(rowTitle('벤치프레스'), findsOneWidget);
+      expect(rowTitle('데드리프트'), findsOneWidget);
 
       // CupertinoSearchTextField 안의 실제 입력 위젯에 친다.
       expect(find.byType(CupertinoSearchTextField), findsOneWidget);
@@ -516,8 +522,8 @@ void keypadTests() {
         '데드',
       );
       await settle(tester);
-      expect(find.text('벤치프레스'), findsNothing);
-      expect(find.text('데드리프트'), findsOneWidget);
+      expect(rowTitle('벤치프레스'), findsNothing);
+      expect(rowTitle('데드리프트'), findsOneWidget);
     });
 
     test('아무것도 안 친 메모는 목록에 남지 않는다', () {

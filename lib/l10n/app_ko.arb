@@ -404,5 +404,13 @@
       }
     }
   },
-  "countAloud": "박자를 소리내어 세기"
+  "countAloud": "박자를 소리내어 세기",
+  "metricMax": "최고",
+  "metricTrend": "추이",
+  "metricLast": "마지막",
+  "metricSessions": "운동한 날",
+  "metricVolume": "볼륨",
+  "@metricMax": {
+    "description": "검색창 아래 칩. 운동 이름이 잡히면 무엇을 볼지 고르는 다섯 개."
+  }
 }

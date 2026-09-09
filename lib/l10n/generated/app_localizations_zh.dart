@@ -440,6 +440,21 @@ class LZh extends L {
 
   @override
   String get countAloud => '朗读节拍计数';
+
+  @override
+  String get metricMax => '最高';
+
+  @override
+  String get metricTrend => '趋势';
+
+  @override
+  String get metricLast => '上次';
+
+  @override
+  String get metricSessions => '天数';
+
+  @override
+  String get metricVolume => '总量';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -878,6 +893,21 @@ class LZhHans extends LZh {
 
   @override
   String get countAloud => '朗读节拍计数';
+
+  @override
+  String get metricMax => '最高';
+
+  @override
+  String get metricTrend => '趋势';
+
+  @override
+  String get metricLast => '上次';
+
+  @override
+  String get metricSessions => '天数';
+
+  @override
+  String get metricVolume => '总量';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1316,4 +1346,19 @@ class LZhHant extends LZh {
 
   @override
   String get countAloud => '朗讀節拍計數';
+
+  @override
+  String get metricMax => '最高';
+
+  @override
+  String get metricTrend => '趨勢';
+
+  @override
+  String get metricLast => '上次';
+
+  @override
+  String get metricSessions => '天數';
+
+  @override
+  String get metricVolume => '總量';
 }
