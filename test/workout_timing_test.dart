@@ -140,9 +140,20 @@ void _counting() {
       expect(spokenCount(99, 'ko'), '아흔아홉');
     });
 
-    test('아흔아홉을 넘으면 숫자로 돌아간다', () {
-      // 세는 말이 길어지면 힐끗 보고 못 읽는다. 그 지점이 헬스장에서 쓸모의 끝이다.
-      expect(spokenCount(100, 'ko'), '100');
+    test('백 자리는 한자말, 그 아래는 고유어다', () {
+      // "벤치 80kg 100개 채우기" 가 이 앱의 대표 예시다. 100 을 넘는 것은
+      // 예외가 아니라 기본이다.
+      expect(spokenCount(100, 'ko'), '백');
+      expect(spokenCount(101, 'ko'), '백하나');
+      expect(spokenCount(110, 'ko'), '백열');
+      expect(spokenCount(137, 'ko'), '백서른일곱');
+      expect(spokenCount(200, 'ko'), '이백');
+      expect(spokenCount(250, 'ko'), '이백쉰');
+      expect(spokenCount(999, 'ko'), '구백아흔아홉');
+    });
+
+    test('천을 넘으면 숫자로 돌아간다', () {
+      expect(spokenCount(1000, 'ko'), '1000');
       expect(spokenCount(0, 'ko'), '0');
     });
 
