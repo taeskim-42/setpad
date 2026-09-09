@@ -16,7 +16,9 @@ class TimingSpec {
   final bool tabata;
   final int work, rest, rounds;
 
-  static const minBpm = 10, maxBpm = 120;
+  // 10~120 을 10 씩. voom-frontend 의 BPM 타이머와 같은 눈금이다 — 같은 사람이
+  // 두 앱을 쓰는데 한 번 누르는 폭이 다르면 손이 헷갈린다.
+  static const minBpm = 10, maxBpm = 120, bpmStep = 10;
   static const minSeconds = 1, maxSeconds = 600;
 
   TimingSpec copyWith({int? bpm, int? work, int? rest, int? rounds}) =>
@@ -382,12 +384,12 @@ class WorkoutTimingControls extends StatelessWidget {
                     label: l.timingBpm(spec.bpm!),
                     onLess: editable && spec.bpm! > TimingSpec.minBpm
                         ? () => change(spec.copyWith(
-                            bpm: (spec.bpm! - 5).clamp(
+                            bpm: (spec.bpm! - TimingSpec.bpmStep).clamp(
                                 TimingSpec.minBpm, TimingSpec.maxBpm)))
                         : null,
                     onMore: editable && spec.bpm! < TimingSpec.maxBpm
                         ? () => change(spec.copyWith(
-                            bpm: (spec.bpm! + 5).clamp(
+                            bpm: (spec.bpm! + TimingSpec.bpmStep).clamp(
                                 TimingSpec.minBpm, TimingSpec.maxBpm)))
                         : null,
                   ),

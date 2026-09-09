@@ -174,6 +174,12 @@ void _adjustable() {
       expect(const TimingSpec(bpm: 121).valid, isFalse);
     });
 
+    test('눈금은 10 이다', () {
+      expect(TimingSpec.bpmStep, 10);
+      expect(TimingSpec.minBpm, 10);
+      expect(TimingSpec.maxBpm, 120);
+    });
+
     test('제목에 적힌 숫자를 고쳐 쓴다', () {
       final spec = TimingSpec.parse('푸시업 100bpm')!;
       expect(spec.copyWith(bpm: 90).applyTo('푸시업 100bpm'), '푸시업 90bpm');
