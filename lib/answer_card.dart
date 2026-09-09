@@ -71,10 +71,12 @@ class DotChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (points.isEmpty) return const SizedBox.shrink();
+    if (this.points.isEmpty) return const SizedBox.shrink();
     final l = L.of(context);
     final ink = answerInk.resolveFrom(context);
     final numbers = NumberFormat('0.##', l.localeName);
+    // 화면에 찍는 점만 솎는다. 아래 라벨의 일수는 솎기 전 그대로다.
+    final points = thinPoints(this.points);
     final values = points.map((p) => p.value);
     final min = values.reduce(math.min), max = values.reduce(math.max);
     final labelStyle = TextStyle(
@@ -82,7 +84,7 @@ class DotChart extends StatelessWidget {
       color: ink.withValues(alpha: 0.6),
     );
     return Semantics(
-      label: l.answerChart(exercise, points.length),
+      label: l.answerChart(exercise, this.points.length),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -366,3 +366,22 @@ String? _plateau(List<DayPoint> p, L l) {
   if (lastBest >= p.length - 2) return null; // 아직 갱신 중이다
   return l.answerNoPeak(_weeks(p[lastBest].day, p.last.day));
 }
+
+/// 점이 많으면 구간별 최고만 남긴다.
+///
+/// 1년치 101일을 다 찍으면 회색 꼬리점이 격자처럼 깔려 벽지가 된다. 그리는
+/// 점은 [max] 개 아래로 두되, **날짜는 지어내지 않는다** — 각 구간에서 가장
+/// 무거웠던 실제 그날을 그대로 쓴다. 집계(최고·일수)는 솎기 전 목록으로 센다.
+List<DayPoint> thinPoints(List<DayPoint> points, {int max = 26}) {
+  if (points.length <= max) return points;
+  final first = points.first.day;
+  final span = points.last.day.difference(first).inDays + 1;
+  final bucket = (span / max).ceil();
+  final best = <int, DayPoint>{};
+  for (final p in points) {
+    final key = p.day.difference(first).inDays ~/ bucket;
+    final prev = best[key];
+    if (prev == null || p.value > prev.value) best[key] = p;
+  }
+  return best.values.toList()..sort((a, b) => a.day.compareTo(b.day));
+}

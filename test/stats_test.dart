@@ -92,4 +92,42 @@ void main() {
   test('기록이 없으면 빈 답이다', () {
     expect(answer(notes, Metric.max, '레그프레스').isEmpty, isTrue);
   });
+
+  group('점 솎기', () {
+    List<DayPoint> daily(int n) => [
+      for (var i = 0; i < n; i++)
+        DayPoint(day.add(Duration(days: i)), 40 + (i % 7).toDouble(), 5, 'kg'),
+    ];
+
+    test('적으면 손대지 않는다', () {
+      final p = daily(20);
+      expect(identical(thinPoints(p), p), isTrue);
+    });
+
+    test('많으면 26개 아래로 솎는다', () {
+      final thin = thinPoints(daily(101));
+      expect(thin.length, lessThanOrEqualTo(26));
+      expect(thin.length, greaterThan(20));
+    });
+
+    test('남긴 점은 그 구간의 실제 최고이고, 날짜는 지어내지 않는다', () {
+      final all = daily(101);
+      final thin = thinPoints(all);
+      for (final p in thin) {
+        expect(all.any((a) => a.day == p.day && a.value == p.value), isTrue);
+      }
+      // 남긴 점은 제 구간 안에서 가장 무겁다. 구간 폭은 solve 와 같은 식이다 —
+      // 값의 주기(7)가 구간 폭(4)보다 길어서 "전부 46" 같은 기대는 틀린다.
+      final bucket = (101 / 26).ceil();
+      for (final p in thin) {
+        final key = p.day.difference(all.first.day).inDays ~/ bucket;
+        final peers = all.where(
+          (a) => a.day.difference(all.first.day).inDays ~/ bucket == key,
+        );
+        expect(p.value, peers.map((a) => a.value).reduce((x, y) => x > y ? x : y));
+      }
+      final days = thin.map((p) => p.day).toList();
+      expect(days, [...days]..sort());
+    });
+  });
 }

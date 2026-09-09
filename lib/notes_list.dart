@@ -252,6 +252,9 @@ class _NotesListPageState extends State<NotesListPage>
                                   l.queryNoData,
                                   style: const TextStyle(fontSize: 14),
                                 ),
+                              // 운동 이름이 잡혀 칩이 떠 있으면 모델은 쓰이지
+                              // 않는다. 그 상태줄까지 보이면 잡음이다.
+                              if (_matched == null)
                               CupertinoButton(
                                 padding: EdgeInsets.zero,
                                 onPressed: _help,
