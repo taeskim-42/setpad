@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import 'package:setpad/local_ai.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/answer_card.dart';
@@ -9,7 +11,10 @@ import 'package:setpad/notes_list.dart';
 import 'package:setpad/palette.dart';
 
 class _Records extends NotesStore {
-  _Records(this.records);
+  _Records(this.records, {this.unit = "kg"});
+  final String unit;
+  @override
+  String get weightUnit => unit;
   final List<Note> records;
   @override
   List<Note> get notes => records;
@@ -34,15 +39,20 @@ void main() {
     record(3, '스쿼트', [LoggedSet(value: 100, reps: 5)]),
   ];
 
-  Future<_Records> pump(WidgetTester tester) async {
-    final store = _Records(notes);
+  Future<_Records> pump(
+    WidgetTester tester, {
+    String unit = "kg",
+    Locale locale = const Locale("ko"),
+    LocalAi localAi = const LocalAi(),
+  }) async {
+    final store = _Records(notes, unit: unit);
     addTearDown(store.dispose);
     await tester.pumpWidget(
       CupertinoApp(
-        locale: const Locale('ko'),
+        locale: locale,
         localizationsDelegates: L.localizationsDelegates,
         supportedLocales: L.supportedLocales,
-        home: NotesListPage(store: store, onOpen: (_) {}),
+        home: NotesListPage(store: store, onOpen: (_) {}, localAi: localAi),
       ),
     );
     await tester.pumpAndSettle();
@@ -60,6 +70,41 @@ void main() {
     expect(find.byType(AnswerCard), findsNothing, reason: '고르기 전엔 답이 없다');
   });
 
+  testWidgets(
+    'bare aliases skip generation but complete questions still use the model',
+    (tester) async {
+      const channel = MethodChannel('test/chips_query');
+      var queries = 0;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == 'status') return 'available';
+            if (call.method != 'query') return null;
+            queries++;
+            return {
+              'action': 'heaviest',
+              'exercises': ['벤치프레스'],
+              'periods': ['all'],
+            };
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+      await pump(
+        tester,
+        localAi: const LocalAi(channel: channel, nativeSupported: true),
+      );
+      final input = find.byType(CupertinoSearchTextField);
+      await tester.enterText(input, '벤치');
+      await tester.pumpAndSettle();
+      expect(queries, 0);
+      await tester.enterText(input, '벤치 최고');
+      await tester.pumpAndSettle();
+      expect(queries, 1);
+      expect(find.byType(AnswerCard), findsOneWidget);
+    },
+  );
+
   testWidgets('칩을 누르면 답이 뜨고, 다시 누르면 접힌다', (tester) async {
     await pump(tester);
     await tester.enterText(find.byType(CupertinoSearchTextField), '벤치');
@@ -73,6 +118,21 @@ void main() {
     await tester.tap(find.widgetWithText(SuggestionChip, '최고'));
     await tester.pumpAndSettle();
     expect(find.byType(AnswerCard), findsNothing);
+  });
+
+  testWidgets('metric picks respect the app language and weight unit', (
+    tester,
+  ) async {
+    await pump(tester, unit: 'lb', locale: const Locale('en'));
+    await tester.enterText(find.byType(CupertinoSearchTextField), '벤치프레스');
+    await tester.pumpAndSettle();
+    final l = lookupL(const Locale('en'));
+    await tester.tap(find.widgetWithText(SuggestionChip, l.metricMax));
+    await tester.pumpAndSettle();
+    final result = tester.widget<AnswerCard>(find.byType(AnswerCard)).answer;
+    expect(result.points.every((p) => p.unit == 'lb'), isTrue);
+    expect(result.headline, contains('lb'));
+    expect(result.lines.join(), isNot(matches(RegExp(r'[가-힣]'))));
   });
 
   testWidgets('검색어를 바꾸면 고른 것이 풀린다', (tester) async {
@@ -100,8 +160,11 @@ void main() {
 
   test('오타로 잡힌 것은 운동 이름 전체를 칠한다', () {
     const hit = TextStyle(color: seal);
-    final spans = highlightMatch('벤치프레스 · 스쿼트', '밴치', hit: hit)
-        .cast<TextSpan>();
+    final spans = highlightMatch(
+      '벤치프레스 · 스쿼트',
+      '밴치',
+      hit: hit,
+    ).cast<TextSpan>();
     expect(spans.where((t) => t.style == hit).map((t) => t.text), ['벤치프레스']);
     expect(spans.where((t) => t.text == '스쿼트').single.style, isNull);
   });

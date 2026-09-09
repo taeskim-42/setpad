@@ -55,6 +55,7 @@ class _NotesListPageState extends State<NotesListPage>
     final hit = suggest(q, _names, limit: 1);
     return hit.isEmpty ? null : hit.first;
   }
+
   List<String> get _names => widget.store.notes
       .expand((n) => n.blocks.map((b) => b.name))
       .toSet()
@@ -89,14 +90,17 @@ class _NotesListPageState extends State<NotesListPage>
     }
   }
 
-  void _ask({bool immediately = false}) => _search.search(
-    _query.text,
-    _locale ?? 'en',
-    _names,
-    widget.store.weightUnit,
-    immediately: immediately,
-    notes: widget.store.notes,
-  );
+  void _ask({bool immediately = false}) {
+    _search.search(
+      _matched == null ? _query.text : '',
+      _locale ?? 'en',
+      _names,
+      widget.store.weightUnit,
+      immediately: immediately,
+      notes: widget.store.notes,
+    );
+  }
+
   void _open(Note note) {
     _search.cancel();
     widget.onOpen(note);
@@ -255,14 +259,14 @@ class _NotesListPageState extends State<NotesListPage>
                               // 운동 이름이 잡혀 칩이 떠 있으면 모델은 쓰이지
                               // 않는다. 그 상태줄까지 보이면 잡음이다.
                               if (_matched == null)
-                              CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                onPressed: _help,
-                                child: Text(
-                                  '${l.queryTitle} · ${aiStatusLabel(l, _search.status)}',
-                                  style: const TextStyle(fontSize: 13),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: _help,
+                                  child: Text(
+                                    '${l.queryTitle} · ${aiStatusLabel(l, _search.status)}',
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),
@@ -282,7 +286,9 @@ class _NotesListPageState extends State<NotesListPage>
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: -0.23,
-                                  color: CupertinoColors.label.resolveFrom(context),
+                                  color: CupertinoColors.label.resolveFrom(
+                                    context,
+                                  ),
                                 ),
                               ),
                               for (final (metric, label) in [
@@ -295,9 +301,19 @@ class _NotesListPageState extends State<NotesListPage>
                                 SuggestionChip(
                                   label: label,
                                   selected: _pick == metric,
-                                  onTap: () => setState(
-                                    () => _pick = _pick == metric ? null : metric,
-                                  ),
+                                  onTap: () {
+                                    _search.search(
+                                      '',
+                                      _locale ?? 'en',
+                                      _names,
+                                      widget.store.weightUnit,
+                                    );
+                                    setState(
+                                      () => _pick = _pick == metric
+                                          ? null
+                                          : metric,
+                                    );
+                                  },
                                 ),
                             ],
                           ),
@@ -310,6 +326,8 @@ class _NotesListPageState extends State<NotesListPage>
                             widget.store.notes,
                             metric,
                             _matched!,
+                            labels: l,
+                            unit: widget.store.weightUnit,
                           ),
                         ),
                       ),
@@ -664,7 +682,11 @@ class _SearchBar extends StatelessWidget {
 /// 글자 그대로 들어 있으면 그 글자만, 오타나 초성으로 잡힌 것이면 그 운동
 /// 이름 전체를 칠한다. 초성 매칭은 원문의 어느 글자에 대응하는지가 정해져
 /// 있지 않아서, 억지로 일부만 칠하면 엉뚱한 자리가 색이 든다.
-List<InlineSpan> highlightMatch(String title, String query, {required TextStyle hit}) {
+List<InlineSpan> highlightMatch(
+  String title,
+  String query, {
+  required TextStyle hit,
+}) {
   final q = query.trim();
   if (q.isEmpty) return [TextSpan(text: title)];
 
@@ -673,7 +695,8 @@ List<InlineSpan> highlightMatch(String title, String query, {required TextStyle 
     return [
       if (at > 0) TextSpan(text: title.substring(0, at)),
       TextSpan(text: title.substring(at, at + q.length), style: hit),
-      if (at + q.length < title.length) TextSpan(text: title.substring(at + q.length)),
+      if (at + q.length < title.length)
+        TextSpan(text: title.substring(at + q.length)),
     ];
   }
 

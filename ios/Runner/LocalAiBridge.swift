@@ -36,6 +36,8 @@ private struct RecordAnswerResponse: Codable {
 final class LocalAiBridge {
   private let channel: FlutterMethodChannel
   private var generation: Task<Void, Never>?
+  private var warmedSession: Any?
+  private var warmedInstructions: String?
 
   init(messenger: FlutterBinaryMessenger) {
     channel = FlutterMethodChannel(name: "setpad/local_ai", binaryMessenger: messenger)
@@ -47,6 +49,7 @@ final class LocalAiBridge {
         switch call.method {
         case "status": result(self.status(locale))
         case "interpret": self.interpret(args, locale: locale, result: result)
+        case "warmQuery": self.warmQuery(args, locale: locale); result(nil)
         case "query": self.query(args, locale: locale, result: result)
         case "answerRecords": self.query(args, locale: locale, answering: true, result: result)
         case "cancel": self.generation?.cancel(); result(nil)
@@ -71,6 +74,17 @@ final class LocalAiBridge {
     }
   }
 
+  private func warmQuery(_ args: [String: Any], locale: String) {
+    guard #available(iOS 26.0, *), status(locale) == "available",
+          generation == nil, let instructions = args["instructions"] as? String,
+          instructions.count <= 12000 else { return }
+    if warmedInstructions == instructions, warmedSession != nil { return }
+    let session = LanguageModelSession(instructions: instructions)
+    session.prewarm()
+    warmedSession = session
+    warmedInstructions = instructions
+  }
+
   private func query(_ args: [String: Any], locale: String, answering: Bool = false, result: @escaping FlutterResult) {
     guard #available(iOS 26.0, *), status(locale) == "available" else {
       result(FlutterError(code: "unavailable", message: nil, details: nil)); return
@@ -81,7 +95,14 @@ final class LocalAiBridge {
     generation = Task { @MainActor in
       defer { generation = nil }
       do {
-        let session = LanguageModelSession(instructions: instructions)
+        let session: LanguageModelSession
+        if !answering, warmedInstructions == instructions,
+           let warmed = warmedSession as? LanguageModelSession {
+          session = warmed
+          warmedSession = nil; warmedInstructions = nil
+        } else {
+          session = LanguageModelSession(instructions: instructions)
+        }
         let data: Data
         if answering {
           let response = try await session.respond(to: prompt, generating: RecordAnswerResponse.self,

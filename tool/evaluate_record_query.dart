@@ -3,8 +3,23 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:setpad/local_ai.dart';
+import 'package:setpad/notes.dart';
+import 'package:setpad/editor.dart';
 import 'package:setpad/record_query.dart';
+
+class _TracingChannel extends MethodChannel {
+  const _TracingChannel() : super('setpad/local_ai');
+  @override
+  Future<T?> invokeMethod<T>(String method, [dynamic arguments]) async {
+    final value = await super.invokeMethod<T>(method, arguments);
+    if (method == 'query') {
+      debugPrint('EVAL_RAW ${jsonEncode(value)}', wrapWidth: 10000);
+    }
+    return value;
+  }
+}
 
 const _names = [
   '스쿼트',
@@ -135,6 +150,48 @@ final _cases = [
     reason: 'unrelated',
     heldOut: true,
   ),
+  Case('레그프레스 마지막 기록 보여줘', [expected('레그프레스', 'last')], heldOut: true),
+  Case('올해 내 총 운동 일수', [
+    expected('*', 'sessions', since: '2026-01-01', until: '2026-09-09'),
+  ], heldOut: true),
+  Case('오버헤드프레스 40킬로 이상으로 몇 세트?', [
+    expected('오버헤드프레스', 'sets', minWeight: 40),
+  ], heldOut: true),
+  Case('데드리프트 200파운드 이하 세트 몇 개', [
+    expected('데드리프트', 'sets', maxWeight: 200, weightUnit: 'lb'),
+  ], heldOut: true),
+  Case('랫풀다운 지금까지 몇 회 했지?', [expected('랫풀다운', 'reps')], heldOut: true),
+  Case('바벨로우 최고 기록은 몇 kg?', [expected('바벨로우', 'max')], heldOut: true),
+  Case(
+    '이번 주 어깨 아팠다고 쓴 거 있어?',
+    [expected('*', 'sets', since: '2026-09-07', until: '2026-09-09')],
+    kind: 'insight',
+    heldOut: true,
+  ),
+  Case(
+    '다음달 여행 일정 짜 줘',
+    [],
+    kind: 'unsupported',
+    reason: 'unrelated',
+    heldOut: true,
+  ),
+  Case(
+    '이번 달 가장 자주 한 운동 두 개',
+    [expected('*', 'sessions', since: '2026-09-01', until: '2026-09-09')],
+    rank: true,
+    limit: 2,
+    heldOut: true,
+  ),
+  Case('데드 80kg 이상 5회 이상 한 세트 수', [
+    expected('데드리프트', 'sets', minWeight: 80, minReps: 5),
+  ], heldOut: true),
+  Case('벤치랑 스쿼트 최고 중량 각각 알려줘', [
+    expected('벤치프레스', 'max'),
+    expected('스쿼트', 'max'),
+  ], heldOut: true),
+  Case('작년에 헬스장 간 날짜가 총 며칠이야?', [
+    expected('*', 'sessions', since: '2025-01-01', until: '2025-12-31'),
+  ], heldOut: true),
 ];
 
 Future<void> main() async {
@@ -142,13 +199,16 @@ Future<void> main() async {
   runApp(
     const CupertinoApp(home: CupertinoPageScaffold(child: SizedBox.shrink())),
   );
-  const ai = LocalAi();
+  const ai = LocalAi(channel: _TracingChannel());
   final status = await ai.status('ko');
   debugPrint('EVAL_STATUS ${status.name}');
   if (status != LocalAiStatus.available) return;
+  await ai.warmRecordQuery('ko');
   final times = <int>[];
   var passed = 0;
-  for (final c in _cases) {
+  for (final c in _cases.skip(
+    const bool.fromEnvironment('EVAL_OPEN_ONLY') ? _cases.length : 0,
+  )) {
     final watch = Stopwatch()..start();
     final errors = <String>[];
     Object? actual;
@@ -212,6 +272,62 @@ Future<void> main() async {
     'EVAL_CACHE ${jsonEncode({'firstMs': first.elapsedMilliseconds, 'cachedMicroseconds': cached.elapsedMicroseconds, 'ready': !search.busy && search.plan != null})}',
   );
   search.dispose();
+  final records = [
+    for (var i = 0; i < 151; i++)
+      Note(
+        id: 'eval-$i',
+        createdAt: DateTime(2026, 4, 12).add(Duration(days: i)),
+        updatedAt: DateTime(2026, 4, 12).add(Duration(days: i)),
+        blocks: [
+          ExerciseBlock(i.isEven ? '스쿼트' : '벤치프레스', [
+            LoggedSet(
+              value: i.isEven ? 80 : 60,
+              reps: 10,
+              notes: i == 150 ? ['무릎이 불편해서 무게를 낮췄다.'] : [],
+            ),
+          ]),
+        ],
+      ),
+  ];
+  final openSearch = RecordSearch(ai, now: () => DateTime(2026, 9, 9));
+  await openSearch.refresh('ko');
+  final openReady = Completer<void>();
+  openSearch.addListener(() {
+    if (!openSearch.busy &&
+        (openSearch.plan != null || openSearch.failed) &&
+        !openReady.isCompleted) {
+      openReady.complete();
+    }
+  });
+  const question = '무릎이 불편했다는 메모 좀 찾아줘';
+  final openWatch = Stopwatch()..start();
+  openSearch.search(
+    question,
+    'ko',
+    _names,
+    'kg',
+    immediately: true,
+    notes: records,
+  );
+  await openReady.future.timeout(const Duration(seconds: 75));
+  openWatch.stop();
+  openSearch.search('', 'ko', _names, 'kg');
+  final repeatWatch = Stopwatch()..start();
+  openSearch.search(
+    question,
+    'ko',
+    _names,
+    'kg',
+    immediately: true,
+    notes: records,
+  );
+  repeatWatch.stop();
+  debugPrint(
+    'EVAL_OPEN ${jsonEncode({'firstMs': openWatch.elapsedMilliseconds, 'repeatMicroseconds': repeatWatch.elapsedMicroseconds, 'ready': !openSearch.busy && openSearch.reply != null, 'text': openSearch.reply?.text, 'sources': openSearch.reply?.sources, 'failed': openSearch.failed})}',
+    wrapWidth: 10000,
+  );
+  openSearch.dispose();
+  if (times.isEmpty) return;
   final sorted = [...times]..sort();
   debugPrint(
     'EVAL_SUMMARY ${jsonEncode({'passed': passed, 'total': _cases.length, 'firstMs': times.first, 'medianMs': sorted[sorted.length ~/ 2], 'p90Ms': sorted[((sorted.length - 1) * 0.9).ceil()]})}',

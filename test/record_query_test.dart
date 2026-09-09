@@ -234,7 +234,9 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
             if (call.method == 'status') return 'available';
-            if (call.method == 'cancel') return null;
+            if (call.method == 'cancel' || call.method == 'warmQuery') {
+              return null;
+            }
             methods.add(call.method);
             if (call.method == 'query') {
               return {
@@ -273,6 +275,142 @@ void main() {
       search.dispose();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, null);
+    },
+  );
+
+  test(
+    'open answers reuse identical evidence but regenerate after edits',
+    () async {
+      const channel = MethodChannel('test/query_reply_cache');
+      var queries = 0, answers = 0, warms = 0;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == 'status') return 'available';
+            if (call.method == 'cancel') return null;
+            if (call.method == 'warmQuery') {
+              warms++;
+              return null;
+            }
+            if (call.method == 'query') {
+              queries++;
+              return {
+                ...response([row('*', 'sets')]),
+                'kind': 'insight',
+              };
+            }
+            answers++;
+            return {
+              'text': '기록에 남긴 메모입니다.',
+              'hasEvidence': true,
+              'sources': ['scope'],
+            };
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+      final search = RecordSearch(
+        const LocalAi(channel: channel, nativeSupported: true),
+      );
+      addTearDown(search.dispose);
+      await search.refresh('ko');
+      void ask(List<Note> records) => search.search(
+        '내 메모 읽어줘',
+        'ko',
+        names,
+        'kg',
+        notes: records,
+        immediately: true,
+      );
+      ask(notes);
+      for (var i = 0; i < 5; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect((queries, answers, warms), (1, 1, 1));
+      search.search('', 'ko', names, 'kg');
+      ask(notes);
+      expect(search.busy, isFalse);
+      expect(search.reply, isNotNull);
+      expect((queries, answers), (1, 1));
+      final updated = [
+        ...notes,
+        Note(
+          id: 'new-cache-record',
+          createdAt: DateTime(2026, 9, 9),
+          updatedAt: DateTime(2026, 9, 9),
+          blocks: [
+            ExerciseBlock('스쿼트', [LoggedSet(value: 90, reps: 5)]),
+          ],
+        ),
+      ];
+      ask(updated);
+      for (var i = 0; i < 5; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect((queries, answers), (1, 2));
+    },
+  );
+
+  testWidgets('typing waits 300ms and submit skips the wait', (tester) async {
+    const channel = MethodChannel('test/query_debounce');
+    var calls = 0;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'query') {
+            calls++;
+            return response([row('스쿼트', 'max')]);
+          }
+          return null;
+        });
+    final search = RecordSearch(
+      const LocalAi(channel: channel, nativeSupported: true),
+    )..status = LocalAiStatus.available;
+    search.search('스쿼트 최고', 'ko', names, 'kg');
+    await tester.pump(const Duration(milliseconds: 299));
+    expect(calls, 0);
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(calls, 1);
+    search.search('스쿼트 최대 기록', 'ko', names, 'kg', immediately: true);
+    await tester.pump();
+    expect(calls, 2);
+    search.dispose();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
+  });
+
+  test(
+    'matching notes omit unrelated detail while retaining scope aggregates',
+    () {
+      final plan = RecordQueryPlan.decode({
+        ...response([row('*', 'sets')]),
+        'kind': 'insight',
+        'terms': ['무릎'],
+      }, names);
+      final records = [
+        for (var i = 0; i < 30; i++)
+          Note(
+            id: 'focus-$i',
+            createdAt: DateTime(2026, 8, i + 1),
+            updatedAt: DateTime(2026, 8, i + 1),
+            blocks: [
+              ExerciseBlock('스쿼트', [
+                LoggedSet(
+                  value: 80,
+                  reps: 5,
+                  notes: [i == 0 ? '무릎이 불편' : '관련 없는 메모'],
+                ),
+              ]),
+            ],
+          ),
+      ];
+      final evidence = recordEvidence(records, plan);
+      final facts = evidence['facts'] as List;
+      expect(evidence['matchingNoteBlocks'], 1);
+      expect((facts.first as Map)['completedDays'], 30);
+      expect(jsonEncode(facts), contains('무릎이 불편'));
+      expect(jsonEncode(facts), isNot(contains('관련 없는 메모')));
+      expect(evidence['omittedFacts'] as int, greaterThan(0));
+      expect(jsonEncode(evidence).length, lessThan(2000));
     },
   );
 
@@ -352,7 +490,9 @@ void main() {
           .setMockMethodCallHandler(channel, (call) async {
             calls.add(call.method);
             if (call.method == 'status') return 'available';
-            if (call.method == 'cancel') return null;
+            if (call.method == 'cancel' || call.method == 'warmQuery') {
+              return null;
+            }
             return result.future;
           });
       final search = RecordSearch(
@@ -382,7 +522,9 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
             if (call.method == 'status') return 'available';
-            if (call.method == 'cancel') return null;
+            if (call.method == 'cancel' || call.method == 'warmQuery') {
+              return null;
+            }
             calls++;
             return response([row('스쿼트', 'max')]);
           });
@@ -476,6 +618,71 @@ void main() {
     },
   );
 
+  test('ranking is a distinct operation from counting workout days', () {
+    final total = RecordQueryPlan.decode(
+      {
+        'action': 'trainingDays',
+        'exercises': [],
+        'periods': ['thisYear'],
+      },
+      names,
+      today: DateTime(2026, 9, 9),
+    );
+    final ranked = RecordQueryPlan.decode(
+      {
+        'action': 'rankExercises',
+        'metric': 'trainingDays',
+        'limit': 2,
+        'exercises': [],
+        'periods': ['thisYear'],
+      },
+      names,
+      today: DateTime(2026, 9, 9),
+    );
+    expect(total.rank, isFalse);
+    expect(total.requests.single.exercise, '*');
+    expect(ranked.rank, isTrue);
+    expect(ranked.limit, 2);
+    expect(total.requests.single.since, ranked.requests.single.since);
+    expect(
+      () => RecordQueryPlan.decode({
+        'action': 'rankExercises',
+        'metric': 'readRecords',
+        'exercises': [],
+      }, names),
+      throwsFormatException,
+    );
+  });
+
+  test('mathematical filter operators preserve bounds and units', () {
+    for (final unit in ['kg', 'lb']) {
+      for (final op in ['>=', '<=', '=']) {
+        final r = RecordQueryPlan.decode({
+          'action': 'setCount',
+          'exercises': ['스쿼트'],
+          'periods': ['all'],
+          'weight': {'operator': op, 'value': 100, 'unit': unit},
+        }, names).requests.single;
+        expect(r.minWeight, op == '<=' ? null : 100);
+        expect(r.maxWeight, op == '>=' ? null : 100);
+        expect(r.weightUnit, unit);
+      }
+    }
+    for (final filter in [
+      {'operator': '>=', 'relation': 'atMost', 'value': 100},
+      {'operator': 'approximately', 'value': 100},
+    ]) {
+      expect(
+        () => RecordQueryPlan.decode({
+          'action': 'setCount',
+          'exercises': ['스쿼트'],
+          'weight': filter,
+        }, names),
+        throwsFormatException,
+      );
+    }
+  });
+
   test('compact intents cannot invent names, operators or filter values', () {
     for (final change in [
       {
@@ -520,7 +727,9 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
           if (call.method == 'status') return 'available';
-          if (call.method == 'cancel') return null;
+          if (call.method == 'cancel' || call.method == 'warmQuery') {
+            return null;
+          }
           calls++;
           return calls == 1 ? first.future : response([row('푸시업', 'reps')]);
         });
