@@ -134,6 +134,17 @@ class TimingSpec {
   int get hashCode => Object.hash(bpm, tabata, work, rest, rounds);
 }
 
+/// 세는 말. 한국어는 헬스장에서 "일, 이, 삼" 이라 세지 않는다 — "하나, 둘, 셋"
+/// 이다. 숫자를 읽는 말과 개수를 세는 말이 다른 언어라서, 그 언어에서만 말로
+/// 바꾼다. 다른 언어는 숫자를 그대로 둔다 — 영어의 one·two·three 는 눈으로
+/// 읽을 때 12 보다 느리고, 일본어·중국어는 숫자를 읽는 말이 곧 세는 말이다.
+String spokenCount(int n, String languageCode) {
+  if (languageCode != 'ko' || n < 1 || n > 99) return '$n';
+  const ones = ['', '하나', '둘', '셋', '넷', '다섯', '여섯', '일곱', '여덟', '아홉'];
+  const tens = ['', '열', '스물', '서른', '마흔', '쉰', '예순', '일흔', '여든', '아흔'];
+  return '${tens[n ~/ 10]}${ones[n % 10]}';
+}
+
 enum TimingPhase { ready, work, rest, complete }
 
 /// A monotonic clock determines phases; delayed frames never lengthen a round.
@@ -337,6 +348,7 @@ class WorkoutTimingControls extends StatelessWidget {
       final clock =
           '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
       final beat = selected ? timer.beat : 0;
+      final counted = spokenCount(beat, l.localeName.split('_').first);
       // 돌아가는 중에 길이를 바꾸면 남은 시간이 튄다. 멈춘 뒤에 바꾸게 한다.
       final editable = onChanged != null && !running;
       void change(TimingSpec next) {
@@ -422,8 +434,8 @@ class WorkoutTimingControls extends StatelessWidget {
                     child: Text(
                       spec.tabata
                           ? '$phaseLabel  $clock  ·  ${l.timingRound(selected ? timer.round : 1, spec.rounds)}'
-                                '${beat > 0 ? '  ·  ${l.timingBeat(beat)}' : ''}'
-                          : (beat > 0 ? l.timingBeat(beat) : l.timingMetronome),
+                                '${beat > 0 ? '  ·  ${l.timingBeat(counted)}' : ''}'
+                          : (beat > 0 ? l.timingBeat(counted) : l.timingMetronome),
                       style: const TextStyle(
                         fontSize: 15,
                         fontFeatures: [FontFeature.tabularFigures()],

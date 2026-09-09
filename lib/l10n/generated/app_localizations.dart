@@ -805,11 +805,11 @@ abstract class L {
   /// **'{n}라운드'**
   String timingRounds(int n);
 
-  /// No description provided for @timingBeat.
+  /// 세는 말. 한국어는 하나·둘·셋, 나머지는 숫자다.
   ///
   /// In ko, this message translates to:
-  /// **'{n}번째'**
-  String timingBeat(int n);
+  /// **'{count}'**
+  String timingBeat(String count);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

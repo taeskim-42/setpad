@@ -446,7 +446,7 @@ class LTh extends L {
   }
 
   @override
-  String timingBeat(int n) {
-    return 'จังหวะที่ $n';
+  String timingBeat(String count) {
+    return 'จังหวะที่ $count';
   }
 }

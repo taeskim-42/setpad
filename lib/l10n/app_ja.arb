@@ -116,5 +116,5 @@
   "timingWorkSeconds": "運動 {n}秒",
   "timingRestSeconds": "休憩 {n}秒",
   "timingRounds": "{n}ラウンド",
-  "timingBeat": "{n}拍目"
+  "timingBeat": "{count}拍目"
 }

@@ -395,11 +395,12 @@
       }
     }
   },
-  "timingBeat": "{n}번째",
+  "timingBeat": "{count}",
   "@timingBeat": {
+    "description": "세는 말. 한국어는 하나·둘·셋, 나머지는 숫자다.",
     "placeholders": {
-      "n": {
-        "type": "int"
+      "count": {
+        "type": "String"
       }
     }
   }

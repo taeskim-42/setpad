@@ -125,6 +125,33 @@ void main() {
     },
   );
   _adjustable();
+  _counting();
+}
+
+void _counting() {
+  group('세는 말', () {
+    test('한국어는 하나·둘·셋으로 센다', () {
+      expect(spokenCount(1, 'ko'), '하나');
+      expect(spokenCount(3, 'ko'), '셋');
+      expect(spokenCount(10, 'ko'), '열');
+      expect(spokenCount(11, 'ko'), '열하나');
+      expect(spokenCount(20, 'ko'), '스물');
+      expect(spokenCount(37, 'ko'), '서른일곱');
+      expect(spokenCount(99, 'ko'), '아흔아홉');
+    });
+
+    test('아흔아홉을 넘으면 숫자로 돌아간다', () {
+      // 세는 말이 길어지면 힐끗 보고 못 읽는다. 그 지점이 헬스장에서 쓸모의 끝이다.
+      expect(spokenCount(100, 'ko'), '100');
+      expect(spokenCount(0, 'ko'), '0');
+    });
+
+    test('다른 언어는 숫자를 그대로 둔다', () {
+      expect(spokenCount(3, 'en'), '3');
+      expect(spokenCount(3, 'ja'), '3');
+      expect(spokenCount(3, 'zh'), '3');
+    });
+  });
 }
 
 void _adjustable() {

@@ -439,7 +439,7 @@ class LJa extends L {
   }
 
   @override
-  String timingBeat(int n) {
-    return '$n拍目';
+  String timingBeat(String count) {
+    return '$count拍目';
   }
 }

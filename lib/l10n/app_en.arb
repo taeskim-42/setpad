@@ -116,5 +116,5 @@
   "timingWorkSeconds": "Work {n}s",
   "timingRestSeconds": "Rest {n}s",
   "timingRounds": "{n} rounds",
-  "timingBeat": "Beat {n}"
+  "timingBeat": "Beat {count}"
 }

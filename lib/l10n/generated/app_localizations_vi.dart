@@ -448,7 +448,7 @@ class LVi extends L {
   }
 
   @override
-  String timingBeat(int n) {
-    return 'Nhịp $n';
+  String timingBeat(String count) {
+    return 'Nhịp $count';
   }
 }

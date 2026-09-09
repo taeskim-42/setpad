@@ -449,7 +449,7 @@ class LEs extends L {
   }
 
   @override
-  String timingBeat(int n) {
-    return 'Pulso $n';
+  String timingBeat(String count) {
+    return 'Pulso $count';
   }
 }

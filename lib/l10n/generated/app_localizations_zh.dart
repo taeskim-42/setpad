@@ -434,8 +434,8 @@ class LZh extends L {
   }
 
   @override
-  String timingBeat(int n) {
-    return '第 $n 拍';
+  String timingBeat(String count) {
+    return '第 $count 拍';
   }
 }
 
@@ -869,8 +869,8 @@ class LZhHans extends LZh {
   }
 
   @override
-  String timingBeat(int n) {
-    return '第 $n 拍';
+  String timingBeat(String count) {
+    return '第 $count 拍';
   }
 }
 
@@ -1304,7 +1304,7 @@ class LZhHant extends LZh {
   }
 
   @override
-  String timingBeat(int n) {
-    return '第 $n 拍';
+  String timingBeat(String count) {
+    return '第 $count 拍';
   }
 }

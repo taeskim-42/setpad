@@ -441,7 +441,7 @@ class LKo extends L {
   }
 
   @override
-  String timingBeat(int n) {
-    return '$n번째';
+  String timingBeat(String count) {
+    return '$count';
   }
 }
