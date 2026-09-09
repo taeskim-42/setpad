@@ -1018,12 +1018,20 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   /// 포커스를 쥔 채 키보드만 내려간 경우 requestFocus 는 아무 일도 하지 않는다.
   /// 그때는 입력 연결을 직접 다시 연다.
+  /// 문서의 빈 곳을 눌렀을 때.
+  ///
+  /// **커서는 잃지 않는다.** 이 앱은 커서가 있는 자리가 곧 모드라서, 빈 곳을
+  /// 눌렀다고 커서가 사라지면 무엇을 치는 중이었는지가 사라진다.
+  ///
+  /// 다만 시스템 키보드는 내린다. 메모장에서 문서를 누르면 자판이 내려가고
+  /// 글은 그대로 있는 것과 같다 — 올라온 자판이 화면 절반을 가리고 있으면
+  /// 위에 적은 것을 볼 수가 없다. 입력줄을 다시 누르면 올라온다.
   void _reopen() {
     if (_timingKeyboardHidden) setState(() => _timingKeyboardHidden = false);
     if (!_focus.hasFocus) {
       _focus.requestFocus();
     } else if (!_padMode) {
-      SystemChannels.textInput.invokeMethod('TextInput.show');
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
     }
   }
 
