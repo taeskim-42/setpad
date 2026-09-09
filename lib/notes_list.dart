@@ -48,12 +48,26 @@ class _NotesListPageState extends State<NotesListPage>
   /// 틀릴 것이 없고 기다릴 것도 없다. 문장 해석은 부차 경로로 남아 있다.
   stats.Metric? _pick;
 
-  /// 검색어가 잡은 운동 하나. 오타·초성은 퍼지 검색이 이미 받아 준다.
-  String? get _matched {
+  /// 검색어 전체가 운동 이름 하나로 읽히는가. 이때만 모델을 건너뛴다 —
+  /// 이름만 쳤으면 물을 것이 없다.
+  String? get _bareName {
     final q = _query.text.trim();
     if (q.isEmpty) return null;
     final hit = suggest(q, _names, limit: 1);
     return hit.isEmpty ? null : hit.first;
+  }
+
+  /// 칩을 띄울 운동. 이름만 쳤든 문장 속에 들어 있든("스쾃 PR 얼마?") 잡는다.
+  /// 문장일 때는 모델도 함께 돈다 — 칩은 지름길이지 대체가 아니다.
+  String? get _matched {
+    final bare = _bareName;
+    if (bare != null) return bare;
+    for (final word in _query.text.trim().split(RegExp(r'\s+'))) {
+      if (word.length < 2 || word.contains(RegExp(r'\d'))) continue;
+      final hit = suggest(word, _names, limit: 1);
+      if (hit.isNotEmpty) return hit.first;
+    }
+    return null;
   }
 
   List<String> get _names => widget.store.notes
@@ -92,7 +106,7 @@ class _NotesListPageState extends State<NotesListPage>
 
   void _ask({bool immediately = false}) {
     _search.search(
-      _matched == null ? _query.text : '',
+      _bareName == null ? _query.text : '',
       _locale ?? 'en',
       _names,
       widget.store.weightUnit,

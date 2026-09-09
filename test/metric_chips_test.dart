@@ -135,6 +135,14 @@ void main() {
     expect(result.lines.join(), isNot(matches(RegExp(r'[가-힣]'))));
   });
 
+  testWidgets('문장 속의 운동도 칩을 띄운다 — 스쾃 PR 얼마?', (tester) async {
+    await pump(tester);
+    await tester.enterText(find.byType(CupertinoSearchTextField), '스쾃 PR 얼마?');
+    await tester.pumpAndSettle();
+    expect(find.text('스쿼트'), findsWidgets);
+    expect(find.widgetWithText(SuggestionChip, '최고'), findsOneWidget);
+  });
+
   testWidgets('검색어를 바꾸면 고른 것이 풀린다', (tester) async {
     await pump(tester);
     final search = find.byType(CupertinoSearchTextField);
