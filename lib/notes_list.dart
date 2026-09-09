@@ -62,7 +62,8 @@ class _NotesListPageState extends State<NotesListPage>
   String? get _matched {
     final bare = _bareName;
     if (bare != null) return bare;
-    for (final word in _query.text.trim().split(RegExp(r'\s+'))) {
+    for (final raw in _query.text.trim().split(RegExp(r'\s+'))) {
+      final word = stripParticle(raw);
       if (word.length < 2 || word.contains(RegExp(r'\d'))) continue;
       final hit = suggest(word, _names, limit: 1);
       if (hit.isNotEmpty) return hit.first;

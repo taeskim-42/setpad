@@ -57,7 +57,7 @@ class RecordQueryPlan {
   }) {
     final parsed = raw is String ? jsonDecode(_jsonText(raw)) : raw;
     final decoded = parsed is Map && parsed.containsKey('action')
-        ? _expandIntent(_withStatedRecord(_withStatedPeriod(parsed, question), question))
+        ? _expandIntent(_withStatedRecord(_withStatedMetric(_withStatedPeriod(parsed, question), question), question))
         : parsed;
     final value = decoded is Map
         ? Map<Object?, Object?>.from(decoded)
@@ -183,7 +183,17 @@ class RecordQueryPlan {
           (minReps != null && maxReps != null && minReps > maxReps)) {
         throw const FormatException('Reversed filter');
       }
-      final name = exercise(row['exercise']);
+      var name = exercise(row['exercise']);
+      if (name == '*' &&
+          question.isNotEmpty &&
+          value['rank'] != true &&
+          ![Metric.sessions, Metric.reps, Metric.sets, Metric.volume]
+              .contains(metric)) {
+        // "오버헤드 요즘 어때" — 추이엔 운동이 필요한데 모델이 * 를 냈다.
+        // 글에서 운동이 딱 하나 잡히면 그것이다. 둘 이상이면 모른다고 둔다.
+        final found = retrieveExercises(question, names, limit: 2);
+        if (found.length == 1) name = found.single;
+      }
       var weightUnit = row['weightUnit'] ?? defaultUnit;
       if (weightUnit != 'kg' && weightUnit != 'lb') {
         throw const FormatException('Invalid weight unit');
@@ -427,6 +437,13 @@ Map<String, Object?> _expandIntent(Map intent) {
     if (filter['value'] is! num ||
         !['atLeast', 'atMost', 'exactly'].contains(relation)) {
       throw const FormatException('Invalid intent filter');
+    }
+    // "5회 이상" 을 모델이 무게 조건(단위 '회')으로 내곤 한다. 단위가 kg/lb 가
+    // 아니면 무게가 아니다 — 버린다. 글에 적힌 회수 조건은 디코더가 채운다.
+    if (field == 'weight' &&
+        filter['unit'] != null &&
+        !['kg', 'lb'].contains(filter['unit'])) {
+      continue;
     }
     final suffix = field == 'weight' ? 'Weight' : 'Reps';
     if (relation != 'atMost') filters['min$suffix'] = filter['value'];
@@ -1116,21 +1133,35 @@ bool mentionsPounds(String text) =>
 String canonicalizeExercises(String text, List<String> names) {
   final byKey = <String, String>{};
   for (final name in names) {
-    for (final key in exerciseByName[name.toLowerCase()]?.keys ?? const []) {
+    final entry = exerciseByName[name.toLowerCase()];
+    for (final key in entry?.keys ?? const []) {
       if (key != name.toLowerCase()) byKey.putIfAbsent(key, () => name);
+    }
+    // 별칭 칸은 "dl dead lift" 처럼 여러 낱말이다. 낱말마다 등록한다 — 다만
+    // 별칭 칸에서만. 정식 영어 이름의 낱말("press")까지 바꾸면 오작동한다.
+    for (final word in (entry?.alias ?? '').toLowerCase().split(' ')) {
+      if (word.length >= 2) byKey.putIfAbsent(word, () => name);
     }
   }
   if (byKey.isEmpty) return text;
   return text.replaceAllMapped(RegExp(r'[^\s]+'), (m) {
     final word = m[0]!;
-    final hit = byKey[word.toLowerCase()];
-    return hit == null || word.contains(RegExp(r'\d')) ? word : hit;
+    if (word.contains(RegExp(r'\d'))) return word;
+    final direct = byKey[word.toLowerCase()];
+    if (direct != null) return direct;
+    // "스쾃은" — 조사를 떼면 키다. 이름을 바꾸고 조사는 그대로 둔다.
+    final base = stripParticle(word);
+    final hit = byKey[base.toLowerCase()];
+    return hit == null ? word : '$hit${word.substring(base.length)}';
   });
 }
 
 /// 글에 기간 낱말이 **하나만** 있으면 그것. 둘이면 비교 질문이라 모델에 맡기고
 /// null. 없어도 null.
-({String period, int? days})? statedPeriod(String text) {
+({String period, int? days, String? since, String? until})? statedPeriod(
+  String text, {
+  DateTime? today,
+}) {
   final table = <RegExp, String>{
     RegExp(r'오늘|today', caseSensitive: false): 'today',
     RegExp(r'이번\s*주|금주|this week', caseSensitive: false): 'thisWeek',
@@ -1141,14 +1172,32 @@ String canonicalizeExercises(String text, List<String> names) {
     RegExp(r'작년|지난\s*해|last year', caseSensitive: false): 'lastYear',
   };
   final hits = [for (final e in table.entries) if (e.key.hasMatch(text)) e.value];
-  final recent = RegExp(r'최근\s*(\d+)\s*일|last\s*(\d+)\s*days', caseSensitive: false)
-      .firstMatch(text);
+  final recent = RegExp(
+    r'최근\s*(\d+)\s*(일|주|개월|달)|last\s*(\d+)\s*(days?|weeks?|months?)',
+    caseSensitive: false,
+  ).firstMatch(text);
   if (recent != null) hits.add('recent');
+  // "9월에", "3월" — 달 이름. 올해 그 달이고, 아직 안 온 달이면 작년이다.
+  final month = RegExp(r'(?<![\d월])(1[0-2]|[1-9])\s*월(?!\s*(간|동안))').firstMatch(text);
+  if (month != null) hits.add('month');
   if (hits.length != 1) return null;
   if (hits.single == 'recent') {
-    return (period: 'recent', days: int.parse(recent![1] ?? recent[2]!));
+    final n = int.parse(recent![1] ?? recent[3]!);
+    final unit = (recent[2] ?? recent[4]!).toLowerCase();
+    final days = unit.startsWith('주') || unit.startsWith('week')
+        ? n * 7
+        : (unit == '개월' || unit == '달' || unit.startsWith('month')) ? n * 30 : n;
+    return (period: 'recent', days: days, since: null, until: null);
   }
-  return (period: hits.single, days: null);
+  if (hits.single == 'month') {
+    final now = today ?? DateTime.now();
+    final m = int.parse(month![1]!);
+    final year = m > now.month ? now.year - 1 : now.year;
+    final first = DateTime(year, m, 1), last = DateTime(year, m + 1, 0);
+    String iso(DateTime d) => d.toIso8601String().substring(0, 10);
+    return (period: 'custom', days: null, since: iso(first), until: iso(last));
+  }
+  return (period: hits.single, days: null, since: null, until: null);
 }
 
 Map _withStatedPeriod(Map intent, String question) {
@@ -1156,14 +1205,59 @@ Map _withStatedPeriod(Map intent, String question) {
   final periods = intent['periods'];
   final unset = periods == null ||
       (periods is List && periods.length == 1 && periods.first == 'all');
-  if (!unset) return intent;
+  // 기간이 둘이면 비교인데, 글에 기간 낱말이 하나뿐이면 모델이 지어낸 비교다.
+  final invented = periods is List && periods.length == 2;
+  if (!unset && !invented) return intent;
   final found = statedPeriod(question);
   if (found == null) return intent;
   return {
     ...intent,
     'periods': [found.period],
     if (found.days != null) 'days': found.days,
+    if (found.since != null) 'since': found.since,
+    if (found.until != null) 'until': found.until,
   };
+}
+
+/// 글에 의도 낱말이 **한 갈래만** 있으면 그것이 의도다. 두 갈래면(예: "최고
+/// 세트 수") 모델에 맡긴다. 순위·비교는 건드리지 않는다.
+///
+/// 모델은 sets·reps·sessions·max 를 서로 헷갈린다(dev 세트에서 metric 오독이
+/// 실패의 절반이었다). 낱말이 또렷한 질문에서 그 실수를 하게 둘 이유가 없다.
+const _metricWords = <String, String>{
+  'heaviest':
+      r'최고|최대|맥스|\bPR\b|제일\s*무거|가장\s*무거|몇\s*(kg|킬로|키로|파운드)\s*까지|개인\s*기록|personal\s*(record|best)|\bmax\b|heaviest|\bbest\b',
+  'weightHistory': r'추이|변화|늘었|늘고|줄었|정체|그래프|흐름|추세|요즘\s*어때|trend|progress',
+  'latest': r'저번|지난번|마지막|직전|최근에\s*언제|언제\s*했|last\s*time|latest|most\s*recent',
+  'trainingDays': r'몇\s*번|며칠|몇\s*일|얼마나\s*자주|how\s*often|how\s*many\s*(days|times)',
+  'volume': r'볼륨|총량|총\s*무게|전체\s*무게|volume|tonnage',
+  'setCount': r'세트\s*수|몇\s*세트|세트\s*몇|how\s*many\s*sets|\bsets\b',
+  'repCount': r'총\s*몇\s*회|반복\s*횟수|총\s*몇\s*개|다\s*합쳐서|총\s*반복|total\s*reps|how\s*many\s*reps',
+  'meanWeight': r'평균|average|mean',
+};
+
+Map _withStatedMetric(Map intent, String question) {
+  if (question.isEmpty || intent['action'] == 'unrelated') return intent;
+  final exercises = intent['exercises'];
+  final lonelyRank = intent['action'] == 'rankExercises' &&
+      exercises is List &&
+      exercises.length == 1;
+  // 운동 하나를 지목한 순위는 언제나 검증에 걸린다. 의도 낱말이 있으면 그
+  // 의도로 바꾸는 편이 죽는 것보다 낫다. 진짜 순위(운동 없음·여럿)는 둔다.
+  if (intent['action'] == 'rankExercises' && !lonelyRank) return intent;
+  final periods = intent['periods'];
+  if (periods is List && periods.length == 2) return intent;   // 비교
+  final hits = [
+    for (final e in _metricWords.entries)
+      if (RegExp(e.value, caseSensitive: false).hasMatch(question)) e.key,
+  ];
+  if (hits.length != 1 || hits.single == intent['action']) return intent;
+  final next = {...intent, 'action': hits.single};
+  if (lonelyRank) {
+    next.remove('metric');
+    next.remove('limit');
+  }
+  return next;
 }
 
 /// 글에 또렷이 적힌 숫자 조건. "80kg 이상", "5회 이하", "100파운드 이상".
@@ -1172,11 +1266,12 @@ Map _withStatedPeriod(Map intent, String question) {
     statedFilters(String text) {
   double? minW, maxW; int? minR, maxR; String? unit;
   final weight = RegExp(
-    r'(\d+(?:\.\d+)?)\s*(kg|킬로|키로|파운드|lbs?|pounds?)\s*(이상|이하|or more|or less|and up|and under)',
+    r'(\d+(?:\.\d+)?|[일이삼사오육칠팔구십백]+)\s*(kg|킬로|키로|파운드|lbs?|pounds?)\s*(이상|이하|or more|or less|and up|and under)',
     caseSensitive: false,
   );
   for (final m in weight.allMatches(text)) {
-    final v = double.parse(m[1]!);
+    final v = double.tryParse(m[1]!) ?? koreanNumber(m[1]!)?.toDouble();
+    if (v == null) continue;
     final u = m[2]!.toLowerCase();
     unit = (u == 'kg' || u == '킬로' || u == '키로') ? 'kg' : 'lb';
     if (RegExp(r'이상|or more|and up').hasMatch(m[3]!)) {
@@ -1185,10 +1280,13 @@ Map _withStatedPeriod(Map intent, String question) {
       maxW = v;
     }
   }
-  final reps = RegExp(r'(\d+)\s*(회|개|번|reps?)\s*(이상|이하|or more|or less)',
-      caseSensitive: false);
+  final reps = RegExp(
+    r'(\d+|[일이삼사오육칠팔구십백]+)\s*(회|개|번|reps?)\s*(이상|이하|or more|or less)',
+    caseSensitive: false,
+  );
   for (final m in reps.allMatches(text)) {
-    final v = int.parse(m[1]!);
+    final v = int.tryParse(m[1]!) ?? koreanNumber(m[1]!);
+    if (v == null) continue;
     if (RegExp(r'이상|or more').hasMatch(m[3]!)) {
       minR = v;
     } else {

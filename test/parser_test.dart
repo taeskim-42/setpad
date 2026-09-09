@@ -81,6 +81,24 @@ void main() {
       expect(suggest('벤', pool), ['벤치프레스', '인클라인 벤치프레스']);
     });
 
+    test('조사를 뗀다, 남는 게 두 글자 아래면 안 뗀다', () {
+      expect(stripParticle('벤치프레스는'), '벤치프레스');
+      expect(stripParticle('스쿼트가'), '스쿼트');
+      expect(stripParticle('데드리프트의'), '데드리프트');
+      expect(stripParticle('데드'), '데드');       // "드" 를 조사로 보면 안 된다
+      expect(stripParticle('벤치랑'), '벤치');
+      expect(stripParticle('스쾃이랑'), '스쾃');
+    });
+
+    test('수사 한글', () {
+      expect(koreanNumber('팔십'), 80);
+      expect(koreanNumber('백'), 100);
+      expect(koreanNumber('백이십'), 120);
+      expect(koreanNumber('오'), 5);
+      expect(koreanNumber('구백구십구'), 999);
+      expect(koreanNumber('킬로'), isNull);
+    });
+
     test('스쾃은 스쿼트다 — 오타가 아니라 표기법이다', () {
       expect(suggest('스쾃', ['스쿼트', '레그프레스']), ['스쿼트']);
     });

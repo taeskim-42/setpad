@@ -1,0 +1,2903 @@
+[
+ {
+  "q": "이번 달 스쿼드 요즘 어때",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "야 오늘 푸시업 지난번에 얼마 궁금",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "야 오늘 deadlift 마지막 기록 보여줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "안녕",
+  "expected": {
+   "kind": "unsupported"
+  },
+  "cat": "무관"
+ },
+ {
+  "q": "음 최근 2주 스쿼드 평균 얼마나 들어 궁금",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "진짜 궁금한데 이번 주 스쿼 얼마나 자주 해 100파운드 이하",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sessions",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "진짜 궁금한데 최근 2주 ㅅㅋㅌ 총 몇 회 60kg 이상 8회 이상ㅋㅋ",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "지난달 ㅅㅋㅌ 평균 무게 알려줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "지난달 대드리프트 지난번에 얼마?",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "이번 주 데드리프트의 평균 얼마나 들어",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "음 이번 달 dl 세트 수 팔십 킬로 이상 보여줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "음 이번 달 lat pulldown 세트 수ㅋㅋ",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "sets",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "음 지난달 벤치는 마지막 기록",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "진짜 궁금한데 오늘 벤치 최고 무게는? 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "진짜 궁금한데 벤치프레스는 직전 세트 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "last",
+   "period": false
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "deadlift 최고 보여줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "max",
+   "period": false
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "음 이번 달 벤치 무게 변화 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "지난주 bp 개인 기록 궁금",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "야 최근 2주 밴치프레스 그래프",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "지난달 벤치프레스는 정체기인가",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "최근 2주 스쾃 평균 무게",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "진짜 궁금한데 이번 주 데드 최고 기록",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "음 이번 주 squat 몇 kg까지 들었지 보여줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "음 dl 다 합쳐서 몇 개 5회 이상?",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "reps",
+   "period": false,
+   "minReps": 5
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "야 최근 2주 벤치프레스 얼마나 자주 해 60kg 이상 8회 이상",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "스쿼트 추이 알려줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "trend",
+   "period": false
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "오늘 벤치 프레스 총 반복 횟수 보여줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "reps",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "벤치랑 스쿼트 최고",
+  "expected": {
+   "exercises": 2
+  },
+  "cat": "두운동"
+ },
+ {
+  "q": "이번 주 랫풀다운 세트 몇 개 했어 5회 이상 좀",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "sets",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "지난달 스쿼드 총 몇 회 5회 이상",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "reps",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "진짜 궁금한데 오늘 데드리프트의 마지막 기록?",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "음 9월에 저번에 데드 리프트 얼마 들었지 궁금",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "아 근데 9월에 dl 그래프 보여줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "스쿼트가 그래프 궁금",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "trend",
+   "period": false
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "진짜 궁금한데 랫풀 세트 몇 개 했어 보여줘",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "sets",
+   "period": false
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "아 근데 지난주 ㅅㅋㅌ 세트 수 60kg 이상 8회 이상 알려줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "최근 2주 오버헤드프레스 마지막 기록?",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "진짜 궁금한데 오늘 bench press 몇 번 했지 100파운드 이하 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sessions",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "지난주 오버헤드 프레스 총 반복 횟수 80kg 이상ㅋㅋ",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "지난달 데드리프트의 늘고 있나",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "이번 주 ohp 총 반복 횟수 100파운드 이하ㅋㅋ",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "reps",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "지난주 벤치는 무게 변화ㅋㅋ",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "몇 번 갔지",
+  "expected": {
+   "exercise": "*",
+   "metric": "sessions"
+  },
+  "cat": "운동없음"
+ },
+ {
+  "q": "야 이번 주 밴치프레스 평균 얼마나 들어",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "아 근데 밴치프레스 마지막 기록?",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "last",
+   "period": false
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "지난달 밴치프레스 총 몇 회 80kg 이상",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "진짜 궁금한데 지난주 bp 세트 몇 개 했어 80kg 이상 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "음 이번 달 벤치 평균 얼마나 들어ㅋㅋ",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "이번 주 ㅅㅋㅌ 지난번에 얼마",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "음 9월에 오버헤드 다 합쳐서 몇 개 5회 이상",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "reps",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "음 지난주 랫풀 몇 번 했지 100파운드 이하 알려줘",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "sessions",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "진짜 궁금한데 오늘 데드리프트 세트 몇 개 했어 80kg 이상 궁금",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "이번 주 pushup 평균 얼마나 들어 궁금",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "야 지난달 데드리프트 총 무게 60kg 이상 8회 이상 보여줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "음 오늘 스쾃 총 몇 회 궁금",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "reps",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "지난주 랫풀다운 평균 무게 좀",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "진짜 궁금한데 이번 달 데드 리프트 세트 수 5회 이상ㅋㅋ",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sets",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "진짜 궁금한데 오늘 squat 세트 몇 개 했어 5회 이상 보여줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sets",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "아 근데 오늘 벤치프레스 정체기인가ㅋㅋ",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "지난주 몇 번 갔어",
+  "expected": {
+   "exercise": "*",
+   "metric": "sessions"
+  },
+  "cat": "운동없음"
+ },
+ {
+  "q": "음 이번 주 오버헤드 프레스 전체 볼륨 얼마 80kg 이상 좀",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "야 올해 lat pulldown 평균 무게 좀",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "최근 2주 ㅅㅋㅌ 전체 볼륨 얼마 5회 이상 궁금",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "volume",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "오늘 lat pulldown 총량 팔십 킬로 이상 보여줘",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "아 근데 오늘 푸쉬업 제일 무겁게 든 게ㅋㅋ",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "야 이번 달 bp 총 몇 회 60kg 이상 8회 이상 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "오늘 대드리프트 총 몇 회 팔십 킬로 이상 궁금",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "진짜 궁금한데 지난달 렛풀다운 전체 볼륨 얼마 80kg 이상 좀",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "야 지난주 ohp 전체 볼륨 얼마 5회 이상 좀",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "volume",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "아 근데 오늘 lat pulldown 다 합쳐서 몇 개ㅋㅋ",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "reps",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "야 9월에 bp 마지막 기록ㅋㅋ",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "아 근데 ㅂㅊㅍㄹㅅ 지난번에 얼마",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "last",
+   "period": false
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "지난달 오버헤드프레스 전체 볼륨 얼마 80kg 이상 좀",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "벤치프레스 스쿼트 데드리프트 3대 합",
+  "expected": {
+   "exercises": 2
+  },
+  "cat": "두운동"
+ },
+ {
+  "q": "음 지난달 푸쉬업 평균 무게 보여줘",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "이번 주 오버헤드프레스 평균 얼마나 들어",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "오늘 스쿼드 총량 60kg 이상 8회 이상",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "음 지난달 벤치프레스는 몇 kg까지 들었지?",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "최근 2주 벤치프레스는 세트 몇 개 했어 60kg 이상 8회 이상 좀",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "야 지난달 dl 평균 얼마나 들어?",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "음 최근 2주 deadlift 평균 무게 보여줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "올해 랫풀다운 지난번에 얼마 보여줘",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "아 근데 오늘 스쾃 맥스 얼마 궁금",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "오늘 데드리프트의 총량 100파운드 이하ㅋㅋ",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "volume",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "야 9월에 오버헤드 프레스 세트 몇 개 했어 팔십 킬로 이상",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "진짜 궁금한데 최근 2주 벤치프레스는 총 몇 회 100파운드 이하 좀",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "reps",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "음 렛풀다운 총 반복 횟수 5회 이상",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "reps",
+   "period": false,
+   "minReps": 5
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "푸쉬업 세트 몇 개 했어 60kg 이상 8회 이상ㅋㅋ",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "sets",
+   "period": false,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "오버헤드프레스 몇 번 했지 5회 이상",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "sessions",
+   "period": false,
+   "minReps": 5
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "야 이번 주 랫풀 평균 무게 알려줘",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "야 9월에 squat 지난번에 얼마 알려줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "파이썬 계산기 만들어줘",
+  "expected": {
+   "kind": "unsupported"
+  },
+  "cat": "무관"
+ },
+ {
+  "q": "지난달 오버헤드프레스 세트 몇 개 했어",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "sets",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "아 근데 지난달 데드 세트 수 60kg 이상 8회 이상 궁금",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "야 스쿼트 평균 무게 보여줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "average",
+   "period": false
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "야 이번 주 bench press 평균 무게 보여줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "ㅂㅊ",
+  "expected": {
+   "note": "초성 2자"
+  },
+  "cat": "초성짧음"
+ },
+ {
+  "q": "야 9월에 ㅅㅋㅌ 개인 기록?",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "야 스쿼트가 최고 무게는?ㅋㅋ",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "max",
+   "period": false
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "아 근데 9월에 스쾃 며칠 했어 팔십 킬로 이상 궁금",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "스쿼트 최고 기록ㅋㅋ",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "max",
+   "period": false
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "음 최근 2주 오버헤드 총 무게 60kg 이상 8회 이상",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "지난주 오버헤드프레스 다 합쳐서 몇 개",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "reps",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "9월에 데드리프트 개인 기록 알려줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "아 근데 올해 팔굽혀펴기 총 반복 횟수 60kg 이상 8회 이상 알려줘",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:별칭?"
+ },
+ {
+  "q": "야 최근 2주 데드리프트 총 반복 횟수 알려줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "reps",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "점심 뭐 먹지",
+  "expected": {
+   "kind": "unsupported"
+  },
+  "cat": "무관"
+ },
+ {
+  "q": "아 근데 최근 2주 렛풀다운 평균 얼마나 들어 보여줘",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "최근 2주 푸시업 평균 얼마나 들어 좀",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "9월에 저번에 데드 얼마 들었지 보여줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "야 최근 2주 벤치 다 합쳐서 몇 개 60kg 이상 8회 이상",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "진짜 궁금한데 지난주 스쿼트가 직전 세트?",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "이번 달 대드리프트 몇 번 했지 5회 이상 좀",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sessions",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "진짜 궁금한데 올해 랫풀 최근에 언제 했어?",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "이번 주 벤치프레스 PR",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "올해 스쿼 늘고 있나",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "아 근데 이번 주 오버헤드 프레스 평균 얼마나 들어 궁금",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "9월에 랫풀다운 요즘 어때ㅋㅋ",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "야 지난달 벤치프레스 전체 볼륨 얼마 팔십 킬로 이상 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "진짜 궁금한데 지난달 squat 며칠 했어 5회 이상?",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sessions",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "오늘 기분 어때",
+  "expected": {
+   "kind": "unsupported"
+  },
+  "cat": "무관"
+ },
+ {
+  "q": "이번 달 lat pulldown 지난번에 얼마 좀",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "아 근데 9월에 벤치프레스 총 몇 회 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "reps",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "아 근데 이번 달 팔굽혀펴기 지난번에 얼마?",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:별칭?"
+ },
+ {
+  "q": "음 지난주 오버헤드 최고 무게는? 보여줘",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "진짜 궁금한데 지난주 벤치프레스는 얼마나 자주 해 팔십 킬로 이상",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "이번 달 벤치프레스는 전체 볼륨 얼마 100파운드 이하 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "volume",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "9월에 스쿼 총 몇 회 100파운드 이하?",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "reps",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "진짜 궁금한데 오늘 대드리프트 세트 수 60kg 이상 8회 이상ㅋㅋ",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "아 근데 이번 주 스쿼트가 총량 80kg 이상",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "이번 달 스쿼트가 다 합쳐서 몇 개 80kg 이상 좀",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "진짜 궁금한데 이번 달 데드 리프트 몇 kg까지 들었지 알려줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "아 근데 9월에 스쿼드 세트 몇 개 했어 60kg 이상 8회 이상?",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "최근 2주 팔굽혀펴기 총량 100파운드 이하 좀",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "volume",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:별칭?"
+ },
+ {
+  "q": "이번 주 오버헤드 평균 얼마나 들어?",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "야 이번 주 pushup 늘고 있나ㅋㅋ",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "아 근데 대드리프트 요즘 어때 좀",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "trend",
+   "period": false
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "9월에 랫풀다운 몇 일 갔지 60kg 이상 8회 이상",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "지난주 스쿼트 얼마나 자주 해 팔십 킬로 이상?",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "아 근데 올해 랫풀 무게 변화 보여줘",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "음 지난달 벤치 프레스 세트 몇 개 했어 5회 이상 궁금",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sets",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "음 bench press 총 반복 횟수 80kg 이상?",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "reps",
+   "period": false,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "오늘 데드리프트의 몇 일 갔지 60kg 이상 8회 이상?",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "야 오늘 pushup PR",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "이번 달 squat 늘고 있나",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "지난달 오버헤드 프레스 요즘 어때ㅋㅋ",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "이번 주 밴치프레스 몇 kg까지 들었지 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "최근 2주 스쿼트 직전 세트",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "야 오늘 스쿼 세트 수 5회 이상?",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sets",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "이번 달 스쾃 총 몇 세트 100파운드 이하 보여줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sets",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "야 이번 주 ㅅㅋㅌ 며칠 했어 5회 이상 알려줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sessions",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "이번 주 대드리프트 평균 얼마나 들어",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "이번 주 푸시업 최고 기록",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "음 이번 달 오버헤드 요즘 어때 좀",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "아 근데 9월에 렛풀다운 얼마나 자주 해 60kg 이상 8회 이상 보여줘",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "아 근데 올해 벤치 프레스 평균 얼마나 들어 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "야 벤치 프레스 정체기인가 보여줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "trend",
+   "period": false
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "푸쉬업 총 반복 횟수 팔십 킬로 이상ㅋㅋ",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "reps",
+   "period": false,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "이번 달 스쿼트 총 몇 회 팔십 킬로 이상",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "올해 ohp 몇 번 했지",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "sessions",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "야 9월에 lat pulldown PRㅋㅋ",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "야 최근 2주 dl 전체 볼륨 얼마 100파운드 이하",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "volume",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "진짜 궁금한데 오늘 데드리프트 그래프",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "음 오늘 데드 다 합쳐서 몇 개ㅋㅋ",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "reps",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "스쿼트 데드 비교",
+  "expected": {
+   "exercises": 2
+  },
+  "cat": "두운동"
+ },
+ {
+  "q": "야 올해 lat pulldown 추이 좀",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "최근 2주 대드리프트 전체 볼륨 얼마 80kg 이상 알려줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "진짜 궁금한데 지난주 pushup 볼륨 5회 이상 알려줘",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "volume",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "음 오늘 bp 추이",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "야 이번 주 랫풀 총량 80kg 이상ㅋㅋ",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "이번 달 렛풀다운 최고 기록",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "지난달 ohp 평균 무게?",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "진짜 궁금한데 9월에 오버헤드 프레스 마지막 기록 알려줘",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "지난주 ohp 최고 알려줘",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "지난주 ㅂㅊㅍㄹㅅ 얼마나 자주 해 80kg 이상",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "ohp 정체기인가",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "trend",
+   "period": false
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "야 최근 2주 오버헤드 프레스 몇 kg까지 들었지",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "아 근데 지난달 푸시업 정체기인가 보여줘",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "아 근데 오늘 푸시업 얼마나 자주 해 궁금",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "sessions",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "이번 주 벤치프레스 세트 몇 개 했어 100파운드 이하",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sets",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "9월에 데드 얼마나 자주 해 팔십 킬로 이상 궁금",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "올해 랫풀다운 총량 팔십 킬로 이상 궁금",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "음 이번 달 스쿼트가 평균 얼마나 들어ㅋㅋ",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "진짜 궁금한데 올해 벤치프레스는 평균 무게ㅋㅋ",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "음 이번 달 랫풀 몇 kg까지 들었지 궁금",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "9월에 밴치프레스 총량 5회 이상",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "volume",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "아 근데 9월에 pushup 총 몇 세트 100파운드 이하 보여줘",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "sets",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "야 이번 달 저번에 데드리프트 얼마 들었지 보여줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "야 최근 2주 deadlift 요즘 어때 보여줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "이번 달 벤치 세트 몇 개 했어 100파운드 이하 좀",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sets",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "지난달 벤치 프레스 마지막 기록?",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "음 이번 주 데드 볼륨 5회 이상 좀",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "volume",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "이번 달 오버헤드 몇 일 갔지 80kg 이상?",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "이번 달 며칠 운동했어",
+  "expected": {
+   "exercise": "*",
+   "metric": "sessions"
+  },
+  "cat": "운동없음"
+ },
+ {
+  "q": "벤치는 몇 kg까지 들었지 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "max",
+   "period": false
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "아 근데 지난달 스쿼트 세트 몇 개 했어 팔십 킬로 이상 궁금",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "야 이번 달 squat 볼륨 100파운드 이하",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "volume",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "아 근데 지난달 푸쉬업 몇 번 했지 80kg 이상",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "아 근데 지난달 스쿼트가 며칠 했어 100파운드 이하ㅋㅋ",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sessions",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "9월에 dl 몇 kg까지 들었지 좀",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "진짜 궁금한데 ㅅㅋㅌ 그래프",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "trend",
+   "period": false
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "음 최근 2주 lat pulldown 며칠 했어 5회 이상 궁금",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "sessions",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "야 올해 오버헤드 프레스 몇 일 갔지 60kg 이상 8회 이상ㅋㅋ",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "음 지난주 deadlift 총 몇 회 60kg 이상 8회 이상?",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "음 9월에 dl 몇 일 갔지ㅋㅋ",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sessions",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "아 근데 올해 랫풀다운 총 반복 횟수 팔십 킬로 이상",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "야 올해 렛풀다운 직전 세트 보여줘",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "올해 squat 평균 얼마나 들어 보여줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "올해 운동한 날",
+  "expected": {
+   "exercise": "*",
+   "metric": "sessions"
+  },
+  "cat": "운동없음"
+ },
+ {
+  "q": "진짜 궁금한데 지난주 deadlift 얼마나 자주 해 5회 이상",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sessions",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "이번 주 벤치 프레스 최고 기록",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "야 이번 주 렛풀다운 그래프 보여줘",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "음 지난달 데드 리프트 총량 팔십 킬로 이상 보여줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "진짜 궁금한데 오늘 ohp 직전 세트 궁금",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "9월에 ohp 총 몇 세트 100파운드 이하 보여줘",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "sets",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "이번 달 스쿼 마지막 기록 알려줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "아 근데 오늘 bench press 전체 볼륨 얼마 100파운드 이하 궁금",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "volume",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "오늘 스쾃 직전 세트 보여줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "내일 비 오나",
+  "expected": {
+   "kind": "unsupported"
+  },
+  "cat": "무관"
+ },
+ {
+  "q": "야 이번 주 pushup 얼마나 자주 해 60kg 이상 8회 이상 좀",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "아 근데 9월에 ㅂㅊㅍㄹㅅ 다 합쳐서 몇 개 보여줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "reps",
+   "period": true
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "지난주 스쾃 총 무게 60kg 이상 8회 이상 보여줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "이번 주 데드리프트의 총 몇 세트 팔십 킬로 이상 보여줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "음 지난달 bench press 최고 무게는?",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "진짜 궁금한데 지난주 벤치는 총 몇 세트 80kg 이상 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "야 대드리프트 최고 기록 알려줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "max",
+   "period": false
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "음 9월에 데드 리프트 얼마나 자주 해 60kg 이상 8회 이상",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "야 오버헤드프레스 최고 기록",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "max",
+   "period": false
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "지난주 스쿼 평균 무게 궁금",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "진짜 궁금한데 팔굽혀펴기 몇 kg까지 들었지 좀",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "max",
+   "period": false
+  },
+  "cat": "표기:별칭?"
+ },
+ {
+  "q": "진짜 궁금한데 올해 푸시업 세트 수 80kg 이상 보여줘",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "야 지난달 bp 볼륨 팔십 킬로 이상ㅋㅋ",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "진짜 궁금한데 벤치프레스 평균 얼마나 들어 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "average",
+   "period": false
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "스쿼 볼륨 팔십 킬로 이상 보여줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "volume",
+   "period": false,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "음 올해 벤치 볼륨 팔십 킬로 이상ㅋㅋ",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "이번 달 데드리프트 평균 얼마나 들어",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "진짜 궁금한데 이번 주 ㅂㅊㅍㄹㅅ 전체 볼륨 얼마 60kg 이상 8회 이상 알려줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "올해 벤치는 평균 얼마나 들어",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "이번 주 스쾃 정체기인가 궁금",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "데드 150 초과",
+  "expected": {
+   "exercise": null,
+   "metric": null
+  },
+  "cat": "초과/미만(모델 몫)"
+ },
+ {
+  "q": "9월에 bench press 직전 세트ㅋㅋ",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "아 근데 올해 오버헤드프레스 정체기인가 보여줘",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "9월에 bp 평균 얼마나 들어 궁금",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "오늘 bp 몇 일 갔지 팔십 킬로 이상 좀",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "지난달 푸시업 총 반복 횟수 60kg 이상 8회 이상ㅋㅋ",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "오늘 저번에 pushup 얼마 들었지 좀",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "진짜 궁금한데 오늘 dl 마지막 기록 알려줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "지난주 푸쉬업 전체 볼륨 얼마ㅋㅋ",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "volume",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "음 9월에 벤치 프레스 총 무게 80kg 이상 보여줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "진짜 궁금한데 9월에 오버헤드 세트 수 5회 이상 알려줘",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "sets",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "ㅅㅋ 최고",
+  "expected": {
+   "note": "초성 2자"
+  },
+  "cat": "초성짧음"
+ },
+ {
+  "q": "야 이번 달 ㅂㅊㅍㄹㅅ 몇 kg까지 들었지 좀",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "벤치 100kg 넘게 든 세트",
+  "expected": {
+   "exercise": null,
+   "metric": null
+  },
+  "cat": "초과/미만(모델 몫)"
+ },
+ {
+  "q": "지난달 벤치 프레스 몇 일 갔지?",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sessions",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "아 근데 지난달 팔굽혀펴기 세트 몇 개 했어 100파운드 이하 알려줘",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "sets",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:별칭?"
+ },
+ {
+  "q": "2+2",
+  "expected": {
+   "kind": "unsupported"
+  },
+  "cat": "무관"
+ },
+ {
+  "q": "진짜 궁금한데 올해 벤치는 총 반복 횟수 60kg 이상 8회 이상 보여줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "음 지난주 벤치 몇 번 했지 팔십 킬로 이상 보여줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "음 올해 오버헤드 최근에 언제 했어 보여줘",
+  "expected": {
+   "exercise": "오버헤드프레스",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "음 지난달 데드 그래프?",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "아 근데 이번 주 데드리프트의 총 몇 회 80kg 이상 궁금",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "진짜 궁금한데 이번 달 데드 평균 얼마나 들어",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "올해 스쿼드 직전 세트 알려줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "음 지난주 밴치프레스 몇 번 했지 5회 이상ㅋㅋ",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sessions",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "진짜 궁금한데 9월에 스쿼드 맥스 얼마 보여줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "음 9월에 deadlift 총 무게ㅋㅋ",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "volume",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "지난달 벤치 최근에 언제 했어ㅋㅋ",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "아 근데 이번 주 벤치프레스 마지막 기록",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "진짜 궁금한데 지난달 데드 리프트 평균 무게 알려줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "이번 주 랫풀다운 PR 보여줘",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "음 올해 deadlift 총 몇 세트 좀",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sets",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "이번 주 푸쉬업 추이 알려줘",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "아 근데 오늘 squat 다 합쳐서 몇 개 60kg 이상 8회 이상",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "진짜 궁금한데 지난주 팔굽혀펴기 평균 얼마나 들어?",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "average",
+   "period": true
+  },
+  "cat": "표기:별칭?"
+ },
+ {
+  "q": "야 9월에 벤치는 얼마나 자주 해 100파운드 이하 좀",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sessions",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "지난주 스쿼 맥스 얼마 보여줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "야 9월에 bench press 정체기인가?",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "아 근데 지난달 팔굽혀펴기 며칠 했어 80kg 이상",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:별칭?"
+ },
+ {
+  "q": "음 올해 밴치프레스 세트 수 팔십 킬로 이상ㅋㅋ",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "지난달 스쿼드 몇 일 갔지 팔십 킬로 이상 궁금",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sessions",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "지난주 데드리프트 며칠 했어 100파운드 이하 알려줘",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "sessions",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "야 ㅂㅊㅍㄹㅅ 평균 무게 보여줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "average",
+   "period": false
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "야 9월에 ㅂㅊㅍㄹㅅ 늘고 있나",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "이번 주 벤치는 총량 팔십 킬로 이상",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "최근 2주 데드리프트의 최고 기록ㅋㅋ",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "max",
+   "period": true
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "야 지난주 렛풀다운 세트 몇 개 했어 60kg 이상 8회 이상?",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "최근 2주 푸시업 총량 80kg 이상?",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "volume",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "올해 데드 리프트 늘고 있나",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "진짜 궁금한데 9월에 스쿼트가 총 몇 세트 100파운드 이하 좀",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "sets",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:조사"
+ },
+ {
+  "q": "이번 주 ㅂㅊㅍㄹㅅ 세트 몇 개 했어 100파운드 이하 보여줘",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sets",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:초성"
+ },
+ {
+  "q": "야 9월에 pushup 총 반복 횟수 80kg 이상 궁금",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:별칭"
+ },
+ {
+  "q": "야 오늘 데드 리프트 총 몇 회 100파운드 이하 궁금",
+  "expected": {
+   "exercise": "데드리프트",
+   "metric": "reps",
+   "period": true,
+   "maxWeight": 100.0,
+   "unit": "lb"
+  },
+  "cat": "표기:띄어"
+ },
+ {
+  "q": "음 이번 달 푸쉬업 마지막 기록",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "last",
+   "period": true
+  },
+  "cat": "표기:오타"
+ },
+ {
+  "q": "진짜 궁금한데 9월에 bench press 총 몇 세트 60kg 이상 8회 이상 궁금",
+  "expected": {
+   "exercise": "벤치프레스",
+   "metric": "sets",
+   "period": true,
+   "minWeight": 60.0,
+   "minReps": 8,
+   "unit": "kg"
+  },
+  "cat": "표기:영어"
+ },
+ {
+  "q": "야 최근 2주 스쿼트 볼륨 5회 이상 보여줘",
+  "expected": {
+   "exercise": "스쿼트",
+   "metric": "volume",
+   "period": true,
+   "minReps": 5
+  },
+  "cat": "표기:정식"
+ },
+ {
+  "q": "이번 주 팔굽혀펴기 무게 변화 보여줘",
+  "expected": {
+   "exercise": "푸시업",
+   "metric": "trend",
+   "period": true
+  },
+  "cat": "표기:별칭?"
+ },
+ {
+  "q": "이번 주 랫풀 다 합쳐서 몇 개 80kg 이상",
+  "expected": {
+   "exercise": "랫풀다운",
+   "metric": "reps",
+   "period": true,
+   "minWeight": 80.0,
+   "unit": "kg"
+  },
+  "cat": "표기:접두"
+ },
+ {
+  "q": "ㄷㄷ 마지막",
+  "expected": {
+   "note": "초성 2자"
+  },
+  "cat": "초성짧음"
+ }
+]

@@ -112,7 +112,8 @@ List<String> retrieveExercises(
       found.add(name);
     }
   }
-  for (final word in input.split(RegExp(r'\s+'))) {
+  for (final raw in input.split(RegExp(r'\s+'))) {
+    final word = stripParticle(raw);
     if (word.length >= 2 && !RegExp(r'\d').hasMatch(word)) {
       found.addAll(suggest(word, pool, limit: 3));
     }
@@ -354,4 +355,29 @@ String bumpLastNumber(String line, int direction) {
       ? next.round().toString()
       : next.toStringAsFixed(1);
   return '$before$text${match.group(2)}';
+}
+
+/// 낱말 끝의 조사를 뗀다. "벤치프레스는" → "벤치프레스". 남는 것이 두 글자
+/// 아래면 떼지 않는다 — "데드" 의 "드" 를 조사로 보면 안 된다.
+String stripParticle(String word) {
+  final m = RegExp(
+    r'(이랑|에서|한테|보다|으로|까지|부터|은|는|이|가|을|를|의|도|랑|하고|로|에|만)$',
+  ).firstMatch(word);
+  if (m == null) return word;
+  final base = word.substring(0, m.start);
+  return base.length >= 2 ? base : word;
+}
+
+/// 수사 한글 → 수. "팔십" → 80, "백이십" → 120, "오" → 5. 1~999. 아니면 null.
+int? koreanNumber(String text) {
+  const digit = {'일': 1, '이': 2, '삼': 3, '사': 4, '오': 5, '육': 6, '칠': 7, '팔': 8, '구': 9};
+  if (text.isEmpty || !RegExp(r'^[일이삼사오육칠팔구십백]+$').hasMatch(text)) return null;
+  var total = 0, current = 0;
+  for (final ch in text.split('')) {
+    if (ch == '백') { total += (current == 0 ? 1 : current) * 100; current = 0; }
+    else if (ch == '십') { total += (current == 0 ? 1 : current) * 10; current = 0; }
+    else { current = digit[ch]!; }
+  }
+  total += current;
+  return total == 0 ? null : total;
 }
