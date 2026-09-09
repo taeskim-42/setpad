@@ -4,7 +4,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "스쿼드",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -13,7 +15,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "푸시업",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -22,7 +26,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "deadlift",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -38,7 +44,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "스쿼드",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -49,7 +57,9 @@
    "metric": "sessions",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "스쿼",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -61,7 +71,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "ㅅㅋㅌ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -70,7 +82,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "ㅅㅋㅌ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -79,7 +93,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "대드리프트",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -88,7 +104,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "데드리프트의",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -99,7 +117,9 @@
    "metric": "sets",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "dl",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -108,7 +128,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "sets",
-   "period": true
+   "period": true,
+   "form": "lat pulldown",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -117,7 +139,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "벤치는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -126,7 +150,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "벤치",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -135,7 +161,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "last",
-   "period": false
+   "period": false,
+   "form": "벤치프레스는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -144,7 +172,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "max",
-   "period": false
+   "period": false,
+   "form": "deadlift",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -153,7 +183,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "벤치",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -162,7 +194,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "bp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -171,7 +205,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "밴치프레스",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -180,7 +216,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "벤치프레스는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -189,7 +227,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "스쾃",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -198,7 +238,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "데드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -207,7 +249,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "squat",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -217,7 +261,9 @@
    "exercise": "데드리프트",
    "metric": "reps",
    "period": false,
-   "minReps": 5
+   "minReps": 5,
+   "form": "dl",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -229,7 +275,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "벤치프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -238,7 +286,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "trend",
-   "period": false
+   "period": false,
+   "form": "스쿼트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -247,7 +297,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "reps",
-   "period": true
+   "period": true,
+   "form": "벤치 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -264,7 +316,9 @@
    "exercise": "랫풀다운",
    "metric": "sets",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "랫풀다운",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -274,7 +328,9 @@
    "exercise": "스쿼트",
    "metric": "reps",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "스쿼드",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -283,7 +339,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "데드리프트의",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -292,7 +350,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "데드 리프트",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -301,7 +361,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "dl",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -310,7 +372,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "trend",
-   "period": false
+   "period": false,
+   "form": "스쿼트가",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -319,7 +383,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "sets",
-   "period": false
+   "period": false,
+   "form": "랫풀",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -331,7 +397,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "ㅅㅋㅌ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -340,7 +408,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "오버헤드프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -351,7 +421,9 @@
    "metric": "sessions",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "bench press",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -362,7 +434,9 @@
    "metric": "reps",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "오버헤드 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -371,7 +445,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "데드리프트의",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -382,7 +458,9 @@
    "metric": "reps",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "ohp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -391,7 +469,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "벤치는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -408,7 +488,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "밴치프레스",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -417,7 +499,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "last",
-   "period": false
+   "period": false,
+   "form": "밴치프레스",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -428,7 +512,9 @@
    "metric": "reps",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "밴치프레스",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -439,7 +525,9 @@
    "metric": "sets",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "bp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -448,7 +536,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "벤치",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -457,7 +547,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "ㅅㅋㅌ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -467,7 +559,9 @@
    "exercise": "오버헤드프레스",
    "metric": "reps",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "오버헤드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -478,7 +572,9 @@
    "metric": "sessions",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "랫풀",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -489,7 +585,9 @@
    "metric": "sets",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "데드리프트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -498,7 +596,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "pushup",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -510,7 +610,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "데드리프트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -519,7 +621,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "reps",
-   "period": true
+   "period": true,
+   "form": "스쾃",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -528,7 +632,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "랫풀다운",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -538,7 +644,9 @@
    "exercise": "데드리프트",
    "metric": "sets",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "데드 리프트",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -548,7 +656,9 @@
    "exercise": "스쿼트",
    "metric": "sets",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "squat",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -557,7 +667,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "벤치프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -576,7 +688,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "오버헤드 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -585,7 +699,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "lat pulldown",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -595,7 +711,9 @@
    "exercise": "스쿼트",
    "metric": "volume",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "ㅅㅋㅌ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -606,7 +724,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "lat pulldown",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -615,7 +735,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "푸쉬업",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -627,7 +749,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "bp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -638,7 +762,9 @@
    "metric": "reps",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "대드리프트",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -649,7 +775,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "렛풀다운",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -659,7 +787,9 @@
    "exercise": "오버헤드프레스",
    "metric": "volume",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "ohp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -668,7 +798,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "reps",
-   "period": true
+   "period": true,
+   "form": "lat pulldown",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -677,7 +809,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "bp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -686,7 +820,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "last",
-   "period": false
+   "period": false,
+   "form": "ㅂㅊㅍㄹㅅ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -697,7 +833,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "오버헤드프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -713,7 +851,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "푸쉬업",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -722,7 +862,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "오버헤드프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -734,7 +876,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "스쿼드",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -743,7 +887,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "벤치프레스는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -755,7 +901,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "벤치프레스는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -764,7 +912,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "dl",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -773,7 +923,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "deadlift",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -782,7 +934,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "랫풀다운",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -791,7 +945,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "스쾃",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -802,7 +958,9 @@
    "metric": "volume",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "데드리프트의",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -813,7 +971,9 @@
    "metric": "sets",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "오버헤드 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -824,7 +984,9 @@
    "metric": "reps",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "벤치프레스는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -834,7 +996,9 @@
    "exercise": "랫풀다운",
    "metric": "reps",
    "period": false,
-   "minReps": 5
+   "minReps": 5,
+   "form": "렛풀다운",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -846,7 +1010,9 @@
    "period": false,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "푸쉬업",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -856,7 +1022,9 @@
    "exercise": "오버헤드프레스",
    "metric": "sessions",
    "period": false,
-   "minReps": 5
+   "minReps": 5,
+   "form": "오버헤드프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -865,7 +1033,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "랫풀",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -874,7 +1044,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "squat",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -890,7 +1062,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "sets",
-   "period": true
+   "period": true,
+   "form": "오버헤드프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -902,7 +1076,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "데드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -911,7 +1087,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "average",
-   "period": false
+   "period": false,
+   "form": "스쿼트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -920,7 +1098,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "bench press",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -936,7 +1116,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "ㅅㅋㅌ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -945,7 +1127,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "max",
-   "period": false
+   "period": false,
+   "form": "스쿼트가",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -956,7 +1140,9 @@
    "metric": "sessions",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "스쾃",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -965,7 +1151,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "max",
-   "period": false
+   "period": false,
+   "form": "스쿼트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -977,7 +1165,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "오버헤드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -986,7 +1176,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "reps",
-   "period": true
+   "period": true,
+   "form": "오버헤드프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -995,7 +1187,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "데드리프트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1007,7 +1201,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "팔굽혀펴기",
+   "formKind": "별칭?"
   },
   "cat": "표기:별칭?"
  },
@@ -1016,7 +1212,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "reps",
-   "period": true
+   "period": true,
+   "form": "데드리프트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1032,7 +1230,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "렛풀다운",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1041,7 +1241,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "푸시업",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1050,7 +1252,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "데드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1062,7 +1266,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "벤치",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1071,7 +1277,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "스쿼트가",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -1081,7 +1289,9 @@
    "exercise": "데드리프트",
    "metric": "sessions",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "대드리프트",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1090,7 +1300,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "랫풀",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1099,7 +1311,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "벤치프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1108,7 +1322,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "스쿼",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1117,7 +1333,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "오버헤드 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -1126,7 +1344,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "랫풀다운",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1137,7 +1357,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "벤치프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1147,7 +1369,9 @@
    "exercise": "스쿼트",
    "metric": "sessions",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "squat",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -1163,7 +1387,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "lat pulldown",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -1172,7 +1398,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "reps",
-   "period": true
+   "period": true,
+   "form": "벤치프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1181,7 +1409,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "팔굽혀펴기",
+   "formKind": "별칭?"
   },
   "cat": "표기:별칭?"
  },
@@ -1190,7 +1420,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "오버헤드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1201,7 +1433,9 @@
    "metric": "sessions",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "벤치프레스는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -1212,7 +1446,9 @@
    "metric": "volume",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "벤치프레스는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -1223,7 +1459,9 @@
    "metric": "reps",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "스쿼",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1235,7 +1473,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "대드리프트",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1246,7 +1486,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "스쿼트가",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -1257,7 +1499,9 @@
    "metric": "reps",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "스쿼트가",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -1266,7 +1510,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "데드 리프트",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -1278,7 +1524,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "스쿼드",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1289,7 +1537,9 @@
    "metric": "volume",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "팔굽혀펴기",
+   "formKind": "별칭?"
   },
   "cat": "표기:별칭?"
  },
@@ -1298,7 +1548,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "오버헤드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1307,7 +1559,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "pushup",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1316,7 +1570,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "trend",
-   "period": false
+   "period": false,
+   "form": "대드리프트",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1328,7 +1584,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "랫풀다운",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1339,7 +1597,9 @@
    "metric": "sessions",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "스쿼트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1348,7 +1608,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "랫풀",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1358,7 +1620,9 @@
    "exercise": "벤치프레스",
    "metric": "sets",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "벤치 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -1369,7 +1633,9 @@
    "metric": "reps",
    "period": false,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "bench press",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -1381,7 +1647,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "데드리프트의",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -1390,7 +1658,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "pushup",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1399,7 +1669,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "squat",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -1408,7 +1680,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "오버헤드 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -1417,7 +1691,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "밴치프레스",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1426,7 +1702,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "스쿼트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1436,7 +1714,9 @@
    "exercise": "스쿼트",
    "metric": "sets",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "스쿼",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1447,7 +1727,9 @@
    "metric": "sets",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "스쾃",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1457,7 +1739,9 @@
    "exercise": "스쿼트",
    "metric": "sessions",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "ㅅㅋㅌ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -1466,7 +1750,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "대드리프트",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1475,7 +1761,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "푸시업",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1484,7 +1772,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "오버헤드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1496,7 +1786,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "렛풀다운",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1505,7 +1797,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "벤치 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -1514,7 +1808,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "trend",
-   "period": false
+   "period": false,
+   "form": "벤치 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -1525,7 +1821,9 @@
    "metric": "reps",
    "period": false,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "푸쉬업",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1536,7 +1834,9 @@
    "metric": "reps",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "스쿼트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1545,7 +1845,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "sessions",
-   "period": true
+   "period": true,
+   "form": "ohp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1554,7 +1856,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "lat pulldown",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -1565,7 +1869,9 @@
    "metric": "volume",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "dl",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1574,7 +1880,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "데드리프트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1583,7 +1891,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "reps",
-   "period": true
+   "period": true,
+   "form": "데드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1599,7 +1909,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "lat pulldown",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -1610,7 +1922,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "대드리프트",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1620,7 +1934,9 @@
    "exercise": "푸시업",
    "metric": "volume",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "pushup",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1629,7 +1945,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "bp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1640,7 +1958,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "랫풀",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1649,7 +1969,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "렛풀다운",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1658,7 +1980,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "ohp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1667,7 +1991,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "오버헤드 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -1676,7 +2002,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "ohp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1687,7 +2015,9 @@
    "metric": "sessions",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "ㅂㅊㅍㄹㅅ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -1696,7 +2026,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "trend",
-   "period": false
+   "period": false,
+   "form": "ohp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1705,7 +2037,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "오버헤드 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -1714,7 +2048,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "푸시업",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1723,7 +2059,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "sessions",
-   "period": true
+   "period": true,
+   "form": "푸시업",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1734,7 +2072,9 @@
    "metric": "sets",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "벤치프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1745,7 +2085,9 @@
    "metric": "sessions",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "데드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1756,7 +2098,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "랫풀다운",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1765,7 +2109,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "스쿼트가",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -1774,7 +2120,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "벤치프레스는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -1783,7 +2131,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "랫풀",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1793,7 +2143,9 @@
    "exercise": "벤치프레스",
    "metric": "volume",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "밴치프레스",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1804,7 +2156,9 @@
    "metric": "sets",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "pushup",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1813,7 +2167,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "데드리프트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1822,7 +2178,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "deadlift",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -1833,7 +2191,9 @@
    "metric": "sets",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "벤치",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1842,7 +2202,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "벤치 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -1852,7 +2214,9 @@
    "exercise": "데드리프트",
    "metric": "volume",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "데드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1863,7 +2227,9 @@
    "metric": "sessions",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "오버헤드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -1880,7 +2246,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "max",
-   "period": false
+   "period": false,
+   "form": "벤치는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -1891,7 +2259,9 @@
    "metric": "sets",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "스쿼트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -1902,7 +2272,9 @@
    "metric": "volume",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "squat",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -1913,7 +2285,9 @@
    "metric": "sessions",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "푸쉬업",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -1924,7 +2298,9 @@
    "metric": "sessions",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "스쿼트가",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -1933,7 +2309,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "dl",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1942,7 +2320,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "trend",
-   "period": false
+   "period": false,
+   "form": "ㅅㅋㅌ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -1952,7 +2332,9 @@
    "exercise": "랫풀다운",
    "metric": "sessions",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "lat pulldown",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -1964,7 +2346,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "오버헤드 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -1976,7 +2360,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "deadlift",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -1985,7 +2371,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "sessions",
-   "period": true
+   "period": true,
+   "form": "dl",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -1996,7 +2384,9 @@
    "metric": "reps",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "랫풀다운",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -2005,7 +2395,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "렛풀다운",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -2014,7 +2406,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "squat",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -2032,7 +2426,9 @@
    "exercise": "데드리프트",
    "metric": "sessions",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "deadlift",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -2041,7 +2437,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "벤치 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -2050,7 +2448,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "렛풀다운",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -2061,7 +2461,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "데드 리프트",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -2070,7 +2472,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "ohp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -2081,7 +2485,9 @@
    "metric": "sets",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "ohp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -2090,7 +2496,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "스쿼",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -2101,7 +2509,9 @@
    "metric": "volume",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "bench press",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -2110,7 +2520,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "스쾃",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -2129,7 +2541,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "pushup",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -2138,7 +2552,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "reps",
-   "period": true
+   "period": true,
+   "form": "ㅂㅊㅍㄹㅅ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -2150,7 +2566,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "스쾃",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -2161,7 +2579,9 @@
    "metric": "sets",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "데드리프트의",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -2170,7 +2590,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "bench press",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -2181,7 +2603,9 @@
    "metric": "sets",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "벤치는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -2190,7 +2614,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "max",
-   "period": false
+   "period": false,
+   "form": "대드리프트",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -2202,7 +2628,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "데드 리프트",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -2211,7 +2639,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "max",
-   "period": false
+   "period": false,
+   "form": "오버헤드프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -2220,7 +2650,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "스쿼",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -2229,7 +2661,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "max",
-   "period": false
+   "period": false,
+   "form": "팔굽혀펴기",
+   "formKind": "별칭?"
   },
   "cat": "표기:별칭?"
  },
@@ -2240,7 +2674,9 @@
    "metric": "sets",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "푸시업",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -2251,7 +2687,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "bp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -2260,7 +2698,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "average",
-   "period": false
+   "period": false,
+   "form": "벤치프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -2271,7 +2711,9 @@
    "metric": "volume",
    "period": false,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "스쿼",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -2282,7 +2724,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "벤치",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -2291,7 +2735,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "데드리프트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -2303,7 +2749,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "ㅂㅊㅍㄹㅅ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -2312,7 +2760,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "벤치는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -2321,7 +2771,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "스쾃",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -2338,7 +2790,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "bench press",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -2347,7 +2801,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "오버헤드프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -2356,7 +2812,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "bp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -2367,7 +2825,9 @@
    "metric": "sessions",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "bp",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -2379,7 +2839,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "푸시업",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -2388,7 +2850,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "pushup",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -2397,7 +2861,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "dl",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -2406,7 +2872,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "volume",
-   "period": true
+   "period": true,
+   "form": "푸쉬업",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -2417,7 +2885,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "벤치 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -2427,7 +2897,9 @@
    "exercise": "오버헤드프레스",
    "metric": "sets",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "오버헤드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -2443,7 +2915,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "ㅂㅊㅍㄹㅅ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -2460,7 +2934,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "sessions",
-   "period": true
+   "period": true,
+   "form": "벤치 프레스",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -2471,7 +2947,9 @@
    "metric": "sets",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "팔굽혀펴기",
+   "formKind": "별칭?"
   },
   "cat": "표기:별칭?"
  },
@@ -2490,7 +2968,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "벤치는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -2501,7 +2981,9 @@
    "metric": "sessions",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "벤치",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -2510,7 +2992,9 @@
   "expected": {
    "exercise": "오버헤드프레스",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "오버헤드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -2519,7 +3003,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "데드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -2530,7 +3016,9 @@
    "metric": "reps",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "데드리프트의",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -2539,7 +3027,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "데드",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -2548,7 +3038,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "스쿼드",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -2558,7 +3050,9 @@
    "exercise": "벤치프레스",
    "metric": "sessions",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "밴치프레스",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -2567,7 +3061,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "스쿼드",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -2576,7 +3072,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "volume",
-   "period": true
+   "period": true,
+   "form": "deadlift",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -2585,7 +3083,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "벤치",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -2594,7 +3094,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "벤치프레스",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -2603,7 +3105,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "데드 리프트",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -2612,7 +3116,9 @@
   "expected": {
    "exercise": "랫풀다운",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "랫풀다운",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -2621,7 +3127,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "sets",
-   "period": true
+   "period": true,
+   "form": "deadlift",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -2630,7 +3138,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "푸쉬업",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -2642,7 +3152,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "squat",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -2651,7 +3163,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "average",
-   "period": true
+   "period": true,
+   "form": "팔굽혀펴기",
+   "formKind": "별칭?"
   },
   "cat": "표기:별칭?"
  },
@@ -2662,7 +3176,9 @@
    "metric": "sessions",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "벤치는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -2671,7 +3187,9 @@
   "expected": {
    "exercise": "스쿼트",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "스쿼",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },
@@ -2680,7 +3198,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "bench press",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -2691,7 +3211,9 @@
    "metric": "sessions",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "팔굽혀펴기",
+   "formKind": "별칭?"
   },
   "cat": "표기:별칭?"
  },
@@ -2702,7 +3224,9 @@
    "metric": "sets",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "밴치프레스",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -2713,7 +3237,9 @@
    "metric": "sessions",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "스쿼드",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -2724,7 +3250,9 @@
    "metric": "sessions",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "데드리프트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -2733,7 +3261,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "average",
-   "period": false
+   "period": false,
+   "form": "ㅂㅊㅍㄹㅅ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -2742,7 +3272,9 @@
   "expected": {
    "exercise": "벤치프레스",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "ㅂㅊㅍㄹㅅ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -2753,7 +3285,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "벤치는",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -2762,7 +3296,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "max",
-   "period": true
+   "period": true,
+   "form": "데드리프트의",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -2774,7 +3310,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "렛풀다운",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -2785,7 +3323,9 @@
    "metric": "volume",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "푸시업",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -2794,7 +3334,9 @@
   "expected": {
    "exercise": "데드리프트",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "데드 리프트",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -2805,7 +3347,9 @@
    "metric": "sets",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "스쿼트가",
+   "formKind": "조사"
   },
   "cat": "표기:조사"
  },
@@ -2816,7 +3360,9 @@
    "metric": "sets",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "ㅂㅊㅍㄹㅅ",
+   "formKind": "초성"
   },
   "cat": "표기:초성"
  },
@@ -2827,7 +3373,9 @@
    "metric": "reps",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "pushup",
+   "formKind": "별칭"
   },
   "cat": "표기:별칭"
  },
@@ -2838,7 +3386,9 @@
    "metric": "reps",
    "period": true,
    "maxWeight": 100.0,
-   "unit": "lb"
+   "unit": "lb",
+   "form": "데드 리프트",
+   "formKind": "띄어"
   },
   "cat": "표기:띄어"
  },
@@ -2847,7 +3397,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "last",
-   "period": true
+   "period": true,
+   "form": "푸쉬업",
+   "formKind": "오타"
   },
   "cat": "표기:오타"
  },
@@ -2859,7 +3411,9 @@
    "period": true,
    "minWeight": 60.0,
    "minReps": 8,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "bench press",
+   "formKind": "영어"
   },
   "cat": "표기:영어"
  },
@@ -2869,7 +3423,9 @@
    "exercise": "스쿼트",
    "metric": "volume",
    "period": true,
-   "minReps": 5
+   "minReps": 5,
+   "form": "스쿼트",
+   "formKind": "정식"
   },
   "cat": "표기:정식"
  },
@@ -2878,7 +3434,9 @@
   "expected": {
    "exercise": "푸시업",
    "metric": "trend",
-   "period": true
+   "period": true,
+   "form": "팔굽혀펴기",
+   "formKind": "별칭?"
   },
   "cat": "표기:별칭?"
  },
@@ -2889,7 +3447,9 @@
    "metric": "reps",
    "period": true,
    "minWeight": 80.0,
-   "unit": "kg"
+   "unit": "kg",
+   "form": "랫풀",
+   "formKind": "접두"
   },
   "cat": "표기:접두"
  },

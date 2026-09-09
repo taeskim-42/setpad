@@ -57,7 +57,15 @@ class RecordQueryPlan {
   }) {
     final parsed = raw is String ? jsonDecode(_jsonText(raw)) : raw;
     final decoded = parsed is Map && parsed.containsKey('action')
-        ? _expandIntent(_withStatedRecord(_withStatedMetric(_withStatedPeriod(parsed, question), question), question))
+        ? _expandIntent(
+            _withStatedRecord(
+              _withStatedMetric(
+                _withStatedPeriod(parsed, question, today: today),
+                question,
+              ),
+              question,
+            ),
+          )
         : parsed;
     final value = decoded is Map
         ? Map<Object?, Object?>.from(decoded)
@@ -174,11 +182,18 @@ class RecordQueryPlan {
           maxReps = number(row['maxReps'], integer: true)?.toInt();
       // "80kg 이상 5회 이상" — 조건이 둘이면 모델은 하나를 떨어뜨리곤 한다.
       // 글에 또렷이 적힌 숫자 조건은 코드가 뽑고, 그것이 모델보다 앞선다.
-      final stated = statedFilters(question);
-      minWeight = stated.minWeight ?? minWeight;
-      maxWeight = stated.maxWeight ?? maxWeight;
-      minReps = stated.minReps ?? minReps;
-      maxReps = stated.maxReps ?? maxReps;
+      final filterText = rows.length == 1 && value['kind'] == 'answer'
+          ? question
+          : '';
+      final stated = statedFilters(filterText);
+      if (stated.minWeight != null || stated.maxWeight != null) {
+        minWeight = stated.minWeight;
+        maxWeight = stated.maxWeight;
+      }
+      if (stated.minReps != null || stated.maxReps != null) {
+        minReps = stated.minReps;
+        maxReps = stated.maxReps;
+      }
       if ((minWeight != null && maxWeight != null && minWeight > maxWeight) ||
           (minReps != null && maxReps != null && minReps > maxReps)) {
         throw const FormatException('Reversed filter');
@@ -187,8 +202,12 @@ class RecordQueryPlan {
       if (name == '*' &&
           question.isNotEmpty &&
           value['rank'] != true &&
-          ![Metric.sessions, Metric.reps, Metric.sets, Metric.volume]
-              .contains(metric)) {
+          ![
+            Metric.sessions,
+            Metric.reps,
+            Metric.sets,
+            Metric.volume,
+          ].contains(metric)) {
         // "오버헤드 요즘 어때" — 추이엔 운동이 필요한데 모델이 * 를 냈다.
         // 글에서 운동이 딱 하나 잡히면 그것이다. 둘 이상이면 모른다고 둔다.
         final found = retrieveExercises(question, names, limit: 2);
@@ -203,8 +222,6 @@ class RecordQueryPlan {
       if (minWeight != null || maxWeight != null) {
         if (stated.unit != null) {
           weightUnit = stated.unit;
-        } else if (mentionsPounds(question)) {
-          weightUnit = 'lb';
         }
       }
       if (name == '*' &&
@@ -1162,6 +1179,16 @@ String canonicalizeExercises(String text, List<String> names) {
   String text, {
   DateTime? today,
 }) {
+  // 범위("9월 1일부터", "지난달까지")나 특정 날("9월 3일")은 달 하나로 못
+  // 잡는다 — 모델에 맡긴다. 다만 **시간 낱말 뒤에 붙은 것만** 본다.
+  // "몇 kg까지 들었지" 의 까지는 무게지 날짜가 아니다.
+  if (RegExp(
+    r'(\d+\s*(월|일|주|년)|오늘|어제|그저께|이번\s*(주|달|해)|지난\s*(주|달|해)|저번\s*(주|달)|작년|올해|금년)\s*(부터|까지|이후|이전|전부터|후부터)'
+    r'|\b(since|until)\b|\d+\s*월\s*\d+\s*일',
+    caseSensitive: false,
+  ).hasMatch(text)) {
+    return null;
+  }
   final table = <RegExp, String>{
     RegExp(r'오늘|today', caseSensitive: false): 'today',
     RegExp(r'이번\s*주|금주|this week', caseSensitive: false): 'thisWeek',
@@ -1171,14 +1198,21 @@ String canonicalizeExercises(String text, List<String> names) {
     RegExp(r'올해|금년|this year', caseSensitive: false): 'thisYear',
     RegExp(r'작년|지난\s*해|last year', caseSensitive: false): 'lastYear',
   };
-  final hits = [for (final e in table.entries) if (e.key.hasMatch(text)) e.value];
+  final hits = [
+    for (final e in table.entries)
+      if (e.key.hasMatch(text)) e.value,
+  ];
   final recent = RegExp(
     r'최근\s*(\d+)\s*(일|주|개월|달)|last\s*(\d+)\s*(days?|weeks?|months?)',
     caseSensitive: false,
   ).firstMatch(text);
   if (recent != null) hits.add('recent');
   // "9월에", "3월" — 달 이름. 올해 그 달이고, 아직 안 온 달이면 작년이다.
-  final month = RegExp(r'(?<![\d월])(1[0-2]|[1-9])\s*월(?!\s*(간|동안))').firstMatch(text);
+  final months = RegExp(
+    r'(?<![\d월])(1[0-2]|[1-9])\s*월(?!\s*(간|동안))',
+  ).allMatches(text).toList();
+  if (months.length > 1) return null;
+  final month = months.firstOrNull;
   if (month != null) hits.add('month');
   if (hits.length != 1) return null;
   if (hits.single == 'recent') {
@@ -1186,13 +1220,19 @@ String canonicalizeExercises(String text, List<String> names) {
     final unit = (recent[2] ?? recent[4]!).toLowerCase();
     final days = unit.startsWith('주') || unit.startsWith('week')
         ? n * 7
-        : (unit == '개월' || unit == '달' || unit.startsWith('month')) ? n * 30 : n;
+        : (unit == '개월' || unit == '달' || unit.startsWith('month'))
+        ? n * 30
+        : n;
     return (period: 'recent', days: days, since: null, until: null);
   }
   if (hits.single == 'month') {
     final now = today ?? DateTime.now();
     final m = int.parse(month![1]!);
-    final year = m > now.month ? now.year - 1 : now.year;
+    final years = RegExp(r'(\d{4})\s*년').allMatches(text).toList();
+    if (years.length > 1) return null;
+    final year = years.isEmpty
+        ? (m > now.month ? now.year - 1 : now.year)
+        : int.parse(years.single[1]!);
     final first = DateTime(year, m, 1), last = DateTime(year, m + 1, 0);
     String iso(DateTime d) => d.toIso8601String().substring(0, 10);
     return (period: 'custom', days: null, since: iso(first), until: iso(last));
@@ -1200,15 +1240,16 @@ String canonicalizeExercises(String text, List<String> names) {
   return (period: hits.single, days: null, since: null, until: null);
 }
 
-Map _withStatedPeriod(Map intent, String question) {
+Map _withStatedPeriod(Map intent, String question, {DateTime? today}) {
   if (question.isEmpty) return intent;
   final periods = intent['periods'];
-  final unset = periods == null ||
+  final unset =
+      periods == null ||
       (periods is List && periods.length == 1 && periods.first == 'all');
   // 기간이 둘이면 비교인데, 글에 기간 낱말이 하나뿐이면 모델이 지어낸 비교다.
   final invented = periods is List && periods.length == 2;
   if (!unset && !invented) return intent;
-  final found = statedPeriod(question);
+  final found = statedPeriod(question, today: today);
   if (found == null) return intent;
   return {
     ...intent,
@@ -1226,27 +1267,48 @@ Map _withStatedPeriod(Map intent, String question) {
 /// 실패의 절반이었다). 낱말이 또렷한 질문에서 그 실수를 하게 둘 이유가 없다.
 const _metricWords = <String, String>{
   'heaviest':
-      r'최고|최대|맥스|\bPR\b|제일\s*무거|가장\s*무거|몇\s*(kg|킬로|키로|파운드)\s*까지|개인\s*기록|personal\s*(record|best)|\bmax\b|heaviest|\bbest\b',
+      // "무거운/무거웠던" 은 무거, "무겁게" 는 무겁 — 받침이 다르다. 둘 다 본다.
+      r'최고|최대|맥스|\bPR\b|(제일|가장)\s*무(거|겁)|몇\s*(kg|킬로|키로|파운드)\s*까지|개인\s*기록|personal\s*(record|best)|\bmax\b|heaviest|\bbest\b',
   'weightHistory': r'추이|변화|늘었|늘고|줄었|정체|그래프|흐름|추세|요즘\s*어때|trend|progress',
   'latest': r'저번|지난번|마지막|직전|최근에\s*언제|언제\s*했|last\s*time|latest|most\s*recent',
-  'trainingDays': r'몇\s*번|며칠|몇\s*일|얼마나\s*자주|how\s*often|how\s*many\s*(days|times)',
+  'trainingDays':
+      r'몇\s*번|며칠|몇\s*일|얼마나\s*자주|how\s*often|how\s*many\s*(days|times)',
   'volume': r'볼륨|총량|총\s*무게|전체\s*무게|volume|tonnage',
   'setCount': r'세트\s*수|몇\s*세트|세트\s*몇|how\s*many\s*sets|\bsets\b',
-  'repCount': r'총\s*몇\s*회|반복\s*횟수|총\s*몇\s*개|다\s*합쳐서|총\s*반복|total\s*reps|how\s*many\s*reps',
+  'repCount':
+      r'총\s*몇\s*회|반복\s*횟수|총\s*몇\s*개|다\s*합쳐서|총\s*반복|total\s*reps|how\s*many\s*reps',
   'meanWeight': r'평균|average|mean',
 };
 
+/// 메모를 묻는 질문인가. 글에 메모 낱말이 있거나 모델이 검색어(terms)를 냈을
+/// 때만 그렇다. 모델이 잡담("ㅋㅋ", "좀", "보여줘")에 이끌려 readRecords 로
+/// 내는 일이 잦아서, 행동 이름만 보고 메모 질문으로 믿으면 "그래프 보여줘"
+/// 같은 명백한 추이 질문 열 개가 메모 읽기로 빠진다(dev 에서 실제로).
+bool _asksAboutNotes(String question, Map intent) {
+  // 모델의 terms 는 증거가 아니다 — "그래프 보여줘" 에도 ['그래프'] 를 채운다.
+  // 사람이 메모라고 말했는지만 본다.
+  return RegExp(
+        r'메모|노트|적은|적었|적어|쓴|썼|써\s*놓|기록한\s*거|\bnotes?\b|\bmemo\b|wrote|written',
+        caseSensitive: false,
+      ).hasMatch(question);
+}
+
 Map _withStatedMetric(Map intent, String question) {
-  if (question.isEmpty || intent['action'] == 'unrelated') return intent;
+  if (question.isEmpty ||
+      ['unrelated', 'missing', 'clarify'].contains(intent['action']) ||
+      (intent['action'] == 'readRecords' && _asksAboutNotes(question, intent))) {
+    return intent;
+  }
   final exercises = intent['exercises'];
-  final lonelyRank = intent['action'] == 'rankExercises' &&
+  final lonelyRank =
+      intent['action'] == 'rankExercises' &&
       exercises is List &&
       exercises.length == 1;
   // 운동 하나를 지목한 순위는 언제나 검증에 걸린다. 의도 낱말이 있으면 그
   // 의도로 바꾸는 편이 죽는 것보다 낫다. 진짜 순위(운동 없음·여럿)는 둔다.
   if (intent['action'] == 'rankExercises' && !lonelyRank) return intent;
   final periods = intent['periods'];
-  if (periods is List && periods.length == 2) return intent;   // 비교
+  if (periods is List && periods.length == 2) return intent; // 비교
   final hits = [
     for (final e in _metricWords.entries)
       if (RegExp(e.value, caseSensitive: false).hasMatch(question)) e.key,
@@ -1262,9 +1324,30 @@ Map _withStatedMetric(Map intent, String question) {
 
 /// 글에 또렷이 적힌 숫자 조건. "80kg 이상", "5회 이하", "100파운드 이상".
 /// 이상·이하만 본다 — 초과·미만은 무게에서 경계가 애매해 모델에 맡긴다.
-({double? minWeight, double? maxWeight, int? minReps, int? maxReps, String? unit})
-    statedFilters(String text) {
-  double? minW, maxW; int? minR, maxR; String? unit;
+({
+  double? minWeight,
+  double? maxWeight,
+  int? minReps,
+  int? maxReps,
+  String? unit,
+})
+statedFilters(String text) {
+  double? minW, maxW;
+  int? minR, maxR;
+  String? unit;
+  // Do not flatten alternatives, exclusions, or different units into one range.
+  if (RegExp(
+    r'말고|제외|아닌|아니라|또는|혹은|\b(?:not|except)\b|\bor\s+(?!more\b|less\b)',
+    caseSensitive: false,
+  ).hasMatch(text)) {
+    return (
+      minWeight: null,
+      maxWeight: null,
+      minReps: null,
+      maxReps: null,
+      unit: null,
+    );
+  }
   final weight = RegExp(
     r'(\d+(?:\.\d+)?|[일이삼사오육칠팔구십백]+)\s*(kg|킬로|키로|파운드|lbs?|pounds?)\s*(이상|이하|or more|or less|and up|and under)',
     caseSensitive: false,
@@ -1273,11 +1356,21 @@ Map _withStatedMetric(Map intent, String question) {
     final v = double.tryParse(m[1]!) ?? koreanNumber(m[1]!)?.toDouble();
     if (v == null) continue;
     final u = m[2]!.toLowerCase();
-    unit = (u == 'kg' || u == '킬로' || u == '키로') ? 'kg' : 'lb';
-    if (RegExp(r'이상|or more|and up').hasMatch(m[3]!)) {
-      minW = v;
+    final nextUnit = (u == 'kg' || u == '킬로' || u == '키로') ? 'kg' : 'lb';
+    if (unit != null && unit != nextUnit) {
+      return (
+        minWeight: null,
+        maxWeight: null,
+        minReps: null,
+        maxReps: null,
+        unit: null,
+      );
+    }
+    unit = nextUnit;
+    if (RegExp(r'이상|or more|and up').hasMatch(m[3]!.toLowerCase())) {
+      minW = minW == null || v > minW ? v : minW;
     } else {
-      maxW = v;
+      maxW = maxW == null || v < maxW ? v : maxW;
     }
   }
   final reps = RegExp(
@@ -1287,20 +1380,37 @@ Map _withStatedMetric(Map intent, String question) {
   for (final m in reps.allMatches(text)) {
     final v = int.tryParse(m[1]!) ?? koreanNumber(m[1]!);
     if (v == null) continue;
-    if (RegExp(r'이상|or more').hasMatch(m[3]!)) {
-      minR = v;
+    if (RegExp(r'이상|or more').hasMatch(m[3]!.toLowerCase())) {
+      minR = minR == null || v > minR ? v : minR;
     } else {
-      maxR = v;
+      maxR = maxR == null || v < maxR ? v : maxR;
     }
   }
-  return (minWeight: minW, maxWeight: maxW, minReps: minR, maxReps: maxR, unit: unit);
+  return (
+    minWeight: minW,
+    maxWeight: maxW,
+    minReps: minR,
+    maxReps: maxR,
+    unit: unit,
+  );
 }
 
 /// "PR", "최고 기록", "개인 기록" 은 뜻이 하나다 — 가장 무거웠던 것.
 /// 모델이 이걸 순위나 일수로 읽으면("PR 얼마?" 를 운동일수 순위로 낸 적이
 /// 있다) 운동이 하나 지목된 경우에 한해 코드가 바로잡는다.
 Map _withStatedRecord(Map intent, String question) {
-  if (question.isEmpty || intent['action'] == 'heaviest') return intent;
+  if (question.isEmpty ||
+      ['heaviest', 'unrelated', 'missing', 'clarify'].contains(intent['action']) ||
+      (intent['action'] == 'readRecords' && _asksAboutNotes(question, intent))) {
+    return intent;
+  }
+  if (_metricWords.entries.any(
+    (e) =>
+        e.key != 'heaviest' &&
+        RegExp(e.value, caseSensitive: false).hasMatch(question),
+  )) {
+    return intent;
+  }
   final asksRecord = RegExp(
     r'\bPR\b|최고\s*기록|개인\s*기록|personal\s*record|personal\s*best',
     caseSensitive: false,

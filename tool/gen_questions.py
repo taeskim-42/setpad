@@ -64,7 +64,10 @@ for canon, forms in EX.items():
             per, has_period = rng.choice(PERIOD)
             flt, fexp = rng.choice(FILTER) if metric in ('sets','reps','sessions','volume') else ('', {})
             q = rng.choice(PREFIX) + per + tpl.format(x=form) + flt + rng.choice(SUFFIX)
-            exp = {'exercise': canon, 'metric': metric, 'period': has_period, **fexp}
+            exp = {'exercise': canon, 'metric': metric, 'period': has_period, **fexp,
+                   # 모델 없는 게이트가 "사용자가 친 철자를 모델이 그대로 돌려줬다"를
+                   # 흉내 낼 때 쓴다. 정답이 아니라 입력의 표기다.
+                   'form': form, 'formKind': kind}
             add(q, exp, f'표기:{kind}')
 
 # 2) 최악 케이스
