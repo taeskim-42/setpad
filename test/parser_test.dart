@@ -81,6 +81,10 @@ void main() {
       expect(suggest('벤', pool), ['벤치프레스', '인클라인 벤치프레스']);
     });
 
+    test('스쾃은 스쿼트다 — 오타가 아니라 표기법이다', () {
+      expect(suggest('스쾃', ['스쿼트', '레그프레스']), ['스쿼트']);
+    });
+
     test('이름 안쪽 단어로도 찾힌다', () {
       expect(suggest('덤벨', pool), ['덤벨 프레스']);
       expect(suggest('프레스', pool).first, '덤벨 프레스');

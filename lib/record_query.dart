@@ -52,6 +52,7 @@ class RecordQueryPlan {
     List<String> names, {
     String defaultUnit = 'kg',
     DateTime? today,
+    String question = '',
   }) {
     final parsed = raw is String ? jsonDecode(_jsonText(raw)) : raw;
     final decoded = parsed is Map && parsed.containsKey('action')
@@ -79,6 +80,13 @@ class RecordQueryPlan {
     }
     String exercise(Object? name) {
       if (name == '*' || names.contains(name)) return name as String;
+      // 모델은 사용자 철자를 그대로 돌려주곤 한다 — "스쾃", "벤치". 목록에 그
+      // 글자가 없다고 버리면 답할 수 있던 질문이 "해석 실패"로 죽는다. 검색이
+      // 쓰는 같은 퍼지 대응(별칭·초성·오타)으로 한 번 맞춰 본다.
+      if (name is String) {
+        final hit = suggest(name, names, limit: 1);
+        if (hit.isNotEmpty) return hit.first;
+      }
       throw const FormatException('Unknown exercise');
     }
 
@@ -168,9 +176,14 @@ class RecordQueryPlan {
         throw const FormatException('Reversed filter');
       }
       final name = exercise(row['exercise']);
-      final weightUnit = row['weightUnit'] ?? defaultUnit;
+      var weightUnit = row['weightUnit'] ?? defaultUnit;
       if (weightUnit != 'kg' && weightUnit != 'lb') {
         throw const FormatException('Invalid weight unit');
+      }
+      // 단위는 사람이 쓴 글자가 결정한다. "100파운드"라고 쳤는데 모델이 kg
+      // 라고 답하면 100kg 이상 세트를 세게 된다 — 조용히 틀린 답이다.
+      if ((minWeight != null || maxWeight != null) && mentionsPounds(question)) {
+        weightUnit = 'lb';
       }
       if (name == '*' &&
           value['rank'] != true &&
@@ -306,6 +319,7 @@ extension RecordQueryAi on LocalAi {
         candidates,
         defaultUnit: unit,
         today: today,
+        question: text,
       );
     } on TimeoutException {
       await cancel();
@@ -1075,3 +1089,7 @@ class RecordSearch extends ChangeNotifier {
     super.dispose();
   }
 }
+
+/// 질문이 파운드를 말하는가. "파운드", "lb", "lbs", "pound(s)".
+bool mentionsPounds(String text) =>
+    RegExp(r'파운드|\blbs?\b|\bpounds?\b', caseSensitive: false).hasMatch(text);

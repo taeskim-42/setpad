@@ -113,7 +113,7 @@ const exercises = <Exercise>[
   Exercise('케이블 로우', 'Cable Row', 'ケーブルロー', '绳索划船', '繩索划船', 'Remo en Polea', 'Chèo Cáp', 'เคเบิลโรว์'),
   Exercise('티바로우', 'T-Bar Row', 'Tバーロー', 'T杠划船', 'T槓划船', 'Remo en T', 'Chèo T-Bar', 'ทีบาร์โรว์', 'tbar'),
   // 하체
-  Exercise('스쿼트', 'Squat', 'スクワット', '深蹲', '深蹲', 'Sentadilla', 'Squat', 'สควอท'),
+  Exercise('스쿼트', 'Squat', 'スクワット', '深蹲', '深蹲', 'Sentadilla', 'Squat', 'สควอท', '스쾃'),
   Exercise('프론트 스쿼트', 'Front Squat', 'フロントスクワット', '前蹲', '前蹲', 'Sentadilla Frontal', 'Squat Trước', 'ฟรอนต์สควอท'),
   Exercise('핵스쿼트', 'Hack Squat', 'ハックスクワット', '哈克深蹲', '哈克深蹲', 'Hack Squat', 'Hack Squat', 'แฮ็คสควอท'),
   Exercise('레그프레스', 'Leg Press', 'レッグプレス', '腿举', '腿推', 'Prensa de Piernas', 'Đạp Đùi', 'เลกเพรส'),
