@@ -366,7 +366,7 @@ class LEs extends L {
 
   @override
   String get timingInvalid =>
-      'Usa 20–300 BPM, 1–600 segundos de ejercicio/descanso y 1–99 rondas.';
+      'Usa 10–120 BPM, 1–600 s de trabajo y descanso, y 1–99 rondas.';
 
   @override
   String get timingSoundFailed =>
@@ -431,5 +431,25 @@ class LEs extends L {
   @override
   String queryRank(int n) {
     return 'Puesto $n';
+  }
+
+  @override
+  String timingWorkSeconds(int n) {
+    return 'Trabajo ${n}s';
+  }
+
+  @override
+  String timingRestSeconds(int n) {
+    return 'Descanso ${n}s';
+  }
+
+  @override
+  String timingRounds(int n) {
+    return '$n rondas';
+  }
+
+  @override
+  String timingBeat(int n) {
+    return 'Pulso $n';
   }
 }

@@ -94,7 +94,7 @@
   "timingStart": "开始",
   "timingPause": "暂停",
   "timingReset": "重置",
-  "timingInvalid": "请输入20–300 BPM、运动/休息1–600秒、1–99轮。",
+  "timingInvalid": "请输入 10–120 BPM、1–600 秒的运动与休息时间、1–99 轮。",
   "timingSoundFailed": "无法播放声音，计时器仍在运行。",
   "queryTitle": "询问记录",
   "queryReadyBody": "可以问“深蹲最重是多少？”“上个月做了多少俯卧撑？”“这个月卧推有进步吗？”。设备端AI理解问题，并从已保存的记录计算数值。",
@@ -112,5 +112,9 @@
   "queryAverage": "每组平均重量",
   "queryMissingData": "记录中没有此问题所需的运动或测量信息。",
   "queryAmbiguous": "请具体说明你指的是哪项运动的什么记录。",
-  "queryRank": "第{n}名"
+  "queryRank": "第{n}名",
+  "timingWorkSeconds": "运动 {n} 秒",
+  "timingRestSeconds": "休息 {n} 秒",
+  "timingRounds": "{n} 轮",
+  "timingBeat": "第 {n} 拍"
 }

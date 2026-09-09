@@ -366,7 +366,7 @@ class LVi extends L {
 
   @override
   String get timingInvalid =>
-      'Nhập 20–300 BPM, tập/nghỉ 1–600 giây, 1–99 vòng.';
+      'Dùng 10–120 BPM, 1–600 giây cho tập và nghỉ, và 1–99 hiệp.';
 
   @override
   String get timingSoundFailed =>
@@ -430,5 +430,25 @@ class LVi extends L {
   @override
   String queryRank(int n) {
     return 'Hạng $n';
+  }
+
+  @override
+  String timingWorkSeconds(int n) {
+    return 'Tập ${n}s';
+  }
+
+  @override
+  String timingRestSeconds(int n) {
+    return 'Nghỉ ${n}s';
+  }
+
+  @override
+  String timingRounds(int n) {
+    return '$n hiệp';
+  }
+
+  @override
+  String timingBeat(int n) {
+    return 'Nhịp $n';
   }
 }

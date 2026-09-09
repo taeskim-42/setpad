@@ -335,7 +335,7 @@
   "timingStart": "시작",
   "timingPause": "일시정지",
   "timingReset": "초기화",
-  "timingInvalid": "BPM 20–300, 운동·휴식 1–600초, 라운드 1–99로 입력하세요.",
+  "timingInvalid": "BPM 10–120, 운동·휴식 1–600초, 라운드 1–99로 입력하세요.",
   "timingSoundFailed": "소리를 재생할 수 없습니다. 타이머는 계속 동작합니다.",
   "queryTitle": "기록에 질문",
   "queryReadyBody": "“스쿼트 최대 무게”, “지난달 푸시업 몇 개 했어?”, “이번 달 벤치는 지난달보다 늘었어?”처럼 물어보세요. 기기 내 AI가 질문을 해석하고 저장된 기록으로 계산합니다.",
@@ -365,6 +365,38 @@
   "queryAmbiguous": "어떤 운동의 어떤 기록을 말하는지 조금 더 구체적으로 적어 주세요.",
   "queryRank": "{n}위",
   "@queryRank": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timingWorkSeconds": "운동 {n}초",
+  "@timingWorkSeconds": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timingRestSeconds": "휴식 {n}초",
+  "@timingRestSeconds": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timingRounds": "{n}라운드",
+  "@timingRounds": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timingBeat": "{n}번째",
+  "@timingBeat": {
     "placeholders": {
       "n": {
         "type": "int"

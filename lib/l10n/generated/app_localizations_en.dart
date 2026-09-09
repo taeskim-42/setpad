@@ -366,7 +366,7 @@ class LEn extends L {
 
   @override
   String get timingInvalid =>
-      'Use 20–300 BPM, 1–600 seconds of work/rest, and 1–99 rounds.';
+      'Use 10–120 BPM, 1–600 s for work and rest, and 1–99 rounds.';
 
   @override
   String get timingSoundFailed =>
@@ -431,5 +431,25 @@ class LEn extends L {
   @override
   String queryRank(int n) {
     return 'Rank $n';
+  }
+
+  @override
+  String timingWorkSeconds(int n) {
+    return 'Work ${n}s';
+  }
+
+  @override
+  String timingRestSeconds(int n) {
+    return 'Rest ${n}s';
+  }
+
+  @override
+  String timingRounds(int n) {
+    return '$n rounds';
+  }
+
+  @override
+  String timingBeat(int n) {
+    return 'Beat $n';
   }
 }

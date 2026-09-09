@@ -94,7 +94,7 @@
   "timingStart": "Bắt đầu",
   "timingPause": "Tạm dừng",
   "timingReset": "Đặt lại",
-  "timingInvalid": "Nhập 20–300 BPM, tập/nghỉ 1–600 giây, 1–99 vòng.",
+  "timingInvalid": "Dùng 10–120 BPM, 1–600 giây cho tập và nghỉ, và 1–99 hiệp.",
   "timingSoundFailed": "Không phát được âm thanh. Bộ đếm giờ vẫn chạy.",
   "queryTitle": "Hỏi về bản ghi",
   "queryReadyBody": "Hỏi “Squat nặng nhất bao nhiêu?”, “Tháng trước chống đẩy bao nhiêu lần?” hoặc “Bench tháng này có tiến bộ không?”. AI trên thiết bị hiểu câu hỏi; số liệu được tính từ bản ghi.",
@@ -112,5 +112,9 @@
   "queryAverage": "Mức tạ trung bình mỗi hiệp",
   "queryMissingData": "Bản ghi không có bài tập hoặc dữ liệu đo cần thiết.",
   "queryAmbiguous": "Hãy làm rõ bài tập và bản ghi bạn muốn hỏi.",
-  "queryRank": "Hạng {n}"
+  "queryRank": "Hạng {n}",
+  "timingWorkSeconds": "Tập {n}s",
+  "timingRestSeconds": "Nghỉ {n}s",
+  "timingRounds": "{n} hiệp",
+  "timingBeat": "Nhịp {n}"
 }

@@ -94,7 +94,7 @@
   "timingStart": "Iniciar",
   "timingPause": "Pausar",
   "timingReset": "Reiniciar",
-  "timingInvalid": "Usa 20–300 BPM, 1–600 segundos de ejercicio/descanso y 1–99 rondas.",
+  "timingInvalid": "Usa 10–120 BPM, 1–600 s de trabajo y descanso, y 1–99 rondas.",
   "timingSoundFailed": "No se puede reproducir sonido. El temporizador sigue activo.",
   "queryTitle": "Pregunta a tus registros",
   "queryReadyBody": "Pregunta “¿Cuál es mi máximo en sentadilla?”, “¿Cuántas flexiones hice el mes pasado?” o “¿Mejoró mi press este mes?”. La IA del dispositivo interpreta la pregunta; los cálculos usan tus registros.",
@@ -112,5 +112,9 @@
   "queryAverage": "Peso medio por serie",
   "queryMissingData": "Tus registros no contienen el ejercicio o medición necesarios.",
   "queryAmbiguous": "Aclara a qué ejercicio y registro te refieres.",
-  "queryRank": "Puesto {n}"
+  "queryRank": "Puesto {n}",
+  "timingWorkSeconds": "Trabajo {n}s",
+  "timingRestSeconds": "Descanso {n}s",
+  "timingRounds": "{n} rondas",
+  "timingBeat": "Pulso {n}"
 }

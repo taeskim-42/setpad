@@ -676,7 +676,7 @@ abstract class L {
   /// No description provided for @timingInvalid.
   ///
   /// In ko, this message translates to:
-  /// **'BPM 20–300, 운동·휴식 1–600초, 라운드 1–99로 입력하세요.'**
+  /// **'BPM 10–120, 운동·휴식 1–600초, 라운드 1–99로 입력하세요.'**
   String get timingInvalid;
 
   /// No description provided for @timingSoundFailed.
@@ -786,6 +786,30 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{n}위'**
   String queryRank(int n);
+
+  /// No description provided for @timingWorkSeconds.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 {n}초'**
+  String timingWorkSeconds(int n);
+
+  /// No description provided for @timingRestSeconds.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식 {n}초'**
+  String timingRestSeconds(int n);
+
+  /// No description provided for @timingRounds.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}라운드'**
+  String timingRounds(int n);
+
+  /// No description provided for @timingBeat.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}번째'**
+  String timingBeat(int n);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

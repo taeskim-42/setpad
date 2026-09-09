@@ -363,7 +363,7 @@ class LKo extends L {
   String get timingReset => '초기화';
 
   @override
-  String get timingInvalid => 'BPM 20–300, 운동·휴식 1–600초, 라운드 1–99로 입력하세요.';
+  String get timingInvalid => 'BPM 10–120, 운동·휴식 1–600초, 라운드 1–99로 입력하세요.';
 
   @override
   String get timingSoundFailed => '소리를 재생할 수 없습니다. 타이머는 계속 동작합니다.';
@@ -423,5 +423,25 @@ class LKo extends L {
   @override
   String queryRank(int n) {
     return '$n위';
+  }
+
+  @override
+  String timingWorkSeconds(int n) {
+    return '운동 $n초';
+  }
+
+  @override
+  String timingRestSeconds(int n) {
+    return '휴식 $n초';
+  }
+
+  @override
+  String timingRounds(int n) {
+    return '$n라운드';
+  }
+
+  @override
+  String timingBeat(int n) {
+    return '$n번째';
   }
 }

@@ -94,7 +94,7 @@
   "timingStart": "開始",
   "timingPause": "一時停止",
   "timingReset": "リセット",
-  "timingInvalid": "BPMは20〜300、運動・休憩は1〜600秒、ラウンドは1〜99で入力してください。",
+  "timingInvalid": "BPMは10〜120、運動・休憩は1〜600秒、ラウンドは1〜99で入力してください。",
   "timingSoundFailed": "音を再生できません。タイマーは動作しています。",
   "queryTitle": "記録に質問",
   "queryReadyBody": "「スクワットの最高重量は？」「先月の腕立ては何回？」「今月のベンチは先月より伸びた？」などと質問できます。端末内AIが意味を読み取り、保存した記録から計算します。",
@@ -112,5 +112,9 @@
   "queryAverage": "セットあたりの平均重量",
   "queryMissingData": "質問に必要な運動や測定情報が記録にありません。",
   "queryAmbiguous": "どの運動のどの記録か、もう少し具体的に入力してください。",
-  "queryRank": "{n}位"
+  "queryRank": "{n}位",
+  "timingWorkSeconds": "運動 {n}秒",
+  "timingRestSeconds": "休憩 {n}秒",
+  "timingRounds": "{n}ラウンド",
+  "timingBeat": "{n}拍目"
 }

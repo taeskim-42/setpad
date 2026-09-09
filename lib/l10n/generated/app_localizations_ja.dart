@@ -362,7 +362,7 @@ class LJa extends L {
   String get timingReset => 'リセット';
 
   @override
-  String get timingInvalid => 'BPMは20〜300、運動・休憩は1〜600秒、ラウンドは1〜99で入力してください。';
+  String get timingInvalid => 'BPMは10〜120、運動・休憩は1〜600秒、ラウンドは1〜99で入力してください。';
 
   @override
   String get timingSoundFailed => '音を再生できません。タイマーは動作しています。';
@@ -421,5 +421,25 @@ class LJa extends L {
   @override
   String queryRank(int n) {
     return '$n位';
+  }
+
+  @override
+  String timingWorkSeconds(int n) {
+    return '運動 $n秒';
+  }
+
+  @override
+  String timingRestSeconds(int n) {
+    return '休憩 $n秒';
+  }
+
+  @override
+  String timingRounds(int n) {
+    return '$nラウンド';
+  }
+
+  @override
+  String timingBeat(int n) {
+    return '$n拍目';
   }
 }

@@ -15,12 +15,75 @@ class TimingSpec {
   final int? bpm;
   final bool tabata;
   final int work, rest, rounds;
+
+  static const minBpm = 10, maxBpm = 120;
+  static const minSeconds = 1, maxSeconds = 600;
+
+  TimingSpec copyWith({int? bpm, int? work, int? rest, int? rounds}) =>
+      TimingSpec(
+        bpm: bpm ?? this.bpm,
+        tabata: tabata,
+        work: work ?? this.work,
+        rest: rest ?? this.rest,
+        rounds: rounds ?? this.rounds,
+      );
+
+  /// 이 설정을 제목에 다시 적는다.
+  ///
+  /// **설정을 따로 저장하지 않는다.** 제목이 곧 설정이라 옛 기록에 옮길 것이
+  /// 없고, 사람이 글로 고쳐도 버튼으로 고쳐도 같은 곳이 바뀐다. 두 군데에
+  /// 두면 언젠가 어긋난다.
+  String applyTo(String name) {
+    var out = name;
+    if (bpm != null) {
+      final withNumber = RegExp(
+        r'([+-]?\d+(?:[.,]\d+)?)(\s*bpm(?![a-z]))',
+        caseSensitive: false,
+      );
+      final afterWord = RegExp(
+        r'((?<![a-z])bpm\s*[:=]?\s*)([+-]?\d+(?:[.,]\d+)?)',
+        caseSensitive: false,
+      );
+      if (withNumber.hasMatch(out)) {
+        out = out.replaceFirstMapped(withNumber, (m) => '$bpm${m[2]}');
+      } else if (afterWord.hasMatch(out)) {
+        out = out.replaceFirstMapped(afterWord, (m) => '${m[1]}$bpm');
+      } else {
+        final bare = RegExp(r'(?<![a-z])bpm(?![a-z])', caseSensitive: false);
+        out = bare.hasMatch(out)
+            ? out.replaceFirst(bare, '${bpm}bpm')
+            : '${out.trimRight()} ${bpm}bpm';
+      }
+    }
+    if (tabata) {
+      final interval = RegExp(
+        r'(\d+)(\s*(?:초|s|sec)?\s*[/／]\s*)(\d+)(\s*(?:초|s|sec)?)',
+        caseSensitive: false,
+      );
+      if (interval.hasMatch(out)) {
+        out = out.replaceFirstMapped(
+          interval, (m) => '$work${m[2]}$rest${m[4]}');
+      } else if (work != 20 || rest != 10) {
+        // 기본값은 안 적는다. 안 바꾼 것까지 제목에 붙으면 지저분해진다.
+        out = '${out.trimRight()} $work/$rest';
+      }
+      final reps = RegExp(r'([x×]\s*)(\d+)|(\d+)(\s*(?:라운드|rounds?|ラウンド))',
+          caseSensitive: false);
+      if (reps.hasMatch(out)) {
+        out = out.replaceFirstMapped(reps, (m) =>
+            m[1] != null ? '${m[1]}$rounds' : '$rounds${m[4]}');
+      } else if (rounds != 8) {
+        out = '${out.trimRight()} x$rounds';
+      }
+    }
+    return out;
+  }
   bool get valid =>
-      (bpm == null || (bpm! >= 20 && bpm! <= 300)) &&
-      work >= 1 &&
-      work <= 600 &&
-      rest >= 1 &&
-      rest <= 600 &&
+      (bpm == null || (bpm! >= minBpm && bpm! <= maxBpm)) &&
+      work >= minSeconds &&
+      work <= maxSeconds &&
+      rest >= minSeconds &&
+      rest <= maxSeconds &&
       rounds >= 1 &&
       rounds <= 99;
   int get duration => 3 + (work + rest) * rounds;
@@ -110,6 +173,20 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
                 .floor()
                 .clamp(0, spec!.rounds - 1) +
             1;
+  /// 지금 운동 구간에서 몇 번째 박자인가. 소리가 안 날 때는 0.
+  ///
+  /// 네이티브 오디오가 버퍼를 반복 재생하므로 박자마다 콜백이 오지 않는다.
+  /// 지난 시간으로 세면 콜백을 기다릴 필요가 없고 어긋나지도 않는다.
+  int get beat {
+    final bpm = spec?.bpm;
+    if (bpm == null || !running || phase != TimingPhase.work) return 0;
+    final seconds = elapsed.inMilliseconds / 1000;
+    final into = spec!.tabata
+        ? (seconds - 3) % (spec!.work + spec!.rest)
+        : seconds;
+    return (into * bpm / 60).floor() + 1;
+  }
+
   int get remaining {
     if (spec?.tabata != true) return elapsed.inSeconds;
     final seconds = elapsed.inMilliseconds / 1000;
@@ -238,11 +315,15 @@ class WorkoutTimingControls extends StatelessWidget {
     required this.spec,
     required this.timer,
     required this.onStart,
+    this.onChanged,
   });
   final Object owner;
   final TimingSpec spec;
   final WorkoutTimer timer;
   final VoidCallback onStart;
+
+  /// 버튼으로 고친 설정. 받는 쪽이 운동 이름을 다시 적는다 — 제목이 설정이다.
+  final ValueChanged<TimingSpec>? onChanged;
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
@@ -255,10 +336,12 @@ class WorkoutTimingControls extends StatelessWidget {
       final seconds = selected ? timer.remaining : 3;
       final clock =
           '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
-      final description = [
-        if (spec.bpm != null) l.timingBpm(spec.bpm!),
-        if (spec.tabata) l.timingProtocol(spec.work, spec.rest, spec.rounds),
-      ].join(' · ');
+      final beat = selected ? timer.beat : 0;
+      // 돌아가는 중에 길이를 바꾸면 남은 시간이 튄다. 멈춘 뒤에 바꾸게 한다.
+      final editable = onChanged != null && !running;
+      void change(TimingSpec next) {
+        if (next.valid && next != spec) onChanged!(next);
+      }
       final phaseLabel = switch (phase) {
         TimingPhase.ready => l.timingReady,
         TimingPhase.work => l.timingWork,
@@ -270,12 +353,59 @@ class WorkoutTimingControls extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              description,
-              style: TextStyle(
-                fontSize: 13,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-              ),
+            Wrap(
+              spacing: 14,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (spec.bpm != null)
+                  _Stepper(
+                    label: l.timingBpm(spec.bpm!),
+                    onLess: editable && spec.bpm! > TimingSpec.minBpm
+                        ? () => change(spec.copyWith(
+                            bpm: (spec.bpm! - 5).clamp(
+                                TimingSpec.minBpm, TimingSpec.maxBpm)))
+                        : null,
+                    onMore: editable && spec.bpm! < TimingSpec.maxBpm
+                        ? () => change(spec.copyWith(
+                            bpm: (spec.bpm! + 5).clamp(
+                                TimingSpec.minBpm, TimingSpec.maxBpm)))
+                        : null,
+                  ),
+                if (spec.tabata) ...[
+                  _Stepper(
+                    label: l.timingWorkSeconds(spec.work),
+                    onLess: editable && spec.work > TimingSpec.minSeconds
+                        ? () => change(spec.copyWith(work: spec.work - 5 < 5
+                            ? TimingSpec.minSeconds
+                            : spec.work - 5))
+                        : null,
+                    onMore: editable && spec.work < TimingSpec.maxSeconds
+                        ? () => change(spec.copyWith(work: spec.work + 5))
+                        : null,
+                  ),
+                  _Stepper(
+                    label: l.timingRestSeconds(spec.rest),
+                    onLess: editable && spec.rest > TimingSpec.minSeconds
+                        ? () => change(spec.copyWith(rest: spec.rest - 5 < 5
+                            ? TimingSpec.minSeconds
+                            : spec.rest - 5))
+                        : null,
+                    onMore: editable && spec.rest < TimingSpec.maxSeconds
+                        ? () => change(spec.copyWith(rest: spec.rest + 5))
+                        : null,
+                  ),
+                  _Stepper(
+                    label: l.timingRounds(spec.rounds),
+                    onLess: editable && spec.rounds > 1
+                        ? () => change(spec.copyWith(rounds: spec.rounds - 1))
+                        : null,
+                    onMore: editable && spec.rounds < 99
+                        ? () => change(spec.copyWith(rounds: spec.rounds + 1))
+                        : null,
+                  ),
+                ],
+              ],
             ),
             if (!spec.valid)
               Text(
@@ -292,7 +422,8 @@ class WorkoutTimingControls extends StatelessWidget {
                     child: Text(
                       spec.tabata
                           ? '$phaseLabel  $clock  ·  ${l.timingRound(selected ? timer.round : 1, spec.rounds)}'
-                          : l.timingMetronome,
+                                '${beat > 0 ? '  ·  ${l.timingBeat(beat)}' : ''}'
+                          : (beat > 0 ? l.timingBeat(beat) : l.timingMetronome),
                       style: const TextStyle(
                         fontSize: 15,
                         fontFeatures: [FontFeature.tabularFigures()],
@@ -331,4 +462,32 @@ class WorkoutTimingControls extends StatelessWidget {
       );
     },
   );
+}
+
+
+/// 값 하나와 −/+ 두 개. 키패드의 무게 조절과 같은 결로 둔다.
+class _Stepper extends StatelessWidget {
+  const _Stepper({required this.label, this.onLess, this.onMore});
+  final String label;
+  final VoidCallback? onLess, onMore;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    Widget key(IconData icon, VoidCallback? tap, String semantics) =>
+        CupertinoButton(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          minimumSize: const Size(30, 28),
+          onPressed: tap,
+          child: Icon(icon, size: 15, semanticLabel: semantics),
+        );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: TextStyle(fontSize: 13, color: muted)),
+        key(CupertinoIcons.minus, onLess, '-'),
+        key(CupertinoIcons.plus, onMore, '+'),
+      ],
+    );
+  }
 }

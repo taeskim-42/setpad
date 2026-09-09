@@ -366,7 +366,7 @@ class LTh extends L {
 
   @override
   String get timingInvalid =>
-      'ใช้ 20–300 BPM ออกแรง/พัก 1–600 วินาที และ 1–99 รอบ';
+      'ใช้ 10–120 BPM, 1–600 วินาทีสำหรับออกกำลังและพัก, และ 1–99 รอบ';
 
   @override
   String get timingSoundFailed => 'เล่นเสียงไม่ได้ แต่ตัวจับเวลายังทำงาน';
@@ -428,5 +428,25 @@ class LTh extends L {
   @override
   String queryRank(int n) {
     return 'อันดับ $n';
+  }
+
+  @override
+  String timingWorkSeconds(int n) {
+    return 'ออกกำลัง $n วิ';
+  }
+
+  @override
+  String timingRestSeconds(int n) {
+    return 'พัก $n วิ';
+  }
+
+  @override
+  String timingRounds(int n) {
+    return '$n รอบ';
+  }
+
+  @override
+  String timingBeat(int n) {
+    return 'จังหวะที่ $n';
   }
 }

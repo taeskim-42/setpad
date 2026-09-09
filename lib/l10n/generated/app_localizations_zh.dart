@@ -357,7 +357,7 @@ class LZh extends L {
   String get timingReset => '重置';
 
   @override
-  String get timingInvalid => '请输入20–300 BPM、运动/休息1–600秒、1–99轮。';
+  String get timingInvalid => '请输入 10–120 BPM、1–600 秒的运动与休息时间、1–99 轮。';
 
   @override
   String get timingSoundFailed => '无法播放声音，计时器仍在运行。';
@@ -416,6 +416,26 @@ class LZh extends L {
   @override
   String queryRank(int n) {
     return '第$n名';
+  }
+
+  @override
+  String timingWorkSeconds(int n) {
+    return '运动 $n 秒';
+  }
+
+  @override
+  String timingRestSeconds(int n) {
+    return '休息 $n 秒';
+  }
+
+  @override
+  String timingRounds(int n) {
+    return '$n 轮';
+  }
+
+  @override
+  String timingBeat(int n) {
+    return '第 $n 拍';
   }
 }
 
@@ -772,7 +792,7 @@ class LZhHans extends LZh {
   String get timingReset => '重置';
 
   @override
-  String get timingInvalid => '请输入20–300 BPM、运动/休息1–600秒、1–99轮。';
+  String get timingInvalid => '请输入 10–120 BPM、1–600 秒的运动与休息时间、1–99 轮。';
 
   @override
   String get timingSoundFailed => '无法播放声音，计时器仍在运行。';
@@ -831,6 +851,26 @@ class LZhHans extends LZh {
   @override
   String queryRank(int n) {
     return '第$n名';
+  }
+
+  @override
+  String timingWorkSeconds(int n) {
+    return '运动 $n 秒';
+  }
+
+  @override
+  String timingRestSeconds(int n) {
+    return '休息 $n 秒';
+  }
+
+  @override
+  String timingRounds(int n) {
+    return '$n 轮';
+  }
+
+  @override
+  String timingBeat(int n) {
+    return '第 $n 拍';
   }
 }
 
@@ -1187,7 +1227,7 @@ class LZhHant extends LZh {
   String get timingReset => '重設';
 
   @override
-  String get timingInvalid => '請輸入20–300 BPM、運動/休息1–600秒、1–99輪。';
+  String get timingInvalid => '請輸入 10–120 BPM、1–600 秒的運動與休息時間、1–99 輪。';
 
   @override
   String get timingSoundFailed => '無法播放聲音，計時器仍在運行。';
@@ -1246,5 +1286,25 @@ class LZhHant extends LZh {
   @override
   String queryRank(int n) {
     return '第$n名';
+  }
+
+  @override
+  String timingWorkSeconds(int n) {
+    return '運動 $n 秒';
+  }
+
+  @override
+  String timingRestSeconds(int n) {
+    return '休息 $n 秒';
+  }
+
+  @override
+  String timingRounds(int n) {
+    return '$n 輪';
+  }
+
+  @override
+  String timingBeat(int n) {
+    return '第 $n 拍';
   }
 }

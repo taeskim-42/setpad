@@ -1285,6 +1285,13 @@ class _RoutineEditorState extends State<RoutineEditor>
                                       () => _timingKeyboardHidden = true,
                                     );
                                   },
+                                  // 설정을 따로 저장하지 않는다. 제목을 다시
+                                  // 적으면 글로 고친 것과 같은 자리가 바뀐다.
+                                  onChanged: (next) => _c.renameBlock(
+                                    i,
+                                    next.applyTo(blocks[i].name),
+                                    learn: false,
+                                  ),
                                 ),
                           titleInput:
                               i == openIndex && _recordTitle && !_reordering
