@@ -6,15 +6,20 @@ import 'package:setpad/editor.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 
 class FakeAudio extends TimingAudio {
+  final events = <String>[];
   final calls = <({bool active, int? bpm, String? cue})>[];
   @override
   Future<void> configure({required bool active, int? bpm, String? cue}) async {
+    events.add(active ? "configure" : "stop");
     calls.add((active: active, bpm: bpm, cue: cue));
   }
 
   final spoken = <String>[];
   @override
-  Future<void> speak(String text, String locale) async => spoken.add(text);
+  Future<void> speak(String text, String locale) async {
+    events.add('speak');
+    spoken.add(text);
+  }
 
   @override
   Future<void> dispose() async {}
@@ -148,20 +153,40 @@ void _aloud() {
       final timer = WorkoutTimer(audio: audio, now: () => now)
         ..countAloud = aloud
         ..voiceLocale = locale;
-      timer.toggle(Object(), const TimingSpec(bpm: 60));   // 1초에 한 박
+      timer.toggle(Object(), const TimingSpec(bpm: 60)); // 1초에 한 박
+      await tester.idle();
       for (var i = 1; i <= ticks; i++) {
         now = Duration(seconds: i);
         timer.tick();
+        await tester.idle();
       }
+      expect(audio.events.first, 'configure');
       timer.pause();
-      await tester.idle();       // 소리 명령이 차례로 흘러가게 둔다
+      await tester.idle(); // 소리 명령이 차례로 흘러가게 둔다
       timer.dispose();
       return audio.spoken;
     }
 
     testWidgets('켜면 박자마다 세는 말을 읽는다', (tester) async {
-      expect(await run(tester, aloud: true, locale: 'ko', ticks: 3),
-          ['하나', '둘', '셋', '넷']);
+      expect(await run(tester, aloud: true, locale: 'ko', ticks: 3), [
+        '하나',
+        '둘',
+        '셋',
+        '넷',
+      ]);
+    });
+
+    testWidgets('pause cancels queued counts before audio commands finish', (
+      tester,
+    ) async {
+      final audio = FakeAudio();
+      final timer = WorkoutTimer(audio: audio)..countAloud = true;
+      timer.toggle(Object(), const TimingSpec(bpm: 60));
+      timer.pause();
+      await tester.idle();
+      expect(audio.spoken, isEmpty);
+      expect(audio.events.last, 'stop');
+      timer.dispose();
     });
 
     testWidgets('꺼져 있으면 아무 말도 안 한다', (tester) async {
@@ -170,7 +195,10 @@ void _aloud() {
 
     testWidgets('언어를 따라 말이 바뀐다', (tester) async {
       // 일본어는 숫자를 읽는 말이 곧 세는 말이라 숫자를 그대로 넘긴다.
-      expect(await run(tester, aloud: true, locale: 'ja', ticks: 1), ['1', '2']);
+      expect(await run(tester, aloud: true, locale: 'ja', ticks: 1), [
+        '1',
+        '2',
+      ]);
     });
   });
 }
@@ -259,8 +287,10 @@ void _adjustable() {
     test('라운드도 고쳐 쓴다', () {
       final spec = TimingSpec.parse('버피 타바타 20/10 x6')!;
       expect(spec.rounds, 6);
-      expect(spec.copyWith(rounds: 10).applyTo('버피 타바타 20/10 x6'),
-          '버피 타바타 20/10 x10');
+      expect(
+        spec.copyWith(rounds: 10).applyTo('버피 타바타 20/10 x6'),
+        '버피 타바타 20/10 x10',
+      );
     });
 
     test('고쳐 쓴 제목은 같은 설정으로 다시 읽힌다', () {

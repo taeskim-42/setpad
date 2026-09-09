@@ -83,12 +83,13 @@ class DotChart extends StatelessWidget {
     );
     return Semantics(
       label: l.answerChart(exercise, points.length),
-      child: SizedBox(
-        height: 156,
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 14, top: 1, bottom: 1),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: SizedBox(
+              height: 156,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -101,19 +102,124 @@ class DotChart extends StatelessWidget {
                 ],
               ),
             ),
-            Expanded(
-              child: CustomPaint(
-                size: const Size(double.infinity, 156),
-                painter: DotChartPainter(
-                  points: points,
-                  ink: ink,
-                  trail: ink.withValues(alpha: 0.18),
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                CustomPaint(
+                  size: const Size(double.infinity, 156),
+                  painter: DotChartPainter(
+                    points: points,
+                    ink: ink,
+                    trail: ink.withValues(alpha: 0.18),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 10),
+                _DateAxis(points: points, style: labelStyle),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+/// Keep date labels aligned to actual days and drop the middle when crowded.
+class _DateAxis extends StatelessWidget {
+  const _DateAxis({required this.points, required this.style});
+  final List<DayPoint> points;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = L.of(context).localeName;
+    final format = points.first.day.year == points.last.day.year
+        ? DateFormat.Md(locale)
+        : DateFormat.yMd(locale);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final span = points.last.day.difference(points.first.day).inDays;
+        final scaler = MediaQuery.textScalerOf(context);
+        final direction = Directionality.of(context);
+        final candidates = [points.first];
+        if (points.length > 2) {
+          candidates.add(
+            points
+                .sublist(1, points.length - 1)
+                .reduce(
+                  (a, b) =>
+                      (a.day.difference(points.first.day).inDays - span / 2)
+                              .abs() <=
+                          (b.day.difference(points.first.day).inDays - span / 2)
+                              .abs()
+                      ? a
+                      : b,
+                ),
+          );
+        }
+        if (span > 0) candidates.add(points.last);
+        final labels = candidates.map((point) {
+          final text = format.format(point.day);
+          final painter = TextPainter(
+            text: TextSpan(text: text, style: style),
+            textDirection: direction,
+            textScaler: scaler,
+          )..layout(maxWidth: width);
+          final x = span == 0
+              ? width / 2
+              : 5 +
+                    point.day.difference(points.first.day).inDays /
+                        span *
+                        math.max(0, width - 10);
+          final left = (x - painter.width / 2).clamp(
+            0.0,
+            width - painter.width,
+          );
+          final label = (
+            day: point.day,
+            text: text,
+            rect: Rect.fromLTWH(left, 0, painter.width, painter.height),
+          );
+          painter.dispose();
+          return label;
+        }).toList();
+        final height = labels
+            .map((label) => label.rect.height)
+            .reduce(math.max);
+        final crowded =
+            labels.length > 1 &&
+            labels.first.rect.right + 8 > labels.last.rect.left;
+        return SizedBox(
+          height: crowded ? height * 2 + 4 : height,
+          child: Stack(
+            children: [
+              for (var i = 0; i < labels.length; i++)
+                if (i == 0 ||
+                    i == labels.length - 1 ||
+                    (!crowded &&
+                        labels[i].rect.left >= labels.first.rect.right + 8 &&
+                        labels[i].rect.right + 8 <= labels.last.rect.left))
+                  Positioned(
+                    left: labels[i].rect.left,
+                    top: crowded && i == labels.length - 1 ? height + 4 : 0,
+                    width: labels[i].rect.width,
+                    child: Text(
+                      labels[i].text,
+                      key: ValueKey(
+                        'chart-date-${labels[i].day.toIso8601String()}',
+                      ),
+                      semanticsLabel: DateFormat.yMMMd(
+                        locale,
+                      ).format(labels[i].day),
+                      style: style,
+                    ),
+                  ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

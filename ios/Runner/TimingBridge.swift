@@ -10,6 +10,7 @@ final class TimingBridge {
   private var tempo: Int?
   private var observers: [NSObjectProtocol] = []
   private let speech = AVSpeechSynthesizer()
+  private var pendingSpeech: Task<Void, Never>?
 
   init(messenger: FlutterBinaryMessenger) {
     channel = FlutterMethodChannel(name: "setpad/timing", binaryMessenger: messenger)
@@ -38,15 +39,31 @@ final class TimingBridge {
     }
   }
 
-  /// Skip a beat rather than let two counts overlap; at a fast tempo the words
-  /// are longer than the interval and stacking them is unintelligible.
+  /// Match Tempo: click, then count half a beat later (at most one second).
   private func speak(_ text: String, locale: String) {
-    guard !text.isEmpty, !speech.isSpeaking else { return }
-    let utterance = AVSpeechUtterance(string: text)
-    utterance.voice = AVSpeechSynthesisVoice(language: locale)
-      ?? AVSpeechSynthesisVoice(language: Locale.current.identifier)
-    utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 1.15
-    speech.speak(utterance)
+    guard !text.isEmpty, tempo != nil, pendingSpeech == nil, !speech.isSpeaking else { return }
+    let countOffset = min(30.0 / Double(tempo!), 1.0)
+    let countRemaining = beat.map { max(0, countOffset - $0.currentTime) } ?? 0
+    let cueRemaining = cue.flatMap { $0.isPlaying ? max(0, $0.duration - $0.currentTime) : nil } ?? 0
+    let delay = max(countRemaining, cueRemaining)
+    pendingSpeech = Task { @MainActor [weak self] in
+      if delay > 0 {
+        try? await Task.sleep(nanoseconds: UInt64((delay + 0.005) * 1_000_000_000))
+      }
+      guard !Task.isCancelled, let self else { return }
+      self.pendingSpeech = nil
+      guard self.tempo != nil, !self.speech.isSpeaking else { return }
+      let utterance = AVSpeechUtterance(string: text)
+      utterance.voice = AVSpeechSynthesisVoice(language: locale)
+        ?? AVSpeechSynthesisVoice(language: Locale.current.identifier)
+      utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 1.15
+      self.speech.speak(utterance)
+    }
+  }
+
+  private func cancelSpeech() {
+    pendingSpeech?.cancel(); pendingSpeech = nil
+    speech.stopSpeaking(at: .immediate)
   }
 
   private func configure(active: Bool, bpm: Int?, cueName: String?) throws {
@@ -57,7 +74,8 @@ final class TimingBridge {
     }
     UIApplication.shared.isIdleTimerDisabled = active
     let validTempo = active ? bpm.flatMap { (20...300).contains($0) ? $0 : nil } : nil
-    if validTempo != tempo {
+    if validTempo != tempo || !active {
+      cancelSpeech()
       beat?.stop(); beat = nil; tempo = validTempo
       if let bpm = validTempo {
         let player = try AVAudioPlayer(data: wave(seconds: 60.0 / Double(bpm), frequency: 1100, tone: 0.035))
@@ -77,7 +95,7 @@ final class TimingBridge {
   }
 
   private func stop() {
-    speech.stopSpeaking(at: .immediate)
+    cancelSpeech()
     beat?.stop(); beat = nil; cue?.stop(); cue = nil; tempo = nil
     UIApplication.shared.isIdleTimerDisabled = false
     try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])

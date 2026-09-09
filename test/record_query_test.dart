@@ -133,7 +133,8 @@ void main() {
             final prompt =
                 jsonDecode((call.arguments as Map)['prompt'] as String) as Map;
             received.add(prompt['question'] as String);
-            expect(prompt['today'], '2026-09-08');
+            expect(prompt['referenceYear'], 2026);
+            expect(prompt.containsKey('today'), isFalse);
             expect(prompt.containsKey('records'), isFalse);
             return response([row('스쿼트', 'max')]);
           });
@@ -339,6 +340,177 @@ void main() {
       'reason': 'unrelated',
     }, names);
     expect(unrelated.requests, isEmpty);
+  });
+
+  test(
+    'submitting an in-flight question does not restart its model call',
+    () async {
+      const channel = MethodChannel('test/query_same_inflight');
+      final result = Completer<Object?>();
+      final calls = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            calls.add(call.method);
+            if (call.method == 'status') return 'available';
+            if (call.method == 'cancel') return null;
+            return result.future;
+          });
+      final search = RecordSearch(
+        const LocalAi(channel: channel, nativeSupported: true),
+      );
+      await search.refresh('ko');
+      search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+      await Future<void>.delayed(Duration.zero);
+      search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+      expect(calls.where((c) => c == 'query').length, 1);
+      expect(calls, isNot(contains('cancel')));
+      result.complete(response([row('스쿼트', 'max')]));
+      await Future<void>.delayed(Duration.zero);
+      expect(search.plan?.requests.single.exercise, '스쿼트');
+      search.dispose();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    },
+  );
+
+  test(
+    'cached intents recompute current records and expire with date or index',
+    () async {
+      const channel = MethodChannel('test/query_cached');
+      var calls = 0;
+      var now = DateTime(2026, 9, 9);
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == 'status') return 'available';
+            if (call.method == 'cancel') return null;
+            calls++;
+            return response([row('스쿼트', 'max')]);
+          });
+      final search = RecordSearch(
+        const LocalAi(channel: channel, nativeSupported: true),
+        now: () => now,
+      );
+      await search.refresh('ko');
+      search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        executeRecordPlan(search.plan!, notes, l, 'kg').single.numericValue,
+        110,
+      );
+      search.search('', 'ko', names, 'kg');
+      final updated = [
+        ...notes,
+        note(9, 9, '스쿼트', [LoggedSet(value: 120, reps: 3)]),
+      ];
+      search.search('스쿼트 최고', 'ko', names, 'kg', notes: updated);
+      expect(search.busy, isFalse);
+      expect(calls, 1);
+      expect(
+        executeRecordPlan(search.plan!, updated, l, 'kg').single.numericValue,
+        120,
+      );
+      now = DateTime(2026, 9, 10);
+      search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+      await Future<void>.delayed(Duration.zero);
+      expect(calls, 2);
+      search.search('스쿼트 최고', 'ko', [...names, '덤벨컬'], 'kg', immediately: true);
+      await Future<void>.delayed(Duration.zero);
+      expect(calls, 3);
+      search.search('스쿼트 최고', 'ko', [...names, '덤벨컬'], 'lb', immediately: true);
+      await Future<void>.delayed(Duration.zero);
+      expect(calls, 4);
+      search.dispose();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    },
+  );
+
+  test(
+    'compact intents retain counts, ranking, periods and filter direction',
+    () {
+      final plan = RecordQueryPlan.decode({
+        'action': 'setCount',
+        'exercises': ['스쿼트'],
+        'periods': ['all'],
+        'weight': {'relation': 'atMost', 'value': 60, 'unit': 'kg'},
+      }, names);
+      expect(plan.requests.single.minWeight, isNull);
+      expect(plan.requests.single.maxWeight, 60);
+      expect(plan.requests.single.since, isNull);
+      expect(recordRequestScope(plan.requests.single, l), contains('≤ 60kg'));
+      expect(
+        recordRequestScope(plan.requests.single, l),
+        contains(l.queryAllTime),
+      );
+      final reps = RecordQueryPlan.decode(
+        {
+          'action': 'repCount',
+          'exercises': ['푸시업'],
+          'periods': ['recent'],
+          'days': 14,
+        },
+        names,
+        today: DateTime(2026, 9, 9),
+      );
+      expect(reps.requests.single.metric.name, 'reps');
+      expect(reps.requests.single.since, DateTime(2026, 8, 27));
+      final rank = RecordQueryPlan.decode({
+        'action': 'trainingDays',
+        'exercises': [],
+        'periods': ['all'],
+        'top': 3,
+      }, names);
+      expect(rank.rank, isTrue);
+      expect(rank.limit, 3);
+      final comparison = RecordQueryPlan.decode(
+        {
+          'action': 'heaviest',
+          'exercises': ['스쿼트'],
+          'periods': ['lastMonth', 'thisMonth'],
+        },
+        names,
+        today: DateTime(2026, 9, 9),
+      );
+      expect(comparison.compare, isTrue);
+      expect(comparison.requests.first.until, DateTime(2026, 8, 31));
+    },
+  );
+
+  test('compact intents cannot invent names, operators or filter values', () {
+    for (final change in [
+      {
+        'exercises': ['invented'],
+      },
+      {
+        'weight': {'relation': 'roughly', 'value': 60},
+      },
+      {
+        'weight': {'relation': 'atLeast', 'value': -20},
+      },
+      {
+        'periods': ['future'],
+      },
+      {'top': 100},
+    ]) {
+      expect(
+        () => RecordQueryPlan.decode({
+          'action': 'heaviest',
+          'exercises': ['스쿼트'],
+          'periods': ['all'],
+          ...change,
+        }, names),
+        throwsFormatException,
+      );
+    }
+    final unrelated = RecordQueryPlan.decode({'action': 'unrelated'}, names);
+    expect(unrelated.reason, 'unrelated');
+    final notesPlan = RecordQueryPlan.decode({
+      'action': 'readRecords',
+      'exercises': [],
+      'periods': ['all'],
+      'terms': ['무릎'],
+    }, names);
+    expect(notesPlan.kind, 'insight');
   });
 
   test('late model results cannot replace a newer question', () async {

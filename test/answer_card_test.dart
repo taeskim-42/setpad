@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:setpad/local_ai.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:setpad/answer_card.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
@@ -110,6 +111,79 @@ void main() {
         closeTo(2 * (positions[1].dx - positions[0].dx), 0.001),
       );
       expect(positions.every((p) => p.dx.isFinite && p.dy.isFinite), isTrue);
+    },
+  );
+
+  testWidgets('date labels follow recorded days below the plot', (
+    tester,
+  ) async {
+    final data = answer(notes, Metric.trend, '벤치프레스');
+    await pump(tester, AnswerCard(answer: data));
+    final plot = find.byWidgetPredicate(
+      (w) => w is CustomPaint && w.painter is DotChartPainter,
+    );
+    for (final point in data.points) {
+      final label = find.byKey(
+        ValueKey('chart-date-${point.day.toIso8601String()}'),
+      );
+      expect(label, findsOneWidget);
+      expect(
+        tester.widget<Text>(label).data,
+        DateFormat.Md('ko').format(point.day),
+      );
+      expect(
+        tester.getRect(label).top,
+        greaterThan(tester.getRect(plot).bottom),
+      );
+    }
+  });
+
+  testWidgets('single record has one centered date', (tester) async {
+    final points = [DayPoint(day, 80, 5, 'kg')];
+    await pump(tester, DotChart(points: points, exercise: '벤치프레스'));
+    final label = find.byKey(ValueKey('chart-date-${day.toIso8601String()}'));
+    final plot = find.byWidgetPredicate(
+      (w) => w is CustomPaint && w.painter is DotChartPainter,
+    );
+    expect(label, findsOneWidget);
+    expect(
+      tester.getCenter(label).dx,
+      closeTo(tester.getCenter(plot).dx, 0.01),
+    );
+  });
+
+  testWidgets(
+    'crowded dates never overlap and cross-year dates include years',
+    (tester) async {
+      final points = [
+        DayPoint(DateTime(2025, 12, 20), 60, 5, 'kg'),
+        DayPoint(DateTime(2026, 1, 1), 70, 5, 'kg'),
+        DayPoint(DateTime(2026, 1, 20), 80, 5, 'kg'),
+      ];
+      await pump(
+        tester,
+        Center(
+          child: SizedBox(
+            width: 220,
+            child: DotChart(points: points, exercise: '벤치프레스'),
+          ),
+        ),
+        scale: 2,
+      );
+      final first = find.byKey(
+        ValueKey('chart-date-${points.first.day.toIso8601String()}'),
+      );
+      final last = find.byKey(
+        ValueKey('chart-date-${points.last.day.toIso8601String()}'),
+      );
+      expect(tester.widget<Text>(first).data, contains('2025'));
+      expect(tester.widget<Text>(last).data, contains('2026'));
+      expect(tester.getRect(first).overlaps(tester.getRect(last)), isFalse);
+      expect(
+        find.byKey(ValueKey('chart-date-${points[1].day.toIso8601String()}')),
+        findsNothing,
+      );
+      expect(tester.takeException(), isNull);
     },
   );
 
