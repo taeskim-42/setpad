@@ -1,5 +1,24 @@
 (() => {
   let context, beat, tempo, wake, beatStartedAt = 0, cueEndsAt = 0, pendingSpeech;
+  // Pitch, partials, length and loudness measured from Tempo's cue recordings
+  // (bpm.mp3, prebpm.mp3, end_3s.mp3), so the two apps sound like one.
+  const ding = [[1787, 1], [2664, .38], [1010, .29]];
+  const TONES = {
+    click: { p: [[655, 1], [1965, .1]], s: .12, decay: true, g: .45 },
+    ready: { p: [[523, 1], [1568, .25]], s: .08, g: .5 },
+    work: { p: [[1046, 1], [3138, .18]], s: .22, g: .5 },
+    rest: { p: ding, s: .35, g: .25 },
+    complete: { p: ding, s: .7, g: .3 },
+  };
+  const render = (tone, length = tone.s) => {
+    const rate = context.sampleRate, buffer = context.createBuffer(1, Math.round(rate * length), rate), out = buffer.getChannelData(0);
+    const sounding = Math.round(rate * tone.s), scale = tone.p.reduce((a, [, w]) => a + w, 0);
+    for (let i = 0; i < sounding; i++) {
+      const t = i / rate, env = tone.decay ? Math.exp(-t / (tone.s / 4)) : Math.min(1, t / .004, (tone.s - t) / .004);
+      out[i] = tone.p.reduce((a, [f, w]) => a + Math.sin(t * f * 2 * Math.PI) * w, 0) / scale * env * tone.g;
+    }
+    return buffer;
+  };
   const cancelSpeech = () => {
     clearTimeout(pendingSpeech); pendingSpeech = null;
     window.speechSynthesis?.cancel();
@@ -15,19 +34,15 @@
       if (beat) { beat.stop(); beat = null; }
       tempo = bpm;
       if (active && bpm >= 20 && bpm <= 300) {
-        const rate = context.sampleRate, buffer = context.createBuffer(1, Math.round(rate * 60 / bpm), rate);
-        const samples = buffer.getChannelData(0), duration = rate * 0.035;
-        for (let i = 0; i < duration; i++) samples[i] = Math.sin(i * 1100 * 2 * Math.PI / rate) * Math.min(1, i / 40) * (1 - i / duration) * 0.3;
-        beat = context.createBufferSource(); beat.buffer = buffer; beat.loop = true; beat.connect(context.destination); beatStartedAt = context.currentTime; beat.start(beatStartedAt);
+        beat = context.createBufferSource(); beat.buffer = render(TONES.click, 60 / bpm); beat.loop = true; beat.connect(context.destination); beatStartedAt = context.currentTime; beat.start(beatStartedAt);
       }
     }
     if (cue) {
-      const oscillator = context.createOscillator(), gain = context.createGain(), at = context.currentTime, length = cue === 'complete' ? 0.5 : cue === 'ready' ? 0.1 : 0.35;
-      cueEndsAt = at + length;
-      oscillator.frequency.value = cue === 'rest' ? 520 : cue === 'ready' ? 760 : 1320;
-      gain.gain.setValueAtTime(0.3, at); gain.gain.exponentialRampToValueAtTime(0.001, at + length);
-      oscillator.connect(gain); gain.connect(context.destination); oscillator.start(at); oscillator.stop(at + length);
-      oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+      const source = context.createBufferSource();
+      source.buffer = render(TONES[cue] || TONES.rest);
+      cueEndsAt = context.currentTime + source.buffer.duration;
+      source.connect(context.destination); source.start();
+      source.onended = () => source.disconnect();
     }
     if (active && !wake && navigator.wakeLock) { try { wake = await navigator.wakeLock.request('screen'); } catch (_) {} }
   }};

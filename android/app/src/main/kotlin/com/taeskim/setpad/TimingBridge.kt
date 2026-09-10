@@ -3,9 +3,7 @@ package com.taeskim.setpad
 import android.app.Activity
 import android.media.AudioAttributes
 import android.media.AudioFormat
-import android.media.AudioManager
 import android.media.AudioTrack
-import android.media.ToneGenerator
 import android.speech.tts.TextToSpeech
 import android.os.Handler
 import android.os.Looper
@@ -15,13 +13,14 @@ import java.util.Locale
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 import kotlin.math.PI
+import kotlin.math.exp
 import kotlin.math.sin
 
 class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
     private val channel = MethodChannel(messenger, "setpad/timing")
     private var track: AudioTrack? = null
     private var tempo: Int? = null
-    private var tone: ToneGenerator? = null
+    private var cueTrack: AudioTrack? = null
     private var speech: TextToSpeech? = null
     private var speechReady = false
     private val handler = Handler(Looper.getMainLooper())
@@ -80,36 +79,56 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                 if (bpm != tempo) {
                     stopBeat()
                     if (bpm != null) {
-                        val rate = 22050
-                        val samples = ShortArray((60.0 / bpm * rate).toInt()) { i ->
-                            val duration = (rate * 0.035).toInt()
-                            val envelope = if (i < duration) minOf(1.0, i / 40.0) * (1.0 - i.toDouble() / duration) else 0.0
-                            (sin(i * 1100.0 * 2 * PI / rate) * envelope * 10000).toInt().toShort()
-                        }
-                        val player = AudioTrack.Builder()
-                            .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build())
-                            .setAudioFormat(AudioFormat.Builder().setSampleRate(rate).setEncoding(AudioFormat.ENCODING_PCM_16BIT).setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build())
-                            .setTransferMode(AudioTrack.MODE_STATIC).setBufferSizeInBytes(samples.size * 2).build()
+                        val samples = samples(click, 60.0 / bpm)
+                        val player = staticTrack(samples)
                         track = player
-                        check(player.write(samples, 0, samples.size) == samples.size)
                         check(player.setLoopPoints(0, samples.size, -1) == AudioTrack.SUCCESS)
                         player.play(); tempo = bpm
                     }
                 }
                 val cue = call.argument<String>("cue")
                 if (cue != null) {
-                    val generator = tone ?: ToneGenerator(AudioManager.STREAM_MUSIC, 55).also { tone = it }
-                    cueEndsAt = SystemClock.elapsedRealtime() + cueMillis(cue)
-                    generator.startTone(if (cue == "rest") ToneGenerator.TONE_PROP_NACK else ToneGenerator.TONE_PROP_BEEP, cueMillis(cue))
-                } else if (!active) { tone?.release(); tone = null }
+                    val tone = cueTone(cue)
+                    cueTrack?.release()
+                    cueTrack = staticTrack(samples(tone)).also { it.play() }
+                    cueEndsAt = SystemClock.elapsedRealtime() + (tone.seconds * 1000).toLong()
+                } else if (!active) { cueTrack?.release(); cueTrack = null }
                 result.success(null)
             } catch (_: Exception) { stop(); result.error("audioUnavailable", null, null) }
         }
     }
-    // Countdown ticks short, work/rest changes long, finish longest.
-    private fun cueMillis(cue: String) = if (cue == "complete") 500 else if (cue == "ready") 100 else 350
+    // Pitch, partials, length and loudness measured from Tempo's cue recordings
+    // (bpm.mp3, prebpm.mp3, end_3s.mp3), so the two apps sound like one.
+    private class Tone(val partials: List<Pair<Double, Double>>, val seconds: Double, val decay: Boolean, val gain: Double)
+    private val click = Tone(listOf(655.0 to 1.0, 1965.0 to 0.1), 0.12, true, 0.45)
+    private val ding = listOf(1787.0 to 1.0, 2664.0 to 0.38, 1010.0 to 0.29)
+    private fun cueTone(name: String) = when (name) {
+        "ready" -> Tone(listOf(523.0 to 1.0, 1568.0 to 0.25), 0.08, false, 0.5)
+        "work" -> Tone(listOf(1046.0 to 1.0, 3138.0 to 0.18), 0.22, false, 0.5)
+        "complete" -> Tone(ding, 0.7, false, 0.3)
+        else -> Tone(ding, 0.35, false, 0.25)
+    }
+    private fun samples(tone: Tone, length: Double = tone.seconds): ShortArray {
+        val rate = 22050
+        val sounding = (tone.seconds * rate).toInt()
+        val scale = tone.partials.sumOf { it.second }
+        return ShortArray((length * rate).toInt()) { i ->
+            val t = i.toDouble() / rate
+            val envelope = if (i >= sounding) 0.0 else if (tone.decay) exp(-t / (tone.seconds / 4)) else minOf(1.0, t / 0.004, (tone.seconds - t) / 0.004)
+            val sample = tone.partials.sumOf { sin(t * it.first * 2 * PI) * it.second } / scale
+            (sample * envelope * tone.gain * 32000).toInt().toShort()
+        }
+    }
+    private fun staticTrack(samples: ShortArray): AudioTrack {
+        val player = AudioTrack.Builder()
+            .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build())
+            .setAudioFormat(AudioFormat.Builder().setSampleRate(22050).setEncoding(AudioFormat.ENCODING_PCM_16BIT).setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build())
+            .setTransferMode(AudioTrack.MODE_STATIC).setBufferSizeInBytes(samples.size * 2).build()
+        check(player.write(samples, 0, samples.size) == samples.size)
+        return player
+    }
     private fun stopBeat() { cancelSpeech(); track?.let { runCatching { it.stop() }; it.release() }; track = null; tempo = null }
-    private fun stop() { stopBeat(); runCatching { speech?.stop() }; tone?.release(); tone = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
+    private fun stop() { stopBeat(); runCatching { speech?.stop() }; cueTrack?.release(); cueTrack = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     fun interrupt() { stop(); channel.invokeMethod("interrupted", null) }
     fun close() { stop(); speech?.shutdown(); speech = null; speechReady = false; channel.setMethodCallHandler(null) }
 }

@@ -186,7 +186,8 @@ void _aloud() {
         ..voiceLocale = locale;
       timer.toggle(Object(), const TimingSpec(bpm: 60)); // 1초에 한 박
       await tester.idle();
-      for (var i = 1; i <= ticks; i++) {
+      // 앞 3초는 준비 카운트다운이라 박자가 없다.
+      for (var i = 1; i <= ticks + 3; i++) {
         now = Duration(seconds: i);
         timer.tick();
         await tester.idle();
@@ -205,6 +206,30 @@ void _aloud() {
         '셋',
         '넷',
       ]);
+    });
+
+    testWidgets('메트로놈도 준비 3초를 세고 나서 클릭을 시작한다', (tester) async {
+      var now = Duration.zero;
+      final audio = FakeAudio();
+      final timer = WorkoutTimer(audio: audio, now: () => now);
+      timer.toggle(Object(), const TimingSpec(bpm: 60));
+      for (var ms = 100; ms <= 3200; ms += 100) {
+        now = Duration(milliseconds: ms);
+        timer.tick();
+      }
+      await tester.idle();
+      expect(audio.calls.map((c) => c.cue).whereType<String>().toList(), [
+        'ready',
+        'ready',
+        'ready',
+        'work',
+      ]);
+      // 준비 동안은 클릭이 없다가, 시작 소리와 함께 박자가 돈다.
+      expect(audio.calls.where((c) => c.bpm != null).first.cue, 'work');
+      expect(timer.beat, 1);
+      timer.pause();
+      await tester.idle();
+      timer.dispose();
     });
 
     testWidgets('pause cancels queued counts before audio commands finish', (

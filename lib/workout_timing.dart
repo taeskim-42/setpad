@@ -190,10 +190,13 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _commands = Future.value();
   Duration get elapsed =>
       _elapsed + (running ? _time - _started : Duration.zero);
+
+  /// 시작 전 3초. 메트로놈도 센다 — 첫 클릭이 바로 울리면 손이 자리에 없다.
+  /// 템포 앱의 "Start in 3s" 와 같다: 띠·띠·띠 뒤에 한 옥타브 위 긴 소리.
   TimingPhase get phase {
-    if (spec?.tabata != true) return TimingPhase.work;
     final seconds = elapsed.inMilliseconds / 1000;
     if (seconds < 3) return TimingPhase.ready;
+    if (spec?.tabata != true) return TimingPhase.work;
     if (seconds >= spec!.duration) return TimingPhase.complete;
     return (seconds - 3) % (spec!.work + spec!.rest) < spec!.work
         ? TimingPhase.work
@@ -214,17 +217,15 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   int get beat {
     final bpm = spec?.bpm;
     if (bpm == null || !running || phase != TimingPhase.work) return 0;
-    final seconds = elapsed.inMilliseconds / 1000;
-    final into = spec!.tabata
-        ? (seconds - 3) % (spec!.work + spec!.rest)
-        : seconds;
+    final seconds = elapsed.inMilliseconds / 1000 - 3;
+    final into = spec!.tabata ? seconds % (spec!.work + spec!.rest) : seconds;
     return (into * bpm / 60).floor() + 1;
   }
 
   int get remaining {
-    if (spec?.tabata != true) return elapsed.inSeconds;
     final seconds = elapsed.inMilliseconds / 1000;
     if (phase == TimingPhase.ready) return (3 - seconds).ceil();
+    if (spec?.tabata != true) return elapsed.inSeconds - 3;
     if (phase == TimingPhase.complete) return 0;
     final within = (seconds - 3) % (spec!.work + spec!.rest);
     return ((phase == TimingPhase.work ? spec!.work : spec!.work + spec!.rest) -
@@ -253,8 +254,10 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _lastRemaining = remaining;
     _lastBeat = beat;
     _sound(
-      cue: spec!.tabata
-          ? (phase == TimingPhase.ready ? 'ready' : 'work')
+      cue: phase == TimingPhase.ready
+          ? 'ready'
+          : spec!.tabata
+          ? 'work'
           : null,
     );
     if (countAloud && _lastBeat > 0) _say(_lastBeat);
@@ -298,7 +301,9 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     }
     if (next != _lastPhase || round != _lastRound) {
       _sound(cue: next == TimingPhase.work ? 'work' : 'rest');
-    } else if (spec!.tabata && remaining <= 3 && remaining != _lastRemaining) {
+    } else if ((next == TimingPhase.ready || spec!.tabata) &&
+        remaining <= 3 &&
+        remaining != _lastRemaining) {
       // 구간마다 마지막 3초를 띠·띠·띠 하고 센다 — 타바타 앱들의 공통 신호다.
       // 화면을 안 보고도 다음 구간이 오는 것을 몸이 안다. 준비 3초도 같은 소리.
       _sound(cue: 'ready');
@@ -421,7 +426,12 @@ class WorkoutTimingControls extends StatelessWidget {
       final status = spec.tabata
           ? '$phaseLabel · ${l.timingRound(selected ? timer.round : 1, spec.rounds)}'
                 '${beat > 0 ? ' · ${l.timingBeat(counted)}' : ''}'
-          : (beat > 0 ? l.timingBeat(counted) : l.timingMetronome);
+          : selected && phase == TimingPhase.ready
+          ? phaseLabel
+          : beat > 0
+          ? l.timingBeat(counted)
+          : l.timingMetronome;
+      final showClock = spec.tabata || selected && phase == TimingPhase.ready;
 
       // 칸 너비를 똑같이 고정한다. 예전에는 Wrap 이라 5초→10초 처럼 글자가
       // 한 자 늘면 마지막 칸이 다음 줄로 떨어지고 카드 아래가 통째로 밀렸다.
@@ -483,7 +493,7 @@ class WorkoutTimingControls extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  if (spec.tabata) ...[
+                  if (showClock) ...[
                     Text(
                       clock,
                       style: const TextStyle(
@@ -501,7 +511,7 @@ class WorkoutTimingControls extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 14,
-                        color: spec.tabata ? muted : null,
+                        color: showClock ? muted : null,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
