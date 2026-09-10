@@ -48,6 +48,10 @@ class _NotesListPageState extends State<NotesListPage>
   /// 틀릴 것이 없고 기다릴 것도 없다. 문장 해석은 부차 경로로 남아 있다.
   stats.Metric? _pick;
 
+  /// 의심스러운 해석을 사용자가 "맞아요" 로 확인한 계획. 같은 계획 객체일 때만
+  /// 유효하다 — 검색어가 바뀌어 새 계획이 오면 자연히 풀린다.
+  RecordQueryPlan? _confirmed;
+
   /// 검색어 전체가 운동 이름 하나로 읽히는가. 이때만 모델을 건너뛴다 —
   /// 이름만 쳤으면 물을 것이 없다.
   String? get _bareName {
@@ -120,6 +124,31 @@ class _NotesListPageState extends State<NotesListPage>
     _search.cancel();
     widget.onOpen(note);
   }
+
+  /// "스쿼트 · 최고 · 9월 1일 ~ 9월 30일" — 무엇을 어떻게 읽었는지 한 줄.
+  String _planSummary(L l, RecordQueryPlan plan) {
+    if (plan.requests.isEmpty) return plan.kind;
+    final r = plan.requests.first;
+    final names = plan.requests.map((x) => x.exercise).toSet().join(', ');
+    final parts = [
+      if (names.isNotEmpty && names != '*') names,
+      _metricLabel(l, r.metric),
+      if (r.since != null)
+        '${l.dayLabel(r.since!)}${r.until != null ? ' ~ ${l.dayLabel(r.until!)}' : ' ~'}',
+    ];
+    return parts.join(' · ');
+  }
+
+  String _metricLabel(L l, stats.Metric m) => switch (m) {
+    stats.Metric.max => l.metricMax,
+    stats.Metric.trend => l.metricTrend,
+    stats.Metric.last => l.metricLast,
+    stats.Metric.sessions => l.metricSessions,
+    stats.Metric.volume => l.metricVolume,
+    stats.Metric.reps => l.metricReps,
+    stats.Metric.sets => l.metricSets,
+    stats.Metric.average => l.metricAverage,
+  };
 
   Future<void> _help() => showLocalAiHelp(
     context,
@@ -221,7 +250,12 @@ class _NotesListPageState extends State<NotesListPage>
               builder: (context, _) {
                 final groups = _grouped(_visible, l);
                 final plan = _search.plan;
-                final answers = plan == null
+                // 자신 있게 틀릴 위험이 있으면 답을 내지 않고 한 번 묻는다.
+                // 틀린 숫자보다 탭 한 번이 싸다.
+                final doubtful = plan != null &&
+                    plan.doubts.isNotEmpty &&
+                    !identical(_confirmed, plan);
+                final answers = plan == null || doubtful
                     ? const []
                     : executeRecordPlan(
                         plan,
@@ -346,6 +380,47 @@ class _NotesListPageState extends State<NotesListPage>
                           ),
                         ),
                       ),
+                    if (doubtful)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                '${l.readAsConfirm} · ${_planSummary(l, plan)}',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: CupertinoColors.label.resolveFrom(context),
+                                ),
+                              ),
+                              SuggestionChip(
+                                label: l.confirmYes,
+                                selected: false,
+                                onTap: () => setState(() => _confirmed = plan),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    if (!doubtful && plan != null && plan.readAs.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+                          child: Text(
+                            plan.readAs.entries
+                                .map((e) => l.readAsNote(e.value, e.key))
+                                .join(' · '),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (!doubtful)
                     if (_search.reply case final reply?)
                       SliverToBoxAdapter(
                         child: Padding(

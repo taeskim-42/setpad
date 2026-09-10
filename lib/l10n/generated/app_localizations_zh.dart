@@ -455,6 +455,26 @@ class LZh extends L {
 
   @override
   String get metricVolume => '总量';
+
+  @override
+  String get metricReps => '总次数';
+
+  @override
+  String get metricSets => '组数';
+
+  @override
+  String get metricAverage => '平均';
+
+  @override
+  String get readAsConfirm => '理解为';
+
+  @override
+  String get confirmYes => '对';
+
+  @override
+  String readAsNote(String from, String to) {
+    return '$from → $to';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -908,6 +928,26 @@ class LZhHans extends LZh {
 
   @override
   String get metricVolume => '总量';
+
+  @override
+  String get metricReps => '总次数';
+
+  @override
+  String get metricSets => '组数';
+
+  @override
+  String get metricAverage => '平均';
+
+  @override
+  String get readAsConfirm => '理解为';
+
+  @override
+  String get confirmYes => '对';
+
+  @override
+  String readAsNote(String from, String to) {
+    return '$from → $to';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1361,4 +1401,24 @@ class LZhHant extends LZh {
 
   @override
   String get metricVolume => '總量';
+
+  @override
+  String get metricReps => '總次數';
+
+  @override
+  String get metricSets => '組數';
+
+  @override
+  String get metricAverage => '平均';
+
+  @override
+  String get readAsConfirm => '理解為';
+
+  @override
+  String get confirmYes => '對';
+
+  @override
+  String readAsNote(String from, String to) {
+    return '$from → $to';
+  }
 }

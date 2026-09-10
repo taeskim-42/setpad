@@ -467,4 +467,24 @@ class LTh extends L {
 
   @override
   String get metricVolume => 'ปริมาณ';
+
+  @override
+  String get metricReps => 'ครั้งรวม';
+
+  @override
+  String get metricSets => 'จำนวนเซ็ต';
+
+  @override
+  String get metricAverage => 'เฉลี่ย';
+
+  @override
+  String get readAsConfirm => 'อ่านว่า';
+
+  @override
+  String get confirmYes => 'ใช่';
+
+  @override
+  String readAsNote(String from, String to) {
+    return '$from → $to';
+  }
 }

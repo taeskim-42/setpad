@@ -469,4 +469,24 @@ class LVi extends L {
 
   @override
   String get metricVolume => 'Khối lượng';
+
+  @override
+  String get metricReps => 'Tổng số lần';
+
+  @override
+  String get metricSets => 'Số hiệp';
+
+  @override
+  String get metricAverage => 'Trung bình';
+
+  @override
+  String get readAsConfirm => 'Hiểu là';
+
+  @override
+  String get confirmYes => 'Đúng';
+
+  @override
+  String readAsNote(String from, String to) {
+    return '$from → $to';
+  }
 }

@@ -460,4 +460,24 @@ class LJa extends L {
 
   @override
   String get metricVolume => 'ボリューム';
+
+  @override
+  String get metricReps => '合計回数';
+
+  @override
+  String get metricSets => 'セット数';
+
+  @override
+  String get metricAverage => '平均';
+
+  @override
+  String get readAsConfirm => 'このように読みました';
+
+  @override
+  String get confirmYes => 'はい';
+
+  @override
+  String readAsNote(String from, String to) {
+    return '$from → $to';
+  }
 }

@@ -181,4 +181,37 @@ void main() {
     final spans = highlightMatch('벤치프레스', '', hit: const TextStyle());
     expect(spans.single.style, isNull);
   });
+
+  testWidgets('의심스러운 해석은 묻고, 맞아요를 눌러야 답한다', (tester) async {
+    const channel = MethodChannel('test/doubt_query');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'status') return 'available';
+          if (call.method != 'query') return null;
+          // 글에 시간 말이 없는데 모델이 "최근 400일" 을 지어냈다 → 의심.
+          // (400 인 이유: 픽스처 기록이 8월 4일이라 그 안에 들어야 답이 있다.)
+          return {
+            'action': 'weightHistory',
+            'exercises': ['스쿼트'],
+            'periods': ['recent'],
+            'days': 400,
+          };
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+    await pump(tester, localAi: const LocalAi(channel: channel, nativeSupported: true));
+    await tester.enterText(find.byType(CupertinoSearchTextField), '스쿼트 추이 알려줘');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AnswerCard), findsNothing, reason: '의심스러우면 바로 답하지 않는다');
+    expect(find.textContaining('이렇게 읽었어요'), findsOneWidget);
+    expect(find.textContaining('추이'), findsWidgets);
+
+    await tester.tap(find.widgetWithText(SuggestionChip, '맞아요'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AnswerCard), findsOneWidget, reason: '확인하면 답한다');
+    expect(find.textContaining('이렇게 읽었어요'), findsNothing);
+  });
 }

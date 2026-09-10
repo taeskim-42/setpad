@@ -122,5 +122,11 @@
   "metricTrend": "推移",
   "metricLast": "前回",
   "metricSessions": "日数",
-  "metricVolume": "ボリューム"
+  "metricVolume": "ボリューム",
+  "metricReps": "合計回数",
+  "metricSets": "セット数",
+  "metricAverage": "平均",
+  "readAsConfirm": "このように読みました",
+  "confirmYes": "はい",
+  "readAsNote": "{from} → {to}"
 }

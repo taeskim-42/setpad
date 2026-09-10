@@ -40,8 +40,20 @@ class RecordQueryPlan {
     this.limit = 1,
     this.reason = '',
     this.terms = const [],
+    this.doubts = const [],
+    this.readAs = const {},
   });
   final String kind;
+
+  /// 자신 있게 틀릴 위험이 있는 자리. 비어 있지 않으면 화면은 답을 바로
+  /// 내지 않고 "이렇게 읽었어요" 로 한 번 묻는다. 값: period(글에 시간 말이
+  /// 없는데 기간을 냄), exercises(운동이 둘 이상 언급됐는데 하나만 답함),
+  /// note(메모 낱말 없이 메모 읽기로 빠졌는데 의도 낱말이 둘 이상이라 못 고침).
+  final List<String> doubts;
+
+  /// 퍼지로 맞춘 운동 이름 → 사람이 친 원문. "스쿼드" 를 스쿼트로 읽었으면
+  /// 카드에 그 사실을 적는다. 오탐이 많아 묻지는 않고 보여만 준다.
+  final Map<String, String> readAs;
   final List<RecordRequest> requests;
   final List<String> searchNames;
   final bool compare, rank;
@@ -57,15 +69,7 @@ class RecordQueryPlan {
   }) {
     final parsed = raw is String ? jsonDecode(_jsonText(raw)) : raw;
     final decoded = parsed is Map && parsed.containsKey('action')
-        ? _expandIntent(
-            _withStatedRecord(
-              _withStatedMetric(
-                _withStatedPeriod(parsed, question, today: today),
-                question,
-              ),
-              question,
-            ),
-          )
+        ? _expandIntent(_withStatedRecord(_withStatedMetric(_withStatedPeriod(parsed, question, today: today), question, names), question))
         : parsed;
     final value = decoded is Map
         ? Map<Object?, Object?>.from(decoded)
@@ -87,6 +91,7 @@ class RecordQueryPlan {
     if (rows is! List || rows.length > 4) {
       throw const FormatException('Invalid query count');
     }
+    final readAs = <String, String>{};
     String exercise(Object? name) {
       if (name == '*' || names.contains(name)) return name as String;
       // 모델은 사용자 철자를 그대로 돌려주곤 한다 — "스쾃", "벤치". 목록에 그
@@ -94,7 +99,10 @@ class RecordQueryPlan {
       // 쓰는 같은 퍼지 대응(별칭·초성·오타)으로 한 번 맞춰 본다.
       if (name is String) {
         final hit = suggest(name, names, limit: 1);
-        if (hit.isNotEmpty) return hit.first;
+        if (hit.isNotEmpty) {
+          readAs[hit.first] = name;   // 무엇을 무엇으로 읽었는지 남긴다
+          return hit.first;
+        }
       }
       throw const FormatException('Unknown exercise');
     }
@@ -210,7 +218,7 @@ class RecordQueryPlan {
           ].contains(metric)) {
         // "오버헤드 요즘 어때" — 추이엔 운동이 필요한데 모델이 * 를 냈다.
         // 글에서 운동이 딱 하나 잡히면 그것이다. 둘 이상이면 모른다고 둔다.
-        final found = retrieveExercises(question, names, limit: 2);
+        final found = namedExercises(question, names);
         if (found.length == 1) name = found.single;
       }
       var weightUnit = row['weightUnit'] ?? defaultUnit;
@@ -298,7 +306,29 @@ class RecordQueryPlan {
         (value['kind'] == 'insight' && (compare || rank))) {
       throw const FormatException('Invalid retrieval');
     }
+    // 자신 있게 틀릴 위험. 오탐이 없는 신호만 쓴다 — 확인 탭은 값이 비싸다.
+    final doubts = <String>[];
+    if (question.isNotEmpty) {
+      if (requests.any((r) => r.since != null) && !mentionsTime(question)) {
+        doubts.add('period');
+      }
+      // 운동 둘이 지목됐는데 하나만 답했거나, 이름 없는 순위(*)로 뭉갰다.
+      // "벤치랑 스쿼트 최고" 를 운동일수 순위로 내는 것이 후자다.
+      final named = namedExercises(question, names);
+      if (named.length >= 2 &&
+          (requests.length == 1 && !rank ||
+              rank && requests.every((r) => r.exercise == '*'))) {
+        doubts.add('exercises');
+      }
+      if (value['kind'] == 'insight' &&
+          !_asksAboutNotes(question, const {}) &&
+          metricFamilies(question).isNotEmpty) {
+        doubts.add('note');
+      }
+    }
     return RecordQueryPlan(
+      doubts: doubts,
+      readAs: readAs,
       terms: terms.cast<String>(),
       rank: rank,
       limit: limit,
@@ -1293,34 +1323,49 @@ bool _asksAboutNotes(String question, Map intent) {
       ).hasMatch(question);
 }
 
-Map _withStatedMetric(Map intent, String question) {
+/// 글에 걸리는 의도 낱말의 갈래들.
+List<String> metricFamilies(String question) => [
+  for (final e in _metricWords.entries)
+    if (RegExp(e.value, caseSensitive: false).hasMatch(question)) e.key,
+];
+
+Map _withStatedMetric(Map intent, String question, List<String> names) {
   if (question.isEmpty ||
       ['unrelated', 'missing', 'clarify'].contains(intent['action']) ||
       (intent['action'] == 'readRecords' && _asksAboutNotes(question, intent))) {
     return intent;
   }
   final exercises = intent['exercises'];
-  final lonelyRank =
-      intent['action'] == 'rankExercises' &&
-      exercises is List &&
-      exercises.length == 1;
-  // 운동 하나를 지목한 순위는 언제나 검증에 걸린다. 의도 낱말이 있으면 그
-  // 의도로 바꾸는 편이 죽는 것보다 낫다. 진짜 순위(운동 없음·여럿)는 둔다.
-  if (intent['action'] == 'rankExercises' && !lonelyRank) return intent;
+  final ranking = intent['action'] == 'rankExercises';
+  // 모델은 "정체기인가", "늘고 있나", "PR" 을 운동일수 순위(운동 없음)로
+  // 내곤 한다 — dev 에서 놓친 실패 12건이 전부 이 모양이었다. 순위인데
+  // 글에 운동이 딱 하나 있으면 순위가 아니다. 진짜 순위 질문("가장 자주 한
+  // 운동 세 개")에는 운동 이름이 없다.
+  final named = ranking && exercises is List && exercises.isEmpty
+      ? namedExercises(question, names)
+      : const <String>[];
+  final lonelyRank = ranking &&
+      ((exercises is List && exercises.length == 1) || named.length == 1);
+  if (ranking && !lonelyRank) return intent;
   final periods = intent['periods'];
   if (periods is List && periods.length == 2) return intent; // 비교
-  final hits = [
-    for (final e in _metricWords.entries)
-      if (RegExp(e.value, caseSensitive: false).hasMatch(question)) e.key,
-  ];
+  final hits = metricFamilies(question);
   if (hits.length != 1 || hits.single == intent['action']) return intent;
   final next = {...intent, 'action': hits.single};
   if (lonelyRank) {
     next.remove('metric');
     next.remove('limit');
+    if (named.length == 1) next['exercises'] = named;
   }
   return next;
 }
+
+/// 글에 시간을 가리키는 말이 있는가. 넓게 본다 — 여기서 놓치면 "기간을
+/// 지어냈다" 는 의심이 오탐이 된다.
+bool mentionsTime(String text) => RegExp(
+  r'\d+\s*(월|일|주|년|개월)|\d{4}|오늘|어제|그저께|이번|지난|저번|올해|금년|작년|최근|요즘|today|yesterday|this\s|last\s|recent|week|month|year|\bago\b',
+  caseSensitive: false,
+).hasMatch(text);
 
 /// 글에 또렷이 적힌 숫자 조건. "80kg 이상", "5회 이하", "100파운드 이상".
 /// 이상·이하만 본다 — 초과·미만은 무게에서 경계가 애매해 모델에 맡긴다.

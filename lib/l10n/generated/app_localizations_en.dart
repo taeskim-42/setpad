@@ -470,4 +470,24 @@ class LEn extends L {
 
   @override
   String get metricVolume => 'Volume';
+
+  @override
+  String get metricReps => 'Total reps';
+
+  @override
+  String get metricSets => 'Sets';
+
+  @override
+  String get metricAverage => 'Average';
+
+  @override
+  String get readAsConfirm => 'Read as';
+
+  @override
+  String get confirmYes => 'Yes';
+
+  @override
+  String readAsNote(String from, String to) {
+    return '$from → $to';
+  }
 }

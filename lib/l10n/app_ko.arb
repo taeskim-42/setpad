@@ -412,5 +412,25 @@
   "metricVolume": "볼륨",
   "@metricMax": {
     "description": "검색창 아래 칩. 운동 이름이 잡히면 무엇을 볼지 고르는 다섯 개."
+  },
+  "metricReps": "총 횟수",
+  "metricSets": "세트 수",
+  "metricAverage": "평균",
+  "readAsConfirm": "이렇게 읽었어요",
+  "confirmYes": "맞아요",
+  "readAsNote": "{from} → {to}",
+  "@readAsConfirm": {
+    "description": "해석이 의심스러울 때 답 대신 띄우는 줄. 뒤에 운동·의도·기간이 붙는다."
+  },
+  "@readAsNote": {
+    "description": "오타를 퍼지로 읽었을 때. from 은 사람이 친 것, to 는 읽은 운동 이름.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
   }
 }

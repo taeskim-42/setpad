@@ -462,4 +462,24 @@ class LKo extends L {
 
   @override
   String get metricVolume => '볼륨';
+
+  @override
+  String get metricReps => '총 횟수';
+
+  @override
+  String get metricSets => '세트 수';
+
+  @override
+  String get metricAverage => '평균';
+
+  @override
+  String get readAsConfirm => '이렇게 읽었어요';
+
+  @override
+  String get confirmYes => '맞아요';
+
+  @override
+  String readAsNote(String from, String to) {
+    return '$from → $to';
+  }
 }

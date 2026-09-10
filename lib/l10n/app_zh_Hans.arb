@@ -122,5 +122,11 @@
   "metricTrend": "趋势",
   "metricLast": "上次",
   "metricSessions": "天数",
-  "metricVolume": "总量"
+  "metricVolume": "总量",
+  "metricReps": "总次数",
+  "metricSets": "组数",
+  "metricAverage": "平均",
+  "readAsConfirm": "理解为",
+  "confirmYes": "对",
+  "readAsNote": "{from} → {to}"
 }

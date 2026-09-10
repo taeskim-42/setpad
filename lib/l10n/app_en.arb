@@ -122,5 +122,11 @@
   "metricTrend": "Trend",
   "metricLast": "Last",
   "metricSessions": "Days",
-  "metricVolume": "Volume"
+  "metricVolume": "Volume",
+  "metricReps": "Total reps",
+  "metricSets": "Sets",
+  "metricAverage": "Average",
+  "readAsConfirm": "Read as",
+  "confirmYes": "Yes",
+  "readAsNote": "{from} → {to}"
 }

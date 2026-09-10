@@ -122,5 +122,11 @@
   "metricTrend": "Xu hướng",
   "metricLast": "Lần cuối",
   "metricSessions": "Số ngày",
-  "metricVolume": "Khối lượng"
+  "metricVolume": "Khối lượng",
+  "metricReps": "Tổng số lần",
+  "metricSets": "Số hiệp",
+  "metricAverage": "Trung bình",
+  "readAsConfirm": "Hiểu là",
+  "confirmYes": "Đúng",
+  "readAsNote": "{from} → {to}"
 }

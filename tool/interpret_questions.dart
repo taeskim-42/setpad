@@ -64,6 +64,8 @@ Future<void> main() async {
         'compare': plan.compare,
         'reason': plan.reason,
         'searchNames': plan.searchNames,
+        'doubts': plan.doubts,
+        'readAs': plan.readAs,
         'requests': [
           for (final r in plan.requests)
             {

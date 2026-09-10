@@ -99,6 +99,20 @@ void main() {
       expect(koreanNumber('킬로'), isNull);
     });
 
+    test('글이 지목한 운동 — 긴 키부터, 찾은 자리는 지운다', () {
+      const pool = ['벤치프레스', '레그프레스', '오버헤드프레스', '랫풀다운', '푸시업', '스쿼트'];
+      expect(namedExercises('오버헤드 프레스 세트 수', pool), ['오버헤드프레스']);
+      expect(namedExercises('이번 주 bench press 평균', pool), ['벤치프레스']);
+      expect(namedExercises('lat pulldown 총량', pool), ['랫풀다운']);
+      expect(namedExercises('pushup 평균', pool), ['푸시업']);
+      expect(namedExercises('벤치 프레스 PR', pool), ['벤치프레스']);
+      expect(namedExercises('벤치 최고', pool), ['벤치프레스']);          // 접두는 낱말 단계
+      expect(namedExercises('프레스 최고', pool), isEmpty);                // 여럿에 닿는 낱말은 지목이 아니다
+      expect(namedExercises('벤치프레스랑 스쿼트 최고', pool), ['벤치프레스', '스쿼트']);
+      expect(namedExercises('스쿼트 벤치 요즘 어때', pool), ['스쿼트', '벤치프레스']);   // 키 + 접두
+      expect(namedExercises('가장 자주 한 운동 세 개', pool), isEmpty);
+    });
+
     test('스쾃은 스쿼트다 — 오타가 아니라 표기법이다', () {
       expect(suggest('스쾃', ['스쿼트', '레그프레스']), ['스쿼트']);
     });

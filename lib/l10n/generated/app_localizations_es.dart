@@ -470,4 +470,24 @@ class LEs extends L {
 
   @override
   String get metricVolume => 'Volumen';
+
+  @override
+  String get metricReps => 'Reps totales';
+
+  @override
+  String get metricSets => 'Series';
+
+  @override
+  String get metricAverage => 'Promedio';
+
+  @override
+  String get readAsConfirm => 'Entendido como';
+
+  @override
+  String get confirmYes => 'Sí';
+
+  @override
+  String readAsNote(String from, String to) {
+    return '$from → $to';
+  }
 }

@@ -37,6 +37,10 @@ void main() {
     // 3. 순위로 냈다 — 운동 하나 지목한 순위는 언제나 무효다.
     {'action': 'rankExercises', 'metric': 'trainingDays', 'limit': 1,
      'exercises': [form], 'periods': ['all']},
+    // 4. 운동 없는 순위로 냈다 — 실제 모델이 "정체기인가·늘고 있나·PR" 에
+    //    가장 자주 내던 모양이다. 글에 운동이 하나 있으면 순위가 아니다.
+    {'action': 'rankExercises', 'metric': 'trainingDays', 'limit': 1,
+     'exercises': [], 'periods': ['all']},
   ];
 
   List<String> grade(RecordQueryPlan p, Map<String, Object?> exp) {

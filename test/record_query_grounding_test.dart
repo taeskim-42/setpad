@@ -237,4 +237,57 @@ void main() {
     expect(p.requests.single.since, DateTime(2030, 9, 1));
     expect(p.requests.single.until, DateTime(2030, 9, 30));
   });
+
+  group('자신 있게 틀리지 않기', () {
+    Map<String, Object?> emptyRank() => {
+      'action': 'rankExercises', 'metric': 'trainingDays', 'limit': 1,
+      'exercises': [], 'periods': ['all'],
+    };
+
+    test('운동 없는 순위라도 글에 운동이 하나면 순위가 아니다', () {
+      for (final (q, want) in [
+        ('지난달 벤치프레스는 정체기인가', Metric.trend),
+        ('올해 스쿼트 늘고 있나', Metric.trend),
+        ('야 9월에 벤치프레스 PRㅋㅋ', Metric.max),
+        ('스쿼트 직전 세트?', Metric.last),
+      ]) {
+        final p = decode(emptyRank(), q);
+        expect(p.rank, isFalse, reason: q);
+        expect(p.requests.single.metric, want, reason: q);
+        expect(p.requests.single.exercise, isNot('*'), reason: q);
+      }
+    });
+
+    test('진짜 순위(운동 이름 없음)는 그대로 순위다', () {
+      expect(decode(emptyRank(), '가장 자주 한 운동 세 개').rank, isTrue);
+    });
+
+    test('글에 시간 말이 없는데 기간을 냈으면 의심한다', () {
+      final p = decode({...metric('weightHistory'), 'periods': ['recent'], 'days': 28},
+          '스쿼트 추이 알려줘');
+      expect(p.doubts, contains('period'));
+      final q = decode({...metric('weightHistory'), 'periods': ['recent'], 'days': 28},
+          '요즘 스쿼트 추이');
+      expect(q.doubts, isNot(contains('period')));
+    });
+
+    test('운동이 둘 언급됐는데 하나만 답하면 의심한다', () {
+      expect(decode(metric('heaviest'), '벤치프레스랑 스쿼트 최고').doubts, contains('exercises'));
+      expect(decode(metric('heaviest'), '스쿼트 최고').doubts, isNot(contains('exercises')));
+    });
+
+    test('운동 둘을 이름 없는 순위로 뭉개도 의심한다', () {
+      final p = decode(emptyRank(), '벤치프레스랑 스쿼트 최고');
+      expect(p.rank, isTrue);                       // 규칙은 손대지 않는다(운동 둘)
+      expect(p.doubts, contains('exercises'));      // 대신 묻는다
+      expect(decode(emptyRank(), '가장 자주 한 운동 세 개').doubts, isEmpty);
+    });
+
+    test('오타를 퍼지로 읽었으면 무엇으로 읽었는지 남긴다', () {
+      final p = decode({...metric('heaviest'), 'exercises': ['스쿼드']}, '스쿼드 최고');
+      expect(p.requests.single.exercise, '스쿼트');
+      expect(p.readAs, {'스쿼트': '스쿼드'});
+      expect(decode(metric('heaviest'), '스쿼트 최고').readAs, isEmpty);
+    });
+  });
 }

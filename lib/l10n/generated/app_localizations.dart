@@ -846,6 +846,42 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'볼륨'**
   String get metricVolume;
+
+  /// No description provided for @metricReps.
+  ///
+  /// In ko, this message translates to:
+  /// **'총 횟수'**
+  String get metricReps;
+
+  /// No description provided for @metricSets.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트 수'**
+  String get metricSets;
+
+  /// No description provided for @metricAverage.
+  ///
+  /// In ko, this message translates to:
+  /// **'평균'**
+  String get metricAverage;
+
+  /// 해석이 의심스러울 때 답 대신 띄우는 줄. 뒤에 운동·의도·기간이 붙는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'이렇게 읽었어요'**
+  String get readAsConfirm;
+
+  /// No description provided for @confirmYes.
+  ///
+  /// In ko, this message translates to:
+  /// **'맞아요'**
+  String get confirmYes;
+
+  /// 오타를 퍼지로 읽었을 때. from 은 사람이 친 것, to 는 읽은 운동 이름.
+  ///
+  /// In ko, this message translates to:
+  /// **'{from} → {to}'**
+  String readAsNote(String from, String to);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

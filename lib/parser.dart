@@ -381,3 +381,48 @@ int? koreanNumber(String text) {
   total += current;
   return total == 0 ? null : total;
 }
+
+/// 글이 **지목한** 운동. 넓게 긁는 [retrieveExercises] 와 다르다 — 그쪽은
+/// 모델에게 후보를 많이 주려는 것이고, 이쪽은 "정확히 무엇을 말했나" 다.
+///
+/// 1. 사전 키(정식·다른 언어·별칭)를 **긴 것부터** 글자 그대로 찾는다.
+///    찾은 자리는 지운다 — "오버헤드 프레스" 안의 "프레스" 가 벤치프레스로
+///    또 잡히면 안 된다. 띄어쓰기는 무시한다("벤치 프레스" = "벤치프레스").
+/// 2. 하나도 없으면 낱말마다 [suggest] 를 쓰되, 그 낱말이 **한 운동에만**
+///    닿을 때만 인정한다. "프레스" 처럼 여럿에 닿는 낱말은 지목이 아니다.
+///
+/// 두 단계를 합친다. 결과가 둘 이상이면 둘 이상을 돌려준다 — 부르는 쪽이
+/// "하나만" 을 요구한다.
+List<String> namedExercises(String text, List<String> pool) {
+  var compact = searchKey(text);
+  if (compact.isEmpty) return const [];
+  final found = <String>[];
+  final keyed = <(String key, String name)>[];
+  for (final name in pool.toSet()) {
+    final keys = exerciseByName[name.toLowerCase()]?.keys ?? [name.toLowerCase()];
+    for (final key in keys) {
+      final k = searchKey(key);
+      if (k.length >= 2 && !RegExp(r'^[ㄱ-ㅎ]+$').hasMatch(k)) keyed.add((k, name));
+    }
+    for (final word in (exerciseByName[name.toLowerCase()]?.alias ?? '').toLowerCase().split(' ')) {
+      if (word.length >= 2) keyed.add((searchKey(word), name));
+    }
+  }
+  keyed.sort((a, b) => b.$1.length.compareTo(a.$1.length));
+  for (final (key, name) in keyed) {
+    final at = compact.indexOf(key);
+    if (at < 0) continue;
+    if (!found.contains(name)) found.add(name);
+    compact = compact.replaceRange(at, at + key.length, ' ' * key.length);
+  }
+  // 키로 찾은 것과 낱말로 찾은 것을 합친다. "스쿼트 벤치 요즘 어때" 는 키로
+  // 스쿼트, 낱말(접두)로 벤치프레스 — 둘 다 지목이다. 키 단계에서 멈추면
+  // 벤치를 놓치고 스쿼트 하나로 읽는다.
+  for (final raw in text.split(RegExp(r'\s+'))) {
+    final word = stripParticle(raw);
+    if (word.length < 2 || word.contains(RegExp(r'\d'))) continue;
+    final hits = suggest(word, pool, limit: 2);
+    if (hits.length == 1 && !found.contains(hits.single)) found.add(hits.single);
+  }
+  return found;
+}
