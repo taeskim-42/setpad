@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'palette.dart';
 import 'timing_audio.dart';
 
 /// Timing is derived from the saved title, so old records need no migration.
@@ -404,10 +405,28 @@ class WorkoutTimingControls extends StatelessWidget {
       final running = selected && timer.running;
       final phase = selected ? timer.phase : TimingPhase.ready;
       final seconds = selected ? timer.remaining : 3;
-      final clock =
-          '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
       final beat = selected ? timer.beat : 0;
       final counted = spokenCount(beat, l.localeName.split('_').first);
+      // 템포 앱처럼 초를 맨숫자로 크게. "0:20" 보다 "20" 이 힐끗 봐도 읽힌다.
+      // 1분을 넘는 구간만 분:초. 메트로놈은 준비 뒤로는 몇 번째 박자인지.
+      final big = !spec.tabata && phase != TimingPhase.ready
+          ? (beat > 0 ? '$beat' : '')
+          : seconds < 60
+          ? '$seconds'
+          : '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+      final bigColor = switch (phase) {
+        TimingPhase.work => seal.resolveFrom(context),
+        TimingPhase.rest => CupertinoColors.systemGreen.resolveFrom(context),
+        TimingPhase.ready when selected && timer.running =>
+          CupertinoColors.label.resolveFrom(context),
+        _ => CupertinoColors.tertiaryLabel.resolveFrom(context),
+      };
+      final round = selected ? timer.round : 1;
+      final doneRounds = switch (phase) {
+        TimingPhase.complete => spec.rounds,
+        TimingPhase.ready => 0,
+        _ => round - 1,
+      };
       final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
       // 돌아가는 중에 길이를 바꾸면 남은 시간이 튄다. 멈춘 뒤에 바꾸게 한다.
       final editable = onChanged != null && !running;
@@ -424,14 +443,17 @@ class WorkoutTimingControls extends StatelessWidget {
         TimingPhase.complete => l.timingComplete,
       };
       final status = spec.tabata
-          ? '$phaseLabel · ${l.timingRound(selected ? timer.round : 1, spec.rounds)}'
+          ? '$phaseLabel · ${l.timingRound(round, spec.rounds)}'
                 '${beat > 0 ? ' · ${l.timingBeat(counted)}' : ''}'
           : selected && phase == TimingPhase.ready
           ? phaseLabel
-          : beat > 0
-          ? l.timingBeat(counted)
+          // 박자는 큰 숫자로 이미 보인다. 옆에는 무엇인지만 적는다 —
+          // "5 · 다섯" 처럼 같은 것을 두 번 쓰지 않는다.
           : l.timingMetronome;
-      final showClock = spec.tabata || selected && phase == TimingPhase.ready;
+      void toggle() {
+        if (!running) onStart();
+        timer.toggle(owner, spec);
+      }
 
       // 칸 너비를 똑같이 고정한다. 예전에는 Wrap 이라 5초→10초 처럼 글자가
       // 한 자 늘면 마지막 칸이 다음 줄로 떨어지고 카드 아래가 통째로 밀렸다.
@@ -489,39 +511,56 @@ class WorkoutTimingControls extends StatelessWidget {
                 l.timingInvalid,
                 style: TextStyle(fontSize: 13, color: muted),
               )
-            else
+            else ...[
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  if (showClock) ...[
-                    Text(
-                      clock,
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w600,
-                        fontFeatures: [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                  ],
+                  // 템포 앱처럼 숫자 자체를 눌러도 시작·정지. 헬스장에서 작은
+                  // 글자 버튼을 겨누기 어렵다.
                   Expanded(
-                    child: Text(
-                      status,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: showClock ? muted : null,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: toggle,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          if (big.isNotEmpty) ...[
+                            Text(
+                              big,
+                              style: TextStyle(
+                                fontSize: 44,
+                                fontWeight: FontWeight.w700,
+                                color: bigColor,
+                                letterSpacing: -1,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
+                          Flexible(
+                            child: Text(
+                              status,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: muted,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   CupertinoButton(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
-                    onPressed: () {
-                      if (!running) onStart();
-                      timer.toggle(owner, spec);
-                    },
+                    onPressed: toggle,
                     child: Text(
                       running ? l.timingPause : l.timingStart,
                       style: const TextStyle(fontWeight: FontWeight.w600),
@@ -538,6 +577,32 @@ class WorkoutTimingControls extends StatelessWidget {
                   ),
                 ],
               ),
+              // 라운드마다 한 칸. 템포 앱의 고리를 글줄에 맞게 눕힌 것이다.
+              if (spec.tabata)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2, bottom: 4),
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < spec.rounds; i++) ...[
+                        if (i > 0) const SizedBox(width: 2),
+                        Expanded(
+                          child: Container(
+                            height: 3,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(1.5),
+                              color: i < doneRounds
+                                  ? seal.resolveFrom(context)
+                                  : CupertinoColors.systemFill.resolveFrom(
+                                      context,
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
             if (selected && timer.soundFailed)
               Text(
                 l.timingSoundFailed,
@@ -559,10 +624,8 @@ class _Stepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget key(IconData icon, VoidCallback? tap, String semantics) =>
-        CupertinoButton(
-          padding: EdgeInsets.zero,
-          minimumSize: const Size(40, 32),
-          onPressed: tap,
+        _RepeatingKey(
+          onTap: tap,
           child: Icon(icon, size: 16, semanticLabel: semantics),
         );
     return Column(
@@ -588,4 +651,47 @@ class _Stepper extends StatelessWidget {
       ],
     );
   }
+}
+
+/// 누르고 있으면 되풀이한다 — 20초를 600초로 올릴 때 116번 두드리지 않게.
+class _RepeatingKey extends StatefulWidget {
+  const _RepeatingKey({required this.onTap, required this.child});
+  final VoidCallback? onTap;
+  final Widget child;
+
+  @override
+  State<_RepeatingKey> createState() => _RepeatingKeyState();
+}
+
+class _RepeatingKeyState extends State<_RepeatingKey> {
+  Timer? _repeat;
+
+  void _stop() {
+    _repeat?.cancel();
+    _repeat = null;
+  }
+
+  @override
+  void dispose() {
+    _stop();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onLongPressStart: widget.onTap == null
+        ? null
+        : (_) => _repeat = Timer.periodic(
+            const Duration(milliseconds: 120),
+            (_) => widget.onTap == null ? _stop() : widget.onTap!(),
+          ),
+    onLongPressEnd: (_) => _stop(),
+    onLongPressCancel: _stop,
+    child: CupertinoButton(
+      padding: EdgeInsets.zero,
+      minimumSize: const Size(40, 32),
+      onPressed: widget.onTap,
+      child: widget.child,
+    ),
+  );
 }
