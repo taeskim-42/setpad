@@ -84,9 +84,9 @@ final class TimingBridge {
     }
     if let cueName {
       cue?.stop()
-      let player = try AVAudioPlayer(data: wave(seconds: cueName == "complete" ? 0.5 : 0.15,
+      let player = try AVAudioPlayer(data: wave(seconds: cueName == "complete" ? 0.6 : cueName == "ready" ? 0.1 : 0.35,
         frequency: cueName == "rest" ? 520 : cueName == "ready" ? 760 : 1320,
-        tone: cueName == "complete" ? 0.4 : 0.1))
+        tone: cueName == "complete" ? 0.5 : cueName == "ready" ? 0.07 : 0.3))
       player.volume = 0.5; guard player.play() else { throw NSError(domain: "setpad.timing", code: 2) }; cue = player
     } else if !active {
       cue?.stop(); cue = nil

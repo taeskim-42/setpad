@@ -298,7 +298,9 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     }
     if (next != _lastPhase || round != _lastRound) {
       _sound(cue: next == TimingPhase.work ? 'work' : 'rest');
-    } else if (next == TimingPhase.ready && remaining != _lastRemaining) {
+    } else if (spec!.tabata && remaining <= 3 && remaining != _lastRemaining) {
+      // 구간마다 마지막 3초를 띠·띠·띠 하고 센다 — 타바타 앱들의 공통 신호다.
+      // 화면을 안 보고도 다음 구간이 오는 것을 몸이 안다. 준비 3초도 같은 소리.
       _sound(cue: 'ready');
     }
     final counted = beat;
@@ -401,11 +403,14 @@ class WorkoutTimingControls extends StatelessWidget {
           '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
       final beat = selected ? timer.beat : 0;
       final counted = spokenCount(beat, l.localeName.split('_').first);
+      final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
       // 돌아가는 중에 길이를 바꾸면 남은 시간이 튄다. 멈춘 뒤에 바꾸게 한다.
       final editable = onChanged != null && !running;
       void change(TimingSpec next) {
         if (next.valid && next != spec) onChanged!(next);
       }
+
+      int lessSeconds(int n) => n - 5 < 5 ? TimingSpec.minSeconds : n - 5;
 
       final phaseLabel = switch (phase) {
         TimingPhase.ready => l.timingReady,
@@ -413,105 +418,91 @@ class WorkoutTimingControls extends StatelessWidget {
         TimingPhase.rest => l.timingRest,
         TimingPhase.complete => l.timingComplete,
       };
+      final status = spec.tabata
+          ? '$phaseLabel · ${l.timingRound(selected ? timer.round : 1, spec.rounds)}'
+                '${beat > 0 ? ' · ${l.timingBeat(counted)}' : ''}'
+          : (beat > 0 ? l.timingBeat(counted) : l.timingMetronome);
+
+      // 칸 너비를 똑같이 고정한다. 예전에는 Wrap 이라 5초→10초 처럼 글자가
+      // 한 자 늘면 마지막 칸이 다음 줄로 떨어지고 카드 아래가 통째로 밀렸다.
+      final cells = <Widget>[
+        if (spec.bpm != null)
+          _Stepper(
+            label: l.timingBpm(spec.bpm!),
+            onLess: editable && spec.bpm! > TimingSpec.minBpm
+                ? () =>
+                      change(spec.copyWith(bpm: spec.bpm! - TimingSpec.bpmStep))
+                : null,
+            onMore: editable && spec.bpm! < TimingSpec.maxBpm
+                ? () =>
+                      change(spec.copyWith(bpm: spec.bpm! + TimingSpec.bpmStep))
+                : null,
+          ),
+        if (spec.tabata) ...[
+          _Stepper(
+            label: l.timingWorkSeconds(spec.work),
+            onLess: editable && spec.work > TimingSpec.minSeconds
+                ? () => change(spec.copyWith(work: lessSeconds(spec.work)))
+                : null,
+            onMore: editable && spec.work < TimingSpec.maxSeconds
+                ? () => change(spec.copyWith(work: spec.work + 5))
+                : null,
+          ),
+          _Stepper(
+            label: l.timingRestSeconds(spec.rest),
+            onLess: editable && spec.rest > TimingSpec.minSeconds
+                ? () => change(spec.copyWith(rest: lessSeconds(spec.rest)))
+                : null,
+            onMore: editable && spec.rest < TimingSpec.maxSeconds
+                ? () => change(spec.copyWith(rest: spec.rest + 5))
+                : null,
+          ),
+          _Stepper(
+            label: l.timingRounds(spec.rounds),
+            onLess: editable && spec.rounds > 1
+                ? () => change(spec.copyWith(rounds: spec.rounds - 1))
+                : null,
+            onMore: editable && spec.rounds < 99
+                ? () => change(spec.copyWith(rounds: spec.rounds + 1))
+                : null,
+          ),
+        ],
+      ];
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Wrap(
-              spacing: 14,
-              runSpacing: 4,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                if (spec.bpm != null)
-                  _Stepper(
-                    label: l.timingBpm(spec.bpm!),
-                    onLess: editable && spec.bpm! > TimingSpec.minBpm
-                        ? () => change(
-                            spec.copyWith(
-                              bpm: (spec.bpm! - TimingSpec.bpmStep).clamp(
-                                TimingSpec.minBpm,
-                                TimingSpec.maxBpm,
-                              ),
-                            ),
-                          )
-                        : null,
-                    onMore: editable && spec.bpm! < TimingSpec.maxBpm
-                        ? () => change(
-                            spec.copyWith(
-                              bpm: (spec.bpm! + TimingSpec.bpmStep).clamp(
-                                TimingSpec.minBpm,
-                                TimingSpec.maxBpm,
-                              ),
-                            ),
-                          )
-                        : null,
-                  ),
-                if (spec.tabata) ...[
-                  _Stepper(
-                    label: l.timingWorkSeconds(spec.work),
-                    onLess: editable && spec.work > TimingSpec.minSeconds
-                        ? () => change(
-                            spec.copyWith(
-                              work: spec.work - 5 < 5
-                                  ? TimingSpec.minSeconds
-                                  : spec.work - 5,
-                            ),
-                          )
-                        : null,
-                    onMore: editable && spec.work < TimingSpec.maxSeconds
-                        ? () => change(spec.copyWith(work: spec.work + 5))
-                        : null,
-                  ),
-                  _Stepper(
-                    label: l.timingRestSeconds(spec.rest),
-                    onLess: editable && spec.rest > TimingSpec.minSeconds
-                        ? () => change(
-                            spec.copyWith(
-                              rest: spec.rest - 5 < 5
-                                  ? TimingSpec.minSeconds
-                                  : spec.rest - 5,
-                            ),
-                          )
-                        : null,
-                    onMore: editable && spec.rest < TimingSpec.maxSeconds
-                        ? () => change(spec.copyWith(rest: spec.rest + 5))
-                        : null,
-                  ),
-                  _Stepper(
-                    label: l.timingRounds(spec.rounds),
-                    onLess: editable && spec.rounds > 1
-                        ? () => change(spec.copyWith(rounds: spec.rounds - 1))
-                        : null,
-                    onMore: editable && spec.rounds < 99
-                        ? () => change(spec.copyWith(rounds: spec.rounds + 1))
-                        : null,
-                  ),
-                ],
-              ],
-            ),
+            Row(children: [for (final c in cells) Expanded(child: c)]),
             if (!spec.valid)
               Text(
                 l.timingInvalid,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                ),
+                style: TextStyle(fontSize: 13, color: muted),
               )
             else
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  if (spec.tabata) ...[
+                    Text(
+                      clock,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w600,
+                        fontFeatures: [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
                   Expanded(
                     child: Text(
-                      spec.tabata
-                          ? '$phaseLabel  $clock  ·  ${l.timingRound(selected ? timer.round : 1, spec.rounds)}'
-                                '${beat > 0 ? '  ·  ${l.timingBeat(counted)}' : ''}'
-                          : (beat > 0
-                                ? l.timingBeat(counted)
-                                : l.timingMetronome),
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontFeatures: [FontFeature.tabularFigures()],
+                      status,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: spec.tabata ? muted : null,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   ),
@@ -521,7 +512,10 @@ class WorkoutTimingControls extends StatelessWidget {
                       if (!running) onStart();
                       timer.toggle(owner, spec);
                     },
-                    child: Text(running ? l.timingPause : l.timingStart),
+                    child: Text(
+                      running ? l.timingPause : l.timingStart,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
                   CupertinoButton(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -537,10 +531,7 @@ class WorkoutTimingControls extends StatelessWidget {
             if (selected && timer.soundFailed)
               Text(
                 l.timingSoundFailed,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                ),
+                style: TextStyle(fontSize: 13, color: muted),
               ),
           ],
         ),
@@ -549,7 +540,7 @@ class WorkoutTimingControls extends StatelessWidget {
   );
 }
 
-/// 값 하나와 −/+ 두 개. 키패드의 무게 조절과 같은 결로 둔다.
+/// 값 한 줄 위에, −/+ 한 줄 아래. 칸 너비는 부모가 고정한다.
 class _Stepper extends StatelessWidget {
   const _Stepper({required this.label, this.onLess, this.onMore});
   final String label;
@@ -557,20 +548,33 @@ class _Stepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
     Widget key(IconData icon, VoidCallback? tap, String semantics) =>
         CupertinoButton(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          minimumSize: const Size(30, 28),
+          padding: EdgeInsets.zero,
+          minimumSize: const Size(40, 32),
           onPressed: tap,
-          child: Icon(icon, size: 15, semanticLabel: semantics),
+          child: Icon(icon, size: 16, semanticLabel: semantics),
         );
-    return Row(
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: TextStyle(fontSize: 13, color: muted)),
-        key(CupertinoIcons.minus, onLess, '-'),
-        key(CupertinoIcons.plus, onMore, '+'),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 13,
+            color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            key(CupertinoIcons.minus, onLess, '-'),
+            key(CupertinoIcons.plus, onMore, '+'),
+          ],
+        ),
       ],
     );
   }

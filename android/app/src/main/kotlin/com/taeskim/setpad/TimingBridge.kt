@@ -99,13 +99,15 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                 val cue = call.argument<String>("cue")
                 if (cue != null) {
                     val generator = tone ?: ToneGenerator(AudioManager.STREAM_MUSIC, 55).also { tone = it }
-                    cueEndsAt = SystemClock.elapsedRealtime() + if (cue == "complete") 400 else 100
-                    generator.startTone(if (cue == "rest") ToneGenerator.TONE_PROP_NACK else ToneGenerator.TONE_PROP_BEEP, if (cue == "complete") 400 else 100)
+                    cueEndsAt = SystemClock.elapsedRealtime() + cueMillis(cue)
+                    generator.startTone(if (cue == "rest") ToneGenerator.TONE_PROP_NACK else ToneGenerator.TONE_PROP_BEEP, cueMillis(cue))
                 } else if (!active) { tone?.release(); tone = null }
                 result.success(null)
             } catch (_: Exception) { stop(); result.error("audioUnavailable", null, null) }
         }
     }
+    // Countdown ticks short, work/rest changes long, finish longest.
+    private fun cueMillis(cue: String) = if (cue == "complete") 500 else if (cue == "ready") 100 else 350
     private fun stopBeat() { cancelSpeech(); track?.let { runCatching { it.stop() }; it.release() }; track = null; tempo = null }
     private fun stop() { stopBeat(); runCatching { speech?.stop() }; tone?.release(); tone = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     fun interrupt() { stop(); channel.invokeMethod("interrupted", null) }

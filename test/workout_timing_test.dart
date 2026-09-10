@@ -84,6 +84,37 @@ void main() {
     },
   );
   test(
+    'every interval counts down its last three seconds, then a long cue',
+    () async {
+      var now = Duration.zero;
+      final audio = FakeAudio(), owner = Object();
+      final timer = WorkoutTimer(audio: audio, now: () => now);
+      timer.toggle(
+        owner,
+        const TimingSpec(tabata: true, work: 5, rest: 4, rounds: 2),
+      );
+      for (var ms = 0; ms <= 21500; ms += 100) {
+        now = Duration(milliseconds: ms);
+        timer.tick();
+      }
+      await Future<void>.delayed(Duration.zero);
+      const tick = ['ready', 'ready', 'ready'];
+      expect(audio.calls.map((c) => c.cue).whereType<String>().toList(), [
+        ...tick,
+        'work',
+        ...tick,
+        'rest',
+        ...tick,
+        'work',
+        ...tick,
+        'rest',
+        ...tick,
+        'complete',
+      ]);
+      timer.dispose();
+    },
+  );
+  test(
     'pause, interruptions and reset stop sound and preserve elapsed work',
     () async {
       var now = Duration.zero;

@@ -22,7 +22,7 @@
       }
     }
     if (cue) {
-      const oscillator = context.createOscillator(), gain = context.createGain(), at = context.currentTime, length = cue === 'complete' ? 0.4 : 0.1;
+      const oscillator = context.createOscillator(), gain = context.createGain(), at = context.currentTime, length = cue === 'complete' ? 0.5 : cue === 'ready' ? 0.1 : 0.35;
       cueEndsAt = at + length;
       oscillator.frequency.value = cue === 'rest' ? 520 : cue === 'ready' ? 760 : 1320;
       gain.gain.setValueAtTime(0.3, at); gain.gain.exponentialRampToValueAtTime(0.001, at + length);
