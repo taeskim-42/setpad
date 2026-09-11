@@ -241,7 +241,7 @@ class _NotesListPageState extends State<NotesListPage>
   Widget build(BuildContext context) {
     final l = L.of(context);
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground,
+      backgroundColor: CupertinoColors.systemBackground,
       child: Column(
         children: [
           Expanded(
@@ -572,47 +572,40 @@ class _Group extends StatelessWidget {
       children: [
         Padding(
           // 좌우 16 은 iOS 의 기본 여백(_kNavBarEdgePadding)과 같은 값이다.
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
           child: Text(
             title,
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.4,
+              color: CupertinoColors.label.resolveFrom(context),
             ),
           ),
         ),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
-              context,
-            ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              for (var i = 0; i < notes.length; i++) ...[
-                if (i > 0)
-                  // 구분선은 글자가 시작하는 자리부터 그린다. 왼쪽 끝까지
-                  // 긋는 것은 안드로이드 쪽 관습이다.
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: Container(
-                      height: 0.5,
-                      color: CupertinoColors.separator.resolveFrom(context),
-                    ),
+        // 카드에 담지 않는다. 메모 앱의 목록은 한 장의 종이 위에 줄이 그어진
+        // 모양이고, 카드에 담으면 기록 하나하나가 무거워 보인다.
+        Column(
+          children: [
+            for (var i = 0; i < notes.length; i++) ...[
+              if (i > 0)
+                // 구분선은 글자가 시작하는 자리부터 그린다. 왼쪽 끝까지
+                // 긋는 것은 안드로이드 쪽 관습이다.
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Container(
+                    height: 0.5,
+                    color: CupertinoColors.separator.resolveFrom(context),
                   ),
-                _Row(
-                  note: notes[i],
-                  query: query,
-                  onOpen: onOpen,
-                  onDelete: onDelete,
                 ),
-              ],
+              _Row(
+                note: notes[i],
+                query: query,
+                onOpen: onOpen,
+                onDelete: onDelete,
+              ),
             ],
-          ),
+          ],
         ),
       ],
     );
@@ -654,7 +647,7 @@ class _Row extends StatelessWidget {
         child: Container(
           // 최소 44 는 iOS 의 최소 터치 크기(kMinInteractiveDimensionCupertino).
           constraints: const BoxConstraints(minHeight: 44),
-          padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
           child: Row(
             children: [
               Expanded(
@@ -704,16 +697,14 @@ class _Row extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 9),
-                      HealthSummary(calories: note.calories, showSource: true),
+                      // 칼로리는 숫자가 있을 때만 스스로 나타난다.
+                      if (note.calories != null) ...[
+                        const SizedBox(height: 6),
+                        HealthSummary(calories: note.calories),
+                      ],
                     ],
                   ],
                 ),
-              ),
-              Icon(
-                CupertinoIcons.chevron_forward,
-                size: 13,
-                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
               ),
             ],
           ),
@@ -746,7 +737,7 @@ class _SearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
+        color: CupertinoColors.systemBackground.resolveFrom(context),
         border: Border(
           top: BorderSide(
             color: CupertinoColors.separator.resolveFrom(context),
