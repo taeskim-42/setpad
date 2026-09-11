@@ -86,6 +86,7 @@
   "timingBpm": "{n} BPM",
   "timingProtocol": "塔巴塔 {work}秒 / {rest}秒 · {rounds}輪",
   "timingRound": "第{n}/{total}輪",
+  "timingRoundDone": "第{n}輪結束",
   "timingMetronome": "節拍器",
   "timingReady": "準備",
   "timingWork": "運動",

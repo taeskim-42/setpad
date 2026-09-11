@@ -86,6 +86,7 @@
   "timingBpm": "{n} BPM",
   "timingProtocol": "タバタ {work}秒 / {rest}秒 · {rounds}ラウンド",
   "timingRound": "{n}/{total}ラウンド",
+  "timingRoundDone": "{n}ラウンド終了",
   "timingMetronome": "メトロノーム",
   "timingReady": "準備",
   "timingWork": "運動",

@@ -341,6 +341,11 @@ class LTh extends L {
   }
 
   @override
+  String timingRoundDone(int n) {
+    return 'จบรอบที่ $n';
+  }
+
+  @override
   String get timingMetronome => 'เครื่องเคาะจังหวะ';
 
   @override

@@ -341,6 +341,11 @@ class LVi extends L {
   }
 
   @override
+  String timingRoundDone(int n) {
+    return 'Xong hiệp $n';
+  }
+
+  @override
   String get timingMetronome => 'Máy đếm nhịp';
 
   @override

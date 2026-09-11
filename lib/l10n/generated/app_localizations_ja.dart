@@ -338,6 +338,11 @@ class LJa extends L {
   }
 
   @override
+  String timingRoundDone(int n) {
+    return '$nラウンド終了';
+  }
+
+  @override
   String get timingMetronome => 'メトロノーム';
 
   @override

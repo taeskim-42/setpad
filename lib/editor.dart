@@ -996,7 +996,10 @@ class _RoutineEditorState extends State<RoutineEditor>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 자리를 옮긴 뒤에도 계속 칠 수 있어야 한다.
-      if (mounted && !_reordering && !_timingKeyboardHidden && !_focus.hasFocus) {
+      if (mounted &&
+          !_reordering &&
+          !_timingKeyboardHidden &&
+          !_focus.hasFocus) {
         _focus.requestFocus();
       }
       if (!grew) return;
@@ -1223,7 +1226,8 @@ class _RoutineEditorState extends State<RoutineEditor>
     // 읽어 줄지와 어느 말로 읽을지는 화면이 정한다 — 타이머는 소리만 낸다.
     _workoutTimer
       ..countAloud = widget.countAloud
-      ..voiceLocale = Localizations.localeOf(context).toLanguageTag();
+      ..voiceLocale = Localizations.localeOf(context).toLanguageTag()
+      ..announceRound = L.of(context).timingRoundDone;
     return Column(
       children: [
         Expanded(

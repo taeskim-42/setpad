@@ -327,6 +327,15 @@
       }
     }
   },
+  "timingRoundDone": "{n}라운드 종료",
+  "@timingRoundDone": {
+    "description": "라운드가 끝날 때 소리로 읽어 주는 말.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "timingMetronome": "메트로놈",
   "timingReady": "준비",
   "timingWork": "운동",

@@ -245,272 +245,293 @@ class _NotesListPageState extends State<NotesListPage>
       child: Column(
         children: [
           Expanded(
-            child: ListenableBuilder(
-              listenable: widget.store,
-              builder: (context, _) {
-                final groups = _grouped(_visible, l);
-                final plan = _search.plan;
-                // 자신 있게 틀릴 위험이 있으면 답을 내지 않고 한 번 묻는다.
-                // 틀린 숫자보다 탭 한 번이 싸다.
-                final doubtful = plan != null &&
-                    plan.doubts.isNotEmpty &&
-                    !identical(_confirmed, plan);
-                final answers = plan == null || doubtful
-                    ? const []
-                    : executeRecordPlan(
-                        plan,
-                        widget.store.notes,
-                        l,
-                        widget.store.weightUnit,
-                      );
-                return CustomScrollView(
-                  slivers: [
-                    // 큰 제목은 스크롤하면 가운데 작은 제목으로 접힌다. iOS
-                    // 목록 화면의 기본 동작이고, 직접 흉내 내면 티가 난다.
-                    CupertinoSliverNavigationBar(
-                      largeTitle: Text(l.allNotes),
-                      trailing: CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () =>
-                            showWeightSettings(context, widget.store),
-                        child: const Icon(CupertinoIcons.gear, size: 21),
+            // 목록의 빈 곳을 누르면 자판이 내려간다. 메모 앱이 그렇고, 올라온
+            // 자판이 화면 절반을 가리면 방금 찾은 것을 볼 수가 없다.
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: ListenableBuilder(
+                listenable: widget.store,
+                builder: (context, _) {
+                  final groups = _grouped(_visible, l);
+                  final plan = _search.plan;
+                  // 자신 있게 틀릴 위험이 있으면 답을 내지 않고 한 번 묻는다.
+                  // 틀린 숫자보다 탭 한 번이 싸다.
+                  final doubtful =
+                      plan != null &&
+                      plan.doubts.isNotEmpty &&
+                      !identical(_confirmed, plan);
+                  final answers = plan == null || doubtful
+                      ? const []
+                      : executeRecordPlan(
+                          plan,
+                          widget.store.notes,
+                          l,
+                          widget.store.weightUnit,
+                        );
+                  return CustomScrollView(
+                    slivers: [
+                      // 큰 제목은 스크롤하면 가운데 작은 제목으로 접힌다. iOS
+                      // 목록 화면의 기본 동작이고, 직접 흉내 내면 티가 난다.
+                      CupertinoSliverNavigationBar(
+                        largeTitle: Text(l.allNotes),
+                        trailing: CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () =>
+                              showWeightSettings(context, widget.store),
+                          child: const Icon(CupertinoIcons.gear, size: 21),
+                        ),
+                        border: null,
                       ),
-                      border: null,
-                    ),
-                    if (_query.text.trim().isNotEmpty)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (_search.busy)
-                                Text(
-                                  l.queryWorking,
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              if (_search.failed)
-                                Text(
-                                  l.queryFailed,
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              if (plan?.kind == 'unsupported')
-                                Text(switch (plan?.reason) {
-                                  'missingData' => l.queryMissingData,
-                                  'ambiguous' => l.queryAmbiguous,
-                                  _ => l.queryUnsupported,
-                                }, style: const TextStyle(fontSize: 14)),
-                              if (plan?.kind == 'answer' && answers.isEmpty)
-                                Text(
-                                  l.queryNoData,
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              // 운동 이름이 잡혀 칩이 떠 있으면 모델은 쓰이지
-                              // 않는다. 그 상태줄까지 보이면 잡음이다.
-                              if (_matched == null)
-                                CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: _help,
-                                  child: Text(
-                                    '${l.queryTitle} · ${aiStatusLabel(l, _search.status)}',
-                                    style: const TextStyle(fontSize: 13),
+                      if (_query.text.trim().isNotEmpty)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (_search.busy)
+                                  Text(
+                                    l.queryWorking,
+                                    style: const TextStyle(fontSize: 14),
                                   ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    if (_matched case final name?)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(
-                                name,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: -0.23,
-                                  color: CupertinoColors.label.resolveFrom(
-                                    context,
+                                if (_search.failed)
+                                  Text(
+                                    l.queryFailed,
+                                    style: const TextStyle(fontSize: 14),
                                   ),
-                                ),
-                              ),
-                              for (final (metric, label) in [
-                                (stats.Metric.max, l.metricMax),
-                                (stats.Metric.trend, l.metricTrend),
-                                (stats.Metric.last, l.metricLast),
-                                (stats.Metric.sessions, l.metricSessions),
-                                (stats.Metric.volume, l.metricVolume),
-                              ])
-                                SuggestionChip(
-                                  label: label,
-                                  selected: _pick == metric,
-                                  onTap: () {
-                                    _search.search(
-                                      '',
-                                      _locale ?? 'en',
-                                      _names,
-                                      widget.store.weightUnit,
-                                    );
-                                    setState(
-                                      () => _pick = _pick == metric
-                                          ? null
-                                          : metric,
-                                    );
-                                  },
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    if (_pick case final metric? when _matched != null)
-                      SliverToBoxAdapter(
-                        child: AnswerCard(
-                          answer: stats.answer(
-                            widget.store.notes,
-                            metric,
-                            _matched!,
-                            labels: l,
-                            unit: widget.store.weightUnit,
-                          ),
-                        ),
-                      ),
-                    if (doubtful)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 6,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(
-                                '${l.readAsConfirm} · ${_planSummary(l, plan)}',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: CupertinoColors.label.resolveFrom(context),
-                                ),
-                              ),
-                              SuggestionChip(
-                                label: l.confirmYes,
-                                selected: false,
-                                onTap: () => setState(() => _confirmed = plan),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    if (!doubtful && plan != null && plan.readAs.isNotEmpty)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
-                          child: Text(
-                            plan.readAs.entries
-                                .map((e) => l.readAsNote(e.value, e.key))
-                                .join(' · '),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                                if (plan?.kind == 'unsupported')
+                                  Text(switch (plan?.reason) {
+                                    'missingData' => l.queryMissingData,
+                                    'ambiguous' => l.queryAmbiguous,
+                                    _ => l.queryUnsupported,
+                                  }, style: const TextStyle(fontSize: 14)),
+                                if (plan?.kind == 'answer' && answers.isEmpty)
+                                  Text(
+                                    l.queryNoData,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                // 운동 이름이 잡혀 칩이 떠 있으면 모델은 쓰이지
+                                // 않는다. 그 상태줄까지 보이면 잡음이다.
+                                if (_matched == null)
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    onPressed: _help,
+                                    child: Text(
+                                      '${l.queryTitle} · ${aiStatusLabel(l, _search.status)}',
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),
-                      ),
-                    if (!doubtful)
-                    if (_search.reply case final reply?)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                          child: GrainWash(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    reply.text,
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      height: 1.5,
-                                      color: answerInk.resolveFrom(context),
+                      if (_matched case final name?)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                            // 이름과 칩을 한 Wrap 에 섞으면 이름이 길 때 칩이
+                            // 이름 끝에 매달려 두 줄로 갈라진다. 이름은 제 줄에
+                            // 두고 칩은 그 아래에서 시작한다.
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: -0.23,
+                                    color: CupertinoColors.label.resolveFrom(
+                                      context,
                                     ),
                                   ),
-                                  for (final fact
-                                      in reply.sourceFacts
-                                          .where((f) => f['date'] != null)
-                                          .take(3))
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 12),
-                                      child: Text(
-                                        '${fact['date']} · ${fact['exercise']}',
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    for (final (metric, label) in [
+                                      (stats.Metric.max, l.metricMax),
+                                      (stats.Metric.trend, l.metricTrend),
+                                      (stats.Metric.last, l.metricLast),
+                                      (stats.Metric.sessions, l.metricSessions),
+                                      (stats.Metric.volume, l.metricVolume),
+                                    ])
+                                      SuggestionChip(
+                                        label: label,
+                                        selected: _pick == metric,
+                                        onTap: () {
+                                          _search.search(
+                                            '',
+                                            _locale ?? 'en',
+                                            _names,
+                                            widget.store.weightUnit,
+                                          );
+                                          setState(
+                                            () => _pick = _pick == metric
+                                                ? null
+                                                : metric,
+                                          );
+                                        },
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (_pick case final metric? when _matched != null)
+                        SliverToBoxAdapter(
+                          child: AnswerCard(
+                            answer: stats.answer(
+                              widget.store.notes,
+                              metric,
+                              _matched!,
+                              labels: l,
+                              unit: widget.store.weightUnit,
+                            ),
+                          ),
+                        ),
+                      if (doubtful)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                            child: Wrap(
+                              spacing: 8,
+                              runSpacing: 6,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  '${l.readAsConfirm} · ${_planSummary(l, plan)}',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: CupertinoColors.label.resolveFrom(
+                                      context,
+                                    ),
+                                  ),
+                                ),
+                                SuggestionChip(
+                                  label: l.confirmYes,
+                                  selected: false,
+                                  onTap: () =>
+                                      setState(() => _confirmed = plan),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (!doubtful && plan != null && plan.readAs.isNotEmpty)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+                            child: Text(
+                              plan.readAs.entries
+                                  .map((e) => l.readAsNote(e.value, e.key))
+                                  .join(' · '),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: CupertinoColors.secondaryLabel
+                                    .resolveFrom(context),
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (!doubtful)
+                        if (_search.reply case final reply?)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                              child: GrainWash(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        reply.text,
                                         style: TextStyle(
-                                          fontSize: 13,
-                                          color: answerInk
-                                              .resolveFrom(context)
-                                              .withValues(alpha: 0.65),
+                                          fontSize: 17,
+                                          height: 1.5,
+                                          color: answerInk.resolveFrom(context),
                                         ),
                                       ),
-                                    ),
-                                ],
+                                      for (final fact
+                                          in reply.sourceFacts
+                                              .where((f) => f['date'] != null)
+                                              .take(3))
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 12,
+                                          ),
+                                          child: Text(
+                                            '${fact['date']} · ${fact['exercise']}',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: answerInk
+                                                  .resolveFrom(context)
+                                                  .withValues(alpha: 0.65),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    for (final answer in answers)
-                      SliverToBoxAdapter(child: AnswerCard(answer: answer)),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
-                        child: Text(
-                          l.noteCount(_visible.length),
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: CupertinoColors.secondaryLabel.resolveFrom(
-                              context,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (groups.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Center(
+                      for (final answer in answers)
+                        SliverToBoxAdapter(child: AnswerCard(answer: answer)),
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
                           child: Text(
-                            _query.text.isEmpty
-                                ? l.noNotesYet
-                                : l.noSearchResults,
+                            l.noteCount(_visible.length),
                             style: TextStyle(
-                              fontSize: 17,
-                              letterSpacing: -0.41,
+                              fontSize: 14,
                               color: CupertinoColors.secondaryLabel.resolveFrom(
                                 context,
                               ),
                             ),
                           ),
                         ),
-                      )
-                    else
-                      SliverList.builder(
-                        itemCount: groups.length,
-                        itemBuilder: (context, i) => _Group(
-                          title: groups[i].$1,
-                          notes: groups[i].$2,
-                          query: _query.text.trim(),
-                          onOpen: _open,
-                          onDelete: widget.store.delete,
-                        ),
                       ),
-                    // 검색창에 마지막 줄이 가리지 않도록 띄운다.
-                    const SliverToBoxAdapter(child: SizedBox(height: 12)),
-                  ],
-                );
-              },
+                      if (groups.isEmpty)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
+                            child: Text(
+                              _query.text.isEmpty
+                                  ? l.noNotesYet
+                                  : l.noSearchResults,
+                              style: TextStyle(
+                                fontSize: 17,
+                                letterSpacing: -0.41,
+                                color: CupertinoColors.secondaryLabel
+                                    .resolveFrom(context),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        SliverList.builder(
+                          itemCount: groups.length,
+                          itemBuilder: (context, i) => _Group(
+                            title: groups[i].$1,
+                            notes: groups[i].$2,
+                            query: _query.text.trim(),
+                            onOpen: _open,
+                            onDelete: widget.store.delete,
+                          ),
+                        ),
+                      // 검색창에 마지막 줄이 가리지 않도록 띄운다.
+                      const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
           _SearchBar(

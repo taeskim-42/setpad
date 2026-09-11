@@ -86,6 +86,7 @@
   "timingBpm": "{n} BPM",
   "timingProtocol": "ทาบาตะ {work}วิ / {rest}วิ · {rounds} รอบ",
   "timingRound": "รอบ {n}/{total}",
+  "timingRoundDone": "จบรอบที่ {n}",
   "timingMetronome": "เครื่องเคาะจังหวะ",
   "timingReady": "เตรียม",
   "timingWork": "ออกแรง",

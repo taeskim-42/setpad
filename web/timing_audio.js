@@ -10,6 +10,7 @@
     rest: { p: ding, s: .35, g: .25 },
     complete: { p: ding, s: .7, g: .3 },
   };
+  const rendered = new Map(); // buffers are built once and replayed
   const render = (tone, length = tone.s) => {
     const rate = context.sampleRate, buffer = context.createBuffer(1, Math.round(rate * length), rate), out = buffer.getChannelData(0);
     const sounding = Math.round(rate * tone.s), scale = tone.p.reduce((a, [, w]) => a + w, 0);
@@ -33,13 +34,15 @@
       cancelSpeech();
       if (beat) { beat.stop(); beat = null; }
       tempo = bpm;
-      if (active && bpm >= 20 && bpm <= 300) {
+      // The app allows 10 BPM; anything slower than this range is a typo.
+      if (active && bpm >= 10 && bpm <= 300) {
         beat = context.createBufferSource(); beat.buffer = render(TONES.click, 60 / bpm); beat.loop = true; beat.connect(context.destination); beatStartedAt = context.currentTime; beat.start(beatStartedAt);
       }
     }
     if (cue) {
       const source = context.createBufferSource();
-      source.buffer = render(TONES[cue] || TONES.rest);
+      if (!rendered.has(cue)) rendered.set(cue, render(TONES[cue] || TONES.rest));
+      source.buffer = rendered.get(cue);
       cueEndsAt = context.currentTime + source.buffer.duration;
       source.connect(context.destination); source.start();
       source.onended = () => source.disconnect();
@@ -49,13 +52,16 @@
   // Match Tempo: read half a beat after the click, capped at one second.
   setpadTiming.speak = (text, locale) => {
     const speech = window.speechSynthesis;
-    if (!beat || !text || !speech || speech.speaking || speech.pending || pendingSpeech != null) return;
+    if (!context || !text || !speech || speech.speaking || speech.pending || pendingSpeech != null) return;
     const at = context.currentTime;
-    const into = (at - beatStartedAt) % beat.buffer.duration;
-    const delay = Math.max(0, Math.min(30 / tempo, 1) - into, cueEndsAt - at);
+    // A Tabata with no BPM still announces its rounds, so there may be no beat to wait for.
+    const into = beat ? (at - beatStartedAt) % beat.buffer.duration : 0;
+    const delay = beat
+      ? Math.max(0, Math.min(30 / tempo, 1) - into, cueEndsAt - at)
+      : Math.max(0, cueEndsAt - at);
     pendingSpeech = setTimeout(() => {
       pendingSpeech = null;
-      if (!beat || speech.speaking || speech.pending) return;
+      if (speech.speaking || speech.pending) return;
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = locale;
       utterance.rate = 1.2;

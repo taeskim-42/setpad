@@ -8,6 +8,11 @@ final class TimingBridge {
   private var beat: AVAudioPlayer?
   private var cue: AVAudioPlayer?
   private var tempo: Int?
+  /// Built once and replayed. Creating an AVAudioPlayer per cue put tens of
+  /// milliseconds between the moment a phase ends and the sound.
+  private var beats: [Int: AVAudioPlayer] = [:]
+  private var cues: [String: AVAudioPlayer] = [:]
+  private var sessionActive = false
   private var observers: [NSObjectProtocol] = []
   private let speech = AVSpeechSynthesizer()
   private var pendingSpeech: Task<Void, Never>?
@@ -41,9 +46,9 @@ final class TimingBridge {
 
   /// Match Tempo: click, then count half a beat later (at most one second).
   private func speak(_ text: String, locale: String) {
-    guard !text.isEmpty, tempo != nil, pendingSpeech == nil, !speech.isSpeaking else { return }
-    let countOffset = min(30.0 / Double(tempo!), 1.0)
-    let countRemaining = beat.map { max(0, countOffset - $0.currentTime) } ?? 0
+    guard !text.isEmpty, pendingSpeech == nil, !speech.isSpeaking else { return }
+    var countRemaining = 0.0
+    if let tempo, let beat { countRemaining = max(0, min(30.0 / Double(tempo), 1.0) - beat.currentTime) }
     let cueRemaining = cue.flatMap { $0.isPlaying ? max(0, $0.duration - $0.currentTime) : nil } ?? 0
     let delay = max(countRemaining, cueRemaining)
     pendingSpeech = Task { @MainActor [weak self] in
@@ -52,7 +57,7 @@ final class TimingBridge {
       }
       guard !Task.isCancelled, let self else { return }
       self.pendingSpeech = nil
-      guard self.tempo != nil, !self.speech.isSpeaking else { return }
+      guard !self.speech.isSpeaking else { return }
       let utterance = AVSpeechUtterance(string: text)
       utterance.voice = AVSpeechSynthesisVoice(language: locale)
         ?? AVSpeechSynthesisVoice(language: Locale.current.identifier)
@@ -68,28 +73,56 @@ final class TimingBridge {
 
   private func configure(active: Bool, bpm: Int?, cueName: String?) throws {
     let session = AVAudioSession.sharedInstance()
-    if active || cueName != nil {
+    // Activating the session costs tens of milliseconds, so do it once and
+    // keep it. Doing it per cue was what put a lag before every beep.
+    if (active || cueName != nil), !sessionActive {
       try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
       try session.setActive(true)
+      sessionActive = true
     }
     UIApplication.shared.isIdleTimerDisabled = active
-    let validTempo = active ? bpm.flatMap { (20...300).contains($0) ? $0 : nil } : nil
+    // The app allows 10 BPM; anything slower than this range is a typo.
+    let validTempo = active ? bpm.flatMap { (10...300).contains($0) ? $0 : nil } : nil
     if validTempo != tempo || !active {
       cancelSpeech()
       beat?.stop(); beat = nil; tempo = validTempo
       if let bpm = validTempo {
-        let player = try AVAudioPlayer(data: wave(Self.click, length: 60.0 / Double(bpm)))
-        player.numberOfLoops = -1; player.prepareToPlay(); guard player.play() else { throw NSError(domain: "setpad.timing", code: 1) }; beat = player
+        let player = try beatPlayer(bpm)
+        player.currentTime = 0
+        guard player.play() else { throw NSError(domain: "setpad.timing", code: 1) }
+        beat = player
       }
     }
     if let cueName {
-      cue?.stop()
-      let player = try AVAudioPlayer(data: wave(Self.cue(cueName)))
-      guard player.play() else { throw NSError(domain: "setpad.timing", code: 2) }; cue = player
+      let player = try cuePlayer(cueName)
+      if cue !== player { cue?.stop() }
+      player.currentTime = 0
+      guard player.play() else { throw NSError(domain: "setpad.timing", code: 2) }
+      cue = player
+      // Build the rest while this one is already sounding, so the first cue of
+      // each kind is no slower than the ones after it.
+      for name in ["ready", "work", "rest", "complete"] where cues[name] == nil {
+        _ = try? cuePlayer(name)
+      }
     } else if !active {
       cue?.stop(); cue = nil
       try? session.setActive(false, options: [.notifyOthersOnDeactivation])
+      sessionActive = false
     }
+  }
+
+  private func beatPlayer(_ bpm: Int) throws -> AVAudioPlayer {
+    if let player = beats[bpm] { return player }
+    let player = try AVAudioPlayer(data: wave(Self.click, length: 60.0 / Double(bpm)))
+    player.numberOfLoops = -1; player.prepareToPlay(); beats[bpm] = player
+    return player
+  }
+
+  private func cuePlayer(_ name: String) throws -> AVAudioPlayer {
+    if let player = cues[name] { return player }
+    let player = try AVAudioPlayer(data: wave(Self.cue(name)))
+    player.prepareToPlay(); cues[name] = player
+    return player
   }
 
   private func stop() {
@@ -97,6 +130,7 @@ final class TimingBridge {
     beat?.stop(); beat = nil; cue?.stop(); cue = nil; tempo = nil
     UIApplication.shared.isIdleTimerDisabled = false
     try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+    sessionActive = false
   }
 
   /// Pitch, partials, length and loudness measured from Tempo's cue recordings

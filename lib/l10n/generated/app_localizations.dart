@@ -625,6 +625,12 @@ abstract class L {
   /// **'{n}/{total}라운드'**
   String timingRound(int n, int total);
 
+  /// 라운드가 끝날 때 소리로 읽어 주는 말.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}라운드 종료'**
+  String timingRoundDone(int n);
+
   /// No description provided for @timingMetronome.
   ///
   /// In ko, this message translates to:

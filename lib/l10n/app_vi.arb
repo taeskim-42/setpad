@@ -86,6 +86,7 @@
   "timingBpm": "{n} BPM",
   "timingProtocol": "Tabata {work}giây / {rest}giây · {rounds} vòng",
   "timingRound": "Vòng {n}/{total}",
+  "timingRoundDone": "Xong hiệp {n}",
   "timingMetronome": "Máy đếm nhịp",
   "timingReady": "Chuẩn bị",
   "timingWork": "Tập",

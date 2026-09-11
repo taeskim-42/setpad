@@ -341,6 +341,11 @@ class LEn extends L {
   }
 
   @override
+  String timingRoundDone(int n) {
+    return 'Round $n done';
+  }
+
+  @override
   String get timingMetronome => 'Metronome';
 
   @override

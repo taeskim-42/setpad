@@ -83,6 +83,27 @@ void main() {
       timer.dispose();
     },
   );
+  test('운동 구간이 끝나면 몇 라운드를 마쳤는지 말한다', () async {
+    var now = Duration.zero;
+    final audio = FakeAudio(), owner = Object();
+    final timer = WorkoutTimer(audio: audio, now: () => now)
+      ..announceRound = ((n) => '$n라운드 종료');
+    timer.toggle(
+      owner,
+      const TimingSpec(tabata: true, work: 5, rest: 4, rounds: 2),
+    );
+    for (var ms = 0; ms <= 21500; ms += 50) {
+      now = Duration(milliseconds: ms);
+      timer.tick();
+      // 실제와 같이 매 눈금마다 소리 명령이 흘러가게 둔다. 몰아서 흘리면
+      // 완료가 앞선 말까지 취소해 버려 이 검사가 무엇도 못 본다.
+      await Future<void>.delayed(Duration.zero);
+    }
+    // 쉬는 구간에 들어갈 때 한 번씩, 마지막 라운드까지. 박자 세기와 무관하다.
+    expect(audio.spoken, ['1라운드 종료', '2라운드 종료']);
+    timer.dispose();
+  });
+
   test(
     'every interval counts down its last three seconds, then a long cue',
     () async {

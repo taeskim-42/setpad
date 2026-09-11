@@ -187,6 +187,9 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
 
   /// 어느 말로 읽을까. 화면 언어를 그대로 따른다.
   String voiceLocale = 'en';
+
+  /// 라운드가 끝날 때 뭐라고 알릴까. 말은 화면이 만든다 — 타이머는 소리만 낸다.
+  String Function(int round)? announceRound;
   Duration _elapsed = Duration.zero, _started = Duration.zero;
   Future<void> _commands = Future.value();
   Duration get elapsed =>
@@ -262,7 +265,9 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
           : null,
     );
     if (countAloud && _lastBeat > 0) _say(_lastBeat);
-    _ticker = Timer.periodic(const Duration(milliseconds: 100), (_) => tick());
+    // 100ms 마다 보면 구간이 바뀐 것을 최대 100ms 늦게 안다 — 그만큼 소리가
+    // 밀린다. 50ms 로 보면 절반이고, 하는 일은 값 비교뿐이라 싸다.
+    _ticker = Timer.periodic(const Duration(milliseconds: 50), (_) => tick());
     notifyListeners();
   }
 
@@ -271,19 +276,16 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   int _lastBeat = 0;
   int _voiceGeneration = 0;
 
-  void _say(int n) {
-    final word = spokenCount(n, voiceLocale);
+  void _say(int n) => _speak(spokenCount(n, voiceLocale));
+
+  /// 세대가 바뀌면(멈춤·되감기) 줄 서 있던 말은 버린다.
+  void _speak(String text) {
     final generation = _voiceGeneration;
     _commands = _commands.then((_) async {
-      if (_disposed ||
-          !running ||
-          !countAloud ||
-          generation != _voiceGeneration) {
-        return;
-      }
+      if (_disposed || generation != _voiceGeneration) return;
       // 읽다 실패해도 박자는 계속 간다. 소리는 덤이지 타이머의 전제가 아니다.
       try {
-        await _audio.speak(word, voiceLocale);
+        await _audio.speak(text, voiceLocale);
       } catch (_) {}
     });
   }
@@ -302,6 +304,12 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     }
     if (next != _lastPhase || round != _lastRound) {
       _sound(cue: next == TimingPhase.work ? 'work' : 'rest');
+      // 운동 구간이 끝나면 몇 라운드를 마쳤는지 말한다. 쉬는 동안이라 시작
+      // 신호나 박자 세는 말과 겹치지 않는다.
+      if (next == TimingPhase.rest && _lastPhase == TimingPhase.work) {
+        final said = announceRound?.call(round);
+        if (said != null) _speak(said);
+      }
     } else if ((next == TimingPhase.ready || spec!.tabata) &&
         remaining <= 3 &&
         remaining != _lastRemaining) {
@@ -579,28 +587,16 @@ class WorkoutTimingControls extends StatelessWidget {
               ),
               // 라운드마다 한 칸. 템포 앱의 고리를 글줄에 맞게 눕힌 것이다.
               if (spec.tabata)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2, bottom: 4),
-                  child: Row(
-                    children: [
-                      for (var i = 0; i < spec.rounds; i++) ...[
-                        if (i > 0) const SizedBox(width: 2),
-                        Expanded(
-                          child: Container(
-                            height: 3,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(1.5),
-                              color: i < doneRounds
-                                  ? seal.resolveFrom(context)
-                                  : CupertinoColors.systemFill.resolveFrom(
-                                      context,
-                                    ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
+                _RoundBar(
+                  rounds: spec.rounds,
+                  done: doneRounds,
+                  current:
+                      running &&
+                          (phase == TimingPhase.work ||
+                              phase == TimingPhase.rest)
+                      ? doneRounds
+                      : null,
+                  color: bigColor,
                 ),
             ],
             if (selected && timer.soundFailed)
@@ -694,4 +690,91 @@ class _RepeatingKeyState extends State<_RepeatingKey> {
       child: widget.child,
     ),
   );
+}
+
+/// 라운드 칸. 지금 하는 칸은 깜빡여서 어디쯤인지 눈으로 잡힌다.
+class _RoundBar extends StatefulWidget {
+  const _RoundBar({
+    required this.rounds,
+    required this.done,
+    required this.current,
+    required this.color,
+  });
+  final int rounds, done;
+
+  /// 지금 진행 중인 칸(0부터). 멈춰 있거나 준비·완료면 null.
+  final int? current;
+  final Color color;
+
+  @override
+  State<_RoundBar> createState() => _RoundBarState();
+}
+
+class _RoundBarState extends State<_RoundBar>
+    with SingleTickerProviderStateMixin {
+  late final _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 650),
+    value: 1,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(covariant _RoundBar old) {
+    super.didUpdateWidget(old);
+    _sync();
+  }
+
+  void _sync() {
+    if (widget.current == null) {
+      _pulse
+        ..stop()
+        ..value = 1;
+    } else if (!_pulse.isAnimating) {
+      _pulse.repeat(reverse: true, min: 0.2, max: 1);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final idle = CupertinoColors.systemFill.resolveFrom(context);
+    final done = seal.resolveFrom(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 2, bottom: 4),
+      child: AnimatedBuilder(
+        animation: _pulse,
+        builder: (context, _) => Row(
+          children: [
+            for (var i = 0; i < widget.rounds; i++) ...[
+              if (i > 0) const SizedBox(width: 2),
+              Expanded(
+                child: Container(
+                  height: 3,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(1.5),
+                    color: i == widget.current
+                        ? widget.color.withValues(alpha: _pulse.value)
+                        : i < widget.done
+                        ? done
+                        : idle,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 }

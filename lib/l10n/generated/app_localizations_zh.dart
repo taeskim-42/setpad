@@ -333,6 +333,11 @@ class LZh extends L {
   }
 
   @override
+  String timingRoundDone(int n) {
+    return '第$n轮结束';
+  }
+
+  @override
   String get timingMetronome => '节拍器';
 
   @override
@@ -806,6 +811,11 @@ class LZhHans extends LZh {
   }
 
   @override
+  String timingRoundDone(int n) {
+    return '第$n轮结束';
+  }
+
+  @override
   String get timingMetronome => '节拍器';
 
   @override
@@ -1276,6 +1286,11 @@ class LZhHant extends LZh {
   @override
   String timingRound(int n, int total) {
     return '第$n/$total輪';
+  }
+
+  @override
+  String timingRoundDone(int n) {
+    return '第$n輪結束';
   }
 
   @override

@@ -341,6 +341,11 @@ class LEs extends L {
   }
 
   @override
+  String timingRoundDone(int n) {
+    return 'Ronda $n completada';
+  }
+
+  @override
   String get timingMetronome => 'Metrónomo';
 
   @override

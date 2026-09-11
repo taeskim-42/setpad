@@ -86,6 +86,7 @@
   "timingBpm": "{n} BPM",
   "timingProtocol": "Tabata {work}s / {rest}s · {rounds} rondas",
   "timingRound": "Ronda {n}/{total}",
+  "timingRoundDone": "Ronda {n} completada",
   "timingMetronome": "Metrónomo",
   "timingReady": "Preparación",
   "timingWork": "Ejercicio",

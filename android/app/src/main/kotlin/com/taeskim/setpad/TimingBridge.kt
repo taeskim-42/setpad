@@ -21,6 +21,10 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
     private var track: AudioTrack? = null
     private var tempo: Int? = null
     private var cueTrack: AudioTrack? = null
+    // Built once and replayed. Building an AudioTrack per cue put tens of
+    // milliseconds between the moment a phase ends and the sound.
+    private val beats = mutableMapOf<Int, AudioTrack>()
+    private val cues = mutableMapOf<String, AudioTrack>()
     private var speech: TextToSpeech? = null
     private var speechReady = false
     private val handler = Handler(Looper.getMainLooper())
@@ -36,16 +40,19 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
     // Match Tempo: read half a beat after the click, capped at one second.
     private fun speak(text: String, locale: String) {
         val engine = speech ?: return
-        val player = track ?: return
         if (text.isEmpty() || !speechReady || engine.isSpeaking || pendingSpeech != null) return
-        val bpm = tempo ?: return
-        val frames = (60.0 / bpm * 22050).toInt()
-        val position = (player.playbackHeadPosition.toLong() and 0xffffffffL) % frames
-        val countRemaining = maxOf(0L, minOf(30000L / bpm, 1000L) - position * 1000 / 22050)
+        val player = track
+        val bpm = tempo
+        // A Tabata with no BPM still announces its rounds, so there may be no beat to wait for.
+        val countRemaining = if (player != null && bpm != null) {
+            val frames = (60.0 / bpm * 22050).toInt()
+            val position = (player.playbackHeadPosition.toLong() and 0xffffffffL) % frames
+            maxOf(0L, minOf(30000L / bpm, 1000L) - position * 1000 / 22050)
+        } else 0L
         val delay = maxOf(countRemaining, cueEndsAt - SystemClock.elapsedRealtime(), 0L)
         val task = Runnable {
             pendingSpeech = null
-            if (track != null && !engine.isSpeaking) {
+            if (!engine.isSpeaking) {
                 runCatching { engine.language = Locale.forLanguageTag(locale) }
                 engine.setSpeechRate(1.15f)
                 engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "count")
@@ -71,7 +78,8 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
             else if (call.method != "configure") { result.notImplemented() }
             else try {
                 val active = call.argument<Boolean>("active") == true
-                val bpm = if (active) call.argument<Int>("bpm")?.takeIf { it in 20..300 } else null
+                // The app allows 10 BPM; anything slower than this range is a typo.
+                val bpm = if (active) call.argument<Int>("bpm")?.takeIf { it in 10..300 } else null
                 if (active) prepareSpeech()
                 if (!active) cancelSpeech()
                 if (active) activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -79,20 +87,30 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                 if (bpm != tempo) {
                     stopBeat()
                     if (bpm != null) {
-                        val samples = samples(click, 60.0 / bpm)
-                        val player = staticTrack(samples)
+                        val player = beats.getOrPut(bpm) {
+                            val samples = samples(click, 60.0 / bpm)
+                            staticTrack(samples).also {
+                                check(it.setLoopPoints(0, samples.size, -1) == AudioTrack.SUCCESS)
+                            }
+                        }
                         track = player
-                        check(player.setLoopPoints(0, samples.size, -1) == AudioTrack.SUCCESS)
-                        player.play(); tempo = bpm
+                        player.reloadStaticData(); player.play(); tempo = bpm
                     }
                 }
                 val cue = call.argument<String>("cue")
                 if (cue != null) {
                     val tone = cueTone(cue)
-                    cueTrack?.release()
-                    cueTrack = staticTrack(samples(tone)).also { it.play() }
+                    val player = cues.getOrPut(cue) { staticTrack(samples(tone)) }
+                    if (cueTrack !== player) runCatching { cueTrack?.stop() }
+                    cueTrack = player
+                    runCatching { player.stop() }
+                    player.reloadStaticData(); player.play()
                     cueEndsAt = SystemClock.elapsedRealtime() + (tone.seconds * 1000).toLong()
-                } else if (!active) { cueTrack?.release(); cueTrack = null }
+                    // Build the rest while this one is already sounding.
+                    for (name in listOf("ready", "work", "rest", "complete")) {
+                        cues.getOrPut(name) { staticTrack(samples(cueTone(name))) }
+                    }
+                } else if (!active) { cueTrack = null }
                 result.success(null)
             } catch (_: Exception) { stop(); result.error("audioUnavailable", null, null) }
         }
@@ -127,8 +145,13 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
         check(player.write(samples, 0, samples.size) == samples.size)
         return player
     }
-    private fun stopBeat() { cancelSpeech(); track?.let { runCatching { it.stop() }; it.release() }; track = null; tempo = null }
-    private fun stop() { stopBeat(); runCatching { speech?.stop() }; cueTrack?.release(); cueTrack = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
+    private fun stopBeat() { cancelSpeech(); track?.let { runCatching { it.stop() } }; track = null; tempo = null }
+    private fun stop() { stopBeat(); runCatching { speech?.stop() }; runCatching { cueTrack?.stop() }; cueTrack = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     fun interrupt() { stop(); channel.invokeMethod("interrupted", null) }
-    fun close() { stop(); speech?.shutdown(); speech = null; speechReady = false; channel.setMethodCallHandler(null) }
+    fun close() {
+        stop(); speech?.shutdown(); speech = null; speechReady = false
+        (beats.values + cues.values).forEach { runCatching { it.release() } }
+        beats.clear(); cues.clear()
+        channel.setMethodCallHandler(null)
+    }
 }

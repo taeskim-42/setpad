@@ -339,6 +339,11 @@ class LKo extends L {
   }
 
   @override
+  String timingRoundDone(int n) {
+    return '$n라운드 종료';
+  }
+
+  @override
   String get timingMetronome => '메트로놈';
 
   @override
