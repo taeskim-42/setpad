@@ -18,9 +18,6 @@ class LTh extends L {
   String get copied => 'คัดลอกแล้ว';
 
   @override
-  String get howTo => 'ค้นหาท่าออกกำลังกายแล้วบันทึกเซต';
-
-  @override
   String get exerciseNameHint => 'ชื่อท่า';
 
   @override

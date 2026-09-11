@@ -201,7 +201,10 @@ void main() {
       () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, null),
     );
-    await pump(tester, localAi: const LocalAi(channel: channel, nativeSupported: true));
+    await pump(
+      tester,
+      localAi: const LocalAi(channel: channel, nativeSupported: true),
+    );
     await tester.enterText(find.byType(CupertinoSearchTextField), '스쿼트 추이 알려줘');
     await tester.pumpAndSettle();
 

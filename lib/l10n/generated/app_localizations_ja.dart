@@ -18,9 +18,6 @@ class LJa extends L {
   String get copied => 'コピーしました';
 
   @override
-  String get howTo => '種目を検索してセットを記録しましょう。';
-
-  @override
   String get exerciseNameHint => '種目名';
 
   @override

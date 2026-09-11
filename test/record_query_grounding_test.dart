@@ -209,13 +209,19 @@ void main() {
 
   test('모델이 terms 를 채워도 메모 낱말이 없으면 의도 낱말이 이긴다', () {
     // 실제 모델은 "스쿼트가 그래프 궁금" 에 readRecords + terms:['그래프'] 를 낸다.
-    final p = decode({...metric('readRecords'), 'terms': ['그래프']}, '스쿼트가 그래프 궁금');
+    final p = decode({
+      ...metric('readRecords'),
+      'terms': ['그래프'],
+    }, '스쿼트가 그래프 궁금');
     expect(p.kind, 'answer');
     expect(p.requests.single.metric, Metric.trend);
   });
 
   test('메모 낱말이 있으면 readRecords 를 둔다', () {
-    final p = decode({...metric('readRecords'), 'terms': []}, '스쿼트 그래프 얘기 쓴 메모');
+    final p = decode({
+      ...metric('readRecords'),
+      'terms': [],
+    }, '스쿼트 그래프 얘기 쓴 메모');
     expect(p.kind, 'insight');
   });
 
@@ -229,19 +235,31 @@ void main() {
   });
 
   test('"9월에" 는 이번 해 9월이다', () {
-    final f = statedPeriod('9월에 데드리프트 몇 kg까지 들었지 좀', today: DateTime(2026, 9, 9))!;
-    expect((f.period, f.since, f.until), ('custom', '2026-09-01', '2026-09-30'));
+    final f = statedPeriod(
+      '9월에 데드리프트 몇 kg까지 들었지 좀',
+      today: DateTime(2026, 9, 9),
+    )!;
+    expect(
+      (f.period, f.since, f.until),
+      ('custom', '2026-09-01', '2026-09-30'),
+    );
     // 이 파일의 decode 도우미는 기준일이 2031-02-10 이다. 2월에 말하는 "9월" 은
     // 아직 안 온 달이라 작년, 2030년 9월이다.
-    final p = decode({...metric('heaviest'), 'periods': ['all']}, '9월에 스쿼트 몇 kg까지 들었지 좀');
+    final p = decode({
+      ...metric('heaviest'),
+      'periods': ['all'],
+    }, '9월에 스쿼트 몇 kg까지 들었지 좀');
     expect(p.requests.single.since, DateTime(2030, 9, 1));
     expect(p.requests.single.until, DateTime(2030, 9, 30));
   });
 
   group('자신 있게 틀리지 않기', () {
     Map<String, Object?> emptyRank() => {
-      'action': 'rankExercises', 'metric': 'trainingDays', 'limit': 1,
-      'exercises': [], 'periods': ['all'],
+      'action': 'rankExercises',
+      'metric': 'trainingDays',
+      'limit': 1,
+      'exercises': [],
+      'periods': ['all'],
     };
 
     test('운동 없는 순위라도 글에 운동이 하나면 순위가 아니다', () {
@@ -263,28 +281,43 @@ void main() {
     });
 
     test('글에 시간 말이 없는데 기간을 냈으면 의심한다', () {
-      final p = decode({...metric('weightHistory'), 'periods': ['recent'], 'days': 28},
-          '스쿼트 추이 알려줘');
+      final p = decode({
+        ...metric('weightHistory'),
+        'periods': ['recent'],
+        'days': 28,
+      }, '스쿼트 추이 알려줘');
       expect(p.doubts, contains('period'));
-      final q = decode({...metric('weightHistory'), 'periods': ['recent'], 'days': 28},
-          '요즘 스쿼트 추이');
+      final q = decode({
+        ...metric('weightHistory'),
+        'periods': ['recent'],
+        'days': 28,
+      }, '요즘 스쿼트 추이');
       expect(q.doubts, isNot(contains('period')));
     });
 
     test('운동이 둘 언급됐는데 하나만 답하면 의심한다', () {
-      expect(decode(metric('heaviest'), '벤치프레스랑 스쿼트 최고').doubts, contains('exercises'));
-      expect(decode(metric('heaviest'), '스쿼트 최고').doubts, isNot(contains('exercises')));
+      expect(
+        decode(metric('heaviest'), '벤치프레스랑 스쿼트 최고').doubts,
+        contains('exercises'),
+      );
+      expect(
+        decode(metric('heaviest'), '스쿼트 최고').doubts,
+        isNot(contains('exercises')),
+      );
     });
 
     test('운동 둘을 이름 없는 순위로 뭉개도 의심한다', () {
       final p = decode(emptyRank(), '벤치프레스랑 스쿼트 최고');
-      expect(p.rank, isTrue);                       // 규칙은 손대지 않는다(운동 둘)
-      expect(p.doubts, contains('exercises'));      // 대신 묻는다
+      expect(p.rank, isTrue); // 규칙은 손대지 않는다(운동 둘)
+      expect(p.doubts, contains('exercises')); // 대신 묻는다
       expect(decode(emptyRank(), '가장 자주 한 운동 세 개').doubts, isEmpty);
     });
 
     test('오타를 퍼지로 읽었으면 무엇으로 읽었는지 남긴다', () {
-      final p = decode({...metric('heaviest'), 'exercises': ['스쿼드']}, '스쿼드 최고');
+      final p = decode({
+        ...metric('heaviest'),
+        'exercises': ['스쿼드'],
+      }, '스쿼드 최고');
       expect(p.requests.single.exercise, '스쿼트');
       expect(p.readAs, {'스쿼트': '스쿼드'});
       expect(decode(metric('heaviest'), '스쿼트 최고').readAs, isEmpty);

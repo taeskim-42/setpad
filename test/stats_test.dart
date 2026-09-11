@@ -124,7 +124,10 @@ void main() {
         final peers = all.where(
           (a) => a.day.difference(all.first.day).inDays ~/ bucket == key,
         );
-        expect(p.value, peers.map((a) => a.value).reduce((x, y) => x > y ? x : y));
+        expect(
+          p.value,
+          peers.map((a) => a.value).reduce((x, y) => x > y ? x : y),
+        );
       }
       final days = thin.map((p) => p.day).toList();
       expect(days, [...days]..sort());

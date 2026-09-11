@@ -6,10 +6,6 @@
   },
   "copy": "복사",
   "copied": "복사했습니다",
-  "howTo": "운동 이름을 검색하고 세트를 기록하세요.",
-  "@howTo": {
-    "description": "Short guidance for starting a workout entry."
-  },
   "exerciseNameHint": "운동 이름",
   "repeatPrevious": "이전과 같이",
   "@repeatPrevious": {

@@ -290,36 +290,32 @@ class _DocumentHeader extends StatelessWidget {
   const _DocumentHeader({required this.note});
   final Note note;
 
+  /// 메모 앱의 머리다 — 날짜 한 줄이 가운데에 작게 놓이고 끝이다.
+  ///
+  /// 예전에는 그 아래에 "오늘 운동" 을 크게 적었다. 날짜 바로 밑에 같은 말을
+  /// 한 번 더 쓴 셈이고, 제목은 어차피 첫 운동 이름이 된다(목록이 그것을
+  /// 쓴다). 칼로리는 숫자가 있을 때만 나온다 — "기록 없음" 은 정보가 아니다.
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final now = DateTime.now();
     final at = note.createdAt;
-    final today =
-        at.year == now.year && at.month == now.month && at.day == now.day;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 28),
+      padding: const EdgeInsets.only(bottom: 18),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             '${l.dayLabel(at)} · ${l.weekdayLabel(at)}',
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
               color: CupertinoColors.secondaryLabel.resolveFrom(context),
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            today ? l.appTitle : l.dayLabel(at),
-            style: const TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.8,
-            ),
-          ),
-          const SizedBox(height: 14),
-          HealthSummary(calories: note.calories, showSource: true),
+          if (note.calories != null) ...[
+            const SizedBox(height: 12),
+            HealthSummary(calories: note.calories, showSource: true),
+          ],
         ],
       ),
     );

@@ -16,8 +16,17 @@ import 'package:setpad/record_query.dart';
 /// 몫이라 여기서 묻지 않는다.
 void main() {
   const names = [
-    '스쿼트', '벤치프레스', '데드리프트', '랫풀다운', '레그프레스', '바벨로우',
-    '덤벨컬', '사이드레터럴레이즈', '오버헤드프레스', '케이블 푸시다운', '푸시업',
+    '스쿼트',
+    '벤치프레스',
+    '데드리프트',
+    '랫풀다운',
+    '레그프레스',
+    '바벨로우',
+    '덤벨컬',
+    '사이드레터럴레이즈',
+    '오버헤드프레스',
+    '케이블 푸시다운',
+    '푸시업',
   ];
   final today = DateTime(2026, 9, 9);
 
@@ -30,17 +39,35 @@ void main() {
   /// 모델이 낼 법한 최악의 출력 셋. 코드 층은 셋 모두에서 정답으로 돌아와야 한다.
   List<Map<String, Object?>> worst(String question, String form) => [
     // 1. 잡담에 이끌려 메모 읽기로 빠지고 terms 를 아무 낱말로 채웠다.
-    {'action': 'readRecords', 'exercises': [form], 'periods': ['all'],
-     'terms': [question.split(' ').last]},
+    {
+      'action': 'readRecords',
+      'exercises': [form],
+      'periods': ['all'],
+      'terms': [question.split(' ').last],
+    },
     // 2. 의도를 틀렸다(전부 세트 수로), 기간과 조건은 떨어뜨렸다.
-    {'action': 'setCount', 'exercises': [form], 'periods': ['all']},
+    {
+      'action': 'setCount',
+      'exercises': [form],
+      'periods': ['all'],
+    },
     // 3. 순위로 냈다 — 운동 하나 지목한 순위는 언제나 무효다.
-    {'action': 'rankExercises', 'metric': 'trainingDays', 'limit': 1,
-     'exercises': [form], 'periods': ['all']},
+    {
+      'action': 'rankExercises',
+      'metric': 'trainingDays',
+      'limit': 1,
+      'exercises': [form],
+      'periods': ['all'],
+    },
     // 4. 운동 없는 순위로 냈다 — 실제 모델이 "정체기인가·늘고 있나·PR" 에
     //    가장 자주 내던 모양이다. 글에 운동이 하나 있으면 순위가 아니다.
-    {'action': 'rankExercises', 'metric': 'trainingDays', 'limit': 1,
-     'exercises': [], 'periods': ['all']},
+    {
+      'action': 'rankExercises',
+      'metric': 'trainingDays',
+      'limit': 1,
+      'exercises': [],
+      'periods': ['all'],
+    },
   ];
 
   List<String> grade(RecordQueryPlan p, Map<String, Object?> exp) {
@@ -51,9 +78,15 @@ void main() {
     if (r.metric.name != exp['metric']) e.add('metric');
     if (exp['period'] == true && r.since == null) e.add('period-missing');
     if (exp['period'] == false && r.since != null) e.add('period-invented');
-    if (exp.containsKey('minWeight') && r.minWeight != exp['minWeight']) e.add('minWeight');
-    if (exp.containsKey('maxWeight') && r.maxWeight != exp['maxWeight']) e.add('maxWeight');
-    if (exp.containsKey('minReps') && r.minReps != exp['minReps']) e.add('minReps');
+    if (exp.containsKey('minWeight') && r.minWeight != exp['minWeight']) {
+      e.add('minWeight');
+    }
+    if (exp.containsKey('maxWeight') && r.maxWeight != exp['maxWeight']) {
+      e.add('maxWeight');
+    }
+    if (exp.containsKey('minReps') && r.minReps != exp['minReps']) {
+      e.add('minReps');
+    }
     if (exp.containsKey('unit') && r.weightUnit != exp['unit']) e.add('unit');
     return e;
   }
@@ -66,8 +99,12 @@ void main() {
         final exp = (c['expected'] as Map).cast<String, Object?>();
         final kind = exp['formKind'];
         // 오타·초성은 모델 몫. 규칙 층의 계약은 별칭·조사·접두·띄어쓰기·영어다.
-        if (exp['exercise'] == null || exp['exercise'] == '*' ||
-            kind == null || kind == '오타' || kind == '초성' || kind == '별칭?') {
+        if (exp['exercise'] == null ||
+            exp['exercise'] == '*' ||
+            kind == null ||
+            kind == '오타' ||
+            kind == '초성' ||
+            kind == '별칭?') {
           continue;
         }
         final q = c['q'] as String;

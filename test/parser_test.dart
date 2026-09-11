@@ -6,8 +6,10 @@ import 'package:setpad/units.dart';
 void main() {
   group('세트 줄 읽기', () {
     test('단위를 붙였든 안 붙였든 읽는다', () {
-      expect(parseSetLine('100kg 20회'),
-          const ParsedSet(value: 100, unit: 'kg', reps: 20));
+      expect(
+        parseSetLine('100kg 20회'),
+        const ParsedSet(value: 100, unit: 'kg', reps: 20),
+      );
       // 단위를 안 쳤으면 비워 둔다 — 무엇으로 볼지는 쓰는 쪽이 정한다.
       expect(parseSetLine('100 20'), const ParsedSet(value: 100, reps: 20));
     });
@@ -85,7 +87,7 @@ void main() {
       expect(stripParticle('벤치프레스는'), '벤치프레스');
       expect(stripParticle('스쿼트가'), '스쿼트');
       expect(stripParticle('데드리프트의'), '데드리프트');
-      expect(stripParticle('데드'), '데드');       // "드" 를 조사로 보면 안 된다
+      expect(stripParticle('데드'), '데드'); // "드" 를 조사로 보면 안 된다
       expect(stripParticle('벤치랑'), '벤치');
       expect(stripParticle('스쾃이랑'), '스쾃');
     });
@@ -106,10 +108,10 @@ void main() {
       expect(namedExercises('lat pulldown 총량', pool), ['랫풀다운']);
       expect(namedExercises('pushup 평균', pool), ['푸시업']);
       expect(namedExercises('벤치 프레스 PR', pool), ['벤치프레스']);
-      expect(namedExercises('벤치 최고', pool), ['벤치프레스']);          // 접두는 낱말 단계
-      expect(namedExercises('프레스 최고', pool), isEmpty);                // 여럿에 닿는 낱말은 지목이 아니다
+      expect(namedExercises('벤치 최고', pool), ['벤치프레스']); // 접두는 낱말 단계
+      expect(namedExercises('프레스 최고', pool), isEmpty); // 여럿에 닿는 낱말은 지목이 아니다
       expect(namedExercises('벤치프레스랑 스쿼트 최고', pool), ['벤치프레스', '스쿼트']);
-      expect(namedExercises('스쿼트 벤치 요즘 어때', pool), ['스쿼트', '벤치프레스']);   // 키 + 접두
+      expect(namedExercises('스쿼트 벤치 요즘 어때', pool), ['스쿼트', '벤치프레스']); // 키 + 접두
       expect(namedExercises('가장 자주 한 운동 세 개', pool), isEmpty);
     });
 
@@ -206,7 +208,16 @@ void bumpTests() {
   group('다국어 사전', () {
     test('여덟 언어가 다 채워져 있다', () {
       for (final e in exercises) {
-        for (final n in [e.ko, e.en, e.ja, e.zhHans, e.zhHant, e.es, e.vi, e.th]) {
+        for (final n in [
+          e.ko,
+          e.en,
+          e.ja,
+          e.zhHans,
+          e.zhHant,
+          e.es,
+          e.vi,
+          e.th,
+        ]) {
           expect(n.trim(), isNotEmpty, reason: '${e.ko} 에 빈 이름');
         }
       }

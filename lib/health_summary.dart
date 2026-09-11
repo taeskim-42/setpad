@@ -16,6 +16,9 @@ class HealthSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 숫자가 없으면 아무것도 그리지 않는다. "기록 없음" 은 화면을 차지할
+    // 뿐 읽을 것이 없고, 건강 앱이 값을 주는 순간 저절로 나타난다.
+    if (calories == null) return const SizedBox.shrink();
     final l = L.of(context);
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
     return Column(

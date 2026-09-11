@@ -190,8 +190,6 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await settle(tester);
       expect(inPad('벤치프레스'), findsOneWidget);
-      // The exercise lives in the document; navigation remains a toolbar.
-      expect(inPad('오늘 운동'), findsOneWidget);
 
       // 세트 칸은 터치 기기에서 읽기 전용이다 — 시스템 키보드를 부르지 않고
       // 키패드가 글자를 넣는다. 실제 사용 경로가 그쪽이므로 여기서도 그렇게 친다.
@@ -214,9 +212,15 @@ void main() {
       expect(inPad('벤치프레스'), findsOneWidget);
     });
 
-    testWidgets('빈 화면에는 쓰는 법이 적혀 있다', (tester) async {
+    testWidgets('빈 화면에는 날짜 한 줄뿐이다', (tester) async {
       await pumpApp(tester);
-      expect(find.textContaining('운동 이름을 검색하고'), findsOneWidget);
+      // 메모 앱처럼 비워 둔다 — 쓰는 법도, 모델 상태도, 없는 칼로리도 안 적는다.
+      expect(find.textContaining('운동 이름을 검색하고'), findsNothing);
+      expect(find.textContaining('한 줄 설정'), findsNothing);
+      expect(find.text('활동 칼로리'), findsNothing);
+      expect(find.text('오늘 운동'), findsNothing);
+      // 남는 것은 날짜 한 줄이다.
+      expect(find.textContaining('${DateTime.now().year}'), findsOneWidget);
     });
   });
 
@@ -360,8 +364,7 @@ void keypadTests() {
   group('다국어 화면', () {
     testWidgets('영어 기기에서는 영어로 뜬다', (tester) async {
       await pumpApp(tester, locale: const Locale('en'));
-      expect(find.text("Today's Workout"), findsOneWidget);
-      expect(find.textContaining('Type an exercise'), findsOneWidget);
+      expect(find.text('All Workouts'), findsOneWidget);
 
       await tester.enterText(padField.last, 'bench');
       await settle(tester);
@@ -397,7 +400,7 @@ void keypadTests() {
 
     testWidgets('일본어 기기에서는 일본어 이름이 나온다', (tester) async {
       await pumpApp(tester, locale: const Locale('ja'));
-      expect(find.text('今日のトレーニング'), findsOneWidget);
+      expect(find.text('すべての記録'), findsOneWidget);
       // 한글로 쳐도 일본어 이름으로 나온다
       await tester.enterText(padField.last, '벤치');
       await settle(tester);
@@ -406,10 +409,10 @@ void keypadTests() {
 
     testWidgets('zh-TW 처럼 문자 체계 없이 와도 번체로 붙는다', (tester) async {
       await pumpApp(tester, locale: const Locale('zh', 'TW'));
-      expect(find.text('今日訓練'), findsOneWidget);
+      expect(find.text('所有記錄'), findsOneWidget);
 
       await pumpApp(tester, locale: const Locale('zh', 'CN'));
-      expect(find.text('今日训练'), findsOneWidget);
+      expect(find.text('所有记录'), findsOneWidget);
     });
 
     testWidgets('번체 중국어는 간체와 다른 이름을 낸다', (tester) async {
@@ -420,7 +423,7 @@ void keypadTests() {
           scriptCode: 'Hant',
         ),
       );
-      expect(find.text('今日訓練'), findsOneWidget);
+      expect(find.text('所有記錄'), findsOneWidget);
       await tester.enterText(padField.last, 'bench');
       await settle(tester);
       expect(find.text('臥推'), findsOneWidget);

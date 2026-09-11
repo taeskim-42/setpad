@@ -127,12 +127,6 @@ abstract class L {
   /// **'복사했습니다'**
   String get copied;
 
-  /// Short guidance for starting a workout entry.
-  ///
-  /// In ko, this message translates to:
-  /// **'운동 이름을 검색하고 세트를 기록하세요.'**
-  String get howTo;
-
   /// No description provided for @exerciseNameHint.
   ///
   /// In ko, this message translates to:

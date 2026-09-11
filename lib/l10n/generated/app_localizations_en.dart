@@ -18,9 +18,6 @@ class LEn extends L {
   String get copied => 'Copied';
 
   @override
-  String get howTo => 'Type an exercise, then log your sets.';
-
-  @override
   String get exerciseNameHint => 'Exercise name';
 
   @override

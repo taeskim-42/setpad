@@ -20,9 +20,9 @@ void main() {
   ) async {
     await tester.pumpWidget(_summary(null));
     await tester.pumpAndSettle();
-    expect(find.text('활동 칼로리'), findsOneWidget);
-    expect(find.text('기록 없음'), findsOneWidget);
+    // 0 으로도, "기록 없음" 이라는 줄로도 나오지 않는다 — 아예 안 그린다.
     expect(find.textContaining('kcal'), findsNothing);
+    expect(find.text('활동 칼로리'), findsNothing);
     expect(find.text('건강 앱 · 기록 시간대'), findsNothing);
   });
 

@@ -18,9 +18,6 @@ class LEs extends L {
   String get copied => 'Copiado';
 
   @override
-  String get howTo => 'Busca un ejercicio y registra tus series.';
-
-  @override
   String get exerciseNameHint => 'Nombre del ejercicio';
 
   @override

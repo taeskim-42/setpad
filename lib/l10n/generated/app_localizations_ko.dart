@@ -18,9 +18,6 @@ class LKo extends L {
   String get copied => '복사했습니다';
 
   @override
-  String get howTo => '운동 이름을 검색하고 세트를 기록하세요.';
-
-  @override
   String get exerciseNameHint => '운동 이름';
 
   @override

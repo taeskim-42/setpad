@@ -209,7 +209,8 @@ void main() {
       final ai = FakeAi(LocalAiStatus.deviceNotEligible);
       final c = await pumpEditor(tester, ai);
       expect(find.byType(CupertinoActionSheet), findsNothing);
-      expect(find.text('한 줄 설정 · 기본 입력'), findsOneWidget);
+      // 이 기기에서는 할 수 있는 일이 없다 — 상태를 적지 않는다.
+      expect(find.textContaining('한 줄 설정'), findsNothing);
       await submit(tester, '스쿼트');
       expect(c.blocks.single.name, '스쿼트');
       expect(ai.calls, 0);
@@ -236,7 +237,8 @@ void main() {
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await tester.pumpAndSettle();
-      expect(find.text('한 줄 설정 · 사용 가능'), findsOneWidget);
+      // 켜고 나면 할 일이 없으니 줄도 사라진다.
+      expect(find.textContaining('한 줄 설정'), findsNothing);
       expect(ai.checks, greaterThanOrEqualTo(2));
     },
   );
@@ -253,7 +255,7 @@ void main() {
     await tester.tap(find.text('모델 준비'));
     await tester.pumpAndSettle();
     expect(ai.downloads, 1);
-    expect(find.text('한 줄 설정 · 사용 가능'), findsOneWidget);
+    expect(find.textContaining('한 줄 설정'), findsNothing);
   });
 
   testWidgets('a plan sets weight and goal, then Next records reps directly', (

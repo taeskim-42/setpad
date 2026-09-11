@@ -18,9 +18,6 @@ class LZh extends L {
   String get copied => '已复制';
 
   @override
-  String get howTo => '搜索运动名称，记录每一组。';
-
-  @override
   String get exerciseNameHint => '动作名称';
 
   @override
@@ -496,9 +493,6 @@ class LZhHans extends LZh {
   String get copied => '已复制';
 
   @override
-  String get howTo => '搜索运动名称，记录每一组。';
-
-  @override
   String get exerciseNameHint => '动作名称';
 
   @override
@@ -972,9 +966,6 @@ class LZhHant extends LZh {
 
   @override
   String get copied => '已複製';
-
-  @override
-  String get howTo => '搜尋運動名稱，記錄每一組。';
 
   @override
   String get exerciseNameHint => '動作名稱';

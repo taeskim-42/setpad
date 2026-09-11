@@ -635,6 +635,16 @@ class _RoutineEditorState extends State<RoutineEditor>
     }
   }
 
+  /// 사용자가 할 수 있는 일이 남아 있는가 — 켜기·받기·기다리기.
+  bool get _aiActionable => switch (_aiStatus) {
+    LocalAiStatus.intelligenceDisabled ||
+    LocalAiStatus.osUpdateRequired ||
+    LocalAiStatus.downloadable ||
+    LocalAiStatus.modelNotReady ||
+    LocalAiStatus.downloading => true,
+    _ => false,
+  };
+
   Future<void> _refreshAi() async {
     final request = ++_statusRequest;
     setState(() => _aiStatus = LocalAiStatus.checking);
@@ -1347,22 +1357,28 @@ class _RoutineEditorState extends State<RoutineEditor>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildInput(bold: true),
-                              CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                minimumSize: const Size.fromHeight(36),
-                                onPressed: () => showLocalAiHelp(
-                                  context,
-                                  _aiStatus,
-                                  onRetry: _refreshAi,
-                                  onPrepare: _prepareAi,
+                              // 할 일이 있을 때만 적는다. "사용 가능" 은 읽을
+                              // 것이 없고, 이 기기는 안 된다는 말도 사용자가
+                              // 할 수 있는 일이 없다. 둘 다 빈 화면에 남는
+                              // 잡음이라 뺐다 — 켜거나 받거나 기다리는 동안만
+                              // 보인다.
+                              if (_aiBusy || _aiActionable)
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size.fromHeight(36),
+                                  onPressed: () => showLocalAiHelp(
+                                    context,
+                                    _aiStatus,
+                                    onRetry: _refreshAi,
+                                    onPrepare: _prepareAi,
+                                  ),
+                                  child: Text(
+                                    _aiBusy
+                                        ? L.of(context).aiWorking
+                                        : '${L.of(context).aiTitle} · ${aiStatusLabel(L.of(context), _aiStatus)}',
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
                                 ),
-                                child: Text(
-                                  _aiBusy
-                                      ? L.of(context).aiWorking
-                                      : '${L.of(context).aiTitle} · ${aiStatusLabel(L.of(context), _aiStatus)}',
-                                  style: const TextStyle(fontSize: 13),
-                                ),
-                              ),
                               if (_aiFailed) ...[
                                 Text(
                                   L.of(context).aiFailure,
@@ -1381,19 +1397,6 @@ class _RoutineEditorState extends State<RoutineEditor>
                                   ),
                                 ),
                               ],
-                              if (blocks.isEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Text(
-                                    L.of(context).howTo,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      height: 1.5,
-                                      color: CupertinoColors.secondaryLabel
-                                          .resolveFrom(context),
-                                    ),
-                                  ),
-                                ),
                             ],
                           ),
                         ),

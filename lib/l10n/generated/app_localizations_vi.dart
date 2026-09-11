@@ -18,9 +18,6 @@ class LVi extends L {
   String get copied => 'Đã sao chép';
 
   @override
-  String get howTo => 'Tìm bài tập rồi ghi lại các hiệp.';
-
-  @override
   String get exerciseNameHint => 'Tên bài tập';
 
   @override
