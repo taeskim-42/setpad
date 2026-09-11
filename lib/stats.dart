@@ -60,7 +60,7 @@ Iterable<(DateTime, LoggedSet)> _sets(List<Note> notes, String query) sync* {
   final want = query.trim().toLowerCase();
   for (final note in notes) {
     for (final block in note.blocks) {
-      if (searchKey(block.name) != searchKey(want)) continue;
+      if (searchKey(block.exercise) != searchKey(want)) continue;
       for (final set in block.sets) {
         if (set.done &&
             set.value != null &&
@@ -162,7 +162,7 @@ Answer answer(
     for (final note in notes) {
       final day = _day(note.createdAt);
       if (since != null && day.isBefore(_day(since))) continue;
-      for (final block in note.blocks.where((b) => b.name == exercise)) {
+      for (final block in note.blocks.where((b) => b.exercise == exercise)) {
         for (final set in block.sets.where(
           (s) => s.done && (s.value != null || s.reps != null),
         )) {

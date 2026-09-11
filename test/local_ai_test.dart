@@ -267,6 +267,12 @@ void main() {
     expect(ai.calls, 1);
     expect(c.totalSets, 0);
     expect(find.text('80kg · 0/100회'), findsOneWidget);
+    // 친 문장이 제목으로 남는다. 다만 이 칸이 가리키는 운동은 벤치프레스이고,
+    // 사전에 익히는 것도 그 이름이다 — 문장이 다음 후보로 뜨면 안 된다.
+    expect(c.blocks.single.name, example);
+    expect(c.blocks.single.exercise, '벤치프레스');
+    expect(c.recentExercises.first, '벤치프레스');
+    expect(find.text(example), findsOneWidget);
     for (final digit in ['2', '0']) {
       await tester.tap(
         find.descendant(of: find.byType(SetKeypad), matching: find.text(digit)),

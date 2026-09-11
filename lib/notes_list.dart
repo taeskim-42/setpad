@@ -76,7 +76,7 @@ class _NotesListPageState extends State<NotesListPage>
   }
 
   List<String> get _names => widget.store.notes
-      .expand((n) => n.blocks.map((b) => b.name))
+      .expand((n) => n.blocks.map((b) => b.exercise))
       .toSet()
       .toList();
   @override

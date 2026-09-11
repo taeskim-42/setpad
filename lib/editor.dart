@@ -92,6 +92,13 @@ class ExerciseBlock {
   String name;
   final List<LoggedSet> sets;
   WorkoutSetup? setup;
+
+  /// 이 칸이 가리키는 운동. 화면에 적히는 이름과 다를 수 있다.
+  ///
+  /// "스쿼트 100kg 100개 채우기" 라고 쳤으면 제목은 그 문장 그대로 남는다 —
+  /// 이 앱은 사람이 쓴 글이 곧 기록이다. 다만 통계와 검색은 그 문장이 아니라
+  /// **스쿼트**를 봐야 하므로, 한 줄 설정이 알아낸 이름을 여기서 낸다.
+  String get exercise => setup?.name ?? name;
   int get completedReps =>
       sets.where((s) => s.done).fold(0, (n, s) => n + (s.reps ?? 0));
 }
@@ -143,12 +150,15 @@ class RoutineEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addExercise(String name, {WorkoutSetup? setup}) {
+  void addExercise(String name, {WorkoutSetup? setup, String? learnAs}) {
     final clean = name.trim();
     if (clean.isEmpty) return;
     blocks.add(ExerciseBlock(clean, null, setup));
-    _learned.remove(clean);
-    _learned.insert(0, clean);
+    // 익히는 것은 운동 이름이다. 친 문장을 통째로 익히면 다음에 그 문장이
+    // 후보로 뜬다 — "타바타 벤치프레스 30kg 100개" 가 사전에 남던 것이 그것이다.
+    final learned = (learnAs ?? clean).trim();
+    _learned.remove(learned);
+    _learned.insert(0, learned);
     _active = blocks.length - 1;
     notifyListeners();
   }
@@ -691,9 +701,13 @@ class _RoutineEditorState extends State<RoutineEditor>
       }
       setState(() => _aiBusy = false);
       _input.clear();
+      // 계획이 붙은 문장은 친 글 그대로 제목이 된다. 이름만 친 경우에는
+      // 모델이 바로잡은 이름을 쓴다 — 그때 모델이 한 일이 그것뿐이다.
+      final planned = setup.hasPlan || setup.repsOnly;
       _c.addExercise(
-        setup.name,
-        setup: setup.hasPlan || setup.repsOnly ? setup : null,
+        planned ? text.trim() : setup.name,
+        setup: planned ? setup : null,
+        learnAs: setup.name,
       );
       _focus.requestFocus();
     } catch (_) {
@@ -1757,11 +1771,29 @@ class _BlockView extends StatelessWidget {
                 editingSet == null &&
                 (!isMemo || block.sets.isEmpty)) ...[
               Padding(
-                padding: EdgeInsets.only(
-                  top: block.sets.isEmpty ? 2 : 4,
-                  left: isMemo ? 0 : 70,
-                ),
-                child: input!,
+                padding: EdgeInsets.only(top: block.sets.isEmpty ? 2 : 4),
+                child: isMemo
+                    ? input!
+                    // 빈 자리를 들여쓰기만 해 두면 왜 밀려 있는지 알 수 없다.
+                    // 세트 줄과 같은 자리에 몇 세트인지 옅게 적어 둔다.
+                    : Row(
+                        children: [
+                          const SizedBox(width: 30),
+                          SizedBox(
+                            width: 40,
+                            child: Text(
+                              L.of(context).setOrdinal(block.sets.length + 1),
+                              style: TextStyle(
+                                fontSize: 13,
+                                letterSpacing: -0.08,
+                                color: CupertinoColors.tertiaryLabel
+                                    .resolveFrom(context),
+                              ),
+                            ),
+                          ),
+                          Expanded(child: input!),
+                        ],
+                      ),
               ),
             ],
           ],
