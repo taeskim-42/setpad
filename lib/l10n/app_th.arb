@@ -102,7 +102,7 @@
   "queryWorking": "กำลังตีความคำถาม…",
   "queryFailed": "ไม่สามารถโหลดคำตอบได้ โปรดลองอีกครั้ง",
   "queryUnsupported": "โปรดถามเกี่ยวกับบันทึกการออกกำลังกายของคุณ",
-  "queryNoData": "ไม่มีบันทึกที่ทำสำเร็จตรงเงื่อนไข หรือข้อมูลที่จำเป็นไม่ครบ",
+  "queryNoData": "ขาดบันทึกที่เสร็จแล้วหรือค่าที่จำเป็น โปรดตรวจสอบบันทึกต้นฉบับ",
   "queryPeriod": "{start} – {end}",
   "queryAllTime": "ทุกช่วงเวลา",
   "queryPresent": "ปัจจุบัน",
@@ -128,5 +128,9 @@
   "metricAverage": "เฉลี่ย",
   "readAsConfirm": "อ่านว่า",
   "confirmYes": "ใช่",
-  "readAsNote": "{from} → {to}"
+  "readAsNote": "{from} → {to}",
+  "reviewNumbers": "ตรวจสอบตัวเลขและเงื่อนไขก่อนนำไปใช้",
+  "querySourceOnly": "ดูบันทึกต้นฉบับ",
+  "queryCompareOrder": "ช่วงที่สอง − ช่วงแรก",
+  "queryRankingLimit": "สูงสุด {n} รายการ · มากไปน้อย"
 }

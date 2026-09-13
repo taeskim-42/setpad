@@ -724,7 +724,7 @@ abstract class L {
   /// No description provided for @queryNoData.
   ///
   /// In ko, this message translates to:
-  /// **'조건에 맞는 완료 기록이 없거나 계산에 필요한 값이 부족합니다.'**
+  /// **'계산에 필요한 완료 기록이나 값이 부족해요. 원본 기록을 확인해 주세요.'**
   String get queryNoData;
 
   /// No description provided for @queryPeriod.
@@ -882,6 +882,30 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{from} → {to}'**
   String readAsNote(String from, String to);
+
+  /// No description provided for @reviewNumbers.
+  ///
+  /// In ko, this message translates to:
+  /// **'숫자와 조건을 확인한 뒤 적용해 주세요.'**
+  String get reviewNumbers;
+
+  /// No description provided for @querySourceOnly.
+  ///
+  /// In ko, this message translates to:
+  /// **'원본 기록 보기'**
+  String get querySourceOnly;
+
+  /// No description provided for @queryCompareOrder.
+  ///
+  /// In ko, this message translates to:
+  /// **'두 번째 기간 − 첫 번째 기간'**
+  String get queryCompareOrder;
+
+  /// No description provided for @queryRankingLimit.
+  ///
+  /// In ko, this message translates to:
+  /// **'상위 {n}개 · 내림차순'**
+  String queryRankingLimit(int n);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

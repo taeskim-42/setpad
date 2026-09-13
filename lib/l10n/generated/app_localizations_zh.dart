@@ -384,7 +384,7 @@ class LZh extends L {
   String get queryUnsupported => '请提出与运动记录有关的问题。';
 
   @override
-  String get queryNoData => '没有符合条件的已完成记录，或缺少计算所需数值。';
+  String get queryNoData => '缺少计算所需的已完成记录或数值。请检查原始记录。';
 
   @override
   String queryPeriod(String start, String end) {
@@ -476,6 +476,20 @@ class LZh extends L {
   @override
   String readAsNote(String from, String to) {
     return '$from → $to';
+  }
+
+  @override
+  String get reviewNumbers => '应用前请确认数字和条件。';
+
+  @override
+  String get querySourceOnly => '查看原始记录';
+
+  @override
+  String get queryCompareOrder => '第二个时段 − 第一个时段';
+
+  @override
+  String queryRankingLimit(int n) {
+    return '前$n项 · 降序';
   }
 }
 
@@ -859,7 +873,7 @@ class LZhHans extends LZh {
   String get queryUnsupported => '请提出与运动记录有关的问题。';
 
   @override
-  String get queryNoData => '没有符合条件的已完成记录，或缺少计算所需数值。';
+  String get queryNoData => '缺少计算所需的已完成记录或数值。请检查原始记录。';
 
   @override
   String queryPeriod(String start, String end) {
@@ -951,6 +965,20 @@ class LZhHans extends LZh {
   @override
   String readAsNote(String from, String to) {
     return '$from → $to';
+  }
+
+  @override
+  String get reviewNumbers => '应用前请确认数字和条件。';
+
+  @override
+  String get querySourceOnly => '查看原始记录';
+
+  @override
+  String get queryCompareOrder => '第二个时段 − 第一个时段';
+
+  @override
+  String queryRankingLimit(int n) {
+    return '前$n项 · 降序';
   }
 }
 
@@ -1334,7 +1362,7 @@ class LZhHant extends LZh {
   String get queryUnsupported => '請提出與運動紀錄有關的問題。';
 
   @override
-  String get queryNoData => '沒有符合條件的已完成紀錄，或缺少計算所需數值。';
+  String get queryNoData => '缺少計算所需的已完成紀錄或數值。請檢查原始紀錄。';
 
   @override
   String queryPeriod(String start, String end) {
@@ -1426,5 +1454,19 @@ class LZhHant extends LZh {
   @override
   String readAsNote(String from, String to) {
     return '$from → $to';
+  }
+
+  @override
+  String get reviewNumbers => '套用前請確認數字和條件。';
+
+  @override
+  String get querySourceOnly => '查看原始紀錄';
+
+  @override
+  String get queryCompareOrder => '第二個時段 − 第一個時段';
+
+  @override
+  String queryRankingLimit(int n) {
+    return '前$n項 · 遞減';
   }
 }

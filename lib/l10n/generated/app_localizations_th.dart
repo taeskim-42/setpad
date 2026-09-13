@@ -395,7 +395,7 @@ class LTh extends L {
 
   @override
   String get queryNoData =>
-      'ไม่มีบันทึกที่ทำสำเร็จตรงเงื่อนไข หรือข้อมูลที่จำเป็นไม่ครบ';
+      'ขาดบันทึกที่เสร็จแล้วหรือค่าที่จำเป็น โปรดตรวจสอบบันทึกต้นฉบับ';
 
   @override
   String queryPeriod(String start, String end) {
@@ -488,5 +488,19 @@ class LTh extends L {
   @override
   String readAsNote(String from, String to) {
     return '$from → $to';
+  }
+
+  @override
+  String get reviewNumbers => 'ตรวจสอบตัวเลขและเงื่อนไขก่อนนำไปใช้';
+
+  @override
+  String get querySourceOnly => 'ดูบันทึกต้นฉบับ';
+
+  @override
+  String get queryCompareOrder => 'ช่วงที่สอง − ช่วงแรก';
+
+  @override
+  String queryRankingLimit(int n) {
+    return 'สูงสุด $n รายการ · มากไปน้อย';
   }
 }

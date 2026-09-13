@@ -389,7 +389,7 @@ class LJa extends L {
   String get queryUnsupported => '運動記録に関する質問をしてください。';
 
   @override
-  String get queryNoData => '条件に合う完了記録がないか、計算に必要な値が不足しています。';
+  String get queryNoData => '計算に必要な完了記録や数値が不足しています。元の記録を確認してください。';
 
   @override
   String queryPeriod(String start, String end) {
@@ -481,5 +481,19 @@ class LJa extends L {
   @override
   String readAsNote(String from, String to) {
     return '$from → $to';
+  }
+
+  @override
+  String get reviewNumbers => '数値と条件を確認してから適用してください。';
+
+  @override
+  String get querySourceOnly => '元の記録を表示';
+
+  @override
+  String get queryCompareOrder => '2番目の期間 − 1番目の期間';
+
+  @override
+  String queryRankingLimit(int n) {
+    return '上位$n件・降順';
   }
 }

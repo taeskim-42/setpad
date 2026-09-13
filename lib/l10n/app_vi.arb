@@ -102,7 +102,7 @@
   "queryWorking": "Đang hiểu câu hỏi…",
   "queryFailed": "Không thể tải câu trả lời. Vui lòng thử lại.",
   "queryUnsupported": "Hãy đặt câu hỏi về nhật ký tập luyện của bạn.",
-  "queryNoData": "Không có bản ghi hoàn thành phù hợp hoặc thiếu giá trị cần thiết.",
+  "queryNoData": "Thiếu bản ghi đã hoàn thành hoặc số đo cần thiết. Hãy kiểm tra bản ghi gốc.",
   "queryPeriod": "{start} – {end}",
   "queryAllTime": "Toàn bộ thời gian",
   "queryPresent": "Hiện tại",
@@ -128,5 +128,9 @@
   "metricAverage": "Trung bình",
   "readAsConfirm": "Hiểu là",
   "confirmYes": "Đúng",
-  "readAsNote": "{from} → {to}"
+  "readAsNote": "{from} → {to}",
+  "reviewNumbers": "Kiểm tra các số và điều kiện trước khi áp dụng.",
+  "querySourceOnly": "Xem bản ghi gốc",
+  "queryCompareOrder": "Giai đoạn thứ hai − giai đoạn thứ nhất",
+  "queryRankingLimit": "Top {n} · giảm dần"
 }

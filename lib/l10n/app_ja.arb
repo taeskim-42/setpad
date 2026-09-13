@@ -102,7 +102,7 @@
   "queryWorking": "質問を読み取っています…",
   "queryFailed": "回答を取得できませんでした。もう一度お試しください。",
   "queryUnsupported": "運動記録に関する質問をしてください。",
-  "queryNoData": "条件に合う完了記録がないか、計算に必要な値が不足しています。",
+  "queryNoData": "計算に必要な完了記録や数値が不足しています。元の記録を確認してください。",
   "queryPeriod": "{start} – {end}",
   "queryAllTime": "全期間",
   "queryPresent": "現在",
@@ -128,5 +128,9 @@
   "metricAverage": "平均",
   "readAsConfirm": "このように読みました",
   "confirmYes": "はい",
-  "readAsNote": "{from} → {to}"
+  "readAsNote": "{from} → {to}",
+  "reviewNumbers": "数値と条件を確認してから適用してください。",
+  "querySourceOnly": "元の記録を表示",
+  "queryCompareOrder": "2番目の期間 − 1番目の期間",
+  "queryRankingLimit": "上位{n}件・降順"
 }

@@ -88,6 +88,56 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test(
+    'unsupported schedules and durations cannot become partial setups',
+    () async {
+      const ai = LocalAi(nativeSupported: true);
+      for (final text in [
+        '내일 벤치 80kg 10회',
+        '월요일 스쿼트 60kg 5세트',
+        '벤치 80kg 10회 30초 휴식',
+        'tomorrow squat 60kg 5 sets',
+      ]) {
+        await expectLater(
+          ai.interpret(text, 'ko', ['벤치프레스', '스쿼트']),
+          throwsFormatException,
+          reason: text,
+        );
+      }
+    },
+  );
+
+  testWidgets(
+    'canceling a numeric proposal preserves input and writes nothing',
+    (tester) async {
+      final c = await pumpEditor(tester, FakeAi(LocalAiStatus.available));
+      await submit(tester, example);
+      expect(c.blocks, isEmpty);
+      await tester.tap(find.text('취소'));
+      await tester.pumpAndSettle();
+      expect(c.blocks, isEmpty);
+      expect(
+        tester.widget<CupertinoTextField>(field).controller!.text,
+        example,
+      );
+    },
+  );
+
+  testWidgets('corrected numbers are applied only after confirmation', (
+    tester,
+  ) async {
+    final c = await pumpEditor(tester, FakeAi(LocalAiStatus.available));
+    await submit(tester, example);
+    final weight = find.byType(CupertinoTextFormFieldRow).at(1);
+    await tester.enterText(weight, '82.125');
+    expect(c.blocks, isEmpty);
+    await tester.tap(find.text('완료'));
+    await tester.pumpAndSettle();
+    expect(c.blocks.single.setup!.weight, 82.125);
+    expect(c.blocks.single.name, '벤치프레스');
+    expect(c.blocks.single.sets, isEmpty);
+  });
+
+  test(
     'AI output validation rejects malformed numbers and unsupported units',
     () {
       for (final patch in <Map<String, Object?>>[
@@ -265,6 +315,10 @@ void main() {
     final c = await pumpEditor(tester, ai);
     await submit(tester, example);
     expect(ai.calls, 1);
+    expect(c.blocks, isEmpty, reason: 'Unconfirmed numbers are never applied');
+    expect(find.textContaining('숫자와 조건을 확인'), findsOneWidget);
+    await tester.tap(find.text('완료'));
+    await tester.pumpAndSettle();
     expect(c.totalSets, 0);
     expect(find.text('80kg · 0/100회'), findsOneWidget);
     // 친 문장이 제목으로 남는다. 다만 이 칸이 가리키는 운동은 벤치프레스이고,
@@ -328,6 +382,9 @@ void main() {
       await submit(tester, example);
       expect(c.blocks, isEmpty);
       ai.pendingStatus!.complete(LocalAiStatus.available);
+      await tester.pumpAndSettle();
+      expect(c.blocks, isEmpty);
+      await tester.tap(find.text('완료'));
       await tester.pumpAndSettle();
       expect(c.blocks.single.setup!.totalReps, 100);
       expect(ai.calls, 1);

@@ -398,7 +398,7 @@ class LEs extends L {
 
   @override
   String get queryNoData =>
-      'No hay registros completados coincidentes o faltan valores necesarios.';
+      'Faltan registros completados o mediciones necesarias. Revisa los registros originales.';
 
   @override
   String queryPeriod(String start, String end) {
@@ -491,5 +491,20 @@ class LEs extends L {
   @override
   String readAsNote(String from, String to) {
     return '$from → $to';
+  }
+
+  @override
+  String get reviewNumbers =>
+      'Revisa los números y las condiciones antes de aplicar.';
+
+  @override
+  String get querySourceOnly => 'Ver registros originales';
+
+  @override
+  String get queryCompareOrder => 'Segundo período − primer período';
+
+  @override
+  String queryRankingLimit(int n) {
+    return 'Primeros $n · descendente';
   }
 }

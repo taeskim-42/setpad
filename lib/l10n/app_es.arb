@@ -102,7 +102,7 @@
   "queryWorking": "Interpretando tu pregunta…",
   "queryFailed": "No se pudo obtener la respuesta. Inténtalo de nuevo.",
   "queryUnsupported": "Haz una pregunta sobre tus registros de entrenamiento.",
-  "queryNoData": "No hay registros completados coincidentes o faltan valores necesarios.",
+  "queryNoData": "Faltan registros completados o mediciones necesarias. Revisa los registros originales.",
   "queryPeriod": "{start} – {end}",
   "queryAllTime": "Todo el período",
   "queryPresent": "Actualidad",
@@ -128,5 +128,9 @@
   "metricAverage": "Promedio",
   "readAsConfirm": "Entendido como",
   "confirmYes": "Sí",
-  "readAsNote": "{from} → {to}"
+  "readAsNote": "{from} → {to}",
+  "reviewNumbers": "Revisa los números y las condiciones antes de aplicar.",
+  "querySourceOnly": "Ver registros originales",
+  "queryCompareOrder": "Segundo período − primer período",
+  "queryRankingLimit": "Primeros {n} · descendente"
 }

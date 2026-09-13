@@ -51,6 +51,13 @@ class _NotesListPageState extends State<NotesListPage>
   /// 의심스러운 해석을 사용자가 "맞아요" 로 확인한 계획. 같은 계획 객체일 때만
   /// 유효하다 — 검색어가 바뀌어 새 계획이 오면 자연히 풀린다.
   RecordQueryPlan? _confirmed;
+  String? _confirmedContext;
+  String get _confirmationContext =>
+      '${DateTime.now().toIso8601String().substring(0, 10)}|$_locale|${widget.store.weightUnit}';
+  bool _isConfirmed(RecordQueryPlan? plan) =>
+      plan != null &&
+      identical(_confirmed, plan) &&
+      _confirmedContext == _confirmationContext;
 
   /// 검색어 전체가 운동 이름 하나로 읽히는가. 이때만 모델을 건너뛴다 —
   /// 이름만 쳤으면 물을 것이 없다.
@@ -103,7 +110,12 @@ class _NotesListPageState extends State<NotesListPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      unawaited(_search.refresh(_locale ?? 'en'));
+      _confirmed = null;
+      unawaited(
+        _search.refresh(_locale ?? 'en').then((_) {
+          if (mounted && _query.text.isNotEmpty) _ask(immediately: true);
+        }),
+      );
     } else {
       _search.cancel();
     }
@@ -128,15 +140,28 @@ class _NotesListPageState extends State<NotesListPage>
   /// "스쿼트 · 최고 · 9월 1일 ~ 9월 30일" — 무엇을 어떻게 읽었는지 한 줄.
   String _planSummary(L l, RecordQueryPlan plan) {
     if (plan.requests.isEmpty) return plan.kind;
-    final r = plan.requests.first;
-    final names = plan.requests.map((x) => x.exercise).toSet().join(', ');
-    final parts = [
-      if (names.isNotEmpty && names != '*') names,
-      _metricLabel(l, r.metric),
-      if (r.since != null)
-        '${l.dayLabel(r.since!)}${r.until != null ? ' ~ ${l.dayLabel(r.until!)}' : ' ~'}',
-    ];
-    return parts.join(' · ');
+    return [
+      if (plan.compare) l.queryCompareOrder,
+      if (plan.rank) l.queryRankingLimit(plan.limit),
+      for (final (index, r) in plan.requests.indexed)
+        [
+          if (plan.compare) '${index + 1}.',
+          r.exercise == '*' ? l.allNotes : r.exercise,
+          plan.kind == 'insight'
+              ? l.querySourceOnly
+              : _metricLabel(l, r.metric),
+          recordRequestScope(r, l),
+          if (plan.kind == 'answer' &&
+              [
+                stats.Metric.max,
+                stats.Metric.average,
+                stats.Metric.volume,
+                stats.Metric.trend,
+                stats.Metric.last,
+              ].contains(r.metric))
+            widget.store.weightUnit,
+        ].join(' · '),
+    ].join('\n');
   }
 
   String _metricLabel(L l, stats.Metric m) => switch (m) {
@@ -184,6 +209,9 @@ class _NotesListPageState extends State<NotesListPage>
     final q = _query.text.trim().toLowerCase();
     final all = widget.store.notes;
     final plan = _search.plan;
+    if (plan != null && plan.requiresConfirmation && !_isConfirmed(plan)) {
+      return all;
+    }
     if (plan?.kind == 'insight') {
       return all.where((n) => recordNoteMatches(n, plan!)).toList();
     }
@@ -201,7 +229,9 @@ class _NotesListPageState extends State<NotesListPage>
     }
     if (plan?.searchNames.isNotEmpty == true) {
       return all
-          .where((n) => n.blocks.any((b) => plan!.searchNames.contains(b.name)))
+          .where(
+            (n) => n.blocks.any((b) => plan!.searchNames.contains(b.exercise)),
+          )
           .toList();
     }
     return q.isEmpty
@@ -259,8 +289,8 @@ class _NotesListPageState extends State<NotesListPage>
                   // 틀린 숫자보다 탭 한 번이 싸다.
                   final doubtful =
                       plan != null &&
-                      plan.doubts.isNotEmpty &&
-                      !identical(_confirmed, plan);
+                      plan.requiresConfirmation &&
+                      !_isConfirmed(plan);
                   final answers = plan == null || doubtful
                       ? const []
                       : executeRecordPlan(
@@ -268,6 +298,7 @@ class _NotesListPageState extends State<NotesListPage>
                           widget.store.notes,
                           l,
                           widget.store.weightUnit,
+                          confirmed: _isConfirmed(plan),
                         );
                   return CustomScrollView(
                     slivers: [
@@ -306,7 +337,9 @@ class _NotesListPageState extends State<NotesListPage>
                                     'ambiguous' => l.queryAmbiguous,
                                     _ => l.queryUnsupported,
                                   }, style: const TextStyle(fontSize: 14)),
-                                if (plan?.kind == 'answer' && answers.isEmpty)
+                                if (!doubtful &&
+                                    plan?.kind == 'answer' &&
+                                    answers.isEmpty)
                                   Text(
                                     l.queryNoData,
                                     style: const TextStyle(fontSize: 14),
@@ -363,6 +396,8 @@ class _NotesListPageState extends State<NotesListPage>
                                         label: label,
                                         selected: _pick == metric,
                                         onTap: () {
+                                          _query.text = name;
+                                          _confirmed = null;
                                           _search.search(
                                             '',
                                             _locale ?? 'en',
@@ -415,8 +450,10 @@ class _NotesListPageState extends State<NotesListPage>
                                 SuggestionChip(
                                   label: l.confirmYes,
                                   selected: false,
-                                  onTap: () =>
-                                      setState(() => _confirmed = plan),
+                                  onTap: () => setState(() {
+                                    _confirmed = plan;
+                                    _confirmedContext = _confirmationContext;
+                                  }),
                                 ),
                               ],
                             ),
@@ -438,50 +475,13 @@ class _NotesListPageState extends State<NotesListPage>
                             ),
                           ),
                         ),
-                      if (!doubtful)
-                        if (_search.reply case final reply?)
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                              child: GrainWash(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        reply.text,
-                                        style: TextStyle(
-                                          fontSize: 17,
-                                          height: 1.5,
-                                          color: answerInk.resolveFrom(context),
-                                        ),
-                                      ),
-                                      for (final fact
-                                          in reply.sourceFacts
-                                              .where((f) => f['date'] != null)
-                                              .take(3))
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 12,
-                                          ),
-                                          child: Text(
-                                            '${fact['date']} · ${fact['exercise']}',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              color: answerInk
-                                                  .resolveFrom(context)
-                                                  .withValues(alpha: 0.65),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
+                      if (!doubtful && plan?.kind == 'insight')
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                            child: Text(l.querySourceOnly),
                           ),
+                        ),
                       for (final answer in answers)
                         SliverToBoxAdapter(child: AnswerCard(answer: answer)),
                       SliverToBoxAdapter(
@@ -538,6 +538,7 @@ class _NotesListPageState extends State<NotesListPage>
             controller: _query,
             onChanged: (_) {
               _pick = null;
+              _confirmed = null;
               _ask();
             },
             onSubmitted: (_) => _ask(immediately: true),

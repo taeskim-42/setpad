@@ -6,7 +6,9 @@
    "metric": "trend",
    "period": true,
    "form": "스쿼드",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -17,7 +19,9 @@
    "metric": "last",
    "period": true,
    "form": "푸시업",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -28,7 +32,9 @@
    "metric": "last",
    "period": true,
    "form": "deadlift",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -46,7 +52,9 @@
    "metric": "average",
    "period": true,
    "form": "스쿼드",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -59,7 +67,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "스쿼",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -73,7 +83,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "ㅅㅋㅌ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:초성"
  },
@@ -84,7 +96,9 @@
    "metric": "average",
    "period": true,
    "form": "ㅅㅋㅌ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:초성"
  },
@@ -95,7 +109,9 @@
    "metric": "last",
    "period": true,
    "form": "대드리프트",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:오타"
  },
@@ -106,7 +122,9 @@
    "metric": "average",
    "period": true,
    "form": "데드리프트의",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -119,7 +137,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "dl",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -130,7 +150,9 @@
    "metric": "sets",
    "period": true,
    "form": "lat pulldown",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -141,7 +163,9 @@
    "metric": "last",
    "period": true,
    "form": "벤치는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:조사"
  },
@@ -152,7 +176,9 @@
    "metric": "max",
    "period": true,
    "form": "벤치",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -163,7 +189,9 @@
    "metric": "last",
    "period": false,
    "form": "벤치프레스는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": null,
+   "until": null
   },
   "cat": "표기:조사"
  },
@@ -174,7 +202,9 @@
    "metric": "max",
    "period": false,
    "form": "deadlift",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": null,
+   "until": null
   },
   "cat": "표기:영어"
  },
@@ -185,7 +215,9 @@
    "metric": "trend",
    "period": true,
    "form": "벤치",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -196,7 +228,9 @@
    "metric": "max",
    "period": true,
    "form": "bp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:별칭"
  },
@@ -207,7 +241,9 @@
    "metric": "trend",
    "period": true,
    "form": "밴치프레스",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -218,7 +254,9 @@
    "metric": "trend",
    "period": true,
    "form": "벤치프레스는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:조사"
  },
@@ -229,7 +267,9 @@
    "metric": "average",
    "period": true,
    "form": "스쾃",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -240,7 +280,9 @@
    "metric": "max",
    "period": true,
    "form": "데드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -251,7 +293,9 @@
    "metric": "max",
    "period": true,
    "form": "squat",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -263,7 +307,9 @@
    "period": false,
    "minReps": 5,
    "form": "dl",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": null,
+   "until": null
   },
   "cat": "표기:별칭"
  },
@@ -277,7 +323,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "벤치프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -288,7 +336,9 @@
    "metric": "trend",
    "period": false,
    "form": "스쿼트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": null,
+   "until": null
   },
   "cat": "표기:정식"
  },
@@ -299,14 +349,25 @@
    "metric": "reps",
    "period": true,
    "form": "벤치 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:띄어"
  },
  {
   "q": "벤치랑 스쿼트 최고",
   "expected": {
-   "exercises": 2
+   "requests": [
+    {
+     "exercise": "벤치프레스",
+     "metric": "max"
+    },
+    {
+     "exercise": "스쿼트",
+     "metric": "max"
+    }
+   ]
   },
   "cat": "두운동"
  },
@@ -318,7 +379,9 @@
    "period": true,
    "minReps": 5,
    "form": "랫풀다운",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -330,7 +393,9 @@
    "period": true,
    "minReps": 5,
    "form": "스쿼드",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:오타"
  },
@@ -341,7 +406,9 @@
    "metric": "last",
    "period": true,
    "form": "데드리프트의",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -352,7 +419,9 @@
    "metric": "last",
    "period": true,
    "form": "데드 리프트",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:띄어"
  },
@@ -363,7 +432,9 @@
    "metric": "trend",
    "period": true,
    "form": "dl",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:별칭"
  },
@@ -374,7 +445,9 @@
    "metric": "trend",
    "period": false,
    "form": "스쿼트가",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": null,
+   "until": null
   },
   "cat": "표기:조사"
  },
@@ -385,7 +458,9 @@
    "metric": "sets",
    "period": false,
    "form": "랫풀",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": null,
+   "until": null
   },
   "cat": "표기:접두"
  },
@@ -399,7 +474,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "ㅅㅋㅌ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:초성"
  },
@@ -410,7 +487,9 @@
    "metric": "last",
    "period": true,
    "form": "오버헤드프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -423,7 +502,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "bench press",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -436,7 +517,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "오버헤드 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:띄어"
  },
@@ -447,7 +530,9 @@
    "metric": "trend",
    "period": true,
    "form": "데드리프트의",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:조사"
  },
@@ -460,7 +545,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "ohp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -471,7 +558,9 @@
    "metric": "trend",
    "period": true,
    "form": "벤치는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:조사"
  },
@@ -479,7 +568,9 @@
   "q": "몇 번 갔지",
   "expected": {
    "exercise": "*",
-   "metric": "sessions"
+   "metric": "sessions",
+   "since": null,
+   "until": null
   },
   "cat": "운동없음"
  },
@@ -490,7 +581,9 @@
    "metric": "average",
    "period": true,
    "form": "밴치프레스",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -501,7 +594,9 @@
    "metric": "last",
    "period": false,
    "form": "밴치프레스",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": null,
+   "until": null
   },
   "cat": "표기:오타"
  },
@@ -514,7 +609,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "밴치프레스",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:오타"
  },
@@ -527,7 +624,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "bp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:별칭"
  },
@@ -538,7 +637,9 @@
    "metric": "average",
    "period": true,
    "form": "벤치",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -549,7 +650,9 @@
    "metric": "last",
    "period": true,
    "form": "ㅅㅋㅌ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:초성"
  },
@@ -561,7 +664,9 @@
    "period": true,
    "minReps": 5,
    "form": "오버헤드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:접두"
  },
@@ -574,7 +679,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "랫풀",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:접두"
  },
@@ -587,7 +694,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "데드리프트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -598,7 +707,9 @@
    "metric": "average",
    "period": true,
    "form": "pushup",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -612,7 +723,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "데드리프트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:정식"
  },
@@ -623,7 +736,9 @@
    "metric": "reps",
    "period": true,
    "form": "스쾃",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -634,7 +749,9 @@
    "metric": "average",
    "period": true,
    "form": "랫풀다운",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:정식"
  },
@@ -646,7 +763,9 @@
    "period": true,
    "minReps": 5,
    "form": "데드 리프트",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:띄어"
  },
@@ -658,7 +777,9 @@
    "period": true,
    "minReps": 5,
    "form": "squat",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -669,7 +790,9 @@
    "metric": "trend",
    "period": true,
    "form": "벤치프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -677,7 +800,9 @@
   "q": "지난주 몇 번 갔어",
   "expected": {
    "exercise": "*",
-   "metric": "sessions"
+   "metric": "sessions",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "운동없음"
  },
@@ -690,7 +815,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "오버헤드 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:띄어"
  },
@@ -701,7 +828,9 @@
    "metric": "average",
    "period": true,
    "form": "lat pulldown",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -713,7 +842,9 @@
    "period": true,
    "minReps": 5,
    "form": "ㅅㅋㅌ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:초성"
  },
@@ -726,7 +857,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "lat pulldown",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -737,7 +870,9 @@
    "metric": "max",
    "period": true,
    "form": "푸쉬업",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -751,7 +886,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "bp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -764,7 +901,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "대드리프트",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -777,7 +916,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "렛풀다운",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:오타"
  },
@@ -789,7 +930,9 @@
    "period": true,
    "minReps": 5,
    "form": "ohp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:별칭"
  },
@@ -800,7 +943,9 @@
    "metric": "reps",
    "period": true,
    "form": "lat pulldown",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -811,7 +956,9 @@
    "metric": "last",
    "period": true,
    "form": "bp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:별칭"
  },
@@ -822,7 +969,9 @@
    "metric": "last",
    "period": false,
    "form": "ㅂㅊㅍㄹㅅ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": null,
+   "until": null
   },
   "cat": "표기:초성"
  },
@@ -835,14 +984,16 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "오버헤드프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:정식"
  },
  {
   "q": "벤치프레스 스쿼트 데드리프트 3대 합",
   "expected": {
-   "exercises": 2
+   "note": "Specify comparison metric or unsupported sum operation"
   },
   "cat": "두운동"
  },
@@ -853,7 +1004,9 @@
    "metric": "average",
    "period": true,
    "form": "푸쉬업",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:오타"
  },
@@ -864,7 +1017,9 @@
    "metric": "average",
    "period": true,
    "form": "오버헤드프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -878,7 +1033,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "스쿼드",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -889,7 +1046,9 @@
    "metric": "max",
    "period": true,
    "form": "벤치프레스는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:조사"
  },
@@ -903,7 +1062,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "벤치프레스는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -914,7 +1075,9 @@
    "metric": "average",
    "period": true,
    "form": "dl",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:별칭"
  },
@@ -925,7 +1088,9 @@
    "metric": "average",
    "period": true,
    "form": "deadlift",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -936,7 +1101,9 @@
    "metric": "last",
    "period": true,
    "form": "랫풀다운",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -947,7 +1114,9 @@
    "metric": "max",
    "period": true,
    "form": "스쾃",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -960,7 +1129,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "데드리프트의",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -973,7 +1144,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "오버헤드 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:띄어"
  },
@@ -986,7 +1159,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "벤치프레스는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -998,7 +1173,9 @@
    "period": false,
    "minReps": 5,
    "form": "렛풀다운",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": null,
+   "until": null
   },
   "cat": "표기:오타"
  },
@@ -1012,7 +1189,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "푸쉬업",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": null,
+   "until": null
   },
   "cat": "표기:오타"
  },
@@ -1024,7 +1203,9 @@
    "period": false,
    "minReps": 5,
    "form": "오버헤드프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": null,
+   "until": null
   },
   "cat": "표기:정식"
  },
@@ -1035,7 +1216,9 @@
    "metric": "average",
    "period": true,
    "form": "랫풀",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -1046,7 +1229,9 @@
    "metric": "last",
    "period": true,
    "form": "squat",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:영어"
  },
@@ -1064,7 +1249,9 @@
    "metric": "sets",
    "period": true,
    "form": "오버헤드프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:정식"
  },
@@ -1078,7 +1265,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "데드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:접두"
  },
@@ -1089,7 +1278,9 @@
    "metric": "average",
    "period": false,
    "form": "스쿼트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": null,
+   "until": null
   },
   "cat": "표기:정식"
  },
@@ -1100,7 +1291,9 @@
    "metric": "average",
    "period": true,
    "form": "bench press",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -1118,7 +1311,9 @@
    "metric": "max",
    "period": true,
    "form": "ㅅㅋㅌ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:초성"
  },
@@ -1129,7 +1324,9 @@
    "metric": "max",
    "period": false,
    "form": "스쿼트가",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": null,
+   "until": null
   },
   "cat": "표기:조사"
  },
@@ -1142,7 +1339,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "스쾃",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:별칭"
  },
@@ -1153,7 +1352,9 @@
    "metric": "max",
    "period": false,
    "form": "스쿼트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": null,
+   "until": null
   },
   "cat": "표기:정식"
  },
@@ -1167,7 +1368,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "오버헤드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -1178,7 +1381,9 @@
    "metric": "reps",
    "period": true,
    "form": "오버헤드프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:정식"
  },
@@ -1189,7 +1394,9 @@
    "metric": "max",
    "period": true,
    "form": "데드리프트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:정식"
  },
@@ -1203,7 +1410,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "팔굽혀펴기",
-   "formKind": "별칭?"
+   "formKind": "별칭?",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭?"
  },
@@ -1214,7 +1423,9 @@
    "metric": "reps",
    "period": true,
    "form": "데드리프트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -1232,7 +1443,9 @@
    "metric": "average",
    "period": true,
    "form": "렛풀다운",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -1243,7 +1456,9 @@
    "metric": "average",
    "period": true,
    "form": "푸시업",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -1254,7 +1469,9 @@
    "metric": "last",
    "period": true,
    "form": "데드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:접두"
  },
@@ -1268,7 +1485,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "벤치",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -1279,7 +1498,9 @@
    "metric": "last",
    "period": true,
    "form": "스쿼트가",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:조사"
  },
@@ -1291,7 +1512,9 @@
    "period": true,
    "minReps": 5,
    "form": "대드리프트",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -1302,7 +1525,9 @@
    "metric": "last",
    "period": true,
    "form": "랫풀",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -1313,7 +1538,9 @@
    "metric": "max",
    "period": true,
    "form": "벤치프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -1324,7 +1551,9 @@
    "metric": "trend",
    "period": true,
    "form": "스쿼",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -1335,7 +1564,9 @@
    "metric": "average",
    "period": true,
    "form": "오버헤드 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:띄어"
  },
@@ -1346,7 +1577,9 @@
    "metric": "trend",
    "period": true,
    "form": "랫풀다운",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:정식"
  },
@@ -1359,7 +1592,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "벤치프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:정식"
  },
@@ -1371,7 +1606,9 @@
    "period": true,
    "minReps": 5,
    "form": "squat",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:영어"
  },
@@ -1389,7 +1626,9 @@
    "metric": "last",
    "period": true,
    "form": "lat pulldown",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -1400,7 +1639,9 @@
    "metric": "reps",
    "period": true,
    "form": "벤치프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:정식"
  },
@@ -1411,7 +1652,9 @@
    "metric": "last",
    "period": true,
    "form": "팔굽혀펴기",
-   "formKind": "별칭?"
+   "formKind": "별칭?",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭?"
  },
@@ -1422,7 +1665,9 @@
    "metric": "max",
    "period": true,
    "form": "오버헤드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:접두"
  },
@@ -1435,7 +1680,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "벤치프레스는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:조사"
  },
@@ -1448,7 +1695,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "벤치프레스는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -1461,7 +1710,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "스쿼",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:접두"
  },
@@ -1475,7 +1726,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "대드리프트",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -1488,7 +1741,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "스쿼트가",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -1501,7 +1756,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "스쿼트가",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -1512,7 +1769,9 @@
    "metric": "max",
    "period": true,
    "form": "데드 리프트",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:띄어"
  },
@@ -1526,7 +1785,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "스쿼드",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:오타"
  },
@@ -1539,7 +1800,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "팔굽혀펴기",
-   "formKind": "별칭?"
+   "formKind": "별칭?",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭?"
  },
@@ -1550,7 +1813,9 @@
    "metric": "average",
    "period": true,
    "form": "오버헤드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -1561,7 +1826,9 @@
    "metric": "trend",
    "period": true,
    "form": "pushup",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -1572,7 +1839,9 @@
    "metric": "trend",
    "period": false,
    "form": "대드리프트",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": null,
+   "until": null
   },
   "cat": "표기:오타"
  },
@@ -1586,7 +1855,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "랫풀다운",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:정식"
  },
@@ -1599,7 +1870,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "스쿼트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:정식"
  },
@@ -1610,7 +1883,9 @@
    "metric": "trend",
    "period": true,
    "form": "랫풀",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -1622,7 +1897,9 @@
    "period": true,
    "minReps": 5,
    "form": "벤치 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:띄어"
  },
@@ -1635,7 +1912,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "bench press",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": null,
+   "until": null
   },
   "cat": "표기:영어"
  },
@@ -1649,7 +1928,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "데드리프트의",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -1660,7 +1941,9 @@
    "metric": "max",
    "period": true,
    "form": "pushup",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -1671,7 +1954,9 @@
    "metric": "trend",
    "period": true,
    "form": "squat",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -1682,7 +1967,9 @@
    "metric": "trend",
    "period": true,
    "form": "오버헤드 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:띄어"
  },
@@ -1693,7 +1980,9 @@
    "metric": "max",
    "period": true,
    "form": "밴치프레스",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -1704,7 +1993,9 @@
    "metric": "last",
    "period": true,
    "form": "스쿼트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -1716,7 +2007,9 @@
    "period": true,
    "minReps": 5,
    "form": "스쿼",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -1729,7 +2022,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "스쾃",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -1741,7 +2036,9 @@
    "period": true,
    "minReps": 5,
    "form": "ㅅㅋㅌ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:초성"
  },
@@ -1752,7 +2049,9 @@
    "metric": "average",
    "period": true,
    "form": "대드리프트",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -1763,7 +2062,9 @@
    "metric": "max",
    "period": true,
    "form": "푸시업",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -1774,7 +2075,9 @@
    "metric": "trend",
    "period": true,
    "form": "오버헤드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -1788,7 +2091,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "렛풀다운",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:오타"
  },
@@ -1799,7 +2104,9 @@
    "metric": "average",
    "period": true,
    "form": "벤치 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:띄어"
  },
@@ -1810,7 +2117,9 @@
    "metric": "trend",
    "period": false,
    "form": "벤치 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": null,
+   "until": null
   },
   "cat": "표기:띄어"
  },
@@ -1823,7 +2132,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "푸쉬업",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": null,
+   "until": null
   },
   "cat": "표기:오타"
  },
@@ -1836,7 +2147,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "스쿼트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -1847,7 +2160,9 @@
    "metric": "sessions",
    "period": true,
    "form": "ohp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -1858,7 +2173,9 @@
    "metric": "max",
    "period": true,
    "form": "lat pulldown",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:영어"
  },
@@ -1871,7 +2188,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "dl",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -1882,7 +2201,9 @@
    "metric": "trend",
    "period": true,
    "form": "데드리프트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -1893,14 +2214,16 @@
    "metric": "reps",
    "period": true,
    "form": "데드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
  {
   "q": "스쿼트 데드 비교",
   "expected": {
-   "exercises": 2
+   "note": "Specify comparison metric or unsupported sum operation"
   },
   "cat": "두운동"
  },
@@ -1911,7 +2234,9 @@
    "metric": "trend",
    "period": true,
    "form": "lat pulldown",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -1924,7 +2249,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "대드리프트",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -1936,7 +2263,9 @@
    "period": true,
    "minReps": 5,
    "form": "pushup",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:별칭"
  },
@@ -1947,7 +2276,9 @@
    "metric": "trend",
    "period": true,
    "form": "bp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -1960,7 +2291,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "랫풀",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -1971,7 +2304,9 @@
    "metric": "max",
    "period": true,
    "form": "렛풀다운",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -1982,7 +2317,9 @@
    "metric": "average",
    "period": true,
    "form": "ohp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:별칭"
  },
@@ -1993,7 +2330,9 @@
    "metric": "last",
    "period": true,
    "form": "오버헤드 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:띄어"
  },
@@ -2004,7 +2343,9 @@
    "metric": "max",
    "period": true,
    "form": "ohp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:별칭"
  },
@@ -2017,7 +2358,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "ㅂㅊㅍㄹㅅ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:초성"
  },
@@ -2028,7 +2371,9 @@
    "metric": "trend",
    "period": false,
    "form": "ohp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": null,
+   "until": null
   },
   "cat": "표기:별칭"
  },
@@ -2039,7 +2384,9 @@
    "metric": "max",
    "period": true,
    "form": "오버헤드 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:띄어"
  },
@@ -2050,7 +2397,9 @@
    "metric": "trend",
    "period": true,
    "form": "푸시업",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:정식"
  },
@@ -2061,7 +2410,9 @@
    "metric": "sessions",
    "period": true,
    "form": "푸시업",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -2074,7 +2425,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "벤치프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -2087,7 +2440,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "데드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:접두"
  },
@@ -2100,7 +2455,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "랫풀다운",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -2111,7 +2468,9 @@
    "metric": "average",
    "period": true,
    "form": "스쿼트가",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -2122,7 +2481,9 @@
    "metric": "average",
    "period": true,
    "form": "벤치프레스는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -2133,7 +2494,9 @@
    "metric": "max",
    "period": true,
    "form": "랫풀",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -2145,7 +2508,9 @@
    "period": true,
    "minReps": 5,
    "form": "밴치프레스",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:오타"
  },
@@ -2158,7 +2523,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "pushup",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:별칭"
  },
@@ -2169,7 +2536,9 @@
    "metric": "last",
    "period": true,
    "form": "데드리프트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -2180,7 +2549,9 @@
    "metric": "trend",
    "period": true,
    "form": "deadlift",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -2193,7 +2564,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "벤치",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -2204,7 +2577,9 @@
    "metric": "last",
    "period": true,
    "form": "벤치 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:띄어"
  },
@@ -2216,7 +2591,9 @@
    "period": true,
    "minReps": 5,
    "form": "데드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -2229,7 +2606,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "오버헤드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -2237,7 +2616,9 @@
   "q": "이번 달 며칠 운동했어",
   "expected": {
    "exercise": "*",
-   "metric": "sessions"
+   "metric": "sessions",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "운동없음"
  },
@@ -2248,7 +2629,9 @@
    "metric": "max",
    "period": false,
    "form": "벤치는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": null,
+   "until": null
   },
   "cat": "표기:조사"
  },
@@ -2261,7 +2644,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "스쿼트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:정식"
  },
@@ -2274,7 +2659,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "squat",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -2287,7 +2674,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "푸쉬업",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:오타"
  },
@@ -2300,7 +2689,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "스쿼트가",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:조사"
  },
@@ -2311,7 +2702,9 @@
    "metric": "max",
    "period": true,
    "form": "dl",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:별칭"
  },
@@ -2322,7 +2715,9 @@
    "metric": "trend",
    "period": false,
    "form": "ㅅㅋㅌ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": null,
+   "until": null
   },
   "cat": "표기:초성"
  },
@@ -2334,7 +2729,9 @@
    "period": true,
    "minReps": 5,
    "form": "lat pulldown",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -2348,7 +2745,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "오버헤드 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:띄어"
  },
@@ -2362,7 +2761,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "deadlift",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:영어"
  },
@@ -2373,7 +2774,9 @@
    "metric": "sessions",
    "period": true,
    "form": "dl",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:별칭"
  },
@@ -2386,7 +2789,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "랫풀다운",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -2397,7 +2802,9 @@
    "metric": "last",
    "period": true,
    "form": "렛풀다운",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -2408,7 +2815,9 @@
    "metric": "average",
    "period": true,
    "form": "squat",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -2416,7 +2825,9 @@
   "q": "올해 운동한 날",
   "expected": {
    "exercise": "*",
-   "metric": "sessions"
+   "metric": "sessions",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "운동없음"
  },
@@ -2428,7 +2839,9 @@
    "period": true,
    "minReps": 5,
    "form": "deadlift",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:영어"
  },
@@ -2439,7 +2852,9 @@
    "metric": "max",
    "period": true,
    "form": "벤치 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:띄어"
  },
@@ -2450,7 +2865,9 @@
    "metric": "trend",
    "period": true,
    "form": "렛풀다운",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -2463,7 +2880,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "데드 리프트",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:띄어"
  },
@@ -2474,7 +2893,9 @@
    "metric": "last",
    "period": true,
    "form": "ohp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -2487,7 +2908,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "ohp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:별칭"
  },
@@ -2498,7 +2921,9 @@
    "metric": "last",
    "period": true,
    "form": "스쿼",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -2511,7 +2936,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "bench press",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -2522,7 +2949,9 @@
    "metric": "last",
    "period": true,
    "form": "스쾃",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -2543,7 +2972,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "pushup",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -2554,7 +2985,9 @@
    "metric": "reps",
    "period": true,
    "form": "ㅂㅊㅍㄹㅅ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:초성"
  },
@@ -2568,7 +3001,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "스쾃",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:별칭"
  },
@@ -2581,7 +3016,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "데드리프트의",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -2592,7 +3029,9 @@
    "metric": "max",
    "period": true,
    "form": "bench press",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:영어"
  },
@@ -2605,7 +3044,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "벤치는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:조사"
  },
@@ -2616,7 +3057,9 @@
    "metric": "max",
    "period": false,
    "form": "대드리프트",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": null,
+   "until": null
   },
   "cat": "표기:오타"
  },
@@ -2630,7 +3073,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "데드 리프트",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:띄어"
  },
@@ -2641,7 +3086,9 @@
    "metric": "max",
    "period": false,
    "form": "오버헤드프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": null,
+   "until": null
   },
   "cat": "표기:정식"
  },
@@ -2652,7 +3099,9 @@
    "metric": "average",
    "period": true,
    "form": "스쿼",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:접두"
  },
@@ -2663,7 +3112,9 @@
    "metric": "max",
    "period": false,
    "form": "팔굽혀펴기",
-   "formKind": "별칭?"
+   "formKind": "별칭?",
+   "since": null,
+   "until": null
   },
   "cat": "표기:별칭?"
  },
@@ -2676,7 +3127,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "푸시업",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -2689,7 +3142,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "bp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:별칭"
  },
@@ -2700,7 +3155,9 @@
    "metric": "average",
    "period": false,
    "form": "벤치프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": null,
+   "until": null
   },
   "cat": "표기:정식"
  },
@@ -2713,7 +3170,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "스쿼",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": null,
+   "until": null
   },
   "cat": "표기:접두"
  },
@@ -2726,7 +3185,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "벤치",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -2737,7 +3198,9 @@
    "metric": "average",
    "period": true,
    "form": "데드리프트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -2751,7 +3214,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "ㅂㅊㅍㄹㅅ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:초성"
  },
@@ -2762,7 +3227,9 @@
    "metric": "average",
    "period": true,
    "form": "벤치는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -2773,7 +3240,9 @@
    "metric": "trend",
    "period": true,
    "form": "스쾃",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -2792,7 +3261,9 @@
    "metric": "last",
    "period": true,
    "form": "bench press",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:영어"
  },
@@ -2803,7 +3274,9 @@
    "metric": "trend",
    "period": true,
    "form": "오버헤드프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -2814,7 +3287,9 @@
    "metric": "average",
    "period": true,
    "form": "bp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:별칭"
  },
@@ -2827,7 +3302,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "bp",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -2841,7 +3318,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "푸시업",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:정식"
  },
@@ -2852,7 +3331,9 @@
    "metric": "last",
    "period": true,
    "form": "pushup",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -2863,7 +3344,9 @@
    "metric": "last",
    "period": true,
    "form": "dl",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭"
  },
@@ -2874,7 +3357,9 @@
    "metric": "volume",
    "period": true,
    "form": "푸쉬업",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:오타"
  },
@@ -2887,7 +3372,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "벤치 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:띄어"
  },
@@ -2899,7 +3386,9 @@
    "period": true,
    "minReps": 5,
    "form": "오버헤드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:접두"
  },
@@ -2917,7 +3406,9 @@
    "metric": "max",
    "period": true,
    "form": "ㅂㅊㅍㄹㅅ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:초성"
  },
@@ -2936,7 +3427,9 @@
    "metric": "sessions",
    "period": true,
    "form": "벤치 프레스",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:띄어"
  },
@@ -2949,7 +3442,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "팔굽혀펴기",
-   "formKind": "별칭?"
+   "formKind": "별칭?",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:별칭?"
  },
@@ -2970,7 +3465,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "벤치는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -2983,7 +3480,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "벤치",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:접두"
  },
@@ -2994,7 +3493,9 @@
    "metric": "last",
    "period": true,
    "form": "오버헤드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -3005,7 +3506,9 @@
    "metric": "trend",
    "period": true,
    "form": "데드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:접두"
  },
@@ -3018,7 +3521,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "데드리프트의",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -3029,7 +3534,9 @@
    "metric": "average",
    "period": true,
    "form": "데드",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },
@@ -3040,7 +3547,9 @@
    "metric": "last",
    "period": true,
    "form": "스쿼드",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -3052,7 +3561,9 @@
    "period": true,
    "minReps": 5,
    "form": "밴치프레스",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:오타"
  },
@@ -3063,7 +3574,9 @@
    "metric": "max",
    "period": true,
    "form": "스쿼드",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:오타"
  },
@@ -3074,7 +3587,9 @@
    "metric": "volume",
    "period": true,
    "form": "deadlift",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:영어"
  },
@@ -3085,7 +3600,9 @@
    "metric": "last",
    "period": true,
    "form": "벤치",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:접두"
  },
@@ -3096,7 +3613,9 @@
    "metric": "last",
    "period": true,
    "form": "벤치프레스",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -3107,7 +3626,9 @@
    "metric": "average",
    "period": true,
    "form": "데드 리프트",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:띄어"
  },
@@ -3118,7 +3639,9 @@
    "metric": "max",
    "period": true,
    "form": "랫풀다운",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -3129,7 +3652,9 @@
    "metric": "sets",
    "period": true,
    "form": "deadlift",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -3140,7 +3665,9 @@
    "metric": "trend",
    "period": true,
    "form": "푸쉬업",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -3154,7 +3681,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "squat",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:영어"
  },
@@ -3165,7 +3694,9 @@
    "metric": "average",
    "period": true,
    "form": "팔굽혀펴기",
-   "formKind": "별칭?"
+   "formKind": "별칭?",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:별칭?"
  },
@@ -3178,7 +3709,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "벤치는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:조사"
  },
@@ -3189,7 +3722,9 @@
    "metric": "max",
    "period": true,
    "form": "스쿼",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:접두"
  },
@@ -3200,7 +3735,9 @@
    "metric": "trend",
    "period": true,
    "form": "bench press",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:영어"
  },
@@ -3213,7 +3750,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "팔굽혀펴기",
-   "formKind": "별칭?"
+   "formKind": "별칭?",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:별칭?"
  },
@@ -3226,7 +3765,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "밴치프레스",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -3239,7 +3780,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "스쿼드",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-01",
+   "until": "2026-08-31"
   },
   "cat": "표기:오타"
  },
@@ -3252,7 +3795,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "데드리프트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:정식"
  },
@@ -3263,7 +3808,9 @@
    "metric": "average",
    "period": false,
    "form": "ㅂㅊㅍㄹㅅ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": null,
+   "until": null
   },
   "cat": "표기:초성"
  },
@@ -3274,7 +3821,9 @@
    "metric": "trend",
    "period": true,
    "form": "ㅂㅊㅍㄹㅅ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:초성"
  },
@@ -3287,7 +3836,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "벤치는",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -3298,7 +3849,9 @@
    "metric": "max",
    "period": true,
    "form": "데드리프트의",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:조사"
  },
@@ -3312,7 +3865,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "렛풀다운",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-08-31",
+   "until": "2026-09-06"
   },
   "cat": "표기:오타"
  },
@@ -3325,7 +3880,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "푸시업",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -3336,7 +3893,9 @@
    "metric": "trend",
    "period": true,
    "form": "데드 리프트",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-01-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:띄어"
  },
@@ -3349,7 +3908,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "스쿼트가",
-   "formKind": "조사"
+   "formKind": "조사",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:조사"
  },
@@ -3362,7 +3923,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "ㅂㅊㅍㄹㅅ",
-   "formKind": "초성"
+   "formKind": "초성",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:초성"
  },
@@ -3375,7 +3938,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "pushup",
-   "formKind": "별칭"
+   "formKind": "별칭",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:별칭"
  },
@@ -3388,7 +3953,9 @@
    "maxWeight": 100.0,
    "unit": "lb",
    "form": "데드 리프트",
-   "formKind": "띄어"
+   "formKind": "띄어",
+   "since": "2026-09-09",
+   "until": "2026-09-09"
   },
   "cat": "표기:띄어"
  },
@@ -3399,7 +3966,9 @@
    "metric": "last",
    "period": true,
    "form": "푸쉬업",
-   "formKind": "오타"
+   "formKind": "오타",
+   "since": "2026-09-01",
+   "until": "2026-09-09"
   },
   "cat": "표기:오타"
  },
@@ -3413,7 +3982,9 @@
    "minReps": 8,
    "unit": "kg",
    "form": "bench press",
-   "formKind": "영어"
+   "formKind": "영어",
+   "since": "2026-09-01",
+   "until": "2026-09-30"
   },
   "cat": "표기:영어"
  },
@@ -3425,7 +3996,9 @@
    "period": true,
    "minReps": 5,
    "form": "스쿼트",
-   "formKind": "정식"
+   "formKind": "정식",
+   "since": "2026-08-27",
+   "until": "2026-09-09"
   },
   "cat": "표기:정식"
  },
@@ -3436,7 +4009,9 @@
    "metric": "trend",
    "period": true,
    "form": "팔굽혀펴기",
-   "formKind": "별칭?"
+   "formKind": "별칭?",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:별칭?"
  },
@@ -3449,7 +4024,9 @@
    "minWeight": 80.0,
    "unit": "kg",
    "form": "랫풀",
-   "formKind": "접두"
+   "formKind": "접두",
+   "since": "2026-09-07",
+   "until": "2026-09-09"
   },
   "cat": "표기:접두"
  },

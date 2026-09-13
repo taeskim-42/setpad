@@ -102,7 +102,7 @@
   "queryWorking": "Interpreting your question…",
   "queryFailed": "Could not load the answer. Please try again.",
   "queryUnsupported": "Please ask a question about your workout records.",
-  "queryNoData": "No matching completed records, or required values are missing.",
+  "queryNoData": "Completed records or required measurements are missing. Check the original records.",
   "queryPeriod": "{start} – {end}",
   "queryAllTime": "All time",
   "queryPresent": "Present",
@@ -128,5 +128,9 @@
   "metricAverage": "Average",
   "readAsConfirm": "Read as",
   "confirmYes": "Yes",
-  "readAsNote": "{from} → {to}"
+  "readAsNote": "{from} → {to}",
+  "reviewNumbers": "Check the numbers and conditions before applying.",
+  "querySourceOnly": "View original records",
+  "queryCompareOrder": "Second period − first period",
+  "queryRankingLimit": "Top {n} · descending"
 }

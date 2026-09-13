@@ -391,7 +391,7 @@ class LKo extends L {
   String get queryUnsupported => '운동 기록과 관련된 질문을 해주세요.';
 
   @override
-  String get queryNoData => '조건에 맞는 완료 기록이 없거나 계산에 필요한 값이 부족합니다.';
+  String get queryNoData => '계산에 필요한 완료 기록이나 값이 부족해요. 원본 기록을 확인해 주세요.';
 
   @override
   String queryPeriod(String start, String end) {
@@ -483,5 +483,19 @@ class LKo extends L {
   @override
   String readAsNote(String from, String to) {
     return '$from → $to';
+  }
+
+  @override
+  String get reviewNumbers => '숫자와 조건을 확인한 뒤 적용해 주세요.';
+
+  @override
+  String get querySourceOnly => '원본 기록 보기';
+
+  @override
+  String get queryCompareOrder => '두 번째 기간 − 첫 번째 기간';
+
+  @override
+  String queryRankingLimit(int n) {
+    return '상위 $n개 · 내림차순';
   }
 }

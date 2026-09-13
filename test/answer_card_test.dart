@@ -223,7 +223,7 @@ void main() {
   );
 
   testWidgets(
-    'search places an answer above matching records and clears it for ordinary searches',
+    'search requires confirmation before placing an answer above matching records',
     (tester) async {
       const channel = MethodChannel('test/answer_query');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -285,6 +285,9 @@ void main() {
       for (final text in ['벤치 최고', '스쿼트 추이']) {
         await tester.enterText(search, text);
         await tester.pump(const Duration(seconds: 1));
+        await tester.pumpAndSettle();
+        expect(find.byType(AnswerCard), findsNothing);
+        await tester.tap(find.widgetWithText(SuggestionChip, '맞아요'));
         await tester.pumpAndSettle();
         expect(find.byType(AnswerCard), findsOneWidget);
         expect(find.text('검색 결과가 없습니다'), findsNothing);

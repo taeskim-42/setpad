@@ -83,14 +83,18 @@ String setupSummary(WorkoutSetup setup, L l, int reps, int sets) => [
 
 Future<WorkoutSetup?> editWorkoutSetup(
   BuildContext context,
-  WorkoutSetup setup,
-) => Navigator.of(context).push<WorkoutSetup>(
-  CupertinoPageRoute(builder: (_) => _SetupPage(setup: setup)),
+  WorkoutSetup setup, {
+  String? sourceText,
+}) => Navigator.of(context).push<WorkoutSetup>(
+  CupertinoPageRoute(
+    builder: (_) => _SetupPage(setup: setup, sourceText: sourceText),
+  ),
 );
 
 class _SetupPage extends StatefulWidget {
-  const _SetupPage({required this.setup});
+  const _SetupPage({required this.setup, this.sourceText});
   final WorkoutSetup setup;
+  final String? sourceText;
   @override
   State<_SetupPage> createState() => _SetupPageState();
 }
@@ -98,7 +102,7 @@ class _SetupPage extends StatefulWidget {
 class _SetupPageState extends State<_SetupPage> {
   late final _name = TextEditingController(text: widget.setup.name);
   late final _weight = TextEditingController(
-    text: widget.setup.weight == null ? '' : formatNumber(widget.setup.weight!),
+    text: widget.setup.weight?.toString() ?? '',
   );
   late final _total = TextEditingController(
     text: widget.setup.totalReps?.toString() ?? '',
@@ -159,6 +163,11 @@ class _SetupPageState extends State<_SetupPage> {
       child: SafeArea(
         child: ListView(
           children: [
+            if (widget.sourceText case final source?)
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text('${l.reviewNumbers}\n$source'),
+              ),
             CupertinoFormSection.insetGrouped(
               children: [
                 _field(l.exerciseNameHint, _name, text: true),

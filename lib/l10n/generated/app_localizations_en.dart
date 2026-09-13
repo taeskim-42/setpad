@@ -397,7 +397,7 @@ class LEn extends L {
 
   @override
   String get queryNoData =>
-      'No matching completed records, or required values are missing.';
+      'Completed records or required measurements are missing. Check the original records.';
 
   @override
   String queryPeriod(String start, String end) {
@@ -491,5 +491,20 @@ class LEn extends L {
   @override
   String readAsNote(String from, String to) {
     return '$from → $to';
+  }
+
+  @override
+  String get reviewNumbers =>
+      'Check the numbers and conditions before applying.';
+
+  @override
+  String get querySourceOnly => 'View original records';
+
+  @override
+  String get queryCompareOrder => 'Second period − first period';
+
+  @override
+  String queryRankingLimit(int n) {
+    return 'Top $n · descending';
   }
 }

@@ -154,6 +154,19 @@ class LocalAi {
   }) async {
     if (text.length > 600) throw const FormatException('Input is too long');
     if (!hasSetupIntent(text)) return WorkoutSetup(name: text.trim());
+    // This setup schema cannot represent dates, schedules or timed goals.
+    // Preserve such input for manual entry instead of silently dropping it.
+    if (RegExp(
+      r'오늘|내일|모레|어제|요일|다음\s*주|매주|매일|'
+      r'\d+\s*(년|월|일|시|분|초)|\d{1,2}:\d{2}|'
+      r'\b(today|tomorrow|yesterday|daily|weekly|monday|tuesday|wednesday|'
+      r'thursday|friday|saturday|sunday|minutes?|seconds?|hours?)\b',
+      caseSensitive: false,
+    ).hasMatch(text)) {
+      throw const FormatException(
+        'Schedule or duration requires explicit input',
+      );
+    }
     final reference = retrieveExercises(
       text,
       names,

@@ -323,7 +323,7 @@ Future<void> main() async {
   );
   repeatWatch.stop();
   debugPrint(
-    'EVAL_OPEN ${jsonEncode({'firstMs': openWatch.elapsedMilliseconds, 'repeatMicroseconds': repeatWatch.elapsedMicroseconds, 'ready': !openSearch.busy && openSearch.reply != null, 'text': openSearch.reply?.text, 'sources': openSearch.reply?.sources, 'failed': openSearch.failed})}',
+    'EVAL_OPEN ${jsonEncode({'firstMs': openWatch.elapsedMilliseconds, 'repeatMicroseconds': repeatWatch.elapsedMicroseconds, 'ready': !openSearch.busy && openSearch.plan?.kind == 'insight', 'mode': 'source-records-only', 'failed': openSearch.failed})}',
     wrapWidth: 10000,
   );
   openSearch.dispose();

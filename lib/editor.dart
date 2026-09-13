@@ -687,7 +687,7 @@ class _RoutineEditorState extends State<RoutineEditor>
       _aiFailed = false;
     });
     try {
-      final setup = await widget.localAi.interpret(
+      final proposal = await widget.localAi.interpret(
         text,
         _locale ?? 'en',
         _c.vocabulary(_lang),
@@ -699,13 +699,27 @@ class _RoutineEditorState extends State<RoutineEditor>
           _input.text != text) {
         return;
       }
+      _focus.unfocus();
+      final setup = await editWorkoutSetup(context, proposal, sourceText: text);
+      if (!mounted ||
+          request != _aiRequest ||
+          !_c.naming ||
+          _input.text != text) {
+        return;
+      }
+      if (setup == null) {
+        _focus.requestFocus();
+        return;
+      }
       setState(() => _aiBusy = false);
       _input.clear();
       // 계획이 붙은 문장은 친 글 그대로 제목이 된다. 이름만 친 경우에는
       // 모델이 바로잡은 이름을 쓴다 — 그때 모델이 한 일이 그것뿐이다.
       final planned = setup.hasPlan || setup.repsOnly;
       _c.addExercise(
-        planned ? text.trim() : setup.name,
+        planned && mapEquals(proposal.toJson(), setup.toJson())
+            ? text.trim()
+            : setup.name,
         setup: planned ? setup : null,
         learnAs: setup.name,
       );

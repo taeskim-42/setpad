@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'palette.dart';
 import 'stats.dart';
+import 'quantities.dart';
 
 /// A cached, tiled texture over quiet clouds made from the existing palette.
 class GrainWash extends StatelessWidget {
@@ -74,7 +75,6 @@ class DotChart extends StatelessWidget {
     if (this.points.isEmpty) return const SizedBox.shrink();
     final l = L.of(context);
     final ink = answerInk.resolveFrom(context);
-    final numbers = NumberFormat('0.##', l.localeName);
     // 화면에 찍는 점만 솎는다. 아래 라벨의 일수는 솎기 전 그대로다.
     final points = thinPoints(this.points);
     final values = points.map((p) => p.value);
@@ -96,11 +96,15 @@ class DotChart extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${numbers.format(max)}${points.first.unit}',
+                    '${formatRoundedQuantity(max, l.localeName)}${points.first.unit}',
                     style: labelStyle,
                   ),
                   const Spacer(),
-                  if (min != max) Text(numbers.format(min), style: labelStyle),
+                  if (min != max)
+                    Text(
+                      formatRoundedQuantity(min, l.localeName),
+                      style: labelStyle,
+                    ),
                 ],
               ),
             ),

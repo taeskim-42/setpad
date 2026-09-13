@@ -397,7 +397,7 @@ class LVi extends L {
 
   @override
   String get queryNoData =>
-      'Không có bản ghi hoàn thành phù hợp hoặc thiếu giá trị cần thiết.';
+      'Thiếu bản ghi đã hoàn thành hoặc số đo cần thiết. Hãy kiểm tra bản ghi gốc.';
 
   @override
   String queryPeriod(String start, String end) {
@@ -490,5 +490,19 @@ class LVi extends L {
   @override
   String readAsNote(String from, String to) {
     return '$from → $to';
+  }
+
+  @override
+  String get reviewNumbers => 'Kiểm tra các số và điều kiện trước khi áp dụng.';
+
+  @override
+  String get querySourceOnly => 'Xem bản ghi gốc';
+
+  @override
+  String get queryCompareOrder => 'Giai đoạn thứ hai − giai đoạn thứ nhất';
+
+  @override
+  String queryRankingLimit(int n) {
+    return 'Top $n · giảm dần';
   }
 }

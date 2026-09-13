@@ -8,6 +8,7 @@ import 'editor.dart';
 import 'exercises.dart';
 import 'parser.dart';
 import 'stats.dart';
+import 'quantities.dart';
 
 class RecordRequest {
   const RecordRequest({
@@ -42,6 +43,7 @@ class RecordQueryPlan {
     this.terms = const [],
     this.doubts = const [],
     this.readAs = const {},
+    this.requiresConfirmation = false,
   });
   final String kind;
 
@@ -54,6 +56,9 @@ class RecordQueryPlan {
   /// 퍼지로 맞춘 운동 이름 → 사람이 친 원문. "스쿼드" 를 스쿼트로 읽었으면
   /// 카드에 그 사실을 적는다. 오탐이 많아 묻지는 않고 보여만 준다.
   final Map<String, String> readAs;
+
+  /// Model-derived requests are proposals until the user confirms their scope.
+  final bool requiresConfirmation;
   final List<RecordRequest> requests;
   final List<String> searchNames;
   final bool compare, rank;
@@ -69,7 +74,16 @@ class RecordQueryPlan {
   }) {
     final parsed = raw is String ? jsonDecode(_jsonText(raw)) : raw;
     final decoded = parsed is Map && parsed.containsKey('action')
-        ? _expandIntent(_withStatedRecord(_withStatedMetric(_withStatedPeriod(parsed, question, today: today), question, names), question))
+        ? _expandIntent(
+            _withStatedRecord(
+              _withStatedMetric(
+                _withStatedPeriod(parsed, question, today: today),
+                question,
+                names,
+              ),
+              question,
+            ),
+          )
         : parsed;
     final value = decoded is Map
         ? Map<Object?, Object?>.from(decoded)
@@ -100,7 +114,7 @@ class RecordQueryPlan {
       if (name is String) {
         final hit = suggest(name, names, limit: 1);
         if (hit.isNotEmpty) {
-          readAs[hit.first] = name;   // 무엇을 무엇으로 읽었는지 남긴다
+          readAs[hit.first] = name; // 무엇을 무엇으로 읽었는지 남긴다
           return hit.first;
         }
       }
@@ -122,7 +136,7 @@ class RecordQueryPlan {
     }
 
     double? number(Object? value, {bool integer = false}) {
-      if (value == null || value == -1) return null;
+      if (value == null) return null;
       if (value is! num ||
           !value.isFinite ||
           value < 0 ||
@@ -164,17 +178,17 @@ class RecordQueryPlan {
           since = DateTime(now.year - 1);
           until = DateTime(now.year, 1, 0);
         case 'thisWeek':
-          since = day.subtract(Duration(days: day.weekday - 1));
+          since = DateTime(day.year, day.month, day.day - day.weekday + 1);
           until = day;
         case 'lastWeek':
-          until = day.subtract(Duration(days: day.weekday));
-          since = until.subtract(const Duration(days: 6));
+          until = DateTime(day.year, day.month, day.day - day.weekday);
+          since = DateTime(until.year, until.month, until.day - 6);
         case 'recent':
           final days = row['days'] ?? 28;
           if (days is! int || days < 1 || days > 36500) {
             throw const FormatException('Invalid day count');
           }
-          since = day.subtract(Duration(days: days - 1));
+          since = DateTime(day.year, day.month, day.day - days + 1);
           until = day;
         case 'custom':
           break;
@@ -201,6 +215,18 @@ class RecordQueryPlan {
       if (stated.minReps != null || stated.maxReps != null) {
         minReps = stated.minReps;
         maxReps = stated.maxReps;
+        // Repetition units cannot justify an invented weight threshold.
+        final hasWeightUnit = RegExp(
+          r'kg|lb|킬로|키로|파운드|kilogram|pound',
+          caseSensitive: false,
+        ).hasMatch(filterText);
+        final hasUnspecifiedUnitBound = RegExp(
+          r'(\d+(?:\.\d+)?|[일이삼사오육칠팔구십백]+)\s*(이상|이하|초과|미만)',
+        ).hasMatch(filterText);
+        if (!hasWeightUnit && !hasUnspecifiedUnitBound) {
+          minWeight = null;
+          maxWeight = null;
+        }
       }
       if ((minWeight != null && maxWeight != null && minWeight > maxWeight) ||
           (minReps != null && maxReps != null && minReps > maxReps)) {
@@ -327,15 +353,16 @@ class RecordQueryPlan {
       }
     }
     return RecordQueryPlan(
-      doubts: doubts,
-      readAs: readAs,
+      requiresConfirmation: requests.isNotEmpty,
+      doubts: List.unmodifiable(doubts),
+      readAs: Map.unmodifiable(readAs),
       terms: terms.cast<String>(),
       rank: rank,
       limit: limit,
       reason: reason as String,
       kind: value['kind'] as String,
-      requests: requests,
-      searchNames: search.cast<String>(),
+      requests: List.unmodifiable(requests),
+      searchNames: List.unmodifiable(search.cast<String>()),
       compare: compare,
     );
   }
@@ -585,7 +612,7 @@ List<Note> recordsForRequest(
           updatedAt: note.updatedAt,
           blocks: [
             for (final block in note.blocks)
-              if (request.exercise == '*' || block.name == request.exercise)
+              if (request.exercise == '*' || block.exercise == request.exercise)
                 ExerciseBlock(request.exercise, [
                   for (final set in block.sets)
                     if (_matchesSet(set, request)) set,
@@ -596,18 +623,15 @@ List<Note> recordsForRequest(
 }
 
 bool _matchesSet(LoggedSet set, RecordRequest r) {
-  final unit = r.weightUnit;
   if (!set.done) return false;
-  final weight = set.value == null || !['kg', 'lb'].contains(set.unit)
-      ? null
-      : set.value! *
-            (set.unit == unit
-                ? 1
-                : unit == 'kg'
-                ? 0.45359237
-                : 1 / 0.45359237);
-  return (r.minWeight == null || (weight != null && weight >= r.minWeight!)) &&
-      (r.maxWeight == null || (weight != null && weight <= r.maxWeight!)) &&
+  final hasWeight =
+      set.value != null &&
+      set.value!.isFinite &&
+      ['kg', 'lb'].contains(set.unit);
+  int compare(double bound) =>
+      compareWeights(set.value!, set.unit, bound, r.weightUnit);
+  return (r.minWeight == null || (hasWeight && compare(r.minWeight!) >= 0)) &&
+      (r.maxWeight == null || (hasWeight && compare(r.maxWeight!) <= 0)) &&
       (r.minReps == null || (set.reps != null && set.reps! >= r.minReps!)) &&
       (r.maxReps == null || (set.reps != null && set.reps! <= r.maxReps!));
 }
@@ -621,8 +645,8 @@ String recordRequestScope(RecordRequest r, L l) {
       l.queryAllTime
     else
       l.queryPeriod(
-        r.since == null ? l.queryAllTime : l.dayLabel(r.since!),
-        r.until == null ? l.queryPresent : l.dayLabel(r.until!),
+        r.since == null ? l.queryAllTime : _calendarDate(r.since!),
+        r.until == null ? l.queryPresent : _calendarDate(r.until!),
       ),
     if (r.minWeight != null && r.minWeight == r.maxWeight)
       '= ${number(r.minWeight!)}${r.weightUnit}'
@@ -639,19 +663,53 @@ String recordRequestScope(RecordRequest r, L l) {
   ].join(' · ');
 }
 
+String _calendarDate(DateTime date) =>
+    '${date.year.toString().padLeft(4, '0')}-'
+    '${date.month.toString().padLeft(2, '0')}-'
+    '${date.day.toString().padLeft(2, '0')}';
+
 List<Answer> executeRecordPlan(
   RecordQueryPlan plan,
   List<Note> notes,
   L l,
-  String unit,
-) {
+  String unit, {
+  bool confirmed = false,
+}) {
+  if (plan.requiresConfirmation && !confirmed) return const [];
   if (plan.kind != 'answer') return const [];
+  // Missing values cannot silently decide whether a completed set qualifies.
+  for (final r in plan.requests) {
+    for (final note in notes) {
+      final day = DateTime(
+        note.createdAt.year,
+        note.createdAt.month,
+        note.createdAt.day,
+      );
+      if ((r.since != null && day.isBefore(r.since!)) ||
+          (r.until != null && day.isAfter(r.until!))) {
+        continue;
+      }
+      for (final block in note.blocks.where(
+        (b) => r.exercise == '*' || b.exercise == r.exercise,
+      )) {
+        for (final set in block.sets.where((s) => s.done)) {
+          if (((r.minWeight != null || r.maxWeight != null) &&
+                  (set.value == null ||
+                      !set.value!.isFinite ||
+                      !['kg', 'lb'].contains(set.unit))) ||
+              ((r.minReps != null || r.maxReps != null) && set.reps == null)) {
+            return const [];
+          }
+        }
+      }
+    }
+  }
   if (plan.rank) {
     final template = plan.requests.single;
     final candidates =
         [
           for (final name
-              in notes.expand((n) => n.blocks.map((b) => b.name)).toSet())
+              in notes.expand((n) => n.blocks.map((b) => b.exercise)).toSet())
             ...executeRecordPlan(
               RecordQueryPlan(
                 kind: 'answer',
@@ -735,7 +793,7 @@ List<Answer> executeRecordPlan(
       exercise: scoped.first.exercise,
       points: points.values.toList()..sort((a, b) => a.day.compareTo(b.day)),
       headline:
-          '${difference >= 0 ? '+' : ''}${difference.toStringAsFixed(difference == difference.roundToDouble() ? 0 : 2)}$suffix',
+          '${formatRoundedQuantity(difference, l.localeName, signed: true)}$suffix',
       lines: [
         for (var i = 0; i < scoped.length; i++)
           '${scoped[i].lines.first} · ${scoped[i].headline}',
@@ -754,7 +812,7 @@ bool recordNoteMatches(Note note, RecordQueryPlan plan) {
     (r) =>
         (r.since == null || !day.isBefore(r.since!)) &&
         (r.until == null || !day.isAfter(r.until!)) &&
-        note.blocks.any((b) => r.exercise == '*' || b.name == r.exercise),
+        note.blocks.any((b) => r.exercise == '*' || b.exercise == r.exercise),
   );
 }
 
@@ -772,7 +830,7 @@ Map<String, Object?> recordEvidence(List<Note> notes, RecordQueryPlan plan) {
       final requests = plan.requests
           .where(
             (r) =>
-                (r.exercise == '*' || r.exercise == block.name) &&
+                (r.exercise == '*' || r.exercise == block.exercise) &&
                 (r.since == null || !day.isBefore(r.since!)) &&
                 (r.until == null || !day.isAfter(r.until!)),
           )
@@ -837,12 +895,12 @@ Map<String, Object?> recordEvidence(List<Note> notes, RecordQueryPlan plan) {
           'Whole-note measurement, not attributable to an individual exercise',
     },
   ];
-  final names = scoped.expand((n) => n.blocks.map((b) => b.name)).toSet();
+  final names = scoped.expand((n) => n.blocks.map((b) => b.exercise)).toSet();
   for (final name in names) {
     final entries = [
       for (final n in scoped)
         for (final b in n.blocks)
-          if (b.name == name)
+          if (b.exercise == name)
             for (final set in b.sets)
               if (set.done) (n, set),
     ];
@@ -888,7 +946,7 @@ Map<String, Object?> recordEvidence(List<Note> notes, RecordQueryPlan plan) {
       details.add({
         'id': 'record${details.length}',
         'date': date(n.createdAt),
-        'exercise': block.name,
+        'exercise': block.exercise,
         'plan': block.setup?.toJson(),
         'activeCaloriesWholeNote': n.calories,
         'completedSetCount': block.sets.where((s) => s.done).length,
@@ -1015,12 +1073,10 @@ class RecordSearch extends ChangeNotifier {
     : _now = now ?? DateTime.now;
   final DateTime Function() _now;
   final _plans = <String, RecordQueryPlan>{};
-  final _replies = <String, ({String evidence, RecordReply reply})>{};
   String? _runningKey, _pendingKey;
   final LocalAi ai;
   LocalAiStatus status = LocalAiStatus.checking;
   RecordQueryPlan? plan;
-  RecordReply? reply;
   bool busy = false, failed = false, _disposed = false;
   Timer? _debounce;
   int _version = 0;
@@ -1061,7 +1117,6 @@ class RecordSearch extends ChangeNotifier {
     _debounce?.cancel();
     if (_generating) unawaited(ai.cancel());
     plan = null;
-    reply = null;
     failed = false;
     busy = false;
     if (text.trim().isEmpty ||
@@ -1074,18 +1129,10 @@ class RecordSearch extends ChangeNotifier {
       return;
     }
     final cached = _plans[key];
-    Map<String, Object?>? evidence;
     if (cached != null) {
-      final saved = _replies[key];
-      if (cached.kind == 'insight' && saved != null) {
-        evidence = recordEvidence(notes, cached);
-        if (saved.evidence == jsonEncode(evidence)) reply = saved.reply;
-      }
-      if (cached.kind != 'insight' || reply != null) {
-        plan = cached;
-        notifyListeners();
-        return;
-      }
+      plan = cached;
+      notifyListeners();
+      return;
     }
     busy = true;
     notifyListeners();
@@ -1098,7 +1145,7 @@ class RecordSearch extends ChangeNotifier {
         return;
       }
       try {
-        // Interpret first, then retrieve bounded evidence for open-ended questions.
+        // Only interpret intent; all displayed quantities come from stored records.
         _generating = true;
         _runningKey = key;
         final result =
@@ -1118,16 +1165,8 @@ class RecordSearch extends ChangeNotifier {
         _plans[key] = result;
         if (_plans.length > 32) _plans.remove(_plans.keys.first);
         plan = result;
-        if (result.kind == 'insight') {
-          final facts = evidence ?? recordEvidence(notes, result);
-          final response = await ai.answerRecords(text, locale, facts);
-          if (!_disposed && version == _version) {
-            reply = response;
-            _replies.remove(key);
-            _replies[key] = (evidence: jsonEncode(facts), reply: response);
-            if (_replies.length > 8) _replies.remove(_replies.keys.first);
-          }
-        }
+        // Open requests show original records after scope confirmation.
+        // Generated prose cannot certify dates, quantities or arithmetic.
       } catch (_) {
         if (!_disposed && version == _version) failed = true;
       } finally {
@@ -1272,13 +1311,7 @@ String canonicalizeExercises(String text, List<String> names) {
 
 Map _withStatedPeriod(Map intent, String question, {DateTime? today}) {
   if (question.isEmpty) return intent;
-  final periods = intent['periods'];
-  final unset =
-      periods == null ||
-      (periods is List && periods.length == 1 && periods.first == 'all');
-  // 기간이 둘이면 비교인데, 글에 기간 낱말이 하나뿐이면 모델이 지어낸 비교다.
-  final invented = periods is List && periods.length == 2;
-  if (!unset && !invented) return intent;
+  // An explicit, single period also overrides a conflicting model period.
   final found = statedPeriod(question, today: today);
   if (found == null) return intent;
   return {
@@ -1318,9 +1351,9 @@ bool _asksAboutNotes(String question, Map intent) {
   // 모델의 terms 는 증거가 아니다 — "그래프 보여줘" 에도 ['그래프'] 를 채운다.
   // 사람이 메모라고 말했는지만 본다.
   return RegExp(
-        r'메모|노트|적은|적었|적어|쓴|썼|써\s*놓|기록한\s*거|\bnotes?\b|\bmemo\b|wrote|written',
-        caseSensitive: false,
-      ).hasMatch(question);
+    r'메모|노트|적은|적었|적어|쓴|썼|써\s*놓|기록한\s*거|\bnotes?\b|\bmemo\b|wrote|written',
+    caseSensitive: false,
+  ).hasMatch(question);
 }
 
 /// 글에 걸리는 의도 낱말의 갈래들.
@@ -1332,7 +1365,8 @@ List<String> metricFamilies(String question) => [
 Map _withStatedMetric(Map intent, String question, List<String> names) {
   if (question.isEmpty ||
       ['unrelated', 'missing', 'clarify'].contains(intent['action']) ||
-      (intent['action'] == 'readRecords' && _asksAboutNotes(question, intent))) {
+      (intent['action'] == 'readRecords' &&
+          _asksAboutNotes(question, intent))) {
     return intent;
   }
   final exercises = intent['exercises'];
@@ -1344,7 +1378,8 @@ Map _withStatedMetric(Map intent, String question, List<String> names) {
   final named = ranking && exercises is List && exercises.isEmpty
       ? namedExercises(question, names)
       : const <String>[];
-  final lonelyRank = ranking &&
+  final lonelyRank =
+      ranking &&
       ((exercises is List && exercises.length == 1) || named.length == 1);
   if (ranking && !lonelyRank) return intent;
   final periods = intent['periods'];
@@ -1445,8 +1480,14 @@ statedFilters(String text) {
 /// 있다) 운동이 하나 지목된 경우에 한해 코드가 바로잡는다.
 Map _withStatedRecord(Map intent, String question) {
   if (question.isEmpty ||
-      ['heaviest', 'unrelated', 'missing', 'clarify'].contains(intent['action']) ||
-      (intent['action'] == 'readRecords' && _asksAboutNotes(question, intent))) {
+      [
+        'heaviest',
+        'unrelated',
+        'missing',
+        'clarify',
+      ].contains(intent['action']) ||
+      (intent['action'] == 'readRecords' &&
+          _asksAboutNotes(question, intent))) {
     return intent;
   }
   if (_metricWords.entries.any(

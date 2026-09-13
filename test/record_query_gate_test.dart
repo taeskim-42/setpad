@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/record_query.dart';
+import '../tool/question_grading.dart';
 
 /// 모델 없는 게이트.
 ///
@@ -70,26 +71,27 @@ void main() {
     },
   ];
 
-  List<String> grade(RecordQueryPlan p, Map<String, Object?> exp) {
-    final e = <String>[];
-    if (p.requests.isEmpty) return ['no-request'];
-    final r = p.requests.first;
-    if (r.exercise != exp['exercise']) e.add('exercise');
-    if (r.metric.name != exp['metric']) e.add('metric');
-    if (exp['period'] == true && r.since == null) e.add('period-missing');
-    if (exp['period'] == false && r.since != null) e.add('period-invented');
-    if (exp.containsKey('minWeight') && r.minWeight != exp['minWeight']) {
-      e.add('minWeight');
-    }
-    if (exp.containsKey('maxWeight') && r.maxWeight != exp['maxWeight']) {
-      e.add('maxWeight');
-    }
-    if (exp.containsKey('minReps') && r.minReps != exp['minReps']) {
-      e.add('minReps');
-    }
-    if (exp.containsKey('unit') && r.weightUnit != exp['unit']) e.add('unit');
-    return e;
-  }
+  List<String> grade(RecordQueryPlan p, Map<String, Object?> expected) =>
+      gradeRecordQuestion({
+        'kind': p.kind,
+        'rank': p.rank,
+        'compare': p.compare,
+        'requests': [
+          for (final r in p.requests)
+            {
+              'exercise': r.exercise,
+              'metric': r.metric.name,
+              'since': r.since?.toIso8601String().substring(0, 10),
+              'until': r.until?.toIso8601String().substring(0, 10),
+              'minWeight': r.minWeight,
+              'maxWeight': r.maxWeight,
+              'minReps': r.minReps,
+              'maxReps': r.maxReps,
+              'unit': r.weightUnit,
+            },
+        ],
+      }, expected) ??
+      ['ungraded'];
 
   for (final set in ['dev', 'heldout']) {
     test('규칙 층은 최악의 모델 출력을 정답으로 돌린다 — $set', () {

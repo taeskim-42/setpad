@@ -1,9 +1,5 @@
-/// 기록에서 답을 뽑는 곳. **숫자는 전부 여기서 나온다.**
-///
-/// 화면도 모델도 이 숫자를 만들지 않는다. 물어본 것을 해석하는 일(키패드
-/// 옆의 검색창이든 기기 안 AI든)과 답을 세는 일을 갈라 두면, 해석이 틀려도
-/// 숫자는 안 틀린다 — 틀린 숫자는 사람이 검산할 방법이 없어서 앱을 통째로
-/// 못 믿게 만든다.
+/// Compute quantities from completed records within an explicitly chosen scope.
+/// Missing contributing measurements never become zero or partial totals.
 library;
 
 import 'package:flutter/widgets.dart';
@@ -13,6 +9,8 @@ import 'l10n/generated/app_localizations.dart';
 import 'parser.dart';
 import 'editor.dart';
 import 'notes.dart';
+import 'quantities.dart';
+import 'units.dart';
 
 /// 무엇을 물었는가.
 enum Metric { max, trend, last, sessions, volume, reps, sets, average }
@@ -106,13 +104,35 @@ Answer answer(
   final l = labels ?? lookupL(const Locale('ko'));
   String date(DateTime d) => DateFormat.MMMd(l.localeName).format(d);
   final today = now ?? DateTime.now();
+  // Unknown contributing measurements cannot be omitted from a total or best.
+  for (final note in notes) {
+    if (since != null && _day(note.createdAt).isBefore(_day(since))) continue;
+    for (final block in note.blocks.where((b) => b.exercise == exercise)) {
+      for (final set in block.sets.where((s) => s.done)) {
+        final needsReps = [Metric.reps, Metric.volume].contains(metric);
+        final needsWeight = [
+          Metric.max,
+          Metric.average,
+          Metric.volume,
+          Metric.trend,
+        ].contains(metric);
+        if ((needsReps && set.reps == null) ||
+            (needsWeight &&
+                (set.value == null ||
+                    !set.value!.isFinite ||
+                    !['kg', 'lb'].contains(set.unit)))) {
+          return Answer(metric: metric, exercise: exercise, points: const []);
+        }
+      }
+    }
+  }
   if ([Metric.reps, Metric.sets, Metric.sessions].contains(metric)) {
     final byDay = <DateTime, List<LoggedSet>>{};
     for (final note in notes) {
       final d = _day(note.createdAt);
       if (since != null && d.isBefore(_day(since))) continue;
       for (final block in note.blocks) {
-        if (block.name != exercise) continue;
+        if (block.exercise != exercise) continue;
         for (final set in block.sets.where((s) => s.done)) {
           if (metric == Metric.reps && set.reps == null) continue;
           byDay.putIfAbsent(d, () => []).add(set);
@@ -211,9 +231,9 @@ Answer answer(
     String label(LoggedSet set) {
       final weight = set.value == null
           ? null
-          : ['kg', 'lb'].contains(set.unit)
-          ? '${NumberFormat('0.##', l.localeName).format(_weight(set, unit))}$unit'
-          : '${NumberFormat('0.##', l.localeName).format(set.value)}${set.unit}';
+          : ['kg', 'lb'].contains(set.unit) && set.unit != unit
+          ? '${formatRoundedQuantity(_weight(set, unit), l.localeName)}$unit'
+          : '${formatNumber(set.value!)}${set.unit}';
       if (weight == null) return l.repsCount(set.reps!);
       return set.reps == null
           ? weight
@@ -240,22 +260,24 @@ Answer answer(
     return Answer(metric: metric, exercise: exercise, points: const []);
   }
 
-  String fmt(double v) => NumberFormat('0.##', l.localeName).format(v);
+  String fmt(double v) => formatRoundedQuantity(v, l.localeName);
 
   switch (metric) {
     case Metric.max:
       final top = points.reduce((a, b) => b.value > a.value ? b : a);
+      final converted = _sets(
+        notes,
+        exercise,
+      ).any((entry) => entry.$2.unit != unit);
+      final weight = converted ? fmt(top.value) : formatNumber(top.value);
       return Answer(
         metric: metric,
         exercise: exercise,
         points: points,
         numericValue: top.value,
         headline: top.reps == 0
-            ? '${fmt(top.value)}${top.unit}'
-            : l.answerWeightReps(
-                '${fmt(top.value)}${top.unit}',
-                l.repsCount(top.reps),
-              ),
+            ? '$weight${top.unit}'
+            : l.answerWeightReps('$weight${top.unit}', l.repsCount(top.reps)),
         lines: [
           date(top.day),
           l.answerDays(points.length),
@@ -271,7 +293,8 @@ Answer answer(
         exercise: exercise,
         points: points,
         numericValue: gap,
-        headline: '${gap >= 0 ? '+' : ''}${fmt(gap)}${last.unit}',
+        headline:
+            '${formatRoundedQuantity(gap, l.localeName, signed: true)}${last.unit}',
         lines: [
           l.answerChange(
             l.answerWeeks(_weeks(first.day, last.day)),

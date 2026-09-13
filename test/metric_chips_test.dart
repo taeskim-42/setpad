@@ -71,6 +71,69 @@ void main() {
   });
 
   testWidgets(
+    'confirmation shows both periods, years and every numeric bound',
+    (tester) async {
+      tester.view.physicalSize = const Size(640, 1100);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      const channel = MethodChannel('test/complete_numeric_scope');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == 'status') return 'available';
+            if (call.method != 'query') return null;
+            return {
+              'kind': 'answer',
+              'compare': true,
+              'queries': [
+                for (final year in [2025, 2026])
+                  {
+                    'exercise': '벤치프레스',
+                    'metric': 'sets',
+                    'since': '$year-08-01',
+                    'until': '$year-08-31',
+                    'minWeight': 60.125,
+                    'maxWeight': 80.375,
+                    'weightUnit': 'lb',
+                    'minReps': 5,
+                    'maxReps': 10,
+                  },
+              ],
+            };
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+      await pump(
+        tester,
+        localAi: const LocalAi(channel: channel, nativeSupported: true),
+      );
+      await tester.enterText(
+        find.byType(CupertinoSearchTextField),
+        '작년과 올해 벤치 세트 비교',
+      );
+      await tester.pumpAndSettle();
+      for (final text in [
+        '2025-08-01',
+        '2025-08-31',
+        '2026-08-01',
+        '2026-08-31',
+        '≥ 60.125lb',
+        '≤ 80.375lb',
+        '≥ 5회',
+        '≤ 10회',
+        '두 번째 기간 − 첫 번째 기간',
+      ]) {
+        expect(find.textContaining(text), findsOneWidget, reason: text);
+      }
+      expect(find.byType(AnswerCard), findsNothing);
+      expect(find.text(lookupL(const Locale('ko')).queryNoData), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
     'bare aliases skip generation but complete questions still use the model',
     (tester) async {
       const channel = MethodChannel('test/chips_query');
@@ -101,7 +164,18 @@ void main() {
       await tester.enterText(input, '벤치 최고');
       await tester.pumpAndSettle();
       expect(queries, 1);
+      expect(find.byType(AnswerCard), findsNothing);
+      expect(find.textContaining('전체 기간'), findsWidgets);
+      await tester.tap(find.widgetWithText(SuggestionChip, '맞아요'));
+      await tester.pumpAndSettle();
       expect(find.byType(AnswerCard), findsOneWidget);
+      await tester.enterText(input, '스쿼트');
+      await tester.pumpAndSettle();
+      await tester.enterText(input, '벤치 최고');
+      await tester.pumpAndSettle();
+      expect(queries, 1, reason: 'Only the interpretation is cached');
+      expect(find.byType(AnswerCard), findsNothing);
+      expect(find.widgetWithText(SuggestionChip, '맞아요'), findsOneWidget);
     },
   );
 

@@ -52,6 +52,18 @@ FILTER = [
 PREFIX = ['', '', '', '아 근데 ', '진짜 궁금한데 ', '음 ', '야 ']
 SUFFIX = ['', '', '?', ' 알려줘', ' 보여줘', ' 궁금', 'ㅋㅋ', ' 좀']
 
+# Independent calendar answers for the evaluator's fixed 2026-09-09 clock.
+DATES = {
+    '': (None, None),
+    '이번 주 ': ('2026-09-07', '2026-09-09'),
+    '지난주 ': ('2026-08-31', '2026-09-06'),
+    '이번 달 ': ('2026-09-01', '2026-09-09'),
+    '지난달 ': ('2026-08-01', '2026-08-31'),
+    '올해 ': ('2026-01-01', '2026-09-09'),
+    '최근 2주 ': ('2026-08-27', '2026-09-09'),
+    '오늘 ': ('2026-09-09', '2026-09-09'),
+    '9월에 ': ('2026-09-01', '2026-09-30'),
+}
 cases = []
 def add(q, exp, cat):
     cases.append({'q': q.strip(), 'expected': exp, 'cat': cat})
@@ -67,16 +79,23 @@ for canon, forms in EX.items():
             exp = {'exercise': canon, 'metric': metric, 'period': has_period, **fexp,
                    # 모델 없는 게이트가 "사용자가 친 철자를 모델이 그대로 돌려줬다"를
                    # 흉내 낼 때 쓴다. 정답이 아니라 입력의 표기다.
-                   'form': form, 'formKind': kind}
+                   'form': form, 'formKind': kind,
+                   'since': DATES[per][0], 'until': DATES[per][1]}
             add(q, exp, f'표기:{kind}')
 
 # 2) 최악 케이스
 for q in ['내일 비 오나', '파이썬 계산기 만들어줘', '점심 뭐 먹지', '오늘 기분 어때', '2+2', '안녕']:
     add(q, {'kind': 'unsupported'}, '무관')
 for q in ['몇 번 갔지', '이번 달 며칠 운동했어', '지난주 몇 번 갔어', '올해 운동한 날']:
-    add(q, {'exercise': '*', 'metric': 'sessions'}, '운동없음')
+    period = next((p for p in DATES if p and q.startswith(p)), '')
+    add(q, {'exercise': '*', 'metric': 'sessions',
+            'since': DATES[period][0], 'until': DATES[period][1]}, '운동없음')
 for q in ['벤치랑 스쿼트 최고', '스쿼트 데드 비교', '벤치프레스 스쿼트 데드리프트 3대 합']:
-    add(q, {'exercises': 2}, '두운동')
+    exp = {'requests': [
+        {'exercise': '벤치프레스', 'metric': 'max'},
+        {'exercise': '스쿼트', 'metric': 'max'},
+    ]} if q == '벤치랑 스쿼트 최고' else {'note': 'Specify comparison metric or unsupported sum operation'}
+    add(q, exp, '두운동')
 for q in ['벤치 100kg 넘게 든 세트', '데드 150 초과']:
     add(q, {'exercise': None, 'metric': None}, '초과/미만(모델 몫)')   # 채점 안 함, 관찰만
 for q in ['ㅂㅊ', 'ㅅㅋ 최고', 'ㄷㄷ 마지막']:

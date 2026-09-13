@@ -5,10 +5,20 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/record_query.dart';
+import 'package:setpad/stats.dart' show Answer;
+
 import 'package:setpad/local_ai.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
+
+// Arithmetic tests operate on scopes already accepted by a user.
+List<Answer> executeConfirmedPlan(
+  RecordQueryPlan plan,
+  List<Note> notes,
+  L l,
+  String unit,
+) => executeRecordPlan(plan, notes, l, unit, confirmed: true);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -78,7 +88,7 @@ void main() {
         ], compare: true),
         names,
       );
-      final a = executeRecordPlan(plan, notes, l, 'kg').single;
+      final a = executeConfirmedPlan(plan, notes, l, 'kg').single;
       expect(a.headline, '+10kg');
       expect(a.points.length, 2);
     },
@@ -92,19 +102,22 @@ void main() {
         ]),
         names,
       );
-      expect(executeRecordPlan(reps, notes, l, 'kg').single.numericValue, 35);
+      expect(
+        executeConfirmedPlan(reps, notes, l, 'kg').single.numericValue,
+        35,
+      );
       final sets = RecordQueryPlan.decode(
         response([
           {...row('벤치프레스', 'sets'), 'minWeight': 80},
         ]),
         names,
       );
-      expect(executeRecordPlan(sets, notes, l, 'kg').single.numericValue, 1);
+      expect(executeConfirmedPlan(sets, notes, l, 'kg').single.numericValue, 1);
       final days = RecordQueryPlan.decode(
         response([row('*', 'sessions')]),
         names,
       );
-      expect(executeRecordPlan(days, notes, l, 'kg').single.numericValue, 4);
+      expect(executeConfirmedPlan(days, notes, l, 'kg').single.numericValue, 4);
     },
   );
   test('weight filters are converted by code, not by the language model', () {
@@ -115,12 +128,15 @@ void main() {
       names,
       defaultUnit: 'lb',
     );
-    expect(executeRecordPlan(plan, notes, l, 'lb').single.numericValue, 1);
+    expect(executeConfirmedPlan(plan, notes, l, 'lb').single.numericValue, 1);
   });
 
   test('the most recent bodyweight session is answerable without weights', () {
     final plan = RecordQueryPlan.decode(response([row('푸시업', 'last')]), names);
-    expect(executeRecordPlan(plan, notes, l, 'kg').single.headline, '20회  15회');
+    expect(
+      executeConfirmedPlan(plan, notes, l, 'kg').single.headline,
+      '20회  15회',
+    );
   });
 
   test(
@@ -152,7 +168,7 @@ void main() {
           today: DateTime(2026, 9, 8),
         );
         expect(
-          executeRecordPlan(plan, notes, l, 'kg').single.numericValue,
+          executeConfirmedPlan(plan, notes, l, 'kg').single.numericValue,
           110,
         );
       }
@@ -169,7 +185,7 @@ void main() {
         'rank': true,
         'limit': 2,
       }, names);
-      final ranked = executeRecordPlan(plan, notes, l, 'kg');
+      final ranked = executeConfirmedPlan(plan, notes, l, 'kg');
       expect(ranked.first.exercise, '스쿼트');
       expect(ranked.first.numericValue, 2);
       expect(ranked.length, 2);
@@ -196,7 +212,7 @@ void main() {
       expect(jsonEncode(evidence), contains('무릎 불편'));
       expect(jsonEncode(evidence), contains('"done":false'));
       expect(jsonEncode(evidence), isNot(contains('2026-08-02')));
-      expect(executeRecordPlan(plan, notes, l, 'kg'), isEmpty);
+      expect(executeConfirmedPlan(plan, notes, l, 'kg'), isEmpty);
     },
   );
 
@@ -227,7 +243,7 @@ void main() {
   });
 
   test(
-    'arbitrary relevant requests go through evidence-based generation',
+    'open requests stop at source retrieval and never generate numerical prose',
     () async {
       const channel = MethodChannel('test/query_open');
       final methods = <String>[];
@@ -269,8 +285,9 @@ void main() {
       for (var i = 0; i < 5; i++) {
         await Future<void>.delayed(Duration.zero);
       }
-      expect(methods, ['query', 'answerRecords']);
-      expect(search.reply?.hasEvidence, isTrue);
+      expect(methods, ['query']);
+      expect(search.plan?.requiresConfirmation, isTrue);
+      expect(search.plan?.kind, 'insight');
       expect(search.failed, isFalse);
       search.dispose();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -279,7 +296,7 @@ void main() {
   );
 
   test(
-    'open answers reuse identical evidence but regenerate after edits',
+    'open requests cache only intent and never synthesize answers after record edits',
     () async {
       const channel = MethodChannel('test/query_reply_cache');
       var queries = 0, answers = 0, warms = 0;
@@ -326,12 +343,12 @@ void main() {
       for (var i = 0; i < 5; i++) {
         await Future<void>.delayed(Duration.zero);
       }
-      expect((queries, answers, warms), (1, 1, 1));
+      expect((queries, answers, warms), (1, 0, 1));
       search.search('', 'ko', names, 'kg');
       ask(notes);
       expect(search.busy, isFalse);
-      expect(search.reply, isNotNull);
-      expect((queries, answers), (1, 1));
+      expect(search.plan?.kind, 'insight');
+      expect((queries, answers), (1, 0));
       final updated = [
         ...notes,
         Note(
@@ -347,7 +364,7 @@ void main() {
       for (var i = 0; i < 5; i++) {
         await Future<void>.delayed(Duration.zero);
       }
-      expect((queries, answers), (1, 2));
+      expect((queries, answers), (1, 0));
     },
   );
 
@@ -460,7 +477,7 @@ void main() {
       final plan = RecordQueryPlan.decode(response([row('플랭크', 'last')]), [
         '플랭크',
       ]);
-      final a = executeRecordPlan(plan, data, l, 'kg').single;
+      final a = executeConfirmedPlan(plan, data, l, 'kg').single;
       expect(a.points.single.value, 60);
       expect(a.points.single.unit, 's');
     },
@@ -472,7 +489,7 @@ void main() {
       'queries': [row('*', 'sessions')],
     }, names);
     expect(plan.rank, isTrue);
-    expect(executeRecordPlan(plan, notes, l, 'kg').single.exercise, '스쿼트');
+    expect(executeConfirmedPlan(plan, notes, l, 'kg').single.exercise, '스쿼트');
     final unrelated = RecordQueryPlan.decode({
       'kind': 'unsupported',
       'reason': 'unrelated',
@@ -536,7 +553,7 @@ void main() {
       search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
       await Future<void>.delayed(Duration.zero);
       expect(
-        executeRecordPlan(search.plan!, notes, l, 'kg').single.numericValue,
+        executeConfirmedPlan(search.plan!, notes, l, 'kg').single.numericValue,
         110,
       );
       search.search('', 'ko', names, 'kg');
@@ -548,7 +565,12 @@ void main() {
       expect(search.busy, isFalse);
       expect(calls, 1);
       expect(
-        executeRecordPlan(search.plan!, updated, l, 'kg').single.numericValue,
+        executeConfirmedPlan(
+          search.plan!,
+          updated,
+          l,
+          'kg',
+        ).single.numericValue,
         120,
       );
       now = DateTime(2026, 9, 10);

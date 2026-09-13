@@ -348,7 +348,7 @@
   "queryWorking": "질문을 해석하고 있습니다…",
   "queryFailed": "답변을 가져오지 못했습니다. 다시 시도해 주세요.",
   "queryUnsupported": "운동 기록과 관련된 질문을 해주세요.",
-  "queryNoData": "조건에 맞는 완료 기록이 없거나 계산에 필요한 값이 부족합니다.",
+  "queryNoData": "계산에 필요한 완료 기록이나 값이 부족해요. 원본 기록을 확인해 주세요.",
   "queryPeriod": "{start} – {end}",
   "@queryPeriod": {
     "placeholders": {
@@ -435,6 +435,17 @@
       },
       "to": {
         "type": "String"
+      }
+    }
+  },
+  "reviewNumbers": "숫자와 조건을 확인한 뒤 적용해 주세요.",
+  "querySourceOnly": "원본 기록 보기",
+  "queryCompareOrder": "두 번째 기간 − 첫 번째 기간",
+  "queryRankingLimit": "상위 {n}개 · 내림차순",
+  "@queryRankingLimit": {
+    "placeholders": {
+      "n": {
+        "type": "int"
       }
     }
   }

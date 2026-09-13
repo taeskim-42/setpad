@@ -102,7 +102,7 @@
   "queryWorking": "正在理解問題…",
   "queryFailed": "無法取得回答，請再試一次。",
   "queryUnsupported": "請提出與運動紀錄有關的問題。",
-  "queryNoData": "沒有符合條件的已完成紀錄，或缺少計算所需數值。",
+  "queryNoData": "缺少計算所需的已完成紀錄或數值。請檢查原始紀錄。",
   "queryPeriod": "{start} – {end}",
   "queryAllTime": "全部時間",
   "queryPresent": "現在",
@@ -128,5 +128,9 @@
   "metricAverage": "平均",
   "readAsConfirm": "理解為",
   "confirmYes": "對",
-  "readAsNote": "{from} → {to}"
+  "readAsNote": "{from} → {to}",
+  "reviewNumbers": "套用前請確認數字和條件。",
+  "querySourceOnly": "查看原始紀錄",
+  "queryCompareOrder": "第二個時段 − 第一個時段",
+  "queryRankingLimit": "前{n}項 · 遞減"
 }
