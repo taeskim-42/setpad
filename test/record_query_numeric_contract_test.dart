@@ -3,7 +3,7 @@ import 'package:setpad/record_query.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/editor.dart';
-import 'package:setpad/local_ai.dart';
+import 'package:setpad/record_ai.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/quantities.dart';

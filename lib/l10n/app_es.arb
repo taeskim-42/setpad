@@ -102,6 +102,7 @@
   "queryWorking": "Interpretando tu pregunta…",
   "queryFailed": "No se pudo obtener la respuesta. Inténtalo de nuevo.",
   "queryUnsupported": "Haz una pregunta sobre tus registros de entrenamiento.",
+  "queryOffline": "Las preguntas necesitan conexión.",
   "queryNoData": "Faltan registros completados o mediciones necesarias. Revisa los registros originales.",
   "queryPeriod": "{start} – {end}",
   "queryAllTime": "Todo el período",

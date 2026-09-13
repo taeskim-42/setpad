@@ -1,73 +1,8 @@
 import 'package:flutter/cupertino.dart';
 
 import 'l10n/generated/app_localizations.dart';
-import 'local_ai.dart';
+import 'record_ai.dart';
 import 'units.dart';
-
-String aiStatusLabel(L l, LocalAiStatus status) => switch (status) {
-  LocalAiStatus.available => l.aiReady,
-  LocalAiStatus.checking => l.aiChecking,
-  LocalAiStatus.intelligenceDisabled ||
-  LocalAiStatus.osUpdateRequired ||
-  LocalAiStatus.downloadable => l.aiSetupNeeded,
-  LocalAiStatus.modelNotReady || LocalAiStatus.downloading => l.aiPreparing,
-  _ => l.aiUnavailable,
-};
-
-Future<void> showLocalAiHelp(
-  BuildContext context,
-  LocalAiStatus status, {
-  required VoidCallback onRetry,
-  required VoidCallback onPrepare,
-  String? title,
-  String? readyBody,
-  String? manualBody,
-}) {
-  final l = L.of(context);
-  final explanation = switch (status) {
-    LocalAiStatus.available => readyBody ?? l.aiReadyBody,
-    LocalAiStatus.intelligenceDisabled => l.aiDisabledBody,
-    LocalAiStatus.osUpdateRequired => l.aiOsBody,
-    LocalAiStatus.deviceNotEligible => l.aiDeviceBody,
-    LocalAiStatus.modelNotReady ||
-    LocalAiStatus.downloading => l.aiPreparingBody,
-    LocalAiStatus.downloadable => l.aiDownloadBody,
-    LocalAiStatus.languageUnavailable => l.aiLanguageBody,
-    LocalAiStatus.unsupportedPlatform => l.aiPlatformBody,
-    _ => l.aiUnavailableBody,
-  };
-  return showCupertinoModalPopup<void>(
-    context: context,
-    builder: (ctx) => CupertinoActionSheet(
-      title: Text('${title ?? l.aiTitle} · ${aiStatusLabel(l, status)}'),
-      message: Text('$explanation\n\n${manualBody ?? l.aiManualBody}'),
-      actions: [
-        if (status == LocalAiStatus.downloadable)
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(ctx);
-              onPrepare();
-            },
-            child: Text(l.aiPrepare),
-          ),
-        if (status != LocalAiStatus.available &&
-            status != LocalAiStatus.unsupportedPlatform &&
-            status != LocalAiStatus.deviceNotEligible)
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(ctx);
-              onRetry();
-            },
-            child: Text(l.aiRetry),
-          ),
-      ],
-      cancelButton: CupertinoActionSheetAction(
-        onPressed: () => Navigator.pop(ctx),
-        child: Text(l.doneEditing),
-      ),
-    ),
-  );
-}
 
 String setupSummary(WorkoutSetup setup, L l, int reps, int sets) => [
   if (setup.weight != null) formatValue(setup.weight!, setup.unit),

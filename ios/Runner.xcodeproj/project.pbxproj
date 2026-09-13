@@ -17,7 +17,6 @@
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
-		A1A100000000000000000001 /* LocalAiBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A100000000000000000002 /* LocalAiBridge.swift */; };
 		AA7B19BD8DC8940B4CF5C38A /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D640A671CE558A02E14C9CA3 /* Pods_Runner.framework */; };
 		B2B200000000000000000001 /* TimingBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B200000000000000000002 /* TimingBridge.swift */; };
 /* End PBXBuildFile section */
@@ -68,7 +67,6 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A1A100000000000000000002 /* LocalAiBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAiBridge.swift; sourceTree = "<group>"; };
 		A47401741A45B2FD0C970B38 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		AA0812C21F2AF89726A36D1E /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		B2B200000000000000000002 /* TimingBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimingBridge.swift; sourceTree = "<group>"; };
@@ -146,7 +144,6 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				4FB9F2CD9D3143F9896EACF6 /* HeartRateObserver.swift */,
-				A1A100000000000000000002 /* LocalAiBridge.swift */,
 				B2B200000000000000000002 /* TimingBridge.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
@@ -391,7 +388,6 @@
 			files = (
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				4EB0E296C32B45089A067825 /* HeartRateObserver.swift in Sources */,
-				A1A100000000000000000001 /* LocalAiBridge.swift in Sources */,
 				B2B200000000000000000001 /* TimingBridge.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,

@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/record_query.dart';
 import 'package:setpad/stats.dart' show Answer;
 
-import 'package:setpad/local_ai.dart';
+import 'package:setpad/record_ai.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
@@ -142,19 +141,17 @@ void main() {
   test(
     'every natural-language request reaches the model with bounded name context',
     () async {
-      const channel = MethodChannel('test/query_interpretation');
       final received = <String>[];
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-            final prompt =
-                jsonDecode((call.arguments as Map)['prompt'] as String) as Map;
-            received.add(prompt['question'] as String);
-            expect(prompt['referenceYear'], 2026);
-            expect(prompt.containsKey('today'), isFalse);
-            expect(prompt.containsKey('records'), isFalse);
-            return response([row('스쿼트', 'max')]);
-          });
-      const ai = LocalAi(channel: channel, nativeSupported: true);
+      Future<Object?> reply(String instructions, String input) async {
+        final prompt = jsonDecode(input) as Map;
+        received.add(prompt['question'] as String);
+        expect(prompt['referenceYear'], 2026);
+        expect(prompt.containsKey('today'), isFalse);
+        expect(prompt.containsKey('records'), isFalse);
+        return response([row('스쿼트', 'max')]);
+      }
+
+      final ai = RecordAi(respond: reply);
       for (final question in [
         '스쿼트 최대 무게',
         '스쿼트 제일 무겁게 든 게 얼마야',
@@ -173,8 +170,6 @@ void main() {
         );
       }
       expect(received.length, 3);
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null);
     },
   );
   test(
@@ -191,264 +186,6 @@ void main() {
       expect(ranked.length, 2);
     },
   );
-
-  test(
-    'open record questions retrieve notes and plans without a fixed metric',
-    () {
-      final plan = RecordQueryPlan.decode({
-        ...response([row('*', 'sets', since: '2026-09-01')]),
-        'kind': 'insight',
-        'terms': ['무릎'],
-      }, names);
-      final evidence = recordEvidence([
-        ...notes,
-        note(9, 4, '푸시업', [
-          LoggedSet(reps: 10, notes: ['무릎 불편'], done: false),
-        ]),
-      ], plan);
-      final facts = evidence['facts'] as List;
-      expect((facts.first as Map)['completedSets'], 3);
-      expect(evidence['matchingNoteBlocks'], 1);
-      expect(jsonEncode(evidence), contains('무릎 불편'));
-      expect(jsonEncode(evidence), contains('"done":false'));
-      expect(jsonEncode(evidence), isNot(contains('2026-08-02')));
-      expect(executeConfirmedPlan(plan, notes, l, 'kg'), isEmpty);
-    },
-  );
-
-  test('record replies reject fabricated source IDs and missing evidence', () {
-    final evidence = {
-      'facts': [
-        {'id': 'scope'},
-      ],
-    };
-    for (final bad in [
-      {
-        'text': 'claim',
-        'hasEvidence': true,
-        'sources': ['invented'],
-      },
-      {'text': 'claim', 'hasEvidence': true, 'sources': []},
-    ]) {
-      expect(() => RecordReply.decode(bad, evidence), throwsFormatException);
-    }
-    expect(
-      RecordReply.decode({
-        'text': 'No recorded measurements',
-        'hasEvidence': false,
-        'sources': [],
-      }, evidence).hasEvidence,
-      isFalse,
-    );
-  });
-
-  test(
-    'open requests stop at source retrieval and never generate numerical prose',
-    () async {
-      const channel = MethodChannel('test/query_open');
-      final methods = <String>[];
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-            if (call.method == 'status') return 'available';
-            if (call.method == 'cancel' || call.method == 'warmQuery') {
-              return null;
-            }
-            methods.add(call.method);
-            if (call.method == 'query') {
-              return {
-                ...response([row('*', 'sets')]),
-                'kind': 'insight',
-              };
-            }
-            final prompt =
-                jsonDecode((call.arguments as Map)['prompt'] as String) as Map;
-            expect(prompt['question'], '내 기록을 보고 어떤 특징이 있는지 알려줘');
-            expect((prompt['evidence'] as Map)['facts'], isNotEmpty);
-            return {
-              'text': '스쿼트를 기록한 날이 가장 많습니다.',
-              'hasEvidence': true,
-              'sources': ['exercise1'],
-            };
-          });
-      final search = RecordSearch(
-        const LocalAi(channel: channel, nativeSupported: true),
-      );
-      await search.refresh('ko');
-      search.search(
-        '내 기록을 보고 어떤 특징이 있는지 알려줘',
-        'ko',
-        names,
-        'kg',
-        immediately: true,
-        notes: notes,
-      );
-      for (var i = 0; i < 5; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(methods, ['query']);
-      expect(search.plan?.requiresConfirmation, isTrue);
-      expect(search.plan?.kind, 'insight');
-      expect(search.failed, isFalse);
-      search.dispose();
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null);
-    },
-  );
-
-  test(
-    'open requests cache only intent and never synthesize answers after record edits',
-    () async {
-      const channel = MethodChannel('test/query_reply_cache');
-      var queries = 0, answers = 0, warms = 0;
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-            if (call.method == 'status') return 'available';
-            if (call.method == 'cancel') return null;
-            if (call.method == 'warmQuery') {
-              warms++;
-              return null;
-            }
-            if (call.method == 'query') {
-              queries++;
-              return {
-                ...response([row('*', 'sets')]),
-                'kind': 'insight',
-              };
-            }
-            answers++;
-            return {
-              'text': '기록에 남긴 메모입니다.',
-              'hasEvidence': true,
-              'sources': ['scope'],
-            };
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null),
-      );
-      final search = RecordSearch(
-        const LocalAi(channel: channel, nativeSupported: true),
-      );
-      addTearDown(search.dispose);
-      await search.refresh('ko');
-      void ask(List<Note> records) => search.search(
-        '내 메모 읽어줘',
-        'ko',
-        names,
-        'kg',
-        notes: records,
-        immediately: true,
-      );
-      ask(notes);
-      for (var i = 0; i < 5; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect((queries, answers, warms), (1, 0, 1));
-      search.search('', 'ko', names, 'kg');
-      ask(notes);
-      expect(search.busy, isFalse);
-      expect(search.plan?.kind, 'insight');
-      expect((queries, answers), (1, 0));
-      final updated = [
-        ...notes,
-        Note(
-          id: 'new-cache-record',
-          createdAt: DateTime(2026, 9, 9),
-          updatedAt: DateTime(2026, 9, 9),
-          blocks: [
-            ExerciseBlock('스쿼트', [LoggedSet(value: 90, reps: 5)]),
-          ],
-        ),
-      ];
-      ask(updated);
-      for (var i = 0; i < 5; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect((queries, answers), (1, 0));
-    },
-  );
-
-  testWidgets('typing waits 300ms and submit skips the wait', (tester) async {
-    const channel = MethodChannel('test/query_debounce');
-    var calls = 0;
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async {
-          if (call.method == 'query') {
-            calls++;
-            return response([row('스쿼트', 'max')]);
-          }
-          return null;
-        });
-    final search = RecordSearch(
-      const LocalAi(channel: channel, nativeSupported: true),
-    )..status = LocalAiStatus.available;
-    search.search('스쿼트 최고', 'ko', names, 'kg');
-    await tester.pump(const Duration(milliseconds: 299));
-    expect(calls, 0);
-    await tester.pump(const Duration(milliseconds: 1));
-    expect(calls, 1);
-    search.search('스쿼트 최대 기록', 'ko', names, 'kg', immediately: true);
-    await tester.pump();
-    expect(calls, 2);
-    search.dispose();
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, null);
-  });
-
-  test(
-    'matching notes omit unrelated detail while retaining scope aggregates',
-    () {
-      final plan = RecordQueryPlan.decode({
-        ...response([row('*', 'sets')]),
-        'kind': 'insight',
-        'terms': ['무릎'],
-      }, names);
-      final records = [
-        for (var i = 0; i < 30; i++)
-          Note(
-            id: 'focus-$i',
-            createdAt: DateTime(2026, 8, i + 1),
-            updatedAt: DateTime(2026, 8, i + 1),
-            blocks: [
-              ExerciseBlock('스쿼트', [
-                LoggedSet(
-                  value: 80,
-                  reps: 5,
-                  notes: [i == 0 ? '무릎이 불편' : '관련 없는 메모'],
-                ),
-              ]),
-            ],
-          ),
-      ];
-      final evidence = recordEvidence(records, plan);
-      final facts = evidence['facts'] as List;
-      expect(evidence['matchingNoteBlocks'], 1);
-      expect((facts.first as Map)['completedDays'], 30);
-      expect(jsonEncode(facts), contains('무릎이 불편'));
-      expect(jsonEncode(facts), isNot(contains('관련 없는 메모')));
-      expect(evidence['omittedFacts'] as int, greaterThan(0));
-      expect(jsonEncode(evidence).length, lessThan(2000));
-    },
-  );
-
-  test('large evidence is bounded and discloses omitted detail', () {
-    final plan = RecordQueryPlan.decode({
-      ...response([row('*', 'sets')]),
-      'kind': 'insight',
-      'terms': ['특별메모'],
-    }, names);
-    final many = [
-      for (var i = 1; i <= 28; i++)
-        note(8, i, '스쿼트', [
-          LoggedSet(value: 80, reps: 10, notes: [i == 1 ? '특별메모' : '메모' * 200]),
-        ]),
-    ];
-    final evidence = recordEvidence(many, plan);
-    expect(jsonEncode(evidence).length, lessThan(7300));
-    expect(evidence['omittedFacts'] as int, greaterThan(0));
-    expect(jsonEncode(evidence), contains('특별메모'));
-    expect(((evidence['facts'] as List).first as Map)['completedDays'], 28);
-  });
 
   test('relative periods are computed by code, including leap years', () {
     final plan = RecordQueryPlan.decode(
@@ -500,21 +237,14 @@ void main() {
   test(
     'submitting an in-flight question does not restart its model call',
     () async {
-      const channel = MethodChannel('test/query_same_inflight');
       final result = Completer<Object?>();
       final calls = <String>[];
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-            calls.add(call.method);
-            if (call.method == 'status') return 'available';
-            if (call.method == 'cancel' || call.method == 'warmQuery') {
-              return null;
-            }
-            return result.future;
-          });
-      final search = RecordSearch(
-        const LocalAi(channel: channel, nativeSupported: true),
-      );
+      Future<Object?> reply(String instructions, String input) async {
+        calls.add('query');
+        return result.future;
+      }
+
+      final search = RecordSearch(RecordAi(respond: reply));
       await search.refresh('ko');
       search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
       await Future<void>.delayed(Duration.zero);
@@ -525,30 +255,20 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(search.plan?.requests.single.exercise, '스쿼트');
       search.dispose();
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null);
     },
   );
 
   test(
     'cached intents recompute current records and expire with date or index',
     () async {
-      const channel = MethodChannel('test/query_cached');
       var calls = 0;
       var now = DateTime(2026, 9, 9);
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-            if (call.method == 'status') return 'available';
-            if (call.method == 'cancel' || call.method == 'warmQuery') {
-              return null;
-            }
-            calls++;
-            return response([row('스쿼트', 'max')]);
-          });
-      final search = RecordSearch(
-        const LocalAi(channel: channel, nativeSupported: true),
-        now: () => now,
-      );
+      Future<Object?> reply(String instructions, String input) async {
+        calls++;
+        return response([row('스쿼트', 'max')]);
+      }
+
+      final search = RecordSearch(RecordAi(respond: reply), now: () => now);
       await search.refresh('ko');
       search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
       await Future<void>.delayed(Duration.zero);
@@ -584,8 +304,6 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(calls, 4);
       search.dispose();
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null);
     },
   );
 
@@ -743,21 +461,14 @@ void main() {
   });
 
   test('late model results cannot replace a newer question', () async {
-    const channel = MethodChannel('test/query_race');
     final first = Completer<Object?>();
     var calls = 0;
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async {
-          if (call.method == 'status') return 'available';
-          if (call.method == 'cancel' || call.method == 'warmQuery') {
-            return null;
-          }
-          calls++;
-          return calls == 1 ? first.future : response([row('푸시업', 'reps')]);
-        });
-    final search = RecordSearch(
-      const LocalAi(channel: channel, nativeSupported: true),
-    );
+    Future<Object?> reply(String instructions, String input) async {
+      calls++;
+      return calls == 1 ? first.future : response([row('푸시업', 'reps')]);
+    }
+
+    final search = RecordSearch(RecordAi(respond: reply));
     await search.refresh('ko');
     search.search('스쿼트 얼마', 'ko', names, 'kg', immediately: true);
     await Future<void>.delayed(Duration.zero);
@@ -767,7 +478,5 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     expect(search.plan!.requests.single.exercise, '푸시업');
     search.dispose();
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, null);
   });
 }

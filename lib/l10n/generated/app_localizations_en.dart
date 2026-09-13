@@ -396,6 +396,9 @@ class LEn extends L {
       'Please ask a question about your workout records.';
 
   @override
+  String get queryOffline => 'Questions need a connection.';
+
+  @override
   String get queryNoData =>
       'Completed records or required measurements are missing. Check the original records.';
 

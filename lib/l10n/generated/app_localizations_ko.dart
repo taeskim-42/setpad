@@ -391,6 +391,9 @@ class LKo extends L {
   String get queryUnsupported => '운동 기록과 관련된 질문을 해주세요.';
 
   @override
+  String get queryOffline => '연결되면 물어볼 수 있어요.';
+
+  @override
   String get queryNoData => '계산에 필요한 완료 기록이나 값이 부족해요. 원본 기록을 확인해 주세요.';
 
   @override

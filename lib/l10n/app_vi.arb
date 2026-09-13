@@ -102,6 +102,7 @@
   "queryWorking": "Đang hiểu câu hỏi…",
   "queryFailed": "Không thể tải câu trả lời. Vui lòng thử lại.",
   "queryUnsupported": "Hãy đặt câu hỏi về nhật ký tập luyện của bạn.",
+  "queryOffline": "Cần kết nối để hỏi.",
   "queryNoData": "Thiếu bản ghi đã hoàn thành hoặc số đo cần thiết. Hãy kiểm tra bản ghi gốc.",
   "queryPeriod": "{start} – {end}",
   "queryAllTime": "Toàn bộ thời gian",

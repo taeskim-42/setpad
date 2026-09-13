@@ -7,8 +7,7 @@ import 'answer_card.dart';
 import 'record_query.dart';
 import 'stats.dart' as stats;
 import 'editor.dart' show SuggestionChip;
-import 'local_ai.dart';
-import 'local_ai_help.dart';
+import 'record_ai.dart';
 import 'health_summary.dart';
 import 'palette.dart';
 import 'parser.dart';
@@ -27,11 +26,12 @@ class NotesListPage extends StatefulWidget {
     super.key,
     required this.store,
     required this.onOpen,
-    this.localAi = const LocalAi(),
+    this.ai = const RecordAi(),
   });
 
   final NotesStore store;
-  final LocalAi localAi;
+  /// 질문을 해석해 주는 쪽. 서버에 묻는다.
+  final RecordAi ai;
   final void Function(Note) onOpen;
 
   @override
@@ -41,7 +41,7 @@ class NotesListPage extends StatefulWidget {
 class _NotesListPageState extends State<NotesListPage>
     with WidgetsBindingObserver {
   final _query = TextEditingController();
-  late final _search = RecordSearch(widget.localAi);
+  late final _search = RecordSearch(widget.ai);
   String? _locale;
 
   /// 칩으로 고른 것. 질문을 해석하는 자리가 아니라 **고르는** 자리다 — 고르면
@@ -174,27 +174,6 @@ class _NotesListPageState extends State<NotesListPage>
     stats.Metric.sets => l.metricSets,
     stats.Metric.average => l.metricAverage,
   };
-
-  Future<void> _help() => showLocalAiHelp(
-    context,
-    _search.status,
-    title: L.of(context).queryTitle,
-    readyBody: L.of(context).queryReadyBody,
-    manualBody: L.of(context).queryManualBody,
-    onRetry: () async {
-      await _search.refresh(_locale ?? 'en');
-      if (mounted) _ask(immediately: true);
-    },
-    onPrepare: () async {
-      try {
-        await widget.localAi.prepare();
-      } catch (_) {}
-      if (mounted) {
-        await _search.refresh(_locale ?? 'en');
-        if (mounted) _ask(immediately: true);
-      }
-    },
-  );
 
   @override
   void dispose() {
@@ -344,16 +323,14 @@ class _NotesListPageState extends State<NotesListPage>
                                     l.queryNoData,
                                     style: const TextStyle(fontSize: 14),
                                   ),
-                                // 운동 이름이 잡혀 칩이 떠 있으면 모델은 쓰이지
-                                // 않는다. 그 상태줄까지 보이면 잡음이다.
-                                if (_matched == null)
-                                  CupertinoButton(
-                                    padding: EdgeInsets.zero,
-                                    onPressed: _help,
-                                    child: Text(
-                                      '${l.queryTitle} · ${aiStatusLabel(l, _search.status)}',
-                                      style: const TextStyle(fontSize: 13),
-                                    ),
+                                // 서버에 못 닿았을 때만 알린다. 준비 상태를
+                                // 늘어놓던 줄은 읽을 것이 없어 뺐다.
+                                if (_matched == null &&
+                                    _search.status ==
+                                        RecordAiStatus.unavailable)
+                                  Text(
+                                    l.queryOffline,
+                                    style: const TextStyle(fontSize: 14),
                                   ),
                               ],
                             ),

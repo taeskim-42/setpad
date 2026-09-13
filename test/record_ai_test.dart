@@ -2,11 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/keypad.dart';
-import 'package:setpad/local_ai.dart';
+import 'package:setpad/record_ai.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 
@@ -19,17 +18,16 @@ const setup = WorkoutSetup(
 );
 final field = find.byType(CupertinoTextField);
 
-class FakeAi extends LocalAi {
+class FakeAi extends RecordAi {
   FakeAi(this.current);
-  LocalAiStatus current;
+  RecordAiStatus current;
   int calls = 0;
   int checks = 0;
-  int downloads = 0;
   bool fail = false;
   Completer<WorkoutSetup>? pending;
-  Completer<LocalAiStatus>? pendingStatus;
+  Completer<RecordAiStatus>? pendingStatus;
   @override
-  Future<LocalAiStatus> status(String locale) async {
+  Future<RecordAiStatus> status(String locale) async {
     checks++;
     return pendingStatus?.future ?? current;
   }
@@ -44,12 +42,6 @@ class FakeAi extends LocalAi {
     calls++;
     if (fail) throw const FormatException('Cannot parse');
     return pending?.future ?? setup;
-  }
-
-  @override
-  Future<void> prepare() async {
-    downloads++;
-    current = LocalAiStatus.available;
   }
 
   @override
@@ -69,7 +61,7 @@ Future<RoutineEditorController> pumpEditor(
       home: CupertinoPageScaffold(
         resizeToAvoidBottomInset: false,
         child: SafeArea(
-          child: RoutineEditor(controller: c, localAi: ai),
+          child: RoutineEditor(controller: c, ai: ai),
         ),
       ),
     ),
@@ -90,7 +82,9 @@ void main() {
   test(
     'unsupported schedules and durations cannot become partial setups',
     () async {
-      const ai = LocalAi(nativeSupported: true);
+      final ai = RecordAi(
+        respond: (_, _) async => throw StateError('물어보면 안 된다'),
+      );
       for (final text in [
         '내일 벤치 80kg 10회',
         '월요일 스쿼트 60kg 5세트',
@@ -109,7 +103,7 @@ void main() {
   testWidgets(
     'canceling a numeric proposal preserves input and writes nothing',
     (tester) async {
-      final c = await pumpEditor(tester, FakeAi(LocalAiStatus.available));
+      final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
       await submit(tester, example);
       expect(c.blocks, isEmpty);
       await tester.tap(find.text('취소'));
@@ -125,7 +119,7 @@ void main() {
   testWidgets('corrected numbers are applied only after confirmation', (
     tester,
   ) async {
-    final c = await pumpEditor(tester, FakeAi(LocalAiStatus.available));
+    final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
     await submit(tester, example);
     final weight = find.byType(CupertinoTextFormFieldRow).at(1);
     await tester.enterText(weight, '82.125');
@@ -201,117 +195,26 @@ void main() {
     },
   );
 
-  test('native status and structured results use one local channel', () async {
-    const channel = MethodChannel('test/local_ai');
-    final calls = <MethodCall>[];
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async {
-          calls.add(call);
-          if (call.method == 'status') return 'intelligenceDisabled';
-          return jsonEncode({'isExercise': true, ...setup.toJson()});
-        });
-    addTearDown(
-      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null),
-    );
-    const ai = LocalAi(channel: channel, nativeSupported: true);
-    expect(await ai.status('ko'), LocalAiStatus.intelligenceDisabled);
-    expect((await ai.interpret(example, 'ko', ['벤치프레스'])).weight, 80);
-    expect(calls.map((c) => c.method), ['status', 'interpret']);
-    expect((calls.last.arguments as Map)['prompt'], contains(example));
-    expect((calls.last.arguments as Map)['input'], example);
-    final args = calls.last.arguments as Map;
-    expect(args['instructions'], contains('"name":"벤치프레스"'));
-    await ai.interpret(example, 'ko', ['벤치프레스'], defaultWeightUnit: 'lb');
-    expect(
-      (calls.last.arguments as Map)['instructions'],
-      contains('Default weight unit when not specified: lb'),
-    );
-  });
-
   test('a response that silently drops stated numbers is rejected', () async {
-    const channel = MethodChannel('test/local_ai_omission');
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-          channel,
-          (_) async => jsonEncode({
-            'isExercise': true,
-            'name': '벤치프레스',
-            'parameters': [],
-            'unit': 'kg',
-            'repsOnly': true,
-          }),
-        );
-    addTearDown(
-      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null),
+    final ai = RecordAi(
+      respond: (_, _) async => {
+        'isExercise': true,
+        'name': '벤치프레스',
+        'parameters': [],
+        'unit': 'kg',
+        'repsOnly': true,
+      },
     );
-    const ai = LocalAi(channel: channel, nativeSupported: true);
     await expectLater(
       ai.interpret(example, 'ko', ['벤치프레스']),
       throwsFormatException,
     );
   });
 
-  testWidgets(
-    'unsupported users can log normally without any AI request or popup',
-    (tester) async {
-      final ai = FakeAi(LocalAiStatus.deviceNotEligible);
-      final c = await pumpEditor(tester, ai);
-      expect(find.byType(CupertinoActionSheet), findsNothing);
-      // 이 기기에서는 할 수 있는 일이 없다 — 상태를 적지 않는다.
-      expect(find.textContaining('한 줄 설정'), findsNothing);
-      await submit(tester, '스쿼트');
-      expect(c.blocks.single.name, '스쿼트');
-      expect(ai.calls, 0);
-      expect(find.byType(SetKeypad), findsOneWidget);
-    },
-  );
-
-  testWidgets(
-    'disabled devices get activation instructions and refresh on resume',
-    (tester) async {
-      final ai = FakeAi(LocalAiStatus.intelligenceDisabled);
-      await pumpEditor(tester, ai);
-      await tester.tap(find.text('한 줄 설정 · 설정 필요'));
-      await tester.pumpAndSettle();
-      expect(find.textContaining('Apple Intelligence 및 Siri'), findsOneWidget);
-      expect(ai.downloads, 0);
-      await tester.tap(find.text('완료'));
-      await tester.pumpAndSettle();
-      ai.current = LocalAiStatus.available;
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-      await tester.pumpAndSettle();
-      // 켜고 나면 할 일이 없으니 줄도 사라진다.
-      expect(find.textContaining('한 줄 설정'), findsNothing);
-      expect(ai.checks, greaterThanOrEqualTo(2));
-    },
-  );
-
-  testWidgets('model download starts only after the user chooses it', (
-    tester,
-  ) async {
-    final ai = FakeAi(LocalAiStatus.downloadable);
-    await pumpEditor(tester, ai);
-    expect(ai.downloads, 0);
-    await tester.tap(find.text('한 줄 설정 · 설정 필요'));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('저장 공간'), findsOneWidget);
-    await tester.tap(find.text('모델 준비'));
-    await tester.pumpAndSettle();
-    expect(ai.downloads, 1);
-    expect(find.textContaining('한 줄 설정'), findsNothing);
-  });
-
   testWidgets('a plan sets weight and goal, then Next records reps directly', (
     tester,
   ) async {
-    final ai = FakeAi(LocalAiStatus.available);
+    final ai = FakeAi(RecordAiStatus.ready);
     final c = await pumpEditor(tester, ai);
     await submit(tester, example);
     expect(ai.calls, 1);
@@ -344,7 +247,7 @@ void main() {
   testWidgets('failure preserves the sentence and offers manual entry', (
     tester,
   ) async {
-    final ai = FakeAi(LocalAiStatus.available)..fail = true;
+    final ai = FakeAi(RecordAiStatus.ready)..fail = true;
     final c = await pumpEditor(tester, ai);
     await submit(tester, example);
     expect(c.blocks, isEmpty);
@@ -359,7 +262,7 @@ void main() {
   testWidgets('editing during inference discards a late answer', (
     tester,
   ) async {
-    final ai = FakeAi(LocalAiStatus.available)
+    final ai = FakeAi(RecordAiStatus.ready)
       ..pending = Completer<WorkoutSetup>();
     final c = await pumpEditor(tester, ai);
     await submit(tester, example);
@@ -376,12 +279,12 @@ void main() {
   testWidgets(
     'a quick submission waits for availability rather than losing plan intent',
     (tester) async {
-      final ai = FakeAi(LocalAiStatus.available)
-        ..pendingStatus = Completer<LocalAiStatus>();
+      final ai = FakeAi(RecordAiStatus.ready)
+        ..pendingStatus = Completer<RecordAiStatus>();
       final c = await pumpEditor(tester, ai);
       await submit(tester, example);
       expect(c.blocks, isEmpty);
-      ai.pendingStatus!.complete(LocalAiStatus.available);
+      ai.pendingStatus!.complete(RecordAiStatus.ready);
       await tester.pumpAndSettle();
       expect(c.blocks, isEmpty);
       await tester.tap(find.text('완료'));

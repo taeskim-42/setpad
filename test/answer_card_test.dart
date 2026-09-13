@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
-import 'package:setpad/local_ai.dart';
+import 'package:setpad/record_ai.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
@@ -225,48 +224,37 @@ void main() {
   testWidgets(
     'search requires confirmation before placing an answer above matching records',
     (tester) async {
-      const channel = MethodChannel('test/answer_query');
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-            if (call.method == 'status') return 'available';
-            if (call.method == 'cancel') return null;
-            final question =
-                jsonDecode(
-                      (call.arguments as Map)['prompt'] as String,
-                    )['question']
-                    as String;
-            if (!question.contains('최고') && !question.contains('추이')) {
-              return {
-                'kind': 'search',
-                'compare': false,
-                'queries': [],
-                'searchNames': [],
-              };
-            }
-            if (question.contains('데드리프트')) {
-              return {
-                'kind': 'unsupported',
-                'compare': false,
-                'queries': [],
-                'searchNames': [],
-              };
-            }
-            return {
-              'kind': 'answer',
-              'compare': false,
-              'searchNames': [],
-              'queries': [
-                {
-                  'exercise': question.contains('스쿼트') ? '스쿼트' : '벤치프레스',
-                  'metric': 'max',
-                },
-              ],
-            };
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null),
-      );
+      Future<Object?> reply(String instructions, String input) async {
+        final question = jsonDecode(input)['question'] as String;
+        if (!question.contains('최고') && !question.contains('추이')) {
+          return {
+            'kind': 'search',
+            'compare': false,
+            'queries': [],
+            'searchNames': [],
+          };
+        }
+        if (question.contains('데드리프트')) {
+          return {
+            'kind': 'unsupported',
+            'compare': false,
+            'queries': [],
+            'searchNames': [],
+          };
+        }
+        return {
+          'kind': 'answer',
+          'compare': false,
+          'searchNames': [],
+          'queries': [
+            {
+              'exercise': question.contains('스쿼트') ? '스쿼트' : '벤치프레스',
+              'metric': 'max',
+            },
+          ],
+        };
+      }
+
       final store = _Records(notes);
       await tester.pumpWidget(
         CupertinoApp(
@@ -276,7 +264,7 @@ void main() {
           home: NotesListPage(
             store: store,
             onOpen: (_) {},
-            localAi: const LocalAi(channel: channel, nativeSupported: true),
+            ai: RecordAi(respond: reply),
           ),
         ),
       );

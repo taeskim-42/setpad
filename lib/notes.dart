@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'editor.dart';
-import 'local_ai.dart';
+import 'record_ai.dart';
 import 'units.dart';
 
 /// 한 번의 운동 기록. 메모 앱의 메모 한 장에 해당한다.
@@ -140,6 +141,13 @@ class NotesStore extends ChangeNotifier {
   bool _countAloud = false;
   bool get countAloud => _countAloud;
 
+  /// 이 기기를 가리키는 무작위 문자열. 사람을 가리키지 않는다.
+  ///
+  /// 질문을 서버에 보낼 때 셀 대상이 필요해서 만든다. 계정도 로그인도 없고,
+  /// 지우면 다음에 새로 만들어진다.
+  String _deviceId = '';
+  String get deviceId => _deviceId;
+
   /// 최근에 고친 것이 위로. 메모 앱과 같은 순서다.
   List<Note> get notes => List.unmodifiable(_notes);
 
@@ -157,6 +165,8 @@ class NotesStore extends ChangeNotifier {
           final data = jsonDecode(await preferences.readAsString()) as Map;
           _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
           _countAloud = data['countAloud'] == true;
+          final saved = data['deviceId'];
+          if (saved is String && saved.length >= 16) _deviceId = saved;
           _exerciseHistory
             ..clear()
             ..addAll(
@@ -165,6 +175,14 @@ class NotesStore extends ChangeNotifier {
         }
       } catch (e) {
         debugPrint('Could not load preferences: $e');
+      }
+      if (_deviceId.isEmpty) {
+        // 처음 켰다. 만들어 두고 다음 저장 때 같이 나간다.
+        final random = Random.secure();
+        _deviceId = base64Url
+            .encode(List.generate(18, (_) => random.nextInt(256)))
+            .replaceAll('=', '');
+        _scheduleSave();
       }
       if (!f.existsSync()) return;
       final raw = jsonDecode(await f.readAsString()) as List;
@@ -198,6 +216,7 @@ class NotesStore extends ChangeNotifier {
     final preferences = jsonEncode({
       'weightUnit': _weightUnit,
       'countAloud': _countAloud,
+      'deviceId': _deviceId,
       'exercises': _exerciseHistory,
     });
     return _writes = _writes.then((_) async {

@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
-import 'package:setpad/local_ai.dart';
+import 'package:setpad/record_ai.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/answer_card.dart';
@@ -43,7 +42,7 @@ void main() {
     WidgetTester tester, {
     String unit = "kg",
     Locale locale = const Locale("ko"),
-    LocalAi localAi = const LocalAi(),
+    RecordAi ai = const RecordAi(),
   }) async {
     final store = _Records(notes, unit: unit);
     addTearDown(store.dispose);
@@ -52,7 +51,7 @@ void main() {
         locale: locale,
         localizationsDelegates: L.localizationsDelegates,
         supportedLocales: L.supportedLocales,
-        home: NotesListPage(store: store, onOpen: (_) {}, localAi: localAi),
+        home: NotesListPage(store: store, onOpen: (_) {}, ai: ai),
       ),
     );
     await tester.pumpAndSettle();
@@ -77,38 +76,28 @@ void main() {
       tester.view.devicePixelRatio = 2;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      const channel = MethodChannel('test/complete_numeric_scope');
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-            if (call.method == 'status') return 'available';
-            if (call.method != 'query') return null;
-            return {
-              'kind': 'answer',
-              'compare': true,
-              'queries': [
-                for (final year in [2025, 2026])
-                  {
-                    'exercise': '벤치프레스',
-                    'metric': 'sets',
-                    'since': '$year-08-01',
-                    'until': '$year-08-31',
-                    'minWeight': 60.125,
-                    'maxWeight': 80.375,
-                    'weightUnit': 'lb',
-                    'minReps': 5,
-                    'maxReps': 10,
-                  },
-              ],
-            };
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null),
-      );
-      await pump(
-        tester,
-        localAi: const LocalAi(channel: channel, nativeSupported: true),
-      );
+      Future<Object?> reply(String instructions, String input) async {
+        return {
+          'kind': 'answer',
+          'compare': true,
+          'queries': [
+            for (final year in [2025, 2026])
+              {
+                'exercise': '벤치프레스',
+                'metric': 'sets',
+                'since': '$year-08-01',
+                'until': '$year-08-31',
+                'minWeight': 60.125,
+                'maxWeight': 80.375,
+                'weightUnit': 'lb',
+                'minReps': 5,
+                'maxReps': 10,
+              },
+          ],
+        };
+      }
+
+      await pump(tester, ai: RecordAi(respond: reply));
       await tester.enterText(
         find.byType(CupertinoSearchTextField),
         '작년과 올해 벤치 세트 비교',
@@ -136,27 +125,17 @@ void main() {
   testWidgets(
     'bare aliases skip generation but complete questions still use the model',
     (tester) async {
-      const channel = MethodChannel('test/chips_query');
       var queries = 0;
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (call) async {
-            if (call.method == 'status') return 'available';
-            if (call.method != 'query') return null;
-            queries++;
-            return {
-              'action': 'heaviest',
-              'exercises': ['벤치프레스'],
-              'periods': ['all'],
-            };
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null),
-      );
-      await pump(
-        tester,
-        localAi: const LocalAi(channel: channel, nativeSupported: true),
-      );
+      Future<Object?> reply(String instructions, String input) async {
+        queries++;
+        return {
+          'action': 'heaviest',
+          'exercises': ['벤치프레스'],
+          'periods': ['all'],
+        };
+      }
+
+      await pump(tester, ai: RecordAi(respond: reply));
       final input = find.byType(CupertinoSearchTextField);
       await tester.enterText(input, '벤치');
       await tester.pumpAndSettle();
@@ -257,28 +236,18 @@ void main() {
   });
 
   testWidgets('의심스러운 해석은 묻고, 맞아요를 눌러야 답한다', (tester) async {
-    const channel = MethodChannel('test/doubt_query');
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async {
-          if (call.method == 'status') return 'available';
-          if (call.method != 'query') return null;
-          // 글에 시간 말이 없는데 모델이 "최근 400일" 을 지어냈다 → 의심.
-          // (400 인 이유: 픽스처 기록이 8월 4일이라 그 안에 들어야 답이 있다.)
-          return {
-            'action': 'weightHistory',
-            'exercises': ['스쿼트'],
-            'periods': ['recent'],
-            'days': 400,
-          };
-        });
-    addTearDown(
-      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null),
-    );
-    await pump(
-      tester,
-      localAi: const LocalAi(channel: channel, nativeSupported: true),
-    );
+    Future<Object?> reply(String instructions, String input) async {
+      // 글에 시간 말이 없는데 모델이 "최근 400일" 을 지어냈다 → 의심.
+      // (400 인 이유: 픽스처 기록이 8월 4일이라 그 안에 들어야 답이 있다.)
+      return {
+        'action': 'weightHistory',
+        'exercises': ['스쿼트'],
+        'periods': ['recent'],
+        'days': 400,
+      };
+    }
+
+    await pump(tester, ai: RecordAi(respond: reply));
     await tester.enterText(find.byType(CupertinoSearchTextField), '스쿼트 추이 알려줘');
     await tester.pumpAndSettle();
 

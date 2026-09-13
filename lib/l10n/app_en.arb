@@ -102,6 +102,7 @@
   "queryWorking": "Interpreting your question…",
   "queryFailed": "Could not load the answer. Please try again.",
   "queryUnsupported": "Please ask a question about your workout records.",
+  "queryOffline": "Questions need a connection.",
   "queryNoData": "Completed records or required measurements are missing. Check the original records.",
   "queryPeriod": "{start} – {end}",
   "queryAllTime": "All time",

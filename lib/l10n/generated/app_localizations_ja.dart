@@ -389,6 +389,9 @@ class LJa extends L {
   String get queryUnsupported => '運動記録に関する質問をしてください。';
 
   @override
+  String get queryOffline => '接続すると質問できます。';
+
+  @override
   String get queryNoData => '計算に必要な完了記録や数値が不足しています。元の記録を確認してください。';
 
   @override

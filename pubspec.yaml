@@ -33,6 +33,9 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: any
+  # 질문을 서버로 보낸다. dart:io 는 웹에서 안 되고 조건부 import 를 세 파일에
+  # 나눠 쓰느니, Dart 팀이 내는 이 한 줄이 낫다.
+  http: ^1.2.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

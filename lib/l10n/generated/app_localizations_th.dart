@@ -394,6 +394,9 @@ class LTh extends L {
   String get queryUnsupported => 'โปรดถามเกี่ยวกับบันทึกการออกกำลังกายของคุณ';
 
   @override
+  String get queryOffline => 'ต้องเชื่อมต่อจึงจะถามได้';
+
+  @override
   String get queryNoData =>
       'ขาดบันทึกที่เสร็จแล้วหรือค่าที่จำเป็น โปรดตรวจสอบบันทึกต้นฉบับ';
 

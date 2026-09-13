@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 
 import 'keypad.dart';
 import 'collapsing_drag.dart';
-import 'local_ai.dart';
-import 'local_ai_help.dart';
+import 'record_ai.dart';
+import 'workout_setup_sheet.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'exercises.dart';
 import 'palette.dart';
@@ -467,7 +467,7 @@ class RoutineEditor extends StatefulWidget {
     required this.controller,
     this.countAloud = false,
     this.header,
-    this.localAi = const LocalAi(),
+    this.ai = const RecordAi(),
     this.initialDraft,
     this.onDraftChanged,
   });
@@ -476,7 +476,8 @@ class RoutineEditor extends StatefulWidget {
   /// 박자마다 몇 번째인지 읽어 줄까. 설정에서 켠다.
   final bool countAloud;
   final Widget? header;
-  final LocalAi localAi;
+  /// 질문을 해석해 주는 쪽. 서버에 묻는다.
+  final RecordAi ai;
   final EditorDraft? initialDraft;
   final ValueChanged<EditorDraft?>? onDraftChanged;
 
@@ -506,14 +507,11 @@ class _RoutineEditorState extends State<RoutineEditor>
   EditorDraft? _resume;
   bool get _editingRecord => _recordTitle || _recordSet != null;
   int _highlight = 0;
-  LocalAiStatus _aiStatus = LocalAiStatus.checking;
   bool _aiBusy = false;
   bool _aiFailed = false;
   int _aiRequest = 0;
-  int _statusRequest = 0;
   String? _locale;
   String? _submittedText;
-  String? _pendingSubmission;
   WorkoutSetup? get _setup =>
       _c.inBlock ? _c.blocks[_c.activeIndex].setup : null;
 
@@ -627,55 +625,16 @@ class _RoutineEditorState extends State<RoutineEditor>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    if (locale != _locale) {
-      _locale = locale;
-      _refreshAi();
-    }
+    _locale = Localizations.localeOf(context).toLanguageTag();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _refreshAi();
-    } else if (state == AppLifecycleState.paused && _aiBusy) {
+    if (state == AppLifecycleState.paused && _aiBusy) {
       _aiRequest++;
-      widget.localAi.cancel();
+      widget.ai.cancel();
       setState(() => _aiBusy = false);
     }
-  }
-
-  /// 사용자가 할 수 있는 일이 남아 있는가 — 켜기·받기·기다리기.
-  bool get _aiActionable => switch (_aiStatus) {
-    LocalAiStatus.intelligenceDisabled ||
-    LocalAiStatus.osUpdateRequired ||
-    LocalAiStatus.downloadable ||
-    LocalAiStatus.modelNotReady ||
-    LocalAiStatus.downloading => true,
-    _ => false,
-  };
-
-  Future<void> _refreshAi() async {
-    final request = ++_statusRequest;
-    setState(() => _aiStatus = LocalAiStatus.checking);
-    final status = await widget.localAi.status(_locale ?? 'en');
-    if (mounted && request == _statusRequest) {
-      setState(() => _aiStatus = status);
-      final pending = _pendingSubmission;
-      _pendingSubmission = null;
-      if (pending != null && pending == _input.text && _c.naming) _commit();
-    }
-  }
-
-  Future<void> _prepareAi() async {
-    setState(() => _aiStatus = LocalAiStatus.downloading);
-    try {
-      await widget.localAi.prepare();
-    } catch (_) {
-      if (mounted) setState(() => _aiStatus = LocalAiStatus.unavailable);
-      return;
-    }
-    if (mounted) await _refreshAi();
   }
 
   Future<void> _interpret(String text) async {
@@ -687,7 +646,7 @@ class _RoutineEditorState extends State<RoutineEditor>
       _aiFailed = false;
     });
     try {
-      final proposal = await widget.localAi.interpret(
+      final proposal = await widget.ai.interpret(
         text,
         _locale ?? 'en',
         _c.vocabulary(_lang),
@@ -730,7 +689,6 @@ class _RoutineEditorState extends State<RoutineEditor>
           _aiBusy = false;
           _aiFailed = true;
         });
-        _refreshAi();
         _focus.requestFocus();
       }
     } finally {
@@ -960,10 +918,9 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   void _onInput() {
     if (_editingRecord) _applyRecordEdit();
-    if (_pendingSubmission != _input.text) _pendingSubmission = null;
     if (_aiBusy && _input.text != _submittedText) {
       _aiRequest++;
-      widget.localAi.cancel();
+      widget.ai.cancel();
       _aiBusy = false;
     }
     final has = _input.text.trim().isNotEmpty;
@@ -989,7 +946,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _aiRequest++;
-    widget.localAi.cancel();
+    widget.ai.cancel();
     _c.removeListener(_onChanged);
     _input.removeListener(_onInput);
     _input.dispose();
@@ -1119,17 +1076,8 @@ class _RoutineEditorState extends State<RoutineEditor>
       _commit(value);
       return;
     }
-    if (pick == null &&
-        _c.naming &&
-        value.trim().isNotEmpty &&
-        _aiStatus == LocalAiStatus.checking) {
-      _pendingSubmission = value;
-      return;
-    }
-    if (pick == null &&
-        _c.naming &&
-        value.trim().isNotEmpty &&
-        _aiStatus == LocalAiStatus.available) {
+    // 물어보고 안 되면 그때 알린다. 미리 상태를 확인하느라 기다리지 않는다.
+    if (pick == null && _c.naming && value.trim().isNotEmpty) {
       _interpret(value);
       return;
     }
@@ -1385,26 +1333,20 @@ class _RoutineEditorState extends State<RoutineEditor>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildInput(bold: true),
-                              // 할 일이 있을 때만 적는다. "사용 가능" 은 읽을
-                              // 것이 없고, 이 기기는 안 된다는 말도 사용자가
-                              // 할 수 있는 일이 없다. 둘 다 빈 화면에 남는
-                              // 잡음이라 뺐다 — 켜거나 받거나 기다리는 동안만
-                              // 보인다.
-                              if (_aiBusy || _aiActionable)
-                                CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size.fromHeight(36),
-                                  onPressed: () => showLocalAiHelp(
-                                    context,
-                                    _aiStatus,
-                                    onRetry: _refreshAi,
-                                    onPrepare: _prepareAi,
+                              // 물어보는 중일 때만 한 줄. 준비 상태 같은 것은
+                              // 이제 없다 — 서버에 물어보면 되거나 안 되거나다.
+                              if (_aiBusy)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
                                   ),
                                   child: Text(
-                                    _aiBusy
-                                        ? L.of(context).aiWorking
-                                        : '${L.of(context).aiTitle} · ${aiStatusLabel(L.of(context), _aiStatus)}',
-                                    style: const TextStyle(fontSize: 13),
+                                    L.of(context).aiWorking,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: CupertinoColors.secondaryLabel
+                                          .resolveFrom(context),
+                                    ),
                                   ),
                                 ),
                               if (_aiFailed) ...[

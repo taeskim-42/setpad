@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:setpad/local_ai.dart';
+import 'package:setpad/record_ai.dart';
 import 'package:setpad/record_query.dart';
 import 'question_grading.dart';
 
@@ -18,7 +17,6 @@ import 'question_grading.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   const model = 'claude-haiku-4-5-20251001';
-  const channel = MethodChannel('setpad/remote_eval');
   final key = Platform.environment['ANTHROPIC_API_KEY'] ?? '';
   // flutter_test 는 모든 HTTP 를 막는 가짜 클라이언트를 끼운다. 이 평가는
   // 진짜 API 를 불러야 하므로 그 가로채기를 끈다.
@@ -72,19 +70,9 @@ void main() {
       print('ANTHROPIC_API_KEY 없음 — 건너뜀');
       return;
     }
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async {
-          if (call.method == 'status') return 'available';
-          if (call.method != 'query') return null;
-          final args = (call.arguments as Map).cast<String, Object?>();
-          return ask(args['instructions'] as String, args['input'] as String);
-        });
-    addTearDown(
-      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null),
+    final ai = RecordAi(
+      respond: (instructions, input) => ask(instructions, input),
     );
-
-    const ai = LocalAi(channel: channel, nativeSupported: true);
     const names = [
       '스쿼트',
       '벤치프레스',

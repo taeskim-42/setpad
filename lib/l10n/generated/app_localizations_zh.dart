@@ -384,6 +384,9 @@ class LZh extends L {
   String get queryUnsupported => '请提出与运动记录有关的问题。';
 
   @override
+  String get queryOffline => '连接后即可提问。';
+
+  @override
   String get queryNoData => '缺少计算所需的已完成记录或数值。请检查原始记录。';
 
   @override
@@ -873,6 +876,9 @@ class LZhHans extends LZh {
   String get queryUnsupported => '请提出与运动记录有关的问题。';
 
   @override
+  String get queryOffline => '连接后即可提问。';
+
+  @override
   String get queryNoData => '缺少计算所需的已完成记录或数值。请检查原始记录。';
 
   @override
@@ -1360,6 +1366,9 @@ class LZhHant extends LZh {
 
   @override
   String get queryUnsupported => '請提出與運動紀錄有關的問題。';
+
+  @override
+  String get queryOffline => '連線後即可提問。';
 
   @override
   String get queryNoData => '缺少計算所需的已完成紀錄或數值。請檢查原始紀錄。';

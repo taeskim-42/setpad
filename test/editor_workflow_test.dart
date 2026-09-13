@@ -1,13 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/keypad.dart';
 import 'package:setpad/collapsing_drag.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
-import 'package:setpad/local_ai.dart';
+import 'package:setpad/record_ai.dart';
 import 'package:setpad/main.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/parser.dart';
@@ -88,18 +87,13 @@ void main() {
   );
 
   test('machine names never invoke generation or invent targets', () async {
-    const channel = MethodChannel('test/machine_names');
     var calls = 0;
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (_) async {
-          calls++;
-          throw const FormatException('Must not generate a plan from a name');
-        });
-    addTearDown(
-      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null),
+    final ai = RecordAi(
+      respond: (instructions, input) async {
+        calls++;
+        throw const FormatException('Must not generate a plan from a name');
+      },
     );
-    const ai = LocalAi(channel: channel, nativeSupported: true);
     for (final name in ['체스트 프레스 머신', '해머스트렝스 로우', 'MTS100 로우']) {
       final setup = await ai.interpret(name, 'ko', [name]);
       expect(setup.name, name);

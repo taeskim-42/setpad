@@ -102,6 +102,7 @@
   "queryWorking": "正在理解问题…",
   "queryFailed": "无法获取回答，请重试。",
   "queryUnsupported": "请提出与运动记录有关的问题。",
+  "queryOffline": "连接后即可提问。",
   "queryNoData": "缺少计算所需的已完成记录或数值。请检查原始记录。",
   "queryPeriod": "{start} – {end}",
   "queryAllTime": "全部时间",

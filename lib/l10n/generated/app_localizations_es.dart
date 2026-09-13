@@ -397,6 +397,9 @@ class LEs extends L {
       'Haz una pregunta sobre tus registros de entrenamiento.';
 
   @override
+  String get queryOffline => 'Las preguntas necesitan conexión.';
+
+  @override
   String get queryNoData =>
       'Faltan registros completados o mediciones necesarias. Revisa los registros originales.';
 

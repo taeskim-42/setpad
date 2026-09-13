@@ -721,6 +721,12 @@ abstract class L {
   /// **'운동 기록과 관련된 질문을 해주세요.'**
   String get queryUnsupported;
 
+  /// 서버에 못 닿아 질문을 못 할 때.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결되면 물어볼 수 있어요.'**
+  String get queryOffline;
+
   /// No description provided for @queryNoData.
   ///
   /// In ko, this message translates to:

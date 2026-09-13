@@ -370,13 +370,29 @@ String stripParticle(String word) {
 
 /// 수사 한글 → 수. "팔십" → 80, "백이십" → 120, "오" → 5. 1~999. 아니면 null.
 int? koreanNumber(String text) {
-  const digit = {'일': 1, '이': 2, '삼': 3, '사': 4, '오': 5, '육': 6, '칠': 7, '팔': 8, '구': 9};
+  const digit = {
+    '일': 1,
+    '이': 2,
+    '삼': 3,
+    '사': 4,
+    '오': 5,
+    '육': 6,
+    '칠': 7,
+    '팔': 8,
+    '구': 9,
+  };
   if (text.isEmpty || !RegExp(r'^[일이삼사오육칠팔구십백]+$').hasMatch(text)) return null;
   var total = 0, current = 0;
   for (final ch in text.split('')) {
-    if (ch == '백') { total += (current == 0 ? 1 : current) * 100; current = 0; }
-    else if (ch == '십') { total += (current == 0 ? 1 : current) * 10; current = 0; }
-    else { current = digit[ch]!; }
+    if (ch == '백') {
+      total += (current == 0 ? 1 : current) * 100;
+      current = 0;
+    } else if (ch == '십') {
+      total += (current == 0 ? 1 : current) * 10;
+      current = 0;
+    } else {
+      current = digit[ch]!;
+    }
   }
   total += current;
   return total == 0 ? null : total;
@@ -399,12 +415,18 @@ List<String> namedExercises(String text, List<String> pool) {
   final found = <String>[];
   final keyed = <(String key, String name)>[];
   for (final name in pool.toSet()) {
-    final keys = exerciseByName[name.toLowerCase()]?.keys ?? [name.toLowerCase()];
+    final keys =
+        exerciseByName[name.toLowerCase()]?.keys ?? [name.toLowerCase()];
     for (final key in keys) {
       final k = searchKey(key);
-      if (k.length >= 2 && !RegExp(r'^[ㄱ-ㅎ]+$').hasMatch(k)) keyed.add((k, name));
+      if (k.length >= 2 && !RegExp(r'^[ㄱ-ㅎ]+$').hasMatch(k)) {
+        keyed.add((k, name));
+      }
     }
-    for (final word in (exerciseByName[name.toLowerCase()]?.alias ?? '').toLowerCase().split(' ')) {
+    for (final word
+        in (exerciseByName[name.toLowerCase()]?.alias ?? '')
+            .toLowerCase()
+            .split(' ')) {
       if (word.length >= 2) keyed.add((searchKey(word), name));
     }
   }
@@ -422,7 +444,9 @@ List<String> namedExercises(String text, List<String> pool) {
     final word = stripParticle(raw);
     if (word.length < 2 || word.contains(RegExp(r'\d'))) continue;
     final hits = suggest(word, pool, limit: 2);
-    if (hits.length == 1 && !found.contains(hits.single)) found.add(hits.single);
+    if (hits.length == 1 && !found.contains(hits.single)) {
+      found.add(hits.single);
+    }
   }
   return found;
 }

@@ -396,6 +396,9 @@ class LVi extends L {
       'Hãy đặt câu hỏi về nhật ký tập luyện của bạn.';
 
   @override
+  String get queryOffline => 'Cần kết nối để hỏi.';
+
+  @override
   String get queryNoData =>
       'Thiếu bản ghi đã hoàn thành hoặc số đo cần thiết. Hãy kiểm tra bản ghi gốc.';
 
