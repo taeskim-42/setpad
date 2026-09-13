@@ -9,6 +9,7 @@ import 'exercises.dart';
 import 'parser.dart';
 import 'stats.dart';
 import 'quantities.dart';
+import 'query_cache.dart';
 
 class RecordRequest {
   const RecordRequest({
@@ -394,15 +395,66 @@ extension RecordQueryAi on RecordAi {
       if (matches.isNotEmpty) 'nameHints': matches,
       'question': asked,
     });
-    final answer = await ask(_queryInstructions, prompt);
-    return RecordQueryPlan.decode(
-      answer,
-      candidates,
-      defaultUnit: unit,
+    return decodeRecordIntent(
+      await ask(_queryInstructions, prompt),
+      text,
+      names,
+      unit: unit,
       today: today,
-      question: asked,
     );
   }
+
+  /// 모델에게 물어 **의도만** 받는다. 날짜는 풀지 않는다.
+  ///
+  /// 캐시가 담는 것이 이것이다 — "지난주" 는 어제와 오늘이 다른 주를 가리키니
+  /// 날짜까지 굳히면 하루 만에 못 쓴다.
+  Future<Object?> queryIntent(
+    String text,
+    String locale,
+    List<String> names, {
+    required String unit,
+    DateTime? today,
+  }) async {
+    if (!supported || text.trim().isEmpty || text.length > 600) {
+      throw const FormatException('Query unavailable');
+    }
+    final asked = canonicalizeExercises(text, names);
+    final matches = retrieveExercises(asked, names, limit: 8);
+    final candidates = <String>{...matches, ...names}.take(60).toList();
+    return ask(
+      _queryInstructions,
+      jsonEncode({
+        'referenceYear': (today ?? DateTime.now()).year,
+        'language': locale,
+        'weightUnit': unit,
+        'exerciseNames': candidates,
+        if (matches.isNotEmpty) 'nameHints': matches,
+        'question': asked,
+      }),
+    );
+  }
+}
+
+/// 의도를 오늘 기준의 계획으로 푼다. 캐시에서 꺼낸 것도 이 문을 지난다.
+RecordQueryPlan decodeRecordIntent(
+  Object? intent,
+  String text,
+  List<String> names, {
+  required String unit,
+  DateTime? today,
+}) {
+  final asked = canonicalizeExercises(text, names);
+  final candidates = <String>{
+    ...retrieveExercises(asked, names, limit: 8),
+    ...names,
+  }.take(60).toList();
+  return RecordQueryPlan.decode(
+    intent,
+    candidates,
+    defaultUnit: unit,
+    today: today,
+    question: asked,
+  );
 }
 
 String _jsonText(String raw) {
@@ -794,10 +846,13 @@ bool recordNoteMatches(Note note, RecordQueryPlan plan) {
 }
 
 class RecordSearch extends ChangeNotifier {
-  RecordSearch(this.ai, {DateTime Function()? now})
-    : _now = now ?? DateTime.now;
+  RecordSearch(this.ai, {DateTime Function()? now, QueryCache? cache})
+    : _now = now ?? DateTime.now,
+      _cache = cache ?? QueryCache();
   final DateTime Function() _now;
-  final _plans = <String, RecordQueryPlan>{};
+
+  /// 한 번 해석한 질문은 기기에 남는다. 두 번째부터는 서버에 안 간다.
+  final QueryCache _cache;
   String? _runningKey, _pendingKey;
   final RecordAi ai;
   RecordAiStatus status = RecordAiStatus.checking;
@@ -808,6 +863,8 @@ class RecordSearch extends ChangeNotifier {
   bool _generating = false;
   Future<void> _tail = Future.value();
   Future<void> refresh(String locale) async {
+    // 저장해 둔 해석을 먼저 읽는다. 첫 질문부터 캐시가 듣는다.
+    await _cache.load();
     status = await ai.status(locale);
     if (!_disposed) notifyListeners();
   }
@@ -821,13 +878,11 @@ class RecordSearch extends ChangeNotifier {
     List<Note> notes = const [],
   }) {
     final today = _now();
+    // 날짜는 열쇠에 넣지 않는다. 담는 것이 의도라서 어제 것도 오늘 쓴다.
     final key = jsonEncode([
       text.trim(),
       locale,
       unit,
-      today.year,
-      today.month,
-      today.day,
       [...names]..sort(),
     ]);
     // Enter must not cancel an identical request already running after debounce.
@@ -848,11 +903,21 @@ class RecordSearch extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    final cached = _plans[key];
+    final cached = _cache[key];
     if (cached != null) {
-      plan = cached;
-      notifyListeners();
-      return;
+      try {
+        plan = decodeRecordIntent(
+          cached,
+          text,
+          names,
+          unit: unit,
+          today: today,
+        );
+        notifyListeners();
+        return;
+      } catch (_) {
+        // 규칙이 달라져 옛 의도를 못 푸는 수가 있다. 그냥 다시 묻는다.
+      }
     }
     busy = true;
     notifyListeners();
@@ -868,22 +933,26 @@ class RecordSearch extends ChangeNotifier {
         // Only interpret intent; all displayed quantities come from stored records.
         _generating = true;
         _runningKey = key;
-        final result =
-            cached ??
-            await ai.queryRecords(
-              text,
-              locale,
-              names,
-              unit: unit,
-              today: today,
-            );
+        final intent = await ai.queryIntent(
+          text,
+          locale,
+          names,
+          unit: unit,
+          today: today,
+        );
         if (_disposed || version != _version) {
           _generating = false;
           return;
         }
-        _plans.remove(key);
-        _plans[key] = result;
-        if (_plans.length > 32) _plans.remove(_plans.keys.first);
+        final result = decodeRecordIntent(
+          intent,
+          text,
+          names,
+          unit: unit,
+          today: today,
+        );
+        // 풀리는 것만 담는다. 못 푸는 의도를 담으면 매번 헛걸음한다.
+        _cache.put(key, intent);
         plan = result;
         // Open requests show original records after scope confirmation.
         // Generated prose cannot certify dates, quantities or arithmetic.
@@ -924,6 +993,8 @@ class RecordSearch extends ChangeNotifier {
     _disposed = true;
     _version++;
     _debounce?.cancel();
+    unawaited(_cache.flush());
+    _cache.dispose();
     if (_generating) unawaited(ai.cancel());
     super.dispose();
   }

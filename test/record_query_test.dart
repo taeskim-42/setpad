@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:setpad/query_cache.dart';
 import 'package:setpad/record_query.dart';
 import 'package:setpad/stats.dart' show Answer;
 
@@ -258,54 +260,100 @@ void main() {
     },
   );
 
-  test(
-    'cached intents recompute current records and expire with date or index',
-    () async {
-      var calls = 0;
-      var now = DateTime(2026, 9, 9);
-      Future<Object?> reply(String instructions, String input) async {
-        calls++;
-        return response([row('스쿼트', 'max')]);
-      }
+  test('해석은 기기에 남고, 날짜는 꺼낼 때 다시 푼다', () async {
+    var calls = 0;
+    var now = DateTime(2026, 9, 9);
+    Future<Object?> reply(String instructions, String input) async {
+      calls++;
+      return {
+        ...response([row('스쿼트', 'max')]),
+        'queries': [
+          {...row('스쿼트', 'max'), 'period': 'lastWeek'},
+        ],
+      };
+    }
 
-      final search = RecordSearch(RecordAi(respond: reply), now: () => now);
-      await search.refresh('ko');
-      search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
-      await Future<void>.delayed(Duration.zero);
-      expect(
-        executeConfirmedPlan(search.plan!, notes, l, 'kg').single.numericValue,
-        110,
-      );
-      search.search('', 'ko', names, 'kg');
-      final updated = [
-        ...notes,
-        note(9, 9, '스쿼트', [LoggedSet(value: 120, reps: 3)]),
-      ];
-      search.search('스쿼트 최고', 'ko', names, 'kg', notes: updated);
-      expect(search.busy, isFalse);
-      expect(calls, 1);
-      expect(
-        executeConfirmedPlan(
-          search.plan!,
-          updated,
-          l,
-          'kg',
-        ).single.numericValue,
-        120,
-      );
-      now = DateTime(2026, 9, 10);
-      search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
-      await Future<void>.delayed(Duration.zero);
-      expect(calls, 2);
-      search.search('스쿼트 최고', 'ko', [...names, '덤벨컬'], 'kg', immediately: true);
-      await Future<void>.delayed(Duration.zero);
-      expect(calls, 3);
-      search.search('스쿼트 최고', 'ko', [...names, '덤벨컬'], 'lb', immediately: true);
-      await Future<void>.delayed(Duration.zero);
-      expect(calls, 4);
-      search.dispose();
-    },
-  );
+    final dir = Directory.systemTemp.createTempSync('setpad_cache');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final search = RecordSearch(
+      RecordAi(respond: reply),
+      now: () => now,
+      cache: QueryCache(directory: dir),
+    );
+    await search.refresh('ko');
+    search.search('지난주 스쿼트 최고', 'ko', names, 'kg', immediately: true);
+    await Future<void>.delayed(Duration.zero);
+    final first = search.plan!.requests.single.since;
+
+    // 같은 질문을 다음 주에 다시 묻는다. 모델은 부르지 않지만 기간은 옮겨간다.
+    now = DateTime(2026, 9, 16);
+    search.search('', 'ko', names, 'kg');
+    search.search('지난주 스쿼트 최고', 'ko', names, 'kg', immediately: true);
+    await Future<void>.delayed(Duration.zero);
+    expect(calls, 1, reason: '두 번째는 저장해 둔 해석을 쓴다');
+    expect(
+      search.plan!.requests.single.since,
+      first!.add(const Duration(days: 7)),
+      reason: '"지난주" 는 묻는 날에 따라 다른 주다',
+    );
+
+    // 운동 목록이나 단위가 달라지면 뜻이 달라질 수 있어 다시 묻는다.
+    search.search(
+      '지난주 스쿼트 최고',
+      'ko',
+      [...names, '덤벨컬'],
+      'kg',
+      immediately: true,
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(calls, 2);
+    search.search(
+      '지난주 스쿼트 최고',
+      'ko',
+      [...names, '덤벨컬'],
+      'lb',
+      immediately: true,
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(calls, 3);
+    search.dispose();
+  });
+
+  test('앱을 껐다 켜도 저장해 둔 해석을 쓴다', () async {
+    var calls = 0;
+    Future<Object?> reply(String instructions, String input) async {
+      calls++;
+      return response([row('스쿼트', 'max')]);
+    }
+
+    final dir = Directory.systemTemp.createTempSync('setpad_cache');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final now = DateTime(2026, 9, 9);
+    final first = RecordSearch(
+      RecordAi(respond: reply),
+      now: () => now,
+      cache: QueryCache(directory: dir),
+    );
+    await first.refresh('ko');
+    first.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+    await Future<void>.delayed(Duration.zero);
+    expect(calls, 1);
+    first.dispose();
+    // dispose 가 마지막 쓰기를 흘려보낸다.
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    final second = RecordSearch(
+      RecordAi(respond: reply),
+      now: () => now,
+      cache: QueryCache(directory: dir),
+    );
+    await second.refresh('ko');
+    second.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+    await Future<void>.delayed(Duration.zero);
+    expect(calls, 1, reason: '새로 켠 앱도 파일에서 읽는다');
+    expect(second.plan!.requests.single.exercise, '스쿼트');
+    second.dispose();
+  });
 
   test(
     'compact intents retain counts, ranking, periods and filter direction',
