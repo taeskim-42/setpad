@@ -131,9 +131,12 @@ class RecordAi {
   });
 
   /// 기본 주소. 빌드할 때 --dart-define=API_BASE=... 로 바꾼다.
+  ///
+  /// 지금은 Railway 가 준 주소다. 제 도메인을 붙이면 그때 여기를 바꾼다 —
+  /// 이미 나간 앱은 이 값을 들고 다니므로 도메인은 한 번 정하면 오래 간다.
   static const defaultEndpoint = String.fromEnvironment(
     'API_BASE',
-    defaultValue: 'https://gymdojo.darak.studio',
+    defaultValue: 'https://web-production-9cfc2.up.railway.app',
   );
 
   final String endpoint;
