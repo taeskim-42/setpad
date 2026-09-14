@@ -456,6 +456,27 @@ class LTh extends L {
   }
 
   @override
+  String get accountSignIn => 'ลงชื่อเข้าใช้และสำรองข้อมูล';
+
+  @override
+  String get accountSignOut => 'ออกจากระบบ';
+
+  @override
+  String get planMonthly => 'รายเดือน';
+
+  @override
+  String get planLifetime => 'ตลอดชีพ';
+
+  @override
+  String get planActive => 'กำลังใช้งาน';
+
+  @override
+  String get restorePurchases => 'กู้คืนการซื้อ';
+
+  @override
+  String get quotaSpent => 'คุณใช้คำถามของเดือนนี้หมดแล้ว';
+
+  @override
   String get countAloud => 'นับจังหวะออกเสียง';
 
   @override

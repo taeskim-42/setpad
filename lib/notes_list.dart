@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
+import 'account.dart';
 import 'answer_card.dart';
 import 'record_query.dart';
 import 'stats.dart' as stats;
@@ -27,11 +28,16 @@ class NotesListPage extends StatefulWidget {
     required this.store,
     required this.onOpen,
     this.ai = const RecordAi(),
+    this.account,
   });
 
   final NotesStore store;
+
   /// 질문을 해석해 주는 쪽. 서버에 묻는다.
   final RecordAi ai;
+
+  /// 로그인과 결제. 없으면 설정에 그 항목이 안 뜬다.
+  final Account? account;
   final void Function(Note) onOpen;
 
   @override
@@ -287,8 +293,11 @@ class _NotesListPageState extends State<NotesListPage>
                         largeTitle: Text(l.allNotes),
                         trailing: CupertinoButton(
                           padding: EdgeInsets.zero,
-                          onPressed: () =>
-                              showWeightSettings(context, widget.store),
+                          onPressed: () => showWeightSettings(
+                            context,
+                            widget.store,
+                            account: widget.account,
+                          ),
                           child: const Icon(CupertinoIcons.gear, size: 21),
                         ),
                         border: null,

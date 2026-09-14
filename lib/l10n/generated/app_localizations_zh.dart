@@ -444,6 +444,27 @@ class LZh extends L {
   }
 
   @override
+  String get accountSignIn => '登录并备份';
+
+  @override
+  String get accountSignOut => '退出登录';
+
+  @override
+  String get planMonthly => '月度会员';
+
+  @override
+  String get planLifetime => '永久会员';
+
+  @override
+  String get planActive => '使用中';
+
+  @override
+  String get restorePurchases => '恢复购买';
+
+  @override
+  String get quotaSpent => '本月的提问次数已用完。';
+
+  @override
   String get countAloud => '朗读节拍计数';
 
   @override
@@ -936,6 +957,27 @@ class LZhHans extends LZh {
   }
 
   @override
+  String get accountSignIn => '登录并备份';
+
+  @override
+  String get accountSignOut => '退出登录';
+
+  @override
+  String get planMonthly => '月度会员';
+
+  @override
+  String get planLifetime => '永久会员';
+
+  @override
+  String get planActive => '使用中';
+
+  @override
+  String get restorePurchases => '恢复购买';
+
+  @override
+  String get quotaSpent => '本月的提问次数已用完。';
+
+  @override
   String get countAloud => '朗读节拍计数';
 
   @override
@@ -1426,6 +1468,27 @@ class LZhHant extends LZh {
   String timingBeat(String count) {
     return '第 $count 拍';
   }
+
+  @override
+  String get accountSignIn => '登入並備份';
+
+  @override
+  String get accountSignOut => '登出';
+
+  @override
+  String get planMonthly => '月費方案';
+
+  @override
+  String get planLifetime => '永久方案';
+
+  @override
+  String get planActive => '使用中';
+
+  @override
+  String get restorePurchases => '回復購買';
+
+  @override
+  String get quotaSpent => '本月的提問次數已用完。';
 
   @override
   String get countAloud => '朗讀節拍計數';

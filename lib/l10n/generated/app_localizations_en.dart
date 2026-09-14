@@ -459,6 +459,27 @@ class LEn extends L {
   }
 
   @override
+  String get accountSignIn => 'Sign in and back up';
+
+  @override
+  String get accountSignOut => 'Sign out';
+
+  @override
+  String get planMonthly => 'Monthly';
+
+  @override
+  String get planLifetime => 'Lifetime';
+
+  @override
+  String get planActive => 'Active';
+
+  @override
+  String get restorePurchases => 'Restore purchases';
+
+  @override
+  String get quotaSpent => 'You have used this month’s questions.';
+
+  @override
   String get countAloud => 'Count beats aloud';
 
   @override

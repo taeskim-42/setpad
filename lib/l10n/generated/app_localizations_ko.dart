@@ -451,6 +451,27 @@ class LKo extends L {
   }
 
   @override
+  String get accountSignIn => '로그인하고 백업';
+
+  @override
+  String get accountSignOut => '로그아웃';
+
+  @override
+  String get planMonthly => '월 이용권';
+
+  @override
+  String get planLifetime => '평생 이용권';
+
+  @override
+  String get planActive => '이용 중';
+
+  @override
+  String get restorePurchases => '구매 복원';
+
+  @override
+  String get quotaSpent => '이번 달 질문을 다 썼어요.';
+
+  @override
   String get countAloud => '박자를 소리내어 세기';
 
   @override

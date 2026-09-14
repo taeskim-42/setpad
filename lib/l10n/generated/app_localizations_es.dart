@@ -459,6 +459,27 @@ class LEs extends L {
   }
 
   @override
+  String get accountSignIn => 'Inicia sesión y respalda';
+
+  @override
+  String get accountSignOut => 'Cerrar sesión';
+
+  @override
+  String get planMonthly => 'Mensual';
+
+  @override
+  String get planLifetime => 'De por vida';
+
+  @override
+  String get planActive => 'Activo';
+
+  @override
+  String get restorePurchases => 'Restaurar compras';
+
+  @override
+  String get quotaSpent => 'Has usado las preguntas de este mes.';
+
+  @override
   String get countAloud => 'Contar los pulsos en voz alta';
 
   @override

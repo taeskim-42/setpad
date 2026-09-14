@@ -449,6 +449,27 @@ class LJa extends L {
   }
 
   @override
+  String get accountSignIn => 'ログインしてバックアップ';
+
+  @override
+  String get accountSignOut => 'ログアウト';
+
+  @override
+  String get planMonthly => '月額プラン';
+
+  @override
+  String get planLifetime => '買い切り';
+
+  @override
+  String get planActive => '利用中';
+
+  @override
+  String get restorePurchases => '購入を復元';
+
+  @override
+  String get quotaSpent => '今月分の質問を使い切りました。';
+
+  @override
   String get countAloud => '拍を声に出して数える';
 
   @override

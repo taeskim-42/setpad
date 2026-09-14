@@ -817,6 +817,48 @@ abstract class L {
   /// **'{count}'**
   String timingBeat(String count);
 
+  /// No description provided for @accountSignIn.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인하고 백업'**
+  String get accountSignIn;
+
+  /// No description provided for @accountSignOut.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그아웃'**
+  String get accountSignOut;
+
+  /// No description provided for @planMonthly.
+  ///
+  /// In ko, this message translates to:
+  /// **'월 이용권'**
+  String get planMonthly;
+
+  /// No description provided for @planLifetime.
+  ///
+  /// In ko, this message translates to:
+  /// **'평생 이용권'**
+  String get planLifetime;
+
+  /// No description provided for @planActive.
+  ///
+  /// In ko, this message translates to:
+  /// **'이용 중'**
+  String get planActive;
+
+  /// No description provided for @restorePurchases.
+  ///
+  /// In ko, this message translates to:
+  /// **'구매 복원'**
+  String get restorePurchases;
+
+  /// No description provided for @quotaSpent.
+  ///
+  /// In ko, this message translates to:
+  /// **'이번 달 질문을 다 썼어요.'**
+  String get quotaSpent;
+
   /// No description provided for @countAloud.
   ///
   /// In ko, this message translates to:

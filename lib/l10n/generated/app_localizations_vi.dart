@@ -458,6 +458,27 @@ class LVi extends L {
   }
 
   @override
+  String get accountSignIn => 'Đăng nhập và sao lưu';
+
+  @override
+  String get accountSignOut => 'Đăng xuất';
+
+  @override
+  String get planMonthly => 'Hàng tháng';
+
+  @override
+  String get planLifetime => 'Trọn đời';
+
+  @override
+  String get planActive => 'Đang dùng';
+
+  @override
+  String get restorePurchases => 'Khôi phục giao dịch';
+
+  @override
+  String get quotaSpent => 'Bạn đã dùng hết câu hỏi tháng này.';
+
+  @override
   String get countAloud => 'Đếm nhịp thành tiếng';
 
   @override

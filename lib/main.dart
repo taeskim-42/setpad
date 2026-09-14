@@ -6,6 +6,7 @@ import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'health.dart';
 import 'health_summary.dart';
+import 'account.dart';
 import 'notes.dart';
 import 'palette.dart';
 import 'notes_list.dart';
@@ -118,7 +119,8 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   Future<void> _open(Note note) async {
     await Navigator.of(context).push(
       CupertinoPageRoute(
-        builder: (_) => EditorPage(store: _store, note: note),
+        builder: (_) =>
+            EditorPage(store: _store, note: note, account: _account),
       ),
     );
     // 아무것도 안 치고 나온 새 기록은 남기지 않는다.
@@ -165,6 +167,9 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     }
   }
 
+  /// 로그인과 결제. **없어도 앱은 그대로 돈다** — 켜지 않은 사람은 그냥 쓴다.
+  late final _account = Account()..start();
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 앱이 내려갈 때는 디바운스를 기다리지 않는다.
@@ -174,6 +179,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _account.dispose();
     _store.flush();
     if (widget.store == null) _store.dispose();
     super.dispose();
@@ -184,15 +190,23 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     if (!_ready) {
       return const CupertinoPageScaffold(child: SizedBox.shrink());
     }
-    return NotesListPage(store: _store, onOpen: _open);
+    return NotesListPage(store: _store, onOpen: _open, account: _account);
   }
 }
 
 class EditorPage extends StatefulWidget {
-  const EditorPage({super.key, required this.store, required this.note});
+  const EditorPage({
+    super.key,
+    required this.store,
+    required this.note,
+    this.account,
+  });
 
   final NotesStore store;
   final Note note;
+
+  /// 설정에서 로그인·결제를 띄우려고 넘어온다.
+  final Account? account;
 
   @override
   State<EditorPage> createState() => _EditorPageState();
@@ -247,7 +261,11 @@ class _EditorPageState extends State<EditorPage> {
             CupertinoButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               onPressed: () async {
-                await showWeightSettings(context, widget.store);
+                await showWeightSettings(
+                  context,
+                  widget.store,
+                  account: widget.account,
+                );
                 if (mounted) {
                   setState(() => _editor.weightUnit = widget.store.weightUnit);
                 }
