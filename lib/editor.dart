@@ -8,6 +8,8 @@ import 'record_ai.dart';
 import 'workout_setup_sheet.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'exercises.dart';
+import 'health.dart';
+import 'rest_recovery.dart';
 import 'palette.dart';
 import 'parser.dart';
 import 'units.dart';
@@ -470,8 +472,13 @@ class RoutineEditor extends StatefulWidget {
     this.ai = const RecordAi(),
     this.initialDraft,
     this.onDraftChanged,
+    this.recovery,
   });
   final RoutineEditorController controller;
+
+  /// 심박으로 휴식을 끊어 주는 쪽. 없으면 여기서 만든다 — 테스트가 끼워
+  /// 넣는 자리다.
+  final RestRecovery? recovery;
 
   /// 박자마다 몇 번째인지 읽어 줄까. 설정에서 켠다.
   final bool countAloud;
@@ -491,6 +498,8 @@ class _RoutineEditorState extends State<RoutineEditor>
   final _focus = FocusNode();
   final _scroll = ScrollController();
   late final _workoutTimer = WorkoutTimer();
+  late final _recovery =
+      widget.recovery ?? RestRecovery(health: HealthLink());
   bool _timingKeyboardHidden = false;
   final _listKey = GlobalKey();
   final _headerKey = GlobalKey();
@@ -612,6 +621,37 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   RoutineEditorController get _c => widget.controller;
 
+  /// 마지막으로 본 구간. 같은 구간에서 여러 번 부르지 않으려고 둔다.
+  TimingPhase? _seenPhase;
+  int? _seenRound;
+
+  /// 타이머가 구간을 넘길 때마다 기준선을 다시 잡는다. 세트가 시작되면
+  /// 최고 심박을 새로 세고, 휴식이 시작되면 그때부터 회복을 본다.
+  void _followTimer() {
+    if (!_workoutTimer.running) {
+      if (_seenPhase != null) {
+        _seenPhase = null;
+        _seenRound = null;
+        _recovery.reset();
+      }
+      return;
+    }
+    _recovery.listen();
+    final phase = _workoutTimer.phase;
+    final round = _workoutTimer.round;
+    if (phase == _seenPhase && round == _seenRound) return;
+    _seenPhase = phase;
+    _seenRound = round;
+    if (phase == TimingPhase.work) _recovery.beginRound();
+    if (phase == TimingPhase.rest) _recovery.beginRest();
+  }
+
+  /// 회복했으면 남은 휴식을 건너뛴다. 심박은 휴식을 짧게 할 뿐이다 —
+  /// 값이 없거나 늦게 오면 아무 일도 일어나지 않고 시간이 끊는다.
+  void _followHeart() {
+    if (_recovery.recovered) _workoutTimer.skipRest();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -619,6 +659,8 @@ class _RoutineEditorState extends State<RoutineEditor>
     _c.addListener(_onChanged);
     // Keep memo mode until it is explicitly saved, even if the IME loses focus.
     _input.addListener(_onInput);
+    _workoutTimer.addListener(_followTimer);
+    _recovery.addListener(_followHeart);
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -952,7 +994,11 @@ class _RoutineEditorState extends State<RoutineEditor>
     _input.dispose();
     _focus.dispose();
     _scroll.dispose();
+    _workoutTimer.removeListener(_followTimer);
     _workoutTimer.dispose();
+    _recovery.removeListener(_followHeart);
+    // 밖에서 받은 것은 밖에서 버린다.
+    if (widget.recovery == null) _recovery.dispose();
     super.dispose();
   }
 
@@ -1282,6 +1328,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                                   owner: blocks[i],
                                   spec: TimingSpec.parse(blocks[i].name)!,
                                   timer: _workoutTimer,
+                                  recovery: _recovery,
                                   onStart: () {
                                     _focus.unfocus();
                                     SystemChannels.textInput.invokeMethod(

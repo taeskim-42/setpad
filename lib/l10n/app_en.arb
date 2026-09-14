@@ -118,6 +118,7 @@
   "timingRestSeconds": "Rest {n}s",
   "timingRounds": "{n} rounds",
   "timingBeat": "Beat {count}",
+  "timingHeart": "♥ {bpm} → {target}",
   "accountSignIn": "Sign in and back up",
   "accountSignOut": "Sign out",
   "planMonthly": "Monthly",

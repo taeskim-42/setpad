@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'palette.dart';
+import 'rest_recovery.dart';
 import 'timing_audio.dart';
 
 /// Timing is derived from the saved title, so old records need no migration.
@@ -237,6 +238,20 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
         .ceil();
   }
 
+  /// 지금 쉬는 중이면 남은 휴식을 건너뛰고 다음 세트로 간다.
+  ///
+  /// 시계를 앞으로 당기는 것으로 끝낸다 — 구간·라운드·소리는 전부 지난
+  /// 시간에서 나오므로, 이 한 줄이면 tick 이 알아서 다음 구간의 신호를 낸다.
+  /// 되감는 길은 두지 않는다. 휴식은 짧아지기만 한다.
+  void skipRest() {
+    if (!running || phase != TimingPhase.rest) return;
+    final seconds = elapsed.inMilliseconds / 1000;
+    final cycle = spec!.work + spec!.rest;
+    final within = (seconds - 3) % cycle;
+    _elapsed += Duration(milliseconds: ((cycle - within) * 1000).round());
+    tick();
+  }
+
   void toggle(Object block, TimingSpec value) {
     if (!value.valid) return;
     if (!identical(owner, block) || spec != value) {
@@ -395,18 +410,25 @@ class WorkoutTimingControls extends StatelessWidget {
     required this.timer,
     required this.onStart,
     this.onChanged,
+    this.recovery,
   });
   final Object owner;
   final TimingSpec spec;
   final WorkoutTimer timer;
   final VoidCallback onStart;
 
+  /// 심박으로 휴식을 끊어 주는 쪽. 없으면 심박을 그리지 않는다.
+  final RestRecovery? recovery;
+
   /// 버튼으로 고친 설정. 받는 쪽이 운동 이름을 다시 적는다 — 제목이 설정이다.
   final ValueChanged<TimingSpec>? onChanged;
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: timer,
+    // 심박이 바뀌어도 다시 그려야 한다. 둘 다 듣는다.
+    listenable: recovery == null
+        ? timer
+        : Listenable.merge([timer, recovery]),
     builder: (context, _) {
       final l = L.of(context);
       final selected = identical(timer.owner, owner);
@@ -450,9 +472,22 @@ class WorkoutTimingControls extends StatelessWidget {
         TimingPhase.rest => l.timingRest,
         TimingPhase.complete => l.timingComplete,
       };
+      // 심박은 쉬는 동안에만 붙인다. 세트 중에는 볼 겨를도 없고, 회복을
+      // 재는 것은 휴식이다. 값이 낡았으면 아무것도 안 쓴다 — 옛 숫자를
+      // 지금 심박인 척 보여 주면 안 된다.
+      final heart = recovery;
+      final showHeart =
+          heart != null &&
+          selected &&
+          phase == TimingPhase.rest &&
+          heart.fresh &&
+          heart.target != null;
+      final heartLine = showHeart
+          ? ' · ${l.timingHeart(heart.bpm!, heart.target!)}'
+          : '';
       final status = spec.tabata
           ? '$phaseLabel · ${l.timingRound(round, spec.rounds)}'
-                '${beat > 0 ? ' · ${l.timingBeat(counted)}' : ''}'
+                '${beat > 0 ? ' · ${l.timingBeat(counted)}' : ''}$heartLine'
           : selected && phase == TimingPhase.ready
           ? phaseLabel
           // 박자는 큰 숫자로 이미 보인다. 옆에는 무엇인지만 적는다 —

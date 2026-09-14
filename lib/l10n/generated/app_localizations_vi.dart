@@ -458,6 +458,11 @@ class LVi extends L {
   }
 
   @override
+  String timingHeart(int bpm, int target) {
+    return '♥ $bpm → $target';
+  }
+
+  @override
   String get accountSignIn => 'Đăng nhập và sao lưu';
 
   @override

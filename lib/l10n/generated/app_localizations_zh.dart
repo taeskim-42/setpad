@@ -444,6 +444,11 @@ class LZh extends L {
   }
 
   @override
+  String timingHeart(int bpm, int target) {
+    return '♥ $bpm → $target';
+  }
+
+  @override
   String get accountSignIn => '登录并备份';
 
   @override
@@ -1003,6 +1008,11 @@ class LZhHans extends LZh {
   }
 
   @override
+  String timingHeart(int bpm, int target) {
+    return '♥ $bpm → $target';
+  }
+
+  @override
   String get accountSignIn => '登录并备份';
 
   @override
@@ -1559,6 +1569,11 @@ class LZhHant extends LZh {
   @override
   String timingBeat(String count) {
     return '第 $count 拍';
+  }
+
+  @override
+  String timingHeart(int bpm, int target) {
+    return '♥ $bpm → $target';
   }
 
   @override

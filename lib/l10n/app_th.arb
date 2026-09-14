@@ -118,6 +118,7 @@
   "timingRestSeconds": "พัก {n} วิ",
   "timingRounds": "{n} รอบ",
   "timingBeat": "จังหวะที่ {count}",
+  "timingHeart": "♥ {bpm} → {target}",
   "accountSignIn": "ลงชื่อเข้าใช้และสำรองข้อมูล",
   "accountSignOut": "ออกจากระบบ",
   "planMonthly": "รายเดือน",

@@ -118,6 +118,7 @@
   "timingRestSeconds": "休息 {n} 秒",
   "timingRounds": "{n} 輪",
   "timingBeat": "第 {count} 拍",
+  "timingHeart": "♥ {bpm} → {target}",
   "accountSignIn": "登入並備份",
   "accountSignOut": "登出",
   "planMonthly": "月費方案",

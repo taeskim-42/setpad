@@ -118,6 +118,7 @@
   "timingRestSeconds": "休憩 {n}秒",
   "timingRounds": "{n}ラウンド",
   "timingBeat": "{count}拍目",
+  "timingHeart": "♥ {bpm} → {target}",
   "accountSignIn": "ログインしてバックアップ",
   "accountSignOut": "ログアウト",
   "planMonthly": "月額プラン",

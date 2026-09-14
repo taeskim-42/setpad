@@ -118,6 +118,7 @@
   "timingRestSeconds": "Descanso {n}s",
   "timingRounds": "{n} rondas",
   "timingBeat": "Pulso {count}",
+  "timingHeart": "♥ {bpm} → {target}",
   "accountSignIn": "Inicia sesión y respalda",
   "accountSignOut": "Cerrar sesión",
   "planMonthly": "Mensual",

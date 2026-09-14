@@ -451,6 +451,11 @@ class LKo extends L {
   }
 
   @override
+  String timingHeart(int bpm, int target) {
+    return '♥ $bpm → $target';
+  }
+
+  @override
   String get accountSignIn => '로그인하고 백업';
 
   @override

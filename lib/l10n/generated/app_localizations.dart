@@ -817,6 +817,12 @@ abstract class L {
   /// **'{count}'**
   String timingBeat(String count);
 
+  /// Heart rate during rest: current beats per minute and the value that ends the rest early.
+  ///
+  /// In ko, this message translates to:
+  /// **'♥ {bpm} → {target}'**
+  String timingHeart(int bpm, int target);
+
   /// No description provided for @accountSignIn.
   ///
   /// In ko, this message translates to:

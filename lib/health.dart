@@ -1,8 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:health/health.dart';
+
+/// 한 번 잰 심박. [at] 은 **잰 시각**이고 [lag] 은 그것이 우리에게
+/// 도착하기까지 걸린 시간이다. 휴식을 심박으로 끊으려면 값이 최신이어야
+/// 하므로, 값만 있고 시각이 없으면 쓸 수가 없다.
+typedef HeartBeat = ({int bpm, DateTime at, Duration lag});
 
 /// 건강 앱 연동.
 ///
@@ -150,13 +156,55 @@ class HealthLink {
     }
   }
 
+  /// 심박을 계속 받는다. **두 플랫폼의 차이는 여기서 끝난다.**
+  ///
+  /// iOS 는 워치가 값을 쓸 때마다 HealthKit 이 앱을 깨워 밀어 준다. Android
+  /// 의 Health Connect 에는 밀어 주는 길이 없어서 주기적으로 읽는 수밖에
+  /// 없다. 같은 값을 여러 번 읽게 되지만, 받는 쪽이 [HeartBeat.at] 으로
+  /// 걸러내므로 문제가 되지 않는다.
+  Stream<HeartBeat> beats({Duration poll = const Duration(seconds: 10)}) {
+    if (!supported) return const Stream.empty();
+    return _platform == TargetPlatform.iOS ? _pushed() : _polled(poll);
+  }
+
+  Stream<HeartBeat> _pushed() {
+    late final StreamController<HeartBeat> out;
+    out = StreamController<HeartBeat>(
+      onListen: () async {
+        if (!await watchHeartRate()) {
+          await out.close();
+          return;
+        }
+        onBeat(({required bpm, required lag, sinceLastWake}) {
+          if (!out.isClosed) {
+            out.add((bpm: bpm, at: DateTime.now().subtract(lag), lag: lag));
+          }
+        });
+        // 첫 값은 기다리지 않는다 — 워치가 다음에 쓸 때까지 화면이 빈다.
+        final first = await latestHeartRate();
+        if (first != null && !out.isClosed) out.add(first);
+      },
+      onCancel: unwatchHeartRate,
+    );
+    return out.stream;
+  }
+
+  /// 듣는 사람이 없으면 알아서 멈춘다 — async* 가 그렇게 동작한다.
+  Stream<HeartBeat> _polled(Duration every) async* {
+    while (true) {
+      final beat = await latestHeartRate();
+      if (beat != null) yield beat;
+      await Future<void>.delayed(every);
+    }
+  }
+
   /// 가장 최근 심박과 **그것이 언제 측정된 것인지**.
   ///
   /// 시각을 같이 돌려주는 게 요점이다. 심박으로 휴식을 끊어 주려면 값이
   /// 최신이어야 하는데, 워치 앱 없이 아이폰이 워치 심박을 얼마나 빨리 받는지는
   /// 재보기 전에는 알 수 없다. 몇 초면 쓸 수 있고 몇 분이면 못 쓴다.
   /// 그 판단을 하려고 지연을 같이 낸다.
-  Future<({int bpm, DateTime at, Duration lag})?> latestHeartRate() async {
+  Future<HeartBeat?> latestHeartRate() async {
     if (!supported) return null;
     try {
       await _ensureConfigured();

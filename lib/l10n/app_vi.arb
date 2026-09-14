@@ -118,6 +118,7 @@
   "timingRestSeconds": "Nghỉ {n}s",
   "timingRounds": "{n} hiệp",
   "timingBeat": "Nhịp {count}",
+  "timingHeart": "♥ {bpm} → {target}",
   "accountSignIn": "Đăng nhập và sao lưu",
   "accountSignOut": "Đăng xuất",
   "planMonthly": "Hàng tháng",

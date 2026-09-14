@@ -405,6 +405,18 @@
     }
   },
   "timingBeat": "{count}",
+  "timingHeart": "♥ {bpm} → {target}",
+  "@timingHeart": {
+    "description": "Heart rate during rest: current beats per minute and the value that ends the rest early.",
+    "placeholders": {
+      "bpm": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
   "@timingBeat": {
     "description": "세는 말. 한국어는 하나·둘·셋, 나머지는 숫자다.",
     "placeholders": {

@@ -459,6 +459,11 @@ class LEn extends L {
   }
 
   @override
+  String timingHeart(int bpm, int target) {
+    return '♥ $bpm → $target';
+  }
+
+  @override
   String get accountSignIn => 'Sign in and back up';
 
   @override

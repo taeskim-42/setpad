@@ -456,6 +456,11 @@ class LTh extends L {
   }
 
   @override
+  String timingHeart(int bpm, int target) {
+    return '♥ $bpm → $target';
+  }
+
+  @override
   String get accountSignIn => 'ลงชื่อเข้าใช้และสำรองข้อมูล';
 
   @override

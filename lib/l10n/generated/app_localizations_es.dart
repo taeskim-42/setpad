@@ -459,6 +459,11 @@ class LEs extends L {
   }
 
   @override
+  String timingHeart(int bpm, int target) {
+    return '♥ $bpm → $target';
+  }
+
+  @override
   String get accountSignIn => 'Inicia sesión y respalda';
 
   @override
