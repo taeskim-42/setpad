@@ -26,10 +26,15 @@ class HealthLink {
   bool _configured = false;
 
   // Keep each data type and its access together so the lists cannot diverge.
-  static const _access = {
+  //
+  // 심박은 iOS 만이다. 워치가 잰 값을 관찰하는 경로(HeartRateObserver.swift)가
+  // iOS 에만 있고, Android 에서는 읽어도 쓰는 곳이 없다. Health Connect 는
+  // 쓰지 않는 권한을 선언하면 심사에서 막으므로 아예 묻지 않는다.
+  Map<HealthDataType, HealthDataAccess> get _access => {
     HealthDataType.WORKOUT: HealthDataAccess.WRITE,
     HealthDataType.ACTIVE_ENERGY_BURNED: HealthDataAccess.READ,
-    HealthDataType.HEART_RATE: HealthDataAccess.READ,
+    if (_platform == TargetPlatform.iOS)
+      HealthDataType.HEART_RATE: HealthDataAccess.READ,
   };
 
   static TargetPlatform? get _nativePlatform {
@@ -157,7 +162,7 @@ class HealthLink {
   /// 재보기 전에는 알 수 없다. 몇 초면 쓸 수 있고 몇 분이면 못 쓴다.
   /// 그 판단을 하려고 지연을 같이 낸다.
   Future<({int bpm, DateTime at, Duration lag})?> latestHeartRate() async {
-    if (!supported) return null;
+    if (!supported || _platform != TargetPlatform.iOS) return null;
     try {
       await _ensureConfigured();
       final now = DateTime.now();

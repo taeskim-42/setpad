@@ -1,10 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Health Connect. 이 셋은 lib/health.dart 의 _access 와 하나씩 짝이다 —
-         WORKOUT 쓰기, 활동 칼로리 읽기, 심박 읽기. 더 넣지 않는다. 쓰지도 않는
-         권한을 선언하면 Play 의 건강 앱 심사에서 그 이유를 대야 한다. -->
+    <!-- Health Connect. 이 둘은 lib/health.dart 의 _access 와 하나씩 짝이다 —
+         WORKOUT 쓰기, 활동 칼로리 읽기. 더 넣지 않는다. 쓰지도 않는 권한을
+         선언하면 Play 의 건강 앱 심사에서 그 이유를 대야 하는데, 댈 이유가
+         없으면 거기서 막힌다. 심박은 iOS 만 쓰므로 여기 없다. -->
     <uses-permission android:name="android.permission.health.WRITE_EXERCISE"/>
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
-    <uses-permission android:name="android.permission.health.READ_HEART_RATE"/>
     <application
         android:label="setpad"
         android:name="${applicationName}"
