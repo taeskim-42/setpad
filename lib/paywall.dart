@@ -47,7 +47,9 @@ class _PaywallState extends State<Paywall> {
     return AnimatedBuilder(
       animation: account,
       builder: (context, _) => CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(middle: Text(l.planMonthly)),
+        // 제목을 두지 않는다. 무엇을 파는지는 아래 큰 글씨가 말하고,
+        // 여기에 상품 하나의 이름을 쓰면 나머지 하나가 가려진다.
+        navigationBar: const CupertinoNavigationBar(),
         child: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
@@ -189,18 +191,35 @@ class _BuyButton extends StatelessWidget {
         : price == null
         ? label
         : '$label · $price';
+    final ink = seal.resolveFrom(context);
     return SizedBox(
       width: double.infinity,
       child: filled
-          ? CupertinoButton.filled(onPressed: onPressed, child: Text(text))
-          : CupertinoButton(
-              color: CupertinoColors.secondarySystemGroupedBackground
-                  .resolveFrom(context),
+          // 채운 쪽은 우리 색이다. CupertinoButton.filled 은 테마의 기본
+          // 파랑을 쓰는데, 앱 어디에도 없는 색이라 여기만 남의 것처럼 보였다.
+          ? CupertinoButton(
+              color: ink,
               onPressed: onPressed,
               child: Text(
                 text,
-                style: TextStyle(
-                  color: CupertinoColors.label.resolveFrom(context),
+                style: const TextStyle(
+                  color: CupertinoColors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            )
+          // 안 채운 쪽에 테두리를 준다. 예전에는 배경과 같은 색을 칠해 둬서
+          // 글자만 떠 있었고, 누를 수 있는 것으로 보이지 않았다.
+          : Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: ink, width: 1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: CupertinoButton(
+                onPressed: onPressed,
+                child: Text(
+                  text,
+                  style: TextStyle(color: ink, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
