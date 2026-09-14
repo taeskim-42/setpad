@@ -477,6 +477,16 @@ class LTh extends L {
   String get quotaSpent => 'คุณใช้คำถามของเดือนนี้หมดแล้ว';
 
   @override
+  String gymMember(String gym, String trainer) {
+    return '$gym · $trainer';
+  }
+
+  @override
+  String gymOnly(String gym) {
+    return '$gym';
+  }
+
+  @override
   String get countAloud => 'นับจังหวะออกเสียง';
 
   @override

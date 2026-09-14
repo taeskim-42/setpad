@@ -470,6 +470,16 @@ class LJa extends L {
   String get quotaSpent => '今月分の質問を使い切りました。';
 
   @override
+  String gymMember(String gym, String trainer) {
+    return '$gym · $trainer';
+  }
+
+  @override
+  String gymOnly(String gym) {
+    return '$gym';
+  }
+
+  @override
   String get countAloud => '拍を声に出して数える';
 
   @override

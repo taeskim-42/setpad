@@ -125,6 +125,8 @@
   "planActive": "使用中",
   "restorePurchases": "回復購買",
   "quotaSpent": "本月的提問次數已用完。",
+  "gymMember": "{gym} · {trainer}",
+  "gymOnly": "{gym}",
   "countAloud": "朗讀節拍計數",
   "metricMax": "最高",
   "metricTrend": "趨勢",

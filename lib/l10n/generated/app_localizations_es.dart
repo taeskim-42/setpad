@@ -480,6 +480,16 @@ class LEs extends L {
   String get quotaSpent => 'Has usado las preguntas de este mes.';
 
   @override
+  String gymMember(String gym, String trainer) {
+    return '$gym · $trainer';
+  }
+
+  @override
+  String gymOnly(String gym) {
+    return '$gym';
+  }
+
+  @override
   String get countAloud => 'Contar los pulsos en voz alta';
 
   @override

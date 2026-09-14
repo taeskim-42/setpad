@@ -479,6 +479,16 @@ class LVi extends L {
   String get quotaSpent => 'Bạn đã dùng hết câu hỏi tháng này.';
 
   @override
+  String gymMember(String gym, String trainer) {
+    return '$gym · $trainer';
+  }
+
+  @override
+  String gymOnly(String gym) {
+    return '$gym';
+  }
+
+  @override
   String get countAloud => 'Đếm nhịp thành tiếng';
 
   @override

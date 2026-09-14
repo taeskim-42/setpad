@@ -859,6 +859,18 @@ abstract class L {
   /// **'이번 달 질문을 다 썼어요.'**
   String get quotaSpent;
 
+  /// 다니는 체육관과 담당 트레이너.
+  ///
+  /// In ko, this message translates to:
+  /// **'{gym} · {trainer} 트레이너'**
+  String gymMember(String gym, String trainer);
+
+  /// 담당 트레이너가 없는 체육관.
+  ///
+  /// In ko, this message translates to:
+  /// **'{gym}'**
+  String gymOnly(String gym);
+
   /// No description provided for @countAloud.
   ///
   /// In ko, this message translates to:

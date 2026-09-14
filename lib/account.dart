@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import 'gym.dart';
 import 'purchases.dart';
 import 'record_ai.dart';
 import 'sign_in.dart';
@@ -34,6 +35,12 @@ class Account extends ChangeNotifier {
   /// 서버가 확인해 준 것. 앱이 정하지 않는다.
   Plan? plan;
 
+  /// 내가 다니는 체육관. 없으면 앱은 그쪽 화면을 아예 안 그린다.
+  List<Gym> gyms = const [];
+
+  /// 체육관에서 온 것들을 가져오는 문. 로그인하지 않았으면 아무것도 안 온다.
+  GymLink get link => GymLink(endpoint: endpoint, token: token, client: client);
+
   bool get signedIn => token != null;
   bool get paid => plan != null;
   Map<Plan, String> get prices => {
@@ -45,6 +52,12 @@ class Account extends ChangeNotifier {
     _watch ??= _purchases.proofs.listen(_send);
     await _purchases.start(apple: platformSignIn == SignInMethod.apple);
     if (token != null) await _refresh();
+  }
+
+  /// 다니는 체육관을 다시 읽는다. 트레이너가 방금 등록했을 수 있다.
+  Future<void> refreshGyms() async {
+    gyms = await link.gyms();
+    notifyListeners();
   }
 
   Future<bool> signIn() async {
@@ -60,6 +73,7 @@ class Account extends ChangeNotifier {
     token = result.token;
     nickname = result.nickname;
     await _refresh();
+    await refreshGyms();
     notifyListeners();
     return true;
   }
@@ -68,6 +82,7 @@ class Account extends ChangeNotifier {
     token = null;
     nickname = '';
     plan = null;
+    gyms = const [];
     notifyListeners();
   }
 

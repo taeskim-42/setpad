@@ -39,6 +39,16 @@ Future<void> showWeightSettings(
           child: Text('${store.countAloud ? '✓ ' : ''}${l.countAloud}'),
         ),
         if (account != null) ...[
+          // 다니는 체육관. 있는 사람에게만 보인다 — 대부분은 안 다닌다.
+          for (final gym in account.gyms)
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                gym.trainer == null
+                    ? l.gymOnly(gym.name)
+                    : l.gymMember(gym.name, gym.trainer!),
+              ),
+            ),
           // 이미 가진 것은 팔지 않는다. 평생을 산 사람에게 월을 보이면 안 된다.
           if (plan != Plan.lifetime)
             for (final p in Plan.values)

@@ -465,6 +465,16 @@ class LZh extends L {
   String get quotaSpent => '本月的提问次数已用完。';
 
   @override
+  String gymMember(String gym, String trainer) {
+    return '$gym · $trainer';
+  }
+
+  @override
+  String gymOnly(String gym) {
+    return '$gym';
+  }
+
+  @override
   String get countAloud => '朗读节拍计数';
 
   @override
@@ -978,6 +988,16 @@ class LZhHans extends LZh {
   String get quotaSpent => '本月的提问次数已用完。';
 
   @override
+  String gymMember(String gym, String trainer) {
+    return '$gym · $trainer';
+  }
+
+  @override
+  String gymOnly(String gym) {
+    return '$gym';
+  }
+
+  @override
   String get countAloud => '朗读节拍计数';
 
   @override
@@ -1489,6 +1509,16 @@ class LZhHant extends LZh {
 
   @override
   String get quotaSpent => '本月的提問次數已用完。';
+
+  @override
+  String gymMember(String gym, String trainer) {
+    return '$gym · $trainer';
+  }
+
+  @override
+  String gymOnly(String gym) {
+    return '$gym';
+  }
 
   @override
   String get countAloud => '朗讀節拍計數';

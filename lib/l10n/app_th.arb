@@ -125,6 +125,8 @@
   "planActive": "กำลังใช้งาน",
   "restorePurchases": "กู้คืนการซื้อ",
   "quotaSpent": "คุณใช้คำถามของเดือนนี้หมดแล้ว",
+  "gymMember": "{gym} · {trainer}",
+  "gymOnly": "{gym}",
   "countAloud": "นับจังหวะออกเสียง",
   "metricMax": "สูงสุด",
   "metricTrend": "แนวโน้ม",

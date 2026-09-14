@@ -420,6 +420,27 @@
   "planActive": "이용 중",
   "restorePurchases": "구매 복원",
   "quotaSpent": "이번 달 질문을 다 썼어요.",
+  "gymMember": "{gym} · {trainer} 트레이너",
+  "@gymMember": {
+    "description": "다니는 체육관과 담당 트레이너.",
+    "placeholders": {
+      "gym": {
+        "type": "String"
+      },
+      "trainer": {
+        "type": "String"
+      }
+    }
+  },
+  "gymOnly": "{gym}",
+  "@gymOnly": {
+    "description": "담당 트레이너가 없는 체육관.",
+    "placeholders": {
+      "gym": {
+        "type": "String"
+      }
+    }
+  },
   "countAloud": "박자를 소리내어 세기",
   "metricMax": "최고",
   "metricTrend": "추이",

@@ -125,6 +125,8 @@
   "planActive": "Đang dùng",
   "restorePurchases": "Khôi phục giao dịch",
   "quotaSpent": "Bạn đã dùng hết câu hỏi tháng này.",
+  "gymMember": "{gym} · {trainer}",
+  "gymOnly": "{gym}",
   "countAloud": "Đếm nhịp thành tiếng",
   "metricMax": "Tốt nhất",
   "metricTrend": "Xu hướng",

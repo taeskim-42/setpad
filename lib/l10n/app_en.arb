@@ -125,6 +125,8 @@
   "planActive": "Active",
   "restorePurchases": "Restore purchases",
   "quotaSpent": "You have used this month’s questions.",
+  "gymMember": "{gym} · {trainer}",
+  "gymOnly": "{gym}",
   "countAloud": "Count beats aloud",
   "metricMax": "Best",
   "metricTrend": "Trend",

@@ -472,6 +472,16 @@ class LKo extends L {
   String get quotaSpent => '이번 달 질문을 다 썼어요.';
 
   @override
+  String gymMember(String gym, String trainer) {
+    return '$gym · $trainer 트레이너';
+  }
+
+  @override
+  String gymOnly(String gym) {
+    return '$gym';
+  }
+
+  @override
   String get countAloud => '박자를 소리내어 세기';
 
   @override
