@@ -23,6 +23,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Apple Developer 포털에 App ID 를 등록한다 (한 번만)
 
+### ios profile
+
+```sh
+[bundle exec] fastlane ios profile
+```
+
+배포 프로파일을 다시 만든다 (기능을 켠 뒤에 한 번)
+
 ### ios dev
 
 ```sh
