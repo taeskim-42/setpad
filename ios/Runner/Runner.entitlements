@@ -8,6 +8,7 @@
 	</array>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
+		<string>applinks:gym.darak.studio</string>
 		<string>applinks:web-production-9cfc2.up.railway.app</string>
 	</array>
 	<key>com.apple.developer.healthkit</key>

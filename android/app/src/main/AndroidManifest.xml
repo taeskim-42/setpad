@@ -37,6 +37,10 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https"
+                      android:host="gym.darak.studio"
+                      android:pathPrefix="/c/"/>
+                <!-- 이미 나간 스티커가 옛 주소를 가리킬 수 있다. -->
+                <data android:scheme="https"
                       android:host="web-production-9cfc2.up.railway.app"
                       android:pathPrefix="/c/"/>
             </intent-filter>
