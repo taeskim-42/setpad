@@ -343,3 +343,14 @@ extension BookingLink on GymLink {
     });
   }
 }
+
+/// 스티커에 댔을 때 열리는 주소에서 체육관을 꺼낸다.
+///
+/// 태그에는 `https://<서버>/c/<체육관 id>` 하나만 들어 있다. 로직도 배터리도
+/// 없고, 앱이 없는 사람은 그 주소가 웹으로 열린다 — 같은 스티커가 둘 다 된다.
+String? gymFromTag(Uri uri) {
+  final parts = uri.pathSegments;
+  return parts.length >= 2 && parts.first == 'c' && parts[1].isNotEmpty
+      ? parts[1]
+      : null;
+}

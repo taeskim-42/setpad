@@ -30,6 +30,16 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- 헬스장 스티커. autoVerify 가 있어야 브라우저를 거치지 않고
+                 앱이 바로 열린다 — 서버의 assetlinks.json 과 짝이다. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"
+                      android:host="web-production-9cfc2.up.railway.app"
+                      android:pathPrefix="/c/"/>
+            </intent-filter>
             <!-- Health Connect 가 "왜 이 권한이 필요한가"를 물을 때 여는 화면 -->
             <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE"/>

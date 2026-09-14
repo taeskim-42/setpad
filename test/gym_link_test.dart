@@ -130,6 +130,7 @@ void main() {
   });
   _pending();
   _shared();
+  _tags();
 }
 
 /// 헬스장은 신호가 나쁘다. 못 보낸 것은 다음에 다시 보낸다.
@@ -295,5 +296,26 @@ void _shared() {
       (_) async => http.Response('{"error":"slotTaken"}', 409),
     );
     expect(await link.book(DateTime(2026, 9, 16, 10)), isFalse);
+  });
+}
+
+/// 스티커가 가리키는 주소.
+void _tags() {
+  test('태그 주소에서 체육관을 꺼낸다', () {
+    expect(gymFromTag(Uri.parse('https://example.com/c/abc-123')), 'abc-123');
+    // 뒤에 뭐가 더 붙어도 체육관은 같다.
+    expect(gymFromTag(Uri.parse('https://example.com/c/abc/classes')), 'abc');
+  });
+
+  test('체육관 주소가 아니면 아무것도 열지 않는다', () {
+    for (final raw in [
+      'https://example.com/',
+      'https://example.com/c',
+      'https://example.com/c/',
+      'https://example.com/gym/abc',
+      'https://example.com/setpad',
+    ]) {
+      expect(gymFromTag(Uri.parse(raw)), isNull, reason: raw);
+    }
   });
 }

@@ -6,6 +6,9 @@ import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'health.dart';
 import 'health_summary.dart';
+import 'package:flutter/foundation.dart';
+import 'package:app_links/app_links.dart';
+
 import 'account.dart';
 import 'gym.dart';
 import 'gym_sheets.dart';
@@ -19,9 +22,13 @@ void main() => runApp(const SetpadApp());
 class SetpadApp extends StatelessWidget {
   /// [store] 는 테스트가 임시 폴더를 물릴 자리다. 비워 두면 앱 문서 디렉터리를
   /// 쓰는 것을 스스로 만든다 — 그건 플랫폼 채널이라 테스트에서는 못 쓴다.
-  const SetpadApp({super.key, this.store});
+  const SetpadApp({super.key, this.store, this.tags});
 
   final NotesStore? store;
+
+  /// 스티커가 가리킨 주소가 오는 자리. **테스트는 비워 둔다** — 그 자리에는
+  /// 읽을 태그가 없고, 네이티브 채널을 깨우면 없는 플러그인을 부른다.
+  final Stream<Uri>? tags;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +64,7 @@ class SetpadApp extends StatelessWidget {
         primaryColor: seal,
         scaffoldBackgroundColor: CupertinoColors.systemGroupedBackground,
       ),
-      home: _Home(store: store),
+      home: _Home(store: store, tags: tags),
     );
   }
 }
@@ -68,7 +75,8 @@ class SetpadApp extends StatelessWidget {
 /// 적으려는 것이지 지난 기록을 넘겨보려는 것이 아니다. 그래서 오늘 것이 있으면
 /// 그것을, 없으면 새 기록을 곧바로 펴고, 목록은 뒤로가기 한 번 뒤에 둔다.
 class _Home extends StatefulWidget {
-  const _Home({this.store});
+  const _Home({this.store, this.tags});
+  final Stream<Uri>? tags;
 
   final NotesStore? store;
 
@@ -85,6 +93,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _watchTags();
     // 심박이 올 때마다 남긴다. HealthKit 이 실제로 얼마나 자주 깨워 주는지를
     // 재는 것이 지금 목적이다 — 그 값에 따라 휴식 타이머가 성립하는지가
     // 갈린다. 문서로 확인하지 못한 빈도 제한을 실측으로 대신한다.
@@ -172,10 +181,49 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 로그인과 결제. **없어도 앱은 그대로 돈다** — 켜지 않은 사람은 그냥 쓴다.
   late final _account = Account()..start().then((_) => _sendPendingWorkouts());
 
+  /// 스티커를 댔을 때. 앱이 닫혀 있었어도 열리면서 여기로 온다.
+  StreamSubscription<Uri>? _tags;
+
+  /// 태그가 가리킨 체육관의 오늘 루틴을 받아 바로 연다.
+  ///
+  /// **스티커에 댄 사람은 지금 그 헬스장에 서 있다.** 목록으로 보내 한 번 더
+  /// 누르게 하지 않는다 — 손에 폰을 들고 기구 앞에 있는 참이다.
+  Future<void> _openTag(Uri uri) async {
+    final gymId = gymFromTag(uri);
+    if (gymId == null || !_account.signedIn) return;
+    final routines = await _account.link.routines();
+    final mine = routines.where((r) => r.gymId == gymId).firstOrNull;
+    if (!mounted || mine == null) return;
+    _open(
+      _store.create(blocks: mine.blocks, gymId: mine.gymId, routineId: mine.id),
+    );
+  }
+
   /// 체육관에서 시작한 기록 중 아직 못 보낸 것을 보낸다.
   /// 헬스장은 신호가 나빠 한 번에 못 갈 때가 있다.
   Future<void> _sendPendingWorkouts() =>
       sendPending(_account.link, _store.notes, onSent: _store.touch);
+
+  /// 앱이 닫혀 있다 열린 경우와, 떠 있는데 댄 경우를 한 줄기로 받는다.
+  void _watchTags() {
+    final given = widget.tags;
+    if (given != null) {
+      _tags = given.listen(_openTag);
+      return;
+    }
+    // 웹에는 스티커를 읽을 것이 없다. 채널을 깨우지 않는다.
+    if (kIsWeb) return;
+    final links = AppLinks();
+    _tags = links.uriLinkStream.listen(_openTag, onError: (Object _) {});
+    unawaited(
+      links
+          .getInitialLink()
+          .then((uri) {
+            if (uri != null) _openTag(uri);
+          })
+          .catchError((Object _) {}),
+    );
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -191,6 +239,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _tags?.cancel();
     _account.dispose();
     _store.flush();
     if (widget.store == null) _store.dispose();

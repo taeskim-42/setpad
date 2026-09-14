@@ -99,7 +99,13 @@ Future<void> pumpApp(
   final dir = Directory.systemTemp.createTempSync('setpad_test');
   addTearDown(() => dir.deleteSync(recursive: true));
 
-  await tester.pumpWidget(SetpadApp(store: NotesStore(directory: dir)));
+  // 태그는 비워 둔다 — 테스트 자리에는 읽을 스티커가 없다.
+  await tester.pumpWidget(
+    SetpadApp(
+      store: NotesStore(directory: dir),
+      tags: const Stream.empty(),
+    ),
+  );
   // 앱은 목록을 깔고 그 위에 패드를 얹는다. 그 전환이 끝나야 패드가 보인다.
   await settle(tester);
 }
@@ -436,7 +442,9 @@ void keypadTests() {
       tester.platformDispatcher.localesTestValue = [const Locale('ko')];
       addTearDown(tester.platformDispatcher.clearLocalesTestValue);
       final store = NotesStore(directory: dir);
-      await tester.pumpWidget(SetpadApp(store: store));
+      await tester.pumpWidget(
+        SetpadApp(store: store, tags: const Stream.empty()),
+      );
       await settle(tester);
       return store;
     }
