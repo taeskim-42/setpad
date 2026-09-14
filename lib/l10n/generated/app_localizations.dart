@@ -877,6 +877,60 @@ abstract class L {
   /// **'{gym}에서 보낸 운동'**
   String routineFromTrainer(String gym);
 
+  /// No description provided for @partnerInvite.
+  ///
+  /// In ko, this message translates to:
+  /// **'같이 하기'**
+  String get partnerInvite;
+
+  /// No description provided for @partnerCode.
+  ///
+  /// In ko, this message translates to:
+  /// **'상대에게 이 번호를 불러 주세요'**
+  String get partnerCode;
+
+  /// No description provided for @partnerEnter.
+  ///
+  /// In ko, this message translates to:
+  /// **'번호 입력'**
+  String get partnerEnter;
+
+  /// No description provided for @partnerJoined.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name}와 같이 기록합니다'**
+  String partnerJoined(String name);
+
+  /// No description provided for @partnerFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'번호가 맞지 않거나 시간이 지났어요.'**
+  String get partnerFailed;
+
+  /// No description provided for @bookingNext.
+  ///
+  /// In ko, this message translates to:
+  /// **'{trainer} 트레이너 · {when}'**
+  String bookingNext(String trainer, String when);
+
+  /// No description provided for @bookingNew.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 예약'**
+  String get bookingNew;
+
+  /// No description provided for @bookingNone.
+  ///
+  /// In ko, this message translates to:
+  /// **'그날은 빈 시간이 없어요.'**
+  String get bookingNone;
+
+  /// No description provided for @bookingCancel.
+  ///
+  /// In ko, this message translates to:
+  /// **'예약 취소'**
+  String get bookingCancel;
+
   /// No description provided for @countAloud.
   ///
   /// In ko, this message translates to:

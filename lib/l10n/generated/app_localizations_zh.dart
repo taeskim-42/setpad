@@ -480,6 +480,37 @@ class LZh extends L {
   }
 
   @override
+  String get partnerInvite => '一起训练';
+
+  @override
+  String get partnerCode => '把这个号码告诉对方';
+
+  @override
+  String get partnerEnter => '输入号码';
+
+  @override
+  String partnerJoined(String name) {
+    return '与$name一起记录';
+  }
+
+  @override
+  String get partnerFailed => '号码不对或已过期。';
+
+  @override
+  String bookingNext(String trainer, String when) {
+    return '$trainer · $when';
+  }
+
+  @override
+  String get bookingNew => '预约私教';
+
+  @override
+  String get bookingNone => '当天没有空闲时间。';
+
+  @override
+  String get bookingCancel => '取消预约';
+
+  @override
   String get countAloud => '朗读节拍计数';
 
   @override
@@ -1008,6 +1039,37 @@ class LZhHans extends LZh {
   }
 
   @override
+  String get partnerInvite => '一起训练';
+
+  @override
+  String get partnerCode => '把这个号码告诉对方';
+
+  @override
+  String get partnerEnter => '输入号码';
+
+  @override
+  String partnerJoined(String name) {
+    return '与$name一起记录';
+  }
+
+  @override
+  String get partnerFailed => '号码不对或已过期。';
+
+  @override
+  String bookingNext(String trainer, String when) {
+    return '$trainer · $when';
+  }
+
+  @override
+  String get bookingNew => '预约私教';
+
+  @override
+  String get bookingNone => '当天没有空闲时间。';
+
+  @override
+  String get bookingCancel => '取消预约';
+
+  @override
   String get countAloud => '朗读节拍计数';
 
   @override
@@ -1534,6 +1596,37 @@ class LZhHant extends LZh {
   String routineFromTrainer(String gym) {
     return '來自$gym';
   }
+
+  @override
+  String get partnerInvite => '一起訓練';
+
+  @override
+  String get partnerCode => '把這個號碼告訴對方';
+
+  @override
+  String get partnerEnter => '輸入號碼';
+
+  @override
+  String partnerJoined(String name) {
+    return '與$name一起記錄';
+  }
+
+  @override
+  String get partnerFailed => '號碼不對或已過期。';
+
+  @override
+  String bookingNext(String trainer, String when) {
+    return '$trainer · $when';
+  }
+
+  @override
+  String get bookingNew => '預約私教';
+
+  @override
+  String get bookingNone => '當天沒有空閒時間。';
+
+  @override
+  String get bookingCancel => '取消預約';
 
   @override
   String get countAloud => '朗讀節拍計數';

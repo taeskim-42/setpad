@@ -495,6 +495,37 @@ class LEn extends L {
   }
 
   @override
+  String get partnerInvite => 'Work out together';
+
+  @override
+  String get partnerCode => 'Read this code to your partner';
+
+  @override
+  String get partnerEnter => 'Enter a code';
+
+  @override
+  String partnerJoined(String name) {
+    return 'Recording with $name';
+  }
+
+  @override
+  String get partnerFailed => 'That code is wrong or expired.';
+
+  @override
+  String bookingNext(String trainer, String when) {
+    return '$trainer · $when';
+  }
+
+  @override
+  String get bookingNew => 'Book a session';
+
+  @override
+  String get bookingNone => 'No open times that day.';
+
+  @override
+  String get bookingCancel => 'Cancel booking';
+
+  @override
   String get countAloud => 'Count beats aloud';
 
   @override

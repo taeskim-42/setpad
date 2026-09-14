@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'account.dart';
+import 'gym_sheets.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 import 'purchases.dart';
@@ -57,6 +58,12 @@ Future<void> showWeightSettings(
                   onPressed: () => Navigator.pop(ctx, 'buy:${p.name}'),
                   child: Text('${plan == p ? '✓ ' : ''}${planLabel(p)}'),
                 ),
+          // 체육관에 다니는 사람에게만. 예약할 곳이 없으면 보일 이유가 없다.
+          if (account.gyms.isNotEmpty)
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(ctx, 'booking'),
+              child: Text(l.bookingNew),
+            ),
           CupertinoActionSheetAction(
             onPressed: () => Navigator.pop(ctx, 'restore'),
             child: Text(l.restorePurchases),
@@ -80,6 +87,8 @@ Future<void> showWeightSettings(
   if (choice == null) return;
   if (choice == 'countAloud') {
     store.setCountAloud(!store.countAloud);
+  } else if (choice == 'booking') {
+    if (context.mounted) await showBookingSheet(context, account!);
   } else if (choice == 'restore') {
     await account?.restore();
   } else if (choice == 'account') {

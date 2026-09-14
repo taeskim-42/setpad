@@ -29,7 +29,8 @@ class GymLink {
 
   bool get supported => token != null;
 
-  Future<T> _with<T>(Future<T> Function(http.Client web) run) async {
+  /// 그물을 빌려 쓰고 반드시 닫는다. 확장도 같은 것을 쓴다.
+  Future<T> withClient<T>(Future<T> Function(http.Client web) run) async {
     final web = client ?? http.Client();
     try {
       return await run(web);
@@ -38,14 +39,14 @@ class GymLink {
     }
   }
 
-  Map<String, String> get _headers => {'authorization': 'Bearer $token'};
+  Map<String, String> get headers => {'authorization': 'Bearer $token'};
 
   Future<List<Gym>> gyms() async {
     if (!supported) return const [];
-    return _with((web) async {
+    return withClient((web) async {
       try {
         final response = await web
-            .get(Uri.parse('$endpoint/api/gyms'), headers: _headers)
+            .get(Uri.parse('$endpoint/api/gyms'), headers: headers)
             .timeout(const Duration(seconds: 15));
         if (response.statusCode != 200) return const [];
         final body = jsonDecode(utf8.decode(response.bodyBytes));
@@ -66,10 +67,10 @@ class GymLink {
 
   Future<List<Routine>> routines() async {
     if (!supported) return const [];
-    return _with((web) async {
+    return withClient((web) async {
       try {
         final response = await web
-            .get(Uri.parse('$endpoint/api/routines'), headers: _headers)
+            .get(Uri.parse('$endpoint/api/routines'), headers: headers)
             .timeout(const Duration(seconds: 15));
         if (response.statusCode != 200) return const [];
         final body = jsonDecode(utf8.decode(response.bodyBytes));
@@ -99,12 +100,12 @@ class GymLink {
     String? note,
   }) async {
     if (!supported) return false;
-    return _with((web) async {
+    return withClient((web) async {
       try {
         final response = await web
             .post(
               Uri.parse('$endpoint/api/workouts'),
-              headers: {..._headers, 'content-type': 'application/json'},
+              headers: {...headers, 'content-type': 'application/json'},
               body: jsonEncode({
                 'gymId': gymId,
                 'localId': localId,
@@ -190,4 +191,155 @@ Future<void> sendPending(
     changed = true;
   }
   if (changed) onSent();
+}
+
+/// 같이 하는 사람. 그날 운동 하나에만 붙는다.
+typedef Partnership = ({String workoutId, String? partner});
+
+extension PartnerLink on GymLink {
+  /// 같이 하자고 코드를 띄운다. 상대가 10분 안에 치면 짝이 된다.
+  Future<String?> invite(String workoutId) async {
+    if (!supported) return null;
+    final answer = await _post('/api/partners', {'workoutId': workoutId});
+    return answer?['code'] as String?;
+  }
+
+  /// 상대가 띄운 코드를 친다. 내 운동도 같이 넘겨 서로의 짝이 되게 한다.
+  Future<Partnership?> join(String code, {String? myWorkoutId}) async {
+    if (!supported) return null;
+    final answer = await _post('/api/partners', {
+      'code': code,
+      'workoutId': ?myWorkoutId,
+    });
+    final id = answer?['workoutId'];
+    return id is String
+        ? (workoutId: id, partner: answer?['partner'] as String?)
+        : null;
+  }
+
+  /// 짝이 같이 보는 운동을 읽는다. 상대가 방금 적은 것이 여기로 온다.
+  Future<List<ExerciseBlock>?> readShared(String workoutId) async {
+    if (!supported) return null;
+    return withClient((web) async {
+      try {
+        final response = await web
+            .get(
+              Uri.parse('$endpoint/api/workouts/$workoutId'),
+              headers: headers,
+            )
+            .timeout(const Duration(seconds: 10));
+        if (response.statusCode != 200) return null;
+        final body = jsonDecode(utf8.decode(response.bodyBytes));
+        return plannedBlocks((body as Map)['result']);
+      } catch (_) {
+        return null;
+      }
+    });
+  }
+
+  /// 내가 적은 것을 올린다. 상대 폰이 몇 초 안에 받는다.
+  Future<bool> writeShared(String workoutId, List<ExerciseBlock> blocks) async {
+    if (!supported) return false;
+    return withClient((web) async {
+      try {
+        final response = await web
+            .put(
+              Uri.parse('$endpoint/api/workouts/$workoutId'),
+              headers: {...headers, 'content-type': 'application/json'},
+              body: jsonEncode({'result': loggedItems(blocks)}),
+            )
+            .timeout(const Duration(seconds: 10));
+        return response.statusCode == 200;
+      } catch (_) {
+        return false;
+      }
+    });
+  }
+
+  Future<Map<String, Object?>?> _post(String path, Map<String, Object?> body) =>
+      withClient((web) async {
+        try {
+          final response = await web
+              .post(
+                Uri.parse('$endpoint$path'),
+                headers: {...headers, 'content-type': 'application/json'},
+                body: jsonEncode(body),
+              )
+              .timeout(const Duration(seconds: 15));
+          if (response.statusCode != 200) return null;
+          final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+          return decoded is Map ? decoded.cast<String, Object?>() : null;
+        } catch (_) {
+          return null;
+        }
+      });
+}
+
+/// 내 PT 예약 하나.
+typedef Booking = ({String id, String gym, String trainer, DateTime startsAt});
+
+extension BookingLink on GymLink {
+  /// 다가오는 예약과, 고른 날에 잡을 수 있는 시각.
+  Future<({List<Booking> bookings, List<DateTime> slots})> bookings({
+    DateTime? day,
+  }) async {
+    if (!supported) return (bookings: <Booking>[], slots: <DateTime>[]);
+    return withClient((web) async {
+      try {
+        final at = day == null
+            ? ''
+            : '?day=${day.toIso8601String().substring(0, 10)}';
+        final response = await web
+            .get(Uri.parse('$endpoint/api/bookings$at'), headers: headers)
+            .timeout(const Duration(seconds: 15));
+        if (response.statusCode != 200) {
+          return (bookings: <Booking>[], slots: <DateTime>[]);
+        }
+        final body = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
+        return (
+          bookings: <Booking>[
+            for (final row in body['bookings'] as List? ?? const [])
+              (
+                id: row['id'] as String,
+                gym: row['gym'] as String,
+                trainer: row['trainer'] as String,
+                startsAt: DateTime.parse(row['starts_at'] as String).toLocal(),
+              ),
+          ],
+          slots: <DateTime>[
+            for (final at in body['slots'] as List? ?? const [])
+              DateTime.parse(at as String).toLocal(),
+          ],
+        );
+      } catch (_) {
+        return (bookings: <Booking>[], slots: <DateTime>[]);
+      }
+    });
+  }
+
+  /// 빈 자리를 잡는다. 그 사이 남이 가져갔으면 실패한다 — 서버가 다시 센다.
+  Future<bool> book(DateTime startsAt) async {
+    if (!supported) return false;
+    final answer = await _post('/api/bookings', {
+      'startsAt': startsAt.toUtc().toIso8601String(),
+    });
+    return answer?['id'] is String;
+  }
+
+  Future<bool> cancelBooking(String id) async {
+    if (!supported) return false;
+    return withClient((web) async {
+      try {
+        final response = await web
+            .delete(
+              Uri.parse('$endpoint/api/bookings?id=$id'),
+              headers: headers,
+            )
+            .timeout(const Duration(seconds: 15));
+        return response.statusCode == 200;
+      } catch (_) {
+        return false;
+      }
+    });
+  }
 }

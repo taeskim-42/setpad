@@ -487,6 +487,37 @@ class LKo extends L {
   }
 
   @override
+  String get partnerInvite => '같이 하기';
+
+  @override
+  String get partnerCode => '상대에게 이 번호를 불러 주세요';
+
+  @override
+  String get partnerEnter => '번호 입력';
+
+  @override
+  String partnerJoined(String name) {
+    return '$name와 같이 기록합니다';
+  }
+
+  @override
+  String get partnerFailed => '번호가 맞지 않거나 시간이 지났어요.';
+
+  @override
+  String bookingNext(String trainer, String when) {
+    return '$trainer 트레이너 · $when';
+  }
+
+  @override
+  String get bookingNew => 'PT 예약';
+
+  @override
+  String get bookingNone => '그날은 빈 시간이 없어요.';
+
+  @override
+  String get bookingCancel => '예약 취소';
+
+  @override
   String get countAloud => '박자를 소리내어 세기';
 
   @override

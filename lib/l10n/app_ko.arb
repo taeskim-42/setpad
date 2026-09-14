@@ -450,6 +450,32 @@
       }
     }
   },
+  "partnerInvite": "같이 하기",
+  "partnerCode": "상대에게 이 번호를 불러 주세요",
+  "partnerEnter": "번호 입력",
+  "partnerJoined": "{name}와 같이 기록합니다",
+  "@partnerJoined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "partnerFailed": "번호가 맞지 않거나 시간이 지났어요.",
+  "bookingNext": "{trainer} 트레이너 · {when}",
+  "@bookingNext": {
+    "placeholders": {
+      "trainer": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "bookingNew": "PT 예약",
+  "bookingNone": "그날은 빈 시간이 없어요.",
+  "bookingCancel": "예약 취소",
   "countAloud": "박자를 소리내어 세기",
   "metricMax": "최고",
   "metricTrend": "추이",

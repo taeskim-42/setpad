@@ -494,6 +494,37 @@ class LVi extends L {
   }
 
   @override
+  String get partnerInvite => 'Tập cùng nhau';
+
+  @override
+  String get partnerCode => 'Đọc mã này cho bạn tập';
+
+  @override
+  String get partnerEnter => 'Nhập mã';
+
+  @override
+  String partnerJoined(String name) {
+    return 'Ghi cùng $name';
+  }
+
+  @override
+  String get partnerFailed => 'Mã sai hoặc đã hết hạn.';
+
+  @override
+  String bookingNext(String trainer, String when) {
+    return '$trainer · $when';
+  }
+
+  @override
+  String get bookingNew => 'Đặt buổi PT';
+
+  @override
+  String get bookingNone => 'Ngày đó không còn giờ trống.';
+
+  @override
+  String get bookingCancel => 'Huỷ đặt lịch';
+
+  @override
   String get countAloud => 'Đếm nhịp thành tiếng';
 
   @override

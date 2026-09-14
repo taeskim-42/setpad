@@ -485,6 +485,37 @@ class LJa extends L {
   }
 
   @override
+  String get partnerInvite => '一緒にやる';
+
+  @override
+  String get partnerCode => '相手にこの番号を伝えてください';
+
+  @override
+  String get partnerEnter => '番号を入力';
+
+  @override
+  String partnerJoined(String name) {
+    return '$nameと一緒に記録します';
+  }
+
+  @override
+  String get partnerFailed => '番号が違うか期限切れです。';
+
+  @override
+  String bookingNext(String trainer, String when) {
+    return '$trainer · $when';
+  }
+
+  @override
+  String get bookingNew => 'PT予約';
+
+  @override
+  String get bookingNone => 'その日は空きがありません。';
+
+  @override
+  String get bookingCancel => '予約を取り消す';
+
+  @override
   String get countAloud => '拍を声に出して数える';
 
   @override

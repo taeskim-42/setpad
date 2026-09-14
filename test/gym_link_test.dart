@@ -129,6 +129,7 @@ void main() {
     expect(sent!['note'], '무릎 괜찮았음');
   });
   _pending();
+  _shared();
 }
 
 /// 헬스장은 신호가 나쁘다. 못 보낸 것은 다음에 다시 보낸다.
@@ -189,5 +190,110 @@ void _pending() {
     expect(calls, 1, reason: '하나가 막히면 나머지도 막힌다');
     expect(notes.every((n) => n.sentAt == null), isTrue);
     expect(touched, 0, reason: '보낸 것이 없으면 저장할 것도 없다');
+  });
+}
+
+/// 같이 쓰기와 예약. 서버와 주고받는 모양만 못 박는다.
+void _shared() {
+  GymLink linkThat(Future<http.Response> Function(http.Request r) reply) =>
+      GymLink(
+        endpoint: 'https://example.com',
+        token: 'x',
+        client: MockClient(reply),
+      );
+
+  test('코드를 띄우고, 받은 코드로 짝이 된다', () async {
+    final sent = <Map<String, Object?>>[];
+    final link = linkThat((request) async {
+      sent.add(jsonDecode(request.body) as Map<String, Object?>);
+      return http.Response(
+        jsonEncode(
+          sent.length == 1
+              ? {'code': 'AB23CD'}
+              : {'workoutId': 'host-1', 'partner': '민수'},
+        ),
+        200,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      );
+    });
+    expect(await link.invite('mine-1'), 'AB23CD');
+    final joined = await link.join('AB23CD', myWorkoutId: 'mine-1');
+    expect(joined?.workoutId, 'host-1');
+    expect(joined?.partner, '민수');
+    // 내 운동도 같이 보내야 서로의 짝이 된다 — 봐주기는 한쪽만 하는 일이 아니다.
+    expect(sent.last['workoutId'], 'mine-1');
+    expect(sent.last['code'], 'AB23CD');
+  });
+
+  test('틀린 코드는 짝이 되지 않는다', () async {
+    final link = linkThat((_) async => http.Response('{}', 404));
+    expect(await link.join('XXXXXX'), isNull);
+  });
+
+  test('짝이 적은 것을 읽고, 내가 적은 것을 올린다', () async {
+    Map<String, Object?>? put;
+    final link = linkThat((request) async {
+      if (request.method == 'PUT') {
+        put = jsonDecode(request.body) as Map<String, Object?>;
+        return http.Response('{"ok":true}', 200);
+      }
+      return http.Response(
+        jsonEncode({
+          'result': [
+            {
+              'name': '스쿼트',
+              'sets': [
+                {'kg': 100, 'reps': 5},
+              ],
+            },
+          ],
+        }),
+        200,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      );
+    });
+    final blocks = await link.readShared('w1');
+    expect(blocks?.single.name, '스쿼트');
+    expect(blocks?.single.sets.single.value, 100);
+
+    expect(
+      await link.writeShared('w1', [
+        ExerciseBlock('벤치프레스', [LoggedSet(value: 60, reps: 10)]),
+      ]),
+      isTrue,
+    );
+    expect((put!['result'] as List).single['name'], '벤치프레스');
+  });
+
+  test('예약과 빈 자리를 읽는다', () async {
+    final link = linkThat(
+      (_) async => http.Response(
+        jsonEncode({
+          'bookings': [
+            {
+              'id': 'b1',
+              'gym': '다락짐',
+              'trainer': '이코치',
+              'starts_at': '2026-09-16T01:00:00.000Z',
+            },
+          ],
+          'slots': ['2026-09-16T02:00:00.000Z'],
+        }),
+        200,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      ),
+    );
+    final found = await link.bookings(day: DateTime(2026, 9, 16));
+    expect(found.bookings.single.trainer, '이코치');
+    // 서버는 UTC 로 주고 화면은 여기 시각으로 보여야 한다.
+    expect(found.bookings.single.startsAt.isUtc, isFalse);
+    expect(found.slots.single.isUtc, isFalse);
+  });
+
+  test('그 사이 남이 가져갔으면 잡히지 않는다', () async {
+    final link = linkThat(
+      (_) async => http.Response('{"error":"slotTaken"}', 409),
+    );
+    expect(await link.book(DateTime(2026, 9, 16, 10)), isFalse);
   });
 }

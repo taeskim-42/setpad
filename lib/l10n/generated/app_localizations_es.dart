@@ -495,6 +495,37 @@ class LEs extends L {
   }
 
   @override
+  String get partnerInvite => 'Entrenar juntos';
+
+  @override
+  String get partnerCode => 'Dile este código a tu compañero';
+
+  @override
+  String get partnerEnter => 'Introducir código';
+
+  @override
+  String partnerJoined(String name) {
+    return 'Registrando con $name';
+  }
+
+  @override
+  String get partnerFailed => 'Ese código es incorrecto o caducó.';
+
+  @override
+  String bookingNext(String trainer, String when) {
+    return '$trainer · $when';
+  }
+
+  @override
+  String get bookingNew => 'Reservar sesión';
+
+  @override
+  String get bookingNone => 'No hay horas libres ese día.';
+
+  @override
+  String get bookingCancel => 'Cancelar reserva';
+
+  @override
   String get countAloud => 'Contar los pulsos en voz alta';
 
   @override

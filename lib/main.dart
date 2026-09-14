@@ -8,6 +8,7 @@ import 'health.dart';
 import 'health_summary.dart';
 import 'account.dart';
 import 'gym.dart';
+import 'gym_sheets.dart';
 import 'notes.dart';
 import 'palette.dart';
 import 'notes_list.dart';
@@ -269,6 +270,18 @@ class _EditorPageState extends State<EditorPage> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // 같이 하기. 로그인한 사람에게만 — 짝을 서버가 들고 있어야 한다.
+            if (widget.account?.signedIn ?? false)
+              CupertinoButton(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                onPressed: () =>
+                    showPartnerSheet(context, widget.account!, widget.note),
+                child: Icon(
+                  CupertinoIcons.person_2,
+                  size: 20,
+                  semanticLabel: l.partnerInvite,
+                ),
+              ),
             CupertinoButton(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               onPressed: () async {

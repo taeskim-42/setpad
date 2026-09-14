@@ -492,6 +492,37 @@ class LTh extends L {
   }
 
   @override
+  String get partnerInvite => 'ออกกำลังด้วยกัน';
+
+  @override
+  String get partnerCode => 'บอกรหัสนี้กับคู่ซ้อม';
+
+  @override
+  String get partnerEnter => 'ใส่รหัส';
+
+  @override
+  String partnerJoined(String name) {
+    return 'บันทึกร่วมกับ $name';
+  }
+
+  @override
+  String get partnerFailed => 'รหัสไม่ถูกต้องหรือหมดอายุ';
+
+  @override
+  String bookingNext(String trainer, String when) {
+    return '$trainer · $when';
+  }
+
+  @override
+  String get bookingNew => 'จอง PT';
+
+  @override
+  String get bookingNone => 'วันนั้นไม่มีเวลาว่าง';
+
+  @override
+  String get bookingCancel => 'ยกเลิกการจอง';
+
+  @override
   String get countAloud => 'นับจังหวะออกเสียง';
 
   @override
