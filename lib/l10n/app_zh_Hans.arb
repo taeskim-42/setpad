@@ -153,5 +153,17 @@
   "reviewNumbers": "应用前请确认数字和条件。",
   "querySourceOnly": "查看原始记录",
   "queryCompareOrder": "第二个时段 − 第一个时段",
-  "queryRankingLimit": "前{n}项 · 降序"
+  "queryRankingLimit": "前{n}项 · 降序",
+  "settingsTitle": "设置",
+  "settingsRecording": "记录",
+  "settingsAccount": "账户",
+  "settingsGym": "你的健身房",
+  "settingsNoGym": "用手机碰一下健身房的贴纸，就能收到教练写的训练计划。",
+  "proTitle": "尽情向记录提问",
+  "proBody": "问“深蹲最大重量”或“这个月卧推比上月进步了吗”，从你自己的记录里算出答案。",
+  "proFree": "免费每月 {n} 次",
+  "proPaid": "订阅后每天 {n} 次",
+  "proEverythingElseFree": "记录、计时、健康同步和健身房功能，不订阅也全部可用。",
+  "proOwned": "已开通，谢谢。",
+  "proSignInFirst": "订阅绑定账户，请先登录。"
 }

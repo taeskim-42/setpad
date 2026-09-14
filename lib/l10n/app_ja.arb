@@ -153,5 +153,17 @@
   "reviewNumbers": "数値と条件を確認してから適用してください。",
   "querySourceOnly": "元の記録を表示",
   "queryCompareOrder": "2番目の期間 − 1番目の期間",
-  "queryRankingLimit": "上位{n}件・降順"
+  "queryRankingLimit": "上位{n}件・降順",
+  "settingsTitle": "設定",
+  "settingsRecording": "記録",
+  "settingsAccount": "アカウント",
+  "settingsGym": "通っているジム",
+  "settingsNoGym": "ジムのステッカーにスマホをかざすと、トレーナーが作ったルーティンを受け取れます。",
+  "proTitle": "記録に思いきり質問",
+  "proBody": "「スクワットの最高重量」「今月のベンチは先月より伸びた？」のように聞くと、保存した記録から計算して答えます。",
+  "proFree": "無料は月{n}回",
+  "proPaid": "プランなら1日{n}回",
+  "proEverythingElseFree": "記録・タイマー・ヘルス連携・ジム連携はプランなしで全部使えます。",
+  "proOwned": "ご利用中です。ありがとうございます。",
+  "proSignInFirst": "プランはアカウントに紐づきます。先にログインしてください。"
 }

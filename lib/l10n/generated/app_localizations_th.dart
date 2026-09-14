@@ -578,4 +578,47 @@ class LTh extends L {
   String queryRankingLimit(int n) {
     return 'สูงสุด $n รายการ · มากไปน้อย';
   }
+
+  @override
+  String get settingsTitle => 'การตั้งค่า';
+
+  @override
+  String get settingsRecording => 'การบันทึก';
+
+  @override
+  String get settingsAccount => 'บัญชี';
+
+  @override
+  String get settingsGym => 'ยิมของคุณ';
+
+  @override
+  String get settingsNoGym =>
+      'แตะโทรศัพท์ที่สติกเกอร์ของยิมเพื่อรับโปรแกรมจากเทรนเนอร์';
+
+  @override
+  String get proTitle => 'ถามบันทึกของคุณได้ทุกเรื่อง';
+
+  @override
+  String get proBody =>
+      'ถามว่า “สควอทหนักสุดเท่าไร” หรือ “เดือนนี้เบนช์ดีขึ้นไหม” แล้วรับคำตอบที่คำนวณจากบันทึกของคุณ';
+
+  @override
+  String proFree(int n) {
+    return 'ฟรี $n ครั้งต่อเดือน';
+  }
+
+  @override
+  String proPaid(int n) {
+    return 'มีแพ็กเกจ $n ครั้งต่อวัน';
+  }
+
+  @override
+  String get proEverythingElseFree =>
+      'การบันทึก จับเวลา เชื่อมสุขภาพ และฟีเจอร์ยิม ใช้ได้โดยไม่ต้องมีแพ็กเกจ';
+
+  @override
+  String get proOwned => 'กำลังใช้งาน ขอบคุณครับ';
+
+  @override
+  String get proSignInFirst => 'แพ็กเกจผูกกับบัญชี กรุณาเข้าสู่ระบบก่อน';
 }

@@ -582,4 +582,48 @@ class LEs extends L {
   String queryRankingLimit(int n) {
     return 'Primeros $n · descendente';
   }
+
+  @override
+  String get settingsTitle => 'Ajustes';
+
+  @override
+  String get settingsRecording => 'Registro';
+
+  @override
+  String get settingsAccount => 'Cuenta';
+
+  @override
+  String get settingsGym => 'Tu gimnasio';
+
+  @override
+  String get settingsNoGym =>
+      'Acerca tu teléfono a la pegatina del gimnasio para recibir la rutina de tu entrenador.';
+
+  @override
+  String get proTitle => 'Pregunta lo que quieras a tu registro';
+
+  @override
+  String get proBody =>
+      'Pregunta “mi sentadilla más pesada” o “¿mejoré en press de banca?” y obtén respuestas calculadas desde tu registro.';
+
+  @override
+  String proFree(int n) {
+    return 'Gratis: $n al mes';
+  }
+
+  @override
+  String proPaid(int n) {
+    return 'Con plan: $n al día';
+  }
+
+  @override
+  String get proEverythingElseFree =>
+      'Registrar, temporizadores, salud y funciones del gimnasio funcionan sin plan.';
+
+  @override
+  String get proOwned => 'Activo. Gracias.';
+
+  @override
+  String get proSignInFirst =>
+      'El plan va ligado a una cuenta. Inicia sesión primero.';
 }

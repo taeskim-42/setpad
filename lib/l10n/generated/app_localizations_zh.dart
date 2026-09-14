@@ -566,6 +566,46 @@ class LZh extends L {
   String queryRankingLimit(int n) {
     return '前$n项 · 降序';
   }
+
+  @override
+  String get settingsTitle => '设置';
+
+  @override
+  String get settingsRecording => '记录';
+
+  @override
+  String get settingsAccount => '账户';
+
+  @override
+  String get settingsGym => '你的健身房';
+
+  @override
+  String get settingsNoGym => '用手机碰一下健身房的贴纸，就能收到教练写的训练计划。';
+
+  @override
+  String get proTitle => '尽情向记录提问';
+
+  @override
+  String get proBody => '问“深蹲最大重量”或“这个月卧推比上月进步了吗”，从你自己的记录里算出答案。';
+
+  @override
+  String proFree(int n) {
+    return '免费每月 $n 次';
+  }
+
+  @override
+  String proPaid(int n) {
+    return '订阅后每天 $n 次';
+  }
+
+  @override
+  String get proEverythingElseFree => '记录、计时、健康同步和健身房功能，不订阅也全部可用。';
+
+  @override
+  String get proOwned => '已开通，谢谢。';
+
+  @override
+  String get proSignInFirst => '订阅绑定账户，请先登录。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1130,6 +1170,46 @@ class LZhHans extends LZh {
   String queryRankingLimit(int n) {
     return '前$n项 · 降序';
   }
+
+  @override
+  String get settingsTitle => '设置';
+
+  @override
+  String get settingsRecording => '记录';
+
+  @override
+  String get settingsAccount => '账户';
+
+  @override
+  String get settingsGym => '你的健身房';
+
+  @override
+  String get settingsNoGym => '用手机碰一下健身房的贴纸，就能收到教练写的训练计划。';
+
+  @override
+  String get proTitle => '尽情向记录提问';
+
+  @override
+  String get proBody => '问“深蹲最大重量”或“这个月卧推比上月进步了吗”，从你自己的记录里算出答案。';
+
+  @override
+  String proFree(int n) {
+    return '免费每月 $n 次';
+  }
+
+  @override
+  String proPaid(int n) {
+    return '订阅后每天 $n 次';
+  }
+
+  @override
+  String get proEverythingElseFree => '记录、计时、健康同步和健身房功能，不订阅也全部可用。';
+
+  @override
+  String get proOwned => '已开通，谢谢。';
+
+  @override
+  String get proSignInFirst => '订阅绑定账户，请先登录。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1694,4 +1774,44 @@ class LZhHant extends LZh {
   String queryRankingLimit(int n) {
     return '前$n項 · 遞減';
   }
+
+  @override
+  String get settingsTitle => '設定';
+
+  @override
+  String get settingsRecording => '記錄';
+
+  @override
+  String get settingsAccount => '帳戶';
+
+  @override
+  String get settingsGym => '你的健身房';
+
+  @override
+  String get settingsNoGym => '用手機碰一下健身房的貼紙，就能收到教練寫的訓練計畫。';
+
+  @override
+  String get proTitle => '盡情向記錄提問';
+
+  @override
+  String get proBody => '問「深蹲最大重量」或「這個月臥推比上月進步了嗎」，從你自己的記錄裡算出答案。';
+
+  @override
+  String proFree(int n) {
+    return '免費每月 $n 次';
+  }
+
+  @override
+  String proPaid(int n) {
+    return '訂閱後每天 $n 次';
+  }
+
+  @override
+  String get proEverythingElseFree => '記錄、計時、健康同步和健身房功能，不訂閱也全部可用。';
+
+  @override
+  String get proOwned => '已開通，謝謝。';
+
+  @override
+  String get proSignInFirst => '訂閱綁定帳戶，請先登入。';
 }

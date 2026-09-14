@@ -153,5 +153,17 @@
   "reviewNumbers": "Revisa los números y las condiciones antes de aplicar.",
   "querySourceOnly": "Ver registros originales",
   "queryCompareOrder": "Segundo período − primer período",
-  "queryRankingLimit": "Primeros {n} · descendente"
+  "queryRankingLimit": "Primeros {n} · descendente",
+  "settingsTitle": "Ajustes",
+  "settingsRecording": "Registro",
+  "settingsAccount": "Cuenta",
+  "settingsGym": "Tu gimnasio",
+  "settingsNoGym": "Acerca tu teléfono a la pegatina del gimnasio para recibir la rutina de tu entrenador.",
+  "proTitle": "Pregunta lo que quieras a tu registro",
+  "proBody": "Pregunta “mi sentadilla más pesada” o “¿mejoré en press de banca?” y obtén respuestas calculadas desde tu registro.",
+  "proFree": "Gratis: {n} al mes",
+  "proPaid": "Con plan: {n} al día",
+  "proEverythingElseFree": "Registrar, temporizadores, salud y funciones del gimnasio funcionan sin plan.",
+  "proOwned": "Activo. Gracias.",
+  "proSignInFirst": "El plan va ligado a una cuenta. Inicia sesión primero."
 }

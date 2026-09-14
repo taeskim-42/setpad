@@ -573,4 +573,45 @@ class LKo extends L {
   String queryRankingLimit(int n) {
     return '상위 $n개 · 내림차순';
   }
+
+  @override
+  String get settingsTitle => '설정';
+
+  @override
+  String get settingsRecording => '기록';
+
+  @override
+  String get settingsAccount => '계정';
+
+  @override
+  String get settingsGym => '다니는 체육관';
+
+  @override
+  String get settingsNoGym => '헬스장 스티커에 폰을 대면 트레이너가 짠 루틴을 여기서 받습니다.';
+
+  @override
+  String get proTitle => '기록에 마음껏 물어보기';
+
+  @override
+  String get proBody =>
+      '“스쿼트 최대 무게”, “이번 달 벤치는 지난달보다 늘었어?” 처럼 물으면 저장된 기록으로 계산해 답합니다.';
+
+  @override
+  String proFree(int n) {
+    return '무료 한 달 $n번';
+  }
+
+  @override
+  String proPaid(int n) {
+    return '이용권 하루 $n번';
+  }
+
+  @override
+  String get proEverythingElseFree => '기록·타이머·건강 앱 연동·체육관 연결은 이용권 없이도 전부 됩니다.';
+
+  @override
+  String get proOwned => '이용 중입니다. 고맙습니다.';
+
+  @override
+  String get proSignInFirst => '이용권은 계정에 붙습니다. 먼저 로그인해 주세요.';
 }

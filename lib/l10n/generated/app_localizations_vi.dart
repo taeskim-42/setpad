@@ -580,4 +580,48 @@ class LVi extends L {
   String queryRankingLimit(int n) {
     return 'Top $n · giảm dần';
   }
+
+  @override
+  String get settingsTitle => 'Cài đặt';
+
+  @override
+  String get settingsRecording => 'Ghi chép';
+
+  @override
+  String get settingsAccount => 'Tài khoản';
+
+  @override
+  String get settingsGym => 'Phòng tập của bạn';
+
+  @override
+  String get settingsNoGym =>
+      'Chạm điện thoại vào sticker của phòng tập để nhận giáo án từ huấn luyện viên.';
+
+  @override
+  String get proTitle => 'Hỏi nhật ký của bạn bất cứ điều gì';
+
+  @override
+  String get proBody =>
+      'Hỏi “squat nặng nhất là bao nhiêu” hay “tháng này bench có tăng không” và nhận câu trả lời tính từ nhật ký của bạn.';
+
+  @override
+  String proFree(int n) {
+    return 'Miễn phí $n lần mỗi tháng';
+  }
+
+  @override
+  String proPaid(int n) {
+    return 'Có gói: $n lần mỗi ngày';
+  }
+
+  @override
+  String get proEverythingElseFree =>
+      'Ghi chép, hẹn giờ, đồng bộ sức khỏe và tính năng phòng tập đều dùng được mà không cần gói.';
+
+  @override
+  String get proOwned => 'Đang hoạt động. Cảm ơn bạn.';
+
+  @override
+  String get proSignInFirst =>
+      'Gói gắn với tài khoản. Vui lòng đăng nhập trước.';
 }

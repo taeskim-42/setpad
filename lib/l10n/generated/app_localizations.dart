@@ -1032,6 +1032,78 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'상위 {n}개 · 내림차순'**
   String queryRankingLimit(int n);
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsRecording.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록'**
+  String get settingsRecording;
+
+  /// No description provided for @settingsAccount.
+  ///
+  /// In ko, this message translates to:
+  /// **'계정'**
+  String get settingsAccount;
+
+  /// No description provided for @settingsGym.
+  ///
+  /// In ko, this message translates to:
+  /// **'다니는 체육관'**
+  String get settingsGym;
+
+  /// No description provided for @settingsNoGym.
+  ///
+  /// In ko, this message translates to:
+  /// **'헬스장 스티커에 폰을 대면 트레이너가 짠 루틴을 여기서 받습니다.'**
+  String get settingsNoGym;
+
+  /// No description provided for @proTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록에 마음껏 물어보기'**
+  String get proTitle;
+
+  /// No description provided for @proBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'“스쿼트 최대 무게”, “이번 달 벤치는 지난달보다 늘었어?” 처럼 물으면 저장된 기록으로 계산해 답합니다.'**
+  String get proBody;
+
+  /// No description provided for @proFree.
+  ///
+  /// In ko, this message translates to:
+  /// **'무료 한 달 {n}번'**
+  String proFree(int n);
+
+  /// No description provided for @proPaid.
+  ///
+  /// In ko, this message translates to:
+  /// **'이용권 하루 {n}번'**
+  String proPaid(int n);
+
+  /// No description provided for @proEverythingElseFree.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록·타이머·건강 앱 연동·체육관 연결은 이용권 없이도 전부 됩니다.'**
+  String get proEverythingElseFree;
+
+  /// No description provided for @proOwned.
+  ///
+  /// In ko, this message translates to:
+  /// **'이용 중입니다. 고맙습니다.'**
+  String get proOwned;
+
+  /// No description provided for @proSignInFirst.
+  ///
+  /// In ko, this message translates to:
+  /// **'이용권은 계정에 붙습니다. 먼저 로그인해 주세요.'**
+  String get proSignInFirst;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

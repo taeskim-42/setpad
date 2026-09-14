@@ -582,4 +582,48 @@ class LEn extends L {
   String queryRankingLimit(int n) {
     return 'Top $n · descending';
   }
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsRecording => 'Recording';
+
+  @override
+  String get settingsAccount => 'Account';
+
+  @override
+  String get settingsGym => 'Your gym';
+
+  @override
+  String get settingsNoGym =>
+      'Tap your phone on the gym sticker to get the routine your trainer wrote.';
+
+  @override
+  String get proTitle => 'Ask your log anything';
+
+  @override
+  String get proBody =>
+      'Ask things like “heaviest squat” or “is my bench up from last month?” and get answers computed from your own log.';
+
+  @override
+  String proFree(int n) {
+    return 'Free: $n a month';
+  }
+
+  @override
+  String proPaid(int n) {
+    return 'With a plan: $n a day';
+  }
+
+  @override
+  String get proEverythingElseFree =>
+      'Logging, timers, health sync and gym features all work without a plan.';
+
+  @override
+  String get proOwned => 'Active. Thank you.';
+
+  @override
+  String get proSignInFirst =>
+      'A plan belongs to an account. Please sign in first.';
 }

@@ -1,0 +1,272 @@
+import 'package:flutter/cupertino.dart';
+
+import 'account.dart';
+import 'gym_sheets.dart';
+import 'l10n/generated/app_localizations.dart';
+import 'notes.dart';
+import 'palette.dart';
+import 'paywall.dart';
+import 'purchases.dart';
+
+/// 설정.
+///
+/// **액션시트가 아니라 화면이다.** 예전에는 무게 단위·박자·체육관·이용권·
+/// 예약·복원·로그인이 팝업 한 장에 줄로 쌓여 있었다. 줄이 늘수록 무엇을
+/// 파는지가 안 보였고, 실제로 이용권도 그 줄 중 하나였다.
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key, required this.store, this.account});
+  final NotesStore store;
+  final Account? account;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final a = account;
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(middle: Text(l.settingsTitle)),
+      child: SafeArea(
+        child: AnimatedBuilder(
+          animation: a ?? const AlwaysStoppedAnimation<double>(0),
+          builder: (context, _) => ListView(
+            children: [
+              _Section(title: l.settingsRecording),
+              _Choice(
+                label: l.weightUnitSetting,
+                value: store.weightUnit,
+                onTap: () => _pickUnit(context),
+              ),
+              _Toggle(
+                label: l.countAloud,
+                value: store.countAloud,
+                onChanged: (v) => store.setCountAloud(v),
+              ),
+
+              // **이용권은 그 자체로 한 칸이다.** 무엇을 사는지 한 줄로는
+              // 알 수 없으므로 누르면 파는 화면이 열린다.
+              if (a != null) ...[
+                _Section(title: l.proTitle),
+                _Row(
+                  label: a.paid
+                      ? l.proOwned
+                      : l.proFree(freeQuestionsPerMonth),
+                  detail: a.plan == Plan.lifetime
+                      ? l.planLifetime
+                      : a.plan == Plan.monthly
+                      ? l.planMonthly
+                      : null,
+                  accent: !a.paid,
+                  onTap: () => Navigator.of(context).push(
+                    CupertinoPageRoute<void>(
+                      builder: (_) => Paywall(account: a),
+                    ),
+                  ),
+                ),
+
+                // 다니는 곳이 없으면 무엇을 하면 생기는지 적는다. 아무것도
+                // 안 그리면 이 앱에 그런 기능이 있는 줄을 모른다.
+                _Section(title: l.settingsGym),
+                if (a.gyms.isEmpty)
+                  _Note(l.settingsNoGym)
+                else ...[
+                  for (final gym in a.gyms)
+                    _Row(
+                      label: gym.trainer == null
+                          ? l.gymOnly(gym.name)
+                          : l.gymMember(gym.name, gym.trainer!),
+                    ),
+                  _Row(
+                    label: l.bookingNew,
+                    accent: true,
+                    onTap: () => showBookingSheet(context, a),
+                  ),
+                ],
+
+                _Section(title: l.settingsAccount),
+                _Row(
+                  label: a.signedIn ? a.nickname : l.accountSignIn,
+                  detail: a.signedIn ? l.accountSignOut : null,
+                  onTap: () => a.signedIn ? a.signOut() : a.signIn(),
+                ),
+                _Row(label: l.restorePurchases, onTap: a.restore),
+              ],
+              const SizedBox(height: 40),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickUnit(BuildContext context) async {
+    final l = L.of(context);
+    final choice = await showCupertinoModalPopup<String>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: Text(l.weightUnitSetting),
+        message: Text(l.weightUnitHelp),
+        actions: [
+          for (final unit in ['kg', 'lb'])
+            CupertinoActionSheetAction(
+              isDefaultAction: unit == store.weightUnit,
+              onPressed: () => Navigator.pop(ctx, unit),
+              child: Text('${unit == store.weightUnit ? '✓ ' : ''}$unit'),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(l.cancel),
+        ),
+      ),
+    );
+    if (choice != null) store.setWeightUnit(choice);
+  }
+}
+
+class _Section extends StatelessWidget {
+  const _Section({required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(20, 28, 20, 8),
+    child: Text(
+      title,
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.3,
+        color: CupertinoColors.secondaryLabel.resolveFrom(context),
+      ),
+    ),
+  );
+}
+
+class _Row extends StatelessWidget {
+  const _Row({
+    required this.label,
+    this.detail,
+    this.accent = false,
+    this.onTap,
+  });
+  final String label;
+  final String? detail;
+  final bool accent;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final body = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: CupertinoColors.separator.resolveFrom(context),
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: accent ? FontWeight.w600 : FontWeight.w400,
+                color: accent
+                    ? seal.resolveFrom(context)
+                    : CupertinoColors.label.resolveFrom(context),
+              ),
+            ),
+          ),
+          if (detail != null)
+            Text(
+              detail!,
+              style: TextStyle(
+                fontSize: 15,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              ),
+            ),
+          if (onTap != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 6),
+              child: Icon(
+                CupertinoIcons.chevron_right,
+                size: 15,
+                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+              ),
+            ),
+        ],
+      ),
+    );
+    return onTap == null
+        ? body
+        : GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: body,
+          );
+  }
+}
+
+class _Choice extends StatelessWidget {
+  const _Choice({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+  final String label, value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) =>
+      _Row(label: label, detail: value, onTap: onTap);
+}
+
+class _Toggle extends StatelessWidget {
+  const _Toggle({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+    decoration: BoxDecoration(
+      border: Border(
+        top: BorderSide(
+          color: CupertinoColors.separator.resolveFrom(context),
+          width: 0.5,
+        ),
+      ),
+    ),
+    child: Row(
+      children: [
+        Expanded(child: Text(label, style: const TextStyle(fontSize: 16))),
+        CupertinoSwitch(value: value, onChanged: onChanged),
+      ],
+    ),
+  );
+}
+
+class _Note extends StatelessWidget {
+  const _Note(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+    child: Text(
+      text,
+      style: TextStyle(
+        fontSize: 14,
+        height: 1.45,
+        color: CupertinoColors.secondaryLabel.resolveFrom(context),
+      ),
+    ),
+  );
+}

@@ -153,5 +153,17 @@
   "reviewNumbers": "Check the numbers and conditions before applying.",
   "querySourceOnly": "View original records",
   "queryCompareOrder": "Second period − first period",
-  "queryRankingLimit": "Top {n} · descending"
+  "queryRankingLimit": "Top {n} · descending",
+  "settingsTitle": "Settings",
+  "settingsRecording": "Recording",
+  "settingsAccount": "Account",
+  "settingsGym": "Your gym",
+  "settingsNoGym": "Tap your phone on the gym sticker to get the routine your trainer wrote.",
+  "proTitle": "Ask your log anything",
+  "proBody": "Ask things like “heaviest squat” or “is my bench up from last month?” and get answers computed from your own log.",
+  "proFree": "Free: {n} a month",
+  "proPaid": "With a plan: {n} a day",
+  "proEverythingElseFree": "Logging, timers, health sync and gym features all work without a plan.",
+  "proOwned": "Active. Thank you.",
+  "proSignInFirst": "A plan belongs to an account. Please sign in first."
 }

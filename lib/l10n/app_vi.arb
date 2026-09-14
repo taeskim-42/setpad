@@ -153,5 +153,17 @@
   "reviewNumbers": "Kiểm tra các số và điều kiện trước khi áp dụng.",
   "querySourceOnly": "Xem bản ghi gốc",
   "queryCompareOrder": "Giai đoạn thứ hai − giai đoạn thứ nhất",
-  "queryRankingLimit": "Top {n} · giảm dần"
+  "queryRankingLimit": "Top {n} · giảm dần",
+  "settingsTitle": "Cài đặt",
+  "settingsRecording": "Ghi chép",
+  "settingsAccount": "Tài khoản",
+  "settingsGym": "Phòng tập của bạn",
+  "settingsNoGym": "Chạm điện thoại vào sticker của phòng tập để nhận giáo án từ huấn luyện viên.",
+  "proTitle": "Hỏi nhật ký của bạn bất cứ điều gì",
+  "proBody": "Hỏi “squat nặng nhất là bao nhiêu” hay “tháng này bench có tăng không” và nhận câu trả lời tính từ nhật ký của bạn.",
+  "proFree": "Miễn phí {n} lần mỗi tháng",
+  "proPaid": "Có gói: {n} lần mỗi ngày",
+  "proEverythingElseFree": "Ghi chép, hẹn giờ, đồng bộ sức khỏe và tính năng phòng tập đều dùng được mà không cần gói.",
+  "proOwned": "Đang hoạt động. Cảm ơn bạn.",
+  "proSignInFirst": "Gói gắn với tài khoản. Vui lòng đăng nhập trước."
 }

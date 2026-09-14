@@ -571,4 +571,45 @@ class LJa extends L {
   String queryRankingLimit(int n) {
     return '上位$n件・降順';
   }
+
+  @override
+  String get settingsTitle => '設定';
+
+  @override
+  String get settingsRecording => '記録';
+
+  @override
+  String get settingsAccount => 'アカウント';
+
+  @override
+  String get settingsGym => '通っているジム';
+
+  @override
+  String get settingsNoGym => 'ジムのステッカーにスマホをかざすと、トレーナーが作ったルーティンを受け取れます。';
+
+  @override
+  String get proTitle => '記録に思いきり質問';
+
+  @override
+  String get proBody =>
+      '「スクワットの最高重量」「今月のベンチは先月より伸びた？」のように聞くと、保存した記録から計算して答えます。';
+
+  @override
+  String proFree(int n) {
+    return '無料は月$n回';
+  }
+
+  @override
+  String proPaid(int n) {
+    return 'プランなら1日$n回';
+  }
+
+  @override
+  String get proEverythingElseFree => '記録・タイマー・ヘルス連携・ジム連携はプランなしで全部使えます。';
+
+  @override
+  String get proOwned => 'ご利用中です。ありがとうございます。';
+
+  @override
+  String get proSignInFirst => 'プランはアカウントに紐づきます。先にログインしてください。';
 }
