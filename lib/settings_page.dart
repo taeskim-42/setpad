@@ -43,24 +43,29 @@ class SettingsPage extends StatelessWidget {
 
               // **이용권은 그 자체로 한 칸이다.** 무엇을 사는지 한 줄로는
               // 알 수 없으므로 누르면 파는 화면이 열린다.
+              //
+              // 팔지 않을 때는 아예 안 그린다. 다만 이미 가진 사람에게는
+              // 보여 준다 — 무엇을 샀는지 확인할 자리가 없으면 안 된다.
               if (a != null) ...[
-                _Section(title: l.proTitle),
-                _Row(
-                  label: a.paid
-                      ? l.proOwned
-                      : l.proFree(freeQuestionsPerMonth),
-                  detail: a.plan == Plan.lifetime
-                      ? l.planLifetime
-                      : a.plan == Plan.monthly
-                      ? l.planMonthly
-                      : null,
-                  accent: !a.paid,
-                  onTap: () => Navigator.of(context).push(
-                    CupertinoPageRoute<void>(
-                      builder: (_) => Paywall(account: a),
+                if (a.selling || a.paid) ...[
+                  _Section(title: l.proTitle),
+                  _Row(
+                    label: a.paid
+                        ? l.proOwned
+                        : l.proFree(freeQuestionsPerMonth),
+                    detail: a.plan == Plan.lifetime
+                        ? l.planLifetime
+                        : a.plan == Plan.monthly
+                        ? l.planMonthly
+                        : null,
+                    accent: !a.paid,
+                    onTap: () => Navigator.of(context).push(
+                      CupertinoPageRoute<void>(
+                        builder: (_) => Paywall(account: a),
+                      ),
                     ),
                   ),
-                ),
+                ],
 
                 // 다니는 곳이 없으면 무엇을 하면 생기는지 적는다. 아무것도
                 // 안 그리면 이 앱에 그런 기능이 있는 줄을 모른다.
@@ -87,7 +92,8 @@ class SettingsPage extends StatelessWidget {
                   detail: a.signedIn ? l.accountSignOut : null,
                   onTap: () => a.signedIn ? a.signOut() : a.signIn(),
                 ),
-                _Row(label: l.restorePurchases, onTap: a.restore),
+                if (a.selling || a.paid)
+                  _Row(label: l.restorePurchases, onTap: a.restore),
               ],
               const SizedBox(height: 40),
             ],

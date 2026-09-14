@@ -35,6 +35,13 @@ class Account extends ChangeNotifier {
   /// 서버가 확인해 준 것. 앱이 정하지 않는다.
   Plan? plan;
 
+  /// **이용권을 팔고 있는가.** 서버가 정한다.
+  ///
+  /// 스토어에 상품을 올려 두는 것과 앱에서 파는 것은 다른 결정이다. 앱에
+  /// 박아 두면 마음이 바뀔 때마다 심사를 다시 받아야 한다. 기본은 안 파는
+  /// 것이다 — 서버에 못 닿았을 때 파는 화면이 뜨는 것보다 안 뜨는 편이 낫다.
+  bool selling = false;
+
   /// 내가 다니는 체육관. 없으면 앱은 그쪽 화면을 아예 안 그린다.
   List<Gym> gyms = const [];
 
@@ -123,6 +130,11 @@ class Account extends ChangeNotifier {
     }
   }
 
+  /// 테스트가 서버 답을 한 번 받아 보게 하는 문. 로그인 흐름을 통째로
+  /// 흉내 내지 않고 이 한 걸음만 본다.
+  @visibleForTesting
+  Future<void> refreshForTest() => _refresh();
+
   Future<void> _refresh() async {
     final web = client ?? http.Client();
     try {
@@ -134,6 +146,7 @@ class Account extends ChangeNotifier {
       final body = jsonDecode(utf8.decode(response.bodyBytes));
       final name = body is Map ? body['plan'] : null;
       plan = Plan.values.where((p) => p.name == name).firstOrNull;
+      selling = body is Map && body['selling'] == true;
       notifyListeners();
     } catch (_) {
       // 그물이 없으면 알던 것을 그대로 쓴다.
