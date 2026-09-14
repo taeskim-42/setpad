@@ -165,5 +165,9 @@
   "proPaid": "訂閱後每天 {n} 次",
   "proEverythingElseFree": "記錄、計時、健康同步和健身房功能，不訂閱也全部可用。",
   "proOwned": "已開通，謝謝。",
-  "proSignInFirst": "訂閱綁定帳戶，請先登入。"
+  "proSignInFirst": "訂閱綁定帳戶，請先登入。",
+  "tagSignInNeeded": "請先登入以連接健身房，然後再碰一次貼紙。",
+  "tagNoRoutine": "今天還沒有訓練計畫。教練傳送後會出現在這裡。",
+  "tagNotMember": "你還不是這裡的會員。碰一下貼紙提交申請，教練會確認。",
+  "ok": "好"
 }

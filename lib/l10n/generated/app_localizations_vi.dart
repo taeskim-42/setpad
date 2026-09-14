@@ -624,4 +624,19 @@ class LVi extends L {
   @override
   String get proSignInFirst =>
       'Gói gắn với tài khoản. Vui lòng đăng nhập trước.';
+
+  @override
+  String get tagSignInNeeded =>
+      'Đăng nhập để kết nối với phòng tập, rồi chạm lại vào sticker.';
+
+  @override
+  String get tagNoRoutine =>
+      'Chưa có giáo án cho hôm nay. Sẽ hiện ở đây khi huấn luyện viên gửi.';
+
+  @override
+  String get tagNotMember =>
+      'Bạn chưa là hội viên ở đây. Chạm vào sticker và gửi yêu cầu — huấn luyện viên sẽ xác nhận.';
+
+  @override
+  String get ok => 'OK';
 }

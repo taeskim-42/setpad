@@ -1104,6 +1104,30 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'이용권은 계정에 붙습니다. 먼저 로그인해 주세요.'**
   String get proSignInFirst;
+
+  /// No description provided for @tagSignInNeeded.
+  ///
+  /// In ko, this message translates to:
+  /// **'헬스장과 연결하려면 로그인이 필요합니다. 로그인하고 스티커에 다시 대주세요.'**
+  String get tagSignInNeeded;
+
+  /// No description provided for @tagNoRoutine.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 받은 루틴이 없습니다. 트레이너가 보내면 여기에 뜹니다.'**
+  String get tagNoRoutine;
+
+  /// No description provided for @tagNotMember.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 헬스장의 회원이 아닙니다. 스티커에 대고 등록을 요청하면 트레이너가 확인해 줍니다.'**
+  String get tagNotMember;
+
+  /// No description provided for @ok.
+  ///
+  /// In ko, this message translates to:
+  /// **'확인'**
+  String get ok;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

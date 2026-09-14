@@ -165,5 +165,9 @@
   "proPaid": "订阅后每天 {n} 次",
   "proEverythingElseFree": "记录、计时、健康同步和健身房功能，不订阅也全部可用。",
   "proOwned": "已开通，谢谢。",
-  "proSignInFirst": "订阅绑定账户，请先登录。"
+  "proSignInFirst": "订阅绑定账户，请先登录。",
+  "tagSignInNeeded": "请先登录以连接健身房，然后再碰一次贴纸。",
+  "tagNoRoutine": "今天还没有训练计划。教练发送后会出现在这里。",
+  "tagNotMember": "你还不是这里的会员。碰一下贴纸提交申请，教练会确认。",
+  "ok": "好"
 }

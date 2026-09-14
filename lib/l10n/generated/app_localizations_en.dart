@@ -626,4 +626,19 @@ class LEn extends L {
   @override
   String get proSignInFirst =>
       'A plan belongs to an account. Please sign in first.';
+
+  @override
+  String get tagSignInNeeded =>
+      'Sign in to connect with your gym, then tap the sticker again.';
+
+  @override
+  String get tagNoRoutine =>
+      'No routine for today yet. It shows up here once your trainer sends one.';
+
+  @override
+  String get tagNotMember =>
+      'You are not a member here yet. Tap the sticker and request to join — a trainer will confirm.';
+
+  @override
+  String get ok => 'OK';
 }

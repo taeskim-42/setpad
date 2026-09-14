@@ -621,4 +621,19 @@ class LTh extends L {
 
   @override
   String get proSignInFirst => 'แพ็กเกจผูกกับบัญชี กรุณาเข้าสู่ระบบก่อน';
+
+  @override
+  String get tagSignInNeeded =>
+      'เข้าสู่ระบบเพื่อเชื่อมกับยิม แล้วแตะสติกเกอร์อีกครั้ง';
+
+  @override
+  String get tagNoRoutine =>
+      'ยังไม่มีโปรแกรมสำหรับวันนี้ จะแสดงที่นี่เมื่อเทรนเนอร์ส่งมา';
+
+  @override
+  String get tagNotMember =>
+      'คุณยังไม่ได้เป็นสมาชิกที่นี่ แตะสติกเกอร์แล้วขอสมัคร เทรนเนอร์จะยืนยันให้';
+
+  @override
+  String get ok => 'ตกลง';
 }

@@ -165,5 +165,9 @@
   "proPaid": "Có gói: {n} lần mỗi ngày",
   "proEverythingElseFree": "Ghi chép, hẹn giờ, đồng bộ sức khỏe và tính năng phòng tập đều dùng được mà không cần gói.",
   "proOwned": "Đang hoạt động. Cảm ơn bạn.",
-  "proSignInFirst": "Gói gắn với tài khoản. Vui lòng đăng nhập trước."
+  "proSignInFirst": "Gói gắn với tài khoản. Vui lòng đăng nhập trước.",
+  "tagSignInNeeded": "Đăng nhập để kết nối với phòng tập, rồi chạm lại vào sticker.",
+  "tagNoRoutine": "Chưa có giáo án cho hôm nay. Sẽ hiện ở đây khi huấn luyện viên gửi.",
+  "tagNotMember": "Bạn chưa là hội viên ở đây. Chạm vào sticker và gửi yêu cầu — huấn luyện viên sẽ xác nhận.",
+  "ok": "OK"
 }

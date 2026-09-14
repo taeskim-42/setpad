@@ -626,4 +626,19 @@ class LEs extends L {
   @override
   String get proSignInFirst =>
       'El plan va ligado a una cuenta. Inicia sesión primero.';
+
+  @override
+  String get tagSignInNeeded =>
+      'Inicia sesión para conectar con tu gimnasio y vuelve a acercar el teléfono a la pegatina.';
+
+  @override
+  String get tagNoRoutine =>
+      'Aún no hay rutina para hoy. Aparecerá aquí cuando tu entrenador la envíe.';
+
+  @override
+  String get tagNotMember =>
+      'Todavía no eres socio aquí. Acerca el teléfono a la pegatina y solicita el alta; un entrenador lo confirmará.';
+
+  @override
+  String get ok => 'Aceptar';
 }

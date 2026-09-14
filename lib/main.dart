@@ -190,14 +190,48 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 누르게 하지 않는다 — 손에 폰을 들고 기구 앞에 있는 참이다.
   Future<void> _openTag(Uri uri) async {
     final gymId = gymFromTag(uri);
-    if (gymId == null || !_account.signedIn) return;
+    if (gymId == null) return;
+
+    // **조용히 끝내지 않는다.** 스토어를 거쳐 앱을 깐 사람은 태그 주소를
+    // 들고 오지 못하므로 스티커에 다시 대야 하는데, 그때 아무 일도 안
+    // 일어나면 앱이 고장 난 줄 안다. 무엇이 없어서 안 되는지 말해 준다.
+    if (!_account.signedIn) {
+      await _tellTag(L.of(context).tagSignInNeeded);
+      return;
+    }
+
     final routines = await _account.link.routines();
+    if (!mounted) return;
     final mine = routines.where((r) => r.gymId == gymId).firstOrNull;
-    if (!mounted || mine == null) return;
+    if (mine == null) {
+      // 그 체육관에 다니지 않는 것과, 다니는데 오늘 받은 것이 없는 것은
+      // 해야 할 일이 다르다.
+      final member = _account.gyms.any((g) => g.id == gymId);
+      final l = L.of(context);
+      await _tellTag(member ? l.tagNoRoutine : l.tagNotMember);
+      return;
+    }
     _open(
       _store.create(blocks: mine.blocks, gymId: mine.gymId, routineId: mine.id),
     );
   }
+
+  Future<void> _tellTag(String message) => showCupertinoDialog<void>(
+    context: context,
+    builder: (ctx) => CupertinoAlertDialog(
+      content: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Text(message, style: const TextStyle(fontSize: 15)),
+      ),
+      actions: [
+        CupertinoDialogAction(
+          isDefaultAction: true,
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(L.of(ctx).ok),
+        ),
+      ],
+    ),
+  );
 
   /// 체육관에서 시작한 기록 중 아직 못 보낸 것을 보낸다.
   /// 헬스장은 신호가 나빠 한 번에 못 갈 때가 있다.

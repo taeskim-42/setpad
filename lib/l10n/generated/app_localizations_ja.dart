@@ -612,4 +612,16 @@ class LJa extends L {
 
   @override
   String get proSignInFirst => 'プランはアカウントに紐づきます。先にログインしてください。';
+
+  @override
+  String get tagSignInNeeded => 'ジムとつなぐにはログインが必要です。ログインしてステッカーにもう一度かざしてください。';
+
+  @override
+  String get tagNoRoutine => '今日のルーティンはまだありません。トレーナーが送るとここに出ます。';
+
+  @override
+  String get tagNotMember => 'このジムの会員ではありません。ステッカーにかざして登録を申請すると、トレーナーが確認します。';
+
+  @override
+  String get ok => 'OK';
 }

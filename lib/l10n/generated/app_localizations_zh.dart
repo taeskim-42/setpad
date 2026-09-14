@@ -606,6 +606,18 @@ class LZh extends L {
 
   @override
   String get proSignInFirst => '订阅绑定账户，请先登录。';
+
+  @override
+  String get tagSignInNeeded => '请先登录以连接健身房，然后再碰一次贴纸。';
+
+  @override
+  String get tagNoRoutine => '今天还没有训练计划。教练发送后会出现在这里。';
+
+  @override
+  String get tagNotMember => '你还不是这里的会员。碰一下贴纸提交申请，教练会确认。';
+
+  @override
+  String get ok => '好';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1210,6 +1222,18 @@ class LZhHans extends LZh {
 
   @override
   String get proSignInFirst => '订阅绑定账户，请先登录。';
+
+  @override
+  String get tagSignInNeeded => '请先登录以连接健身房，然后再碰一次贴纸。';
+
+  @override
+  String get tagNoRoutine => '今天还没有训练计划。教练发送后会出现在这里。';
+
+  @override
+  String get tagNotMember => '你还不是这里的会员。碰一下贴纸提交申请，教练会确认。';
+
+  @override
+  String get ok => '好';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1814,4 +1838,16 @@ class LZhHant extends LZh {
 
   @override
   String get proSignInFirst => '訂閱綁定帳戶，請先登入。';
+
+  @override
+  String get tagSignInNeeded => '請先登入以連接健身房，然後再碰一次貼紙。';
+
+  @override
+  String get tagNoRoutine => '今天還沒有訓練計畫。教練傳送後會出現在這裡。';
+
+  @override
+  String get tagNotMember => '你還不是這裡的會員。碰一下貼紙提交申請，教練會確認。';
+
+  @override
+  String get ok => '好';
 }

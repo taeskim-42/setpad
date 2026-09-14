@@ -165,5 +165,9 @@
   "proPaid": "With a plan: {n} a day",
   "proEverythingElseFree": "Logging, timers, health sync and gym features all work without a plan.",
   "proOwned": "Active. Thank you.",
-  "proSignInFirst": "A plan belongs to an account. Please sign in first."
+  "proSignInFirst": "A plan belongs to an account. Please sign in first.",
+  "tagSignInNeeded": "Sign in to connect with your gym, then tap the sticker again.",
+  "tagNoRoutine": "No routine for today yet. It shows up here once your trainer sends one.",
+  "tagNotMember": "You are not a member here yet. Tap the sticker and request to join — a trainer will confirm.",
+  "ok": "OK"
 }
