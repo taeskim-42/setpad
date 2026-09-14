@@ -129,7 +129,11 @@ platform :ios do
     )
     latest = 0 if latest > 100_000
     build_number = latest + 1
+    # 서버 주소를 환경변수로 갈아끼울 수 있게 둔다. gym.darak.studio 인증서가
+    # 안 나오는 동안 Railway 주소로 빌드해서 테스트를 시작해야 했다.
+    api_base = ENV["API_BASE"]
     sh("cd .. && flutter build ipa --release " \
+       "#{api_base ? "--dart-define=API_BASE=#{api_base} " : ""}" \
        "--build-number=#{build_number} --export-method app-store")
 
     upload_to_testflight(
@@ -230,7 +234,10 @@ platform :android do
     # 쓰면(예: 2609051747) 넘는다. 2020년부터의 분(分)으로 센다 — 지금
     # 350만쯤이고, 올릴 때마다 반드시 커지며, 한참 뒤에도 상한에 안 닿는다.
     build_number = ((Time.now.to_i - Time.utc(2020, 1, 1).to_i) / 60).to_s
-    sh("cd .. && flutter build appbundle --release --build-number=#{build_number}")
+    api_base = ENV["API_BASE"]
+    sh("cd .. && flutter build appbundle --release " \
+       "#{api_base ? "--dart-define=API_BASE=#{api_base} " : ""}" \
+       "--build-number=#{build_number}")
     upload_to_play_store(
       package_name: ANDROID_APP_ID,
       track: "internal",
