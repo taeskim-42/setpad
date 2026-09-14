@@ -871,6 +871,12 @@ abstract class L {
   /// **'{gym}'**
   String gymOnly(String gym);
 
+  /// 트레이너가 내려준 루틴 줄.
+  ///
+  /// In ko, this message translates to:
+  /// **'{gym}에서 보낸 운동'**
+  String routineFromTrainer(String gym);
+
   /// No description provided for @countAloud.
   ///
   /// In ko, this message translates to:

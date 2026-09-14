@@ -127,6 +127,7 @@
   "quotaSpent": "本月的提问次数已用完。",
   "gymMember": "{gym} · {trainer}",
   "gymOnly": "{gym}",
+  "routineFromTrainer": "来自{gym}",
   "countAloud": "朗读节拍计数",
   "metricMax": "最高",
   "metricTrend": "趋势",

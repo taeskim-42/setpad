@@ -482,6 +482,11 @@ class LKo extends L {
   }
 
   @override
+  String routineFromTrainer(String gym) {
+    return '$gym에서 보낸 운동';
+  }
+
+  @override
   String get countAloud => '박자를 소리내어 세기';
 
   @override

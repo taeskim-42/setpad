@@ -475,6 +475,11 @@ class LZh extends L {
   }
 
   @override
+  String routineFromTrainer(String gym) {
+    return '来自$gym';
+  }
+
+  @override
   String get countAloud => '朗读节拍计数';
 
   @override
@@ -998,6 +1003,11 @@ class LZhHans extends LZh {
   }
 
   @override
+  String routineFromTrainer(String gym) {
+    return '来自$gym';
+  }
+
+  @override
   String get countAloud => '朗读节拍计数';
 
   @override
@@ -1518,6 +1528,11 @@ class LZhHant extends LZh {
   @override
   String gymOnly(String gym) {
     return '$gym';
+  }
+
+  @override
+  String routineFromTrainer(String gym) {
+    return '來自$gym';
   }
 
   @override

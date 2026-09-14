@@ -8,6 +8,7 @@ import 'answer_card.dart';
 import 'record_query.dart';
 import 'stats.dart' as stats;
 import 'editor.dart' show SuggestionChip;
+import 'gym.dart';
 import 'record_ai.dart';
 import 'health_summary.dart';
 import 'palette.dart';
@@ -92,11 +93,38 @@ class _NotesListPageState extends State<NotesListPage>
       .expand((n) => n.blocks.map((b) => b.exercise))
       .toSet()
       .toList();
+
+  /// 트레이너가 내려준 것. 체육관에 안 다니면 늘 비어 있다.
+  List<Routine> _routines = const [];
+
   @override
   void initState() {
     super.initState();
     _search.addListener(_changed);
     WidgetsBinding.instance.addObserver(this);
+    _loadRoutines();
+  }
+
+  Future<void> _loadRoutines() async {
+    final account = widget.account;
+    if (account == null || !account.signedIn) return;
+    final found = await account.link.routines();
+    if (mounted) setState(() => _routines = found);
+  }
+
+  /// 받은 루틴으로 새 기록을 연다.
+  ///
+  /// **자동으로 채우지 않는다.** 오늘 그걸 안 할 수도 있는데 매번 지우게 하면
+  /// 개인 운동을 하려던 사람이 성가시다. 누른 사람만 받는다.
+  void _startRoutine(Routine routine) {
+    _open(
+      widget.store.create(
+        blocks: routine.blocks,
+        gymId: routine.gymId,
+        routineId: routine.id,
+      ),
+    );
+    setState(() => _routines = [..._routines]..remove(routine));
   }
 
   void _changed() {
@@ -302,6 +330,54 @@ class _NotesListPageState extends State<NotesListPage>
                         ),
                         border: null,
                       ),
+                      // 트레이너가 보낸 것. 찾는 중에는 숨긴다 — 검색 결과
+                      // 위에 다른 것이 끼면 무엇을 보는 중인지 흐려진다.
+                      if (_query.text.trim().isEmpty)
+                        for (final routine in _routines)
+                          SliverToBoxAdapter(
+                            child: CupertinoButton(
+                              padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
+                              onPressed: () => _startRoutine(routine),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.person_crop_circle,
+                                    size: 18,
+                                    color: seal.resolveFrom(context),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          routine.title,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: CupertinoColors.label
+                                                .resolveFrom(context),
+                                          ),
+                                        ),
+                                        Text(
+                                          l.routineFromTrainer(routine.gym),
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: CupertinoColors
+                                                .secondaryLabel
+                                                .resolveFrom(context),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                       if (_query.text.trim().isNotEmpty)
                         SliverToBoxAdapter(
                           child: Padding(

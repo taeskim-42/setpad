@@ -480,6 +480,11 @@ class LJa extends L {
   }
 
   @override
+  String routineFromTrainer(String gym) {
+    return '$gymからの運動';
+  }
+
+  @override
   String get countAloud => '拍を声に出して数える';
 
   @override

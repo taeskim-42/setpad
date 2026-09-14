@@ -489,6 +489,11 @@ class LVi extends L {
   }
 
   @override
+  String routineFromTrainer(String gym) {
+    return 'Từ $gym';
+  }
+
+  @override
   String get countAloud => 'Đếm nhịp thành tiếng';
 
   @override

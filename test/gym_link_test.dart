@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/gym.dart';
+import 'package:setpad/notes.dart';
 import 'package:setpad/record_ai.dart';
 
 /// 체육관과 주고받는 모양. 웹이 쓰는 모양과 앱의 칸이 어긋나면 조용히 빈
@@ -126,5 +127,67 @@ void main() {
     expect(sent!['localId'], 'note-7');
     expect(sent!['routineId'], 'r1');
     expect(sent!['note'], '무릎 괜찮았음');
+  });
+  _pending();
+}
+
+/// 헬스장은 신호가 나쁘다. 못 보낸 것은 다음에 다시 보낸다.
+void _pending() {
+  Note made(String id, {String? gymId, DateTime? sentAt, bool empty = false}) {
+    final at = DateTime(2026, 9, id.length + 1);
+    final note = Note(
+      id: id,
+      createdAt: at,
+      updatedAt: at,
+      gymId: gymId,
+      blocks: empty
+          ? []
+          : [
+              ExerciseBlock('스쿼트', [LoggedSet(value: 80, reps: 5)]),
+            ],
+    );
+    note.sentAt = sentAt;
+    return note;
+  }
+
+  test('보낼 것만 보내고, 보낸 것은 표시된다', () async {
+    final sent = <String>[];
+    final link = GymLink(
+      endpoint: 'https://example.com',
+      token: 'x',
+      client: MockClient((request) async {
+        sent.add(jsonDecode(request.body)['localId'] as String);
+        return http.Response('{"id":"1"}', 200);
+      }),
+    );
+    final notes = [
+      made('a', gymId: 'g'),
+      made('b'), // 체육관 것이 아니다 — 개인 운동은 안 나간다
+      made('c', gymId: 'g', sentAt: DateTime(2026)), // 이미 보냈다
+      made('d', gymId: 'g', empty: true), // 빈 기록은 보낼 것이 없다
+    ];
+    var touched = 0;
+    await sendPending(link, notes, onSent: () => touched++);
+    expect(sent, ['a']);
+    expect(notes.first.sentAt, isNotNull);
+    expect(touched, 1);
+  });
+
+  test('한 번 막히면 멈춘다 — 다음에 다시 보낸다', () async {
+    var calls = 0;
+    final link = GymLink(
+      endpoint: 'https://example.com',
+      token: 'x',
+      client: MockClient((_) async {
+        calls++;
+        return http.Response('꺼짐', 500);
+      }),
+    );
+    final notes = [made('a', gymId: 'g'), made('b', gymId: 'g')];
+    var touched = 0;
+    await sendPending(link, notes, onSent: () => touched++);
+    expect(calls, 1, reason: '하나가 막히면 나머지도 막힌다');
+    expect(notes.every((n) => n.sentAt == null), isTrue);
+    expect(touched, 0, reason: '보낸 것이 없으면 저장할 것도 없다');
   });
 }

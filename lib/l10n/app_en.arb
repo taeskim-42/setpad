@@ -127,6 +127,7 @@
   "quotaSpent": "You have used this month’s questions.",
   "gymMember": "{gym} · {trainer}",
   "gymOnly": "{gym}",
+  "routineFromTrainer": "From {gym}",
   "countAloud": "Count beats aloud",
   "metricMax": "Best",
   "metricTrend": "Trend",

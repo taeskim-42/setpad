@@ -487,6 +487,11 @@ class LTh extends L {
   }
 
   @override
+  String routineFromTrainer(String gym) {
+    return 'จาก $gym';
+  }
+
+  @override
   String get countAloud => 'นับจังหวะออกเสียง';
 
   @override

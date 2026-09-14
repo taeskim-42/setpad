@@ -127,6 +127,7 @@
   "quotaSpent": "今月分の質問を使い切りました。",
   "gymMember": "{gym} · {trainer}",
   "gymOnly": "{gym}",
+  "routineFromTrainer": "{gym}からの運動",
   "countAloud": "拍を声に出して数える",
   "metricMax": "最高",
   "metricTrend": "推移",

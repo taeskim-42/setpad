@@ -490,6 +490,11 @@ class LEs extends L {
   }
 
   @override
+  String routineFromTrainer(String gym) {
+    return 'De $gym';
+  }
+
+  @override
   String get countAloud => 'Contar los pulsos en voz alta';
 
   @override

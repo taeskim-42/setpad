@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'editor.dart';
+import 'notes.dart';
 
 /// 내가 다니는 체육관 하나.
 typedef Gym = ({String id, String name, String? trainer});
@@ -156,3 +157,37 @@ List<Map<String, Object?>> loggedItems(List<ExerciseBlock> blocks) => [
       ],
     },
 ];
+
+/// 아직 못 보낸 기록을 보낸다.
+///
+/// **헬스장은 신호가 나쁘다.** 한 번에 못 보내는 것이 정상이라서, 앱을 켤
+/// 때마다 밀린 것을 다시 시도한다. 같은 것을 두 번 보내도 서버가 한 줄로
+/// 합치므로(local_id) 겹쳐도 해가 없다.
+Future<void> sendPending(
+  GymLink link,
+  List<Note> notes, {
+  required void Function() onSent,
+}) async {
+  if (!link.supported) return;
+  var changed = false;
+  // 오래된 것부터. 트레이너가 보는 차례가 실제 순서와 같아야 한다.
+  final waiting = [
+    for (final note in notes)
+      if (note.gymId != null && note.sentAt == null && note.blocks.isNotEmpty)
+        note,
+  ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  for (final note in waiting) {
+    final ok = await link.sendWorkout(
+      gymId: note.gymId!,
+      localId: note.id,
+      routineId: note.routineId,
+      startedAt: note.createdAt,
+      blocks: note.blocks,
+    );
+    if (!ok) break; // 하나가 막히면 나머지도 막힌다. 다음 기회에.
+    note.sentAt = DateTime.now();
+    changed = true;
+  }
+  if (changed) onSent();
+}

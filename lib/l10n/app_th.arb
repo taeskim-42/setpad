@@ -127,6 +127,7 @@
   "quotaSpent": "คุณใช้คำถามของเดือนนี้หมดแล้ว",
   "gymMember": "{gym} · {trainer}",
   "gymOnly": "{gym}",
+  "routineFromTrainer": "จาก {gym}",
   "countAloud": "นับจังหวะออกเสียง",
   "metricMax": "สูงสุด",
   "metricTrend": "แนวโน้ม",

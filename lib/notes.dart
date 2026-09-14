@@ -22,6 +22,8 @@ class Note {
     List<ExerciseBlock>? blocks,
     this.calories,
     this.draft,
+    this.gymId,
+    this.routineId,
   }) : blocks = blocks ?? [];
 
   final String id;
@@ -33,6 +35,14 @@ class Note {
   /// 앱이 추정하지 않는다 — 0 과 "아무도 안 쟀다"는 다른 말이다.
   double? calories;
   EditorDraft? draft;
+
+  /// 트레이너가 내려준 루틴으로 시작한 기록이면 어디 것인지 남는다.
+  /// 끝났을 때 그 체육관으로 올리고, 대기열에서 뺀다.
+  String? gymId, routineId;
+
+  /// 체육관으로 올린 시각. 헬스장은 신호가 나빠 한 번에 못 갈 때가 있으므로,
+  /// 안 보낸 것은 다음에 앱을 켤 때 다시 보낸다.
+  DateTime? sentAt;
 
   /// 목록에 뜨는 제목 — 그날 한 운동 이름 전부.
   ///
@@ -73,6 +83,9 @@ class Note {
     'updatedAt': updatedAt.toIso8601String(),
     if (calories != null) 'calories': calories,
     if (draft != null) 'draft': draft!.toJson(),
+    if (gymId != null) 'gymId': gymId,
+    if (routineId != null) 'routineId': routineId,
+    if (sentAt != null) 'sentAt': sentAt!.toIso8601String(),
     'blocks': [
       for (final b in blocks)
         {
@@ -92,31 +105,43 @@ class Note {
     ],
   };
 
-  static Note fromJson(Map<String, dynamic> j) => Note(
-    id: j['id'] as String,
-    createdAt: DateTime.parse(j['createdAt'] as String),
-    updatedAt: DateTime.parse(j['updatedAt'] as String),
-    calories: (j['calories'] as num?)?.toDouble(),
-    draft: EditorDraft.fromJson(j['draft']),
-    blocks: [
-      for (final b in (j['blocks'] as List? ?? const []))
-        ExerciseBlock(b['name'] as String, [
-          for (final s in (b['sets'] as List? ?? const []))
-            LoggedSet(
-              // 'kg' 는 단위가 생기기 전에 저장된 기록이다. 그때는
-              // 무게가 늘 kg 였으므로 그대로 읽어 준다.
-              value: ((s['value'] ?? s['kg']) as num?)?.toDouble(),
-              unit: s['unit'] as String? ?? defaultUnit,
-              reps: s['reps'] as int?,
-              // 'note'(단수)는 메모가 하나뿐이던 시절의 저장분이다.
-              notes:
-                  ((s['notes'] as List?)?.cast<String>()) ??
-                  (s['note'] == null ? null : [s['note'] as String]),
-              done: s['done'] as bool? ?? true,
-            ),
-        ], WorkoutSetup.tryFromJson(b['setup'])),
-    ],
+  static Note fromJson(Map<String, dynamic> j) => _restore(
+    j,
+    Note(
+      id: j['id'] as String,
+      createdAt: DateTime.parse(j['createdAt'] as String),
+      updatedAt: DateTime.parse(j['updatedAt'] as String),
+      calories: (j['calories'] as num?)?.toDouble(),
+      draft: EditorDraft.fromJson(j['draft']),
+      gymId: j['gymId'] as String?,
+      routineId: j['routineId'] as String?,
+      blocks: [
+        for (final b in (j['blocks'] as List? ?? const []))
+          ExerciseBlock(b['name'] as String, [
+            for (final s in (b['sets'] as List? ?? const []))
+              LoggedSet(
+                // 'kg' 는 단위가 생기기 전에 저장된 기록이다. 그때는
+                // 무게가 늘 kg 였으므로 그대로 읽어 준다.
+                value: ((s['value'] ?? s['kg']) as num?)?.toDouble(),
+                unit: s['unit'] as String? ?? defaultUnit,
+                reps: s['reps'] as int?,
+                // 'note'(단수)는 메모가 하나뿐이던 시절의 저장분이다.
+                notes:
+                    ((s['notes'] as List?)?.cast<String>()) ??
+                    (s['note'] == null ? null : [s['note'] as String]),
+                done: s['done'] as bool? ?? true,
+              ),
+          ], WorkoutSetup.tryFromJson(b['setup'])),
+      ],
+    ),
   );
+
+  /// 생성자에 없는 값을 읽은 뒤에 채운다.
+  static Note _restore(Map<String, dynamic> j, Note note) {
+    final sent = j['sentAt'];
+    if (sent is String) note.sentAt = DateTime.tryParse(sent);
+    return note;
+  }
 }
 
 /// 노트 전부를 들고 있고 디스크와 맞춰 두는 곳.
@@ -271,12 +296,15 @@ class NotesStore extends ChangeNotifier {
 
   void _sort() => _notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
-  Note create() {
+  Note create({List<ExerciseBlock>? blocks, String? gymId, String? routineId}) {
     final now = DateTime.now();
     final note = Note(
       id: now.microsecondsSinceEpoch.toString(),
       createdAt: now,
       updatedAt: now,
+      blocks: blocks,
+      gymId: gymId,
+      routineId: routineId,
     );
     _notes.insert(0, note);
     notifyListeners();

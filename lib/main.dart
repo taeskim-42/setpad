@@ -7,6 +7,7 @@ import 'l10n/generated/app_localizations.dart';
 import 'health.dart';
 import 'health_summary.dart';
 import 'account.dart';
+import 'gym.dart';
 import 'notes.dart';
 import 'palette.dart';
 import 'notes_list.dart';
@@ -168,12 +169,22 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   }
 
   /// 로그인과 결제. **없어도 앱은 그대로 돈다** — 켜지 않은 사람은 그냥 쓴다.
-  late final _account = Account()..start();
+  late final _account = Account()..start().then((_) => _sendPendingWorkouts());
+
+  /// 체육관에서 시작한 기록 중 아직 못 보낸 것을 보낸다.
+  /// 헬스장은 신호가 나빠 한 번에 못 갈 때가 있다.
+  Future<void> _sendPendingWorkouts() =>
+      sendPending(_account.link, _store.notes, onSent: _store.touch);
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 앱이 내려갈 때는 디바운스를 기다리지 않는다.
-    if (state != AppLifecycleState.resumed) _store.flush();
+    if (state != AppLifecycleState.resumed) {
+      _store.flush();
+    } else {
+      // 돌아왔다. 그동안 신호가 잡혔을 수 있다.
+      unawaited(_sendPendingWorkouts());
+    }
   }
 
   @override

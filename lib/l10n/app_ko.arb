@@ -441,6 +441,15 @@
       }
     }
   },
+  "routineFromTrainer": "{gym}에서 보낸 운동",
+  "@routineFromTrainer": {
+    "description": "트레이너가 내려준 루틴 줄.",
+    "placeholders": {
+      "gym": {
+        "type": "String"
+      }
+    }
+  },
   "countAloud": "박자를 소리내어 세기",
   "metricMax": "최고",
   "metricTrend": "추이",
