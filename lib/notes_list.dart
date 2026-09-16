@@ -9,6 +9,7 @@ import 'record_query.dart';
 import 'stats.dart' as stats;
 import 'editor.dart' show SuggestionChip;
 import 'gym.dart';
+import 'gym_sheets.dart';
 import 'record_ai.dart';
 import 'health_summary.dart';
 import 'palette.dart';
@@ -97,6 +98,9 @@ class _NotesListPageState extends State<NotesListPage>
   /// 트레이너가 내려준 것. 체육관에 안 다니면 늘 비어 있다.
   List<Routine> _routines = const [];
 
+  /// 다니는 곳이 있는가. 예약은 이 사람에게만 보인다.
+  bool get _hasGym => widget.account?.gyms.isNotEmpty ?? false;
+
   @override
   void initState() {
     super.initState();
@@ -108,6 +112,9 @@ class _NotesListPageState extends State<NotesListPage>
   Future<void> _loadRoutines() async {
     final account = widget.account;
     if (account == null || !account.signedIn) return;
+    // 트레이너가 방금 등록해 줬을 수 있다. 다시 묻지 않으면 예약 칸이
+    // 다음에 앱을 켤 때까지 안 나타난다.
+    await account.refreshGyms();
     final found = await account.link.routines();
     if (mounted) setState(() => _routines = found);
   }
@@ -145,6 +152,8 @@ class _NotesListPageState extends State<NotesListPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _confirmed = null;
+      // 자리를 비운 사이 트레이너가 등록해 주거나 루틴을 보냈을 수 있다.
+      unawaited(_loadRoutines());
       unawaited(
         _search.refresh(_locale ?? 'en').then((_) {
           if (mounted && _query.text.isNotEmpty) _ask(immediately: true);
@@ -378,6 +387,46 @@ class _NotesListPageState extends State<NotesListPage>
                               ),
                             ),
                           ),
+                      // PT 예약. **다니는 곳이 있는 사람에게만 보인다** —
+                      // 헬스장과 상관없이 혼자 기록하는 사람이 대부분이고,
+                      // 그 사람 화면에 예약이 뜨면 무엇을 예약하라는 말인지
+                      // 알 수가 없다. 설정 안에만 두면 회원이 찾지 못한다.
+                      if (_query.text.trim().isEmpty && _hasGym)
+                        SliverToBoxAdapter(
+                          child: CupertinoButton(
+                            padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
+                            onPressed: () =>
+                                showBookingSheet(context, widget.account!),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  CupertinoIcons.calendar,
+                                  size: 18,
+                                  color: seal.resolveFrom(context),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    l.bookingNew,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: CupertinoColors.label.resolveFrom(
+                                        context,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  CupertinoIcons.chevron_right,
+                                  size: 15,
+                                  color: CupertinoColors.tertiaryLabel
+                                      .resolveFrom(context),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       if (_query.text.trim().isNotEmpty)
                         SliverToBoxAdapter(
                           child: Padding(
