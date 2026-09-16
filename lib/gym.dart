@@ -386,7 +386,13 @@ extension BookingLink on GymLink {
 /// 없고, 앱이 없는 사람은 그 주소가 웹으로 열린다 — 같은 스티커가 둘 다 된다.
 String? gymFromTag(Uri uri) {
   final parts = uri.pathSegments;
-  return parts.length >= 2 && parts.first == 'c' && parts[1].isNotEmpty
-      ? parts[1]
-      : null;
+  if (parts.length >= 2 && parts.first == 'c' && parts[1].isNotEmpty) {
+    return parts[1];
+  }
+  // `setpad://c/<체육관 id>` — 웹 화면의 "앱에서 열기"가 이것으로 부른다.
+  // 커스텀 스킴에서는 'c' 가 경로가 아니라 host 로 잡힌다.
+  if (uri.host == 'c' && parts.isNotEmpty && parts.first.isNotEmpty) {
+    return parts.first;
+  }
+  return null;
 }

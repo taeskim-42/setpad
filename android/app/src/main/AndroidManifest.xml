@@ -44,6 +44,14 @@
                       android:host="web-production-9cfc2.up.railway.app"
                       android:pathPrefix="/c/"/>
             </intent-filter>
+            <!-- 웹에서 앱으로 되돌아오는 길. https 링크가 브라우저로 떨어졌을
+                 때 그 화면에서 앱을 여는 수단이다. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="setpad"/>
+            </intent-filter>
             <!-- Health Connect 가 "왜 이 권한이 필요한가"를 물을 때 여는 화면 -->
             <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE"/>

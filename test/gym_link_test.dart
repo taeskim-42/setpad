@@ -345,6 +345,9 @@ void _tags() {
     expect(gymFromTag(Uri.parse('https://example.com/c/abc-123')), 'abc-123');
     // 뒤에 뭐가 더 붙어도 체육관은 같다.
     expect(gymFromTag(Uri.parse('https://example.com/c/abc/classes')), 'abc');
+    // 웹 화면의 "앱에서 열기"가 부르는 모양. 여기서는 'c' 가 host 다.
+    expect(gymFromTag(Uri.parse('setpad://c/abc-123')), 'abc-123');
+    expect(gymFromTag(Uri.parse('setpad://c/')), isNull);
   });
 
   test('체육관 주소가 아니면 아무것도 열지 않는다', () {

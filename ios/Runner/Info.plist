@@ -29,6 +29,22 @@
 	</array>
 	<key>CFBundleName</key>
 	<string>setpad</string>
+	<!-- 웹에서 앱으로 되돌아오는 길. 유니버설 링크는 iOS 가 한 번
+	     "사파리로 열기"를 기억하면 되돌릴 방법이 없어서, 스티커가 웹으로
+	     떨어졌을 때 그 화면에서 앱을 여는 수단이 따로 있어야 한다. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>studio.darak.setpad</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>setpad</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
