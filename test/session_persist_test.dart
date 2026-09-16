@@ -46,6 +46,29 @@ void main() {
     expect(a.signedIn, isTrue, reason: '못 물어본 것과 거절당한 것은 다르다');
   });
 
+  test('로그인 전에도 파는지 묻는다', () async {
+    // 안 물으면 로그인 안 한 사람에게는 무료가 몇 번인지도 안 보인다.
+    var asked = 0;
+    String? sentAuth = 'x';
+    final a = Account(
+      client: MockClient((request) async {
+        if (request.url.path.endsWith('/api/purchase')) {
+          asked++;
+          sentAuth = request.headers['authorization'];
+          return http.Response(
+            jsonEncode({'plan': null, 'selling': true}), 200,
+            headers: {'content-type': 'application/json'});
+        }
+        return http.Response('{}', 200);
+      }),
+      storageDir: dir,
+    );
+    await a.refreshForTest();
+    expect(asked, 1);
+    expect(a.selling, isTrue);
+    expect(sentAuth, isNull, reason: "붙일 토큰이 없으면 헤더도 없다");
+  });
+
   test('깨진 파일은 조용히 무시한다', () async {
     File('${dir.path}/session.json').writeAsStringSync('{망가짐');
     final a = account(MockClient((_) async => http.Response('{}', 200)));

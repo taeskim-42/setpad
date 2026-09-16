@@ -65,7 +65,10 @@ class Account extends ChangeNotifier {
     _watch ??= _purchases.proofs.listen(_send);
     await restoreSession();
     await _purchases.start(apple: platformSignIn == SignInMethod.apple);
-    if (token != null) await _refresh();
+    // **로그인 전에도 묻는다.** 파는지 여부는 사람이 아니라 서버가 정하는
+    // 것이고, 서버는 로그인 없이도 답한다. 안 물으면 아직 로그인 안 한
+    // 사람에게는 무엇을 파는지도, 무료가 몇 번인지도 영영 안 보인다.
+    await _refresh();
   }
 
   /// 남겨 둔 로그인을 되살린다. 스토어를 건드리지 않아 테스트가 이것만 부른다.
@@ -238,7 +241,8 @@ class Account extends ChangeNotifier {
     try {
       final response = await web.get(
         Uri.parse('$endpoint/api/purchase'),
-        headers: {'authorization': 'Bearer $token'},
+        // 로그인 전에는 붙일 것이 없다. 'Bearer null' 을 보내지 않는다.
+        headers: {if (token != null) 'authorization': 'Bearer $token'},
       );
       if (response.statusCode != 200) return;
       final body = jsonDecode(utf8.decode(response.bodyBytes));
