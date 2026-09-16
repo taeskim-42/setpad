@@ -1177,6 +1177,72 @@ abstract class L {
   /// **'로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.'**
   String get signInFailed;
 
+  /// No description provided for @bookingTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 예약'**
+  String get bookingTitle;
+
+  /// No description provided for @bookingConfirmed.
+  ///
+  /// In ko, this message translates to:
+  /// **'확정'**
+  String get bookingConfirmed;
+
+  /// No description provided for @bookingRemaining.
+  ///
+  /// In ko, this message translates to:
+  /// **'남은 횟수 {n}회'**
+  String bookingRemaining(int n);
+
+  /// No description provided for @bookingNoPass.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 이용권이 없습니다. 트레이너에게 문의해 주세요.'**
+  String get bookingNoPass;
+
+  /// No description provided for @bookingNoHours.
+  ///
+  /// In ko, this message translates to:
+  /// **'{trainer} 트레이너가 아직 받을 시간을 열지 않았습니다.'**
+  String bookingNoHours(String trainer);
+
+  /// No description provided for @bookingPick.
+  ///
+  /// In ko, this message translates to:
+  /// **'시간 고르기'**
+  String get bookingPick;
+
+  /// No description provided for @bookingWith.
+  ///
+  /// In ko, this message translates to:
+  /// **'{trainer} 트레이너 · 1회 {minutes}분'**
+  String bookingWith(String trainer, int minutes);
+
+  /// No description provided for @bookingSent.
+  ///
+  /// In ko, this message translates to:
+  /// **'신청했습니다. 트레이너가 승인하면 확정됩니다.'**
+  String get bookingSent;
+
+  /// No description provided for @bookingUpcoming.
+  ///
+  /// In ko, this message translates to:
+  /// **'다가오는 예약'**
+  String get bookingUpcoming;
+
+  /// No description provided for @bookingClosedDay.
+  ///
+  /// In ko, this message translates to:
+  /// **'이날은 받지 않습니다.'**
+  String get bookingClosedDay;
+
+  /// No description provided for @bookingCancelAsk.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 예약을 취소할까요?'**
+  String get bookingCancelAsk;
+
   /// No description provided for @ok.
   ///
   /// In ko, this message translates to:

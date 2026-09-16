@@ -652,5 +652,44 @@ class LKo extends L {
   String get signInFailed => '로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.';
 
   @override
+  String get bookingTitle => 'PT 예약';
+
+  @override
+  String get bookingConfirmed => '확정';
+
+  @override
+  String bookingRemaining(int n) {
+    return '남은 횟수 $n회';
+  }
+
+  @override
+  String get bookingNoPass => 'PT 이용권이 없습니다. 트레이너에게 문의해 주세요.';
+
+  @override
+  String bookingNoHours(String trainer) {
+    return '$trainer 트레이너가 아직 받을 시간을 열지 않았습니다.';
+  }
+
+  @override
+  String get bookingPick => '시간 고르기';
+
+  @override
+  String bookingWith(String trainer, int minutes) {
+    return '$trainer 트레이너 · 1회 $minutes분';
+  }
+
+  @override
+  String get bookingSent => '신청했습니다. 트레이너가 승인하면 확정됩니다.';
+
+  @override
+  String get bookingUpcoming => '다가오는 예약';
+
+  @override
+  String get bookingClosedDay => '이날은 받지 않습니다.';
+
+  @override
+  String get bookingCancelAsk => '이 예약을 취소할까요?';
+
+  @override
   String get ok => '확인';
 }

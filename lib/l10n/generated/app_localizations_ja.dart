@@ -650,5 +650,44 @@ class LJa extends L {
   String get signInFailed => 'ログインできませんでした。少ししてからもう一度お試しください。';
 
   @override
+  String get bookingTitle => 'PT予約';
+
+  @override
+  String get bookingConfirmed => '確定';
+
+  @override
+  String bookingRemaining(int n) {
+    return '残り$n回';
+  }
+
+  @override
+  String get bookingNoPass => 'PTチケットがありません。トレーナーにお問い合わせください。';
+
+  @override
+  String bookingNoHours(String trainer) {
+    return '$trainerトレーナーはまだ受付時間を開いていません。';
+  }
+
+  @override
+  String get bookingPick => '時間を選ぶ';
+
+  @override
+  String bookingWith(String trainer, int minutes) {
+    return '$trainerトレーナー · 1回$minutes分';
+  }
+
+  @override
+  String get bookingSent => '申請しました。トレーナーが承認すると確定します。';
+
+  @override
+  String get bookingUpcoming => '予定';
+
+  @override
+  String get bookingClosedDay => 'この日は受け付けていません。';
+
+  @override
+  String get bookingCancelAsk => 'この予約をキャンセルしますか？';
+
+  @override
   String get ok => 'OK';
 }

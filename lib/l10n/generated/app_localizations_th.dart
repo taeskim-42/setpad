@@ -661,5 +661,44 @@ class LTh extends L {
   String get signInFailed => 'เข้าสู่ระบบไม่สำเร็จ อีกสักครู่ลองใหม่อีกครั้ง';
 
   @override
+  String get bookingTitle => 'จอง PT';
+
+  @override
+  String get bookingConfirmed => 'ยืนยันแล้ว';
+
+  @override
+  String bookingRemaining(int n) {
+    return 'เหลือ $n ครั้ง';
+  }
+
+  @override
+  String get bookingNoPass => 'ยังไม่มีแพ็กเกจ PT กรุณาสอบถามเทรนเนอร์';
+
+  @override
+  String bookingNoHours(String trainer) {
+    return '$trainer ยังไม่ได้เปิดเวลารับ';
+  }
+
+  @override
+  String get bookingPick => 'เลือกเวลา';
+
+  @override
+  String bookingWith(String trainer, int minutes) {
+    return '$trainer · ครั้งละ $minutes นาที';
+  }
+
+  @override
+  String get bookingSent => 'ส่งคำขอแล้ว จะยืนยันเมื่อเทรนเนอร์อนุมัติ';
+
+  @override
+  String get bookingUpcoming => 'นัดที่จะถึง';
+
+  @override
+  String get bookingClosedDay => 'วันนี้ไม่เปิดรับ';
+
+  @override
+  String get bookingCancelAsk => 'ยกเลิกการจองนี้ไหม';
+
+  @override
   String get ok => 'ตกลง';
 }

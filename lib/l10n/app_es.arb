@@ -178,5 +178,16 @@
   "accountDeleteDo": "Eliminar",
   "accountDeleteFailed": "No se pudo eliminar la cuenta. Inténtalo de nuevo en un momento.",
   "signInFailed": "No se pudo iniciar sesión. Inténtalo de nuevo en un momento.",
+  "bookingTitle": "Reserva PT",
+  "bookingConfirmed": "Confirmada",
+  "bookingRemaining": "Quedan {n}",
+  "bookingNoPass": "No tienes bono de PT. Pregunta a tu entrenador.",
+  "bookingNoHours": "{trainer} aún no ha abierto horarios.",
+  "bookingPick": "Elige una hora",
+  "bookingWith": "{trainer} · {minutes} min",
+  "bookingSent": "Solicitada. Se confirma cuando tu entrenador la apruebe.",
+  "bookingUpcoming": "Próximas",
+  "bookingClosedDay": "No disponible este día.",
+  "bookingCancelAsk": "¿Cancelar esta reserva?",
   "ok": "Aceptar"
 }

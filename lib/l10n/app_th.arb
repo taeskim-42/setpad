@@ -178,5 +178,16 @@
   "accountDeleteDo": "ลบบัญชี",
   "accountDeleteFailed": "ลบบัญชีไม่สำเร็จ อีกสักครู่ลองใหม่อีกครั้ง",
   "signInFailed": "เข้าสู่ระบบไม่สำเร็จ อีกสักครู่ลองใหม่อีกครั้ง",
+  "bookingTitle": "จอง PT",
+  "bookingConfirmed": "ยืนยันแล้ว",
+  "bookingRemaining": "เหลือ {n} ครั้ง",
+  "bookingNoPass": "ยังไม่มีแพ็กเกจ PT กรุณาสอบถามเทรนเนอร์",
+  "bookingNoHours": "{trainer} ยังไม่ได้เปิดเวลารับ",
+  "bookingPick": "เลือกเวลา",
+  "bookingWith": "{trainer} · ครั้งละ {minutes} นาที",
+  "bookingSent": "ส่งคำขอแล้ว จะยืนยันเมื่อเทรนเนอร์อนุมัติ",
+  "bookingUpcoming": "นัดที่จะถึง",
+  "bookingClosedDay": "วันนี้ไม่เปิดรับ",
+  "bookingCancelAsk": "ยกเลิกการจองนี้ไหม",
   "ok": "ตกลง"
 }

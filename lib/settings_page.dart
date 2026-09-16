@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'account.dart';
-import 'gym_sheets.dart';
+import 'booking_entry.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 import 'palette.dart';
@@ -25,8 +25,10 @@ class SettingsPage extends StatelessWidget {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(middle: Text(l.settingsTitle)),
       child: SafeArea(
-        child: AnimatedBuilder(
-          animation: a ?? const AlwaysStoppedAnimation<double>(0),
+        // **둘 다 듣는다.** 계정만 듣던 때는 무게 단위와 박자를 바꿔도 화면이
+        // 그대로였다 — 그 값들은 저장소에 있다. 나갔다 들어와야 바뀌었다.
+        child: ListenableBuilder(
+          listenable: a == null ? store : Listenable.merge([store, a]),
           builder: (context, _) => ListView(
             children: [
               _Section(title: l.settingsRecording),
@@ -82,29 +84,34 @@ class SettingsPage extends StatelessWidget {
                   _Row(
                     label: l.bookingNew,
                     accent: true,
-                    onTap: () => showBookingSheet(context, a),
+                    onTap: () => openBooking(context, a),
                   ),
                 ],
 
                 _Section(title: l.settingsAccount),
-                _Row(
-                  label: a.signedIn ? a.nickname : l.accountSignIn,
-                  // 서버가 막았으면 그렇다고 적는다. 눌러도 아무 일이 없는
-                  // 것처럼 보이면 사람은 앱이 고장 난 줄 안다.
-                  detail: a.signedIn
-                      ? l.accountSignOut
-                      : (a.signInRefused ? l.signInFailed : null),
-                  onTap: () => a.signedIn ? a.signOut() : a.signIn(),
-                ),
+                // **누구인지 보여주는 줄과 나가는 줄을 가른다.** 하나로 묶여
+                // 있을 때는 자기 이름을 눌러본 사람이 그대로 로그아웃됐다.
+                if (a.signedIn)
+                  _Row(label: a.nickname)
+                else
+                  _Row(
+                    label: l.accountSignIn,
+                    // 서버가 막았으면 그렇다고 적는다. 눌러도 아무 일이 없는
+                    // 것처럼 보이면 사람은 앱이 고장 난 줄 안다.
+                    detail: a.signInRefused ? l.signInFailed : null,
+                    onTap: a.signIn,
+                  ),
                 if (a.selling || a.paid)
                   _Row(label: l.restorePurchases, onTap: a.restore),
                 // **계정을 만들 수 있으면 앱 안에서 지울 수도 있어야 한다.**
                 // 웹으로 보내는 것은 그 답이 아니다.
-                if (a.signedIn)
+                if (a.signedIn) ...[
+                  _Row(label: l.accountSignOut, onTap: a.signOut),
                   _Row(
                     label: l.accountDelete,
                     onTap: () => _confirmDelete(context, a),
                   ),
+                ],
               ],
               const SizedBox(height: 40),
             ],

@@ -566,5 +566,40 @@
   "accountDeleteDo": "탈퇴합니다",
   "accountDeleteFailed": "탈퇴하지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
   "signInFailed": "로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
+  "bookingTitle": "PT 예약",
+  "bookingConfirmed": "확정",
+  "bookingRemaining": "남은 횟수 {n}회",
+  "@bookingRemaining": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bookingNoPass": "PT 이용권이 없습니다. 트레이너에게 문의해 주세요.",
+  "bookingNoHours": "{trainer} 트레이너가 아직 받을 시간을 열지 않았습니다.",
+  "@bookingNoHours": {
+    "placeholders": {
+      "trainer": {
+        "type": "String"
+      }
+    }
+  },
+  "bookingPick": "시간 고르기",
+  "bookingWith": "{trainer} 트레이너 · 1회 {minutes}분",
+  "@bookingWith": {
+    "placeholders": {
+      "trainer": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "bookingSent": "신청했습니다. 트레이너가 승인하면 확정됩니다.",
+  "bookingUpcoming": "다가오는 예약",
+  "bookingClosedDay": "이날은 받지 않습니다.",
+  "bookingCancelAsk": "이 예약을 취소할까요?",
   "ok": "확인"
 }

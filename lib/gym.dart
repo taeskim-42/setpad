@@ -319,6 +319,45 @@ extension MemberLink on GymLink {
   }
 }
 
+/// 예약 화면이 그려지는 데 필요한 전부.
+///
+/// **하루치 빈 시간만으로는 화면을 못 그린다.** 트레이너가 받는 요일과 남은
+/// 횟수를 모르면 앱은 이레를 다 열어 놓고 하나씩 눌러 보게 한다.
+class Availability {
+  const Availability({
+    this.bookings = const [],
+    this.slots = const [],
+    this.weekdays = const {},
+    this.trainer,
+    this.durationMin = 50,
+    this.hasPass = false,
+    this.remaining,
+    this.loaded = false,
+  });
+
+  static const empty = Availability();
+
+  final List<Booking> bookings;
+  final List<DateTime> slots;
+
+  /// 이 트레이너가 받는 요일. 일요일이 0 이다.
+  final Set<int> weekdays;
+  final String? trainer;
+  final int durationMin;
+
+  /// 쓸 수 있는 PT 이용권이 있는가. 없으면 신청해도 서버가 막는다.
+  final bool hasPass;
+
+  /// 남은 횟수. null 은 무제한이거나 이용권이 없다는 뜻이다.
+  final int? remaining;
+
+  /// 서버에서 한 번이라도 받아 왔는가. 안 받아 온 것과 빈 것은 다르다.
+  final bool loaded;
+
+  bool get receivesBookings => weekdays.isNotEmpty;
+  bool opensOn(DateTime day) => weekdays.contains(day.weekday % 7);
+}
+
 /// 내 PT 예약 하나.
 ///
 /// `status` 를 함께 들고 온다 — 신청(pending)과 확정(booked)은 회원이 오늘
@@ -333,11 +372,8 @@ typedef Booking = ({
 
 extension BookingLink on GymLink {
   /// 다가오는 예약과, 고른 날에 잡을 수 있는 시각.
-  Future<({List<Booking> bookings, List<DateTime> slots})> bookings({
-    DateTime? day,
-    String? gymId,
-  }) async {
-    if (!supported) return (bookings: <Booking>[], slots: <DateTime>[]);
+  Future<Availability> bookings({DateTime? day, String? gymId}) async {
+    if (!supported) return Availability.empty;
     return withClient((web) async {
       try {
         // 서버는 소속 체육관이 하나일 때만 생략을 봐 준다. 둘이면 거절한다.
@@ -349,12 +385,11 @@ extension BookingLink on GymLink {
         final response = await web
             .get(Uri.parse('$endpoint/api/bookings$at'), headers: headers)
             .timeout(const Duration(seconds: 15));
-        if (response.statusCode != 200) {
-          return (bookings: <Booking>[], slots: <DateTime>[]);
-        }
+        if (response.statusCode != 200) return Availability.empty;
         final body = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
-        return (
-          bookings: <Booking>[
+        final pass = body['pass'];
+        return Availability(
+          bookings: [
             for (final row in body['bookings'] as List? ?? const [])
               (
                 id: row['id'] as String,
@@ -364,13 +399,21 @@ extension BookingLink on GymLink {
                 status: row['status'] as String? ?? 'booked',
               ),
           ],
-          slots: <DateTime>[
+          slots: [
             for (final at in body['slots'] as List? ?? const [])
               DateTime.parse(at as String).toLocal(),
           ],
+          weekdays: {
+            for (final w in body['weekdays'] as List? ?? const []) w as int,
+          },
+          trainer: body['trainer'] as String?,
+          durationMin: body['duration_min'] as int? ?? 50,
+          hasPass: pass is Map,
+          remaining: pass is Map ? pass['remaining'] as int? : null,
+          loaded: true,
         );
       } catch (_) {
-        return (bookings: <Booking>[], slots: <DateTime>[]);
+        return Availability.empty;
       }
     });
   }

@@ -670,5 +670,45 @@ class LEs extends L {
       'No se pudo iniciar sesión. Inténtalo de nuevo en un momento.';
 
   @override
+  String get bookingTitle => 'Reserva PT';
+
+  @override
+  String get bookingConfirmed => 'Confirmada';
+
+  @override
+  String bookingRemaining(int n) {
+    return 'Quedan $n';
+  }
+
+  @override
+  String get bookingNoPass => 'No tienes bono de PT. Pregunta a tu entrenador.';
+
+  @override
+  String bookingNoHours(String trainer) {
+    return '$trainer aún no ha abierto horarios.';
+  }
+
+  @override
+  String get bookingPick => 'Elige una hora';
+
+  @override
+  String bookingWith(String trainer, int minutes) {
+    return '$trainer · $minutes min';
+  }
+
+  @override
+  String get bookingSent =>
+      'Solicitada. Se confirma cuando tu entrenador la apruebe.';
+
+  @override
+  String get bookingUpcoming => 'Próximas';
+
+  @override
+  String get bookingClosedDay => 'No disponible este día.';
+
+  @override
+  String get bookingCancelAsk => '¿Cancelar esta reserva?';
+
+  @override
   String get ok => 'Aceptar';
 }

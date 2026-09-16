@@ -178,5 +178,16 @@
   "accountDeleteDo": "削除する",
   "accountDeleteFailed": "削除できませんでした。少ししてからもう一度お試しください。",
   "signInFailed": "ログインできませんでした。少ししてからもう一度お試しください。",
+  "bookingTitle": "PT予約",
+  "bookingConfirmed": "確定",
+  "bookingRemaining": "残り{n}回",
+  "bookingNoPass": "PTチケットがありません。トレーナーにお問い合わせください。",
+  "bookingNoHours": "{trainer}トレーナーはまだ受付時間を開いていません。",
+  "bookingPick": "時間を選ぶ",
+  "bookingWith": "{trainer}トレーナー · 1回{minutes}分",
+  "bookingSent": "申請しました。トレーナーが承認すると確定します。",
+  "bookingUpcoming": "予定",
+  "bookingClosedDay": "この日は受け付けていません。",
+  "bookingCancelAsk": "この予約をキャンセルしますか？",
   "ok": "OK"
 }

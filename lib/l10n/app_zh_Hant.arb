@@ -178,5 +178,16 @@
   "accountDeleteDo": "確認註銷",
   "accountDeleteFailed": "註銷失敗，請稍後再試。",
   "signInFailed": "登入失敗，請稍後再試。",
+  "bookingTitle": "PT 預約",
+  "bookingConfirmed": "已確認",
+  "bookingRemaining": "剩餘 {n} 次",
+  "bookingNoPass": "沒有 PT 堂數，請聯絡教練。",
+  "bookingNoHours": "{trainer} 教練還沒有開放時間。",
+  "bookingPick": "選擇時間",
+  "bookingWith": "{trainer} 教練 · 每次 {minutes} 分鐘",
+  "bookingSent": "已送出申請，教練確認後生效。",
+  "bookingUpcoming": "即將到來",
+  "bookingClosedDay": "這天不接受預約。",
+  "bookingCancelAsk": "取消這次預約嗎？",
   "ok": "好"
 }

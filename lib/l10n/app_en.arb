@@ -178,5 +178,16 @@
   "accountDeleteDo": "Delete",
   "accountDeleteFailed": "Could not delete the account. Please try again in a moment.",
   "signInFailed": "Could not sign in. Please try again in a moment.",
+  "bookingTitle": "PT booking",
+  "bookingConfirmed": "Confirmed",
+  "bookingRemaining": "{n} left",
+  "bookingNoPass": "No PT pass. Please ask your trainer.",
+  "bookingNoHours": "{trainer} has not opened any hours yet.",
+  "bookingPick": "Pick a time",
+  "bookingWith": "{trainer} · {minutes} min",
+  "bookingSent": "Requested. It is confirmed once your trainer approves.",
+  "bookingUpcoming": "Upcoming",
+  "bookingClosedDay": "Not available on this day.",
+  "bookingCancelAsk": "Cancel this booking?",
   "ok": "OK"
 }

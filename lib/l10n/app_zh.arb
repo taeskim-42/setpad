@@ -178,5 +178,16 @@
   "accountDeleteDo": "确认注销",
   "accountDeleteFailed": "注销失败，请稍后再试。",
   "signInFailed": "登录失败，请稍后再试。",
+  "bookingTitle": "PT 预约",
+  "bookingConfirmed": "已确认",
+  "bookingRemaining": "剩余 {n} 次",
+  "bookingNoPass": "没有 PT 次卡，请联系教练。",
+  "bookingNoHours": "{trainer} 教练还没有开放时间。",
+  "bookingPick": "选择时间",
+  "bookingWith": "{trainer} 教练 · 每次 {minutes} 分钟",
+  "bookingSent": "已提交申请，教练确认后生效。",
+  "bookingUpcoming": "即将到来",
+  "bookingClosedDay": "这天不接受预约。",
+  "bookingCancelAsk": "取消这次预约吗？",
   "ok": "好"
 }

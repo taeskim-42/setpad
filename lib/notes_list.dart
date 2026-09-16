@@ -9,7 +9,7 @@ import 'record_query.dart';
 import 'stats.dart' as stats;
 import 'editor.dart' show SuggestionChip;
 import 'gym.dart';
-import 'gym_sheets.dart';
+import 'booking_entry.dart';
 import 'record_ai.dart';
 import 'health_summary.dart';
 import 'palette.dart';
@@ -396,7 +396,7 @@ class _NotesListPageState extends State<NotesListPage>
                           child: CupertinoButton(
                             padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
                             onPressed: () =>
-                                showBookingSheet(context, widget.account!),
+                                openBooking(context, widget.account!),
                             child: Row(
                               children: [
                                 Icon(

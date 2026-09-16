@@ -668,5 +668,45 @@ class LEn extends L {
   String get signInFailed => 'Could not sign in. Please try again in a moment.';
 
   @override
+  String get bookingTitle => 'PT booking';
+
+  @override
+  String get bookingConfirmed => 'Confirmed';
+
+  @override
+  String bookingRemaining(int n) {
+    return '$n left';
+  }
+
+  @override
+  String get bookingNoPass => 'No PT pass. Please ask your trainer.';
+
+  @override
+  String bookingNoHours(String trainer) {
+    return '$trainer has not opened any hours yet.';
+  }
+
+  @override
+  String get bookingPick => 'Pick a time';
+
+  @override
+  String bookingWith(String trainer, int minutes) {
+    return '$trainer · $minutes min';
+  }
+
+  @override
+  String get bookingSent =>
+      'Requested. It is confirmed once your trainer approves.';
+
+  @override
+  String get bookingUpcoming => 'Upcoming';
+
+  @override
+  String get bookingClosedDay => 'Not available on this day.';
+
+  @override
+  String get bookingCancelAsk => 'Cancel this booking?';
+
+  @override
   String get ok => 'OK';
 }

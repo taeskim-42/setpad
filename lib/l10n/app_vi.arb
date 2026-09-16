@@ -178,5 +178,16 @@
   "accountDeleteDo": "Xóa tài khoản",
   "accountDeleteFailed": "Không xóa được tài khoản. Vui lòng thử lại sau.",
   "signInFailed": "Không đăng nhập được. Vui lòng thử lại sau.",
+  "bookingTitle": "Đặt lịch PT",
+  "bookingConfirmed": "Đã xác nhận",
+  "bookingRemaining": "Còn {n} buổi",
+  "bookingNoPass": "Bạn chưa có gói PT. Hãy hỏi huấn luyện viên.",
+  "bookingNoHours": "{trainer} chưa mở khung giờ nào.",
+  "bookingPick": "Chọn giờ",
+  "bookingWith": "{trainer} · {minutes} phút",
+  "bookingSent": "Đã gửi yêu cầu. Sẽ xác nhận khi huấn luyện viên duyệt.",
+  "bookingUpcoming": "Sắp tới",
+  "bookingClosedDay": "Ngày này không nhận.",
+  "bookingCancelAsk": "Hủy lịch hẹn này?",
   "ok": "OK"
 }

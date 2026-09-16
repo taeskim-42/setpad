@@ -667,5 +667,45 @@ class LVi extends L {
   String get signInFailed => 'Không đăng nhập được. Vui lòng thử lại sau.';
 
   @override
+  String get bookingTitle => 'Đặt lịch PT';
+
+  @override
+  String get bookingConfirmed => 'Đã xác nhận';
+
+  @override
+  String bookingRemaining(int n) {
+    return 'Còn $n buổi';
+  }
+
+  @override
+  String get bookingNoPass => 'Bạn chưa có gói PT. Hãy hỏi huấn luyện viên.';
+
+  @override
+  String bookingNoHours(String trainer) {
+    return '$trainer chưa mở khung giờ nào.';
+  }
+
+  @override
+  String get bookingPick => 'Chọn giờ';
+
+  @override
+  String bookingWith(String trainer, int minutes) {
+    return '$trainer · $minutes phút';
+  }
+
+  @override
+  String get bookingSent =>
+      'Đã gửi yêu cầu. Sẽ xác nhận khi huấn luyện viên duyệt.';
+
+  @override
+  String get bookingUpcoming => 'Sắp tới';
+
+  @override
+  String get bookingClosedDay => 'Ngày này không nhận.';
+
+  @override
+  String get bookingCancelAsk => 'Hủy lịch hẹn này?';
+
+  @override
   String get ok => 'OK';
 }

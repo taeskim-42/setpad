@@ -644,6 +644,45 @@ class LZh extends L {
   String get signInFailed => '登录失败，请稍后再试。';
 
   @override
+  String get bookingTitle => 'PT 预约';
+
+  @override
+  String get bookingConfirmed => '已确认';
+
+  @override
+  String bookingRemaining(int n) {
+    return '剩余 $n 次';
+  }
+
+  @override
+  String get bookingNoPass => '没有 PT 次卡，请联系教练。';
+
+  @override
+  String bookingNoHours(String trainer) {
+    return '$trainer 教练还没有开放时间。';
+  }
+
+  @override
+  String get bookingPick => '选择时间';
+
+  @override
+  String bookingWith(String trainer, int minutes) {
+    return '$trainer 教练 · 每次 $minutes 分钟';
+  }
+
+  @override
+  String get bookingSent => '已提交申请，教练确认后生效。';
+
+  @override
+  String get bookingUpcoming => '即将到来';
+
+  @override
+  String get bookingClosedDay => '这天不接受预约。';
+
+  @override
+  String get bookingCancelAsk => '取消这次预约吗？';
+
+  @override
   String get ok => '好';
 }
 
@@ -1287,6 +1326,45 @@ class LZhHans extends LZh {
   String get signInFailed => '登录失败，请稍后再试。';
 
   @override
+  String get bookingTitle => 'PT 预约';
+
+  @override
+  String get bookingConfirmed => '已确认';
+
+  @override
+  String bookingRemaining(int n) {
+    return '剩余 $n 次';
+  }
+
+  @override
+  String get bookingNoPass => '没有 PT 次卡，请联系教练。';
+
+  @override
+  String bookingNoHours(String trainer) {
+    return '$trainer 教练还没有开放时间。';
+  }
+
+  @override
+  String get bookingPick => '选择时间';
+
+  @override
+  String bookingWith(String trainer, int minutes) {
+    return '$trainer 教练 · 每次 $minutes 分钟';
+  }
+
+  @override
+  String get bookingSent => '已提交申请，教练确认后生效。';
+
+  @override
+  String get bookingUpcoming => '即将到来';
+
+  @override
+  String get bookingClosedDay => '这天不接受预约。';
+
+  @override
+  String get bookingCancelAsk => '取消这次预约吗？';
+
+  @override
   String get ok => '好';
 }
 
@@ -1928,6 +2006,45 @@ class LZhHant extends LZh {
 
   @override
   String get signInFailed => '登入失敗，請稍後再試。';
+
+  @override
+  String get bookingTitle => 'PT 預約';
+
+  @override
+  String get bookingConfirmed => '已確認';
+
+  @override
+  String bookingRemaining(int n) {
+    return '剩餘 $n 次';
+  }
+
+  @override
+  String get bookingNoPass => '沒有 PT 堂數，請聯絡教練。';
+
+  @override
+  String bookingNoHours(String trainer) {
+    return '$trainer 教練還沒有開放時間。';
+  }
+
+  @override
+  String get bookingPick => '選擇時間';
+
+  @override
+  String bookingWith(String trainer, int minutes) {
+    return '$trainer 教練 · 每次 $minutes 分鐘';
+  }
+
+  @override
+  String get bookingSent => '已送出申請，教練確認後生效。';
+
+  @override
+  String get bookingUpcoming => '即將到來';
+
+  @override
+  String get bookingClosedDay => '這天不接受預約。';
+
+  @override
+  String get bookingCancelAsk => '取消這次預約嗎？';
 
   @override
   String get ok => '好';
