@@ -167,7 +167,10 @@
   "proOwned": "Activo. Gracias.",
   "proSignInFirst": "El plan va ligado a una cuenta. Inicia sesión primero.",
   "tagSignInNeeded": "Inicia sesión para conectar con tu gimnasio y vuelve a acercar el teléfono a la pegatina.",
-  "tagNoRoutine": "Aún no hay rutina para hoy. Aparecerá aquí cuando tu entrenador la envíe.",
-  "tagNotMember": "Todavía no eres socio aquí. Acerca el teléfono a la pegatina y solicita el alta; un entrenador lo confirmará.",
+  "tagJoinSent": "Solicitud enviada. Podrás empezar en cuanto un entrenador la confirme.",
+  "tagJoinWaiting": "Ya la has enviado. Un entrenador la está revisando.",
+  "tagJoinFailed": "No se pudo enviar la solicitud. Acerca el teléfono otra vez en un momento.",
+  "bookingPending": "Pendiente de aprobación",
+  "bookingWhichGym": "¿Qué gimnasio?",
   "ok": "Aceptar"
 }

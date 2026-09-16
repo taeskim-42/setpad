@@ -632,12 +632,21 @@ class LEn extends L {
       'Sign in to connect with your gym, then tap the sticker again.';
 
   @override
-  String get tagNoRoutine =>
-      'No routine for today yet. It shows up here once your trainer sends one.';
+  String get tagJoinSent =>
+      'Request sent. You can start as soon as a trainer confirms it.';
 
   @override
-  String get tagNotMember =>
-      'You are not a member here yet. Tap the sticker and request to join — a trainer will confirm.';
+  String get tagJoinWaiting => 'Already requested. A trainer is reviewing it.';
+
+  @override
+  String get tagJoinFailed =>
+      'Could not send the request. Tap the sticker again in a moment.';
+
+  @override
+  String get bookingPending => 'Awaiting approval';
+
+  @override
+  String get bookingWhichGym => 'Which gym?';
 
   @override
   String get ok => 'OK';

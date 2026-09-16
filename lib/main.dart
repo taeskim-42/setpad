@@ -205,15 +205,48 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     final mine = routines.where((r) => r.gymId == gymId).firstOrNull;
     if (mine == null) {
       // 그 체육관에 다니지 않는 것과, 다니는데 오늘 받은 것이 없는 것은
-      // 해야 할 일이 다르다.
+      // 해야 할 일이 다르다. 둘 다 **안내가 아니라 행동으로 끝난다** — 말만
+      // 하고 멈추면 회원이 될 길도, 출석이 남을 길도 앱 안에 없다.
       final member = _account.gyms.any((g) => g.id == gymId);
-      final l = L.of(context);
-      await _tellTag(member ? l.tagNoRoutine : l.tagNotMember);
+      await (member ? _attendOnly(gymId) : _askJoin(gymId));
       return;
     }
     _open(
       _store.create(blocks: mine.blocks, gymId: mine.gymId, routineId: mine.id),
     );
+  }
+
+  /// 회원이 아닌 사람. **댄 것이 곧 신청이다** — 한 번 더 누르게 하지 않는다.
+  /// 트레이너 화면에 바로 뜨고, 확인하면 회원이 된다.
+  Future<void> _askJoin(String gymId) async {
+    final state = await _account.link.requestJoin(gymId);
+    if (!mounted) return;
+    if (state == JoinState.member) {
+      // 방금 트레이너가 확인해 준 참이다. 안내 대신 하러 온 일을 시작한다.
+      await _account.refreshGyms();
+      if (mounted) await _attendOnly(gymId);
+      return;
+    }
+    await _tellTag(switch (state) {
+      JoinState.requested => L.of(context).tagJoinSent,
+      JoinState.waiting => L.of(context).tagJoinWaiting,
+      _ => L.of(context).tagJoinFailed,
+    });
+  }
+
+  /// 루틴이 없는 날. **온 것은 온 것이다** — 빈 기록 하나가 곧 출석이고,
+  /// 이것이 없으면 트레이너의 오늘 화면에 이 사람이 영영 안 뜬다.
+  ///
+  /// 같은 날 두 번 대도 한 번이다. 웹이 세 시간 안의 기록을 다시 여는 것과
+  /// 같은 규칙을 쓴다 — 폰이 잠겼다 돌아온 것을 두 번째 방문으로 세지 않는다.
+  Future<void> _attendOnly(String gymId) async {
+    final since = DateTime.now().subtract(const Duration(hours: 3));
+    final open = _store.notes
+        .where((n) => n.gymId == gymId && n.createdAt.isAfter(since))
+        .firstOrNull;
+    final note = open ?? _store.create(gymId: gymId);
+    if (open == null) unawaited(_sendPendingWorkouts());
+    if (mounted) _open(note);
   }
 
   Future<void> _tellTag(String message) => showCupertinoDialog<void>(

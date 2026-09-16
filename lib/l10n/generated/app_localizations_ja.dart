@@ -617,10 +617,19 @@ class LJa extends L {
   String get tagSignInNeeded => 'ジムとつなぐにはログインが必要です。ログインしてステッカーにもう一度かざしてください。';
 
   @override
-  String get tagNoRoutine => '今日のルーティンはまだありません。トレーナーが送るとここに出ます。';
+  String get tagJoinSent => '登録を申請しました。トレーナーが確認するとすぐに始められます。';
 
   @override
-  String get tagNotMember => 'このジムの会員ではありません。ステッカーにかざして登録を申請すると、トレーナーが確認します。';
+  String get tagJoinWaiting => 'すでに申請済みです。トレーナーが確認中です。';
+
+  @override
+  String get tagJoinFailed => '申請できませんでした。少ししてからもう一度かざしてください。';
+
+  @override
+  String get bookingPending => '承認待ち';
+
+  @override
+  String get bookingWhichGym => 'どのジムですか？';
 
   @override
   String get ok => 'OK';

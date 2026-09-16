@@ -117,7 +117,10 @@ Future<void> _tell(BuildContext context, String message, {String? title}) =>
 /// PT 예약 — 다가오는 것과, 빈 자리 고르기.
 Future<void> showBookingSheet(BuildContext context, Account account) async {
   final l = L.of(context);
-  final mine = await account.link.bookings();
+  // 어느 체육관인지 서버가 추측하지 않는다. 두 곳에 다니면 먼저 고른다.
+  final gymId = await _pickGym(context, account);
+  if (gymId == null || !context.mounted) return;
+  final mine = await account.link.bookings(gymId: gymId);
   if (!context.mounted) return;
 
   final choice = await showCupertinoModalPopup<String>(
@@ -129,8 +132,10 @@ Future<void> showBookingSheet(BuildContext context, Account account) async {
           CupertinoActionSheetAction(
             isDestructiveAction: true,
             onPressed: () => Navigator.pop(ctx, 'cancel:${booking.id}'),
+            // 신청과 확정을 같은 줄로 보이면 안 된다 — 승인 전에 나가는 사람이 생긴다.
             child: Text(
               '${l.bookingNext(booking.trainer, _when(l, booking.startsAt))}'
+              '${booking.status == 'pending' ? ' · ${l.bookingPending}' : ''}'
               ' · ${l.bookingCancel}',
             ),
           ),
@@ -157,7 +162,7 @@ Future<void> showBookingSheet(BuildContext context, Account account) async {
   final day = DateTime.now().add(
     Duration(days: int.parse(choice.substring(4))),
   );
-  final open = await account.link.bookings(day: day);
+  final open = await account.link.bookings(day: day, gymId: gymId);
   if (!context.mounted) return;
   if (open.slots.isEmpty) {
     await _tell(context, l.bookingNone);
@@ -183,8 +188,31 @@ Future<void> showBookingSheet(BuildContext context, Account account) async {
   );
   if (picked == null || !context.mounted) return;
   // 고르는 사이 남이 가져갔을 수 있다. 서버가 다시 세고 아니면 거절한다.
-  final ok = await account.link.book(picked);
+  final ok = await account.link.book(picked, gymId: gymId);
   if (context.mounted && !ok) await _tell(context, l.bookingNone);
+}
+
+/// 다니는 곳이 하나면 묻지 않는다. 대부분이 그렇다.
+Future<String?> _pickGym(BuildContext context, Account account) async {
+  final gyms = account.gyms;
+  if (gyms.length <= 1) return gyms.firstOrNull?.id;
+  return showCupertinoModalPopup<String>(
+    context: context,
+    builder: (ctx) => CupertinoActionSheet(
+      title: Text(L.of(ctx).bookingWhichGym),
+      actions: [
+        for (final gym in gyms)
+          CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(ctx, gym.id),
+            child: Text(gym.name),
+          ),
+      ],
+      cancelButton: CupertinoActionSheetAction(
+        onPressed: () => Navigator.pop(ctx),
+        child: Text(L.of(ctx).cancel),
+      ),
+    ),
+  );
 }
 
 String _time(DateTime at) =>

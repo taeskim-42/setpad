@@ -166,11 +166,12 @@ void _pending() {
       made('a', gymId: 'g'),
       made('b'), // 체육관 것이 아니다 — 개인 운동은 안 나간다
       made('c', gymId: 'g', sentAt: DateTime(2026)), // 이미 보냈다
-      made('d', gymId: 'g', empty: true), // 빈 기록은 보낼 것이 없다
+      // 빈 것도 나간다 — 루틴 없이 그냥 온 날의 출석이 그렇게 생겼다.
+      made('d', gymId: 'g', empty: true),
     ];
     var touched = 0;
     await sendPending(link, notes, onSent: () => touched++);
-    expect(sent, ['a']);
+    expect(sent, ['a', 'd']);
     expect(notes.first.sentAt, isNotNull);
     expect(touched, 1);
   });
@@ -276,6 +277,7 @@ void _shared() {
               'gym': '다락짐',
               'trainer': '이코치',
               'starts_at': '2026-09-16T01:00:00.000Z',
+              'status': 'pending',
             },
           ],
           'slots': ['2026-09-16T02:00:00.000Z'],
@@ -286,6 +288,8 @@ void _shared() {
     );
     final found = await link.bookings(day: DateTime(2026, 9, 16));
     expect(found.bookings.single.trainer, '이코치');
+    // 신청과 확정은 회원이 오늘 나갈지를 가른다. 확정으로 보이면 안 된다.
+    expect(found.bookings.single.status, 'pending');
     // 서버는 UTC 로 주고 화면은 여기 시각으로 보여야 한다.
     expect(found.bookings.single.startsAt.isUtc, isFalse);
     expect(found.slots.single.isUtc, isFalse);
@@ -296,6 +300,42 @@ void _shared() {
       (_) async => http.Response('{"error":"slotTaken"}', 409),
     );
     expect(await link.book(DateTime(2026, 9, 16, 10)), isFalse);
+  });
+
+  test('어느 체육관인지 서버에 말한다', () async {
+    // 두 곳에 다니면 서버가 추측하지 않고 거절한다.
+    late Uri asked;
+    Map<String, Object?>? posted;
+    final link = linkThat((request) async {
+      asked = request.url;
+      if (request.method == 'POST') {
+        posted = jsonDecode(request.body) as Map<String, Object?>;
+        return http.Response('{"id":"b9","status":"pending"}', 200);
+      }
+      return http.Response('{"bookings":[],"slots":[]}', 200);
+    });
+    await link.bookings(day: DateTime(2026, 9, 16), gymId: 'g1');
+    expect(asked.queryParameters['gymId'], 'g1');
+    expect(asked.queryParameters['day'], '2026-09-16');
+    expect(await link.book(DateTime.utc(2026, 9, 16, 1), gymId: 'g1'), isTrue);
+    expect(posted!['gymId'], 'g1');
+  });
+
+  test('스티커에 댄 것이 곧 등록 신청이다', () async {
+    for (final (answer, expected) in [
+      ('{"state":"requested"}', JoinState.requested),
+      ('{"state":"waiting"}', JoinState.waiting),
+      ('{"state":"member"}', JoinState.member),
+      ('{"error":"noGym"}', JoinState.failed),
+    ]) {
+      final link = linkThat(
+        (_) async => http.Response(answer, answer.contains('error') ? 404 : 200),
+      );
+      expect(await link.requestJoin('g1'), expected);
+    }
+    // 로그인하지 않았으면 신청할 사람이 없다.
+    const anonymous = GymLink(endpoint: 'https://example.com');
+    expect(await anonymous.requestJoin('g1'), JoinState.failed);
   });
 }
 

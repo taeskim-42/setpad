@@ -630,12 +630,22 @@ class LVi extends L {
       'Đăng nhập để kết nối với phòng tập, rồi chạm lại vào sticker.';
 
   @override
-  String get tagNoRoutine =>
-      'Chưa có giáo án cho hôm nay. Sẽ hiện ở đây khi huấn luyện viên gửi.';
+  String get tagJoinSent =>
+      'Đã gửi yêu cầu. Bạn có thể bắt đầu ngay khi huấn luyện viên xác nhận.';
 
   @override
-  String get tagNotMember =>
-      'Bạn chưa là hội viên ở đây. Chạm vào sticker và gửi yêu cầu — huấn luyện viên sẽ xác nhận.';
+  String get tagJoinWaiting =>
+      'Bạn đã gửi yêu cầu rồi. Huấn luyện viên đang xem xét.';
+
+  @override
+  String get tagJoinFailed =>
+      'Không gửi được yêu cầu. Lát nữa hãy chạm lại vào sticker.';
+
+  @override
+  String get bookingPending => 'Chờ duyệt';
+
+  @override
+  String get bookingWhichGym => 'Phòng tập nào?';
 
   @override
   String get ok => 'OK';

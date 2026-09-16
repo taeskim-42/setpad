@@ -174,7 +174,8 @@ Future<void> sendPending(
   // 오래된 것부터. 트레이너가 보는 차례가 실제 순서와 같아야 한다.
   final waiting = [
     for (final note in notes)
-      if (note.gymId != null && note.sentAt == null && note.blocks.isNotEmpty)
+      // 빈 것도 보낸다 — 루틴 없이 그냥 나온 날의 출석이 그렇게 생긴다.
+      if (note.gymId != null && note.sentAt == null)
         note,
   ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
@@ -275,20 +276,53 @@ extension PartnerLink on GymLink {
       });
 }
 
+/// 회원 등록 신청의 결과. 서버가 돌려주는 말 그대로다.
+enum JoinState { requested, waiting, member, failed }
+
+extension MemberLink on GymLink {
+  /// 이 체육관에 등록을 신청한다.
+  ///
+  /// **스티커 주소는 앱이 가로챈다.** 그래서 웹의 등록 요청 화면에 닿을 수가
+  /// 없고, 신청할 길이 앱 안에 있어야 한다.
+  Future<JoinState> requestJoin(String gymId) async {
+    if (!supported) return JoinState.failed;
+    final answer = await _post('/api/members', {'gymId': gymId});
+    return switch (answer?['state']) {
+      'requested' => JoinState.requested,
+      'waiting' => JoinState.waiting,
+      'member' => JoinState.member,
+      _ => JoinState.failed,
+    };
+  }
+}
+
 /// 내 PT 예약 하나.
-typedef Booking = ({String id, String gym, String trainer, DateTime startsAt});
+///
+/// `status` 를 함께 들고 온다 — 신청(pending)과 확정(booked)은 회원이 오늘
+/// 나갈지 말지를 가르는 차이라 같은 줄로 보이면 안 된다.
+typedef Booking = ({
+  String id,
+  String gym,
+  String trainer,
+  DateTime startsAt,
+  String status,
+});
 
 extension BookingLink on GymLink {
   /// 다가오는 예약과, 고른 날에 잡을 수 있는 시각.
   Future<({List<Booking> bookings, List<DateTime> slots})> bookings({
     DateTime? day,
+    String? gymId,
   }) async {
     if (!supported) return (bookings: <Booking>[], slots: <DateTime>[]);
     return withClient((web) async {
       try {
-        final at = day == null
-            ? ''
-            : '?day=${day.toIso8601String().substring(0, 10)}';
+        // 서버는 소속 체육관이 하나일 때만 생략을 봐 준다. 둘이면 거절한다.
+        final query = [
+          if (gymId != null) 'gymId=$gymId',
+          if (day != null) 'day=${day.toIso8601String().substring(0, 10)}',
+        ];
+        final at = query.isEmpty ? '' : '?${query.join('&')}';
         final response = await web
             .get(Uri.parse('$endpoint/api/bookings$at'), headers: headers)
             .timeout(const Duration(seconds: 15));
@@ -304,6 +338,7 @@ extension BookingLink on GymLink {
                 gym: row['gym'] as String,
                 trainer: row['trainer'] as String,
                 startsAt: DateTime.parse(row['starts_at'] as String).toLocal(),
+                status: row['status'] as String? ?? 'booked',
               ),
           ],
           slots: <DateTime>[
@@ -318,10 +353,11 @@ extension BookingLink on GymLink {
   }
 
   /// 빈 자리를 잡는다. 그 사이 남이 가져갔으면 실패한다 — 서버가 다시 센다.
-  Future<bool> book(DateTime startsAt) async {
+  Future<bool> book(DateTime startsAt, {String? gymId}) async {
     if (!supported) return false;
     final answer = await _post('/api/bookings', {
       'startsAt': startsAt.toUtc().toIso8601String(),
+      'gymId': ?gymId,
     });
     return answer?['id'] is String;
   }

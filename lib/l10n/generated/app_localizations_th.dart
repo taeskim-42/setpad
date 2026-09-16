@@ -627,12 +627,19 @@ class LTh extends L {
       'เข้าสู่ระบบเพื่อเชื่อมกับยิม แล้วแตะสติกเกอร์อีกครั้ง';
 
   @override
-  String get tagNoRoutine =>
-      'ยังไม่มีโปรแกรมสำหรับวันนี้ จะแสดงที่นี่เมื่อเทรนเนอร์ส่งมา';
+  String get tagJoinSent => 'ส่งคำขอแล้ว เริ่มได้ทันทีเมื่อเทรนเนอร์ยืนยัน';
 
   @override
-  String get tagNotMember =>
-      'คุณยังไม่ได้เป็นสมาชิกที่นี่ แตะสติกเกอร์แล้วขอสมัคร เทรนเนอร์จะยืนยันให้';
+  String get tagJoinWaiting => 'ส่งคำขอไปแล้ว เทรนเนอร์กำลังตรวจสอบ';
+
+  @override
+  String get tagJoinFailed => 'ส่งคำขอไม่สำเร็จ อีกสักครู่แตะสติกเกอร์อีกครั้ง';
+
+  @override
+  String get bookingPending => 'รอการอนุมัติ';
+
+  @override
+  String get bookingWhichGym => 'ยิมไหน';
 
   @override
   String get ok => 'ตกลง';

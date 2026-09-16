@@ -1111,17 +1111,35 @@ abstract class L {
   /// **'헬스장과 연결하려면 로그인이 필요합니다. 로그인하고 스티커에 다시 대주세요.'**
   String get tagSignInNeeded;
 
-  /// No description provided for @tagNoRoutine.
+  /// No description provided for @tagJoinSent.
   ///
   /// In ko, this message translates to:
-  /// **'오늘 받은 루틴이 없습니다. 트레이너가 보내면 여기에 뜹니다.'**
-  String get tagNoRoutine;
+  /// **'등록을 신청했습니다. 트레이너가 확인하면 바로 시작할 수 있습니다.'**
+  String get tagJoinSent;
 
-  /// No description provided for @tagNotMember.
+  /// No description provided for @tagJoinWaiting.
   ///
   /// In ko, this message translates to:
-  /// **'이 헬스장의 회원이 아닙니다. 스티커에 대고 등록을 요청하면 트레이너가 확인해 줍니다.'**
-  String get tagNotMember;
+  /// **'이미 신청하셨습니다. 트레이너가 확인하는 중입니다.'**
+  String get tagJoinWaiting;
+
+  /// No description provided for @tagJoinFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'신청하지 못했습니다. 잠시 뒤 다시 대주세요.'**
+  String get tagJoinFailed;
+
+  /// No description provided for @bookingPending.
+  ///
+  /// In ko, this message translates to:
+  /// **'승인 대기'**
+  String get bookingPending;
+
+  /// No description provided for @bookingWhichGym.
+  ///
+  /// In ko, this message translates to:
+  /// **'어느 헬스장인가요?'**
+  String get bookingWhichGym;
 
   /// No description provided for @ok.
   ///

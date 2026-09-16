@@ -632,12 +632,22 @@ class LEs extends L {
       'Inicia sesión para conectar con tu gimnasio y vuelve a acercar el teléfono a la pegatina.';
 
   @override
-  String get tagNoRoutine =>
-      'Aún no hay rutina para hoy. Aparecerá aquí cuando tu entrenador la envíe.';
+  String get tagJoinSent =>
+      'Solicitud enviada. Podrás empezar en cuanto un entrenador la confirme.';
 
   @override
-  String get tagNotMember =>
-      'Todavía no eres socio aquí. Acerca el teléfono a la pegatina y solicita el alta; un entrenador lo confirmará.';
+  String get tagJoinWaiting =>
+      'Ya la has enviado. Un entrenador la está revisando.';
+
+  @override
+  String get tagJoinFailed =>
+      'No se pudo enviar la solicitud. Acerca el teléfono otra vez en un momento.';
+
+  @override
+  String get bookingPending => 'Pendiente de aprobación';
+
+  @override
+  String get bookingWhichGym => '¿Qué gimnasio?';
 
   @override
   String get ok => 'Aceptar';
