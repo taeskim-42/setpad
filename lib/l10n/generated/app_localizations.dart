@@ -1147,6 +1147,30 @@ abstract class L {
   /// **'로그인'**
   String get tagSignIn;
 
+  /// No description provided for @accountDelete.
+  ///
+  /// In ko, this message translates to:
+  /// **'회원 탈퇴'**
+  String get accountDelete;
+
+  /// No description provided for @accountDeleteAsk.
+  ///
+  /// In ko, this message translates to:
+  /// **'되돌릴 수 없습니다. 받은 루틴, 운동 기록, 이용권, 예약이 모두 사라집니다.'**
+  String get accountDeleteAsk;
+
+  /// No description provided for @accountDeleteDo.
+  ///
+  /// In ko, this message translates to:
+  /// **'탈퇴합니다'**
+  String get accountDeleteDo;
+
+  /// No description provided for @accountDeleteFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'탈퇴하지 못했습니다. 잠시 뒤 다시 시도해 주세요.'**
+  String get accountDeleteFailed;
+
   /// No description provided for @ok.
   ///
   /// In ko, this message translates to:

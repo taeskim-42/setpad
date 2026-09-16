@@ -650,5 +650,19 @@ class LVi extends L {
   String get tagSignIn => 'Đăng nhập';
 
   @override
+  String get accountDelete => 'Xóa tài khoản';
+
+  @override
+  String get accountDeleteAsk =>
+      'Không thể hoàn tác. Giáo án, nhật ký tập, gói tập và lịch hẹn sẽ mất hết.';
+
+  @override
+  String get accountDeleteDo => 'Xóa tài khoản';
+
+  @override
+  String get accountDeleteFailed =>
+      'Không xóa được tài khoản. Vui lòng thử lại sau.';
+
+  @override
   String get ok => 'OK';
 }

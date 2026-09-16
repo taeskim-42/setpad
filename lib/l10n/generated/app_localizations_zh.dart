@@ -629,6 +629,18 @@ class LZh extends L {
   String get tagSignIn => '登录';
 
   @override
+  String get accountDelete => '注销账号';
+
+  @override
+  String get accountDeleteAsk => '无法撤销。训练计划、记录、次卡和预约都会消失。';
+
+  @override
+  String get accountDeleteDo => '确认注销';
+
+  @override
+  String get accountDeleteFailed => '注销失败，请稍后再试。';
+
+  @override
   String get ok => '好';
 }
 
@@ -1257,6 +1269,18 @@ class LZhHans extends LZh {
   String get tagSignIn => '登录';
 
   @override
+  String get accountDelete => '注销账号';
+
+  @override
+  String get accountDeleteAsk => '无法撤销。训练计划、记录、次卡和预约都会消失。';
+
+  @override
+  String get accountDeleteDo => '确认注销';
+
+  @override
+  String get accountDeleteFailed => '注销失败，请稍后再试。';
+
+  @override
   String get ok => '好';
 }
 
@@ -1883,6 +1907,18 @@ class LZhHant extends LZh {
 
   @override
   String get tagSignIn => '登入';
+
+  @override
+  String get accountDelete => '註銷帳號';
+
+  @override
+  String get accountDeleteAsk => '無法復原。訓練計畫、紀錄、堂數和預約都會消失。';
+
+  @override
+  String get accountDeleteDo => '確認註銷';
+
+  @override
+  String get accountDeleteFailed => '註銷失敗，請稍後再試。';
 
   @override
   String get ok => '好';

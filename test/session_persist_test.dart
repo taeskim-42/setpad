@@ -69,6 +69,29 @@ void main() {
     expect(sentAuth, isNull, reason: "붙일 토큰이 없으면 헤더도 없다");
   });
 
+  test('탈퇴하면 기기에 남은 로그인도 사라진다', () async {
+    final f = File('${dir.path}/session.json')
+      ..writeAsStringSync(jsonEncode({'token': 'good', 'nickname': '김회원'}));
+    var method = '';
+    final a = account(MockClient((request) async {
+      method = request.method;
+      return http.Response('{"ok":true}', 200);
+    }))..token = 'good';
+    expect(await a.deleteAccount(), isNull);
+    expect(method, 'DELETE');
+    expect(a.signedIn, isFalse);
+    expect(f.existsSync(), isFalse, reason: '서버에서 지웠는데 기기에 남으면 안 된다');
+  });
+
+  test('관장은 탈퇴가 막히고 이유가 그대로 온다', () async {
+    final a = account(MockClient((_) async => http.Response(
+        jsonEncode({'error': 'blocked', 'message': '도장을 먼저 지워 주세요.'}), 409,
+        headers: {'content-type': 'application/json'})))
+      ..token = 'good';
+    expect(await a.deleteAccount(), '도장을 먼저 지워 주세요.');
+    expect(a.signedIn, isTrue, reason: '못 지웠으면 로그인은 그대로여야 한다');
+  });
+
   test('깨진 파일은 조용히 무시한다', () async {
     File('${dir.path}/session.json').writeAsStringSync('{망가짐');
     final a = account(MockClient((_) async => http.Response('{}', 200)));

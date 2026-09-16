@@ -94,11 +94,68 @@ class SettingsPage extends StatelessWidget {
                 ),
                 if (a.selling || a.paid)
                   _Row(label: l.restorePurchases, onTap: a.restore),
+                // **계정을 만들 수 있으면 앱 안에서 지울 수도 있어야 한다.**
+                // 웹으로 보내는 것은 그 답이 아니다.
+                if (a.signedIn)
+                  _Row(
+                    label: l.accountDelete,
+                    onTap: () => _confirmDelete(context, a),
+                  ),
               ],
               const SizedBox(height: 40),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// 탈퇴는 한 번 더 묻는다. 되돌릴 수 없고 옆에 로그아웃이 있다.
+  Future<void> _confirmDelete(BuildContext context, Account account) async {
+    final l = L.of(context);
+    final go = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: Text(l.accountDelete),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(l.accountDeleteAsk, style: const TextStyle(fontSize: 14)),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.cancel),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.accountDeleteDo),
+          ),
+        ],
+      ),
+    );
+    if (go != true || !context.mounted) return;
+
+    final problem = await account.deleteAccount();
+    if (problem == null || !context.mounted) return;
+    // 서버가 왜 막았는지 말해 준다. 빈 문자열이면 서버에 닿지 못한 것이다.
+    await showCupertinoDialog<void>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            problem.isEmpty ? L.of(ctx).accountDeleteFailed : problem,
+            style: const TextStyle(fontSize: 15),
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(L.of(ctx).ok),
+          ),
+        ],
       ),
     );
   }

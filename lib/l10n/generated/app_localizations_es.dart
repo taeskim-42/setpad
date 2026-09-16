@@ -652,5 +652,19 @@ class LEs extends L {
   String get tagSignIn => 'Iniciar sesión';
 
   @override
+  String get accountDelete => 'Eliminar cuenta';
+
+  @override
+  String get accountDeleteAsk =>
+      'Esto no se puede deshacer. Tus rutinas, registros, bonos y reservas desaparecerán.';
+
+  @override
+  String get accountDeleteDo => 'Eliminar';
+
+  @override
+  String get accountDeleteFailed =>
+      'No se pudo eliminar la cuenta. Inténtalo de nuevo en un momento.';
+
+  @override
   String get ok => 'Aceptar';
 }

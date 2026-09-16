@@ -651,5 +651,19 @@ class LEn extends L {
   String get tagSignIn => 'Sign in';
 
   @override
+  String get accountDelete => 'Delete account';
+
+  @override
+  String get accountDeleteAsk =>
+      'This cannot be undone. Your routines, workout records, passes and bookings will all be gone.';
+
+  @override
+  String get accountDeleteDo => 'Delete';
+
+  @override
+  String get accountDeleteFailed =>
+      'Could not delete the account. Please try again in a moment.';
+
+  @override
   String get ok => 'OK';
 }

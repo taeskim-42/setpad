@@ -173,5 +173,9 @@
   "bookingPending": "承認待ち",
   "bookingWhichGym": "どのジムですか？",
   "tagSignIn": "ログイン",
+  "accountDelete": "アカウント削除",
+  "accountDeleteAsk": "元に戻せません。ルーティン、記録、チケット、予約がすべて消えます。",
+  "accountDeleteDo": "削除する",
+  "accountDeleteFailed": "削除できませんでした。少ししてからもう一度お試しください。",
   "ok": "OK"
 }

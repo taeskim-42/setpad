@@ -644,5 +644,19 @@ class LTh extends L {
   String get tagSignIn => 'เข้าสู่ระบบ';
 
   @override
+  String get accountDelete => 'ลบบัญชี';
+
+  @override
+  String get accountDeleteAsk =>
+      'ย้อนกลับไม่ได้ โปรแกรม บันทึกการฝึก แพ็กเกจ และการจองจะหายทั้งหมด';
+
+  @override
+  String get accountDeleteDo => 'ลบบัญชี';
+
+  @override
+  String get accountDeleteFailed =>
+      'ลบบัญชีไม่สำเร็จ อีกสักครู่ลองใหม่อีกครั้ง';
+
+  @override
   String get ok => 'ตกลง';
 }

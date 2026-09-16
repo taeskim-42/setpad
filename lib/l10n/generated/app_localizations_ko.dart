@@ -637,5 +637,17 @@ class LKo extends L {
   String get tagSignIn => '로그인';
 
   @override
+  String get accountDelete => '회원 탈퇴';
+
+  @override
+  String get accountDeleteAsk => '되돌릴 수 없습니다. 받은 루틴, 운동 기록, 이용권, 예약이 모두 사라집니다.';
+
+  @override
+  String get accountDeleteDo => '탈퇴합니다';
+
+  @override
+  String get accountDeleteFailed => '탈퇴하지 못했습니다. 잠시 뒤 다시 시도해 주세요.';
+
+  @override
   String get ok => '확인';
 }

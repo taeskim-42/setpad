@@ -173,5 +173,9 @@
   "bookingPending": "待确认",
   "bookingWhichGym": "哪一家健身房？",
   "tagSignIn": "登录",
+  "accountDelete": "注销账号",
+  "accountDeleteAsk": "无法撤销。训练计划、记录、次卡和预约都会消失。",
+  "accountDeleteDo": "确认注销",
+  "accountDeleteFailed": "注销失败，请稍后再试。",
   "ok": "好"
 }

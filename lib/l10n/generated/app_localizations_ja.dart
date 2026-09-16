@@ -635,5 +635,17 @@ class LJa extends L {
   String get tagSignIn => 'ログイン';
 
   @override
+  String get accountDelete => 'アカウント削除';
+
+  @override
+  String get accountDeleteAsk => '元に戻せません。ルーティン、記録、チケット、予約がすべて消えます。';
+
+  @override
+  String get accountDeleteDo => '削除する';
+
+  @override
+  String get accountDeleteFailed => '削除できませんでした。少ししてからもう一度お試しください。';
+
+  @override
   String get ok => 'OK';
 }

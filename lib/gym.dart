@@ -284,6 +284,29 @@ extension MemberLink on GymLink {
   ///
   /// **스티커 주소는 앱이 가로챈다.** 그래서 웹의 등록 요청 화면에 닿을 수가
   /// 없고, 신청할 길이 앱 안에 있어야 한다.
+  /// 계정을 지운다. 서버가 지웠다고 하면 true.
+  ///
+  /// **관장·트레이너는 지울 수 없다**(서버가 409 로 막는다). 도장에 회원과
+  /// 예약이 매달려 있어서, 넘기거나 접는 것이 먼저다.
+  Future<({bool ok, String? reason})> deleteAccount() async {
+    if (!supported) return (ok: false, reason: null);
+    return withClient((web) async {
+      try {
+        final response = await web
+            .delete(Uri.parse('$endpoint/api/me'), headers: headers)
+            .timeout(const Duration(seconds: 20));
+        if (response.statusCode == 200) return (ok: true, reason: null);
+        final body = jsonDecode(utf8.decode(response.bodyBytes));
+        return (
+          ok: false,
+          reason: body is Map ? body['message'] as String? : null,
+        );
+      } catch (_) {
+        return (ok: false, reason: null);
+      }
+    });
+  }
+
   Future<JoinState> requestJoin(String gymId) async {
     if (!supported) return JoinState.failed;
     final answer = await _post('/api/members', {'gymId': gymId});

@@ -173,5 +173,9 @@
   "bookingPending": "Chờ duyệt",
   "bookingWhichGym": "Phòng tập nào?",
   "tagSignIn": "Đăng nhập",
+  "accountDelete": "Xóa tài khoản",
+  "accountDeleteAsk": "Không thể hoàn tác. Giáo án, nhật ký tập, gói tập và lịch hẹn sẽ mất hết.",
+  "accountDeleteDo": "Xóa tài khoản",
+  "accountDeleteFailed": "Không xóa được tài khoản. Vui lòng thử lại sau.",
   "ok": "OK"
 }

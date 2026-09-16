@@ -173,5 +173,9 @@
   "bookingPending": "待確認",
   "bookingWhichGym": "哪一家健身房？",
   "tagSignIn": "登入",
+  "accountDelete": "註銷帳號",
+  "accountDeleteAsk": "無法復原。訓練計畫、紀錄、堂數和預約都會消失。",
+  "accountDeleteDo": "確認註銷",
+  "accountDeleteFailed": "註銷失敗，請稍後再試。",
   "ok": "好"
 }

@@ -173,5 +173,9 @@
   "bookingPending": "รอการอนุมัติ",
   "bookingWhichGym": "ยิมไหน",
   "tagSignIn": "เข้าสู่ระบบ",
+  "accountDelete": "ลบบัญชี",
+  "accountDeleteAsk": "ย้อนกลับไม่ได้ โปรแกรม บันทึกการฝึก แพ็กเกจ และการจองจะหายทั้งหมด",
+  "accountDeleteDo": "ลบบัญชี",
+  "accountDeleteFailed": "ลบบัญชีไม่สำเร็จ อีกสักครู่ลองใหม่อีกครั้ง",
   "ok": "ตกลง"
 }

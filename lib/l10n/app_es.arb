@@ -173,5 +173,9 @@
   "bookingPending": "Pendiente de aprobación",
   "bookingWhichGym": "¿Qué gimnasio?",
   "tagSignIn": "Iniciar sesión",
+  "accountDelete": "Eliminar cuenta",
+  "accountDeleteAsk": "Esto no se puede deshacer. Tus rutinas, registros, bonos y reservas desaparecerán.",
+  "accountDeleteDo": "Eliminar",
+  "accountDeleteFailed": "No se pudo eliminar la cuenta. Inténtalo de nuevo en un momento.",
   "ok": "Aceptar"
 }
