@@ -649,5 +649,8 @@ class LKo extends L {
   String get accountDeleteFailed => '탈퇴하지 못했습니다. 잠시 뒤 다시 시도해 주세요.';
 
   @override
+  String get signInFailed => '로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.';
+
+  @override
   String get ok => '확인';
 }

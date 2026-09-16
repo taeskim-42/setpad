@@ -177,5 +177,6 @@
   "accountDeleteAsk": "Esto no se puede deshacer. Tus rutinas, registros, bonos y reservas desaparecerán.",
   "accountDeleteDo": "Eliminar",
   "accountDeleteFailed": "No se pudo eliminar la cuenta. Inténtalo de nuevo en un momento.",
+  "signInFailed": "No se pudo iniciar sesión. Inténtalo de nuevo en un momento.",
   "ok": "Aceptar"
 }

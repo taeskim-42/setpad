@@ -188,9 +188,24 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   ///
   /// **스티커에 댄 사람은 지금 그 헬스장에 서 있다.** 목록으로 보내 한 번 더
   /// 누르게 하지 않는다 — 손에 폰을 들고 기구 앞에 있는 참이다.
+  /// 지금 처리 중인 태그. **한 번 댄 것을 두 번 처리하지 않는다** —
+  /// app_links 는 앱을 연 주소를 스트림으로도 주고 getInitialLink 로도 줘서
+  /// 같은 태그가 두 번 들어온다. 안내창이 두 개 겹쳐 뜨던 이유다.
+  String? _handling;
+
   Future<void> _openTag(Uri uri) async {
     final gymId = gymFromTag(uri);
     if (gymId == null) return;
+    if (_handling == gymId) return;
+    _handling = gymId;
+    try {
+      await _handleTag(uri, gymId);
+    } finally {
+      _handling = null;
+    }
+  }
+
+  Future<void> _handleTag(Uri uri, String gymId) async {
 
     // **여기서 로그인까지 끝낸다.** 안내만 하고 웹으로 보내면 거기서 또
     // 로그인 수단을 고르게 되고, 웹의 카카오와 앱의 Apple 은 서로 다른
@@ -217,9 +232,16 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
           ],
         ),
       );
-      if (go != true || !await _account.signIn() || !mounted) return;
+      if (go != true) return;
+      final ok = await _account.signIn();
+      if (!mounted) return;
+      if (!ok) {
+        // 사람이 스스로 닫은 것은 말할 것이 없다. 서버가 막은 것만 말한다.
+        if (_account.signInRefused) await _tellTag(L.of(context).signInFailed);
+        return;
+      }
       // 로그인했으니 댄 것을 그대로 이어서 처리한다. 다시 대라고 하지 않는다.
-      if (mounted) await _openTag(uri);
+      await _handleTag(uri, gymId);
       return;
     }
 

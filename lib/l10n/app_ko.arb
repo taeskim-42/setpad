@@ -565,5 +565,6 @@
   "accountDeleteAsk": "되돌릴 수 없습니다. 받은 루틴, 운동 기록, 이용권, 예약이 모두 사라집니다.",
   "accountDeleteDo": "탈퇴합니다",
   "accountDeleteFailed": "탈퇴하지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
+  "signInFailed": "로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
   "ok": "확인"
 }

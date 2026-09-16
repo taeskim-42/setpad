@@ -664,5 +664,8 @@ class LVi extends L {
       'Không xóa được tài khoản. Vui lòng thử lại sau.';
 
   @override
+  String get signInFailed => 'Không đăng nhập được. Vui lòng thử lại sau.';
+
+  @override
   String get ok => 'OK';
 }

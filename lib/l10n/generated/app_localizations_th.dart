@@ -658,5 +658,8 @@ class LTh extends L {
       'ลบบัญชีไม่สำเร็จ อีกสักครู่ลองใหม่อีกครั้ง';
 
   @override
+  String get signInFailed => 'เข้าสู่ระบบไม่สำเร็จ อีกสักครู่ลองใหม่อีกครั้ง';
+
+  @override
   String get ok => 'ตกลง';
 }

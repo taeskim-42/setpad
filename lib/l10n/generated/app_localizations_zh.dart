@@ -641,6 +641,9 @@ class LZh extends L {
   String get accountDeleteFailed => '注销失败，请稍后再试。';
 
   @override
+  String get signInFailed => '登录失败，请稍后再试。';
+
+  @override
   String get ok => '好';
 }
 
@@ -1281,6 +1284,9 @@ class LZhHans extends LZh {
   String get accountDeleteFailed => '注销失败，请稍后再试。';
 
   @override
+  String get signInFailed => '登录失败，请稍后再试。';
+
+  @override
   String get ok => '好';
 }
 
@@ -1919,6 +1925,9 @@ class LZhHant extends LZh {
 
   @override
   String get accountDeleteFailed => '註銷失敗，請稍後再試。';
+
+  @override
+  String get signInFailed => '登入失敗，請稍後再試。';
 
   @override
   String get ok => '好';

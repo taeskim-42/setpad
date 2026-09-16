@@ -89,7 +89,11 @@ class SettingsPage extends StatelessWidget {
                 _Section(title: l.settingsAccount),
                 _Row(
                   label: a.signedIn ? a.nickname : l.accountSignIn,
-                  detail: a.signedIn ? l.accountSignOut : null,
+                  // 서버가 막았으면 그렇다고 적는다. 눌러도 아무 일이 없는
+                  // 것처럼 보이면 사람은 앱이 고장 난 줄 안다.
+                  detail: a.signedIn
+                      ? l.accountSignOut
+                      : (a.signInRefused ? l.signInFailed : null),
                   onTap: () => a.signedIn ? a.signOut() : a.signIn(),
                 ),
                 if (a.selling || a.paid)

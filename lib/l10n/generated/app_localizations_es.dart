@@ -666,5 +666,9 @@ class LEs extends L {
       'No se pudo eliminar la cuenta. Inténtalo de nuevo en un momento.';
 
   @override
+  String get signInFailed =>
+      'No se pudo iniciar sesión. Inténtalo de nuevo en un momento.';
+
+  @override
   String get ok => 'Aceptar';
 }

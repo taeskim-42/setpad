@@ -647,5 +647,8 @@ class LJa extends L {
   String get accountDeleteFailed => '削除できませんでした。少ししてからもう一度お試しください。';
 
   @override
+  String get signInFailed => 'ログインできませんでした。少ししてからもう一度お試しください。';
+
+  @override
   String get ok => 'OK';
 }

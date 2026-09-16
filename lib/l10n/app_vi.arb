@@ -177,5 +177,6 @@
   "accountDeleteAsk": "Không thể hoàn tác. Giáo án, nhật ký tập, gói tập và lịch hẹn sẽ mất hết.",
   "accountDeleteDo": "Xóa tài khoản",
   "accountDeleteFailed": "Không xóa được tài khoản. Vui lòng thử lại sau.",
+  "signInFailed": "Không đăng nhập được. Vui lòng thử lại sau.",
   "ok": "OK"
 }

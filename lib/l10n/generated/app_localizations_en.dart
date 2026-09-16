@@ -665,5 +665,8 @@ class LEn extends L {
       'Could not delete the account. Please try again in a moment.';
 
   @override
+  String get signInFailed => 'Could not sign in. Please try again in a moment.';
+
+  @override
   String get ok => 'OK';
 }

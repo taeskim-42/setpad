@@ -177,5 +177,6 @@
   "accountDeleteAsk": "This cannot be undone. Your routines, workout records, passes and bookings will all be gone.",
   "accountDeleteDo": "Delete",
   "accountDeleteFailed": "Could not delete the account. Please try again in a moment.",
+  "signInFailed": "Could not sign in. Please try again in a moment.",
   "ok": "OK"
 }

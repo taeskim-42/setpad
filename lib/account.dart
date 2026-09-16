@@ -22,7 +22,9 @@ class Account extends ChangeNotifier {
     Purchases? purchases,
     this.client,
     this.storageDir,
-  }) : _purchases = purchases ?? Purchases();
+    Future<Credential?> Function()? signInWith,
+  }) : _purchases = purchases ?? Purchases(),
+       _signInWith = signInWith ?? signInWithPlatform;
 
   final String endpoint;
   final Purchases _purchases;
@@ -32,6 +34,9 @@ class Account extends ChangeNotifier {
 
   /// 테스트가 쓸 임시 폴더. 비어 있으면 앱 문서함에 쓴다.
   final Directory? storageDir;
+
+  /// 제공자 로그인 창을 여는 일. 테스트는 진짜 애플 창을 열 수 없다.
+  final Future<Credential?> Function() _signInWith;
   StreamSubscription<PurchaseProof>? _watch;
 
   /// 로그인해서 받은 우리 토큰. 없으면 로그인하지 않은 것이다.
@@ -164,8 +169,22 @@ class Account extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 마지막 로그인이 서버에서 막혔는가.
+  ///
+  /// **조용히 실패하면 고칠 수가 없다.** 사람이 스스로 닫은 것과 서버가 안
+  /// 받아 준 것은 다르다 — 앞은 말할 것이 없고, 뒤는 말해 줘야 한다.
+  bool signInRefused = false;
+
   Future<bool> signIn() async {
-    final credential = await signInWithPlatform();
+    signInRefused = false;
+    Credential? credential;
+    try {
+      credential = await _signInWith();
+    } catch (error) {
+      // 사람이 창을 닫으면 여기로 온다. 실패가 아니라 그만둔 것이다.
+      debugPrint('[로그인] 제공자 단계에서 멈췄다: $error');
+      return false;
+    }
     if (credential == null) return false;
     final result = await exchange(
       credential,
@@ -173,7 +192,11 @@ class Account extends ChangeNotifier {
       currentToken: token,
       client: client,
     );
-    if (result == null) return false;
+    if (result == null) {
+      signInRefused = true;
+      notifyListeners();
+      return false;
+    }
     token = result.token;
     nickname = result.nickname;
     await _saveSession();

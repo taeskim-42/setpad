@@ -1171,6 +1171,12 @@ abstract class L {
   /// **'탈퇴하지 못했습니다. 잠시 뒤 다시 시도해 주세요.'**
   String get accountDeleteFailed;
 
+  /// No description provided for @signInFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.'**
+  String get signInFailed;
+
   /// No description provided for @ok.
   ///
   /// In ko, this message translates to:

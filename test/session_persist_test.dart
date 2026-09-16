@@ -126,6 +126,28 @@ void main() {
     expect(sent!.containsKey('code'), isFalse);
   });
 
+  test('서버가 로그인을 막으면 조용히 넘어가지 않는다', () async {
+    // 조용히 실패하면 무엇이 잘못됐는지 알 길이 없다. 실제로 그래서 헤맸다.
+    final a = Account(
+      client: MockClient((_) async => http.Response('꺼짐', 500)),
+      storageDir: dir,
+      signInWith: () async =>
+          (method: SignInMethod.apple, idToken: 'id', nickname: '김회원', code: 'c'),
+    );
+    expect(await a.signIn(), isFalse);
+    expect(a.signInRefused, isTrue);
+  });
+
+  test('사람이 창을 닫은 것은 실패로 치지 않는다', () async {
+    final a = Account(
+      client: MockClient((_) async => http.Response('{}', 200)),
+      storageDir: dir,
+      signInWith: () async => throw Exception('사용자가 닫음'),
+    );
+    expect(await a.signIn(), isFalse);
+    expect(a.signInRefused, isFalse, reason: '스스로 그만둔 것에 경고를 띄우지 않는다');
+  });
+
   test('깨진 파일은 조용히 무시한다', () async {
     File('${dir.path}/session.json').writeAsStringSync('{망가짐');
     final a = account(MockClient((_) async => http.Response('{}', 200)));
