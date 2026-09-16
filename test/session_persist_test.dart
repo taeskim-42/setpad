@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/account.dart';
+import 'package:setpad/sign_in.dart';
 
 /// 로그인은 기기에 남아야 한다. 안 남으면 앱을 껐다 켤 때마다 로그아웃이고,
 /// 스티커를 댈 때마다 로그인부터 하게 된다.
@@ -90,6 +91,39 @@ void main() {
       ..token = 'good';
     expect(await a.deleteAccount(), '도장을 먼저 지워 주세요.');
     expect(a.signedIn, isTrue, reason: '못 지웠으면 로그인은 그대로여야 한다');
+  });
+
+  test('애플 로그인은 폐기용 code 까지 서버에 넘긴다', () async {
+    // 이게 안 가면 탈퇴할 때 애플에 알릴 방법이 없다.
+    Map<String, Object?>? sent;
+    final web = MockClient((request) async {
+      sent = jsonDecode(request.body) as Map<String, Object?>;
+      return http.Response(
+        jsonEncode({'token': 't', 'user': {'nickname': '김회원'}}), 200,
+        headers: {'content-type': 'application/json'});
+    });
+    await exchange(
+      (method: SignInMethod.apple, idToken: 'id', nickname: '김회원', code: 'auth-code'),
+      'https://example.com',
+      client: web,
+    );
+    expect(sent!['code'], 'auth-code');
+    expect(sent!['idToken'], 'id');
+  });
+
+  test('구글은 넘길 code 가 없어서 보내지 않는다', () async {
+    Map<String, Object?>? sent;
+    await exchange(
+      (method: SignInMethod.google, idToken: 'id', nickname: null, code: null),
+      'https://example.com',
+      client: MockClient((request) async {
+        sent = jsonDecode(request.body) as Map<String, Object?>;
+        return http.Response(
+          jsonEncode({'token': 't', 'user': {'nickname': 'x'}}), 200,
+          headers: {'content-type': 'application/json'});
+      }),
+    );
+    expect(sent!.containsKey('code'), isFalse);
   });
 
   test('깨진 파일은 조용히 무시한다', () async {

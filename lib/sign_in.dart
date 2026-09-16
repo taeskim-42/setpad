@@ -31,7 +31,17 @@ const _googleServerClientId = String.fromEnvironment(
 );
 
 /// 제공자에게 받은 신원. 이대로 서버에 넘기면 서버가 서명을 확인한다.
-typedef Credential = ({SignInMethod method, String idToken, String? nickname});
+/// 로그인 한 번으로 받는 것.
+///
+/// `code` 는 애플만 준다. **탈퇴할 때 애플에 알리려면 이것이 있어야 한다** —
+/// id_token 은 신원을 증명할 뿐이고, 폐기의 대상은 이 code 로 바꾼 토큰이다.
+/// 로그인 순간에만 오므로 그때 서버로 넘긴다.
+typedef Credential = ({
+  SignInMethod method,
+  String idToken,
+  String? nickname,
+  String? code,
+});
 
 Future<Credential?> signInWithPlatform() async {
   switch (platformSignIn) {
@@ -49,6 +59,7 @@ Future<Credential?> signInWithPlatform() async {
         method: SignInMethod.apple,
         idToken: token,
         nickname: name.isEmpty ? null : name,
+        code: apple.authorizationCode,
       );
     case SignInMethod.google:
       await GoogleSignIn.instance.initialize(
@@ -61,6 +72,7 @@ Future<Credential?> signInWithPlatform() async {
         method: SignInMethod.google,
         idToken: token,
         nickname: account.displayName,
+        code: null,
       );
     case null:
       return null;
@@ -88,6 +100,7 @@ Future<({String token, String nickname})?> exchange(
             'provider': credential.method.name,
             'idToken': credential.idToken,
             if (credential.nickname != null) 'nickname': credential.nickname,
+            if (credential.code != null) 'code': credential.code,
           }),
         )
         .timeout(const Duration(seconds: 20));
