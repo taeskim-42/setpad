@@ -166,11 +166,12 @@
   "proEverythingElseFree": "記錄、計時、健康同步和健身房功能，不訂閱也全部可用。",
   "proOwned": "已開通，謝謝。",
   "proSignInFirst": "訂閱綁定帳戶，請先登入。",
-  "tagSignInNeeded": "請先登入以連接健身房，然後再碰一次貼紙。",
+  "tagSignInNeeded": "登入後即可與健身房連接。",
   "tagJoinSent": "已送出申請。教練確認後即可開始。",
   "tagJoinWaiting": "已經申請過了，教練正在確認。",
   "tagJoinFailed": "申請沒有送出成功。稍後再碰一下貼紙。",
   "bookingPending": "待確認",
   "bookingWhichGym": "哪一家健身房？",
+  "tagSignIn": "登入",
   "ok": "好"
 }

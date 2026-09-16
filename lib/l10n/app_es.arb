@@ -166,11 +166,12 @@
   "proEverythingElseFree": "Registrar, temporizadores, salud y funciones del gimnasio funcionan sin plan.",
   "proOwned": "Activo. Gracias.",
   "proSignInFirst": "El plan va ligado a una cuenta. Inicia sesión primero.",
-  "tagSignInNeeded": "Inicia sesión para conectar con tu gimnasio y vuelve a acercar el teléfono a la pegatina.",
+  "tagSignInNeeded": "Inicia sesión para conectar con tu gimnasio.",
   "tagJoinSent": "Solicitud enviada. Podrás empezar en cuanto un entrenador la confirme.",
   "tagJoinWaiting": "Ya la has enviado. Un entrenador la está revisando.",
   "tagJoinFailed": "No se pudo enviar la solicitud. Acerca el teléfono otra vez en un momento.",
   "bookingPending": "Pendiente de aprobación",
   "bookingWhichGym": "¿Qué gimnasio?",
+  "tagSignIn": "Iniciar sesión",
   "ok": "Aceptar"
 }

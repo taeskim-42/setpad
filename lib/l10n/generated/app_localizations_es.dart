@@ -628,8 +628,7 @@ class LEs extends L {
       'El plan va ligado a una cuenta. Inicia sesión primero.';
 
   @override
-  String get tagSignInNeeded =>
-      'Inicia sesión para conectar con tu gimnasio y vuelve a acercar el teléfono a la pegatina.';
+  String get tagSignInNeeded => 'Inicia sesión para conectar con tu gimnasio.';
 
   @override
   String get tagJoinSent =>
@@ -648,6 +647,9 @@ class LEs extends L {
 
   @override
   String get bookingWhichGym => '¿Qué gimnasio?';
+
+  @override
+  String get tagSignIn => 'Iniciar sesión';
 
   @override
   String get ok => 'Aceptar';

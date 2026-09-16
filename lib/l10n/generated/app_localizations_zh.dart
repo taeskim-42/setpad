@@ -608,7 +608,7 @@ class LZh extends L {
   String get proSignInFirst => '订阅绑定账户，请先登录。';
 
   @override
-  String get tagSignInNeeded => '请先登录以连接健身房，然后再碰一次贴纸。';
+  String get tagSignInNeeded => '登录后即可与健身房连接。';
 
   @override
   String get tagJoinSent => '已提交申请。教练确认后即可开始。';
@@ -624,6 +624,9 @@ class LZh extends L {
 
   @override
   String get bookingWhichGym => '哪一家健身房？';
+
+  @override
+  String get tagSignIn => '登录';
 
   @override
   String get ok => '好';
@@ -1233,7 +1236,7 @@ class LZhHans extends LZh {
   String get proSignInFirst => '订阅绑定账户，请先登录。';
 
   @override
-  String get tagSignInNeeded => '请先登录以连接健身房，然后再碰一次贴纸。';
+  String get tagSignInNeeded => '登录后即可与健身房连接。';
 
   @override
   String get tagJoinSent => '已提交申请。教练确认后即可开始。';
@@ -1249,6 +1252,9 @@ class LZhHans extends LZh {
 
   @override
   String get bookingWhichGym => '哪一家健身房？';
+
+  @override
+  String get tagSignIn => '登录';
 
   @override
   String get ok => '好';
@@ -1858,7 +1864,7 @@ class LZhHant extends LZh {
   String get proSignInFirst => '訂閱綁定帳戶，請先登入。';
 
   @override
-  String get tagSignInNeeded => '請先登入以連接健身房，然後再碰一次貼紙。';
+  String get tagSignInNeeded => '登入後即可與健身房連接。';
 
   @override
   String get tagJoinSent => '已送出申請。教練確認後即可開始。';
@@ -1874,6 +1880,9 @@ class LZhHant extends LZh {
 
   @override
   String get bookingWhichGym => '哪一家健身房？';
+
+  @override
+  String get tagSignIn => '登入';
 
   @override
   String get ok => '好';

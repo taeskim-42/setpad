@@ -614,7 +614,7 @@ class LJa extends L {
   String get proSignInFirst => 'プランはアカウントに紐づきます。先にログインしてください。';
 
   @override
-  String get tagSignInNeeded => 'ジムとつなぐにはログインが必要です。ログインしてステッカーにもう一度かざしてください。';
+  String get tagSignInNeeded => 'ジムとつなぐにはログインが必要です。';
 
   @override
   String get tagJoinSent => '登録を申請しました。トレーナーが確認するとすぐに始められます。';
@@ -630,6 +630,9 @@ class LJa extends L {
 
   @override
   String get bookingWhichGym => 'どのジムですか？';
+
+  @override
+  String get tagSignIn => 'ログイン';
 
   @override
   String get ok => 'OK';

@@ -1108,7 +1108,7 @@ abstract class L {
   /// No description provided for @tagSignInNeeded.
   ///
   /// In ko, this message translates to:
-  /// **'헬스장과 연결하려면 로그인이 필요합니다. 로그인하고 스티커에 다시 대주세요.'**
+  /// **'헬스장과 연결하려면 로그인이 필요합니다.'**
   String get tagSignInNeeded;
 
   /// No description provided for @tagJoinSent.
@@ -1140,6 +1140,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'어느 헬스장인가요?'**
   String get bookingWhichGym;
+
+  /// No description provided for @tagSignIn.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인'**
+  String get tagSignIn;
 
   /// No description provided for @ok.
   ///

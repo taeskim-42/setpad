@@ -192,11 +192,34 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     final gymId = gymFromTag(uri);
     if (gymId == null) return;
 
-    // **조용히 끝내지 않는다.** 스토어를 거쳐 앱을 깐 사람은 태그 주소를
-    // 들고 오지 못하므로 스티커에 다시 대야 하는데, 그때 아무 일도 안
-    // 일어나면 앱이 고장 난 줄 안다. 무엇이 없어서 안 되는지 말해 준다.
+    // **여기서 로그인까지 끝낸다.** 안내만 하고 웹으로 보내면 거기서 또
+    // 로그인 수단을 고르게 되고, 웹의 카카오와 앱의 Apple 은 서로 다른
+    // 사람이 된다. 기기가 쓰는 수단 하나로 여기서 들어오고 이어서 진행한다.
     if (!_account.signedIn) {
-      await _tellTag(L.of(context).tagSignInNeeded);
+      final l = L.of(context);
+      final go = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (ctx) => CupertinoAlertDialog(
+          content: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(l.tagSignInNeeded, style: const TextStyle(fontSize: 15)),
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.cancel),
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.tagSignIn),
+            ),
+          ],
+        ),
+      );
+      if (go != true || !await _account.signIn() || !mounted) return;
+      // 로그인했으니 댄 것을 그대로 이어서 처리한다. 다시 대라고 하지 않는다.
+      if (mounted) await _openTag(uri);
       return;
     }
 

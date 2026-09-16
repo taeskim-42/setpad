@@ -623,8 +623,7 @@ class LTh extends L {
   String get proSignInFirst => 'แพ็กเกจผูกกับบัญชี กรุณาเข้าสู่ระบบก่อน';
 
   @override
-  String get tagSignInNeeded =>
-      'เข้าสู่ระบบเพื่อเชื่อมกับยิม แล้วแตะสติกเกอร์อีกครั้ง';
+  String get tagSignInNeeded => 'เข้าสู่ระบบเพื่อเชื่อมต่อกับยิมของคุณ';
 
   @override
   String get tagJoinSent => 'ส่งคำขอแล้ว เริ่มได้ทันทีเมื่อเทรนเนอร์ยืนยัน';
@@ -640,6 +639,9 @@ class LTh extends L {
 
   @override
   String get bookingWhichGym => 'ยิมไหน';
+
+  @override
+  String get tagSignIn => 'เข้าสู่ระบบ';
 
   @override
   String get ok => 'ตกลง';

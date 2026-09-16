@@ -628,8 +628,7 @@ class LEn extends L {
       'A plan belongs to an account. Please sign in first.';
 
   @override
-  String get tagSignInNeeded =>
-      'Sign in to connect with your gym, then tap the sticker again.';
+  String get tagSignInNeeded => 'Sign in to connect with your gym.';
 
   @override
   String get tagJoinSent =>
@@ -647,6 +646,9 @@ class LEn extends L {
 
   @override
   String get bookingWhichGym => 'Which gym?';
+
+  @override
+  String get tagSignIn => 'Sign in';
 
   @override
   String get ok => 'OK';

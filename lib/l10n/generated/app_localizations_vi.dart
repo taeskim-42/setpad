@@ -626,8 +626,7 @@ class LVi extends L {
       'Gói gắn với tài khoản. Vui lòng đăng nhập trước.';
 
   @override
-  String get tagSignInNeeded =>
-      'Đăng nhập để kết nối với phòng tập, rồi chạm lại vào sticker.';
+  String get tagSignInNeeded => 'Đăng nhập để kết nối với phòng tập của bạn.';
 
   @override
   String get tagJoinSent =>
@@ -646,6 +645,9 @@ class LVi extends L {
 
   @override
   String get bookingWhichGym => 'Phòng tập nào?';
+
+  @override
+  String get tagSignIn => 'Đăng nhập';
 
   @override
   String get ok => 'OK';

@@ -616,7 +616,7 @@ class LKo extends L {
   String get proSignInFirst => '이용권은 계정에 붙습니다. 먼저 로그인해 주세요.';
 
   @override
-  String get tagSignInNeeded => '헬스장과 연결하려면 로그인이 필요합니다. 로그인하고 스티커에 다시 대주세요.';
+  String get tagSignInNeeded => '헬스장과 연결하려면 로그인이 필요합니다.';
 
   @override
   String get tagJoinSent => '등록을 신청했습니다. 트레이너가 확인하면 바로 시작할 수 있습니다.';
@@ -632,6 +632,9 @@ class LKo extends L {
 
   @override
   String get bookingWhichGym => '어느 헬스장인가요?';
+
+  @override
+  String get tagSignIn => '로그인';
 
   @override
   String get ok => '확인';

@@ -166,11 +166,12 @@
   "proEverythingElseFree": "Ghi chép, hẹn giờ, đồng bộ sức khỏe và tính năng phòng tập đều dùng được mà không cần gói.",
   "proOwned": "Đang hoạt động. Cảm ơn bạn.",
   "proSignInFirst": "Gói gắn với tài khoản. Vui lòng đăng nhập trước.",
-  "tagSignInNeeded": "Đăng nhập để kết nối với phòng tập, rồi chạm lại vào sticker.",
+  "tagSignInNeeded": "Đăng nhập để kết nối với phòng tập của bạn.",
   "tagJoinSent": "Đã gửi yêu cầu. Bạn có thể bắt đầu ngay khi huấn luyện viên xác nhận.",
   "tagJoinWaiting": "Bạn đã gửi yêu cầu rồi. Huấn luyện viên đang xem xét.",
   "tagJoinFailed": "Không gửi được yêu cầu. Lát nữa hãy chạm lại vào sticker.",
   "bookingPending": "Chờ duyệt",
   "bookingWhichGym": "Phòng tập nào?",
+  "tagSignIn": "Đăng nhập",
   "ok": "OK"
 }
