@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 import 'gym.dart';
 import 'purchases.dart';
@@ -19,6 +21,7 @@ class Account extends ChangeNotifier {
     this.endpoint = RecordAi.defaultEndpoint,
     Purchases? purchases,
     this.client,
+    this.storageDir,
   }) : _purchases = purchases ?? Purchases();
 
   final String endpoint;
@@ -26,6 +29,9 @@ class Account extends ChangeNotifier {
 
   /// 테스트가 끼워 넣는 자리. 비어 있으면 진짜 그물을 쓴다.
   final http.Client? client;
+
+  /// 테스트가 쓸 임시 폴더. 비어 있으면 앱 문서함에 쓴다.
+  final Directory? storageDir;
   StreamSubscription<PurchaseProof>? _watch;
 
   /// 로그인해서 받은 우리 토큰. 없으면 로그인하지 않은 것이다.
@@ -57,8 +63,96 @@ class Account extends ChangeNotifier {
 
   Future<void> start() async {
     _watch ??= _purchases.proofs.listen(_send);
+    await restoreSession();
     await _purchases.start(apple: platformSignIn == SignInMethod.apple);
     if (token != null) await _refresh();
+  }
+
+  /// 남겨 둔 로그인을 되살린다. 스토어를 건드리지 않아 테스트가 이것만 부른다.
+  @visibleForTesting
+  Future<void> restoreSession() async {
+    await _loadSession();
+    if (token != null) await _stillValid();
+  }
+
+  // ── 로그인을 기기에 남긴다 ─────────────────────────────────
+  //
+  // **이것이 없으면 앱을 껐다 켤 때마다 로그아웃이다.** 스티커를 대는 사람은
+  // 대개 앱이 꺼진 상태에서 대므로, 댈 때마다 로그인부터 하게 된다. 로그인이
+  // 풀렸다 붙었다 하는 것처럼 보이던 것이 이것이다.
+  //
+  // 노트·설정과 같은 자리에 같은 방식으로 쓴다. 저장소를 하나 더 들이지 않는다.
+
+  Future<File?> _sessionFile() async {
+    if (kIsWeb) return null; // 웹에는 문서함이 없다.
+    try {
+      final dir = storageDir ?? await getApplicationDocumentsDirectory();
+      return File('${dir.path}/session.json');
+    } catch (e) {
+      debugPrint('세션 파일 자리를 못 찾았다: $e');
+      return null;
+    }
+  }
+
+  Future<void> _loadSession() async {
+    try {
+      final f = await _sessionFile();
+      if (f == null || !f.existsSync()) return;
+      final data = jsonDecode(await f.readAsString());
+      if (data is! Map) return;
+      final saved = data['token'];
+      if (saved is! String || saved.isEmpty) return;
+      token = saved;
+      nickname = data['nickname'] as String? ?? '';
+      notifyListeners();
+    } catch (e) {
+      // 깨진 파일 때문에 앱이 안 뜨면 안 된다. 로그인만 다시 하면 된다.
+      debugPrint('session.json 을 읽지 못했다: $e');
+    }
+  }
+
+  Future<void> _saveSession() async {
+    try {
+      final f = await _sessionFile();
+      if (f == null) return;
+      if (token == null) {
+        if (f.existsSync()) await f.delete();
+        return;
+      }
+      // 쓰다 말고 꺼져도 반쪽짜리 파일이 남지 않게 한다 — 노트와 같은 방식이다.
+      final temporary = File('${f.path}.tmp');
+      await temporary.writeAsString(
+        jsonEncode({'token': token, 'nickname': nickname}),
+        flush: true,
+      );
+      await temporary.rename(f.path);
+    } catch (e) {
+      debugPrint('session.json 을 쓰지 못했다: $e');
+    }
+  }
+
+  /// 남겨 둔 토큰이 아직 살아 있는가.
+  ///
+  /// 토큰은 서른 날이면 죽는다. 죽은 것을 들고 있으면 체육관 목록이 빈 채로
+  /// 와서 **다니는 곳이 없는 사람처럼** 보인다 — 등록을 다시 신청하게 된다.
+  /// 그물이 없어서 못 물어본 것과 서버가 거절한 것은 다르다. 거절일 때만 지운다.
+  Future<bool> _stillValid() async {
+    final web = client ?? http.Client();
+    try {
+      final response = await web.get(
+        Uri.parse('$endpoint/api/me'),
+        headers: {'authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 401) {
+        await signOut();
+        return false;
+      }
+      return true;
+    } catch (_) {
+      return true; // 물어보지 못했을 뿐이다. 알던 것을 그대로 쓴다.
+    } finally {
+      if (client == null) web.close();
+    }
   }
 
   /// 다니는 체육관을 다시 읽는다. 트레이너가 방금 등록했을 수 있다.
@@ -79,18 +173,22 @@ class Account extends ChangeNotifier {
     if (result == null) return false;
     token = result.token;
     nickname = result.nickname;
+    await _saveSession();
     await _refresh();
     await refreshGyms();
     notifyListeners();
     return true;
   }
 
-  void signOut() {
+  /// 로그아웃. **남긴 파일을 지우는 것까지가 로그아웃이다** — 지우기 전에
+  /// 앱이 죽으면 다음에 켤 때 다시 로그인된 채로 뜬다.
+  Future<void> signOut() async {
     token = null;
     nickname = '';
     plan = null;
     gyms = const [];
     notifyListeners();
+    await _saveSession();
   }
 
   /// 결제는 로그인이 있어야 한다 — 권한은 기기가 아니라 사람에게 붙는다.

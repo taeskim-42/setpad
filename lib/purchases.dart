@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 /// 살 수 있는 것.
@@ -32,8 +34,13 @@ typedef PurchaseProof = ({Plan plan, String token, bool apple});
 /// 으로 유료가 된다. 앱이 하는 일은 구매를 시작하고 증거를 받아 서버에 넘기는
 /// 것까지다 — 진짜인지는 서버가 스토어에 직접 물어 정한다.
 class Purchases {
-  Purchases({InAppPurchase? store}) : _store = store ?? InAppPurchase.instance;
-  final InAppPurchase _store;
+  Purchases({InAppPurchase? store}) : _given = store;
+
+  // **만들 때 스토어를 깨우지 않는다.** InAppPurchase.instance 는 곧바로
+  // 결제 채널에 붙는데, 결제와 상관없는 자리에서 Account 를 만들기만 해도
+  // 거기 끌려간다(테스트가 채널 오류로 죽었다). 실제로 쓸 때 붙는다.
+  final InAppPurchase? _given;
+  InAppPurchase get _store => _given ?? InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _watch;
 
   /// 확인된 구매가 올라올 자리. 화면이 이걸 서버로 넘긴다.
@@ -42,17 +49,27 @@ class Purchases {
 
   Map<Plan, ProductDetails> products = const {};
 
+  /// 스토어에 붙어 파는 것을 읽어 온다.
+  ///
+  /// **여기서 터지면 앱 전체가 못 뜬다.** 결제 채널은 기기에 따라 아예 없다
+  /// (Play 서비스 없는 기기, 테스트 환경). 못 붙은 것은 "팔 것이 없다"와
+  /// 같은 뜻이므로 그렇게 답하고 지나간다 — 기록하는 일은 그대로 된다.
   Future<bool> start({bool apple = true}) async {
-    if (!await _store.isAvailable()) return false;
-    final found = await _store.queryProductDetails({
-      for (final plan in Plan.values) storeId(plan, apple: apple),
-    });
-    products = {
-      for (final detail in found.productDetails)
-        ?planForStoreId(detail.id): detail,
-    };
-    _watch ??= _store.purchaseStream.listen(_onPurchases);
-    return products.isNotEmpty;
+    try {
+      if (!await _store.isAvailable()) return false;
+      final found = await _store.queryProductDetails({
+        for (final plan in Plan.values) storeId(plan, apple: apple),
+      });
+      products = {
+        for (final detail in found.productDetails)
+          ?planForStoreId(detail.id): detail,
+      };
+      _watch ??= _store.purchaseStream.listen(_onPurchases);
+      return products.isNotEmpty;
+    } catch (e) {
+      debugPrint('스토어에 붙지 못했다: $e');
+      return false;
+    }
   }
 
   void _onPurchases(List<PurchaseDetails> purchases) {
