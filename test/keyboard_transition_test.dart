@@ -7,6 +7,7 @@ import 'package:setpad/editor.dart';
 import 'package:setpad/keypad.dart';
 import 'package:setpad/main.dart';
 import 'package:setpad/notes.dart';
+import 'package:setpad/palette.dart';
 
 final _field = find.descendant(
   of: find.byType(RoutineEditor),
@@ -61,6 +62,14 @@ void main() {
         (tester) async {
           await _pumpPhone(tester);
           await _inset(tester, 336);
+          final background = tester.widget<ColoredBox>(
+            find.byKey(const ValueKey('keyboard-background')),
+          );
+          expect(
+            background.color,
+            keypadBackground.resolveFrom(tester.element(_field)),
+            reason: 'The app must fill the keyboard\'s rounded top corners.',
+          );
           await _pickExercise(tester);
 
           final bottom = tester.getRect(find.byType(RoutineEditor)).bottom;

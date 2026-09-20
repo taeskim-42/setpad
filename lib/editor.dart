@@ -120,6 +120,10 @@ class RoutineEditorController extends ChangeNotifier {
   final List<String> _learned = [];
   List<String> get recentExercises => List.unmodifiable(_learned);
 
+  void forgetExercise(String name) {
+    if (_learned.remove(name)) notifyListeners();
+  }
+
   /// 이 기기에서 실제로 친 이름이 씨앗 목록보다 앞선다.
   /// 씨앗은 화면 언어의 이름으로 낸다 — 검색은 어느 언어로 하든 잡힌다.
   List<String> vocabulary(String lang) => [
@@ -472,6 +476,7 @@ class RoutineEditor extends StatefulWidget {
     this.ai = const RecordAi(),
     this.initialDraft,
     this.onDraftChanged,
+    this.onForgetExercise,
     this.recovery,
   });
   final RoutineEditorController controller;
@@ -483,10 +488,12 @@ class RoutineEditor extends StatefulWidget {
   /// 박자마다 몇 번째인지 읽어 줄까. 설정에서 켠다.
   final bool countAloud;
   final Widget? header;
+
   /// 질문을 해석해 주는 쪽. 서버에 묻는다.
   final RecordAi ai;
   final EditorDraft? initialDraft;
   final ValueChanged<EditorDraft?>? onDraftChanged;
+  final ValueChanged<String>? onForgetExercise;
 
   @override
   State<RoutineEditor> createState() => _RoutineEditorState();
@@ -498,8 +505,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   final _focus = FocusNode();
   final _scroll = ScrollController();
   late final _workoutTimer = WorkoutTimer();
-  late final _recovery =
-      widget.recovery ?? RestRecovery(health: HealthLink());
+  late final _recovery = widget.recovery ?? RestRecovery(health: HealthLink());
   bool _timingKeyboardHidden = false;
   final _listKey = GlobalKey();
   final _headerKey = GlobalKey();
@@ -527,6 +533,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 메모를 칠 때만 잠깐 시스템 키보드로 넘어간다. 세트를 하나 넣으면
   /// 다시 키패드로 돌아온다 — 메모는 세트마다 붙는 게 아니라 가끔 붙는다.
   bool _wantText = false;
+  bool _textKeyboardHidden = false;
 
   /// 칠 것이 들어 있는가. 키패드의 큰 키가 하는 일이 여기 따라 달라진다.
   /// 뒤집힐 때만 다시 그린다 — 글자마다 그릴 이유가 없다.
@@ -1064,23 +1071,45 @@ class _RoutineEditorState extends State<RoutineEditor>
     });
   }
 
-  /// 포커스를 쥔 채 키보드만 내려간 경우 requestFocus 는 아무 일도 하지 않는다.
-  /// 그때는 입력 연결을 직접 다시 연다.
-  /// 문서의 빈 곳을 눌렀을 때.
-  ///
-  /// **커서는 잃지 않는다.** 이 앱은 커서가 있는 자리가 곧 모드라서, 빈 곳을
-  /// 눌렀다고 커서가 사라지면 무엇을 치는 중이었는지가 사라진다.
-  ///
-  /// 다만 시스템 키보드는 내린다. 메모장에서 문서를 누르면 자판이 내려가고
-  /// 글은 그대로 있는 것과 같다 — 올라온 자판이 화면 절반을 가리고 있으면
-  /// 위에 적은 것을 볼 수가 없다. 입력줄을 다시 누르면 올라온다.
+  void _dismissTextKeyboard() {
+    if (_padMode) return;
+    if (!_focus.hasFocus) _focus.requestFocus();
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    if (!_textKeyboardHidden) setState(() => _textKeyboardHidden = true);
+  }
+
+  /// 포커스를 쥔 채 키보드만 내려간 경우 입력 연결을 직접 다시 연다.
   void _reopen() {
     if (_timingKeyboardHidden) setState(() => _timingKeyboardHidden = false);
+    if (_textKeyboardHidden) setState(() => _textKeyboardHidden = false);
     if (!_focus.hasFocus) {
       _focus.requestFocus();
     } else if (!_padMode) {
-      SystemChannels.textInput.invokeMethod('TextInput.hide');
+      SystemChannels.textInput.invokeMethod('TextInput.show');
     }
+  }
+
+  Future<void> _forgetExercise(String name) async {
+    final forget = await showCupertinoModalPopup<bool>(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: Text(name),
+        actions: [
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(L.of(context).delete),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(L.of(context).cancel),
+        ),
+      ),
+    );
+    if (forget != true || !mounted) return;
+    _c.forgetExercise(name);
+    widget.onForgetExercise?.call(name);
   }
 
   List<String> get _matches => !_c.naming
@@ -1265,7 +1294,7 @@ class _RoutineEditorState extends State<RoutineEditor>
         Expanded(
           child: GestureDetector(
             // 빈 곳을 눌러도 커서를 잃지 않는다.
-            onTap: _reopen,
+            onTap: _dismissTextKeyboard,
             behavior: HitTestBehavior.opaque,
             child: CustomScrollView(
               key: _listKey,
@@ -1424,129 +1453,139 @@ class _RoutineEditorState extends State<RoutineEditor>
             ),
           ),
         ),
-        if (matches.isNotEmpty)
+        if (matches.isNotEmpty && !_textKeyboardHidden)
           _Suggestions(
             matches: matches,
             highlight: _highlight,
             onPick: (name) => _commit(name),
+            onForget: _forgetExercise,
           ),
         // Both keyboards share one bottom area. Keep the keypad anchored while
         // the system inset shrinks; only text mode needs space above the IME.
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.viewInsetsOf(context).bottom,
-          ),
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: EdgeInsets.only(
-                bottom: _padMode ? 0 : MediaQuery.viewInsetsOf(context).bottom,
-              ),
-              child: _timingKeyboardHidden
-                  ? const SizedBox.shrink()
-                  : _padMode
-                  ? SetKeypad(
-                      addLabel: _recordSet == null
-                          ? null
-                          : L.of(context).doneEditing,
-                      onKey: _insert,
-                      onBackspace: _keypadBackspace,
-                      onAddSet: parseSetLine(_input.text) == null
-                          ? null
-                          : () => _commit(),
-                      onSubmit: _nextSet,
-                      submitLabel: _recordSet != null
-                          ? L.of(context).doneEditing
-                          : _hasInput
-                          ? L.of(context).next
-                          : L.of(context).finishExercise,
-                      onText: () {
-                        if (_editingRecord && !_finishRecordEdit()) return;
-                        // 글자판으로 넘어가는 것은 곧 메모를 적겠다는 뜻이다. 이 화면에
-                        // 글자가 필요한 자리는 거기뿐이다 — 운동 이름은 카드 밖에서
-                        // 치고 그때는 애초에 키패드가 안 뜬다.
-                        if (_c.lastSet != null) {
-                          _setDraft = _input.value;
-                          _input.clear();
-                        }
-                        setState(() => _wantText = true);
-                        // 읽기 전용이 풀린 뒤라야 키보드가 글자판으로 열린다.
-                        WidgetsBinding.instance.addPostFrameCallback(
-                          (_) => _reopen(),
-                        );
-                      },
-                      onAdjust: (direction) {
-                        final next = bumpLastNumber(_input.text, direction);
-                        _input.value = TextEditingValue(
-                          text: next,
-                          selection: TextSelection.collapsed(
-                            offset: next.length,
-                          ),
-                        );
-                        setState(() {});
-                      },
-                      // 무게를 치는 중이면 원판 단위, kg 를 지나 횟수를 치는 중이면 하나.
-                      // 무엇의 2.5 인지 보여야 한다. 횟수를 치는 중이면 단위가 없으므로
-                      // 숫자만 낸다 — "1회" 는 늘 1이라 붙일 값이 없다.
-                      stepLabel: _typingReps
-                          ? formatNumber(_stepSize)
-                          : formatValue(_stepSize, _unit),
-                      onStepPick: _pickStep,
-                      repeatLabel: _c.lastSet == null
-                          ? null
-                          : setLabel(
-                              value: _c.lastSet!.value,
-                              unit: _c.lastSet!.unit,
-                              reps: _c.lastSet!.reps,
-                              formatReps: L.of(context).repsCount,
+        ColoredBox(
+          key: const ValueKey('keyboard-background'),
+          color: MediaQuery.viewInsetsOf(context).bottom > 0
+              ? keypadBackground.resolveFrom(context)
+              : CupertinoColors.systemBackground.resolveFrom(context),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: _padMode
+                      ? 0
+                      : MediaQuery.viewInsetsOf(context).bottom,
+                ),
+                child: _timingKeyboardHidden
+                    ? const SizedBox.shrink()
+                    : _padMode
+                    ? SetKeypad(
+                        addLabel: _recordSet == null
+                            ? null
+                            : L.of(context).doneEditing,
+                        onKey: _insert,
+                        onBackspace: _keypadBackspace,
+                        onAddSet: parseSetLine(_input.text) == null
+                            ? null
+                            : () => _commit(),
+                        onSubmit: _nextSet,
+                        submitLabel: _recordSet != null
+                            ? L.of(context).doneEditing
+                            : _hasInput
+                            ? L.of(context).next
+                            : L.of(context).finishExercise,
+                        onText: () {
+                          if (_editingRecord && !_finishRecordEdit()) return;
+                          // 글자판으로 넘어가는 것은 곧 메모를 적겠다는 뜻이다. 이 화면에
+                          // 글자가 필요한 자리는 거기뿐이다 — 운동 이름은 카드 밖에서
+                          // 치고 그때는 애초에 키패드가 안 뜬다.
+                          if (_c.lastSet != null) {
+                            _setDraft = _input.value;
+                            _input.clear();
+                          }
+                          setState(() => _wantText = true);
+                          // 읽기 전용이 풀린 뒤라야 키보드가 글자판으로 열린다.
+                          WidgetsBinding.instance.addPostFrameCallback(
+                            (_) => _reopen(),
+                          );
+                        },
+                        onAdjust: (direction) {
+                          final next = bumpLastNumber(_input.text, direction);
+                          _input.value = TextEditingValue(
+                            text: next,
+                            selection: TextSelection.collapsed(
+                              offset: next.length,
                             ),
-                      onRepeat: _recordSet != null ? null : _c.repeatLastSet,
-                    )
-                  // 메모를 치는 동안에도 돌아올 문은 열어 둔다.
-                  : (_c.inBlock && _wantText && !_recordTitle)
-                  ? ColoredBox(
-                      color: keypadBackground.resolveFrom(context),
-                      child: SafeArea(
-                        top: false,
-                        child: SizedBox(
-                          height: 44,
-                          width: double.infinity,
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () => _commit(),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        CupertinoIcons.keyboard,
-                                        size: 19,
-                                        color: seal.resolveFrom(context),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        L.of(context).numberKeypad,
-                                        style: TextStyle(
-                                          fontSize: 17,
-                                          letterSpacing: -0.41,
+                          );
+                          setState(() {});
+                        },
+                        // 무게를 치는 중이면 원판 단위, kg 를 지나 횟수를 치는 중이면 하나.
+                        // 무엇의 2.5 인지 보여야 한다. 횟수를 치는 중이면 단위가 없으므로
+                        // 숫자만 낸다 — "1회" 는 늘 1이라 붙일 값이 없다.
+                        stepLabel: _typingReps
+                            ? formatNumber(_stepSize)
+                            : formatValue(_stepSize, _unit),
+                        onStepPick: _pickStep,
+                        repeatLabel: _c.lastSet == null
+                            ? null
+                            : setLabel(
+                                value: _c.lastSet!.value,
+                                unit: _c.lastSet!.unit,
+                                reps: _c.lastSet!.reps,
+                                formatReps: L.of(context).repsCount,
+                              ),
+                        onRepeat: _recordSet != null ? null : _c.repeatLastSet,
+                      )
+                    // 메모를 치는 동안에도 돌아올 문은 열어 둔다.
+                    : (_c.inBlock && _wantText && !_recordTitle)
+                    ? ColoredBox(
+                        color: keypadBackground.resolveFrom(context),
+                        child: SafeArea(
+                          top: false,
+                          child: SizedBox(
+                            height: 44,
+                            width: double.infinity,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () => _commit(),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          CupertinoIcons.keyboard,
+                                          size: 19,
                                           color: seal.resolveFrom(context),
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          L.of(context).numberKeypad,
+                                          style: TextStyle(
+                                            fontSize: 17,
+                                            letterSpacing: -0.41,
+                                            color: seal.resolveFrom(context),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
+                      )
+                    : const SafeArea(
+                        top: false,
+                        child: SizedBox(width: double.infinity),
                       ),
-                    )
-                  : const SafeArea(
-                      top: false,
-                      child: SizedBox(width: double.infinity),
-                    ),
+              ),
             ),
           ),
         ),
@@ -1950,11 +1989,13 @@ class _Suggestions extends StatelessWidget {
     required this.matches,
     required this.highlight,
     required this.onPick,
+    required this.onForget,
   });
 
   final List<String> matches;
   final int highlight;
   final ValueChanged<String> onPick;
+  final ValueChanged<String> onForget;
 
   @override
   Widget build(BuildContext context) {
@@ -1984,6 +2025,7 @@ class _Suggestions extends StatelessWidget {
               label: matches[i],
               selected: on,
               onTap: () => onPick(matches[i]),
+              onLongPress: () => onForget(matches[i]),
             ),
           );
         },
@@ -2003,45 +2045,50 @@ class SuggestionChip extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.onLongPress,
   });
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      minimumSize: Size.zero,
-      onPressed: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: selected
-              ? sealTint.resolveFrom(context)
-              : CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
-                  context,
-                ),
-          // 알약은 완전한 원형 끝이다. iOS 의 필터 칩이 그렇게 생겼다.
-          borderRadius: BorderRadius.circular(100),
-          border: Border.all(
+    return GestureDetector(
+      onLongPress: onLongPress,
+      child: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: Size.zero,
+        onPressed: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
             color: selected
-                ? seal.resolveFrom(context)
-                : CupertinoColors.separator.resolveFrom(context),
-            width: 0.5,
+                ? sealTint.resolveFrom(context)
+                : CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
+                    context,
+                  ),
+            // 알약은 완전한 원형 끝이다. iOS 의 필터 칩이 그렇게 생겼다.
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: selected
+                  ? seal.resolveFrom(context)
+                  : CupertinoColors.separator.resolveFrom(context),
+              width: 0.5,
+            ),
           ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            // footnote 13pt.
-            fontSize: 13,
-            letterSpacing: -0.08,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-            color: selected
-                ? seal.resolveFrom(context)
-                : CupertinoColors.label.resolveFrom(context),
+          child: Text(
+            label,
+            style: TextStyle(
+              // footnote 13pt.
+              fontSize: 13,
+              letterSpacing: -0.08,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              color: selected
+                  ? seal.resolveFrom(context)
+                  : CupertinoColors.label.resolveFrom(context),
+            ),
           ),
         ),
       ),

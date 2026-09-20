@@ -7,6 +7,7 @@ import 'package:setpad/editor.dart';
 import 'package:setpad/exercises.dart';
 import 'package:setpad/parser.dart';
 import 'package:setpad/keypad.dart';
+import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/main.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/palette.dart';
@@ -216,6 +217,35 @@ void main() {
       // 후보는 사라지고 운동 블록이 생긴다
       expect(find.widgetWithText(SuggestionChip, '벤치프레스'), findsNothing);
       expect(inPad('벤치프레스'), findsOneWidget);
+    });
+
+    testWidgets('저장 운동을 길게 누르면 확인 후 자동완성에서 지운다', (tester) async {
+      final controller = RoutineEditorController(history: const ['우리센터 등머신']);
+      addTearDown(controller.dispose);
+      String? forgotten;
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: CupertinoPageScaffold(
+            child: RoutineEditor(
+              controller: controller,
+              onForgetExercise: (name) => forgotten = name,
+            ),
+          ),
+        ),
+      );
+      await settle(tester);
+
+      await tester.longPress(find.widgetWithText(SuggestionChip, '우리센터 등머신'));
+      await settle(tester);
+      await tester.tap(find.widgetWithText(CupertinoActionSheetAction, '삭제'));
+      await settle(tester);
+
+      expect(forgotten, '우리센터 등머신');
+      expect(controller.recentExercises, isEmpty);
+      expect(find.widgetWithText(SuggestionChip, '우리센터 등머신'), findsNothing);
     });
 
     testWidgets('빈 화면에는 날짜 한 줄뿐이다', (tester) async {

@@ -196,6 +196,7 @@ class NotesStore extends ChangeNotifier {
   Timer? _debounce;
   Future<void> _writes = Future.value();
   final List<String> _exerciseHistory = [];
+  final Set<String> _forgottenExercises = {};
   List<String> get exerciseHistory => List.unmodifiable(_exerciseHistory);
   String _weightUnit = defaultUnit;
   String get weightUnit => _weightUnit;
@@ -236,6 +237,11 @@ class NotesStore extends ChangeNotifier {
             ..addAll(
               (data['exercises'] as List? ?? []).whereType<String>().toSet(),
             );
+          _forgottenExercises
+            ..clear()
+            ..addAll(
+              (data['forgottenExercises'] as List? ?? []).whereType<String>(),
+            );
         }
       } catch (e) {
         debugPrint('Could not load preferences: $e');
@@ -256,7 +262,10 @@ class NotesStore extends ChangeNotifier {
       _sort();
       for (final n in _notes) {
         for (final b in n.blocks.reversed) {
-          if (!_exerciseHistory.contains(b.name)) _exerciseHistory.add(b.name);
+          if (!_forgottenExercises.contains(b.name) &&
+              !_exerciseHistory.contains(b.name)) {
+            _exerciseHistory.add(b.name);
+          }
         }
       }
       notifyListeners();
@@ -282,6 +291,7 @@ class NotesStore extends ChangeNotifier {
       'countAloud': _countAloud,
       'deviceId': _deviceId,
       'exercises': _exerciseHistory,
+      'forgottenExercises': _forgottenExercises.toList(),
     });
     return _writes = _writes.then((_) async {
       try {
@@ -319,8 +329,15 @@ class NotesStore extends ChangeNotifier {
 
   void rememberExercise(String name) {
     if (name.trim().isEmpty) return;
+    _forgottenExercises.remove(name);
     _exerciseHistory.remove(name);
     _exerciseHistory.insert(0, name);
+    _scheduleSave();
+  }
+
+  void forgetExercise(String name) {
+    if (!_exerciseHistory.remove(name)) return;
+    _forgottenExercises.add(name);
     _scheduleSave();
   }
 

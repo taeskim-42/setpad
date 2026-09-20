@@ -139,6 +139,27 @@ void main() {
     },
   );
 
+  test('삭제한 저장 운동은 예전 기록이 있어도 다시 자동완성에 생기지 않는다', () async {
+    final dir = Directory.systemTemp.createTempSync('setpad_forgotten_');
+    final store = NotesStore(directory: dir);
+    addTearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+    store.create(blocks: [ExerciseBlock('우리센터 등머신')]);
+    store.rememberExercise('우리센터 등머신');
+    store.forgetExercise('우리센터 등머신');
+    await store.flush();
+
+    final reopened = NotesStore(directory: dir);
+    addTearDown(reopened.dispose);
+    await reopened.load();
+    expect(reopened.exerciseHistory, isNot(contains('우리센터 등머신')));
+
+    reopened.rememberExercise('우리센터 등머신');
+    expect(reopened.exerciseHistory, contains('우리센터 등머신'));
+  });
+
   testWidgets(
     'an unsubmitted name is saved while focused and restored without creating a set',
     (tester) async {

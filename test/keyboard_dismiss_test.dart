@@ -30,7 +30,7 @@ void main() {
       ),
     );
 
-    final c = RoutineEditorController();
+    final c = RoutineEditorController(history: const ['벤치프레스']);
     addTearDown(c.dispose);
     await tester.pumpWidget(
       CupertinoApp(
@@ -44,6 +44,7 @@ void main() {
     // 운동 이름을 치는 중 — 시스템 자판이 올라와 있는 상태다.
     await tester.enterText(find.byType(CupertinoTextField).first, '벤치');
     await tester.pumpAndSettle();
+    expect(find.widgetWithText(SuggestionChip, '벤치프레스'), findsOneWidget);
     calls.clear();
 
     // 문서의 빈 곳을 누른다.
@@ -57,6 +58,11 @@ void main() {
       reason: '내려간 자판을 곧바로 다시 올리면 안 된다',
     );
     expect(c.blocks, isEmpty, reason: '치던 것이 사라지면 안 된다');
+    expect(
+      find.widgetWithText(SuggestionChip, '벤치프레스'),
+      findsNothing,
+      reason: '자판을 내리면 자동완성도 함께 내려가야 한다',
+    );
   });
   _listKeyboard();
 }

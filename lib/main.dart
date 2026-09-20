@@ -211,7 +211,6 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   }
 
   Future<void> _handleTag(Uri uri, String gymId) async {
-
     // **여기서 로그인까지 끝낸다.** 안내만 하고 웹으로 보내면 거기서 또
     // 로그인 수단을 고르게 되고, 웹의 카카오와 앱의 Apple 은 서로 다른
     // 사람이 된다. 기기가 쓰는 수단 하나로 여기서 들어오고 이어서 진행한다.
@@ -222,7 +221,10 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
         builder: (ctx) => CupertinoAlertDialog(
           content: Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(l.tagSignInNeeded, style: const TextStyle(fontSize: 15)),
+            child: Text(
+              l.tagSignInNeeded,
+              style: const TextStyle(fontSize: 15),
+            ),
           ),
           actions: [
             CupertinoDialogAction(
@@ -368,7 +370,12 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     if (!_ready) {
       return const CupertinoPageScaffold(child: SizedBox.shrink());
     }
-    return NotesListPage(store: _store, onOpen: _open, account: _account, ai: _ai);
+    return NotesListPage(
+      store: _store,
+      onOpen: _open,
+      account: _account,
+      ai: _ai,
+    );
   }
 }
 
@@ -411,10 +418,10 @@ class _EditorPageState extends State<EditorPage> {
 
   void _persist() {
     final recent = _editor.recentExercises.firstOrNull;
-    if (recent != null && recent != _lastLearned) {
+    if (recent != _lastLearned && recent != null) {
       widget.store.rememberExercise(recent);
-      _lastLearned = recent;
     }
+    _lastLearned = recent;
     widget.store.update(widget.note, _editor.blocks);
   }
 
@@ -495,6 +502,7 @@ class _EditorPageState extends State<EditorPage> {
               initialDraft: widget.note.draft,
               onDraftChanged: (draft) =>
                   widget.store.updateDraft(widget.note, draft),
+              onForgetExercise: widget.store.forgetExercise,
             ),
           ),
         ),
@@ -587,7 +595,11 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
         );
       } else {
         note.meals.add(
-          MealEntry(at: DateTime.now(), kcal: estimate.kcal, items: estimate.items),
+          MealEntry(
+            at: DateTime.now(),
+            kcal: estimate.kcal,
+            items: estimate.items,
+          ),
         );
       }
       widget.store.touch();
@@ -697,8 +709,15 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
               spacing: 8,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Icon(CupertinoIcons.leaf_arrow_circlepath, size: 15, color: muted),
-                Text(l.mealIntake(intake), style: TextStyle(fontSize: 13, color: muted)),
+                Icon(
+                  CupertinoIcons.leaf_arrow_circlepath,
+                  size: 15,
+                  color: muted,
+                ),
+                Text(
+                  l.mealIntake(intake),
+                  style: TextStyle(fontSize: 13, color: muted),
+                ),
                 if (burned != null)
                   Text(
                     l.mealNet(burned.round() - intake),
@@ -735,7 +754,10 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
               ),
           ],
           if (_error != null)
-            Text(_error!, style: TextStyle(fontSize: 13, color: seal.resolveFrom(context))),
+            Text(
+              _error!,
+              style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
+            ),
           Align(
             alignment: Alignment.centerLeft,
             child: CupertinoButton(
