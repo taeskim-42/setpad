@@ -1999,36 +1999,41 @@ class _Suggestions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
-          context,
-        ),
-        // iOS 의 구분선은 0.5pt 다. 1pt 면 굵어서 눈에 걸린다.
-        border: Border(
-          top: BorderSide(
-            color: CupertinoColors.separator.resolveFrom(context),
-            width: 0.5,
+    return ColoredBox(
+      color: CupertinoColors.systemBackground.resolveFrom(context),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 6, 8, 10),
+        child: Container(
+          key: const ValueKey('exercise-suggestions'),
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
+              context,
+            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: CupertinoColors.separator.resolveFrom(context),
+              width: 0.5,
+            ),
+          ),
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: matches.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 6),
+            itemBuilder: (context, i) {
+              final on = i == highlight;
+              return Center(
+                child: SuggestionChip(
+                  label: matches[i],
+                  selected: on,
+                  onTap: () => onPick(matches[i]),
+                  onLongPress: () => onForget(matches[i]),
+                ),
+              );
+            },
           ),
         ),
-      ),
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: matches.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 6),
-        itemBuilder: (context, i) {
-          final on = i == highlight;
-          return Center(
-            child: SuggestionChip(
-              label: matches[i],
-              selected: on,
-              onTap: () => onPick(matches[i]),
-              onLongPress: () => onForget(matches[i]),
-            ),
-          );
-        },
       ),
     );
   }

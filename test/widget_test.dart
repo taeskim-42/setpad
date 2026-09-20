@@ -211,6 +211,12 @@ void main() {
       await tester.enterText(padField, '벤');
       await settle(tester);
       expect(find.widgetWithText(SuggestionChip, '벤치프레스'), findsOneWidget);
+      final suggestions = tester.getRect(
+        find.byKey(const ValueKey('exercise-suggestions')),
+      );
+      final editor = tester.getRect(find.byType(RoutineEditor));
+      expect(suggestions.left, greaterThan(editor.left));
+      expect(suggestions.right, lessThan(editor.right));
 
       await tester.tap(find.widgetWithText(SuggestionChip, '벤치프레스'));
       await settle(tester);
