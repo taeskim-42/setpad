@@ -402,6 +402,7 @@ class EditorPage extends StatefulWidget {
 }
 
 class _EditorPageState extends State<EditorPage> {
+  final _documentHeaderKey = GlobalKey<_DocumentHeaderState>();
   late final _editor = RoutineEditorController(
     history: widget.store.exerciseHistory,
     weightUnit: widget.store.weightUnit,
@@ -495,6 +496,7 @@ class _EditorPageState extends State<EditorPage> {
               controller: _editor,
               ai: widget.ai,
               header: _DocumentHeader(
+                key: _documentHeaderKey,
                 note: widget.note,
                 store: widget.store,
                 ai: widget.ai,
@@ -503,6 +505,7 @@ class _EditorPageState extends State<EditorPage> {
               onDraftChanged: (draft) =>
                   widget.store.updateDraft(widget.note, draft),
               onForgetExercise: widget.store.forgetExercise,
+              onMealPhoto: () => _documentHeaderKey.currentState?._pick(),
             ),
           ),
         ),
@@ -513,6 +516,7 @@ class _EditorPageState extends State<EditorPage> {
 
 class _DocumentHeader extends StatefulWidget {
   const _DocumentHeader({
+    super.key,
     required this.note,
     required this.store,
     required this.ai,

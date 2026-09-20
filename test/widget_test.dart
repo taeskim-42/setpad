@@ -1043,6 +1043,34 @@ void keypadTests() {
         '10',
       );
     });
+
+    testWidgets('키보드 액세서리에서 식단 사진을 바로 연다', (tester) async {
+      final controller = RoutineEditorController();
+      addTearDown(controller.dispose);
+      var opened = 0;
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: CupertinoPageScaffold(
+            child: RoutineEditor(
+              controller: controller,
+              onMealPhoto: () => opened++,
+            ),
+          ),
+        ),
+      );
+      await settle(tester);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const ValueKey('exercise-suggestions')),
+          matching: find.text('식단 사진'),
+        ),
+      );
+      expect(opened, 1);
+    });
   });
 
   group('미는 폭 표시', () {

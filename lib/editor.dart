@@ -477,6 +477,7 @@ class RoutineEditor extends StatefulWidget {
     this.initialDraft,
     this.onDraftChanged,
     this.onForgetExercise,
+    this.onMealPhoto,
     this.recovery,
   });
   final RoutineEditorController controller;
@@ -494,6 +495,7 @@ class RoutineEditor extends StatefulWidget {
   final EditorDraft? initialDraft;
   final ValueChanged<EditorDraft?>? onDraftChanged;
   final ValueChanged<String>? onForgetExercise;
+  final VoidCallback? onMealPhoto;
 
   @override
   State<RoutineEditor> createState() => _RoutineEditorState();
@@ -1453,12 +1455,14 @@ class _RoutineEditorState extends State<RoutineEditor>
             ),
           ),
         ),
-        if (matches.isNotEmpty && !_textKeyboardHidden)
+        if ((matches.isNotEmpty || widget.onMealPhoto != null) &&
+            !_textKeyboardHidden)
           _Suggestions(
             matches: matches,
             highlight: _highlight,
             onPick: (name) => _commit(name),
             onForget: _forgetExercise,
+            onMealPhoto: widget.onMealPhoto,
           ),
         // Both keyboards share one bottom area. Keep the keypad anchored while
         // the system inset shrinks; only text mode needs space above the IME.
@@ -1990,12 +1994,14 @@ class _Suggestions extends StatelessWidget {
     required this.highlight,
     required this.onPick,
     required this.onForget,
+    this.onMealPhoto,
   });
 
   final List<String> matches;
   final int highlight;
   final ValueChanged<String> onPick;
   final ValueChanged<String> onForget;
+  final VoidCallback? onMealPhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -2017,21 +2023,51 @@ class _Suggestions extends StatelessWidget {
               width: 0.5,
             ),
           ),
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: matches.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 6),
-            itemBuilder: (context, i) {
-              final on = i == highlight;
-              return Center(
-                child: SuggestionChip(
-                  label: matches[i],
-                  selected: on,
-                  onTap: () => onPick(matches[i]),
-                  onLongPress: () => onForget(matches[i]),
+          child: Row(
+            children: [
+              if (onMealPhoto != null) ...[
+                CupertinoButton(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: const Size(44, 44),
+                  onPressed: onMealPhoto,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(CupertinoIcons.camera, size: 18),
+                      const SizedBox(width: 5),
+                      Text(
+                        L.of(context).mealPhoto,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ],
+                  ),
                 ),
-              );
-            },
+                Container(
+                  width: 0.5,
+                  height: 24,
+                  color: CupertinoColors.separator.resolveFrom(context),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: matches.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 6),
+                  itemBuilder: (context, i) {
+                    final on = i == highlight;
+                    return Center(
+                      child: SuggestionChip(
+                        label: matches[i],
+                        selected: on,
+                        onTap: () => onPick(matches[i]),
+                        onLongPress: () => onForget(matches[i]),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),
