@@ -301,11 +301,7 @@ platform :android do
       skip_upload_images: true,
       skip_upload_screenshots: true,
       skip_upload_changelogs: true,
-      # **초안 앱에는 초안 릴리스만 만들 수 있다.** Google 이 그렇게 답한다:
-      # "Only releases with status draft may be created on draft app."
-      # 첫 출시는 콘솔에서 데이터 보안·콘텐츠 등급·타겟층을 채우고 사람이
-      # 한 번 눌러야 앱이 초안을 벗는다. 그다음부터 completed 로 바꿔도 된다.
-      release_status: "draft",
+      release_status: "completed",
     )
   end
 
