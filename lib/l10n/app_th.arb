@@ -189,5 +189,16 @@
   "bookingUpcoming": "นัดที่จะถึง",
   "bookingClosedDay": "วันนี้ไม่เปิดรับ",
   "bookingCancelAsk": "ยกเลิกการจองนี้ไหม",
-  "ok": "ตกลง"
+  "ok": "ตกลง",
+  "mealPhoto": "รูปอาหาร",
+  "mealCamera": "กล้อง",
+  "mealGallery": "จากอัลบั้ม",
+  "mealEstimating": "กำลังประมาณแคลอรี…",
+  "mealIntake": "รับประทาน ≈ {n} kcal",
+  "mealNet": "เผาผลาญ − รับประทาน {n} kcal",
+  "mealFailed": "ประมาณแคลอรีจากรูปนี้ไม่ได้ ลองถ่ายใหม่",
+  "mealEstimateNote": "ประมาณจากรูปถ่าย",
+  "mealServingsAsk": "กินไปกี่หน่วยบริโภค?",
+  "mealServingsOption": "{n} หน่วยบริโภค",
+  "mealWholePackage": "ทั้งห่อ ({n} หน่วยบริโภค)"
 }

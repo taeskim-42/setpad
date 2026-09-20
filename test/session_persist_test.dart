@@ -30,6 +30,21 @@ void main() {
     expect(asked, 'Bearer saved', reason: '남겨 둔 토큰을 그대로 들고 간다');
   });
 
+  test('살아 있는 토큰을 보면 서버가 준 새 토큰으로 바꿔 둔다', () async {
+    final f = File('${dir.path}/session.json')
+      ..writeAsStringSync(jsonEncode({'token': 'old', 'nickname': '김회원'}));
+    final a = account(MockClient((request) async {
+      if (request.url.path.endsWith('/api/me')) {
+        // http.Response(String) 은 charset 이 없으면 latin1 로 싸므로 본문에 한글을 넣지 않는다.
+        return http.Response(jsonEncode({'user': {'nickname': 'kim'}, 'gyms': [], 'token': 'fresh'}), 200);
+      }
+      return http.Response(jsonEncode({'plan': null, 'selling': false}), 200);
+    }));
+    await a.restoreSession();
+    expect(a.token, 'fresh');
+    expect(jsonDecode(f.readAsStringSync())['token'], 'fresh', reason: '다음에 켤 때도 새 토큰이어야 한다');
+  });
+
   test('서버가 거절한 토큰은 지운다', () async {
     final f = File('${dir.path}/session.json')
       ..writeAsStringSync(jsonEncode({'token': 'expired', 'nickname': '김회원'}));

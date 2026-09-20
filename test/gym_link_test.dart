@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -6,6 +7,7 @@ import 'package:setpad/editor.dart';
 import 'package:setpad/gym.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/record_ai.dart';
+import 'package:setpad/workout_timing.dart';
 
 /// 체육관과 주고받는 모양. 웹이 쓰는 모양과 앱의 칸이 어긋나면 조용히 빈
 /// 운동이 되므로, 양방향 변환을 글자 단위로 못 박아 둔다.
@@ -32,6 +34,35 @@ void main() {
     // 계획은 아직 해낸 것이 아니다. 받자마자 완료로 뜨면 안 한 운동이 기록된다.
     expect(blocks.first.sets.every((s) => !s.done), isTrue);
     expect(blocks.last.sets.single.value, isNull, reason: '무게 없는 운동이 있다');
+  });
+
+  test('CRM cumulative targets are plans, not completed sets', () {
+    final block = plannedBlocks([
+      {
+        'name': '타바타 총 200회 채우기 20/10 8라운드',
+        'sets': [],
+        'setup': {
+          'name': '타바타', 'weight': null, 'unit': 'kg',
+          'totalReps': 200, 'repsPerSet': null, 'totalSets': null,
+          'repsOnly': true,
+        },
+      },
+    ]).single;
+    expect(block.setup?.totalReps, 200);
+    expect(block.completedReps, 0);
+    expect(block.sets, isEmpty);
+    expect(block.name, contains('20/10 8라운드'));
+  });
+
+  test('웹이 이름에 적어 보내는 타이머를 앱이 그대로 읽는다', () {
+    // 서버 planName 이 만드는 문구 그대로. `timing` 필드는 앱이 읽지 않고, 이름이 계약이다.
+    final tabata = TimingSpec.parse('타바타 총 200회 채우기 20/10 8라운드')!;
+    expect((tabata.tabata, tabata.work, tabata.rest, tabata.rounds, tabata.bpm), (true, 20, 10, 8, null));
+    final full = TimingSpec.parse('버피 타바타 총 200회 채우기 30/15 10라운드 90bpm')!;
+    expect((full.tabata, full.work, full.rest, full.rounds, full.bpm), (true, 30, 15, 10, 90));
+    final beat = TimingSpec.parse('푸시업 총 100회 채우기 120bpm')!;
+    expect((beat.tabata, beat.bpm), (false, 120));
+    expect(TimingSpec.parse('벤치프레스'), isNull);
   });
 
   test('망가진 계획은 조용히 건너뛴다', () {
@@ -131,6 +162,7 @@ void main() {
   _pending();
   _shared();
   _tags();
+  _meals();
 }
 
 /// 헬스장은 신호가 나쁘다. 못 보낸 것은 다음에 다시 보낸다.
@@ -173,6 +205,29 @@ void _pending() {
     await sendPending(link, notes, onSent: () => touched++);
     expect(sent, ['a', 'd']);
     expect(notes.first.sentAt, isNotNull);
+    expect(touched, 1);
+  });
+
+  test('서버가 거절한 기록 하나가 뒤의 기록을 막지 않는다', () async {
+    final sent = <String>[];
+    final link = GymLink(
+      endpoint: 'https://example.com',
+      token: 'x',
+      client: MockClient((request) async {
+        final id = jsonDecode(request.body)['localId'] as String;
+        sent.add(id);
+        // 'a' 는 서버가 받지 않는 기록이다(예: 남의 루틴). 'b' 는 멀쩡하다.
+        return id == 'a'
+            ? http.Response('{"error":"notYourRoutine"}', 403)
+            : http.Response('{"id":"1"}', 200);
+      }),
+    );
+    final notes = [made('a', gymId: 'g'), made('b', gymId: 'g')];
+    var touched = 0;
+    await sendPending(link, notes, onSent: () => touched++);
+    expect(sent, ['a', 'b'], reason: '거절은 건너뛰고 계속 간다');
+    expect(notes.first.sentAt, isNull, reason: '거절된 기록은 보낸 것으로 꾸미지 않는다');
+    expect(notes.last.sentAt, isNotNull);
     expect(touched, 1);
   });
 
@@ -360,5 +415,70 @@ void _tags() {
     ]) {
       expect(gymFromTag(Uri.parse(raw)), isNull, reason: raw);
     }
+  });
+}
+
+/// 식단 사진 → 어림 칼로리. 사진은 base64 로 한 번 가고 서버에 남지 않는다.
+void _meals() {
+  test('식단 사진을 보내면 어림 칼로리와 음식 이름이 온다', () async {
+    Map<String, Object?>? sent;
+    var path = '';
+    final ai = RecordAi(
+      deviceId: 'device-0123456789abcdef',
+      client: MockClient((request) async {
+        if (request.url.path == '/api/device') return http.Response('{"token":"t"}', 200);
+        path = request.url.path;
+        sent = jsonDecode(request.body) as Map<String, Object?>;
+        return http.Response('{"kcal":650,"items":["kimchi stew","rice"],"saved":true}', 200);
+      }),
+    );
+    final estimate = await ai.estimateMeal(
+      Uint8List.fromList([1, 2, 3]),
+      mime: 'image/jpeg',
+      locale: 'ko-KR',
+      gymId: 'gym-1',
+      kind: 'lunch',
+    );
+    expect(path, '/api/meals/estimate');
+    expect(sent!['image'], base64Encode([1, 2, 3]));
+    expect(sent!['mime'], 'image/jpeg');
+    expect(sent!['gymId'], 'gym-1');
+    expect(estimate.kcal, 650);
+    expect(estimate.items, ['kimchi stew', 'rice']);
+    expect(estimate.saved, isTrue);
+  });
+
+  test('영양성분표는 1회분 열량을 읽고 회분을 곱한다', () async {
+    final ai = RecordAi(
+      deviceId: 'device-0123456789abcdef',
+      client: MockClient((request) async {
+        if (request.url.path == '/api/device') return http.Response('{"token":"t"}', 200);
+        return http.Response(jsonEncode({
+          'kcal': 150, 'items': ['choco pie'], 'confidence': 'high',
+          'label': {'perServingKcal': 150, 'servingSize': '1 serving 35g', 'servingsPerPackage': 12, 'product': 'Choco Pie'},
+        }), 200);
+      }),
+    );
+    final estimate = await ai.estimateMeal(Uint8List.fromList([1]), mime: 'image/jpeg', locale: 'ko');
+    final label = estimate.label!;
+    expect(label.perServingKcal, 150);
+    expect(label.servingsPerPackage, 12);
+    expect(label.kcalFor(0.5), 75);
+    expect(label.kcalFor(1.5), 225);
+    expect(label.kcalFor(12), 1800);
+    expect(NutritionLabel.tryFromJson({'perServingKcal': -1}), isNull);
+    expect(NutritionLabel.tryFromJson(null), isNull);
+  });
+
+  test('끼니는 기록과 함께 저장되고 되살아나며, 섭취 합계는 끼니가 있을 때만 있다', () {
+    final at = DateTime(2026, 9, 20, 12);
+    final note = Note(id: 'n', createdAt: at, updatedAt: at);
+    expect(note.intake, isNull, reason: '안 적은 것과 0 은 다르다');
+    note.meals.add(MealEntry(at: at, kcal: 650, items: ['김치찌개']));
+    note.meals.add(MealEntry(at: at, kcal: 200));
+    final back = Note.fromJson(jsonDecode(jsonEncode(note.toJson())) as Map<String, dynamic>);
+    expect(back.intake, 850);
+    expect(back.meals.first.items, ['김치찌개']);
+    expect(MealEntry.tryFromJson({'at': 'nope', 'kcal': 1}), isNull);
   });
 }

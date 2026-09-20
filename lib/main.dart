@@ -15,6 +15,8 @@ import 'gym_sheets.dart';
 import 'notes.dart';
 import 'palette.dart';
 import 'notes_list.dart';
+import 'record_ai.dart';
+import 'package:image_picker/image_picker.dart';
 import 'settings.dart';
 
 void main() => runApp(const SetpadApp());
@@ -87,6 +89,9 @@ class _Home extends StatefulWidget {
 class _HomeState extends State<_Home> with WidgetsBindingObserver {
   late final NotesStore _store = widget.store ?? NotesStore();
   final _health = HealthLink();
+
+  /// 서버에 묻는 쪽. 기기 id 는 store 가 처음 켤 때 만들므로 그 뒤에 읽는다.
+  RecordAi get _ai => RecordAi(deviceId: _store.deviceId);
   bool _ready = false;
 
   @override
@@ -363,7 +368,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     if (!_ready) {
       return const CupertinoPageScaffold(child: SizedBox.shrink());
     }
-    return NotesListPage(store: _store, onOpen: _open, account: _account);
+    return NotesListPage(store: _store, onOpen: _open, account: _account, ai: _ai);
   }
 }
 
@@ -373,10 +378,14 @@ class EditorPage extends StatefulWidget {
     required this.store,
     required this.note,
     this.account,
+    this.ai = const RecordAi(),
   });
 
   final NotesStore store;
   final Note note;
+
+  /// 문장 해석과 식단 사진이 같은 문을 쓴다.
+  final RecordAi ai;
 
   /// 설정에서 로그인·결제를 띄우려고 넘어온다.
   final Account? account;
@@ -477,7 +486,12 @@ class _EditorPageState extends State<EditorPage> {
             child: RoutineEditor(
               countAloud: widget.store.countAloud,
               controller: _editor,
-              header: _DocumentHeader(note: widget.note),
+              ai: widget.ai,
+              header: _DocumentHeader(
+                note: widget.note,
+                store: widget.store,
+                ai: widget.ai,
+              ),
               initialDraft: widget.note.draft,
               onDraftChanged: (draft) =>
                   widget.store.updateDraft(widget.note, draft),
@@ -489,19 +503,180 @@ class _EditorPageState extends State<EditorPage> {
   }
 }
 
-class _DocumentHeader extends StatelessWidget {
-  const _DocumentHeader({required this.note});
+class _DocumentHeader extends StatefulWidget {
+  const _DocumentHeader({
+    required this.note,
+    required this.store,
+    required this.ai,
+  });
   final Note note;
+  final NotesStore store;
+  final RecordAi ai;
 
-  /// 메모 앱의 머리다 — 날짜 한 줄이 가운데에 작게 놓이고 끝이다.
-  ///
-  /// 예전에는 그 아래에 "오늘 운동" 을 크게 적었다. 날짜 바로 밑에 같은 말을
-  /// 한 번 더 쓴 셈이고, 제목은 어차피 첫 운동 이름이 된다(목록이 그것을
-  /// 쓴다). 칼로리는 숫자가 있을 때만 나온다 — "기록 없음" 은 정보가 아니다.
+  @override
+  State<_DocumentHeader> createState() => _DocumentHeaderState();
+}
+
+/// 메모 앱의 머리다 — 날짜 한 줄이 가운데에 작게 놓이고 끝이다.
+///
+/// 예전에는 그 아래에 "오늘 운동" 을 크게 적었다. 날짜 바로 밑에 같은 말을
+/// 한 번 더 쓴 셈이고, 제목은 어차피 첫 운동 이름이 된다(목록이 그것을
+/// 쓴다). 칼로리는 숫자가 있을 때만 나온다 — "기록 없음" 은 정보가 아니다.
+///
+/// 식단은 사진 한 장으로 어림한다. 운동으로 쓴 것과 먹은 것을 같은 줄에
+/// 두면 "오늘 얼마나 남았나" 가 한눈에 읽힌다. 숫자는 어림이라고 적는다.
+class _DocumentHeaderState extends State<_DocumentHeader> {
+  bool _estimating = false;
+  String? _error;
+
+  Note get note => widget.note;
+
+  Future<void> _addMeal(ImageSource source) async {
+    final l = L.of(context);
+    final XFile? file;
+    try {
+      // 1024px 이면 접시가 충분히 보이고, 보내는 양은 수백 KB 다.
+      file = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
+    } catch (_) {
+      if (mounted) setState(() => _error = l.mealFailed);
+      return;
+    }
+    if (file == null || !mounted) return;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    setState(() {
+      _estimating = true;
+      _error = null;
+    });
+    try {
+      final bytes = await file.readAsBytes();
+      final hour = DateTime.now().hour;
+      final estimate = await widget.ai.estimateMeal(
+        bytes,
+        mime: file.mimeType ?? 'image/jpeg',
+        locale: locale,
+        gymId: note.gymId,
+        kind: hour < 10
+            ? 'breakfast'
+            : hour < 15
+            ? 'lunch'
+            : hour < 21
+            ? 'dinner'
+            : 'snack',
+      );
+      final label = estimate.label;
+      if (label != null) {
+        // 성분표는 정확하다. 몇 회분인지만 물어 곱한다.
+        if (!mounted) return;
+        setState(() => _estimating = false);
+        final servings = await _askServings(label);
+        if (servings == null || !mounted) return;
+        note.meals.add(
+          MealEntry(
+            at: DateTime.now(),
+            kcal: label.kcalFor(servings),
+            items: [
+              if (label.product != null) label.product!,
+              l.mealServingsOption(_servingsText(servings)),
+            ],
+          ),
+        );
+      } else {
+        note.meals.add(
+          MealEntry(at: DateTime.now(), kcal: estimate.kcal, items: estimate.items),
+        );
+      }
+      widget.store.touch();
+    } on RecordAiException {
+      _error = l.mealFailed;
+    } catch (_) {
+      _error = l.mealFailed;
+    }
+    if (mounted) setState(() => _estimating = false);
+  }
+
+  static String _servingsText(double n) =>
+      n == n.roundToDouble() ? '${n.round()}' : n.toStringAsFixed(1);
+
+  /// 성분표를 찍었을 때: 몇 회분 먹었는지. ½·1·1½·2 와, 총 회분이 적혀
+  /// 있으면 "전체" 도 고를 수 있다.
+  Future<double?> _askServings(NutritionLabel label) {
+    final l = L.of(context);
+    final whole = label.servingsPerPackage;
+    return showCupertinoModalPopup<double>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: Text(l.mealServingsAsk),
+        message: Text(
+          '${l.kcal(label.perServingKcal)}'
+          '${label.servingSize.isEmpty ? '' : ' · ${label.servingSize}'}',
+        ),
+        actions: [
+          for (final n in const [0.5, 1.0, 1.5, 2.0])
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(ctx, n),
+              child: Text(
+                '${l.mealServingsOption(_servingsText(n))} · ${l.kcal(label.kcalFor(n))}',
+              ),
+            ),
+          if (whole != null && whole > 2)
+            CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(ctx, whole),
+              child: Text(
+                '${l.mealWholePackage(_servingsText(whole))} · ${l.kcal(label.kcalFor(whole))}',
+              ),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(l.cancel),
+        ),
+      ),
+    );
+  }
+
+  void _pick() {
+    final l = L.of(context);
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: Text(l.mealPhoto),
+        message: Text(l.mealEstimateNote),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _addMeal(ImageSource.camera);
+            },
+            child: Text(l.mealCamera),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _addMeal(ImageSource.gallery);
+            },
+            child: Text(l.mealGallery),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(l.cancel),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final at = note.createdAt;
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final intake = note.intake;
+    final burned = note.calories;
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
       child: Column(
@@ -510,15 +685,76 @@ class _DocumentHeader extends StatelessWidget {
           Text(
             '${l.dayLabel(at)} · ${l.weekdayLabel(at)}',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            style: TextStyle(fontSize: 13, color: muted),
+          ),
+          if (burned != null) ...[
+            const SizedBox(height: 12),
+            HealthSummary(calories: burned, showSource: true),
+          ],
+          if (intake != null) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Icon(CupertinoIcons.leaf_arrow_circlepath, size: 15, color: muted),
+                Text(l.mealIntake(intake), style: TextStyle(fontSize: 13, color: muted)),
+                if (burned != null)
+                  Text(
+                    l.mealNet(burned.round() - intake),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: CupertinoColors.label.resolveFrom(context),
+                    ),
+                  ),
+              ],
+            ),
+            for (final (i, meal) in note.meals.indexed)
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${l.kcal(meal.kcal)}${meal.items.isEmpty ? '' : ' · ${meal.items.join(', ')}'}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, color: muted),
+                    ),
+                  ),
+                  CupertinoButton(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(32, 32),
+                    onPressed: () {
+                      note.meals.removeAt(i);
+                      widget.store.touch();
+                      setState(() {});
+                    },
+                    child: Icon(CupertinoIcons.xmark, size: 14, color: muted),
+                  ),
+                ],
+              ),
+          ],
+          if (_error != null)
+            Text(_error!, style: TextStyle(fontSize: 13, color: seal.resolveFrom(context))),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(44, 36),
+              onPressed: _estimating || !widget.ai.supported ? null : _pick,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(CupertinoIcons.camera, size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    _estimating ? l.mealEstimating : l.mealPhoto,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ],
+              ),
             ),
           ),
-          if (note.calories != null) ...[
-            const SizedBox(height: 12),
-            HealthSummary(calories: note.calories, showSource: true),
-          ],
         ],
       ),
     );

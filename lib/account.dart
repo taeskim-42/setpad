@@ -155,6 +155,20 @@ class Account extends ChangeNotifier {
         await signOut();
         return false;
       }
+      // 서버는 살아 있는 토큰을 볼 때마다 새 것을 같이 준다. 받아 두면 서른
+      // 날이 앱을 켠 날부터 다시 세어져, 쓰는 사람은 로그아웃을 안 만난다.
+      if (response.statusCode == 200) {
+        try {
+          final body = jsonDecode(utf8.decode(response.bodyBytes));
+          final fresh = body is Map ? body['token'] : null;
+          if (fresh is String && fresh.isNotEmpty && fresh != token) {
+            token = fresh;
+            await _saveSession();
+          }
+        } catch (_) {
+          // 답을 못 읽었을 뿐이다. 알던 토큰을 그대로 쓴다.
+        }
+      }
       return true;
     } catch (_) {
       return true; // 물어보지 못했을 뿐이다. 알던 것을 그대로 쓴다.

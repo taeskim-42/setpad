@@ -189,5 +189,16 @@
   "bookingUpcoming": "Upcoming",
   "bookingClosedDay": "Not available on this day.",
   "bookingCancelAsk": "Cancel this booking?",
-  "ok": "OK"
+  "ok": "OK",
+  "mealPhoto": "Meal photo",
+  "mealCamera": "Camera",
+  "mealGallery": "From library",
+  "mealEstimating": "Estimating calories…",
+  "mealIntake": "Intake ≈ {n} kcal",
+  "mealNet": "Burned − intake {n} kcal",
+  "mealFailed": "Couldn't estimate calories from that photo. Try another.",
+  "mealEstimateNote": "Estimated from the photo",
+  "mealServingsAsk": "How many servings?",
+  "mealServingsOption": "{n} serving(s)",
+  "mealWholePackage": "Whole package ({n} servings)"
 }

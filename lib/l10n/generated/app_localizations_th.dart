@@ -701,4 +701,45 @@ class LTh extends L {
 
   @override
   String get ok => 'ตกลง';
+
+  @override
+  String get mealPhoto => 'รูปอาหาร';
+
+  @override
+  String get mealCamera => 'กล้อง';
+
+  @override
+  String get mealGallery => 'จากอัลบั้ม';
+
+  @override
+  String get mealEstimating => 'กำลังประมาณแคลอรี…';
+
+  @override
+  String mealIntake(int n) {
+    return 'รับประทาน ≈ $n kcal';
+  }
+
+  @override
+  String mealNet(int n) {
+    return 'เผาผลาญ − รับประทาน $n kcal';
+  }
+
+  @override
+  String get mealFailed => 'ประมาณแคลอรีจากรูปนี้ไม่ได้ ลองถ่ายใหม่';
+
+  @override
+  String get mealEstimateNote => 'ประมาณจากรูปถ่าย';
+
+  @override
+  String get mealServingsAsk => 'กินไปกี่หน่วยบริโภค?';
+
+  @override
+  String mealServingsOption(String n) {
+    return '$n หน่วยบริโภค';
+  }
+
+  @override
+  String mealWholePackage(String n) {
+    return 'ทั้งห่อ ($n หน่วยบริโภค)';
+  }
 }

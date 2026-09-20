@@ -692,4 +692,45 @@ class LKo extends L {
 
   @override
   String get ok => '확인';
+
+  @override
+  String get mealPhoto => '식단 사진';
+
+  @override
+  String get mealCamera => '카메라';
+
+  @override
+  String get mealGallery => '앨범에서';
+
+  @override
+  String get mealEstimating => '칼로리 어림하는 중…';
+
+  @override
+  String mealIntake(int n) {
+    return '섭취 약 ${n}kcal';
+  }
+
+  @override
+  String mealNet(int n) {
+    return '운동 − 섭취 ${n}kcal';
+  }
+
+  @override
+  String get mealFailed => '사진에서 칼로리를 어림하지 못했어요. 다시 찍어 주세요.';
+
+  @override
+  String get mealEstimateNote => '사진으로 어림한 값이에요';
+
+  @override
+  String get mealServingsAsk => '몇 회분 드셨나요?';
+
+  @override
+  String mealServingsOption(String n) {
+    return '$n회분';
+  }
+
+  @override
+  String mealWholePackage(String n) {
+    return '전체 $n회분';
+  }
 }

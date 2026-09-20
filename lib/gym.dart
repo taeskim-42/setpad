@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import 'editor.dart';
 import 'notes.dart';
+import 'record_ai.dart';
 
 /// 내가 다니는 체육관 하나.
 typedef Gym = ({String id, String name, String? trainer});
@@ -98,8 +99,31 @@ class GymLink {
     required DateTime startedAt,
     required List<ExerciseBlock> blocks,
     String? note,
+  }) async =>
+      await sendWorkoutOutcome(
+        gymId: gymId,
+        localId: localId,
+        routineId: routineId,
+        startedAt: startedAt,
+        blocks: blocks,
+        note: note,
+      ) ==
+      SendOutcome.sent;
+
+  /// 올리되, 못 올렸으면 **왜** 못 올렸는지 가른다.
+  ///
+  /// 그물이 없거나 서버가 넘어졌으면 다음에 다시 보내면 되지만(retry), 서버가
+  /// 이 기록 자체를 거절했으면(rejected) 백 번 다시 보내도 똑같다. 둘을 같이
+  /// 취급하면 거절당한 기록 하나가 뒤의 모든 기록을 영영 막는다.
+  Future<SendOutcome> sendWorkoutOutcome({
+    required String gymId,
+    required String localId,
+    String? routineId,
+    required DateTime startedAt,
+    required List<ExerciseBlock> blocks,
+    String? note,
   }) async {
-    if (!supported) return false;
+    if (!supported) return SendOutcome.retry;
     return withClient((web) async {
       try {
         final response = await web
@@ -116,13 +140,22 @@ class GymLink {
               }),
             )
             .timeout(const Duration(seconds: 20));
-        return response.statusCode == 200;
+        return switch (response.statusCode) {
+          200 => SendOutcome.sent,
+          // 401 은 토큰이 죽은 것, 408·429 는 나중에 하라는 것 — 기록 탓이 아니다.
+          401 || 408 || 429 => SendOutcome.retry,
+          >= 400 && < 500 => SendOutcome.rejected,
+          _ => SendOutcome.retry,
+        };
       } catch (_) {
-        return false;
+        return SendOutcome.retry;
       }
     });
   }
 }
+
+/// 올리기의 결과. 보냈거나, 다음에 다시 보내거나, 서버가 이 기록을 거절했거나.
+enum SendOutcome { sent, retry, rejected }
 
 /// 트레이너가 적은 계획을 앱의 운동 칸으로 바꾼다.
 ///
@@ -140,7 +173,7 @@ List<ExerciseBlock> plannedBlocks(Object? items) => [
               reps: (set['reps'] as num?)?.toInt(),
               done: false,
             ),
-      ]),
+      ], WorkoutSetup.tryFromJson(item['setup'])),
 ];
 
 /// 앱의 기록을 웹이 읽는 모양으로 바꾼다. 계획과 같은 모양에 done 이 붙는다.
@@ -180,14 +213,18 @@ Future<void> sendPending(
   ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
   for (final note in waiting) {
-    final ok = await link.sendWorkout(
+    final outcome = await link.sendWorkoutOutcome(
       gymId: note.gymId!,
       localId: note.id,
       routineId: note.routineId,
       startedAt: note.createdAt,
       blocks: note.blocks,
     );
-    if (!ok) break; // 하나가 막히면 나머지도 막힌다. 다음 기회에.
+    // 그물이 막혔으면 나머지도 막힌다. 다음 기회에.
+    if (outcome == SendOutcome.retry) break;
+    // 서버가 이 하나를 거절한 것이면 뒤의 것들은 상관없다. 건너뛰고 계속 간다 —
+    // 이것 하나 때문에 그 뒤 몇 주치가 영영 안 올라가던 일이 있었다.
+    if (outcome == SendOutcome.rejected) continue;
     note.sentAt = DateTime.now();
     changed = true;
   }

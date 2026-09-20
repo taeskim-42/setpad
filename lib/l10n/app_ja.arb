@@ -189,5 +189,16 @@
   "bookingUpcoming": "予定",
   "bookingClosedDay": "この日は受け付けていません。",
   "bookingCancelAsk": "この予約をキャンセルしますか？",
-  "ok": "OK"
+  "ok": "OK",
+  "mealPhoto": "食事の写真",
+  "mealCamera": "カメラ",
+  "mealGallery": "ライブラリから",
+  "mealEstimating": "カロリーを推定中…",
+  "mealIntake": "摂取 約{n}kcal",
+  "mealNet": "消費 − 摂取 {n}kcal",
+  "mealFailed": "写真からカロリーを推定できませんでした。撮り直してください。",
+  "mealEstimateNote": "写真からの推定値です",
+  "mealServingsAsk": "何食分食べましたか？",
+  "mealServingsOption": "{n}食分",
+  "mealWholePackage": "全部（{n}食分）"
 }

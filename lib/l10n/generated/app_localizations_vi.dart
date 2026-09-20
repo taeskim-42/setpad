@@ -708,4 +708,45 @@ class LVi extends L {
 
   @override
   String get ok => 'OK';
+
+  @override
+  String get mealPhoto => 'Ảnh bữa ăn';
+
+  @override
+  String get mealCamera => 'Máy ảnh';
+
+  @override
+  String get mealGallery => 'Từ thư viện';
+
+  @override
+  String get mealEstimating => 'Đang ước tính calo…';
+
+  @override
+  String mealIntake(int n) {
+    return 'Nạp vào ≈ $n kcal';
+  }
+
+  @override
+  String mealNet(int n) {
+    return 'Đốt − nạp $n kcal';
+  }
+
+  @override
+  String get mealFailed => 'Không ước tính được calo từ ảnh này. Hãy chụp lại.';
+
+  @override
+  String get mealEstimateNote => 'Ước tính từ ảnh';
+
+  @override
+  String get mealServingsAsk => 'Đã ăn bao nhiêu khẩu phần?';
+
+  @override
+  String mealServingsOption(String n) {
+    return '$n khẩu phần';
+  }
+
+  @override
+  String mealWholePackage(String n) {
+    return 'Cả gói ($n khẩu phần)';
+  }
 }

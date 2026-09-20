@@ -119,6 +119,9 @@ class _NotesListPageState extends State<NotesListPage>
     if (mounted) setState(() => _routines = found);
   }
 
+  int _routineSets(Routine routine) =>
+      routine.blocks.fold(0, (n, b) => n + b.sets.length);
+
   /// 받은 루틴으로 새 기록을 연다.
   ///
   /// **자동으로 채우지 않는다.** 오늘 그걸 안 할 수도 있는데 매번 지우게 하면
@@ -372,7 +375,13 @@ class _NotesListPageState extends State<NotesListPage>
                                           ),
                                         ),
                                         Text(
-                                          l.routineFromTrainer(routine.gym),
+                                          // 무엇이 들어 있는지 한 줄. 세트가 있으면
+                                          // 세트 수를, 누적 목표뿐이면 이름만.
+                                          [
+                                            l.routineFromTrainer(routine.gym),
+                                            if (_routineSets(routine) > 0)
+                                              l.setOrdinal(_routineSets(routine)),
+                                          ].join(' · '),
                                           style: TextStyle(
                                             fontSize: 13,
                                             color: CupertinoColors

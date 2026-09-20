@@ -601,5 +601,44 @@
   "bookingUpcoming": "다가오는 예약",
   "bookingClosedDay": "이날은 받지 않습니다.",
   "bookingCancelAsk": "이 예약을 취소할까요?",
-  "ok": "확인"
+  "ok": "확인",
+  "mealPhoto": "식단 사진",
+  "mealCamera": "카메라",
+  "mealGallery": "앨범에서",
+  "mealEstimating": "칼로리 어림하는 중…",
+  "mealIntake": "섭취 약 {n}kcal",
+  "mealNet": "운동 − 섭취 {n}kcal",
+  "mealFailed": "사진에서 칼로리를 어림하지 못했어요. 다시 찍어 주세요.",
+  "mealEstimateNote": "사진으로 어림한 값이에요",
+  "@mealIntake": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "@mealNet": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "mealServingsAsk": "몇 회분 드셨나요?",
+  "mealServingsOption": "{n}회분",
+  "mealWholePackage": "전체 {n}회분",
+  "@mealServingsOption": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "@mealWholePackage": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  }
 }

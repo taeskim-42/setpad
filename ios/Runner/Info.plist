@@ -103,5 +103,9 @@
 	<string>운동 기록의 활동 칼로리를 가져오고 심박수 연동 상태를 확인하기 위해 건강 데이터를 읽습니다.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>여기서 친 운동을 건강 앱의 운동 기록으로 남깁니다.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>식단 사진을 찍어 칼로리를 어림합니다. 사진은 저장하지 않습니다.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>앨범의 식단 사진으로 칼로리를 어림합니다. 사진은 저장하지 않습니다.</string>
 </dict>
 </plist>

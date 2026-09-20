@@ -10,6 +10,33 @@ import 'editor.dart';
 import 'record_ai.dart';
 import 'units.dart';
 
+/// 사진으로 추정한 한 끼. 숫자는 어림이고, 화면도 그렇게 말한다.
+class MealEntry {
+  MealEntry({required this.at, required this.kcal, this.items = const []});
+  final DateTime at;
+  final int kcal;
+  final List<String> items;
+
+  Map<String, Object?> toJson() => {
+    'at': at.toIso8601String(),
+    'kcal': kcal,
+    'items': items,
+  };
+
+  static MealEntry? tryFromJson(Object? j) {
+    if (j is! Map) return null;
+    final at = j['at'], kcal = j['kcal'];
+    if (at is! String || kcal is! num) return null;
+    final when = DateTime.tryParse(at);
+    if (when == null) return null;
+    return MealEntry(
+      at: when,
+      kcal: kcal.toInt(),
+      items: (j['items'] as List?)?.whereType<String>().toList() ?? const [],
+    );
+  }
+}
+
 /// 한 번의 운동 기록. 메모 앱의 메모 한 장에 해당한다.
 ///
 /// 제목을 따로 받지 않는다 — 첫 운동 이름이 곧 제목이다. 메모 앱이 첫 줄을
@@ -43,6 +70,13 @@ class Note {
   /// 체육관으로 올린 시각. 헬스장은 신호가 나빠 한 번에 못 갈 때가 있으므로,
   /// 안 보낸 것은 다음에 앱을 켤 때 다시 보낸다.
   DateTime? sentAt;
+
+  /// 그날 사진으로 추정한 끼니들. 운동 칼로리와 견주어 보려고 둔다.
+  final List<MealEntry> meals = [];
+
+  /// 섭취 추정 합계. 끼니가 없으면 null — 0 과 "안 적었다" 는 다르다.
+  int? get intake =>
+      meals.isEmpty ? null : meals.fold<int>(0, (n, m) => n + m.kcal);
 
   /// 목록에 뜨는 제목 — 그날 한 운동 이름 전부.
   ///
@@ -86,6 +120,7 @@ class Note {
     if (gymId != null) 'gymId': gymId,
     if (routineId != null) 'routineId': routineId,
     if (sentAt != null) 'sentAt': sentAt!.toIso8601String(),
+    if (meals.isNotEmpty) 'meals': [for (final m in meals) m.toJson()],
     'blocks': [
       for (final b in blocks)
         {
@@ -140,6 +175,10 @@ class Note {
   static Note _restore(Map<String, dynamic> j, Note note) {
     final sent = j['sentAt'];
     if (sent is String) note.sentAt = DateTime.tryParse(sent);
+    for (final m in (j['meals'] as List? ?? const [])) {
+      final meal = MealEntry.tryFromJson(m);
+      if (meal != null) note.meals.add(meal);
+    }
     return note;
   }
 }

@@ -189,5 +189,16 @@
   "bookingUpcoming": "Próximas",
   "bookingClosedDay": "No disponible este día.",
   "bookingCancelAsk": "¿Cancelar esta reserva?",
-  "ok": "Aceptar"
+  "ok": "Aceptar",
+  "mealPhoto": "Foto de comida",
+  "mealCamera": "Cámara",
+  "mealGallery": "De la galería",
+  "mealEstimating": "Estimando calorías…",
+  "mealIntake": "Ingesta ≈ {n} kcal",
+  "mealNet": "Quemadas − ingesta {n} kcal",
+  "mealFailed": "No se pudieron estimar las calorías de esa foto. Prueba otra.",
+  "mealEstimateNote": "Estimado a partir de la foto",
+  "mealServingsAsk": "¿Cuántas porciones?",
+  "mealServingsOption": "{n} porción(es)",
+  "mealWholePackage": "Paquete entero ({n} porciones)"
 }

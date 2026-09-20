@@ -711,4 +711,46 @@ class LEs extends L {
 
   @override
   String get ok => 'Aceptar';
+
+  @override
+  String get mealPhoto => 'Foto de comida';
+
+  @override
+  String get mealCamera => 'Cámara';
+
+  @override
+  String get mealGallery => 'De la galería';
+
+  @override
+  String get mealEstimating => 'Estimando calorías…';
+
+  @override
+  String mealIntake(int n) {
+    return 'Ingesta ≈ $n kcal';
+  }
+
+  @override
+  String mealNet(int n) {
+    return 'Quemadas − ingesta $n kcal';
+  }
+
+  @override
+  String get mealFailed =>
+      'No se pudieron estimar las calorías de esa foto. Prueba otra.';
+
+  @override
+  String get mealEstimateNote => 'Estimado a partir de la foto';
+
+  @override
+  String get mealServingsAsk => '¿Cuántas porciones?';
+
+  @override
+  String mealServingsOption(String n) {
+    return '$n porción(es)';
+  }
+
+  @override
+  String mealWholePackage(String n) {
+    return 'Paquete entero ($n porciones)';
+  }
 }

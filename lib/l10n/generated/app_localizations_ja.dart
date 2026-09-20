@@ -690,4 +690,45 @@ class LJa extends L {
 
   @override
   String get ok => 'OK';
+
+  @override
+  String get mealPhoto => '食事の写真';
+
+  @override
+  String get mealCamera => 'カメラ';
+
+  @override
+  String get mealGallery => 'ライブラリから';
+
+  @override
+  String get mealEstimating => 'カロリーを推定中…';
+
+  @override
+  String mealIntake(int n) {
+    return '摂取 約${n}kcal';
+  }
+
+  @override
+  String mealNet(int n) {
+    return '消費 − 摂取 ${n}kcal';
+  }
+
+  @override
+  String get mealFailed => '写真からカロリーを推定できませんでした。撮り直してください。';
+
+  @override
+  String get mealEstimateNote => '写真からの推定値です';
+
+  @override
+  String get mealServingsAsk => '何食分食べましたか？';
+
+  @override
+  String mealServingsOption(String n) {
+    return '$n食分';
+  }
+
+  @override
+  String mealWholePackage(String n) {
+    return '全部（$n食分）';
+  }
 }

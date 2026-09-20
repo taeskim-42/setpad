@@ -1248,6 +1248,72 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'확인'**
   String get ok;
+
+  /// No description provided for @mealPhoto.
+  ///
+  /// In ko, this message translates to:
+  /// **'식단 사진'**
+  String get mealPhoto;
+
+  /// No description provided for @mealCamera.
+  ///
+  /// In ko, this message translates to:
+  /// **'카메라'**
+  String get mealCamera;
+
+  /// No description provided for @mealGallery.
+  ///
+  /// In ko, this message translates to:
+  /// **'앨범에서'**
+  String get mealGallery;
+
+  /// No description provided for @mealEstimating.
+  ///
+  /// In ko, this message translates to:
+  /// **'칼로리 어림하는 중…'**
+  String get mealEstimating;
+
+  /// No description provided for @mealIntake.
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취 약 {n}kcal'**
+  String mealIntake(int n);
+
+  /// No description provided for @mealNet.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 − 섭취 {n}kcal'**
+  String mealNet(int n);
+
+  /// No description provided for @mealFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진에서 칼로리를 어림하지 못했어요. 다시 찍어 주세요.'**
+  String get mealFailed;
+
+  /// No description provided for @mealEstimateNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진으로 어림한 값이에요'**
+  String get mealEstimateNote;
+
+  /// No description provided for @mealServingsAsk.
+  ///
+  /// In ko, this message translates to:
+  /// **'몇 회분 드셨나요?'**
+  String get mealServingsAsk;
+
+  /// No description provided for @mealServingsOption.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}회분'**
+  String mealServingsOption(String n);
+
+  /// No description provided for @mealWholePackage.
+  ///
+  /// In ko, this message translates to:
+  /// **'전체 {n}회분'**
+  String mealWholePackage(String n);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

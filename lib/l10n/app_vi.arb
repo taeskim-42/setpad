@@ -189,5 +189,16 @@
   "bookingUpcoming": "Sắp tới",
   "bookingClosedDay": "Ngày này không nhận.",
   "bookingCancelAsk": "Hủy lịch hẹn này?",
-  "ok": "OK"
+  "ok": "OK",
+  "mealPhoto": "Ảnh bữa ăn",
+  "mealCamera": "Máy ảnh",
+  "mealGallery": "Từ thư viện",
+  "mealEstimating": "Đang ước tính calo…",
+  "mealIntake": "Nạp vào ≈ {n} kcal",
+  "mealNet": "Đốt − nạp {n} kcal",
+  "mealFailed": "Không ước tính được calo từ ảnh này. Hãy chụp lại.",
+  "mealEstimateNote": "Ước tính từ ảnh",
+  "mealServingsAsk": "Đã ăn bao nhiêu khẩu phần?",
+  "mealServingsOption": "{n} khẩu phần",
+  "mealWholePackage": "Cả gói ({n} khẩu phần)"
 }

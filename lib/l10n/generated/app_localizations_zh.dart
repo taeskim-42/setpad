@@ -684,6 +684,47 @@ class LZh extends L {
 
   @override
   String get ok => '好';
+
+  @override
+  String get mealPhoto => '餐食照片';
+
+  @override
+  String get mealCamera => '相机';
+
+  @override
+  String get mealGallery => '从相册';
+
+  @override
+  String get mealEstimating => '正在估算热量…';
+
+  @override
+  String mealIntake(int n) {
+    return '摄入约 $n 千卡';
+  }
+
+  @override
+  String mealNet(int n) {
+    return '消耗 − 摄入 $n 千卡';
+  }
+
+  @override
+  String get mealFailed => '无法从这张照片估算热量，请重新拍摄。';
+
+  @override
+  String get mealEstimateNote => '根据照片估算';
+
+  @override
+  String get mealServingsAsk => '吃了几份？';
+
+  @override
+  String mealServingsOption(String n) {
+    return '$n 份';
+  }
+
+  @override
+  String mealWholePackage(String n) {
+    return '整包（$n 份）';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1366,6 +1407,47 @@ class LZhHans extends LZh {
 
   @override
   String get ok => '好';
+
+  @override
+  String get mealPhoto => '餐食照片';
+
+  @override
+  String get mealCamera => '相机';
+
+  @override
+  String get mealGallery => '从相册';
+
+  @override
+  String get mealEstimating => '正在估算热量…';
+
+  @override
+  String mealIntake(int n) {
+    return '摄入约 $n 千卡';
+  }
+
+  @override
+  String mealNet(int n) {
+    return '消耗 − 摄入 $n 千卡';
+  }
+
+  @override
+  String get mealFailed => '无法从这张照片估算热量，请重新拍摄。';
+
+  @override
+  String get mealEstimateNote => '根据照片估算';
+
+  @override
+  String get mealServingsAsk => '吃了几份？';
+
+  @override
+  String mealServingsOption(String n) {
+    return '$n 份';
+  }
+
+  @override
+  String mealWholePackage(String n) {
+    return '整包（$n 份）';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -2048,4 +2130,45 @@ class LZhHant extends LZh {
 
   @override
   String get ok => '好';
+
+  @override
+  String get mealPhoto => '餐食照片';
+
+  @override
+  String get mealCamera => '相機';
+
+  @override
+  String get mealGallery => '從相簿';
+
+  @override
+  String get mealEstimating => '正在估算熱量…';
+
+  @override
+  String mealIntake(int n) {
+    return '攝取約 $n 大卡';
+  }
+
+  @override
+  String mealNet(int n) {
+    return '消耗 − 攝取 $n 大卡';
+  }
+
+  @override
+  String get mealFailed => '無法從這張照片估算熱量，請重新拍攝。';
+
+  @override
+  String get mealEstimateNote => '依照片估算';
+
+  @override
+  String get mealServingsAsk => '吃了幾份？';
+
+  @override
+  String mealServingsOption(String n) {
+    return '$n 份';
+  }
+
+  @override
+  String mealWholePackage(String n) {
+    return '整包（$n 份）';
+  }
 }

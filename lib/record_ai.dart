@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -25,6 +26,54 @@ enum RecordAiStatus {
 
   /// 오늘 몫을 다 썼다.
   quotaExceeded,
+}
+
+/// 사진 한 장의 어림 칼로리와 알아본 음식.
+class MealEstimate {
+  const MealEstimate({
+    required this.kcal,
+    this.items = const [],
+    this.saved = false,
+    this.label,
+  });
+  final int kcal;
+  final List<String> items;
+  /// 코치의 식단 목록에도 남았는가.
+  final bool saved;
+  /// 사진이 영양성분표였으면 읽은 값. 어림이 아니라 인쇄된 숫자다.
+  final NutritionLabel? label;
+}
+
+/// 영양성분표. 한국 표는 "1회 제공량당" 으로 적혀 있어 몇 회분 먹었는지만
+/// 고르면 정확한 값이 나온다.
+class NutritionLabel {
+  const NutritionLabel({
+    required this.perServingKcal,
+    this.servingSize = '',
+    this.servingsPerPackage,
+    this.product,
+  });
+  final int perServingKcal;
+  final String servingSize;
+  final double? servingsPerPackage;
+  final String? product;
+
+  /// 몇 회분을 먹었을 때의 열량. 반 개도 되게 소수도 받는다.
+  int kcalFor(double servings) => (perServingKcal * servings).round();
+
+  static NutritionLabel? tryFromJson(Object? j) {
+    if (j is! Map) return null;
+    final per = j['perServingKcal'];
+    if (per is! num || per < 0) return null;
+    final servings = j['servingsPerPackage'];
+    final product = j['product'];
+    return NutritionLabel(
+      perServingKcal: per.round(),
+      servingSize: j['servingSize'] is String ? j['servingSize'] as String : '',
+      servingsPerPackage: servings is num && servings > 0 ? servings.toDouble() : null,
+      product: product is String && product.isNotEmpty ? product : null,
+    );
+  }
 }
 
 /// A plan describes intended work. It never creates completed sets.
@@ -246,6 +295,33 @@ class RecordAi {
       'input': input,
     }, timeout: timeout);
     return answer['intent'];
+  }
+
+  /// 사진 한 장의 칼로리를 어림한다. 사진은 서버에 남지 않고 모델에만 간다.
+  ///
+  /// 도장 회원이 `gymId` 를 주면 서버가 코치의 식단 목록에도 한 줄 남긴다.
+  Future<MealEstimate> estimateMeal(
+    Uint8List bytes, {
+    required String mime,
+    required String locale,
+    String? gymId,
+    String? kind,
+  }) async {
+    final answer = await _ask('/api/meals/estimate', {
+      'image': base64Encode(bytes),
+      'mime': mime,
+      'language': locale,
+      'gymId': ?gymId,
+      'kind': ?kind,
+    }, timeout: const Duration(seconds: 60));
+    final kcal = answer['kcal'];
+    if (kcal is! num) throw const RecordAiException(RecordAiStatus.unavailable);
+    return MealEstimate(
+      kcal: kcal.toInt(),
+      items: (answer['items'] as List?)?.whereType<String>().toList() ?? const [],
+      saved: answer['saved'] == true,
+      label: NutritionLabel.tryFromJson(answer['label']),
+    );
   }
 
   /// 오가던 요청을 버린다. 서버 쪽은 그냥 끝나게 둔다 — 이미 센 것이고,

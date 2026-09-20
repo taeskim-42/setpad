@@ -709,4 +709,46 @@ class LEn extends L {
 
   @override
   String get ok => 'OK';
+
+  @override
+  String get mealPhoto => 'Meal photo';
+
+  @override
+  String get mealCamera => 'Camera';
+
+  @override
+  String get mealGallery => 'From library';
+
+  @override
+  String get mealEstimating => 'Estimating calories…';
+
+  @override
+  String mealIntake(int n) {
+    return 'Intake ≈ $n kcal';
+  }
+
+  @override
+  String mealNet(int n) {
+    return 'Burned − intake $n kcal';
+  }
+
+  @override
+  String get mealFailed =>
+      'Couldn\'t estimate calories from that photo. Try another.';
+
+  @override
+  String get mealEstimateNote => 'Estimated from the photo';
+
+  @override
+  String get mealServingsAsk => 'How many servings?';
+
+  @override
+  String mealServingsOption(String n) {
+    return '$n serving(s)';
+  }
+
+  @override
+  String mealWholePackage(String n) {
+    return 'Whole package ($n servings)';
+  }
 }

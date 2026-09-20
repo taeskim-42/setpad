@@ -189,5 +189,16 @@
   "bookingUpcoming": "即将到来",
   "bookingClosedDay": "这天不接受预约。",
   "bookingCancelAsk": "取消这次预约吗？",
-  "ok": "好"
+  "ok": "好",
+  "mealPhoto": "餐食照片",
+  "mealCamera": "相机",
+  "mealGallery": "从相册",
+  "mealEstimating": "正在估算热量…",
+  "mealIntake": "摄入约 {n} 千卡",
+  "mealNet": "消耗 − 摄入 {n} 千卡",
+  "mealFailed": "无法从这张照片估算热量，请重新拍摄。",
+  "mealEstimateNote": "根据照片估算",
+  "mealServingsAsk": "吃了几份？",
+  "mealServingsOption": "{n} 份",
+  "mealWholePackage": "整包（{n} 份）"
 }
