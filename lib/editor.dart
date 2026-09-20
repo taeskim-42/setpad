@@ -1466,130 +1466,121 @@ class _RoutineEditorState extends State<RoutineEditor>
           ),
         // Both keyboards share one bottom area. Keep the keypad anchored while
         // the system inset shrinks; only text mode needs space above the IME.
-        ColoredBox(
-          key: const ValueKey('keyboard-background'),
-          color: MediaQuery.viewInsetsOf(context).bottom > 0
-              ? keypadBackground.resolveFrom(context)
-              : CupertinoColors.systemBackground.resolveFrom(context),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.viewInsetsOf(context).bottom,
-            ),
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  bottom: _padMode
-                      ? 0
-                      : MediaQuery.viewInsetsOf(context).bottom,
-                ),
-                child: _timingKeyboardHidden
-                    ? const SizedBox.shrink()
-                    : _padMode
-                    ? SetKeypad(
-                        addLabel: _recordSet == null
-                            ? null
-                            : L.of(context).doneEditing,
-                        onKey: _insert,
-                        onBackspace: _keypadBackspace,
-                        onAddSet: parseSetLine(_input.text) == null
-                            ? null
-                            : () => _commit(),
-                        onSubmit: _nextSet,
-                        submitLabel: _recordSet != null
-                            ? L.of(context).doneEditing
-                            : _hasInput
-                            ? L.of(context).next
-                            : L.of(context).finishExercise,
-                        onText: () {
-                          if (_editingRecord && !_finishRecordEdit()) return;
-                          // 글자판으로 넘어가는 것은 곧 메모를 적겠다는 뜻이다. 이 화면에
-                          // 글자가 필요한 자리는 거기뿐이다 — 운동 이름은 카드 밖에서
-                          // 치고 그때는 애초에 키패드가 안 뜬다.
-                          if (_c.lastSet != null) {
-                            _setDraft = _input.value;
-                            _input.clear();
-                          }
-                          setState(() => _wantText = true);
-                          // 읽기 전용이 풀린 뒤라야 키보드가 글자판으로 열린다.
-                          WidgetsBinding.instance.addPostFrameCallback(
-                            (_) => _reopen(),
-                          );
-                        },
-                        onAdjust: (direction) {
-                          final next = bumpLastNumber(_input.text, direction);
-                          _input.value = TextEditingValue(
-                            text: next,
-                            selection: TextSelection.collapsed(
-                              offset: next.length,
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: _padMode ? 0 : MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              child: _timingKeyboardHidden
+                  ? const SizedBox.shrink()
+                  : _padMode
+                  ? SetKeypad(
+                      addLabel: _recordSet == null
+                          ? null
+                          : L.of(context).doneEditing,
+                      onKey: _insert,
+                      onBackspace: _keypadBackspace,
+                      onAddSet: parseSetLine(_input.text) == null
+                          ? null
+                          : () => _commit(),
+                      onSubmit: _nextSet,
+                      submitLabel: _recordSet != null
+                          ? L.of(context).doneEditing
+                          : _hasInput
+                          ? L.of(context).next
+                          : L.of(context).finishExercise,
+                      onText: () {
+                        if (_editingRecord && !_finishRecordEdit()) return;
+                        // 글자판으로 넘어가는 것은 곧 메모를 적겠다는 뜻이다. 이 화면에
+                        // 글자가 필요한 자리는 거기뿐이다 — 운동 이름은 카드 밖에서
+                        // 치고 그때는 애초에 키패드가 안 뜬다.
+                        if (_c.lastSet != null) {
+                          _setDraft = _input.value;
+                          _input.clear();
+                        }
+                        setState(() => _wantText = true);
+                        // 읽기 전용이 풀린 뒤라야 키보드가 글자판으로 열린다.
+                        WidgetsBinding.instance.addPostFrameCallback(
+                          (_) => _reopen(),
+                        );
+                      },
+                      onAdjust: (direction) {
+                        final next = bumpLastNumber(_input.text, direction);
+                        _input.value = TextEditingValue(
+                          text: next,
+                          selection: TextSelection.collapsed(
+                            offset: next.length,
+                          ),
+                        );
+                        setState(() {});
+                      },
+                      // 무게를 치는 중이면 원판 단위, kg 를 지나 횟수를 치는 중이면 하나.
+                      // 무엇의 2.5 인지 보여야 한다. 횟수를 치는 중이면 단위가 없으므로
+                      // 숫자만 낸다 — "1회" 는 늘 1이라 붙일 값이 없다.
+                      stepLabel: _typingReps
+                          ? formatNumber(_stepSize)
+                          : formatValue(_stepSize, _unit),
+                      onStepPick: _pickStep,
+                      repeatLabel: _c.lastSet == null
+                          ? null
+                          : setLabel(
+                              value: _c.lastSet!.value,
+                              unit: _c.lastSet!.unit,
+                              reps: _c.lastSet!.reps,
+                              formatReps: L.of(context).repsCount,
                             ),
-                          );
-                          setState(() {});
-                        },
-                        // 무게를 치는 중이면 원판 단위, kg 를 지나 횟수를 치는 중이면 하나.
-                        // 무엇의 2.5 인지 보여야 한다. 횟수를 치는 중이면 단위가 없으므로
-                        // 숫자만 낸다 — "1회" 는 늘 1이라 붙일 값이 없다.
-                        stepLabel: _typingReps
-                            ? formatNumber(_stepSize)
-                            : formatValue(_stepSize, _unit),
-                        onStepPick: _pickStep,
-                        repeatLabel: _c.lastSet == null
-                            ? null
-                            : setLabel(
-                                value: _c.lastSet!.value,
-                                unit: _c.lastSet!.unit,
-                                reps: _c.lastSet!.reps,
-                                formatReps: L.of(context).repsCount,
-                              ),
-                        onRepeat: _recordSet != null ? null : _c.repeatLastSet,
-                      )
-                    // 메모를 치는 동안에도 돌아올 문은 열어 둔다.
-                    : (_c.inBlock && _wantText && !_recordTitle)
-                    ? ColoredBox(
-                        color: keypadBackground.resolveFrom(context),
-                        child: SafeArea(
-                          top: false,
-                          child: SizedBox(
-                            height: 44,
-                            width: double.infinity,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: CupertinoButton(
-                                    padding: EdgeInsets.zero,
-                                    onPressed: () => _commit(),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          CupertinoIcons.keyboard,
-                                          size: 19,
+                      onRepeat: _recordSet != null ? null : _c.repeatLastSet,
+                    )
+                  // 메모를 치는 동안에도 돌아올 문은 열어 둔다.
+                  : (_c.inBlock && _wantText && !_recordTitle)
+                  ? ColoredBox(
+                      color: keypadBackground.resolveFrom(context),
+                      child: SafeArea(
+                        top: false,
+                        child: SizedBox(
+                          height: 44,
+                          width: double.infinity,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => _commit(),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        CupertinoIcons.keyboard,
+                                        size: 19,
+                                        color: seal.resolveFrom(context),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        L.of(context).numberKeypad,
+                                        style: TextStyle(
+                                          fontSize: 17,
+                                          letterSpacing: -0.41,
                                           color: seal.resolveFrom(context),
                                         ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          L.of(context).numberKeypad,
-                                          style: TextStyle(
-                                            fontSize: 17,
-                                            letterSpacing: -0.41,
-                                            color: seal.resolveFrom(context),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                      )
-                    : const SafeArea(
-                        top: false,
-                        child: SizedBox(width: double.infinity),
                       ),
-              ),
+                    )
+                  : const SafeArea(
+                      top: false,
+                      child: SizedBox(width: double.infinity),
+                    ),
             ),
           ),
         ),
