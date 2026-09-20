@@ -1,7 +1,6 @@
-First release.
+In this update
 
-· Sets logged by typing
-· One-line setup on supported devices (on-device AI)
-· A note under any set
-· Health app — active energy measured by Apple Watch
-· Eight languages, dark mode
+· Estimate calories from a meal photo (photos are not stored)
+· Connect to a gym, receive routines, and book PT sessions
+· Persistent sign-in and in-app account deletion
+· Sticker check-ins and app links

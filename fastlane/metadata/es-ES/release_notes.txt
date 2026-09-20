@@ -1,7 +1,6 @@
-Primera versión.
+En esta actualización
 
-· Series registradas al escribir
-· Configuración en una línea en dispositivos compatibles (IA en el dispositivo)
-· Una nota bajo cualquier serie
-· App Salud — energía activa medida por el Apple Watch
-· Ocho idiomas, modo oscuro
+· Estimación de calorías a partir de una foto de comida (la foto no se guarda)
+· Conexión con el gimnasio, rutinas y reservas de PT
+· Inicio de sesión persistente y eliminación de la cuenta en la app
+· Registro con pegatinas y enlaces a la app

@@ -28,7 +28,7 @@ T = {
   subtitle='치면 남는 운동 기록',
   short='운동 이름을 치고, 무게와 횟수를 칩니다. 그게 전부입니다.',
   keywords='운동기록,헬스,웨이트,근력운동,운동일지,헬스일지,벤치프레스,스쿼트,데드리프트,세트,루틴,피트니스',
-  notes='첫 공개입니다.\n\n· 치면 남는 세트 기록\n· 지원 기기에서 한 줄 설정 (기기 안 AI)\n· 세트마다 메모\n· 건강 앱 연동 — 애플워치가 잰 활동 칼로리\n· 8개 언어, 다크 모드',
+  notes='이번 업데이트\n\n· 식단 사진으로 칼로리 추정 (사진은 저장하지 않음)\n· 체육관 연결, 루틴 수신, PT 예약\n· 로그인 유지와 앱 안 계정 삭제\n· 스티커 출석과 앱 링크',
   desc='''운동 이름을 치고, 무게와 횟수를 칩니다. 그게 전부입니다.
 
 setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 순간 메모장에 적듯 숫자를 칩니다. 화면을 옮겨 다니거나 드롭다운을 고를 일이 없습니다.
@@ -66,7 +66,7 @@ setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 
   subtitle='Type a set. It is logged.',
   short='Type the exercise, type the weight and reps. That is the whole app.',
   keywords='workout,gym,lifting,strength,training log,workout log,bench press,squat,deadlift,sets,reps',
-  notes='First release.\n\n· Sets logged by typing\n· One-line setup on supported devices (on-device AI)\n· A note under any set\n· Health app — active energy measured by Apple Watch\n· Eight languages, dark mode',
+  notes='In this update\n\n· Estimate calories from a meal photo (photos are not stored)\n· Connect to a gym, receive routines, and book PT sessions\n· Persistent sign-in and in-app account deletion\n· Sticker check-ins and app links',
   desc='''Type the exercise, type the weight and reps. That is the whole app.
 
 setpad is not a routine builder. The moment a set is done you type the numbers, the way you would in a notes app. No screens to move between, no dropdowns to pick.
@@ -104,7 +104,7 @@ No account. No ads. Your log stays on your device.'''),
   subtitle='打てば残る、筋トレ記録',
   short='種目名を打ち、重量と回数を打つ。それだけのアプリです。',
   keywords='筋トレ,ジム,ウエイト,トレーニング記録,筋トレ記録,ベンチプレス,スクワット,デッドリフト,セット,回数,フィットネス',
-  notes='初回リリースです。\n\n・打てば残るセット記録\n・対応端末での一行設定（端末内AI）\n・セットごとのメモ\n・ヘルスケア連携 — Apple Watchが計測した消費エネルギー\n・8言語、ダークモード',
+  notes='今回のアップデート\n\n・食事写真からカロリーを推定（写真は保存しません）\n・ジム連携、ルーティン受信、PT予約\n・ログイン保持とアプリ内アカウント削除\n・ステッカーでのチェックインとアプリリンク',
   desc='''種目名を打ち、重量と回数を打つ。それだけのアプリです。
 
 setpadはルーティンを組み立てるアプリではありません。セットを終えたその場で、メモ帳に書くように数字を打ちます。画面を行き来したり、ドロップダウンを選んだりする必要はありません。
@@ -142,7 +142,7 @@ setpadはルーティンを組み立てるアプリではありません。セ�
   subtitle='Escribe la serie. Ya está.',
   short='Escribe el ejercicio, escribe el peso y las repeticiones. Eso es todo.',
   keywords='entrenamiento,gimnasio,pesas,fuerza,diario,press banca,sentadilla,peso muerto,series,fitness',
-  notes='Primera versión.\n\n· Series registradas al escribir\n· Configuración en una línea en dispositivos compatibles (IA en el dispositivo)\n· Una nota bajo cualquier serie\n· App Salud — energía activa medida por el Apple Watch\n· Ocho idiomas, modo oscuro',
+  notes='En esta actualización\n\n· Estimación de calorías a partir de una foto de comida (la foto no se guarda)\n· Conexión con el gimnasio, rutinas y reservas de PT\n· Inicio de sesión persistente y eliminación de la cuenta en la app\n· Registro con pegatinas y enlaces a la app',
   desc='''Escribe el ejercicio, escribe el peso y las repeticiones. Eso es toda la app.
 
 setpad no es un creador de rutinas. En cuanto terminas una serie escribes los números, como lo harías en una app de notas. Sin pantallas por las que navegar, sin desplegables que elegir.
@@ -180,7 +180,7 @@ Sin cuenta. Sin anuncios. Tu registro se queda en tu dispositivo.'''),
   subtitle='พิมพ์เซ็ต แล้วบันทึกเลย',
   short='พิมพ์ชื่อท่า พิมพ์น้ำหนักและจำนวนครั้ง แค่นั้นทั้งแอป',
   keywords='บันทึกออกกำลังกาย,ฟิตเนส,ยกน้ำหนัก,เวทเทรนนิ่ง,สมุดบันทึก,เบนช์เพรส,สควอท,เดดลิฟต์,เซ็ต,ยิม',
-  notes='เวอร์ชันแรก\n\n· บันทึกเซ็ตด้วยการพิมพ์\n· ตั้งค่าบรรทัดเดียวบนเครื่องที่รองรับ (AI ในเครื่อง)\n· โน้ตใต้เซ็ตแต่ละเซ็ต\n· เชื่อมกับแอปสุขภาพ — พลังงานที่ Apple Watch วัด\n· แปดภาษา โหมดมืด',
+  notes='ในการอัปเดตนี้\n\n· ประเมินแคลอรีจากภาพอาหาร (ไม่จัดเก็บภาพ)\n· เชื่อมต่อยิม รับโปรแกรม และจอง PT\n· คงสถานะการเข้าสู่ระบบและลบบัญชีในแอป\n· เช็กอินด้วยสติกเกอร์และลิงก์เข้าแอป',
   desc='''พิมพ์ชื่อท่า พิมพ์น้ำหนักและจำนวนครั้ง แค่นั้นทั้งแอป
 
 setpad ไม่ใช่แอปสร้างโปรแกรมฝึกล่วงหน้า พอจบเซ็ตก็พิมพ์ตัวเลขลงไปทันที เหมือนจดในแอปโน้ต ไม่ต้องสลับหน้าจอ ไม่ต้องเลือกจากรายการ
@@ -218,7 +218,7 @@ setpad ไม่ใช่แอปสร้างโปรแกรมฝึก�
   subtitle='Gõ một hiệp là xong',
   short='Gõ tên bài tập, gõ mức tạ và số lần. Cả ứng dụng chỉ có vậy.',
   keywords='nhật ký tập,gym,tạ,thể hình,sức mạnh,ghi chép tập luyện,đẩy ngực,squat,deadlift,hiệp,fitness',
-  notes='Bản phát hành đầu tiên.\n\n· Ghi hiệp bằng cách gõ\n· Thiết lập một dòng trên máy hỗ trợ (AI trên máy)\n· Ghi chú dưới từng hiệp\n· Kết nối app Sức khoẻ — năng lượng do Apple Watch đo\n· Tám ngôn ngữ, chế độ tối',
+  notes='Trong bản cập nhật này\n\n· Ước tính calo từ ảnh bữa ăn (không lưu ảnh)\n· Kết nối phòng tập, nhận giáo án và đặt lịch PT\n· Duy trì đăng nhập và xoá tài khoản trong ứng dụng\n· Điểm danh bằng nhãn dán và liên kết ứng dụng',
   desc='''Gõ tên bài tập, gõ mức tạ và số lần. Cả ứng dụng chỉ có vậy.
 
 setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ số ngay lúc đó, như viết vào ứng dụng ghi chú. Không phải chuyển qua lại giữa các màn hình, không phải chọn từ danh sách xổ xuống.
@@ -256,7 +256,7 @@ Không cần tài khoản. Không quảng cáo. Nhật ký nằm trên máy củ
   subtitle='打一下，这组就记下了',
   short='输入动作名，输入重量和次数。整个应用就这些。',
   keywords='健身记录,举铁,力量训练,训练日志,卧推,深蹲,硬拉,组数,次数,健身房,健身',
-  notes='首个版本。\n\n· 打字即记录\n· 支持机型可用一行设置（端上 AI）\n· 每组下面都能写备注\n· 接入“健康”App — 读取 Apple Watch 测得的活动能量\n· 八种语言，深色模式',
+  notes='本次更新\n\n· 根据餐食照片估算热量（不保存照片）\n· 连接健身房、接收训练计划并预约私教\n· 保持登录及在 App 内删除账户\n· 贴纸签到与 App 链接',
   desc='''输入动作名，输入重量和次数。整个应用就这些。
 
 setpad 不是用来提前编排计划的。做完一组，当场把数字打上去，就像在备忘录里写字一样。不用在页面之间来回切换，也不用从下拉框里挑。
@@ -294,7 +294,7 @@ setpad 不是用来提前编排计划的。做完一组，当场把数字打上�
   subtitle='打一下，這組就記下了',
   short='輸入動作名稱，輸入重量和次數。整個 App 就這些。',
   keywords='健身紀錄,重訓,肌力訓練,訓練日誌,臥推,深蹲,硬舉,組數,次數,健身房,健身',
-  notes='首個版本。\n\n· 打字即紀錄\n· 支援機型可用一行設定（裝置端 AI）\n· 每組下面都能寫備註\n· 接入「健康」App — 讀取 Apple Watch 測得的活動能量\n· 八種語言，深色模式',
+  notes='本次更新\n\n· 根據餐點照片估算熱量（不儲存照片）\n· 連結健身房、接收訓練課表並預約教練課\n· 保持登入及在 App 內刪除帳號\n· 貼紙簽到與 App 連結',
   desc='''輸入動作名稱，輸入重量和次數。整個 App 就這些。
 
 setpad 不是用來事先編排課表的。做完一組，當場把數字打上去，就像在備忘錄裡寫字一樣。不必在頁面之間來回切換，也不必從下拉選單裡挑。

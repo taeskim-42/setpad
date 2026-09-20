@@ -1,7 +1,6 @@
-Bản phát hành đầu tiên.
+Trong bản cập nhật này
 
-· Ghi hiệp bằng cách gõ
-· Thiết lập một dòng trên máy hỗ trợ (AI trên máy)
-· Ghi chú dưới từng hiệp
-· Kết nối app Sức khoẻ — năng lượng do Apple Watch đo
-· Tám ngôn ngữ, chế độ tối
+· Ước tính calo từ ảnh bữa ăn (không lưu ảnh)
+· Kết nối phòng tập, nhận giáo án và đặt lịch PT
+· Duy trì đăng nhập và xoá tài khoản trong ứng dụng
+· Điểm danh bằng nhãn dán và liên kết ứng dụng
