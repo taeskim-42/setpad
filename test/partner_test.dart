@@ -253,7 +253,6 @@ void main() {
     jun.note.calories = 300;
     final day = dayLogs(
       [jun.note],
-      [],
       from: jun.note.createdAt,
       to: jun.note.createdAt,
     ).single;

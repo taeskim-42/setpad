@@ -274,7 +274,7 @@ void main() {
       expect(note.blocks.last.sets, hasLength(3), reason: '준의 개인 세트 수');
       expect(note.blocks.expand((b) => b.sets).where((s) => s.done), isEmpty);
       expect(
-        dayLogs([note], [], from: note.createdAt, to: note.createdAt),
+        dayLogs([note], from: note.createdAt, to: note.createdAt),
         isEmpty,
         reason: '시작만으로는 운동한 날도 아니다',
       );
@@ -323,7 +323,6 @@ void main() {
       // 16) 파트너의 기록은 내 통계에 들지 않는다: 하루 집계는 내 문서만 읽는다.
       final logs = dayLogs(
         jun.notes.notes,
-        [],
         from: note.createdAt,
         to: note.createdAt,
       );

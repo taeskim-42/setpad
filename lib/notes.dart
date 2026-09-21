@@ -6,7 +6,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'daily.dart';
 import 'editor.dart';
 import 'meal.dart';
 import 'partner.dart';
@@ -332,44 +331,6 @@ class NotesStore extends ChangeNotifier {
   /// 최근에 고친 것이 위로. 메모 앱과 같은 순서다.
   List<Note> get notes => List.unmodifiable(_notes);
 
-  /// 실제로 잰 체중들, 시간순. 운동 문서에 묶이지 않는다 — 몸은 운동한 날에만
-  /// 재는 것이 아니다.
-  final List<WeightEntry> _weights = [];
-  List<WeightEntry> get weights => List.unmodifiable(_weights);
-
-  /// 체중을 더하거나(같은 id 면) 고친다. 건강 앱에서 같은 측정을 다시 가져와도
-  /// 하나로 남는다.
-  void saveWeight(WeightEntry entry) {
-    _weights
-      ..removeWhere((w) => w.id == entry.id)
-      ..add(entry)
-      ..sort((a, b) => a.at.compareTo(b.at));
-    notifyListeners();
-    _scheduleSave();
-  }
-
-  void deleteWeight(WeightEntry entry) {
-    _weights.removeWhere((w) => w.id == entry.id);
-    // 건강 앱에서 온 것은 다시 가져오면 되살아난다. 지웠다는 것을 기억한다.
-    if (entry.source == WeightEntry.health) _deletedWeights.add(entry.id);
-    notifyListeners();
-    _scheduleSave();
-  }
-
-  final Set<String> _deletedWeights = {};
-
-  /// 건강 앱에서 읽은 것을 들인다. 이미 있거나 사람이 지운 것은 건너뛴다.
-  void importWeights(Iterable<WeightEntry> found) {
-    final known = {..._weights.map((w) => w.id), ..._deletedWeights};
-    final fresh = found.where((w) => known.add(w.id)).toList();
-    if (fresh.isEmpty) return;
-    _weights
-      ..addAll(fresh)
-      ..sort((a, b) => a.at.compareTo(b.at));
-    notifyListeners();
-    _scheduleSave();
-  }
-
   Future<File> _file() async {
     final dir = _override ?? await getApplicationDocumentsDirectory();
     return File('${dir.path}/notes.json');
@@ -407,24 +368,6 @@ class NotesStore extends ChangeNotifier {
             .encode(List.generate(18, (_) => random.nextInt(256)))
             .replaceAll('=', '');
         _scheduleSave();
-      }
-      try {
-        final body = File('${f.parent.path}/body.json');
-        if (body.existsSync()) {
-          final data = jsonDecode(await body.readAsString()) as Map;
-          _weights
-            ..clear()
-            ..addAll([
-              for (final w in (data['weights'] as List? ?? const []))
-                ?WeightEntry.tryFromJson(w),
-            ])
-            ..sort((a, b) => a.at.compareTo(b.at));
-          _deletedWeights
-            ..clear()
-            ..addAll((data['deleted'] as List? ?? []).whereType<String>());
-        }
-      } catch (e) {
-        debugPrint('Could not load body records: $e');
       }
       if (!f.existsSync()) {
         notifyListeners();
@@ -468,15 +411,10 @@ class NotesStore extends ChangeNotifier {
       'exercises': _exerciseHistory,
       'forgottenExercises': _forgottenExercises.toList(),
     });
-    final body = jsonEncode({
-      'weights': [for (final w in _weights) w.toJson()],
-      'deleted': _deletedWeights.toList(),
-    });
     return _writes = _writes.then((_) async {
       try {
         final f = await _file();
         await _atomicWrite(f, notes);
-        await _atomicWrite(File('${f.parent.path}/body.json'), body);
         await _atomicWrite(
           File('${f.parent.path}/preferences.json'),
           preferences,

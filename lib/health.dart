@@ -105,55 +105,6 @@ class HealthLink {
     }
   }
 
-  /// 체중 읽기 권한을 **체중을 가져오겠다고 했을 때** 따로 묻는다. 운동 연동
-  /// 권한에 끼워 넣으면 체중에 관심 없는 사람도 다음 운동 때 창을 다시 본다.
-  Future<bool> authorizeWeight() async {
-    if (!supported) return false;
-    try {
-      await _ensureConfigured();
-      const types = [HealthDataType.WEIGHT];
-      const permissions = [HealthDataAccess.READ];
-      final has = await _health.hasPermissions(types, permissions: permissions);
-      if (has ?? false) return true;
-      return await _health.requestAuthorization(
-        types,
-        permissions: permissions,
-      );
-    } catch (e) {
-      debugPrint('체중 권한 요청 실패: $e');
-      return false;
-    }
-  }
-
-  /// 건강 앱에 있는 체중 측정값들. 값은 kg 이고, 고유 id 를 같이 낸다 — 같은
-  /// 측정을 두 번 들이지 않으려면 그것이 필요하다.
-  Future<List<({String id, DateTime at, double kg})>> weights(
-    DateTime start,
-    DateTime end,
-  ) async {
-    if (!supported) return const [];
-    try {
-      await _ensureConfigured();
-      final points = await _health.getHealthDataFromTypes(
-        types: [HealthDataType.WEIGHT],
-        startTime: start,
-        endTime: end,
-      );
-      return [
-        for (final p in _health.removeDuplicates(points))
-          if (p.type == HealthDataType.WEIGHT && p.value is NumericHealthValue)
-            (
-              id: 'h${p.uuid}',
-              at: p.dateFrom,
-              kg: (p.value as NumericHealthValue).numericValue.toDouble(),
-            ),
-      ];
-    } catch (e) {
-      debugPrint('체중 읽기 실패: $e');
-      return const [];
-    }
-  }
-
   /// 워치가 심박을 쓸 때마다 iOS 가 앱을 깨워 올려 보내는 값.
   ///
   /// health 플러그인에는 이 경로가 없다 — iOS 쪽이 일회성 쿼리만 구현하고

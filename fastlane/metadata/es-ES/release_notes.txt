@@ -2,7 +2,6 @@ En esta actualización
 
 · Todas las series de hoy en una pantalla: toca una celda para corregirla
 · Registra comidas como texto y calcula las calorías según lo que comiste
-· Tendencias con ingesta, ejercicio y peso medido en el mismo eje de fechas
 · Juntos: conéctate con un código para ver el registro del otro y planifica entrenamientos por enlace
 · Estimación de calorías a partir de una foto de comida (la foto no se guarda)
 · Conexión con el gimnasio, rutinas y reservas de PT

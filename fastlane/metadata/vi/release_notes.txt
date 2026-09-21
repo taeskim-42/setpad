@@ -2,7 +2,6 @@ Trong bản cập nhật này
 
 · Mọi hiệp hôm nay trên một màn hình — chạm vào ô để sửa ngay
 · Ghi bữa ăn bằng chữ và tính calo theo lượng đã ăn
-· Xu hướng hiển thị lượng nạp, tập luyện và cân nặng trên cùng trục ngày
 · Cùng nhau: kết nối bằng mã để xem ghi chép của nhau, và cùng lên kế hoạch tập qua liên kết mời
 · Ước tính calo từ ảnh bữa ăn (không lưu ảnh)
 · Kết nối phòng tập, nhận giáo án và đặt lịch PT

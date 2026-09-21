@@ -58,9 +58,9 @@ setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 
 · 다크 모드는 시스템 설정을 따릅니다
 · 한국어, 영어, 일본어, 스페인어, 태국어, 베트남어, 중국어(간체·번체)
 
-■ 식단·몸·같이 하기
+■ 식단·같이 하기
 · 식단을 사진이나 글로 남깁니다. 열량을 모르면 모른다고 적습니다
-· 섭취, 운동 소모, 실제로 잰 체중을 같은 날짜 위에서 봅니다
+· 그날 먹은 것과 운동으로 쓴 것을 한 줄로 봅니다
 · 같이 하기: 코드로 연결해 서로의 기록을 봅니다. 상대 기록은 읽기 전용입니다
 · 공동 루틴: 링크로 초대해 다음 운동을 함께 정하고, 같은 버전에 동의한 뒤 시작합니다
 
@@ -101,9 +101,9 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 · Dark mode follows your system setting
 · English, Korean, Japanese, Spanish, Thai, Vietnamese, Chinese (Simplified and Traditional)
 
-■ Meals, body, together
+■ Meals, together
 · Log meals by photo or as text. When the calories are unknown, it says unknown
-· See intake, exercise energy and your measured weight on the same dates
+· See the day's intake and exercise energy in one line
 · Together: connect with a code to see each other's log. Your partner's log is read-only
 · Shared plans: invite by link, decide the next workout together, agree on the same version, then start
 
@@ -144,9 +144,9 @@ setpadはルーティンを組み立てるアプリではありません。セ�
 ・ダークモードはシステム設定に従います
 ・日本語、韓国語、英語、スペイン語、タイ語、ベトナム語、中国語（簡体字・繁体字）
 
-■ 食事・体・一緒に
+■ 食事・一緒に
 ・食事を写真またはテキストで記録。カロリーが不明なら不明と表示します
-・摂取、運動消費、実際に測った体重を同じ日付で見られます
+・その日の摂取と運動消費を1行で見られます
 ・一緒に: コードでつながってお互いの記録を見ます。相手の記録は閲覧のみです
 ・共同ルーティン: リンクで招待して次の運動を一緒に決め、同じバージョンに合意してから始めます
 
@@ -187,9 +187,9 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 · El modo oscuro sigue la configuración del sistema
 · Español, inglés, coreano, japonés, tailandés, vietnamita y chino (simplificado y tradicional)
 
-■ Comidas, cuerpo, juntos
+■ Comidas, juntos
 · Registra comidas con foto o texto. Si no se conocen las calorías, lo dice
-· Mira la ingesta, la energía del ejercicio y tu peso medido en las mismas fechas
+· Mira la ingesta del día y la energía del ejercicio en una línea
 · Juntos: conéctate con un código para ver el registro del otro. El de tu compañero es de solo lectura
 · Planes compartidos: invita por enlace, decidid juntos el próximo entrenamiento, acordad la misma versión y empezad
 
@@ -230,9 +230,9 @@ setpad ไม่ใช่แอปสร้างโปรแกรมฝึก�
 · โหมดมืดตามการตั้งค่าของระบบ
 · ไทย อังกฤษ เกาหลี ญี่ปุ่น สเปน เวียดนาม และจีน (ตัวย่อและตัวเต็ม)
 
-■ อาหาร ร่างกาย และออกกำลังด้วยกัน
+■ อาหาร และออกกำลังด้วยกัน
 · บันทึกมื้ออาหารด้วยรูปหรือข้อความ ถ้าไม่ทราบแคลอรีก็จะบอกว่าไม่ทราบ
-· ดูการกิน พลังงานที่ใช้ออกกำลัง และน้ำหนักที่ชั่งจริงบนวันเดียวกัน
+· ดูการกินและพลังงานที่ใช้ออกกำลังของวันนั้นในบรรทัดเดียว
 · ด้วยกัน: เชื่อมต่อด้วยรหัสเพื่อดูบันทึกของกันและกัน บันทึกของอีกฝ่ายอ่านได้อย่างเดียว
 · แผนร่วม: เชิญด้วยลิงก์ ตกลงการออกกำลังครั้งถัดไปด้วยกัน ยอมรับเวอร์ชันเดียวกัน แล้วเริ่ม
 
@@ -273,9 +273,9 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 · Chế độ tối theo cài đặt hệ thống
 · Tiếng Việt, Anh, Hàn, Nhật, Tây Ban Nha, Thái và Trung (giản thể, phồn thể)
 
-■ Bữa ăn, cơ thể, tập cùng nhau
+■ Bữa ăn, tập cùng nhau
 · Ghi bữa ăn bằng ảnh hoặc chữ. Khi chưa rõ calo, ứng dụng ghi là chưa rõ
-· Xem lượng nạp, năng lượng tập và cân nặng đo được trên cùng ngày
+· Xem lượng nạp và năng lượng tập trong ngày trên một dòng
 · Cùng nhau: kết nối bằng mã để xem ghi chép của nhau. Ghi chép của bạn tập chỉ để xem
 · Kế hoạch chung: mời bằng liên kết, cùng quyết định buổi tập tới, thống nhất cùng một phiên bản rồi bắt đầu
 
@@ -316,9 +316,9 @@ setpad 不是用来提前编排计划的。做完一组，当场把数字打上�
 · 深色模式跟随系统设置
 · 简体中文、繁体中文、英语、韩语、日语、西班牙语、泰语、越南语
 
-■ 饮食、身体、一起练
+■ 饮食、一起练
 · 用照片或文字记录饮食。不知道热量时就标为未知
-· 在同一日期上查看摄入、运动消耗和实测体重
+· 用一行查看当天的摄入和运动消耗
 · 一起练：用代码连接，查看彼此的记录。对方的记录只读
 · 共同计划：用链接邀请，一起决定下一次训练，同意同一版本后开始
 
@@ -359,9 +359,9 @@ setpad 不是用來事先編排課表的。做完一組，當場把數字打上�
 · 深色模式跟隨系統設定
 · 繁體中文、簡體中文、英文、韓文、日文、西班牙文、泰文、越南文
 
-■ 飲食、身體、一起練
+■ 飲食、一起練
 · 用照片或文字記錄飲食。不知道熱量時就標為未知
-· 在同一日期上查看攝取、運動消耗和實測體重
+· 用一行查看當天的攝取和運動消耗
 · 一起練：用代碼連線，查看彼此的紀錄。對方的紀錄唯讀
 · 共同計畫：用連結邀請，一起決定下一次訓練，同意同一版本後開始
 
@@ -391,35 +391,27 @@ LEGAL = {
 NEWS = {
     'ko': ['오늘 한 모든 세트를 한 화면에 — 칸을 눌러 바로 고칩니다',
            '식단을 글로도 기록하고, 먹은 양으로 열량을 계산합니다',
-           '섭취·운동·체중을 같은 날짜 축에서 보는 기록 추세',
            '같이 하기: 코드로 연결해 서로의 기록을 보고, 링크로 초대해 운동 계획을 함께 짭니다'],
     'en': ['Every set you did today on one screen — tap a cell to fix it',
            'Log meals as text, and calculate calories from how much you ate',
-           'Trends that put intake, exercise and measured weight on one date axis',
            'Together: connect with a code to see each other\'s log, and plan workouts together by invite link'],
     'ja': ['今日行った全セットを1画面に — セルをタップしてすぐ修正',
            '食事をテキストでも記録し、食べた量からカロリーを計算',
-           '摂取・運動・体重を同じ日付軸で見る記録の推移',
            '一緒に: コードでつながってお互いの記録を見たり、リンクで招待して運動計画を一緒に作成'],
     'es': ['Todas las series de hoy en una pantalla: toca una celda para corregirla',
            'Registra comidas como texto y calcula las calorías según lo que comiste',
-           'Tendencias con ingesta, ejercicio y peso medido en el mismo eje de fechas',
            'Juntos: conéctate con un código para ver el registro del otro y planifica entrenamientos por enlace'],
     'th': ['ทุกเซ็ตของวันนี้ในหน้าจอเดียว — แตะช่องเพื่อแก้ไขได้ทันที',
            'บันทึกมื้ออาหารเป็นข้อความ และคำนวณแคลอรีจากปริมาณที่กิน',
-           'แนวโน้มที่แสดงการกิน การออกกำลัง และน้ำหนักบนแกนวันเดียวกัน',
            'ด้วยกัน: เชื่อมต่อด้วยรหัสเพื่อดูบันทึกของกันและกัน และวางแผนออกกำลังร่วมกันผ่านลิงก์เชิญ'],
     'vi': ['Mọi hiệp hôm nay trên một màn hình — chạm vào ô để sửa ngay',
            'Ghi bữa ăn bằng chữ và tính calo theo lượng đã ăn',
-           'Xu hướng hiển thị lượng nạp, tập luyện và cân nặng trên cùng trục ngày',
            'Cùng nhau: kết nối bằng mã để xem ghi chép của nhau, và cùng lên kế hoạch tập qua liên kết mời'],
     'zh-Hans': ['今天做的所有组都在一屏 — 点格子即可修改',
                 '用文字记录饮食，并按实际食用量计算热量',
-                '在同一日期轴上查看摄入、运动与实测体重的趋势',
                 '一起练：用代码连接查看彼此的记录，并通过邀请链接一起制定训练计划'],
     'zh-Hant': ['今天做的所有組都在一個畫面 — 點格子即可修改',
                 '用文字記錄飲食，並依實際食用量計算熱量',
-                '在同一日期軸上查看攝取、運動與實測體重的趨勢',
                 '一起練：用代碼連線查看彼此的紀錄，並透過邀請連結一起制定訓練計畫'],
 }
 

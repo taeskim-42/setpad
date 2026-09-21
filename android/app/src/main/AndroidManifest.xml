@@ -6,7 +6,6 @@
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
     <uses-permission android:name="android.permission.health.READ_HEART_RATE"/>
     <!-- 체중은 "건강 앱에서 가져오기" 를 눌렀을 때만 따로 묻는다(HealthLink.authorizeWeight). -->
-    <uses-permission android:name="android.permission.health.READ_WEIGHT"/>
     <application
         android:label="setpad"
         android:name="${applicationName}"

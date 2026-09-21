@@ -26,7 +26,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'set_grid.dart';
 import 'settings.dart';
-import 'trends_page.dart';
 
 void main() => runApp(const SetpadApp());
 
@@ -749,27 +748,6 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                       ai: widget.ai,
                       mealText: _mealText,
                       onMealsChanged: _mealsChanged,
-                      onTrends: () => Navigator.of(context).push(
-                        CupertinoPageRoute<void>(
-                          builder: (context) => TrendsPage(
-                            store: widget.store,
-                            health: HealthLink(),
-                            // 이 문서면 돌아오고, 다른 날 문서면 그것을 연다.
-                            onOpenNote: (other) => other == widget.note
-                                ? Navigator.of(context).pop()
-                                : Navigator.of(context).push(
-                                    CupertinoPageRoute<void>(
-                                      builder: (_) => EditorPage(
-                                        store: widget.store,
-                                        note: other,
-                                        account: widget.account,
-                                        ai: widget.ai,
-                                      ),
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
                       onFitAll: () => showFitAll(context, [
                         (
                           caption: DateFormat.jm(
@@ -818,9 +796,7 @@ class _DocumentHeader extends StatefulWidget {
     this.mealText,
     this.onFitAll,
     this.onMealsChanged,
-    this.onTrends,
   });
-  final VoidCallback? onTrends;
   final Note note;
   final NotesStore store;
   final RecordAi ai;
@@ -1029,16 +1005,9 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     final l = L.of(context);
     final at = note.createdAt;
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
-    // 하루치다 — 이 문서 하나가 아니라 그날의 문서·끼니·체중 전부. 기간 화면과
-    // 같은 집계를 쓰므로 여기 숫자와 그래프의 숫자가 어긋날 수 없다.
-    final log = dayLogs(
-      widget.store.notes,
-      widget.store.weights,
-      from: at,
-      to: at,
-    ).firstOrNull;
+    // 하루치다 — 이 문서 하나가 아니라 그날의 문서와 끼니 전부.
+    final log = dayLogs(widget.store.notes, from: at, to: at).firstOrNull;
     final energy = log == null ? null : dayEnergyText(l, log);
-    final weight = log?.weight;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -1049,33 +1018,16 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: muted),
           ),
-          // 섭취 · 운동 · 차이와 체중을 작은 두 줄로. 누르면 기간 화면으로 간다.
-          if (energy != null || weight != null)
-            GestureDetector(
+          // 섭취 · 운동 · 차이를 작은 한 줄로.
+          if (energy != null)
+            Padding(
               key: const ValueKey('day-summary'),
-              behavior: HitTestBehavior.opaque,
-              onTap: widget.onTrends,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (energy != null)
-                      Text(
-                        energy,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: CupertinoColors.label.resolveFrom(context),
-                        ),
-                      ),
-                    if (weight != null)
-                      Text(
-                        l.weightLabel(
-                          formatWeight(weight, widget.store.weightUnit),
-                        ),
-                        style: TextStyle(fontSize: 13, color: muted),
-                      ),
-                  ],
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                energy,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: CupertinoColors.label.resolveFrom(context),
                 ),
               ),
             ),
@@ -1164,29 +1116,6 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                 ),
               ],
               const Spacer(),
-              // 체중은 운동한 날에만 재는 것이 아니지만, 재는 김에 적을 자리는
-              // 여기가 가장 가깝다. 그래프는 이 버튼 옆 요약 줄을 누르면 나온다.
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(44, 36),
-                onPressed: () => editWeight(context, widget.store),
-                child: Icon(
-                  CupertinoIcons.gauge,
-                  size: 17,
-                  semanticLabel: l.weightAdd,
-                ),
-              ),
-              if (widget.onTrends != null)
-                CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  minimumSize: const Size(44, 36),
-                  onPressed: widget.onTrends,
-                  child: Icon(
-                    CupertinoIcons.chart_bar,
-                    size: 17,
-                    semanticLabel: l.trendsTitle,
-                  ),
-                ),
               if (widget.onFitAll != null && note.blocks.isNotEmpty)
                 CupertinoButton(
                   padding: EdgeInsets.zero,

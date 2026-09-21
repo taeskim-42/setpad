@@ -27,9 +27,9 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 · Dark mode follows your system setting
 · English, Korean, Japanese, Spanish, Thai, Vietnamese, Chinese (Simplified and Traditional)
 
-■ Meals, body, together
+■ Meals, together
 · Log meals by photo or as text. When the calories are unknown, it says unknown
-· See intake, exercise energy and your measured weight on the same dates
+· See the day's intake and exercise energy in one line
 · Together: connect with a code to see each other's log. Your partner's log is read-only
 · Shared plans: invite by link, decide the next workout together, agree on the same version, then start
 

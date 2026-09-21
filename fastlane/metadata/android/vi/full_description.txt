@@ -27,9 +27,9 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 · Chế độ tối theo cài đặt hệ thống
 · Tiếng Việt, Anh, Hàn, Nhật, Tây Ban Nha, Thái và Trung (giản thể, phồn thể)
 
-■ Bữa ăn, cơ thể, tập cùng nhau
+■ Bữa ăn, tập cùng nhau
 · Ghi bữa ăn bằng ảnh hoặc chữ. Khi chưa rõ calo, ứng dụng ghi là chưa rõ
-· Xem lượng nạp, năng lượng tập và cân nặng đo được trên cùng ngày
+· Xem lượng nạp và năng lượng tập trong ngày trên một dòng
 · Cùng nhau: kết nối bằng mã để xem ghi chép của nhau. Ghi chép của bạn tập chỉ để xem
 · Kế hoạch chung: mời bằng liên kết, cùng quyết định buổi tập tới, thống nhất cùng một phiên bản rồi bắt đầu
 

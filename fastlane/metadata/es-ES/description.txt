@@ -27,9 +27,9 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 · El modo oscuro sigue la configuración del sistema
 · Español, inglés, coreano, japonés, tailandés, vietnamita y chino (simplificado y tradicional)
 
-■ Comidas, cuerpo, juntos
+■ Comidas, juntos
 · Registra comidas con foto o texto. Si no se conocen las calorías, lo dice
-· Mira la ingesta, la energía del ejercicio y tu peso medido en las mismas fechas
+· Mira la ingesta del día y la energía del ejercicio en una línea
 · Juntos: conéctate con un código para ver el registro del otro. El de tu compañero es de solo lectura
 · Planes compartidos: invita por enlace, decidid juntos el próximo entrenamiento, acordad la misma versión y empezad
 
