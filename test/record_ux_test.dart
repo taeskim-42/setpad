@@ -506,7 +506,8 @@ void main() {
       final note = store.create();
       // 서버를 못 쓰는 상태 — 기본 RecordAi 는 기기 id 가 없어 지원되지 않는다.
       await pumpPage(tester, EditorPage(store: store, note: note));
-      await tester.tap(find.text('식단 적기'));
+      // 식단 적기는 입력 줄 위 막대에 있다 — 화면 맨 위의 버튼은 뺐다.
+      await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
       await tester.pumpAndSettle();
       await submit(tester, '점심 김밥 한 줄, 라면 반 개');
       expect(note.meals.single.text, '점심 김밥 한 줄, 라면 반 개');

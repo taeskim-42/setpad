@@ -1105,40 +1105,13 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
             ),
           Row(
             children: [
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(44, 36),
-                onPressed: _estimating || !widget.ai.supported ? null : _pick,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(CupertinoIcons.camera, size: 16),
-                    const SizedBox(width: 6),
-                    Text(
-                      _estimating ? l.mealEstimating : l.mealPhoto,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ],
+              // 식단 사진·글 버튼은 여기 없다. 입력 줄 위의 막대에 같은 것이 늘 있어서
+              // 화면 맨 위에 또 둘 이유가 없었다. 사진을 읽는 동안이라는 것만 알린다.
+              if (_estimating)
+                Text(
+                  l.mealEstimating,
+                  style: TextStyle(fontSize: 13, color: muted),
                 ),
-              ),
-              // 글로 적는 쪽은 서버가 필요 없다 — 그물이 없어도 늘 된다.
-              if (widget.mealText != null) ...[
-                const SizedBox(width: 16),
-                CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  minimumSize: const Size(44, 36),
-                  onPressed: () =>
-                      widget.mealText!.value = (text: '', index: null),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(CupertinoIcons.square_pencil, size: 16),
-                      const SizedBox(width: 6),
-                      Text(l.mealText, style: const TextStyle(fontSize: 14)),
-                    ],
-                  ),
-                ),
-              ],
               // 같이 하기 창 안에 숨어 있던 것을 기록 화면으로 꺼냈다. 기록을 보다가
               // "이걸로 같이 하자" 가 떠오르는 자리가 여기다. 남는 폭을 다 쓰고,
               // 말이 긴 언어에서는 넘치지 않고 줄인다.

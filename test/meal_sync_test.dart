@@ -212,7 +212,8 @@ void main() {
     await tester.pumpAndSettle();
     final input = find.byType(CupertinoTextField);
     Future<void> write(String text) async {
-      await tester.tap(find.text('식단 적기'));
+      // 식단 적기는 입력 줄 위 막대에 있다 — 화면 맨 위의 버튼은 뺐다.
+      await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
       await tester.pumpAndSettle();
       await tester.enterText(input, text);
       await tester.testTextInput.receiveAction(TextInputAction.done);
