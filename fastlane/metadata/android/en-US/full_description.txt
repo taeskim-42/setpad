@@ -10,9 +10,8 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 
 ■ One-line setup
 · Write "bench 80kg, work up to 100 reps" and the weight and goal are filled in
-· The sentence is processed on your device — it is never sent anywhere
-· Requires iPhone 15 Pro or later, iOS 26 or later, Apple Intelligence on
-· On other devices the app works exactly the same; it just tells you why this part is off
+· The sentence is interpreted by AI on our server. The sentence is not stored there
+· Offline, or when it cannot be interpreted, what you typed simply becomes the name — logging is never blocked
 
 ■ A note under any set
 · Write what you were thinking, right under the set. Notes stack up
@@ -28,4 +27,10 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 · Dark mode follows your system setting
 · English, Korean, Japanese, Spanish, Thai, Vietnamese, Chinese (Simplified and Traditional)
 
-No account. No ads. Your log stays on your device.
+■ Meals, body, together
+· Log meals by photo or as text. When the calories are unknown, it says unknown
+· See intake, exercise energy and your measured weight on the same dates
+· Together: connect with a code to see each other's log. Your partner's log is read-only
+· Shared plans: invite by link, decide the next workout together, agree on the same version, then start
+
+Logging on your own needs no account. Gym links, working out together, shared plans and subscriptions need sign-in. No ads. Your log stays on your device; only gym-linked records and what you choose to share go to the server.

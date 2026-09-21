@@ -238,6 +238,18 @@ platform :ios do
       filter: { state: open_states.join(","), platform: "IOS" },
     )
     UI.message("열려 있는 제출: #{submissions.map { |s| "#{s.id} #{s.state}" }.join(" · ")}")
+    # 올린 설명이 실제로 반영됐는지 되읽는다. 심사 중에는 잠겨서 조용히 안 바뀔 수 있다.
+    version = app.get_edit_app_store_version(platform: "IOS") ||
+      app.get_in_review_app_store_version(platform: "IOS") ||
+      app.get_pending_release_app_store_version(platform: "IOS")
+    if version
+      version.get_app_store_version_localizations.each do |loc|
+        local = File.join("metadata", loc.locale, "description.txt")
+        next unless File.exist?(local)
+        same = loc.description.to_s.strip == File.read(local).strip
+        UI.message("설명 #{loc.locale}: #{same ? "로컬과 같음" : "로컬과 다름"} (#{version.version_string} #{version.app_store_state})")
+      end
+    end
     next unless ENV["CANCEL"] == "1"
     submissions.each do |submission|
       # 아직 내지 않은 초안과 이미 취소 중인 것은 건드릴 것이 없다.

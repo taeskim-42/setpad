@@ -41,9 +41,8 @@ setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 
 
 ■ 한 줄 설정
 · "벤치 80kg 100개 채우기"라고 적으면 무게와 목표를 알아서 잡습니다
-· 문장은 기기 안에서 처리됩니다 — 어디로도 보내지 않습니다
-· iPhone 15 Pro 이상, iOS 26 이상, Apple Intelligence 켜짐이 필요합니다
-· 안 되는 기기에서도 앱은 그대로 씁니다. 이유는 앱이 알려 줍니다
+· 문장은 서버의 AI가 해석합니다. 문장은 서버에 저장하지 않습니다
+· 인터넷이 없거나 해석이 안 되면 친 그대로 이름으로 남습니다 — 기록은 막히지 않습니다
 
 ■ 세트마다 메모
 · 세트 아래에 그때 생각을 그대로 답니다. 여러 줄이 쌓입니다
@@ -59,7 +58,13 @@ setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 
 · 다크 모드는 시스템 설정을 따릅니다
 · 한국어, 영어, 일본어, 스페인어, 태국어, 베트남어, 중국어(간체·번체)
 
-계정을 만들지 않습니다. 광고가 없습니다. 기록은 기기에 남습니다.'''),
+■ 식단·몸·같이 하기
+· 식단을 사진이나 글로 남깁니다. 열량을 모르면 모른다고 적습니다
+· 섭취, 운동 소모, 실제로 잰 체중을 같은 날짜 위에서 봅니다
+· 같이 하기: 코드로 연결해 서로의 기록을 봅니다. 상대 기록은 읽기 전용입니다
+· 공동 루틴: 링크로 초대해 다음 운동을 함께 정하고, 같은 버전에 동의한 뒤 시작합니다
+
+혼자 기록하는 데는 계정이 필요 없습니다. 도장 연결, 같이 하기, 공동 루틴, 구독에는 로그인이 필요합니다. 광고가 없습니다. 기록은 기기에 남고, 도장에 연결한 기록과 공유하기로 한 것만 서버로 갑니다.'''),
 
 'en': dict(
   name='setpad',
@@ -79,9 +84,8 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 
 ■ One-line setup
 · Write "bench 80kg, work up to 100 reps" and the weight and goal are filled in
-· The sentence is processed on your device — it is never sent anywhere
-· Requires iPhone 15 Pro or later, iOS 26 or later, Apple Intelligence on
-· On other devices the app works exactly the same; it just tells you why this part is off
+· The sentence is interpreted by AI on our server. The sentence is not stored there
+· Offline, or when it cannot be interpreted, what you typed simply becomes the name — logging is never blocked
 
 ■ A note under any set
 · Write what you were thinking, right under the set. Notes stack up
@@ -97,7 +101,13 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 · Dark mode follows your system setting
 · English, Korean, Japanese, Spanish, Thai, Vietnamese, Chinese (Simplified and Traditional)
 
-No account. No ads. Your log stays on your device.'''),
+■ Meals, body, together
+· Log meals by photo or as text. When the calories are unknown, it says unknown
+· See intake, exercise energy and your measured weight on the same dates
+· Together: connect with a code to see each other's log. Your partner's log is read-only
+· Shared plans: invite by link, decide the next workout together, agree on the same version, then start
+
+Logging on your own needs no account. Gym links, working out together, shared plans and subscriptions need sign-in. No ads. Your log stays on your device; only gym-linked records and what you choose to share go to the server.'''),
 
 'ja': dict(
   name='setpad',
@@ -117,9 +127,8 @@ setpadはルーティンを組み立てるアプリではありません。セ�
 
 ■ 一行設定
 ・「ベンチ 80kg 100回まで」と書けば、重量と目標を自動で設定します
-・文章は端末内で処理されます — どこにも送信しません
-・iPhone 15 Pro以降、iOS 26以降、Apple Intelligenceのオンが必要です
-・非対応の端末でもアプリはそのまま使えます。理由はアプリが説明します
+・文章はサーバーのAIが解釈します。文章はサーバーに保存しません
+・オフラインや解釈できないときは、入力したままが種目名になります — 記録は止まりません
 
 ■ セットごとのメモ
 ・そのとき考えたことを、セットのすぐ下に残せます。何行でも積み上がります
@@ -135,7 +144,13 @@ setpadはルーティンを組み立てるアプリではありません。セ�
 ・ダークモードはシステム設定に従います
 ・日本語、韓国語、英語、スペイン語、タイ語、ベトナム語、中国語（簡体字・繁体字）
 
-アカウント登録なし。広告なし。記録は端末に残ります。'''),
+■ 食事・体・一緒に
+・食事を写真またはテキストで記録。カロリーが不明なら不明と表示します
+・摂取、運動消費、実際に測った体重を同じ日付で見られます
+・一緒に: コードでつながってお互いの記録を見ます。相手の記録は閲覧のみです
+・共同ルーティン: リンクで招待して次の運動を一緒に決め、同じバージョンに合意してから始めます
+
+一人で記録するだけならアカウントは不要です。ジム連携、一緒に、共同ルーティン、サブスクリプションにはログインが必要です。広告なし。記録は端末に残り、ジムに連携した記録と共有すると決めたものだけがサーバーに送られます。'''),
 
 'es': dict(
   name='setpad',
@@ -155,9 +170,8 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 
 ■ Configuración en una línea
 · Escribe "banca 80kg hasta 100 repeticiones" y el peso y el objetivo se rellenan solos
-· La frase se procesa en tu dispositivo — nunca se envía a ningún sitio
-· Requiere iPhone 15 Pro o posterior, iOS 26 o posterior y Apple Intelligence activado
-· En otros dispositivos la app funciona igual; solo te explica por qué esta parte no está disponible
+· La frase la interpreta una IA en nuestro servidor. La frase no se guarda allí
+· Sin conexión, o si no se puede interpretar, lo que escribiste queda como nombre — el registro nunca se bloquea
 
 ■ Una nota bajo cualquier serie
 · Anota lo que estabas pensando, justo debajo de la serie. Las notas se acumulan
@@ -173,7 +187,13 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 · El modo oscuro sigue la configuración del sistema
 · Español, inglés, coreano, japonés, tailandés, vietnamita y chino (simplificado y tradicional)
 
-Sin cuenta. Sin anuncios. Tu registro se queda en tu dispositivo.'''),
+■ Comidas, cuerpo, juntos
+· Registra comidas con foto o texto. Si no se conocen las calorías, lo dice
+· Mira la ingesta, la energía del ejercicio y tu peso medido en las mismas fechas
+· Juntos: conéctate con un código para ver el registro del otro. El de tu compañero es de solo lectura
+· Planes compartidos: invita por enlace, decidid juntos el próximo entrenamiento, acordad la misma versión y empezad
+
+Para registrar por tu cuenta no hace falta cuenta. Los gimnasios, entrenar juntos, los planes compartidos y las suscripciones requieren iniciar sesión. Sin anuncios. Tu registro se queda en tu dispositivo; solo van al servidor los registros vinculados a un gimnasio y lo que decidas compartir.'''),
 
 'th': dict(
   name='setpad',
@@ -193,9 +213,8 @@ setpad ไม่ใช่แอปสร้างโปรแกรมฝึก�
 
 ■ ตั้งค่าบรรทัดเดียว
 · เขียนว่า "เบนช์ 80 กก. ให้ครบ 100 ครั้ง" แล้วน้ำหนักกับเป้าหมายจะถูกตั้งให้เอง
-· ประโยคถูกประมวลผลในเครื่อง — ไม่ถูกส่งออกไปไหน
-· ต้องใช้ iPhone 15 Pro ขึ้นไป, iOS 26 ขึ้นไป และเปิด Apple Intelligence
-· เครื่องที่ไม่รองรับก็ใช้แอปได้เหมือนเดิม แอปจะบอกเหตุผลให้
+· ประโยคถูกตีความโดย AI บนเซิร์ฟเวอร์ของเรา และไม่ถูกเก็บไว้ที่นั่น
+· เมื่อออฟไลน์หรือตีความไม่ได้ สิ่งที่พิมพ์จะกลายเป็นชื่อท่าตามนั้น — การบันทึกไม่ถูกขวาง
 
 ■ โน้ตใต้เซ็ต
 · จดสิ่งที่คิดตอนนั้นไว้ใต้เซ็ตได้เลย จดได้หลายบรรทัด
@@ -211,7 +230,13 @@ setpad ไม่ใช่แอปสร้างโปรแกรมฝึก�
 · โหมดมืดตามการตั้งค่าของระบบ
 · ไทย อังกฤษ เกาหลี ญี่ปุ่น สเปน เวียดนาม และจีน (ตัวย่อและตัวเต็ม)
 
-ไม่ต้องสมัครบัญชี ไม่มีโฆษณา บันทึกอยู่ในเครื่องของคุณ'''),
+■ อาหาร ร่างกาย และออกกำลังด้วยกัน
+· บันทึกมื้ออาหารด้วยรูปหรือข้อความ ถ้าไม่ทราบแคลอรีก็จะบอกว่าไม่ทราบ
+· ดูการกิน พลังงานที่ใช้ออกกำลัง และน้ำหนักที่ชั่งจริงบนวันเดียวกัน
+· ด้วยกัน: เชื่อมต่อด้วยรหัสเพื่อดูบันทึกของกันและกัน บันทึกของอีกฝ่ายอ่านได้อย่างเดียว
+· แผนร่วม: เชิญด้วยลิงก์ ตกลงการออกกำลังครั้งถัดไปด้วยกัน ยอมรับเวอร์ชันเดียวกัน แล้วเริ่ม
+
+การบันทึกคนเดียวไม่ต้องมีบัญชี การเชื่อมยิม การออกกำลังด้วยกัน แผนร่วม และการสมัครสมาชิกต้องเข้าสู่ระบบ ไม่มีโฆษณา บันทึกอยู่ในเครื่องของคุณ มีเพียงบันทึกที่เชื่อมกับยิมและสิ่งที่คุณเลือกแชร์เท่านั้นที่ส่งไปเซิร์ฟเวอร์'''),
 
 'vi': dict(
   name='setpad',
@@ -231,9 +256,8 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 
 ■ Thiết lập một dòng
 · Viết "đẩy ngực 80kg cho đủ 100 lần" là mức tạ và mục tiêu tự được điền
-· Câu chữ được xử lý ngay trên máy — không gửi đi đâu cả
-· Cần iPhone 15 Pro trở lên, iOS 26 trở lên và bật Apple Intelligence
-· Máy khác vẫn dùng ứng dụng bình thường; ứng dụng sẽ nói rõ vì sao phần này chưa dùng được
+· Câu chữ được AI trên máy chủ của chúng tôi diễn giải. Câu chữ không được lưu ở đó
+· Khi ngoại tuyến hoặc không diễn giải được, điều bạn gõ sẽ thành tên bài tập — việc ghi không bao giờ bị chặn
 
 ■ Ghi chú dưới từng hiệp
 · Viết điều bạn đang nghĩ, ngay dưới hiệp vừa xong. Ghi chú xếp chồng lên nhau
@@ -249,7 +273,13 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 · Chế độ tối theo cài đặt hệ thống
 · Tiếng Việt, Anh, Hàn, Nhật, Tây Ban Nha, Thái và Trung (giản thể, phồn thể)
 
-Không cần tài khoản. Không quảng cáo. Nhật ký nằm trên máy của bạn.'''),
+■ Bữa ăn, cơ thể, tập cùng nhau
+· Ghi bữa ăn bằng ảnh hoặc chữ. Khi chưa rõ calo, ứng dụng ghi là chưa rõ
+· Xem lượng nạp, năng lượng tập và cân nặng đo được trên cùng ngày
+· Cùng nhau: kết nối bằng mã để xem ghi chép của nhau. Ghi chép của bạn tập chỉ để xem
+· Kế hoạch chung: mời bằng liên kết, cùng quyết định buổi tập tới, thống nhất cùng một phiên bản rồi bắt đầu
+
+Tự ghi một mình thì không cần tài khoản. Liên kết phòng tập, tập cùng nhau, kế hoạch chung và gói đăng ký cần đăng nhập. Không quảng cáo. Nhật ký nằm trên máy của bạn; chỉ các bản ghi liên kết với phòng tập và những gì bạn chọn chia sẻ mới lên máy chủ.'''),
 
 'zh-Hans': dict(
   name='setpad',
@@ -269,9 +299,8 @@ setpad 不是用来提前编排计划的。做完一组，当场把数字打上�
 
 ■ 一行设置
 · 写“卧推 80kg 做满 100 次”，重量和目标会自动填好
-· 这句话在你的设备上处理 — 不会发送到任何地方
-· 需要 iPhone 15 Pro 及以上、iOS 26 及以上，并开启 Apple Intelligence
-· 其他机型照常使用，应用会告诉你这部分为什么用不了
+· 这句话由我们服务器上的 AI 解析，句子不会保存在服务器上
+· 离线或无法解析时，你输入的内容会原样成为动作名 — 记录不会被挡住
 
 ■ 每组下的备注
 · 把当时的想法写在这一组下面，可以写很多行
@@ -287,7 +316,13 @@ setpad 不是用来提前编排计划的。做完一组，当场把数字打上�
 · 深色模式跟随系统设置
 · 简体中文、繁体中文、英语、韩语、日语、西班牙语、泰语、越南语
 
-无需账号。没有广告。记录留在你的设备上。'''),
+■ 饮食、身体、一起练
+· 用照片或文字记录饮食。不知道热量时就标为未知
+· 在同一日期上查看摄入、运动消耗和实测体重
+· 一起练：用代码连接，查看彼此的记录。对方的记录只读
+· 共同计划：用链接邀请，一起决定下一次训练，同意同一版本后开始
+
+独自记录不需要账号。连接健身房、一起练、共同计划和订阅需要登录。没有广告。记录留在你的设备上，只有与健身房关联的记录和你选择共享的内容会发送到服务器。'''),
 
 'zh-Hant': dict(
   name='setpad',
@@ -307,9 +342,8 @@ setpad 不是用來事先編排課表的。做完一組，當場把數字打上�
 
 ■ 一行設定
 · 寫「臥推 80kg 做滿 100 下」，重量和目標會自動填好
-· 這句話在你的裝置上處理 — 不會傳送到任何地方
-· 需要 iPhone 15 Pro 以上、iOS 26 以上，並開啟 Apple Intelligence
-· 其他機型照常使用，App 會告訴你這部分為什麼用不了
+· 這句話由我們伺服器上的 AI 解析，句子不會儲存在伺服器上
+· 離線或無法解析時，你輸入的內容會原樣成為動作名稱 — 紀錄不會被擋住
 
 ■ 每組下的備註
 · 把當時的想法寫在這一組下面，可以寫很多行
@@ -325,7 +359,13 @@ setpad 不是用來事先編排課表的。做完一組，當場把數字打上�
 · 深色模式跟隨系統設定
 · 繁體中文、簡體中文、英文、韓文、日文、西班牙文、泰文、越南文
 
-不需帳號。沒有廣告。紀錄留在你的裝置上。'''),
+■ 飲食、身體、一起練
+· 用照片或文字記錄飲食。不知道熱量時就標為未知
+· 在同一日期上查看攝取、運動消耗和實測體重
+· 一起練：用代碼連線，查看彼此的紀錄。對方的紀錄唯讀
+· 共同計畫：用連結邀請，一起決定下一次訓練，同意同一版本後開始
+
+獨自記錄不需要帳號。連結健身房、一起練、共同計畫和訂閱需要登入。沒有廣告。紀錄留在你的裝置上，只有與健身房關聯的紀錄和你選擇分享的內容會傳送到伺服器。'''),
 }
 
 PRIVACY = 'https://taeskim-42.github.io/setpad-site/privacy.html'

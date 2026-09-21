@@ -79,6 +79,14 @@ Apple Developer 포털에 App ID 를 등록한다 (한 번만)
 
 TestFlight 에 올라간 빌드를 심사에 제출 (승인 시 자동 출시)
 
+### ios review_state
+
+```sh
+[bundle exec] fastlane ios review_state
+```
+
+열려 있는 심사 제출을 보여 주고, CANCEL=1 이면 취소한다 (새 빌드로 바꿔 낼 때)
+
 ### ios release
 
 ```sh

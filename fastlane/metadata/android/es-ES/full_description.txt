@@ -10,9 +10,8 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 
 ■ Configuración en una línea
 · Escribe "banca 80kg hasta 100 repeticiones" y el peso y el objetivo se rellenan solos
-· La frase se procesa en tu dispositivo — nunca se envía a ningún sitio
-· Requiere iPhone 15 Pro o posterior, iOS 26 o posterior y Apple Intelligence activado
-· En otros dispositivos la app funciona igual; solo te explica por qué esta parte no está disponible
+· La frase la interpreta una IA en nuestro servidor. La frase no se guarda allí
+· Sin conexión, o si no se puede interpretar, lo que escribiste queda como nombre — el registro nunca se bloquea
 
 ■ Una nota bajo cualquier serie
 · Anota lo que estabas pensando, justo debajo de la serie. Las notas se acumulan
@@ -28,4 +27,10 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 · El modo oscuro sigue la configuración del sistema
 · Español, inglés, coreano, japonés, tailandés, vietnamita y chino (simplificado y tradicional)
 
-Sin cuenta. Sin anuncios. Tu registro se queda en tu dispositivo.
+■ Comidas, cuerpo, juntos
+· Registra comidas con foto o texto. Si no se conocen las calorías, lo dice
+· Mira la ingesta, la energía del ejercicio y tu peso medido en las mismas fechas
+· Juntos: conéctate con un código para ver el registro del otro. El de tu compañero es de solo lectura
+· Planes compartidos: invita por enlace, decidid juntos el próximo entrenamiento, acordad la misma versión y empezad
+
+Para registrar por tu cuenta no hace falta cuenta. Los gimnasios, entrenar juntos, los planes compartidos y las suscripciones requieren iniciar sesión. Sin anuncios. Tu registro se queda en tu dispositivo; solo van al servidor los registros vinculados a un gimnasio y lo que decidas compartir.

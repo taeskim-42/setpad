@@ -10,9 +10,8 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 
 ■ Thiết lập một dòng
 · Viết "đẩy ngực 80kg cho đủ 100 lần" là mức tạ và mục tiêu tự được điền
-· Câu chữ được xử lý ngay trên máy — không gửi đi đâu cả
-· Cần iPhone 15 Pro trở lên, iOS 26 trở lên và bật Apple Intelligence
-· Máy khác vẫn dùng ứng dụng bình thường; ứng dụng sẽ nói rõ vì sao phần này chưa dùng được
+· Câu chữ được AI trên máy chủ của chúng tôi diễn giải. Câu chữ không được lưu ở đó
+· Khi ngoại tuyến hoặc không diễn giải được, điều bạn gõ sẽ thành tên bài tập — việc ghi không bao giờ bị chặn
 
 ■ Ghi chú dưới từng hiệp
 · Viết điều bạn đang nghĩ, ngay dưới hiệp vừa xong. Ghi chú xếp chồng lên nhau
@@ -28,7 +27,13 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 · Chế độ tối theo cài đặt hệ thống
 · Tiếng Việt, Anh, Hàn, Nhật, Tây Ban Nha, Thái và Trung (giản thể, phồn thể)
 
-Không cần tài khoản. Không quảng cáo. Nhật ký nằm trên máy của bạn.
+■ Bữa ăn, cơ thể, tập cùng nhau
+· Ghi bữa ăn bằng ảnh hoặc chữ. Khi chưa rõ calo, ứng dụng ghi là chưa rõ
+· Xem lượng nạp, năng lượng tập và cân nặng đo được trên cùng ngày
+· Cùng nhau: kết nối bằng mã để xem ghi chép của nhau. Ghi chép của bạn tập chỉ để xem
+· Kế hoạch chung: mời bằng liên kết, cùng quyết định buổi tập tới, thống nhất cùng một phiên bản rồi bắt đầu
+
+Tự ghi một mình thì không cần tài khoản. Liên kết phòng tập, tập cùng nhau, kế hoạch chung và gói đăng ký cần đăng nhập. Không quảng cáo. Nhật ký nằm trên máy của bạn; chỉ các bản ghi liên kết với phòng tập và những gì bạn chọn chia sẻ mới lên máy chủ.
 
 Điều khoản sử dụng (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Chính sách quyền riêng tư: https://taeskim-42.github.io/setpad-site/privacy.html
