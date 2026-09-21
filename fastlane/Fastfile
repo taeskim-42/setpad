@@ -226,6 +226,27 @@ platform :ios do
     )
   end
 
+  desc "열려 있는 심사 제출을 보여 주고, CANCEL=1 이면 취소한다 (새 빌드로 바꿔 낼 때)"
+  lane :review_state do
+    asc_key
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
+      **Actions.lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+    )
+    app = Spaceship::ConnectAPI::App.find(IOS_APP_ID)
+    open_states = %w[READY_FOR_REVIEW WAITING_FOR_REVIEW IN_REVIEW UNRESOLVED_ISSUES CANCELING]
+    submissions = app.get_review_submissions(
+      filter: { state: open_states.join(","), platform: "IOS" },
+    )
+    UI.message("열려 있는 제출: #{submissions.map { |s| "#{s.id} #{s.state}" }.join(" · ")}")
+    next unless ENV["CANCEL"] == "1"
+    submissions.each do |submission|
+      # 아직 내지 않은 초안과 이미 취소 중인 것은 건드릴 것이 없다.
+      next if %w[READY_FOR_REVIEW CANCELING].include?(submission.state)
+      submission.cancel_submission
+      UI.success("취소 요청: #{submission.id} (#{submission.state})")
+    end
+  end
+
   desc "원커맨드 출시 — 등록정보·스크린샷 올리고 심사 제출"
   lane :release do
     metadata
