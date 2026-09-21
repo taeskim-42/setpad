@@ -293,5 +293,19 @@
   "planLinkCopied": "Link copied. It works once, for one day.",
   "planLinkJoining": "Joining the plan you were invited to…",
   "nearbyHint": "Between iPhones, you can also connect by holding the two phones close with this screen open.",
-  "planPropose": "Propose plan"
+  "planPropose": "Propose plan",
+  "togetherStart": "Start together",
+  "togetherAlternate": "Take turns",
+  "togetherWaiting": "Waiting for {name}…",
+  "togetherWaitingHint": "A request shows on your partner's screen. If it doesn't, check that their app is up to date.",
+  "togetherInvite": "{name} wants to do this together",
+  "togetherInviteAlternate": "Taking turns · partner goes first",
+  "togetherLeave": "Stop",
+  "togetherRejoin": "Rejoin",
+  "togetherWith": "Together with {name}",
+  "togetherTheirTurn": "Partner's turn",
+  "togetherLeftBeat": "{name} stopped at beat {n}",
+  "togetherLeftRound": "{name} stopped in round {n}",
+  "togetherMe": "Me",
+  "togetherLog": "Log"
 }

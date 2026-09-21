@@ -15,6 +15,8 @@ import 'rest_recovery.dart';
 import 'set_grid.dart';
 import 'palette.dart';
 import 'parser.dart';
+import 'partner.dart';
+import 'shared_timer.dart';
 import 'units.dart';
 import 'workout_timing.dart';
 
@@ -186,6 +188,28 @@ class RoutineEditorController extends ChangeNotifier {
     _learned.remove(learned);
     _learned.insert(0, learned);
     _active = blocks.length - 1;
+    notifyListeners();
+  }
+
+  /// 커서를 옮기지 않고 칸만 더한다 — 상대가 같이 하자고 한 운동이다. 치던 것이
+  /// 있어도 그 자리 그대로 남는다. 이름은 익히지 않는다: 내가 친 것이 아니다.
+  ExerciseBlock addBlockQuietly(String name) {
+    final block = ExerciseBlock(name.trim());
+    blocks.add(block);
+    notifyListeners();
+    return block;
+  }
+
+  /// 횟수만으로 한 세트. 같이 하는 타이머의 쉬는 구간에서 한 번 눌러 적는다.
+  void logReps(ExerciseBlock block, int reps) {
+    if (!blocks.contains(block)) return;
+    block.sets.add(
+      LoggedSet(
+        value: block.setup?.weight,
+        unit: block.setup?.unit ?? block.sets.lastOrNull?.unit ?? weightUnit,
+        reps: reps,
+      ),
+    );
     notifyListeners();
   }
 
@@ -502,8 +526,16 @@ class RoutineEditor extends StatefulWidget {
     this.onMealText,
     this.recentMeals = const [],
     this.recovery,
+    this.partner,
+    this.timer,
   });
   final RoutineEditorController controller;
+
+  /// 같이 운동 중이면 있다. 타이머를 같은 순간에 돌리는 데 쓴다.
+  final PartnerSync? partner;
+
+  /// 없으면 여기서 만든다 — 테스트가 시계와 소리를 끼워 넣는 자리다.
+  final WorkoutTimer? timer;
 
   /// 심박으로 휴식을 끊어 주는 쪽. 없으면 여기서 만든다 — 테스트가 끼워
   /// 넣는 자리다.
@@ -543,7 +575,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   final _input = TextEditingController();
   final _focus = FocusNode();
   final _scroll = ScrollController();
-  late final _workoutTimer = WorkoutTimer();
+  late final _workoutTimer = widget.timer ?? WorkoutTimer();
   late final _recovery = widget.recovery ?? RestRecovery(health: HealthLink());
   bool _timingKeyboardHidden = false;
   final _listKey = GlobalKey();
@@ -753,6 +785,141 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (phase == TimingPhase.rest) _recovery.beginRest();
   }
 
+  // ── 같이 하는 타이머 ─────────────────────────────────────────────
+
+  /// 같이 돌리는 칸. 내가 제안했거나 받아들인 칸을 기억해 둔다 — 같은 이름의
+  /// 칸이 둘이어도 헷갈리지 않는다.
+  ExerciseBlock? _sharedBlock;
+
+  SharedTimer? get _shared {
+    final session = widget.partner?.session;
+    return session?.state == PartnerState.active ? session!.timer : null;
+  }
+
+  bool _live(SharedTimer? t) =>
+      t != null && t.started && !t.overAt(widget.partner?.clock.now);
+
+  ExerciseBlock? _blockFor(SharedTimer t) {
+    final kept = _sharedBlock;
+    if (kept != null &&
+        _c.blocks.contains(kept) &&
+        TimingSpec.parse(kept.name) == t.spec) {
+      return kept;
+    }
+    return _c.blocks.where((b) => b.name == t.title).firstOrNull ??
+        _c.blocks.where((b) => TimingSpec.parse(b.name) == t.spec).firstOrNull;
+  }
+
+  /// 내 타이머를 같이 하는 자리에 둔다. 상대 소식이 올 때마다, 앱으로 돌아올
+  /// 때마다 부른다 — 이미 제자리면 아무 일도 없다.
+  void _followShared() {
+    if (!mounted) return;
+    final t = _shared;
+    if (_live(t) && t!.myLeft == null) {
+      final block = _blockFor(t);
+      final at = t.elapsedAt(widget.partner!.clock.now);
+      if (block != null && at != null) {
+        final joining = !_workoutTimer.shared || !_workoutTimer.running;
+        _workoutTimer.follow(block, t.personal, at);
+        if (joining && _workoutTimer.running) {
+          _focus.unfocus();
+          SystemChannels.textInput.invokeMethod('TextInput.hide');
+          _timingKeyboardHidden = true;
+        }
+      }
+    } else if (_workoutTimer.shared &&
+        _workoutTimer.running &&
+        (t == null || !t.started)) {
+      // 상대가 치웠거나 새 제안이 앞의 것을 갈아 치웠다.
+      _workoutTimer.reset();
+    }
+    setState(() {});
+  }
+
+  /// 나만 그만둔다. 상대에게는 어디서 멈췄는지가 간다.
+  void _leaveShared() {
+    final at = _workoutTimer.elapsed, beat = _workoutTimer.beat;
+    _workoutTimer.pause();
+    widget.partner?.leaveTimer(at, beat);
+  }
+
+  void _proposeShared(ExerciseBlock block, TimingSpec spec, bool alternate) {
+    final t = _shared;
+    _sharedBlock = block;
+    // 상대가 같은 것을 먼저 제안해 두었다면 그것을 받는 것이 곧 같이 시작이다.
+    if (t != null && !t.started && !t.mine && t.spec == spec) {
+      widget.partner!.acceptTimer();
+    } else {
+      widget.partner!.proposeTimer(block.name, spec, alternate: alternate);
+    }
+  }
+
+  void _acceptShared() {
+    final t = _shared;
+    if (t == null || t.started || t.mine) return;
+    _sharedBlock = _blockFor(t) ?? _c.addBlockQuietly(t.title);
+    widget.partner!.acceptTimer();
+  }
+
+  /// 시작·정지가 눌렸다. 같이 하는 중이면 그만두기·다시 들어가기다.
+  bool _togetherToggle(ExerciseBlock block) {
+    final sync = widget.partner, t = _shared;
+    if (sync == null || t == null) return false;
+    if (_live(t) && identical(block, _blockFor(t))) {
+      t.myLeft == null ? _leaveShared() : sync.rejoinTimer();
+      return true;
+    }
+    // 다른 칸의 타이머를 혼자 돌리겠다는 것이다. 같이 하던 것에서는 빠진다.
+    if (_live(t) && t.myLeft == null) _leaveShared();
+    if (!t.started && t.mine) sync.clearTimer();
+    return false;
+  }
+
+  TogetherTiming? _togetherFor(ExerciseBlock block, L l) {
+    final sync = widget.partner, session = sync?.session;
+    if (sync == null || session?.state != PartnerState.active) return null;
+    final t = session!.timer;
+    final name = session.partnerName ?? '';
+    final here = t != null && identical(_blockFor(t), block);
+    final gone = here && t.started ? t.partnerLeft : null;
+    final cycle = t == null ? 1 : t.personal.work + t.personal.rest;
+    final theirs = !here
+        ? null
+        : session.partnerBlocks.where((b) => b.name == t.title).firstOrNull ??
+              session.partnerBlocks
+                  .where((b) => TimingSpec.parse(b.name) == t.spec)
+                  .firstOrNull;
+    return TogetherTiming(
+      partner: name,
+      waiting: here && !t.started && t.mine,
+      busy: !here && _live(t) && t!.myLeft == null,
+      live: here && _live(t),
+      left: here && t.myLeft != null,
+      alternate: here && t.alternate,
+      partnerLeft: gone == null
+          ? null
+          : t!.spec.tabata
+          ? l.togetherLeftRound(
+              name,
+              ((gone.ms / 1000 - 3) / cycle).floor().clamp(
+                    0,
+                    t.spec.rounds - 1,
+                  ) +
+                  1,
+            )
+          : l.togetherLeftBeat(name, gone.beat),
+      mine: here && t.started ? [for (final s in block.sets) s.reps] : const [],
+      theirs: here && t.started
+          ? [for (final s in theirs?.sets ?? const <LoggedSet>[]) s.reps]
+          : const [],
+      onPropose: (alternate) =>
+          _proposeShared(block, TimingSpec.parse(block.name)!, alternate),
+      onToggle: () => _togetherToggle(block),
+      onCancel: sync.clearTimer,
+      onLog: (n) => _c.logReps(block, n),
+    );
+  }
+
   /// 회복했으면 남은 휴식을 건너뛴다. 심박은 휴식을 짧게 할 뿐이다 —
   /// 값이 없거나 늦게 오면 아무 일도 일어나지 않고 시간이 끊는다.
   void _followHeart() {
@@ -769,6 +936,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     _input.addListener(_onInput);
     _workoutTimer.addListener(_followTimer);
     _recovery.addListener(_followHeart);
+    widget.partner?.addListener(_followShared);
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -780,6 +948,8 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 앱을 내리면 타이머가 멈춘다. 돌아오면 같이 하던 자리로 곧바로 돌아간다.
+    if (state == AppLifecycleState.resumed) _followShared();
     if (state == AppLifecycleState.paused && _aiBusy) {
       _aiRequest++;
       widget.ai.cancel();
@@ -1120,8 +1290,10 @@ class _RoutineEditorState extends State<RoutineEditor>
     _input.dispose();
     _focus.dispose();
     _scroll.dispose();
+    widget.partner?.removeListener(_followShared);
     _workoutTimer.removeListener(_followTimer);
-    _workoutTimer.dispose();
+    // 밖에서 받은 것은 밖에서 버린다.
+    if (widget.timer == null) _workoutTimer.dispose();
     _recovery.removeListener(_followHeart);
     // 밖에서 받은 것은 밖에서 버린다.
     if (widget.recovery == null) _recovery.dispose();
@@ -1143,10 +1315,23 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   void _onChanged() {
     final timed = _workoutTimer.owner;
+    // 같이 하는 중에는 도는 설정이 제목과 다를 수 있다(교대는 휴식이 길다).
+    // 제목과 견줄 것은 둘이 정한 설정이다.
+    final agreed = _workoutTimer.shared ? _shared?.spec : _workoutTimer.spec;
     if (timed is ExerciseBlock &&
         (!_c.blocks.contains(timed) ||
-            TimingSpec.parse(timed.name) != _workoutTimer.spec)) {
+            TimingSpec.parse(timed.name) != agreed)) {
+      // 같이 돌리던 칸을 지웠거나 이름을 바꿨다. 말없이 사라지지 않고 빠진다고 알린다.
+      if (_workoutTimer.shared && _workoutTimer.running) _leaveShared();
       _workoutTimer.clear();
+    }
+    // 제안해 놓고 그 칸을 지웠거나 설정을 바꿨다. 상대가 받아도 돌릴 칸이 없으니 거둔다.
+    final offered = _shared;
+    if (offered != null &&
+        offered.mine &&
+        !offered.started &&
+        _blockFor(offered) == null) {
+      widget.partner!.clearTimer();
     }
     _saveDraft();
     _syncSentinel();
@@ -1500,8 +1685,18 @@ class _RoutineEditorState extends State<RoutineEditor>
       ..countAloud = widget.countAloud
       ..voiceLocale = Localizations.localeOf(context).toLanguageTag()
       ..announceRound = L.of(context).timingRoundDone;
+    final incoming = _shared;
     return Column(
       children: [
+        // 상대가 같이 하자고 했다. 목록과 함께 흘러가지 않게 맨 위에 붙여 둔다 —
+        // 받아야 시작하는데 안 보이면 상대는 하염없이 기다린다.
+        if (incoming != null && !incoming.started && !incoming.mine)
+          _TogetherInvite(
+            name: widget.partner!.session!.partnerName ?? '',
+            timer: incoming,
+            onAccept: _acceptShared,
+            onDecline: widget.partner!.clearTimer,
+          ),
         Expanded(
           child: GestureDetector(
             // 빈 곳을 눌러도 커서를 잃지 않는다.
@@ -1570,6 +1765,10 @@ class _RoutineEditorState extends State<RoutineEditor>
                                   spec: TimingSpec.parse(blocks[i].name)!,
                                   timer: _workoutTimer,
                                   recovery: _recovery,
+                                  together: _togetherFor(
+                                    blocks[i],
+                                    L.of(context),
+                                  ),
                                   onStart: () {
                                     _focus.unfocus();
                                     SystemChannels.textInput.invokeMethod(
@@ -2377,6 +2576,80 @@ class SuggestionChip extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// 상대의 "같이 하자". 받으면 몇 초 뒤 두 폰이 같이 3·2·1 을 센다.
+class _TogetherInvite extends StatelessWidget {
+  const _TogetherInvite({
+    required this.name,
+    required this.timer,
+    required this.onAccept,
+    required this.onDecline,
+  });
+  final String name;
+  final SharedTimer timer;
+  final VoidCallback onAccept, onDecline;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    return Container(
+      key: const ValueKey('together-invite'),
+      margin: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+      padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+      decoration: BoxDecoration(
+        color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l.togetherInvite(name),
+                  style: TextStyle(fontSize: 13, color: muted),
+                ),
+                Text(
+                  timer.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (timer.alternate)
+                  Text(
+                    l.togetherInviteAlternate,
+                    style: TextStyle(fontSize: 13, color: muted),
+                  ),
+              ],
+            ),
+          ),
+          CupertinoButton.filled(
+            key: const ValueKey('together-accept'),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            minimumSize: const Size(0, 38),
+            onPressed: onAccept,
+            child: Text(l.togetherStart),
+          ),
+          CupertinoButton(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            onPressed: onDecline,
+            child: Icon(
+              CupertinoIcons.xmark,
+              size: 18,
+              color: muted,
+              semanticLabel: l.cancel,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1141,4 +1141,57 @@ class LEs extends L {
 
   @override
   String get planPropose => 'Proponer plan';
+
+  @override
+  String get togetherStart => 'Empezar juntos';
+
+  @override
+  String get togetherAlternate => 'Por turnos';
+
+  @override
+  String togetherWaiting(String name) {
+    return 'Esperando a $name…';
+  }
+
+  @override
+  String get togetherWaitingHint =>
+      'La solicitud aparece en la pantalla de tu compañero. Si no, comprueba que su app esté actualizada.';
+
+  @override
+  String togetherInvite(String name) {
+    return '$name quiere hacerlo contigo';
+  }
+
+  @override
+  String get togetherInviteAlternate => 'Por turnos · empieza tu compañero';
+
+  @override
+  String get togetherLeave => 'Parar';
+
+  @override
+  String get togetherRejoin => 'Volver a entrar';
+
+  @override
+  String togetherWith(String name) {
+    return 'Junto con $name';
+  }
+
+  @override
+  String get togetherTheirTurn => 'Turno de tu compañero';
+
+  @override
+  String togetherLeftBeat(String name, int n) {
+    return '$name paró en el pulso $n';
+  }
+
+  @override
+  String togetherLeftRound(String name, int n) {
+    return '$name paró en la ronda $n';
+  }
+
+  @override
+  String get togetherMe => 'Yo';
+
+  @override
+  String get togetherLog => 'Anotar';
 }

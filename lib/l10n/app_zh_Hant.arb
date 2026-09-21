@@ -293,5 +293,19 @@
   "planLinkCopied": "已複製連結，一天內可使用一次。",
   "planLinkJoining": "正在加入受邀的計畫…",
   "nearbyHint": "iPhone 之間，保持此畫面開啟並將兩支手機靠近也可以連線。",
-  "planPropose": "提議為共同計畫"
+  "planPropose": "提議為共同計畫",
+  "togetherStart": "一起開始",
+  "togetherAlternate": "輪流",
+  "togetherWaiting": "正在等待{name}…",
+  "togetherWaitingHint": "請求會顯示在對方螢幕上。如果沒有，請確認對方的 App 是最新版本。",
+  "togetherInvite": "{name}邀請你一起做",
+  "togetherInviteAlternate": "輪流 · 對方先",
+  "togetherLeave": "停止",
+  "togetherRejoin": "重新加入",
+  "togetherWith": "與{name}一起",
+  "togetherTheirTurn": "對方的回合",
+  "togetherLeftBeat": "{name}在第{n}拍停下",
+  "togetherLeftRound": "{name}在第{n}回合停下",
+  "togetherMe": "我",
+  "togetherLog": "記錄"
 }

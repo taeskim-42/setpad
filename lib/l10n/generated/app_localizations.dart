@@ -1872,6 +1872,90 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'공동 루틴으로 제안'**
   String get planPropose;
+
+  /// No description provided for @togetherStart.
+  ///
+  /// In ko, this message translates to:
+  /// **'같이 시작'**
+  String get togetherStart;
+
+  /// No description provided for @togetherAlternate.
+  ///
+  /// In ko, this message translates to:
+  /// **'교대로'**
+  String get togetherAlternate;
+
+  /// No description provided for @togetherWaiting.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님을 기다리는 중…'**
+  String togetherWaiting(String name);
+
+  /// No description provided for @togetherWaitingHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'상대 화면에 요청이 뜹니다. 안 보이면 상대 앱이 최신인지 확인하세요.'**
+  String get togetherWaitingHint;
+
+  /// No description provided for @togetherInvite.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님이 같이 하자고 합니다'**
+  String togetherInvite(String name);
+
+  /// No description provided for @togetherInviteAlternate.
+  ///
+  /// In ko, this message translates to:
+  /// **'교대 · 상대가 먼저'**
+  String get togetherInviteAlternate;
+
+  /// No description provided for @togetherLeave.
+  ///
+  /// In ko, this message translates to:
+  /// **'그만'**
+  String get togetherLeave;
+
+  /// No description provided for @togetherRejoin.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 들어가기'**
+  String get togetherRejoin;
+
+  /// No description provided for @togetherWith.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님과 같이'**
+  String togetherWith(String name);
+
+  /// No description provided for @togetherTheirTurn.
+  ///
+  /// In ko, this message translates to:
+  /// **'상대 차례'**
+  String get togetherTheirTurn;
+
+  /// No description provided for @togetherLeftBeat.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님은 {n}번째에서 멈춤'**
+  String togetherLeftBeat(String name, int n);
+
+  /// No description provided for @togetherLeftRound.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님은 {n}라운드에서 멈춤'**
+  String togetherLeftRound(String name, int n);
+
+  /// No description provided for @togetherMe.
+  ///
+  /// In ko, this message translates to:
+  /// **'나'**
+  String get togetherMe;
+
+  /// No description provided for @togetherLog.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록'**
+  String get togetherLog;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

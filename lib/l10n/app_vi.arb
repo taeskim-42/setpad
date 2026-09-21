@@ -293,5 +293,19 @@
   "planLinkCopied": "Đã sao chép liên kết. Dùng được một lần trong một ngày.",
   "planLinkJoining": "Đang tham gia kế hoạch được mời…",
   "nearbyHint": "Giữa các iPhone, bạn cũng có thể kết nối bằng cách đưa hai máy lại gần nhau khi đang mở màn hình này.",
-  "planPropose": "Đề xuất kế hoạch"
+  "planPropose": "Đề xuất kế hoạch",
+  "togetherStart": "Bắt đầu cùng nhau",
+  "togetherAlternate": "Luân phiên",
+  "togetherWaiting": "Đang chờ {name}…",
+  "togetherWaitingHint": "Yêu cầu sẽ hiện trên màn hình của bạn tập. Nếu không thấy, hãy kiểm tra ứng dụng của họ đã cập nhật chưa.",
+  "togetherInvite": "{name} rủ bạn tập cùng",
+  "togetherInviteAlternate": "Luân phiên · bạn tập làm trước",
+  "togetherLeave": "Dừng",
+  "togetherRejoin": "Vào lại",
+  "togetherWith": "Cùng với {name}",
+  "togetherTheirTurn": "Lượt của bạn tập",
+  "togetherLeftBeat": "{name} dừng ở nhịp {n}",
+  "togetherLeftRound": "{name} dừng ở hiệp {n}",
+  "togetherMe": "Tôi",
+  "togetherLog": "Ghi"
 }

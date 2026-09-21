@@ -23,6 +23,9 @@ class FakeServer {
   var joins = 0;
   var n = 0;
 
+  /// 서버의 시계(ms). 같이 하는 타이머의 시작 시각을 이것으로 찍는다.
+  int Function() now = () => DateTime.now().millisecondsSinceEpoch;
+
   http.Client clientFor(String user) => MockClient((request) async {
     if (delay > Duration.zero) await Future<void>.delayed(delay);
     if (!online) throw http.ClientException('offline');
@@ -60,6 +63,22 @@ class FakeServer {
         'endedByMe': s['ended'] == null ? null : s['ended'] == user,
         'myRevision': records['${s['id']}/$user']?['revision'] ?? 0,
         'partnerRecord': state == 'active' ? theirs : null,
+        'now': now(),
+        'timer': state == 'active' && (s['timer'] as Map?)?['title'] != null
+            ? {
+                for (final k in [
+                  'seq',
+                  'title',
+                  'spec',
+                  'alternate',
+                  'startAt',
+                ])
+                  k: (s['timer'] as Map)[k],
+                'mine': (s['timer'] as Map)['by'] == user,
+                'myLeft': ((s['timer'] as Map)['left'] as Map)[user],
+                'partnerLeft': ((s['timer'] as Map)['left'] as Map)[other],
+              }
+            : null,
       };
     }
 
@@ -131,8 +150,36 @@ class FakeServer {
       records.removeWhere((k, _) => k.startsWith('${s['id']}/'));
       return reply(200, describe(s));
     }
-    // record
     if (s['ended'] != null) return reply(410, {'error': 'ended'});
+    if (path[1] == 'timer') {
+      // gymdojo 의 timerAction 과 같은 규칙: 조건이 안 맞으면 아무것도 바꾸지 않고
+      // 지금의 사실을 돌려준다.
+      final t = s['timer'] as Map<String, Object?>?;
+      final current = t != null && t['seq'] == body['seq'];
+      switch (body['action']) {
+        case 'propose':
+          s['timer'] = <String, Object?>{
+            'seq': ((t?['seq'] as int?) ?? 0) + 1,
+            'title': body['title'],
+            'spec': body['spec'],
+            'alternate': body['alternate'] == true,
+            'by': user,
+            'startAt': null,
+            'left': <String, Object?>{},
+          };
+        case 'accept' when current && t['by'] != user && t['startAt'] == null:
+          t['startAt'] = now() + 2500;
+        case 'leave' when current && t['startAt'] != null:
+          (t['left'] as Map)[user] = {'ms': body['ms'], 'beat': body['beat']};
+        case 'rejoin' when current:
+          (t['left'] as Map).remove(user);
+        case 'clear' when current:
+          // 번호는 남긴다 — 치워진 제안을 향한 늦은 동작이 다음 제안에 꽂히지 않게.
+          s['timer'] = <String, Object?>{'seq': t['seq']};
+      }
+      return reply(200, describe(s));
+    }
+    // record
     final key = '${s['id']}/$user';
     final stored = (records[key]?['revision'] as int?) ?? 0;
     final revision = body['revision'] as int;

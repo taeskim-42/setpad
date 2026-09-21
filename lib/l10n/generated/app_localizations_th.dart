@@ -1124,4 +1124,57 @@ class LTh extends L {
 
   @override
   String get planPropose => 'เสนอแผนร่วม';
+
+  @override
+  String get togetherStart => 'เริ่มพร้อมกัน';
+
+  @override
+  String get togetherAlternate => 'สลับกัน';
+
+  @override
+  String togetherWaiting(String name) {
+    return 'กำลังรอ $name…';
+  }
+
+  @override
+  String get togetherWaitingHint =>
+      'คำขอจะขึ้นบนหน้าจอของอีกฝ่าย ถ้าไม่ขึ้น ให้ตรวจว่าแอปของอีกฝ่ายเป็นเวอร์ชันล่าสุด';
+
+  @override
+  String togetherInvite(String name) {
+    return '$name ชวนทำด้วยกัน';
+  }
+
+  @override
+  String get togetherInviteAlternate => 'สลับกัน · อีกฝ่ายเริ่มก่อน';
+
+  @override
+  String get togetherLeave => 'หยุด';
+
+  @override
+  String get togetherRejoin => 'กลับเข้าร่วม';
+
+  @override
+  String togetherWith(String name) {
+    return 'ทำด้วยกันกับ $name';
+  }
+
+  @override
+  String get togetherTheirTurn => 'ตาของอีกฝ่าย';
+
+  @override
+  String togetherLeftBeat(String name, int n) {
+    return '$name หยุดที่จังหวะที่ $n';
+  }
+
+  @override
+  String togetherLeftRound(String name, int n) {
+    return '$name หยุดที่รอบที่ $n';
+  }
+
+  @override
+  String get togetherMe => 'ฉัน';
+
+  @override
+  String get togetherLog => 'บันทึก';
 }

@@ -293,5 +293,19 @@
   "planLinkCopied": "Enlace copiado. Sirve una vez, durante un día.",
   "planLinkJoining": "Uniéndote al plan al que te invitaron…",
   "nearbyHint": "Entre iPhones también puedes conectar acercando los dos teléfonos con esta pantalla abierta.",
-  "planPropose": "Proponer plan"
+  "planPropose": "Proponer plan",
+  "togetherStart": "Empezar juntos",
+  "togetherAlternate": "Por turnos",
+  "togetherWaiting": "Esperando a {name}…",
+  "togetherWaitingHint": "La solicitud aparece en la pantalla de tu compañero. Si no, comprueba que su app esté actualizada.",
+  "togetherInvite": "{name} quiere hacerlo contigo",
+  "togetherInviteAlternate": "Por turnos · empieza tu compañero",
+  "togetherLeave": "Parar",
+  "togetherRejoin": "Volver a entrar",
+  "togetherWith": "Junto con {name}",
+  "togetherTheirTurn": "Turno de tu compañero",
+  "togetherLeftBeat": "{name} paró en el pulso {n}",
+  "togetherLeftRound": "{name} paró en la ronda {n}",
+  "togetherMe": "Yo",
+  "togetherLog": "Anotar"
 }

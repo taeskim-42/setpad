@@ -293,5 +293,19 @@
   "planLinkCopied": "已复制链接，一天内可使用一次。",
   "planLinkJoining": "正在加入受邀的计划…",
   "nearbyHint": "iPhone 之间，保持此画面打开并将两台手机靠近也可以连接。",
-  "planPropose": "提议为共同计划"
+  "planPropose": "提议为共同计划",
+  "togetherStart": "一起开始",
+  "togetherAlternate": "轮流",
+  "togetherWaiting": "正在等待{name}…",
+  "togetherWaitingHint": "请求会显示在对方屏幕上。如果没有，请确认对方的应用是最新版本。",
+  "togetherInvite": "{name}邀请你一起做",
+  "togetherInviteAlternate": "轮流 · 对方先",
+  "togetherLeave": "停止",
+  "togetherRejoin": "重新加入",
+  "togetherWith": "与{name}一起",
+  "togetherTheirTurn": "对方的回合",
+  "togetherLeftBeat": "{name}在第{n}拍停下",
+  "togetherLeftRound": "{name}在第{n}回合停下",
+  "togetherMe": "我",
+  "togetherLog": "记录"
 }

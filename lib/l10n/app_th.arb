@@ -293,5 +293,19 @@
   "planLinkCopied": "คัดลอกลิงก์แล้ว ใช้ได้หนึ่งครั้งภายในหนึ่งวัน",
   "planLinkJoining": "กำลังเข้าร่วมแผนที่ได้รับเชิญ…",
   "nearbyHint": "ระหว่าง iPhone ด้วยกัน เปิดหน้านี้ค้างไว้แล้วนำสองเครื่องมาใกล้กันก็เชื่อมต่อได้",
-  "planPropose": "เสนอแผนร่วม"
+  "planPropose": "เสนอแผนร่วม",
+  "togetherStart": "เริ่มพร้อมกัน",
+  "togetherAlternate": "สลับกัน",
+  "togetherWaiting": "กำลังรอ {name}…",
+  "togetherWaitingHint": "คำขอจะขึ้นบนหน้าจอของอีกฝ่าย ถ้าไม่ขึ้น ให้ตรวจว่าแอปของอีกฝ่ายเป็นเวอร์ชันล่าสุด",
+  "togetherInvite": "{name} ชวนทำด้วยกัน",
+  "togetherInviteAlternate": "สลับกัน · อีกฝ่ายเริ่มก่อน",
+  "togetherLeave": "หยุด",
+  "togetherRejoin": "กลับเข้าร่วม",
+  "togetherWith": "ทำด้วยกันกับ {name}",
+  "togetherTheirTurn": "ตาของอีกฝ่าย",
+  "togetherLeftBeat": "{name} หยุดที่จังหวะที่ {n}",
+  "togetherLeftRound": "{name} หยุดที่รอบที่ {n}",
+  "togetherMe": "ฉัน",
+  "togetherLog": "บันทึก"
 }

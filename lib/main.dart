@@ -758,6 +758,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                   child: RoutineEditor(
                     countAloud: widget.store.countAloud,
                     controller: _editor,
+                    partner: _partner,
                     ai: widget.ai,
                     header: _DocumentHeader(
                       key: _documentHeaderKey,

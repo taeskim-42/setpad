@@ -1136,4 +1136,57 @@ class LEn extends L {
 
   @override
   String get planPropose => 'Propose plan';
+
+  @override
+  String get togetherStart => 'Start together';
+
+  @override
+  String get togetherAlternate => 'Take turns';
+
+  @override
+  String togetherWaiting(String name) {
+    return 'Waiting for $name…';
+  }
+
+  @override
+  String get togetherWaitingHint =>
+      'A request shows on your partner\'s screen. If it doesn\'t, check that their app is up to date.';
+
+  @override
+  String togetherInvite(String name) {
+    return '$name wants to do this together';
+  }
+
+  @override
+  String get togetherInviteAlternate => 'Taking turns · partner goes first';
+
+  @override
+  String get togetherLeave => 'Stop';
+
+  @override
+  String get togetherRejoin => 'Rejoin';
+
+  @override
+  String togetherWith(String name) {
+    return 'Together with $name';
+  }
+
+  @override
+  String get togetherTheirTurn => 'Partner\'s turn';
+
+  @override
+  String togetherLeftBeat(String name, int n) {
+    return '$name stopped at beat $n';
+  }
+
+  @override
+  String togetherLeftRound(String name, int n) {
+    return '$name stopped in round $n';
+  }
+
+  @override
+  String get togetherMe => 'Me';
+
+  @override
+  String get togetherLog => 'Log';
 }

@@ -1107,4 +1107,56 @@ class LKo extends L {
 
   @override
   String get planPropose => '공동 루틴으로 제안';
+
+  @override
+  String get togetherStart => '같이 시작';
+
+  @override
+  String get togetherAlternate => '교대로';
+
+  @override
+  String togetherWaiting(String name) {
+    return '$name 님을 기다리는 중…';
+  }
+
+  @override
+  String get togetherWaitingHint => '상대 화면에 요청이 뜹니다. 안 보이면 상대 앱이 최신인지 확인하세요.';
+
+  @override
+  String togetherInvite(String name) {
+    return '$name 님이 같이 하자고 합니다';
+  }
+
+  @override
+  String get togetherInviteAlternate => '교대 · 상대가 먼저';
+
+  @override
+  String get togetherLeave => '그만';
+
+  @override
+  String get togetherRejoin => '다시 들어가기';
+
+  @override
+  String togetherWith(String name) {
+    return '$name 님과 같이';
+  }
+
+  @override
+  String get togetherTheirTurn => '상대 차례';
+
+  @override
+  String togetherLeftBeat(String name, int n) {
+    return '$name 님은 $n번째에서 멈춤';
+  }
+
+  @override
+  String togetherLeftRound(String name, int n) {
+    return '$name 님은 $n라운드에서 멈춤';
+  }
+
+  @override
+  String get togetherMe => '나';
+
+  @override
+  String get togetherLog => '기록';
 }

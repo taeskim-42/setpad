@@ -20,6 +20,8 @@ import 'package:http/http.dart' as http;
 import 'editor.dart';
 import 'gym.dart';
 import 'notes.dart';
+import 'shared_timer.dart';
+import 'workout_timing.dart';
 
 enum PartnerState { waiting, active, ended, expired }
 
@@ -82,6 +84,9 @@ class PartnerSession {
   List<ExerciseBlock> partnerBlocks;
   DateTime? partnerUpdatedAt;
   bool partnerLoaded;
+
+  /// 같이 하는 타이머. 저장하지 않는다 — 서버가 매번 다시 말해 준다.
+  SharedTimer? timer;
 
   bool get open =>
       state == PartnerState.waiting || state == PartnerState.active;
@@ -203,6 +208,9 @@ extension PartnerLink on GymLink {
     'result': blocksToJson(blocks),
   });
 
+  Future<PartnerReply> partnerTimer(String id, Map<String, Object?> action) =>
+      _partner('PUT', '/api/partner-sessions/$id/timer', action);
+
   Future<PartnerReply> endPartnerSession(String id) =>
       _partner('POST', '/api/partner-sessions/$id/end');
 }
@@ -215,7 +223,8 @@ class PartnerSync extends ChangeNotifier {
     required this.onChanged,
     // 모으는 0.4초 + 이 간격 + 왕복이 3초 안에 들어오게 잡았다.
     this.interval = const Duration(seconds: 2),
-  });
+    ServerClock? clock,
+  }) : clock = clock ?? ServerClock();
 
   final Note note;
 
@@ -233,6 +242,14 @@ class PartnerSync extends ChangeNotifier {
   /// 마지막 요청이 서버에 닿았는가. 닿지 않으면 "연결 복구 중" 이다 — 세션이
   /// 끝난 것이 아니고, 내 기록은 계속 이 기기에 저장된다.
   bool reachable = true;
+
+  /// 서버 시계. 같이 하는 타이머가 두 폰에서 같은 순간을 가리키려면 필요하다.
+  final ServerClock clock;
+
+  /// 내가 방금 그만뒀거나 다시 들어갔는데 서버의 답이 아직 옛것일 수 있다.
+  /// 그 사이에 옛 상태를 믿으면 멈춘 타이머가 다시 울린다. 서버가 같은 말을
+  /// 할 때까지 내 쪽 사실을 덮어 쓴다.
+  ({int seq, ({int ms, int beat})? left})? _myTimerMove;
 
   Timer? _poll, _debounce;
   int _generation = 0;
@@ -276,6 +293,18 @@ class PartnerSync extends ChangeNotifier {
       // 상대가 아직 아무것도 올리지 않았다 — "없음" 이 확인된 것이다.
       next.partnerLoaded = true;
     }
+    var timer = SharedTimer.tryFromJson(body['timer']);
+    final move = _myTimerMove;
+    if (move != null) {
+      if (timer == null ||
+          timer.seq != move.seq ||
+          (timer.myLeft == null) == (move.left == null)) {
+        _myTimerMove = null;
+      } else {
+        timer = timer.copyWith(myLeft: move.left);
+      }
+    }
+    next.timer = timer;
     if (!next.open) {
       // 끝난 뒤에는 상대 기록을 들고 있지 않는다. 내 운동은 문서에 그대로다.
       next
@@ -298,7 +327,12 @@ class PartnerSync extends ChangeNotifier {
       error = null;
       notifyListeners();
     }
+    final sent = clock.monotonic;
     final reply = await call(link());
+    final serverNow = reply.body?['now'];
+    if (serverNow is num) {
+      clock.sample(sent, clock.monotonic, serverNow.toInt());
+    }
     if (_disposed) return reply.error;
     if (generation != _generation) {
       // 그사이 **사람이 취소했다**(창을 닫은 것은 취소가 아니다). 늦게 온 성공으로
@@ -445,6 +479,61 @@ class PartnerSync extends ChangeNotifier {
       onChanged();
     }
     notifyListeners();
+  }
+
+  Future<void> _timerAction(Map<String, Object?> action) async {
+    final s = session;
+    if (s == null || s.state != PartnerState.active) return;
+    await _run((l) => l.partnerTimer(s.id, action), quiet: true);
+  }
+
+  /// 같이 하자고 제안한다. 상대가 받아들여야 시작한다.
+  Future<void> proposeTimer(
+    String title,
+    TimingSpec spec, {
+    bool alternate = false,
+  }) => _timerAction({
+    'action': 'propose',
+    'title': title,
+    'alternate': alternate,
+    'spec': {
+      'bpm': spec.bpm,
+      'tabata': spec.tabata,
+      'work': spec.work,
+      'rest': spec.rest,
+      'rounds': spec.rounds,
+    },
+  });
+
+  Future<void> acceptTimer() =>
+      _timerAction({'action': 'accept', 'seq': session?.timer?.seq});
+
+  /// 제안을 거두거나, 돌아가는 것을 둘 다에게서 치운다.
+  Future<void> clearTimer() =>
+      _timerAction({'action': 'clear', 'seq': session?.timer?.seq});
+
+  /// 나만 그만둔다. 상대의 타이머는 계속 간다.
+  Future<void> leaveTimer(Duration at, int beat) => _moveInTimer((
+    ms: at.inMilliseconds < 0 ? 0 : at.inMilliseconds,
+    beat: beat,
+  ));
+
+  /// 아직 돌고 있는 타이머에 다시 들어간다.
+  Future<void> rejoinTimer() => _moveInTimer(null);
+
+  Future<void> _moveInTimer(({int ms, int beat})? left) {
+    final t = session?.timer;
+    if (t == null) return Future.value();
+    // 내 폰은 서버의 답을 기다리지 않는다 — 누른 순간 멈추고, 누른 순간 돌아온다.
+    _myTimerMove = (seq: t.seq, left: left);
+    session!.timer = t.copyWith(myLeft: left);
+    notifyListeners();
+    return _timerAction({
+      'action': left == null ? 'rejoin' : 'leave',
+      'seq': t.seq,
+      'ms': ?left?.ms,
+      'beat': ?left?.beat,
+    });
   }
 
   /// 같이 하기를 끝낸다. 내 운동은 남는다. 그물이 없어도 이 기기에서는 끝난

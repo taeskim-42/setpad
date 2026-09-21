@@ -244,7 +244,8 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   /// 시간에서 나오므로, 이 한 줄이면 tick 이 알아서 다음 구간의 신호를 낸다.
   /// 되감는 길은 두지 않는다. 휴식은 짧아지기만 한다.
   void skipRest() {
-    if (!running || phase != TimingPhase.rest) return;
+    // 같이 하는 중에는 건너뛰지 않는다 — 나만 앞서 가면 같이 하는 것이 아니다.
+    if (!running || shared || phase != TimingPhase.rest) return;
     final seconds = elapsed.inMilliseconds / 1000;
     final cycle = spec!.work + spec!.rest;
     final within = (seconds - 3) % cycle;
@@ -252,12 +253,16 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     tick();
   }
 
+  /// 상대와 같은 시각에 맞춰 도는 중인가([follow]). 혼자 시작하면 꺼진다.
+  bool shared = false;
+
   void toggle(Object block, TimingSpec value) {
     if (!value.valid) return;
-    if (!identical(owner, block) || spec != value) {
+    if (!identical(owner, block) || spec != value || shared) {
       pause();
       owner = block;
       spec = value;
+      shared = false;
       _elapsed = Duration.zero;
     }
     if (running) {
@@ -265,6 +270,29 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
       return;
     }
     if (phase == TimingPhase.complete) _elapsed = Duration.zero;
+    _start();
+  }
+
+  /// 같이 하는 타이머의 자리 [at] 에 맞춘다. 이미 그 자리에서 돌고 있으면 아무
+  /// 일도 하지 않으므로 몇 번을 불러도 된다 — 늦게 들어온 폰, 앱을 내렸다 올린
+  /// 폰, 시계 보정이 크게 바뀐 폰이 모두 이 한 길로 제자리에 온다.
+  ///
+  /// [at] 은 음수일 수 있다: 아직 시작 전이거나, 교대에서 내 차례가 뒤다. 그동안은
+  /// 준비 구간이고 남은 초가 3 보다 크게 보인다.
+  void follow(Object block, TimingSpec value, Duration at) {
+    if (!value.valid) return;
+    final same = shared && identical(owner, block) && spec == value;
+    // 0.3초 안쪽의 차이는 고치지 않는다. 고칠 때마다 소리가 끊긴다.
+    if (same && running && (elapsed - at).inMilliseconds.abs() < 300) return;
+    pause();
+    owner = block;
+    spec = value;
+    shared = true;
+    _elapsed = at;
+    _start();
+  }
+
+  void _start() {
     soundFailed = false;
     _started = _time;
     running = true;
@@ -274,8 +302,10 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _lastBeat = beat;
     _sound(
       cue: phase == TimingPhase.ready
-          ? 'ready'
-          : spec!.tabata
+          // 같이 할 때는 준비가 3초보다 길 수 있다. 그동안은 조용하다.
+          ? (remaining <= 3 ? 'ready' : null)
+          // 같이 하는 타이머에는 쉬는 도중에 들어올 수도 있다. 그때는 시작 신호가 아니다.
+          : spec!.tabata && (phase == TimingPhase.work || !shared)
           ? 'work'
           : null,
     );
@@ -376,6 +406,7 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   void reset() {
     pause();
     _elapsed = Duration.zero;
+    shared = false;
     notifyListeners();
   }
 
@@ -402,6 +433,57 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   }
 }
 
+/// 같이 하기가 타이머 칸에 보태는 것. 없으면 혼자 쓰는 타이머 그대로다.
+///
+/// 칸은 그리기만 한다. 누가 제안했고 지금 어디쯤인지는 받은 대로 보여 주고,
+/// 눌린 것은 그대로 돌려준다 — 서버와 말하는 것은 부르는 쪽이다.
+class TogetherTiming {
+  const TogetherTiming({
+    required this.partner,
+    required this.onPropose,
+    required this.onToggle,
+    required this.onCancel,
+    required this.onLog,
+    this.waiting = false,
+    this.busy = false,
+    this.live = false,
+    this.left = false,
+    this.alternate = false,
+    this.partnerLeft,
+    this.mine = const [],
+    this.theirs = const [],
+  });
+  final String partner;
+
+  /// 내가 제안했고 상대의 답을 기다린다.
+  final bool waiting;
+
+  /// 다른 칸에서 같이 하는 중이다. 여기서 새로 제안하면 그것이 끊긴다 — 상대는
+  /// 한창 운동 중이다. 제안 버튼을 내지 않는다.
+  final bool busy;
+
+  /// 이 칸의 타이머를 둘이 같이 돌리고 있다(아직 안 끝났다).
+  final bool live;
+
+  /// 나는 그만뒀다. 아직 돌고 있으면 다시 들어갈 수 있다.
+  final bool left;
+  final bool alternate;
+
+  /// 상대가 그만둔 자리를 말로. 없으면 아직 하고 있다.
+  final String? partnerLeft;
+
+  /// 세트마다의 횟수. 안 적은 세트는 null 이다 — 0 이 아니다.
+  final List<int?> mine, theirs;
+
+  final void Function(bool alternate) onPropose;
+
+  /// 시작·정지를 눌렀다. true 를 돌려주면 같이 하기가 처리한 것이다(그만두기·
+  /// 다시 들어가기). false 면 혼자 쓰는 타이머가 평소대로 움직인다.
+  final bool Function() onToggle;
+  final VoidCallback onCancel;
+  final ValueChanged<int> onLog;
+}
+
 class WorkoutTimingControls extends StatelessWidget {
   const WorkoutTimingControls({
     super.key,
@@ -411,7 +493,11 @@ class WorkoutTimingControls extends StatelessWidget {
     required this.onStart,
     this.onChanged,
     this.recovery,
+    this.together,
   });
+
+  /// 같이 운동 중일 때만 있다.
+  final TogetherTiming? together;
   final Object owner;
   final TimingSpec spec;
   final WorkoutTimer timer;
@@ -426,9 +512,7 @@ class WorkoutTimingControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     // 심박이 바뀌어도 다시 그려야 한다. 둘 다 듣는다.
-    listenable: recovery == null
-        ? timer
-        : Listenable.merge([timer, recovery]),
+    listenable: recovery == null ? timer : Listenable.merge([timer, recovery]),
     builder: (context, _) {
       final l = L.of(context);
       final selected = identical(timer.owner, owner);
@@ -459,19 +543,34 @@ class WorkoutTimingControls extends StatelessWidget {
       };
       final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
       // 돌아가는 중에 길이를 바꾸면 남은 시간이 튄다. 멈춘 뒤에 바꾸게 한다.
-      final editable = onChanged != null && !running;
+      final editable =
+          onChanged != null &&
+          !running &&
+          !(together?.live ?? false) &&
+          !(together?.waiting ?? false);
       void change(TimingSpec next) {
         if (next.valid && next != spec) onChanged!(next);
       }
 
       int lessSeconds(int n) => n - 5 < 5 ? TimingSpec.minSeconds : n - 5;
 
-      final phaseLabel = switch (phase) {
-        TimingPhase.ready => l.timingReady,
-        TimingPhase.work => l.timingWork,
-        TimingPhase.rest => l.timingRest,
-        TimingPhase.complete => l.timingComplete,
-      };
+      final duo = together;
+      final sharing = duo != null && duo.live && selected && timer.shared;
+      // 교대에서는 내가 쉬는 동안이 곧 상대의 차례다. 시작 전 긴 준비도 그렇다.
+      final theirTurn =
+          sharing &&
+          duo.alternate &&
+          running &&
+          (phase == TimingPhase.rest ||
+              (phase == TimingPhase.ready && seconds > 3));
+      final phaseLabel = theirTurn
+          ? l.togetherTheirTurn
+          : switch (phase) {
+              TimingPhase.ready => l.timingReady,
+              TimingPhase.work => l.timingWork,
+              TimingPhase.rest => l.timingRest,
+              TimingPhase.complete => l.timingComplete,
+            };
       // 심박은 쉬는 동안에만 붙인다. 세트 중에는 볼 겨를도 없고, 회복을
       // 재는 것은 휴식이다. 값이 낡았으면 아무것도 안 쓴다 — 옛 숫자를
       // 지금 심박인 척 보여 주면 안 된다.
@@ -494,9 +593,29 @@ class WorkoutTimingControls extends StatelessWidget {
           // "5 · 다섯" 처럼 같은 것을 두 번 쓰지 않는다.
           : l.timingMetronome;
       void toggle() {
+        if (duo != null && duo.onToggle()) return;
         if (!running) onStart();
         timer.toggle(owner, spec);
       }
+
+      // 돌아가는 중에 길이를 바꾸면 두 폰이 어긋난다. 같이 하는 동안은 잠근다.
+      final canPropose =
+          duo != null &&
+          !duo.live &&
+          !duo.waiting &&
+          !duo.busy &&
+          !running &&
+          spec.valid;
+      final canAlternate =
+          spec.tabata && spec.work + 2 * spec.rest <= TimingSpec.maxSeconds;
+      // 쉬는 동안, 방금 끝난 라운드를 아직 안 적었으면 한 번 눌러 적게 한다.
+      // 숨이 찬 10초에 숫자판을 열어 치라고 할 수는 없다.
+      final owesCount =
+          sharing &&
+          spec.tabata &&
+          running &&
+          phase == TimingPhase.rest &&
+          duo.mine.length < round;
 
       // 칸 너비를 똑같이 고정한다. 예전에는 Wrap 이라 5초→10초 처럼 글자가
       // 한 자 늘면 마지막 칸이 다음 줄로 떨어지고 카드 아래가 통째로 밀렸다.
@@ -605,13 +724,20 @@ class WorkoutTimingControls extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     onPressed: toggle,
                     child: Text(
-                      running ? l.timingPause : l.timingStart,
+                      duo != null && duo.live
+                          ? (duo.left ? l.togetherRejoin : l.togetherLeave)
+                          : running
+                          ? l.timingPause
+                          : l.timingStart,
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
                   CupertinoButton(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
-                    onPressed: selected ? timer.reset : null,
+                    // 같이 하는 동안 나만 되감을 수는 없다.
+                    onPressed: selected && !(duo?.live ?? false)
+                        ? timer.reset
+                        : null,
                     child: Icon(
                       CupertinoIcons.arrow_counterclockwise,
                       size: 18,
@@ -634,6 +760,130 @@ class WorkoutTimingControls extends StatelessWidget {
                   color: bigColor,
                 ),
             ],
+            if (duo != null && spec.valid) ...[
+              if (canPropose)
+                Row(
+                  children: [
+                    CupertinoButton(
+                      key: const ValueKey('together-start'),
+                      padding: const EdgeInsets.only(right: 16),
+                      minimumSize: const Size(0, 32),
+                      onPressed: () => duo.onPropose(false),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(CupertinoIcons.person_2_fill, size: 15),
+                          const SizedBox(width: 6),
+                          Text(
+                            l.togetherStart,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (canAlternate)
+                      CupertinoButton(
+                        key: const ValueKey('together-alternate'),
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 32),
+                        onPressed: () => duo.onPropose(true),
+                        child: Text(
+                          l.togetherAlternate,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                  ],
+                ),
+              if (duo.waiting) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l.togetherWaiting(duo.partner),
+                        style: TextStyle(fontSize: 14, color: muted),
+                      ),
+                    ),
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 32),
+                      onPressed: duo.onCancel,
+                      child: Text(
+                        l.cancel,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  l.togetherWaitingHint,
+                  style: TextStyle(fontSize: 12, color: muted),
+                ),
+              ],
+              if (owesCount)
+                _CountEntry(
+                  // 라운드가 바뀌면 새로 센다.
+                  key: ValueKey('together-count-$round'),
+                  initial:
+                      duo.mine.whereType<int>().lastOrNull ??
+                      duo.theirs.whereType<int>().lastOrNull ??
+                      10,
+                  label: l.togetherLog,
+                  onLog: duo.onLog,
+                ),
+              if (duo.mine.isNotEmpty || duo.theirs.isNotEmpty)
+                for (final (name, counts) in [
+                  (l.togetherMe, duo.mine),
+                  (duo.partner, duo.theirs),
+                ])
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 64,
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 13, color: muted),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            // 짧은 쪽은 – 로 채운다. 안 적은 것이지 0 이 아니다.
+                            [
+                              ...counts,
+                              for (
+                                var i = counts.length;
+                                i < duo.mine.length || i < duo.theirs.length;
+                                i++
+                              )
+                                null,
+                            ].map((n) => n ?? '–').join('  '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              if (duo.partnerLeft != null)
+                Text(
+                  duo.partnerLeft!,
+                  style: TextStyle(fontSize: 13, color: muted),
+                )
+              // 표에 이미 상대 이름이 있으면 또 적지 않는다.
+              else if (duo.live && duo.mine.isEmpty && duo.theirs.isEmpty)
+                Text(
+                  l.togetherWith(duo.partner),
+                  style: TextStyle(fontSize: 13, color: muted),
+                ),
+            ],
             if (selected && timer.soundFailed)
               Text(
                 l.timingSoundFailed,
@@ -643,6 +893,59 @@ class WorkoutTimingControls extends StatelessWidget {
         ),
       );
     },
+  );
+}
+
+/// 방금 한 라운드의 횟수를 한 번에 적는다: − 12 + [기록].
+class _CountEntry extends StatefulWidget {
+  const _CountEntry({
+    super.key,
+    required this.initial,
+    required this.label,
+    required this.onLog,
+  });
+  final int initial;
+  final String label;
+  final ValueChanged<int> onLog;
+  @override
+  State<_CountEntry> createState() => _CountEntryState();
+}
+
+class _CountEntryState extends State<_CountEntry> {
+  late int _n = widget.initial;
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      _RepeatingKey(
+        onTap: _n > 0 ? () => setState(() => _n--) : null,
+        child: const Icon(CupertinoIcons.minus_circle, size: 30),
+      ),
+      SizedBox(
+        width: 56,
+        child: Text(
+          '$_n',
+          key: const ValueKey('together-count'),
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w700,
+            fontFeatures: [FontFeature.tabularFigures()],
+          ),
+        ),
+      ),
+      _RepeatingKey(
+        onTap: _n < 999 ? () => setState(() => _n++) : null,
+        child: const Icon(CupertinoIcons.plus_circle, size: 30),
+      ),
+      const Spacer(),
+      CupertinoButton.filled(
+        key: const ValueKey('together-log'),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        minimumSize: const Size(0, 36),
+        onPressed: () => widget.onLog(_n),
+        child: Text(widget.label),
+      ),
+    ],
   );
 }
 

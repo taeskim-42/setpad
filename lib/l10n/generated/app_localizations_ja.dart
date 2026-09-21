@@ -1104,4 +1104,57 @@ class LJa extends L {
 
   @override
   String get planPropose => '共同ルーティンに提案';
+
+  @override
+  String get togetherStart => '一緒にスタート';
+
+  @override
+  String get togetherAlternate => '交代で';
+
+  @override
+  String togetherWaiting(String name) {
+    return '$nameさんを待っています…';
+  }
+
+  @override
+  String get togetherWaitingHint =>
+      '相手の画面にリクエストが表示されます。表示されない場合は相手のアプリが最新か確認してください。';
+
+  @override
+  String togetherInvite(String name) {
+    return '$nameさんが一緒にやろうと誘っています';
+  }
+
+  @override
+  String get togetherInviteAlternate => '交代 · 相手が先';
+
+  @override
+  String get togetherLeave => 'やめる';
+
+  @override
+  String get togetherRejoin => 'もう一度入る';
+
+  @override
+  String togetherWith(String name) {
+    return '$nameさんと一緒';
+  }
+
+  @override
+  String get togetherTheirTurn => '相手の番';
+
+  @override
+  String togetherLeftBeat(String name, int n) {
+    return '$nameさんは$n拍目で止まりました';
+  }
+
+  @override
+  String togetherLeftRound(String name, int n) {
+    return '$nameさんは$nラウンド目で止まりました';
+  }
+
+  @override
+  String get togetherMe => '自分';
+
+  @override
+  String get togetherLog => '記録';
 }

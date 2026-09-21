@@ -1097,6 +1097,58 @@ class LZh extends L {
 
   @override
   String get planPropose => '提议为共同计划';
+
+  @override
+  String get togetherStart => '一起开始';
+
+  @override
+  String get togetherAlternate => '轮流';
+
+  @override
+  String togetherWaiting(String name) {
+    return '正在等待$name…';
+  }
+
+  @override
+  String get togetherWaitingHint => '请求会显示在对方屏幕上。如果没有，请确认对方的应用是最新版本。';
+
+  @override
+  String togetherInvite(String name) {
+    return '$name邀请你一起做';
+  }
+
+  @override
+  String get togetherInviteAlternate => '轮流 · 对方先';
+
+  @override
+  String get togetherLeave => '停止';
+
+  @override
+  String get togetherRejoin => '重新加入';
+
+  @override
+  String togetherWith(String name) {
+    return '与$name一起';
+  }
+
+  @override
+  String get togetherTheirTurn => '对方的回合';
+
+  @override
+  String togetherLeftBeat(String name, int n) {
+    return '$name在第$n拍停下';
+  }
+
+  @override
+  String togetherLeftRound(String name, int n) {
+    return '$name在第$n回合停下';
+  }
+
+  @override
+  String get togetherMe => '我';
+
+  @override
+  String get togetherLog => '记录';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2192,6 +2244,58 @@ class LZhHans extends LZh {
 
   @override
   String get planPropose => '提议为共同计划';
+
+  @override
+  String get togetherStart => '一起开始';
+
+  @override
+  String get togetherAlternate => '轮流';
+
+  @override
+  String togetherWaiting(String name) {
+    return '正在等待$name…';
+  }
+
+  @override
+  String get togetherWaitingHint => '请求会显示在对方屏幕上。如果没有，请确认对方的应用是最新版本。';
+
+  @override
+  String togetherInvite(String name) {
+    return '$name邀请你一起做';
+  }
+
+  @override
+  String get togetherInviteAlternate => '轮流 · 对方先';
+
+  @override
+  String get togetherLeave => '停止';
+
+  @override
+  String get togetherRejoin => '重新加入';
+
+  @override
+  String togetherWith(String name) {
+    return '与$name一起';
+  }
+
+  @override
+  String get togetherTheirTurn => '对方的回合';
+
+  @override
+  String togetherLeftBeat(String name, int n) {
+    return '$name在第$n拍停下';
+  }
+
+  @override
+  String togetherLeftRound(String name, int n) {
+    return '$name在第$n回合停下';
+  }
+
+  @override
+  String get togetherMe => '我';
+
+  @override
+  String get togetherLog => '记录';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3287,4 +3391,56 @@ class LZhHant extends LZh {
 
   @override
   String get planPropose => '提議為共同計畫';
+
+  @override
+  String get togetherStart => '一起開始';
+
+  @override
+  String get togetherAlternate => '輪流';
+
+  @override
+  String togetherWaiting(String name) {
+    return '正在等待$name…';
+  }
+
+  @override
+  String get togetherWaitingHint => '請求會顯示在對方螢幕上。如果沒有，請確認對方的 App 是最新版本。';
+
+  @override
+  String togetherInvite(String name) {
+    return '$name邀請你一起做';
+  }
+
+  @override
+  String get togetherInviteAlternate => '輪流 · 對方先';
+
+  @override
+  String get togetherLeave => '停止';
+
+  @override
+  String get togetherRejoin => '重新加入';
+
+  @override
+  String togetherWith(String name) {
+    return '與$name一起';
+  }
+
+  @override
+  String get togetherTheirTurn => '對方的回合';
+
+  @override
+  String togetherLeftBeat(String name, int n) {
+    return '$name在第$n拍停下';
+  }
+
+  @override
+  String togetherLeftRound(String name, int n) {
+    return '$name在第$n回合停下';
+  }
+
+  @override
+  String get togetherMe => '我';
+
+  @override
+  String get togetherLog => '記錄';
 }

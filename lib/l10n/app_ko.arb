@@ -932,5 +932,60 @@
     }
   },
   "nearbyHint": "아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결됩니다.",
-  "planPropose": "공동 루틴으로 제안"
+  "planPropose": "공동 루틴으로 제안",
+  "togetherStart": "같이 시작",
+  "togetherAlternate": "교대로",
+  "togetherWaiting": "{name} 님을 기다리는 중…",
+  "@togetherWaiting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "togetherWaitingHint": "상대 화면에 요청이 뜹니다. 안 보이면 상대 앱이 최신인지 확인하세요.",
+  "togetherInvite": "{name} 님이 같이 하자고 합니다",
+  "@togetherInvite": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "togetherInviteAlternate": "교대 · 상대가 먼저",
+  "togetherLeave": "그만",
+  "togetherRejoin": "다시 들어가기",
+  "togetherWith": "{name} 님과 같이",
+  "@togetherWith": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "togetherTheirTurn": "상대 차례",
+  "togetherLeftBeat": "{name} 님은 {n}번째에서 멈춤",
+  "@togetherLeftBeat": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "togetherLeftRound": "{name} 님은 {n}라운드에서 멈춤",
+  "@togetherLeftRound": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "togetherMe": "나",
+  "togetherLog": "기록"
 }

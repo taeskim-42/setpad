@@ -293,5 +293,19 @@
   "planLinkCopied": "リンクをコピーしました。1日間、1回だけ使えます。",
   "planLinkJoining": "招待された計画に参加しています…",
   "nearbyHint": "iPhone同士なら、この画面を開いたまま2台を近づけても接続できます。",
-  "planPropose": "共同ルーティンに提案"
+  "planPropose": "共同ルーティンに提案",
+  "togetherStart": "一緒にスタート",
+  "togetherAlternate": "交代で",
+  "togetherWaiting": "{name}さんを待っています…",
+  "togetherWaitingHint": "相手の画面にリクエストが表示されます。表示されない場合は相手のアプリが最新か確認してください。",
+  "togetherInvite": "{name}さんが一緒にやろうと誘っています",
+  "togetherInviteAlternate": "交代 · 相手が先",
+  "togetherLeave": "やめる",
+  "togetherRejoin": "もう一度入る",
+  "togetherWith": "{name}さんと一緒",
+  "togetherTheirTurn": "相手の番",
+  "togetherLeftBeat": "{name}さんは{n}拍目で止まりました",
+  "togetherLeftRound": "{name}さんは{n}ラウンド目で止まりました",
+  "togetherMe": "自分",
+  "togetherLog": "記録"
 }

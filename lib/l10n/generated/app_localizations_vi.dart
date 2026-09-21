@@ -1134,4 +1134,57 @@ class LVi extends L {
 
   @override
   String get planPropose => 'Đề xuất kế hoạch';
+
+  @override
+  String get togetherStart => 'Bắt đầu cùng nhau';
+
+  @override
+  String get togetherAlternate => 'Luân phiên';
+
+  @override
+  String togetherWaiting(String name) {
+    return 'Đang chờ $name…';
+  }
+
+  @override
+  String get togetherWaitingHint =>
+      'Yêu cầu sẽ hiện trên màn hình của bạn tập. Nếu không thấy, hãy kiểm tra ứng dụng của họ đã cập nhật chưa.';
+
+  @override
+  String togetherInvite(String name) {
+    return '$name rủ bạn tập cùng';
+  }
+
+  @override
+  String get togetherInviteAlternate => 'Luân phiên · bạn tập làm trước';
+
+  @override
+  String get togetherLeave => 'Dừng';
+
+  @override
+  String get togetherRejoin => 'Vào lại';
+
+  @override
+  String togetherWith(String name) {
+    return 'Cùng với $name';
+  }
+
+  @override
+  String get togetherTheirTurn => 'Lượt của bạn tập';
+
+  @override
+  String togetherLeftBeat(String name, int n) {
+    return '$name dừng ở nhịp $n';
+  }
+
+  @override
+  String togetherLeftRound(String name, int n) {
+    return '$name dừng ở hiệp $n';
+  }
+
+  @override
+  String get togetherMe => 'Tôi';
+
+  @override
+  String get togetherLog => 'Ghi';
 }
