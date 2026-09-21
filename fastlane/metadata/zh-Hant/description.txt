@@ -29,3 +29,6 @@ setpad 不是用來事先編排課表的。做完一組，當場把數字打上�
 · 繁體中文、簡體中文、英文、韓文、日文、西班牙文、泰文、越南文
 
 不需帳號。沒有廣告。紀錄留在你的裝置上。
+
+使用條款 (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+隱私權政策: https://taeskim-42.github.io/setpad-site/privacy.html

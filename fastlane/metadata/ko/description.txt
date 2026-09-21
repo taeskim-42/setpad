@@ -29,3 +29,6 @@ setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 
 · 한국어, 영어, 일본어, 스페인어, 태국어, 베트남어, 중국어(간체·번체)
 
 계정을 만들지 않습니다. 광고가 없습니다. 기록은 기기에 남습니다.
+
+이용약관(EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+개인정보 처리방침: https://taeskim-42.github.io/setpad-site/privacy.html

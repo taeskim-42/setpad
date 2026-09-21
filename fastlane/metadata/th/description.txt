@@ -29,3 +29,6 @@ setpad ไม่ใช่แอปสร้างโปรแกรมฝึก�
 · ไทย อังกฤษ เกาหลี ญี่ปุ่น สเปน เวียดนาม และจีน (ตัวย่อและตัวเต็ม)
 
 ไม่ต้องสมัครบัญชี ไม่มีโฆษณา บันทึกอยู่ในเครื่องของคุณ
+
+ข้อกำหนดการใช้งาน (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+นโยบายความเป็นส่วนตัว: https://taeskim-42.github.io/setpad-site/privacy.html

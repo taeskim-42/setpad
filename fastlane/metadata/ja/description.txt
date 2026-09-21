@@ -29,3 +29,6 @@ setpadはルーティンを組み立てるアプリではありません。セ�
 ・日本語、韓国語、英語、スペイン語、タイ語、ベトナム語、中国語（簡体字・繁体字）
 
 アカウント登録なし。広告なし。記録は端末に残ります。
+
+利用規約 (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+プライバシーポリシー: https://taeskim-42.github.io/setpad-site/privacy.html

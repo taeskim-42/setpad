@@ -329,6 +329,71 @@ setpad 不是用來事先編排課表的。做完一組，當場把數字打上�
 }
 
 PRIVACY = 'https://taeskim-42.github.io/setpad-site/privacy.html'
+
+# 자동 갱신 구독을 파는 앱은 App Store 설명에 이용약관(EULA) 링크가 있어야 한다.
+# 없으면 심사가 시작도 안 된다(2026-09-21 반려: "does not include a functional
+# link to the Terms of Use (EULA) in the app metadata"). 따로 만든 약관이 없으므로
+# Apple 표준 EULA 를 건다. **iOS 설명에만 붙인다** — Play 와는 상관없는 문서다.
+EULA = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'
+LEGAL = {
+    'ko':      ('이용약관(EULA)', '개인정보 처리방침'),
+    'en':      ('Terms of Use (EULA)', 'Privacy Policy'),
+    'ja':      ('利用規約 (EULA)', 'プライバシーポリシー'),
+    'es':      ('Términos de uso (EULA)', 'Política de privacidad'),
+    'th':      ('ข้อกำหนดการใช้งาน (EULA)', 'นโยบายความเป็นส่วนตัว'),
+    'vi':      ('Điều khoản sử dụng (EULA)', 'Chính sách quyền riêng tư'),
+    'zh-Hans': ('使用条款 (EULA)', '隐私政策'),
+    'zh-Hant': ('使用條款 (EULA)', '隱私權政策'),
+}
+
+
+# 이번 버전에 더해진 것. 출시 노트의 머리말 바로 아래에 끼운다.
+NEWS = {
+    'ko': ['오늘 한 모든 세트를 한 화면에 — 칸을 눌러 바로 고칩니다',
+           '식단을 글로도 기록하고, 먹은 양으로 열량을 계산합니다',
+           '섭취·운동·체중을 같은 날짜 축에서 보는 기록 추세',
+           '같이 하기: 코드로 연결해 서로의 기록을 보고, 링크로 초대해 운동 계획을 함께 짭니다'],
+    'en': ['Every set you did today on one screen — tap a cell to fix it',
+           'Log meals as text, and calculate calories from how much you ate',
+           'Trends that put intake, exercise and measured weight on one date axis',
+           'Together: connect with a code to see each other\'s log, and plan workouts together by invite link'],
+    'ja': ['今日行った全セットを1画面に — セルをタップしてすぐ修正',
+           '食事をテキストでも記録し、食べた量からカロリーを計算',
+           '摂取・運動・体重を同じ日付軸で見る記録の推移',
+           '一緒に: コードでつながってお互いの記録を見たり、リンクで招待して運動計画を一緒に作成'],
+    'es': ['Todas las series de hoy en una pantalla: toca una celda para corregirla',
+           'Registra comidas como texto y calcula las calorías según lo que comiste',
+           'Tendencias con ingesta, ejercicio y peso medido en el mismo eje de fechas',
+           'Juntos: conéctate con un código para ver el registro del otro y planifica entrenamientos por enlace'],
+    'th': ['ทุกเซ็ตของวันนี้ในหน้าจอเดียว — แตะช่องเพื่อแก้ไขได้ทันที',
+           'บันทึกมื้ออาหารเป็นข้อความ และคำนวณแคลอรีจากปริมาณที่กิน',
+           'แนวโน้มที่แสดงการกิน การออกกำลัง และน้ำหนักบนแกนวันเดียวกัน',
+           'ด้วยกัน: เชื่อมต่อด้วยรหัสเพื่อดูบันทึกของกันและกัน และวางแผนออกกำลังร่วมกันผ่านลิงก์เชิญ'],
+    'vi': ['Mọi hiệp hôm nay trên một màn hình — chạm vào ô để sửa ngay',
+           'Ghi bữa ăn bằng chữ và tính calo theo lượng đã ăn',
+           'Xu hướng hiển thị lượng nạp, tập luyện và cân nặng trên cùng trục ngày',
+           'Cùng nhau: kết nối bằng mã để xem ghi chép của nhau, và cùng lên kế hoạch tập qua liên kết mời'],
+    'zh-Hans': ['今天做的所有组都在一屏 — 点格子即可修改',
+                '用文字记录饮食，并按实际食用量计算热量',
+                '在同一日期轴上查看摄入、运动与实测体重的趋势',
+                '一起练：用代码连接查看彼此的记录，并通过邀请链接一起制定训练计划'],
+    'zh-Hant': ['今天做的所有組都在一個畫面 — 點格子即可修改',
+                '用文字記錄飲食，並依實際食用量計算熱量',
+                '在同一日期軸上查看攝取、運動與實測體重的趨勢',
+                '一起練：用代碼連線查看彼此的紀錄，並透過邀請連結一起制定訓練計畫'],
+}
+
+
+def release_notes(key: str) -> str:
+    lines = T[key]['notes'].rstrip().split('\n')
+    # 머리말과 빈 줄 다음에 끼운다. 이미 있는 항목은 그대로 둔다.
+    at = next((i for i, line in enumerate(lines) if line.startswith('·')), len(lines))
+    return '\n'.join(lines[:at] + [f'· {n}' for n in NEWS[key]] + lines[at:])
+
+
+def ios_description(key: str) -> str:
+    terms, privacy = LEGAL[key]
+    return f"{T[key]['desc'].rstrip()}\n\n{terms}: {EULA}\n{privacy}: {PRIVACY}"
 SUPPORT = 'https://taeskim-42.github.io/setpad-site/support.html'
 
 
@@ -348,8 +413,8 @@ def main():
         write(d / 'name.txt', t['name'])
         write(d / 'subtitle.txt', t['subtitle'])
         write(d / 'keywords.txt', t['keywords'])
-        write(d / 'description.txt', t['desc'])
-        write(d / 'release_notes.txt', t['notes'])
+        write(d / 'description.txt', ios_description(key))
+        write(d / 'release_notes.txt', release_notes(key))
         write(d / 'privacy_url.txt', PRIVACY)
         write(d / 'support_url.txt', SUPPORT)
         write(d / 'marketing_url.txt', '')
@@ -366,7 +431,8 @@ def main():
         for label, value, cap in (
             (f'{key} subtitle', t['subtitle'], 30),
             (f'{key} keywords', t['keywords'], 100),
-            (f'{key} description', t['desc'], 4000),
+            (f'{key} description', ios_description(key), 4000),
+            (f'{key} play description', t['desc'], 4000),
             (f'{key} play title', t['name'], 30),
             (f'{key} play short', t['short'], 80),
         ):
