@@ -307,5 +307,6 @@
   "togetherLeftBeat": "{name} หยุดที่จังหวะที่ {n}",
   "togetherLeftRound": "{name} หยุดที่รอบที่ {n}",
   "togetherMe": "ฉัน",
-  "togetherLog": "บันทึก"
+  "togetherLog": "บันทึก",
+  "mealLogAs": "บันทึกเป็นมื้ออาหาร"
 }

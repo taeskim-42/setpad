@@ -1187,4 +1187,7 @@ class LVi extends L {
 
   @override
   String get togetherLog => 'Ghi';
+
+  @override
+  String get mealLogAs => 'Ghi là bữa ăn';
 }

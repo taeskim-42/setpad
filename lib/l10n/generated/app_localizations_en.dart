@@ -1189,4 +1189,7 @@ class LEn extends L {
 
   @override
   String get togetherLog => 'Log';
+
+  @override
+  String get mealLogAs => 'Log as meal';
 }

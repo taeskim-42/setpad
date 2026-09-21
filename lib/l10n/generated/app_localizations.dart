@@ -1956,6 +1956,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'기록'**
   String get togetherLog;
+
+  /// No description provided for @mealLogAs.
+  ///
+  /// In ko, this message translates to:
+  /// **'식단으로 기록'**
+  String get mealLogAs;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

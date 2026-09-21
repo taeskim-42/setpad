@@ -1194,4 +1194,7 @@ class LEs extends L {
 
   @override
   String get togetherLog => 'Anotar';
+
+  @override
+  String get mealLogAs => 'Anotar como comida';
 }

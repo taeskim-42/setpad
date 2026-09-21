@@ -987,5 +987,6 @@
     }
   },
   "togetherMe": "나",
-  "togetherLog": "기록"
+  "togetherLog": "기록",
+  "mealLogAs": "식단으로 기록"
 }

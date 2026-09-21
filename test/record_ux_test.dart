@@ -534,6 +534,41 @@ void main() {
       expect(meal.foods.single.unit, '줄');
     });
 
+    testWidgets('운동 이름을 적는 줄에 음식을 쳤으면 한 번 눌러 끼니로 남긴다 — 알아서 바꾸지는 않는다', (
+      tester,
+    ) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_meal_chip_');
+      final store = NotesStore(directory: dir);
+      addTearDown(() {
+        store.dispose();
+        dir.deleteSync(recursive: true);
+      });
+      final note = store.create();
+      await pumpPage(tester, EditorPage(store: store, note: note));
+      // 아무것도 안 쳤으면 누를 것도 없다.
+      expect(find.byKey(const ValueKey('log-as-meal')), findsNothing);
+
+      await tester.enterText(input, '김치찌개');
+      await tester.pump();
+      expect(find.text('식단으로 기록'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('log-as-meal')));
+      await tester.pumpAndSettle();
+      expect(note.meals.single.text, '김치찌개');
+      expect(note.blocks, isEmpty, reason: '운동 칸이 생기면 안 된다');
+      expect(typed(tester), isEmpty, reason: '입력 줄은 비워져 다음 것을 칠 수 있다');
+      expect(find.byKey(const ValueKey('log-as-meal')), findsNothing);
+
+      // 누르지 않고 그냥 넣으면 예전 그대로 운동 이름이다 — 앱이 음식이라고 넘겨짚지 않는다.
+      await submit(tester, '케이블 크런치');
+      expect(note.blocks.single.name, '케이블 크런치');
+      expect(note.meals, hasLength(1));
+      // 세트를 적는 중에는 나오지 않는다.
+      expect(find.byKey(const ValueKey('log-as-meal')), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      await flush(tester, store);
+    });
+
     testWidgets('먹은 양을 직접 받아 계산하고, 취소하면 아무것도 돌려주지 않는다', (tester) async {
       ({MealBasis basis, double eaten})? picked;
       late BuildContext context;

@@ -307,5 +307,6 @@
   "togetherLeftBeat": "{name}在第{n}拍停下",
   "togetherLeftRound": "{name}在第{n}回合停下",
   "togetherMe": "我",
-  "togetherLog": "記錄"
+  "togetherLog": "記錄",
+  "mealLogAs": "記為飲食"
 }

@@ -307,5 +307,6 @@
   "togetherLeftBeat": "{name} dừng ở nhịp {n}",
   "togetherLeftRound": "{name} dừng ở hiệp {n}",
   "togetherMe": "Tôi",
-  "togetherLog": "Ghi"
+  "togetherLog": "Ghi",
+  "mealLogAs": "Ghi là bữa ăn"
 }

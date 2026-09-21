@@ -1149,6 +1149,9 @@ class LZh extends L {
 
   @override
   String get togetherLog => '记录';
+
+  @override
+  String get mealLogAs => '记为饮食';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2296,6 +2299,9 @@ class LZhHans extends LZh {
 
   @override
   String get togetherLog => '记录';
+
+  @override
+  String get mealLogAs => '记为饮食';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3443,4 +3449,7 @@ class LZhHant extends LZh {
 
   @override
   String get togetherLog => '記錄';
+
+  @override
+  String get mealLogAs => '記為飲食';
 }

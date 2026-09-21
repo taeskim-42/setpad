@@ -1157,4 +1157,7 @@ class LJa extends L {
 
   @override
   String get togetherLog => '記録';
+
+  @override
+  String get mealLogAs => '食事として記録';
 }

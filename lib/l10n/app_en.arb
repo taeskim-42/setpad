@@ -307,5 +307,6 @@
   "togetherLeftBeat": "{name} stopped at beat {n}",
   "togetherLeftRound": "{name} stopped in round {n}",
   "togetherMe": "Me",
-  "togetherLog": "Log"
+  "togetherLog": "Log",
+  "mealLogAs": "Log as meal"
 }

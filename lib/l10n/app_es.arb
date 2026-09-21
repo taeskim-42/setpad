@@ -307,5 +307,6 @@
   "togetherLeftBeat": "{name} paró en el pulso {n}",
   "togetherLeftRound": "{name} paró en la ronda {n}",
   "togetherMe": "Yo",
-  "togetherLog": "Anotar"
+  "togetherLog": "Anotar",
+  "mealLogAs": "Anotar como comida"
 }

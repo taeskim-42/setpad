@@ -307,5 +307,6 @@
   "togetherLeftBeat": "{name}さんは{n}拍目で止まりました",
   "togetherLeftRound": "{name}さんは{n}ラウンド目で止まりました",
   "togetherMe": "自分",
-  "togetherLog": "記録"
+  "togetherLog": "記録",
+  "mealLogAs": "食事として記録"
 }

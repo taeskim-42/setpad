@@ -1878,6 +1878,21 @@ class _RoutineEditorState extends State<RoutineEditor>
             onForget: _forgetExercise,
             onMealPhoto: widget.onMealPhoto,
             mealMode: _mealMode,
+            // 운동 이름을 적는 바로 그 줄에 음식을 쳤다면, 한 번 눌러 끼니로 남긴다.
+            // 앱이 알아서 가르지 않는다 — "케이블 크런치" 를 과자로 읽으면 기록이
+            // 바뀐다. 사람이 누른다.
+            onLogAsMeal:
+                !_mealMode &&
+                    _c.naming &&
+                    !_editingRecord &&
+                    widget.onMealText != null &&
+                    _text.trim().isNotEmpty
+                ? () {
+                    final text = _text.trim();
+                    _input.clear();
+                    widget.onMealText!(text, null);
+                  }
+                : null,
             onMealText: widget.mealText == null
                 ? null
                 : () => widget.mealText!.value = _mealMode
@@ -2419,9 +2434,12 @@ class _Suggestions extends StatelessWidget {
     required this.onForget,
     this.onMealPhoto,
     this.onMealText,
+    this.onLogAsMeal,
     this.mealMode = false,
   });
 
+  /// 지금 친 글을 끼니로 남긴다. 칠 것이 없거나 운동 이름을 적는 중이 아니면 null.
+  final VoidCallback? onLogAsMeal;
   final VoidCallback? onMealText;
   final bool mealMode;
   final List<String> matches;
@@ -2492,6 +2510,26 @@ class _Suggestions extends StatelessWidget {
                   color: CupertinoColors.separator.resolveFrom(context),
                 ),
                 const SizedBox(width: 8),
+              ],
+              if (onLogAsMeal != null) ...[
+                CupertinoButton(
+                  key: const ValueKey('log-as-meal'),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  minimumSize: const Size(44, 32),
+                  color: CupertinoColors.tertiarySystemFill.resolveFrom(
+                    context,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  onPressed: onLogAsMeal,
+                  child: Text(
+                    L.of(context).mealLogAs,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: seal.resolveFrom(context),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
               ],
               Expanded(
                 child: ListView.separated(

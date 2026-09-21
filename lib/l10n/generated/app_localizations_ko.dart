@@ -1159,4 +1159,7 @@ class LKo extends L {
 
   @override
   String get togetherLog => '기록';
+
+  @override
+  String get mealLogAs => '식단으로 기록';
 }

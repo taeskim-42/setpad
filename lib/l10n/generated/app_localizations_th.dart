@@ -1177,4 +1177,7 @@ class LTh extends L {
 
   @override
   String get togetherLog => 'บันทึก';
+
+  @override
+  String get mealLogAs => 'บันทึกเป็นมื้ออาหาร';
 }
