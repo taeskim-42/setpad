@@ -308,5 +308,15 @@
   "togetherLeftRound": "{name}さんは{n}ラウンド目で止まりました",
   "togetherMe": "自分",
   "togetherLog": "記録",
-  "mealLogAs": "食事として記録"
+  "mealLogAs": "食事として記録",
+  "proxyWrite": "代わりに記録",
+  "proxyWriting": "{name}さんの記録を入力中",
+  "proxyDefaultName": "相手",
+  "proxyHand": "渡す",
+  "proxyBack": "自分の記録へ",
+  "proxyShareText": "一緒に運動しながら代わりに記録しました。setpadで開いて受け取ると自分の記録になります。\n{url}",
+  "handoffOffer": "{name}さんがあなたの記録をつけてくれました",
+  "handoffTake": "受け取る",
+  "handoffFailed": "記録を受け取れませんでした。リンクの期限切れか、ネットワークの問題かもしれません。",
+  "handoffSignIn": "渡された記録を受け取るにはログインが必要です。"
 }

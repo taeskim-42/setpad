@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'editor.dart';
+import 'handoff.dart';
 import 'meal.dart';
 import 'partner.dart';
 import 'record_ai.dart';
@@ -194,6 +195,17 @@ class Note {
   /// 내 통계·하루 집계·업로드 어디에도 들어가지 않는다.
   PartnerSession? partner;
 
+  /// 같이 운동하는 사람을 위해 **대신 적은** 기록. 내 것이 아니다 — [blocks] 에
+  /// 섞이지 않고, 건네면 그 사람 폰에서 그 사람의 문서가 된다.
+  ProxyRecord? proxy;
+
+  /// 이 문서가 남이 적어 건네준 기록에서 왔으면 그 링크와 받은 번호. 같은 링크를
+  /// 다시 열어도 문서가 둘이 되지 않는다. 받은 뒤에 내가 손댔으면 [handoffTouched]
+  /// — 그때는 새로 온 내용으로 덮지 않는다.
+  String? handoffToken;
+  int? handoffRevision;
+  bool handoffTouched = false;
+
   /// 그날 끼니들. 운동 칼로리와 견주어 보려고 둔다.
   final List<MealEntry> meals = [];
 
@@ -258,6 +270,10 @@ class Note {
     if (meals.isNotEmpty) 'meals': [for (final m in meals) m.toJson()],
     if (deletedMeals.isNotEmpty) 'deletedMeals': deletedMeals,
     if (partner != null) 'partner': partner!.toJson(),
+    if (proxy != null) 'proxy': proxy!.toJson(),
+    'handoffToken': ?handoffToken,
+    'handoffRevision': ?handoffRevision,
+    if (handoffTouched) 'handoffTouched': true,
     'planId': ?planId,
     'planVersion': ?planVersion,
     if (planAgreed) 'planAgreed': true,
@@ -287,6 +303,11 @@ class Note {
       if (meal != null) note.meals.add(meal);
     }
     note.partner = PartnerSession.tryFromJson(j['partner']);
+    note
+      ..proxy = ProxyRecord.tryFromJson(j['proxy'])
+      ..handoffToken = j['handoffToken'] as String?
+      ..handoffRevision = (j['handoffRevision'] as num?)?.toInt()
+      ..handoffTouched = j['handoffTouched'] == true;
     note
       ..planId = j['planId'] as String?
       ..planVersion = (j['planVersion'] as num?)?.toInt()
@@ -475,8 +496,9 @@ class NotesStore extends ChangeNotifier {
     String? gymId,
     String? routineId,
     String? id,
+    DateTime? at,
   }) {
-    final now = DateTime.now();
+    final now = at ?? DateTime.now();
     final note = Note(
       // 계획에서 시작한 운동은 서버가 기억하는 id 를 받는다 — 시작을 다시 눌러도
       // 같은 문서가 열리게.

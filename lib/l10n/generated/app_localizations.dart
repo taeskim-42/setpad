@@ -1962,6 +1962,66 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'식단으로 기록'**
   String get mealLogAs;
+
+  /// No description provided for @proxyWrite.
+  ///
+  /// In ko, this message translates to:
+  /// **'대신 적기'**
+  String get proxyWrite;
+
+  /// No description provided for @proxyWriting.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님의 기록을 적는 중'**
+  String proxyWriting(String name);
+
+  /// No description provided for @proxyDefaultName.
+  ///
+  /// In ko, this message translates to:
+  /// **'상대'**
+  String get proxyDefaultName;
+
+  /// No description provided for @proxyHand.
+  ///
+  /// In ko, this message translates to:
+  /// **'건네기'**
+  String get proxyHand;
+
+  /// No description provided for @proxyBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'내 기록으로'**
+  String get proxyBack;
+
+  /// No description provided for @proxyShareText.
+  ///
+  /// In ko, this message translates to:
+  /// **'같이 운동하며 대신 적은 기록입니다. setpad 에서 열어 받으면 내 운동 기록이 됩니다.\n{url}'**
+  String proxyShareText(String url);
+
+  /// No description provided for @handoffOffer.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님이 내 기록을 적어 주었습니다'**
+  String handoffOffer(String name);
+
+  /// No description provided for @handoffTake.
+  ///
+  /// In ko, this message translates to:
+  /// **'받기'**
+  String get handoffTake;
+
+  /// No description provided for @handoffFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록을 받지 못했습니다. 링크가 만료됐거나 네트워크 문제일 수 있습니다.'**
+  String get handoffFailed;
+
+  /// No description provided for @handoffSignIn.
+  ///
+  /// In ko, this message translates to:
+  /// **'건네받은 기록을 받으려면 로그인이 필요합니다.'**
+  String get handoffSignIn;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

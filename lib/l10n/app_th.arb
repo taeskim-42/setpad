@@ -308,5 +308,15 @@
   "togetherLeftRound": "{name} หยุดที่รอบที่ {n}",
   "togetherMe": "ฉัน",
   "togetherLog": "บันทึก",
-  "mealLogAs": "บันทึกเป็นมื้ออาหาร"
+  "mealLogAs": "บันทึกเป็นมื้ออาหาร",
+  "proxyWrite": "บันทึกแทน",
+  "proxyWriting": "กำลังบันทึกของ {name}",
+  "proxyDefaultName": "คู่ฝึก",
+  "proxyHand": "ส่งให้",
+  "proxyBack": "กลับไปของฉัน",
+  "proxyShareText": "บันทึกการออกกำลังที่จดแทนให้ตอนฝึกด้วยกัน เปิดใน setpad เพื่อรับเข้าบันทึกของคุณ\n{url}",
+  "handoffOffer": "{name} จดบันทึกการออกกำลังให้คุณ",
+  "handoffTake": "รับ",
+  "handoffFailed": "รับบันทึกไม่ได้ ลิงก์อาจหมดอายุหรือเครือข่ายมีปัญหา",
+  "handoffSignIn": "ต้องเข้าสู่ระบบเพื่อรับบันทึกที่ส่งมาให้"
 }

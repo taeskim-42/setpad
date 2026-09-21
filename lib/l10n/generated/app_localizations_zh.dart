@@ -1152,6 +1152,42 @@ class LZh extends L {
 
   @override
   String get mealLogAs => '记为饮食';
+
+  @override
+  String get proxyWrite => '代为记录';
+
+  @override
+  String proxyWriting(String name) {
+    return '正在记录$name的训练';
+  }
+
+  @override
+  String get proxyDefaultName => '对方';
+
+  @override
+  String get proxyHand => '交给对方';
+
+  @override
+  String get proxyBack => '回到我的记录';
+
+  @override
+  String proxyShareText(String url) {
+    return '一起训练时替你记下的记录。在 setpad 中打开并接收，就会成为你的训练记录。\n$url';
+  }
+
+  @override
+  String handoffOffer(String name) {
+    return '$name替你记下了训练';
+  }
+
+  @override
+  String get handoffTake => '接收';
+
+  @override
+  String get handoffFailed => '无法接收记录。链接可能已过期，或网络有问题。';
+
+  @override
+  String get handoffSignIn => '需要登录才能接收交给你的记录。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2302,6 +2338,42 @@ class LZhHans extends LZh {
 
   @override
   String get mealLogAs => '记为饮食';
+
+  @override
+  String get proxyWrite => '代为记录';
+
+  @override
+  String proxyWriting(String name) {
+    return '正在记录$name的训练';
+  }
+
+  @override
+  String get proxyDefaultName => '对方';
+
+  @override
+  String get proxyHand => '交给对方';
+
+  @override
+  String get proxyBack => '回到我的记录';
+
+  @override
+  String proxyShareText(String url) {
+    return '一起训练时替你记下的记录。在 setpad 中打开并接收，就会成为你的训练记录。\n$url';
+  }
+
+  @override
+  String handoffOffer(String name) {
+    return '$name替你记下了训练';
+  }
+
+  @override
+  String get handoffTake => '接收';
+
+  @override
+  String get handoffFailed => '无法接收记录。链接可能已过期，或网络有问题。';
+
+  @override
+  String get handoffSignIn => '需要登录才能接收交给你的记录。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3452,4 +3524,40 @@ class LZhHant extends LZh {
 
   @override
   String get mealLogAs => '記為飲食';
+
+  @override
+  String get proxyWrite => '代為記錄';
+
+  @override
+  String proxyWriting(String name) {
+    return '正在記錄$name的訓練';
+  }
+
+  @override
+  String get proxyDefaultName => '對方';
+
+  @override
+  String get proxyHand => '交給對方';
+
+  @override
+  String get proxyBack => '回到我的紀錄';
+
+  @override
+  String proxyShareText(String url) {
+    return '一起訓練時替你記下的紀錄。在 setpad 中開啟並接收，就會成為你的訓練紀錄。\n$url';
+  }
+
+  @override
+  String handoffOffer(String name) {
+    return '$name替你記下了訓練';
+  }
+
+  @override
+  String get handoffTake => '接收';
+
+  @override
+  String get handoffFailed => '無法接收紀錄。連結可能已過期，或網路有問題。';
+
+  @override
+  String get handoffSignIn => '需要登入才能接收交給你的紀錄。';
 }

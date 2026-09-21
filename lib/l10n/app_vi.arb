@@ -308,5 +308,15 @@
   "togetherLeftRound": "{name} dừng ở hiệp {n}",
   "togetherMe": "Tôi",
   "togetherLog": "Ghi",
-  "mealLogAs": "Ghi là bữa ăn"
+  "mealLogAs": "Ghi là bữa ăn",
+  "proxyWrite": "Ghi hộ",
+  "proxyWriting": "Đang ghi buổi tập của {name}",
+  "proxyDefaultName": "Bạn tập",
+  "proxyHand": "Trao lại",
+  "proxyBack": "Về của tôi",
+  "proxyShareText": "Buổi tập mình ghi hộ bạn khi tập cùng. Mở trong setpad để nhận vào nhật ký của bạn.\n{url}",
+  "handoffOffer": "{name} đã ghi buổi tập giúp bạn",
+  "handoffTake": "Nhận",
+  "handoffFailed": "Không nhận được bản ghi. Liên kết có thể đã hết hạn hoặc mạng có vấn đề.",
+  "handoffSignIn": "Cần đăng nhập để nhận bản ghi được trao cho bạn."
 }

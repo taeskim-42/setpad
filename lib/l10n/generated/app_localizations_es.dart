@@ -1197,4 +1197,42 @@ class LEs extends L {
 
   @override
   String get mealLogAs => 'Anotar como comida';
+
+  @override
+  String get proxyWrite => 'Anotar por él';
+
+  @override
+  String proxyWriting(String name) {
+    return 'Anotando el entrenamiento de $name';
+  }
+
+  @override
+  String get proxyDefaultName => 'Compañero';
+
+  @override
+  String get proxyHand => 'Entregar';
+
+  @override
+  String get proxyBack => 'Volver al mío';
+
+  @override
+  String proxyShareText(String url) {
+    return 'Un entrenamiento que anoté por ti. Ábrelo en setpad para añadirlo a tu registro.\n$url';
+  }
+
+  @override
+  String handoffOffer(String name) {
+    return '$name anotó tu entrenamiento por ti';
+  }
+
+  @override
+  String get handoffTake => 'Recibir';
+
+  @override
+  String get handoffFailed =>
+      'No se pudo recibir el registro. El enlace puede haber caducado o no hay conexión.';
+
+  @override
+  String get handoffSignIn =>
+      'Inicia sesión para recibir un registro que te entregaron.';
 }

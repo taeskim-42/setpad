@@ -1190,4 +1190,42 @@ class LVi extends L {
 
   @override
   String get mealLogAs => 'Ghi là bữa ăn';
+
+  @override
+  String get proxyWrite => 'Ghi hộ';
+
+  @override
+  String proxyWriting(String name) {
+    return 'Đang ghi buổi tập của $name';
+  }
+
+  @override
+  String get proxyDefaultName => 'Bạn tập';
+
+  @override
+  String get proxyHand => 'Trao lại';
+
+  @override
+  String get proxyBack => 'Về của tôi';
+
+  @override
+  String proxyShareText(String url) {
+    return 'Buổi tập mình ghi hộ bạn khi tập cùng. Mở trong setpad để nhận vào nhật ký của bạn.\n$url';
+  }
+
+  @override
+  String handoffOffer(String name) {
+    return '$name đã ghi buổi tập giúp bạn';
+  }
+
+  @override
+  String get handoffTake => 'Nhận';
+
+  @override
+  String get handoffFailed =>
+      'Không nhận được bản ghi. Liên kết có thể đã hết hạn hoặc mạng có vấn đề.';
+
+  @override
+  String get handoffSignIn =>
+      'Cần đăng nhập để nhận bản ghi được trao cho bạn.';
 }

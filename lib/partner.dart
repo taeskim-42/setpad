@@ -88,6 +88,9 @@ class PartnerSession {
   /// 같이 하는 타이머. 저장하지 않는다 — 서버가 매번 다시 말해 준다.
   SharedTimer? timer;
 
+  /// 상대가 내 세트를 대신 적어 주고 있다. 받기 전에는 내 기록이 아니다.
+  ({String token, int revision, String from})? handoff;
+
   bool get open =>
       state == PartnerState.waiting || state == PartnerState.active;
 
@@ -305,6 +308,14 @@ class PartnerSync extends ChangeNotifier {
       }
     }
     next.timer = timer;
+    final offered = body['handoff'];
+    if (offered is Map && offered['token'] is String) {
+      next.handoff = (
+        token: offered['token'] as String,
+        revision: (offered['revision'] as num?)?.toInt() ?? 1,
+        from: offered['from'] as String? ?? next.partnerName ?? '',
+      );
+    }
     if (!next.open) {
       // 끝난 뒤에는 상대 기록을 들고 있지 않는다. 내 운동은 문서에 그대로다.
       next

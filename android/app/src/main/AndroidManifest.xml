@@ -44,6 +44,10 @@
                 <data android:scheme="https"
                       android:host="gym.darak.studio"
                       android:pathPrefix="/plan/"/>
+                <!-- 대신 적어 준 운동 기록을 건네받는 링크. -->
+                <data android:scheme="https"
+                      android:host="gym.darak.studio"
+                      android:pathPrefix="/r/"/>
                 <!-- 이미 나간 스티커가 옛 주소를 가리킬 수 있다. -->
                 <data android:scheme="https"
                       android:host="web-production-9cfc2.up.railway.app"

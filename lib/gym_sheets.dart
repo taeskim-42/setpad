@@ -33,16 +33,26 @@ String partnerErrorText(L l, PartnerError error) => switch (error) {
 Future<void> showPartnerSheet(
   BuildContext context,
   Account account,
-  PartnerSync sync,
-) => showCupertinoModalPopup<void>(
+  PartnerSync sync, {
+  VoidCallback? onWriteFor,
+}) => showCupertinoModalPopup<void>(
   context: context,
-  builder: (_) => _PartnerSheet(account: account, sync: sync),
+  builder: (_) =>
+      _PartnerSheet(account: account, sync: sync, onWriteFor: onWriteFor),
 );
 
 class _PartnerSheet extends StatefulWidget {
-  const _PartnerSheet({required this.account, required this.sync});
+  const _PartnerSheet({
+    required this.account,
+    required this.sync,
+    this.onWriteFor,
+  });
   final Account account;
   final PartnerSync sync;
+
+  /// 상대의 세트를 대신 적기 시작한다. 같이 하기로 연결하지 않았어도 된다 —
+  /// 폰을 사물함에 둔 사람의 것을 적어 두었다가 링크로 건넬 수 있다.
+  final VoidCallback? onWriteFor;
   @override
   State<_PartnerSheet> createState() => _PartnerSheetState();
 }
@@ -154,6 +164,18 @@ class _PartnerSheetState extends State<_PartnerSheet> {
                       fontSize: 13,
                       color: seal.resolveFrom(context),
                     ),
+                  ),
+                ),
+              if (widget.onWriteFor != null && widget.account.signedIn)
+                CupertinoButton(
+                  key: const ValueKey('sheet-write-for'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    widget.onWriteFor!();
+                  },
+                  child: Text(
+                    L.of(context).proxyWrite,
+                    style: const TextStyle(fontSize: 15),
                   ),
                 ),
               if (sync.busy)

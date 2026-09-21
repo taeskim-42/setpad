@@ -308,5 +308,15 @@
   "togetherLeftRound": "{name}在第{n}回合停下",
   "togetherMe": "我",
   "togetherLog": "記錄",
-  "mealLogAs": "記為飲食"
+  "mealLogAs": "記為飲食",
+  "proxyWrite": "代為記錄",
+  "proxyWriting": "正在記錄{name}的訓練",
+  "proxyDefaultName": "對方",
+  "proxyHand": "交給對方",
+  "proxyBack": "回到我的紀錄",
+  "proxyShareText": "一起訓練時替你記下的紀錄。在 setpad 中開啟並接收，就會成為你的訓練紀錄。\n{url}",
+  "handoffOffer": "{name}替你記下了訓練",
+  "handoffTake": "接收",
+  "handoffFailed": "無法接收紀錄。連結可能已過期，或網路有問題。",
+  "handoffSignIn": "需要登入才能接收交給你的紀錄。"
 }

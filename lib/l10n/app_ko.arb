@@ -988,5 +988,36 @@
   },
   "togetherMe": "나",
   "togetherLog": "기록",
-  "mealLogAs": "식단으로 기록"
+  "mealLogAs": "식단으로 기록",
+  "proxyWrite": "대신 적기",
+  "proxyWriting": "{name} 님의 기록을 적는 중",
+  "@proxyWriting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "proxyDefaultName": "상대",
+  "proxyHand": "건네기",
+  "proxyBack": "내 기록으로",
+  "proxyShareText": "같이 운동하며 대신 적은 기록입니다. setpad 에서 열어 받으면 내 운동 기록이 됩니다.\n{url}",
+  "@proxyShareText": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffOffer": "{name} 님이 내 기록을 적어 주었습니다",
+  "@handoffOffer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffTake": "받기",
+  "handoffFailed": "기록을 받지 못했습니다. 링크가 만료됐거나 네트워크 문제일 수 있습니다.",
+  "handoffSignIn": "건네받은 기록을 받으려면 로그인이 필요합니다."
 }

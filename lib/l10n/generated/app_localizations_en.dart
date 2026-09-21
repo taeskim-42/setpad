@@ -1192,4 +1192,42 @@ class LEn extends L {
 
   @override
   String get mealLogAs => 'Log as meal';
+
+  @override
+  String get proxyWrite => 'Log for them';
+
+  @override
+  String proxyWriting(String name) {
+    return 'Logging $name\'s workout';
+  }
+
+  @override
+  String get proxyDefaultName => 'Partner';
+
+  @override
+  String get proxyHand => 'Hand over';
+
+  @override
+  String get proxyBack => 'Back to mine';
+
+  @override
+  String proxyShareText(String url) {
+    return 'A workout logged for you while we trained. Open it in setpad to add it to your log.\n$url';
+  }
+
+  @override
+  String handoffOffer(String name) {
+    return '$name logged your workout for you';
+  }
+
+  @override
+  String get handoffTake => 'Take it';
+
+  @override
+  String get handoffFailed =>
+      'Couldn\'t get the record. The link may have expired, or the network is down.';
+
+  @override
+  String get handoffSignIn =>
+      'Sign in to take a record that was handed to you.';
 }

@@ -1162,4 +1162,40 @@ class LKo extends L {
 
   @override
   String get mealLogAs => '식단으로 기록';
+
+  @override
+  String get proxyWrite => '대신 적기';
+
+  @override
+  String proxyWriting(String name) {
+    return '$name 님의 기록을 적는 중';
+  }
+
+  @override
+  String get proxyDefaultName => '상대';
+
+  @override
+  String get proxyHand => '건네기';
+
+  @override
+  String get proxyBack => '내 기록으로';
+
+  @override
+  String proxyShareText(String url) {
+    return '같이 운동하며 대신 적은 기록입니다. setpad 에서 열어 받으면 내 운동 기록이 됩니다.\n$url';
+  }
+
+  @override
+  String handoffOffer(String name) {
+    return '$name 님이 내 기록을 적어 주었습니다';
+  }
+
+  @override
+  String get handoffTake => '받기';
+
+  @override
+  String get handoffFailed => '기록을 받지 못했습니다. 링크가 만료됐거나 네트워크 문제일 수 있습니다.';
+
+  @override
+  String get handoffSignIn => '건네받은 기록을 받으려면 로그인이 필요합니다.';
 }

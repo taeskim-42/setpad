@@ -1160,4 +1160,40 @@ class LJa extends L {
 
   @override
   String get mealLogAs => '食事として記録';
+
+  @override
+  String get proxyWrite => '代わりに記録';
+
+  @override
+  String proxyWriting(String name) {
+    return '$nameさんの記録を入力中';
+  }
+
+  @override
+  String get proxyDefaultName => '相手';
+
+  @override
+  String get proxyHand => '渡す';
+
+  @override
+  String get proxyBack => '自分の記録へ';
+
+  @override
+  String proxyShareText(String url) {
+    return '一緒に運動しながら代わりに記録しました。setpadで開いて受け取ると自分の記録になります。\n$url';
+  }
+
+  @override
+  String handoffOffer(String name) {
+    return '$nameさんがあなたの記録をつけてくれました';
+  }
+
+  @override
+  String get handoffTake => '受け取る';
+
+  @override
+  String get handoffFailed => '記録を受け取れませんでした。リンクの期限切れか、ネットワークの問題かもしれません。';
+
+  @override
+  String get handoffSignIn => '渡された記録を受け取るにはログインが必要です。';
 }

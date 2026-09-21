@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 
@@ -12,6 +13,7 @@ import 'account.dart';
 import 'daily.dart';
 import 'gym.dart';
 import 'gym_sheets.dart';
+import 'handoff.dart';
 import 'meal.dart';
 import 'meal_amount_sheet.dart';
 import 'notes.dart';
@@ -26,6 +28,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'set_grid.dart';
 import 'settings.dart';
+import 'share.dart';
 
 void main() => runApp(const SetpadApp());
 
@@ -151,6 +154,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
           note: note,
           account: _account,
           onPlanNext: _proposePlan,
+          onTakeHandoff: _takeHandoff,
         ),
       ),
     );
@@ -221,6 +225,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
                   account: _account,
                   ai: _ai,
                   onPlanNext: _proposePlan,
+                  onTakeHandoff: _takeHandoff,
                 ),
               ),
             ),
@@ -249,6 +254,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
                 account: _account,
                 ai: _ai,
                 onPlanNext: _proposePlan,
+                onTakeHandoff: _takeHandoff,
               ),
             ),
           ),
@@ -275,7 +281,62 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   String? _lastPlanToken;
   StreamSubscription<({String kind, String token})>? _nearbyPlans;
 
+  String? _lastHandoff;
+
+  /// 남이 대신 적어 건네준 기록을 받는다. **받아야 내 것이 된다** — 새 운동 문서로
+  /// 들어오고, 그 운동을 한 시각에 놓인다. 같은 링크를 다시 열면 같은 문서가 열리고,
+  /// 보낸 사람이 그사이 더 적었으면 그 내용으로 맞춘다. 다만 내가 이미 고친 문서는
+  /// 덮지 않는다 — 그때는 새 문서로 따로 들어온다.
+  // ponytail: 받는 쪽도 로그인이 필요하다. 서버는 기기 토큰으로도 읽게 해 두었으니,
+  // 계정 없는 사람이 받아야 하면 RecordAi 의 기기 토큰을 여기에 빌려주면 된다.
+  Future<void> _takeHandoff(String token) async {
+    final l = L.of(context);
+    if (!_account.signedIn) {
+      final go = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (ctx) => CupertinoAlertDialog(
+          content: Text(l.handoffSignIn, style: const TextStyle(fontSize: 15)),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.cancel),
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.partnerSignInAction),
+            ),
+          ],
+        ),
+      );
+      if (go != true) return;
+      await _account.signIn();
+      if (!mounted || !_account.signedIn) return;
+    }
+    final reply = await _account.link.readHandoff(token);
+    if (!mounted) return;
+    final had = _store.notes.where((n) => n.handoffToken == token).toList();
+    final h = reply.handoff;
+    if (h == null) {
+      // 못 받았어도 전에 받아 둔 것이 있으면 그것을 연다.
+      if (had.isNotEmpty) return _open(had.first);
+      return _tellTag(l.handoffFailed);
+    }
+    final note = placeHandoff(_store, token, h);
+    _store.touch();
+    await _open(note);
+  }
+
   Future<void> _openTag(Uri uri) async {
+    final handoff = handoffTokenFromLink(uri);
+    if (handoff != null) {
+      // 같은 링크가 두 번 전달되는 일이 있다(처음 링크 + 스트림).
+      if (handoff == _lastHandoff) return;
+      _lastHandoff = handoff;
+      await _takeHandoff(handoff);
+      _lastHandoff = null;
+      return;
+    }
     // 공동 루틴 초대 링크. 공동 루틴 화면이 로그인과 참여를 이어서 처리한다.
     final planToken = planTokenFromLink(uri);
     if (planToken != null) {
@@ -478,10 +539,14 @@ class EditorPage extends StatefulWidget {
     this.account,
     this.ai = const RecordAi(),
     this.onPlanNext,
+    this.onTakeHandoff,
   });
 
   final NotesStore store;
   final Note note;
+
+  /// 상대가 대신 적어 준 내 기록을 받는다. 받은 것은 새 운동 문서로 열린다.
+  final void Function(String token)? onTakeHandoff;
 
   /// 이 기록으로 다음 운동을 함께 계획한다. 초안을 받아 공동 루틴 화면을 연다.
   final void Function(SharedPlan draft)? onPlanNext;
@@ -526,6 +591,79 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   );
   String? _lastLearned;
   final _mealText = ValueNotifier<({String text, int? index})?>(null);
+
+  // ── 대신 적기 ────────────────────────────────────────────────────
+  // 같이 운동하는 사람의 세트를 내 폰에서 적는다. 같은 편집기를 쓰되 **다른
+  // 칸**(note.proxy)에 적힌다 — 내 기록·내 통계·같이 하기 공유와 섞이지 않는다.
+  bool _writingFor = false;
+  RoutineEditorController? _proxyEditor;
+  Timer? _proxySend;
+  HandoffError? _proxyError;
+
+  void _writeFor() {
+    final note = widget.note;
+    final proxy = note.proxy ??= ProxyRecord(
+      name: note.partner?.partnerName ?? '',
+    );
+    // 이름은 같이 하는 상대를 따라간다. 혼자 적기 시작했다가 나중에 연결해도 맞는다.
+    if (proxy.name.isEmpty) proxy.name = note.partner?.partnerName ?? '';
+    _proxyEditor ??=
+        RoutineEditorController(
+            history: widget.store.exerciseHistory,
+            weightUnit: widget.store.weightUnit,
+          )
+          ..restore(proxy.blocks)
+          ..addListener(_persistProxy);
+    setState(() => _writingFor = true);
+  }
+
+  void _persistProxy() {
+    final proxy = widget.note.proxy;
+    if (proxy == null) return;
+    proxy
+      ..blocks = _proxyEditor!.blocks
+      ..revision += 1;
+    // 먼저 이 기기에 남긴다. 올리는 것은 그다음이고, 그물이 없으면 밀려 있다가 간다.
+    widget.store.touch();
+    _proxySend?.cancel();
+    _proxySend = Timer(const Duration(seconds: 1), _sendProxy);
+  }
+
+  Future<HandoffError?> _sendProxy() async {
+    final link = widget.account?.link;
+    if (link == null) return HandoffError.signInRequired;
+    final session = widget.note.partner;
+    final error = await link.sendProxy(
+      widget.note,
+      sessionId: session?.state == PartnerState.active ? session!.id : null,
+    );
+    widget.store.touch();
+    if (mounted) setState(() => _proxyError = error);
+    return error;
+  }
+
+  /// 건넨다 — 올린 것을 확인하고 링크를 공유한다. 같이 하는 중이면 상대 화면에는
+  /// 이미 "받기" 가 떠 있다. 링크는 폰이 곁에 없는 사람에게 보내는 길이다.
+  Future<void> _handOver() async {
+    _proxySend?.cancel();
+    final error = await _sendProxy();
+    final token = widget.note.proxy?.token;
+    final link = widget.account?.link;
+    if (!mounted || error != null || token == null || link == null) return;
+    await shareText(L.of(context).proxyShareText(link.handoffUrl(token)));
+  }
+
+  /// 상대가 적어 준 내 기록이 와 있고, 아직 받지 않았다.
+  ({String token, int revision, String from})? get _offered {
+    final offer = widget.note.partner?.handoff;
+    if (offer == null || widget.onTakeHandoff == null) return null;
+    final taken = widget.store.notes.any(
+      (n) =>
+          n.handoffToken == offer.token &&
+          (n.handoffRevision ?? 0) >= offer.revision,
+    );
+    return taken ? null : offer;
+  }
 
   /// 같은 날 만든 다른 기록들. 하루에 문서가 여럿일 수 있다 — 오전에 한 장,
   /// 저녁에 한 장. 합치거나 베끼지 않고 이 문서 아래에 읽기 전용으로 보여 준다.
@@ -639,6 +777,14 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
       widget.store.rememberExercise(recent);
     }
     _lastLearned = recent;
+    final note = widget.note;
+    if (note.handoffToken != null &&
+        jsonEncode(blocksToJson(_editor.blocks)) !=
+            jsonEncode(blocksToJson(note.blocks))) {
+      // 건네받은 기록을 내가 고쳤다. 이제 내 것이다 — 보낸 사람이 더 적어 보내도
+      // 이 문서를 덮지 않는다.
+      note.handoffTouched = true;
+    }
     widget.store.update(widget.note, _editor.blocks);
     // 내 기록은 방금 이 기기에 저장됐다. 그다음에 상대에게 보낸다.
     _partner?.recordChanged();
@@ -650,6 +796,10 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     _nearbyInvites?.cancel();
     _partner?.removeListener(_partnerChanged);
     _partner?.dispose();
+    _proxySend?.cancel();
+    _proxyEditor
+      ?..removeListener(_persistProxy)
+      ..dispose();
     _editor.removeListener(_persist);
     widget.store.flush();
     _editor.dispose();
@@ -676,8 +826,12 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
             if (_partner != null)
               CupertinoButton(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
-                onPressed: () =>
-                    showPartnerSheet(context, widget.account!, _partner),
+                onPressed: () => showPartnerSheet(
+                  context,
+                  widget.account!,
+                  _partner,
+                  onWriteFor: _writeFor,
+                ),
                 child: Icon(
                   CupertinoIcons.person_2,
                   size: 20,
@@ -722,8 +876,12 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                   GestureDetector(
                     key: const ValueKey('partner-banner'),
                     behavior: HitTestBehavior.opaque,
-                    onTap: () =>
-                        showPartnerSheet(context, widget.account!, _partner),
+                    onTap: () => showPartnerSheet(
+                      context,
+                      widget.account!,
+                      _partner,
+                      onWriteFor: _writeFor,
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 2, 16, 2),
                       child: Row(
@@ -750,54 +908,110 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                               ),
                             ),
                           ),
+                          if (!_writingFor)
+                            CupertinoButton(
+                              key: const ValueKey('write-for'),
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(44, 28),
+                              onPressed: _writeFor,
+                              child: Text(
+                                l.proxyWrite,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
                         ],
                       ),
                     ),
                   ),
-                Expanded(
-                  child: RoutineEditor(
-                    countAloud: widget.store.countAloud,
-                    controller: _editor,
-                    partner: _partner,
-                    ai: widget.ai,
-                    header: _DocumentHeader(
-                      key: _documentHeaderKey,
-                      note: widget.note,
-                      store: widget.store,
+                if (_offered != null && !_writingFor)
+                  _Strip(
+                    key: const ValueKey('handoff-offer'),
+                    text: l.handoffOffer(_offered!.from),
+                    action: l.handoffTake,
+                    onAction: () => widget.onTakeHandoff!(_offered!.token),
+                  ),
+                if (_writingFor)
+                  _Strip(
+                    key: const ValueKey('proxy-bar'),
+                    strong: true,
+                    text: [
+                      l.proxyWriting(
+                        widget.note.proxy!.name.isEmpty
+                            ? l.proxyDefaultName
+                            : widget.note.proxy!.name,
+                      ),
+                      if (_proxyError == HandoffError.network)
+                        l.partnerReconnecting
+                      else if (_proxyError == HandoffError.signInRequired)
+                        l.partnerSignIn,
+                    ].join(' · '),
+                    action: l.proxyHand,
+                    onAction: widget.note.proxy!.blocks.isEmpty
+                        ? null
+                        : _handOver,
+                    second: l.proxyBack,
+                    onSecond: () => setState(() => _writingFor = false),
+                  ),
+                if (_writingFor)
+                  Expanded(
+                    child: RoutineEditor(
+                      // 다른 칸을 적는 다른 편집기다. 내 기록의 타이머·식단·공유가
+                      // 여기로 새지 않게 아무것도 넘기지 않는다.
+                      key: const ValueKey('proxy-editor'),
+                      countAloud: widget.store.countAloud,
+                      controller: _proxyEditor!,
                       ai: widget.ai,
-                      mealText: _mealText,
-                      onMealsChanged: _mealsChanged,
-                      onProposePlan: _planNext,
-                      onFitAll: () => showFitAll(context, [
-                        (
-                          caption: DateFormat.jm(
-                            l.localeName,
-                          ).format(widget.note.createdAt),
-                          blocks: _editor.blocks,
-                        ),
-                        for (final n in _sameDay)
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: RoutineEditor(
+                      key: const ValueKey('own-editor'),
+                      countAloud: widget.store.countAloud,
+                      controller: _editor,
+                      partner: _partner,
+                      ai: widget.ai,
+                      header: _DocumentHeader(
+                        key: _documentHeaderKey,
+                        note: widget.note,
+                        store: widget.store,
+                        ai: widget.ai,
+                        mealText: _mealText,
+                        onMealsChanged: _mealsChanged,
+                        onProposePlan: _planNext,
+                        onFitAll: () => showFitAll(context, [
                           (
                             caption: DateFormat.jm(
                               l.localeName,
-                            ).format(n.createdAt),
-                            blocks: n.blocks,
+                            ).format(widget.note.createdAt),
+                            blocks: _editor.blocks,
                           ),
-                      ]),
+                          for (final n in _sameDay)
+                            (
+                              caption: DateFormat.jm(
+                                l.localeName,
+                              ).format(n.createdAt),
+                              blocks: n.blocks,
+                            ),
+                        ]),
+                      ),
+                      footer: _sameDay.isEmpty
+                          ? null
+                          : _SameDay(notes: _sameDay),
+                      mealText: _mealText,
+                      onMealText: _saveMealText,
+                      recentMeals: <String>{
+                        for (final n in widget.store.notes)
+                          for (final m in n.meals.reversed) ?m.text,
+                      }.take(24).toList(),
+                      initialDraft: widget.note.draft,
+                      onDraftChanged: (draft) =>
+                          widget.store.updateDraft(widget.note, draft),
+                      onForgetExercise: widget.store.forgetExercise,
+                      onMealPhoto: () =>
+                          _documentHeaderKey.currentState?._pick(),
                     ),
-                    footer: _sameDay.isEmpty ? null : _SameDay(notes: _sameDay),
-                    mealText: _mealText,
-                    onMealText: _saveMealText,
-                    recentMeals: <String>{
-                      for (final n in widget.store.notes)
-                        for (final m in n.meals.reversed) ?m.text,
-                    }.take(24).toList(),
-                    initialDraft: widget.note.draft,
-                    onDraftChanged: (draft) =>
-                        widget.store.updateDraft(widget.note, draft),
-                    onForgetExercise: widget.store.forgetExercise,
-                    onMealPhoto: () => _documentHeaderKey.currentState?._pick(),
                   ),
-                ),
               ],
             ),
           ),
@@ -1211,4 +1425,67 @@ class _SameDay extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 기록 화면 위의 한 줄 — 무슨 일이 벌어지고 있는지와, 누를 것 하나둘.
+class _Strip extends StatelessWidget {
+  const _Strip({
+    super.key,
+    required this.text,
+    required this.action,
+    required this.onAction,
+    this.second,
+    this.onSecond,
+    this.strong = false,
+  });
+  final String text, action;
+  final VoidCallback? onAction;
+  final String? second;
+  final VoidCallback? onSecond;
+
+  /// 내 기록이 아닌 것을 적는 중이다. 헷갈리면 안 되는 상태라 색을 입힌다.
+  final bool strong;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+    padding: const EdgeInsets.fromLTRB(12, 2, 4, 2),
+    decoration: BoxDecoration(
+      color: strong
+          ? seal.resolveFrom(context).withValues(alpha: 0.12)
+          : CupertinoColors.secondarySystemBackground.resolveFrom(context),
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: strong ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+        ),
+        if (second != null)
+          CupertinoButton(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            minimumSize: const Size(44, 36),
+            onPressed: onSecond,
+            child: Text(second!, style: const TextStyle(fontSize: 13)),
+          ),
+        CupertinoButton(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          minimumSize: const Size(44, 36),
+          onPressed: onAction,
+          child: Text(
+            action,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    ),
+  );
 }

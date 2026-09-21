@@ -1180,4 +1180,41 @@ class LTh extends L {
 
   @override
   String get mealLogAs => 'บันทึกเป็นมื้ออาหาร';
+
+  @override
+  String get proxyWrite => 'บันทึกแทน';
+
+  @override
+  String proxyWriting(String name) {
+    return 'กำลังบันทึกของ $name';
+  }
+
+  @override
+  String get proxyDefaultName => 'คู่ฝึก';
+
+  @override
+  String get proxyHand => 'ส่งให้';
+
+  @override
+  String get proxyBack => 'กลับไปของฉัน';
+
+  @override
+  String proxyShareText(String url) {
+    return 'บันทึกการออกกำลังที่จดแทนให้ตอนฝึกด้วยกัน เปิดใน setpad เพื่อรับเข้าบันทึกของคุณ\n$url';
+  }
+
+  @override
+  String handoffOffer(String name) {
+    return '$name จดบันทึกการออกกำลังให้คุณ';
+  }
+
+  @override
+  String get handoffTake => 'รับ';
+
+  @override
+  String get handoffFailed =>
+      'รับบันทึกไม่ได้ ลิงก์อาจหมดอายุหรือเครือข่ายมีปัญหา';
+
+  @override
+  String get handoffSignIn => 'ต้องเข้าสู่ระบบเพื่อรับบันทึกที่ส่งมาให้';
 }

@@ -308,5 +308,15 @@
   "togetherLeftRound": "{name} stopped in round {n}",
   "togetherMe": "Me",
   "togetherLog": "Log",
-  "mealLogAs": "Log as meal"
+  "mealLogAs": "Log as meal",
+  "proxyWrite": "Log for them",
+  "proxyWriting": "Logging {name}'s workout",
+  "proxyDefaultName": "Partner",
+  "proxyHand": "Hand over",
+  "proxyBack": "Back to mine",
+  "proxyShareText": "A workout logged for you while we trained. Open it in setpad to add it to your log.\n{url}",
+  "handoffOffer": "{name} logged your workout for you",
+  "handoffTake": "Take it",
+  "handoffFailed": "Couldn't get the record. The link may have expired, or the network is down.",
+  "handoffSignIn": "Sign in to take a record that was handed to you."
 }
