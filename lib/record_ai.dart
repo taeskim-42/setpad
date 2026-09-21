@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
+import 'api_route.dart';
+
 import 'parser.dart';
 
 /// 질문을 서버에 보내 의도를 받아온다.
@@ -229,7 +231,7 @@ class RecordAi {
     Map<String, Object?> payload, {
     Duration timeout = const Duration(seconds: 20),
   }) async {
-    final web = client ?? http.Client();
+    final web = client ?? newApiClient();
     try {
       for (var attempt = 0; attempt < 2; attempt++) {
         final token = await _authorize(web);
@@ -273,7 +275,7 @@ class RecordAi {
   Future<RecordAiStatus> status(String locale) async {
     if (respond != null) return RecordAiStatus.ready;
     if (!supported) return RecordAiStatus.unavailable;
-    final web = client ?? http.Client();
+    final web = client ?? newApiClient();
     try {
       return await _authorize(web) == null
           ? RecordAiStatus.unavailable

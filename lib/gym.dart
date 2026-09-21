@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'api_route.dart';
+
 import 'editor.dart';
 import 'meal.dart';
 import 'notes.dart';
@@ -33,7 +35,7 @@ class GymLink {
 
   /// 그물을 빌려 쓰고 반드시 닫는다. 확장도 같은 것을 쓴다.
   Future<T> withClient<T>(Future<T> Function(http.Client web) run) async {
-    final web = client ?? http.Client();
+    final web = client ?? newApiClient();
     try {
       return await run(web);
     } finally {

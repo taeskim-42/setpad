@@ -4,6 +4,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+
+import 'api_route.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 /// 로그인. **켜지 않아도 앱은 그대로 돌아간다.**
@@ -86,7 +88,7 @@ Future<({String token, String nickname})?> exchange(
   String? currentToken,
   http.Client? client,
 }) async {
-  final web = client ?? http.Client();
+  final web = client ?? newApiClient();
   try {
     final response = await web
         .post(

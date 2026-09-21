@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
+import 'api_route.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'gym.dart';
@@ -145,12 +147,16 @@ class Account extends ChangeNotifier {
   /// 와서 **다니는 곳이 없는 사람처럼** 보인다 — 등록을 다시 신청하게 된다.
   /// 그물이 없어서 못 물어본 것과 서버가 거절한 것은 다르다. 거절일 때만 지운다.
   Future<bool> _stillValid() async {
-    final web = client ?? http.Client();
+    final web = client ?? newApiClient();
     try {
-      final response = await web.get(
-        Uri.parse('$endpoint/api/me'),
-        headers: {'authorization': 'Bearer $token'},
-      );
+      // 기다리는 데도 끝이 있어야 한다. 길이 막혔을 때 여기서 매달리면 앱의 나머지
+      // (체육관 목록, 밀린 전송)가 같이 멈춘다. 못 물어본 것은 로그아웃이 아니다.
+      final response = await web
+          .get(
+            Uri.parse('$endpoint/api/me'),
+            headers: {'authorization': 'Bearer $token'},
+          )
+          .timeout(const Duration(seconds: 15));
       if (response.statusCode == 401) {
         await signOut();
         return false;
@@ -258,7 +264,7 @@ class Account extends ChangeNotifier {
 
   Future<void> _send(PurchaseProof proof) async {
     if (token == null) return;
-    final web = client ?? http.Client();
+    final web = client ?? newApiClient();
     try {
       await web.post(
         Uri.parse('$endpoint/api/purchase'),
@@ -286,7 +292,7 @@ class Account extends ChangeNotifier {
   Future<void> refreshForTest() => _refresh();
 
   Future<void> _refresh() async {
-    final web = client ?? http.Client();
+    final web = client ?? newApiClient();
     try {
       final response = await web.get(
         Uri.parse('$endpoint/api/purchase'),
