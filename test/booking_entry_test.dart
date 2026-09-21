@@ -19,7 +19,9 @@ void main() {
       return http.Response(
         jsonEncode({
           'gyms': member
-              ? [{'id': 'g1', 'name': 'BPM', 'trainer': '김코치'}]
+              ? [
+                  {'id': 'g1', 'name': 'BPM', 'trainer': '김코치'},
+                ]
               : [],
         }),
         200,
@@ -40,7 +42,11 @@ void main() {
         locale: const Locale('ko'),
         localizationsDelegates: L.localizationsDelegates,
         supportedLocales: L.supportedLocales,
-        home: NotesListPage(store: NotesStore(), account: account, onOpen: (_) {}),
+        home: NotesListPage(
+          store: NotesStore(),
+          account: account,
+          onOpen: (_) {},
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -54,5 +60,33 @@ void main() {
   testWidgets('다니는 곳이 없으면 예약은 아예 없다', (tester) async {
     await open(tester, member: false);
     expect(find.text('PT 예약'), findsNothing);
+  });
+
+  testWidgets('공동 루틴은 첫 화면에 없고, 설정 안에서 목록으로 간다', (tester) async {
+    final account = Account(client: server(member: false))..token = 'x';
+    var opened = 0;
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: NotesListPage(
+          store: NotesStore(),
+          account: account,
+          onOpen: (_) {},
+          onPlans: () => opened++,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byIcon(CupertinoIcons.person_2_square_stack), findsNothing);
+    expect(find.text('공동 루틴'), findsNothing);
+
+    await tester.tap(find.byIcon(CupertinoIcons.gear));
+    await tester.pumpAndSettle();
+    final row = find.byKey(const ValueKey('settings-plans'));
+    await tester.scrollUntilVisible(row, 200);
+    await tester.tap(row);
+    expect(opened, 1);
   });
 }

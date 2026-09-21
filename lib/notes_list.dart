@@ -336,24 +336,14 @@ class _NotesListPageState extends State<NotesListPage>
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // 공동 루틴 — 떨어져 있을 때 다음 운동을 함께 정한다.
-                            // 운동 문서 밖에 있다: 계획에는 오늘의 기록이 필요 없다.
-                            if (widget.onPlans != null)
-                              CupertinoButton(
-                                padding: const EdgeInsets.only(right: 14),
-                                onPressed: widget.onPlans,
-                                child: Icon(
-                                  CupertinoIcons.person_2_square_stack,
-                                  size: 22,
-                                  semanticLabel: l.plansTitle,
-                                ),
-                              ),
                             CupertinoButton(
                               padding: EdgeInsets.zero,
                               onPressed: () => showWeightSettings(
                                 context,
                                 widget.store,
                                 account: widget.account,
+                                // 홈 화면의 공동 루틴 버튼은 뺐다. 목록은 설정에서 연다.
+                                onPlans: widget.onPlans,
                               ),
                               child: const Icon(CupertinoIcons.gear, size: 21),
                             ),

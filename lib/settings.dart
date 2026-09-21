@@ -13,8 +13,10 @@ Future<void> showWeightSettings(
   BuildContext context,
   NotesStore store, {
   Account? account,
+  VoidCallback? onPlans,
 }) => Navigator.of(context).push(
   CupertinoPageRoute<void>(
-    builder: (_) => SettingsPage(store: store, account: account),
+    builder: (_) =>
+        SettingsPage(store: store, account: account, onPlans: onPlans),
   ),
 );
