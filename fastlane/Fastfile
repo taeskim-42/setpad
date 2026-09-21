@@ -346,6 +346,29 @@ platform :android do
     )
   end
 
+  desc "내부 테스트의 최신 빌드를 운영으로 승급한다 (VALIDATE_ONLY=1 이면 Play 에 검증만 묻는다)"
+  lane :promote do
+    # 새로 빌드하지 않는다 — 내부 테스트에 올라가 확인된 바로 그 번들을 운영에 낸다.
+    # 검증만 하는 쪽은 "지금 올릴 수 있는가" 를 묻는 값싼 질문이다: Play 가 막는 조건
+    # (2026-09-21 의 건강 앱 선언처럼)이 풀렸는지 아무것도 바꾸지 않고 알 수 있다.
+    code = google_play_track_version_codes(package_name: ANDROID_APP_ID, track: "internal").max
+    UI.message("승급 대상: #{code}#{ENV["VALIDATE_ONLY"] == "1" ? " (검증만)" : ""}")
+    upload_to_play_store(
+      package_name: ANDROID_APP_ID,
+      track: "internal",
+      track_promote_to: "production",
+      track_promote_release_status: "completed",
+      version_code: code,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true,
+      validate_only: ENV["VALIDATE_ONLY"] == "1",
+    )
+  end
+
   desc "트랙별 현재 버전코드"
   lane :status do
     %w[internal alpha beta production].each do |track|

@@ -132,6 +132,14 @@ TestFlight 에 올라간 빌드를 심사에 제출 (승인 시 자동 출시)
 
 프로덕션 트랙에 올린다 — 구글 심사 통과 시 자동 출시
 
+### android promote
+
+```sh
+[bundle exec] fastlane android promote
+```
+
+내부 테스트의 최신 빌드를 운영으로 승급한다 (VALIDATE_ONLY=1 이면 Play 에 검증만 묻는다)
+
 ### android status
 
 ```sh
