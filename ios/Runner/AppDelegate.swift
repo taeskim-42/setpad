@@ -13,11 +13,13 @@ import UIKit
   /// 심박 관찰자. 앱이 사는 동안 붙들고 있어야 쿼리가 살아 있다.
   private var heartRate: HeartRateObserver?
   private var timing: TimingBridge?
+  private var nearby: NearbyInvite?
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     heartRate = HeartRateObserver(messenger: engineBridge.applicationRegistrar.messenger())
     timing = TimingBridge(messenger: engineBridge.applicationRegistrar.messenger())
+    nearby = NearbyInvite(messenger: engineBridge.applicationRegistrar.messenger())
 
     // 공유 시트. 글 한 줄(공동 루틴 초대 링크)을 올리는 것이 전부라 플러그인 없이 둔다.
     FlutterMethodChannel(

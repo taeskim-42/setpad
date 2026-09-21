@@ -1218,4 +1218,8 @@ class LTh extends L {
 
   @override
   String get planLinkJoining => 'กำลังเข้าร่วมแผนที่ได้รับเชิญ…';
+
+  @override
+  String get nearbyHint =>
+      'ระหว่าง iPhone ด้วยกัน เปิดหน้านี้ค้างไว้แล้วนำสองเครื่องมาใกล้กันก็เชื่อมต่อได้';
 }

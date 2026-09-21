@@ -314,5 +314,6 @@
   "planShareLink": "Enviar enlace de invitación",
   "planShareText": "Planeemos juntos el entrenamiento en setpad: {url}",
   "planLinkCopied": "Enlace copiado. Sirve una vez, durante un día.",
-  "planLinkJoining": "Uniéndote al plan al que te invitaron…"
+  "planLinkJoining": "Uniéndote al plan al que te invitaron…",
+  "nearbyHint": "Entre iPhones también puedes conectar acercando los dos teléfonos con esta pantalla abierta."
 }

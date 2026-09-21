@@ -1189,6 +1189,9 @@ class LZh extends L {
 
   @override
   String get planLinkJoining => '正在加入受邀的计划…';
+
+  @override
+  String get nearbyHint => 'iPhone 之间，保持此画面打开并将两台手机靠近也可以连接。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2376,6 +2379,9 @@ class LZhHans extends LZh {
 
   @override
   String get planLinkJoining => '正在加入受邀的计划…';
+
+  @override
+  String get nearbyHint => 'iPhone 之间，保持此画面打开并将两台手机靠近也可以连接。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3563,4 +3569,7 @@ class LZhHant extends LZh {
 
   @override
   String get planLinkJoining => '正在加入受邀的計畫…';
+
+  @override
+  String get nearbyHint => 'iPhone 之間，保持此畫面開啟並將兩支手機靠近也可以連線。';
 }

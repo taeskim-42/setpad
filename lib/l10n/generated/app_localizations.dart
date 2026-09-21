@@ -1998,6 +1998,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'초대받은 계획에 참여하는 중…'**
   String get planLinkJoining;
+
+  /// No description provided for @nearbyHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결됩니다.'**
+  String get nearbyHint;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

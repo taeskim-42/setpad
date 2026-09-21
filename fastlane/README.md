@@ -79,6 +79,14 @@ Apple Developer 포털에 App ID 를 등록한다 (한 번만)
 
 TestFlight 에 올라간 빌드를 심사에 제출 (승인 시 자동 출시)
 
+### ios enable_nearby
+
+```sh
+[bundle exec] fastlane ios enable_nearby
+```
+
+Group Activities 를 켠 뒤 프로파일을 다시 받고, 권한이 들어갔는지 본다 (가까이 대서 연결)
+
 ### ios review_state
 
 ```sh

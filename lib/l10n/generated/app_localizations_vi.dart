@@ -1228,4 +1228,8 @@ class LVi extends L {
 
   @override
   String get planLinkJoining => 'Đang tham gia kế hoạch được mời…';
+
+  @override
+  String get nearbyHint =>
+      'Giữa các iPhone, bạn cũng có thể kết nối bằng cách đưa hai máy lại gần nhau khi đang mở màn hình này.';
 }

@@ -314,5 +314,6 @@
   "planShareLink": "傳送邀請連結",
   "planShareText": "在 setpad 一起制定訓練計畫：{url}",
   "planLinkCopied": "已複製連結，一天內可使用一次。",
-  "planLinkJoining": "正在加入受邀的計畫…"
+  "planLinkJoining": "正在加入受邀的計畫…",
+  "nearbyHint": "iPhone 之間，保持此畫面開啟並將兩支手機靠近也可以連線。"
 }

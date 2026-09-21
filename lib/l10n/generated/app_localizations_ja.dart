@@ -1196,4 +1196,7 @@ class LJa extends L {
 
   @override
   String get planLinkJoining => '招待された計画に参加しています…';
+
+  @override
+  String get nearbyHint => 'iPhone同士なら、この画面を開いたまま2台を近づけても接続できます。';
 }

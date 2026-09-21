@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'account.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'nearby.dart';
 import 'palette.dart';
 import 'partner.dart';
 import 'set_grid.dart';
@@ -57,15 +58,42 @@ class _PartnerSheetState extends State<_PartnerSheet> {
   final _code = TextEditingController();
   bool _typing = false;
   Timer? _tick;
+  bool _nearby = false;
+  String? _offered;
+
+  /// 기다리는 초대가 있으면 가까이 대서 건넬 수 있게 걸어 두고, 없어지면 거둔다.
+  void _syncNearby() {
+    final session = sync.session;
+    final token = session?.state == PartnerState.waiting
+        ? session!.token
+        : null;
+    if (token == _offered) return;
+    _offered = token;
+    token == null
+        ? Nearby.instance.clear()
+        : Nearby.instance.offer(
+            kind: 'session',
+            token: token,
+            title: widget.account.nickname,
+          );
+  }
 
   PartnerSync get sync => widget.sync;
-  void _changed() => setState(() {});
+  void _changed() {
+    _syncNearby();
+    setState(() {});
+  }
 
   @override
   void initState() {
     super.initState();
     sync.addListener(_changed);
     widget.account.addListener(_changed);
+    Nearby.instance.supported.then((ok) {
+      if (!mounted) return;
+      setState(() => _nearby = ok);
+      _syncNearby();
+    });
     // 남은 시간을 1초마다 다시 그린다.
     _tick = Timer.periodic(const Duration(seconds: 1), (_) => _changed());
   }
@@ -73,6 +101,7 @@ class _PartnerSheetState extends State<_PartnerSheet> {
   @override
   void dispose() {
     _tick?.cancel();
+    Nearby.instance.clear();
     sync.removeListener(_changed);
     widget.account.removeListener(_changed);
     // 창을 닫는 것은 취소가 아니다. 보낸 요청은 끝까지 가고, 결과는 문서 위의
@@ -266,6 +295,17 @@ class _PartnerSheetState extends State<_PartnerSheet> {
           l.partnerReconnecting,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 13, color: muted),
+        ),
+      // 되는 아이폰에서만 말한다. 안 되는 기기에 "맞대세요" 라고 하지 않는다.
+      if (_nearby)
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            l.nearbyHint,
+            key: const ValueKey('nearby-hint'),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: muted),
+          ),
         ),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,

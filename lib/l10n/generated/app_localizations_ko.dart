@@ -1200,4 +1200,7 @@ class LKo extends L {
 
   @override
   String get planLinkJoining => '초대받은 계획에 참여하는 중…';
+
+  @override
+  String get nearbyHint => '아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결됩니다.';
 }

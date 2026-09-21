@@ -1236,4 +1236,8 @@ class LEs extends L {
 
   @override
   String get planLinkJoining => 'Uniéndote al plan al que te invitaron…';
+
+  @override
+  String get nearbyHint =>
+      'Entre iPhones también puedes conectar acercando los dos teléfonos con esta pantalla abierta.';
 }

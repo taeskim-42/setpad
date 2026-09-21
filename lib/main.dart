@@ -19,6 +19,7 @@ import 'palette.dart';
 import 'partner.dart';
 import 'plans.dart';
 import 'plans_page.dart';
+import 'nearby.dart';
 import 'notes_list.dart';
 import 'record_ai.dart';
 import 'package:image_picker/image_picker.dart';
@@ -107,6 +108,9 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _watchTags();
+    _nearbyPlans = Nearby.instance.received
+        .where((invite) => invite.kind == 'plan')
+        .listen((invite) => _openPlans(joinToken: invite.token));
     // 심박이 올 때마다 남긴다. HealthKit 이 실제로 얼마나 자주 깨워 주는지를
     // 재는 것이 지금 목적이다 — 그 값에 따라 휴식 타이머가 성립하는지가
     // 갈린다. 문서로 확인하지 못한 빈도 제한을 실측으로 대신한다.
@@ -241,6 +245,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   String? _handling;
 
   String? _lastPlanToken;
+  StreamSubscription<({String kind, String token})>? _nearbyPlans;
 
   Future<void> _openTag(Uri uri) async {
     // 공동 루틴 초대 링크. 공동 루틴 화면이 로그인과 참여를 이어서 처리한다.
@@ -415,6 +420,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _tags?.cancel();
+    _nearbyPlans?.cancel();
     _account.dispose();
     _store.flush();
     if (widget.store == null) _store.dispose();
@@ -471,6 +477,8 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
           link: () => widget.account!.link,
           onChanged: widget.store.touch,
         );
+
+  StreamSubscription<({String kind, String token})>? _nearbyInvites;
 
   /// 화면이 보이는 동안만 상대의 변경을 확인한다. 백그라운드에서는 멈추고,
   /// 돌아오면 바로 최신 상태를 다시 묻는다.
@@ -572,6 +580,11 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     _editor.addListener(_persist);
     WidgetsBinding.instance.addObserver(this);
     _partner?.addListener(_partnerChanged);
+    // 가까이 댄 상대가 건넨 같이 하기 초대. 코드를 친 것과 같은 길로 참여한다 —
+    // 같은 토큰이 여러 번 와도 참여는 한 번이다(PartnerSync.joinWithToken).
+    _nearbyInvites = Nearby.instance.received
+        .where((invite) => invite.kind == 'session')
+        .listen((invite) => _partner?.joinWithToken(invite.token));
     // 다시 들어왔을 때 서버에 상태를 물어 복구한다(열린 세션이 있을 때만 돈다).
     if (widget.note.partner?.open ?? false) _partner?.start();
   }
@@ -609,6 +622,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _nearbyInvites?.cancel();
     _partner?.removeListener(_partnerChanged);
     _partner?.dispose();
     _editor.removeListener(_persist);

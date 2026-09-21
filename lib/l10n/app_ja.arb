@@ -314,5 +314,6 @@
   "planShareLink": "招待リンクを送る",
   "planShareText": "setpadで一緒にトレーニング計画を立てよう: {url}",
   "planLinkCopied": "リンクをコピーしました。1日間、1回だけ使えます。",
-  "planLinkJoining": "招待された計画に参加しています…"
+  "planLinkJoining": "招待された計画に参加しています…",
+  "nearbyHint": "iPhone同士なら、この画面を開いたまま2台を近づけても接続できます。"
 }

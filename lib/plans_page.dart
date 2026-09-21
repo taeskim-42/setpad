@@ -8,6 +8,7 @@ import 'account.dart';
 import 'editor.dart';
 import 'gym_sheets.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'nearby.dart';
 import 'notes.dart';
 import 'palette.dart';
 import 'parser.dart';
@@ -301,8 +302,29 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
   PlanStore get plans => widget.plans;
   bool get _closed => plan.state == PlanState.withdrawn;
 
+  bool _nearby = false;
+  String? _offered;
+
+  /// 아직 혼자인 내 계획이면, 살아 있는 링크 토큰을 가까이 대서도 건넬 수 있게 걸어 둔다.
+  void _syncNearby() {
+    final alive = plans.linkFor(plan) != null;
+    final token = plan.owner && plan.partner == null && alive
+        ? plan.linkToken
+        : null;
+    if (token == _offered) return;
+    _offered = token;
+    token == null
+        ? Nearby.instance.clear()
+        : Nearby.instance.offer(
+            kind: 'plan',
+            token: token,
+            title: plan.shown.title,
+          );
+  }
+
   void _changed() {
     if (!mounted) return;
+    _syncNearby();
     // 서버에서 새 내용이 왔고 내가 고치는 중이 아니면 글도 따라간다.
     if (plan.draft == null) _load(plan.content);
     setState(() {});
@@ -325,6 +347,11 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
       (_) => plans.refresh(plan),
     );
     unawaited(plans.refresh(plan));
+    Nearby.instance.supported.then((ok) {
+      if (!mounted) return;
+      setState(() => _nearby = ok);
+      _syncNearby();
+    });
   }
 
   @override
@@ -341,6 +368,7 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
   @override
   void dispose() {
     _poll?.cancel();
+    Nearby.instance.clear();
     WidgetsBinding.instance.removeObserver(this);
     plans.removeListener(_changed);
     _text.dispose();
@@ -748,6 +776,13 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
                 child: Text(l.planShareLink),
               ),
               if (_copied) Text(l.planLinkCopied, style: small),
+              // 링크를 만든 뒤에는, 되는 아이폰끼리 가까이 대서도 건넬 수 있다.
+              if (_nearby && _offered != null)
+                Text(
+                  l.nearbyHint,
+                  key: const ValueKey('nearby-hint'),
+                  style: small,
+                ),
             ],
             if (plans.error != null)
               Text(

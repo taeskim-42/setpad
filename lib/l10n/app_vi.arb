@@ -314,5 +314,6 @@
   "planShareLink": "Gửi liên kết mời",
   "planShareText": "Cùng lên kế hoạch tập trong setpad: {url}",
   "planLinkCopied": "Đã sao chép liên kết. Dùng được một lần trong một ngày.",
-  "planLinkJoining": "Đang tham gia kế hoạch được mời…"
+  "planLinkJoining": "Đang tham gia kế hoạch được mời…",
+  "nearbyHint": "Giữa các iPhone, bạn cũng có thể kết nối bằng cách đưa hai máy lại gần nhau khi đang mở màn hình này."
 }

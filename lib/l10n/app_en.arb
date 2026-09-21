@@ -314,5 +314,6 @@
   "planShareLink": "Send an invite link",
   "planShareText": "Let's plan our workout together in setpad: {url}",
   "planLinkCopied": "Link copied. It works once, for one day.",
-  "planLinkJoining": "Joining the plan you were invited to…"
+  "planLinkJoining": "Joining the plan you were invited to…",
+  "nearbyHint": "Between iPhones, you can also connect by holding the two phones close with this screen open."
 }
