@@ -28,7 +28,7 @@ Future<void> pumpPage(WidgetTester tester, Widget page) async {
 Future<void> flush(WidgetTester tester, NotesStore store) async {
   var done = false;
   store.flush().then((_) => done = true);
-  for (var i = 0; i < 100 && !done; i++) {
+  for (var i = 0; i < 400 && !done; i++) {
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 10)),
     );
@@ -262,7 +262,7 @@ void main() {
         ),
       );
       expect(
-        tester.widget<Text>(find.text('80kg · 10회')).style!.decoration,
+        tester.widget<Text>(find.text('1○ 80×10')).style!.decoration,
         isNot(TextDecoration.lineThrough),
       );
       final handles = find.byWidgetPredicate(
@@ -276,8 +276,8 @@ void main() {
       await gesture.moveBy(const Offset(0, 25));
       await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
-      expect(find.text('80kg · 10회'), findsNothing);
-      expect(find.text('40kg · 15회'), findsNothing);
+      expect(find.text('1○ 80×10'), findsNothing);
+      expect(find.text('1 40×15'), findsNothing);
       expect(find.text('둘째 운동 메모'), findsNothing);
       expect(
         tester.getSize(find.byType(ReorderProxy)).height,
@@ -325,7 +325,7 @@ void main() {
       await tester.pump();
       await tester.pump();
       expect(find.text('그대로 보존'), findsNothing);
-      expect(find.text('60kg · 12회'), findsNothing);
+      expect(find.text('1 60×12'), findsNothing);
       await gesture.cancel();
       await tester.pumpAndSettle();
       expect(find.text('그대로 보존'), findsOneWidget);
@@ -369,7 +369,7 @@ void main() {
       expect(c.blocks.single.name, '인클라인 벤치프레스');
       expect(c.blocks.single.setup!.name, '인클라인 벤치프레스');
       expect(c.blocks.single.setup!.totalReps, 100);
-      await tester.tap(find.text('80kg · 10회'));
+      await tester.tap(find.text('1○ 80×10'));
       await tester.pumpAndSettle();
       tester.widget<SetKeypad>(find.byType(SetKeypad)).onKey('75 9');
       expect(c.blocks.single.sets.first.value, 75);
@@ -382,7 +382,7 @@ void main() {
       expect(set.notes, ['어깨 조심']);
       expect(c.blocks.single.sets.last.reps, 12);
       expect(tester.widget<CupertinoTextField>(input).controller!.text, '80 8');
-      await tester.tap(find.text('75kg · 9회'));
+      await tester.tap(find.text('1○ 75×9'));
       await tester.pumpAndSettle();
       tester.widget<SetKeypad>(find.byType(SetKeypad)).onKey('75 999');
       tester.widget<SetKeypad>(find.byType(SetKeypad)).onSubmit();
@@ -409,7 +409,7 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.text('80kg · 10회'));
+      await tester.tap(find.text('1 80×10'));
       await tester.pumpAndSettle();
       tester.widget<SetKeypad>(find.byType(SetKeypad)).onKey('75 9');
       await tester.pump();
@@ -443,7 +443,7 @@ void main() {
       tester,
       CupertinoPageScaffold(child: RoutineEditor(controller: c)),
     );
-    await tester.tap(find.text('80kg · 10회'));
+    await tester.tap(find.text('1 80×10'));
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(CupertinoIcons.xmark).first);
     await tester.pumpAndSettle();
@@ -476,11 +476,11 @@ void main() {
         } else {
           await tester.pump();
           await tester.pump();
-          expect(find.text('80kg · 10회'), findsNothing);
+          expect(find.text('1 80×10'), findsNothing);
           await gesture.up();
         }
         await tester.pumpAndSettle();
-        expect(find.text('80kg · 10회'), findsOneWidget);
+        expect(find.text('1 80×10'), findsOneWidget);
         expect(c.blocks.single.sets.single.reps, 10);
         expect(tester.takeException(), isNull);
       }

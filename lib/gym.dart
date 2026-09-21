@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'editor.dart';
+import 'meal.dart';
 import 'notes.dart';
 import 'record_ai.dart';
 
@@ -208,8 +209,7 @@ Future<void> sendPending(
   final waiting = [
     for (final note in notes)
       // 빈 것도 보낸다 — 루틴 없이 그냥 나온 날의 출석이 그렇게 생긴다.
-      if (note.gymId != null && note.sentAt == null)
-        note,
+      if (note.gymId != null && note.sentAt == null) note,
   ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
   for (final note in waiting) {
@@ -231,69 +231,109 @@ Future<void> sendPending(
   if (changed) onSent();
 }
 
-/// 같이 하는 사람. 그날 운동 하나에만 붙는다.
-typedef Partnership = ({String workoutId, String? partner});
-
-extension PartnerLink on GymLink {
-  /// 같이 하자고 코드를 띄운다. 상대가 10분 안에 치면 짝이 된다.
-  Future<String?> invite(String workoutId) async {
-    if (!supported) return null;
-    final answer = await _post('/api/partners', {'workoutId': workoutId});
-    return answer?['code'] as String?;
-  }
-
-  /// 상대가 띄운 코드를 친다. 내 운동도 같이 넘겨 서로의 짝이 되게 한다.
-  Future<Partnership?> join(String code, {String? myWorkoutId}) async {
-    if (!supported) return null;
-    final answer = await _post('/api/partners', {
-      'code': code,
-      'workoutId': ?myWorkoutId,
-    });
-    final id = answer?['workoutId'];
-    return id is String
-        ? (workoutId: id, partner: answer?['partner'] as String?)
-        : null;
-  }
-
-  /// 짝이 같이 보는 운동을 읽는다. 상대가 방금 적은 것이 여기로 온다.
-  Future<List<ExerciseBlock>?> readShared(String workoutId) async {
-    if (!supported) return null;
+/// 확정한 끼니를 서버의 **같은 줄**에 맞춘다.
+///
+/// 추정 요청은 아무것도 저장하지 않는다. 사람이 먹은 양까지 정한 끼니만 여기로
+/// 올라가고, 끼니의 id 가 열쇠라서 다시 보내도 한 줄, 고치면 그 줄이 바뀌고,
+/// 지우면 그 줄이 없어진다. 로그인한 도장 회원의 기록(gymId)만 대상이다.
+extension MealLink on GymLink {
+  Future<SendOutcome> _mealRequest(
+    String method,
+    String id, [
+    Map<String, Object?>? body,
+  ]) async {
+    if (!supported) return SendOutcome.retry;
     return withClient((web) async {
       try {
+        final request = http.Request(
+          method,
+          Uri.parse('$endpoint/api/meals/$id'),
+        )..headers.addAll({...headers, 'content-type': 'application/json'});
+        if (body != null) request.body = jsonEncode(body);
         final response = await web
-            .get(
-              Uri.parse('$endpoint/api/workouts/$workoutId'),
-              headers: headers,
-            )
-            .timeout(const Duration(seconds: 10));
-        if (response.statusCode != 200) return null;
-        final body = jsonDecode(utf8.decode(response.bodyBytes));
-        return plannedBlocks((body as Map)['result']);
+            .send(request)
+            .timeout(const Duration(seconds: 15));
+        await response.stream.drain<void>();
+        return switch (response.statusCode) {
+          200 => SendOutcome.sent,
+          401 || 408 || 429 => SendOutcome.retry,
+          >= 400 && < 500 => SendOutcome.rejected,
+          _ => SendOutcome.retry,
+        };
       } catch (_) {
-        return null;
+        return SendOutcome.retry;
       }
     });
   }
 
-  /// 내가 적은 것을 올린다. 상대 폰이 몇 초 안에 받는다.
-  Future<bool> writeShared(String workoutId, List<ExerciseBlock> blocks) async {
-    if (!supported) return false;
-    return withClient((web) async {
-      try {
-        final response = await web
-            .put(
-              Uri.parse('$endpoint/api/workouts/$workoutId'),
-              headers: {...headers, 'content-type': 'application/json'},
-              body: jsonEncode({'result': loggedItems(blocks)}),
-            )
-            .timeout(const Duration(seconds: 10));
-        return response.statusCode == 200;
-      } catch (_) {
-        return false;
-      }
+  Future<SendOutcome> saveMeal(String gymId, MealEntry meal) {
+    final hour = meal.at.hour;
+    final basis = meal.basis, eaten = meal.eaten;
+    String two(int n) => n.toString().padLeft(2, '0');
+    return _mealRequest('PUT', meal.id, {
+      'gymId': gymId,
+      'kind': hour < 10
+          ? 'breakfast'
+          : hour < 15
+          ? 'lunch'
+          : hour < 21
+          ? 'dinner'
+          : 'snack',
+      'eatenOn': '${meal.at.year}-${two(meal.at.month)}-${two(meal.at.day)}',
+      'kcal': meal.kcal,
+      'source': ?meal.source,
+      'text': ?meal.text,
+      'items': meal.items,
+      // 코치가 읽는 줄은 서버가 한국어로 짓는다. 단위 이름도 거기에 맞춘다.
+      if (basis != null && eaten != null)
+        'amount': switch (basis.unit) {
+          MealBasis.serving => '${amountText(eaten)}회분',
+          MealBasis.package => '포장 전체 × ${amountText(eaten)}',
+          MealBasis.photo => '사진 속 음식 × ${amountText(eaten)}',
+          _ => '${amountText(eaten)}${basis.unit}',
+        },
     });
   }
 
+  Future<SendOutcome> deleteMeal(String id) => _mealRequest('DELETE', id);
+}
+
+/// 밀린 끼니 변경을 보낸다. 운동 기록과 같은 규칙이다 — 그물이 막혔으면 다음
+/// 기회에, 서버가 거절했으면 그 하나만 포기하고 계속 간다.
+Future<void> syncMeals(
+  GymLink link,
+  List<Note> notes, {
+  required void Function() onSynced,
+}) async {
+  if (!link.supported) return;
+  var changed = false;
+  for (final note in notes) {
+    final gymId = note.gymId;
+    if (gymId == null) continue;
+    for (final id in [...note.deletedMeals]) {
+      final outcome = await link.deleteMeal(id);
+      if (outcome == SendOutcome.retry) {
+        if (changed) onSynced();
+        return;
+      }
+      note.deletedMeals.remove(id);
+      changed = true;
+    }
+    for (final meal in [...note.meals]) {
+      if (!meal.dirty) continue;
+      final outcome = await link.saveMeal(gymId, meal);
+      if (outcome == SendOutcome.retry) {
+        if (changed) onSynced();
+        return;
+      }
+      meal.dirty = false;
+      changed = true;
+    }
+  }
+  if (changed) onSynced();
+}
+
+extension _Posting on GymLink {
   Future<Map<String, Object?>?> _post(String path, Map<String, Object?> body) =>
       withClient((web) async {
         try {

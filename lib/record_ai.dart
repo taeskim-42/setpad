@@ -38,8 +38,10 @@ class MealEstimate {
   });
   final int kcal;
   final List<String> items;
+
   /// 코치의 식단 목록에도 남았는가.
   final bool saved;
+
   /// 사진이 영양성분표였으면 읽은 값. 어림이 아니라 인쇄된 숫자다.
   final NutritionLabel? label;
 }
@@ -70,7 +72,9 @@ class NutritionLabel {
     return NutritionLabel(
       perServingKcal: per.round(),
       servingSize: j['servingSize'] is String ? j['servingSize'] as String : '',
-      servingsPerPackage: servings is num && servings > 0 ? servings.toDouble() : null,
+      servingsPerPackage: servings is num && servings > 0
+          ? servings.toDouble()
+          : null,
       product: product is String && product.isNotEmpty ? product : null,
     );
   }
@@ -313,14 +317,38 @@ class RecordAi {
       'language': locale,
       'gymId': ?gymId,
       'kind': ?kind,
+      // 추정은 추정일 뿐이다. 먹은 양까지 확정한 끼니는 앱이 따로 올린다
+      // (GymLink.saveMeal) — 여기서 저장되면 취소해도 서버에 남는다.
+      'save': false,
     }, timeout: const Duration(seconds: 60));
     final kcal = answer['kcal'];
     if (kcal is! num) throw const RecordAiException(RecordAiStatus.unavailable);
     return MealEstimate(
       kcal: kcal.toInt(),
-      items: (answer['items'] as List?)?.whereType<String>().toList() ?? const [],
+      items:
+          (answer['items'] as List?)?.whereType<String>().toList() ?? const [],
       saved: answer['saved'] == true,
       label: NutritionLabel.tryFromJson(answer['label']),
+    );
+  }
+
+  /// 글로 적은 식단의 열량을 어림한다. 못 하면 던진다 — 부르는 쪽은 그 끼니를
+  /// 열량 미상으로 둔다. 원문은 이미 저장돼 있고 여기 결과와 상관없다.
+  Future<MealEstimate> estimateMealText(
+    String text, {
+    required String locale,
+  }) async {
+    final answer = await _ask('/api/meals/estimate', {
+      'text': text,
+      'language': locale,
+      'save': false,
+    }, timeout: const Duration(seconds: 30));
+    final kcal = answer['kcal'];
+    if (kcal is! num) throw const RecordAiException(RecordAiStatus.unavailable);
+    return MealEstimate(
+      kcal: kcal.toInt(),
+      items:
+          (answer['items'] as List?)?.whereType<String>().toList() ?? const [],
     );
   }
 
@@ -377,7 +405,16 @@ class RecordAi {
           .any((m) => !accountedFor.contains(num.parse(m[0]!)))) {
         throw const FormatException('A stated number was omitted');
       }
-      return setup;
+      // The typed words are the name. A catalogue name the user never typed
+      // ("벤치프레스" for "내 방식 벤치 변형") would merge their records into
+      // someone else's exercise, so the typed words are put back.
+      final name = typedName(text, setup.name);
+      if (name == null) {
+        throw const FormatException('Name cannot be separated from numbers');
+      }
+      return name == setup.name
+          ? setup
+          : WorkoutSetup.fromJson({...setup.toJson(), 'name': name});
     } on TimeoutException {
       throw const RecordAiException(RecordAiStatus.unavailable);
     }

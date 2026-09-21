@@ -101,7 +101,7 @@ void main() {
     final field = tester.widget<CupertinoTextField>(padField);
     expect(field.maxLines, isNull);
     expect(field.textInputAction, TextInputAction.done);
-    expect(tester.getRect(padField).left, 60);
+    expect(tester.getRect(padField).left, 30); // 메모 글과 같은 자리
     const memo = '어깨가 조금 불편함\n다음에는 무게를 낮추기';
     await tester.enterText(padField, memo);
     // Dismissing the native keyboard must not reinterpret this as a set draft.

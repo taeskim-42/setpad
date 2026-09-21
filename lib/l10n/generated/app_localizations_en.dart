@@ -113,7 +113,12 @@ class LEn extends L {
 
   @override
   String kcal(int n) {
-    return '$n kcal';
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '$nString kcal';
   }
 
   @override
@@ -509,14 +514,6 @@ class LEn extends L {
   String get partnerEnter => 'Enter a code';
 
   @override
-  String partnerJoined(String name) {
-    return 'Recording with $name';
-  }
-
-  @override
-  String get partnerFailed => 'That code is wrong or expired.';
-
-  @override
   String bookingNext(String trainer, String when) {
     return '$trainer · $when';
   }
@@ -724,12 +721,12 @@ class LEn extends L {
 
   @override
   String mealIntake(int n) {
-    return 'Intake ≈ $n kcal';
-  }
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
 
-  @override
-  String mealNet(int n) {
-    return 'Burned − intake $n kcal';
+    return 'Intake ≈ $nString kcal';
   }
 
   @override
@@ -740,15 +737,498 @@ class LEn extends L {
   String get mealEstimateNote => 'Estimated from the photo';
 
   @override
-  String get mealServingsAsk => 'How many servings?';
-
-  @override
   String mealServingsOption(String n) {
     return '$n serving(s)';
   }
 
   @override
-  String mealWholePackage(String n) {
-    return 'Whole package ($n servings)';
+  String get fitAll => 'Fit all';
+
+  @override
+  String get sameDayOther => 'Other records from this day';
+
+  @override
+  String get mealText => 'Write meal';
+
+  @override
+  String get mealTextHint => 'What did you eat? e.g. 2 bananas, milk 200ml';
+
+  @override
+  String kcalApprox(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '≈ $nString kcal';
   }
+
+  @override
+  String get mealKcalUnknown => 'kcal unknown';
+
+  @override
+  String mealIntakePartial(int n, int m) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Intake $nString kcal + $m with unknown kcal';
+  }
+
+  @override
+  String get mealAmountAsk => 'How much did you eat?';
+
+  @override
+  String get mealBasis => 'Basis';
+
+  @override
+  String get mealEaten => 'Amount eaten';
+
+  @override
+  String get mealUnitServing => 'servings';
+
+  @override
+  String get mealUnitPackage => 'whole package';
+
+  @override
+  String get mealUnitPhoto => 'food in the photo';
+
+  @override
+  String get mealWhole => 'All';
+
+  @override
+  String get mealHalf => 'Half';
+
+  @override
+  String get mealPhotoWholeNote =>
+      'This estimates everything visible in the photo. Choose how much of it you ate.';
+
+  @override
+  String get mealAmountInvalid => 'Enter a number of 0 or more.';
+
+  @override
+  String dayEnergyFull(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return 'Logged: intake $intakeString − exercise $burnedString = $diffString kcal';
+  }
+
+  @override
+  String dayEnergyApprox(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return 'Logged: intake ≈ $intakeString − exercise $burnedString ≈ $diffString kcal';
+  }
+
+  @override
+  String get dayBurnedMissing => 'Exercise energy not measured · no difference';
+
+  @override
+  String dayBurnedOnly(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Exercise $nString kcal · no meals logged';
+  }
+
+  @override
+  String get energyExplain =>
+      'Logged intake minus exercise energy. Energy used at rest and in daily life is not included.';
+
+  @override
+  String weightLabel(String w) {
+    return 'Weight $w';
+  }
+
+  @override
+  String get weightAdd => 'Log weight';
+
+  @override
+  String get weightFromHealth => 'Import from Health';
+
+  @override
+  String get weightInvalid => 'Check the weight.';
+
+  @override
+  String get weightRule =>
+      'When you weigh more than once a day, the first reading is used. Days without a reading stay empty.';
+
+  @override
+  String get trendsTitle => 'Records and body';
+
+  @override
+  String trendDays(int n) {
+    return '${n}d';
+  }
+
+  @override
+  String trendIntakeAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Avg logged intake $nString kcal · $d days';
+  }
+
+  @override
+  String trendBurnedAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Avg exercise energy $nString kcal · $d days';
+  }
+
+  @override
+  String trendDiffAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Avg intake − exercise $nString kcal · $d days with both';
+  }
+
+  @override
+  String trendIncomplete(int d) {
+    return '$d days with unknown kcal · left out of averages';
+  }
+
+  @override
+  String trendWeightChange(String a, String aw, String b, String bw) {
+    return 'Measured weight went from $aw on $a to $bw on $b.';
+  }
+
+  @override
+  String get trendWeightOne =>
+      'Weight was measured on one day only. A change needs a reading from another day.';
+
+  @override
+  String get trendWeightNone => 'No weight was measured in this period.';
+
+  @override
+  String get trendNoData => 'Nothing was logged in this period.';
+
+  @override
+  String get intakeLabel => 'Intake';
+
+  @override
+  String get burnedLabel => 'Exercise';
+
+  @override
+  String get diffLabel => 'Intake − exercise';
+
+  @override
+  String get weightMeasured => 'Weight (measured)';
+
+  @override
+  String get sourceHealth => 'Health app';
+
+  @override
+  String get sourceManual => 'Entered by hand';
+
+  @override
+  String get burnedSource =>
+      'Active energy your watch measured during the workout';
+
+  @override
+  String get partnerSignIn => 'Sign in to work out together.';
+
+  @override
+  String get partnerSignInAction => 'Sign in';
+
+  @override
+  String get partnerMakeCode => 'Create a code';
+
+  @override
+  String get partnerCopy => 'Copy';
+
+  @override
+  String partnerExpiresIn(String t) {
+    return 'Expires in $t';
+  }
+
+  @override
+  String get partnerExpired => 'The code has expired.';
+
+  @override
+  String get partnerNewCode => 'New code';
+
+  @override
+  String get partnerStopWaiting => 'Stop';
+
+  @override
+  String partnerWith(String name) {
+    return 'Working out with $name';
+  }
+
+  @override
+  String get partnerReconnecting => 'Reconnecting · your record keeps saving';
+
+  @override
+  String partnerTheirRecord(String name) {
+    return '$name\'s record';
+  }
+
+  @override
+  String get partnerNoRecordYet => 'Nothing logged yet.';
+
+  @override
+  String get partnerLoading => 'Loading…';
+
+  @override
+  String get partnerEnd => 'Stop working out together';
+
+  @override
+  String get partnerEndedByMe =>
+      'You stopped working out together. Your record is kept.';
+
+  @override
+  String partnerEndedByThem(String name) {
+    return '$name stopped working out together. Your record is kept.';
+  }
+
+  @override
+  String get partnerErrFormat => 'A code has six characters. Check it again.';
+
+  @override
+  String get partnerErrInvalid =>
+      'No such code. It may already be used or mistyped.';
+
+  @override
+  String get partnerErrExpired => 'That code has expired. Ask for a new one.';
+
+  @override
+  String get partnerErrEnded => 'That invite has already ended.';
+
+  @override
+  String get partnerErrOwn =>
+      'That is your own code. Enter it on the other phone.';
+
+  @override
+  String get partnerErrTries => 'Too many tries. Please try again later.';
+
+  @override
+  String get partnerErrNetwork =>
+      'Could not reach the server. Check your connection and try again.';
+
+  @override
+  String get partnerErrServer =>
+      'The server had a problem. Please try again shortly.';
+
+  @override
+  String get partnerRetry => 'Try again';
+
+  @override
+  String get partnerReadOnly => 'read only';
+
+  @override
+  String get partnerConflict =>
+      'Another of your devices shared a newer record. This device\'s record is safe; only sharing is paused.';
+
+  @override
+  String get partnerShareThisDevice => 'Share this device\'s record';
+
+  @override
+  String get plansTitle => 'Shared plans';
+
+  @override
+  String get planNew => 'New shared plan';
+
+  @override
+  String get planJoin => 'Join with a code';
+
+  @override
+  String get planHint =>
+      'First line is the title, then one exercise per line\ne.g. Squat 4 sets';
+
+  @override
+  String get planDateNone => 'No date yet';
+
+  @override
+  String planSetsCount(int n) {
+    return '$n sets';
+  }
+
+  @override
+  String get planSave => 'Propose';
+
+  @override
+  String get planStateLocal =>
+      'Draft on this device only · not on the server yet';
+
+  @override
+  String get planStateDraft => 'Draft · no partner yet';
+
+  @override
+  String planStateWaiting(int v) {
+    return 'Waiting for your partner · version $v';
+  }
+
+  @override
+  String planStateNeedsMe(String name, int v) {
+    return '$name changed it · version $v needs your OK';
+  }
+
+  @override
+  String planStateAgreed(int v) {
+    return 'Agreed · version $v';
+  }
+
+  @override
+  String get planStateWithdrawn =>
+      'Shared planning ended · the agreed plan and your targets are kept';
+
+  @override
+  String planAccept(int v) {
+    return 'Accept version $v';
+  }
+
+  @override
+  String get planChanged => 'Changed since the last agreed plan';
+
+  @override
+  String planAdded(String x) {
+    return 'Added: $x';
+  }
+
+  @override
+  String planRemoved(String x) {
+    return 'Removed: $x';
+  }
+
+  @override
+  String planSetsChanged(String x) {
+    return 'Sets changed: $x';
+  }
+
+  @override
+  String get planReordered => 'The order changed';
+
+  @override
+  String get planDateChanged => 'The date changed';
+
+  @override
+  String get planTitleChanged => 'The title changed';
+
+  @override
+  String planLastAgreed(int v) {
+    return 'Last agreed plan · version $v';
+  }
+
+  @override
+  String get planConflict =>
+      'Your partner changed it first. Your draft is still here.';
+
+  @override
+  String planLatest(int v) {
+    return 'Your partner\'s latest plan · version $v';
+  }
+
+  @override
+  String get planKeepMine => 'Propose my draft again';
+
+  @override
+  String get planTakeLatest => 'Use the latest plan';
+
+  @override
+  String get planMyTarget => 'My target';
+
+  @override
+  String planPartnerTarget(String name, String t) {
+    return '$name: $t';
+  }
+
+  @override
+  String get planTargetHint => 'e.g. 100 5 or 100kg 5 reps x3 note';
+
+  @override
+  String get planInvite => 'Create an invite code';
+
+  @override
+  String get planStart => 'Start this plan';
+
+  @override
+  String get planStartSolo => 'Start my own copy';
+
+  @override
+  String get planStartSoloNote =>
+      'Not agreed yet. Starting now uses your own copy, not an agreed plan.';
+
+  @override
+  String get planOpenWorkout => 'Open the workout';
+
+  @override
+  String get planCopyNext => 'Copy to the next workout';
+
+  @override
+  String get planWithdraw => 'Leave this shared plan';
+
+  @override
+  String get planCompare => 'Plan and actual';
+
+  @override
+  String planDoneSets(String name, int planned, int done) {
+    return '$name · planned $planned · done $done';
+  }
+
+  @override
+  String planAddedActual(String x) {
+    return 'Not in the plan: $x';
+  }
+
+  @override
+  String planSkipped(String x) {
+    return 'Skipped: $x';
+  }
+
+  @override
+  String get planFromRecord => 'Plan the next workout together from this';
+
+  @override
+  String planStartedFrom(int v) {
+    return 'Started from the agreed shared plan (version $v)';
+  }
+
+  @override
+  String planStartedSolo(int v) {
+    return 'Started from your own copy (version $v, not agreed)';
+  }
+
+  @override
+  String get planShareLink => 'Send an invite link';
+
+  @override
+  String planShareText(String url) {
+    return 'Let\'s plan our workout together in setpad: $url';
+  }
+
+  @override
+  String get planLinkCopied => 'Link copied. It works once, for one day.';
+
+  @override
+  String get planLinkJoining => 'Joining the plan you were invited to…';
 }

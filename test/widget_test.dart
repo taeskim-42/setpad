@@ -162,13 +162,13 @@ void main() {
       expect(c.inBlock, isTrue);
     });
 
-    test('지우기는 세트부터, 세트가 없으면 운동을 뗀다', () {
+    test('지우기는 저장된 세트를 지우지 않고, 세트가 없는 운동만 뗀다', () {
       final c = RoutineEditorController()..commit('벤치프레스');
       c.commit('100kg 10회 x2');
       c.backspace();
-      expect(c.blocks.single.sets.length, 1);
-      c.backspace();
-      expect(c.blocks.single.sets, isEmpty);
+      expect(c.blocks.single.sets.length, 2, reason: '세트는 × 로만 지운다');
+      c.removeSet(0, 1);
+      c.removeSet(0, 0);
       c.backspace();
       expect(c.blocks, isEmpty);
       // 비어 있어도 터지지 않는다
@@ -379,7 +379,7 @@ void keypadTests() {
       await tester.tap(addSetButton);
       await settle(tester);
 
-      expect(find.text('100kg · 20회'), findsOneWidget);
+      expect(find.text('1 100×20'), findsOneWidget);
     });
   });
 
@@ -436,8 +436,8 @@ void keypadTests() {
         ),
       );
       await settle(tester);
-      expect(find.text('Set 1'), findsOneWidget);
-      expect(find.text('100kg · 10 reps'), findsOneWidget);
+      expect(find.text('1 100×10'), findsOneWidget);
+      expect(find.text('Set 2'), findsOneWidget); // 다음 세트를 기다리는 줄
     });
 
     testWidgets('일본어 기기에서는 일본어 이름이 나온다', (tester) async {
@@ -786,10 +786,16 @@ void keypadTests() {
       await settle(tester);
 
       final back = find.byIcon(CupertinoIcons.delete_left);
-      await tester.tap(back); // 세트 하나 — 묻지 않는다
+      await tester.tap(back); // 세트가 있다 — 지우지 않고 그 세트로 돌아간다
       await settle(tester);
       expect(find.text('벤치프레스 삭제'), findsNothing);
       expect(blockTitle('벤치프레스'), findsOneWidget);
+      expect(
+        tester.widget<CupertinoTextField>(padField).controller!.text,
+        '100kg 10',
+      );
+      await tester.tap(find.byIcon(CupertinoIcons.xmark)); // 세트는 × 로 지운다
+      await settle(tester);
 
       await tester.tap(back); // 이제 운동 차례 — 물어야 한다
       await settle(tester);
@@ -811,8 +817,8 @@ void keypadTests() {
       final c = RoutineEditorController()..commit('벤치프레스');
       expect(c.backspaceRemovesBlock, isTrue); // 세트가 없다
       c.commit('100 10');
-      expect(c.backspaceRemovesBlock, isFalse); // 뗄 세트가 있다
-      c.backspace();
+      expect(c.backspaceRemovesBlock, isFalse); // 세트가 있다
+      c.removeSet(0, 0);
       expect(c.backspaceRemovesBlock, isTrue);
       c.commit(''); // 카드 밖으로
       expect(c.backspaceRemovesBlock, isFalse); // 열린 운동이 없다
@@ -1302,13 +1308,13 @@ void keypadTests() {
       await settle(tester);
       expect(inPad('어깨 불편'), findsOneWidget);
 
-      // 카드 하나에 × 는 세트 줄 것 하나뿐이다. 메모마다 달면 셋이 된다.
+      // × 는 고치고 있는 세트 줄에만 있다. 메모마다 달지 않는다.
       expect(
         find.descendant(
           of: find.byType(RoutineEditor),
           matching: find.byIcon(CupertinoIcons.xmark),
         ),
-        findsOneWidget,
+        findsNothing,
       );
 
       // 눌러서 글을 불러온다 — 문서에서 고치는 것과 같다.
@@ -1350,6 +1356,9 @@ void keypadTests() {
             ),
           )
           .controller!;
+      // 완료 표시는 고치는 세트 줄에 있다. 칸을 눌러 그 줄을 연다.
+      await tester.tap(find.byKey(const ValueKey('set-cell-11')));
+      await settle(tester);
       final before = scroll.offset;
 
       // 세트 하나를 껐다 켠다 — 줄 수는 그대로다. 화면에 보이는 것을 누른다.

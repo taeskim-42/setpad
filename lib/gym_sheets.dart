@@ -1,115 +1,359 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
 import 'account.dart';
-import 'gym.dart';
 import 'l10n/generated/app_localizations.dart';
-import 'notes.dart';
+import 'palette.dart';
+import 'partner.dart';
+import 'set_grid.dart';
 
-/// 같이 하기 — 코드를 띄우거나 치거나.
+String partnerErrorText(L l, PartnerError error) => switch (error) {
+  PartnerError.signInRequired => l.partnerSignIn,
+  PartnerError.invalidFormat => l.partnerErrFormat,
+  PartnerError.invalidCode => l.partnerErrInvalid,
+  PartnerError.expired => l.partnerErrExpired,
+  PartnerError.ended => l.partnerErrEnded,
+  PartnerError.ownInvite => l.partnerErrOwn,
+  PartnerError.tooManyTries => l.partnerErrTries,
+  PartnerError.network => l.partnerErrNetwork,
+  PartnerError.server => l.partnerErrServer,
+};
+
+/// 같이 하기.
 ///
 /// **코드를 쓰는 이유는 짝이 계속 바뀌기 때문이다.** 헬스장에서는 그날 옆에
 /// 있는 사람이 봐준다. 사람끼리 관계로 묶으면 끊는 일이 생기는데, 그날로
 /// 끝나면 그럴 일이 없다.
+///
+/// 이 창은 상태를 **보여 주기만** 한다. 닫아도 세션은 그대로이고, 다시 열면
+/// 같은 상태가 나온다 — 연결이 알림창과 함께 사라지던 구조를 없앴다.
 Future<void> showPartnerSheet(
   BuildContext context,
   Account account,
-  Note note,
-) async {
-  final l = L.of(context);
-  final choice = await showCupertinoModalPopup<String>(
-    context: context,
-    builder: (ctx) => CupertinoActionSheet(
-      title: Text(l.partnerInvite),
-      actions: [
-        CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(ctx, 'invite'),
-          child: Text(l.partnerCode),
-        ),
-        CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(ctx, 'join'),
-          child: Text(l.partnerEnter),
-        ),
-      ],
-      cancelButton: CupertinoActionSheetAction(
-        onPressed: () => Navigator.pop(ctx),
-        child: Text(l.cancel),
-      ),
-    ),
-  );
-  if (choice == null || !context.mounted) return;
+  PartnerSync sync, {
+  VoidCallback? onPlanNext,
+}) => showCupertinoModalPopup<void>(
+  context: context,
+  builder: (_) =>
+      _PartnerSheet(account: account, sync: sync, onPlanNext: onPlanNext),
+);
 
-  if (choice == 'invite') {
-    final code = await account.link.invite(note.id);
-    if (!context.mounted) return;
-    await _tell(context, code ?? l.partnerFailed, title: l.partnerCode);
-    return;
+class _PartnerSheet extends StatefulWidget {
+  const _PartnerSheet({
+    required this.account,
+    required this.sync,
+    this.onPlanNext,
+  });
+  final Account account;
+  final PartnerSync sync;
+  final VoidCallback? onPlanNext;
+  @override
+  State<_PartnerSheet> createState() => _PartnerSheetState();
+}
+
+class _PartnerSheetState extends State<_PartnerSheet> {
+  final _code = TextEditingController();
+  bool _typing = false;
+  Timer? _tick;
+
+  PartnerSync get sync => widget.sync;
+  void _changed() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    sync.addListener(_changed);
+    widget.account.addListener(_changed);
+    // 남은 시간을 1초마다 다시 그린다.
+    _tick = Timer.periodic(const Duration(seconds: 1), (_) => _changed());
   }
 
-  final code = await _askCode(context, l);
-  if (code == null || !context.mounted) return;
-  final joined = await account.link.join(code, myWorkoutId: note.id);
-  if (!context.mounted) return;
-  await _tell(
-    context,
-    joined == null ? l.partnerFailed : l.partnerJoined(joined.partner ?? code),
-  );
-}
+  @override
+  void dispose() {
+    _tick?.cancel();
+    sync.removeListener(_changed);
+    widget.account.removeListener(_changed);
+    // 창을 닫는 것은 취소가 아니다. 보낸 요청은 끝까지 가고, 결과는 문서 위의
+    // 상태 줄에 나타난다. 그만두려면 "취소" 를 누른다.
+    _code.dispose();
+    super.dispose();
+  }
 
-Future<String?> _askCode(BuildContext context, L l) {
-  final input = TextEditingController();
-  return showCupertinoDialog<String>(
-    context: context,
-    builder: (ctx) => CupertinoAlertDialog(
-      title: Text(l.partnerEnter),
-      content: Padding(
-        padding: const EdgeInsets.only(top: 12),
-        child: CupertinoTextField(
-          controller: input,
-          autofocus: true,
-          // 헬스장에서 불러 주는 번호다. 자판을 오래 두드릴 자리가 아니다.
-          textCapitalization: TextCapitalization.characters,
-          maxLength: 6,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 22, letterSpacing: 4),
-        ),
-      ),
-      actions: [
-        CupertinoDialogAction(
-          onPressed: () => Navigator.pop(ctx),
-          child: Text(l.cancel),
-        ),
-        CupertinoDialogAction(
-          isDefaultAction: true,
-          onPressed: () => Navigator.pop(ctx, input.text.trim()),
-          child: Text(l.confirmYes),
-        ),
-      ],
-    ),
-  ).whenComplete(input.dispose);
-}
-
-Future<void> _tell(BuildContext context, String message, {String? title}) =>
-    showCupertinoDialog<void>(
-      context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: title == null ? null : Text(title),
-        content: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            message,
-            style: TextStyle(
-              fontSize: title == null ? 15 : 30,
-              letterSpacing: title == null ? 0 : 6,
-              fontWeight: title == null ? FontWeight.w400 : FontWeight.w600,
-            ),
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final session = sync.session;
+    final error = sync.error;
+    return CupertinoPopupSurface(
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            16,
+            20,
+            12 + MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l.partnerInvite,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (!widget.account.signedIn) ...[
+                Text(l.partnerSignIn, style: TextStyle(color: muted)),
+                CupertinoButton.filled(
+                  // 로그인하고 나면 이 창이 그대로 다음 단계를 보여 준다.
+                  onPressed: () => widget.account.signIn(),
+                  child: Text(l.partnerSignInAction),
+                ),
+              ] else if (session?.state == PartnerState.active)
+                ..._active(l, session!, muted)
+              else if (session?.state == PartnerState.waiting && session!.host)
+                ..._waiting(l, session, muted)
+              else
+                ..._start(l, session, muted),
+              if (error != null && widget.account.signedIn)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    partnerErrorText(l, error),
+                    key: const ValueKey('partner-error'),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: seal.resolveFrom(context),
+                    ),
+                  ),
+                ),
+              if (widget.onPlanNext != null && widget.account.signedIn)
+                CupertinoButton(
+                  onPressed: widget.onPlanNext,
+                  child: Text(
+                    l.planFromRecord,
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ),
+              if (sync.busy)
+                CupertinoButton(
+                  key: const ValueKey('partner-cancel'),
+                  onPressed: sync.cancel,
+                  child: Text(l.cancel),
+                ),
+              CupertinoButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l.ok),
+              ),
+            ],
           ),
         ),
-        actions: [
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(L.of(ctx).confirmYes),
+      ),
+    );
+  }
+
+  /// 아직 아무와도 잇지 않았다(또는 끝났다, 만료됐다).
+  List<Widget> _start(L l, PartnerSession? session, Color muted) => [
+    if (session?.state == PartnerState.ended)
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(
+          session!.endedByMe ?? true
+              ? l.partnerEndedByMe
+              : l.partnerEndedByThem(session.partnerName ?? ''),
+          style: TextStyle(fontSize: 13, color: muted),
+        ),
+      ),
+    if (session?.state == PartnerState.expired)
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(
+          l.partnerExpired,
+          style: TextStyle(fontSize: 13, color: muted),
+        ),
+      ),
+    if (_typing) ...[
+      CupertinoTextField(
+        key: const ValueKey('partner-code'),
+        controller: _code,
+        autofocus: true,
+        // 헬스장에서 불러 주는 코드다. 자판을 오래 두드릴 자리가 아니다.
+        textCapitalization: TextCapitalization.characters,
+        autocorrect: false,
+        maxLength: 8,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 24, letterSpacing: 5),
+        onSubmitted: (_) => sync.joinWithCode(_code.text),
+      ),
+      const SizedBox(height: 8),
+      CupertinoButton.filled(
+        onPressed: sync.busy ? null : () => sync.joinWithCode(_code.text),
+        child: sync.busy
+            ? const CupertinoActivityIndicator()
+            : Text(
+                sync.error == PartnerError.network ||
+                        sync.error == PartnerError.server
+                    ? l.partnerRetry
+                    : l.partnerEnter,
+              ),
+      ),
+    ] else ...[
+      CupertinoButton.filled(
+        onPressed: sync.busy ? null : () => sync.invite(),
+        child: sync.busy
+            ? const CupertinoActivityIndicator()
+            : Text(l.partnerMakeCode),
+      ),
+      const SizedBox(height: 8),
+      CupertinoButton(
+        onPressed: () => setState(() => _typing = true),
+        child: Text(l.partnerEnter),
+      ),
+    ],
+  ];
+
+  /// 코드를 띄우고 상대를 기다린다. 상대가 들어오면 이 화면이 저절로 바뀐다.
+  List<Widget> _waiting(L l, PartnerSession session, Color muted) {
+    final left = session.expiresAt?.difference(DateTime.now());
+    final over = left == null || left.isNegative;
+    String two(int n) => n.toString().padLeft(2, '0');
+    return [
+      Text(l.partnerCode, style: TextStyle(fontSize: 13, color: muted)),
+      const SizedBox(height: 6),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            session.code ?? '',
+            key: const ValueKey('partner-code-shown'),
+            style: const TextStyle(
+              fontSize: 34,
+              letterSpacing: 6,
+              fontWeight: FontWeight.w600,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
+          CupertinoButton(
+            padding: const EdgeInsets.only(left: 12),
+            onPressed: () =>
+                Clipboard.setData(ClipboardData(text: session.code ?? '')),
+            child: Icon(
+              CupertinoIcons.doc_on_doc,
+              size: 20,
+              semanticLabel: l.partnerCopy,
+            ),
           ),
         ],
       ),
-    );
+      Text(
+        over
+            ? l.partnerExpired
+            : l.partnerExpiresIn(
+                '${left.inMinutes}:${two(left.inSeconds % 60)}',
+              ),
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 13, color: muted),
+      ),
+      if (!sync.reachable)
+        Text(
+          l.partnerReconnecting,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: muted),
+        ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CupertinoButton(
+            onPressed: sync.busy ? null : () => sync.invite(renew: true),
+            child: Text(l.partnerNewCode),
+          ),
+          CupertinoButton(
+            onPressed: sync.busy ? null : sync.end,
+            child: Text(l.partnerStopWaiting),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  /// 같이 운동 중. 상대의 기록을 **읽기만** 한다.
+  List<Widget> _active(L l, PartnerSession session, Color muted) => [
+    Text(
+      l.partnerWith(session.partnerName ?? ''),
+      style: const TextStyle(fontSize: 15),
+    ),
+    if (!sync.reachable)
+      Text(l.partnerReconnecting, style: TextStyle(fontSize: 13, color: muted)),
+    if (sync.conflict != null) ...[
+      Text(
+        l.partnerConflict,
+        style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
+      ),
+      CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: sync.shareThisDevice,
+        child: Text(
+          l.partnerShareThisDevice,
+          style: const TextStyle(fontSize: 14),
+        ),
+      ),
+    ],
+    const SizedBox(height: 10),
+    // 볼 수만 있다. 상대의 실제 기록을 대신 적는 기능은 없다.
+    Text(
+      '${l.partnerTheirRecord(session.partnerName ?? '')} · ${l.partnerReadOnly}',
+      style: TextStyle(fontSize: 13, color: muted),
+    ),
+    const SizedBox(height: 4),
+    ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.45,
+      ),
+      child: !session.partnerLoaded
+          // 아직 못 받은 것과 기록이 없는 것은 다르다. 빈 화면을 "없음" 으로
+          // 보여 주면 데이터가 사라진 것처럼 보인다.
+          ? Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(
+                children: [
+                  const CupertinoActivityIndicator(),
+                  Text(
+                    l.partnerLoading,
+                    style: TextStyle(fontSize: 13, color: muted),
+                  ),
+                ],
+              ),
+            )
+          : session.partnerBlocks.isEmpty
+          ? Text(
+              l.partnerNoRecordYet,
+              style: TextStyle(fontSize: 13, color: muted),
+            )
+          : ListView(
+              shrinkWrap: true,
+              children: [
+                for (final block in session.partnerBlocks)
+                  BlockSummary(block: block),
+              ],
+            ),
+    ),
+    CupertinoButton(
+      onPressed: sync.busy
+          ? null
+          : () async {
+              await sync.end();
+            },
+      child: Text(
+        l.partnerEnd,
+        style: const TextStyle(color: CupertinoColors.destructiveRed),
+      ),
+    ),
+  ];
+}

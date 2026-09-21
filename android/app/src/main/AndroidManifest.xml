@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.health.WRITE_EXERCISE"/>
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
     <uses-permission android:name="android.permission.health.READ_HEART_RATE"/>
+    <!-- 체중은 "건강 앱에서 가져오기" 를 눌렀을 때만 따로 묻는다(HealthLink.authorizeWeight). -->
+    <uses-permission android:name="android.permission.health.READ_WEIGHT"/>
     <application
         android:label="setpad"
         android:name="${applicationName}"
@@ -39,6 +41,10 @@
                 <data android:scheme="https"
                       android:host="gym.darak.studio"
                       android:pathPrefix="/c/"/>
+                <!-- 공동 루틴 초대 링크. 앱이 받아서 바로 참여한다. -->
+                <data android:scheme="https"
+                      android:host="gym.darak.studio"
+                      android:pathPrefix="/plan/"/>
                 <!-- 이미 나간 스티커가 옛 주소를 가리킬 수 있다. -->
                 <data android:scheme="https"
                       android:host="web-production-9cfc2.up.railway.app"

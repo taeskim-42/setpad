@@ -892,26 +892,14 @@ abstract class L {
   /// No description provided for @partnerCode.
   ///
   /// In ko, this message translates to:
-  /// **'상대에게 이 번호를 불러 주세요'**
+  /// **'상대에게 이 코드를 알려 주세요'**
   String get partnerCode;
 
   /// No description provided for @partnerEnter.
   ///
   /// In ko, this message translates to:
-  /// **'번호 입력'**
+  /// **'코드 입력'**
   String get partnerEnter;
-
-  /// No description provided for @partnerJoined.
-  ///
-  /// In ko, this message translates to:
-  /// **'{name}와 같이 기록합니다'**
-  String partnerJoined(String name);
-
-  /// No description provided for @partnerFailed.
-  ///
-  /// In ko, this message translates to:
-  /// **'번호가 맞지 않거나 시간이 지났어요.'**
-  String get partnerFailed;
 
   /// No description provided for @bookingNext.
   ///
@@ -1279,12 +1267,6 @@ abstract class L {
   /// **'섭취 약 {n}kcal'**
   String mealIntake(int n);
 
-  /// No description provided for @mealNet.
-  ///
-  /// In ko, this message translates to:
-  /// **'운동 − 섭취 {n}kcal'**
-  String mealNet(int n);
-
   /// No description provided for @mealFailed.
   ///
   /// In ko, this message translates to:
@@ -1297,23 +1279,725 @@ abstract class L {
   /// **'사진으로 어림한 값이에요'**
   String get mealEstimateNote;
 
-  /// No description provided for @mealServingsAsk.
-  ///
-  /// In ko, this message translates to:
-  /// **'몇 회분 드셨나요?'**
-  String get mealServingsAsk;
-
   /// No description provided for @mealServingsOption.
   ///
   /// In ko, this message translates to:
   /// **'{n}회분'**
   String mealServingsOption(String n);
 
-  /// No description provided for @mealWholePackage.
+  /// No description provided for @fitAll.
   ///
   /// In ko, this message translates to:
-  /// **'전체 {n}회분'**
-  String mealWholePackage(String n);
+  /// **'전체 보기'**
+  String get fitAll;
+
+  /// No description provided for @sameDayOther.
+  ///
+  /// In ko, this message translates to:
+  /// **'같은 날의 다른 기록'**
+  String get sameDayOther;
+
+  /// No description provided for @mealText.
+  ///
+  /// In ko, this message translates to:
+  /// **'식단 적기'**
+  String get mealText;
+
+  /// No description provided for @mealTextHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'먹은 것을 적어 주세요. 예: 김밥 한 줄, 우유 200ml'**
+  String get mealTextHint;
+
+  /// No description provided for @kcalApprox.
+  ///
+  /// In ko, this message translates to:
+  /// **'약 {n}kcal'**
+  String kcalApprox(int n);
+
+  /// No description provided for @mealKcalUnknown.
+  ///
+  /// In ko, this message translates to:
+  /// **'열량 미상'**
+  String get mealKcalUnknown;
+
+  /// No description provided for @mealIntakePartial.
+  ///
+  /// In ko, this message translates to:
+  /// **'확인된 섭취 {n}kcal · 열량 미상 {m}건'**
+  String mealIntakePartial(int n, int m);
+
+  /// No description provided for @mealAmountAsk.
+  ///
+  /// In ko, this message translates to:
+  /// **'얼마나 드셨나요?'**
+  String get mealAmountAsk;
+
+  /// No description provided for @mealBasis.
+  ///
+  /// In ko, this message translates to:
+  /// **'기준'**
+  String get mealBasis;
+
+  /// No description provided for @mealEaten.
+  ///
+  /// In ko, this message translates to:
+  /// **'먹은 양'**
+  String get mealEaten;
+
+  /// No description provided for @mealUnitServing.
+  ///
+  /// In ko, this message translates to:
+  /// **'회분'**
+  String get mealUnitServing;
+
+  /// No description provided for @mealUnitPackage.
+  ///
+  /// In ko, this message translates to:
+  /// **'포장 전체'**
+  String get mealUnitPackage;
+
+  /// No description provided for @mealUnitPhoto.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진 속 음식'**
+  String get mealUnitPhoto;
+
+  /// No description provided for @mealWhole.
+  ///
+  /// In ko, this message translates to:
+  /// **'전체'**
+  String get mealWhole;
+
+  /// No description provided for @mealHalf.
+  ///
+  /// In ko, this message translates to:
+  /// **'절반'**
+  String get mealHalf;
+
+  /// No description provided for @mealPhotoWholeNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진에 보이는 음식 전체를 어림한 값이에요. 그중 드신 만큼을 고르세요.'**
+  String get mealPhotoWholeNote;
+
+  /// No description provided for @mealAmountInvalid.
+  ///
+  /// In ko, this message translates to:
+  /// **'0 이상의 숫자를 입력해 주세요.'**
+  String get mealAmountInvalid;
+
+  /// No description provided for @dayEnergyFull.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록 기준 섭취 {intake} − 운동 {burned} = {diff}kcal'**
+  String dayEnergyFull(int intake, int burned, int diff);
+
+  /// No description provided for @dayEnergyApprox.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록 기준 섭취 약 {intake} − 운동 {burned} = 약 {diff}kcal'**
+  String dayEnergyApprox(int intake, int burned, int diff);
+
+  /// No description provided for @dayBurnedMissing.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 소모량 미측정 · 차이 계산 불가'**
+  String get dayBurnedMissing;
+
+  /// No description provided for @dayBurnedOnly.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 {n}kcal · 식단 미기록'**
+  String dayBurnedOnly(int n);
+
+  /// No description provided for @energyExplain.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록된 섭취량에서 운동 소모량을 뺀 값입니다. 휴식과 일상생활에서 쓰는 에너지는 제외됩니다.'**
+  String get energyExplain;
+
+  /// No description provided for @weightLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'체중 {w}'**
+  String weightLabel(String w);
+
+  /// No description provided for @weightAdd.
+  ///
+  /// In ko, this message translates to:
+  /// **'체중 기록'**
+  String get weightAdd;
+
+  /// No description provided for @weightFromHealth.
+  ///
+  /// In ko, this message translates to:
+  /// **'건강 앱에서 가져오기'**
+  String get weightFromHealth;
+
+  /// No description provided for @weightInvalid.
+  ///
+  /// In ko, this message translates to:
+  /// **'체중을 확인해 주세요.'**
+  String get weightInvalid;
+
+  /// No description provided for @weightRule.
+  ///
+  /// In ko, this message translates to:
+  /// **'하루에 여러 번 재면 그날 처음 잰 값을 씁니다. 재지 않은 날은 비워 둡니다.'**
+  String get weightRule;
+
+  /// No description provided for @trendsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록과 몸의 변화'**
+  String get trendsTitle;
+
+  /// No description provided for @trendDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}일'**
+  String trendDays(int n);
+
+  /// No description provided for @trendIntakeAvg.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록된 섭취 평균 {n}kcal · {d}일'**
+  String trendIntakeAvg(int n, int d);
+
+  /// No description provided for @trendBurnedAvg.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록된 운동 소모 평균 {n}kcal · {d}일'**
+  String trendBurnedAvg(int n, int d);
+
+  /// No description provided for @trendDiffAvg.
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취 − 운동 평균 {n}kcal · 둘 다 기록한 {d}일'**
+  String trendDiffAvg(int n, int d);
+
+  /// No description provided for @trendIncomplete.
+  ///
+  /// In ko, this message translates to:
+  /// **'열량 미상이 있는 날 {d}일 · 평균에서 제외'**
+  String trendIncomplete(int d);
+
+  /// No description provided for @trendWeightChange.
+  ///
+  /// In ko, this message translates to:
+  /// **'측정 체중은 {a} {aw}에서 {b} {bw}(으)로 변했습니다.'**
+  String trendWeightChange(String a, String aw, String b, String bw);
+
+  /// No description provided for @trendWeightOne.
+  ///
+  /// In ko, this message translates to:
+  /// **'체중을 잰 날이 하루뿐입니다. 변화를 보려면 다른 날의 측정이 필요합니다.'**
+  String get trendWeightOne;
+
+  /// No description provided for @trendWeightNone.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 기간에 잰 체중이 없습니다.'**
+  String get trendWeightNone;
+
+  /// No description provided for @trendNoData.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 기간에 기록이 없습니다.'**
+  String get trendNoData;
+
+  /// No description provided for @intakeLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취'**
+  String get intakeLabel;
+
+  /// No description provided for @burnedLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동'**
+  String get burnedLabel;
+
+  /// No description provided for @diffLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취 − 운동'**
+  String get diffLabel;
+
+  /// No description provided for @weightMeasured.
+  ///
+  /// In ko, this message translates to:
+  /// **'체중 (측정값)'**
+  String get weightMeasured;
+
+  /// No description provided for @sourceHealth.
+  ///
+  /// In ko, this message translates to:
+  /// **'건강 앱'**
+  String get sourceHealth;
+
+  /// No description provided for @sourceManual.
+  ///
+  /// In ko, this message translates to:
+  /// **'직접 입력'**
+  String get sourceManual;
+
+  /// No description provided for @burnedSource.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 중 워치가 잰 활동 에너지'**
+  String get burnedSource;
+
+  /// No description provided for @partnerSignIn.
+  ///
+  /// In ko, this message translates to:
+  /// **'같이 하려면 로그인이 필요합니다.'**
+  String get partnerSignIn;
+
+  /// No description provided for @partnerSignInAction.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인'**
+  String get partnerSignInAction;
+
+  /// No description provided for @partnerMakeCode.
+  ///
+  /// In ko, this message translates to:
+  /// **'코드 만들기'**
+  String get partnerMakeCode;
+
+  /// No description provided for @partnerCopy.
+  ///
+  /// In ko, this message translates to:
+  /// **'복사'**
+  String get partnerCopy;
+
+  /// No description provided for @partnerExpiresIn.
+  ///
+  /// In ko, this message translates to:
+  /// **'{t} 뒤 만료'**
+  String partnerExpiresIn(String t);
+
+  /// No description provided for @partnerExpired.
+  ///
+  /// In ko, this message translates to:
+  /// **'코드가 만료되었습니다.'**
+  String get partnerExpired;
+
+  /// No description provided for @partnerNewCode.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 코드'**
+  String get partnerNewCode;
+
+  /// No description provided for @partnerStopWaiting.
+  ///
+  /// In ko, this message translates to:
+  /// **'그만두기'**
+  String get partnerStopWaiting;
+
+  /// No description provided for @partnerWith.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님과 함께 운동 중'**
+  String partnerWith(String name);
+
+  /// No description provided for @partnerReconnecting.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결 복구 중 · 내 기록은 계속 저장됩니다'**
+  String get partnerReconnecting;
+
+  /// No description provided for @partnerTheirRecord.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님의 기록'**
+  String partnerTheirRecord(String name);
+
+  /// No description provided for @partnerNoRecordYet.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 올라온 기록이 없습니다.'**
+  String get partnerNoRecordYet;
+
+  /// No description provided for @partnerLoading.
+  ///
+  /// In ko, this message translates to:
+  /// **'불러오는 중…'**
+  String get partnerLoading;
+
+  /// No description provided for @partnerEnd.
+  ///
+  /// In ko, this message translates to:
+  /// **'함께 운동 종료'**
+  String get partnerEnd;
+
+  /// No description provided for @partnerEndedByMe.
+  ///
+  /// In ko, this message translates to:
+  /// **'함께 운동을 종료했습니다. 내 기록은 그대로 남아 있습니다.'**
+  String get partnerEndedByMe;
+
+  /// No description provided for @partnerEndedByThem.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님이 함께 운동을 종료했습니다. 내 기록은 그대로 남아 있습니다.'**
+  String partnerEndedByThem(String name);
+
+  /// No description provided for @partnerErrFormat.
+  ///
+  /// In ko, this message translates to:
+  /// **'코드는 여섯 글자입니다. 다시 확인해 주세요.'**
+  String get partnerErrFormat;
+
+  /// No description provided for @partnerErrInvalid.
+  ///
+  /// In ko, this message translates to:
+  /// **'맞는 코드가 없습니다. 이미 사용됐거나 잘못 입력했을 수 있어요.'**
+  String get partnerErrInvalid;
+
+  /// No description provided for @partnerErrExpired.
+  ///
+  /// In ko, this message translates to:
+  /// **'만료된 코드입니다. 상대에게 새 코드를 받아 주세요.'**
+  String get partnerErrExpired;
+
+  /// No description provided for @partnerErrEnded.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 종료된 초대입니다.'**
+  String get partnerErrEnded;
+
+  /// No description provided for @partnerErrOwn.
+  ///
+  /// In ko, this message translates to:
+  /// **'내가 만든 코드입니다. 상대의 기기에서 입력해 주세요.'**
+  String get partnerErrOwn;
+
+  /// No description provided for @partnerErrTries.
+  ///
+  /// In ko, this message translates to:
+  /// **'시도가 너무 많습니다. 잠시 뒤에 다시 해 주세요.'**
+  String get partnerErrTries;
+
+  /// No description provided for @partnerErrNetwork.
+  ///
+  /// In ko, this message translates to:
+  /// **'서버에 연결하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.'**
+  String get partnerErrNetwork;
+
+  /// No description provided for @partnerErrServer.
+  ///
+  /// In ko, this message translates to:
+  /// **'서버에 문제가 있습니다. 잠시 뒤에 다시 시도해 주세요.'**
+  String get partnerErrServer;
+
+  /// No description provided for @partnerRetry.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 시도'**
+  String get partnerRetry;
+
+  /// No description provided for @partnerReadOnly.
+  ///
+  /// In ko, this message translates to:
+  /// **'읽기 전용'**
+  String get partnerReadOnly;
+
+  /// No description provided for @partnerConflict.
+  ///
+  /// In ko, this message translates to:
+  /// **'다른 기기에서 더 새 기록을 공유했습니다. 이 기기의 기록은 그대로 저장돼 있고, 공유만 멈춘 상태입니다.'**
+  String get partnerConflict;
+
+  /// No description provided for @partnerShareThisDevice.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 기기의 기록으로 공유하기'**
+  String get partnerShareThisDevice;
+
+  /// No description provided for @plansTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'공동 루틴'**
+  String get plansTitle;
+
+  /// No description provided for @planNew.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 공동 루틴'**
+  String get planNew;
+
+  /// No description provided for @planJoin.
+  ///
+  /// In ko, this message translates to:
+  /// **'코드로 참여'**
+  String get planJoin;
+
+  /// No description provided for @planHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'첫 줄은 제목, 그다음은 한 줄에 한 종목\n예: 스쿼트 4세트'**
+  String get planHint;
+
+  /// No description provided for @planDateNone.
+  ///
+  /// In ko, this message translates to:
+  /// **'날짜 미정'**
+  String get planDateNone;
+
+  /// No description provided for @planSetsCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}세트'**
+  String planSetsCount(int n);
+
+  /// No description provided for @planSave.
+  ///
+  /// In ko, this message translates to:
+  /// **'제안하기'**
+  String get planSave;
+
+  /// No description provided for @planStateLocal.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 기기에만 있는 초안 · 서버에 아직 올라가지 않았습니다'**
+  String get planStateLocal;
+
+  /// No description provided for @planStateDraft.
+  ///
+  /// In ko, this message translates to:
+  /// **'초안 · 아직 혼자입니다'**
+  String get planStateDraft;
+
+  /// No description provided for @planStateWaiting.
+  ///
+  /// In ko, this message translates to:
+  /// **'상대 확인 대기 · 버전 {v}'**
+  String planStateWaiting(int v);
+
+  /// No description provided for @planStateNeedsMe.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님이 고쳤습니다 · 버전 {v} 확인이 필요합니다'**
+  String planStateNeedsMe(String name, int v);
+
+  /// No description provided for @planStateAgreed.
+  ///
+  /// In ko, this message translates to:
+  /// **'합의 완료 · 버전 {v}'**
+  String planStateAgreed(int v);
+
+  /// No description provided for @planStateWithdrawn.
+  ///
+  /// In ko, this message translates to:
+  /// **'함께 계획이 끝났습니다 · 합의본과 내 목표는 남아 있습니다'**
+  String get planStateWithdrawn;
+
+  /// No description provided for @planAccept.
+  ///
+  /// In ko, this message translates to:
+  /// **'버전 {v} 수락'**
+  String planAccept(int v);
+
+  /// No description provided for @planChanged.
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막 합의본에서 바뀐 것'**
+  String get planChanged;
+
+  /// No description provided for @planAdded.
+  ///
+  /// In ko, this message translates to:
+  /// **'추가: {x}'**
+  String planAdded(String x);
+
+  /// No description provided for @planRemoved.
+  ///
+  /// In ko, this message translates to:
+  /// **'빠짐: {x}'**
+  String planRemoved(String x);
+
+  /// No description provided for @planSetsChanged.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트 수 변경: {x}'**
+  String planSetsChanged(String x);
+
+  /// No description provided for @planReordered.
+  ///
+  /// In ko, this message translates to:
+  /// **'순서가 바뀌었습니다'**
+  String get planReordered;
+
+  /// No description provided for @planDateChanged.
+  ///
+  /// In ko, this message translates to:
+  /// **'예정 날짜가 바뀌었습니다'**
+  String get planDateChanged;
+
+  /// No description provided for @planTitleChanged.
+  ///
+  /// In ko, this message translates to:
+  /// **'제목이 바뀌었습니다'**
+  String get planTitleChanged;
+
+  /// No description provided for @planLastAgreed.
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막 합의본 · 버전 {v}'**
+  String planLastAgreed(int v);
+
+  /// No description provided for @planConflict.
+  ///
+  /// In ko, this message translates to:
+  /// **'상대가 먼저 고쳤습니다. 내 초안은 그대로 있습니다.'**
+  String get planConflict;
+
+  /// No description provided for @planLatest.
+  ///
+  /// In ko, this message translates to:
+  /// **'상대가 고친 최신 계획 · 버전 {v}'**
+  String planLatest(int v);
+
+  /// No description provided for @planKeepMine.
+  ///
+  /// In ko, this message translates to:
+  /// **'내 초안으로 다시 제안'**
+  String get planKeepMine;
+
+  /// No description provided for @planTakeLatest.
+  ///
+  /// In ko, this message translates to:
+  /// **'최신 계획으로 바꾸기'**
+  String get planTakeLatest;
+
+  /// No description provided for @planMyTarget.
+  ///
+  /// In ko, this message translates to:
+  /// **'내 목표'**
+  String get planMyTarget;
+
+  /// No description provided for @planPartnerTarget.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name}: {t}'**
+  String planPartnerTarget(String name, String t);
+
+  /// No description provided for @planTargetHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'예: 100 5 또는 100kg 5회 x3 메모'**
+  String get planTargetHint;
+
+  /// No description provided for @planInvite.
+  ///
+  /// In ko, this message translates to:
+  /// **'초대 코드 만들기'**
+  String get planInvite;
+
+  /// No description provided for @planStart.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 루틴으로 시작'**
+  String get planStart;
+
+  /// No description provided for @planStartSolo.
+  ///
+  /// In ko, this message translates to:
+  /// **'본인용 사본으로 시작'**
+  String get planStartSolo;
+
+  /// No description provided for @planStartSoloNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 합의 전입니다. 지금 시작하면 공동 합의본이 아니라 본인용 사본으로 시작합니다.'**
+  String get planStartSoloNote;
+
+  /// No description provided for @planOpenWorkout.
+  ///
+  /// In ko, this message translates to:
+  /// **'시작한 운동 열기'**
+  String get planOpenWorkout;
+
+  /// No description provided for @planCopyNext.
+  ///
+  /// In ko, this message translates to:
+  /// **'다음 운동으로 복사'**
+  String get planCopyNext;
+
+  /// No description provided for @planWithdraw.
+  ///
+  /// In ko, this message translates to:
+  /// **'함께 계획 그만두기'**
+  String get planWithdraw;
+
+  /// No description provided for @planCompare.
+  ///
+  /// In ko, this message translates to:
+  /// **'계획과 실제'**
+  String get planCompare;
+
+  /// No description provided for @planDoneSets.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} · 계획 {planned}세트 · 수행 {done}세트'**
+  String planDoneSets(String name, int planned, int done);
+
+  /// No description provided for @planAddedActual.
+  ///
+  /// In ko, this message translates to:
+  /// **'계획에 없던 운동: {x}'**
+  String planAddedActual(String x);
+
+  /// No description provided for @planSkipped.
+  ///
+  /// In ko, this message translates to:
+  /// **'하지 않은 운동: {x}'**
+  String planSkipped(String x);
+
+  /// No description provided for @planFromRecord.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 기록으로 다음 운동 함께 계획'**
+  String get planFromRecord;
+
+  /// No description provided for @planStartedFrom.
+  ///
+  /// In ko, this message translates to:
+  /// **'공동 루틴 합의본(버전 {v})에서 시작했습니다'**
+  String planStartedFrom(int v);
+
+  /// No description provided for @planStartedSolo.
+  ///
+  /// In ko, this message translates to:
+  /// **'본인용 사본(버전 {v}, 합의 전)에서 시작했습니다'**
+  String planStartedSolo(int v);
+
+  /// No description provided for @planShareLink.
+  ///
+  /// In ko, this message translates to:
+  /// **'초대 링크 보내기'**
+  String get planShareLink;
+
+  /// No description provided for @planShareText.
+  ///
+  /// In ko, this message translates to:
+  /// **'setpad에서 운동 계획을 같이 짜요: {url}'**
+  String planShareText(String url);
+
+  /// No description provided for @planLinkCopied.
+  ///
+  /// In ko, this message translates to:
+  /// **'링크를 복사했습니다. 하루 동안 한 번 쓸 수 있습니다.'**
+  String get planLinkCopied;
+
+  /// No description provided for @planLinkJoining.
+  ///
+  /// In ko, this message translates to:
+  /// **'초대받은 계획에 참여하는 중…'**
+  String get planLinkJoining;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

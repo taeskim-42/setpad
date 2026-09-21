@@ -127,7 +127,9 @@ void main() {
     await tester.tap(find.text('완료'));
     await tester.pumpAndSettle();
     expect(c.blocks.single.setup!.weight, 82.125);
-    expect(c.blocks.single.name, '벤치프레스');
+    // 해석기는 '벤치프레스' 라고 답했지만 사람이 친 것은 '벤치' 다. 약어를 풀어
+    // 저장 이름을 바꾸지 않는다 — 바꾸려면 후보를 직접 누른다.
+    expect(c.blocks.single.name, '벤치');
     expect(c.blocks.single.sets, isEmpty);
   });
 
@@ -224,11 +226,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(c.totalSets, 0);
     expect(find.text('80kg · 0/100회'), findsOneWidget);
-    // 친 문장이 제목으로 남는다. 다만 이 칸이 가리키는 운동은 벤치프레스이고,
-    // 사전에 익히는 것도 그 이름이다 — 문장이 다음 후보로 뜨면 안 된다.
+    // 친 문장이 제목으로 남는다. 이 칸이 가리키는 운동은 **친 이름**('벤치')
+    // 이고 사전에 익히는 것도 그 이름이다 — 문장이 다음 후보로 뜨면 안 되고,
+    // 해석기가 고른 '벤치프레스' 로 기록이 합쳐져도 안 된다.
     expect(c.blocks.single.name, example);
-    expect(c.blocks.single.exercise, '벤치프레스');
-    expect(c.recentExercises.first, '벤치프레스');
+    expect(c.blocks.single.exercise, '벤치');
+    expect(c.recentExercises.first, '벤치');
     expect(find.text(example), findsOneWidget);
     for (final digit in ['2', '0']) {
       await tester.tap(

@@ -88,13 +88,35 @@ String searchKey(String text) =>
 
 /// Route quantitative requests to the model; never turn a name into a workout plan.
 /// This only selects the input path. The model interprets the requested parameters.
+///
+/// A lone bare number is part of the name ("민수식 로우 2"), not a quantity —
+/// only two in a row ("벤치 80 10") read as weight and reps.
 bool hasSetupIntent(String text) => RegExp(
-  r'(?:^|\s)\d+(?:\.\d+)?(?:\s|$)|\d+(?:\.\d+)?\s*(?:kg|lb|회|개|세트|reps?|sets?)|'
+  r'(?:^|\s)\d+(?:\.\d+)?\s+\d+(?:\.\d+)?(?:\s|$)|\d+(?:\.\d+)?\s*(?:kg|lb|회|개|세트|reps?|sets?)|'
   r'채우|총\s|키로|킬로|파운드|(?:백|천|십|한|두|세|네|다섯|열|스무)\s*(?:개|회|세트)|'
   r'\b(?:kg|lb|reps?|sets?|total|reach|hundred|fifty|twenty|ten)\b|'
   r'公斤|千克|磅|总共|總共|回|キロ|セット|repeticiones|series|lần|hiệp|ครั้ง|เซ็ต',
   caseSensitive: false,
 ).hasMatch(text);
+
+/// 모델이 낸 이름을 **친 글**에 맞춘다.
+///
+/// 친 글 안에 그대로 있으면 그 이름이다. 없으면 모델이 사전 이름으로 바꾼
+/// 것이므로 친 글에서 이름을 되찾는다 — 첫 수치 앞까지, 수치를 글로 썼으면
+/// 모델 이름과 겹치는 앞 낱말들. 그래도 없으면 null: 가를 수 없으니 부르는
+/// 쪽이 원문을 그대로 두고 사람이 고치게 한다.
+String? typedName(String text, String proposed) {
+  final want = searchKey(proposed);
+  if (want.isNotEmpty && searchKey(text).contains(want)) return proposed.trim();
+  final words = text.trim().split(RegExp(r'\s+'));
+  final at = words.indexWhere((w) => RegExp(r'^\d').hasMatch(w));
+  final head = words.take(at < 0 ? 0 : at).join(' ');
+  if (head.isNotEmpty) return head;
+  final lead = words
+      .takeWhile((w) => searchKey(w).isNotEmpty && want.contains(searchKey(w)))
+      .join(' ');
+  return lead.isEmpty ? null : lead;
+}
 
 /// Retrieve a bounded name reference for local generation, including personal names.
 List<String> retrieveExercises(

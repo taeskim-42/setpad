@@ -259,68 +259,8 @@ void _shared() {
         client: MockClient(reply),
       );
 
-  test('코드를 띄우고, 받은 코드로 짝이 된다', () async {
-    final sent = <Map<String, Object?>>[];
-    final link = linkThat((request) async {
-      sent.add(jsonDecode(request.body) as Map<String, Object?>);
-      return http.Response(
-        jsonEncode(
-          sent.length == 1
-              ? {'code': 'AB23CD'}
-              : {'workoutId': 'host-1', 'partner': '민수'},
-        ),
-        200,
-        headers: {'content-type': 'application/json; charset=utf-8'},
-      );
-    });
-    expect(await link.invite('mine-1'), 'AB23CD');
-    final joined = await link.join('AB23CD', myWorkoutId: 'mine-1');
-    expect(joined?.workoutId, 'host-1');
-    expect(joined?.partner, '민수');
-    // 내 운동도 같이 보내야 서로의 짝이 된다 — 봐주기는 한쪽만 하는 일이 아니다.
-    expect(sent.last['workoutId'], 'mine-1');
-    expect(sent.last['code'], 'AB23CD');
-  });
-
-  test('틀린 코드는 짝이 되지 않는다', () async {
-    final link = linkThat((_) async => http.Response('{}', 404));
-    expect(await link.join('XXXXXX'), isNull);
-  });
-
-  test('짝이 적은 것을 읽고, 내가 적은 것을 올린다', () async {
-    Map<String, Object?>? put;
-    final link = linkThat((request) async {
-      if (request.method == 'PUT') {
-        put = jsonDecode(request.body) as Map<String, Object?>;
-        return http.Response('{"ok":true}', 200);
-      }
-      return http.Response(
-        jsonEncode({
-          'result': [
-            {
-              'name': '스쿼트',
-              'sets': [
-                {'kg': 100, 'reps': 5},
-              ],
-            },
-          ],
-        }),
-        200,
-        headers: {'content-type': 'application/json; charset=utf-8'},
-      );
-    });
-    final blocks = await link.readShared('w1');
-    expect(blocks?.single.name, '스쿼트');
-    expect(blocks?.single.sets.single.value, 100);
-
-    expect(
-      await link.writeShared('w1', [
-        ExerciseBlock('벤치프레스', [LoggedSet(value: 60, reps: 10)]),
-      ]),
-      isTrue,
-    );
-    expect((put!['result'] as List).single['name'], '벤치프레스');
-  });
+  // 같이 하기는 test/partner_test.dart 로 옮겼다. 예전 테스트는 서버가 한 번도
+  // 돌려준 적 없는 응답을 흉내 내고 있었다(기기 id 를 서버 운동 id 자리에 보냈다).
 
   test('예약과 빈 자리를 읽는다', () async {
     final link = linkThat(

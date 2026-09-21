@@ -113,7 +113,12 @@ class LTh extends L {
 
   @override
   String kcal(int n) {
-    return '$n kcal';
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '$nString kcal';
   }
 
   @override
@@ -506,14 +511,6 @@ class LTh extends L {
   String get partnerEnter => 'ใส่รหัส';
 
   @override
-  String partnerJoined(String name) {
-    return 'บันทึกร่วมกับ $name';
-  }
-
-  @override
-  String get partnerFailed => 'รหัสไม่ถูกต้องหรือหมดอายุ';
-
-  @override
   String bookingNext(String trainer, String when) {
     return '$trainer · $when';
   }
@@ -716,12 +713,12 @@ class LTh extends L {
 
   @override
   String mealIntake(int n) {
-    return 'รับประทาน ≈ $n kcal';
-  }
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
 
-  @override
-  String mealNet(int n) {
-    return 'เผาผลาญ − รับประทาน $n kcal';
+    return 'รับประทาน ≈ $nString kcal';
   }
 
   @override
@@ -731,15 +728,494 @@ class LTh extends L {
   String get mealEstimateNote => 'ประมาณจากรูปถ่าย';
 
   @override
-  String get mealServingsAsk => 'กินไปกี่หน่วยบริโภค?';
-
-  @override
   String mealServingsOption(String n) {
     return '$n หน่วยบริโภค';
   }
 
   @override
-  String mealWholePackage(String n) {
-    return 'ทั้งห่อ ($n หน่วยบริโภค)';
+  String get fitAll => 'ดูทั้งหมด';
+
+  @override
+  String get sameDayOther => 'บันทึกอื่นในวันเดียวกัน';
+
+  @override
+  String get mealText => 'จดมื้ออาหาร';
+
+  @override
+  String get mealTextHint => 'กินอะไรไปบ้าง เช่น กล้วย 2 ลูก, นม 200ml';
+
+  @override
+  String kcalApprox(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '≈ $nString kcal';
   }
+
+  @override
+  String get mealKcalUnknown => 'ไม่ทราบแคลอรี';
+
+  @override
+  String mealIntakePartial(int n, int m) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'รับประทาน $nString kcal + ไม่ทราบแคลอรี $m รายการ';
+  }
+
+  @override
+  String get mealAmountAsk => 'กินไปเท่าไร';
+
+  @override
+  String get mealBasis => 'เกณฑ์';
+
+  @override
+  String get mealEaten => 'ปริมาณที่กิน';
+
+  @override
+  String get mealUnitServing => 'หน่วยบริโภค';
+
+  @override
+  String get mealUnitPackage => 'ทั้งห่อ';
+
+  @override
+  String get mealUnitPhoto => 'อาหารในรูป';
+
+  @override
+  String get mealWhole => 'ทั้งหมด';
+
+  @override
+  String get mealHalf => 'ครึ่งหนึ่ง';
+
+  @override
+  String get mealPhotoWholeNote =>
+      'นี่คือค่าประมาณของอาหารทั้งหมดในรูป เลือกปริมาณที่คุณกิน';
+
+  @override
+  String get mealAmountInvalid => 'กรุณาใส่ตัวเลขตั้งแต่ 0 ขึ้นไป';
+
+  @override
+  String dayEnergyFull(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return 'ตามที่บันทึก: กิน $intakeString − ออกกำลัง $burnedString = $diffString kcal';
+  }
+
+  @override
+  String dayEnergyApprox(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return 'ตามที่บันทึก: กิน ≈ $intakeString − ออกกำลัง $burnedString ≈ $diffString kcal';
+  }
+
+  @override
+  String get dayBurnedMissing =>
+      'ยังไม่ได้วัดพลังงานที่ใช้ออกกำลัง · คำนวณส่วนต่างไม่ได้';
+
+  @override
+  String dayBurnedOnly(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'ออกกำลัง $nString kcal · ยังไม่ได้บันทึกอาหาร';
+  }
+
+  @override
+  String get energyExplain =>
+      'ปริมาณที่กินตามบันทึกลบพลังงานที่ใช้ออกกำลัง ไม่รวมพลังงานขณะพักและในชีวิตประจำวัน';
+
+  @override
+  String weightLabel(String w) {
+    return 'น้ำหนัก $w';
+  }
+
+  @override
+  String get weightAdd => 'บันทึกน้ำหนัก';
+
+  @override
+  String get weightFromHealth => 'นำเข้าจากแอปสุขภาพ';
+
+  @override
+  String get weightInvalid => 'กรุณาตรวจสอบน้ำหนัก';
+
+  @override
+  String get weightRule =>
+      'ถ้าชั่งหลายครั้งในวันเดียว จะใช้ค่าครั้งแรกของวัน วันที่ไม่ได้ชั่งจะเว้นว่าง';
+
+  @override
+  String get trendsTitle => 'บันทึกกับร่างกาย';
+
+  @override
+  String trendDays(int n) {
+    return '$n วัน';
+  }
+
+  @override
+  String trendIntakeAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'กินเฉลี่ยตามบันทึก $nString kcal · $d วัน';
+  }
+
+  @override
+  String trendBurnedAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'พลังงานออกกำลังเฉลี่ย $nString kcal · $d วัน';
+  }
+
+  @override
+  String trendDiffAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'กิน − ออกกำลัง เฉลี่ย $nString kcal · $d วันที่มีทั้งสองค่า';
+  }
+
+  @override
+  String trendIncomplete(int d) {
+    return 'มี $d วันที่ไม่ทราบแคลอรี · ไม่นำมาคิดค่าเฉลี่ย';
+  }
+
+  @override
+  String trendWeightChange(String a, String aw, String b, String bw) {
+    return 'น้ำหนักที่วัดได้เปลี่ยนจาก $aw ($a) เป็น $bw ($b)';
+  }
+
+  @override
+  String get trendWeightOne =>
+      'มีการชั่งน้ำหนักเพียงวันเดียว ต้องมีค่าจากวันอื่นจึงจะเห็นการเปลี่ยนแปลง';
+
+  @override
+  String get trendWeightNone => 'ไม่มีการชั่งน้ำหนักในช่วงนี้';
+
+  @override
+  String get trendNoData => 'ไม่มีบันทึกในช่วงนี้';
+
+  @override
+  String get intakeLabel => 'กิน';
+
+  @override
+  String get burnedLabel => 'ออกกำลัง';
+
+  @override
+  String get diffLabel => 'กิน − ออกกำลัง';
+
+  @override
+  String get weightMeasured => 'น้ำหนัก (ค่าที่วัด)';
+
+  @override
+  String get sourceHealth => 'แอปสุขภาพ';
+
+  @override
+  String get sourceManual => 'กรอกเอง';
+
+  @override
+  String get burnedSource => 'พลังงานที่นาฬิกาวัดได้ระหว่างออกกำลัง';
+
+  @override
+  String get partnerSignIn => 'ต้องเข้าสู่ระบบเพื่อออกกำลังด้วยกัน';
+
+  @override
+  String get partnerSignInAction => 'เข้าสู่ระบบ';
+
+  @override
+  String get partnerMakeCode => 'สร้างรหัส';
+
+  @override
+  String get partnerCopy => 'คัดลอก';
+
+  @override
+  String partnerExpiresIn(String t) {
+    return 'หมดอายุใน $t';
+  }
+
+  @override
+  String get partnerExpired => 'รหัสหมดอายุแล้ว';
+
+  @override
+  String get partnerNewCode => 'รหัสใหม่';
+
+  @override
+  String get partnerStopWaiting => 'เลิก';
+
+  @override
+  String partnerWith(String name) {
+    return 'กำลังออกกำลังกับ $name';
+  }
+
+  @override
+  String get partnerReconnecting =>
+      'กำลังเชื่อมต่อใหม่ · บันทึกของคุณยังถูกเก็บต่อ';
+
+  @override
+  String partnerTheirRecord(String name) {
+    return 'บันทึกของ $name';
+  }
+
+  @override
+  String get partnerNoRecordYet => 'ยังไม่มีบันทึก';
+
+  @override
+  String get partnerLoading => 'กำลังโหลด…';
+
+  @override
+  String get partnerEnd => 'เลิกออกกำลังด้วยกัน';
+
+  @override
+  String get partnerEndedByMe =>
+      'คุณเลิกออกกำลังด้วยกันแล้ว บันทึกของคุณยังอยู่';
+
+  @override
+  String partnerEndedByThem(String name) {
+    return '$name เลิกออกกำลังด้วยกันแล้ว บันทึกของคุณยังอยู่';
+  }
+
+  @override
+  String get partnerErrFormat => 'รหัสมี 6 ตัวอักษร กรุณาตรวจอีกครั้ง';
+
+  @override
+  String get partnerErrInvalid => 'ไม่พบรหัสนี้ อาจถูกใช้ไปแล้วหรือพิมพ์ผิด';
+
+  @override
+  String get partnerErrExpired => 'รหัสหมดอายุแล้ว ขอรหัสใหม่จากอีกฝ่าย';
+
+  @override
+  String get partnerErrEnded => 'คำเชิญนี้สิ้นสุดแล้ว';
+
+  @override
+  String get partnerErrOwn => 'นี่คือรหัสของคุณเอง ให้กรอกที่เครื่องของอีกฝ่าย';
+
+  @override
+  String get partnerErrTries => 'ลองหลายครั้งเกินไป โปรดลองใหม่ภายหลัง';
+
+  @override
+  String get partnerErrNetwork =>
+      'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบเครือข่ายแล้วลองใหม่';
+
+  @override
+  String get partnerErrServer => 'เซิร์ฟเวอร์มีปัญหา โปรดลองใหม่อีกครั้ง';
+
+  @override
+  String get partnerRetry => 'ลองใหม่';
+
+  @override
+  String get partnerReadOnly => 'อ่านอย่างเดียว';
+
+  @override
+  String get partnerConflict =>
+      'อุปกรณ์อื่นของคุณแชร์บันทึกที่ใหม่กว่า บันทึกในเครื่องนี้ยังอยู่ หยุดแค่การแชร์';
+
+  @override
+  String get partnerShareThisDevice => 'แชร์บันทึกของเครื่องนี้';
+
+  @override
+  String get plansTitle => 'แผนร่วม';
+
+  @override
+  String get planNew => 'แผนร่วมใหม่';
+
+  @override
+  String get planJoin => 'เข้าร่วมด้วยรหัส';
+
+  @override
+  String get planHint =>
+      'บรรทัดแรกคือชื่อ จากนั้นบรรทัดละหนึ่งท่า\nเช่น สควอต 4 เซ็ต';
+
+  @override
+  String get planDateNone => 'ยังไม่กำหนดวัน';
+
+  @override
+  String planSetsCount(int n) {
+    return '$n เซ็ต';
+  }
+
+  @override
+  String get planSave => 'เสนอ';
+
+  @override
+  String get planStateLocal => 'ร่างเฉพาะในเครื่องนี้ · ยังไม่ขึ้นเซิร์ฟเวอร์';
+
+  @override
+  String get planStateDraft => 'ร่าง · ยังไม่มีคู่';
+
+  @override
+  String planStateWaiting(int v) {
+    return 'รอคู่ยืนยัน · เวอร์ชัน $v';
+  }
+
+  @override
+  String planStateNeedsMe(String name, int v) {
+    return '$name แก้ไขแล้ว · ต้องยืนยันเวอร์ชัน $v';
+  }
+
+  @override
+  String planStateAgreed(int v) {
+    return 'ตกลงแล้ว · เวอร์ชัน $v';
+  }
+
+  @override
+  String get planStateWithdrawn =>
+      'การวางแผนร่วมสิ้นสุดแล้ว · แผนที่ตกลงและเป้าหมายของคุณยังอยู่';
+
+  @override
+  String planAccept(int v) {
+    return 'ยอมรับเวอร์ชัน $v';
+  }
+
+  @override
+  String get planChanged => 'สิ่งที่เปลี่ยนจากแผนที่ตกลงล่าสุด';
+
+  @override
+  String planAdded(String x) {
+    return 'เพิ่ม: $x';
+  }
+
+  @override
+  String planRemoved(String x) {
+    return 'เอาออก: $x';
+  }
+
+  @override
+  String planSetsChanged(String x) {
+    return 'เปลี่ยนจำนวนเซ็ต: $x';
+  }
+
+  @override
+  String get planReordered => 'ลำดับเปลี่ยน';
+
+  @override
+  String get planDateChanged => 'วันที่เปลี่ยน';
+
+  @override
+  String get planTitleChanged => 'ชื่อเปลี่ยน';
+
+  @override
+  String planLastAgreed(int v) {
+    return 'แผนที่ตกลงล่าสุด · เวอร์ชัน $v';
+  }
+
+  @override
+  String get planConflict => 'คู่ของคุณแก้ไขก่อน ร่างของคุณยังอยู่';
+
+  @override
+  String planLatest(int v) {
+    return 'แผนล่าสุดของคู่ · เวอร์ชัน $v';
+  }
+
+  @override
+  String get planKeepMine => 'เสนอร่างของฉันอีกครั้ง';
+
+  @override
+  String get planTakeLatest => 'ใช้แผนล่าสุด';
+
+  @override
+  String get planMyTarget => 'เป้าหมายของฉัน';
+
+  @override
+  String planPartnerTarget(String name, String t) {
+    return '$name: $t';
+  }
+
+  @override
+  String get planTargetHint => 'เช่น 100 5 หรือ 100kg 5 ครั้ง x3 โน้ต';
+
+  @override
+  String get planInvite => 'สร้างรหัสเชิญ';
+
+  @override
+  String get planStart => 'เริ่มด้วยแผนนี้';
+
+  @override
+  String get planStartSolo => 'เริ่มด้วยสำเนาของฉัน';
+
+  @override
+  String get planStartSoloNote =>
+      'ยังไม่ได้ตกลงกัน หากเริ่มตอนนี้จะใช้สำเนาของคุณเอง ไม่ใช่แผนที่ตกลงแล้ว';
+
+  @override
+  String get planOpenWorkout => 'เปิดการออกกำลังที่เริ่มแล้ว';
+
+  @override
+  String get planCopyNext => 'คัดลอกไปครั้งถัดไป';
+
+  @override
+  String get planWithdraw => 'ออกจากแผนร่วมนี้';
+
+  @override
+  String get planCompare => 'แผนกับที่ทำจริง';
+
+  @override
+  String planDoneSets(String name, int planned, int done) {
+    return '$name · แผน $planned · ทำ $done';
+  }
+
+  @override
+  String planAddedActual(String x) {
+    return 'ไม่ได้อยู่ในแผน: $x';
+  }
+
+  @override
+  String planSkipped(String x) {
+    return 'ไม่ได้ทำ: $x';
+  }
+
+  @override
+  String get planFromRecord => 'วางแผนครั้งถัดไปร่วมกันจากบันทึกนี้';
+
+  @override
+  String planStartedFrom(int v) {
+    return 'เริ่มจากแผนร่วมที่ตกลงแล้ว (เวอร์ชัน $v)';
+  }
+
+  @override
+  String planStartedSolo(int v) {
+    return 'เริ่มจากสำเนาของคุณ (เวอร์ชัน $v ยังไม่ตกลง)';
+  }
+
+  @override
+  String get planShareLink => 'ส่งลิงก์เชิญ';
+
+  @override
+  String planShareText(String url) {
+    return 'มาวางแผนออกกำลังด้วยกันใน setpad: $url';
+  }
+
+  @override
+  String get planLinkCopied => 'คัดลอกลิงก์แล้ว ใช้ได้หนึ่งครั้งภายในหนึ่งวัน';
+
+  @override
+  String get planLinkJoining => 'กำลังเข้าร่วมแผนที่ได้รับเชิญ…';
 }

@@ -6,36 +6,148 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'daily.dart';
 import 'editor.dart';
+import 'meal.dart';
+import 'partner.dart';
 import 'record_ai.dart';
 import 'units.dart';
 
-/// 사진으로 추정한 한 끼. 숫자는 어림이고, 화면도 그렇게 말한다.
+/// 한 끼. 사진으로 어림했든, 성분표로 계산했든, 글로 적었든 같은 모양이다.
+///
+/// **사람이 적은 글이 원본이다.** 열량을 모르면 [kcal] 이 null 이다 — 0 이
+/// 아니다. 예전 기록(at·kcal·items 뿐)은 그대로 읽힌다.
 class MealEntry {
-  MealEntry({required this.at, required this.kcal, this.items = const []});
+  MealEntry({
+    required this.at,
+    required this.kcal,
+    this.items = const [],
+    this.text,
+    this.source,
+    this.basis,
+    this.eaten,
+    this.foods = const [],
+    String? id,
+    this.dirty = true,
+  }) : id = id ?? newMealId();
   final DateTime at;
-  final int kcal;
+
+  /// 이 기기가 지은 이름. 서버의 같은 줄을 가리키는 열쇠라서, 다시 보내도 한
+  /// 줄이고 고치기·지우기도 그 줄에 닿는다. 끼니를 고쳐 새로 만들 때는 **같은
+  /// id 를 물려준다.**
+  final String id;
+
+  /// 서버에 아직 안 올린 변경이 있는가. 예전 기록은 false 로 읽힌다 — 그때는
+  /// 올릴 길이 없었고, 이제 와서 한꺼번에 올리면 코치 목록에 옛 끼니가 쏟아진다.
+  bool dirty;
+
+  static final _random = Random();
+  static String newMealId() =>
+      'm${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}'
+      '${_random.nextInt(1 << 32).toRadixString(36)}';
+
+  /// 최종 열량. 모르면 null.
+  final int? kcal;
   final List<String> items;
 
+  /// 사람이 친 글 그대로. 글로 적은 끼니에만 있다.
+  final String? text;
+
+  /// [kcal] 이 어디서 왔나. 화면이 "약" 을 붙일지 정한다. 예전 기록은 null
+  /// 이고 어림으로 다룬다 — 그때는 사진 어림뿐이었다.
+  final String? source;
+  static const typed = 'typed', label = 'label', estimate = 'estimate';
+
+  /// 다시 계산할 근거와 실제 먹은 양. 둘이 있으면 양을 고쳐 열량을 다시 낸다.
+  /// [kcal] 은 이미 먹은 양이 반영된 값이므로 여기에 또 곱하지 않는다.
+  final MealBasis? basis;
+  final double? eaten;
+
+  /// 글에서 알아본 음식·양·단위.
+  final List<MealFood> foods;
+
+  bool get approximate => kcal != null && source != typed && source != label;
+
   Map<String, Object?> toJson() => {
+    'id': id,
+    if (dirty) 'dirty': true,
     'at': at.toIso8601String(),
     'kcal': kcal,
     'items': items,
+    'text': ?text,
+    'source': ?source,
+    'basis': ?basis?.toJson(),
+    'eaten': ?eaten,
+    if (foods.isNotEmpty) 'foods': [for (final f in foods) f.toJson()],
   };
 
   static MealEntry? tryFromJson(Object? j) {
     if (j is! Map) return null;
-    final at = j['at'], kcal = j['kcal'];
-    if (at is! String || kcal is! num) return null;
+    final at = j['at'], kcal = j['kcal'], text = j['text'];
+    if (at is! String) return null;
+    // 열량도 글도 없으면 끼니가 아니다 — 깨진 기록이다.
+    if (kcal is! num && text is! String) return null;
     final when = DateTime.tryParse(at);
     if (when == null) return null;
+    final eaten = j['eaten'], source = j['source'];
     return MealEntry(
       at: when,
-      kcal: kcal.toInt(),
+      kcal: kcal is num && kcal.isFinite && kcal >= 0 ? kcal.round() : null,
       items: (j['items'] as List?)?.whereType<String>().toList() ?? const [],
+      text: text is String ? text : null,
+      source: source is String ? source : null,
+      basis: MealBasis.tryFromJson(j['basis']),
+      eaten: eaten is num && eaten >= 0 ? eaten.toDouble() : null,
+      foods: [
+        for (final f in (j['foods'] as List? ?? const []))
+          ?MealFood.tryFromJson(f),
+      ],
+      id: j['id'] is String ? j['id'] as String : null,
+      dirty: j['dirty'] == true,
     );
   }
 }
+
+/// 운동 칸들의 저장 모양. 디스크와 파트너 공유가 같은 것을 쓴다 — 단위·사용자
+/// 운동명·메모·수행 상태가 어느 길로 가든 글자 하나 바뀌지 않는다.
+List<Map<String, Object?>> blocksToJson(List<ExerciseBlock> blocks) => [
+  for (final b in blocks)
+    {
+      'name': b.name,
+      if (b.setup != null) 'setup': b.setup!.toJson(),
+      'sets': [
+        for (final s in b.sets)
+          {
+            'value': s.value,
+            'unit': s.unit,
+            'reps': s.reps,
+            'notes': s.notes,
+            'done': s.done,
+          },
+      ],
+    },
+];
+
+List<ExerciseBlock> blocksFromJson(Object? blocks) => [
+  for (final b in blocks is List ? blocks : const [])
+    if (b is Map && b['name'] is String)
+      ExerciseBlock(b['name'] as String, [
+        for (final s in (b['sets'] as List? ?? const []))
+          if (s is Map)
+            LoggedSet(
+              // 'kg' 는 단위가 생기기 전에 저장된 기록이다. 그때는
+              // 무게가 늘 kg 였으므로 그대로 읽어 준다.
+              value: ((s['value'] ?? s['kg']) as num?)?.toDouble(),
+              unit: s['unit'] as String? ?? defaultUnit,
+              reps: (s['reps'] as num?)?.toInt(),
+              // 'note'(단수)는 메모가 하나뿐이던 시절의 저장분이다.
+              notes:
+                  (s['notes'] as List?)?.whereType<String>().toList() ??
+                  (s['note'] is String ? [s['note'] as String] : null),
+              done: s['done'] as bool? ?? true,
+            ),
+      ], WorkoutSetup.tryFromJson(b['setup'])),
+];
 
 /// 한 번의 운동 기록. 메모 앱의 메모 한 장에 해당한다.
 ///
@@ -71,12 +183,36 @@ class Note {
   /// 안 보낸 것은 다음에 앱을 켤 때 다시 보낸다.
   DateTime? sentAt;
 
-  /// 그날 사진으로 추정한 끼니들. 운동 칼로리와 견주어 보려고 둔다.
+  /// 이 운동이 시작된 공동 루틴과 그 버전. 계획은 출발점일 뿐이다 — 여기서 실제
+  /// 값을 고쳐도 계획은 바뀌지 않고, 계획이 나중에 바뀌어도 이 운동은 그대로다.
+  String? planId;
+  int? planVersion;
+
+  /// 둘이 합의한 버전으로 시작했는가. false 면 합의 전에 본인용 사본으로 시작했다.
+  bool planAgreed = false;
+
+  /// 같이 하기. 상대의 기록은 **여기에만** 있다 — [blocks] 에 섞이지 않으므로
+  /// 내 통계·하루 집계·업로드 어디에도 들어가지 않는다.
+  PartnerSession? partner;
+
+  /// 그날 끼니들. 운동 칼로리와 견주어 보려고 둔다.
   final List<MealEntry> meals = [];
 
-  /// 섭취 추정 합계. 끼니가 없으면 null — 0 과 "안 적었다" 는 다르다.
+  /// 지웠는데 서버에는 아직 남아 있을 끼니의 id. 지우기도 그물이 끊기면 밀린다.
+  final List<String> deletedMeals = [];
+
+  /// 끼니를 지운다. 서버에 올라갔을 수 있는 것이면 지울 것으로 적어 둔다.
+  void removeMeal(MealEntry meal) {
+    if (meals.remove(meal) && gymId != null) deletedMeals.add(meal.id);
+  }
+
+  /// **열량을 아는 끼니만의** 합계. 끼니가 없으면 null — 0 과 "안 적었다" 는
+  /// 다르다. [unknownMeals] 가 0 이 아니면 이 값은 하루 총합이 아니다.
   int? get intake =>
-      meals.isEmpty ? null : meals.fold<int>(0, (n, m) => n + m.kcal);
+      meals.isEmpty ? null : meals.fold<int>(0, (n, m) => n + (m.kcal ?? 0));
+
+  /// 열량을 모르는 끼니 수. 합계를 온전한 총합처럼 보이면 안 되는 이유다.
+  int get unknownMeals => meals.where((m) => m.kcal == null).length;
 
   /// 목록에 뜨는 제목 — 그날 한 운동 이름 전부.
   ///
@@ -121,23 +257,12 @@ class Note {
     if (routineId != null) 'routineId': routineId,
     if (sentAt != null) 'sentAt': sentAt!.toIso8601String(),
     if (meals.isNotEmpty) 'meals': [for (final m in meals) m.toJson()],
-    'blocks': [
-      for (final b in blocks)
-        {
-          'name': b.name,
-          if (b.setup != null) 'setup': b.setup!.toJson(),
-          'sets': [
-            for (final s in b.sets)
-              {
-                'value': s.value,
-                'unit': s.unit,
-                'reps': s.reps,
-                'notes': s.notes,
-                'done': s.done,
-              },
-          ],
-        },
-    ],
+    if (deletedMeals.isNotEmpty) 'deletedMeals': deletedMeals,
+    if (partner != null) 'partner': partner!.toJson(),
+    'planId': ?planId,
+    'planVersion': ?planVersion,
+    if (planAgreed) 'planAgreed': true,
+    'blocks': blocksToJson(blocks),
   };
 
   static Note fromJson(Map<String, dynamic> j) => _restore(
@@ -150,24 +275,7 @@ class Note {
       draft: EditorDraft.fromJson(j['draft']),
       gymId: j['gymId'] as String?,
       routineId: j['routineId'] as String?,
-      blocks: [
-        for (final b in (j['blocks'] as List? ?? const []))
-          ExerciseBlock(b['name'] as String, [
-            for (final s in (b['sets'] as List? ?? const []))
-              LoggedSet(
-                // 'kg' 는 단위가 생기기 전에 저장된 기록이다. 그때는
-                // 무게가 늘 kg 였으므로 그대로 읽어 준다.
-                value: ((s['value'] ?? s['kg']) as num?)?.toDouble(),
-                unit: s['unit'] as String? ?? defaultUnit,
-                reps: s['reps'] as int?,
-                // 'note'(단수)는 메모가 하나뿐이던 시절의 저장분이다.
-                notes:
-                    ((s['notes'] as List?)?.cast<String>()) ??
-                    (s['note'] == null ? null : [s['note'] as String]),
-                done: s['done'] as bool? ?? true,
-              ),
-          ], WorkoutSetup.tryFromJson(b['setup'])),
-      ],
+      blocks: blocksFromJson(j['blocks']),
     ),
   );
 
@@ -179,6 +287,14 @@ class Note {
       final meal = MealEntry.tryFromJson(m);
       if (meal != null) note.meals.add(meal);
     }
+    note.partner = PartnerSession.tryFromJson(j['partner']);
+    note
+      ..planId = j['planId'] as String?
+      ..planVersion = (j['planVersion'] as num?)?.toInt()
+      ..planAgreed = j['planAgreed'] == true;
+    note.deletedMeals.addAll(
+      (j['deletedMeals'] as List? ?? const []).whereType<String>(),
+    );
     return note;
   }
 }
@@ -215,6 +331,44 @@ class NotesStore extends ChangeNotifier {
 
   /// 최근에 고친 것이 위로. 메모 앱과 같은 순서다.
   List<Note> get notes => List.unmodifiable(_notes);
+
+  /// 실제로 잰 체중들, 시간순. 운동 문서에 묶이지 않는다 — 몸은 운동한 날에만
+  /// 재는 것이 아니다.
+  final List<WeightEntry> _weights = [];
+  List<WeightEntry> get weights => List.unmodifiable(_weights);
+
+  /// 체중을 더하거나(같은 id 면) 고친다. 건강 앱에서 같은 측정을 다시 가져와도
+  /// 하나로 남는다.
+  void saveWeight(WeightEntry entry) {
+    _weights
+      ..removeWhere((w) => w.id == entry.id)
+      ..add(entry)
+      ..sort((a, b) => a.at.compareTo(b.at));
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  void deleteWeight(WeightEntry entry) {
+    _weights.removeWhere((w) => w.id == entry.id);
+    // 건강 앱에서 온 것은 다시 가져오면 되살아난다. 지웠다는 것을 기억한다.
+    if (entry.source == WeightEntry.health) _deletedWeights.add(entry.id);
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  final Set<String> _deletedWeights = {};
+
+  /// 건강 앱에서 읽은 것을 들인다. 이미 있거나 사람이 지운 것은 건너뛴다.
+  void importWeights(Iterable<WeightEntry> found) {
+    final known = {..._weights.map((w) => w.id), ..._deletedWeights};
+    final fresh = found.where((w) => known.add(w.id)).toList();
+    if (fresh.isEmpty) return;
+    _weights
+      ..addAll(fresh)
+      ..sort((a, b) => a.at.compareTo(b.at));
+    notifyListeners();
+    _scheduleSave();
+  }
 
   Future<File> _file() async {
     final dir = _override ?? await getApplicationDocumentsDirectory();
@@ -254,7 +408,28 @@ class NotesStore extends ChangeNotifier {
             .replaceAll('=', '');
         _scheduleSave();
       }
-      if (!f.existsSync()) return;
+      try {
+        final body = File('${f.parent.path}/body.json');
+        if (body.existsSync()) {
+          final data = jsonDecode(await body.readAsString()) as Map;
+          _weights
+            ..clear()
+            ..addAll([
+              for (final w in (data['weights'] as List? ?? const []))
+                ?WeightEntry.tryFromJson(w),
+            ])
+            ..sort((a, b) => a.at.compareTo(b.at));
+          _deletedWeights
+            ..clear()
+            ..addAll((data['deleted'] as List? ?? []).whereType<String>());
+        }
+      } catch (e) {
+        debugPrint('Could not load body records: $e');
+      }
+      if (!f.existsSync()) {
+        notifyListeners();
+        return;
+      }
       final raw = jsonDecode(await f.readAsString()) as List;
       _notes
         ..clear()
@@ -293,10 +468,15 @@ class NotesStore extends ChangeNotifier {
       'exercises': _exerciseHistory,
       'forgottenExercises': _forgottenExercises.toList(),
     });
+    final body = jsonEncode({
+      'weights': [for (final w in _weights) w.toJson()],
+      'deleted': _deletedWeights.toList(),
+    });
     return _writes = _writes.then((_) async {
       try {
         final f = await _file();
         await _atomicWrite(f, notes);
+        await _atomicWrite(File('${f.parent.path}/body.json'), body);
         await _atomicWrite(
           File('${f.parent.path}/preferences.json'),
           preferences,
@@ -352,10 +532,17 @@ class NotesStore extends ChangeNotifier {
 
   void _sort() => _notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
-  Note create({List<ExerciseBlock>? blocks, String? gymId, String? routineId}) {
+  Note create({
+    List<ExerciseBlock>? blocks,
+    String? gymId,
+    String? routineId,
+    String? id,
+  }) {
     final now = DateTime.now();
     final note = Note(
-      id: now.microsecondsSinceEpoch.toString(),
+      // 계획에서 시작한 운동은 서버가 기억하는 id 를 받는다 — 시작을 다시 눌러도
+      // 같은 문서가 열리게.
+      id: id ?? now.microsecondsSinceEpoch.toString(),
       createdAt: now,
       updatedAt: now,
       blocks: blocks,

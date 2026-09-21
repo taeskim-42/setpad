@@ -113,7 +113,12 @@ class LEs extends L {
 
   @override
   String kcal(int n) {
-    return '$n kcal';
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '$nString kcal';
   }
 
   @override
@@ -509,14 +514,6 @@ class LEs extends L {
   String get partnerEnter => 'Introducir código';
 
   @override
-  String partnerJoined(String name) {
-    return 'Registrando con $name';
-  }
-
-  @override
-  String get partnerFailed => 'Ese código es incorrecto o caducó.';
-
-  @override
   String bookingNext(String trainer, String when) {
     return '$trainer · $when';
   }
@@ -726,12 +723,12 @@ class LEs extends L {
 
   @override
   String mealIntake(int n) {
-    return 'Ingesta ≈ $n kcal';
-  }
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
 
-  @override
-  String mealNet(int n) {
-    return 'Quemadas − ingesta $n kcal';
+    return 'Ingesta ≈ $nString kcal';
   }
 
   @override
@@ -742,15 +739,501 @@ class LEs extends L {
   String get mealEstimateNote => 'Estimado a partir de la foto';
 
   @override
-  String get mealServingsAsk => '¿Cuántas porciones?';
-
-  @override
   String mealServingsOption(String n) {
     return '$n porción(es)';
   }
 
   @override
-  String mealWholePackage(String n) {
-    return 'Paquete entero ($n porciones)';
+  String get fitAll => 'Ver todo';
+
+  @override
+  String get sameDayOther => 'Otros registros de este día';
+
+  @override
+  String get mealText => 'Escribir comida';
+
+  @override
+  String get mealTextHint => '¿Qué comiste? p. ej. 2 plátanos, leche 200ml';
+
+  @override
+  String kcalApprox(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '≈ $nString kcal';
   }
+
+  @override
+  String get mealKcalUnknown => 'kcal desconocidas';
+
+  @override
+  String mealIntakePartial(int n, int m) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Ingesta $nString kcal + $m sin kcal conocidas';
+  }
+
+  @override
+  String get mealAmountAsk => '¿Cuánto comiste?';
+
+  @override
+  String get mealBasis => 'Base';
+
+  @override
+  String get mealEaten => 'Cantidad comida';
+
+  @override
+  String get mealUnitServing => 'porciones';
+
+  @override
+  String get mealUnitPackage => 'paquete entero';
+
+  @override
+  String get mealUnitPhoto => 'comida de la foto';
+
+  @override
+  String get mealWhole => 'Todo';
+
+  @override
+  String get mealHalf => 'La mitad';
+
+  @override
+  String get mealPhotoWholeNote =>
+      'Es una estimación de todo lo que se ve en la foto. Elige cuánto comiste.';
+
+  @override
+  String get mealAmountInvalid => 'Introduce un número igual o mayor que 0.';
+
+  @override
+  String dayEnergyFull(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return 'Registrado: ingesta $intakeString − ejercicio $burnedString = $diffString kcal';
+  }
+
+  @override
+  String dayEnergyApprox(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return 'Registrado: ingesta ≈ $intakeString − ejercicio $burnedString ≈ $diffString kcal';
+  }
+
+  @override
+  String get dayBurnedMissing =>
+      'Energía del ejercicio sin medir · sin diferencia';
+
+  @override
+  String dayBurnedOnly(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Ejercicio $nString kcal · sin comidas registradas';
+  }
+
+  @override
+  String get energyExplain =>
+      'Ingesta registrada menos la energía del ejercicio. No incluye la energía en reposo ni la de la vida diaria.';
+
+  @override
+  String weightLabel(String w) {
+    return 'Peso $w';
+  }
+
+  @override
+  String get weightAdd => 'Registrar peso';
+
+  @override
+  String get weightFromHealth => 'Importar de Salud';
+
+  @override
+  String get weightInvalid => 'Revisa el peso.';
+
+  @override
+  String get weightRule =>
+      'Si te pesas varias veces al día se usa la primera medición. Los días sin medición quedan vacíos.';
+
+  @override
+  String get trendsTitle => 'Registros y cuerpo';
+
+  @override
+  String trendDays(int n) {
+    return '$n d';
+  }
+
+  @override
+  String trendIntakeAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Ingesta media registrada $nString kcal · $d días';
+  }
+
+  @override
+  String trendBurnedAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Energía media de ejercicio $nString kcal · $d días';
+  }
+
+  @override
+  String trendDiffAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Media ingesta − ejercicio $nString kcal · $d días con ambos';
+  }
+
+  @override
+  String trendIncomplete(int d) {
+    return '$d días con kcal desconocidas · fuera de las medias';
+  }
+
+  @override
+  String trendWeightChange(String a, String aw, String b, String bw) {
+    return 'El peso medido pasó de $aw ($a) a $bw ($b).';
+  }
+
+  @override
+  String get trendWeightOne =>
+      'Solo hay un día con peso medido. Hace falta otra medición para ver un cambio.';
+
+  @override
+  String get trendWeightNone => 'No hay peso medido en este periodo.';
+
+  @override
+  String get trendNoData => 'No hay registros en este periodo.';
+
+  @override
+  String get intakeLabel => 'Ingesta';
+
+  @override
+  String get burnedLabel => 'Ejercicio';
+
+  @override
+  String get diffLabel => 'Ingesta − ejercicio';
+
+  @override
+  String get weightMeasured => 'Peso (medido)';
+
+  @override
+  String get sourceHealth => 'App Salud';
+
+  @override
+  String get sourceManual => 'Introducido a mano';
+
+  @override
+  String get burnedSource =>
+      'Energía activa medida por el reloj durante el entrenamiento';
+
+  @override
+  String get partnerSignIn => 'Inicia sesión para entrenar juntos.';
+
+  @override
+  String get partnerSignInAction => 'Iniciar sesión';
+
+  @override
+  String get partnerMakeCode => 'Crear código';
+
+  @override
+  String get partnerCopy => 'Copiar';
+
+  @override
+  String partnerExpiresIn(String t) {
+    return 'Caduca en $t';
+  }
+
+  @override
+  String get partnerExpired => 'El código ha caducado.';
+
+  @override
+  String get partnerNewCode => 'Nuevo código';
+
+  @override
+  String get partnerStopWaiting => 'Dejar';
+
+  @override
+  String partnerWith(String name) {
+    return 'Entrenando con $name';
+  }
+
+  @override
+  String get partnerReconnecting =>
+      'Reconectando · tu registro se sigue guardando';
+
+  @override
+  String partnerTheirRecord(String name) {
+    return 'Registro de $name';
+  }
+
+  @override
+  String get partnerNoRecordYet => 'Aún no hay nada registrado.';
+
+  @override
+  String get partnerLoading => 'Cargando…';
+
+  @override
+  String get partnerEnd => 'Dejar de entrenar juntos';
+
+  @override
+  String get partnerEndedByMe =>
+      'Dejaste de entrenar juntos. Tu registro se conserva.';
+
+  @override
+  String partnerEndedByThem(String name) {
+    return '$name dejó de entrenar contigo. Tu registro se conserva.';
+  }
+
+  @override
+  String get partnerErrFormat => 'El código tiene seis caracteres. Revísalo.';
+
+  @override
+  String get partnerErrInvalid =>
+      'No existe ese código. Puede estar usado o mal escrito.';
+
+  @override
+  String get partnerErrExpired => 'Ese código ha caducado. Pide uno nuevo.';
+
+  @override
+  String get partnerErrEnded => 'Esa invitación ya terminó.';
+
+  @override
+  String get partnerErrOwn =>
+      'Es tu propio código. Introdúcelo en el otro teléfono.';
+
+  @override
+  String get partnerErrTries => 'Demasiados intentos. Inténtalo más tarde.';
+
+  @override
+  String get partnerErrNetwork =>
+      'No se pudo conectar al servidor. Revisa la conexión e inténtalo de nuevo.';
+
+  @override
+  String get partnerErrServer =>
+      'El servidor tuvo un problema. Inténtalo en un momento.';
+
+  @override
+  String get partnerRetry => 'Reintentar';
+
+  @override
+  String get partnerReadOnly => 'solo lectura';
+
+  @override
+  String get partnerConflict =>
+      'Otro de tus dispositivos compartió un registro más reciente. El de este dispositivo está a salvo; solo se pausó el compartir.';
+
+  @override
+  String get partnerShareThisDevice =>
+      'Compartir el registro de este dispositivo';
+
+  @override
+  String get plansTitle => 'Planes compartidos';
+
+  @override
+  String get planNew => 'Nuevo plan compartido';
+
+  @override
+  String get planJoin => 'Unirse con código';
+
+  @override
+  String get planHint =>
+      'La primera línea es el título; luego un ejercicio por línea\np. ej. Sentadilla 4 series';
+
+  @override
+  String get planDateNone => 'Sin fecha';
+
+  @override
+  String planSetsCount(int n) {
+    return '$n series';
+  }
+
+  @override
+  String get planSave => 'Proponer';
+
+  @override
+  String get planStateLocal =>
+      'Borrador solo en este dispositivo · aún no está en el servidor';
+
+  @override
+  String get planStateDraft => 'Borrador · aún sin compañero';
+
+  @override
+  String planStateWaiting(int v) {
+    return 'Esperando a tu compañero · versión $v';
+  }
+
+  @override
+  String planStateNeedsMe(String name, int v) {
+    return '$name lo cambió · la versión $v necesita tu OK';
+  }
+
+  @override
+  String planStateAgreed(int v) {
+    return 'Acordado · versión $v';
+  }
+
+  @override
+  String get planStateWithdrawn =>
+      'La planificación compartida terminó · se conservan el plan acordado y tus objetivos';
+
+  @override
+  String planAccept(int v) {
+    return 'Aceptar versión $v';
+  }
+
+  @override
+  String get planChanged => 'Cambios desde el último plan acordado';
+
+  @override
+  String planAdded(String x) {
+    return 'Añadido: $x';
+  }
+
+  @override
+  String planRemoved(String x) {
+    return 'Quitado: $x';
+  }
+
+  @override
+  String planSetsChanged(String x) {
+    return 'Series cambiadas: $x';
+  }
+
+  @override
+  String get planReordered => 'Cambió el orden';
+
+  @override
+  String get planDateChanged => 'Cambió la fecha';
+
+  @override
+  String get planTitleChanged => 'Cambió el título';
+
+  @override
+  String planLastAgreed(int v) {
+    return 'Último plan acordado · versión $v';
+  }
+
+  @override
+  String get planConflict =>
+      'Tu compañero lo cambió antes. Tu borrador sigue aquí.';
+
+  @override
+  String planLatest(int v) {
+    return 'Último plan de tu compañero · versión $v';
+  }
+
+  @override
+  String get planKeepMine => 'Volver a proponer mi borrador';
+
+  @override
+  String get planTakeLatest => 'Usar el plan más reciente';
+
+  @override
+  String get planMyTarget => 'Mi objetivo';
+
+  @override
+  String planPartnerTarget(String name, String t) {
+    return '$name: $t';
+  }
+
+  @override
+  String get planTargetHint => 'p. ej. 100 5 o 100kg 5 reps x3 nota';
+
+  @override
+  String get planInvite => 'Crear código de invitación';
+
+  @override
+  String get planStart => 'Empezar este plan';
+
+  @override
+  String get planStartSolo => 'Empezar mi propia copia';
+
+  @override
+  String get planStartSoloNote =>
+      'Aún no hay acuerdo. Si empiezas ahora usarás tu propia copia, no un plan acordado.';
+
+  @override
+  String get planOpenWorkout => 'Abrir el entrenamiento';
+
+  @override
+  String get planCopyNext => 'Copiar al siguiente entrenamiento';
+
+  @override
+  String get planWithdraw => 'Salir de este plan compartido';
+
+  @override
+  String get planCompare => 'Plan y realidad';
+
+  @override
+  String planDoneSets(String name, int planned, int done) {
+    return '$name · plan $planned · hechas $done';
+  }
+
+  @override
+  String planAddedActual(String x) {
+    return 'Fuera del plan: $x';
+  }
+
+  @override
+  String planSkipped(String x) {
+    return 'Omitido: $x';
+  }
+
+  @override
+  String get planFromRecord => 'Planear juntos el siguiente a partir de este';
+
+  @override
+  String planStartedFrom(int v) {
+    return 'Empezó desde el plan acordado (versión $v)';
+  }
+
+  @override
+  String planStartedSolo(int v) {
+    return 'Empezó desde tu propia copia (versión $v, sin acuerdo)';
+  }
+
+  @override
+  String get planShareLink => 'Enviar enlace de invitación';
+
+  @override
+  String planShareText(String url) {
+    return 'Planeemos juntos el entrenamiento en setpad: $url';
+  }
+
+  @override
+  String get planLinkCopied => 'Enlace copiado. Sirve una vez, durante un día.';
+
+  @override
+  String get planLinkJoining => 'Uniéndote al plan al que te invitaron…';
 }

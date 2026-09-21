@@ -104,7 +104,8 @@
     "description": "목록에 붙는 소모 칼로리. 워치가 잰 값만 뜬다",
     "placeholders": {
       "n": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -463,17 +464,8 @@
     }
   },
   "partnerInvite": "같이 하기",
-  "partnerCode": "상대에게 이 번호를 불러 주세요",
-  "partnerEnter": "번호 입력",
-  "partnerJoined": "{name}와 같이 기록합니다",
-  "@partnerJoined": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "partnerFailed": "번호가 맞지 않거나 시간이 지났어요.",
+  "partnerCode": "상대에게 이 코드를 알려 주세요",
+  "partnerEnter": "코드 입력",
   "bookingNext": "{trainer} 트레이너 · {when}",
   "@bookingNext": {
     "placeholders": {
@@ -607,26 +599,17 @@
   "mealGallery": "앨범에서",
   "mealEstimating": "칼로리 어림하는 중…",
   "mealIntake": "섭취 약 {n}kcal",
-  "mealNet": "운동 − 섭취 {n}kcal",
   "mealFailed": "사진에서 칼로리를 어림하지 못했어요. 다시 찍어 주세요.",
   "mealEstimateNote": "사진으로 어림한 값이에요",
   "@mealIntake": {
     "placeholders": {
       "n": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
-  "@mealNet": {
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "mealServingsAsk": "몇 회분 드셨나요?",
   "mealServingsOption": "{n}회분",
-  "mealWholePackage": "전체 {n}회분",
   "@mealServingsOption": {
     "placeholders": {
       "n": {
@@ -634,9 +617,409 @@
       }
     }
   },
-  "@mealWholePackage": {
+  "fitAll": "전체 보기",
+  "sameDayOther": "같은 날의 다른 기록",
+  "mealText": "식단 적기",
+  "mealTextHint": "먹은 것을 적어 주세요. 예: 김밥 한 줄, 우유 200ml",
+  "kcalApprox": "약 {n}kcal",
+  "@kcalApprox": {
     "placeholders": {
       "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "mealKcalUnknown": "열량 미상",
+  "mealIntakePartial": "확인된 섭취 {n}kcal · 열량 미상 {m}건",
+  "@mealIntakePartial": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "mealAmountAsk": "얼마나 드셨나요?",
+  "mealBasis": "기준",
+  "mealEaten": "먹은 양",
+  "mealUnitServing": "회분",
+  "mealUnitPackage": "포장 전체",
+  "mealUnitPhoto": "사진 속 음식",
+  "mealWhole": "전체",
+  "mealHalf": "절반",
+  "mealPhotoWholeNote": "사진에 보이는 음식 전체를 어림한 값이에요. 그중 드신 만큼을 고르세요.",
+  "mealAmountInvalid": "0 이상의 숫자를 입력해 주세요.",
+  "dayEnergyFull": "기록 기준 섭취 {intake} − 운동 {burned} = {diff}kcal",
+  "@dayEnergyFull": {
+    "placeholders": {
+      "intake": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "burned": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "diff": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "dayEnergyApprox": "기록 기준 섭취 약 {intake} − 운동 {burned} = 약 {diff}kcal",
+  "@dayEnergyApprox": {
+    "placeholders": {
+      "intake": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "burned": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "diff": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "dayBurnedMissing": "운동 소모량 미측정 · 차이 계산 불가",
+  "dayBurnedOnly": "운동 {n}kcal · 식단 미기록",
+  "@dayBurnedOnly": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "energyExplain": "기록된 섭취량에서 운동 소모량을 뺀 값입니다. 휴식과 일상생활에서 쓰는 에너지는 제외됩니다.",
+  "weightLabel": "체중 {w}",
+  "@weightLabel": {
+    "placeholders": {
+      "w": {
+        "type": "String"
+      }
+    }
+  },
+  "weightAdd": "체중 기록",
+  "weightFromHealth": "건강 앱에서 가져오기",
+  "weightInvalid": "체중을 확인해 주세요.",
+  "weightRule": "하루에 여러 번 재면 그날 처음 잰 값을 씁니다. 재지 않은 날은 비워 둡니다.",
+  "trendsTitle": "기록과 몸의 변화",
+  "trendDays": "{n}일",
+  "@trendDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trendIntakeAvg": "기록된 섭취 평균 {n}kcal · {d}일",
+  "@trendIntakeAvg": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "d": {
+        "type": "int"
+      }
+    }
+  },
+  "trendBurnedAvg": "기록된 운동 소모 평균 {n}kcal · {d}일",
+  "@trendBurnedAvg": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "d": {
+        "type": "int"
+      }
+    }
+  },
+  "trendDiffAvg": "섭취 − 운동 평균 {n}kcal · 둘 다 기록한 {d}일",
+  "@trendDiffAvg": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "d": {
+        "type": "int"
+      }
+    }
+  },
+  "trendIncomplete": "열량 미상이 있는 날 {d}일 · 평균에서 제외",
+  "@trendIncomplete": {
+    "placeholders": {
+      "d": {
+        "type": "int"
+      }
+    }
+  },
+  "trendWeightChange": "측정 체중은 {a} {aw}에서 {b} {bw}(으)로 변했습니다.",
+  "@trendWeightChange": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "aw": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      },
+      "bw": {
+        "type": "String"
+      }
+    }
+  },
+  "trendWeightOne": "체중을 잰 날이 하루뿐입니다. 변화를 보려면 다른 날의 측정이 필요합니다.",
+  "trendWeightNone": "이 기간에 잰 체중이 없습니다.",
+  "trendNoData": "이 기간에 기록이 없습니다.",
+  "intakeLabel": "섭취",
+  "burnedLabel": "운동",
+  "diffLabel": "섭취 − 운동",
+  "weightMeasured": "체중 (측정값)",
+  "sourceHealth": "건강 앱",
+  "sourceManual": "직접 입력",
+  "burnedSource": "운동 중 워치가 잰 활동 에너지",
+  "partnerSignIn": "같이 하려면 로그인이 필요합니다.",
+  "partnerSignInAction": "로그인",
+  "partnerMakeCode": "코드 만들기",
+  "partnerCopy": "복사",
+  "partnerExpiresIn": "{t} 뒤 만료",
+  "@partnerExpiresIn": {
+    "placeholders": {
+      "t": {
+        "type": "String"
+      }
+    }
+  },
+  "partnerExpired": "코드가 만료되었습니다.",
+  "partnerNewCode": "새 코드",
+  "partnerStopWaiting": "그만두기",
+  "partnerWith": "{name} 님과 함께 운동 중",
+  "@partnerWith": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "partnerReconnecting": "연결 복구 중 · 내 기록은 계속 저장됩니다",
+  "partnerTheirRecord": "{name} 님의 기록",
+  "@partnerTheirRecord": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "partnerNoRecordYet": "아직 올라온 기록이 없습니다.",
+  "partnerLoading": "불러오는 중…",
+  "partnerEnd": "함께 운동 종료",
+  "partnerEndedByMe": "함께 운동을 종료했습니다. 내 기록은 그대로 남아 있습니다.",
+  "partnerEndedByThem": "{name} 님이 함께 운동을 종료했습니다. 내 기록은 그대로 남아 있습니다.",
+  "@partnerEndedByThem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "partnerErrFormat": "코드는 여섯 글자입니다. 다시 확인해 주세요.",
+  "partnerErrInvalid": "맞는 코드가 없습니다. 이미 사용됐거나 잘못 입력했을 수 있어요.",
+  "partnerErrExpired": "만료된 코드입니다. 상대에게 새 코드를 받아 주세요.",
+  "partnerErrEnded": "이미 종료된 초대입니다.",
+  "partnerErrOwn": "내가 만든 코드입니다. 상대의 기기에서 입력해 주세요.",
+  "partnerErrTries": "시도가 너무 많습니다. 잠시 뒤에 다시 해 주세요.",
+  "partnerErrNetwork": "서버에 연결하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.",
+  "partnerErrServer": "서버에 문제가 있습니다. 잠시 뒤에 다시 시도해 주세요.",
+  "partnerRetry": "다시 시도",
+  "partnerReadOnly": "읽기 전용",
+  "partnerConflict": "다른 기기에서 더 새 기록을 공유했습니다. 이 기기의 기록은 그대로 저장돼 있고, 공유만 멈춘 상태입니다.",
+  "partnerShareThisDevice": "이 기기의 기록으로 공유하기",
+  "plansTitle": "공동 루틴",
+  "planNew": "새 공동 루틴",
+  "planJoin": "코드로 참여",
+  "planHint": "첫 줄은 제목, 그다음은 한 줄에 한 종목\n예: 스쿼트 4세트",
+  "planDateNone": "날짜 미정",
+  "planSetsCount": "{n}세트",
+  "@planSetsCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "planSave": "제안하기",
+  "planStateLocal": "이 기기에만 있는 초안 · 서버에 아직 올라가지 않았습니다",
+  "planStateDraft": "초안 · 아직 혼자입니다",
+  "planStateWaiting": "상대 확인 대기 · 버전 {v}",
+  "@planStateWaiting": {
+    "placeholders": {
+      "v": {
+        "type": "int"
+      }
+    }
+  },
+  "planStateNeedsMe": "{name} 님이 고쳤습니다 · 버전 {v} 확인이 필요합니다",
+  "@planStateNeedsMe": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "v": {
+        "type": "int"
+      }
+    }
+  },
+  "planStateAgreed": "합의 완료 · 버전 {v}",
+  "@planStateAgreed": {
+    "placeholders": {
+      "v": {
+        "type": "int"
+      }
+    }
+  },
+  "planStateWithdrawn": "함께 계획이 끝났습니다 · 합의본과 내 목표는 남아 있습니다",
+  "planAccept": "버전 {v} 수락",
+  "@planAccept": {
+    "placeholders": {
+      "v": {
+        "type": "int"
+      }
+    }
+  },
+  "planChanged": "마지막 합의본에서 바뀐 것",
+  "planAdded": "추가: {x}",
+  "@planAdded": {
+    "placeholders": {
+      "x": {
+        "type": "String"
+      }
+    }
+  },
+  "planRemoved": "빠짐: {x}",
+  "@planRemoved": {
+    "placeholders": {
+      "x": {
+        "type": "String"
+      }
+    }
+  },
+  "planSetsChanged": "세트 수 변경: {x}",
+  "@planSetsChanged": {
+    "placeholders": {
+      "x": {
+        "type": "String"
+      }
+    }
+  },
+  "planReordered": "순서가 바뀌었습니다",
+  "planDateChanged": "예정 날짜가 바뀌었습니다",
+  "planTitleChanged": "제목이 바뀌었습니다",
+  "planLastAgreed": "마지막 합의본 · 버전 {v}",
+  "@planLastAgreed": {
+    "placeholders": {
+      "v": {
+        "type": "int"
+      }
+    }
+  },
+  "planConflict": "상대가 먼저 고쳤습니다. 내 초안은 그대로 있습니다.",
+  "planLatest": "상대가 고친 최신 계획 · 버전 {v}",
+  "@planLatest": {
+    "placeholders": {
+      "v": {
+        "type": "int"
+      }
+    }
+  },
+  "planKeepMine": "내 초안으로 다시 제안",
+  "planTakeLatest": "최신 계획으로 바꾸기",
+  "planMyTarget": "내 목표",
+  "planPartnerTarget": "{name}: {t}",
+  "@planPartnerTarget": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "t": {
+        "type": "String"
+      }
+    }
+  },
+  "planTargetHint": "예: 100 5 또는 100kg 5회 x3 메모",
+  "planInvite": "초대 코드 만들기",
+  "planStart": "이 루틴으로 시작",
+  "planStartSolo": "본인용 사본으로 시작",
+  "planStartSoloNote": "아직 합의 전입니다. 지금 시작하면 공동 합의본이 아니라 본인용 사본으로 시작합니다.",
+  "planOpenWorkout": "시작한 운동 열기",
+  "planCopyNext": "다음 운동으로 복사",
+  "planWithdraw": "함께 계획 그만두기",
+  "planCompare": "계획과 실제",
+  "planDoneSets": "{name} · 계획 {planned}세트 · 수행 {done}세트",
+  "@planDoneSets": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "planned": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "planAddedActual": "계획에 없던 운동: {x}",
+  "@planAddedActual": {
+    "placeholders": {
+      "x": {
+        "type": "String"
+      }
+    }
+  },
+  "planSkipped": "하지 않은 운동: {x}",
+  "@planSkipped": {
+    "placeholders": {
+      "x": {
+        "type": "String"
+      }
+    }
+  },
+  "planFromRecord": "이 기록으로 다음 운동 함께 계획",
+  "planStartedFrom": "공동 루틴 합의본(버전 {v})에서 시작했습니다",
+  "@planStartedFrom": {
+    "placeholders": {
+      "v": {
+        "type": "int"
+      }
+    }
+  },
+  "planStartedSolo": "본인용 사본(버전 {v}, 합의 전)에서 시작했습니다",
+  "@planStartedSolo": {
+    "placeholders": {
+      "v": {
+        "type": "int"
+      }
+    }
+  },
+  "planShareLink": "초대 링크 보내기",
+  "planShareText": "setpad에서 운동 계획을 같이 짜요: {url}",
+  "planLinkCopied": "링크를 복사했습니다. 하루 동안 한 번 쓸 수 있습니다.",
+  "planLinkJoining": "초대받은 계획에 참여하는 중…",
+  "@planShareText": {
+    "placeholders": {
+      "url": {
         "type": "String"
       }
     }

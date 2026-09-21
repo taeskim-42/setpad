@@ -113,7 +113,12 @@ class LVi extends L {
 
   @override
   String kcal(int n) {
-    return '$n kcal';
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '$nString kcal';
   }
 
   @override
@@ -508,14 +513,6 @@ class LVi extends L {
   String get partnerEnter => 'Nhập mã';
 
   @override
-  String partnerJoined(String name) {
-    return 'Ghi cùng $name';
-  }
-
-  @override
-  String get partnerFailed => 'Mã sai hoặc đã hết hạn.';
-
-  @override
   String bookingNext(String trainer, String when) {
     return '$trainer · $when';
   }
@@ -723,12 +720,12 @@ class LVi extends L {
 
   @override
   String mealIntake(int n) {
-    return 'Nạp vào ≈ $n kcal';
-  }
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
 
-  @override
-  String mealNet(int n) {
-    return 'Đốt − nạp $n kcal';
+    return 'Nạp vào ≈ $nString kcal';
   }
 
   @override
@@ -738,15 +735,497 @@ class LVi extends L {
   String get mealEstimateNote => 'Ước tính từ ảnh';
 
   @override
-  String get mealServingsAsk => 'Đã ăn bao nhiêu khẩu phần?';
-
-  @override
   String mealServingsOption(String n) {
     return '$n khẩu phần';
   }
 
   @override
-  String mealWholePackage(String n) {
-    return 'Cả gói ($n khẩu phần)';
+  String get fitAll => 'Xem tất cả';
+
+  @override
+  String get sameDayOther => 'Bản ghi khác trong ngày';
+
+  @override
+  String get mealText => 'Ghi bữa ăn';
+
+  @override
+  String get mealTextHint => 'Bạn đã ăn gì? VD: 2 quả chuối, sữa 200ml';
+
+  @override
+  String kcalApprox(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '≈ $nString kcal';
   }
+
+  @override
+  String get mealKcalUnknown => 'Chưa rõ kcal';
+
+  @override
+  String mealIntakePartial(int n, int m) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Nạp vào $nString kcal + $m món chưa rõ kcal';
+  }
+
+  @override
+  String get mealAmountAsk => 'Bạn đã ăn bao nhiêu?';
+
+  @override
+  String get mealBasis => 'Cơ sở';
+
+  @override
+  String get mealEaten => 'Lượng đã ăn';
+
+  @override
+  String get mealUnitServing => 'khẩu phần';
+
+  @override
+  String get mealUnitPackage => 'cả gói';
+
+  @override
+  String get mealUnitPhoto => 'món trong ảnh';
+
+  @override
+  String get mealWhole => 'Tất cả';
+
+  @override
+  String get mealHalf => 'Một nửa';
+
+  @override
+  String get mealPhotoWholeNote =>
+      'Đây là ước tính cho toàn bộ món trong ảnh. Hãy chọn phần bạn đã ăn.';
+
+  @override
+  String get mealAmountInvalid => 'Hãy nhập số từ 0 trở lên.';
+
+  @override
+  String dayEnergyFull(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return 'Theo ghi chép: nạp $intakeString − tập $burnedString = $diffString kcal';
+  }
+
+  @override
+  String dayEnergyApprox(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return 'Theo ghi chép: nạp ≈ $intakeString − tập $burnedString ≈ $diffString kcal';
+  }
+
+  @override
+  String get dayBurnedMissing =>
+      'Chưa đo năng lượng tập · không tính được chênh lệch';
+
+  @override
+  String dayBurnedOnly(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Tập $nString kcal · chưa ghi bữa ăn';
+  }
+
+  @override
+  String get energyExplain =>
+      'Lượng nạp đã ghi trừ năng lượng tập luyện. Không gồm năng lượng khi nghỉ và sinh hoạt hằng ngày.';
+
+  @override
+  String weightLabel(String w) {
+    return 'Cân nặng $w';
+  }
+
+  @override
+  String get weightAdd => 'Ghi cân nặng';
+
+  @override
+  String get weightFromHealth => 'Nhập từ ứng dụng Sức khỏe';
+
+  @override
+  String get weightInvalid => 'Hãy kiểm tra cân nặng.';
+
+  @override
+  String get weightRule =>
+      'Nếu cân nhiều lần trong ngày, dùng lần đo đầu tiên. Ngày không cân để trống.';
+
+  @override
+  String get trendsTitle => 'Ghi chép và cơ thể';
+
+  @override
+  String trendDays(int n) {
+    return '$n ngày';
+  }
+
+  @override
+  String trendIntakeAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Nạp trung bình đã ghi $nString kcal · $d ngày';
+  }
+
+  @override
+  String trendBurnedAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Năng lượng tập trung bình $nString kcal · $d ngày';
+  }
+
+  @override
+  String trendDiffAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Nạp − tập trung bình $nString kcal · $d ngày có cả hai';
+  }
+
+  @override
+  String trendIncomplete(int d) {
+    return '$d ngày có món chưa rõ kcal · không tính vào trung bình';
+  }
+
+  @override
+  String trendWeightChange(String a, String aw, String b, String bw) {
+    return 'Cân nặng đo được đổi từ $aw ($a) thành $bw ($b).';
+  }
+
+  @override
+  String get trendWeightOne =>
+      'Chỉ có một ngày đo cân nặng. Cần số đo ở ngày khác để thấy thay đổi.';
+
+  @override
+  String get trendWeightNone => 'Không có số đo cân nặng trong giai đoạn này.';
+
+  @override
+  String get trendNoData => 'Không có ghi chép trong giai đoạn này.';
+
+  @override
+  String get intakeLabel => 'Nạp';
+
+  @override
+  String get burnedLabel => 'Tập';
+
+  @override
+  String get diffLabel => 'Nạp − tập';
+
+  @override
+  String get weightMeasured => 'Cân nặng (đo được)';
+
+  @override
+  String get sourceHealth => 'Ứng dụng Sức khỏe';
+
+  @override
+  String get sourceManual => 'Tự nhập';
+
+  @override
+  String get burnedSource => 'Năng lượng hoạt động đồng hồ đo trong buổi tập';
+
+  @override
+  String get partnerSignIn => 'Cần đăng nhập để tập cùng nhau.';
+
+  @override
+  String get partnerSignInAction => 'Đăng nhập';
+
+  @override
+  String get partnerMakeCode => 'Tạo mã';
+
+  @override
+  String get partnerCopy => 'Sao chép';
+
+  @override
+  String partnerExpiresIn(String t) {
+    return 'Hết hạn sau $t';
+  }
+
+  @override
+  String get partnerExpired => 'Mã đã hết hạn.';
+
+  @override
+  String get partnerNewCode => 'Mã mới';
+
+  @override
+  String get partnerStopWaiting => 'Thôi';
+
+  @override
+  String partnerWith(String name) {
+    return 'Đang tập cùng $name';
+  }
+
+  @override
+  String get partnerReconnecting =>
+      'Đang kết nối lại · ghi chép của bạn vẫn được lưu';
+
+  @override
+  String partnerTheirRecord(String name) {
+    return 'Ghi chép của $name';
+  }
+
+  @override
+  String get partnerNoRecordYet => 'Chưa có ghi chép nào.';
+
+  @override
+  String get partnerLoading => 'Đang tải…';
+
+  @override
+  String get partnerEnd => 'Dừng tập cùng nhau';
+
+  @override
+  String get partnerEndedByMe =>
+      'Bạn đã dừng tập cùng nhau. Ghi chép của bạn vẫn còn.';
+
+  @override
+  String partnerEndedByThem(String name) {
+    return '$name đã dừng tập cùng nhau. Ghi chép của bạn vẫn còn.';
+  }
+
+  @override
+  String get partnerErrFormat => 'Mã có sáu ký tự. Hãy kiểm tra lại.';
+
+  @override
+  String get partnerErrInvalid =>
+      'Không có mã này. Có thể đã dùng hoặc gõ sai.';
+
+  @override
+  String get partnerErrExpired => 'Mã đã hết hạn. Hãy xin mã mới.';
+
+  @override
+  String get partnerErrEnded => 'Lời mời này đã kết thúc.';
+
+  @override
+  String get partnerErrOwn =>
+      'Đây là mã của chính bạn. Hãy nhập trên máy của người kia.';
+
+  @override
+  String get partnerErrTries => 'Thử quá nhiều lần. Hãy thử lại sau.';
+
+  @override
+  String get partnerErrNetwork =>
+      'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.';
+
+  @override
+  String get partnerErrServer => 'Máy chủ gặp sự cố. Hãy thử lại sau.';
+
+  @override
+  String get partnerRetry => 'Thử lại';
+
+  @override
+  String get partnerReadOnly => 'chỉ xem';
+
+  @override
+  String get partnerConflict =>
+      'Thiết bị khác của bạn đã chia sẻ bản ghi mới hơn. Bản ghi trên máy này vẫn an toàn; chỉ tạm dừng chia sẻ.';
+
+  @override
+  String get partnerShareThisDevice => 'Chia sẻ bản ghi của máy này';
+
+  @override
+  String get plansTitle => 'Kế hoạch chung';
+
+  @override
+  String get planNew => 'Kế hoạch chung mới';
+
+  @override
+  String get planJoin => 'Tham gia bằng mã';
+
+  @override
+  String get planHint =>
+      'Dòng đầu là tiêu đề, sau đó mỗi dòng một bài\nVD: Squat 4 hiệp';
+
+  @override
+  String get planDateNone => 'Chưa có ngày';
+
+  @override
+  String planSetsCount(int n) {
+    return '$n hiệp';
+  }
+
+  @override
+  String get planSave => 'Đề xuất';
+
+  @override
+  String get planStateLocal => 'Bản nháp chỉ trên máy này · chưa lên máy chủ';
+
+  @override
+  String get planStateDraft => 'Bản nháp · chưa có bạn tập';
+
+  @override
+  String planStateWaiting(int v) {
+    return 'Chờ bạn tập xác nhận · phiên bản $v';
+  }
+
+  @override
+  String planStateNeedsMe(String name, int v) {
+    return '$name đã sửa · cần bạn xác nhận phiên bản $v';
+  }
+
+  @override
+  String planStateAgreed(int v) {
+    return 'Đã thống nhất · phiên bản $v';
+  }
+
+  @override
+  String get planStateWithdrawn =>
+      'Đã dừng lập kế hoạch chung · kế hoạch đã thống nhất và mục tiêu của bạn vẫn còn';
+
+  @override
+  String planAccept(int v) {
+    return 'Chấp nhận phiên bản $v';
+  }
+
+  @override
+  String get planChanged => 'Thay đổi so với bản đã thống nhất';
+
+  @override
+  String planAdded(String x) {
+    return 'Thêm: $x';
+  }
+
+  @override
+  String planRemoved(String x) {
+    return 'Bỏ: $x';
+  }
+
+  @override
+  String planSetsChanged(String x) {
+    return 'Đổi số hiệp: $x';
+  }
+
+  @override
+  String get planReordered => 'Thứ tự đã đổi';
+
+  @override
+  String get planDateChanged => 'Ngày đã đổi';
+
+  @override
+  String get planTitleChanged => 'Tiêu đề đã đổi';
+
+  @override
+  String planLastAgreed(int v) {
+    return 'Bản thống nhất gần nhất · phiên bản $v';
+  }
+
+  @override
+  String get planConflict => 'Bạn tập đã sửa trước. Bản nháp của bạn vẫn còn.';
+
+  @override
+  String planLatest(int v) {
+    return 'Kế hoạch mới nhất của bạn tập · phiên bản $v';
+  }
+
+  @override
+  String get planKeepMine => 'Đề xuất lại bản nháp của tôi';
+
+  @override
+  String get planTakeLatest => 'Dùng kế hoạch mới nhất';
+
+  @override
+  String get planMyTarget => 'Mục tiêu của tôi';
+
+  @override
+  String planPartnerTarget(String name, String t) {
+    return '$name: $t';
+  }
+
+  @override
+  String get planTargetHint => 'VD: 100 5 hoặc 100kg 5 lần x3 ghi chú';
+
+  @override
+  String get planInvite => 'Tạo mã mời';
+
+  @override
+  String get planStart => 'Bắt đầu theo kế hoạch này';
+
+  @override
+  String get planStartSolo => 'Bắt đầu bản sao của tôi';
+
+  @override
+  String get planStartSoloNote =>
+      'Chưa thống nhất. Bắt đầu bây giờ sẽ dùng bản sao của riêng bạn, không phải kế hoạch đã thống nhất.';
+
+  @override
+  String get planOpenWorkout => 'Mở buổi tập đã bắt đầu';
+
+  @override
+  String get planCopyNext => 'Sao chép sang buổi sau';
+
+  @override
+  String get planWithdraw => 'Rời kế hoạch chung này';
+
+  @override
+  String get planCompare => 'Kế hoạch và thực tế';
+
+  @override
+  String planDoneSets(String name, int planned, int done) {
+    return '$name · kế hoạch $planned · đã làm $done';
+  }
+
+  @override
+  String planAddedActual(String x) {
+    return 'Ngoài kế hoạch: $x';
+  }
+
+  @override
+  String planSkipped(String x) {
+    return 'Bỏ qua: $x';
+  }
+
+  @override
+  String get planFromRecord => 'Cùng lên kế hoạch buổi sau từ bản ghi này';
+
+  @override
+  String planStartedFrom(int v) {
+    return 'Bắt đầu từ kế hoạch đã thống nhất (phiên bản $v)';
+  }
+
+  @override
+  String planStartedSolo(int v) {
+    return 'Bắt đầu từ bản sao của bạn (phiên bản $v, chưa thống nhất)';
+  }
+
+  @override
+  String get planShareLink => 'Gửi liên kết mời';
+
+  @override
+  String planShareText(String url) {
+    return 'Cùng lên kế hoạch tập trong setpad: $url';
+  }
+
+  @override
+  String get planLinkCopied =>
+      'Đã sao chép liên kết. Dùng được một lần trong một ngày.';
+
+  @override
+  String get planLinkJoining => 'Đang tham gia kế hoạch được mời…';
 }

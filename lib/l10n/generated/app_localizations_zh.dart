@@ -113,7 +113,12 @@ class LZh extends L {
 
   @override
   String kcal(int n) {
-    return '$n 千卡';
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '$nString 千卡';
   }
 
   @override
@@ -494,14 +499,6 @@ class LZh extends L {
   String get partnerEnter => '输入号码';
 
   @override
-  String partnerJoined(String name) {
-    return '与$name一起记录';
-  }
-
-  @override
-  String get partnerFailed => '号码不对或已过期。';
-
-  @override
   String bookingNext(String trainer, String when) {
     return '$trainer · $when';
   }
@@ -699,12 +696,12 @@ class LZh extends L {
 
   @override
   String mealIntake(int n) {
-    return '摄入约 $n 千卡';
-  }
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
 
-  @override
-  String mealNet(int n) {
-    return '消耗 − 摄入 $n 千卡';
+    return '摄入约 $nString 千卡';
   }
 
   @override
@@ -714,17 +711,484 @@ class LZh extends L {
   String get mealEstimateNote => '根据照片估算';
 
   @override
-  String get mealServingsAsk => '吃了几份？';
-
-  @override
   String mealServingsOption(String n) {
     return '$n 份';
   }
 
   @override
-  String mealWholePackage(String n) {
-    return '整包（$n 份）';
+  String get fitAll => '查看全部';
+
+  @override
+  String get sameDayOther => '当天的其他记录';
+
+  @override
+  String get mealText => '记录饮食';
+
+  @override
+  String get mealTextHint => '吃了什么？例如：香蕉2根，牛奶200ml';
+
+  @override
+  String kcalApprox(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '约 $nString 千卡';
   }
+
+  @override
+  String get mealKcalUnknown => '热量未知';
+
+  @override
+  String mealIntakePartial(int n, int m) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '摄入 $nString 千卡 + $m 项热量未知';
+  }
+
+  @override
+  String get mealAmountAsk => '吃了多少？';
+
+  @override
+  String get mealBasis => '基准';
+
+  @override
+  String get mealEaten => '食用量';
+
+  @override
+  String get mealUnitServing => '份';
+
+  @override
+  String get mealUnitPackage => '整包';
+
+  @override
+  String get mealUnitPhoto => '照片中的食物';
+
+  @override
+  String get mealWhole => '全部';
+
+  @override
+  String get mealHalf => '一半';
+
+  @override
+  String get mealPhotoWholeNote => '这是照片中全部食物的估算值，请选择您吃了其中多少。';
+
+  @override
+  String get mealAmountInvalid => '请输入不小于 0 的数字。';
+
+  @override
+  String dayEnergyFull(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return '按记录 摄入 $intakeString − 运动 $burnedString = $diffString 千卡';
+  }
+
+  @override
+  String dayEnergyApprox(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return '按记录 摄入约 $intakeString − 运动 $burnedString = 约 $diffString 千卡';
+  }
+
+  @override
+  String get dayBurnedMissing => '运动消耗未测量 · 无法计算差值';
+
+  @override
+  String dayBurnedOnly(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '运动 $nString 千卡 · 未记录饮食';
+  }
+
+  @override
+  String get energyExplain => '记录的摄入量减去运动消耗量，不包含静息和日常生活消耗的能量。';
+
+  @override
+  String weightLabel(String w) {
+    return '体重 $w';
+  }
+
+  @override
+  String get weightAdd => '记录体重';
+
+  @override
+  String get weightFromHealth => '从健康 App 导入';
+
+  @override
+  String get weightInvalid => '请检查体重。';
+
+  @override
+  String get weightRule => '一天测多次时使用当天第一次的数值，未测量的日子留空。';
+
+  @override
+  String get trendsTitle => '记录与身体变化';
+
+  @override
+  String trendDays(int n) {
+    return '$n 天';
+  }
+
+  @override
+  String trendIntakeAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '记录摄入平均 $nString 千卡 · $d 天';
+  }
+
+  @override
+  String trendBurnedAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '运动消耗平均 $nString 千卡 · $d 天';
+  }
+
+  @override
+  String trendDiffAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '摄入 − 运动平均 $nString 千卡 · 两项都有的 $d 天';
+  }
+
+  @override
+  String trendIncomplete(int d) {
+    return '有热量未知的 $d 天 · 不计入平均';
+  }
+
+  @override
+  String trendWeightChange(String a, String aw, String b, String bw) {
+    return '测量体重从 $a 的 $aw 变为 $b 的 $bw。';
+  }
+
+  @override
+  String get trendWeightOne => '只有一天测了体重，需要其他日期的测量才能看出变化。';
+
+  @override
+  String get trendWeightNone => '这段时间没有测量体重。';
+
+  @override
+  String get trendNoData => '这段时间没有记录。';
+
+  @override
+  String get intakeLabel => '摄入';
+
+  @override
+  String get burnedLabel => '运动';
+
+  @override
+  String get diffLabel => '摄入 − 运动';
+
+  @override
+  String get weightMeasured => '体重（测量值）';
+
+  @override
+  String get sourceHealth => '健康 App';
+
+  @override
+  String get sourceManual => '手动输入';
+
+  @override
+  String get burnedSource => '运动期间手表测得的活动能量';
+
+  @override
+  String get partnerSignIn => '需要登录才能一起训练。';
+
+  @override
+  String get partnerSignInAction => '登录';
+
+  @override
+  String get partnerMakeCode => '生成代码';
+
+  @override
+  String get partnerCopy => '复制';
+
+  @override
+  String partnerExpiresIn(String t) {
+    return '$t 后过期';
+  }
+
+  @override
+  String get partnerExpired => '代码已过期。';
+
+  @override
+  String get partnerNewCode => '新代码';
+
+  @override
+  String get partnerStopWaiting => '停止';
+
+  @override
+  String partnerWith(String name) {
+    return '正在与 $name 一起训练';
+  }
+
+  @override
+  String get partnerReconnecting => '正在重新连接 · 你的记录会继续保存';
+
+  @override
+  String partnerTheirRecord(String name) {
+    return '$name 的记录';
+  }
+
+  @override
+  String get partnerNoRecordYet => '还没有记录。';
+
+  @override
+  String get partnerLoading => '加载中…';
+
+  @override
+  String get partnerEnd => '结束一起训练';
+
+  @override
+  String get partnerEndedByMe => '你已结束一起训练，你的记录保留不变。';
+
+  @override
+  String partnerEndedByThem(String name) {
+    return '$name 已结束一起训练，你的记录保留不变。';
+  }
+
+  @override
+  String get partnerErrFormat => '代码为六位，请再确认。';
+
+  @override
+  String get partnerErrInvalid => '没有这个代码，可能已被使用或输入有误。';
+
+  @override
+  String get partnerErrExpired => '代码已过期，请让对方重新生成。';
+
+  @override
+  String get partnerErrEnded => '该邀请已结束。';
+
+  @override
+  String get partnerErrOwn => '这是你自己生成的代码，请在对方设备上输入。';
+
+  @override
+  String get partnerErrTries => '尝试次数过多，请稍后再试。';
+
+  @override
+  String get partnerErrNetwork => '无法连接服务器，请检查网络后重试。';
+
+  @override
+  String get partnerErrServer => '服务器出现问题，请稍后重试。';
+
+  @override
+  String get partnerRetry => '重试';
+
+  @override
+  String get partnerReadOnly => '只读';
+
+  @override
+  String get partnerConflict => '你的另一台设备共享了更新的记录。本机记录已保存，只是暂停了共享。';
+
+  @override
+  String get partnerShareThisDevice => '用本机记录共享';
+
+  @override
+  String get plansTitle => '共同计划';
+
+  @override
+  String get planNew => '新建共同计划';
+
+  @override
+  String get planJoin => '用代码加入';
+
+  @override
+  String get planHint => '第一行是标题，之后每行一个动作\n例：深蹲 4组';
+
+  @override
+  String get planDateNone => '日期未定';
+
+  @override
+  String planSetsCount(int n) {
+    return '$n组';
+  }
+
+  @override
+  String get planSave => '提出';
+
+  @override
+  String get planStateLocal => '仅在本机的草稿 · 尚未上传';
+
+  @override
+  String get planStateDraft => '草稿 · 还没有同伴';
+
+  @override
+  String planStateWaiting(int v) {
+    return '等待对方确认 · 版本 $v';
+  }
+
+  @override
+  String planStateNeedsMe(String name, int v) {
+    return '$name 已修改 · 版本 $v 需要你确认';
+  }
+
+  @override
+  String planStateAgreed(int v) {
+    return '已达成一致 · 版本 $v';
+  }
+
+  @override
+  String get planStateWithdrawn => '共同计划已结束 · 已达成的计划和你的目标保留';
+
+  @override
+  String planAccept(int v) {
+    return '接受版本 $v';
+  }
+
+  @override
+  String get planChanged => '与上次一致版本相比的变化';
+
+  @override
+  String planAdded(String x) {
+    return '新增：$x';
+  }
+
+  @override
+  String planRemoved(String x) {
+    return '移除：$x';
+  }
+
+  @override
+  String planSetsChanged(String x) {
+    return '组数变化：$x';
+  }
+
+  @override
+  String get planReordered => '顺序已变化';
+
+  @override
+  String get planDateChanged => '日期已变化';
+
+  @override
+  String get planTitleChanged => '标题已变化';
+
+  @override
+  String planLastAgreed(int v) {
+    return '上次一致的计划 · 版本 $v';
+  }
+
+  @override
+  String get planConflict => '对方先修改了，你的草稿仍然保留。';
+
+  @override
+  String planLatest(int v) {
+    return '对方的最新计划 · 版本 $v';
+  }
+
+  @override
+  String get planKeepMine => '用我的草稿重新提出';
+
+  @override
+  String get planTakeLatest => '改用最新计划';
+
+  @override
+  String get planMyTarget => '我的目标';
+
+  @override
+  String planPartnerTarget(String name, String t) {
+    return '$name：$t';
+  }
+
+  @override
+  String get planTargetHint => '例：100 5 或 100kg 5次 x3 备注';
+
+  @override
+  String get planInvite => '生成邀请代码';
+
+  @override
+  String get planStart => '按此计划开始';
+
+  @override
+  String get planStartSolo => '用我自己的副本开始';
+
+  @override
+  String get planStartSoloNote => '尚未达成一致。现在开始将使用你自己的副本，而不是已达成一致的计划。';
+
+  @override
+  String get planOpenWorkout => '打开已开始的训练';
+
+  @override
+  String get planCopyNext => '复制到下一次训练';
+
+  @override
+  String get planWithdraw => '退出此共同计划';
+
+  @override
+  String get planCompare => '计划与实际';
+
+  @override
+  String planDoneSets(String name, int planned, int done) {
+    return '$name · 计划 $planned 组 · 完成 $done 组';
+  }
+
+  @override
+  String planAddedActual(String x) {
+    return '计划外：$x';
+  }
+
+  @override
+  String planSkipped(String x) {
+    return '未做：$x';
+  }
+
+  @override
+  String get planFromRecord => '以此记录一起计划下一次';
+
+  @override
+  String planStartedFrom(int v) {
+    return '从已达成一致的共同计划（版本 $v）开始';
+  }
+
+  @override
+  String planStartedSolo(int v) {
+    return '从你自己的副本（版本 $v，未达成一致）开始';
+  }
+
+  @override
+  String get planShareLink => '发送邀请链接';
+
+  @override
+  String planShareText(String url) {
+    return '在 setpad 一起制定训练计划：$url';
+  }
+
+  @override
+  String get planLinkCopied => '已复制链接，一天内可使用一次。';
+
+  @override
+  String get planLinkJoining => '正在加入受邀的计划…';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -836,7 +1300,12 @@ class LZhHans extends LZh {
 
   @override
   String kcal(int n) {
-    return '$n 千卡';
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '$nString 千卡';
   }
 
   @override
@@ -1217,14 +1686,6 @@ class LZhHans extends LZh {
   String get partnerEnter => '输入号码';
 
   @override
-  String partnerJoined(String name) {
-    return '与$name一起记录';
-  }
-
-  @override
-  String get partnerFailed => '号码不对或已过期。';
-
-  @override
   String bookingNext(String trainer, String when) {
     return '$trainer · $when';
   }
@@ -1422,12 +1883,12 @@ class LZhHans extends LZh {
 
   @override
   String mealIntake(int n) {
-    return '摄入约 $n 千卡';
-  }
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
 
-  @override
-  String mealNet(int n) {
-    return '消耗 − 摄入 $n 千卡';
+    return '摄入约 $nString 千卡';
   }
 
   @override
@@ -1437,17 +1898,484 @@ class LZhHans extends LZh {
   String get mealEstimateNote => '根据照片估算';
 
   @override
-  String get mealServingsAsk => '吃了几份？';
-
-  @override
   String mealServingsOption(String n) {
     return '$n 份';
   }
 
   @override
-  String mealWholePackage(String n) {
-    return '整包（$n 份）';
+  String get fitAll => '查看全部';
+
+  @override
+  String get sameDayOther => '当天的其他记录';
+
+  @override
+  String get mealText => '记录饮食';
+
+  @override
+  String get mealTextHint => '吃了什么？例如：香蕉2根，牛奶200ml';
+
+  @override
+  String kcalApprox(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '约 $nString 千卡';
   }
+
+  @override
+  String get mealKcalUnknown => '热量未知';
+
+  @override
+  String mealIntakePartial(int n, int m) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '摄入 $nString 千卡 + $m 项热量未知';
+  }
+
+  @override
+  String get mealAmountAsk => '吃了多少？';
+
+  @override
+  String get mealBasis => '基准';
+
+  @override
+  String get mealEaten => '食用量';
+
+  @override
+  String get mealUnitServing => '份';
+
+  @override
+  String get mealUnitPackage => '整包';
+
+  @override
+  String get mealUnitPhoto => '照片中的食物';
+
+  @override
+  String get mealWhole => '全部';
+
+  @override
+  String get mealHalf => '一半';
+
+  @override
+  String get mealPhotoWholeNote => '这是照片中全部食物的估算值，请选择您吃了其中多少。';
+
+  @override
+  String get mealAmountInvalid => '请输入不小于 0 的数字。';
+
+  @override
+  String dayEnergyFull(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return '按记录 摄入 $intakeString − 运动 $burnedString = $diffString 千卡';
+  }
+
+  @override
+  String dayEnergyApprox(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return '按记录 摄入约 $intakeString − 运动 $burnedString = 约 $diffString 千卡';
+  }
+
+  @override
+  String get dayBurnedMissing => '运动消耗未测量 · 无法计算差值';
+
+  @override
+  String dayBurnedOnly(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '运动 $nString 千卡 · 未记录饮食';
+  }
+
+  @override
+  String get energyExplain => '记录的摄入量减去运动消耗量，不包含静息和日常生活消耗的能量。';
+
+  @override
+  String weightLabel(String w) {
+    return '体重 $w';
+  }
+
+  @override
+  String get weightAdd => '记录体重';
+
+  @override
+  String get weightFromHealth => '从健康 App 导入';
+
+  @override
+  String get weightInvalid => '请检查体重。';
+
+  @override
+  String get weightRule => '一天测多次时使用当天第一次的数值，未测量的日子留空。';
+
+  @override
+  String get trendsTitle => '记录与身体变化';
+
+  @override
+  String trendDays(int n) {
+    return '$n 天';
+  }
+
+  @override
+  String trendIntakeAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '记录摄入平均 $nString 千卡 · $d 天';
+  }
+
+  @override
+  String trendBurnedAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '运动消耗平均 $nString 千卡 · $d 天';
+  }
+
+  @override
+  String trendDiffAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '摄入 − 运动平均 $nString 千卡 · 两项都有的 $d 天';
+  }
+
+  @override
+  String trendIncomplete(int d) {
+    return '有热量未知的 $d 天 · 不计入平均';
+  }
+
+  @override
+  String trendWeightChange(String a, String aw, String b, String bw) {
+    return '测量体重从 $a 的 $aw 变为 $b 的 $bw。';
+  }
+
+  @override
+  String get trendWeightOne => '只有一天测了体重，需要其他日期的测量才能看出变化。';
+
+  @override
+  String get trendWeightNone => '这段时间没有测量体重。';
+
+  @override
+  String get trendNoData => '这段时间没有记录。';
+
+  @override
+  String get intakeLabel => '摄入';
+
+  @override
+  String get burnedLabel => '运动';
+
+  @override
+  String get diffLabel => '摄入 − 运动';
+
+  @override
+  String get weightMeasured => '体重（测量值）';
+
+  @override
+  String get sourceHealth => '健康 App';
+
+  @override
+  String get sourceManual => '手动输入';
+
+  @override
+  String get burnedSource => '运动期间手表测得的活动能量';
+
+  @override
+  String get partnerSignIn => '需要登录才能一起训练。';
+
+  @override
+  String get partnerSignInAction => '登录';
+
+  @override
+  String get partnerMakeCode => '生成代码';
+
+  @override
+  String get partnerCopy => '复制';
+
+  @override
+  String partnerExpiresIn(String t) {
+    return '$t 后过期';
+  }
+
+  @override
+  String get partnerExpired => '代码已过期。';
+
+  @override
+  String get partnerNewCode => '新代码';
+
+  @override
+  String get partnerStopWaiting => '停止';
+
+  @override
+  String partnerWith(String name) {
+    return '正在与 $name 一起训练';
+  }
+
+  @override
+  String get partnerReconnecting => '正在重新连接 · 你的记录会继续保存';
+
+  @override
+  String partnerTheirRecord(String name) {
+    return '$name 的记录';
+  }
+
+  @override
+  String get partnerNoRecordYet => '还没有记录。';
+
+  @override
+  String get partnerLoading => '加载中…';
+
+  @override
+  String get partnerEnd => '结束一起训练';
+
+  @override
+  String get partnerEndedByMe => '你已结束一起训练，你的记录保留不变。';
+
+  @override
+  String partnerEndedByThem(String name) {
+    return '$name 已结束一起训练，你的记录保留不变。';
+  }
+
+  @override
+  String get partnerErrFormat => '代码为六位，请再确认。';
+
+  @override
+  String get partnerErrInvalid => '没有这个代码，可能已被使用或输入有误。';
+
+  @override
+  String get partnerErrExpired => '代码已过期，请让对方重新生成。';
+
+  @override
+  String get partnerErrEnded => '该邀请已结束。';
+
+  @override
+  String get partnerErrOwn => '这是你自己生成的代码，请在对方设备上输入。';
+
+  @override
+  String get partnerErrTries => '尝试次数过多，请稍后再试。';
+
+  @override
+  String get partnerErrNetwork => '无法连接服务器，请检查网络后重试。';
+
+  @override
+  String get partnerErrServer => '服务器出现问题，请稍后重试。';
+
+  @override
+  String get partnerRetry => '重试';
+
+  @override
+  String get partnerReadOnly => '只读';
+
+  @override
+  String get partnerConflict => '你的另一台设备共享了更新的记录。本机记录已保存，只是暂停了共享。';
+
+  @override
+  String get partnerShareThisDevice => '用本机记录共享';
+
+  @override
+  String get plansTitle => '共同计划';
+
+  @override
+  String get planNew => '新建共同计划';
+
+  @override
+  String get planJoin => '用代码加入';
+
+  @override
+  String get planHint => '第一行是标题，之后每行一个动作\n例：深蹲 4组';
+
+  @override
+  String get planDateNone => '日期未定';
+
+  @override
+  String planSetsCount(int n) {
+    return '$n组';
+  }
+
+  @override
+  String get planSave => '提出';
+
+  @override
+  String get planStateLocal => '仅在本机的草稿 · 尚未上传';
+
+  @override
+  String get planStateDraft => '草稿 · 还没有同伴';
+
+  @override
+  String planStateWaiting(int v) {
+    return '等待对方确认 · 版本 $v';
+  }
+
+  @override
+  String planStateNeedsMe(String name, int v) {
+    return '$name 已修改 · 版本 $v 需要你确认';
+  }
+
+  @override
+  String planStateAgreed(int v) {
+    return '已达成一致 · 版本 $v';
+  }
+
+  @override
+  String get planStateWithdrawn => '共同计划已结束 · 已达成的计划和你的目标保留';
+
+  @override
+  String planAccept(int v) {
+    return '接受版本 $v';
+  }
+
+  @override
+  String get planChanged => '与上次一致版本相比的变化';
+
+  @override
+  String planAdded(String x) {
+    return '新增：$x';
+  }
+
+  @override
+  String planRemoved(String x) {
+    return '移除：$x';
+  }
+
+  @override
+  String planSetsChanged(String x) {
+    return '组数变化：$x';
+  }
+
+  @override
+  String get planReordered => '顺序已变化';
+
+  @override
+  String get planDateChanged => '日期已变化';
+
+  @override
+  String get planTitleChanged => '标题已变化';
+
+  @override
+  String planLastAgreed(int v) {
+    return '上次一致的计划 · 版本 $v';
+  }
+
+  @override
+  String get planConflict => '对方先修改了，你的草稿仍然保留。';
+
+  @override
+  String planLatest(int v) {
+    return '对方的最新计划 · 版本 $v';
+  }
+
+  @override
+  String get planKeepMine => '用我的草稿重新提出';
+
+  @override
+  String get planTakeLatest => '改用最新计划';
+
+  @override
+  String get planMyTarget => '我的目标';
+
+  @override
+  String planPartnerTarget(String name, String t) {
+    return '$name：$t';
+  }
+
+  @override
+  String get planTargetHint => '例：100 5 或 100kg 5次 x3 备注';
+
+  @override
+  String get planInvite => '生成邀请代码';
+
+  @override
+  String get planStart => '按此计划开始';
+
+  @override
+  String get planStartSolo => '用我自己的副本开始';
+
+  @override
+  String get planStartSoloNote => '尚未达成一致。现在开始将使用你自己的副本，而不是已达成一致的计划。';
+
+  @override
+  String get planOpenWorkout => '打开已开始的训练';
+
+  @override
+  String get planCopyNext => '复制到下一次训练';
+
+  @override
+  String get planWithdraw => '退出此共同计划';
+
+  @override
+  String get planCompare => '计划与实际';
+
+  @override
+  String planDoneSets(String name, int planned, int done) {
+    return '$name · 计划 $planned 组 · 完成 $done 组';
+  }
+
+  @override
+  String planAddedActual(String x) {
+    return '计划外：$x';
+  }
+
+  @override
+  String planSkipped(String x) {
+    return '未做：$x';
+  }
+
+  @override
+  String get planFromRecord => '以此记录一起计划下一次';
+
+  @override
+  String planStartedFrom(int v) {
+    return '从已达成一致的共同计划（版本 $v）开始';
+  }
+
+  @override
+  String planStartedSolo(int v) {
+    return '从你自己的副本（版本 $v，未达成一致）开始';
+  }
+
+  @override
+  String get planShareLink => '发送邀请链接';
+
+  @override
+  String planShareText(String url) {
+    return '在 setpad 一起制定训练计划：$url';
+  }
+
+  @override
+  String get planLinkCopied => '已复制链接，一天内可使用一次。';
+
+  @override
+  String get planLinkJoining => '正在加入受邀的计划…';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1559,7 +2487,12 @@ class LZhHant extends LZh {
 
   @override
   String kcal(int n) {
-    return '$n 千卡';
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '$nString 千卡';
   }
 
   @override
@@ -1940,14 +2873,6 @@ class LZhHant extends LZh {
   String get partnerEnter => '輸入號碼';
 
   @override
-  String partnerJoined(String name) {
-    return '與$name一起記錄';
-  }
-
-  @override
-  String get partnerFailed => '號碼不對或已過期。';
-
-  @override
   String bookingNext(String trainer, String when) {
     return '$trainer · $when';
   }
@@ -2145,12 +3070,12 @@ class LZhHant extends LZh {
 
   @override
   String mealIntake(int n) {
-    return '攝取約 $n 大卡';
-  }
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
 
-  @override
-  String mealNet(int n) {
-    return '消耗 − 攝取 $n 大卡';
+    return '攝取約 $nString 大卡';
   }
 
   @override
@@ -2160,15 +3085,482 @@ class LZhHant extends LZh {
   String get mealEstimateNote => '依照片估算';
 
   @override
-  String get mealServingsAsk => '吃了幾份？';
-
-  @override
   String mealServingsOption(String n) {
     return '$n 份';
   }
 
   @override
-  String mealWholePackage(String n) {
-    return '整包（$n 份）';
+  String get fitAll => '查看全部';
+
+  @override
+  String get sameDayOther => '當天的其他紀錄';
+
+  @override
+  String get mealText => '記錄飲食';
+
+  @override
+  String get mealTextHint => '吃了什麼？例如：香蕉2根，牛奶200ml';
+
+  @override
+  String kcalApprox(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '約 $nString 大卡';
   }
+
+  @override
+  String get mealKcalUnknown => '熱量未知';
+
+  @override
+  String mealIntakePartial(int n, int m) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '攝取 $nString 大卡 + $m 項熱量未知';
+  }
+
+  @override
+  String get mealAmountAsk => '吃了多少？';
+
+  @override
+  String get mealBasis => '基準';
+
+  @override
+  String get mealEaten => '食用量';
+
+  @override
+  String get mealUnitServing => '份';
+
+  @override
+  String get mealUnitPackage => '整包';
+
+  @override
+  String get mealUnitPhoto => '照片中的食物';
+
+  @override
+  String get mealWhole => '全部';
+
+  @override
+  String get mealHalf => '一半';
+
+  @override
+  String get mealPhotoWholeNote => '這是照片中全部食物的估算值，請選擇您吃了其中多少。';
+
+  @override
+  String get mealAmountInvalid => '請輸入不小於 0 的數字。';
+
+  @override
+  String dayEnergyFull(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return '依紀錄 攝取 $intakeString − 運動 $burnedString = $diffString 大卡';
+  }
+
+  @override
+  String dayEnergyApprox(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return '依紀錄 攝取約 $intakeString − 運動 $burnedString = 約 $diffString 大卡';
+  }
+
+  @override
+  String get dayBurnedMissing => '運動消耗未測量 · 無法計算差值';
+
+  @override
+  String dayBurnedOnly(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '運動 $nString 大卡 · 未記錄飲食';
+  }
+
+  @override
+  String get energyExplain => '紀錄的攝取量減去運動消耗量，不包含靜息與日常生活消耗的能量。';
+
+  @override
+  String weightLabel(String w) {
+    return '體重 $w';
+  }
+
+  @override
+  String get weightAdd => '記錄體重';
+
+  @override
+  String get weightFromHealth => '從健康 App 匯入';
+
+  @override
+  String get weightInvalid => '請檢查體重。';
+
+  @override
+  String get weightRule => '一天量多次時使用當天第一次的數值，未測量的日子留空。';
+
+  @override
+  String get trendsTitle => '紀錄與身體變化';
+
+  @override
+  String trendDays(int n) {
+    return '$n 天';
+  }
+
+  @override
+  String trendIntakeAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '紀錄攝取平均 $nString 大卡 · $d 天';
+  }
+
+  @override
+  String trendBurnedAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '運動消耗平均 $nString 大卡 · $d 天';
+  }
+
+  @override
+  String trendDiffAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '攝取 − 運動平均 $nString 大卡 · 兩項都有的 $d 天';
+  }
+
+  @override
+  String trendIncomplete(int d) {
+    return '有熱量未知的 $d 天 · 不計入平均';
+  }
+
+  @override
+  String trendWeightChange(String a, String aw, String b, String bw) {
+    return '測量體重從 $a 的 $aw 變為 $b 的 $bw。';
+  }
+
+  @override
+  String get trendWeightOne => '只有一天量了體重，需要其他日期的測量才能看出變化。';
+
+  @override
+  String get trendWeightNone => '這段時間沒有測量體重。';
+
+  @override
+  String get trendNoData => '這段時間沒有紀錄。';
+
+  @override
+  String get intakeLabel => '攝取';
+
+  @override
+  String get burnedLabel => '運動';
+
+  @override
+  String get diffLabel => '攝取 − 運動';
+
+  @override
+  String get weightMeasured => '體重（測量值）';
+
+  @override
+  String get sourceHealth => '健康 App';
+
+  @override
+  String get sourceManual => '手動輸入';
+
+  @override
+  String get burnedSource => '運動期間手錶測得的活動能量';
+
+  @override
+  String get partnerSignIn => '需要登入才能一起訓練。';
+
+  @override
+  String get partnerSignInAction => '登入';
+
+  @override
+  String get partnerMakeCode => '產生代碼';
+
+  @override
+  String get partnerCopy => '複製';
+
+  @override
+  String partnerExpiresIn(String t) {
+    return '$t 後過期';
+  }
+
+  @override
+  String get partnerExpired => '代碼已過期。';
+
+  @override
+  String get partnerNewCode => '新代碼';
+
+  @override
+  String get partnerStopWaiting => '停止';
+
+  @override
+  String partnerWith(String name) {
+    return '正在與 $name 一起訓練';
+  }
+
+  @override
+  String get partnerReconnecting => '正在重新連線 · 你的紀錄會繼續儲存';
+
+  @override
+  String partnerTheirRecord(String name) {
+    return '$name 的紀錄';
+  }
+
+  @override
+  String get partnerNoRecordYet => '還沒有紀錄。';
+
+  @override
+  String get partnerLoading => '載入中…';
+
+  @override
+  String get partnerEnd => '結束一起訓練';
+
+  @override
+  String get partnerEndedByMe => '你已結束一起訓練，你的紀錄保留不變。';
+
+  @override
+  String partnerEndedByThem(String name) {
+    return '$name 已結束一起訓練，你的紀錄保留不變。';
+  }
+
+  @override
+  String get partnerErrFormat => '代碼為六位，請再確認。';
+
+  @override
+  String get partnerErrInvalid => '沒有這個代碼，可能已被使用或輸入有誤。';
+
+  @override
+  String get partnerErrExpired => '代碼已過期，請對方重新產生。';
+
+  @override
+  String get partnerErrEnded => '該邀請已結束。';
+
+  @override
+  String get partnerErrOwn => '這是你自己產生的代碼，請在對方裝置上輸入。';
+
+  @override
+  String get partnerErrTries => '嘗試次數過多，請稍後再試。';
+
+  @override
+  String get partnerErrNetwork => '無法連線伺服器，請檢查網路後重試。';
+
+  @override
+  String get partnerErrServer => '伺服器發生問題，請稍後重試。';
+
+  @override
+  String get partnerRetry => '重試';
+
+  @override
+  String get partnerReadOnly => '唯讀';
+
+  @override
+  String get partnerConflict => '你的另一台裝置分享了較新的紀錄。本機紀錄已儲存，只是暫停了分享。';
+
+  @override
+  String get partnerShareThisDevice => '用本機紀錄分享';
+
+  @override
+  String get plansTitle => '共同計畫';
+
+  @override
+  String get planNew => '新增共同計畫';
+
+  @override
+  String get planJoin => '用代碼加入';
+
+  @override
+  String get planHint => '第一行是標題，之後每行一個動作\n例：深蹲 4組';
+
+  @override
+  String get planDateNone => '日期未定';
+
+  @override
+  String planSetsCount(int n) {
+    return '$n組';
+  }
+
+  @override
+  String get planSave => '提出';
+
+  @override
+  String get planStateLocal => '僅在本機的草稿 · 尚未上傳';
+
+  @override
+  String get planStateDraft => '草稿 · 還沒有同伴';
+
+  @override
+  String planStateWaiting(int v) {
+    return '等待對方確認 · 版本 $v';
+  }
+
+  @override
+  String planStateNeedsMe(String name, int v) {
+    return '$name 已修改 · 版本 $v 需要你確認';
+  }
+
+  @override
+  String planStateAgreed(int v) {
+    return '已達成一致 · 版本 $v';
+  }
+
+  @override
+  String get planStateWithdrawn => '共同計畫已結束 · 已達成的計畫和你的目標保留';
+
+  @override
+  String planAccept(int v) {
+    return '接受版本 $v';
+  }
+
+  @override
+  String get planChanged => '與上次一致版本相比的變化';
+
+  @override
+  String planAdded(String x) {
+    return '新增：$x';
+  }
+
+  @override
+  String planRemoved(String x) {
+    return '移除：$x';
+  }
+
+  @override
+  String planSetsChanged(String x) {
+    return '組數變化：$x';
+  }
+
+  @override
+  String get planReordered => '順序已變化';
+
+  @override
+  String get planDateChanged => '日期已變化';
+
+  @override
+  String get planTitleChanged => '標題已變化';
+
+  @override
+  String planLastAgreed(int v) {
+    return '上次一致的計畫 · 版本 $v';
+  }
+
+  @override
+  String get planConflict => '對方先修改了，你的草稿仍然保留。';
+
+  @override
+  String planLatest(int v) {
+    return '對方的最新計畫 · 版本 $v';
+  }
+
+  @override
+  String get planKeepMine => '用我的草稿重新提出';
+
+  @override
+  String get planTakeLatest => '改用最新計畫';
+
+  @override
+  String get planMyTarget => '我的目標';
+
+  @override
+  String planPartnerTarget(String name, String t) {
+    return '$name：$t';
+  }
+
+  @override
+  String get planTargetHint => '例：100 5 或 100kg 5次 x3 備註';
+
+  @override
+  String get planInvite => '產生邀請代碼';
+
+  @override
+  String get planStart => '按此計畫開始';
+
+  @override
+  String get planStartSolo => '用我自己的副本開始';
+
+  @override
+  String get planStartSoloNote => '尚未達成一致。現在開始將使用你自己的副本，而不是已達成一致的計畫。';
+
+  @override
+  String get planOpenWorkout => '開啟已開始的訓練';
+
+  @override
+  String get planCopyNext => '複製到下一次訓練';
+
+  @override
+  String get planWithdraw => '退出此共同計畫';
+
+  @override
+  String get planCompare => '計畫與實際';
+
+  @override
+  String planDoneSets(String name, int planned, int done) {
+    return '$name · 計畫 $planned 組 · 完成 $done 組';
+  }
+
+  @override
+  String planAddedActual(String x) {
+    return '計畫外：$x';
+  }
+
+  @override
+  String planSkipped(String x) {
+    return '未做：$x';
+  }
+
+  @override
+  String get planFromRecord => '以此紀錄一起計畫下一次';
+
+  @override
+  String planStartedFrom(int v) {
+    return '從已達成一致的共同計畫（版本 $v）開始';
+  }
+
+  @override
+  String planStartedSolo(int v) {
+    return '從你自己的副本（版本 $v，未達成一致）開始';
+  }
+
+  @override
+  String get planShareLink => '傳送邀請連結';
+
+  @override
+  String planShareText(String url) {
+    return '在 setpad 一起制定訓練計畫：$url';
+  }
+
+  @override
+  String get planLinkCopied => '已複製連結，一天內可使用一次。';
+
+  @override
+  String get planLinkJoining => '正在加入受邀的計畫…';
 }

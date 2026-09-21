@@ -18,5 +18,24 @@ import UIKit
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     heartRate = HeartRateObserver(messenger: engineBridge.applicationRegistrar.messenger())
     timing = TimingBridge(messenger: engineBridge.applicationRegistrar.messenger())
+
+    // 공유 시트. 글 한 줄(공동 루틴 초대 링크)을 올리는 것이 전부라 플러그인 없이 둔다.
+    FlutterMethodChannel(
+      name: "setpad/share",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    ).setMethodCallHandler { call, result in
+      guard call.method == "share",
+        let text = (call.arguments as? [String: Any])?["text"] as? String,
+        var top = UIApplication.shared.connectedScenes
+          .compactMap({ ($0 as? UIWindowScene)?.keyWindow?.rootViewController }).first
+      else { return result(false) }
+      while let presented = top.presentedViewController { top = presented }
+      let sheet = UIActivityViewController(activityItems: [text], applicationActivities: nil)
+      // iPad 는 말풍선으로 뜬다. 닻이 없으면 죽는다.
+      sheet.popoverPresentationController?.sourceView = top.view
+      sheet.popoverPresentationController?.sourceRect = CGRect(
+        x: top.view.bounds.midX, y: top.view.bounds.midY, width: 0, height: 0)
+      top.present(sheet, animated: true) { result(true) }
+    }
   }
 }

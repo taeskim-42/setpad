@@ -5,19 +5,27 @@ import 'package:flutter/cupertino.dart';
 import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'health.dart';
-import 'health_summary.dart';
 import 'package:flutter/foundation.dart';
 import 'package:app_links/app_links.dart';
 
 import 'account.dart';
+import 'daily.dart';
 import 'gym.dart';
 import 'gym_sheets.dart';
+import 'meal.dart';
+import 'meal_amount_sheet.dart';
 import 'notes.dart';
 import 'palette.dart';
+import 'partner.dart';
+import 'plans.dart';
+import 'plans_page.dart';
 import 'notes_list.dart';
 import 'record_ai.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'set_grid.dart';
 import 'settings.dart';
+import 'trends_page.dart';
 
 void main() => runApp(const SetpadApp());
 
@@ -135,8 +143,12 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   Future<void> _open(Note note) async {
     await Navigator.of(context).push(
       CupertinoPageRoute(
-        builder: (_) =>
-            EditorPage(store: _store, note: note, account: _account),
+        builder: (_) => EditorPage(
+          store: _store,
+          note: note,
+          account: _account,
+          onPlanNext: (plan) => _openPlans(open: plan),
+        ),
       ),
     );
     // 아무것도 안 치고 나온 새 기록은 남기지 않는다.
@@ -153,8 +165,10 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     if (sets.isEmpty) return;
     // 시작과 끝. 세트마다 시각을 남기지 않으므로 노트가 만들어진 때와 마지막에
     // 고친 때로 잡는다. 실제로 그 사이에 운동을 한 것이 맞다.
-    final start = note.createdAt;
-    final end = note.updatedAt;
+    // 다른 문서가 이미 잰 구간은 빼고, 나중에 고친 시각까지 늘어나지 않게 자른다
+    // — 같은 활동 에너지를 두 번 더하거나 하루치를 운동 칼로리라 부르지 않으려고.
+    final start = sessionStart(note, _store.notes);
+    final end = sessionEnd(note);
     if (!end.isAfter(start)) return;
 
     if (!await _health.authorize()) return;
@@ -183,6 +197,34 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     }
   }
 
+  /// 공동 루틴. 서버가 안 닿아도 이 기기에 저장된 계획은 열린다.
+  late final _plans = PlanStore(link: () => _account.link)..load();
+
+  void _openPlans({SharedPlan? open, String? joinToken}) =>
+      Navigator.of(context).push(
+        CupertinoPageRoute<void>(
+          builder: (_) => PlansPage(
+            plans: _plans,
+            account: _account,
+            notes: _store,
+            open: open,
+            joinToken: joinToken,
+            // 계획에서 시작한 운동은 평소의 운동 문서다.
+            onOpenNote: (note) => Navigator.of(context).push(
+              CupertinoPageRoute<void>(
+                builder: (_) => EditorPage(
+                  store: _store,
+                  note: note,
+                  account: _account,
+                  ai: _ai,
+                  onPlanNext: (plan) => _openPlans(open: plan),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
   /// 로그인과 결제. **없어도 앱은 그대로 돈다** — 켜지 않은 사람은 그냥 쓴다.
   late final _account = Account()..start().then((_) => _sendPendingWorkouts());
 
@@ -198,7 +240,18 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 같은 태그가 두 번 들어온다. 안내창이 두 개 겹쳐 뜨던 이유다.
   String? _handling;
 
+  String? _lastPlanToken;
+
   Future<void> _openTag(Uri uri) async {
+    // 공동 루틴 초대 링크. 공동 루틴 화면이 로그인과 참여를 이어서 처리한다.
+    final planToken = planTokenFromLink(uri);
+    if (planToken != null) {
+      // 같은 링크가 두 번 전달되는 일이 있다(처음 링크 + 스트림).
+      if (planToken == _lastPlanToken) return;
+      _lastPlanToken = planToken;
+      _openPlans(joinToken: planToken);
+      return;
+    }
     final gymId = gymFromTag(uri);
     if (gymId == null) return;
     if (_handling == gymId) return;
@@ -320,8 +373,11 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
 
   /// 체육관에서 시작한 기록 중 아직 못 보낸 것을 보낸다.
   /// 헬스장은 신호가 나빠 한 번에 못 갈 때가 있다.
-  Future<void> _sendPendingWorkouts() =>
-      sendPending(_account.link, _store.notes, onSent: _store.touch);
+  /// 밀린 끼니 변경(확정·수정·삭제)도 같은 기회에 같이 간다.
+  Future<void> _sendPendingWorkouts() async {
+    await sendPending(_account.link, _store.notes, onSent: _store.touch);
+    await syncMeals(_account.link, _store.notes, onSynced: _store.touch);
+  }
 
   /// 앱이 닫혀 있다 열린 경우와, 떠 있는데 댄 경우를 한 줄기로 받는다.
   void _watchTags() {
@@ -373,6 +429,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     return NotesListPage(
       store: _store,
       onOpen: _open,
+      onPlans: () => _openPlans(),
       account: _account,
       ai: _ai,
     );
@@ -386,10 +443,14 @@ class EditorPage extends StatefulWidget {
     required this.note,
     this.account,
     this.ai = const RecordAi(),
+    this.onPlanNext,
   });
 
   final NotesStore store;
   final Note note;
+
+  /// 이 기록으로 다음 운동을 함께 계획한다. 초안을 받아 공동 루틴 화면을 연다.
+  final void Function(SharedPlan draft)? onPlanNext;
 
   /// 문장 해석과 식단 사진이 같은 문을 쓴다.
   final RecordAi ai;
@@ -401,13 +462,107 @@ class EditorPage extends StatefulWidget {
   State<EditorPage> createState() => _EditorPageState();
 }
 
-class _EditorPageState extends State<EditorPage> {
+class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
+  /// 같이 하기. 로그인·결제 계정이 있을 때만 있다.
+  late final PartnerSync? _partner = widget.account == null
+      ? null
+      : PartnerSync(
+          note: widget.note,
+          link: () => widget.account!.link,
+          onChanged: widget.store.touch,
+        );
+
+  /// 화면이 보이는 동안만 상대의 변경을 확인한다. 백그라운드에서는 멈추고,
+  /// 돌아오면 바로 최신 상태를 다시 묻는다.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _partner?.start();
+    } else {
+      _partner?.stop();
+    }
+  }
+
   final _documentHeaderKey = GlobalKey<_DocumentHeaderState>();
   late final _editor = RoutineEditorController(
     history: widget.store.exerciseHistory,
     weightUnit: widget.store.weightUnit,
   );
   String? _lastLearned;
+  final _mealText = ValueNotifier<({String text, int? index})?>(null);
+
+  /// 같은 날 만든 다른 기록들. 하루에 문서가 여럿일 수 있다 — 오전에 한 장,
+  /// 저녁에 한 장. 합치거나 베끼지 않고 이 문서 아래에 읽기 전용으로 보여 준다.
+  List<Note> get _sameDay {
+    final at = widget.note.createdAt;
+    return [
+      for (final n in widget.store.notes)
+        if (n != widget.note &&
+            n.blocks.isNotEmpty &&
+            n.createdAt.year == at.year &&
+            n.createdAt.month == at.month &&
+            n.createdAt.day == at.day)
+          n,
+    ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  }
+
+  /// 글로 적은 한 끼를 저장한다. 묻지 않는다 — 모르는 음식도, 양이 없는 글도
+  /// 친 그대로 남고, 열량은 사람이 적었을 때만 있다. 고치다 다 지우면 그
+  /// 끼니가 없어진다.
+  void _saveMealText(String text, int? index) {
+    final meals = widget.note.meals;
+    final old = index != null && index < meals.length ? meals[index] : null;
+    if (text.isEmpty) {
+      if (old != null) widget.note.removeMeal(old);
+    } else {
+      final parsed = parseMealText(text);
+      final entry = MealEntry(
+        id: old?.id, // 고친 끼니는 서버의 같은 줄이다.
+        at: old?.at ?? DateTime.now(),
+        kcal: parsed.kcal,
+        text: text,
+        source: parsed.kcal == null ? null : MealEntry.typed,
+        foods: parsed.foods,
+      );
+      old == null ? meals.add(entry) : meals[index!] = entry;
+      if (parsed.kcal == null) _estimateMealText(entry);
+    }
+    _mealsChanged();
+  }
+
+  /// 끼니가 바뀌었다. 먼저 이 기기에 쓰고, 그다음 서버의 같은 줄에 맞춘다 —
+  /// 그물이 없으면 밀려 있다가 다음에 간다.
+  void _mealsChanged() {
+    widget.store.touch();
+    final link = widget.account?.link;
+    if (link == null || widget.note.gymId == null) return;
+    syncMeals(link, [widget.note], onSynced: widget.store.touch);
+  }
+
+  /// 원문은 이미 저장됐다. 열량을 안 적은 끼니에 어림값을 붙여 볼 뿐이고,
+  /// 못 붙이면 미상으로 남는다. 그사이 사람이 고쳤거나 지웠으면 손대지 않는다.
+  Future<void> _estimateMealText(MealEntry entry) async {
+    if (!widget.ai.supported) return;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final MealEstimate estimate;
+    try {
+      estimate = await widget.ai.estimateMealText(entry.text!, locale: locale);
+    } catch (_) {
+      return;
+    }
+    final at = widget.note.meals.indexOf(entry);
+    if (at < 0) return;
+    widget.note.meals[at] = MealEntry(
+      id: entry.id,
+      at: entry.at,
+      kcal: estimate.kcal,
+      items: estimate.items,
+      text: entry.text,
+      source: MealEntry.estimate,
+      foods: entry.foods,
+    );
+    _mealsChanged();
+  }
 
   @override
   void initState() {
@@ -415,6 +570,29 @@ class _EditorPageState extends State<EditorPage> {
     _editor.restore(widget.note.blocks);
     _lastLearned = _editor.recentExercises.firstOrNull;
     _editor.addListener(_persist);
+    WidgetsBinding.instance.addObserver(this);
+    _partner?.addListener(_partnerChanged);
+    // 다시 들어왔을 때 서버에 상태를 물어 복구한다(열린 세션이 있을 때만 돈다).
+    if (widget.note.partner?.open ?? false) _partner?.start();
+  }
+
+  /// 이 기록의 종목·세트 수와 내가 마지막에 한 무게·횟수로 새 초안을 뜬다.
+  /// 완료 표시는 따라가지 않고, 이 기록은 바뀌지 않는다.
+  VoidCallback? get _planNext =>
+      widget.onPlanNext == null || widget.note.blocks.isEmpty
+      ? null
+      : () {
+          Navigator.of(context).pop();
+          widget.onPlanNext!(
+            planFromBlocks(widget.note.title ?? '', widget.note.blocks),
+          );
+        };
+
+  void _partnerChanged() {
+    if (!mounted) return;
+    // 세션이 열리면 돌고, 끝나면 멈춘다.
+    (widget.note.partner?.open ?? false) ? _partner!.start() : _partner!.stop();
+    setState(() {});
   }
 
   void _persist() {
@@ -424,13 +602,19 @@ class _EditorPageState extends State<EditorPage> {
     }
     _lastLearned = recent;
     widget.store.update(widget.note, _editor.blocks);
+    // 내 기록은 방금 이 기기에 저장됐다. 그다음에 상대에게 보낸다.
+    _partner?.recordChanged();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _partner?.removeListener(_partnerChanged);
+    _partner?.dispose();
     _editor.removeListener(_persist);
     widget.store.flush();
     _editor.dispose();
+    _mealText.dispose();
     super.dispose();
   }
 
@@ -448,12 +632,17 @@ class _EditorPageState extends State<EditorPage> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 같이 하기. 로그인한 사람에게만 — 짝을 서버가 들고 있어야 한다.
-            if (widget.account?.signedIn ?? false)
+            // 같이 하기. 로그인하지 않았으면 창 안에서 로그인으로 이어진다 —
+            // 버튼이 아예 없으면 기능이 있는 줄도 모른다.
+            if (_partner != null)
               CupertinoButton(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
-                onPressed: () =>
-                    showPartnerSheet(context, widget.account!, widget.note),
+                onPressed: () => showPartnerSheet(
+                  context,
+                  widget.account!,
+                  _partner,
+                  onPlanNext: _planNext,
+                ),
                 child: Icon(
                   CupertinoIcons.person_2,
                   size: 20,
@@ -491,21 +680,113 @@ class _EditorPageState extends State<EditorPage> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560),
-            child: RoutineEditor(
-              countAloud: widget.store.countAloud,
-              controller: _editor,
-              ai: widget.ai,
-              header: _DocumentHeader(
-                key: _documentHeaderKey,
-                note: widget.note,
-                store: widget.store,
-                ai: widget.ai,
-              ),
-              initialDraft: widget.note.draft,
-              onDraftChanged: (draft) =>
-                  widget.store.updateDraft(widget.note, draft),
-              onForgetExercise: widget.store.forgetExercise,
-              onMealPhoto: () => _documentHeaderKey.currentState?._pick(),
+            child: Column(
+              children: [
+                // 같이 운동 중이면 상대 이름과 상태를 작게. 누르면 상대 기록이 나온다.
+                if (widget.note.partner?.state == PartnerState.active)
+                  GestureDetector(
+                    key: const ValueKey('partner-banner'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => showPartnerSheet(
+                      context,
+                      widget.account!,
+                      _partner,
+                      onPlanNext: _planNext,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 2, 16, 2),
+                      child: Row(
+                        children: [
+                          Icon(
+                            CupertinoIcons.person_2_fill,
+                            size: 14,
+                            color: seal.resolveFrom(context),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              _partner!.reachable
+                                  ? l.partnerWith(
+                                      widget.note.partner!.partnerName ?? '',
+                                    )
+                                  : l.partnerReconnecting,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: CupertinoColors.secondaryLabel
+                                    .resolveFrom(context),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: RoutineEditor(
+                    countAloud: widget.store.countAloud,
+                    controller: _editor,
+                    ai: widget.ai,
+                    header: _DocumentHeader(
+                      key: _documentHeaderKey,
+                      note: widget.note,
+                      store: widget.store,
+                      ai: widget.ai,
+                      mealText: _mealText,
+                      onMealsChanged: _mealsChanged,
+                      onTrends: () => Navigator.of(context).push(
+                        CupertinoPageRoute<void>(
+                          builder: (context) => TrendsPage(
+                            store: widget.store,
+                            health: HealthLink(),
+                            // 이 문서면 돌아오고, 다른 날 문서면 그것을 연다.
+                            onOpenNote: (other) => other == widget.note
+                                ? Navigator.of(context).pop()
+                                : Navigator.of(context).push(
+                                    CupertinoPageRoute<void>(
+                                      builder: (_) => EditorPage(
+                                        store: widget.store,
+                                        note: other,
+                                        account: widget.account,
+                                        ai: widget.ai,
+                                      ),
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ),
+                      onFitAll: () => showFitAll(context, [
+                        (
+                          caption: DateFormat.jm(
+                            l.localeName,
+                          ).format(widget.note.createdAt),
+                          blocks: _editor.blocks,
+                        ),
+                        for (final n in _sameDay)
+                          (
+                            caption: DateFormat.jm(
+                              l.localeName,
+                            ).format(n.createdAt),
+                            blocks: n.blocks,
+                          ),
+                      ]),
+                    ),
+                    footer: _sameDay.isEmpty ? null : _SameDay(notes: _sameDay),
+                    mealText: _mealText,
+                    onMealText: _saveMealText,
+                    recentMeals: <String>{
+                      for (final n in widget.store.notes)
+                        for (final m in n.meals.reversed) ?m.text,
+                    }.take(24).toList(),
+                    initialDraft: widget.note.draft,
+                    onDraftChanged: (draft) =>
+                        widget.store.updateDraft(widget.note, draft),
+                    onForgetExercise: widget.store.forgetExercise,
+                    onMealPhoto: () => _documentHeaderKey.currentState?._pick(),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -520,10 +801,22 @@ class _DocumentHeader extends StatefulWidget {
     required this.note,
     required this.store,
     required this.ai,
+    this.mealText,
+    this.onFitAll,
+    this.onMealsChanged,
+    this.onTrends,
   });
+  final VoidCallback? onTrends;
   final Note note;
   final NotesStore store;
   final RecordAi ai;
+
+  /// 식단 글은 아래 입력 줄에서 친다. 여기서는 그 모드를 켜기만 한다.
+  final ValueNotifier<({String text, int? index})?>? mealText;
+  final VoidCallback? onFitAll;
+
+  /// 끼니를 더하거나 고치거나 지웠다. 저장과 서버 맞춤은 문서 쪽이 한다.
+  final VoidCallback? onMealsChanged;
 
   @override
   State<_DocumentHeader> createState() => _DocumentHeaderState();
@@ -542,6 +835,21 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
   String? _error;
 
   Note get note => widget.note;
+
+  // 식단은 아래 입력 줄에서도 저장된다. 저장소가 바뀌면 다시 그린다.
+  void _onStore() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    widget.store.addListener(_onStore);
+  }
+
+  @override
+  void dispose() {
+    widget.store.removeListener(_onStore);
+    super.dispose();
+  }
 
   Future<void> _addMeal(ImageSource source) async {
     final l = L.of(context);
@@ -582,31 +890,36 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
       );
       final label = estimate.label;
       if (label != null) {
-        // 성분표는 정확하다. 몇 회분인지만 물어 곱한다.
+        // 성분표는 인쇄된 숫자다. 얼마나 먹었는지만 받아 계산한다. 취소하면
+        // 아무것도 남기지 않는다 — 다시 찍어도 끼니가 둘이 되지 않는다.
         if (!mounted) return;
         setState(() => _estimating = false);
-        final servings = await _askServings(label);
-        if (servings == null || !mounted) return;
-        note.meals.add(
-          MealEntry(
-            at: DateTime.now(),
-            kcal: label.kcalFor(servings),
-            items: [
-              if (label.product != null) label.product!,
-              l.mealServingsOption(_servingsText(servings)),
-            ],
-          ),
+        final picked = await askMealAmount(
+          context,
+          bases: basesOf(label),
+          title: label.product,
         );
+        if (picked == null || !mounted) return;
+        note.meals.add(_measured(picked, MealEntry.label, label.product));
       } else {
+        // 사진 어림은 **보이는 음식 전체**의 값이다. 묻지 않고 전체로 남기고,
+        // 덜 먹었으면 그 줄을 눌러 고친다 — 매번 창을 띄우지 않는다.
         note.meals.add(
           MealEntry(
             at: DateTime.now(),
             kcal: estimate.kcal,
             items: estimate.items,
+            source: MealEntry.estimate,
+            basis: MealBasis(
+              kcal: estimate.kcal.toDouble(),
+              amount: 1,
+              unit: MealBasis.photo,
+            ),
+            eaten: 1,
           ),
         );
       }
-      widget.store.touch();
+      _changed();
     } on RecordAiException {
       _error = l.mealFailed;
     } catch (_) {
@@ -615,44 +928,55 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     if (mounted) setState(() => _estimating = false);
   }
 
-  static String _servingsText(double n) =>
-      n == n.roundToDouble() ? '${n.round()}' : n.toStringAsFixed(1);
+  /// 근거와 먹은 양으로 한 끼를 만든다. 열량은 여기서 한 번만 반올림된다.
+  void _changed() => (widget.onMealsChanged ?? widget.store.touch)();
 
-  /// 성분표를 찍었을 때: 몇 회분 먹었는지. ½·1·1½·2 와, 총 회분이 적혀
-  /// 있으면 "전체" 도 고를 수 있다.
-  Future<double?> _askServings(NutritionLabel label) {
-    final l = L.of(context);
-    final whole = label.servingsPerPackage;
-    return showCupertinoModalPopup<double>(
-      context: context,
-      builder: (ctx) => CupertinoActionSheet(
-        title: Text(l.mealServingsAsk),
-        message: Text(
-          '${l.kcal(label.perServingKcal)}'
-          '${label.servingSize.isEmpty ? '' : ' · ${label.servingSize}'}',
-        ),
-        actions: [
-          for (final n in const [0.5, 1.0, 1.5, 2.0])
-            CupertinoActionSheetAction(
-              onPressed: () => Navigator.pop(ctx, n),
-              child: Text(
-                '${l.mealServingsOption(_servingsText(n))} · ${l.kcal(label.kcalFor(n))}',
-              ),
-            ),
-          if (whole != null && whole > 2)
-            CupertinoActionSheetAction(
-              onPressed: () => Navigator.pop(ctx, whole),
-              child: Text(
-                '${l.mealWholePackage(_servingsText(whole))} · ${l.kcal(label.kcalFor(whole))}',
-              ),
-            ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(ctx),
-          child: Text(l.cancel),
-        ),
-      ),
+  MealEntry _measured(
+    ({MealBasis basis, double eaten}) picked,
+    String source,
+    String? name, {
+    MealEntry? old,
+  }) => MealEntry(
+    id: old?.id, // 양을 고친 끼니는 서버의 같은 줄이다.
+    at: old?.at ?? DateTime.now(),
+    kcal: picked.basis.kcalFor(picked.eaten),
+    items: old != null && old.basis?.unit == MealBasis.photo
+        ? old.items
+        : [?name],
+    source: source,
+    basis: picked.basis,
+    eaten: picked.eaten,
+  );
+
+  /// 끼니 한 줄을 눌렀다. 글로 적은 것은 입력 줄로 불러 고치고, 근거가 있는
+  /// 것은 먹은 양을 다시 받는다. 저장된 열량에 또 곱하지 않는다 — 근거에서
+  /// 다시 계산해 **그 자리를** 바꾼다.
+  Future<void> _editMeal(int index) async {
+    final meal = note.meals[index];
+    if (meal.text != null) {
+      widget.mealText?.value = (text: meal.text!, index: index);
+      return;
+    }
+    final basis = meal.basis;
+    if (basis == null) return; // 예전 기록 — 다시 계산할 근거가 없다.
+    final photo = basis.unit == MealBasis.photo;
+    final picked = await askMealAmount(
+      context,
+      bases: [basis],
+      title: meal.items.isEmpty ? null : meal.items.join(', '),
+      note: photo ? L.of(context).mealPhotoWholeNote : null,
+      initialBasis: basis,
+      initialEaten: meal.eaten,
     );
+    if (picked == null || !mounted || index >= note.meals.length) return;
+    note.meals[index] = _measured(
+      picked,
+      meal.source ?? MealEntry.estimate,
+      meal.items.firstOrNull,
+      old: meal,
+    );
+    _changed();
+    setState(() {});
   }
 
   void _pick() {
@@ -691,10 +1015,18 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     final l = L.of(context);
     final at = note.createdAt;
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
-    final intake = note.intake;
-    final burned = note.calories;
+    // 하루치다 — 이 문서 하나가 아니라 그날의 문서·끼니·체중 전부. 기간 화면과
+    // 같은 집계를 쓰므로 여기 숫자와 그래프의 숫자가 어긋날 수 없다.
+    final log = dayLogs(
+      widget.store.notes,
+      widget.store.weights,
+      from: at,
+      to: at,
+    ).firstOrNull;
+    final energy = log == null ? null : dayEnergyText(l, log);
+    final weight = log?.weight;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -703,53 +1035,72 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: muted),
           ),
-          if (burned != null) ...[
-            const SizedBox(height: 12),
-            HealthSummary(calories: burned, showSource: true),
-          ],
-          if (intake != null) ...[
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Icon(
-                  CupertinoIcons.leaf_arrow_circlepath,
-                  size: 15,
-                  color: muted,
+          // 섭취 · 운동 · 차이와 체중을 작은 두 줄로. 누르면 기간 화면으로 간다.
+          if (energy != null || weight != null)
+            GestureDetector(
+              key: const ValueKey('day-summary'),
+              behavior: HitTestBehavior.opaque,
+              onTap: widget.onTrends,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (energy != null)
+                      Text(
+                        energy,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: CupertinoColors.label.resolveFrom(context),
+                        ),
+                      ),
+                    if (weight != null)
+                      Text(
+                        l.weightLabel(
+                          formatWeight(weight, widget.store.weightUnit),
+                        ),
+                        style: TextStyle(fontSize: 13, color: muted),
+                      ),
+                  ],
                 ),
-                Text(
-                  l.mealIntake(intake),
-                  style: TextStyle(fontSize: 13, color: muted),
-                ),
-                if (burned != null)
-                  Text(
-                    l.mealNet(burned.round() - intake),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: CupertinoColors.label.resolveFrom(context),
-                    ),
-                  ),
-              ],
+              ),
             ),
+          if (note.meals.isNotEmpty) ...[
+            const SizedBox(height: 4),
             for (final (i, meal) in note.meals.indexed)
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      '${l.kcal(meal.kcal)}${meal.items.isEmpty ? '' : ' · ${meal.items.join(', ')}'}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 13, color: muted),
+                    child: GestureDetector(
+                      key: ValueKey('meal-$i'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _editMeal(i),
+                      child: Text(
+                        [
+                          meal.kcal == null
+                              ? l.mealKcalUnknown
+                              : meal.approximate
+                              ? l.kcalApprox(meal.kcal!)
+                              : l.kcal(meal.kcal!),
+                          meal.text ?? meal.items.join(', '),
+                          if (meal.basis != null &&
+                              meal.eaten != null &&
+                              !(meal.basis!.unit == MealBasis.photo &&
+                                  meal.eaten == 1))
+                            mealEatenText(l, meal.basis!, meal.eaten!),
+                        ].where((t) => t.isNotEmpty).join(' · '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 13, color: muted),
+                      ),
                     ),
                   ),
                   CupertinoButton(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     minimumSize: const Size(32, 32),
                     onPressed: () {
-                      note.meals.removeAt(i);
-                      widget.store.touch();
+                      note.removeMeal(meal);
+                      _changed();
                       setState(() {});
                     },
                     child: Icon(CupertinoIcons.xmark, size: 14, color: muted),
@@ -762,25 +1113,110 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
               _error!,
               style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
             ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: CupertinoButton(
-              padding: EdgeInsets.zero,
-              minimumSize: const Size(44, 36),
-              onPressed: _estimating || !widget.ai.supported ? null : _pick,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(CupertinoIcons.camera, size: 16),
-                  const SizedBox(width: 6),
-                  Text(
-                    _estimating ? l.mealEstimating : l.mealPhoto,
-                    style: const TextStyle(fontSize: 14),
+          Row(
+            children: [
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(44, 36),
+                onPressed: _estimating || !widget.ai.supported ? null : _pick,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(CupertinoIcons.camera, size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      _estimating ? l.mealEstimating : l.mealPhoto,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+              // 글로 적는 쪽은 서버가 필요 없다 — 그물이 없어도 늘 된다.
+              if (widget.mealText != null) ...[
+                const SizedBox(width: 16),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(44, 36),
+                  onPressed: () =>
+                      widget.mealText!.value = (text: '', index: null),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(CupertinoIcons.square_pencil, size: 16),
+                      const SizedBox(width: 6),
+                      Text(l.mealText, style: const TextStyle(fontSize: 14)),
+                    ],
                   ),
-                ],
+                ),
+              ],
+              const Spacer(),
+              // 체중은 운동한 날에만 재는 것이 아니지만, 재는 김에 적을 자리는
+              // 여기가 가장 가깝다. 그래프는 이 버튼 옆 요약 줄을 누르면 나온다.
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(44, 36),
+                onPressed: () => editWeight(context, widget.store),
+                child: Icon(
+                  CupertinoIcons.gauge,
+                  size: 17,
+                  semanticLabel: l.weightAdd,
+                ),
+              ),
+              if (widget.onTrends != null)
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(44, 36),
+                  onPressed: widget.onTrends,
+                  child: Icon(
+                    CupertinoIcons.chart_bar,
+                    size: 17,
+                    semanticLabel: l.trendsTitle,
+                  ),
+                ),
+              if (widget.onFitAll != null && note.blocks.isNotEmpty)
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(44, 36),
+                  onPressed: widget.onFitAll,
+                  child: Icon(
+                    CupertinoIcons.arrow_up_left_arrow_down_right,
+                    size: 16,
+                    semanticLabel: l.fitAll,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 같은 날의 다른 기록 — 읽기 전용이다. 원본은 제 문서에 그대로 있고 여기서는
+/// 보여 주기만 한다. 고치려면 그 문서를 연다.
+class _SameDay extends StatelessWidget {
+  const _SameDay({required this.notes});
+  final List<Note> notes;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final n in notes) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(
+                '${l.sameDayOther} · ${DateFormat.jm(l.localeName).format(n.createdAt)}',
+                style: TextStyle(fontSize: 13, color: muted),
               ),
             ),
-          ),
+            for (final b in n.blocks) BlockSummary(block: b),
+          ],
         ],
       ),
     );

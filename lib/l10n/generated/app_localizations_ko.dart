@@ -113,7 +113,12 @@ class LKo extends L {
 
   @override
   String kcal(int n) {
-    return '${n}kcal';
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '${nString}kcal';
   }
 
   @override
@@ -495,18 +500,10 @@ class LKo extends L {
   String get partnerInvite => '같이 하기';
 
   @override
-  String get partnerCode => '상대에게 이 번호를 불러 주세요';
+  String get partnerCode => '상대에게 이 코드를 알려 주세요';
 
   @override
-  String get partnerEnter => '번호 입력';
-
-  @override
-  String partnerJoined(String name) {
-    return '$name와 같이 기록합니다';
-  }
-
-  @override
-  String get partnerFailed => '번호가 맞지 않거나 시간이 지났어요.';
+  String get partnerEnter => '코드 입력';
 
   @override
   String bookingNext(String trainer, String when) {
@@ -707,12 +704,12 @@ class LKo extends L {
 
   @override
   String mealIntake(int n) {
-    return '섭취 약 ${n}kcal';
-  }
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
 
-  @override
-  String mealNet(int n) {
-    return '운동 − 섭취 ${n}kcal';
+    return '섭취 약 ${nString}kcal';
   }
 
   @override
@@ -722,15 +719,485 @@ class LKo extends L {
   String get mealEstimateNote => '사진으로 어림한 값이에요';
 
   @override
-  String get mealServingsAsk => '몇 회분 드셨나요?';
-
-  @override
   String mealServingsOption(String n) {
     return '$n회분';
   }
 
   @override
-  String mealWholePackage(String n) {
-    return '전체 $n회분';
+  String get fitAll => '전체 보기';
+
+  @override
+  String get sameDayOther => '같은 날의 다른 기록';
+
+  @override
+  String get mealText => '식단 적기';
+
+  @override
+  String get mealTextHint => '먹은 것을 적어 주세요. 예: 김밥 한 줄, 우유 200ml';
+
+  @override
+  String kcalApprox(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '약 ${nString}kcal';
   }
+
+  @override
+  String get mealKcalUnknown => '열량 미상';
+
+  @override
+  String mealIntakePartial(int n, int m) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '확인된 섭취 ${nString}kcal · 열량 미상 $m건';
+  }
+
+  @override
+  String get mealAmountAsk => '얼마나 드셨나요?';
+
+  @override
+  String get mealBasis => '기준';
+
+  @override
+  String get mealEaten => '먹은 양';
+
+  @override
+  String get mealUnitServing => '회분';
+
+  @override
+  String get mealUnitPackage => '포장 전체';
+
+  @override
+  String get mealUnitPhoto => '사진 속 음식';
+
+  @override
+  String get mealWhole => '전체';
+
+  @override
+  String get mealHalf => '절반';
+
+  @override
+  String get mealPhotoWholeNote => '사진에 보이는 음식 전체를 어림한 값이에요. 그중 드신 만큼을 고르세요.';
+
+  @override
+  String get mealAmountInvalid => '0 이상의 숫자를 입력해 주세요.';
+
+  @override
+  String dayEnergyFull(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return '기록 기준 섭취 $intakeString − 운동 $burnedString = ${diffString}kcal';
+  }
+
+  @override
+  String dayEnergyApprox(int intake, int burned, int diff) {
+    final intl.NumberFormat intakeNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String intakeString = intakeNumberFormat.format(intake);
+    final intl.NumberFormat burnedNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String burnedString = burnedNumberFormat.format(burned);
+    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String diffString = diffNumberFormat.format(diff);
+
+    return '기록 기준 섭취 약 $intakeString − 운동 $burnedString = 약 ${diffString}kcal';
+  }
+
+  @override
+  String get dayBurnedMissing => '운동 소모량 미측정 · 차이 계산 불가';
+
+  @override
+  String dayBurnedOnly(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '운동 ${nString}kcal · 식단 미기록';
+  }
+
+  @override
+  String get energyExplain =>
+      '기록된 섭취량에서 운동 소모량을 뺀 값입니다. 휴식과 일상생활에서 쓰는 에너지는 제외됩니다.';
+
+  @override
+  String weightLabel(String w) {
+    return '체중 $w';
+  }
+
+  @override
+  String get weightAdd => '체중 기록';
+
+  @override
+  String get weightFromHealth => '건강 앱에서 가져오기';
+
+  @override
+  String get weightInvalid => '체중을 확인해 주세요.';
+
+  @override
+  String get weightRule => '하루에 여러 번 재면 그날 처음 잰 값을 씁니다. 재지 않은 날은 비워 둡니다.';
+
+  @override
+  String get trendsTitle => '기록과 몸의 변화';
+
+  @override
+  String trendDays(int n) {
+    return '$n일';
+  }
+
+  @override
+  String trendIntakeAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '기록된 섭취 평균 ${nString}kcal · $d일';
+  }
+
+  @override
+  String trendBurnedAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '기록된 운동 소모 평균 ${nString}kcal · $d일';
+  }
+
+  @override
+  String trendDiffAvg(int n, int d) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '섭취 − 운동 평균 ${nString}kcal · 둘 다 기록한 $d일';
+  }
+
+  @override
+  String trendIncomplete(int d) {
+    return '열량 미상이 있는 날 $d일 · 평균에서 제외';
+  }
+
+  @override
+  String trendWeightChange(String a, String aw, String b, String bw) {
+    return '측정 체중은 $a $aw에서 $b $bw(으)로 변했습니다.';
+  }
+
+  @override
+  String get trendWeightOne => '체중을 잰 날이 하루뿐입니다. 변화를 보려면 다른 날의 측정이 필요합니다.';
+
+  @override
+  String get trendWeightNone => '이 기간에 잰 체중이 없습니다.';
+
+  @override
+  String get trendNoData => '이 기간에 기록이 없습니다.';
+
+  @override
+  String get intakeLabel => '섭취';
+
+  @override
+  String get burnedLabel => '운동';
+
+  @override
+  String get diffLabel => '섭취 − 운동';
+
+  @override
+  String get weightMeasured => '체중 (측정값)';
+
+  @override
+  String get sourceHealth => '건강 앱';
+
+  @override
+  String get sourceManual => '직접 입력';
+
+  @override
+  String get burnedSource => '운동 중 워치가 잰 활동 에너지';
+
+  @override
+  String get partnerSignIn => '같이 하려면 로그인이 필요합니다.';
+
+  @override
+  String get partnerSignInAction => '로그인';
+
+  @override
+  String get partnerMakeCode => '코드 만들기';
+
+  @override
+  String get partnerCopy => '복사';
+
+  @override
+  String partnerExpiresIn(String t) {
+    return '$t 뒤 만료';
+  }
+
+  @override
+  String get partnerExpired => '코드가 만료되었습니다.';
+
+  @override
+  String get partnerNewCode => '새 코드';
+
+  @override
+  String get partnerStopWaiting => '그만두기';
+
+  @override
+  String partnerWith(String name) {
+    return '$name 님과 함께 운동 중';
+  }
+
+  @override
+  String get partnerReconnecting => '연결 복구 중 · 내 기록은 계속 저장됩니다';
+
+  @override
+  String partnerTheirRecord(String name) {
+    return '$name 님의 기록';
+  }
+
+  @override
+  String get partnerNoRecordYet => '아직 올라온 기록이 없습니다.';
+
+  @override
+  String get partnerLoading => '불러오는 중…';
+
+  @override
+  String get partnerEnd => '함께 운동 종료';
+
+  @override
+  String get partnerEndedByMe => '함께 운동을 종료했습니다. 내 기록은 그대로 남아 있습니다.';
+
+  @override
+  String partnerEndedByThem(String name) {
+    return '$name 님이 함께 운동을 종료했습니다. 내 기록은 그대로 남아 있습니다.';
+  }
+
+  @override
+  String get partnerErrFormat => '코드는 여섯 글자입니다. 다시 확인해 주세요.';
+
+  @override
+  String get partnerErrInvalid => '맞는 코드가 없습니다. 이미 사용됐거나 잘못 입력했을 수 있어요.';
+
+  @override
+  String get partnerErrExpired => '만료된 코드입니다. 상대에게 새 코드를 받아 주세요.';
+
+  @override
+  String get partnerErrEnded => '이미 종료된 초대입니다.';
+
+  @override
+  String get partnerErrOwn => '내가 만든 코드입니다. 상대의 기기에서 입력해 주세요.';
+
+  @override
+  String get partnerErrTries => '시도가 너무 많습니다. 잠시 뒤에 다시 해 주세요.';
+
+  @override
+  String get partnerErrNetwork => '서버에 연결하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.';
+
+  @override
+  String get partnerErrServer => '서버에 문제가 있습니다. 잠시 뒤에 다시 시도해 주세요.';
+
+  @override
+  String get partnerRetry => '다시 시도';
+
+  @override
+  String get partnerReadOnly => '읽기 전용';
+
+  @override
+  String get partnerConflict =>
+      '다른 기기에서 더 새 기록을 공유했습니다. 이 기기의 기록은 그대로 저장돼 있고, 공유만 멈춘 상태입니다.';
+
+  @override
+  String get partnerShareThisDevice => '이 기기의 기록으로 공유하기';
+
+  @override
+  String get plansTitle => '공동 루틴';
+
+  @override
+  String get planNew => '새 공동 루틴';
+
+  @override
+  String get planJoin => '코드로 참여';
+
+  @override
+  String get planHint => '첫 줄은 제목, 그다음은 한 줄에 한 종목\n예: 스쿼트 4세트';
+
+  @override
+  String get planDateNone => '날짜 미정';
+
+  @override
+  String planSetsCount(int n) {
+    return '$n세트';
+  }
+
+  @override
+  String get planSave => '제안하기';
+
+  @override
+  String get planStateLocal => '이 기기에만 있는 초안 · 서버에 아직 올라가지 않았습니다';
+
+  @override
+  String get planStateDraft => '초안 · 아직 혼자입니다';
+
+  @override
+  String planStateWaiting(int v) {
+    return '상대 확인 대기 · 버전 $v';
+  }
+
+  @override
+  String planStateNeedsMe(String name, int v) {
+    return '$name 님이 고쳤습니다 · 버전 $v 확인이 필요합니다';
+  }
+
+  @override
+  String planStateAgreed(int v) {
+    return '합의 완료 · 버전 $v';
+  }
+
+  @override
+  String get planStateWithdrawn => '함께 계획이 끝났습니다 · 합의본과 내 목표는 남아 있습니다';
+
+  @override
+  String planAccept(int v) {
+    return '버전 $v 수락';
+  }
+
+  @override
+  String get planChanged => '마지막 합의본에서 바뀐 것';
+
+  @override
+  String planAdded(String x) {
+    return '추가: $x';
+  }
+
+  @override
+  String planRemoved(String x) {
+    return '빠짐: $x';
+  }
+
+  @override
+  String planSetsChanged(String x) {
+    return '세트 수 변경: $x';
+  }
+
+  @override
+  String get planReordered => '순서가 바뀌었습니다';
+
+  @override
+  String get planDateChanged => '예정 날짜가 바뀌었습니다';
+
+  @override
+  String get planTitleChanged => '제목이 바뀌었습니다';
+
+  @override
+  String planLastAgreed(int v) {
+    return '마지막 합의본 · 버전 $v';
+  }
+
+  @override
+  String get planConflict => '상대가 먼저 고쳤습니다. 내 초안은 그대로 있습니다.';
+
+  @override
+  String planLatest(int v) {
+    return '상대가 고친 최신 계획 · 버전 $v';
+  }
+
+  @override
+  String get planKeepMine => '내 초안으로 다시 제안';
+
+  @override
+  String get planTakeLatest => '최신 계획으로 바꾸기';
+
+  @override
+  String get planMyTarget => '내 목표';
+
+  @override
+  String planPartnerTarget(String name, String t) {
+    return '$name: $t';
+  }
+
+  @override
+  String get planTargetHint => '예: 100 5 또는 100kg 5회 x3 메모';
+
+  @override
+  String get planInvite => '초대 코드 만들기';
+
+  @override
+  String get planStart => '이 루틴으로 시작';
+
+  @override
+  String get planStartSolo => '본인용 사본으로 시작';
+
+  @override
+  String get planStartSoloNote =>
+      '아직 합의 전입니다. 지금 시작하면 공동 합의본이 아니라 본인용 사본으로 시작합니다.';
+
+  @override
+  String get planOpenWorkout => '시작한 운동 열기';
+
+  @override
+  String get planCopyNext => '다음 운동으로 복사';
+
+  @override
+  String get planWithdraw => '함께 계획 그만두기';
+
+  @override
+  String get planCompare => '계획과 실제';
+
+  @override
+  String planDoneSets(String name, int planned, int done) {
+    return '$name · 계획 $planned세트 · 수행 $done세트';
+  }
+
+  @override
+  String planAddedActual(String x) {
+    return '계획에 없던 운동: $x';
+  }
+
+  @override
+  String planSkipped(String x) {
+    return '하지 않은 운동: $x';
+  }
+
+  @override
+  String get planFromRecord => '이 기록으로 다음 운동 함께 계획';
+
+  @override
+  String planStartedFrom(int v) {
+    return '공동 루틴 합의본(버전 $v)에서 시작했습니다';
+  }
+
+  @override
+  String planStartedSolo(int v) {
+    return '본인용 사본(버전 $v, 합의 전)에서 시작했습니다';
+  }
+
+  @override
+  String get planShareLink => '초대 링크 보내기';
+
+  @override
+  String planShareText(String url) {
+    return 'setpad에서 운동 계획을 같이 짜요: $url';
+  }
+
+  @override
+  String get planLinkCopied => '링크를 복사했습니다. 하루 동안 한 번 쓸 수 있습니다.';
+
+  @override
+  String get planLinkJoining => '초대받은 계획에 참여하는 중…';
 }

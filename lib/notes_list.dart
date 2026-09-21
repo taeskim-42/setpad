@@ -29,6 +29,7 @@ class NotesListPage extends StatefulWidget {
     super.key,
     required this.store,
     required this.onOpen,
+    this.onPlans,
     this.ai = const RecordAi(),
     this.account,
   });
@@ -41,6 +42,7 @@ class NotesListPage extends StatefulWidget {
   /// 로그인과 결제. 없으면 설정에 그 항목이 안 뜬다.
   final Account? account;
   final void Function(Note) onOpen;
+  final VoidCallback? onPlans;
 
   @override
   State<NotesListPage> createState() => _NotesListPageState();
@@ -331,14 +333,31 @@ class _NotesListPageState extends State<NotesListPage>
                       // 목록 화면의 기본 동작이고, 직접 흉내 내면 티가 난다.
                       CupertinoSliverNavigationBar(
                         largeTitle: Text(l.allNotes),
-                        trailing: CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () => showWeightSettings(
-                            context,
-                            widget.store,
-                            account: widget.account,
-                          ),
-                          child: const Icon(CupertinoIcons.gear, size: 21),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // 공동 루틴 — 떨어져 있을 때 다음 운동을 함께 정한다.
+                            // 운동 문서 밖에 있다: 계획에는 오늘의 기록이 필요 없다.
+                            if (widget.onPlans != null)
+                              CupertinoButton(
+                                padding: const EdgeInsets.only(right: 14),
+                                onPressed: widget.onPlans,
+                                child: Icon(
+                                  CupertinoIcons.person_2_square_stack,
+                                  size: 22,
+                                  semanticLabel: l.plansTitle,
+                                ),
+                              ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () => showWeightSettings(
+                                context,
+                                widget.store,
+                                account: widget.account,
+                              ),
+                              child: const Icon(CupertinoIcons.gear, size: 21),
+                            ),
+                          ],
                         ),
                         border: null,
                       ),
@@ -380,7 +399,9 @@ class _NotesListPageState extends State<NotesListPage>
                                           [
                                             l.routineFromTrainer(routine.gym),
                                             if (_routineSets(routine) > 0)
-                                              l.setOrdinal(_routineSets(routine)),
+                                              l.setOrdinal(
+                                                _routineSets(routine),
+                                              ),
                                           ].join(' · '),
                                           style: TextStyle(
                                             fontSize: 13,
