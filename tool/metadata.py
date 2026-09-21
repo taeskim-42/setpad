@@ -62,6 +62,7 @@ setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 
 · 식단을 사진이나 글로 남깁니다. 열량을 모르면 모른다고 적습니다
 · 그날 먹은 것과 운동으로 쓴 것을 한 줄로 봅니다
 · 같이 하기: 코드로 연결해 서로의 기록을 봅니다. 상대 기록은 읽기 전용입니다
+· 타바타와 박자를 둘이 같은 순간에 시작합니다. 기구 하나를 번갈아 쓰는 교대도 됩니다
 · 공동 루틴: 링크로 초대해 다음 운동을 함께 정하고, 같은 버전에 동의한 뒤 시작합니다
 
 혼자 기록하는 데는 계정이 필요 없습니다. 도장 연결, 같이 하기, 공동 루틴, 구독에는 로그인이 필요합니다. 광고가 없습니다. 기록은 기기에 남고, 도장에 연결한 기록과 공유하기로 한 것만 서버로 갑니다.'''),
@@ -105,6 +106,7 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 · Log meals by photo or as text. When the calories are unknown, it says unknown
 · See the day's intake and exercise energy in one line
 · Together: connect with a code to see each other's log. Your partner's log is read-only
+· Start a Tabata or a tempo on both phones at the same moment — or take turns on one machine
 · Shared plans: invite by link, decide the next workout together, agree on the same version, then start
 
 Logging on your own needs no account. Gym links, working out together, shared plans and subscriptions need sign-in. No ads. Your log stays on your device; only gym-linked records and what you choose to share go to the server.'''),
@@ -148,6 +150,7 @@ setpadはルーティンを組み立てるアプリではありません。セ�
 ・食事を写真またはテキストで記録。カロリーが不明なら不明と表示します
 ・その日の摂取と運動消費を1行で見られます
 ・一緒に: コードでつながってお互いの記録を見ます。相手の記録は閲覧のみです
+・タバタやテンポを2台で同じ瞬間にスタート。器具1台を交代で使うこともできます
 ・共同ルーティン: リンクで招待して次の運動を一緒に決め、同じバージョンに合意してから始めます
 
 一人で記録するだけならアカウントは不要です。ジム連携、一緒に、共同ルーティン、サブスクリプションにはログインが必要です。広告なし。記録は端末に残り、ジムに連携した記録と共有すると決めたものだけがサーバーに送られます。'''),
@@ -191,6 +194,7 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 · Registra comidas con foto o texto. Si no se conocen las calorías, lo dice
 · Mira la ingesta del día y la energía del ejercicio en una línea
 · Juntos: conéctate con un código para ver el registro del otro. El de tu compañero es de solo lectura
+· Empezad un Tabata o un tempo en los dos móviles en el mismo instante, o por turnos en una máquina
 · Planes compartidos: invita por enlace, decidid juntos el próximo entrenamiento, acordad la misma versión y empezad
 
 Para registrar por tu cuenta no hace falta cuenta. Los gimnasios, entrenar juntos, los planes compartidos y las suscripciones requieren iniciar sesión. Sin anuncios. Tu registro se queda en tu dispositivo; solo van al servidor los registros vinculados a un gimnasio y lo que decidas compartir.'''),
@@ -234,6 +238,7 @@ setpad ไม่ใช่แอปสร้างโปรแกรมฝึก�
 · บันทึกมื้ออาหารด้วยรูปหรือข้อความ ถ้าไม่ทราบแคลอรีก็จะบอกว่าไม่ทราบ
 · ดูการกินและพลังงานที่ใช้ออกกำลังของวันนั้นในบรรทัดเดียว
 · ด้วยกัน: เชื่อมต่อด้วยรหัสเพื่อดูบันทึกของกันและกัน บันทึกของอีกฝ่ายอ่านได้อย่างเดียว
+· เริ่มทาบาตะหรือจังหวะบนสองเครื่องในวินาทีเดียวกัน หรือสลับกันใช้เครื่องเดียว
 · แผนร่วม: เชิญด้วยลิงก์ ตกลงการออกกำลังครั้งถัดไปด้วยกัน ยอมรับเวอร์ชันเดียวกัน แล้วเริ่ม
 
 การบันทึกคนเดียวไม่ต้องมีบัญชี การเชื่อมยิม การออกกำลังด้วยกัน แผนร่วม และการสมัครสมาชิกต้องเข้าสู่ระบบ ไม่มีโฆษณา บันทึกอยู่ในเครื่องของคุณ มีเพียงบันทึกที่เชื่อมกับยิมและสิ่งที่คุณเลือกแชร์เท่านั้นที่ส่งไปเซิร์ฟเวอร์'''),
@@ -277,6 +282,7 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 · Ghi bữa ăn bằng ảnh hoặc chữ. Khi chưa rõ calo, ứng dụng ghi là chưa rõ
 · Xem lượng nạp và năng lượng tập trong ngày trên một dòng
 · Cùng nhau: kết nối bằng mã để xem ghi chép của nhau. Ghi chép của bạn tập chỉ để xem
+· Bắt đầu Tabata hoặc nhịp trên hai máy cùng một lúc — hoặc luân phiên trên một máy tập
 · Kế hoạch chung: mời bằng liên kết, cùng quyết định buổi tập tới, thống nhất cùng một phiên bản rồi bắt đầu
 
 Tự ghi một mình thì không cần tài khoản. Liên kết phòng tập, tập cùng nhau, kế hoạch chung và gói đăng ký cần đăng nhập. Không quảng cáo. Nhật ký nằm trên máy của bạn; chỉ các bản ghi liên kết với phòng tập và những gì bạn chọn chia sẻ mới lên máy chủ.'''),
@@ -320,6 +326,7 @@ setpad 不是用来提前编排计划的。做完一组，当场把数字打上�
 · 用照片或文字记录饮食。不知道热量时就标为未知
 · 用一行查看当天的摄入和运动消耗
 · 一起练：用代码连接，查看彼此的记录。对方的记录只读
+· 两台手机在同一瞬间开始 Tabata 或节拍，也可以轮流使用一台器械
 · 共同计划：用链接邀请，一起决定下一次训练，同意同一版本后开始
 
 独自记录不需要账号。连接健身房、一起练、共同计划和订阅需要登录。没有广告。记录留在你的设备上，只有与健身房关联的记录和你选择共享的内容会发送到服务器。'''),
@@ -363,6 +370,7 @@ setpad 不是用來事先編排課表的。做完一組，當場把數字打上�
 · 用照片或文字記錄飲食。不知道熱量時就標為未知
 · 用一行查看當天的攝取和運動消耗
 · 一起練：用代碼連線，查看彼此的紀錄。對方的紀錄唯讀
+· 兩支手機在同一瞬間開始 Tabata 或節拍，也可以輪流使用一台器材
 · 共同計畫：用連結邀請，一起決定下一次訓練，同意同一版本後開始
 
 獨自記錄不需要帳號。連結健身房、一起練、共同計畫和訂閱需要登入。沒有廣告。紀錄留在你的裝置上，只有與健身房關聯的紀錄和你選擇分享的內容會傳送到伺服器。'''),
@@ -391,28 +399,36 @@ LEGAL = {
 NEWS = {
     'ko': ['오늘 한 모든 세트를 한 화면에 — 칸을 눌러 바로 고칩니다',
            '식단을 글로도 기록하고, 먹은 양으로 열량을 계산합니다',
-           '같이 하기: 코드로 연결해 서로의 기록을 보고, 링크로 초대해 운동 계획을 함께 짭니다'],
+           '같이 하기: 코드로 연결해 서로의 기록을 보고, 링크로 초대해 운동 계획을 함께 짭니다',
+           '같이 하는 타이머: 타바타·bpm 을 두 폰에서 같은 순간에 시작하고, 쉬는 동안 서로의 횟수를 봅니다'],
     'en': ['Every set you did today on one screen — tap a cell to fix it',
            'Log meals as text, and calculate calories from how much you ate',
-           'Together: connect with a code to see each other\'s log, and plan workouts together by invite link'],
+           'Together: connect with a code to see each other\'s log, and plan workouts together by invite link',
+           'Shared timer: start Tabata or bpm on both phones at the same moment and see each other\'s reps while you rest'],
     'ja': ['今日行った全セットを1画面に — セルをタップしてすぐ修正',
            '食事をテキストでも記録し、食べた量からカロリーを計算',
-           '一緒に: コードでつながってお互いの記録を見たり、リンクで招待して運動計画を一緒に作成'],
+           '一緒に: コードでつながってお互いの記録を見たり、リンクで招待して運動計画を一緒に作成',
+           '一緒にタイマー: タバタ・bpmを2台で同じ瞬間に始め、休憩中にお互いの回数を見られます'],
     'es': ['Todas las series de hoy en una pantalla: toca una celda para corregirla',
            'Registra comidas como texto y calcula las calorías según lo que comiste',
-           'Juntos: conéctate con un código para ver el registro del otro y planifica entrenamientos por enlace'],
+           'Juntos: conéctate con un código para ver el registro del otro y planifica entrenamientos por enlace',
+           'Temporizador compartido: empezad Tabata o bpm en el mismo instante y ved las repeticiones del otro al descansar'],
     'th': ['ทุกเซ็ตของวันนี้ในหน้าจอเดียว — แตะช่องเพื่อแก้ไขได้ทันที',
            'บันทึกมื้ออาหารเป็นข้อความ และคำนวณแคลอรีจากปริมาณที่กิน',
-           'ด้วยกัน: เชื่อมต่อด้วยรหัสเพื่อดูบันทึกของกันและกัน และวางแผนออกกำลังร่วมกันผ่านลิงก์เชิญ'],
+           'ด้วยกัน: เชื่อมต่อด้วยรหัสเพื่อดูบันทึกของกันและกัน และวางแผนออกกำลังร่วมกันผ่านลิงก์เชิญ',
+           'ตัวจับเวลาร่วม: เริ่มทาบาตะหรือ bpm พร้อมกันบนสองเครื่อง และเห็นจำนวนครั้งของกันและกันตอนพัก'],
     'vi': ['Mọi hiệp hôm nay trên một màn hình — chạm vào ô để sửa ngay',
            'Ghi bữa ăn bằng chữ và tính calo theo lượng đã ăn',
-           'Cùng nhau: kết nối bằng mã để xem ghi chép của nhau, và cùng lên kế hoạch tập qua liên kết mời'],
+           'Cùng nhau: kết nối bằng mã để xem ghi chép của nhau, và cùng lên kế hoạch tập qua liên kết mời',
+           'Hẹn giờ chung: bắt đầu Tabata hoặc bpm cùng lúc trên hai máy và xem số lần của nhau khi nghỉ'],
     'zh-Hans': ['今天做的所有组都在一屏 — 点格子即可修改',
                 '用文字记录饮食，并按实际食用量计算热量',
-                '一起练：用代码连接查看彼此的记录，并通过邀请链接一起制定训练计划'],
+                '一起练：用代码连接查看彼此的记录，并通过邀请链接一起制定训练计划',
+           '共同计时：两台手机同时开始 Tabata 或 bpm，休息时查看彼此的次数'],
     'zh-Hant': ['今天做的所有組都在一個畫面 — 點格子即可修改',
                 '用文字記錄飲食，並依實際食用量計算熱量',
-                '一起練：用代碼連線查看彼此的紀錄，並透過邀請連結一起制定訓練計畫'],
+                '一起練：用代碼連線查看彼此的紀錄，並透過邀請連結一起制定訓練計畫',
+           '共同計時：兩支手機同時開始 Tabata 或 bpm，休息時查看彼此的次數'],
 }
 
 

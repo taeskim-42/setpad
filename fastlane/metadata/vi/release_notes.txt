@@ -3,6 +3,7 @@ Trong bản cập nhật này
 · Mọi hiệp hôm nay trên một màn hình — chạm vào ô để sửa ngay
 · Ghi bữa ăn bằng chữ và tính calo theo lượng đã ăn
 · Cùng nhau: kết nối bằng mã để xem ghi chép của nhau, và cùng lên kế hoạch tập qua liên kết mời
+· Hẹn giờ chung: bắt đầu Tabata hoặc bpm cùng lúc trên hai máy và xem số lần của nhau khi nghỉ
 · Ước tính calo từ ảnh bữa ăn (không lưu ảnh)
 · Kết nối phòng tập, nhận giáo án và đặt lịch PT
 · Duy trì đăng nhập và xoá tài khoản trong ứng dụng

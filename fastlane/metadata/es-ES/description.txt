@@ -31,6 +31,7 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 · Registra comidas con foto o texto. Si no se conocen las calorías, lo dice
 · Mira la ingesta del día y la energía del ejercicio en una línea
 · Juntos: conéctate con un código para ver el registro del otro. El de tu compañero es de solo lectura
+· Empezad un Tabata o un tempo en los dos móviles en el mismo instante, o por turnos en una máquina
 · Planes compartidos: invita por enlace, decidid juntos el próximo entrenamiento, acordad la misma versión y empezad
 
 Para registrar por tu cuenta no hace falta cuenta. Los gimnasios, entrenar juntos, los planes compartidos y las suscripciones requieren iniciar sesión. Sin anuncios. Tu registro se queda en tu dispositivo; solo van al servidor los registros vinculados a un gimnasio y lo que decidas compartir.

@@ -3,6 +3,7 @@ In this update
 · Every set you did today on one screen — tap a cell to fix it
 · Log meals as text, and calculate calories from how much you ate
 · Together: connect with a code to see each other's log, and plan workouts together by invite link
+· Shared timer: start Tabata or bpm on both phones at the same moment and see each other's reps while you rest
 · Estimate calories from a meal photo (photos are not stored)
 · Connect to a gym, receive routines, and book PT sessions
 · Persistent sign-in and in-app account deletion

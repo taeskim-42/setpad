@@ -31,6 +31,7 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 · Log meals by photo or as text. When the calories are unknown, it says unknown
 · See the day's intake and exercise energy in one line
 · Together: connect with a code to see each other's log. Your partner's log is read-only
+· Start a Tabata or a tempo on both phones at the same moment — or take turns on one machine
 · Shared plans: invite by link, decide the next workout together, agree on the same version, then start
 
 Logging on your own needs no account. Gym links, working out together, shared plans and subscriptions need sign-in. No ads. Your log stays on your device; only gym-linked records and what you choose to share go to the server.

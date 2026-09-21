@@ -31,6 +31,7 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 · Ghi bữa ăn bằng ảnh hoặc chữ. Khi chưa rõ calo, ứng dụng ghi là chưa rõ
 · Xem lượng nạp và năng lượng tập trong ngày trên một dòng
 · Cùng nhau: kết nối bằng mã để xem ghi chép của nhau. Ghi chép của bạn tập chỉ để xem
+· Bắt đầu Tabata hoặc nhịp trên hai máy cùng một lúc — hoặc luân phiên trên một máy tập
 · Kế hoạch chung: mời bằng liên kết, cùng quyết định buổi tập tới, thống nhất cùng một phiên bản rồi bắt đầu
 
 Tự ghi một mình thì không cần tài khoản. Liên kết phòng tập, tập cùng nhau, kế hoạch chung và gói đăng ký cần đăng nhập. Không quảng cáo. Nhật ký nằm trên máy của bạn; chỉ các bản ghi liên kết với phòng tập và những gì bạn chọn chia sẻ mới lên máy chủ.
