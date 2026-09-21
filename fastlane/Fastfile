@@ -195,6 +195,12 @@ platform :ios do
       api_key: asc_key, app_identifier: IOS_APP_ID, version: version,
     )
     UI.message("제출: #{version} (#{build})")
+    # 방금 올린 빌드는 Apple 이 처리를 끝내야 보인다. 그 전에 제출하면 **옛 빌드**가
+    # 심사에 들어간다. 올린 번호를 EXPECT_BUILD 로 주면 그 번호가 아닐 때 멈춘다.
+    expected = ENV["EXPECT_BUILD"]
+    if expected && build.to_s != expected
+      UI.user_error!("아직 처리 중입니다: 기대한 빌드 #{expected}, 지금 보이는 빌드 #{build}")
+    end
 
     deliver(
       api_key: asc_key,
@@ -208,7 +214,9 @@ platform :ios do
       force: true,
       run_precheck_before_submit: false,
       submit_for_review: true,
-      automatic_release: true,
+      # 기본은 승인 즉시 출시다. 실기기 확인이 덜 끝난 빌드는 MANUAL_RELEASE=1 로
+      # 내서, 승인 뒤에 사람이 출시 버튼을 누르게 한다.
+      automatic_release: ENV["MANUAL_RELEASE"] != "1",
       submission_information: {
         # Info.plist 의 ITSAppUsesNonExemptEncryption=false 와 같은 값이어야
         # 한다 — 다르면 심사에서 되돌아온다.
