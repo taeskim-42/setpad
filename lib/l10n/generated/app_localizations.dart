@@ -1825,12 +1825,6 @@ abstract class L {
   /// **'하지 않은 운동: {x}'**
   String planSkipped(String x);
 
-  /// No description provided for @planFromRecord.
-  ///
-  /// In ko, this message translates to:
-  /// **'이 기록으로 다음 운동 함께 계획'**
-  String get planFromRecord;
-
   /// No description provided for @planStartedFrom.
   ///
   /// In ko, this message translates to:
@@ -1872,6 +1866,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결됩니다.'**
   String get nearbyHint;
+
+  /// No description provided for @planPropose.
+  ///
+  /// In ko, this message translates to:
+  /// **'공동 루틴으로 제안'**
+  String get planPropose;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

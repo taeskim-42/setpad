@@ -1107,9 +1107,6 @@ class LEn extends L {
   }
 
   @override
-  String get planFromRecord => 'Plan the next workout together from this';
-
-  @override
   String planStartedFrom(int v) {
     return 'Started from the agreed shared plan (version $v)';
   }
@@ -1136,4 +1133,7 @@ class LEn extends L {
   @override
   String get nearbyHint =>
       'Between iPhones, you can also connect by holding the two phones close with this screen open.';
+
+  @override
+  String get planPropose => 'Propose plan';
 }

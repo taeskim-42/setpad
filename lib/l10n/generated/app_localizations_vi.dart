@@ -1104,9 +1104,6 @@ class LVi extends L {
   }
 
   @override
-  String get planFromRecord => 'Cùng lên kế hoạch buổi sau từ bản ghi này';
-
-  @override
   String planStartedFrom(int v) {
     return 'Bắt đầu từ kế hoạch đã thống nhất (phiên bản $v)';
   }
@@ -1134,4 +1131,7 @@ class LVi extends L {
   @override
   String get nearbyHint =>
       'Giữa các iPhone, bạn cũng có thể kết nối bằng cách đưa hai máy lại gần nhau khi đang mở màn hình này.';
+
+  @override
+  String get planPropose => 'Đề xuất kế hoạch';
 }

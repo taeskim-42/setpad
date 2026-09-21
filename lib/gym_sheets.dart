@@ -33,23 +33,16 @@ String partnerErrorText(L l, PartnerError error) => switch (error) {
 Future<void> showPartnerSheet(
   BuildContext context,
   Account account,
-  PartnerSync sync, {
-  VoidCallback? onPlanNext,
-}) => showCupertinoModalPopup<void>(
+  PartnerSync sync,
+) => showCupertinoModalPopup<void>(
   context: context,
-  builder: (_) =>
-      _PartnerSheet(account: account, sync: sync, onPlanNext: onPlanNext),
+  builder: (_) => _PartnerSheet(account: account, sync: sync),
 );
 
 class _PartnerSheet extends StatefulWidget {
-  const _PartnerSheet({
-    required this.account,
-    required this.sync,
-    this.onPlanNext,
-  });
+  const _PartnerSheet({required this.account, required this.sync});
   final Account account;
   final PartnerSync sync;
-  final VoidCallback? onPlanNext;
   @override
   State<_PartnerSheet> createState() => _PartnerSheetState();
 }
@@ -161,14 +154,6 @@ class _PartnerSheetState extends State<_PartnerSheet> {
                       fontSize: 13,
                       color: seal.resolveFrom(context),
                     ),
-                  ),
-                ),
-              if (widget.onPlanNext != null && widget.account.signedIn)
-                CupertinoButton(
-                  onPressed: widget.onPlanNext,
-                  child: Text(
-                    l.planFromRecord,
-                    style: const TextStyle(fontSize: 15),
                   ),
                 ),
               if (sync.busy)

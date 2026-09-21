@@ -1079,9 +1079,6 @@ class LKo extends L {
   }
 
   @override
-  String get planFromRecord => '이 기록으로 다음 운동 함께 계획';
-
-  @override
   String planStartedFrom(int v) {
     return '공동 루틴 합의본(버전 $v)에서 시작했습니다';
   }
@@ -1107,4 +1104,7 @@ class LKo extends L {
 
   @override
   String get nearbyHint => '아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결됩니다.';
+
+  @override
+  String get planPropose => '공동 루틴으로 제안';
 }

@@ -150,7 +150,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
           store: _store,
           note: note,
           account: _account,
-          onPlanNext: (plan) => _openPlans(open: plan),
+          onPlanNext: _proposePlan,
         ),
       ),
     );
@@ -220,13 +220,42 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
                   note: note,
                   account: _account,
                   ai: _ai,
-                  onPlanNext: (plan) => _openPlans(open: plan),
+                  onPlanNext: _proposePlan,
                 ),
               ),
             ),
           ),
         ),
       );
+
+  /// 운동 기록에서 "공동 루틴으로 제안". 기록 위에 그 루틴 화면이 바로 뜬다 —
+  /// 고치고, 초대하고, 같은 버전에 동의하는 일이 전부 거기서 이어지고, 뒤로
+  /// 가면 하던 기록이다. 로그인 전이면 로그인 안내가 있는 목록을 거친다.
+  void _proposePlan(SharedPlan fromRecord) {
+    // 목록에 들여 둔다. 그래야 초대하기 전에 뒤로 가도 초안이 남는다.
+    final draft = _plans.adopt(fromRecord);
+    if (!_account.signedIn) return _openPlans(open: draft);
+    Navigator.of(context).push(
+      CupertinoPageRoute<void>(
+        builder: (_) => PlanPage(
+          plan: draft,
+          plans: _plans,
+          notes: _store,
+          onOpenNote: (note) => Navigator.of(context).push(
+            CupertinoPageRoute<void>(
+              builder: (_) => EditorPage(
+                store: _store,
+                note: note,
+                account: _account,
+                ai: _ai,
+                onPlanNext: _proposePlan,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   /// 로그인과 결제. **없어도 앱은 그대로 돈다** — 켜지 않은 사람은 그냥 쓴다.
   late final _account = Account()..start().then((_) => _sendPendingWorkouts());
@@ -593,12 +622,9 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   VoidCallback? get _planNext =>
       widget.onPlanNext == null || widget.note.blocks.isEmpty
       ? null
-      : () {
-          Navigator.of(context).pop();
-          widget.onPlanNext!(
-            planFromBlocks(widget.note.title ?? '', widget.note.blocks),
-          );
-        };
+      : () => widget.onPlanNext!(
+          planFromBlocks(widget.note.title ?? '', widget.note.blocks),
+        );
 
   void _partnerChanged() {
     if (!mounted) return;
@@ -650,12 +676,8 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
             if (_partner != null)
               CupertinoButton(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
-                onPressed: () => showPartnerSheet(
-                  context,
-                  widget.account!,
-                  _partner,
-                  onPlanNext: _planNext,
-                ),
+                onPressed: () =>
+                    showPartnerSheet(context, widget.account!, _partner),
                 child: Icon(
                   CupertinoIcons.person_2,
                   size: 20,
@@ -700,12 +722,8 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                   GestureDetector(
                     key: const ValueKey('partner-banner'),
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => showPartnerSheet(
-                      context,
-                      widget.account!,
-                      _partner,
-                      onPlanNext: _planNext,
-                    ),
+                    onTap: () =>
+                        showPartnerSheet(context, widget.account!, _partner),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 2, 16, 2),
                       child: Row(
@@ -748,6 +766,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                       ai: widget.ai,
                       mealText: _mealText,
                       onMealsChanged: _mealsChanged,
+                      onProposePlan: _planNext,
                       onFitAll: () => showFitAll(context, [
                         (
                           caption: DateFormat.jm(
@@ -794,6 +813,7 @@ class _DocumentHeader extends StatefulWidget {
     required this.store,
     required this.ai,
     this.mealText,
+    this.onProposePlan,
     this.onFitAll,
     this.onMealsChanged,
   });
@@ -803,6 +823,9 @@ class _DocumentHeader extends StatefulWidget {
 
   /// 식단 글은 아래 입력 줄에서 친다. 여기서는 그 모드를 켜기만 한다.
   final ValueNotifier<({String text, int? index})?>? mealText;
+
+  /// 이 기록을 공동 루틴으로 제안한다. 적은 것이 없으면 null 이다.
+  final VoidCallback? onProposePlan;
   final VoidCallback? onFitAll;
 
   /// 끼니를 더하거나 고치거나 지웠다. 저장과 서버 맞춤은 문서 쪽이 한다.
@@ -1115,7 +1138,57 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                   ),
                 ),
               ],
-              const Spacer(),
+              // 같이 하기 창 안에 숨어 있던 것을 기록 화면으로 꺼냈다. 기록을 보다가
+              // "이걸로 같이 하자" 가 떠오르는 자리가 여기다. 남는 폭을 다 쓰고,
+              // 말이 긴 언어에서는 넘치지 않고 줄인다.
+              Expanded(
+                child: widget.onProposePlan == null
+                    ? const SizedBox.shrink()
+                    : LayoutBuilder(
+                        builder: (context, box) {
+                          const style = TextStyle(fontSize: 14);
+                          final words = TextPainter(
+                            text: TextSpan(
+                              text: l.planPropose,
+                              style: DefaultTextStyle.of(
+                                context,
+                              ).style.merge(style),
+                            ),
+                            textDirection: Directionality.of(context),
+                            maxLines: 1,
+                          )..layout();
+                          // 말이 다 들어갈 때만 적는다. 잘린 말보다 아이콘이 낫다.
+                          final roomy =
+                              words.width + 16 + 6 + 16 <= box.maxWidth;
+                          words.dispose();
+                          return Align(
+                            alignment: AlignmentDirectional.centerEnd,
+                            child: CupertinoButton(
+                              key: const ValueKey('propose-plan'),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              minimumSize: const Size(44, 36),
+                              onPressed: widget.onProposePlan,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.person_2,
+                                    size: 16,
+                                    semanticLabel: l.planPropose,
+                                  ),
+                                  if (roomy) ...[
+                                    const SizedBox(width: 6),
+                                    Text(l.planPropose, style: style),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
               if (widget.onFitAll != null && note.blocks.isNotEmpty)
                 CupertinoButton(
                   padding: EdgeInsets.zero,

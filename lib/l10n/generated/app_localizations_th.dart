@@ -1095,9 +1095,6 @@ class LTh extends L {
   }
 
   @override
-  String get planFromRecord => 'วางแผนครั้งถัดไปร่วมกันจากบันทึกนี้';
-
-  @override
   String planStartedFrom(int v) {
     return 'เริ่มจากแผนร่วมที่ตกลงแล้ว (เวอร์ชัน $v)';
   }
@@ -1124,4 +1121,7 @@ class LTh extends L {
   @override
   String get nearbyHint =>
       'ระหว่าง iPhone ด้วยกัน เปิดหน้านี้ค้างไว้แล้วนำสองเครื่องมาใกล้กันก็เชื่อมต่อได้';
+
+  @override
+  String get planPropose => 'เสนอแผนร่วม';
 }

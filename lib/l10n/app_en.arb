@@ -286,12 +286,12 @@
   "planDoneSets": "{name} · planned {planned} · done {done}",
   "planAddedActual": "Not in the plan: {x}",
   "planSkipped": "Skipped: {x}",
-  "planFromRecord": "Plan the next workout together from this",
   "planStartedFrom": "Started from the agreed shared plan (version {v})",
   "planStartedSolo": "Started from your own copy (version {v}, not agreed)",
   "planShareLink": "Send an invite link",
   "planShareText": "Let's plan our workout together in setpad: {url}",
   "planLinkCopied": "Link copied. It works once, for one day.",
   "planLinkJoining": "Joining the plan you were invited to…",
-  "nearbyHint": "Between iPhones, you can also connect by holding the two phones close with this screen open."
+  "nearbyHint": "Between iPhones, you can also connect by holding the two phones close with this screen open.",
+  "planPropose": "Propose plan"
 }

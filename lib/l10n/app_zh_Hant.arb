@@ -286,12 +286,12 @@
   "planDoneSets": "{name} · 計畫 {planned} 組 · 完成 {done} 組",
   "planAddedActual": "計畫外：{x}",
   "planSkipped": "未做：{x}",
-  "planFromRecord": "以此紀錄一起計畫下一次",
   "planStartedFrom": "從已達成一致的共同計畫（版本 {v}）開始",
   "planStartedSolo": "從你自己的副本（版本 {v}，未達成一致）開始",
   "planShareLink": "傳送邀請連結",
   "planShareText": "在 setpad 一起制定訓練計畫：{url}",
   "planLinkCopied": "已複製連結，一天內可使用一次。",
   "planLinkJoining": "正在加入受邀的計畫…",
-  "nearbyHint": "iPhone 之間，保持此畫面開啟並將兩支手機靠近也可以連線。"
+  "nearbyHint": "iPhone 之間，保持此畫面開啟並將兩支手機靠近也可以連線。",
+  "planPropose": "提議為共同計畫"
 }

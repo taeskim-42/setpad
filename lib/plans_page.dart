@@ -63,6 +63,20 @@ class _PlansPageState extends State<PlansPage> {
     setState(() {});
     // 링크로 왔는데 로그인이 방금 끝났다 — 원래 하려던 참여로 돌아간다.
     unawaited(_joinFromLink());
+    _openPending();
+  }
+
+  /// 기록에서 제안하려던 초안. 로그인 전에는 열지 않는다 — 로그인 안내를 가린 채
+  /// 초대도 저장도 안 되는 화면이 뜨면 길을 잃는다. 로그인이 끝나면 그리로 간다.
+  late SharedPlan? _pendingOpen = widget.open;
+
+  void _openPending() {
+    final plan = _pendingOpen;
+    if (plan == null || !widget.account.signedIn || !mounted) return;
+    _pendingOpen = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _open(plan);
+    });
   }
 
   String? _pendingToken;
@@ -90,9 +104,7 @@ class _PlansPageState extends State<PlansPage> {
     unawaited(widget.plans.refreshAll());
     _pendingToken = widget.joinToken;
     unawaited(_joinFromLink());
-    if (widget.open != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _open(widget.open!));
-    }
+    _openPending();
   }
 
   @override

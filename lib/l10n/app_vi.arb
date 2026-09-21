@@ -286,12 +286,12 @@
   "planDoneSets": "{name} · kế hoạch {planned} · đã làm {done}",
   "planAddedActual": "Ngoài kế hoạch: {x}",
   "planSkipped": "Bỏ qua: {x}",
-  "planFromRecord": "Cùng lên kế hoạch buổi sau từ bản ghi này",
   "planStartedFrom": "Bắt đầu từ kế hoạch đã thống nhất (phiên bản {v})",
   "planStartedSolo": "Bắt đầu từ bản sao của bạn (phiên bản {v}, chưa thống nhất)",
   "planShareLink": "Gửi liên kết mời",
   "planShareText": "Cùng lên kế hoạch tập trong setpad: {url}",
   "planLinkCopied": "Đã sao chép liên kết. Dùng được một lần trong một ngày.",
   "planLinkJoining": "Đang tham gia kế hoạch được mời…",
-  "nearbyHint": "Giữa các iPhone, bạn cũng có thể kết nối bằng cách đưa hai máy lại gần nhau khi đang mở màn hình này."
+  "nearbyHint": "Giữa các iPhone, bạn cũng có thể kết nối bằng cách đưa hai máy lại gần nhau khi đang mở màn hình này.",
+  "planPropose": "Đề xuất kế hoạch"
 }

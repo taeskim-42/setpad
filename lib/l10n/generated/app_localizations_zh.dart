@@ -1069,9 +1069,6 @@ class LZh extends L {
   }
 
   @override
-  String get planFromRecord => '以此记录一起计划下一次';
-
-  @override
   String planStartedFrom(int v) {
     return '从已达成一致的共同计划（版本 $v）开始';
   }
@@ -1097,6 +1094,9 @@ class LZh extends L {
 
   @override
   String get nearbyHint => 'iPhone 之间，保持此画面打开并将两台手机靠近也可以连接。';
+
+  @override
+  String get planPropose => '提议为共同计划';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2164,9 +2164,6 @@ class LZhHans extends LZh {
   }
 
   @override
-  String get planFromRecord => '以此记录一起计划下一次';
-
-  @override
   String planStartedFrom(int v) {
     return '从已达成一致的共同计划（版本 $v）开始';
   }
@@ -2192,6 +2189,9 @@ class LZhHans extends LZh {
 
   @override
   String get nearbyHint => 'iPhone 之间，保持此画面打开并将两台手机靠近也可以连接。';
+
+  @override
+  String get planPropose => '提议为共同计划';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3259,9 +3259,6 @@ class LZhHant extends LZh {
   }
 
   @override
-  String get planFromRecord => '以此紀錄一起計畫下一次';
-
-  @override
   String planStartedFrom(int v) {
     return '從已達成一致的共同計畫（版本 $v）開始';
   }
@@ -3287,4 +3284,7 @@ class LZhHant extends LZh {
 
   @override
   String get nearbyHint => 'iPhone 之間，保持此畫面開啟並將兩支手機靠近也可以連線。';
+
+  @override
+  String get planPropose => '提議為共同計畫';
 }

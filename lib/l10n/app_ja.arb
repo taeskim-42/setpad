@@ -286,12 +286,12 @@
   "planDoneSets": "{name} · 計画{planned}セット · 実施{done}セット",
   "planAddedActual": "計画になかった種目: {x}",
   "planSkipped": "行わなかった種目: {x}",
-  "planFromRecord": "この記録から次の運動を一緒に計画",
   "planStartedFrom": "合意した共同ルーティン（バージョン{v}）から開始",
   "planStartedSolo": "自分用のコピー（バージョン{v}、合意前）から開始",
   "planShareLink": "招待リンクを送る",
   "planShareText": "setpadで一緒にトレーニング計画を立てよう: {url}",
   "planLinkCopied": "リンクをコピーしました。1日間、1回だけ使えます。",
   "planLinkJoining": "招待された計画に参加しています…",
-  "nearbyHint": "iPhone同士なら、この画面を開いたまま2台を近づけても接続できます。"
+  "nearbyHint": "iPhone同士なら、この画面を開いたまま2台を近づけても接続できます。",
+  "planPropose": "共同ルーティンに提案"
 }

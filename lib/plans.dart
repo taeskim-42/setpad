@@ -537,6 +537,19 @@ class PlanStore extends ChangeNotifier {
     save();
   }
 
+  /// 운동 기록에서 뜬 초안을 들인다. 같은 내용의 **아직 안 올린** 초안이 있으면
+  /// 그것을 돌려준다 — 제안 버튼을 두 번 눌렀다고 목록에 같은 것이 둘 생기지 않는다.
+  SharedPlan adopt(SharedPlan draft) {
+    String text(SharedPlan p) =>
+        planText(p.shown.title, p.shown.items, (n) => 'x$n');
+    final same = plans
+        .where((p) => p.id == null && text(p) == text(draft))
+        .firstOrNull;
+    if (same != null) return same;
+    add(draft);
+    return draft;
+  }
+
   /// 서버의 내 계획들로 맞춘다. 이 기기에만 있는 초안은 그대로 둔다.
   Future<void> refreshAll() async {
     final reply = await link()._plan('GET', '');

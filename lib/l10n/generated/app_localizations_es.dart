@@ -1112,9 +1112,6 @@ class LEs extends L {
   }
 
   @override
-  String get planFromRecord => 'Planear juntos el siguiente a partir de este';
-
-  @override
   String planStartedFrom(int v) {
     return 'Empezó desde el plan acordado (versión $v)';
   }
@@ -1141,4 +1138,7 @@ class LEs extends L {
   @override
   String get nearbyHint =>
       'Entre iPhones también puedes conectar acercando los dos teléfonos con esta pantalla abierta.';
+
+  @override
+  String get planPropose => 'Proponer plan';
 }

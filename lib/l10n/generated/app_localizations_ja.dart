@@ -1076,9 +1076,6 @@ class LJa extends L {
   }
 
   @override
-  String get planFromRecord => 'この記録から次の運動を一緒に計画';
-
-  @override
   String planStartedFrom(int v) {
     return '合意した共同ルーティン（バージョン$v）から開始';
   }
@@ -1104,4 +1101,7 @@ class LJa extends L {
 
   @override
   String get nearbyHint => 'iPhone同士なら、この画面を開いたまま2台を近づけても接続できます。';
+
+  @override
+  String get planPropose => '共同ルーティンに提案';
 }
