@@ -318,5 +318,7 @@
   "handoffOffer": "{name}替你記下了訓練",
   "handoffTake": "接收",
   "handoffFailed": "無法接收紀錄。連結可能已過期，或網路有問題。",
-  "handoffSignIn": "需要登入才能接收交給你的紀錄。"
+  "handoffSignIn": "需要登入才能接收交給你的紀錄。",
+  "partnerInviteMore": "再邀請一人 · 代碼 {code}",
+  "proxyWhose": "要記錄誰的訓練？"
 }

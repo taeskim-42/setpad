@@ -49,6 +49,21 @@ String? normalizePartnerCode(String raw) {
   return _codeShape.hasMatch(code) ? code : null;
 }
 
+/// 같이 하는 사람 한 명. [key] 는 서버가 지어 준 이 세션 안의 이름표다 — 계정이 아니다.
+class PartnerPerson {
+  const PartnerPerson({
+    required this.key,
+    required this.name,
+    this.blocks = const [],
+    this.updatedAt,
+  });
+  final String key, name;
+
+  /// 그 사람의 기록 — 읽기 전용이다.
+  final List<ExerciseBlock> blocks;
+  final DateTime? updatedAt;
+}
+
 class PartnerSession {
   PartnerSession({
     required this.id,
@@ -84,6 +99,16 @@ class PartnerSession {
   List<ExerciseBlock> partnerBlocks;
   DateTime? partnerUpdatedAt;
   bool partnerLoaded;
+
+  /// 같이 하는 사람 전부(나 빼고). 둘이 할 때는 한 명이고, [partnerName]·
+  /// [partnerBlocks] 가 곧 그 사람이다. 셋 이상이면 [partnerName] 은 이름을 이어 붙인
+  /// 것이고 [partnerBlocks] 는 첫 사람의 것이다.
+  // ponytail: 저장하지 않는다. 앱을 껐다 켠 직후 그물이 없으면 첫 사람만 보인다 —
+  // 다음 폴링에 돌아온다. 오프라인에서도 전원을 봐야 하면 toJson 에 넣는다.
+  List<PartnerPerson> others = const [];
+
+  /// 더 들어올 수 있는 자리. 호스트가 "한 명 더" 를 낼지 정하는 데 쓴다.
+  int room = 0;
 
   /// 같이 하는 타이머. 저장하지 않는다 — 서버가 매번 다시 말해 준다.
   SharedTimer? timer;
@@ -308,6 +333,27 @@ class PartnerSync extends ChangeNotifier {
       }
     }
     next.timer = timer;
+    final members = body['members'];
+    if (members is List) {
+      next
+        ..others = [
+          for (final m in members)
+            if (m is Map && m['key'] is String && m['name'] is String)
+              PartnerPerson(
+                key: m['key'] as String,
+                name: m['name'] as String,
+                blocks: blocksFromJson((m['record'] as Map?)?['result']),
+                updatedAt: DateTime.tryParse(
+                  '${(m['record'] as Map?)?['updatedAt']}',
+                ),
+              ),
+        ]
+        ..room = (body['room'] as num?)?.toInt() ?? 0;
+      // 화면의 "○○ 님과 함께" 는 모두의 이름이다.
+      if (next.others.length > 1) {
+        next.partnerName = next.others.map((p) => p.name).join(', ');
+      }
+    }
     final offered = body['handoff'];
     if (offered is Map && offered['token'] is String) {
       next.handoff = (

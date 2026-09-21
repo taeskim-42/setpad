@@ -352,13 +352,26 @@ class _PartnerSheetState extends State<_PartnerSheet> {
         ),
       ),
     ],
+    // 초대가 살아 있고 자리가 있으면 한 명 더 들어올 수 있다. 호스트에게만 코드가 온다.
+    if (session.code != null && session.room > 0)
+      CupertinoButton(
+        key: const ValueKey('invite-more'),
+        padding: EdgeInsets.zero,
+        onPressed: () =>
+            Clipboard.setData(ClipboardData(text: session.code ?? '')),
+        child: Text(
+          l.partnerInviteMore(session.code!),
+          style: const TextStyle(fontSize: 14),
+        ),
+      )
+    else if (session.host && session.room > 0)
+      CupertinoButton(
+        key: const ValueKey('invite-more'),
+        padding: EdgeInsets.zero,
+        onPressed: sync.busy ? null : () => sync.invite(renew: true),
+        child: Text(l.partnerNewCode, style: const TextStyle(fontSize: 14)),
+      ),
     const SizedBox(height: 10),
-    // 볼 수만 있다. 상대의 실제 기록을 대신 적는 기능은 없다.
-    Text(
-      '${l.partnerTheirRecord(session.partnerName ?? '')} · ${l.partnerReadOnly}',
-      style: TextStyle(fontSize: 13, color: muted),
-    ),
-    const SizedBox(height: 4),
     ConstrainedBox(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.sizeOf(context).height * 0.45,
@@ -378,16 +391,36 @@ class _PartnerSheetState extends State<_PartnerSheet> {
                 ],
               ),
             )
-          : session.partnerBlocks.isEmpty
-          ? Text(
-              l.partnerNoRecordYet,
-              style: TextStyle(fontSize: 13, color: muted),
-            )
           : ListView(
               shrinkWrap: true,
               children: [
-                for (final block in session.partnerBlocks)
-                  BlockSummary(block: block),
+                // 사람마다 한 묶음. 볼 수만 있다 — 남의 기록을 여기서 고치는 길은 없다.
+                for (final person
+                    in session.others.isNotEmpty
+                        ? session.others
+                        : [
+                            PartnerPerson(
+                              key: '',
+                              name: session.partnerName ?? '',
+                              blocks: session.partnerBlocks,
+                            ),
+                          ]) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6, bottom: 4),
+                    child: Text(
+                      '${l.partnerTheirRecord(person.name)} · ${l.partnerReadOnly}',
+                      style: TextStyle(fontSize: 13, color: muted),
+                    ),
+                  ),
+                  if (person.blocks.isEmpty)
+                    Text(
+                      l.partnerNoRecordYet,
+                      style: TextStyle(fontSize: 13, color: muted),
+                    )
+                  else
+                    for (final block in person.blocks)
+                      BlockSummary(block: block),
+                ],
               ],
             ),
     ),

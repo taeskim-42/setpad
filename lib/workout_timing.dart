@@ -452,6 +452,7 @@ class TogetherTiming {
     this.partnerLeft,
     this.mine = const [],
     this.theirs = const [],
+    this.more = const [],
   });
   final String partner;
 
@@ -474,6 +475,16 @@ class TogetherTiming {
 
   /// 세트마다의 횟수. 안 적은 세트는 null 이다 — 0 이 아니다.
   final List<int?> mine, theirs;
+
+  /// 셋 이상이 같이 할 때 [partner] 말고 나머지 사람들의 줄.
+  final List<({String name, List<int?> counts})> more;
+
+  /// 가장 많이 적은 사람의 세트 수. 짧은 줄은 여기까지 – 로 채운다.
+  int get longest => [
+    mine.length,
+    theirs.length,
+    for (final p in more) p.counts.length,
+  ].reduce((a, b) => a > b ? a : b);
 
   final void Function(bool alternate) onPropose;
 
@@ -830,10 +841,11 @@ class WorkoutTimingControls extends StatelessWidget {
                   label: l.togetherLog,
                   onLog: duo.onLog,
                 ),
-              if (duo.mine.isNotEmpty || duo.theirs.isNotEmpty)
+              if (duo.longest > 0)
                 for (final (name, counts) in [
                   (l.togetherMe, duo.mine),
                   (duo.partner, duo.theirs),
+                  for (final p in duo.more) (p.name, p.counts),
                 ])
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
@@ -853,11 +865,7 @@ class WorkoutTimingControls extends StatelessWidget {
                             // 짧은 쪽은 – 로 채운다. 안 적은 것이지 0 이 아니다.
                             [
                               ...counts,
-                              for (
-                                var i = counts.length;
-                                i < duo.mine.length || i < duo.theirs.length;
-                                i++
-                              )
+                              for (var i = counts.length; i < duo.longest; i++)
                                 null,
                             ].map((n) => n ?? '–').join('  '),
                             maxLines: 1,
@@ -878,7 +886,7 @@ class WorkoutTimingControls extends StatelessWidget {
                   style: TextStyle(fontSize: 13, color: muted),
                 )
               // 표에 이미 상대 이름이 있으면 또 적지 않는다.
-              else if (duo.live && duo.mine.isEmpty && duo.theirs.isEmpty)
+              else if (duo.live && duo.longest == 0)
                 Text(
                   l.togetherWith(duo.partner),
                   style: TextStyle(fontSize: 13, color: muted),

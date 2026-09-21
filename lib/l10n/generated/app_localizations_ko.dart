@@ -1198,4 +1198,12 @@ class LKo extends L {
 
   @override
   String get handoffSignIn => '건네받은 기록을 받으려면 로그인이 필요합니다.';
+
+  @override
+  String partnerInviteMore(String code) {
+    return '한 명 더 초대 · 코드 $code';
+  }
+
+  @override
+  String get proxyWhose => '누구의 기록을 적을까요?';
 }

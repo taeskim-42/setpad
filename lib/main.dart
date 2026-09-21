@@ -600,10 +600,36 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   Timer? _proxySend;
   HandoffError? _proxyError;
 
-  void _writeFor() {
+  Future<void> _writeFor() async {
     final note = widget.note;
+    final people = note.partner?.state == PartnerState.active
+        ? note.partner!.others
+        : const <PartnerPerson>[];
+    if (note.proxy == null && people.length > 1) {
+      // 셋 이상이 같이 한다. 누구의 것인지 알아야 그 사람 화면에만 받기가 뜬다.
+      final who = await showCupertinoModalPopup<PartnerPerson>(
+        context: context,
+        builder: (ctx) => CupertinoActionSheet(
+          title: Text(L.of(ctx).proxyWhose),
+          actions: [
+            for (final p in people)
+              CupertinoActionSheetAction(
+                onPressed: () => Navigator.pop(ctx, p),
+                child: Text(p.name),
+              ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(L.of(ctx).cancel),
+          ),
+        ),
+      );
+      if (who == null || !mounted) return;
+      note.proxy = ProxyRecord(name: who.name, forKey: who.key);
+    }
     final proxy = note.proxy ??= ProxyRecord(
-      name: note.partner?.partnerName ?? '',
+      name: people.firstOrNull?.name ?? note.partner?.partnerName ?? '',
+      forKey: people.firstOrNull?.key,
     );
     // 이름은 같이 하는 상대를 따라간다. 혼자 적기 시작했다가 나중에 연결해도 맞는다.
     if (proxy.name.isEmpty) proxy.name = note.partner?.partnerName ?? '';

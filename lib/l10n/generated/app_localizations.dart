@@ -2022,6 +2022,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'건네받은 기록을 받으려면 로그인이 필요합니다.'**
   String get handoffSignIn;
+
+  /// No description provided for @partnerInviteMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 명 더 초대 · 코드 {code}'**
+  String partnerInviteMore(String code);
+
+  /// No description provided for @proxyWhose.
+  ///
+  /// In ko, this message translates to:
+  /// **'누구의 기록을 적을까요?'**
+  String get proxyWhose;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

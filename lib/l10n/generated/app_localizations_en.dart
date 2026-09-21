@@ -1230,4 +1230,12 @@ class LEn extends L {
   @override
   String get handoffSignIn =>
       'Sign in to take a record that was handed to you.';
+
+  @override
+  String partnerInviteMore(String code) {
+    return 'Invite one more · code $code';
+  }
+
+  @override
+  String get proxyWhose => 'Whose workout are you logging?';
 }

@@ -23,6 +23,7 @@ class ProxyRecord {
     this.revision = 0,
     this.sent = 0,
     this.token,
+    this.forKey,
   }) : blocks = blocks ?? [];
 
   /// 내가 부르는 그 사람의 이름. 같이 하는 중이면 상대의 별명이다.
@@ -31,6 +32,10 @@ class ProxyRecord {
 
   /// 고칠 때마다 오르는 번호와, 서버가 받았다고 한 번호. 다르면 올릴 것이 밀려 있다.
   int revision, sent;
+
+  /// 셋 이상이 같이 할 때 누구의 것인지 — 세션 안의 이름표. 그 사람 화면에만
+  /// "받기" 가 뜬다. 둘이 할 때는 없어도 된다.
+  String? forKey;
 
   /// 건넬 링크의 토큰. 한 번 만들어지면 같은 운동에서는 바뀌지 않는다.
   String? token;
@@ -41,6 +46,7 @@ class ProxyRecord {
     'revision': revision,
     'sent': sent,
     'token': ?token,
+    'forKey': ?forKey,
   };
 
   static ProxyRecord? tryFromJson(Object? j) {
@@ -51,6 +57,7 @@ class ProxyRecord {
       revision: j['revision'] is int ? j['revision'] as int : 0,
       sent: j['sent'] is int ? j['sent'] as int : 0,
       token: j['token'] is String ? j['token'] as String : null,
+      forKey: j['forKey'] is String ? j['forKey'] as String : null,
     );
   }
 }
@@ -99,6 +106,7 @@ extension HandoffLink on GymLink {
                 'workedAt': note.createdAt.toUtc().toIso8601String(),
                 'forName': proxy.name,
                 'sessionId': ?sessionId,
+                'forKey': ?proxy.forKey,
                 'result': blocksToJson(proxy.blocks),
               }),
             )

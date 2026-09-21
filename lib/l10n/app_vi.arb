@@ -318,5 +318,7 @@
   "handoffOffer": "{name} đã ghi buổi tập giúp bạn",
   "handoffTake": "Nhận",
   "handoffFailed": "Không nhận được bản ghi. Liên kết có thể đã hết hạn hoặc mạng có vấn đề.",
-  "handoffSignIn": "Cần đăng nhập để nhận bản ghi được trao cho bạn."
+  "handoffSignIn": "Cần đăng nhập để nhận bản ghi được trao cho bạn.",
+  "partnerInviteMore": "Mời thêm một người · mã {code}",
+  "proxyWhose": "Bạn ghi buổi tập của ai?"
 }

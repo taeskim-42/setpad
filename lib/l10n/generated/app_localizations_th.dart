@@ -1217,4 +1217,12 @@ class LTh extends L {
 
   @override
   String get handoffSignIn => 'ต้องเข้าสู่ระบบเพื่อรับบันทึกที่ส่งมาให้';
+
+  @override
+  String partnerInviteMore(String code) {
+    return 'ชวนอีกคน · รหัส $code';
+  }
+
+  @override
+  String get proxyWhose => 'จะบันทึกของใคร?';
 }

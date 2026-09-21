@@ -1019,5 +1019,14 @@
   },
   "handoffTake": "받기",
   "handoffFailed": "기록을 받지 못했습니다. 링크가 만료됐거나 네트워크 문제일 수 있습니다.",
-  "handoffSignIn": "건네받은 기록을 받으려면 로그인이 필요합니다."
+  "handoffSignIn": "건네받은 기록을 받으려면 로그인이 필요합니다.",
+  "partnerInviteMore": "한 명 더 초대 · 코드 {code}",
+  "@partnerInviteMore": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "proxyWhose": "누구의 기록을 적을까요?"
 }

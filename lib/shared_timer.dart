@@ -56,6 +56,8 @@ class SharedTimer {
     this.startAt,
     this.myLeft,
     this.partnerLeft,
+    this.joined = true,
+    this.others = const [],
   });
 
   /// 제안마다 오른다. 옛 제안을 향한 동작은 서버가 버린다.
@@ -77,6 +79,13 @@ class SharedTimer {
   /// 그만둔 자리. 그만두는 것은 각자다 — 상대의 타이머는 계속 간다.
   final ({int ms, int beat})? myLeft, partnerLeft;
 
+  /// 내가 동의했는가. 셋 이상이 같이 할 때, 다른 둘이 시작했다고 내 폰이 울리면
+  /// 안 된다. 둘이 할 때는 시작했다는 것이 곧 동의했다는 것이다.
+  final bool joined;
+
+  /// 같이 돌리는 다른 사람들과 각자 그만둔 자리.
+  final List<({String key, String name, ({int ms, int beat})? left})> others;
+
   bool get started => startAt != null;
 
   /// 이 사람이 실제로 돌리는 설정. 교대에서는 내 휴식이 상대의 운동과 두 번의
@@ -97,7 +106,10 @@ class SharedTimer {
 
   /// 끝났는가. 타바타는 시간이 끝낸다. 메트로놈은 끝이 없어서 둘 다 그만둬야 끝난다.
   bool overAt(int? serverNow) {
-    if (myLeft != null && partnerLeft != null) return true;
+    final everyoneLeft = others.isEmpty
+        ? partnerLeft != null
+        : others.every((o) => o.left != null);
+    if (myLeft != null && everyoneLeft) return true;
     final at = elapsedAt(serverNow);
     return spec.tabata && at != null && at.inSeconds >= personal.duration;
   }
@@ -111,6 +123,8 @@ class SharedTimer {
     startAt: startAt,
     myLeft: myLeft,
     partnerLeft: partnerLeft,
+    joined: joined,
+    others: others,
   );
 
   static SharedTimer? tryFromJson(Object? j) {
@@ -140,6 +154,20 @@ class SharedTimer {
       startAt: j['startAt'] is num ? (j['startAt'] as num).toInt() : null,
       myLeft: left(j['myLeft']),
       partnerLeft: left(j['partnerLeft']),
+      // 옛 서버는 이 칸이 없다. 그때는 둘뿐이라, 내가 제안했거나 이미 시작했으면
+      // 동의한 것이다.
+      joined: j['joined'] is bool
+          ? j['joined'] as bool
+          : j['mine'] == true || j['startAt'] is num,
+      others: [
+        for (final o in (j['others'] as List? ?? const []))
+          if (o is Map && o['key'] is String && o['name'] is String)
+            (
+              key: o['key'] as String,
+              name: o['name'] as String,
+              left: left(o['left']),
+            ),
+      ],
     );
     return timer.personal.valid ? timer : null;
   }

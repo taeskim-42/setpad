@@ -1188,6 +1188,14 @@ class LZh extends L {
 
   @override
   String get handoffSignIn => '需要登录才能接收交给你的记录。';
+
+  @override
+  String partnerInviteMore(String code) {
+    return '再邀请一人 · 代码 $code';
+  }
+
+  @override
+  String get proxyWhose => '要记录谁的训练？';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2374,6 +2382,14 @@ class LZhHans extends LZh {
 
   @override
   String get handoffSignIn => '需要登录才能接收交给你的记录。';
+
+  @override
+  String partnerInviteMore(String code) {
+    return '再邀请一人 · 代码 $code';
+  }
+
+  @override
+  String get proxyWhose => '要记录谁的训练？';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3560,4 +3576,12 @@ class LZhHant extends LZh {
 
   @override
   String get handoffSignIn => '需要登入才能接收交給你的紀錄。';
+
+  @override
+  String partnerInviteMore(String code) {
+    return '再邀請一人 · 代碼 $code';
+  }
+
+  @override
+  String get proxyWhose => '要記錄誰的訓練？';
 }

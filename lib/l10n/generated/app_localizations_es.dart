@@ -1235,4 +1235,12 @@ class LEs extends L {
   @override
   String get handoffSignIn =>
       'Inicia sesión para recibir un registro que te entregaron.';
+
+  @override
+  String partnerInviteMore(String code) {
+    return 'Invitar a uno más · código $code';
+  }
+
+  @override
+  String get proxyWhose => '¿De quién es el entrenamiento?';
 }

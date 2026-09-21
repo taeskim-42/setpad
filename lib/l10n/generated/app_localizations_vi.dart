@@ -1228,4 +1228,12 @@ class LVi extends L {
   @override
   String get handoffSignIn =>
       'Cần đăng nhập để nhận bản ghi được trao cho bạn.';
+
+  @override
+  String partnerInviteMore(String code) {
+    return 'Mời thêm một người · mã $code';
+  }
+
+  @override
+  String get proxyWhose => 'Bạn ghi buổi tập của ai?';
 }

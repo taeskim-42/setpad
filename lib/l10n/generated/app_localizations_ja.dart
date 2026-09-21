@@ -1196,4 +1196,12 @@ class LJa extends L {
 
   @override
   String get handoffSignIn => '渡された記録を受け取るにはログインが必要です。';
+
+  @override
+  String partnerInviteMore(String code) {
+    return 'もう1人招待 · コード $code';
+  }
+
+  @override
+  String get proxyWhose => '誰の記録をつけますか？';
 }

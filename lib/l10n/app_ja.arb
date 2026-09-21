@@ -318,5 +318,7 @@
   "handoffOffer": "{name}さんがあなたの記録をつけてくれました",
   "handoffTake": "受け取る",
   "handoffFailed": "記録を受け取れませんでした。リンクの期限切れか、ネットワークの問題かもしれません。",
-  "handoffSignIn": "渡された記録を受け取るにはログインが必要です。"
+  "handoffSignIn": "渡された記録を受け取るにはログインが必要です。",
+  "partnerInviteMore": "もう1人招待 · コード {code}",
+  "proxyWhose": "誰の記録をつけますか？"
 }

@@ -318,5 +318,7 @@
   "handoffOffer": "{name} logged your workout for you",
   "handoffTake": "Take it",
   "handoffFailed": "Couldn't get the record. The link may have expired, or the network is down.",
-  "handoffSignIn": "Sign in to take a record that was handed to you."
+  "handoffSignIn": "Sign in to take a record that was handed to you.",
+  "partnerInviteMore": "Invite one more · code {code}",
+  "proxyWhose": "Whose workout are you logging?"
 }

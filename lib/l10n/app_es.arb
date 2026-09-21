@@ -318,5 +318,7 @@
   "handoffOffer": "{name} anotó tu entrenamiento por ti",
   "handoffTake": "Recibir",
   "handoffFailed": "No se pudo recibir el registro. El enlace puede haber caducado o no hay conexión.",
-  "handoffSignIn": "Inicia sesión para recibir un registro que te entregaron."
+  "handoffSignIn": "Inicia sesión para recibir un registro que te entregaron.",
+  "partnerInviteMore": "Invitar a uno más · código {code}",
+  "proxyWhose": "¿De quién es el entrenamiento?"
 }

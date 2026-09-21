@@ -815,7 +815,9 @@ class _RoutineEditorState extends State<RoutineEditor>
   void _followShared() {
     if (!mounted) return;
     final t = _shared;
-    if (_live(t) && t!.myLeft == null) {
+    // 내가 동의한 타이머만 따라간다. 셋이 같이 할 때 다른 둘이 시작했다고 내 폰이
+    // 울리면 안 된다.
+    if (_live(t) && t!.joined && t.myLeft == null) {
       final block = _blockFor(t);
       final at = t.elapsedAt(widget.partner!.clock.now);
       if (block != null && at != null) {
@@ -856,7 +858,7 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   void _acceptShared() {
     final t = _shared;
-    if (t == null || t.started || t.mine) return;
+    if (t == null || t.joined) return;
     _sharedBlock = _blockFor(t) ?? _c.addBlockQuietly(t.title);
     widget.partner!.acceptTimer();
   }
@@ -865,12 +867,12 @@ class _RoutineEditorState extends State<RoutineEditor>
   bool _togetherToggle(ExerciseBlock block) {
     final sync = widget.partner, t = _shared;
     if (sync == null || t == null) return false;
-    if (_live(t) && identical(block, _blockFor(t))) {
+    if (_live(t) && t.joined && identical(block, _blockFor(t))) {
       t.myLeft == null ? _leaveShared() : sync.rejoinTimer();
       return true;
     }
     // 다른 칸의 타이머를 혼자 돌리겠다는 것이다. 같이 하던 것에서는 빠진다.
-    if (_live(t) && t.myLeft == null) _leaveShared();
+    if (_live(t) && t.joined && t.myLeft == null) _leaveShared();
     if (!t.started && t.mine) sync.clearTimer();
     return false;
   }
@@ -879,39 +881,80 @@ class _RoutineEditorState extends State<RoutineEditor>
     final sync = widget.partner, session = sync?.session;
     if (sync == null || session?.state != PartnerState.active) return null;
     final t = session!.timer;
-    final name = session.partnerName ?? '';
     final here = t != null && identical(_blockFor(t), block);
-    final gone = here && t.started ? t.partnerLeft : null;
+    final mineToo = here && t.joined;
     final cycle = t == null ? 1 : t.personal.work + t.personal.rest;
-    final theirs = !here
-        ? null
-        : session.partnerBlocks.where((b) => b.name == t.title).firstOrNull ??
-              session.partnerBlocks
-                  .where((b) => TimingSpec.parse(b.name) == t.spec)
-                  .firstOrNull;
+
+    // 같이 돌리는 사람마다 한 줄: 이름, 세트마다의 횟수, 그만뒀으면 어디서.
+    // 옛 서버는 사람 목록을 주지 않는다 — 그때는 상대가 한 명이다.
+    final people = !mineToo
+        ? const <
+            ({
+              String name,
+              List<ExerciseBlock> blocks,
+              ({int ms, int beat})? left,
+            })
+          >[]
+        : t.others.isEmpty
+        ? [
+            (
+              name: session.partnerName ?? '',
+              blocks: session.partnerBlocks,
+              left: t.partnerLeft,
+            ),
+          ]
+        : [
+            for (final o in t.others)
+              (
+                name: o.name,
+                blocks:
+                    session.others
+                        .where((p) => p.key == o.key)
+                        .firstOrNull
+                        ?.blocks ??
+                    const <ExerciseBlock>[],
+                left: o.left,
+              ),
+          ];
+    List<int?> counts(List<ExerciseBlock> blocks) {
+      final theirs =
+          blocks.where((b) => b.name == t!.title).firstOrNull ??
+          blocks.where((b) => TimingSpec.parse(b.name) == t!.spec).firstOrNull;
+      return [for (final s in theirs?.sets ?? const <LoggedSet>[]) s.reps];
+    }
+
+    final gone = [
+      for (final p in people)
+        if (t!.started && p.left != null)
+          t.spec.tabata
+              ? l.togetherLeftRound(
+                  p.name,
+                  ((p.left!.ms / 1000 - 3) / cycle).floor().clamp(
+                        0,
+                        t.spec.rounds - 1,
+                      ) +
+                      1,
+                )
+              : l.togetherLeftBeat(p.name, p.left!.beat),
+    ];
+    final started = mineToo && t.started;
     return TogetherTiming(
-      partner: name,
+      partner: people.firstOrNull?.name ?? session.partnerName ?? '',
       waiting: here && !t.started && t.mine,
-      busy: !here && _live(t) && t!.myLeft == null,
-      live: here && _live(t),
-      left: here && t.myLeft != null,
-      alternate: here && t.alternate,
-      partnerLeft: gone == null
-          ? null
-          : t!.spec.tabata
-          ? l.togetherLeftRound(
-              name,
-              ((gone.ms / 1000 - 3) / cycle).floor().clamp(
-                    0,
-                    t.spec.rounds - 1,
-                  ) +
-                  1,
-            )
-          : l.togetherLeftBeat(name, gone.beat),
-      mine: here && t.started ? [for (final s in block.sets) s.reps] : const [],
-      theirs: here && t.started
-          ? [for (final s in theirs?.sets ?? const <LoggedSet>[]) s.reps]
+      busy: !here && _live(t) && t!.joined && t.myLeft == null,
+      live: mineToo && _live(t),
+      left: mineToo && t.myLeft != null,
+      alternate: mineToo && t.alternate,
+      partnerLeft: gone.isEmpty ? null : gone.join('\n'),
+      mine: started ? [for (final s in block.sets) s.reps] : const [],
+      theirs: started && people.isNotEmpty
+          ? counts(people.first.blocks)
           : const [],
+      more: [
+        if (started)
+          for (final p in people.skip(1))
+            (name: p.name, counts: counts(p.blocks)),
+      ],
       onPropose: (alternate) =>
           _proposeShared(block, TimingSpec.parse(block.name)!, alternate),
       onToggle: () => _togetherToggle(block),
@@ -1690,7 +1733,12 @@ class _RoutineEditorState extends State<RoutineEditor>
       children: [
         // 상대가 같이 하자고 했다. 목록과 함께 흘러가지 않게 맨 위에 붙여 둔다 —
         // 받아야 시작하는데 안 보이면 상대는 하염없이 기다린다.
-        if (incoming != null && !incoming.started && !incoming.mine)
+        // 이미 시작한 것에도 들어갈 수 있다(돌고 있는 시계에 들어선다). 교대는 둘의
+        // 것이라 시작한 뒤에는 자리가 없다.
+        if (incoming != null &&
+            !incoming.joined &&
+            !(incoming.started && incoming.alternate) &&
+            !incoming.overAt(widget.partner!.clock.now))
           _TogetherInvite(
             name: widget.partner!.session!.partnerName ?? '',
             timer: incoming,

@@ -85,8 +85,10 @@ void main() {
       addTearDown(again.dispose);
       expect(await again.joinWithToken(token), isNull);
       expect(again.session!.id, jun.session!.id);
-      // 다른 사람은 그 코드로 못 들어온다.
-      expect(await sora.joinWithCode(code), PartnerError.invalidCode);
+      // 초대가 살아 있는 동안은 한 명 더 들어올 수 있다. 나가면 다시 둘이다.
+      expect(await sora.joinWithCode(code), isNull);
+      await sora.end();
+      expect(sora.session!.state, PartnerState.ended);
 
       // 4. 호스트 화면도 참여를 안다.
       await mina.refresh();
