@@ -2117,6 +2117,11 @@ class _RoutineEditorState extends State<RoutineEditor>
                   ),
                 ),
               CupertinoTextField(
+                // iOS 자동 고침과 예측 막대를 끈다. "랫풀다운" 을 멋대로 고치는 것을
+                // 막고, 예측 막대가 프레임마다 뱉던 NSLayoutConstraint 경고도 같이
+                // 사라진다 — 그 경고는 iOS 키보드의 것이지 우리 것이 아니다.
+                autocorrect: false,
+                enableSuggestions: false,
                 controller: _input,
                 focusNode: _focus,
                 autofocus: true,
