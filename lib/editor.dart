@@ -1659,7 +1659,13 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 않는다.** 직전 세트를 입력칸으로 불러 커서를 끝에 둘 뿐이고, 그 뒤에 치는
   /// 것은 그 세트를 고친다. 세트를 지우는 것은 그 줄의 × 다.
   void _backspaceOnEmpty() {
-    if (_editingRecord || _wantText || _mealMode || _c.blocks.isEmpty) return;
+    if (_mealMode) {
+      // 빈 식단 줄에서 지우기는 식단 적기를 접는 것이다 — 고치던 끼니가 아니면
+      // 마지막 세트로 돌아간다. 운동 이름 줄에서와 같은 손놀림이다.
+      if (widget.mealText!.value!.index != null) return;
+      widget.mealText!.value = null;
+    }
+    if (_editingRecord || _wantText || _c.blocks.isEmpty) return;
     // 세트가 없는 운동 안에서는 운동 자체를 뗀다. 지우기 버튼과 같은
     // 결과이므로 같은 것을 묻는다.
     if (_c.backspaceRemovesBlock) {
