@@ -196,7 +196,7 @@
   "mealFailed": "Không ước tính được calo từ ảnh này. Hãy chụp lại.",
   "mealEstimateNote": "Ước tính từ ảnh",
   "mealServingsOption": "{n} khẩu phần",
-  "fitAll": "Xem tất cả",
+  "fitAll": "Hôm nay trên một trang",
   "sameDayOther": "Bản ghi khác trong ngày",
   "mealText": "Ghi bữa ăn",
   "mealTextHint": "Bạn đã ăn gì? VD: 2 quả chuối, sữa 200ml",
@@ -322,5 +322,7 @@
   "partnerInviteMore": "Mời thêm một người · mã {code}",
   "proxyWhose": "Bạn ghi buổi tập của ai?",
   "planMemberAccepted": "{name} đã đồng ý",
-  "planMemberWaiting": "{name} chưa xác nhận"
+  "planMemberWaiting": "{name} chưa xác nhận",
+  "deleteNoteAsk": "Xóa \"{title}\"?",
+  "mealsTitle": "Bữa ăn"
 }

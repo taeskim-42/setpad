@@ -722,7 +722,7 @@ class LJa extends L {
   }
 
   @override
-  String get fitAll => '全体表示';
+  String get fitAll => '今日を1枚に';
 
   @override
   String get sameDayOther => '同じ日のほかの記録';
@@ -1214,4 +1214,12 @@ class LJa extends L {
   String planMemberWaiting(String name) {
     return '$nameさん 未確認';
   }
+
+  @override
+  String deleteNoteAsk(String title) {
+    return '「$title」を削除しますか？';
+  }
+
+  @override
+  String get mealsTitle => '食事';
 }

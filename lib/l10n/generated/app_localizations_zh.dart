@@ -716,7 +716,7 @@ class LZh extends L {
   }
 
   @override
-  String get fitAll => '查看全部';
+  String get fitAll => '今天一页看完';
 
   @override
   String get sameDayOther => '当天的其他记录';
@@ -1206,6 +1206,14 @@ class LZh extends L {
   String planMemberWaiting(String name) {
     return '$name 尚未确认';
   }
+
+  @override
+  String deleteNoteAsk(String title) {
+    return '删除“$title”？';
+  }
+
+  @override
+  String get mealsTitle => '饮食';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1920,7 +1928,7 @@ class LZhHans extends LZh {
   }
 
   @override
-  String get fitAll => '查看全部';
+  String get fitAll => '今天一页看完';
 
   @override
   String get sameDayOther => '当天的其他记录';
@@ -2410,6 +2418,14 @@ class LZhHans extends LZh {
   String planMemberWaiting(String name) {
     return '$name 尚未确认';
   }
+
+  @override
+  String deleteNoteAsk(String title) {
+    return '删除“$title”？';
+  }
+
+  @override
+  String get mealsTitle => '饮食';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3124,7 +3140,7 @@ class LZhHant extends LZh {
   }
 
   @override
-  String get fitAll => '查看全部';
+  String get fitAll => '今天一頁看完';
 
   @override
   String get sameDayOther => '當天的其他紀錄';
@@ -3614,4 +3630,12 @@ class LZhHant extends LZh {
   String planMemberWaiting(String name) {
     return '$name 尚未確認';
   }
+
+  @override
+  String deleteNoteAsk(String title) {
+    return '刪除「$title」？';
+  }
+
+  @override
+  String get mealsTitle => '飲食';
 }

@@ -197,10 +197,14 @@ class BlockSummary extends StatelessWidget {
 /// 키우고 끌어서 읽는다. 기본 화면이 이미 다 보여 주므로 이것은 기록이 한
 /// 화면을 넘는 날을 위한 보조다. 유한한 화면에 기록이 끝없이 읽히게 담기지는
 /// 않는다 — 줄어든 글씨는 키워서 읽는다.
+/// 오늘 한 장 — 운동 종이 한 장처럼, 그날 한 세트 전부와 먹은 것과 섭취−운동을
+/// 한 화면에 놓는다. [energy] 는 문서 머리의 한 줄이고, [meals] 는 그날 끼니들이다.
 Future<void> showFitAll(
   BuildContext context,
-  List<({String caption, List<ExerciseBlock> blocks})> documents,
-) => Navigator.of(context).push(
+  List<({String caption, List<ExerciseBlock> blocks})> documents, {
+  String? energy,
+  List<({String text, String kcal})> meals = const [],
+}) => Navigator.of(context).push(
   CupertinoPageRoute<void>(
     fullscreenDialog: true,
     builder: (context) => CupertinoPageScaffold(
@@ -224,6 +228,18 @@ Future<void> showFitAll(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      if (energy != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            energy,
+                            key: const ValueKey('sheet-energy'),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       for (final d in documents) ...[
                         if (documents.length > 1)
                           Padding(
@@ -238,6 +254,44 @@ Future<void> showFitAll(
                             ),
                           ),
                         for (final b in d.blocks) BlockSummary(block: b),
+                      ],
+                      if (meals.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6, bottom: 4),
+                          child: Text(
+                            L.of(context).mealsTitle,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: CupertinoColors.secondaryLabel.resolveFrom(
+                                context,
+                              ),
+                            ),
+                          ),
+                        ),
+                        for (final m in meals)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 2),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    m.text,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                                Text(
+                                  m.kcal,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: CupertinoColors.secondaryLabel
+                                        .resolveFrom(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                       ],
                     ],
                   ),

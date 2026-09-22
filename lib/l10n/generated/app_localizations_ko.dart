@@ -724,7 +724,7 @@ class LKo extends L {
   }
 
   @override
-  String get fitAll => '전체 보기';
+  String get fitAll => '오늘 한 장';
 
   @override
   String get sameDayOther => '같은 날의 다른 기록';
@@ -1216,4 +1216,12 @@ class LKo extends L {
   String planMemberWaiting(String name) {
     return '$name 님 확인 전';
   }
+
+  @override
+  String deleteNoteAsk(String title) {
+    return '\"$title\" 기록을 지울까요?';
+  }
+
+  @override
+  String get mealsTitle => '먹은 것';
 }

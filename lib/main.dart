@@ -1005,21 +1005,45 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                         mealText: _mealText,
                         onMealsChanged: _mealsChanged,
                         onProposePlan: _planNext,
-                        onFitAll: () => showFitAll(context, [
-                          (
-                            caption: DateFormat.jm(
-                              l.localeName,
-                            ).format(widget.note.createdAt),
-                            blocks: _editor.blocks,
-                          ),
-                          for (final n in _sameDay)
-                            (
-                              caption: DateFormat.jm(
-                                l.localeName,
-                              ).format(n.createdAt),
-                              blocks: n.blocks,
-                            ),
-                        ]),
+                        onFitAll: () {
+                          // 하루치 — 문서 머리와 같은 집계를 쓴다.
+                          final at = widget.note.createdAt;
+                          final day = dayLogs(
+                            widget.store.notes,
+                            from: at,
+                            to: at,
+                          ).firstOrNull;
+                          showFitAll(
+                            context,
+                            [
+                              (
+                                caption: DateFormat.jm(
+                                  l.localeName,
+                                ).format(widget.note.createdAt),
+                                blocks: _editor.blocks,
+                              ),
+                              for (final n in _sameDay)
+                                (
+                                  caption: DateFormat.jm(
+                                    l.localeName,
+                                  ).format(n.createdAt),
+                                  blocks: n.blocks,
+                                ),
+                            ],
+                            energy: day == null ? null : dayEnergyText(l, day),
+                            meals: [
+                              for (final m in day?.meals ?? const <MealEntry>[])
+                                (
+                                  text: m.text ?? m.items.join(', '),
+                                  kcal: m.kcal == null
+                                      ? l.mealKcalUnknown
+                                      : m.approximate
+                                      ? l.kcalApprox(m.kcal!)
+                                      : l.kcal(m.kcal!),
+                                ),
+                            ],
+                          );
+                        },
                       ),
                       footer: _sameDay.isEmpty
                           ? null

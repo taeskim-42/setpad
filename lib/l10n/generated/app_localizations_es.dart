@@ -744,7 +744,7 @@ class LEs extends L {
   }
 
   @override
-  String get fitAll => 'Ver todo';
+  String get fitAll => 'Hoy en una página';
 
   @override
   String get sameDayOther => 'Otros registros de este día';
@@ -1253,4 +1253,12 @@ class LEs extends L {
   String planMemberWaiting(String name) {
     return '$name aún no ha confirmado';
   }
+
+  @override
+  String deleteNoteAsk(String title) {
+    return '¿Eliminar \"$title\"?';
+  }
+
+  @override
+  String get mealsTitle => 'Comidas';
 }

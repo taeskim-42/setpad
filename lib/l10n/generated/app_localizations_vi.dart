@@ -740,7 +740,7 @@ class LVi extends L {
   }
 
   @override
-  String get fitAll => 'Xem tất cả';
+  String get fitAll => 'Hôm nay trên một trang';
 
   @override
   String get sameDayOther => 'Bản ghi khác trong ngày';
@@ -1246,4 +1246,12 @@ class LVi extends L {
   String planMemberWaiting(String name) {
     return '$name chưa xác nhận';
   }
+
+  @override
+  String deleteNoteAsk(String title) {
+    return 'Xóa \"$title\"?';
+  }
+
+  @override
+  String get mealsTitle => 'Bữa ăn';
 }

@@ -742,7 +742,7 @@ class LEn extends L {
   }
 
   @override
-  String get fitAll => 'Fit all';
+  String get fitAll => 'Today on one page';
 
   @override
   String get sameDayOther => 'Other records from this day';
@@ -1248,4 +1248,12 @@ class LEn extends L {
   String planMemberWaiting(String name) {
     return '$name has not confirmed yet';
   }
+
+  @override
+  String deleteNoteAsk(String title) {
+    return 'Delete \"$title\"?';
+  }
+
+  @override
+  String get mealsTitle => 'Meals';
 }

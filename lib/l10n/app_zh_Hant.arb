@@ -196,7 +196,7 @@
   "mealFailed": "無法從這張照片估算熱量，請重新拍攝。",
   "mealEstimateNote": "依照片估算",
   "mealServingsOption": "{n} 份",
-  "fitAll": "查看全部",
+  "fitAll": "今天一頁看完",
   "sameDayOther": "當天的其他紀錄",
   "mealText": "記錄飲食",
   "mealTextHint": "吃了什麼？例如：香蕉2根，牛奶200ml",
@@ -322,5 +322,7 @@
   "partnerInviteMore": "再邀請一人 · 代碼 {code}",
   "proxyWhose": "要記錄誰的訓練？",
   "planMemberAccepted": "{name} 已同意",
-  "planMemberWaiting": "{name} 尚未確認"
+  "planMemberWaiting": "{name} 尚未確認",
+  "deleteNoteAsk": "刪除「{title}」？",
+  "mealsTitle": "飲食"
 }

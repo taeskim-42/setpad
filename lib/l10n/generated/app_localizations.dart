@@ -1288,7 +1288,7 @@ abstract class L {
   /// No description provided for @fitAll.
   ///
   /// In ko, this message translates to:
-  /// **'전체 보기'**
+  /// **'오늘 한 장'**
   String get fitAll;
 
   /// No description provided for @sameDayOther.
@@ -2046,6 +2046,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{name} 님 확인 전'**
   String planMemberWaiting(String name);
+
+  /// No description provided for @deleteNoteAsk.
+  ///
+  /// In ko, this message translates to:
+  /// **'\"{title}\" 기록을 지울까요?'**
+  String deleteNoteAsk(String title);
+
+  /// No description provided for @mealsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'먹은 것'**
+  String get mealsTitle;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

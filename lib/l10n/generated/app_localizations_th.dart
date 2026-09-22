@@ -733,7 +733,7 @@ class LTh extends L {
   }
 
   @override
-  String get fitAll => 'ดูทั้งหมด';
+  String get fitAll => 'วันนี้ในหน้าเดียว';
 
   @override
   String get sameDayOther => 'บันทึกอื่นในวันเดียวกัน';
@@ -1235,4 +1235,12 @@ class LTh extends L {
   String planMemberWaiting(String name) {
     return '$name ยังไม่ยืนยัน';
   }
+
+  @override
+  String deleteNoteAsk(String title) {
+    return 'ลบ \"$title\" หรือไม่?';
+  }
+
+  @override
+  String get mealsTitle => 'อาหาร';
 }

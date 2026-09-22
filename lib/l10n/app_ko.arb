@@ -617,7 +617,7 @@
       }
     }
   },
-  "fitAll": "전체 보기",
+  "fitAll": "오늘 한 장",
   "sameDayOther": "같은 날의 다른 기록",
   "mealText": "식단 적기",
   "mealTextHint": "먹은 것을 적어 주세요. 예: 김밥 한 줄, 우유 200ml",
@@ -1044,5 +1044,14 @@
         "type": "String"
       }
     }
-  }
+  },
+  "deleteNoteAsk": "\"{title}\" 기록을 지울까요?",
+  "@deleteNoteAsk": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "mealsTitle": "먹은 것"
 }

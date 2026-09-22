@@ -196,7 +196,7 @@
   "mealFailed": "No se pudieron estimar las calorías de esa foto. Prueba otra.",
   "mealEstimateNote": "Estimado a partir de la foto",
   "mealServingsOption": "{n} porción(es)",
-  "fitAll": "Ver todo",
+  "fitAll": "Hoy en una página",
   "sameDayOther": "Otros registros de este día",
   "mealText": "Escribir comida",
   "mealTextHint": "¿Qué comiste? p. ej. 2 plátanos, leche 200ml",
@@ -322,5 +322,7 @@
   "partnerInviteMore": "Invitar a uno más · código {code}",
   "proxyWhose": "¿De quién es el entrenamiento?",
   "planMemberAccepted": "{name} de acuerdo",
-  "planMemberWaiting": "{name} aún no ha confirmado"
+  "planMemberWaiting": "{name} aún no ha confirmado",
+  "deleteNoteAsk": "¿Eliminar \"{title}\"?",
+  "mealsTitle": "Comidas"
 }

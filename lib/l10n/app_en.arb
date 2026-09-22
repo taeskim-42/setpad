@@ -196,7 +196,7 @@
   "mealFailed": "Couldn't estimate calories from that photo. Try another.",
   "mealEstimateNote": "Estimated from the photo",
   "mealServingsOption": "{n} serving(s)",
-  "fitAll": "Fit all",
+  "fitAll": "Today on one page",
   "sameDayOther": "Other records from this day",
   "mealText": "Write meal",
   "mealTextHint": "What did you eat? e.g. 2 bananas, milk 200ml",
@@ -322,5 +322,7 @@
   "partnerInviteMore": "Invite one more · code {code}",
   "proxyWhose": "Whose workout are you logging?",
   "planMemberAccepted": "{name} agreed",
-  "planMemberWaiting": "{name} has not confirmed yet"
+  "planMemberWaiting": "{name} has not confirmed yet",
+  "deleteNoteAsk": "Delete \"{title}\"?",
+  "mealsTitle": "Meals"
 }

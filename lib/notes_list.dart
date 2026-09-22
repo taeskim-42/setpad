@@ -771,6 +771,24 @@ class _Row extends StatelessWidget {
         color: CupertinoColors.systemRed,
         child: const Icon(CupertinoIcons.delete, color: CupertinoColors.white),
       ),
+      // 밀기만으로 지우지 않는다. 손가락이 스치면 하루 기록이 사라졌다.
+      confirmDismiss: (_) => showCupertinoDialog<bool>(
+        context: context,
+        builder: (ctx) => CupertinoAlertDialog(
+          title: Text(l.deleteNoteAsk(note.title ?? l.untitledNote)),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.cancel),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.delete),
+            ),
+          ],
+        ),
+      ).then((yes) => yes ?? false),
       onDismissed: (_) => onDelete(note),
       child: CupertinoButton(
         padding: EdgeInsets.zero,

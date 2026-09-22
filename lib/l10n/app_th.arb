@@ -196,7 +196,7 @@
   "mealFailed": "ประมาณแคลอรีจากรูปนี้ไม่ได้ ลองถ่ายใหม่",
   "mealEstimateNote": "ประมาณจากรูปถ่าย",
   "mealServingsOption": "{n} หน่วยบริโภค",
-  "fitAll": "ดูทั้งหมด",
+  "fitAll": "วันนี้ในหน้าเดียว",
   "sameDayOther": "บันทึกอื่นในวันเดียวกัน",
   "mealText": "จดมื้ออาหาร",
   "mealTextHint": "กินอะไรไปบ้าง เช่น กล้วย 2 ลูก, นม 200ml",
@@ -322,5 +322,7 @@
   "partnerInviteMore": "ชวนอีกคน · รหัส {code}",
   "proxyWhose": "จะบันทึกของใคร?",
   "planMemberAccepted": "{name} เห็นด้วยแล้ว",
-  "planMemberWaiting": "{name} ยังไม่ยืนยัน"
+  "planMemberWaiting": "{name} ยังไม่ยืนยัน",
+  "deleteNoteAsk": "ลบ \"{title}\" หรือไม่?",
+  "mealsTitle": "อาหาร"
 }

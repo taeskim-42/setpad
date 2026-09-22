@@ -196,7 +196,7 @@
   "mealFailed": "无法从这张照片估算热量，请重新拍摄。",
   "mealEstimateNote": "根据照片估算",
   "mealServingsOption": "{n} 份",
-  "fitAll": "查看全部",
+  "fitAll": "今天一页看完",
   "sameDayOther": "当天的其他记录",
   "mealText": "记录饮食",
   "mealTextHint": "吃了什么？例如：香蕉2根，牛奶200ml",
@@ -322,5 +322,7 @@
   "partnerInviteMore": "再邀请一人 · 代码 {code}",
   "proxyWhose": "要记录谁的训练？",
   "planMemberAccepted": "{name} 已同意",
-  "planMemberWaiting": "{name} 尚未确认"
+  "planMemberWaiting": "{name} 尚未确认",
+  "deleteNoteAsk": "删除“{title}”？",
+  "mealsTitle": "饮食"
 }
