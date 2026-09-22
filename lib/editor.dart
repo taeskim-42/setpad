@@ -2240,7 +2240,9 @@ class _BlockView extends StatelessWidget {
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
     final unit = sharedUnit(block);
     return Container(
-      margin: EdgeInsets.only(bottom: collapsed ? 16 : 10),
+      // 상자들이 제 여백을 가져서 카드 사이는 그만큼 좁혀도 된다 — 8종목 40세트가
+      // 한 화면에 들어가는 밀도는 지킨다.
+      margin: EdgeInsets.only(bottom: collapsed ? 16 : 6),
       padding: EdgeInsets.only(bottom: collapsed ? 12 : 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2253,14 +2255,25 @@ class _BlockView extends StatelessWidget {
                     GestureDetector(
                       onTap: collapsed ? null : onEditTitle,
                       behavior: HitTestBehavior.opaque,
-                      child: Text(
-                        block.name,
-                        maxLines: collapsed ? 1 : null,
-                        overflow: collapsed ? TextOverflow.ellipsis : null,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: -0.41,
+                      // 이름은 제 상자 안에 있다 — 눌러 고치는 자리라는 것이 보인다.
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
+                        decoration: collapsed
+                            ? null
+                            : BoxDecoration(
+                                color: CupertinoColors.tertiarySystemFill
+                                    .resolveFrom(context),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                        child: Text(
+                          block.name,
+                          maxLines: collapsed ? 1 : null,
+                          overflow: collapsed ? TextOverflow.ellipsis : null,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.41,
+                          ),
                         ),
                       ),
                     ),
@@ -2333,8 +2346,16 @@ class _BlockView extends StatelessWidget {
                 GestureDetector(
                   onTap: () => onEditNote(i, n),
                   behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 1, 8, 5),
+                  // 메모도 세트마다 제 상자다. 누르면 그 메모를 고친다.
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 3, bottom: 3),
+                    padding: const EdgeInsets.fromLTRB(6, 2, 8, 3),
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.tertiarySystemFill.resolveFrom(
+                        context,
+                      ),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                     // 어느 세트의 메모인지 앞에 적는다 — 칸과 떨어져 있어서다.
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,

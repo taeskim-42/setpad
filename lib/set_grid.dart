@@ -89,7 +89,8 @@ class SetGrid extends StatelessWidget {
                 textScaler: scaler,
                 maxLines: 1,
               )..layout();
-              final need = painter.width + 5;
+              // 상자로 그릴 때는 안쪽 여백과 옆 칸과의 틈만큼 더 넓다.
+              final need = painter.width + 5 + (onTapSet == null ? 0 : 16);
               painter.dispose();
               return need;
             }(),
@@ -120,19 +121,39 @@ class SetGrid extends StatelessWidget {
                   key: ValueKey('set-cell-$i'),
                   onTap: onTapSet == null ? null : () => onTapSet!(i),
                   behavior: HitTestBehavior.opaque,
-                  child: Container(
+                  child: SizedBox(
                     // 열 폭의 합이 반올림으로 줄 폭을 넘지 않게 조금 덜 준다.
                     width: cell(i, set) - 0.01,
-                    constraints: const BoxConstraints(minHeight: 30),
-                    alignment: Alignment.centerLeft,
-                    color: i == editingSet
-                        ? sealTint.resolveFrom(context)
-                        : null,
-                    child: Text.rich(
-                      span(i, set),
-                      maxLines: 1,
-                      softWrap: false,
-                      style: style.copyWith(color: set.done ? label : faint),
+                    child: Container(
+                      // 고칠 수 있는 자리면 세트마다 제 상자다 — 눌러 고치는 칸이라는
+                      // 것이 보인다. 읽기만 하는 자리(오늘 한 장)는 맨 글자다.
+                      margin: onTapSet == null
+                          ? EdgeInsets.zero
+                          : const EdgeInsets.fromLTRB(0, 1, 4, 1),
+                      padding: onTapSet == null
+                          ? EdgeInsets.zero
+                          : const EdgeInsets.symmetric(horizontal: 6),
+                      // 상자일 때는 위아래 틈을 합쳐 전과 같은 30 이다.
+                      constraints: BoxConstraints(
+                        minHeight: onTapSet == null ? 30 : 28,
+                      ),
+                      alignment: Alignment.centerLeft,
+                      decoration: BoxDecoration(
+                        color: i == editingSet
+                            ? sealTint.resolveFrom(context)
+                            : onTapSet == null
+                            ? null
+                            : CupertinoColors.tertiarySystemFill.resolveFrom(
+                                context,
+                              ),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text.rich(
+                        span(i, set),
+                        maxLines: 1,
+                        softWrap: false,
+                        style: style.copyWith(color: set.done ? label : faint),
+                      ),
                     ),
                   ),
                 ),
