@@ -100,28 +100,25 @@ class SetGrid extends StatelessWidget {
               return need;
             }(),
         ];
-        // 넓은 값 때문에 줄이 하나 늘 바에는, 제 폭대로 한 줄에 다 들어가면
-        // 그렇게 둔다 — 이 운동만 열이 어긋나지만 한 줄(30pt)을 아낀다. 남는
-        // 폭은 고르게 나눠 준다.
-        final total = needs.fold(0.0, (a, b) => a + b);
-        final spanned = needs.fold(0, (n, w) => n + (w / width).ceil());
-        final oneRow =
-            spanned > columns && needs.length <= columns && total <= avail;
-        final slack = oneRow ? (avail - total) / needs.length : 0.0;
-        double cell(int i, LoggedSet set) => oneRow
-            ? needs[i] + slack
-            : (needs[i] / width).ceil().clamp(1, columns) * width;
-
+        // 칸 폭은 세 갈래다. (1) 칸마다 한 열, 넓은 값만 제 폭 — 빈 칸까지 한 줄에
+        // 들어가면 이것이다. 열이 맞고 넓은 값이 두 열을 먹지 않는다. (2) 안 들어가면
+        // 전부 제 폭으로 바싹 — 열은 어긋나지만 줄 하나를 아낀다. (3) 그래도 안
+        // 들어가면 열 단위로 접고, 빈 칸은 다음 줄로 내려간다. 빈 칸은 늘 있다.
         const addWidth = 28.0;
-        // 빈 칸은 마지막 줄에 자리가 남을 때만 둔다. 줄이 꽉 찼는데 빈 칸 하나로
-        // 줄을 하나 더 쓰면 8종목 40세트가 한 화면에 안 들어간다 — 그때는 카드의
-        // 빈 곳을 눌러도 같은 일이 된다.
-        var used = 0.0;
-        for (final (i, set) in block.sets.indexed) {
-          final w = cell(i, set);
-          used = used + w > box.maxWidth + 0.5 ? w : used + w;
-        }
-        final addFits = onAdd != null && used + addWidth <= box.maxWidth + 0.5;
+        final withAdd = onAdd == null ? 0.0 : addWidth;
+        final total = needs.fold(0.0, (a, b) => a + b);
+        final aligned = [for (final n in needs) n > width ? n : width];
+        final alignedTotal = aligned.fold(0.0, (a, b) => a + b);
+        final mode = alignedTotal + withAdd <= avail + 0.5
+            ? 1
+            : total + withAdd <= avail + 0.5
+            ? 2
+            : 3;
+        double cell(int i, LoggedSet set) => switch (mode) {
+          1 => aligned[i],
+          2 => needs[i],
+          _ => (needs[i] / width).ceil().clamp(1, columns) * width,
+        };
         return Wrap(
           children: [
             for (final (i, set) in block.sets.indexed)
@@ -177,7 +174,8 @@ class SetGrid extends StatelessWidget {
                   ),
                 ),
               ),
-            if (addFits)
+            // 빈 칸은 늘 있다. 줄이 꽉 찼으면 다음 줄로 내려간다.
+            if (onAdd != null)
               Semantics(
                 button: true,
                 label: l.addSet,

@@ -243,7 +243,11 @@ class HealthLink {
     try {
       await _ensureConfigured();
       return await _health.writeWorkoutData(
-        activityType: HealthWorkoutActivityType.STRENGTH_TRAINING,
+        // iOS 의 HealthKit 에는 STRENGTH_TRAINING 이 없다 — 폰 로그가 "not supported
+        // on iOS" 로 거절했다. 안드로이드는 반대로 TRADITIONAL 을 모른다.
+        activityType: Platform.isIOS
+            ? HealthWorkoutActivityType.TRADITIONAL_STRENGTH_TRAINING
+            : HealthWorkoutActivityType.STRENGTH_TRAINING,
         start: start,
         end: end,
         title: title,

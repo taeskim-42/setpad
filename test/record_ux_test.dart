@@ -656,7 +656,9 @@ void main() {
                   : name == '플랭크'
                   ? LoggedSet(value: 60.0 - s * 5, unit: 's')
                   : LoggedSet(
-                      value: 40 + i * 12.5 + s * 2.5,
+                      // 두 자리 무게. 세 자리 값이 다섯 개 꽉 찬 줄에는 늘 남겨 두는 빈 칸
+                      // (다음 세트 자리)이 다음 줄로 내려가 그 종목만 한 줄 더 쓴다.
+                      value: 40 + i * 7 + s * 2.5,
                       unit: i == 6 ? 'lb' : 'kg',
                       reps: 12 - s - (i % 3),
                     ),
