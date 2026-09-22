@@ -213,8 +213,8 @@
   "mealHalf": "Half",
   "mealPhotoWholeNote": "This estimates everything visible in the photo. Choose how much of it you ate.",
   "mealAmountInvalid": "Enter a number of 0 or more.",
-  "dayEnergyFull": "Logged: intake {intake} − exercise {burned} = {diff} kcal",
-  "dayEnergyApprox": "Logged: intake ≈ {intake} − exercise {burned} ≈ {diff} kcal",
+  "dayEnergyFull": "Intake {intake} · exercise {burned} = {diff} kcal",
+  "dayEnergyApprox": "Intake ≈ {intake} · exercise {burned} ≈ {diff} kcal",
   "dayBurnedMissing": "Exercise energy not measured · no difference",
   "dayBurnedOnly": "Exercise {n} kcal · no meals logged",
   "intakeLabel": "Intake",
@@ -325,5 +325,7 @@
   "planMemberWaiting": "{name} has not confirmed yet",
   "deleteNoteAsk": "Delete \"{title}\"?",
   "mealsTitle": "Meals",
-  "recordMenu": "More"
+  "recordMenu": "More",
+  "dayIntakeOnly": "Intake {intake} kcal · exercise energy not measured",
+  "dayIntakeOnlyApprox": "Intake ≈ {intake} kcal · exercise energy not measured"
 }

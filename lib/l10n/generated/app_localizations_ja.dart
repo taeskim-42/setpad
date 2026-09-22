@@ -787,48 +787,21 @@ class LJa extends L {
   String get mealAmountInvalid => '0以上の数字を入力してください。';
 
   @override
-  String dayEnergyFull(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return '記録ベース 摂取 $intakeString − 運動 $burnedString = ${diffString}kcal';
+  String dayEnergyFull(String intake, String burned, String diff) {
+    return '摂取 $intake · 運動 $burned = ${diff}kcal';
   }
 
   @override
-  String dayEnergyApprox(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return '記録ベース 摂取 約$intakeString − 運動 $burnedString = 約${diffString}kcal';
+  String dayEnergyApprox(String intake, String burned, String diff) {
+    return '摂取 約$intake · 運動 $burned = 約${diff}kcal';
   }
 
   @override
   String get dayBurnedMissing => '運動消費は未計測 · 差は計算できません';
 
   @override
-  String dayBurnedOnly(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '運動 ${nString}kcal · 食事は未記録';
+  String dayBurnedOnly(String n) {
+    return '運動 ${n}kcal · 食事は未記録';
   }
 
   @override
@@ -1225,4 +1198,14 @@ class LJa extends L {
 
   @override
   String get recordMenu => 'その他';
+
+  @override
+  String dayIntakeOnly(String intake) {
+    return '摂取 ${intake}kcal · 運動消費は未計測';
+  }
+
+  @override
+  String dayIntakeOnlyApprox(String intake) {
+    return '摂取 約${intake}kcal · 運動消費は未計測';
+  }
 }

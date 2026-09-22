@@ -213,8 +213,8 @@
   "mealHalf": "La mitad",
   "mealPhotoWholeNote": "Es una estimación de todo lo que se ve en la foto. Elige cuánto comiste.",
   "mealAmountInvalid": "Introduce un número igual o mayor que 0.",
-  "dayEnergyFull": "Registrado: ingesta {intake} − ejercicio {burned} = {diff} kcal",
-  "dayEnergyApprox": "Registrado: ingesta ≈ {intake} − ejercicio {burned} ≈ {diff} kcal",
+  "dayEnergyFull": "Ingesta {intake} · ejercicio {burned} = {diff} kcal",
+  "dayEnergyApprox": "Ingesta ≈ {intake} · ejercicio {burned} ≈ {diff} kcal",
   "dayBurnedMissing": "Energía del ejercicio sin medir · sin diferencia",
   "dayBurnedOnly": "Ejercicio {n} kcal · sin comidas registradas",
   "intakeLabel": "Ingesta",
@@ -325,5 +325,7 @@
   "planMemberWaiting": "{name} aún no ha confirmado",
   "deleteNoteAsk": "¿Eliminar \"{title}\"?",
   "mealsTitle": "Comidas",
-  "recordMenu": "Más"
+  "recordMenu": "Más",
+  "dayIntakeOnly": "Ingesta {intake} kcal · energía del ejercicio sin medir",
+  "dayIntakeOnlyApprox": "Ingesta ≈ {intake} kcal · energía del ejercicio sin medir"
 }

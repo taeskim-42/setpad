@@ -781,48 +781,21 @@ class LZh extends L {
   String get mealAmountInvalid => '请输入不小于 0 的数字。';
 
   @override
-  String dayEnergyFull(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return '按记录 摄入 $intakeString − 运动 $burnedString = $diffString 千卡';
+  String dayEnergyFull(String intake, String burned, String diff) {
+    return '摄入 $intake · 运动 $burned = $diff 千卡';
   }
 
   @override
-  String dayEnergyApprox(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return '按记录 摄入约 $intakeString − 运动 $burnedString = 约 $diffString 千卡';
+  String dayEnergyApprox(String intake, String burned, String diff) {
+    return '摄入 约 $intake · 运动 $burned ≈ $diff 千卡';
   }
 
   @override
   String get dayBurnedMissing => '运动消耗未测量 · 无法计算差值';
 
   @override
-  String dayBurnedOnly(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '运动 $nString 千卡 · 未记录饮食';
+  String dayBurnedOnly(String n) {
+    return '运动 $n 千卡 · 未记录饮食';
   }
 
   @override
@@ -1217,6 +1190,16 @@ class LZh extends L {
 
   @override
   String get recordMenu => '更多';
+
+  @override
+  String dayIntakeOnly(String intake) {
+    return '摄入 $intake 千卡 · 运动消耗未测量';
+  }
+
+  @override
+  String dayIntakeOnlyApprox(String intake) {
+    return '摄入 约 $intake 千卡 · 运动消耗未测量';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1996,48 +1979,21 @@ class LZhHans extends LZh {
   String get mealAmountInvalid => '请输入不小于 0 的数字。';
 
   @override
-  String dayEnergyFull(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return '按记录 摄入 $intakeString − 运动 $burnedString = $diffString 千卡';
+  String dayEnergyFull(String intake, String burned, String diff) {
+    return '摄入 $intake · 运动 $burned = $diff 千卡';
   }
 
   @override
-  String dayEnergyApprox(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return '按记录 摄入约 $intakeString − 运动 $burnedString = 约 $diffString 千卡';
+  String dayEnergyApprox(String intake, String burned, String diff) {
+    return '摄入 约 $intake · 运动 $burned ≈ $diff 千卡';
   }
 
   @override
   String get dayBurnedMissing => '运动消耗未测量 · 无法计算差值';
 
   @override
-  String dayBurnedOnly(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '运动 $nString 千卡 · 未记录饮食';
+  String dayBurnedOnly(String n) {
+    return '运动 $n 千卡 · 未记录饮食';
   }
 
   @override
@@ -2432,6 +2388,16 @@ class LZhHans extends LZh {
 
   @override
   String get recordMenu => '更多';
+
+  @override
+  String dayIntakeOnly(String intake) {
+    return '摄入 $intake 千卡 · 运动消耗未测量';
+  }
+
+  @override
+  String dayIntakeOnlyApprox(String intake) {
+    return '摄入 约 $intake 千卡 · 运动消耗未测量';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3211,48 +3177,21 @@ class LZhHant extends LZh {
   String get mealAmountInvalid => '請輸入不小於 0 的數字。';
 
   @override
-  String dayEnergyFull(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return '依紀錄 攝取 $intakeString − 運動 $burnedString = $diffString 大卡';
+  String dayEnergyFull(String intake, String burned, String diff) {
+    return '攝取 $intake · 運動 $burned = $diff 大卡';
   }
 
   @override
-  String dayEnergyApprox(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return '依紀錄 攝取約 $intakeString − 運動 $burnedString = 約 $diffString 大卡';
+  String dayEnergyApprox(String intake, String burned, String diff) {
+    return '攝取 約 $intake · 運動 $burned ≈ $diff 大卡';
   }
 
   @override
   String get dayBurnedMissing => '運動消耗未測量 · 無法計算差值';
 
   @override
-  String dayBurnedOnly(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '運動 $nString 大卡 · 未記錄飲食';
+  String dayBurnedOnly(String n) {
+    return '運動 $n 大卡 · 未記錄飲食';
   }
 
   @override
@@ -3647,4 +3586,14 @@ class LZhHant extends LZh {
 
   @override
   String get recordMenu => '更多';
+
+  @override
+  String dayIntakeOnly(String intake) {
+    return '攝取 $intake 大卡 · 運動消耗未測量';
+  }
+
+  @override
+  String dayIntakeOnlyApprox(String intake) {
+    return '攝取 約 $intake 大卡 · 運動消耗未測量';
+  }
 }

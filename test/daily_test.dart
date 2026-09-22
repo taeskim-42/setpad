@@ -122,4 +122,10 @@ void main() {
     note.removeMeal(note.meals.single);
     expect(diff(), isNull, reason: '끼니가 없으면 0 이 아니라 기록 없음이다');
   });
+
+  test('먹은 것은 +, 운동은 −, 차이는 부호가 곧 뜻이다', () {
+    expect(signed(1650), '+1,650');
+    expect(signed(-450), '−450');
+    expect(signed(0), '0');
+  });
 }

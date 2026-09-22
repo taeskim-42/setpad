@@ -810,35 +810,13 @@ class LEs extends L {
   String get mealAmountInvalid => 'Introduce un número igual o mayor que 0.';
 
   @override
-  String dayEnergyFull(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return 'Registrado: ingesta $intakeString − ejercicio $burnedString = $diffString kcal';
+  String dayEnergyFull(String intake, String burned, String diff) {
+    return 'Ingesta $intake · ejercicio $burned = $diff kcal';
   }
 
   @override
-  String dayEnergyApprox(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return 'Registrado: ingesta ≈ $intakeString − ejercicio $burnedString ≈ $diffString kcal';
+  String dayEnergyApprox(String intake, String burned, String diff) {
+    return 'Ingesta ≈ $intake · ejercicio $burned ≈ $diff kcal';
   }
 
   @override
@@ -846,13 +824,8 @@ class LEs extends L {
       'Energía del ejercicio sin medir · sin diferencia';
 
   @override
-  String dayBurnedOnly(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return 'Ejercicio $nString kcal · sin comidas registradas';
+  String dayBurnedOnly(String n) {
+    return 'Ejercicio $n kcal · sin comidas registradas';
   }
 
   @override
@@ -1264,4 +1237,14 @@ class LEs extends L {
 
   @override
   String get recordMenu => 'Más';
+
+  @override
+  String dayIntakeOnly(String intake) {
+    return 'Ingesta $intake kcal · energía del ejercicio sin medir';
+  }
+
+  @override
+  String dayIntakeOnlyApprox(String intake) {
+    return 'Ingesta ≈ $intake kcal · energía del ejercicio sin medir';
+  }
 }

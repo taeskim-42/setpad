@@ -213,8 +213,8 @@
   "mealHalf": "一半",
   "mealPhotoWholeNote": "這是照片中全部食物的估算值，請選擇您吃了其中多少。",
   "mealAmountInvalid": "請輸入不小於 0 的數字。",
-  "dayEnergyFull": "依紀錄 攝取 {intake} − 運動 {burned} = {diff} 大卡",
-  "dayEnergyApprox": "依紀錄 攝取約 {intake} − 運動 {burned} = 約 {diff} 大卡",
+  "dayEnergyFull": "攝取 {intake} · 運動 {burned} = {diff} 大卡",
+  "dayEnergyApprox": "攝取 約 {intake} · 運動 {burned} ≈ {diff} 大卡",
   "dayBurnedMissing": "運動消耗未測量 · 無法計算差值",
   "dayBurnedOnly": "運動 {n} 大卡 · 未記錄飲食",
   "intakeLabel": "攝取",
@@ -325,5 +325,7 @@
   "planMemberWaiting": "{name} 尚未確認",
   "deleteNoteAsk": "刪除「{title}」？",
   "mealsTitle": "飲食",
-  "recordMenu": "更多"
+  "recordMenu": "更多",
+  "dayIntakeOnly": "攝取 {intake} 大卡 · 運動消耗未測量",
+  "dayIntakeOnlyApprox": "攝取 約 {intake} 大卡 · 運動消耗未測量"
 }

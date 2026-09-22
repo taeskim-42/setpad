@@ -1390,14 +1390,14 @@ abstract class L {
   /// No description provided for @dayEnergyFull.
   ///
   /// In ko, this message translates to:
-  /// **'기록 기준 섭취 {intake} − 운동 {burned} = {diff}kcal'**
-  String dayEnergyFull(int intake, int burned, int diff);
+  /// **'섭취 {intake} · 운동 {burned} = {diff}kcal'**
+  String dayEnergyFull(String intake, String burned, String diff);
 
   /// No description provided for @dayEnergyApprox.
   ///
   /// In ko, this message translates to:
-  /// **'기록 기준 섭취 약 {intake} − 운동 {burned} = 약 {diff}kcal'**
-  String dayEnergyApprox(int intake, int burned, int diff);
+  /// **'섭취 약 {intake} · 운동 {burned} = 약 {diff}kcal'**
+  String dayEnergyApprox(String intake, String burned, String diff);
 
   /// No description provided for @dayBurnedMissing.
   ///
@@ -1409,7 +1409,7 @@ abstract class L {
   ///
   /// In ko, this message translates to:
   /// **'운동 {n}kcal · 식단 미기록'**
-  String dayBurnedOnly(int n);
+  String dayBurnedOnly(String n);
 
   /// No description provided for @intakeLabel.
   ///
@@ -2064,6 +2064,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'더 보기'**
   String get recordMenu;
+
+  /// No description provided for @dayIntakeOnly.
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취 {intake}kcal · 운동 소모 미측정'**
+  String dayIntakeOnly(String intake);
+
+  /// No description provided for @dayIntakeOnlyApprox.
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취 약 {intake}kcal · 운동 소모 미측정'**
+  String dayIntakeOnlyApprox(String intake);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

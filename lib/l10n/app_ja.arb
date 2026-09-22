@@ -213,8 +213,8 @@
   "mealHalf": "半分",
   "mealPhotoWholeNote": "写真に写っている料理全体の推定値です。そのうち食べた分を選んでください。",
   "mealAmountInvalid": "0以上の数字を入力してください。",
-  "dayEnergyFull": "記録ベース 摂取 {intake} − 運動 {burned} = {diff}kcal",
-  "dayEnergyApprox": "記録ベース 摂取 約{intake} − 運動 {burned} = 約{diff}kcal",
+  "dayEnergyFull": "摂取 {intake} · 運動 {burned} = {diff}kcal",
+  "dayEnergyApprox": "摂取 約{intake} · 運動 {burned} = 約{diff}kcal",
   "dayBurnedMissing": "運動消費は未計測 · 差は計算できません",
   "dayBurnedOnly": "運動 {n}kcal · 食事は未記録",
   "intakeLabel": "摂取",
@@ -325,5 +325,7 @@
   "planMemberWaiting": "{name}さん 未確認",
   "deleteNoteAsk": "「{title}」を削除しますか？",
   "mealsTitle": "食事",
-  "recordMenu": "その他"
+  "recordMenu": "その他",
+  "dayIntakeOnly": "摂取 {intake}kcal · 運動消費は未計測",
+  "dayIntakeOnlyApprox": "摂取 約{intake}kcal · 運動消費は未計測"
 }

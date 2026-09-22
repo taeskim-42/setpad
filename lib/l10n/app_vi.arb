@@ -213,8 +213,8 @@
   "mealHalf": "Một nửa",
   "mealPhotoWholeNote": "Đây là ước tính cho toàn bộ món trong ảnh. Hãy chọn phần bạn đã ăn.",
   "mealAmountInvalid": "Hãy nhập số từ 0 trở lên.",
-  "dayEnergyFull": "Theo ghi chép: nạp {intake} − tập {burned} = {diff} kcal",
-  "dayEnergyApprox": "Theo ghi chép: nạp ≈ {intake} − tập {burned} ≈ {diff} kcal",
+  "dayEnergyFull": "Nạp {intake} · tập {burned} = {diff} kcal",
+  "dayEnergyApprox": "Nạp ≈ {intake} · tập {burned} ≈ {diff} kcal",
   "dayBurnedMissing": "Chưa đo năng lượng tập · không tính được chênh lệch",
   "dayBurnedOnly": "Tập {n} kcal · chưa ghi bữa ăn",
   "intakeLabel": "Nạp",
@@ -325,5 +325,7 @@
   "planMemberWaiting": "{name} chưa xác nhận",
   "deleteNoteAsk": "Xóa \"{title}\"?",
   "mealsTitle": "Bữa ăn",
-  "recordMenu": "Thêm"
+  "recordMenu": "Thêm",
+  "dayIntakeOnly": "Nạp {intake} kcal · chưa đo năng lượng tập",
+  "dayIntakeOnlyApprox": "Nạp ≈ {intake} kcal · chưa đo năng lượng tập"
 }

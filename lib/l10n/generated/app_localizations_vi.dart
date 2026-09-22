@@ -806,35 +806,13 @@ class LVi extends L {
   String get mealAmountInvalid => 'Hãy nhập số từ 0 trở lên.';
 
   @override
-  String dayEnergyFull(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return 'Theo ghi chép: nạp $intakeString − tập $burnedString = $diffString kcal';
+  String dayEnergyFull(String intake, String burned, String diff) {
+    return 'Nạp $intake · tập $burned = $diff kcal';
   }
 
   @override
-  String dayEnergyApprox(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return 'Theo ghi chép: nạp ≈ $intakeString − tập $burnedString ≈ $diffString kcal';
+  String dayEnergyApprox(String intake, String burned, String diff) {
+    return 'Nạp ≈ $intake · tập $burned ≈ $diff kcal';
   }
 
   @override
@@ -842,13 +820,8 @@ class LVi extends L {
       'Chưa đo năng lượng tập · không tính được chênh lệch';
 
   @override
-  String dayBurnedOnly(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return 'Tập $nString kcal · chưa ghi bữa ăn';
+  String dayBurnedOnly(String n) {
+    return 'Tập $n kcal · chưa ghi bữa ăn';
   }
 
   @override
@@ -1257,4 +1230,14 @@ class LVi extends L {
 
   @override
   String get recordMenu => 'Thêm';
+
+  @override
+  String dayIntakeOnly(String intake) {
+    return 'Nạp $intake kcal · chưa đo năng lượng tập';
+  }
+
+  @override
+  String dayIntakeOnlyApprox(String intake) {
+    return 'Nạp ≈ $intake kcal · chưa đo năng lượng tập';
+  }
 }

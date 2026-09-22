@@ -13,6 +13,8 @@
 ///     (문서 머리의 날짜와 같다)이 속한 날에 들어간다.
 library;
 
+import 'package:intl/intl.dart';
+
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 
@@ -87,23 +89,32 @@ List<DayLog> dayLogs(
 }
 
 /// 하루의 에너지 한 줄. 없는 것은 없다고 쓴다 — 0 으로 채우지 않는다.
+///
+/// 먹은 것은 +, 운동으로 쓴 것은 −, 그 합이 차이다. 부호가 곧 뜻이라 숫자 앞에
+/// 늘 붙인다: "+904 · −450 = +454". 남으면 +, 모자라면 −.
 String? dayEnergyText(L l, DayLog day) {
   final intake = day.intake, burned = day.burned;
   if (intake == null && burned == null) return null;
-  if (intake == null) return l.dayBurnedOnly(burned!.round());
+  if (intake == null) return l.dayBurnedOnly(signed(-burned!.round()));
   if (day.unknownMeals > 0) {
     return l.mealIntakePartial(intake, day.unknownMeals);
   }
   if (burned == null) {
-    final eaten = day.intakeEstimated ? l.kcalApprox(intake) : l.kcal(intake);
-    return '${l.intakeLabel} $eaten · ${l.dayBurnedMissing}';
+    return (day.intakeEstimated ? l.dayIntakeOnlyApprox : l.dayIntakeOnly)(
+      signed(intake),
+    );
   }
   return (day.intakeEstimated ? l.dayEnergyApprox : l.dayEnergyFull)(
-    intake,
-    burned.round(),
-    day.difference!,
+    signed(intake),
+    signed(-burned.round()),
+    signed(day.difference!),
   );
 }
+
+/// "+1,650" · "−450" · "0". 빼기는 하이픈이 아니라 빼기 기호다.
+String signed(int n) => n == 0
+    ? '0'
+    : '${n > 0 ? '+' : '−'}${NumberFormat.decimalPattern().format(n.abs())}';
 
 /// 이 문서의 운동 시간대에서 **다른 문서가 이미 잰 구간을 뺀** 시작 시각.
 ///

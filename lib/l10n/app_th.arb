@@ -213,8 +213,8 @@
   "mealHalf": "ครึ่งหนึ่ง",
   "mealPhotoWholeNote": "นี่คือค่าประมาณของอาหารทั้งหมดในรูป เลือกปริมาณที่คุณกิน",
   "mealAmountInvalid": "กรุณาใส่ตัวเลขตั้งแต่ 0 ขึ้นไป",
-  "dayEnergyFull": "ตามที่บันทึก: กิน {intake} − ออกกำลัง {burned} = {diff} kcal",
-  "dayEnergyApprox": "ตามที่บันทึก: กิน ≈ {intake} − ออกกำลัง {burned} ≈ {diff} kcal",
+  "dayEnergyFull": "กิน {intake} · ออกกำลัง {burned} = {diff} kcal",
+  "dayEnergyApprox": "กิน ≈ {intake} · ออกกำลัง {burned} ≈ {diff} kcal",
   "dayBurnedMissing": "ยังไม่ได้วัดพลังงานที่ใช้ออกกำลัง · คำนวณส่วนต่างไม่ได้",
   "dayBurnedOnly": "ออกกำลัง {n} kcal · ยังไม่ได้บันทึกอาหาร",
   "intakeLabel": "กิน",
@@ -325,5 +325,7 @@
   "planMemberWaiting": "{name} ยังไม่ยืนยัน",
   "deleteNoteAsk": "ลบ \"{title}\" หรือไม่?",
   "mealsTitle": "อาหาร",
-  "recordMenu": "เพิ่มเติม"
+  "recordMenu": "เพิ่มเติม",
+  "dayIntakeOnly": "กิน {intake} kcal · ยังไม่ได้วัดพลังงานที่ใช้ออกกำลัง",
+  "dayIntakeOnlyApprox": "กิน ≈ {intake} kcal · ยังไม่ได้วัดพลังงานที่ใช้ออกกำลัง"
 }

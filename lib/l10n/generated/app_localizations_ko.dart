@@ -789,48 +789,21 @@ class LKo extends L {
   String get mealAmountInvalid => '0 이상의 숫자를 입력해 주세요.';
 
   @override
-  String dayEnergyFull(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return '기록 기준 섭취 $intakeString − 운동 $burnedString = ${diffString}kcal';
+  String dayEnergyFull(String intake, String burned, String diff) {
+    return '섭취 $intake · 운동 $burned = ${diff}kcal';
   }
 
   @override
-  String dayEnergyApprox(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return '기록 기준 섭취 약 $intakeString − 운동 $burnedString = 약 ${diffString}kcal';
+  String dayEnergyApprox(String intake, String burned, String diff) {
+    return '섭취 약 $intake · 운동 $burned = 약 ${diff}kcal';
   }
 
   @override
   String get dayBurnedMissing => '운동 소모량 미측정 · 차이 계산 불가';
 
   @override
-  String dayBurnedOnly(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '운동 ${nString}kcal · 식단 미기록';
+  String dayBurnedOnly(String n) {
+    return '운동 ${n}kcal · 식단 미기록';
   }
 
   @override
@@ -1227,4 +1200,14 @@ class LKo extends L {
 
   @override
   String get recordMenu => '더 보기';
+
+  @override
+  String dayIntakeOnly(String intake) {
+    return '섭취 ${intake}kcal · 운동 소모 미측정';
+  }
+
+  @override
+  String dayIntakeOnlyApprox(String intake) {
+    return '섭취 약 ${intake}kcal · 운동 소모 미측정';
+  }
 }

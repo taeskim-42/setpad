@@ -653,37 +653,31 @@
   "mealHalf": "절반",
   "mealPhotoWholeNote": "사진에 보이는 음식 전체를 어림한 값이에요. 그중 드신 만큼을 고르세요.",
   "mealAmountInvalid": "0 이상의 숫자를 입력해 주세요.",
-  "dayEnergyFull": "기록 기준 섭취 {intake} − 운동 {burned} = {diff}kcal",
+  "dayEnergyFull": "섭취 {intake} · 운동 {burned} = {diff}kcal",
   "@dayEnergyFull": {
     "placeholders": {
       "intake": {
-        "type": "int",
-        "format": "decimalPattern"
+        "type": "String"
       },
       "burned": {
-        "type": "int",
-        "format": "decimalPattern"
+        "type": "String"
       },
       "diff": {
-        "type": "int",
-        "format": "decimalPattern"
+        "type": "String"
       }
     }
   },
-  "dayEnergyApprox": "기록 기준 섭취 약 {intake} − 운동 {burned} = 약 {diff}kcal",
+  "dayEnergyApprox": "섭취 약 {intake} · 운동 {burned} = 약 {diff}kcal",
   "@dayEnergyApprox": {
     "placeholders": {
       "intake": {
-        "type": "int",
-        "format": "decimalPattern"
+        "type": "String"
       },
       "burned": {
-        "type": "int",
-        "format": "decimalPattern"
+        "type": "String"
       },
       "diff": {
-        "type": "int",
-        "format": "decimalPattern"
+        "type": "String"
       }
     }
   },
@@ -692,8 +686,7 @@
   "@dayBurnedOnly": {
     "placeholders": {
       "n": {
-        "type": "int",
-        "format": "decimalPattern"
+        "type": "String"
       }
     }
   },
@@ -1054,5 +1047,21 @@
     }
   },
   "mealsTitle": "먹은 것",
-  "recordMenu": "더 보기"
+  "recordMenu": "더 보기",
+  "dayIntakeOnly": "섭취 {intake}kcal · 운동 소모 미측정",
+  "@dayIntakeOnly": {
+    "placeholders": {
+      "intake": {
+        "type": "String"
+      }
+    }
+  },
+  "dayIntakeOnlyApprox": "섭취 약 {intake}kcal · 운동 소모 미측정",
+  "@dayIntakeOnlyApprox": {
+    "placeholders": {
+      "intake": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -799,35 +799,13 @@ class LTh extends L {
   String get mealAmountInvalid => 'กรุณาใส่ตัวเลขตั้งแต่ 0 ขึ้นไป';
 
   @override
-  String dayEnergyFull(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return 'ตามที่บันทึก: กิน $intakeString − ออกกำลัง $burnedString = $diffString kcal';
+  String dayEnergyFull(String intake, String burned, String diff) {
+    return 'กิน $intake · ออกกำลัง $burned = $diff kcal';
   }
 
   @override
-  String dayEnergyApprox(int intake, int burned, int diff) {
-    final intl.NumberFormat intakeNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String intakeString = intakeNumberFormat.format(intake);
-    final intl.NumberFormat burnedNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String burnedString = burnedNumberFormat.format(burned);
-    final intl.NumberFormat diffNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String diffString = diffNumberFormat.format(diff);
-
-    return 'ตามที่บันทึก: กิน ≈ $intakeString − ออกกำลัง $burnedString ≈ $diffString kcal';
+  String dayEnergyApprox(String intake, String burned, String diff) {
+    return 'กิน ≈ $intake · ออกกำลัง $burned ≈ $diff kcal';
   }
 
   @override
@@ -835,13 +813,8 @@ class LTh extends L {
       'ยังไม่ได้วัดพลังงานที่ใช้ออกกำลัง · คำนวณส่วนต่างไม่ได้';
 
   @override
-  String dayBurnedOnly(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return 'ออกกำลัง $nString kcal · ยังไม่ได้บันทึกอาหาร';
+  String dayBurnedOnly(String n) {
+    return 'ออกกำลัง $n kcal · ยังไม่ได้บันทึกอาหาร';
   }
 
   @override
@@ -1246,4 +1219,14 @@ class LTh extends L {
 
   @override
   String get recordMenu => 'เพิ่มเติม';
+
+  @override
+  String dayIntakeOnly(String intake) {
+    return 'กิน $intake kcal · ยังไม่ได้วัดพลังงานที่ใช้ออกกำลัง';
+  }
+
+  @override
+  String dayIntakeOnlyApprox(String intake) {
+    return 'กิน ≈ $intake kcal · ยังไม่ได้วัดพลังงานที่ใช้ออกกำลัง';
+  }
 }
