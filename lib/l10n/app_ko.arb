@@ -1053,5 +1053,6 @@
       }
     }
   },
-  "mealsTitle": "먹은 것"
+  "mealsTitle": "먹은 것",
+  "recordMenu": "더 보기"
 }

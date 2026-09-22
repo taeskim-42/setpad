@@ -118,7 +118,8 @@ void main() {
     }
 
     await mount(store.create());
-    expect(find.byKey(const ValueKey('propose-plan')), findsNothing);
+    // 적은 것이 없으면 메뉴 자체가 없다.
+    expect(find.byKey(const ValueKey('record-menu')), findsNothing);
     await tester.pumpWidget(const SizedBox());
 
     final note = store.create()
@@ -130,6 +131,9 @@ void main() {
         ExerciseBlock('민수식 로우 2', [LoggedSet(value: 40, reps: 12)]),
       ]);
     await mount(note);
+    expect(find.byKey(const ValueKey('section-divider')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('record-menu')));
+    await tester.pumpAndSettle();
     expect(find.text('공동 루틴으로 제안'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('propose-plan')));
     await tester.pump();

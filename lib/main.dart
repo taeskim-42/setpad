@@ -790,6 +790,75 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
           planFromBlocks(widget.note.title ?? '', widget.note.blocks),
         );
 
+  /// 오늘 한 장 — 그날 한 세트 전부, 먹은 것, 섭취−운동을 한 화면에.
+  void _showDaySheet() {
+    final l = L.of(context);
+    final at = widget.note.createdAt;
+    final day = dayLogs(widget.store.notes, from: at, to: at).firstOrNull;
+    showFitAll(
+      context,
+      [
+        (
+          caption: DateFormat.jm(l.localeName).format(widget.note.createdAt),
+          blocks: _editor.blocks,
+        ),
+        for (final n in _sameDay)
+          (
+            caption: DateFormat.jm(l.localeName).format(n.createdAt),
+            blocks: n.blocks,
+          ),
+      ],
+      energy: day == null ? null : dayEnergyText(l, day),
+      meals: [
+        for (final m in day?.meals ?? const <MealEntry>[])
+          (
+            text: m.text ?? m.items.join(', '),
+            kcal: m.kcal == null
+                ? l.mealKcalUnknown
+                : m.approximate
+                ? l.kcalApprox(m.kcal!)
+                : l.kcal(m.kcal!),
+          ),
+      ],
+    );
+  }
+
+  /// 이 기록으로 할 수 있는 일들. 머리 줄에 흩어 두었을 때는 어느 것이 식단이고
+  /// 어느 것이 운동의 것인지 헷갈렸다 — 한 곳에 모은다.
+  void _showMenu() {
+    final l = L.of(context);
+    final planNext = _planNext;
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        actions: [
+          if (_editor.blocks.isNotEmpty)
+            CupertinoActionSheetAction(
+              key: const ValueKey('menu-day-sheet'),
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showDaySheet();
+              },
+              child: Text(l.fitAll),
+            ),
+          if (planNext != null)
+            CupertinoActionSheetAction(
+              key: const ValueKey('propose-plan'),
+              onPressed: () {
+                Navigator.pop(ctx);
+                planNext();
+              },
+              child: Text(l.planPropose),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(l.cancel),
+        ),
+      ),
+    );
+  }
+
   void _partnerChanged() {
     if (!mounted) return;
     // 세션이 열리면 돌고, 끝나면 멈춘다.
@@ -862,6 +931,17 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                   CupertinoIcons.person_2,
                   size: 20,
                   semanticLabel: l.partnerInvite,
+                ),
+              ),
+            if (_editor.blocks.isNotEmpty || _planNext != null)
+              CupertinoButton(
+                key: const ValueKey('record-menu'),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                onPressed: _showMenu,
+                child: Icon(
+                  CupertinoIcons.ellipsis_circle,
+                  size: 21,
+                  semanticLabel: l.recordMenu,
                 ),
               ),
             CupertinoButton(
@@ -1004,46 +1084,6 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                         ai: widget.ai,
                         mealText: _mealText,
                         onMealsChanged: _mealsChanged,
-                        onProposePlan: _planNext,
-                        onFitAll: () {
-                          // 하루치 — 문서 머리와 같은 집계를 쓴다.
-                          final at = widget.note.createdAt;
-                          final day = dayLogs(
-                            widget.store.notes,
-                            from: at,
-                            to: at,
-                          ).firstOrNull;
-                          showFitAll(
-                            context,
-                            [
-                              (
-                                caption: DateFormat.jm(
-                                  l.localeName,
-                                ).format(widget.note.createdAt),
-                                blocks: _editor.blocks,
-                              ),
-                              for (final n in _sameDay)
-                                (
-                                  caption: DateFormat.jm(
-                                    l.localeName,
-                                  ).format(n.createdAt),
-                                  blocks: n.blocks,
-                                ),
-                            ],
-                            energy: day == null ? null : dayEnergyText(l, day),
-                            meals: [
-                              for (final m in day?.meals ?? const <MealEntry>[])
-                                (
-                                  text: m.text ?? m.items.join(', '),
-                                  kcal: m.kcal == null
-                                      ? l.mealKcalUnknown
-                                      : m.approximate
-                                      ? l.kcalApprox(m.kcal!)
-                                      : l.kcal(m.kcal!),
-                                ),
-                            ],
-                          );
-                        },
                       ),
                       footer: _sameDay.isEmpty
                           ? null
@@ -1078,8 +1118,6 @@ class _DocumentHeader extends StatefulWidget {
     required this.store,
     required this.ai,
     this.mealText,
-    this.onProposePlan,
-    this.onFitAll,
     this.onMealsChanged,
   });
   final Note note;
@@ -1088,10 +1126,6 @@ class _DocumentHeader extends StatefulWidget {
 
   /// 식단 글은 아래 입력 줄에서 친다. 여기서는 그 모드를 켜기만 한다.
   final ValueNotifier<({String text, int? index})?>? mealText;
-
-  /// 이 기록을 공동 루틴으로 제안한다. 적은 것이 없으면 null 이다.
-  final VoidCallback? onProposePlan;
-  final VoidCallback? onFitAll;
 
   /// 끼니를 더하거나 고치거나 지웠다. 저장과 서버 맞춤은 문서 쪽이 한다.
   final VoidCallback? onMealsChanged;
@@ -1367,78 +1401,22 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
               _error!,
               style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
             ),
-          Row(
-            children: [
-              // 식단 사진·글 버튼은 여기 없다. 입력 줄 위의 막대에 같은 것이 늘 있어서
-              // 화면 맨 위에 또 둘 이유가 없었다. 사진을 읽는 동안이라는 것만 알린다.
-              if (_estimating)
-                Text(
-                  l.mealEstimating,
-                  style: TextStyle(fontSize: 13, color: muted),
-                ),
-              // 같이 하기 창 안에 숨어 있던 것을 기록 화면으로 꺼냈다. 기록을 보다가
-              // "이걸로 같이 하자" 가 떠오르는 자리가 여기다. 남는 폭을 다 쓰고,
-              // 말이 긴 언어에서는 넘치지 않고 줄인다.
-              Expanded(
-                child: widget.onProposePlan == null
-                    ? const SizedBox.shrink()
-                    : LayoutBuilder(
-                        builder: (context, box) {
-                          const style = TextStyle(fontSize: 14);
-                          final words = TextPainter(
-                            text: TextSpan(
-                              text: l.planPropose,
-                              style: DefaultTextStyle.of(
-                                context,
-                              ).style.merge(style),
-                            ),
-                            textDirection: Directionality.of(context),
-                            maxLines: 1,
-                          )..layout();
-                          // 말이 다 들어갈 때만 적는다. 잘린 말보다 아이콘이 낫다.
-                          final roomy =
-                              words.width + 16 + 6 + 16 <= box.maxWidth;
-                          words.dispose();
-                          return Align(
-                            alignment: AlignmentDirectional.centerEnd,
-                            child: CupertinoButton(
-                              key: const ValueKey('propose-plan'),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                              ),
-                              minimumSize: const Size(44, 36),
-                              onPressed: widget.onProposePlan,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    CupertinoIcons.person_2,
-                                    size: 16,
-                                    semanticLabel: l.planPropose,
-                                  ),
-                                  if (roomy) ...[
-                                    const SizedBox(width: 6),
-                                    Text(l.planPropose, style: style),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-              if (widget.onFitAll != null && note.blocks.isNotEmpty)
-                CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  minimumSize: const Size(44, 36),
-                  onPressed: widget.onFitAll,
-                  child: Icon(
-                    CupertinoIcons.arrow_up_left_arrow_down_right,
-                    size: 16,
-                    semanticLabel: l.fitAll,
-                  ),
-                ),
-            ],
+          // 식단 사진·글 버튼은 여기 없다. 입력 줄 위의 막대에 같은 것이 늘 있어서
+          // 화면 맨 위에 또 둘 이유가 없었다. 사진을 읽는 동안이라는 것만 알린다.
+          if (_estimating)
+            Text(
+              l.mealEstimating,
+              style: TextStyle(fontSize: 13, color: muted),
+            ),
+          // 여기까지가 하루·식단, 아래부터가 운동이다. 줄 하나가 두 동네를 가른다 —
+          // 버튼을 여기 두었을 때는 어느 쪽 것인지 헷갈렸다.
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 4),
+            child: Container(
+              key: const ValueKey('section-divider'),
+              height: 0.5,
+              color: CupertinoColors.separator.resolveFrom(context),
+            ),
           ),
         ],
       ),

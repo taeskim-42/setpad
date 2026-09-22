@@ -1243,4 +1243,7 @@ class LTh extends L {
 
   @override
   String get mealsTitle => 'อาหาร';
+
+  @override
+  String get recordMenu => 'เพิ่มเติม';
 }

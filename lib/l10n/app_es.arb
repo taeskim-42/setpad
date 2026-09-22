@@ -324,5 +324,6 @@
   "planMemberAccepted": "{name} de acuerdo",
   "planMemberWaiting": "{name} aún no ha confirmado",
   "deleteNoteAsk": "¿Eliminar \"{title}\"?",
-  "mealsTitle": "Comidas"
+  "mealsTitle": "Comidas",
+  "recordMenu": "Más"
 }

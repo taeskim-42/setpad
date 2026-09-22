@@ -324,5 +324,6 @@
   "planMemberAccepted": "{name} đã đồng ý",
   "planMemberWaiting": "{name} chưa xác nhận",
   "deleteNoteAsk": "Xóa \"{title}\"?",
-  "mealsTitle": "Bữa ăn"
+  "mealsTitle": "Bữa ăn",
+  "recordMenu": "Thêm"
 }

@@ -2058,6 +2058,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'먹은 것'**
   String get mealsTitle;
+
+  /// No description provided for @recordMenu.
+  ///
+  /// In ko, this message translates to:
+  /// **'더 보기'**
+  String get recordMenu;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

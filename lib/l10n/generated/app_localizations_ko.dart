@@ -1224,4 +1224,7 @@ class LKo extends L {
 
   @override
   String get mealsTitle => '먹은 것';
+
+  @override
+  String get recordMenu => '더 보기';
 }

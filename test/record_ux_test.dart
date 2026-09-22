@@ -758,7 +758,9 @@ void main() {
       expect(morning.blocks, hasLength(1));
 
       // 전체 보기에도 두 문서가 다 들어간다.
-      await tester.tap(find.bySemanticsLabel('오늘 한 장'));
+      await tester.tap(find.byKey(const ValueKey('record-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('menu-day-sheet')));
       await tester.pumpAndSettle();
       expect(find.byType(InteractiveViewer), findsOneWidget);
       expect(find.text('1 5km'), findsWidgets);

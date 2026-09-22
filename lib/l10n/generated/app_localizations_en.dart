@@ -1256,4 +1256,7 @@ class LEn extends L {
 
   @override
   String get mealsTitle => 'Meals';
+
+  @override
+  String get recordMenu => 'More';
 }

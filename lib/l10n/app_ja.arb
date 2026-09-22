@@ -324,5 +324,6 @@
   "planMemberAccepted": "{name}さん 同意済み",
   "planMemberWaiting": "{name}さん 未確認",
   "deleteNoteAsk": "「{title}」を削除しますか？",
-  "mealsTitle": "食事"
+  "mealsTitle": "食事",
+  "recordMenu": "その他"
 }

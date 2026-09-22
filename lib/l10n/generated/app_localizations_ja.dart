@@ -1222,4 +1222,7 @@ class LJa extends L {
 
   @override
   String get mealsTitle => '食事';
+
+  @override
+  String get recordMenu => 'その他';
 }

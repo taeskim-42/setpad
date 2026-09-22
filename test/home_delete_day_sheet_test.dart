@@ -76,11 +76,13 @@ void main() {
       ]);
     await tester.pumpWidget(app(EditorPage(store: store, note: note)));
     await tester.pump(const Duration(milliseconds: 300));
-    await tester.tap(
-      find.byIcon(CupertinoIcons.arrow_up_left_arrow_down_right),
-    );
+    await tester.tap(find.byKey(const ValueKey('record-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('menu-day-sheet')));
     await tester.pumpAndSettle();
     expect(find.text('오늘 한 장'), findsOneWidget);
+    // 식단과 운동 사이에 줄 하나 — 이 화면이 아니라 기록 화면의 것이다.
+
     expect(find.text('랫풀'), findsOneWidget);
     expect(find.text('벤치'), findsOneWidget);
     expect(find.text('김치찌개'), findsOneWidget);

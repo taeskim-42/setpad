@@ -324,5 +324,6 @@
   "planMemberAccepted": "{name} 已同意",
   "planMemberWaiting": "{name} 尚未确认",
   "deleteNoteAsk": "删除“{title}”？",
-  "mealsTitle": "饮食"
+  "mealsTitle": "饮食",
+  "recordMenu": "更多"
 }

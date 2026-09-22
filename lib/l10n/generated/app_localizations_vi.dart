@@ -1254,4 +1254,7 @@ class LVi extends L {
 
   @override
   String get mealsTitle => 'Bữa ăn';
+
+  @override
+  String get recordMenu => 'Thêm';
 }

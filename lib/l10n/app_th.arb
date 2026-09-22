@@ -324,5 +324,6 @@
   "planMemberAccepted": "{name} เห็นด้วยแล้ว",
   "planMemberWaiting": "{name} ยังไม่ยืนยัน",
   "deleteNoteAsk": "ลบ \"{title}\" หรือไม่?",
-  "mealsTitle": "อาหาร"
+  "mealsTitle": "อาหาร",
+  "recordMenu": "เพิ่มเติม"
 }

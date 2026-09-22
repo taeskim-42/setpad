@@ -1261,4 +1261,7 @@ class LEs extends L {
 
   @override
   String get mealsTitle => 'Comidas';
+
+  @override
+  String get recordMenu => 'Más';
 }

@@ -1214,6 +1214,9 @@ class LZh extends L {
 
   @override
   String get mealsTitle => '饮食';
+
+  @override
+  String get recordMenu => '更多';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2426,6 +2429,9 @@ class LZhHans extends LZh {
 
   @override
   String get mealsTitle => '饮食';
+
+  @override
+  String get recordMenu => '更多';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3638,4 +3644,7 @@ class LZhHant extends LZh {
 
   @override
   String get mealsTitle => '飲食';
+
+  @override
+  String get recordMenu => '更多';
 }
