@@ -38,11 +38,16 @@ class SetGrid extends StatelessWidget {
     super.key,
     required this.block,
     this.onTapSet,
+    this.onAdd,
     this.editingSet,
   });
 
   final ExerciseBlock block;
   final ValueChanged<int>? onTapSet;
+
+  /// 마지막에 빈 칸 하나. 누르면 다음 세트를 받는다 — 칸이 늘 하나 비어 있어야
+  /// "여기에 적는다" 가 보인다.
+  final VoidCallback? onAdd;
   final int? editingSet;
 
   @override
@@ -73,11 +78,11 @@ class SetGrid extends StatelessWidget {
     );
     return LayoutBuilder(
       builder: (context, box) {
-        final columns = (box.maxWidth / (62 * scaler.scale(1))).floor().clamp(
-          2,
-          8,
-        );
-        final width = box.maxWidth / columns;
+        // 열은 빈 칸 없이 센다 — 빈 칸 몫을 빼면 칸이 좁아져 넓은 값이 두 열을 먹고
+        // 줄이 는다. 빈 칸은 마지막 줄에 남는 자리에만 앉는다(아래).
+        final avail = box.maxWidth;
+        final columns = (avail / (62 * scaler.scale(1))).floor().clamp(2, 8);
+        final width = avail / columns;
         // 글이 한 열보다 넓으면("102.5×10") 두 열을 차지한다. 제 폭대로 두면
         // 옆 칸과 붙고 아래위 열이 어긋난다.
         final needs = [
@@ -90,7 +95,7 @@ class SetGrid extends StatelessWidget {
                 maxLines: 1,
               )..layout();
               // 상자로 그릴 때는 안쪽 여백과 옆 칸과의 틈만큼 더 넓다.
-              final need = painter.width + 5 + (onTapSet == null ? 0 : 16);
+              final need = painter.width + 5 + (onTapSet == null ? 0 : 12);
               painter.dispose();
               return need;
             }(),
@@ -101,14 +106,22 @@ class SetGrid extends StatelessWidget {
         final total = needs.fold(0.0, (a, b) => a + b);
         final spanned = needs.fold(0, (n, w) => n + (w / width).ceil());
         final oneRow =
-            spanned > columns &&
-            needs.length <= columns &&
-            total <= box.maxWidth;
-        final slack = oneRow ? (box.maxWidth - total) / needs.length : 0.0;
+            spanned > columns && needs.length <= columns && total <= avail;
+        final slack = oneRow ? (avail - total) / needs.length : 0.0;
         double cell(int i, LoggedSet set) => oneRow
             ? needs[i] + slack
             : (needs[i] / width).ceil().clamp(1, columns) * width;
 
+        const addWidth = 28.0;
+        // 빈 칸은 마지막 줄에 자리가 남을 때만 둔다. 줄이 꽉 찼는데 빈 칸 하나로
+        // 줄을 하나 더 쓰면 8종목 40세트가 한 화면에 안 들어간다 — 그때는 카드의
+        // 빈 곳을 눌러도 같은 일이 된다.
+        var used = 0.0;
+        for (final (i, set) in block.sets.indexed) {
+          final w = cell(i, set);
+          used = used + w > box.maxWidth + 0.5 ? w : used + w;
+        }
+        final addFits = onAdd != null && used + addWidth <= box.maxWidth + 0.5;
         return Wrap(
           children: [
             for (final (i, set) in block.sets.indexed)
@@ -132,7 +145,7 @@ class SetGrid extends StatelessWidget {
                           : const EdgeInsets.fromLTRB(0, 1, 4, 1),
                       padding: onTapSet == null
                           ? EdgeInsets.zero
-                          : const EdgeInsets.symmetric(horizontal: 6),
+                          : const EdgeInsets.symmetric(horizontal: 4),
                       // 상자일 때는 위아래 틈을 합쳐 전과 같은 30 이다.
                       constraints: BoxConstraints(
                         minHeight: onTapSet == null ? 30 : 28,
@@ -159,6 +172,36 @@ class SetGrid extends StatelessWidget {
                         maxLines: 1,
                         softWrap: false,
                         style: style.copyWith(color: set.done ? label : faint),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            if (addFits)
+              Semantics(
+                button: true,
+                label: l.addSet,
+                excludeSemantics: true,
+                child: GestureDetector(
+                  key: const ValueKey('add-set-cell'),
+                  onTap: onAdd,
+                  behavior: HitTestBehavior.opaque,
+                  child: SizedBox(
+                    width: addWidth - 0.01,
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(0, 1, 4, 1),
+                      constraints: const BoxConstraints(minHeight: 28),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: CupertinoColors.separator.resolveFrom(context),
+                          width: 0.5,
+                        ),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '${block.sets.length + 1}',
+                        style: TextStyle(fontSize: 10, color: faint),
                       ),
                     ),
                   ),

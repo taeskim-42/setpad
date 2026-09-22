@@ -196,7 +196,7 @@
   "mealFailed": "Couldn't estimate calories from that photo. Try another.",
   "mealEstimateNote": "Estimated from the photo",
   "mealServingsOption": "{n} serving(s)",
-  "fitAll": "Today on one page",
+  "fitAll": "Today's workout",
   "sameDayOther": "Other records from this day",
   "mealText": "Write meal",
   "mealTextHint": "What did you eat? e.g. 2 bananas, milk 200ml",
@@ -327,5 +327,6 @@
   "mealsTitle": "Meals",
   "recordMenu": "More",
   "dayIntakeOnly": "Intake {intake} kcal · exercise energy not measured",
-  "dayIntakeOnlyApprox": "Intake ≈ {intake} kcal · exercise energy not measured"
+  "dayIntakeOnlyApprox": "Intake ≈ {intake} kcal · exercise energy not measured",
+  "dayUnknownMeals": "{m} with unknown kcal"
 }

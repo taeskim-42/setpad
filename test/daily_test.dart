@@ -94,7 +94,8 @@ void main() {
     final third = dayLogs([unknown], from: day, to: day).single;
     expect(third.intake, 1400);
     expect(third.unknownMeals, 1);
-    expect(third.difference, isNull, reason: '열량 미상이 섞이면 차이를 내지 않는다');
+    // 열량 미상이 섞여도 아는 것으로 셈한다 — 미상이 몇 건인지는 따로 말한다.
+    expect(third.difference, isNotNull);
     expect(third.intakeEstimated, isTrue, reason: '출처 없는 값은 어림이다');
   });
 

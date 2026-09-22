@@ -2327,6 +2327,8 @@ class _BlockView extends StatelessWidget {
               SetGrid(
                 block: block,
                 onTapSet: onEditSet,
+                // 빈 칸 하나가 늘 남아 있다. 누르면 이 운동에 다음 세트를 적는다.
+                onAdd: input == null ? onOpen : null,
                 editingSet: editingSet,
               ),
             // 고치는 세트만 제 줄을 넓게 얻는다. 완료 표시와 지우기도 여기 있다.

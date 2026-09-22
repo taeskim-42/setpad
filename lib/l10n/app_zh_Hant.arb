@@ -196,7 +196,7 @@
   "mealFailed": "無法從這張照片估算熱量，請重新拍攝。",
   "mealEstimateNote": "依照片估算",
   "mealServingsOption": "{n} 份",
-  "fitAll": "今天一頁看完",
+  "fitAll": "今天的訓練",
   "sameDayOther": "當天的其他紀錄",
   "mealText": "記錄飲食",
   "mealTextHint": "吃了什麼？例如：香蕉2根，牛奶200ml",
@@ -327,5 +327,6 @@
   "mealsTitle": "飲食",
   "recordMenu": "更多",
   "dayIntakeOnly": "攝取 {intake} 大卡 · 運動消耗未測量",
-  "dayIntakeOnlyApprox": "攝取 約 {intake} 大卡 · 運動消耗未測量"
+  "dayIntakeOnlyApprox": "攝取 約 {intake} 大卡 · 運動消耗未測量",
+  "dayUnknownMeals": "{m} 項熱量未知"
 }

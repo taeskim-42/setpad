@@ -724,7 +724,7 @@ class LKo extends L {
   }
 
   @override
-  String get fitAll => '오늘 한 장';
+  String get fitAll => '오늘 운동';
 
   @override
   String get sameDayOther => '같은 날의 다른 기록';
@@ -1209,5 +1209,10 @@ class LKo extends L {
   @override
   String dayIntakeOnlyApprox(String intake) {
     return '섭취 약 ${intake}kcal · 운동 소모 미측정';
+  }
+
+  @override
+  String dayUnknownMeals(int m) {
+    return '열량 미상 $m건';
   }
 }

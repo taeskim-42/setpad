@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -850,6 +851,36 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
               },
               child: Text(l.planPropose),
             ),
+          // 같이 하기. 로그인하지 않았으면 창 안에서 로그인으로 이어진다.
+          if (_partner != null)
+            CupertinoActionSheetAction(
+              key: const ValueKey('menu-partner'),
+              onPressed: () {
+                Navigator.pop(ctx);
+                showPartnerSheet(
+                  context,
+                  widget.account!,
+                  _partner,
+                  onWriteFor: _writeFor,
+                );
+              },
+              child: Text(l.partnerInvite),
+            ),
+          CupertinoActionSheetAction(
+            key: const ValueKey('menu-settings'),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await showWeightSettings(
+                context,
+                widget.store,
+                account: widget.account,
+              );
+              if (mounted) {
+                setState(() => _editor.weightUnit = widget.store.weightUnit);
+              }
+            },
+            child: Text(l.settingsTitle),
+          ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(ctx),
@@ -867,6 +898,15 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   }
 
   void _persist() {
+    // 편집기가 초안을 되살리며 첫 그리기 도중에 부를 수 있다. 그때 저장소가 알리면
+    // 그리는 중에 다시 그리라는 것이 되어 예외가 난다 — 한 프레임 미룬다.
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _persist();
+      });
+      return;
+    }
     final recent = _editor.recentExercises.firstOrNull;
     if (recent != _lastLearned && recent != null) {
       widget.store.rememberExercise(recent);
@@ -916,47 +956,17 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 같이 하기. 로그인하지 않았으면 창 안에서 로그인으로 이어진다 —
-            // 버튼이 아예 없으면 기능이 있는 줄도 모른다.
-            if (_partner != null)
-              CupertinoButton(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                onPressed: () => showPartnerSheet(
-                  context,
-                  widget.account!,
-                  _partner,
-                  onWriteFor: _writeFor,
-                ),
-                child: Icon(
-                  CupertinoIcons.person_2,
-                  size: 20,
-                  semanticLabel: l.partnerInvite,
-                ),
-              ),
-            if (_editor.blocks.isNotEmpty || _planNext != null)
-              CupertinoButton(
-                key: const ValueKey('record-menu'),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                onPressed: _showMenu,
-                child: Icon(
-                  CupertinoIcons.ellipsis_circle,
-                  size: 21,
-                  semanticLabel: l.recordMenu,
-                ),
-              ),
+            // 위 막대에는 … 와 완료뿐이다. 나머지는 전부 메뉴 안에 — 버튼이 넷씩
+            // 늘어서 있으면 어느 것도 눈에 안 들어온다.
             CupertinoButton(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              onPressed: () async {
-                await showWeightSettings(
-                  context,
-                  widget.store,
-                  account: widget.account,
-                );
-                if (mounted) {
-                  setState(() => _editor.weightUnit = widget.store.weightUnit);
-                }
-              },
-              child: const Icon(CupertinoIcons.gear, size: 21),
+              key: const ValueKey('record-menu'),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              onPressed: _showMenu,
+              child: Icon(
+                CupertinoIcons.ellipsis_circle,
+                size: 21,
+                semanticLabel: l.recordMenu,
+              ),
             ),
             CupertinoButton(
               padding: EdgeInsets.zero,

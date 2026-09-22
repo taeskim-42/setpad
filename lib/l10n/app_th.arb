@@ -196,7 +196,7 @@
   "mealFailed": "ประมาณแคลอรีจากรูปนี้ไม่ได้ ลองถ่ายใหม่",
   "mealEstimateNote": "ประมาณจากรูปถ่าย",
   "mealServingsOption": "{n} หน่วยบริโภค",
-  "fitAll": "วันนี้ในหน้าเดียว",
+  "fitAll": "การออกกำลังวันนี้",
   "sameDayOther": "บันทึกอื่นในวันเดียวกัน",
   "mealText": "จดมื้ออาหาร",
   "mealTextHint": "กินอะไรไปบ้าง เช่น กล้วย 2 ลูก, นม 200ml",
@@ -327,5 +327,6 @@
   "mealsTitle": "อาหาร",
   "recordMenu": "เพิ่มเติม",
   "dayIntakeOnly": "กิน {intake} kcal · ยังไม่ได้วัดพลังงานที่ใช้ออกกำลัง",
-  "dayIntakeOnlyApprox": "กิน ≈ {intake} kcal · ยังไม่ได้วัดพลังงานที่ใช้ออกกำลัง"
+  "dayIntakeOnlyApprox": "กิน ≈ {intake} kcal · ยังไม่ได้วัดพลังงานที่ใช้ออกกำลัง",
+  "dayUnknownMeals": "ไม่ทราบแคลอรี {m} รายการ"
 }

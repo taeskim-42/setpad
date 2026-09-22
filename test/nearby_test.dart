@@ -84,7 +84,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // 초대를 띄우면 그 토큰이 걸린다. 화면에는 NFC 라는 말이 없다.
-    await tester.tap(find.bySemanticsLabel('같이 하기'));
+    // 같이 하기는 … 메뉴 안에 있다.
+    await tester.tap(find.byKey(const ValueKey('record-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('menu-partner')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('코드 만들기'));
     await tester.pump(const Duration(milliseconds: 300));
@@ -169,7 +172,10 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.bySemanticsLabel('같이 하기'));
+    // 같이 하기는 … 메뉴 안에 있다.
+    await tester.tap(find.byKey(const ValueKey('record-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('menu-partner')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('코드 만들기'));
     await tester.pump(const Duration(milliseconds: 300));

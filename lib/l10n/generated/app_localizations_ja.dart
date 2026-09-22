@@ -722,7 +722,7 @@ class LJa extends L {
   }
 
   @override
-  String get fitAll => '今日を1枚に';
+  String get fitAll => '今日の運動';
 
   @override
   String get sameDayOther => '同じ日のほかの記録';
@@ -1207,5 +1207,10 @@ class LJa extends L {
   @override
   String dayIntakeOnlyApprox(String intake) {
     return '摂取 約${intake}kcal · 運動消費は未計測';
+  }
+
+  @override
+  String dayUnknownMeals(int m) {
+    return 'カロリー不明 $m件';
   }
 }

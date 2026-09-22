@@ -196,7 +196,7 @@
   "mealFailed": "No se pudieron estimar las calorías de esa foto. Prueba otra.",
   "mealEstimateNote": "Estimado a partir de la foto",
   "mealServingsOption": "{n} porción(es)",
-  "fitAll": "Hoy en una página",
+  "fitAll": "Entrenamiento de hoy",
   "sameDayOther": "Otros registros de este día",
   "mealText": "Escribir comida",
   "mealTextHint": "¿Qué comiste? p. ej. 2 plátanos, leche 200ml",
@@ -327,5 +327,6 @@
   "mealsTitle": "Comidas",
   "recordMenu": "Más",
   "dayIntakeOnly": "Ingesta {intake} kcal · energía del ejercicio sin medir",
-  "dayIntakeOnlyApprox": "Ingesta ≈ {intake} kcal · energía del ejercicio sin medir"
+  "dayIntakeOnlyApprox": "Ingesta ≈ {intake} kcal · energía del ejercicio sin medir",
+  "dayUnknownMeals": "{m} sin kcal conocidas"
 }

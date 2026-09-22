@@ -18,7 +18,12 @@ import 'package:intl/intl.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 
-DateTime dayOf(DateTime t) => DateTime(t.year, t.month, t.day);
+/// 기기의 현지 날짜. 시간대가 붙어 들어온 시각(서버·가져온 자료)은 UTC 로 풀려
+/// 있어서, 그대로 연·월·일을 읽으면 전날로 간다.
+DateTime dayOf(DateTime t) {
+  final local = t.toLocal();
+  return DateTime(local.year, local.month, local.day);
+}
 
 /// 하루치. 값이 null 이면 **기록이 없다**는 뜻이지 0 이 아니다.
 class DayLog {
@@ -47,10 +52,11 @@ class DayLog {
         : measured.fold<double>(0, (n, note) => n + note.calories!);
   }
 
-  /// 섭취 − 운동. 둘 다 있고 열량 미상이 없을 때만 있다.
+  /// 섭취 − 운동. 둘 다 있을 때만 있다. 열량 미상 끼니는 셈에 안 들어간다 — 그
+  /// 사실은 [unknownMeals] 가 따로 말하고, 화면은 그 수를 옆에 적는다.
   int? get difference {
     final eaten = intake, used = burned;
-    if (eaten == null || used == null || unknownMeals > 0) return null;
+    if (eaten == null || used == null) return null;
     return eaten - used.round();
   }
 }
@@ -96,19 +102,23 @@ String? dayEnergyText(L l, DayLog day) {
   final intake = day.intake, burned = day.burned;
   if (intake == null && burned == null) return null;
   if (intake == null) return l.dayBurnedOnly(signed(-burned!.round()));
-  if (day.unknownMeals > 0) {
-    return l.mealIntakePartial(intake, day.unknownMeals);
-  }
+  // 열량 미상 끼니가 있으면 아는 것으로만 셈하고 그 수를 옆에 적는다 — 0 으로
+  // 치지도, 셈을 접지도 않는다.
+  final unknown = day.unknownMeals > 0
+      ? ' · ${l.dayUnknownMeals(day.unknownMeals)}'
+      : '';
   if (burned == null) {
     return (day.intakeEstimated ? l.dayIntakeOnlyApprox : l.dayIntakeOnly)(
-      signed(intake),
-    );
+          signed(intake),
+        ) +
+        unknown;
   }
   return (day.intakeEstimated ? l.dayEnergyApprox : l.dayEnergyFull)(
-    signed(intake),
-    signed(-burned.round()),
-    signed(day.difference!),
-  );
+        signed(intake),
+        signed(-burned.round()),
+        signed(day.difference!),
+      ) +
+      unknown;
 }
 
 /// "+1,650" · "−450" · "0". 빼기는 하이픈이 아니라 빼기 기호다.

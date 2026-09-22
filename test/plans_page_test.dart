@@ -118,8 +118,12 @@ void main() {
     }
 
     await mount(store.create());
-    // 적은 것이 없으면 메뉴 자체가 없다.
-    expect(find.byKey(const ValueKey('record-menu')), findsNothing);
+    // 적은 것이 없으면 메뉴에 제안이 없다.
+    await tester.tap(find.byKey(const ValueKey('record-menu')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('propose-plan')), findsNothing);
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
     await tester.pumpWidget(const SizedBox());
 
     final note = store.create()

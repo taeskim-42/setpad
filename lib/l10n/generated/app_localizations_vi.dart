@@ -740,7 +740,7 @@ class LVi extends L {
   }
 
   @override
-  String get fitAll => 'Hôm nay trên một trang';
+  String get fitAll => 'Buổi tập hôm nay';
 
   @override
   String get sameDayOther => 'Bản ghi khác trong ngày';
@@ -1239,5 +1239,10 @@ class LVi extends L {
   @override
   String dayIntakeOnlyApprox(String intake) {
     return 'Nạp ≈ $intake kcal · chưa đo năng lượng tập';
+  }
+
+  @override
+  String dayUnknownMeals(int m) {
+    return '$m chưa rõ kcal';
   }
 }

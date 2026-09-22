@@ -80,7 +80,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('menu-day-sheet')));
     await tester.pumpAndSettle();
-    expect(find.text('오늘 한 장'), findsOneWidget);
+    expect(find.text('오늘 운동'), findsOneWidget);
     // 식단과 운동 사이에 줄 하나 — 이 화면이 아니라 기록 화면의 것이다.
 
     expect(find.text('랫풀'), findsOneWidget);
@@ -88,7 +88,7 @@ void main() {
     expect(find.text('김치찌개'), findsOneWidget);
     expect(find.text('엄마표 반찬'), findsOneWidget);
     expect(find.text('열량 미상'), findsOneWidget);
-    // 열량 미상이 섞이면 차이를 내지 않고 그렇다고 적는다.
+    // 열량 미상이 섞여도 아는 것으로 셈하고, 미상이 몇 건인지 옆에 적는다.
     final energy = tester
         .widget<Text>(find.byKey(const ValueKey('sheet-energy')))
         .data!;

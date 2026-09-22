@@ -196,7 +196,7 @@
   "mealFailed": "Không ước tính được calo từ ảnh này. Hãy chụp lại.",
   "mealEstimateNote": "Ước tính từ ảnh",
   "mealServingsOption": "{n} khẩu phần",
-  "fitAll": "Hôm nay trên một trang",
+  "fitAll": "Buổi tập hôm nay",
   "sameDayOther": "Bản ghi khác trong ngày",
   "mealText": "Ghi bữa ăn",
   "mealTextHint": "Bạn đã ăn gì? VD: 2 quả chuối, sữa 200ml",
@@ -327,5 +327,6 @@
   "mealsTitle": "Bữa ăn",
   "recordMenu": "Thêm",
   "dayIntakeOnly": "Nạp {intake} kcal · chưa đo năng lượng tập",
-  "dayIntakeOnlyApprox": "Nạp ≈ {intake} kcal · chưa đo năng lượng tập"
+  "dayIntakeOnlyApprox": "Nạp ≈ {intake} kcal · chưa đo năng lượng tập",
+  "dayUnknownMeals": "{m} chưa rõ kcal"
 }

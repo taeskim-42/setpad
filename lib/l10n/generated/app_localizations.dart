@@ -1288,7 +1288,7 @@ abstract class L {
   /// No description provided for @fitAll.
   ///
   /// In ko, this message translates to:
-  /// **'오늘 한 장'**
+  /// **'오늘 운동'**
   String get fitAll;
 
   /// No description provided for @sameDayOther.
@@ -2076,6 +2076,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'섭취 약 {intake}kcal · 운동 소모 미측정'**
   String dayIntakeOnlyApprox(String intake);
+
+  /// No description provided for @dayUnknownMeals.
+  ///
+  /// In ko, this message translates to:
+  /// **'열량 미상 {m}건'**
+  String dayUnknownMeals(int m);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -733,7 +733,7 @@ class LTh extends L {
   }
 
   @override
-  String get fitAll => 'วันนี้ในหน้าเดียว';
+  String get fitAll => 'การออกกำลังวันนี้';
 
   @override
   String get sameDayOther => 'บันทึกอื่นในวันเดียวกัน';
@@ -1228,5 +1228,10 @@ class LTh extends L {
   @override
   String dayIntakeOnlyApprox(String intake) {
     return 'กิน ≈ $intake kcal · ยังไม่ได้วัดพลังงานที่ใช้ออกกำลัง';
+  }
+
+  @override
+  String dayUnknownMeals(int m) {
+    return 'ไม่ทราบแคลอรี $m รายการ';
   }
 }

@@ -716,7 +716,7 @@ class LZh extends L {
   }
 
   @override
-  String get fitAll => '今天一页看完';
+  String get fitAll => '今天的训练';
 
   @override
   String get sameDayOther => '当天的其他记录';
@@ -1199,6 +1199,11 @@ class LZh extends L {
   @override
   String dayIntakeOnlyApprox(String intake) {
     return '摄入 约 $intake 千卡 · 运动消耗未测量';
+  }
+
+  @override
+  String dayUnknownMeals(int m) {
+    return '$m 项热量未知';
   }
 }
 
@@ -1914,7 +1919,7 @@ class LZhHans extends LZh {
   }
 
   @override
-  String get fitAll => '今天一页看完';
+  String get fitAll => '今天的训练';
 
   @override
   String get sameDayOther => '当天的其他记录';
@@ -2397,6 +2402,11 @@ class LZhHans extends LZh {
   @override
   String dayIntakeOnlyApprox(String intake) {
     return '摄入 约 $intake 千卡 · 运动消耗未测量';
+  }
+
+  @override
+  String dayUnknownMeals(int m) {
+    return '$m 项热量未知';
   }
 }
 
@@ -3112,7 +3122,7 @@ class LZhHant extends LZh {
   }
 
   @override
-  String get fitAll => '今天一頁看完';
+  String get fitAll => '今天的訓練';
 
   @override
   String get sameDayOther => '當天的其他紀錄';
@@ -3595,5 +3605,10 @@ class LZhHant extends LZh {
   @override
   String dayIntakeOnlyApprox(String intake) {
     return '攝取 約 $intake 大卡 · 運動消耗未測量';
+  }
+
+  @override
+  String dayUnknownMeals(int m) {
+    return '$m 項熱量未知';
   }
 }

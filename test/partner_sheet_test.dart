@@ -65,7 +65,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // 로그인하지 않아도 버튼은 있고, 누르면 로그인으로 이어진다.
-    await tester.tap(find.bySemanticsLabel('같이 하기'));
+    // 같이 하기는 … 메뉴 안에 있다.
+    await tester.tap(find.byKey(const ValueKey('record-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('menu-partner')));
     await tester.pumpAndSettle();
     expect(find.text('같이 하려면 로그인이 필요합니다.'), findsOneWidget);
     account
@@ -97,7 +100,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // 코드를 만든다 — 만료 시간과 함께 보인다. 아직 "함께 운동 중" 이 아니다.
-    await tester.tap(find.bySemanticsLabel('같이 하기'));
+    // 같이 하기는 … 메뉴 안에 있다.
+    await tester.tap(find.byKey(const ValueKey('record-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('menu-partner')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('코드 만들기'));
     await tester.pump();

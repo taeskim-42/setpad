@@ -744,7 +744,7 @@ class LEs extends L {
   }
 
   @override
-  String get fitAll => 'Hoy en una página';
+  String get fitAll => 'Entrenamiento de hoy';
 
   @override
   String get sameDayOther => 'Otros registros de este día';
@@ -1246,5 +1246,10 @@ class LEs extends L {
   @override
   String dayIntakeOnlyApprox(String intake) {
     return 'Ingesta ≈ $intake kcal · energía del ejercicio sin medir';
+  }
+
+  @override
+  String dayUnknownMeals(int m) {
+    return '$m sin kcal conocidas';
   }
 }
