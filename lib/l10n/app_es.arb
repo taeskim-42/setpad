@@ -320,5 +320,7 @@
   "handoffFailed": "No se pudo recibir el registro. El enlace puede haber caducado o no hay conexión.",
   "handoffSignIn": "Inicia sesión para recibir un registro que te entregaron.",
   "partnerInviteMore": "Invitar a uno más · código {code}",
-  "proxyWhose": "¿De quién es el entrenamiento?"
+  "proxyWhose": "¿De quién es el entrenamiento?",
+  "planMemberAccepted": "{name} de acuerdo",
+  "planMemberWaiting": "{name} aún no ha confirmado"
 }

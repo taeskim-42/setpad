@@ -1238,4 +1238,14 @@ class LEn extends L {
 
   @override
   String get proxyWhose => 'Whose workout are you logging?';
+
+  @override
+  String planMemberAccepted(String name) {
+    return '$name agreed';
+  }
+
+  @override
+  String planMemberWaiting(String name) {
+    return '$name has not confirmed yet';
+  }
 }

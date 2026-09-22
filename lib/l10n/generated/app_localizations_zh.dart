@@ -1196,6 +1196,16 @@ class LZh extends L {
 
   @override
   String get proxyWhose => '要记录谁的训练？';
+
+  @override
+  String planMemberAccepted(String name) {
+    return '$name 已同意';
+  }
+
+  @override
+  String planMemberWaiting(String name) {
+    return '$name 尚未确认';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2390,6 +2400,16 @@ class LZhHans extends LZh {
 
   @override
   String get proxyWhose => '要记录谁的训练？';
+
+  @override
+  String planMemberAccepted(String name) {
+    return '$name 已同意';
+  }
+
+  @override
+  String planMemberWaiting(String name) {
+    return '$name 尚未确认';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3584,4 +3604,14 @@ class LZhHant extends LZh {
 
   @override
   String get proxyWhose => '要記錄誰的訓練？';
+
+  @override
+  String planMemberAccepted(String name) {
+    return '$name 已同意';
+  }
+
+  @override
+  String planMemberWaiting(String name) {
+    return '$name 尚未確認';
+  }
 }

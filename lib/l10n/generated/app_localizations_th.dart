@@ -1225,4 +1225,14 @@ class LTh extends L {
 
   @override
   String get proxyWhose => 'จะบันทึกของใคร?';
+
+  @override
+  String planMemberAccepted(String name) {
+    return '$name เห็นด้วยแล้ว';
+  }
+
+  @override
+  String planMemberWaiting(String name) {
+    return '$name ยังไม่ยืนยัน';
+  }
 }

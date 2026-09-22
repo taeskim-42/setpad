@@ -320,7 +320,7 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
   /// 아직 혼자인 내 계획이면, 살아 있는 링크 토큰을 가까이 대서도 건넬 수 있게 걸어 둔다.
   void _syncNearby() {
     final alive = plans.linkFor(plan) != null;
-    final token = plan.owner && plan.partner == null && alive
+    final token = plan.owner && (plan.partner == null || plan.room > 0) && alive
         ? plan.linkToken
         : null;
     if (token == _offered) return;
@@ -587,7 +587,18 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
             ),
             if (plan.dirty || (plan.id != null && !plans.reachable))
               Text(l.planStateLocal, style: small),
-            if (plan.partner != null) Text(plan.partner!, style: small),
+            if (plan.members.length > 1)
+              // 셋 이상이면 누가 동의했는지 한 줄씩. 둘이면 상태 줄이 이미 말한다.
+              for (final m in plan.members)
+                Text(
+                  m.accepted == plan.version && plan.version > 0
+                      ? l.planMemberAccepted(m.name)
+                      : l.planMemberWaiting(m.name),
+                  key: ValueKey('member-${m.key}'),
+                  style: small,
+                )
+            else if (plan.partner != null)
+              Text(plan.partner!, style: small),
             CupertinoButton(
               padding: EdgeInsets.zero,
               alignment: Alignment.centerLeft,
@@ -723,23 +734,32 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
                         '${l.planMyTarget}: ${plan.myTargets[item.id]?.label(l.repsCount, l.planSetsCount) ?? '–'}',
                         style: strong,
                       ),
-                      if (plan.partnerTargets[item.id] != null)
-                        Text(
-                          l.planPartnerTarget(
-                            plan.partner ?? '',
-                            plan.partnerTargets[item.id]!.label(
-                              l.repsCount,
-                              l.planSetsCount,
+                      // 사람마다 한 줄. 옛 서버(사람 목록이 없다)에서는 상대 한 명이다.
+                      for (final (name, targets) in [
+                        if (plan.members.isEmpty)
+                          (plan.partner ?? '', plan.partnerTargets)
+                        else
+                          for (final m in plan.members) (m.name, m.targets),
+                      ])
+                        if (targets[item.id] != null)
+                          Text(
+                            l.planPartnerTarget(
+                              name,
+                              targets[item.id]!.label(
+                                l.repsCount,
+                                l.planSetsCount,
+                              ),
                             ),
+                            style: small,
                           ),
-                          style: small,
-                        ),
                     ],
                   ),
                 ),
               ),
             const SizedBox(height: 12),
-            if (plan.owner && plan.partner == null && !_closed) ...[
+            if (plan.owner &&
+                (plan.partner == null || plan.room > 0) &&
+                !_closed) ...[
               if (plan.code != null && left != null && !left.isNegative) ...[
                 Row(
                   children: [

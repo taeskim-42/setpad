@@ -1236,4 +1236,14 @@ class LVi extends L {
 
   @override
   String get proxyWhose => 'Bạn ghi buổi tập của ai?';
+
+  @override
+  String planMemberAccepted(String name) {
+    return '$name đã đồng ý';
+  }
+
+  @override
+  String planMemberWaiting(String name) {
+    return '$name chưa xác nhận';
+  }
 }

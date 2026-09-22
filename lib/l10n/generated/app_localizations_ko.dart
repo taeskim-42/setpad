@@ -1206,4 +1206,14 @@ class LKo extends L {
 
   @override
   String get proxyWhose => '누구의 기록을 적을까요?';
+
+  @override
+  String planMemberAccepted(String name) {
+    return '$name 님 동의함';
+  }
+
+  @override
+  String planMemberWaiting(String name) {
+    return '$name 님 확인 전';
+  }
 }

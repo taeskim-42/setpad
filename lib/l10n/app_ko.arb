@@ -1028,5 +1028,21 @@
       }
     }
   },
-  "proxyWhose": "누구의 기록을 적을까요?"
+  "proxyWhose": "누구의 기록을 적을까요?",
+  "planMemberAccepted": "{name} 님 동의함",
+  "@planMemberAccepted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "planMemberWaiting": "{name} 님 확인 전",
+  "@planMemberWaiting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

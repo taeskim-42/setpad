@@ -1243,4 +1243,14 @@ class LEs extends L {
 
   @override
   String get proxyWhose => '¿De quién es el entrenamiento?';
+
+  @override
+  String planMemberAccepted(String name) {
+    return '$name de acuerdo';
+  }
+
+  @override
+  String planMemberWaiting(String name) {
+    return '$name aún no ha confirmado';
+  }
 }

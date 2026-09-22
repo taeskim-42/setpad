@@ -214,6 +214,23 @@ class PlanContent {
 
 enum PlanState { local, draft, pending, agreed, withdrawn }
 
+/// 같이 짜는 사람 한 명. [key] 는 서버가 지어 준 이 계획 안의 이름표다 — 계정이 아니다.
+class PlanMember {
+  const PlanMember({
+    required this.key,
+    required this.name,
+    this.accepted,
+    this.targets = const {},
+    this.startedVersion,
+  });
+  final String key, name;
+
+  /// 이 사람이 동의한 버전. 현재 버전과 같으면 동의한 것이다.
+  final int? accepted;
+  final Map<String, PlanTarget> targets;
+  final int? startedVersion;
+}
+
 class SharedPlan {
   SharedPlan({required this.localId, PlanContent? content})
     : content = content ?? const PlanContent();
@@ -246,6 +263,13 @@ class SharedPlan {
   Map<String, PlanTarget> myTargets = {};
   int targetsRevision = 0, targetsPushed = 0;
   Map<String, PlanTarget> partnerTargets = {};
+
+  /// 같이 짜는 다른 사람들 전부. 둘이면 한 명이고 [partner]·[partnerTargets] 가 곧 그 사람이다.
+  /// 저장하지 않는다 — 서버가 매번 다시 말해 준다.
+  List<PlanMember> members = const [];
+
+  /// 더 들어올 수 있는 자리.
+  int room = 0;
 
   /// 이 계획으로 시작한 내 운동 문서와, 그때의 버전.
   String? startedNoteId;
@@ -305,6 +329,24 @@ class SharedPlan {
     partnerStartedVersion = other is Map
         ? (other['version'] as num?)?.toInt()
         : null;
+    final people = b['members'];
+    if (people is List) {
+      members = [
+        for (final m in people)
+          if (m is Map && m['key'] is String && m['name'] is String)
+            PlanMember(
+              key: m['key'] as String,
+              name: m['name'] as String,
+              accepted: (m['accepted'] as num?)?.toInt(),
+              targets: PlanTarget.mapFrom((m['targets'] as Map?)?['targets']),
+              startedVersion: ((m['start'] as Map?)?['version'] as num?)
+                  ?.toInt(),
+            ),
+      ];
+      room = (b['room'] as num?)?.toInt() ?? 0;
+      // "○○ 님과" 는 모두의 이름이다.
+      if (members.length > 1) partner = members.map((m) => m.name).join(', ');
+    }
     // 서버가 내 초안과 같은 것을 갖게 됐으면 초안은 끝났다.
     if (draft != null && draft!.sameAs(content)) {
       draft = null;

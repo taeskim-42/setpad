@@ -1,4 +1,5 @@
 // 공동 루틴 화면 — 그물이 없을 때도 초안은 남고, 합의라고 말하지 않는가.
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -195,6 +196,100 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.byType(PlanPage), findsOneWidget);
     expect(find.textContaining('스쿼트'), findsWidgets);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('셋이 짜는 계획: 사람마다 동의 여부와 목표가 보이고, 자리가 남았으면 주인이 더 부른다', (
+    tester,
+  ) async {
+    final dir = Directory.systemTemp.createTempSync('setpad_plan_group_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final notes = NotesStore(directory: dir);
+    addTearDown(notes.dispose);
+    Map<String, Object?> body(int version) => {
+      'id': '11111111-1111-4111-8111-111111111111',
+      'role': 'owner',
+      'state': 'pending',
+      'partner': '준',
+      'version': version,
+      'editedByMe': true,
+      'title': '토요일 상체',
+      'plannedOn': null,
+      'items': [
+        {'id': 'a', 'name': '벤치프레스', 'sets': 4},
+      ],
+      'acceptedByMe': version,
+      'acceptedByPartner': version,
+      'agreed': null,
+      'room': 3,
+      'invite': {
+        'code': 'ABCD23',
+        'expiresAt': DateTime.now()
+            .add(const Duration(minutes: 9))
+            .toIso8601String(),
+      },
+      'myTargets': {'revision': 0, 'targets': {}},
+      'partnerTargets': null,
+      'myStart': null,
+      'partnerStart': null,
+      'withdrawnByMe': null,
+      'members': [
+        {
+          'key': 'aaaa1111',
+          'name': '준',
+          'accepted': version,
+          'targets': {
+            'revision': 1,
+            'targets': {
+              'a': {'value': 80, 'unit': 'kg', 'reps': 5, 'sets': 4},
+            },
+          },
+          'start': null,
+        },
+        {
+          'key': 'bbbb2222',
+          'name': '소라',
+          'accepted': null,
+          'targets': null,
+          'start': null,
+        },
+      ],
+    };
+    final plans = PlanStore(
+      directory: dir,
+      link: () => GymLink(
+        endpoint: 'https://x',
+        token: 'member',
+        client: MockClient(
+          (_) async =>
+              http.Response.bytes(utf8.encode(jsonEncode(body(2))), 200),
+        ),
+      ),
+    );
+    final plan = SharedPlan(localId: 'p-group')..apply(body(2));
+    plans.add(plan);
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: PlanPage(
+          plan: plan,
+          plans: plans,
+          notes: notes,
+          onOpenNote: (_) {},
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(plan.members.map((m) => m.name), ['준', '소라']);
+    expect(plan.partner, '준, 소라');
+    expect(find.text('준 님 동의함'), findsOneWidget);
+    expect(find.text('소라 님 확인 전'), findsOneWidget);
+    expect(find.textContaining('준: '), findsOneWidget, reason: '준의 목표가 한 줄');
+    // 상대가 이미 있어도 자리가 남았으니 코드가 보인다.
+    expect(find.byKey(const ValueKey('plan-code-shown')), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });

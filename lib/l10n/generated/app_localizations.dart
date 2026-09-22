@@ -2034,6 +2034,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'누구의 기록을 적을까요?'**
   String get proxyWhose;
+
+  /// No description provided for @planMemberAccepted.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님 동의함'**
+  String planMemberAccepted(String name);
+
+  /// No description provided for @planMemberWaiting.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님 확인 전'**
+  String planMemberWaiting(String name);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

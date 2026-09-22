@@ -113,11 +113,11 @@ void main() {
         (await mina.plans.join(token, isToken: true)).plan!.id,
         viaLink.plan!.id,
       );
-      expect(
-        (await jun.plans.join(token, isToken: true)).error,
-        PartnerError.invalidCode,
-        reason: '한 번 쓴 링크는 끝이다',
-      );
+      // 링크는 살아 있는 동안 한 명 더 받는다. 준은 들어왔다가 나간다.
+      final third = await jun.plans.join(token, isToken: true);
+      expect(third.error, isNull);
+      expect(third.plan!.members.map((m) => m.name).length, 2);
+      expect(await jun.plans.withdraw(third.plan!), isNull);
       // 링크가 브라우저로 떨어졌을 때의 안내 화면도 살아 있다(내용은 보여 주지 않는다).
       final page = await HttpClient()
           .getUrl(Uri.parse(url))
@@ -139,8 +139,11 @@ void main() {
       expect(theirs.content.plannedOn, day, reason: '날짜만 — 시각 없이');
       // 3) 사용자 운동명 보존.
       expect(theirs.content.items[1].name, '민수식 루마니안 데드 2');
-      // 15) 제3자는 아무것도 못 한다.
-      expect((await sora.plans.join(code)).error, PartnerError.invalidCode);
+      // 15) 초대받지 않은 사람은 아무것도 못 한다. (코드를 아는 세 번째 사람은 들어올 수 있다 —
+      // 그것이 셋이 짜는 길이다. 여기서는 둘의 흐름을 보려고 바로 나가게 한다.)
+      final asThird = await sora.plans.join(code);
+      expect(asThird.error, isNull);
+      expect(await sora.plans.withdraw(asThird.plan!), isNull);
       final intruder = SharedPlan(localId: 'x')..id = plan.id;
       expect(await sora.plans.refresh(intruder), PartnerError.ended);
       intruder.version = 1;
@@ -370,10 +373,10 @@ void main() {
       await jun.plans.refresh(restored);
       expect([restored.agreedVersion, restored.startedVersion], [2, 2]);
 
-      // 철회는 별도 동작이다: 남은 사람은 합의본과 자기 것을 보고, 떠난 쪽의 새 것은 오지 않는다.
+      // 나가는 것은 별도 동작이다: 남은 사람은 합의본과 자기 것을 보고(다시 혼자인 초안), 떠난 쪽의 새 것은 오지 않는다.
       expect(await jun.plans.withdraw(restored), isNull);
       await mina.plans.refresh(stale);
-      expect(stale.state, PlanState.withdrawn);
+      expect(stale.state, PlanState.draft);
       expect([stale.agreedVersion, stale.myTargets[squat]!.value], [2, 100]);
       expect(stale.partnerTargets, isEmpty);
       expect(await jun.plans.refresh(restored), PartnerError.ended);

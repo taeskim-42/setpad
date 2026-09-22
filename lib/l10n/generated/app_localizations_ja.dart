@@ -1204,4 +1204,14 @@ class LJa extends L {
 
   @override
   String get proxyWhose => '誰の記録をつけますか？';
+
+  @override
+  String planMemberAccepted(String name) {
+    return '$nameさん 同意済み';
+  }
+
+  @override
+  String planMemberWaiting(String name) {
+    return '$nameさん 未確認';
+  }
 }

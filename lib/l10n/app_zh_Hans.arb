@@ -320,5 +320,7 @@
   "handoffFailed": "无法接收记录。链接可能已过期，或网络有问题。",
   "handoffSignIn": "需要登录才能接收交给你的记录。",
   "partnerInviteMore": "再邀请一人 · 代码 {code}",
-  "proxyWhose": "要记录谁的训练？"
+  "proxyWhose": "要记录谁的训练？",
+  "planMemberAccepted": "{name} 已同意",
+  "planMemberWaiting": "{name} 尚未确认"
 }
