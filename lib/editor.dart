@@ -1420,6 +1420,12 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   void _dismissTextKeyboard() {
+    // 고치던 세트·이름이 있으면 빈 곳을 누른 것은 "됐다" 다 — 고친 것은 남기고
+    // 선택을 푼다. 값이 틀리면 풀지 않고 그 자리에 남긴다.
+    if (_editingRecord) {
+      _finishRecordEdit();
+      return;
+    }
     if (_padMode) {
       // 키패드도 내릴 수 있어야 한다 — 내리면 그날 기록 전체가 다시 보인다.
       // 입력 줄이나 세트 칸을 누르면 _reopen 이 다시 올린다.
@@ -2255,16 +2261,10 @@ class _BlockView extends StatelessWidget {
                     GestureDetector(
                       onTap: collapsed ? null : onEditTitle,
                       behavior: HitTestBehavior.opaque,
-                      // 이름은 제 상자 안에 있다 — 눌러 고치는 자리라는 것이 보인다.
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
-                        decoration: collapsed
-                            ? null
-                            : BoxDecoration(
-                                color: CupertinoColors.tertiarySystemFill
-                                    .resolveFrom(context),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                      // 이름은 맨 글자다. 상자를 씌워 봤더니 줄마다 회색이라 지저분했다 —
+                      // 눌러 고치는 것은 세트 칸의 테두리가 말해 준다.
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
                         child: Text(
                           block.name,
                           maxLines: collapsed ? 1 : null,
@@ -2346,16 +2346,8 @@ class _BlockView extends StatelessWidget {
                 GestureDetector(
                   onTap: () => onEditNote(i, n),
                   behavior: HitTestBehavior.opaque,
-                  // 메모도 세트마다 제 상자다. 누르면 그 메모를 고친다.
-                  child: Container(
-                    margin: const EdgeInsets.only(top: 3, bottom: 3),
-                    padding: const EdgeInsets.fromLTRB(6, 2, 8, 3),
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.tertiarySystemFill.resolveFrom(
-                        context,
-                      ),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 1, 8, 5),
                     // 어느 세트의 메모인지 앞에 적는다 — 칸과 떨어져 있어서다.
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,

@@ -138,13 +138,19 @@ class SetGrid extends StatelessWidget {
                         minHeight: onTapSet == null ? 30 : 28,
                       ),
                       alignment: Alignment.centerLeft,
+                      // 칠하지 않고 가는 테두리만 — 칸이라는 것은 보이되 종이는
+                      // 하얗게. 고치는 칸만 색이 찬다.
                       decoration: BoxDecoration(
                         color: i == editingSet
                             ? sealTint.resolveFrom(context)
-                            : onTapSet == null
+                            : null,
+                        border: onTapSet == null || i == editingSet
                             ? null
-                            : CupertinoColors.tertiarySystemFill.resolveFrom(
-                                context,
+                            : Border.all(
+                                color: CupertinoColors.separator.resolveFrom(
+                                  context,
+                                ),
+                                width: 0.5,
                               ),
                         borderRadius: BorderRadius.circular(6),
                       ),
