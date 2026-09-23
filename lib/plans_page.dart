@@ -11,7 +11,6 @@ import 'l10n/generated/app_localizations.dart';
 import 'nearby.dart';
 import 'notes.dart';
 import 'palette.dart';
-import 'parser.dart';
 import 'partner.dart';
 import 'plans.dart';
 import 'share.dart';
@@ -337,8 +336,9 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
   void _changed() {
     if (!mounted) return;
     _syncNearby();
-    // 서버에서 새 내용이 왔고 내가 고치는 중이 아니면 글도 따라간다.
-    if (plan.draft == null) _load(plan.content);
+    // 서버에서 새 내용이 왔고 내가 고치는 중이 아니면 글도 따라간다. 글이 이미
+    // 같은 계획이면 건드리지 않는다 — 줄에 치고 있는 목표("80kg 5회")가 지워진다.
+    if (plan.draft == null && !_typed.sameAs(plan.content)) _load(plan.content);
     setState(() {});
   }
 
@@ -387,21 +387,37 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  PlanContent get _typed {
+  PlanContent get _typed => _read().content;
+
+  ({PlanContent content, Map<String, String> targets}) _read() {
     final parsed = parsePlanText(_text.text, previous: plan.shown.items);
-    return PlanContent(
-      title: parsed.title,
-      plannedOn: _day,
-      items: parsed.items,
+    return (
+      content: PlanContent(
+        title: parsed.title,
+        plannedOn: _day,
+        items: parsed.items,
+      ),
+      targets: parsed.targets,
     );
   }
 
   bool get _edited => !_typed.sameAs(plan.content);
 
+  /// 줄에 적은 목표 글. 바뀐 줄만 내 목표로 옮긴다 — 목표 칸에서 고친 것을
+  /// 다른 줄을 칠 때마다 되돌리지 않게.
+  Map<String, String> _lineTargets = const {};
+
   /// 친 글을 초안으로 남긴다 — 서버에 안 닿아도 이 기기에는 남는다.
+  /// 줄에 적은 무게·횟수("벤치 80kg 5회 3세트")는 이름에 섞지 않고 내 목표가 된다.
   void _keep() {
-    final typed = _typed;
-    plan.draft = typed.sameAs(plan.content) ? null : typed;
+    final (:content, :targets) = _read();
+    plan.draft = content.sameAs(plan.content) ? null : content;
+    for (final MapEntry(:key, :value) in targets.entries) {
+      if (_lineTargets[key] != value) {
+        plans.setTarget(plan, key, planTarget(value, widget.notes.weightUnit));
+      }
+    }
+    _lineTargets = targets;
     plans.save();
   }
 
@@ -501,21 +517,7 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
     );
     input.dispose();
     if (typed == null) return;
-    // 세트 한 줄을 읽는 그 파서다: "100 5", "100kg 5회 x3 무릎 조심".
-    final parsed = parseSetLine(typed);
-    plans.setTarget(
-      plan,
-      item.id,
-      typed.trim().isEmpty
-          ? null
-          : PlanTarget(
-              value: parsed?.value,
-              unit: parsed?.unit ?? widget.notes.weightUnit,
-              reps: parsed?.reps,
-              sets: parsed != null && parsed.count > 1 ? parsed.count : null,
-              note: parsed == null ? typed.trim() : parsed.note,
-            ),
-    );
+    plans.setTarget(plan, item.id, planTarget(typed, widget.notes.weightUnit));
   }
 
   bool _copied = false;

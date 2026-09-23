@@ -109,37 +109,117 @@ class PlanTarget {
 }
 
 const _setWords = r'세트|sets?|セット|组|組|series?|hiệp|เซ็ต';
-final _planLine = RegExp(
-  '^(.+?)\\s*(?:[x×*]\\s*(\\d{1,2})|(\\d{1,2})\\s*(?:$_setWords))\\s*\$',
+
+/// 세트 수 표기: "x3", "4세트", "5sets".
+final _setsMark = RegExp(
+  '^(?:[x×*](\\d{1,2})|(\\d{1,2})(?:$_setWords))\$',
   caseSensitive: false,
 );
 
+/// 세트 수×횟수: "3x10", "5×5".
+final _setsByReps = RegExp(r'^(\d+)[x×*](\d+)$', caseSensitive: false);
+final _bareNumber = RegExp(r'^\d+(?:[.,]\d+)?$');
+
+/// 이름이 끝나는 자리 — 세트 수 표기, 'AxB', 수+단위("80kg", "10회"). 맨숫자는
+/// 이름일 수 있다("민수식 로우 2").
+bool _planMark(String w) =>
+    _setsMark.hasMatch(w) ||
+    _setsByReps.hasMatch(w) ||
+    (!_bareNumber.hasMatch(w) &&
+        switch (parseSetLine(w)) {
+          ParsedSet(note: null) => true,
+          _ => false,
+        });
+
+/// 계획 한 줄 → 이름, 세트 수, 목표 글(무게·횟수 — 이름에 섞지 않는다).
+/// 이름이 없으면(표기만 있는 줄) null.
+({String name, int sets, String? target})? _planLine(String line) {
+  final words = joinSpacedUnits(line)
+      // 띄어 쓴 표기를 붙인다: "3 x 10" → "3x10", "x 3" → "x3".
+      .replaceAllMapped(
+        RegExp(r'(^|\s)(\d+)\s*([x×*])\s*(?=\d)'),
+        (m) => '${m[1]}${m[2]}${m[3]}',
+      )
+      .replaceAllMapped(
+        RegExp(r'(^|\s)([x×*])\s+(?=\d)'),
+        (m) => '${m[1]}${m[2]}',
+      )
+      .split(RegExp(r'\s+'));
+  var cut = words.indexWhere(_planMark);
+  if (cut < 0) cut = words.length;
+  // 맨숫자가 둘 이상 이어지면 무게·횟수다("벤치 80 5") — 세트 줄과 같은 규칙.
+  var run = 0;
+  while (run < cut && _bareNumber.hasMatch(words[cut - 1 - run])) {
+    run++;
+  }
+  if (run >= 2) cut -= run;
+  if (cut == 0) return null;
+  int? sets;
+  final target = <String>[];
+  for (final w in words.skip(cut)) {
+    final byReps = _setsByReps.firstMatch(w), mark = _setsMark.firstMatch(w);
+    final n = int.tryParse(byReps?[1] ?? mark?[1] ?? mark?[2] ?? '');
+    // 세트 수는 한 번, 서버가 받는 50까지. 넘거나 두 번째면 목표 글에 친 그대로 남는다.
+    if (sets == null && n != null && n <= 50) {
+      sets = n;
+      if (byReps != null) target.add('${byReps[2]}reps');
+    } else {
+      target.add(w);
+    }
+  }
+  return (
+    name: cut == words.length ? line.trim() : words.take(cut).join(' '),
+    sets: sets ?? 0,
+    target: target.isEmpty ? null : target.join(' '),
+  );
+}
+
 /// 메모장처럼 친 글을 계획으로 읽는다. 첫 줄은 제목, 나머지는 한 줄에 한 종목:
-/// "스쿼트 4세트", "레그컬 x3", "민수식 로우 2"(세트 수 없이 이름만).
+/// "스쿼트 4세트", "레그컬 x3", "벤치 3x10", "민수식 로우 2"(세트 수 없이 이름만).
+/// 첫 줄이 종목처럼 적혔으면("스쿼트 4세트") 제목 없이 전부 종목이다.
 ///
 /// **이름은 바꾸지 않는다.** 앞서 있던 종목과 이름이 같으면 그 id 를 잇는다 —
 /// 순서를 바꿔도 각자의 목표가 제 종목에 붙어 있어야 한다.
-({String title, List<PlanItem> items}) parsePlanText(
-  String text, {
-  List<PlanItem> previous = const [],
-}) {
+///
+/// 무게·횟수("80kg 5회", 'AxB' 의 B)는 이름에 넣지 않고 [targets] 로 준다 —
+/// 종목 id → 목표 글. 목표는 각자의 것이라 공통 계획에 자리가 없다.
+({String title, List<PlanItem> items, Map<String, String> targets})
+parsePlanText(String text, {List<PlanItem> previous = const []}) {
   final lines = text
       .split('\n')
       .map((l) => l.trim())
       .where((l) => l.isNotEmpty)
       .toList();
-  if (lines.isEmpty) return (title: '', items: const []);
+  if (lines.isEmpty) return (title: '', items: const [], targets: const {});
+  final first = _planLine(lines.first);
+  final titled = first == null || (first.sets == 0 && first.target == null);
   final unused = [...previous];
   final items = <PlanItem>[];
-  for (final line in lines.skip(1)) {
-    final m = _planLine.firstMatch(line);
-    final name = (m?[1] ?? line).trim();
-    final sets = int.tryParse(m?[2] ?? m?[3] ?? '') ?? 0;
+  final targets = <String, String>{};
+  for (final line in lines.skip(titled ? 1 : 0)) {
+    final read = _planLine(line);
+    final name = read?.name ?? line;
     final at = unused.indexWhere((p) => p.name == name);
     final id = at < 0 ? _newId('i') : unused.removeAt(at).id;
-    items.add(PlanItem(id: id, name: name, sets: sets.clamp(0, 50)));
+    items.add(PlanItem(id: id, name: name, sets: read?.sets ?? 0));
+    if (read?.target != null) targets[id] = read!.target!;
   }
-  return (title: lines.first, items: items);
+  return (title: titled ? lines.first : '', items: items, targets: targets);
+}
+
+/// 목표 한 줄을 읽는다 — 세트 한 줄을 읽는 그 파서다: "100 5", "100kg 5회 x3
+/// 무릎 조심". 못 읽으면 글 전체가 메모로 남는다. 단위를 안 쳤으면 [unit].
+PlanTarget? planTarget(String typed, String unit) {
+  final text = typed.trim();
+  if (text.isEmpty) return null;
+  final parsed = parseSetLine(text);
+  return PlanTarget(
+    value: parsed?.value,
+    unit: parsed?.unit ?? unit,
+    reps: parsed?.reps,
+    sets: parsed != null && parsed.count > 1 ? parsed.count : null,
+    note: parsed == null ? text : parsed.note,
+  );
 }
 
 String planText(

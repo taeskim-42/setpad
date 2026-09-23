@@ -244,4 +244,88 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets('계획 줄에 적은 무게·횟수는 이름에 섞이지 않고 내 목표가 되며, 치던 글이 지워지지 않는다', (
+    tester,
+  ) async {
+    final dir = Directory.systemTemp.createTempSync('setpad_plan_target_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final notes = NotesStore(directory: dir);
+    addTearDown(notes.dispose);
+    final plans = PlanStore(
+      directory: dir,
+      link: () => GymLink(
+        endpoint: 'https://x',
+        token: 'member',
+        client: MockClient((_) async => throw http.ClientException('offline')),
+      ),
+    );
+    final plan = SharedPlan(
+      localId: 'p-target',
+      content: const PlanContent(
+        title: '하체',
+        items: [PlanItem(id: 'a', name: '벤치', sets: 3)],
+      ),
+    );
+    plans.add(plan);
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: PlanPage(
+          plan: plan,
+          plans: plans,
+          notes: notes,
+          onOpenNote: (_) {},
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    final box = find.byKey(const ValueKey('plan-text'));
+    String text() => tester.widget<CupertinoTextField>(box).controller!.text;
+    expect(text(), '하체\n벤치 3세트');
+
+    // 있던 줄에 무게·횟수를 덧붙인다 — 공통 계획은 그대로고 내 목표가 된다.
+    await tester.enterText(box, '하체\n벤치 3세트 80kg 5회');
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(plan.draft, isNull, reason: '공통 계획은 바뀌지 않았다');
+    final mine = plan.myTargets['a']!;
+    expect((mine.value, mine.unit, mine.reps), (80, 'kg', 5));
+    expect(find.text('내 목표: 80kg · 5회'), findsOneWidget);
+    // 새 소식이 와도 치던 글은 그대로다.
+    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+    plans.notifyListeners();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(text(), '하체\n벤치 3세트 80kg 5회');
+
+    // 'AxB' 는 세트 수×횟수다 — 이름에 숫자가 섞이지 않는다.
+    await tester.enterText(box, '하체\n벤치 3세트 80kg 5회\n스쿼트 5x5');
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(plan.draft!.items.map((i) => (i.name, i.sets)), [
+      ('벤치', 3),
+      ('스쿼트', 5),
+    ]);
+    final squat = plan.draft!.items.last.id;
+    expect(plan.myTargets[squat]?.reps, 5);
+    expect(plan.myTargets['a']?.value, 80, reason: '안 바꾼 줄의 목표는 다시 쓰지 않는다');
+
+    // 목표 칸에서 고친 것은 다른 줄을 쳐도 되돌아가지 않는다.
+    await tester.tap(find.text('벤치 · 3세트'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.enterText(
+      find.byKey(const ValueKey('plan-target')),
+      '100 5 5 5',
+    );
+    await tester.tap(find.text('확인'));
+    await tester.pump(const Duration(milliseconds: 300));
+    final edited = plan.myTargets['a']!;
+    expect((edited.value, edited.reps, edited.note), (100, 5, '5 5'));
+    await tester.enterText(box, '하체\n벤치 3세트 80kg 5회\n스쿼트 5x5\n런지');
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(plan.myTargets['a']!.value, 100);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
 }

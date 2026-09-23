@@ -58,6 +58,85 @@ Hip thrust 5 sets
     );
   });
 
+  test('계획 글의 AxB 는 세트 수×횟수이고, 무게·횟수는 이름이 아니라 목표 글이다', () {
+    final plan = parsePlanText('''
+하체
+벤치 3x10
+스쿼트 5×5
+벤치 10회 3세트
+벤치 80kg 5세트
+데드 3 x 5
+로우 80 10
+민수식 로우 2
+레그컬 x3
+''');
+    expect(plan.title, '하체');
+    expect(plan.items.map((i) => (i.name, i.sets)), [
+      ('벤치', 3),
+      ('스쿼트', 5),
+      ('벤치', 3),
+      ('벤치', 5),
+      ('데드', 3),
+      ('로우', 0),
+      ('민수식 로우 2', 0), // 맨숫자 하나는 여전히 이름이다
+      ('레그컬', 3),
+    ]);
+    String? target(int i) => plan.targets[plan.items[i].id];
+    PlanTarget? read(int i) =>
+        target(i) == null ? null : planTarget(target(i)!, 'kg');
+    expect(read(0)?.reps, 10);
+    expect(read(1)?.reps, 5);
+    expect(read(2)?.reps, 10);
+    expect((read(3)?.value, read(3)?.unit, read(3)?.reps), (80, 'kg', null));
+    expect(read(4)?.reps, 5);
+    expect((read(5)?.value, read(5)?.reps), (80, 10));
+    expect(target(6), isNull);
+    expect(target(7), isNull);
+    // 목표는 세트 수를 따로 들지 않는다 — 세트 수는 공통 계획의 것이다.
+    expect(read(0)?.sets, isNull);
+  });
+
+  test('첫 줄이 종목처럼 적혔으면 제목으로 먹지 않는다', () {
+    final plan = parsePlanText('스쿼트 4세트\n벤치 3세트');
+    expect(plan.title, '');
+    expect(plan.items.map((i) => (i.name, i.sets)), [('스쿼트', 4), ('벤치', 3)]);
+    // 글로 되돌려도 같은 계획이다.
+    final again = parsePlanText(
+      planText(plan.title, plan.items, (n) => '$n세트'),
+      previous: plan.items,
+    );
+    expect(again.title, '');
+    expect(again.items.map((i) => i.id), plan.items.map((i) => i.id));
+    // 숫자로 시작하는 제목("5x5 스트렝스")이나 수가 없는 제목은 제목이다.
+    expect(parsePlanText('5x5 스트렝스\n스쿼트 5x5').title, '5x5 스트렝스');
+    expect(parsePlanText('민수식 로우 2\n스쿼트').title, '민수식 로우 2');
+  });
+
+  test('세트 수로 못 쓰는 표기는 버리지 않고 목표 글에 친 그대로 남는다', () {
+    final plan = parsePlanText('하체\n벤치 60세트\n스쿼트 80x10\n런지 x3 x4');
+    expect(plan.items.map((i) => (i.name, i.sets)), [
+      ('벤치', 0),
+      ('스쿼트', 0),
+      ('런지', 3),
+    ]);
+    expect(plan.items.map((i) => plan.targets[i.id]), ['60세트', '80x10', 'x4']);
+    expect(planTarget('60세트', 'kg')?.note, '60세트');
+  });
+
+  test('목표 한 줄은 세트 줄 파서로 읽고, 남는 것은 메모다', () {
+    final t = planTarget('100kg 5회 x3 무릎 조심', 'lb')!;
+    expect(
+      (t.value, t.unit, t.reps, t.sets, t.note),
+      (100, 'kg', 5, 3, '무릎 조심'),
+    );
+    // 여분 숫자는 메모로 남는다 — 예전에는 사라졌다.
+    final extra = planTarget('100 5 5 5', 'kg')!;
+    expect((extra.value, extra.reps, extra.note), (100, 5, '5 5'));
+    expect(planTarget('80키로 5회', 'lb')?.unit, 'kg');
+    expect(planTarget('무릎 조심', 'lb')?.note, '무릎 조심');
+    expect(planTarget('   ', 'kg'), isNull);
+  });
+
   test('무엇이 바뀌었는지 말한다', () {
     final v1 = parsePlanText('하체\n스쿼트 4세트\n레그컬 3세트\n런지 3세트');
     final v2 = parsePlanText(
