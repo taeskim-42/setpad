@@ -1520,7 +1520,12 @@ class _RoutineEditorState extends State<RoutineEditor>
       widget.mealText!.value = null;
       return;
     }
-    if (_c.naming && TimingSpec.parse(value) != null) {
+    // 타이머 이름("버피 타바타")은 묻지 않고 바로 만든다. 다만 "bpm 푸시업 100개
+    // 채우기" 처럼 목표까지 든 문장은 해석을 거쳐야 한다 — 이름에 bpm 이 남으니
+    // 타이머는 그대로 붙고, 100개 채우기는 설정으로 붙는다.
+    if (_c.naming &&
+        TimingSpec.parse(value) != null &&
+        !hasSetupIntent(value)) {
       _input.clear();
       _c.addExercise(value.trim());
       _reopen();
