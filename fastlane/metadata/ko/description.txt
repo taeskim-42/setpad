@@ -39,4 +39,4 @@ setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 
 혼자 기록하는 데는 계정이 필요 없습니다. 도장 연결, 같이 하기, 공동 루틴, 구독에는 로그인이 필요합니다. 광고가 없습니다. 기록은 기기에 남고, 도장에 연결한 기록과 공유하기로 한 것만 서버로 갑니다.
 
 이용약관(EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-개인정보 처리방침: https://taeskim-42.github.io/setpad-site/privacy.html
+개인정보 처리방침: https://darak.studio/setpad-privacy

@@ -26,6 +26,14 @@ import UIKit
       name: "setpad/share",
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     ).setMethodCallHandler { call, result in
+      // 링크 열기(개인정보 처리방침 등).
+      if call.method == "open" {
+        guard let raw = (call.arguments as? [String: Any])?["url"] as? String,
+          let url = URL(string: raw), url.scheme == "https"
+        else { return result(false) }
+        UIApplication.shared.open(url) { opened in result(opened) }
+        return
+      }
       guard call.method == "share",
         let text = (call.arguments as? [String: Any])?["text"] as? String,
         var top = UIApplication.shared.connectedScenes

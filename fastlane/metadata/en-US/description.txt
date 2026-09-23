@@ -39,4 +39,4 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 Logging on your own needs no account. Gym links, working out together, shared plans and subscriptions need sign-in. No ads. Your log stays on your device; only gym-linked records and what you choose to share go to the server.
 
 Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-Privacy Policy: https://taeskim-42.github.io/setpad-site/privacy.html
+Privacy Policy: https://darak.studio/setpad-privacy

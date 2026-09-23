@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import 'l10n/generated/app_localizations.dart';
+import 'share.dart';
 
 /// 건강 앱과 무엇을 왜 주고받는지. 설정에서 열고, Android 에서는 헬스 커넥트가
 /// "이 앱이 권한을 왜 쓰는가" 를 물을 때도 이 화면이 열린다(MainActivity).
@@ -13,8 +14,9 @@ class HealthDataPage extends StatelessWidget {
   const HealthDataPage({super.key});
 
   static const route = '/health-data';
-  static const privacyUrl =
-      'https://taeskim-42.github.io/setpad-site/privacy.html';
+
+  /// 스토어와 헬스 커넥트에 등록한 것과 같은 주소여야 한다(tool/metadata.py PRIVACY).
+  static const privacyUrl = 'https://darak.studio/setpad-privacy';
 
   @override
   Widget build(BuildContext context) {
@@ -43,11 +45,17 @@ class HealthDataPage extends StatelessWidget {
               android ? l.healthDataRevokeAndroid : l.healthDataRevokeIos,
               color: muted,
             ),
-            Text(
-              l.healthDataPrivacy,
-              style: TextStyle(fontSize: 13, color: muted),
+            // 누르면 열린다 — 적어 두기만 하면 방침을 "쉽게 볼 수 있다" 고 할 수 없다.
+            CupertinoButton(
+              key: const ValueKey('health-privacy'),
+              padding: EdgeInsets.zero,
+              alignment: Alignment.centerLeft,
+              onPressed: () => openUrl(privacyUrl),
+              child: Text(
+                '${l.healthDataPrivacy} · $privacyUrl',
+                style: const TextStyle(fontSize: 13),
+              ),
             ),
-            const Text(privacyUrl, style: TextStyle(fontSize: 13)),
           ],
         ),
       ),

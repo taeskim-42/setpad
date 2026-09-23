@@ -39,4 +39,4 @@ setpad 不是用来提前编排计划的。做完一组，当场把数字打上�
 独自记录不需要账号。连接健身房、一起练、共同计划和订阅需要登录。没有广告。记录留在你的设备上，只有与健身房关联的记录和你选择共享的内容会发送到服务器。
 
 使用条款 (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-隐私政策: https://taeskim-42.github.io/setpad-site/privacy.html
+隐私政策: https://darak.studio/setpad-privacy

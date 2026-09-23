@@ -39,4 +39,4 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 Tự ghi một mình thì không cần tài khoản. Liên kết phòng tập, tập cùng nhau, kế hoạch chung và gói đăng ký cần đăng nhập. Không quảng cáo. Nhật ký nằm trên máy của bạn; chỉ các bản ghi liên kết với phòng tập và những gì bạn chọn chia sẻ mới lên máy chủ.
 
 Điều khoản sử dụng (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-Chính sách quyền riêng tư: https://taeskim-42.github.io/setpad-site/privacy.html
+Chính sách quyền riêng tư: https://darak.studio/setpad-privacy

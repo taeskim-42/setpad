@@ -17,6 +17,15 @@ class MainActivity : FlutterFragmentActivity() {
         // 공유 시트. 글 한 줄(공동 루틴 초대 링크)을 올리는 것이 전부라 플러그인 없이 둔다.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "setpad/share")
             .setMethodCallHandler { call, result ->
+                // 링크 열기(개인정보 처리방침 등).
+                if (call.method == "open") {
+                    val url = call.argument<String>("url")
+                    if (url == null || !url.startsWith("https://")) return@setMethodCallHandler result.success(false)
+                    val opened = runCatching {
+                        startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)))
+                    }.isSuccess
+                    return@setMethodCallHandler result.success(opened)
+                }
                 val text = call.argument<String>("text")
                 if (call.method != "share" || text == null) return@setMethodCallHandler result.success(false)
                 val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)

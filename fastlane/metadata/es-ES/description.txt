@@ -39,4 +39,4 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 Para registrar por tu cuenta no hace falta cuenta. Los gimnasios, entrenar juntos, los planes compartidos y las suscripciones requieren iniciar sesión. Sin anuncios. Tu registro se queda en tu dispositivo; solo van al servidor los registros vinculados a un gimnasio y lo que decidas compartir.
 
 Términos de uso (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-Política de privacidad: https://taeskim-42.github.io/setpad-site/privacy.html
+Política de privacidad: https://darak.studio/setpad-privacy

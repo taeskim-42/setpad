@@ -24,7 +24,8 @@ void main() {
     expect(find.byType(HealthDataPage), findsOneWidget);
     expect(find.textContaining('심박수'), findsOneWidget);
     expect(find.textContaining('25bpm'), findsOneWidget);
-    expect(find.text(HealthDataPage.privacyUrl), findsOneWidget);
+    expect(find.byKey(const ValueKey('health-privacy')), findsOneWidget);
+    expect(find.textContaining(HealthDataPage.privacyUrl), findsOneWidget);
   });
 
   test('헬스 커넥트의 권한 설명 요청은 이 화면으로 온다', () {

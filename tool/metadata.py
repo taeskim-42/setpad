@@ -392,7 +392,7 @@ setpad 不是用來事先編排課表的。做完一組，當場把數字打上�
 獨自記錄不需要帳號。連結健身房、一起練、共同計畫和訂閱需要登入。沒有廣告。紀錄留在你的裝置上，只有與健身房關聯的紀錄和你選擇分享的內容會傳送到伺服器。'''),
 }
 
-PRIVACY = 'https://taeskim-42.github.io/setpad-site/privacy.html'
+PRIVACY = 'https://darak.studio/setpad-privacy'
 
 # 자동 갱신 구독을 파는 앱은 App Store 설명에 이용약관(EULA) 링크가 있어야 한다.
 # 없으면 심사가 시작도 안 된다(2026-09-21 반려: "does not include a functional
