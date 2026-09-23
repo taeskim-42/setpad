@@ -3383,6 +3383,22 @@ RecordQuery decodeRecordIntent(
   lang: _langOf(locale),
 );
 
+/// 앱이 세는 plan 의 모양 — 모양 고치기와 규칙 층([_ground])을 지난 모델 답.
+/// [decodeRecordIntent] 가 받는 것과 같다. 평가(tool/remote_eval_test.dart)가
+/// 모델의 날것이 아니라 앱이 실제로 센 것을 채점하려고 쓴다.
+Map<String, Object?> groundedIntent(
+  Map<Object?, Object?> intent,
+  String text,
+  List<String> names, {
+  DateTime? today,
+}) {
+  final m = _repaired({for (final e in intent.entries) '${e.key}': e.value});
+  if (const {'plan', 'query'}.contains(m['kind'] ?? 'plan')) {
+    _ground(m, canonicalizeExercises(text, names), names, today);
+  }
+  return m;
+}
+
 /// 모델 없이 글만으로 만든 plan — 서버에 닿지 못했을 때. [names] 는 글이 지목한
 /// 운동이고, 기간·숫자 조건·의도 낱말(한 갈래일 때)은 규칙 층이 글에서 읽는다.
 /// 셀 수 없는 모양이면 [FormatException] 이다.
