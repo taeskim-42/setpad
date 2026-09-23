@@ -16,12 +16,24 @@ import 'notes.dart';
 
 typedef Json = Map<String, Object?>;
 
+/// 서버가 받는 범위(lib/partner-sessions.ts validSet). 밖의 것은 빈 값으로
+/// 보낸다 — 하나가 틀리면 서버가 그 묶음을 통째로 거절한다.
+const _maxNumber = 100000, _maxNotes = 20, _maxNote = 500, _maxName = 200;
+const _maxSets = 100;
+
+String _cut(String s, int n) =>
+    s.runes.length <= n ? s : String.fromCharCodes(s.runes.take(n));
+
 Json _setJson(LoggedSet s) => {
   'id': s.id,
-  'value': s.value,
-  'unit': s.unit,
-  'reps': s.reps,
-  'notes': s.notes,
+  'value': s.value != null && s.value!.abs() <= _maxNumber ? s.value : null,
+  'unit': _cut(s.unit, 16),
+  'reps': s.reps != null && s.reps! >= 0 && s.reps! <= _maxNumber
+      ? s.reps
+      : null,
+  // 복사한다. 편집기의 목록을 그대로 실으면 메모를 고치는 순간 "받은 문서" 도
+  // 같이 바뀌어 차이가 없어 보이고, 고친 메모가 영영 안 올라간다.
+  'notes': [for (final n in s.notes.take(_maxNotes)) _cut(n, _maxNote)],
   'done': s.done,
   // 지난 세션에서 남이 적은 세트는 그 이름을 싣는다. 키는 싣지 않는다 — 서버가
   // 이름만 남겨 누구의 "내 세트" 도 되지 않게 한다.
@@ -33,20 +45,37 @@ List<Json> docOf(List<ExerciseBlock> blocks) => [
   for (final b in blocks)
     {
       'id': b.id,
-      'name': b.name,
+      'name': _cut(b.name, _maxName),
       if (b.setup != null) 'setup': b.setup!.toJson(),
-      'sets': [for (final s in b.sets) _setJson(s)],
+      'sets': [for (final s in b.sets.take(_maxSets)) _setJson(s)],
     },
 ];
 
 /// 서버 문서를 운동 칸으로. 내가 적은 세트는 작성자가 비고, 남이 적은 세트는
 /// 그 사람 이름을 지닌다.
-List<ExerciseBlock> blocksOfDoc(List<Json> doc, String? me) {
+///
+/// 지난 세션에서 옮겨 온 세트는 이름만 있고 키가 없다(누구의 것인지 서버는
+/// 모른다). 그 세트가 내 기록([local])에 작성자 없이 있으면 내 것이다.
+List<ExerciseBlock> blocksOfDoc(
+  List<Json> doc,
+  String? me, {
+  List<ExerciseBlock> local = const [],
+}) {
+  final mine = {
+    for (final b in local)
+      for (final s in b.sets)
+        if (s.author == null) s.id,
+  };
   final blocks = blocksFromJson(doc);
   for (final (i, b) in doc.indexed) {
     for (final (j, s) in ((b['sets'] as List?) ?? const []).indexed) {
       final by = (s as Map)['by'];
-      if (by is Map && by['key'] != me && by['name'] is String) {
+      final carriedMine =
+          by is Map && by['key'] == '' && mine.contains(s['id']);
+      if (by is Map &&
+          by['key'] != me &&
+          by['name'] is String &&
+          !carriedMine) {
         blocks[i].sets[j].author = by['name'] as String;
       }
     }
@@ -189,4 +218,30 @@ List<Json> applyDoc(List<Json> doc, List<Json> ops) {
     }
   }
   return blocks;
+}
+
+/// 처음 참여할 때: 서버 문서에 이 기기에만 있는 것을 더한 것. 문서에 있는 것은
+/// 문서가 이긴다 — 내 사본이 낡았을 수 있다(지난 세션의 같은 기록으로 다시
+/// 짝을 지은 경우). 문서에 없는 세트와 운동만 뒤에 붙는다. 지운 것은 싣지
+/// 않는다 — 남이 더한 것을 지우게 될 수 있다.
+List<Json> joinDoc(List<Json> doc, List<Json> local) {
+  final mine = {for (final b in local) b['id']: b};
+  List<Object?> sets(Json b) => b['sets'] as List;
+  Set<Object?> ids(Json b) => {for (final s in sets(b)) (s as Map)['id']};
+  return [
+    for (final b in doc)
+      if (mine[b['id']] case final m?)
+        {
+          ...b,
+          'sets': [
+            ...sets(b),
+            for (final x in sets(m))
+              if (!ids(b).contains((x as Map)['id'])) x,
+          ],
+        }
+      else
+        b,
+    for (final m in local)
+      if (!doc.any((b) => b['id'] == m['id'])) m,
+  ];
 }

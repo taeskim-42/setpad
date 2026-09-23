@@ -169,4 +169,106 @@ void main() {
     expect(c.replaceBlocks([ExerciseBlock('스쿼트', [], null, 'S')]), same(bench));
     expect(c.inBlock, isFalse);
   });
+
+  test('처음 참여: 같은 운동이 문서에 있으면 문서가 이기고, 내게만 있는 세트·운동만 붙는다 (실제 모양으로)', () {
+    // 서버에서 온 문서는 JSON 이라 List<dynamic>, 내 것은 docOf 라 타입이 붙은 목록이다.
+    // 이 둘을 섞어 찾다가 타입 오류로 죽었다.
+    final doc =
+        (jsonDecode(
+                  jsonEncode(
+                    docOf([
+                      ExerciseBlock('벤치', [set('a', 12)], null, 'B'),
+                    ]),
+                  ),
+                )
+                as List)
+            .cast<Json>();
+    final local = docOf([
+      ExerciseBlock('벤치', [set('a', 10), set('mine', 5)], null, 'B'),
+      ExerciseBlock('풀업', [set('p', 8)], null, 'P'),
+    ]);
+    final joined = joinDoc(doc, local);
+    expect([for (final b in joined) b['id']], ['B', 'P']);
+    final sets = joined.first['sets'] as List;
+    expect(
+      [for (final s in sets) ((s as Map)['id'], s['reps'])],
+      [('a', 12), ('mine', 5)],
+      reason: '문서의 12 가 내 낡은 10 을 이긴다',
+    );
+    final ops = diffDoc(doc, joined).expand((b) => b).toList();
+    expect(
+      ops.where((o) => o['kind'] == 'removeSet' || o['kind'] == 'removeBlock'),
+      isEmpty,
+    );
+  });
+
+  test('보내는 값은 서버가 받는 범위 안이다 — 하나 때문에 묶음이 통째로 거절되지 않는다', () {
+    final s = LoggedSet(
+      id: 'x',
+      value: 1e9,
+      reps: -3,
+      notes: [for (var i = 0; i < 30; i++) 'n' * 600],
+    );
+    final json = (docOf([
+      ExerciseBlock('a' * 300, [s], null, 'B'),
+    ]).single);
+    final sj = (json['sets'] as List).single as Map;
+    expect([sj['value'], sj['reps']], [null, null]);
+    expect((sj['notes'] as List).length, 20);
+    expect(((sj['notes'] as List).first as String).length, 500);
+    expect((json['name'] as String).length, 200);
+    // 메모를 고치면 차이가 난다 — 보낸 문서가 편집기의 목록을 붙잡고 있지 않다.
+    final t = LoggedSet(id: 't', value: 60, reps: 5);
+    final shadow = docOf([
+      ExerciseBlock('벤치', [t], null, 'B'),
+    ]);
+    t.notes.add('새 메모');
+    expect(
+      diffDoc(
+        shadow,
+        docOf([
+          ExerciseBlock('벤치', [t], null, 'B'),
+        ]),
+      ),
+      isNotEmpty,
+    );
+  });
+
+  test('지난 세션에서 옮겨 온 내 세트는 내 폰에서 내 것으로 남는다', () {
+    final mine = set('m', 5);
+    final doc = [
+      {
+        'id': 'B',
+        'name': '벤치',
+        'sets': [
+          {
+            'id': 'm',
+            'value': 60,
+            'unit': 'kg',
+            'reps': 5,
+            'notes': [],
+            'done': true,
+            'by': {'key': '', 'name': '준'},
+          },
+          {
+            'id': 'o',
+            'value': 60,
+            'unit': 'kg',
+            'reps': 5,
+            'notes': [],
+            'done': true,
+            'by': {'key': '', 'name': '미나'},
+          },
+        ],
+      },
+    ];
+    final sets = blocksOfDoc(
+      doc,
+      'jun-key',
+      local: [
+        ExerciseBlock('벤치', [mine], null, 'B'),
+      ],
+    ).single.sets;
+    expect(sets.map((s) => s.author), [null, '미나']);
+  });
 }

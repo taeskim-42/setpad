@@ -174,6 +174,45 @@ void main() {
       );
       final back2 = back;
 
+      // 소라가 미나의 옛 사본(같은 운동 id, 낡은 값)을 들고 들어온다 — 지난 세션의
+      // 기록으로 다시 짝을 지은 경우다. 합치다 죽지 않고, 문서가 이기며, 소라에게만
+      // 있는 세트만 붙는다.
+      final stale = blocksFromJson(blocksToJson(notes[0].blocks));
+      stale.first.sets.first = LoggedSet(
+        id: stale.first.sets.first.id,
+        value: 1,
+        reps: 1,
+      );
+      stale.first.sets.add(LoggedSet(value: 40, reps: 20));
+      final soraNote = Note(
+        id: 'live-$stamp-c',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        blocks: stale,
+      );
+      final sora = PartnerSync(
+        note: soraNote,
+        link: () => link(2),
+        onChanged: () {},
+      );
+      phones.add(sora);
+      notes.add(soraNote);
+      await mina.refresh();
+      expect(await sora.joinWithCode(mina.session!.code!), isNull);
+      await sync();
+      await settle();
+      await sync();
+      await settle();
+      await sync();
+      final benchNow = notes[0].blocks.first.sets;
+      expect(benchNow.first.reps, isNot(1), reason: '낡은 사본이 문서를 덮지 않는다');
+      expect(
+        benchNow.map((s) => s.reps),
+        contains(20),
+        reason: '소라에게만 있던 세트는 붙는다',
+      );
+      expect(notes[2].blocks.first.sets.length, benchNow.length);
+
       // 미나가 벤치를 지우는 사이 준이 벤치에 한 세트 — 갈 곳이 없어 사라진다.
       notes[0].blocks.removeAt(0);
       notes[1].blocks[0].sets.add(LoggedSet(value: 50, reps: 5));
@@ -184,6 +223,7 @@ void main() {
       await sync();
       expect(titles(0), isEmpty);
       expect(titles(1), isEmpty);
+      expect(titles(2), isEmpty);
     },
     timeout: const Timeout(Duration(minutes: 2)),
   );

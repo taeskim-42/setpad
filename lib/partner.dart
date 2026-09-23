@@ -172,22 +172,23 @@ class PartnerSession {
     if (j is! Map || j['id'] is! String) return null;
     final expires = j['expiresAt'], updated = j['partnerUpdatedAt'];
     return PartnerSession(
-      id: j['id'] as String,
-      host: j['host'] == true,
-      state: PartnerState.values.asNameMap()[j['state']] ?? PartnerState.ended,
-      code: j['code'] is String ? j['code'] as String : null,
-      token: j['token'] is String ? j['token'] as String : null,
-      expiresAt: expires is String ? DateTime.tryParse(expires) : null,
-      partnerName: j['partnerName'] is String
-          ? j['partnerName'] as String
-          : null,
-      endedByMe: j['endedByMe'] is bool ? j['endedByMe'] as bool : null,
-      revision: j['revision'] is int ? j['revision'] as int : 0,
-      pushed: j['pushed'] is int ? j['pushed'] as int : 0,
-      partnerBlocks: blocksFromJson(j['partnerBlocks']),
-      partnerUpdatedAt: updated is String ? DateTime.tryParse(updated) : null,
-      partnerLoaded: j['partnerBlocks'] is List,
-    )
+        id: j['id'] as String,
+        host: j['host'] == true,
+        state:
+            PartnerState.values.asNameMap()[j['state']] ?? PartnerState.ended,
+        code: j['code'] is String ? j['code'] as String : null,
+        token: j['token'] is String ? j['token'] as String : null,
+        expiresAt: expires is String ? DateTime.tryParse(expires) : null,
+        partnerName: j['partnerName'] is String
+            ? j['partnerName'] as String
+            : null,
+        endedByMe: j['endedByMe'] is bool ? j['endedByMe'] as bool : null,
+        revision: j['revision'] is int ? j['revision'] as int : 0,
+        pushed: j['pushed'] is int ? j['pushed'] as int : 0,
+        partnerBlocks: blocksFromJson(j['partnerBlocks']),
+        partnerUpdatedAt: updated is String ? DateTime.tryParse(updated) : null,
+        partnerLoaded: j['partnerBlocks'] is List,
+      )
       ..docBase = j['docBase'] is List
           ? [
               for (final b in j['docBase'] as List)
@@ -729,7 +730,7 @@ class PartnerSync extends ChangeNotifier {
     final s = session;
     if (!_docFresh || s == null || _shadow == null) return null;
     _docFresh = false;
-    return blocksOfDoc(_shadow!, s.me);
+    return blocksOfDoc(_shadow!, s.me, local: note.blocks);
   }
 
   void _receiveDoc(PartnerSession s) {
@@ -737,7 +738,9 @@ class PartnerSync extends ChangeNotifier {
       _shadow = null;
       _pendingDoc.clear();
       _ackedDoc = 0;
-      if (s.state != PartnerState.waiting) s.docBase = null;
+      // docBase 는 남긴다. 나갔다가 같은 세션에 다시 들어오면 그것과의 차이로
+      // 잇는다 — "처음 참여" 로 합치면 내 옛 사본이 남의 새 값을 덮는다.
+      // 다른 세션이 되면 [_apply] 가 옮겨 오지 않으므로 저절로 버려진다.
       return;
     }
     // 화면을 다시 열었거나 앱을 다시 켰다. 마지막으로 받은 문서와 내 기록의 차이가
@@ -759,43 +762,15 @@ class PartnerSync extends ChangeNotifier {
       if (_shadow != null) return;
     }
     final first = _shadow == null;
+    // 합칠 것은 상태를 바꾸기 전에 만든다.
+    final joined = first ? joinDoc(doc, docOf(note.blocks)) : null;
     s
       ..docBase = doc
       ..docBaseVersion = s.docVersion;
     _shadow = _pendingDoc.fold<List<Json>>(doc, applyDoc);
-    if (first) _queueDoc(_joined(doc, docOf(note.blocks)));
+    if (joined != null) _queueDoc(joined);
     _docFresh = true;
     onChanged();
-  }
-
-  /// 처음 참여할 때: 서버 문서에 이 기기의 기록을 합친 것. 같은 운동이면 내 수정이
-  /// 이기고(세트는 둘 다 남는다), 문서에 없는 운동은 뒤에 붙는다. 지운 것은 싣지
-  /// 않는다 — 남이 더한 것을 지우게 될 수 있다.
-  static List<Json> _joined(List<Json> doc, List<Json> local) {
-    final mine = {for (final b in local) b['id']: b};
-    List<Object?> sets(Json b) => b['sets'] as List;
-    return [
-      for (final b in doc)
-        if (mine[b['id']] case final m?)
-          {
-            ...m,
-            'sets': [
-              for (final s in sets(b))
-                sets(m).firstWhere(
-                      (x) => (x as Map)['id'] == (s as Map)['id'],
-                      orElse: () => null,
-                    ) ??
-                    s,
-              for (final x in sets(m))
-                if (!sets(b).any((s) => (s as Map)['id'] == (x as Map)['id']))
-                  x,
-            ],
-          }
-        else
-          b,
-      for (final m in local)
-        if (!doc.any((b) => b['id'] == m['id'])) m,
-    ];
   }
 
   Future<void> _initDoc() async {
@@ -818,9 +793,10 @@ class PartnerSync extends ChangeNotifier {
       return;
     }
     // 심은 것이 곧 내가 믿는 문서다. 첫 문서가 오기 전에 적은 세트도 이제 올라간다.
-    if (_shadow == null && session?.id == s.id) {
+    final now = session;
+    if (_shadow == null && now?.id == s.id) {
       _shadow = snapshot;
-      s.docBase = snapshot;
+      now!.docBase = snapshot;
       _queueDoc(docOf(note.blocks));
     }
   }
@@ -864,7 +840,8 @@ class PartnerSync extends ChangeNotifier {
       final v = reply.body?['version'];
       if (v is int && v > _ackedDoc) _ackedDoc = v;
       _pendingDoc.remove(batch);
-      final base = s.docBase;
+      // 기다리는 사이 세션 객체는 새것으로 바뀐다. 지금 것의 문서를 쓴다.
+      final base = session?.docBase;
       if (refused && base != null) {
         _shadow = _pendingDoc.fold<List<Json>>(base, applyDoc);
         _docFresh = true;
@@ -901,10 +878,14 @@ class PartnerSync extends ChangeNotifier {
     unawaited(link().partnerPresence(s.id, where));
   }
 
+  /// 상대 화면에 무언가 보이는 자리인가(운동 안이거나 새 이름을 치는 중).
+  static bool _placed(Map<String, Object?> where) =>
+      where['block'] != null || (where['text'] as String? ?? '').isNotEmpty;
+
   void _heartbeat() {
     final where = _presenceSent;
     if (where != null &&
-        where['block'] != null &&
+        _placed(where) &&
         DateTime.now().difference(_presenceAt).inSeconds >= 8) {
       _sendPresence(where);
     }
@@ -969,7 +950,15 @@ class PartnerSync extends ChangeNotifier {
     if (_disposed) return;
     // 이미 돌고 있어도 스트림은 연다 — 세션이 없을 때 시작했다가 초대·참여한
     // 경우다(그때는 열 세션이 없어 듣지 못했다).
-    if (_poll != null) return _listen();
+    if (_poll != null) {
+      // 다시 열기로 한 때를 기다리는 중이면 앞당기지 않는다.
+      if (_reconnect?.isActive != true) _listen();
+      return;
+    }
+    // 돌아왔다(앱을 다시 올림). 떠날 때 거둔 내 자리를 다시 알린다.
+    final where = _presencePending;
+    _presenceSent = null;
+    if (where != null && _placed(where)) _sendPresence(where);
     unawaited(refresh());
     _listen();
     var ticks = 0;
@@ -989,7 +978,9 @@ class PartnerSync extends ChangeNotifier {
   void stop() {
     // 화면을 떠나거나 앱을 내렸다. 내 커서를 거둔다 — 남아 있으면 20초 동안 남의
     // 손을 막는다.
-    if (_presenceSent?['block'] != null) {
+    _presenceTimer?.cancel();
+    _presenceTimer = null;
+    if (_presenceSent case final where? when _placed(where)) {
       _sendPresence(const {'block': null, 'set': null, 'text': ''});
     }
     _poll?.cancel();

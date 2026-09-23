@@ -708,9 +708,13 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     _mealsChanged();
   }
 
+  /// 이 화면을 연 때의 기록.
+  late final String _openedJson = jsonEncode(blocksToJson(widget.note.blocks));
+
   @override
   void initState() {
     super.initState();
+    _openedJson;
     _editor.restore(widget.note.blocks);
     _lastLearned = _editor.recentExercises.firstOrNull;
     _editor.addListener(_persist);
@@ -862,9 +866,13 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     }
     _lastLearned = recent;
     final note = widget.note;
+    // 연 때의 기록과 견준다. note.blocks 는 첫 저장 뒤로 편집기의 목록 그 자체라
+    // 서로 견주면 늘 같았다 — 건네받은 기록을 고쳐도 다시 받기가 덮었다.
+    // 같이 고치는 사람에게서 온 변경은 내가 고친 것이 아니다.
     if (note.handoffToken != null &&
-        jsonEncode(blocksToJson(_editor.blocks)) !=
-            jsonEncode(blocksToJson(note.blocks))) {
+        !note.handoffTouched &&
+        !_editor.remote &&
+        jsonEncode(blocksToJson(_editor.blocks)) != _openedJson) {
       // 건네받은 기록을 내가 고쳤다. 이제 내 것이다 — 보낸 사람이 더 적어 보내도
       // 이 문서를 덮지 않는다.
       note.handoffTouched = true;
