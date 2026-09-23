@@ -2712,8 +2712,19 @@ class LEs extends L {
       'No pude leer las condiciones — armada solo con tu registro. Reformúlalo para leer de nuevo';
 
   @override
-  String get routineHeldBack =>
-      'No pude leer las condiciones (exclusiones, dolor), así que no armé la rutina';
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': 'Sin conexión',
+      'noPlates': 'Sin discos',
+      'other': 'La respuesta no se pudo leer',
+    });
+    return '$_temp0: no pude leer las condiciones (exclusiones, dolor), así que no armé la rutina';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return 'Peso escrito: $count series efectivas $from → $to';
+  }
 
   @override
   String get routineRetry => 'Reintentar';

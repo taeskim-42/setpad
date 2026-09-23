@@ -2613,7 +2613,19 @@ class LKo extends L {
   String get routineMisread => '조건을 읽지 못했어요 — 기록으로만 짰어요. 말을 바꾸면 다시 읽어요';
 
   @override
-  String get routineHeldBack => '조건(빼기·아픈 곳)을 못 읽어 루틴을 만들지 않았어요';
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': '연결이 안 돼',
+      'noPlates': '원판이 없어',
+      'other': '모델 답을 읽지 못해',
+    });
+    return '$_temp0 조건(빼기·아픈 곳)을 못 읽었어요 — 루틴을 만들지 않았어요';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return '적은 무게로: 작업 세트 $count개 $from → $to';
+  }
 
   @override
   String get routineRetry => '다시 시도';

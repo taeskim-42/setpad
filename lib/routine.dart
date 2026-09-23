@@ -227,10 +227,19 @@ final _anyMakeWords = _re(
   r'作って|お願い|ちょうだい|来个|來個|来一|來一|hazme|házme|dame',
 );
 
+/// 만들어 달라는 것이 기록이다(목록·그래프·표·요약 …) — "루틴 기록 뽑아줘", "PT 루틴
+/// 목록 뽑아줘", "make me a chart of my routine". 루틴 명사가 있어도 루틴 명령이 아니다.
+final _recordObject = _re(
+  r'(기록|그래프|차트|(?<!시간|발)표|목록|리스트|요약|내역|통계|순위)\s*(으로|로|를|을|만)?\s*(좀\s*)?(만들어|뽑아|골라|정리|부탁)|'
+  r'\b(make|build|give|get|create)\s+(me|us)\s+((a|an|the|my)\s+)?(charts?|graphs?|lists?|summary|table|history|records?|stats)\b|'
+  r'(記録|グラフ|一覧|リスト)(を|の)?(作って|ちょうだい|お願い)',
+);
+
 /// 루틴을 짜 달라는 명령이 있는가.
 bool _commands(String s) =>
     _makeWords.hasMatch(s) ||
     (_anyMakeWords.hasMatch(s) &&
+        !_recordObject.hasMatch(s) &&
         (!_askWords.hasMatch(s) || _routineNounOnly.hasMatch(s)));
 
 /// 되풀이 — 지난 날 그대로.
@@ -405,13 +414,16 @@ final _routineNouns = _re(
 
 /// 기기에서 먼저 거절하는 갈래(원판 0). 의료·약물은 루틴을 달라는 글이면 명령
 /// 낱말이 없어도("재활 중인데 오늘 뭐 할까") 거절한다(G3) — 모델을 못 쓸 때(연결·
-/// 원판·읽지 못함) 기록으로 짠 [시작] 카드가 뜨면 안 된다. 식단은 명령 + 운동
-/// 낱말이 없을 때만(끼니 질문과 겹친다).
+/// 원판·읽지 못함) 기록으로 짠 [시작] 카드가 뜨면 안 된다. 의료 낱말은 기록을 묻는
+/// 말("재활 운동 몇 번 했어")이 아니면 낱말만 있어도("재활", "rehab", "수술 뒤 하체
+/// 해도 돼?") 거절한다 — 모델로 넘기면 조건까지 읽기 칩으로 원판이 나간다. 식단은
+/// 명령 + 운동 낱말이 없을 때만(끼니 질문과 겹친다).
 String? homeRefusal(String text) {
   if (_promptWords.hasMatch(text)) return 'other';
   final make = _commands(text);
   final wants = make || _wordsRoute(text.trim()) == HomeRoute.routine;
-  if (wants && _medicalWords.hasMatch(text)) return 'medical';
+  final lookup = _askWords.hasMatch(text) || _recordPeriod.hasMatch(text);
+  if (_medicalWords.hasMatch(text) && (wants || !lookup)) return 'medical';
   if (wants && _drugWords.hasMatch(text)) return 'drug';
   if (make && _dietWords.hasMatch(text) && !_routineNouns.hasMatch(text)) {
     return 'diet';
@@ -761,12 +773,16 @@ final _setsByReps = RegExp(r'(\d+)\s*[x×*]\s*(\d+)');
 final _poundWord = _re(r'^(lbs?|파운드|pounds?|libras?|磅)$');
 
 /// 글에서 [v] 바로 뒤에 적힌 무게 단위(kg | lb). 같은 수가 두 단위로 적혔으면 둘 다.
+/// 한국어로 쓴 수('이백 파운드')는 세는 말까지가 수의 자리라 그 안에서 읽는다.
 Set<String> _weightUnits(String text, num v) => {
   for (final n in statedNumbers(text))
     if ((n.value - v).abs() < 1e-9)
       if (_re(
-            '^\\s*(${_units['weight']!})',
-          ).firstMatch(text.substring(n.end))?[1]
+                '^\\s*(${_units['weight']!})',
+              ).firstMatch(text.substring(n.end))?[1] ??
+              _re(
+                '^\\D+?\\s*(${_units['weight']!})',
+              ).firstMatch(text.substring(n.start, n.end))?[1]
           case final w?)
         _poundWord.hasMatch(w) ? 'lb' : 'kg',
 };
@@ -1422,6 +1438,7 @@ class RoutineItem {
     this.fixed = false,
     this.stepped,
     this.sourceTitle,
+    this.retyped,
   });
 
   /// 운동 열쇠.
@@ -1430,8 +1447,11 @@ class RoutineItem {
   List<PlanSet> sets;
   WorkoutSetup? setup;
 
-  /// copied | repsMatched | typed | first | timer.
+  /// copied | repsMatched | typed | typedWeight | first | timer.
   String why;
+
+  /// 무게만 친 칸: 친 무게로 바꾼 작업 세트(원래 → 친 무게)와 그 수.
+  final ({PlanSet from, PlanSet to, int count})? retyped;
   DateTime? day;
 
   /// 무게를 비운 까닭: light | pain | gear | stale | bodyweight | max(없음) | repsUnmatched.
@@ -1537,6 +1557,9 @@ List<PlanSet> _mineOf(ExerciseBlock b) => [
 
 bool _weighed(PlanSet s) =>
     s.value != null && (s.unit == 'kg' || s.unit == 'lb');
+
+/// 무게 세트의 kg 값(단위가 섞인 세트 가운데 가장 무거운 것을 고를 때만).
+double _kg(PlanSet s) => s.unit == 'lb' ? s.value! * 0.45359237 : s.value!;
 
 double _median(List<num> xs) {
   final s = [...xs]..sort();
@@ -2404,10 +2427,34 @@ RoutineDraft composeRoutine(
     if (light) blank ??= 'light';
     if (painBlank && target?.weight == null) blank ??= 'pain';
 
-    // L0: 친 수. 무게만 쳤으면 한 세트(친 세트 수)에 횟수는 비운다 — 친 무게 × 옛
-    // 횟수 × 옛 세트 수는 아무도 적지 않은 처방이다. 지난 기록은 참고 줄로.
+    // L0: 친 수. 무게만 쳤으면(횟수·세트 없이) 작업 세트 — 옮긴 세트 가운데 가장
+    // 무거운 세트 — 의 무게만 친 무게로 바꾸고 워밍업은 그대로 둔다. 바꾼 것은 칸에
+    // 적는다(retyped). 옮길 세트가 없으면 한 세트에 횟수는 비운다. 지난 기록은 참고 줄로.
     final weightOnly = target?.weight != null && target?.reps == null;
-    if (target != null) {
+    final top = weightOnly && target!.sets == null && target.seconds == null
+        ? sets
+              .where(_weighed)
+              .fold<PlanSet?>(
+                null,
+                (a, s) => a == null || _kg(s) > _kg(a) ? s : a,
+              )
+        : null;
+    ({PlanSet from, PlanSet to, int count})? retyped;
+    if (top != null) {
+      final w = target!.weight!, wu = target.unit ?? unit;
+      bool working(PlanSet s) => s.value == top.value && s.unit == top.unit;
+      retyped = (
+        from: top,
+        to: (value: w, unit: wu, reps: null),
+        count: sets.where(working).length,
+      );
+      sets = [
+        for (final s in sets)
+          working(s) ? (value: w, unit: wu, reps: s.reps) : s,
+      ];
+      why = 'typedWeight';
+      changed = true;
+    } else if (target != null) {
       final typedSets = target.sets;
       final r = target.reps;
       double? w = target.weight;
@@ -2488,14 +2535,18 @@ RoutineDraft composeRoutine(
         src?.name ?? (exerciseByName[key.toLowerCase()]?.name(lang) ?? key);
     WorkoutSetup? setup = src?.setup;
     if (changed && setup != null) {
-      final weighedSets = sets.where(_weighed).toList();
+      // 작업 세트만 바꿨으면 설정의 무게는 친 무게, 횟수·세트는 옮긴 그대로다.
+      final weighedSets = retyped != null
+          ? sets.where((s) => s.value == target!.weight).toList()
+          : sets.where(_weighed).toList();
+      final typed = target != null && retyped == null;
       setup = WorkoutSetup(
         name: setup.name,
         weight: blank != null ? null : (weighedSets.firstOrNull?.value),
         unit: weighedSets.firstOrNull?.unit ?? setup.unit,
-        totalReps: target?.total ?? (target != null ? null : setup.totalReps),
-        repsPerSet: target?.reps ?? (target != null ? null : setup.repsPerSet),
-        totalSets: target?.sets ?? (target != null ? null : setup.totalSets),
+        totalReps: target?.total ?? (typed ? null : setup.totalReps),
+        repsPerSet: target?.reps ?? (typed ? null : setup.repsPerSet),
+        totalSets: target?.sets ?? (typed ? null : setup.totalSets),
         repsOnly: setup.repsOnly,
       );
     } else if (target?.total != null) {
@@ -2536,7 +2587,8 @@ RoutineDraft composeRoutine(
       title: title,
       sets: sets,
       setup: setup,
-      why: why,
+      why: blank == null ? why : (why == 'typedWeight' ? 'copied' : why),
+      retyped: blank == null ? retyped : null,
       day: itemDay,
       blank: blank,
       reference: reference,
@@ -2992,9 +3044,13 @@ class RoutineSearch extends ChangeNotifier {
         today: _now(),
       );
       // 응답 형식만 되받아 적은 답({"type":...})은 모델의 헛발이다 — 담지 않는다.
-      // {} 는 "내 기록으로 오늘" 이라 담는다.
+      // {} 는 "내 기록으로 오늘" 이라 담는다. 다만 빼기·아픈 곳 글에 온 {} 는 조건을
+      // 버린 답이라 되받아 적은 답과 같다(다시 한 번 물을 수 있다).
       final echo =
-          got is Map && got.isNotEmpty && got.keys.every((k) => k == 'type');
+          got is Map &&
+          (got.isEmpty
+              ? unreadableConditions(t)
+              : got.keys.every((k) => k == 'type'));
       if (!_disposed && !echo) _cache.put(key, got);
       if (_disposed || version != _version) return;
       if (echo) {

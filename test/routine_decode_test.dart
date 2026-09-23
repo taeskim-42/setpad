@@ -247,6 +247,36 @@ void main() {
       );
     });
 
+    test('검토#8 글로 쓴 수의 단위도 그 수의 자리에서 읽는다 — 이백 파운드는 200kg 가 아니다', () {
+      const text = '벤치 이백 파운드로 짜줘';
+      final a = decode({
+        'targets': [
+          {'exercise': '벤치프레스', 'weight': 200, 'unit': 'kg'},
+        ],
+      }, text);
+      expect(a.targets.single.weight, isNull);
+      expect(a.dropped.single.args, ['200kg']);
+      final b = decode({
+        'targets': [
+          {'exercise': '벤치프레스', 'weight': 200},
+        ],
+      }, text);
+      expect(b.targets.single.unit, 'lb');
+      // 증감도 같다.
+      expect(
+        decode({
+          'delta': {'value': 10, 'unit': 'kg'},
+        }, '지난번보다 십 파운드 더').delta,
+        isNull,
+      );
+      expect(
+        decode({
+          'delta': {'value': 10},
+        }, '지난번보다 십 파운드 더').delta,
+        (value: 10.0, unit: 'lb'),
+      );
+    });
+
     test('남의 루틴은 숫자를 옮기지 않는다(person)', () {
       final a = decode({
         'refused': {'person': '친구 루틴'},

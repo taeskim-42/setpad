@@ -658,7 +658,7 @@ void main() {
       expect(chip.startable, isFalse);
     });
 
-    test('검토#9 무게만 친 칸은 한 세트·횟수 비움, 지난 기록은 참고 줄', () {
+    test('검토#9 무게만 친 칸은 작업 세트(가장 무거운 세트)만 친 무게로 — 워밍업은 그대로, 바꾼 것을 말한다', () {
       final d = compose({
         'exercises': ['벤치프레스'],
         'targets': [
@@ -667,9 +667,36 @@ void main() {
         'intensity': 'max',
       }, '벤치 100kg 한번 쳐보게 짜줘');
       final bench = d.items.firstWhere((i) => i.key == '벤치프레스');
-      expect(bench.sets, [(value: 100.0, unit: 'kg', reps: null)]);
-      expect(bench.why, 'typed');
+      final warmUp = bench.sets.first;
+      expect(warmUp, (value: 60.0, unit: 'kg', reps: 10));
+      expect(bench.sets.skip(1), everyElement((s) => s.value == 100.0));
+      expect(bench.sets.skip(1), everyElement((s) => s.reps != null));
+      expect(bench.why, 'typedWeight');
+      expect(bench.retyped?.count, bench.sets.length - 1);
+      expect(bench.retyped?.from.value, isNot(100.0));
+      expect(bench.retyped?.from.unit, 'kg');
       expect(bench.reference, isNotNull);
+      // 친 lb 는 kg 기록 위에서도 lb 다 — 225lb 가 225kg 가 되지 않는다.
+      final lb = compose({
+        'targets': [
+          {'exercise': '벤치프레스', 'weight': 225},
+        ],
+      }, '벤치 225lb 로 짜줘');
+      final lbBench = lb.items.firstWhere((i) => i.key == '벤치프레스');
+      expect(lbBench.sets.first, (value: 60.0, unit: 'kg', reps: 10));
+      expect(
+        lbBench.sets.skip(1),
+        everyElement((s) => s.value == 225.0 && s.unit == 'lb'),
+      );
+      // 한 번도 안 한 운동은 옮길 세트가 없다 — 친 무게 한 세트, 횟수는 비운다.
+      final fresh = compose({
+        'targets': [
+          {'exercise': '프론트 스쿼트', 'weight': 60, 'unit': 'kg'},
+        ],
+      }, '프론트 스쿼트 60kg 넣어서 짜줘');
+      final front = fresh.items.firstWhere((i) => i.key == '프론트 스쿼트');
+      expect(front.sets, [(value: 60.0, unit: 'kg', reps: null)]);
+      expect(front.why, 'typed');
       final e = compose({
         'targets': [
           {'exercise': '스쿼트', 'weight': 120, 'unit': 'kg', 'sets': 3},

@@ -2693,8 +2693,19 @@ class LEn extends L {
       'Couldn\'t read the conditions — built from your log only. Rephrase to read again';
 
   @override
-  String get routineHeldBack =>
-      'Couldn\'t read the conditions (exclusions, pain), so no routine was made';
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': 'No connection, so I',
+      'noPlates': 'Out of plates, so I',
+      'other': 'The answer was unreadable, so I',
+    });
+    return '$_temp0 couldn\'t read the conditions (exclusions, pain) — no routine was made';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return 'Typed weight: $count working sets $from → $to';
+  }
 
   @override
   String get routineRetry => 'Try again';

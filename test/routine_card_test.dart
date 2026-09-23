@@ -258,21 +258,31 @@ void main() {
 
   group('G1: 모델을 못 쓰면 빼기·아픈 곳 글로 [시작] 카드를 띄우지 않는다', () {
     final texts = ['어깨 아파서 어깨 빼고', '스쿼트 말고', '하체 근육통 심함 하체 빼줘'];
-    final modes = <String, RecordAi>{
-      '연결': RecordAi(respond: (_, _) async => throw Exception('offline')),
-      '원판 없음': RecordAi(
-        respond: (_, _) async =>
-            throw const RecordAiException(RecordAiStatus.noPlates),
+    // 검토#10 까닭마다 제 말: 연결 · 원판 없음 · 답을 읽지 못함.
+    final modes = <String, (RecordAi, String)>{
+      '연결': (
+        RecordAi(respond: (_, _) async => throw Exception('offline')),
+        'offline',
       ),
-      '읽지 못함': RecordAi(respond: (_, _) async => {'series': []}),
+      '원판 없음': (
+        RecordAi(
+          respond: (_, _) async =>
+              throw const RecordAiException(RecordAiStatus.noPlates),
+        ),
+        'noPlates',
+      ),
+      '읽지 못함': (RecordAi(respond: (_, _) async => {'series': []}), 'misread'),
     };
     for (final t in texts) {
       for (final m in modes.entries) {
         testWidgets('$t × ${m.key}', (tester) async {
-          await pump(tester, ai: m.value);
+          await pump(tester, ai: m.value.$1);
           await type(tester, t, enter: true);
           expect(startButton(), findsNothing);
-          expect(find.text(l.routineHeldBack), findsOneWidget);
+          expect(find.text(l.routineHeldBack(m.value.$2)), findsOneWidget);
+          for (final other in modes.values.where((o) => o != m.value)) {
+            expect(find.text(l.routineHeldBack(other.$2)), findsNothing);
+          }
           await tester.tap(find.text(l.routineNoConditions));
           await tester.pumpAndSettle();
           expect(startButton(), findsOneWidget);
@@ -388,22 +398,42 @@ void main() {
       }
     }
 
-    testWidgets('기록 검색이 루틴이라 한 의료 글도 조건 없이 짜는 칩이 없다', (tester) async {
+    testWidgets('검토#1 명령 낱말 없는 의료 글은 기기가 거절 — 모델도 원판도 없다', (tester) async {
+      final calls = <String>[];
       await pump(
         tester,
         ai: RecordAi(
-          respond: (i, _) async => i == routineInstructions
-              ? throw Exception('offline')
-              : {'kind': 'routine'},
+          respond: (i, _) async {
+            calls.add(i == routineInstructions ? 'routine' : 'v3');
+            return {'kind': 'routine'};
+          },
         ),
       );
-      await type(tester, '무릎 수술 2주 됐는데 하체 해도 돼?', enter: true);
-      expect(find.text(l.routineWithConditions), findsOneWidget);
-      expect(find.text(l.routineNoConditions), findsNothing);
-      await tester.tap(find.text(l.routineWithConditions));
-      await tester.pumpAndSettle();
-      expect(startButton(), findsNothing);
+      for (final t in ['무릎 수술 2주 됐는데 하체 해도 돼?', 'rehab', 'リハビリ']) {
+        await type(tester, t, enter: true);
+        expect(find.text(l.routineRefused('medical')), findsOneWidget);
+        expect(startButton(), findsNothing);
+      }
+      expect(calls, isEmpty);
+    });
+
+    testWidgets('검토#1 기록 검색이 루틴이라 한 의료 글은 칩 없이 거절 — 조건까지 읽기로 원판이 나가지 않는다', (
+      tester,
+    ) async {
+      final calls = <String>[];
+      await pump(
+        tester,
+        ai: RecordAi(
+          respond: (i, _) async {
+            calls.add(i == routineInstructions ? 'routine' : 'v3');
+            return {'kind': 'routine'};
+          },
+        ),
+      );
+      await type(tester, '재활 운동 몇 번 했어', enter: true);
+      expect(calls, ['v3']);
       expect(find.text(l.routineRefused('medical')), findsOneWidget);
+      expect(find.text(l.routineWithConditions), findsNothing);
       expect(find.text(l.routineNoConditions), findsNothing);
     });
   });
@@ -429,7 +459,7 @@ void main() {
       );
       await type(tester, '스쿼트 말고 하체 짜줘', enter: true);
       expect(startButton(), findsNothing);
-      expect(find.text(l.routineHeldBack), findsOneWidget);
+      expect(find.text(l.routineHeldBack('misread')), findsOneWidget);
       expect(find.text(l.routineRetry), findsOneWidget);
       await tester.showKeyboard(search);
       await tester.testTextInput.receiveAction(TextInputAction.done);
@@ -519,6 +549,19 @@ void main() {
     await pump(tester);
     await type(tester, '타바타');
     expect(find.textContaining('버피 타바타'), findsWidgets);
+    // 글이 가리킨 운동의 기록도 평소 목록처럼 남는다("스쿼트 5x5" 로 찾던 스쿼트 기록).
+    // 목록 줄(기록 한 장)은 여러 글자 조각으로 된 Text.rich 다.
+    int rows() => find
+        .textContaining('스쿼트')
+        .evaluate()
+        .where((e) => e.widget is Text && (e.widget as Text).data == null)
+        .length;
+    await type(tester, '스쿼트');
+    final plain = rows();
+    expect(plain, greaterThan(0));
+    await type(tester, '스쿼트 5x5');
+    expect(routeHome('스쿼트 5x5'), HomeRoute.routine);
+    expect(rows(), plain);
     // 글자가 맞는 기록이 없으면 "결과 없음" 을 띄우지 않는다.
     await type(tester, '오늘 루틴 짜줘');
     expect(find.text(l.noSearchResults), findsNothing);
@@ -538,19 +581,29 @@ void main() {
         },
       ),
     );
+    // 기록 검색(루틴이라 함) → 한 번 넘김 → 루틴 지시문(기록 질문이라 함): 더 넘기지
+    // 않고 글에 적힌 운동으로 기기에서 센 답 + 원판 0 길.
     await type(tester, '다음 운동 때 벤치 몇키로 치면 돼', enter: true);
     await tester.tap(find.text(l.routineWithConditions));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(l.routineAsQuestion));
-    await tester.pumpAndSettle();
     expect(calls, ['v3', 'routine']);
-    // 기록 검색은 이 글을 셀 질문으로 못 읽었다 — 칩을 되풀이하지 않고 까닭과 원판 0 길.
+    expect(find.text(l.routineAsQuestion), findsNothing);
     expect(find.text(l.routineWithConditions), findsNothing);
-    expect(find.text(l.queryMisread), findsOneWidget);
+    expect(find.text(l.queryMisreadLocal), findsOneWidget);
     await tester.tap(find.text(l.routineNoConditions));
     await tester.pumpAndSettle();
     expect(startButton(), findsOneWidget);
     expect(calls, ['v3', 'routine']);
+    // 거꾸로(루틴 지시문 → 한 번 넘김 → 기록 검색)도 한 번 넘긴 뒤 답한다.
+    calls.clear();
+    await type(tester, '벤치 몇 키로로 할지 짜줘', enter: true);
+    expect(calls, ['routine']);
+    await tester.tap(find.text(l.routineAsQuestion));
+    await tester.pumpAndSettle();
+    expect(calls, ['routine', 'v3']);
+    expect(find.text(l.routineWithConditions), findsNothing);
+    expect(find.text(l.queryMisreadLocal), findsOneWidget);
+    expect(find.text(l.routineNoConditions), findsOneWidget);
   });
 
   testWidgets('검토#6 이름만 칩으로 짠 뒤 Enter 는 모델 카드로 바뀌고 원판 줄이 맞다', (tester) async {
@@ -578,6 +631,38 @@ void main() {
     expect(asked, 1);
     expect(find.text('레그프레스'), findsNothing);
     expect(find.text(l.routinePlatesZero), findsNothing);
+  });
+
+  testWidgets('검토#6 원판이 나간 글은 칩으로 짠 카드여도 "원판 0장" 이라 하지 않는다', (tester) async {
+    await pump(
+      tester,
+      ai: RecordAi(respond: (_, _) async => {'type': 'json_object'}),
+    );
+    await type(tester, '스쿼트 말고 하체 짜줘', enter: true);
+    await tester.tap(find.text(l.routineNoConditions));
+    await tester.pumpAndSettle();
+    expect(startButton(), findsOneWidget);
+    expect(find.text(l.routinePlatesZero), findsNothing);
+  });
+
+  testWidgets('검토#9 무게만 친 칸: 작업 세트만 바꾸고 무엇을 바꿨는지 말한다', (tester) async {
+    await pump(
+      tester,
+      ai: RecordAi(
+        respond: (_, _) async => {
+          'exercises': ['벤치프레스'],
+          'targets': [
+            {'exercise': '벤치프레스', 'weight': 100, 'unit': 'kg'},
+          ],
+        },
+      ),
+    );
+    await type(tester, '벤치 100kg 로 짜줘', enter: true);
+    expect(
+      find.textContaining(l.routineTypedWeight(3, '85kg', '100kg')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('60kg×10'), findsWidgets);
   });
 
   group('검토#10 실패 까닭을 연결로 뭉개지 않는다', () {
@@ -656,7 +741,9 @@ void main() {
     await tester.tap(find.text(l.routineAskToo('지난주 스쿼트 최고 보여주고')));
     await tester.pumpAndSettle();
     expect(calls, ['routine', 'v3']);
-    expect(find.text(l.routineHeaderToday), findsNothing);
+    // 물은 조각의 답과 함께 친 루틴 부분(카드)도 화면에 남는다.
+    expect(find.text(l.routineHeaderToday), findsOneWidget);
+    expect(find.text('스쿼트'), findsWidgets);
     await tester.tap(find.text(l.routineBack));
     await tester.pumpAndSettle();
     expect(

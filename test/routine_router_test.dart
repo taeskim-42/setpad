@@ -179,8 +179,9 @@ void main() {
         ),
         'medical',
       );
-      // 명령이 없으면 기록 질문이다(카드가 없다).
-      expect(homeRefusal('무릎 수술 2주 됐는데 하체 해도 돼?'), isNull);
+      // 명령이 없어도 기록을 묻는 말이 아니면 거절이다(검토#1 — 수술 뒤 해도 되나는 의료).
+      expect(homeRefusal('무릎 수술 2주 됐는데 하체 해도 돼?'), 'medical');
+      expect(homeRefusal('무릎 수술 뒤로 하체 몇 번 했어'), isNull);
     });
 
     test('이름만 친 글은 칩(치는 동안, 원판 0)', () {
@@ -204,8 +205,24 @@ void main() {
         // 모델을 못 쓰는 길로 와도(칩으로 루틴을 고름) 조건을 못 읽은 글이다.
         expect(unreadableConditions(t), isTrue, reason: t);
       }
-      // 루틴 요청이 아닌 의료 질문은 기록 질문 그대로다.
-      expect(routeHome('무릎 수술 2주 됐는데 하체 해도 돼?'), HomeRoute.question);
+      // 명령 낱말이 없어도 기록을 묻는 말이 아니면 의료 글은 기기가 거절한다 —
+      // 오프라인·원판 없음에서도 시작 카드가 없고 원판도 나가지 않는다.
+      for (final t in [
+        '재활',
+        '디스크',
+        'rehab',
+        'surgery',
+        '手術',
+        'リハビリ',
+        '재활 운동',
+        '무릎 수술 2주 됐는데 하체 해도 돼?',
+      ]) {
+        expect(routeHome(t), HomeRoute.refuse, reason: t);
+        expect(homeRefusal(t), 'medical', reason: t);
+      }
+      // 기록을 묻는 의료 낱말 글은 기록 질문 그대로다.
+      expect(routeHome('재활 운동 몇 번 했어'), HomeRoute.question);
+      expect(routeHome('rehab sessions this month'), HomeRoute.question);
     });
 
     test('검토#4 만들어·뽑아·골라·부탁은 기록 낱말과 같이 있으면 기록 질문이다', () {
@@ -217,6 +234,12 @@ void main() {
         '지난주 운동 요약 부탁해',
         'give me my bench history',
         'make me a chart of my squat',
+        // 루틴 명사가 있어도 만들어 달라는 것이 기록(목록·그래프·표)이면 기록 질문이다.
+        '루틴 기록 뽑아줘',
+        'PT 루틴 목록 뽑아줘',
+        '루틴 그래프로 만들어줘',
+        '벤치 표로 만들어줘',
+        'make me a chart of my routine',
       ]) {
         expect(routeHome(t), HomeRoute.question, reason: t);
       }
@@ -226,6 +249,8 @@ void main() {
         '하체 운동 좀 골라줘',
         '하체 루틴 만들어줘',
         'make me a leg workout',
+        '기록 보고 루틴 만들어줘',
+        '운동 시간표 짜줘',
       ]) {
         expect(routeHome(t), HomeRoute.routine, reason: t);
       }

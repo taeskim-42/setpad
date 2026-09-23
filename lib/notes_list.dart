@@ -274,18 +274,46 @@ class _NotesListPageState extends State<NotesListPage>
     // 버리면 낸 원판만 잃는다. 돌아오면 그 답이 그대로 뜬다.
   }
 
-  /// 이 글의 갈래. 칩으로 고른 것이 가르기보다 앞선다.
+  /// 이 글의 갈래. 칩으로 고른 것이 가르기보다 앞선다. 기록 검색이 넘긴 글을 루틴
+  /// 지시문이 다시 기록 질문이라 하면 더 넘기지 않고 기록 쪽에서 셀 수 있는 것으로
+  /// 답한다([_bounced]).
   HomeRoute? _routeOf(String text) {
     if (text.isEmpty) return null;
     if (_asQuestion == text) return HomeRoute.question;
-    if (_asRoutine == text) return HomeRoute.routine;
+    if (_asRoutine == text) {
+      return _routineSaysQuestion(text)
+          ? HomeRoute.question
+          : HomeRoute.routine;
+    }
     return routeHome(text);
+  }
+
+  /// 루틴 지시문이 이 글을 기록 질문이라고 답했다.
+  bool _routineSaysQuestion(String text) {
+    final a = _routine.text == text ? _routine.answer : null;
+    return a is Map && (a['kind'] == 'lookup' || a['kind'] == 'question');
+  }
+
+  /// 두 모델이 이 글을 한 번씩 서로 넘겼다(기록 검색은 루틴, 루틴 지시문은 기록
+  /// 질문). 칩을 되풀이하지 않고 글에 적힌 운동·기간으로 기기에서 센다.
+  bool get _bounced {
+    final text = _query.text.trim();
+    return _search.plan?.kind == 'routine' &&
+        (_asQuestion == text || _asRoutine == text);
   }
 
   void _ask({bool immediately = false}) {
     final text = _query.text.trim();
     // 오늘 루틴: 치는 동안은 담아 둔 답만, 제출하면 루틴 지시문으로 묻는다(원판).
-    _routine.peek(text, _locale ?? 'en', widget.store.weightUnit);
+    // "이것도 물을까요" 로 온 조각이면 원래 글의 카드를 그대로 둔다.
+    _routine.peek(
+      switch (_askedToo) {
+        (final asked, final original) when asked == text => original,
+        _ => text,
+      },
+      _locale ?? 'en',
+      widget.store.weightUnit,
+    );
     final route = _routeOf(text);
     if (route != null && route != HomeRoute.question) {
       if (immediately && route == HomeRoute.routine) {
@@ -364,7 +392,8 @@ class _NotesListPageState extends State<NotesListPage>
 
   /// Enter 를 눌러 서버는 답했는데 그 답을 셀 plan 으로 읽지 못했다. 연결 문제가
   /// 아니다 — 그렇게 말하지 않고, 글에 적힌 운동은 기기에서 센다.
-  bool get _misread => _chip == null && _pick == null && _search.misread;
+  bool get _misread =>
+      _chip == null && _pick == null && (_search.misread || _bounced);
 
   void _open(Note note) {
     _search.cancel();
@@ -413,7 +442,9 @@ class _NotesListPageState extends State<NotesListPage>
     spacing: 8,
     runSpacing: 6,
     children: [
-      if (!medicalText(text))
+      if (medicalText(text))
+        Text(l.routineRefused('medical'), style: const TextStyle(fontSize: 14))
+      else
         SuggestionChip(
           label: l.routineNoConditions,
           selected: false,
@@ -424,7 +455,7 @@ class _NotesListPageState extends State<NotesListPage>
             ),
           ),
         ),
-      if (conditions)
+      if (conditions && !medicalText(text))
         SuggestionChip(
           label: l.routineWithConditions,
           selected: false,
@@ -514,8 +545,12 @@ class _NotesListPageState extends State<NotesListPage>
       if (kind == 'drug' || kind == 'diet') {
         actions.add((
           label: l.routineMake,
-          onTap: () =>
-              setState(() => _device = (text, const RoutineAsk(device: true))),
+          onTap: () => setState(
+            () => _device = (
+              text,
+              RoutineAsk(when: readWhen(text), device: true),
+            ),
+          ),
         ));
       }
       return bare();
@@ -574,7 +609,15 @@ class _NotesListPageState extends State<NotesListPage>
             return bare();
           }
           if (unreadableConditions(text)) {
-            status.add(l.routineHeldBack);
+            status.add(
+              l.routineHeldBack(
+                misread || (mine && r.misread)
+                    ? 'misread'
+                    : mine && r.noPlates
+                    ? 'noPlates'
+                    : 'offline',
+              ),
+            );
             actions.add(plain());
             if (canRetry) actions.add(retry());
             return bare();
@@ -619,7 +662,7 @@ class _NotesListPageState extends State<NotesListPage>
       lang: lang,
       edits: edits,
     );
-    if (ask.ask case final question?) {
+    if (ask.ask case final question? when _askedToo?.$1 != question) {
       actions.add((
         label: l.routineAskToo(question),
         onTap: () {
@@ -633,9 +676,9 @@ class _NotesListPageState extends State<NotesListPage>
       ));
     }
     final account = widget.account;
-    // 원판 줄: 이 글로 서버가 답했으면(깨진 답에 기기가 짠 카드여도) 원판이 나갔다.
-    // 사람이 고른 기기 카드(칩)만 원판 0이다.
-    final charged = r.charged && r.text == text && _device?.$1 != text;
+    // 원판 줄: 이 글로 서버가 답했으면(깨진 답 뒤에 칩으로 짠 카드여도) 원판이
+    // 나갔다. 묻지 않고 칩으로 짠 카드만 원판 0이다.
+    final charged = r.charged && r.text == text;
     final started = _started(draft, edits);
     final card = RoutineCard(
       draft: draft,
@@ -925,16 +968,11 @@ class _NotesListPageState extends State<NotesListPage>
                     for (final n in mentioned)
                       if (!recordedKeys.contains(exerciseKey(n))) n,
                   ];
-                  // 루틴으로 가르는 글이어도 글자가 맞는 기록은 카드 아래에 둔다 —
-                  // "타바타" 로 찾던 기록이 사라지지 않는다.
+                  // 루틴으로 가르는 글이어도 치는 동안의 기록 목록(글자·글이 가리킨
+                  // 운동·기간)은 카드 아래에 그대로 둔다 — "타바타", "스쿼트 5x5" 로
+                  // 찾던 기록이 사라지지 않는다.
                   final visible = routineMode
-                      ? [
-                          for (final n in widget.store.notes)
-                            if (searchKey(
-                              n.searchText,
-                            ).contains(searchKey(text)))
-                              n,
-                        ]
+                      ? _visible(null, null, _mentioned)
                       : _visible(plan, result, mentioned);
                   final groups = _grouped(visible, l);
                   return CustomScrollView(
@@ -1116,7 +1154,15 @@ class _NotesListPageState extends State<NotesListPage>
                           ),
                         ),
                       if (routineMode)
-                        SliverToBoxAdapter(child: _routineCard(l, text, route)),
+                        SliverToBoxAdapter(child: _routineCard(l, text, route))
+                      else if (_askedToo case (
+                        final asked,
+                        final original,
+                      ) when asked == text)
+                        // "이것도 물을까요" 로 물은 조각의 답 위에 친 루틴 부분(카드)을 둔다.
+                        SliverToBoxAdapter(
+                          child: _routineCard(l, original, _routeOf(original)),
+                        ),
                       if (_query.text.trim().isNotEmpty && !routineMode)
                         SliverToBoxAdapter(
                           child: Padding(
@@ -1174,17 +1220,16 @@ class _NotesListPageState extends State<NotesListPage>
                                 // 지시문이 이미 기록 질문이라 한 글이면 넘기지 않고
                                 // 셀 수 없다고 말한다(원판 0 길은 남긴다).
                                 if (plan?.kind == 'routine') ...[
-                                  Text(
-                                    _asQuestion == text
-                                        ? l.queryMisread
-                                        : l.routineFromQuestion,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                  _escapeChips(
-                                    l,
-                                    text,
-                                    conditions: _asQuestion != text,
-                                  ),
+                                  if (!medicalText(text))
+                                    Text(
+                                      !_bounced
+                                          ? l.routineFromQuestion
+                                          : local != null
+                                          ? l.queryMisreadLocal
+                                          : l.queryMisread,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  _escapeChips(l, text, conditions: !_bounced),
                                 ],
                                 // 거절도 까닭별이다: 무관한 질문, 무엇을 셀지 모름,
                                 // 기록에 없는 것만 물음(무엇이 없는지 적는다).

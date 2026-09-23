@@ -2588,7 +2588,19 @@ class LZh extends L {
   String get routineMisread => '没能读懂条件 — 只按记录排了。换个说法会重新读';
 
   @override
-  String get routineHeldBack => '没能读懂条件(去掉的动作、疼痛),所以没有排训练';
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': '没有连接,',
+      'noPlates': '杠铃片不够,',
+      'other': '没能读懂回答,',
+    });
+    return '$_temp0没能读条件(去掉的动作、疼痛),所以没有排训练';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return '按输入的重量:正式组 $count 组 $from → $to';
+  }
 
   @override
   String get routineRetry => '重试';
@@ -5264,7 +5276,19 @@ class LZhHans extends LZh {
   String get routineMisread => '没能读懂条件 — 只按记录排了。换个说法会重新读';
 
   @override
-  String get routineHeldBack => '没能读懂条件(去掉的动作、疼痛),所以没有排训练';
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': '没有连接,',
+      'noPlates': '杠铃片不够,',
+      'other': '没能读懂回答,',
+    });
+    return '$_temp0没能读条件(去掉的动作、疼痛),所以没有排训练';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return '按输入的重量:正式组 $count 组 $from → $to';
+  }
 
   @override
   String get routineRetry => '重试';
@@ -7939,7 +7963,19 @@ class LZhHant extends LZh {
   String get routineMisread => '沒能讀懂條件 — 只照紀錄排了。換個說法會重新讀';
 
   @override
-  String get routineHeldBack => '沒能讀懂條件(拿掉的動作、疼痛),所以沒有排訓練';
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': '沒有連線,',
+      'noPlates': '槓鈴片不夠,',
+      'other': '沒能讀懂回答,',
+    });
+    return '$_temp0沒能讀條件(拿掉的動作、疼痛),所以沒有排訓練';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return '照輸入的重量:正式組 $count 組 $from → $to';
+  }
 
   @override
   String get routineRetry => '重試';

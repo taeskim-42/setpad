@@ -2606,7 +2606,19 @@ class LJa extends L {
   String get routineMisread => '条件を読めませんでした — 記録だけで組みました。言い換えると読み直します';
 
   @override
-  String get routineHeldBack => '条件(外す・痛み)を読めなかったのでルーティンは作りませんでした';
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': '接続できず',
+      'noPlates': 'プレートがなく',
+      'other': '答えを読めず',
+    });
+    return '$_temp0条件(外す・痛み)を読めなかったのでルーティンは作りませんでした';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return '入力した重さ: メインセット$countつ $from → $to';
+  }
 
   @override
   String get routineRetry => '再試行';

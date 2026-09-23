@@ -3981,8 +3981,14 @@ abstract class L {
   /// No description provided for @routineHeldBack.
   ///
   /// In ko, this message translates to:
-  /// **'조건(빼기·아픈 곳)을 못 읽어 루틴을 만들지 않았어요'**
-  String get routineHeldBack;
+  /// **'{why, select, offline{연결이 안 돼} noPlates{원판이 없어} other{모델 답을 읽지 못해}} 조건(빼기·아픈 곳)을 못 읽었어요 — 루틴을 만들지 않았어요'**
+  String routineHeldBack(String why);
+
+  /// No description provided for @routineTypedWeight.
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 무게로: 작업 세트 {count}개 {from} → {to}'**
+  String routineTypedWeight(int count, String from, String to);
 
   /// No description provided for @routineRetry.
   ///

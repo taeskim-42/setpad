@@ -2661,8 +2661,19 @@ class LTh extends L {
       'อ่านเงื่อนไขไม่ได้ — จัดจากบันทึกอย่างเดียว พิมพ์ใหม่เพื่ออ่านอีกครั้ง';
 
   @override
-  String get routineHeldBack =>
-      'อ่านเงื่อนไข (ท่าที่ตัด อาการเจ็บ) ไม่ได้ จึงไม่ได้จัดรูทีน';
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': 'ไม่มีการเชื่อมต่อ',
+      'noPlates': 'แผ่นน้ำหนักไม่พอ',
+      'other': 'อ่านคำตอบไม่ได้',
+    });
+    return '$_temp0 จึงอ่านเงื่อนไข (ท่าที่ตัด อาการเจ็บ) ไม่ได้ — ไม่ได้จัดรูทีน';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return 'น้ำหนักที่พิมพ์: เซ็ตหลัก $count เซ็ต $from → $to';
+  }
 
   @override
   String get routineRetry => 'ลองอีกครั้ง';

@@ -2679,8 +2679,19 @@ class LVi extends L {
       'Không đọc được điều kiện — xếp chỉ theo nhật ký. Gõ lại để đọc lần nữa';
 
   @override
-  String get routineHeldBack =>
-      'Không đọc được điều kiện (bài bỏ, chỗ đau) nên chưa xếp bài';
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': 'Không có kết nối',
+      'noPlates': 'Hết bánh tạ',
+      'other': 'Không đọc được câu trả lời',
+    });
+    return '$_temp0 nên chưa đọc được điều kiện (bài bỏ, chỗ đau) — chưa xếp bài';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return 'Mức tạ đã gõ: $count hiệp chính $from → $to';
+  }
 
   @override
   String get routineRetry => 'Thử lại';
