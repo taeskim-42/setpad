@@ -101,12 +101,19 @@ final _quantityWords = RegExp(
 
 /// 세트를 어떻게 하는지 말하는 낱말(피라미드·드롭세트·실패까지·템포·RPE…). 모델이
 /// 못 옮긴 말에 넣지 않아도 이름에 섞지 않는다 — 모델 이름에 들었으면 그대로다
-/// ('템포 스쿼트').
+/// ('템포 스쿼트'). **낱말 전체**가 그 말일 때만이다: '템포런' 은 이름이다.
 final _conditionWords = RegExp(
-  r'피라미드|드랍|드롭|슈퍼세트|자이언트세트|실패까지|원알엠|템포|^(?:1rm|rpe|rir)$|'
-  r'pyramid|dropset|drop-set|superset|failure|tempo',
+  r'^(?:피라미드|드[랍롭](?:세트|셋)?|슈퍼세트|자이언트세트|실패까지|원알엠|템포|1rm|rpe|rir|'
+  r'pyramid|drop-?sets?|supersets?|failure|tempo)$',
   caseSensitive: false,
 );
+
+/// 문장부호·조사를 떼어도 낱말 전체가 조건 말인가('템포로', '(RPE').
+bool _isCondition(String word) {
+  final bare = word.replaceAll(RegExp(r'[^\p{L}\p{N}-]', unicode: true), '');
+  return _conditionWords.hasMatch(bare) ||
+      _conditionWords.hasMatch(stripParticle(bare));
+}
 
 /// 타이머 토큰(60bpm, bpm 60, 30/15, x8, 10라운드). 글의 수가 모두 여기 쓰였으면
 /// 그 글은 타이머 이름이라 묻지 않고 바로 만든다.
@@ -334,7 +341,7 @@ String? typedName(
       !numbered(w) &&
       searchKey(w[0]!).isNotEmpty &&
       !_quantityWords.hasMatch('${w[0]} ') &&
-      !_conditionWords.hasMatch(w[0]!) &&
+      !_isCondition(w[0]!) &&
       !unparsed.any((u) => u.contains(w[0]!));
   if (want.isNotEmpty) {
     for (var size = 1; size <= words.length; size++) {
@@ -378,6 +385,75 @@ String? learnableName(String title) =>
     hasSetupIntent(title.replaceAll(timerTokens, ' '))
     ? typedName(title, '')
     : title.trim();
+
+/// 친 줄에 **운동이라는 근거**가 있는가. 입력 줄 하나로 운동과 끼니를 가를 때
+/// 맨 먼저 본다 — '케이블 크런치' 를 과자로 읽으면 기록이 바뀐다.
+///
+/// - 운동 단위: 수 뒤의 kg·lb·회·세트·rep, AxB, 그리고 bpm·타바타·라운드.
+/// - 수를 뺀 이름이 익힌 이름([learned])이거나 사전 이름(여덟 언어·별칭·초성)이다.
+///   이름 전체가 사전 이름의 앞부분이어도('벤치', '데드') — 로마자는 네 글자부터
+///   ('ham' 은 햄이지 해머컬이 아니다).
+/// - 이름 속 낱말 묶음이 사전 이름이나 익힌 이름과 같다('아침 러닝').
+bool exerciseEvidence(String text, Iterable<String> learned) {
+  if (_exerciseUnits.hasMatch(text)) return true;
+  final name = learnableName(text);
+  if (name == null) return false;
+  final whole = searchKey(name);
+  final names = {for (final n in learned) searchKey(n)};
+  if (_exerciseKeys.contains(whole) ||
+      _aliasWords.contains(whole) ||
+      names.contains(whole)) {
+    return true;
+  }
+  final latin = RegExp(r'^[a-z]+$').hasMatch(whole);
+  if (whole.length >= (latin ? 4 : 2) &&
+      _exerciseKeys.any((k) => k.startsWith(whole))) {
+    return true;
+  }
+  final words = [
+    for (final w in name.split(RegExp(r'\s+')))
+      if (searchKey(stripParticle(w)) case final k when k.isNotEmpty) k,
+  ];
+  if (words.any((w) => _exerciseWords.contains(w) || w.endsWith('운동'))) {
+    return true;
+  }
+  for (var i = 0; i < words.length; i++) {
+    for (var j = i + 1; j <= words.length; j++) {
+      final run = words.sublist(i, j).join();
+      if (_exerciseKeys.contains(run) || names.contains(run)) return true;
+    }
+  }
+  return false;
+}
+
+final _exerciseUnits = RegExp(
+  r'\d\s*(?:kg|lbs?|키로|킬로|파운드|회|세트|셋트|sets?|reps?|セット|回|组|組)(?![a-z])|'
+  r'\d\s*[x×]\s*\d|bpm|타바타|tabata|라운드|\brounds?\b',
+  caseSensitive: false,
+);
+
+/// 운동을 가리키는 낱말('아침 루틴 A', '하체 운동', 'leg day workout'). 낱말 전체일
+/// 때만이다 — '닭가슴살' 의 가슴은 아니다.
+const _exerciseWords = {
+  '루틴', '운동', '서킷', '스트레칭', '유산소', '무산소', '근력', '하체', '상체', //
+  '복근', '코어', '와드', '웜업', '쿨다운', '인터벌', '트레이닝', //
+  'routine', 'workout', 'circuit', 'stretch', 'stretching', 'cardio', 'wod', //
+  'hiit', 'warmup', 'cooldown', 'interval', 'training',
+};
+
+/// 사전 이름 전부(여덟 언어·별칭 통째·초성)의 검색 키.
+final _exerciseKeys = {
+  for (final e in exercises)
+    for (final k in e.keys) searchKey(k),
+};
+
+/// 별칭 낱말 하나하나('dl dead lift' 의 dead). 이름 **전체**가 이것일 때만 운동이다 —
+/// 'side salad' 의 side 는 사이드 레터럴 레이즈가 아니다.
+final _aliasWords = {
+  for (final e in exercises)
+    for (final w in e.alias.split(' '))
+      if (w.length >= 2) searchKey(w),
+};
 
 /// [text] 에서 [key]([searchKey] 모양)가 걸친 자리 — 띄어쓰기·대소문자가 달라도
 /// 친 글의 자리로 돌려준다.

@@ -197,8 +197,12 @@ class SetupReading {
     this.fits = true,
     this.unparsed = const [],
     this.dropped = const [],
+    this.food = false,
   });
   final List<ProposedExercise> exercises;
+
+  /// 운동이 아니라 음식이라는 답("food": true, 운동 없음). 끼니로 남길 수 있다.
+  final bool food;
   final List<String> unparsed;
   final List<String> dropped;
 
@@ -335,28 +339,30 @@ SetupReading readSetupAnswer(String typed, Object? answer) {
       final value = e.raw[key];
       if (value is! num) return null;
       bool same(int i) => stated[i].value == value;
-      // 이름 자리·못 옮긴 말 밖의 같은 값이 먼저다 — 'MTS100 로우 100개' 의 100 은
-      // 100개 이고, 'RPE 8 … 8회' 의 8 은 8회 다.
-      List<int> free(Iterable<int> at) => [
-        ...at.where((i) => same(i) && !covered.contains(i)),
-        ...at.where((i) => same(i) && covered.contains(i)),
-      ];
-      final mine = free([
+      bool free(int i) => same(i) && !covered.contains(i);
+      bool taken(int i) => same(i) && covered.contains(i);
+      final own = [
         for (var i = 0; i < stated.length; i++)
           if (!paired.contains(i) && inside(i, span)) i,
-      ]).firstOrNull;
-      final shared = free(outside).firstOrNull;
-      if (mine == null &&
-          shared == null &&
-          !stated.indexed.any((n) => same(n.$1))) {
+      ];
+      // 이름 자리·못 옮긴 말 밖의 같은 값이 먼저다 — 운동 자리 안이든, 어느 운동에도
+      // 안 적힌 자리든. 'MTS100 로우 100개' 의 100 은 100개 이고(모델의 text 가
+      // 'MTS100 로우' 뿐이어도), 'RPE 8 … 8회' 의 8 은 8회 다.
+      final pick = [
+        ...own.where(free),
+        ...outside.where(free),
+        ...own.where(taken),
+        ...outside.where(taken),
+      ].firstOrNull;
+      if (pick == null && !stated.indexed.any((n) => same(n.$1))) {
         dropped.add(formatNumber(value.toDouble()));
         return null;
       }
       if (WorkoutSetup.tryFromJson({'name': e.name, key: value}) == null) {
         return null;
       }
-      if (mine != null) paired.add(mine);
-      covered.add(mine ?? shared ?? -1);
+      if (pick != null && own.contains(pick)) paired.add(pick);
+      covered.add(pick ?? -1);
       return value;
     }
 
@@ -398,6 +404,7 @@ SetupReading readSetupAnswer(String typed, Object? answer) {
     fits: fits,
     unparsed: unparsed,
     dropped: dropped,
+    food: exercises.isEmpty && answer['food'] == true,
   );
 }
 
@@ -752,6 +759,21 @@ class RecordAi {
     );
   }
 
+  /// 친 줄이 음식 표의 음식인가 — 음식 이름이나 대표 이름이 **정확히** 같을 때만.
+  /// 모델을 부르지 않고 적기 도움 한도도 쓰지 않는다. 못 물으면(연결·서버) false:
+  /// 운동으로 두고 '끼니로' 칩이 남는다.
+  Future<bool> isFood(String text) async {
+    if (respond != null || !supported) return false;
+    try {
+      final answer = await _ask('/api/foods/match', {
+        'text': text,
+      }, timeout: const Duration(seconds: 5));
+      return answer['food'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// 오가던 요청을 버린다. 서버 쪽은 그냥 끝나게 둔다 — 이미 센 것이고,
   /// 취소를 알리자고 왕복을 한 번 더 하는 것이 더 비싸다.
   Future<void> cancel() async {}
@@ -831,7 +853,9 @@ character from the input: beat or tempo ("60bpm", "1칸", "한 박에 하나", "
 time ("1분", "30초씩", "60s"), distance ("5km", "40m"), rest ("휴식 90초"),
 RPE/RIR, ranges ("8-12회"), %1RM, drop or pyramid steps, days and schedules
 ("월수금", "매일", "주 3회"). Never put such numbers into a field or a name.
-If the input is not about exercise: {"exercises":[],"unparsed":[]}.
+If the input is food or drink someone ate, not exercise:
+{"exercises":[],"unparsed":[],"food":true}.
+If the input is neither: {"exercises":[],"unparsed":[]}.
 Examples:
 벤치 80kg 100개 채우기 => {"exercises":[{"text":"벤치 80kg 100개 채우기","name":"벤치프레스","weight":80,"unit":"kg","totalReps":100,"repsPerSet":null,"totalSets":null,"repsOnly":true}],"unparsed":[]}
 푸시업 총 백 개 => {"exercises":[{"text":"푸시업 총 백 개","name":"푸시업","weight":null,"unit":"kg","totalReps":100,"repsPerSet":null,"totalSets":null,"repsOnly":true}],"unparsed":[]}
@@ -847,6 +871,7 @@ squat tempo 3-1-1 100kg 5x5 => {"exercises":[{"text":"squat tempo 3-1-1 100kg 5x
 벤치 60kg 10회 + 로우 50kg 10회 슈퍼세트 3세트 => {"exercises":[{"text":"벤치 60kg 10회","name":"벤치프레스","weight":60,"unit":"kg","totalReps":null,"repsPerSet":10,"totalSets":3,"repsOnly":false},{"text":"로우 50kg 10회","name":"바벨로우","weight":50,"unit":"kg","totalReps":null,"repsPerSet":10,"totalSets":3,"repsOnly":false}],"unparsed":["슈퍼세트"]}
 bench 5x5 squat 100kg 5x5 => {"exercises":[{"text":"bench 5x5","name":"bench","weight":null,"unit":"kg","totalReps":null,"repsPerSet":5,"totalSets":5,"repsOnly":false},{"text":"squat 100kg 5x5","name":"squat","weight":100,"unit":"kg","totalReps":null,"repsPerSet":5,"totalSets":5,"repsOnly":false}],"unparsed":[]}
 내일 회의 3시 => {"exercises":[],"unparsed":[]}
+바나나 2개 => {"exercises":[],"unparsed":[],"food":true}
 ''';
 
 /// JPEG 에서 촬영 정보를 뗀다: Exif·XMP(APP1), IPTC(APP13), 주석(COM).

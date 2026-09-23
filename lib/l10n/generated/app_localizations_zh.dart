@@ -1415,6 +1415,12 @@ class LZh extends L {
   String get mealLogAs => '记为饮食';
 
   @override
+  String get mealAutoLogged => '已记为一餐';
+
+  @override
+  String get mealAutoUndo => '改为运动';
+
+  @override
   String get proxyWrite => '代为记录';
 
   @override
@@ -3153,6 +3159,12 @@ class LZhHans extends LZh {
   String get mealLogAs => '记为饮食';
 
   @override
+  String get mealAutoLogged => '已记为一餐';
+
+  @override
+  String get mealAutoUndo => '改为运动';
+
+  @override
   String get proxyWrite => '代为记录';
 
   @override
@@ -4888,6 +4900,12 @@ class LZhHant extends LZh {
 
   @override
   String get mealLogAs => '記為飲食';
+
+  @override
+  String get mealAutoLogged => '已記為一餐';
+
+  @override
+  String get mealAutoUndo => '改為運動';
 
   @override
   String get proxyWrite => '代為記錄';

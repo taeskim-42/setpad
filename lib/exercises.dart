@@ -769,6 +769,29 @@ const exercises = <Exercise>[
     'Nhảy Dang Tay Chân',
     'จัมปิ้งแจ็ค',
   ),
+  // 음식 표에 같은 이름의 제품이 있는 운동(2026-09-23 운영 표 실측: 굿모닝·클린).
+  // 사전에 있어야 입력 줄이 끼니로 가르지 않는다.
+  Exercise(
+    '굿모닝',
+    'Good Morning',
+    'グッドモーニング',
+    '早安式体前屈',
+    '早安式體前屈',
+    'Buenos Días',
+    'Good Morning',
+    'กู๊ดมอร์นิ่ง',
+  ),
+  Exercise(
+    '파워클린',
+    'Power Clean',
+    'パワークリーン',
+    '高翻',
+    '高翻',
+    'Cargada de Potencia',
+    'Power Clean',
+    'พาวเวอร์คลีน',
+    '클린 clean',
+  ),
 ];
 
 /// 어느 언어의 이름으로든 그 운동을 되찾는다. 사용자가 영어 화면에서 담은

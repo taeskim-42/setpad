@@ -1491,6 +1491,12 @@ class LEn extends L {
   String get mealLogAs => 'Log as meal';
 
   @override
+  String get mealAutoLogged => 'Logged as a meal';
+
+  @override
+  String get mealAutoUndo => 'Make it exercise';
+
+  @override
   String get proxyWrite => 'Log for them';
 
   @override

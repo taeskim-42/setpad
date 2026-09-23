@@ -377,6 +377,8 @@
   "togetherMe": "自分",
   "togetherLog": "記録",
   "mealLogAs": "食事として記録",
+  "mealAutoLogged": "食事として記録しました",
+  "mealAutoUndo": "運動に変える",
   "proxyWrite": "代わりに記録",
   "proxyWriting": "{name}さんの記録を入力中",
   "proxyDefaultName": "相手",

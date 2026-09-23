@@ -25,7 +25,10 @@ void main() {
             child: RoutineEditor(
               controller: c,
               mealText: meal,
-              onMealText: (text, _) => saved.add(text),
+              onMealText: (text, _) {
+                saved.add(text);
+                return null;
+              },
             ),
           ),
         ),

@@ -683,9 +683,14 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   /// 친 그대로 남고, 열량은 사람이 적었을 때만 있다. 일부만 적었으면 적은 합을
   /// 먼저 넣어 둔다 — 어림이 막혀도 적은 수는 합계에서 빠지지 않는다. 고치다
   /// 다 지우면 그 끼니가 없어진다.
-  void _saveMealText(String text, int? index) {
+  ///
+  /// 새로 남긴 끼니면 그것을 지우는 함수를 돌려준다 — 운동 줄에서 알아서 끼니로
+  /// 남긴 것을 '운동으로 바꾸기' 로 되돌린다. 그사이 어림이 붙어 바뀌었어도 같은
+  /// 끼니(id)를 지운다.
+  VoidCallback? _saveMealText(String text, int? index) {
     final meals = widget.note.meals;
     final old = index != null && index < meals.length ? meals[index] : null;
+    VoidCallback? undo;
     if (text.isEmpty) {
       if (old != null) widget.note.removeMeal(old);
     } else {
@@ -701,8 +706,17 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
       );
       old == null ? meals.add(entry) : meals[index!] = entry;
       if (parsed.kcal == null) _estimateMealText(entry);
+      if (old == null) {
+        undo = () {
+          final now = widget.note.meals.where((m) => m.id == entry.id);
+          if (now.isEmpty) return;
+          widget.note.removeMeal(now.first);
+          _mealsChanged();
+        };
+      }
     }
     _mealsChanged();
+    return undo;
   }
 
   /// 끼니가 바뀌었다. 먼저 이 기기에 쓰고, 그다음 서버의 같은 줄에 맞춘다 —

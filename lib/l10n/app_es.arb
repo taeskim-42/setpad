@@ -377,6 +377,8 @@
   "togetherMe": "Yo",
   "togetherLog": "Anotar",
   "mealLogAs": "Anotar como comida",
+  "mealAutoLogged": "Guardado como comida",
+  "mealAutoUndo": "Cambiar a ejercicio",
   "proxyWrite": "Anotar por él",
   "proxyWriting": "Anotando el entrenamiento de {name}",
   "proxyDefaultName": "Compañero",

@@ -1507,6 +1507,12 @@ class LEs extends L {
   String get mealLogAs => 'Anotar como comida';
 
   @override
+  String get mealAutoLogged => 'Guardado como comida';
+
+  @override
+  String get mealAutoUndo => 'Cambiar a ejercicio';
+
+  @override
   String get proxyWrite => 'Anotar por él';
 
   @override

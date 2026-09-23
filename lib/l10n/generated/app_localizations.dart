@@ -2371,6 +2371,18 @@ abstract class L {
   /// **'식단으로 기록'**
   String get mealLogAs;
 
+  /// No description provided for @mealAutoLogged.
+  ///
+  /// In ko, this message translates to:
+  /// **'끼니로 남겼어요'**
+  String get mealAutoLogged;
+
+  /// No description provided for @mealAutoUndo.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동으로 바꾸기'**
+  String get mealAutoUndo;
+
   /// No description provided for @proxyWrite.
   ///
   /// In ko, this message translates to:

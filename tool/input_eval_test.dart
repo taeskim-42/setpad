@@ -411,7 +411,10 @@ Object? typedPiecesOnly(Object? v, String typed) {
 /// 한다(typedPiecesOnly 가 먼저 걸러 낸다) — 무료 경로가 자유 글을 싣지 못하게.
 bool validSetupAnswer(Object? v, String typed) {
   if (v is! Map || jsonEncode(v).length > 2000) return false;
-  if (v.keys.any((k) => k != 'exercises' && k != 'unparsed')) return false;
+  if (v.keys.any((k) => k != 'exercises' && k != 'unparsed' && k != 'food')) {
+    return false;
+  }
+  if (v['food'] != null && v['food'] is! bool) return false;
   final list = v['exercises'];
   if (list is! List || list.length > 6) return false;
   final unparsed = v['unparsed'];
