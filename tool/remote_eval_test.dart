@@ -1,157 +1,223 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:setpad/exercises.dart';
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/record_query.dart';
 import 'question_grading.dart';
 
-/// 같은 질문, 같은 지시문, 같은 채점기 — 모델만 바꿔 잰다.
+/// 문항 하나: 질문, 언어(seedNames 의 키), 운동 목록, 정답 대안, 안 볼 키.
+typedef _Case = ({
+  String q,
+  String lang,
+  String cat,
+  List<String> names,
+  List<Object?> gold,
+  List<Object?> ignore,
+});
+
+/// 같은 질문, 같은 지시문, 같은 채점기 — 운영 모델을 직접 불러 잰다.
 ///
 /// **test/ 밖에 둔다.** 진짜 API 를 부르고 키가 있어야 하므로 평소 스위트에
-/// 섞이면 안 된다. 재려면:
+/// 섞이면 안 된다. 키가 없으면 건너뛴다. 재려면(약 510문항, 사용자 승인 뒤에):
 ///
-///     ANTHROPIC_API_KEY=... flutter test --no-pub tool/remote_eval_test.dart
+///     DEEPSEEK_API_KEY=... flutter test --no-pub tool/remote_eval_test.dart
 ///
-/// 앱의 경로를 그대로 탄다. 채널만 가로채서 기기 안 모델 대신 API 를 부르므로
-/// 프롬프트 조립·이름 정규화·디코딩·규칙 층이 전부 실제와 같다.
+/// 서버를 거치지 않는다 — 운영 한도를 쓰지 않으려고. 대신 설정은 서버
+/// (gymdojo lib/model-json.ts)와 같게 둔다: deepseek-flash, max_tokens 400,
+/// thinking 끔, json_object, 지시문 뒤에 "Return a JSON object only.".
+///
+/// 앱의 경로를 그대로 탄다. 모델 대신 대답할 자리(respond)만 끼워서 프롬프트
+/// 조립·이름 정규화·디코딩·규칙 층이 전부 실제와 같다.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  const model = 'claude-haiku-4-5-20251001';
-  final key = Platform.environment['ANTHROPIC_API_KEY'] ?? '';
+  const model = 'deepseek-flash';
+  final key = Platform.environment['DEEPSEEK_API_KEY'] ?? '';
   // flutter_test 는 모든 HTTP 를 막는 가짜 클라이언트를 끼운다. 이 평가는
   // 진짜 API 를 불러야 하므로 그 가로채기를 끈다.
   HttpOverrides.global = null;
   final client = HttpClient();
+  var tokens = 0, answered = 0;
 
-  Future<String> ask(String instructions, String input) async {
+  /// 서버 라우트와 같게 — 멈춤 이유가 stop 이 아니거나 JSON 객체가 아니면
+  /// 무효(FormatException)다. 그물·HTTP 실패는 IOException 이다.
+  Future<Object?> ask(String instructions, String input) async {
     final request = await client.postUrl(
-      Uri.parse('https://api.anthropic.com/v1/messages'),
+      Uri.parse('https://api.deepseek.com/chat/completions'),
     );
     request.headers
-      ..set('x-api-key', key)
-      ..set('anthropic-version', '2023-06-01')
+      ..set('authorization', 'Bearer $key')
       ..set('content-type', 'application/json');
     request.add(
       utf8.encode(
         jsonEncode({
           'model': model,
           'max_tokens': 400,
-          'system': [
-            {
-              'type': 'text',
-              'text': instructions,
-              // 지시문은 모든 사용자가 같다. 캐시가 맞으면 값도 지연도 준다.
-              'cache_control': {'type': 'ephemeral'},
-            },
-          ],
+          'thinking': {'type': 'disabled'},
+          'response_format': {'type': 'json_object'},
           'messages': [
+            {
+              'role': 'system',
+              'content': '$instructions\nReturn a JSON object only.',
+            },
             {'role': 'user', 'content': input},
           ],
         }),
       ),
     );
     final response = await request.close();
-    final body = jsonDecode(await response.transform(utf8.decoder).join());
+    final text = await response.transform(utf8.decoder).join();
     if (response.statusCode != 200) {
-      throw Exception('${response.statusCode} ${body['error']?['message']}');
+      throw HttpException('${response.statusCode} $text');
     }
-    final parts = body['content'] as List;
-    final joined = parts.map((p) => p['text'] ?? '').join().trim();
-    // 서버 라우트가 하는 것과 같게 — 모델이 ```json 울타리를 치기도 한다.
-    if (!joined.startsWith('```')) return joined;
-    return joined
-        .substring(joined.indexOf('\n') + 1, joined.lastIndexOf('```'))
-        .trim();
+    final body = jsonDecode(text);
+    answered++;
+    if (body['usage']?['total_tokens'] case final int n) tokens += n;
+    final choice = (body['choices'] as List).first as Map;
+    final content = (choice['message'] as Map?)?['content'];
+    if (choice['finish_reason'] != 'stop' || content is! String) {
+      throw const FormatException('unparsable');
+    }
+    final parsed = jsonDecode(content);
+    if (parsed is! Map) throw const FormatException('unparsable');
+    return parsed;
   }
 
-  test('Haiku 로 held-out 을 다시 잰다', () async {
-    if (key.isEmpty) {
-      // ignore: avoid_print
-      print('ANTHROPIC_API_KEY 없음 — 건너뜀');
-      return;
-    }
-    final ai = RecordAi(
-      respond: (instructions, input) => ask(instructions, input),
-    );
-    const names = [
-      '스쿼트',
-      '벤치프레스',
-      '데드리프트',
-      '랫풀다운',
-      '레그프레스',
-      '바벨로우',
-      '덤벨컬',
-      '사이드레터럴레이즈',
-      '오버헤드프레스',
-      '케이블 푸시다운',
-      '푸시업',
-    ];
-    final today = DateTime(2026, 9, 9);
-    final cases =
-        (jsonDecode(File('tool/questions/heldout.json').readAsStringSync())
-                as List)
-            .cast<Map>();
+  final ai = RecordAi(respond: ask);
 
-    var graded = 0, passed = 0, failed = 0;
-    final wrong = <String>[], errorTags = <String, int>{};
-    final latencies = <int>[];
-    final queue = List<Map>.from(cases);
+  /// dev·heldout 의 운동 목록. v1 정답이 이 이름을 쓴다.
+  const koNames = [
+    '스쿼트',
+    '벤치프레스',
+    '데드리프트',
+    '랫풀다운',
+    '레그프레스',
+    '바벨로우',
+    '덤벨컬',
+    '사이드레터럴레이즈',
+    '오버헤드프레스',
+    '케이블 푸시다운',
+    '푸시업',
+  ];
 
-    Future<void> worker() async {
-      while (queue.isNotEmpty) {
-        final c = queue.removeAt(0);
-        final exp = (c['expected'] as Map).cast<String, Object?>();
-        final q = c['q'] as String;
-        final watch = Stopwatch()..start();
-        RecordQuery? plan;
-        try {
-          plan = decodeRecordIntent(
-            await ai.queryIntent(q, 'ko', names, unit: 'kg', today: today),
-            q,
-            names,
-            unit: 'kg',
-            today: today,
-          );
-        } catch (err) {
-          failed++;
-          if (wrong.length < 10) wrong.add('$q → 실패 $err');
-          continue;
-        }
-        latencies.add(watch.elapsedMilliseconds);
-        final errors = gradeRecordQuery(plan, exp);
-        if (errors == null) continue;
-        graded++;
-        if (errors.isEmpty) {
-          passed++;
-        } else {
-          for (final e in errors) {
-            errorTags[e] = (errorTags[e] ?? 0) + 1;
+  List<Map<String, Object?>> load(String name) =>
+      (jsonDecode(File('tool/questions/$name.json').readAsStringSync()) as List)
+          .cast<Map>()
+          .map((c) => c.cast<String, Object?>())
+          .toList();
+
+  List<_Case> cases(String set) => [
+    for (final c in load(set))
+      if (set == 'v2')
+        (
+          q: c['q'] as String,
+          lang: c['lang'] as String,
+          cat: c['cat'] as String,
+          names: seedNames(c['lang'] as String),
+          gold: c['gold'] as List,
+          ignore: (c['ignore'] as List?) ?? const [],
+        )
+      else if (v2Expected((c['expected'] as Map).cast()) case final gold?)
+        (
+          q: c['q'] as String,
+          lang: 'ko',
+          cat: c['cat'] as String,
+          names: koNames,
+          gold: gold,
+          ignore: const [],
+        ),
+  ];
+
+  String pct(int n, int of) =>
+      of == 0 ? '-' : '${(100 * n / of).toStringAsFixed(1)}%';
+
+  for (final set in ['v2', 'heldout']) {
+    test(
+      '$model 로 $set 을 잰다',
+      () async {
+        tokens = 0;
+        answered = 0;
+        var exact = 0, invalid = 0, refused = 0, wrongButSure = 0;
+        var unreachable = 0;
+        final perLang = <String, List<int>>{}; // [맞음, 채점]
+        final errorTags = <String, int>{}, wrong = <String>[];
+        final queue = cases(set);
+
+        Future<void> worker() async {
+          while (queue.isNotEmpty) {
+            final c = queue.removeAt(0);
+            final tally = perLang.putIfAbsent(c.lang, () => [0, 0]);
+            RecordQuery plan;
+            try {
+              plan = decodeRecordIntent(
+                await ai.queryIntent(
+                  c.q,
+                  c.lang.replaceAll('_', '-'),
+                  c.names,
+                  unit: 'kg',
+                  today: evalToday,
+                ),
+                c.q,
+                c.names,
+                unit: 'kg',
+                today: evalToday,
+              );
+            } on IOException catch (err) {
+              // 모델 탓이 아니다. 채점에서 뺀다.
+              unreachable++;
+              if (wrong.length < 30) wrong.add('${c.q} → 호출 실패 $err');
+              continue;
+            } catch (err) {
+              invalid++;
+              tally[1]++;
+              if (wrong.length < 30) wrong.add('${c.q} → 무효 $err');
+              continue;
+            }
+            tally[1]++;
+            final errors = gradeQuery(plan, c.gold, c.names, ignore: c.ignore);
+            if (errors.isEmpty) {
+              exact++;
+              tally[0]++;
+              continue;
+            }
+            // 거절은 틀려도 숫자를 보이지 않는다. 숫자를 보일 질의가
+            // 틀린 것이 "자신 있게 틀림" 이다.
+            if (plan.kind == 'unsupported') {
+              refused++;
+            } else {
+              wrongButSure++;
+            }
+            for (final e in errors) {
+              errorTags[e] = (errorTags[e] ?? 0) + 1;
+            }
+            if (wrong.length < 30) {
+              wrong.add('[${c.lang} ${c.cat}] ${c.q} → $errors');
+            }
           }
-          if (wrong.length < 12) wrong.add('$q → $errors');
         }
-        if (q.contains('최근에 언제 했어') || q.contains('전체 볼륨 얼마')) {
-          // 기기 안 모델이 자신 있게 틀렸던 문장들.
-          // ignore: avoid_print
-          print('  [비교] $q → ${errors.isEmpty ? "맞음" : errors.toString()}');
-        }
-      }
-    }
 
-    await Future.wait([for (var i = 0; i < 4; i++) worker()]);
-    latencies.sort();
-    // ignore: avoid_print
-    print(
-      'Haiku held-out: $passed/$graded = ${(100 * passed / graded).toStringAsFixed(1)}%  (호출 실패 $failed)',
+        await Future.wait([for (var i = 0; i < 4; i++) worker()]);
+        final graded = exact + invalid + refused + wrongButSure;
+        // ignore: avoid_print
+        print(
+          '$model $set: 정확 $exact/$graded = ${pct(exact, graded)} · '
+          '무효 ${pct(invalid, graded)} · 자신 있게 틀림 ${pct(wrongButSure, graded)} · '
+          '거절 $refused · 호출 실패 $unreachable · '
+          '평균 토큰 ${answered == 0 ? 0 : tokens ~/ answered}',
+        );
+        // ignore: avoid_print
+        print(
+          '언어별: ${[for (final e in perLang.entries) '${e.key} ${e.value[0]}/${e.value[1]}'].join(' · ')}',
+        );
+        // ignore: avoid_print
+        print('오류 종류: $errorTags');
+        for (final w in wrong) {
+          // ignore: avoid_print
+          print('  $w');
+        }
+      },
+      skip: key.isEmpty ? 'DEEPSEEK_API_KEY 없음' : null,
+      timeout: const Timeout(Duration(minutes: 25)),
     );
-    // ignore: avoid_print
-    print(
-      '지연 중앙값 ${latencies.isEmpty ? 0 : latencies[latencies.length ~/ 2]}ms · 90p ${latencies.isEmpty ? 0 : latencies[(latencies.length * 0.9).floor()]}ms',
-    );
-    // ignore: avoid_print
-    print('오류 종류: $errorTags');
-    for (final w in wrong) {
-      // ignore: avoid_print
-      print('  $w');
-    }
-  }, timeout: const Timeout(Duration(minutes: 25)));
+  }
 }

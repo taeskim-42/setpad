@@ -8,7 +8,7 @@
 기간 × 숫자 조건 × 말투. 거기에 최악 케이스를 일부러 섞는다 — 무관한 질문,
 운동 없는 질문, 두 운동, 수사 한글, 잡담 접두.
 
-정답은 템플릿이 안다. 채점은 tool/interpret_questions.dart 가 한다.
+정답은 템플릿이 안다. 채점은 tool/question_grading.dart 가 한다(v2Expected).
 결과 파일: tool/questions/<name>.txt (한 줄 한 문장), <name>.json (정답).
 """
 import json, random, sys, pathlib
@@ -81,6 +81,9 @@ for canon, forms in EX.items():
                    # 흉내 낼 때 쓴다. 정답이 아니라 입력의 표기다.
                    'form': form, 'formKind': kind,
                    'since': DATES[per][0], 'until': DATES[per][1]}
+            # v2 지시문은 "요즘" 을 최근 28일로 읽는다. 기간 없는 정답도 맞다.
+            if '요즘' in tpl and not per:
+                exp['orRecent'] = True
             add(q, exp, f'표기:{kind}')
 
 # 2) 최악 케이스
@@ -90,14 +93,24 @@ for q in ['몇 번 갔지', '이번 달 며칠 운동했어', '지난주 몇 번
     period = next((p for p in DATES if p and q.startswith(p)), '')
     add(q, {'exercise': '*', 'metric': 'sessions',
             'since': DATES[period][0], 'until': DATES[period][1]}, '운동없음')
-for q in ['벤치랑 스쿼트 최고', '스쿼트 데드 비교', '벤치프레스 스쿼트 데드리프트 3대 합']:
-    exp = {'requests': [
-        {'exercise': '벤치프레스', 'metric': 'max'},
-        {'exercise': '스쿼트', 'metric': 'max'},
-    ]} if q == '벤치랑 스쿼트 최고' else {'note': 'Specify comparison metric or unsupported sum operation'}
-    add(q, exp, '두운동')
-for q in ['벤치 100kg 넘게 든 세트', '데드 150 초과']:
-    add(q, {'exercise': None, 'metric': None}, '초과/미만(모델 몫)')   # 채점 안 함, 관찰만
+# 여기부터는 v2 정답(contract 2 질의)을 그대로 적는다. 대안이 여럿이면 하나만 맞으면 된다.
+TWO = {
+    '벤치랑 스쿼트 최고': [{'exercises': ['벤치프레스', '스쿼트'], 'measures': ['best']}],
+    '스쿼트 데드 비교': [{'exercises': ['스쿼트', '데드리프트']},
+                  {'exercises': ['스쿼트', '데드리프트'], 'measures': ['best']}],
+    '벤치프레스 스쿼트 데드리프트 3대 합': [
+        {'exercises': ['벤치프레스', '스쿼트', '데드리프트'], 'measures': ['best'], 'total': 'sum'}],
+}
+for q, gold in TWO.items():
+    add(q, {'gold': gold}, '두운동')
+# 넘게·초과는 > 다. 규칙 층은 이상·이하만 읽으니 모델 몫이다.
+over = lambda ex, v: {'exercises': [ex], 'weight': {'op': '>', 'value': v, 'unit': 'kg'}}
+add('벤치 100kg 넘게 든 세트', {'gold': [{**over('벤치프레스', 100), 'measures': ['setCount']}]},
+    '초과/미만(모델 몫)')
+add('데드 150 초과', {'gold': [over('데드리프트', 150),
+                            {**over('데드리프트', 150), 'measures': ['setCount']},
+                            {**over('데드리프트', 150), 'measures': ['trainingDays']}]},
+    '초과/미만(모델 몫)')
 for q in ['ㅂㅊ', 'ㅅㅋ 최고', 'ㄷㄷ 마지막']:
     add(q, {'note': '초성 2자'}, '초성짧음')
 

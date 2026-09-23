@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:setpad/exercises.dart';
 import 'package:setpad/record_query.dart';
 import '../tool/question_grading.dart';
 
@@ -92,6 +93,7 @@ void main() {
                 gradeRecordQuery(
                   RecordQuery.decode(intent, names, question: q, today: today),
                   exp,
+                  names,
                 ) ??
                 ['ungraded'];
           } catch (err) {
@@ -115,4 +117,161 @@ void main() {
       expect(passed, graded);
     });
   }
+
+  test('채점기 — 운동은 집합, 비교는 순서, 메모는 정답 어간, 대안은 하나만', () {
+    RecordQuery read(Map<String, Object?> m) =>
+        RecordQuery.decode(m, names, today: evalToday);
+    List<String> grade(
+      Map<String, Object?> got,
+      List<Object?> gold, {
+      List<String> ignore = const [],
+    }) => gradeQuery(read(got), gold, names, ignore: ignore);
+    expect(
+      grade(
+        {
+          'exercises': ['바벨로우', '벤치프레스'],
+        },
+        [
+          {
+            'exercises': ['벤치프레스', '바벨로우'],
+          },
+        ],
+      ),
+      isEmpty,
+    );
+    final months = [
+      {'period': 'lastMonth'},
+      {'period': 'thisMonth'},
+    ];
+    expect(
+      grade(
+        {
+          'measures': ['volume'],
+          'compare': months.reversed.toList(),
+        },
+        [
+          {
+            'measures': ['volume'],
+            'compare': months,
+          },
+        ],
+      ),
+      ['compare'],
+    );
+    final shoulder = {
+      'memo': ['어깨'],
+      'measures': ['trainingDays'],
+    };
+    expect(
+      grade(
+        {
+          'memo': ['어깨', '통증'],
+          'measures': ['trainingDays'],
+        },
+        [shoulder],
+      ),
+      isEmpty,
+    );
+    expect(
+      grade(
+        {
+          'memo': ['통증'],
+          'measures': ['trainingDays'],
+        },
+        [shoulder],
+      ),
+      ['memo'],
+    );
+    final days = {
+      'by': 'exercise',
+      'measures': ['daysSince'],
+      'order': 'desc',
+    };
+    expect(grade({...days, 'limit': 3}, [days], ignore: ['limit']), isEmpty);
+    expect(grade({...days, 'limit': 3}, [days]), ['limit']);
+    expect(
+      grade(
+        {'kind': 'clarify'},
+        [
+          {'kind': 'unrelated'},
+          {'kind': 'clarify'},
+        ],
+      ),
+      isEmpty,
+    );
+    // "넘게" 는 > 다. 이상(>=)은 틀림이다.
+    expect(
+      grade(
+        {
+          'exercises': ['데드리프트'],
+          'weight': {'op': '>=', 'value': 100, 'unit': 'kg'},
+        },
+        [
+          {
+            'exercises': ['데드리프트'],
+            'weight': {'op': '>', 'value': 100, 'unit': 'kg'},
+          },
+        ],
+      ),
+      ['weight'],
+    );
+  });
+
+  test('v2 질문 모음 — 정답은 풀리고, 맞게 낸 모델 답은 규칙 층을 지난다', () {
+    final cases = load('v2');
+    final count = <String, int>{};
+    final broken = <String>[];
+    for (final c in cases) {
+      final lang = c['lang'] as String, q = c['q'] as String;
+      final names = seedNames(lang), gold = c['gold'] as List;
+      count['$lang ${c['cat']}'] = (count['$lang ${c['cat']}'] ?? 0) + 1;
+      // 정답마다 디코드되고 제 자신과 맞는다.
+      for (final g in gold) {
+        final read = RecordQuery.decode(g, names, today: evalToday);
+        expect(gradeQuery(read, [g], names), isEmpty, reason: '$q $g');
+      }
+      // 모델이 첫 정답을 그대로 냈다면, 글을 읽는 규칙 층이 그것을 망치면
+      // 안 된다 — 최악 출력 게이트의 반대쪽이다.
+      final errors = gradeQuery(
+        decodeRecordIntent(gold.first, q, names, unit: 'kg', today: evalToday),
+        gold,
+        names,
+        ignore: (c['ignore'] as List?) ?? const [],
+      );
+      if (errors.isNotEmpty) broken.add('$lang $q');
+    }
+    // 알려진 것: 베트남어 "nhìn chung"(전체적으로)의 chung 이 퍼지로
+    // Chùng Chân(런지)에 닿아 순위가 운동 하나로 접힌다(parser namedExercises).
+    expect(broken, ['vi nhìn chung việc tập của tôi thế nào?']);
+    final cats = {for (final c in cases) c['cat']};
+    for (final lang in [
+      'ko',
+      'en',
+      'ja',
+      'zh_Hans',
+      'zh_Hant',
+      'es',
+      'vi',
+      'th',
+    ]) {
+      for (final cat in cats) {
+        final n = count['$lang $cat'] ?? 0;
+        expect(
+          n,
+          lang == 'ko' ? greaterThanOrEqualTo(5) : 3,
+          reason: '$lang $cat',
+        );
+      }
+    }
+    // v1 모음의 v2 정답(두 운동, 초과)도 풀린다.
+    for (final set in ['dev', 'heldout']) {
+      for (final c in load(set)) {
+        final gold = v2Expected((c['expected'] as Map).cast<String, Object?>());
+        for (final g in gold ?? const []) {
+          final read = RecordQuery.decode(g, names, today: evalToday);
+          expect(gradeQuery(read, [g], names), isEmpty, reason: '${c['q']}');
+        }
+      }
+    }
+  });
 }

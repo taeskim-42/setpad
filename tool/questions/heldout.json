@@ -603,14 +603,15 @@
  {
   "q": "벤치랑 스쿼트 최고",
   "expected": {
-   "requests": [
+   "gold": [
     {
-     "exercise": "벤치프레스",
-     "metric": "max"
-    },
-    {
-     "exercise": "스쿼트",
-     "metric": "max"
+     "exercises": [
+      "벤치프레스",
+      "스쿼트"
+     ],
+     "measures": [
+      "best"
+     ]
     }
    ]
   },
@@ -1449,7 +1450,19 @@
  {
   "q": "벤치프레스 스쿼트 데드리프트 3대 합",
   "expected": {
-   "note": "Specify comparison metric or unsupported sum operation"
+   "gold": [
+    {
+     "exercises": [
+      "벤치프레스",
+      "스쿼트",
+      "데드리프트"
+     ],
+     "measures": [
+      "best"
+     ],
+     "total": "sum"
+    }
+   ]
   },
   "cat": "두운동"
  },
@@ -3371,8 +3384,21 @@
  {
   "q": "벤치 100kg 넘게 든 세트",
   "expected": {
-   "exercise": null,
-   "metric": null
+   "gold": [
+    {
+     "exercises": [
+      "벤치프레스"
+     ],
+     "weight": {
+      "op": ">",
+      "value": 100,
+      "unit": "kg"
+     },
+     "measures": [
+      "setCount"
+     ]
+    }
+   ]
   },
   "cat": "초과/미만(모델 몫)"
  },
@@ -3587,8 +3613,44 @@
  {
   "q": "데드 150 초과",
   "expected": {
-   "exercise": null,
-   "metric": null
+   "gold": [
+    {
+     "exercises": [
+      "데드리프트"
+     ],
+     "weight": {
+      "op": ">",
+      "value": 150,
+      "unit": "kg"
+     }
+    },
+    {
+     "exercises": [
+      "데드리프트"
+     ],
+     "weight": {
+      "op": ">",
+      "value": 150,
+      "unit": "kg"
+     },
+     "measures": [
+      "setCount"
+     ]
+    },
+    {
+     "exercises": [
+      "데드리프트"
+     ],
+     "weight": {
+      "op": ">",
+      "value": 150,
+      "unit": "kg"
+     },
+     "measures": [
+      "trainingDays"
+     ]
+    }
+   ]
   },
   "cat": "초과/미만(모델 몫)"
  },
@@ -3908,7 +3970,23 @@
  {
   "q": "스쿼트 데드 비교",
   "expected": {
-   "note": "Specify comparison metric or unsupported sum operation"
+   "gold": [
+    {
+     "exercises": [
+      "스쿼트",
+      "데드리프트"
+     ]
+    },
+    {
+     "exercises": [
+      "스쿼트",
+      "데드리프트"
+     ],
+     "measures": [
+      "best"
+     ]
+    }
+   ]
   },
   "cat": "두운동"
  },

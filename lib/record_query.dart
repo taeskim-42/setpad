@@ -657,10 +657,12 @@ void _ground(
 
   // 6. 의도 낱말이 한 갈래면 그것이 측정이다. 모델은 세트 수·횟수·운동한 날·
   //    최고를 서로 헷갈린다. 추정 1RM 같은 새 측정은 덮지 않는다 — "벤치
-  //    1RM 추이" 가 "추이" 때문에 바뀌면 안 된다.
+  //    1RM 추이" 가 "추이" 때문에 바뀌면 안 된다. "마지막 5번" 의 마지막은
+  //    범위(sessions)지 측정이 아니다.
   if (!m.containsKey('compare') &&
       m['by'] == null &&
       !aboutNotes &&
+      !m.containsKey('sessions') &&
       measures is List &&
       measures.length == 1 &&
       _familyMeasure.containsValue(measures.single)) {
@@ -1635,9 +1637,11 @@ const _metricWords = <String, String>{
 /// 읽기로 빠진다(dev 에서 실제로).
 bool _asksAboutNotes(String question) {
   // 모델의 메모 낱말은 증거가 아니다 — "그래프 보여줘" 에도 ['그래프'] 를
-  // 채운다. 사람이 메모라고 말했는지만 본다.
+  // 채운다. 사람이 메모라고 말했는지만 본다. 다른 여섯 언어의 낱말도 둔다 —
+  // 없으면 그 언어의 맞는 메모 조건을 늘 지운다.
   return RegExp(
-    r'메모|노트|적은|적었|적어|쓴|썼|써\s*놓|기록한\s*거|\bnotes?\b|\bmemo\b|wrote|written',
+    r'메모|노트|적은|적었|적어|쓴|썼|써\s*놓|기록한\s*거|\bnotes?\b|\bmemo\b|wrote|written'
+    r'|メモ|ノート|書いた|备注|備註|笔记|筆記|写了|寫了|\bnotas?\b|anot|apunt|ghi chú|ghi lại|จด|โน้ต',
     caseSensitive: false,
   ).hasMatch(question);
 }
