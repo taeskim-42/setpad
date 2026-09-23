@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/keypad.dart';
 import 'package:setpad/record_ai.dart';
@@ -296,4 +298,37 @@ void main() {
       expect(ai.calls, 1);
     },
   );
+
+  test('429 중 IP 하루 한도는 이번 달 한도가 아니다', () async {
+    Future<RecordAiStatus?> statusOf(Map<String, Object?> body) async {
+      final ai = RecordAi(
+        endpoint: 'https://example.com',
+        deviceId: 'device',
+        client: MockClient(
+          (request) async => request.url.path == '/api/device'
+              ? http.Response(jsonEncode({'token': 't'}), 200)
+              : http.Response(jsonEncode(body), 429),
+        ),
+      );
+      try {
+        await ai.ask('i', 'q', contract: 2);
+      } on RecordAiException catch (e) {
+        return e.status;
+      }
+      return null;
+    }
+
+    expect(
+      await statusOf({'error': 'quotaExceeded', 'limit': 30}),
+      RecordAiStatus.quotaExceeded,
+    );
+    expect(
+      await statusOf({
+        'error': 'quotaExceeded',
+        'limit': 300,
+        'scope': 'address',
+      }),
+      RecordAiStatus.unavailable,
+    );
+  });
 }

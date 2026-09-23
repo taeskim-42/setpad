@@ -248,6 +248,9 @@ class _NotesListPageState extends State<NotesListPage>
       }
     }
     if (mentioned.isEmpty && period == null) {
+      // "가장 많이 한 운동 3개" — 글로 거를 것이 없는 질문이다. 해석을 기다리는
+      // 동안과 확인 전에는 다 보인다. 문장을 글자로 찾으면 0 이 된다.
+      if (_search.busy || plan?.kind == 'query') return all;
       return q.isEmpty
           ? all
           : all

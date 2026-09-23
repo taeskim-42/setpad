@@ -115,6 +115,10 @@ void main() {
       expect(namedExercises('가장 자주 한 운동 세 개', pool), isEmpty);
       // 두 글자 로마자는 이름 속 글자일 뿐이다 — PR 은 bench press 가 아니다.
       expect(namedExercises('스쿼트 PR', ['스쿼트', '벤치프레스']), ['스쿼트']);
+      // 적은 순서 그대로다 — 키 길이 순이 아니다. 표의 열과 차이의 부호가 이것을 따른다.
+      const pair = ['벤치프레스', '바벨로우'];
+      expect(namedExercises('벤치 vs 바벨로우', pair), ['벤치프레스', '바벨로우']);
+      expect(namedExercises('바벨로우 vs 벤치프레스 기록 비교', pair), ['바벨로우', '벤치프레스']);
     });
 
     test('스쾃은 스쿼트다 — 오타가 아니라 표기법이다', () {

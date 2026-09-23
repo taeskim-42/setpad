@@ -430,11 +430,15 @@ int? koreanNumber(String text) {
 ///    닿을 때만 인정한다. "프레스" 처럼 여럿에 닿는 낱말은 지목이 아니다.
 ///
 /// 두 단계를 합친다. 결과가 둘 이상이면 둘 이상을 돌려준다 — 부르는 쪽이
-/// "하나만" 을 요구한다.
+/// "하나만" 을 요구한다. 순서는 글에 적힌 순서다 — 표의 열과 차이의 방향이
+/// 이것을 따른다.
 List<String> namedExercises(String text, List<String> pool) {
   var compact = searchKey(text);
   if (compact.isEmpty) return const [];
-  final found = <String>[];
+  // 이름 → 글(검색 키)에서 처음 나온 자리.
+  final found = <String, int>{};
+  void hit(String name, int at) =>
+      found.update(name, (was) => was < at ? was : at, ifAbsent: () => at);
   final keyed = <(String key, String name)>[];
   for (final name in pool.toSet()) {
     final keys =
@@ -456,22 +460,22 @@ List<String> namedExercises(String text, List<String> pool) {
   for (final (key, name) in keyed) {
     final at = compact.indexOf(key);
     if (at < 0) continue;
-    if (!found.contains(name)) found.add(name);
+    hit(name, at);
     compact = compact.replaceRange(at, at + key.length, ' ' * key.length);
   }
   // 키로 찾은 것과 낱말로 찾은 것을 합친다. "스쿼트 벤치 요즘 어때" 는 키로
   // 스쿼트, 낱말(접두)로 벤치프레스 — 둘 다 지목이다. 키 단계에서 멈추면
   // 벤치를 놓치고 스쿼트 하나로 읽는다.
-  for (final raw in text.split(RegExp(r'\s+'))) {
-    final word = stripParticle(raw);
+  for (final raw in RegExp(r'\S+').allMatches(text)) {
+    final word = stripParticle(raw[0]!);
     if (word.length < 2 || word.contains(RegExp(r'\d'))) continue;
     // 두 글자 로마자("PR", "vs")는 이름 속에 흔히 들어 있어("bench press")
     // 퍼지로 지목이 된다. 별칭("bp")은 위의 키 단계가 이미 잡았다.
     if (RegExp(r'^[a-zA-Z]{2}$').hasMatch(word)) continue;
     final hits = suggest(word, pool, limit: 2);
-    if (hits.length == 1 && !found.contains(hits.single)) {
-      found.add(hits.single);
+    if (hits.length == 1) {
+      hit(hits.single, searchKey(text.substring(0, raw.start)).length);
     }
   }
-  return found;
+  return found.keys.toList()..sort((a, b) => found[a]!.compareTo(found[b]!));
 }

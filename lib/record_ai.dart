@@ -253,7 +253,19 @@ class RecordAi {
           continue;
         }
         if (response.statusCode == 429) {
-          throw const RecordAiException(RecordAiStatus.quotaExceeded);
+          // 이번 달 무료 질문을 다 쓴 것만 한도 소진이다. 같은 IP(헬스장
+          // 와이파이)의 하루 한도(scope: address)는 내일 풀린다 — 실패로 둔다.
+          Object? body;
+          try {
+            body = jsonDecode(utf8.decode(response.bodyBytes));
+          } on FormatException {
+            body = null;
+          }
+          throw RecordAiException(
+            body is Map && body['scope'] == 'address'
+                ? RecordAiStatus.unavailable
+                : RecordAiStatus.quotaExceeded,
+          );
         }
         if (response.statusCode != 200) {
           throw const RecordAiException(RecordAiStatus.unavailable);

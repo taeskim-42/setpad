@@ -247,7 +247,7 @@ class RecordQuery {
 
     try {
       if (kind == 'find') {
-        final found = _list(m['exercises'], 8, name);
+        final found = _list(m['exercises'], 8, name).toSet().toList();
         if (found.isEmpty) throw const FormatException('Nothing to find');
         return RecordQuery(
           kind: 'find',
@@ -274,7 +274,9 @@ class RecordQuery {
           min: 1,
         );
         return QueryScope(
-          exercises: _list(s['exercises'], 8, name),
+          // 모델은 사용자 철자와 정식 이름을 함께 내곤 한다("벤치프레스",
+          // "벤치"). 풀면 같은 운동이다 — 두 번 세지 않는다.
+          exercises: _list(s['exercises'], 8, name).toSet().toList(),
           since: period.since,
           until: period.until,
           sessions: _int(s['sessions'], 1, 100),
@@ -342,8 +344,12 @@ class RecordQuery {
                 min: 1,
               ),
             );
-      final order = _pick(m['order'], const ['desc', 'asc']);
       final limit = _int(m['limit'], 1, 20);
+      // 개수만 주면 위에서 N개다. 순서를 비워 두면 확인 줄이 개수를 빠뜨리고
+      // 제목도 순위가 아니게 된다.
+      final order =
+          _pick(m['order'], const ['desc', 'asc']) ??
+          (limit != null ? 'desc' : null);
       final total = _pick(m['total'], const ['sum', 'mean']);
       // 순위는 한 단위로 줄을 세운다. 운동마다 뜻이 다른 "최고" 는 무게다.
       if (order != null) {
@@ -375,7 +381,7 @@ class RecordQuery {
       return RecordQuery(
         scope: scope,
         compare: List.unmodifiable(compare),
-        exclude: List.unmodifiable(_list(m['exclude'], 8, name)),
+        exclude: List.unmodifiable(_list(m['exclude'], 8, name).toSet()),
         measures: List.unmodifiable(measures),
         by: by,
         order: order,
@@ -632,17 +638,31 @@ void _ground(
 
   // 5. "80kg 이상 5회 이상" — 조건이 둘이면 모델은 하나를 떨어뜨리곤 한다.
   //    글에 또렷이 적힌 숫자 조건은 코드가 뽑고, 그것이 모델보다 앞선다.
+  //    글이 읽는 것은 이상·이하뿐이다. 글이 읽지 못한 초과·미만이 반대쪽에
+  //    있으면("80kg 초과 85kg 이하") 모델의 그쪽 조건은 남긴다. 그런 말이
+  //    없는 쪽의 모델 조건은 글과 어긋난 것이라 버린다.
   if (!m.containsKey('compare') && !aboutNotes) {
     final f = statedFilters(question);
-    List<Map<String, Object?>> bounds(num? min, num? max, String? unit) => [
+    bool says(String words) =>
+        RegExp(words, caseSensitive: false).hasMatch(question);
+    final over = says(r'초과|넘|\bover\b|more than|above');
+    final under = says(r'미만|\bunder\b|less than|below');
+    List<Object?> bounds(Object? model, num? min, num? max, String? unit) => [
+      for (final b in model is List ? model : [?model])
+        if (b is Map &&
+            b['op'] is String &&
+            ((b['op'] as String).startsWith('>')
+                ? min == null && over
+                : (b['op'] as String).startsWith('<') && max == null && under))
+          b,
       if (min != null) {'op': '>=', 'value': min, 'unit': ?unit},
       if (max != null) {'op': '<=', 'value': max, 'unit': ?unit},
     ];
     if (f.minWeight != null || f.maxWeight != null) {
-      m['weight'] = bounds(f.minWeight, f.maxWeight, f.unit);
+      m['weight'] = bounds(m['weight'], f.minWeight, f.maxWeight, f.unit);
     }
     if (f.minReps != null || f.maxReps != null) {
-      m['reps'] = bounds(f.minReps, f.maxReps, null);
+      m['reps'] = bounds(m['reps'], f.minReps, f.maxReps, null);
       // 횟수 단위로는 무게 조건을 지어낼 수 없다.
       final hasWeightUnit = RegExp(
         r'kg|lb|킬로|키로|파운드|kilogram|pound',
@@ -826,8 +846,14 @@ List<Note> _only(List<Note> notes, Set<String> only) => [
 ];
 
 /// 이 운동이 이 측정의 대상인가. 무게를 한 번도 적지 않은 운동은 무게 측정의
-/// 대상이 아니다.
-bool _applies(List<Note> notes, String exercise, Metric metric) {
+/// 대상이 아니다. 최장은 [timed] 면 시간, 아니면 거리다 — [answer] 가 묶음에
+/// 요구하는 것과 같다.
+bool _applies(
+  List<Note> notes,
+  String exercise,
+  Metric metric, {
+  bool timed = false,
+}) {
   final sets = [
     for (final n in notes)
       for (final b in n.blocks)
@@ -840,13 +866,20 @@ bool _applies(List<Note> notes, String exercise, Metric metric) {
   return switch (metric) {
     Metric.max ||
     Metric.average ||
-    Metric.e1rm ||
     Metric.volume ||
     Metric.trend => has(UnitKind.weight),
+    // 추정 1RM 은 정의상 1–10회 세트만 쓴다. 값이 다 있는데 모두 그 밖이면
+    // 빠진 것이 아니라 대상이 아니다.
+    Metric.e1rm =>
+      has(UnitKind.weight) &&
+          !sets.every(
+            (s) =>
+                _weighed(s) && s.reps != null && (s.reps! < 1 || s.reps! > 10),
+          ),
     Metric.reps || Metric.maxReps => sets.any((s) => s.reps != null),
     Metric.distance => has(UnitKind.distance),
     Metric.duration => has(UnitKind.duration),
-    Metric.longest => has(UnitKind.distance) || has(UnitKind.duration),
+    Metric.longest => has(timed ? UnitKind.duration : UnitKind.distance),
     _ => true,
   };
 }
@@ -907,21 +940,32 @@ RecordResult? runQuery(
   final locale = l.localeName;
   final outOfScope = <String>{}, missing = <String>{}, evidence = <String>{};
 
-  Cell cell(List<Note> group, Metric measure, Set<String> undecided) {
-    final names = {
-      for (final n in group)
+  /// [basis] 는 최고의 뜻과 대상을 정하는 기록이다. 날·주·달·요일 묶음은
+  /// 범위 전체다 — 구간마다 풀면 어떤 주는 kg, 어떤 주는 회가 된다.
+  Cell cell(
+    List<Note> group,
+    Metric measure,
+    Set<String> undecided, [
+    List<Note>? basis,
+  ]) {
+    Set<String> exercises(List<Note> notes) => {
+      for (final n in notes)
         for (final b in n.blocks) b.exercise,
     };
+    final names = exercises(group);
     if (names.isEmpty) return const Cell(null, reason: 'none');
+    final whole = basis ?? group;
+    final all = exercises(whole);
     final metric = measure == Metric.best
-        ? resolveBest(
-            _only(group, names),
-            names.length == 1 ? names.single : '*',
-          )
+        ? resolveBest(_only(whole, all), all.length == 1 ? all.single : '*')
         : measure;
+    // 최장은 시간을 적은 운동이 하나라도 있으면 시간이다(stats 의 answer 와 같다).
+    final timed =
+        metric == Metric.longest &&
+        all.any((e) => _applies(whole, e, Metric.duration));
     final targets = {
       for (final e in names)
-        if (_applies(group, e, metric)) e,
+        if (_applies(whole, e, metric, timed: timed)) e,
     };
     outOfScope.addAll(names.difference(targets));
     if (targets.isEmpty) return const Cell(null, reason: 'none');
@@ -974,9 +1018,11 @@ RecordResult? runQuery(
   } else {
     final v = q.scope, k = kept.single;
     columns = [for (final m in q.measures) metricLabel(l, m)];
+    // 운동별이 아닌 묶음은 범위 전체로 최고의 뜻과 대상을 정한다.
+    final basis = q.by == 'exercise' ? null : k.notes;
     ResultRow row(String label, List<Note> group, [DateTime? start]) =>
         ResultRow(label, [
-          for (final m in q.measures) cell(group, m, k.undecided),
+          for (final m in q.measures) cell(group, m, k.undecided, basis),
         ], start: start);
     final days = {for (final n in k.notes) _day(n.createdAt)}.toList()..sort();
     switch (q.by) {
@@ -1015,7 +1061,9 @@ RecordResult? runQuery(
             : DateTime(d.year, d.month);
         final first = v.since ?? days.firstOrNull;
         if (first != null) {
-          final end = bucket(v.until ?? _day(now));
+          // 끝은 오늘을 넘지 않는다 — 오지 않은 주는 쉰 주가 아니다.
+          final until = v.until ?? _day(now);
+          final end = bucket(until.isAfter(_day(now)) ? _day(now) : until);
           for (
             var b = bucket(first);
             !b.isAfter(end);
@@ -1137,9 +1185,11 @@ RecordResult? runQuery(
   ];
 
   return RecordResult(
-    render: const ['day', 'week', 'month'].contains(q.by)
+    // 순위를 매긴 구간은 날짜순이 아니라 차트로 못 그린다. 묶음이 있으면 줄이
+    // 하나여도 표다 — 무엇이 1위인지가 답이다.
+    render: const ['day', 'week', 'month'].contains(q.by) && q.order == null
         ? 'chart'
-        : q.compare.isEmpty && rows.length == 1 && q.measures.length == 1
+        : q.compare.isEmpty && q.by == null && q.measures.length == 1
         ? 'number'
         : 'table',
     title: q.order != null
@@ -1587,7 +1637,10 @@ String canonicalizeExercises(String text, List<String> names) {
   if (month != null) hits.add('month');
   if (hits.length != 1) return null;
   if (hits.single == 'recent') {
-    final n = int.parse(recent![1] ?? recent[3]!);
+    // 정수 한도를 넘는 숫자("최근 99999999999999999999일")는 기간이 아니다.
+    // 이 함수는 목록을 그리는 중에도 불린다 — 던지면 화면이 죽는다.
+    final n = int.tryParse(recent![1] ?? recent[3]!);
+    if (n == null) return null;
     final unit = (recent[2] ?? recent[4]!).toLowerCase();
     final days = unit.startsWith('주') || unit.startsWith('week')
         ? n * 7

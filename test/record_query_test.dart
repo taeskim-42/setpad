@@ -823,6 +823,8 @@ void main() {
         );
         expect(statedPeriod('12월 스쿼트', today: t)!.since, '2025-12-01');
         expect(statedPeriod('최근 2주 푸시업')?.days, 14);
+        // 정수 한도를 넘는 숫자는 기간이 아니다. 목록을 그리다 죽으면 안 된다.
+        expect(statedPeriod('최근 99999999999999999999일 벤치'), isNull);
         expect(statedPeriod('최근 3개월 벤치')?.days, 90);
         expect(statedPeriod('3개월간 벤치'), isNull);
         expect(statedPeriod('9월 1일부터 벤치프레스', today: t), isNull);

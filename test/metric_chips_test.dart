@@ -446,6 +446,32 @@ void main() {
       await expectCount(tester, 4); // 답에 쓰인 기록
     });
 
+    testWidgets('이름도 기간도 없는 질문은 기다리는 동안과 확인 전에 목록을 다 보인다', (tester) async {
+      final reply = Completer<Object?>();
+      await pump(
+        tester,
+        records: pair,
+        ai: RecordAi(respond: (_, _) => reply.future),
+      );
+      await tester.enterText(
+        find.byType(CupertinoSearchTextField),
+        '가장 많이 한 운동 3개',
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text(l.queryWorking), findsOneWidget);
+      expect(find.text(l.noteCount(pair.length)), findsOneWidget);
+      reply.complete({
+        'by': 'exercise',
+        'measures': ['trainingDays'],
+        'order': 'desc',
+        'limit': 3,
+      });
+      await tester.pumpAndSettle();
+      expect(find.textContaining(l.readAsConfirm), findsOneWidget);
+      expect(find.text(l.noteCount(pair.length)), findsOneWidget);
+      expect(find.text(l.noSearchResults), findsNothing);
+    });
+
     testWidgets('무료 질문을 다 쓰면 그렇다고 말하고, 칩과 목록은 그대로다', (tester) async {
       await pump(
         tester,
