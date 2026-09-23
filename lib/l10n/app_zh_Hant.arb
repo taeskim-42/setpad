@@ -571,5 +571,6 @@
   "queryUnranked": "因缺值未能排名的 {n} 個：{names}",
   "queryWindowLengths": "時間段天數不同（{lengths} 天），差值和比例按每週計算",
   "queryZeroBuckets": "{by, select, week{{total} 週中有 {zeros} 週為 0} month{{total} 個月中有 {zeros} 個月為 0} other{{total} 個中有 {zeros} 個為 0}}",
-  "queryPossibleDays": "可訓練 {m} 天中的 {percent}%"
+  "queryPossibleDays": "可訓練 {m} 天中的 {percent}%",
+  "queryOfflineLocal": "無法連線到伺服器，僅依文字中的動作和時間在裝置上計算。連線後按 Enter 再問一次。"
 }

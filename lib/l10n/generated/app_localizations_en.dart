@@ -2296,4 +2296,8 @@ class LEn extends L {
   String queryPossibleDays(int m, String percent) {
     return '$percent% of $m possible days';
   }
+
+  @override
+  String get queryOfflineLocal =>
+      'Couldn\'t reach the server, so this was counted on your device from the exercises and dates in your text. Press Enter to ask again once you\'re online.';
 }

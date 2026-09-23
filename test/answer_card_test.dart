@@ -195,6 +195,28 @@ void main() {
     expect(find.byType(DotChart), findsNothing);
   });
 
+  testWidgets('G8 점이 없어도 헤드라인이 있는 답(0 으로 채운 칸, 연속·간격)은 카드가 된다', (tester) async {
+    await pump(
+      tester,
+      const AnswerCard(
+        answer: Answer(
+          metric: Metric.sessions,
+          exercise: '바벨로우',
+          points: [],
+          numericValue: 0,
+          unit: '일',
+          headline: '0일 기록',
+          lines: ['적은 적 없음'],
+        ),
+      ),
+    );
+    expect(find.byType(GrainWash), findsOneWidget);
+    expect(find.byType(DotChart), findsNothing);
+    expect(find.text('0일 기록'), findsOneWidget);
+    expect(find.text('적은 적 없음'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'ink and paper swap in dark mode without absolute black or white',
     (tester) async {

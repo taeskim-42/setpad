@@ -2283,4 +2283,8 @@ class LVi extends L {
   String queryPossibleDays(int m, String percent) {
     return '$percent% trong $m ngày có thể';
   }
+
+  @override
+  String get queryOfflineLocal =>
+      'Không kết nối được máy chủ nên đã đếm trên máy chỉ theo bài tập và thời gian trong câu. Khi có mạng, nhấn Enter để hỏi lại.';
 }

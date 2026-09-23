@@ -571,5 +571,6 @@
   "queryUnranked": "値が欠けて順位に入れられなかった{n}件: {names}",
   "queryWindowLengths": "期間の日数が違うので（{lengths}日）差と比率は週あたりで数えました",
   "queryZeroBuckets": "{by, select, week{{total}週のうち{zeros}週が0} month{{total}か月のうち{zeros}か月が0} other{{total}件のうち{zeros}件が0}}",
-  "queryPossibleDays": "可能な{m}日のうち{percent}%"
+  "queryPossibleDays": "可能な{m}日のうち{percent}%",
+  "queryOfflineLocal": "サーバーにつながらないため、文中の種目と期間だけで端末上で集計しました。つながったら Enter でもう一度聞いてください。"
 }

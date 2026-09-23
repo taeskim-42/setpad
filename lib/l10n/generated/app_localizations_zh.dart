@@ -2205,6 +2205,9 @@ class LZh extends L {
   String queryPossibleDays(int m, String percent) {
     return '可训练 $m 天中的 $percent%';
   }
+
+  @override
+  String get queryOfflineLocal => '无法连接服务器，仅按文字中的动作和时间在设备上计算。联网后按 Enter 再问一次。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -4408,6 +4411,9 @@ class LZhHans extends LZh {
   String queryPossibleDays(int m, String percent) {
     return '可训练 $m 天中的 $percent%';
   }
+
+  @override
+  String get queryOfflineLocal => '无法连接服务器，仅按文字中的动作和时间在设备上计算。联网后按 Enter 再问一次。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -6610,4 +6616,7 @@ class LZhHant extends LZh {
   String queryPossibleDays(int m, String percent) {
     return '可訓練 $m 天中的 $percent%';
   }
+
+  @override
+  String get queryOfflineLocal => '無法連線到伺服器，僅依文字中的動作和時間在裝置上計算。連線後按 Enter 再問一次。';
 }

@@ -366,6 +366,19 @@ List<String> recordedExercises(List<Note> notes) => {
       if (b.sets.any((s) => s.mine)) b.exercise,
 }.toList();
 
+/// 검색이 알아보는 운동 이름: 기록한 운동, 그리고 아직 안 적은 사전 운동(화면
+/// 언어 이름). 기록에 이미 있는 사전 운동은 기록 이름만 둔다 — '벤치' 로 적었으면
+/// 벤치프레스가 따로 또 잡히지 않는다. 안 적은 운동도 칩과 줄이 되게 하는 목록이다.
+List<String> knownExercises(List<String> recorded, String locale) {
+  final keys = {for (final r in recorded) exerciseKey(r)};
+  final lang = _langOf(locale);
+  return [
+    ...recorded,
+    for (final e in exercises)
+      if (!keys.contains(e.ko)) e.name(lang),
+  ];
+}
+
 /// 기록 이름들을 운동 열쇠로 묶은 것.
 class _Book {
   _Book(Iterable<String> recorded) {
@@ -3369,6 +3382,31 @@ RecordQuery decodeRecordIntent(
   question: canonicalizeExercises(text, names),
   lang: _langOf(locale),
 );
+
+/// 모델 없이 글만으로 만든 plan — 서버에 닿지 못했을 때. [names] 는 글이 지목한
+/// 운동이고, 기간·숫자 조건·의도 낱말(한 갈래일 때)은 규칙 층이 글에서 읽는다.
+/// 셀 수 없는 모양이면 [FormatException] 이다.
+RecordQuery wordsPlan(
+  String text,
+  List<String> names,
+  List<String> recorded, {
+  required String unit,
+  DateTime? today,
+  String locale = 'ko',
+}) {
+  final families = metricFamilies(text);
+  return decodeRecordIntent(
+    {
+      'exercises': names,
+      if (families.length == 1) 'measures': [_familyMeasure[families.single]],
+    },
+    text,
+    recorded,
+    unit: unit,
+    today: today,
+    locale: locale,
+  );
+}
 
 String _jsonText(String raw) {
   final text = raw.trim();

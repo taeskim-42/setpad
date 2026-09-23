@@ -3545,6 +3545,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'가능한 {m}일 중 {percent}%'**
   String queryPossibleDays(int m, String percent);
+
+  /// 서버에 닿지 못해 글에 적힌 운동·기간·의도 낱말로 기기에서 센 답 위에 붙는 줄.
+  ///
+  /// In ko, this message translates to:
+  /// **'서버에 닿지 못해 글에 적힌 운동·기간으로만 기기에서 셌어요. 연결되면 Enter 로 다시 물어보세요.'**
+  String get queryOfflineLocal;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

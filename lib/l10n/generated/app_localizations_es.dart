@@ -2314,4 +2314,8 @@ class LEs extends L {
   String queryPossibleDays(int m, String percent) {
     return '$percent% de $m días posibles';
   }
+
+  @override
+  String get queryOfflineLocal =>
+      'No se pudo conectar con el servidor; se contó en tu dispositivo solo con los ejercicios y fechas del texto. Pulsa Enter para preguntar de nuevo con conexión.';
 }

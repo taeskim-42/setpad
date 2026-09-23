@@ -571,5 +571,6 @@
   "queryUnranked": "{n} mục không xếp hạng vì thiếu giá trị: {names}",
   "queryWindowLengths": "Các giai đoạn dài khác nhau ({lengths} ngày) nên chênh lệch và tỷ lệ tính theo tuần",
   "queryZeroBuckets": "{by, select, week{{zeros}/{total} tuần bằng 0} month{{zeros}/{total} tháng bằng 0} other{{zeros}/{total} bằng 0}}",
-  "queryPossibleDays": "{percent}% trong {m} ngày có thể"
+  "queryPossibleDays": "{percent}% trong {m} ngày có thể",
+  "queryOfflineLocal": "Không kết nối được máy chủ nên đã đếm trên máy chỉ theo bài tập và thời gian trong câu. Khi có mạng, nhấn Enter để hỏi lại."
 }

@@ -2266,4 +2266,8 @@ class LTh extends L {
   String queryPossibleDays(int m, String percent) {
     return '$percent% จาก $m วันที่เป็นไปได้';
   }
+
+  @override
+  String get queryOfflineLocal =>
+      'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ จึงนับในเครื่องจากท่าและช่วงเวลาที่พิมพ์ไว้เท่านั้น เมื่อเชื่อมต่อได้แล้วกด Enter เพื่อถามอีกครั้ง';
 }

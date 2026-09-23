@@ -2228,4 +2228,8 @@ class LKo extends L {
   String queryPossibleDays(int m, String percent) {
     return '가능한 $m일 중 $percent%';
   }
+
+  @override
+  String get queryOfflineLocal =>
+      '서버에 닿지 못해 글에 적힌 운동·기간으로만 기기에서 셌어요. 연결되면 Enter 로 다시 물어보세요.';
 }

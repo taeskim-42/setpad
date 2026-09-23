@@ -2221,4 +2221,8 @@ class LJa extends L {
   String queryPossibleDays(int m, String percent) {
     return '可能な$m日のうち$percent%';
   }
+
+  @override
+  String get queryOfflineLocal =>
+      'サーバーにつながらないため、文中の種目と期間だけで端末上で集計しました。つながったら Enter でもう一度聞いてください。';
 }

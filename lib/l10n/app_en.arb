@@ -571,5 +571,6 @@
   "queryUnranked": "{n} left out of the ranking for missing values: {names}",
   "queryWindowLengths": "The periods differ in length ({lengths} days), so differences and ratios are per week",
   "queryZeroBuckets": "{by, select, week{{zeros} of {total} weeks at 0} month{{zeros} of {total} months at 0} other{{zeros} of {total} at 0}}",
-  "queryPossibleDays": "{percent}% of {m} possible days"
+  "queryPossibleDays": "{percent}% of {m} possible days",
+  "queryOfflineLocal": "Couldn't reach the server, so this was counted on your device from the exercises and dates in your text. Press Enter to ask again once you're online."
 }

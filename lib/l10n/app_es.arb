@@ -571,5 +571,6 @@
   "queryUnranked": "{n} fuera del ranking por valores faltantes: {names}",
   "queryWindowLengths": "Los periodos tienen distinta duración ({lengths} días); diferencias y proporciones son por semana",
   "queryZeroBuckets": "{by, select, week{{zeros} de {total} semanas en 0} month{{zeros} de {total} meses en 0} other{{zeros} de {total} en 0}}",
-  "queryPossibleDays": "{percent}% de {m} días posibles"
+  "queryPossibleDays": "{percent}% de {m} días posibles",
+  "queryOfflineLocal": "No se pudo conectar con el servidor; se contó en tu dispositivo solo con los ejercicios y fechas del texto. Pulsa Enter para preguntar de nuevo con conexión."
 }
