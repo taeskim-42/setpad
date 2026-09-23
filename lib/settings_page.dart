@@ -86,14 +86,12 @@ class SettingsPage extends StatelessWidget {
                 if (a.selling || a.paid) ...[
                   _Section(title: l.proTitle),
                   _Row(
-                    label: a.paid
-                        ? l.proOwned
-                        : l.proFree(freeQuestionsPerMonth),
-                    detail: a.plan == Plan.lifetime
-                        ? l.planLifetime
-                        : a.plan == Plan.monthly
-                        ? l.planMonthly
-                        : null,
+                    label: a.paid ? l.proOwned : l.proPaid(proPlatesPerMonth),
+                    detail: switch (a.plan) {
+                      Plan.yearly => l.planYearly,
+                      Plan.monthly => l.planMonthly,
+                      null => null,
+                    },
                     accent: !a.paid,
                     onTap: () => Navigator.of(context).push(
                       CupertinoPageRoute<void>(
@@ -144,6 +142,12 @@ class SettingsPage extends StatelessWidget {
                     // 것처럼 보이면 사람은 앱이 고장 난 줄 안다.
                     detail: a.signInRefused ? l.signInFailed : null,
                     onTap: a.signIn,
+                  ),
+                // 원판은 로그인 전에도 있다 — 그때는 이 기기의 지갑이다.
+                if (a.plates case final plates?)
+                  _Row(
+                    key: const ValueKey('settings-plates'),
+                    label: l.platesBalance(plateCount(plates)),
                   ),
                 if (a.selling || a.paid)
                   _Row(label: l.restorePurchases, onTap: a.restore),

@@ -477,7 +477,12 @@ class LVi extends L {
   String get planMonthly => 'Hàng tháng';
 
   @override
-  String get planLifetime => 'Trọn đời';
+  String get planYearly => 'Theo năm';
+
+  @override
+  String planYearlyTrial(String price) {
+    return 'Dùng thử miễn phí 7 ngày, sau đó $price mỗi năm. Hủy ít nhất 24 giờ trước khi hết thời gian dùng thử thì sẽ không bị tính phí.';
+  }
 
   @override
   String get planActive => 'Đang dùng';
@@ -486,7 +491,8 @@ class LVi extends L {
   String get restorePurchases => 'Khôi phục giao dịch';
 
   @override
-  String get quotaSpent => 'Bạn đã dùng hết câu hỏi tháng này.';
+  String get inputQuotaSpent =>
+      'Bạn đã dùng hết trợ giúp ghi hôm nay. Tự nhập vẫn được lưu như thường.';
 
   @override
   String gymMember(String gym, String trainer) {
@@ -681,25 +687,25 @@ class LVi extends L {
       'Chạm điện thoại vào sticker của phòng tập để nhận giáo án từ huấn luyện viên.';
 
   @override
-  String get proTitle => 'Hỏi nhật ký của bạn bất cứ điều gì';
+  String get proTitle => 'Pro';
 
   @override
   String get proBody =>
-      'Hỏi “squat nặng nhất là bao nhiêu” hay “tháng này bench có tăng không” và nhận câu trả lời tính từ nhật ký của bạn.';
+      'Hỏi về nhật ký tập sẽ dùng bánh tạ — thường khoảng 1 bánh mỗi câu, và chỉ trừ đúng phần câu trả lời đã dùng. Trợ giúp ghi buổi tập và bữa ăn không dùng bánh tạ.';
 
   @override
-  String proFree(int n) {
-    return 'Miễn phí $n lần mỗi tháng';
+  String proFree(int n, int sets) {
+    return 'Miễn phí: trợ giúp ghi $n lần mỗi ngày · 1 bánh tạ cho mỗi ngày hoàn thành $sets hiệp';
   }
 
   @override
   String proPaid(int n) {
-    return 'Có gói: $n lần mỗi ngày';
+    return 'Pro: nạp đầy đến $n bánh tạ mỗi tháng · trợ giúp ghi không giới hạn';
   }
 
   @override
   String get proEverythingElseFree =>
-      'Ghi chép, hẹn giờ, đồng bộ sức khỏe và tính năng phòng tập đều dùng được mà không cần gói.';
+      'Ghi chép, hẹn giờ, nhắc trên cổ tay, tập cùng nhau và phòng gym đều dùng được mà không cần Pro.';
 
   @override
   String get proOwned => 'Đang hoạt động. Cảm ơn bạn.';
@@ -707,6 +713,39 @@ class LVi extends L {
   @override
   String get proSignInFirst =>
       'Gói gắn với tài khoản. Vui lòng đăng nhập trước.';
+
+  @override
+  String platesBalance(String n) {
+    return 'Còn $n bánh tạ';
+  }
+
+  @override
+  String platesSpent(String spent, String balance) {
+    return 'Đã dùng $spent bánh tạ · còn $balance';
+  }
+
+  @override
+  String noPlates(int sets) {
+    return 'Không đủ bánh tạ. Mỗi ngày hoàn thành $sets hiệp bạn nhận 1 bánh.';
+  }
+
+  @override
+  String noPlatesSignIn(int n) {
+    return 'Đăng nhập để nhận $n bánh tạ';
+  }
+
+  @override
+  String platesGetPro(int n) {
+    return 'Xem Pro · $n mỗi tháng';
+  }
+
+  @override
+  String get purchaseNotConfirmed =>
+      'Không xác nhận được giao dịch. Nếu đã bị trừ tiền, hãy nhấn “Khôi phục giao dịch” sau ít phút.';
+
+  @override
+  String get purchaseOtherAccount =>
+      'Giao dịch này đã gắn với tài khoản khác. Hãy đăng nhập bằng tài khoản đó.';
 
   @override
   String get tagSignInNeeded => 'Đăng nhập để kết nối với phòng tập của bạn.';

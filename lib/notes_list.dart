@@ -14,6 +14,7 @@ import 'record_ai.dart';
 import 'health_summary.dart';
 import 'palette.dart';
 import 'parser.dart';
+import 'paywall.dart';
 import 'settings.dart';
 
 /// 운동 기록 목록.
@@ -201,6 +202,32 @@ class _NotesListPageState extends State<NotesListPage>
   void _open(Note note) {
     _search.cancel();
     widget.onOpen(note);
+  }
+
+  /// 원판이 없어 못 물었다. 로그인 전이면 로그인을, 로그인했으면 Pro 를 권한다.
+  List<Widget> _noPlates(L l) {
+    final a = widget.account;
+    Widget action(String label, VoidCallback onPressed) => CupertinoButton(
+      padding: EdgeInsets.zero,
+      minimumSize: const Size(44, 44),
+      onPressed: onPressed,
+      child: Text(label, style: const TextStyle(fontSize: 14)),
+    );
+    return [
+      Text(l.noPlates(dailyPlateSets), style: const TextStyle(fontSize: 14)),
+      if (a != null && !a.signedIn)
+        action(l.noPlatesSignIn(accountWelcomePlates), () async {
+          // 로그인하면 계정 지갑으로 같은 질문을 다시 묻는다.
+          if (await a.signIn() && mounted) _ask(immediately: true);
+        })
+      else if (a != null && a.selling && !a.paid)
+        action(
+          l.platesGetPro(proPlatesPerMonth),
+          () => Navigator.of(
+            context,
+          ).push(CupertinoPageRoute<void>(builder: (_) => Paywall(account: a))),
+        ),
+    ];
   }
 
   @override
@@ -561,11 +588,7 @@ class _NotesListPageState extends State<NotesListPage>
                                     l.queryFailed,
                                     style: const TextStyle(fontSize: 14),
                                   ),
-                                if (_search.quota)
-                                  Text(
-                                    l.quotaSpent,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
+                                if (_search.noPlates) ..._noPlates(l),
                                 if (plan?.kind == 'unsupported')
                                   Text(switch (plan?.reason) {
                                     'missingData' => l.queryMissingData,
@@ -580,6 +603,20 @@ class _NotesListPageState extends State<NotesListPage>
                                   Text(
                                     l.queryNoData,
                                     style: const TextStyle(fontSize: 14),
+                                  ),
+                                // 원판을 쓴 질문에만 한 줄. 담아 둔 답은 안 쓴다.
+                                if (_search.charged &&
+                                    widget.account?.platesSpent != null)
+                                  Text(
+                                    l.platesSpent(
+                                      plateCount(widget.account!.platesSpent!),
+                                      plateCount(widget.account!.plates!),
+                                    ),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: CupertinoColors.secondaryLabel
+                                          .resolveFrom(context),
+                                    ),
                                   ),
                                 // 서버에 못 닿았을 때만 알린다. 준비 상태를
                                 // 늘어놓던 줄은 읽을 것이 없어 뺐다.

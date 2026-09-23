@@ -1406,8 +1406,14 @@ class RecordSearch extends ChangeNotifier {
   RecordAiStatus status = RecordAiStatus.checking;
   RecordQuery? plan;
 
-  /// [quota] 는 무료 질문을 다 써서 못 물은 것이다. 실패와 문구가 다르다.
-  bool busy = false, failed = false, quota = false, _disposed = false;
+  /// [noPlates] 는 원판이 모자라 못 물은 것이다. 실패와 문구가 다르다.
+  /// [charged] 는 이번 답을 서버에서 받아 왔다는 뜻이다 — 담아 둔 답은 원판을
+  /// 쓰지 않는다.
+  bool busy = false,
+      failed = false,
+      noPlates = false,
+      charged = false,
+      _disposed = false;
   Timer? _debounce;
   int _version = 0;
   bool _generating = false;
@@ -1445,7 +1451,8 @@ class RecordSearch extends ChangeNotifier {
     if (_generating) unawaited(ai.cancel());
     plan = null;
     failed = false;
-    quota = false;
+    noPlates = false;
+    charged = false;
     busy = false;
     if (text.trim().isEmpty ||
         names.any((n) => searchKey(n) == searchKey(text))) {
@@ -1497,6 +1504,8 @@ class RecordSearch extends ChangeNotifier {
           _generating = false;
           return;
         }
+        // 서버가 답했다 = 원판이 나갔다. 풀지 못해도 쓴 것은 쓴 것이다.
+        charged = true;
         final result = decodeRecordIntent(
           intent,
           text,
@@ -1511,9 +1520,8 @@ class RecordSearch extends ChangeNotifier {
         // Generated prose cannot certify dates, quantities or arithmetic.
       } catch (e) {
         if (!_disposed && version == _version) {
-          if (e is RecordAiException &&
-              e.status == RecordAiStatus.quotaExceeded) {
-            quota = true;
+          if (e is RecordAiException && e.status == RecordAiStatus.noPlates) {
+            noPlates = true;
           } else {
             failed = true;
           }

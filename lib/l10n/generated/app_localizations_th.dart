@@ -475,7 +475,12 @@ class LTh extends L {
   String get planMonthly => 'รายเดือน';
 
   @override
-  String get planLifetime => 'ตลอดชีพ';
+  String get planYearly => 'รายปี';
+
+  @override
+  String planYearlyTrial(String price) {
+    return 'ทดลองใช้ฟรี 7 วัน จากนั้น $price ต่อปี ยกเลิกอย่างน้อย 24 ชั่วโมงก่อนสิ้นสุดช่วงทดลองจะไม่ถูกเรียกเก็บเงิน';
+  }
 
   @override
   String get planActive => 'กำลังใช้งาน';
@@ -484,7 +489,8 @@ class LTh extends L {
   String get restorePurchases => 'กู้คืนการซื้อ';
 
   @override
-  String get quotaSpent => 'คุณใช้คำถามของเดือนนี้หมดแล้ว';
+  String get inputQuotaSpent =>
+      'ใช้ตัวช่วยจดของวันนี้หมดแล้ว พิมพ์เองก็ยังบันทึกได้ตามปกติ';
 
   @override
   String gymMember(String gym, String trainer) {
@@ -679,31 +685,64 @@ class LTh extends L {
       'แตะโทรศัพท์ที่สติกเกอร์ของยิมเพื่อรับโปรแกรมจากเทรนเนอร์';
 
   @override
-  String get proTitle => 'ถามบันทึกของคุณได้ทุกเรื่อง';
+  String get proTitle => 'Pro';
 
   @override
   String get proBody =>
-      'ถามว่า “สควอทหนักสุดเท่าไร” หรือ “เดือนนี้เบนช์ดีขึ้นไหม” แล้วรับคำตอบที่คำนวณจากบันทึกของคุณ';
+      'การถามบันทึกของคุณใช้แผ่นน้ำหนัก โดยปกติประมาณ 1 แผ่นต่อคำถาม และหักเท่าที่คำตอบใช้จริง ตัวช่วยจดการออกกำลังกายและมื้ออาหารไม่ใช้แผ่นน้ำหนัก';
 
   @override
-  String proFree(int n) {
-    return 'ฟรี $n ครั้งต่อเดือน';
+  String proFree(int n, int sets) {
+    return 'ฟรี: ตัวช่วยจดวันละ $n ครั้ง · วันที่ทำครบ $sets เซ็ตได้ 1 แผ่น';
   }
 
   @override
   String proPaid(int n) {
-    return 'มีแพ็กเกจ $n ครั้งต่อวัน';
+    return 'Pro: เติมแผ่นน้ำหนักให้ถึง $n แผ่นทุกเดือน · ตัวช่วยจดไม่จำกัด';
   }
 
   @override
   String get proEverythingElseFree =>
-      'การบันทึก จับเวลา เชื่อมสุขภาพ และฟีเจอร์ยิม ใช้ได้โดยไม่ต้องมีแพ็กเกจ';
+      'การบันทึก ตัวจับเวลา การแจ้งเตือนที่ข้อมือ ออกกำลังด้วยกัน และยิม ใช้ได้ทั้งหมดโดยไม่ต้องมี Pro';
 
   @override
   String get proOwned => 'กำลังใช้งาน ขอบคุณครับ';
 
   @override
   String get proSignInFirst => 'แพ็กเกจผูกกับบัญชี กรุณาเข้าสู่ระบบก่อน';
+
+  @override
+  String platesBalance(String n) {
+    return 'เหลือแผ่นน้ำหนัก $n แผ่น';
+  }
+
+  @override
+  String platesSpent(String spent, String balance) {
+    return 'ใช้ $spent แผ่น · เหลือ $balance แผ่น';
+  }
+
+  @override
+  String noPlates(int sets) {
+    return 'แผ่นน้ำหนักไม่พอ ทุกวันที่ทำครบ $sets เซ็ตจะได้ 1 แผ่น';
+  }
+
+  @override
+  String noPlatesSignIn(int n) {
+    return 'เข้าสู่ระบบเพื่อรับ $n แผ่น';
+  }
+
+  @override
+  String platesGetPro(int n) {
+    return 'ดู Pro · เดือนละ $n แผ่น';
+  }
+
+  @override
+  String get purchaseNotConfirmed =>
+      'ยืนยันการซื้อไม่ได้ ถ้าถูกเรียกเก็บเงินแล้ว โปรดแตะ “กู้คืนการซื้อ” อีกสักครู่';
+
+  @override
+  String get purchaseOtherAccount =>
+      'การซื้อนี้ผูกกับบัญชีอื่น โปรดเข้าสู่ระบบด้วยบัญชีนั้น';
 
   @override
   String get tagSignInNeeded => 'เข้าสู่ระบบเพื่อเชื่อมต่อกับยิมของคุณ';

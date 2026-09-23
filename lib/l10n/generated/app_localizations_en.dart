@@ -478,7 +478,12 @@ class LEn extends L {
   String get planMonthly => 'Monthly';
 
   @override
-  String get planLifetime => 'Lifetime';
+  String get planYearly => 'Yearly';
+
+  @override
+  String planYearlyTrial(String price) {
+    return '7-day free trial, then $price a year. Cancel at least 24 hours before the trial ends and you won\'t be charged.';
+  }
 
   @override
   String get planActive => 'Active';
@@ -487,7 +492,8 @@ class LEn extends L {
   String get restorePurchases => 'Restore purchases';
 
   @override
-  String get quotaSpent => 'You have used this month’s questions.';
+  String get inputQuotaSpent =>
+      'You\'ve used today\'s input help. Typing it in yourself still works.';
 
   @override
   String gymMember(String gym, String trainer) {
@@ -683,25 +689,25 @@ class LEn extends L {
       'Tap your phone on the gym sticker to get the routine your trainer wrote.';
 
   @override
-  String get proTitle => 'Ask your log anything';
+  String get proTitle => 'Pro';
 
   @override
   String get proBody =>
-      'Ask things like “heaviest squat” or “is my bench up from last month?” and get answers computed from your own log.';
+      'Questions about your log use plates — usually about one per question, and only what the answer actually used. Input help for logging workouts and meals doesn\'t use plates.';
 
   @override
-  String proFree(int n) {
-    return 'Free: $n a month';
+  String proFree(int n, int sets) {
+    return 'Free: input help $n times a day · 1 plate on each day you finish $sets sets';
   }
 
   @override
   String proPaid(int n) {
-    return 'With a plan: $n a day';
+    return 'Pro: plates topped up to $n every month · unlimited input help';
   }
 
   @override
   String get proEverythingElseFree =>
-      'Logging, timers, health sync and gym features all work without a plan.';
+      'Logging, timers, wrist alerts, health sync, working out together and gyms all work without Pro.';
 
   @override
   String get proOwned => 'Active. Thank you.';
@@ -709,6 +715,39 @@ class LEn extends L {
   @override
   String get proSignInFirst =>
       'A plan belongs to an account. Please sign in first.';
+
+  @override
+  String platesBalance(String n) {
+    return '$n plates left';
+  }
+
+  @override
+  String platesSpent(String spent, String balance) {
+    return 'Used $spent plates · $balance left';
+  }
+
+  @override
+  String noPlates(int sets) {
+    return 'Not enough plates. You get 1 on each day you finish $sets sets.';
+  }
+
+  @override
+  String noPlatesSignIn(int n) {
+    return 'Sign in to get $n plates';
+  }
+
+  @override
+  String platesGetPro(int n) {
+    return 'See Pro · $n a month';
+  }
+
+  @override
+  String get purchaseNotConfirmed =>
+      'We couldn\'t confirm the purchase. If you were charged, tap “Restore purchases” in a moment.';
+
+  @override
+  String get purchaseOtherAccount =>
+      'This purchase is linked to another account. Sign in with that account.';
 
   @override
   String get tagSignInNeeded => 'Sign in to connect with your gym.';

@@ -468,7 +468,12 @@ class LJa extends L {
   String get planMonthly => '月額プラン';
 
   @override
-  String get planLifetime => '買い切り';
+  String get planYearly => '年額プラン';
+
+  @override
+  String planYearlyTrial(String price) {
+    return '7日間の無料体験後、年額$price。体験終了の24時間前までに解約すれば請求されません。';
+  }
 
   @override
   String get planActive => '利用中';
@@ -477,7 +482,7 @@ class LJa extends L {
   String get restorePurchases => '購入を復元';
 
   @override
-  String get quotaSpent => '今月分の質問を使い切りました。';
+  String get inputQuotaSpent => '今日の入力補助を使い切りました。自分で入力すればそのまま記録されます。';
 
   @override
   String gymMember(String gym, String trainer) {
@@ -670,30 +675,62 @@ class LJa extends L {
   String get settingsNoGym => 'ジムのステッカーにスマホをかざすと、トレーナーが作ったルーティンを受け取れます。';
 
   @override
-  String get proTitle => '記録に思いきり質問';
+  String get proTitle => 'Pro プラン';
 
   @override
   String get proBody =>
-      '「スクワットの最高重量」「今月のベンチは先月より伸びた？」のように聞くと、保存した記録から計算して答えます。';
+      '記録への質問はプレートを使います。1回の質問でふつう1枚ほど、答えに実際に使った分だけ減ります。運動や食事の入力補助はプレートを使いません。';
 
   @override
-  String proFree(int n) {
-    return '無料は月$n回';
+  String proFree(int n, int sets) {
+    return '無料：入力補助は1日$n回 · $setsセット達成した日にプレート1枚';
   }
 
   @override
   String proPaid(int n) {
-    return 'プランなら1日$n回';
+    return 'Pro：毎月プレートを$n枚まで補充 · 入力補助は無制限';
   }
 
   @override
-  String get proEverythingElseFree => '記録・タイマー・ヘルス連携・ジム連携はプランなしで全部使えます。';
+  String get proEverythingElseFree => '記録・タイマー・手首の通知・一緒にやる・ジムはプランなしで全部使えます。';
 
   @override
   String get proOwned => 'ご利用中です。ありがとうございます。';
 
   @override
   String get proSignInFirst => 'プランはアカウントに紐づきます。先にログインしてください。';
+
+  @override
+  String platesBalance(String n) {
+    return '残りプレート$n枚';
+  }
+
+  @override
+  String platesSpent(String spent, String balance) {
+    return 'プレート$spent枚使用 · 残り$balance枚';
+  }
+
+  @override
+  String noPlates(int sets) {
+    return 'プレートが足りません。$setsセット達成した日ごとに1枚もらえます。';
+  }
+
+  @override
+  String noPlatesSignIn(int n) {
+    return 'ログインしてプレート$n枚をもらう';
+  }
+
+  @override
+  String platesGetPro(int n) {
+    return 'Proを見る · 毎月$n枚';
+  }
+
+  @override
+  String get purchaseNotConfirmed =>
+      '購入を確認できませんでした。支払い済みなら、少し待ってから「購入を復元」を押してください。';
+
+  @override
+  String get purchaseOtherAccount => 'この購入は別のアカウントに紐づいています。そのアカウントでログインしてください。';
 
   @override
   String get tagSignInNeeded => 'ジムとつなぐにはログインが必要です。';

@@ -4,15 +4,16 @@ import 'package:flutter/foundation.dart';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 
-/// 살 수 있는 것.
+/// 살 수 있는 것. 파는 화면에 이 순서로 놓인다 — 연간이 먼저다.
 ///
 /// **id 는 스토어에 등록한 것과 글자 그대로 같아야 한다.** 애플은 번들을 앞에
 /// 붙이고 구글은 안 붙이는데, 스토어마다 따로 정한 것이라 코드가 둘 다 안다.
-enum Plan { monthly, lifetime }
+/// 평생 이용권은 더 팔지 않는다.
+enum Plan { yearly, monthly }
 
 const _ids = <Plan, ({String apple, String google})>{
+  Plan.yearly: (apple: 'com.tskim.workoutlog.yearly', google: 'yearly'),
   Plan.monthly: (apple: 'com.tskim.workoutlog.monthly', google: 'monthly'),
-  Plan.lifetime: (apple: 'com.tskim.workoutlog.lifetime', google: 'lifetime'),
 };
 
 String storeId(Plan plan, {required bool apple}) =>
@@ -96,7 +97,7 @@ class Purchases {
     final detail = products[plan];
     if (detail == null) return;
     final param = PurchaseParam(productDetails: detail);
-    // 평생은 비소모성이라 non-consumable 로 산다. 구독도 같은 문을 쓴다.
+    // in_app_purchase 는 구독도 non-consumable 문으로 산다.
     await _store.buyNonConsumable(purchaseParam: param);
   }
 

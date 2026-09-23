@@ -478,7 +478,12 @@ class LEs extends L {
   String get planMonthly => 'Mensual';
 
   @override
-  String get planLifetime => 'De por vida';
+  String get planYearly => 'Anual';
+
+  @override
+  String planYearlyTrial(String price) {
+    return 'Prueba gratis de 7 días y luego $price al año. Cancela al menos 24 horas antes de que termine la prueba y no se te cobrará.';
+  }
 
   @override
   String get planActive => 'Activo';
@@ -487,7 +492,8 @@ class LEs extends L {
   String get restorePurchases => 'Restaurar compras';
 
   @override
-  String get quotaSpent => 'Has usado las preguntas de este mes.';
+  String get inputQuotaSpent =>
+      'Ya usaste la ayuda para anotar de hoy. Si lo escribes tú, se guarda igual.';
 
   @override
   String gymMember(String gym, String trainer) {
@@ -683,25 +689,25 @@ class LEs extends L {
       'Acerca tu teléfono a la pegatina del gimnasio para recibir la rutina de tu entrenador.';
 
   @override
-  String get proTitle => 'Pregunta lo que quieras a tu registro';
+  String get proTitle => 'Pro';
 
   @override
   String get proBody =>
-      'Pregunta “mi sentadilla más pesada” o “¿mejoré en press de banca?” y obtén respuestas calculadas desde tu registro.';
+      'Las preguntas sobre tu registro usan discos: normalmente uno por pregunta, y solo lo que la respuesta usó de verdad. La ayuda para anotar entrenos y comidas no usa discos.';
 
   @override
-  String proFree(int n) {
-    return 'Gratis: $n al mes';
+  String proFree(int n, int sets) {
+    return 'Gratis: ayuda para anotar $n veces al día · 1 disco cada día que completes $sets series';
   }
 
   @override
   String proPaid(int n) {
-    return 'Con plan: $n al día';
+    return 'Pro: discos recargados hasta $n cada mes · ayuda para anotar ilimitada';
   }
 
   @override
   String get proEverythingElseFree =>
-      'Registrar, temporizadores, salud y funciones del gimnasio funcionan sin plan.';
+      'El registro, los temporizadores, los avisos en la muñeca, entrenar juntos y los gimnasios funcionan sin Pro.';
 
   @override
   String get proOwned => 'Activo. Gracias.';
@@ -709,6 +715,39 @@ class LEs extends L {
   @override
   String get proSignInFirst =>
       'El plan va ligado a una cuenta. Inicia sesión primero.';
+
+  @override
+  String platesBalance(String n) {
+    return 'Te quedan $n discos';
+  }
+
+  @override
+  String platesSpent(String spent, String balance) {
+    return 'Usaste $spent discos · quedan $balance';
+  }
+
+  @override
+  String noPlates(int sets) {
+    return 'No tienes discos suficientes. Recibes 1 cada día que completas $sets series.';
+  }
+
+  @override
+  String noPlatesSignIn(int n) {
+    return 'Inicia sesión y recibe $n discos';
+  }
+
+  @override
+  String platesGetPro(int n) {
+    return 'Ver Pro · $n al mes';
+  }
+
+  @override
+  String get purchaseNotConfirmed =>
+      'No pudimos confirmar la compra. Si se te cobró, toca «Restaurar compras» en un momento.';
+
+  @override
+  String get purchaseOtherAccount =>
+      'Esta compra está vinculada a otra cuenta. Inicia sesión con esa cuenta.';
 
   @override
   String get tagSignInNeeded => 'Inicia sesión para conectar con tu gimnasio.';

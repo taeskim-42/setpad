@@ -841,11 +841,17 @@ abstract class L {
   /// **'월 이용권'**
   String get planMonthly;
 
-  /// No description provided for @planLifetime.
+  /// No description provided for @planYearly.
   ///
   /// In ko, this message translates to:
-  /// **'평생 이용권'**
-  String get planLifetime;
+  /// **'연 이용권'**
+  String get planYearly;
+
+  /// 연간 이용권 단추 밑의 체험 안내. price 는 스토어가 준 값.
+  ///
+  /// In ko, this message translates to:
+  /// **'7일 무료 체험 뒤 연 {price}. 체험이 끝나기 24시간 전까지 해지하면 청구되지 않습니다.'**
+  String planYearlyTrial(String price);
 
   /// No description provided for @planActive.
   ///
@@ -859,11 +865,11 @@ abstract class L {
   /// **'구매 복원'**
   String get restorePurchases;
 
-  /// No description provided for @quotaSpent.
+  /// No description provided for @inputQuotaSpent.
   ///
   /// In ko, this message translates to:
-  /// **'이번 달 질문을 다 썼어요.'**
-  String get quotaSpent;
+  /// **'오늘 적기 도움을 다 썼어요. 직접 적으면 그대로 기록돼요.'**
+  String get inputQuotaSpent;
 
   /// 다니는 체육관과 담당 트레이너.
   ///
@@ -1192,31 +1198,31 @@ abstract class L {
   /// No description provided for @proTitle.
   ///
   /// In ko, this message translates to:
-  /// **'기록에 마음껏 물어보기'**
+  /// **'Pro 이용권'**
   String get proTitle;
 
   /// No description provided for @proBody.
   ///
   /// In ko, this message translates to:
-  /// **'“스쿼트 최대 무게”, “이번 달 벤치는 지난달보다 늘었어?” 처럼 물으면 저장된 기록으로 계산해 답합니다.'**
+  /// **'기록에 묻는 질문은 원판을 씁니다. 질문 하나에 보통 1장쯤 들고, 답에 실제로 쓴 만큼만 빠집니다. 운동과 식단을 적을 때 돕는 적기 도움은 원판을 쓰지 않습니다.'**
   String get proBody;
 
   /// No description provided for @proFree.
   ///
   /// In ko, this message translates to:
-  /// **'무료 한 달 {n}번'**
-  String proFree(int n);
+  /// **'무료: 적기 도움 하루 {n}번 · 세트 {sets}개를 채운 날 원판 1장'**
+  String proFree(int n, int sets);
 
   /// No description provided for @proPaid.
   ///
   /// In ko, this message translates to:
-  /// **'이용권 하루 {n}번'**
+  /// **'Pro: 매달 원판 {n}장까지 채움 · 적기 도움 무제한'**
   String proPaid(int n);
 
   /// No description provided for @proEverythingElseFree.
   ///
   /// In ko, this message translates to:
-  /// **'기록·타이머·건강 앱 연동·체육관 연결은 이용권 없이도 전부 됩니다.'**
+  /// **'기록·타이머·손목 알림·건강 앱 연동·같이 하기·체육관은 이용권 없이도 전부 됩니다.'**
   String get proEverythingElseFree;
 
   /// No description provided for @proOwned.
@@ -1230,6 +1236,48 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'이용권은 계정에 붙습니다. 먼저 로그인해 주세요.'**
   String get proSignInFirst;
+
+  /// 원판 잔액. n 은 이미 꼴을 맞춘 수(1.5, 3).
+  ///
+  /// In ko, this message translates to:
+  /// **'남은 원판 {n}장'**
+  String platesBalance(String n);
+
+  /// No description provided for @platesSpent.
+  ///
+  /// In ko, this message translates to:
+  /// **'원판 {spent}장 사용 · 남은 원판 {balance}장'**
+  String platesSpent(String spent, String balance);
+
+  /// No description provided for @noPlates.
+  ///
+  /// In ko, this message translates to:
+  /// **'원판이 모자라요. 세트 {sets}개를 채운 날마다 1장씩 받아요.'**
+  String noPlates(int sets);
+
+  /// No description provided for @noPlatesSignIn.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인하고 원판 {n}장 받기'**
+  String noPlatesSignIn(int n);
+
+  /// No description provided for @platesGetPro.
+  ///
+  /// In ko, this message translates to:
+  /// **'Pro 보기 · 매달 {n}장'**
+  String platesGetPro(int n);
+
+  /// No description provided for @purchaseNotConfirmed.
+  ///
+  /// In ko, this message translates to:
+  /// **'구매를 확인하지 못했습니다. 결제가 됐다면 잠시 뒤 ‘구매 복원’을 눌러 주세요.'**
+  String get purchaseNotConfirmed;
+
+  /// No description provided for @purchaseOtherAccount.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 구매는 다른 계정에 연결돼 있습니다. 그 계정으로 로그인해 주세요.'**
+  String get purchaseOtherAccount;
 
   /// No description provided for @tagSignInNeeded.
   ///

@@ -657,6 +657,9 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   bool _aiBusy = false;
   bool _aiFailed = false;
+
+  /// 실패가 오늘 적기 도움을 다 쓴 탓인가. 문구만 다르고 길은 같다.
+  bool _aiQuota = false;
   int _aiRequest = 0;
   String? _locale;
   String? _submittedText;
@@ -1062,11 +1065,14 @@ class _RoutineEditorState extends State<RoutineEditor>
         learnAs: setup.name,
       );
       _focus.requestFocus();
-    } catch (_) {
+    } catch (e) {
       if (mounted && request == _aiRequest) {
         setState(() {
           _aiBusy = false;
           _aiFailed = true;
+          _aiQuota =
+              e is RecordAiException &&
+              e.status == RecordAiStatus.quotaExceeded;
         });
         _focus.requestFocus();
       }
@@ -1922,7 +1928,9 @@ class _RoutineEditorState extends State<RoutineEditor>
                                 ),
                               if (_aiFailed) ...[
                                 Text(
-                                  L.of(context).aiFailure,
+                                  _aiQuota
+                                      ? L.of(context).inputQuotaSpent
+                                      : L.of(context).aiFailure,
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: CupertinoColors.secondaryLabel

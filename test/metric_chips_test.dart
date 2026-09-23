@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:setpad/record_ai.dart';
+import 'package:setpad/account.dart' show dailyPlateSets;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/answer_card.dart';
@@ -472,18 +473,18 @@ void main() {
       expect(find.text(l.noSearchResults), findsNothing);
     });
 
-    testWidgets('무료 질문을 다 쓰면 그렇다고 말하고, 칩과 목록은 그대로다', (tester) async {
+    testWidgets('원판이 모자라면 그렇다고 말하고, 칩과 목록은 그대로다', (tester) async {
       await pump(
         tester,
         records: pair,
         ai: RecordAi(
           respond: (_, _) async =>
-              throw const RecordAiException(RecordAiStatus.quotaExceeded),
+              throw const RecordAiException(RecordAiStatus.noPlates),
         ),
       );
       await tester.enterText(find.byType(CupertinoSearchTextField), question);
       await tester.pumpAndSettle();
-      expect(find.text(l.quotaSpent), findsOneWidget);
+      expect(find.text(l.noPlates(dailyPlateSets)), findsOneWidget);
       expect(find.text(l.queryFailed), findsNothing);
       expect(find.text(l.noteCount(4)), findsOneWidget);
       await tester.tap(find.widgetWithText(SuggestionChip, '비교'));

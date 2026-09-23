@@ -349,6 +349,15 @@ class NotesStore extends ChangeNotifier {
   String _deviceId = '';
   String get deviceId => _deviceId;
 
+  /// 하루 원판을 마지막으로 받은 날(한국 날짜). 같은 날 두 번 묻지 않는다.
+  String _platesDay = '';
+  String get platesDay => _platesDay;
+
+  void setPlatesDay(String day) {
+    _platesDay = day;
+    _scheduleSave();
+  }
+
   /// 최근에 고친 것이 위로. 메모 앱과 같은 순서다.
   List<Note> get notes => List.unmodifiable(_notes);
 
@@ -368,6 +377,7 @@ class NotesStore extends ChangeNotifier {
           _countAloud = data['countAloud'] == true;
           final saved = data['deviceId'];
           if (saved is String && saved.length >= 16) _deviceId = saved;
+          if (data['platesDay'] case final String day) _platesDay = day;
           _exerciseHistory
             ..clear()
             ..addAll(
@@ -429,6 +439,7 @@ class NotesStore extends ChangeNotifier {
       'weightUnit': _weightUnit,
       'countAloud': _countAloud,
       'deviceId': _deviceId,
+      'platesDay': _platesDay,
       'exercises': _exerciseHistory,
       'forgottenExercises': _forgottenExercises.toList(),
     });

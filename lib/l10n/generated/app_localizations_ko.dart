@@ -470,7 +470,12 @@ class LKo extends L {
   String get planMonthly => '월 이용권';
 
   @override
-  String get planLifetime => '평생 이용권';
+  String get planYearly => '연 이용권';
+
+  @override
+  String planYearlyTrial(String price) {
+    return '7일 무료 체험 뒤 연 $price. 체험이 끝나기 24시간 전까지 해지하면 청구되지 않습니다.';
+  }
 
   @override
   String get planActive => '이용 중';
@@ -479,7 +484,7 @@ class LKo extends L {
   String get restorePurchases => '구매 복원';
 
   @override
-  String get quotaSpent => '이번 달 질문을 다 썼어요.';
+  String get inputQuotaSpent => '오늘 적기 도움을 다 썼어요. 직접 적으면 그대로 기록돼요.';
 
   @override
   String gymMember(String gym, String trainer) {
@@ -672,30 +677,63 @@ class LKo extends L {
   String get settingsNoGym => '헬스장 스티커에 폰을 대면 트레이너가 짠 루틴을 여기서 받습니다.';
 
   @override
-  String get proTitle => '기록에 마음껏 물어보기';
+  String get proTitle => 'Pro 이용권';
 
   @override
   String get proBody =>
-      '“스쿼트 최대 무게”, “이번 달 벤치는 지난달보다 늘었어?” 처럼 물으면 저장된 기록으로 계산해 답합니다.';
+      '기록에 묻는 질문은 원판을 씁니다. 질문 하나에 보통 1장쯤 들고, 답에 실제로 쓴 만큼만 빠집니다. 운동과 식단을 적을 때 돕는 적기 도움은 원판을 쓰지 않습니다.';
 
   @override
-  String proFree(int n) {
-    return '무료 한 달 $n번';
+  String proFree(int n, int sets) {
+    return '무료: 적기 도움 하루 $n번 · 세트 $sets개를 채운 날 원판 1장';
   }
 
   @override
   String proPaid(int n) {
-    return '이용권 하루 $n번';
+    return 'Pro: 매달 원판 $n장까지 채움 · 적기 도움 무제한';
   }
 
   @override
-  String get proEverythingElseFree => '기록·타이머·건강 앱 연동·체육관 연결은 이용권 없이도 전부 됩니다.';
+  String get proEverythingElseFree =>
+      '기록·타이머·손목 알림·건강 앱 연동·같이 하기·체육관은 이용권 없이도 전부 됩니다.';
 
   @override
   String get proOwned => '이용 중입니다. 고맙습니다.';
 
   @override
   String get proSignInFirst => '이용권은 계정에 붙습니다. 먼저 로그인해 주세요.';
+
+  @override
+  String platesBalance(String n) {
+    return '남은 원판 $n장';
+  }
+
+  @override
+  String platesSpent(String spent, String balance) {
+    return '원판 $spent장 사용 · 남은 원판 $balance장';
+  }
+
+  @override
+  String noPlates(int sets) {
+    return '원판이 모자라요. 세트 $sets개를 채운 날마다 1장씩 받아요.';
+  }
+
+  @override
+  String noPlatesSignIn(int n) {
+    return '로그인하고 원판 $n장 받기';
+  }
+
+  @override
+  String platesGetPro(int n) {
+    return 'Pro 보기 · 매달 $n장';
+  }
+
+  @override
+  String get purchaseNotConfirmed =>
+      '구매를 확인하지 못했습니다. 결제가 됐다면 잠시 뒤 ‘구매 복원’을 눌러 주세요.';
+
+  @override
+  String get purchaseOtherAccount => '이 구매는 다른 계정에 연결돼 있습니다. 그 계정으로 로그인해 주세요.';
 
   @override
   String get tagSignInNeeded => '헬스장과 연결하려면 로그인이 필요합니다.';

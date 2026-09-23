@@ -111,8 +111,8 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   late final NotesStore _store = widget.store ?? NotesStore();
   final _health = HealthLink();
 
-  /// 서버에 묻는 쪽. 기기 id 는 store 가 처음 켤 때 만들므로 그 뒤에 읽는다.
-  RecordAi get _ai => RecordAi(deviceId: _store.deviceId);
+  /// 서버에 묻는 쪽. 로그인했으면 계정으로, 아니면 이 기기로 묻는다.
+  RecordAi get _ai => _account.ai;
   bool _ready = false;
 
   @override
@@ -138,6 +138,8 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   Future<void> _boot() async {
     await _store.load();
     if (!mounted) return;
+    // 세트를 끝낼 때마다 저장소가 알린다. 오늘 문턱을 넘은 첫 순간에 원판을 받는다.
+    _store.addListener(_claimDaily);
     setState(() => _ready = true);
     // 첫 프레임이 그려진 뒤에 밀어 넣어야 목록이 뒤에 남는다.
     WidgetsBinding.instance.addPostFrameCallback((_) => _open(_todayOrNew()));
@@ -276,7 +278,11 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   }
 
   /// 로그인과 결제. **없어도 앱은 그대로 돈다** — 켜지 않은 사람은 그냥 쓴다.
-  late final _account = Account()..start().then((_) => _sendPendingWorkouts());
+  /// 기기 id 는 store 가 처음 켤 때 만들므로 부를 때 읽는다.
+  late final _account = Account(deviceId: () => _store.deviceId)
+    ..start().then((_) => _sendPendingWorkouts());
+
+  void _claimDaily() => unawaited(_account.claimDaily(_store));
 
   /// 스티커를 댔을 때. 앱이 닫혀 있었어도 열리면서 여기로 온다.
   StreamSubscription<Uri>? _tags;
@@ -522,6 +528,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _tags?.cancel();
     _nearbyPlans?.cancel();
+    _store.removeListener(_claimDaily);
     _account.dispose();
     _store.flush();
     if (widget.store == null) _store.dispose();
@@ -759,6 +766,12 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     final MealEstimate estimate;
     try {
       estimate = await widget.ai.estimateMealText(entry.text!, locale: locale);
+    } on RecordAiException catch (e) {
+      // 오늘 몫을 다 썼으면 그렇다고 말한다. 다른 실패는 조용히 미상으로 둔다.
+      if (e.status == RecordAiStatus.quotaExceeded && mounted) {
+        _documentHeaderKey.currentState?.tell(L.of(context).inputQuotaSpent);
+      }
+      return;
     } catch (_) {
       return;
     }
@@ -1172,6 +1185,9 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
   // 식단은 아래 입력 줄에서도 저장된다. 저장소가 바뀌면 다시 그린다.
   void _onStore() => setState(() {});
 
+  /// 식단 글의 어림이 막힌 이유를 사진 쪽과 같은 자리에 적는다.
+  void tell(String message) => setState(() => _error = message);
+
   @override
   void initState() {
     super.initState();
@@ -1253,8 +1269,10 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
         );
       }
       _changed();
-    } on RecordAiException {
-      _error = l.mealFailed;
+    } on RecordAiException catch (e) {
+      _error = e.status == RecordAiStatus.quotaExceeded
+          ? l.inputQuotaSpent
+          : l.mealFailed;
     } catch (_) {
       _error = l.mealFailed;
     }

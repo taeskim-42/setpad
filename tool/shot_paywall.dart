@@ -24,13 +24,8 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   final purchases = Purchases()
     ..products = {
+      Plan.yearly: _p('com.tskim.workoutlog.yearly', '연 이용권', '₩29,000', 29000),
       Plan.monthly: _p('com.tskim.workoutlog.monthly', '월 이용권', '₩4,900', 4900),
-      Plan.lifetime: _p(
-        'com.tskim.workoutlog.lifetime',
-        '평생 이용권',
-        '₩49,000',
-        49000,
-      ),
     };
   final account = Account(purchases: purchases)..token = 'screenshot';
 

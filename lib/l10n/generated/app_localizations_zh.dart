@@ -463,7 +463,12 @@ class LZh extends L {
   String get planMonthly => '月度会员';
 
   @override
-  String get planLifetime => '永久会员';
+  String get planYearly => '年度会员';
+
+  @override
+  String planYearlyTrial(String price) {
+    return '免费试用 7 天，之后每年 $price。在试用结束前至少 24 小时取消，就不会扣费。';
+  }
 
   @override
   String get planActive => '使用中';
@@ -472,7 +477,7 @@ class LZh extends L {
   String get restorePurchases => '恢复购买';
 
   @override
-  String get quotaSpent => '本月的提问次数已用完。';
+  String get inputQuotaSpent => '今天的输入帮助已用完。自己输入照样会记录。';
 
   @override
   String gymMember(String gym, String trainer) {
@@ -665,29 +670,61 @@ class LZh extends L {
   String get settingsNoGym => '用手机碰一下健身房的贴纸，就能收到教练写的训练计划。';
 
   @override
-  String get proTitle => '尽情向记录提问';
+  String get proTitle => 'Pro 会员';
 
   @override
-  String get proBody => '问“深蹲最大重量”或“这个月卧推比上月进步了吗”，从你自己的记录里算出答案。';
+  String get proBody =>
+      '向记录提问会用掉杠铃片——通常每个问题约 1 片，只扣回答实际用掉的量。记录训练和饮食时的输入帮助不用杠铃片。';
 
   @override
-  String proFree(int n) {
-    return '免费每月 $n 次';
+  String proFree(int n, int sets) {
+    return '免费：输入帮助每天 $n 次 · 完成 $sets 组的当天送 1 片';
   }
 
   @override
   String proPaid(int n) {
-    return '订阅后每天 $n 次';
+    return 'Pro：每月补满到 $n 片 · 输入帮助不限次';
   }
 
   @override
-  String get proEverythingElseFree => '记录、计时、健康同步和健身房功能，不订阅也全部可用。';
+  String get proEverythingElseFree => '记录、计时、手腕提醒、一起训练和健身房功能，不订阅也全部可用。';
 
   @override
   String get proOwned => '已开通，谢谢。';
 
   @override
   String get proSignInFirst => '订阅绑定账户，请先登录。';
+
+  @override
+  String platesBalance(String n) {
+    return '剩余杠铃片 $n 片';
+  }
+
+  @override
+  String platesSpent(String spent, String balance) {
+    return '用了 $spent 片 · 剩余 $balance 片';
+  }
+
+  @override
+  String noPlates(int sets) {
+    return '杠铃片不够了。每天完成 $sets 组可得 1 片。';
+  }
+
+  @override
+  String noPlatesSignIn(int n) {
+    return '登录领取 $n 片';
+  }
+
+  @override
+  String platesGetPro(int n) {
+    return '查看 Pro · 每月 $n 片';
+  }
+
+  @override
+  String get purchaseNotConfirmed => '无法确认这次购买。如果已扣款，请稍后点“恢复购买”。';
+
+  @override
+  String get purchaseOtherAccount => '这笔购买已关联到另一个账号。请用那个账号登录。';
 
   @override
   String get tagSignInNeeded => '登录后即可与健身房连接。';
@@ -1786,7 +1823,12 @@ class LZhHans extends LZh {
   String get planMonthly => '月度会员';
 
   @override
-  String get planLifetime => '永久会员';
+  String get planYearly => '年度会员';
+
+  @override
+  String planYearlyTrial(String price) {
+    return '免费试用 7 天，之后每年 $price。在试用结束前至少 24 小时取消，就不会扣费。';
+  }
 
   @override
   String get planActive => '使用中';
@@ -1795,7 +1837,7 @@ class LZhHans extends LZh {
   String get restorePurchases => '恢复购买';
 
   @override
-  String get quotaSpent => '本月的提问次数已用完。';
+  String get inputQuotaSpent => '今天的输入帮助已用完。自己输入照样会记录。';
 
   @override
   String gymMember(String gym, String trainer) {
@@ -1988,29 +2030,61 @@ class LZhHans extends LZh {
   String get settingsNoGym => '用手机碰一下健身房的贴纸，就能收到教练写的训练计划。';
 
   @override
-  String get proTitle => '尽情向记录提问';
+  String get proTitle => 'Pro 会员';
 
   @override
-  String get proBody => '问“深蹲最大重量”或“这个月卧推比上月进步了吗”，从你自己的记录里算出答案。';
+  String get proBody =>
+      '向记录提问会用掉杠铃片——通常每个问题约 1 片，只扣回答实际用掉的量。记录训练和饮食时的输入帮助不用杠铃片。';
 
   @override
-  String proFree(int n) {
-    return '免费每月 $n 次';
+  String proFree(int n, int sets) {
+    return '免费：输入帮助每天 $n 次 · 完成 $sets 组的当天送 1 片';
   }
 
   @override
   String proPaid(int n) {
-    return '订阅后每天 $n 次';
+    return 'Pro：每月补满到 $n 片 · 输入帮助不限次';
   }
 
   @override
-  String get proEverythingElseFree => '记录、计时、健康同步和健身房功能，不订阅也全部可用。';
+  String get proEverythingElseFree => '记录、计时、手腕提醒、一起训练和健身房功能，不订阅也全部可用。';
 
   @override
   String get proOwned => '已开通，谢谢。';
 
   @override
   String get proSignInFirst => '订阅绑定账户，请先登录。';
+
+  @override
+  String platesBalance(String n) {
+    return '剩余杠铃片 $n 片';
+  }
+
+  @override
+  String platesSpent(String spent, String balance) {
+    return '用了 $spent 片 · 剩余 $balance 片';
+  }
+
+  @override
+  String noPlates(int sets) {
+    return '杠铃片不够了。每天完成 $sets 组可得 1 片。';
+  }
+
+  @override
+  String noPlatesSignIn(int n) {
+    return '登录领取 $n 片';
+  }
+
+  @override
+  String platesGetPro(int n) {
+    return '查看 Pro · 每月 $n 片';
+  }
+
+  @override
+  String get purchaseNotConfirmed => '无法确认这次购买。如果已扣款，请稍后点“恢复购买”。';
+
+  @override
+  String get purchaseOtherAccount => '这笔购买已关联到另一个账号。请用那个账号登录。';
 
   @override
   String get tagSignInNeeded => '登录后即可与健身房连接。';
@@ -3109,7 +3183,12 @@ class LZhHant extends LZh {
   String get planMonthly => '月費方案';
 
   @override
-  String get planLifetime => '永久方案';
+  String get planYearly => '年費方案';
+
+  @override
+  String planYearlyTrial(String price) {
+    return '免費試用 7 天，之後每年 $price。在試用結束前至少 24 小時取消，就不會扣款。';
+  }
 
   @override
   String get planActive => '使用中';
@@ -3118,7 +3197,7 @@ class LZhHant extends LZh {
   String get restorePurchases => '回復購買';
 
   @override
-  String get quotaSpent => '本月的提問次數已用完。';
+  String get inputQuotaSpent => '今天的輸入幫助已用完。自己輸入照樣會記錄。';
 
   @override
   String gymMember(String gym, String trainer) {
@@ -3311,29 +3390,60 @@ class LZhHant extends LZh {
   String get settingsNoGym => '用手機碰一下健身房的貼紙，就能收到教練寫的訓練計畫。';
 
   @override
-  String get proTitle => '盡情向記錄提問';
+  String get proTitle => 'Pro 方案';
 
   @override
-  String get proBody => '問「深蹲最大重量」或「這個月臥推比上月進步了嗎」，從你自己的記錄裡算出答案。';
+  String get proBody => '向紀錄提問會用掉槓片——通常每個問題約 1 片，只扣回答實際用掉的量。記錄訓練和飲食時的輸入幫助不用槓片。';
 
   @override
-  String proFree(int n) {
-    return '免費每月 $n 次';
+  String proFree(int n, int sets) {
+    return '免費：輸入幫助每天 $n 次 · 完成 $sets 組的當天送 1 片';
   }
 
   @override
   String proPaid(int n) {
-    return '訂閱後每天 $n 次';
+    return 'Pro：每月補滿到 $n 片 · 輸入幫助不限次';
   }
 
   @override
-  String get proEverythingElseFree => '記錄、計時、健康同步和健身房功能，不訂閱也全部可用。';
+  String get proEverythingElseFree => '記錄、計時、手腕提醒、一起訓練和健身房功能，不訂閱也全部可用。';
 
   @override
   String get proOwned => '已開通，謝謝。';
 
   @override
   String get proSignInFirst => '訂閱綁定帳戶，請先登入。';
+
+  @override
+  String platesBalance(String n) {
+    return '剩餘槓片 $n 片';
+  }
+
+  @override
+  String platesSpent(String spent, String balance) {
+    return '用了 $spent 片 · 剩餘 $balance 片';
+  }
+
+  @override
+  String noPlates(int sets) {
+    return '槓片不夠了。每天完成 $sets 組可得 1 片。';
+  }
+
+  @override
+  String noPlatesSignIn(int n) {
+    return '登入領取 $n 片';
+  }
+
+  @override
+  String platesGetPro(int n) {
+    return '查看 Pro · 每月 $n 片';
+  }
+
+  @override
+  String get purchaseNotConfirmed => '無法確認這次購買。如果已扣款，請稍後點「回復購買」。';
+
+  @override
+  String get purchaseOtherAccount => '這筆購買已連結到另一個帳號。請用那個帳號登入。';
 
   @override
   String get tagSignInNeeded => '登入後即可與健身房連接。';

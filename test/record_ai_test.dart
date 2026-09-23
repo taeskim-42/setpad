@@ -299,7 +299,7 @@ void main() {
     },
   );
 
-  test('429 중 IP 하루 한도는 이번 달 한도가 아니다', () async {
+  test('429 중 IP 하루 한도는 적기 도움 한도가 아니다', () async {
     Future<RecordAiStatus?> statusOf(Map<String, Object?> body) async {
       final ai = RecordAi(
         endpoint: 'https://example.com',
@@ -319,7 +319,7 @@ void main() {
     }
 
     expect(
-      await statusOf({'error': 'quotaExceeded', 'limit': 30}),
+      await statusOf({'error': 'quotaExceeded', 'scope': 'input', 'limit': 10}),
       RecordAiStatus.quotaExceeded,
     );
     expect(

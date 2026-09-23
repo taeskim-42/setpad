@@ -24,8 +24,9 @@ http.Client _server({required bool selling, String? plan}) =>
     });
 
 Future<Account> _account({required bool selling, String? plan}) async {
-  final a = Account(client: _server(selling: selling, plan: plan))
-    ..token = 'test';
+  final a = Account(
+    client: _server(selling: selling, plan: plan),
+  )..token = 'test';
   await a.refreshForTest();
   return a;
 }
@@ -47,7 +48,7 @@ void main() {
     final a = await _account(selling: false);
     expect(a.selling, isFalse);
     await _open(tester, a);
-    expect(find.text('기록에 마음껏 물어보기'), findsNothing);
+    expect(find.text('Pro 이용권'), findsNothing);
     expect(find.text('구매 복원'), findsNothing);
   });
 
@@ -55,16 +56,16 @@ void main() {
     final a = await _account(selling: true);
     expect(a.selling, isTrue);
     await _open(tester, a);
-    expect(find.text('기록에 마음껏 물어보기'), findsOneWidget);
+    expect(find.text('Pro 이용권'), findsOneWidget);
     expect(find.text('구매 복원'), findsOneWidget);
   });
 
   testWidgets('안 팔아도 이미 산 사람에게는 보인다', (tester) async {
-    final a = await _account(selling: false, plan: 'lifetime');
+    final a = await _account(selling: false, plan: 'yearly');
     expect(a.paid, isTrue);
     await _open(tester, a);
     // 무엇을 샀는지 확인할 자리는 팔기를 멈춰도 남아야 한다.
-    expect(find.text('기록에 마음껏 물어보기'), findsOneWidget);
+    expect(find.text('Pro 이용권'), findsOneWidget);
   });
 
   testWidgets('서버에 못 닿으면 팔지 않는다', (tester) async {

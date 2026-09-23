@@ -934,7 +934,7 @@ void main() {
       expect(received, ['스쿼트 최대 무게', '스쿼트 PR']);
     });
 
-    test('서버에는 contract 2 로 묻고, 429 는 한도 소진이다', () async {
+    test('서버에는 contract 2 로 묻고, 402 는 원판 부족이다', () async {
       final bodies = <Map>[];
       var status = 200;
       final ai = RecordAi(
@@ -954,12 +954,15 @@ void main() {
       );
       expect(await ai.queryIntent('스쿼트 최고', 'ko', names, unit: 'kg'), squat());
       expect(bodies.single['contract'], 2);
-      status = 429;
+      status = 402;
       final search = RecordSearch(ai, cache: QueryCache(directory: _temp()));
       await search.refresh('ko');
       search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
       await pumpEventQueue();
-      expect((search.quota, search.failed, search.plan), (true, false, null));
+      expect(
+        (search.noPlates, search.failed, search.plan),
+        (true, false, null),
+      );
       search.dispose();
     });
 

@@ -9,9 +9,33 @@ import 'api_route.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'gym.dart';
+import 'notes.dart';
 import 'purchases.dart';
 import 'record_ai.dart';
 import 'sign_in.dart';
+
+/// 서버가 구매를 받지 않은 이유. 화면이 사람에게 그대로 말한다.
+enum PurchaseProblem {
+  /// 스토어에 확인되지 않았거나 서버에 닿지 못했다. 복원으로 다시 보낼 수 있다.
+  notConfirmed,
+
+  /// 이 구매는 이미 다른 계정에 붙어 있다.
+  otherAccount,
+}
+
+/// 원판의 하루는 한국 시각으로 센다 — 서버와 같은 날이어야 한 번이 한 번이다.
+String kstDay(DateTime t) =>
+    t.toUtc().add(const Duration(hours: 9)).toIso8601String().substring(0, 10);
+
+/// 원판 수를 사람이 읽는 글자로. 1.50 이 아니라 1.5, 3.00 이 아니라 3.
+String plateCount(double n) =>
+    n.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '');
+
+/// 하루 원판 한 장을 받는 문턱. 서버도 같은 수를 본다.
+const dailyPlateSets = 10;
+
+/// 계정을 처음 만들면 받는 원판. 서버의 환영 원판과 같은 수여야 한다.
+const accountWelcomePlates = 5;
 
 /// 로그인과 결제를 한자리에서 든다.
 ///
@@ -24,6 +48,7 @@ class Account extends ChangeNotifier {
     Purchases? purchases,
     this.client,
     this.storageDir,
+    this.deviceId,
     Future<Credential?> Function()? signInWith,
   }) : _purchases = purchases ?? Purchases(),
        _signInWith = signInWith ?? signInWithPlatform;
@@ -36,6 +61,9 @@ class Account extends ChangeNotifier {
 
   /// 테스트가 쓸 임시 폴더. 비어 있으면 앱 문서함에 쓴다.
   final Directory? storageDir;
+
+  /// 이 기기의 id. 기기 id 는 저장소를 읽은 뒤에 생기므로 부를 때 읽는다.
+  final String Function()? deviceId;
 
   /// 제공자 로그인 창을 여는 일. 테스트는 진짜 애플 창을 열 수 없다.
   final Future<Credential?> Function() _signInWith;
@@ -61,6 +89,70 @@ class Account extends ChangeNotifier {
   /// 체육관에서 온 것들을 가져오는 문. 로그인하지 않았으면 아무것도 안 온다.
   GymLink get link => GymLink(endpoint: endpoint, token: token, client: client);
 
+  /// AI 에 묻는 문. 로그인했으면 계정의 지갑, 아니면 이 기기의 지갑을 쓴다.
+  RecordAi get ai => RecordAi(
+    endpoint: endpoint,
+    deviceId: deviceId?.call() ?? '',
+    client: client,
+    accountToken: () => token,
+    onPlates: _setPlates,
+  );
+
+  /// 남은 원판. 서버가 알려 준 값이고, 모르면 null.
+  double? plates;
+
+  /// 방금 기록 질문 하나에 쓴 원판. 지갑만 다시 읽었으면 null.
+  double? platesSpent;
+
+  /// 서버가 방금 받은 구매를 거절했다. 다음 구매를 누르면 지운다.
+  PurchaseProblem? purchaseProblem;
+
+  void _setPlates(double balance, double? spent) {
+    plates = balance;
+    platesSpent = spent;
+    notifyListeners();
+  }
+
+  /// 원판을 다시 읽는다. 로그인이 바뀌면 지갑도 바뀐다.
+  Future<void> refreshPlates() => ai.plates();
+
+  bool _claiming = false;
+  DateTime? _claimFailedAt;
+
+  /// 오늘 끝낸 세트가 [dailyPlateSets] 개를 넘으면 원판 한 장을 받는다.
+  /// 서버가 받으면 그날을 기억해 다시 묻지 않는다.
+  ///
+  /// 기록은 이 기기에만 있어 서버는 세트를 셀 수 없다. 앱이 센 수를 보내고,
+  /// 서버는 한 사람에게 하루 한 장만 준다.
+  Future<void> claimDaily(NotesStore store, {DateTime? now}) async {
+    final at = now ?? DateTime.now();
+    final day = kstDay(at);
+    if (_claiming || store.platesDay == day) return;
+    // 못 보냈으면 잠시 쉰다. 세트를 칠 때마다 막힌 길을 두드리지 않는다.
+    final failed = _claimFailedAt;
+    if (failed != null && at.difference(failed) < const Duration(minutes: 5)) {
+      return;
+    }
+    final sets = store.notes
+        .where((n) => kstDay(n.createdAt) == day)
+        .expand((n) => n.blocks)
+        .expand((b) => b.sets)
+        .where((s) => s.done)
+        .length;
+    if (sets < dailyPlateSets) return;
+    _claiming = true;
+    try {
+      if (await ai.claimDaily(day, sets)) {
+        store.setPlatesDay(day);
+        _claimFailedAt = null;
+      } else {
+        _claimFailedAt = at;
+      }
+    } finally {
+      _claiming = false;
+    }
+  }
+
   bool get signedIn => token != null;
   bool get paid => plan != null;
   Map<Plan, String> get prices => {
@@ -76,6 +168,7 @@ class Account extends ChangeNotifier {
     // 것이고, 서버는 로그인 없이도 답한다. 안 물으면 아직 로그인 안 한
     // 사람에게는 무엇을 파는지도, 무료가 몇 번인지도 영영 안 보인다.
     await _refresh();
+    await refreshPlates();
   }
 
   /// 남겨 둔 로그인을 되살린다. 스토어를 건드리지 않아 테스트가 이것만 부른다.
@@ -219,8 +312,11 @@ class Account extends ChangeNotifier {
     }
     token = result.token;
     nickname = result.nickname;
+    RecordAi.forget();
+    plates = platesSpent = null;
     await _saveSession();
     await _refresh();
+    await refreshPlates();
     await refreshGyms();
     notifyListeners();
     return true;
@@ -233,8 +329,12 @@ class Account extends ChangeNotifier {
     nickname = '';
     plan = null;
     gyms = const [];
+    RecordAi.forget();
+    plates = platesSpent = null;
     notifyListeners();
     await _saveSession();
+    // 이제 이 기기의 지갑이다.
+    unawaited(refreshPlates());
   }
 
   /// 탈퇴. 서버가 지운 뒤에 기기에 남은 로그인도 지운다.
@@ -252,6 +352,8 @@ class Account extends ChangeNotifier {
   /// 결제는 로그인이 있어야 한다 — 권한은 기기가 아니라 사람에게 붙는다.
   Future<bool> buy(Plan wanted) async {
     if (!signedIn && !await signIn()) return false;
+    purchaseProblem = null;
+    notifyListeners();
     await _purchases.buy(wanted);
     return true;
   }
@@ -262,11 +364,13 @@ class Account extends ChangeNotifier {
     await _purchases.restore();
   }
 
+  /// 스토어가 준 구매를 서버에 넘긴다. **서버의 답을 읽는다** — 거절당했는데
+  /// 아무 말이 없으면 돈을 낸 사람은 산 줄 알고 기다린다.
   Future<void> _send(PurchaseProof proof) async {
     if (token == null) return;
     final web = client ?? newApiClient();
     try {
-      await web.post(
+      final response = await web.post(
         Uri.parse('$endpoint/api/purchase'),
         headers: {
           'content-type': 'application/json',
@@ -278,9 +382,20 @@ class Account extends ChangeNotifier {
           'token': proof.token,
         }),
       );
-      await _refresh();
+      purchaseProblem = switch (response.statusCode) {
+        200 => null,
+        409 => PurchaseProblem.otherAccount,
+        _ => PurchaseProblem.notConfirmed,
+      };
+      notifyListeners();
+      if (purchaseProblem == null) {
+        await _refresh();
+        await refreshPlates(); // Pro 가 됐으면 이번 달 원판이 채워진다.
+      }
     } catch (_) {
-      // 못 보냈으면 다음에 앱을 켤 때 스토어가 다시 준다.
+      // 스토어는 이미 완료 처리했다. 복원을 눌러야 다시 보낼 수 있다고 알린다.
+      purchaseProblem = PurchaseProblem.notConfirmed;
+      notifyListeners();
     } finally {
       if (client == null) web.close();
     }
@@ -290,6 +405,10 @@ class Account extends ChangeNotifier {
   /// 흉내 내지 않고 이 한 걸음만 본다.
   @visibleForTesting
   Future<void> refreshForTest() => _refresh();
+
+  /// 스토어 없이 구매 하나를 서버에 넘겨 본다.
+  @visibleForTesting
+  Future<void> sendForTest(PurchaseProof proof) => _send(proof);
 
   Future<void> _refresh() async {
     final web = client ?? newApiClient();

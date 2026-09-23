@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 
 import 'account.dart';
@@ -5,17 +7,19 @@ import 'l10n/generated/app_localizations.dart';
 import 'palette.dart';
 import 'purchases.dart';
 
-/// 무료와 이용권의 차이. **서버가 정한 것과 같은 수여야 한다** —
-/// app/api/record-query/route.ts 의 LIMITS 가 진짜다. 여기 적힌 것은 파는
-/// 말이고, 다르면 산 사람이 속은 것이 된다.
-const freeQuestionsPerMonth = 30;
-const paidQuestionsPerDay = 200;
+/// 무료와 Pro 의 차이. **서버가 정한 것과 같은 수여야 한다** — 서버의 원판
+/// 규칙이 진짜다. 여기 적힌 것은 파는 말이고, 다르면 산 사람이 속은 것이 된다.
+const freeInputPerDay = 10;
+const proPlatesPerMonth = 300;
+
+/// 스토어가 값을 못 줬을 때 적는 값. 나라마다 다르므로 스토어 값이 늘 먼저다.
+const _listPrice = {Plan.yearly: '₩29,000', Plan.monthly: '₩4,900'};
 
 /// 이용권을 파는 화면.
 ///
-/// **파는 것은 하나뿐이다.** 기록에 말로 묻는 것. 그 밖의 기록·타이머·건강
-/// 앱 연동·체육관 연결은 이용권 없이 전부 된다. 그렇게 적어 둔다 — 다 막아
-/// 놓은 것처럼 보이면 사기 전에 앱을 지운다.
+/// **파는 것은 AI 도움뿐이다.** 기록 질문에 쓰는 원판과 적기 도움. 그 밖의
+/// 기록·타이머·손목 알림·같이 하기·체육관은 이용권 없이 전부 된다. 그렇게
+/// 적어 둔다 — 다 막아 놓은 것처럼 보이면 사기 전에 앱을 지운다.
 class Paywall extends StatefulWidget {
   const Paywall({super.key, required this.account});
   final Account account;
@@ -26,6 +30,13 @@ class Paywall extends StatefulWidget {
 
 class _PaywallState extends State<Paywall> {
   bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 달이 바뀌었으면 Pro 원판이 채워져 있다. 여기서 보이는 수가 맞아야 한다.
+    unawaited(widget.account.refreshPlates());
+  }
 
   Future<void> _buy(Plan plan) async {
     setState(() => _busy = true);
@@ -40,59 +51,70 @@ class _PaywallState extends State<Paywall> {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final account = widget.account;
-    final owned = account.plan;
-    final prices = account.prices;
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
 
     return AnimatedBuilder(
       animation: account,
-      builder: (context, _) => CupertinoPageScaffold(
-        // 제목을 두지 않는다. 무엇을 파는지는 아래 큰 글씨가 말하고,
-        // 여기에 상품 하나의 이름을 쓰면 나머지 하나가 가려진다.
-        navigationBar: const CupertinoNavigationBar(),
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-            children: [
-              Text(
-                l.proTitle,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.6,
-                  height: 1.15,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                l.proBody,
-                style: TextStyle(fontSize: 16, height: 1.45, color: muted),
-              ),
-              const SizedBox(height: 24),
-
-              _Compare(
-                free: l.proFree(freeQuestionsPerMonth),
-                paid: l.proPaid(paidQuestionsPerDay),
-              ),
-              const SizedBox(height: 20),
-
-              Text(
-                l.proEverythingElseFree,
-                style: TextStyle(fontSize: 14, height: 1.45, color: muted),
-              ),
-              const SizedBox(height: 28),
-
-              if (owned == Plan.lifetime)
+      builder: (context, _) {
+        // 산 뒤에 바뀌는 값이다. 밖에서 읽어 두면 산 뒤에도 옛 화면이 남는다.
+        final owned = account.plan;
+        final prices = account.prices;
+        return CupertinoPageScaffold(
+          // 제목을 두지 않는다. 무엇을 파는지는 아래 큰 글씨가 말하고,
+          // 여기에 상품 하나의 이름을 쓰면 나머지 하나가 가려진다.
+          navigationBar: const CupertinoNavigationBar(),
+          child: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+              children: [
                 Text(
-                  l.proOwned,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: seal.resolveFrom(context),
+                  l.proTitle,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.6,
+                    height: 1.15,
                   ),
-                )
-              else ...[
-                if (!account.signedIn)
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l.proBody,
+                  style: TextStyle(fontSize: 16, height: 1.45, color: muted),
+                ),
+                if (account.plates case final plates?) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    l.platesBalance(plateCount(plates)),
+                    style: TextStyle(fontSize: 14, color: muted),
+                  ),
+                ],
+                const SizedBox(height: 24),
+
+                _Compare(
+                  free: l.proFree(freeInputPerDay, dailyPlateSets),
+                  paid: l.proPaid(proPlatesPerMonth),
+                ),
+                const SizedBox(height: 20),
+
+                Text(
+                  l.proEverythingElseFree,
+                  style: TextStyle(fontSize: 14, height: 1.45, color: muted),
+                ),
+                const SizedBox(height: 28),
+
+                if (owned != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: Text(
+                      l.proOwned,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: seal.resolveFrom(context),
+                      ),
+                    ),
+                  )
+                else if (!account.signedIn)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 14),
                     child: Text(
@@ -100,21 +122,54 @@ class _PaywallState extends State<Paywall> {
                       style: TextStyle(fontSize: 14, color: muted),
                     ),
                   ),
+                // 서버가 구매를 안 받았다. 돈을 낸 사람이 기다리지 않게 말한다.
+                if (account.purchaseProblem case final problem?)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: Text(
+                      problem == PurchaseProblem.otherAccount
+                          ? l.purchaseOtherAccount
+                          : l.purchaseNotConfirmed,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: CupertinoColors.systemRed.resolveFrom(context),
+                      ),
+                    ),
+                  ),
                 for (final plan in Plan.values)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
-                    child: _BuyButton(
-                      label: plan == Plan.monthly
-                          ? l.planMonthly
-                          : l.planLifetime,
-                      // 값은 스토어가 준 문자열 그대로. 나라마다 통화도
-                      // 자릿수도 다르고, 우리가 적으면 반드시 어긋난다.
-                      price: prices[plan],
-                      filled: plan == Plan.lifetime,
-                      active: owned == plan,
-                      onPressed: _busy || owned == plan || !account.signedIn
-                          ? null
-                          : () => _buy(plan),
+                    child: Column(
+                      children: [
+                        _BuyButton(
+                          label: plan == Plan.yearly
+                              ? l.planYearly
+                              : l.planMonthly,
+                          // 값은 스토어가 준 문자열 그대로. 나라마다 통화도
+                          // 자릿수도 다르고, 우리가 적으면 반드시 어긋난다.
+                          price: prices[plan],
+                          filled: plan == Plan.yearly,
+                          active: owned == plan,
+                          // 바꾸는 것은 스토어의 구독 관리에서 한다. 여기서
+                          // 하나 더 사면 구독이 둘이 되는 스토어가 있다.
+                          onPressed: _busy || owned != null || !account.signedIn
+                              ? null
+                              : () => _buy(plan),
+                        ),
+                        // 체험은 얼마 동안이고 끝나면 얼마가 나가는지, 사는
+                        // 단추 바로 밑에 적는다.
+                        if (plan == Plan.yearly && owned == null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Text(
+                              l.planYearlyTrial(
+                                prices[plan] ?? _listPrice[plan]!,
+                              ),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 13, color: muted),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 const SizedBox(height: 6),
@@ -127,10 +182,10 @@ class _PaywallState extends State<Paywall> {
                   ),
                 ),
               ],
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
