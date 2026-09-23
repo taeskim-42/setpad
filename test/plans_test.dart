@@ -146,6 +146,11 @@ Hip thrust 5 sets
       '플랭크 1분',
       '스쿼트 bpm 30 20',
       '벤치 80kg 5회 무릎 조심',
+      '스쿼트 20회 30 bpm 3세트',
+      '스쿼트 20회 30bpm 3세트',
+      '타바타 버피 30초 / 15초 x8',
+      '타바타 버피 20 x8',
+      '타바타 30 80 kg x5',
     ];
     final random = Random(7);
     final texts = [
@@ -196,6 +201,52 @@ Hip thrust 5 sets
     expect(again.items.map((i) => (i.id, i.name, i.sets)), [('a', '스쿼트', 5)]);
     // 새로 친 첫 줄은 여전히 종목처럼 읽는다.
     expect(parsePlanText('스쿼트 4세트\n벤치', title: '하체').title, '');
+  });
+
+  test('저장된 제목 앞에 빈 줄을 넣어도 제목은 종목이 되지 않는다', () {
+    const items = [PlanItem(id: 'a', name: '스쿼트', sets: 5)];
+    for (final text in ['\n하체\n스쿼트 5세트', '  \n\n하체\n스쿼트 5세트']) {
+      final again = parsePlanText(text, previous: items, title: '하체');
+      expect(again.title, '하체', reason: text);
+      expect(again.items.map((i) => (i.id, i.name, i.sets)), [('a', '스쿼트', 5)]);
+    }
+    // 저장된 제목이 없으면 빈 첫 줄은 여전히 '제목 없음' 이다.
+    expect(parsePlanText('\n벤치\n스쿼트 5세트').title, '');
+    // 제목 줄을 지웠으면 제목이 없다 — 힌트가 있어도.
+    expect(parsePlanText('\n스쿼트 5세트', title: '하체').title, '');
+  });
+
+  test('타이머가 읽는 표기는 목표 뒤에 와도 이름에 남는다 — 30 bpm, 타바타 30초 / 15초·xN', () {
+    const lines = [
+      '스쿼트 20회 30 bpm 3세트',
+      '스쿼트 20회 30bpm 3세트',
+      '스쿼트 20회 bpm 30 3세트',
+      '타바타 버피 30초 / 15초 x8',
+      '타바타 버피 20 x8',
+      '타바타 30 80 kg x5',
+      '타바타 버피 8 라운드 2세트',
+    ];
+    final plan = parsePlanText(['하체', ...lines].join('\n'));
+    expect(plan.items.map((i) => (i.name, i.sets, plan.targets[i.id])), [
+      ('스쿼트 30 bpm', 3, '20회'),
+      ('스쿼트 30bpm', 3, '20회'),
+      ('스쿼트 bpm 30', 3, '20회'),
+      ('타바타 버피 30초 / 15초 x8', 0, null),
+      ('타바타 버피 20 x8', 0, null),
+      ('타바타 30 x5', 0, '80kg'),
+      ('타바타 버피 8 라운드', 2, null),
+    ]);
+    // 이름에서 붙는 타이머가 친 줄에서 읽은 것과 같다 — 30bpm 이 120 이 되거나
+    // 30초/15초 가 기본 20/10 이 되지 않는다.
+    for (final (i, line) in lines.indexed) {
+      expect(
+        TimingSpec.parse(plan.items[i].name),
+        TimingSpec.parse(line),
+        reason: line,
+      );
+    }
+    // bpm 의 30 이 무게 30kg 으로 지어지지 않는다.
+    expect(planTarget(plan.targets[plan.items[0].id]!, 'kg')?.value, isNull);
   });
 
   test('계획 줄은 수 표기만 목표로 옮기고, 글 낱말과 타이머 표기는 이름에 남긴다', () {

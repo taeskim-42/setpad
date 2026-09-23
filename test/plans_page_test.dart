@@ -414,6 +414,25 @@ void main() {
       await close(tester);
     });
 
+    testWidgets('제목 앞에 빈 줄을 넣어도 제목은 종목이 되지 않고 수락할 수 있다', (tester) async {
+      final plan = await open(
+        tester,
+        const PlanContent(
+          title: '하체',
+          items: [PlanItem(id: 'a', name: '스쿼트', sets: 5)],
+        ),
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('plan-text')),
+        '\n하체\n스쿼트 5세트',
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(plan.draft, isNull);
+      expect(find.text('버전 2 수락'), findsOneWidget);
+      expect(find.text('제안하기'), findsNothing);
+      await close(tester);
+    });
+
     testWidgets('목표 글이 든 줄의 이름을 고쳐도 고아 목표가 쌓이지 않고, 목표는 한 번에 보낸다', (
       tester,
     ) async {
