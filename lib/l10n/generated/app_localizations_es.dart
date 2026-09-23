@@ -151,6 +151,11 @@ class LEs extends L {
   String get setRequired => 'Primero introduce una serie, p. ej. 60 12.';
 
   @override
+  String setsPerLineMax(int n) {
+    return 'Hasta $n series por línea. Divídelo en varias líneas.';
+  }
+
+  @override
   String get aiTitle => 'Configurar con una frase';
 
   @override

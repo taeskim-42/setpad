@@ -231,99 +231,126 @@ class ParsedSet {
 const _counters =
     '세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต|'
     '회|개|rep|reps|回|次|lần|ครั้ง|veces';
+final _setWord = RegExp(
+  r'^(세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต)$',
+  caseSensitive: false,
+);
 
 final _units = '$unitPattern|$_counters';
 
-final _unit = RegExp(
-  '^(\\d+(?:\\.\\d+)?)\\s*($_units)\$',
-  caseSensitive: false,
-);
+/// 수. 쉼표 소수("22,5")도 받고, 쉼표 뒤가 정확히 세 자리면 천 단위("1,000")다.
+const _num = r'\d{1,3}(?:,\d{3})+|\d+(?:[.,]\d+)?';
+
+/// 수+단위 뒤에 붙는 조사·접미사. 떼고 읽는다 — "80kg에", "10회씩", "20kg짜리".
+const _tail = '(?:에|씩|으로|로|짜리)?';
+
+final _unit = RegExp('^($_num)\\s*($_units)$_tail\$', caseSensitive: false);
 
 /// 숫자와 단위를 띄어 쓰는 언어가 있다 — "10 lần", "100 kg". 붙여 놓고
 /// 시작해야 한 토큰으로 읽힌다.
 final _spacedUnit = RegExp(
-  '(\\d)\\s+($_units)(?=\\s|\$)',
+  '(\\d)\\s+($_units)(?=$_tail(?:\\s|\$))',
   caseSensitive: false,
 );
 final _repeat = RegExp(r'^[x×*](\d+)$', caseSensitive: false);
-final _bare = RegExp(r'^\d+(?:\.\d+)?$');
+final _bare = RegExp('^(?:$_num)\$');
+
+double _number(String s) => double.parse(
+  RegExp(r'^\d{1,3}(?:,\d{3})+$').hasMatch(s)
+      ? s.replaceAll(',', '')
+      : s.replaceAll(',', '.'),
+);
+
+/// 띄어 쓴 수와 단위를 붙인다. "5 sets" → "5sets".
+String joinSpacedUnits(String text) =>
+    text.replaceAllMapped(_spacedUnit, (m) => '${m[1]}${m[2]}');
+
+/// 한 줄로 반복할 수 있는 세트 수. 넘으면 자르지 않고 거절한다 — 입력칸에
+/// 글이 남고 [tooManySets] 가 이유를 말한다.
+const maxSetsPerLine = 20;
 
 /// 세트 한 줄을 읽는다. "100kg 20회 마지막 힘들었음", "20회", "100 20 x3".
 ///
 /// 단위는 선택이다 — 운동 중에 단위를 꼬박꼬박 붙이는 사람은 없다. 단위가
 /// 없으면 첫 숫자가 무게, 둘째가 횟수다. 다만 숫자가 하나뿐이면 항상 횟수로
 /// 읽는다. 맨몸 운동이 그렇게 적히기 때문이다.
+///
+/// **친 것은 버리지 않는다.** 자리가 이미 찬 뒤의 수(셋째 맨숫자, 두 번째
+/// 무게·시간)는 덮어쓰지 않고 메모에 친 그대로 남는다 — "80kg 10회 60초 휴식"
+/// 의 "60초 휴식", "1분 30초" 의 "30초".
 ParsedSet? parseSetLine(String line) {
-  final text = line.trim().replaceAllMapped(
-    _spacedUnit,
-    (m) => '${m[1]}${m[2]}',
-  );
-  if (text.isEmpty) return null;
+  final parsed = _readSetLine(line);
+  return parsed == null || parsed.count > maxSetsPerLine ? null : parsed;
+}
 
+/// 세트 줄로 읽히지만 반복 수가 [maxSetsPerLine] 을 넘는다.
+bool tooManySets(String line) =>
+    (_readSetLine(line)?.count ?? 0) > maxSetsPerLine;
+
+ParsedSet? _readSetLine(String line) {
+  final tokens = joinSpacedUnits(line.trim()).split(RegExp(r'\s+'));
   double? value;
   String? unit;
-  int? reps;
-  var count = 1;
-  final bare = <double>[];
-  final rest = <String>[];
+  int? reps, count;
+  // 자리에 들어간 토큰. 나머지는 친 순서 그대로 메모가 된다.
+  final used = <int>{};
+  final bare = <int>[];
 
-  for (final token in text.split(RegExp(r'\s+'))) {
+  for (final (i, token) in tokens.indexed) {
     final m = _unit.firstMatch(token);
     if (m != null) {
-      final n = double.parse(m.group(1)!);
-      final word = m.group(2)!.toLowerCase();
-      final known = unitOf(word);
+      final n = _number(m[1]!);
+      // 친 단위를 그대로 남긴다. 예전에는 lb 를 kg 로 바꿔 저장해서
+      // 파운드로 하는 사람의 숫자가 사라졌다.
+      final known = unitOf(m[2]!);
       if (known != null) {
-        // 친 단위를 그대로 남긴다. 예전에는 lb 를 kg 로 바꿔 저장해서
-        // 파운드로 하는 사람의 숫자가 사라졌다.
+        if (value != null) continue;
         value = n;
         unit = known;
-      } else if (RegExp(
-        '^($_counters)\$',
-        caseSensitive: false,
-      ).hasMatch(word)) {
-        if (RegExp(
-          r'^(세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต)$',
-          caseSensitive: false,
-        ).hasMatch(word)) {
-          count = n.round();
-        } else {
-          reps = n.round();
-        }
+      } else if (_setWord.hasMatch(m[2]!)) {
+        if (count != null) continue;
+        count = n.round();
+      } else {
+        if (reps != null) continue;
+        reps = n.round();
       }
+      used.add(i);
       continue;
     }
     final repeat = _repeat.firstMatch(token);
-    if (repeat != null) {
-      count = int.parse(repeat.group(1)!);
-      continue;
+    if (repeat != null && count == null) {
+      count = int.parse(repeat[1]!);
+      used.add(i);
+    } else if (_bare.hasMatch(token)) {
+      bare.add(i);
     }
-    if (_bare.hasMatch(token)) {
-      bare.add(double.parse(token));
-      continue;
-    }
-    rest.add(token);
   }
 
-  for (final n in bare) {
+  for (final i in bare) {
+    final n = _number(tokens[i]);
     if (value == null && reps == null && bare.length > 1) {
       value = n;
     } else if (reps == null) {
       reps = n.round();
+    } else if (value == null) {
+      value = n;
     } else {
-      value ??= n;
+      continue;
     }
+    used.add(i);
   }
 
   if (value == null && reps == null) return null;
-  count = count.clamp(1, 20);
-
+  final note = [
+    for (final (i, t) in tokens.indexed)
+      if (!used.contains(i)) t,
+  ].join(' ');
   return ParsedSet(
     value: value,
     unit: unit,
     reps: reps,
-    note: rest.isEmpty ? null : rest.join(' '),
-    count: count,
+    note: note.isEmpty ? null : note,
+    count: count == null || count < 1 ? 1 : count,
   );
 }
 
@@ -362,7 +389,7 @@ String bumpLastNumber(String line, int direction) {
   final before = line.substring(0, match.start);
   // 이 숫자 앞에 무게 단위가 이미 나왔으면, 이건 횟수 자리다.
   final isReps = RegExp(
-    r'(kg|킬로|파운드|lb)\s*$',
+    r'(kg|킬로|키로|파운드|lb)\s*$',
     caseSensitive: false,
   ).hasMatch(before.trimRight().isEmpty ? '' : before);
   final step = isReps ? 1.0 : 2.5;

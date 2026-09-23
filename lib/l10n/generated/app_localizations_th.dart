@@ -151,6 +151,11 @@ class LTh extends L {
   String get setRequired => 'ป้อนเซ็ตก่อน เช่น 60 12';
 
   @override
+  String setsPerLineMax(int n) {
+    return 'ป้อนได้บรรทัดละไม่เกิน $n เซ็ต แบ่งเป็นหลายบรรทัด';
+  }
+
+  @override
   String get aiTitle => 'ตั้งค่าด้วยประโยคเดียว';
 
   @override

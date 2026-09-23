@@ -366,6 +366,24 @@ class RoutineEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 고친 세트 줄에 같이 친 것 — 메모는 그 세트에 더하고, "x3" 이면 같은 세트를
+  /// 바로 뒤에 더 둔다. 새로 친 세트 줄과 같다([addSet]).
+  void extendSet(int block, int index, {String? note, int count = 1}) {
+    final set = blocks[block].sets[index];
+    if (note != null) set.notes.add(note);
+    blocks[block].sets.insertAll(index + 1, [
+      for (var i = 1; i < count; i++)
+        LoggedSet(
+          value: set.value,
+          unit: set.unit,
+          reps: set.reps,
+          notes: [?note],
+          done: set.done,
+        ),
+    ]);
+    notifyListeners();
+  }
+
   void moveBlock(int from, int to) {
     if (from < 0 || from >= blocks.length || to < 0 || to >= blocks.length) {
       return;
@@ -1362,15 +1380,21 @@ class _RoutineEditorState extends State<RoutineEditor>
     _saveDraft();
   }
 
-  bool _applyRecordEdit() {
+  /// 치는 대로 부르고([done] 아님), 편집을 끝낼 때 한 번 더 부른다([done]).
+  /// 줄에 같이 친 메모와 "x3" 은 끝낼 때 한 번만 쓴다 — 치는 도중(x → x3 →
+  /// x30)에 세트를 늘렸다 줄였다 하지 않고, 메모가 글자마다 쌓이지 않게.
+  bool _applyRecordEdit({bool done = false}) {
     if (!_editingRecord || !_c.inBlock) return false;
     if (_input.value.composing.isValid && !_input.value.composing.isCollapsed) {
       return false;
     }
+    final parsed = _recordTitle ? null : parseSetLine(_text);
+    final extra =
+        done && parsed != null && (parsed.note != null || parsed.count > 1);
     // 연 뒤로 한 글자도 안 바꿨으면 아무것도 쓰지 않는다. 그사이 같이 고치는
     // 사람이 이 칸을 바꿨다면, 내가 열 때의 값으로 되돌리면 안 된다.
     // (쳤다가 원래대로 되돌린 것은 고친 것이다 — 중간 값이 남아 있다.)
-    if (_text == _recordStartText && !_recordTouched) return true;
+    if (_text == _recordStartText && !_recordTouched && !extra) return true;
     _recordTouched = true;
     if (_recordTitle) {
       final name = _text.trim();
@@ -1382,7 +1406,6 @@ class _RoutineEditorState extends State<RoutineEditor>
       }
       return true;
     }
-    final parsed = parseSetLine(_text);
     final index = _recordSet!;
     if (index >= _c.blocks[_c.activeIndex].sets.length) return false;
     if (parsed == null) {
@@ -1391,26 +1414,33 @@ class _RoutineEditorState extends State<RoutineEditor>
       return false;
     }
     final previous = _c.blocks[_c.activeIndex].sets[index];
-    if (previous.value == parsed.value &&
-        previous.reps == parsed.reps &&
-        previous.unit == (parsed.unit ?? previous.unit)) {
-      return true;
+    if (previous.value != parsed.value ||
+        previous.reps != parsed.reps ||
+        previous.unit != (parsed.unit ?? previous.unit)) {
+      _c.updateSet(
+        _c.activeIndex,
+        index,
+        LoggedSet(
+          value: parsed.value,
+          unit: parsed.unit ?? previous.unit,
+          reps: parsed.reps,
+        ),
+      );
     }
-    _c.updateSet(
-      _c.activeIndex,
-      index,
-      LoggedSet(
-        value: parsed.value,
-        unit: parsed.unit ?? previous.unit,
-        reps: parsed.reps,
-      ),
-    );
+    if (extra) {
+      _c.extendSet(
+        _c.activeIndex,
+        index,
+        note: parsed.note,
+        count: parsed.count,
+      );
+    }
     return true;
   }
 
   bool _finishRecordEdit({bool validate = true}) {
     if (!_editingRecord) return true;
-    if (validate && !_applyRecordEdit()) {
+    if (validate && !_applyRecordEdit(done: true)) {
       if (!_recordTitle) setState(() => _invalidSet = true);
       return false;
     }
@@ -1880,7 +1910,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// **새 세트 자리**로 간다. 새 세트는 거기서 확정해야 생긴다. "완료" 는
   /// 편집을 끝내고 있던 자리로 돌아가므로 둘은 다른 일을 한다.
   void _addSetAfterEdit() {
-    if (!_applyRecordEdit()) {
+    if (!_applyRecordEdit(done: true)) {
       setState(() => _invalidSet = true);
       return;
     }
@@ -2523,7 +2553,9 @@ class _RoutineEditorState extends State<RoutineEditor>
           ),
           if (_invalidSet)
             Text(
-              L.of(context).setRequired,
+              tooManySets(_text)
+                  ? L.of(context).setsPerLineMax(maxSetsPerLine)
+                  : L.of(context).setRequired,
               style: TextStyle(
                 fontSize: 13,
                 color: CupertinoColors.secondaryLabel.resolveFrom(context),

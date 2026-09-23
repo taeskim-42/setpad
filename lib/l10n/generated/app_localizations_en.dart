@@ -151,6 +151,11 @@ class LEn extends L {
   String get setRequired => 'Enter a set first, e.g. 60 12.';
 
   @override
+  String setsPerLineMax(int n) {
+    return 'Up to $n sets per line. Split it into more lines.';
+  }
+
+  @override
   String get aiTitle => 'One-line setup';
 
   @override

@@ -126,6 +126,14 @@
   "doneEditing": "완료",
   "setInputHint": "무게  횟수",
   "setRequired": "세트를 먼저 입력해 주세요. 예: 60 12",
+  "setsPerLineMax": "한 번에 {n}세트까지예요. 줄을 나눠 적어 주세요.",
+  "@setsPerLineMax": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "aiTitle": "한 줄 설정",
   "aiReady": "사용 가능",
   "aiChecking": "확인 중",

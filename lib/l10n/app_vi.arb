@@ -37,6 +37,7 @@
   "doneEditing": "Xong",
   "setInputHint": "Tạ  Số lần",
   "setRequired": "Nhập hiệp trước, ví dụ: 60 12.",
+  "setsPerLineMax": "Tối đa {n} hiệp mỗi dòng. Hãy chia thành nhiều dòng.",
   "aiTitle": "Thiết lập bằng một câu",
   "aiReady": "Sẵn sàng",
   "aiChecking": "Đang kiểm tra",

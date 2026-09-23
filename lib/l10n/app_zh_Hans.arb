@@ -37,6 +37,7 @@
   "doneEditing": "完成",
   "setInputHint": "重量  次数",
   "setRequired": "请先输入一组，例如：60 12",
+  "setsPerLineMax": "每行最多 {n} 组，请分成几行输入。",
   "aiTitle": "一句话设置",
   "aiReady": "可用",
   "aiChecking": "正在检查",

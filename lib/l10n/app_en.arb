@@ -37,6 +37,7 @@
   "doneEditing": "Done",
   "setInputHint": "Weight  Reps",
   "setRequired": "Enter a set first, e.g. 60 12.",
+  "setsPerLineMax": "Up to {n} sets per line. Split it into more lines.",
   "aiTitle": "One-line setup",
   "aiReady": "Available",
   "aiChecking": "Checking",

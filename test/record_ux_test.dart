@@ -300,6 +300,64 @@ void main() {
     });
   });
 
+  group('세트 줄에 친 것은 버리지 않는다', () {
+    testWidgets('저장된 세트를 고치며 친 메모와 반복 수를 버리지 않는다', (tester) async {
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 10 첫 세트')
+        ..addSet('70 8');
+      await pumpEditor(tester, c);
+      final sets = c.blocks.single.sets;
+
+      await tester.tap(find.text('1 80×10'));
+      await tester.pumpAndSettle();
+      await keys(tester, '80 10 무릎 아픔');
+      expect(sets.first.notes, ['첫 세트'], reason: '치는 동안 글자마다 쌓이지 않는다');
+      await tester.tap(padKey('완료'));
+      await tester.pumpAndSettle();
+      expect(sets.first.notes, ['첫 세트', '무릎 아픔']);
+
+      await tester.tap(find.text('2 70×8'));
+      await tester.pumpAndSettle();
+      await keys(tester, '72.5 8 x3');
+      expect(sets, hasLength(2), reason: '치는 동안(x → x3)에는 늘리지 않는다');
+      await tester.tap(padKey('완료'));
+      await tester.pumpAndSettle();
+      expect(sets.map((s) => (s.value, s.reps)), [
+        (80.0, 10),
+        (72.5, 8),
+        (72.5, 8),
+        (72.5, 8),
+      ]);
+      expect(sets.first.notes, ['첫 세트', '무릎 아픔'], reason: '다른 세트는 그대로다');
+    });
+
+    testWidgets('X16 한 줄에 20세트를 넘기면 자르지 않고, 글을 두고 이유를 말한다', (tester) async {
+      final c = RoutineEditorController()..addExercise('푸시업');
+      await pumpEditor(tester, c);
+      await keys(tester, '10 x30');
+      pad(tester).onSubmit();
+      await tester.pumpAndSettle();
+      expect(c.blocks.single.sets, isEmpty);
+      expect(find.text('한 번에 20세트까지예요. 줄을 나눠 적어 주세요.'), findsOneWidget);
+      expect(find.textContaining('세트를 먼저 입력'), findsNothing);
+      expect(typed(tester), '10 x30');
+
+      // 고치는 세트에서도 같다 — 원래 세트는 그대로다.
+      c.addSet('50 10 x20');
+      await tester.pumpAndSettle();
+      expect(c.blocks.single.sets, hasLength(20));
+      await tester.tap(find.text('1 50×10'));
+      await tester.pumpAndSettle();
+      await keys(tester, '50 12 x21');
+      await tester.tap(padKey('완료'));
+      await tester.pumpAndSettle();
+      expect(find.text('한 번에 20세트까지예요. 줄을 나눠 적어 주세요.'), findsOneWidget);
+      expect(c.blocks.single.sets, hasLength(20));
+      expect(c.blocks.single.sets.first.reps, 10);
+    });
+  });
+
   group('3·4. 완료 후 지우기는 직전 세트로 돌아간다', () {
     testWidgets('키패드: 세트를 지우지 않고 값과 커서를 되돌리며, 고치면 그 세트만 바뀐다', (tester) async {
       final c = RoutineEditorController()..addExercise('벤치프레스');

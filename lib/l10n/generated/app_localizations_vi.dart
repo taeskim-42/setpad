@@ -151,6 +151,11 @@ class LVi extends L {
   String get setRequired => 'Nhập hiệp trước, ví dụ: 60 12.';
 
   @override
+  String setsPerLineMax(int n) {
+    return 'Tối đa $n hiệp mỗi dòng. Hãy chia thành nhiều dòng.';
+  }
+
+  @override
   String get aiTitle => 'Thiết lập bằng một câu';
 
   @override

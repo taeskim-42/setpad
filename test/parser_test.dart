@@ -25,8 +25,79 @@ void main() {
       expect(parseSetLine('100kg 20회')?.count, 1);
     });
 
-    test('세트 수는 20을 넘지 않는다', () {
-      expect(parseSetLine('60kg 10회 x99')?.count, 20);
+    test('X16 세트 반복이 20을 넘으면 자르지 않고 거절하고, 이유를 알 수 있다', () {
+      expect(parseSetLine('60kg 10회 x20')?.count, 20);
+      expect(parseSetLine('60kg 10회 x30'), isNull);
+      expect(parseSetLine('맨몸 스쿼트 20회 25세트'), isNull);
+      expect(tooManySets('60kg 10회 x30'), isTrue);
+      expect(tooManySets('60kg 10회 x20'), isFalse);
+      expect(tooManySets('그냥 메모'), isFalse);
+    });
+
+    test('자리가 찬 뒤의 수는 덮어쓰지도 버리지도 않고 메모에 친 그대로 남는다', () {
+      expect(
+        parseSetLine('80 10 8 6'),
+        const ParsedSet(value: 80, reps: 10, note: '8 6'),
+      );
+      expect(
+        parseSetLine('10 10 10'),
+        const ParsedSet(value: 10, reps: 10, note: '10'),
+      );
+      // 두 번째 값+단위는 앞의 값을 덮지 않는다.
+      expect(
+        parseSetLine('80kg 10회 60초 휴식'),
+        const ParsedSet(value: 80, unit: 'kg', reps: 10, note: '60초 휴식'),
+      );
+      expect(
+        parseSetLine('5km 25분'),
+        const ParsedSet(value: 5, unit: 'km', note: '25분'),
+      );
+      expect(
+        parseSetLine('1분 30초'),
+        const ParsedSet(value: 1, unit: 'min', note: '30초'),
+      );
+      // 두 번째 횟수·세트 표기도 메모다.
+      expect(parseSetLine('80 10회 12회')?.note, '12회');
+      expect(parseSetLine('80 10 x3 x4')?.count, 3);
+      expect(parseSetLine('80 10 x3 x4')?.note, 'x4');
+      // 메모 글과 섞여도 친 순서 그대로다.
+      expect(parseSetLine('80 10 무릎 8 아픔')?.note, '무릎 8 아픔');
+      // 앞 자리가 빈 수는 그대로 채운다.
+      expect(parseSetLine('20회 100'), const ParsedSet(value: 100, reps: 20));
+    });
+
+    test('키로·킬로는 kg 이다', () {
+      expect(
+        parseSetLine('80키로 12개'),
+        const ParsedSet(value: 80, unit: 'kg', reps: 12),
+      );
+      expect(parseSetLine('80킬로 12개')?.unit, 'kg');
+      expect(parseSetLine('80 키로 12개')?.value, 80);
+      // 키로 뒤의 수는 횟수라 하나씩 민다.
+      expect(bumpLastNumber('80키로 10', 1), '80키로 11');
+    });
+
+    test('쉼표 소수와 천 단위', () {
+      expect(
+        parseSetLine('22,5kg 10'),
+        const ParsedSet(value: 22.5, unit: 'kg', reps: 10),
+      );
+      expect(parseSetLine('22,5 10')?.value, 22.5);
+      expect(parseSetLine('1,000m')?.value, 1000);
+      expect(parseSetLine('1,000m')?.unit, 'm');
+      expect(parseSetLine('1,200 3')?.value, 1200);
+    });
+
+    test('수+단위 뒤의 조사·접미사는 떼고 읽는다', () {
+      expect(
+        parseSetLine('80kg에 10개'),
+        const ParsedSet(value: 80, unit: 'kg', reps: 10),
+      );
+      expect(parseSetLine('10회씩 3세트'), const ParsedSet(reps: 10, count: 3));
+      expect(parseSetLine('20kg짜리 12')?.value, 20);
+      expect(parseSetLine('80키로로 5개')?.value, 80);
+      expect(parseSetLine('80kg으로 5회')?.unit, 'kg');
+      expect(parseSetLine('80 kg에 10개')?.value, 80);
     });
 
     test('숫자를 다 먹고 남은 것이 메모다', () {
