@@ -21,8 +21,6 @@ import 'meal_amount_sheet.dart';
 import 'notes.dart';
 import 'palette.dart';
 import 'partner.dart';
-import 'plans.dart';
-import 'plans_page.dart';
 import 'nearby.dart';
 import 'notes_list.dart';
 import 'record_ai.dart';
@@ -120,9 +118,6 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _watchTags();
-    _nearbyPlans = Nearby.instance.received
-        .where((invite) => invite.kind == 'plan')
-        .listen((invite) => _openPlans(joinToken: invite.token));
     // 심박이 올 때마다 남긴다. HealthKit 이 실제로 얼마나 자주 깨워 주는지를
     // 재는 것이 지금 목적이다 — 그 값에 따라 휴식 타이머가 성립하는지가
     // 갈린다. 문서로 확인하지 못한 빈도 제한을 실측으로 대신한다.
@@ -167,7 +162,6 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
           account: _account,
           // 빠지면 기본값(기기 id 없음)이 쓰여, 열량 없는 끼니의 추정이 조용히 멈췄다.
           ai: _ai,
-          onPlanNext: _proposePlan,
           onTakeHandoff: _takeHandoff,
         ),
       ),
@@ -182,7 +176,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 기다리지 않는다 — 권한 창이 뜨든 안 뜨든 목록은 이미 보여야 한다.
   /// 실패해도 조용하다. 연동은 덤이지 기록의 전제가 아니다.
   Future<void> _syncHealth(Note note) async {
-    final sets = note.blocks.expand((b) => b.sets).where((s) => s.done);
+    final sets = note.blocks.expand((b) => b.sets).where((s) => s.mine);
     if (sets.isEmpty) return;
     // 시작과 끝. 세트마다 시각을 남기지 않으므로 노트가 만들어진 때와 마지막에
     // 고친 때로 잡는다. 실제로 그 사이에 운동을 한 것이 맞다.
@@ -218,65 +212,6 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     }
   }
 
-  /// 공동 루틴. 서버가 안 닿아도 이 기기에 저장된 계획은 열린다.
-  late final _plans = PlanStore(link: () => _account.link)..load();
-
-  void _openPlans({SharedPlan? open, String? joinToken}) =>
-      Navigator.of(context).push(
-        CupertinoPageRoute<void>(
-          builder: (_) => PlansPage(
-            plans: _plans,
-            account: _account,
-            notes: _store,
-            open: open,
-            joinToken: joinToken,
-            // 계획에서 시작한 운동은 평소의 운동 문서다.
-            onOpenNote: (note) => Navigator.of(context).push(
-              CupertinoPageRoute<void>(
-                builder: (_) => EditorPage(
-                  store: _store,
-                  note: note,
-                  account: _account,
-                  ai: _ai,
-                  onPlanNext: _proposePlan,
-                  onTakeHandoff: _takeHandoff,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-
-  /// 운동 기록에서 "공동 루틴으로 제안". 기록 위에 그 루틴 화면이 바로 뜬다 —
-  /// 고치고, 초대하고, 같은 버전에 동의하는 일이 전부 거기서 이어지고, 뒤로
-  /// 가면 하던 기록이다. 로그인 전이면 로그인 안내가 있는 목록을 거친다.
-  void _proposePlan(SharedPlan fromRecord) {
-    // 목록에 들여 둔다. 그래야 초대하기 전에 뒤로 가도 초안이 남는다.
-    final draft = _plans.adopt(fromRecord);
-    if (!_account.signedIn) return _openPlans(open: draft);
-    Navigator.of(context).push(
-      CupertinoPageRoute<void>(
-        builder: (_) => PlanPage(
-          plan: draft,
-          plans: _plans,
-          notes: _store,
-          onOpenNote: (note) => Navigator.of(context).push(
-            CupertinoPageRoute<void>(
-              builder: (_) => EditorPage(
-                store: _store,
-                note: note,
-                account: _account,
-                ai: _ai,
-                onPlanNext: _proposePlan,
-                onTakeHandoff: _takeHandoff,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   /// 로그인과 결제. **없어도 앱은 그대로 돈다** — 켜지 않은 사람은 그냥 쓴다.
   /// 기기 id 는 store 가 처음 켤 때 만들므로 부를 때 읽는다.
   late final _account = Account(deviceId: () => _store.deviceId)
@@ -296,8 +231,6 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 같은 태그가 두 번 들어온다. 안내창이 두 개 겹쳐 뜨던 이유다.
   String? _handling;
 
-  String? _lastPlanToken;
-  StreamSubscription<({String kind, String token})>? _nearbyPlans;
 
   String? _lastHandoff;
 
@@ -353,15 +286,6 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
       _lastHandoff = handoff;
       await _takeHandoff(handoff);
       _lastHandoff = null;
-      return;
-    }
-    // 공동 루틴 초대 링크. 공동 루틴 화면이 로그인과 참여를 이어서 처리한다.
-    final planToken = planTokenFromLink(uri);
-    if (planToken != null) {
-      // 같은 링크가 두 번 전달되는 일이 있다(처음 링크 + 스트림).
-      if (planToken == _lastPlanToken) return;
-      _lastPlanToken = planToken;
-      _openPlans(joinToken: planToken);
       return;
     }
     final gymId = gymFromTag(uri);
@@ -527,7 +451,6 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _tags?.cancel();
-    _nearbyPlans?.cancel();
     _store.removeListener(_claimDaily);
     _account.dispose();
     _store.flush();
@@ -543,7 +466,6 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     return NotesListPage(
       store: _store,
       onOpen: _open,
-      onPlans: () => _openPlans(),
       account: _account,
       ai: _ai,
     );
@@ -557,7 +479,6 @@ class EditorPage extends StatefulWidget {
     required this.note,
     this.account,
     this.ai = const RecordAi(),
-    this.onPlanNext,
     this.onTakeHandoff,
   });
 
@@ -567,8 +488,6 @@ class EditorPage extends StatefulWidget {
   /// 상대가 대신 적어 준 내 기록을 받는다. 받은 것은 새 운동 문서로 열린다.
   final void Function(String token)? onTakeHandoff;
 
-  /// 이 기록으로 다음 운동을 함께 계획한다. 초안을 받아 공동 루틴 화면을 연다.
-  final void Function(SharedPlan draft)? onPlanNext;
 
   /// 문장 해석과 식단 사진이 같은 문을 쓴다.
   final RecordAi ai;
@@ -806,15 +725,6 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     if (widget.note.partner?.open ?? false) _partner?.start();
   }
 
-  /// 이 기록의 종목·세트 수와 내가 마지막에 한 무게·횟수로 새 초안을 뜬다.
-  /// 완료 표시는 따라가지 않고, 이 기록은 바뀌지 않는다.
-  VoidCallback? get _planNext =>
-      widget.onPlanNext == null || widget.note.blocks.isEmpty
-      ? null
-      : () => widget.onPlanNext!(
-          planFromBlocks(widget.note.title ?? '', widget.note.blocks),
-        );
-
   /// 오늘 한 장 — 그날 한 세트 전부, 먹은 것, 섭취−운동을 한 화면에.
   void _showDaySheet() {
     final l = L.of(context);
@@ -852,7 +762,6 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   /// 어느 것이 운동의 것인지 헷갈렸다 — 한 곳에 모은다.
   void _showMenu() {
     final l = L.of(context);
-    final planNext = _planNext;
     showCupertinoModalPopup<void>(
       context: context,
       builder: (ctx) => CupertinoActionSheet(
@@ -865,15 +774,6 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                 _showDaySheet();
               },
               child: Text(l.fitAll),
-            ),
-          if (planNext != null)
-            CupertinoActionSheetAction(
-              key: const ValueKey('propose-plan'),
-              onPressed: () {
-                Navigator.pop(ctx);
-                planNext();
-              },
-              child: Text(l.planPropose),
             ),
           // 같이 하기. 로그인하지 않았으면 창 안에서 로그인으로 이어진다.
           if (_partner != null)
@@ -918,6 +818,31 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     if (!mounted) return;
     // 세션이 열리면 돌고, 끝나면 멈춘다.
     (widget.note.partner?.open ?? false) ? _partner!.start() : _partner!.stop();
+    // 같이 고치는 문서가 새로 왔다. 편집기를 그것으로 — 내 커서는 그 운동을 따라간다.
+    final doc = _partner.takeDoc();
+    if (doc != null) {
+      final lost = _editor.replaceBlocks(doc);
+      if (lost != null) {
+        unawaited(
+          showCupertinoDialog<void>(
+            context: context,
+            builder: (ctx) => CupertinoAlertDialog(
+              content: Text(
+                L.of(ctx).liveExerciseRemoved(lost.name),
+                style: const TextStyle(fontSize: 15),
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(L.of(ctx).ok),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    }
     setState(() {});
   }
 
@@ -1110,6 +1035,18 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                       countAloud: widget.store.countAloud,
                       controller: _editor,
                       partner: _partner,
+                      // 같이 고치는 사람들이 지금 만지는 자리와, 내가 만지는 자리.
+                      presence:
+                          widget.note.partner?.state == PartnerState.active
+                          ? widget.note.partner!.presence
+                          : const [],
+                      onPresence: _partner == null
+                          ? null
+                          : (block, set, text) => _partner.presence(
+                              block: block,
+                              set: set,
+                              text: text,
+                            ),
                       ai: widget.ai,
                       header: _DocumentHeader(
                         key: _documentHeaderKey,

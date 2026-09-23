@@ -371,5 +371,8 @@
   "healthDataRevokeIos": "Puedes desactivarlos cuando quieras en Ajustes del iPhone → Privacidad y seguridad → Salud → setpad.",
   "healthDataRevokeAndroid": "Puedes desactivarlos cuando quieras en Health Connect → Permisos de apps → setpad.",
   "healthDataPrivacy": "Política de privacidad",
-  "restAlarmTitle": "Siguiente ronda: tu pulso ha bajado"
+  "restAlarmTitle": "Siguiente ronda: tu pulso ha bajado",
+  "liveSetBusy": "{name} está editando esta serie. Tócala de nuevo cuando termine.",
+  "liveExerciseBusy": "{name} está escribiendo en este ejercicio ahora mismo.",
+  "liveExerciseRemoved": "Alguien de tu sesión eliminó {exercise}. Lo que escribías sigue en la línea de entrada."
 }

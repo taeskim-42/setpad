@@ -1451,4 +1451,19 @@ class LEs extends L {
 
   @override
   String get restAlarmTitle => 'Siguiente ronda: tu pulso ha bajado';
+
+  @override
+  String liveSetBusy(String name) {
+    return '$name está editando esta serie. Tócala de nuevo cuando termine.';
+  }
+
+  @override
+  String liveExerciseBusy(String name) {
+    return '$name está escribiendo en este ejercicio ahora mismo.';
+  }
+
+  @override
+  String liveExerciseRemoved(String exercise) {
+    return 'Alguien de tu sesión eliminó $exercise. Lo que escribías sigue en la línea de entrada.';
+  }
 }

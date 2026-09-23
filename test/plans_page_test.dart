@@ -10,7 +10,6 @@ import 'package:setpad/account.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/gym.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
-import 'package:setpad/main.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/plans.dart';
 import 'package:setpad/plans_page.dart';
@@ -95,62 +94,6 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 500));
     notes.dispose();
-  });
-
-  testWidgets('운동 기록 화면에서 바로 공동 루틴으로 제안한다 — 적은 것이 없으면 버튼도 없다', (tester) async {
-    final dir = Directory.systemTemp.createTempSync('setpad_propose_');
-    final store = NotesStore(directory: dir);
-    addTearDown(() {
-      store.dispose();
-      dir.deleteSync(recursive: true);
-    });
-    final proposed = <SharedPlan>[];
-    Future<void> mount(Note note) async {
-      await tester.pumpWidget(
-        CupertinoApp(
-          locale: const Locale('ko'),
-          localizationsDelegates: L.localizationsDelegates,
-          supportedLocales: L.supportedLocales,
-          home: EditorPage(store: store, note: note, onPlanNext: proposed.add),
-        ),
-      );
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-
-    await mount(store.create());
-    // 적은 것이 없으면 메뉴에 제안이 없다.
-    await tester.tap(find.byKey(const ValueKey('record-menu')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('propose-plan')), findsNothing);
-    await tester.tap(find.text('취소'));
-    await tester.pumpAndSettle();
-    await tester.pumpWidget(const SizedBox());
-
-    final note = store.create()
-      ..blocks.addAll([
-        ExerciseBlock('스쿼트', [
-          LoggedSet(value: 100, reps: 5),
-          LoggedSet(value: 105, reps: 3),
-        ]),
-        ExerciseBlock('민수식 로우 2', [LoggedSet(value: 40, reps: 12)]),
-      ]);
-    await mount(note);
-    expect(find.byKey(const ValueKey('section-divider')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('record-menu')));
-    await tester.pumpAndSettle();
-    expect(find.text('공동 루틴으로 제안'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('propose-plan')));
-    await tester.pump();
-    final draft = proposed.single;
-    expect(draft.shown.items.map((i) => (i.name, i.sets)), [
-      ('스쿼트', 2),
-      ('민수식 로우 2', 1),
-    ]);
-    // 내 목표는 마지막에 한 무게·횟수에서 온다. 기록은 바뀌지 않는다.
-    expect(draft.myTargets[draft.shown.items.first.id]!.value, 105);
-    expect(note.blocks.first.sets.length, 2);
-    await tester.pumpWidget(const SizedBox());
-    await tester.pump(const Duration(seconds: 1));
   });
 
   testWidgets('제안한 초안은 목록에 남고 두 번 눌러도 하나다. 로그인 전에는 안내를 가리지 않고, 로그인하면 그 초안으로 간다', (

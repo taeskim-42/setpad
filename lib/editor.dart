@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -78,14 +79,35 @@ class EditorDraft {
   }
 }
 
+/// 같이 고치는 문서에서 운동·세트를 가리키는 이름. 기기마다 따로 만들어도
+/// 겹치지 않을 만큼 길다.
+String newId() {
+  const abc = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  return String.fromCharCodes([
+    for (var i = 0; i < 12; i++) abc.codeUnitAt(_ids.nextInt(abc.length)),
+  ]);
+}
+
+final _ids = Random.secure();
+
 class LoggedSet {
   LoggedSet({
+    String? id,
     this.value,
     this.unit = defaultUnit,
     this.reps,
     List<String>? notes,
     this.done = true,
-  }) : notes = notes ?? [];
+    this.author,
+  }) : id = id ?? newId(),
+       notes = notes ?? [];
+
+  final String id;
+
+  /// 같이 고친 문서에서 **남이** 적은 세트면 그 사람 이름. 내 세트는 null 이다.
+  /// 내 통계·건강 앱·공유에는 내 세트만 들어간다([mine]).
+  String? author;
+  bool get mine => done && author == null;
 
   /// 무게든 거리든 시간이든, 친 숫자 그대로.
   final double? value;
@@ -105,8 +127,10 @@ class LoggedSet {
 }
 
 class ExerciseBlock {
-  ExerciseBlock(this.name, [List<LoggedSet>? sets, this.setup])
-    : sets = sets ?? [];
+  ExerciseBlock(this.name, [List<LoggedSet>? sets, this.setup, String? id])
+    : sets = sets ?? [],
+      id = id ?? newId();
+  final String id;
   String name;
   final List<LoggedSet> sets;
   WorkoutSetup? setup;
@@ -319,11 +343,13 @@ class RoutineEditorController extends ChangeNotifier {
     }
     final previous = blocks[block].sets[index];
     blocks[block].sets[index] = LoggedSet(
+      id: previous.id,
       value: value.value,
       unit: value.unit,
       reps: value.reps,
       notes: [...previous.notes],
       done: previous.done,
+      author: previous.author,
     );
     notifyListeners();
   }
@@ -442,8 +468,52 @@ class RoutineEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 같이 고치는 문서가 서버에서 왔다. 글자 하나 안 바뀐 칸은 그 객체를 그대로
+  /// 둔다 — 카드의 키와 열린 자리가 그 객체에 매여 있어서다. 커서는 같은 번호에
+  /// 남되 문서가 짧아졌으면 밖으로 나간다.
+  ///
+  /// 돌려주는 것은 내가 적던 운동을 누가 지웠을 때 그 운동이다.
+  ExerciseBlock? replaceBlocks(List<ExerciseBlock> next) {
+    final byId = {for (final b in blocks) b.id: b};
+    final merged = [
+      for (final b in next)
+        byId[b.id] != null && _sameBlock(byId[b.id]!, b) ? byId[b.id]! : b,
+    ];
+    if (merged.length == blocks.length &&
+        merged.indexed.every((e) => identical(e.$2, blocks[e.$1]))) {
+      return null;
+    }
+    final active = inBlock ? blocks[_active] : null;
+    final closed = _lastClosed;
+    blocks
+      ..clear()
+      ..addAll(merged);
+    _active = active == null ? -1 : blocks.indexWhere((b) => b.id == active.id);
+    _lastClosed = closed == null
+        ? null
+        : blocks.where((b) => b.id == closed.id).firstOrNull;
+    notifyListeners();
+    return active != null && _active < 0 ? active : null;
+  }
+
+  static bool _sameBlock(ExerciseBlock a, ExerciseBlock b) =>
+      a.id == b.id &&
+      a.name == b.name &&
+      a.setup?.toJson().toString() == b.setup?.toJson().toString() &&
+      a.sets.length == b.sets.length &&
+      a.sets.indexed.every((e) {
+        final x = e.$2, y = b.sets[e.$1];
+        return x.id == y.id &&
+            x.author == y.author &&
+            x.value == y.value &&
+            x.unit == y.unit &&
+            x.reps == y.reps &&
+            x.done == y.done &&
+            listEquals(x.notes, y.notes);
+      });
+
   int get totalSets =>
-      blocks.fold(0, (n, b) => n + b.sets.where((s) => s.done).length);
+      blocks.fold(0, (n, b) => n + b.sets.where((s) => s.mine).length);
 
   /// 클립보드로 나가는 글. 세트·횟수 표기는 화면 언어를 탄다.
   String asText({
@@ -480,17 +550,22 @@ class RoutineEditorController extends ChangeNotifier {
 /// 세트가 다 빠진 뒤의 마지막 한 번. 결과가 같으므로 묻는 말도 같아야 한다.
 Future<bool> confirmRemoveExercise(
   BuildContext context,
-  ExerciseBlock block,
-) async {
+  ExerciseBlock block, {
+  String? busy,
+}) async {
   final l = L.of(context);
   final yes = await showCupertinoDialog<bool>(
     context: context,
     builder: (context) => CupertinoAlertDialog(
       title: Text(l.deleteExerciseTitle(block.name)),
       content: Text(
-        block.sets.isEmpty
-            ? l.deleteExerciseEmptyBody
-            : l.deleteExerciseBody(block.sets.length),
+        [
+          // 같이 고치는 사람이 지금 이 운동을 적고 있다. 지우면 그 사람 것도 사라진다.
+          ?busy == null ? null : l.liveExerciseBusy(busy),
+          block.sets.isEmpty
+              ? l.deleteExerciseEmptyBody
+              : l.deleteExerciseBody(block.sets.length),
+        ].join('\n'),
       ),
       actions: [
         CupertinoDialogAction(
@@ -528,12 +603,20 @@ class RoutineEditor extends StatefulWidget {
     this.recentMeals = const [],
     this.recovery,
     this.partner,
+    this.presence = const [],
+    this.onPresence,
     this.timer,
   });
   final RoutineEditorController controller;
 
   /// 같이 운동 중이면 있다. 타이머를 같은 순간에 돌리는 데 쓴다.
   final PartnerSync? partner;
+
+  /// 같이 고치는 사람들이 지금 만지는 자리. 그 자리에 그 사람의 색이 붙는다.
+  final List<PartnerPresence> presence;
+
+  /// 내가 만지는 자리(운동 번호, 세트 번호, 치는 글)가 바뀔 때마다.
+  final void Function(String? block, String? set, String text)? onPresence;
 
   /// 없으면 여기서 만든다 — 테스트가 시계와 소리를 끼워 넣는 자리다.
   final WorkoutTimer? timer;
@@ -1143,8 +1226,32 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   void _editTitle(ExerciseBlock block) => _beginRecordEdit(block, null);
-  void _editSet(ExerciseBlock block, int index) =>
-      _beginRecordEdit(block, index);
+  void _editSet(ExerciseBlock block, int index) {
+    final id = block.sets[index].id;
+    final busy = widget.presence
+        .where((p) => p.block == block.id && p.set == id)
+        .firstOrNull;
+    // 같은 세트를 둘이 동시에 고치면 나중 것만 남는다. 먼저 잡은 사람에게 둔다.
+    if (busy != null) {
+      unawaited(_say(L.of(context).liveSetBusy(busy.name)));
+      return;
+    }
+    _beginRecordEdit(block, index);
+  }
+
+  Future<void> _say(String message) => showCupertinoDialog<void>(
+    context: context,
+    builder: (ctx) => CupertinoAlertDialog(
+      content: Text(message, style: const TextStyle(fontSize: 15)),
+      actions: [
+        CupertinoDialogAction(
+          isDefaultAction: true,
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(L.of(ctx).ok),
+        ),
+      ],
+    ),
+  );
 
   void _beginRecordEdit(
     ExerciseBlock block,
@@ -1318,9 +1425,44 @@ class _RoutineEditorState extends State<RoutineEditor>
     });
   }
 
+  /// 같이 고치는 중에는 내가 고치던 세트 앞에 남이 세트를 넣거나 지울 수 있다.
+  /// 번호가 아니라 그 세트를 따라간다. 세트가 사라졌으면 고치기를 그만둔다.
+  void _followEditedSet() {
+    final original = _recordOriginal, at = _recordSet;
+    if (original == null || at == null) return;
+    final now = _c.inBlock
+        ? _c.blocks[_c.activeIndex].sets.indexWhere((s) => s.id == original.id)
+        : -1;
+    if (now == at) return;
+    if (now >= 0) {
+      _recordSet = now;
+    } else {
+      _recordSet = null;
+      _recordOriginal = null;
+      _input.clear();
+    }
+  }
+
+  void _tellPresence() {
+    final tell = widget.onPresence;
+    if (tell == null) return;
+    final block = _c.inBlock ? _c.blocks[_c.activeIndex] : null;
+    final set = _recordSet;
+    tell(
+      block?.id,
+      block == null
+          ? null
+          : set != null && set < block.sets.length
+          ? block.sets[set].id
+          : '+',
+      _recordTitle ? '' : _text,
+    );
+  }
+
   void _onInput() {
     _syncSentinel();
     if (_editingRecord) _applyRecordEdit();
+    _tellPresence();
     if (_aiBusy && _text != _submittedText) {
       _aiRequest++;
       widget.ai.cancel();
@@ -1399,8 +1541,10 @@ class _RoutineEditorState extends State<RoutineEditor>
         _blockFor(offered) == null) {
       widget.partner!.clearTimer();
     }
+    _followEditedSet();
     _saveDraft();
     _syncSentinel();
+    _tellPresence();
     if (mounted) setState(() {});
     // keyboardType 을 바꾸는 것만으로는 **이미 올라와 있는** 키보드가 내려가지
     // 않는다. 운동 이름을 칠 때 뜬 키보드가 세트 모드에서도 그대로 남아
@@ -1698,7 +1842,14 @@ class _RoutineEditorState extends State<RoutineEditor>
     // 결과이므로 같은 것을 묻는다.
     if (_c.backspaceRemovesBlock) {
       final block = _c.blocks[_c.activeIndex];
-      confirmRemoveExercise(context, block).then((yes) {
+      confirmRemoveExercise(
+        context,
+        block,
+        busy: widget.presence
+            .where((p) => p.block == block.id)
+            .firstOrNull
+            ?.name,
+      ).then((yes) {
         if (!yes || !mounted) return;
         _c.backspace();
         _resumeElsewhere();
@@ -1900,6 +2051,10 @@ class _RoutineEditorState extends State<RoutineEditor>
                               _c.removeNote(i, set, note),
                           onEditSetup: () => _editSetup(i),
                           uniformCell: widestSetCell(context, blocks),
+                          cursors: [
+                            for (final p in widget.presence)
+                              if (p.block == blocks[i].id) p,
+                          ],
                           // 열려 있는 카드는 이미 거기다 — 누를 것이 없다.
                           onOpen: i == openIndex ? null : () => _openBlock(i),
                         ),
@@ -1910,6 +2065,21 @@ class _RoutineEditorState extends State<RoutineEditor>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildInput(bold: true),
+                              for (final p in widget.presence)
+                                if (p.block == null && p.text.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 2,
+                                    ),
+                                    child: Text(
+                                      p.text,
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w600,
+                                        color: cursorColor(p.name),
+                                      ),
+                                    ),
+                                  ),
                               // 물어보는 중일 때만 한 줄. 준비 상태 같은 것은
                               // 이제 없다 — 서버에 물어보면 되거나 안 되거나다.
                               if (_aiBusy)
@@ -2245,9 +2415,13 @@ class _BlockView extends StatelessWidget {
     required this.onRemoveNote,
     required this.onEditSetup,
     this.uniformCell,
+    this.cursors = const [],
   });
 
   final ExerciseBlock block;
+
+  /// 이 운동을 지금 만지는 다른 사람들.
+  final List<PartnerPresence> cursors;
   final Widget dragHandle;
   final bool collapsed;
   final Widget? titleInput;
@@ -2276,7 +2450,13 @@ class _BlockView extends StatelessWidget {
   final VoidCallback? onOpen;
 
   Future<void> _confirmRemove(BuildContext context) async {
-    if (await confirmRemoveExercise(context, block)) onRemoveBlock();
+    if (await confirmRemoveExercise(
+      context,
+      block,
+      busy: cursors.firstOrNull?.name,
+    )) {
+      onRemoveBlock();
+    }
   }
 
   @override
@@ -2324,6 +2504,7 @@ class _BlockView extends StatelessWidget {
                       ),
                     ),
               ),
+              for (final p in cursors) _CursorTag(p),
               // 칸에서 뺀 단위를 여기 한 번 적는다.
               if (unit != null && !collapsed)
                 Padding(
@@ -2369,7 +2550,7 @@ class _BlockView extends StatelessWidget {
                 ),
               ),
             // 읽는 자리는 조밀하게 — 세트마다 한 칸, 한 줄에 여러 칸.
-            if (block.sets.isNotEmpty)
+            if (block.sets.isNotEmpty || cursors.any((p) => p.set != null))
               SetGrid(
                 block: block,
                 uniform: uniformCell,
@@ -2377,7 +2558,25 @@ class _BlockView extends StatelessWidget {
                 // 빈 칸 하나가 늘 남아 있다. 누르면 이 운동에 다음 세트를 적는다.
                 onAdd: input == null ? onOpen : null,
                 editingSet: editingSet,
+                cursors: {
+                  for (final p in cursors)
+                    if (p.set == '+')
+                      block.sets.length: cursorColor(p.name)
+                    else if (block.sets.indexWhere((s) => s.id == p.set)
+                        case final at when at >= 0)
+                      at: cursorColor(p.name),
+                },
               ),
+            // 상대가 치는 중인 글. 세트가 되기 전의 것이라 그 사람 색으로 흐리게.
+            for (final p in cursors)
+              if (p.text.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    p.text,
+                    style: TextStyle(fontSize: 15, color: cursorColor(p.name)),
+                  ),
+                ),
             // 고치는 세트만 제 줄을 넓게 얻는다. 완료 표시와 지우기도 여기 있다.
             if (editingSet != null && editingSet! < block.sets.length)
               _SetRow(
@@ -2798,6 +2997,49 @@ class _TogetherInvite extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 사람마다 한 색. 이름에서 나오므로 두 폰이 같은 사람을 같은 색으로 보고,
+/// 그 사람이 적은 세트와 그 사람의 커서가 같은 색이다.
+Color cursorColor(String key) {
+  const palette = [
+    CupertinoColors.systemOrange,
+    CupertinoColors.systemPurple,
+    CupertinoColors.systemTeal,
+    CupertinoColors.systemPink,
+    CupertinoColors.systemIndigo,
+    CupertinoColors.systemGreen,
+  ];
+  return palette[key.codeUnits.fold(0, (h, c) => (h * 31 + c) & 0xffff) %
+      palette.length];
+}
+
+/// 운동 이름 옆의 이름표 — 이 사람이 지금 이 운동을 보고 있다.
+class _CursorTag extends StatelessWidget {
+  const _CursorTag(this.p);
+  final PartnerPresence p;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = cursorColor(p.name);
+    return Container(
+      key: ValueKey('cursor-${p.key}'),
+      margin: const EdgeInsets.only(left: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        p.name,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
       ),
     );
   }

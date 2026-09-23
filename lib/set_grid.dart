@@ -51,6 +51,16 @@ InlineSpan _cellSpan(
   LoggedSet set,
 ) => TextSpan(
   children: [
+    // 같이 고친 문서에서 남이 적은 세트. 그 사람의 첫 글자를 그 사람 색으로.
+    if (set.author case final who? when who.isNotEmpty)
+      TextSpan(
+        text: '${who.characters.first} ',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: cursorColor(who),
+        ),
+      ),
     TextSpan(
       text: set.done ? '${i + 1} ' : '${i + 1}○ ',
       style: TextStyle(
@@ -109,7 +119,11 @@ class SetGrid extends StatelessWidget {
     this.onAdd,
     this.editingSet,
     this.uniform,
+    this.cursors = const {},
   });
+
+  /// 세트 번호 → 그 칸을 지금 만지는 사람의 색. 마지막 빈 칸의 번호는 세트 수다.
+  final Map<int, Color> cursors;
 
   /// 문서 전체에서 맞출 칸 폭([widestSetCell]). 없으면 이 운동 안에서만 맞춘다.
   final double? uniform;
@@ -200,7 +214,9 @@ class SetGrid extends StatelessWidget {
                         color: i == editingSet
                             ? sealTint.resolveFrom(context)
                             : null,
-                        border: onTapSet == null || i == editingSet
+                        border: cursors[i] != null
+                            ? Border.all(color: cursors[i]!, width: 1.5)
+                            : onTapSet == null || i == editingSet
                             ? null
                             : Border.all(
                                 color: CupertinoColors.separator.resolveFrom(
@@ -238,8 +254,10 @@ class SetGrid extends StatelessWidget {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: CupertinoColors.separator.resolveFrom(context),
-                          width: 0.5,
+                          color:
+                              cursors[block.sets.length] ??
+                              CupertinoColors.separator.resolveFrom(context),
+                          width: cursors[block.sets.length] != null ? 1.5 : 0.5,
                         ),
                         borderRadius: BorderRadius.circular(6),
                       ),

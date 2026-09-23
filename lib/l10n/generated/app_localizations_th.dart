@@ -1415,4 +1415,19 @@ class LTh extends L {
 
   @override
   String get restAlarmTitle => 'รอบถัดไป — หัวใจเต้นช้าลงแล้ว';
+
+  @override
+  String liveSetBusy(String name) {
+    return '$name กำลังแก้เซ็ตนี้อยู่ แตะอีกครั้งเมื่อแก้เสร็จ';
+  }
+
+  @override
+  String liveExerciseBusy(String name) {
+    return '$name กำลังบันทึกท่านี้อยู่ตอนนี้';
+  }
+
+  @override
+  String liveExerciseRemoved(String exercise) {
+    return 'คนที่ออกกำลังด้วยกันลบ $exercise แล้ว ข้อความที่พิมพ์อยู่ยังอยู่ในช่องพิมพ์';
+  }
 }

@@ -1440,4 +1440,19 @@ class LEn extends L {
 
   @override
   String get restAlarmTitle => 'Next round — your heart rate is down';
+
+  @override
+  String liveSetBusy(String name) {
+    return '$name is editing this set. Tap it again when they are done.';
+  }
+
+  @override
+  String liveExerciseBusy(String name) {
+    return '$name is writing in this exercise right now.';
+  }
+
+  @override
+  String liveExerciseRemoved(String exercise) {
+    return 'Someone in your session removed $exercise. What you were typing is still in the input line.';
+  }
 }

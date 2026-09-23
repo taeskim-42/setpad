@@ -80,7 +80,7 @@ Iterable<(DateTime, LoggedSet)> _sets(List<Note> notes, String query) sync* {
     for (final block in note.blocks) {
       if (searchKey(block.exercise) != searchKey(want)) continue;
       for (final set in block.sets) {
-        if (set.done &&
+        if (set.mine &&
             set.value != null &&
             set.value!.isFinite &&
             set.value! >= 0 &&
@@ -113,7 +113,7 @@ List<(DateTime, LoggedSet)> _done(
       for (final block in note.blocks)
         if (block.exercise == exercise)
           for (final set in block.sets)
-            if (set.done) (_day(note.createdAt), set),
+            if (set.mine) (_day(note.createdAt), set),
 ];
 
 /// 세트에 적힌 숫자의 종류. 숫자가 없으면 null 이다.
@@ -225,7 +225,7 @@ Answer answer(
       if (since != null && d.isBefore(_day(since))) continue;
       for (final block in note.blocks) {
         if (block.exercise != exercise) continue;
-        for (final set in block.sets.where((s) => s.done)) {
+        for (final set in block.sets.where((s) => s.mine)) {
           if (metric == Metric.reps && set.reps == null) continue;
           byDay.putIfAbsent(d, () => []).add(set);
         }
@@ -276,7 +276,7 @@ Answer answer(
       if (since != null && day.isBefore(_day(since))) continue;
       for (final block in note.blocks.where((b) => b.exercise == exercise)) {
         for (final set in block.sets.where(
-          (s) => s.done && (s.value != null || s.reps != null),
+          (s) => s.mine && (s.value != null || s.reps != null),
         )) {
           byDay.putIfAbsent(day, () => []).add(set);
         }

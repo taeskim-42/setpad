@@ -371,5 +371,8 @@
   "healthDataRevokeIos": "権限は iPhone の設定 → プライバシーとセキュリティ → ヘルスケア → setpad でいつでもオフにできます。",
   "healthDataRevokeAndroid": "権限はヘルスコネクト → アプリの権限 → setpad でいつでもオフにできます。",
   "healthDataPrivacy": "プライバシーポリシー",
-  "restAlarmTitle": "次のラウンド — 心拍が下がりました"
+  "restAlarmTitle": "次のラウンド — 心拍が下がりました",
+  "liveSetBusy": "{name}さんがこのセットを編集中です。終わってからもう一度タップしてください。",
+  "liveExerciseBusy": "{name}さんが今この種目を記録しています。",
+  "liveExerciseRemoved": "一緒に記録している人が{exercise}を削除しました。入力中の文字はそのまま残っています。"
 }

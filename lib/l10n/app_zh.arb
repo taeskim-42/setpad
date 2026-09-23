@@ -371,5 +371,8 @@
   "healthDataRevokeIos": "可随时在 iPhone 设置 → 隐私与安全性 → 健康 → setpad 中关闭。",
   "healthDataRevokeAndroid": "可随时在 Health Connect → 应用权限 → setpad 中关闭。",
   "healthDataPrivacy": "隐私政策",
-  "restAlarmTitle": "下一轮 — 心率已降下来"
+  "restAlarmTitle": "下一轮 — 心率已降下来",
+  "liveSetBusy": "{name} 正在编辑这一组。等对方改完再点。",
+  "liveExerciseBusy": "{name} 正在记录这个动作。",
+  "liveExerciseRemoved": "一起训练的人删除了 {exercise}。你正在输入的内容还在输入栏里。"
 }

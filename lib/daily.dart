@@ -81,7 +81,7 @@ List<DayLog> dayLogs(
     // 세트도 칼로리도 없는 빈 문서는 운동한 날로 치지 않는다.
     final worked =
         note.calories != null ||
-        note.blocks.any((b) => b.sets.any((s) => s.done));
+        note.blocks.any((b) => b.sets.any((s) => s.mine));
     if (worked && within(note.createdAt)) at(note.createdAt).notes.add(note);
     for (final meal in note.meals) {
       if (!within(meal.at) || !seenMeals.add(meal.id)) continue;

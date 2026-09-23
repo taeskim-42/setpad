@@ -371,5 +371,8 @@
   "healthDataRevokeIos": "You can turn these off at any time in iPhone Settings → Privacy & Security → Health → setpad.",
   "healthDataRevokeAndroid": "You can turn these off at any time in Health Connect → App permissions → setpad.",
   "healthDataPrivacy": "Privacy policy",
-  "restAlarmTitle": "Next round — your heart rate is down"
+  "restAlarmTitle": "Next round — your heart rate is down",
+  "liveSetBusy": "{name} is editing this set. Tap it again when they are done.",
+  "liveExerciseBusy": "{name} is writing in this exercise right now.",
+  "liveExerciseRemoved": "Someone in your session removed {exercise}. What you were typing is still in the input line."
 }

@@ -1393,4 +1393,19 @@ class LKo extends L {
 
   @override
   String get restAlarmTitle => '다음 라운드 — 심박이 내려왔어요';
+
+  @override
+  String liveSetBusy(String name) {
+    return '$name님이 이 세트를 고치는 중이에요. 다 고친 뒤에 눌러 주세요.';
+  }
+
+  @override
+  String liveExerciseBusy(String name) {
+    return '$name님이 지금 이 운동을 적고 있어요.';
+  }
+
+  @override
+  String liveExerciseRemoved(String exercise) {
+    return '같이 하는 사람이 $exercise을(를) 지웠어요. 치던 글은 입력 줄에 남아 있어요.';
+  }
 }

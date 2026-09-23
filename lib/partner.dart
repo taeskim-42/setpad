@@ -17,7 +17,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import 'api_route.dart';
 import 'editor.dart';
+import 'live_doc.dart';
 import 'gym.dart';
 import 'notes.dart';
 import 'shared_timer.dart';
@@ -62,6 +64,23 @@ class PartnerPerson {
   /// 그 사람의 기록 — 읽기 전용이다.
   final List<ExerciseBlock> blocks;
   final DateTime? updatedAt;
+}
+
+/// 지금 누가 어디를 만지는가. 상대 화면의 "커서" 다.
+class PartnerPresence {
+  const PartnerPresence({
+    required this.key,
+    required this.name,
+    this.block,
+    this.set,
+    this.text = '',
+  });
+  final String key, name;
+
+  /// 운동 id 와 세트 id. 세트가 '+' 면 그 운동의 다음 세트를 치는 중이다.
+  /// 운동이 null 이면 새 운동 이름을 치는 중이다.
+  final String? block, set;
+  final String text;
 }
 
 class PartnerSession {
@@ -112,6 +131,13 @@ class PartnerSession {
 
   /// 같이 하는 타이머. 저장하지 않는다 — 서버가 매번 다시 말해 준다.
   SharedTimer? timer;
+
+  /// 같이 고치는 한 문서(서버가 준 그대로)와 그 버전, 누가 어디를 만지는지,
+  /// 이 세션에서 나를 가리키는 키. 모두 저장하지 않는다.
+  List<Json>? doc;
+  int docVersion = 0;
+  List<PartnerPresence> presence = const [];
+  String? me;
 
   /// 상대가 내 세트를 대신 적어 주고 있다. 받기 전에는 내 기록이 아니다.
   ({String token, int revision, String from})? handoff;
@@ -239,6 +265,48 @@ extension PartnerLink on GymLink {
   Future<PartnerReply> partnerTimer(String id, Map<String, Object?> action) =>
       _partner('PUT', '/api/partner-sessions/$id/timer', action);
 
+  Future<PartnerReply> partnerDoc(String id, Map<String, Object?> action) =>
+      _partner('PUT', '/api/partner-sessions/$id/doc', action);
+
+  Future<PartnerReply> partnerPresence(String id, Map<String, Object?> where) =>
+      _partner('PUT', '/api/partner-sessions/$id/presence', where);
+
+  /// 서버가 밀어 주는 세션 상태(SSE). 한 줄이 한 상태다. 끊기면 스트림이 끝난다 —
+  /// 다시 여는 것은 부르는 쪽이 한다.
+  Stream<Map<String, Object?>> partnerEvents(String id) async* {
+    if (!supported) return;
+    final web = client ?? newApiClient();
+    try {
+      final request = http.Request(
+        'GET',
+        Uri.parse('$endpoint/api/partner-sessions/$id/events'),
+      )..headers.addAll({...headers, 'accept': 'text/event-stream'});
+      final response = await web
+          .send(request)
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode != 200) return;
+      var buffer = '';
+      await for (final chunk in response.stream.transform(utf8.decoder)) {
+        buffer += chunk;
+        while (true) {
+          final cut = buffer.indexOf('\n\n');
+          if (cut < 0) break;
+          final event = buffer.substring(0, cut);
+          buffer = buffer.substring(cut + 2);
+          for (final line in event.split('\n')) {
+            if (!line.startsWith('data:')) continue;
+            final decoded = jsonDecode(line.substring(5).trim());
+            if (decoded is Map) yield decoded.cast<String, Object?>();
+          }
+        }
+      }
+    } catch (_) {
+      // 끊긴 것이다. 부르는 쪽이 다시 연다.
+    } finally {
+      if (client == null) web.close();
+    }
+  }
+
   Future<PartnerReply> endPartnerSession(String id) =>
       _partner('POST', '/api/partner-sessions/$id/end');
 }
@@ -333,6 +401,30 @@ class PartnerSync extends ChangeNotifier {
       }
     }
     next.timer = timer;
+    final docJson = body['doc'];
+    if (docJson is Map &&
+        docJson['version'] is int &&
+        docJson['blocks'] is List) {
+      next.doc = [
+        for (final b in docJson['blocks'] as List)
+          if (b is Map) b.cast<String, Object?>(),
+      ];
+      next.docVersion = docJson['version'] as int;
+    } else {
+      next.doc = null;
+    }
+    next.me = body['me'] is String ? body['me'] as String : null;
+    next.presence = [
+      for (final p in (body['presence'] as List? ?? const []))
+        if (p is Map && p['key'] is String && p['name'] is String)
+          PartnerPresence(
+            key: p['key'] as String,
+            name: p['name'] as String,
+            block: p['block'] is String ? p['block'] as String : null,
+            set: p['set'] is String ? p['set'] as String : null,
+            text: p['text'] is String ? p['text'] as String : '',
+          ),
+    ];
     final members = body['members'];
     if (members is List) {
       next
@@ -369,6 +461,7 @@ class PartnerSync extends ChangeNotifier {
         ..partnerLoaded = false;
     }
     note.partner = next;
+    _receiveDoc(next);
   }
 
   /// [undo]: 취소된 뒤에 늦게 온 성공을 되돌릴 것인가. 초대·참여에만 켠다 —
@@ -472,6 +565,7 @@ class PartnerSync extends ChangeNotifier {
   void recordChanged() {
     final s = session;
     if (s == null || !s.open) return;
+    pushDoc();
     s.revision++;
     onChanged();
     _debounce?.cancel();
@@ -493,7 +587,7 @@ class PartnerSync extends ChangeNotifier {
     final reply = await link().savePartnerRecord(
       s.id,
       sending,
-      note.blocks,
+      mineOnly(note.blocks),
       base: s.pushed,
     );
     _pushing = false;
@@ -526,7 +620,7 @@ class PartnerSync extends ChangeNotifier {
     final reply = await link().savePartnerRecord(
       s.id,
       s.revision,
-      note.blocks,
+      mineOnly(note.blocks),
       base: c.revision,
       force: true,
     );
@@ -593,6 +687,151 @@ class PartnerSync extends ChangeNotifier {
     });
   }
 
+  // ── 같이 고치기 ─────────────────────────────────────────────────
+
+  /// 내가 믿는 문서 = 서버가 마지막으로 준 문서 위에 아직 닿지 않은 내 수정.
+  /// 편집기는 늘 이것을 보여 준다.
+  List<Json>? _shadow;
+  final _pendingDoc = <List<Json>>[];
+  int _seenDoc = 0, _ackedDoc = 0;
+  bool _sendingDoc = false, _docFresh = false;
+
+  /// 서버 문서가 새로 왔으면 편집기에 놓을 운동들. 한 번만 내준다.
+  ///
+  /// 처음 받을 때는 내 문서에만 있던 운동을 뒤에 붙여 올린다 — 들어온 사람의
+  /// 기록이 사라지지 않고 같이 짜는 문서에 합쳐진다.
+  List<ExerciseBlock>? takeDoc() {
+    final s = session;
+    if (!_docFresh || s == null) return null;
+    _docFresh = false;
+    return blocksOfDoc(_shadow!, s.me);
+  }
+
+  void _receiveDoc(PartnerSession s) {
+    if (s.state != PartnerState.active) {
+      _shadow = null;
+      _pendingDoc.clear();
+      _seenDoc = _ackedDoc = 0;
+      return;
+    }
+    final doc = s.doc;
+    if (doc == null) {
+      // 아직 안 심었다. 심는 것은 호스트다 — 둘이 동시에 심으면 누구 목록이
+      // 앞에 올지 운에 맡기게 된다. 들어온 사람의 운동은 받은 뒤에 뒤로 붙는다.
+      if (_shadow == null && s.host) unawaited(_initDoc());
+      return;
+    }
+    // 내 수정이 들어간 버전보다 옛 소식은 버린다 — 내 수정이 잠깐 사라져 보인다.
+    if (s.docVersion <= _seenDoc || s.docVersion < _ackedDoc) return;
+    _seenDoc = s.docVersion;
+    final first = _shadow == null;
+    _shadow = _pendingDoc.fold<List<Json>>(doc, applyDoc);
+    if (first) {
+      final there = {for (final b in doc) b['id']};
+      final extra = docOf(
+        note.blocks.where((b) => !there.contains(b.id)).toList(),
+      );
+      if (extra.isNotEmpty) _queueDoc([..._shadow!, ...extra]);
+    }
+    _docFresh = true;
+  }
+
+  Future<void> _initDoc() async {
+    final s = session;
+    if (s == null || s.state != PartnerState.active) return;
+    await link().partnerDoc(s.id, {
+      'action': 'init',
+      'blocks': docOf(note.blocks),
+    });
+  }
+
+  /// 편집기의 문서가 바뀌었다. 내가 믿는 문서와의 차이만 보낸다.
+  void pushDoc() {
+    if (_shadow == null || session?.state != PartnerState.active) return;
+    _queueDoc(docOf(note.blocks));
+  }
+
+  void _queueDoc(List<Json> next) {
+    final batches = diffDoc(_shadow!, next);
+    if (batches.isEmpty) return;
+    for (final ops in batches) {
+      _shadow = applyDoc(_shadow!, ops);
+      _pendingDoc.add(ops);
+    }
+    unawaited(_flushDoc());
+  }
+
+  /// 차례대로 보낸다. 끊기면 멈췄다가 다음 폴링에서 잇는다 — 같은 수정을 두 번
+  /// 얹어도 결과가 같아서 다시 보내도 안전하다.
+  Future<void> _flushDoc() async {
+    final s = session;
+    if (_sendingDoc || s == null) return;
+    _sendingDoc = true;
+    while (_pendingDoc.isNotEmpty && !_disposed && session?.id == s.id) {
+      final reply = await link().partnerDoc(s.id, {
+        'action': 'edit',
+        'ops': _pendingDoc.first,
+      });
+      if (reply.error == PartnerError.network) break;
+      reachable = true;
+      final v = reply.body?['version'];
+      if (v is int && v > _ackedDoc) _ackedDoc = v;
+      // 서버가 안 받은 수정(모양이 틀렸다)은 다시 보내도 안 받는다. 버린다.
+      if (_pendingDoc.isNotEmpty) _pendingDoc.removeAt(0);
+    }
+    _sendingDoc = false;
+  }
+
+  Timer? _presenceTimer;
+  Map<String, Object?>? _presencePending, _presenceSent;
+
+  /// 내가 어디를 만지는지. 자주 부르니 모아서, 같은 것은 다시 보내지 않는다.
+  void presence({String? block, String? set, String text = ''}) {
+    final s = session;
+    if (s == null || s.state != PartnerState.active) return;
+    _presencePending = {'block': block, 'set': set, 'text': text};
+    _presenceTimer ??= Timer(const Duration(milliseconds: 150), () {
+      _presenceTimer = null;
+      final where = _presencePending;
+      if (where == null || mapEquals(where, _presenceSent)) return;
+      _presenceSent = where;
+      unawaited(link().partnerPresence(s.id, where));
+    });
+  }
+
+  StreamSubscription<Map<String, Object?>>? _events;
+  Timer? _reconnect;
+
+  /// 스트림이 실제로 소식을 주고 있는가.
+  bool _streaming = false;
+
+  /// 서버가 밀어 주는 상태를 듣는다. 끊기면 1초 뒤 다시 연다. 폴링은 남겨 두되
+  /// 듣는 동안은 드물게 한다 — 스트림이 놓친 것을 줍는 보험이다.
+  void _listen() {
+    final s = session;
+    if (_events != null || _disposed || s == null || !s.open) return;
+    final id = s.id;
+    _events = link().partnerEvents(id).listen((body) {
+      if (_disposed || session?.id != id) return;
+      _streaming = true;
+      reachable = true;
+      _apply(body);
+      onChanged();
+      notifyListeners();
+    }, onDone: _reopen);
+  }
+
+  /// 끊겼다. 잘 흐르던 것이면 곧 다시, 처음부터 안 흐르던 것(옛 서버, 막힌
+  /// 그물)이면 느긋하게 — 그동안은 폴링이 제 속도로 돈다.
+  void _reopen() {
+    final was = _streaming;
+    _events = null;
+    _streaming = false;
+    if (_disposed || _poll == null) return;
+    _reconnect?.cancel();
+    _reconnect = Timer(Duration(seconds: was ? 1 : 15), _listen);
+  }
+
   /// 같이 하기를 끝낸다. 내 운동은 남는다. 그물이 없어도 이 기기에서는 끝난
   /// 것으로 하고 공유를 멈춘다 — 서버에는 다음에 닿을 때 끝났다고 알린다.
   Future<void> end() async {
@@ -618,19 +857,27 @@ class PartnerSync extends ChangeNotifier {
   void start() {
     if (_poll != null || _disposed) return;
     unawaited(refresh());
+    _listen();
+    var ticks = 0;
     _poll = Timer.periodic(interval, (_) async {
       final pending = _pendingEnd;
       if (pending != null) {
         final reply = await link().endPartnerSession(pending);
         if (reply.error != PartnerError.network) _pendingEnd = null;
       }
-      await refresh();
+      if (_pendingDoc.isNotEmpty) unawaited(_flushDoc());
+      // 스트림이 살아 있으면 폴링은 열 번에 한 번만.
+      if (!_streaming || ++ticks % 10 == 0) await refresh();
     });
   }
 
   void stop() {
     _poll?.cancel();
     _poll = null;
+    _events?.cancel();
+    _events = null;
+    _streaming = false;
+    _reconnect?.cancel();
   }
 
   @override
@@ -638,6 +885,7 @@ class PartnerSync extends ChangeNotifier {
     _disposed = true;
     stop();
     _debounce?.cancel();
+    _presenceTimer?.cancel();
     super.dispose();
   }
 }

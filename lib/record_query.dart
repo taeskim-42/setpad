@@ -745,9 +745,10 @@ class RecordResult {
   final Set<String> evidence;
 }
 
-/// 세트를 고르는 곳. 해낸 세트만 센다 — 이 파일에서는 여기 하나다.
+/// 세트를 고르는 곳. 내가 해낸 세트만 센다 — 같이 고친 기록의 옆 사람 세트는
+/// 내 기록이 아니다([LoggedSet.mine]). 이 파일에서는 여기 하나다.
 Iterable<LoggedSet> _counted(ExerciseBlock block) =>
-    block.sets.where((s) => s.done);
+    block.sets.where((s) => s.mine);
 
 bool _weighed(LoggedSet s) =>
     s.value != null && s.value!.isFinite && (s.unit == 'kg' || s.unit == 'lb');

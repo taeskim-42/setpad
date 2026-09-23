@@ -1381,6 +1381,21 @@ class LZh extends L {
 
   @override
   String get restAlarmTitle => '下一轮 — 心率已降下来';
+
+  @override
+  String liveSetBusy(String name) {
+    return '$name 正在编辑这一组。等对方改完再点。';
+  }
+
+  @override
+  String liveExerciseBusy(String name) {
+    return '$name 正在记录这个动作。';
+  }
+
+  @override
+  String liveExerciseRemoved(String exercise) {
+    return '一起训练的人删除了 $exercise。你正在输入的内容还在输入栏里。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2760,6 +2775,21 @@ class LZhHans extends LZh {
 
   @override
   String get restAlarmTitle => '下一轮 — 心率已降下来';
+
+  @override
+  String liveSetBusy(String name) {
+    return '$name 正在编辑这一组。等对方改完再点。';
+  }
+
+  @override
+  String liveExerciseBusy(String name) {
+    return '$name 正在记录这个动作。';
+  }
+
+  @override
+  String liveExerciseRemoved(String exercise) {
+    return '一起训练的人删除了 $exercise。你正在输入的内容还在输入栏里。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -4138,4 +4168,19 @@ class LZhHant extends LZh {
 
   @override
   String get restAlarmTitle => '下一輪 — 心率已降下來';
+
+  @override
+  String liveSetBusy(String name) {
+    return '$name 正在編輯這一組。等對方改完再點。';
+  }
+
+  @override
+  String liveExerciseBusy(String name) {
+    return '$name 正在記錄這個動作。';
+  }
+
+  @override
+  String liveExerciseRemoved(String exercise) {
+    return '一起訓練的人刪除了 $exercise。你正在輸入的內容還在輸入欄裡。';
+  }
 }

@@ -30,7 +30,6 @@ class NotesListPage extends StatefulWidget {
     super.key,
     required this.store,
     required this.onOpen,
-    this.onPlans,
     this.ai = const RecordAi(),
     this.account,
   });
@@ -43,7 +42,6 @@ class NotesListPage extends StatefulWidget {
   /// 로그인과 결제. 없으면 설정에 그 항목이 안 뜬다.
   final Account? account;
   final void Function(Note) onOpen;
-  final VoidCallback? onPlans;
 
   @override
   State<NotesListPage> createState() => _NotesListPageState();
@@ -466,8 +464,6 @@ class _NotesListPageState extends State<NotesListPage>
                                 context,
                                 widget.store,
                                 account: widget.account,
-                                // 홈 화면의 공동 루틴 버튼은 뺐다. 목록은 설정에서 연다.
-                                onPlans: widget.onPlans,
                               ),
                               child: const Icon(CupertinoIcons.gear, size: 21),
                             ),

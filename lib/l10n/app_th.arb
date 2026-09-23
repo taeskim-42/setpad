@@ -371,5 +371,8 @@
   "healthDataRevokeIos": "ปิดสิทธิ์ได้ทุกเมื่อที่ การตั้งค่า iPhone → ความเป็นส่วนตัวและความปลอดภัย → สุขภาพ → setpad",
   "healthDataRevokeAndroid": "ปิดสิทธิ์ได้ทุกเมื่อที่ Health Connect → สิทธิ์ของแอป → setpad",
   "healthDataPrivacy": "นโยบายความเป็นส่วนตัว",
-  "restAlarmTitle": "รอบถัดไป — หัวใจเต้นช้าลงแล้ว"
+  "restAlarmTitle": "รอบถัดไป — หัวใจเต้นช้าลงแล้ว",
+  "liveSetBusy": "{name} กำลังแก้เซ็ตนี้อยู่ แตะอีกครั้งเมื่อแก้เสร็จ",
+  "liveExerciseBusy": "{name} กำลังบันทึกท่านี้อยู่ตอนนี้",
+  "liveExerciseRemoved": "คนที่ออกกำลังด้วยกันลบ {exercise} แล้ว ข้อความที่พิมพ์อยู่ยังอยู่ในช่องพิมพ์"
 }

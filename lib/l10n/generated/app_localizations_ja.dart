@@ -1390,4 +1390,19 @@ class LJa extends L {
 
   @override
   String get restAlarmTitle => '次のラウンド — 心拍が下がりました';
+
+  @override
+  String liveSetBusy(String name) {
+    return '$nameさんがこのセットを編集中です。終わってからもう一度タップしてください。';
+  }
+
+  @override
+  String liveExerciseBusy(String name) {
+    return '$nameさんが今この種目を記録しています。';
+  }
+
+  @override
+  String liveExerciseRemoved(String exercise) {
+    return '一緒に記録している人が$exerciseを削除しました。入力中の文字はそのまま残っています。';
+  }
 }

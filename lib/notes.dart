@@ -113,11 +113,14 @@ class MealEntry {
 List<Map<String, Object?>> blocksToJson(List<ExerciseBlock> blocks) => [
   for (final b in blocks)
     {
+      'id': b.id,
       'name': b.name,
       if (b.setup != null) 'setup': b.setup!.toJson(),
       'sets': [
         for (final s in b.sets)
           {
+            'id': s.id,
+            'author': ?s.author,
             'value': s.value,
             'unit': s.unit,
             'reps': s.reps,
@@ -128,25 +131,48 @@ List<Map<String, Object?>> blocksToJson(List<ExerciseBlock> blocks) => [
     },
 ];
 
+/// 내가 적은 세트만 남긴 사본. 같이 고친 문서에는 남의 세트도 있다 — 내 기록으로
+/// 나가는 곳(파트너 공유)에는 내 것만 간다. 세트가 하나도 안 남은 운동도 남긴다:
+/// 같이 짠 운동 목록은 내 것이기도 하다.
+List<ExerciseBlock> mineOnly(List<ExerciseBlock> blocks) => [
+  for (final b in blocks)
+    ExerciseBlock(
+      b.name,
+      [
+        for (final s in b.sets)
+          if (s.author == null) s,
+      ],
+      b.setup,
+      b.id,
+    ),
+];
+
 List<ExerciseBlock> blocksFromJson(Object? blocks) => [
   for (final b in blocks is List ? blocks : const [])
     if (b is Map && b['name'] is String)
-      ExerciseBlock(b['name'] as String, [
-        for (final s in (b['sets'] as List? ?? const []))
-          if (s is Map)
-            LoggedSet(
-              // 'kg' 는 단위가 생기기 전에 저장된 기록이다. 그때는
-              // 무게가 늘 kg 였으므로 그대로 읽어 준다.
-              value: ((s['value'] ?? s['kg']) as num?)?.toDouble(),
-              unit: s['unit'] as String? ?? defaultUnit,
-              reps: (s['reps'] as num?)?.toInt(),
-              // 'note'(단수)는 메모가 하나뿐이던 시절의 저장분이다.
-              notes:
-                  (s['notes'] as List?)?.whereType<String>().toList() ??
-                  (s['note'] is String ? [s['note'] as String] : null),
-              done: s['done'] as bool? ?? true,
-            ),
-      ], WorkoutSetup.tryFromJson(b['setup'])),
+      ExerciseBlock(
+        b['name'] as String,
+        [
+          for (final s in (b['sets'] as List? ?? const []))
+            if (s is Map)
+              LoggedSet(
+                id: s['id'] is String ? s['id'] as String : null,
+                author: s['author'] is String ? s['author'] as String : null,
+                // 'kg' 는 단위가 생기기 전에 저장된 기록이다. 그때는
+                // 무게가 늘 kg 였으므로 그대로 읽어 준다.
+                value: ((s['value'] ?? s['kg']) as num?)?.toDouble(),
+                unit: s['unit'] as String? ?? defaultUnit,
+                reps: (s['reps'] as num?)?.toInt(),
+                // 'note'(단수)는 메모가 하나뿐이던 시절의 저장분이다.
+                notes:
+                    (s['notes'] as List?)?.whereType<String>().toList() ??
+                    (s['note'] is String ? [s['note'] as String] : null),
+                done: s['done'] as bool? ?? true,
+              ),
+        ],
+        WorkoutSetup.tryFromJson(b['setup']),
+        b['id'] is String ? b['id'] as String : null,
+      ),
 ];
 
 /// 한 번의 운동 기록. 메모 앱의 메모 한 장에 해당한다.
@@ -247,7 +273,7 @@ class Note {
   }) {
     final total = blocks.fold(
       0,
-      (n, b) => n + b.sets.where((s) => s.done).length,
+      (n, b) => n + b.sets.where((s) => s.mine).length,
     );
     return total == 0 ? '' : setOrdinal(total);
   }

@@ -21,14 +21,12 @@ class SettingsPage extends StatelessWidget {
     super.key,
     required this.store,
     this.account,
-    this.onPlans,
   });
   final NotesStore store;
   final Account? account;
 
   /// 공동 루틴 목록을 연다. 홈 화면에서 뺀 뒤로 목록에 가는 길은 여기다 —
   /// 없으면 이미 만들었거나 초대받은 루틴을 다시 열 수 없다.
-  final VoidCallback? onPlans;
 
   @override
   Widget build(BuildContext context) {
@@ -117,16 +115,6 @@ class SettingsPage extends StatelessWidget {
                     label: l.bookingNew,
                     accent: true,
                     onTap: () => openBooking(context, a),
-                  ),
-                ],
-
-                if (onPlans != null) ...[
-                  _Section(title: l.plansTitle),
-                  _Row(
-                    key: const ValueKey('settings-plans'),
-                    label: l.plansTitle,
-                    accent: true,
-                    onTap: onPlans,
                   ),
                 ],
 
@@ -265,7 +253,6 @@ class _Section extends StatelessWidget {
 
 class _Row extends StatelessWidget {
   const _Row({
-    super.key,
     required this.label,
     this.detail,
     this.accent = false,

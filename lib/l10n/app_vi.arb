@@ -371,5 +371,8 @@
   "healthDataRevokeIos": "Bạn có thể tắt bất cứ lúc nào trong Cài đặt iPhone → Quyền riêng tư & Bảo mật → Sức khỏe → setpad.",
   "healthDataRevokeAndroid": "Bạn có thể tắt bất cứ lúc nào trong Health Connect → Quyền của ứng dụng → setpad.",
   "healthDataPrivacy": "Chính sách quyền riêng tư",
-  "restAlarmTitle": "Hiệp tiếp theo — nhịp tim đã giảm"
+  "restAlarmTitle": "Hiệp tiếp theo — nhịp tim đã giảm",
+  "liveSetBusy": "{name} đang sửa hiệp này. Chạm lại khi họ sửa xong.",
+  "liveExerciseBusy": "{name} đang ghi bài tập này.",
+  "liveExerciseRemoved": "Người tập cùng đã xóa {exercise}. Nội dung bạn đang gõ vẫn còn trong dòng nhập."
 }

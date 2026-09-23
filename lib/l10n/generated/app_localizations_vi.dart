@@ -1426,4 +1426,19 @@ class LVi extends L {
 
   @override
   String get restAlarmTitle => 'Hiệp tiếp theo — nhịp tim đã giảm';
+
+  @override
+  String liveSetBusy(String name) {
+    return '$name đang sửa hiệp này. Chạm lại khi họ sửa xong.';
+  }
+
+  @override
+  String liveExerciseBusy(String name) {
+    return '$name đang ghi bài tập này.';
+  }
+
+  @override
+  String liveExerciseRemoved(String exercise) {
+    return 'Người tập cùng đã xóa $exercise. Nội dung bạn đang gõ vẫn còn trong dòng nhập.';
+  }
 }
