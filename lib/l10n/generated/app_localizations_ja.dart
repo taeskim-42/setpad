@@ -223,6 +223,49 @@ class LJa extends L {
   String get aiUseName => '種目名として使用';
 
   @override
+  String get aiFallbackQuota => '今日の入力サポートを使い切ったので、入力どおりに追加しました';
+
+  @override
+  String get aiFallbackOffline => '接続できないため、入力どおりに追加しました。設定はカードの⚙から追加できます';
+
+  @override
+  String get aiFallbackServer => 'サーバーが応答しないため、入力どおりに追加しました。設定はカードの⚙から追加できます';
+
+  @override
+  String get aiFallbackUnread => '設定にできる内容が見つからず、入力どおりに追加しました。設定はカードの⚙から追加できます';
+
+  @override
+  String get inputNameTooLong => '種目名は120文字までです — 行を分けて入力してください';
+
+  @override
+  String get inputTooLong => '600文字を超える文は読み取りません — 行を分けて入力してください';
+
+  @override
+  String get setupAdd => '設定を追加';
+
+  @override
+  String setupUnparsed(String words) {
+    return '設定に移せなかった語: $words — タイトルにそのまま残ります';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return '入力にない数は外しました: $numbers';
+  }
+
+  @override
+  String get setupNameMissing => '種目名を入力してください';
+
+  @override
+  String get setupNameTooLong => '120文字までです';
+
+  @override
+  String get setupWeightInvalid => '0より大きく2000以下の数を入力してください';
+
+  @override
+  String get setupCountInvalid => '1以上の整数を入力してください — 範囲や時間はタイトルに残してください';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal回';
   }

@@ -225,6 +225,56 @@ class LEs extends L {
   String get aiUseName => 'Usar como nombre';
 
   @override
+  String get aiFallbackQuota =>
+      'Ya usaste la ayuda de hoy, así que se añadió tal como lo escribiste';
+
+  @override
+  String get aiFallbackOffline =>
+      'Sin conexión, así que se añadió tal como lo escribiste. Añade la configuración desde el ⚙ de la tarjeta';
+
+  @override
+  String get aiFallbackServer =>
+      'El servidor no respondió, así que se añadió tal como lo escribiste. Añade la configuración desde el ⚙ de la tarjeta';
+
+  @override
+  String get aiFallbackUnread =>
+      'No encontré nada que configurar, así que se añadió tal como lo escribiste. Añade la configuración desde el ⚙ de la tarjeta';
+
+  @override
+  String get inputNameTooLong =>
+      'Los nombres de ejercicio tienen hasta 120 caracteres — divídelo en líneas';
+
+  @override
+  String get inputTooLong =>
+      'No se lee un texto de más de 600 caracteres — divídelo en líneas';
+
+  @override
+  String get setupAdd => 'Añadir configuración';
+
+  @override
+  String setupUnparsed(String words) {
+    return 'No pasó a la configuración: $words — queda en el título';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return 'Quité números que no están en tu texto: $numbers';
+  }
+
+  @override
+  String get setupNameMissing => 'Escribe el nombre del ejercicio';
+
+  @override
+  String get setupNameTooLong => 'Hasta 120 caracteres';
+
+  @override
+  String get setupWeightInvalid => 'Escribe un número mayor que 0 y hasta 2000';
+
+  @override
+  String get setupCountInvalid =>
+      'Escribe un número entero de 1 o más — deja rangos y tiempos en el título';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal reps';
   }

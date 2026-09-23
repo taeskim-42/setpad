@@ -86,25 +86,214 @@ int? _rank(String key, String q) {
 String searchKey(String text) =>
     text.toLowerCase().replaceAll(RegExp(r'[\s\-_·]+'), '');
 
-/// Route quantitative requests to the model; never turn a name into a workout plan.
-/// This only selects the input path. The model interprets the requested parameters.
-///
-/// A lone bare number is part of the name ("민수식 로우 2"), not a quantity —
-/// only two in a row ("벤치 80 10") read as weight and reps.
-bool hasSetupIntent(String text) => RegExp(
-  r'(?:^|\s)\d+(?:\.\d+)?\s+\d+(?:\.\d+)?(?:\s|$)|\d+(?:\.\d+)?\s*(?:kg|lb|회|개|세트|reps?|sets?)|'
-  r'채우|총\s|키로|킬로|파운드|(?:백|천|십|한|두|세|네|다섯|열|스무)\s*(?:개|회|세트)|'
-  r'\b(?:kg|lb|reps?|sets?|total|reach|hundred|fifty|twenty|ten)\b|'
+/// 모델에 물을 글인가. 수(아라비아 숫자든 글로 쓴 수든)나 수량어가 **없는** 글은
+/// 운동 이름이다 — 물을 것이 없다. 수가 하나라도 있으면 묻는다: "민수식 로우 2" 의
+/// 2 가 이름인지는 모델이 이름에 넣어 답하고, "벤치 5x5" 처럼 설정으로 쓸 수 있는
+/// 글이 이름으로 빠지지 않는다. 이 함수는 길만 고른다 — 뜻은 모델이 읽는다.
+bool hasSetupIntent(String text) =>
+    statedNumbers(text).isNotEmpty || _quantityWords.hasMatch(text);
+
+final _quantityWords = RegExp(
+  r'채우|총\s|키로|킬로|파운드|\b(?:kg|lb|reps?|sets?|total|reach)\b|'
   r'公斤|千克|磅|总共|總共|回|キロ|セット|repeticiones|series|lần|hiệp|ครั้ง|เซ็ต',
   caseSensitive: false,
-).hasMatch(text);
+);
+
+/// 타이머 토큰(60bpm, bpm 60, 30/15, x8, 10라운드). 글의 수가 모두 여기 쓰였으면
+/// 그 글은 타이머 이름이라 묻지 않고 바로 만든다.
+final timerTokens = RegExp(
+  r'\d+(?:[.,]\d+)?\s*bpm(?![a-z])|(?<![a-z])bpm\s*[:=]?\s*\d+(?:[.,]\d+)?|'
+  r'\d+\s*(?:초|s|sec)?\s*[/／]\s*\d+\s*(?:초|s|sec)?|[x×]\s*\d+|'
+  r'\d+\s*(?:라운드|rounds?|ラウンド)',
+  caseSensitive: false,
+);
+
+/// 친 글에 적힌 수들 — 자리와 값. 부호는 읽지 않는다: '8-12' 는 8 과 12 다.
+///
+/// 글로 쓴 수도 읽는다(백, 이백, 스무 개, 열 세트, hundred, fifty, 百, 二十).
+/// 한국어는 세는 말(개·회·세트·키로…)이 뒤따를 때만 수로 본다 — '백스쿼트' 의
+/// 백, '한쪽' 의 한은 수가 아니다.
+List<({num value, int start, int end})> statedNumbers(String text) {
+  final found = <({num value, int start, int end})>[];
+  void add(Match m, num? value) {
+    if (value != null) found.add((value: value, start: m.start, end: m.end));
+  }
+
+  for (final m in RegExp(r'\d+(?:[.,]\d+)?').allMatches(text)) {
+    final raw = m[0]!;
+    // 쉼표 뒤가 정확히 세 자리면 천 단위('1,000'), 아니면 소수('22,5').
+    add(
+      m,
+      num.tryParse(
+        RegExp(r',\d{3}$').hasMatch(raw)
+            ? raw.replaceAll(',', '')
+            : raw.replaceAll(',', '.'),
+      ),
+    );
+  }
+  for (final m in RegExp(
+    r'(?<![가-힣])[가-힣]+?(?=\s*(?:개|회|번|세트|셋트|키로|킬로|파운드|라운드|바퀴|칸|박|분|초|시간|미터|kg|lb|reps?|sets?))',
+    caseSensitive: false,
+  ).allMatches(text)) {
+    add(m, _koreanNumber(m[0]!));
+  }
+  const words =
+      'zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|'
+      'twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|'
+      'twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand';
+  for (final m in RegExp(
+    '\\b(?:$words)(?:(?:\\s+|-)(?:and\\s+)?(?:$words))*\\b',
+    caseSensitive: false,
+  ).allMatches(text)) {
+    add(m, _englishNumber(m[0]!.toLowerCase()));
+  }
+  for (final m in RegExp(r'[零〇一二两兩三四五六七八九十百千万萬]+').allMatches(text)) {
+    add(m, _hanNumber(m[0]!));
+  }
+  return found;
+}
+
+int? _koreanNumber(String s) {
+  const digit = {
+    '일': 1,
+    '이': 2,
+    '삼': 3,
+    '사': 4,
+    '오': 5,
+    '육': 6,
+    '칠': 7,
+    '팔': 8,
+    '구': 9,
+  };
+  var rest = s, total = 0;
+  for (final (unit, size) in [('천', 1000), ('백', 100), ('십', 10)]) {
+    final m = RegExp('^([이삼사오육칠팔구]?)$unit').firstMatch(rest);
+    if (m == null) continue;
+    total += (digit[m[1]] ?? 1) * size;
+    rest = rest.substring(m.end);
+  }
+  if (rest.isEmpty) return total == 0 ? null : total;
+  if (digit[rest] case final d?) return total + d;
+  // 백 자리 아래는 고유어로 센다(백하나, 이백서른일곱). 십 뒤에는 오지 않는다.
+  final native = RegExp(
+    r'^(열|스물|스무|서른|마흔|쉰|예순|일흔|여든|아흔)?(하나|한|둘|두|셋|세|넷|네|다섯|여섯|일곱|여덟|아홉)?$',
+  ).firstMatch(rest);
+  if (native == null || total % 100 != 0) return null;
+  const tens = {
+    '열': 10,
+    '스물': 20,
+    '스무': 20,
+    '서른': 30,
+    '마흔': 40,
+    '쉰': 50,
+    '예순': 60,
+    '일흔': 70,
+    '여든': 80,
+    '아흔': 90,
+  };
+  const ones = {
+    '하나': 1,
+    '한': 1,
+    '둘': 2,
+    '두': 2,
+    '셋': 3,
+    '세': 3,
+    '넷': 4,
+    '네': 4,
+    '다섯': 5,
+    '여섯': 6,
+    '일곱': 7,
+    '여덟': 8,
+    '아홉': 9,
+  };
+  return total + (tens[native[1]] ?? 0) + (ones[native[2]] ?? 0);
+}
+
+int _englishNumber(String s) {
+  const small = [
+    'zero',
+    'one',
+    'two',
+    'three',
+    'four',
+    'five',
+    'six',
+    'seven',
+    'eight',
+    'nine',
+    'ten',
+    'eleven',
+    'twelve',
+    'thirteen',
+    'fourteen',
+    'fifteen',
+    'sixteen',
+    'seventeen',
+    'eighteen',
+    'nineteen',
+  ];
+  const tens = [
+    '',
+    '',
+    'twenty',
+    'thirty',
+    'forty',
+    'fifty',
+    'sixty',
+    'seventy',
+    'eighty',
+    'ninety',
+  ];
+  var total = 0, current = 0;
+  for (final w in s.split(RegExp(r'[\s-]+'))) {
+    if (small.contains(w)) current += small.indexOf(w);
+    if (tens.contains(w) && w.isNotEmpty) current += tens.indexOf(w) * 10;
+    if (w == 'hundred') current = (current == 0 ? 1 : current) * 100;
+    if (w == 'thousand') {
+      total += (current == 0 ? 1 : current) * 1000;
+      current = 0;
+    }
+  }
+  return total + current;
+}
+
+int _hanNumber(String s) {
+  const digit = {
+    '零': 0,
+    '〇': 0,
+    '一': 1,
+    '二': 2,
+    '两': 2,
+    '兩': 2,
+    '三': 3,
+    '四': 4,
+    '五': 5,
+    '六': 6,
+    '七': 7,
+    '八': 8,
+    '九': 9,
+  };
+  const unit = {'十': 10, '百': 100, '千': 1000};
+  var total = 0, section = 0, current = 0;
+  for (final c in s.split('')) {
+    if (digit[c] case final d?) {
+      current = d;
+    } else if (unit[c] case final u?) {
+      section += (current == 0 ? 1 : current) * u;
+      current = 0;
+    } else {
+      total += (section + current) * 10000;
+      section = current = 0;
+    }
+  }
+  return total + section + current;
+}
 
 /// 모델이 낸 이름을 **친 글**에 맞춘다.
 ///
 /// 친 글 안에 그대로 있으면 그 이름이다. 없으면 모델이 사전 이름으로 바꾼
-/// 것이므로 친 글에서 이름을 되찾는다 — 첫 수치 앞까지, 수치를 글로 썼으면
-/// 모델 이름과 겹치는 앞 낱말들. 그래도 없으면 null: 가를 수 없으니 부르는
-/// 쪽이 원문을 그대로 두고 사람이 고치게 한다.
+/// 것이므로 친 글에서 이름을 되찾는다 — 첫 수치 앞까지, 수치가 앞에 왔으면
+/// 모델 이름과 겹치는 낱말들("80kg 벤치 5x5" → 벤치). 그래도 없으면 null.
 String? typedName(String text, String proposed) {
   final want = searchKey(proposed);
   if (want.isNotEmpty && searchKey(text).contains(want)) return proposed.trim();
@@ -113,7 +302,12 @@ String? typedName(String text, String proposed) {
   final head = words.take(at < 0 ? 0 : at).join(' ');
   if (head.isNotEmpty) return head;
   final lead = words
-      .takeWhile((w) => searchKey(w).isNotEmpty && want.contains(searchKey(w)))
+      .where(
+        (w) =>
+            !RegExp(r'\d').hasMatch(w) &&
+            searchKey(w).isNotEmpty &&
+            want.contains(searchKey(w)),
+      )
       .join(' ');
   return lead.isEmpty ? null : lead;
 }

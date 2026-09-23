@@ -218,6 +218,49 @@ class LZh extends L {
   String get aiUseName => '用作动作名称';
 
   @override
+  String get aiFallbackQuota => '今天的输入辅助已用完，已按原文添加';
+
+  @override
+  String get aiFallbackOffline => '无法连接，已按原文添加。可在卡片的⚙中添加设置';
+
+  @override
+  String get aiFallbackServer => '服务器没有响应，已按原文添加。可在卡片的⚙中添加设置';
+
+  @override
+  String get aiFallbackUnread => '没有找到可设置的内容，已按原文添加。可在卡片的⚙中添加设置';
+
+  @override
+  String get inputNameTooLong => '动作名称最多120个字 — 请分行输入';
+
+  @override
+  String get inputTooLong => '超过600个字的文字不会读取 — 请分行输入';
+
+  @override
+  String get setupAdd => '添加设置';
+
+  @override
+  String setupUnparsed(String words) {
+    return '未转入设置的内容：$words — 保留在标题中';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return '已去掉原文中没有的数字：$numbers';
+  }
+
+  @override
+  String get setupNameMissing => '请输入动作名称';
+
+  @override
+  String get setupNameTooLong => '最多120个字';
+
+  @override
+  String get setupWeightInvalid => '请输入大于0且不超过2000的数字';
+
+  @override
+  String get setupCountInvalid => '请输入1以上的整数 — 范围和时间请留在标题中';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal次';
   }
@@ -1834,6 +1877,49 @@ class LZhHans extends LZh {
   String get aiUseName => '用作动作名称';
 
   @override
+  String get aiFallbackQuota => '今天的输入辅助已用完，已按原文添加';
+
+  @override
+  String get aiFallbackOffline => '无法连接，已按原文添加。可在卡片的⚙中添加设置';
+
+  @override
+  String get aiFallbackServer => '服务器没有响应，已按原文添加。可在卡片的⚙中添加设置';
+
+  @override
+  String get aiFallbackUnread => '没有找到可设置的内容，已按原文添加。可在卡片的⚙中添加设置';
+
+  @override
+  String get inputNameTooLong => '动作名称最多120个字 — 请分行输入';
+
+  @override
+  String get inputTooLong => '超过600个字的文字不会读取 — 请分行输入';
+
+  @override
+  String get setupAdd => '添加设置';
+
+  @override
+  String setupUnparsed(String words) {
+    return '未转入设置的内容：$words — 保留在标题中';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return '已去掉原文中没有的数字：$numbers';
+  }
+
+  @override
+  String get setupNameMissing => '请输入动作名称';
+
+  @override
+  String get setupNameTooLong => '最多120个字';
+
+  @override
+  String get setupWeightInvalid => '请输入大于0且不超过2000的数字';
+
+  @override
+  String get setupCountInvalid => '请输入1以上的整数 — 范围和时间请留在标题中';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal次';
   }
@@ -3448,6 +3534,49 @@ class LZhHant extends LZh {
 
   @override
   String get aiUseName => '用作動作名稱';
+
+  @override
+  String get aiFallbackQuota => '今天的輸入輔助已用完，已按原文新增';
+
+  @override
+  String get aiFallbackOffline => '無法連線，已按原文新增。可在卡片的⚙中新增設定';
+
+  @override
+  String get aiFallbackServer => '伺服器沒有回應，已按原文新增。可在卡片的⚙中新增設定';
+
+  @override
+  String get aiFallbackUnread => '沒有找到可設定的內容，已按原文新增。可在卡片的⚙中新增設定';
+
+  @override
+  String get inputNameTooLong => '動作名稱最多120個字 — 請分行輸入';
+
+  @override
+  String get inputTooLong => '超過600個字的文字不會讀取 — 請分行輸入';
+
+  @override
+  String get setupAdd => '新增設定';
+
+  @override
+  String setupUnparsed(String words) {
+    return '未轉入設定的內容：$words — 保留在標題中';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return '已去掉原文中沒有的數字：$numbers';
+  }
+
+  @override
+  String get setupNameMissing => '請輸入動作名稱';
+
+  @override
+  String get setupNameTooLong => '最多120個字';
+
+  @override
+  String get setupWeightInvalid => '請輸入大於0且不超過2000的數字';
+
+  @override
+  String get setupCountInvalid => '請輸入1以上的整數 — 範圍和時間請留在標題中';
 
   @override
   String goalProgress(int done, int goal) {

@@ -224,6 +224,50 @@ class LKo extends L {
   String get aiUseName => '운동 이름으로 사용';
 
   @override
+  String get aiFallbackQuota => '오늘 적기 도움을 다 써서 적은 그대로 만들었어요';
+
+  @override
+  String get aiFallbackOffline => '연결이 안 돼 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요';
+
+  @override
+  String get aiFallbackServer => '서버가 답하지 않아 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요';
+
+  @override
+  String get aiFallbackUnread =>
+      '설정으로 읽을 말을 찾지 못해 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요';
+
+  @override
+  String get inputNameTooLong => '운동 이름은 120자까지예요 — 줄을 나눠 적어 주세요';
+
+  @override
+  String get inputTooLong => '600자가 넘는 글은 읽지 않아요 — 줄을 나눠 적어 주세요';
+
+  @override
+  String get setupAdd => '설정 붙이기';
+
+  @override
+  String setupUnparsed(String words) {
+    return '설정에 못 옮긴 말: $words — 제목에 그대로 남아요';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return '글에 없는 수라 뺐어요: $numbers';
+  }
+
+  @override
+  String get setupNameMissing => '운동 이름을 적어 주세요';
+
+  @override
+  String get setupNameTooLong => '운동 이름은 120자까지예요';
+
+  @override
+  String get setupWeightInvalid => '0보다 크고 2000 이하인 수로 적어 주세요';
+
+  @override
+  String get setupCountInvalid => '1 이상의 정수로 적어 주세요 — 범위·시간은 제목에 남겨 두세요';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal회';
   }

@@ -315,9 +315,10 @@ class RoutineEditorController extends ChangeNotifier {
     }
   }
 
+  /// 설정만 바꾼다. 제목은 사람이 친 글 그대로 둔다 — 제목이 곧 타이머라
+  /// 'bpm 푸시업 100개 채우기' 가 '푸시업' 으로 바뀌면 bpm 이 사라진다.
   void updateSetup(int index, WorkoutSetup setup) {
     if (index < 0 || index >= blocks.length) return;
-    blocks[index].name = setup.name;
     blocks[index].setup = setup;
     notifyListeners();
   }
@@ -788,10 +789,10 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   bool _aiBusy = false;
-  bool _aiFailed = false;
 
-  /// 실패가 오늘 적기 도움을 다 쓴 탓인가. 문구만 다르고 길은 같다.
-  bool _aiQuota = false;
+  /// 적기 도움이 남긴 한 줄 — 왜 적은 그대로 만들었는지, 왜 입력칸에 두었는지.
+  /// 다음에 무언가 치면 사라진다.
+  String Function(L l)? _aiNotice;
   int _aiRequest = 0;
   String? _locale;
   String? _submittedText;
@@ -1162,72 +1163,133 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   Future<void> _interpret(String text) async {
     if (_aiBusy) return;
+    // 이만큼 긴 글은 모델에 보내지 않는다. 글은 입력칸에 그대로 둔다.
+    if (text.length > 600) {
+      setState(() => _aiNotice = (l) => l.inputTooLong);
+      return;
+    }
     final request = ++_aiRequest;
     _submittedText = text;
     setState(() {
       _aiBusy = true;
-      _aiFailed = false;
+      _aiNotice = null;
     });
+    SetupReading reading;
     try {
-      final answer = await widget.ai.interpret(
+      reading = await widget.ai.interpret(
         text,
         _locale ?? 'en',
         _c.vocabulary(_lang),
         defaultWeightUnit: _c.weightUnit,
       );
-      // 누가 해석했든 이름은 친 글이다. 해석기가 사전 이름으로 바꿔 왔으면
-      // 친 글로 되돌리고, 가를 수 없으면 실패로 돌려 원문을 그대로 쓰게 한다.
-      final name = typedName(text, answer.name);
-      if (name == null) throw const FormatException('Name not in the input');
-      final proposal = name == answer.name
-          ? answer
-          : WorkoutSetup.fromJson({...answer.toJson(), 'name': name});
-      if (!mounted || request != _aiRequest || !_c.naming || _text != text) {
-        return;
-      }
-      _focus.unfocus();
-      final setup = await editWorkoutSetup(context, proposal, sourceText: text);
-      if (!mounted || request != _aiRequest || !_c.naming || _text != text) {
-        return;
-      }
-      if (setup == null) {
-        _focus.requestFocus();
-        return;
-      }
-      setState(() => _aiBusy = false);
-      _input.clear();
-      // 친 글이 그대로 제목이 된다. 확인 창에서 사람이 고쳤을 때만 고친
-      // 이름을 쓴다 — 모델이 이름을 바로잡는 일은 없다.
-      final planned = setup.hasPlan || setup.repsOnly;
-      _c.addExercise(
-        mapEquals(proposal.toJson(), setup.toJson()) ? text.trim() : setup.name,
-        setup: planned ? setup : null,
-        learnAs: setup.name,
-      );
-      _focus.requestFocus();
     } catch (e) {
       if (mounted && request == _aiRequest) {
-        setState(() {
-          _aiBusy = false;
-          _aiFailed = true;
-          _aiQuota =
-              e is RecordAiException &&
-              e.status == RecordAiStatus.quotaExceeded;
-        });
-        _focus.requestFocus();
+        _aiBusy = false;
+        _fallback(text, _fallbackReason(e));
       }
+      return;
     } finally {
+      // 기다리는 것은 답까지다. 확인 창이 열린 동안은 바쁘지 않다 — 그래야 창을
+      // 연 채 앱을 내렸다 돌아와도 요청이 버려지지 않는다(X13).
       if (mounted && request == _aiRequest) setState(() => _aiBusy = false);
     }
+    // 기다리는 사이 글을 고쳤거나 다른 카드로 갔으면 늦은 답은 쓰지 않는다.
+    if (!mounted || request != _aiRequest || !_c.naming || _text != text) {
+      return;
+    }
+    if (reading.exercises.isEmpty) {
+      _fallback(text, (l) => l.aiFallbackUnread);
+      return;
+    }
+    final titles = reading.titlesFor(text);
+    final proposed = [for (final e in reading.exercises) e.setup];
+    bool planned(WorkoutSetup s) => s.hasPlan || s.repsOnly;
+    // 설정할 것도, 알릴 것도 없는 운동 하나("민수식 로우 2")는 묻지 않고 만든다.
+    final ask =
+        proposed.length > 1 ||
+        planned(proposed.single) ||
+        reading.dropped.isNotEmpty;
+    if (ask) _focus.unfocus();
+    final setups = ask
+        ? await editWorkoutSetups(
+            context,
+            proposed,
+            titles: titles,
+            sourceText: text,
+            unparsed: reading.unparsed,
+            dropped: reading.dropped,
+          )
+        : proposed;
+    // 창이 열린 뒤에는 사람이 확정한 것을 적용한다 — 그사이 요청 번호가
+    // 바뀌었어도(앱을 내렸다 돌아옴) 버리지 않는다.
+    if (!mounted) return;
+    if (setups == null) {
+      _focus.requestFocus();
+      return;
+    }
+    if (_text == text) _input.clear();
+    // 제목은 친 글이다. 창에서 값을 고쳐도 바뀌지 않는다 — 익히는 것은 운동 이름.
+    for (final (i, setup) in setups.indexed) {
+      _c.addExercise(
+        titles[i],
+        setup: planned(setup) ? setup : null,
+        learnAs: setup.name,
+      );
+    }
+    _focus.requestFocus();
   }
+
+  /// 모델을 못 썼다. 그래도 친 글 그대로 칸을 만들고 이유를 한 줄 말한다 —
+  /// 막다른 길은 없다. 제목이 될 수 없는 긴 글만 입력칸에 두고 나누라고 한다.
+  void _fallback(String text, String Function(L l) reason) {
+    final clean = text.trim();
+    if (clean.length > 120) {
+      setState(() => _aiNotice = (l) => l.inputNameTooLong);
+      _focus.requestFocus();
+      return;
+    }
+    _input.clear();
+    // 문장을 통째로 익히면 다음에 그 문장이 후보로 뜬다. 첫 수치 앞까지만 익힌다.
+    _c.addExercise(clean, learnAs: typedName(clean, '') ?? clean);
+    setState(() => _aiNotice = reason);
+    _focus.requestFocus();
+  }
+
+  String Function(L l) _fallbackReason(Object error) => switch (error) {
+    RecordAiException(status: RecordAiStatus.quotaExceeded) =>
+      (l) => l.aiFallbackQuota,
+    RecordAiException(offline: true) => (l) => l.aiFallbackOffline,
+    RecordAiException() => (l) => l.aiFallbackServer,
+    _ => (l) => l.aiFallbackUnread,
+  };
+
+  Widget? _noticeLine(BuildContext context) => _aiNotice == null
+      ? null
+      : Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Text(
+            _aiNotice!(L.of(context)),
+            style: TextStyle(
+              fontSize: 13,
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            ),
+          ),
+        );
 
   Future<void> _editSetup(int index) async {
     if (_editingRecord && !_finishRecordEdit()) return;
     final block = _c.blocks[index];
     _focus.unfocus();
-    final setup = await editWorkoutSetup(context, block.setup!);
+    // 설정 없는 칸도 연다 — 모델을 못 써서 적은 그대로 만든 칸에 나중에 붙인다.
+    final setup = await editWorkoutSetup(
+      context,
+      block.setup ?? WorkoutSetup(name: block.exercise),
+    );
     if (!mounted) return;
-    if (setup != null) _c.updateSetup(_c.blocks.indexOf(block), setup);
+    if (setup != null &&
+        (block.setup != null || setup.hasPlan || setup.repsOnly)) {
+      _c.updateSetup(_c.blocks.indexOf(block), setup);
+    }
     _reopen();
   }
 
@@ -1439,6 +1501,11 @@ class _RoutineEditorState extends State<RoutineEditor>
       _commit();
       if (_wantText) return;
     }
+    // 치던 운동 이름(답을 기다리던 문장까지)은 버리지 않는다. 그 카드를 끝내고
+    // 나오면 입력칸으로 돌아온다(X12).
+    if (_c.naming && _text.trim().isNotEmpty) {
+      _resume = EditorDraft(text: _text, resume: _resume);
+    }
     _input.clear();
     setState(() {
       _wantText = false;
@@ -1589,7 +1656,9 @@ class _RoutineEditorState extends State<RoutineEditor>
       setState(() {
         _hasInput = has;
         _invalidSet = false;
-        _aiFailed = false;
+        // 남긴 한 줄은 다음에 무언가 칠 때까지 둔다. 입력칸을 비우는 것으로는
+        // 지우지 않는다 — 칸을 만들며 비우는 바로 그때 보여야 한다.
+        if (has) _aiNotice = null;
       });
     }
     _saveDraft();
@@ -1806,12 +1875,22 @@ class _RoutineEditorState extends State<RoutineEditor>
       widget.mealText!.value = null;
       return;
     }
-    // 타이머 이름("버피 타바타")은 묻지 않고 바로 만든다. 다만 "bpm 푸시업 100개
-    // 채우기" 처럼 목표까지 든 문장은 해석을 거쳐야 한다 — 이름에 bpm 이 남으니
-    // 타이머는 그대로 붙고, 100개 채우기는 설정으로 붙는다.
-    if (_c.naming &&
+    // 타이머 이름("버피 타바타 30/15 10라운드")은 묻지 않고 바로 만든다 — 글의
+    // 수가 모두 타이머 토큰에 쓰였을 때다. "bpm 푸시업 100개 채우기" 처럼 다른
+    // 수가 든 문장은 해석을 거친다 — 제목에 bpm 이 남으니 타이머는 그대로 붙고,
+    // 100개 채우기는 설정으로 붙는다.
+    final timerOnly =
         TimingSpec.parse(value) != null &&
-        !hasSetupIntent(value)) {
+        !hasSetupIntent(value.replaceAll(timerTokens, ' '));
+    // 수 없는 이름과 타이머 이름은 제목이 되므로 120자까지다. 글은 입력칸에 둔다.
+    if (pick == null &&
+        _c.naming &&
+        value.trim().length > 120 &&
+        (timerOnly || !hasSetupIntent(value))) {
+      setState(() => _aiNotice = (l) => l.inputNameTooLong);
+      return;
+    }
+    if (_c.naming && timerOnly) {
       _input.clear();
       _c.addExercise(value.trim());
       _reopen();
@@ -2238,29 +2317,13 @@ class _RoutineEditorState extends State<RoutineEditor>
                                     ),
                                   ),
                                 ),
-                              if (_aiFailed) ...[
-                                Text(
-                                  _aiQuota
-                                      ? L.of(context).inputQuotaSpent
-                                      : L.of(context).aiFailure,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: CupertinoColors.secondaryLabel
-                                        .resolveFrom(context),
-                                  ),
-                                ),
-                                CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () => _commit(_text),
-                                  child: Text(
-                                    L.of(context).aiUseName,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                              ],
+                              ?_noticeLine(context),
                             ],
                           ),
                         ),
+                      // 적은 그대로 만든 칸 바로 아래 — 왜 설정이 없는지.
+                      if (!_c.naming && _aiNotice != null)
+                        SliverToBoxAdapter(child: _noticeLine(context)),
                       if (widget.footer != null)
                         SliverToBoxAdapter(child: widget.footer!),
                     ],
@@ -2666,6 +2729,27 @@ class _BlockView extends StatelessWidget {
                   ),
                 ),
               dragHandle,
+              // 설정 없는 칸도 나중에 설정을 붙인다. 있으면 아래 요약 줄을 누른다.
+              if (!collapsed && block.setup == null)
+                GestureDetector(
+                  onTap: onEditSetup,
+                  behavior: HitTestBehavior.opaque,
+                  child: Semantics(
+                    button: true,
+                    label: L.of(context).setupAdd,
+                    child: SizedBox(
+                      width: 32,
+                      height: 28,
+                      child: Icon(
+                        CupertinoIcons.gear_alt,
+                        size: 17,
+                        color: CupertinoColors.tertiaryLabel.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               // 지우기는 늘 제자리에 있다. 잘못 닿아도 지우기 전에 묻는다.
               if (!collapsed)
                 GestureDetector(

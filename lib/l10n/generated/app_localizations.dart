@@ -457,6 +457,84 @@ abstract class L {
   /// **'운동 이름으로 사용'**
   String get aiUseName;
 
+  /// No description provided for @aiFallbackQuota.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 적기 도움을 다 써서 적은 그대로 만들었어요'**
+  String get aiFallbackQuota;
+
+  /// No description provided for @aiFallbackOffline.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결이 안 돼 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요'**
+  String get aiFallbackOffline;
+
+  /// No description provided for @aiFallbackServer.
+  ///
+  /// In ko, this message translates to:
+  /// **'서버가 답하지 않아 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요'**
+  String get aiFallbackServer;
+
+  /// No description provided for @aiFallbackUnread.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정으로 읽을 말을 찾지 못해 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요'**
+  String get aiFallbackUnread;
+
+  /// No description provided for @inputNameTooLong.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 이름은 120자까지예요 — 줄을 나눠 적어 주세요'**
+  String get inputNameTooLong;
+
+  /// No description provided for @inputTooLong.
+  ///
+  /// In ko, this message translates to:
+  /// **'600자가 넘는 글은 읽지 않아요 — 줄을 나눠 적어 주세요'**
+  String get inputTooLong;
+
+  /// No description provided for @setupAdd.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정 붙이기'**
+  String get setupAdd;
+
+  /// No description provided for @setupUnparsed.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정에 못 옮긴 말: {words} — 제목에 그대로 남아요'**
+  String setupUnparsed(String words);
+
+  /// No description provided for @setupDropped.
+  ///
+  /// In ko, this message translates to:
+  /// **'글에 없는 수라 뺐어요: {numbers}'**
+  String setupDropped(String numbers);
+
+  /// No description provided for @setupNameMissing.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 이름을 적어 주세요'**
+  String get setupNameMissing;
+
+  /// No description provided for @setupNameTooLong.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 이름은 120자까지예요'**
+  String get setupNameTooLong;
+
+  /// No description provided for @setupWeightInvalid.
+  ///
+  /// In ko, this message translates to:
+  /// **'0보다 크고 2000 이하인 수로 적어 주세요'**
+  String get setupWeightInvalid;
+
+  /// No description provided for @setupCountInvalid.
+  ///
+  /// In ko, this message translates to:
+  /// **'1 이상의 정수로 적어 주세요 — 범위·시간은 제목에 남겨 두세요'**
+  String get setupCountInvalid;
+
   /// No description provided for @goalProgress.
   ///
   /// In ko, this message translates to:

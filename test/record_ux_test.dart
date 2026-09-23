@@ -104,8 +104,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('1. 사용자가 만든 운동 이름', () {
-    test('이름에 든 숫자는 수치가 아니고, 모델이 바꾼 이름은 친 글로 되돌린다', () async {
-      expect(hasSetupIntent('민수식 로우 2'), isFalse);
+    test('이름에 든 숫자는 모델이 이름에 넣고, 모델이 바꾼 이름은 친 글로 되돌린다', () async {
+      // 수가 든 글은 모델로 간다 — 2 가 이름인지는 모델이 이름에 넣어 답한다.
+      expect(hasSetupIntent('민수식 로우 2'), isTrue);
+      expect(hasSetupIntent('민수식 로우'), isFalse);
       expect(hasSetupIntent('내 방식 벤치 변형 30kg 12회'), isTrue);
       expect(typedName('내 방식 벤치 변형 30kg 12회', '벤치프레스'), '내 방식 벤치 변형');
       expect(typedName('민수식 로우 2 30kg 12회', '민수식 로우 2'), '민수식 로우 2');
@@ -115,25 +117,29 @@ void main() {
       // 모델이 사전 이름으로 바꿔 답해도 저장되는 이름은 친 글이다.
       final ai = RecordAi(
         respond: (_, _) async => {
-          'isExercise': true,
-          'name': '벤치프레스',
-          'weight': 30,
-          'unit': 'kg',
-          'totalReps': null,
-          'repsPerSet': 12,
-          'totalSets': null,
-          'repsOnly': false,
+          'exercises': [
+            {
+              'name': '벤치프레스',
+              'weight': 30,
+              'unit': 'kg',
+              'totalReps': null,
+              'repsPerSet': 12,
+              'totalSets': null,
+              'repsOnly': false,
+            },
+          ],
         },
       );
-      final setup = await ai.interpret('내 방식 벤치 변형 30kg 12회', 'ko', ['벤치프레스']);
+      final setup = (await ai.interpret('내 방식 벤치 변형 30kg 12회', 'ko', [
+        '벤치프레스',
+      ])).exercises.single.setup;
       expect(setup.name, '내 방식 벤치 변형');
       expect(setup.weight, 30);
       expect(setup.repsPerSet, 12);
-      // 이름을 가를 수 없으면 실패로 돌려 원문을 사람이 직접 쓰게 한다.
-      await expectLater(
-        ai.interpret('30kg 12회', 'ko', ['벤치프레스']),
-        throwsFormatException,
-      );
+      // X9: 이름을 가를 수 없어도 던지지 않는다. 확인 창이 그 이름을 보여 준다.
+      final bare = await ai.interpret('30kg 12회', 'ko', ['벤치프레스']);
+      expect(bare.exercises.single.setup.name, '벤치프레스');
+      expect(bare.exercises.single.setup.weight, 30);
     });
 
     testWidgets('Enter 는 친 이름을 넣고, 후보는 눌렀을 때만 들어가며, 다시 열어도 그대로다', (

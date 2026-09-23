@@ -225,6 +225,56 @@ class LTh extends L {
   String get aiUseName => 'ใช้เป็นชื่อท่า';
 
   @override
+  String get aiFallbackQuota =>
+      'ใช้ตัวช่วยพิมพ์ของวันนี้หมดแล้ว จึงเพิ่มตามที่พิมพ์ไว้';
+
+  @override
+  String get aiFallbackOffline =>
+      'เชื่อมต่อไม่ได้ จึงเพิ่มตามที่พิมพ์ไว้ ตั้งค่าได้จาก ⚙ ของการ์ด';
+
+  @override
+  String get aiFallbackServer =>
+      'เซิร์ฟเวอร์ไม่ตอบ จึงเพิ่มตามที่พิมพ์ไว้ ตั้งค่าได้จาก ⚙ ของการ์ด';
+
+  @override
+  String get aiFallbackUnread =>
+      'ไม่พบสิ่งที่ตั้งค่าได้ จึงเพิ่มตามที่พิมพ์ไว้ ตั้งค่าได้จาก ⚙ ของการ์ด';
+
+  @override
+  String get inputNameTooLong =>
+      'ชื่อท่ายาวได้ไม่เกิน 120 ตัวอักษร — แยกเป็นหลายบรรทัด';
+
+  @override
+  String get inputTooLong =>
+      'ข้อความที่ยาวเกิน 600 ตัวอักษรจะไม่ถูกอ่าน — แยกเป็นหลายบรรทัด';
+
+  @override
+  String get setupAdd => 'เพิ่มการตั้งค่า';
+
+  @override
+  String setupUnparsed(String words) {
+    return 'ส่วนที่ย้ายเข้าการตั้งค่าไม่ได้: $words — ยังอยู่ในชื่อ';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return 'ตัดตัวเลขที่ไม่มีในข้อความออกแล้ว: $numbers';
+  }
+
+  @override
+  String get setupNameMissing => 'ใส่ชื่อท่า';
+
+  @override
+  String get setupNameTooLong => 'ไม่เกิน 120 ตัวอักษร';
+
+  @override
+  String get setupWeightInvalid => 'ใส่ตัวเลขที่มากกว่า 0 และไม่เกิน 2000';
+
+  @override
+  String get setupCountInvalid =>
+      'ใส่จำนวนเต็มตั้งแต่ 1 ขึ้นไป — ช่วงและเวลาให้คงไว้ในชื่อ';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal ครั้ง';
   }

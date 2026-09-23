@@ -91,16 +91,30 @@ void main() {
     final ai = RecordAi(
       respond: (instructions, input) async {
         calls++;
-        throw const FormatException('Must not generate a plan from a name');
+        // 수가 든 이름은 모델에 가고, 모델은 그 수를 이름에 넣어 답한다.
+        return {
+          'exercises': [
+            {'text': 'MTS100 로우', 'name': 'MTS100 로우', 'totalSets': 3},
+          ],
+        };
       },
     );
-    for (final name in ['체스트 프레스 머신', '해머스트렝스 로우', 'MTS100 로우']) {
-      final setup = await ai.interpret(name, 'ko', [name]);
+    for (final name in ['체스트 프레스 머신', '해머스트렝스 로우']) {
+      final setup = (await ai.interpret(name, 'ko', [
+        name,
+      ])).exercises.single.setup;
       expect(setup.name, name);
       expect(setup.hasPlan, isFalse);
       expect(setup.repsOnly, isFalse);
     }
     expect(calls, 0);
+    // 이름 속 100 은 이름이 쓴 수다. 글에 없는 3 은 지어낸 것이라 뺀다.
+    final machine = await ai.interpret('MTS100 로우', 'ko', ['MTS100 로우']);
+    expect(calls, 1);
+    expect(machine.exercises.single.setup.name, 'MTS100 로우');
+    expect(machine.exercises.single.setup.hasPlan, isFalse);
+    expect(machine.dropped, ['3']);
+    expect(machine.unparsed, isEmpty);
     expect(hasSetupIntent('벤치 팔십 키로로 백 개 채울래'), isTrue);
   });
 

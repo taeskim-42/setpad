@@ -225,6 +225,56 @@ class LVi extends L {
   String get aiUseName => 'Dùng làm tên bài tập';
 
   @override
+  String get aiFallbackQuota =>
+      'Bạn đã dùng hết trợ giúp nhập hôm nay nên đã thêm đúng như bạn gõ';
+
+  @override
+  String get aiFallbackOffline =>
+      'Không có kết nối nên đã thêm đúng như bạn gõ. Có thể thêm thiết lập từ ⚙ của thẻ';
+
+  @override
+  String get aiFallbackServer =>
+      'Máy chủ không phản hồi nên đã thêm đúng như bạn gõ. Có thể thêm thiết lập từ ⚙ của thẻ';
+
+  @override
+  String get aiFallbackUnread =>
+      'Không tìm thấy gì để thiết lập nên đã thêm đúng như bạn gõ. Có thể thêm thiết lập từ ⚙ của thẻ';
+
+  @override
+  String get inputNameTooLong =>
+      'Tên bài tập tối đa 120 ký tự — hãy tách thành nhiều dòng';
+
+  @override
+  String get inputTooLong =>
+      'Văn bản dài hơn 600 ký tự sẽ không được đọc — hãy tách thành nhiều dòng';
+
+  @override
+  String get setupAdd => 'Thêm thiết lập';
+
+  @override
+  String setupUnparsed(String words) {
+    return 'Chưa chuyển vào thiết lập: $words — vẫn giữ trong tiêu đề';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return 'Đã bỏ các số không có trong văn bản: $numbers';
+  }
+
+  @override
+  String get setupNameMissing => 'Nhập tên bài tập';
+
+  @override
+  String get setupNameTooLong => 'Tối đa 120 ký tự';
+
+  @override
+  String get setupWeightInvalid => 'Nhập số lớn hơn 0 và không quá 2000';
+
+  @override
+  String get setupCountInvalid =>
+      'Nhập số nguyên từ 1 trở lên — giữ khoảng và thời gian trong tiêu đề';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal lần';
   }

@@ -109,12 +109,16 @@ void main() {
           seen,
           (_) => _json({
             'intent': {
-              'isExercise': true,
-              'name': '스쿼트',
-              'weight': 60,
-              'unit': 'kg',
-              'repsPerSet': 10,
-              'totalSets': 5,
+              'exercises': [
+                {
+                  'text': '스쿼트 60kg 10회 5세트',
+                  'name': '스쿼트',
+                  'weight': 60,
+                  'unit': 'kg',
+                  'repsPerSet': 10,
+                  'totalSets': 5,
+                },
+              ],
             },
           }, 200),
         ),
@@ -126,6 +130,7 @@ void main() {
           jsonDecode(r.body) as Map,
       ];
       expect(bodies.first['kind'], 'input');
+      expect(bodies.first['contract'], 2, reason: '여러 운동을 받는 새 계약');
       expect(bodies.last.containsKey('kind'), isFalse);
     });
   });

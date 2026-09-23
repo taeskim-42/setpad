@@ -225,6 +225,56 @@ class LEn extends L {
   String get aiUseName => 'Use as exercise name';
 
   @override
+  String get aiFallbackQuota =>
+      'You\'ve used today\'s input help, so it was added as typed';
+
+  @override
+  String get aiFallbackOffline =>
+      'No connection, so it was added as typed. Add a setup from the card\'s ⚙';
+
+  @override
+  String get aiFallbackServer =>
+      'The server didn\'t answer, so it was added as typed. Add a setup from the card\'s ⚙';
+
+  @override
+  String get aiFallbackUnread =>
+      'Found nothing to set up, so it was added as typed. Add a setup from the card\'s ⚙';
+
+  @override
+  String get inputNameTooLong =>
+      'Exercise names are up to 120 characters — split it into lines';
+
+  @override
+  String get inputTooLong =>
+      'Text over 600 characters isn\'t read — split it into lines';
+
+  @override
+  String get setupAdd => 'Add setup';
+
+  @override
+  String setupUnparsed(String words) {
+    return 'Not moved into the setup: $words — kept in the title';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return 'Removed numbers not in your text: $numbers';
+  }
+
+  @override
+  String get setupNameMissing => 'Enter an exercise name';
+
+  @override
+  String get setupNameTooLong => 'Up to 120 characters';
+
+  @override
+  String get setupWeightInvalid => 'Enter a number above 0, up to 2000';
+
+  @override
+  String get setupCountInvalid =>
+      'Enter a whole number of 1 or more — keep ranges and times in the title';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal reps';
   }
