@@ -222,8 +222,10 @@ class RoutineEditorController extends ChangeNotifier {
     // 익히는 것은 운동 이름이다. 친 문장을 통째로 익히면 다음에 그 문장이
     // 후보로 뜬다 — "타바타 벤치프레스 30kg 100개" 가 사전에 남던 것이 그것이다.
     final learned = (learnAs ?? clean).trim();
-    _learned.remove(learned);
-    _learned.insert(0, learned);
+    if (learned.isNotEmpty) {
+      _learned.remove(learned);
+      _learned.insert(0, learned);
+    }
     _active = blocks.length - 1;
     notifyListeners();
   }
@@ -472,10 +474,14 @@ class RoutineEditorController extends ChangeNotifier {
     blocks
       ..clear()
       ..addAll(saved);
-    // 저장된 이름도 이 기기에서 친 이름이다. 자동완성이 알아야 한다.
+    // 저장된 이름도 이 기기에서 친 이름이다. 자동완성이 알아야 한다. 익히는 것은
+    // 운동 이름이다 — '벤치 80kg 5x5' 제목을 익히면 다음에 똑같이 쳤을 때 설정을
+    // 묻지 않고 이름으로 만든다.
     for (final b in saved.reversed) {
-      _learned.remove(b.name);
-      _learned.insert(0, b.name);
+      final name = b.setup?.name ?? learnableName(b.name);
+      if (name == null) continue;
+      _learned.remove(name);
+      _learned.insert(0, name);
     }
     _active = -1;
     _lastClosed = null;
@@ -1153,12 +1159,9 @@ class _RoutineEditorState extends State<RoutineEditor>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 앱을 내리면 타이머가 멈춘다. 돌아오면 같이 하던 자리로 곧바로 돌아간다.
+    // 답을 기다리다 앱을 내려도 요청은 버리지 않는다(X11) — 늦은 답이 오면 확인
+    // 창이 열려 있고, 돌아온 사람이 거기서 고른다. 다시 물어 한도를 또 쓰지 않는다.
     if (state == AppLifecycleState.resumed) _followShared();
-    if (state == AppLifecycleState.paused && _aiBusy) {
-      _aiRequest++;
-      widget.ai.cancel();
-      setState(() => _aiBusy = false);
-    }
   }
 
   Future<void> _interpret(String text) async {
@@ -1198,10 +1201,18 @@ class _RoutineEditorState extends State<RoutineEditor>
       return;
     }
     if (reading.exercises.isEmpty) {
-      _fallback(text, (l) => l.aiFallbackUnread);
+      // 운동이 아니라는 답이다. 칸은 만들되 이름으로 익히지 않는다.
+      _fallback(text, (l) => l.aiFallbackUnread, learn: false);
       return;
     }
-    final titles = reading.titlesFor(text);
+    // 제목에 친 말을 다 담지 못한다(120자 넘는 글). 칸을 만들지 않고 글을 둔다 —
+    // 모델이 읽은 부분만 제목이 되고 나머지가 사라지면 안 된다(X2).
+    if (!reading.fits) {
+      setState(() => _aiNotice = (l) => l.inputNameTooLong);
+      _focus.requestFocus();
+      return;
+    }
+    final titles = reading.titles;
     final proposed = [for (final e in reading.exercises) e.setup];
     bool planned(WorkoutSetup s) => s.hasPlan || s.repsOnly;
     // 설정할 것도, 알릴 것도 없는 운동 하나("민수식 로우 2")는 묻지 않고 만든다.
@@ -1236,12 +1247,21 @@ class _RoutineEditorState extends State<RoutineEditor>
         learnAs: setup.name,
       );
     }
+    // 묻지 않고 만든 칸에도 못 옮긴 말은 한 줄로 보인다('러닝 5km' 의 5km).
+    if (!ask && reading.unparsed.isNotEmpty) {
+      final words = reading.unparsed.join(' · ');
+      setState(() => _aiNotice = (l) => l.setupUnparsed(words));
+    }
     _focus.requestFocus();
   }
 
   /// 모델을 못 썼다. 그래도 친 글 그대로 칸을 만들고 이유를 한 줄 말한다 —
   /// 막다른 길은 없다. 제목이 될 수 없는 긴 글만 입력칸에 두고 나누라고 한다.
-  void _fallback(String text, String Function(L l) reason) {
+  void _fallback(
+    String text,
+    String Function(L l) reason, {
+    bool learn = true,
+  }) {
     final clean = text.trim();
     if (clean.length > 120) {
       setState(() => _aiNotice = (l) => l.inputNameTooLong);
@@ -1249,8 +1269,9 @@ class _RoutineEditorState extends State<RoutineEditor>
       return;
     }
     _input.clear();
-    // 문장을 통째로 익히면 다음에 그 문장이 후보로 뜬다. 첫 수치 앞까지만 익힌다.
-    _c.addExercise(clean, learnAs: typedName(clean, '') ?? clean);
+    // 문장을 통째로 익히면 다음에 그 문장이 후보로 뜨고, 똑같이 치면 묻지 않는다.
+    // 수 낱말을 뺀 이름만 익히고, 이름이 안 남으면 익히지 않는다.
+    _c.addExercise(clean, learnAs: learn ? learnableName(clean) ?? '' : '');
     setState(() => _aiNotice = reason);
     _focus.requestFocus();
   }
@@ -1896,10 +1917,12 @@ class _RoutineEditorState extends State<RoutineEditor>
       _reopen();
       return;
     }
+    // 익힌 운동 이름('민수식 로우 2')과 똑같은 줄도 묻지 않는다 — 수가 들었어도
+    // 이름이고, 칠 때마다 적기 도움 한 칸을 쓰지 않는다.
     if (pick == null &&
         _c.naming &&
         value.trim().isNotEmpty &&
-        !hasSetupIntent(value)) {
+        (!hasSetupIntent(value) || _c.recentExercises.contains(value.trim()))) {
       _commit(value);
       return;
     }

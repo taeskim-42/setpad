@@ -109,33 +109,39 @@ final timerTokens = RegExp(
 );
 
 /// 친 글에 적힌 수들 — 자리와 값. 부호는 읽지 않는다: '8-12' 는 8 과 12 다.
+/// 쉼표로 늘어놓은 수('10,12,15회')도 하나씩이다. 쉼표 뒤가 정확히 세 자리면
+/// 천 단위('1,000'), 쉼표나 점이 하나뿐이면 소수('22,5').
 ///
 /// 글로 쓴 수도 읽는다(백, 이백, 스무 개, 열 세트, hundred, fifty, 百, 二十).
-/// 한국어는 세는 말(개·회·세트·키로…)이 뒤따를 때만 수로 본다 — '백스쿼트' 의
-/// 백, '한쪽' 의 한은 수가 아니다.
+/// 한국어는 **낱말 전체가** 수와 세는 말(개·회·세트·키로…)일 때만 수로 본다 —
+/// '백스쿼트' 의 백, '한쪽' 의 한, '이번'·'구분'·'일회용' 은 수가 아니다. 한국어
+/// 수의 자리는 세는 말까지다('스무 개').
 List<({num value, int start, int end})> statedNumbers(String text) {
   final found = <({num value, int start, int end})>[];
-  void add(Match m, num? value) {
-    if (value != null) found.add((value: value, start: m.start, end: m.end));
+  void add(num? value, int start, int end) {
+    if (value != null) found.add((value: value, start: start, end: end));
   }
 
-  for (final m in RegExp(r'\d+(?:[.,]\d+)?').allMatches(text)) {
+  for (final m in RegExp(r'\d+(?:[.,]\d+)*').allMatches(text)) {
     final raw = m[0]!;
-    // 쉼표 뒤가 정확히 세 자리면 천 단위('1,000'), 아니면 소수('22,5').
-    add(
-      m,
-      num.tryParse(
-        RegExp(r',\d{3}$').hasMatch(raw)
-            ? raw.replaceAll(',', '')
-            : raw.replaceAll(',', '.'),
-      ),
-    );
+    if (RegExp(r'^\d{1,3}(?:,\d{3})+$').hasMatch(raw)) {
+      add(num.parse(raw.replaceAll(',', '')), m.start, m.end);
+    } else if (RegExp(r'^\d+[.,]\d+$').hasMatch(raw)) {
+      add(num.parse(raw.replaceAll(',', '.')), m.start, m.end);
+    } else {
+      for (final d in RegExp(r'\d+').allMatches(raw)) {
+        add(num.parse(d[0]!), m.start + d.start, m.start + d.end);
+      }
+    }
   }
   for (final m in RegExp(
-    r'(?<![가-힣])[가-힣]+?(?=\s*(?:개|회|번|세트|셋트|키로|킬로|파운드|라운드|바퀴|칸|박|분|초|시간|미터|kg|lb|reps?|sets?))',
+    r'(?<![가-힣])([가-힣]+?)(\s*)(?:개|회|번|세트|셋트|키로|킬로|파운드|라운드|바퀴|칸|박|분|초|시간|미터|kg|lb|reps?|sets?)'
+    r'(?:씩|에|을|를|은|는|이|가|도|만|으로|로|째|간|짜리|부터|까지|의)?(?![가-힣])',
     caseSensitive: false,
   ).allMatches(text)) {
-    add(m, _koreanNumber(m[0]!));
+    // 한 글자 한자어 수가 세는 말에 붙으면 낱말이다('이번', '구분', '사회').
+    if (m[2]!.isEmpty && RegExp(r'^[일이삼사오육칠팔구]$').hasMatch(m[1]!)) continue;
+    add(_koreanNumber(m[1]!), m.start, m.end);
   }
   const words =
       'zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|'
@@ -145,10 +151,10 @@ List<({num value, int start, int end})> statedNumbers(String text) {
     '\\b(?:$words)(?:(?:\\s+|-)(?:and\\s+)?(?:$words))*\\b',
     caseSensitive: false,
   ).allMatches(text)) {
-    add(m, _englishNumber(m[0]!.toLowerCase()));
+    add(_englishNumber(m[0]!.toLowerCase()), m.start, m.end);
   }
   for (final m in RegExp(r'[零〇一二两兩三四五六七八九十百千万萬]+').allMatches(text)) {
-    add(m, _hanNumber(m[0]!));
+    add(_hanNumber(m[0]!), m.start, m.end);
   }
   return found;
 }
@@ -289,27 +295,89 @@ int _hanNumber(String s) {
   return total + section + current;
 }
 
-/// 모델이 낸 이름을 **친 글**에 맞춘다.
+/// 모델이 낸 이름을 **친 글**에 맞춘다. 이름은 친 낱말이다 — 수가 든 낱말,
+/// 수량어('총', '채우기'), 못 옮긴 말([unparsed]: '원알엠 70프로', '드롭세트')은
+/// 이름에 섞지 않는다.
 ///
-/// 친 글 안에 그대로 있으면 그 이름이다. 없으면 모델이 사전 이름으로 바꾼
-/// 것이므로 친 글에서 이름을 되찾는다 — 첫 수치 앞까지, 수치가 앞에 왔으면
-/// 모델 이름과 겹치는 낱말들("80kg 벤치 5x5" → 벤치). 그래도 없으면 null.
-String? typedName(String text, String proposed) {
+/// 1. 모델 이름을 담은 가장 짧은 낱말 묶음, 친 모양 그대로('로잉' → 로잉머신,
+///    'Push Up' → push-ups).
+/// 2. 이름에 수가 든 것('MTS100 로우', '민수식 로우 2')은 친 글의 그 자리.
+/// 3. 모델이 사전 이름으로 바꿨으면 첫 수 앞의 낱말들 → 모델 이름에 든 낱말들 →
+///    수 아닌 낱말 전부 순으로.
+///
+/// 그래도 없으면 null. [proposed] 가 비어 있으면 3 만 — 수를 뺀 이름이다.
+String? typedName(
+  String text,
+  String proposed, [
+  List<String> unparsed = const [],
+]) {
   final want = searchKey(proposed);
-  if (want.isNotEmpty && searchKey(text).contains(want)) return proposed.trim();
-  final words = text.trim().split(RegExp(r'\s+'));
-  final at = words.indexWhere((w) => RegExp(r'^\d').hasMatch(w));
-  final head = words.take(at < 0 ? 0 : at).join(' ');
-  if (head.isNotEmpty) return head;
-  final lead = words
-      .where(
-        (w) =>
-            !RegExp(r'\d').hasMatch(w) &&
-            searchKey(w).isNotEmpty &&
-            want.contains(searchKey(w)),
-      )
-      .join(' ');
-  return lead.isEmpty ? null : lead;
+  final numbers = statedNumbers(text);
+  final words = RegExp(r'\S+').allMatches(text).toList();
+  bool numbered(Match w) =>
+      numbers.any((n) => n.start < w.end && n.end > w.start);
+  bool plain(Match w) =>
+      !numbered(w) &&
+      searchKey(w[0]!).isNotEmpty &&
+      !_quantityWords.hasMatch('${w[0]} ') &&
+      !unparsed.any((u) => u.contains(w[0]!));
+  if (want.isNotEmpty) {
+    for (var size = 1; size <= words.length; size++) {
+      for (var i = 0; i + size <= words.length; i++) {
+        final run = words.sublist(i, i + size);
+        if (run.every(plain) &&
+            searchKey(run.map((w) => w[0]).join()).contains(want)) {
+          return text.substring(run.first.start, run.last.end);
+        }
+      }
+    }
+    if (keyRange(text, want) case final r?) {
+      return text.substring(r.start, r.end);
+    }
+  }
+  // 첫 수 앞의 낱말이 이름이다 — 사람이 지은 이름('내 방식 벤치 변형')도 그대로.
+  // 수가 앞에 왔으면 모델 이름에 든 낱말('80kg 벤치 5x5' → 벤치), 그것도 없으면
+  // 수 아닌 낱말 전부('100개 푸시업' → 푸시업).
+  final at = words.indexWhere(numbered);
+  final name = [
+    [
+      for (final w in words.take(at < 0 ? words.length : at))
+        if (plain(w)) w[0]!,
+    ],
+    [
+      for (final w in words)
+        if (plain(w) && want.contains(searchKey(w[0]!))) w[0]!,
+    ],
+    [
+      for (final w in words)
+        if (plain(w)) w[0]!,
+    ],
+  ].firstWhere((n) => n.isNotEmpty, orElse: () => const []);
+  return name.isEmpty ? null : name.join(' ');
+}
+
+/// 칸 제목에서 익힐 운동 이름. 수가 없는 제목과 타이머 이름('버피 타바타 30/15
+/// 10라운드')은 그대로, 설정을 적은 글은 수 낱말을 뺀 이름만('100개 푸시업' →
+/// 푸시업). 이름이 안 남으면 null — 익히지 않는다.
+String? learnableName(String title) =>
+    hasSetupIntent(title.replaceAll(timerTokens, ' '))
+    ? typedName(title, '')
+    : title.trim();
+
+/// [text] 에서 [key]([searchKey] 모양)가 걸친 자리 — 띄어쓰기·대소문자가 달라도
+/// 친 글의 자리로 돌려준다.
+({int start, int end})? keyRange(String text, String key) {
+  if (key.isEmpty) return null;
+  final chars = StringBuffer();
+  final at = <int>[];
+  for (var i = 0; i < text.length; i++) {
+    final c = searchKey(text[i]);
+    chars.write(c);
+    at.addAll(List.filled(c.length, i));
+  }
+  final found = chars.toString().indexOf(key);
+  if (found < 0) return null;
+  return (start: at[found], end: at[found + key.length - 1] + 1);
 }
 
 /// Retrieve a bounded name reference for local generation, including personal names.

@@ -25,8 +25,14 @@ import 'package:setpad/workout_timing.dart';
 /// 같다.
 ///
 /// 채점:
-/// - 정확: 운동 수·순서, 이름(친 낱말을 담았나), 무게·단위·횟수·세트가 모두 맞다.
-///   정답에 없는 칸의 수는 틀림이다. 대안이 있으면 가장 가까운 대안과 견준다.
+/// - 정확: 운동 수·순서, 이름, 무게·단위·횟수·세트가 모두 맞고, 친 낱말이 모두
+///   제목에 남았다. 이름은 [searchKey] 가 **같아야** 맞다(담기만 하면 맞던 것을
+///   고쳤다 — '벤치 원알엠' 은 '벤치' 가 아니다). 정답의 name 이 목록이면 그중
+///   하나('불가리안' 또는 친 그대로 '불가리안 스플릿 스쿼트'). 정답에 없는 칸의
+///   수는 틀림이다. 대안이 있으면 가장 가까운 대안과 견준다.
+/// - 제목에서 잃은 말: 글자·숫자가 든 친 낱말이 어느 제목에도 없다(0이어야 한다).
+///   제목에 다 못 담으면 에디터는 칸을 만들지 않고 글을 입력칸에 둔다(입력칸에 둠).
+///   타이머 이름('bpm 60 스쿼트')은 줄 전체가 이름이다 — 제목이 곧 설정이라서다.
 /// - 잘못 놓음: 칸에 든 수가 정답과 다르다(다른 칸에 간 친 수, 지어낸 수, 단위).
 ///   빈칸은 잘못 놓음이 아니다 — 그 수는 못 옮긴 말로 사람에게 보인다.
 /// - 폴백: 운동이어야 하는데 해석이 운동을 못 냈다(서버 거절·빈 답·무효).
@@ -132,7 +138,9 @@ void main() {
         throw const RecordAiException(RecordAiStatus.unavailable);
       }
     }
-    if (!validSetupAnswer(parsed)) {
+    final typed = jsonDecode(input)['input'] as String;
+    parsed = typedPiecesOnly(parsed, typed);
+    if (!validSetupAnswer(parsed, typed)) {
       rejected.add(k);
       throw const RecordAiException(RecordAiStatus.unavailable);
     }
@@ -152,6 +160,7 @@ void main() {
     () async {
       var exact = 0, graded = 0, misplaced = 0, fallback = 0, deadEnds = 0;
       var unreachable = 0, invented = 0, recalled = 0, fragments = 0;
+      var lostWords = 0, keptInInput = 0;
       final perLang = <String, List<int>>{}; // [맞음, 채점]
       final errorTags = <String, int>{};
       final report = <(int, String)>[]; // (심각도, 줄)
@@ -180,7 +189,8 @@ void main() {
               : '이름';
           var got = <WorkoutSetup>[];
           var unparsed = <String>[], dropped = <String>[];
-          String? failed;
+          var titles = [text.trim()];
+          String? failed, overflow;
           if (route != '모델') {
             got = [WorkoutSetup(name: text.trim())];
           } else {
@@ -191,10 +201,16 @@ void main() {
                 seedNames(lang),
                 defaultWeightUnit: 'kg',
               );
-              final titles = reading.titlesFor(text);
-              if (titles.length != reading.exercises.length ||
-                  titles.any((t) => t.trim().isEmpty || t.length > 120)) {
-                failed = '막다른 길: 제목 $titles';
+              // 운동이 아니라는 답이면 에디터는 친 글 그대로 칸을 만든다(폴백).
+              // 제목에 다 못 담으면 칸을 만들지 않고 글을 입력칸에 둔다.
+              if (reading.exercises.isNotEmpty && !reading.fits) {
+                overflow = '입력칸에 둠';
+              } else if (reading.exercises.isNotEmpty) {
+                titles = reading.titles;
+                if (titles.length != reading.exercises.length ||
+                    titles.any((t) => t.trim().isEmpty || t.length > 120)) {
+                  failed = '막다른 길: 제목 $titles';
+                }
               }
               got = [for (final e in reading.exercises) e.setup];
               unparsed = reading.unparsed;
@@ -236,7 +252,21 @@ void main() {
               }
             }
           }
-          final errors = [...best.errors, if (fellBack) '폴백($route)', ?failed];
+          final lost = [
+            for (final w in text.split(RegExp(r'\s+')))
+              if (RegExp(r'[\p{L}\p{N}]', unicode: true).hasMatch(w) &&
+                  !titles.any((t) => t.contains(w)))
+                w,
+          ];
+          if (lost.isNotEmpty) lostWords++;
+          if (overflow != null) keptInInput++;
+          final errors = [
+            ...best.errors,
+            if (fellBack) '폴백($route)',
+            if (lost.isNotEmpty) '제목에서 잃은 말 $lost',
+            ?overflow,
+            ?failed,
+          ];
           if (errors.isEmpty) {
             exact++;
             tally[0]++;
@@ -281,7 +311,8 @@ void main() {
         '잘못 놓음 $misplaced = ${pct(misplaced, graded)} · '
         '폴백 $fallback = ${pct(fallback, graded)} · '
         '못 옮긴 말 재현 $recalled/$fragments = ${pct(recalled, fragments)} · '
-        '막다른 길 $deadEnds · 서버 거절 ${rejected.length} · '
+        '막다른 길 $deadEnds · 제목에서 잃은 말 $lostWords · 입력칸에 둠 $keptInInput · '
+        '서버 거절 ${rejected.length} · '
         '지어낸 수 뺀 문항 $invented · 호출 실패 $unreachable · '
         '평균 토큰 ${answered == 0 ? 0 : tokens ~/ answered} · '
         '평균 ${answered == 0 ? 0 : millis ~/ answered}ms · 최장 ${slowest}ms',
@@ -318,8 +349,13 @@ const _fields = ['weight', 'totalReps', 'repsPerSet', 'totalSets'];
   }
   for (final (i, g) in got.indexed) {
     final w = i < want.length ? want[i] : const <String, Object?>{};
-    if (w['name'] case final String name
-        when !searchKey(g.name).contains(searchKey(name))) {
+    final names = switch (w['name']) {
+      final String name => [name],
+      final List names => names.cast<String>(),
+      _ => null,
+    };
+    if (names != null &&
+        !names.any((name) => searchKey(name) == searchKey(g.name))) {
       errors.add('이름');
     }
     final values = g.toJson();
@@ -350,9 +386,30 @@ const _answerKeys = {
   'repsOnly',
 };
 
+/// gymdojo lib/record-intent.ts 의 typedPiecesOnly 를 옮긴 것. 친 글에 없는 text 는
+/// null, 그런 못 옮긴 말은 지운다 — 답 전체를 버리지 않는다. 모양이 틀린 것은 둔다.
+Object? typedPiecesOnly(Object? v, String typed) {
+  if (v is! Map) return v;
+  bool foreign(Object? s) => s is String && !typed.contains(s.trim());
+  return {
+    ...v,
+    if (v['exercises'] case final List list)
+      'exercises': [
+        for (final e in list)
+          e is Map && foreign(e['text']) ? {...e, 'text': null} : e,
+      ],
+    if (v['unparsed'] case final List list)
+      'unparsed': [
+        for (final u in list)
+          if (!foreign(u)) u,
+      ],
+  };
+}
+
 /// gymdojo lib/record-intent.ts 의 validSetupAnswer 를 옮긴 것. 서버가 이
-/// 모양을 거절하면 502 이고 앱은 폴백한다.
-bool validSetupAnswer(Object? v) {
+/// 모양을 거절하면 502 이고 앱은 폴백한다. text·unparsed 는 친 글의 부분이어야
+/// 한다(typedPiecesOnly 가 먼저 걸러 낸다) — 무료 경로가 자유 글을 싣지 못하게.
+bool validSetupAnswer(Object? v, String typed) {
   if (v is! Map || jsonEncode(v).length > 2000) return false;
   if (v.keys.any((k) => k != 'exercises' && k != 'unparsed')) return false;
   final list = v['exercises'];
@@ -361,7 +418,9 @@ bool validSetupAnswer(Object? v) {
   if (unparsed != null &&
       !(unparsed is List &&
           unparsed.length <= 8 &&
-          unparsed.every((s) => s is String && s.length <= 80))) {
+          unparsed.every(
+            (s) => s is String && s.length <= 80 && typed.contains(s.trim()),
+          ))) {
     return false;
   }
   bool number(Object? x, num max) =>
@@ -369,7 +428,10 @@ bool validSetupAnswer(Object? v) {
   return list.every((e) {
     if (e is! Map || e.keys.any((k) => !_answerKeys.contains(k))) return false;
     final text = e['text'], name = e['name'], unit = e['unit'];
-    return (text == null || (text is String && text.length <= 120)) &&
+    return (text == null ||
+            (text is String &&
+                text.length <= 120 &&
+                typed.contains(text.trim()))) &&
         name is String &&
         name.trim().isNotEmpty &&
         name.length <= 120 &&

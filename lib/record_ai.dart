@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
@@ -191,6 +193,8 @@ typedef ProposedExercise = ({String? text, WorkoutSetup setup});
 class SetupReading {
   const SetupReading(
     this.exercises, {
+    this.titles = const [],
+    this.fits = true,
     this.unparsed = const [],
     this.dropped = const [],
   });
@@ -199,36 +203,25 @@ class SetupReading {
   final List<String> dropped;
 
   /// 칸마다 제목. 운동이 하나면 친 글 그대로다 — bpm 같은 타이머가 제목에서
-  /// 붙는다. 여럿이면 그 운동을 적은 부분이고, 어느 제목에도 없는 못 옮긴 말은
-  /// 글에서 바로 앞(없으면 바로 뒤) 운동의 제목에 붙인다. 제목은 120자까지다.
-  List<String> titlesFor(String typed) {
-    final clean = typed.trim();
-    if (exercises.length == 1 && clean.length <= 120) return [clean];
-    final titles = [for (final e in exercises) e.text ?? e.setup.name];
-    final starts = [
-      for (final e in exercises) e.text == null ? -1 : clean.indexOf(e.text!),
-    ];
-    for (final u in unparsed) {
-      if (titles.any((t) => t.contains(u))) continue;
-      final at = clean.indexOf(u);
-      var i = starts.lastIndexWhere((s) => s >= 0 && s <= at);
-      final before = i < 0;
-      if (before) i = starts.indexWhere((s) => s >= 0);
-      if (i < 0) continue;
-      final joined = before ? '$u ${titles[i]}' : '${titles[i]} $u';
-      if (joined.length <= 120) titles[i] = joined;
-    }
-    return titles;
-  }
+  /// 붙는다. 여럿이면 그 운동을 적은 부분이다.
+  final List<String> titles;
+
+  /// 친 글이 제목에 다 담기는가. 아니면(120자 넘는 제목) 칸을 만들지 않고 글을
+  /// 입력칸에 둔다 — 제목에 못 담은 말이 사라지지 않게.
+  final bool fits;
 }
 
 /// 모델의 답(contract 2)을 친 글에 맞춰 읽는다. **던지지 않고 고친다**:
 ///
-/// - 칸의 수가 친 글에 없으면(글로 쓴 수까지 보고) 그 칸을 비우고 [SetupReading.dropped].
+/// - 수는 값이 아니라 **자리로** 맞춘다. 칸의 수는 그 운동을 적은 부분(text)에서
+///   같은 값의 자리와 짝을 짓는다. 거기 없으면 어느 운동에도 안 적힌 자리(두
+///   운동이 같이 쓰는 끝의 '3세트'), 그래도 없으면 글 어딘가의 같은 값이다. 글
+///   어디에도 없으면 지어낸 수라 칸을 비우고 [SetupReading.dropped].
 /// - 칸에 넣을 수 없는 값(0kg, 2.5세트)은 그 칸만 비운다. 운동 전체를 버리지 않는다.
 /// - 못 옮긴 말이 친 글의 부분이 아니면 버린다 — 지어낸 말이다.
-/// - 친 수가 어느 칸에도, 이름에도, 못 옮긴 말에도 없으면 그 수가 든 낱말을
-///   못 옮긴 말에 직접 넣는다(모델이 '1칸' 을 빠뜨려도 사람은 본다).
+/// - 칸·이름 자리·못 옮긴 말 어디와도 짝이 없는 수 자리는 그 낱말을 못 옮긴 말에
+///   직접 넣는다. 모델이 '1칸'·'휴식 60초' 를 빠뜨려도, 값이 우연히 같은 칸이
+///   있어도 사람은 본다.
 ///
 /// 답의 모양 자체가 아니면(목록이 아님) [FormatException].
 SetupReading readSetupAnswer(String typed, Object? answer) {
@@ -236,9 +229,16 @@ SetupReading readSetupAnswer(String typed, Object? answer) {
     throw const FormatException('Not a setup answer');
   }
   final stated = statedNumbers(typed);
+  final given = answer['unparsed'];
+  final unparsed = <String>[
+    for (final u in given is List ? given : const [])
+      if (u is String && u.trim().isNotEmpty && typed.contains(u.trim()))
+        u.trim(),
+  ];
   final list = (answer['exercises'] as List).whereType<Map>().take(6).toList();
-  final dropped = <String>[];
-  final exercises = <ProposedExercise>[];
+  // 먼저 운동마다 글에서의 자리를 정한다. 같은 말이 두 번이면 앞 운동 뒤의 것.
+  final placed = <({Map raw, String proposed, String? text, Span? span})>[];
+  var from = 0;
   for (final raw in list) {
     final proposed = raw['name'];
     if (proposed is! String || proposed.trim().isEmpty) continue;
@@ -250,70 +250,194 @@ SetupReading readSetupAnswer(String typed, Object? answer) {
             typed.contains(part.trim())
         ? part.trim()
         : null;
-    // 이름은 친 글이다 — 사전 이름("벤치프레스")으로 바꿔 왔으면 친 낱말로 되돌린다.
-    final name =
-        [
-          typedName(text ?? (list.length == 1 ? typed : proposed), proposed),
-          proposed.trim(),
-        ].firstWhere(
-          (n) => WorkoutSetup.tryFromJson({'name': n}) != null,
-          orElse: () => null,
-        );
-    if (name == null) continue;
+    Span? span;
+    if (text != null) {
+      var at = typed.indexOf(text, from);
+      if (at < 0) at = typed.indexOf(text);
+      span = (start: at, end: at + text.length);
+      from = span.end;
+    } else if (list.length == 1) {
+      span = (start: 0, end: typed.length);
+    }
+    placed.add((raw: raw, proposed: proposed, text: text, span: span));
+  }
+  // 모델이 text 를 못 베꼈으면('�시업 20개', 빈칸) 앞뒤 운동 사이의 틈에서 그
+  // 이름이 든 자리를 그 운동의 부분으로 삼는다.
+  for (var k = 0; k < placed.length; k++) {
+    final e = placed[k];
+    if (e.span != null) continue;
+    final lo = placed.take(k).map((p) => p.span?.end ?? 0).fold(0, max);
+    final hi = placed
+        .skip(k + 1)
+        .map((p) => p.span?.start ?? typed.length)
+        .fold(typed.length, min);
+    if (lo >= hi) continue;
+    final gap = typed.substring(lo, hi);
+    final text = gap.trim();
+    if (text.length > 120 || keyRange(gap, searchKey(e.proposed)) == null) {
+      continue;
+    }
+    final start = lo + gap.indexOf(text);
+    placed[k] = (
+      raw: e.raw,
+      proposed: e.proposed,
+      text: text,
+      span: (start: start, end: start + text.length),
+    );
+  }
+  // 이름은 친 글이다 — 사전 이름("벤치프레스")으로 바꿔 왔으면 친 낱말로 되돌린다.
+  final found = <({Map raw, String? text, String name, Span? span})>[
+    for (final e in placed)
+      if ([
+            typedName(
+              e.text ?? (list.length == 1 ? typed : e.proposed),
+              e.proposed,
+              unparsed,
+            ),
+            e.proposed.trim(),
+          ].firstWhere(
+            (n) => WorkoutSetup.tryFromJson({'name': n}) != null,
+            orElse: () => null,
+          )
+          case final name?)
+        (raw: e.raw, text: e.text, name: name, span: e.span),
+  ];
+  bool inside(int i, Span? s) =>
+      s != null && stated[i].start >= s.start && stated[i].end <= s.end;
+  final outside = [
+    for (var i = 0; i < stated.length; i++)
+      if (!found.any((e) => inside(i, e.span))) i,
+  ];
+  // 짝이 있는 수 자리. 못 옮긴 말 안의 수는 이미 보인다.
+  final covered = <int>{
+    for (final u in unparsed)
+      for (var at = typed.indexOf(u); at >= 0; at = typed.indexOf(u, at + 1))
+        for (var i = 0; i < stated.length; i++)
+          if (inside(i, (start: at, end: at + u.length))) i,
+  };
+  final paired = <int>{};
+  final dropped = <String>[];
+  final exercises = <ProposedExercise>[];
+  for (final e in found) {
+    final span = e.span;
+    if (span != null) {
+      // 이름 자리의 수('MTS100 로우' 의 100)는 이름이다 — 그 자리만.
+      final own = typed.substring(span.start, span.end);
+      if (keyRange(own, searchKey(e.name)) case final r?) {
+        final name = (start: span.start + r.start, end: span.start + r.end);
+        covered.addAll([
+          for (var i = 0; i < stated.length; i++)
+            if (inside(i, name)) i,
+        ]);
+      }
+    }
     Object? keep(String key) {
-      final value = raw[key];
-      if (value is num && !stated.any((n) => n.value == value)) {
+      final value = e.raw[key];
+      if (value is! num) return null;
+      bool same(int i) => stated[i].value == value;
+      final mine = [
+        for (var i = 0; i < stated.length; i++)
+          if (!paired.contains(i) && inside(i, span) && same(i)) i,
+      ].firstOrNull;
+      final shared = outside.where(same).firstOrNull;
+      if (mine == null &&
+          shared == null &&
+          !stated.indexed.any((n) => same(n.$1))) {
         dropped.add(formatNumber(value.toDouble()));
         return null;
       }
-      return WorkoutSetup.tryFromJson({'name': name, key: value}) == null
-          ? null
-          : value;
+      if (WorkoutSetup.tryFromJson({'name': e.name, key: value}) == null) {
+        return null;
+      }
+      if (mine != null) paired.add(mine);
+      covered.add(mine ?? shared ?? -1);
+      return value;
     }
 
-    exercises.add((
-      text: text,
-      setup: WorkoutSetup.fromJson({
-        'name': name,
-        'weight': keep('weight'),
-        'unit': raw['unit'] == 'lb' ? 'lb' : 'kg',
-        'totalReps': keep('totalReps'),
-        'repsPerSet': keep('repsPerSet'),
-        'totalSets': keep('totalSets'),
-        'repsOnly': raw['repsOnly'] == true,
-      }),
-    ));
+    final setup = WorkoutSetup.fromJson({
+      'name': e.name,
+      'weight': keep('weight'),
+      'unit': e.raw['unit'] == 'lb' ? 'lb' : 'kg',
+      'totalReps': keep('totalReps'),
+      'repsPerSet': keep('repsPerSet'),
+      'totalSets': keep('totalSets'),
+      'repsOnly': e.raw['repsOnly'] == true,
+    });
+    // "한 세트에 10개" 의 한 세트는 세트당이라는 말이다.
+    if (setup.repsPerSet != null) {
+      covered.addAll([
+        for (var i = 0; i < stated.length; i++)
+          if (stated[i].value == 1 &&
+              (span == null || inside(i, span)) &&
+              RegExp(
+                r'^\S*?\s*(?:세트|셋트|set)',
+                caseSensitive: false,
+              ).hasMatch(typed.substring(stated[i].start)))
+            i,
+      ]);
+    }
+    exercises.add((text: e.text, setup: setup));
   }
-  final given = answer['unparsed'];
-  final unparsed = <String>[
-    for (final u in given is List ? given : const [])
-      if (u is String && u.trim().isNotEmpty && typed.contains(u.trim()))
-        u.trim(),
-  ];
-  final kept = [
-    for (final e in exercises)
-      ...[
-        e.setup.weight,
-        e.setup.totalReps,
-        e.setup.repsPerSet,
-        e.setup.totalSets,
-      ].nonNulls,
-  ];
-  for (final n in stated) {
-    final surface = typed.substring(n.start, n.end);
-    final covered =
-        kept.any((v) => v == n.value) ||
-        exercises.any(
-          (e) => searchKey(e.setup.name).contains(searchKey(surface)),
-        ) ||
-        unparsed.any((u) => u.contains(surface)) ||
-        // "한 세트에 10개" 의 한 세트는 세트당이라는 말이다.
-        (n.value == 1 && exercises.any((e) => e.setup.repsPerSet != null));
-    if (covered) continue;
-    final word = _wordAround(typed, n.start, n.end);
+  for (var i = 0; i < stated.length; i++) {
+    if (covered.contains(i)) continue;
+    final word = _wordAround(typed, stated[i].start, stated[i].end);
     if (!unparsed.any((u) => u.contains(word))) unparsed.add(word);
   }
-  return SetupReading(exercises, unparsed: unparsed, dropped: dropped);
+  final (titles, fits) = _titles(typed, exercises, [
+    for (final e in found) e.span,
+  ]);
+  return SetupReading(
+    exercises,
+    titles: titles,
+    fits: fits,
+    unparsed: unparsed,
+    dropped: dropped,
+  );
+}
+
+typedef Span = ({int start, int end});
+
+/// 칸마다 제목과, 친 말이 제목에 다 담기는지. 운동이 하나면 친 글 그대로다.
+/// 여럿이면 그 운동을 적은 부분이고, 어느 운동에도 안 적힌 말('월수금',
+/// '휴식 60초', '슈퍼세트 3세트')은 글에서 바로 앞 운동의 제목에 붙는다(앞에
+/// 없으면 첫 운동 앞에). 붙여서 120자가 넘으면 담기지 않는다.
+(List<String>, bool) _titles(
+  String typed,
+  List<ProposedExercise> exercises,
+  List<Span?> spans,
+) {
+  final clean = typed.trim();
+  if (exercises.length <= 1) {
+    return ([for (final _ in exercises) clean], clean.length <= 120);
+  }
+  final titles = [for (final e in exercises) e.text ?? e.setup.name];
+  final placed = [
+    for (var i = 0; i < spans.length; i++)
+      if (spans[i] != null) i,
+  ]..sort((a, b) => spans[a]!.start.compareTo(spans[b]!.start));
+  if (placed.isEmpty) {
+    titles[0] = clean;
+  } else {
+    final gaps = <Span>[];
+    var at = 0;
+    for (final i in placed) {
+      if (spans[i]!.start > at) gaps.add((start: at, end: spans[i]!.start));
+      at = max(at, spans[i]!.end);
+    }
+    if (at < typed.length) gaps.add((start: at, end: typed.length));
+    for (final gap in gaps) {
+      final words = typed.substring(gap.start, gap.end).trim();
+      // '+', '/' 같은 이음표만 있는 틈은 말이 아니다.
+      if (!RegExp(r'[\p{L}\p{N}]', unicode: true).hasMatch(words)) continue;
+      final before = placed.lastWhere(
+        (i) => spans[i]!.start < gap.start,
+        orElse: () => -1,
+      );
+      final i = before < 0 ? placed.first : before;
+      titles[i] = before < 0 ? '$words ${titles[i]}' : '${titles[i]} $words';
+    }
+  }
+  return (titles, titles.every((t) => t.length <= 120));
 }
 
 /// [start, end) 가 든 낱말. 띄어 쓰지 않는 글(일본어·중국어)에서 낱말이 너무
@@ -399,7 +523,13 @@ class RecordAi {
         )
         .timeout(const Duration(seconds: 10));
     if (response.statusCode != 200) return null;
-    final body = jsonDecode(response.body);
+    final Object? body;
+    try {
+      body = jsonDecode(response.body);
+    } on FormatException {
+      // 200 인데 JSON 이 아니다 — 와이파이 로그인 화면이 끼어들었다. 연결 문제다.
+      throw const RecordAiException(RecordAiStatus.unavailable, offline: true);
+    }
     return _token = body is Map && body['token'] is String
         ? body['token'] as String
         : null;
@@ -451,6 +581,12 @@ class RecordAi {
         if (response.statusCode == 200 && body is Map) {
           return body.cast<String, Object?>();
         }
+        if (response.statusCode == 200 && body == null) {
+          throw const RecordAiException(
+            RecordAiStatus.unavailable,
+            offline: true,
+          );
+        }
         if (response.statusCode == 402) {
           throw const RecordAiException(RecordAiStatus.noPlates);
         }
@@ -465,6 +601,9 @@ class RecordAi {
       }
       throw const RecordAiException(RecordAiStatus.unavailable);
     } on http.ClientException {
+      throw const RecordAiException(RecordAiStatus.unavailable, offline: true);
+    } on IOException {
+      // TLS(HandshakeException)·소켓은 ClientException 으로 싸이지 않고 온다.
       throw const RecordAiException(RecordAiStatus.unavailable, offline: true);
     } finally {
       if (client == null) web.close();
@@ -618,9 +757,10 @@ class RecordAi {
   }) async {
     if (text.length > 600) throw const FormatException('Input is too long');
     if (!hasSetupIntent(text)) {
-      return SetupReading([
-        (text: null, setup: WorkoutSetup(name: text.trim())),
-      ]);
+      return SetupReading(
+        [(text: null, setup: WorkoutSetup(name: text.trim()))],
+        titles: [text.trim()],
+      );
     }
     final reference = retrieveExercises(
       text,

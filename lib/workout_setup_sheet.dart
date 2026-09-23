@@ -73,9 +73,11 @@ class _Fields {
   List<TextEditingController> get all => [name, weight, total, reps, sets];
 
   static String _text(num? n) => n?.toString() ?? '';
+  /// 빈칸은 null, 읽을 수 없는 글('8-12', '60kg')은 NaN — 규칙이 거절하므로 그 칸
+  /// 밑에 이유가 뜨고 완료는 꺼진다. 빈칸으로 바꿔 저장하지 않는다(X15).
   static num? _number(String text) => text.trim().isEmpty
       ? null
-      : num.tryParse(text.trim().replaceAll(',', '.'));
+      : num.tryParse(text.trim().replaceAll(',', '.')) ?? double.nan;
 
   /// 칸 하나가 틀린 이유. 규칙은 [WorkoutSetup.fromJson] 하나다 — 그 칸만 넣어 본다.
   static String? problem(String key, String text, L l) {
