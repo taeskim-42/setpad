@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -915,6 +917,236 @@ void main() {
         today: DateTime(year, 4, 1),
       );
       expect(q.series.first.scope.since, DateTime(year, 2, day));
+    }
+  });
+
+  test('설계의 예시 plan 58개: 모두 디코드되고, 실행기는 막다른 길 없이 칸마다 값 또는 까닭을 낸다', () {
+    const examples = [
+      ('001', r'''{"exercises": ["벤치프레스", "오버헤드프레스"]}'''),
+      ('007', r'''{"exercises": ["벤치프레스", "힙쓰러스트"], "measures": ["best"]}'''),
+      (
+        '008',
+        r'''{"exercises": ["데드리프트", "케틀벨 스윙"], "measures": ["trainingDays"]}''',
+      ),
+      (
+        '011',
+        r'''{"exercises": ["러닝", "수영"], "period": "thisMonth", "measures": ["distance"]}''',
+      ),
+      ('013', r'''{"exercises": ["벤치프레스", "바벨로우"], "measures": ["best"]}'''),
+      (
+        '014',
+        r'''{"measures": ["best"], "series": [{"exercises": ["데드리프트"], "period": "lastYear"}, {"exercises": ["스쿼트"], "period": "thisYear"}]}''',
+      ),
+      (
+        '017',
+        r'''{"measures": ["best"], "series": [{"exercises": ["스쿼트"], "since": "2026-01-01", "until": "2026-02-28"}, {"exercises": ["레그프레스"], "period": "recent", "days": 28}]}''',
+      ),
+      (
+        '019',
+        r'''{"series": [{"exercises": ["벤치프레스"], "measures": ["e1rm"]}, {"exercises": ["스쿼트"], "measures": ["volume"]}]}''',
+      ),
+      ('022', r'''{"exercises": ["플랭크", "스쿼트"], "measures": ["best"]}'''),
+      (
+        '023',
+        r'''{"measures": ["trainingDays"], "series": [{"period": "lastMonth"}, {"period": "thisMonth"}]}''',
+      ),
+      (
+        '024',
+        r'''{"exercises": ["데드리프트"], "measures": ["volume"], "series": [{"since": "2026-01-01", "until": "2026-06-30"}, {"since": "2026-07-01", "until": "2026-12-31"}]}''',
+      ),
+      (
+        '029',
+        r'''{"exercises": ["벤치프레스"], "period": "recent", "days": 30, "series": [{"shift": {"years": 1}}, {}]}''',
+      ),
+      (
+        '030',
+        r'''{"period": "recent", "days": 28, "measures": ["trainingDays"], "series": [{"shift": {"days": 28}}, {}]}''',
+      ),
+      (
+        '031',
+        r'''{"period": "thisYear", "measures": ["volume"], "series": [{"shift": {"years": 1}}, {}]}''',
+      ),
+      (
+        '034',
+        r'''{"exercises": ["스쿼트"], "measures": ["best"], "series": [{"until": "2026-07-14"}, {"since": "2026-07-15"}]}''',
+      ),
+      (
+        '038',
+        r'''{"exercises": ["데드리프트"], "measures": ["weightChange"], "notComputable": ["부상 날짜"]}''',
+      ),
+      (
+        '043',
+        r'''{"measures": ["volume", "setCount"], "series": [{"part": "upper"}, {"part": "lower"}]}''',
+      ),
+      (
+        '047',
+        r'''{"by": "part", "measures": ["setCount"], "relate": "share"}''',
+      ),
+      (
+        '048',
+        r'''{"measures": ["setCount", "volume"], "relate": "ratio", "series": [{"exercises": ["벤치프레스", "인클라인 벤치프레스", "덤벨 프레스", "오버헤드프레스", "케이블 푸시다운"]}, {"exercises": ["랫풀다운", "풀업", "시티드 로우", "바벨컬"]}]}''',
+      ),
+      (
+        '049',
+        r'''{"by": "exercise", "measures": ["meanWeight"], "series": [{"hours": {"from": 5, "to": 11}}, {"hours": {"from": 17, "to": 23}}]}''',
+      ),
+      (
+        '051',
+        r'''{"hours": {"from": 0, "to": 6}, "measures": ["trainingDays"]}''',
+      ),
+      (
+        '053',
+        r'''{"measures": ["trainingDays"], "series": [{"weekdays": [1, 2, 3, 4, 5]}, {"weekdays": [6, 7]}]}''',
+      ),
+      (
+        '056',
+        r'''{"measures": ["volume"], "per": "day", "series": [{"weekdays": [1, 2, 3, 4, 5]}, {"weekdays": [6, 7]}]}''',
+      ),
+      (
+        '058',
+        r'''{"measures": ["volume", "setCount"], "per": "day", "series": [{"together": true}, {"together": false}]}''',
+      ),
+      (
+        '060',
+        r'''{"exercises": ["스쿼트"], "measures": ["best"], "notComputable": ["파트너 기록"]}''',
+      ),
+      (
+        '063',
+        r'''{"measures": ["volume", "setCount"], "per": "day", "series": [{"routine": true}, {"routine": false}]}''',
+      ),
+      (
+        '067',
+        r'''{"exercises": ["벤치프레스", "스쿼트"], "measures": ["best"], "relate": "ratio"}''',
+      ),
+      (
+        '069',
+        r'''{"exercises": ["벤치프레스", "스쿼트", "데드리프트"], "measures": ["best"], "relate": "ratio"}''',
+      ),
+      (
+        '071',
+        r'''{"measures": ["volume"], "relate": "ratio", "series": [{}, {"exercises": ["스쿼트"]}]}''',
+      ),
+      (
+        '073',
+        r'''{"exercises": ["벤치프레스"], "measures": ["best"], "notComputable": ["체중"]}''',
+      ),
+      (
+        '076',
+        r'''{"exercises": ["스쿼트", "벤치프레스", "데드리프트"], "measures": ["best"], "total": "sum", "notComputable": ["윌크스 점수"]}''',
+      ),
+      (
+        '077',
+        r'''{"by": "exercise", "measures": ["changePct", "weightChange"], "order": "desc", "limit": 5}''',
+      ),
+      (
+        '082',
+        r'''{"by": "exercise", "measures": ["daysSinceBest"], "order": "desc", "limit": 5}''',
+      ),
+      ('083', r'''{"measures": ["longestStreak"]}'''),
+      ('088', r'''{"measures": ["meanGap"]}'''),
+      ('090', r'''{"measures": ["longestGap"]}'''),
+      (
+        '093',
+        r'''{"exercises": ["벤치프레스"], "measures": ["meanWeight"], "series": [{"set": "first"}, {"set": "last"}]}''',
+      ),
+      ('094', r'''{"exercises": ["스쿼트"], "measures": ["meanReps"]}'''),
+      (
+        '099',
+        r'''{"exercises": ["벤치프레스"], "measures": ["best", "meanWeight"], "series": [{"memo": ["컨디션"]}, {"noMemo": ["컨디션"]}]}''',
+      ),
+      (
+        '105',
+        r'''{"measures": ["intake"], "per": "day", "series": [{"trained": true}, {"trained": false}]}''',
+      ),
+      ('110', r'''{"notComputable": ["심박"]}'''),
+      (
+        '113',
+        r'''{"by": "day", "measures": ["burned"], "order": "desc", "limit": 1}''',
+      ),
+      ('114', r'''{"timer": "tabata", "measures": ["trainingDays"]}'''),
+      (
+        '118',
+        r'''{"period": "thisMonth", "by": "exercise", "measures": ["trainingDays"], "order": "desc", "limit": 5}''',
+      ),
+      (
+        '120',
+        r'''{"by": "exercise", "measures": ["daysSince"], "order": "desc", "limit": 3}''',
+      ),
+      ('124', r'''{"measures": ["setCount"], "per": "day"}'''),
+      (
+        '128',
+        r'''{"exercises": ["벤치프레스", "스쿼트"], "by": "month", "measures": ["best"]}''',
+      ),
+      (
+        '130',
+        r'''{"by": "week", "measures": ["volume"], "series": [{"period": "lastMonth"}, {"period": "thisMonth"}]}''',
+      ),
+      (
+        '131',
+        r'''{"exercises": ["벤치프레스", "스쿼트"], "by": "weekday", "measures": ["trainingDays"]}''',
+      ),
+      (
+        '132',
+        r'''{"weight": {"op": ">=", "value": 80, "unit": "kg"}, "measures": ["setCount"], "series": [{"period": "lastMonth"}, {"period": "thisMonth"}]}''',
+      ),
+      (
+        '137',
+        r'''{"exercises": ["러닝"], "measures": ["distance", "duration"], "notComputable": ["페이스"]}''',
+      ),
+      (
+        '140',
+        r'''{"exercises": ["벤치프레스"], "measures": ["best"], "relate": "ratio", "series": [{}, {"sessions": 1}]}''',
+      ),
+      (
+        '144',
+        r'''{"by": "exercise", "measures": ["trainingDays", "daysSinceBest", "daysSince"], "order": "desc", "limit": 10}''',
+      ),
+      (
+        '149',
+        r'''{"exercises": ["벤치프레스"], "measures": ["best", "weightChange"], "notComputable": ["체지방 변화"]}''',
+      ),
+      ('157', r'''{"notComputable": ["다른 회원 기록"]}'''),
+      (
+        '159',
+        r'''{"exercises": ["Bench Press", "Hip Thrust"], "measures": ["best"]}''',
+      ),
+      (
+        '189',
+        r'''{"measures": ["best"], "series": [{"exercises": ["卧推"], "period": "lastMonth"}, {"exercises": ["深蹲"], "period": "thisMonth"}]}''',
+      ),
+      (
+        '216',
+        r'''{"exercises": ["Press de Banca", "Hip Thrust"], "measures": ["best"]}''',
+      ),
+    ];
+    for (final (id, json) in examples) {
+      final q = RecordQuery.decode(jsonDecode(json), names, today: today);
+      if (q.kind == 'unsupported') {
+        // 셀 것이 없는 질문(심박·다른 회원)은 까닭이 있는 거절이다.
+        expect(q.reason, 'nothing', reason: id);
+        expect(refusalLines(q, l), isNotEmpty, reason: id);
+        continue;
+      }
+      final r = runPlan(
+        q,
+        fixture,
+        l: l,
+        unit: 'kg',
+        today: today,
+        confirmed: true,
+      )!;
+      expect(r.columns, isNotEmpty, reason: id);
+      for (final row in r.rows) {
+        expect(row.cells, hasLength(r.columns.length), reason: id);
+        for (final c in row.cells) {
+          expect(
+            c.answer != null || c.reason != null,
+            isTrue,
+            reason: '$id ${row.label}',
+          );
+        }
+      }
+      expect(describePlan(q, l, 'kg', notes: fixture), isNotEmpty, reason: id);
     }
   });
 }
