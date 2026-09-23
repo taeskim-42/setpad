@@ -2305,6 +2305,13 @@ class LVi extends L {
       'Không đọc được câu hỏi thành phép đếm nên đã đếm trên máy chỉ theo bài tập và khoảng thời gian trong câu. Hỏi theo cách khác để đọc lại.';
 
   @override
+  String get queryUnreadable =>
+      'Mô hình đã gửi câu trả lời không đọc được hai lần. Không phải do kết nối, và câu trả lời đó không tốn bánh tạ nào.';
+
+  @override
+  String get queryAskAgain => 'Hỏi lại';
+
+  @override
   String get queryTotalUnits => 'Đơn vị khác nhau nên không cộng tổng được';
 
   @override

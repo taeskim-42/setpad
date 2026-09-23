@@ -115,17 +115,9 @@ void main() {
   // plateCents: max(1, ceil(토큰 × 2 × 100 / 3000)). 적중·빗나감·출력을 같이 센다.
   var cents = 0;
 
-  /// 서버 라우트와 같게 — 멈춤 이유가 stop 이 아니거나 JSON 객체가 아니면
-  /// 무효(FormatException)다. 그물·HTTP 실패는 IOException 이다.
-  Future<Object?> ask(String instructions, String input) async {
-    // 대조 실험: 1단계를 부르지 않는다. single 은 꼬리표 없는 답을 주어 한
-    // 지시문(planInstructions, 기준선)으로, all 은 2단계에 모든 갈래를 싣는다.
-    if (stage2 != null && instructions == familyInstructions) {
-      return stage2 == 'single' ? <String, Object?>{} : {'t': <String>[]};
-    }
-    if (stage2 == 'all') {
-      instructions = focusedInstructions(planFamilies.toSet());
-    }
+  /// 부름 한 번. 멈춤 이유가 stop 이 아니거나 JSON 객체가 아니면 FormatException
+  /// 이다. 그물·HTTP 실패는 IOException 이다.
+  Future<Object?> once(String instructions, String input) async {
     final k = keyOf(instructions, input);
     if (replay.isNotEmpty) {
       final content = replay[k] ?? (throw HttpException('replay 에 없음 $k'));
@@ -200,6 +192,32 @@ void main() {
     tagged(instructions, parsed);
     if (parsed is! Map) throw const FormatException('unparsable');
     return parsed;
+  }
+
+  /// 서버 라우트(gymdojo record-query)와 같게 — 읽을 수 없는 답(잘림·JSON 아님·
+  /// 이어 붙은 JSON·응답 형식만 되받음)은 같은 요청으로 한 번 더 묻고, 그래도면
+  /// 'unreadable' 이다(원판을 돌려준다).
+  Future<Object?> ask(String instructions, String input) async {
+    // 대조 실험: 1단계를 부르지 않는다. single 은 꼬리표 없는 답을 주어 한
+    // 지시문(planInstructions, 기준선)으로, all 은 2단계에 모든 갈래를 싣는다.
+    if (stage2 != null && instructions == familyInstructions) {
+      return stage2 == 'single' ? <String, Object?>{} : {'t': <String>[]};
+    }
+    if (stage2 == 'all') {
+      instructions = focusedInstructions(planFamilies.toSet());
+    }
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        final parsed = await once(instructions, input);
+        if (!blankIntent(parsed)) return parsed;
+      } on FormatException {
+        // 한 번 더.
+      }
+    }
+    throw const RecordAiException(
+      RecordAiStatus.unavailable,
+      code: 'unreadable',
+    );
   }
 
   final ai = RecordAi(respond: ask);
@@ -312,6 +330,10 @@ void main() {
             } on FormatException catch (err) {
               read = null;
               why = err.message;
+            } on RecordAiException catch (err) {
+              // 서버가 두 번 물어도 읽을 수 없는 답 — 모델 탓이라 무효로 센다.
+              read = null;
+              why = err.code ?? 'unavailable';
             }
             // 모델이 답한 질문 수 — 무효도 답한 것이다. 한 번만 센다(전에는 디코드
             // 실패를 두 번 셌다).

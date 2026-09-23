@@ -610,7 +610,7 @@ class RecordQuery {
   List<Metric> get measures => {for (final s in series) ...s.measures}.toList();
 
   /// "이 운동 말이에요?" — never 이름 [from] 을 기록 이름 [to] 로 바꾼 plan.
-  /// 다시 세기만 한다(모델도 원판도 안 쓴다).
+  /// 다시 세기만 한다(모델도 원판도 안 쓴다). 확인은 그대로 묻는다.
   RecordQuery withName(String from, String to) {
     final key = exerciseKey(to);
     List<String> swap(List<String> names) => [
@@ -662,7 +662,8 @@ class RecordQuery {
       maybe: {...maybe}..remove(from),
       suggested: {...suggested}..remove(from),
       dropped: dropped,
-      requiresConfirmation: false,
+      // 이름만 사람이 골랐다. 기간·조건·측정은 여전히 모델이 읽은 것이다.
+      requiresConfirmation: requiresConfirmation,
     );
   }
 
@@ -4152,11 +4153,17 @@ extension RecordQueryAi on RecordAi {
       } on FormatException {
         tags = null;
       } on RecordAiException catch (e) {
-        if (e.code != 'upstream') rethrow;
+        // 모델 쪽 실패(서버가 한 번 더 물어도 못 읽은 답 포함)는 갈래 고르기만 잃는다.
+        if (e.code != 'upstream' && e.code != 'unreadable') rethrow;
       }
     }
-    Future<Object?> plan() => ask(
-      tags == null ? planInstructions : focusedInstructions(tags),
+    Future<Object?> plan([String? rejected]) => ask(
+      [
+        tags == null ? planInstructions : focusedInstructions(tags),
+        // 앞 답이 앱의 한도·모양에 걸렸으면 그 까닭을 적어 다시 묻는다.
+        if (rejected != null)
+          'Your previous answer to this question was rejected: $rejected. Answer again within the limits.',
+      ].join('\n'),
       jsonEncode({
         'referenceYear': (today ?? DateTime.now()).year,
         'language': locale,
@@ -4168,12 +4175,76 @@ extension RecordQueryAi on RecordAi {
       contract: 3,
       spent: spent,
     );
-    // 빈 답은 질문의 모양이 아니라 모델의 헛발이다 — temperature 0 이어도 다시
-    // 물으면 plan 이 왔다(재검토 live.log). 막다른 길이라 한 번만 다시 묻는다.
+    // 빈 답·깨진 답은 서버가 한 번 더 묻는다(gymdojo record-query 'unreadable').
+    // 여기서는 셀 수 없는 모양을 본다: 모델이 부류를 열 개로 풀어 적는 것처럼
+    // 한도·모양에 걸린 답은 사람 탓이 아니다. 까닭을 적어 한 번만 다시 묻고, 그래도
+    // 걸리면 그 답을 돌려준다 — 화면이 까닭을 말하고 담아 둔다.
     final first = await plan();
-    return blankIntent(first) ? plan() : first;
+    final rejected = _rejection(first, text, names, unit, today, locale);
+    if (rejected == null) return first;
+    try {
+      return await plan(rejected);
+    } on Exception {
+      // 다시 묻기가 실패해도(원판·연결·못 읽은 답) 받은 답은 받은 것이다.
+      return first;
+    }
   }
 }
+
+/// 모델 답이 앱의 한도·모양에 걸린 까닭(모델에게 보낼 말). 셀 수 있거나, 사람이
+/// 이름을 아홉 넘게 적어 걸린 것이면 null — 다시 물어도 같다.
+/// ponytail: 다른 한도는 모델 탓인지 가르지 않고 한 번 다시 묻는다(질문이 정말 한도를
+/// 넘으면 부름 하나가 더 나간다). 잦으면 한도마다 질문 글로 가른다.
+String? _rejection(
+  Object? intent,
+  String text,
+  List<String> names,
+  String unit,
+  DateTime? today,
+  String locale,
+) {
+  try {
+    decodeRecordIntent(
+      intent,
+      text,
+      names,
+      unit: unit,
+      today: today,
+      locale: locale,
+    );
+    return null;
+  } on QueryLimit catch (e) {
+    // 이름 한도는 사람이 아홉 넘게 적었을 때만 온다([decodeRecordIntent]).
+    if (e.kind == 'exercises') return null;
+    return _limitNotes[e.kind] ?? 'the app cannot count that combination';
+  } on FormatException catch (e) {
+    return e.message == 'Listed names not asked'
+        ? 'it listed more than 8 exercise names the question did not name. Name only the exercises the question names; for a kind of exercise use part, for two groups use two series of at most 8 names'
+        : 'the app could not read it (${e.message})';
+  }
+}
+
+/// [QueryLimit.kind] → 모델에게 보내는 한도(app_ko.arb queryLimit 과 같은 뜻).
+const _limitNotes = {
+  'measures': 'it had more than 4 measures',
+  'compare': 'it had more than 6 series',
+  'ranking': 'limit is at most 20',
+  'sessions': 'sessions is at most 100',
+  'days': 'days is at most 3660',
+  'sameSeries': 'two series were the same; each series must differ',
+  'ordering':
+      'order, limit, total and relate need two or more rows (by, several exercises or several series)',
+  'groupedMeasure':
+      'with by and several series each series has one measure, and by day/week/month/weekday cannot group latest, first, daysSince, weightChange, changePct, streaks or gaps',
+  'perMeasure':
+      'per only divides setCount, repCount, volume, distance, duration, trainingDays (not per day), intake, burned or balance',
+  'per': 'per week or month cannot go with by day/week/month/weekday',
+  'shareMeasure':
+      'share needs setCount, repCount, volume, distance, duration, trainingDays, intake, burned or balance',
+  'datesTotal': 'total cannot add latest or first',
+  'energyGrouped':
+      'intake, burned and balance cannot be grouped by exercise or part or limited to hours',
+};
 
 /// 응답 형식만 되받은 빈 답: {"type":"json_object"}, {"type":"plan"}. 담지 않는다 —
 /// 담으면 그 글로는 영영 못 묻는다.
@@ -4194,14 +4265,43 @@ RecordQuery decodeRecordIntent(
   required String unit,
   DateTime? today,
   String locale = 'ko',
-}) => RecordQuery.decode(
-  intent,
-  names,
-  unit: unit,
-  today: today,
-  question: canonicalizeExercises(text, names),
-  lang: _langOf(locale),
-);
+}) {
+  final question = canonicalizeExercises(text, names);
+  try {
+    return RecordQuery.decode(
+      intent,
+      names,
+      unit: unit,
+      today: today,
+      question: question,
+      lang: _langOf(locale),
+    );
+  } on QueryLimit catch (e) {
+    // "운동은 8개까지 — 나눠서 물어 주세요" 는 사람이 이름을 아홉 넘게 적었을 때의
+    // 까닭이다. 적지 않았는데 모델이 부류를 이름으로 풀어 적은 목록(윗단·빼기·series
+    // 어디든)은 모델이 읽지 못한 것이다 — 사람 탓으로 말하지 않는다.
+    if (e.kind == 'exercises' &&
+        question.trim().isNotEmpty &&
+        namedExercises(question, [
+              ...names,
+              ..._listedNames(intent),
+            ], fuzzy: false).length <=
+            8) {
+      throw const FormatException('Listed names not asked');
+    }
+    rethrow;
+  }
+}
+
+/// 모델 답에 적힌 운동 이름(윗단·빼기·series).
+List<String> _listedNames(Object? intent) => [
+  if (intent is Map) ...[
+    for (final key in const ['exercises', 'exclude'])
+      if (intent[key] case final List list) ...list.whereType<String>(),
+    if (intent['series'] case final List items)
+      for (final item in items) ..._listedNames(item),
+  ],
+];
 
 /// find(이름으로 기록 찾기)는 질문이 운동 이름뿐일 때다. "데드 기록 보여줘" 처럼
 /// 다른 말이 있으면 그 운동의 plan 이다(측정은 기본값).
@@ -4459,10 +4559,13 @@ class RecordSearch extends ChangeNotifier {
   /// [tooLong] 은 보내기 전에 거른 긴 질문, [offline] 은 제출했는데 다시 확인해도
   /// 서버에 닿지 못한 것이다. [failed] 는 서버·그물 오류(다시 시도), [misread] 는
   /// 서버는 답했는데 앱이 그 답을 셀 plan 으로 읽지 못한 것이다 — 연결 문제가
-  /// 아니고, 같은 질문은 담아 두어 원판이 또 나가지 않는다.
+  /// 아니고, 같은 질문은 담아 두어 원판이 또 나가지 않는다. [unreadable] 은 모델이
+  /// 두 번 다 읽을 수 없는 답(빈 답·깨진 JSON)을 낸 것이다 — 서버가 원판을 돌려줬고,
+  /// 모델의 헛발이라 담지 않는다: 다시 물으면 다시 묻는다.
   bool busy = false,
       failed = false,
       misread = false,
+      unreadable = false,
       noPlates = false,
       charged = false,
       tooLong = false,
@@ -4510,6 +4613,7 @@ class RecordSearch extends ChangeNotifier {
     plan = null;
     failed = false;
     misread = false;
+    unreadable = false;
     noPlates = false;
     charged = false;
     unrepresentable = null;
@@ -4632,6 +4736,8 @@ class RecordSearch extends ChangeNotifier {
         if (!_disposed && version == _version) {
           if (e is RecordAiException && e.status == RecordAiStatus.noPlates) {
             noPlates = true;
+          } else if (e is RecordAiException && e.code == 'unreadable') {
+            unreadable = true;
           } else {
             failed = true;
           }

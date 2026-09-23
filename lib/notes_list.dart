@@ -363,6 +363,7 @@ class _NotesListPageState extends State<NotesListPage>
       !(_search.busy ||
           _search.failed ||
           _search.misread ||
+          _search.unreadable ||
           _search.noPlates ||
           _search.unrepresentable != null ||
           _search.tooLong ||
@@ -788,6 +789,23 @@ class _NotesListPageState extends State<NotesListPage>
                                     l.queryFailed,
                                     style: const TextStyle(fontSize: 14),
                                   ),
+                                // 모델이 읽을 수 없는 답을 두 번 냈다 — 연결 문제가
+                                // 아니고 원판도 나가지 않았다. 같은 글로 다시 묻는다.
+                                if (_search.unreadable) ...[
+                                  Text(
+                                    l.queryUnreadable,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(44, 44),
+                                    onPressed: () => _ask(immediately: true),
+                                    child: Text(
+                                      l.queryAskAgain,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  ),
+                                ],
                                 // 서버는 답했다 — 연결 문구가 아니라 읽지 못했다고
                                 // 말하고, 말을 바꾸면 다시 읽는다고 알린다.
                                 if (_search.misread)
@@ -1023,12 +1041,14 @@ class _NotesListPageState extends State<NotesListPage>
                                     SuggestionChip(
                                       label: l.queryMaybe(to),
                                       selected: false,
-                                      onTap: () => setState(
-                                        () => _swap = (
-                                          asked!,
-                                          plan.withName(from, to),
-                                        ),
-                                      ),
+                                      onTap: () => setState(() {
+                                        final swapped = plan.withName(from, to);
+                                        // 이미 "맞아요" 한 읽기면 이름만 바꾼 것도 확인된 것이다.
+                                        if (_isConfirmed(plan)) {
+                                          _confirmed = swapped;
+                                        }
+                                        _swap = (asked!, swapped);
+                                      }),
                                     ),
                               ],
                             ),

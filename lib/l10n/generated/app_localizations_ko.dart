@@ -2247,6 +2247,13 @@ class LKo extends L {
       '질문을 셀 수 있는 모양으로 읽지 못해 글에 적힌 운동·기간으로만 기기에서 셌어요. 말을 바꿔 물으면 다시 읽어요.';
 
   @override
+  String get queryUnreadable =>
+      '모델이 읽을 수 없는 답을 두 번 보냈어요. 연결 문제가 아니고, 그 답에는 원판이 나가지 않았어요.';
+
+  @override
+  String get queryAskAgain => '다시 묻기';
+
+  @override
   String get queryTotalUnits => '단위가 달라 합계를 못 내요';
 
   @override

@@ -220,7 +220,11 @@ void main() {
     expect(maybe, findsOneWidget);
     await tester.tap(maybe);
     await tester.pumpAndSettle();
-    expect(find.textContaining(l.readAsConfirm), findsNothing);
+    // 이름만 사람이 골랐다 — 나머지는 모델이 읽은 것이라 확인은 그대로 묻는다.
+    expect(find.textContaining(l.readAsConfirm), findsOneWidget);
+    expect(find.byType(AnswerCard), findsNothing);
+    await tester.tap(find.widgetWithText(SuggestionChip, l.confirmYes));
+    await tester.pumpAndSettle();
     final card = tester.widget<AnswerCard>(find.byType(AnswerCard));
     expect(card.answer.exercise, '덤벨로우');
     expect(card.answer.headline, contains('32.5kg'));
@@ -332,4 +336,110 @@ void main() {
       expect(inTable('20%'), findsOneWidget);
     });
   });
+
+  // 모델이 쓴 plan 은 두 단계로 받았든, 담아 둔 답을 꺼냈든 "이렇게 읽었어요" 와
+  // "맞아요" 뒤에만 숫자를 보인다 — 틀린 숫자보다 탭 한 번이 싸다.
+  testWidgets('확인 안전망: 두 단계 답도, 담아 둔 답도 "맞아요" 전에는 숫자가 없다', (tester) async {
+    var stageOne = 0, planCalls = 0;
+    await pump(
+      tester,
+      RecordAi(
+        respond: (i, _) async {
+          if (i == familyInstructions) {
+            stageOne++;
+            return {
+              't': ['rank'],
+            };
+          }
+          planCalls++;
+          return {
+            'exercises': ['벤치프레스'],
+            'measures': ['best'],
+          };
+        },
+      ),
+    );
+    const question = '벤치프레스 최고 기록 얼마야';
+    final yes = find.widgetWithText(SuggestionChip, l.confirmYes);
+    void expectUnconfirmed() {
+      expect(find.textContaining(l.readAsConfirm), findsOneWidget);
+      expect(yes, findsOneWidget);
+      expect(find.byType(AnswerCard), findsNothing);
+      expect(table, findsNothing);
+    }
+
+    await ask(tester, question);
+    expect((stageOne, planCalls), (1, 1));
+    expectUnconfirmed();
+    await tester.tap(yes);
+    await tester.pumpAndSettle();
+    expect(find.byType(AnswerCard), findsOneWidget);
+    // 담아 둔 답: 글을 지웠다 다시 치면 모델에 안 가고 꺼낸다 — 그래도 다시 묻는다.
+    await tester.enterText(find.byType(CupertinoSearchTextField), '');
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(CupertinoSearchTextField), question);
+    await tester.pumpAndSettle();
+    expect((stageOne, planCalls), (1, 1), reason: '담아 둔 답이다');
+    expectUnconfirmed();
+    // Enter 로 내도 담아 둔 답이다 — 원판도, 확인 없이 숫자도 없다.
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect((stageOne, planCalls), (1, 1));
+    expectUnconfirmed();
+    await tester.tap(yes);
+    await tester.pumpAndSettle();
+    expect(find.byType(AnswerCard), findsOneWidget);
+  });
+
+  testWidgets(
+    '모델이 두 번 다 읽을 수 없는 답을 내면(unreadable) 연결 문구가 아니라 그 까닭을 말하고, 다시 묻기는 1단계를 또 사지 않는다',
+    (tester) async {
+      var stageOne = 0, planCalls = 0;
+      var broken = true;
+      await pump(
+        tester,
+        RecordAi(
+          respond: (i, _) async {
+            if (i == familyInstructions) {
+              stageOne++;
+              return {
+                't': ['rank'],
+              };
+            }
+            planCalls++;
+            if (broken) {
+              throw const RecordAiException(
+                RecordAiStatus.unavailable,
+                code: 'unreadable',
+              );
+            }
+            return {
+              'exercises': ['벤치프레스'],
+              'measures': ['best'],
+            };
+          },
+        ),
+      );
+      await ask(tester, '벤치프레스 최고 기록 얼마야');
+      expect(find.text(l.queryUnreadable), findsOneWidget);
+      for (final other in [
+        l.queryFailed,
+        l.queryOffline,
+        l.queryOfflineLocal,
+        l.queryMisread,
+      ]) {
+        expect(find.text(other), findsNothing, reason: other);
+      }
+      expect(find.byType(AnswerCard), findsNothing);
+      broken = false;
+      await tester.tap(find.text(l.queryAskAgain));
+      await tester.pumpAndSettle();
+      expect((stageOne, planCalls), (1, 2), reason: '1단계 꼬리표는 담아 두었다');
+      expect(find.text(l.queryUnreadable), findsNothing);
+      // 다시 받은 답도 모델이 쓴 plan 이다 — 확인부터.
+      expect(find.textContaining(l.readAsConfirm), findsOneWidget);
+      expect(find.byType(AnswerCard), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

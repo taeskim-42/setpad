@@ -1586,28 +1586,231 @@ void main() {
       expect(spent, [0.3, 1.36]);
     });
 
-    // 실측: 같은 질문에 temperature 0 인데도 빈 답({"type":"json_object"}, {"type":
-    // "plan"})이 왔다가 다시 물으면 plan 이 왔다(재검토 live.log). 막다른 길이라
-    // 한 번만 다시 묻는다 — 1단계는 다시 사지 않는다.
-    test('빈 답은 2단계만 한 번 다시 묻는다', () async {
-      final sent = <String>[];
-      var blanks = 1;
+    // 실측: 같은 질문에 temperature 0 인데도 빈 답({"type":"json_object"})·깨진 JSON 이
+    // 왔다가 다시 물으면 plan 이 왔다(재검토 live.log). 서버가 한 번 더 묻고, 그래도
+    // 못 읽으면 원판을 돌려주고 'unreadable' 이다. 앱은 연결 문구가 아니라 그 까닭을
+    // 말하고, 담지 않으며, 다시 물을 때 1단계를 또 사지 않는다.
+    test(
+      '서버가 두 번 물어도 못 읽은 답(unreadable): 1단계면 한 지시문으로, 2단계면 담지 않고 다시 물을 수 있다',
+      () async {
+        final sent = <String>[];
+        var unreadable = {'cls': false, 'plan': true};
+        final ai = RecordAi(
+          endpoint: 'https://example.test',
+          deviceId: 'device',
+          client: MockClient((request) async {
+            if (request.url.path == '/api/device') {
+              return http.Response(jsonEncode({'token': 't'}), 200);
+            }
+            final body = jsonDecode(request.body) as Map;
+            final stage = body['instructions'] == familyInstructions
+                ? 'cls'
+                : 'plan';
+            sent.add(stage);
+            if (unreadable[stage]!) {
+              return http.Response(jsonEncode({'error': 'unreadable'}), 502);
+            }
+            return http.Response(
+              jsonEncode({
+                'intent': stage == 'cls'
+                    ? {
+                        't': ['rank'],
+                      }
+                    : squat(),
+                'plates': {'balance': 5.0, 'spent': stage == 'cls' ? 0.3 : 1.1},
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }),
+        );
+        final search = RecordSearch(ai, cache: QueryCache(directory: _temp()));
+        await search.refresh('ko');
+        search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+        await pumpEventQueue();
+        expect(
+          (search.unreadable, search.failed, search.misread, search.plan),
+          (true, false, false, null),
+        );
+        expect(sent, ['cls', 'plan']);
+        // 다시 누르면 다시 묻는다(담지 않았다) — 1단계 꼬리표는 담아 두어 또 사지 않는다.
+        sent.clear();
+        unreadable = {'cls': false, 'plan': false};
+        search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+        await pumpEventQueue();
+        expect(sent, ['plan']);
+        expect(search.unreadable, isFalse);
+        expect(search.plan?.scope.exercises, ['스쿼트']);
+        search.dispose();
+        // 1단계가 못 읽은 답이면 갈래 고르기만 잃고 한 지시문으로 묻는다.
+        sent.clear();
+        unreadable = {'cls': true, 'plan': false};
+        final captured = <String>[];
+        final ai2 = RecordAi(
+          respond: (i, _) async {
+            captured.add(i);
+            if (i == familyInstructions) {
+              throw const RecordAiException(
+                RecordAiStatus.unavailable,
+                code: 'unreadable',
+              );
+            }
+            return squat();
+          },
+        );
+        expect(
+          await ai2.queryIntent('스쿼트 최고', 'ko', names, unit: 'kg'),
+          squat(),
+        );
+        expect(captured, [familyInstructions, planInstructions]);
+      },
+    );
+
+    // v3-048: 모델이 "밀기 당기기" 를 운동 열 개로 풀어 적어 '운동은 8개까지 — 나눠서
+    // 물어 주세요' 가 떴고, 그 거절이 담겨 같은 글로는 영영 답이 없었다. 사람은 이름을
+    // 하나도 적지 않았다 — 까닭을 적어 한 번 다시 묻는다.
+    test('모델 탓인 한도·모양은 까닭을 적어 한 번 다시 묻고, 사람이 아홉 넘게 적은 한도는 다시 묻지 않는다', () async {
+      const many = [
+        '스쿼트',
+        '벤치프레스',
+        '데드리프트',
+        '바벨로우',
+        '푸시업',
+        '랫풀다운',
+        '오버헤드프레스',
+        '풀업',
+        '딥스',
+        '레그프레스',
+      ];
+      final prompts = <String>[];
+      var answers = <Object?>[];
       Future<Object?> reply(String instructions, String input) async {
-        sent.add(instructions == familyInstructions ? 'cls' : 'plan');
         if (instructions == familyInstructions) return {'t': <String>[]};
-        if (blanks-- > 0) return {'type': 'plan'};
-        return squat();
+        prompts.add(instructions);
+        return answers.removeAt(0);
       }
 
       final ai = RecordAi(respond: reply);
-      expect(await ai.queryIntent('스쿼트 최고', 'ko', names, unit: 'kg'), squat());
-      expect(sent, ['cls', 'plan', 'plan']);
-      sent.clear();
-      blanks = 5;
-      expect(await ai.queryIntent('스쿼트 최고 기록', 'ko', names, unit: 'kg'), {
-        'type': 'plan',
-      });
-      expect(sent, ['cls', 'plan', 'plan'], reason: '한 번만 다시 묻는다');
+      final pushPull = {
+        'relate': 'ratio',
+        'measures': ['setCount'],
+        'series': [
+          {
+            'exercises': ['벤치프레스', '푸시업'],
+          },
+          {
+            'exercises': ['바벨로우', '랫풀다운'],
+          },
+        ],
+      };
+      answers = [
+        {
+          'exercises': many,
+          'measures': ['setCount'],
+        },
+        pushPull,
+      ];
+      expect(
+        await ai.queryIntent('밀기 당기기 균형 맞아?', 'ko', names, unit: 'kg'),
+        pushPull,
+      );
+      expect(prompts, hasLength(2));
+      expect(prompts.first, isNot(contains('rejected')));
+      expect(
+        prompts.last,
+        endsWith(
+          'Your previous answer to this question was rejected: it listed more than 8 exercise names the question did not name. Name only the exercises the question names; for a kind of exercise use part, for two groups use two series of at most 8 names. Answer again within the limits.',
+        ),
+      );
+      // 묶음 한도(모델이 고른 조합)도 까닭을 적어 다시 묻는다.
+      prompts.clear();
+      answers = [
+        {
+          'exercises': ['스쿼트'],
+          'measures': ['weightChange'],
+          'by': 'month',
+        },
+        {
+          'exercises': ['스쿼트'],
+          'measures': ['best'],
+          'by': 'month',
+        },
+      ];
+      await ai.queryIntent('스쿼트 한 달에 몇 kg씩 늘어', 'ko', names, unit: 'kg');
+      expect(prompts, hasLength(2));
+      expect(prompts.last, contains('cannot group latest'));
+      // 다시 물어도 걸리면 그 답을 돌려준다 — 부름은 두 번뿐이다.
+      prompts.clear();
+      final stuck = {
+        'exercises': many,
+        'measures': ['setCount'],
+      };
+      answers = [stuck, stuck];
+      expect(
+        await ai.queryIntent('밀기 당기기 균형 맞아?', 'ko', names, unit: 'kg'),
+        stuck,
+      );
+      expect(prompts, hasLength(2));
+      // 사람이 이름을 아홉 넘게 적었으면 한도는 질문의 것이다 — 다시 묻지 않는다.
+      prompts.clear();
+      final typed = '${many.join(' ')} 세트 수';
+      answers = [
+        {
+          'exercises': many,
+          'measures': ['setCount'],
+        },
+      ];
+      await ai.queryIntent(typed, 'ko', many, unit: 'kg');
+      expect(prompts, hasLength(1));
+    });
+
+    test('모델이 적은 긴 이름 목록(빼기 포함)은 사람이 적지 않았으면 한도가 아니라 읽지 못한 것이다', () {
+      const bench = [
+        '벤치프레스',
+        '인클라인 벤치프레스',
+        '디클라인 벤치프레스',
+        '덤벨프레스',
+        '인클라인 덤벨프레스',
+        '체스트프레스',
+        '펙덱 플라이',
+        '케이블 크로스오버',
+        '푸시업',
+      ];
+      // v2 "heaviest lift other than bench": 벤치 갈래를 아홉 개 빼기로 적었다.
+      expect(
+        () => decodeRecordIntent(
+          {
+            'exercises': ['스쿼트', '데드리프트'],
+            'exclude': bench,
+            'measures': ['best'],
+          },
+          'heaviest lift other than bench',
+          [...names, ...bench],
+          unit: 'kg',
+          today: today,
+          locale: 'en',
+        ),
+        throwsA(
+          isA<FormatException>()
+              .having((e) => e, 'not a limit', isNot(isA<QueryLimit>()))
+              .having((e) => e.message, 'message', 'Listed names not asked'),
+        ),
+      );
+      // 사람이 아홉을 적었으면 한도다(나눠서 물어 달라는 말이 맞다).
+      expect(
+        () => decodeRecordIntent(
+          {
+            'exercises': ['스쿼트'],
+            'exclude': bench,
+            'measures': ['best'],
+          },
+          '${bench.join(', ')} 빼고 제일 무거운 것',
+          [...names, ...bench],
+          unit: 'kg',
+          today: today,
+        ),
+        throwsA(isA<QueryLimit>().having((e) => e.kind, 'kind', 'exercises')),
+      );
     });
 
     // 재검토: 1단계는 따로 원판을 치른다. 2단계가 402(원판 부족)로 끝나면 1단계에
@@ -1910,12 +2113,13 @@ void main() {
           ('groupedMeasure', false, true, null),
           reason: '일시 장애가 아니다 — "다시 시도" 가 아니다',
         );
+        expect(calls, 2, reason: '모델 탓일 수 있어 까닭을 적어 한 번 다시 물었다');
 
         // 다시 눌러도 서버에 가지 않는다. 같은 곳에서 막힐 것에 원판을 또 내지 않는다.
         search.search('', 'ko', names, 'kg');
         search.search(question, 'ko', names, 'kg', immediately: true);
         await pumpEventQueue();
-        expect(calls, 1);
+        expect(calls, 2);
         expect(
           (search.unrepresentable, search.charged),
           ('groupedMeasure', false),
@@ -1933,8 +2137,10 @@ void main() {
         var calls = 0;
         Future<Object?> reply(String instructions, String input) async {
           calls++;
-          // 첫 답만 모르는 키가 섞였다. 다른 질문의 답은 멀쩡하다.
-          return calls == 1 ? {...squat(), 'foo': 1} : squat();
+          // 이 질문의 답만 모르는 키가 섞였다 — 까닭을 적어 다시 물어도 같다. 다른
+          // 질문의 답은 멀쩡하다.
+          final asked = (jsonDecode(input) as Map)['question'];
+          return asked == '스쿼트 최고' ? {...squat(), 'foo': 1} : squat();
         }
 
         final dir = _temp();
@@ -1947,13 +2153,13 @@ void main() {
         await pumpEventQueue();
         expect(
           (search.misread, search.failed, search.charged, search.plan, calls),
-          (true, false, true, null, 1),
+          (true, false, true, null, 2),
         );
         // 다시 눌러도 서버에 가지 않는다 — 같은 답에 원판을 또 내지 않는다.
         search.search('', 'ko', names, 'kg');
         search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
         await pumpEventQueue();
-        expect((search.misread, search.charged, calls), (true, false, 1));
+        expect((search.misread, search.charged, calls), (true, false, 2));
         search.dispose();
         await Future<void>.delayed(const Duration(milliseconds: 50));
 
@@ -1965,11 +2171,11 @@ void main() {
         await again.refresh('ko');
         again.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
         await pumpEventQueue();
-        expect((again.misread, calls), (true, 1));
+        expect((again.misread, calls), (true, 2));
         // 말을 바꾸면 새 질문이다.
         again.search('스쿼트 최고 기록', 'ko', names, 'kg', immediately: true);
         await pumpEventQueue();
-        expect(calls, 2);
+        expect(calls, 3);
         expect(again.misread, isFalse);
         expect(again.plan?.scope.exercises, ['스쿼트']);
         again.dispose();

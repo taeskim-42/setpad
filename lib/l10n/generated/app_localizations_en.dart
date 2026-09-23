@@ -2318,6 +2318,13 @@ class LEn extends L {
       'The question couldn\'t be read into something to count, so this was counted on your device from the exercises and period in your text only. Rephrase it to ask again.';
 
   @override
+  String get queryUnreadable =>
+      'The model sent an unreadable answer twice. It isn\'t your connection, and no plates were spent on that answer.';
+
+  @override
+  String get queryAskAgain => 'Ask again';
+
+  @override
   String get queryTotalUnits => 'Units differ, so there\'s no total';
 
   @override

@@ -3564,6 +3564,18 @@ abstract class L {
   /// **'질문을 셀 수 있는 모양으로 읽지 못해 글에 적힌 운동·기간으로만 기기에서 셌어요. 말을 바꿔 물으면 다시 읽어요.'**
   String get queryMisreadLocal;
 
+  /// 서버가 모델에 두 번 물었는데 두 번 다 읽을 수 없는 답(빈 답·깨진 JSON)이었다(error unreadable). 원판은 돌려줬고 연결 문제가 아니다 — 담지 않으니 다시 물을 수 있다.
+  ///
+  /// In ko, this message translates to:
+  /// **'모델이 읽을 수 없는 답을 두 번 보냈어요. 연결 문제가 아니고, 그 답에는 원판이 나가지 않았어요.'**
+  String get queryUnreadable;
+
+  /// 읽을 수 없는 답 뒤에 같은 질문을 다시 묻는 단추.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 묻기'**
+  String get queryAskAgain;
+
   /// 합계 줄: 줄마다 단위가 달라(맞출 수 없어) 더하지 못했다.
   ///
   /// In ko, this message translates to:

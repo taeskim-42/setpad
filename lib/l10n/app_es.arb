@@ -575,6 +575,8 @@
   "queryOfflineLocal": "No se pudo conectar con el servidor; se contó en tu dispositivo solo con los ejercicios y fechas del texto. Pulsa Enter para preguntar de nuevo con conexión.",
   "queryMisread": "No se pudo convertir esta pregunta en algo que contar. Prueba a formularla de otra manera.",
   "queryMisreadLocal": "No se pudo interpretar la pregunta; se contó en tu dispositivo solo con los ejercicios y el periodo del texto. Reformúlala para volver a preguntar.",
+  "queryUnreadable": "El modelo envió dos veces una respuesta ilegible. No es tu conexión, y esa respuesta no gastó discos.",
+  "queryAskAgain": "Preguntar de nuevo",
   "queryTotalUnits": "Las unidades son distintas; no hay total",
   "queryMemoDropped": "Condición de nota omitida: {words}",
   "queryAgainstDropped": "Número de referencia {value} omitido: no es un peso escrito en la pregunta",

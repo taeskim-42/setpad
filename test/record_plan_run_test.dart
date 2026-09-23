@@ -275,8 +275,16 @@ void main() {
     // "이 운동 말이에요?" — 한 번 누르면 원판 없이 다시 센다.
     final swapped = typo.withName('바밸로우', '민수식 로우');
     expect(swapped.never, isEmpty);
-    expect(swapped.requiresConfirmation, isFalse);
-    final r = runPlan(swapped, fixture, l: l, unit: 'kg', today: today)!;
+    // 이름만 바꿨다 — 기간·측정은 모델이 읽은 것이라 확인은 그대로다.
+    expect(swapped.requiresConfirmation, typo.requiresConfirmation);
+    final r = runPlan(
+      swapped,
+      fixture,
+      l: l,
+      unit: 'kg',
+      today: today,
+      confirmed: true,
+    )!;
     expect(r.rows.single.cells.single.answer!.numericValue, 50);
   });
 

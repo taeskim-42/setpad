@@ -419,13 +419,14 @@ void main() {
       );
       const q = '지난달 벤치 얼마나 자주 해 5회 이상?';
       await ask(tester, q);
-      expect(asked, 1);
+      // 모델의 모양 실수는 까닭을 적어 한 번 다시 묻는다 — 그래도 같으면 담는다.
+      expect(asked, 2);
       expect(find.text(l.queryFailed), findsNothing);
       expect(find.text(l.queryOfflineLocal), findsNothing);
       expect(find.textContaining(l.queryMisreadLocal), findsOneWidget);
       await ask(tester, q);
       await ask(tester, q);
-      expect(asked, 1);
+      expect(asked, 2);
     });
 
     testWidgets('빈 답(응답 형식만 되받음)은 담지 않는다 — 다시 누르면 다시 묻는다', (tester) async {
@@ -437,7 +438,8 @@ void main() {
             // 1단계(갈래 고르기)는 세지 않는다 — 질문 하나에 plan 한 번.
             if (i == familyInstructions) return {'t': <String>[]};
             asked++;
-            // 빈 답은 앱이 한 번 스스로 다시 묻는다 — 그것도 비면 막힌다.
+            // 빈 답은 서버가 한 번 더 묻는다(unreadable). 앱까지 왔으면 읽지 못한
+            // 답이라 앱도 까닭을 적어 한 번 다시 묻는다 — 그것도 비면 막힌다.
             return asked <= 2
                 ? {'type': 'json_object'}
                 : {

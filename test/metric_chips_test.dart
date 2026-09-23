@@ -92,7 +92,8 @@ void main() {
 
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
-      expect(calls, 1);
+      // 모델이 고른 조합일 수 있어 까닭을 적어 한 번 다시 묻고, 그래도 같으면 말한다.
+      expect(calls, 2);
       expect(find.text(l.queryLimit('groupedMeasure')), findsOneWidget);
       expect(find.text(l.queryFailed), findsNothing);
       expect(find.text(l.queryPressEnter), findsNothing);
@@ -100,7 +101,7 @@ void main() {
       // 다시 눌러도 같은 거절이고 원판이 또 나가지 않는다.
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
-      expect(calls, 1);
+      expect(calls, 2);
       expect(find.text(l.queryLimit('groupedMeasure')), findsOneWidget);
     },
   );

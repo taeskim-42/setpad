@@ -575,6 +575,8 @@
   "queryOfflineLocal": "無法連線到伺服器，僅依文字中的動作和時間在裝置上計算。連線後按 Enter 再問一次。",
   "queryMisread": "無法把這個問題讀成可以統計的形式。請換個說法再問。",
   "queryMisreadLocal": "無法把問題讀成可統計的形式，僅依文字中的動作和時間在裝置上計算。換個說法再問即可重新讀取。",
+  "queryUnreadable": "模型兩次回傳了無法讀取的回答。不是網路問題，這個回答沒有消耗槓片。",
+  "queryAskAgain": "再問一次",
   "queryTotalUnits": "單位不同，無法合計",
   "queryMemoDropped": "已去掉備註條件：{words}",
   "queryAgainstDropped": "已去掉基準數 {value}——它不是問題裡寫的重量",
