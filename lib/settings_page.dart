@@ -253,6 +253,7 @@ class _Section extends StatelessWidget {
 
 class _Row extends StatelessWidget {
   const _Row({
+    super.key,
     required this.label,
     this.detail,
     this.accent = false,
