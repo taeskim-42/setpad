@@ -58,6 +58,9 @@ class _NotesListPageState extends State<NotesListPage>
   /// 틀릴 것이 없고 기다릴 것도 없다. 문장 해석은 부차 경로로 남아 있다.
   stats.Metric? _pick;
 
+  /// 이름이 둘 이상일 때 고른 칩. [_multiChips] 의 몇 번째인지다.
+  int? _chip;
+
   /// 의심스러운 해석을 사용자가 "맞아요" 로 확인한 계획. 같은 계획 객체일 때만
   /// 유효하다 — 검색어가 바뀌어 새 계획이 오면 자연히 풀린다.
   RecordQuery? _confirmed;
@@ -78,19 +81,31 @@ class _NotesListPageState extends State<NotesListPage>
     return hit.isEmpty ? null : hit.first;
   }
 
-  /// 칩을 띄울 운동. 이름만 쳤든 문장 속에 들어 있든("스쾃 PR 얼마?") 잡는다.
-  /// 문장일 때는 모델도 함께 돈다 — 칩은 지름길이지 대체가 아니다.
-  String? get _matched {
+  /// 칩을 띄울 운동. 이름만 쳤으면 그것, 문장이면 글이 지목한 것 넷까지,
+  /// 그것도 없으면 낱말 하나를 퍼지로 맞춘 것("스쾃 PR 얼마?"). 문장일 때는
+  /// 모델도 함께 돈다 — 칩은 지름길이지 대체가 아니다.
+  List<String> get _mentioned {
     final bare = _bareName;
-    if (bare != null) return bare;
-    for (final raw in _query.text.trim().split(RegExp(r'\s+'))) {
+    if (bare != null) return [bare];
+    final q = _query.text.trim();
+    final named = namedExercises(q, _names).take(4).toList();
+    if (named.isNotEmpty) return named;
+    for (final raw in q.split(RegExp(r'\s+'))) {
       final word = stripParticle(raw);
       if (word.length < 2 || word.contains(RegExp(r'\d'))) continue;
       final hit = suggest(word, _names, limit: 1);
-      if (hit.isNotEmpty) return hit.first;
+      if (hit.isNotEmpty) return [hit.first];
     }
-    return null;
+    return const [];
   }
+
+  /// 이름이 둘 이상일 때의 칩. 비교는 "기록 비교" 의 기본 측정 셋이다.
+  List<(String, List<stats.Metric>)> _multiChips(L l) => [
+    (l.queryCompareChip, RecordQuery.defaultMeasures),
+    (l.metricMax, const [stats.Metric.best]),
+    (l.metricSessions, const [stats.Metric.sessions]),
+    (l.metricVolume, const [stats.Metric.volume]),
+  ];
 
   List<String> get _names => widget.store.notes
       .expand((n) => n.blocks.map((b) => b.exercise))
@@ -161,7 +176,10 @@ class _NotesListPageState extends State<NotesListPage>
       unawaited(_loadRoutines());
       unawaited(
         _search.refresh(_locale ?? 'en').then((_) {
-          if (mounted && _query.text.isNotEmpty) _ask(immediately: true);
+          // 칩으로 고른 표는 고른 그대로 둔다. 다시 물으면 확인 줄이 겹친다.
+          if (mounted && _query.text.isNotEmpty && _chip == null) {
+            _ask(immediately: true);
+          }
         }),
       );
     } else {
@@ -195,14 +213,18 @@ class _NotesListPageState extends State<NotesListPage>
   }
 
   /// 목록에 보일 기록. 답이 있으면 답에 쓰인 기록이다.
-  List<Note> _visible(RecordQuery? plan, RecordResult? result) {
+  ///
+  /// 답이 아직 없으면(확인 전, 해석 중, 실패, 오프라인) 글이 가리킨 운동과
+  /// 기간으로 거른다 — 모델을 기다리는 동안 목록이 0 으로 비지 않는다.
+  List<Note> _visible(
+    RecordQuery? plan,
+    RecordResult? result,
+    List<String> mentioned,
+  ) {
     final q = _query.text.trim().toLowerCase();
     final all = widget.store.notes;
     if (result != null) {
       return all.where((n) => result.evidence.contains(n.id)).toList();
-    }
-    if (plan != null && plan.requiresConfirmation && !_isConfirmed(plan)) {
-      return all;
     }
     if (plan?.kind == 'find') {
       return all
@@ -212,47 +234,121 @@ class _NotesListPageState extends State<NotesListPage>
           )
           .toList();
     }
-    return q.isEmpty
-        ? all
-        : all
-              .where(
-                (n) =>
-                    searchKey(n.searchText).contains(searchKey(q)) ||
-                    suggest(q, n.blocks.map((b) => b.name).toList()).isNotEmpty,
-              )
-              .toList();
+    ({DateTime? since, DateTime? until})? period;
+    if (statedPeriod(q) case final p?) {
+      try {
+        period = resolvePeriod(
+          p.period,
+          days: p.days,
+          since: p.since,
+          until: p.until,
+        );
+      } on FormatException {
+        // 못 푸는 기간("최근 9999일")이면 기간으로는 거르지 않는다.
+      }
+    }
+    if (mentioned.isEmpty && period == null) {
+      return q.isEmpty
+          ? all
+          : all
+                .where(
+                  (n) =>
+                      searchKey(n.searchText).contains(searchKey(q)) ||
+                      suggest(
+                        q,
+                        n.blocks.map((b) => b.name).toList(),
+                      ).isNotEmpty,
+                )
+                .toList();
+    }
+    return all.where((n) {
+      final d = DateTime(n.createdAt.year, n.createdAt.month, n.createdAt.day);
+      return (mentioned.isEmpty ||
+              n.blocks.any((b) => mentioned.contains(b.exercise))) &&
+          (period?.since == null || !d.isBefore(period!.since!)) &&
+          (period?.until == null || !d.isAfter(period!.until!));
+    }).toList();
   }
 
-  /// 결과를 카드로. 칸마다 한 장이다.
-  // ponytail: 임시 렌더. 표·차트 카드(TableCard)가 오면 바뀐다.
-  List<stats.Answer> _cards(RecordQuery plan, RecordResult result, L l) {
-    if (result.render == 'number') {
-      final a = result.rows.single.cells.single.answer;
-      if (a == null) return const [];
-      return [
-        stats.Answer(
-          metric: a.metric,
-          exercise: result.title,
-          points: a.points,
-          headline: a.headline,
-          numericValue: a.numericValue,
-          lines: [describeScope(plan.scope, l), ...a.lines].take(3).toList(),
-        ),
-      ];
+  /// 답 한 장. 모양은 실행기가 정했다 — 숫자 하나, 표, 차트.
+  Widget _answer(RecordQuery q, RecordResult r, L l) {
+    final Widget card;
+    switch (r.render) {
+      case 'table':
+        // 표는 차이와 각주를 제 안에 싣는다.
+        return TableCard(query: q, result: r);
+      case 'chart':
+        final dots = [
+          for (final row in r.rows)
+            if (row.cells.single.answer case final a?
+                when a.numericValue != null &&
+                    a.points.isNotEmpty &&
+                    row.start != null)
+              (row, a),
+        ];
+        final total = r.total?.single.answer;
+        card = AnswerCard(
+          answer: stats.Answer(
+            metric: q.measures.single,
+            exercise: r.title,
+            // 값이 없는 구간은 점을 찍지 않는다.
+            points: [
+              for (final (row, a) in dots)
+                stats.DayPoint(
+                  row.start!,
+                  a.numericValue!,
+                  0,
+                  a.points.first.unit,
+                ),
+            ],
+            // 합계·평균이 있으면 그것, 없으면 마지막 구간과 그 값.
+            headline: switch ((total, dots.lastOrNull)) {
+              (final t?, _) => '${t.exercise} ${t.headline}',
+              (_, (final row, final a)?) => '${row.label} ${a.headline}',
+              _ => null,
+            },
+            lines: [
+              describeScope(q.scope, l),
+              '${groupLabel(l, q.by!)} · ${r.columns.single}',
+            ],
+          ),
+        );
+      default:
+        final a = r.rows.single.cells.single.answer;
+        card = a == null
+            ? const SizedBox.shrink()
+            : AnswerCard(
+                answer: stats.Answer(
+                  metric: a.metric,
+                  exercise: r.title,
+                  points: a.points,
+                  headline: a.headline,
+                  numericValue: a.numericValue,
+                  lines: [
+                    describeScope(q.scope, l),
+                    ...a.lines,
+                  ].take(3).toList(),
+                ),
+              );
     }
-    return [
-      for (final row in result.rows)
-        for (final (i, cell) in row.cells.indexed)
-          if (cell.answer case final a?)
-            stats.Answer(
-              metric: a.metric,
-              exercise: '${row.label} · ${result.columns[i]}',
-              points: a.points,
-              headline: a.headline,
-              numericValue: a.numericValue,
-              lines: a.lines,
+    final notes = [...r.diff, ...r.footnotes];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        card,
+        if (notes.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+            child: Text(
+              notes.join('\n'),
+              style: TextStyle(
+                fontSize: 13,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              ),
             ),
-    ];
+          ),
+      ],
+    );
   }
 
   /// 이전 7일 / 이전 30일 / 그 앞은 달로. 메모 앱과 같은 구간이다.
@@ -293,6 +389,7 @@ class _NotesListPageState extends State<NotesListPage>
               child: ListenableBuilder(
                 listenable: widget.store,
                 builder: (context, _) {
+                  final mentioned = _mentioned;
                   final plan = _search.plan;
                   // 자신 있게 틀릴 위험이 있으면 답을 내지 않고 한 번 묻는다.
                   // 틀린 숫자보다 탭 한 번이 싸다.
@@ -300,17 +397,29 @@ class _NotesListPageState extends State<NotesListPage>
                       plan != null &&
                       plan.requiresConfirmation &&
                       !_isConfirmed(plan);
-                  final result =
-                      plan == null || doubtful || plan.kind != 'query'
+                  // 이름 여럿의 칩은 고른 것이라 묻지 않는다. 모델도 안 부른다.
+                  final picked = _chip != null && mentioned.length > 1
+                      ? RecordQuery(
+                          scope: QueryScope(exercises: mentioned),
+                          by: 'exercise',
+                          measures: _multiChips(l)[_chip!].$2,
+                        )
+                      : null;
+                  final query =
+                      picked ??
+                      (plan == null || doubtful || plan.kind != 'query'
+                          ? null
+                          : plan);
+                  final result = query == null
                       ? null
                       : runQuery(
-                          plan,
+                          query,
                           widget.store.notes,
                           l: l,
                           unit: widget.store.weightUnit,
-                          confirmed: _isConfirmed(plan),
+                          confirmed: _isConfirmed(query),
                         );
-                  final visible = _visible(plan, result);
+                  final visible = _visible(plan, result, mentioned);
                   final groups = _grouped(visible, l);
                   return CustomScrollView(
                     slivers: [
@@ -471,7 +580,7 @@ class _NotesListPageState extends State<NotesListPage>
                                   ),
                                 // 서버에 못 닿았을 때만 알린다. 준비 상태를
                                 // 늘어놓던 줄은 읽을 것이 없어 뺐다.
-                                if (_matched == null &&
+                                if (mentioned.isEmpty &&
                                     _search.status ==
                                         RecordAiStatus.unavailable)
                                   Text(
@@ -482,7 +591,7 @@ class _NotesListPageState extends State<NotesListPage>
                             ),
                           ),
                         ),
-                      if (_matched case final name?)
+                      if (mentioned.isNotEmpty)
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
@@ -493,7 +602,7 @@ class _NotesListPageState extends State<NotesListPage>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  name,
+                                  mentioned.join(' · '),
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
@@ -508,45 +617,71 @@ class _NotesListPageState extends State<NotesListPage>
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: [
-                                    for (final (metric, label) in [
-                                      (stats.Metric.max, l.metricMax),
-                                      (stats.Metric.trend, l.metricTrend),
-                                      (stats.Metric.last, l.metricLast),
-                                      (stats.Metric.sessions, l.metricSessions),
-                                      (stats.Metric.volume, l.metricVolume),
-                                    ])
-                                      SuggestionChip(
-                                        label: label,
-                                        selected: _pick == metric,
-                                        onTap: () {
-                                          _query.text = name;
-                                          _confirmed = null;
-                                          _search.search(
-                                            '',
-                                            _locale ?? 'en',
-                                            _names,
-                                            widget.store.weightUnit,
-                                          );
-                                          setState(
-                                            () => _pick = _pick == metric
-                                                ? null
-                                                : metric,
-                                          );
-                                        },
-                                      ),
+                                    if (mentioned case [final name])
+                                      for (final (metric, label) in [
+                                        (stats.Metric.max, l.metricMax),
+                                        (stats.Metric.trend, l.metricTrend),
+                                        (stats.Metric.last, l.metricLast),
+                                        (
+                                          stats.Metric.sessions,
+                                          l.metricSessions,
+                                        ),
+                                        (stats.Metric.volume, l.metricVolume),
+                                      ])
+                                        SuggestionChip(
+                                          label: label,
+                                          selected: _pick == metric,
+                                          onTap: () {
+                                            _query.text = name;
+                                            _confirmed = null;
+                                            _search.search(
+                                              '',
+                                              _locale ?? 'en',
+                                              _names,
+                                              widget.store.weightUnit,
+                                            );
+                                            setState(
+                                              () => _pick = _pick == metric
+                                                  ? null
+                                                  : metric,
+                                            );
+                                          },
+                                        )
+                                    else
+                                      // 글자는 그대로 두고 모델 결과만 비운다.
+                                      for (final (i, (label, _)) in _multiChips(
+                                        l,
+                                      ).indexed)
+                                        SuggestionChip(
+                                          label: label,
+                                          selected: _chip == i,
+                                          onTap: () {
+                                            _confirmed = null;
+                                            _search.search(
+                                              '',
+                                              _locale ?? 'en',
+                                              _names,
+                                              widget.store.weightUnit,
+                                            );
+                                            setState(
+                                              () =>
+                                                  _chip = _chip == i ? null : i,
+                                            );
+                                          },
+                                        ),
                                   ],
                                 ),
                               ],
                             ),
                           ),
                         ),
-                      if (_pick case final metric? when _matched != null)
+                      if (_pick case final metric? when mentioned.length == 1)
                         SliverToBoxAdapter(
                           child: AnswerCard(
                             answer: stats.answer(
                               widget.store.notes,
                               metric,
-                              _matched!,
+                              mentioned.single,
                               labels: l,
                               unit: widget.store.weightUnit,
                             ),
@@ -598,28 +733,8 @@ class _NotesListPageState extends State<NotesListPage>
                             ),
                           ),
                         ),
-                      if (result != null) ...[
-                        for (final answer in _cards(plan!, result, l))
-                          SliverToBoxAdapter(child: AnswerCard(answer: answer)),
-                        if (result.diff.isNotEmpty ||
-                            result.footnotes.isNotEmpty)
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                              child: Text(
-                                [
-                                  ...result.diff,
-                                  ...result.footnotes,
-                                ].join('\n'),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: CupertinoColors.secondaryLabel
-                                      .resolveFrom(context),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                      if (query != null && result != null)
+                        SliverToBoxAdapter(child: _answer(query, result, l)),
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
@@ -674,6 +789,7 @@ class _NotesListPageState extends State<NotesListPage>
             controller: _query,
             onChanged: (_) {
               _pick = null;
+              _chip = null;
               _confirmed = null;
               _ask();
             },

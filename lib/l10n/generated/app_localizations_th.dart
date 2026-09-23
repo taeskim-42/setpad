@@ -657,6 +657,12 @@ class LTh extends L {
   }
 
   @override
+  String get queryCompareChip => 'เปรียบเทียบ';
+
+  @override
+  String get queryNoRecord => 'ไม่มีบันทึก';
+
+  @override
   String get settingsTitle => 'การตั้งค่า';
 
   @override

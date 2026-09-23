@@ -173,6 +173,8 @@
   "queryE1rmRule": "推定1RM = 重量 × (1 + 回数 ÷ 30)、1〜10回のセットのみ",
   "queryMore": "ほか{n}件",
   "queryRankingLimit": "上位{n}件・降順",
+  "queryCompareChip": "比較",
+  "queryNoRecord": "記録なし",
   "settingsTitle": "設定",
   "settingsRecording": "記録",
   "settingsAccount": "アカウント",

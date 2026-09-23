@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:setpad/record_ai.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +10,7 @@ import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
 import 'package:setpad/palette.dart';
+import 'package:setpad/record_query.dart';
 
 class _Records extends NotesStore {
   _Records(this.records, {this.unit = "kg"});
@@ -43,8 +46,9 @@ void main() {
     String unit = "kg",
     Locale locale = const Locale("ko"),
     RecordAi ai = const RecordAi(),
+    List<Note>? records,
   }) async {
-    final store = _Records(notes, unit: unit);
+    final store = _Records(records ?? notes, unit: unit);
     addTearDown(store.dispose);
     await tester.pumpWidget(
       CupertinoApp(
@@ -260,5 +264,333 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(AnswerCard), findsOneWidget, reason: '확인하면 답한다');
     expect(find.textContaining('이렇게 읽었어요'), findsNothing);
+  });
+
+  group('이름이 둘 — 벤치프레스 vs 바벨로우 기록 비교', () {
+    const question = '벤치프레스 vs 바벨로우 기록 비교';
+    final l = lookupL(const Locale('ko'));
+    LoggedSet set(double kg, int reps) => LoggedSet(value: kg, reps: reps);
+    Note on(String id, int month, int day, List<ExerciseBlock> blocks) {
+      final at = DateTime(2026, month, day, 19);
+      return Note(id: id, createdAt: at, updatedAt: at, blocks: blocks);
+    }
+
+    // 스펙 3.11-A 의 벤치·로우 날들에 스쿼트만 한 날 하나.
+    final pair = [
+      on('N1', 8, 4, [
+        ExerciseBlock('벤치프레스', [set(80, 5), set(85, 3)]),
+        ExerciseBlock('바벨로우', [set(60, 8), set(60, 8)]),
+      ]),
+      on('N2', 8, 18, [
+        ExerciseBlock('벤치프레스', [set(82.5, 5), set(82.5, 5)]),
+      ]),
+      on('N3', 9, 7, [
+        ExerciseBlock('벤치프레스', [set(85, 5)]),
+        ExerciseBlock('바벨로우', [set(70, 6)]),
+      ]),
+      on('N4', 9, 14, [
+        ExerciseBlock('스쿼트', [set(100, 5)]),
+      ]),
+      on('N5', 9, 21, [
+        ExerciseBlock('벤치프레스', [set(87.5, 2)]),
+      ]),
+    ];
+    final table = find.byType(TableCard);
+
+    /// 표가 길어 개수 줄이 화면 밖이면 아직 안 지어졌다. 굴려서 찾는다.
+    Future<void> expectCount(WidgetTester tester, int n) async {
+      await tester.scrollUntilVisible(
+        find.text(l.noteCount(n)),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(CustomScrollView),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      expect(find.text(l.noteCount(n)), findsOneWidget);
+    }
+
+    Finder inTable(String text) =>
+        find.descendant(of: table, matching: find.text(text));
+
+    /// 대조형 표: 머리줄 + 측정 셋, 칸은 이름 + 두 운동.
+    void expectContrast(WidgetTester tester) {
+      expect(table, findsOneWidget);
+      final rows = tester
+          .widget<Table>(
+            find.descendant(of: table, matching: find.byType(Table)),
+          )
+          .children;
+      expect(rows, hasLength(4));
+      expect(rows.every((r) => r.children.length == 3), isTrue);
+      for (final text in [
+        '벤치프레스',
+        '바벨로우',
+        '최고',
+        '운동한 날',
+        '마지막',
+        '87.5kg × 2회',
+        '70kg × 6회',
+        '4일 기록',
+        '2일 기록',
+        '9월 21일',
+        '9월 7일',
+      ]) {
+        expect(inTable(text), findsWidgets, reason: text);
+      }
+      expect(
+        find.descendant(
+          of: table,
+          matching: find.textContaining('-17.5kg (-20%)'),
+        ),
+        findsOneWidget,
+      );
+    }
+
+    testWidgets('기다리는 동안 목록이 남고, 비교 칩은 모델 없이 표를 띄운다', (tester) async {
+      final pending = Completer<Object?>();
+      var asked = 0;
+      await pump(
+        tester,
+        records: pair,
+        ai: RecordAi(
+          respond: (_, _) {
+            asked++;
+            return pending.future;
+          },
+        ),
+      );
+      await tester.enterText(find.byType(CupertinoSearchTextField), question);
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.text(l.queryWorking), findsOneWidget);
+      expect(asked, 1);
+      expect(
+        find.text(l.noteCount(4)),
+        findsOneWidget,
+        reason: '해석을 기다리는 동안에도 두 운동이 든 기록은 보인다',
+      );
+      // 목록의 제목(Text.rich)도 같은 글이라 이름 줄은 평글로 찾는다.
+      expect(
+        find.byWidgetPredicate((w) => w is Text && w.data == '벤치프레스 · 바벨로우'),
+        findsOneWidget,
+      );
+      for (final label in ['비교', '최고', '운동한 날', '볼륨']) {
+        expect(find.widgetWithText(SuggestionChip, label), findsOneWidget);
+      }
+
+      await tester.tap(find.widgetWithText(SuggestionChip, '비교'));
+      await tester.pumpAndSettle();
+      expectContrast(tester);
+      expect(find.text(l.queryWorking), findsNothing, reason: '모델 결과를 비웠다');
+      expect(find.textContaining(l.readAsConfirm), findsNothing);
+      expect(asked, 1, reason: '칩은 모델을 부르지 않는다');
+      await expectCount(tester, 4);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 2000));
+      await tester.pumpAndSettle();
+
+      // 한 측정 칩은 차이를 헤드라인으로 올린다.
+      await tester.tap(find.widgetWithText(SuggestionChip, '운동한 날'));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(of: table, matching: find.text('-2일 (-50%)')),
+        findsOneWidget,
+        reason: '헤드라인은 값만',
+      );
+      expect(
+        find.descendant(
+          of: table,
+          matching: find.text('운동한 날 · 차이 (바벨로우 − 벤치프레스): -2일 (-50%)'),
+        ),
+        findsOneWidget,
+        reason: '무엇에서 무엇을 뺐는지는 아래 줄이 말한다',
+      );
+      await tester.tap(find.widgetWithText(SuggestionChip, '운동한 날'));
+      await tester.pumpAndSettle();
+      expect(table, findsNothing, reason: '다시 누르면 접힌다');
+    });
+
+    testWidgets('모델이 v2 질의를 주면 확인 줄을 띄우고, 맞아요 뒤에 표를 띄운다', (tester) async {
+      String? instructions;
+      await pump(
+        tester,
+        records: pair,
+        ai: RecordAi(
+          respond: (i, _) async {
+            instructions = i;
+            return {
+              'exercises': ['벤치프레스', '바벨로우'],
+            };
+          },
+        ),
+      );
+      await tester.enterText(find.byType(CupertinoSearchTextField), question);
+      await tester.pumpAndSettle();
+      expect(instructions, contains('"벤치프레스 vs 바벨로우 기록 비교" =>'));
+
+      expect(table, findsNothing, reason: '확인 전에는 답이 없다');
+      expect(
+        find.textContaining(
+          '${l.readAsConfirm} · 벤치프레스 · 바벨로우 · 최고 · 운동한 날 · 마지막 · kg',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text(l.noteCount(4)), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(SuggestionChip, l.confirmYes));
+      await tester.pumpAndSettle();
+      expectContrast(tester);
+      expect(find.textContaining(l.readAsConfirm), findsNothing);
+      await expectCount(tester, 4); // 답에 쓰인 기록
+    });
+
+    testWidgets('무료 질문을 다 쓰면 그렇다고 말하고, 칩과 목록은 그대로다', (tester) async {
+      await pump(
+        tester,
+        records: pair,
+        ai: RecordAi(
+          respond: (_, _) async =>
+              throw const RecordAiException(RecordAiStatus.quotaExceeded),
+        ),
+      );
+      await tester.enterText(find.byType(CupertinoSearchTextField), question);
+      await tester.pumpAndSettle();
+      expect(find.text(l.quotaSpent), findsOneWidget);
+      expect(find.text(l.queryFailed), findsNothing);
+      expect(find.text(l.noteCount(4)), findsOneWidget);
+      await tester.tap(find.widgetWithText(SuggestionChip, '비교'));
+      await tester.pumpAndSettle();
+      expectContrast(tester);
+    });
+
+    for (final size in [const Size(390, 844), const Size(320, 568)]) {
+      testWidgets('${size.width.toInt()}×${size.height.toInt()} 에서 넘치지 않는다', (
+        tester,
+      ) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await pump(
+          tester,
+          records: pair,
+          ai: RecordAi(
+            respond: (_, _) async => {
+              'exercises': ['벤치프레스', '바벨로우'],
+            },
+          ),
+        );
+        await tester.enterText(find.byType(CupertinoSearchTextField), question);
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.widgetWithText(SuggestionChip, l.confirmYes));
+        await tester.pumpAndSettle();
+        // 확인한 모델 답, 그리고 칩으로 고른 답 — 둘 다 끝까지 굴려 본다.
+        Future<void> scrollThrough() async {
+          await tester.ensureVisible(table);
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          final card = tester.getRect(table);
+          expect(card.left, greaterThanOrEqualTo(0));
+          expect(card.right, lessThanOrEqualTo(size.width));
+          await tester.drag(
+            find.byType(CustomScrollView),
+            const Offset(0, -400),
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          await tester.drag(
+            find.byType(CustomScrollView),
+            const Offset(0, 2000),
+          );
+          await tester.pumpAndSettle();
+        }
+
+        await scrollThrough();
+        await tester.tap(find.widgetWithText(SuggestionChip, '비교'));
+        await tester.pumpAndSettle();
+        expect(find.textContaining(l.readAsConfirm), findsNothing);
+        await scrollThrough();
+      });
+    }
+
+    testWidgets('순위는 목록형 표 — 번호와 막대, 좁은 화면에서도', (tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      Future<void> show(List<String> measures) async {
+        final q = RecordQuery.decode(
+          {'by': 'exercise', 'measures': measures, 'order': 'desc', 'limit': 3},
+          ['벤치프레스', '바벨로우', '스쿼트'],
+          today: DateTime(2026, 9, 23),
+        );
+        final r = runQuery(q, pair, l: l, unit: 'kg', confirmed: true)!;
+        await tester.pumpWidget(
+          CupertinoApp(
+            locale: const Locale('ko'),
+            localizationsDelegates: L.localizationsDelegates,
+            supportedLocales: L.supportedLocales,
+            home: CupertinoPageScaffold(
+              child: SingleChildScrollView(
+                child: TableCard(query: q, result: r),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('운동한 날 · 상위 3개 · 내림차순'), findsOneWidget);
+        for (final label in ['01  벤치프레스', '02  바벨로우', '03  스쿼트']) {
+          expect(find.text(label), findsOneWidget, reason: label);
+        }
+        final bars = tester
+            .widgetList<FractionallySizedBox>(find.byType(FractionallySizedBox))
+            .map((b) => b.widthFactor);
+        expect(bars, [1.0, 0.5, 0.25], reason: '운동한 날 4 · 2 · 1');
+      }
+
+      // 측정 하나: 이름 | 값 표.
+      await show(['trainingDays']);
+      final rows = tester.widget<Table>(find.byType(Table)).children;
+      expect(rows, hasLength(4), reason: '머리줄 + 운동 셋');
+      expect(rows.every((r) => r.children.length == 2), isTrue);
+
+      // 측정 셋: 이름은 제 줄, 값은 그 아래에 같은 폭으로.
+      await show(['trainingDays', 'best', 'latest']);
+      expect(find.byType(Table), findsNothing);
+      // 최고의 본문과, 마지막 날짜 아래의 그날 세트.
+      expect(find.text('87.5kg × 2회'), findsNWidgets(2));
+    });
+
+    testWidgets('범위 안에 기록이 없는 운동은 칸마다 — 이고, 기록 없음이라 적는다', (tester) async {
+      final q = RecordQuery(
+        scope: QueryScope(
+          exercises: const ['벤치프레스', '바벨로우'],
+          since: DateTime(2026, 9, 10),
+        ),
+        by: 'exercise',
+      );
+      final r = runQuery(q, pair, l: l, unit: 'kg')!;
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: CupertinoPageScaffold(
+            child: SingleChildScrollView(
+              child: TableCard(query: q, result: r),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('87.5kg × 2회'), findsNWidgets(2));
+      expect(find.text('—'), findsNWidgets(3), reason: '로우의 세 칸');
+      expect(find.text(l.queryNoRecord), findsOneWidget);
+      expect(find.textContaining('차이'), findsNothing, reason: '한쪽이 비면 차이가 없다');
+    });
   });
 }

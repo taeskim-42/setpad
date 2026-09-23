@@ -644,6 +644,12 @@ class LZh extends L {
   }
 
   @override
+  String get queryCompareChip => '比较';
+
+  @override
+  String get queryNoRecord => '无记录';
+
+  @override
   String get settingsTitle => '设置';
 
   @override
@@ -1961,6 +1967,12 @@ class LZhHans extends LZh {
   }
 
   @override
+  String get queryCompareChip => '比较';
+
+  @override
+  String get queryNoRecord => '无记录';
+
+  @override
   String get settingsTitle => '设置';
 
   @override
@@ -3276,6 +3288,12 @@ class LZhHant extends LZh {
   String queryRankingLimit(int n) {
     return '前$n項 · 遞減';
   }
+
+  @override
+  String get queryCompareChip => '比較';
+
+  @override
+  String get queryNoRecord => '無記錄';
 
   @override
   String get settingsTitle => '設定';

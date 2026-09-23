@@ -1147,6 +1147,18 @@ abstract class L {
   /// **'상위 {n}개 · 내림차순'**
   String queryRankingLimit(int n);
 
+  /// 운동 이름이 둘 이상 잡혔을 때 뜨는 칩. 누르면 모델 없이 최고·운동한 날·마지막을 나란히 본다.
+  ///
+  /// In ko, this message translates to:
+  /// **'비교'**
+  String get queryCompareChip;
+
+  /// 표에서 지목한 운동에 이 범위의 기록이 하나도 없을 때.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록 없음'**
+  String get queryNoRecord;
+
   /// No description provided for @settingsTitle.
   ///
   /// In ko, this message translates to:

@@ -113,6 +113,8 @@ void main() {
       expect(namedExercises('벤치프레스랑 스쿼트 최고', pool), ['벤치프레스', '스쿼트']);
       expect(namedExercises('스쿼트 벤치 요즘 어때', pool), ['스쿼트', '벤치프레스']); // 키 + 접두
       expect(namedExercises('가장 자주 한 운동 세 개', pool), isEmpty);
+      // 두 글자 로마자는 이름 속 글자일 뿐이다 — PR 은 bench press 가 아니다.
+      expect(namedExercises('스쿼트 PR', ['스쿼트', '벤치프레스']), ['스쿼트']);
     });
 
     test('스쾃은 스쿼트다 — 오타가 아니라 표기법이다', () {

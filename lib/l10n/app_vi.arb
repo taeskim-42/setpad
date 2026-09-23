@@ -173,6 +173,8 @@
   "queryE1rmRule": "1RM ước tính = mức tạ × (1 + số lần ÷ 30), chỉ hiệp 1–10 lần",
   "queryMore": "Thêm {n}",
   "queryRankingLimit": "Top {n} · giảm dần",
+  "queryCompareChip": "So sánh",
+  "queryNoRecord": "Chưa có bản ghi",
   "settingsTitle": "Cài đặt",
   "settingsRecording": "Ghi chép",
   "settingsAccount": "Tài khoản",

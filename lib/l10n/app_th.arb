@@ -173,6 +173,8 @@
   "queryE1rmRule": "1RM โดยประมาณ = น้ำหนัก × (1 + จำนวนครั้ง ÷ 30) เฉพาะเซ็ต 1–10 ครั้ง",
   "queryMore": "อีก {n} รายการ",
   "queryRankingLimit": "สูงสุด {n} รายการ · มากไปน้อย",
+  "queryCompareChip": "เปรียบเทียบ",
+  "queryNoRecord": "ไม่มีบันทึก",
   "settingsTitle": "การตั้งค่า",
   "settingsRecording": "การบันทึก",
   "settingsAccount": "บัญชี",

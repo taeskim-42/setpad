@@ -173,6 +173,8 @@
   "queryE1rmRule": "估算1RM = 重量 × (1 + 次数 ÷ 30)，仅限1–10次的组",
   "queryMore": "另外{n}项",
   "queryRankingLimit": "前{n}项 · 降序",
+  "queryCompareChip": "比较",
+  "queryNoRecord": "无记录",
   "settingsTitle": "设置",
   "settingsRecording": "记录",
   "settingsAccount": "账户",

@@ -606,6 +606,14 @@
       }
     }
   },
+  "queryCompareChip": "비교",
+  "@queryCompareChip": {
+    "description": "운동 이름이 둘 이상 잡혔을 때 뜨는 칩. 누르면 모델 없이 최고·운동한 날·마지막을 나란히 본다."
+  },
+  "queryNoRecord": "기록 없음",
+  "@queryNoRecord": {
+    "description": "표에서 지목한 운동에 이 범위의 기록이 하나도 없을 때."
+  },
   "settingsTitle": "설정",
   "settingsRecording": "기록",
   "settingsAccount": "계정",

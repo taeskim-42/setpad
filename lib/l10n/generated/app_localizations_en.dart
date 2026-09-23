@@ -661,6 +661,12 @@ class LEn extends L {
   }
 
   @override
+  String get queryCompareChip => 'Compare';
+
+  @override
+  String get queryNoRecord => 'No records';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override

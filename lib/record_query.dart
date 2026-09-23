@@ -1191,6 +1191,15 @@ String _calendarDate(DateTime date) =>
     '${date.month.toString().padLeft(2, '0')}-'
     '${date.day.toString().padLeft(2, '0')}';
 
+/// 묶음 이름. 확인 줄과 차트 카드가 같이 쓴다.
+String groupLabel(L l, String by) => switch (by) {
+  'exercise' => l.queryByExercise,
+  'day' => l.queryByDay,
+  'week' => l.queryByWeek,
+  'month' => l.queryByMonth,
+  _ => l.queryByWeekday,
+};
+
 /// "이렇게 읽었어요" 옆에 붙는 글. 무엇을 어떤 범위로 셀지 빠짐없이 적는다 —
 /// 사람이 확인하는 것은 이 글이다. 조각은 " · " 로 잇고, 비교면 범위마다
 /// 줄을 바꾼다.
@@ -1207,17 +1216,11 @@ String describeQuery(RecordQuery q, L l, String unit) {
     if (q.compare.isEmpty) names(q.scope),
     if (q.exclude.isNotEmpty) l.queryExclude(q.exclude.join(', ')),
     ...q.measures.map((m) => metricLabel(l, m)),
-    if (q.measures.any(_weightMetrics.contains) ||
+    // 최고는 무게를 적은 운동이면 무게다. 단위를 확인할 수 있어야 한다.
+    if (q.measures.any((m) => m == Metric.best || _weightMetrics.contains(m)) ||
         q.variants.any((v) => v.weight.isNotEmpty))
       unit,
-    if (q.by != null)
-      switch (q.by) {
-        'exercise' => l.queryByExercise,
-        'day' => l.queryByDay,
-        'week' => l.queryByWeek,
-        'month' => l.queryByMonth,
-        _ => l.queryByWeekday,
-      },
+    if (q.by case final by?) groupLabel(l, by),
     ?order,
     if (q.total != null) q.total == 'sum' ? l.queryTotalSum : l.queryTotalMean,
     if (q.compare.length == 2)

@@ -661,6 +661,12 @@ class LEs extends L {
   }
 
   @override
+  String get queryCompareChip => 'Comparar';
+
+  @override
+  String get queryNoRecord => 'Sin registros';
+
+  @override
   String get settingsTitle => 'Ajustes';
 
   @override

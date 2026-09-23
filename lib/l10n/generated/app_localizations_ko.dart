@@ -651,6 +651,12 @@ class LKo extends L {
   }
 
   @override
+  String get queryCompareChip => '비교';
+
+  @override
+  String get queryNoRecord => '기록 없음';
+
+  @override
   String get settingsTitle => '설정';
 
   @override

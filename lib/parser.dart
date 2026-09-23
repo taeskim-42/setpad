@@ -465,6 +465,9 @@ List<String> namedExercises(String text, List<String> pool) {
   for (final raw in text.split(RegExp(r'\s+'))) {
     final word = stripParticle(raw);
     if (word.length < 2 || word.contains(RegExp(r'\d'))) continue;
+    // 두 글자 로마자("PR", "vs")는 이름 속에 흔히 들어 있어("bench press")
+    // 퍼지로 지목이 된다. 별칭("bp")은 위의 키 단계가 이미 잡았다.
+    if (RegExp(r'^[a-zA-Z]{2}$').hasMatch(word)) continue;
     final hits = suggest(word, pool, limit: 2);
     if (hits.length == 1 && !found.contains(hits.single)) {
       found.add(hits.single);

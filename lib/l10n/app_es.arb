@@ -173,6 +173,8 @@
   "queryE1rmRule": "1RM est. = peso × (1 + reps ÷ 30), solo series de 1–10 reps",
   "queryMore": "{n} más",
   "queryRankingLimit": "Primeros {n} · descendente",
+  "queryCompareChip": "Comparar",
+  "queryNoRecord": "Sin registros",
   "settingsTitle": "Ajustes",
   "settingsRecording": "Registro",
   "settingsAccount": "Cuenta",

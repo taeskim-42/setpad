@@ -649,6 +649,12 @@ class LJa extends L {
   }
 
   @override
+  String get queryCompareChip => '比較';
+
+  @override
+  String get queryNoRecord => '記録なし';
+
+  @override
   String get settingsTitle => '設定';
 
   @override

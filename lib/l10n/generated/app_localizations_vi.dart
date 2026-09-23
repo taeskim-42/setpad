@@ -659,6 +659,12 @@ class LVi extends L {
   }
 
   @override
+  String get queryCompareChip => 'So sánh';
+
+  @override
+  String get queryNoRecord => 'Chưa có bản ghi';
+
+  @override
   String get settingsTitle => 'Cài đặt';
 
   @override

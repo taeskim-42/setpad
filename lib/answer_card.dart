@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import 'l10n/generated/app_localizations.dart';
 import 'palette.dart';
+import 'record_query.dart';
 import 'stats.dart';
 import 'quantities.dart';
 
@@ -369,6 +370,330 @@ class AnswerCard extends StatelessWidget {
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 여럿을 나란히 본 답. 겉은 [AnswerCard] 와 같은 종이다.
+///
+/// 대상이 셋 이하이고 순위가 아니면 **대조형**이다 — 줄은 측정, 칸은 대상.
+/// "벤치 vs 로우" 가 이 모양이다. 순위·요일별·대상 넷 이상은 **목록형**이다 —
+/// 줄은 대상에 번호를 달고, 칸은 측정이다. 숫자는 [runQuery] 가 이미 셌다.
+class TableCard extends StatelessWidget {
+  const TableCard({super.key, required this.query, required this.result});
+  final RecordQuery query;
+  final RecordResult result;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final ink = answerInk.resolveFrom(context);
+    final faint = ink.withValues(alpha: 0.55);
+    final r = result;
+    // 비교는 runQuery 가 줄 = 측정, 칸 = 범위로 낸다. 여기서 대상 × 측정으로 편다.
+    final compare = query.compare.isNotEmpty;
+    final targets = compare ? r.columns : [for (final row in r.rows) row.label];
+    final measures = compare
+        ? [for (final row in r.rows) row.label]
+        : r.columns;
+    if (targets.isEmpty || measures.isEmpty) return const SizedBox.shrink();
+    Cell at(int t, int m) => compare ? r.rows[m].cells[t] : r.rows[t].cells[m];
+    bool nothing(int t) => [
+      for (var m = 0; m < measures.length; m++) at(t, m),
+    ].every((c) => c.reason == 'none');
+
+    final totals = r.total;
+    final word = query.total == 'mean' ? l.queryTotalMean : l.queryTotalSum;
+    final headline = totals != null
+        ? [
+            for (final (m, c) in totals.indexed)
+              [
+                word,
+                if (totals.length > 1) measures[m],
+                c.answer?.headline ?? '—',
+              ].join(' '),
+          ].join(' · ')
+        // 차이 줄은 "측정 · 차이 (뒤 − 앞): 값" 이다. 헤드라인에는 값만 올리고
+        // 무엇에서 무엇을 뺐는지는 아래 줄이 그대로 말한다.
+        : measures.length == 1 && targets.length == 2 && r.diff.length == 1
+        ? r.diff.single.split(': ').last
+        : null;
+    final notes = [
+      if (!compare) describeScope(query.scope, l),
+      ...r.footnotes,
+    ].take(3);
+    final contrast =
+        targets.length <= 3 && query.order == null && query.by != 'weekday';
+
+    const gap = EdgeInsets.fromLTRB(12, 7, 0, 7);
+    final line = BoxDecoration(
+      border: Border(
+        top: BorderSide(color: ink.withValues(alpha: 0.12), width: 0.5),
+      ),
+    );
+    Widget head(String text) => Padding(
+      padding: gap,
+      child: Text(
+        text,
+        textAlign: TextAlign.end,
+        style: TextStyle(fontSize: 12, height: 1.35, color: faint),
+      ),
+    );
+    Widget label(String text) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 15, height: 1.3, letterSpacing: -0.3),
+      ),
+    );
+    // 값 한 칸. 모르거나 없으면 "—". 마지막·처음은 날짜가 본문이고 그날
+    // 세트가 보조 줄이다.
+    Widget value(Cell c, {bool empty = false}) {
+      final a = c.answer;
+      final dated =
+          a != null && (a.metric == Metric.last || a.metric == Metric.first);
+      final body = a == null
+          ? '—'
+          : dated
+          ? a.lines.first
+          : a.headline ?? '—';
+      final sub = a == null
+          ? (empty ? l.queryNoRecord : null)
+          : dated
+          ? a.headline
+          : a.lines.firstOrNull;
+      return Padding(
+        padding: gap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              body,
+              textAlign: TextAlign.end,
+              style: const TextStyle(
+                fontSize: 15,
+                height: 1.3,
+                letterSpacing: -0.3,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+            if (sub != null)
+              Text(
+                sub,
+                textAlign: TextAlign.end,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, height: 1.35, color: faint),
+              ),
+          ],
+        ),
+      );
+    }
+
+    Widget table(List<TableRow> rows) => Table(
+      // 좁으면 값이 줄을 바꾸고, 이름은 제 폭을 지킨다(카드의 절반 가까이
+      // 까지). 남는 폭은 값 칸이 나눠 갖는다 — 오른쪽 정렬이라 숫자가 끝에
+      // 붙는다.
+      columnWidths: const {
+        0: MinColumnWidth(IntrinsicColumnWidth(), FractionColumnWidth(0.45)),
+      },
+      defaultColumnWidth: const MaxColumnWidth(
+        IntrinsicColumnWidth(),
+        FlexColumnWidth(),
+      ),
+      children: rows,
+    );
+
+    final Widget grid;
+    if (contrast) {
+      grid = table([
+        TableRow(
+          children: [const SizedBox.shrink(), for (final t in targets) head(t)],
+        ),
+        for (var m = 0; m < measures.length; m++)
+          TableRow(
+            decoration: line,
+            children: [
+              label(measures[m]),
+              for (var t = 0; t < targets.length; t++)
+                value(at(t, m), empty: m == 0 && nothing(t)),
+            ],
+          ),
+      ]);
+    } else {
+      // 셋 이상이면 첫 측정의 크기를 이름 아래 막대로 긋는다.
+      final firsts = [
+        for (var t = 0; t < targets.length; t++)
+          at(t, 0).answer?.numericValue ?? 0,
+      ];
+      final top = firsts.fold<double>(0, math.max);
+      final bars = targets.length >= 3 && top > 0;
+      Widget name(int t, EdgeInsets padding) => Padding(
+        padding: padding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '${NumberFormat('00', l.localeName).format(t + 1)}  ',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: faint,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  TextSpan(text: targets[t]),
+                ],
+              ),
+              style: const TextStyle(
+                fontSize: 15,
+                height: 1.3,
+                letterSpacing: -0.3,
+              ),
+            ),
+            if (bars) ...[
+              const SizedBox(height: 5),
+              // 0 이면 긋지 않는다. 폭 0 의 FractionallySizedBox 는 고유 폭을
+              // 셀 때 0 으로 나눈다.
+              if (firsts[t] > 0)
+                FractionallySizedBox(
+                  alignment: AlignmentDirectional.centerStart,
+                  widthFactor: math.min(firsts[t] / top, 1),
+                  child: Container(
+                    height: 3,
+                    color: ink.withValues(alpha: 0.25),
+                  ),
+                )
+              else
+                const SizedBox(height: 3),
+            ],
+          ],
+        ),
+      );
+      grid = measures.length == 1
+          ? table([
+              TableRow(children: [const SizedBox.shrink(), head(measures[0])]),
+              for (var t = 0; t < targets.length; t++)
+                TableRow(
+                  decoration: line,
+                  children: [
+                    name(t, const EdgeInsets.symmetric(vertical: 7)),
+                    value(at(t, 0), empty: nothing(t)),
+                  ],
+                ),
+            ])
+          // 측정이 여럿이면 이름을 제 줄에 두고 값은 그 아래 같은 폭으로 편다.
+          // 이름 옆에 값 셋을 세우면 폰 폭에서 글자 단위로 부서진다.
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    for (final m in measures) Expanded(child: head(m)),
+                  ],
+                ),
+                for (var t = 0; t < targets.length; t++)
+                  DecoratedBox(
+                    decoration: line,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        name(t, const EdgeInsets.only(top: 7)),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (var m = 0; m < measures.length; m++)
+                              Expanded(
+                                child: value(
+                                  at(t, m),
+                                  empty: m == 0 && nothing(t),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: GrainWash(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: DefaultTextStyle(
+                  style: TextStyle(color: ink, fontFamily: '.SF Pro Text'),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          r.title,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.9,
+                            height: 1.12,
+                          ),
+                        ),
+                      ),
+                      if (headline != null) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          headline,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            letterSpacing: -0.6,
+                            height: 1.25,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
+                      grid,
+                      for (final d in r.diff)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Text(
+                            d,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              height: 1.4,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      for (final n in notes)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            n,
+                            style: TextStyle(
+                              fontSize: 13,
+                              height: 1.35,
+                              color: faint,
+                            ),
                           ),
                         ),
                     ],
