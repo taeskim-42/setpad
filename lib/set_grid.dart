@@ -33,6 +33,74 @@ String cellLabel(
 /// 세트마다 한 칸이다 — 값이 같아도 합치지 않는다. 칸 폭이 같아서 운동끼리
 /// 열이 맞고, 세트가 한 줄을 넘으면 다음 줄로 흐른다. 화면 밖으로 숨는 세트는
 /// 없다. 글자 크기 설정을 따라 칸 폭도 커진다.
+/// 칸 글씨. 폭을 재는 글과 그리는 글이 같은 서체여야 한다 — 화면 기본 글꼴에 얹는다.
+TextStyle _cellStyle(BuildContext context) =>
+    DefaultTextStyle.of(context).style.copyWith(
+      fontSize: 15,
+      fontFeatures: const [FontFeature.tabularFigures()],
+      color: CupertinoColors.label.resolveFrom(context),
+    );
+
+/// 몇 번째 세트인지와 값. 해내지 않은 세트는 빈 동그라미가 붙고 흐리다 —
+/// 계획과 수행이 섞여 보이면 안 된다.
+InlineSpan _cellSpan(
+  BuildContext context,
+  L l,
+  ExerciseBlock block,
+  int i,
+  LoggedSet set,
+) => TextSpan(
+  children: [
+    TextSpan(
+      text: set.done ? '${i + 1} ' : '${i + 1}○ ',
+      style: TextStyle(
+        fontSize: 10,
+        color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+      ),
+    ),
+    TextSpan(
+      text: cellLabel(set, shared: sharedUnit(block), formatReps: l.repsCount),
+    ),
+  ],
+);
+
+/// 이 칸이 필요한 폭. 상자로 그릴 때는 안쪽 여백과 옆 칸과의 틈만큼 더 넓다.
+double _cellNeed(
+  BuildContext context,
+  L l,
+  ExerciseBlock block,
+  int i,
+  LoggedSet set, {
+  required bool boxed,
+}) {
+  final painter = TextPainter(
+    text: TextSpan(
+      style: _cellStyle(context),
+      children: [_cellSpan(context, l, block, i, set)],
+    ),
+    textDirection: TextDirection.ltr,
+    textScaler: MediaQuery.textScalerOf(context),
+    maxLines: 1,
+  )..layout();
+  final need = painter.width + 5 + (boxed ? 12 : 0);
+  painter.dispose();
+  return need;
+}
+
+/// 문서에서 가장 넓은 칸. 모든 운동의 칸을 이 폭으로 맞추면 위아래 열이 맞는다 —
+/// 운동마다 제 폭이면 "115×5" 줄과 "230×15" 줄의 칸이 어긋나 지저분하다.
+double widestSetCell(BuildContext context, Iterable<ExerciseBlock> blocks) {
+  final l = L.of(context);
+  var widest = 0.0;
+  for (final b in blocks) {
+    for (final (i, set) in b.sets.indexed) {
+      final need = _cellNeed(context, l, b, i, set, boxed: true);
+      if (need > widest) widest = need;
+    }
+  }
+  return widest;
+}
+
 class SetGrid extends StatelessWidget {
   const SetGrid({
     super.key,
@@ -40,7 +108,11 @@ class SetGrid extends StatelessWidget {
     this.onTapSet,
     this.onAdd,
     this.editingSet,
+    this.uniform,
   });
+
+  /// 문서 전체에서 맞출 칸 폭([widestSetCell]). 없으면 이 운동 안에서만 맞춘다.
+  final double? uniform;
 
   final ExerciseBlock block;
   final ValueChanged<int>? onTapSet;
@@ -53,29 +125,12 @@ class SetGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
-    final shared = sharedUnit(block);
     final scaler = MediaQuery.textScalerOf(context);
     final label = CupertinoColors.label.resolveFrom(context);
     final faint = CupertinoColors.tertiaryLabel.resolveFrom(context);
-    // 폭을 재는 글과 그리는 글이 같은 서체여야 한다 — 화면 기본 글꼴에 얹는다.
-    final style = DefaultTextStyle.of(context).style.copyWith(
-      fontSize: 15,
-      fontFeatures: const [FontFeature.tabularFigures()],
-      color: label,
-    );
-    InlineSpan span(int i, LoggedSet set) => TextSpan(
-      children: [
-        // 몇 번째 세트인지. 해내지 않은 세트는 빈 동그라미가 붙고 흐리다 —
-        // 계획과 수행이 섞여 보이면 안 된다.
-        TextSpan(
-          text: set.done ? '${i + 1} ' : '${i + 1}○ ',
-          style: TextStyle(fontSize: 10, color: faint),
-        ),
-        TextSpan(
-          text: cellLabel(set, shared: shared, formatReps: l.repsCount),
-        ),
-      ],
-    );
+    final style = _cellStyle(context);
+    InlineSpan span(int i, LoggedSet set) =>
+        _cellSpan(context, l, block, i, set);
     return LayoutBuilder(
       builder: (context, box) {
         // 열은 빈 칸 없이 센다 — 빈 칸 몫을 빼면 칸이 좁아져 넓은 값이 두 열을 먹고
@@ -87,18 +142,7 @@ class SetGrid extends StatelessWidget {
         // 옆 칸과 붙고 아래위 열이 어긋난다.
         final needs = [
           for (final (i, set) in block.sets.indexed)
-            () {
-              final painter = TextPainter(
-                text: TextSpan(style: style, children: [span(i, set)]),
-                textDirection: TextDirection.ltr,
-                textScaler: scaler,
-                maxLines: 1,
-              )..layout();
-              // 상자로 그릴 때는 안쪽 여백과 옆 칸과의 틈만큼 더 넓다.
-              final need = painter.width + 5 + (onTapSet == null ? 0 : 12);
-              painter.dispose();
-              return need;
-            }(),
+            _cellNeed(context, l, block, i, set, boxed: onTapSet != null),
         ];
         // 칸 폭은 세 갈래다. (1) 칸마다 한 열, 넓은 값만 제 폭 — 빈 칸까지 한 줄에
         // 들어가면 이것이다. 열이 맞고 넓은 값이 두 열을 먹지 않는다. (2) 안 들어가면
@@ -107,7 +151,9 @@ class SetGrid extends StatelessWidget {
         const addWidth = 28.0;
         final withAdd = onAdd == null ? 0.0 : addWidth;
         final total = needs.fold(0.0, (a, b) => a + b);
-        final aligned = [for (final n in needs) n > width ? n : width];
+        // 문서 전체의 가장 넓은 칸에 맞춘다 — 그래야 운동끼리 열이 맞는다.
+        final column = [width, ?uniform].reduce((a, b) => a > b ? a : b);
+        final aligned = [for (final n in needs) n > column ? n : column];
         final alignedTotal = aligned.fold(0.0, (a, b) => a + b);
         final mode = alignedTotal + withAdd <= avail + 0.5
             ? 1

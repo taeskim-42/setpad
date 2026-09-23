@@ -1876,6 +1876,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                           onRemoveNote: (set, note) =>
                               _c.removeNote(i, set, note),
                           onEditSetup: () => _editSetup(i),
+                          uniformCell: widestSetCell(context, blocks),
                           // 열려 있는 카드는 이미 거기다 — 누를 것이 없다.
                           onOpen: i == openIndex ? null : () => _openBlock(i),
                         ),
@@ -2218,6 +2219,7 @@ class _BlockView extends StatelessWidget {
     required this.onEditNote,
     required this.onRemoveNote,
     required this.onEditSetup,
+    this.uniformCell,
   });
 
   final ExerciseBlock block;
@@ -2241,6 +2243,9 @@ class _BlockView extends StatelessWidget {
   final void Function(int, int) onEditNote;
   final void Function(int, int) onRemoveNote;
   final VoidCallback onEditSetup;
+
+  /// 문서 전체에서 맞출 칸 폭.
+  final double? uniformCell;
 
   /// 닫힌 카드를 눌러 그 운동을 다시 연다. 열려 있으면 null 이다.
   final VoidCallback? onOpen;
@@ -2342,6 +2347,7 @@ class _BlockView extends StatelessWidget {
             if (block.sets.isNotEmpty)
               SetGrid(
                 block: block,
+                uniform: uniformCell,
                 onTapSet: onEditSet,
                 // 빈 칸 하나가 늘 남아 있다. 누르면 이 운동에 다음 세트를 적는다.
                 onAdd: input == null ? onOpen : null,
