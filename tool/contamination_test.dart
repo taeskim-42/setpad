@@ -9,8 +9,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// 의 모든 질문과 견준다. 대소문자·띄어쓰기·문장부호는 무시한다.
 ///
 /// 완전 일치만 보면 틀이 같은 예시('레그프레스 요즘 제자리야?' ↔ '…정체기인가')를
-/// 놓친다. 떼어 둔 최종 모음(final.json)은 더 엄격하다: 글자 두 개씩 묶음의 겹침
-/// (자카드)이 지시문 예시와 0.3 미만, 조정용 모음(v2·dev·heldout·v3)과 0.5 미만.
+/// 놓친다. 떼어 둔 모음(final.json, blind.json)은 더 엄격하다: 글자 두 개씩 묶음의
+/// 겹침(자카드)이 지시문 예시와 0.3 미만, 조정용 모음과 0.5 미만. blind 는 final 도
+/// 조정용으로 본다(final 은 두 번 재고 그 뒤 지시문을 고쳤다).
 ///
 ///     flutter test tool/contamination_test.dart
 String _norm(String s) =>
@@ -46,22 +47,24 @@ Set<String> _examples() => {
 };
 
 void main() {
-  test('떼어 둔 최종 모음은 지시문 예시·조정용 모음과 글꼴도 닮지 않는다', () {
-    final examples = _examples();
-    final tuning = [
-      for (final set in const ['v2', 'dev', 'heldout', 'v3'])
-        ..._questions(set),
-    ];
-    final close = [
-      for (final q in _questions('final')) ...[
-        for (final e in examples)
-          if (_overlap(q, e) >= 0.3) '$q ≈ 예시 "$e"',
-        for (final t in tuning)
-          if (_overlap(q, t) >= 0.5) '$q ≈ 조정용 "$t"',
-      ],
-    ];
-    expect(close, isEmpty);
-  });
+  for (final (held, tuningSets) in const [
+    ('final', ['v2', 'dev', 'heldout', 'v3']),
+    ('blind', ['v2', 'dev', 'heldout', 'v3', 'final']),
+  ]) {
+    test('떼어 둔 $held 모음은 지시문 예시·조정용 모음과 글꼴도 닮지 않는다', () {
+      final examples = _examples();
+      final tuning = [for (final set in tuningSets) ..._questions(set)];
+      final close = [
+        for (final q in _questions(held)) ...[
+          for (final e in examples)
+            if (_overlap(q, e) >= 0.3) '$q ≈ 예시 "$e"',
+          for (final t in tuning)
+            if (_overlap(q, t) >= 0.5) '$q ≈ 조정용 "$t"',
+        ],
+      ];
+      expect(close, isEmpty);
+    });
+  }
 
   test('지시문 예시는 평가 문항(v2·dev·heldout·v3)과 같지 않다', () {
     final examples = <String>{
@@ -77,7 +80,7 @@ void main() {
     };
     expect(examples, isNotEmpty, reason: 'lib/ 에서 지시문 예시 줄을 못 찾았다');
     final questions = <String, String>{
-      for (final set in ['v2', 'dev', 'heldout', 'v3', 'final'])
+      for (final set in ['v2', 'dev', 'heldout', 'v3', 'final', 'blind'])
         for (final c
             in jsonDecode(File('tool/questions/$set.json').readAsStringSync())
                 as List)
