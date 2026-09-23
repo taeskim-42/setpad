@@ -1478,6 +1478,12 @@ class LVi extends L {
   String get mealLogAs => 'Ghi là bữa ăn';
 
   @override
+  String get mealAutoLogged => 'Đã ghi thành bữa ăn';
+
+  @override
+  String get mealAutoUndo => 'Đổi thành bài tập';
+
+  @override
   String get proxyWrite => 'Ghi hộ';
 
   @override

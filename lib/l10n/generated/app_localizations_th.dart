@@ -1465,6 +1465,12 @@ class LTh extends L {
   String get mealLogAs => 'บันทึกเป็นมื้ออาหาร';
 
   @override
+  String get mealAutoLogged => 'บันทึกเป็นมื้ออาหารแล้ว';
+
+  @override
+  String get mealAutoUndo => 'เปลี่ยนเป็นการออกกำลังกาย';
+
+  @override
   String get proxyWrite => 'บันทึกแทน';
 
   @override

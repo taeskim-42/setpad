@@ -2,6 +2,7 @@
 /// 열량은 곱셈 한 번이지만 틀리면 하루 합계가 통째로 틀린다.
 library;
 
+import 'parser.dart';
 import 'record_ai.dart';
 import 'units.dart';
 
@@ -249,6 +250,27 @@ bool _aside(String part) => part
     )
     .replaceAll(RegExp(r'[\s.~!?·:-]'), '')
     .isEmpty;
+
+/// 친 줄에 **끼니라는 근거**가 있는가. 운동 근거([exerciseEvidence])를 먼저 보고,
+/// 그다음에 본다: 열량(kcal·칼로리), 음식에만 쓰는 양([foodUnits]), 끼니 낱말(아침·점심·
+/// 저녁·간식·야식)에 다른 말이 붙은 글, 흔한 음식 낱말(밥·계란·커피·맥주·salad…).
+bool mealEvidence(String text) {
+  if (_kcal.hasMatch(text) || foodUnits.hasMatch(text)) return true;
+  final bare = [
+    for (final w in text.trim().split(RegExp(r'\s+')))
+      w.replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), '').toLowerCase(),
+  ]..removeWhere((w) => w.isEmpty);
+  final words = bare.map(stripParticle).toList();
+  return (words.length > 1 && words.any(_mealWords.contains)) ||
+      [...bare, ...words].any(foodWords.contains);
+}
+
+final _kcal = RegExp(r'kcal|칼로리|㎉', caseSensitive: false);
+
+const _mealWords = {
+  '아침', '점심', '저녁', '간식', '야식', '아점', '브런치', //
+  'breakfast', 'lunch', 'dinner', 'supper', 'snack', 'brunch',
+};
 
 /// 먹은 양을 글로. "150g", "2.5개", "1.5회분" 은 화면 언어가 붙인다.
 String amountText(double n) => formatNumber((n * 100).round() / 100);

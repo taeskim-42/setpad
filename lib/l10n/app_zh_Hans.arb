@@ -377,6 +377,8 @@
   "togetherMe": "我",
   "togetherLog": "记录",
   "mealLogAs": "记为饮食",
+  "mealAutoLogged": "已记为一餐",
+  "mealAutoUndo": "改为运动",
   "proxyWrite": "代为记录",
   "proxyWriting": "正在记录{name}的训练",
   "proxyDefaultName": "对方",

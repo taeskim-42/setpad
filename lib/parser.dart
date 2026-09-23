@@ -101,10 +101,10 @@ final _quantityWords = RegExp(
 
 /// 세트를 어떻게 하는지 말하는 낱말(피라미드·드롭세트·실패까지·템포·RPE…). 모델이
 /// 못 옮긴 말에 넣지 않아도 이름에 섞지 않는다 — 모델 이름에 들었으면 그대로다
-/// ('템포 스쿼트').
+/// ('템포 스쿼트'). **낱말 전체**가 그 말일 때만이다: '템포런' 은 이름이다.
 final _conditionWords = RegExp(
-  r'피라미드|드랍|드롭|슈퍼세트|자이언트세트|실패까지|원알엠|템포|^(?:1rm|rpe|rir)$|'
-  r'pyramid|dropset|drop-set|superset|failure|tempo',
+  r'^(?:피라미드|드[랍롭](?:세트|셋)?|슈퍼세트|자이언트세트|실패까지|원알엠|템포|1rm|rpe|rir|'
+  r'pyramid|drop-?sets?|supersets?|failure|tempo)$',
   caseSensitive: false,
 );
 
@@ -119,6 +119,13 @@ final tempoPattern =
     '(?<![\\d.,]|(?<![a-z])[x×*]\\s*)([+-]?\\d+(?:[.,]\\d+)?)\\s*bpm(?![a-z])|'
     '(?<![a-z])bpm\\s*[:=]?\\s*(?=[+-]?\\d\\d)([+-]?\\d+(?:[.,]\\d+)?)(?![\\d.,])'
     '(?!\\s*(?:$_units|칸|박|라운드|rounds?|ラウンド)(?![a-z])|[x×*]\\d|\\s*[x×*]\\s+\\d)';
+
+/// 문장부호·조사를 떼어도 낱말 전체가 조건 말인가('템포로', '(RPE').
+bool _isCondition(String word) {
+  final bare = word.replaceAll(RegExp(r'[^\p{L}\p{N}-]', unicode: true), '');
+  return _conditionWords.hasMatch(bare) ||
+      _conditionWords.hasMatch(stripParticle(bare));
+}
 
 /// 타이머 토큰(60bpm, bpm 60, 30/15, x8, 10라운드). 글의 수가 모두 여기 쓰였으면
 /// 그 글은 타이머 이름이라 묻지 않고 바로 만든다.
@@ -346,7 +353,7 @@ String? typedName(
       !numbered(w) &&
       searchKey(w[0]!).isNotEmpty &&
       !_quantityWords.hasMatch('${w[0]} ') &&
-      !_conditionWords.hasMatch(w[0]!) &&
+      !_isCondition(w[0]!) &&
       !unparsed.any((u) => u.contains(w[0]!));
   if (want.isNotEmpty) {
     for (var size = 1; size <= words.length; size++) {
@@ -390,6 +397,134 @@ String? learnableName(String title) =>
     hasSetupIntent(title.replaceAll(timerTokens, ' '))
     ? typedName(title, '')
     : title.trim();
+
+/// 친 줄에 **운동이라는 근거**가 있는가. 입력 줄 하나로 운동과 끼니를 가를 때
+/// 맨 먼저 본다 — '케이블 크런치' 를 과자로 읽으면 기록이 바뀐다.
+///
+/// - 운동 단위: 수 뒤의 kg·lb·회·세트·rep, AxB, 그리고 bpm·타바타·라운드. 이름이 흔한 음식
+///   낱말 하나면([foodWords]) 아니다 — '치킨 1세트'.
+/// - 수를 뺀 이름이 사전 이름(여덟 언어·별칭·초성)이다. 이름 전체가 사전 이름의
+///   앞부분이어도('벤치', '데드') — 로마자는 네 글자부터('ham' 은 햄이지 해머컬이 아니다).
+/// - 수를 뺀 이름 **전체**가 익힌 이름([learned])이다. 낱말 묶음으로는 보지 않고, 음식에만
+///   쓰는 양([foodUnits])이 있으면 보지 않는다 — 표에 없는 음식이 한 번 운동 칸이 되어
+///   익혀졌어도 '삶은 계란 2개'·'커피 1잔' 까지 운동이 되지 않게.
+/// - 이름 속 낱말 묶음이 사전 이름이다('아침 러닝'), 또는 종목·유산소 낱말이 있다
+///   ('저녁 요가', '트레드밀 300kcal' — 저녁은 때이고 kcal 은 소모 열량이다).
+bool exerciseEvidence(String text, Iterable<String> learned) {
+  final name = learnableName(text);
+  final whole = searchKey(name ?? '');
+  if (_exerciseUnits.hasMatch(text) && !foodWords.contains(whole)) return true;
+  if (name == null) return false;
+  if (_exerciseKeys.contains(whole) ||
+      _aliasWords.contains(whole) ||
+      (!foodUnits.hasMatch(text) &&
+          learned.any((n) => searchKey(n) == whole))) {
+    return true;
+  }
+  final latin = RegExp(r'^[a-z]+$').hasMatch(whole);
+  if (whole.length >= (latin ? 4 : 2) &&
+      _exerciseKeys.any((k) => k.startsWith(whole))) {
+    return true;
+  }
+  final raw = [
+    for (final w in name.split(RegExp(r'\s+')))
+      if (searchKey(w) case final k when k.isNotEmpty) k,
+  ];
+  // 조사를 뗀 것과 안 뗀 것 둘 다 본다 — '핫요가' 의 '가' 는 조사가 아니다.
+  final words = raw.map(stripParticle).toList();
+  if ([...raw, ...words].any(
+    (w) => _exerciseWords.contains(w) || _exerciseEndings.any(w.endsWith),
+  )) {
+    return true;
+  }
+  for (var i = 0; i < words.length; i++) {
+    for (var j = i + 1; j <= words.length; j++) {
+      if (_exerciseKeys.contains(words.sublist(i, j).join())) return true;
+    }
+  }
+  return false;
+}
+
+final _exerciseUnits = RegExp(
+  r'\d\s*(?:kg|lbs?|키로|킬로|파운드|회|세트|셋트|sets?|reps?|セット|回|组|組)(?![a-z])|'
+  r'\d\s*[x×]\s*\d|bpm|타바타|tabata|라운드|\brounds?\b',
+  caseSensitive: false,
+);
+
+/// 음식에만 쓰는 양(공기·그릇·인분·조각·잔·봉지·캔·병·접시·스푼·g·ml·cup…, 곱빼기).
+/// 끼니 근거이고([mealEvidence] 가 본다), 익힌 이름보다 먼저다.
+final foodUnits = RegExp(
+  r'곱빼기|'
+  r'(?:\d+(?:[.,]\d+)?|반|한|두|세|네)\s*'
+  r'(?:공기|그릇|인분|조각|잔|봉지|캔|병|접시|스푼|숟가락|숟갈|g|ml|㎖)(?![a-z])|'
+  r'\d\s*(?:cups?|bowls?|slices?|servings?|cans?|bottles?|glass(?:es)?|tbsp|tsp)\b',
+  caseSensitive: false,
+);
+
+/// 흔한 음식 낱말. 낱말 **전체**일 때만이다 — '치킨윙'(머신)은 치킨이 아니다. 음식 표가
+/// 대표 이름으로 못 찾는 것(계란·밥·커피·beer — 표에는 달걀·쌀밥·'Coffee, brewed')과
+/// 그물 없이도 알아야 할 것. 끼니 근거이고([mealEvidence] 가 본다), 운동 근거가 먼저라
+/// '굿모닝'·'케이블 크런치' 는 여기 오지 않는다. 다만 이름이 이 낱말 하나면 운동 단위도
+/// 근거가 아니다('치킨 1세트', 'steak 1 lb').
+const foodWords = {
+  '밥', '쌀밥', '흰밥', '공기밥', '공깃밥', '계란', '달걀', '계란후라이', '계란말이', '삶은계란', '커피', //
+  '라떼', '카페라떼', '아메리카노', '우유', '두유', '주스', '콜라', '사이다', '맥주', '소주', '와인', //
+  '막걸리', '하이볼', '위스키', '떡', '회', '초밥', '과자', '컵라면', '라면', '빵', '식빵', '빅맥', //
+  '와퍼', '햄버거', '버거', '피자', '치킨', '양념치킨', '후라이드', '오뎅', '어묵', '김밥', '샐러드', //
+  '샌드위치', '토스트', '포케', '서브웨이', '도시락', '프로틴', '쉐이크', '셰이크', '프로틴쉐이크', //
+  '단백질쉐이크', '게토레이', '파워에이드', '레드불', '귤', '포도', '참외', '사과', '바나나', '고구마', //
+  '닭가슴살', '요거트', '요구르트', '아이스크림', '초콜릿', '케이크', '쿠키', '도넛', '떡볶이', '만두', //
+  'coffee', 'latte', 'espresso', 'milk', 'beer', 'wine', 'soda', 'coke', //
+  'juice', 'smoothie', 'burger', 'hamburger', 'cheeseburger', 'fries', //
+  'pizza', 'salad', 'sandwich', 'sushi', 'ramen', 'steak', 'taco', 'tacos', //
+  'burrito', 'nachos', 'donut', 'doughnut', 'bagel', 'toast', 'egg', 'eggs', //
+  'rice', 'noodles', 'pasta', 'chips', 'candy', 'chocolate', 'cookie', //
+  'cookies', 'cake', 'brownie', 'granola', 'oatmeal', 'cereal', 'yogurt', //
+  'almonds', 'banana', 'apple', 'protein', 'shake',
+};
+
+/// 운동을 가리키는 낱말('아침 루틴 A', '하체 운동', 'leg day workout'). 낱말 전체일
+/// 때만이다 — '닭가슴살' 의 가슴은 아니다.
+const _exerciseWords = {
+  '루틴', '운동', '서킷', '스트레칭', '유산소', '무산소', '근력', '하체', '상체', //
+  '복근', '코어', '와드', '웜업', '쿨다운', '쿨링', '인터벌', '트레이닝', //
+  'routine', 'workout', 'circuit', 'stretch', 'stretching', 'cardio', 'wod', //
+  'hiit', 'warmup', 'cooldown', 'interval', 'training',
+  // 종목·유산소·수업. 사전에 없어도 운동이다 — '저녁 요가' 의 저녁은 끼니가 아니라 때다.
+  // 클린은 음식 표에 같은 이름의 제품이 있다. 사전 별칭으로 두면 기록 검색에서
+  // '클린' 이 파워클린으로 바뀐다.
+  '요가', '필라테스', '수영', '조깅', '달리기', '러닝', '런닝', '걷기', '산책', //
+  '등산', '하이킹', '트레킹', '줄넘기', '자전거', '사이클', '싸이클', '스핀', //
+  '스피닝', '트레드밀', '런닝머신', '스텝밀', '스테퍼', '일립티컬', '계단', //
+  '인라인', '마라톤', '테니스', '배드민턴', '탁구', '스쿼시', '골프', '축구', //
+  '풋살', '농구', '야구', '배구', '볼링', '클라이밍', '볼더링', '복싱', '주짓수', //
+  '유도', '태권도', '무에타이', '크로스핏', '줌바', '에어로빅', '발레', '스키', //
+  '스케이트', '서핑', '헬스', '웨이트', '피티', 'pt', '클린', //
+  'yoga', 'pilates', 'swim', 'swimming', 'run', 'running', 'jog', 'jogging', //
+  'walk', 'walking', 'hike', 'hiking', 'bike', 'biking', 'cycling', 'spin', //
+  'spinning', 'treadmill', 'elliptical', 'stairmaster', 'rowing', 'tennis', //
+  'badminton', 'golf', 'soccer', 'basketball', 'climbing', 'bouldering', //
+  'boxing', 'kickboxing', 'crossfit', 'zumba', 'aerobics', 'gym', 'clean',
+};
+
+/// 이 말로 끝나는 낱말도 운동이다('하체운동', '핫요가', '파워워킹', '실내자전거', '킥복싱').
+const _exerciseEndings = [
+  '운동', '요가', '걷기', '워킹', '자전거', '바이크', '사이클', '싸이클', '복싱', '댄스', //
+];
+
+/// 사전 이름 전부(여덟 언어·별칭 통째·초성)의 검색 키.
+final _exerciseKeys = {
+  for (final e in exercises)
+    for (final k in e.keys) searchKey(k),
+};
+
+/// 별칭 낱말 하나하나('dl dead lift' 의 dead). 이름 **전체**가 이것일 때만 운동이다 —
+/// 'side salad' 의 side 는 사이드 레터럴 레이즈가 아니다.
+final _aliasWords = {
+  for (final e in exercises)
+    for (final w in e.alias.split(' '))
+      if (w.length >= 2) searchKey(w),
+};
 
 /// [text] 에서 [key]([searchKey] 모양)가 걸친 자리 — 띄어쓰기·대소문자가 달라도
 /// 친 글의 자리로 돌려준다.

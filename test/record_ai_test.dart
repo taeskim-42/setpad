@@ -978,6 +978,55 @@ void main() {
     expect(rpe.unparsed, ['RPE 8']);
   });
 
+  test('v3 §2: 음식 표 조회는 /api/foods/match 에 글만 보내고, 못 물으면 음식이 아니다', () async {
+    final sent = <(String, Object?)>[];
+    Future<bool> ask(MockClientHandler foods) {
+      RecordAi.forget();
+      return RecordAi(
+        endpoint: 'https://example.com',
+        deviceId: 'device',
+        client: MockClient((request) async {
+          if (request.url.path == '/api/device') {
+            return http.Response(jsonEncode({'token': 't'}), 200);
+          }
+          sent.add((request.url.path, jsonDecode(request.body)));
+          return foods(request);
+        }),
+      ).isFood('김치찌개');
+    }
+
+    expect(
+      await ask(
+        (_) async => http.Response(
+          jsonEncode({'food': true, 'name': '김치찌개', 'kind': 'dish'}),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        ),
+      ),
+      isTrue,
+    );
+    expect(sent.single.$1, '/api/foods/match');
+    expect(sent.single.$2, {'text': '김치찌개'});
+    expect(
+      await ask((_) async => http.Response(jsonEncode({'food': false}), 200)),
+      isFalse,
+    );
+    for (final fail in <MockClientHandler>[
+      (_) async => http.Response(jsonEncode({'error': 'quotaExceeded'}), 429),
+      (_) async => http.Response('oops', 502),
+      (_) async => throw const SocketException('no route'),
+    ]) {
+      expect(await ask(fail), isFalse);
+    }
+    // 모델 대신 대답하는 자리(테스트·평가)와 기기 토큰이 없는 곳은 묻지 않는다.
+    expect(
+      await RecordAi(respond: (_, _) async => null).isFood('김치찌개'),
+      isFalse,
+    );
+    expect(await const RecordAi().isFood('김치찌개'), isFalse);
+    RecordAi.forget();
+  });
+
   test('X4: 와이파이 로그인 화면(HTML)·TLS·소켓 실패는 연결 문제다 — "읽지 못함" 이 아니다', () async {
     for (final handler in <MockClientHandler>[
       (_) async => http.Response('<html>login</html>', 200),
@@ -1148,6 +1197,120 @@ void main() {
     },
   );
 
+  testWidgets(
+    'X8: 이름만 읽은 줄(민수식 로우 2)도 그 읽음을 기억한다 — 같은 줄을 다시 쳐도 모델을 또 부르지 않는다',
+    (tester) async {
+      final ai = FakeAi(RecordAiStatus.ready)
+        ..answer = answerFor([
+          {'text': '민수식 로우 2', 'name': '민수식 로우 2'},
+        ]);
+      final c = await pumpEditor(tester, ai);
+      await submit(tester, '민수식 로우 2');
+      expect(ai.calls, 1);
+      expect(c.blocks.single.setup?.name, '민수식 로우 2');
+      expect(c.blocks.single.setup?.countsReps, isFalse);
+      expect(c.recentExercises.first, '민수식 로우 2');
+      c.closeBlock();
+      await submit(tester, '민수식 로우 2');
+      expect(ai.calls, 1, reason: '같은 줄은 같은 읽음');
+      expect(c.blocks.map((b) => b.name), ['민수식 로우 2', '민수식 로우 2']);
+      expect(c.blocks.last.setup?.name, '민수식 로우 2');
+
+      // 저장했다 다시 켜도 그 읽음이 남는다.
+      final dir = Directory.systemTemp.createTempSync('setpad_plain');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final store = NotesStore(directory: dir);
+      await tester.runAsync(store.load);
+      store.create(blocks: c.blocks);
+      await tester.runAsync(store.flush);
+      final reopened = NotesStore(directory: dir);
+      await tester.runAsync(reopened.load);
+      expect(reopened.setupOf('민수식 로우 2')?.name, '민수식 로우 2');
+      expect(reopened.exerciseHistory, contains('민수식 로우 2'));
+    },
+  );
+
+  test('X8: 다시 쓰는 설정은 그 수가 친 글에 있을 때만이다 — ⚙ 로 고친 설정은 다시 읽는다', () {
+    const edited = WorkoutSetup(
+      name: '벤치',
+      weight: 85,
+      repsPerSet: 5,
+      totalSets: 5,
+    );
+    const typed = WorkoutSetup(
+      name: '벤치',
+      weight: 80,
+      repsPerSet: 5,
+      totalSets: 5,
+    );
+    final c = RoutineEditorController()
+      ..restore([ExerciseBlock('벤치 80kg 5x5', null, edited)]);
+    expect(c.earlierSetup('벤치 80kg 5x5'), isNull);
+    c.restore([
+      ExerciseBlock('벤치 80kg 5x5', null, typed),
+      ExerciseBlock('벤치 팔십 키로 5x5', null, typed),
+      ExerciseBlock('민수식 로우 2', null, const WorkoutSetup(name: '민수식 로우 2')),
+    ]);
+    expect(c.earlierSetup('벤치 80kg 5x5')?.weight, 80);
+    expect(c.earlierSetup('벤치 팔십 키로 5x5')?.weight, 80, reason: '글로 쓴 수도 수다');
+    expect(c.earlierSetup('민수식 로우 2')?.name, '민수식 로우 2');
+    final saved = RoutineEditorController(savedSetup: (_) => edited);
+    expect(saved.earlierSetup('벤치 80kg 5x5'), isNull, reason: '저장된 기록도 같다');
+  });
+
+  test('조건 말은 낱말 전체일 때만 이름에서 뺀다 — 템포런은 이름이다', () {
+    expect(typedName('템포런 30분', '러닝'), '템포런');
+    expect(typedName('템포 스쿼트 60kg 8회', '스쿼트'), '스쿼트');
+    expect(typedName('드롭세트로 레그프레스 100kg', '레그프레스'), '레그프레스');
+    expect(typedName('실패까지 푸시업', ''), '푸시업');
+    expect(typedName('pyramid-less row 5x5', ''), 'pyramid-less row');
+  });
+
+  test('수 자리 짝짓기: 모델의 text 가 이름뿐이면 이름 밖의 짝 없는 자리가 이름 속 자리보다 먼저다', () {
+    final r = readSetupAnswer('MTS100 로우 100개', {
+      'exercises': [
+        {
+          'text': 'MTS100 로우',
+          'name': 'MTS100 로우',
+          'totalReps': 100,
+          'repsOnly': true,
+        },
+      ],
+    });
+    expect(r.exercises.single.setup.name, 'MTS100 로우');
+    expect(r.exercises.single.setup.totalReps, 100);
+    expect(r.unparsed, isEmpty, reason: '100개 는 칸에 들었다');
+    final two = readSetupAnswer('민수식 로우 2 2세트', {
+      'exercises': [
+        {'text': '민수식 로우 2', 'name': '민수식 로우 2', 'totalSets': 2},
+      ],
+    });
+    expect(two.exercises.single.setup.totalSets, 2);
+    expect(two.unparsed, isEmpty);
+  });
+
+  test('v3 §2: 모델이 음식이라고 답하면(food: true, 운동 없음) 읽음에 싣는다', () {
+    expect(
+      readSetupAnswer('바나나 2개', {
+        'exercises': [],
+        'unparsed': [],
+        'food': true,
+      }).food,
+      isTrue,
+    );
+    expect(
+      readSetupAnswer('푸시업 20개', {
+        'exercises': [
+          {'text': '푸시업 20개', 'name': '푸시업', 'totalReps': 20},
+        ],
+        'food': true,
+      }).food,
+      isFalse,
+      reason: '운동이 있으면 운동이다',
+    );
+    expect(readSetupAnswer('내일 회의 3시', {'exercises': []}).food, isFalse);
+  });
+
   testWidgets('X11: 답을 기다리다 앱을 내렸다 돌아오면 늦은 답을 버리지 않고 확인 창을 연다', (tester) async {
     final ai = FakeAi(RecordAiStatus.ready)
       ..pending = Completer<Map<String, Object?>>();
@@ -1189,8 +1352,16 @@ void main() {
     final c = await pumpEditor(tester, ai);
     await submit(tester, '러닝 5km');
     expect(c.blocks.single.name, '러닝 5km');
-    expect(c.blocks.single.setup, isNull);
+    // 설정할 것은 없지만 읽은 이름은 칸에 남는다 — 통계는 '러닝' 을 본다.
+    expect(c.blocks.single.setup?.name, '러닝');
+    expect(c.blocks.single.setup?.countsReps, isFalse);
+    expect(c.blocks.single.exercise, '러닝');
     expect(find.textContaining('설정에 못 옮긴 말: 5km'), findsOneWidget);
+    expect(
+      find.byIcon(CupertinoIcons.gear_alt),
+      findsOneWidget,
+      reason: '설정 요약 줄 대신 설정 붙이기 단추',
+    );
   });
 
   testWidgets('X6: 여러 운동 창에서 잘못 나뉜 운동은 앞 운동에 합친다 — 친 말은 제목에 이어 붙는다', (

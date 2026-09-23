@@ -377,6 +377,8 @@
   "togetherMe": "Me",
   "togetherLog": "Log",
   "mealLogAs": "Log as meal",
+  "mealAutoLogged": "Logged as a meal",
+  "mealAutoUndo": "Make it exercise",
   "proxyWrite": "Log for them",
   "proxyWriting": "Logging {name}'s workout",
   "proxyDefaultName": "Partner",

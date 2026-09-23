@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'keypad.dart';
+import 'meal.dart';
 import 'collapsing_drag.dart';
 import 'record_ai.dart';
 import 'workout_setup_sheet.dart';
@@ -177,14 +178,28 @@ class RoutineEditorController extends ChangeNotifier {
   /// 저장된 기록에서 제목이 똑같은 칸의 설정(NotesStore.setupOf).
   final WorkoutSetup? Function(String title) savedSetup;
 
-  /// 설정을 붙여 만든 칸 가운데 제목이 [title] 인 가장 최근 것의 설정 — 이 기록
-  /// 먼저, 없으면 저장된 기록에서.
-  WorkoutSetup? earlierSetup(String title) =>
-      blocks.reversed
-          .where((b) => b.name == title && b.setup != null)
-          .firstOrNull
-          ?.setup ??
-      savedSetup(title);
+  /// 모델이 읽어 만든 칸 가운데 제목이 [title] 인 가장 최근 것의 설정 — 이 기록
+  /// 먼저, 없으면 저장된 기록에서. 이름만 읽은 것('민수식 로우 2')도 설정이다.
+  ///
+  /// 설정의 수가 모두 제목에 있을 때만 준다. ⚙ 로 고친 설정은 글과 다를 수 있다
+  /// ('벤치 80kg 5x5' 를 85kg 으로) — 그때는 null 이라 다시 읽는다.
+  WorkoutSetup? earlierSetup(String title) {
+    final setup =
+        blocks.reversed
+            .where((b) => b.name == title && b.setup != null)
+            .firstOrNull
+            ?.setup ??
+        savedSetup(title);
+    if (setup == null) return null;
+    final stated = statedNumbers(title).map((n) => n.value);
+    final values = [
+      setup.weight,
+      setup.totalReps,
+      setup.repsPerSet,
+      setup.totalSets,
+    ].nonNulls;
+    return values.every((v) => stated.any((n) => n == v)) ? setup : null;
+  }
 
   String weightUnit;
   final List<ExerciseBlock> blocks = [];
@@ -731,8 +746,9 @@ class RoutineEditor extends StatefulWidget {
   /// 에서 값을 넣으면 그 글을 불러와 고치고, 저장하거나 그만두면 null 이 된다.
   final ValueNotifier<({String text, int? index})?>? mealText;
 
-  /// 식단 글을 저장한다. index 가 있으면 그 끼니를 고친 것이다.
-  final void Function(String text, int? index)? onMealText;
+  /// 식단 글을 저장한다. index 가 있으면 그 끼니를 고친 것이다. 새로 남긴 끼니면
+  /// 그것을 지우는 함수를 돌려준다('운동으로 바꾸기').
+  final VoidCallback? Function(String text, int? index)? onMealText;
 
   /// 전에 적은 식단 글들. 식단을 적는 동안 후보로 뜬다.
   final List<String> recentMeals;
@@ -773,6 +789,10 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 고치던 메모가 달린 세트. 앞의 운동·세트가 지워져도 번호가 아니라 이것을 따라간다.
   String? _editingSetId;
   EditorDraft? _resume;
+
+  /// 운동 이름 줄에 친 글을 알아서 끼니로 남겼다. 입력 줄 위에 '운동으로 바꾸기'
+  /// 가 한 줄 뜬다 — 다음에 무언가 칠 때까지.
+  ({String text, VoidCallback? undo})? _autoMeal;
   bool get _editingRecord => _recordTitle || _recordSet != null;
 
   /// 화살표로 **고른** 후보. -1 이면 고른 것이 없고 Enter 는 친 글 그대로
@@ -1202,7 +1222,84 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (state == AppLifecycleState.resumed) _followShared();
   }
 
-  Future<void> _interpret(String text) async {
+  /// 운동 이름을 적는 줄에 친 글. 먼저 끼니인지 가른다(순서가 정해져 있다):
+  ///
+  /// 1. 운동 근거 — 같은 줄로 만든 칸, 운동 단위, 익힌 이름·사전 이름.
+  /// 2. 끼니 근거 — 열량, 끼니 낱말 + 다른 말, 음식에만 쓰는 양.
+  /// 3. 음식 표 — 이름이 정확히 같은 음식(서버, 모델 없음, 한도 안 씀).
+  /// 4. 수가 든 줄은 모델이 읽고, 음식이라고 답하면("food") 끼니.
+  /// 5. 모두 아니면 지금처럼 운동이고 '끼니로' 칩이 남는다.
+  ///
+  /// 그물이 없으면 3·4 를 건너뛴다. [classify] 가 false 면 가르지 않고 운동이다
+  /// ('운동으로 바꾸기').
+  Future<void> _name(String text, {bool classify = true}) async {
+    final numbered = hasSetupIntent(text);
+    // 설정을 붙여 만든 칸과 똑같은 줄(어제의 '벤치 80kg 5x5')은 그 설정을 다시
+    // 쓴다 — 다시 묻지 않고, 설정 없이 만들지도 않는다. 익힌 이름만 같은 줄은
+    // 아니다: 제목에서 익힌 이름이 수를 품었어도 모델이 읽는다.
+    if (numbered) {
+      if (_c.earlierSetup(text.trim()) case final setup?) {
+        _input.clear();
+        _c.addExercise(text.trim(), setup: setup, learnAs: setup.name);
+        _reopen();
+        return;
+      }
+    }
+    final exercise =
+        !classify ||
+        widget.onMealText == null ||
+        exerciseEvidence(text, _c.recentExercises);
+    if (!exercise && mealEvidence(text)) return _logMeal(text);
+    // 수 없는 이름은 제목이 되므로 120자까지다. 끼니가 아니면 글을 입력칸에 두고
+    // 알린다 — 표에 묻기 전에.
+    if (!numbered && text.trim().length > 120) {
+      setState(() => _aiNotice = (l) => l.inputNameTooLong);
+      return;
+    }
+    if (!exercise && widget.ai.supported) {
+      if (_aiBusy) return;
+      final request = ++_aiRequest;
+      _submittedText = text;
+      setState(() {
+        _aiBusy = true;
+        _aiNotice = null;
+      });
+      final food = await widget.ai.isFood(text.trim());
+      if (!mounted || request != _aiRequest) return;
+      setState(() => _aiBusy = false);
+      // 기다리는 사이 글을 고쳤거나 다른 카드로 갔으면 친 글은 입력칸에 그대로다.
+      if (!_c.naming || _text != text) return;
+      if (food) return _logMeal(text);
+    }
+    // 수 없는 이름은 물을 것이 없다 — 바로 운동이다.
+    if (!numbered) return _commit(text);
+    // 물어보고 안 되면 그때 알린다. 미리 상태를 확인하느라 기다리지 않는다.
+    return _interpret(text, mealOk: !exercise);
+  }
+
+  /// 끼니로 남긴다. 입력 줄 위의 한 줄에서 되돌릴 수 있다.
+  void _logMeal(String text) {
+    final clean = text.trim();
+    _input.clear();
+    final undo = widget.onMealText!(clean, null);
+    setState(() => _autoMeal = (text: clean, undo: undo));
+    _focus.requestFocus();
+  }
+
+  /// '운동으로 바꾸기' — 그 끼니를 지우고 같은 글을 운동으로 적는다(가르지 않는다).
+  void _undoMeal() {
+    final meal = _autoMeal;
+    if (meal == null || _aiBusy) return;
+    meal.undo?.call();
+    _input.value = TextEditingValue(
+      text: meal.text,
+      selection: TextSelection.collapsed(offset: meal.text.length),
+    );
+    setState(() => _autoMeal = null);
+    unawaited(_name(meal.text, classify: false));
+  }
+
+  Future<void> _interpret(String text, {bool mealOk = false}) async {
     if (_aiBusy) return;
     // 이만큼 긴 글은 모델에 보내지 않는다. 글은 입력칸에 그대로 둔다.
     if (text.length > 600) {
@@ -1239,6 +1336,8 @@ class _RoutineEditorState extends State<RoutineEditor>
       return;
     }
     if (reading.exercises.isEmpty) {
+      // 음식이라는 답이면 끼니다 — 운동 근거가 없던 줄만.
+      if (reading.food && mealOk) return _logMeal(text);
       // 운동이 아니라는 답이다. 칸은 만들되 이름으로 익히지 않는다.
       _fallback(text, (l) => l.aiFallbackUnread, learn: false);
       return;
@@ -1287,12 +1386,10 @@ class _RoutineEditorState extends State<RoutineEditor>
         made.last = ('${made.last.$1} ${titles[i]}', made.last.$2);
       }
     }
+    // 이름만 읽은 설정도 칸에 둔다 — 같은 줄을 다시 치면 모델을 또 부르지 않고
+    // 그 읽음을 쓴다([RoutineEditorController.earlierSetup]).
     for (final (title, setup) in made) {
-      _c.addExercise(
-        title,
-        setup: planned(setup) ? setup : null,
-        learnAs: setup.name,
-      );
+      _c.addExercise(title, setup: setup, learnAs: setup.name);
     }
     // 묻지 않고 만든 칸에도 못 옮긴 말은 한 줄로 보인다('러닝 5km' 의 5km).
     if (!ask && reading.unparsed.isNotEmpty) {
@@ -1330,6 +1427,34 @@ class _RoutineEditorState extends State<RoutineEditor>
     RecordAiException() => (l) => l.aiFallbackServer,
     _ => (l) => l.aiFallbackUnread,
   };
+
+  Widget? _autoMealLine(BuildContext context) {
+    if (_autoMeal == null || !_c.naming || _mealMode) return null;
+    final l = L.of(context);
+    // 줄바꿈이 되게 Wrap — 좁은 화면·긴 문구(태국어)에서 넘치지 않는다.
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(
+          '${l.mealAutoLogged} · ',
+          style: TextStyle(
+            fontSize: 13,
+            color: CupertinoColors.secondaryLabel.resolveFrom(context),
+          ),
+        ),
+        CupertinoButton(
+          key: const ValueKey('meal-undo'),
+          padding: EdgeInsets.zero,
+          minimumSize: const Size(44, 32),
+          onPressed: _undoMeal,
+          child: Text(
+            l.mealAutoUndo,
+            style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget? _noticeLine(BuildContext context) => _aiNotice == null
       ? null
@@ -1744,7 +1869,10 @@ class _RoutineEditorState extends State<RoutineEditor>
         _invalidSet = false;
         // 남긴 한 줄은 다음에 무언가 칠 때까지 둔다. 입력칸을 비우는 것으로는
         // 지우지 않는다 — 칸을 만들며 비우는 바로 그때 보여야 한다.
-        if (has) _aiNotice = null;
+        if (has) {
+          _aiNotice = null;
+          _autoMeal = null;
+        }
       });
     }
     _saveDraft();
@@ -1968,11 +2096,9 @@ class _RoutineEditorState extends State<RoutineEditor>
     final timerOnly =
         TimingSpec.parse(value) != null &&
         !hasSetupIntent(value.replaceAll(timerTokens, ' '));
-    // 수 없는 이름과 타이머 이름은 제목이 되므로 120자까지다. 글은 입력칸에 둔다.
-    if (pick == null &&
-        _c.naming &&
-        value.trim().length > 120 &&
-        (timerOnly || !hasSetupIntent(value))) {
+    // 타이머 이름은 제목이 되므로 120자까지다. 글은 입력칸에 둔다. 수 없는 이름은
+    // 끼니인지 가른 뒤에 본다([_name]) — 긴 식단 글은 끼니가 된다.
+    if (pick == null && _c.naming && value.trim().length > 120 && timerOnly) {
       setState(() => _aiNotice = (l) => l.inputNameTooLong);
       return;
     }
@@ -1982,27 +2108,8 @@ class _RoutineEditorState extends State<RoutineEditor>
       _reopen();
       return;
     }
-    if (pick == null &&
-        _c.naming &&
-        value.trim().isNotEmpty &&
-        !hasSetupIntent(value)) {
-      _commit(value);
-      return;
-    }
-    // 설정을 붙여 만든 칸과 똑같은 줄(어제의 '벤치 80kg 5x5')은 그 설정을 다시
-    // 쓴다 — 다시 묻지 않고, 설정 없이 만들지도 않는다. 익힌 이름만 같은 줄은
-    // 아니다: 제목에서 익힌 이름이 수를 품었어도 모델이 읽는다.
-    if (pick == null && _c.naming) {
-      if (_c.earlierSetup(value.trim()) case final setup?) {
-        _input.clear();
-        _c.addExercise(value.trim(), setup: setup, learnAs: setup.name);
-        _reopen();
-        return;
-      }
-    }
-    // 물어보고 안 되면 그때 알린다. 미리 상태를 확인하느라 기다리지 않는다.
     if (pick == null && _c.naming && value.trim().isNotEmpty) {
-      _interpret(value);
+      unawaited(_name(value));
       return;
     }
     final editing = _editing;
@@ -2386,6 +2493,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              ?_autoMealLine(context),
                               _buildInput(bold: true),
                               for (final p in widget.presence)
                                 if (p.block == null && p.text.isNotEmpty)
@@ -2446,8 +2554,8 @@ class _RoutineEditorState extends State<RoutineEditor>
             onMealPhoto: widget.onMealPhoto,
             mealMode: _mealMode,
             // 운동 이름을 적는 바로 그 줄에 음식을 쳤다면, 한 번 눌러 끼니로 남긴다.
-            // 앱이 알아서 가르지 않는다 — "케이블 크런치" 를 과자로 읽으면 기록이
-            // 바뀐다. 사람이 누른다.
+            // Enter 에서 알아서 가르지만([_name]) 근거가 없으면 운동이다 — 그렇게 못
+            // 가른 줄을 사람이 끼니로 보낸다.
             onLogAsMeal:
                 !_mealMode &&
                     _c.naming &&
@@ -2833,7 +2941,7 @@ class _BlockView extends StatelessWidget {
                 ),
               dragHandle,
               // 설정 없는 칸도 나중에 설정을 붙인다. 있으면 아래 요약 줄을 누른다.
-              if (!collapsed && block.setup == null)
+              if (!collapsed && !(block.setup?.countsReps ?? false))
                 GestureDetector(
                   onTap: onEditSetup,
                   behavior: HitTestBehavior.opaque,
@@ -2872,7 +2980,7 @@ class _BlockView extends StatelessWidget {
           ),
           if (!collapsed) ...[
             ?timing,
-            if (block.setup != null)
+            if (block.setup?.countsReps ?? false)
               CupertinoButton(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size.fromHeight(28),
