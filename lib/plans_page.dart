@@ -380,6 +380,9 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
   @override
   void dispose() {
     _poll?.cancel();
+    // 보내려던 목표가 있으면 지금 보낸다.
+    if (_targetsPush?.isActive ?? false) unawaited(plans.pushTargets(plan));
+    _targetsPush?.cancel();
     Nearby.instance.clear();
     WidgetsBinding.instance.removeObserver(this);
     plans.removeListener(_changed);
@@ -390,7 +393,11 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
   PlanContent get _typed => _read().content;
 
   ({PlanContent content, Map<String, String> targets}) _read() {
-    final parsed = parsePlanText(_text.text, previous: plan.shown.items);
+    final parsed = parsePlanText(
+      _text.text,
+      previous: plan.shown.items,
+      title: plan.shown.title,
+    );
     return (
       content: PlanContent(
         title: parsed.title,
@@ -406,16 +413,33 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
   /// 줄에 적은 목표 글. 바뀐 줄만 내 목표로 옮긴다 — 목표 칸에서 고친 것을
   /// 다른 줄을 칠 때마다 되돌리지 않게.
   Map<String, String> _lineTargets = const {};
+  Timer? _targetsPush;
 
   /// 친 글을 초안으로 남긴다 — 서버에 안 닿아도 이 기기에는 남는다.
   /// 줄에 적은 무게·횟수("벤치 80kg 5회 3세트")는 이름에 섞지 않고 내 목표가 된다.
   void _keep() {
     final (:content, :targets) = _read();
     plan.draft = content.sameAs(plan.content) ? null : content;
-    for (final MapEntry(:key, :value) in targets.entries) {
-      if (_lineTargets[key] != value) {
-        plans.setTarget(plan, key, planTarget(value, widget.notes.weightUnit));
-      }
+    final ids = {for (final i in content.items) i.id};
+    final changes = {
+      // 줄에서 옮긴 목표인데 그 종목이 글에서 사라졌다 — 이름을 한 글자 고쳐도 새
+      // 종목이다. 고아로 쌓이지 않게 거둔다.
+      for (final id in _lineTargets.keys)
+        if (!ids.contains(id)) id: null,
+      for (final MapEntry(:key, :value) in targets.entries)
+        if (_lineTargets[key] != value)
+          key: planTarget(value, widget.notes.weightUnit),
+    };
+    for (final MapEntry(:key, :value) in changes.entries) {
+      plans.setTarget(plan, key, value, push: false);
+    }
+    // 치는 동안에는 모았다가 손을 멈추면 한 번 보낸다.
+    if (changes.isNotEmpty) {
+      _targetsPush?.cancel();
+      _targetsPush = Timer(
+        const Duration(seconds: 1),
+        () => unawaited(plans.pushTargets(plan)),
+      );
     }
     _lineTargets = targets;
     plans.save();

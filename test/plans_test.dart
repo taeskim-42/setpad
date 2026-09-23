@@ -1,8 +1,11 @@
 // 공동 루틴의 글 읽기·바뀐 것 찾기·운동 시작·다음 계획 복사.
 // 서버와의 합의 흐름은 integration/plan_server_test.dart 가 실제 서버로 검증한다.
 import 'package:flutter_test/flutter_test.dart';
+import 'dart:math';
+
 import 'package:setpad/editor.dart';
 import 'package:setpad/plans.dart';
+import 'package:setpad/workout_timing.dart';
 
 void main() {
   test('초대 링크에서 토큰을 꺼내고, 아닌 것은 건드리지 않는다', () {
@@ -110,6 +113,139 @@ Hip thrust 5 sets
     // 숫자로 시작하는 제목("5x5 스트렝스")이나 수가 없는 제목은 제목이다.
     expect(parsePlanText('5x5 스트렝스\n스쿼트 5x5').title, '5x5 스트렝스');
     expect(parsePlanText('민수식 로우 2\n스쿼트').title, '민수식 로우 2');
+  });
+
+  test('글 → 계획 → 글 → 계획이 같다 — 파서가 만든 계획은 다시 열어도 그대로다', () {
+    // 첫 줄에 목표만 있는 줄('벤치 80kg')도 섞는다. 그 계획은 제목이 없고, 글로
+    // 그리면 목표가 빠진 '벤치' 가 된다 — 그래도 제목으로 먹히면 안 된다.
+    const pool = [
+      '하체',
+      '스트롱리프트 5x5',
+      '5x5 스트렝스',
+      '벤치 80kg',
+      '로우 80 10',
+      '유산소 30분',
+      '벤치 100kg 도전',
+      '스쿼트 5세트',
+      '레그컬 x3',
+      '민수식 로우 2',
+      '민수식 로우 2 3세트',
+      '벤치 3x10',
+      '케틀벨 16kg 스윙 3세트',
+      'EMOM 10분 버피',
+      '스쿼트 20회 bpm 30 3세트',
+      '타바타 버피 x6 2세트',
+      '벤치 60세트',
+      '스쿼트 80x10',
+      '런지 x3 x4',
+      '데드 3 x 5',
+      'Hip thrust 5 sets',
+      '3x10 벤치',
+      '로우 80,10',
+      '벤치 80kg 5 3세트',
+      '플랭크 1분',
+      '스쿼트 bpm 30 20',
+      '벤치 80kg 5회 무릎 조심',
+    ];
+    final random = Random(7);
+    final texts = [
+      for (final first in pool) '$first\n스쿼트 5세트',
+      for (var n = 0; n < 300; n++)
+        [
+          for (var k = 0; k < 1 + random.nextInt(4); k++)
+            pool[random.nextInt(pool.length)],
+        ].join('\n'),
+    ];
+    for (final format in [(int n) => '$n세트', (int n) => '$n sets']) {
+      for (final text in texts) {
+        final c = parsePlanText(text);
+        final shown = planText(c.title, c.items, format);
+        for (final again in [
+          parsePlanText(shown, previous: c.items, title: c.title),
+          parsePlanText(shown, previous: c.items),
+        ]) {
+          expect(again.title, c.title, reason: '$text → $shown');
+          expect(
+            again.items.map((i) => (i.id, i.name, i.sets)),
+            c.items.map((i) => (i.id, i.name, i.sets)),
+            reason: '$text → $shown',
+          );
+        }
+      }
+    }
+    // 제목 없는 계획은 빈 첫 줄로 그린다 — 첫 종목이 제목이 되지 않게.
+    final untitled = parsePlanText('벤치 80kg\n스쿼트 5세트');
+    expect(untitled.title, '');
+    expect(
+      planText(untitled.title, untitled.items, (n) => '$n세트'),
+      '\n벤치\n스쿼트 5세트',
+    );
+  });
+
+  test('저장된 계획에 제목이 있으면 수가 든 옛 제목("스트롱리프트 5x5")도 제목이다', () {
+    const content = PlanContent(
+      title: '스트롱리프트 5x5',
+      items: [PlanItem(id: 'a', name: '스쿼트', sets: 5)],
+    );
+    final again = parsePlanText(
+      planText(content.title, content.items, (n) => '$n세트'),
+      previous: content.items,
+      title: content.title,
+    );
+    expect(again.title, '스트롱리프트 5x5');
+    expect(again.items.map((i) => (i.id, i.name, i.sets)), [('a', '스쿼트', 5)]);
+    // 새로 친 첫 줄은 여전히 종목처럼 읽는다.
+    expect(parsePlanText('스쿼트 4세트\n벤치', title: '하체').title, '');
+  });
+
+  test('계획 줄은 수 표기만 목표로 옮기고, 글 낱말과 타이머 표기는 이름에 남긴다', () {
+    final plan = parsePlanText('''
+하체
+케틀벨 16kg 스윙 3세트
+EMOM 10분 버피
+스쿼트 20회 bpm 30 3세트
+타바타 버피 x6 2세트
+벤치 80kg 5 3세트
+민수식 로우 2 80kg
+''');
+    expect(plan.items.map((i) => (i.name, i.sets)), [
+      ('케틀벨 스윙', 3),
+      ('EMOM 버피', 0),
+      ('스쿼트 bpm 30', 3),
+      ('타바타 버피 x6', 2),
+      ('벤치', 3),
+      ('민수식 로우 2', 0),
+    ]);
+    expect(plan.items.map((i) => plan.targets[i.id]), [
+      '16kg',
+      '10분',
+      '20회',
+      null,
+      '80kg 5',
+      '80kg',
+    ]);
+    // bpm 은 이름에 남아 타이머가 붙는다 — 무게로 지어지지 않는다.
+    expect(TimingSpec.parse(plan.items[2].name)?.bpm, 30);
+    expect(TimingSpec.parse(plan.items[3].name)?.rounds, 6);
+  });
+
+  test('세트 수 없이 목표만 적은 줄도 시작한 운동에서 사라지지 않는다 — 목표로 한 세트', () {
+    final plan = parsePlanText('하체\n벤치 80kg 5회\nEMOM 10분 버피\n로우 80 10\n풀업');
+    final blocks = blocksFromPlan(PlanContent(items: plan.items), {
+      for (final e in plan.targets.entries) e.key: planTarget(e.value, 'kg')!,
+    });
+    expect(blocks.map((b) => (b.name, b.sets.length)), [
+      ('벤치', 1),
+      ('EMOM 버피', 1),
+      ('로우', 1),
+      ('풀업', 0),
+    ]);
+    expect((blocks[0].sets.single.value, blocks[0].sets.single.reps), (80, 5));
+    expect(
+      (blocks[1].sets.single.value, blocks[1].sets.single.unit),
+      (10, 'min'),
+    );
+    expect(blocks.expand((b) => b.sets).every((s) => !s.done), isTrue);
   });
 
   test('세트 수로 못 쓰는 표기는 버리지 않고 목표 글에 친 그대로 남는다', () {

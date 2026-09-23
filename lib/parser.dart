@@ -253,7 +253,17 @@ final _spacedUnit = RegExp(
   caseSensitive: false,
 );
 final _repeat = RegExp(r'^[x×*](\d+)$', caseSensitive: false);
-final _bare = RegExp('^(?:$_num)\$');
+
+/// 맨숫자. 쉼표는 천 단위("1,200")만 — 쉼표 소수는 단위가 붙은 수("22,5kg")
+/// 에서만 읽는다. 맨 "80,10" 은 무게·횟수 두 수다([_commaRun]).
+final _bare = RegExp(r'^(?:\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)$');
+final _commaRun = RegExp(r'^\d+(?:,\d+)+$');
+
+/// 친 글의 낱말. 띄어 쓴 수와 단위("60 초")는 한 낱말이다.
+final _word = RegExp(
+  '\\S*\\d\\s+(?:$_units)$_tail(?=\\s|\$)|\\S+',
+  caseSensitive: false,
+);
 
 double _number(String s) => double.parse(
   RegExp(r'^\d{1,3}(?:,\d{3})+$').hasMatch(s)
@@ -277,7 +287,7 @@ const maxSetsPerLine = 20;
 ///
 /// **친 것은 버리지 않는다.** 자리가 이미 찬 뒤의 수(셋째 맨숫자, 두 번째
 /// 무게·시간)는 덮어쓰지 않고 메모에 친 그대로 남는다 — "80kg 10회 60초 휴식"
-/// 의 "60초 휴식", "1분 30초" 의 "30초".
+/// 의 "60초 휴식", "1분 30초" 의 "30초", "80 10 60초 휴식" 의 "60초 휴식".
 ParsedSet? parseSetLine(String line) {
   final parsed = _readSetLine(line);
   return parsed == null || parsed.count > maxSetsPerLine ? null : parsed;
@@ -288,17 +298,55 @@ bool tooManySets(String line) =>
     (_readSetLine(line)?.count ?? 0) > maxSetsPerLine;
 
 ParsedSet? _readSetLine(String line) {
-  final tokens = joinSpacedUnits(line.trim()).split(RegExp(r'\s+'));
+  final text = line.trim();
+  // 낱말과 그 자리. 메모는 자리에 들어간 낱말을 원문에서 빼고 남은 글이다.
+  final words = <({String t, int start, int end})>[];
+  for (final m in _word.allMatches(text)) {
+    final t = m[0]!.replaceAll(RegExp(r'\s+'), '');
+    if (!_commaRun.hasMatch(t) || _bare.hasMatch(t)) {
+      words.add((t: t, start: m.start, end: m.end));
+      continue;
+    }
+    // "80,10" → 80, 10. 쉼표는 앞 수의 몫이다 — 남는 수만 메모에 깔끔히 남는다.
+    final parts = RegExp(r'\d+').allMatches(t).toList();
+    for (final (k, p) in parts.indexed) {
+      words.add((
+        t: p[0]!,
+        start: m.start + p.start,
+        end: k + 1 < parts.length ? m.start + parts[k + 1].start : m.end,
+      ));
+    }
+  }
   double? value;
   String? unit;
   int? reps, count;
-  // 자리에 들어간 토큰. 나머지는 친 순서 그대로 메모가 된다.
+  // 자리에 들어간 낱말. 나머지는 친 그대로 메모가 된다.
   final used = <int>{};
+  // 아직 자리를 안 정한 맨숫자.
   final bare = <int>[];
+  void placeBare() {
+    for (final i in bare) {
+      final n = _number(words[i].t);
+      if (value == null && reps == null && bare.length > 1) {
+        value = n;
+      } else if (reps == null) {
+        reps = n.round();
+      } else if (value == null) {
+        value = n;
+      } else {
+        continue;
+      }
+      used.add(i);
+    }
+    bare.clear();
+  }
 
-  for (final (i, token) in tokens.indexed) {
-    final m = _unit.firstMatch(token);
+  for (final (i, word) in words.indexed) {
+    final m = _unit.firstMatch(word.t);
     if (m != null) {
+      // 맨숫자 둘이 먼저 왔으면 그게 무게·횟수다. 뒤의 "60초 휴식" 이 그 자리를
+      // 뺏지 않는다 — 친 순서대로 자리를 잡는다.
+      if (bare.length > 1) placeBare();
       final n = _number(m[1]!);
       // 친 단위를 그대로 남긴다. 예전에는 lb 를 kg 로 바꿔 저장해서
       // 파운드로 하는 사람의 숫자가 사라졌다.
@@ -317,34 +365,26 @@ ParsedSet? _readSetLine(String line) {
       used.add(i);
       continue;
     }
-    final repeat = _repeat.firstMatch(token);
+    final repeat = _repeat.firstMatch(word.t);
     if (repeat != null && count == null) {
       count = int.parse(repeat[1]!);
       used.add(i);
-    } else if (_bare.hasMatch(token)) {
+    } else if (_bare.hasMatch(word.t)) {
       bare.add(i);
     }
   }
-
-  for (final i in bare) {
-    final n = _number(tokens[i]);
-    if (value == null && reps == null && bare.length > 1) {
-      value = n;
-    } else if (reps == null) {
-      reps = n.round();
-    } else if (value == null) {
-      value = n;
-    } else {
-      continue;
-    }
-    used.add(i);
-  }
+  placeBare();
 
   if (value == null && reps == null) return null;
-  final note = [
-    for (final (i, t) in tokens.indexed)
-      if (!used.contains(i)) t,
-  ].join(' ');
+  final rest = <String>[];
+  var from = 0;
+  for (final (i, word) in words.indexed) {
+    if (!used.contains(i)) continue;
+    rest.add(text.substring(from, word.start).trim());
+    from = word.end;
+  }
+  rest.add(text.substring(from).trim());
+  final note = rest.where((s) => s.isNotEmpty).join(' ');
   return ParsedSet(
     value: value,
     unit: unit,

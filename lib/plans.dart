@@ -27,6 +27,7 @@ import 'notes.dart';
 import 'parser.dart';
 import 'partner.dart';
 import 'units.dart';
+import 'workout_timing.dart';
 
 final _random = Random();
 String _newId(String prefix) =>
@@ -118,11 +119,15 @@ final _setsMark = RegExp(
 
 /// 세트 수×횟수: "3x10", "5×5".
 final _setsByReps = RegExp(r'^(\d+)[x×*](\d+)$', caseSensitive: false);
-final _bareNumber = RegExp(r'^\d+(?:[.,]\d+)?$');
 
-/// 이름이 끝나는 자리 — 세트 수 표기, 'AxB', 수+단위("80kg", "10회"). 맨숫자는
-/// 이름일 수 있다("민수식 로우 2").
-bool _planMark(String w) =>
+/// 맨숫자 하나. 이름일 수 있다("민수식 로우 2").
+final _bareNumber = RegExp(r'^\d+(?:\.\d+)?$');
+final _bpmWord = RegExp(r'^bpm[:=]?$', caseSensitive: false);
+final _repeatMark = RegExp(r'^[x×*]\d+$', caseSensitive: false);
+final _roundsWord = RegExp(r'^(?:라운드|rounds?|ラウンド)$', caseSensitive: false);
+
+/// 수 표기 — 세트 수, 'AxB', 수+단위("80kg", "10회", "80,10").
+bool _numberMark(String w) =>
     _setsMark.hasMatch(w) ||
     _setsByReps.hasMatch(w) ||
     (!_bareNumber.hasMatch(w) &&
@@ -132,7 +137,11 @@ bool _planMark(String w) =>
         });
 
 /// 계획 한 줄 → 이름, 세트 수, 목표 글(무게·횟수 — 이름에 섞지 않는다).
-/// 이름이 없으면(표기만 있는 줄) null.
+///
+/// **이름에서는 수 표기만 뺀다** — 세트 수, 'AxB', 수+단위, 이어진 맨숫자("80
+/// 10"), 수 표기 바로 뒤의 맨숫자("80kg 5"). 그 사이·뒤의 글 낱말("케틀벨 16kg
+/// 스윙" 의 스윙)과 타이머 표기(bpm 30, 타바타의 x6·8 라운드)는 이름에 남는다 —
+/// 타이머는 이름에서 붙는다. 이름으로 시작하지 않는 줄("3x10 벤치")은 null.
 ({String name, int sets, String? target})? _planLine(String line) {
   final words = joinSpacedUnits(line)
       // 띄어 쓴 표기를 붙인다: "3 x 10" → "3x10", "x 3" → "x3".
@@ -144,19 +153,40 @@ bool _planMark(String w) =>
         RegExp(r'(^|\s)([x×*])\s+(?=\d)'),
         (m) => '${m[1]}${m[2]}',
       )
+      .trim()
       .split(RegExp(r'\s+'));
-  var cut = words.indexWhere(_planMark);
-  if (cut < 0) cut = words.length;
-  // 맨숫자가 둘 이상 이어지면 무게·횟수다("벤치 80 5") — 세트 줄과 같은 규칙.
-  var run = 0;
-  while (run < cut && _bareNumber.hasMatch(words[cut - 1 - run])) {
-    run++;
+  // ponytail: 타이머 표기는 흔한 셋만 본다(bpm N, 타바타의 xN·N 라운드). 더 필요하면
+  // TimingSpec 이 읽은 자리를 내주게 한다.
+  final tabata = TimingSpec.parse(line)?.tabata ?? false;
+  bool timer(int i) =>
+      (i > 0 &&
+          _bpmWord.hasMatch(words[i - 1]) &&
+          _bareNumber.hasMatch(words[i])) ||
+      (tabata &&
+          (_repeatMark.hasMatch(words[i]) ||
+              (_bareNumber.hasMatch(words[i]) &&
+                  i + 1 < words.length &&
+                  _roundsWord.hasMatch(words[i + 1]))));
+  final number = List.filled(words.length, false);
+  for (final (i, w) in words.indexed) {
+    if (timer(i)) continue;
+    number[i] =
+        _numberMark(w) ||
+        (_bareNumber.hasMatch(w) &&
+            ((i > 0 && number[i - 1]) ||
+                (i + 1 < words.length &&
+                    _bareNumber.hasMatch(words[i + 1]) &&
+                    !timer(i + 1))));
   }
-  if (run >= 2) cut -= run;
-  if (cut == 0) return null;
+  if (!number.contains(true)) return (name: line.trim(), sets: 0, target: null);
+  if (number.first) return null;
   int? sets;
-  final target = <String>[];
-  for (final w in words.skip(cut)) {
+  final name = <String>[], target = <String>[];
+  for (final (i, w) in words.indexed) {
+    if (!number[i]) {
+      name.add(w);
+      continue;
+    }
     final byReps = _setsByReps.firstMatch(w), mark = _setsMark.firstMatch(w);
     final n = int.tryParse(byReps?[1] ?? mark?[1] ?? mark?[2] ?? '');
     // 세트 수는 한 번, 서버가 받는 50까지. 넘거나 두 번째면 목표 글에 친 그대로 남는다.
@@ -168,7 +198,7 @@ bool _planMark(String w) =>
     }
   }
   return (
-    name: cut == words.length ? line.trim() : words.take(cut).join(' '),
+    name: name.join(' '),
     sets: sets ?? 0,
     target: target.isEmpty ? null : target.join(' '),
   );
@@ -176,7 +206,9 @@ bool _planMark(String w) =>
 
 /// 메모장처럼 친 글을 계획으로 읽는다. 첫 줄은 제목, 나머지는 한 줄에 한 종목:
 /// "스쿼트 4세트", "레그컬 x3", "벤치 3x10", "민수식 로우 2"(세트 수 없이 이름만).
-/// 첫 줄이 종목처럼 적혔으면("스쿼트 4세트") 제목 없이 전부 종목이다.
+/// 첫 줄이 종목처럼 적혔으면("스쿼트 4세트") 제목 없이 전부 종목이다. 첫 줄이
+/// 비었으면 제목이 없다 — [planText] 가 제목 없는 계획을 그렇게 그린다. 저장된
+/// 제목([title])과 같은 첫 줄은 수가 들어 있어도("스트롱리프트 5x5") 제목이다.
 ///
 /// **이름은 바꾸지 않는다.** 앞서 있던 종목과 이름이 같으면 그 id 를 잇는다 —
 /// 순서를 바꿔도 각자의 목표가 제 종목에 붙어 있어야 한다.
@@ -184,7 +216,11 @@ bool _planMark(String w) =>
 /// 무게·횟수("80kg 5회", 'AxB' 의 B)는 이름에 넣지 않고 [targets] 로 준다 —
 /// 종목 id → 목표 글. 목표는 각자의 것이라 공통 계획에 자리가 없다.
 ({String title, List<PlanItem> items, Map<String, String> targets})
-parsePlanText(String text, {List<PlanItem> previous = const []}) {
+parsePlanText(
+  String text, {
+  List<PlanItem> previous = const [],
+  String title = '',
+}) {
   final lines = text
       .split('\n')
       .map((l) => l.trim())
@@ -192,7 +228,11 @@ parsePlanText(String text, {List<PlanItem> previous = const []}) {
       .toList();
   if (lines.isEmpty) return (title: '', items: const [], targets: const {});
   final first = _planLine(lines.first);
-  final titled = first == null || (first.sets == 0 && first.target == null);
+  final titled =
+      text.split('\n').first.trim().isNotEmpty &&
+      (lines.first == title ||
+          first == null ||
+          (first.sets == 0 && first.target == null));
   final unused = [...previous];
   final items = <PlanItem>[];
   final targets = <String, String>{};
@@ -222,6 +262,7 @@ PlanTarget? planTarget(String typed, String unit) {
   );
 }
 
+/// 계획을 글로. 제목이 없으면 첫 줄이 빈다 — 첫 종목이 제목으로 읽히지 않게.
 String planText(
   String title,
   List<PlanItem> items,
@@ -501,7 +542,16 @@ List<ExerciseBlock> blocksFromPlan(
 ) => [
   for (final item in plan.items)
     ExerciseBlock(item.name, [
-      for (var s = 0; s < (targets[item.id]?.sets ?? item.sets); s++)
+      // 세트 수를 안 정했어도 목표가 있으면 한 세트로 둔다 — 목표가 사라지지 않게.
+      for (
+        var s = 0;
+        s <
+            max(
+              targets[item.id]?.sets ?? item.sets,
+              targets[item.id] == null ? 0 : 1,
+            );
+        s++
+      )
         LoggedSet(
           value: targets[item.id]?.value,
           unit: targets[item.id]?.unit ?? defaultUnit,
@@ -823,13 +873,19 @@ class PlanStore extends ChangeNotifier {
     return (plan: plan, error: null);
   }
 
-  void setTarget(SharedPlan plan, String itemId, PlanTarget? target) {
+  /// [push] 가 false 면 서버에는 부르는 쪽이 [pushTargets] 로 보낸다(치는 동안 모으기).
+  void setTarget(
+    SharedPlan plan,
+    String itemId,
+    PlanTarget? target, {
+    bool push = true,
+  }) {
     target == null || target.isEmpty
         ? plan.myTargets.remove(itemId)
         : plan.myTargets[itemId] = target;
     plan.targetsRevision++;
     save();
-    unawaited(pushTargets(plan));
+    if (push) unawaited(pushTargets(plan));
   }
 
   Future<void> pushTargets(SharedPlan plan) async {

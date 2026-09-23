@@ -332,6 +332,106 @@ void main() {
       expect(sets.first.notes, ['첫 세트', '무릎 아픔'], reason: '다른 세트는 그대로다');
     });
 
+    testWidgets('x3 을 친 채 같은 운동의 뒤 세트를 누르면 누른 그 세트를 고친다', (tester) async {
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 10')
+        ..addSet('70 8');
+      await pumpEditor(tester, c);
+      final sets = c.blocks.single.sets;
+      await tester.tap(find.text('1 80×10'));
+      await tester.pumpAndSettle();
+      await keys(tester, '80 10 x3');
+      await tester.tap(find.text('2 70×8'));
+      await tester.pumpAndSettle();
+      expect(typed(tester), '70kg 8', reason: '누른 세트가 열린다 — 방금 생긴 사본이 아니다');
+      await keys(tester, '75 8');
+      await tester.tap(padKey('완료'));
+      await tester.pumpAndSettle();
+      // 사본은 addSet 처럼 끝에 붙는다 — 같이 고치는 문서(서버·상대 화면)와 순서가 같다.
+      expect(sets.map((s) => (s.value, s.reps)), [
+        (80.0, 10),
+        (75.0, 8),
+        (80.0, 10),
+        (80.0, 10),
+      ]);
+    });
+
+    test('사본은 끝에 붙고 적은 사람을 물려받는다 — 상대 세트가 내 세트로 바뀌지 않는다', () {
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('60 10')
+        ..addSet('50 12');
+      c.blocks.single.sets.first.author = '민수';
+      c.extendSet(0, 0, note: '좋았음', count: 3);
+      expect(
+        c.blocks.single.sets.map((s) => (s.value, s.author, s.notes.join(','))),
+        [
+          (60.0, '민수', '좋았음'),
+          (50.0, null, ''),
+          (60.0, '민수', '좋았음'),
+          (60.0, '민수', '좋았음'),
+        ],
+      );
+    });
+
+    testWidgets('고치는 중에 다른 운동을 지워도 줄에 친 메모·xN 은 적용된다', (tester) async {
+      final c = RoutineEditorController()
+        ..addExercise('스쿼트')
+        ..addSet('100 5')
+        ..addExercise('벤치프레스')
+        ..addSet('80 10');
+      await pumpEditor(tester, c);
+      await tester.tap(find.text('1 80×10'));
+      await tester.pumpAndSettle();
+      await keys(tester, '80 10 x2 좋았음');
+      await tester.tap(find.byIcon(CupertinoIcons.trash).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CupertinoDialogAction, '삭제'));
+      await tester.pumpAndSettle();
+      expect(c.blocks.map((b) => b.name), ['벤치프레스']);
+      expect(
+        c.blocks.single.sets.map((s) => (s.value, s.reps, s.notes.join(','))),
+        [(80.0, 10, '좋았음'), (80.0, 10, '좋았음')],
+      );
+    });
+
+    testWidgets('고치는 중에 다른 운동을 지울 때 못 읽는 글은 입력칸에 남는다', (tester) async {
+      final c = RoutineEditorController()
+        ..addExercise('스쿼트')
+        ..addSet('100 5')
+        ..addExercise('벤치프레스')
+        ..addSet('80 10');
+      await pumpEditor(tester, c);
+      await tester.tap(find.text('1 80×10'));
+      await tester.pumpAndSettle();
+      await keys(tester, '80 10 x30');
+      await tester.tap(find.byIcon(CupertinoIcons.trash).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CupertinoDialogAction, '삭제'));
+      await tester.pumpAndSettle();
+      expect(c.blocks.map((b) => b.name), ['벤치프레스']);
+      expect(typed(tester), '80 10 x30');
+      expect(find.text('한 번에 20세트까지예요. 줄을 나눠 적어 주세요.'), findsOneWidget);
+    });
+
+    testWidgets('고치던 세트를 × 로 지워도 줄에 친 xN 은 버리지 않는다 — 사본이 남는다', (tester) async {
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 10')
+        ..addSet('70 8');
+      await pumpEditor(tester, c);
+      await tester.tap(find.text('2 70×8'));
+      await tester.pumpAndSettle();
+      await keys(tester, '70 8 x3 무릎');
+      await tester.tap(find.byIcon(CupertinoIcons.xmark));
+      await tester.pumpAndSettle();
+      expect(
+        c.blocks.single.sets.map((s) => (s.value, s.reps, s.notes.join(','))),
+        [(80.0, 10, ''), (70.0, 8, '무릎'), (70.0, 8, '무릎')],
+      );
+    });
+
     testWidgets('X16 한 줄에 20세트를 넘기면 자르지 않고, 글을 두고 이유를 말한다', (tester) async {
       final c = RoutineEditorController()..addExercise('푸시업');
       await pumpEditor(tester, c);

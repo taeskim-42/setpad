@@ -328,4 +328,119 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  group('계획 글은 다시 열어도 같은 계획이다', () {
+    Future<SharedPlan> open(
+      WidgetTester tester,
+      PlanContent content, {
+      void Function(http.Request)? onRequest,
+    }) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_plan_again_');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final notes = NotesStore(directory: dir);
+      addTearDown(notes.dispose);
+      final plans = PlanStore(
+        directory: dir,
+        link: () => GymLink(
+          endpoint: 'https://x',
+          token: 'member',
+          client: MockClient((r) async {
+            onRequest?.call(r);
+            throw http.ClientException('offline');
+          }),
+        ),
+      );
+      final plan = SharedPlan(localId: 'p', content: content)
+        ..id = 'srv'
+        ..owner = false
+        ..state = PlanState.pending
+        ..version = 2
+        ..myTargets = {'a': const PlanTarget(value: 80, unit: 'kg')};
+      plans.add(plan);
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: PlanPage(
+            plan: plan,
+            plans: plans,
+            notes: notes,
+            onOpenNote: (_) {},
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+      return plan;
+    }
+
+    Future<void> close(WidgetTester tester) async {
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 2));
+    }
+
+    testWidgets('첫 종목에 목표만 적어 제목 없이 저장된 계획 — 수락할 수 있고 종목과 목표가 보인다', (
+      tester,
+    ) async {
+      // '벤치 80kg\n스쿼트 5세트' 를 쳐서 올린 계획이 이렇다.
+      final plan = await open(
+        tester,
+        const PlanContent(
+          items: [
+            PlanItem(id: 'a', name: '벤치', sets: 0),
+            PlanItem(id: 'b', name: '스쿼트', sets: 5),
+          ],
+        ),
+      );
+      expect(plan.draft, isNull);
+      expect(find.text('버전 2 수락'), findsOneWidget);
+      expect(find.text('제안하기'), findsNothing);
+      expect(find.text('내 목표: 80kg'), findsOneWidget);
+      expect(find.text('스쿼트 · 5세트'), findsOneWidget);
+      await close(tester);
+    });
+
+    testWidgets('수가 든 옛 제목("스트롱리프트 5x5")은 제목으로 남아 수락할 수 있다', (tester) async {
+      final plan = await open(
+        tester,
+        const PlanContent(
+          title: '스트롱리프트 5x5',
+          items: [PlanItem(id: 'a', name: '스쿼트', sets: 5)],
+        ),
+      );
+      expect(plan.draft, isNull);
+      expect(find.text('버전 2 수락'), findsOneWidget);
+      expect(find.text('제안하기'), findsNothing);
+      await close(tester);
+    });
+
+    testWidgets('목표 글이 든 줄의 이름을 고쳐도 고아 목표가 쌓이지 않고, 목표는 한 번에 보낸다', (
+      tester,
+    ) async {
+      var puts = 0;
+      final plan = await open(
+        tester,
+        const PlanContent(
+          title: '하체',
+          items: [PlanItem(id: 'a', name: '벤치프레스', sets: 3)],
+        ),
+        onRequest: (r) {
+          if (r.method == 'PUT' && r.url.path.endsWith('/targets')) puts++;
+        },
+      );
+      final box = find.byKey(const ValueKey('plan-text'));
+      for (final name in ['벤치프레스', '벤치프레', '벤치프', '벤치', '벤', '벤치', '인클라인 벤치']) {
+        await tester.enterText(box, '하체\n$name 3세트 80kg 5회');
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      final ids = plan.shown.items.map((i) => i.id).toSet();
+      expect(plan.myTargets.keys.where((k) => !ids.contains(k)), isEmpty);
+      final mine = plan.myTargets[plan.shown.items.single.id]!;
+      expect((mine.value, mine.reps), (80, 5));
+      expect(puts, 0, reason: '치는 동안에는 보내지 않는다');
+      await tester.pump(const Duration(seconds: 2));
+      expect(puts, 1);
+      await close(tester);
+    });
+  });
 }

@@ -367,11 +367,12 @@ class RoutineEditorController extends ChangeNotifier {
   }
 
   /// 고친 세트 줄에 같이 친 것 — 메모는 그 세트에 더하고, "x3" 이면 같은 세트를
-  /// 바로 뒤에 더 둔다. 새로 친 세트 줄과 같다([addSet]).
+  /// 운동 끝에 더 둔다. 새로 친 세트 줄과 같다([addSet]) — 같이 고치는 문서도 새
+  /// 세트를 끝에 붙이므로 순서가 어긋나지 않는다. 사본은 적은 사람을 물려받는다.
   void extendSet(int block, int index, {String? note, int count = 1}) {
     final set = blocks[block].sets[index];
     if (note != null) set.notes.add(note);
-    blocks[block].sets.insertAll(index + 1, [
+    blocks[block].sets.addAll([
       for (var i = 1; i < count; i++)
         LoggedSet(
           value: set.value,
@@ -379,6 +380,7 @@ class RoutineEditorController extends ChangeNotifier {
           reps: set.reps,
           notes: [?note],
           done: set.done,
+          author: set.author,
         ),
     ]);
     notifyListeners();
@@ -1340,10 +1342,14 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   void _beginRecordEdit(
     ExerciseBlock block,
-    int? index, {
+    int? tapped, {
     bool selectAll = true,
   }) {
+    // 누른 세트는 번호가 아니라 그 세트로 잡는다 — 앞 편집을 끝내며 번호가 밀릴 수 있다.
+    final id = tapped == null ? null : block.sets[tapped].id;
     if (_editingRecord && !_finishRecordEdit()) return;
+    final index = id == null ? null : block.sets.indexWhere((s) => s.id == id);
+    if (index == -1) return;
     final resume = _draft;
     widget.mealText?.value = null;
     final set = index == null ? null : block.sets[index];
@@ -1438,9 +1444,11 @@ class _RoutineEditorState extends State<RoutineEditor>
     return true;
   }
 
+  /// [validate] 가 false 면(세트·운동을 지울 때) 못 읽는 글이어도 끝낸다. 읽히는
+  /// 줄의 메모·xN 은 그래도 적용한다 — 조용히 버리지 않는다.
   bool _finishRecordEdit({bool validate = true}) {
     if (!_editingRecord) return true;
-    if (validate && !_applyRecordEdit(done: true)) {
+    if (!_applyRecordEdit(done: true) && validate) {
       if (!_recordTitle) setState(() => _invalidSet = true);
       return false;
     }
@@ -2208,12 +2216,16 @@ class _RoutineEditorState extends State<RoutineEditor>
                           inputSet: _editing?.$2 ?? blocks[i].sets.length - 1,
                           isMemo: _wantText,
                           onToggle: (set) => _c.toggleDone(i, set),
+                          // 고치던 세트를 지운다. 줄에 같이 친 메모·xN 은 먼저
+                          // 적용한다 — "x3" 이면 그 사본은 남는다.
                           onRemoveSet: (set) {
                             _finishRecordEdit(validate: false);
                             _c.removeSet(i, set);
                           },
                           onRemoveBlock: (block) {
-                            _finishRecordEdit(validate: false);
+                            // 다른 운동을 지우면 고치던 줄은 평소처럼 확정한다 —
+                            // 못 읽는 글이면 입력칸에 이유와 함께 남는다.
+                            _finishRecordEdit(validate: i != openIndex);
                             _c.removeBlockObject(block);
                             _resumeElsewhere();
                           },
