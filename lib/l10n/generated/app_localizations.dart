@@ -331,6 +331,12 @@ abstract class L {
   /// **'세트를 먼저 입력해 주세요. 예: 60 12'**
   String get setRequired;
 
+  /// No description provided for @setsPerLineMax.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 번에 {n}세트까지예요. 줄을 나눠 적어 주세요.'**
+  String setsPerLineMax(int n);
+
   /// No description provided for @aiTitle.
   ///
   /// In ko, this message translates to:

@@ -151,6 +151,11 @@ class LZh extends L {
   String get setRequired => '请先输入一组，例如：60 12';
 
   @override
+  String setsPerLineMax(int n) {
+    return '每行最多 $n 组，请分成几行输入。';
+  }
+
+  @override
   String get aiTitle => '一句话设置';
 
   @override
@@ -1819,6 +1824,11 @@ class LZhHans extends LZh {
   String get setRequired => '请先输入一组，例如：60 12';
 
   @override
+  String setsPerLineMax(int n) {
+    return '每行最多 $n 组，请分成几行输入。';
+  }
+
+  @override
   String get aiTitle => '一句话设置';
 
   @override
@@ -3485,6 +3495,11 @@ class LZhHant extends LZh {
 
   @override
   String get setRequired => '請先輸入一組，例如：60 12';
+
+  @override
+  String setsPerLineMax(int n) {
+    return '每行最多 $n 組，請分成幾行輸入。';
+  }
 
   @override
   String get aiTitle => '一句話設定';

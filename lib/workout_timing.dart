@@ -99,29 +99,37 @@ class TimingSpec {
       rounds <= 99;
   int get duration => 3 + (work + rest) * rounds;
 
+  static final _bpmWord = RegExp(
+    r'(?<![a-z])bpm(?![a-z])',
+    caseSensitive: false,
+  );
+  static final _tabataWord = RegExp(
+    r'타바타|タバタ|(?<![a-z])tabata(?![a-z])',
+    caseSensitive: false,
+  );
+  static final _tempo = RegExp(
+    r'([+-]?\d+(?:[.,]\d+)?)\s*bpm(?![a-z])|(?<![a-z])bpm\s*[:=]?\s*([+-]?\d+(?:[.,]\d+)?)',
+    caseSensitive: false,
+  );
+  static final _interval = RegExp(
+    r'(\d+)\s*(?:초|s|sec)?\s*[/／]\s*(\d+)\s*(?:초|s|sec)?',
+    caseSensitive: false,
+  );
+  static final _repetitions = RegExp(
+    r'[x×]\s*(\d+)|(\d+)\s*(?:라운드|rounds?|ラウンド)',
+    caseSensitive: false,
+  );
+
   static TimingSpec? parse(String name) {
-    final bpmWord = RegExp(r'(?<![a-z])bpm(?![a-z])', caseSensitive: false);
-    final hasBpm = bpmWord.hasMatch(name);
-    final tabata = RegExp(
-      r'타바타|タバタ|(?<![a-z])tabata(?![a-z])',
-      caseSensitive: false,
-    ).hasMatch(name);
+    final hasBpm = _bpmWord.hasMatch(name);
+    final tabata = _tabataWord.hasMatch(name);
     if (!hasBpm && !tabata) return null;
-    final tempo = RegExp(
-      r'([+-]?\d+(?:[.,]\d+)?)\s*bpm(?![a-z])|(?<![a-z])bpm\s*[:=]?\s*([+-]?\d+(?:[.,]\d+)?)',
-      caseSensitive: false,
-    ).firstMatch(name);
+    final tempo = _tempo.firstMatch(name);
     final bpm = hasBpm
         ? (tempo == null ? 120 : int.tryParse(tempo[1] ?? tempo[2]!) ?? 0)
         : null;
-    final interval = RegExp(
-      r'(\d+)\s*(?:초|s|sec)?\s*[/／]\s*(\d+)\s*(?:초|s|sec)?',
-      caseSensitive: false,
-    ).firstMatch(name);
-    final repetitions = RegExp(
-      r'[x×]\s*(\d+)|(\d+)\s*(?:라운드|rounds?|ラウンド)',
-      caseSensitive: false,
-    ).firstMatch(name);
+    final interval = _interval.firstMatch(name);
+    final repetitions = _repetitions.firstMatch(name);
     return TimingSpec(
       bpm: bpm,
       tabata: tabata,
@@ -132,6 +140,17 @@ class TimingSpec {
           : int.parse(repetitions[1] ?? repetitions[2]!),
     );
   }
+
+  /// [parse] 가 이름에서 읽는 자리 — 템포("30 bpm", "bpm 30"), 타바타의 운동/휴식
+  /// 초("30초 / 15초")와 라운드("x8", "8 라운드"). 계획 줄은 이 자리를 목표로
+  /// 옮기지 않고 이름에 남긴다 — 타이머는 이름에서 붙는다.
+  static List<Match> marks(String name) => [
+    if (_bpmWord.hasMatch(name)) ?_tempo.firstMatch(name),
+    if (_tabataWord.hasMatch(name)) ...[
+      ?_interval.firstMatch(name),
+      ?_repetitions.firstMatch(name),
+    ],
+  ];
 
   @override
   bool operator ==(Object other) =>

@@ -37,6 +37,7 @@
   "doneEditing": "完了",
   "setInputHint": "重量  回数",
   "setRequired": "先にセットを入力してください。例: 60 12",
+  "setsPerLineMax": "1行で{n}セットまでです。行を分けて入力してください。",
   "aiTitle": "一文で設定",
   "aiReady": "利用可能",
   "aiChecking": "確認中",

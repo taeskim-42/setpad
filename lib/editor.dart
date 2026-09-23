@@ -388,6 +388,26 @@ class RoutineEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 고친 세트 줄에 같이 친 것 — 메모는 그 세트에 더하고, "x3" 이면 같은 세트를
+  /// 운동 끝에 더 둔다. 새로 친 세트 줄과 같다([addSet]) — 같이 고치는 문서도 새
+  /// 세트를 끝에 붙이므로 순서가 어긋나지 않는다. 사본은 적은 사람을 물려받는다.
+  void extendSet(int block, int index, {String? note, int count = 1}) {
+    final set = blocks[block].sets[index];
+    if (note != null) set.notes.add(note);
+    blocks[block].sets.addAll([
+      for (var i = 1; i < count; i++)
+        LoggedSet(
+          value: set.value,
+          unit: set.unit,
+          reps: set.reps,
+          notes: [?note],
+          done: set.done,
+          author: set.author,
+        ),
+    ]);
+    notifyListeners();
+  }
+
   void moveBlock(int from, int to) {
     if (from < 0 || from >= blocks.length || to < 0 || to >= blocks.length) {
       return;
@@ -1432,10 +1452,14 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   void _beginRecordEdit(
     ExerciseBlock block,
-    int? index, {
+    int? tapped, {
     bool selectAll = true,
   }) {
+    // 누른 세트는 번호가 아니라 그 세트로 잡는다 — 앞 편집을 끝내며 번호가 밀릴 수 있다.
+    final id = tapped == null ? null : block.sets[tapped].id;
     if (_editingRecord && !_finishRecordEdit()) return;
+    final index = id == null ? null : block.sets.indexWhere((s) => s.id == id);
+    if (index == -1) return;
     final resume = _draft;
     widget.mealText?.value = null;
     final set = index == null ? null : block.sets[index];
@@ -1472,15 +1496,21 @@ class _RoutineEditorState extends State<RoutineEditor>
     _saveDraft();
   }
 
-  bool _applyRecordEdit() {
+  /// 치는 대로 부르고([done] 아님), 편집을 끝낼 때 한 번 더 부른다([done]).
+  /// 줄에 같이 친 메모와 "x3" 은 끝낼 때 한 번만 쓴다 — 치는 도중(x → x3 →
+  /// x30)에 세트를 늘렸다 줄였다 하지 않고, 메모가 글자마다 쌓이지 않게.
+  bool _applyRecordEdit({bool done = false}) {
     if (!_editingRecord || !_c.inBlock) return false;
     if (_input.value.composing.isValid && !_input.value.composing.isCollapsed) {
       return false;
     }
+    final parsed = _recordTitle ? null : parseSetLine(_text);
+    final extra =
+        done && parsed != null && (parsed.note != null || parsed.count > 1);
     // 연 뒤로 한 글자도 안 바꿨으면 아무것도 쓰지 않는다. 그사이 같이 고치는
     // 사람이 이 칸을 바꿨다면, 내가 열 때의 값으로 되돌리면 안 된다.
     // (쳤다가 원래대로 되돌린 것은 고친 것이다 — 중간 값이 남아 있다.)
-    if (_text == _recordStartText && !_recordTouched) return true;
+    if (_text == _recordStartText && !_recordTouched && !extra) return true;
     _recordTouched = true;
     if (_recordTitle) {
       final name = _text.trim();
@@ -1492,7 +1522,6 @@ class _RoutineEditorState extends State<RoutineEditor>
       }
       return true;
     }
-    final parsed = parseSetLine(_text);
     final index = _recordSet!;
     if (index >= _c.blocks[_c.activeIndex].sets.length) return false;
     if (parsed == null) {
@@ -1501,26 +1530,35 @@ class _RoutineEditorState extends State<RoutineEditor>
       return false;
     }
     final previous = _c.blocks[_c.activeIndex].sets[index];
-    if (previous.value == parsed.value &&
-        previous.reps == parsed.reps &&
-        previous.unit == (parsed.unit ?? previous.unit)) {
-      return true;
+    if (previous.value != parsed.value ||
+        previous.reps != parsed.reps ||
+        previous.unit != (parsed.unit ?? previous.unit)) {
+      _c.updateSet(
+        _c.activeIndex,
+        index,
+        LoggedSet(
+          value: parsed.value,
+          unit: parsed.unit ?? previous.unit,
+          reps: parsed.reps,
+        ),
+      );
     }
-    _c.updateSet(
-      _c.activeIndex,
-      index,
-      LoggedSet(
-        value: parsed.value,
-        unit: parsed.unit ?? previous.unit,
-        reps: parsed.reps,
-      ),
-    );
+    if (extra) {
+      _c.extendSet(
+        _c.activeIndex,
+        index,
+        note: parsed.note,
+        count: parsed.count,
+      );
+    }
     return true;
   }
 
+  /// [validate] 가 false 면(세트·운동을 지울 때) 못 읽는 글이어도 끝낸다. 읽히는
+  /// 줄의 메모·xN 은 그래도 적용한다 — 조용히 버리지 않는다.
   bool _finishRecordEdit({bool validate = true}) {
     if (!_editingRecord) return true;
-    if (validate && !_applyRecordEdit()) {
+    if (!_applyRecordEdit(done: true) && validate) {
       if (!_recordTitle) setState(() => _invalidSet = true);
       return false;
     }
@@ -2018,7 +2056,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// **새 세트 자리**로 간다. 새 세트는 거기서 확정해야 생긴다. "완료" 는
   /// 편집을 끝내고 있던 자리로 돌아가므로 둘은 다른 일을 한다.
   void _addSetAfterEdit() {
-    if (!_applyRecordEdit()) {
+    if (!_applyRecordEdit(done: true)) {
       setState(() => _invalidSet = true);
       return;
     }
@@ -2316,12 +2354,16 @@ class _RoutineEditorState extends State<RoutineEditor>
                           inputSet: _editing?.$2 ?? blocks[i].sets.length - 1,
                           isMemo: _wantText,
                           onToggle: (set) => _c.toggleDone(i, set),
+                          // 고치던 세트를 지운다. 줄에 같이 친 메모·xN 은 먼저
+                          // 적용한다 — "x3" 이면 그 사본은 남는다.
                           onRemoveSet: (set) {
                             _finishRecordEdit(validate: false);
                             _c.removeSet(i, set);
                           },
                           onRemoveBlock: (block) {
-                            _finishRecordEdit(validate: false);
+                            // 다른 운동을 지우면 고치던 줄은 평소처럼 확정한다 —
+                            // 못 읽는 글이면 입력칸에 이유와 함께 남는다.
+                            _finishRecordEdit(validate: i != openIndex);
                             _c.removeBlockObject(block);
                             _resumeElsewhere();
                           },
@@ -2645,7 +2687,9 @@ class _RoutineEditorState extends State<RoutineEditor>
           ),
           if (_invalidSet)
             Text(
-              L.of(context).setRequired,
+              tooManySets(_text)
+                  ? L.of(context).setsPerLineMax(maxSetsPerLine)
+                  : L.of(context).setRequired,
               style: TextStyle(
                 fontSize: 13,
                 color: CupertinoColors.secondaryLabel.resolveFrom(context),

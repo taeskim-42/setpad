@@ -151,6 +151,11 @@ class LJa extends L {
   String get setRequired => '先にセットを入力してください。例: 60 12';
 
   @override
+  String setsPerLineMax(int n) {
+    return '1行で$nセットまでです。行を分けて入力してください。';
+  }
+
+  @override
   String get aiTitle => '一文で設定';
 
   @override

@@ -25,8 +25,228 @@ void main() {
       expect(parseSetLine('100kg 20회')?.count, 1);
     });
 
-    test('세트 수는 20을 넘지 않는다', () {
-      expect(parseSetLine('60kg 10회 x99')?.count, 20);
+    test('X16 세트 반복이 20을 넘으면 자르지 않고 거절하고, 이유를 알 수 있다', () {
+      expect(parseSetLine('60kg 10회 x20')?.count, 20);
+      expect(parseSetLine('60kg 10회 x30'), isNull);
+      expect(parseSetLine('맨몸 스쿼트 20회 25세트'), isNull);
+      expect(tooManySets('60kg 10회 x30'), isTrue);
+      expect(tooManySets('60kg 10회 x20'), isFalse);
+      expect(tooManySets('그냥 메모'), isFalse);
+    });
+
+    test('자리가 찬 뒤의 수는 덮어쓰지도 버리지도 않고 메모에 친 그대로 남는다', () {
+      expect(
+        parseSetLine('80 10 8 6'),
+        const ParsedSet(value: 80, reps: 10, note: '8 6'),
+      );
+      expect(
+        parseSetLine('10 10 10'),
+        const ParsedSet(value: 10, reps: 10, note: '10'),
+      );
+      // 두 번째 값+단위는 앞의 값을 덮지 않는다.
+      expect(
+        parseSetLine('80kg 10회 60초 휴식'),
+        const ParsedSet(value: 80, unit: 'kg', reps: 10, note: '60초 휴식'),
+      );
+      expect(
+        parseSetLine('5km 25분'),
+        const ParsedSet(value: 5, unit: 'km', note: '25분'),
+      );
+      expect(
+        parseSetLine('1분 30초'),
+        const ParsedSet(value: 1, unit: 'min', note: '30초'),
+      );
+      // 두 번째 횟수·세트 표기도 메모다.
+      expect(parseSetLine('80 10회 12회')?.note, '12회');
+      expect(parseSetLine('80 10 x3 x4')?.count, 3);
+      expect(parseSetLine('80 10 x3 x4')?.note, 'x4');
+      // 메모 글과 섞여도 친 순서 그대로다.
+      expect(parseSetLine('80 10 무릎 8 아픔')?.note, '무릎 8 아픔');
+      // 앞 자리가 빈 수는 그대로 채운다.
+      expect(parseSetLine('20회 100'), const ParsedSet(value: 100, reps: 20));
+    });
+
+    test('키로·킬로는 kg 이다', () {
+      expect(
+        parseSetLine('80키로 12개'),
+        const ParsedSet(value: 80, unit: 'kg', reps: 12),
+      );
+      expect(parseSetLine('80킬로 12개')?.unit, 'kg');
+      expect(parseSetLine('80 키로 12개')?.value, 80);
+      // 키로 뒤의 수는 횟수라 하나씩 민다.
+      expect(bumpLastNumber('80키로 10', 1), '80키로 11');
+    });
+
+    test('쉼표 소수와 천 단위', () {
+      expect(
+        parseSetLine('22,5kg 10'),
+        const ParsedSet(value: 22.5, unit: 'kg', reps: 10),
+      );
+      expect(parseSetLine('1,000m')?.value, 1000);
+      expect(parseSetLine('1,000m')?.unit, 'm');
+      expect(parseSetLine('1,200 3')?.value, 1200);
+    });
+
+    test('쉼표 소수는 단위가 붙은 수에서만 — 맨 "80,10" 은 무게·횟수 두 수다', () {
+      expect(parseSetLine('80,10'), const ParsedSet(value: 80, reps: 10));
+      expect(parseSetLine('100,5'), const ParsedSet(value: 100, reps: 5));
+      expect(
+        parseSetLine('60,12 무릎'),
+        const ParsedSet(value: 60, reps: 12, note: '무릎'),
+      );
+      // 남는 수는 메모에 친 그대로다.
+      expect(parseSetLine('80,10,8')?.note, '8');
+      // 뒤에 횟수가 따로 있으면 쉼표 소수 무게다(es·vi) — 두 수로 쪼개지 않는다.
+      expect(parseSetLine('22,5 10'), const ParsedSet(value: 22.5, reps: 10));
+    });
+
+    // 세트 줄을 읽는 한 규칙(parser.dart parseSetLine 위의 1-3). 한 칸은
+    // (친 줄, main(b29894a) 이 읽은 것, 지금 읽는 것). main 칸은 비교용 기록이다
+    // — 지난 리뷰 두 번에 나온 줄을 전부 넣었다. 표기: 무게×횟수, x세트, 「메모」.
+    test('세트 줄은 한 규칙으로 읽는다 — 친 순서, 쉼표, main 과 나란히', () {
+      String show(ParsedSet? p) => p == null
+          ? '거절'
+          : [
+              '${p.value == null ? '-' : '${formatNumber(p.value!)}${p.unit ?? ''}'}'
+                  '×${p.reps ?? '-'}',
+              if (p.count > 1) 'x${p.count}',
+              if (p.note != null) '「${p.note}」',
+            ].join(' ');
+      const table = [
+        // 맨숫자: 하나면 횟수, 둘이면 무게·횟수.
+        ('100 20', '100×20', '100×20'),
+        ('12', '-×12', '-×12'),
+        ('20회', '-×20', '-×20'),
+        ('10 80kg', '80kg×10', '80kg×10'),
+        ('80kg 10', '80kg×10', '80kg×10'),
+        ('80 10회', '80×10', '80×10'),
+        ('10회 80', '80×10', '80×10'),
+        // 맨 무게를 친 뒤의 시간·거리는 메모다 — 무게 자리를 뺏지 않는다.
+        ('80 10 60초 휴식', '60s×80 「휴식」', '80×10 「60초 휴식」'),
+        ('80 10 휴식 60초', '60s×80 「휴식」', '80×10 「휴식 60초」'),
+        ('80 10 5분에 한번', '80×10 「5분에 한번」', '80×10 「5분에 한번」'),
+        ('100 5 3분 쉬고', '3min×100 「쉬고」', '100×5 「3분 쉬고」'),
+        ('80 10 x3 90초', '90s×80 x3', '80×10 x3 「90초」'),
+        ('80 10 3세트', '80×10 x3', '80×10 x3'),
+        ('80 10 3세트 90초', '90s×80 x3', '80×10 x3 「90초」'),
+        ('80 10 3 세트', '80×10 x3', '80×10 x3'),
+        // 횟수 단위가 있으면 맨숫자는 무게다 — 뒤의 시간은 메모.
+        ('80 10회 5분에', '80×10 「5분에」', '80×10 「5분에」'),
+        ('80 10회 5분', '5min×10', '80×10 「5분」'),
+        ('80 10개 5분에 한번', '80×10 「5분에 한번」', '80×10 「5분에 한번」'),
+        ('80 10회 60초 휴식', '60s×10 「휴식」', '80×10 「60초 휴식」'),
+        ('80 10회 휴식 1분', '1min×10 「휴식」', '80×10 「휴식 1분」'),
+        ('80 5분에 10회', '80×10 「5분에」', '80×10 「5분에」'),
+        ('10회 80 60초', '60s×10', '80×10 「60초」'),
+        ('80kg 10회 5분에', '80kg×10 「5분에」', '80kg×10 「5분에」'),
+        ('80kg 10회 60초 휴식', '60s×10 「휴식」', '80kg×10 「60초 휴식」'),
+        ('80kg 10회 60 초  휴식', '60s×10 「휴식」', '80kg×10 「60 초  휴식」'),
+        // 자리가 찬 뒤의 수는 메모 — main 은 덮어쓰거나 버렸다.
+        ('80 10회 2', '80×10', '80×10 「2」'),
+        ('80 10회 12회', '80×12', '80×10 「12회」'),
+        ('80 10 8 6', '80×10', '80×10 「8 6」'),
+        ('10 10 10', '10×10', '10×10 「10」'),
+        ('80kg 10 20kg', '20kg×10', '80kg×10 「20kg」'),
+        ('10 12 20kg', '20kg×10', '10×12 「20kg」'),
+        ('5km 30분', '30min×-', '5km×- 「30분」'),
+        ('1분 30초', '30s×-', '1min×- 「30초」'),
+        ('80 10 x 3', '80×10 「x」', '80×10 「x 3」'),
+        // 맨숫자 하나 + 시간은 main 그대로(시간 × 횟수).
+        ('80 x10 60초', '60s×80 x10', '60s×80 x10'),
+        ('60초 3', '60s×3', '60s×3'),
+        ('3 60초', '60s×3', '60s×3'),
+        ('80 lb 10', '80lb×10', '80lb×10'),
+        ('무릎 80 10', '80×10 「무릎」', '80×10 「무릎」'),
+        ('80 무릎 10', '80×10 「무릎」', '80×10 「무릎」'),
+        ('80kg에 10개', '-×10 「80kg에」', '80kg×10'),
+        ('3 회로', '-×3 「회로」', '-×3'),
+        // 쉼표: 뒤가 한두 자리면 소수 — 단위 무게이거나, 맨숫자는 횟수가 따로
+        // 있을 때만. 정확히 세 자리면 천 단위. 그 밖(횟수·세트 단위, 혼자 친
+        // 맨 "A,B")은 두 수다.
+        ('22,5 10', '-×10 「22,5」', '22.5×10'),
+        ('80,5 10', '-×10 「80,5」', '80.5×10'),
+        ('1,20 3', '-×3 「1,20」', '1.2×3'),
+        ('1,5 10', '-×10 「1,5」', '1.5×10'),
+        ('10회 22,5', '-×10 「22,5」', '22.5×10'),
+        ('22,5kg 10', '-×10 「22,5kg」', '22.5kg×10'),
+        ('12,5kg 10', '-×10 「12,5kg」', '12.5kg×10'),
+        ('80,5kg 10회', '-×10 「80,5kg」', '80.5kg×10'),
+        ('80,10kg', '거절', '80.1kg×-'),
+        ('1,000m', '거절', '1000m×-'),
+        ('1,000', '거절', '-×1000'),
+        ('1,200 3', '-×3 「1,200」', '1200×3'),
+        ('80,10', '거절', '80×10'),
+        ('100,5', '거절', '100×5'),
+        ('60,12', '거절', '60×12'),
+        ('22,5', '거절', '22×5'),
+        ('60,12 무릎', '거절', '60×12 「무릎」'),
+        ('80,10,8', '거절', '80×10 「8」'),
+        ('80, 10', '-×10 「80,」', '80×10'),
+        ('80,10회', '거절', '80×10'),
+        ('100,5회', '거절', '100×5'),
+        ('80,10개', '거절', '80×10'),
+        ('60,12reps', '거절', '60×12'),
+        ('3,5세트', '거절', '-×3 x5'),
+        ('80 3,5세트', '-×80 「3,5세트」', '80×3 x5'),
+        // 20세트 초과: main 은 20 으로 잘랐다. 이제는 거절하고 이유를 말한다.
+        ('80 10 x21', '80×10 x20', '거절'),
+        ('x25 80 10', '80×10 x20', '거절'),
+      ];
+      for (final (line, main, now) in table) {
+        expect(show(parseSetLine(line)), now, reason: '$line (main: $main)');
+      }
+    });
+
+    test('맨숫자로 무게·횟수를 먼저 쳤으면 뒤의 값+단위는 그 자리를 뺏지 않고 메모다', () {
+      expect(
+        parseSetLine('80 10 60초 휴식'),
+        const ParsedSet(value: 80, reps: 10, note: '60초 휴식'),
+      );
+      expect(
+        parseSetLine('80 10 5분에 한번'),
+        const ParsedSet(value: 80, reps: 10, note: '5분에 한번'),
+      );
+      expect(
+        parseSetLine('100 5 3분 쉬고'),
+        const ParsedSet(value: 100, reps: 5, note: '3분 쉬고'),
+      );
+      expect(
+        parseSetLine('80 10 x3 90초'),
+        const ParsedSet(value: 80, reps: 10, note: '90초', count: 3),
+      );
+      expect(
+        parseSetLine('80 10 3세트'),
+        const ParsedSet(value: 80, reps: 10, count: 3),
+      );
+      // 맨숫자가 하나뿐이면 단위 쪽이 먼저다(지금처럼).
+      expect(parseSetLine('80 10회'), const ParsedSet(value: 80, reps: 10));
+      expect(
+        parseSetLine('10 80kg'),
+        const ParsedSet(value: 80, unit: 'kg', reps: 10),
+      );
+    });
+
+    test('메모는 친 글 그대로다 — 띄어 쓴 수와 단위, 겹친 공백도', () {
+      expect(parseSetLine('80kg 10회 60 초 휴식')?.note, '60 초 휴식');
+      expect(parseSetLine('80 10  무릎   아픔')?.note, '무릎   아픔');
+      expect(parseSetLine('80kg 좋았음 10회 힘듦')?.note, '좋았음 힘듦');
+      // 띄어 쓴 단위는 여전히 읽는다.
+      expect(
+        parseSetLine('80 kg 10 회'),
+        const ParsedSet(value: 80, unit: 'kg', reps: 10),
+      );
+    });
+
+    test('수+단위 뒤의 조사·접미사는 떼고 읽는다', () {
+      expect(
+        parseSetLine('80kg에 10개'),
+        const ParsedSet(value: 80, unit: 'kg', reps: 10),
+      );
+      expect(parseSetLine('10회씩 3세트'), const ParsedSet(reps: 10, count: 3));
+      expect(parseSetLine('20kg짜리 12')?.value, 20);
+      expect(parseSetLine('80키로로 5개')?.value, 80);
+      expect(parseSetLine('80kg으로 5회')?.unit, 'kg');
+      expect(parseSetLine('80 kg에 10개')?.value, 80);
     });
 
     test('숫자를 다 먹고 남은 것이 메모다', () {

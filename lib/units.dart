@@ -47,6 +47,7 @@ const defaultUnit = 'kg';
 const _aliases = <String, String>{
   'kg': 'kg',
   '킬로': 'kg',
+  '키로': 'kg', // 입말 표기. "80키로"
   'kilo': 'kg',
   'kilos': 'kg',
   'キロ': 'kg',

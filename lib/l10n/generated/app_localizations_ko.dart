@@ -151,6 +151,11 @@ class LKo extends L {
   String get setRequired => '세트를 먼저 입력해 주세요. 예: 60 12';
 
   @override
+  String setsPerLineMax(int n) {
+    return '한 번에 $n세트까지예요. 줄을 나눠 적어 주세요.';
+  }
+
+  @override
   String get aiTitle => '한 줄 설정';
 
   @override

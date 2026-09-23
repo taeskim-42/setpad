@@ -37,6 +37,7 @@
   "doneEditing": "Listo",
   "setInputHint": "Peso  Reps",
   "setRequired": "Primero introduce una serie, p. ej. 60 12.",
+  "setsPerLineMax": "Hasta {n} series por línea. Divídelo en varias líneas.",
   "aiTitle": "Configurar con una frase",
   "aiReady": "Disponible",
   "aiChecking": "Comprobando",
