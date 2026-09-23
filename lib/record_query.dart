@@ -823,7 +823,26 @@ class RecordQuery {
         if (_seriesKeys.contains(e.key)) e.key: e.value,
     };
     final listed = m['exercises'] is List ? m['exercises'] as List : const [];
-    if (listed.length > 8) throw const QueryLimit('exercises');
+    if (listed.length > 8) {
+      // 한도는 사람이 이름을 아홉 넘게 적었을 때의 까닭이다. 적지 않았는데 모델이
+      // 부류("밀기 당기기")를 이름으로 풀어 적었으면 모델의 목록이라, 모두 기록
+      // 이름이면 한 줄씩 보이고 아니면 읽지 못한 것이다 — 한도 문구는 사람 탓이다.
+      final typed = namedExercises(question, [
+        ...names,
+        ...listed.whereType<String>(),
+      ], fuzzy: false);
+      if (question.isEmpty || typed.length > 8) {
+        throw const QueryLimit('exercises');
+      }
+      for (final e in listed) {
+        final r = e is String && e.trim().isNotEmpty && e.length <= 40
+            ? _resolveName(e.trim(), book, lang)
+            : null;
+        if (r == null || r.never || r.readAs != null) {
+          throw const FormatException('Listed names not asked');
+        }
+      }
+    }
     // 같은 운동을 두 이름으로 적었으면("벤치프레스", "벤치") 한 줄이다.
     final topNames = [
       ...{for (final e in listed) name(e)},
@@ -1048,7 +1067,13 @@ Series _series(
       'months': 120,
       'years': 10,
     }[by];
-    if (max == null || n is! int || n == 0 || n.abs() > max) {
+    // 음수는 창을 앞(뒤의 날)으로 민다 — 글이 뒤를 말할 때만이다. -N 을 'N 전'
+    // 으로 쓰는 모델도 있어 부호만으로는 뜻이 둘이다.
+    if (max == null ||
+        n is! int ||
+        n == 0 ||
+        n.abs() > max ||
+        (n < 0 && !_forward.hasMatch(question))) {
       throw const FormatException('Invalid shift');
     }
     if (since == null && until == null) {
@@ -1861,7 +1886,10 @@ Map<String, String> _ground(
           x.containsKey('sessions'),
     );
     final overwrite =
-        !hasSeries && !picksDays && !_comparing.hasMatch(question);
+        !hasSeries &&
+        !picksDays &&
+        !_comparing.hasMatch(question) &&
+        !_inside(m, stated, today);
     if ((!all.any(dated) && !picksDays) || overwrite) {
       m.removeWhere((k, _) => _periodKeys.contains(k));
       for (final x in items) {
@@ -1977,6 +2005,39 @@ Map<String, String> _ground(
   return dropped;
 }
 
+/// 모델이 적은 날짜 범위(since·until)가 글의 기간 안에 드는가. "이번 달 첫째
+/// 주"·"올해 상반기"·"지난주 월요일" 은 글의 기간 낱말(이번 달·올해·지난주)보다
+/// 좁다 — 그 좁은 범위는 모델의 맞는 읽기라 덮지 않는다. 이름 붙은 다른 기간과
+/// 글의 기간 밖의 날짜(연도 없는 "9월" 의 작년)는 여전히 글이다.
+bool _inside(
+  Map<String, Object?> m,
+  ({String period, int? days, String? since, String? until}) stated,
+  DateTime? today,
+) {
+  if (m['since'] == null && m['until'] == null) return false;
+  try {
+    final got = resolvePeriod(
+      m['period'],
+      since: m['since'],
+      until: m['until'],
+      today: today,
+    );
+    final said = resolvePeriod(
+      stated.period,
+      days: stated.days,
+      since: stated.since,
+      until: stated.until,
+      today: today,
+    );
+    return got.since != null &&
+        got.until != null &&
+        !got.since!.isBefore(said.since!) &&
+        !got.until!.isAfter(said.until!);
+  } on FormatException {
+    return false;
+  }
+}
+
 /// 뜻이 하나뿐인 의도 낱말. 모델이 이것과 다른 측정을 적었으면 글과 어긋난
 /// 것이다. '몇 번'(세트? 날?)·'총 몇 회'(반복? 운동한 번?)·'추이'·'평균'·
 /// '최고'(무게? 횟수?)·'저번'(저번 주?)은 뜻이 둘이라 여기 없다 — 비었을 때만
@@ -2013,6 +2074,12 @@ final _plainWords = {
 /// "요즘 어때" 는 기간이 아니라 추이를 묻는 말이다([_metricWords]).
 final _vague = RegExp(
   r'(요즘|요새)(?!\s*어때)|최근(?!\s*(\d|에\s*언제))|lately|recently|these\s*days',
+  caseSensitive: false,
+);
+
+/// 뒤의 때를 말하는 낱말("그 다음주", "after"). 음수 shift 는 이것이 있을 때만이다.
+final _forward = RegExp(
+  r'다음|그\s*뒤|\bafter\b|\bnext\b|following|之后|之後|その後|翌',
   caseSensitive: false,
 );
 
@@ -4735,7 +4802,7 @@ statedFilters(String text) {
   String? unit;
   // Do not flatten alternatives, exclusions, or different units into one range.
   if (RegExp(
-    r'말고|제외|아닌|아니라|또는|혹은|或|または|もしくは|\b(?:not|except)\b|\bor\s+(?!more\b|less\b)',
+    r'말고|제외|빼고|빼면|뺀|아닌|아니라|또는|혹은|或|または|もしくは|除了|除外|以外|\b(?:not|except|excluding|without)\b|\bor\s+(?!more\b|less\b)',
     caseSensitive: false,
   ).hasMatch(text)) {
     return (
@@ -4771,8 +4838,10 @@ statedFilters(String text) {
       maxW = maxW == null || v < maxW ? v : maxW;
     }
   }
+  // 반복 수는 '회·개·回·reps' 로 적은 것만 — "5번 이상"·"5次以上" 은 날·횟수일
+  // 수도 있다(지시문도 몇 번·几次 를 운동한 날로 읽는다).
   final reps = RegExp(
-    r'(\d+|[일이삼사오육칠팔구십백]+)\s*(회|개|번|次|回|reps?)\s*(이상|이하|以上|以下|or more|or less)',
+    r'(\d+|[일이삼사오육칠팔구십백]+)\s*(회|개|回|reps?)\s*(이상|이하|以上|以下|or more|or less)',
     caseSensitive: false,
   );
   for (final m in reps.allMatches(text)) {

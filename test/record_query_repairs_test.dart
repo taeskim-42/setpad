@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -441,8 +443,10 @@ void main() {
         'measures': ['latest'],
       });
       expect(zero.scope.since, DateTime(2026, 8, 1));
-      // "연휴 전주랑 다음주" — 음수 shift 는 앞으로 민다.
-      final around = read({
+      // "연휴 전주랑 다음주" — 음수 shift 는 글이 뒤(다음·그 뒤·after)를 말할 때만
+      // 앞으로 민다. 부호 관례는 뜻이 둘이라(-N 을 'N 전' 으로 쓰는 모델도 있다)
+      // 그 밖에는 전처럼 거절한다 — 미래 창을 조용히 보이지 않는다.
+      final forward = {
         'period': 'custom',
         'since': '2026-09-07',
         'until': '2026-09-11',
@@ -455,11 +459,26 @@ void main() {
             'shift': {'weeks': -1},
           },
         ],
-      });
+      };
+      final around = read(forward, q: '9월 7일부터 11일까지 연휴였는데 그 전주랑 그 다음주 볼륨');
       expect(around.series.map((s) => s.scope.since), [
         DateTime(2026, 8, 31),
         DateTime(2026, 9, 14),
       ]);
+      expect(
+        () => read({
+          'period': 'recent',
+          'days': 21,
+          'measures': ['setCount'],
+          'series': [
+            {
+              'shift': {'weeks': -3},
+            },
+            {},
+          ],
+        }, q: '최근 3주랑 그 전 3주 세트 수'),
+        throwsFormatException,
+      );
     });
 
     test('series 가 이미 가른 묶음은 뺀다 — 해마다 두 해, 날마다 최장 연속, 평일·주말의 요일마다', () {
@@ -694,6 +713,76 @@ void main() {
       expect(pooled.series.first.scope.exercises, isEmpty);
     });
 
+    // 재검토: "밀기 당기기 균형 맞아?" 는 이름을 하나도 적지 않았는데 모델이 열 개를
+    // 늘어놓아 '운동은 한 번에 8개까지' 가 떴다 — 모델 탓을 사람에게 돌리고, 담아
+    // 둔 한도 거절이라 같은 글로는 영영 답이 없었다.
+    test('9개 넘는 목록은 사람이 그만큼 적었을 때만 한도다 — 모델이 부류를 풀어 적었으면 한 줄씩', () {
+      const logged = [
+        ...names,
+        '인클라인 벤치프레스',
+        '덤벨 프레스',
+        '오버헤드프레스',
+        '케이블 푸시다운',
+        '풀업',
+        '시티드 로우',
+        '바벨컬',
+        '레그컬',
+        '레그익스텐션',
+        '힙쓰러스트',
+        '크런치',
+        '플랭크',
+        '런지',
+      ];
+      const pushPull = [
+        '벤치프레스',
+        '인클라인 벤치프레스',
+        '덤벨 프레스',
+        '오버헤드프레스',
+        '케이블 푸시다운',
+        '푸시업',
+        '랫풀다운',
+        '풀업',
+        '시티드 로우',
+        '바벨컬',
+      ];
+      final spread = read(
+        {
+          'exercises': pushPull,
+          'measures': ['setCount'],
+          'relate': 'share',
+        },
+        q: '밀기 당기기 균형 맞아?',
+        logged: logged,
+      );
+      expect(spread.series, hasLength(pushPull.length));
+      // 모르는 이름이 섞였으면 한도가 아니라 읽지 못한 것이다(일반 문구).
+      expect(
+        () => read(
+          {
+            'exercises': [...pushPull.take(9), '케틀벨 스윙'],
+            'measures': ['setCount'],
+          },
+          q: '밀기 당기기 균형 맞아?',
+          logged: logged,
+        ),
+        throwsA(
+          isA<FormatException>().having((e) => e is QueryLimit, 'limit', false),
+        ),
+      );
+      // 사람이 아홉을 적었으면 한도다.
+      expect(
+        () => read(
+          {
+            'exercises': pushPull.take(9).toList(),
+            'measures': ['setCount'],
+          },
+          q: '${pushPull.take(9).join(' ')} 세트 수',
+          logged: logged,
+        ),
+        throwsA(isA<QueryLimit>().having((e) => e.kind, 'kind', 'exercises')),
+      );
+    });
+
     test('측정은 한 줄에 넷까지 — 표의 칸 한도와 같다', () {
       expect(
         read({
@@ -888,6 +977,117 @@ void main() {
         'until': '2025-09-30',
       }, '2025년 9월 스쿼트 최고');
       expect(stated['since'], '2025-09-01');
+    });
+
+    // 평가 밖 문장(재검토 rv_override). 모델이 맞게 적은 plan 을 규칙 층이 넓은
+    // 기간·반대 조건·반복 조건으로 덮어써 화면 숫자가 달라지던 것.
+    test('맞는 plan 은 바꾸지 않는다 — 글의 기간 안의 좁은 날짜, 빼고, N번 이상', () {
+      final cases = <(String, Map<String, Object?>)>[
+        (
+          '이번 달 첫째 주 데드 몇 세트',
+          {
+            'exercises': ['데드리프트'],
+            'measures': ['setCount'],
+            'since': '2026-09-01',
+            'until': '2026-09-07',
+          },
+        ),
+        (
+          '올해 상반기 스쿼트 최고',
+          {
+            'exercises': ['스쿼트'],
+            'measures': ['best'],
+            'since': '2026-01-01',
+            'until': '2026-06-30',
+          },
+        ),
+        (
+          '지난달 마지막 주 벤치 볼륨',
+          {
+            'exercises': ['벤치프레스'],
+            'measures': ['volume'],
+            'since': '2026-08-25',
+            'until': '2026-08-31',
+          },
+        ),
+        (
+          '지난주 월요일 벤치 최고',
+          {
+            'exercises': ['벤치프레스'],
+            'measures': ['best'],
+            'since': '2026-09-14',
+            'until': '2026-09-14',
+          },
+        ),
+        (
+          '9월 벤치 최고',
+          {
+            'exercises': ['벤치프레스'],
+            'measures': ['best'],
+            'since': '2026-09-01',
+            'until': '2026-09-30',
+          },
+        ),
+        (
+          '스쿼트 60kg 이하 세트는 빼고 평균 무게',
+          {
+            'exercises': ['스쿼트'],
+            'measures': ['meanWeight'],
+            'weight': {'op': '>', 'value': 60, 'unit': 'kg'},
+          },
+        ),
+        (
+          '벤치 80kg 이상 든 날이 5번 이상이야?',
+          {
+            'exercises': ['벤치프레스'],
+            'measures': ['trainingDays'],
+            'weight': {'op': '>=', 'value': 80, 'unit': 'kg'},
+          },
+        ),
+        (
+          '100kg 이상으로 3번 이상 스쿼트 한 날 며칠',
+          {
+            'exercises': ['스쿼트'],
+            'measures': ['trainingDays'],
+            'weight': {'op': '>=', 'value': 100, 'unit': 'kg'},
+          },
+        ),
+        (
+          '이번 달 벤치 몇 번 했어, 요즘 너무 안 한 듯',
+          {
+            'exercises': ['벤치프레스'],
+            'measures': ['trainingDays'],
+            'period': 'thisMonth',
+          },
+        ),
+      ];
+      for (final (q, plan) in cases) {
+        final before = jsonEncode(plan);
+        expect(ground(plan, q), jsonDecode(before), reason: q);
+      }
+      // 글의 기간 밖이면 여전히 글이다 — 연도 없는 "9월" 을 작년으로, 이름 붙은
+      // 다른 기간.
+      expect(
+        ground({
+          'exercises': ['벤치프레스'],
+          'measures': ['best'],
+          'since': '2025-09-01',
+          'until': '2025-09-30',
+        }, '9월 벤치 최고')['since'],
+        '2026-09-01',
+      );
+      expect(
+        ground({
+          'exercises': ['벤치프레스'],
+          'measures': ['best'],
+          'period': 'lastMonth',
+        }, '이번 달 벤치 최고')['period'],
+        'thisMonth',
+      );
+      // 반복 조건은 '회·개·reps' 로 적은 것만 — "N번" 은 날일 수도 있다.
+      expect(statedFilters('벤치 80kg 이상 든 날이 5번 이상').minReps, isNull);
+      expect(statedFilters('벤치 5회 이상 한 세트').minReps, 5);
+      expect(statedFilters('스쿼트 60kg 이하 세트는 빼고 평균').maxWeight, isNull);
     });
 
     test('기간을 떨어뜨렸으면 채우고, "요즘 어때" 는 기간이 아니다', () {
