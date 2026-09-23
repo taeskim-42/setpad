@@ -753,6 +753,82 @@ OutcomeGrade gradeCase(EvalCase c, RecordQuery? got) {
   return grade;
 }
 
+/// 정답 plan 하나가 쓰는 2단계 갈래([planFamilies]) — 그 갈래 모듈의 키·측정이
+/// 있으면 그 갈래다. 어림이다: 기간 키는 series 안(기간 비교)이나 shift·nth 일
+/// 때만 period, 조건 키는 cond, 순위·합계·평균·빼기와 운동 밖의 묶음은 rank,
+/// relate·against 는 ratio, 못 보는 것·무관은 refuse.
+Set<String> goldFamilies(Object? gold) {
+  final out = <String>{};
+  void scan(Object? x, {bool inSeries = false}) {
+    if (x is! Map) return;
+    for (final MapEntry(:key, :value) in x.entries) {
+      final k = '$key';
+      if ((inSeries && _periodish.contains(k)) || k == 'shift' || k == 'nth') {
+        out.add('period');
+      }
+      if (const {'relate', 'against'}.contains(k)) out.add('ratio');
+      if (const {
+        'weight',
+        'reps',
+        'weekdays',
+        'hours',
+        'set',
+        'memo',
+        'noMemo',
+        'together',
+        'routine',
+        'handoff',
+        'timer',
+      }.contains(k)) {
+        out.add('cond');
+      }
+      if (const {'order', 'limit', 'total', 'per', 'exclude'}.contains(k) ||
+          (k == 'by' && value != 'exercise')) {
+        out.add('rank');
+      }
+      if (k == 'trained') out.add('intake');
+      if (k == 'notComputable' || (k == 'kind' && value == 'unrelated')) {
+        out.add('refuse');
+      }
+      if (k == 'measures' && value is List) {
+        for (final m in value) {
+          if (const {'longestStreak', 'longestGap', 'meanGap'}.contains(m)) {
+            out.add('days');
+          }
+          if (const {'intake', 'burned', 'balance'}.contains(m)) {
+            out.add('intake');
+          }
+          if (const {
+            'changePct',
+            'daysSinceBest',
+            'sessionsSinceBest',
+          }.contains(m)) {
+            out.add('rank');
+          }
+        }
+      }
+      if (k == 'series' && value is List) {
+        for (final i in value) {
+          scan(i, inSeries: true);
+        }
+      }
+    }
+  }
+
+  scan(gold);
+  return out;
+}
+
+const _periodish = {
+  'period',
+  'since',
+  'until',
+  'days',
+  'shift',
+  'nth',
+  'sessions',
+};
+
 /// 판정(결과 기준):
 /// - exact: 사람에게 같은 답이다.
 /// - invalid: 앱이 모델 답을 받지 못했다(모양·한도·실행 실패).

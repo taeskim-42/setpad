@@ -87,6 +87,17 @@ void main() {
     return '$stage${i['language']}|${i['question']}';
   }
 
+  // 1단계 꼬리표(문항 글 → 꼬리표, 못 읽었으면 null = 한 지시문으로).
+  final tagsOf = <String, Set<String>?>{};
+  final wide = <String>{}; // 꼬리표를 넷 이상 적어 한 지시문으로 넘어간 문항
+  void tagged(String instructions, Object? parsed) {
+    if (instructions != familyInstructions) return;
+    if (Zone.current[#question] case final String q) {
+      tagsOf[q] = planTags(parsed);
+      if (parsed case {'t': final List t} when t.length > 3) wide.add(q);
+    }
+  }
+
   // 실패 줄에 날것을 보이려고 문항 글로도 담는다(요청은 zone 이 문항을 안다).
   final contents = <String, String>{};
   void keep(String k, String content) {
@@ -121,6 +132,7 @@ void main() {
       keep(k, content);
       answered++;
       final parsed = jsonDecode(content);
+      tagged(instructions, parsed);
       if (parsed is! Map) throw const FormatException('unparsable');
       return parsed;
     }
@@ -185,6 +197,7 @@ void main() {
       throw const FormatException('unparsable');
     }
     final parsed = jsonDecode(content);
+    tagged(instructions, parsed);
     if (parsed is! Map) throw const FormatException('unparsable');
     return parsed;
   }
@@ -239,8 +252,14 @@ void main() {
         final shapeCat = <String, List<int>>{};
         final split = <String, List<int>>{}; // v2: 오염 / 깨끗
         final errorTags = <String, int>{}, wrong = <String>[];
+        // 1단계 recall: 갈래 → [꼬리표에 있음, 정답이 씀]. 갈래가 빠진 문항 / 다
+        // 담은 문항의 [정확, 수]. 정답 대안 중 빠진 갈래가 가장 적은 것으로 본다.
+        final recall = <String, List<int>>{};
+        final covered = [0, 0], lacking = [0, 0];
+        var fellBack = 0;
         final queue = evalCases(set.trim());
         final total = queue.length;
+        final queueQuestions = {for (final c in queue) c.q};
 
         Future<void> worker() async {
           while (queue.isNotEmpty) {
@@ -344,6 +363,28 @@ void main() {
               ..[0] += shapeOk ? 1 : 0
               ..[1] += 1;
 
+            if (tagsOf.containsKey(c.q)) {
+              final tags = tagsOf[c.q];
+              if (tags == null) {
+                fellBack++;
+              } else {
+                final needs = [for (final g in c.gold) goldFamilies(g)]
+                  ..sort(
+                    (a, b) => a
+                        .difference(tags)
+                        .length
+                        .compareTo(b.difference(tags).length),
+                  );
+                for (final f in needs.first) {
+                  recall.putIfAbsent(f, () => [0, 0])
+                    ..[0] += tags.contains(f) ? 1 : 0
+                    ..[1] += 1;
+                }
+                (needs.first.difference(tags).isEmpty ? covered : lacking)
+                  ..[0] += v.contains('exact') ? 1 : 0
+                  ..[1] += 1;
+              }
+            }
             final tallies = [
               perLang.putIfAbsent(c.lang, () => [0, 0]),
               perCat.putIfAbsent(c.cat, () => [0, 0]),
@@ -433,6 +474,15 @@ void main() {
             '${(100 * cents / asked / 95 - 100).toStringAsFixed(0)}%) · 원가(피크) '
             '1만 질문당 \$${usd(cacheHit, cacheMiss, output).toStringAsFixed(2)} '
             '(\$1.04 대비 ${(100 * usd(cacheHit, cacheMiss, output) / 1.04 - 100).toStringAsFixed(0)}%)',
+          );
+        }
+        if (recall.isNotEmpty || fellBack > 0) {
+          // ignore: avoid_print
+          print(
+            '$set 1단계 갈래 recall: ${tallies(recall)} · 갈래를 다 담은 문항 정확 '
+            '${covered[0]}/${covered[1]} · 빠진 문항 정확 ${lacking[0]}/${lacking[1]} · '
+            '한 지시문으로 $fellBack (꼬리표 넷 이상 '
+            '${wide.where((q) => queueQuestions.contains(q)).length})',
           );
         }
         // ignore: avoid_print
