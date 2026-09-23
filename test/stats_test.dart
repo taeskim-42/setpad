@@ -1,6 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter/widgets.dart';
+import 'package:setpad/daily.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/stats.dart';
 
@@ -311,6 +314,155 @@ void main() {
     test('마지막 2번의 추이는 +2.5kg', () {
       final a = ask(Metric.trend, '벤치프레스', since: DateTime(2026, 9, 7));
       expect(a.headline, '+2.5kg');
+    });
+  });
+
+  group('v3 측정', () {
+    final today = DateTime(2026, 9, 23, 21);
+    LoggedSet s(double? v, int? r, {String u = 'kg'}) =>
+        LoggedSet(value: v, unit: u, reps: r);
+    Note n(String id, int month, int day, List<ExerciseBlock> blocks) {
+      final at = DateTime(2026, month, day, 19);
+      return Note(id: id, createdAt: at, updatedAt: at, blocks: blocks);
+    }
+
+    Answer ask(List<Note> notes, Metric m, {String unit = 'kg'}) =>
+        answer(notes, m, '벤치프레스', now: today, unit: unit);
+    final bench = [
+      n('a', 8, 1, [
+        ExerciseBlock('벤치프레스', [s(80, 5)]),
+      ]),
+      n('b', 8, 15, [
+        ExerciseBlock('벤치프레스', [s(90, 3), s(85, 5)]),
+      ]),
+      n('c', 9, 1, [
+        ExerciseBlock('벤치프레스', [s(88, 4)]),
+      ]),
+      n('d', 9, 15, [
+        ExerciseBlock('벤치프레스', [s(90, 2)]),
+      ]),
+      n('e', 9, 20, [
+        ExerciseBlock('벤치프레스', [s(85, 6)]),
+      ]),
+    ];
+
+    test('변화율: 첫날 최고 → 마지막 날 최고, 속도는 %/주', () {
+      final a = ask(bench, Metric.changePct);
+      expect(a.numericValue, closeTo(6.25, 1e-9));
+      expect(a.unit, '%');
+      expect(a.headline, '+6.25%');
+      // 8/1 → 9/20 은 50일, 8주.
+      expect(a.rate, closeTo(6.25 / 8, 1e-9));
+      // 날이 하나면 값이 아니라 까닭이다 — 0 이 아니다.
+      final one = ask(bench.take(1).toList(), Metric.changePct);
+      expect((one.numericValue, one.headline), (null, '—'));
+      expect(one.lines, [lookupL(const Locale('ko')).answerNeedsTwoDays]);
+      // lb 기록도 kg 사용자에게는 kg 로 바꿔 센다.
+      final mixed = [
+        n('x', 8, 1, [
+          ExerciseBlock('벤치프레스', [s(100, 5, u: 'lb')]),
+        ]),
+        n('y', 9, 1, [
+          ExerciseBlock('벤치프레스', [s(50, 5)]),
+        ]),
+      ];
+      expect(
+        ask(mixed, Metric.changePct).numericValue,
+        closeTo((50 - 45.359237) / 45.359237 * 100, 1e-9),
+      );
+    });
+
+    test('최고 이후: 최고가 두 번이면 마지막 날부터, 그 뒤 한 번 수', () {
+      final days = ask(bench, Metric.daysSinceBest);
+      expect(days.numericValue, 8, reason: '90kg 은 8/15 와 9/15 — 마지막은 9/15');
+      final sessions = ask(bench, Metric.sessionsSinceBest);
+      expect(sessions.numericValue, 1);
+      expect(sessions.unit, isNotNull);
+    });
+
+    test('세트당 반복', () {
+      final a = ask(bench, Metric.meanReps);
+      expect(a.numericValue, closeTo((5 + 3 + 5 + 4 + 2 + 6) / 6, 1e-9));
+      expect(a.unit, '회');
+    });
+
+    test('개수형 답은 단위를 든다 — 점이 없어도 차이·합계가 단위를 읽는다', () {
+      expect(ask(bench, Metric.sessions).unit, '일');
+      expect(ask(bench, Metric.sets).unit, '세트');
+      expect(ask(bench, Metric.best).unit, 'kg');
+      expect(ask(bench, Metric.trend).rate, closeTo(5 / 8, 1e-9));
+    });
+
+    test('연속·공백·간격: 달을 넘어도, 서머타임 날도 하루다', () {
+      final l = lookupL(const Locale('ko'));
+      final days = [
+        DateTime(2026, 3, 7),
+        DateTime(2026, 3, 8), // 미국 서머타임 시작
+        DateTime(2026, 3, 9),
+        DateTime(2026, 3, 31),
+        DateTime(2026, 4, 1),
+      ];
+      final streak = dayAnswer(
+        days,
+        Metric.longestStreak,
+        end: DateTime(2026, 4, 1),
+      );
+      expect(streak.numericValue, 3);
+      expect(streak.headline, l.answerStreak(3));
+      final gap = dayAnswer(days, Metric.longestGap, end: DateTime(2026, 4, 1));
+      expect(gap.numericValue, 21);
+      // 마지막 운동 뒤로 오늘까지 쉬고 있으면 그것도 공백이다.
+      final open = dayAnswer(
+        days,
+        Metric.longestGap,
+        end: DateTime(2026, 5, 1),
+      );
+      expect(open.numericValue, 30);
+      expect(open.lines.first, contains(l.answerUntilToday));
+      final every = dayAnswer(days, Metric.meanGap, end: DateTime(2026, 4, 1));
+      expect(every.numericValue, 1, reason: '간격 1·1·22·1 의 중앙값');
+      expect(
+        dayAnswer(
+          days.take(1).toList(),
+          Metric.meanGap,
+          end: DateTime(2026, 4, 1),
+        ).headline,
+        '—',
+      );
+    });
+
+    test('섭취·소모·차이: 끼니 없는 날은 셈 밖, 둘 다 있는 날만 뺀다', () {
+      final note = Note(
+        id: 'm',
+        createdAt: DateTime(2026, 9, 1, 19),
+        updatedAt: DateTime(2026, 9, 1, 19),
+        calories: 400,
+        blocks: [
+          ExerciseBlock('벤치프레스', [s(80, 5)]),
+        ],
+      );
+      note.meals.addAll([
+        MealEntry(at: DateTime(2026, 9, 1, 8), kcal: 700, source: 'typed'),
+        MealEntry(at: DateTime(2026, 9, 1, 12), kcal: null),
+        MealEntry(at: DateTime(2026, 9, 2, 12), kcal: 900, source: 'typed'),
+      ]);
+      final logs = dayLogs(
+        [note],
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 3),
+      );
+      final l = lookupL(const Locale('ko'));
+      final intake = energyAnswer(logs, Metric.intake);
+      expect((intake.numericValue, intake.headline), (1600, '1600kcal'));
+      expect(intake.lines, [l.answerMealDays(2), l.queryUnknownMeals(1)]);
+      final burned = energyAnswer(logs, Metric.burned);
+      expect(burned.numericValue, 400);
+      final balance = energyAnswer(logs, Metric.balance);
+      expect(balance.numericValue, 300);
+      expect(balance.lines, [l.answerBothDays(1), l.answerIntakeOnlyDays(1)]);
+      final none = energyAnswer(const [], Metric.burned);
+      expect(none.numericValue, isNull);
+      expect(none.lines, [l.answerNoWatch]);
     });
   });
 }

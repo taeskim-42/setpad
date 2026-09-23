@@ -163,9 +163,21 @@
   "inputTooLong": "600자가 넘는 글은 읽지 않아요 — 줄을 나눠 적어 주세요",
   "setupAdd": "설정 붙이기",
   "setupUnparsed": "설정에 못 옮긴 말: {words} — 제목에 그대로 남아요",
-  "@setupUnparsed": {"placeholders": {"words": {"type": "String"}}},
+  "@setupUnparsed": {
+    "placeholders": {
+      "words": {
+        "type": "String"
+      }
+    }
+  },
   "setupDropped": "글에 없는 수라 뺐어요: {numbers}",
-  "@setupDropped": {"placeholders": {"numbers": {"type": "String"}}},
+  "@setupDropped": {
+    "placeholders": {
+      "numbers": {
+        "type": "String"
+      }
+    }
+  },
   "setupNameMissing": "운동 이름을 적어 주세요",
   "setupNameTooLong": "운동 이름은 120자까지예요",
   "setupWeightInvalid": "0보다 크고 2000 이하인 수로 적어 주세요",
@@ -890,7 +902,7 @@
       }
     }
   },
-  "queryLimit": "{kind, select, exercises{운동은 한 번에 8개까지 물을 수 있어요. 나눠서 물어 주세요.} measures{한 번에 세 가지까지 셀 수 있어요. 나눠서 물어 주세요.} ranking{순위는 20개까지 보여 줄 수 있어요. 20개 이하로 물어 주세요.} sessions{'마지막 N번'은 100번까지예요. 더 길게 보려면 기간으로 물어 주세요. 예: 올해} days{'최근 N일'은 3660일(약 10년)까지예요. 더 길게 보려면 전체 기간으로 물어 주세요.} compare{한 번에 4가지까지 견줄 수 있어요. 나눠서 물어 주세요.} compareGrouped{견주기와 운동·날·주·월·요일별 묶음은 한 질문에 함께 셀 수 없어요. 둘 중 하나로 물어 주세요.} groupedMeasure{날·주·월·요일별로 묶으면 한 가지만 셀 수 있고, 추이·마지막·처음·안 한 지는 묶을 수 없어요.} ordering{순위·합계·평균은 운동별이나 주별처럼 묶어서 물어 주세요.} datesTotal{마지막·처음 날짜는 더하거나 평균 낼 수 없어요.} other{이 질문은 기록 검색이 셀 수 없는 모양이에요. 나눠서 물어 주세요.}}",
+  "queryLimit": "{kind, select, exercises{운동은 한 번에 8개까지 물을 수 있어요. 나눠서 물어 주세요.} measures{한 번에 세 가지까지 셀 수 있어요. 나눠서 물어 주세요.} ranking{순위는 20개까지 보여 줄 수 있어요. 20개 이하로 물어 주세요.} sessions{'마지막 N번'은 100번까지예요. 더 길게 보려면 기간으로 물어 주세요. 예: 올해} days{'최근 N일'은 3660일(약 10년)까지예요. 더 길게 보려면 전체 기간으로 물어 주세요.} compare{한 번에 6가지까지 견줄 수 있어요. 나눠서 물어 주세요.} compareGrouped{견주기와 운동·날·주·월·요일별 묶음은 한 질문에 함께 셀 수 없어요. 둘 중 하나로 물어 주세요.} groupedMeasure{날·주·월·요일별로 묶으면 한 가지만 셀 수 있고, 추이·마지막·처음·안 한 지는 묶을 수 없어요.} ordering{순위·합계·평균은 운동별이나 주별처럼 묶어서 물어 주세요.} datesTotal{마지막·처음 날짜는 더하거나 평균 낼 수 없어요.} other{이 질문은 기록 검색이 셀 수 없는 모양이에요. 나눠서 물어 주세요.}}",
   "@queryLimit": {
     "placeholders": {
       "kind": {
@@ -1518,5 +1530,770 @@
   "settingsTrainer": "트레이너",
   "@settingsTrainer": {
     "description": "설정의 트레이너 섹션 제목. 회원용 \"다니는 체육관\" 섹션과 따로"
+  },
+  "answerNeedsTwoDays": "날이 둘 이상 있어야 해요",
+  "@answerNeedsTwoDays": {
+    "description": "측정에 날이 둘 이상 필요한데 하나뿐일 때 칸 아래 줄"
+  },
+  "answerNoBase": "기준 값이 없어요",
+  "@answerNoBase": {
+    "description": "변화율의 첫 값이 0 이라 셀 수 없을 때"
+  },
+  "answerPerWeek": "주당 {value}",
+  "@answerPerWeek": {
+    "description": "주당 변화 속도",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "answerPerMonth": "달당 {value}",
+  "@answerPerMonth": {
+    "description": "달당 변화 속도(8주 넘을 때)",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "answerTimesAfter": "최고 이후 {n}번 했어요",
+  "@answerTimesAfter": {
+    "description": "최고 기록 뒤로 한 운동일 수",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerTimesUnit": "번",
+  "@answerTimesUnit": {
+    "description": "횟수 단위(숫자 뒤에 붙음)"
+  },
+  "answerTimes": "{n}번",
+  "@answerTimes": {
+    "description": "횟수",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerStreak": "{n}일 연속",
+  "@answerStreak": {
+    "description": "최장 연속 운동일",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerRestDays": "{n}일 쉼",
+  "@answerRestDays": {
+    "description": "최장 공백",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerUntilToday": "오늘",
+  "@answerUntilToday": {
+    "description": "공백이 오늘까지 이어질 때 끝 날짜 자리"
+  },
+  "answerEveryDays": "보통 {value}일마다",
+  "@answerEveryDays": {
+    "description": "운동 간격 중앙값",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "answerMeanEvery": "평균 {value}일마다",
+  "@answerMeanEvery": {
+    "description": "운동 간격 평균",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "answerGapSpread": "연달아 {a}번 · 하루 쉬고 {b}번 · 이틀 쉬고 {c}번 · 사흘 이상 쉬고 {d}번",
+  "@answerGapSpread": {
+    "description": "운동 간격 분포: 쉰 날 0·1·2·3 이상",
+    "placeholders": {
+      "a": {
+        "type": "int"
+      },
+      "b": {
+        "type": "int"
+      },
+      "c": {
+        "type": "int"
+      },
+      "d": {
+        "type": "int"
+      }
+    }
+  },
+  "answerLongestIncluded": "가장 긴 쉼 {n}일이 들어 있어요",
+  "@answerLongestIncluded": {
+    "description": "긴 휴가 하나가 평균을 부풀릴 때",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerNoMeals": "끼니를 적은 날이 없어요",
+  "@answerNoMeals": {
+    "description": "섭취 측정인데 끼니가 없을 때"
+  },
+  "answerAbout": "약 {value}",
+  "@answerAbout": {
+    "description": "어림이 섞인 열량",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "answerMealDays": "끼니를 적은 {n}일",
+  "@answerMealDays": {
+    "description": "섭취를 센 날 수",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "queryUnknownMeals": "열량을 모르는 끼니 {n}개는 합에 없어요",
+  "@queryUnknownMeals": {
+    "description": "열량 모르는 끼니 수",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerNoWatch": "워치로 잰 기록이 없어요",
+  "@answerNoWatch": {
+    "description": "소모 측정인데 워치 기록이 없을 때"
+  },
+  "answerWatchDays": "워치로 잰 {n}일",
+  "@answerWatchDays": {
+    "description": "소모를 센 날 수",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerNoBoth": "섭취와 소모가 둘 다 있는 날이 없어요",
+  "@answerNoBoth": {
+    "description": "섭취−소모인데 둘 다 있는 날이 없을 때"
+  },
+  "answerBothDays": "섭취·소모가 둘 다 있는 {n}일",
+  "@answerBothDays": {
+    "description": "섭취·소모가 둘 다 있는 날 수",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerIntakeOnlyDays": "섭취만 있는 {n}일은 뺐어요",
+  "@answerIntakeOnlyDays": {
+    "description": "섭취만 있어 차이에서 뺀 날",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "answerMonths": "{n}달",
+  "@answerMonths": {
+    "description": "달 수",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "metricChangePct": "변화율",
+  "@metricChangePct": {
+    "description": "측정: 무게 변화율"
+  },
+  "metricDaysSinceBest": "최고 이후 날",
+  "@metricDaysSinceBest": {
+    "description": "측정: 최고 이후 지난 날"
+  },
+  "metricSessionsSinceBest": "최고 이후 횟수",
+  "@metricSessionsSinceBest": {
+    "description": "측정: 최고 이후 운동일 수(정체)"
+  },
+  "metricMeanReps": "세트당 반복",
+  "@metricMeanReps": {
+    "description": "측정: 세트당 반복"
+  },
+  "metricLongestStreak": "최장 연속",
+  "@metricLongestStreak": {
+    "description": "측정: 최장 연속 운동일"
+  },
+  "metricLongestGap": "최장 공백",
+  "@metricLongestGap": {
+    "description": "측정: 최장 공백"
+  },
+  "metricMeanGap": "운동 간격",
+  "@metricMeanGap": {
+    "description": "측정: 운동 간격"
+  },
+  "metricIntake": "섭취 열량",
+  "@metricIntake": {
+    "description": "측정: 섭취 열량"
+  },
+  "metricBurned": "소모 열량",
+  "@metricBurned": {
+    "description": "측정: 워치 소모 열량"
+  },
+  "metricBalance": "섭취 − 소모",
+  "@metricBalance": {
+    "description": "측정: 섭취 − 소모"
+  },
+  "queryAlone": "혼자 한 날",
+  "@queryAlone": {
+    "description": "범위: 혼자 한 날"
+  },
+  "queryTogether": "같이 한 날",
+  "@queryTogether": {
+    "description": "범위: 같이 한 날(누가 들어온 같이 하기)"
+  },
+  "queryByPart": "부위별",
+  "@queryByPart": {
+    "description": "묶음: 부위별"
+  },
+  "queryCanSee": "기록으로는 무게·횟수·세트·운동한 날·끼니 열량을 볼 수 있어요",
+  "@queryCanSee": {
+    "description": "셀 것이 없는 질문에 기록으로 볼 수 있는 것"
+  },
+  "queryDiffColumn": "차이",
+  "@queryDiffColumn": {
+    "description": "표의 차이 칸 머리"
+  },
+  "queryFutureCell": "아직 오지 않은 기간",
+  "@queryFutureCell": {
+    "description": "칸: 아직 오지 않은 기간"
+  },
+  "queryGrowthRate": "성장은 주당 속도로 순위를 매겼어요 — 기간이 달라도 공정하게",
+  "@queryGrowthRate": {
+    "description": "각주: 성장 순위는 주당 속도"
+  },
+  "queryHandoff": "건네받은 기록만",
+  "@queryHandoff": {
+    "description": "범위: 건네받은 기록만"
+  },
+  "queryNoHandoff": "건네받은 기록 제외",
+  "@queryNoHandoff": {
+    "description": "범위: 건네받은 기록 제외"
+  },
+  "queryHandoffCount": "건네받은 기록 {n}개 제외",
+  "@queryHandoffCount": {
+    "description": "확인 줄: 뺀 건네받은 기록 수",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "queryHoursNote": "시각은 기록을 만든 때 기준이에요 — 나중에 몰아 적은 기록은 적은 시각으로 들어가요",
+  "@queryHoursNote": {
+    "description": "각주: 시간대는 기록을 만든 시각 기준"
+  },
+  "queryMixedWeights": "여러 운동을 섞은 무게예요",
+  "@queryMixedWeights": {
+    "description": "각주: 여러 운동을 섞은 무게"
+  },
+  "queryNcBodyweight": "체중은 기록에 없어요 — 질문에 체중을 적으면 그 수와 견줘요(예: 체중 80인데 데드 몇 배?)",
+  "@queryNcBodyweight": {
+    "description": "못 보는 것: 체중(질문에 적으면 견줌)"
+  },
+  "queryNcHeartRate": "기록 검색은 아직 심박을 안 봐요 — 운동별·휴식별 심박은 세트 시각이 없어 볼 수 없어요",
+  "@queryNcHeartRate": {
+    "description": "못 보는 것: 심박(정직하게)"
+  },
+  "queryNeverMark": "적은 적 없음",
+  "@queryNeverMark": {
+    "description": "한 번도 적지 않은 운동 표시"
+  },
+  "queryNoBaseRatio": "기준 값이 없어 비율을 못 내요",
+  "@queryNoBaseRatio": {
+    "description": "각주: 기준 값이 없어 비율 못 냄"
+  },
+  "queryNoneCell": "이 범위엔 기록 없음",
+  "@queryNoneCell": {
+    "description": "칸: 적은 적은 있지만 이 범위엔 없음"
+  },
+  "queryNoRoutine": "루틴 아닌 날",
+  "@queryNoRoutine": {
+    "description": "범위: 루틴 아닌 날"
+  },
+  "queryRoutine": "루틴으로 한 날",
+  "@queryRoutine": {
+    "description": "범위: 트레이너 루틴으로 한 날"
+  },
+  "queryOngoing": "진행 중",
+  "@queryOngoing": {
+    "description": "진행 중인 기간 표시"
+  },
+  "queryOverlap": "운동일수는 겹치는 날이 있어 비중을 못 내요 — 세트 수로 물어 주세요",
+  "@queryOverlap": {
+    "description": "각주: 운동일수는 겹쳐 비중 못 냄"
+  },
+  "queryPart": "{part, select, chest{가슴} back{등} legs{다리} shoulders{어깨} arms{팔} core{코어} cardio{유산소} upper{상체} lower{하체} other{부위}}",
+  "@queryPart": {
+    "description": "부위 이름",
+    "placeholders": {
+      "part": {
+        "type": "String"
+      }
+    }
+  },
+  "queryRatioColumn": "배수",
+  "@queryRatioColumn": {
+    "description": "표의 배수 칸 머리"
+  },
+  "queryRatioUnits": "단위가 달라 비율을 못 내요",
+  "@queryRatioUnits": {
+    "description": "각주: 단위가 달라 비율 못 냄"
+  },
+  "queryRestDay": "쉰 날",
+  "@queryRestDay": {
+    "description": "범위: 쉰 날(운동 안 한 날)"
+  },
+  "queryTrained": "운동한 날",
+  "@queryTrained": {
+    "description": "범위: 운동한 날"
+  },
+  "querySetFirst": "첫 세트",
+  "@querySetFirst": {
+    "description": "범위: 첫 세트만"
+  },
+  "querySetLast": "마지막 세트",
+  "@querySetLast": {
+    "description": "범위: 마지막 세트만"
+  },
+  "queryShare": "비중",
+  "@queryShare": {
+    "description": "비중(합 대비 %)"
+  },
+  "queryZeroFilled": "안 한 운동도 0 으로 넣었어요",
+  "@queryZeroFilled": {
+    "description": "각주: 제일 적게 한 순위에 안 한 운동을 0 으로"
+  },
+  "queryAgainst": "기준 {value}",
+  "@queryAgainst": {
+    "description": "확인 줄: 질문의 기준 수",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "queryAgainstLine": "{value} ÷ {target} = {ratio}배 · 차이 {diff}",
+  "@queryAgainstLine": {
+    "description": "기준 수와 견준 줄",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      },
+      "ratio": {
+        "type": "String"
+      },
+      "diff": {
+        "type": "String"
+      }
+    }
+  },
+  "queryAlias": "{name} = {names}",
+  "@queryAlias": {
+    "description": "확인 줄: 한 운동으로 합친 기록 이름들",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "queryDayCount": "{n}일",
+  "@queryDayCount": {
+    "description": "날 수",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "queryDroppedSets": "값이 다른 세트 {n}개 제외",
+  "@queryDroppedSets": {
+    "description": "칸: 값의 종류가 달라 뺀 세트",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "queryHours": "{from}–{to}시",
+  "@queryHours": {
+    "description": "범위: 시간대",
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "queryMaybe": "혹시 {name}?",
+  "@queryMaybe": {
+    "description": "적은 적 없는 이름에 가까운 운동",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "queryMemoAll": "메모에 모두: {terms}",
+  "@queryMemoAll": {
+    "description": "범위: 메모에 모든 낱말",
+    "placeholders": {
+      "terms": {
+        "type": "String"
+      }
+    }
+  },
+  "queryMemoHit": "{text} {n}일",
+  "@queryMemoHit": {
+    "description": "걸린 메모 글과 그 날 수",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "queryMemoHits": "걸린 메모: {hits}",
+  "@queryMemoHits": {
+    "description": "확인 줄: 메모 조건에 실제로 걸린 메모들",
+    "placeholders": {
+      "hits": {
+        "type": "String"
+      }
+    }
+  },
+  "queryNeverPartial": "{names}: 적은 기록이 없어 빼고 셌어요",
+  "@queryNeverPartial": {
+    "description": "여러 이름 중 일부만 기록이 없을 때",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "queryNeverRows": "{names}: 적은 기록이 없어요",
+  "@queryNeverRows": {
+    "description": "기록이 없는 운동 줄",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "queryNoMemo": "메모 없음: {terms}",
+  "@queryNoMemo": {
+    "description": "범위: 메모에 이 낱말이 없는 날",
+    "placeholders": {
+      "terms": {
+        "type": "String"
+      }
+    }
+  },
+  "queryNoRepsSets": "반복을 안 적은 세트 {n}개 제외",
+  "@queryNoRepsSets": {
+    "description": "칸: 반복을 안 적어 뺀 세트",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "queryNotComputable": "기록에 없어 못 본 것: {things}",
+  "@queryNotComputable": {
+    "description": "카드 위: 기록에 없어 못 본 것",
+    "placeholders": {
+      "things": {
+        "type": "String"
+      }
+    }
+  },
+  "queryNotComputableTail": "못 보는 것: {things}",
+  "@queryNotComputableTail": {
+    "description": "확인 줄 끝: 못 보는 것",
+    "placeholders": {
+      "things": {
+        "type": "String"
+      }
+    }
+  },
+  "queryNothingComputable": "기록으로 답할 수 없어요: {things}",
+  "@queryNothingComputable": {
+    "description": "셀 것이 하나도 없는 질문",
+    "placeholders": {
+      "things": {
+        "type": "String"
+      }
+    }
+  },
+  "queryNoWeightSets": "무게 없는 세트 {n}개 제외 (최다 {reps}회)",
+  "@queryNoWeightSets": {
+    "description": "칸: 무게 없는 세트를 빼고 셈",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "reps": {
+        "type": "int"
+      }
+    }
+  },
+  "queryNth": "끝에서 {n}번째 운동일",
+  "@queryNth": {
+    "description": "범위: 끝에서 N번째 운동일",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "queryOtherDistance": "거리를 적은 {n}번: {value}",
+  "@queryOtherDistance": {
+    "description": "칸: 시간 칸에서 뺀 거리 세트의 합",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "queryOtherDuration": "시간을 적은 {n}번: {value}",
+  "@queryOtherDuration": {
+    "description": "칸: 거리 칸에서 뺀 시간 세트의 합",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "queryPartial": "{names} 제외",
+  "@queryPartial": {
+    "description": "칸: 값이 빠져 합에서 뺀 운동(부분 합계)",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "queryPartialChunk": "({n}일)",
+  "@queryPartialChunk": {
+    "description": "모자란 마지막 구간의 날 수",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "queryPartMembers": "{part}: {names}",
+  "@queryPartMembers": {
+    "description": "확인 줄: 부위와 거기 든 기록한 운동",
+    "placeholders": {
+      "part": {
+        "type": "String"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "queryPer": "{per, select, day{하루 평균} week{주당} month{달당} other{평균}}",
+  "@queryPer": {
+    "description": "확인 줄: 날당·주당·달당 평균",
+    "placeholders": {
+      "per": {
+        "type": "String"
+      }
+    }
+  },
+  "queryPerSuffix": "{per, select, day{/일} week{/주} month{/달} other{/}}",
+  "@queryPerSuffix": {
+    "description": "숫자 뒤: /일 /주 /달",
+    "placeholders": {
+      "per": {
+        "type": "String"
+      }
+    }
+  },
+  "queryRatioHead": "{a} ÷ {b}",
+  "@queryRatioHead": {
+    "description": "확인 줄: 무엇을 무엇으로 나누는지",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "queryRatioLine": "{a} ÷ {b} = {value}배 ({percent}%)",
+  "@queryRatioLine": {
+    "description": "비율 줄: a ÷ b(기준)",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "queryRelative": "{by, select, day{{n}번째 날} week{{n}번째 주} month{{n}번째 달} other{{n}번째}}",
+  "@queryRelative": {
+    "description": "창이 다른 series 의 상대 구간 줄 이름",
+    "placeholders": {
+      "by": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "queryRolled": "아직 오지 않은 기간이라 {year}년으로 읽었어요",
+  "@queryRolled": {
+    "description": "확인 줄: 앞날 기간을 작년으로 읽음",
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "querySamePeriod": "같은 {days}일로 견주면: {earlier} → {later}",
+  "@querySamePeriod": {
+    "description": "진행 중인 창과 같은 날 수로 자른 비교",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "earlier": {
+        "type": "String"
+      },
+      "later": {
+        "type": "String"
+      }
+    }
+  },
+  "queryShortGrowth": "기록이 짧아(3일·3주 미만) 순위에서 뺐어요: {names}",
+  "@queryShortGrowth": {
+    "description": "각주: 기록이 짧아 성장 순위에서 뺌",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "queryTimer": "{kind, select, tabata{타바타} bpm{bpm 타이머} other{타이머 없이}}",
+  "@queryTimer": {
+    "description": "범위: 타이머",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "queryUnknownPart": "부위를 모르는 운동은 뺐어요: {names}",
+  "@queryUnknownPart": {
+    "description": "각주: 부위를 모르는 운동",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "queryUnranked": "값이 빠져 순위에 못 넣은 {n}개: {names}",
+  "@queryUnranked": {
+    "description": "값이 빠져 순위에 못 넣은 줄",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "queryWindowLengths": "기간의 날 수가 달라요({lengths}일) — 차이·비율은 주당으로 셌어요",
+  "@queryWindowLengths": {
+    "description": "각주: 길이가 다른 기간은 주당으로 견줌",
+    "placeholders": {
+      "lengths": {
+        "type": "String"
+      }
+    }
+  },
+  "queryZeroBuckets": "{by, select, week{{total}주 중 {zeros}주는 0} month{{total}달 중 {zeros}달은 0} other{{total}개 중 {zeros}개는 0}}",
+  "@queryZeroBuckets": {
+    "description": "개수형 주·달 묶음에서 0 인 구간 수",
+    "placeholders": {
+      "by": {
+        "type": "String"
+      },
+      "total": {
+        "type": "int"
+      },
+      "zeros": {
+        "type": "int"
+      }
+    }
+  },
+  "queryPossibleDays": "가능한 {m}일 중 {percent}%",
+  "@queryPossibleDays": {
+    "description": "운동일수 작은 줄: 가능한 날 중 %",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -1089,7 +1089,7 @@ class LEs extends L {
       'days':
           '\'Los últimos N días\' llega hasta 3660 días (unos 10 años). Para más, pregunta por todo el historial.',
       'compare':
-          'Se pueden comparar hasta 4 cosas a la vez. Pregunta por partes.',
+          'Se pueden comparar hasta 6 cosas a la vez. Pregunta por partes.',
       'compareGrouped':
           'Una comparación no puede agruparse además por ejercicio, día, semana, mes o día de la semana en una sola pregunta. Pregunta por una de las dos.',
       'groupedMeasure':
@@ -1842,4 +1842,476 @@ class LEs extends L {
 
   @override
   String get settingsTrainer => 'Entrenador';
+
+  @override
+  String get answerNeedsTwoDays => 'Hacen falta al menos dos días';
+
+  @override
+  String get answerNoBase => 'Sin valor de referencia';
+
+  @override
+  String answerPerWeek(String value) {
+    return '$value por semana';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '$value al mes';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return '$n sesiones desde el récord';
+  }
+
+  @override
+  String get answerTimesUnit => ' veces';
+
+  @override
+  String answerTimes(int n) {
+    return '$n veces';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return '$n días seguidos';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return '$n días de descanso';
+  }
+
+  @override
+  String get answerUntilToday => 'hoy';
+
+  @override
+  String answerEveryDays(String value) {
+    return 'Normalmente cada $value días';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return 'De media cada $value días';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return 'Seguidos $a · tras 1 día de descanso $b · tras 2 $c · tras 3+ $d';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return 'Incluye un descanso de $n días';
+  }
+
+  @override
+  String get answerNoMeals => 'No hay días con comidas registradas';
+
+  @override
+  String answerAbout(String value) {
+    return 'unos $value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '$n días con comidas';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return '$n comidas sin calorías conocidas no están en el total';
+  }
+
+  @override
+  String get answerNoWatch => 'No hay entrenos medidos con el reloj';
+
+  @override
+  String answerWatchDays(int n) {
+    return '$n días medidos con el reloj';
+  }
+
+  @override
+  String get answerNoBoth =>
+      'No hay días con comidas y calorías del reloj a la vez';
+
+  @override
+  String answerBothDays(int n) {
+    return '$n días con ingesta y gasto';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return 'Se dejaron fuera $n días solo con comidas';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$n meses';
+  }
+
+  @override
+  String get metricChangePct => 'Cambio %';
+
+  @override
+  String get metricDaysSinceBest => 'Días desde el récord';
+
+  @override
+  String get metricSessionsSinceBest => 'Sesiones desde el récord';
+
+  @override
+  String get metricMeanReps => 'Reps por serie';
+
+  @override
+  String get metricLongestStreak => 'Racha más larga';
+
+  @override
+  String get metricLongestGap => 'Pausa más larga';
+
+  @override
+  String get metricMeanGap => 'Días entre entrenos';
+
+  @override
+  String get metricIntake => 'Calorías ingeridas';
+
+  @override
+  String get metricBurned => 'Calorías quemadas';
+
+  @override
+  String get metricBalance => 'Ingeridas − quemadas';
+
+  @override
+  String get queryAlone => 'A solas';
+
+  @override
+  String get queryTogether => 'Con compañero';
+
+  @override
+  String get queryByPart => 'Por zona';
+
+  @override
+  String get queryCanSee =>
+      'El registro puede mostrar pesos, repeticiones, series, días de entreno y calorías de comidas';
+
+  @override
+  String get queryDiffColumn => 'Diferencia';
+
+  @override
+  String get queryFutureCell => 'Aún no ha llegado';
+
+  @override
+  String get queryGrowthRate =>
+      'El progreso se ordena por ritmo semanal, para comparar periodos distintos con justicia';
+
+  @override
+  String get queryHandoff => 'Solo registros recibidos';
+
+  @override
+  String get queryNoHandoff => 'Sin registros recibidos';
+
+  @override
+  String queryHandoffCount(int n) {
+    return 'Se excluyen $n registros recibidos';
+  }
+
+  @override
+  String get queryHoursNote =>
+      'La hora es la de creación del registro; lo que anotaste después cuenta a esa hora';
+
+  @override
+  String get queryMixedWeights => 'Estos pesos mezclan varios ejercicios';
+
+  @override
+  String get queryNcBodyweight =>
+      'El peso corporal no está en el registro. Escríbelo en la pregunta y se compara (p. ej.: peso 80, ¿cuántas veces es mi peso muerto?)';
+
+  @override
+  String get queryNcHeartRate =>
+      'La búsqueda aún no mira el pulso; por ejercicio o descanso no puede, porque las series no tienen hora';
+
+  @override
+  String get queryNeverMark => 'Nunca registrado';
+
+  @override
+  String get queryNoBaseRatio => 'Sin valor de referencia no hay proporción';
+
+  @override
+  String get queryNoneCell => 'Sin registros en este rango';
+
+  @override
+  String get queryNoRoutine => 'Sin rutina';
+
+  @override
+  String get queryRoutine => 'Con rutina del entrenador';
+
+  @override
+  String get queryOngoing => 'en curso';
+
+  @override
+  String get queryOverlap =>
+      'Los días de entreno se solapan, no hay reparto; pregunta por series';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': 'Pecho',
+      'back': 'Espalda',
+      'legs': 'Piernas',
+      'shoulders': 'Hombros',
+      'arms': 'Brazos',
+      'core': 'Core',
+      'cardio': 'Cardio',
+      'upper': 'Tren superior',
+      'lower': 'Tren inferior',
+      'other': 'Zona',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => 'Proporción';
+
+  @override
+  String get queryRatioUnits => 'Unidades distintas, no hay proporción';
+
+  @override
+  String get queryRestDay => 'Días de descanso';
+
+  @override
+  String get queryTrained => 'Días de entreno';
+
+  @override
+  String get querySetFirst => 'Primera serie';
+
+  @override
+  String get querySetLast => 'Última serie';
+
+  @override
+  String get queryShare => 'Reparto';
+
+  @override
+  String get queryZeroFilled => 'Los ejercicios que no hiciste cuentan como 0';
+
+  @override
+  String queryAgainst(String value) {
+    return 'frente a $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio× · diferencia $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n días';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return 'Se excluyen $n series con otros valores';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '$from:00–$to:00';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return '¿Quisiste decir $name?';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return 'La nota tiene todo: $terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text ($n días)';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return 'Notas encontradas: $hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names: sin registros, se contó sin ellos';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names: sin registros';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return 'Nota sin: $terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return 'Se excluyen $n series sin repeticiones';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return 'No está en el registro, no se muestra: $things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return 'No se puede ver: $things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return 'El registro no puede responder esto: $things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return 'Se excluyen $n series sin peso (hasta $reps reps)';
+  }
+
+  @override
+  String queryNth(int n) {
+    return 'Día de entreno $n desde el final';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '$n series con distancia: $value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '$n series con tiempo: $value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return 'sin $names';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '($n días)';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part: $names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': 'por día',
+      'week': 'por semana',
+      'month': 'al mes',
+      'other': 'media',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/día',
+      'week': '/sem',
+      'month': '/mes',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value× ($percent%)';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': 'Día $n',
+      'week': 'Semana $n',
+      'month': 'Mes $n',
+      'other': 'N.º $n',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return 'Aún no llega, se leyó como $year';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return 'Mismos $days días: $earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return 'Demasiado corto para clasificar (menos de 3 días o 3 semanas): $names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata',
+      'bpm': 'Temporizador BPM',
+      'other': 'Sin temporizador',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return 'Se excluyen ejercicios sin zona conocida: $names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '$n fuera del ranking por valores faltantes: $names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return 'Los periodos tienen distinta duración ($lengths días); diferencias y proporciones son por semana';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$zeros de $total semanas en 0',
+      'month': '$zeros de $total meses en 0',
+      'other': '$zeros de $total en 0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '$percent% de $m días posibles';
+  }
 }

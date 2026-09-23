@@ -1023,7 +1023,7 @@ class LZh extends L {
       'ranking': '排名最多显示 20 个。请问 20 个以内。',
       'sessions': '“最近 N 次”最多 100 次。想看更久，请按时间段提问，例如今年。',
       'days': '“最近 N 天”最多 3660 天（约 10 年）。想看更久，请按全部时间提问。',
-      'compare': '一次最多对比 4 项。请分开提问。',
+      'compare': '一次最多对比 6 项。请分开提问。',
       'compareGrouped': '同一个问题不能既对比又按动作、日、周、月或星期分组。请二选一提问。',
       'groupedMeasure': '按日、周、月或星期分组时只能统计一项，且趋势、最后一次、第一次、距上次天数不能分组。',
       'ordering': '排名、合计和平均需要分组，例如按动作或按周。',
@@ -1740,6 +1740,471 @@ class LZh extends L {
 
   @override
   String get settingsTrainer => '教练';
+
+  @override
+  String get answerNeedsTwoDays => '至少需要两天的记录';
+
+  @override
+  String get answerNoBase => '没有基准值';
+
+  @override
+  String answerPerWeek(String value) {
+    return '每周 $value';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '每月 $value';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return '最佳之后练了 $n 次';
+  }
+
+  @override
+  String get answerTimesUnit => '次';
+
+  @override
+  String answerTimes(int n) {
+    return '$n 次';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return '连续 $n 天';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return '休息 $n 天';
+  }
+
+  @override
+  String get answerUntilToday => '今天';
+
+  @override
+  String answerEveryDays(String value) {
+    return '通常每 $value 天一次';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return '平均每 $value 天一次';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return '连续 $a 次 · 休 1 天 $b 次 · 休 2 天 $c 次 · 休 3 天以上 $d 次';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return '其中最长休息 $n 天';
+  }
+
+  @override
+  String get answerNoMeals => '没有记录餐食的日子';
+
+  @override
+  String answerAbout(String value) {
+    return '约 $value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '记录餐食的 $n 天';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return '热量未知的 $n 餐未计入合计';
+  }
+
+  @override
+  String get answerNoWatch => '没有手表测量的记录';
+
+  @override
+  String answerWatchDays(int n) {
+    return '手表测量的 $n 天';
+  }
+
+  @override
+  String get answerNoBoth => '没有同时有摄入和消耗的日子';
+
+  @override
+  String answerBothDays(int n) {
+    return '同时有摄入和消耗的 $n 天';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return '已去掉只有摄入的 $n 天';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$n 个月';
+  }
+
+  @override
+  String get metricChangePct => '变化率';
+
+  @override
+  String get metricDaysSinceBest => '距最佳天数';
+
+  @override
+  String get metricSessionsSinceBest => '最佳后次数';
+
+  @override
+  String get metricMeanReps => '每组次数';
+
+  @override
+  String get metricLongestStreak => '最长连续';
+
+  @override
+  String get metricLongestGap => '最长间隔';
+
+  @override
+  String get metricMeanGap => '训练间隔';
+
+  @override
+  String get metricIntake => '摄入热量';
+
+  @override
+  String get metricBurned => '消耗热量';
+
+  @override
+  String get metricBalance => '摄入 − 消耗';
+
+  @override
+  String get queryAlone => '独自训练的日子';
+
+  @override
+  String get queryTogether => '和伙伴一起的日子';
+
+  @override
+  String get queryByPart => '按部位';
+
+  @override
+  String get queryCanSee => '记录可以查看重量、次数、组数、训练天数和餐食热量';
+
+  @override
+  String get queryDiffColumn => '差值';
+
+  @override
+  String get queryFutureCell => '尚未到来的时间';
+
+  @override
+  String get queryGrowthRate => '增长按每周速度排名，时间跨度不同也公平';
+
+  @override
+  String get queryHandoff => '只看收到的记录';
+
+  @override
+  String get queryNoHandoff => '不含收到的记录';
+
+  @override
+  String queryHandoffCount(int n) {
+    return '不含收到的 $n 条记录';
+  }
+
+  @override
+  String get queryHoursNote => '时间以创建记录时为准，事后补记的按补记时间计算';
+
+  @override
+  String get queryMixedWeights => '这是多个动作混合的重量';
+
+  @override
+  String get queryNcBodyweight => '记录里没有体重。在问题里写上体重就会拿来比较（例：体重80，硬拉是几倍？）';
+
+  @override
+  String get queryNcHeartRate => '记录搜索暂时不看心率；按动作或休息的心率因为组没有时间而无法查看';
+
+  @override
+  String get queryNeverMark => '从未记录';
+
+  @override
+  String get queryNoBaseRatio => '没有基准值，无法算比例';
+
+  @override
+  String get queryNoneCell => '此范围内没有记录';
+
+  @override
+  String get queryNoRoutine => '非课表的日子';
+
+  @override
+  String get queryRoutine => '按教练课表的日子';
+
+  @override
+  String get queryOngoing => '进行中';
+
+  @override
+  String get queryOverlap => '训练天数有重叠，无法算占比；请按组数提问';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': '胸',
+      'back': '背',
+      'legs': '腿',
+      'shoulders': '肩',
+      'arms': '手臂',
+      'core': '核心',
+      'cardio': '有氧',
+      'upper': '上半身',
+      'lower': '下半身',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => '倍数';
+
+  @override
+  String get queryRatioUnits => '单位不同，无法算比例';
+
+  @override
+  String get queryRestDay => '休息日';
+
+  @override
+  String get queryTrained => '训练日';
+
+  @override
+  String get querySetFirst => '第一组';
+
+  @override
+  String get querySetLast => '最后一组';
+
+  @override
+  String get queryShare => '占比';
+
+  @override
+  String get queryZeroFilled => '没做的动作也按 0 计入';
+
+  @override
+  String queryAgainst(String value) {
+    return '对比 $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio 倍 · 差 $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n 天';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return '已排除 $n 组其他类型的值';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '$from–$to点';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return '是不是 $name？';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return '备注全部包含：$terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text $n 天';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return '匹配的备注：$hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names：没有记录，已排除后统计';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names：没有记录';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return '备注不含：$terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return '已排除 $n 组未记次数的';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return '记录中没有、无法查看：$things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return '无法查看：$things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return '记录无法回答：$things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return '已排除 $n 组无重量（最多 $reps 次）';
+  }
+
+  @override
+  String queryNth(int n) {
+    return '倒数第 $n 个训练日';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '记录距离的 $n 次：$value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '记录时间的 $n 次：$value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return '不含 $names';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '（$n 天）';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part：$names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '每天',
+      'week': '每周',
+      'month': '每月',
+      'other': '平均',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/天',
+      'week': '/周',
+      'month': '/月',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value 倍（$percent%）';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': '第 $n 天',
+      'week': '第 $n 周',
+      'month': '第 $n 个月',
+      'other': '第 $n 个',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return '尚未到来，按 $year 年理解';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return '按相同 $days 天比较：$earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return '记录太短（不足 3 天或 3 周），未参与排名：$names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata',
+      'bpm': 'BPM 计时',
+      'other': '无计时',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return '已排除部位未知的动作：$names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '因缺值未能排名的 $n 个：$names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return '时间段天数不同（$lengths 天），差值和比例按每周计算';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$total 周中有 $zeros 周为 0',
+      'month': '$total 个月中有 $zeros 个月为 0',
+      'other': '$total 个中有 $zeros 个为 0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '可训练 $m 天中的 $percent%';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2761,7 +3226,7 @@ class LZhHans extends LZh {
       'ranking': '排名最多显示 20 个。请问 20 个以内。',
       'sessions': '“最近 N 次”最多 100 次。想看更久，请按时间段提问，例如今年。',
       'days': '“最近 N 天”最多 3660 天（约 10 年）。想看更久，请按全部时间提问。',
-      'compare': '一次最多对比 4 项。请分开提问。',
+      'compare': '一次最多对比 6 项。请分开提问。',
       'compareGrouped': '同一个问题不能既对比又按动作、日、周、月或星期分组。请二选一提问。',
       'groupedMeasure': '按日、周、月或星期分组时只能统计一项，且趋势、最后一次、第一次、距上次天数不能分组。',
       'ordering': '排名、合计和平均需要分组，例如按动作或按周。',
@@ -3478,6 +3943,471 @@ class LZhHans extends LZh {
 
   @override
   String get settingsTrainer => '教练';
+
+  @override
+  String get answerNeedsTwoDays => '至少需要两天的记录';
+
+  @override
+  String get answerNoBase => '没有基准值';
+
+  @override
+  String answerPerWeek(String value) {
+    return '每周 $value';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '每月 $value';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return '最佳之后练了 $n 次';
+  }
+
+  @override
+  String get answerTimesUnit => '次';
+
+  @override
+  String answerTimes(int n) {
+    return '$n 次';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return '连续 $n 天';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return '休息 $n 天';
+  }
+
+  @override
+  String get answerUntilToday => '今天';
+
+  @override
+  String answerEveryDays(String value) {
+    return '通常每 $value 天一次';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return '平均每 $value 天一次';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return '连续 $a 次 · 休 1 天 $b 次 · 休 2 天 $c 次 · 休 3 天以上 $d 次';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return '其中最长休息 $n 天';
+  }
+
+  @override
+  String get answerNoMeals => '没有记录餐食的日子';
+
+  @override
+  String answerAbout(String value) {
+    return '约 $value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '记录餐食的 $n 天';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return '热量未知的 $n 餐未计入合计';
+  }
+
+  @override
+  String get answerNoWatch => '没有手表测量的记录';
+
+  @override
+  String answerWatchDays(int n) {
+    return '手表测量的 $n 天';
+  }
+
+  @override
+  String get answerNoBoth => '没有同时有摄入和消耗的日子';
+
+  @override
+  String answerBothDays(int n) {
+    return '同时有摄入和消耗的 $n 天';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return '已去掉只有摄入的 $n 天';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$n 个月';
+  }
+
+  @override
+  String get metricChangePct => '变化率';
+
+  @override
+  String get metricDaysSinceBest => '距最佳天数';
+
+  @override
+  String get metricSessionsSinceBest => '最佳后次数';
+
+  @override
+  String get metricMeanReps => '每组次数';
+
+  @override
+  String get metricLongestStreak => '最长连续';
+
+  @override
+  String get metricLongestGap => '最长间隔';
+
+  @override
+  String get metricMeanGap => '训练间隔';
+
+  @override
+  String get metricIntake => '摄入热量';
+
+  @override
+  String get metricBurned => '消耗热量';
+
+  @override
+  String get metricBalance => '摄入 − 消耗';
+
+  @override
+  String get queryAlone => '独自训练的日子';
+
+  @override
+  String get queryTogether => '和伙伴一起的日子';
+
+  @override
+  String get queryByPart => '按部位';
+
+  @override
+  String get queryCanSee => '记录可以查看重量、次数、组数、训练天数和餐食热量';
+
+  @override
+  String get queryDiffColumn => '差值';
+
+  @override
+  String get queryFutureCell => '尚未到来的时间';
+
+  @override
+  String get queryGrowthRate => '增长按每周速度排名，时间跨度不同也公平';
+
+  @override
+  String get queryHandoff => '只看收到的记录';
+
+  @override
+  String get queryNoHandoff => '不含收到的记录';
+
+  @override
+  String queryHandoffCount(int n) {
+    return '不含收到的 $n 条记录';
+  }
+
+  @override
+  String get queryHoursNote => '时间以创建记录时为准，事后补记的按补记时间计算';
+
+  @override
+  String get queryMixedWeights => '这是多个动作混合的重量';
+
+  @override
+  String get queryNcBodyweight => '记录里没有体重。在问题里写上体重就会拿来比较（例：体重80，硬拉是几倍？）';
+
+  @override
+  String get queryNcHeartRate => '记录搜索暂时不看心率；按动作或休息的心率因为组没有时间而无法查看';
+
+  @override
+  String get queryNeverMark => '从未记录';
+
+  @override
+  String get queryNoBaseRatio => '没有基准值，无法算比例';
+
+  @override
+  String get queryNoneCell => '此范围内没有记录';
+
+  @override
+  String get queryNoRoutine => '非课表的日子';
+
+  @override
+  String get queryRoutine => '按教练课表的日子';
+
+  @override
+  String get queryOngoing => '进行中';
+
+  @override
+  String get queryOverlap => '训练天数有重叠，无法算占比；请按组数提问';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': '胸',
+      'back': '背',
+      'legs': '腿',
+      'shoulders': '肩',
+      'arms': '手臂',
+      'core': '核心',
+      'cardio': '有氧',
+      'upper': '上半身',
+      'lower': '下半身',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => '倍数';
+
+  @override
+  String get queryRatioUnits => '单位不同，无法算比例';
+
+  @override
+  String get queryRestDay => '休息日';
+
+  @override
+  String get queryTrained => '训练日';
+
+  @override
+  String get querySetFirst => '第一组';
+
+  @override
+  String get querySetLast => '最后一组';
+
+  @override
+  String get queryShare => '占比';
+
+  @override
+  String get queryZeroFilled => '没做的动作也按 0 计入';
+
+  @override
+  String queryAgainst(String value) {
+    return '对比 $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio 倍 · 差 $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n 天';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return '已排除 $n 组其他类型的值';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '$from–$to点';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return '是不是 $name？';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return '备注全部包含：$terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text $n 天';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return '匹配的备注：$hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names：没有记录，已排除后统计';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names：没有记录';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return '备注不含：$terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return '已排除 $n 组未记次数的';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return '记录中没有、无法查看：$things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return '无法查看：$things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return '记录无法回答：$things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return '已排除 $n 组无重量（最多 $reps 次）';
+  }
+
+  @override
+  String queryNth(int n) {
+    return '倒数第 $n 个训练日';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '记录距离的 $n 次：$value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '记录时间的 $n 次：$value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return '不含 $names';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '（$n 天）';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part：$names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '每天',
+      'week': '每周',
+      'month': '每月',
+      'other': '平均',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/天',
+      'week': '/周',
+      'month': '/月',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value 倍（$percent%）';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': '第 $n 天',
+      'week': '第 $n 周',
+      'month': '第 $n 个月',
+      'other': '第 $n 个',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return '尚未到来，按 $year 年理解';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return '按相同 $days 天比较：$earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return '记录太短（不足 3 天或 3 周），未参与排名：$names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata',
+      'bpm': 'BPM 计时',
+      'other': '无计时',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return '已排除部位未知的动作：$names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '因缺值未能排名的 $n 个：$names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return '时间段天数不同（$lengths 天），差值和比例按每周计算';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$total 周中有 $zeros 周为 0',
+      'month': '$total 个月中有 $zeros 个月为 0',
+      'other': '$total 个中有 $zeros 个为 0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '可训练 $m 天中的 $percent%';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -4498,7 +5428,7 @@ class LZhHant extends LZh {
       'ranking': '排名最多顯示 20 個。請問 20 個以內。',
       'sessions': '「最近 N 次」最多 100 次。想看更久，請按時間段提問，例如今年。',
       'days': '「最近 N 天」最多 3660 天（約 10 年）。想看更久，請按全部時間提問。',
-      'compare': '一次最多比較 4 項。請分開提問。',
+      'compare': '一次最多比較 6 項。請分開提問。',
       'compareGrouped': '同一個問題不能既比較又按動作、日、週、月或星期分組。請擇一提問。',
       'groupedMeasure': '按日、週、月或星期分組時只能統計一項，且趨勢、最後一次、第一次、距上次天數不能分組。',
       'ordering': '排名、合計和平均需要分組，例如按動作或按週。',
@@ -5215,4 +6145,469 @@ class LZhHant extends LZh {
 
   @override
   String get settingsTrainer => '教練';
+
+  @override
+  String get answerNeedsTwoDays => '至少需要兩天的紀錄';
+
+  @override
+  String get answerNoBase => '沒有基準值';
+
+  @override
+  String answerPerWeek(String value) {
+    return '每週 $value';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '每月 $value';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return '最佳之後練了 $n 次';
+  }
+
+  @override
+  String get answerTimesUnit => '次';
+
+  @override
+  String answerTimes(int n) {
+    return '$n 次';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return '連續 $n 天';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return '休息 $n 天';
+  }
+
+  @override
+  String get answerUntilToday => '今天';
+
+  @override
+  String answerEveryDays(String value) {
+    return '通常每 $value 天一次';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return '平均每 $value 天一次';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return '連續 $a 次 · 休 1 天 $b 次 · 休 2 天 $c 次 · 休 3 天以上 $d 次';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return '其中最長休息 $n 天';
+  }
+
+  @override
+  String get answerNoMeals => '沒有記錄餐食的日子';
+
+  @override
+  String answerAbout(String value) {
+    return '約 $value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '記錄餐食的 $n 天';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return '熱量未知的 $n 餐未計入合計';
+  }
+
+  @override
+  String get answerNoWatch => '沒有手錶測量的紀錄';
+
+  @override
+  String answerWatchDays(int n) {
+    return '手錶測量的 $n 天';
+  }
+
+  @override
+  String get answerNoBoth => '沒有同時有攝取和消耗的日子';
+
+  @override
+  String answerBothDays(int n) {
+    return '同時有攝取和消耗的 $n 天';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return '已去掉只有攝取的 $n 天';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$n 個月';
+  }
+
+  @override
+  String get metricChangePct => '變化率';
+
+  @override
+  String get metricDaysSinceBest => '距最佳天數';
+
+  @override
+  String get metricSessionsSinceBest => '最佳後次數';
+
+  @override
+  String get metricMeanReps => '每組次數';
+
+  @override
+  String get metricLongestStreak => '最長連續';
+
+  @override
+  String get metricLongestGap => '最長間隔';
+
+  @override
+  String get metricMeanGap => '訓練間隔';
+
+  @override
+  String get metricIntake => '攝取熱量';
+
+  @override
+  String get metricBurned => '消耗熱量';
+
+  @override
+  String get metricBalance => '攝取 − 消耗';
+
+  @override
+  String get queryAlone => '獨自訓練的日子';
+
+  @override
+  String get queryTogether => '和夥伴一起的日子';
+
+  @override
+  String get queryByPart => '按部位';
+
+  @override
+  String get queryCanSee => '紀錄可以查看重量、次數、組數、訓練天數和餐食熱量';
+
+  @override
+  String get queryDiffColumn => '差值';
+
+  @override
+  String get queryFutureCell => '尚未到來的時間';
+
+  @override
+  String get queryGrowthRate => '成長按每週速度排名，時間跨度不同也公平';
+
+  @override
+  String get queryHandoff => '只看收到的紀錄';
+
+  @override
+  String get queryNoHandoff => '不含收到的紀錄';
+
+  @override
+  String queryHandoffCount(int n) {
+    return '不含收到的 $n 筆紀錄';
+  }
+
+  @override
+  String get queryHoursNote => '時間以建立紀錄時為準，事後補記的按補記時間計算';
+
+  @override
+  String get queryMixedWeights => '這是多個動作混合的重量';
+
+  @override
+  String get queryNcBodyweight => '紀錄裡沒有體重。在問題裡寫上體重就會拿來比較（例：體重80，硬舉是幾倍？）';
+
+  @override
+  String get queryNcHeartRate => '紀錄搜尋暫時不看心率；按動作或休息的心率因為組沒有時間而無法查看';
+
+  @override
+  String get queryNeverMark => '從未記錄';
+
+  @override
+  String get queryNoBaseRatio => '沒有基準值，無法算比例';
+
+  @override
+  String get queryNoneCell => '此範圍內沒有紀錄';
+
+  @override
+  String get queryNoRoutine => '非課表的日子';
+
+  @override
+  String get queryRoutine => '按教練課表的日子';
+
+  @override
+  String get queryOngoing => '進行中';
+
+  @override
+  String get queryOverlap => '訓練天數有重疊，無法算占比；請按組數提問';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': '胸',
+      'back': '背',
+      'legs': '腿',
+      'shoulders': '肩',
+      'arms': '手臂',
+      'core': '核心',
+      'cardio': '有氧',
+      'upper': '上半身',
+      'lower': '下半身',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => '倍數';
+
+  @override
+  String get queryRatioUnits => '單位不同，無法算比例';
+
+  @override
+  String get queryRestDay => '休息日';
+
+  @override
+  String get queryTrained => '訓練日';
+
+  @override
+  String get querySetFirst => '第一組';
+
+  @override
+  String get querySetLast => '最後一組';
+
+  @override
+  String get queryShare => '占比';
+
+  @override
+  String get queryZeroFilled => '沒做的動作也按 0 計入';
+
+  @override
+  String queryAgainst(String value) {
+    return '對比 $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio 倍 · 差 $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n 天';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return '已排除 $n 組其他類型的值';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '$from–$to點';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return '是不是 $name？';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return '備註全部包含：$terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text $n 天';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return '符合的備註：$hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names：沒有紀錄，已排除後統計';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names：沒有紀錄';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return '備註不含：$terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return '已排除 $n 組未記次數的';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return '紀錄中沒有、無法查看：$things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return '無法查看：$things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return '紀錄無法回答：$things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return '已排除 $n 組無重量（最多 $reps 次）';
+  }
+
+  @override
+  String queryNth(int n) {
+    return '倒數第 $n 個訓練日';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '記錄距離的 $n 次：$value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '記錄時間的 $n 次：$value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return '不含 $names';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '（$n 天）';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part：$names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '每天',
+      'week': '每週',
+      'month': '每月',
+      'other': '平均',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/天',
+      'week': '/週',
+      'month': '/月',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value 倍（$percent%）';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': '第 $n 天',
+      'week': '第 $n 週',
+      'month': '第 $n 個月',
+      'other': '第 $n 個',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return '尚未到來，按 $year 年理解';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return '按相同 $days 天比較：$earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return '紀錄太短（不足 3 天或 3 週），未參與排名：$names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata',
+      'bpm': 'BPM 計時',
+      'other': '無計時',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return '已排除部位未知的動作：$names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '因缺值未能排名的 $n 個：$names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return '時間段天數不同（$lengths 天），差值和比例按每週計算';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$total 週中有 $zeros 週為 0',
+      'month': '$total 個月中有 $zeros 個月為 0',
+      'other': '$total 個中有 $zeros 個為 0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '可訓練 $m 天中的 $percent%';
+  }
 }

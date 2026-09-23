@@ -782,3 +782,86 @@ final Map<String, Exercise> exerciseByName = {
 List<String> seedNames(String lang) => [
   for (final e in exercises) e.name(lang),
 ];
+
+/// 사전 운동의 부위(한국어 이름 → 부위). 기록 검색의 `part` 가 이 표로 푼다.
+///
+/// 사전 구간 주석을 따르되 두 곳을 고쳤다: 코어·유산소 구간은 core 와 cardio 로
+/// 가르고, 하체 구간의 레그레이즈는 core 로 옮긴다. 데드리프트는 구간대로 등이다 —
+/// 판단이라, 확인 줄이 부위마다 든 운동을 보인다.
+const exercisePart = <String, String>{
+  '벤치프레스': 'chest',
+  '인클라인 벤치프레스': 'chest',
+  '디클라인 벤치프레스': 'chest',
+  '덤벨 프레스': 'chest',
+  '인클라인 덤벨 프레스': 'chest',
+  '체스트 프레스': 'chest',
+  '펙덱 플라이': 'chest',
+  '케이블 크로스오버': 'chest',
+  '푸시업': 'chest',
+  '데드리프트': 'back',
+  '루마니안 데드리프트': 'back',
+  '랫풀다운': 'back',
+  '풀업': 'back',
+  '친업': 'back',
+  '바벨로우': 'back',
+  '덤벨로우': 'back',
+  '시티드 로우': 'back',
+  '케이블 로우': 'back',
+  '티바로우': 'back',
+  '스쿼트': 'legs',
+  '프론트 스쿼트': 'legs',
+  '핵스쿼트': 'legs',
+  '레그프레스': 'legs',
+  '레그익스텐션': 'legs',
+  '레그컬': 'legs',
+  '런지': 'legs',
+  '불가리안 스플릿 스쿼트': 'legs',
+  '힙쓰러스트': 'legs',
+  '카프레이즈': 'legs',
+  '오버헤드프레스': 'shoulders',
+  '숄더프레스': 'shoulders',
+  '덤벨 숄더프레스': 'shoulders',
+  '사이드 레터럴 레이즈': 'shoulders',
+  '프론트 레이즈': 'shoulders',
+  '벤트오버 레터럴 레이즈': 'shoulders',
+  '업라이트 로우': 'shoulders',
+  '슈러그': 'shoulders',
+  '바벨컬': 'arms',
+  '덤벨컬': 'arms',
+  '해머컬': 'arms',
+  '프리처컬': 'arms',
+  '케이블컬': 'arms',
+  '트라이셉스 익스텐션': 'arms',
+  '케이블 푸시다운': 'arms',
+  '딥스': 'arms',
+  '킥백': 'arms',
+  '플랭크': 'core',
+  '사이드 플랭크': 'core',
+  '크런치': 'core',
+  '싯업': 'core',
+  '행잉 레그레이즈': 'core',
+  '러시안 트위스트': 'core',
+  '레그레이즈': 'core',
+  '러닝': 'cardio',
+  '사이클': 'cardio',
+  '로잉': 'cardio',
+  '버피': 'cardio',
+  '점핑잭': 'cardio',
+};
+
+/// 묶음 부위 → 든 부위. upper 는 가슴·등·어깨·팔, lower 는 하체다.
+const partGroups = <String, Set<String>>{
+  'upper': {'chest', 'back', 'shoulders', 'arms'},
+  'lower': {'legs'},
+};
+
+/// 어느 언어의 사전 이름으로든 그 운동의 부위. 사전에 없는 이름은 null — 부위를
+/// 지어내지 않는다.
+String? partOf(String name) =>
+    exercisePart[exerciseByName[name.trim().toLowerCase()]?.ko];
+
+/// [part] 가 [name] 의 부위를 품는가. upper·lower 는 펼쳐서 본다.
+bool inPart(String name, String part) {
+  final p = partOf(name);
+  return p != null && (partGroups[part]?.contains(p) ?? p == part);
+}

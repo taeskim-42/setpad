@@ -47,6 +47,73 @@ List<String> suggest(
   return scored.take(limit).map((e) => e.name).toList();
 }
 
+/// 이 이름이 사전의 어느 운동인가. 기록 이름('벤치', 'Bench Press', '스쾃')과
+/// 질문 속 이름을 사전 운동 하나로 잇는 데 쓴다 — **강한 맞춤만** 받는다:
+///
+/// 1. 정확한 키: 여덟 언어 이름·별칭(낱말 하나씩도)·초성, 띄어쓰기 무시.
+/// 2. 유일한 앞부분: 한글·한자는 글자 앞부분('벤치' → 벤치프레스, '데드'), 로마자는
+///    낱말 단위('bench' → bench press, 'row' 는 rowing 이 아니다).
+/// 3. 자모 한 개 차이(자리바꿈 포함): 두 음절 이하는 이름 전체와('런닝' → 러닝,
+///    '클린' 은 크런치가 아니다, '로우' 는 로잉이 아니다), 더 길면 앞부분과('스쿼드',
+///    '바밸로우').
+///
+/// 둘 이상의 운동에 닿으면 null 이다 — '레그' 는 어느 운동도 아니다. [exact] 는
+/// 1 단계로 맞았는가다. 퍼지로 맞춘 이름을 조용히 바꾸면 안 되는 곳이 그것을 본다.
+({Exercise exercise, bool exact})? dictionaryMatch(String raw) {
+  final lower = raw.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+  final q = searchKey(lower);
+  if (q.length < 2) return null;
+  // 정확한 키, 그다음 별칭의 낱말 하나('dl dead lift' 의 dead). 낱말이 여러 운동의
+  // 별칭에 들었거나('db') 구(句)의 흔한 낱말이면('db row' 의 row, 'kick back' 의
+  // back) 어느 것도 아니다 — 'row' 는 덤벨로우가 아니다.
+  const generic = {
+    'row', 'press', 'curl', 'pull', 'push', 'down', 'back', 'side', 'kick', //
+    'lift', 'rear',
+  };
+  for (final keys in [
+    (Exercise e) => e.keys,
+    (Exercise e) => e.alias
+        .toLowerCase()
+        .split(' ')
+        .where((w) => w.length >= 2 && !generic.contains(w)),
+  ]) {
+    final hits = {
+      for (final e in exercises)
+        if (keys(e).any((k) => searchKey(k) == q)) e,
+    };
+    if (hits.length == 1) return (exercise: hits.single, exact: true);
+    if (hits.length > 1) return null;
+  }
+  final chosung = RegExp(r'^[ㄱ-ㅎ]+$');
+  Set<Exercise> where(bool Function(String key) hit) => {
+    for (final e in exercises)
+      if (e.keys.any((k) => !chosung.hasMatch(k) && hit(k))) e,
+  };
+  final latin = RegExp(r'^[a-z0-9 ]+$').hasMatch(lower);
+  final prefixed = where(
+    (k) => latin ? k.startsWith('$lower ') : searchKey(k).startsWith(q),
+  );
+  if (prefixed.length == 1) return (exercise: prefixed.single, exact: false);
+  if (prefixed.length > 1) return null;
+  final jq = jamoOf(q);
+  if (jq.length < 4) return null;
+  final short = RegExp(r'[가-힣]').allMatches(q).length <= 2 && !latin;
+  final near = <Exercise, int>{};
+  for (final e in exercises) {
+    for (final k in e.keys.where((k) => !chosung.hasMatch(k))) {
+      final d = _typoDistance(jamoOf(searchKey(k)), jq, 1, prefix: !short);
+      if (d != null && d < (near[e] ?? 2)) near[e] = d;
+    }
+  }
+  if (near.isEmpty) return null;
+  final best = near.values.reduce((a, b) => a < b ? a : b);
+  final top = [
+    for (final e in near.entries)
+      if (e.value == best) e.key,
+  ];
+  return top.length == 1 ? (exercise: top.single, exact: false) : null;
+}
+
 int? _rank(String key, String q) {
   if (key == q) return 0;
   if (key.startsWith(q)) return 1;
@@ -430,8 +497,9 @@ const _typoRatio = 0.34;
 /// 앞부분과 견주는 이유는 사람이 이름을 끝까지 치지 않아서다 — "bech" 는
 /// "benchpress" 전체가 아니라 "bench" 를 겨눈 것이고, 그 사이가 한 글자다.
 /// 자리바꿈(bnech→bench)을 한 번으로 세는 것도 그게 가장 흔한 오타라서다.
-int? _typoDistance(String key, String q, int max) {
+int? _typoDistance(String key, String q, int max, {bool prefix = true}) {
   if (key.length + max < q.length) return null;
+  if (!prefix && q.length + max < key.length) return null;
   // row[j] = q 를 다 쓰고 key 를 j 까지 썼을 때의 거리.
   var prev2 = <int>[];
   var prev = List<int>.generate(key.length + 1, (j) => j);
@@ -461,7 +529,7 @@ int? _typoDistance(String key, String q, int max) {
     prev = row;
   }
   // key 를 어디까지 쓰든 상관없다 — 이름을 끝까지 치지 않은 것뿐이다.
-  final best = prev.reduce((a, b) => a < b ? a : b);
+  final best = prefix ? prev.reduce((a, b) => a < b ? a : b) : prev.last;
   return best <= max ? best : null;
 }
 

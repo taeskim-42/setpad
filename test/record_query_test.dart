@@ -13,6 +13,8 @@ import 'package:setpad/stats.dart';
 
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/exercises.dart';
+import 'package:setpad/parser.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 
@@ -86,12 +88,14 @@ void main() {
         {
           'measures': ['best', 'best'],
         },
+        // 같은 series 둘 — 모델이 구분 키를 흘렸다.
         {
-          'compare': [
+          'series': [
             {'period': 'lastMonth'},
             {'period': 'lastMonth'},
           ],
         },
+        // v2 의 compare 는 지웠다.
         {
           'by': 'exercise',
           'compare': [
@@ -99,11 +103,100 @@ void main() {
             {'period': 'thisMonth'},
           ],
         },
+        // series 항목 안의 plan 키(항목마다 똑같지 않으면 올려 주지 않는다).
         {
-          'compare': [
+          'series': [
             {'period': 'lastMonth', 'by': 'day'},
             {'period': 'thisMonth'},
           ],
+        },
+        {'series': []},
+        {
+          'series': [
+            for (var i = 1; i <= 7; i++) {'sessions': i},
+          ],
+        },
+        {
+          'per': 'day',
+          'measures': ['best'],
+        },
+        {
+          'relate': 'share',
+          'by': 'exercise',
+          'measures': ['best'],
+        },
+        {
+          'hours': {'from': 5, 'to': 5},
+        },
+        {
+          'period': 'all',
+          'shift': {'years': 1},
+        },
+        {
+          'period': 'thisYear',
+          'shift': {'years': 11},
+        },
+        {
+          'period': 'thisYear',
+          'shift': {'years': 1, 'days': 2},
+        },
+        {
+          'memo': ['x' * 30],
+          'noMemo': ['y' * 30],
+          'exercises': ['z' * 2000],
+        },
+        {
+          'trained': false,
+          'measures': ['setCount'],
+        },
+        {
+          'hours': {'from': 5, 'to': 11},
+          'measures': ['intake'],
+        },
+        {
+          'by': 'exercise',
+          'measures': ['burned'],
+        },
+        {
+          'by': 'week',
+          'measures': ['best', 'volume'],
+          'series': [
+            {'period': 'lastMonth'},
+            {'period': 'thisMonth'},
+          ],
+        },
+        {
+          'by': 'week',
+          'measures': ['longestStreak'],
+        },
+        {
+          'exercises': ['스쿼트'],
+          'sessions': 2,
+          'nth': 1,
+        },
+        {'memoAll': true},
+        {
+          'exercises': ['스쿼트'],
+          'against': {'value': -1},
+        },
+        {
+          'exercises': ['스쿼트'],
+          'against': {'value': 80, 'unit': 'st'},
+        },
+        {
+          'kind': 'missing',
+          'exercises': ['케틀벨 스윙'],
+        },
+        {
+          'exercises': ['스쿼트'],
+          'together': 'yes',
+        },
+        {'part': 'neck'},
+        {'timer': 'stopwatch'},
+        {'set': 'middle'},
+        {
+          'per': 'year',
+          'measures': ['setCount'],
         },
         {
           'exercises': ['스쿼트', '벤치프레스'],
@@ -202,17 +295,28 @@ void main() {
         (
           {
             'measures': ['volume'],
-            'compare': periods,
+            'series': [
+              ...periods,
+              {'period': 'today'},
+              {'period': 'yesterday'},
+            ],
           },
           'compare',
         ),
         (
           {
-            'measures': ['volume'],
-            'by': 'month',
-            'compare': periods.take(2).toList(),
+            'by': 'week',
+            'measures': ['setCount'],
+            'per': 'week',
           },
-          'compareGrouped',
+          'per',
+        ),
+        (
+          {
+            'by': 'exercise',
+            'measures': ['intake'],
+          },
+          'energyGrouped',
         ),
         (
           {
@@ -274,27 +378,25 @@ void main() {
           },
           'mistake',
         ),
+        ({'series': []}, 'mistake'),
       ]) {
         expect(limit(raw, many), kind, reason: '$raw');
       }
-      // 운동만 다른 비교는 운동별 한 줄씩이다 — 넷을 넘어도 운동 한도(8) 안이면 된다.
+      // 규칙 1: 윗단의 여러 이름은 한 줄씩이다 — by: exercise 를 적었어도.
       final five = RecordQuery.decode(
         {
           'measures': ['best'],
           'by': 'exercise',
-          'compare': [
-            for (final e in many.take(5))
-              {
-                'exercises': [e],
-              },
-          ],
+          'exercises': many.take(5).toList(),
         },
         many,
         today: today,
       );
-      expect(five.compare, isEmpty);
-      expect(five.by, 'exercise');
-      expect(five.scope.exercises, many.take(5));
+      expect(five.series, hasLength(5));
+      expect(five.by, isNull);
+      expect([
+        for (final s in five.series) s.scope.exercises.single,
+      ], many.take(5));
       // 모든 한도는 제 까닭 문구가 있다.
       for (final kind in [
         'exercises',
@@ -303,7 +405,6 @@ void main() {
         'sessions',
         'days',
         'compare',
-        'compareGrouped',
         'groupedMeasure',
         'ordering',
         'datesTotal',
@@ -320,10 +421,24 @@ void main() {
         'exercises': ['x'],
       });
       expect((unrelated.kind, unrelated.reason), ('unsupported', 'unrelated'));
+      // 기록에 없는 운동도 줄이 된다 — 질문 전체를 거절하지 않는다(v2 의 missing).
       final missing = decode({
         'exercises': ['요가'],
       });
-      expect((missing.kind, missing.reason), ('unsupported', 'missingData'));
+      expect((missing.kind, missing.reason), ('query', ''));
+      expect(missing.never, {'요가'});
+      expect(missing.scope.exercises, ['요가']);
+      // 셀 것 없이 못 보는 것만 있으면 '셀 것이 없음' 이다 — 까닭을 말한다.
+      final heart = decode({
+        'notComputable': ['심박'],
+      });
+      expect((heart.kind, heart.reason), ('unsupported', 'nothing'));
+      expect(heart.notComputable, ['심박']);
+      expect(refusalLines(heart, l), [
+        l.queryNcHeartRate,
+        l.queryNothingComputable('심박'),
+        l.queryCanSee,
+      ]);
       expect(
         decode({'kind': 'clarify'}).reason,
         'ambiguous',
@@ -346,15 +461,16 @@ void main() {
       expect(find.requiresConfirmation, isFalse);
     });
 
-    test('정규화: 기본 측정, 운동만 다른 비교, 운동 둘, 순위의 최고', () {
+    test('정규화: 기본 측정, 운동만 다른 series, 운동 둘, 순위의 최고', () {
       final plain = decode({
         'exercises': ['스쿼트'],
       });
       expect(plain.measures, RecordQuery.defaultMeasures);
       expect(plain.requiresConfirmation, isTrue);
+      // 운동만 다른 series 는 그대로 series 둘이다(v2 처럼 운동별로 접지 않는다).
       final pair = decode({
         'measures': ['best'],
-        'compare': [
+        'series': [
           {
             'exercises': ['벤치프레스'],
           },
@@ -363,23 +479,49 @@ void main() {
           },
         ],
       });
-      expect(pair.compare, isEmpty);
-      expect(pair.by, 'exercise');
-      expect(pair.scope.exercises, ['벤치프레스', '바벨로우']);
-      expect(
-        decode({
-          'exercises': ['벤치프레스', '바벨로우'],
-        }).by,
-        'exercise',
-      );
+      expect(pair.series.map((s) => s.scope.exercises.single), [
+        '벤치프레스',
+        '바벨로우',
+      ]);
+      expect(pair.by, isNull);
+      final two = decode({
+        'exercises': ['벤치프레스', '바벨로우'],
+      });
+      expect((two.series.length, two.by), (2, null));
+      expect(two.measures, RecordQuery.defaultMeasures);
       final ranked = decode({
         'by': 'exercise',
         'measures': ['best'],
         'order': 'desc',
       });
       expect(ranked.measures, [Metric.max]);
+      // 규칙 2: 이름 × series 는 표 — 줄은 운동, 칸은 series(측정 하나, 기본 최고).
+      final table = decode({
+        'exercises': ['벤치프레스', '스쿼트'],
+        'series': [
+          {'period': 'lastMonth'},
+          {'period': 'thisMonth'},
+        ],
+      });
+      expect((table.by, table.series.length), ('exercise', 2));
+      expect(table.series.map((s) => s.measures), [
+        [Metric.best],
+        [Metric.best],
+      ]);
+      // 규칙 3: series 안의 여러 이름은 합친다.
+      final pooled = decode({
+        'series': [
+          {
+            'exercises': ['벤치프레스', '푸시업'],
+          },
+          {
+            'exercises': ['랫풀다운'],
+          },
+        ],
+        'measures': ['setCount'],
+      });
+      expect(pooled.series.first.scope.exercises, ['벤치프레스', '푸시업']);
     });
-
     test('고침: kind 를 type 이라고 적은 것 — 값이 kind 일 때만', () {
       expect(decode({'type': 'clarify'}).reason, 'ambiguous');
       final q = decode({
@@ -424,59 +566,61 @@ void main() {
       }
     });
 
-    test('고침: 비교 항목마다 똑같이 적은 측정은 질의의 측정이다', () {
+    test('고침: series 항목마다 똑같이 적은 plan 키는 plan 의 것이다', () {
       final raw = {
-        'compare': [
-          {
-            'period': 'lastYear',
-            'measures': ['trainingDays'],
-          },
-          {
-            'period': 'thisYear',
-            'measures': ['trainingDays'],
-          },
+        'measures': ['trainingDays'],
+        'series': [
+          {'period': 'lastYear', 'per': 'week'},
+          {'period': 'thisYear', 'per': 'week'},
         ],
       };
       final q = decode(raw);
-      expect(q.measures, [Metric.sessions]);
-      expect(q.compare.map((v) => v.since?.year), [2025, 2026]);
+      expect(q.per, 'week');
+      expect(q.series.map((s) => s.scope.since?.year), [2025, 2026]);
       expect(
-        ((raw['compare'] as List).first as Map).keys,
-        contains('measures'),
+        ((raw['series'] as List).first as Map).keys,
+        contains('per'),
         reason: '들어온 대답은 그대로 — 캐시가 다시 푼다',
       );
-      // 항목마다 다르거나 위와 어긋나면 한 질의로 못 쓴다.
+      // 측정은 series 키다 — 항목마다 달라도 된다(데드는 1RM, 레그프레스는 세트 수).
+      final each = decode({
+        'series': [
+          {
+            'exercises': ['데드리프트'],
+            'measures': ['e1rm'],
+          },
+          {
+            'exercises': ['스쿼트'],
+            'measures': ['setCount'],
+          },
+        ],
+      });
+      expect(each.series.map((s) => s.measures.single), [
+        Metric.e1rm,
+        Metric.sets,
+      ]);
+      expect(each.measures, [Metric.e1rm, Metric.sets]);
+      // plan 키가 항목마다 다르거나 위와 어긋나면 한 plan 으로 못 쓴다.
       for (final raw in <Map<String, Object?>>[
         {
-          'compare': [
-            {
-              'period': 'lastYear',
-              'measures': ['trainingDays'],
-            },
-            {
-              'period': 'thisYear',
-              'measures': ['volume'],
-            },
+          'measures': ['trainingDays'],
+          'series': [
+            {'period': 'lastYear', 'per': 'week'},
+            {'period': 'thisYear', 'per': 'month'},
           ],
         },
         {
-          'measures': ['volume'],
-          'compare': [
-            {
-              'period': 'lastYear',
-              'measures': ['trainingDays'],
-            },
-            {
-              'period': 'thisYear',
-              'measures': ['trainingDays'],
-            },
+          'measures': ['trainingDays'],
+          'per': 'month',
+          'series': [
+            {'period': 'lastYear', 'per': 'week'},
+            {'period': 'thisYear', 'per': 'week'},
           ],
         },
       ]) {
         expect(() => decode(raw), throwsFormatException, reason: '$raw');
       }
     });
-
     test('고침: 묶음 없는 한 줄의 합계와 1등은 그 칸 자신이다', () {
       final sum = decode({
         'exercises': ['스쿼트'],
@@ -546,14 +690,14 @@ void main() {
       final q = decode({
         'exercises': ['스쿼트'],
         'measures': ['best'],
-        'compare': [
+        'series': [
           {'period': 'lastMonth'},
           {'period': 'thisMonth'},
         ],
       }, question: '지난달보다 스쿼트 늘었어?');
-      expect(q.compare, hasLength(2));
-      expect(q.compare.first.since, DateTime(2026, 8, 1));
-      expect(q.compare.last.since, DateTime(2026, 9, 1));
+      expect(q.series, hasLength(2));
+      expect(q.series.first.scope.since, DateTime(2026, 8, 1));
+      expect(q.series.last.scope.since, DateTime(2026, 9, 1));
     });
 
     test('글에 기간이 하나면 모델의 비교 기간 둘은 접는다', () {
@@ -561,7 +705,7 @@ void main() {
         {
           'exercises': ['벤치프레스'],
           'measures': ['weightChange'],
-          'compare': [
+          'series': [
             {'period': 'lastMonth'},
             {'period': 'thisMonth'},
           ],
@@ -569,7 +713,7 @@ void main() {
         question: '이번 달 벤치 무게 변화',
         on: DateTime(2026, 9, 9),
       );
-      expect(q.compare, isEmpty);
+      expect(q.series, hasLength(1));
       expect(q.scope.since, DateTime(2026, 9, 1));
       expect(q.measures, [Metric.trend]);
     });
@@ -579,7 +723,7 @@ void main() {
         {
           'exercises': ['스쿼트'],
           'measures': ['best'],
-          'compare': [
+          'series': [
             {'period': 'lastMonth'},
             {'period': 'thisMonth'},
           ],
@@ -587,7 +731,7 @@ void main() {
         question: '1월과 2월 스쿼트 최고 비교',
         on: DateTime(2031, 2, 10),
       );
-      expect(q.compare.map((v) => v.since), [
+      expect(q.series.map((s) => s.scope.since), [
         DateTime(2031, 1),
         DateTime(2031, 2),
       ]);
@@ -686,7 +830,7 @@ void main() {
       expect(formatRoundedQuantity(1 / 3, 'ko', signed: true), '≈+0.33');
     });
 
-    test('값이 빠진 세트로는 합계도, 조건 개수도 만들지 않는다', () {
+    test('값이 빠진 세트로는 합계도, 조건 개수도 만들지 않는다 — 맨몸·반복 없는 세트는 빼고 말한다', () {
       final notes = [
         note('incomplete', today, [
           ExerciseBlock('스쿼트', [
@@ -696,31 +840,50 @@ void main() {
           ]),
         ]),
       ];
+      RecordResult run(Map<String, Object?> raw) => runQuery(
+        decode(raw),
+        notes,
+        l: l,
+        unit: 'kg',
+        today: today,
+        confirmed: true,
+      )!;
+      // 반복을 안 적은 무게 세트가 있으면 볼륨은 모른다. 무게 조건도 판정할 수 없다.
       for (final raw in <Map<String, Object?>>[
-        for (final m in ['repCount', 'volume', 'best', 'meanWeight'])
-          {
-            'exercises': ['스쿼트'],
-            'measures': [m],
-          },
+        {
+          'exercises': ['스쿼트'],
+          'measures': ['volume'],
+        },
         {
           'exercises': ['스쿼트'],
           'weight': {'op': '>=', 'value': 80, 'unit': 'kg'},
           'measures': ['setCount'],
         },
       ]) {
-        final r = runQuery(
-          decode(raw),
-          notes,
-          l: l,
-          unit: 'kg',
-          today: today,
-          confirmed: true,
-        )!;
+        final r = run(raw);
         expect(r.rows.single.cells.single.reason, 'unknown', reason: '$raw');
         expect(r.footnotes, [l.queryMissingFor('스쿼트')], reason: '$raw');
       }
+      // 맨몸 세트 하나가 무게 칸을 지우지 않는다 — 무게 세트로 세고 뺀 것을 말한다.
+      final best = run({
+        'exercises': ['스쿼트'],
+        'measures': ['best'],
+      }).rows.single.cells.single;
+      expect(best.answer!.numericValue, 80);
+      expect(best.answer!.lines.first, l.queryNoWeightSets(1, 5));
+      final mean = run({
+        'exercises': ['스쿼트'],
+        'measures': ['meanWeight'],
+      }).rows.single.cells.single;
+      expect(mean.answer!.numericValue, 80);
+      // 반복 합은 반복을 적은 세트로 센다(맨몸 5회 포함) — 안 적은 세트는 말한다.
+      final reps = run({
+        'exercises': ['스쿼트'],
+        'measures': ['repCount'],
+      }).rows.single.cells.single;
+      expect(reps.answer!.numericValue, 10);
+      expect(reps.answer!.lines.first, l.queryNoRepsSets(1));
     });
-
     test('문장 제목도 운동으로 센다 — 반복·세트·날', () {
       final notes = [
         for (var i = 0; i < 2; i++)
@@ -780,7 +943,7 @@ void main() {
       ];
       final q = decode({
         'measures': ['setCount'],
-        'compare': [
+        'series': [
           {
             'exercises': ['벤치프레스'],
             'weight': {'op': '>=', 'value': 80, 'unit': 'kg'},
@@ -791,16 +954,20 @@ void main() {
           },
         ],
       }, question: '벤치프레스 80kg 이상 세트와 스쿼트 100파운드 이하 세트');
-      final cells = runQuery(
-        q,
-        records,
-        l: l,
-        unit: 'kg',
-        today: today,
-        confirmed: true,
-      )!.rows.single.cells;
+      final cells = [
+        for (final r in runQuery(
+          q,
+          records,
+          l: l,
+          unit: 'kg',
+          today: today,
+          confirmed: true,
+        )!.rows)
+          r.cells.single,
+      ];
       expect(cells.first.answer!.numericValue, 1);
-      expect(cells.last.reason, 'none');
+      // 세트 수는 개수형 — 이 범위에 없으면 0 과 까닭이다.
+      expect((cells.last.reason, cells.last.answer!.numericValue), ('none', 0));
       expect(records.single.blocks.last.sets.single.value, 110);
     });
 
@@ -862,12 +1029,12 @@ void main() {
       final q = decode({
         'exercises': ['스쿼트'],
         'measures': ['best'],
-        'compare': [
+        'series': [
           {'period': 'lastMonth'},
           {'period': 'thisMonth'},
         ],
       }, on: DateTime(2024, 3, 8));
-      expect(q.compare.first.until, DateTime(2024, 2, 29));
+      expect(q.series.first.scope.until, DateTime(2024, 2, 29));
     });
 
     test('글의 기간이 모델의 기간보다 앞선다', () {
@@ -1197,12 +1364,12 @@ void main() {
         'reps': {'op': '>=', 'value': 5},
         'weekdays': [1],
         'sessions': 3,
-        'compare': [
+        'series': [
           {'period': 'custom', 'since': '2025-08-01', 'until': '2025-08-31'},
           {'period': 'custom', 'since': '2026-08-01', 'until': '2026-08-31'},
         ],
       });
-      final text = describeQuery(q, l, 'kg');
+      final text = describePlan(q, l, 'kg');
       for (final part in [
         '세트 수',
         'kg',
@@ -1217,6 +1384,7 @@ void main() {
       ]) {
         expect(text, contains(part));
       }
+      expect(describeQuery(q, l, 'kg'), text, reason: '옛 이름은 같은 글');
       final ranked = decode({
         'exclude': ['벤치프레스'],
         'by': 'exercise',
@@ -1225,13 +1393,20 @@ void main() {
         'limit': 3,
       });
       expect(
-        describeQuery(ranked, l, 'kg'),
-        '모든 운동 · 벤치프레스 제외 · 최고 · kg · 운동별 · 상위 3개 · 내림차순 · 전체 기간',
+        describePlan(ranked, l, 'kg'),
+        '벤치프레스 제외 · 최고 · kg · 운동별 · 상위 3개 · 내림차순 · 모든 운동 · 전체 기간',
       );
       final pair = decode({
         'exercises': ['벤치프레스', '바벨로우'],
       });
-      expect(describeQuery(pair, l, 'kg'), contains('차이 (바벨로우 − 벤치프레스)'));
+      expect(
+        describePlan(pair, l, 'kg'),
+        allOf(
+          contains('차이 (2 − 1)'),
+          contains('1. 벤치프레스 · 전체 기간'),
+          contains('2. 바벨로우 · 전체 기간'),
+        ),
+      );
     });
   });
 
@@ -1261,7 +1436,7 @@ void main() {
       expect(received, ['스쿼트 최대 무게', '스쿼트 PR']);
     });
 
-    test('서버에는 contract 2 로 묻고, 402 는 원판 부족이다', () async {
+    test('서버에는 contract 3 으로 묻고, 402 는 원판 부족이다', () async {
       final bodies = <Map>[];
       var status = 200;
       final ai = RecordAi(
@@ -1280,7 +1455,7 @@ void main() {
         }),
       );
       expect(await ai.queryIntent('스쿼트 최고', 'ko', names, unit: 'kg'), squat());
-      expect(bodies.single['contract'], 2);
+      expect(bodies.single['contract'], 3);
       status = 402;
       final search = RecordSearch(ai, cache: QueryCache(directory: _temp()));
       await search.refresh('ko');
@@ -1346,7 +1521,8 @@ void main() {
         reason: '"지난주" 는 묻는 날에 따라 다른 주다',
       );
 
-      // 운동 목록이나 단위가 달라지면 뜻이 달라질 수 있어 다시 묻는다.
+      // 운동을 새로 하나 적어도 다시 사지 않는다 — 이름은 꺼낼 때마다 지금의
+      // 기록으로 다시 푼다. 단위나 해(referenceYear)가 달라지면 다시 묻는다.
       search.search(
         '지난주 스쿼트 최고',
         'ko',
@@ -1355,7 +1531,7 @@ void main() {
         immediately: true,
       );
       await Future<void>.delayed(Duration.zero);
-      expect(calls, 2);
+      expect(calls, 1);
       search.search(
         '지난주 스쿼트 최고',
         'ko',
@@ -1364,7 +1540,11 @@ void main() {
         immediately: true,
       );
       await Future<void>.delayed(Duration.zero);
-      expect(calls, 3);
+      expect(calls, 2);
+      now = DateTime(2027, 1, 5);
+      search.search('지난주 스쿼트 최고', 'ko', names, 'lb', immediately: true);
+      await Future<void>.delayed(Duration.zero);
+      expect(calls, 3, reason: '절대 날짜가 해를 넘겨 쓰이지 않는다');
       search.dispose();
     });
 
@@ -1646,6 +1826,230 @@ void main() {
         search.dispose();
       },
     );
+  });
+
+  group('v3', () {
+    test('사전 맞춤은 강한 것만 — 앞부분·별칭·자모 한 개, 둘에 닿으면 없음', () {
+      String? of(String raw) => dictionaryMatch(raw)?.exercise.ko;
+      for (final (raw, ko, exact) in [
+        ('벤치프레스', '벤치프레스', true),
+        ('Bench Press', '벤치프레스', true),
+        ('卧推', '벤치프레스', true),
+        ('스쾃', '스쿼트', true),
+        ('dead', '데드리프트', true),
+        ('벤치', '벤치프레스', false),
+        ('데드', '데드리프트', false),
+        ('bench', '벤치프레스', false),
+        ('스쿼드', '스쿼트', false),
+        ('바밸로우', '바벨로우', false),
+        ('런닝', '러닝', false),
+      ]) {
+        expect(of(raw), ko, reason: raw);
+        expect(dictionaryMatch(raw)!.exact, exact, reason: raw);
+      }
+      // 둘 이상에 닿거나(레그·덤벨·db), 짧은 말의 먼 퍼지(클린→크런치, 로우→로잉,
+      // row→rowing), 사전에 없는 이름은 어느 운동도 아니다.
+      for (final raw in [
+        '레그',
+        '덤벨',
+        'db',
+        '클린',
+        '로우',
+        'row',
+        '케이블 크런치',
+        '케틀벨 스윙',
+        '민수식 로우',
+      ]) {
+        expect(of(raw), isNull, reason: raw);
+      }
+    });
+
+    test('부위 표: 사전 58개 모두, 레그레이즈는 코어, 러닝은 유산소, 상체·하체 펼침', () {
+      expect(exercises, hasLength(58));
+      for (final e in exercises) {
+        expect(exercisePart[e.ko], isNotNull, reason: e.ko);
+      }
+      expect(exercisePart.length, 58);
+      expect(partOf('레그레이즈'), 'core');
+      expect(partOf('Running'), 'cardio');
+      expect(partOf('Deadlift'), 'back');
+      expect(partOf('민수식 로우'), isNull);
+      expect(inPart('벤치프레스', 'upper'), isTrue);
+      expect(inPart('데드리프트', 'upper'), isTrue);
+      expect(inPart('스쿼트', 'lower'), isTrue);
+      expect(inPart('스쿼트', 'upper'), isFalse);
+      expect(inPart('플랭크', 'upper'), isFalse);
+    });
+
+    test('이름 풀기: 바밸로우는 기록의 덤벨로우가 아니다, 영어 이름은 기록으로, 사전에 없는 이름은 그대로', () {
+      const logged = ['벤치프레스', '덤벨로우', '시티드 로우', '스쿼트'];
+      RecordQuery q(String name) => RecordQuery.decode(
+        {
+          'exercises': [name],
+          'measures': ['best'],
+        },
+        logged,
+        today: today,
+      );
+      final row = q('바밸로우');
+      expect(row.never, {'바밸로우'});
+      expect(row.maybe['바밸로우']!.first, '바벨로우');
+      final bench = q('Bench Press');
+      expect(bench.never, isEmpty);
+      expect(bench.scope.exercises, ['벤치프레스']);
+      expect(bench.readAs, {'벤치프레스': 'Bench Press'});
+      final bell = q('케틀벨 스윙');
+      expect(bell.never, {'케틀벨 스윙'});
+      expect(bell.scope.exercises, ['케틀벨 스윙']);
+      final squat = q('스쿼드');
+      expect(squat.never, isEmpty);
+      expect(squat.scope.exercises, ['스쿼트']);
+      expect(squat.readAs, {'스쿼트': '스쿼드'});
+      // 사전에 있지만 안 적은 운동은 화면 언어의 사전 이름이다.
+      final hip = RecordQuery.decode(
+        {
+          'exercises': ['Hip Thrust'],
+        },
+        logged,
+        today: today,
+      );
+      expect(hip.never, {'힙쓰러스트'});
+      expect(hip.names['힙쓰러스트'], '힙쓰러스트');
+      final en = RecordQuery.decode(
+        {
+          'exercises': ['힙쓰러스트'],
+        },
+        logged,
+        today: today,
+        lang: 'en',
+      );
+      expect(en.names['힙쓰러스트'], 'Hip Thrust');
+    });
+
+    test('상속: 기간 네 키는 한 덩이, shift 는 따로 — 작년 이맘때', () {
+      final q = decode({
+        'exercises': ['벤치프레스'],
+        'period': 'recent',
+        'days': 30,
+        'series': [
+          {
+            'shift': {'years': 1},
+          },
+          {},
+        ],
+      });
+      expect(q.series.map((s) => (s.scope.since, s.scope.until)), [
+        (DateTime(2025, 8, 25), DateTime(2025, 9, 23)),
+        (DateTime(2026, 8, 25), DateTime(2026, 9, 23)),
+      ]);
+      final own = decode({
+        'exercises': ['벤치프레스'],
+        'period': 'recent',
+        'days': 30,
+        'series': [
+          {'period': 'lastMonth'},
+          {},
+        ],
+      });
+      expect(own.series.first.scope.since, DateTime(2026, 8, 1));
+      expect(own.series.first.scope.until, DateTime(2026, 8, 31));
+    });
+
+    test('규칙 층은 shift 가 있으면 쉰다 — "작년" 이 lastYear 로 덮이지 않는다', () {
+      final q = decode({
+        'exercises': ['스쿼트'],
+        'period': 'recent',
+        'days': 30,
+        'series': [
+          {
+            'shift': {'years': 1},
+          },
+          {},
+        ],
+      }, question: '작년 이맘때 대비 스쿼트');
+      expect(q.series, hasLength(2));
+      expect(q.series.first.scope.since!.year, 2025);
+    });
+
+    test('지시문: 8,000자 이하, 예시 plan 은 모두 디코더를 지난다', () {
+      expect(planInstructions.length, lessThanOrEqualTo(8000));
+      const logged = [
+        '스쿼트',
+        '벤치프레스',
+        '데드리프트',
+        '오버헤드프레스',
+        '레그프레스',
+        '바벨로우',
+        '러닝',
+        'Squat',
+        'Deadlift',
+      ];
+      var count = 0;
+      for (final m in RegExp(
+        r'^"(.+?)" => (.*)$',
+        multiLine: true,
+      ).allMatches(planInstructions)) {
+        final q = RecordQuery.decode(
+          jsonDecode(m[2]!),
+          logged,
+          today: today,
+          question: m[1]!,
+        );
+        expect(q.kind, isNot('find'), reason: m[1]);
+        count++;
+      }
+      expect(count, greaterThanOrEqualTo(30));
+    });
+
+    test('기록 이름은 해낸 세트로 정하고, 모델에 그 이름만 간다 — 거절도 담아 원판을 다시 쓰지 않는다', () async {
+      final sent = <List<Object?>>[];
+      var calls = 0;
+      Future<Object?> reply(String instructions, String input) async {
+        calls++;
+        sent.add((jsonDecode(input) as Map)['exerciseNames'] as List);
+        return {
+          'notComputable': ['심박'],
+        };
+      }
+
+      final notes = [
+        note('n', today, [
+          ExerciseBlock('스쿼트', [LoggedSet(value: 100, reps: 5)]),
+          ExerciseBlock('레그프레스', [LoggedSet(value: 100, reps: 5, done: false)]),
+        ]),
+      ];
+      final search = RecordSearch(
+        RecordAi(respond: reply),
+        now: () => today,
+        cache: QueryCache(directory: _temp()),
+      );
+      await search.refresh('ko');
+      search.search(
+        '내 심박 평균',
+        'ko',
+        ['스쿼트', '레그프레스'],
+        'kg',
+        immediately: true,
+        notes: notes,
+      );
+      await pumpEventQueue();
+      expect(sent.single, ['스쿼트']);
+      expect(
+        (search.plan?.kind, search.plan?.reason),
+        ('unsupported', 'nothing'),
+      );
+      search.search(
+        '내 심박 평균',
+        'ko',
+        ['스쿼트'],
+        'kg',
+        immediately: true,
+        notes: notes,
+      );
+      await pumpEventQueue();
+      expect(calls, 1, reason: '거절도 결정적이다 — 담아 둔다');
+      search.dispose();
+    });
   });
 }
 

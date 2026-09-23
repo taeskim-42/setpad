@@ -1056,7 +1056,7 @@ class LTh extends L {
           '\'N ครั้งล่าสุด\' ได้ไม่เกิน 100 ครั้ง ถ้าต้องการนานกว่านั้น ให้ถามตามช่วงเวลา เช่น ปีนี้',
       'days':
           '\'N วันล่าสุด\' ได้ไม่เกิน 3660 วัน (ประมาณ 10 ปี) ถ้าต้องการนานกว่านั้น ให้ถามทั้งหมด',
-      'compare': 'เปรียบเทียบได้ครั้งละไม่เกิน 4 อย่าง ลองถามแยกเป็นส่วน',
+      'compare': 'เปรียบเทียบได้ครั้งละไม่เกิน 6 อย่าง ลองถามแยกเป็นส่วน',
       'compareGrouped':
           'การเปรียบเทียบจัดกลุ่มตามท่า วัน สัปดาห์ เดือน หรือวันในสัปดาห์ในคำถามเดียวกันไม่ได้ โปรดถามอย่างใดอย่างหนึ่ง',
       'groupedMeasure':
@@ -1795,4 +1795,475 @@ class LTh extends L {
 
   @override
   String get settingsTrainer => 'เทรนเนอร์';
+
+  @override
+  String get answerNeedsTwoDays => 'ต้องมีอย่างน้อยสองวัน';
+
+  @override
+  String get answerNoBase => 'ไม่มีค่าอ้างอิง';
+
+  @override
+  String answerPerWeek(String value) {
+    return '$value ต่อสัปดาห์';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '$value ต่อเดือน';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return 'ทำ $n ครั้งหลังสถิติสูงสุด';
+  }
+
+  @override
+  String get answerTimesUnit => ' ครั้ง';
+
+  @override
+  String answerTimes(int n) {
+    return '$n ครั้ง';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return 'ติดต่อกัน $n วัน';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return 'พัก $n วัน';
+  }
+
+  @override
+  String get answerUntilToday => 'วันนี้';
+
+  @override
+  String answerEveryDays(String value) {
+    return 'ปกติทุก $value วัน';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return 'เฉลี่ยทุก $value วัน';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return 'ติดกัน $a ครั้ง · พัก 1 วัน $b ครั้ง · พัก 2 วัน $c ครั้ง · พัก 3 วันขึ้นไป $d ครั้ง';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return 'รวมช่วงพักยาวที่สุด $n วัน';
+  }
+
+  @override
+  String get answerNoMeals => 'ไม่มีวันที่บันทึกมื้ออาหาร';
+
+  @override
+  String answerAbout(String value) {
+    return 'ประมาณ $value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '$n วันที่บันทึกมื้ออาหาร';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return 'มื้อที่ไม่รู้แคลอรี $n มื้อไม่ได้รวมในผลรวม';
+  }
+
+  @override
+  String get answerNoWatch => 'ไม่มีบันทึกที่วัดด้วยนาฬิกา';
+
+  @override
+  String answerWatchDays(int n) {
+    return '$n วันที่วัดด้วยนาฬิกา';
+  }
+
+  @override
+  String get answerNoBoth => 'ไม่มีวันที่มีทั้งการกินและการเผาผลาญ';
+
+  @override
+  String answerBothDays(int n) {
+    return '$n วันที่มีทั้งการกินและการเผาผลาญ';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return 'ไม่นับ $n วันที่มีแต่การกิน';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$n เดือน';
+  }
+
+  @override
+  String get metricChangePct => 'อัตราเปลี่ยนแปลง';
+
+  @override
+  String get metricDaysSinceBest => 'วันนับจากสถิติสูงสุด';
+
+  @override
+  String get metricSessionsSinceBest => 'ครั้งหลังสถิติสูงสุด';
+
+  @override
+  String get metricMeanReps => 'ครั้งต่อเซ็ต';
+
+  @override
+  String get metricLongestStreak => 'ติดต่อกันนานสุด';
+
+  @override
+  String get metricLongestGap => 'ช่วงพักนานสุด';
+
+  @override
+  String get metricMeanGap => 'ระยะห่างการออกกำลัง';
+
+  @override
+  String get metricIntake => 'แคลอรีที่กิน';
+
+  @override
+  String get metricBurned => 'แคลอรีที่เผาผลาญ';
+
+  @override
+  String get metricBalance => 'กิน − เผาผลาญ';
+
+  @override
+  String get queryAlone => 'วันที่ทำคนเดียว';
+
+  @override
+  String get queryTogether => 'วันที่ทำกับคู่';
+
+  @override
+  String get queryByPart => 'ตามส่วนของร่างกาย';
+
+  @override
+  String get queryCanSee =>
+      'บันทึกบอกได้ถึงน้ำหนัก ครั้ง เซ็ต วันที่ออกกำลัง และแคลอรีมื้ออาหาร';
+
+  @override
+  String get queryDiffColumn => 'ส่วนต่าง';
+
+  @override
+  String get queryFutureCell => 'ยังมาไม่ถึง';
+
+  @override
+  String get queryGrowthRate =>
+      'จัดอันดับการเติบโตด้วยอัตราต่อสัปดาห์ เพื่อให้ช่วงเวลาต่างกันเทียบได้';
+
+  @override
+  String get queryHandoff => 'เฉพาะบันทึกที่ได้รับมา';
+
+  @override
+  String get queryNoHandoff => 'ไม่รวมบันทึกที่ได้รับมา';
+
+  @override
+  String queryHandoffCount(int n) {
+    return 'ไม่รวมบันทึกที่ได้รับมา $n รายการ';
+  }
+
+  @override
+  String get queryHoursNote =>
+      'เวลาคือเวลาที่สร้างบันทึก ถ้าบันทึกย้อนหลังจะนับตามเวลาที่บันทึก';
+
+  @override
+  String get queryMixedWeights => 'น้ำหนักนี้รวมหลายท่า';
+
+  @override
+  String get queryNcBodyweight =>
+      'ไม่มีน้ำหนักตัวในบันทึก ใส่น้ำหนักในคำถามแล้วจะเทียบให้ (เช่น หนัก 80 เดดลิฟต์ได้กี่เท่า)';
+
+  @override
+  String get queryNcHeartRate =>
+      'การค้นหาบันทึกยังไม่ดูชีพจร และดูรายท่าหรือรายช่วงพักไม่ได้เพราะเซ็ตไม่มีเวลา';
+
+  @override
+  String get queryNeverMark => 'ไม่เคยบันทึก';
+
+  @override
+  String get queryNoBaseRatio => 'ไม่มีค่าอ้างอิงจึงหาอัตราส่วนไม่ได้';
+
+  @override
+  String get queryNoneCell => 'ไม่มีบันทึกในช่วงนี้';
+
+  @override
+  String get queryNoRoutine => 'วันที่ไม่ใช้รูทีน';
+
+  @override
+  String get queryRoutine => 'วันที่ใช้รูทีนเทรนเนอร์';
+
+  @override
+  String get queryOngoing => 'กำลังดำเนินอยู่';
+
+  @override
+  String get queryOverlap =>
+      'วันออกกำลังซ้อนกันจึงหาสัดส่วนไม่ได้ ลองถามด้วยจำนวนเซ็ต';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': 'อก',
+      'back': 'หลัง',
+      'legs': 'ขา',
+      'shoulders': 'ไหล่',
+      'arms': 'แขน',
+      'core': 'แกนกลาง',
+      'cardio': 'คาร์ดิโอ',
+      'upper': 'ร่างกายส่วนบน',
+      'lower': 'ร่างกายส่วนล่าง',
+      'other': 'ส่วนของร่างกาย',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => 'อัตราส่วน';
+
+  @override
+  String get queryRatioUnits => 'หน่วยต่างกันจึงหาอัตราส่วนไม่ได้';
+
+  @override
+  String get queryRestDay => 'วันพัก';
+
+  @override
+  String get queryTrained => 'วันที่ออกกำลัง';
+
+  @override
+  String get querySetFirst => 'เซ็ตแรก';
+
+  @override
+  String get querySetLast => 'เซ็ตสุดท้าย';
+
+  @override
+  String get queryShare => 'สัดส่วน';
+
+  @override
+  String get queryZeroFilled => 'นับท่าที่ไม่ได้ทำเป็น 0';
+
+  @override
+  String queryAgainst(String value) {
+    return 'เทียบกับ $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio เท่า · ต่าง $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n วัน';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return 'ไม่นับ $n เซ็ตที่ค่าต่างชนิด';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '$from:00–$to:00 น.';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return 'หมายถึง $name หรือเปล่า';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return 'บันทึกมีครบ: $terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text ($n วัน)';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return 'บันทึกที่ตรง: $hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names: ไม่เคยบันทึก จึงนับโดยไม่รวม';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names: ไม่เคยบันทึก';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return 'บันทึกไม่มี: $terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return 'ไม่นับ $n เซ็ตที่ไม่ได้ใส่จำนวนครั้ง';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return 'ไม่มีในบันทึกจึงดูไม่ได้: $things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return 'ดูไม่ได้: $things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return 'บันทึกตอบเรื่องนี้ไม่ได้: $things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return 'ไม่นับ $n เซ็ตที่ไม่มีน้ำหนัก (สูงสุด $reps ครั้ง)';
+  }
+
+  @override
+  String queryNth(int n) {
+    return 'วันออกกำลังลำดับที่ $n จากท้าย';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '$n ครั้งที่ใส่ระยะทาง: $value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '$n ครั้งที่ใส่เวลา: $value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return 'ไม่รวม $names';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '($n วัน)';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part: $names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': 'ต่อวัน',
+      'week': 'ต่อสัปดาห์',
+      'month': 'ต่อเดือน',
+      'other': 'เฉลี่ย',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/วัน',
+      'week': '/สัปดาห์',
+      'month': '/เดือน',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value เท่า ($percent%)';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': 'วันที่ $n',
+      'week': 'สัปดาห์ที่ $n',
+      'month': 'เดือนที่ $n',
+      'other': 'ลำดับที่ $n',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return 'ยังมาไม่ถึงจึงอ่านเป็นปี $year';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return 'เทียบ $days วันเท่ากัน: $earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return 'สั้นเกินไปจึงไม่จัดอันดับ (น้อยกว่า 3 วันหรือ 3 สัปดาห์): $names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'ทาบาตะ',
+      'bpm': 'ตัวจับเวลา BPM',
+      'other': 'ไม่มีตัวจับเวลา',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return 'ไม่นับท่าที่ไม่รู้ส่วนของร่างกาย: $names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '$n รายการที่ไม่ได้จัดอันดับเพราะค่าหาย: $names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return 'ช่วงเวลายาวไม่เท่ากัน ($lengths วัน) จึงคิดส่วนต่างและอัตราส่วนต่อสัปดาห์';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$zeros จาก $total สัปดาห์เป็น 0',
+      'month': '$zeros จาก $total เดือนเป็น 0',
+      'other': '$zeros จาก $total เป็น 0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '$percent% จาก $m วันที่เป็นไปได้';
+  }
 }

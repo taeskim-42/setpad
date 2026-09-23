@@ -1744,7 +1744,7 @@ abstract class L {
   /// No description provided for @queryLimit.
   ///
   /// In ko, this message translates to:
-  /// **'{kind, select, exercises{운동은 한 번에 8개까지 물을 수 있어요. 나눠서 물어 주세요.} measures{한 번에 세 가지까지 셀 수 있어요. 나눠서 물어 주세요.} ranking{순위는 20개까지 보여 줄 수 있어요. 20개 이하로 물어 주세요.} sessions{\'마지막 N번\'은 100번까지예요. 더 길게 보려면 기간으로 물어 주세요. 예: 올해} days{\'최근 N일\'은 3660일(약 10년)까지예요. 더 길게 보려면 전체 기간으로 물어 주세요.} compare{한 번에 4가지까지 견줄 수 있어요. 나눠서 물어 주세요.} compareGrouped{견주기와 운동·날·주·월·요일별 묶음은 한 질문에 함께 셀 수 없어요. 둘 중 하나로 물어 주세요.} groupedMeasure{날·주·월·요일별로 묶으면 한 가지만 셀 수 있고, 추이·마지막·처음·안 한 지는 묶을 수 없어요.} ordering{순위·합계·평균은 운동별이나 주별처럼 묶어서 물어 주세요.} datesTotal{마지막·처음 날짜는 더하거나 평균 낼 수 없어요.} other{이 질문은 기록 검색이 셀 수 없는 모양이에요. 나눠서 물어 주세요.}}'**
+  /// **'{kind, select, exercises{운동은 한 번에 8개까지 물을 수 있어요. 나눠서 물어 주세요.} measures{한 번에 세 가지까지 셀 수 있어요. 나눠서 물어 주세요.} ranking{순위는 20개까지 보여 줄 수 있어요. 20개 이하로 물어 주세요.} sessions{\'마지막 N번\'은 100번까지예요. 더 길게 보려면 기간으로 물어 주세요. 예: 올해} days{\'최근 N일\'은 3660일(약 10년)까지예요. 더 길게 보려면 전체 기간으로 물어 주세요.} compare{한 번에 6가지까지 견줄 수 있어요. 나눠서 물어 주세요.} compareGrouped{견주기와 운동·날·주·월·요일별 묶음은 한 질문에 함께 셀 수 없어요. 둘 중 하나로 물어 주세요.} groupedMeasure{날·주·월·요일별로 묶으면 한 가지만 셀 수 있고, 추이·마지막·처음·안 한 지는 묶을 수 없어요.} ordering{순위·합계·평균은 운동별이나 주별처럼 묶어서 물어 주세요.} datesTotal{마지막·처음 날짜는 더하거나 평균 낼 수 없어요.} other{이 질문은 기록 검색이 셀 수 없는 모양이에요. 나눠서 물어 주세요.}}'**
   String queryLimit(String kind);
 
   /// No description provided for @policyNumberRejected.
@@ -2928,6 +2928,623 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'트레이너'**
   String get settingsTrainer;
+
+  /// 측정에 날이 둘 이상 필요한데 하나뿐일 때 칸 아래 줄
+  ///
+  /// In ko, this message translates to:
+  /// **'날이 둘 이상 있어야 해요'**
+  String get answerNeedsTwoDays;
+
+  /// 변화율의 첫 값이 0 이라 셀 수 없을 때
+  ///
+  /// In ko, this message translates to:
+  /// **'기준 값이 없어요'**
+  String get answerNoBase;
+
+  /// 주당 변화 속도
+  ///
+  /// In ko, this message translates to:
+  /// **'주당 {value}'**
+  String answerPerWeek(String value);
+
+  /// 달당 변화 속도(8주 넘을 때)
+  ///
+  /// In ko, this message translates to:
+  /// **'달당 {value}'**
+  String answerPerMonth(String value);
+
+  /// 최고 기록 뒤로 한 운동일 수
+  ///
+  /// In ko, this message translates to:
+  /// **'최고 이후 {n}번 했어요'**
+  String answerTimesAfter(int n);
+
+  /// 횟수 단위(숫자 뒤에 붙음)
+  ///
+  /// In ko, this message translates to:
+  /// **'번'**
+  String get answerTimesUnit;
+
+  /// 횟수
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}번'**
+  String answerTimes(int n);
+
+  /// 최장 연속 운동일
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}일 연속'**
+  String answerStreak(int n);
+
+  /// 최장 공백
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}일 쉼'**
+  String answerRestDays(int n);
+
+  /// 공백이 오늘까지 이어질 때 끝 날짜 자리
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘'**
+  String get answerUntilToday;
+
+  /// 운동 간격 중앙값
+  ///
+  /// In ko, this message translates to:
+  /// **'보통 {value}일마다'**
+  String answerEveryDays(String value);
+
+  /// 운동 간격 평균
+  ///
+  /// In ko, this message translates to:
+  /// **'평균 {value}일마다'**
+  String answerMeanEvery(String value);
+
+  /// 운동 간격 분포: 쉰 날 0·1·2·3 이상
+  ///
+  /// In ko, this message translates to:
+  /// **'연달아 {a}번 · 하루 쉬고 {b}번 · 이틀 쉬고 {c}번 · 사흘 이상 쉬고 {d}번'**
+  String answerGapSpread(int a, int b, int c, int d);
+
+  /// 긴 휴가 하나가 평균을 부풀릴 때
+  ///
+  /// In ko, this message translates to:
+  /// **'가장 긴 쉼 {n}일이 들어 있어요'**
+  String answerLongestIncluded(int n);
+
+  /// 섭취 측정인데 끼니가 없을 때
+  ///
+  /// In ko, this message translates to:
+  /// **'끼니를 적은 날이 없어요'**
+  String get answerNoMeals;
+
+  /// 어림이 섞인 열량
+  ///
+  /// In ko, this message translates to:
+  /// **'약 {value}'**
+  String answerAbout(String value);
+
+  /// 섭취를 센 날 수
+  ///
+  /// In ko, this message translates to:
+  /// **'끼니를 적은 {n}일'**
+  String answerMealDays(int n);
+
+  /// 열량 모르는 끼니 수
+  ///
+  /// In ko, this message translates to:
+  /// **'열량을 모르는 끼니 {n}개는 합에 없어요'**
+  String queryUnknownMeals(int n);
+
+  /// 소모 측정인데 워치 기록이 없을 때
+  ///
+  /// In ko, this message translates to:
+  /// **'워치로 잰 기록이 없어요'**
+  String get answerNoWatch;
+
+  /// 소모를 센 날 수
+  ///
+  /// In ko, this message translates to:
+  /// **'워치로 잰 {n}일'**
+  String answerWatchDays(int n);
+
+  /// 섭취−소모인데 둘 다 있는 날이 없을 때
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취와 소모가 둘 다 있는 날이 없어요'**
+  String get answerNoBoth;
+
+  /// 섭취·소모가 둘 다 있는 날 수
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취·소모가 둘 다 있는 {n}일'**
+  String answerBothDays(int n);
+
+  /// 섭취만 있어 차이에서 뺀 날
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취만 있는 {n}일은 뺐어요'**
+  String answerIntakeOnlyDays(int n);
+
+  /// 달 수
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}달'**
+  String answerMonths(int n);
+
+  /// 측정: 무게 변화율
+  ///
+  /// In ko, this message translates to:
+  /// **'변화율'**
+  String get metricChangePct;
+
+  /// 측정: 최고 이후 지난 날
+  ///
+  /// In ko, this message translates to:
+  /// **'최고 이후 날'**
+  String get metricDaysSinceBest;
+
+  /// 측정: 최고 이후 운동일 수(정체)
+  ///
+  /// In ko, this message translates to:
+  /// **'최고 이후 횟수'**
+  String get metricSessionsSinceBest;
+
+  /// 측정: 세트당 반복
+  ///
+  /// In ko, this message translates to:
+  /// **'세트당 반복'**
+  String get metricMeanReps;
+
+  /// 측정: 최장 연속 운동일
+  ///
+  /// In ko, this message translates to:
+  /// **'최장 연속'**
+  String get metricLongestStreak;
+
+  /// 측정: 최장 공백
+  ///
+  /// In ko, this message translates to:
+  /// **'최장 공백'**
+  String get metricLongestGap;
+
+  /// 측정: 운동 간격
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 간격'**
+  String get metricMeanGap;
+
+  /// 측정: 섭취 열량
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취 열량'**
+  String get metricIntake;
+
+  /// 측정: 워치 소모 열량
+  ///
+  /// In ko, this message translates to:
+  /// **'소모 열량'**
+  String get metricBurned;
+
+  /// 측정: 섭취 − 소모
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취 − 소모'**
+  String get metricBalance;
+
+  /// 범위: 혼자 한 날
+  ///
+  /// In ko, this message translates to:
+  /// **'혼자 한 날'**
+  String get queryAlone;
+
+  /// 범위: 같이 한 날(누가 들어온 같이 하기)
+  ///
+  /// In ko, this message translates to:
+  /// **'같이 한 날'**
+  String get queryTogether;
+
+  /// 묶음: 부위별
+  ///
+  /// In ko, this message translates to:
+  /// **'부위별'**
+  String get queryByPart;
+
+  /// 셀 것이 없는 질문에 기록으로 볼 수 있는 것
+  ///
+  /// In ko, this message translates to:
+  /// **'기록으로는 무게·횟수·세트·운동한 날·끼니 열량을 볼 수 있어요'**
+  String get queryCanSee;
+
+  /// 표의 차이 칸 머리
+  ///
+  /// In ko, this message translates to:
+  /// **'차이'**
+  String get queryDiffColumn;
+
+  /// 칸: 아직 오지 않은 기간
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 오지 않은 기간'**
+  String get queryFutureCell;
+
+  /// 각주: 성장 순위는 주당 속도
+  ///
+  /// In ko, this message translates to:
+  /// **'성장은 주당 속도로 순위를 매겼어요 — 기간이 달라도 공정하게'**
+  String get queryGrowthRate;
+
+  /// 범위: 건네받은 기록만
+  ///
+  /// In ko, this message translates to:
+  /// **'건네받은 기록만'**
+  String get queryHandoff;
+
+  /// 범위: 건네받은 기록 제외
+  ///
+  /// In ko, this message translates to:
+  /// **'건네받은 기록 제외'**
+  String get queryNoHandoff;
+
+  /// 확인 줄: 뺀 건네받은 기록 수
+  ///
+  /// In ko, this message translates to:
+  /// **'건네받은 기록 {n}개 제외'**
+  String queryHandoffCount(int n);
+
+  /// 각주: 시간대는 기록을 만든 시각 기준
+  ///
+  /// In ko, this message translates to:
+  /// **'시각은 기록을 만든 때 기준이에요 — 나중에 몰아 적은 기록은 적은 시각으로 들어가요'**
+  String get queryHoursNote;
+
+  /// 각주: 여러 운동을 섞은 무게
+  ///
+  /// In ko, this message translates to:
+  /// **'여러 운동을 섞은 무게예요'**
+  String get queryMixedWeights;
+
+  /// 못 보는 것: 체중(질문에 적으면 견줌)
+  ///
+  /// In ko, this message translates to:
+  /// **'체중은 기록에 없어요 — 질문에 체중을 적으면 그 수와 견줘요(예: 체중 80인데 데드 몇 배?)'**
+  String get queryNcBodyweight;
+
+  /// 못 보는 것: 심박(정직하게)
+  ///
+  /// In ko, this message translates to:
+  /// **'기록 검색은 아직 심박을 안 봐요 — 운동별·휴식별 심박은 세트 시각이 없어 볼 수 없어요'**
+  String get queryNcHeartRate;
+
+  /// 한 번도 적지 않은 운동 표시
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 적 없음'**
+  String get queryNeverMark;
+
+  /// 각주: 기준 값이 없어 비율 못 냄
+  ///
+  /// In ko, this message translates to:
+  /// **'기준 값이 없어 비율을 못 내요'**
+  String get queryNoBaseRatio;
+
+  /// 칸: 적은 적은 있지만 이 범위엔 없음
+  ///
+  /// In ko, this message translates to:
+  /// **'이 범위엔 기록 없음'**
+  String get queryNoneCell;
+
+  /// 범위: 루틴 아닌 날
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴 아닌 날'**
+  String get queryNoRoutine;
+
+  /// 범위: 트레이너 루틴으로 한 날
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴으로 한 날'**
+  String get queryRoutine;
+
+  /// 진행 중인 기간 표시
+  ///
+  /// In ko, this message translates to:
+  /// **'진행 중'**
+  String get queryOngoing;
+
+  /// 각주: 운동일수는 겹쳐 비중 못 냄
+  ///
+  /// In ko, this message translates to:
+  /// **'운동일수는 겹치는 날이 있어 비중을 못 내요 — 세트 수로 물어 주세요'**
+  String get queryOverlap;
+
+  /// 부위 이름
+  ///
+  /// In ko, this message translates to:
+  /// **'{part, select, chest{가슴} back{등} legs{다리} shoulders{어깨} arms{팔} core{코어} cardio{유산소} upper{상체} lower{하체} other{부위}}'**
+  String queryPart(String part);
+
+  /// 표의 배수 칸 머리
+  ///
+  /// In ko, this message translates to:
+  /// **'배수'**
+  String get queryRatioColumn;
+
+  /// 각주: 단위가 달라 비율 못 냄
+  ///
+  /// In ko, this message translates to:
+  /// **'단위가 달라 비율을 못 내요'**
+  String get queryRatioUnits;
+
+  /// 범위: 쉰 날(운동 안 한 날)
+  ///
+  /// In ko, this message translates to:
+  /// **'쉰 날'**
+  String get queryRestDay;
+
+  /// 범위: 운동한 날
+  ///
+  /// In ko, this message translates to:
+  /// **'운동한 날'**
+  String get queryTrained;
+
+  /// 범위: 첫 세트만
+  ///
+  /// In ko, this message translates to:
+  /// **'첫 세트'**
+  String get querySetFirst;
+
+  /// 범위: 마지막 세트만
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막 세트'**
+  String get querySetLast;
+
+  /// 비중(합 대비 %)
+  ///
+  /// In ko, this message translates to:
+  /// **'비중'**
+  String get queryShare;
+
+  /// 각주: 제일 적게 한 순위에 안 한 운동을 0 으로
+  ///
+  /// In ko, this message translates to:
+  /// **'안 한 운동도 0 으로 넣었어요'**
+  String get queryZeroFilled;
+
+  /// 확인 줄: 질문의 기준 수
+  ///
+  /// In ko, this message translates to:
+  /// **'기준 {value}'**
+  String queryAgainst(String value);
+
+  /// 기준 수와 견준 줄
+  ///
+  /// In ko, this message translates to:
+  /// **'{value} ÷ {target} = {ratio}배 · 차이 {diff}'**
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  );
+
+  /// 확인 줄: 한 운동으로 합친 기록 이름들
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} = {names}'**
+  String queryAlias(String name, String names);
+
+  /// 날 수
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}일'**
+  String queryDayCount(int n);
+
+  /// 칸: 값의 종류가 달라 뺀 세트
+  ///
+  /// In ko, this message translates to:
+  /// **'값이 다른 세트 {n}개 제외'**
+  String queryDroppedSets(int n);
+
+  /// 범위: 시간대
+  ///
+  /// In ko, this message translates to:
+  /// **'{from}–{to}시'**
+  String queryHours(int from, int to);
+
+  /// 적은 적 없는 이름에 가까운 운동
+  ///
+  /// In ko, this message translates to:
+  /// **'혹시 {name}?'**
+  String queryMaybe(String name);
+
+  /// 범위: 메모에 모든 낱말
+  ///
+  /// In ko, this message translates to:
+  /// **'메모에 모두: {terms}'**
+  String queryMemoAll(String terms);
+
+  /// 걸린 메모 글과 그 날 수
+  ///
+  /// In ko, this message translates to:
+  /// **'{text} {n}일'**
+  String queryMemoHit(String text, int n);
+
+  /// 확인 줄: 메모 조건에 실제로 걸린 메모들
+  ///
+  /// In ko, this message translates to:
+  /// **'걸린 메모: {hits}'**
+  String queryMemoHits(String hits);
+
+  /// 여러 이름 중 일부만 기록이 없을 때
+  ///
+  /// In ko, this message translates to:
+  /// **'{names}: 적은 기록이 없어 빼고 셌어요'**
+  String queryNeverPartial(String names);
+
+  /// 기록이 없는 운동 줄
+  ///
+  /// In ko, this message translates to:
+  /// **'{names}: 적은 기록이 없어요'**
+  String queryNeverRows(String names);
+
+  /// 범위: 메모에 이 낱말이 없는 날
+  ///
+  /// In ko, this message translates to:
+  /// **'메모 없음: {terms}'**
+  String queryNoMemo(String terms);
+
+  /// 칸: 반복을 안 적어 뺀 세트
+  ///
+  /// In ko, this message translates to:
+  /// **'반복을 안 적은 세트 {n}개 제외'**
+  String queryNoRepsSets(int n);
+
+  /// 카드 위: 기록에 없어 못 본 것
+  ///
+  /// In ko, this message translates to:
+  /// **'기록에 없어 못 본 것: {things}'**
+  String queryNotComputable(String things);
+
+  /// 확인 줄 끝: 못 보는 것
+  ///
+  /// In ko, this message translates to:
+  /// **'못 보는 것: {things}'**
+  String queryNotComputableTail(String things);
+
+  /// 셀 것이 하나도 없는 질문
+  ///
+  /// In ko, this message translates to:
+  /// **'기록으로 답할 수 없어요: {things}'**
+  String queryNothingComputable(String things);
+
+  /// 칸: 무게 없는 세트를 빼고 셈
+  ///
+  /// In ko, this message translates to:
+  /// **'무게 없는 세트 {n}개 제외 (최다 {reps}회)'**
+  String queryNoWeightSets(int n, int reps);
+
+  /// 범위: 끝에서 N번째 운동일
+  ///
+  /// In ko, this message translates to:
+  /// **'끝에서 {n}번째 운동일'**
+  String queryNth(int n);
+
+  /// 칸: 시간 칸에서 뺀 거리 세트의 합
+  ///
+  /// In ko, this message translates to:
+  /// **'거리를 적은 {n}번: {value}'**
+  String queryOtherDistance(int n, String value);
+
+  /// 칸: 거리 칸에서 뺀 시간 세트의 합
+  ///
+  /// In ko, this message translates to:
+  /// **'시간을 적은 {n}번: {value}'**
+  String queryOtherDuration(int n, String value);
+
+  /// 칸: 값이 빠져 합에서 뺀 운동(부분 합계)
+  ///
+  /// In ko, this message translates to:
+  /// **'{names} 제외'**
+  String queryPartial(String names);
+
+  /// 모자란 마지막 구간의 날 수
+  ///
+  /// In ko, this message translates to:
+  /// **'({n}일)'**
+  String queryPartialChunk(int n);
+
+  /// 확인 줄: 부위와 거기 든 기록한 운동
+  ///
+  /// In ko, this message translates to:
+  /// **'{part}: {names}'**
+  String queryPartMembers(String part, String names);
+
+  /// 확인 줄: 날당·주당·달당 평균
+  ///
+  /// In ko, this message translates to:
+  /// **'{per, select, day{하루 평균} week{주당} month{달당} other{평균}}'**
+  String queryPer(String per);
+
+  /// 숫자 뒤: /일 /주 /달
+  ///
+  /// In ko, this message translates to:
+  /// **'{per, select, day{/일} week{/주} month{/달} other{/}}'**
+  String queryPerSuffix(String per);
+
+  /// 확인 줄: 무엇을 무엇으로 나누는지
+  ///
+  /// In ko, this message translates to:
+  /// **'{a} ÷ {b}'**
+  String queryRatioHead(String a, String b);
+
+  /// 비율 줄: a ÷ b(기준)
+  ///
+  /// In ko, this message translates to:
+  /// **'{a} ÷ {b} = {value}배 ({percent}%)'**
+  String queryRatioLine(String a, String b, String value, String percent);
+
+  /// 창이 다른 series 의 상대 구간 줄 이름
+  ///
+  /// In ko, this message translates to:
+  /// **'{by, select, day{{n}번째 날} week{{n}번째 주} month{{n}번째 달} other{{n}번째}}'**
+  String queryRelative(String by, int n);
+
+  /// 확인 줄: 앞날 기간을 작년으로 읽음
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 오지 않은 기간이라 {year}년으로 읽었어요'**
+  String queryRolled(String year);
+
+  /// 진행 중인 창과 같은 날 수로 자른 비교
+  ///
+  /// In ko, this message translates to:
+  /// **'같은 {days}일로 견주면: {earlier} → {later}'**
+  String querySamePeriod(int days, String earlier, String later);
+
+  /// 각주: 기록이 짧아 성장 순위에서 뺌
+  ///
+  /// In ko, this message translates to:
+  /// **'기록이 짧아(3일·3주 미만) 순위에서 뺐어요: {names}'**
+  String queryShortGrowth(String names);
+
+  /// 범위: 타이머
+  ///
+  /// In ko, this message translates to:
+  /// **'{kind, select, tabata{타바타} bpm{bpm 타이머} other{타이머 없이}}'**
+  String queryTimer(String kind);
+
+  /// 각주: 부위를 모르는 운동
+  ///
+  /// In ko, this message translates to:
+  /// **'부위를 모르는 운동은 뺐어요: {names}'**
+  String queryUnknownPart(String names);
+
+  /// 값이 빠져 순위에 못 넣은 줄
+  ///
+  /// In ko, this message translates to:
+  /// **'값이 빠져 순위에 못 넣은 {n}개: {names}'**
+  String queryUnranked(int n, String names);
+
+  /// 각주: 길이가 다른 기간은 주당으로 견줌
+  ///
+  /// In ko, this message translates to:
+  /// **'기간의 날 수가 달라요({lengths}일) — 차이·비율은 주당으로 셌어요'**
+  String queryWindowLengths(String lengths);
+
+  /// 개수형 주·달 묶음에서 0 인 구간 수
+  ///
+  /// In ko, this message translates to:
+  /// **'{by, select, week{{total}주 중 {zeros}주는 0} month{{total}달 중 {zeros}달은 0} other{{total}개 중 {zeros}개는 0}}'**
+  String queryZeroBuckets(String by, int total, int zeros);
+
+  /// 운동일수 작은 줄: 가능한 날 중 %
+  ///
+  /// In ko, this message translates to:
+  /// **'가능한 {m}일 중 {percent}%'**
+  String queryPossibleDays(int m, String percent);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
