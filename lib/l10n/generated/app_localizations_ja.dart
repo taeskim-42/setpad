@@ -987,6 +987,74 @@ class LJa extends L {
   String get mealPhotoWholeNote => '写真に写っている料理全体の推定値です。そのうち食べた分を選んでください。';
 
   @override
+  String get mealTextUnknown =>
+      '食べ物がわからず、カロリーを推定できませんでした。食事の行をタップして料理名や量を書き足すと、もう一度推定します。';
+
+  @override
+  String get mealTextOffline =>
+      '接続できず、カロリーを推定できませんでした。食事の行をタップしてEnterを押すと、もう一度推定します。';
+
+  @override
+  String get mealTextTooLong => '500文字を超える食事メモは推定しません。食事の行をタップして分けて書くと推定します。';
+
+  @override
+  String queryTooLong(int max) {
+    return '質問は$max文字までです。短くしてください。';
+  }
+
+  @override
+  String get queryPressEnter => 'Enterを押すと記録について質問できます。';
+
+  @override
+  String get mealRetry => '再推定';
+
+  @override
+  String kcalAtLeast(int n) {
+    return '${n}kcal以上';
+  }
+
+  @override
+  String mealTextPartial(int n) {
+    return '書いた${n}kcalだけを合計に入れました。ほかの食べ物のカロリーは不明です。';
+  }
+
+  @override
+  String mealTextBelowTyped(int n) {
+    return '推定値が書いた${n}kcalより小さかったため使いませんでした。書いた${n}kcalだけを合計に入れました。';
+  }
+
+  @override
+  String queryLimit(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'exercises': '種目は一度に8つまで質問できます。分けて質問してください。',
+      'measures': '一度に数えられるのは3つまでです。分けて質問してください。',
+      'ranking': 'ランキングは20件まで表示できます。20件以下で質問してください。',
+      'sessions': '「直近N回」は100回までです。もっと長く見るには期間で質問してください。例: 今年',
+      'days': '「最近N日」は3660日（約10年）までです。もっと長く見るには全期間で質問してください。',
+      'compare': '一度に比較できるのは4つまでです。分けて質問してください。',
+      'compareGrouped':
+          '比較と、種目・日・週・月・曜日ごとのまとめは、1つの質問で同時に計算できません。どちらか一方で質問してください。',
+      'groupedMeasure': '日・週・月・曜日ごとにまとめると数えられるのは1つだけで、推移・最後・最初・経過日数はまとめられません。',
+      'ordering': 'ランキング・合計・平均は、種目別や週別のようにまとめて質問してください。',
+      'datesTotal': '最後・最初の日付は合計や平均にできません。',
+      'other': 'この質問は記録検索で計算できない形です。分けて質問してください。',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String policyNumberRejected(String text, String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'decimal': '「$text」— 小数は使えません。整数で入力してください。例: 14',
+      'range': '「$text」— 範囲ではなく数字を1つ入力してください。例: 14',
+      'negative': '「$text」— 0より小さい数は使えません。例: 14',
+      'unit': '「$text」— この欄は日数・回数です。時間・週・月は日数に直して入力してください。例: 14',
+      'other': '「$text」から日数・回数を読み取れませんでした。数字で入力してください。例: 14',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get mealSources => '出典';
 
   @override

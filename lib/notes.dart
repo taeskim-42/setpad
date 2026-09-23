@@ -72,6 +72,14 @@ class MealEntry {
 
   bool get approximate => kcal != null && source != typed && source != label;
 
+  /// 글에 적은 열량이 일부 음식의 것뿐이다("닭가슴살 330kcal, 밥 한 공기").
+  /// [kcal] 은 적은 합이라 온전한 값이 아니다 — 모르는 끼니처럼 센다.
+  bool get partial {
+    if (source != typed || text == null) return false;
+    final parsed = parseMealText(text!);
+    return parsed.kcal == null && parsed.typed != null;
+  }
+
   Map<String, Object?> toJson() => {
     'id': id,
     if (dirty) 'dirty': true,
@@ -255,7 +263,8 @@ class Note {
       meals.isEmpty ? null : meals.fold<int>(0, (n, m) => n + (m.kcal ?? 0));
 
   /// 열량을 모르는 끼니 수. 합계를 온전한 총합처럼 보이면 안 되는 이유다.
-  int get unknownMeals => meals.where((m) => m.kcal == null).length;
+  int get unknownMeals =>
+      meals.where((m) => m.kcal == null || m.partial).length;
 
   /// 목록에 뜨는 제목 — 그날 한 운동 이름 전부.
   ///

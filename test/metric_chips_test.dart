@@ -4,6 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/account.dart' show dailyPlateSets;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/answer_card.dart';
 import 'package:setpad/editor.dart';
@@ -62,6 +64,70 @@ void main() {
     await tester.pumpAndSettle();
     return store;
   }
+
+  testWidgets(
+    'C·치는 동안 0건이면 Enter 로 물을 수 있다고 알리고, 셀 수 없는 질문은 다시 시도가 아니라 못 하는 것을 말한다',
+    (tester) async {
+      final l = lookupL(const Locale('ko'));
+      var calls = 0;
+      await pump(
+        tester,
+        ai: RecordAi(
+          respond: (_, _) async {
+            calls++;
+            return {
+              'by': 'week',
+              'measures': ['volume', 'setCount'],
+            };
+          },
+        ),
+      );
+      await tester.enterText(
+        find.byType(CupertinoSearchTextField),
+        '주별 볼륨이랑 세트 수',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(l.noSearchResults), findsOneWidget);
+      expect(find.text(l.queryPressEnter), findsOneWidget);
+      expect(calls, 0, reason: '치는 동안에는 묻지 않는다');
+
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(calls, 1);
+      expect(find.text(l.queryLimit('groupedMeasure')), findsOneWidget);
+      expect(find.text(l.queryFailed), findsNothing);
+      expect(find.text(l.queryPressEnter), findsNothing);
+
+      // 다시 눌러도 같은 거절이고 원판이 또 나가지 않는다.
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(calls, 1);
+      expect(find.text(l.queryLimit('groupedMeasure')), findsOneWidget);
+    },
+  );
+
+  testWidgets('C·연결이 안 되던 기기에서 Enter 를 누르면 다시 확인하고, 안 되면 칩이 떠 있어도 그렇다고 말한다', (
+    tester,
+  ) async {
+    final l = lookupL(const Locale('ko'));
+    RecordAi.forget();
+    addTearDown(RecordAi.forget);
+    await pump(
+      tester,
+      ai: RecordAi(
+        endpoint: 'https://example.test',
+        deviceId: 'device',
+        client: MockClient((_) async => throw http.ClientException('offline')),
+      ),
+    );
+    await tester.enterText(find.byType(CupertinoSearchTextField), '스쿼트 요즘 어때');
+    await tester.pumpAndSettle();
+    expect(find.text(l.metricMax), findsOneWidget, reason: '운동이 잡혀 칩이 떴다');
+    expect(find.text(l.queryOffline), findsNothing);
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(find.text(l.queryOffline), findsOneWidget);
+  });
 
   testWidgets('운동 이름이 잡히면 칩 다섯 개가 뜬다', (tester) async {
     await pump(tester);

@@ -264,6 +264,19 @@ class _NotesListPageState extends State<NotesListPage>
     super.dispose();
   }
 
+  /// 글이 있는데 아직 모델에 묻지 않았다 — Enter 를 누르면 물을 수 있다.
+  bool _unasked(RecordQuery? plan) =>
+      _query.text.trim().isNotEmpty &&
+      _bareName == null &&
+      plan == null &&
+      _search.ai.supported &&
+      !(_search.busy ||
+          _search.failed ||
+          _search.noPlates ||
+          _search.unrepresentable != null ||
+          _search.tooLong ||
+          _search.offline);
+
   /// 목록에 보일 기록. 답이 있으면 답에 쓰인 기록이다.
   ///
   /// 답이 아직 없으면(확인 전, 해석 중, 실패, 오프라인) 글이 가리킨 운동과
@@ -671,6 +684,18 @@ class _NotesListPageState extends State<NotesListPage>
                                     l.queryFailed,
                                     style: const TextStyle(fontSize: 14),
                                   ),
+                                // 다시 해도 같은 거절이다. "다시 시도" 가 아니라
+                                // 무엇을 못 하는지 말한다.
+                                if (_search.unrepresentable case final kind?)
+                                  Text(
+                                    l.queryLimit(kind),
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                if (_search.tooLong)
+                                  Text(
+                                    l.queryTooLong(maxQuestionLength),
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
                                 if (_search.noPlates) ..._noPlates(l),
                                 if (plan?.kind == 'unsupported')
                                   Text(switch (plan?.reason) {
@@ -702,10 +727,12 @@ class _NotesListPageState extends State<NotesListPage>
                                     ),
                                   ),
                                 // 서버에 못 닿았을 때만 알린다. 준비 상태를
-                                // 늘어놓던 줄은 읽을 것이 없어 뺐다.
-                                if (mentioned.isEmpty &&
-                                    _search.status ==
-                                        RecordAiStatus.unavailable)
+                                // 늘어놓던 줄은 읽을 것이 없어 뺐다. 칩이 뜬
+                                // 글이어도 Enter 를 눌렀으면 왜 답이 없는지 말한다.
+                                if (_search.offline ||
+                                    (mentioned.isEmpty &&
+                                        _search.status ==
+                                            RecordAiStatus.unavailable))
                                   Text(
                                     l.queryOffline,
                                     style: const TextStyle(fontSize: 14),
@@ -876,16 +903,35 @@ class _NotesListPageState extends State<NotesListPage>
                         SliverFillRemaining(
                           hasScrollBody: false,
                           child: Center(
-                            child: Text(
-                              _query.text.isEmpty
-                                  ? l.noNotesYet
-                                  : l.noSearchResults,
-                              style: TextStyle(
-                                fontSize: 17,
-                                letterSpacing: -0.41,
-                                color: CupertinoColors.secondaryLabel
-                                    .resolveFrom(context),
-                              ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _query.text.isEmpty
+                                      ? l.noNotesYet
+                                      : l.noSearchResults,
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    letterSpacing: -0.41,
+                                    color: CupertinoColors.secondaryLabel
+                                        .resolveFrom(context),
+                                  ),
+                                ),
+                                // 치는 동안은 글자로만 찾는다. 0건이면 질문이
+                                // 거절된 것처럼 보이니, 물어볼 수 있다고 알린다.
+                                if (_unasked(plan))
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 6),
+                                    child: Text(
+                                      l.queryPressEnter,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: CupertinoColors.secondaryLabel
+                                            .resolveFrom(context),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         )

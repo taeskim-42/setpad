@@ -981,6 +981,71 @@ class LZh extends L {
   String get mealPhotoWholeNote => '这是照片中全部食物的估算值，请选择您吃了其中多少。';
 
   @override
+  String get mealTextUnknown => '无法识别这种食物，未能估算热量。点按这餐补充食物名称或分量，即可重新估算。';
+
+  @override
+  String get mealTextOffline => '无法连接，未能估算热量。点按这餐后按 Enter 即可重新估算。';
+
+  @override
+  String get mealTextTooLong => '超过 500 字的饮食记录不会估算。点按这餐分开记录即可估算。';
+
+  @override
+  String queryTooLong(int max) {
+    return '问题最多 $max 个字。请缩短后再问。';
+  }
+
+  @override
+  String get queryPressEnter => '按 Enter 即可询问您的记录。';
+
+  @override
+  String get mealRetry => '重新估算';
+
+  @override
+  String kcalAtLeast(int n) {
+    return '至少 $n 千卡';
+  }
+
+  @override
+  String mealTextPartial(int n) {
+    return '只计入了你写的 $n 千卡，其余食物的热量未知。';
+  }
+
+  @override
+  String mealTextBelowTyped(int n) {
+    return '估算值低于你写的 $n 千卡，因此未采用。只计入了你写的 $n 千卡。';
+  }
+
+  @override
+  String queryLimit(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'exercises': '一次最多可问 8 个动作。请分开提问。',
+      'measures': '一次最多统计 3 项。请分开提问。',
+      'ranking': '排名最多显示 20 个。请问 20 个以内。',
+      'sessions': '“最近 N 次”最多 100 次。想看更久，请按时间段提问，例如今年。',
+      'days': '“最近 N 天”最多 3660 天（约 10 年）。想看更久，请按全部时间提问。',
+      'compare': '一次最多对比 4 项。请分开提问。',
+      'compareGrouped': '同一个问题不能既对比又按动作、日、周、月或星期分组。请二选一提问。',
+      'groupedMeasure': '按日、周、月或星期分组时只能统计一项，且趋势、最后一次、第一次、距上次天数不能分组。',
+      'ordering': '排名、合计和平均需要分组，例如按动作或按周。',
+      'datesTotal': '最后一次和第一次的日期不能相加或求平均。',
+      'other': '记录搜索无法计算这种形式的问题。请分开提问。',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String policyNumberRejected(String text, String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'decimal': '“$text”— 不接受小数。请输入整数，例如 14',
+      'range': '“$text”— 请输入一个数字，而不是范围，例如 14',
+      'negative': '“$text”— 不接受小于 0 的数，例如 14',
+      'unit': '“$text”— 此栏按天数或次数计。请把小时、周或月换算成天数，例如 14',
+      'other': '无法从“$text”中读出天数或次数。请输入数字，例如 14',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get mealSources => '来源';
 
   @override
@@ -2654,6 +2719,71 @@ class LZhHans extends LZh {
   String get mealPhotoWholeNote => '这是照片中全部食物的估算值，请选择您吃了其中多少。';
 
   @override
+  String get mealTextUnknown => '无法识别这种食物，未能估算热量。点按这餐补充食物名称或分量，即可重新估算。';
+
+  @override
+  String get mealTextOffline => '无法连接，未能估算热量。点按这餐后按 Enter 即可重新估算。';
+
+  @override
+  String get mealTextTooLong => '超过 500 字的饮食记录不会估算。点按这餐分开记录即可估算。';
+
+  @override
+  String queryTooLong(int max) {
+    return '问题最多 $max 个字。请缩短后再问。';
+  }
+
+  @override
+  String get queryPressEnter => '按 Enter 即可询问您的记录。';
+
+  @override
+  String get mealRetry => '重新估算';
+
+  @override
+  String kcalAtLeast(int n) {
+    return '至少 $n 千卡';
+  }
+
+  @override
+  String mealTextPartial(int n) {
+    return '只计入了你写的 $n 千卡，其余食物的热量未知。';
+  }
+
+  @override
+  String mealTextBelowTyped(int n) {
+    return '估算值低于你写的 $n 千卡，因此未采用。只计入了你写的 $n 千卡。';
+  }
+
+  @override
+  String queryLimit(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'exercises': '一次最多可问 8 个动作。请分开提问。',
+      'measures': '一次最多统计 3 项。请分开提问。',
+      'ranking': '排名最多显示 20 个。请问 20 个以内。',
+      'sessions': '“最近 N 次”最多 100 次。想看更久，请按时间段提问，例如今年。',
+      'days': '“最近 N 天”最多 3660 天（约 10 年）。想看更久，请按全部时间提问。',
+      'compare': '一次最多对比 4 项。请分开提问。',
+      'compareGrouped': '同一个问题不能既对比又按动作、日、周、月或星期分组。请二选一提问。',
+      'groupedMeasure': '按日、周、月或星期分组时只能统计一项，且趋势、最后一次、第一次、距上次天数不能分组。',
+      'ordering': '排名、合计和平均需要分组，例如按动作或按周。',
+      'datesTotal': '最后一次和第一次的日期不能相加或求平均。',
+      'other': '记录搜索无法计算这种形式的问题。请分开提问。',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String policyNumberRejected(String text, String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'decimal': '“$text”— 不接受小数。请输入整数，例如 14',
+      'range': '“$text”— 请输入一个数字，而不是范围，例如 14',
+      'negative': '“$text”— 不接受小于 0 的数，例如 14',
+      'unit': '“$text”— 此栏按天数或次数计。请把小时、周或月换算成天数，例如 14',
+      'other': '无法从“$text”中读出天数或次数。请输入数字，例如 14',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get mealSources => '来源';
 
   @override
@@ -4324,6 +4454,71 @@ class LZhHant extends LZh {
 
   @override
   String get mealPhotoWholeNote => '這是照片中全部食物的估算值，請選擇您吃了其中多少。';
+
+  @override
+  String get mealTextUnknown => '無法辨識這種食物，未能估算熱量。點按這餐補充食物名稱或份量，即可重新估算。';
+
+  @override
+  String get mealTextOffline => '無法連線，未能估算熱量。點按這餐後按 Enter 即可重新估算。';
+
+  @override
+  String get mealTextTooLong => '超過 500 字的飲食紀錄不會估算。點按這餐分開記錄即可估算。';
+
+  @override
+  String queryTooLong(int max) {
+    return '問題最多 $max 個字。請縮短後再問。';
+  }
+
+  @override
+  String get queryPressEnter => '按 Enter 即可詢問您的紀錄。';
+
+  @override
+  String get mealRetry => '重新估算';
+
+  @override
+  String kcalAtLeast(int n) {
+    return '至少 $n 大卡';
+  }
+
+  @override
+  String mealTextPartial(int n) {
+    return '只計入了你寫的 $n 大卡，其餘食物的熱量未知。';
+  }
+
+  @override
+  String mealTextBelowTyped(int n) {
+    return '估算值低於你寫的 $n 大卡，因此未採用。只計入了你寫的 $n 大卡。';
+  }
+
+  @override
+  String queryLimit(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'exercises': '一次最多可問 8 個動作。請分開提問。',
+      'measures': '一次最多統計 3 項。請分開提問。',
+      'ranking': '排名最多顯示 20 個。請問 20 個以內。',
+      'sessions': '「最近 N 次」最多 100 次。想看更久，請按時間段提問，例如今年。',
+      'days': '「最近 N 天」最多 3660 天（約 10 年）。想看更久，請按全部時間提問。',
+      'compare': '一次最多比較 4 項。請分開提問。',
+      'compareGrouped': '同一個問題不能既比較又按動作、日、週、月或星期分組。請擇一提問。',
+      'groupedMeasure': '按日、週、月或星期分組時只能統計一項，且趨勢、最後一次、第一次、距上次天數不能分組。',
+      'ordering': '排名、合計和平均需要分組，例如按動作或按週。',
+      'datesTotal': '最後一次和第一次的日期不能相加或求平均。',
+      'other': '紀錄搜尋無法計算這種形式的問題。請分開提問。',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String policyNumberRejected(String text, String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'decimal': '「$text」— 不接受小數。請輸入整數，例如 14',
+      'range': '「$text」— 請輸入一個數字，而不是範圍，例如 14',
+      'negative': '「$text」— 不接受小於 0 的數，例如 14',
+      'unit': '「$text」— 此欄按天數或次數計。請把小時、週或月換算成天數，例如 14',
+      'other': '無法從「$text」中讀出天數或次數。請輸入數字，例如 14',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get mealSources => '來源';

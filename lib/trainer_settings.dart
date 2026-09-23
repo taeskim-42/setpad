@@ -43,9 +43,43 @@ const _policyNumbers = [
   'lapsed_days',
 ];
 
+/// 방침 숫자 칸의 글. 칸은 일 또는 회를 센다 — '14', '14일', '3회', '7 days',
+/// '14일 전' 을 읽고, 일·회 뒤·앞에 붙은 말('14일간', '3회 이하', '약 14일',
+/// '14 days ago')도 그 수로 읽는다. 그 밖의 글은 다른 수로 읽지 않고 [why] 로
+/// 까닭을 준다: decimal('1.5'), range('10~14일'), negative('-3'), unit('48시간'·
+/// '2주' — 일이 아니다), other(수가 없다). '48시간' 을 48일로 읽으면 뜻이 바뀐다.
+({int? value, String? why}) policyNumber(String text) {
+  final t = text.trim();
+  final n = RegExp(
+    r'^(\d+)\s*(?:전|前|before|antes|trước|ก่อน)?$'
+    // 앞은 글자만, 뒤는 수 없는 말만 — 소수·범위·음수·두 번째 수는 여기 못 든다.
+    r'|^[\p{L}\p{M}\s]*(\d+)\s*'
+    r'(?:일|회|번|日|天|次|回|วัน|ครั้ง|ngày|lần|días?|veces|days?|times?)\D*$',
+    caseSensitive: false,
+    unicode: true,
+  ).firstMatch(t);
+  if (n != null) return (value: int.parse(n[1] ?? n[2]!), why: null);
+  bool has(String pattern) => RegExp(pattern).hasMatch(t);
+  return (
+    value: null,
+    why: has(r'\d\s*[.,]\s*\d')
+        ? 'decimal'
+        : has(r'\d\s*(?:[~\-–—〜～]|에서|to|至|到)\s*\d')
+        ? 'range'
+        : has(r'^[-−–]\s*\d')
+        ? 'negative'
+        : has(r'\d')
+        ? 'unit'
+        : 'other',
+  );
+}
+
 class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
   AgentState get _s => widget.state;
   bool _busy = false;
+
+  /// 읽지 못한 방침 칸과 그 까닭. 그 칸 밑에 적고, 저장은 보내지 않는다.
+  Map<String, String> _unreadable = {};
 
   late final _numbers = {
     for (final key in _policyNumbers)
@@ -87,19 +121,38 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
     final l = L.of(context);
     // 숫자 패드에는 닫는 키가 없다. 닫지 않으면 결과가 키보드 뒤에 가린다.
     FocusScope.of(context).unfocus();
-    setState(() => _busy = true);
+    final typed = {
+      for (final key in _policyNumbers) key: _numbers[key]!.text.trim(),
+    };
+    // 친 글에서 수를 못 읽은 칸은 그 칸에서 말한다. 서버에 보내면 저장 전체가
+    // 범위 문구로 거절돼 어느 칸의 무엇이 틀렸는지 흐려진다.
+    final read = {
+      for (final e in typed.entries)
+        if (e.value.isNotEmpty) e.key: policyNumber(e.value),
+    };
+    final unreadable = {for (final e in read.entries) e.key: ?e.value.why};
+    setState(() {
+      _unreadable = unreadable;
+      _busy = unreadable.isEmpty;
+    });
+    if (unreadable.isNotEmpty) return;
     final offer = _offer.text.trim();
-    // 숫자가 아니면 null 로 보낸다 — 서버가 허용 범위를 적어 거절한다.
+    // 빈 칸은 null 로 보낸다 — 서버가 허용 범위를 적어 거절한다.
     final reply = await widget.account.link.saveGymPolicy(widget.gymId, {
-      for (final key in _policyNumbers)
-        key: int.tryParse(_numbers[key]!.text.trim()),
+      for (final key in _policyNumbers) key: read[key]?.value,
       'renewal_offer': offer.isEmpty ? null : offer,
     });
     if (!mounted) return;
     final saved = reply.body?['policy'];
     setState(() {
       _busy = false;
-      if (saved is Map) _s.policy = Map<String, Object?>.from(saved);
+      if (saved is Map) {
+        _s.policy = Map<String, Object?>.from(saved);
+        // 읽은 대로 저장됐다 — '14일' 이 14 로 들어간 것이 보인다.
+        for (final key in _policyNumbers) {
+          _numbers[key]!.text = '${saved[key] ?? ''}';
+        }
+      }
     });
     await tellAgent(
       context,
@@ -247,18 +300,24 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
                 ('low_sessions', l.policyLowSessions),
                 ('away_days', l.policyAwayDays),
                 ('lapsed_days', l.policyLapsedDays),
-              ])
+              ]) ...[
                 _row(
                   label,
                   trailing: SizedBox(
                     width: 64,
                     child: CupertinoTextField(
+                      key: ValueKey('policy-$key'),
                       controller: _numbers[key],
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.end,
                     ),
                   ),
                 ),
+                if (_unreadable[key] case final why?)
+                  _note(
+                    l.policyNumberRejected(_numbers[key]!.text.trim(), why),
+                  ),
+              ],
               _row(l.policyOffer),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),

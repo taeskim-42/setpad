@@ -552,6 +552,10 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   }
 
   final _documentHeaderKey = GlobalKey<_DocumentHeaderState>();
+
+  /// 어림을 기다리는 끼니. 그 줄은 '다시 어림' 대신 어림 중이라고 말한다.
+  /// 고친 끼니는 새 객체라서, 옛 끼니의 늦은 답이 새 줄의 표시를 지우지 않는다.
+  final _estimatingMeals = <MealEntry>{};
   late final _editor = RoutineEditorController(
     history: widget.store.exerciseHistory,
     weightUnit: widget.store.weightUnit,
@@ -676,8 +680,9 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   }
 
   /// 글로 적은 한 끼를 저장한다. 묻지 않는다 — 모르는 음식도, 양이 없는 글도
-  /// 친 그대로 남고, 열량은 사람이 적었을 때만 있다. 고치다 다 지우면 그
-  /// 끼니가 없어진다.
+  /// 친 그대로 남고, 열량은 사람이 적었을 때만 있다. 일부만 적었으면 적은 합을
+  /// 먼저 넣어 둔다 — 어림이 막혀도 적은 수는 합계에서 빠지지 않는다. 고치다
+  /// 다 지우면 그 끼니가 없어진다.
   void _saveMealText(String text, int? index) {
     final meals = widget.note.meals;
     final old = index != null && index < meals.length ? meals[index] : null;
@@ -685,12 +690,13 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
       if (old != null) widget.note.removeMeal(old);
     } else {
       final parsed = parseMealText(text);
+      final kcal = parsed.kcal ?? parsed.typed;
       final entry = MealEntry(
         id: old?.id, // 고친 끼니는 서버의 같은 줄이다.
         at: old?.at ?? DateTime.now(),
-        kcal: parsed.kcal,
+        kcal: kcal,
         text: text,
-        source: parsed.kcal == null ? null : MealEntry.typed,
+        source: kcal == null ? null : MealEntry.typed,
         foods: parsed.foods,
       );
       old == null ? meals.add(entry) : meals[index!] = entry;
@@ -709,24 +715,63 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   }
 
   /// 원문은 이미 저장됐다. 열량을 안 적은 끼니에 어림값을 붙여 볼 뿐이고,
-  /// 못 붙이면 미상으로 남는다. 그사이 사람이 고쳤거나 지웠으면 손대지 않는다.
+  /// 못 붙이면 미상으로 남는다. 그사이 사람이 고쳤거나 지웠으면 손대지 않고
+  /// 말도 하지 않는다 — 그 끼니의 일이 아니다.
+  ///
+  /// 못 붙였으면 **왜인지 한 번 말한다** — 모르는 음식인지, 연결이 안 된 것인지.
+  /// 조용히 '열량 미상' 만 두면 무엇을 고쳐야 하는지 알 길이 없다. 그 끼니 줄에
+  /// '다시 어림' 이 뜨고, 줄을 눌러 고친 뒤 Enter 를 눌러도 다시 어림한다.
+  ///
+  /// 글에 적힌 열량은 버리지 않는다. 어림이 적은 합보다 작으면 받지 않는다 —
+  /// 적은 음식 값만으로도 그보다 크다. 그때와 어림이 막혔을 때는 적은 합이
+  /// 남아 있고([_saveMealText]), 그렇다고 말한다.
   Future<void> _estimateMealText(MealEntry entry) async {
-    if (!widget.ai.supported) return;
+    final l = L.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final MealEstimate estimate;
-    try {
-      estimate = await widget.ai.estimateMealText(entry.text!, locale: locale);
-    } on RecordAiException catch (e) {
-      // 오늘 몫을 다 썼으면 그렇다고 말한다. 다른 실패는 조용히 미상으로 둔다.
-      if (e.status == RecordAiStatus.quotaExceeded && mounted) {
-        _documentHeaderKey.currentState?.tell(L.of(context).inputQuotaSpent);
+    final typed = parseMealText(entry.text!).typed;
+    MealEstimate? estimate;
+    String? failure;
+    // 서버는 500자까지 받는다. 보내 봐야 거절이니 먼저 말한다.
+    if (entry.text!.length > 500) {
+      failure = l.mealTextTooLong;
+    } else if (!widget.ai.supported) {
+      failure = l.mealTextOffline;
+    } else {
+      _estimatingMeals.add(entry);
+      try {
+        estimate = await widget.ai.estimateMealText(
+          entry.text!,
+          locale: locale,
+        );
+      } on RecordAiException catch (e) {
+        failure = switch ((e.status, e.code)) {
+          (RecordAiStatus.quotaExceeded, _) => l.inputQuotaSpent,
+          (_, 'unknownFood' || 'notFood') => l.mealTextUnknown,
+          // 서버도 적은 합보다 작은 어림을 내보내지 않는다 — 아래의 같은 까닭이다.
+          (_, 'belowTyped') when typed != null => null,
+          _ => l.mealTextOffline,
+        };
+      } catch (_) {
+        failure = l.mealTextOffline;
+      } finally {
+        _estimatingMeals.remove(entry);
       }
-      return;
-    } catch (_) {
-      return;
     }
+    if (!mounted) return;
     final at = widget.note.meals.indexOf(entry);
     if (at < 0) return;
+    void tell(String? message) =>
+        _documentHeaderKey.currentState?.tell(message, entry);
+    if (estimate == null || (typed != null && estimate.kcal < typed)) {
+      return tell(
+        [
+          failure ?? l.mealTextBelowTyped(typed!),
+          if (failure != null && typed != null) l.mealTextPartial(typed),
+        ].join('\n'),
+      );
+    }
+    // 다시 어림해 붙었다. 이 끼니가 앞서 말한 실패는 이제 틀린 말이다.
+    tell(null);
     widget.note.meals[at] = MealEntry(
       id: entry.id,
       at: entry.at,
@@ -786,6 +831,8 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
             text: m.text ?? m.items.join(', '),
             kcal: m.kcal == null
                 ? l.mealKcalUnknown
+                : m.partial
+                ? l.kcalAtLeast(m.kcal!)
                 : m.approximate
                 ? l.kcalApprox(m.kcal!)
                 : l.kcal(m.kcal!),
@@ -1095,6 +1142,8 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                         ai: widget.ai,
                         mealText: _mealText,
                         onMealsChanged: _mealsChanged,
+                        estimating: _estimatingMeals,
+                        onRetryMeal: _estimateMealText,
                       ),
                       footer: _sameDay.isEmpty
                           ? null
@@ -1130,10 +1179,16 @@ class _DocumentHeader extends StatefulWidget {
     required this.ai,
     this.mealText,
     this.onMealsChanged,
+    this.estimating = const {},
+    this.onRetryMeal,
   });
   final Note note;
   final NotesStore store;
   final RecordAi ai;
+
+  /// 어림을 기다리는 끼니와, 열량을 모르는 글 끼니를 다시 어림하는 길.
+  final Set<MealEntry> estimating;
+  final Future<void> Function(MealEntry)? onRetryMeal;
 
   /// 식단 글은 아래 입력 줄에서 친다. 여기서는 그 모드를 켜기만 한다.
   final ValueNotifier<({String text, int? index})?>? mealText;
@@ -1155,15 +1210,34 @@ class _DocumentHeader extends StatefulWidget {
 /// 두면 "오늘 얼마나 남았나" 가 한눈에 읽힌다. 숫자는 어림이라고 적는다.
 class _DocumentHeaderState extends State<_DocumentHeader> {
   bool _estimating = false;
-  String? _error;
+
+  /// 머리의 알림 한 줄과, 그것이 어느 끼니의 어림 실패인가(사진 쪽 말이면 null).
+  /// 끼니는 그 객체다 — 고치면 새 객체라, 고치거나 지운 끼니의 말은 보이지 않는다.
+  ({String text, MealEntry? meal})? _error;
+
+  /// 보일 알림. 그 끼니가 이 문서에 그대로 있을 때만 — 사람이 열량을 적어
+  /// 고쳤거나 지웠으면 '어림하지 못했어요' 는 이제 틀린 말이다.
+  String? get _notice {
+    final e = _error;
+    return e == null || e.meal == null || note.meals.contains(e.meal)
+        ? e?.text
+        : null;
+  }
 
   Note get note => widget.note;
 
   // 식단은 아래 입력 줄에서도 저장된다. 저장소가 바뀌면 다시 그린다.
   void _onStore() => setState(() {});
 
-  /// 식단 글의 어림이 막힌 이유를 사진 쪽과 같은 자리에 적는다.
-  void tell(String message) => setState(() => _error = message);
+  /// 식단 글 끼니 [meal] 의 어림이 막힌 이유를 사진 쪽과 같은 자리에 적는다.
+  /// null 이면 지우되, **그 끼니가 남긴 말만** 지운다 — 다른 끼니의 어림이
+  /// 붙었다고 앞 끼니의 '모르는 음식' 을 덮지 않는다.
+  void tell(String? message, MealEntry meal) {
+    if (message == null && _error?.meal != meal) return;
+    setState(
+      () => _error = message == null ? null : (text: message, meal: meal),
+    );
+  }
 
   @override
   void initState() {
@@ -1189,7 +1263,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
         imageQuality: 80,
       );
     } catch (_) {
-      if (mounted) setState(() => _error = l.mealFailed);
+      if (mounted) setState(() => _error = (text: l.mealFailed, meal: null));
       return;
     }
     if (file == null || !mounted) return;
@@ -1248,11 +1322,14 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
       }
       _changed();
     } on RecordAiException catch (e) {
-      _error = e.status == RecordAiStatus.quotaExceeded
-          ? l.inputQuotaSpent
-          : l.mealFailed;
+      _error = (
+        text: e.status == RecordAiStatus.quotaExceeded
+            ? l.inputQuotaSpent
+            : l.mealFailed,
+        meal: null,
+      );
     } catch (_) {
-      _error = l.mealFailed;
+      _error = (text: l.mealFailed, meal: null);
     }
     if (mounted) setState(() => _estimating = false);
   }
@@ -1384,8 +1461,12 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                       onTap: () => _editMeal(i),
                       child: Text(
                         [
-                          meal.kcal == null
+                          widget.estimating.contains(meal)
+                              ? l.mealEstimating
+                              : meal.kcal == null
                               ? l.mealKcalUnknown
+                              : meal.partial
+                              ? l.kcalAtLeast(meal.kcal!)
                               : meal.approximate
                               ? l.kcalApprox(meal.kcal!)
                               : l.kcal(meal.kcal!),
@@ -1402,6 +1483,25 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                       ),
                     ),
                   ),
+                  // 글은 있는데 열량을 (다) 모른다 — 그 자리에서 다시 어림한다.
+                  // 어림을 기다리는 동안은 줄이 그렇다고 말하니 단추를 두지 않는다.
+                  if (widget.onRetryMeal != null &&
+                      meal.text != null &&
+                      (meal.kcal == null || meal.partial) &&
+                      !widget.estimating.contains(meal))
+                    CupertinoButton(
+                      key: ValueKey('meal-retry-$i'),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      minimumSize: const Size(32, 32),
+                      onPressed: () {
+                        widget.onRetryMeal!(meal);
+                        setState(() {});
+                      },
+                      child: Text(
+                        l.mealRetry,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
                   // 표에서 찾은 값으로 셈했으면 그 표를 보여 준다 — 숫자만으로는 믿을 까닭이 없다.
                   if (meal.sources.isNotEmpty)
                     CupertinoButton(
@@ -1415,6 +1515,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                       ),
                     ),
                   CupertinoButton(
+                    key: ValueKey('meal-delete-$i'),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     minimumSize: const Size(32, 32),
                     onPressed: () {
@@ -1427,9 +1528,9 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                 ],
               ),
           ],
-          if (_error != null)
+          if (_notice case final notice?)
             Text(
-              _error!,
+              notice,
               style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
             ),
           // 식단 사진·글 버튼은 여기 없다. 입력 줄 위의 막대에 같은 것이 늘 있어서

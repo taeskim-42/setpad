@@ -868,6 +868,9 @@ class PlanStore extends ChangeNotifier {
     String typed, {
     bool isToken = false,
   }) async {
+    // 받은 공유 문구나 링크를 코드 칸에 붙여 넣었다 — 그 링크의 초대로 참여한다.
+    final linked = isToken ? null : planTokenInText(typed);
+    if (linked != null) return join(linked, isToken: true);
     final code = isToken ? null : normalizePartnerCode(typed);
     if (!isToken && code == null) {
       return (plan: null, error: PartnerError.invalidFormat);
@@ -1013,6 +1016,16 @@ String? planTokenFromLink(Uri uri) {
       ? token
       : null;
 }
+
+/// 붙여 넣은 글 속의 초대 링크 토큰. 공유 문구("… 같이 짜요: https://…/plan/<토큰>")
+/// 를 통째로 붙여 넣어도 찾는다. 문장 끝의 마침표는 링크가 아니다.
+String? planTokenInText(String text) => RegExp(r'[a-z][a-z0-9+.-]*://\S+')
+    .allMatches(text)
+    .map((m) => Uri.tryParse(m[0]!.replaceFirst(RegExp(r'[.,!?)\]]+$'), '')))
+    .nonNulls
+    .map(planTokenFromLink)
+    .nonNulls
+    .firstOrNull;
 
 extension<T> on T {
   T let(void Function(T) f) {

@@ -1016,6 +1016,84 @@ class LVi extends L {
       'Đây là ước tính cho toàn bộ món trong ảnh. Hãy chọn phần bạn đã ăn.';
 
   @override
+  String get mealTextUnknown =>
+      'Không ước tính được calo vì không nhận ra món ăn. Chạm vào bữa ăn để thêm tên món hoặc lượng, ứng dụng sẽ ước tính lại.';
+
+  @override
+  String get mealTextOffline =>
+      'Không ước tính được calo vì không có kết nối. Chạm vào bữa ăn và nhấn Enter để ước tính lại.';
+
+  @override
+  String get mealTextTooLong =>
+      'Ghi chú bữa ăn dài hơn 500 ký tự sẽ không được ước tính. Chạm vào bữa ăn và chia nhỏ để được ước tính.';
+
+  @override
+  String queryTooLong(int max) {
+    return 'Câu hỏi tối đa $max ký tự. Vui lòng rút ngắn.';
+  }
+
+  @override
+  String get queryPressEnter => 'Nhấn Enter để hỏi về bản ghi của bạn.';
+
+  @override
+  String get mealRetry => 'Ước tính lại';
+
+  @override
+  String kcalAtLeast(int n) {
+    return '≥ $n kcal';
+  }
+
+  @override
+  String mealTextPartial(int n) {
+    return 'Chỉ tính $n kcal bạn đã ghi; calo của các món còn lại chưa rõ.';
+  }
+
+  @override
+  String mealTextBelowTyped(int n) {
+    return 'Giá trị ước tính thấp hơn $n kcal bạn đã ghi nên không được dùng. Chỉ tính $n kcal của bạn.';
+  }
+
+  @override
+  String queryLimit(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'exercises': 'Mỗi lần hỏi được tối đa 8 bài tập. Hãy hỏi từng phần.',
+      'measures': 'Mỗi lần đếm được tối đa 3 thứ. Hãy hỏi từng phần.',
+      'ranking': 'Bảng xếp hạng hiển thị tối đa 20. Hãy hỏi 20 trở xuống.',
+      'sessions':
+          '\'N buổi gần nhất\' tối đa 100 buổi. Muốn xem dài hơn, hãy hỏi theo khoảng thời gian, ví dụ năm nay.',
+      'days':
+          '\'N ngày gần đây\' tối đa 3660 ngày (khoảng 10 năm). Muốn xem dài hơn, hãy hỏi toàn bộ thời gian.',
+      'compare': 'Mỗi lần so sánh được tối đa 4 thứ. Hãy hỏi từng phần.',
+      'compareGrouped':
+          'Một câu hỏi không thể vừa so sánh vừa nhóm theo bài tập, ngày, tuần, tháng hoặc thứ trong tuần. Hãy hỏi một trong hai.',
+      'groupedMeasure':
+          'Khi nhóm theo ngày, tuần, tháng hoặc thứ trong tuần chỉ đếm được một thứ, và xu hướng, lần cuối, lần đầu, số ngày kể từ lần cuối không nhóm được.',
+      'ordering':
+          'Xếp hạng, tổng và trung bình cần nhóm, ví dụ theo bài tập hoặc theo tuần.',
+      'datesTotal':
+          'Ngày lần cuối và lần đầu không cộng hay lấy trung bình được.',
+      'other':
+          'Tìm kiếm bản ghi không tính được câu hỏi có dạng này. Hãy hỏi từng phần.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String policyNumberRejected(String text, String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'decimal':
+          '\'$text\' — không nhận số thập phân. Hãy nhập số nguyên, ví dụ 14',
+      'range': '\'$text\' — hãy nhập một con số, không phải khoảng, ví dụ 14',
+      'negative': '\'$text\' — không nhận số nhỏ hơn 0, ví dụ 14',
+      'unit':
+          '\'$text\' — ô này đếm theo ngày hoặc buổi. Hãy đổi giờ, tuần hoặc tháng sang số ngày, ví dụ 14',
+      'other':
+          'Không đọc được số ngày hoặc số buổi từ \'$text\'. Hãy nhập một con số, ví dụ 14',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get mealSources => 'Nguồn';
 
   @override

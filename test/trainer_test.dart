@@ -741,6 +741,120 @@ void main() {
       expect(find.text('미방문 기준은 2~60일이에요.'), findsOneWidget);
     });
 
+    testWidgets('C·방침 숫자 칸은 단위가 붙어도 첫 수를 읽고, 못 읽으면 그 칸 밑에 까닭을 적고 보내지 않는다', (
+      tester,
+    ) async {
+      final l = lookupL(const Locale('ko'));
+      final bodies = <Map>[];
+      final a = account((request) async {
+        final sent = jsonDecode(request.body) as Map;
+        bodies.add(sent);
+        return reply({
+          'policy': {...sent}..remove('gymId'),
+        });
+      });
+      final state = AgentState.fromJson({...agentBody(), 'role': 'owner'});
+      tall(tester);
+      await tester.pumpWidget(
+        app(
+          TrainerSettingsPage(
+            account: a,
+            gymId: gymId,
+            gymName: 'BPM 강남',
+            state: state,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      Finder field(String key) => find.byKey(ValueKey('policy-$key'));
+      await tester.enterText(field('renewal_notice_days'), '14일');
+      await tester.enterText(field('low_sessions'), '3회');
+      await tester.enterText(field('away_days'), '2주');
+      await tester.enterText(field('lapsed_days'), '1.5');
+
+      // '2주' 를 2일로, '1.5' 를 1로 읽으면 뜻이 바뀐다 — 칸마다 까닭을 말하고
+      // 저장은 보내지 않는다.
+      await tapText(tester, '방침 저장');
+      expect(bodies, isEmpty);
+      expect(find.text(l.policyNumberRejected('2주', 'unit')), findsOneWidget);
+      expect(
+        find.text(l.policyNumberRejected('1.5', 'decimal')),
+        findsOneWidget,
+      );
+
+      await tester.enterText(field('lapsed_days'), '30');
+
+      await tester.enterText(field('away_days'), '14 days');
+      await tapText(tester, '방침 저장');
+      expect(bodies.single, {
+        'gymId': gymId,
+        'renewal_notice_days': 14,
+        'low_sessions': 3,
+        'away_days': 14,
+        'lapsed_days': 30,
+        'renewal_offer': null,
+      });
+      expect(find.text(l.policyNumberRejected('2주', 'unit')), findsNothing);
+      // 읽은 대로 저장된 것이 칸에 보인다.
+      expect(
+        tester
+            .widget<CupertinoTextField>(field('renewal_notice_days'))
+            .controller!
+            .text,
+        '14',
+      );
+      expect(policyNumber('7 days').value, 7);
+      expect(
+        policyNumber('3 times').value,
+        3,
+        reason: "'times' 속 'mes' 는 달이 아니다",
+      );
+      expect(policyNumber('14일 전').value, 14, reason: '만료 며칠 전');
+      // 허용한 단위(일·회) 말고는 받지 않는다. 다른 수로 조용히 저장하지 않고 까닭을 말한다.
+      for (final (text, why) in [
+        ('2 weeks', 'unit'),
+        ('48시간', 'unit'),
+        ('72 hours', 'unit'),
+        ('1.5', 'decimal'),
+        ('-3', 'negative'),
+        ('10~14일', 'range'),
+        ('10-14', 'range'),
+        ('한 달', 'other'),
+      ]) {
+        expect(policyNumber(text), (value: null, why: why), reason: text);
+      }
+    });
+
+    test(
+      'C·방침 숫자 칸은 일·회 뒤에 붙은 말(14일간·3회 이하·14 days ago)도 읽고, 시간·주·소수·범위·음수는 까닭과 함께 막는다',
+      () {
+        for (final (text, value) in [
+          ('14일간', 14),
+          ('14일 이내', 14),
+          ('14일 후', 14),
+          ('3회 이하', 3),
+          ('3번까지', 3),
+          ('약 14일', 14),
+          ('14 days ago', 14),
+          ('about 7 days', 7),
+          ('14日間', 14),
+        ]) {
+          expect(policyNumber(text), (value: value, why: null), reason: text);
+        }
+        for (final (text, why) in [
+          ('48시간 이내', 'unit'),
+          ('14 hours ago', 'unit'),
+          ('2주 후', 'unit'),
+          ('약 2 weeks', 'unit'),
+          ('1.5일간', 'decimal'),
+          ('10~14일 이내', 'range'),
+          ('-3회 이하', 'negative'),
+        ]) {
+          expect(policyNumber(text), (value: null, why: why), reason: text);
+        }
+      },
+    );
+
     testWidgets('이 도장 직원이 아니면 서버의 말을 보여 주고 정리 버튼을 치운다', (tester) async {
       final a = account(
         (request) async => request.url.path == '/api/agent'

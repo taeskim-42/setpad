@@ -221,9 +221,10 @@ class _PartnerSheetState extends State<_PartnerSheet> {
         controller: _code,
         autofocus: true,
         // 헬스장에서 불러 주는 코드다. 자판을 오래 두드릴 자리가 아니다.
+        // 글자 수를 막지 않는다 — 받은 문구를 통째로 붙여 넣으면 코드는 끝에
+        // 있고, 칸이 앞에서 자르면 코드가 사라진다(normalizePartnerCode 가 뽑는다).
         textCapitalization: TextCapitalization.characters,
         autocorrect: false,
-        maxLength: 8,
         textAlign: TextAlign.center,
         style: const TextStyle(fontSize: 24, letterSpacing: 5),
         onSubmitted: (_) => sync.joinWithCode(_code.text),

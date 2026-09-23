@@ -39,7 +39,8 @@ class DayLog {
   /// 열량을 아는 끼니의 합. 끼니를 하나도 안 적었으면 null.
   int? get intake =>
       meals.isEmpty ? null : meals.fold<int>(0, (n, m) => n + (m.kcal ?? 0));
-  int get unknownMeals => meals.where((m) => m.kcal == null).length;
+  int get unknownMeals =>
+      meals.where((m) => m.kcal == null || m.partial).length;
 
   /// 어림값이 섞였는가. 섞였으면 결과에도 "약" 이 붙는다.
   bool get intakeEstimated => meals.any((m) => m.approximate);
