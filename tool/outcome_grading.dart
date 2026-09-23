@@ -96,17 +96,37 @@ const _memos = {
 final _logs = <String, List<Note>>{};
 
 /// [names] 로 친, [lang] 을 쓰는 한 사람의 기록. 같은 목록은 같은 기록이다(결정적).
-List<Note> assumedLog(List<String> names, [String lang = 'ko']) =>
-    _logs['$lang\n${names.join('\n')}'] ??= _build(names, _memos[lang]!);
+///
+/// [second] 는 채점의 둘째 기록이다: 무게가 작년 가을(2025-10)에 최고였다가
+/// 내리고(데드리프트의 앞뒤 날은 100kg 아래, 벤치는 80kg 에 못 닿는다), 오늘은
+/// 여느 날처럼 작다. 첫째 기록은 최고가 8월 중순이고 오늘이 큰 날이라 '지난달·
+/// 올해·최근 최고' 가 전체 최고와, '오늘 마지막' 이 전체 마지막과 같다 — 기간·
+/// 조건을 떨어뜨린 plan 이 같은 표를 냈다(재검토 rv_mutation). 둘 다에서 같아야
+/// 정확이다([gradeCase]).
+List<Note> assumedLog(
+  List<String> names, [
+  String lang = 'ko',
+  bool second = false,
+]) => _logs['$second\n$lang\n${names.join('\n')}'] ??= _build(
+  names,
+  _memos[lang]!,
+  second,
+);
+
+/// 채점하는 기록 둘([assumedLog] 의 첫째·둘째).
+List<List<Note>> assumedLogs(List<String> names, [String lang = 'ko']) => [
+  assumedLog(names, lang),
+  assumedLog(names, lang, true),
+];
 
 double _round(double v, double step) => (v / step).round() * step;
 
-List<Note> _build(List<String> names, List<String> memos) {
+List<Note> _build(List<String> names, List<String> memos, bool second) {
   final kinds = {for (final n in names) n: exerciseKey(n)};
   // 목록 앞의 운동일수록 자주 한다: 여섯씩 이틀·사흘·나흘 … 에 한 번(하루 일곱쯤).
   int every(int i) => 2 + i ~/ 6;
 
-  var seed = 20260909;
+  var seed = second ? 20251015 : 20260909;
   double rand() {
     seed = (seed * 1103515245 + 12345) & 0x7fffffff;
     return seed / 0x7fffffff;
@@ -123,15 +143,20 @@ List<Note> _build(List<String> names, List<String> memos) {
     d = DateTime(d.year, d.month, d.day + 1)
   ) {
     final t = d.difference(start).inDays / span;
+    // 둘째 기록의 흐름: 작년 가을(t≈0.3)에 최고, 그 뒤 크게 내린다.
+    final grow = second ? (t < 0.3 ? t / 0.3 : 1 - 0.8 * (t - 0.3) / 0.7) : t;
     final r = rand();
+    // 둘째 기록은 8/24 부터 오늘 전까지 쉬었다 — 이번 주·이번 달·최근 2주가
+    // 오늘 하루뿐이라, 기간을 떨어뜨린 '마지막'·'며칠' 이 갈린다.
     final off =
         (!d.isBefore(DateTime(2025, 12, 20)) &&
             d.isBefore(DateTime(2026, 1, 5))) ||
-        d == DateTime(2026, 9, 6);
+        d == DateTime(2026, 9, 6) ||
+        (second && !d.isBefore(DateTime(2026, 8, 24)) && d.isBefore(end));
     final on =
         (!d.isBefore(DateTime(2026, 8, 3)) &&
             !d.isAfter(DateTime(2026, 8, 8))) ||
-        !d.isBefore(DateTime(2026, 9, 7));
+        (second ? d == end : !d.isBefore(DateTime(2026, 9, 7)));
     // 요즘(8/24 부터)은 더 자주 간다 — 이번 주·지난주·오늘 같은 좁은 창에도 줄이 선다.
     final often = !d.isBefore(DateTime(2026, 8, 24));
     final trained =
@@ -163,10 +188,15 @@ List<Note> _build(List<String> names, List<String> memos) {
     final hour = d.weekday == 6 ? 10 : hours[(rand() * hours.length).floor()];
     final at = DateTime(d.year, d.month, d.day, hour, 30);
     // 오늘은 큰 날이다(앞의 여덟 운동) — '오늘 vs 지난번' 이 빈 칸끼리 같지 않게.
+    // 둘째 기록에서는 목록 끝의 두 운동뿐인 작은 날이다 — '오늘 마지막' 이 전체
+    // 마지막과 갈린다.
     final todays = [
       for (final (i, name) in names.indexed)
         // 여섯에 하나쯤은 거른다 — 같은 주기의 운동끼리 날 수가 똑같지 않게.
-        if (d == end ? i < 8 : (k + i) % every(i) == 0 && rand() > 0.15) name,
+        if (d == end
+            ? (second ? i >= names.length - 2 : i < 8)
+            : (k + i) % every(i) == 0 && rand() > 0.15)
+          name,
     ];
     if (todays.isEmpty) todays.add(names[k % names.length]);
     final blocks = <ExerciseBlock>[];
@@ -178,33 +208,41 @@ List<Note> _build(List<String> names, List<String> memos) {
           LoggedSet(value: v, reps: reps, unit: unit);
       final List<LoggedSet> sets;
       if (_cardio.contains(ko)) {
-        final km = _round(3 + 4 * t + (n % 3) * 0.5, 0.1);
+        final km = _round(3 + 4 * grow + (n % 3) * 0.5, 0.1);
         sets = [
           s(km, null, 'km'),
           s(_round(km * (ko == '러닝' ? 6 : 3), 1), null, 'min'),
         ];
       } else if (_timed.contains(ko)) {
         sets = [
-          s(_round(45 + 30 * t, 5), null, 's'),
-          s(_round(35 + 30 * t, 5), null, 's'),
+          s(_round(45 + 30 * grow, 5), null, 's'),
+          s(_round(35 + 30 * grow, 5), null, 's'),
         ];
       } else if (_bodyweight.contains(ko)) {
-        final reps = 10 + (8 * t).round() + n % 3;
+        final reps = 10 + (8 * grow).round() + n % 3;
+        // 둘째 기록은 푸시업도 무게를 달고(흐름 따라 10–70kg), 끝 세트가 4회다 —
+        // 맨몸 운동의 무게·'5회 이상' 조건이 기간마다 갈린다.
         sets = [
           s(null, reps),
           s(null, reps - 2),
-          if (n % 3 == 2 && ko != '버피' && ko != '푸시업')
-            s(10, 6)
+          if (n % 3 == 2 && ko != '버피' && (second || ko != '푸시업'))
+            s(second ? _round(10 + 60 * grow, 2.5) : 10, 6)
           else
-            s(null, reps - 3),
+            s(null, second ? 4 : reps - 3),
         ];
       } else {
         final base = _base[ko] ?? _partBase[exercisePart[ko]] ?? 30.0;
         // 늘다가 8월 중순에 최고, 그 뒤 조금 내린다(최고 뒤 지난 날·정체가 0 이 아니다).
+        // 둘째 기록은 기준의 0.55–1.2 배라 데드리프트가 80·100kg 앞뒤를, 벤치가
+        // 80kg 앞뒤를 오간다.
         final w = math.max(
           2.5,
           _round(
-            base * (0.85 + 0.35 * t) - (t > 0.94 ? base * 0.06 : 0) + jitter,
+            second
+                ? base * (0.55 + 0.65 * grow) + jitter
+                : base * (0.85 + 0.35 * t) -
+                      (t > 0.94 ? base * 0.06 : 0) +
+                      jitter,
             2.5,
           ),
         );
@@ -215,7 +253,8 @@ List<Note> _build(List<String> names, List<String> memos) {
           ws(math.max(2.5, _round(w * 0.6, 2.5)), 10),
           ws(w, 8 - n % 2),
           ws(w, 6 + n % 3),
-          if (n.isEven) ws(w + 2.5, 5),
+          // 둘째 기록의 무거운 세트는 3회 — '5회 이상' 조건이 세트를 가른다.
+          if (n.isEven) ws(w + 2.5, second ? 3 : 5),
         ];
       }
       blocks.add(ExerciseBlock(name, sets));
@@ -681,6 +720,37 @@ OutcomeGrade gradeOutcome(
     want: best.want,
     goldCountable: countable,
   );
+}
+
+/// 한 문항을 두 기록([assumedLogs])에서 채점한다 — 둘 다에서 같아야 정확이다.
+/// 첫 기록에서 어긋나면 그 채점, 아니면 둘째 기록의 채점이다. [got] 이 null 이면
+/// 무효(앱이 받지 못한 답)다. 실행기가 던지면 그 기록에서 무효다. 앱에서 안 도는
+/// 정답 대안은 뺀다 — 모두 안 돌면 [StateError].
+OutcomeGrade gradeCase(EvalCase c, RecordQuery? got) {
+  late OutcomeGrade grade;
+  for (final log in assumedLogs(c.names, c.lang)) {
+    final wants = <Visible>[];
+    Object? broken;
+    for (final g in c.gold) {
+      try {
+        wants.add(goldVisible(g, c.names, c.lang, log));
+      } on StateError catch (e) {
+        broken = e;
+      }
+    }
+    if (wants.isEmpty) throw broken ?? StateError('no gold');
+    Visible? shown;
+    if (got != null) {
+      try {
+        shown = visible(got, log, evalL(c.lang));
+      } on FormatException {
+        shown = null;
+      }
+    }
+    grade = gradeOutcome(wants, shown, ignore: c.ignore);
+    if (grade.errors.isNotEmpty) break;
+  }
+  return grade;
 }
 
 /// 판정(결과 기준):

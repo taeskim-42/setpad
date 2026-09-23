@@ -100,6 +100,9 @@ void main() {
   final client = HttpClient();
   var tokens = 0, answered = 0, cacheHit = 0, cacheMiss = 0, output = 0;
   var stage1 = 0, hit1 = 0, miss1 = 0, out1 = 0; // 1단계(갈래 고르기)가 쓴 토큰
+  // 원판(백분의 일 장): 서버가 부름마다 매기는 값 — gymdojo lib/plate-pricing.ts
+  // plateCents: max(1, ceil(토큰 × 2 × 100 / 3000)). 적중·빗나감·출력을 같이 센다.
+  var cents = 0;
 
   /// 서버 라우트와 같게 — 멈춤 이유가 stop 이 아니거나 JSON 객체가 아니면
   /// 무효(FormatException)다. 그물·HTTP 실패는 IOException 이다.
@@ -156,6 +159,7 @@ void main() {
       final first = instructions == familyInstructions;
       if (u['total_tokens'] case final int n) {
         tokens += n;
+        cents += (n * 200 / 3000).ceil().clamp(1, 1 << 30);
         if (first) stage1 += n;
       }
       if (u['prompt_cache_hit_tokens'] case final int n) {
@@ -224,7 +228,7 @@ void main() {
       '$model 로 $set 을 잰다',
       () async {
         tokens = cacheHit = cacheMiss = output = stage1 = hit1 = miss1 = out1 =
-            0;
+            cents = 0;
         answered = 0;
         var asked = 0; // 모델이 답한 질문 수(부른 횟수가 아니다)
         var exact = 0, invalid = 0, unreachable = 0, shapeExact = 0;
@@ -243,21 +247,22 @@ void main() {
             final c = queue.removeAt(0);
             final log = assumedLog(c.names, c.lang);
             final locale = c.lang.replaceAll('_', '-');
-            final wants = <Visible>[];
+            var runs = 0;
             for (final g in c.gold) {
               try {
-                wants.add(goldVisible(g, c.names, c.lang, log));
+                goldVisible(g, c.names, c.lang, log);
+                runs++;
               } on StateError catch (e) {
                 wrong.add('[${c.lang} ${c.cat}] <정답 오류> ${c.q} → ${e.message}');
               }
             }
-            if (wants.isEmpty) {
+            if (runs == 0) {
               goldBroken++;
               continue;
             }
             String raw() => contents[c.q] ?? '';
             Object? plan;
-            Visible? got;
+            RecordQuery? read;
             String? why;
             try {
               plan = await runZoned(
@@ -270,30 +275,31 @@ void main() {
                 ),
                 zoneValues: {#question: c.q},
               );
-              asked++;
               // 앱이 센 것: 디코더(규칙 층 포함)가 받은 plan 을 가정 기록에 돌린다.
-              got = visible(
-                decodeRecordIntent(
-                  plan,
-                  c.q,
-                  c.names,
-                  unit: 'kg',
-                  today: evalToday,
-                  locale: locale,
-                ),
-                log,
-                evalL(c.lang),
+              read = decodeRecordIntent(
+                plan,
+                c.q,
+                c.names,
+                unit: 'kg',
+                today: evalToday,
+                locale: locale,
               );
+              visible(read, log, evalL(c.lang));
             } on IOException catch (err) {
               // 모델 탓이 아니다. 채점에서 뺀다.
               unreachable++;
               wrong.add('${c.q} → 호출 실패 $err');
               continue;
             } on FormatException catch (err) {
-              asked++;
+              read = null;
               why = err.message;
             }
-            final grade = gradeOutcome(wants, got, ignore: c.ignore);
+            // 모델이 답한 질문 수 — 무효도 답한 것이다. 한 번만 센다(전에는 디코드
+            // 실패를 두 번 셌다).
+            asked++;
+            // 두 기록([assumedLogs])에서 모두 같아야 정확이다.
+            final grade = gradeCase(c, read);
+            final got = grade.got;
             final v = outcomeVerdicts(grade);
 
             // 보조: plan 모양 채점(설계 §3.5 문법, 이전 채점기).
@@ -415,6 +421,18 @@ void main() {
             '빗나감 ${(cacheMiss - miss1) ~/ asked} · 출력 ${(output - out1) ~/ asked} · '
             '원가(피크) 1만 질문당 \$${usd(cacheHit, cacheMiss, output).toStringAsFixed(2)} '
             '(1단계 \$${usd(hit1, miss1, out1).toStringAsFixed(2)})',
+          );
+          // 비용의 세 기준을 나란히: 평가 토큰(문턱 2,450 = v2 시절 1,960 + 25%),
+          // 사람이 내는 원판(v2 시절 ≈0.95장), 회사 원가(v3 이전 가정치 1만 질문당
+          // $1.04 — 적중 1,188 · 빗나감 204 · 출력 30).
+          // ignore: avoid_print
+          print(
+            '$set 비용 세 기준(질문당): 토큰 $avgTokens (v2 시절 1,960 대비 '
+            '${(100 * avgTokens / 1960 - 100).toStringAsFixed(0)}%) · 원판 '
+            '${(cents / asked / 100).toStringAsFixed(2)}장 (≈0.95 대비 '
+            '${(100 * cents / asked / 95 - 100).toStringAsFixed(0)}%) · 원가(피크) '
+            '1만 질문당 \$${usd(cacheHit, cacheMiss, output).toStringAsFixed(2)} '
+            '(\$1.04 대비 ${(100 * usd(cacheHit, cacheMiss, output) / 1.04 - 100).toStringAsFixed(0)}%)',
           );
         }
         // ignore: avoid_print

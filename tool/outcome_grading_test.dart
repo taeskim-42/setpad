@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:setpad/editor.dart' show LoggedSet;
 import 'package:setpad/record_query.dart';
 
 import 'outcome_grading.dart';
@@ -52,6 +55,179 @@ void main() {
     expect(days, containsAll([DateTime(2026, 9, 7), DateTime(2026, 9, 8)]));
     expect(days, isNot(contains(DateTime(2026, 9, 6))));
     expect(days.first.isBefore(DateTime(2025, 8, 1)), isTrue, reason: '작년 이맘때');
+
+    // 둘째 기록: 최고는 작년 가을, 데드리프트는 100kg 앞뒤, 오늘은 여느 날.
+    final second = assumedLog(ko, 'ko', true);
+    List<LoggedSet> of(String name, bool Function(DateTime) when) => [
+      for (final n in second)
+        if (when(n.createdAt))
+          for (final b in n.blocks)
+            if (b.name == name) ...b.sets.where((s) => s.author == null),
+    ];
+    double best(String name, bool Function(DateTime) when) => of(
+      name,
+      when,
+    ).map((s) => s.value ?? 0).fold(0.0, (a, b) => a > b ? a : b);
+    final squat = ko.firstWhere((n) => exerciseKey(n) == '스쿼트');
+    final dead = ko.firstWhere((n) => exerciseKey(n) == '데드리프트');
+    bool always(DateTime _) => true;
+    bool thisYear(DateTime d) => d.year == 2026;
+    bool august(DateTime d) => d.year == 2026 && d.month == 8;
+    expect(best(squat, thisYear), lessThan(best(squat, always)));
+    expect(best(squat, august), lessThan(best(squat, thisYear)));
+    final deadWeights = of(dead, always).map((s) => s.value!).toList();
+    expect(deadWeights.any((w) => w > 100), isTrue);
+    expect(
+      of(dead, august).map((s) => s.value!).every((w) => w < 100),
+      isTrue,
+      reason: '요즘 데드는 100kg 아래',
+    );
+    final today = [
+      for (final n in second)
+        if (n.createdAt.isAfter(DateTime(2026, 9, 9))) ...n.blocks,
+    ];
+    expect(today.length, lessThan(8), reason: '오늘은 여느 날');
+  });
+
+  // 재검토(rv_mutation): 정답 plan 의 뜻을 바꾼 plan 이 '정확' 으로 채점되던 수.
+  // 한 기록에서는 heldout 기간 지움 62/256 · 기간 옮김 80/256 · 조건 지움 39/107,
+  // v2 조건 지움 8/26 이었다. 두 기록에서 모두 같아야 정확이다(heldout 28 · 34 ·
+  // 31, v2 조건 지움 0) — 그 수가 이 문턱을 넘으면 채점기가 기간·조건 회귀를
+  // 다시 못 잡는 것이다. 모음 셋에 1분쯤 걸린다.
+  group('뜻을 바꾼 정답은 정확이 아니다', () {
+    const periodKeys = {'period', 'days', 'since', 'until', 'shift'};
+    const condKeys = {
+      'weight',
+      'reps',
+      'weekdays',
+      'hours',
+      'set',
+      'memo',
+      'memoAll',
+      'noMemo',
+      'together',
+      'routine',
+      'handoff',
+      'timer',
+      'trained',
+    };
+    String? back(Object? d, int days) => d is String
+        ? DateTime.parse(
+            d,
+          ).subtract(Duration(days: days)).toIso8601String().substring(0, 10)
+        : null;
+    Map<String, Object?>? mutate(Object? gold, String kind) {
+      if (gold is! Map) return null;
+      final m = (jsonDecode(jsonEncode(gold)) as Map).cast<String, Object?>();
+      var changed = false;
+      for (final x in [
+        m,
+        if (m['series'] case final List l) ...l.whereType<Map>(),
+      ]) {
+        switch (kind) {
+          case 'dropPeriod' || 'dropCond':
+            for (final k in kind == 'dropPeriod' ? periodKeys : condKeys) {
+              if (x.remove(k) != null) changed = true;
+            }
+          case 'movePeriod':
+            const swap = {
+              'thisMonth': 'lastMonth',
+              'lastMonth': 'thisMonth',
+              'thisWeek': 'lastWeek',
+              'lastWeek': 'thisWeek',
+              'thisYear': 'lastYear',
+              'lastYear': 'thisYear',
+              'today': 'yesterday',
+              'yesterday': 'today',
+            };
+            // 한 기간만 옮긴다 — 두 series 의 기간을 다 맞바꾸면 같은 두 줄이다.
+            if (changed) break;
+            if (swap[x['period']] case final p?) {
+              x['period'] = p;
+              changed = true;
+            } else if (x['period'] == 'recent') {
+              x['days'] = ((x['days'] as num?) ?? 28) * 2;
+              changed = true;
+            } else if (x['since'] case final String s) {
+              x['since'] = back(s, 60);
+              changed = true;
+            } else if (x['until'] case final String u) {
+              x['until'] = back(u, 60);
+              changed = true;
+            }
+          case 'bestToE1rm':
+            if (x['measures'] case final List ms when ms.contains('best')) {
+              x['measures'] = [for (final y in ms) y == 'best' ? 'e1rm' : y];
+              changed = true;
+            }
+        }
+      }
+      return changed ? m : null;
+    }
+
+    const kinds = ['dropPeriod', 'movePeriod', 'dropCond', 'bestToE1rm'];
+    // 두 기록에서 잰 수(2026-09-24)가 문턱이다. 늘면 실패한다.
+    // 남은 것은 두 기록 모두에서 답이 같은 것이다: 요즘 데드는 늘 80kg 위(첫째)거나
+    // 요즘 기록이 없다(둘째), 60kg 이상 8회 이상인 푸시업 세트는 어디에도 없다,
+    // e1rm 과 최고가 같은 줄(1회 세트)이다.
+    const ceiling = {
+      'v3': {'dropPeriod': 1, 'movePeriod': 4, 'dropCond': 2, 'bestToE1rm': 11},
+      'v2': {'dropPeriod': 0, 'movePeriod': 0, 'dropCond': 0, 'bestToE1rm': 1},
+      'heldout': {
+        'dropPeriod': 28,
+        'movePeriod': 34,
+        'dropCond': 31,
+        'bestToE1rm': 0,
+      },
+    };
+    for (final set in ceiling.keys) {
+      test(set, () {
+        final tried = <String, int>{}, accepted = <String, int>{};
+        final seen = <String>[];
+        for (final c in evalCases(set)) {
+          final golds = {for (final g in c.gold) jsonEncode(g)};
+          try {
+            if (gradeCase(c, null).want.kind != 'answer') continue;
+          } on StateError {
+            continue;
+          }
+          for (final k in kinds) {
+            final mut = mutate(c.gold.first, k);
+            if (mut == null || golds.contains(jsonEncode(mut))) continue;
+            final RecordQuery q;
+            try {
+              q = decodeRecordIntent(
+                mut,
+                '',
+                c.names,
+                unit: 'kg',
+                today: evalToday,
+                locale: c.lang.replaceAll('_', '-'),
+              );
+            } on FormatException {
+              continue;
+            }
+            tried[k] = (tried[k] ?? 0) + 1;
+            if (gradeCase(c, q).errors.isEmpty) {
+              accepted[k] = (accepted[k] ?? 0) + 1;
+              seen.add('[$k] ${c.q} → ${jsonEncode(mut)}');
+            }
+          }
+        }
+        // ignore: avoid_print
+        print(
+          '$set: ${[for (final k in kinds) '$k ${accepted[k] ?? 0}/${tried[k] ?? 0}'].join(' · ')}',
+        );
+        for (final e in seen.take(12)) {
+          // ignore: avoid_print
+          print('  $e');
+        }
+        expect({
+          for (final k in kinds)
+            if ((accepted[k] ?? 0) > ceiling[set]![k]!) k: accepted[k],
+        }, isEmpty);
+      });
+    }
   });
 
   // 한국어 기록 이름 목록(v3 의 158문항이 쓰는 것).
@@ -325,23 +501,26 @@ void main() {
       var alternatives = 0, distinct = 0;
       final broken = <String>[];
       for (final c in evalCases(set)) {
-        final log = assumedLog(c.names, c.lang);
-        final wants = <Visible>[];
-        for (final g in c.gold) {
-          try {
-            wants.add(goldVisible(g, c.names, c.lang, log));
-          } on StateError catch (e) {
-            broken.add('${c.q}: ${e.message}');
+        for (final (i, log) in assumedLogs(c.names, c.lang).indexed) {
+          final wants = <Visible>[];
+          for (final g in c.gold) {
+            try {
+              wants.add(goldVisible(g, c.names, c.lang, log));
+            } on StateError catch (e) {
+              broken.add('${c.q}: ${e.message}');
+            }
           }
-        }
-        alternatives += wants.length;
-        distinct += {for (final w in wants) '$w'}.length;
-        for (final w in wants) {
-          expect(
-            gradeOutcome(wants, w, ignore: c.ignore).errors,
-            isEmpty,
-            reason: c.q,
-          );
+          if (i == 0) {
+            alternatives += wants.length;
+            distinct += {for (final w in wants) '$w'}.length;
+          }
+          for (final w in wants) {
+            expect(
+              gradeOutcome(wants, w, ignore: c.ignore).errors,
+              isEmpty,
+              reason: c.q,
+            );
+          }
         }
       }
       // ignore: avoid_print
