@@ -385,10 +385,11 @@ bool _near(String raw, Exercise e) {
 
 /// 문항의 기록: 이름 → 정체.
 class _Log {
-  _Log(this.names, this.lang)
+  _Log(this.names, this.lang, [this.app])
     : ids = {for (final n in names) n: exerciseIdentity(n)};
   final List<String> names;
   final String lang;
+  final String Function(String name)? app;
   final Map<String, String> ids;
   late final Set<String> recorded = ids.values.toSet();
 
@@ -398,6 +399,7 @@ class _Log {
   /// 정답은 퍼지를 쓰지 않는다 — 정답의 이름은 뜻 그대로다.
   String resolve(String raw, {required bool fuzzy}) {
     final name = raw.trim();
+    if (fuzzy && app != null) return exerciseIdentity(app!(name));
     if (ids[name] case final id?) return id;
     if (_dictionary(name) case final e?) return e.ko;
     if (fuzzy) {
@@ -424,7 +426,8 @@ class _Log {
 /// - series 순서는 relate: ratio 일 때만 뜻이다(기준 ÷). 나머지는 정렬한다.
 ///
 /// [names] 는 그 문항의 기록 이름(모델에 간 목록), [question] 은 against 의
-/// 수가 글에 있는지 볼 때 쓴다. 정답에는 [fuzzy] 를 끈다.
+/// 수가 글에 있는지 볼 때 쓴다. 정답에는 [fuzzy] 를 끈다. [resolve] 가 있으면
+/// 모델 답의 이름은 그것(앱의 이름 풀기)으로 풀어 운동 정체로 견준다.
 Map<String, Object?> planShape(
   Object? raw, {
   required List<String> names,
@@ -432,10 +435,11 @@ Map<String, Object?> planShape(
   String question = '',
   bool fuzzy = true,
   DateTime? today,
+  String Function(String name)? resolve,
 }) {
   if (raw is! Map) _bad('not an object');
   if (jsonEncode(raw).length > 2000) _bad('too long');
-  final log = _Log(names, lang);
+  final log = _Log(names, lang, resolve);
   final m = _repaired({for (final e in raw.entries) '${e.key}': e.value});
   final kind = m['kind'] ?? 'plan';
   switch (kind) {
@@ -811,8 +815,15 @@ Grade gradePlan(
   required String lang,
   String question = '',
   Iterable<Object?> ignore = const [],
+  String Function(String name)? resolve,
 }) {
-  final got = planShape(plan, names: names, lang: lang, question: question);
+  final got = planShape(
+    plan,
+    names: names,
+    lang: lang,
+    question: question,
+    resolve: resolve,
+  );
   final wants = [
     for (final g in gold)
       () {

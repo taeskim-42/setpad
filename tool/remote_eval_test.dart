@@ -260,7 +260,7 @@ void main() {
               );
               // 앱이 센 것을 채점한다: 디코더가 거절하면(모양·한도) 무효고,
               // 받으면 규칙 층을 지난 plan 이 화면의 답이다.
-              decodeRecordIntent(
+              final read = decodeRecordIntent(
                 plan,
                 c.q,
                 c.names,
@@ -268,12 +268,14 @@ void main() {
                 today: evalToday,
                 locale: c.lang.replaceAll('_', '-'),
               );
-              grounded = groundedIntent(
-                plan as Map,
-                c.q,
-                c.names,
-                today: evalToday,
-              );
+              // 앱이 거절로 읽었으면 그 거절이 답이다(셀 것이 남지 않은 plan 포함).
+              grounded = read.kind == 'unsupported'
+                  ? switch (read.reason) {
+                      'unrelated' => {'kind': 'unrelated'},
+                      'nothing' => {'notComputable': read.notComputable},
+                      _ => {'kind': 'clarify'},
+                    }
+                  : groundedIntent(plan as Map, c.q, c.names, today: evalToday);
               grade = gradePlan(
                 grounded,
                 c.gold,
@@ -281,6 +283,8 @@ void main() {
                 lang: c.lang,
                 question: c.q,
                 ignore: c.ignore,
+                // 모델이 적은 이름은 앱이 푸는 대로 푼다(swapped 가 앱과 같다).
+                resolve: (n) => resolvedExercise(n, c.names, lang: c.lang),
               );
             } on IOException catch (err) {
               // 모델 탓이 아니다. 채점에서 뺀다.

@@ -47,6 +47,14 @@ List<String> suggest(
   return scored.take(limit).map((e) => e.name).toList();
 }
 
+/// 별칭 칸의 구(句)에 흔히 든 낱말('db row' 의 row, 'kick back' 의 back, 'dead
+/// lift' 의 lift). 이 낱말 하나로는 어느 운동도 가리키지 않는다 — "which lift is
+/// improving" 의 lift 는 데드리프트가 아니다.
+const genericAliasWords = {
+  'row', 'press', 'curl', 'pull', 'push', 'down', 'back', 'side', 'kick', //
+  'lift', 'rear',
+};
+
 /// 이 이름이 사전의 어느 운동인가. 기록 이름('벤치', 'Bench Press', '스쾃')과
 /// 질문 속 이름을 사전 운동 하나로 잇는 데 쓴다 — **강한 맞춤만** 받는다:
 ///
@@ -64,12 +72,9 @@ List<String> suggest(
   final q = searchKey(lower);
   if (q.length < 2) return null;
   // 정확한 키, 그다음 별칭의 낱말 하나('dl dead lift' 의 dead). 낱말이 여러 운동의
-  // 별칭에 들었거나('db') 구(句)의 흔한 낱말이면('db row' 의 row, 'kick back' 의
-  // back) 어느 것도 아니다 — 'row' 는 덤벨로우가 아니다.
-  const generic = {
-    'row', 'press', 'curl', 'pull', 'push', 'down', 'back', 'side', 'kick', //
-    'lift', 'rear',
-  };
+  // 별칭에 들었거나('db') 구(句)의 흔한 낱말이면([genericAliasWords]) 어느 것도
+  // 아니다 — 'row' 는 덤벨로우가 아니다.
+  const generic = genericAliasWords;
   for (final keys in [
     (Exercise e) => e.keys,
     (Exercise e) => e.alias
@@ -903,12 +908,35 @@ List<String> namedExercises(String text, List<String> pool) {
         in (exerciseByName[name.toLowerCase()]?.alias ?? '')
             .toLowerCase()
             .split(' ')) {
-      if (word.length >= 2) keyed.add((searchKey(word), name));
+      if (word.length >= 2 && !genericAliasWords.contains(word)) {
+        keyed.add((searchKey(word), name));
+      }
     }
   }
   keyed.sort((a, b) => b.$1.length.compareTo(a.$1.length));
+  // 로마자 키는 낱말 속에서 찾지 않는다 — 'trung' 의 run 은 러닝이 아니다.
+  // compact 의 자리마다 원문(소문자)의 자리를 둬 앞뒤 글자를 본다.
+  final lower = text.toLowerCase();
+  final origin = [
+    for (var i = 0; i < lower.length; i++)
+      if (!RegExp(r'[\s\-_·]').hasMatch(lower[i])) i,
+  ];
+  final latin = RegExp(r'\p{Script=Latin}', unicode: true);
+  bool inWord(int at, int length) {
+    final start = origin[at], end = origin[at + length - 1];
+    return (start > 0 && latin.hasMatch(lower[start - 1])) ||
+        (end + 1 < lower.length && latin.hasMatch(lower[end + 1]));
+  }
+
   for (final (key, name) in keyed) {
-    final at = compact.indexOf(key);
+    final roman = RegExp(
+      r'^\p{Script=Latin}[\p{Script=Latin}\d]*$',
+      unicode: true,
+    ).hasMatch(key);
+    var at = compact.indexOf(key);
+    while (at >= 0 && roman && inWord(at, key.length)) {
+      at = compact.indexOf(key, at + 1);
+    }
     if (at < 0) continue;
     hit(name, at);
     compact = compact.replaceRange(at, at + key.length, ' ' * key.length);
@@ -919,9 +947,12 @@ List<String> namedExercises(String text, List<String> pool) {
   for (final raw in RegExp(r'\S+').allMatches(text)) {
     final word = stripParticle(raw[0]!);
     if (word.length < 2 || word.contains(RegExp(r'\d'))) continue;
-    // 두 글자 로마자("PR", "vs")는 이름 속에 흔히 들어 있어("bench press")
-    // 퍼지로 지목이 된다. 별칭("bp")은 위의 키 단계가 이미 잡았다.
-    if (RegExp(r'^[a-zA-Z]{2}$').hasMatch(word)) continue;
+    // 짧은 로마자 낱말("PR", "vs", "over", "next", 베트남어 "bộ")은 이름의 한
+    // 조각으로 흔히 들어 있어("bench press", "overhead", "chạy bộ") 퍼지로
+    // 지목이 된다. 정확한 이름·별칭("bp", "dips")은 위의 키 단계가 이미 잡았다.
+    if (RegExp(r'^\p{Script=Latin}{2,4}$', unicode: true).hasMatch(word)) {
+      continue;
+    }
     final hits = suggest(word, pool, limit: 2);
     if (hits.length == 1) {
       hit(hits.single, searchKey(text.substring(0, raw.start)).length);
