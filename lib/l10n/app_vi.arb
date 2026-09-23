@@ -471,5 +471,14 @@
   "trainerBack": "Quay lại",
   "trainerCopy": "Sao chép tin nhắn",
   "trainerCopied": "Đã sao chép",
-  "settingsTrainer": "Huấn luyện viên"
+  "settingsTrainer": "Huấn luyện viên",
+  "aiConsentTitle": "Bật trợ giúp AI?",
+  "aiConsentBody": "Thiết lập một dòng, ước tính calo bữa ăn và câu hỏi về nhật ký được AI của DeepSeek (Trung Quốc) đọc. Dữ liệu đi qua máy chủ của chúng tôi (gym.darak.studio), nơi không lưu lại nội dung đó.",
+  "aiConsentSent": "Những gì được gửi: chữ bạn gõ, ảnh bữa ăn (đã bỏ vị trí và thông tin chụp) và tên bài tập trong nhật ký của bạn. Hiệp, mức tạ, ngày và ghi chú không được gửi cho AI; điện thoại tự tính.",
+  "aiConsentLater": "Nếu chọn Để sau, những gì bạn gõ vẫn được ghi đúng như vậy, kcal đã gõ và tìm theo tên vẫn dùng được. Bạn có thể bật hoặc tắt bất cứ lúc nào trong Cài đặt › Trợ giúp AI.",
+  "aiConsentAgree": "Đồng ý và bật",
+  "aiConsentNotNow": "Để sau",
+  "aiSetting": "Trợ giúp AI (DeepSeek)",
+  "aiOff": "Trợ giúp AI đang tắt nên được giữ đúng như đã gõ. Bật trong Cài đặt › Trợ giúp AI",
+  "aiOffPhoto": "Trợ giúp AI đang tắt nên ảnh không được ước tính. Hãy gõ bữa ăn thành chữ, ví dụ ‘phở 450kcal’, và nó được ghi đúng như vậy"
 }

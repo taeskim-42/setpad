@@ -32,6 +32,12 @@ Future<Account> _account({required bool selling, String? plan}) async {
 }
 
 Future<void> _open(WidgetTester tester, Account account) async {
+  // 설정 줄이 늘어도 모든 줄이 그려지게 세로로 넉넉히 — 화면 밖이라 안 그려진
+  // 줄을 '없다' 로 읽지 않는다.
+  tester.view.physicalSize = const Size(800, 2000);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(
     CupertinoApp(
       locale: const Locale('ko'),

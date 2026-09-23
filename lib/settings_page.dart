@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import 'account.dart';
+import 'ai_consent.dart';
 import 'booking_entry.dart';
 import 'health_page.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -18,11 +19,7 @@ import 'trainer.dart';
 /// 예약·복원·로그인이 팝업 한 장에 줄로 쌓여 있었다. 줄이 늘수록 무엇을
 /// 파는지가 안 보였고, 실제로 이용권도 그 줄 중 하나였다.
 class SettingsPage extends StatelessWidget {
-  const SettingsPage({
-    super.key,
-    required this.store,
-    this.account,
-  });
+  const SettingsPage({super.key, required this.store, this.account});
   final NotesStore store;
   final Account? account;
 
@@ -52,6 +49,15 @@ class SettingsPage extends StatelessWidget {
                 label: l.countAloud,
                 value: store.countAloud,
                 onChanged: (v) => store.setCountAloud(v),
+              ),
+              // 켤 때는 무엇을 어디로 보내는지 다시 보여 주고 묻는다. 끄면 바로 꺼진다.
+              _Toggle(
+                key: const ValueKey('settings-ai'),
+                label: l.aiSetting,
+                value: store.aiConsent == true,
+                onChanged: (v) => v
+                    ? askAiConsent(context, store, again: true)
+                    : store.setAiConsent(false),
               ),
               // 디버그 빌드에만: 휴식 경보가 워치로 넘어가는지 실기기로 재는 단추.
               // 누르고 5초 안에 폰을 내려놓고 워치의 운동 앱을 앞에 둔다.
@@ -85,7 +91,9 @@ class SettingsPage extends StatelessWidget {
                 if (a.selling || a.paid) ...[
                   _Section(title: l.proTitle),
                   _Row(
-                    label: a.paid ? l.proOwned : l.proPaid(proPlatesPerMonth, proInputPerDay),
+                    label: a.paid
+                        ? l.proOwned
+                        : l.proPaid(proPlatesPerMonth, proInputPerDay),
                     detail: switch (a.plan) {
                       Plan.yearly => l.planYearly,
                       Plan.monthly => l.planMonthly,
@@ -348,6 +356,7 @@ class _Choice extends StatelessWidget {
 
 class _Toggle extends StatelessWidget {
   const _Toggle({
+    super.key,
     required this.label,
     required this.value,
     required this.onChanged,

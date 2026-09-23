@@ -275,7 +275,8 @@ class _NotesListPageState extends State<NotesListPage>
           _search.noPlates ||
           _search.unrepresentable != null ||
           _search.tooLong ||
-          _search.offline);
+          _search.offline ||
+          _search.aiOff);
 
   /// 목록에 보일 기록. 답이 있으면 답에 쓰인 기록이다.
   ///
@@ -694,6 +695,11 @@ class _NotesListPageState extends State<NotesListPage>
                                 if (_search.tooLong)
                                   Text(
                                     l.queryTooLong(maxQuestionLength),
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                if (_search.aiOff)
+                                  Text(
+                                    l.aiOff,
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 if (_search.noPlates) ..._noPlates(l),

@@ -1767,4 +1767,35 @@ class LKo extends L {
 
   @override
   String get settingsTrainer => '트레이너';
+
+  @override
+  String get aiConsentTitle => 'AI 도움을 켤까요?';
+
+  @override
+  String get aiConsentBody =>
+      '한 줄 설정, 식단 열량 어림, 기록 질문은 DeepSeek(중국)의 AI가 읽어요. 우리 서버(gym.darak.studio)를 거쳐 가고, 우리 서버는 그 내용을 저장하지 않아요.';
+
+  @override
+  String get aiConsentSent =>
+      '보내는 것: 친 글, 식단 사진(위치·촬영 정보를 뗀 것), 내 기록의 운동 이름. 세트·무게·날짜·메모 같은 기록은 AI에 보내지 않고 폰에서 셉니다.';
+
+  @override
+  String get aiConsentLater =>
+      '‘나중에’를 골라도 친 글은 그대로 기록되고, 적은 kcal과 이름 찾기도 그대로 돼요. 설정 › AI 도움에서 언제든 켜고 끌 수 있어요.';
+
+  @override
+  String get aiConsentAgree => '동의하고 켜기';
+
+  @override
+  String get aiConsentNotNow => '나중에';
+
+  @override
+  String get aiSetting => 'AI 도움 (DeepSeek)';
+
+  @override
+  String get aiOff => 'AI 도움이 꺼져 있어 적은 그대로 두었어요. 설정 › AI 도움에서 켤 수 있어요';
+
+  @override
+  String get aiOffPhoto =>
+      'AI 도움이 꺼져 있어 사진으로 어림하지 않았어요. 식단 글로 ‘김밥 450kcal’처럼 적으면 그대로 들어가요';
 }
