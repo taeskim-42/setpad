@@ -1,4 +1,5 @@
 // 식단 추정과 확정 저장이 갈렸는가 — 서버의 같은 줄에 맞는가.
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -293,6 +294,29 @@ void main() {
     expect(parseMealText('프로틴 120kcal, 바나나 90kcal').kcal, 210);
   });
 
+  test('C·열량을 다 적은 끼니는 뒤에 붙은 말·양이 있어도 적은 값 그대로다 — 어림을 부르지 않는다', () {
+    // 뒤의 토막이 서술어·양·괄호뿐이면 같은 음식의 말이다. 전에는 '먹음' 을
+    // 열량 없는 음식으로 세어 적은 500 을 버리고 어림(적기 도움 한 칸)을 불렀다.
+    for (final (text, kcal) in [
+      ('점심 500kcal 먹음', 500),
+      ('라떼 150kcal 한 잔', 150),
+      ('닭가슴살 165kcal (100g)', 165),
+      ('아침 400kcal 정도 먹었다', 400),
+      ('총 1,500kcal 먹음', 1500),
+      ('밥 300kcal 김치 20kcal 먹었어요', 320),
+      ('coffee 90kcal, 2 cups', 90), // 쉼표 뒤의 양뿐인 조각도 앞 음식의 말이다
+      ('라면, 500kcal', 500), // 열량만 있는 조각은 앞 음식의 값이다
+    ]) {
+      final parsed = parseMealText(text);
+      expect((parsed.kcal, parsed.typed), (kcal, kcal), reason: text);
+    }
+    expect(parseMealText('점심 500kcal 먹음').foods.single.name, '점심 먹음');
+    // 또렷이 다른 음식이 있으면 합계를 모른다. 적은 값은 부분으로 남는다.
+    final partial = parseMealText('프로틴 120kcal 바나나 한 개');
+    expect((partial.kcal, partial.typed), (null, 120));
+    expect(parseMealText('김밥 한 줄').typed, isNull);
+  });
+
   testWidgets('C·식단 어림이 막히면 까닭을 한 번 말하고, 끼니 줄을 눌러 Enter 로 다시 어림한다', (
     tester,
   ) async {
@@ -373,6 +397,110 @@ void main() {
     expect(note.meals, hasLength(4));
     expect(find.text(l.mealTextTooLong), findsOneWidget);
   });
+
+  testWidgets(
+    'C·적은 열량은 어림이 막혀도·더 작게 와도 남고, 실패 말은 그 끼니의 것만 뜨고 지워지며, 줄에서 다시 어림한다',
+    (tester) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_meal_partial_');
+      final store = NotesStore(directory: dir);
+      addTearDown(() {
+        store.dispose();
+        dir.deleteSync(recursive: true);
+      });
+      final l = lookupL(const Locale('ko'));
+      final note = store.create();
+      late Future<MealEstimate> Function(String) reply;
+      final ai = FakeAi((text) => reply(text));
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: EditorPage(store: store, note: note, ai: ai),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final input = find.byType(CupertinoTextField);
+      Future<void> submit(String text) async {
+        await tester.enterText(input, text);
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+      }
+
+      Future<void> write(String text) async {
+        await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
+        await tester.pumpAndSettle();
+        await submit(text);
+      }
+
+      // 어림을 기다리는 동안 줄은 어림 중이라고 말하고, 다시 어림 단추는 없다.
+      final pending = Completer<MealEstimate>();
+      reply = (_) => pending.future;
+      await write('김밥');
+      expect(find.textContaining(l.mealEstimating), findsOneWidget);
+      expect(find.byKey(const ValueKey('meal-retry-0')), findsNothing);
+      // 그사이 열량을 적어 고쳤다. 옛 끼니의 실패는 이 끼니의 말이 아니다.
+      await tester.tap(find.byKey(const ValueKey('meal-0')));
+      await tester.pumpAndSettle();
+      await submit('김밥 480kcal');
+      pending.completeError(
+        const RecordAiException(RecordAiStatus.unavailable),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        (note.meals.single.kcal, note.meals.single.text),
+        (480, '김밥 480kcal'),
+      );
+      expect(find.text(l.mealTextOffline), findsNothing);
+
+      // 모르는 음식의 말은 다른 끼니의 어림이 붙어도 지워지지 않는다.
+      reply = (_) async => throw const RecordAiException(
+        RecordAiStatus.unavailable,
+        'unknownFood',
+      );
+      await write('엄마표 반찬 조금');
+      reply = (_) async => const MealEstimate(kcal: 480, items: ['김밥']);
+      await write('김밥 한 줄');
+      expect(note.meals[2].kcal, 480);
+      expect(find.text(l.mealTextUnknown), findsOneWidget);
+      // 열량을 모르는 끼니는 그 줄에서 다시 어림한다. 붙으면 그 끼니의 말을 지운다.
+      expect(find.byKey(const ValueKey('meal-retry-1')), findsOneWidget);
+      expect(find.byKey(const ValueKey('meal-retry-2')), findsNothing);
+      reply = (_) async => const MealEstimate(kcal: 300, items: ['반찬']);
+      await tester.tap(find.byKey(const ValueKey('meal-retry-1')));
+      await tester.pumpAndSettle();
+      expect(ai.asked.last, '엄마표 반찬 조금');
+      expect(
+        (note.meals[1].kcal, note.meals[1].source),
+        (300, MealEntry.estimate),
+      );
+      expect(find.text(l.mealTextUnknown), findsNothing);
+      expect(find.byKey(const ValueKey('meal-retry-1')), findsNothing);
+
+      // 어림이 적은 합보다 작으면 받지 않는다 — 적은 330 만 넣고 그렇다고 말한다.
+      reply = (_) async => const MealEstimate(kcal: 200, items: ['닭가슴살', '밥']);
+      await write('닭가슴살 330kcal, 밥 한 공기');
+      expect(
+        (note.meals[3].kcal, note.meals[3].source),
+        (330, MealEntry.typed),
+      );
+      expect(find.text(l.mealTextBelowTyped(330)), findsOneWidget);
+      expect(find.textContaining(l.kcalAtLeast(330)), findsOneWidget);
+      expect(find.byKey(const ValueKey('meal-retry-3')), findsOneWidget);
+
+      // 어림이 막혀도 적은 330 은 합계에 남는다. 까닭과 함께 그렇다고 말한다.
+      reply = (_) async =>
+          throw const RecordAiException(RecordAiStatus.unavailable);
+      await write('닭가슴살 330kcal, 엄마표 반찬 조금');
+      expect(note.meals[4].kcal, 330);
+      expect(
+        find.text('${l.mealTextOffline}\n${l.mealTextPartial(330)}'),
+        findsOneWidget,
+      );
+      expect(note.intake, 480 + 300 + 480 + 330 + 330);
+      expect(note.unknownMeals, 2, reason: '적은 것만 든 끼니는 온전한 값이 아니다');
+    },
+  );
 
   testWidgets('표로 셈한 끼니는 출처를 누르면 그 표의 값과 링크가 나오고, 저장본에도 남는다', (tester) async {
     final dir = Directory.systemTemp.createTempSync('setpad_meal_sources_');

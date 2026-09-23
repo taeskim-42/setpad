@@ -978,10 +978,6 @@ class LEn extends L {
       'Meal notes over 500 characters aren\'t estimated. Tap the meal and split it up to get an estimate.';
 
   @override
-  String get queryUnrepresentable =>
-      'Record search can\'t compute a question shaped like this. It handles up to 8 exercises, a top 20 and 4 comparisons, and only one measure when grouped by week or month. Try asking in parts.';
-
-  @override
   String queryTooLong(int max) {
     return 'Questions can be up to $max characters. Please shorten it.';
   }
@@ -990,8 +986,61 @@ class LEn extends L {
   String get queryPressEnter => 'Press Enter to ask about your records.';
 
   @override
-  String policyNumberUnreadable(String text) {
-    return 'Couldn\'t read a number of days or sessions from \'$text\'. Enter a number, e.g. 14';
+  String get mealRetry => 'Estimate again';
+
+  @override
+  String kcalAtLeast(int n) {
+    return '≥ $n kcal';
+  }
+
+  @override
+  String mealTextPartial(int n) {
+    return 'Only the $n kcal you wrote is counted; the other foods\' calories are unknown.';
+  }
+
+  @override
+  String mealTextBelowTyped(int n) {
+    return 'The estimate came out below the $n kcal you wrote, so it wasn\'t used. Only your $n kcal is counted.';
+  }
+
+  @override
+  String queryLimit(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'exercises':
+          'Up to 8 exercises can be asked at once. Try asking in parts.',
+      'measures': 'Up to 3 things can be counted at once. Try asking in parts.',
+      'ranking': 'Rankings show up to 20. Ask for 20 or fewer.',
+      'sessions':
+          '\'Last N sessions\' goes up to 100. For longer, ask by period, e.g. this year.',
+      'days':
+          '\'Last N days\' goes up to 3660 days (about 10 years). For longer, ask about all time.',
+      'compare': 'Up to 4 things can be compared at once. Try asking in parts.',
+      'compareGrouped':
+          'A comparison can\'t also be grouped by exercise, day, week, month or weekday in one question. Ask for one or the other.',
+      'groupedMeasure':
+          'Grouped by day, week, month or weekday, only one thing can be counted, and trend, last, first and days-since can\'t be grouped.',
+      'ordering':
+          'Rankings, totals and averages need a grouping, such as by exercise or by week.',
+      'datesTotal': 'Last and first dates can\'t be added up or averaged.',
+      'other':
+          'Record search can\'t compute a question shaped like this. Try asking in parts.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String policyNumberRejected(String text, String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'decimal':
+          '\'$text\' — decimals aren\'t accepted. Enter a whole number, e.g. 14',
+      'range': '\'$text\' — enter one number, not a range, e.g. 14',
+      'negative': '\'$text\' — numbers below 0 aren\'t accepted, e.g. 14',
+      'unit':
+          '\'$text\' — this field counts days or sessions. Convert hours, weeks or months to days, e.g. 14',
+      'other':
+          'Couldn\'t read a number of days or sessions from \'$text\'. Enter a number, e.g. 14',
+    });
+    return '$_temp0';
   }
 
   @override

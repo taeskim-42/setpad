@@ -1603,12 +1603,6 @@ abstract class L {
   /// **'500자가 넘는 식단 글은 어림하지 않아요. 끼니 줄을 눌러 나눠 적으면 어림해요.'**
   String get mealTextTooLong;
 
-  /// No description provided for @queryUnrepresentable.
-  ///
-  /// In ko, this message translates to:
-  /// **'이 질문은 기록 검색이 셀 수 없는 모양이에요. 운동은 8개, 순위는 20개, 비교는 4개까지이고, 주·월별로 묶으면 측정은 하나만 돼요. 나눠서 물어 주세요.'**
-  String get queryUnrepresentable;
-
   /// No description provided for @queryTooLong.
   ///
   /// In ko, this message translates to:
@@ -1621,11 +1615,41 @@ abstract class L {
   /// **'Enter 를 누르면 기록에 물어볼 수 있어요.'**
   String get queryPressEnter;
 
-  /// No description provided for @policyNumberUnreadable.
+  /// No description provided for @mealRetry.
   ///
   /// In ko, this message translates to:
-  /// **'\'{text}\' 에서 일·회 수를 읽지 못했어요. 숫자로 적어 주세요. 예: 14'**
-  String policyNumberUnreadable(String text);
+  /// **'다시 어림'**
+  String get mealRetry;
+
+  /// No description provided for @kcalAtLeast.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}kcal 이상'**
+  String kcalAtLeast(int n);
+
+  /// No description provided for @mealTextPartial.
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 {n}kcal만 합계에 넣었어요. 나머지 음식은 열량을 몰라요.'**
+  String mealTextPartial(int n);
+
+  /// No description provided for @mealTextBelowTyped.
+  ///
+  /// In ko, this message translates to:
+  /// **'어림값이 글에 적은 {n}kcal보다 작아 받지 않았어요. 적은 {n}kcal만 합계에 넣었어요.'**
+  String mealTextBelowTyped(int n);
+
+  /// No description provided for @queryLimit.
+  ///
+  /// In ko, this message translates to:
+  /// **'{kind, select, exercises{운동은 한 번에 8개까지 물을 수 있어요. 나눠서 물어 주세요.} measures{한 번에 세 가지까지 셀 수 있어요. 나눠서 물어 주세요.} ranking{순위는 20개까지 보여 줄 수 있어요. 20개 이하로 물어 주세요.} sessions{\'마지막 N번\'은 100번까지예요. 더 길게 보려면 기간으로 물어 주세요. 예: 올해} days{\'최근 N일\'은 3660일(약 10년)까지예요. 더 길게 보려면 전체 기간으로 물어 주세요.} compare{한 번에 4가지까지 견줄 수 있어요. 나눠서 물어 주세요.} compareGrouped{견주기와 운동·날·주·월·요일별 묶음은 한 질문에 함께 셀 수 없어요. 둘 중 하나로 물어 주세요.} groupedMeasure{날·주·월·요일별로 묶으면 한 가지만 셀 수 있고, 추이·마지막·처음·안 한 지는 묶을 수 없어요.} ordering{순위·합계·평균은 운동별이나 주별처럼 묶어서 물어 주세요.} datesTotal{마지막·처음 날짜는 더하거나 평균 낼 수 없어요.} other{이 질문은 기록 검색이 셀 수 없는 모양이에요. 나눠서 물어 주세요.}}'**
+  String queryLimit(String kind);
+
+  /// No description provided for @policyNumberRejected.
+  ///
+  /// In ko, this message translates to:
+  /// **'{why, select, decimal{\'{text}\' — 소수는 받지 않아요. 정수로 적어 주세요. 예: 14} range{\'{text}\' — 범위가 아니라 수 하나로 적어 주세요. 예: 14} negative{\'{text}\' — 0보다 작은 수는 받지 않아요. 예: 14} unit{\'{text}\' — 이 칸은 일·회로 세요. 시간·주·달은 일 수로 바꿔 적어 주세요. 예: 14} other{\'{text}\' 에서 일·회 수를 읽지 못했어요. 숫자로 적어 주세요. 예: 14}}'**
+  String policyNumberRejected(String text, String why);
 
   /// No description provided for @mealSources.
   ///

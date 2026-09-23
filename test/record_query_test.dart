@@ -133,6 +133,185 @@ void main() {
       }
     });
 
+    test('C·셀 수 없는 조합·한도는 무엇에 걸렸는지 말하고, 모델의 모양 실수와 가른다', () {
+      const many = [
+        '스쿼트',
+        '벤치프레스',
+        '데드리프트',
+        '바벨로우',
+        '푸시업',
+        '랫풀다운',
+        '레그프레스',
+        '오버헤드프레스',
+        '풀업',
+      ];
+      String? limit(Map<String, Object?> raw, [List<String> list = names]) {
+        try {
+          RecordQuery.decode(raw, list, today: today);
+          return null;
+        } on QueryLimit catch (e) {
+          return e.kind;
+        } on FormatException {
+          return 'mistake';
+        }
+      }
+
+      final periods = [
+        for (final p in [
+          'lastYear',
+          'thisYear',
+          'lastMonth',
+          'thisMonth',
+          'lastWeek',
+        ])
+          {'period': p},
+      ];
+      for (final (raw, kind) in <(Map<String, Object?>, String?)>[
+        ({'exercises': many}, 'exercises'),
+        ({'exclude': many, 'by': 'exercise'}, 'exercises'),
+        (
+          {
+            'measures': ['best', 'volume', 'setCount', 'repCount'],
+          },
+          'measures',
+        ),
+        (
+          {
+            'by': 'exercise',
+            'measures': ['best'],
+            'order': 'desc',
+            'limit': 30,
+          },
+          'ranking',
+        ),
+        (
+          {
+            'exercises': ['스쿼트'],
+            'sessions': 150,
+          },
+          'sessions',
+        ),
+        (
+          {
+            'exercises': ['스쿼트'],
+            'period': 'recent',
+            'days': 7300,
+          },
+          'days',
+        ),
+        (
+          {
+            'measures': ['volume'],
+            'compare': periods,
+          },
+          'compare',
+        ),
+        (
+          {
+            'measures': ['volume'],
+            'by': 'month',
+            'compare': periods.take(2).toList(),
+          },
+          'compareGrouped',
+        ),
+        (
+          {
+            'by': 'week',
+            'measures': ['volume', 'setCount'],
+          },
+          'groupedMeasure',
+        ),
+        (
+          {
+            'by': 'week',
+            'measures': ['latest'],
+          },
+          'groupedMeasure',
+        ),
+        (
+          {
+            'measures': ['trainingDays'],
+            'order': 'desc',
+          },
+          'ordering',
+        ),
+        (
+          {
+            'exercises': ['스쿼트', '벤치프레스'],
+            'measures': ['latest'],
+            'total': 'sum',
+          },
+          'datesTotal',
+        ),
+        // 모델의 모양 실수 — 다시 물으면 풀릴 수 있다. 한도가 아니다.
+        (
+          {
+            'exercises': ['스쿼트'],
+            'foo': 1,
+          },
+          'mistake',
+        ),
+        ({'kind': 'sql'}, 'mistake'),
+        ({'period': 'custom', 'since': '2026-02-30'}, 'mistake'),
+        (
+          {
+            'measures': ['sql'],
+          },
+          'mistake',
+        ),
+        (
+          {
+            'exercises': ['스쿼트'],
+            'sessions': 0,
+          },
+          'mistake',
+        ),
+        (
+          {
+            'compare': [
+              {'period': 'lastMonth'},
+            ],
+          },
+          'mistake',
+        ),
+      ]) {
+        expect(limit(raw, many), kind, reason: '$raw');
+      }
+      // 운동만 다른 비교는 운동별 한 줄씩이다 — 넷을 넘어도 운동 한도(8) 안이면 된다.
+      final five = RecordQuery.decode(
+        {
+          'measures': ['best'],
+          'by': 'exercise',
+          'compare': [
+            for (final e in many.take(5))
+              {
+                'exercises': [e],
+              },
+          ],
+        },
+        many,
+        today: today,
+      );
+      expect(five.compare, isEmpty);
+      expect(five.by, 'exercise');
+      expect(five.scope.exercises, many.take(5));
+      // 모든 한도는 제 까닭 문구가 있다.
+      for (final kind in [
+        'exercises',
+        'measures',
+        'ranking',
+        'sessions',
+        'days',
+        'compare',
+        'compareGrouped',
+        'groupedMeasure',
+        'ordering',
+        'datesTotal',
+      ]) {
+        expect(l.queryLimit(kind), isNot(l.queryLimit('other')), reason: kind);
+      }
+    });
+
     test('못 푸는 것과 무관한 것은 거절이 아니라 까닭이다', () {
       final blank = decode({});
       expect((blank.kind, blank.reason), ('unsupported', 'ambiguous'));
@@ -1320,7 +1499,7 @@ void main() {
     });
 
     test(
-      'C·서버는 답했는데 셀 수 없는 모양이면 못 하는 것이라 말하고, 그 거절을 담아 원판이 또 나가지 않는다',
+      'C·서버는 답했는데 셀 수 없는 모양이면 무엇에 걸렸는지 말하고, 그 거절을 담아 원판이 또 나가지 않는다',
       () async {
         var calls = 0;
         Future<Object?> reply(String instructions, String input) async {
@@ -1342,7 +1521,7 @@ void main() {
         await pumpEventQueue();
         expect(
           (search.unrepresentable, search.failed, search.charged, search.plan),
-          (true, false, true, null),
+          ('groupedMeasure', false, true, null),
           reason: '일시 장애가 아니다 — "다시 시도" 가 아니다',
         );
 
@@ -1351,13 +1530,59 @@ void main() {
         search.search(question, 'ko', names, 'kg', immediately: true);
         await pumpEventQueue();
         expect(calls, 1);
-        expect((search.unrepresentable, search.charged), (true, false));
+        expect(
+          (search.unrepresentable, search.charged),
+          ('groupedMeasure', false),
+        );
         // 치는 중에도 담아 둔 거절이 보인다.
         search.search(question, 'ko', names, 'kg');
-        expect(search.unrepresentable, isTrue);
+        expect(search.unrepresentable, 'groupedMeasure');
         search.dispose();
       },
     );
+
+    test('C·모델의 한 번 모양 실수는 담지 않고 다시 시도다 — 다시 누르면 다시 묻고, 새로 켜도 묻는다', () async {
+      var calls = 0;
+      Future<Object?> reply(String instructions, String input) async {
+        calls++;
+        // 첫 답만 모르는 키가 섞였다. 같은 질문의 둘째 답은 멀쩡하다.
+        return calls == 1 ? {...squat(), 'foo': 1} : squat();
+      }
+
+      final dir = _temp();
+      final search = RecordSearch(
+        RecordAi(respond: reply),
+        cache: QueryCache(directory: dir),
+      );
+      await search.refresh('ko');
+      search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+      await pumpEventQueue();
+      expect(
+        (search.failed, search.unrepresentable, search.plan, calls),
+        (true, null, null, 1),
+      );
+      search.dispose();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // 새로 켠 앱(같은 캐시)도 서버에 다시 묻고 멀쩡한 답을 받는다.
+      final again = RecordSearch(
+        RecordAi(respond: reply),
+        cache: QueryCache(directory: dir),
+      );
+      await again.refresh('ko');
+      again.search('스쿼트 최고', 'ko', names, 'kg');
+      expect(
+        (again.unrepresentable, again.plan),
+        (null, null),
+        reason: '담긴 거절이 없다',
+      );
+      again.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+      await pumpEventQueue();
+      expect(calls, 2);
+      expect(again.failed, isFalse);
+      expect(again.plan?.scope.exercises, ['스쿼트']);
+      again.dispose();
+    });
 
     test('C·600자가 넘는 질문은 보내지 않고 그렇다고 말한다 — 입력칸의 글은 부르는 쪽이 둔다', () async {
       var calls = 0;

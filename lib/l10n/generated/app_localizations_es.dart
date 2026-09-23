@@ -986,10 +986,6 @@ class LEs extends L {
       'Las notas de comida de más de 500 caracteres no se estiman. Toca la comida y divídela para obtener una estimación.';
 
   @override
-  String get queryUnrepresentable =>
-      'La búsqueda de registros no puede calcular una pregunta con esta forma. Admite hasta 8 ejercicios, los 20 primeros y 4 comparaciones, y una sola medida al agrupar por semana o mes. Pregunta por partes.';
-
-  @override
   String queryTooLong(int max) {
     return 'Las preguntas pueden tener hasta $max caracteres. Acórtala, por favor.';
   }
@@ -999,8 +995,64 @@ class LEs extends L {
       'Pulsa Intro para preguntar sobre tus registros.';
 
   @override
-  String policyNumberUnreadable(String text) {
-    return 'No se pudo leer un número de días o sesiones en \'$text\'. Escribe un número, p. ej. 14';
+  String get mealRetry => 'Estimar de nuevo';
+
+  @override
+  String kcalAtLeast(int n) {
+    return '≥ $n kcal';
+  }
+
+  @override
+  String mealTextPartial(int n) {
+    return 'Solo se cuentan las $n kcal que escribiste; las calorías de los demás alimentos se desconocen.';
+  }
+
+  @override
+  String mealTextBelowTyped(int n) {
+    return 'La estimación salió por debajo de las $n kcal que escribiste, así que no se usó. Solo se cuentan tus $n kcal.';
+  }
+
+  @override
+  String queryLimit(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'exercises':
+          'Se pueden consultar hasta 8 ejercicios a la vez. Pregunta por partes.',
+      'measures':
+          'Se pueden contar hasta 3 cosas a la vez. Pregunta por partes.',
+      'ranking': 'La clasificación muestra hasta 20. Pide 20 o menos.',
+      'sessions':
+          '\'Las últimas N sesiones\' llega hasta 100. Para más, pregunta por periodo, p. ej. este año.',
+      'days':
+          '\'Los últimos N días\' llega hasta 3660 días (unos 10 años). Para más, pregunta por todo el historial.',
+      'compare':
+          'Se pueden comparar hasta 4 cosas a la vez. Pregunta por partes.',
+      'compareGrouped':
+          'Una comparación no puede agruparse además por ejercicio, día, semana, mes o día de la semana en una sola pregunta. Pregunta por una de las dos.',
+      'groupedMeasure':
+          'Al agrupar por día, semana, mes o día de la semana solo se puede contar una cosa, y la tendencia, la última vez, la primera vez y los días desde la última no se agrupan.',
+      'ordering':
+          'Las clasificaciones, totales y promedios necesitan un agrupamiento, como por ejercicio o por semana.',
+      'datesTotal':
+          'Las fechas de la última y la primera vez no se pueden sumar ni promediar.',
+      'other':
+          'La búsqueda de registros no puede calcular una pregunta con esta forma. Pregunta por partes.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String policyNumberRejected(String text, String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'decimal':
+          '\'$text\': no se aceptan decimales. Escribe un número entero, p. ej. 14',
+      'range': '\'$text\': escribe un solo número, no un rango, p. ej. 14',
+      'negative': '\'$text\': no se aceptan números menores que 0, p. ej. 14',
+      'unit':
+          '\'$text\': este campo cuenta días o sesiones. Convierte horas, semanas o meses a días, p. ej. 14',
+      'other':
+          'No se pudo leer un número de días o sesiones en \'$text\'. Escribe un número, p. ej. 14',
+    });
+    return '$_temp0';
   }
 
   @override

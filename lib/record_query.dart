@@ -218,11 +218,11 @@ class RecordQuery {
     _keys(m, _topKeys);
     final compareRaw = m['compare'];
     if (compareRaw != null) {
-      if (compareRaw is! List ||
-          compareRaw.length < 2 ||
-          compareRaw.length > 4) {
+      if (compareRaw is! List || compareRaw.length < 2) {
         throw const FormatException('Invalid comparison');
       }
+      // 넷 넘는 비교도 운동만 다르면 운동별 줄이 된다(아래). 여덟 넘게는 어차피 안 된다.
+      if (compareRaw.length > 8) throw const QueryLimit('compare');
       for (final item in compareRaw) {
         if (item is! Map) throw const FormatException('Invalid comparison');
         _keys(item, _scopeKeys);
@@ -245,7 +245,12 @@ class RecordQuery {
 
     try {
       if (kind == 'find') {
-        final found = _list(m['exercises'], 8, name).toSet().toList();
+        final found = _list(
+          m['exercises'],
+          8,
+          name,
+          limit: 'exercises',
+        ).toSet().toList();
         if (found.isEmpty) throw const FormatException('Nothing to find');
         return RecordQuery(
           kind: 'find',
@@ -274,10 +279,15 @@ class RecordQuery {
         return QueryScope(
           // 모델은 사용자 철자와 정식 이름을 함께 내곤 한다("벤치프레스",
           // "벤치"). 풀면 같은 운동이다 — 두 번 세지 않는다.
-          exercises: _list(s['exercises'], 8, name).toSet().toList(),
+          exercises: _list(
+            s['exercises'],
+            8,
+            name,
+            limit: 'exercises',
+          ).toSet().toList(),
           since: period.since,
           until: period.until,
-          sessions: _int(s['sessions'], 1, 100),
+          sessions: _int(s['sessions'], 1, 100, 'sessions'),
           weight: _bounds(s['weight'], unit),
           reps: _bounds(s['reps'], null),
           weekdays: _unique(weekdays),
@@ -315,9 +325,9 @@ class RecordQuery {
         'month',
         'weekday',
       ]);
-      // 운동만 다른 비교는 운동별 한 줄씩이다.
+      // 운동만 다른 비교는 운동별 한 줄씩이다(모델이 운동별이라고 적었어도).
       if (compare.isNotEmpty &&
-          by == null &&
+          (by == null || by == 'exercise') &&
           compare.every((v) => v.exercises.isNotEmpty) &&
           compare.map((v) => v._signature(exercises: false)).toSet().length ==
               1) {
@@ -327,6 +337,8 @@ class RecordQuery {
         compare = [];
         by = 'exercise';
       }
+      if (scope.exercises.length > 8) throw const QueryLimit('exercises');
+      if (compare.length > 4) throw const QueryLimit('compare');
       if (by == null && compare.isEmpty && scope.exercises.length >= 2) {
         by = 'exercise';
       }
@@ -340,9 +352,10 @@ class RecordQuery {
                     _measures[x] ??
                     (throw const FormatException('Unknown measure')),
                 min: 1,
+                limit: 'measures',
               ),
             );
-      var limit = _int(m['limit'], 1, 20);
+      var limit = _int(m['limit'], 1, 20, 'ranking');
       // 개수만 주면 위에서 N개다. 순서를 비워 두면 확인 줄이 개수를 빠뜨리고
       // 제목도 순위가 아니게 된다.
       var order =
@@ -368,7 +381,7 @@ class RecordQuery {
         ];
       }
       if ((order != null || limit != null || total != null) && by == null) {
-        throw const FormatException('Ordering needs groups');
+        throw const QueryLimit('ordering');
       }
       if (by != null &&
           by != 'exercise' &&
@@ -379,19 +392,21 @@ class RecordQuery {
                 Metric.daysSince,
                 Metric.trend,
               ].contains(measures.single))) {
-        throw const FormatException('Invalid grouped measure');
+        throw const QueryLimit('groupedMeasure');
       }
       if (compare.isNotEmpty && by != null) {
-        throw const FormatException('Comparison cannot be grouped');
+        throw const QueryLimit('compareGrouped');
       }
       if (total != null &&
           measures.any((x) => x == Metric.last || x == Metric.first)) {
-        throw const FormatException('Dates cannot be totalled');
+        throw const QueryLimit('datesTotal');
       }
       return RecordQuery(
         scope: scope,
         compare: List.unmodifiable(compare),
-        exclude: List.unmodifiable(_list(m['exclude'], 8, name).toSet()),
+        exclude: List.unmodifiable(
+          _list(m['exclude'], 8, name, limit: 'exercises').toSet(),
+        ),
         measures: List.unmodifiable(measures),
         by: by,
         order: order,
@@ -404,6 +419,18 @@ class RecordQuery {
       return const RecordQuery(kind: 'unsupported', reason: 'missingData');
     }
   }
+}
+
+/// 모양은 맞는데 앱이 셀 수 없는 한도·조합이다(운동 9개, 상위 30개, 주별 측정
+/// 둘 …). 같은 질문은 같은 모양으로 오니 다시 물어도 같다 — 담아 두고, 다시
+/// 시도가 아니라 [kind] 로 무엇에 걸렸는지 말한다. 그 밖의 [FormatException] 은
+/// 모델의 한 번 실수(모르는 키, 틀린 날짜 …)라 다시 물으면 풀릴 수 있다.
+class QueryLimit extends FormatException {
+  const QueryLimit(this.kind) : super('Query limit: $kind');
+
+  /// exercises | measures | ranking | sessions | days | compare |
+  /// compareGrouped | groupedMeasure | ordering | datesTotal. 화면 문구의 열쇠다.
+  final String kind;
 }
 
 /// 질의 전체에 하나뿐인 키. 비교 항목 하나에 속하지 않는다.
@@ -461,13 +488,18 @@ void _keys(Map value, Set<String> allowed) {
   }
 }
 
+/// [limit] 이 있으면 [max] 를 넘는 것은 모양 실수가 아니라 그 한도의 거절이다.
 List<T> _list<T>(
   Object? value,
   int max,
   T Function(Object?) each, {
   int min = 0,
+  String? limit,
 }) {
   if (value == null) return const [];
+  if (limit != null && value is List && value.length > max) {
+    throw QueryLimit(limit);
+  }
   if (value is! List || value.length < min || value.length > max) {
     throw const FormatException('Invalid list');
   }
@@ -478,8 +510,9 @@ List<T> _unique<T>(List<T> values) => values.toSet().length == values.length
     ? values
     : throw const FormatException('Duplicate values');
 
-int? _int(Object? value, int min, int max) {
+int? _int(Object? value, int min, int max, [String? limit]) {
   if (value == null) return null;
+  if (limit != null && value is int && value > max) throw QueryLimit(limit);
   if (value is! int || value < min || value > max) {
     throw const FormatException('Invalid number');
   }
@@ -572,7 +605,7 @@ Bound _bound(Object? raw, String? unit) {
     ),
     'thisYear' => (DateTime(day.year), day),
     'lastYear' => (DateTime(day.year - 1), DateTime(day.year, 1, 0)),
-    'recent' => (shift(1 - (_int(days ?? 28, 1, 3660))!), day),
+    'recent' => (shift(1 - (_int(days ?? 28, 1, 3660, 'days'))!), day),
     'custom' => (_date(since), _date(until)),
     _ => throw const FormatException('Invalid period'),
   };
@@ -1457,10 +1490,6 @@ Examples of meaning, not fixed phrases:
 "이번주 날씨" => {"kind":"unrelated"}
 Final checks: no time words means no period. 최근/요즘 means recent. Never invent thresholds, measures or names. latest is the last session, not a date filter. Use only the keys named here. Return only the JSON for the final question.''';
 
-/// 담아 둔 거절의 표시. 그 아래에 서버가 준 의도를 그대로 둔다 — 앱이 새 모양을
-/// 셀 수 있게 되면 다시 묻지 않고 풀린다. 모델이 이 키를 내면 모르는 키라 어차피 거절이다.
-const _rejected = '_rejected';
-
 /// 질문 길이의 한도. 서버에 묻기 전에 앱이 거른다.
 const maxQuestionLength = 600;
 
@@ -1481,19 +1510,20 @@ class RecordSearch extends ChangeNotifier {
   /// [charged] 는 이번 답을 서버에서 받아 왔다는 뜻이다 — 담아 둔 답은 원판을
   /// 쓰지 않는다.
   ///
-  /// [unrepresentable] 은 서버는 답했는데 앱이 셀 수 없는 모양이었다는 뜻이다
-  /// (운동 9개, 상위 30개, 주별 측정 둘 …). 다시 물어도 같다 — "다시 시도" 가
-  /// 아니라 무엇을 못 하는지 말하고, 그 거절을 담아 두어 원판이 또 나가지 않는다.
   /// [tooLong] 은 보내기 전에 거른 긴 질문, [offline] 은 제출했는데 다시 확인해도
   /// 서버에 닿지 못한 것이다.
   bool busy = false,
       failed = false,
       noPlates = false,
       charged = false,
-      unrepresentable = false,
       tooLong = false,
       offline = false,
       _disposed = false;
+
+  /// 서버는 답했는데 앱이 셀 수 없는 한도·조합이었다([QueryLimit.kind]). 다시
+  /// 물어도 같다 — "다시 시도" 가 아니라 무엇에 걸렸는지 말하고, 그 답을 담아
+  /// 두어 원판이 또 나가지 않는다. 모델의 한 번 모양 실수는 이것이 아니라 [failed] 다.
+  String? unrepresentable;
   int _version = 0;
   bool _generating = false;
   Future<void> _tail = Future.value();
@@ -1533,7 +1563,7 @@ class RecordSearch extends ChangeNotifier {
     failed = false;
     noPlates = false;
     charged = false;
-    unrepresentable = false;
+    unrepresentable = null;
     tooLong = false;
     offline = false;
     busy = false;
@@ -1551,21 +1581,23 @@ class RecordSearch extends ChangeNotifier {
     bool fromCache() {
       final cached = _cache[key];
       if (cached == null) return false;
-      final rejected = cached is Map && cached.containsKey(_rejected);
       try {
         plan = decodeRecordIntent(
-          rejected ? cached[_rejected] : cached,
+          cached,
           text,
           names,
           unit: unit,
           today: today,
         );
         return true;
+      } on QueryLimit catch (e) {
+        // 한도에 걸리는 답은 다시 사도 같은 곳에서 걸린다. 앱이 그 모양을 셀 수
+        // 있게 되면 여기서 저절로 풀린다.
+        unrepresentable = e.kind;
+        return true;
       } catch (_) {
-        // 담아 둔 거절은 거절 그대로다. 풀리던 의도를 규칙이 달라져 못 풀게 됐으면
-        // 그냥 다시 묻는다.
-        unrepresentable = rejected;
-        return rejected;
+        // 규칙이 달라져 옛 의도를 못 푸는 수가 있다. 그냥 다시 묻는다.
+        return false;
       }
     }
 
@@ -1608,9 +1640,12 @@ class RecordSearch extends ChangeNotifier {
         );
         // 서버가 답했다 = 원판이 나갔다. 버릴 답이라도 담는다 — 가려졌다
         // 돌아온 앱이나 같은 질문을 다시 낸 사람이 같은 답을 또 사지 않는다.
-        // 셀 수 없는 모양이면 **그 거절을** 담는다. 같은 질문은 같은 모양으로
-        // 오니, 다시 물으면 원판만 또 나가고 같은 곳에서 막힌다.
+        // 한도에 걸린 답도 담는다. 같은 질문은 같은 모양으로 오니, 다시 물으면
+        // 원판만 또 나가고 같은 곳에서 막힌다. 모델의 한 번 모양 실수(모르는 키,
+        // 틀린 날짜 …)는 담지 않는다 — 담으면 그 기기에서 같은 글로는 영영 못 묻는다.
         RecordQuery? result;
+        QueryLimit? limit;
+        Object? mistake;
         try {
           result = decodeRecordIntent(
             intent,
@@ -1619,17 +1654,20 @@ class RecordSearch extends ChangeNotifier {
             unit: unit,
             today: today,
           );
-          if (!_disposed) _cache.put(key, intent);
-        } catch (_) {
-          if (!_disposed) _cache.put(key, {_rejected: intent});
+        } on QueryLimit catch (e) {
+          limit = e;
+        } catch (e) {
+          mistake = e;
         }
+        if (mistake == null && !_disposed) _cache.put(key, intent);
         if (_disposed || version != _version) {
           _generating = false;
           return;
         }
         // 풀지 못해도 쓴 것은 쓴 것이다.
         charged = true;
-        unrepresentable = result == null;
+        if (mistake != null) throw mistake; // 다시 시도
+        unrepresentable = limit?.kind;
         plan = result;
         // Open requests show original records after scope confirmation.
         // Generated prose cannot certify dates, quantities or arithmetic.

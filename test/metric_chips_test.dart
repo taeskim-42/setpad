@@ -94,7 +94,7 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
       expect(calls, 1);
-      expect(find.text(l.queryUnrepresentable), findsOneWidget);
+      expect(find.text(l.queryLimit('groupedMeasure')), findsOneWidget);
       expect(find.text(l.queryFailed), findsNothing);
       expect(find.text(l.queryPressEnter), findsNothing);
 
@@ -102,7 +102,7 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
       expect(calls, 1);
-      expect(find.text(l.queryUnrepresentable), findsOneWidget);
+      expect(find.text(l.queryLimit('groupedMeasure')), findsOneWidget);
     },
   );
 

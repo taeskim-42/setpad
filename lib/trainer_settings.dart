@@ -43,25 +43,39 @@ const _policyNumbers = [
   'lapsed_days',
 ];
 
-/// 방침 숫자 칸의 글. '14일'·'3회'·'7 days' 처럼 단위가 붙어도 첫 수를 읽는다.
-/// 수가 없거나 주·달·해처럼 **다른 단위**면 null 이다 — '2주' 를 2일로 읽으면
-/// 뜻이 바뀐다. 칸은 일 또는 회를 센다.
-int? policyNumber(String text) {
-  final n = RegExp(r'\d+').firstMatch(text);
-  final longer = RegExp(
-    r'주|週|周|개월|달|月|년|年|tuần|tháng|năm|สัปดาห์|เดือน|ปี|'
-    r'\b(?:weeks?|wks?|months?|mes(?:es)?|semanas?|years?|años?)\b',
+/// 방침 숫자 칸의 글. 칸은 일 또는 회를 센다 — '14', '14일', '3회', '7 days',
+/// '14일 전' 을 읽는다. 그 밖의 글은 다른 수로 읽지 않고 [why] 로 까닭을 준다:
+/// decimal('1.5'), range('10~14일'), negative('-3'), unit('48시간'·'2주' — 일이
+/// 아니다), other(수가 없다). '48시간' 을 48일로 읽으면 뜻이 바뀐다.
+({int? value, String? why}) policyNumber(String text) {
+  final t = text.trim();
+  final n = RegExp(
+    r'^(\d+)\s*(?:일|회|번|日|天|次|回|วัน|ครั้ง|ngày|lần|días?|veces|days?|times?)?'
+    r'\s*(?:전|前|before|antes|trước|ก่อน)?$',
     caseSensitive: false,
+  ).firstMatch(t);
+  if (n != null) return (value: int.parse(n[1]!), why: null);
+  bool has(String pattern) => RegExp(pattern).hasMatch(t);
+  return (
+    value: null,
+    why: has(r'\d\s*[.,]\s*\d')
+        ? 'decimal'
+        : has(r'\d\s*(?:[~\-–—〜～]|에서|to|至|到)\s*\d')
+        ? 'range'
+        : has(r'^[-−–]\s*\d')
+        ? 'negative'
+        : has(r'\d')
+        ? 'unit'
+        : 'other',
   );
-  return n == null || longer.hasMatch(text) ? null : int.tryParse(n[0]!);
 }
 
 class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
   AgentState get _s => widget.state;
   bool _busy = false;
 
-  /// 읽지 못한 방침 칸. 그 칸 밑에 까닭을 적고, 저장은 보내지 않는다.
-  Set<String> _unreadable = {};
+  /// 읽지 못한 방침 칸과 그 까닭. 그 칸 밑에 적고, 저장은 보내지 않는다.
+  Map<String, String> _unreadable = {};
 
   late final _numbers = {
     for (final key in _policyNumbers)
@@ -108,10 +122,11 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
     };
     // 친 글에서 수를 못 읽은 칸은 그 칸에서 말한다. 서버에 보내면 저장 전체가
     // 범위 문구로 거절돼 어느 칸의 무엇이 틀렸는지 흐려진다.
-    final unreadable = {
+    final read = {
       for (final e in typed.entries)
-        if (e.value.isNotEmpty && policyNumber(e.value) == null) e.key,
+        if (e.value.isNotEmpty) e.key: policyNumber(e.value),
     };
+    final unreadable = {for (final e in read.entries) e.key: ?e.value.why};
     setState(() {
       _unreadable = unreadable;
       _busy = unreadable.isEmpty;
@@ -120,7 +135,7 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
     final offer = _offer.text.trim();
     // 빈 칸은 null 로 보낸다 — 서버가 허용 범위를 적어 거절한다.
     final reply = await widget.account.link.saveGymPolicy(widget.gymId, {
-      for (final e in typed.entries) e.key: policyNumber(e.value),
+      for (final key in _policyNumbers) key: read[key]?.value,
       'renewal_offer': offer.isEmpty ? null : offer,
     });
     if (!mounted) return;
@@ -294,8 +309,10 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
                     ),
                   ),
                 ),
-                if (_unreadable.contains(key))
-                  _note(l.policyNumberUnreadable(_numbers[key]!.text.trim())),
+                if (_unreadable[key] case final why?)
+                  _note(
+                    l.policyNumberRejected(_numbers[key]!.text.trim(), why),
+                  ),
               ],
               _row(l.policyOffer),
               Padding(

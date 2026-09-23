@@ -770,12 +770,19 @@ void main() {
       await tester.enterText(field('renewal_notice_days'), '14일');
       await tester.enterText(field('low_sessions'), '3회');
       await tester.enterText(field('away_days'), '2주');
-      await tester.enterText(field('lapsed_days'), '30');
+      await tester.enterText(field('lapsed_days'), '1.5');
 
-      // '2주' 를 2일로 읽으면 뜻이 바뀐다 — 그 칸에서 말하고 저장은 보내지 않는다.
+      // '2주' 를 2일로, '1.5' 를 1로 읽으면 뜻이 바뀐다 — 칸마다 까닭을 말하고
+      // 저장은 보내지 않는다.
       await tapText(tester, '방침 저장');
       expect(bodies, isEmpty);
-      expect(find.text(l.policyNumberUnreadable('2주')), findsOneWidget);
+      expect(find.text(l.policyNumberRejected('2주', 'unit')), findsOneWidget);
+      expect(
+        find.text(l.policyNumberRejected('1.5', 'decimal')),
+        findsOneWidget,
+      );
+
+      await tester.enterText(field('lapsed_days'), '30');
 
       await tester.enterText(field('away_days'), '14 days');
       await tapText(tester, '방침 저장');
@@ -787,7 +794,7 @@ void main() {
         'lapsed_days': 30,
         'renewal_offer': null,
       });
-      expect(find.text(l.policyNumberUnreadable('2주')), findsNothing);
+      expect(find.text(l.policyNumberRejected('2주', 'unit')), findsNothing);
       // 읽은 대로 저장된 것이 칸에 보인다.
       expect(
         tester
@@ -796,10 +803,26 @@ void main() {
             .text,
         '14',
       );
-      expect(policyNumber('7 days'), 7);
-      expect(policyNumber('3 times'), 3, reason: "'times' 속 'mes' 는 달이 아니다");
-      expect(policyNumber('2 weeks'), isNull);
-      expect(policyNumber('한 달'), isNull);
+      expect(policyNumber('7 days').value, 7);
+      expect(
+        policyNumber('3 times').value,
+        3,
+        reason: "'times' 속 'mes' 는 달이 아니다",
+      );
+      expect(policyNumber('14일 전').value, 14, reason: '만료 며칠 전');
+      // 허용한 단위(일·회) 말고는 받지 않는다. 다른 수로 조용히 저장하지 않고 까닭을 말한다.
+      for (final (text, why) in [
+        ('2 weeks', 'unit'),
+        ('48시간', 'unit'),
+        ('72 hours', 'unit'),
+        ('1.5', 'decimal'),
+        ('-3', 'negative'),
+        ('10~14일', 'range'),
+        ('10-14', 'range'),
+        ('한 달', 'other'),
+      ]) {
+        expect(policyNumber(text), (value: null, why: why), reason: text);
+      }
     });
 
     testWidgets('이 도장 직원이 아니면 서버의 말을 보여 주고 정리 버튼을 치운다', (tester) async {

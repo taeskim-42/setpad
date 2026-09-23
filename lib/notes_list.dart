@@ -273,7 +273,7 @@ class _NotesListPageState extends State<NotesListPage>
       !(_search.busy ||
           _search.failed ||
           _search.noPlates ||
-          _search.unrepresentable ||
+          _search.unrepresentable != null ||
           _search.tooLong ||
           _search.offline);
 
@@ -686,9 +686,9 @@ class _NotesListPageState extends State<NotesListPage>
                                   ),
                                 // 다시 해도 같은 거절이다. "다시 시도" 가 아니라
                                 // 무엇을 못 하는지 말한다.
-                                if (_search.unrepresentable)
+                                if (_search.unrepresentable case final kind?)
                                   Text(
-                                    l.queryUnrepresentable,
+                                    l.queryLimit(kind),
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 if (_search.tooLong)
