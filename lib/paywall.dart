@@ -14,7 +14,7 @@ import 'sign_in.dart';
 /// 규칙이 진짜다(gymdojo lib/ai-quota.ts, lib/plate-pricing.ts). 여기 적힌 것은
 /// 파는 말이고, 다르면 산 사람이 속은 것이 된다.
 const freeInputPerDay = 10;
-const proInputPerDay = 100;
+const proInputPerDay = 20;
 const proPlatesPerMonth = 300;
 
 /// App Store 의 표준 이용약관. 따로 약관을 두지 않은 앱은 이것을 건다.
