@@ -79,15 +79,12 @@ void main() {
             calls++;
             return {
               'by': 'week',
-              'measures': ['volume', 'setCount'],
+              'measures': ['weightChange'],
             };
           },
         ),
       );
-      await tester.enterText(
-        find.byType(CupertinoSearchTextField),
-        '주별 볼륨이랑 세트 수',
-      );
+      await tester.enterText(find.byType(CupertinoSearchTextField), '주별 무게 추이');
       await tester.pumpAndSettle();
       expect(find.text(l.noSearchResults), findsOneWidget);
       expect(find.text(l.queryPressEnter), findsOneWidget);

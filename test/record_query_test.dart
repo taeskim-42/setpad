@@ -89,10 +89,6 @@ void main() {
           'measures': ['latest'],
         },
         {
-          'by': 'week',
-          'measures': ['volume', 'setCount'],
-        },
-        {
           'measures': ['sql'],
         },
         {
@@ -154,10 +150,6 @@ void main() {
           'memo': ['x' * 30],
           'noMemo': ['y' * 30],
           'exercises': ['z' * 2000],
-        },
-        {
-          'trained': false,
-          'measures': ['setCount'],
         },
         {
           'hours': {'from': 5, 'to': 11},
@@ -230,7 +222,6 @@ void main() {
           'weight': {'op': '>=', 'value': -20},
         },
         {'kind': 'sql'},
-        {'kind': 'find'},
       ]) {
         expect(() => decode(raw), throwsFormatException, reason: '$raw');
       }
@@ -270,11 +261,19 @@ void main() {
           {'period': p},
       ];
       for (final (raw, kind) in <(Map<String, Object?>, String?)>[
-        ({'exercises': many}, 'exercises'),
+        // 기록에 없는 이름이 섞인 9개는 사람이 늘어놓은 목록일 수 있다 — 한도다.
+        (
+          {
+            'exercises': [...many.take(8), '케틀벨 스윙'],
+          },
+          'exercises',
+        ),
+        // 기록 운동을 모두 적은 목록은 '모든 운동' 이다 — 운동마다 한 줄.
+        ({'exercises': many}, null),
         ({'exclude': many, 'by': 'exercise'}, 'exercises'),
         (
           {
-            'measures': ['best', 'volume', 'setCount', 'repCount'],
+            'measures': ['best', 'volume', 'setCount', 'repCount', 'e1rm'],
           },
           'measures',
         ),
@@ -328,10 +327,26 @@ void main() {
           },
           'energyGrouped',
         ),
+        // 주 묶음에 측정 여럿은 표다. 여러 범위를 견주면 측정 하나다.
         (
           {
             'by': 'week',
             'measures': ['volume', 'setCount'],
+          },
+          null,
+        ),
+        (
+          {
+            'by': 'week',
+            'series': [
+              {
+                'measures': ['volume'],
+              },
+              {
+                'period': 'lastMonth',
+                'measures': ['setCount'],
+              },
+            ],
           },
           'groupedMeasure',
         ),
@@ -710,7 +725,7 @@ void main() {
       expect(q.series.last.scope.since, DateTime(2026, 9, 1));
     });
 
-    test('글에 기간이 하나면 모델의 비교 기간 둘은 접는다', () {
+    test('series 마다 적은 기간은 모델의 비교다 — 글의 기간 하나로 접지 않는다', () {
       final q = decode(
         {
           'exercises': ['벤치프레스'],
@@ -723,9 +738,31 @@ void main() {
         question: '이번 달 벤치 무게 변화',
         on: DateTime(2026, 9, 9),
       );
-      expect(q.series, hasLength(1));
-      expect(q.scope.since, DateTime(2026, 9, 1));
+      expect(q.series, hasLength(2));
       expect(q.measures, [Metric.trend]);
+      // series 없는 plan 이 글과 다른 기간을 적었으면 글이다.
+      final one = decode(
+        {
+          'exercises': ['벤치프레스'],
+          'measures': ['weightChange'],
+          'period': 'lastMonth',
+        },
+        question: '이번 달 벤치 무게 변화',
+        on: DateTime(2026, 9, 9),
+      );
+      expect(one.scope.since, DateTime(2026, 9, 1));
+      // "요즘" 이 함께면 기간이 둘이다 — 모델의 것.
+      final vague = decode(
+        {
+          'exercises': ['벤치프레스'],
+          'measures': ['weightChange'],
+          'period': 'recent',
+          'days': 28,
+        },
+        question: '요즘 벤치 지난달보다 늘었어',
+        on: DateTime(2026, 9, 9),
+      );
+      expect(vague.scope.since, DateTime(2026, 8, 13));
     });
 
     test('두 달을 이름으로 견주면 모델의 비교를 둔다', () {
@@ -1214,30 +1251,30 @@ void main() {
       }
     });
 
-    test('운동 하나를 지목한 순위는 순위가 아니다', () {
+    test('운동 하나를 적은 순위는 그 한 줄이다 — 측정은 뜻이 하나인 낱말만 바로잡는다', () {
       for (final (question, want) in [
-        ('지난달 벤치프레스는 정체기인가', Metric.trend),
-        ('올해 스쿼트 늘고 있나', Metric.trend),
+        ('벤치프레스는 정체기인가', Metric.sessions),
         ('야 9월에 벤치프레스 PRㅋㅋ', Metric.best),
-        ('스쿼트 직전 세트?', Metric.last),
       ]) {
         final q = decode({
+          'exercises': ['벤치프레스'],
           'by': 'exercise',
           'measures': ['trainingDays'],
           'limit': 1,
         }, question: question);
-        expect(q.by, isNull, reason: question);
-        expect(q.scope.exercises, hasLength(1), reason: question);
+        expect((q.by, q.limit), (null, null), reason: question);
         expect(q.measures, [want], reason: question);
       }
-      final named = decode({
-        'exercises': ['벤치프레스'],
+      // 모델이 이름 없는 순위를 냈으면 글에 운동이 하나 있어도 순위다
+      // ("스쿼트보다 많이 한 운동" 은 스쿼트 한 줄이 아니다).
+      final ranked = decode({
         'by': 'exercise',
         'measures': ['trainingDays'],
-        'limit': 1,
-      }, question: '벤치프레스는 정체기인가');
-      expect(named.by, isNull);
-      expect(named.measures, [Metric.trend]);
+        'order': 'desc',
+        'limit': 3,
+      }, question: '스쿼트보다 많이 한 운동');
+      expect(ranked.by, 'exercise');
+      expect(ranked.scope.exercises, isEmpty);
     });
 
     test('진짜 순위(운동 이름 없음)는 그대로 순위다', () {
@@ -1266,9 +1303,18 @@ void main() {
         'exercises': ['스쿼트'],
         'measures': [measure],
       }, question: question).measures.single;
-      expect(run('setCount', '벤치프레스 총 몇 회'), Metric.reps);
-      expect(run('setCount', '스쿼트 몇 번 했지'), Metric.sessions);
+      // 뜻이 둘인 낱말('총 몇 회' — 번? 회? · '몇 번' — 세트? 날?)로는 모델의
+      // 측정을 바꾸지 않는다. 뜻이 하나인 낱말과 어긋나면 글이다.
+      expect(run('setCount', '벤치프레스 총 몇 회'), Metric.sets);
+      expect(run('setCount', '스쿼트 몇 번 했지'), Metric.sets);
       expect(run('trainingDays', '데드 최고 무게'), Metric.best);
+      expect(run('setCount', '스쿼트 얼마나 자주 해'), Metric.sessions);
+      expect(run('setCount', '스쿼트 총 무게'), Metric.volume);
+      expect(run('setCount', '스쿼트 다 합쳐서 몇 개'), Metric.reps);
+      expect(run('best', '지난주 저번에 스쿼트 얼마 들었지'), Metric.last);
+      // "저번 주" 는 기간이지 마지막 기록이 아니다.
+      expect(run('best', '저번 주 스쿼트 최고'), Metric.best);
+      expect(run('weightChange', '스쿼트 운동 횟수 줄었어'), Metric.trend);
       // 두 갈래("최고" + "세트 수")면 모델의 답을 둔다.
       expect(run('setCount', '벤치 최고 세트 수'), Metric.sets);
       expect(run('latest', '스쿼트 최고 기록 말고 마지막 기록'), Metric.last);
@@ -1709,10 +1755,10 @@ void main() {
         var calls = 0;
         Future<Object?> reply(String instructions, String input) async {
           calls++;
-          // 주 묶음에 측정 둘 — 앱이 셀 수 없는 모양이다.
+          // 주 묶음에 추이 — 날짜 없는 측정은 묶을 수 없다.
           return {
             'by': 'week',
-            'measures': ['volume', 'setCount'],
+            'measures': ['weightChange'],
           };
         }
 
@@ -1721,7 +1767,7 @@ void main() {
           cache: QueryCache(directory: _temp()),
         );
         await search.refresh('ko');
-        const question = '주별 볼륨이랑 세트 수';
+        const question = '주별 무게 추이';
         search.search(question, 'ko', names, 'kg', immediately: true);
         await pumpEventQueue();
         expect(
