@@ -382,7 +382,9 @@ const exercises = <Exercise>[
     'Sentadilla',
     'Squat',
     'สควอท',
-    '스쾃',
+    // 백스쿼트·바벨 스쿼트는 스쿼트다. 이름 열쇠는 오타 거리로 잇지 않으니
+    // (핵스쿼트와 자모 하나 차이) 별칭으로 둔다.
+    '스쾃 백스쿼트 바벨스쿼트 backsquat barbellsquat',
   ),
   Exercise(
     '프론트 스쿼트',

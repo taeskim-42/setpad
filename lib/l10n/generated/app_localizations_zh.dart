@@ -1028,6 +1028,11 @@ class LZh extends L {
       'groupedMeasure': '按日、周、月或星期分组时只能统计一项，且趋势、最后一次、第一次、距上次天数不能分组。',
       'ordering': '排名、合计和平均需要分组，例如按动作或按周。',
       'datesTotal': '最后一次和第一次的日期不能相加或求平均。',
+      'perMeasure':
+          '按天、周、月的平均只能用于可相加的数，如组数、次数、容量、距离、时间、天数和 kcal。最高或平均重量请按时间段来问。',
+      'shareMeasure': '占比只能用组数、容量这类可相加的数来算。',
+      'trainedMeasure': '按训练日或休息日筛选只用于摄入和消耗的 kcal。训练记录都来自训练日。',
+      'sameSeries': '要比较的两个范围被读成了一样的。请写明拿什么和什么比较。',
       'other': '记录搜索无法计算这种形式的问题。请分开提问。',
     });
     return '$_temp0';
@@ -2208,6 +2213,26 @@ class LZh extends L {
 
   @override
   String get queryOfflineLocal => '无法连接服务器，仅按文字中的动作和时间在设备上计算。联网后按 Enter 再问一次。';
+
+  @override
+  String get queryMisread => '无法把这个问题读成可以统计的形式。请换个说法再问。';
+
+  @override
+  String get queryMisreadLocal =>
+      '无法把问题读成可统计的形式，仅按文字中的动作和时间在设备上计算。换个说法再问即可重新读取。';
+
+  @override
+  String get queryTotalUnits => '单位不同，无法合计';
+
+  @override
+  String queryMemoDropped(String words) {
+    return '已去掉备注条件：$words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return '已去掉基准数 $value——它不是问题里写的重量';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -3234,6 +3259,11 @@ class LZhHans extends LZh {
       'groupedMeasure': '按日、周、月或星期分组时只能统计一项，且趋势、最后一次、第一次、距上次天数不能分组。',
       'ordering': '排名、合计和平均需要分组，例如按动作或按周。',
       'datesTotal': '最后一次和第一次的日期不能相加或求平均。',
+      'perMeasure':
+          '按天、周、月的平均只能用于可相加的数，如组数、次数、容量、距离、时间、天数和 kcal。最高或平均重量请按时间段来问。',
+      'shareMeasure': '占比只能用组数、容量这类可相加的数来算。',
+      'trainedMeasure': '按训练日或休息日筛选只用于摄入和消耗的 kcal。训练记录都来自训练日。',
+      'sameSeries': '要比较的两个范围被读成了一样的。请写明拿什么和什么比较。',
       'other': '记录搜索无法计算这种形式的问题。请分开提问。',
     });
     return '$_temp0';
@@ -4414,6 +4444,26 @@ class LZhHans extends LZh {
 
   @override
   String get queryOfflineLocal => '无法连接服务器，仅按文字中的动作和时间在设备上计算。联网后按 Enter 再问一次。';
+
+  @override
+  String get queryMisread => '无法把这个问题读成可以统计的形式。请换个说法再问。';
+
+  @override
+  String get queryMisreadLocal =>
+      '无法把问题读成可统计的形式，仅按文字中的动作和时间在设备上计算。换个说法再问即可重新读取。';
+
+  @override
+  String get queryTotalUnits => '单位不同，无法合计';
+
+  @override
+  String queryMemoDropped(String words) {
+    return '已去掉备注条件：$words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return '已去掉基准数 $value——它不是问题里写的重量';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -5439,6 +5489,11 @@ class LZhHant extends LZh {
       'groupedMeasure': '按日、週、月或星期分組時只能統計一項，且趨勢、最後一次、第一次、距上次天數不能分組。',
       'ordering': '排名、合計和平均需要分組，例如按動作或按週。',
       'datesTotal': '最後一次和第一次的日期不能相加或求平均。',
+      'perMeasure':
+          '按天、週、月的平均只能用於可相加的數，如組數、次數、容量、距離、時間、天數和 kcal。最高或平均重量請按時間段來問。',
+      'shareMeasure': '佔比只能用組數、容量這類可相加的數來算。',
+      'trainedMeasure': '按訓練日或休息日篩選只用於攝取和消耗的 kcal。訓練記錄都來自訓練日。',
+      'sameSeries': '要比較的兩個範圍被讀成了一樣的。請寫明拿什麼和什麼比較。',
       'other': '紀錄搜尋無法計算這種形式的問題。請分開提問。',
     });
     return '$_temp0';
@@ -6619,4 +6674,24 @@ class LZhHant extends LZh {
 
   @override
   String get queryOfflineLocal => '無法連線到伺服器，僅依文字中的動作和時間在裝置上計算。連線後按 Enter 再問一次。';
+
+  @override
+  String get queryMisread => '無法把這個問題讀成可以統計的形式。請換個說法再問。';
+
+  @override
+  String get queryMisreadLocal =>
+      '無法把問題讀成可統計的形式，僅依文字中的動作和時間在裝置上計算。換個說法再問即可重新讀取。';
+
+  @override
+  String get queryTotalUnits => '單位不同，無法合計';
+
+  @override
+  String queryMemoDropped(String words) {
+    return '已去掉備註條件：$words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return '已去掉基準數 $value——它不是問題裡寫的重量';
+  }
 }

@@ -433,7 +433,8 @@ class TableCard extends StatelessWidget {
             for (final (m, c) in totals.indexed)
               if (c.reason != 'notAsked')
                 [
-                  word,
+                  // 부분 합계면 무엇을 뺐는지 이름에 있다("합계 (데드리프트 제외)").
+                  c.answer?.exercise ?? word,
                   if (totals.length > 1) measures[m],
                   c.answer?.headline ?? '—',
                 ].join(' '),

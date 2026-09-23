@@ -1086,6 +1086,14 @@ class LEn extends L {
       'ordering':
           'Rankings, totals and averages need a grouping, such as by exercise or by week.',
       'datesTotal': 'Last and first dates can\'t be added up or averaged.',
+      'perMeasure':
+          'Per-day, per-week and per-month averages work only for amounts that add up, such as sets, reps, volume, distance, time, days and kcal. Ask about the best or average weight over a period instead.',
+      'shareMeasure':
+          'A share can only be taken of amounts that add up, such as sets or volume.',
+      'trainedMeasure':
+          'Picking training or rest days only applies to kcal eaten and burned. Workout records all come from training days.',
+      'sameSeries':
+          'The two sides of the comparison were read as the same. Say what to compare with what.',
       'other':
           'Record search can\'t compute a question shaped like this. Try asking in parts.',
     });
@@ -2300,4 +2308,25 @@ class LEn extends L {
   @override
   String get queryOfflineLocal =>
       'Couldn\'t reach the server, so this was counted on your device from the exercises and dates in your text. Press Enter to ask again once you\'re online.';
+
+  @override
+  String get queryMisread =>
+      'This question couldn\'t be read into something to count. Try rephrasing it.';
+
+  @override
+  String get queryMisreadLocal =>
+      'The question couldn\'t be read into something to count, so this was counted on your device from the exercises and period in your text only. Rephrase it to ask again.';
+
+  @override
+  String get queryTotalUnits => 'Units differ, so there\'s no total';
+
+  @override
+  String queryMemoDropped(String words) {
+    return 'Memo condition left out: $words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return 'Reference number $value left out — it isn\'t a weight written in the question';
+  }
 }

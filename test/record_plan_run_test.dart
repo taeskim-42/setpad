@@ -257,7 +257,9 @@ void main() {
       'measures': ['best'],
     });
     expect(typo.never, {'바밸로우'});
-    expect(typo.maybe['바밸로우']!.first, '바벨로우');
+    // 사전에서 온 제안은 기록에 없는 운동이라 칩이 아니라 확인 줄의 글이다.
+    expect(typo.suggested['바밸로우'], '바벨로우');
+    expect(typo.maybe['바밸로우'] ?? const <String>[], isNot(contains('바벨로우')));
     expect(
       describePlan(typo, l, 'kg'),
       contains('바밸로우 (${l.queryNeverMark}) ${l.queryMaybe('바벨로우')}'),
@@ -628,6 +630,8 @@ void main() {
   });
 
   test('G15: 끝에서 N번째 운동일 — 오늘 vs 지난번', () {
+    // 실제 질문 글로 부른다 — 규칙 층이 글의 '오늘' 을 모든 series 의 기간으로
+    // 붙이면 끝에서 2번째 날이 늘 비었다(v3 재검토 R1).
     final r = run({
       'exercises': ['벤치프레스'],
       'measures': ['best'],
@@ -635,7 +639,7 @@ void main() {
         {'nth': 2},
         {'nth': 1},
       ],
-    });
+    }, question: '오늘 벤치 지난번보다 늘었어?');
     expect(column(r).map((c) => c.$2), [72.5, 75]);
     expect(r.rows.first.label, '${l.queryNth(2)} · 9월 2일');
     expect(r.lines.single, contains('+2.5kg'));

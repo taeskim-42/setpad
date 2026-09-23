@@ -1098,6 +1098,14 @@ class LEs extends L {
           'Las clasificaciones, totales y promedios necesitan un agrupamiento, como por ejercicio o por semana.',
       'datesTotal':
           'Las fechas de la última y la primera vez no se pueden sumar ni promediar.',
+      'perMeasure':
+          'Los promedios por día, semana o mes solo sirven para cantidades que se suman, como series, repeticiones, volumen, distancia, tiempo, días y kcal. Pregunta por el peso máximo o medio en un periodo.',
+      'shareMeasure':
+          'Un porcentaje del total solo se puede calcular con cantidades que se suman, como series o volumen.',
+      'trainedMeasure':
+          'Elegir días con o sin entrenamiento solo sirve para las kcal comidas y quemadas. Los registros de entrenamiento son todos de días entrenados.',
+      'sameSeries':
+          'Los dos lados de la comparación se leyeron iguales. Indica qué comparar con qué.',
       'other':
           'La búsqueda de registros no puede calcular una pregunta con esta forma. Pregunta por partes.',
     });
@@ -2318,4 +2326,25 @@ class LEs extends L {
   @override
   String get queryOfflineLocal =>
       'No se pudo conectar con el servidor; se contó en tu dispositivo solo con los ejercicios y fechas del texto. Pulsa Enter para preguntar de nuevo con conexión.';
+
+  @override
+  String get queryMisread =>
+      'No se pudo convertir esta pregunta en algo que contar. Prueba a formularla de otra manera.';
+
+  @override
+  String get queryMisreadLocal =>
+      'No se pudo interpretar la pregunta; se contó en tu dispositivo solo con los ejercicios y el periodo del texto. Reformúlala para volver a preguntar.';
+
+  @override
+  String get queryTotalUnits => 'Las unidades son distintas; no hay total';
+
+  @override
+  String queryMemoDropped(String words) {
+    return 'Condición de nota omitida: $words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return 'Número de referencia $value omitido: no es un peso escrito en la pregunta';
+  }
 }

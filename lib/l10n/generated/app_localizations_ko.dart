@@ -1043,6 +1043,12 @@ class LKo extends L {
           '날·주·월·요일별로 묶으면 한 가지만 셀 수 있고, 추이·마지막·처음·안 한 지는 묶을 수 없어요.',
       'ordering': '순위·합계·평균은 운동별이나 주별처럼 묶어서 물어 주세요.',
       'datesTotal': '마지막·처음 날짜는 더하거나 평균 낼 수 없어요.',
+      'perMeasure':
+          '날당·주당·달당 평균은 세트·횟수·볼륨·거리·시간·날 수·칼로리처럼 더하는 수에만 낼 수 있어요. 최고·평균 무게는 기간으로 물어 주세요.',
+      'shareMeasure': '비중은 세트 수·볼륨처럼 더하는 수로만 낼 수 있어요.',
+      'trainedMeasure':
+          '운동한 날·쉰 날로 고르기는 먹은·태운 칼로리에만 써요. 운동 기록은 모두 운동한 날의 것이에요.',
+      'sameSeries': '견줄 두 범위가 같게 읽혔어요. 무엇과 무엇을 견줄지 적어 주세요.',
       'other': '이 질문은 기록 검색이 셀 수 없는 모양이에요. 나눠서 물어 주세요.',
     });
     return '$_temp0';
@@ -2232,4 +2238,24 @@ class LKo extends L {
   @override
   String get queryOfflineLocal =>
       '서버에 닿지 못해 글에 적힌 운동·기간으로만 기기에서 셌어요. 연결되면 Enter 로 다시 물어보세요.';
+
+  @override
+  String get queryMisread => '이 질문은 셀 수 있는 모양으로 읽지 못했어요. 말을 바꿔 물어봐 주세요.';
+
+  @override
+  String get queryMisreadLocal =>
+      '질문을 셀 수 있는 모양으로 읽지 못해 글에 적힌 운동·기간으로만 기기에서 셌어요. 말을 바꿔 물으면 다시 읽어요.';
+
+  @override
+  String get queryTotalUnits => '단위가 달라 합계를 못 내요';
+
+  @override
+  String queryMemoDropped(String words) {
+    return '메모 조건 뺌: $words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return '기준 수 $value 뺌 — 질문에 무게로 적힌 수가 아니에요';
+  }
 }

@@ -275,7 +275,11 @@ class _NotesListPageState extends State<NotesListPage>
       },
       _ => null,
     };
-    if (spec == null && !_unreached) return null;
+    if (spec == null && !_unreached && !_misread) return null;
+    final strong = spec != null
+        ? const <String>[]
+        : namedExercises(_query.text.trim(), mentioned, fuzzy: false);
+    if (spec == null && strong.isEmpty) return null;
     try {
       return spec != null
           ? decodeRecordIntent(
@@ -287,7 +291,10 @@ class _NotesListPageState extends State<NotesListPage>
             )
           : wordsPlan(
               _query.text.trim(),
-              mentioned,
+              // 모델 없이 저절로 세는 길이다 — 칩과 달리 사람이 고르지 않았다.
+              // 글에 정확히(이름·별칭·줄임말) 적힌 운동만 센다. 낱말 퍼지로
+              // 잡힌 것('chung' → 런지)은 칩으로만 둔다.
+              strong,
               _recorded,
               unit: widget.store.weightUnit,
               locale: _locale ?? 'en',
@@ -301,6 +308,10 @@ class _NotesListPageState extends State<NotesListPage>
   /// 운동은 기기에서 센다 — 막다른 길이 없다.
   bool get _unreached =>
       _chip == null && _pick == null && (_search.offline || _search.failed);
+
+  /// Enter 를 눌러 서버는 답했는데 그 답을 셀 plan 으로 읽지 못했다. 연결 문제가
+  /// 아니다 — 그렇게 말하지 않고, 글에 적힌 운동은 기기에서 센다.
+  bool get _misread => _chip == null && _pick == null && _search.misread;
 
   void _open(Note note) {
     _search.cancel();
@@ -351,6 +362,7 @@ class _NotesListPageState extends State<NotesListPage>
       _search.ai.supported &&
       !(_search.busy ||
           _search.failed ||
+          _search.misread ||
           _search.noPlates ||
           _search.unrepresentable != null ||
           _search.tooLong ||
@@ -774,6 +786,15 @@ class _NotesListPageState extends State<NotesListPage>
                                 if (_search.failed)
                                   Text(
                                     l.queryFailed,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                // 서버는 답했다 — 연결 문구가 아니라 읽지 못했다고
+                                // 말하고, 말을 바꾸면 다시 읽는다고 알린다.
+                                if (_search.misread)
+                                  Text(
+                                    _misread && local != null
+                                        ? l.queryMisreadLocal
+                                        : l.queryMisread,
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 // 다시 해도 같은 거절이다. "다시 시도" 가 아니라

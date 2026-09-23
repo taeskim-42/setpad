@@ -67,7 +67,14 @@ const genericAliasWords = {
 ///
 /// 둘 이상의 운동에 닿으면 null 이다 — '레그' 는 어느 운동도 아니다. [exact] 는
 /// 1 단계로 맞았는가다. 퍼지로 맞춘 이름을 조용히 바꾸면 안 되는 곳이 그것을 본다.
-({Exercise exercise, bool exact})? dictionaryMatch(String raw) {
+/// [typos] 가 거짓이면 3 단계를 건너뛴다 — 기록 이름의 운동 열쇠는 줄임말까지만
+/// 잇는다('백스쿼트' 는 자모 하나 차이인 핵스쿼트가 아니다). 그때 한글·한자의
+/// 앞부분은 낱말 중간에서 끊긴 줄임말만이다: '벤치' 는 벤치프레스지만, '벤트오버'
+/// 는 '벤트오버 레터럴 레이즈' 의 첫 낱말일 뿐이다(벤트오버 로우일 수도 있다).
+({Exercise exercise, bool exact})? dictionaryMatch(
+  String raw, {
+  bool typos = true,
+}) {
   final lower = raw.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
   final q = searchKey(lower);
   if (q.length < 2) return null;
@@ -95,11 +102,18 @@ const genericAliasWords = {
       if (e.keys.any((k) => !chosung.hasMatch(k) && hit(k))) e,
   };
   final latin = RegExp(r'^[a-z0-9 ]+$').hasMatch(lower);
+  bool wordEnd(String k) {
+    final r = keyRange(k, q);
+    return r != null && r.end < k.length && k[r.end] == ' ';
+  }
+
   final prefixed = where(
-    (k) => latin ? k.startsWith('$lower ') : searchKey(k).startsWith(q),
+    (k) => latin
+        ? k.startsWith('$lower ')
+        : searchKey(k).startsWith(q) && (typos || !wordEnd(k)),
   );
   if (prefixed.length == 1) return (exercise: prefixed.single, exact: false);
-  if (prefixed.length > 1) return null;
+  if (prefixed.length > 1 || !typos) return null;
   final jq = jamoOf(q);
   if (jq.length < 4) return null;
   final short = RegExp(r'[가-힣]').allMatches(q).length <= 2 && !latin;
@@ -886,8 +900,15 @@ int? koreanNumber(String text) {
 ///
 /// 두 단계를 합친다. 결과가 둘 이상이면 둘 이상을 돌려준다 — 부르는 쪽이
 /// "하나만" 을 요구한다. 순서는 글에 적힌 순서다 — 표의 열과 차이의 방향이
-/// 이것을 따른다.
-List<String> namedExercises(String text, List<String> pool) {
+/// 이것을 따른다. [fuzzy] 가 거짓이면 2 단계는 [suggest] 대신 사전의 강한 맞춤
+/// ([dictionaryMatch], 오타 거리 없이 — 줄임말 '벤치' 는 벤치프레스)만 쓴다. 모델이
+/// 낸 plan 을 글로 고치는 곳(기록 검색의 규칙 층)은 퍼지로 지목하지 않는다:
+/// 베트남어 'chung'(전반적으로)이 'Chùng Chân'(런지)이 되면 질문이 바뀐다.
+List<String> namedExercises(
+  String text,
+  List<String> pool, {
+  bool fuzzy = true,
+}) {
   var compact = searchKey(text);
   if (compact.isEmpty) return const [];
   // 이름 → 글(검색 키)에서 처음 나온 자리.
@@ -953,7 +974,16 @@ List<String> namedExercises(String text, List<String> pool) {
     if (RegExp(r'^\p{Script=Latin}{2,4}$', unicode: true).hasMatch(word)) {
       continue;
     }
-    final hits = suggest(word, pool, limit: 2);
+    final hits = fuzzy
+        ? suggest(word, pool, limit: 2)
+        : switch (dictionaryMatch(word, typos: false)) {
+            (:final exercise, exact: _) => [
+              for (final name in pool.toSet())
+                if (identical(exerciseByName[name.toLowerCase()], exercise))
+                  name,
+            ],
+            null => const <String>[],
+          };
     if (hits.length == 1) {
       hit(hits.single, searchKey(text.substring(0, raw.start)).length);
     }

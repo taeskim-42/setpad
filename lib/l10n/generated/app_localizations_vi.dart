@@ -1072,6 +1072,14 @@ class LVi extends L {
           'Xếp hạng, tổng và trung bình cần nhóm, ví dụ theo bài tập hoặc theo tuần.',
       'datesTotal':
           'Ngày lần cuối và lần đầu không cộng hay lấy trung bình được.',
+      'perMeasure':
+          'Trung bình theo ngày, tuần hoặc tháng chỉ dùng cho các số cộng được như hiệp, lần, khối lượng, quãng đường, thời gian, số ngày và kcal. Hãy hỏi mức tạ cao nhất hoặc trung bình theo khoảng thời gian.',
+      'shareMeasure':
+          'Tỷ trọng chỉ tính được với các số cộng được như số hiệp hoặc khối lượng.',
+      'trainedMeasure':
+          'Lọc ngày có tập hoặc ngày nghỉ chỉ dùng cho kcal ăn vào và đốt. Mọi ghi chép tập luyện đều thuộc ngày có tập.',
+      'sameSeries':
+          'Hai vế cần so sánh được đọc giống nhau. Hãy nói rõ so sánh cái gì với cái gì.',
       'other':
           'Tìm kiếm bản ghi không tính được câu hỏi có dạng này. Hãy hỏi từng phần.',
     });
@@ -2287,4 +2295,25 @@ class LVi extends L {
   @override
   String get queryOfflineLocal =>
       'Không kết nối được máy chủ nên đã đếm trên máy chỉ theo bài tập và thời gian trong câu. Khi có mạng, nhấn Enter để hỏi lại.';
+
+  @override
+  String get queryMisread =>
+      'Không đọc được câu hỏi này thành phép đếm. Hãy thử hỏi theo cách khác.';
+
+  @override
+  String get queryMisreadLocal =>
+      'Không đọc được câu hỏi thành phép đếm nên đã đếm trên máy chỉ theo bài tập và khoảng thời gian trong câu. Hỏi theo cách khác để đọc lại.';
+
+  @override
+  String get queryTotalUnits => 'Đơn vị khác nhau nên không cộng tổng được';
+
+  @override
+  String queryMemoDropped(String words) {
+    return 'Đã bỏ điều kiện ghi chú: $words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return 'Đã bỏ số mốc $value — đó không phải cân nặng ghi trong câu hỏi';
+  }
 }

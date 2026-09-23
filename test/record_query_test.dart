@@ -830,7 +830,7 @@ void main() {
       expect(formatRoundedQuantity(1 / 3, 'ko', signed: true), '≈+0.33');
     });
 
-    test('값이 빠진 세트로는 합계도, 조건 개수도 만들지 않는다 — 맨몸·반복 없는 세트는 빼고 말한다', () {
+    test('값이 빠진 세트로는 합계를 만들지 않는다 — 맨몸·반복 없는 세트는 빼고 말한다', () {
       final notes = [
         note('incomplete', today, [
           ExerciseBlock('스쿼트', [
@@ -848,22 +848,30 @@ void main() {
         today: today,
         confirmed: true,
       )!;
-      // 반복을 안 적은 무게 세트가 있으면 볼륨은 모른다. 무게 조건도 판정할 수 없다.
-      for (final raw in <Map<String, Object?>>[
-        {
-          'exercises': ['스쿼트'],
-          'measures': ['volume'],
-        },
-        {
-          'exercises': ['스쿼트'],
-          'weight': {'op': '>=', 'value': 80, 'unit': 'kg'},
-          'measures': ['setCount'],
-        },
-      ]) {
-        final r = run(raw);
-        expect(r.rows.single.cells.single.reason, 'unknown', reason: '$raw');
-        expect(r.footnotes, [l.queryMissingFor('스쿼트')], reason: '$raw');
-      }
+      // 반복을 안 적은 무게 세트가 있으면 볼륨은 모른다.
+      final volume = run({
+        'exercises': ['스쿼트'],
+        'measures': ['volume'],
+      });
+      expect(volume.rows.single.cells.single.reason, 'unknown');
+      expect(volume.footnotes, [l.queryMissingFor('스쿼트')]);
+      // 무게 하한("80kg 이상")은 무게 없는 세트가 채우지 못한다 — 맨몸 세트 하나
+      // 때문에 개수가 '—' 가 되지 않는다. 뺀 세트는 말한다(v3 재검토 R8).
+      final over = run({
+        'exercises': ['스쿼트'],
+        'weight': {'op': '>=', 'value': 80, 'unit': 'kg'},
+        'measures': ['setCount'],
+      });
+      expect(over.rows.single.cells.single.answer!.numericValue, 2);
+      expect(over.footnotes, [l.queryNoWeightSets(1, 5)]);
+      // 상한("80kg 이하")은 무게 없는 세트를 판정할 수 없다 — 세지 않고 말한다.
+      final under = run({
+        'exercises': ['스쿼트'],
+        'weight': {'op': '<=', 'value': 80, 'unit': 'kg'},
+        'measures': ['setCount'],
+      });
+      expect(under.rows.single.cells.single.reason, 'unknown');
+      expect(under.footnotes, [l.queryMissingFor('스쿼트')]);
       // 맨몸 세트 하나가 무게 칸을 지우지 않는다 — 무게 세트로 세고 뺀 것을 말한다.
       final best = run({
         'exercises': ['스쿼트'],
@@ -1721,48 +1729,54 @@ void main() {
       },
     );
 
-    test('C·모델의 한 번 모양 실수는 담지 않고 다시 시도다 — 다시 누르면 다시 묻고, 새로 켜도 묻는다', () async {
-      var calls = 0;
-      Future<Object?> reply(String instructions, String input) async {
-        calls++;
-        // 첫 답만 모르는 키가 섞였다. 같은 질문의 둘째 답은 멀쩡하다.
-        return calls == 1 ? {...squat(), 'foo': 1} : squat();
-      }
+    test(
+      'C·서버가 답했는데 읽지 못한 답은 연결 문제가 아니다 — 담아 두어 다시 눌러도, 새로 켜도 원판을 또 쓰지 않고, 말을 바꾸면 다시 묻는다 (v3 재검토 R5)',
+      () async {
+        var calls = 0;
+        Future<Object?> reply(String instructions, String input) async {
+          calls++;
+          // 첫 답만 모르는 키가 섞였다. 다른 질문의 답은 멀쩡하다.
+          return calls == 1 ? {...squat(), 'foo': 1} : squat();
+        }
 
-      final dir = _temp();
-      final search = RecordSearch(
-        RecordAi(respond: reply),
-        cache: QueryCache(directory: dir),
-      );
-      await search.refresh('ko');
-      search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
-      await pumpEventQueue();
-      expect(
-        (search.failed, search.unrepresentable, search.plan, calls),
-        (true, null, null, 1),
-      );
-      search.dispose();
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+        final dir = _temp();
+        final search = RecordSearch(
+          RecordAi(respond: reply),
+          cache: QueryCache(directory: dir),
+        );
+        await search.refresh('ko');
+        search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+        await pumpEventQueue();
+        expect(
+          (search.misread, search.failed, search.charged, search.plan, calls),
+          (true, false, true, null, 1),
+        );
+        // 다시 눌러도 서버에 가지 않는다 — 같은 답에 원판을 또 내지 않는다.
+        search.search('', 'ko', names, 'kg');
+        search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+        await pumpEventQueue();
+        expect((search.misread, search.charged, calls), (true, false, 1));
+        search.dispose();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      // 새로 켠 앱(같은 캐시)도 서버에 다시 묻고 멀쩡한 답을 받는다.
-      final again = RecordSearch(
-        RecordAi(respond: reply),
-        cache: QueryCache(directory: dir),
-      );
-      await again.refresh('ko');
-      again.search('스쿼트 최고', 'ko', names, 'kg');
-      expect(
-        (again.unrepresentable, again.plan),
-        (null, null),
-        reason: '담긴 거절이 없다',
-      );
-      again.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
-      await pumpEventQueue();
-      expect(calls, 2);
-      expect(again.failed, isFalse);
-      expect(again.plan?.scope.exercises, ['스쿼트']);
-      again.dispose();
-    });
+        // 새로 켠 앱(같은 캐시)도 담아 둔 답을 읽는다.
+        final again = RecordSearch(
+          RecordAi(respond: reply),
+          cache: QueryCache(directory: dir),
+        );
+        await again.refresh('ko');
+        again.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+        await pumpEventQueue();
+        expect((again.misread, calls), (true, 1));
+        // 말을 바꾸면 새 질문이다.
+        again.search('스쿼트 최고 기록', 'ko', names, 'kg', immediately: true);
+        await pumpEventQueue();
+        expect(calls, 2);
+        expect(again.misread, isFalse);
+        expect(again.plan?.scope.exercises, ['스쿼트']);
+        again.dispose();
+      },
+    );
 
     test('C·600자가 넘는 질문은 보내지 않고 그렇다고 말한다 — 입력칸의 글은 부르는 쪽이 둔다', () async {
       var calls = 0;
@@ -1893,7 +1907,7 @@ void main() {
       );
       final row = q('바밸로우');
       expect(row.never, {'바밸로우'});
-      expect(row.maybe['바밸로우']!.first, '바벨로우');
+      expect(row.suggested['바밸로우'], '바벨로우');
       final bench = q('Bench Press');
       expect(bench.never, isEmpty);
       expect(bench.scope.exercises, ['벤치프레스']);
@@ -1998,7 +2012,9 @@ void main() {
         expect(q.kind, isNot('find'), reason: m[1]);
         count++;
       }
-      expect(count, greaterThanOrEqualTo(30));
+      // 평가 모음과 틀이 같던 예시와 규칙 문장이 이미 말하는 예시를 빼 22개다 —
+      // 한 질문의 토큰이 설계 예산(2,600)을 넘었다(v3 재검토).
+      expect(count, greaterThanOrEqualTo(22));
     });
 
     test('기록 이름은 해낸 세트로 정하고, 모델에 그 이름만 간다 — 거절도 담아 원판을 다시 쓰지 않는다', () async {

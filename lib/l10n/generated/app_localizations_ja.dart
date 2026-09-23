@@ -1037,6 +1037,12 @@ class LJa extends L {
       'groupedMeasure': '日・週・月・曜日ごとにまとめると数えられるのは1つだけで、推移・最後・最初・経過日数はまとめられません。',
       'ordering': 'ランキング・合計・平均は、種目別や週別のようにまとめて質問してください。',
       'datesTotal': '最後・最初の日付は合計や平均にできません。',
+      'perMeasure':
+          '日・週・月あたりの平均は、セット・回数・ボリューム・距離・時間・日数・kcal のように足せる数にだけ出せます。最高・平均重量は期間で聞いてください。',
+      'shareMeasure': '割合はセット数やボリュームのように足せる数でだけ出せます。',
+      'trainedMeasure':
+          '運動した日・休んだ日の絞り込みは、食べた・消費した kcal にだけ使います。運動記録はすべて運動した日のものです。',
+      'sameSeries': '比べる二つの範囲が同じに読めました。何と何を比べるか書いてください。',
       'other': 'この質問は記録検索で計算できない形です。分けて質問してください。',
     });
     return '$_temp0';
@@ -2225,4 +2231,24 @@ class LJa extends L {
   @override
   String get queryOfflineLocal =>
       'サーバーにつながらないため、文中の種目と期間だけで端末上で集計しました。つながったら Enter でもう一度聞いてください。';
+
+  @override
+  String get queryMisread => 'この質問は集計できる形に読めませんでした。言い方を変えて聞いてください。';
+
+  @override
+  String get queryMisreadLocal =>
+      '質問を集計できる形に読めなかったため、文中の種目と期間だけで端末上で集計しました。言い方を変えるともう一度読みます。';
+
+  @override
+  String get queryTotalUnits => '単位が違うため合計を出せません';
+
+  @override
+  String queryMemoDropped(String words) {
+    return 'メモの条件を外しました: $words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return '基準の数 $value を外しました — 質問に重さとして書かれた数ではありません';
+  }
 }

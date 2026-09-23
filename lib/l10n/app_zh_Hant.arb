@@ -272,7 +272,7 @@
   "kcalAtLeast": "至少 {n} 大卡",
   "mealTextPartial": "只計入了你寫的 {n} 大卡，其餘食物的熱量未知。",
   "mealTextBelowTyped": "估算值低於你寫的 {n} 大卡，因此未採用。只計入了你寫的 {n} 大卡。",
-  "queryLimit": "{kind, select, exercises{一次最多可問 8 個動作。請分開提問。} measures{一次最多統計 3 項。請分開提問。} ranking{排名最多顯示 20 個。請問 20 個以內。} sessions{「最近 N 次」最多 100 次。想看更久，請按時間段提問，例如今年。} days{「最近 N 天」最多 3660 天（約 10 年）。想看更久，請按全部時間提問。} compare{一次最多比較 6 項。請分開提問。} compareGrouped{同一個問題不能既比較又按動作、日、週、月或星期分組。請擇一提問。} groupedMeasure{按日、週、月或星期分組時只能統計一項，且趨勢、最後一次、第一次、距上次天數不能分組。} ordering{排名、合計和平均需要分組，例如按動作或按週。} datesTotal{最後一次和第一次的日期不能相加或求平均。} other{紀錄搜尋無法計算這種形式的問題。請分開提問。}}",
+  "queryLimit": "{kind, select, exercises{一次最多可問 8 個動作。請分開提問。} measures{一次最多統計 3 項。請分開提問。} ranking{排名最多顯示 20 個。請問 20 個以內。} sessions{「最近 N 次」最多 100 次。想看更久，請按時間段提問，例如今年。} days{「最近 N 天」最多 3660 天（約 10 年）。想看更久，請按全部時間提問。} compare{一次最多比較 6 項。請分開提問。} compareGrouped{同一個問題不能既比較又按動作、日、週、月或星期分組。請擇一提問。} groupedMeasure{按日、週、月或星期分組時只能統計一項，且趨勢、最後一次、第一次、距上次天數不能分組。} ordering{排名、合計和平均需要分組，例如按動作或按週。} datesTotal{最後一次和第一次的日期不能相加或求平均。} perMeasure{按天、週、月的平均只能用於可相加的數，如組數、次數、容量、距離、時間、天數和 kcal。最高或平均重量請按時間段來問。} shareMeasure{佔比只能用組數、容量這類可相加的數來算。} trainedMeasure{按訓練日或休息日篩選只用於攝取和消耗的 kcal。訓練記錄都來自訓練日。} sameSeries{要比較的兩個範圍被讀成了一樣的。請寫明拿什麼和什麼比較。} other{紀錄搜尋無法計算這種形式的問題。請分開提問。}}",
   "policyNumberRejected": "{why, select, decimal{「{text}」— 不接受小數。請輸入整數，例如 14} range{「{text}」— 請輸入一個數字，而不是範圍，例如 14} negative{「{text}」— 不接受小於 0 的數，例如 14} unit{「{text}」— 此欄按天數或次數計。請把小時、週或月換算成天數，例如 14} other{無法從「{text}」中讀出天數或次數。請輸入數字，例如 14}}",
   "mealSources": "來源",
   "mealSourcesTitle": "熱量依據",
@@ -572,5 +572,10 @@
   "queryWindowLengths": "時間段天數不同（{lengths} 天），差值和比例按每週計算",
   "queryZeroBuckets": "{by, select, week{{total} 週中有 {zeros} 週為 0} month{{total} 個月中有 {zeros} 個月為 0} other{{total} 個中有 {zeros} 個為 0}}",
   "queryPossibleDays": "可訓練 {m} 天中的 {percent}%",
-  "queryOfflineLocal": "無法連線到伺服器，僅依文字中的動作和時間在裝置上計算。連線後按 Enter 再問一次。"
+  "queryOfflineLocal": "無法連線到伺服器，僅依文字中的動作和時間在裝置上計算。連線後按 Enter 再問一次。",
+  "queryMisread": "無法把這個問題讀成可以統計的形式。請換個說法再問。",
+  "queryMisreadLocal": "無法把問題讀成可統計的形式，僅依文字中的動作和時間在裝置上計算。換個說法再問即可重新讀取。",
+  "queryTotalUnits": "單位不同，無法合計",
+  "queryMemoDropped": "已去掉備註條件：{words}",
+  "queryAgainstDropped": "已去掉基準數 {value}——它不是問題裡寫的重量"
 }
