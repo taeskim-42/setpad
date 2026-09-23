@@ -47,5 +47,19 @@
 {"id": "a-046", "text": "루틴 짜줘 하체 제외", "route": "routine"},
 {"id": "a-047", "text": "오늘은 쉬어야 하나", "route": "question"},
 {"id": "a-048", "text": "오늘 쉬는 날 맞지", "route": "question"},
-{"id": "a-049", "text": "오늘 운동 해도 돼?", "route": "question"}
+{"id": "a-049", "text": "오늘 운동 해도 돼?", "route": "question"},
+{"id": "a-050", "text": "이번 달 최고 기록 뽑아줘", "route": "question"},
+{"id": "a-051", "text": "벤치 기록 그래프로 만들어줘", "route": "question"},
+{"id": "a-052", "text": "월별 볼륨 표로 만들어줘", "route": "question"},
+{"id": "a-053", "text": "제일 많이 한 운동 3개 골라줘", "route": "question"},
+{"id": "a-054", "text": "지난주 운동 요약 부탁해", "route": "question"},
+{"id": "a-055", "text": "give me my bench history", "route": "question"},
+{"id": "a-056", "text": "make me a chart of my squat", "route": "question"},
+{"id": "a-057", "text": "tabata sessions this month", "route": "question"},
+{"id": "a-058", "text": "이번 달 타바타", "route": "question"},
+{"id": "a-059", "text": "재활 중인데 오늘 뭐 할까", "route": "refuse"},
+{"id": "a-060", "text": "디스크 있는데 오늘 운동 뭐 하지", "route": "refuse"},
+{"id": "a-061", "text": "knee surgery last month, what should I do today", "route": "refuse"},
+{"id": "a-062", "text": "手術したばかりだけど今日のメニューは", "route": "refuse"},
+{"id": "a-063", "text": "药球训练安排一下", "route": "routine"}
 ]

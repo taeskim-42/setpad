@@ -658,5 +658,7 @@
   "routineExclude": "bỏ: {list}",
   "routineAvoid": "tránh: {list}",
   "routinePlatesZero": "0 bánh tạ",
-  "routineFullBody": "Toàn thân"
+  "routineFullBody": "Toàn thân",
+  "routineNoPlates": "Không đủ bánh tạ nên chưa đọc được điều kiện — xếp chỉ theo nhật ký",
+  "routineBack": "Quay lại bài tập"
 }

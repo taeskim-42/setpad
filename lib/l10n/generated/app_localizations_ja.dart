@@ -2690,4 +2690,10 @@ class LJa extends L {
 
   @override
   String get routineFullBody => '全身';
+
+  @override
+  String get routineNoPlates => 'プレートがなく条件は読めませんでした — 記録だけで組みました';
+
+  @override
+  String get routineBack => 'ルーティンに戻る';
 }

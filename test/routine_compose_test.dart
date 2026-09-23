@@ -613,6 +613,112 @@ void main() {
       expect(codes(count), contains('countFit'));
     });
 
+    test('검토#7 "(부위)로 짜기" 칩은 부위만 바꾼다 — 시간·개수·증감·거절은 그대로', () {
+      for (final (raw, text, key) in [
+        ({'minutes': 30}, '30분 루틴 짜줘', 'minutes'),
+        ({'count': 2}, '운동 2개만 짜줘', 'count'),
+        (
+          {
+            'delta': {'value': 5, 'unit': 'kg'},
+          },
+          '오늘은 5kg씩 더 올려서 짜줘',
+          'delta',
+        ),
+      ]) {
+        final before = compose(raw, text);
+        expect(before.partChip, isNotNull, reason: text);
+        final after = compose(
+          raw,
+          text,
+          edits: RoutineEdits()..part = before.partChip,
+        );
+        expect(after.applied, containsAll({key, 'parts'}), reason: text);
+        expect(after.unmet, isEmpty, reason: text);
+      }
+      final plus = compose(
+        {
+          'delta': {'value': 5, 'unit': 'kg'},
+        },
+        '오늘은 5kg씩 더 올려서 짜줘',
+        edits: RoutineEdits()..part = 'shoulders',
+      );
+      final ohp = plus.items.firstWhere((i) => i.key == '오버헤드프레스');
+      expect(ohp.sets.first.value, 45);
+      const person = {
+        'refused': {'person': '동생 운동'},
+      };
+      final held = compose(person, '동생 운동 좀 짜줘');
+      final chip = compose(
+        person,
+        '동생 운동 좀 짜줘',
+        edits: RoutineEdits()..part = held.partChip ?? 'shoulders',
+      );
+      expect(held.startable, isFalse);
+      expect(chip.held, isTrue);
+      expect(chip.startable, isFalse);
+    });
+
+    test('검토#9 무게만 친 칸은 한 세트·횟수 비움, 지난 기록은 참고 줄', () {
+      final d = compose({
+        'exercises': ['벤치프레스'],
+        'targets': [
+          {'exercise': '벤치프레스', 'weight': 100, 'unit': 'kg'},
+        ],
+        'intensity': 'max',
+      }, '벤치 100kg 한번 쳐보게 짜줘');
+      final bench = d.items.firstWhere((i) => i.key == '벤치프레스');
+      expect(bench.sets, [(value: 100.0, unit: 'kg', reps: null)]);
+      expect(bench.why, 'typed');
+      expect(bench.reference, isNotNull);
+      final e = compose({
+        'targets': [
+          {'exercise': '스쿼트', 'weight': 120, 'unit': 'kg', 'sets': 3},
+        ],
+      }, '스쿼트 120kg 3세트');
+      final squat = e.items.firstWhere((i) => i.key == '스쿼트');
+      expect(
+        squat.sets,
+        List.filled(3, (value: 120.0, unit: 'kg', reps: null)),
+      );
+      expect(squat.reference?.sets, isNotEmpty);
+      // 수가 모두 글에 없어 빠졌으면 친 칸이 아니다 — 지난 세트를 그대로 옮긴다.
+      final none = compose({
+        'targets': [
+          {'exercise': '스쿼트', 'weight': 120, 'unit': 'kg'},
+        ],
+      }, '스쿼트 120 도전');
+      final copied = none.items.firstWhere((i) => i.key == '스쿼트');
+      expect(copied.why, 'copied');
+      expect(copied.sets.first, (value: 60.0, unit: 'kg', reps: 8));
+    });
+
+    test('검토#1 기기가 읽은 의료 글은 어느 길로 와도 시작할 카드가 없다(G3)', () {
+      final d = compose(
+        deviceAsk('재활 중인데 오늘 뭐 할까', recordedExercises(defaultLog())),
+        '재활 중인데 오늘 뭐 할까',
+      );
+      expect(d.startable, isFalse);
+      expect(d.items, isEmpty);
+    });
+
+    test('검토#11 오늘과 같은 요일은 오늘이다(다음 주 미리 보기가 아니다)', () {
+      // routineToday 는 수요일이다.
+      final d = compose(
+        RoutineAsk(when: readWhen('수요일 루틴 짜줘'), device: true),
+        '수요일 루틴 짜줘',
+      );
+      expect(d.day, DateTime(2026, 9, 9));
+      expect(d.startable, isTrue);
+    });
+
+    test('검토#12 초안의 표지는 카드가 바뀌면 바뀐다', () {
+      final a = compose({}, '오늘 루틴 짜줘');
+      final b = compose({}, '오늘 루틴 짜줘');
+      final c = compose({}, '오늘 루틴 짜줘', edits: RoutineEdits()..alt = 1);
+      expect(draftMark(a), draftMark(b));
+      expect(draftMark(a), isNot(draftMark(c)));
+    });
+
     test('기본값 속도: 쓸 만한 운동이 셋 안 되면 세트당 150초라고 적는다(D2)', () {
       final d = compose({}, '오늘 루틴 짜줘', notes: fewLog());
       expect(d.paceSessions, 0);

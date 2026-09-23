@@ -658,5 +658,7 @@
   "routineExclude": "外す: {list}",
   "routineAvoid": "避ける: {list}",
   "routinePlatesZero": "プレート0枚",
-  "routineFullBody": "全身"
+  "routineFullBody": "全身",
+  "routineNoPlates": "プレートがなく条件は読めませんでした — 記録だけで組みました",
+  "routineBack": "ルーティンに戻る"
 }

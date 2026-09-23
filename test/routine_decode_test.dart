@@ -44,6 +44,16 @@ void main() {
       );
     });
 
+    test('검토#2 응답 형식만 되받아 적은 답은 읽지 못함이다', () {
+      expect(
+        () => decode({'type': 'json_object'}, '스쿼트 말고 하체 짜줘'),
+        throwsFormatException,
+      );
+      // 빈 요청({}) 은 "내 기록으로 오늘" 이지만, 빼기·아픈 곳 글에 {} 면 조건을 버린 것이다.
+      expect(() => decode({}, '허리 아파서 데드 빼고 짜줘'), throwsFormatException);
+      expect(decode({}, '오늘 할 운동 좀 정해줘').keys, isEmpty);
+    });
+
     test('코드 울타리는 벗긴다', () {
       final a = decode('```json\n{"parts":["legs"]}\n```', '하체');
       expect(a.parts, ['legs']);
@@ -189,6 +199,52 @@ void main() {
         ],
       }, '벤치 60kg 으로');
       expect(b.targets.single.weight, 60);
+    });
+
+    test('검토#8 무게 단위는 글에서 그 수 바로 뒤의 단위다', () {
+      const text = '벤치 225lb 5x5 넣어서 짜줘';
+      // 모델이 단위를 빼면 글의 단위(lb)다.
+      final a = decode({
+        'targets': [
+          {'exercise': '벤치프레스', 'weight': 225, 'sets': 5, 'reps': 5},
+        ],
+      }, text);
+      expect(a.targets.single.weight, 225);
+      expect(a.targets.single.unit, 'lb');
+      // 글과 어긋난 단위(kg)면 그 무게를 빼고 줄로 알린다.
+      final b = decode({
+        'targets': [
+          {
+            'exercise': '벤치프레스',
+            'weight': 225,
+            'unit': 'kg',
+            'sets': 5,
+            'reps': 5,
+          },
+        ],
+      }, text);
+      expect(b.targets.single.weight, isNull);
+      expect(b.targets.single.sets, 5);
+      expect(codes(b), ['notStated']);
+      expect(b.dropped.single.args, ['225kg']);
+      // 증감도 같다.
+      final c = decode({
+        'delta': {'value': 10, 'unit': 'kg'},
+      }, '지난번보다 10lb 더');
+      expect(c.delta, isNull);
+      expect(codes(c), ['notStated']);
+      expect(
+        decode({
+          'delta': {'value': 10},
+        }, '지난번보다 10lb 더').delta,
+        (value: 10.0, unit: 'lb'),
+      );
+      expect(
+        decode({
+          'delta': {'value': 5, 'unit': 'kg'},
+        }, '벤치는 100lb 인데 오늘은 5kg씩 더').delta,
+        (value: 5.0, unit: 'kg'),
+      );
     });
 
     test('남의 루틴은 숫자를 옮기지 않는다(person)', () {
@@ -341,6 +397,26 @@ void main() {
       }, '기구 없이');
       expect(a.only, {'bodyweight'});
       expect(a.without, isEmpty);
+    });
+
+    test('검토#11 모델이 내일·요일을 빼면 기기가 읽은 앞날로 채운다', () {
+      expect(
+        decode({
+          'parts': ['legs'],
+        }, '내일 하체 짜줘').when,
+        'tomorrow',
+      );
+      expect(decode({}, '금요일에 할 거 짜줘').when, 5);
+      // 오늘을 말했거나 모델이 지난날(from)로 읽었으면 앞날로 바꾸지 않는다.
+      expect(decode({}, '내일은 쉬니까 오늘 빡세게').when, isNull);
+      expect(
+        decode({
+          'from': {
+            'weekdays': [4],
+          },
+        }, '목요일 거로').when,
+        isNull,
+      );
     });
 
     test('when', () {

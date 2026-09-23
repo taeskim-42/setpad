@@ -658,5 +658,7 @@
   "routineExclude": "drop: {list}",
   "routineAvoid": "avoid: {list}",
   "routinePlatesZero": "0 plates",
-  "routineFullBody": "Full body"
+  "routineFullBody": "Full body",
+  "routineNoPlates": "Couldn't read the conditions without plates — built from your log only",
+  "routineBack": "Back to the routine"
 }

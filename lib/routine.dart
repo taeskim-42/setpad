@@ -198,6 +198,7 @@ final _askWords = _re(
   r'(?<!안\s)(쓴|적은|간|운동한|든|뛴|한|올린|했던)\s*(날|운동)(?!\s*(그대로|처럼|같이|로|을|를))|(날|적)\s*있어|었어\?|었나|됐어|됐지|되나|늘었|늘고|줄었|넘게|'
   r'\bhow (many|much|often|long)\b|\bwhen\b|\bdid i\b|\bwhat (was|were|did)\b|\bhave i\b|\bshow\b|\blist\b|'
   r'\bhistory\b|\bcompare\b|\baverage\b|\bbest\b|\brecords?\b|\btotal\b|\bdo i\b|\bvs\b|versus|longest|streak|\bmost\b|'
+  r'\bcharts?\b|\bgraphs?\b|\bsummary\b|\bstats\b|'
   r'何回|いつ|だった|やった|したっけ|っけ|見せ|記録|最高|ベスト|履歴|一覧|合計|平均|行った|一番|挙げた|セット数|回数|比べ|'
   r'多少|几次|幾次|几个|幾個|什么时候|什麼時候|了什么|了什麼|是什么|是什麼|哪个|哪個|哪天|最好|记录|紀錄|記錄|'
   r'成绩|成績|历史|歷史|看看|给我看|給我看|总共|總共|练了|練了|做了|对比|對比|比较|比較|最重|最多|最久|最长|最長|每月|每周|每週|训练量|訓練量|'
@@ -206,16 +207,31 @@ final _askWords = _re(
   r'กี่|เมื่อไหร่|ไปแล้ว|ล่าสุด|สถิติ|ประวัติ|เฉลี่ย',
 );
 
-/// 만들어 달라는 명령. 기록 낱말이 같이 있어도 루틴이다("…보여주고 오늘 하체 짜줘").
+/// 루틴을 짜 달라는 명령. 기록 낱말이 같이 있어도 루틴이다("…보여주고 오늘 하체 짜줘").
 final _makeWords = _re(
-  r'짜\s?(줘|주|줄|봐|자|고|서|요)|짤래|추천|만들어|맞춰\s?줘|골라|뽑아|정해\s?줘|구성해|부탁|ㄱㄱ|넣어\s?줘|알아서|'
-  r'\b(make|build|plan|write|give|get|design|create|program)\s+(me|us)\b|\bplan\s+(something|it|my|a|an|today)\b|'
-  r'作って|組んで|考えて|決めて|お願い|ちょうだい|'
-  r'安排|排一|排个|排個|来个|來個|来一|來一|推荐|推薦|'
-  r'hazme|házme|ármame|armame|arma una|dame|prepárame|recomiénd|'
+  r'짜\s?(줘|주|줄|봐|자|고|서|요)|짤래|추천|구성해|ㄱㄱ|'
+  r'\b(plan|design|program)\s+(me|us)\b|\bplan\s+(something|it|my|a|an|today)\b|'
+  r'組んで|考えて|決めて|'
+  r'安排|排一|排个|排個|推荐|推薦|'
+  r'ármame|armame|arma una|prepárame|recomiénd|'
   r'lên lịch|xếp lịch|lên giúp|lên bài|lên cho|gợi ý|soạn|'
   r'จัด|แนะนำ',
 );
+
+/// 무엇이든 만들어 달라는 말(만들어·뽑아·골라·부탁·give me …). 기록 낱말이 같이
+/// 있으면 기록을 달라는 말이다("기록 뽑아줘", "make me a chart") — 그때는 루틴
+/// 명사가 있어야 루틴 명령이다.
+final _anyMakeWords = _re(
+  r'만들어|맞춰\s?줘|골라|뽑아|정해\s?줘|부탁|넣어\s?줘|알아서|'
+  r'\b(make|build|write|give|get|create)\s+(me|us)\b|'
+  r'作って|お願い|ちょうだい|来个|來個|来一|來一|hazme|házme|dame',
+);
+
+/// 루틴을 짜 달라는 명령이 있는가.
+bool _commands(String s) =>
+    _makeWords.hasMatch(s) ||
+    (_anyMakeWords.hasMatch(s) &&
+        (!_askWords.hasMatch(s) || _routineNounOnly.hasMatch(s)));
 
 /// 되풀이 — 지난 날 그대로.
 final _repeatWords = _re(
@@ -228,6 +244,13 @@ final _strongWords = _re(
   r'빼고|말고|빼줘|빼 줘|없이|제외|쉬고|避开|不要|不用|除了|なしで|抜きで|以外|nada de|\bsin\b|\bno\s+\w+|'
   r'\bwithout\b|\bskip\b|(?<!\S)bỏ(?!\S)|không\s+\S+|ไม่เอา|ไม่มี|เลี่ยง|งด|타바타|서킷|슈퍼세트|emom|bpm|tabata|'
   r'\+\s?\d+(\.\d+)?\s?(kg|lb|키로|킬로)',
+);
+
+/// 기록을 훑는 기간(이번 달·올해·this month …). 지난주·어제는 되풀이에도 흔해 뺀다.
+final _recordPeriod = _re(
+  r'이번\s?달|이번\s?주|지난\s?달|올해|작년|this (month|week|year)|last (month|year)|past (month|week|year)|'
+  r'今月|今週|先月|今年|这个月|這個月|本月|本周|本週|上个月|上個月|este mes|esta semana|este año|el mes pasado|'
+  r'tháng này|tuần này|năm nay|tháng trước|เดือนนี้|สัปดาห์นี้|ปีนี้|เดือนที่แล้ว',
 );
 
 /// 지난 시제. 되풀이·조건 낱말이 없으면 기록 질문이다.
@@ -268,6 +291,7 @@ final _bareFill = _re(
 final _tomorrow = _re(
   r'내일|明日|あした|明天|mañana|ngày mai|(?<!\S)mai(?!\S)|พรุ่งนี้|tomorrow',
 );
+final _today = _re(r'오늘|today|今日|今天|\bhoy\b|hôm nay|วันนี้');
 
 const _weekdayWords = <int, String>{
   1: r'월요일|月曜|星期一|周一|週一|禮拜一|礼拜一|lunes|thứ hai|วันจันทร์|monday',
@@ -282,10 +306,18 @@ const _weekdayWords = <int, String>{
 /// 지난 날을 가리키는 말. 요일 앞에 붙으면 [readWhen] 이 앞날로 읽지 않는다.
 final _pastDay = _re(r'지난|저번|전\s|last|先週|前の|上周|上週|上个|上個|pasado|trước|ที่แล้ว');
 
+/// 지난 날을 되풀이하는 말("월요일에 한 거", "금요일처럼") — 요일은 앞날이 아니다.
+final _didThing = _re(r'(?<![가-힣])(한|하던|했던)\s*거');
+
 /// 글이 말한 앞날 — 'tomorrow' | 1..7(요일) | null. 모델 없이 기기가 읽는다.
 Object? readWhen(String text) {
   if (_tomorrow.hasMatch(text)) return 'tomorrow';
-  if (_pastDay.hasMatch(text) || _pastWords.hasMatch(text)) return null;
+  if (_pastDay.hasMatch(text) ||
+      _pastWords.hasMatch(text) ||
+      _repeatWords.hasMatch(text) ||
+      _didThing.hasMatch(text)) {
+    return null;
+  }
   for (final e in _weekdayWords.entries) {
     if (_re(e.value).hasMatch(text)) return e.key;
   }
@@ -318,7 +350,12 @@ HomeRoute routeHome(String text) {
   if (s.isEmpty) return HomeRoute.question;
   if (_isBare(s)) return HomeRoute.bare;
   if (homeRefusal(s) != null) return HomeRoute.refuse;
-  final make = _makeWords.hasMatch(s);
+  return _wordsRoute(s);
+}
+
+/// 낱말로 가른 갈래 — routine 또는 question.
+HomeRoute _wordsRoute(String s) {
+  final make = _commands(s);
   final last = _lastClause(s);
   bool cue(String t) =>
       _repeatWords.hasMatch(t) ||
@@ -333,7 +370,11 @@ HomeRoute routeHome(String text) {
         ? HomeRoute.routine
         : HomeRoute.question;
   }
-  if (make || _repeatWords.hasMatch(s) || _strongWords.hasMatch(s)) {
+  // 강한 조건 낱말(타바타·빼고 …)도 기록의 기간("이번 달 타바타", "tabata sessions
+  // this month")과 같이 있으면 기록을 찾는 말이다.
+  if (make ||
+      _repeatWords.hasMatch(s) ||
+      (_strongWords.hasMatch(s) && !_recordPeriod.hasMatch(s))) {
     return HomeRoute.routine;
   }
   if (_pastWords.hasMatch(s)) {
@@ -352,7 +393,7 @@ final _medicalWords = _re(
   r'rehabilitaci|cirugía|hernia|phục hồi chức năng|phẫu thuật|thoát vị|กายภาพ|ผ่าตัด|หมอนรองกระดูก',
 );
 final _drugWords = _re(
-  r'스테로이드|약물|진통제|steroid|\bdrugs?\b|\bpills?\b|painkiller|药|藥|薬|esteroide|\bdroga|pastilla|thuốc|สเตียรอยด์|ยาลด',
+  r'스테로이드|약물|진통제|steroid|\bdrugs?\b|\bpills?\b|painkiller|药(?!球)|藥(?!球)|薬|esteroide|\bdroga|pastilla|thuốc|สเตียรอยด์|ยาลด',
 );
 final _dietWords = _re(
   r'식단|meal plan|diet plan|饮食|飲食|食事|献立|dieta|thực đơn|ตารางกิน|อาหาร',
@@ -362,16 +403,24 @@ final _routineNouns = _re(
   r'루틴|운동|routine|workout|training|トレーニング|メニュー|训练|訓練|课表|課表|rutina|entren|buổi tập|lịch tập|ตารางเล่น|เล่น',
 );
 
-/// 기기에서 먼저 거절하는 갈래(원판 0) — 명령 + 거절 명사. 의료·약물은 루틴
-/// 낱말이 같이 있어도 거절한다. 식단은 운동 낱말이 없을 때만(끼니 질문과 겹친다).
+/// 기기에서 먼저 거절하는 갈래(원판 0). 의료·약물은 루틴을 달라는 글이면 명령
+/// 낱말이 없어도("재활 중인데 오늘 뭐 할까") 거절한다(G3) — 모델을 못 쓸 때(연결·
+/// 원판·읽지 못함) 기록으로 짠 [시작] 카드가 뜨면 안 된다. 식단은 명령 + 운동
+/// 낱말이 없을 때만(끼니 질문과 겹친다).
 String? homeRefusal(String text) {
   if (_promptWords.hasMatch(text)) return 'other';
-  if (!_makeWords.hasMatch(text)) return null;
-  if (_medicalWords.hasMatch(text)) return 'medical';
-  if (_drugWords.hasMatch(text)) return 'drug';
-  if (_dietWords.hasMatch(text) && !_routineNouns.hasMatch(text)) return 'diet';
+  final make = _commands(text);
+  final wants = make || _wordsRoute(text.trim()) == HomeRoute.routine;
+  if (wants && _medicalWords.hasMatch(text)) return 'medical';
+  if (wants && _drugWords.hasMatch(text)) return 'drug';
+  if (make && _dietWords.hasMatch(text) && !_routineNouns.hasMatch(text)) {
+    return 'diet';
+  }
   return null;
 }
+
+/// 재활·수술·디스크 같은 의료 낱말이 있다 — 기기는 이 글로 루틴을 짜지 않는다.
+bool medicalText(String text) => _medicalWords.hasMatch(text);
 
 /// 빼기·아픈 곳 낱말. 모델이 조건을 못 읽었을 때 이런 글로 [시작] 이 있는 카드를
 /// 띄우면 "스쿼트 말고" 가 스쿼트를 넣는다(G1).
@@ -382,7 +431,8 @@ final _conditionWords = _re(
   r'痛|疼|伤|傷|duele|dolor|lesi|đau|chấn thương|ปวด|เจ็บ',
 );
 
-bool unreadableConditions(String text) => _conditionWords.hasMatch(text);
+bool unreadableConditions(String text) =>
+    _conditionWords.hasMatch(text) || medicalText(text);
 
 const _partWords = <String, String>{
   'chest': r'가슴|chest|pecs?|胸|pecho|ngực|อก',
@@ -398,11 +448,20 @@ const _partWords = <String, String>{
   'full': r'전신|full[- ]body|全身|cuerpo completo|toàn thân|ทั้งตัว',
 };
 
+/// 부위 낱말을 품었지만 부위가 아닌 말 — 먼저 지운다('ออกกำลังกาย' 의 อก, '足够' 의
+/// 足, 'first day back').
+final _notParts = _re(
+  r'ออก|บอก|นอก|หลอก|ดอก|足够|足夠|不足|满足|滿足|充足|足球|'
+  r"\b(days?|weeks?|com(e|ing)|came|get|got|getting|go|going|went|welcome|been|be|am|i'?m)\s+back\b|"
+  r'\bback\s+(to|from|in|at|after|into|on|home)\b',
+);
+
 /// 글에 든 부위 낱말(셋까지). 상체·전신 같은 묶음이 있으면 그 안의 부위는 뺀다.
 List<String> readParts(String text) {
+  final t = text.replaceAll(_notParts, ' ');
   final found = [
     for (final e in _partWords.entries)
-      if (_re(e.value).hasMatch(text)) e.key,
+      if (_re(e.value).hasMatch(t)) e.key,
   ];
   if (found.contains('full')) return const ['full'];
   if (found.contains('upper')) {
@@ -412,7 +471,7 @@ List<String> readParts(String text) {
 }
 
 final _routineNounOnly = _re(
-  r'루틴|ルーティン|routine|rutina|课表|課表|菜单|菜單|メニュー|lịch tập|โปรแกรม|pt|피티',
+  r'루틴|ルーティン|routine|rutina|课表|課表|菜单|菜單|メニュー|lịch tập|โปรแกรม|\bpt\b|피티',
 );
 
 /// 루틴 이름만 친 글("루틴", "하체 루틴", "PT 루틴"). 치는 동안 칩을 띄운다.
@@ -555,18 +614,32 @@ class RoutineAsk {
   /// 남의 루틴이면 이름만 보이고 [시작] 이 없다(G2).
   bool get forSomeoneElse => refused.containsKey('person');
 
+  /// "(부위)로 짜기" 칩 — 부위만 바꾸고 나머지(시간·개수·증감·거절 …)는 잇는다.
   RoutineAsk withParts(List<String> p) => RoutineAsk(
+    question: question,
     when: when,
+    from: from,
     parts: p,
+    pattern: pattern,
+    exercises: exercises,
     exclude: exclude,
     avoid: avoid,
     pain: pain,
     only: only,
     without: without,
+    count: count,
+    minutes: minutes,
     intensity: intensity,
+    timer: timer,
+    targets: targets,
+    delta: delta,
+    notComputable: notComputable,
+    refused: refused,
+    ask: ask,
+    dropped: dropped,
     named: named,
     keys: {...keys, 'parts'},
-    device: true,
+    device: device,
   );
 }
 
@@ -649,7 +722,7 @@ const _units = <String, String>{
   'sets': r'세트|셋|sets?(?![a-z])|セット|组|組|series|hiệp|เซ็ต|ชุด',
   'reps': r'회|개|번|reps?(?![a-z])|回|次|下|repeticiones|lần|cái|ครั้ง|ที',
   'weight':
-      r'kgs?(?![a-z])|키로|킬로|lbs?(?![a-z])|파운드|公斤|千克|磅|キロ|kilos?|ký|กิโล|กก',
+      r'kgs?(?![a-z])|키로|킬로|lbs?(?![a-z])|파운드|pounds?|libras?|公斤|千克|磅|キロ|kilos?|ký|กิโล|กก',
   'seconds': r'초|secs?(?![a-z])|seconds?|s(?![a-z])|秒|segundos?|giây|วินาที',
   'rounds': r'라운드|rounds?|ラウンド|回合|rondas?|hiệp|รอบ|세트|sets?(?![a-z])',
   'nth': r'번째|째|번\s*전|(?:st|nd|rd|th)(?![a-z])|番目|回前|次前|lần trước|ครั้งก่อน',
@@ -684,6 +757,19 @@ bool _unitAfter(String text, ({num value, int start, int end}) n, String role) {
 }
 
 final _setsByReps = RegExp(r'(\d+)\s*[x×*]\s*(\d+)');
+
+final _poundWord = _re(r'^(lbs?|파운드|pounds?|libras?|磅)$');
+
+/// 글에서 [v] 바로 뒤에 적힌 무게 단위(kg | lb). 같은 수가 두 단위로 적혔으면 둘 다.
+Set<String> _weightUnits(String text, num v) => {
+  for (final n in statedNumbers(text))
+    if ((n.value - v).abs() < 1e-9)
+      if (_re(
+            '^\\s*(${_units['weight']!})',
+          ).firstMatch(text.substring(n.end))?[1]
+          case final w?)
+        _poundWord.hasMatch(w) ? 'lb' : 'kg',
+};
 
 /// [v] 가 글에 [role] 의 수로 적혀 있는가.
 bool statedAs(String text, num v, String role) {
@@ -786,8 +872,17 @@ RoutineAsk decodeRoutineAsk(
     throw const FormatException('Routine request too long');
   }
   final m = {for (final e in parsed.entries) '${e.key}': e.value};
-  // 모델이 응답 형식을 되받아 적은 것({"type":"json_object", …})은 뜻이 없다.
-  if (m['type'] == 'json_object') m.remove('type');
+  // 모델이 응답 형식을 되받아 적은 것({"type":"json_object", …})은 뜻이 없다. 그것만
+  // 적었으면 요청을 읽은 것이 아니다 — {}("내 기록으로 오늘")로 읽으면 글의 조건이
+  // 조용히 사라진다.
+  if (m['type'] == 'json_object') {
+    m.remove('type');
+    if (m.isEmpty) throw const FormatException('Echoed response format');
+  }
+  // {} 는 "내 기록으로 오늘" 이다. 빼기·아픈 곳·의료 글에 {} 면 조건을 버린 것이다.
+  if (m.isEmpty && unreadableConditions(text)) {
+    throw const FormatException('Conditions not read');
+  }
   // from 안의 키를 윗단에 적었으면(together·routine·period …) from 으로 옮긴다 —
   // 뜻이 하나라 고칠 수 있다. 윗단 part 는 parts 다.
   const hoisted = {
@@ -882,6 +977,12 @@ RoutineAsk decodeRoutineAsk(
     when = w;
   } else if (w != null && w != 'today') {
     unmet(w);
+  }
+  // 모델이 앞날을 빼면 기기가 읽은 것으로 채운다 — 내일 글에 오늘 [시작] 카드가
+  // 뜨면 안 된다. 오늘을 말한 글("내일은 쉬니까 오늘")과 지난날을 되풀이하는 답
+  // (from — "목요일 거" 는 지난 목요일)은 바꾸지 않는다.
+  if (w == null && m['from'] == null && !_today.hasMatch(text)) {
+    when = readWhen(text);
   }
 
   // from — 안의 모르는 키는 그 키만 뺀다. 날짜 풀기는 기록 검색의 디코더가 한다.
@@ -1098,14 +1199,31 @@ RoutineAsk decodeRoutineAsk(
         return v;
       }
 
-      final unit = t['unit'];
+      // 단위는 글에서 그 수 바로 뒤의 낱말이다. 모델이 빼면 그것을 쓰고, 어긋나면
+      // (225lb 를 kg 로) 그 무게를 뺀다 — 2.2배 무게를 지어내지 않는다.
+      var weight = n('weight', 0.5, 2000, 'weight', whole: false)?.toDouble();
+      final said = weight == null
+          ? const <String>{}
+          : _weightUnits(text, weight);
+      final u = t['unit'];
+      String? unit = u == 'kg' || u == 'lb' ? u as String : null;
+      if (weight != null &&
+          unit != null &&
+          said.isNotEmpty &&
+          !said.contains(unit)) {
+        dropped.add(RoutineLine('notStated', ['${_num(weight)}$unit']));
+        weight = null;
+        unit = null;
+      } else if (weight != null) {
+        unit ??= said.length == 1 ? said.single : null;
+      }
       targets.add(
         RoutineTarget(
           (t['exercise'] as String).trim(),
           sets: n('sets', 1, 20, 'sets')?.toInt(),
           reps: n('reps', 1, 1000, 'reps')?.toInt(),
-          weight: n('weight', 0.5, 2000, 'weight', whole: false)?.toDouble(),
-          unit: unit == 'kg' || unit == 'lb' ? unit as String : null,
+          weight: weight,
+          unit: unit,
           seconds: n('seconds', 1, 3600, 'seconds')?.toInt(),
           total: n('total', 1, 10000, 'reps')?.toInt(),
         ),
@@ -1120,11 +1238,21 @@ RoutineAsk decodeRoutineAsk(
       unmet(d);
     } else {
       final sign = _deltaSign(text, v.abs());
+      final said = _weightUnits(text, v.abs());
+      final u = (d as Map)['unit'];
       if (sign == null) {
         notStated(v.abs());
+      } else if ((u == 'kg' || u == 'lb') &&
+          said.isNotEmpty &&
+          !said.contains(u)) {
+        // 글은 10lb 인데 모델은 kg — 단위가 어긋난 증감은 뺀다.
+        dropped.add(RoutineLine('notStated', ['${_num(v.abs())}$u']));
       } else {
-        final u = (d as Map)['unit'];
-        final unit = u == 'lb' || (u == null && mentionsPounds(text))
+        final unit = u == 'kg' || u == 'lb'
+            ? u as String
+            : said.length == 1
+            ? said.single
+            : mentionsPounds(text)
             ? 'lb'
             : 'kg';
         delta = (value: v.abs().toDouble() * sign, unit: unit);
@@ -1260,6 +1388,8 @@ RoutineAsk deviceAsk(String text, List<String> recorded, {bool bare = false}) {
     parts: parts,
     exercises: names,
     named: names.toSet(),
+    // 의료 글은 기기가 짜지 않는다(G3) — 어느 길로 와도 시작할 카드가 없다.
+    refused: medicalText(text) ? const {'medical': ''} : const {},
     device: true,
     keys: {
       if (when != null) 'when',
@@ -1384,8 +1514,9 @@ class RoutineEdits {
   /// "(부위)로 짜기" 칩.
   String? part;
 
-  /// 시작한 기록의 id — 다시 누르면 새로 만들지 않고 그 기록을 연다.
-  String? started;
+  /// 시작한 기록의 id — 다시 누르면 새로 만들지 않고 그 기록을 연다. 시작한 뒤
+  /// 카드가 바뀌면([startedMark] 와 다르면) 새로 시작한다.
+  String? started, startedMark;
 }
 
 DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
@@ -1631,11 +1762,8 @@ RoutineDraft composeRoutine(
   final today = _day(now ?? DateTime.now());
   final day = switch (ask.when) {
     'tomorrow' => today.add(const Duration(days: 1)),
-    final int w => today.add(
-      Duration(
-        days: ((w - today.weekday) % 7 == 0 ? 7 : (w - today.weekday) % 7),
-      ),
-    ),
+    // 오늘과 같은 요일은 오늘이다("수요일 루틴" 을 수요일에).
+    final int w => today.add(Duration(days: (w - today.weekday) % 7)),
     _ => today,
   };
   final draft = RoutineDraft(day: day, today: today);
@@ -2249,7 +2377,13 @@ RoutineDraft composeRoutine(
   final painBlank = ask.pain != null;
   for (final c in list) {
     final key = c.key;
-    final target = targetByKey[key];
+    // 수가 모두 빠진 친 칸(글에 없는 수라 뺐다)은 친 수가 아니다 — 옮기기만 한다.
+    final target = switch (targetByKey[key]) {
+      final t?
+          when (t.sets ?? t.reps ?? t.weight ?? t.seconds ?? t.total) != null =>
+        t,
+      _ => null,
+    };
     final src = c.block;
     var sets = src == null ? <PlanSet>[] : _mineOf(src);
     final ref = src == null
@@ -2270,7 +2404,9 @@ RoutineDraft composeRoutine(
     if (light) blank ??= 'light';
     if (painBlank && target?.weight == null) blank ??= 'pain';
 
-    // L0: 친 수.
+    // L0: 친 수. 무게만 쳤으면 한 세트(친 세트 수)에 횟수는 비운다 — 친 무게 × 옛
+    // 횟수 × 옛 세트 수는 아무도 적지 않은 처방이다. 지난 기록은 참고 줄로.
+    final weightOnly = target?.weight != null && target?.reps == null;
     if (target != null) {
       final typedSets = target.sets;
       final r = target.reps;
@@ -2296,10 +2432,16 @@ RoutineDraft composeRoutine(
       }
       final n =
           typedSets ??
-          (sets.isEmpty
+          (weightOnly
+              ? 1
+              : sets.isEmpty
               ? (r != null || target.seconds != null ? 1 : 0)
               : sets.length);
-      final rr = r ?? (target.seconds == null ? sets.lastOrNull?.reps : null);
+      final rr =
+          r ??
+          (target.seconds == null && !weightOnly
+              ? sets.lastOrNull?.reps
+              : null);
       sets = [
         for (var i = 0; i < n; i++)
           (
@@ -2382,7 +2524,7 @@ RoutineDraft composeRoutine(
     }
 
     RoutineRef? reference;
-    if (blank != null || ask.intensity == 'max') {
+    if (blank != null || ask.intensity == 'max' || weightOnly) {
       reference = ask.intensity == 'max' ? _best(history, key) ?? ref : ref;
     }
     final memo = src?.sets
@@ -2642,6 +2784,16 @@ String _plainTitle(ExerciseBlock b) {
   return timer.applyTo(base);
 }
 
+/// 초안의 표지 — 칸의 제목·세트. [시작] 뒤에 카드가 바뀌었는지(다른 루틴·✕·넣기)
+/// 가른다: 같으면 시작한 기록을 열고, 바뀌었으면 새로 시작한다.
+String draftMark(RoutineDraft d) => jsonEncode([
+  for (final i in d.items)
+    [
+      i.title,
+      for (final s in i.sets) [s.value, s.unit, s.reps],
+    ],
+]);
+
 /// [시작] 할 칸 — 누를 때마다 새 id 의 칸과 세트(G18). 세트는 모두 안 한 것이다.
 List<ExerciseBlock> startBlocks(RoutineDraft draft) => [
   for (final i in draft.items)
@@ -2751,12 +2903,22 @@ class RoutineSearch extends ChangeNotifier {
   Object? answer;
 
   /// [charged] 는 이번 답을 서버에서 받았다(원판이 나갔다)는 뜻이다.
+  ///
+  /// [tooLong] 은 보내지 않은 긴 글(다시 해도 같다), [misread] 는 모델이 깨진 답을
+  /// 낸 것(형식만 되받아 적음, 502 upstream) — 연결 문제가 아니다. 깨진 답은 담지
+  /// 않고 한 번만 다시 물을 수 있다([retry]); 같은 글로 원판이 거듭 나가지 않는다.
   bool busy = false,
       failed = false,
       noPlates = false,
       charged = false,
+      tooLong = false,
+      misread = false,
+      retry = false,
       _disposed = false;
   int _version = 0;
+
+  /// 글(담는 열쇠)마다 깨진 답을 받은 횟수.
+  final _broken = <String, int>{};
 
   static String cacheKey(String text, String locale, String unit, int year) =>
       jsonEncode(['r1', text.trim(), locale, unit, year]);
@@ -2764,7 +2926,7 @@ class RoutineSearch extends ChangeNotifier {
   void _reset(String t) {
     text = t;
     answer = null;
-    busy = failed = noPlates = charged = false;
+    busy = failed = noPlates = charged = tooLong = misread = retry = false;
   }
 
   /// 치는 중 — 담아 둔 답만 본다. 원판은 나가지 않는다.
@@ -2787,18 +2949,32 @@ class RoutineSearch extends ChangeNotifier {
   ) async {
     peek(t, locale, unit);
     if (answer != null || busy || t.trim().isEmpty) return;
+    final key = cacheKey(t, locale, unit, _now().year);
+    // 보내지 않는 글: 너무 길다(다시 해도 같다), 깨진 답을 두 번 받았다.
+    if (t.length > maxQuestionLength || (_broken[key] ?? 0) >= 2) {
+      tooLong = t.length > maxQuestionLength;
+      misread = !tooLong;
+      retry = failed = noPlates = false;
+      if (!_disposed) notifyListeners();
+      return;
+    }
     final version = ++_version;
     busy = true;
-    failed = noPlates = false;
+    failed = noPlates = misread = retry = false;
     notifyListeners();
     await _cache.load();
-    final key = cacheKey(t, locale, unit, _now().year);
     answer ??= _cache[key];
     if (answer != null) {
       busy = false;
       if (!_disposed) notifyListeners();
       return;
     }
+    void broken() {
+      final n = _broken[key] = (_broken[key] ?? 0) + 1;
+      misread = charged = true;
+      retry = n < 2;
+    }
+
     try {
       if (status != RecordAiStatus.ready) status = await ai.status(locale);
       if (status != RecordAiStatus.ready) {
@@ -2815,16 +2991,25 @@ class RoutineSearch extends ChangeNotifier {
         unit: unit,
         today: _now(),
       );
-      // 빈 답({"type":...} — 응답 형식만 되받아 적었다)은 담지 않는다.
-      final empty = got is Map && got.keys.every((k) => k == 'type');
-      if (!_disposed && !empty) _cache.put(key, got);
+      // 응답 형식만 되받아 적은 답({"type":...})은 모델의 헛발이다 — 담지 않는다.
+      // {} 는 "내 기록으로 오늘" 이라 담는다.
+      final echo =
+          got is Map && got.isNotEmpty && got.keys.every((k) => k == 'type');
+      if (!_disposed && !echo) _cache.put(key, got);
       if (_disposed || version != _version) return;
-      answer = got;
-      charged = true;
+      if (echo) {
+        broken();
+      } else {
+        answer = got;
+        charged = true;
+      }
     } catch (e) {
       if (_disposed || version != _version) return;
       if (e is RecordAiException && e.status == RecordAiStatus.noPlates) {
         noPlates = true;
+      } else if (e is RecordAiException && e.charged) {
+        // 서버는 모델을 불렀고 원판이 나갔는데 답이 깨졌다(502 upstream). 연결이 아니다.
+        broken();
       } else {
         failed = true;
         status = RecordAiStatus.unavailable;

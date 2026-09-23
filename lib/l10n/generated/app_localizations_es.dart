@@ -2798,4 +2798,11 @@ class LEs extends L {
 
   @override
   String get routineFullBody => 'Cuerpo completo';
+
+  @override
+  String get routineNoPlates =>
+      'Sin discos no pude leer las condiciones — armada solo con tu registro';
+
+  @override
+  String get routineBack => 'Volver a la rutina';
 }

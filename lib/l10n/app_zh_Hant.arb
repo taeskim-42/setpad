@@ -658,5 +658,7 @@
   "routineExclude": "拿掉: {list}",
   "routineAvoid": "避開: {list}",
   "routinePlatesZero": "0 片",
-  "routineFullBody": "全身"
+  "routineFullBody": "全身",
+  "routineNoPlates": "槓片不夠,沒能讀條件 — 只照紀錄排了",
+  "routineBack": "回到訓練"
 }

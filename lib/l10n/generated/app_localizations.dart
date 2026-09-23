@@ -4067,6 +4067,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'전신'**
   String get routineFullBody;
+
+  /// No description provided for @routineNoPlates.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건은 원판이 없어 못 읽었어요 — 기록으로만 짰어요'**
+  String get routineNoPlates;
+
+  /// No description provided for @routineBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴으로 돌아가기'**
+  String get routineBack;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

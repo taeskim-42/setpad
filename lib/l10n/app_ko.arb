@@ -2465,5 +2465,7 @@
   "routineAvoid": "피할 부위: {list}",
   "@routineAvoid": {"placeholders": {"list": {"type": "String"}}},
   "routinePlatesZero": "원판 0장",
-  "routineFullBody": "전신"
+  "routineFullBody": "전신",
+  "routineNoPlates": "조건은 원판이 없어 못 읽었어요 — 기록으로만 짰어요",
+  "routineBack": "루틴으로 돌아가기"
 }

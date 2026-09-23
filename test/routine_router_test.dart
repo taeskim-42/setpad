@@ -65,9 +65,10 @@ void main() {
       expect(r5 / plain.length, greaterThanOrEqualTo(0.75));
     });
 
-    test('검토의 49(개발, G14·G15·G16): 기록 보기·내일·거절 명사', () {
+    test('검토의 모음(개발, G14·G15·G16 + 재검토 #1·#3·#4): 기록 보기·내일·거절 명사', () {
       final wrong = <String>[];
-      for (final c in load('routine_adversarial')) {
+      final rows = load('routine_adversarial');
+      for (final c in rows) {
         final t = c['text'] as String;
         final want = c['route'] as String;
         final got = route(t);
@@ -79,7 +80,7 @@ void main() {
         if (!ok) wrong.add('$t: $got (want $want)');
       }
       // ignore: avoid_print
-      print('검토 49: 틀림 ${wrong.length} $wrong');
+      print('검토 ${rows.length}: 틀림 ${wrong.length} $wrong');
       expect(wrong, isEmpty);
     });
 
@@ -188,6 +189,70 @@ void main() {
       expect(routineNameOnly('PT 루틴'), isNotNull);
       expect(routineNameOnly('ルーティン'), isNotNull);
       expect(routineNameOnly('루틴 몇 번 했어'), isNull);
+    });
+
+    test('검토#1 의료 낱말 + 루틴 요청은 명령 낱말이 없어도 기기가 거절(원판 0)', () {
+      for (final t in [
+        '재활 중인데 오늘 뭐 할까',
+        '디스크 있는데 오늘 운동 뭐 하지',
+        'knee surgery last month, what should I do today',
+        '手術したばかりだけど今日のメニューは',
+        '허리 디스크라 하체 루틴',
+      ]) {
+        expect(routeHome(t), HomeRoute.refuse, reason: t);
+        expect(homeRefusal(t), 'medical', reason: t);
+        // 모델을 못 쓰는 길로 와도(칩으로 루틴을 고름) 조건을 못 읽은 글이다.
+        expect(unreadableConditions(t), isTrue, reason: t);
+      }
+      // 루틴 요청이 아닌 의료 질문은 기록 질문 그대로다.
+      expect(routeHome('무릎 수술 2주 됐는데 하체 해도 돼?'), HomeRoute.question);
+    });
+
+    test('검토#4 만들어·뽑아·골라·부탁은 기록 낱말과 같이 있으면 기록 질문이다', () {
+      for (final t in [
+        '이번 달 최고 기록 뽑아줘',
+        '벤치 기록 그래프로 만들어줘',
+        '월별 볼륨 표로 만들어줘',
+        '제일 많이 한 운동 3개 골라줘',
+        '지난주 운동 요약 부탁해',
+        'give me my bench history',
+        'make me a chart of my squat',
+      ]) {
+        expect(routeHome(t), HomeRoute.question, reason: t);
+      }
+      // 루틴 명령은 그대로 루틴이다.
+      for (final t in [
+        '지난주 스쿼트 최고 보여주고 오늘 하체 짜줘',
+        '하체 운동 좀 골라줘',
+        '하체 루틴 만들어줘',
+        'make me a leg workout',
+      ]) {
+        expect(routeHome(t), HomeRoute.routine, reason: t);
+      }
+    });
+
+    test('검토#11 지난 요일을 가리키는 말(한 거·그대로·처럼)은 앞날이 아니다', () {
+      for (final t in [
+        '월요일에 한 거 그대로 해줘',
+        '화요일 운동 그대로',
+        '토요일 거 한번 더',
+        '금요일처럼 짜줘',
+      ]) {
+        expect(readWhen(t), isNull, reason: t);
+      }
+      expect(readWhen('금요일에 할 거 짜줘'), 5);
+      expect(readWhen('금요일엔 간단한 거'), 5);
+    });
+
+    test('검토#13 부위·약물 낱말의 오탐', () {
+      expect(readParts('วันนี้ออกกำลังกายอะไรดี จัดให้หน่อย'), isEmpty);
+      expect(readParts('วันนี้เล่นหน้าอก'), ['chest']);
+      expect(readParts('first day back, what should I do'), isEmpty);
+      expect(readParts('back and biceps'), ['back', 'arms']);
+      expect(readParts('足够的训练 安排一下'), isEmpty);
+      expect(readParts('今天练腿'), ['legs']);
+      expect(homeRefusal('药球训练安排一下'), isNull);
+      expect(homeRefusal('减肥药 训练 安排一下'), 'drug');
     });
 
     test('G1: 빼기·아픈 곳 낱말은 모델 없이 읽지 않는다', () {

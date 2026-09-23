@@ -658,5 +658,7 @@
   "routineExclude": "quitar: {list}",
   "routineAvoid": "evitar: {list}",
   "routinePlatesZero": "0 discos",
-  "routineFullBody": "Cuerpo completo"
+  "routineFullBody": "Cuerpo completo",
+  "routineNoPlates": "Sin discos no pude leer las condiciones — armada solo con tu registro",
+  "routineBack": "Volver a la rutina"
 }

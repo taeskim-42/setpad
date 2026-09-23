@@ -2779,4 +2779,11 @@ class LEn extends L {
 
   @override
   String get routineFullBody => 'Full body';
+
+  @override
+  String get routineNoPlates =>
+      'Couldn\'t read the conditions without plates — built from your log only';
+
+  @override
+  String get routineBack => 'Back to the routine';
 }

@@ -658,5 +658,7 @@
   "routineExclude": "去掉: {list}",
   "routineAvoid": "避开: {list}",
   "routinePlatesZero": "0 片",
-  "routineFullBody": "全身"
+  "routineFullBody": "全身",
+  "routineNoPlates": "杠铃片不够,没能读条件 — 只按记录排了",
+  "routineBack": "回到训练"
 }

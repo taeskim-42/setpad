@@ -2764,4 +2764,11 @@ class LVi extends L {
 
   @override
   String get routineFullBody => 'Toàn thân';
+
+  @override
+  String get routineNoPlates =>
+      'Không đủ bánh tạ nên chưa đọc được điều kiện — xếp chỉ theo nhật ký';
+
+  @override
+  String get routineBack => 'Quay lại bài tập';
 }

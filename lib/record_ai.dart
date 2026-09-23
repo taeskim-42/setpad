@@ -604,11 +604,13 @@ class RecordAi {
           throw const RecordAiException(RecordAiStatus.quotaExceeded);
         }
         // 서버가 까닭을 적었으면 싣는다 — '모르는 음식' 과 '연결 안 됨' 은 할 말이 다르다.
+        // 원판이 실려 왔으면 모델은 불렸고 값이 나갔다(502 upstream: 답이 깨짐).
         throw RecordAiException(
           RecordAiStatus.unavailable,
           code: body is Map && body['error'] is String
               ? body['error'] as String
               : null,
+          charged: body is Map && body['plates'] is Map,
         );
       }
       throw const RecordAiException(RecordAiStatus.unavailable);
@@ -795,8 +797,16 @@ class RecordAi {
 
 /// 서버 쪽이 못 해준 이유. 화면은 이걸 보고 무슨 말을 할지 정한다.
 class RecordAiException implements Exception {
-  const RecordAiException(this.status, {this.offline = false, this.code});
+  const RecordAiException(
+    this.status, {
+    this.offline = false,
+    this.code,
+    this.charged = false,
+  });
   final RecordAiStatus status;
+
+  /// 서버가 모델을 불러 원판이 나갔는데 답을 못 줬다(깨진 답). 다시 해도 또 나간다.
+  final bool charged;
 
   /// 서버가 아니라 연결이 문제였다(그물 없음, 시간 초과). 다시 해 볼 만하다.
   final bool offline;

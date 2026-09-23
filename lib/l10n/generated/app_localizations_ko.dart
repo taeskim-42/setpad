@@ -2697,4 +2697,10 @@ class LKo extends L {
 
   @override
   String get routineFullBody => '전신';
+
+  @override
+  String get routineNoPlates => '조건은 원판이 없어 못 읽었어요 — 기록으로만 짰어요';
+
+  @override
+  String get routineBack => '루틴으로 돌아가기';
 }

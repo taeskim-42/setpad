@@ -658,5 +658,7 @@
   "routineExclude": "ตัด: {list}",
   "routineAvoid": "เลี่ยง: {list}",
   "routinePlatesZero": "0 แผ่น",
-  "routineFullBody": "ทั้งตัว"
+  "routineFullBody": "ทั้งตัว",
+  "routineNoPlates": "แผ่นน้ำหนักไม่พอ อ่านเงื่อนไขไม่ได้ — จัดจากบันทึกอย่างเดียว",
+  "routineBack": "กลับไปที่รูทีน"
 }

@@ -1,11 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
 import 'package:setpad/record_ai.dart';
+import 'package:setpad/record_query.dart' show maxQuestionLength;
 import 'package:setpad/routine.dart';
 import 'package:setpad/routine_card.dart';
 
@@ -343,6 +348,323 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('레그프레스'), findsOneWidget);
     expect(asked, 0);
+  });
+
+  group('검토#1 의료 글은 모델을 못 써도 [시작] 카드가 없다(원판 0)', () {
+    final texts = [
+      '재활 중인데 오늘 뭐 할까',
+      '디스크 있는데 오늘 운동 뭐 하지',
+      'knee surgery last month, what should I do today',
+      '手術したばかりだけど今日のメニューは',
+    ];
+    final modes = <String, Future<Object?> Function()>{
+      '연결': () async => throw Exception('offline'),
+      '원판 없음': () async =>
+          throw const RecordAiException(RecordAiStatus.noPlates),
+      '읽지 못함': () async => {
+        'refused': {'medical': '재활'},
+        'note': 'x',
+      },
+    };
+    for (final t in texts) {
+      for (final m in modes.entries) {
+        testWidgets('$t × ${m.key}', (tester) async {
+          var asked = 0;
+          await pump(
+            tester,
+            ai: RecordAi(
+              respond: (_, _) {
+                asked++;
+                return m.value();
+              },
+            ),
+          );
+          await type(tester, t, enter: true);
+          expect(startButton(), findsNothing);
+          expect(find.text(l.routineRefused('medical')), findsOneWidget);
+          expect(find.text(l.routineNoConditions), findsNothing);
+          expect(asked, 0);
+        });
+      }
+    }
+
+    testWidgets('기록 검색이 루틴이라 한 의료 글도 조건 없이 짜는 칩이 없다', (tester) async {
+      await pump(
+        tester,
+        ai: RecordAi(
+          respond: (i, _) async => i == routineInstructions
+              ? throw Exception('offline')
+              : {'kind': 'routine'},
+        ),
+      );
+      await type(tester, '무릎 수술 2주 됐는데 하체 해도 돼?', enter: true);
+      expect(find.text(l.routineWithConditions), findsOneWidget);
+      expect(find.text(l.routineNoConditions), findsNothing);
+      await tester.tap(find.text(l.routineWithConditions));
+      await tester.pumpAndSettle();
+      expect(startButton(), findsNothing);
+      expect(find.text(l.routineRefused('medical')), findsOneWidget);
+      expect(find.text(l.routineNoConditions), findsNothing);
+    });
+  });
+
+  group('검토#2·#15 모델이 깨진 답을 내면', () {
+    testWidgets('형식만 되받아 적은 답 → 읽지 못함(조건 글이면 카드 없음), 다시 누르면 다시 묻는다', (
+      tester,
+    ) async {
+      var asked = 0;
+      await pump(
+        tester,
+        ai: RecordAi(
+          respond: (_, _) async {
+            asked++;
+            return asked == 1
+                ? {'type': 'json_object'}
+                : {
+                    'parts': ['legs'],
+                    'exclude': ['스쿼트'],
+                  };
+          },
+        ),
+      );
+      await type(tester, '스쿼트 말고 하체 짜줘', enter: true);
+      expect(startButton(), findsNothing);
+      expect(find.text(l.routineHeldBack), findsOneWidget);
+      expect(find.text(l.routineRetry), findsOneWidget);
+      await tester.showKeyboard(search);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(asked, 2);
+      expect(startButton(), findsOneWidget);
+      expect(find.text('스쿼트'), findsNothing);
+    });
+
+    testWidgets('조건 없는 글이면 기기 카드 + 읽지 못함 줄', (tester) async {
+      await pump(
+        tester,
+        ai: RecordAi(respond: (_, _) async => {'type': 'json_object'}),
+      );
+      await type(tester, '하체로 짜줘', enter: true);
+      expect(find.text(l.routineMisread), findsOneWidget);
+      expect(find.text(l.routineOffline), findsNothing);
+      expect(startButton(), findsOneWidget);
+    });
+
+    testWidgets('원판이 나간 깨진 답(502 upstream)은 연결 문구가 아니고, 다시 묻기는 한 번뿐', (
+      tester,
+    ) async {
+      var asked = 0;
+      await pump(
+        tester,
+        ai: RecordAi(
+          respond: (_, _) async {
+            asked++;
+            throw const RecordAiException(
+              RecordAiStatus.unavailable,
+              code: 'upstream',
+              charged: true,
+            );
+          },
+        ),
+      );
+      await type(tester, '하체로 짜줘', enter: true);
+      expect(asked, 1);
+      expect(find.text(l.routineMisread), findsOneWidget);
+      expect(find.text(l.routineOffline), findsNothing);
+      expect(startButton(), findsOneWidget);
+      await tester.tap(find.text(l.routineRetry));
+      await tester.pumpAndSettle();
+      expect(asked, 2);
+      expect(find.text(l.routineRetry), findsNothing);
+      await tester.showKeyboard(search);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(asked, 2);
+      expect(find.text(l.routineMisread), findsOneWidget);
+    });
+  });
+
+  test('검토#15 502 upstream 에 원판이 실려 오면 원판이 나간 실패다', () async {
+    Future<RecordAiException> fail(Map<String, Object?> body) async {
+      final ai = RecordAi(
+        endpoint: 'https://example.com',
+        deviceId: 'device',
+        client: MockClient(
+          (request) async => request.url.path == '/api/device'
+              ? http.Response(jsonEncode({'token': 't'}), 200)
+              : http.Response(jsonEncode(body), 502),
+        ),
+      );
+      try {
+        await ai.ask('i', 'q', contract: 3);
+      } on RecordAiException catch (e) {
+        return e;
+      }
+      throw StateError('no failure');
+    }
+
+    RecordAi.forget();
+    final charged = await fail({
+      'error': 'upstream',
+      'plates': {'balance': 9.5, 'spent': 0.5},
+    });
+    expect(charged.charged, isTrue);
+    expect(charged.code, 'upstream');
+    RecordAi.forget();
+    expect((await fail({'error': 'upstream'})).charged, isFalse);
+    RecordAi.forget();
+  });
+
+  testWidgets('검토#3 루틴으로 가르는 글이어도 글자가 맞는 기록은 카드 아래에 보인다', (tester) async {
+    await pump(tester);
+    await type(tester, '타바타');
+    expect(find.textContaining('버피 타바타'), findsWidgets);
+    // 글자가 맞는 기록이 없으면 "결과 없음" 을 띄우지 않는다.
+    await type(tester, '오늘 루틴 짜줘');
+    expect(find.text(l.noSearchResults), findsNothing);
+    expect(find.text(l.routineHeaderToday), findsOneWidget);
+  });
+
+  testWidgets('검토#5 두 모델이 서로 떠넘겨도 되풀이·막다른 길이 없다', (tester) async {
+    final calls = <String>[];
+    await pump(
+      tester,
+      ai: RecordAi(
+        respond: (i, _) async {
+          calls.add(i == routineInstructions ? 'routine' : 'v3');
+          return i == routineInstructions
+              ? {'kind': 'lookup'}
+              : {'kind': 'routine'};
+        },
+      ),
+    );
+    await type(tester, '다음 운동 때 벤치 몇키로 치면 돼', enter: true);
+    await tester.tap(find.text(l.routineWithConditions));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l.routineAsQuestion));
+    await tester.pumpAndSettle();
+    expect(calls, ['v3', 'routine']);
+    // 기록 검색은 이 글을 셀 질문으로 못 읽었다 — 칩을 되풀이하지 않고 까닭과 원판 0 길.
+    expect(find.text(l.routineWithConditions), findsNothing);
+    expect(find.text(l.queryMisread), findsOneWidget);
+    await tester.tap(find.text(l.routineNoConditions));
+    await tester.pumpAndSettle();
+    expect(startButton(), findsOneWidget);
+    expect(calls, ['v3', 'routine']);
+  });
+
+  testWidgets('검토#6 이름만 칩으로 짠 뒤 Enter 는 모델 카드로 바뀌고 원판 줄이 맞다', (tester) async {
+    var asked = 0;
+    await pump(
+      tester,
+      ai: RecordAi(
+        respond: (_, _) async {
+          asked++;
+          return {
+            'parts': ['legs'],
+            'exclude': ['레그프레스'],
+          };
+        },
+      ),
+    );
+    await type(tester, '하체 루틴');
+    await tester.tap(find.text(l.routineMakePart(l.queryPart('legs'))));
+    await tester.pumpAndSettle();
+    expect(find.text('레그프레스'), findsOneWidget);
+    expect(find.text(l.routinePlatesZero), findsOneWidget);
+    await tester.showKeyboard(search);
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(asked, 1);
+    expect(find.text('레그프레스'), findsNothing);
+    expect(find.text(l.routinePlatesZero), findsNothing);
+  });
+
+  group('검토#10 실패 까닭을 연결로 뭉개지 않는다', () {
+    testWidgets('600자 넘는 글은 모델에 보내지 않고 길이를 말한다 — 다시 시도 없음', (tester) async {
+      var asked = 0;
+      await pump(
+        tester,
+        ai: RecordAi(
+          respond: (_, _) async {
+            asked++;
+            return {};
+          },
+        ),
+      );
+      await type(tester, '하체 루틴 짜줘 ${'가' * 600}', enter: true);
+      expect(asked, 0);
+      expect(find.text(l.queryTooLong(maxQuestionLength)), findsOneWidget);
+      expect(find.text(l.routineOffline), findsNothing);
+      expect(find.text(l.routineRetry), findsNothing);
+      expect(find.text(l.routineNoConditions), findsOneWidget);
+    });
+
+    testWidgets('원판이 없으면 원판 문구', (tester) async {
+      await pump(
+        tester,
+        ai: RecordAi(
+          respond: (_, _) async =>
+              throw const RecordAiException(RecordAiStatus.noPlates),
+        ),
+      );
+      await type(tester, '하체로 짜줘', enter: true);
+      expect(find.text(l.routineNoPlates), findsOneWidget);
+      expect(find.text(l.routineOffline), findsNothing);
+      expect(startButton(), findsOneWidget);
+    });
+  });
+
+  testWidgets('검토#12 시작한 뒤 카드를 바꾸면 [시작] 이 다시 뜨고 새 기록을 만든다', (tester) async {
+    final store = await pump(tester);
+    await type(tester, '오늘 루틴 짜줘');
+    await tester.tap(startButton());
+    await tester.pumpAndSettle();
+    expect(store.created, hasLength(1));
+    await tester.tap(find.text(l.routineOther));
+    await tester.pumpAndSettle();
+    expect(startButton(), findsOneWidget);
+    await tester.tap(startButton());
+    await tester.pumpAndSettle();
+    expect(store.created, hasLength(2));
+    expect(
+      store.created.last.blocks.map((b) => b.name),
+      isNot(store.created.first.blocks.map((b) => b.name)),
+    );
+  });
+
+  testWidgets('검토#14 "이것도 물을까요" 뒤에 루틴으로 돌아갈 수 있다(원판 0)', (tester) async {
+    final calls = <String>[];
+    await pump(
+      tester,
+      ai: RecordAi(
+        respond: (i, _) async {
+          calls.add(i == routineInstructions ? 'routine' : 'v3');
+          return i == routineInstructions
+              ? {
+                  'parts': ['legs'],
+                  'ask': '지난주 스쿼트 최고 보여주고',
+                }
+              : {
+                  'exercises': ['스쿼트'],
+                };
+        },
+      ),
+    );
+    const text = '지난주 스쿼트 최고 보여주고 오늘 하체 짜줘';
+    await type(tester, text, enter: true);
+    await tester.tap(find.text(l.routineAskToo('지난주 스쿼트 최고 보여주고')));
+    await tester.pumpAndSettle();
+    expect(calls, ['routine', 'v3']);
+    expect(find.text(l.routineHeaderToday), findsNothing);
+    await tester.tap(find.text(l.routineBack));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<CupertinoSearchTextField>(search).controller!.text,
+      text,
+    );
+    expect(find.text(l.routineHeaderToday), findsOneWidget);
+    expect(calls, ['routine', 'v3']);
   });
 
   testWidgets('카드: 쌤이 보낸 루틴이 맨 위', (tester) async {

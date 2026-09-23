@@ -2672,6 +2672,12 @@ class LZh extends L {
 
   @override
   String get routineFullBody => '全身';
+
+  @override
+  String get routineNoPlates => '杠铃片不够,没能读条件 — 只按记录排了';
+
+  @override
+  String get routineBack => '回到训练';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -5342,6 +5348,12 @@ class LZhHans extends LZh {
 
   @override
   String get routineFullBody => '全身';
+
+  @override
+  String get routineNoPlates => '杠铃片不够,没能读条件 — 只按记录排了';
+
+  @override
+  String get routineBack => '回到训练';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -8011,4 +8023,10 @@ class LZhHant extends LZh {
 
   @override
   String get routineFullBody => '全身';
+
+  @override
+  String get routineNoPlates => '槓片不夠,沒能讀條件 — 只照紀錄排了';
+
+  @override
+  String get routineBack => '回到訓練';
 }

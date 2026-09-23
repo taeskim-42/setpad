@@ -2746,4 +2746,11 @@ class LTh extends L {
 
   @override
   String get routineFullBody => 'ทั้งตัว';
+
+  @override
+  String get routineNoPlates =>
+      'แผ่นน้ำหนักไม่พอ อ่านเงื่อนไขไม่ได้ — จัดจากบันทึกอย่างเดียว';
+
+  @override
+  String get routineBack => 'กลับไปที่รูทีน';
 }
