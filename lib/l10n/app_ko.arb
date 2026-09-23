@@ -492,6 +492,16 @@
   "metricReps": "총 횟수",
   "metricSets": "세트 수",
   "metricAverage": "평균",
+  "metricE1rm": "추정 1RM",
+  "metricMaxReps": "최다 반복",
+  "metricLongest": "최장",
+  "metricFirst": "처음",
+  "metricDaysSince": "쉰 날",
+  "metricDistance": "총 거리",
+  "metricDuration": "총 시간",
+  "@metricE1rm": {
+    "description": "기록 질문 표의 측정 이름. 추정 1RM 은 Epley 식으로 1–10회 세트만 쓴다. 쉰 날은 오늘 − 마지막으로 한 날."
+  },
   "readAsConfirm": "이렇게 읽었어요",
   "confirmYes": "맞아요",
   "readAsNote": "{from} → {to}",

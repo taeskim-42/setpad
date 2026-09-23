@@ -552,6 +552,27 @@ class LTh extends L {
   String get metricAverage => 'เฉลี่ย';
 
   @override
+  String get metricE1rm => '1RM โดยประมาณ';
+
+  @override
+  String get metricMaxReps => 'ครั้งสูงสุด';
+
+  @override
+  String get metricLongest => 'ยาวที่สุด';
+
+  @override
+  String get metricFirst => 'ครั้งแรก';
+
+  @override
+  String get metricDaysSince => 'วันที่ไม่ได้ฝึก';
+
+  @override
+  String get metricDistance => 'ระยะทางรวม';
+
+  @override
+  String get metricDuration => 'เวลารวม';
+
+  @override
   String get readAsConfirm => 'อ่านว่า';
 
   @override

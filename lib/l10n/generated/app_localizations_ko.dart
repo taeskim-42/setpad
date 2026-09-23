@@ -547,6 +547,27 @@ class LKo extends L {
   String get metricAverage => '평균';
 
   @override
+  String get metricE1rm => '추정 1RM';
+
+  @override
+  String get metricMaxReps => '최다 반복';
+
+  @override
+  String get metricLongest => '최장';
+
+  @override
+  String get metricFirst => '처음';
+
+  @override
+  String get metricDaysSince => '쉰 날';
+
+  @override
+  String get metricDistance => '총 거리';
+
+  @override
+  String get metricDuration => '총 시간';
+
+  @override
   String get readAsConfirm => '이렇게 읽었어요';
 
   @override

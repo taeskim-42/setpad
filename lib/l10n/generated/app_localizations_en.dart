@@ -555,6 +555,27 @@ class LEn extends L {
   String get metricAverage => 'Average';
 
   @override
+  String get metricE1rm => 'Est. 1RM';
+
+  @override
+  String get metricMaxReps => 'Most reps';
+
+  @override
+  String get metricLongest => 'Longest';
+
+  @override
+  String get metricFirst => 'First';
+
+  @override
+  String get metricDaysSince => 'Days since';
+
+  @override
+  String get metricDistance => 'Total distance';
+
+  @override
+  String get metricDuration => 'Total time';
+
+  @override
   String get readAsConfirm => 'Read as';
 
   @override

@@ -545,6 +545,27 @@ class LJa extends L {
   String get metricAverage => '平均';
 
   @override
+  String get metricE1rm => '推定1RM';
+
+  @override
+  String get metricMaxReps => '最多回数';
+
+  @override
+  String get metricLongest => '最長';
+
+  @override
+  String get metricFirst => '初回';
+
+  @override
+  String get metricDaysSince => '休んだ日数';
+
+  @override
+  String get metricDistance => '総距離';
+
+  @override
+  String get metricDuration => '総時間';
+
+  @override
   String get readAsConfirm => 'このように読みました';
 
   @override

@@ -555,6 +555,27 @@ class LEs extends L {
   String get metricAverage => 'Promedio';
 
   @override
+  String get metricE1rm => '1RM estimado';
+
+  @override
+  String get metricMaxReps => 'Máx. reps';
+
+  @override
+  String get metricLongest => 'Más largo';
+
+  @override
+  String get metricFirst => 'Primera';
+
+  @override
+  String get metricDaysSince => 'Días sin entrenar';
+
+  @override
+  String get metricDistance => 'Distancia total';
+
+  @override
+  String get metricDuration => 'Tiempo total';
+
+  @override
   String get readAsConfirm => 'Entendido como';
 
   @override

@@ -540,6 +540,27 @@ class LZh extends L {
   String get metricAverage => '平均';
 
   @override
+  String get metricE1rm => '估算1RM';
+
+  @override
+  String get metricMaxReps => '最多次数';
+
+  @override
+  String get metricLongest => '最长';
+
+  @override
+  String get metricFirst => '首次';
+
+  @override
+  String get metricDaysSince => '未练天数';
+
+  @override
+  String get metricDistance => '总距离';
+
+  @override
+  String get metricDuration => '总时长';
+
+  @override
   String get readAsConfirm => '理解为';
 
   @override
@@ -1778,6 +1799,27 @@ class LZhHans extends LZh {
   String get metricAverage => '平均';
 
   @override
+  String get metricE1rm => '估算1RM';
+
+  @override
+  String get metricMaxReps => '最多次数';
+
+  @override
+  String get metricLongest => '最长';
+
+  @override
+  String get metricFirst => '首次';
+
+  @override
+  String get metricDaysSince => '未练天数';
+
+  @override
+  String get metricDistance => '总距离';
+
+  @override
+  String get metricDuration => '总时长';
+
+  @override
   String get readAsConfirm => '理解为';
 
   @override
@@ -3014,6 +3056,27 @@ class LZhHant extends LZh {
 
   @override
   String get metricAverage => '平均';
+
+  @override
+  String get metricE1rm => '估算1RM';
+
+  @override
+  String get metricMaxReps => '最多次數';
+
+  @override
+  String get metricLongest => '最長';
+
+  @override
+  String get metricFirst => '首次';
+
+  @override
+  String get metricDaysSince => '未練天數';
+
+  @override
+  String get metricDistance => '總距離';
+
+  @override
+  String get metricDuration => '總時長';
 
   @override
   String get readAsConfirm => '理解為';

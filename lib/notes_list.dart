@@ -221,6 +221,14 @@ class _NotesListPageState extends State<NotesListPage>
     stats.Metric.reps => l.metricReps,
     stats.Metric.sets => l.metricSets,
     stats.Metric.average => l.metricAverage,
+    stats.Metric.best => l.metricMax,
+    stats.Metric.e1rm => l.metricE1rm,
+    stats.Metric.maxReps => l.metricMaxReps,
+    stats.Metric.distance => l.metricDistance,
+    stats.Metric.duration => l.metricDuration,
+    stats.Metric.first => l.metricFirst,
+    stats.Metric.daysSince => l.metricDaysSince,
+    stats.Metric.longest => l.metricLongest,
   };
 
   @override

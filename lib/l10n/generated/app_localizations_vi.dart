@@ -554,6 +554,27 @@ class LVi extends L {
   String get metricAverage => 'Trung bình';
 
   @override
+  String get metricE1rm => '1RM ước tính';
+
+  @override
+  String get metricMaxReps => 'Số lần nhiều nhất';
+
+  @override
+  String get metricLongest => 'Dài nhất';
+
+  @override
+  String get metricFirst => 'Lần đầu';
+
+  @override
+  String get metricDaysSince => 'Số ngày nghỉ';
+
+  @override
+  String get metricDistance => 'Tổng quãng đường';
+
+  @override
+  String get metricDuration => 'Tổng thời gian';
+
+  @override
   String get readAsConfirm => 'Hiểu là';
 
   @override

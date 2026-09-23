@@ -979,6 +979,48 @@ abstract class L {
   /// **'평균'**
   String get metricAverage;
 
+  /// 기록 질문 표의 측정 이름. 추정 1RM 은 Epley 식으로 1–10회 세트만 쓴다. 쉰 날은 오늘 − 마지막으로 한 날.
+  ///
+  /// In ko, this message translates to:
+  /// **'추정 1RM'**
+  String get metricE1rm;
+
+  /// No description provided for @metricMaxReps.
+  ///
+  /// In ko, this message translates to:
+  /// **'최다 반복'**
+  String get metricMaxReps;
+
+  /// No description provided for @metricLongest.
+  ///
+  /// In ko, this message translates to:
+  /// **'최장'**
+  String get metricLongest;
+
+  /// No description provided for @metricFirst.
+  ///
+  /// In ko, this message translates to:
+  /// **'처음'**
+  String get metricFirst;
+
+  /// No description provided for @metricDaysSince.
+  ///
+  /// In ko, this message translates to:
+  /// **'쉰 날'**
+  String get metricDaysSince;
+
+  /// No description provided for @metricDistance.
+  ///
+  /// In ko, this message translates to:
+  /// **'총 거리'**
+  String get metricDistance;
+
+  /// No description provided for @metricDuration.
+  ///
+  /// In ko, this message translates to:
+  /// **'총 시간'**
+  String get metricDuration;
+
   /// 해석이 의심스러울 때 답 대신 띄우는 줄. 뒤에 운동·의도·기간이 붙는다.
   ///
   /// In ko, this message translates to:
