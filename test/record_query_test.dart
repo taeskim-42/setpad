@@ -1585,6 +1585,30 @@ void main() {
       expect(spent, [0.3, 1.36]);
     });
 
+    // 실측: 같은 질문에 temperature 0 인데도 빈 답({"type":"json_object"}, {"type":
+    // "plan"})이 왔다가 다시 물으면 plan 이 왔다(재검토 live.log). 막다른 길이라
+    // 한 번만 다시 묻는다 — 1단계는 다시 사지 않는다.
+    test('빈 답은 2단계만 한 번 다시 묻는다', () async {
+      final sent = <String>[];
+      var blanks = 1;
+      Future<Object?> reply(String instructions, String input) async {
+        sent.add(instructions == familyInstructions ? 'cls' : 'plan');
+        if (instructions == familyInstructions) return {'t': <String>[]};
+        if (blanks-- > 0) return {'type': 'plan'};
+        return squat();
+      }
+
+      final ai = RecordAi(respond: reply);
+      expect(await ai.queryIntent('스쿼트 최고', 'ko', names, unit: 'kg'), squat());
+      expect(sent, ['cls', 'plan', 'plan']);
+      sent.clear();
+      blanks = 5;
+      expect(await ai.queryIntent('스쿼트 최고 기록', 'ko', names, unit: 'kg'), {
+        'type': 'plan',
+      });
+      expect(sent, ['cls', 'plan', 'plan'], reason: '한 번만 다시 묻는다');
+    });
+
     // 재검토: 1단계는 따로 원판을 치른다. 2단계가 402(원판 부족)로 끝나면 1단계에
     // 쓴 원판이 화면에 안 보였고, 다시 누르면 1단계를 또 샀다.
     test('2단계가 원판 부족이어도 1단계에 쓴 원판을 알리고, 다시 물을 때 1단계를 또 사지 않는다', () async {
@@ -2210,11 +2234,18 @@ void main() {
         count++;
       }
       expect(count, greaterThanOrEqualTo(25));
-      // 갈래 없는 질문의 지시문은 한 지시문의 절반이 안 된다.
+      // 갈래 없는 질문의 지시문(공통 줄 + 늘 싣는 refuse)은 한 지시문의 60% 가
+      // 안 된다. refuse 는 1단계가 가장 자주 놓친 갈래라 늘 싣는다.
+      expect(alwaysFamilies, {'refuse'});
+      expect(
+        focusedInstructions(const {}),
+        contains('{"kind":"unrelated"} only when'),
+      );
       expect(
         focusedInstructions(const {}).length,
-        lessThan(planInstructions.length / 2),
+        lessThan(planInstructions.length * 0.6),
       );
+      expect(familyInstructions, isNot(contains('refuse:')));
       expect(planTags({'t': []}), <String>{});
       expect(
         planTags({

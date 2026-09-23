@@ -364,7 +364,11 @@ void main() {
               ..[1] += 1;
 
             if (tagsOf.containsKey(c.q)) {
-              final tags = tagsOf[c.q];
+              // 늘 싣는 갈래는 꼬리표가 없어도 2단계에 있다.
+              final tags = switch (tagsOf[c.q]) {
+                final t? => {...t, ...alwaysFamilies},
+                null => null,
+              };
               if (tags == null) {
                 fellBack++;
               } else {

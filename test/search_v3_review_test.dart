@@ -437,7 +437,8 @@ void main() {
             // 1단계(갈래 고르기)는 세지 않는다 — 질문 하나에 plan 한 번.
             if (i == familyInstructions) return {'t': <String>[]};
             asked++;
-            return asked == 1
+            // 빈 답은 앱이 한 번 스스로 다시 묻는다 — 그것도 비면 막힌다.
+            return asked <= 2
                 ? {'type': 'json_object'}
                 : {
                     'exercises': ['벤치프레스'],
@@ -450,9 +451,10 @@ void main() {
       // 글에 운동이 있으면 기기에서 센 줄과 함께다 — 둘 다 '읽지 못' 을 말한다.
       final misread = find.textContaining('셀 수 있는 모양으로 읽지 못');
       await ask(tester, q);
+      expect(asked, 2);
       expect(misread, findsOneWidget);
       await ask(tester, q);
-      expect(asked, 2);
+      expect(asked, 3);
       expect(misread, findsNothing);
     });
 
