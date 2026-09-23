@@ -32,11 +32,16 @@ class HealthLink {
   bool _configured = false;
 
   // Keep each data type and its access together so the lists cannot diverge.
-  static const _access = {
+  // 심박은 iOS 에서만 읽는다. Play 가 Health Connect 의 심박 읽기를 "기능에
+  // 필요 이상" 으로 보고 반려했다(2026-09-23) — Android 매니페스트에도 없다.
+  Map<HealthDataType, HealthDataAccess> get _access => {
     HealthDataType.WORKOUT: HealthDataAccess.WRITE,
     HealthDataType.ACTIVE_ENERGY_BURNED: HealthDataAccess.READ,
-    HealthDataType.HEART_RATE: HealthDataAccess.READ,
+    if (_platform == TargetPlatform.iOS)
+      HealthDataType.HEART_RATE: HealthDataAccess.READ,
   };
+
+  bool get _heart => supported && _platform == TargetPlatform.iOS;
 
   static TargetPlatform? get _nativePlatform {
     if (kIsWeb) return null;
@@ -163,7 +168,7 @@ class HealthLink {
   /// 없다. 같은 값을 여러 번 읽게 되지만, 받는 쪽이 [HeartBeat.at] 으로
   /// 걸러내므로 문제가 되지 않는다.
   Stream<HeartBeat> beats({Duration poll = const Duration(seconds: 10)}) {
-    if (!supported) return const Stream.empty();
+    if (!_heart) return const Stream.empty();
     return _platform == TargetPlatform.iOS ? _pushed() : _polled(poll);
   }
 
@@ -205,7 +210,7 @@ class HealthLink {
   /// 재보기 전에는 알 수 없다. 몇 초면 쓸 수 있고 몇 분이면 못 쓴다.
   /// 그 판단을 하려고 지연을 같이 낸다.
   Future<HeartBeat?> latestHeartRate() async {
-    if (!supported) return null;
+    if (!_heart) return null;
     try {
       await _ensureConfigured();
       final now = DateTime.now();
