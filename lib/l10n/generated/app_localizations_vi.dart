@@ -1057,7 +1057,7 @@ class LVi extends L {
   String queryLimit(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'exercises': 'Mỗi lần hỏi được tối đa 8 bài tập. Hãy hỏi từng phần.',
-      'measures': 'Mỗi lần đếm được tối đa 3 thứ. Hãy hỏi từng phần.',
+      'measures': 'Mỗi lần đếm được tối đa 4 thứ. Hãy hỏi từng phần.',
       'ranking': 'Bảng xếp hạng hiển thị tối đa 20. Hãy hỏi 20 trở xuống.',
       'sessions':
           '\'N buổi gần nhất\' tối đa 100 buổi. Muốn xem dài hơn, hãy hỏi theo khoảng thời gian, ví dụ năm nay.',
@@ -1067,7 +1067,7 @@ class LVi extends L {
       'compareGrouped':
           'Một câu hỏi không thể vừa so sánh vừa nhóm theo bài tập, ngày, tuần, tháng hoặc thứ trong tuần. Hãy hỏi một trong hai.',
       'groupedMeasure':
-          'Khi nhóm theo ngày, tuần, tháng hoặc thứ trong tuần chỉ đếm được một thứ, và xu hướng, lần cuối, lần đầu, số ngày kể từ lần cuối không nhóm được.',
+          'Khi so sánh nhiều khoảng và nhóm theo ngày, tuần, tháng hoặc thứ trong tuần chỉ đếm được một thứ, và xu hướng, lần cuối, lần đầu, số ngày kể từ lần cuối không nhóm được.',
       'ordering':
           'Xếp hạng, tổng và trung bình cần nhóm, ví dụ theo bài tập hoặc theo tuần.',
       'datesTotal':
@@ -2315,5 +2315,10 @@ class LVi extends L {
   @override
   String queryAgainstDropped(String value) {
     return 'Đã bỏ số mốc $value — đó không phải cân nặng ghi trong câu hỏi';
+  }
+
+  @override
+  String queryBoundDropped(String value) {
+    return 'Đã bỏ điều kiện $value — câu hỏi không ghi số này theo đơn vị đó';
   }
 }

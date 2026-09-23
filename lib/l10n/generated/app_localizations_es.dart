@@ -1082,7 +1082,7 @@ class LEs extends L {
       'exercises':
           'Se pueden consultar hasta 8 ejercicios a la vez. Pregunta por partes.',
       'measures':
-          'Se pueden contar hasta 3 cosas a la vez. Pregunta por partes.',
+          'Se pueden contar hasta 4 cosas a la vez. Pregunta por partes.',
       'ranking': 'La clasificación muestra hasta 20. Pide 20 o menos.',
       'sessions':
           '\'Las últimas N sesiones\' llega hasta 100. Para más, pregunta por periodo, p. ej. este año.',
@@ -1093,7 +1093,7 @@ class LEs extends L {
       'compareGrouped':
           'Una comparación no puede agruparse además por ejercicio, día, semana, mes o día de la semana en una sola pregunta. Pregunta por una de las dos.',
       'groupedMeasure':
-          'Al agrupar por día, semana, mes o día de la semana solo se puede contar una cosa, y la tendencia, la última vez, la primera vez y los días desde la última no se agrupan.',
+          'Al comparar varios rangos agrupados por día, semana, mes o día de la semana solo se puede contar una cosa, y la tendencia, la última vez, la primera vez y los días desde la última no se agrupan.',
       'ordering':
           'Las clasificaciones, totales y promedios necesitan un agrupamiento, como por ejercicio o por semana.',
       'datesTotal':
@@ -2346,5 +2346,10 @@ class LEs extends L {
   @override
   String queryAgainstDropped(String value) {
     return 'Número de referencia $value omitido: no es un peso escrito en la pregunta';
+  }
+
+  @override
+  String queryBoundDropped(String value) {
+    return 'Se quitó la condición $value: la pregunta no dice ese número en esa unidad';
   }
 }

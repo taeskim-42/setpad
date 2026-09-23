@@ -349,12 +349,12 @@ void main() {
           },
         ),
         (
-          'trainedMeasure',
-          '운동한 날 벤치 최고',
+          'groupedMeasure',
+          '벤치 주별 추이',
           {
             'exercises': ['벤치프레스'],
-            'measures': ['best'],
-            'trained': true,
+            'measures': ['weightChange'],
+            'by': 'week',
           },
         ),
         (
@@ -501,13 +501,30 @@ void main() {
       }
     });
 
-    test('날짜 모르는 일의 전후를 메모로 가르면 빼고, 뺐다고 말한다', () {
+    test('글에 없는 메모 낱말은 지어낸 조건이라 빼고, 뺐다고 말한다 — 글에 있으면 모델의 읽기다', () {
       final rows = [
         n('a', 9, 1, [
           ExerciseBlock('데드리프트', [s(150, 3)]),
         ]),
       ];
-      const q = '부상 전후로 데드 무게 비교';
+      final said = {
+        'exercises': ['데드리프트'],
+        'series': [
+          {
+            'memo': ['부상'],
+          },
+          {
+            'noMemo': ['부상'],
+          },
+        ],
+      };
+      // 글에 '부상' 이 있으면 메모로 가른 것은 모델이 고른 읽기다 — 확인 줄이
+      // 메모를 보이고 사람이 고른다. 규칙이 덮지 않는다.
+      expect(
+        groundedIntent(said, '부상 전후로 데드 무게 비교', names, today: today),
+        said,
+      );
+      const q = '다리 수술 전후로 데드 무게 비교';
       final raw = {
         'exercises': ['데드리프트'],
         'series': [

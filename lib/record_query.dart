@@ -671,13 +671,15 @@ class RecordQuery {
     final m = _repaired({for (final e in parsed.entries) '${e.key}': e.value});
     final kind = m['kind'] ?? 'plan';
     final book = _Book(names);
-    final notComputable = _list(
+    // 규칙 층이 '적은 적 없음' 과 겹치는 말을 뺄 수 있다 — 그 뒤에 다시 읽는다.
+    List<String> said() => _list(
       m['notComputable'],
       4,
-      (t) => t is String && t.trim().isNotEmpty && t.length <= 40
+      (t) => t is String && t.trim().isNotEmpty && t.length <= 80
           ? t.trim()
           : throw const FormatException('Invalid notComputable'),
     );
+    var notComputable = said();
     if (kind == 'unrelated') {
       return RecordQuery(kind: 'unsupported', reason: 'unrelated');
     }
@@ -775,9 +777,11 @@ class RecordQuery {
         suggested: suggested,
       );
     }
+    _everyListed(m, book, lang);
     final dropped = question.isEmpty
         ? const <String, String>{}
         : _ground(m, question, names, today);
+    notComputable = said();
     _unpooled(m);
     final planned = m.keys.any((k) => k != 'kind' && k != 'notComputable');
     if (!planned) {
@@ -887,15 +891,24 @@ class RecordQuery {
     var order =
         _pick(m['order'], const ['desc', 'asc']) ??
         (limit != null ? 'desc' : null);
+    // 이름을 적은 줄은 모두 물은 줄이다("벤치랑 로우 뭐가 더 무거워"). 순위는
+    // 줄의 차례일 뿐 — 1등만 남기면 적은 적 없는 쪽이 말없이 사라진다.
+    if (items == null && by == null && topNames.length >= 2) limit = null;
     var total = _pick(m['total'], const ['sum', 'mean']);
     final per = _pick(m['per'], const ['day', 'week', 'month']);
     final all = {for (final s in series) ...s.measures};
     final rows = series.length > 1 || by != null;
     if (!rows) {
-      // 줄이 하나다. 더해지는 측정의 합계("러닝 총 거리")는 그 칸 자신이고,
-      // 한 줄의 1등은 그 줄이다 — 빼도 뜻이 같다. 그 밖의 순위·평균·관계는 줄이
-      // 둘 이상이어야 한다.
-      if (total == 'sum' && all.every(_additive.contains)) total = null;
+      // 줄이 하나다. 더해지는 측정의 합계("러닝 총 거리")와 운동 하나의 합계는
+      // 그 칸 자신이고, 날당·주당(per)을 적은 평균("하루 평균 칼로리")은 per 가
+      // 이미 평균이다. 한 줄의 1등은 그 줄이다 — 빼도 뜻이 같다. 그 밖의 순위·
+      // 평균·관계는 줄이 둘 이상이어야 한다.
+      if (total == 'sum' &&
+              (all.every(_additive.contains) ||
+                  series.single.scope.exercises.length == 1) ||
+          total == 'mean' && per != null) {
+        total = null;
+      }
       if (series.single.scope.exercises.length == 1 && (limit ?? 1) == 1) {
         order = null;
         limit = null;
@@ -919,9 +932,9 @@ class RecordQuery {
       throw const QueryLimit('groupedMeasure');
     }
     if (timeBy &&
-        ({for (final s in series) ...s.measures}.length != 1 ||
-            series.first.measures.length != 1 ||
-            _undated.contains(series.first.measures.single))) {
+        ((series.length > 1 &&
+                {for (final s in series) ...s.measures}.length != 1) ||
+            series.any((s) => s.measures.any(_undated.contains)))) {
       throw const QueryLimit('groupedMeasure');
     }
     if (per != null &&
@@ -946,10 +959,6 @@ class RecordQuery {
       if (energy &&
           (by == 'exercise' || by == 'part' || s.scope.hours != null)) {
         throw const QueryLimit('energyGrouped');
-      }
-      if (s.scope.trained != null &&
-          !s.measures.every(energyMetrics.contains)) {
-        throw const QueryLimit('trainedMeasure');
       }
     }
     // 비율·합계가 최고와 오면 추정 1RM 도 보인다 — 100kg×10 과 100kg×1 은 같은
@@ -1022,7 +1031,7 @@ Series _series(
       'months': 120,
       'years': 10,
     }[by];
-    if (max == null || n is! int || n < 1 || n > max) {
+    if (max == null || n is! int || n == 0 || n.abs() > max) {
       throw const FormatException('Invalid shift');
     }
     if (since == null && until == null) {
@@ -1082,7 +1091,7 @@ Series _series(
       : _unique(
           _list(
             s['measures'],
-            3,
+            4,
             (x) =>
                 _measures[x] ??
                 (throw const FormatException('Unknown measure')),
@@ -1180,9 +1189,10 @@ class QueryLimit extends FormatException {
   const QueryLimit(this.kind) : super('Query limit: $kind');
 
   /// exercises | measures | ranking | sessions | days | compare(series 6개 넘음) |
-  /// groupedMeasure | ordering | datesTotal | energyGrouped | per | perMeasure(날당·
-  /// 주당은 더하는 수만) | shareMeasure | trainedMeasure(운동한 날 고르기는 칼로리만) |
-  /// sameSeries(견줄 두 범위가 같다). 화면 문구의 열쇠다.
+  /// groupedMeasure(시간 묶음으로 여러 범위를 견주면 측정 하나, 날짜 없는 측정은
+  /// 못 묶음) | ordering | datesTotal | energyGrouped | per | perMeasure(날당·주당은
+  /// 더하는 수만) | shareMeasure | sameSeries(견줄 두 범위가 같다). 화면 문구의
+  /// 열쇠다.
   final String kind;
 }
 
@@ -1204,22 +1214,33 @@ const _hoisted = {
 /// 채점이 같은 대답을 다시 푼다.
 Map<String, Object?> _repaired(Map<String, Object?> m) {
   // {"type":"json_object","content":{…}} — 응답 형식 지시를 되받아 적고 plan 을
-  // 한 겹 감쌌다. 감싼 것이 하나뿐일 때만 벗긴다. 빈 껍데기는 그대로 거절된다.
-  if (m['type'] == 'json_object' && m.length == 2) {
-    final inner = m.entries.firstWhere((e) => e.key != 'type').value;
-    if (inner is Map) {
-      return _repaired({for (final e in inner.entries) '${e.key}': e.value});
+  // 한 겹 감쌌다. 곁에 질문을 되받아 적거나({"question":…,"response":{…}}) 스키마
+  // 꼴({"properties":{…},"required":[…]})이어도, plan 키가 없고 감싼 맵이 하나뿐
+  // 이면 그 맵이 plan 이다. 빈 껍데기는 그대로 거절된다.
+  if (m['type'] == 'json_object') {
+    final maps = [
+      for (final e in m.entries)
+        if (e.value is Map) e.value as Map,
+    ];
+    if (maps.length == 1 && !m.keys.any(_topKeys.contains)) {
+      return _repaired({
+        for (final e in maps.single.entries) '${e.key}': e.value,
+      });
     }
   }
   // {"type":"json_object", …plan} — 응답 형식을 plan 옆에 되받아 적었다. 그 키는
   // plan 의 것이 아니다. 그것뿐이면 빈 답이라 그대로 거절된다.
   if (m['type'] == 'json_object' && m.length > 1) m.remove('type');
-  // 입력의 이름 칸(exerciseNames·nameHints)을 운동 칸으로 되받아 적었다.
-  for (final k in const ['exerciseNames', 'nameHints']) {
-    if (m.containsKey(k) && !m.containsKey('exercises')) {
-      m['exercises'] = m.remove(k);
-    }
+  // 입력의 이름 칸(exerciseNames·nameHints)을 운동 칸으로 되받아 적었다. 운동
+  // 칸이 이미 있으면 되받은 입력일 뿐이다. 'exercise' 하나는 'exercises' 다.
+  for (final k in const ['exercise', 'exerciseNames', 'nameHints']) {
+    if (!m.containsKey(k)) continue;
+    final v = m.remove(k);
+    if (!m.containsKey('exercises')) m['exercises'] = v is String ? [v] : v;
   }
+  // {"kind":"find"} 에 이름이 없으면 찾을 것이 없다 — 질문의 plan 이다(규칙 층이
+  // 글이 지목한 운동을 채운다).
+  if (m['kind'] == 'find' && !m.containsKey('exercises')) m.remove('kind');
   // 빈 목록("notComputable": [])은 아무것도 말하지 않는다 — 없는 것과 같다.
   for (final k in const ['notComputable', 'exclude', 'memo', 'noMemo']) {
     if (m[k] case final List list when list.isEmpty) m.remove(k);
@@ -1229,6 +1250,47 @@ Map<String, Object?> _repaired(Map<String, Object?> m) {
   if (const {'plan', 'query', 'find', 'unrelated', 'clarify'}.contains(type) &&
       (m['kind'] ?? type) == type) {
     m['kind'] = m.remove('type');
+  }
+  // series 항목은 사본으로 고친다 — 들어온 맵은 바꾸지 않는다.
+  if (m['series'] case final List list) {
+    m['series'] = [
+      for (final i in list)
+        i is Map ? {for (final e in i.entries) '${e.key}': e.value} : i,
+    ];
+  }
+  // 기간 칸의 모양 실수. 모두 뜻이 하나다:
+  // - {"custom":{"since","until"}} — 기간 이름을 칸 이름으로 적었다.
+  // - {"period":"all","until":…} — 날짜를 적었으면 custom 이다('all' 은 기본값).
+  // - shift 의 0 은 밀지 않은 것이다({"months":0,"days":1} 은 {"days":1}).
+  for (final x in [
+    m,
+    if (m['series'] case final List list) ...list.whereType<Map>(),
+  ]) {
+    if (x['custom'] case final Map c
+        when c.keys.every((k) => k == 'since' || k == 'until') &&
+            !x.containsKey('since') &&
+            !x.containsKey('until')) {
+      x.remove('custom');
+      for (final e in c.entries) {
+        x['${e.key}'] = e.value;
+      }
+      x['period'] ??= 'custom';
+    }
+    if (x['period'] == 'all' &&
+        (x.containsKey('since') || x.containsKey('until'))) {
+      x['period'] = 'custom';
+    }
+    if (x['shift'] case final Map shift) {
+      final moved = {
+        for (final e in shift.entries)
+          if (e.value != 0) '${e.key}': e.value,
+      };
+      if (moved.isEmpty) {
+        x.remove('shift');
+      } else if (moved.length != shift.length) {
+        x['shift'] = moved;
+      }
+    }
   }
   // series 항목마다 똑같이 적은 plan 키는 plan 의 것이다. 항목마다 다르면
   // 표현할 수 없으니 그대로 두어 거절된다.
@@ -1271,16 +1333,101 @@ Map<String, Object?> _repaired(Map<String, Object?> m) {
     if (m['exercises'] case final List e when e.length == 1) 'exercises': e,
     if (m['part'] case final String p) 'part': p,
   };
+  // 이름 하나를 운동별로 묶은 순위는 그 한 줄이다({"exercises":["스쿼트"],
+  // "by":"exercise","limit":1}) — 묶음·순위를 빼도 줄이 같다.
+  if (m['by'] == 'exercise' &&
+      m['exercises'] is List &&
+      (m['exercises'] as List).length == 1 &&
+      !m.containsKey('series') &&
+      !m.containsKey('exclude') &&
+      !m.containsKey('relate')) {
+    for (final k in const ['by', 'order', 'limit']) {
+      m.remove(k);
+    }
+  }
+  // 운동 하나를 운동별로 묶어도 줄은 하나다({"by":"exercise","exercises":[스쿼트]}).
   if (m['relate'] == 'share' &&
       subject.length == 1 &&
       !m.containsKey('series') &&
-      !m.containsKey('by')) {
+      (!m.containsKey('by') ||
+          (m['by'] == 'exercise' && subject.containsKey('exercises')))) {
     m
-      ..removeWhere((k, _) => subject.containsKey(k))
+      ..removeWhere((k, _) => subject.containsKey(k) || k == 'by')
       ..['relate'] = 'ratio'
       ..['series'] = [<String, Object?>{}, subject];
   }
+  // 묶음이 series 가 이미 가른 것과 같으면 묶음은 아무것도 더 가르지 않는다:
+  // - 해마다(by year, 앱에 없는 묶음)인데 series 가 저마다 한 해 안의 기간이다.
+  // - 날마다인데 측정이 모두 날로 묶을 수 없는 것이다(연속·공백·추이 …) — 하루
+  //   안의 최장 연속은 뜻이 없다. 기간 전체의 값이다.
+  final seriesItems = m['series'] is List ? m['series'] as List : const [];
+  String? year(Object? d) =>
+      d is String && d.length >= 4 ? d.substring(0, 4) : null;
+  bool oneYear(Map x) =>
+      const {'thisYear', 'lastYear'}.contains(x['period']) ||
+      (year(x['since']) != null && year(x['since']) == year(x['until']));
+  if (m['by'] == 'year' &&
+      seriesItems.isNotEmpty &&
+      seriesItems.every((x) => x is Map && oneYear(x))) {
+    m.remove('by');
+  }
+  final wanted = [
+    for (final i in seriesItems.isEmpty ? const [null] : seriesItems)
+      i is Map && i['measures'] is List ? i['measures'] : m['measures'],
+  ];
+  if (m['by'] == 'day' &&
+      wanted.every(
+        (x) =>
+            x is List &&
+            x.isNotEmpty &&
+            x.every((y) => _undated.contains(_measures[y])),
+      )) {
+    m.remove('by');
+  }
   return m;
+}
+
+/// 기록한 운동을 (거의) 모두 적은 목록은 '모든 운동' 이다 — 이름 9개부터는 셀
+/// 수 없는 목록이라, 모델이 "모든 운동" 을 이름으로 풀어 적은 것밖에 뜻이 없다.
+/// 이름은 앱처럼 풀어 본다(사전의 다른 언어 이름도 그 기록이다). 기록에 없는
+/// 이름이 하나라도 있으면 사람이 이름을 늘어놓은 것일 수 있어 두고(한도 거절),
+/// 모두 기록 이름일 때만 모음으로 읽는다. 기록 운동 가운데 목록에 없는 것은 뺀
+/// 운동이다 — 같은 운동 모음이다("벤치 말고 제일 무거운 것").
+/// 윗단이면 운동마다 한 줄(by exercise), series 안이면 거름이 없는 것이다(빠진
+/// 것이 없을 때만 — exclude 는 plan 전체에 걸린다).
+void _everyListed(Map<String, Object?> m, _Book book, String lang) {
+  Set<String>? missing(Object? list) {
+    if (list is! List || list.length <= 8) return null;
+    final hit = <String>{};
+    for (final e in list) {
+      if (e is! String || e.trim().isEmpty || e.length > 40) return null;
+      final r = _resolveName(e.trim(), book, lang);
+      // 기록에 없는 이름이 섞였거나 퍼지로 읽은 이름이면 사람이 이름을 늘어놓은
+      // 것일 수 있다.
+      if (r.never || r.readAs != null) return null;
+      hit.add(r.key);
+    }
+    if (hit.isEmpty) return null;
+    final rest = book.members.keys.toSet().difference(hit);
+    return rest.length <= 8 ? rest : null;
+  }
+
+  final items = m['series'] is List ? m['series'] as List : const [];
+  for (final x in items.whereType<Map>()) {
+    if (missing(x['exercises'])?.isEmpty ?? false) x.remove('exercises');
+  }
+  final rest = missing(m['exercises']);
+  if (rest == null) return;
+  m.remove('exercises');
+  if (rest.isNotEmpty) {
+    m['exclude'] = {
+      if (m['exclude'] case final List e) ...e,
+      for (final k in rest) book.label(k, lang),
+    }.toList();
+  }
+  if (items.isEmpty && (m['by'] == null || m['by'] == 'exercise')) {
+    m['by'] = 'exercise';
+  }
 }
 
 void _keyCheck(Map value, Set<String> allowed) {
@@ -1433,7 +1580,7 @@ DateTime? _date(Object? value) {
   return d;
 }
 
-/// 의도 낱말 갈래 → 측정 이름. 규칙 층이 덮어쓸 수 있는 것은 이 여덟뿐이다.
+/// 의도 낱말 갈래 → 측정 이름. 규칙 층은 모델이 측정을 비웠을 때만 이것으로 채운다.
 const _familyMeasure = {
   'heaviest': 'best',
   'meanWeight': 'meanWeight',
@@ -1444,52 +1591,6 @@ const _familyMeasure = {
   'repCount': 'repCount',
   'volume': 'volume',
 };
-
-/// 두 범위를 견주는 말. 있으면 모델의 기간 series 를 접지 않는다. '전후'·'그 뒤로'
-/// 는 한 날의 앞과 뒤를 견주는 말이다 — "5월에 이사했는데 그 뒤로 줄었어?" 를 5월
-/// 한 달로 접으면 비교가 사라진다.
-final _comparing = RegExp(
-  r'보다|대비|비해|비교|\bvs\b|versus|\bthan\b|compared'
-  r'|전후|전과\s*후|그\s*(뒤|후|다음)|이후|이전|\bbefore\b|\bafter\b|前后|前後|前と後',
-  caseSensitive: false,
-);
-
-/// 날짜를 모르는 일의 앞뒤를 묻는 말("부상 전후로", "허리 다친 다음부터"). 그 일은
-/// 메모로 가르지 않는다 — 지시문대로 한 series 에 notComputable 이다.
-final _beforeAfter = RegExp(
-  r'전후|전과\s*후|다음부터|이후로|뒤로|\bbefore\b|\bafter\b|\bsince\b'
-  r'|前后|前後|前と後|以来|以降|之后|之後|trước và sau|sau khi|ก่อนและหลัง'
-  r'|antes y después|después de|desde',
-  caseSensitive: false,
-);
-
-/// 모델의 메모 글이 질문에 **날을 고르는 말로** 적혀 있는가. "컨디션 별로였던 날"
-/// 에는 '컨디션 안 좋' 이, "허리 아팠던 날" 에는 '허리 아프' 가, "knee pain days"
-/// 에는 'knee pain' 이 있다 — 그 낱말(어간) 가까이에 날·때가 있다. 잡담 끝말
-/// ("궁금", "보여줘")이나 의도 낱말("그래프")을 메모로 채운 것은 아니다.
-bool _said(String question, String phrase) {
-  if (metricFamilies(phrase).isNotEmpty) return false;
-  final text = question.toLowerCase();
-  // '어때' 의 때는 날이 아니다.
-  final day = RegExp(r'날|(?<!어)때|\bdays?\b|\bwhen\b|日|天|ngày|วัน|d[ií]as?\b');
-  final words = [
-    phrase.toLowerCase().trim(),
-    for (final w in phrase.toLowerCase().split(RegExp(r'\s+')))
-      if (stripParticle(w) case final k
-          when k.runes.length >= 2 && !RegExp(r'^[ㄱ-ㅎㅏ-ㅣ]+$').hasMatch(k))
-        k,
-  ];
-  for (final w in words.where((w) => w.isNotEmpty)) {
-    for (var at = text.indexOf(w); at >= 0; at = text.indexOf(w, at + 1)) {
-      final near = text.substring(
-        math.max(0, at - 12),
-        math.min(text.length, at + w.length + 12),
-      );
-      if (day.hasMatch(near)) return true;
-    }
-  }
-  return false;
-}
 
 /// 기준 수가 글에 무게로 적혔는가. 글로 쓴 수도 읽는다([statedNumbers]). 그 수
 /// 바로 뒤가 배·%·번·회·대면 무게가 아니다 — "데드 2배" 의 2, "3대" 의 3.
@@ -1502,11 +1603,17 @@ bool _statedWeight(String question, num value) => statedNumbers(question).any(
       ).hasMatch(question.substring(n.end)),
 );
 
-/// 글에 또렷이 적힌 것은 코드가 읽는다. 모델 출력을 **필드 단위로** 고친다
-/// — 맵을 새로 만들면 모델이 낸 다른 조건이 조용히 사라진다. 한국어와
-/// 영어만 안다. series 가 있으면 대부분 쉰다 — 규칙이 비교를 망가뜨리면 안 된다.
-/// 모델이 낸 것을 규칙이 **바꾸지는** 않는다: 비었으면 채우고, 여럿이면 글이
-/// 가리키는 하나로 좁히고, 글에 없는 것은 뺀다. 뺀 조건은 돌려준다(확인 줄).
+/// 규칙 층. 모델이 적은 것은 **뜻이 둘인 글로는 덮지 않는다** — 모델의 맞는
+/// plan 을 규칙이 덮어쓰던 것이 v3 재검토의 뿌리였다. 뜻이 하나뿐인 것만 한다:
+/// - 지어낸 것은 뺀다: 글에 없는 기준 수·메모 글·조건 수, 이미 '적은 적 없음'
+///   줄이 말하는 '○○ 기록' 못 보는 것. 뺀 조건은 돌려준다(확인 줄).
+/// - 모델이 떨어뜨린 것은 글에 **하나만** 또렷이 적혀 있을 때 채운다: 운동 이름,
+///   기간, 이상·이하 조건, 측정.
+/// - 모델이 적은 것이 뜻이 하나뿐인 글과 어긋나면 글이다: 기간 낱말 하나뿐인
+///   글에 series 없는 plan 의 다른 기간, "80kg 이상" 의 쪽·경계, "총 무게"·"얼마나
+///   자주" 같은 낱말의 측정, 연도 없는 "9월에" 의 해.
+/// 한국어와 영어 낱말만 안다. series 가 있으면 기간의 해 말고는 쉰다 — 비교는
+/// 모델의 읽기다.
 Map<String, String> _ground(
   Map<String, Object?> m,
   String question,
@@ -1519,7 +1626,8 @@ Map<String, String> _ground(
       for (final i in list)
         if (i is Map) i,
   ];
-  // 0. 기준 수는 글에 무게로 적힌 수만이다. 수가 없거나(null·0), 글에 없거나,
+  final all = [m, ...items];
+  // 1. 기준 수는 글에 무게로 적힌 수만이다. 수가 없거나(null·0), 글에 없거나,
   //    배수("2배")인 수는 뺀다 — 모양이 틀린 것([_against] 가 거절)은 그대로 둔다.
   if (m['against'] case {
     'value': final v,
@@ -1527,60 +1635,43 @@ Map<String, String> _ground(
     m.remove('against');
     if (v is num && v != 0) dropped['against'] = formatNumber(v.toDouble());
   }
-  // 1. 메모 조건은 사람이 말한 것만이다: 메모 낱말(메모·적은 …)이 있거나, 모델의
-  //    메모 글이 질문에 적혀 있을 때("컨디션 별로였던 날"). 날짜 모르는 일의
-  //    앞뒤("부상 전후로")를 메모로 가르지 않는다. 메모로만 갈랐던 series 는
-  //    지우고 나면 같아진다 — 한 series 다.
-  if (!_asksAboutNotes(question)) {
-    final event = _beforeAfter.hasMatch(question);
-    final gone = <String>{};
-    for (final x in [m, ...items]) {
-      for (final k in const ['memo', 'noMemo']) {
-        if (x[k] case final List list) {
-          final kept = [
-            for (final t in list)
-              if (!event && t is String && _said(question, t)) t,
-          ];
-          gone.addAll([
-            for (final t in list)
-              if (!kept.contains(t)) '$t',
-          ]);
-          if (kept.isEmpty) {
-            x.remove(k);
-          } else if (kept.length != list.length) {
-            x[k] = kept;
-          }
+  // 2. 메모 글은 질문에 적힌 말이어야 한다. 글에 없는 말, 메모를 묻지 않는
+  //    질문의 의도 낱말("그래프 보여줘" 의 그래프)은 모델이 지어낸 조건이다.
+  //    메모로만 갈랐던 series 는 지우고 나면 같아진다 — 한 series 다.
+  final notes = _asksAboutNotes(question);
+  final gone = <String>{};
+  for (final x in all) {
+    for (final k in const ['memo', 'noMemo']) {
+      if (x[k] case final List list) {
+        final kept = [
+          for (final t in list)
+            if (t is! String ||
+                (_inText(question, t) && (notes || metricFamilies(t).isEmpty)))
+              t,
+        ];
+        gone.addAll([
+          for (final t in list)
+            if (!kept.contains(t)) '$t',
+        ]);
+        if (kept.isEmpty) {
+          x.remove(k);
+        } else if (kept.length != list.length) {
+          x[k] = kept;
         }
       }
-      if (!x.containsKey('memo')) x.remove('memoAll');
     }
-    if (gone.isNotEmpty) dropped['memo'] = gone.join(', ');
-    if (items.length > 1 && items.map(jsonEncode).toSet().length == 1) {
-      m.remove('series');
-      for (final e in items.first.entries) {
-        m.putIfAbsent('${e.key}', () => e.value);
-      }
-      items.clear();
+    if (!x.containsKey('memo')) x.remove('memoAll');
+  }
+  if (gone.isNotEmpty) dropped['memo'] = gone.join(', ');
+  if (items.length > 1 && items.map(jsonEncode).toSet().length == 1) {
+    m.remove('series');
+    for (final e in items.first.entries) {
+      m.putIfAbsent('${e.key}', () => e.value);
     }
+    items.clear();
   }
-  // 기록한 운동을 모두 적은 목록은 '모든 운동' 이다(9개부터는 셀 수 없다).
-  // 윗단이면 운동마다 한 줄이라 by exercise, series 안이면 거름이 없는 것이다.
-  bool all(Object? list) =>
-      list is List &&
-      list.length > 8 &&
-      names.every((n) => list.any((x) => '$x' == n));
-  if (all(m['exercises']) &&
-      (m['by'] == null || m['by'] == 'exercise') &&
-      !m.containsKey('series')) {
-    m
-      ..remove('exercises')
-      ..['by'] = 'exercise';
-  }
-  for (final x in items) {
-    if (all(x['exercises'])) x.remove('exercises');
-  }
-  // 안 적은 운동을 plan 에 두고 그 이름을 notComputable 에도 적었다("힙쓰러스트
-  // 기록 없음") — 그 줄은 이미 '적은 적 없음' 이다. 같은 말을 두 번 하지 않는다.
+  // 3. 안 적은 운동을 plan 에 두고 그 이름을 notComputable 에도 적었다("힙쓰러스트
+  //    기록 없음") — 그 줄은 이미 '적은 적 없음' 이다. 같은 말을 두 번 하지 않는다.
   if (m['notComputable'] case final List said) {
     final book = _Book(names);
     final unlogged = {
@@ -1614,34 +1705,18 @@ Map<String, String> _ground(
     m,
     ...items,
   ].any((x) => x.containsKey('memo') || x.containsKey('noMemo'));
-  final excluding = m.containsKey('exclude');
   List<Object?> listed() =>
       m['exercises'] is List ? m['exercises'] as List : const [];
 
-  // 2. 모델은 "정체기인가", "PR" 을 운동일수 순위로 내곤 한다. 순위인데
-  //    운동이 하나면 순위가 아니다. 진짜 순위 질문에는 운동 이름이 없다.
-  //    글의 이름은 정확한 이름·별칭만 본다 — 퍼지로 지목하면 일반 낱말이 운동이
-  //    된다(베트남어 'chung' → 'Chùng Chân').
-  if (!hasSeries && m['by'] == 'exercise' && !excluding) {
-    final named = listed().isEmpty
-        ? namedExercises(question, names, fuzzy: false)
-        : const <String>[];
-    if (listed().length == 1 || named.length == 1) {
-      for (final k in const ['by', 'order', 'limit', 'total']) {
-        m.remove(k);
-      }
-      if (named.length == 1) m['exercises'] = named;
-    }
-  }
-
-  // 3. "오버헤드 요즘 어때" — 이름이 필요한 측정인데 운동이 없다. 글에서
-  //    운동이 딱 하나 잡히면 그것이다. 둘 이상이면 모른다고 둔다.
+  // 4. 운동 이름: 이름이 필요한 측정인데 plan 에 운동이 없고, 글이 정확한 이름·
+  //    별칭으로 운동을 **하나만** 지목하면 그것이다("오버헤드 요즘 어때"). 퍼지로
+  //    지목하지 않는다 — 일반 낱말이 운동이 된다(베트남어 'chung' → 'Chùng Chân').
   final measures = m['measures'];
   if (!hasSeries &&
       !m.containsKey('part') &&
       listed().isEmpty &&
       m['by'] == null &&
-      !excluding &&
+      !m.containsKey('exclude') &&
       (measures is List ? measures : const ['best']).any(
         (x) => !_nameless.contains(x),
       )) {
@@ -1649,146 +1724,197 @@ Map<String, String> _ground(
     if (named.length == 1) m['exercises'] = named;
   }
 
-  // 4. 글의 기간이 하나면 그것이다. 모델의 기간 series 는, 글이 두 범위를
-  //    견주지 않고 series 가 기간 말고 다르지 않을 때만 접는다("이번 달 벤치 무게
-  //    변화"). 기간 말고 다른 것이 다르면("올해 초 스쿼트랑 요즘 레그프레스")
-  //    절대 접지 않는다. 어디든 shift 가 있으면 쉰다 — "작년 이맘때" 의 작년이
-  //    lastYear 로 덮이면 뜻이 뒤집힌다. 날을 고르는 series(끝에서 N번째·마지막
-  //    N번)나 한쪽만 열린 창(어느 날의 전·후)이 있어도 쉰다 — "오늘 vs 지난번" 의
-  //    오늘은 끝에서 1번째 날이지 모든 series 의 기간이 아니다.
-  final stated = statedPeriod(question, today: today);
-  final shifted = [m, ...items].any((x) => x.containsKey('shift'));
-  final picksDays =
-      [m, ...items].any((x) => x.containsKey('nth')) ||
-      items.any((x) => x.containsKey('sessions'));
-  // 한쪽만 열린 창: 어느 날의 전(until 만)·후(since 만). 다른 기간 이름과 섞인
-  // 것({"period":"thisYear","until":…})은 모양 실수라 글의 기간이 고친다.
-  final halfOpen = items.any(
-    (x) =>
-        x.containsKey('since') != x.containsKey('until') &&
-        (x['period'] ?? 'custom') == 'custom',
-  );
-  final periodItems = items.any((c) => c.keys.any(_periodKeys.contains));
-  String rest(Map c) => jsonEncode({
-    for (final e in c.entries)
-      if (!_periodKeys.contains(e.key)) '${e.key}': e.value,
-  });
-  final onlyWindows = items.map(rest).toSet().length <= 1;
-  if (stated != null &&
-      !shifted &&
-      !picksDays &&
-      !halfOpen &&
-      !(periodItems && (_comparing.hasMatch(question) || !onlyWindows))) {
-    m.removeWhere((k, _) => _periodKeys.contains(k));
-    m.addAll({
-      'period': stated.period,
-      'days': ?stated.days,
-      'since': ?stated.since,
-      'until': ?stated.until,
-    });
-    if (periodItems) {
-      final stripped = [
-        for (final c in items)
-          {
-            for (final e in c.entries)
-              if (!_periodKeys.contains(e.key)) '${e.key}': e.value,
-          },
-      ];
-      if (stripped.map(jsonEncode).toSet().length == 1) {
-        m.remove('series');
-        for (final e in stripped.first.entries) {
-          m.putIfAbsent(e.key, () => e.value);
+  // 5. 기간: 글의 기간 낱말이 하나뿐이면("요즘"·"최근" 같은 막연한 말이 함께
+  //    있으면 둘이다) 그것이 기간이다. plan 어디에도 기간이 없으면('all' 은 없는
+  //    것이다) 채우고, series 없는 plan 이 다른 기간을 적었으면 글과 어긋난 것이라
+  //    글을 따른다 — 다만 글이 두 때를 견주면("…보다", "그 뒤로") 모델의 읽기다.
+  //    날을 고르는 series(끝에서 N번째·마지막 N번)나 shift 가 있으면 쉰다 — "오늘
+  //    vs 지난번" 의 오늘은 모든 series 의 기간이 아니다. series 가 저마다 기간을
+  //    적었으면 모델의 비교다: 날짜가 글의 달과 해만 다를 때(연도 없는 "9월에" 를
+  //    2025-09 로)만 글의 해로 고친다.
+  final stated = _vague.hasMatch(question)
+      ? null
+      : statedPeriod(question, today: today);
+  if (stated != null) {
+    bool dated(Map x) =>
+        x.keys.any((k) => _periodKeys.contains(k) && k != 'period') ||
+        (x['period'] ?? 'all') != 'all';
+    final picksDays = all.any(
+      (x) =>
+          x.containsKey('shift') ||
+          x.containsKey('nth') ||
+          x.containsKey('sessions'),
+    );
+    final overwrite =
+        !hasSeries && !picksDays && !_comparing.hasMatch(question);
+    if ((!all.any(dated) && !picksDays) || overwrite) {
+      m.removeWhere((k, _) => _periodKeys.contains(k));
+      for (final x in items) {
+        x.remove('period');
+      }
+      m.addAll({
+        'period': stated.period,
+        'days': ?stated.days,
+        'since': ?stated.since,
+        'until': ?stated.until,
+      });
+    } else if (stated.since case final since? when !_statesYear(question)) {
+      String rest(Object? d) =>
+          d is String && d.length == 10 ? d.substring(4) : '';
+      for (final x in all) {
+        if (x['since'] case final String s
+            when s != since &&
+                rest(s) == rest(since) &&
+                rest(x['until']) == rest(stated.until)) {
+          x['since'] = since;
+          x['until'] = stated.until;
         }
-      } else {
-        m['series'] = stripped;
       }
     }
   }
 
-  // 5. "80kg 이상 5회 이상" — 조건이 둘이면 모델은 하나를 떨어뜨리곤 한다.
-  //    글에 또렷이 적힌 숫자 조건은 코드가 뽑고, 그것이 모델보다 앞선다.
-  //    글이 읽는 것은 이상·이하뿐이다. 글이 읽지 못한 초과·미만이 반대쪽에
-  //    있으면("80kg 초과 85kg 이하") 모델의 그쪽 조건은 남긴다. 그런 말이
-  //    없는 쪽의 모델 조건은 글과 어긋난 것이라 버린다.
-  if (!m.containsKey('series') && !aboutNotes) {
+  // 6. 이상·이하: "80kg 이상", "5회 이하" 는 그 수의 쪽과 경계를 정한다. 모델이
+  //    같은 수를 다른 쪽·경계로 적었으면 글을 따르고, 떨어뜨렸으면 채운다. 글에
+  //    그 종류(무게·횟수)로 없는 수의 조건은 지어낸 것이라 뺀다("5회 이상" 의 5 를
+  //    5kg 로). 글이 읽지 못한 조건(초과·미만·넘게)은 모델 것 그대로다.
+  if (!hasSeries && !aboutNotes) {
     final f = statedFilters(question);
-    bool says(String words) =>
-        RegExp(words, caseSensitive: false).hasMatch(question);
-    final over = says(r'초과|넘|\bover\b|more than|above');
-    final under = says(r'미만|\bunder\b|less than|below');
-    List<Object?> bounds(Object? model, num? min, num? max, String? unit) => [
+    final numbers = statedNumbers(question).map((n) => n.value).toSet();
+    List<Object?> bounds(
+      Object? model,
+      num? min,
+      num? max,
+      String? unit,
+      bool Function(num) said,
+    ) => [
       for (final b in model is List ? model : [?model])
-        if (b is Map &&
-            b['op'] is String &&
-            ((b['op'] as String).startsWith('>')
-                ? min == null && over
-                : (b['op'] as String).startsWith('<') && max == null && under))
+        if (b is! Map ||
+            b['value'] is! num ||
+            (said(b['value'] as num) && b['value'] != min && b['value'] != max))
           b,
       if (min != null) {'op': '>=', 'value': min, 'unit': ?unit},
       if (max != null) {'op': '<=', 'value': max, 'unit': ?unit},
     ];
-    if (f.minWeight != null || f.maxWeight != null) {
-      m['weight'] = bounds(m['weight'], f.minWeight, f.maxWeight, f.unit);
-    }
-    if (f.minReps != null || f.maxReps != null) {
-      m['reps'] = bounds(m['reps'], f.minReps, f.maxReps, null);
-      // 횟수 단위로는 무게 조건을 지어낼 수 없다.
-      final hasWeightUnit = RegExp(
-        r'kg|lb|킬로|키로|파운드|kilogram|pound',
-        caseSensitive: false,
-      ).hasMatch(question);
-      final hasUnspecifiedUnitBound = RegExp(
-        r'(\d+(?:\.\d+)?|[일이삼사오육칠팔구십백]+)\s*(이상|이하|초과|미만)',
-      ).hasMatch(question);
-      if (!hasWeightUnit && !hasUnspecifiedUnitBound) m.remove('weight');
-    }
-  }
-
-  // 6. 의도 낱말이 한 갈래면 그것이 측정이다. 모델은 세트 수·횟수·운동한 날·
-  //    최고를 서로 헷갈린다("스쿼트 PR" 에 운동일수). 추정 1RM 같은 다른 측정은
-  //    덮지 않는다 — "벤치 1RM 추이" 가 "추이" 때문에 바뀌면 안 된다. "마지막
-  //    5번" 의 마지막은 범위(sessions)지 측정이 아니다. 못 보는 말이 있으면 쉰다 —
-  //    "한국 남자 평균보다 센 편?" 의 평균은 그 말의 것이다.
-  //    추이·늘었·줄었 은 **한 운동의** 무게 흐름일 때만 측정을 바꾼다(지시문:
-  //    weightChange of one exercise). 운동을 지목하지 않은 "운동 횟수 줄었어?" 의
-  //    '줄었' 은 모델이 낸 측정(운동일수)의 방향이지 무게가 아니다 — 비었을 때만
-  //    채운다.
-  final oneExercise = listed().length == 1;
-  if (!m.containsKey('series') &&
-      m['by'] == null &&
-      !aboutNotes &&
-      !m.containsKey('notComputable') &&
-      !m.containsKey('sessions') &&
-      !m.containsKey('nth') &&
-      (measures == null ||
-          measures is List &&
-              measures.isNotEmpty &&
-              measures.every(_familyMeasure.containsValue))) {
-    final hits = metricFamilies(question);
-    if (hits.length == 1) {
-      final want = _familyMeasure[hits.single]!;
-      if (measures == null ||
-          want != 'weightChange' ||
-          oneExercise ||
-          (measures as List).contains(want)) {
-        m['measures'] = [want];
+    for (final (key, min, max, unit, said) in [
+      (
+        'weight',
+        f.minWeight,
+        f.maxWeight,
+        f.unit,
+        // 모델이 단위를 바꿔 적은 수(100파운드 → 45.36kg)도 글의 수다.
+        (num v) =>
+            _statedWeight(question, v) ||
+            numbers.any(
+              (n) => [
+                n * 0.45359237,
+                n / 0.45359237,
+              ].any((x) => (x - v).abs() < 0.01),
+            ),
+      ),
+      ('reps', f.minReps, f.maxReps, null, numbers.contains),
+    ]) {
+      final before = m[key];
+      if (before == null && min == null && max == null) continue;
+      final after = bounds(before, min, max, unit, said);
+      final lost = [
+        for (final b in before is List ? before : [?before])
+          if (b is Map && b['value'] is num && !after.contains(b)) b['value'],
+      ].where((v) => v != min && v != max);
+      if (lost.isNotEmpty) {
+        dropped[key] = lost
+            .map((v) => formatNumber((v as num).toDouble()))
+            .join(', ');
+      }
+      if (after.isEmpty) {
+        m.remove(key);
+      } else {
+        m[key] = after.length == 1 ? after.single : after;
       }
     }
   }
 
-  // 7. 한 줄의 합계("러닝 총 거리")는 그 칸 자신이다 — 디코더가 빼는 것을 여기서
-  //    뺀다(더해지는 측정만).
-  final asked = m['measures'];
-  if (m['total'] == 'sum' &&
-      !m.containsKey('series') &&
+  // 7. 측정: 모델이 측정을 적지 않았고 글의 의도 낱말이 한 갈래면 그것이다
+  //    ("벤치 그래프" 는 추이). 뜻이 둘인 낱말로는 모델이 적은 측정을 바꾸지
+  //    않는다 — "운동 횟수 줄었어?" 의 운동일수가 '줄었' 때문에 무게 추이가 되면
+  //    안 된다. "마지막 5번" 의
+  //    마지막은 범위(sessions)지 측정이 아니다. 못 보는 말이 있으면 쉰다 — "한국
+  //    남자 평균보다 센 편?" 의 평균은 그 말의 것이다.
+  //    뜻이 하나뿐인 낱말("총 무게", "얼마나 자주", "세트 수", "PR")이 가리키는
+  //    측정과 모델의 측정이 어긋나면(모델이 헷갈리는 여덟 측정 안에서) 글이다.
+  if (!hasSeries &&
       m['by'] == null &&
-      listed().length <= 1 &&
-      asked is List &&
-      asked.isNotEmpty &&
-      asked.every((x) => _additive.contains(_measures[x]))) {
-    m.remove('total');
+      !aboutNotes &&
+      !m.containsKey('notComputable') &&
+      !m.containsKey('sessions') &&
+      !m.containsKey('nth')) {
+    final hits = metricFamilies(question);
+    final want = hits.length == 1 ? _familyMeasure[hits.single]! : null;
+    if (want != null &&
+        (measures == null ||
+            (measures is List &&
+                measures.isNotEmpty &&
+                !measures.contains(want) &&
+                measures.every(_familyMeasure.containsValue) &&
+                (_plainWords[want]?.hasMatch(question) ?? false)))) {
+      m['measures'] = [want];
+    }
   }
   return dropped;
+}
+
+/// 뜻이 하나뿐인 의도 낱말. 모델이 이것과 다른 측정을 적었으면 글과 어긋난
+/// 것이다. '몇 번'(세트? 날?)·'총 몇 회'(횟수? 번?)·'추이'·'평균'·'최고'(무게?
+/// 횟수?)·'저번'(저번 주?)은 뜻이 둘이라 여기 없다 — 비었을 때만 채운다.
+final _plainWords = {
+  'volume': RegExp(
+    r'볼륨|총량|총\s*무게|전체\s*무게|\bvolume\b|tonnage',
+    caseSensitive: false,
+  ),
+  'trainingDays': RegExp(
+    r'며칠|얼마나\s*자주|운동\s*(횟수|빈도)|how\s*often|how\s*many\s*(days|workouts)',
+    caseSensitive: false,
+  ),
+  'setCount': RegExp(
+    r'세트\s*수|몇\s*세트|세트\s*몇|how\s*many\s*sets',
+    caseSensitive: false,
+  ),
+  'repCount': RegExp(
+    r'반복\s*횟수|총\s*반복|total\s*reps|how\s*many\s*reps',
+    caseSensitive: false,
+  ),
+  'best': RegExp(
+    r'\bPR\b|개인\s*기록|(최고|최대)\s*(무게|중량)|personal\s*(record|best)|heaviest|max\s*weight|몇\s*(kg|킬로|키로|파운드)\s*까지|(제일|가장)\s*무(거|겁)',
+    caseSensitive: false,
+  ),
+};
+
+/// 기간을 막연히 말하는 낱말. 글의 다른 기간 낱말과 함께면 기간이 둘이다.
+/// "요즘 어때" 는 기간이 아니라 추이를 묻는 말이다([_metricWords]).
+final _vague = RegExp(
+  r'(요즘|요새)(?!\s*어때)|최근(?!\s*(\d|에\s*언제))|lately|recently|these\s*days',
+  caseSensitive: false,
+);
+
+/// 두 때를 견주는 말. 있으면 series 없는 plan 의 기간도 모델의 읽기다.
+final _comparing = RegExp(
+  r'보다|대비|비해|비교|\bvs\b|versus|\bthan\b|compared'
+  r'|전후|전과\s*후|그\s*(뒤|후|다음)|이후|이전|\bbefore\b|\bafter\b|\bsince\b'
+  r'|前后|前後|前と後',
+  caseSensitive: false,
+);
+
+/// 모델의 메모 글이 질문에 적힌 말인가: 글 전체가, 또는 낱말(조사 뗀 두 글자
+/// 이상) 하나가 질문에 있다. "허리 아프" 는 "허리 아팠던 날" 의 허리로, "컨디션
+/// 안 좋" 은 "컨디션 별로였던 날" 의 컨디션으로 적혀 있다.
+bool _inText(String question, String phrase) {
+  final text = question.toLowerCase();
+  final whole = phrase.toLowerCase().trim();
+  if (whole.isNotEmpty && text.contains(whole)) return true;
+  return whole
+      .split(RegExp(r'\s+'))
+      .map(stripParticle)
+      .where((k) => k.runes.length >= 2 && !RegExp(r'^[ㄱ-ㅎㅏ-ㅣ]+$').hasMatch(k))
+      .any(text.contains);
 }
 
 /// 한 운동 안의 세트·날을 이어 세는 무게 측정의 모델 이름. 여러 운동을 섞으면
@@ -1970,7 +2096,9 @@ bool _inDays(Note note, QueryScope v) {
           (v.memoAll
               ? v.memo.every((t) => _mentions(memos, t))
               : v.memo.any((t) => _mentions(memos, t)))) &&
-      (v.noMemo.isEmpty || !v.noMemo.any((t) => _mentions(memos, t)));
+      (v.noMemo.isEmpty || !v.noMemo.any((t) => _mentions(memos, t))) &&
+      // 쉰 날(trained: false)에는 운동 기록이 없다. 운동한 날은 거름이 아니다.
+      v.trained != false;
 }
 
 bool _timed(String title, String? timer) {
@@ -2783,10 +2911,13 @@ RecordResult? runPlan(
       );
     }
   } else {
-    // 날·주·달·요일. series 가 칸이다(하나면 측정이 칸).
-    final ms = [for (final s in series) s.measures.single];
+    // 날·주·달·요일. series 가 칸이다(하나면 측정이 칸 — 여럿이면 표다).
+    final cols = n == 1
+        ? [for (final m in series.single.measures) (0, m)]
+        : [for (var i = 0; i < n; i++) (i, series[i].measures.single)];
+    final ms = [for (final (_, m) in cols) m];
     if (n == 1) {
-      columns.add(metricLabel(l, ms.single));
+      columns.addAll(ms.map((m) => metricLabel(l, m)));
     } else {
       columns.addAll(seriesLabels);
     }
@@ -2801,11 +2932,11 @@ RecordResult? runPlan(
         kept[i].notes.where((note) => test(_day(note.createdAt))).toList();
     ResultRow row(String name, DateTime? start, bool Function(DateTime) test) =>
         ResultRow(name, [
-          for (var i = 0; i < n; i++)
+          for (final (i, m) in cols)
             compute(
               i,
               within(i, test),
-              ms[i],
+              m,
               basis: kept[i].notes,
               within: test,
               start: start,
@@ -2945,7 +3076,7 @@ RecordResult? runPlan(
     }
     // 개수형 주·달 묶음: 0 인 구간이 답이다("매주 빠짐없이 했나").
     if ((by == 'week' || by == 'month') &&
-        n == 1 &&
+        ms.length == 1 &&
         _counting.contains(ms.single) &&
         rows.isNotEmpty) {
       final zeros = rows
@@ -3361,7 +3492,10 @@ RecordResult? runPlan(
   final growthRanked = q.order != null && _growth.contains(metrics.firstOrNull);
   return RecordResult(
     render:
-        const ['day', 'week', 'month'].contains(by) && q.order == null && n == 1
+        const ['day', 'week', 'month'].contains(by) &&
+            q.order == null &&
+            n == 1 &&
+            columns.length == 1
         ? 'chart'
         : by == null && rows.length == 1 && columns.length == 1
         ? 'number'
@@ -3741,6 +3875,8 @@ String describePlan(
       l.queryNotComputableTail(q.notComputable.join(' · ')),
     if (q.dropped['memo'] case final words?) l.queryMemoDropped(words),
     if (q.dropped['against'] case final value?) l.queryAgainstDropped(value),
+    for (final k in const ['weight', 'reps'])
+      if (q.dropped[k] case final value?) l.queryBoundDropped(value),
   ];
   if (q.series.length == 1) {
     return [...head, ...seriesParts(q.series.single), ...tail].join(' · ');
@@ -3836,6 +3972,7 @@ Map<String, Object?> groundedIntent(
   final question = canonicalizeExercises(text, names);
   if (m['kind'] == 'find' && _notBare(m, question)) m.remove('kind');
   if (const {'plan', 'query'}.contains(m['kind'] ?? 'plan')) {
+    _everyListed(m, _Book(names), 'ko');
     _ground(m, question, names, today);
     _unpooled(m);
   }

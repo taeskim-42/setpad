@@ -1027,14 +1027,15 @@ class LJa extends L {
   String queryLimit(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'exercises': '種目は一度に8つまで質問できます。分けて質問してください。',
-      'measures': '一度に数えられるのは3つまでです。分けて質問してください。',
+      'measures': '一度に数えられるのは4つまでです。分けて質問してください。',
       'ranking': 'ランキングは20件まで表示できます。20件以下で質問してください。',
       'sessions': '「直近N回」は100回までです。もっと長く見るには期間で質問してください。例: 今年',
       'days': '「最近N日」は3660日（約10年）までです。もっと長く見るには全期間で質問してください。',
       'compare': '一度に比較できるのは6つまでです。分けて質問してください。',
       'compareGrouped':
           '比較と、種目・日・週・月・曜日ごとのまとめは、1つの質問で同時に計算できません。どちらか一方で質問してください。',
-      'groupedMeasure': '日・週・月・曜日ごとにまとめると数えられるのは1つだけで、推移・最後・最初・経過日数はまとめられません。',
+      'groupedMeasure':
+          '日・週・月・曜日ごとにまとめて複数の範囲を比べると数えられるのは1つだけで、推移・最後・最初・経過日数はまとめられません。',
       'ordering': 'ランキング・合計・平均は、種目別や週別のようにまとめて質問してください。',
       'datesTotal': '最後・最初の日付は合計や平均にできません。',
       'perMeasure':
@@ -2250,5 +2251,10 @@ class LJa extends L {
   @override
   String queryAgainstDropped(String value) {
     return '基準の数 $value を外しました — 質問に重さとして書かれた数ではありません';
+  }
+
+  @override
+  String queryBoundDropped(String value) {
+    return '数の条件 $value を外しました — 質問にその単位で書かれた数ではありません';
   }
 }

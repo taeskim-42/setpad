@@ -6,17 +6,17 @@ import '../tool/question_grading.dart';
 
 /// 모델 없는 게이트.
 ///
-/// 규칙 층("글에 또렷이 적힌 것은 코드가 읽는다")이 무엇을 약속하는지를
-/// 생성된 문장 전부에 대고 몇 초 만에 검사한다. 모델 출력은 **일부러 최악**
-/// 으로 흉내 낸다 — 메모 조건을 지어내고, 측정을 틀리고, 기간과 조건을
-/// 떨어뜨리고, 사용자 철자를 그대로 돌려준다. 채점은 v1 정답을 v3 대안으로
-/// 바꿔(v2Expected → v3Alternatives) 규칙 층을 지난 plan([groundedIntent])과
-/// 뜻 전체를 견준다(tool/question_grading.dart). 채점기 자체의 검사는
-/// tool/question_grading_test.dart 에 있다. 실제 모델이 그렇게 냈던
-/// 날이 있었다(dev 에서 11건 회귀). 이 게이트는 그런 회귀를 시뮬레이터
-/// 없이 커밋 전에 잡는다.
+/// 규칙 층의 계약을 생성된 문장 전부에 대고 몇 초 만에 검사한다. 계약은 둘이다:
+/// 1. **맞는 plan 은 바꾸지 않는다.** 정답 plan 을 모델 답으로 넣으면 규칙 층을
+///    지난 뒤에도 정답이다 — v3 재검토의 뿌리는 규칙 층이 모델의 맞는 plan 을
+///    덮어쓴 것이었다.
+/// 2. **떨어뜨린 조건은 채운다.** 모델이 운동 이름만 돌려주고 기간·숫자 조건·
+///    측정을 떨어뜨렸으면, 글에 하나만 또렷이 적힌 것을 채워 정답이 된다.
+/// 채점은 v1 정답을 v3 대안으로 바꿔(v2Expected → v3Alternatives) 규칙 층을 지난
+/// plan([groundedIntent])과 뜻 전체를 견준다(tool/question_grading.dart).
 ///
-/// 이것은 규칙 층의 계약이지 모델 정확도가 아니다. 오타와 초성은 모델
+/// 모델이 적은 것을 규칙이 바로잡던 '최악의 출력' 게이트는 뺐다 — 뜻이 둘인
+/// 낱말로 모델의 측정·기간을 덮으면 맞는 plan 도 덮는다. 오타와 초성은 모델
 /// 몫이라 여기서 묻지 않는다.
 void main() {
   const names = [
@@ -40,37 +40,16 @@ void main() {
           .map((c) => c.cast<String, Object?>())
           .toList();
 
-  /// 모델이 낼 법한 최악의 출력 넷. 코드 층은 넷 모두에서 정답으로 돌아와야 한다.
-  List<Map<String, Object?>> worst(String question, String form) => [
-    // 1. 잡담에 이끌려 메모 조건을 아무 낱말로 채웠고, 측정은 틀렸다.
+  /// 모델 답 둘: 정답 그대로, 그리고 운동 이름만 남기고 조건을 모두 떨어뜨린 것.
+  List<Map<String, Object?>> answers(List<Object?> gold, String form) => [
+    (gold.first as Map).cast<String, Object?>(),
     {
       'exercises': [form],
-      'memo': [question.split(' ').last],
-      'measures': ['trainingDays'],
-    },
-    // 2. 측정을 틀렸다(전부 세트 수로), 기간과 조건은 떨어뜨렸다.
-    {
-      'exercises': [form],
-      'measures': ['setCount'],
-    },
-    // 3. 운동 하나를 지목한 순위로 냈다.
-    {
-      'exercises': [form],
-      'by': 'exercise',
-      'measures': ['trainingDays'],
-      'limit': 1,
-    },
-    // 4. 운동 없는 순위로 냈다 — 실제 모델이 "정체기인가·늘고 있나·PR" 에
-    //    가장 자주 내던 모양이다. 글에 운동이 하나 있으면 순위가 아니다.
-    {
-      'by': 'exercise',
-      'measures': ['trainingDays'],
-      'limit': 1,
     },
   ];
 
   for (final set in ['dev', 'heldout']) {
-    test('규칙 층은 최악의 모델 출력을 정답으로 돌린다 — $set', () {
+    test('규칙 층은 맞는 plan 을 두고, 떨어뜨린 조건은 채운다 — $set', () {
       var graded = 0, passed = 0;
       final failures = <String>[];
       for (final c in load(set)) {
@@ -86,14 +65,18 @@ void main() {
           continue;
         }
         final q = c['q'] as String;
-        for (final (i, intent) in worst(q, exp['form'] as String).indexed) {
+        final gold = v3Alternatives(v2Expected(exp)!);
+        for (final (i, intent) in answers(
+          gold,
+          exp['form'] as String,
+        ).indexed) {
           graded++;
           List<String> errors;
           try {
             RecordQuery.decode(intent, names, question: q, today: today);
             errors = gradePlan(
               groundedIntent(intent, q, names, today: today),
-              v3Alternatives(v2Expected(exp)!),
+              gold,
               names: names,
               lang: 'ko',
               question: q,

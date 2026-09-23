@@ -236,7 +236,7 @@ void main() {
         },
         {
           'by': 'week',
-          'measures': ['best', 'volume'],
+          'measures': ['weightChange'],
         },
         'invalid',
         'deadEnd',

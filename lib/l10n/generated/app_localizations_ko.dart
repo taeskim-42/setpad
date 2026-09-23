@@ -1032,7 +1032,7 @@ class LKo extends L {
   String queryLimit(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'exercises': '운동은 한 번에 8개까지 물을 수 있어요. 나눠서 물어 주세요.',
-      'measures': '한 번에 세 가지까지 셀 수 있어요. 나눠서 물어 주세요.',
+      'measures': '한 번에 네 가지까지 셀 수 있어요. 나눠서 물어 주세요.',
       'ranking': '순위는 20개까지 보여 줄 수 있어요. 20개 이하로 물어 주세요.',
       'sessions': '\'마지막 N번\'은 100번까지예요. 더 길게 보려면 기간으로 물어 주세요. 예: 올해',
       'days': '\'최근 N일\'은 3660일(약 10년)까지예요. 더 길게 보려면 전체 기간으로 물어 주세요.',
@@ -1040,7 +1040,7 @@ class LKo extends L {
       'compareGrouped':
           '견주기와 운동·날·주·월·요일별 묶음은 한 질문에 함께 셀 수 없어요. 둘 중 하나로 물어 주세요.',
       'groupedMeasure':
-          '날·주·월·요일별로 묶으면 한 가지만 셀 수 있고, 추이·마지막·처음·안 한 지는 묶을 수 없어요.',
+          '날·주·월·요일별로 묶어 여러 범위를 견주면 한 가지만 셀 수 있고, 추이·마지막·처음·안 한 지는 묶을 수 없어요.',
       'ordering': '순위·합계·평균은 운동별이나 주별처럼 묶어서 물어 주세요.',
       'datesTotal': '마지막·처음 날짜는 더하거나 평균 낼 수 없어요.',
       'perMeasure':
@@ -2257,5 +2257,10 @@ class LKo extends L {
   @override
   String queryAgainstDropped(String value) {
     return '기준 수 $value 뺌 — 질문에 무게로 적힌 수가 아니에요';
+  }
+
+  @override
+  String queryBoundDropped(String value) {
+    return '숫자 조건 $value 뺌 — 질문에 그 단위로 적힌 수가 아니에요';
   }
 }

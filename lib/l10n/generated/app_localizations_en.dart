@@ -1072,7 +1072,7 @@ class LEn extends L {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'exercises':
           'Up to 8 exercises can be asked at once. Try asking in parts.',
-      'measures': 'Up to 3 things can be counted at once. Try asking in parts.',
+      'measures': 'Up to 4 things can be counted at once. Try asking in parts.',
       'ranking': 'Rankings show up to 20. Ask for 20 or fewer.',
       'sessions':
           '\'Last N sessions\' goes up to 100. For longer, ask by period, e.g. this year.',
@@ -1082,7 +1082,7 @@ class LEn extends L {
       'compareGrouped':
           'A comparison can\'t also be grouped by exercise, day, week, month or weekday in one question. Ask for one or the other.',
       'groupedMeasure':
-          'Grouped by day, week, month or weekday, only one thing can be counted, and trend, last, first and days-since can\'t be grouped.',
+          'Comparing several ranges grouped by day, week, month or weekday counts only one thing, and trend, last, first and days-since can\'t be grouped.',
       'ordering':
           'Rankings, totals and averages need a grouping, such as by exercise or by week.',
       'datesTotal': 'Last and first dates can\'t be added up or averaged.',
@@ -2328,5 +2328,10 @@ class LEn extends L {
   @override
   String queryAgainstDropped(String value) {
     return 'Reference number $value left out — it isn\'t a weight written in the question';
+  }
+
+  @override
+  String queryBoundDropped(String value) {
+    return 'Dropped the condition $value — the question doesn\'t state that number in that unit';
   }
 }
