@@ -37,6 +37,7 @@ const units = <Unit>[
   // 시간 — 플랭크·행잉·인터벌. 초 단위로 들고 있고 표시만 바꾼다.
   Unit('s', '초', UnitKind.duration, 10, [1, 5, 10, 15, 30, 60]),
   Unit('min', '분', UnitKind.duration, 1, [0.5, 1, 5, 10]),
+  Unit('h', '시간', UnitKind.duration, 0.5, [0.25, 0.5, 1]),
 ];
 
 final unitById = {for (final u in units) u.id: u};
@@ -46,6 +47,8 @@ const defaultUnit = 'kg';
 /// 친 글자 → 단위. 여덟 언어의 표기를 다 받는다.
 const _aliases = <String, String>{
   'kg': 'kg',
+  'kgs': 'kg',
+  '㎏': 'kg', // 일본어 입력기가 한 글자로 바꾼다
   '킬로': 'kg',
   '키로': 'kg', // 입말 표기. "80키로"
   'kilo': 'kg',
@@ -55,6 +58,8 @@ const _aliases = <String, String>{
   '千克': 'kg',
   'kilogramo': 'kg',
   'kilogramos': 'kg',
+  'กก': 'kg', // "กก." 의 점은 파서가 뗀다
+  'กิโล': 'kg',
   'lb': 'lb',
   'lbs': 'lb',
   '파운드': 'lb',
@@ -65,6 +70,7 @@ const _aliases = <String, String>{
   'libra': 'lb',
   'libras': 'lb',
   'km': 'km',
+  'k': 'km', // "5k"
   '킬로미터': 'km',
   '公里': 'km',
   'キロメートル': 'km',
@@ -100,6 +106,19 @@ const _aliases = <String, String>{
   'minutos': 'min',
   'phút': 'min',
   'นาที': 'min',
+  'h': 'h',
+  'hr': 'h',
+  'hrs': 'h',
+  'hour': 'h',
+  'hours': 'h',
+  '시간': 'h',
+  '時間': 'h',
+  '小时': 'h',
+  '小時': 'h',
+  'hora': 'h',
+  'horas': 'h',
+  'giờ': 'h',
+  'ชั่วโมง': 'h',
 };
 
 /// 파서가 쓰는 정규식 조각. 긴 것부터 놓아야 'm' 이 'min' 을 잘라먹지 않는다.

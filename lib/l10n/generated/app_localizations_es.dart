@@ -1113,6 +1113,7 @@ class LEs extends L {
       'negative': '\'$text\': no se aceptan números menores que 0, p. ej. 14',
       'unit':
           '\'$text\': este campo cuenta días o sesiones. Convierte horas, semanas o meses a días, p. ej. 14',
+      'many': '\'$text\': escribe solo un número, p. ej. 14',
       'other':
           'No se pudo leer un número de días o sesiones en \'$text\'. Escribe un número, p. ej. 14',
     });

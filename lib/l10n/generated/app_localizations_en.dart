@@ -1101,6 +1101,7 @@ class LEn extends L {
       'negative': '\'$text\' — numbers below 0 aren\'t accepted, e.g. 14',
       'unit':
           '\'$text\' — this field counts days or sessions. Convert hours, weeks or months to days, e.g. 14',
+      'many': '\'$text\' — enter just one number, e.g. 14',
       'other':
           'Couldn\'t read a number of days or sessions from \'$text\'. Enter a number, e.g. 14',
     });

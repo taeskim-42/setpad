@@ -1750,7 +1750,7 @@ abstract class L {
   /// No description provided for @policyNumberRejected.
   ///
   /// In ko, this message translates to:
-  /// **'{why, select, decimal{\'{text}\' — 소수는 받지 않아요. 정수로 적어 주세요. 예: 14} range{\'{text}\' — 범위가 아니라 수 하나로 적어 주세요. 예: 14} negative{\'{text}\' — 0보다 작은 수는 받지 않아요. 예: 14} unit{\'{text}\' — 이 칸은 일·회로 세요. 시간·주·달은 일 수로 바꿔 적어 주세요. 예: 14} other{\'{text}\' 에서 일·회 수를 읽지 못했어요. 숫자로 적어 주세요. 예: 14}}'**
+  /// **'{why, select, decimal{\'{text}\' — 소수는 받지 않아요. 정수로 적어 주세요. 예: 14} range{\'{text}\' — 범위가 아니라 수 하나로 적어 주세요. 예: 14} negative{\'{text}\' — 0보다 작은 수는 받지 않아요. 예: 14} unit{\'{text}\' — 이 칸은 일·회로 세요. 시간·주·달은 일 수로 바꿔 적어 주세요. 예: 14} many{\'{text}\' — 수는 하나만 적어 주세요. 예: 14} other{\'{text}\' 에서 일·회 수를 읽지 못했어요. 숫자로 적어 주세요. 예: 14}}'**
   String policyNumberRejected(String text, String why);
 
   /// No description provided for @mealSources.

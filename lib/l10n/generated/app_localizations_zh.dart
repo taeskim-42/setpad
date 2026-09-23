@@ -1040,6 +1040,7 @@ class LZh extends L {
       'range': '“$text”— 请输入一个数字，而不是范围，例如 14',
       'negative': '“$text”— 不接受小于 0 的数，例如 14',
       'unit': '“$text”— 此栏按天数或次数计。请把小时、周或月换算成天数，例如 14',
+      'many': '“$text”— 请只输入一个数字，例如 14',
       'other': '无法从“$text”中读出天数或次数。请输入数字，例如 14',
     });
     return '$_temp0';
@@ -2778,6 +2779,7 @@ class LZhHans extends LZh {
       'range': '“$text”— 请输入一个数字，而不是范围，例如 14',
       'negative': '“$text”— 不接受小于 0 的数，例如 14',
       'unit': '“$text”— 此栏按天数或次数计。请把小时、周或月换算成天数，例如 14',
+      'many': '“$text”— 请只输入一个数字，例如 14',
       'other': '无法从“$text”中读出天数或次数。请输入数字，例如 14',
     });
     return '$_temp0';
@@ -4515,6 +4517,7 @@ class LZhHant extends LZh {
       'range': '「$text」— 請輸入一個數字，而不是範圍，例如 14',
       'negative': '「$text」— 不接受小於 0 的數，例如 14',
       'unit': '「$text」— 此欄按天數或次數計。請把小時、週或月換算成天數，例如 14',
+      'many': '「$text」— 請只輸入一個數字，例如 14',
       'other': '無法從「$text」中讀出天數或次數。請輸入數字，例如 14',
     });
     return '$_temp0';

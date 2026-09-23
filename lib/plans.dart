@@ -109,7 +109,7 @@ class PlanTarget {
   ].join(' · ');
 }
 
-const _setWords = r'세트|sets?|セット|组|組|series?|hiệp|เซ็ต';
+const _setWords = r'세트|셋|sets?|セット|组|組|series?|hiệp|เซ็ต|เซต';
 
 /// 세트 수 표기: "x3", "4세트", "5sets".
 final _setsMark = RegExp(
@@ -117,96 +117,196 @@ final _setsMark = RegExp(
   caseSensitive: false,
 );
 
-/// 세트 수×횟수: "3x10", "5×5".
-final _setsByReps = RegExp(r'^(\d+)[x×*](\d+)$', caseSensitive: false);
+/// 세트 수×횟수: "3x10", "5×5", "4x8-12", "3x10회", "3xmax", "3x실패" →
+/// (세트 수, 목표 글). 맨 수·범위 횟수는 "10reps" 로 적는다. 뒤가 무게·시간
+/// 값("3x60kg")이면 아니다.
+(int, String)? _byReps(String w) {
+  final m = RegExp(r'^(\d+)[x×*](.+)$', caseSensitive: false).firstMatch(w);
+  if (m == null) return null;
+  final sets = int.parse(m[1]!), b = m[2]!;
+  if (RegExp(r'^\d+(?:[-~]\d+)?$').hasMatch(b)) return (sets, '${b}reps');
+  if (!b.contains(RegExp(r'\d'))) return (sets, b);
+  return switch (parseSetLine(b)) {
+    ParsedSet(value: null, reps: _?, note: null, count: 1) => (sets, b),
+    _ => null,
+  };
+}
 
 /// 맨숫자 하나. 이름일 수 있다("민수식 로우 2").
 final _bareNumber = RegExp(r'^\d+(?:\.\d+)?$');
 
-/// 수 표기 — 세트 수, 'AxB', 수+단위("80kg", "10회", "80,10").
+/// 수 표기 사이의 이음말 — "80kg x 5", "3 sets of 5", "5x5 @ 100kg", "30초 / 15초".
+final _joiner = RegExp(r'^(?:[x×*@/]|of)$', caseSensitive: false);
+
+/// 줄 앞의 목록 표지("1.", "2)", "-", "•")와 이름 끝의 ':'("스쿼트: 5x5") —
+/// 글의 모양이라 이름에 넣지 않는다.
+final _listMark = RegExp(r'^(?:[-*•·]|\d{1,2}[.)])\s+');
+final _nameColon = RegExp(r'(?<=\D):(?=\s*\d)');
+
+/// 이름에 붙여 친 표기의 자리 — "벤치3세트", "스쿼트5x5", "레그컬x3"(로마자
+/// 뒤의 x 는 이름일 수 있어 가르지 않는다).
+final _glued = RegExp(
+  r'(?<=(?![xX])\p{L})(?=\d)|(?<=[^\x00-\x7F])(?=[xX×*]\d)',
+  unicode: true,
+);
+
+/// 수 표기 — 세트 수, 'AxB', 수+단위("80kg", "10회", "80,10", "(60kg)"),
+/// 범위("10-12회").
 bool _numberMark(String w) =>
     _setsMark.hasMatch(w) ||
-    _setsByReps.hasMatch(w) ||
+    _byReps(w) != null ||
+    switch (RegExp(r'^\d+(?:[.,]\d+)?[-~](\d.*)$').firstMatch(w)) {
+      final r? => _bareNumber.hasMatch(r[1]!) || _numberMark(r[1]!),
+      null => false,
+    } ||
     (!_bareNumber.hasMatch(w) &&
         switch (parseSetLine(w)) {
           ParsedSet(note: null) => true,
           _ => false,
         });
 
-/// 띄어 쓴 표기를 붙여 낱말로 나눈다: "80 kg" → "80kg", "3 x 10" → "3x10",
-/// "x 3" → "x3".
-List<String> _markWords(String text) => joinSpacedUnits(text)
-    .replaceAllMapped(
-      RegExp(r'(^|\s)(\d+)\s*([x×*])\s*(?=\d)'),
-      (m) => '${m[1]}${m[2]}${m[3]}',
-    )
-    .replaceAllMapped(
-      RegExp(r'(^|\s)([x×*])\s+(?=\d)'),
-      (m) => '${m[1]}${m[2]}',
-    )
-    .split(RegExp(r'\s+'))
-    .where((w) => w.isNotEmpty)
-    .toList();
+bool _weightMark(String w) =>
+    unitById[parseSetLine(w)?.unit]?.kind == UnitKind.weight;
+
+/// 띄어 쓴 표기를 붙이고 붙여 친 표기를 갈라 낱말로 나눈다: "80 kg" → "80kg",
+/// "3 x 10" → "3x10", "x 3" → "x3", "벤치3세트" → "벤치" "3세트", "80kg×10回" →
+/// "80kg" "×" "10回". 낱말마다 [text] 위의 자리를 준다 — 붙이고 가르는 것은
+/// 공백뿐이라 친 글에서 차례로 찾는다.
+List<({String t, int start, int end})> _markWords(String text) {
+  final joined = joinSpacedUnits(text)
+      .replaceAll('@', ' @ ')
+      // "3 x 10" — 'x' 뒤가 횟수("10", "8-12", "10회", "max")일 때만. 앞이 'x'
+      // 이면("80kg x 5 x 3" 의 5) 붙이지 않는다 — 무게 x 횟수 x 세트다.
+      .replaceAllMapped(
+        RegExp(
+          r'(^|\s)(?<![x×*]\s+)(\d+)\s*([x×*])\s*(?=(\S+))',
+          caseSensitive: false,
+        ),
+        (m) => _byReps('${m[2]}x${m[4]}') == null
+            ? m[0]!
+            : '${m[1]}${m[2]}${m[3]}',
+      )
+      .replaceAllMapped(
+        RegExp(r'(^|\s)([x×*])\s+(?=\d+(?:\s|$))', caseSensitive: false),
+        (m) => '${m[1]}${m[2]}',
+      );
+  final words = <String>[];
+  for (final w in joined.split(RegExp(r'\s+')).where((w) => w.isNotEmpty)) {
+    final pieces = markPieces(w);
+    if (pieces.length > 1) {
+      words.addAll(pieces);
+      continue;
+    }
+    // 구두점만 붙은 수("A1.", "B2)")는 슈퍼세트 표지라 가르지 않는다.
+    final cut = _glued.allMatches(w).map((c) => c.start).where((at) {
+      final rest = w.substring(at);
+      return !RegExp(r'^\d+[,.!~)]*$').hasMatch(rest) &&
+          (_numberMark(rest) || markPieces(rest).length > 1);
+    }).firstOrNull;
+    words.addAll(
+      cut == null
+          ? [w]
+          : [w.substring(0, cut), ...markPieces(w.substring(cut))],
+    );
+  }
+  var at = 0;
+  return [
+    for (final t in words)
+      () {
+        final start = text.indexOf(t[0], at);
+        at = start;
+        for (final ch in t.split('')) {
+          at = text.indexOf(ch, at) + 1;
+        }
+        return (t: t, start: start, end: at);
+      }(),
+  ];
+}
 
 /// 계획 한 줄 → 이름, 세트 수, 목표 글(무게·횟수 — 이름에 섞지 않는다).
 ///
-/// **이름에서는 수 표기만 뺀다** — 세트 수, 'AxB', 수+단위, 이어진 맨숫자("80
-/// 10"), 수 표기 바로 뒤의 맨숫자("80kg 5"). 그 사이·뒤의 글 낱말("케틀벨 16kg
-/// 스윙" 의 스윙)은 이름에 남는다. 타이머가 읽는 낱말([TimingSpec.marks] — "30
-/// bpm", "bpm 30", 타바타의 "30초 / 15초"·"x8"·"8 라운드")도 어디에 오든 통째로
-/// 이름에 남는다 — 타이머는 이름에서 붙는다. 이름으로 시작하지 않는 줄("3x10
-/// 벤치")은 null.
-({String name, int sets, String? target})? _planLine(String line) {
-  final marks = TimingSpec.marks(line);
-  final words = <String>[], timer = <bool>[];
+/// **이름에서는 수 표기만 뺀다** — 세트 수, 'AxB', 수+단위, 범위, 이어진
+/// 맨숫자("80 10"), 수 표기 바로 뒤의 맨숫자("80kg 5"), 수 표기 사이의 이음말
+/// ("x", "@", "of", "/"). 그 사이·뒤의 글 낱말("케틀벨 16kg 스윙" 의 스윙)은
+/// 이름에 남는다. 이름은 친 글 그대로다("3 x 10 벤치"). 타이머가 읽는 낱말
+/// ([TimingSpec.marks] — "30 bpm", "bpm 30", 타바타의 "30초 / 15초"·"x8"·"8
+/// 라운드")도 어디에 오든 통째로 이름에 남는다 — 타이머는 이름에서 붙는다. 줄
+/// **앞**의 수 표기도 이름이다("400m 인터벌 x6", "21s 바벨컬 3세트", "3x10
+/// 벤치") — 이름보다 먼저 친 수가 무엇을 세는지는 모른다. 옛 제목("5x5
+/// 스트렝스")도 그래서 제목으로 남는다. 무게 바로 뒤의 "xN" 은 횟수다
+/// ("80kg x 5 x 3" = 80kg x5 목표, 3세트) — 세트 줄과 같다.
+({String name, int sets, String? target}) _planLine(String line) {
+  final body = line.replaceFirst(_listMark, '').replaceAll(_nameColon, ' ');
+  final marks = TimingSpec.marks(body);
+  final words = <({String t, int start, int end})>[], timer = <bool>[];
   // 타이머 낱말 사이의 글. 표기는 여기서만 붙여 읽는다 — "20 x8" 의 x8 이
   // 라운드면 20x8(세트 수×횟수)로 붙지 않는다.
-  var run = '';
+  int? from;
+  var to = 0;
   void flush() {
-    final read = _markWords(run);
-    words.addAll(read);
-    timer.addAll(read.map((_) => false));
-    run = '';
+    if (from case final at?) {
+      final read = _markWords(body.substring(at, to));
+      words.addAll(
+        read.map((w) => (t: w.t, start: at + w.start, end: at + w.end)),
+      );
+      timer.addAll(read.map((_) => false));
+      from = null;
+    }
   }
 
-  for (final m in RegExp(r'\S+').allMatches(line)) {
+  for (final m in RegExp(r'\S+').allMatches(body)) {
     if (marks.any((t) => t.start < m.end && m.start < t.end)) {
       flush();
-      words.add(m[0]!);
+      words.add((t: m[0]!, start: m.start, end: m.end));
       timer.add(true);
     } else {
-      run += ' ${m[0]}';
+      from ??= m.start;
+      to = m.end;
     }
   }
   flush();
+  bool bare(int i) =>
+      i < words.length && !timer[i] && _bareNumber.hasMatch(words[i].t);
+  bool joiner(int i) =>
+      i < words.length && !timer[i] && _joiner.hasMatch(words[i].t);
+  final mark = [
+    for (final (i, w) in words.indexed) !timer[i] && _numberMark(w.t),
+  ];
+  bool counted(int i) => i < words.length && (mark[i] || bare(i));
   final number = List.filled(words.length, false);
-  for (final (i, w) in words.indexed) {
-    if (timer[i]) continue;
+  for (var i = 0; i < words.length; i++) {
+    final after = i > 0 && number[i - 1];
     number[i] =
-        _numberMark(w) ||
-        (_bareNumber.hasMatch(w) &&
-            ((i > 0 && number[i - 1]) ||
-                (i + 1 < words.length &&
-                    _bareNumber.hasMatch(words[i + 1]) &&
-                    !timer[i + 1])));
+        mark[i] ||
+        (bare(i) &&
+            (after || bare(i + 1) || (joiner(i + 1) && counted(i + 2)))) ||
+        (joiner(i) && after && counted(i + 1));
   }
-  if (!number.contains(true)) return (name: line.trim(), sets: 0, target: null);
-  if (number.first) return null;
+  for (var i = 0; i < words.length && number[i]; i++) {
+    number[i] = false;
+  }
+  if (!number.contains(true)) return (name: body.trim(), sets: 0, target: null);
   int? sets;
   final name = <String>[], target = <String>[];
   for (final (i, w) in words.indexed) {
     if (!number[i]) {
-      name.add(w);
+      // 이어진 이름 낱말은 친 글 그대로 한 조각이다("3 x 10 벤치", "Squat@home").
+      name.add(
+        i > 0 && !number[i - 1]
+            ? '${name.removeLast()}${body.substring(words[i - 1].end, w.end)}'
+            : body.substring(w.start, w.end),
+      );
       continue;
     }
-    final byReps = _setsByReps.firstMatch(w), mark = _setsMark.firstMatch(w);
-    final n = int.tryParse(byReps?[1] ?? mark?[1] ?? mark?[2] ?? '');
+    final byReps = _byReps(w.t), mark = _setsMark.firstMatch(w.t);
+    final n = byReps?.$1 ?? int.tryParse(mark?[1] ?? mark?[2] ?? '');
+    final reps = mark?[1] != null && i > 0 && _weightMark(words[i - 1].t);
     // 세트 수는 한 번, 서버가 받는 50까지. 넘거나 두 번째면 목표 글에 친 그대로 남는다.
-    if (sets == null && n != null && n <= 50) {
+    if (sets == null && n != null && n <= 50 && !reps) {
       sets = n;
-      if (byReps != null) target.add('${byReps[2]}reps');
+      if (byReps != null) target.add(byReps.$2);
     } else {
-      target.add(w);
+      target.add(w.t);
     }
   }
   return (
@@ -244,17 +344,17 @@ parsePlanText(
   final titled =
       (title.isNotEmpty && lines.first == title) ||
       (text.split('\n').first.trim().isNotEmpty &&
-          (first == null || (first.sets == 0 && first.target == null)));
+          first.sets == 0 &&
+          first.target == null);
   final unused = [...previous];
   final items = <PlanItem>[];
   final targets = <String, String>{};
   for (final line in lines.skip(titled ? 1 : 0)) {
     final read = _planLine(line);
-    final name = read?.name ?? line;
-    final at = unused.indexWhere((p) => p.name == name);
+    final at = unused.indexWhere((p) => p.name == read.name);
     final id = at < 0 ? _newId('i') : unused.removeAt(at).id;
-    items.add(PlanItem(id: id, name: name, sets: read?.sets ?? 0));
-    if (read?.target != null) targets[id] = read!.target!;
+    items.add(PlanItem(id: id, name: read.name, sets: read.sets));
+    if (read.target case final target?) targets[id] = target;
   }
   return (title: titled ? lines.first : '', items: items, targets: targets);
 }
