@@ -45,9 +45,12 @@ void main() {
         for (var i = 0; i < 2; i++)
           PartnerSync(note: notes[i], link: () => link(i), onChanged: () {}),
       ];
-      for (final p in phones) {
-        addTearDown(p.dispose);
-      }
+      // 준은 중간에 화면을 나갔다 온다 — 끝에 남은 것들만 치운다.
+      addTearDown(() {
+        for (final p in phones) {
+          p.dispose();
+        }
+      });
       final mina = phones[0], jun = phones[1];
       // 편집기가 하는 일: 새 문서가 오면 그것을 놓는다.
       Future<void> sync() async {
@@ -116,16 +119,71 @@ void main() {
       // ignore: avoid_print
       print('커서가 상대 화면에 닿기까지 ${watch.elapsedMilliseconds}ms');
 
+      // 미나가 준의 세트를 고치는 사이 준은 새 세트를 넣는다. 서버를 거친 60 과
+      // 60.0 이 달라 보이던 때는 준의 다음 수정이 모든 세트를 다시 보내 미나의
+      // 고침을 옛 값으로 덮었다.
+      final junSet = notes[0].blocks[0].sets.firstWhere(
+        (s) => s.author != null,
+      );
+      notes[0].blocks[0].sets[notes[0].blocks[0].sets.indexOf(
+        junSet,
+      )] = LoggedSet(
+        id: junSet.id,
+        value: junSet.value,
+        unit: junSet.unit,
+        reps: 15,
+        author: junSet.author,
+      );
+      mina.recordChanged();
+      notes[1].blocks[0].sets.add(LoggedSet(value: 50, reps: 6));
+      jun.recordChanged();
+      await settle();
+      await sync();
+      await settle();
+      await sync();
+      expect(
+        notes[1].blocks[0].sets.firstWhere((s) => s.id == junSet.id).reps,
+        15,
+        reason: '미나의 고침이 살아남는다',
+      );
+      expect(notes[0].blocks[0].sets, hasLength(4));
+
+      // 준이 화면을 나간 사이(편집기 없음) 미나가 풀업을 지우고, 준은 오프라인으로
+      // 벤치에 한 세트를 적는다. 준이 돌아오면 풀업은 되살아나지 않고 준의 세트는 올라간다.
+      jun.dispose();
+      notes[0].blocks.removeWhere((b) => b.name == '풀업');
+      mina.recordChanged();
+      notes[1].blocks[0].sets.add(LoggedSet(value: 55, reps: 3));
+      await settle();
+      final back = PartnerSync(
+        note: notes[1],
+        link: () => link(1),
+        onChanged: () {},
+      );
+      phones[1] = back;
+      await sync();
+      await settle();
+      await sync();
+      await settle();
+      await sync();
+      expect(titles(1), ['벤치프레스'], reason: '남이 지운 운동이 되살아나지 않는다');
+      expect(
+        notes[0].blocks[0].sets.map((s) => s.reps),
+        contains(3),
+        reason: '나가 있던 사이 적은 세트가 올라간다',
+      );
+      final back2 = back;
+
       // 미나가 벤치를 지우는 사이 준이 벤치에 한 세트 — 갈 곳이 없어 사라진다.
       notes[0].blocks.removeAt(0);
       notes[1].blocks[0].sets.add(LoggedSet(value: 50, reps: 5));
       mina.recordChanged();
       await settle();
-      jun.recordChanged();
+      back2.recordChanged();
       await settle();
       await sync();
-      expect(titles(0), ['풀업']);
-      expect(titles(1), ['풀업']);
+      expect(titles(0), isEmpty);
+      expect(titles(1), isEmpty);
     },
     timeout: const Timeout(Duration(minutes: 2)),
   );

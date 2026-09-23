@@ -34,9 +34,14 @@ class EditorDraft {
     this.resume,
     this.meal = false,
     this.mealIndex,
+    this.blockId,
   });
   final String text;
   final int block;
+
+  /// 그 운동의 id. 같이 고치는 중에는 앞의 운동이 지워지거나 순서가 바뀌어
+  /// 번호가 다른 운동을 가리킬 수 있다 — 있으면 이것으로 찾는다.
+  final String? blockId;
   final bool memo;
   final int? editingSet, editingNote;
   final String? setText;
@@ -57,6 +62,7 @@ class EditorDraft {
     'resume': resume?.toJson(),
     if (meal) 'meal': true,
     'mealIndex': ?mealIndex,
+    'blockId': ?blockId,
   };
   static EditorDraft? fromJson(Object? value) {
     if (value is! Map || value['text'] is! String) return null;
@@ -75,6 +81,7 @@ class EditorDraft {
       setText: value['setText'] is String ? value['setText'] as String : null,
       meal: value['meal'] == true,
       mealIndex: value['mealIndex'] is int ? value['mealIndex'] as int : null,
+      blockId: value['blockId'] is String ? value['blockId'] as String : null,
     );
   }
 }
@@ -142,7 +149,7 @@ class ExerciseBlock {
   /// **스쿼트**를 봐야 하므로, 한 줄 설정이 알아낸 이름을 여기서 낸다.
   String get exercise => setup?.name ?? name;
   int get completedReps =>
-      sets.where((s) => s.done).fold(0, (n, s) => n + (s.reps ?? 0));
+      sets.where((s) => s.mine).fold(0, (n, s) => n + (s.reps ?? 0));
 }
 
 /// 에디터의 상태. 화면과 떼어 둔 이유는 상위 화면(복사 버튼 등)이 같은 상태를
@@ -259,8 +266,13 @@ class RoutineEditorController extends ChangeNotifier {
   }
 
   /// 직전 세트 — 키패드의 "이전과 같이" 가 보여줄 것.
+  /// 같이 고치는 문서에서는 **내** 마지막 세트다 — 옆 사람의 무게를 이어 받으면
+  /// 안 된다. 내 세트가 없으면 그냥 마지막 세트.
   LoggedSet? get lastSet => inBlock && blocks[_active].sets.isNotEmpty
-      ? blocks[_active].sets.last
+      ? blocks[_active].sets.lastWhere(
+          (s) => s.author == null,
+          orElse: () => blocks[_active].sets.last,
+        )
       : null;
 
   /// 같은 세트를 한 번 더. 운동 기록에서 가장 흔한 동작이라 한 번에 준다.
@@ -468,32 +480,61 @@ class RoutineEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 같이 고치는 문서가 서버에서 왔다. 글자 하나 안 바뀐 칸은 그 객체를 그대로
-  /// 둔다 — 카드의 키와 열린 자리가 그 객체에 매여 있어서다. 커서는 같은 번호에
-  /// 남되 문서가 짧아졌으면 밖으로 나간다.
+  /// 같이 고치는 문서가 서버에서 왔다. **있던 운동은 그 객체를 고쳐 쓴다** —
+  /// 타이머, 카드의 키, 열린 자리, 설정 시트가 모두 그 객체를 붙잡고 있다. 새
+  /// 객체로 갈아 끼우면 상대가 세트 하나만 더해도 내 타이머가 꺼졌다.
   ///
   /// 돌려주는 것은 내가 적던 운동을 누가 지웠을 때 그 운동이다.
   ExerciseBlock? replaceBlocks(List<ExerciseBlock> next) {
     final byId = {for (final b in blocks) b.id: b};
-    final merged = [
-      for (final b in next)
-        byId[b.id] != null && _sameBlock(byId[b.id]!, b) ? byId[b.id]! : b,
-    ];
-    if (merged.length == blocks.length &&
-        merged.indexed.every((e) => identical(e.$2, blocks[e.$1]))) {
-      return null;
+    var changed = next.length != blocks.length;
+    final merged = <ExerciseBlock>[];
+    for (final (i, n) in next.indexed) {
+      final have = byId[n.id];
+      if (have == null) {
+        merged.add(n);
+        changed = true;
+        continue;
+      }
+      if (!_sameBlock(have, n)) {
+        final sets = {for (final s in have.sets) s.id: s};
+        have
+          ..name = n.name
+          ..setup = n.setup;
+        final nextSets = [
+          for (final s in n.sets)
+            if (sets[s.id] case final old? when _sameSet(old, s)) old else s,
+        ];
+        have.sets
+          ..clear()
+          ..addAll(nextSets);
+        changed = true;
+      }
+      if (i >= blocks.length || !identical(blocks[i], have)) changed = true;
+      merged.add(have);
     }
+    if (!changed) return null;
     final active = inBlock ? blocks[_active] : null;
-    final closed = _lastClosed;
     blocks
       ..clear()
       ..addAll(merged);
-    _active = active == null ? -1 : blocks.indexWhere((b) => b.id == active.id);
-    _lastClosed = closed == null
-        ? null
-        : blocks.where((b) => b.id == closed.id).firstOrNull;
+    _active = active == null ? -1 : blocks.indexOf(active);
+    if (!blocks.contains(_lastClosed)) _lastClosed = null;
+    // 남이 바꾼 것이다. 편집기는 이것을 보고 화면을 내 입력 줄로 끌어내리지 않는다.
+    remote = true;
     notifyListeners();
+    remote = false;
     return active != null && _active < 0 ? active : null;
+  }
+
+  /// 지금 알리는 변경이 같이 고치는 사람에게서 왔는가.
+  bool remote = false;
+
+  /// 번호가 아니라 그 운동을 지운다. 확인창이 떠 있는 사이 문서가 바뀌어도
+  /// 엉뚱한 운동이 지워지지 않는다.
+  void removeBlockObject(ExerciseBlock block) {
+    final at = blocks.indexOf(block);
+    if (at >= 0) removeBlock(at);
   }
 
   static bool _sameBlock(ExerciseBlock a, ExerciseBlock b) =>
@@ -501,16 +542,16 @@ class RoutineEditorController extends ChangeNotifier {
       a.name == b.name &&
       a.setup?.toJson().toString() == b.setup?.toJson().toString() &&
       a.sets.length == b.sets.length &&
-      a.sets.indexed.every((e) {
-        final x = e.$2, y = b.sets[e.$1];
-        return x.id == y.id &&
-            x.author == y.author &&
-            x.value == y.value &&
-            x.unit == y.unit &&
-            x.reps == y.reps &&
-            x.done == y.done &&
-            listEquals(x.notes, y.notes);
-      });
+      a.sets.indexed.every((e) => _sameSet(e.$2, b.sets[e.$1]));
+
+  static bool _sameSet(LoggedSet x, LoggedSet y) =>
+      x.id == y.id &&
+      x.author == y.author &&
+      x.value == y.value &&
+      x.unit == y.unit &&
+      x.reps == y.reps &&
+      x.done == y.done &&
+      listEquals(x.notes, y.notes);
 
   int get totalSets =>
       blocks.fold(0, (n, b) => n + b.sets.where((s) => s.mine).length);
@@ -520,7 +561,7 @@ class RoutineEditorController extends ChangeNotifier {
     String Function(int n)? setOrdinal,
     String Function(int n)? formatReps,
   }) => blocks
-      .map((b) => (name: b.name, sets: b.sets.where((s) => s.done).toList()))
+      .map((b) => (name: b.name, sets: b.sets.where((s) => s.mine).toList()))
       .where((b) => b.sets.isNotEmpty)
       .map((b) {
         final lines = <String>[b.name];
@@ -678,6 +719,13 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 고치기 시작할 때의 세트. 치는 대로 저장하므로, 지우는 도중의 읽히지
   /// 않는 글("8" 만 남은 "80kg 10")이 기록으로 남지 않게 이것으로 되돌린다.
   LoggedSet? _recordOriginal;
+
+  /// 기록을 고치려고 열었을 때 입력 줄의 글. 이것과 같으면 고친 것이 없다.
+  String? _recordStartText;
+  bool _recordTouched = false;
+
+  /// 고치던 메모가 달린 세트. 앞의 운동·세트가 지워져도 번호가 아니라 이것을 따라간다.
+  String? _editingSetId;
   EditorDraft? _resume;
   bool get _editingRecord => _recordTitle || _recordSet != null;
 
@@ -775,6 +823,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     _input.selection = TextSelection.collapsed(offset: _input.text.length);
     setState(() {
       _editing = (_c.activeIndex, set, note);
+      _editingSetId = _c.blocks[block].sets[set].id;
       _wantText = true;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1033,7 +1082,12 @@ class _RoutineEditorState extends State<RoutineEditor>
       left: mineToo && t.myLeft != null,
       alternate: mineToo && t.alternate,
       partnerLeft: gone.isEmpty ? null : gone.join('\n'),
-      mine: started ? [for (final s in block.sets) s.reps] : const [],
+      mine: started
+          ? [
+              for (final s in block.sets)
+                if (s.author == null) s.reps,
+            ]
+          : const [],
       theirs: started && people.isNotEmpty
           ? counts(people.first.blocks)
           : const [],
@@ -1177,6 +1231,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   EditorDraft get _draft => EditorDraft(
     text: _text,
     block: _c.activeIndex,
+    blockId: _c.inBlock ? _c.blocks[_c.activeIndex].id : null,
     memo: _wantText,
     editingSet: _recordSet ?? _editing?.$2,
     editingNote: _editing?.$3,
@@ -1197,17 +1252,21 @@ class _RoutineEditorState extends State<RoutineEditor>
     _editing = null;
     _wantText = false;
     _resume = draft.resume;
-    if (draft.block >= 0 && draft.block < _c.blocks.length) {
-      _c.openBlock(draft.block);
+    final at = draft.blockId == null
+        ? draft.block
+        : _c.blocks.indexWhere((b) => b.id == draft.blockId);
+    if (at >= 0 && at < _c.blocks.length) {
+      _c.openBlock(at);
       _wantText = draft.memo;
       _recordTitle = draft.title;
       final st = draft.editingSet, n = draft.editingNote;
-      if (st != null && st >= 0 && st < _c.blocks[draft.block].sets.length) {
+      if (st != null && st >= 0 && st < _c.blocks[at].sets.length) {
         if (draft.memo &&
             n != null &&
             n >= 0 &&
-            n < _c.blocks[draft.block].sets[st].notes.length) {
-          _editing = (draft.block, st, n);
+            n < _c.blocks[at].sets[st].notes.length) {
+          _editing = (at, st, n);
+          _editingSetId = _c.blocks[at].sets[st].id;
         } else if (!draft.memo) {
           _recordSet = st;
         }
@@ -1227,13 +1286,10 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   void _editTitle(ExerciseBlock block) => _beginRecordEdit(block, null);
   void _editSet(ExerciseBlock block, int index) {
-    final id = block.sets[index].id;
-    final busy = widget.presence
-        .where((p) => p.block == block.id && p.set == id)
-        .firstOrNull;
     // 같은 세트를 둘이 동시에 고치면 나중 것만 남는다. 먼저 잡은 사람에게 둔다.
+    final busy = _busyOn(block, block.sets[index]);
     if (busy != null) {
-      unawaited(_say(L.of(context).liveSetBusy(busy.name)));
+      unawaited(_say(L.of(context).liveSetBusy(busy)));
       return;
     }
     _beginRecordEdit(block, index);
@@ -1278,6 +1334,8 @@ class _RoutineEditorState extends State<RoutineEditor>
               if (set.reps != null) '${set.reps}',
             ].join(' '),
     );
+    _recordStartText = _input.text;
+    _recordTouched = false;
     _input.selection = TextSelection(
       // 지우기로 돌아왔으면 커서는 줄 끝이다. 눌러서 열었으면 통째로 고른다 —
       // 바로 새 값을 치면 되게.
@@ -1298,6 +1356,11 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (_input.value.composing.isValid && !_input.value.composing.isCollapsed) {
       return false;
     }
+    // 연 뒤로 한 글자도 안 바꿨으면 아무것도 쓰지 않는다. 그사이 같이 고치는
+    // 사람이 이 칸을 바꿨다면, 내가 열 때의 값으로 되돌리면 안 된다.
+    // (쳤다가 원래대로 되돌린 것은 고친 것이다 — 중간 값이 남아 있다.)
+    if (_text == _recordStartText && !_recordTouched) return true;
+    _recordTouched = true;
     if (_recordTitle) {
       final name = _text.trim();
       if (name.isEmpty || name.length > 120 || name.contains('\n')) {
@@ -1340,7 +1403,9 @@ class _RoutineEditorState extends State<RoutineEditor>
       if (!_recordTitle) setState(() => _invalidSet = true);
       return false;
     }
-    if (_recordTitle && validate) _c.renameBlock(_c.activeIndex, _text);
+    if (_recordTitle && validate && _text != _recordStartText) {
+      _c.renameBlock(_c.activeIndex, _text);
+    }
     final resume = _resume ?? const EditorDraft(text: '');
     _recordTitle = false;
     _recordSet = null;
@@ -1428,6 +1493,28 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 같이 고치는 중에는 내가 고치던 세트 앞에 남이 세트를 넣거나 지울 수 있다.
   /// 번호가 아니라 그 세트를 따라간다. 세트가 사라졌으면 고치기를 그만둔다.
   void _followEditedSet() {
+    // 이름을 고치던 운동이 지워졌다. 고치기를 그만둔다 — 남아 있으면 편집기가 막힌다.
+    if (_recordTitle && !_c.inBlock) {
+      _recordTitle = false;
+      _input.clear();
+    }
+    final editing = _editing, id = _editingSetId;
+    if (editing != null && id != null) {
+      final (b, st, n) = editing;
+      final block = _c.blocks.indexWhere((x) => x.sets.any((s) => s.id == id));
+      final set = block < 0
+          ? -1
+          : _c.blocks[block].sets.indexWhere((s) => s.id == id);
+      if (set < 0 || n >= _c.blocks[block].sets[set].notes.length) {
+        // 메모가 달린 세트나 그 메모가 사라졌다. 쓰던 글을 다른 세트에 붙이지 않는다.
+        _editing = null;
+        _editingSetId = null;
+        _wantText = false;
+        _input.clear();
+      } else if (block != b || set != st) {
+        _editing = (block, set, n);
+      }
+    }
     final original = _recordOriginal, at = _recordSet;
     if (original == null || at == null) return;
     final now = _c.inBlock
@@ -1450,12 +1537,18 @@ class _RoutineEditorState extends State<RoutineEditor>
     final set = _recordSet;
     tell(
       block?.id,
-      block == null
+      block == null || _recordTitle
+          ? null
+          // 메모를 고치는 중이면 그 메모가 달린 세트다.
+          : _editing != null
+          ? _editingSetId
+          : _wantText
           ? null
           : set != null && set < block.sets.length
           ? block.sets[set].id
           : '+',
-      _recordTitle ? '' : _text,
+      // 식단과 메모는 같이 고치는 기록이 아니다. 치는 글을 보내지 않는다.
+      _mealMode || _wantText || _recordTitle ? '' : _text,
     );
   }
 
@@ -1554,7 +1647,8 @@ class _RoutineEditorState extends State<RoutineEditor>
     // 줄이 늘었을 때만 따라 내린다. 예전에는 컨트롤러가 바뀔 때마다 무조건
     // 맨 아래로 내렸는데, 세트를 켜고 끄거나 메모를 고칠 때도 화면이 출렁였다.
     // 키패드가 뜨고 지면서 뷰포트 높이가 바뀌면 그때마다 또 움직였다.
-    final grew = _lineCount > _lastLineCount;
+    // 남이 줄을 더했을 때는 따라 내리지 않는다 — 위를 보던 사람을 끌어내린다.
+    final grew = _lineCount > _lastLineCount && !_c.remote;
     _lastLineCount = _lineCount;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1851,7 +1945,12 @@ class _RoutineEditorState extends State<RoutineEditor>
             ?.name,
       ).then((yes) {
         if (!yes || !mounted) return;
-        _c.backspace();
+        // 확인창이 떠 있는 사이 문서가 바뀌었을 수 있다. 물어본 그 운동을 지운다.
+        if (_c.inBlock && identical(_c.blocks[_c.activeIndex], block)) {
+          _c.backspace();
+        } else {
+          _c.removeBlockObject(block);
+        }
         _resumeElsewhere();
       });
       return;
@@ -1861,8 +1960,22 @@ class _RoutineEditorState extends State<RoutineEditor>
       _c.backspace();
       return;
     }
-    _beginRecordEdit(block, block.sets.length - 1, selectAll: false);
+    // 돌아갈 곳은 **내** 마지막 세트다. 남이 고치는 중이면 잡지 않는다.
+    final mine = block.sets.lastIndexWhere((s) => s.author == null);
+    final at = mine < 0 ? block.sets.length - 1 : mine;
+    final busy = _busyOn(block, block.sets[at]);
+    if (busy != null) {
+      unawaited(_say(L.of(context).liveSetBusy(busy)));
+      return;
+    }
+    _beginRecordEdit(block, at, selectAll: false);
   }
+
+  /// 이 세트를 지금 고치고 있는 다른 사람의 이름.
+  String? _busyOn(ExerciseBlock block, LoggedSet set) => widget.presence
+      .where((p) => p.block == block.id && p.set == set.id)
+      .firstOrNull
+      ?.name;
 
   void _keypadBackspace() {
     final v = _input.value;
@@ -2040,9 +2153,9 @@ class _RoutineEditorState extends State<RoutineEditor>
                             _finishRecordEdit(validate: false);
                             _c.removeSet(i, set);
                           },
-                          onRemoveBlock: () {
+                          onRemoveBlock: (block) {
                             _finishRecordEdit(validate: false);
-                            _c.removeBlock(i);
+                            _c.removeBlockObject(block);
                             _resumeElsewhere();
                           },
                           onEditNote: (set, note) =>
@@ -2436,7 +2549,7 @@ class _BlockView extends StatelessWidget {
   final bool isMemo;
   final ValueChanged<int> onToggle;
   final ValueChanged<int> onRemoveSet;
-  final VoidCallback onRemoveBlock;
+  final ValueChanged<ExerciseBlock> onRemoveBlock;
 
   /// (세트 번호, 메모 번호).
   final void Function(int, int) onEditNote;
@@ -2455,7 +2568,7 @@ class _BlockView extends StatelessWidget {
       block,
       busy: cursors.firstOrNull?.name,
     )) {
-      onRemoveBlock();
+      onRemoveBlock(block);
     }
   }
 
@@ -2504,7 +2617,16 @@ class _BlockView extends StatelessWidget {
                       ),
                     ),
               ),
-              for (final p in cursors) _CursorTag(p),
+              // 여섯이 한 운동에 몰려도 제목을 밀어내지 않는다 — 둘까지 이름, 나머지는 수.
+              for (final p in cursors.take(2)) _CursorTag(p),
+              if (cursors.length > 2)
+                Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: Text(
+                    '+${cursors.length - 2}',
+                    style: TextStyle(fontSize: 11, color: muted),
+                  ),
+                ),
               // 칸에서 뺀 단위를 여기 한 번 적는다.
               if (unit != null && !collapsed)
                 Padding(
@@ -2544,7 +2666,7 @@ class _BlockView extends StatelessWidget {
                     block.setup!,
                     L.of(context),
                     block.completedReps,
-                    block.sets.where((s) => s.done).length,
+                    block.sets.where((s) => s.mine).length,
                   ),
                   style: TextStyle(fontSize: 13, color: muted),
                 ),
@@ -3005,6 +3127,8 @@ class _TogetherInvite extends StatelessWidget {
 /// 사람마다 한 색. 이름에서 나오므로 두 폰이 같은 사람을 같은 색으로 보고,
 /// 그 사람이 적은 세트와 그 사람의 커서가 같은 색이다.
 Color cursorColor(String key) {
+  // 셋 이상이면 여섯 색으로는 겹치기 쉽다. 빨강·노랑·회색은 뺐다(지우기·경고·
+  // 흐린 글과 헷갈린다).
   const palette = [
     CupertinoColors.systemOrange,
     CupertinoColors.systemPurple,
@@ -3012,6 +3136,10 @@ Color cursorColor(String key) {
     CupertinoColors.systemPink,
     CupertinoColors.systemIndigo,
     CupertinoColors.systemGreen,
+    CupertinoColors.systemBrown,
+    CupertinoColors.systemCyan,
+    CupertinoColors.systemMint,
+    CupertinoColors.systemBlue,
   ];
   return palette[key.codeUnits.fold(0, (h, c) => (h * 31 + c) & 0xffff) %
       palette.length];
@@ -3033,8 +3161,11 @@ class _CursorTag extends StatelessWidget {
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8),
       ),
+      constraints: const BoxConstraints(maxWidth: 72),
       child: Text(
         p.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,

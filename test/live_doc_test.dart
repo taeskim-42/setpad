@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/live_doc.dart';
+import 'package:setpad/record_ai.dart';
 
 LoggedSet set(String id, int reps) =>
     LoggedSet(id: id, value: 60, unit: 'kg', reps: reps);
@@ -82,5 +85,88 @@ void main() {
     expect(sets.map((s) => s.author), [null, '준']);
     expect(sets.map((s) => s.mine), [true, false], reason: '내 통계에는 내 세트만');
     expect(sets.map((s) => s.id), ['a', 'b']);
+  });
+
+  test('서버를 거쳐 60.0 이 60 이 되고 키 순서가 바뀌어도 차이가 없다 — 남의 수정을 옛 값으로 덮지 않는다', () {
+    final local = docOf([
+      ExerciseBlock(
+        '벤치',
+        [set('a', 10)],
+        WorkoutSetup(name: '벤치', weight: 60, unit: 'kg', totalReps: 100),
+        'B',
+      ),
+    ]);
+    // 서버가 돌려준 모양: 정수, 키 순서 뒤바뀜, 작성자 붙음.
+    final server = (jsonDecode(jsonEncode(local)) as List).cast<Json>();
+    final b = server.single;
+    b['setup'] = Map.fromEntries((b['setup'] as Map).entries.toList().reversed);
+    for (final s in b['sets'] as List) {
+      (s as Map)['value'] = (s['value'] as num).toInt();
+      s['by'] = {'key': 'me', 'name': '미나'};
+    }
+    expect(diffDoc(server, local), isEmpty);
+  });
+
+  test('고치기가 늦게 닿아도 지워진 세트나 운동을 되살리지 않는다 — 새 것만 새 것이라고 말한다', () {
+    final base = docOf([
+      ExerciseBlock('벤치', [set('a', 10)], null, 'B'),
+    ]);
+    final ops = diffDoc(
+      base,
+      docOf([
+        ExerciseBlock('벤치프레스', [set('a', 12), set('n', 5)], null, 'B'),
+      ]),
+    ).expand((b) => b).toList();
+    final kinds = [for (final o in ops) (o['kind'], o['new'], o['at'])];
+    expect(
+      kinds,
+      containsAll([
+        ('set', null, null),
+        ('set', true, null),
+        ('block', null, null),
+      ]),
+    );
+    // 그사이 누가 벤치를 통째로 지웠다가, 같은 id 로 빈 벤치를 새로 만들지는 않는다.
+    final gone = applyDoc(base, [
+      {'kind': 'removeSet', 'block': 'B', 'set': 'a'},
+    ]);
+    final after = applyDoc(gone, ops).single['sets'] as List;
+    expect(
+      [for (final s in after) (s as Map)['id']],
+      ['n'],
+      reason: 'a 는 되살아나지 않는다',
+    );
+    expect(applyDoc(const [], ops), isEmpty, reason: '이름 바꾸기가 운동을 만들지 않는다');
+  });
+
+  test('지난 세션에서 남이 적은 세트는 이름만 싣고 키는 싣지 않는다', () {
+    final s = set('x', 5)..author = '준';
+    final json = docOf([
+      ExerciseBlock('벤치', [s], null, 'B'),
+    ]);
+    expect(((json.single['sets'] as List).single as Map)['by'], {'name': '준'});
+  });
+
+  test('문서가 와도 있던 운동은 같은 객체로 남는다 — 타이머·열린 자리가 붙잡고 있다', () {
+    final c = RoutineEditorController();
+    final bench = ExerciseBlock('벤치 120bpm', [set('a', 10)], null, 'B');
+    c.restore([bench]);
+    c.openBlock(0);
+    final lost = c.replaceBlocks([
+      ExerciseBlock(
+        '벤치 120bpm',
+        [set('a', 10), set('p', 8)..author = '준'],
+        null,
+        'B',
+      ),
+      ExerciseBlock('스쿼트', [], null, 'S'),
+    ]);
+    expect(lost, isNull);
+    expect(identical(c.blocks.first, bench), isTrue);
+    expect(bench.sets.map((s) => s.author), [null, '준']);
+    expect(c.activeIndex, 0);
+    // 내가 적던 운동이 사라지면 그것을 돌려준다.
+    expect(c.replaceBlocks([ExerciseBlock('스쿼트', [], null, 'S')]), same(bench));
+    expect(c.inBlock, isFalse);
   });
 }

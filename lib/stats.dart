@@ -73,7 +73,8 @@ class Answer {
 
 /// 이름이 [query] 인 운동의 세트를 날짜와 함께 모은다.
 ///
-/// **해낸 세트만 센다.** 취소한 세트는 기록이 아니다.
+/// **해낸 세트만 센다.** 취소한 세트는 기록이 아니다. 같이 고친 기록의 옆
+/// 사람 세트도 내 기록이 아니다([LoggedSet.mine]).
 Iterable<(DateTime, LoggedSet)> _sets(List<Note> notes, String query) sync* {
   final want = query.trim().toLowerCase();
   for (final note in notes) {

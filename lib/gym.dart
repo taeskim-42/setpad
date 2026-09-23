@@ -220,7 +220,8 @@ Future<void> sendPending(
       localId: note.id,
       routineId: note.routineId,
       startedAt: note.createdAt,
-      blocks: note.blocks,
+      // 같이 고친 기록에는 옆 사람의 세트도 있다. 트레이너에게는 내 것만.
+      blocks: mineOnly(note.blocks),
     );
     // 그물이 막혔으면 나머지도 막힌다. 다음 기회에.
     if (outcome == SendOutcome.retry) break;

@@ -23,9 +23,12 @@ Json _setJson(LoggedSet s) => {
   'reps': s.reps,
   'notes': s.notes,
   'done': s.done,
+  // 지난 세션에서 남이 적은 세트는 그 이름을 싣는다. 키는 싣지 않는다 — 서버가
+  // 이름만 남겨 누구의 "내 세트" 도 되지 않게 한다.
+  if (s.author != null) 'by': {'name': s.author},
 };
 
-/// 서버로 가는 모양. 작성자는 싣지 않는다 — 서버가 찍는다.
+/// 서버로 가는 모양. 내 세트의 작성자는 싣지 않는다 — 서버가 찍는다.
 List<Json> docOf(List<ExerciseBlock> blocks) => [
   for (final b in blocks)
     {
@@ -51,7 +54,18 @@ List<ExerciseBlock> blocksOfDoc(List<Json> doc, String? me) {
   return blocks;
 }
 
-String _key(Object? v) => jsonEncode(v);
+/// 견줄 때의 모양. 서버를 한 번 거치면 60.0 이 60 이 되고(JSON), jsonb 는 키
+/// 순서를 바꾼다. 그대로 견주면 늘 달라 보여서 받은 뒤 첫 수정마다 모든 세트를
+/// 다시 보내 — 그사이 남이 고친 것을 옛 값으로 덮었다.
+Object? _norm(Object? v) => switch (v) {
+  num n => n.toDouble(),
+  Map m => {
+    for (final k in (m.keys.map((k) => '$k').toList()..sort())) k: _norm(m[k]),
+  },
+  List l => [for (final x in l) _norm(x)],
+  _ => v,
+};
+String _key(Object? v) => jsonEncode(_norm(v));
 bool _sameSet(Object? a, Object? b) {
   if (a is! Map || b is! Map) return false;
   return const [
@@ -98,8 +112,16 @@ List<List<Json>> diffDoc(List<Json> from, List<Json> to) {
       }
     }
     for (final s in (b['sets'] as List)) {
-      if (!_sameSet(old[(s as Map)['id']], s)) {
-        ops.add({'kind': 'set', 'block': b['id'], 'set': s});
+      final was = old[(s as Map)['id']];
+      if (!_sameSet(was, s)) {
+        // 새 세트라고 말해야 서버가 더한다. 고치기가 늦게 닿았는데 그 세트가
+        // 이미 지워졌으면 되살리지 않는다.
+        ops.add({
+          'kind': 'set',
+          if (was == null) 'new': true,
+          'block': b['id'],
+          'set': s,
+        });
       }
     }
   }
@@ -132,7 +154,7 @@ List<Json> applyDoc(List<Json> doc, List<Json> ops) {
         if (j >= 0) {
           blocks[j] = {...blocks[j], 'name': b['name'], 'setup': b['setup']}
             ..removeWhere((k, v) => k == 'setup' && v == null);
-        } else {
+        } else if (op['at'] is int) {
           final pos = op['at'] is int
               ? (op['at'] as int).clamp(0, blocks.length)
               : blocks.length;
@@ -144,7 +166,11 @@ List<Json> applyDoc(List<Json> doc, List<Json> ops) {
       case 'set' when i >= 0:
         final sets = blocks[i]['sets'] as List, s = op['set'] as Map;
         final j = sets.indexWhere((x) => (x as Map)['id'] == s['id']);
-        j >= 0 ? sets[j] = {...s, 'by': ?(sets[j] as Map)['by']} : sets.add(s);
+        if (j >= 0) {
+          sets[j] = {...s, 'by': ?(sets[j] as Map)['by']};
+        } else if (op['new'] == true) {
+          sets.add(s);
+        }
       case 'removeSet' when i >= 0:
         (blocks[i]['sets'] as List).removeWhere(
           (x) => (x as Map)['id'] == op['set'],
@@ -153,7 +179,7 @@ List<Json> applyDoc(List<Json> doc, List<Json> ops) {
         blocks.removeAt(i);
       case 'order':
         final named = [
-          for (final id in op['ids'] as List)
+          for (final id in (op['ids'] as List).toSet())
             if (at(id) >= 0) blocks[at(id)],
         ];
         final rest = blocks.where((b) => !named.contains(b)).toList();
