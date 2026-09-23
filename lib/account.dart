@@ -136,7 +136,8 @@ class Account extends ChangeNotifier {
         .where((n) => kstDay(n.createdAt) == kstDay(at))
         .expand((n) => n.blocks)
         .expand((b) => b.sets)
-        .where((s) => s.done)
+        // 같이 고친 기록의 옆 사람 세트는 내 기록이 아니다.
+        .where((s) => s.mine)
         .length;
     if (sets < dailyPlateSets) return;
     _claiming = true;
