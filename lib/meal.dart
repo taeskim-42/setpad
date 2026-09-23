@@ -252,31 +252,25 @@ bool _aside(String part) => part
     .isEmpty;
 
 /// 친 줄에 **끼니라는 근거**가 있는가. 운동 근거([exerciseEvidence])를 먼저 보고,
-/// 그다음에 본다: 열량(kcal·칼로리), 끼니 낱말(아침·점심·저녁·간식·야식)에 다른 말이
-/// 붙은 글, 음식에만 쓰는 양(공기·그릇·인분·조각·잔·봉지·캔·병·접시·스푼·g·ml·곱빼기).
+/// 그다음에 본다: 열량(kcal·칼로리), 음식에만 쓰는 양([foodUnits]), 끼니 낱말(아침·점심·
+/// 저녁·간식·야식)에 다른 말이 붙은 글, 흔한 음식 낱말(밥·계란·커피·맥주·salad…).
 bool mealEvidence(String text) {
-  if (_mealUnits.hasMatch(text)) return true;
-  final words = [
+  if (_kcal.hasMatch(text) || foodUnits.hasMatch(text)) return true;
+  final bare = [
     for (final w in text.trim().split(RegExp(r'\s+')))
-      stripParticle(
-        w.replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), ''),
-      ).toLowerCase(),
+      w.replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), '').toLowerCase(),
   ]..removeWhere((w) => w.isEmpty);
-  return words.length > 1 && words.any(_mealWords.contains);
+  final words = bare.map(stripParticle).toList();
+  return (words.length > 1 && words.any(_mealWords.contains)) ||
+      [...bare, ...words].any(foodWords.contains);
 }
+
+final _kcal = RegExp(r'kcal|칼로리|㎉', caseSensitive: false);
 
 const _mealWords = {
   '아침', '점심', '저녁', '간식', '야식', '아점', '브런치', //
   'breakfast', 'lunch', 'dinner', 'supper', 'snack', 'brunch',
 };
-
-final _mealUnits = RegExp(
-  r'kcal|칼로리|㎉|곱빼기|'
-  r'(?:\d+(?:[.,]\d+)?|반|한|두|세|네)\s*'
-  r'(?:공기|그릇|인분|조각|잔|봉지|캔|병|접시|스푼|숟가락|숟갈|g|ml|㎖)(?![a-z])|'
-  r'\d\s*(?:cups?|bowls?|slices?|servings?|cans?|bottles?|glass(?:es)?|tbsp|tsp)\b',
-  caseSensitive: false,
-);
 
 /// 먹은 양을 글로. "150g", "2.5개", "1.5회분" 은 화면 언어가 붙인다.
 String amountText(double n) => formatNumber((n * 100).round() / 100);

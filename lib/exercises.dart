@@ -770,7 +770,9 @@ const exercises = <Exercise>[
     'จัมปิ้งแจ็ค',
   ),
   // 음식 표에 같은 이름의 제품이 있는 운동(2026-09-23 운영 표 실측: 굿모닝·클린).
-  // 사전에 있어야 입력 줄이 끼니로 가르지 않는다.
+  // 사전에 있어야 입력 줄이 끼니로 가르지 않는다. '클린' 만 친 줄은 사전 별칭이 아니라
+  // 운동 낱말(parser.dart _exerciseWords)로 잡는다 — 별칭이면 기록 검색이 '클린' 을
+  // 파워클린으로 바꾼다.
   Exercise(
     '굿모닝',
     'Good Morning',
@@ -790,7 +792,6 @@ const exercises = <Exercise>[
     'Cargada de Potencia',
     'Power Clean',
     'พาวเวอร์คลีน',
-    '클린 clean',
   ),
 ];
 

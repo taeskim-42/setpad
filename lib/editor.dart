@@ -1250,6 +1250,12 @@ class _RoutineEditorState extends State<RoutineEditor>
         widget.onMealText == null ||
         exerciseEvidence(text, _c.recentExercises);
     if (!exercise && mealEvidence(text)) return _logMeal(text);
+    // 수 없는 이름은 제목이 되므로 120자까지다. 끼니가 아니면 글을 입력칸에 두고
+    // 알린다 — 표에 묻기 전에.
+    if (!numbered && text.trim().length > 120) {
+      setState(() => _aiNotice = (l) => l.inputNameTooLong);
+      return;
+    }
     if (!exercise && widget.ai.supported) {
       if (_aiBusy) return;
       final request = ++_aiRequest;
@@ -1425,7 +1431,9 @@ class _RoutineEditorState extends State<RoutineEditor>
   Widget? _autoMealLine(BuildContext context) {
     if (_autoMeal == null || !_c.naming || _mealMode) return null;
     final l = L.of(context);
-    return Row(
+    // 줄바꿈이 되게 Wrap — 좁은 화면·긴 문구(태국어)에서 넘치지 않는다.
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text(
           '${l.mealAutoLogged} · ',
@@ -2088,11 +2096,9 @@ class _RoutineEditorState extends State<RoutineEditor>
     final timerOnly =
         TimingSpec.parse(value) != null &&
         !hasSetupIntent(value.replaceAll(timerTokens, ' '));
-    // 수 없는 이름과 타이머 이름은 제목이 되므로 120자까지다. 글은 입력칸에 둔다.
-    if (pick == null &&
-        _c.naming &&
-        value.trim().length > 120 &&
-        (timerOnly || !hasSetupIntent(value))) {
+    // 타이머 이름은 제목이 되므로 120자까지다. 글은 입력칸에 둔다. 수 없는 이름은
+    // 끼니인지 가른 뒤에 본다([_name]) — 긴 식단 글은 끼니가 된다.
+    if (pick == null && _c.naming && value.trim().length > 120 && timerOnly) {
       setState(() => _aiNotice = (l) => l.inputNameTooLong);
       return;
     }
@@ -2548,8 +2554,8 @@ class _RoutineEditorState extends State<RoutineEditor>
             onMealPhoto: widget.onMealPhoto,
             mealMode: _mealMode,
             // 운동 이름을 적는 바로 그 줄에 음식을 쳤다면, 한 번 눌러 끼니로 남긴다.
-            // 앱이 알아서 가르지 않는다 — "케이블 크런치" 를 과자로 읽으면 기록이
-            // 바뀐다. 사람이 누른다.
+            // Enter 에서 알아서 가르지만([_name]) 근거가 없으면 운동이다 — 그렇게 못
+            // 가른 줄을 사람이 끼니로 보낸다.
             onLogAsMeal:
                 !_mealMode &&
                     _c.naming &&

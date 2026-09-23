@@ -762,17 +762,22 @@ class RecordAi {
   /// 친 줄이 음식 표의 음식인가 — 음식 이름이나 대표 이름이 **정확히** 같을 때만.
   /// 모델을 부르지 않고 적기 도움 한도도 쓰지 않는다. 못 물으면(연결·서버) false:
   /// 운동으로 두고 '끼니로' 칩이 남는다.
+  ///
+  /// 기기 토큰 받기까지 합쳐 [foodWait] 만 기다린다 — 사전에 없는 이름은 이 답을
+  /// 기다려야 칸이 된다(운영 조회 p95 185ms). 헬스장 신호가 약해도 칸은 곧 생긴다.
   Future<bool> isFood(String text) async {
     if (respond != null || !supported) return false;
     try {
       final answer = await _ask('/api/foods/match', {
         'text': text,
-      }, timeout: const Duration(seconds: 5));
+      }, timeout: foodWait).timeout(foodWait);
       return answer['food'] == true;
     } catch (_) {
       return false;
     }
   }
+
+  static const foodWait = Duration(milliseconds: 1500);
 
   /// 오가던 요청을 버린다. 서버 쪽은 그냥 끝나게 둔다 — 이미 센 것이고,
   /// 취소를 알리자고 왕복을 한 번 더 하는 것이 더 비싸다.
