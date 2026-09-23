@@ -1585,6 +1585,70 @@ void main() {
       expect(spent, [0.3, 1.36]);
     });
 
+    // 재검토: 1단계는 따로 원판을 치른다. 2단계가 402(원판 부족)로 끝나면 1단계에
+    // 쓴 원판이 화면에 안 보였고, 다시 누르면 1단계를 또 샀다.
+    test('2단계가 원판 부족이어도 1단계에 쓴 원판을 알리고, 다시 물을 때 1단계를 또 사지 않는다', () async {
+      final sent = <String>[];
+      final spent = <double?>[];
+      var broke = true;
+      final ai = RecordAi(
+        endpoint: 'https://example.test',
+        deviceId: 'device',
+        onPlates: (_, s) => spent.add(s),
+        client: MockClient((request) async {
+          if (request.url.path == '/api/device') {
+            return http.Response(jsonEncode({'token': 't'}), 200);
+          }
+          final body = jsonDecode(request.body) as Map;
+          sent.add(body['instructions'] as String);
+          final (status, reply) = body['instructions'] == familyInstructions
+              ? (
+                  200,
+                  {
+                    'intent': {
+                      't': ['rank'],
+                    },
+                    'plates': {'balance': 0.0, 'spent': 0.3},
+                  },
+                )
+              : broke
+              ? (402, {'error': 'noPlates', 'balance': 0.0})
+              : (
+                  200,
+                  {
+                    'intent': squat(),
+                    'plates': {'balance': 3.9, 'spent': 1.1},
+                  },
+                );
+          return http.Response(
+            jsonEncode(reply),
+            status,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      );
+      await expectLater(
+        ai.queryIntent('스쿼트 최고', 'ko', names, unit: 'kg'),
+        throwsA(
+          isA<RecordAiException>().having(
+            (e) => e.status,
+            'status',
+            RecordAiStatus.noPlates,
+          ),
+        ),
+      );
+      final focused = focusedInstructions(const {'rank'});
+      expect(sent, [familyInstructions, focused]);
+      // 402 알림도 이 질문에 쓴 합(1단계 0.3)을 싣는다.
+      expect(spent, [0.3, 0.3]);
+      sent.clear();
+      spent.clear();
+      broke = false;
+      expect(await ai.queryIntent('스쿼트 최고', 'ko', names, unit: 'kg'), squat());
+      expect(sent, [focused], reason: '1단계 꼬리표는 담아 두었다');
+      expect(spent, [1.1]);
+    });
+
     test('보내는 중인 질문을 다시 보내도 모델을 또 부르지 않는다', () async {
       final result = Completer<Object?>();
       var calls = 0;
@@ -2122,9 +2186,10 @@ void main() {
         expect(q.kind, isNot('find'), reason: m[1]);
         count++;
       }
-      // 평가 모음과 틀이 같던 예시와 규칙 문장이 이미 말하는 예시를 빼 22개다 —
-      // 한 질문의 토큰이 설계 예산(2,600)을 넘었다(v3 재검토).
-      expect(count, greaterThanOrEqualTo(22));
+      // 평가 모음과 틀이 같던 예시와 규칙 문장이 이미 말하는 예시를 빼 22개였다 —
+      // 한 질문의 토큰이 설계 예산(2,600)을 넘었다(v3 재검토). v2 '종합' 정답의
+      // 관례(order desc)를 가르치던 '운동 전반 요약해줘' 를 빼 21개다.
+      expect(count, greaterThanOrEqualTo(21));
     });
 
     test('두 단계 지시문: 갈래 예시 plan 은 모두 디코더를 지나고, 꼬리표를 못 읽으면 한 지시문', () {

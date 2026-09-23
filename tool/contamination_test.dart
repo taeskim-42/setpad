@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'outcome_grading.dart';
+
 /// 지시문 예시(`"…" => {…}` 줄)가 평가 문항과 같으면 그 문항은 답을 베껴
 /// 맞힌다 — 점수가 부푼다(v2 지시문 예시 27개 중 15개가 v2.json 문항과 같았다).
 /// 지시문이 어느 파일에 있든 lib/ 의 예시 줄을 모두 모아 v2·dev·heldout·v3·final
@@ -65,6 +67,65 @@ void main() {
       expect(close, isEmpty);
     });
   }
+
+  // 재검토: 예시 '운동 전반 요약해줘' 의 plan 이 v2 '종합' 정답 9개와 같은 모양
+  // ({by: exercise, measures: [trainingDays, best, latest], order: desc})이었다 — 글은
+  // 달라도 정답의 관례(order desc)를 지시문이 가르쳤다. 예시의 plan 은 어느 평가
+  // 정답 대안과도 같지 않다(그 문항이 안 보는 키를 빼고 견줘도).
+  test('지시문 예시의 plan 은 평가 정답 대안과 같지 않다', () {
+    Object? canon(Object? x) => switch (x) {
+      final Map m => {
+        for (final k in (m.keys.map((k) => '$k').toList()..sort()))
+          k: canon(m[k]),
+      },
+      final List l => [for (final e in l) canon(e)],
+      final num n => n.toDouble(),
+      _ => x,
+    };
+    String key(Object? plan, [Iterable<Object?> ignore = const []]) =>
+        jsonEncode(
+          canon(
+            plan is Map
+                ? {
+                    for (final e in plan.entries)
+                      if (!ignore.contains(e.key)) e.key: e.value,
+                  }
+                : plan,
+          ),
+        );
+    final plans = <String, String>{
+      for (final f in Directory(
+        'lib',
+      ).listSync(recursive: true).whereType<File>())
+        if (f.path.endsWith('.dart'))
+          for (final m in RegExp(
+            r'^"(.+?)" => (\{.*\})$',
+            multiLine: true,
+          ).allMatches(f.readAsStringSync()))
+            m[1]!: m[2]!,
+    };
+    expect(plans, isNotEmpty);
+    final hits = <String>{};
+    for (final set in ['v2', 'heldout', 'v3', 'final', 'blind']) {
+      for (final c in evalCases(set)) {
+        for (final g in c.gold) {
+          for (final MapEntry(key: q, value: raw) in plans.entries) {
+            final plan = jsonDecode(raw);
+            if (key(plan) == key(g) ||
+                (c.ignore.isNotEmpty &&
+                    key(plan, c.ignore) == key(g, c.ignore))) {
+              hits.add('"$q" ⟵ $set: ${c.q}');
+            }
+          }
+        }
+      }
+    }
+    for (final h in hits) {
+      // ignore: avoid_print
+      print('  $h');
+    }
+    expect(hits, isEmpty);
+  });
 
   test('지시문 예시는 평가 문항(v2·dev·heldout·v3)과 같지 않다', () {
     final examples = <String>{

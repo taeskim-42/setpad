@@ -632,14 +632,15 @@ class RecordAi {
     final spent = nested is Map ? nested['spent'] : null;
     if (spent is num) sum?.add(spent.toDouble());
     if (balance is num) {
+      // 402 는 쓴 양 없이 잔액만 온다 — 같은 질문의 앞 부름(1단계)에 쓴 것은
+      // 쓴 것이다. 합을 싣는다.
+      final total = sum == null || sum.isEmpty
+          ? null
+          // 원판은 둘째 자리까지다 — 더하다 생긴 부동소수 꼬리를 뗀다.
+          : (sum.fold(0.0, (a, b) => a + b) * 100).round() / 100;
       onPlates?.call(
         balance.toDouble(),
-        spent is! num
-            ? null
-            : sum == null
-            ? spent.toDouble()
-            // 원판은 둘째 자리까지다 — 더하다 생긴 부동소수 꼬리를 뗀다.
-            : (sum.fold(0.0, (a, b) => a + b) * 100).round() / 100,
+        spent is num ? (sum == null ? spent.toDouble() : total) : total,
       );
     }
   }

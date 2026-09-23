@@ -4081,6 +4081,9 @@ String describePlan(
 String describeQuery(RecordQuery q, L l, String unit) =>
     describePlan(q, l, unit);
 
+/// 질문(언어 + 보낸 글)마다 받은 1단계 꼬리표 — [RecordQueryAi.queryIntent].
+final _stageTags = Expando<Map<String, Set<String>>>();
+
 extension RecordQueryAi on RecordAi {
   /// 모델에게 물어 **plan 만** 받는다(contract 3). 날짜는 풀지 않는다.
   ///
@@ -4106,20 +4109,27 @@ extension RecordQueryAi on RecordAi {
     // 한 지시문으로 — 갈래 고르기는 덧붙이는 것이라 질문을 막지 않는다. 연결·원판·
     // 혼잡은 2단계도 같으니 그대로 알린다. 쓴 원판은 두 부름을 합쳐 알린다.
     final spent = <double>[];
-    Set<String>? tags;
-    try {
-      tags = planTags(
-        await ask(
-          familyInstructions,
-          jsonEncode({'language': locale, 'question': asked}),
-          contract: 3,
-          spent: spent,
-        ),
-      );
-    } on FormatException {
-      tags = null;
-    } on RecordAiException catch (e) {
-      if (e.code != 'upstream') rethrow;
+    // 1단계는 원판을 따로 치른다. 2단계가 원판·연결·혼잡으로 끝나도 받은 꼬리표는
+    // 이 질문 것으로 담아 두어, 다시 물을 때 1단계를 또 사지 않는다.
+    final memo = _stageTags[this] ??= {};
+    final memoKey = '$locale\n$asked';
+    Set<String>? tags = memo[memoKey];
+    if (tags == null) {
+      try {
+        tags = planTags(
+          await ask(
+            familyInstructions,
+            jsonEncode({'language': locale, 'question': asked}),
+            contract: 3,
+            spent: spent,
+          ),
+        );
+        if (tags != null) memo[memoKey] = tags;
+      } on FormatException {
+        tags = null;
+      } on RecordAiException catch (e) {
+        if (e.code != 'upstream') rethrow;
+      }
     }
     return ask(
       tags == null ? planInstructions : focusedInstructions(tags),
@@ -4248,23 +4258,22 @@ Examples of meaning, not phrases:
 "데드는 1RM, 로우는 세트 수" => {"series":[{"exercises":["데드리프트"],"measures":["e1rm"]},{"exercises":["바벨로우"],"measures":["setCount"]}]}
 "최근 3주랑 그 전 3주 세트 수" => {"period":"recent","days":21,"measures":["setCount"],"series":[{"shift":{"weeks":3}},{}]}
 "2025년 6월 10일 전과 후 벤치 1RM" => {"exercises":["벤치프레스"],"measures":["e1rm"],"series":[{"until":"2025-06-09"},{"since":"2025-06-10"}]}
-"상체랑 하체 중 뭘 더 자주 했어" => {"measures":["trainingDays"],"series":[{"part":"upper"},{"part":"lower"}]}
+"어깨랑 팔 중 뭘 더 자주 했어" => {"measures":["trainingDays"],"series":[{"part":"shoulders"},{"part":"arms"}]}
 "오후에 할 때랑 저녁에 할 때 중 언제 더 세" => {"by":"exercise","measures":["best"],"series":[{"hours":{"from":11,"to":17}},{"hours":{"from":17,"to":23}}]}
-"파트너랑 한 날과 혼자 한 날 볼륨" => {"measures":["volume"],"per":"day","series":[{"together":true},{"together":false}]}
+"파트너랑 한 날과 혼자 한 날 반복 수" => {"measures":["repCount"],"per":"day","series":[{"together":true},{"together":false}]}
 "데드가 벤치의 몇 배" => {"exercises":["벤치프레스","데드리프트"],"measures":["best"],"relate":"ratio"}
-"요즘 벤치가 PR의 몇 퍼센트" => {"exercises":["벤치프레스"],"measures":["best"],"relate":"ratio","series":[{},{"sessions":1}]}
+"요즘 로우가 PR의 몇 퍼센트" => {"exercises":["바벨로우"],"measures":["best"],"relate":"ratio","series":[{},{"sessions":1}]}
 "몸무게 72인데 스쿼트 몇 배야" => {"exercises":["스쿼트"],"measures":["best"],"against":{"value":72,"unit":"kg"}}
 "작년 이맘때 대비 스쿼트" => {"exercises":["스쿼트"],"period":"recent","days":30,"series":[{"shift":{"years":1}},{}]}
 "오늘 로우 지난번보다 나아졌나" => {"exercises":["바벨로우"],"measures":["best"],"series":[{"nth":2},{"nth":1}]}
 "스쿼트 기록 쭉 보여줘" => {"exercises":["스쿼트"]}
-"운동 전반 요약해줘" => {"by":"exercise","measures":["trainingDays","best","latest"],"order":"desc"}
-"퍼센트로 제일 많이 오른 운동 3개" => {"by":"exercise","measures":["changePct"],"order":"desc","limit":3}
-"기록 보고 보강할 거 골라줘" => {"by":"exercise","measures":["trainingDays","daysSinceBest","daysSince"]}
+"퍼센트로 제일 많이 오른 하체 운동 3개" => {"part":"legs","by":"exercise","measures":["changePct"],"order":"desc","limit":3}
+"이번 달 기록 보고 보강할 거 골라줘" => {"period":"thisMonth","by":"exercise","measures":["trainingDays","daysSinceBest","daysSince"]}
 "이직하고 나서 데드 어때?" => {"exercises":["데드리프트"],"measures":["weightChange"],"notComputable":["이직한 날"]}
 "다음 주에 스쿼트 150 가능해?" => {"exercises":["스쿼트"],"measures":["best","weightChange"],"notComputable":["예측"]}
-"첫 세트보다 끝 세트 반복이 얼마나 줄어" => {"measures":["meanReps"],"series":[{"set":"first"},{"set":"last"}]}
+"벤치 첫 세트보다 끝 세트 반복이 얼마나 줄어" => {"exercises":["벤치프레스"],"measures":["meanReps"],"series":[{"set":"first"},{"set":"last"}]}
 "무릎 아프다고 쓴 날과 아닌 날 스쿼트" => {"exercises":["스쿼트"],"series":[{"memo":["무릎 아프"]},{"noMemo":["무릎 아프"]}]}
-"내 심박 평균" => {"notComputable":["심박"]}
+"내 혈압 평균" => {"notComputable":["혈압"]}
 "90kg 이상인 세트나 3회 이하인 세트 수" => {"measures":["setCount"],"series":[{"weight":{"op":">=","value":90,"unit":"kg"}},{"reps":{"op":"<=","value":3}}]}
 Final checks: never invent names, numbers or dates. Return only the JSON for the final question.''';
 
@@ -4329,16 +4338,15 @@ const _planModules = {
 "이직하고 나서 데드 어때?" => {"exercises":["데드리프트"],"measures":["weightChange"],"notComputable":["이직한 날"]}''',
   'rank':
       r'''Groups and ranks: with by and several series, one measure each. order desc|asc with limit 1-20, only to rank rows the question does not name; the single most or least (which day of the week, which month) is limit 1. total: sum (합계; 3대 합 is best of squat, bench, deadlift) | mean, only over several rows. per: day|week|month, an average of a count (sets, reps, volume, distance, duration, days, kcal) per training day / week / month (주당 평균 = per week). More measures: changePct (% change, fastest growing), daysSinceBest, sessionsSinceBest (to rank stuck exercises). exclude: names left out (말고/except/以外/除了), with by: exercise; never list the other exercises. A rank needs one measure: most done (많이 한) is trainingDays, heaviest is best.
-"퍼센트로 제일 많이 오른 운동 3개" => {"by":"exercise","measures":["changePct"],"order":"desc","limit":3}
-"운동 전반 요약해줘" => {"by":"exercise","measures":["trainingDays","best","latest"],"order":"desc"}
+"퍼센트로 제일 많이 오른 하체 운동 3개" => {"part":"legs","by":"exercise","measures":["changePct"],"order":"desc","limit":3}
 "월별로 스쿼트 데드 볼륨 나란히" => {"exercises":["스쿼트","데드리프트"],"by":"month","measures":["volume"]}
 "주마다 러닝 평균 거리" => {"exercises":["러닝"],"measures":["distance"],"per":"week"}''',
   'ratio':
       r'''relate: ratio (rows ÷ the first row, so the base comes first: "A is N times B", "A is N% of B", "A to B ratio", "B 대비 A" all give [B, A]) | share (each row's part of the sum: 비중; across exercises use setCount, not days). against {"value","unit"}: a weight written as a number in the question (체중 80) to compare with; never a multiplier (2배). Bodyweight not written as a number goes in notComputable. For push/pull list the exercises.
 "데드가 벤치의 몇 배" => {"exercises":["벤치프레스","데드리프트"],"measures":["best"],"relate":"ratio"}
-"요즘 벤치가 PR의 몇 퍼센트" => {"exercises":["벤치프레스"],"measures":["best"],"relate":"ratio","series":[{},{"sessions":1}]}
+"요즘 로우가 PR의 몇 퍼센트" => {"exercises":["바벨로우"],"measures":["best"],"relate":"ratio","series":[{},{"sessions":1}]}
 "몸무게 72인데 스쿼트 몇 배야" => {"exercises":["스쿼트"],"measures":["best"],"against":{"value":72,"unit":"kg"}}
-"상체랑 하체 중 뭘 더 자주 했어" => {"measures":["trainingDays"],"series":[{"part":"upper"},{"part":"lower"}]}''',
+"어깨랑 팔 중 뭘 더 자주 했어" => {"measures":["trainingDays"],"series":[{"part":"shoulders"},{"part":"arms"}]}''',
   'cond':
       r'''Conditions: one condition alone is one series unless compared with the other days; either-or or "A vs B" conditions are two series, not by. per: day averages a count per training day, for counts compared across day conditions.
 weight {"op","value","unit":"kg"|"lb"}, reps {"op","value"}; op ">=" 이상/以上/at least, ">" 초과/넘게/over/more than/más de/超过, "<=" 이하, "<" 미만/under, "="; a range is a list of two in one series ("weight":[{"op":">","value":60,"unit":"kg"},{"op":"<","value":80,"unit":"kg"}]); only stated thresholds.
@@ -4346,15 +4354,15 @@ weekdays [1..7], 1=Monday: the weekend is {"weekdays":[6,7]}, weekdays {"weekday
 set: first|last, only the first or last set within each workout (첫 세트, 마지막 세트; not 직전 세트). memo / noMemo: phrases found / not found in set memos, only when the question names a memo or a state it records; write the topic with its state (허리 아프, 컨디션 안 좋); memoAll: true needs every phrase. How many days had a memo or condition: trainingDays, no by. What was done on those days: by: exercise. Days with a memo alone is one series; noMemo only when the question also asks about the other days.
 together: true|false (partner joined / alone). routine: true|false (trainer routine, PT). handoff: true|false (handed-over records). timer: tabata|bpm|none for timer words (타바타, bpm); name no exercise for them unless the question names one.
 "오후에 할 때랑 저녁에 할 때 중 언제 더 세" => {"by":"exercise","measures":["best"],"series":[{"hours":{"from":11,"to":17}},{"hours":{"from":17,"to":23}}]}
-"파트너랑 한 날과 혼자 한 날 볼륨" => {"measures":["volume"],"per":"day","series":[{"together":true},{"together":false}]}
-"첫 세트보다 끝 세트 반복이 얼마나 줄어" => {"measures":["meanReps"],"series":[{"set":"first"},{"set":"last"}]}
+"파트너랑 한 날과 혼자 한 날 반복 수" => {"measures":["repCount"],"per":"day","series":[{"together":true},{"together":false}]}
+"벤치 첫 세트보다 끝 세트 반복이 얼마나 줄어" => {"exercises":["벤치프레스"],"measures":["meanReps"],"series":[{"set":"first"},{"set":"last"}]}
 "무릎 아프다고 쓴 날과 아닌 날 스쿼트" => {"exercises":["스쿼트"],"series":[{"memo":["무릎 아프"]},{"noMemo":["무릎 아프"]}]}
 "피곤하다고 적은 날 벤치 어땠어" => {"exercises":["벤치프레스"],"memo":["피곤"]}
 "90kg 이상인 세트나 3회 이하인 세트 수" => {"measures":["setCount"],"series":[{"weight":{"op":">=","value":90,"unit":"kg"}},{"reps":{"op":"<=","value":3}}]}''',
   'days':
       r'''Day patterns over training days (of the named exercises, else all), no by: longestStreak (consecutive days, 연속), longestGap (longest break), meanGap (every how many days), daysSince (since last). Regularity by week or month (매주, 꾸준히) is by week or month with trainingDays. A rule the log cannot check (N times a week in a row) goes in notComputable.
 "레그컬 며칠 간격으로 해" => {"exercises":["레그컬"],"measures":["meanGap"]}
-"하루도 안 빼고 한 게 최대 며칠" => {"measures":["longestStreak"]}
+"스쿼트 하루도 안 빼고 한 게 최대 며칠" => {"exercises":["스쿼트"],"measures":["longestStreak"]}
 "매달 몇 번씩 갔나" => {"by":"month","measures":["trainingDays"]}''',
   'intake':
       r'''More measures: intake (kcal eaten), burned (watch kcal), balance (eaten minus burned). trained: true|false (days with / without training), only with intake, burned, balance; training days vs rest days is two series [{"trained":true},{"trained":false}] with per: day. Food kinds, protein and meal times go in notComputable.
@@ -4362,10 +4370,10 @@ together: true|false (partner joined / alone). routine: true|false (trainer rout
 "이번달 먹은 것과 태운 것" => {"period":"thisMonth","measures":["intake","burned","balance"]}''',
   'refuse':
       r'''{"kind":"unrelated"} only when nothing asked is about the user's training or meals (weather alone, coding, news); training asked with weather, norms or others is a plan with notComputable. {"notComputable":[...]} alone only when none of the user's records relate (heart rate, others' ranks). Otherwise plan the related records too. Advice (how to improve or break a plateau, what to focus on, what is weak) is plain records, never in notComputable.
-"기록 보고 보강할 거 골라줘" => {"by":"exercise","measures":["trainingDays","daysSinceBest","daysSince"]}
-"데드가 몇 달째 제자리야, 뭘 바꿔야 돼?" => {"exercises":["데드리프트"],"measures":["weightChange"]}
+"이번 달 기록 보고 보강할 거 골라줘" => {"period":"thisMonth","by":"exercise","measures":["trainingDays","daysSinceBest","daysSince"]}
+"로우가 몇 달째 제자리야, 뭘 바꿔야 돼?" => {"exercises":["바벨로우"],"measures":["weightChange"]}
 "다음 주에 스쿼트 150 가능해?" => {"exercises":["스쿼트"],"measures":["best","weightChange"],"notComputable":["예측"]}
-"내 심박 평균" => {"notComputable":["심박"]}
+"내 혈압 평균" => {"notComputable":["혈압"]}
 "주식 뭐 살까" => {"kind":"unrelated"}''',
 };
 
