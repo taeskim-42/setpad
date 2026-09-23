@@ -29,10 +29,34 @@ typedef _Case = ({
 ///
 /// 앱의 경로를 그대로 탄다. 모델 대신 대답할 자리(respond)만 끼워서 프롬프트
 /// 조립·이름 정규화·디코딩·규칙 층이 전부 실제와 같다.
+///
+/// `EVAL_DUMP=파일` 이면 모델의 날것 대답을 JSONL 로 남긴다. `EVAL_REPLAY=파일`
+/// 이면 API 대신 그 대답을 다시 먹인다 — 디코더만 바꿨을 때 모델을 다시 부르지
+/// 않고 잰다(지시문을 바꿨으면 다시 불러야 한다).
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   const model = 'deepseek-flash';
   final key = Platform.environment['DEEPSEEK_API_KEY'] ?? '';
+  final dump = switch (Platform.environment['EVAL_DUMP']) {
+    final String path => File(path).openWrite(),
+    null => null,
+  };
+  final replay = <String, String>{
+    if (Platform.environment['EVAL_REPLAY'] case final String path)
+      for (final line in File(path).readAsLinesSync())
+        if (jsonDecode(line) case {
+          'key': final String k,
+          'content': final String c,
+        })
+          k: c,
+  };
+  // 질문 하나의 열쇠: 언어 + 모델에 간 글. 대답 기록과 실패 줄이 같이 쓴다.
+  String keyOf(String input) {
+    final i = jsonDecode(input) as Map;
+    return '${i['language']}|${i['question']}';
+  }
+
+  final contents = <String, String>{};
   // flutter_test 는 모든 HTTP 를 막는 가짜 클라이언트를 끼운다. 이 평가는
   // 진짜 API 를 불러야 하므로 그 가로채기를 끈다.
   HttpOverrides.global = null;
@@ -42,6 +66,15 @@ void main() {
   /// 서버 라우트와 같게 — 멈춤 이유가 stop 이 아니거나 JSON 객체가 아니면
   /// 무효(FormatException)다. 그물·HTTP 실패는 IOException 이다.
   Future<Object?> ask(String instructions, String input) async {
+    final k = keyOf(input);
+    if (replay.isNotEmpty) {
+      final content = replay[k] ?? (throw HttpException('replay 에 없음 $k'));
+      contents[k] = content;
+      answered++;
+      final parsed = jsonDecode(content);
+      if (parsed is! Map) throw const FormatException('unparsable');
+      return parsed;
+    }
     final request = await client.postUrl(
       Uri.parse('https://api.deepseek.com/chat/completions'),
     );
@@ -75,6 +108,10 @@ void main() {
     if (body['usage']?['total_tokens'] case final int n) tokens += n;
     final choice = (body['choices'] as List).first as Map;
     final content = (choice['message'] as Map?)?['content'];
+    if (content is String) {
+      contents[k] = content;
+      dump?.writeln(jsonEncode({'key': k, 'content': content}));
+    }
     if (choice['finish_reason'] != 'stop' || content is! String) {
       throw const FormatException('unparsable');
     }
@@ -141,6 +178,9 @@ void main() {
         var unreachable = 0;
         final perLang = <String, List<int>>{}; // [맞음, 채점]
         final errorTags = <String, int>{}, wrong = <String>[];
+        String raw(_Case c) =>
+            contents['${c.lang.replaceAll('_', '-')}|${canonicalizeExercises(c.q, c.names)}'] ??
+            '';
         final queue = cases(set);
 
         Future<void> worker() async {
@@ -165,12 +205,12 @@ void main() {
             } on IOException catch (err) {
               // 모델 탓이 아니다. 채점에서 뺀다.
               unreachable++;
-              if (wrong.length < 30) wrong.add('${c.q} → 호출 실패 $err');
+              wrong.add('${c.q} → 호출 실패 $err');
               continue;
             } catch (err) {
               invalid++;
               tally[1]++;
-              if (wrong.length < 30) wrong.add('${c.q} → 무효 $err');
+              wrong.add('${c.q} → 무효 $err ⟨${raw(c)}⟩');
               continue;
             }
             tally[1]++;
@@ -190,13 +230,12 @@ void main() {
             for (final e in errors) {
               errorTags[e] = (errorTags[e] ?? 0) + 1;
             }
-            if (wrong.length < 30) {
-              wrong.add('[${c.lang} ${c.cat}] ${c.q} → $errors');
-            }
+            wrong.add('[${c.lang} ${c.cat}] ${c.q} → $errors ⟨${raw(c)}⟩');
           }
         }
 
         await Future.wait([for (var i = 0; i < 4; i++) worker()]);
+        await dump?.flush();
         final graded = exact + invalid + refused + wrongButSure;
         // ignore: avoid_print
         print(
@@ -216,7 +255,7 @@ void main() {
           print('  $w');
         }
       },
-      skip: key.isEmpty ? 'DEEPSEEK_API_KEY 없음' : null,
+      skip: key.isEmpty && replay.isEmpty ? 'DEEPSEEK_API_KEY 없음' : null,
       timeout: const Timeout(Duration(minutes: 25)),
     );
   }

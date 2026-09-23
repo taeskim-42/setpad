@@ -201,6 +201,154 @@ void main() {
       expect(ranked.measures, [Metric.max]);
     });
 
+    test('고침: kind 를 type 이라고 적은 것 — 값이 kind 일 때만', () {
+      expect(decode({'type': 'clarify'}).reason, 'ambiguous');
+      final q = decode({
+        'type': 'query',
+        'exercises': ['스쿼트'],
+      });
+      expect(q.kind, 'query');
+      expect(q.scope.exercises, ['스쿼트']);
+      for (final raw in <Map<String, Object?>>[
+        {
+          'type': 'sum',
+          'exercises': ['스쿼트'],
+        },
+        {'kind': 'query', 'type': 'clarify'},
+      ]) {
+        expect(() => decode(raw), throwsFormatException, reason: '$raw');
+      }
+    });
+
+    test('고침: 응답 형식을 되받아 적고 한 겹 감싼 것 — 감싼 것이 하나일 때만', () {
+      for (final wrap in ['content', 'value']) {
+        final q = decode({
+          'type': 'json_object',
+          wrap: {
+            'exercises': ['데드리프트'],
+            'period': 'today',
+            'measures': ['meanWeight'],
+          },
+        });
+        expect(q.scope.exercises, ['데드리프트'], reason: wrap);
+      }
+      // 빈 껍데기를 전체 기록 질의로 읽으면 자신 있게 틀린다 — 거절한다.
+      for (final raw in <Map<String, Object?>>[
+        {'type': 'json_object'},
+        {
+          'type': 'json_object',
+          'a': {'period': 'today'},
+          'b': {'period': 'today'},
+        },
+      ]) {
+        expect(() => decode(raw), throwsFormatException, reason: '$raw');
+      }
+    });
+
+    test('고침: 비교 항목마다 똑같이 적은 측정은 질의의 측정이다', () {
+      final raw = {
+        'compare': [
+          {
+            'period': 'lastYear',
+            'measures': ['trainingDays'],
+          },
+          {
+            'period': 'thisYear',
+            'measures': ['trainingDays'],
+          },
+        ],
+      };
+      final q = decode(raw);
+      expect(q.measures, [Metric.sessions]);
+      expect(q.compare.map((v) => v.since?.year), [2025, 2026]);
+      expect(
+        ((raw['compare'] as List).first as Map).keys,
+        contains('measures'),
+        reason: '들어온 대답은 그대로 — 캐시가 다시 푼다',
+      );
+      // 항목마다 다르거나 위와 어긋나면 한 질의로 못 쓴다.
+      for (final raw in <Map<String, Object?>>[
+        {
+          'compare': [
+            {
+              'period': 'lastYear',
+              'measures': ['trainingDays'],
+            },
+            {
+              'period': 'thisYear',
+              'measures': ['volume'],
+            },
+          ],
+        },
+        {
+          'measures': ['volume'],
+          'compare': [
+            {
+              'period': 'lastYear',
+              'measures': ['trainingDays'],
+            },
+            {
+              'period': 'thisYear',
+              'measures': ['trainingDays'],
+            },
+          ],
+        },
+      ]) {
+        expect(() => decode(raw), throwsFormatException, reason: '$raw');
+      }
+    });
+
+    test('고침: 묶음 없는 한 줄의 합계와 1등은 그 칸 자신이다', () {
+      final sum = decode({
+        'exercises': ['스쿼트'],
+        'period': 'thisMonth',
+        'measures': ['repCount'],
+        'total': 'sum',
+      });
+      expect((sum.total, sum.by), (null, null));
+      expect(sum.measures, [Metric.reps]);
+      expect(
+        decode({
+          'measures': ['volume', 'setCount'],
+          'total': 'sum',
+        }).total,
+        isNull,
+      );
+      final top = decode({
+        'exercises': ['스쿼트'],
+        'measures': ['best'],
+        'order': 'desc',
+        'limit': 1,
+      });
+      expect((top.order, top.limit), (null, null));
+      expect(top.measures, [Metric.best]);
+      // 평균은 주당인지 달당인지, 여러 줄 순위와 운동 없는 순위는 무엇으로
+      // 묶는지 모른다. 더해지지 않는 측정의 합계도 모른다.
+      for (final raw in <Map<String, Object?>>[
+        {
+          'measures': ['trainingDays'],
+          'total': 'mean',
+        },
+        {
+          'measures': ['best'],
+          'total': 'sum',
+        },
+        {
+          'exercises': ['스쿼트'],
+          'measures': ['best'],
+          'order': 'desc',
+          'limit': 3,
+        },
+        {
+          'measures': ['trainingDays'],
+          'order': 'desc',
+          'limit': 1,
+        },
+      ]) {
+        expect(() => decode(raw), throwsFormatException, reason: '$raw');
+      }
+    });
+
     test('범위 조건: 둘은 범위, 단위를 안 적으면 사용자 단위', () {
       final q = decode({
         'exercises': ['벤치프레스'],
