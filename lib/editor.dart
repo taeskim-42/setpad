@@ -11,6 +11,7 @@ import 'workout_setup_sheet.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'exercises.dart';
 import 'health.dart';
+import 'rest_alarm.dart';
 import 'rest_recovery.dart';
 import 'set_grid.dart';
 import 'palette.dart';
@@ -966,8 +967,24 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 회복했으면 남은 휴식을 건너뛴다. 심박은 휴식을 짧게 할 뿐이다 —
   /// 값이 없거나 늦게 오면 아무 일도 일어나지 않고 시간이 끊는다.
   void _followHeart() {
-    if (_recovery.recovered) _workoutTimer.skipRest();
+    // 타바타 중 심박이 처음 들어오면 경보 권한을 한 번 묻는다 — 쓸 때가 된 순간이다.
+    if (!_restAlarmAsked &&
+        _recovery.fresh &&
+        _workoutTimer.running &&
+        _workoutTimer.spec?.tabata == true) {
+      _restAlarmAsked = true;
+      unawaited(authorizeRestAlarm());
+    }
+    if (!_recovery.recovered) return;
+    final resting = _workoutTimer.phase == TimingPhase.rest;
+    _workoutTimer.skipRest();
+    // 심박이 휴식을 끝냈다. 폰의 시작 신호에 더해 손목까지 — 폰을 안 보고 있어도.
+    if (resting && _workoutTimer.phase != TimingPhase.rest && mounted) {
+      unawaited(ringRestAlarm(L.of(context).restAlarmTitle));
+    }
   }
+
+  bool _restAlarmAsked = false;
 
   @override
   void initState() {

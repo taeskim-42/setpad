@@ -1279,4 +1279,7 @@ class LVi extends L {
 
   @override
   String get healthDataPrivacy => 'Chính sách quyền riêng tư';
+
+  @override
+  String get restAlarmTitle => 'Hiệp tiếp theo — nhịp tim đã giảm';
 }

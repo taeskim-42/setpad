@@ -1,5 +1,7 @@
 import AVFoundation
+import AlarmKit
 import Flutter
+import SwiftUI
 import UIKit
 
 @MainActor
@@ -192,3 +194,74 @@ final class TimingBridge {
     return data
   }
 }
+
+// MARK: - 손목까지 알리는 휴식 끝 (AlarmKit)
+
+/// 심박이 내려와 휴식이 끝났을 때 손목까지 알린다.
+///
+/// 워치 앱 없이 손목을 울리는 문서상의 길이 이것이다 — "The system forwards the
+/// alert presentation to a paired watch (if any) to notify people when an alarm
+/// is alerting."(Scheduling an alarm with AlarmKit). 기본 운동 앱이 워치 화면을
+/// 차지하고 있어도 경보는 시스템이 띄운다. 폰 화면이 켜져 있을 때도 워치로
+/// 넘어가는지와 지연은 문서에 없어 실기기로 잰다.
+///
+/// 경보는 끌 때까지 울리는 것이라 몇 초 뒤 스스로 끈다 — 알리는 것이 목적이다.
+@MainActor
+final class RestAlarm {
+  private let channel: FlutterMethodChannel
+
+  init(messenger: FlutterBinaryMessenger) {
+    channel = FlutterMethodChannel(name: "setpad/rest_alarm", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      guard #available(iOS 26.1, *) else { return result(false) }
+      switch call.method {
+      case "authorize":
+        Task { @MainActor in result(await Self.authorize()) }
+      case "ring":
+        let title = (call.arguments as? [String: Any])?["title"] as? String ?? ""
+        Task { @MainActor in result(await Self.ring(title)) }
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+  }
+
+  @available(iOS 26.1, *)
+  private static func authorize() async -> Bool {
+    switch AlarmManager.shared.authorizationState {
+    case .authorized: return true
+    case .denied: return false
+    default: return (try? await AlarmManager.shared.requestAuthorization()) == .authorized
+    }
+  }
+
+  // 경보 화면의 새 생성자(시스템이 끄기 단추를 붙인다)가 26.1 부터다.
+  @available(iOS 26.1, *)
+  private static func ring(_ title: String) async -> Bool {
+    guard !title.isEmpty, await authorize() else { return false }
+    let id = UUID()
+    let alert = AlarmPresentation.Alert(
+      title: LocalizedStringResource(stringLiteral: title),
+      secondaryButton: nil, secondaryButtonBehavior: nil)
+    let attributes = AlarmAttributes<RestAlarmMetadata>(
+      presentation: AlarmPresentation(alert: alert), metadata: nil, tintColor: .red)
+    do {
+      // 지금 울린다. 고정 시각이 과거면 거절될 수 있어 1초 뒤로 둔다.
+      _ = try await AlarmManager.shared.schedule(
+        id: id,
+        configuration: .alarm(schedule: .fixed(Date().addingTimeInterval(1)), attributes: attributes))
+    } catch {
+      NSLog("[휴식 경보] 예약 실패: \(error)")
+      return false
+    }
+    Task { @MainActor in
+      try? await Task.sleep(nanoseconds: 5_000_000_000)
+      try? AlarmManager.shared.stop(id: id)
+      try? AlarmManager.shared.cancel(id: id)
+    }
+    return true
+  }
+}
+
+@available(iOS 26.0, *)
+struct RestAlarmMetadata: AlarmMetadata {}

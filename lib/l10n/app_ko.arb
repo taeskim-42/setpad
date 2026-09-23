@@ -1080,5 +1080,9 @@
   "healthDataStays": "건강 앱에서 읽은 값은 기기 밖으로 나가지 않습니다. 서버로 보내지 않고, 광고나 마케팅에 쓰지 않습니다.",
   "healthDataRevokeIos": "권한은 iPhone 설정 → 개인정보 보호 및 보안 → 건강 → setpad에서 언제든 끌 수 있습니다.",
   "healthDataRevokeAndroid": "권한은 헬스 커넥트 → 앱 권한 → setpad에서 언제든 끌 수 있습니다.",
-  "healthDataPrivacy": "개인정보 처리방침"
+  "healthDataPrivacy": "개인정보 처리방침",
+  "restAlarmTitle": "다음 라운드 — 심박이 내려왔어요",
+  "@restAlarmTitle": {
+    "description": "AlarmKit alert title when heart rate ends a Tabata rest; forwarded to the watch."
+  }
 }

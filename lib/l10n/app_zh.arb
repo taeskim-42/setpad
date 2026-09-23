@@ -337,5 +337,6 @@
   "healthDataStays": "从健康应用读取的数据不会离开本设备。不会发送到服务器,也不会用于广告或营销。",
   "healthDataRevokeIos": "可随时在 iPhone 设置 → 隐私与安全性 → 健康 → setpad 中关闭。",
   "healthDataRevokeAndroid": "可随时在 Health Connect → 应用权限 → setpad 中关闭。",
-  "healthDataPrivacy": "隐私政策"
+  "healthDataPrivacy": "隐私政策",
+  "restAlarmTitle": "下一轮 — 心率已降下来"
 }

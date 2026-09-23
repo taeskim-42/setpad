@@ -2136,6 +2136,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'개인정보 처리방침'**
   String get healthDataPrivacy;
+
+  /// AlarmKit alert title when heart rate ends a Tabata rest; forwarded to the watch.
+  ///
+  /// In ko, this message translates to:
+  /// **'다음 라운드 — 심박이 내려왔어요'**
+  String get restAlarmTitle;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

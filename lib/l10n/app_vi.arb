@@ -337,5 +337,6 @@
   "healthDataStays": "Dữ liệu đọc từ ứng dụng sức khỏe không rời khỏi thiết bị này. Không gửi lên máy chủ và không dùng cho quảng cáo hay tiếp thị.",
   "healthDataRevokeIos": "Bạn có thể tắt bất cứ lúc nào trong Cài đặt iPhone → Quyền riêng tư & Bảo mật → Sức khỏe → setpad.",
   "healthDataRevokeAndroid": "Bạn có thể tắt bất cứ lúc nào trong Health Connect → Quyền của ứng dụng → setpad.",
-  "healthDataPrivacy": "Chính sách quyền riêng tư"
+  "healthDataPrivacy": "Chính sách quyền riêng tư",
+  "restAlarmTitle": "Hiệp tiếp theo — nhịp tim đã giảm"
 }

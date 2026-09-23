@@ -1248,4 +1248,7 @@ class LKo extends L {
 
   @override
   String get healthDataPrivacy => '개인정보 처리방침';
+
+  @override
+  String get restAlarmTitle => '다음 라운드 — 심박이 내려왔어요';
 }

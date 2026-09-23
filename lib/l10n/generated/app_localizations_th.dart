@@ -1268,4 +1268,7 @@ class LTh extends L {
 
   @override
   String get healthDataPrivacy => 'นโยบายความเป็นส่วนตัว';
+
+  @override
+  String get restAlarmTitle => 'รอบถัดไป — หัวใจเต้นช้าลงแล้ว';
 }

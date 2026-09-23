@@ -14,12 +14,14 @@ import UIKit
   private var heartRate: HeartRateObserver?
   private var timing: TimingBridge?
   private var nearby: NearbyInvite?
+  private var restAlarm: RestAlarm?
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     heartRate = HeartRateObserver(messenger: engineBridge.applicationRegistrar.messenger())
     timing = TimingBridge(messenger: engineBridge.applicationRegistrar.messenger())
     nearby = NearbyInvite(messenger: engineBridge.applicationRegistrar.messenger())
+    restAlarm = RestAlarm(messenger: engineBridge.applicationRegistrar.messenger())
 
     // 공유 시트. 글 한 줄(공동 루틴 초대 링크)을 올리는 것이 전부라 플러그인 없이 둔다.
     FlutterMethodChannel(

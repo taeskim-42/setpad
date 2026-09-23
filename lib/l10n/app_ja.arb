@@ -337,5 +337,6 @@
   "healthDataStays": "ヘルスケアアプリから読み取った値はこの端末の外に出ません。サーバーへ送らず、広告やマーケティングにも使いません。",
   "healthDataRevokeIos": "権限は iPhone の設定 → プライバシーとセキュリティ → ヘルスケア → setpad でいつでもオフにできます。",
   "healthDataRevokeAndroid": "権限はヘルスコネクト → アプリの権限 → setpad でいつでもオフにできます。",
-  "healthDataPrivacy": "プライバシーポリシー"
+  "healthDataPrivacy": "プライバシーポリシー",
+  "restAlarmTitle": "次のラウンド — 心拍が下がりました"
 }

@@ -1281,4 +1281,7 @@ class LEn extends L {
 
   @override
   String get healthDataPrivacy => 'Privacy policy';
+
+  @override
+  String get restAlarmTitle => 'Next round — your heart rate is down';
 }

@@ -1246,4 +1246,7 @@ class LJa extends L {
 
   @override
   String get healthDataPrivacy => 'プライバシーポリシー';
+
+  @override
+  String get restAlarmTitle => '次のラウンド — 心拍が下がりました';
 }

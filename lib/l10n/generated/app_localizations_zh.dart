@@ -1237,6 +1237,9 @@ class LZh extends L {
 
   @override
   String get healthDataPrivacy => '隐私政策';
+
+  @override
+  String get restAlarmTitle => '下一轮 — 心率已降下来';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2472,6 +2475,9 @@ class LZhHans extends LZh {
 
   @override
   String get healthDataPrivacy => '隐私政策';
+
+  @override
+  String get restAlarmTitle => '下一轮 — 心率已降下来';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3707,4 +3713,7 @@ class LZhHant extends LZh {
 
   @override
   String get healthDataPrivacy => '隱私權政策';
+
+  @override
+  String get restAlarmTitle => '下一輪 — 心率已降下來';
 }

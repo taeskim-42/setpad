@@ -1286,4 +1286,7 @@ class LEs extends L {
 
   @override
   String get healthDataPrivacy => 'Política de privacidad';
+
+  @override
+  String get restAlarmTitle => 'Siguiente ronda: tu pulso ha bajado';
 }
