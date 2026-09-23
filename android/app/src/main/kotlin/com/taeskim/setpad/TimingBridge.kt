@@ -38,23 +38,38 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
     }
 
     // Match Tempo: read half a beat after the click, capped at one second.
-    private fun speak(text: String, locale: String) {
+    // The count comes from Dart's clock and the click from this track, which
+    // started a little later — near the end of the loop the click this count
+    // belongs to has not sounded yet, so wait for it. A newer count replaces one
+    // still waiting; if the previous word is still sounding, wait briefly for it
+    // instead of dropping this count or cutting that one off.
+    private fun speak(text: String, locale: String, rate: Float) {
         val engine = speech ?: return
-        if (text.isEmpty() || !speechReady || engine.isSpeaking || pendingSpeech != null) return
+        if (text.isEmpty() || !speechReady) return
+        pendingSpeech?.let { handler.removeCallbacks(it) }; pendingSpeech = null
         val player = track
         val bpm = tempo
+        var patience = 300L
         // A Tabata with no BPM still announces its rounds, so there may be no beat to wait for.
         val countRemaining = if (player != null && bpm != null) {
             val frames = (60.0 / bpm * 22050).toInt()
-            val position = (player.playbackHeadPosition.toLong() and 0xffffffffL) % frames
-            maxOf(0L, minOf(30000L / bpm, 1000L) - position * 1000 / 22050)
+            val period = 60000L / bpm
+            val half = minOf(30000L / bpm, 1000L)
+            val at = ((player.playbackHeadPosition.toLong() and 0xffffffffL) % frames) * 1000 / 22050
+            patience = period / 2
+            if (at > period * 3 / 4) period - at + half else maxOf(0L, half - at)
         } else 0L
         val delay = maxOf(countRemaining, cueEndsAt - SystemClock.elapsedRealtime(), 0L)
-        val task = Runnable {
+        val giveUpAt = SystemClock.elapsedRealtime() + delay + patience
+        lateinit var task: Runnable
+        task = Runnable {
+            if (engine.isSpeaking && SystemClock.elapsedRealtime() < giveUpAt) {
+                handler.postDelayed(task, 30); return@Runnable
+            }
             pendingSpeech = null
             if (!engine.isSpeaking) {
                 runCatching { engine.language = Locale.forLanguageTag(locale) }
-                engine.setSpeechRate(1.15f)
+                engine.setSpeechRate(rate)
                 engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "count")
             }
         }
@@ -71,7 +86,8 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
         channel.setMethodCallHandler { call, result ->
             if (call.method == "speak") {
                 runCatching {
-                    speak(call.argument<String>("text") ?: "", call.argument<String>("locale") ?: "en")
+                    speak(call.argument<String>("text") ?: "", call.argument<String>("locale") ?: "en",
+                        (call.argument<Double>("rate") ?: 1.15).toFloat())
                 }
                 result.success(null)
             }

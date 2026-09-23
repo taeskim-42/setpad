@@ -163,6 +163,29 @@ String spokenCount(int n, String languageCode) {
   return '${sino[n ~/ 100]}${tens[n % 100 ~/ 10]}${ones[n % 10]}';
 }
 
+/// 세는 말 한 마디를 얼마나 빨리 읽고, 그러면 얼마나 걸리는가.
+///
+/// 말이 다음 박자 전에 끝나야 숫자가 안 빠진다. "스물일곱" 은 네 음절이라
+/// 100bpm(0.6초)에 기본 속도로는 안 들어간다. 박자에 맞춰 빠르게 읽되 최대
+/// 두 배까지만 — 그 이상은 알아듣기 어렵다.
+///
+/// ponytail: 음절당 시간은 어림값이다. 기기 음성이 더 느리면 [syllableSeconds]
+/// 를 올린다(실기기에서 숫자가 빠지면 이것부터).
+const syllableSeconds = 0.2, speechLead = 0.08;
+({double rate, double seconds}) countPace(
+  String text,
+  String languageCode,
+  int bpm,
+) {
+  // 한국어는 글자가 곧 음절이다. 다른 말은 숫자 한 자리를 두 음절쯤으로 본다.
+  final syllables = languageCode == 'ko' ? text.length : text.length * 1.8;
+  final budget = 60 / bpm * 0.9 - speechLead;
+  final rate = budget <= 0
+      ? 2.0
+      : (syllables * syllableSeconds / budget).clamp(1.15, 2.0).toDouble();
+  return (rate: rate, seconds: speechLead + syllables * syllableSeconds / rate);
+}
+
 enum TimingPhase { ready, work, rest, complete }
 
 /// A monotonic clock determines phases; delayed frames never lengthen a round.
@@ -294,6 +317,7 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
 
   void _start() {
     soundFailed = false;
+    _voiceFreeAt = 0;
     _started = _time;
     running = true;
     _lastPhase = phase;
@@ -321,16 +345,31 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   int _lastBeat = 0;
   int _voiceGeneration = 0;
 
-  void _say(int n) => _speak(spokenCount(n, voiceLocale));
+  /// 앞 말이 끝나는 때(지난 시간, 초). 이보다 이른 박자는 읽지 않는다.
+  double _voiceFreeAt = 0;
+
+  void _say(int n) {
+    final bpm = spec?.bpm;
+    if (bpm == null) return;
+    final text = spokenCount(n, voiceLocale);
+    final pace = countPace(text, voiceLocale, bpm);
+    final now = elapsed.inMilliseconds / 1000;
+    // 빨리 읽어도 한 박에 안 들어가면, 앞 말이 끝난 뒤 첫 박자에서 읽는다.
+    // 예전에는 네이티브가 "아직 말하는 중" 이면 그냥 버려서 어느 숫자가 빠질지
+    // 운이었다 — 여기서 미리 정하면 빠지는 박자가 늘 같다.
+    if (now + 0.001 < _voiceFreeAt) return;
+    _voiceFreeAt = now + pace.seconds;
+    _speak(text, rate: pace.rate);
+  }
 
   /// 세대가 바뀌면(멈춤·되감기) 줄 서 있던 말은 버린다.
-  void _speak(String text) {
+  void _speak(String text, {double rate = 1.15}) {
     final generation = _voiceGeneration;
     _commands = _commands.then((_) async {
       if (_disposed || generation != _voiceGeneration) return;
       // 읽다 실패해도 박자는 계속 간다. 소리는 덤이지 타이머의 전제가 아니다.
       try {
-        await _audio.speak(text, voiceLocale);
+        await _audio.speak(text, voiceLocale, rate: rate);
       } catch (_) {}
     });
   }

@@ -19,8 +19,12 @@ class _NativeAudio extends TimingAudio {
       });
 
   @override
-  Future<void> speak(String text, String locale) =>
-      _channel.invokeMethod<void>('speak', {'text': text, 'locale': locale});
+  Future<void> speak(String text, String locale, {double rate = 1.15}) =>
+      _channel.invokeMethod<void>('speak', {
+        'text': text,
+        'locale': locale,
+        'rate': rate,
+      });
 
   @override
   Future<void> dispose() async {

@@ -20,7 +20,7 @@ class _WebAudio extends TimingAudio {
   }
 
   @override
-  Future<void> speak(String text, String locale) async {
+  Future<void> speak(String text, String locale, {double rate = 1.15}) async {
     try {
       _speak(text.toJS, locale.toJS);
     } catch (_) {

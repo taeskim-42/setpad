@@ -16,7 +16,7 @@ class FakeAudio extends TimingAudio {
 
   final spoken = <String>[];
   @override
-  Future<void> speak(String text, String locale) async {
+  Future<void> speak(String text, String locale, {double rate = 1.15}) async {
     events.add('speak');
     spoken.add(text);
   }
@@ -264,6 +264,68 @@ void _aloud() {
       expect(audio.spoken, isEmpty);
       expect(audio.events.last, 'stop');
       timer.dispose();
+    });
+
+    Future<List<String>> counts(WidgetTester tester, int bpm, int beats) async {
+      var now = Duration.zero;
+      final audio = FakeAudio();
+      final timer = WorkoutTimer(audio: audio, now: () => now)
+        ..countAloud = true
+        ..voiceLocale = 'ko';
+      timer.toggle(Object(), TimingSpec(bpm: bpm));
+      // 50ms 마다 본다 — 실제 타이머와 같은 간격.
+      final end = 3000 + beats * 60000 ~/ bpm;
+      for (var ms = 50; ms <= end; ms += 50) {
+        now = Duration(milliseconds: ms);
+        timer.tick();
+      }
+      await tester.idle();
+      timer.pause();
+      await tester.idle();
+      timer.dispose();
+      return audio.spoken;
+    }
+
+    testWidgets('100bpm 에서 스물일곱도 빠지지 않는다 — 빨리 읽어 한 박에 넣는다', (tester) async {
+      final said = await counts(tester, 100, 40);
+      expect(said, [
+        for (var n = 1; n <= said.length; n++) spokenCount(n, 'ko'),
+      ]);
+      expect(said.length, greaterThanOrEqualTo(40));
+      expect(countPace('스물일곱', 'ko', 100).rate, lessThanOrEqualTo(2.0));
+      expect(
+        countPace('스물일곱', 'ko', 100).seconds,
+        lessThanOrEqualTo(0.6),
+        reason: '다음 박자 전에 끝난다',
+      );
+    });
+
+    testWidgets('가장 빠른 120bpm — 아흔아홉까지는 다 읽고, 세 자리는 앞 말이 끝난 뒤 첫 박자에서 읽는다', (
+      tester,
+    ) async {
+      final first = await counts(tester, TimingSpec.maxBpm, 135);
+      final second = await counts(tester, TimingSpec.maxBpm, 135);
+      expect(first, second, reason: '빠지는 박자를 운에 맡기지 않는다');
+      expect(first.take(99), [
+        for (var n = 1; n <= 99; n++) spokenCount(n, 'ko'),
+      ]);
+      final numbers = [
+        for (final t in first)
+          List.generate(
+            999,
+            (i) => i + 1,
+          ).firstWhere((n) => spokenCount(n, 'ko') == t),
+      ];
+      expect(numbers.last, greaterThan(100));
+      expect(numbers.length, lessThan(numbers.last), reason: '세 자리는 건너뛰며 읽는다');
+      // 어림값으로 보면 읽는 말끼리 겹치지 않는다.
+      for (var i = 1; i < numbers.length; i++) {
+        final gap = (numbers[i] - numbers[i - 1]) * 60 / TimingSpec.maxBpm;
+        expect(
+          countPace(first[i - 1], 'ko', TimingSpec.maxBpm).seconds,
+          lessThanOrEqualTo(gap + 0.001),
+        );
+      }
     });
 
     testWidgets('꺼져 있으면 아무 말도 안 한다', (tester) async {

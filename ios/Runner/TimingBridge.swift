@@ -23,7 +23,8 @@ final class TimingBridge {
       guard let self else { result(FlutterMethodNotImplemented); return }
       let args = call.arguments as? [String: Any] ?? [:]
       if call.method == "speak" {
-        self.speak(args["text"] as? String ?? "", locale: args["locale"] as? String ?? "en")
+        self.speak(args["text"] as? String ?? "", locale: args["locale"] as? String ?? "en",
+                   rate: args["rate"] as? Double ?? 1.15)
         result(nil)
         return
       }
@@ -45,15 +46,32 @@ final class TimingBridge {
   }
 
   /// Match Tempo: click, then count half a beat later (at most one second).
-  private func speak(_ text: String, locale: String) {
-    guard !text.isEmpty, pendingSpeech == nil, !speech.isSpeaking else { return }
-    var countRemaining = 0.0
-    if let tempo, let beat { countRemaining = max(0, min(30.0 / Double(tempo), 1.0) - beat.currentTime) }
+  ///
+  /// The count comes from Dart's clock and the click from this player, which
+  /// started a few tens of milliseconds later. So when a count arrives the click
+  /// it belongs to may not have sounded yet (the loop is near its end): then
+  /// wait for that click, not for the one after half a beat ago.
+  /// A newer count replaces one still waiting. If the previous word is still
+  /// sounding, wait a little for it instead of dropping this count or cutting
+  /// that one off.
+  private func speak(_ text: String, locale: String, rate: Double) {
+    guard !text.isEmpty else { return }
+    pendingSpeech?.cancel(); pendingSpeech = nil
+    var countRemaining = 0.0, patience = 0.3
+    if let tempo, let beat {
+      let period = 60.0 / Double(tempo), half = min(period / 2, 1.0), at = beat.currentTime
+      countRemaining = at > period * 0.75 ? period - at + half : max(0, half - at)
+      patience = period * 0.5
+    }
     let cueRemaining = cue.flatMap { $0.isPlaying ? max(0, $0.duration - $0.currentTime) : nil } ?? 0
     let delay = max(countRemaining, cueRemaining)
     pendingSpeech = Task { @MainActor [weak self] in
       if delay > 0 {
         try? await Task.sleep(nanoseconds: UInt64((delay + 0.005) * 1_000_000_000))
+      }
+      var waited = 0.0
+      while let self, self.speech.isSpeaking, waited < patience, !Task.isCancelled {
+        try? await Task.sleep(nanoseconds: 30_000_000); waited += 0.03
       }
       guard !Task.isCancelled, let self else { return }
       self.pendingSpeech = nil
@@ -61,7 +79,8 @@ final class TimingBridge {
       let utterance = AVSpeechUtterance(string: text)
       utterance.voice = AVSpeechSynthesisVoice(language: locale)
         ?? AVSpeechSynthesisVoice(language: Locale.current.identifier)
-      utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 1.15
+      utterance.rate = min(AVSpeechUtteranceMaximumSpeechRate,
+                           AVSpeechUtteranceDefaultSpeechRate * Float(rate))
       self.speech.speak(utterance)
     }
   }

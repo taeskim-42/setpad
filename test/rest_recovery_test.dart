@@ -22,7 +22,7 @@ class SilentAudio extends TimingAudio {
   @override
   Future<void> configure({required bool active, int? bpm, String? cue}) async {}
   @override
-  Future<void> speak(String text, String locale) async {}
+  Future<void> speak(String text, String locale, {double rate = 1.15}) async {}
   @override
   Future<void> dispose() async {}
 }
