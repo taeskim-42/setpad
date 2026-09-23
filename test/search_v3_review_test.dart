@@ -402,7 +402,9 @@ void main() {
       await pump(
         tester,
         RecordAi(
-          respond: (_, _) async {
+          respond: (i, _) async {
+            // 1단계(갈래 고르기)는 세지 않는다 — 질문 하나에 plan 한 번.
+            if (i == familyInstructions) return {'t': <String>[]};
             asked++;
             return {
               'exercises': ['벤치프레스'],
@@ -431,7 +433,9 @@ void main() {
       await pump(
         tester,
         RecordAi(
-          respond: (_, _) async {
+          respond: (i, _) async {
+            // 1단계(갈래 고르기)는 세지 않는다 — 질문 하나에 plan 한 번.
+            if (i == familyInstructions) return {'t': <String>[]};
             asked++;
             return asked == 1
                 ? {'type': 'json_object'}

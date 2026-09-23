@@ -21,6 +21,9 @@ import 'question_grading.dart';
 /// - `EVAL_MODEL`: 부를 모델(기본 deepseek-flash, 운영과 같다).
 /// - `EVAL_SETS`: 잴 모음, 쉼표로(기본 v3,v2,heldout,final,blind).
 /// - `EVAL_DUMP=파일`: 모델의 날것 대답을 JSONL 로 남긴다.
+/// - `EVAL_STAGE2=single|all`: 대조 실험. 1단계를 부르지 않는다. single 은 한
+///   지시문(기준선), all 은 모든 갈래를 실은 2단계 지시문 하나로 묻는다.
+/// - `EVAL_TEMPERATURE=0`: 대조 실험. 서버와 달리 temperature 를 준다.
 /// - `EVAL_REPLAY=파일`: API 대신 그 대답을 다시 먹인다 — 채점기·디코더·실행기만
 ///   바꿨을 때 모델을 다시 부르지 않고 잰다(지시문을 바꿨으면 다시 불러야 한다).
 ///   대답이 없는 문항은 '호출 실패' 로 빠진다.
@@ -55,6 +58,9 @@ void main() {
   final env = Platform.environment;
   final model = env['EVAL_MODEL'] ?? 'deepseek-flash';
   final key = env['DEEPSEEK_API_KEY'] ?? '';
+  final stage2 = env['EVAL_STAGE2'];
+  // 서버(gymdojo lib/model-json.ts)는 temperature 를 보내지 않는다 — 기본값이다.
+  final temperature = double.tryParse(env['EVAL_TEMPERATURE'] ?? '');
   final dump = switch (env['EVAL_DUMP']) {
     final String path => File(path).openWrite(),
     null => null,
@@ -68,10 +74,16 @@ void main() {
         })
           k: c,
   };
-  // 질문 하나의 열쇠: 언어 + 모델에 간 글. 대답 기록(dump·replay)이 쓴다.
-  String keyOf(String input) {
+  // 부른 한 번의 열쇠: 단계 + 언어 + 모델에 간 글. 대답 기록(dump·replay)이 쓴다.
+  // 한 지시문은 옛 열쇠 그대로, 1단계는 'cls|', 2단계는 지시문의 지문(갈래 조합).
+  String keyOf(String instructions, String input) {
     final i = jsonDecode(input) as Map;
-    return '${i['language']}|${i['question']}';
+    final stage = instructions == familyInstructions
+        ? 'cls|'
+        : instructions == planInstructions
+        ? ''
+        : '${instructions.codeUnits.fold(7, (h, c) => (h * 31 + c) & 0xFFFFFFF)}|';
+    return '$stage${i['language']}|${i['question']}';
   }
 
   // 실패 줄에 날것을 보이려고 문항 글로도 담는다(요청은 zone 이 문항을 안다).
@@ -86,11 +98,20 @@ void main() {
   HttpOverrides.global = null;
   final client = HttpClient();
   var tokens = 0, answered = 0, cacheHit = 0, cacheMiss = 0, output = 0;
+  var stage1 = 0, hit1 = 0, miss1 = 0, out1 = 0; // 1단계(갈래 고르기)가 쓴 토큰
 
   /// 서버 라우트와 같게 — 멈춤 이유가 stop 이 아니거나 JSON 객체가 아니면
   /// 무효(FormatException)다. 그물·HTTP 실패는 IOException 이다.
   Future<Object?> ask(String instructions, String input) async {
-    final k = keyOf(input);
+    // 대조 실험: 1단계를 부르지 않는다. single 은 꼬리표 없는 답을 주어 한
+    // 지시문(planInstructions, 기준선)으로, all 은 2단계에 모든 갈래를 싣는다.
+    if (stage2 != null && instructions == familyInstructions) {
+      return stage2 == 'single' ? <String, Object?>{} : {'t': <String>[]};
+    }
+    if (stage2 == 'all') {
+      instructions = focusedInstructions(planFamilies.toSet());
+    }
+    final k = keyOf(instructions, input);
     if (replay.isNotEmpty) {
       final content = replay[k] ?? (throw HttpException('replay 에 없음 $k'));
       keep(k, content);
@@ -110,6 +131,7 @@ void main() {
         jsonEncode({
           'model': model,
           'max_tokens': 400,
+          'temperature': ?temperature,
           'thinking': {'type': 'disabled'},
           'response_format': {'type': 'json_object'},
           'messages': [
@@ -130,10 +152,23 @@ void main() {
     final body = jsonDecode(text);
     answered++;
     if (body['usage'] case final Map u) {
-      if (u['total_tokens'] case final int n) tokens += n;
-      if (u['prompt_cache_hit_tokens'] case final int n) cacheHit += n;
-      if (u['prompt_cache_miss_tokens'] case final int n) cacheMiss += n;
-      if (u['completion_tokens'] case final int n) output += n;
+      final first = instructions == familyInstructions;
+      if (u['total_tokens'] case final int n) {
+        tokens += n;
+        if (first) stage1 += n;
+      }
+      if (u['prompt_cache_hit_tokens'] case final int n) {
+        cacheHit += n;
+        if (first) hit1 += n;
+      }
+      if (u['prompt_cache_miss_tokens'] case final int n) {
+        cacheMiss += n;
+        if (first) miss1 += n;
+      }
+      if (u['completion_tokens'] case final int n) {
+        output += n;
+        if (first) out1 += n;
+      }
     }
     final choice = (body['choices'] as List).first as Map;
     final content = (choice['message'] as Map?)?['content'];
@@ -187,8 +222,10 @@ void main() {
     test(
       '$model 로 $set 을 잰다',
       () async {
-        tokens = cacheHit = cacheMiss = output = 0;
+        tokens = cacheHit = cacheMiss = output = stage1 = hit1 = miss1 = out1 =
+            0;
         answered = 0;
+        var asked = 0; // 모델이 답한 질문 수(부른 횟수가 아니다)
         var exact = 0, invalid = 0, unreachable = 0, shapeExact = 0;
         var shapeInvalid = 0, goldBroken = 0;
         final count = <String, int>{}; // 판정 → 문항 수
@@ -232,6 +269,7 @@ void main() {
                 ),
                 zoneValues: {#question: c.q},
               );
+              asked++;
               // 앱이 센 것: 디코더(규칙 층 포함)가 받은 plan 을 가정 기록에 돌린다.
               got = visible(
                 decodeRecordIntent(
@@ -251,6 +289,7 @@ void main() {
               wrong.add('${c.q} → 호출 실패 $err');
               continue;
             } on FormatException catch (err) {
+              asked++;
               why = err.message;
             }
             final grade = gradeOutcome(wants, got, ignore: c.ignore);
@@ -335,7 +374,8 @@ void main() {
         await dump?.flush();
         final graded = total - unreachable - goldBroken;
         int n(String flag) => count[flag] ?? 0;
-        final avgTokens = answered == 0 ? 0 : tokens ~/ answered;
+        // 질문 하나가 쓴 토큰(두 단계면 두 번 부른 합).
+        final avgTokens = asked == 0 || replay.isNotEmpty ? 0 : tokens ~/ asked;
         // ignore: avoid_print
         print(
           '$model $set: 정확 $exact/$graded = ${pct(exact, graded)} · '
@@ -359,8 +399,21 @@ void main() {
         if (answered > 0 && replay.isEmpty) {
           // ignore: avoid_print
           print(
-            '$set 토큰(평균): 캐시 적중 ${cacheHit ~/ answered} · '
-            '캐시 빗나감 ${cacheMiss ~/ answered} · 출력 ${output ~/ answered}',
+            '$set 토큰(질문당 평균): 합 $avgTokens = 1단계 ${stage1 ~/ asked} + '
+            '2단계 ${(tokens - stage1) ~/ asked} · 캐시 적중 ${cacheHit ~/ asked} · '
+            '캐시 빗나감 ${cacheMiss ~/ asked} · 출력 ${output ~/ asked} · 부른 횟수 $answered',
+          );
+          // 원가: deepseek-flash 피크 단가(gymdojo lib/plate-pricing.ts PEAK_USD_PER_M —
+          // 적중 0.006, 빗나감 0.3, 출력 1.2 USD/백만). 원판은 셋을 같은 값으로 센다.
+          double usd(int hit, int miss, int out) =>
+              (hit * 0.006 + miss * 0.3 + out * 1.2) / asked / 1e6 * 10000;
+          // ignore: avoid_print
+          print(
+            '$set 단계별(질문당): 1단계 적중 ${hit1 ~/ asked} · 빗나감 ${miss1 ~/ asked} · '
+            '출력 ${out1 ~/ asked} / 2단계 적중 ${(cacheHit - hit1) ~/ asked} · '
+            '빗나감 ${(cacheMiss - miss1) ~/ asked} · 출력 ${(output - out1) ~/ asked} · '
+            '원가(피크) 1만 질문당 \$${usd(cacheHit, cacheMiss, output).toStringAsFixed(2)} '
+            '(1단계 \$${usd(hit1, miss1, out1).toStringAsFixed(2)})',
           );
         }
         // ignore: avoid_print

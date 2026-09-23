@@ -21,6 +21,16 @@ import 'package:setpad/l10n/generated/app_localizations.dart';
 /// 디코더와 규칙 층. 모델 출력은 코드로 실행되지 않고 검증만 거친다 — 검증이
 /// 너무 엄하면 답할 수 있던 질문이 "해석 실패"로 죽고, 너무 느슨하면 틀린
 /// 답이 조용히 나간다. 여기서는 그 경계를 못 박는다.
+
+/// 두 단계 검색의 1단계(갈래 고르기)는 '갈래 없음'으로 답하고 2단계만 [reply] 에
+/// 넘긴다. 호출을 세는 테스트는 plan 을 받는 부름만 센다(질문 하나 = 한 번).
+Future<Object?> Function(String, String) _staged(
+  Future<Object?> Function(String, String) reply,
+) =>
+    (instructions, input) => instructions == familyInstructions
+    ? Future.value({'t': <String>[]})
+    : reply(instructions, input);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() => initializeDateFormatting());
@@ -1428,8 +1438,13 @@ void main() {
     test('모든 문장 질문은 이름 목록만 들고 모델에 간다 — 기록은 안 간다', () async {
       final received = <String>[];
       Future<Object?> reply(String instructions, String input) async {
-        expect(instructions, startsWith('Convert ONLY the final question'));
         final prompt = jsonDecode(input) as Map;
+        // 1단계(갈래 고르기)에는 질문 글과 언어만 간다 — 이름 목록도 안 간다.
+        if (instructions == familyInstructions) {
+          expect(prompt.keys.toSet(), {'language', 'question'});
+          return {'t': <String>[]};
+        }
+        expect(instructions, startsWith('Convert ONLY the final question'));
         received.add(prompt['question'] as String);
         expect(prompt['referenceYear'], 2026);
         expect(prompt.containsKey('today'), isFalse);
@@ -1463,7 +1478,9 @@ void main() {
         }),
       );
       expect(await ai.queryIntent('스쿼트 최고', 'ko', names, unit: 'kg'), squat());
-      expect(bodies.single['contract'], 3);
+      // 두 단계 모두 contract 3 — 1단계는 갈래 고르기, 2단계가 plan 이다.
+      expect([for (final b in bodies) b['contract']], [3, 3]);
+      expect(bodies.first['instructions'], familyInstructions);
       status = 402;
       final search = RecordSearch(ai, cache: QueryCache(directory: _temp()));
       await search.refresh('ko');
@@ -1485,7 +1502,7 @@ void main() {
       }
 
       final search = RecordSearch(
-        RecordAi(respond: reply),
+        RecordAi(respond: _staged(reply)),
         cache: QueryCache(directory: _temp()),
       );
       await search.refresh('ko');
@@ -1508,7 +1525,7 @@ void main() {
       }
 
       final search = RecordSearch(
-        RecordAi(respond: reply),
+        RecordAi(respond: _staged(reply)),
         now: () => now,
         cache: QueryCache(directory: _temp()),
       );
@@ -1579,7 +1596,7 @@ void main() {
       );
       final now = DateTime(2026, 9, 9);
       final first = RecordSearch(
-        RecordAi(respond: reply),
+        RecordAi(respond: _staged(reply)),
         now: () => now,
         cache: QueryCache(directory: dir),
       );
@@ -1592,7 +1609,7 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       final second = RecordSearch(
-        RecordAi(respond: reply),
+        RecordAi(respond: _staged(reply)),
         now: () => now,
         cache: QueryCache(directory: dir),
       );
@@ -1618,7 +1635,7 @@ void main() {
       }
 
       final search = RecordSearch(
-        RecordAi(respond: reply),
+        RecordAi(respond: _staged(reply)),
         cache: QueryCache(directory: _temp()),
       );
       await search.refresh('ko');
@@ -1640,7 +1657,7 @@ void main() {
       }
 
       final search = RecordSearch(
-        RecordAi(respond: reply),
+        RecordAi(respond: _staged(reply)),
         cache: QueryCache(directory: _temp()),
       );
       await search.refresh('ko');
@@ -1670,7 +1687,7 @@ void main() {
       }
 
       final search = RecordSearch(
-        RecordAi(respond: reply),
+        RecordAi(respond: _staged(reply)),
         cache: QueryCache(directory: _temp()),
       );
       await search.refresh('ko');
@@ -1700,7 +1717,7 @@ void main() {
         }
 
         final search = RecordSearch(
-          RecordAi(respond: reply),
+          RecordAi(respond: _staged(reply)),
           cache: QueryCache(directory: _temp()),
         );
         await search.refresh('ko');
@@ -1741,7 +1758,7 @@ void main() {
 
         final dir = _temp();
         final search = RecordSearch(
-          RecordAi(respond: reply),
+          RecordAi(respond: _staged(reply)),
           cache: QueryCache(directory: dir),
         );
         await search.refresh('ko');
@@ -1761,7 +1778,7 @@ void main() {
 
         // 새로 켠 앱(같은 캐시)도 담아 둔 답을 읽는다.
         final again = RecordSearch(
-          RecordAi(respond: reply),
+          RecordAi(respond: _staged(reply)),
           cache: QueryCache(directory: dir),
         );
         await again.refresh('ko');
@@ -1835,7 +1852,8 @@ void main() {
         search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
         await pumpEventQueue();
         expect(search.status, RecordAiStatus.ready);
-        expect((search.offline, calls), (false, 1));
+        // 두 단계: 갈래 고르기 한 번 + plan 한 번.
+        expect((search.offline, calls), (false, 2));
         expect(search.plan?.scope.exercises, ['스쿼트']);
         search.dispose();
       },
@@ -2017,6 +2035,50 @@ void main() {
       expect(count, greaterThanOrEqualTo(22));
     });
 
+    test('두 단계 지시문: 갈래 예시 plan 은 모두 디코더를 지나고, 꼬리표를 못 읽으면 한 지시문', () {
+      const logged = ['스쿼트', '벤치프레스', '데드리프트', '바벨로우', '러닝', '사이클'];
+      final all = focusedInstructions(planFamilies.toSet());
+      var count = 0;
+      for (final m in RegExp(
+        r'^"(.+?)" => (.*)$',
+        multiLine: true,
+      ).allMatches(all)) {
+        final q = RecordQuery.decode(
+          jsonDecode(m[2]!),
+          logged,
+          today: today,
+          question: m[1]!,
+        );
+        expect(q.kind, isNot('find'), reason: m[1]);
+        count++;
+      }
+      expect(count, greaterThanOrEqualTo(25));
+      // 갈래 없는 질문의 지시문은 한 지시문의 절반이 안 된다.
+      expect(
+        focusedInstructions(const {}).length,
+        lessThan(planInstructions.length / 2),
+      );
+      expect(planTags({'t': []}), <String>{});
+      expect(
+        planTags({
+          't': ['period', 'cond'],
+        }),
+        {'period', 'cond'},
+      );
+      expect(
+        planTags({
+          't': ['nope'],
+        }),
+        isNull,
+      );
+      expect(
+        planTags({
+          'exercises': ['스쿼트'],
+        }),
+        isNull,
+      );
+    });
+
     test('기록 이름은 해낸 세트로 정하고, 모델에 그 이름만 간다 — 거절도 담아 원판을 다시 쓰지 않는다', () async {
       final sent = <List<Object?>>[];
       var calls = 0;
@@ -2035,7 +2097,7 @@ void main() {
         ]),
       ];
       final search = RecordSearch(
-        RecordAi(respond: reply),
+        RecordAi(respond: _staged(reply)),
         now: () => today,
         cache: QueryCache(directory: _temp()),
       );
