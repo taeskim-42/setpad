@@ -44,17 +44,21 @@ const _policyNumbers = [
 ];
 
 /// 방침 숫자 칸의 글. 칸은 일 또는 회를 센다 — '14', '14일', '3회', '7 days',
-/// '14일 전' 을 읽는다. 그 밖의 글은 다른 수로 읽지 않고 [why] 로 까닭을 준다:
-/// decimal('1.5'), range('10~14일'), negative('-3'), unit('48시간'·'2주' — 일이
-/// 아니다), other(수가 없다). '48시간' 을 48일로 읽으면 뜻이 바뀐다.
+/// '14일 전' 을 읽고, 일·회 뒤·앞에 붙은 말('14일간', '3회 이하', '약 14일',
+/// '14 days ago')도 그 수로 읽는다. 그 밖의 글은 다른 수로 읽지 않고 [why] 로
+/// 까닭을 준다: decimal('1.5'), range('10~14일'), negative('-3'), unit('48시간'·
+/// '2주' — 일이 아니다), other(수가 없다). '48시간' 을 48일로 읽으면 뜻이 바뀐다.
 ({int? value, String? why}) policyNumber(String text) {
   final t = text.trim();
   final n = RegExp(
-    r'^(\d+)\s*(?:일|회|번|日|天|次|回|วัน|ครั้ง|ngày|lần|días?|veces|days?|times?)?'
-    r'\s*(?:전|前|before|antes|trước|ก่อน)?$',
+    r'^(\d+)\s*(?:전|前|before|antes|trước|ก่อน)?$'
+    // 앞은 글자만, 뒤는 수 없는 말만 — 소수·범위·음수·두 번째 수는 여기 못 든다.
+    r'|^[\p{L}\p{M}\s]*(\d+)\s*'
+    r'(?:일|회|번|日|天|次|回|วัน|ครั้ง|ngày|lần|días?|veces|days?|times?)\D*$',
     caseSensitive: false,
+    unicode: true,
   ).firstMatch(t);
-  if (n != null) return (value: int.parse(n[1]!), why: null);
+  if (n != null) return (value: int.parse(n[1] ?? n[2]!), why: null);
   bool has(String pattern) => RegExp(pattern).hasMatch(t);
   return (
     value: null,

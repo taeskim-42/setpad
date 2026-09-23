@@ -745,6 +745,8 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
         failure = switch ((e.status, e.code)) {
           (RecordAiStatus.quotaExceeded, _) => l.inputQuotaSpent,
           (_, 'unknownFood' || 'notFood') => l.mealTextUnknown,
+          // 서버도 적은 합보다 작은 어림을 내보내지 않는다 — 아래의 같은 까닭이다.
+          (_, 'belowTyped') when typed != null => null,
           _ => l.mealTextOffline,
         };
       } catch (_) {
@@ -757,7 +759,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     final at = widget.note.meals.indexOf(entry);
     if (at < 0) return;
     void tell(String? message) =>
-        _documentHeaderKey.currentState?.tell(message, entry.id);
+        _documentHeaderKey.currentState?.tell(message, entry);
     if (estimate == null || (typed != null && estimate.kcal < typed)) {
       return tell(
         [
@@ -1208,7 +1210,17 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
   bool _estimating = false;
 
   /// 머리의 알림 한 줄과, 그것이 어느 끼니의 어림 실패인가(사진 쪽 말이면 null).
-  ({String text, String? meal})? _error;
+  /// 끼니는 그 객체다 — 고치면 새 객체라, 고치거나 지운 끼니의 말은 보이지 않는다.
+  ({String text, MealEntry? meal})? _error;
+
+  /// 보일 알림. 그 끼니가 이 문서에 그대로 있을 때만 — 사람이 열량을 적어
+  /// 고쳤거나 지웠으면 '어림하지 못했어요' 는 이제 틀린 말이다.
+  String? get _notice {
+    final e = _error;
+    return e == null || e.meal == null || note.meals.contains(e.meal)
+        ? e?.text
+        : null;
+  }
 
   Note get note => widget.note;
 
@@ -1218,7 +1230,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
   /// 식단 글 끼니 [meal] 의 어림이 막힌 이유를 사진 쪽과 같은 자리에 적는다.
   /// null 이면 지우되, **그 끼니가 남긴 말만** 지운다 — 다른 끼니의 어림이
   /// 붙었다고 앞 끼니의 '모르는 음식' 을 덮지 않는다.
-  void tell(String? message, String meal) {
+  void tell(String? message, MealEntry meal) {
     if (message == null && _error?.meal != meal) return;
     setState(
       () => _error = message == null ? null : (text: message, meal: meal),
@@ -1501,6 +1513,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                       ),
                     ),
                   CupertinoButton(
+                    key: ValueKey('meal-delete-$i'),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     minimumSize: const Size(32, 32),
                     onPressed: () {
@@ -1513,9 +1526,9 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                 ],
               ),
           ],
-          if (_error != null)
+          if (_notice case final notice?)
             Text(
-              _error!.text,
+              notice,
               style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
             ),
           // 식단 사진·글 버튼은 여기 없다. 입력 줄 위의 막대에 같은 것이 늘 있어서

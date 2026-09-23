@@ -825,6 +825,36 @@ void main() {
       }
     });
 
+    test(
+      'C·방침 숫자 칸은 일·회 뒤에 붙은 말(14일간·3회 이하·14 days ago)도 읽고, 시간·주·소수·범위·음수는 까닭과 함께 막는다',
+      () {
+        for (final (text, value) in [
+          ('14일간', 14),
+          ('14일 이내', 14),
+          ('14일 후', 14),
+          ('3회 이하', 3),
+          ('3번까지', 3),
+          ('약 14일', 14),
+          ('14 days ago', 14),
+          ('about 7 days', 7),
+          ('14日間', 14),
+        ]) {
+          expect(policyNumber(text), (value: value, why: null), reason: text);
+        }
+        for (final (text, why) in [
+          ('48시간 이내', 'unit'),
+          ('14 hours ago', 'unit'),
+          ('2주 후', 'unit'),
+          ('약 2 weeks', 'unit'),
+          ('1.5일간', 'decimal'),
+          ('10~14일 이내', 'range'),
+          ('-3회 이하', 'negative'),
+        ]) {
+          expect(policyNumber(text), (value: null, why: why), reason: text);
+        }
+      },
+    );
+
     testWidgets('이 도장 직원이 아니면 서버의 말을 보여 주고 정리 버튼을 치운다', (tester) async {
       final a = account(
         (request) async => request.url.path == '/api/agent'

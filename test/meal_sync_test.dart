@@ -487,6 +487,18 @@ void main() {
       expect(find.text(l.mealTextBelowTyped(330)), findsOneWidget);
       expect(find.textContaining(l.kcalAtLeast(330)), findsOneWidget);
       expect(find.byKey(const ValueKey('meal-retry-3')), findsOneWidget);
+      // 서버가 먼저 같은 검사로 거절해도(502 belowTyped) 연결 탓이 아니라 같은 까닭이다.
+      reply = (_) async => throw const RecordAiException(
+        RecordAiStatus.unavailable,
+        'belowTyped',
+      );
+      await tester.tap(find.byKey(const ValueKey('meal-retry-3')));
+      await tester.pumpAndSettle();
+      expect(
+        (note.meals[3].kcal, note.meals[3].source),
+        (330, MealEntry.typed),
+      );
+      expect(find.text(l.mealTextBelowTyped(330)), findsOneWidget);
 
       // 어림이 막혀도 적은 330 은 합계에 남는다. 까닭과 함께 그렇다고 말한다.
       reply = (_) async =>
@@ -501,6 +513,60 @@ void main() {
       expect(note.unknownMeals, 2, reason: '적은 것만 든 끼니는 온전한 값이 아니다');
     },
   );
+
+  testWidgets('C·끼니 어림 실패 말은 사람이 그 끼니를 고치거나 지우면 사라진다', (tester) async {
+    final dir = Directory.systemTemp.createTempSync('setpad_meal_stale_');
+    final store = NotesStore(directory: dir);
+    addTearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+    final l = lookupL(const Locale('ko'));
+    final note = store.create();
+    final ai = FakeAi(
+      (_) async => throw const RecordAiException(RecordAiStatus.unavailable),
+    );
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: EditorPage(store: store, note: note, ai: ai),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final input = find.byType(CupertinoTextField);
+    Future<void> submit(String text) async {
+      await tester.enterText(input, text);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+    }
+
+    await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
+    await tester.pumpAndSettle();
+    await submit('김밥');
+    expect(find.text(l.mealTextOffline), findsOneWidget);
+
+    // 안내가 시킨 대로 줄을 눌러 열량을 적었다 — 어림할 일이 없으니 옛 말은 틀린 말이다.
+    await tester.tap(find.byKey(const ValueKey('meal-0')));
+    await tester.pumpAndSettle();
+    await submit('김밥 480kcal');
+    expect(
+      (note.meals.single.kcal, note.meals.single.source),
+      (480, MealEntry.typed),
+    );
+    expect(find.text(l.mealTextOffline), findsNothing);
+
+    // 실패한 끼니를 지워도 그 끼니의 말은 남지 않는다.
+    await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
+    await tester.pumpAndSettle();
+    await submit('엄마표 반찬 조금');
+    expect(find.text(l.mealTextOffline), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('meal-delete-1')));
+    await tester.pumpAndSettle();
+    expect(note.meals.single.text, '김밥 480kcal');
+    expect(find.text(l.mealTextOffline), findsNothing);
+  });
 
   testWidgets('표로 셈한 끼니는 출처를 누르면 그 표의 값과 링크가 나오고, 저장본에도 남는다', (tester) async {
     final dir = Directory.systemTemp.createTempSync('setpad_meal_sources_');
