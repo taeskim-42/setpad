@@ -1300,6 +1300,10 @@ void main() {
       expect(run('trainingDays', '데드 최고 무게'), Metric.best);
       expect(run('setCount', '스쿼트 얼마나 자주 해'), Metric.sessions);
       expect(run('setCount', '스쿼트 총 무게'), Metric.volume);
+      expect(run('setCount', '스쿼트 다 합쳐서 몇 개'), Metric.reps);
+      expect(run('best', '지난주 저번에 스쿼트 얼마 들었지'), Metric.last);
+      // "저번 주" 는 기간이지 마지막 기록이 아니다.
+      expect(run('best', '저번 주 스쿼트 최고'), Metric.best);
       expect(run('weightChange', '스쿼트 운동 횟수 줄었어'), Metric.trend);
       // 두 갈래("최고" + "세트 수")면 모델의 답을 둔다.
       expect(run('setCount', '벤치 최고 세트 수'), Metric.sets);

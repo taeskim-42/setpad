@@ -1863,8 +1863,9 @@ Map<String, String> _ground(
 }
 
 /// 뜻이 하나뿐인 의도 낱말. 모델이 이것과 다른 측정을 적었으면 글과 어긋난
-/// 것이다. '몇 번'(세트? 날?)·'총 몇 회'(횟수? 번?)·'추이'·'평균'·'최고'(무게?
-/// 횟수?)·'저번'(저번 주?)은 뜻이 둘이라 여기 없다 — 비었을 때만 채운다.
+/// 것이다. '몇 번'(세트? 날?)·'총 몇 회'(반복? 운동한 번?)·'추이'·'평균'·
+/// '최고'(무게? 횟수?)·'저번'(저번 주?)은 뜻이 둘이라 여기 없다 — 비었을 때만
+/// 채운다.
 final _plainWords = {
   'volume': RegExp(
     r'볼륨|총량|총\s*무게|전체\s*무게|\bvolume\b|tonnage',
@@ -1879,11 +1880,16 @@ final _plainWords = {
     caseSensitive: false,
   ),
   'repCount': RegExp(
-    r'반복\s*횟수|총\s*반복|total\s*reps|how\s*many\s*reps',
+    r'반복\s*횟수|총\s*반복|(총|다\s*합쳐서)\s*몇\s*개|total\s*reps|how\s*many\s*reps',
     caseSensitive: false,
   ),
   'best': RegExp(
     r'\bPR\b|개인\s*기록|(최고|최대)\s*(무게|중량)|personal\s*(record|best)|heaviest|max\s*weight|몇\s*(kg|킬로|키로|파운드)\s*까지|(제일|가장)\s*무(거|겁)',
+    caseSensitive: false,
+  ),
+  // "저번 주" 는 기간이다 — 조사 '에' 가 붙은 "저번에" 만 지난번이다.
+  'latest': RegExp(
+    r'(저번|지난번)에|last\s*time|most\s*recent',
     caseSensitive: false,
   ),
 };
