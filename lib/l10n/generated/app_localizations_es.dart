@@ -275,6 +275,15 @@ class LEs extends L {
       'Escribe un número entero de 1 o más — deja rangos y tiempos en el título';
 
   @override
+  String get setupMergeUp => 'Unir con el anterior';
+
+  @override
+  String get setupKeepApart => 'Mantener aparte';
+
+  @override
+  String get setupRepsOnly => 'Solo repeticiones';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal reps';
   }

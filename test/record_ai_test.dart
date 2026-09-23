@@ -997,6 +997,57 @@ void main() {
     expect(find.textContaining('설정에 못 옮긴 말: 5km'), findsOneWidget);
   });
 
+  testWidgets('X6: 여러 운동 창에서 잘못 나뉜 운동은 앞 운동에 합친다 — 친 말은 제목에 이어 붙는다', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 4000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const text = '벤치 80kg 8회 드랍 60kg 8회 드랍 40kg 실패까지';
+    final ai = FakeAi(RecordAiStatus.ready)
+      ..answer = answerFor(
+        [
+          {
+            'text': '벤치 80kg 8회',
+            'name': '벤치프레스',
+            'weight': 80,
+            'repsPerSet': 8,
+          },
+          {'text': '60kg 8회', 'name': '벤치프레스', 'weight': 60, 'repsPerSet': 8},
+          {'text': '40kg 실패까지', 'name': '벤치프레스', 'weight': 40},
+        ],
+        ['드랍', '실패까지'],
+      );
+    final c = await pumpEditor(tester, ai);
+    await submit(tester, text);
+    expect(find.text('앞 운동에 합치기'), findsNWidgets(2), reason: '첫 운동에는 없다');
+    await tester.tap(find.text('앞 운동에 합치기').last);
+    await tester.pump();
+    expect(find.text('따로 두기'), findsOneWidget);
+    await tester.tap(find.text('앞 운동에 합치기'));
+    await tester.pump();
+    await tester.tap(find.text('완료'));
+    await tester.pumpAndSettle();
+    expect(c.blocks.single.name, text);
+    expect(c.blocks.single.setup!.weight, 80);
+    expect(c.blocks.single.setup!.repsPerSet, 8);
+  });
+
+  testWidgets('확인 창에서 "횟수만 기록" 을 켜고 끈다', (tester) async {
+    final ai = FakeAi(RecordAiStatus.ready)
+      ..answer = answerFor([
+        {'text': '스쿼트 100개 채우기', 'name': '스쿼트', 'totalReps': 100},
+      ]);
+    final c = await pumpEditor(tester, ai);
+    await submit(tester, '스쿼트 100개 채우기');
+    expect(find.text('횟수만 기록'), findsOneWidget);
+    await tester.tap(find.byType(CupertinoSwitch));
+    await tester.pump();
+    await tester.tap(find.text('완료'));
+    await tester.pumpAndSettle();
+    expect(c.blocks.single.setup!.repsOnly, isTrue);
+  });
+
   test('429 중 IP 하루 한도는 적기 도움 한도가 아니다', () async {
     Future<RecordAiStatus?> statusOf(Map<String, Object?> body) async {
       final ai = RecordAi(

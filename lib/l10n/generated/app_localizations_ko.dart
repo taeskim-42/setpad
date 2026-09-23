@@ -268,6 +268,15 @@ class LKo extends L {
   String get setupCountInvalid => '1 이상의 정수로 적어 주세요 — 범위·시간은 제목에 남겨 두세요';
 
   @override
+  String get setupMergeUp => '앞 운동에 합치기';
+
+  @override
+  String get setupKeepApart => '따로 두기';
+
+  @override
+  String get setupRepsOnly => '횟수만 기록';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal회';
   }

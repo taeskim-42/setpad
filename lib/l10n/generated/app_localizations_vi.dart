@@ -275,6 +275,15 @@ class LVi extends L {
       'Nhập số nguyên từ 1 trở lên — giữ khoảng và thời gian trong tiêu đề';
 
   @override
+  String get setupMergeUp => 'Gộp vào bài trước';
+
+  @override
+  String get setupKeepApart => 'Để riêng';
+
+  @override
+  String get setupRepsOnly => 'Chỉ ghi số lần';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal lần';
   }

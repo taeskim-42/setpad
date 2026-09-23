@@ -261,6 +261,15 @@ class LZh extends L {
   String get setupCountInvalid => '请输入1以上的整数 — 范围和时间请留在标题中';
 
   @override
+  String get setupMergeUp => '合并到上一个动作';
+
+  @override
+  String get setupKeepApart => '分开保留';
+
+  @override
+  String get setupRepsOnly => '只记次数';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal次';
   }
@@ -1920,6 +1929,15 @@ class LZhHans extends LZh {
   String get setupCountInvalid => '请输入1以上的整数 — 范围和时间请留在标题中';
 
   @override
+  String get setupMergeUp => '合并到上一个动作';
+
+  @override
+  String get setupKeepApart => '分开保留';
+
+  @override
+  String get setupRepsOnly => '只记次数';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal次';
   }
@@ -3577,6 +3595,15 @@ class LZhHant extends LZh {
 
   @override
   String get setupCountInvalid => '請輸入1以上的整數 — 範圍和時間請留在標題中';
+
+  @override
+  String get setupMergeUp => '合併到上一個動作';
+
+  @override
+  String get setupKeepApart => '分開保留';
+
+  @override
+  String get setupRepsOnly => '只記次數';
 
   @override
   String goalProgress(int done, int goal) {

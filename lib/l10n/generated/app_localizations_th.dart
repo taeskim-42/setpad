@@ -275,6 +275,15 @@ class LTh extends L {
       'ใส่จำนวนเต็มตั้งแต่ 1 ขึ้นไป — ช่วงและเวลาให้คงไว้ในชื่อ';
 
   @override
+  String get setupMergeUp => 'รวมกับท่าก่อนหน้า';
+
+  @override
+  String get setupKeepApart => 'แยกไว้';
+
+  @override
+  String get setupRepsOnly => 'บันทึกแค่จำนวนครั้ง';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal ครั้ง';
   }

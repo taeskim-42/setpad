@@ -535,6 +535,24 @@ abstract class L {
   /// **'1 이상의 정수로 적어 주세요 — 범위·시간은 제목에 남겨 두세요'**
   String get setupCountInvalid;
 
+  /// No description provided for @setupMergeUp.
+  ///
+  /// In ko, this message translates to:
+  /// **'앞 운동에 합치기'**
+  String get setupMergeUp;
+
+  /// No description provided for @setupKeepApart.
+  ///
+  /// In ko, this message translates to:
+  /// **'따로 두기'**
+  String get setupKeepApart;
+
+  /// No description provided for @setupRepsOnly.
+  ///
+  /// In ko, this message translates to:
+  /// **'횟수만 기록'**
+  String get setupRepsOnly;
+
   /// No description provided for @goalProgress.
   ///
   /// In ko, this message translates to:

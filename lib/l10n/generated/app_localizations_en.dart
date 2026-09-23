@@ -275,6 +275,15 @@ class LEn extends L {
       'Enter a whole number of 1 or more — keep ranges and times in the title';
 
   @override
+  String get setupMergeUp => 'Merge into previous';
+
+  @override
+  String get setupKeepApart => 'Keep separate';
+
+  @override
+  String get setupRepsOnly => 'Reps only';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal reps';
   }

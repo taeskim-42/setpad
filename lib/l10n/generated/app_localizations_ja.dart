@@ -266,6 +266,15 @@ class LJa extends L {
   String get setupCountInvalid => '1以上の整数を入力してください — 範囲や時間はタイトルに残してください';
 
   @override
+  String get setupMergeUp => '前の種目にまとめる';
+
+  @override
+  String get setupKeepApart => '分けておく';
+
+  @override
+  String get setupRepsOnly => '回数だけ記録';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal回';
   }

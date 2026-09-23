@@ -24,14 +24,18 @@ Future<WorkoutSetup?> editWorkoutSetup(
 /// 한 줄에서 읽은 운동들을 한 화면에서 확인한다. 여럿이면 칸마다 [titles] 를
 /// 머리에 단다. 칸에 못 옮긴 말([unparsed])과 글에 없어 뺀 수([dropped])는 맨
 /// 위에 한 줄씩 — 사람은 무엇이 설정이 되고 무엇이 제목에만 남는지 보고 고른다.
-Future<List<WorkoutSetup>?> editWorkoutSetups(
+///
+/// 잘못 나뉜 운동(드랍 세트의 둘째 무게)은 빼지 않고 **앞 운동에 합친다** — 그
+/// 자리는 null 로 오고, 부르는 쪽은 그 제목을 앞 칸 제목에 이어 붙인다. 친 말은
+/// 남는다. 합친 제목이 120자를 넘으면 합칠 수 없다.
+Future<List<WorkoutSetup?>?> editWorkoutSetups(
   BuildContext context,
   List<WorkoutSetup> setups, {
   List<String> titles = const [],
   String? sourceText,
   List<String> unparsed = const [],
   List<String> dropped = const [],
-}) => Navigator.of(context).push<List<WorkoutSetup>>(
+}) => Navigator.of(context).push<List<WorkoutSetup?>>(
   CupertinoPageRoute(
     builder: (_) => _SetupPage(
       setups: setups,
@@ -66,13 +70,16 @@ class _Fields {
       total = TextEditingController(text: _text(setup.totalReps)),
       reps = TextEditingController(text: _text(setup.repsPerSet)),
       sets = TextEditingController(text: _text(setup.totalSets)),
-      unit = setup.unit;
+      unit = setup.unit,
+      repsOnly = setup.repsOnly;
   final WorkoutSetup setup;
   final TextEditingController name, weight, total, reps, sets;
   String unit;
+  bool repsOnly;
   List<TextEditingController> get all => [name, weight, total, reps, sets];
 
   static String _text(num? n) => n?.toString() ?? '';
+
   /// 빈칸은 null, 읽을 수 없는 글('8-12', '60kg')은 NaN — 규칙이 거절하므로 그 칸
   /// 밑에 이유가 뜨고 완료는 꺼진다. 빈칸으로 바꿔 저장하지 않는다(X15).
   static num? _number(String text) => text.trim().isEmpty
@@ -104,16 +111,40 @@ class _Fields {
     'totalReps': _number(total.text),
     'repsPerSet': _number(reps.text),
     'totalSets': _number(sets.text),
-    'repsOnly': setup.repsOnly,
+    'repsOnly': repsOnly,
   });
 }
 
 class _SetupPageState extends State<_SetupPage> {
   late final _fields = [for (final s in widget.setups) _Fields(s)];
 
-  List<WorkoutSetup>? get _value {
-    final values = [for (final f in _fields) f.value];
-    return values.contains(null) ? null : values.cast<WorkoutSetup>();
+  /// 앞 운동에 합친 칸.
+  final _merged = <int>{};
+
+  /// 합친 칸은 null. 남은 칸 중 틀린 것이 있으면 전체가 null — 완료가 꺼진다.
+  List<WorkoutSetup?>? get _value {
+    final values = [
+      for (final (i, f) in _fields.indexed)
+        _merged.contains(i) ? null : f.value,
+    ];
+    final kept = [
+      for (var i = 0; i < values.length; i++)
+        if (!_merged.contains(i)) values[i],
+    ];
+    return kept.contains(null) ? null : values;
+  }
+
+  /// [i] 를 합쳐도 제목이 120자 안인가.
+  bool _canMerge(int i) {
+    final titles = <String>[];
+    for (final (j, t) in widget.titles.indexed) {
+      if ((_merged.contains(j) || j == i) && titles.isNotEmpty) {
+        titles.last = '${titles.last} $t';
+      } else {
+        titles.add(t);
+      }
+    }
+    return titles.every((t) => t.length <= 120);
   }
 
   @override
@@ -177,22 +208,62 @@ class _SetupPageState extends State<_SetupPage> {
                 header: _fields.length > 1 && i < widget.titles.length
                     ? Text(widget.titles[i])
                     : null,
-                children: [
-                  _field(l, 'name', l.exerciseNameHint, f.name, text: true),
-                  _field(l, 'weight', l.setupWeight, f.weight, decimal: true),
-                  CupertinoFormRow(
-                    child: CupertinoSlidingSegmentedControl<String>(
-                      groupValue: f.unit,
-                      children: const {'kg': Text('kg'), 'lb': Text('lb')},
-                      onValueChanged: (value) {
-                        if (value != null) setState(() => f.unit = value);
-                      },
-                    ),
-                  ),
-                  _field(l, 'totalReps', l.setupTotalReps, f.total),
-                  _field(l, 'repsPerSet', l.setupSetReps, f.reps),
-                  _field(l, 'totalSets', l.setupTotalSets, f.sets),
-                ],
+                children: _merged.contains(i)
+                    ? [
+                        CupertinoFormRow(
+                          child: CupertinoButton(
+                            onPressed: () => setState(() => _merged.remove(i)),
+                            child: Text(l.setupKeepApart),
+                          ),
+                        ),
+                      ]
+                    : [
+                        _field(
+                          l,
+                          'name',
+                          l.exerciseNameHint,
+                          f.name,
+                          text: true,
+                        ),
+                        _field(
+                          l,
+                          'weight',
+                          l.setupWeight,
+                          f.weight,
+                          decimal: true,
+                        ),
+                        CupertinoFormRow(
+                          child: CupertinoSlidingSegmentedControl<String>(
+                            groupValue: f.unit,
+                            children: const {
+                              'kg': Text('kg'),
+                              'lb': Text('lb'),
+                            },
+                            onValueChanged: (value) {
+                              if (value != null) setState(() => f.unit = value);
+                            },
+                          ),
+                        ),
+                        _field(l, 'totalReps', l.setupTotalReps, f.total),
+                        _field(l, 'repsPerSet', l.setupSetReps, f.reps),
+                        _field(l, 'totalSets', l.setupTotalSets, f.sets),
+                        CupertinoFormRow(
+                          prefix: Text(l.setupRepsOnly),
+                          child: CupertinoSwitch(
+                            value: f.repsOnly,
+                            onChanged: (on) => setState(() => f.repsOnly = on),
+                          ),
+                        ),
+                        if (i > 0 && i < widget.titles.length)
+                          CupertinoFormRow(
+                            child: CupertinoButton(
+                              onPressed: _canMerge(i)
+                                  ? () => setState(() => _merged.add(i))
+                                  : null,
+                              child: Text(l.setupMergeUp),
+                            ),
+                          ),
+                      ],
               ),
           ],
         ),

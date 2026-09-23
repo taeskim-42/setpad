@@ -1221,7 +1221,7 @@ class _RoutineEditorState extends State<RoutineEditor>
         planned(proposed.single) ||
         reading.dropped.isNotEmpty;
     if (ask) _focus.unfocus();
-    final setups = ask
+    final List<WorkoutSetup?>? setups = ask
         ? await editWorkoutSetups(
             context,
             proposed,
@@ -1240,9 +1240,18 @@ class _RoutineEditorState extends State<RoutineEditor>
     }
     if (_text == text) _input.clear();
     // 제목은 친 글이다. 창에서 값을 고쳐도 바뀌지 않는다 — 익히는 것은 운동 이름.
+    // 앞 운동에 합친 칸(null)은 제목만 앞 칸에 이어 붙는다.
+    final made = <(String, WorkoutSetup)>[];
     for (final (i, setup) in setups.indexed) {
+      if (setup != null) {
+        made.add((titles[i], setup));
+      } else if (made.isNotEmpty) {
+        made.last = ('${made.last.$1} ${titles[i]}', made.last.$2);
+      }
+    }
+    for (final (title, setup) in made) {
       _c.addExercise(
-        titles[i],
+        title,
         setup: planned(setup) ? setup : null,
         learnAs: setup.name,
       );
