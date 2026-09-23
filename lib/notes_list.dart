@@ -8,7 +8,7 @@ import 'answer_card.dart';
 import 'record_query.dart';
 import 'stats.dart' as stats;
 import 'editor.dart' show SuggestionChip;
-import 'exercises.dart' show exerciseByName;
+import 'exercises.dart' show exerciseByName, langKeyOf;
 import 'gym.dart';
 import 'booking_entry.dart';
 import 'record_ai.dart';
@@ -16,6 +16,9 @@ import 'health_summary.dart';
 import 'palette.dart';
 import 'parser.dart';
 import 'paywall.dart';
+import 'query_cache.dart';
+import 'routine.dart';
+import 'routine_card.dart';
 import 'settings.dart';
 import 'trainer.dart';
 
@@ -52,7 +55,24 @@ class NotesListPage extends StatefulWidget {
 class _NotesListPageState extends State<NotesListPage>
     with WidgetsBindingObserver {
   final _query = TextEditingController();
-  late final _search = RecordSearch(widget.ai);
+
+  /// 기록 검색과 오늘 루틴이 한 저장소(queries.json)를 쓴다 — 따로 쓰면 서로 덮는다.
+  late final _cache = QueryCache();
+  late final _search = RecordSearch(widget.ai, cache: _cache);
+  late final _routine = RoutineSearch(widget.ai, cache: _cache);
+
+  /// 글마다 카드에서 고친 것(✕·넣기·칩). 다시 짜도(앱 복귀·날짜 바뀜) 남는다.
+  final _edits = <String, RoutineEdits>{};
+
+  /// 모델 없이 기기가 짜기로 한 글과 그 요청 — 이름만 친 글의 칩, "조건 없이 바로
+  /// 짜기", 거절 뒤 "오늘 루틴 만들기".
+  (String, RoutineAsk)? _device;
+
+  /// 루틴 지시문이 기록 질문이라고 한 글 → 기록 검색으로 묻는다.
+  String? _asQuestion;
+
+  /// 기록 검색이 루틴 요청이라고 한 글 → 루틴 지시문으로 읽는다.
+  String? _asRoutine;
   String? _locale;
 
   /// 칩으로 고른 측정(plan 의 측정 이름). 질문을 해석하는 자리가 아니라 **고르는**
@@ -163,6 +183,7 @@ class _NotesListPageState extends State<NotesListPage>
   void initState() {
     super.initState();
     _search.addListener(_changed);
+    _routine.addListener(_changed);
     WidgetsBinding.instance.addObserver(this);
     _loadRoutines();
     // 켤 때는 남겨 둔 로그인이 이 화면보다 늦게 되살아난다. 계정을 듣고 있다가
@@ -249,7 +270,32 @@ class _NotesListPageState extends State<NotesListPage>
     // 버리면 낸 원판만 잃는다. 돌아오면 그 답이 그대로 뜬다.
   }
 
+  /// 이 글의 갈래. 칩으로 고른 것이 가르기보다 앞선다.
+  HomeRoute? _routeOf(String text) {
+    if (text.isEmpty) return null;
+    if (_asQuestion == text) return HomeRoute.question;
+    if (_asRoutine == text) return HomeRoute.routine;
+    return routeHome(text);
+  }
+
   void _ask({bool immediately = false}) {
+    final text = _query.text.trim();
+    // 오늘 루틴: 치는 동안은 담아 둔 답만, 제출하면 루틴 지시문으로 묻는다(원판).
+    _routine.peek(text, _locale ?? 'en', widget.store.weightUnit);
+    final route = _routeOf(text);
+    if (route != null && route != HomeRoute.question) {
+      if (immediately && route == HomeRoute.routine) {
+        unawaited(
+          _routine.submit(
+            text,
+            _locale ?? 'en',
+            widget.store.weightUnit,
+            _recorded,
+          ),
+        );
+      }
+      return;
+    }
     _search.search(
       _bareName == null ? _query.text : '',
       _locale ?? 'en',
@@ -344,11 +390,240 @@ class _NotesListPageState extends State<NotesListPage>
     ];
   }
 
+  String get _lang {
+    final locale = Localizations.localeOf(context);
+    return langKeyOf(
+      locale.languageCode,
+      locale.scriptCode,
+      locale.countryCode,
+    );
+  }
+
+  /// 기록 검색이 루틴 요청이라고 했을 때: 조건 없이 바로(원판 0) / 조건까지 읽어(원판).
+  Widget _escapeChips(L l, String text) => Wrap(
+    spacing: 8,
+    runSpacing: 6,
+    children: [
+      SuggestionChip(
+        label: l.routineNoConditions,
+        selected: false,
+        onTap: () => setState(
+          () =>
+              _device = (text, RoutineAsk(when: readWhen(text), device: true)),
+        ),
+      ),
+      SuggestionChip(
+        label: l.routineWithConditions,
+        selected: false,
+        onTap: () {
+          setState(() => _asRoutine = text);
+          _ask(immediately: true);
+        },
+      ),
+    ],
+  );
+
+  /// 시작 = 트레이너 루틴과 같은 길(새 기록 + 편집기). 누를 때마다 새 칸이고, 이미
+  /// 시작했으면 그 기록을 연다 — 두 번 눌러도 기록은 하나다(G18).
+  void _startDraft(RoutineDraft draft, RoutineEdits edits) {
+    final started = widget.store.notes
+        .where((n) => n.id == edits.started)
+        .firstOrNull;
+    if (started != null) {
+      _open(started);
+      return;
+    }
+    final note = widget.store.create(blocks: startBlocks(draft));
+    edits.started = note.id;
+    _open(note);
+  }
+
+  /// 오늘 루틴 카드. 모델은 조건만 읽고, 루틴은 기기가 내 기록으로 짠다.
+  /// 모델을 못 쓰면 기기가 글에서 읽을 수 있는 것만으로 짜되, 빼기·아픈 곳 낱말이
+  /// 있으면 [시작] 이 있는 카드를 띄우지 않는다(G1) — "스쿼트 말고" 가 스쿼트를
+  /// 넣으면 안 된다.
+  Widget _routineCard(L l, String text, HomeRoute? route) {
+    final recorded = _recorded;
+    final lang = _lang;
+    final edits = _edits.putIfAbsent(text, RoutineEdits.new);
+    final status = <String>[];
+    final actions = <RoutineAction>[];
+    final extra = <Widget>[];
+    RoutineAction plain() => (
+      label: l.routineNoConditions,
+      onTap: () => setState(
+        () => _device = (text, RoutineAsk(when: readWhen(text), device: true)),
+      ),
+    );
+    // 원판이 없으면 로그인·Pro 권유(기존 문구)를 카드 위에.
+    Widget withExtra(Widget card) => extra.isEmpty
+        ? card
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: extra,
+                ),
+              ),
+              card,
+            ],
+          );
+    Widget bare() => withExtra(
+      RoutineCard(
+        status: status,
+        actions: actions,
+        trainer: _routines,
+        onTrainer: _startRoutine,
+      ),
+    );
+    RoutineAsk? ask;
+    final r = _routine;
+    if (_device case (final t, final a) when t == text) {
+      ask = a;
+    } else if (route == HomeRoute.bare) {
+      ask = deviceAsk(text, recorded, bare: true);
+    } else if (route == HomeRoute.refuse) {
+      final kind = homeRefusal(text) ?? 'other';
+      status.add(l.routineRefused(kind));
+      if (kind == 'drug' || kind == 'diet') {
+        actions.add((
+          label: l.routineMake,
+          onTap: () =>
+              setState(() => _device = (text, const RoutineAsk(device: true))),
+        ));
+      }
+      return bare();
+    } else {
+      var misread = false;
+      if (r.text == text && r.answer != null) {
+        try {
+          ask = decodeRoutineAsk(
+            r.answer,
+            text,
+            recorded,
+            lang: lang,
+            sent: canonicalizeExercises(text, recorded),
+          );
+        } on FormatException {
+          misread = true;
+        }
+        if (ask != null && ask.question) {
+          actions.add((
+            label: l.routineAsQuestion,
+            onTap: () {
+              setState(() => _asQuestion = text);
+              _ask(immediately: true);
+            },
+          ));
+          return bare();
+        }
+      }
+      if (ask == null) {
+        final failed = r.text == text && (r.failed || r.noPlates);
+        if (r.busy) {
+          status.add(l.routineWorking);
+          return bare();
+        }
+        if (r.noPlates && r.text == text) extra.addAll(_noPlates(l));
+        if (failed || misread) {
+          RoutineAction retry() =>
+              (label: l.routineRetry, onTap: () => _ask(immediately: true));
+          if (unreadableConditions(text)) {
+            status.add(l.routineHeldBack);
+            actions.add(plain());
+            if (r.failed) actions.add(retry());
+            return bare();
+          }
+          ask = deviceAsk(text, recorded);
+          status.add(misread ? l.routineMisread : l.routineOffline);
+          if (r.failed) actions.add(retry());
+        } else {
+          // 아직 안 물었다 — 이름만 친 글은 칩으로 바로(원판 0), 아니면 Enter 안내.
+          if (routineNameOnly(text) case final only?) {
+            actions.add((
+              label: only.parts.isEmpty
+                  ? l.routineMake
+                  : l.routineMakePart(partName(l, only.parts.first)),
+              onTap: () => setState(
+                () => _device = (
+                  text,
+                  RoutineAsk(
+                    parts: only.parts,
+                    device: true,
+                    keys: {if (only.parts.isNotEmpty) 'parts'},
+                  ),
+                ),
+              ),
+            ));
+          }
+          if (widget.ai.supported) status.add(l.routinePressEnter);
+          return bare();
+        }
+      }
+    }
+    final draft = composeRoutine(
+      widget.store.notes,
+      ask,
+      unit: widget.store.weightUnit,
+      lang: lang,
+      edits: edits,
+    );
+    if (ask.ask case final question?) {
+      actions.add((
+        label: l.routineAskToo(question),
+        onTap: () {
+          _query.text = question;
+          setState(() => _asQuestion = question);
+          _ask(immediately: true);
+        },
+      ));
+    }
+    final account = widget.account;
+    final charged = !ask.device && r.charged && r.text == text;
+    final card = RoutineCard(
+      draft: draft,
+      ask: ask,
+      status: status,
+      actions: actions,
+      trainer: _routines,
+      onTrainer: _startRoutine,
+      onStart: draft.startable || edits.started != null
+          ? () => _startDraft(draft, edits)
+          : null,
+      started: widget.store.notes.any((n) => n.id == edits.started),
+      onRemove: (item) => setState(() {
+        edits.restored.remove(item.key);
+        edits.removed.add(removalKey(draft, item.key));
+      }),
+      onRestore: (key) => setState(() {
+        edits.removed.remove(removalKey(draft, key));
+        edits.restored.add(key);
+      }),
+      onAdd: (key) => setState(() => edits.added.add(key)),
+      onOther: () => setState(() => edits.alt++),
+      onPrevious: () => setState(() => edits.previous = true),
+      onPart: () => setState(() => edits.part = draft.partChip),
+      onStep: () => setState(() => edits.step = true),
+      spent: !charged
+          ? null
+          : account?.platesSpent != null
+          ? l.platesSpent(account!.platesSpent!, account.plates!)
+          : '',
+      lang: lang,
+    );
+    return withExtra(card);
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     widget.account?.removeListener(_accountChanged);
     _search.removeListener(_changed);
+    _routine.removeListener(_changed);
+    _routine.dispose();
     _search.dispose();
     _query.dispose();
     super.dispose();
@@ -555,8 +830,13 @@ class _NotesListPageState extends State<NotesListPage>
               child: ListenableBuilder(
                 listenable: widget.store,
                 builder: (context, _) {
-                  final mentioned = _mentioned;
-                  final asked = _search.plan;
+                  final text = _query.text.trim();
+                  final route = _routeOf(text);
+                  final routineMode =
+                      (route != null && route != HomeRoute.question) ||
+                      _device?.$1 == text;
+                  final mentioned = routineMode ? const <String>[] : _mentioned;
+                  final asked = routineMode ? null : _search.plan;
                   // "혹시 ○○?" 로 이름을 바꿨으면 그 plan 이다(모델도 원판도 안 쓴다).
                   final plan = switch (_swap) {
                     (final from, final to) when identical(from, asked) => to,
@@ -771,7 +1051,9 @@ class _NotesListPageState extends State<NotesListPage>
                             ),
                           ),
                         ),
-                      if (_query.text.trim().isNotEmpty)
+                      if (routineMode)
+                        SliverToBoxAdapter(child: _routineCard(l, text, route)),
+                      if (_query.text.trim().isNotEmpty && !routineMode)
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -810,6 +1092,14 @@ class _NotesListPageState extends State<NotesListPage>
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 if (_search.noPlates) ..._noPlates(l),
+                                // 기록 검색이 루틴 요청으로 읽었다 — 두 길을 칩으로.
+                                if (plan?.kind == 'routine') ...[
+                                  Text(
+                                    l.routineFromQuestion,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  _escapeChips(l, text),
+                                ],
                                 // 거절도 까닭별이다: 무관한 질문, 무엇을 셀지 모름,
                                 // 기록에 없는 것만 물음(무엇이 없는지 적는다).
                                 if (local == null &&
@@ -1055,21 +1345,23 @@ class _NotesListPageState extends State<NotesListPage>
                         ),
                       if (query != null && result != null)
                         SliverToBoxAdapter(child: _answer(query, result, l)),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
-                          child: Text(
-                            l.noteCount(visible.length),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: CupertinoColors.secondaryLabel.resolveFrom(
-                                context,
+                      if (!routineMode)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
+                            child: Text(
+                              l.noteCount(visible.length),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: CupertinoColors.secondaryLabel
+                                    .resolveFrom(context),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      if (groups.isEmpty)
+                      if (routineMode)
+                        const SliverToBoxAdapter(child: SizedBox.shrink())
+                      else if (groups.isEmpty)
                         SliverFillRemaining(
                           hasScrollBody: false,
                           child: Center(

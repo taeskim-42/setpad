@@ -446,7 +446,8 @@ Map<String, Object?> planShape(
   final m = _repaired({for (final e in raw.entries) '${e.key}': e.value});
   final kind = m['kind'] ?? 'plan';
   switch (kind) {
-    case 'unrelated' || 'clarify':
+    // 오늘 루틴(routine.dart): 기록 질문에 routine 이면 답이 없는 것이다 — 틀림.
+    case 'unrelated' || 'clarify' || 'routine':
       return {'kind': kind};
     case 'find':
       return {
@@ -929,6 +930,7 @@ Set<String> verdicts(Grade g) {
     'unrelated',
     'clarify',
     'nothing',
+    'routine',
   }.contains(got['kind']);
   final wantIds = _ids(want), gotIds = _ids(got);
   final wantNever = {...?(want['never'] as List?)?.cast<String>()};

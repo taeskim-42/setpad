@@ -2299,4 +2299,451 @@ class LTh extends L {
   String queryAgainstDropped(String value) {
     return 'ตัดค่าอ้างอิง $value ออก — ไม่ใช่น้ำหนักที่เขียนไว้ในคำถาม';
   }
+
+  @override
+  String routineDate(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.Md(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
+
+  @override
+  String get routineHeaderToday => 'รูทีนวันนี้';
+
+  @override
+  String routineHeaderDay(String day) {
+    return 'รูทีน$day';
+  }
+
+  @override
+  String routineTomorrow(String date) {
+    return 'พรุ่งนี้ ($date)';
+  }
+
+  @override
+  String routineWhyRotation(String date, int days) {
+    return 'ไม่ได้เล่นแบบวันที่ $date มา $days วันแล้ว — จัดให้เหมือนวันนั้น';
+  }
+
+  @override
+  String routineWhyFrom(String date) {
+    return 'เหมือนวันที่ $date';
+  }
+
+  @override
+  String routineWhyNamed(String date) {
+    return 'เติมด้วยท่าที่เล่นคู่กันในวันที่ $date';
+  }
+
+  @override
+  String routinePartRest(String list) {
+    return '28 วันล่าสุด: $list ที่แล้ว';
+  }
+
+  @override
+  String routinePartDays(String part, int days) {
+    return '$part $days วัน';
+  }
+
+  @override
+  String routineEstimate(int minutes) {
+    return 'ประมาณ $minutes นาที';
+  }
+
+  @override
+  String routinePaceOwn(int sessions, String pace) {
+    return 'ประมาณจากเซ็ตละ $pace ของการเล่น $sessions ครั้งล่าสุด';
+  }
+
+  @override
+  String routinePaceDefault(String pace) {
+    return 'ประมาณจากค่าเริ่มต้นเซ็ตละ $pace — บันทึกสักไม่กี่ครั้งจะใช้จังหวะของคุณ';
+  }
+
+  @override
+  String routineMinSec(int m, int s) {
+    return '$m นาที $s วินาที';
+  }
+
+  @override
+  String routineReadAs(String list) {
+    return 'อ่านได้ว่า: $list';
+  }
+
+  @override
+  String routineCopied(String date) {
+    return 'เหมือนวันที่ $date';
+  }
+
+  @override
+  String routineRepsMatched(String date, int reps) {
+    return 'น้ำหนักที่ทำได้ $reps ครั้งเมื่อ $date';
+  }
+
+  @override
+  String get routineTyped => 'ตามที่พิมพ์';
+
+  @override
+  String get routineFirst => 'ครั้งแรก';
+
+  @override
+  String routineBlank(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'light': 'เว้นน้ำหนักไว้ (วันเบาๆ)',
+      'pain': 'เว้นน้ำหนักไว้ (มีอาการเจ็บ)',
+      'gear': 'เว้นน้ำหนักไว้ (อุปกรณ์ต่างกัน)',
+      'bodyweight': 'เว้นน้ำหนักอุปกรณ์ไว้',
+      'stale': 'เว้นน้ำหนักไว้ (นานแล้ว)',
+      'repsUnmatched': 'เว้นน้ำหนักไว้ (ไม่มีวันที่ทำครั้งและเซ็ตเท่านั้น)',
+      'other': 'เว้นน้ำหนักไว้',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineReference(String sets, String date) {
+    return 'อ้างอิง: $sets ($date)';
+  }
+
+  @override
+  String routineBest(String set, String date) {
+    return 'อ้างอิง: สูงสุด $set ($date)';
+  }
+
+  @override
+  String routineStepped(String step, String evidence) {
+    return '+$step ($evidence)';
+  }
+
+  @override
+  String routineMemo(String date, String memo) {
+    return 'โน้ต $date: $memo';
+  }
+
+  @override
+  String routineRecent(String part, String when) {
+    return '$part · $when';
+  }
+
+  @override
+  String routineDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n วันก่อน',
+      one: 'เมื่อวาน',
+      zero: 'วันนี้',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get routineFuture =>
+      'นี่คือตัวอย่าง — พิมพ์ \'รูทีน\' ในวันนั้นเพื่อเริ่มเป็นบันทึกของวันนั้น';
+
+  @override
+  String routineRefused(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'diet': 'ไม่จัดตารางอาหาร — บันทึกมื้ออาหารเพื่อดูแคลอรีได้',
+      'medical':
+          'ไม่ตัดสินเรื่องกายภาพหรือการออกกำลังหลังผ่าตัด — บันทึกท่าที่หมอหรือนักกายภาพให้มา แล้วจะทำเป็นรูทีนให้',
+      'drug': 'ช่วยเรื่องยาไม่ได้',
+      'program': 'จัดทีละวัน — นี่คือรูทีนวันนี้',
+      'logging': 'จะไม่บันทึกเซ็ตที่ยังไม่ได้เล่นว่าเสร็จ — แตะตอนที่เล่น',
+      'format':
+          'ไม่มีตัวจับเวลา EMOM ซูเปอร์เซ็ต หรือเซอร์กิต — จัดแค่ลำดับ (ทาบาตะและ bpm ใช้ได้)',
+      'person': 'ไม่จัดรูทีนให้คนอื่น — แสดงแค่ชื่อท่าจากบันทึกของคุณ',
+      'other': 'ช่วยได้เฉพาะบันทึกการออกกำลังและรูทีน',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineNotStated(String what) {
+    return 'ตัดออก ไม่มีในที่พิมพ์: $what';
+  }
+
+  @override
+  String routineUnmet(String what) {
+    return 'ใช้เงื่อนไขนี้ไม่ได้: $what';
+  }
+
+  @override
+  String routineKeyName(String key) {
+    String _temp0 = intl.Intl.selectLogic(key, {
+      'when': 'วัน',
+      'from': 'วันก่อนหน้า',
+      'parts': 'ส่วนของร่างกาย',
+      'pattern': 'ดัน/ดึง',
+      'exercises': 'ท่า',
+      'exclude': 'ท่าที่ตัดออก',
+      'avoid': 'ส่วนที่เลี่ยง',
+      'pain': 'อาการเจ็บ',
+      'equipment': 'อุปกรณ์',
+      'count': 'จำนวนท่า',
+      'minutes': 'เวลา',
+      'intensity': 'ความหนัก',
+      'timer': 'ตัวจับเวลา',
+      'targets': 'ตัวเลขที่พิมพ์',
+      'delta': 'น้ำหนักที่เพิ่มลด',
+      'other': 'เงื่อนไข',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineUnknownName(String name) {
+    return 'ไม่มีในพจนานุกรม ตัดออก: $name';
+  }
+
+  @override
+  String get routineNoSuchDay => 'ไม่มีวันนั้น — จัดจากบันทึกแทน';
+
+  @override
+  String routineExcludeAbsent(String name) {
+    return 'ไม่มีท่านี้อยู่แล้ว: $name';
+  }
+
+  @override
+  String routineNoneMatched(String what) {
+    return 'ไม่มีท่า$whatในบันทึก — เลือกเพิ่มได้';
+  }
+
+  @override
+  String routineFewer(int n) {
+    return 'มีท่าจากบันทึกแค่ $n ท่า';
+  }
+
+  @override
+  String routineOtherUnit(String unit) {
+    return 'เซ็ตที่บันทึกเป็น $unit คงไว้ตามเดิม';
+  }
+
+  @override
+  String get routineBpmRange =>
+      'bpm ต้องอยู่ระหว่าง 10–120 — ใส่โดยไม่มีตัวจับเวลา';
+
+  @override
+  String routineIntensityLine(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'light':
+          'ไม่รู้ว่าจะเบาแค่ไหน จึงเว้นน้ำหนักไว้และเขียนสถิติล่าสุดไว้ข้างๆ',
+      'hard': 'น้ำหนักเท่าครั้งก่อน',
+      'max': 'ไม่กำหนดน้ำหนักที่จะลอง — เขียนสถิติสูงสุดไว้ข้างๆ',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineNoStep => 'พิมพ์ว่าจะเพิ่มเท่าไร (เช่น +2.5kg)';
+
+  @override
+  String routinePain(String phrase, String list) {
+    return 'เพราะ \'$phrase\' จึงตัด: $list · เว้นน้ำหนักไว้ · ไม่ได้ตัดสินว่าปลอดภัยหรือไม่';
+  }
+
+  @override
+  String routinePainNone(String phrase) {
+    return '\'$phrase\' — ไม่ได้ตัดท่าใด เว้นน้ำหนักไว้ · ไม่ได้ตัดสินว่าปลอดภัยหรือไม่';
+  }
+
+  @override
+  String get routinePainWord => 'อาการเจ็บ';
+
+  @override
+  String get routineFirstTime => 'ครั้งแรก — เลือกท่าที่จะใส่ (ไม่มีตัวเลข)';
+
+  @override
+  String routineCountFit(int count, int minutes) {
+    return 'ปรับเป็น $count ท่า — ประมาณ $minutes นาที';
+  }
+
+  @override
+  String routineNoMore(int minutes) {
+    return 'ไม่มีท่าในบันทึกให้เพิ่มอีก — ประมาณ $minutes นาที';
+  }
+
+  @override
+  String routineOverTime(int minutes) {
+    return 'แค่ท่าที่ระบุก็ประมาณ $minutes นาที';
+  }
+
+  @override
+  String routineRecentMemo(String when, String name, String memo) {
+    return 'โน้ต$name $when: $memo';
+  }
+
+  @override
+  String routineRemoved(String label, String why) {
+    return 'ตัดออก: $label — $why';
+  }
+
+  @override
+  String routineRemovedWhy(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'named': 'ท่าที่ระบุ',
+      'avoid': 'ส่วนที่เลี่ยง',
+      'unknownPart': 'ไม่รู้ส่วนของร่างกาย',
+      'gear': 'อุปกรณ์ต่างกัน',
+      'unknownGear': 'ไม่รู้อุปกรณ์',
+      'otherPart': 'คนละส่วน',
+      'user': 'ตัดเอง',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineRestore => 'ใส่กลับ';
+
+  @override
+  String routineAdd(String name) {
+    return '+ $name';
+  }
+
+  @override
+  String get routineOther => 'รูทีนอื่น';
+
+  @override
+  String routinePrevious(String date) {
+    return 'ก่อนหน้า ($date)';
+  }
+
+  @override
+  String routineByPart(String part) {
+    return 'จัดรูทีน$part';
+  }
+
+  @override
+  String routineStepChip(String step) {
+    return '+$step (ระยะที่คุณเพิ่มเอง)';
+  }
+
+  @override
+  String routineAskToo(String text) {
+    return 'ถามด้วย: $text · แผ่น';
+  }
+
+  @override
+  String get routineAsQuestion => 'ถามเป็นคำถามบันทึก · แผ่น';
+
+  @override
+  String get routineNoConditions => 'จัดเลยโดยไม่มีเงื่อนไข';
+
+  @override
+  String get routineWithConditions => 'อ่านเงื่อนไขด้วย · แผ่น';
+
+  @override
+  String get routineMake => 'จัดรูทีนวันนี้';
+
+  @override
+  String routineMakePart(String part) {
+    return 'จัดรูทีน$partวันนี้';
+  }
+
+  @override
+  String get routineStart => 'เริ่ม';
+
+  @override
+  String get routineStarted => 'เริ่มแล้ว · เปิด';
+
+  @override
+  String get routineWorking => 'กำลังอ่านเงื่อนไข…';
+
+  @override
+  String get routineOffline =>
+      'ไม่มีการเชื่อมต่อ อ่านเงื่อนไขไม่ได้ — จัดจากบันทึกอย่างเดียว';
+
+  @override
+  String get routineMisread =>
+      'อ่านเงื่อนไขไม่ได้ — จัดจากบันทึกอย่างเดียว พิมพ์ใหม่เพื่ออ่านอีกครั้ง';
+
+  @override
+  String get routineHeldBack =>
+      'อ่านเงื่อนไข (ท่าที่ตัด อาการเจ็บ) ไม่ได้ จึงไม่ได้จัดรูทีน';
+
+  @override
+  String get routineRetry => 'ลองอีกครั้ง';
+
+  @override
+  String get routinePressEnter => 'กด Enter เพื่ออ่านเงื่อนไขด้วย · แผ่น';
+
+  @override
+  String get routineFromQuestion => 'อ่านเป็นคำขอจัดรูทีน';
+
+  @override
+  String routinePattern(String p) {
+    String _temp0 = intl.Intl.selectLogic(p, {
+      'push': 'ดัน',
+      'pull': 'ดึง',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGear(String g) {
+    String _temp0 = intl.Intl.selectLogic(g, {
+      'barbell': 'บาร์เบล',
+      'dumbbell': 'ดัมเบล',
+      'machine': 'เครื่อง',
+      'cable': 'เคเบิล',
+      'bodyweight': 'น้ำหนักตัว',
+      'bar': 'บาร์โหน',
+      'kettlebell': 'เคตเทิลเบล',
+      'band': 'ยางยืด',
+      'bench': 'ม้านั่ง',
+      'other': 'อุปกรณ์',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGearOnly(String list) {
+    return '$listเท่านั้น';
+  }
+
+  @override
+  String routineGearWithout(String list) {
+    return 'ไม่มี$list';
+  }
+
+  @override
+  String routineMinutes(int n) {
+    return '$n นาที';
+  }
+
+  @override
+  String routineCount(int n) {
+    return '$n ท่า';
+  }
+
+  @override
+  String routineIntensity(String k) {
+    String _temp0 = intl.Intl.selectLogic(k, {
+      'light': 'เบาๆ',
+      'hard': 'หนัก',
+      'max': 'ลองทำสถิติ',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineExclude(String list) {
+    return 'ตัด: $list';
+  }
+
+  @override
+  String routineAvoid(String list) {
+    return 'เลี่ยง: $list';
+  }
+
+  @override
+  String get routinePlatesZero => '0 แผ่น';
+
+  @override
+  String get routineFullBody => 'ทั้งตัว';
 }

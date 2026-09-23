@@ -2329,4 +2329,454 @@ class LEn extends L {
   String queryAgainstDropped(String value) {
     return 'Reference number $value left out — it isn\'t a weight written in the question';
   }
+
+  @override
+  String routineDate(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.Md(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
+
+  @override
+  String get routineHeaderToday => 'Today\'s routine';
+
+  @override
+  String routineHeaderDay(String day) {
+    return '$day routine';
+  }
+
+  @override
+  String routineTomorrow(String date) {
+    return 'Tomorrow ($date)';
+  }
+
+  @override
+  String routineWhyRotation(String date, int days) {
+    return 'The $date workout hasn\'t been done for $days days — built like that day';
+  }
+
+  @override
+  String routineWhyFrom(String date) {
+    return 'Same as $date';
+  }
+
+  @override
+  String routineWhyNamed(String date) {
+    return 'Filled with what you did alongside it on $date';
+  }
+
+  @override
+  String routinePartRest(String list) {
+    return 'Last 28 days: $list ago';
+  }
+
+  @override
+  String routinePartDays(String part, int days) {
+    return '$part ${days}d';
+  }
+
+  @override
+  String routineEstimate(int minutes) {
+    return 'About $minutes min';
+  }
+
+  @override
+  String routinePaceOwn(int sessions, String pace) {
+    return 'estimated at $pace per set from your last $sessions workouts';
+  }
+
+  @override
+  String routinePaceDefault(String pace) {
+    return 'estimated at the default $pace per set — log a few workouts to use your own pace';
+  }
+
+  @override
+  String routineMinSec(int m, int s) {
+    return '${m}m ${s}s';
+  }
+
+  @override
+  String routineReadAs(String list) {
+    return 'Read as: $list';
+  }
+
+  @override
+  String routineCopied(String date) {
+    return 'as on $date';
+  }
+
+  @override
+  String routineRepsMatched(String date, int reps) {
+    return 'weight you did $reps reps with on $date';
+  }
+
+  @override
+  String get routineTyped => 'as typed';
+
+  @override
+  String get routineFirst => 'first time';
+
+  @override
+  String routineBlank(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'light': 'weight left blank (light day)',
+      'pain': 'weight left blank (pain mentioned)',
+      'gear': 'weight left blank (different equipment)',
+      'bodyweight': 'equipment weight left blank',
+      'stale': 'weight left blank (it\'s been a while)',
+      'repsUnmatched':
+          'weight left blank (no day with that many sets of those reps)',
+      'other': 'weight left blank',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineReference(String sets, String date) {
+    return 'Ref: $sets ($date)';
+  }
+
+  @override
+  String routineBest(String set, String date) {
+    return 'Ref: best $set ($date)';
+  }
+
+  @override
+  String routineStepped(String step, String evidence) {
+    return '+$step ($evidence)';
+  }
+
+  @override
+  String routineMemo(String date, String memo) {
+    return '$date memo: $memo';
+  }
+
+  @override
+  String routineRecent(String part, String when) {
+    return '$part · $when';
+  }
+
+  @override
+  String routineDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n days ago',
+      one: 'yesterday',
+      zero: 'today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get routineFuture =>
+      'Preview — type \'routine\' on that day to start it as that day\'s log';
+
+  @override
+  String routineRefused(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'diet': 'I don\'t make meal plans — log meals to see calories',
+      'medical':
+          'I don\'t judge rehab or post-surgery training — log the exercises your doctor or therapist gave you and I\'ll make them a routine',
+      'drug': 'I can\'t help with drugs',
+      'program': 'I plan one day at a time — here\'s today\'s',
+      'logging': 'I won\'t mark sets done for you — tap them as you go',
+      'format':
+          'No EMOM, superset or circuit timers — order only (tabata and bpm work)',
+      'person':
+          'I don\'t plan for someone else — only exercise names from your log are shown',
+      'other': 'I only help with your workout log and routines',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineNotStated(String what) {
+    return 'Dropped, not in what you typed: $what';
+  }
+
+  @override
+  String routineUnmet(String what) {
+    return 'Couldn\'t apply: $what';
+  }
+
+  @override
+  String routineKeyName(String key) {
+    String _temp0 = intl.Intl.selectLogic(key, {
+      'when': 'day',
+      'from': 'past day',
+      'parts': 'body part',
+      'pattern': 'push/pull',
+      'exercises': 'exercises',
+      'exclude': 'exclusions',
+      'avoid': 'parts to avoid',
+      'pain': 'pain',
+      'equipment': 'equipment',
+      'count': 'exercise count',
+      'minutes': 'time',
+      'intensity': 'intensity',
+      'timer': 'timer',
+      'targets': 'typed numbers',
+      'delta': 'weight change',
+      'other': 'condition',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineUnknownName(String name) {
+    return 'Not in the dictionary, dropped: $name';
+  }
+
+  @override
+  String get routineNoSuchDay => 'No such day — built from your log';
+
+  @override
+  String routineExcludeAbsent(String name) {
+    return 'Nothing to drop: $name';
+  }
+
+  @override
+  String routineNoneMatched(String what) {
+    return 'No logged $what exercises — pick some to add';
+  }
+
+  @override
+  String routineFewer(int n) {
+    return 'Only $n exercises from your log';
+  }
+
+  @override
+  String routineOtherUnit(String unit) {
+    return 'Sets logged in $unit left as they were';
+  }
+
+  @override
+  String get routineBpmRange => 'bpm must be 10–120 — added without a timer';
+
+  @override
+  String routineIntensityLine(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'light':
+          'Not sure how light — weights left blank with your last sets beside them',
+      'hard': 'Weights are the same as last time',
+      'max': 'I don\'t pick a PR weight — your best is shown beside it',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineNoStep => 'Type how much to add (e.g. +2.5kg)';
+
+  @override
+  String routinePain(String phrase, String list) {
+    return 'Because of \'$phrase\', dropped: $list · weights left blank · I don\'t judge whether it\'s safe';
+  }
+
+  @override
+  String routinePainNone(String phrase) {
+    return '\'$phrase\' — nothing dropped, weights left blank · I don\'t judge whether it\'s safe';
+  }
+
+  @override
+  String get routinePainWord => 'pain';
+
+  @override
+  String get routineFirstTime =>
+      'First time — pick exercises to add (no numbers)';
+
+  @override
+  String routineCountFit(int count, int minutes) {
+    return 'Fit to $count exercises — about $minutes min';
+  }
+
+  @override
+  String routineNoMore(int minutes) {
+    return 'No more logged exercises to add — about $minutes min';
+  }
+
+  @override
+  String routineOverTime(int minutes) {
+    return 'What you named alone takes about $minutes min';
+  }
+
+  @override
+  String routineRecentMemo(String when, String name, String memo) {
+    return '$when $name memo: $memo';
+  }
+
+  @override
+  String routineRemoved(String label, String why) {
+    return 'Dropped: $label — $why';
+  }
+
+  @override
+  String routineRemovedWhy(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'named': 'you named it',
+      'avoid': 'part to avoid',
+      'unknownPart': 'unknown body part',
+      'gear': 'different equipment',
+      'unknownGear': 'unknown equipment',
+      'otherPart': 'other body part',
+      'user': 'removed',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineRestore => 'Add back';
+
+  @override
+  String routineAdd(String name) {
+    return '+ $name';
+  }
+
+  @override
+  String get routineOther => 'Another';
+
+  @override
+  String routinePrevious(String date) {
+    return 'Before ($date)';
+  }
+
+  @override
+  String routineByPart(String part) {
+    return 'Build a $part routine';
+  }
+
+  @override
+  String routineStepChip(String step) {
+    return '+$step (your own step)';
+  }
+
+  @override
+  String routineAskToo(String text) {
+    return 'Also ask: $text · plates';
+  }
+
+  @override
+  String get routineAsQuestion => 'Ask as a record question · plates';
+
+  @override
+  String get routineNoConditions => 'Build now without conditions';
+
+  @override
+  String get routineWithConditions => 'Read the conditions too · plates';
+
+  @override
+  String get routineMake => 'Make today\'s routine';
+
+  @override
+  String routineMakePart(String part) {
+    return 'Make today\'s $part routine';
+  }
+
+  @override
+  String get routineStart => 'Start';
+
+  @override
+  String get routineStarted => 'Started · Open';
+
+  @override
+  String get routineWorking => 'Reading the conditions…';
+
+  @override
+  String get routineOffline =>
+      'Couldn\'t read the conditions without a connection — built from your log only';
+
+  @override
+  String get routineMisread =>
+      'Couldn\'t read the conditions — built from your log only. Rephrase to read again';
+
+  @override
+  String get routineHeldBack =>
+      'Couldn\'t read the conditions (exclusions, pain), so no routine was made';
+
+  @override
+  String get routineRetry => 'Try again';
+
+  @override
+  String get routinePressEnter =>
+      'Press Enter to read the conditions too · plates';
+
+  @override
+  String get routineFromQuestion => 'Read as a routine request';
+
+  @override
+  String routinePattern(String p) {
+    String _temp0 = intl.Intl.selectLogic(p, {
+      'push': 'push',
+      'pull': 'pull',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGear(String g) {
+    String _temp0 = intl.Intl.selectLogic(g, {
+      'barbell': 'barbell',
+      'dumbbell': 'dumbbell',
+      'machine': 'machine',
+      'cable': 'cable',
+      'bodyweight': 'bodyweight',
+      'bar': 'pull-up bar',
+      'kettlebell': 'kettlebell',
+      'band': 'band',
+      'bench': 'bench',
+      'other': 'equipment',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGearOnly(String list) {
+    return '$list only';
+  }
+
+  @override
+  String routineGearWithout(String list) {
+    return 'no $list';
+  }
+
+  @override
+  String routineMinutes(int n) {
+    return '$n min';
+  }
+
+  @override
+  String routineCount(int n) {
+    return '$n exercises';
+  }
+
+  @override
+  String routineIntensity(String k) {
+    String _temp0 = intl.Intl.selectLogic(k, {
+      'light': 'light',
+      'hard': 'heavy',
+      'max': 'PR attempt',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineExclude(String list) {
+    return 'drop: $list';
+  }
+
+  @override
+  String routineAvoid(String list) {
+    return 'avoid: $list';
+  }
+
+  @override
+  String get routinePlatesZero => '0 plates';
+
+  @override
+  String get routineFullBody => 'Full body';
 }
