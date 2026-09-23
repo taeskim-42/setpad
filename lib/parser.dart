@@ -108,10 +108,19 @@ final _conditionWords = RegExp(
   caseSensitive: false,
 );
 
+/// 템포 표기("60bpm", "30 bpm", "bpm 60", "bpm:60") — 수는 1·2번 묶음이다.
+/// bpm 옆에 있어도 다른 것을 세는 수는 템포가 아니다: "3x10 bpm" 의 10(횟수),
+/// "bpm 3세트"·"bpm 3 sets" 의 3(세트 수), "bpm 100개" 의 100. 타이머
+/// ([TimingSpec]), 계획 줄, 입력 줄의 길 나누기가 이 한 정규식을 쓴다.
+final tempoPattern =
+    '(?<![\\d.,]|(?<![a-z])[x×*]\\s*)([+-]?\\d+(?:[.,]\\d+)?)\\s*bpm(?![a-z])|'
+    '(?<![a-z])bpm\\s*[:=]?\\s*([+-]?\\d+(?:[.,]\\d+)?)(?![\\d.,])'
+    '(?!\\s*(?:$_units)(?![a-z])|[x×*]\\d)';
+
 /// 타이머 토큰(60bpm, bpm 60, 30/15, x8, 10라운드). 글의 수가 모두 여기 쓰였으면
 /// 그 글은 타이머 이름이라 묻지 않고 바로 만든다.
 final timerTokens = RegExp(
-  r'\d+(?:[.,]\d+)?\s*bpm(?![a-z])|(?<![a-z])bpm\s*[:=]?\s*\d+(?:[.,]\d+)?|'
+  '$tempoPattern|'
   r'\d+\s*(?:초|s|sec)?\s*[/／]\s*\d+\s*(?:초|s|sec)?|[x×]\s*\d+|'
   r'\d+\s*(?:라운드|rounds?|ラウンド)',
   caseSensitive: false,
@@ -507,7 +516,7 @@ class ParsedSet {
 /// 세트 수와 횟수를 뜻하는 말. 무게·거리·시간 단위는 units.dart 가 쥔다.
 const _counters =
     '세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต|'
-    '회|개|rep|reps|回|次|lần|ครั้ง|veces';
+    '회|개|rep|reps|回|次|lần|ครั้ง|veces|repeticiones|repetición|repeticion';
 final _setWord = RegExp(
   r'^(세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต)$',
   caseSensitive: false,
@@ -561,21 +570,27 @@ const maxSetsPerLine = 20;
 /// 세트 한 줄을 읽는다. "100kg 20회 마지막 힘들었음", "20회", "100 20 x3".
 ///
 /// 단위는 선택이다 — 운동 중에 단위를 꼬박꼬박 붙이는 사람은 없다. 규칙은
-/// 하나이고 친 순서대로 간다(test/parser_test.dart 의 표가 main 과 나란히 보인다):
+/// 하나이고 친 순서대로 간다(test/set_line_table_test.dart 의 표가 main 과
+/// 나란히 보인다). 자리는 셋 — 값(무게·거리·시간), 횟수, 세트 수.
 ///
-/// 1. **쉼표.** "A,B" 에서 B 가 정확히 세 자리면 천 단위("1,000"). B 가 한두
-///    자리면 소수 — 무게·거리·시간 단위가 붙었거나("22,5kg"), 맨숫자인데 줄에
-///    횟수를 맡을 수가 따로 있을 때("22,5 10" = 22.5×10). 그 밖은 두 수다 —
-///    혼자 친 "80,10" 은 80×10, "80,10회" 는 80 과 10회 — 횟수·세트 단위 앞의
-///    쉼표는 소수가 아니다.
-/// 2. **맨숫자의 몫.** 줄에 횟수 단위("10회")가 있으면 맨숫자는 무게다. 없으면
-///    맨숫자 하나는 횟수(맨몸 운동이 그렇게 적힌다), 둘 이상이면 빈 자리를
-///    무게, 횟수 순으로 채운다.
-/// 3. **친 순서대로 자리를 채운다.** 무게 자리(맨 무게, 수+단위 kg·lb·시간·
-///    거리), 횟수 자리(맨 횟수, "10회"), 세트 자리("3세트", "x3")는 먼저 온
-///    것이 갖는다. 이미 찬 자리의 낱말은 **덮어쓰지도 버리지도 않고** 메모에 친
-///    그대로 남는다 — "80 10회 5분에" 는 80×10 에 메모 "5분에", "1분 30초" 는
-///    1분에 메모 "30초".
+/// 1. **쉼표.** "A,B" 에서 B 가 정확히 세 자리면 천 단위("1,000"). 무게·거리·
+///    시간 단위가 붙었으면 소수("22,5kg", "80,10kg"). 맨숫자는 B 가 **한 자리**
+///    이고 줄에 횟수를 맡을 수(횟수 단위, 뒤의 맨숫자)가 따로 있을 때만 소수
+///    ("22,5 10" = 22.5×10). 그 밖은 두 수다 — "80,10", "80,10 3", "80,10회",
+///    "3,5세트" 의 쉼표는 수를 가른다.
+/// 2. **맨숫자의 몫.** 줄에 횟수 단위("10회")가 있으면 맨숫자는 값이다. 없으면
+///    첫 단위 값(kg·lb·시간·거리) **앞에** 맨숫자가 둘 이상일 때 그 짝이 값·횟수
+///    ("80 10 60초 휴식", "80 무릎 10"), 아니면 맨숫자는 횟수다("12",
+///    "10 80kg 3", "3 60초 2").
+/// 3. **친 순서대로 빈 자리만 채운다.** 단위 값은 값 자리, 횟수 단위는 횟수
+///    자리, "x3"·"3세트" 는 세트 자리를 먼저 온 것이 갖는다. 횟수는 온수, 세트
+///    수는 1 이상의 온수만 받는다 — 소수("10.5회", "2.5세트")를 반올림해 지어내지
+///    않는다. 자리를 못 얻은 낱말은 **덮어쓰지도 버리지도 않고** 메모에 친
+///    그대로 남는다 — "80 10회 5분" 은 80×10 에 메모 "5분", "x0" 도 메모다.
+///    맨 소수는 횟수가 될 수 없어 값 자리로 간다("12.5" = 12.5, 13회가 아니다).
+///
+/// 값도 횟수도 없으면 세트가 아니다(null — 입력칸에 글이 남는다). 세트 수가
+/// [maxSetsPerLine] 을 넘어도 null 이고 [tooManySets] 가 까닭을 말한다.
 ParsedSet? parseSetLine(String line) {
   final parsed = _readSetLine(line);
   return parsed == null || parsed.count > maxSetsPerLine ? null : parsed;
@@ -591,6 +606,8 @@ bool _isReps(String t) => switch (_unit.firstMatch(t)) {
   final m? => unitOf(m[2]!) == null && !_setWord.hasMatch(m[2]!),
   null => false,
 };
+
+bool _isValue(String t) => unitOf(_unit.firstMatch(t)?[2] ?? '') != null;
 
 /// 쉼표마다 한 낱말로 가른다. 쉼표는 앞 수의 몫이고(메모에 떠돌지 않게) 단위는
 /// 끝 수에 남는다 — "80,10회" → "80", "10회".
@@ -613,20 +630,19 @@ List<_Word> _splitCommas(_Word w, String digits) {
 /// 규칙 1 — 낱말을 원문 위의 자리와 함께 읽고, 쉼표 수를 가른다.
 List<_Word> _readWords(String text) {
   final words = <_Word>[];
-  // 맨 "A,B"(B 한두 자리) — 소수인지는 줄을 다 봐야 안다.
+  // 맨 "A,B"(B 한 자리) — 소수인지는 줄을 다 봐야 안다.
   final open = <int>{};
   for (final m in _word.allMatches(text)) {
     var t = m[0]!.replaceAll(RegExp(r'\s+'), '');
     // "80, 10" 의 쉼표는 가름표다.
     if (RegExp(r'^\d+,$').hasMatch(t)) t = t.substring(0, t.length - 1);
     final w = (t: t, start: m.start, end: m.end);
-    final c = _commaNumber.firstMatch(t), unit = _unit.firstMatch(t);
-    final decimal = c != null && RegExp(r'^\d+,\d\d?$').hasMatch(c[1]!);
+    final c = _commaNumber.firstMatch(t);
     if (c == null ||
         RegExp(r'^\d{1,3}(?:,\d{3})+$').hasMatch(c[1]!) ||
-        (decimal && unit != null && unitOf(unit[2]!) != null)) {
+        (_isValue(t) && RegExp(r'^\d+,\d\d?$').hasMatch(c[1]!))) {
       words.add(w);
-    } else if (decimal && c[2]!.isEmpty) {
+    } else if (c[2]!.isEmpty && RegExp(r'^\d+,\d$').hasMatch(c[1]!)) {
       open.add(words.length);
       words.add(w);
     } else {
@@ -634,7 +650,6 @@ List<_Word> _readWords(String text) {
     }
   }
   if (open.isEmpty) return words;
-  // 맨 "A,B" 는 횟수를 맡을 수(횟수 단위, 뒤의 맨숫자)가 따로 있을 때만 소수다.
   final reps = words.any((w) => _isReps(w.t));
   return [
     for (final (i, w) in words.indexed)
@@ -650,44 +665,59 @@ List<_Word> _readWords(String text) {
 ParsedSet? _readSetLine(String line) {
   final text = line.trim();
   final words = _readWords(text);
-  // 규칙 2 — 맨숫자의 몫.
-  final repsUnit = words.any((w) => _isReps(w.t));
-  final bareCount = words.where((w) => _bare.hasMatch(w.t)).length;
+  // 규칙 2 — 맨숫자가 맡는 자리(앞의 것이 먼저).
+  final firstValue = words.indexWhere((w) => _isValue(w.t));
+  final pair =
+      words
+          .take(firstValue < 0 ? words.length : firstValue)
+          .where((w) => _bare.hasMatch(w.t))
+          .length >
+      1;
+  final bareSlots = words.any((w) => _isReps(w.t))
+      ? const ['value']
+      : pair
+      ? const ['value', 'reps']
+      : const ['reps', 'value'];
   double? value;
   String? unit;
   int? reps, count;
-  // 자리에 들어간 낱말. 나머지는 친 그대로 메모가 된다.
+  // 규칙 3 — 친 순서대로, 빈 자리만. 자리에 들어간 낱말 말고는 메모다.
   final used = <int>{};
-  // 규칙 3 — 친 순서대로, 빈 자리만.
   for (final (i, word) in words.indexed) {
     final m = _unit.firstMatch(word.t);
     final repeat = _repeat.firstMatch(word.t);
-    final known = m == null ? null : unitOf(m[2]!);
-    final n = m != null
+    final n = repeat != null
+        ? double.parse(repeat[1]!)
+        : m != null
         ? _number(m[1]!)
         : _bare.hasMatch(word.t)
         ? _number(word.t)
         : null;
-    final bool took;
-    if (repeat != null) {
-      took = count == null;
-      count ??= int.parse(repeat[1]!);
-    } else if (n == null) {
-      took = false;
-    } else if (m != null && _setWord.hasMatch(m[2]!)) {
-      took = count == null;
-      count ??= n.round();
-    } else if (known != null ||
-        (m == null && (repsUnit || (bareCount > 1 && value == null)))) {
-      // 친 단위를 그대로 남긴다. 예전에는 lb 를 kg 로 바꿔 저장해서 파운드로
-      // 하는 사람의 숫자가 사라졌다.
-      took = value == null;
-      if (took) (value, unit) = (n, known);
-    } else {
-      took = reps == null;
-      reps ??= n.round();
+    if (n == null) continue;
+    final whole = n == n.roundToDouble();
+    final known = m == null ? null : unitOf(m[2]!);
+    bool take(String slot) {
+      switch (slot) {
+        case 'count' when count == null && whole && n >= 1:
+          count = n.toInt();
+        case 'value' when value == null:
+          (value, unit) = (n, known);
+        case 'reps' when reps == null && whole:
+          reps = n.toInt();
+        default:
+          return false;
+      }
+      return true;
     }
-    if (took) used.add(i);
+
+    final slots = repeat != null || (m != null && _setWord.hasMatch(m[2]!))
+        ? const ['count']
+        : known != null
+        ? const ['value']
+        : m != null
+        ? const ['reps']
+        : bareSlots;
+    if (slots.any(take)) used.add(i);
   }
 
   if (value == null && reps == null) return null;
@@ -705,7 +735,7 @@ ParsedSet? _readSetLine(String line) {
     unit: unit,
     reps: reps,
     note: note.isEmpty ? null : note,
-    count: count == null || count < 1 ? 1 : count,
+    count: count ?? 1,
   );
 }
 

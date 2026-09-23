@@ -273,7 +273,7 @@
   "mealTextPartial": "只計入了你寫的 {n} 大卡，其餘食物的熱量未知。",
   "mealTextBelowTyped": "估算值低於你寫的 {n} 大卡，因此未採用。只計入了你寫的 {n} 大卡。",
   "queryLimit": "{kind, select, exercises{一次最多可問 8 個動作。請分開提問。} measures{一次最多統計 3 項。請分開提問。} ranking{排名最多顯示 20 個。請問 20 個以內。} sessions{「最近 N 次」最多 100 次。想看更久，請按時間段提問，例如今年。} days{「最近 N 天」最多 3660 天（約 10 年）。想看更久，請按全部時間提問。} compare{一次最多比較 4 項。請分開提問。} compareGrouped{同一個問題不能既比較又按動作、日、週、月或星期分組。請擇一提問。} groupedMeasure{按日、週、月或星期分組時只能統計一項，且趨勢、最後一次、第一次、距上次天數不能分組。} ordering{排名、合計和平均需要分組，例如按動作或按週。} datesTotal{最後一次和第一次的日期不能相加或求平均。} other{紀錄搜尋無法計算這種形式的問題。請分開提問。}}",
-  "policyNumberRejected": "{why, select, decimal{「{text}」— 不接受小數。請輸入整數，例如 14} range{「{text}」— 請輸入一個數字，而不是範圍，例如 14} negative{「{text}」— 不接受小於 0 的數，例如 14} unit{「{text}」— 此欄按天數或次數計。請把小時、週或月換算成天數，例如 14} other{無法從「{text}」中讀出天數或次數。請輸入數字，例如 14}}",
+  "policyNumberRejected": "{why, select, decimal{「{text}」— 不接受小數。請輸入整數，例如 14} range{「{text}」— 請輸入一個數字，而不是範圍，例如 14} negative{「{text}」— 不接受小於 0 的數，例如 14} unit{「{text}」— 此欄按天數或次數計。請把小時、週或月換算成天數，例如 14} many{「{text}」— 請只輸入一個數字，例如 14} other{無法從「{text}」中讀出天數或次數。請輸入數字，例如 14}}",
   "mealSources": "來源",
   "mealSourcesTitle": "熱量依據",
   "mealSourcesNote": "依下表中的數值計算。點按可在原始資料表中開啟該名稱。表中沒有的食物由 AI 估算。",

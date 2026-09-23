@@ -1087,6 +1087,7 @@ class LVi extends L {
       'negative': '\'$text\' — không nhận số nhỏ hơn 0, ví dụ 14',
       'unit':
           '\'$text\' — ô này đếm theo ngày hoặc buổi. Hãy đổi giờ, tuần hoặc tháng sang số ngày, ví dụ 14',
+      'many': '\'$text\' — hãy chỉ nhập một con số, ví dụ 14',
       'other':
           'Không đọc được số ngày hoặc số buổi từ \'$text\'. Hãy nhập một con số, ví dụ 14',
     });

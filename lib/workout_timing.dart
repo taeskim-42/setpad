@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'palette.dart';
+import 'parser.dart' show tempoPattern;
 import 'rest_recovery.dart';
 import 'timing_audio.dart';
 
@@ -40,23 +41,18 @@ class TimingSpec {
   String applyTo(String name) {
     var out = name;
     if (bpm != null) {
-      final withNumber = RegExp(
-        r'([+-]?\d+(?:[.,]\d+)?)(\s*bpm(?![a-z]))',
-        caseSensitive: false,
-      );
-      final afterWord = RegExp(
-        r'((?<![a-z])bpm\s*[:=]?\s*)([+-]?\d+(?:[.,]\d+)?)',
-        caseSensitive: false,
-      );
-      if (withNumber.hasMatch(out)) {
-        out = out.replaceFirstMapped(withNumber, (m) => '$bpm${m[2]}');
-      } else if (afterWord.hasMatch(out)) {
-        out = out.replaceFirstMapped(afterWord, (m) => '${m[1]}$bpm');
+      // 템포 수만 바꾼다 — "bpm 3세트" 의 3 은 세트 수라 그대로 둔다.
+      if (_tempo.hasMatch(out)) {
+        out = out.replaceFirstMapped(
+          _tempo,
+          (m) => m[1] != null
+              ? '$bpm${m[0]!.substring(m[1]!.length)}'
+              : '${m[0]!.substring(0, m[0]!.length - m[2]!.length)}$bpm',
+        );
+      } else if (_bpmWord.hasMatch(out)) {
+        out = out.replaceFirst(_bpmWord, '${bpm}bpm');
       } else {
-        final bare = RegExp(r'(?<![a-z])bpm(?![a-z])', caseSensitive: false);
-        out = bare.hasMatch(out)
-            ? out.replaceFirst(bare, '${bpm}bpm')
-            : '${out.trimRight()} ${bpm}bpm';
+        out = '${out.trimRight()} ${bpm}bpm';
       }
     }
     if (tabata) {
@@ -107,10 +103,7 @@ class TimingSpec {
     r'타바타|タバタ|(?<![a-z])tabata(?![a-z])',
     caseSensitive: false,
   );
-  static final _tempo = RegExp(
-    r'([+-]?\d+(?:[.,]\d+)?)\s*bpm(?![a-z])|(?<![a-z])bpm\s*[:=]?\s*([+-]?\d+(?:[.,]\d+)?)',
-    caseSensitive: false,
-  );
+  static final _tempo = RegExp(tempoPattern, caseSensitive: false);
   static final _interval = RegExp(
     r'(\d+)\s*(?:초|s|sec)?\s*[/／]\s*(\d+)\s*(?:초|s|sec)?',
     caseSensitive: false,

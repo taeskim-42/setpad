@@ -819,41 +819,121 @@ void main() {
         ('-3', 'negative'),
         ('10~14일', 'range'),
         ('10-14', 'range'),
-        ('한 달', 'other'),
+        ('한 달', 'unit'),
       ]) {
         expect(policyNumber(text), (value: null, why: why), reason: text);
       }
     });
 
-    test(
-      'C·방침 숫자 칸은 일·회 뒤에 붙은 말(14일간·3회 이하·14 days ago)도 읽고, 시간·주·소수·범위·음수는 까닭과 함께 막는다',
-      () {
-        for (final (text, value) in [
-          ('14일간', 14),
-          ('14일 이내', 14),
-          ('14일 후', 14),
-          ('3회 이하', 3),
-          ('3번까지', 3),
-          ('약 14일', 14),
-          ('14 days ago', 14),
-          ('about 7 days', 7),
-          ('14日間', 14),
-        ]) {
-          expect(policyNumber(text), (value: value, why: null), reason: text);
-        }
-        for (final (text, why) in [
-          ('48시간 이내', 'unit'),
-          ('14 hours ago', 'unit'),
-          ('2주 후', 'unit'),
-          ('약 2 weeks', 'unit'),
-          ('1.5일간', 'decimal'),
-          ('10~14일 이내', 'range'),
-          ('-3회 이하', 'negative'),
-        ]) {
-          expect(policyNumber(text), (value: null, why: why), reason: text);
-        }
-      },
-    );
+    test('C·방침 숫자 칸의 문법 — 수 하나 + 일·회 + 붙은 말, 다른 수량이 섞이면 까닭과 함께 막는다', () {
+      // 전(add020d)과 다른 줄의 까닭.
+      const quantity = '다른 수·글로 쓴 수량·기간이 섞이면 그 수는 칸의 값이 아니다 — 전에는 숫자만 저장했다';
+      const reason = '까닭을 바로잡는다 — 전에는 틀린 까닭을 보였다';
+      const fullWidth = '전각 숫자도 숫자다';
+      // (글, 전에 읽은 것, 지금 (값, 까닭), 전과 다른 까닭)
+      const table = [
+        // 받는 글 — 여덟 언어의 일·회, 앞뒤에 붙은 말.
+        ('14', '14', (14, null), ''),
+        ('14일', '14', (14, null), ''),
+        ('3회', '3', (3, null), ''),
+        ('7 days', '7', (7, null), ''),
+        ('3 times', '3', (3, null), ''),
+        ('14일 전', '14', (14, null), ''),
+        ('14 before', '14', (14, null), ''),
+        ('14일전', '14', (14, null), ''),
+        ('14일간', '14', (14, null), ''),
+        ('14일 이내', '14', (14, null), ''),
+        ('14일 후', '14', (14, null), ''),
+        ('3회 이하', '3', (3, null), ''),
+        ('3번까지', '3', (3, null), ''),
+        ('약 14일', '14', (14, null), ''),
+        ('만료 14일 전', '14', (14, null), ''),
+        ('14일분', '14', (14, null), ''),
+        ('14 days ago', '14', (14, null), ''),
+        ('about 7 days', '7', (7, null), ''),
+        ('14 days to go', '14', (14, null), ''),
+        ('14日間', '14', (14, null), ''),
+        ('14日', '14', (14, null), ''),
+        ('3回', '3', (3, null), ''),
+        ('14天', '14', (14, null), ''),
+        ('3次', '3', (3, null), ''),
+        ('14 días', '14', (14, null), ''),
+        ('3 veces', '3', (3, null), ''),
+        ('14 ngày', '14', (14, null), ''),
+        ('3 lần', '3', (3, null), ''),
+        ('14 วัน', '14', (14, null), ''),
+        ('3 ครั้ง', '3', (3, null), ''),
+        ('１４일', 'other', (14, null), fullWidth),
+        // 다른 기간 단위 — 일로 바꿔 적어야 한다.
+        ('한 달 14일', '14', (null, 'unit'), quantity),
+        ('두 주 3일', '3', (null, 'unit'), quantity),
+        ('two weeks 3 days', '3', (null, 'unit'), quantity),
+        ('a week and 3 days', '3', (null, 'unit'), quantity),
+        ('일주일 3일', '3', (null, 'unit'), quantity),
+        ('주 3회', '3', (null, 'unit'), quantity),
+        ('한 달', 'other', (null, 'unit'), reason),
+        ('dos semanas', 'other', (null, 'unit'), reason),
+        ('hai tuần', 'other', (null, 'unit'), reason),
+        ('สองสัปดาห์', 'other', (null, 'unit'), reason),
+        ('二週間', 'other', (null, 'unit'), reason),
+        ('两周', 'other', (null, 'unit'), reason),
+        ('2주', 'unit', (null, 'unit'), ''),
+        ('2주 후', 'unit', (null, 'unit'), ''),
+        ('48시간', 'unit', (null, 'unit'), ''),
+        ('48시간 이내', 'unit', (null, 'unit'), ''),
+        ('72 hours', 'unit', (null, 'unit'), ''),
+        ('14 hours ago', 'unit', (null, 'unit'), ''),
+        ('2 weeks', 'unit', (null, 'unit'), ''),
+        ('약 2 weeks', 'unit', (null, 'unit'), ''),
+        ('14kg', 'unit', (null, 'unit'), ''),
+        // 범위.
+        ('열흘에서 14일', '14', (null, 'range'), quantity),
+        ('one to 3 days', '3', (null, 'range'), quantity),
+        ('10일부터 14일', 'unit', (null, 'range'), reason),
+        ('14 días hasta 20', 'unit', (null, 'range'), reason),
+        ('10~14일', 'range', (null, 'range'), ''),
+        ('10~14일 이내', 'range', (null, 'range'), ''),
+        ('10-14', 'range', (null, 'range'), ''),
+        // 수가 둘 — 숫자든 글로 쓴 수든.
+        ('14일 2회', 'unit', (null, 'many'), reason),
+        ('3회 ５회', '3', (null, 'many'), quantity),
+        ('14일 두 번', '14', (null, 'many'), quantity),
+        ('14일 한 번', '14', (null, 'many'), quantity),
+        ('14 ngày một lần', '14', (null, 'many'), quantity),
+        // 소수·음수·숫자 없음.
+        ('1.5', 'decimal', (null, 'decimal'), ''),
+        ('1.5일간', 'decimal', (null, 'decimal'), ''),
+        ('-3', 'negative', (null, 'negative'), ''),
+        ('-3회 이하', 'negative', (null, 'negative'), ''),
+        ('약 -3일', 'unit', (null, 'negative'), reason),
+        ('열흘', 'other', (null, 'other'), ''),
+        ('ten days', 'other', (null, 'other'), ''),
+        ('catorce días', 'other', (null, 'other'), ''),
+        ('abc', 'other', (null, 'other'), ''),
+      ];
+      for (final (text, before, (value, why), changed) in table) {
+        expect(policyNumber(text), (value: value, why: why), reason: text);
+        expect(
+          changed.isNotEmpty,
+          before != (value?.toString() ?? why),
+          reason: '$text: 까닭 칸',
+        );
+      }
+      // 까닭 여섯 가지는 아홉 언어 모두에서 서로 다른 문구이고, 친 글을 보여 준다.
+      const whys = ['decimal', 'range', 'negative', 'unit', 'many', 'other'];
+      for (final locale in L.supportedLocales) {
+        final l = lookupL(locale);
+        final said = {
+          for (final w in whys) l.policyNumberRejected('14일 2회', w),
+        };
+        expect(said.length, whys.length, reason: '$locale');
+        expect(
+          said.every((m) => m.contains('14일 2회')),
+          isTrue,
+          reason: '$locale',
+        );
+      }
+    });
 
     testWidgets('이 도장 직원이 아니면 서버의 말을 보여 주고 정리 버튼을 치운다', (tester) async {
       final a = account(

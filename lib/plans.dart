@@ -154,9 +154,10 @@ List<String> _markWords(String text) => joinSpacedUnits(text)
 /// 10"), 수 표기 바로 뒤의 맨숫자("80kg 5"). 그 사이·뒤의 글 낱말("케틀벨 16kg
 /// 스윙" 의 스윙)은 이름에 남는다. 타이머가 읽는 낱말([TimingSpec.marks] — "30
 /// bpm", "bpm 30", 타바타의 "30초 / 15초"·"x8"·"8 라운드")도 어디에 오든 통째로
-/// 이름에 남는다 — 타이머는 이름에서 붙는다. 이름으로 시작하지 않는 줄("3x10
-/// 벤치")은 null.
-({String name, int sets, String? target})? _planLine(String line) {
+/// 이름에 남는다 — 타이머는 이름에서 붙는다. 줄 **앞**의 수 표기도 이름이다
+/// ("400m 인터벌 x6", "21s 바벨컬 3세트", "3x10 벤치") — 이름보다 먼저 친 수가
+/// 무엇을 세는지는 모른다. 옛 제목("5x5 스트렝스")도 그래서 제목으로 남는다.
+({String name, int sets, String? target}) _planLine(String line) {
   final marks = TimingSpec.marks(line);
   final words = <String>[], timer = <bool>[];
   // 타이머 낱말 사이의 글. 표기는 여기서만 붙여 읽는다 — "20 x8" 의 x8 이
@@ -190,8 +191,10 @@ List<String> _markWords(String text) => joinSpacedUnits(text)
                     _bareNumber.hasMatch(words[i + 1]) &&
                     !timer[i + 1])));
   }
+  for (var i = 0; i < words.length && number[i]; i++) {
+    number[i] = false;
+  }
   if (!number.contains(true)) return (name: line.trim(), sets: 0, target: null);
-  if (number.first) return null;
   int? sets;
   final name = <String>[], target = <String>[];
   for (final (i, w) in words.indexed) {
@@ -244,17 +247,17 @@ parsePlanText(
   final titled =
       (title.isNotEmpty && lines.first == title) ||
       (text.split('\n').first.trim().isNotEmpty &&
-          (first == null || (first.sets == 0 && first.target == null)));
+          first.sets == 0 &&
+          first.target == null);
   final unused = [...previous];
   final items = <PlanItem>[];
   final targets = <String, String>{};
   for (final line in lines.skip(titled ? 1 : 0)) {
     final read = _planLine(line);
-    final name = read?.name ?? line;
-    final at = unused.indexWhere((p) => p.name == name);
+    final at = unused.indexWhere((p) => p.name == read.name);
     final id = at < 0 ? _newId('i') : unused.removeAt(at).id;
-    items.add(PlanItem(id: id, name: name, sets: read?.sets ?? 0));
-    if (read?.target != null) targets[id] = read!.target!;
+    items.add(PlanItem(id: id, name: read.name, sets: read.sets));
+    if (read.target case final target?) targets[id] = target;
   }
   return (title: titled ? lines.first : '', items: items, targets: targets);
 }
