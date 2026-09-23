@@ -443,9 +443,12 @@ class NotesStore extends ChangeNotifier {
       _sort();
       for (final n in _notes) {
         for (final b in n.blocks.reversed) {
-          if (!_forgottenExercises.contains(b.name) &&
-              !_exerciseHistory.contains(b.name)) {
-            _exerciseHistory.add(b.name);
+          // 익히는 것은 운동 이름이다 — 제목 문장('벤치 80kg 5x5')이 아니다.
+          final name = b.learnedName;
+          if (name != null &&
+              !_forgottenExercises.contains(name) &&
+              !_exerciseHistory.contains(name)) {
+            _exerciseHistory.add(name);
           }
         }
       }
@@ -508,6 +511,14 @@ class NotesStore extends ChangeNotifier {
     notifyListeners();
     _scheduleSave();
   }
+
+  /// 설정을 붙여 만든 칸 가운데 제목이 [title] 인 가장 최근 것의 설정. 같은 루틴
+  /// 줄을 다음 날 또 치면 편집기가 이 설정을 다시 쓴다.
+  WorkoutSetup? setupOf(String title) => _notes
+      .expand((n) => n.blocks)
+      .where((b) => b.name == title && b.setup != null)
+      .firstOrNull
+      ?.setup;
 
   void rememberExercise(String name) {
     if (name.trim().isEmpty) return;

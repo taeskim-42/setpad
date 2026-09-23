@@ -99,6 +99,15 @@ final _quantityWords = RegExp(
   caseSensitive: false,
 );
 
+/// 세트를 어떻게 하는지 말하는 낱말(피라미드·드롭세트·실패까지·템포·RPE…). 모델이
+/// 못 옮긴 말에 넣지 않아도 이름에 섞지 않는다 — 모델 이름에 들었으면 그대로다
+/// ('템포 스쿼트').
+final _conditionWords = RegExp(
+  r'피라미드|드랍|드롭|슈퍼세트|자이언트세트|실패까지|원알엠|템포|^(?:1rm|rpe|rir)$|'
+  r'pyramid|dropset|drop-set|superset|failure|tempo',
+  caseSensitive: false,
+);
+
 /// 타이머 토큰(60bpm, bpm 60, 30/15, x8, 10라운드). 글의 수가 모두 여기 쓰였으면
 /// 그 글은 타이머 이름이라 묻지 않고 바로 만든다.
 final timerTokens = RegExp(
@@ -113,9 +122,11 @@ final timerTokens = RegExp(
 /// 천 단위('1,000'), 쉼표나 점이 하나뿐이면 소수('22,5').
 ///
 /// 글로 쓴 수도 읽는다(백, 이백, 스무 개, 열 세트, hundred, fifty, 百, 二十).
-/// 한국어는 **낱말 전체가** 수와 세는 말(개·회·세트·키로…)일 때만 수로 본다 —
-/// '백스쿼트' 의 백, '한쪽' 의 한, '이번'·'구분'·'일회용' 은 수가 아니다. 한국어
-/// 수의 자리는 세는 말까지다('스무 개').
+/// 한국어는 낱말이 **수 + 세는 말(개·회·세트·분…) + 조사·꼬리(씩·만·정도·쯤·하고…)**
+/// 로만 이루어질 때 수다 — '삼세트', '오분', '열개씩만', '백개쯤' 은 수고, 꼬리가
+/// 목록 밖이면('일회용', '삼분할', '육개장') 낱말이다. '번' 은 한 자리 한자어 수와
+/// 쓰면 차례다('이번', '일번' — 횟수는 '두 번'). 꼴은 같아도 굳은 낱말('구분',
+/// '사회')은 수가 아니다. 한국어 수의 자리는 꼬리까지다('스무 개').
 List<({num value, int start, int end})> statedNumbers(String text) {
   final found = <({num value, int start, int end})>[];
   void add(num? value, int start, int end) {
@@ -135,12 +146,15 @@ List<({num value, int start, int end})> statedNumbers(String text) {
     }
   }
   for (final m in RegExp(
-    r'(?<![가-힣])([가-힣]+?)(\s*)(?:개|회|번|세트|셋트|키로|킬로|파운드|라운드|바퀴|칸|박|분|초|시간|미터|kg|lb|reps?|sets?)'
-    r'(?:씩|에|을|를|은|는|이|가|도|만|으로|로|째|간|짜리|부터|까지|의)?(?![가-힣])',
+    r'(?<![가-힣])([가-힣]+?)(\s*)(개|회|번|세트|셋트|키로|킬로|파운드|라운드|바퀴|칸|박|분|초|시간|미터|kg|lb|reps?|sets?)'
+    r'(?:씩|만|정도|쯤|가량|이상|이하|내외|하고|이랑|랑|와|과|만큼|에서|에|을|를|은|는|이|가|도|으로|로|째|간|짜리|부터|까지|의|요)*(?![가-힣])',
     caseSensitive: false,
   ).allMatches(text)) {
-    // 한 글자 한자어 수가 세는 말에 붙으면 낱말이다('이번', '구분', '사회').
-    if (m[2]!.isEmpty && RegExp(r'^[일이삼사오육칠팔구]$').hasMatch(m[1]!)) continue;
+    final sino = RegExp(r'^[일이삼사오육칠팔구]$').hasMatch(m[1]!);
+    if (sino && m[3] == '번') continue;
+    if (m[2]!.isEmpty && const {'구분', '사회'}.contains('${m[1]}${m[3]}')) {
+      continue;
+    }
     add(_koreanNumber(m[1]!), m.start, m.end);
   }
   const words =
@@ -320,6 +334,7 @@ String? typedName(
       !numbered(w) &&
       searchKey(w[0]!).isNotEmpty &&
       !_quantityWords.hasMatch('${w[0]} ') &&
+      !_conditionWords.hasMatch(w[0]!) &&
       !unparsed.any((u) => u.contains(w[0]!));
   if (want.isNotEmpty) {
     for (var size = 1; size <= words.length; size++) {

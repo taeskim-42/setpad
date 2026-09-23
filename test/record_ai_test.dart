@@ -578,6 +578,21 @@ void main() {
     expect(c.blocks.single.setup!.totalReps, 100);
   });
 
+  testWidgets('X15: 칸의 1,000 은 천, 22,5 는 22.5 다 — 쉼표를 소수점으로만 읽지 않는다', (
+    tester,
+  ) async {
+    final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
+    await submit(tester, example);
+    final rows = find.byType(CupertinoTextFormFieldRow);
+    await tester.enterText(rows.at(1), '22,5');
+    await tester.enterText(rows.at(2), '1,000');
+    await tester.pump();
+    await tester.tap(find.text('완료'));
+    await tester.pumpAndSettle();
+    expect(c.blocks.single.setup!.weight, 22.5);
+    expect(c.blocks.single.setup!.totalReps, 1000);
+  });
+
   testWidgets('설정 없는 칸에도 ⚙ 가 있어 나중에 설정을 붙인다 — 제목은 그대로', (tester) async {
     final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
     c.addExercise('러닝 5km 3세트');
@@ -822,6 +837,32 @@ void main() {
       nameOf('턱걸이 열 개 세 세트', {'name': '풀업', 'repsPerSet': 10, 'totalSets': 3}),
       '턱걸이',
     );
+    // 모델이 조건어를 못 옮긴 말에 넣지 않아도 이름에 섞지 않는다.
+    expect(
+      nameOf('벤치 피라미드 60-70-80kg', {'name': '벤치프레스'}, ['60-70-80kg']),
+      '벤치',
+    );
+    expect(
+      nameOf('랫풀 드롭세트 60kg 10회', {
+        'name': '랫풀다운',
+        'weight': 60,
+        'repsPerSet': 10,
+      }),
+      '랫풀',
+    );
+    expect(
+      nameOf('스쿼트 템포 80kg 5회', {'name': '백스쿼트', 'weight': 80, 'repsPerSet': 5}),
+      '스쿼트',
+    );
+    // 조건어가 곧 이름인 운동은 모델이 그렇게 부르면 그대로다.
+    expect(
+      nameOf('템포 스쿼트 60kg 8회', {
+        'name': '템포 스쿼트',
+        'weight': 60,
+        'repsPerSet': 8,
+      }),
+      '템포 스쿼트',
+    );
   });
 
   test('수 읽기: 쉼표로 늘어놓은 수는 따로, 한국어로 쓴 수는 낱말 전체일 때만', () {
@@ -850,6 +891,91 @@ void main() {
     expect(hasSetupIntent('스쿼트 구분 동작'), isFalse);
     expect(hasSetupIntent('일회용 밴드 로우'), isFalse);
     expect(values('플랭크 일 분 세 세트 스무개씩 다섯셋트'), [1, 3, 20, 5]);
+  });
+
+  test('X8: 붙여 쓴 한국어 수(삼세트·오분·열개정도…)도 친 수다 — 수+세는 말+조사·꼬리, 이번·구분·일회용은 아니다', () {
+    List<num> values(String text) => [
+      for (final n in statedNumbers(text)) n.value,
+    ];
+    expect(values('스쿼트 삼세트'), [3]);
+    expect(values('벤치 이세트 10회'), unorderedEquals([2, 10]));
+    expect(values('플랭크 오분'), [5]);
+    expect(values('벤치 60kg 열개정도 3세트'), unorderedEquals([60, 10, 3]));
+    expect(values('스쿼트 열개씩만 3세트'), unorderedEquals([10, 3]));
+    expect(values('푸시업 스무개하고 3세트'), unorderedEquals([20, 3]));
+    expect(values('푸시업 백개쯤'), [100]);
+    expect(values('버피 두번째 세트'), [2]);
+    expect(values('벤치 이번 세트 80kg'), [80]);
+    expect(values('스쿼트 구분 동작'), isEmpty);
+    expect(values('스쿼트 구분도 없이'), isEmpty);
+    expect(values('일회용 밴드 로우'), isEmpty);
+    expect(values('육개장 먹고 삼분할 벤치'), isEmpty);
+    expect(hasSetupIntent('플랭크 오분'), isTrue);
+    expect(hasSetupIntent('스쿼트 구분 동작'), isFalse);
+    for (final (typed, raw, key, value) in [
+      (
+        '스쿼트 60kg 삼세트 10회',
+        {'weight': 60, 'repsPerSet': 10, 'totalSets': 3},
+        'totalSets',
+        3,
+      ),
+      (
+        '벤치 60kg 열개정도 3세트',
+        {'weight': 60, 'repsPerSet': 10, 'totalSets': 3},
+        'repsPerSet',
+        10,
+      ),
+    ]) {
+      final r = readSetupAnswer(
+        typed,
+        answerFor([
+          {'text': typed, 'name': typed.split(' ').first, ...raw},
+        ]),
+      );
+      expect(r.dropped, isEmpty, reason: typed);
+      expect(r.exercises.single.setup.toJson()[key], value, reason: typed);
+      expect(r.unparsed, isEmpty, reason: typed);
+    }
+  });
+
+  test('X8: 칸에 옮긴 수는 이름·못 옮긴 말 밖의 같은 값과 먼저 짝짓는다 — 정말 못 옮긴 말만 보인다', () {
+    final mts = readSetupAnswer(
+      'MTS100 로우 100개',
+      answerFor([
+        {
+          'text': 'MTS100 로우 100개',
+          'name': 'MTS100 로우',
+          'totalReps': 100,
+          'repsOnly': true,
+        },
+      ]),
+    );
+    expect(mts.exercises.single.setup.totalReps, 100);
+    expect(mts.unparsed, isEmpty);
+    final row = readSetupAnswer(
+      '민수식 로우 2 2세트',
+      answerFor([
+        {'text': '민수식 로우 2 2세트', 'name': '민수식 로우 2', 'totalSets': 2},
+      ]),
+    );
+    expect(row.exercises.single.setup.totalSets, 2);
+    expect(row.unparsed, isEmpty);
+    final rpe = readSetupAnswer(
+      'RPE 8 벤치 80kg 8회',
+      answerFor(
+        [
+          {
+            'text': 'RPE 8 벤치 80kg 8회',
+            'name': '벤치',
+            'weight': 80,
+            'repsPerSet': 8,
+          },
+        ],
+        ['RPE 8'],
+      ),
+    );
+    expect(rpe.exercises.single.setup.repsPerSet, 8);
+    expect(rpe.unparsed, ['RPE 8']);
   });
 
   test('X4: 와이파이 로그인 화면(HTML)·TLS·소켓 실패는 연결 문제다 — "읽지 못함" 이 아니다', () async {
@@ -926,31 +1052,101 @@ void main() {
     expect(c.recentExercises, isEmpty, reason: '운동이 아니라는 답이면 익히지 않는다');
   });
 
-  testWidgets('익힌 운동 이름과 똑같은 줄은 수가 들어도 묻지 않는다 — 다시 연 기록은 제목이 아니라 이름을 익힌다', (
-    tester,
-  ) async {
-    final ai = FakeAi(RecordAiStatus.ready);
-    final c = await pumpEditor(
-      tester,
-      ai,
-      controller: RoutineEditorController(history: const ['민수식 로우 2']),
-    );
-    await submit(tester, '민수식 로우 2');
-    expect(ai.calls, 0);
-    expect(c.blocks.single.name, '민수식 로우 2');
-    c.restore([
-      ExerciseBlock(
-        '벤치 80kg 5x5',
-        null,
-        const WorkoutSetup(name: '벤치', weight: 80, repsPerSet: 5, totalSets: 5),
-      ),
-      ExerciseBlock('스쿼트 100kg 5x5'),
-    ]);
-    expect(c.recentExercises.take(2), ['벤치', '스쿼트']);
-    await tester.pumpAndSettle();
-    await submit(tester, '벤치 80kg 5x5');
-    expect(ai.calls, 1, reason: '설정을 적은 제목은 이름이 아니다');
-  });
+  testWidgets(
+    'X8: 설정을 붙여 만든 칸과 똑같은 줄은 그 설정을 다시 쓴다 — 익힌 이름이라고 수가 든 줄을 묻지 않고 넘기지 않는다',
+    (tester) async {
+      const bench = WorkoutSetup(
+        name: '벤치',
+        weight: 80,
+        repsPerSet: 5,
+        totalSets: 5,
+      );
+      final ai = FakeAi(RecordAiStatus.ready)
+        ..answer = answerFor([
+          {'text': '민수식 로우 2', 'name': '민수식 로우 2'},
+        ]);
+      final c = await pumpEditor(
+        tester,
+        ai,
+        controller: RoutineEditorController(
+          history: const ['민수식 로우 2', '벤치 80kg 5x5'],
+        ),
+      );
+      // 익힌 이름이어도 수가 든 줄은 모델이 읽는다.
+      await submit(tester, '민수식 로우 2');
+      expect(ai.calls, 1);
+      expect(c.blocks.single.name, '민수식 로우 2');
+      c.closeBlock();
+      await submit(tester, '벤치 80kg 5x5');
+      expect(ai.calls, 2, reason: '익힌 이름이 설정 문장이어도 설정 없이 만들지 않는다');
+      c.restore([
+        ExerciseBlock('벤치 80kg 5x5', null, bench),
+        ExerciseBlock('스쿼트 100kg 5x5'),
+      ]);
+      expect(c.recentExercises.take(2), ['벤치', '스쿼트']);
+      await tester.pumpAndSettle();
+      await submit(tester, '벤치 80kg 5x5');
+      expect(ai.calls, 2, reason: '같은 줄은 같은 설정 — 다시 묻지 않는다');
+      expect(c.blocks.last.name, '벤치 80kg 5x5');
+      expect(c.blocks.last.setup?.toJson(), bench.toJson());
+      expect(find.text('완료'), findsNothing);
+      c.closeBlock();
+      await submit(tester, '스쿼트 100kg 5x5');
+      expect(ai.calls, 3, reason: '설정 없는 칸의 제목은 다시 물어 설정을 붙인다');
+      c.closeBlock();
+      await submit(tester, '벤치');
+      expect(ai.calls, 3, reason: '수 없는 이름은 늘 바로 만든다');
+      expect(c.blocks.last.setup, isNull);
+    },
+  );
+
+  testWidgets(
+    'X8: 저장한 기록을 다시 켠 뒤 같은 줄을 쳐도 설정이 붙는다 — 불러올 때 제목 문장을 이름으로 익히지 않는다',
+    (tester) async {
+      const bench = WorkoutSetup(
+        name: '벤치',
+        weight: 80,
+        repsPerSet: 5,
+        totalSets: 5,
+      );
+      final dir = Directory.systemTemp.createTempSync('setpad_learned');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final store = NotesStore(directory: dir);
+      await tester.runAsync(store.load);
+      store.create(
+        blocks: [
+          ExerciseBlock('벤치 80kg 5x5', null, bench),
+          ExerciseBlock('100개 푸시업'),
+          ExerciseBlock('버피 타바타 30/15 10라운드'),
+        ],
+      );
+      await tester.runAsync(store.flush);
+      final reopened = NotesStore(directory: dir);
+      await tester.runAsync(reopened.load);
+      expect(
+        reopened.exerciseHistory,
+        unorderedEquals(['벤치', '푸시업', '버피 타바타 30/15 10라운드']),
+      );
+      expect(reopened.setupOf('벤치 80kg 5x5')?.toJson(), bench.toJson());
+      expect(reopened.setupOf('100개 푸시업'), isNull);
+      final ai = FakeAi(RecordAiStatus.ready);
+      final c = await pumpEditor(
+        tester,
+        ai,
+        controller: RoutineEditorController(
+          history: reopened.exerciseHistory,
+          savedSetup: reopened.setupOf,
+        ),
+      );
+      await submit(tester, '벤치 80kg 5x5');
+      expect(ai.calls, 0);
+      expect(c.blocks.single.name, '벤치 80kg 5x5');
+      expect(c.blocks.single.setup?.toJson(), bench.toJson());
+      c.closeBlock();
+      await submit(tester, '100개 푸시업');
+      expect(ai.calls, 1, reason: '설정 없이 저장된 줄은 모델이 읽는다');
+    },
+  );
 
   testWidgets('X11: 답을 기다리다 앱을 내렸다 돌아오면 늦은 답을 버리지 않고 확인 창을 연다', (tester) async {
     final ai = FakeAi(RecordAiStatus.ready)

@@ -149,6 +149,10 @@ class ExerciseBlock {
   /// **스쿼트**를 봐야 하므로, 한 줄 설정이 알아낸 이름을 여기서 낸다.
   String get exercise => setup?.name ?? name;
 
+  /// 이 칸에서 익힐 운동 이름. 설정을 적은 제목('벤치 80kg 5x5')은 이름이 아니다 —
+  /// 설정의 이름, 없으면 수 낱말을 뺀 이름. 이름이 안 남으면 null.
+  String? get learnedName => setup?.name ?? learnableName(name);
+
   /// 내가 적은 마지막 세트. 같이 고치는 문서에서 옆 사람의 단위·무게를 잇지
   /// 않으려고 쓴다. 내 세트가 없으면 그냥 마지막 세트.
   LoggedSet? get myLast =>
@@ -157,15 +161,30 @@ class ExerciseBlock {
       sets.where((s) => s.mine).fold(0, (n, s) => n + (s.reps ?? 0));
 }
 
+WorkoutSetup? _noSetup(String _) => null;
+
 /// 에디터의 상태. 화면과 떼어 둔 이유는 상위 화면(복사 버튼 등)이 같은 상태를
 /// 봐야 하고, 위젯 테스트에서 직접 찔러볼 수 있어야 해서다.
 class RoutineEditorController extends ChangeNotifier {
   RoutineEditorController({
     Iterable<String> history = const [],
     this.weightUnit = defaultUnit,
+    this.savedSetup = _noSetup,
   }) {
     _learned.addAll(history);
   }
+
+  /// 저장된 기록에서 제목이 똑같은 칸의 설정(NotesStore.setupOf).
+  final WorkoutSetup? Function(String title) savedSetup;
+
+  /// 설정을 붙여 만든 칸 가운데 제목이 [title] 인 가장 최근 것의 설정 — 이 기록
+  /// 먼저, 없으면 저장된 기록에서.
+  WorkoutSetup? earlierSetup(String title) =>
+      blocks.reversed
+          .where((b) => b.name == title && b.setup != null)
+          .firstOrNull
+          ?.setup ??
+      savedSetup(title);
 
   String weightUnit;
   final List<ExerciseBlock> blocks = [];
@@ -475,10 +494,9 @@ class RoutineEditorController extends ChangeNotifier {
       ..clear()
       ..addAll(saved);
     // 저장된 이름도 이 기기에서 친 이름이다. 자동완성이 알아야 한다. 익히는 것은
-    // 운동 이름이다 — '벤치 80kg 5x5' 제목을 익히면 다음에 똑같이 쳤을 때 설정을
-    // 묻지 않고 이름으로 만든다.
+    // 운동 이름이다 — 제목 문장('벤치 80kg 5x5')이 아니다.
     for (final b in saved.reversed) {
-      final name = b.setup?.name ?? learnableName(b.name);
+      final name = b.learnedName;
       if (name == null) continue;
       _learned.remove(name);
       _learned.insert(0, name);
@@ -1926,14 +1944,23 @@ class _RoutineEditorState extends State<RoutineEditor>
       _reopen();
       return;
     }
-    // 익힌 운동 이름('민수식 로우 2')과 똑같은 줄도 묻지 않는다 — 수가 들었어도
-    // 이름이고, 칠 때마다 적기 도움 한 칸을 쓰지 않는다.
     if (pick == null &&
         _c.naming &&
         value.trim().isNotEmpty &&
-        (!hasSetupIntent(value) || _c.recentExercises.contains(value.trim()))) {
+        !hasSetupIntent(value)) {
       _commit(value);
       return;
+    }
+    // 설정을 붙여 만든 칸과 똑같은 줄(어제의 '벤치 80kg 5x5')은 그 설정을 다시
+    // 쓴다 — 다시 묻지 않고, 설정 없이 만들지도 않는다. 익힌 이름만 같은 줄은
+    // 아니다: 제목에서 익힌 이름이 수를 품었어도 모델이 읽는다.
+    if (pick == null && _c.naming) {
+      if (_c.earlierSetup(value.trim()) case final setup?) {
+        _input.clear();
+        _c.addExercise(value.trim(), setup: setup, learnAs: setup.name);
+        _reopen();
+        return;
+      }
     }
     // 물어보고 안 되면 그때 알린다. 미리 상태를 확인하느라 기다리지 않는다.
     if (pick == null && _c.naming && value.trim().isNotEmpty) {

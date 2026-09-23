@@ -335,11 +335,17 @@ SetupReading readSetupAnswer(String typed, Object? answer) {
       final value = e.raw[key];
       if (value is! num) return null;
       bool same(int i) => stated[i].value == value;
-      final mine = [
+      // 이름 자리·못 옮긴 말 밖의 같은 값이 먼저다 — 'MTS100 로우 100개' 의 100 은
+      // 100개 이고, 'RPE 8 … 8회' 의 8 은 8회 다.
+      List<int> free(Iterable<int> at) => [
+        ...at.where((i) => same(i) && !covered.contains(i)),
+        ...at.where((i) => same(i) && covered.contains(i)),
+      ];
+      final mine = free([
         for (var i = 0; i < stated.length; i++)
-          if (!paired.contains(i) && inside(i, span) && same(i)) i,
-      ].firstOrNull;
-      final shared = outside.where(same).firstOrNull;
+          if (!paired.contains(i) && inside(i, span)) i,
+      ]).firstOrNull;
+      final shared = free(outside).firstOrNull;
       if (mine == null &&
           shared == null &&
           !stated.indexed.any((n) => same(n.$1))) {

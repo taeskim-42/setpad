@@ -555,6 +555,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   late final _editor = RoutineEditorController(
     history: widget.store.exerciseHistory,
     weightUnit: widget.store.weightUnit,
+    savedSetup: widget.store.setupOf,
   );
   String? _lastLearned;
   final _mealText = ValueNotifier<({String text, int? index})?>(null);
@@ -604,6 +605,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
         RoutineEditorController(
             history: widget.store.exerciseHistory,
             weightUnit: widget.store.weightUnit,
+            savedSetup: widget.store.setupOf,
           )
           ..restore(proxy.blocks)
           ..addListener(_persistProxy);

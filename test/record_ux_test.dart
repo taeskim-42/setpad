@@ -193,7 +193,13 @@ void main() {
         '벤',
         '벤치프레스',
       ]);
-      expect(reopened.exerciseHistory, containsAll(names));
+      // 익히는 것은 운동 이름이다. 모델 없이(테스트는 오프라인) 만든 '민수식 로우 2'
+      // 는 수 낱말을 뺀 이름으로 익힌다 — 제목 문장을 이름으로 익히지 않는다(X8).
+      expect(
+        reopened.exerciseHistory,
+        containsAll(['내 방식 벤치', '벽 짚고 반쯤 스쿼트', '민수식 로우']),
+      );
+      expect(reopened.exerciseHistory, isNot(contains('민수식 로우 2')));
     });
   });
 

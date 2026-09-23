@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'l10n/generated/app_localizations.dart';
+import 'parser.dart';
 import 'record_ai.dart';
 import 'units.dart';
 
@@ -81,10 +82,16 @@ class _Fields {
   static String _text(num? n) => n?.toString() ?? '';
 
   /// 빈칸은 null, 읽을 수 없는 글('8-12', '60kg')은 NaN — 규칙이 거절하므로 그 칸
-  /// 밑에 이유가 뜨고 완료는 꺼진다. 빈칸으로 바꿔 저장하지 않는다(X15).
-  static num? _number(String text) => text.trim().isEmpty
-      ? null
-      : num.tryParse(text.trim().replaceAll(',', '.')) ?? double.nan;
+  /// 밑에 이유가 뜨고 완료는 꺼진다. 빈칸으로 바꿔 저장하지 않는다(X15). 수 읽기는
+  /// 친 글과 같다 — '1,000' 은 천, '22,5' 는 22.5.
+  static num? _number(String text) {
+    final clean = text.trim();
+    if (clean.isEmpty) return null;
+    final n = statedNumbers(clean);
+    return n.length == 1 && n.single.start == 0 && n.single.end == clean.length
+        ? n.single.value
+        : double.nan;
+  }
 
   /// 칸 하나가 틀린 이유. 규칙은 [WorkoutSetup.fromJson] 하나다 — 그 칸만 넣어 본다.
   static String? problem(String key, String text, L l) {
