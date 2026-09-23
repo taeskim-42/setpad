@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'health.dart';
+import 'health_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:app_links/app_links.dart';
 
@@ -79,6 +80,14 @@ class SetpadApp extends StatelessWidget {
         scaffoldBackgroundColor: CupertinoColors.systemGroupedBackground,
       ),
       home: _Home(store: store, tags: tags),
+      // 헬스 커넥트가 "권한을 왜 쓰는가" 를 물으면 Android 가 이 이름으로 연다
+      // (MainActivity.getInitialRoute, onNewIntent).
+      onGenerateRoute: (settings) => settings.name == HealthDataPage.route
+          ? CupertinoPageRoute<void>(
+              settings: settings,
+              builder: (_) => const HealthDataPage(),
+            )
+          : null,
     );
   }
 }

@@ -1213,4 +1213,37 @@ class LJa extends L {
   String dayUnknownMeals(int m) {
     return 'カロリー不明 $m件';
   }
+
+  @override
+  String get healthDataTitle => 'ヘルスケアデータ';
+
+  @override
+  String get healthDataIntro =>
+      'setpad がヘルスケアアプリ(Apple ヘルスケア、ヘルスコネクト)とやり取りするものと、その理由です。';
+
+  @override
+  String get healthDataWrite => '書き込み・ワークアウト — 記録を終えると、その運動をワークアウトとして保存します。';
+
+  @override
+  String get healthDataCalories =>
+      '読み取り・アクティブカロリー — 運動中にウォッチが計測したアクティブカロリーをその記録に付けます。計測がなければ、ないと表示します。';
+
+  @override
+  String get healthDataHeart =>
+      '読み取り・心拍数 — タバタの休憩中、心拍がそのラウンドの最高値より 25bpm 下がると休憩を終え、次のラウンドの開始を知らせます。休憩中はタイマーの行に ♥ 現在 → 目標 と表示されます。心拍がない、または 90 秒より古い値のときは、休憩は時間どおりに終わります。';
+
+  @override
+  String get healthDataStays =>
+      'ヘルスケアアプリから読み取った値はこの端末の外に出ません。サーバーへ送らず、広告やマーケティングにも使いません。';
+
+  @override
+  String get healthDataRevokeIos =>
+      '権限は iPhone の設定 → プライバシーとセキュリティ → ヘルスケア → setpad でいつでもオフにできます。';
+
+  @override
+  String get healthDataRevokeAndroid =>
+      '権限はヘルスコネクト → アプリの権限 → setpad でいつでもオフにできます。';
+
+  @override
+  String get healthDataPrivacy => 'プライバシーポリシー';
 }

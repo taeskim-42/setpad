@@ -1,3 +1,4 @@
+import 'health_page.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'account.dart';
@@ -50,6 +51,16 @@ class SettingsPage extends StatelessWidget {
                 label: l.countAloud,
                 value: store.countAloud,
                 onChanged: (v) => store.setCountAloud(v),
+              ),
+              // 건강 앱과 무엇을 왜 주고받는지 — 심박으로 휴식을 끊는 것까지.
+              _Row(
+                key: const ValueKey('settings-health'),
+                label: l.healthDataTitle,
+                onTap: () => Navigator.of(context).push(
+                  CupertinoPageRoute<void>(
+                    builder: (_) => const HealthDataPage(),
+                  ),
+                ),
               ),
 
               // **이용권은 그 자체로 한 칸이다.** 무엇을 사는지 한 줄로는

@@ -1245,4 +1245,38 @@ class LVi extends L {
   String dayUnknownMeals(int m) {
     return '$m chưa rõ kcal';
   }
+
+  @override
+  String get healthDataTitle => 'Dữ liệu sức khỏe';
+
+  @override
+  String get healthDataIntro =>
+      'Những gì setpad trao đổi với ứng dụng sức khỏe (Apple Health, Health Connect) và lý do.';
+
+  @override
+  String get healthDataWrite =>
+      'Ghi · Buổi tập — khi bạn kết thúc một bản ghi, nó được lưu thành một buổi tập.';
+
+  @override
+  String get healthDataCalories =>
+      'Đọc · Calo hoạt động — lượng calo hoạt động đồng hồ đo được trong lúc tập được gắn vào bản ghi đó. Nếu không đo được gì, ứng dụng sẽ ghi rõ.';
+
+  @override
+  String get healthDataHeart =>
+      'Đọc · Nhịp tim — trong lúc nghỉ Tabata, khi nhịp tim giảm 25 bpm so với mức cao nhất của hiệp đó, thời gian nghỉ kết thúc và hiệp tiếp theo được báo. Khi nghỉ, dòng hẹn giờ hiện ♥ hiện tại → mục tiêu. Nếu không có nhịp tim, hoặc số đo cũ hơn 90 giây, thời gian nghỉ kết thúc đúng giờ.';
+
+  @override
+  String get healthDataStays =>
+      'Dữ liệu đọc từ ứng dụng sức khỏe không rời khỏi thiết bị này. Không gửi lên máy chủ và không dùng cho quảng cáo hay tiếp thị.';
+
+  @override
+  String get healthDataRevokeIos =>
+      'Bạn có thể tắt bất cứ lúc nào trong Cài đặt iPhone → Quyền riêng tư & Bảo mật → Sức khỏe → setpad.';
+
+  @override
+  String get healthDataRevokeAndroid =>
+      'Bạn có thể tắt bất cứ lúc nào trong Health Connect → Quyền của ứng dụng → setpad.';
+
+  @override
+  String get healthDataPrivacy => 'Chính sách quyền riêng tư';
 }

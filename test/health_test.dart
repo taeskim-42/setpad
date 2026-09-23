@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:health/health.dart';
@@ -112,28 +111,6 @@ void main() {
       expect(health.configureCount, 1);
     },
   );
-
-  test('Android 는 심박을 묻지도 읽지도 않는다 — 매니페스트에 없는 권한이다', () async {
-    final android = HealthLink(
-      health: health,
-      platform: TargetPlatform.android,
-    );
-    expect(await android.authorize(), isTrue);
-    for (final call in calls) {
-      expect((call.arguments as Map)['types'], [
-        'WORKOUT',
-        'ACTIVE_ENERGY_BURNED',
-      ]);
-    }
-    calls.clear();
-    expect(await android.latestHeartRate(), isNull);
-    expect(await android.beats().isEmpty, isTrue);
-    expect(calls, isEmpty, reason: '심박 읽기 호출이 나가지 않는다');
-    final manifest = File(
-      'android/app/src/main/AndroidManifest.xml',
-    ).readAsStringSync();
-    expect(manifest, isNot(contains('READ_HEART_RATE')));
-  });
 
   test(
     'existing permissions skip the prompt and configuration is reused',

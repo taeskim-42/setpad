@@ -50,7 +50,9 @@ setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 
 
 ■ 건강 앱 연동
 · 친 운동이 건강 앱에 운동 기록으로 남습니다
-· 애플워치가 잰 활동 칼로리를 가져옵니다
+· 워치가 잰 활동 칼로리를 가져옵니다 (Apple 건강, 헬스 커넥트)
+· 타바타 휴식 중 워치 심박이 그 라운드 최고치보다 25bpm 내려오면 휴식을 끝내고 다음 라운드를 알립니다. 쉬는 동안 ♥ 지금 → 목표가 보입니다
+· 건강 앱에서 읽은 값은 기기 밖으로 나가지 않습니다
 · 앱이 칼로리를 지어내지 않습니다. 잰 것이 없으면 없다고 적습니다
 
 ■ 그밖에
@@ -94,7 +96,9 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 
 ■ Health app
 · Your workout is written to the Health app as a workout
-· Active energy measured by Apple Watch is read back in
+· Active energy measured by your watch is read back in (Apple Health, Health Connect)
+· During a Tabata rest, once your watch heart rate is 25 bpm below that round's peak, the rest ends and the next round is signalled. While resting you see ♥ now → target
+· What is read from your health app never leaves the device
 · The app never invents a calorie number. If nothing measured it, it says so
 
 ■ Also
@@ -138,7 +142,9 @@ setpadはルーティンを組み立てるアプリではありません。セ�
 
 ■ ヘルスケア連携
 ・記録した運動がヘルスケアにワークアウトとして残ります
-・Apple Watchが計測した消費エネルギーを読み込みます
+・ウォッチが計測した消費エネルギーを読み込みます(Apple ヘルスケア、ヘルスコネクト)
+・タバタの休憩中、ウォッチの心拍がそのラウンドの最高値より 25bpm 下がると休憩を終え、次のラウンドを知らせます。休憩中は ♥ 現在 → 目標 が表示されます
+・ヘルスケアから読み取った値は端末の外に出ません
 ・アプリがカロリーを推定することはありません。計測がなければ「記録なし」と表示します
 
 ■ その他
@@ -182,7 +188,9 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 
 ■ App Salud
 · Tu entrenamiento se guarda en Salud como un entrenamiento
-· Se lee la energía activa medida por el Apple Watch
+· Se lee la energía activa medida por tu reloj (Salud de Apple, Health Connect)
+· En el descanso de un Tabata, cuando el pulso del reloj baja 25 lpm del máximo de esa ronda, el descanso termina y se avisa la siguiente ronda. Mientras descansas ves ♥ ahora → objetivo
+· Lo que se lee de la app de salud nunca sale del dispositivo
 · La app nunca se inventa las calorías. Si nadie las midió, lo dice
 
 ■ Además
@@ -226,7 +234,9 @@ setpad ไม่ใช่แอปสร้างโปรแกรมฝึก�
 
 ■ แอปสุขภาพ
 · การออกกำลังกายจะถูกบันทึกลงแอปสุขภาพ
-· ดึงพลังงานที่ Apple Watch วัดไว้เข้ามา
+· ดึงพลังงานที่นาฬิกาวัดไว้เข้ามา (Apple Health, Health Connect)
+· ระหว่างพักในทาบาตะ เมื่อหัวใจที่นาฬิกาวัดได้ต่ำกว่าค่าสูงสุดของรอบนั้น 25 bpm จะจบการพักและแจ้งรอบถัดไป ระหว่างพักจะเห็น ♥ ปัจจุบัน → เป้าหมาย
+· ค่าที่อ่านจากแอปสุขภาพจะไม่ออกจากอุปกรณ์
 · แอปไม่เดาแคลอรีเอง ถ้าไม่มีใครวัดไว้ก็จะบอกว่าไม่มี
 
 ■ อื่น ๆ
@@ -270,7 +280,9 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 
 ■ Ứng dụng Sức khoẻ
 · Buổi tập được ghi vào Sức khoẻ như một buổi tập
-· Năng lượng hoạt động do Apple Watch đo được đọc về
+· Năng lượng hoạt động do đồng hồ đo được đọc về (Apple Health, Health Connect)
+· Khi nghỉ Tabata, nhịp tim từ đồng hồ giảm 25 bpm so với mức cao nhất của hiệp đó thì thời gian nghỉ kết thúc và hiệp tiếp theo được báo. Khi nghỉ bạn thấy ♥ hiện tại → mục tiêu
+· Dữ liệu đọc từ ứng dụng sức khỏe không rời khỏi thiết bị
 · Ứng dụng không tự bịa ra con số calo. Không ai đo thì nó nói là chưa có
 
 ■ Ngoài ra
@@ -314,7 +326,9 @@ setpad 不是用来提前编排计划的。做完一组，当场把数字打上�
 
 ■ 健康 App
 · 训练会作为一次锻炼写入“健康”App
-· 读取 Apple Watch 测得的活动能量
+· 读取手表测得的活动能量(Apple 健康、Health Connect)
+· Tabata 休息期间,手表心率比该轮最高值低 25 bpm 时,休息结束并提示下一轮。休息时显示 ♥ 当前 → 目标
+· 从健康应用读取的数据不会离开设备
 · 应用不会自己编造卡路里。没人测过，它就写“无记录”
 
 ■ 其他
@@ -358,7 +372,9 @@ setpad 不是用來事先編排課表的。做完一組，當場把數字打上�
 
 ■ 健康 App
 · 訓練會以一次體能訓練寫入「健康」App
-· 讀取 Apple Watch 測得的活動能量
+· 讀取手錶測得的活動能量(Apple 健康、Health Connect)
+· Tabata 休息期間,手錶心率比該輪最高值低 25 bpm 時,休息結束並提示下一輪。休息時顯示 ♥ 目前 → 目標
+· 從健康 App 讀取的資料不會離開裝置
 · App 不會自己編造卡路里。沒人量過，它就寫「無紀錄」
 
 ■ 其他

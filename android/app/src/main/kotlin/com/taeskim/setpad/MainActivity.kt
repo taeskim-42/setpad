@@ -25,6 +25,20 @@ class MainActivity : FlutterFragmentActivity() {
             }
     }
 
+    // 헬스 커넥트가 "이 앱이 권한을 왜 쓰는가" 를 물으면 건강 데이터 화면을 연다
+    // (lib/health_page.dart). 홈을 띄우면 심사에서 설명이 없는 것으로 본다.
+    private fun isRationale(i: Intent?) =
+        i?.action == "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" ||
+            i?.action == "android.intent.action.VIEW_PERMISSION_USAGE"
+
+    override fun getInitialRoute(): String? =
+        if (isRationale(intent)) "/health-data" else super.getInitialRoute()
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (isRationale(intent)) flutterEngine?.navigationChannel?.pushRoute("/health-data")
+    }
+
     override fun onPause() { timing?.interrupt(); super.onPause() }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {

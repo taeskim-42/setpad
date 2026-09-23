@@ -1234,4 +1234,38 @@ class LTh extends L {
   String dayUnknownMeals(int m) {
     return 'ไม่ทราบแคลอรี $m รายการ';
   }
+
+  @override
+  String get healthDataTitle => 'ข้อมูลสุขภาพ';
+
+  @override
+  String get healthDataIntro =>
+      'สิ่งที่ setpad แลกเปลี่ยนกับแอปสุขภาพ (Apple Health, Health Connect) และเหตุผล';
+
+  @override
+  String get healthDataWrite =>
+      'เขียน · การออกกำลังกาย — เมื่อบันทึกเสร็จ จะบันทึกเป็นเซสชันการออกกำลังกาย';
+
+  @override
+  String get healthDataCalories =>
+      'อ่าน · แคลอรี่ที่เผาผลาญ — แคลอรี่ที่นาฬิกาวัดได้ระหว่างออกกำลังกายจะถูกเพิ่มในบันทึกนั้น ถ้าไม่มีการวัดก็จะแจ้งว่าไม่มี';
+
+  @override
+  String get healthDataHeart =>
+      'อ่าน · อัตราการเต้นของหัวใจ — ระหว่างพักในทาบาตะ เมื่อหัวใจเต้นต่ำกว่าค่าสูงสุดของรอบนั้น 25 bpm จะจบการพักและแจ้งเริ่มรอบถัดไป ระหว่างพักจะแสดง ♥ ปัจจุบัน → เป้าหมาย ในแถบตัวจับเวลา ถ้าไม่มีค่าหัวใจหรือค่าเก่ากว่า 90 วินาที การพักจะจบตามเวลา';
+
+  @override
+  String get healthDataStays =>
+      'ค่าที่อ่านจากแอปสุขภาพจะไม่ออกจากอุปกรณ์นี้ ไม่ส่งไปยังเซิร์ฟเวอร์ และไม่ใช้เพื่อโฆษณาหรือการตลาด';
+
+  @override
+  String get healthDataRevokeIos =>
+      'ปิดสิทธิ์ได้ทุกเมื่อที่ การตั้งค่า iPhone → ความเป็นส่วนตัวและความปลอดภัย → สุขภาพ → setpad';
+
+  @override
+  String get healthDataRevokeAndroid =>
+      'ปิดสิทธิ์ได้ทุกเมื่อที่ Health Connect → สิทธิ์ของแอป → setpad';
+
+  @override
+  String get healthDataPrivacy => 'นโยบายความเป็นส่วนตัว';
 }

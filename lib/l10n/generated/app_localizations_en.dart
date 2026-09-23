@@ -1247,4 +1247,38 @@ class LEn extends L {
   String dayUnknownMeals(int m) {
     return '$m with unknown kcal';
   }
+
+  @override
+  String get healthDataTitle => 'Health data';
+
+  @override
+  String get healthDataIntro =>
+      'What setpad exchanges with your health app (Apple Health, Health Connect), and why.';
+
+  @override
+  String get healthDataWrite =>
+      'Write · Workouts — when you finish a record, it is saved as a workout session.';
+
+  @override
+  String get healthDataCalories =>
+      'Read · Active calories — the active calories your watch measured during the workout are added to that record. If nothing was measured, it says so.';
+
+  @override
+  String get healthDataHeart =>
+      'Read · Heart rate — during a Tabata rest, once your heart rate is 25 bpm below that round\'s peak, the rest ends and the next round is signalled. While resting, the timer line shows ♥ now → target. With no heart rate, or a reading older than 90 seconds, the rest ends on time.';
+
+  @override
+  String get healthDataStays =>
+      'What is read from your health app never leaves this device. It is not sent to a server and is not used for ads or marketing.';
+
+  @override
+  String get healthDataRevokeIos =>
+      'You can turn these off at any time in iPhone Settings → Privacy & Security → Health → setpad.';
+
+  @override
+  String get healthDataRevokeAndroid =>
+      'You can turn these off at any time in Health Connect → App permissions → setpad.';
+
+  @override
+  String get healthDataPrivacy => 'Privacy policy';
 }

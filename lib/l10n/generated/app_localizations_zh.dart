@@ -1205,6 +1205,38 @@ class LZh extends L {
   String dayUnknownMeals(int m) {
     return '$m 项热量未知';
   }
+
+  @override
+  String get healthDataTitle => '健康数据';
+
+  @override
+  String get healthDataIntro =>
+      'setpad 与健康应用(Apple 健康、Health Connect)交换的内容及原因。';
+
+  @override
+  String get healthDataWrite => '写入 · 体能训练 — 完成记录后,会保存为一次体能训练。';
+
+  @override
+  String get healthDataCalories =>
+      '读取 · 活动能量 — 训练期间手表测得的活动能量会附到该记录上。没有测量时会注明没有。';
+
+  @override
+  String get healthDataHeart =>
+      '读取 · 心率 — Tabata 休息期间,心率比该轮最高值低 25 bpm 时,休息结束并提示下一轮开始。休息时计时器一行显示 ♥ 当前 → 目标。没有心率或读数超过 90 秒时,休息按时结束。';
+
+  @override
+  String get healthDataStays => '从健康应用读取的数据不会离开本设备。不会发送到服务器,也不会用于广告或营销。';
+
+  @override
+  String get healthDataRevokeIos =>
+      '可随时在 iPhone 设置 → 隐私与安全性 → 健康 → setpad 中关闭。';
+
+  @override
+  String get healthDataRevokeAndroid =>
+      '可随时在 Health Connect → 应用权限 → setpad 中关闭。';
+
+  @override
+  String get healthDataPrivacy => '隐私政策';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2408,6 +2440,38 @@ class LZhHans extends LZh {
   String dayUnknownMeals(int m) {
     return '$m 项热量未知';
   }
+
+  @override
+  String get healthDataTitle => '健康数据';
+
+  @override
+  String get healthDataIntro =>
+      'setpad 与健康应用(Apple 健康、Health Connect)交换的内容及原因。';
+
+  @override
+  String get healthDataWrite => '写入 · 体能训练 — 完成记录后,会保存为一次体能训练。';
+
+  @override
+  String get healthDataCalories =>
+      '读取 · 活动能量 — 训练期间手表测得的活动能量会附到该记录上。没有测量时会注明没有。';
+
+  @override
+  String get healthDataHeart =>
+      '读取 · 心率 — Tabata 休息期间,心率比该轮最高值低 25 bpm 时,休息结束并提示下一轮开始。休息时计时器一行显示 ♥ 当前 → 目标。没有心率或读数超过 90 秒时,休息按时结束。';
+
+  @override
+  String get healthDataStays => '从健康应用读取的数据不会离开本设备。不会发送到服务器,也不会用于广告或营销。';
+
+  @override
+  String get healthDataRevokeIos =>
+      '可随时在 iPhone 设置 → 隐私与安全性 → 健康 → setpad 中关闭。';
+
+  @override
+  String get healthDataRevokeAndroid =>
+      '可随时在 Health Connect → 应用权限 → setpad 中关闭。';
+
+  @override
+  String get healthDataPrivacy => '隐私政策';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3611,4 +3675,36 @@ class LZhHant extends LZh {
   String dayUnknownMeals(int m) {
     return '$m 項熱量未知';
   }
+
+  @override
+  String get healthDataTitle => '健康資料';
+
+  @override
+  String get healthDataIntro =>
+      'setpad 與健康 App(Apple 健康、Health Connect)交換的內容及原因。';
+
+  @override
+  String get healthDataWrite => '寫入 · 體能訓練 — 完成記錄後,會儲存為一次體能訓練。';
+
+  @override
+  String get healthDataCalories =>
+      '讀取 · 活動能量 — 訓練期間手錶測得的活動能量會附到該記錄上。沒有測量時會註明沒有。';
+
+  @override
+  String get healthDataHeart =>
+      '讀取 · 心率 — Tabata 休息期間,心率比該輪最高值低 25 bpm 時,休息結束並提示下一輪開始。休息時計時器一行顯示 ♥ 目前 → 目標。沒有心率或讀數超過 90 秒時,休息按時結束。';
+
+  @override
+  String get healthDataStays => '從健康 App 讀取的資料不會離開本裝置。不會傳送到伺服器,也不會用於廣告或行銷。';
+
+  @override
+  String get healthDataRevokeIos =>
+      '可隨時在 iPhone 設定 → 隱私權與安全性 → 健康 → setpad 中關閉。';
+
+  @override
+  String get healthDataRevokeAndroid =>
+      '可隨時在 Health Connect → 應用程式權限 → setpad 中關閉。';
+
+  @override
+  String get healthDataPrivacy => '隱私權政策';
 }

@@ -328,5 +328,14 @@
   "recordMenu": "更多",
   "dayIntakeOnly": "攝取 {intake} 大卡 · 運動消耗未測量",
   "dayIntakeOnlyApprox": "攝取 約 {intake} 大卡 · 運動消耗未測量",
-  "dayUnknownMeals": "{m} 項熱量未知"
+  "dayUnknownMeals": "{m} 項熱量未知",
+  "healthDataTitle": "健康資料",
+  "healthDataIntro": "setpad 與健康 App(Apple 健康、Health Connect)交換的內容及原因。",
+  "healthDataWrite": "寫入 · 體能訓練 — 完成記錄後,會儲存為一次體能訓練。",
+  "healthDataCalories": "讀取 · 活動能量 — 訓練期間手錶測得的活動能量會附到該記錄上。沒有測量時會註明沒有。",
+  "healthDataHeart": "讀取 · 心率 — Tabata 休息期間,心率比該輪最高值低 25 bpm 時,休息結束並提示下一輪開始。休息時計時器一行顯示 ♥ 目前 → 目標。沒有心率或讀數超過 90 秒時,休息按時結束。",
+  "healthDataStays": "從健康 App 讀取的資料不會離開本裝置。不會傳送到伺服器,也不會用於廣告或行銷。",
+  "healthDataRevokeIos": "可隨時在 iPhone 設定 → 隱私權與安全性 → 健康 → setpad 中關閉。",
+  "healthDataRevokeAndroid": "可隨時在 Health Connect → 應用程式權限 → setpad 中關閉。",
+  "healthDataPrivacy": "隱私權政策"
 }

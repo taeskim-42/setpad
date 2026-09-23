@@ -2082,6 +2082,60 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'열량 미상 {m}건'**
   String dayUnknownMeals(int m);
+
+  /// No description provided for @healthDataTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'건강 데이터'**
+  String get healthDataTitle;
+
+  /// No description provided for @healthDataIntro.
+  ///
+  /// In ko, this message translates to:
+  /// **'setpad가 건강 앱(Apple 건강, 헬스 커넥트)과 주고받는 것과 그 이유입니다.'**
+  String get healthDataIntro;
+
+  /// No description provided for @healthDataWrite.
+  ///
+  /// In ko, this message translates to:
+  /// **'쓰기 · 운동 — 기록을 마치면 그 운동을 운동 세션으로 남깁니다.'**
+  String get healthDataWrite;
+
+  /// No description provided for @healthDataCalories.
+  ///
+  /// In ko, this message translates to:
+  /// **'읽기 · 활동 칼로리 — 운동한 시간 동안 워치가 잰 활동 칼로리를 그 기록에 붙입니다. 잰 것이 없으면 없다고 적습니다.'**
+  String get healthDataCalories;
+
+  /// No description provided for @healthDataHeart.
+  ///
+  /// In ko, this message translates to:
+  /// **'읽기 · 심박수 — 타바타 휴식 중 심박이 그 라운드의 최고치보다 25bpm 내려오면 휴식을 끝내고 다음 라운드 시작을 알립니다. 쉬는 동안 타이머 줄에 ♥ 지금 → 목표로 보입니다. 심박이 없거나 90초보다 오래된 값이면 휴식은 시간대로 끝납니다.'**
+  String get healthDataHeart;
+
+  /// No description provided for @healthDataStays.
+  ///
+  /// In ko, this message translates to:
+  /// **'건강 앱에서 읽은 값은 기기 밖으로 나가지 않습니다. 서버로 보내지 않고, 광고나 마케팅에 쓰지 않습니다.'**
+  String get healthDataStays;
+
+  /// No description provided for @healthDataRevokeIos.
+  ///
+  /// In ko, this message translates to:
+  /// **'권한은 iPhone 설정 → 개인정보 보호 및 보안 → 건강 → setpad에서 언제든 끌 수 있습니다.'**
+  String get healthDataRevokeIos;
+
+  /// No description provided for @healthDataRevokeAndroid.
+  ///
+  /// In ko, this message translates to:
+  /// **'권한은 헬스 커넥트 → 앱 권한 → setpad에서 언제든 끌 수 있습니다.'**
+  String get healthDataRevokeAndroid;
+
+  /// No description provided for @healthDataPrivacy.
+  ///
+  /// In ko, this message translates to:
+  /// **'개인정보 처리방침'**
+  String get healthDataPrivacy;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

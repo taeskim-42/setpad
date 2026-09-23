@@ -19,7 +19,9 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 
 ■ Ứng dụng Sức khoẻ
 · Buổi tập được ghi vào Sức khoẻ như một buổi tập
-· Năng lượng hoạt động do Apple Watch đo được đọc về
+· Năng lượng hoạt động do đồng hồ đo được đọc về (Apple Health, Health Connect)
+· Khi nghỉ Tabata, nhịp tim từ đồng hồ giảm 25 bpm so với mức cao nhất của hiệp đó thì thời gian nghỉ kết thúc và hiệp tiếp theo được báo. Khi nghỉ bạn thấy ♥ hiện tại → mục tiêu
+· Dữ liệu đọc từ ứng dụng sức khỏe không rời khỏi thiết bị
 · Ứng dụng không tự bịa ra con số calo. Không ai đo thì nó nói là chưa có
 
 ■ Ngoài ra

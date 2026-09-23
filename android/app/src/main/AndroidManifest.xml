@@ -1,9 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Health Connect. 이 둘은 lib/health.dart 의 _access(Android) 와 하나씩 짝이다 —
-         WORKOUT 쓰기, 활동 칼로리 읽기. 더 넣지 않는다. 심박 읽기는 Play 가
-         "선언된 기능에 필요 이상" 으로 반려해(2026-09-23) 뺐다 — 심박 휴식은 iOS 만. -->
+    <!-- Health Connect. 이 셋은 lib/health.dart 의 _access 와 하나씩 짝이다 —
+         WORKOUT 쓰기, 활동 칼로리 읽기, 심박 읽기. 더 넣지 않는다.
+         심박은 타바타 휴식을 끊는 데 쓴다(lib/rest_recovery.dart). Play 가 한 번
+         "기능에 필요 없어 보인다" 며 반려했다(2026-09-23) — 기능이 타이머 줄에만
+         보였다. 그래서 까닭을 설정·권한 설명 화면(lib/health_page.dart)과 스토어
+         설명에 적었다. 권한을 바꾸면 그 셋과 Play Console 선언을 같이 고친다. -->
     <uses-permission android:name="android.permission.health.WRITE_EXERCISE"/>
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE"/>
     <!-- 체중은 "건강 앱에서 가져오기" 를 눌렀을 때만 따로 묻는다(HealthLink.authorizeWeight). -->
     <application
         android:label="setpad"

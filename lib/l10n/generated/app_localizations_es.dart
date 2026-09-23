@@ -1252,4 +1252,38 @@ class LEs extends L {
   String dayUnknownMeals(int m) {
     return '$m sin kcal conocidas';
   }
+
+  @override
+  String get healthDataTitle => 'Datos de salud';
+
+  @override
+  String get healthDataIntro =>
+      'Lo que setpad intercambia con tu app de salud (Salud de Apple, Health Connect) y por qué.';
+
+  @override
+  String get healthDataWrite =>
+      'Escritura · Entrenamientos — al terminar un registro, se guarda como una sesión de entrenamiento.';
+
+  @override
+  String get healthDataCalories =>
+      'Lectura · Calorías activas — las calorías activas que midió tu reloj durante el entrenamiento se añaden a ese registro. Si no se midió nada, lo indica.';
+
+  @override
+  String get healthDataHeart =>
+      'Lectura · Frecuencia cardiaca — durante el descanso de un Tabata, cuando tu pulso baja 25 lpm por debajo del máximo de esa ronda, el descanso termina y se avisa la siguiente ronda. Mientras descansas, la línea del temporizador muestra ♥ ahora → objetivo. Sin pulso, o con una lectura de más de 90 segundos, el descanso termina a su hora.';
+
+  @override
+  String get healthDataStays =>
+      'Lo que se lee de tu app de salud nunca sale de este dispositivo. No se envía a ningún servidor ni se usa para publicidad o marketing.';
+
+  @override
+  String get healthDataRevokeIos =>
+      'Puedes desactivarlos cuando quieras en Ajustes del iPhone → Privacidad y seguridad → Salud → setpad.';
+
+  @override
+  String get healthDataRevokeAndroid =>
+      'Puedes desactivarlos cuando quieras en Health Connect → Permisos de apps → setpad.';
+
+  @override
+  String get healthDataPrivacy => 'Política de privacidad';
 }
