@@ -480,8 +480,8 @@ class LVi extends L {
   String get planYearly => 'Theo năm';
 
   @override
-  String planYearlyTrial(String price) {
-    return 'Dùng thử miễn phí 7 ngày, sau đó $price mỗi năm. Hủy ít nhất 24 giờ trước khi hết thời gian dùng thử thì sẽ không bị tính phí.';
+  String planYearlyTrial(int days, String price) {
+    return 'Dùng thử miễn phí $days ngày, sau đó $price mỗi năm. Hủy ít nhất 24 giờ trước khi hết thời gian dùng thử thì sẽ không bị tính phí.';
   }
 
   @override
@@ -489,6 +489,13 @@ class LVi extends L {
 
   @override
   String get restorePurchases => 'Khôi phục giao dịch';
+
+  @override
+  String get subscriptionRenews =>
+      'Gói đăng ký tự động gia hạn với cùng mức giá trừ khi bạn hủy ít nhất 24 giờ trước khi kỳ hiện tại kết thúc. Bạn có thể hủy bất cứ lúc nào trong phần quản lý gói đăng ký của cửa hàng.';
+
+  @override
+  String get termsOfUse => 'Điều khoản sử dụng (EULA)';
 
   @override
   String get inputQuotaSpent =>
@@ -699,8 +706,8 @@ class LVi extends L {
   }
 
   @override
-  String proPaid(int n) {
-    return 'Pro: nạp đầy đến $n bánh tạ mỗi tháng · trợ giúp ghi không giới hạn';
+  String proPaid(int n, int input) {
+    return 'Pro: nạp đầy đến $n bánh tạ mỗi tháng · trợ giúp ghi $input lần mỗi ngày';
   }
 
   @override
@@ -715,13 +722,25 @@ class LVi extends L {
       'Gói gắn với tài khoản. Vui lòng đăng nhập trước.';
 
   @override
-  String platesBalance(String n) {
-    return 'Còn $n bánh tạ';
+  String platesBalance(num n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'Còn $nString bánh tạ';
   }
 
   @override
-  String platesSpent(String spent, String balance) {
-    return 'Đã dùng $spent bánh tạ · còn $balance';
+  String platesSpent(num spent, num balance) {
+    final intl.NumberFormat spentNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String spentString = spentNumberFormat.format(spent);
+    final intl.NumberFormat balanceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String balanceString = balanceNumberFormat.format(balance);
+
+    return 'Đã dùng $spentString bánh tạ · còn $balanceString';
   }
 
   @override
@@ -731,7 +750,7 @@ class LVi extends L {
 
   @override
   String noPlatesSignIn(int n) {
-    return 'Đăng nhập để nhận $n bánh tạ';
+    return 'Đăng nhập · tài khoản mới nhận $n bánh tạ';
   }
 
   @override

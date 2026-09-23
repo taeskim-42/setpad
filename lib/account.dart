@@ -27,10 +27,6 @@ enum PurchaseProblem {
 String kstDay(DateTime t) =>
     t.toUtc().add(const Duration(hours: 9)).toIso8601String().substring(0, 10);
 
-/// 원판 수를 사람이 읽는 글자로. 1.50 이 아니라 1.5, 3.00 이 아니라 3.
-String plateCount(double n) =>
-    n.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '');
-
 /// 하루 원판 한 장을 받는 문턱. 서버도 같은 수를 본다.
 const dailyPlateSets = 10;
 
@@ -96,6 +92,7 @@ class Account extends ChangeNotifier {
     client: client,
     accountToken: () => token,
     onPlates: _setPlates,
+    onUnauthorized: signOut,
   );
 
   /// 남은 원판. 서버가 알려 준 값이고, 모르면 null.
@@ -123,10 +120,12 @@ class Account extends ChangeNotifier {
   /// 서버가 받으면 그날을 기억해 다시 묻지 않는다.
   ///
   /// 기록은 이 기기에만 있어 서버는 세트를 셀 수 없다. 앱이 센 수를 보내고,
-  /// 서버는 한 사람에게 하루 한 장만 준다.
+  /// 서버는 한 지갑에 하루 한 장만 준다. **그래서 기억도 지갑마다다** — 기기
+  /// 지갑으로 받은 날 로그인하면 계정 지갑은 그날 몫을 따로 받는다. 같은 날
+  /// 다시 물어도 서버가 한 번만 주므로 해가 없다.
   Future<void> claimDaily(NotesStore store, {DateTime? now}) async {
     final at = now ?? DateTime.now();
-    final day = kstDay(at);
+    final day = '${signedIn ? 'account:$nickname' : 'device'}:${kstDay(at)}';
     if (_claiming || store.platesDay == day) return;
     // 못 보냈으면 잠시 쉰다. 세트를 칠 때마다 막힌 길을 두드리지 않는다.
     final failed = _claimFailedAt;
@@ -134,7 +133,7 @@ class Account extends ChangeNotifier {
       return;
     }
     final sets = store.notes
-        .where((n) => kstDay(n.createdAt) == day)
+        .where((n) => kstDay(n.createdAt) == kstDay(at))
         .expand((n) => n.blocks)
         .expand((b) => b.sets)
         .where((s) => s.done)
@@ -142,7 +141,7 @@ class Account extends ChangeNotifier {
     if (sets < dailyPlateSets) return;
     _claiming = true;
     try {
-      if (await ai.claimDaily(day, sets)) {
+      if (await ai.claimDaily(kstDay(at), sets)) {
         store.setPlatesDay(day);
         _claimFailedAt = null;
       } else {
@@ -155,10 +154,8 @@ class Account extends ChangeNotifier {
 
   bool get signedIn => token != null;
   bool get paid => plan != null;
-  Map<Plan, String> get prices => {
-    for (final entry in _purchases.products.entries)
-      entry.key: entry.value.price,
-  };
+  /// 스토어가 지금 파는 요금제. 값과 체험은 스토어가 준 그대로다.
+  Map<Plan, Offer> get offers => _purchases.offers;
 
   Future<void> start() async {
     _watch ??= _purchases.proofs.listen(_send);

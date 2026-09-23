@@ -847,11 +847,11 @@ abstract class L {
   /// **'연 이용권'**
   String get planYearly;
 
-  /// 연간 이용권 단추 밑의 체험 안내. price 는 스토어가 준 값.
+  /// 연간 이용권 단추 밑의 체험 안내. days 와 price 는 스토어가 준 값.
   ///
   /// In ko, this message translates to:
-  /// **'7일 무료 체험 뒤 연 {price}. 체험이 끝나기 24시간 전까지 해지하면 청구되지 않습니다.'**
-  String planYearlyTrial(String price);
+  /// **'{days}일 무료 체험 뒤 연 {price}. 체험이 끝나기 24시간 전까지 해지하면 청구되지 않습니다.'**
+  String planYearlyTrial(int days, String price);
 
   /// No description provided for @planActive.
   ///
@@ -864,6 +864,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'구매 복원'**
   String get restorePurchases;
+
+  /// 결제 화면의 자동 갱신 안내 (App Store 3.1.2).
+  ///
+  /// In ko, this message translates to:
+  /// **'구독은 현재 기간이 끝나기 24시간 전까지 해지하지 않으면 같은 값으로 자동 갱신됩니다. 해지는 스토어의 구독 관리에서 언제든 할 수 있습니다.'**
+  String get subscriptionRenews;
+
+  /// No description provided for @termsOfUse.
+  ///
+  /// In ko, this message translates to:
+  /// **'이용약관(EULA)'**
+  String get termsOfUse;
 
   /// No description provided for @inputQuotaSpent.
   ///
@@ -1216,8 +1228,8 @@ abstract class L {
   /// No description provided for @proPaid.
   ///
   /// In ko, this message translates to:
-  /// **'Pro: 매달 원판 {n}장까지 채움 · 적기 도움 무제한'**
-  String proPaid(int n);
+  /// **'Pro: 매달 원판 {n}장까지 채움 · 적기 도움 하루 {input}번'**
+  String proPaid(int n, int input);
 
   /// No description provided for @proEverythingElseFree.
   ///
@@ -1237,17 +1249,17 @@ abstract class L {
   /// **'이용권은 계정에 붙습니다. 먼저 로그인해 주세요.'**
   String get proSignInFirst;
 
-  /// 원판 잔액. n 은 이미 꼴을 맞춘 수(1.5, 3).
+  /// 원판 잔액. 1.5 처럼 소수가 있다.
   ///
   /// In ko, this message translates to:
   /// **'남은 원판 {n}장'**
-  String platesBalance(String n);
+  String platesBalance(num n);
 
   /// No description provided for @platesSpent.
   ///
   /// In ko, this message translates to:
   /// **'원판 {spent}장 사용 · 남은 원판 {balance}장'**
-  String platesSpent(String spent, String balance);
+  String platesSpent(num spent, num balance);
 
   /// No description provided for @noPlates.
   ///
@@ -1258,7 +1270,7 @@ abstract class L {
   /// No description provided for @noPlatesSignIn.
   ///
   /// In ko, this message translates to:
-  /// **'로그인하고 원판 {n}장 받기'**
+  /// **'로그인하기 · 새 계정은 원판 {n}장'**
   String noPlatesSignIn(int n);
 
   /// No description provided for @platesGetPro.

@@ -3,17 +3,23 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 
 import 'account.dart';
+import 'health_page.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'palette.dart';
 import 'purchases.dart';
+import 'share.dart';
+import 'sign_in.dart';
 
 /// 무료와 Pro 의 차이. **서버가 정한 것과 같은 수여야 한다** — 서버의 원판
-/// 규칙이 진짜다. 여기 적힌 것은 파는 말이고, 다르면 산 사람이 속은 것이 된다.
+/// 규칙이 진짜다(gymdojo lib/ai-quota.ts, lib/plate-pricing.ts). 여기 적힌 것은
+/// 파는 말이고, 다르면 산 사람이 속은 것이 된다.
 const freeInputPerDay = 10;
+const proInputPerDay = 100;
 const proPlatesPerMonth = 300;
 
-/// 스토어가 값을 못 줬을 때 적는 값. 나라마다 다르므로 스토어 값이 늘 먼저다.
-const _listPrice = {Plan.yearly: '₩29,000', Plan.monthly: '₩4,900'};
+/// App Store 의 표준 이용약관. 따로 약관을 두지 않은 앱은 이것을 건다.
+const appleEulaUrl =
+    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
 /// 이용권을 파는 화면.
 ///
@@ -58,7 +64,7 @@ class _PaywallState extends State<Paywall> {
       builder: (context, _) {
         // 산 뒤에 바뀌는 값이다. 밖에서 읽어 두면 산 뒤에도 옛 화면이 남는다.
         final owned = account.plan;
-        final prices = account.prices;
+        final offers = account.offers;
         return CupertinoPageScaffold(
           // 제목을 두지 않는다. 무엇을 파는지는 아래 큰 글씨가 말하고,
           // 여기에 상품 하나의 이름을 쓰면 나머지 하나가 가려진다.
@@ -84,7 +90,7 @@ class _PaywallState extends State<Paywall> {
                 if (account.plates case final plates?) ...[
                   const SizedBox(height: 8),
                   Text(
-                    l.platesBalance(plateCount(plates)),
+                    l.platesBalance(plates),
                     style: TextStyle(fontSize: 14, color: muted),
                   ),
                 ],
@@ -92,7 +98,7 @@ class _PaywallState extends State<Paywall> {
 
                 _Compare(
                   free: l.proFree(freeInputPerDay, dailyPlateSets),
-                  paid: l.proPaid(proPlatesPerMonth),
+                  paid: l.proPaid(proPlatesPerMonth, proInputPerDay),
                 ),
                 const SizedBox(height: 20),
 
@@ -136,42 +142,49 @@ class _PaywallState extends State<Paywall> {
                       ),
                     ),
                   ),
+                // 스토어가 값을 준 요금제만 판다. 값 없이 파는 단추나, 스토어가
+                // 모르는 체험을 약속하는 글은 그리지 않는다. 가진 것은 늘 보인다.
                 for (final plan in Plan.values)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Column(
-                      children: [
-                        _BuyButton(
-                          label: plan == Plan.yearly
-                              ? l.planYearly
-                              : l.planMonthly,
-                          // 값은 스토어가 준 문자열 그대로. 나라마다 통화도
-                          // 자릿수도 다르고, 우리가 적으면 반드시 어긋난다.
-                          price: prices[plan],
-                          filled: plan == Plan.yearly,
-                          active: owned == plan,
-                          // 바꾸는 것은 스토어의 구독 관리에서 한다. 여기서
-                          // 하나 더 사면 구독이 둘이 되는 스토어가 있다.
-                          onPressed: _busy || owned != null || !account.signedIn
-                              ? null
-                              : () => _buy(plan),
-                        ),
-                        // 체험은 얼마 동안이고 끝나면 얼마가 나가는지, 사는
-                        // 단추 바로 밑에 적는다.
-                        if (plan == Plan.yearly && owned == null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Text(
-                              l.planYearlyTrial(
-                                prices[plan] ?? _listPrice[plan]!,
-                              ),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 13, color: muted),
-                            ),
+                  if (offers[plan] != null || owned == plan)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Column(
+                        children: [
+                          _BuyButton(
+                            label: plan == Plan.yearly
+                                ? l.planYearly
+                                : l.planMonthly,
+                            // 값은 스토어가 준 문자열 그대로. 나라마다 통화도
+                            // 자릿수도 다르고, 우리가 적으면 반드시 어긋난다.
+                            price: offers[plan]?.price,
+                            filled: plan == Plan.yearly,
+                            active: owned == plan,
+                            // 바꾸는 것은 스토어의 구독 관리에서 한다. 여기서
+                            // 하나 더 사면 구독이 둘이 되는 스토어가 있다.
+                            onPressed:
+                                _busy || owned != null || !account.signedIn
+                                ? null
+                                : () => _buy(plan),
                           ),
-                      ],
+                          // 체험은 얼마 동안이고 끝나면 얼마가 나가는지, 사는
+                          // 단추 바로 밑에 적는다. 스토어가 이 사람에게 체험을
+                          // 줄 때만(자격이 없거나 오퍼가 없으면 바로 청구된다).
+                          if (offers[plan] case (
+                            :final price,
+                            trialDays: final days?,
+                            buy: _,
+                          ) when plan == Plan.yearly && owned == null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                l.planYearlyTrial(days, price),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 13, color: muted),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
                 const SizedBox(height: 6),
                 CupertinoButton(
                   padding: EdgeInsets.zero,
@@ -181,6 +194,26 @@ class _PaywallState extends State<Paywall> {
                     style: TextStyle(fontSize: 14, color: muted),
                   ),
                 ),
+                // 자동 갱신 구독을 파는 화면에 있어야 하는 것: 갱신·해지 안내와
+                // 약관·개인정보 링크(App Store 3.1.2).
+                const SizedBox(height: 12),
+                Text(
+                  l.subscriptionRenews,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, height: 1.4, color: muted),
+                ),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  children: [
+                    // 표준 EULA 는 App Store 구매의 약관이다. Play 에는 걸지 않는다.
+                    if (platformSignIn != SignInMethod.google)
+                      _Link(l.termsOfUse, () => openUrl(appleEulaUrl)),
+                    _Link(
+                      l.healthDataPrivacy,
+                      () => openUrl(HealthDataPage.privacyUrl),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -188,6 +221,27 @@ class _PaywallState extends State<Paywall> {
       },
     );
   }
+}
+
+class _Link extends StatelessWidget {
+  const _Link(this.label, this.onPressed);
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => CupertinoButton(
+    padding: const EdgeInsets.symmetric(horizontal: 8),
+    minimumSize: const Size(44, 44),
+    onPressed: onPressed,
+    child: Text(
+      label,
+      style: TextStyle(
+        fontSize: 12,
+        decoration: TextDecoration.underline,
+        color: CupertinoColors.secondaryLabel.resolveFrom(context),
+      ),
+    ),
+  );
 }
 
 /// 무료와 이용권을 나란히. 표 하나가 문장 열 줄보다 빨리 읽힌다.

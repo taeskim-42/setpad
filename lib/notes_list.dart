@@ -178,14 +178,14 @@ class _NotesListPageState extends State<NotesListPage>
       unawaited(
         _search.refresh(_locale ?? 'en').then((_) {
           // 칩으로 고른 표는 고른 그대로 둔다. 다시 물으면 확인 줄이 겹친다.
-          if (mounted && _query.text.isNotEmpty && _chip == null) {
-            _ask(immediately: true);
-          }
+          // 담아 둔 답만 다시 푼다(날짜가 바뀌었을 수 있다). 돌아왔다고 원판을
+          // 쓰지 않는다 — 묻는 것은 제출할 때뿐이다.
+          if (mounted && _query.text.isNotEmpty && _chip == null) _ask();
         }),
       );
-    } else {
-      _search.cancel();
     }
+    // 가려질 때 기다리던 질문을 버리지 않는다. 서버는 이미 값을 받고 답하는 중이라
+    // 버리면 낸 원판만 잃는다. 돌아오면 그 답이 그대로 뜬다.
   }
 
   void _ask({bool immediately = false}) {
@@ -609,8 +609,8 @@ class _NotesListPageState extends State<NotesListPage>
                                     widget.account?.platesSpent != null)
                                   Text(
                                     l.platesSpent(
-                                      plateCount(widget.account!.platesSpent!),
-                                      plateCount(widget.account!.plates!),
+                                      widget.account!.platesSpent!,
+                                      widget.account!.plates!,
                                     ),
                                     style: TextStyle(
                                       fontSize: 13,

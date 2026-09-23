@@ -478,8 +478,8 @@ class LTh extends L {
   String get planYearly => 'รายปี';
 
   @override
-  String planYearlyTrial(String price) {
-    return 'ทดลองใช้ฟรี 7 วัน จากนั้น $price ต่อปี ยกเลิกอย่างน้อย 24 ชั่วโมงก่อนสิ้นสุดช่วงทดลองจะไม่ถูกเรียกเก็บเงิน';
+  String planYearlyTrial(int days, String price) {
+    return 'ทดลองใช้ฟรี $days วัน จากนั้น $price ต่อปี ยกเลิกอย่างน้อย 24 ชั่วโมงก่อนสิ้นสุดช่วงทดลองจะไม่ถูกเรียกเก็บเงิน';
   }
 
   @override
@@ -487,6 +487,13 @@ class LTh extends L {
 
   @override
   String get restorePurchases => 'กู้คืนการซื้อ';
+
+  @override
+  String get subscriptionRenews =>
+      'การสมัครสมาชิกจะต่ออายุอัตโนมัติในราคาเดิม เว้นแต่จะยกเลิกอย่างน้อย 24 ชั่วโมงก่อนสิ้นสุดรอบปัจจุบัน ยกเลิกได้ทุกเมื่อในการจัดการการสมัครสมาชิกของสโตร์';
+
+  @override
+  String get termsOfUse => 'ข้อกำหนดการใช้งาน (EULA)';
 
   @override
   String get inputQuotaSpent =>
@@ -697,8 +704,8 @@ class LTh extends L {
   }
 
   @override
-  String proPaid(int n) {
-    return 'Pro: เติมแผ่นน้ำหนักให้ถึง $n แผ่นทุกเดือน · ตัวช่วยจดไม่จำกัด';
+  String proPaid(int n, int input) {
+    return 'Pro: เติมแผ่นน้ำหนักให้ถึง $n แผ่นทุกเดือน · ตัวช่วยจดวันละ $input ครั้ง';
   }
 
   @override
@@ -712,13 +719,25 @@ class LTh extends L {
   String get proSignInFirst => 'แพ็กเกจผูกกับบัญชี กรุณาเข้าสู่ระบบก่อน';
 
   @override
-  String platesBalance(String n) {
-    return 'เหลือแผ่นน้ำหนัก $n แผ่น';
+  String platesBalance(num n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return 'เหลือแผ่นน้ำหนัก $nString แผ่น';
   }
 
   @override
-  String platesSpent(String spent, String balance) {
-    return 'ใช้ $spent แผ่น · เหลือ $balance แผ่น';
+  String platesSpent(num spent, num balance) {
+    final intl.NumberFormat spentNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String spentString = spentNumberFormat.format(spent);
+    final intl.NumberFormat balanceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String balanceString = balanceNumberFormat.format(balance);
+
+    return 'ใช้ $spentString แผ่น · เหลือ $balanceString แผ่น';
   }
 
   @override
@@ -728,7 +747,7 @@ class LTh extends L {
 
   @override
   String noPlatesSignIn(int n) {
-    return 'เข้าสู่ระบบเพื่อรับ $n แผ่น';
+    return 'เข้าสู่ระบบ · บัญชีใหม่รับ $n แผ่น';
   }
 
   @override

@@ -481,8 +481,8 @@ class LEs extends L {
   String get planYearly => 'Anual';
 
   @override
-  String planYearlyTrial(String price) {
-    return 'Prueba gratis de 7 días y luego $price al año. Cancela al menos 24 horas antes de que termine la prueba y no se te cobrará.';
+  String planYearlyTrial(int days, String price) {
+    return 'Prueba gratis de $days días y luego $price al año. Cancela al menos 24 horas antes de que termine la prueba y no se te cobrará.';
   }
 
   @override
@@ -490,6 +490,13 @@ class LEs extends L {
 
   @override
   String get restorePurchases => 'Restaurar compras';
+
+  @override
+  String get subscriptionRenews =>
+      'La suscripción se renueva automáticamente al mismo precio salvo que la canceles al menos 24 horas antes de que termine el periodo actual. Puedes cancelarla cuando quieras en la gestión de suscripciones de la tienda.';
+
+  @override
+  String get termsOfUse => 'Términos de uso (EULA)';
 
   @override
   String get inputQuotaSpent =>
@@ -701,8 +708,8 @@ class LEs extends L {
   }
 
   @override
-  String proPaid(int n) {
-    return 'Pro: discos recargados hasta $n cada mes · ayuda para anotar ilimitada';
+  String proPaid(int n, int input) {
+    return 'Pro: discos recargados hasta $n cada mes · ayuda para anotar $input veces al día';
   }
 
   @override
@@ -717,13 +724,43 @@ class LEs extends L {
       'El plan va ligado a una cuenta. Inicia sesión primero.';
 
   @override
-  String platesBalance(String n) {
-    return 'Te quedan $n discos';
+  String platesBalance(num n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Te quedan $nString discos',
+      one: 'Te queda 1 disco',
+    );
+    return '$_temp0';
   }
 
   @override
-  String platesSpent(String spent, String balance) {
-    return 'Usaste $spent discos · quedan $balance';
+  String platesSpent(num spent, num balance) {
+    final intl.NumberFormat spentNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String spentString = spentNumberFormat.format(spent);
+    final intl.NumberFormat balanceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String balanceString = balanceNumberFormat.format(balance);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      spent,
+      locale: localeName,
+      other: '$spentString discos',
+      one: '1 disco',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      balance,
+      locale: localeName,
+      other: 'quedan $balanceString',
+      one: 'queda 1',
+    );
+    return 'Usaste $_temp0 · $_temp1';
   }
 
   @override
@@ -733,7 +770,7 @@ class LEs extends L {
 
   @override
   String noPlatesSignIn(int n) {
-    return 'Inicia sesión y recibe $n discos';
+    return 'Inicia sesión · las cuentas nuevas reciben $n discos';
   }
 
   @override

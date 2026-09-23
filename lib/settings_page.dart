@@ -86,7 +86,7 @@ class SettingsPage extends StatelessWidget {
                 if (a.selling || a.paid) ...[
                   _Section(title: l.proTitle),
                   _Row(
-                    label: a.paid ? l.proOwned : l.proPaid(proPlatesPerMonth),
+                    label: a.paid ? l.proOwned : l.proPaid(proPlatesPerMonth, proInputPerDay),
                     detail: switch (a.plan) {
                       Plan.yearly => l.planYearly,
                       Plan.monthly => l.planMonthly,
@@ -147,7 +147,7 @@ class SettingsPage extends StatelessWidget {
                 if (a.plates case final plates?)
                   _Row(
                     key: const ValueKey('settings-plates'),
-                    label: l.platesBalance(plateCount(plates)),
+                    label: l.platesBalance(plates),
                   ),
                 if (a.selling || a.paid)
                   _Row(label: l.restorePurchases, onTap: a.restore),

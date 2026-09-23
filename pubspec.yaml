@@ -48,6 +48,10 @@ dependencies:
   sign_in_with_apple: ^8.2.0
   google_sign_in: ^7.2.0
   in_app_purchase: ^3.3.0
+  # in_app_purchase 가 이미 끌어오는 두 플랫폼 구현. 구독 오퍼(Play 의 기본 요금제와
+  # 무료 체험)와 App Store 소개 오퍼 자격은 공통 API 에 없어 직접 읽는다.
+  in_app_purchase_android: ^0.5.3
+  in_app_purchase_storekit: ^0.4.13
   app_links: ^7.2.1
   image_picker: ^1.2.3
 

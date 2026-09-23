@@ -253,6 +253,7 @@ void main() {
       final search = find.byType(CupertinoSearchTextField);
       for (final text in ['벤치 최고', '스쿼트 추이']) {
         await tester.enterText(search, text);
+        await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pump(const Duration(seconds: 1));
         await tester.pumpAndSettle();
         expect(find.byType(AnswerCard), findsNothing);

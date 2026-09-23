@@ -1414,7 +1414,6 @@ class RecordSearch extends ChangeNotifier {
       noPlates = false,
       charged = false,
       _disposed = false;
-  Timer? _debounce;
   int _version = 0;
   bool _generating = false;
   Future<void> _tail = Future.value();
@@ -1425,6 +1424,8 @@ class RecordSearch extends ChangeNotifier {
     if (!_disposed) notifyListeners();
   }
 
+  /// [immediately] 는 제출이다: 담아 둔 답이 없으면 모델에 묻고 원판이 나간다.
+  /// 아니면(치는 중) 담아 둔 답만 본다.
   void search(
     String text,
     String locale,
@@ -1443,11 +1444,10 @@ class RecordSearch extends ChangeNotifier {
       unit,
       [...names]..sort(),
     ]);
-    // Enter must not cancel an identical request already running after debounce.
+    // Enter must not cancel an identical request already running.
     if (busy && _runningKey == key && _pendingKey == key) return;
     _pendingKey = key;
     final version = ++_version;
-    _debounce?.cancel();
     if (_generating) unawaited(ai.cancel());
     plan = null;
     failed = false;
@@ -1463,8 +1463,9 @@ class RecordSearch extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    final cached = _cache[key];
-    if (cached != null) {
+    bool fromCache() {
+      final cached = _cache[key];
+      if (cached == null) return false;
       try {
         plan = decodeRecordIntent(
           cached,
@@ -1473,11 +1474,19 @@ class RecordSearch extends ChangeNotifier {
           unit: unit,
           today: today,
         );
-        notifyListeners();
-        return;
+        return true;
       } catch (_) {
         // 규칙이 달라져 옛 의도를 못 푸는 수가 있다. 그냥 다시 묻는다.
+        return false;
       }
+    }
+
+    // **치는 동안에는 담아 둔 답만 본다.** 모델에 묻는 것은 원판이 나가는
+    // 일이라, 제출(엔터·칩·로그인 뒤 다시 묻기)할 때만 한다. 글자가 바뀔 때마다
+    // 쉬는 틈에 물으면 단어마다 원판이 빠지고, 버려진 답에도 값을 낸다.
+    if (fromCache() || !immediately) {
+      notifyListeners();
+      return;
     }
     busy = true;
     notifyListeners();
@@ -1485,6 +1494,12 @@ class RecordSearch extends ChangeNotifier {
       if (status == RecordAiStatus.checking) await refresh(locale);
       if (_disposed || version != _version) return;
       if (status != RecordAiStatus.ready) {
+        busy = false;
+        notifyListeners();
+        return;
+      }
+      // 앞 요청이 끝나기를 기다리는 동안 같은 질문의 답이 담겼을 수 있다.
+      if (fromCache()) {
         busy = false;
         notifyListeners();
         return;
@@ -1500,21 +1515,30 @@ class RecordSearch extends ChangeNotifier {
           unit: unit,
           today: today,
         );
+        // 서버가 답했다 = 원판이 나갔다. 버릴 답이라도 풀리면 담는다 — 가려졌다
+        // 돌아온 앱이나 같은 질문을 다시 낸 사람이 같은 답을 또 사지 않는다.
+        // 못 푸는 의도는 담지 않는다. 담으면 매번 헛걸음한다.
+        RecordQuery? result;
+        Object? unreadable;
+        try {
+          result = decodeRecordIntent(
+            intent,
+            text,
+            names,
+            unit: unit,
+            today: today,
+          );
+          if (!_disposed) _cache.put(key, intent);
+        } catch (e) {
+          unreadable = e;
+        }
         if (_disposed || version != _version) {
           _generating = false;
           return;
         }
-        // 서버가 답했다 = 원판이 나갔다. 풀지 못해도 쓴 것은 쓴 것이다.
+        // 풀지 못해도 쓴 것은 쓴 것이다.
         charged = true;
-        final result = decodeRecordIntent(
-          intent,
-          text,
-          names,
-          unit: unit,
-          today: today,
-        );
-        // 풀리는 것만 담는다. 못 푸는 의도를 담으면 매번 헛걸음한다.
-        _cache.put(key, intent);
+        if (unreadable != null) throw unreadable;
         plan = result;
         // Open requests show original records after scope confirmation.
         // Generated prose cannot certify dates, quantities or arithmetic.
@@ -1536,21 +1560,12 @@ class RecordSearch extends ChangeNotifier {
       }
     }
 
-    void enqueue() {
-      _tail = _tail.then((_) => run());
-    }
-
-    if (immediately) {
-      enqueue();
-    } else {
-      _debounce = Timer(const Duration(milliseconds: 300), enqueue);
-    }
+    _tail = _tail.then((_) => run());
   }
 
   void cancel() {
     _pendingKey = null;
     _version++;
-    _debounce?.cancel();
     if (_generating) unawaited(ai.cancel());
     busy = false;
     notifyListeners();
@@ -1560,7 +1575,6 @@ class RecordSearch extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _version++;
-    _debounce?.cancel();
     unawaited(_cache.flush());
     _cache.dispose();
     if (_generating) unawaited(ai.cancel());

@@ -466,8 +466,8 @@ class LZh extends L {
   String get planYearly => '年度会员';
 
   @override
-  String planYearlyTrial(String price) {
-    return '免费试用 7 天，之后每年 $price。在试用结束前至少 24 小时取消，就不会扣费。';
+  String planYearlyTrial(int days, String price) {
+    return '免费试用 $days 天，之后每年 $price。在试用结束前至少 24 小时取消，就不会扣费。';
   }
 
   @override
@@ -475,6 +475,13 @@ class LZh extends L {
 
   @override
   String get restorePurchases => '恢复购买';
+
+  @override
+  String get subscriptionRenews =>
+      '除非在当前周期结束前至少 24 小时取消，订阅会按相同价格自动续订。可随时在商店的订阅管理中取消。';
+
+  @override
+  String get termsOfUse => '使用条款（EULA）';
 
   @override
   String get inputQuotaSpent => '今天的输入帮助已用完。自己输入照样会记录。';
@@ -682,8 +689,8 @@ class LZh extends L {
   }
 
   @override
-  String proPaid(int n) {
-    return 'Pro：每月补满到 $n 片 · 输入帮助不限次';
+  String proPaid(int n, int input) {
+    return 'Pro：每月补满到 $n 片 · 输入帮助每天 $input 次';
   }
 
   @override
@@ -696,13 +703,25 @@ class LZh extends L {
   String get proSignInFirst => '订阅绑定账户，请先登录。';
 
   @override
-  String platesBalance(String n) {
-    return '剩余杠铃片 $n 片';
+  String platesBalance(num n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '剩余杠铃片 $nString 片';
   }
 
   @override
-  String platesSpent(String spent, String balance) {
-    return '用了 $spent 片 · 剩余 $balance 片';
+  String platesSpent(num spent, num balance) {
+    final intl.NumberFormat spentNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String spentString = spentNumberFormat.format(spent);
+    final intl.NumberFormat balanceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String balanceString = balanceNumberFormat.format(balance);
+
+    return '用了 $spentString 片 · 剩余 $balanceString 片';
   }
 
   @override
@@ -712,7 +731,7 @@ class LZh extends L {
 
   @override
   String noPlatesSignIn(int n) {
-    return '登录领取 $n 片';
+    return '登录 · 新账号领取 $n 片';
   }
 
   @override
@@ -1826,8 +1845,8 @@ class LZhHans extends LZh {
   String get planYearly => '年度会员';
 
   @override
-  String planYearlyTrial(String price) {
-    return '免费试用 7 天，之后每年 $price。在试用结束前至少 24 小时取消，就不会扣费。';
+  String planYearlyTrial(int days, String price) {
+    return '免费试用 $days 天，之后每年 $price。在试用结束前至少 24 小时取消，就不会扣费。';
   }
 
   @override
@@ -1835,6 +1854,13 @@ class LZhHans extends LZh {
 
   @override
   String get restorePurchases => '恢复购买';
+
+  @override
+  String get subscriptionRenews =>
+      '除非在当前周期结束前至少 24 小时取消，订阅会按相同价格自动续订。可随时在商店的订阅管理中取消。';
+
+  @override
+  String get termsOfUse => '使用条款（EULA）';
 
   @override
   String get inputQuotaSpent => '今天的输入帮助已用完。自己输入照样会记录。';
@@ -2042,8 +2068,8 @@ class LZhHans extends LZh {
   }
 
   @override
-  String proPaid(int n) {
-    return 'Pro：每月补满到 $n 片 · 输入帮助不限次';
+  String proPaid(int n, int input) {
+    return 'Pro：每月补满到 $n 片 · 输入帮助每天 $input 次';
   }
 
   @override
@@ -2056,13 +2082,25 @@ class LZhHans extends LZh {
   String get proSignInFirst => '订阅绑定账户，请先登录。';
 
   @override
-  String platesBalance(String n) {
-    return '剩余杠铃片 $n 片';
+  String platesBalance(num n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '剩余杠铃片 $nString 片';
   }
 
   @override
-  String platesSpent(String spent, String balance) {
-    return '用了 $spent 片 · 剩余 $balance 片';
+  String platesSpent(num spent, num balance) {
+    final intl.NumberFormat spentNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String spentString = spentNumberFormat.format(spent);
+    final intl.NumberFormat balanceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String balanceString = balanceNumberFormat.format(balance);
+
+    return '用了 $spentString 片 · 剩余 $balanceString 片';
   }
 
   @override
@@ -2072,7 +2110,7 @@ class LZhHans extends LZh {
 
   @override
   String noPlatesSignIn(int n) {
-    return '登录领取 $n 片';
+    return '登录 · 新账号领取 $n 片';
   }
 
   @override
@@ -3186,8 +3224,8 @@ class LZhHant extends LZh {
   String get planYearly => '年費方案';
 
   @override
-  String planYearlyTrial(String price) {
-    return '免費試用 7 天，之後每年 $price。在試用結束前至少 24 小時取消，就不會扣款。';
+  String planYearlyTrial(int days, String price) {
+    return '免費試用 $days 天，之後每年 $price。在試用結束前至少 24 小時取消，就不會扣款。';
   }
 
   @override
@@ -3195,6 +3233,13 @@ class LZhHant extends LZh {
 
   @override
   String get restorePurchases => '回復購買';
+
+  @override
+  String get subscriptionRenews =>
+      '除非在目前週期結束前至少 24 小時取消，訂閱會以相同價格自動續訂。可隨時在商店的訂閱管理中取消。';
+
+  @override
+  String get termsOfUse => '使用條款（EULA）';
 
   @override
   String get inputQuotaSpent => '今天的輸入幫助已用完。自己輸入照樣會記錄。';
@@ -3401,8 +3446,8 @@ class LZhHant extends LZh {
   }
 
   @override
-  String proPaid(int n) {
-    return 'Pro：每月補滿到 $n 片 · 輸入幫助不限次';
+  String proPaid(int n, int input) {
+    return 'Pro：每月補滿到 $n 片 · 輸入幫助每天 $input 次';
   }
 
   @override
@@ -3415,13 +3460,25 @@ class LZhHant extends LZh {
   String get proSignInFirst => '訂閱綁定帳戶，請先登入。';
 
   @override
-  String platesBalance(String n) {
-    return '剩餘槓片 $n 片';
+  String platesBalance(num n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '剩餘槓片 $nString 片';
   }
 
   @override
-  String platesSpent(String spent, String balance) {
-    return '用了 $spent 片 · 剩餘 $balance 片';
+  String platesSpent(num spent, num balance) {
+    final intl.NumberFormat spentNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String spentString = spentNumberFormat.format(spent);
+    final intl.NumberFormat balanceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String balanceString = balanceNumberFormat.format(balance);
+
+    return '用了 $spentString 片 · 剩餘 $balanceString 片';
   }
 
   @override
@@ -3431,7 +3488,7 @@ class LZhHant extends LZh {
 
   @override
   String noPlatesSignIn(int n) {
-    return '登入領取 $n 片';
+    return '登入 · 新帳號領取 $n 片';
   }
 
   @override

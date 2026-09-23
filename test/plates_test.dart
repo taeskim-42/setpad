@@ -5,6 +5,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 import 'package:setpad/account.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
@@ -73,6 +78,26 @@ void main() {
       expect(seen.map((r) => r.url.path), ['/api/device', '/api/plates']);
       await ai.ask('i', 'q');
       expect(_bearer(seen.last), 'Bearer device-token');
+    });
+
+    test('계정 토큰이 401 이면 로그아웃하고 이 기기의 지갑으로 다시 묻는다', () async {
+      final seen = <http.Request>[];
+      final account = Account(
+        client: _server(
+          seen,
+          (r) => _bearer(r) == 'Bearer dead-token'
+              ? _json({'error': 'unauthorized'}, 401)
+              : _json({'intent': {}}, 200),
+        ),
+        deviceId: () => 'device-id-0123456789',
+        storageDir: Directory.systemTemp.createTempSync('setpad-plates'),
+      )..token = 'dead-token';
+      await account.ai.ask('i', 'q', contract: 2);
+      expect(account.signedIn, isFalse);
+      expect(
+        seen.where((r) => r.url.path == '/api/record-query').map(_bearer),
+        ['Bearer dead-token', 'Bearer device-token'],
+      );
     });
 
     test('한 줄 설정은 kind:input, 기록 질문은 kind 없이(ask) 간다', () async {
@@ -166,9 +191,20 @@ void main() {
       )..token = 'account-token';
       await account.ai.ask('i', 'q', contract: 2);
       expect((account.platesSpent, account.plates), (0.95, 4.05));
-      expect(plateCount(4.05), '4.05');
-      expect(plateCount(3), '3');
-      expect(plateCount(1.5), '1.5');
+    });
+
+    test('원판 수는 소수까지, 영어·스페인어는 1장일 때 단수다', () async {
+      final ko = await L.delegate.load(const Locale('ko'));
+      expect(ko.platesBalance(4.05), '남은 원판 4.05장');
+      expect(ko.platesBalance(3.0), '남은 원판 3장');
+      final en = await L.delegate.load(const Locale('en'));
+      expect(en.platesBalance(1.0), '1 plate left');
+      expect(en.platesBalance(1.5), '1.5 plates left');
+      expect(en.platesSpent(1.0, 2.05), 'Used 1 plate · 2.05 left');
+      expect(en.platesSpent(0.95, 4.05), 'Used 0.95 plates · 4.05 left');
+      final es = await L.delegate.load(const Locale('es'));
+      expect(es.platesBalance(1.0), 'Te queda 1 disco');
+      expect(es.platesSpent(0.95, 1.0), 'Usaste 0,95 discos · queda 1');
     });
 
     test('식단 어림이 오늘 몫을 넘으면 한도 소진이다', () async {
@@ -231,8 +267,32 @@ void main() {
       final daily = seen.where((r) => r.url.path == '/api/plates/daily');
       expect(daily, hasLength(1));
       expect(jsonDecode(daily.single.body), {'day': '2026-09-23', 'sets': 10});
-      expect(store.platesDay, '2026-09-23');
+      expect(store.platesDay, 'device:2026-09-23');
       expect(account.plates, 4);
+      store.dispose();
+    });
+
+    test('받은 날은 지갑마다 기억한다 — 기기로 받은 날 로그인하면 계정 지갑도 묻는다', () async {
+      final seen = <http.Request>[];
+      final now = DateTime.utc(2026, 9, 23, 3);
+      final account = Account(
+        client: _server(
+          seen,
+          (r) => r.url.path == '/api/plates/daily'
+              ? _json({'granted': true, 'balance': 4}, 200)
+              : null,
+        ),
+        deviceId: () => 'device-id-0123456789',
+      );
+      final store = storeWith(dailyPlateSets, now);
+      await account.claimDaily(store, now: now);
+      account.token = 'account-token';
+      await account.claimDaily(store, now: now);
+      await account.claimDaily(store, now: now);
+      expect(
+        seen.where((r) => r.url.path == '/api/plates/daily').map(_bearer),
+        ['Bearer device-token', 'Bearer account-token'],
+      );
       store.dispose();
     });
 
@@ -284,6 +344,143 @@ void main() {
       expect(planForStoreId('com.tskim.workoutlog.lifetime'), isNull);
     });
 
+    test('Apple 은 거래 id 를, Google 은 구매 토큰을 서버에 보낸다', () {
+      PurchaseDetails purchase(String source, String id, PurchaseStatus status) =>
+          PurchaseDetails(
+            purchaseID: '2000000123',
+            productID: id,
+            verificationData: PurchaseVerificationData(
+              localVerificationData: '{}',
+              // StoreKit 2 가 주는 것은 거래의 JWS 다. 서버는 거래 id 로 묻는다.
+              serverVerificationData: 'eyJhbGciOiJFUzI1NiIsIng1YyI6WyJNSUl.jws',
+              source: source,
+            ),
+            transactionDate: null,
+            status: status,
+          );
+      expect(
+        proofOf(
+          purchase(
+            'app_store',
+            'com.tskim.workoutlog.yearly',
+            PurchaseStatus.purchased,
+          ),
+        ),
+        (plan: Plan.yearly, token: '2000000123', apple: true),
+      );
+      expect(
+        proofOf(purchase('google_play', 'monthly', PurchaseStatus.restored)),
+        (
+          plan: Plan.monthly,
+          token: 'eyJhbGciOiJFUzI1NiIsIng1YyI6WyJNSUl.jws',
+          apple: false,
+        ),
+      );
+      expect(
+        proofOf(purchase('app_store', 'monthly', PurchaseStatus.pending)),
+        isNull,
+      );
+    });
+
+    group('스토어가 준 요금제', () {
+      PricingPhaseWrapper phase(String period, int micros, String price) =>
+          PricingPhaseWrapper(
+            billingCycleCount: micros == 0 ? 1 : 0,
+            billingPeriod: period,
+            formattedPrice: price,
+            priceAmountMicros: micros,
+            priceCurrencyCode: 'KRW',
+            recurrenceMode: micros == 0
+                ? RecurrenceMode.finiteRecurring
+                : RecurrenceMode.infiniteRecurring,
+          );
+      final trial = SubscriptionOfferDetailsWrapper(
+        basePlanId: 'yearly',
+        offerId: 'trial',
+        offerTags: const [],
+        offerIdToken: 'trial-token',
+        pricingPhases: [
+          phase('P7D', 0, '무료'),
+          phase('P1Y', 29000000000, '₩29,000'),
+        ],
+      );
+      final base = SubscriptionOfferDetailsWrapper(
+        basePlanId: 'yearly',
+        offerTags: const [],
+        offerIdToken: 'base-token',
+        pricingPhases: [phase('P1Y', 29000000000, '₩29,000')],
+      );
+      List<GooglePlayProductDetails> play(
+        List<SubscriptionOfferDetailsWrapper> options,
+      ) => GooglePlayProductDetails.fromProductDetails(
+        ProductDetailsWrapper(
+          description: '',
+          name: '연 이용권',
+          productId: 'yearly',
+          productType: ProductType.subs,
+          title: '연 이용권',
+          subscriptionOfferDetails: options,
+        ),
+      );
+
+      test('Play: 기본 요금제와 체험 오퍼가 따로 와도 체험 오퍼로 사고 값은 체험 뒤 값이다', () {
+        for (final options in [
+          [trial, base],
+          [base, trial],
+        ]) {
+          final offer = offersFrom(play(options))[Plan.yearly]!;
+          expect((offer.price, offer.trialDays), ('₩29,000', 7));
+          expect((offer.buy as GooglePlayProductDetails).offerToken, 'trial-token');
+        }
+        // 체험 자격이 없으면 Play 는 체험 오퍼를 주지 않는다.
+        final offer = offersFrom(play([base]))[Plan.yearly]!;
+        expect((offer.price, offer.trialDays), ('₩29,000', null));
+        expect((offer.buy as GooglePlayProductDetails).offerToken, 'base-token');
+      });
+
+      test('App Store: 무료 체험 소개 오퍼는 자격이 있을 때만 약속한다', () {
+        final product = AppStoreProduct2Details.fromSK2Product(
+          SK2Product(
+            id: 'com.tskim.workoutlog.yearly',
+            displayName: '연 이용권',
+            displayPrice: '₩29,000',
+            description: '',
+            price: 29000,
+            type: SK2ProductType.autoRenewable,
+            priceLocale: SK2PriceLocale(
+              currencyCode: 'KRW',
+              currencySymbol: '₩',
+            ),
+            subscription: SK2SubscriptionInfo(
+              subscriptionGroupID: 'pro',
+              subscriptionPeriod: const SK2SubscriptionPeriod(
+                value: 1,
+                unit: SK2SubscriptionPeriodUnit.year,
+              ),
+              promotionalOffers: [
+                SK2SubscriptionOffer(
+                  price: 0,
+                  type: SK2SubscriptionOfferType.introductory,
+                  period: const SK2SubscriptionPeriod(
+                    value: 1,
+                    unit: SK2SubscriptionPeriodUnit.week,
+                  ),
+                  periodCount: 1,
+                  paymentMode: SK2SubscriptionOfferPaymentMode.freeTrial,
+                ),
+              ],
+            ),
+          ),
+        );
+        final eligible = offersFrom(
+          [product],
+          introEligible: {'com.tskim.workoutlog.yearly'},
+        )[Plan.yearly]!;
+        expect((eligible.price, eligible.trialDays), ('₩29,000', 7));
+        expect(offersFrom([product])[Plan.yearly]!.trialDays, isNull);
+      });
+    });
+
     Future<void> openPaywall(WidgetTester tester, Account account) async {
       await tester.pumpWidget(
         CupertinoApp(
@@ -321,16 +518,57 @@ void main() {
       final l = await L.delegate.load(const Locale('ko'));
       expect(find.text(l.proOwned), findsOneWidget);
       expect(find.text('${l.planYearly} · ${l.planActive}'), findsOneWidget);
-      expect(find.text(l.platesBalance('300')), findsOneWidget);
+      expect(find.text(l.platesBalance(300)), findsOneWidget);
     });
 
-    testWidgets('사기 전에는 연간 단추 밑에 체험과 체험 뒤 값을 적는다', (tester) async {
-      final account = Account(client: _server([]))..token = 'account-token';
+    ProductDetails product(String id, String price) => ProductDetails(
+      id: id,
+      title: id,
+      description: '',
+      price: price,
+      rawPrice: 0,
+      currencyCode: 'KRW',
+    );
+
+    testWidgets('체험은 스토어가 줄 때만 단추 밑에 적고, 값이 없는 요금제는 팔지 않는다', (
+      tester,
+    ) async {
+      final purchases = Purchases()
+        ..offers = {
+          Plan.yearly: (
+            buy: product('com.tskim.workoutlog.yearly', '\$19.99'),
+            price: '\$19.99',
+            trialDays: 7,
+          ),
+        };
+      final account = Account(client: _server([]), purchases: purchases)
+        ..token = 'account-token';
       await openPaywall(tester, account);
       final l = await L.delegate.load(const Locale('ko'));
-      // 스토어가 값을 못 줬으면 정가를 적는다.
-      expect(find.text(l.planYearlyTrial('₩29,000')), findsOneWidget);
-      expect(find.text(l.proPaid(proPlatesPerMonth)), findsOneWidget);
+      expect(find.text(l.planYearlyTrial(7, '\$19.99')), findsOneWidget);
+      expect(find.text('${l.planYearly} · \$19.99'), findsOneWidget);
+      expect(find.textContaining(l.planMonthly), findsNothing);
+      expect(
+        find.text(l.proPaid(proPlatesPerMonth, proInputPerDay)),
+        findsOneWidget,
+      );
+      // 자동 갱신 구독 화면의 갱신 안내와 약관·개인정보 링크.
+      expect(find.text(l.subscriptionRenews), findsOneWidget);
+      expect(find.text(l.termsOfUse), findsOneWidget);
+      expect(find.text(l.healthDataPrivacy), findsOneWidget);
+
+      // 체험 자격이 없으면(스토어가 체험을 안 주면) 약속하지 않는다.
+      purchases.offers = {
+        Plan.yearly: (
+          buy: product('com.tskim.workoutlog.yearly', '\$19.99'),
+          price: '\$19.99',
+          trialDays: null,
+        ),
+      };
+      await openPaywall(tester, Account(client: _server([]), purchases: purchases)
+        ..token = 'account-token');
+      expect(find.textContaining(l.planYearlyTrial(7, '').split(' ').first), findsNothing);
+      expect(find.text('${l.planYearly} · \$19.99'), findsOneWidget);
     });
 
     for (final (code, problem) in [

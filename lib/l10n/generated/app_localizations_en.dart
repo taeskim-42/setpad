@@ -481,8 +481,8 @@ class LEn extends L {
   String get planYearly => 'Yearly';
 
   @override
-  String planYearlyTrial(String price) {
-    return '7-day free trial, then $price a year. Cancel at least 24 hours before the trial ends and you won\'t be charged.';
+  String planYearlyTrial(int days, String price) {
+    return '$days-day free trial, then $price a year. Cancel at least 24 hours before the trial ends and you won\'t be charged.';
   }
 
   @override
@@ -490,6 +490,13 @@ class LEn extends L {
 
   @override
   String get restorePurchases => 'Restore purchases';
+
+  @override
+  String get subscriptionRenews =>
+      'Subscriptions renew automatically at the same price unless canceled at least 24 hours before the current period ends. Cancel anytime in your store\'s subscription settings.';
+
+  @override
+  String get termsOfUse => 'Terms of Use (EULA)';
 
   @override
   String get inputQuotaSpent =>
@@ -701,8 +708,8 @@ class LEn extends L {
   }
 
   @override
-  String proPaid(int n) {
-    return 'Pro: plates topped up to $n every month · unlimited input help';
+  String proPaid(int n, int input) {
+    return 'Pro: plates topped up to $n every month · input help $input times a day';
   }
 
   @override
@@ -717,13 +724,37 @@ class LEn extends L {
       'A plan belongs to an account. Please sign in first.';
 
   @override
-  String platesBalance(String n) {
-    return '$n plates left';
+  String platesBalance(num n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$nString plates left',
+      one: '1 plate left',
+    );
+    return '$_temp0';
   }
 
   @override
-  String platesSpent(String spent, String balance) {
-    return 'Used $spent plates · $balance left';
+  String platesSpent(num spent, num balance) {
+    final intl.NumberFormat spentNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String spentString = spentNumberFormat.format(spent);
+    final intl.NumberFormat balanceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String balanceString = balanceNumberFormat.format(balance);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      spent,
+      locale: localeName,
+      other: '$spentString plates',
+      one: '1 plate',
+    );
+    return 'Used $_temp0 · $balanceString left';
   }
 
   @override
@@ -733,7 +764,7 @@ class LEn extends L {
 
   @override
   String noPlatesSignIn(int n) {
-    return 'Sign in to get $n plates';
+    return 'Sign in · new accounts get $n plates';
   }
 
   @override

@@ -471,8 +471,8 @@ class LJa extends L {
   String get planYearly => '年額プラン';
 
   @override
-  String planYearlyTrial(String price) {
-    return '7日間の無料体験後、年額$price。体験終了の24時間前までに解約すれば請求されません。';
+  String planYearlyTrial(int days, String price) {
+    return '$days日間の無料体験後、年額$price。体験終了の24時間前までに解約すれば請求されません。';
   }
 
   @override
@@ -480,6 +480,13 @@ class LJa extends L {
 
   @override
   String get restorePurchases => '購入を復元';
+
+  @override
+  String get subscriptionRenews =>
+      'サブスクリプションは、現在の期間が終わる24時間前までに解約しない限り、同じ価格で自動更新されます。解約はストアのサブスクリプション管理からいつでもできます。';
+
+  @override
+  String get termsOfUse => '利用規約（EULA）';
 
   @override
   String get inputQuotaSpent => '今日の入力補助を使い切りました。自分で入力すればそのまま記録されます。';
@@ -687,8 +694,8 @@ class LJa extends L {
   }
 
   @override
-  String proPaid(int n) {
-    return 'Pro：毎月プレートを$n枚まで補充 · 入力補助は無制限';
+  String proPaid(int n, int input) {
+    return 'Pro：毎月プレートを$n枚まで補充 · 入力補助は1日$input回';
   }
 
   @override
@@ -701,13 +708,25 @@ class LJa extends L {
   String get proSignInFirst => 'プランはアカウントに紐づきます。先にログインしてください。';
 
   @override
-  String platesBalance(String n) {
-    return '残りプレート$n枚';
+  String platesBalance(num n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '残りプレート$nString枚';
   }
 
   @override
-  String platesSpent(String spent, String balance) {
-    return 'プレート$spent枚使用 · 残り$balance枚';
+  String platesSpent(num spent, num balance) {
+    final intl.NumberFormat spentNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String spentString = spentNumberFormat.format(spent);
+    final intl.NumberFormat balanceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String balanceString = balanceNumberFormat.format(balance);
+
+    return 'プレート$spentString枚使用 · 残り$balanceString枚';
   }
 
   @override
@@ -717,7 +736,7 @@ class LJa extends L {
 
   @override
   String noPlatesSignIn(int n) {
-    return 'ログインしてプレート$n枚をもらう';
+    return 'ログイン · 新しいアカウントはプレート$n枚';
   }
 
   @override

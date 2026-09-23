@@ -473,8 +473,8 @@ class LKo extends L {
   String get planYearly => '연 이용권';
 
   @override
-  String planYearlyTrial(String price) {
-    return '7일 무료 체험 뒤 연 $price. 체험이 끝나기 24시간 전까지 해지하면 청구되지 않습니다.';
+  String planYearlyTrial(int days, String price) {
+    return '$days일 무료 체험 뒤 연 $price. 체험이 끝나기 24시간 전까지 해지하면 청구되지 않습니다.';
   }
 
   @override
@@ -482,6 +482,13 @@ class LKo extends L {
 
   @override
   String get restorePurchases => '구매 복원';
+
+  @override
+  String get subscriptionRenews =>
+      '구독은 현재 기간이 끝나기 24시간 전까지 해지하지 않으면 같은 값으로 자동 갱신됩니다. 해지는 스토어의 구독 관리에서 언제든 할 수 있습니다.';
+
+  @override
+  String get termsOfUse => '이용약관(EULA)';
 
   @override
   String get inputQuotaSpent => '오늘 적기 도움을 다 썼어요. 직접 적으면 그대로 기록돼요.';
@@ -689,8 +696,8 @@ class LKo extends L {
   }
 
   @override
-  String proPaid(int n) {
-    return 'Pro: 매달 원판 $n장까지 채움 · 적기 도움 무제한';
+  String proPaid(int n, int input) {
+    return 'Pro: 매달 원판 $n장까지 채움 · 적기 도움 하루 $input번';
   }
 
   @override
@@ -704,13 +711,25 @@ class LKo extends L {
   String get proSignInFirst => '이용권은 계정에 붙습니다. 먼저 로그인해 주세요.';
 
   @override
-  String platesBalance(String n) {
-    return '남은 원판 $n장';
+  String platesBalance(num n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '남은 원판 $nString장';
   }
 
   @override
-  String platesSpent(String spent, String balance) {
-    return '원판 $spent장 사용 · 남은 원판 $balance장';
+  String platesSpent(num spent, num balance) {
+    final intl.NumberFormat spentNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String spentString = spentNumberFormat.format(spent);
+    final intl.NumberFormat balanceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String balanceString = balanceNumberFormat.format(balance);
+
+    return '원판 $spentString장 사용 · 남은 원판 $balanceString장';
   }
 
   @override
@@ -720,7 +739,7 @@ class LKo extends L {
 
   @override
   String noPlatesSignIn(int n) {
-    return '로그인하고 원판 $n장 받기';
+    return '로그인하기 · 새 계정은 원판 $n장';
   }
 
   @override

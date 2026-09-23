@@ -23,9 +23,17 @@ void main() {
   // Purchases 가 스토어 채널을 잡으므로 바인딩이 먼저 서야 한다.
   WidgetsFlutterBinding.ensureInitialized();
   final purchases = Purchases()
-    ..products = {
-      Plan.yearly: _p('com.tskim.workoutlog.yearly', '연 이용권', '₩29,000', 29000),
-      Plan.monthly: _p('com.tskim.workoutlog.monthly', '월 이용권', '₩4,900', 4900),
+    ..offers = {
+      Plan.yearly: (
+        buy: _p('com.tskim.workoutlog.yearly', '연 이용권', '₩29,000', 29000),
+        price: '₩29,000',
+        trialDays: 7,
+      ),
+      Plan.monthly: (
+        buy: _p('com.tskim.workoutlog.monthly', '월 이용권', '₩4,900', 4900),
+        price: '₩4,900',
+        trialDays: null,
+      ),
     };
   final account = Account(purchases: purchases)..token = 'screenshot';
 

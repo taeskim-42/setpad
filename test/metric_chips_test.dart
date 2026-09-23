@@ -109,6 +109,7 @@ void main() {
         find.byType(CupertinoSearchTextField),
         '작년과 올해 벤치 세트 비교',
       );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
       for (final text in [
         '2025-08-01',
@@ -147,6 +148,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(queries, 0);
       await tester.enterText(input, '벤치 최고');
+      await tester.pumpAndSettle();
+      expect(queries, 0, reason: '치기만 해서는 묻지 않는다 — 원판은 제출할 때 나간다');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
       expect(queries, 1);
       expect(find.byType(AnswerCard), findsNothing);
@@ -255,6 +259,7 @@ void main() {
 
     await pump(tester, ai: RecordAi(respond: reply));
     await tester.enterText(find.byType(CupertinoSearchTextField), '스쿼트 추이 알려줘');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
 
     expect(find.byType(AnswerCard), findsNothing, reason: '의심스러우면 바로 답하지 않는다');
@@ -364,6 +369,7 @@ void main() {
         ),
       );
       await tester.enterText(find.byType(CupertinoSearchTextField), question);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump(const Duration(milliseconds: 400));
 
       expect(find.text(l.queryWorking), findsOneWidget);
@@ -428,6 +434,7 @@ void main() {
         ),
       );
       await tester.enterText(find.byType(CupertinoSearchTextField), question);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
       expect(instructions, contains('"벤치프레스 vs 바벨로우 기록 비교" =>'));
 
@@ -458,6 +465,7 @@ void main() {
         find.byType(CupertinoSearchTextField),
         '가장 많이 한 운동 3개',
       );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text(l.queryWorking), findsOneWidget);
       expect(find.text(l.noteCount(pair.length)), findsOneWidget);
@@ -483,6 +491,7 @@ void main() {
         ),
       );
       await tester.enterText(find.byType(CupertinoSearchTextField), question);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
       expect(find.text(l.noPlates(dailyPlateSets)), findsOneWidget);
       expect(find.text(l.queryFailed), findsNothing);
@@ -510,6 +519,7 @@ void main() {
           ),
         );
         await tester.enterText(find.byType(CupertinoSearchTextField), question);
+        await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         await tester.tap(find.widgetWithText(SuggestionChip, l.confirmYes));

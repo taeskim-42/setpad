@@ -189,6 +189,7 @@ class RecordAi {
     this.respond,
     this.accountToken,
     this.onPlates,
+    this.onUnauthorized,
   });
 
   /// 기본 주소. 빌드할 때 --dart-define=API_BASE=... 로 바꾼다.
@@ -216,6 +217,10 @@ class RecordAi {
 
   /// 서버가 알려 준 원판 잔액. 질문 하나에 쓴 양([spent])이 같이 올 때가 있다.
   final void Function(double balance, double? spent)? onPlates;
+
+  /// 서버가 계정 토큰을 거절했다(만료, 서버 키 교체). 로그아웃하는 자리다 —
+  /// 그 뒤의 재시도는 이 기기의 토큰으로 간다.
+  final Future<void> Function()? onUnauthorized;
 
   bool get supported =>
       respond != null ||
@@ -255,6 +260,7 @@ class RecordAi {
     final web = client ?? newApiClient();
     try {
       for (var attempt = 0; attempt < 2; attempt++) {
+        final account = accountToken?.call();
         final token = await _authorize(web);
         if (token == null) {
           throw const RecordAiException(RecordAiStatus.unavailable);
@@ -274,7 +280,10 @@ class RecordAi {
                       ))
                 .timeout(timeout);
         if (response.statusCode == 401 && attempt == 0) {
-          _token = null; // 만료됐다. 새로 받아 한 번만 더.
+          // 만료됐다. 새로 받아 한 번만 더. 죽은 것이 계정 토큰이면 같은 토큰을
+          // 다시 보내 봐야 또 401 이라, 로그아웃해 이 기기의 지갑으로 묻는다.
+          if (account != null && token == account) await onUnauthorized?.call();
+          _token = null;
           continue;
         }
         Object? body;

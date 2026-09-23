@@ -1116,6 +1116,60 @@ void main() {
       expect(search.plan!.scope.exercises, ['푸시업']);
       search.dispose();
     });
+
+    test('치는 동안에는 모델을 부르지 않는다 — 원판은 제출할 때만 나간다', () async {
+      var calls = 0;
+      Future<Object?> reply(String instructions, String input) async {
+        calls++;
+        return squat();
+      }
+
+      final search = RecordSearch(
+        RecordAi(respond: reply),
+        cache: QueryCache(directory: _temp()),
+      );
+      await search.refresh('ko');
+      for (final text in ['스쿼트 최', '스쿼트 최고', '스쿼트 최고 무게']) {
+        search.search(text, 'ko', names, 'kg');
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+      }
+      expect(calls, 0, reason: '단어마다 쉬어도 서버에 가지 않는다');
+      expect((search.busy, search.plan), (false, null));
+      search.search('스쿼트 최고 무게', 'ko', names, 'kg', immediately: true);
+      await pumpEventQueue();
+      expect(calls, 1);
+      // 한 번 값을 낸 답은 칠 때도 담아 둔 것에서 보인다.
+      search.search('', 'ko', names, 'kg');
+      search.search('스쿼트 최고 무게', 'ko', names, 'kg');
+      expect(search.plan?.scope.exercises, ['스쿼트']);
+      expect(calls, 1);
+      search.dispose();
+    });
+
+    test('버린 답도 담아 둔다 — 값을 낸 답을 다시 사지 않는다', () async {
+      final first = Completer<Object?>();
+      var calls = 0;
+      Future<Object?> reply(String instructions, String input) async {
+        calls++;
+        return first.future;
+      }
+
+      final search = RecordSearch(
+        RecordAi(respond: reply),
+        cache: QueryCache(directory: _temp()),
+      );
+      await search.refresh('ko');
+      search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+      await Future<void>.delayed(Duration.zero);
+      // 기다리는 동안 앱이 잠깐 가려졌다가(취소) 같은 질문을 다시 냈다.
+      search.cancel();
+      search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+      first.complete(squat());
+      await pumpEventQueue();
+      expect(calls, 1, reason: '앞선 답이 담겨 뒤의 것은 서버에 가지 않는다');
+      expect(search.plan?.scope.exercises, ['스쿼트']);
+      search.dispose();
+    });
   });
 }
 
