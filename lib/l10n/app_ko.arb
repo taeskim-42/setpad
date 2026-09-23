@@ -818,6 +818,22 @@
   "mealWhole": "전체",
   "mealHalf": "절반",
   "mealPhotoWholeNote": "사진에 보이는 음식 전체를 어림한 값이에요. 그중 드신 만큼을 고르세요.",
+  "mealSources": "출처",
+  "mealSourcesTitle": "열량 근거",
+  "mealSourcesNote": "아래 표의 값으로 계산했어요. 누르면 원본 표에서 같은 이름을 찾아 보여 줘요. 표에 없는 음식은 AI가 어림한 값이에요.",
+  "mealSourcePer": "100{unit}당 {kcal}kcal",
+  "@mealSourcePer": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      },
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSourceMfds": "식약처 식품영양성분 DB",
+  "mealSourceUsda": "USDA FoodData Central",
   "mealAmountInvalid": "0 이상의 숫자를 입력해 주세요.",
   "dayEnergyFull": "섭취 {intake} · 운동 {burned} = {diff}kcal",
   "@dayEnergyFull": {

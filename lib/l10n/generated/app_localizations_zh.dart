@@ -919,6 +919,26 @@ class LZh extends L {
   String get mealPhotoWholeNote => '这是照片中全部食物的估算值，请选择您吃了其中多少。';
 
   @override
+  String get mealSources => '来源';
+
+  @override
+  String get mealSourcesTitle => '热量依据';
+
+  @override
+  String get mealSourcesNote => '按下表中的数值计算。点按可在原始数据表中打开该名称。表中没有的食物由 AI 估算。';
+
+  @override
+  String mealSourcePer(String unit, String kcal) {
+    return '每100$unit ${kcal}kcal';
+  }
+
+  @override
+  String get mealSourceMfds => '韩国食品药品安全处 食品营养成分数据库';
+
+  @override
+  String get mealSourceUsda => 'USDA FoodData Central';
+
+  @override
   String get mealAmountInvalid => '请输入不小于 0 的数字。';
 
   @override
@@ -2510,6 +2530,26 @@ class LZhHans extends LZh {
   String get mealPhotoWholeNote => '这是照片中全部食物的估算值，请选择您吃了其中多少。';
 
   @override
+  String get mealSources => '来源';
+
+  @override
+  String get mealSourcesTitle => '热量依据';
+
+  @override
+  String get mealSourcesNote => '按下表中的数值计算。点按可在原始数据表中打开该名称。表中没有的食物由 AI 估算。';
+
+  @override
+  String mealSourcePer(String unit, String kcal) {
+    return '每100$unit ${kcal}kcal';
+  }
+
+  @override
+  String get mealSourceMfds => '韩国食品药品安全处 食品营养成分数据库';
+
+  @override
+  String get mealSourceUsda => 'USDA FoodData Central';
+
+  @override
   String get mealAmountInvalid => '请输入不小于 0 的数字。';
 
   @override
@@ -4098,6 +4138,26 @@ class LZhHant extends LZh {
 
   @override
   String get mealPhotoWholeNote => '這是照片中全部食物的估算值，請選擇您吃了其中多少。';
+
+  @override
+  String get mealSources => '來源';
+
+  @override
+  String get mealSourcesTitle => '熱量依據';
+
+  @override
+  String get mealSourcesNote => '依下表中的數值計算。點按可在原始資料表中開啟該名稱。表中沒有的食物由 AI 估算。';
+
+  @override
+  String mealSourcePer(String unit, String kcal) {
+    return '每100$unit ${kcal}kcal';
+  }
+
+  @override
+  String get mealSourceMfds => '韓國食品醫藥品安全處 食品營養成分資料庫';
+
+  @override
+  String get mealSourceUsda => 'USDA FoodData Central';
 
   @override
   String get mealAmountInvalid => '請輸入不小於 0 的數字。';

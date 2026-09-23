@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'meal.dart';
 import 'palette.dart';
+import 'share.dart';
 
 String mealUnitLabel(L l, String unit) => switch (unit) {
   MealBasis.serving => l.mealUnitServing,
@@ -27,6 +28,51 @@ String mealEatenText(L l, MealBasis basis, double eaten) =>
 /// 근거(몇 kcal / 얼마)도 고칠 수 있다. 성분표를 읽은 값도 어림한 값도 틀릴 수
 /// 있고, 틀린 근거에 정확한 양을 곱해 봐야 틀린 값이다. 취소하면 null 이고
 /// 부르는 쪽은 아무것도 저장하지 않는다.
+/// 열량을 계산한 표의 줄들. 누르면 기기 브라우저로 원본 표의 그 이름을 연다 —
+/// 거기서 같은 줄의 값을 앱에 적힌 값과 맞춰 볼 수 있다.
+Future<void> showMealSources(
+  BuildContext context,
+  List<MealSource> sources,
+) => showCupertinoModalPopup<void>(
+  context: context,
+  builder: (context) {
+    final l = L.of(context);
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    return CupertinoActionSheet(
+      title: Text(l.mealSourcesTitle),
+      message: Text(l.mealSourcesNote),
+      actions: [
+        for (final source in sources)
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              openUrl(source.url);
+            },
+            child: Column(
+              children: [
+                Text(
+                  source.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  '${l.mealSourcePer(source.per, amountText(source.kcalPer100))}'
+                  ' · ${source.usda ? l.mealSourceUsda : l.mealSourceMfds}',
+                  style: TextStyle(fontSize: 13, color: muted),
+                ),
+              ],
+            ),
+          ),
+      ],
+      cancelButton: CupertinoActionSheetAction(
+        onPressed: () => Navigator.pop(context),
+        child: Text(l.cancel),
+      ),
+    );
+  },
+);
+
 Future<({MealBasis basis, double eaten})?> askMealAmount(
   BuildContext context, {
   required List<MealBasis> bases,

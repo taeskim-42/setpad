@@ -1579,6 +1579,42 @@ abstract class L {
   /// **'사진에 보이는 음식 전체를 어림한 값이에요. 그중 드신 만큼을 고르세요.'**
   String get mealPhotoWholeNote;
 
+  /// No description provided for @mealSources.
+  ///
+  /// In ko, this message translates to:
+  /// **'출처'**
+  String get mealSources;
+
+  /// No description provided for @mealSourcesTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'열량 근거'**
+  String get mealSourcesTitle;
+
+  /// No description provided for @mealSourcesNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'아래 표의 값으로 계산했어요. 누르면 원본 표에서 같은 이름을 찾아 보여 줘요. 표에 없는 음식은 AI가 어림한 값이에요.'**
+  String get mealSourcesNote;
+
+  /// No description provided for @mealSourcePer.
+  ///
+  /// In ko, this message translates to:
+  /// **'100{unit}당 {kcal}kcal'**
+  String mealSourcePer(String unit, String kcal);
+
+  /// No description provided for @mealSourceMfds.
+  ///
+  /// In ko, this message translates to:
+  /// **'식약처 식품영양성분 DB'**
+  String get mealSourceMfds;
+
+  /// No description provided for @mealSourceUsda.
+  ///
+  /// In ko, this message translates to:
+  /// **'USDA FoodData Central'**
+  String get mealSourceUsda;
+
   /// No description provided for @mealAmountInvalid.
   ///
   /// In ko, this message translates to:

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 import 'api_route.dart';
+import 'meal.dart';
 
 import 'parser.dart';
 
@@ -40,9 +41,13 @@ class MealEstimate {
     this.items = const [],
     this.saved = false,
     this.label,
+    this.sources = const [],
   });
   final int kcal;
   final List<String> items;
+
+  /// 열량을 계산한 표의 줄들. 모델 혼자 어림했으면 비어 있다.
+  final List<MealSource> sources;
 
   /// 코치의 식단 목록에도 남았는가.
   final bool saved;
@@ -421,6 +426,7 @@ class RecordAi {
           (answer['items'] as List?)?.whereType<String>().toList() ?? const [],
       saved: answer['saved'] == true,
       label: NutritionLabel.tryFromJson(answer['label']),
+      sources: MealSource.listFrom(answer['refs']),
     );
   }
 
@@ -441,6 +447,7 @@ class RecordAi {
       kcal: kcal.toInt(),
       items:
           (answer['items'] as List?)?.whereType<String>().toList() ?? const [],
+      sources: MealSource.listFrom(answer['refs']),
     );
   }
 

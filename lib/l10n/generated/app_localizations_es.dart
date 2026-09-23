@@ -969,6 +969,28 @@ class LEs extends L {
       'Es una estimación de todo lo que se ve en la foto. Elige cuánto comiste.';
 
   @override
+  String get mealSources => 'Fuente';
+
+  @override
+  String get mealSourcesTitle => 'De dónde salen las calorías';
+
+  @override
+  String get mealSourcesNote =>
+      'Calculado con los valores de la tabla de abajo. Toca uno para abrir ese nombre en la tabla original. Lo que no está en la tabla lo estimó la IA.';
+
+  @override
+  String mealSourcePer(String unit, String kcal) {
+    return '$kcal kcal por 100 $unit';
+  }
+
+  @override
+  String get mealSourceMfds =>
+      'Base de datos de composición de alimentos del MFDS (Corea)';
+
+  @override
+  String get mealSourceUsda => 'USDA FoodData Central';
+
+  @override
   String get mealAmountInvalid => 'Introduce un número igual o mayor que 0.';
 
   @override

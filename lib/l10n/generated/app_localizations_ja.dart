@@ -925,6 +925,27 @@ class LJa extends L {
   String get mealPhotoWholeNote => '写真に写っている料理全体の推定値です。そのうち食べた分を選んでください。';
 
   @override
+  String get mealSources => '出典';
+
+  @override
+  String get mealSourcesTitle => 'カロリーの根拠';
+
+  @override
+  String get mealSourcesNote =>
+      '下の表の値で計算しました。タップすると元の表でその名前を開きます。表にない食品はAIの推定値です。';
+
+  @override
+  String mealSourcePer(String unit, String kcal) {
+    return '100$unitあたり${kcal}kcal';
+  }
+
+  @override
+  String get mealSourceMfds => '韓国食品医薬品安全処 食品栄養成分DB';
+
+  @override
+  String get mealSourceUsda => 'USDA FoodData Central';
+
+  @override
   String get mealAmountInvalid => '0以上の数字を入力してください。';
 
   @override

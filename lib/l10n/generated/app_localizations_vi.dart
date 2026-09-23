@@ -947,6 +947,27 @@ class LVi extends L {
       'Đây là ước tính cho toàn bộ món trong ảnh. Hãy chọn phần bạn đã ăn.';
 
   @override
+  String get mealSources => 'Nguồn';
+
+  @override
+  String get mealSourcesTitle => 'Nguồn gốc lượng calo';
+
+  @override
+  String get mealSourcesNote =>
+      'Được tính từ các giá trị trong bảng bên dưới. Chạm để mở tên đó trong bảng gốc. Món không có trong bảng do AI ước tính.';
+
+  @override
+  String mealSourcePer(String unit, String kcal) {
+    return '$kcal kcal mỗi 100 $unit';
+  }
+
+  @override
+  String get mealSourceMfds => 'CSDL thành phần thực phẩm của MFDS Hàn Quốc';
+
+  @override
+  String get mealSourceUsda => 'USDA FoodData Central';
+
+  @override
   String get mealAmountInvalid => 'Hãy nhập số từ 0 trở lên.';
 
   @override

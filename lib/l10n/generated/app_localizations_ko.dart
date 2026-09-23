@@ -928,6 +928,27 @@ class LKo extends L {
   String get mealPhotoWholeNote => '사진에 보이는 음식 전체를 어림한 값이에요. 그중 드신 만큼을 고르세요.';
 
   @override
+  String get mealSources => '출처';
+
+  @override
+  String get mealSourcesTitle => '열량 근거';
+
+  @override
+  String get mealSourcesNote =>
+      '아래 표의 값으로 계산했어요. 누르면 원본 표에서 같은 이름을 찾아 보여 줘요. 표에 없는 음식은 AI가 어림한 값이에요.';
+
+  @override
+  String mealSourcePer(String unit, String kcal) {
+    return '100$unit당 ${kcal}kcal';
+  }
+
+  @override
+  String get mealSourceMfds => '식약처 식품영양성분 DB';
+
+  @override
+  String get mealSourceUsda => 'USDA FoodData Central';
+
+  @override
   String get mealAmountInvalid => '0 이상의 숫자를 입력해 주세요.';
 
   @override

@@ -27,6 +27,7 @@ class MealEntry {
     this.basis,
     this.eaten,
     this.foods = const [],
+    this.sources = const [],
     String? id,
     this.dirty = true,
   }) : id = id ?? newMealId();
@@ -66,6 +67,9 @@ class MealEntry {
   /// 글에서 알아본 음식·양·단위.
   final List<MealFood> foods;
 
+  /// [kcal] 을 계산한 표의 줄들. 모델 혼자 어림했으면 비어 있다.
+  final List<MealSource> sources;
+
   bool get approximate => kcal != null && source != typed && source != label;
 
   Map<String, Object?> toJson() => {
@@ -79,6 +83,7 @@ class MealEntry {
     'basis': ?basis?.toJson(),
     'eaten': ?eaten,
     if (foods.isNotEmpty) 'foods': [for (final f in foods) f.toJson()],
+    if (sources.isNotEmpty) 'sources': [for (final s in sources) s.toJson()],
   };
 
   static MealEntry? tryFromJson(Object? j) {
@@ -102,6 +107,7 @@ class MealEntry {
         for (final f in (j['foods'] as List? ?? const []))
           ?MealFood.tryFromJson(f),
       ],
+      sources: MealSource.listFrom(j['sources']),
       id: j['id'] is String ? j['id'] as String : null,
       dirty: j['dirty'] == true,
     );

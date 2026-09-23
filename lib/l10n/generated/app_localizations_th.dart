@@ -940,6 +940,27 @@ class LTh extends L {
       'นี่คือค่าประมาณของอาหารทั้งหมดในรูป เลือกปริมาณที่คุณกิน';
 
   @override
+  String get mealSources => 'แหล่งที่มา';
+
+  @override
+  String get mealSourcesTitle => 'ที่มาของแคลอรี';
+
+  @override
+  String get mealSourcesNote =>
+      'คำนวณจากค่าในตารางด้านล่าง แตะเพื่อเปิดชื่อนั้นในตารางต้นฉบับ อาหารที่ไม่มีในตารางเป็นค่าประมาณโดย AI';
+
+  @override
+  String mealSourcePer(String unit, String kcal) {
+    return '$kcal kcal ต่อ 100 $unit';
+  }
+
+  @override
+  String get mealSourceMfds => 'ฐานข้อมูลองค์ประกอบอาหารของ MFDS เกาหลี';
+
+  @override
+  String get mealSourceUsda => 'USDA FoodData Central';
+
+  @override
   String get mealAmountInvalid => 'กรุณาใส่ตัวเลขตั้งแต่ 0 ขึ้นไป';
 
   @override

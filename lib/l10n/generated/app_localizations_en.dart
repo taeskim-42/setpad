@@ -961,6 +961,27 @@ class LEn extends L {
       'This estimates everything visible in the photo. Choose how much of it you ate.';
 
   @override
+  String get mealSources => 'Source';
+
+  @override
+  String get mealSourcesTitle => 'Where the calories come from';
+
+  @override
+  String get mealSourcesNote =>
+      'Calculated from the table values below. Tap one to open that name in the original table. Foods not in the table were estimated by AI.';
+
+  @override
+  String mealSourcePer(String unit, String kcal) {
+    return '$kcal kcal per 100 $unit';
+  }
+
+  @override
+  String get mealSourceMfds => 'Korea MFDS food composition database';
+
+  @override
+  String get mealSourceUsda => 'USDA FoodData Central';
+
+  @override
   String get mealAmountInvalid => 'Enter a number of 0 or more.';
 
   @override

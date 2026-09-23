@@ -733,6 +733,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
       text: entry.text,
       source: MealEntry.estimate,
       foods: entry.foods,
+      sources: estimate.sources,
     );
     _mealsChanged();
   }
@@ -1233,6 +1234,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
             kcal: estimate.kcal,
             items: estimate.items,
             source: MealEntry.estimate,
+            sources: estimate.sources,
             basis: MealBasis(
               kcal: estimate.kcal.toDouble(),
               amount: 1,
@@ -1271,6 +1273,8 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     source: source,
     basis: picked.basis,
     eaten: picked.eaten,
+    // 양만 고쳤다. 100g 당 값은 그대로라 근거도 그대로다.
+    sources: old?.sources ?? const [],
   );
 
   /// 끼니 한 줄을 눌렀다. 글로 적은 것은 입력 줄로 불러 고치고, 근거가 있는
@@ -1396,6 +1400,18 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                       ),
                     ),
                   ),
+                  // 표에서 찾은 값으로 셈했으면 그 표를 보여 준다 — 숫자만으로는 믿을 까닭이 없다.
+                  if (meal.sources.isNotEmpty)
+                    CupertinoButton(
+                      key: ValueKey('meal-sources-$i'),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      minimumSize: const Size(32, 32),
+                      onPressed: () => showMealSources(context, meal.sources),
+                      child: Text(
+                        l.mealSources,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
                   CupertinoButton(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     minimumSize: const Size(32, 32),

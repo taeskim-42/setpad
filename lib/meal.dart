@@ -81,6 +81,60 @@ List<MealBasis> basesOf(NutritionLabel label) {
   ];
 }
 
+/// 열량을 계산한 표의 한 줄. 숫자를 믿을 수 있게 **값과 링크를 같이** 둔다 —
+/// 누르면 식약처 식품영양성분 DB(또는 USDA)에서 같은 이름의 줄을 본다.
+class MealSource {
+  const MealSource({
+    required this.name,
+    required this.kcalPer100,
+    required this.per,
+    required this.url,
+    this.kind = '',
+  });
+  final String name;
+  final double kcalPer100;
+
+  /// 'g' 또는 'ml' — [kcalPer100] 의 100 이 무엇의 100 인가.
+  final String per;
+  final String url;
+
+  /// 'usda' 면 미국 농무부 표, 아니면 식약처 표다.
+  final String kind;
+
+  bool get usda => kind == 'usda';
+
+  Map<String, Object?> toJson() => {
+    'name': name,
+    'kcalPer100': kcalPer100,
+    'per': per,
+    'url': url,
+    'kind': kind,
+  };
+
+  /// 서버 답과 저장본이 같은 모양이다. https 가 아닌 링크는 받지 않는다 —
+  /// 기기 브라우저로 여는 주소다.
+  static MealSource? tryFromJson(Object? j) {
+    if (j is! Map) return null;
+    final name = j['name'], kcal = j['kcalPer100'], per = j['per'];
+    final url = j['url'], kind = j['kind'];
+    if (name is! String || kcal is! num || per is! String || url is! String) {
+      return null;
+    }
+    if (Uri.tryParse(url)?.scheme != 'https') return null;
+    return MealSource(
+      name: name,
+      kcalPer100: kcal.toDouble(),
+      per: per,
+      url: url,
+      kind: kind is String ? kind : '',
+    );
+  }
+
+  static List<MealSource> listFrom(Object? j) => [
+    for (final s in (j is List ? j : const [])) ?tryFromJson(s),
+  ];
+}
+
 /// 글에서 알아본 음식 하나. 양을 못 알아봤으면 이름만 있다.
 class MealFood {
   const MealFood(this.name, [this.amount, this.unit]);

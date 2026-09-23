@@ -162,13 +162,37 @@ void main() {
         }
         bodies.add((jsonDecode(request.body) as Map).cast<String, Object?>());
         return http.Response.bytes(
-          utf8.encode('{"kcal":713,"items":["김밥","라면"],"saved":false}'),
+          utf8.encode(
+            jsonEncode({
+              'kcal': 713,
+              'items': ['김밥', '라면'],
+              'saved': false,
+              'refs': [
+                {
+                  'name': '김밥',
+                  'kind': 'dish',
+                  'per': 'g',
+                  'kcalPer100': 140,
+                  'url': 'https://various.foodsafetykorea.go.kr/x',
+                },
+                // 기기 브라우저로 여는 주소다 — https 가 아니면 받지 않는다.
+                {
+                  'name': '라면',
+                  'kind': 'dish',
+                  'per': 'g',
+                  'kcalPer100': 120,
+                  'url': 'http://example.com',
+                },
+              ],
+            }),
+          ),
           200,
         );
       }),
     );
     final estimate = await ai.estimateMealText('김밥 한 줄, 라면 반 개', locale: 'ko');
     expect(estimate.kcal, 713);
+    expect(estimate.sources.map((s) => (s.name, s.kcalPer100)), [('김밥', 140)]);
     expect(bodies.single, {
       'text': '김밥 한 줄, 라면 반 개',
       'language': 'ko',
@@ -246,5 +270,72 @@ void main() {
     expect(ai.asked, hasLength(asked));
     expect(note.meals.last.source, MealEntry.typed);
     expect(puts.last['source'], 'typed');
+  });
+
+  testWidgets('표로 셈한 끼니는 출처를 누르면 그 표의 값과 링크가 나오고, 저장본에도 남는다', (tester) async {
+    final dir = Directory.systemTemp.createTempSync('setpad_meal_sources_');
+    final store = NotesStore(directory: dir);
+    addTearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+    final note = store.create();
+    final ai = FakeAi(
+      (text) async => text.contains('김치찌개')
+          ? const MealEstimate(
+              kcal: 244,
+              items: ['김치찌개'],
+              sources: [
+                MealSource(
+                  name: '김치찌개_돼지고기',
+                  kcalPer100: 61,
+                  per: 'g',
+                  url: 'https://various.foodsafetykorea.go.kr/x',
+                  kind: 'dish',
+                ),
+              ],
+            )
+          : const MealEstimate(kcal: 300, items: ['잡탕']),
+    );
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: EditorPage(store: store, note: note, ai: ai),
+      ),
+    );
+    await tester.pumpAndSettle();
+    Future<void> write(String text) async {
+      await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(CupertinoTextField), text);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+    }
+
+    await write('김치찌개 400g');
+    await write('엄마표 잡탕');
+    // 모델 혼자 어림한 끼니에는 출처가 없다 — 없는 근거를 보여 주지 않는다.
+    expect(find.byKey(const ValueKey('meal-sources-0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('meal-sources-1')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('meal-sources-0')));
+    await tester.pumpAndSettle();
+    expect(find.text('열량 근거'), findsOneWidget);
+    expect(find.text('김치찌개_돼지고기'), findsOneWidget);
+    expect(find.text('100g당 61kcal · 식약처 식품영양성분 DB'), findsOneWidget);
+    await tester.tap(find.text('김치찌개_돼지고기'));
+    await tester.pumpAndSettle();
+    expect(find.text('열량 근거'), findsNothing);
+
+    // 저장본에도 남는다 — 다시 열어도 같은 링크다.
+    final kept = MealEntry.tryFromJson(
+      jsonDecode(jsonEncode(note.meals.first.toJson())),
+    )!.sources.single;
+    expect(
+      (kept.name, kept.kcalPer100, kept.url),
+      ('김치찌개_돼지고기', 61, 'https://various.foodsafetykorea.go.kr/x'),
+    );
   });
 }
