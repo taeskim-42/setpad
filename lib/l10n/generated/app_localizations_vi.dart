@@ -1259,7 +1259,7 @@ class LVi extends L {
 
   @override
   String get healthDataCalories =>
-      'Đọc · Calo hoạt động — lượng calo hoạt động đồng hồ đo được trong lúc tập được gắn vào bản ghi đó. Nếu không đo được gì, ứng dụng sẽ ghi rõ.';
+      'Đọc · Calo hoạt động — lượng calo hoạt động đồng hồ đo được trong lúc tập được gắn vào bản ghi đó. Nếu không đo được gì, ứng dụng không hiển thị calo.';
 
   @override
   String get healthDataHeart =>

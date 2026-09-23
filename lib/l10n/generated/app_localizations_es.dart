@@ -1266,7 +1266,7 @@ class LEs extends L {
 
   @override
   String get healthDataCalories =>
-      'Lectura · Calorías activas — las calorías activas que midió tu reloj durante el entrenamiento se añaden a ese registro. Si no se midió nada, lo indica.';
+      'Lectura · Calorías activas — las calorías activas que midió tu reloj durante el entrenamiento se añaden a ese registro. Si no se midió nada, no se muestran calorías.';
 
   @override
   String get healthDataHeart =>

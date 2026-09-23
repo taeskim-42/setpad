@@ -1218,7 +1218,7 @@ class LZh extends L {
 
   @override
   String get healthDataCalories =>
-      '读取 · 活动能量 — 训练期间手表测得的活动能量会附到该记录上。没有测量时会注明没有。';
+      '读取 · 活动能量 — 训练期间手表测得的活动能量会附到该记录上。没有测量时不显示热量。';
 
   @override
   String get healthDataHeart =>
@@ -2456,7 +2456,7 @@ class LZhHans extends LZh {
 
   @override
   String get healthDataCalories =>
-      '读取 · 活动能量 — 训练期间手表测得的活动能量会附到该记录上。没有测量时会注明没有。';
+      '读取 · 活动能量 — 训练期间手表测得的活动能量会附到该记录上。没有测量时不显示热量。';
 
   @override
   String get healthDataHeart =>
@@ -3694,7 +3694,7 @@ class LZhHant extends LZh {
 
   @override
   String get healthDataCalories =>
-      '讀取 · 活動能量 — 訓練期間手錶測得的活動能量會附到該記錄上。沒有測量時會註明沒有。';
+      '讀取 · 活動能量 — 訓練期間手錶測得的活動能量會附到該記錄上。沒有測量時不顯示熱量。';
 
   @override
   String get healthDataHeart =>

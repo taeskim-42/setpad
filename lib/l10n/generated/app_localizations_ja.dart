@@ -1226,7 +1226,7 @@ class LJa extends L {
 
   @override
   String get healthDataCalories =>
-      '読み取り・アクティブカロリー — 運動中にウォッチが計測したアクティブカロリーをその記録に付けます。計測がなければ、ないと表示します。';
+      '読み取り・アクティブカロリー — 運動中にウォッチが計測したアクティブカロリーをその記録に付けます。計測がなければカロリーは表示しません。';
 
   @override
   String get healthDataHeart =>

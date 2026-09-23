@@ -22,7 +22,7 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 · Active energy measured by your watch is read back in (Apple Health, Health Connect)
 · During a Tabata rest, once your watch heart rate is 25 bpm below that round's peak, the rest ends and the next round is signalled. While resting you see ♥ now → target
 · What is read from your health app never leaves the device
-· The app never invents a calorie number. If nothing measured it, it says so
+· The app never invents a calorie number. If nothing measured it, no calories are shown
 
 ■ Also
 · kg, lb, km, minutes, seconds — the unit that fits what you are doing

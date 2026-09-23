@@ -332,7 +332,7 @@
   "healthDataTitle": "Dữ liệu sức khỏe",
   "healthDataIntro": "Những gì setpad trao đổi với ứng dụng sức khỏe (Apple Health, Health Connect) và lý do.",
   "healthDataWrite": "Ghi · Buổi tập — khi bạn kết thúc một bản ghi, nó được lưu thành một buổi tập.",
-  "healthDataCalories": "Đọc · Calo hoạt động — lượng calo hoạt động đồng hồ đo được trong lúc tập được gắn vào bản ghi đó. Nếu không đo được gì, ứng dụng sẽ ghi rõ.",
+  "healthDataCalories": "Đọc · Calo hoạt động — lượng calo hoạt động đồng hồ đo được trong lúc tập được gắn vào bản ghi đó. Nếu không đo được gì, ứng dụng không hiển thị calo.",
   "healthDataHeart": "Đọc · Nhịp tim — trong lúc nghỉ Tabata, khi nhịp tim giảm 25 bpm so với mức cao nhất của hiệp đó, thời gian nghỉ kết thúc và hiệp tiếp theo được báo. Khi nghỉ, dòng hẹn giờ hiện ♥ hiện tại → mục tiêu. Nếu không có nhịp tim, hoặc số đo cũ hơn 90 giây, thời gian nghỉ kết thúc đúng giờ.",
   "healthDataStays": "Dữ liệu đọc từ ứng dụng sức khỏe không rời khỏi thiết bị này. Không gửi lên máy chủ và không dùng cho quảng cáo hay tiếp thị.",
   "healthDataRevokeIos": "Bạn có thể tắt bất cứ lúc nào trong Cài đặt iPhone → Quyền riêng tư & Bảo mật → Sức khỏe → setpad.",

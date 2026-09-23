@@ -2104,7 +2104,7 @@ abstract class L {
   /// No description provided for @healthDataCalories.
   ///
   /// In ko, this message translates to:
-  /// **'읽기 · 활동 칼로리 — 운동한 시간 동안 워치가 잰 활동 칼로리를 그 기록에 붙입니다. 잰 것이 없으면 없다고 적습니다.'**
+  /// **'읽기 · 활동 칼로리 — 운동한 시간 동안 워치가 잰 활동 칼로리를 그 기록에 붙입니다. 잰 것이 없으면 칼로리를 표시하지 않습니다.'**
   String get healthDataCalories;
 
   /// No description provided for @healthDataHeart.

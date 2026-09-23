@@ -1261,7 +1261,7 @@ class LEn extends L {
 
   @override
   String get healthDataCalories =>
-      'Read · Active calories — the active calories your watch measured during the workout are added to that record. If nothing was measured, it says so.';
+      'Read · Active calories — the active calories your watch measured during the workout are added to that record. If nothing was measured, no calories are shown.';
 
   @override
   String get healthDataHeart =>

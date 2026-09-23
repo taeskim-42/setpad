@@ -163,6 +163,8 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
           store: _store,
           note: note,
           account: _account,
+          // 빠지면 기본값(기기 id 없음)이 쓰여, 열량 없는 끼니의 추정이 조용히 멈췄다.
+          ai: _ai,
           onPlanNext: _proposePlan,
           onTakeHandoff: _takeHandoff,
         ),

@@ -314,7 +314,8 @@ class RecordAi {
     String? kind,
   }) async {
     final answer = await _ask('/api/meals/estimate', {
-      'image': base64Encode(bytes),
+      // 촬영 정보(위치가 찍혀 있으면 위치까지)는 떼고 보낸다 — 접시만 보면 된다.
+      'image': base64Encode(withoutPhotoMetadata(bytes)),
       'mime': mime,
       'language': locale,
       'gymId': ?gymId,
@@ -452,3 +453,31 @@ Examples:
 푸시업 총 백 개 => {"isExercise":true,"name":"푸시업","weight":null,"unit":"kg","totalReps":100,"repsPerSet":null,"totalSets":null,"repsOnly":true}
 스쿼트 60kg 10회 5세트 => {"isExercise":true,"name":"스쿼트","weight":60,"unit":"kg","totalReps":null,"repsPerSet":10,"totalSets":5,"repsOnly":true}
 ''';
+
+/// JPEG 에서 촬영 정보를 뗀다: Exif·XMP(APP1), IPTC(APP13), 주석(COM).
+///
+/// 사진 선택기는 줄인 사진에 원본의 Exif 를 다시 붙인다(image_picker 가 위치
+/// 태그까지 옮긴다). 그대로 보내면 위치·기기·촬영 시각이 서버와 AI 까지 간다.
+/// 이미지 데이터(SOS 이후)와 나머지 구간은 건드리지 않는다. JPEG 가 아니거나
+/// 구조가 이상하면 받은 그대로 돌려준다 — 끼니 기록이 이것 때문에 막히면 안 된다.
+Uint8List withoutPhotoMetadata(Uint8List bytes) {
+  if (bytes.length < 4 || bytes[0] != 0xFF || bytes[1] != 0xD8) return bytes;
+  final out = BytesBuilder(copy: false)..add([0xFF, 0xD8]);
+  var i = 2;
+  while (i + 4 <= bytes.length) {
+    if (bytes[i] != 0xFF) return bytes;
+    final marker = bytes[i + 1];
+    // 영상 데이터가 시작됐다. 여기부터 끝까지 그대로.
+    if (marker == 0xDA) {
+      out.add(Uint8List.sublistView(bytes, i));
+      return out.takeBytes();
+    }
+    final length = (bytes[i + 2] << 8) | bytes[i + 3];
+    final end = i + 2 + length;
+    if (length < 2 || end > bytes.length) return bytes;
+    final drop = marker == 0xE1 || marker == 0xED || marker == 0xFE;
+    if (!drop) out.add(Uint8List.sublistView(bytes, i, end));
+    i = end;
+  }
+  return bytes;
+}
