@@ -469,7 +469,7 @@ class LEs extends L {
   }
 
   @override
-  String get accountSignIn => 'Inicia sesión y respalda';
+  String get accountSignIn => 'Iniciar sesión';
 
   @override
   String get accountSignOut => 'Cerrar sesión';

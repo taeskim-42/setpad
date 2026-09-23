@@ -119,7 +119,7 @@
   "timingRounds": "{n} รอบ",
   "timingBeat": "จังหวะที่ {count}",
   "timingHeart": "♥ {bpm} → {target}",
-  "accountSignIn": "ลงชื่อเข้าใช้และสำรองข้อมูล",
+  "accountSignIn": "ลงชื่อเข้าใช้",
   "accountSignOut": "ออกจากระบบ",
   "planMonthly": "รายเดือน",
   "planLifetime": "ตลอดชีพ",

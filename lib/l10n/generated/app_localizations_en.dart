@@ -469,7 +469,7 @@ class LEn extends L {
   }
 
   @override
-  String get accountSignIn => 'Sign in and back up';
+  String get accountSignIn => 'Sign in';
 
   @override
   String get accountSignOut => 'Sign out';

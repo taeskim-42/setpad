@@ -826,7 +826,7 @@ abstract class L {
   /// No description provided for @accountSignIn.
   ///
   /// In ko, this message translates to:
-  /// **'로그인하고 백업'**
+  /// **'로그인'**
   String get accountSignIn;
 
   /// No description provided for @accountSignOut.

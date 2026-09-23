@@ -119,7 +119,7 @@
   "timingRounds": "{n}ラウンド",
   "timingBeat": "{count}拍目",
   "timingHeart": "♥ {bpm} → {target}",
-  "accountSignIn": "ログインしてバックアップ",
+  "accountSignIn": "ログイン",
   "accountSignOut": "ログアウト",
   "planMonthly": "月額プラン",
   "planLifetime": "買い切り",

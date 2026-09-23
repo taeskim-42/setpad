@@ -466,7 +466,7 @@ class LTh extends L {
   }
 
   @override
-  String get accountSignIn => 'ลงชื่อเข้าใช้และสำรองข้อมูล';
+  String get accountSignIn => 'ลงชื่อเข้าใช้';
 
   @override
   String get accountSignOut => 'ออกจากระบบ';

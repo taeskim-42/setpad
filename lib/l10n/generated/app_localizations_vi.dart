@@ -468,7 +468,7 @@ class LVi extends L {
   }
 
   @override
-  String get accountSignIn => 'Đăng nhập và sao lưu';
+  String get accountSignIn => 'Đăng nhập';
 
   @override
   String get accountSignOut => 'Đăng xuất';

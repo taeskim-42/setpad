@@ -426,7 +426,7 @@
       }
     }
   },
-  "accountSignIn": "로그인하고 백업",
+  "accountSignIn": "로그인",
   "accountSignOut": "로그아웃",
   "planMonthly": "월 이용권",
   "planLifetime": "평생 이용권",

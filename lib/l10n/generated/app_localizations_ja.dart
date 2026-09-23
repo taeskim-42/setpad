@@ -459,7 +459,7 @@ class LJa extends L {
   }
 
   @override
-  String get accountSignIn => 'ログインしてバックアップ';
+  String get accountSignIn => 'ログイン';
 
   @override
   String get accountSignOut => 'ログアウト';

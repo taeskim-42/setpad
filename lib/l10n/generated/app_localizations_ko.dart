@@ -461,7 +461,7 @@ class LKo extends L {
   }
 
   @override
-  String get accountSignIn => '로그인하고 백업';
+  String get accountSignIn => '로그인';
 
   @override
   String get accountSignOut => '로그아웃';

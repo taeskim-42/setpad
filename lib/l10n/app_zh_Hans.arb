@@ -119,7 +119,7 @@
   "timingRounds": "{n} 轮",
   "timingBeat": "第 {count} 拍",
   "timingHeart": "♥ {bpm} → {target}",
-  "accountSignIn": "登录并备份",
+  "accountSignIn": "登录",
   "accountSignOut": "退出登录",
   "planMonthly": "月度会员",
   "planLifetime": "永久会员",

@@ -454,7 +454,7 @@ class LZh extends L {
   }
 
   @override
-  String get accountSignIn => '登录并备份';
+  String get accountSignIn => '登录';
 
   @override
   String get accountSignOut => '退出登录';
@@ -1692,7 +1692,7 @@ class LZhHans extends LZh {
   }
 
   @override
-  String get accountSignIn => '登录并备份';
+  String get accountSignIn => '登录';
 
   @override
   String get accountSignOut => '退出登录';
@@ -2930,7 +2930,7 @@ class LZhHant extends LZh {
   }
 
   @override
-  String get accountSignIn => '登入並備份';
+  String get accountSignIn => '登入';
 
   @override
   String get accountSignOut => '登出';
