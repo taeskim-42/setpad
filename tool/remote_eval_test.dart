@@ -23,14 +23,15 @@ import 'question_grading.dart';
 /// - `EVAL_DUMP=파일`: 모델의 날것 대답을 JSONL 로 남긴다.
 /// - `EVAL_STAGE2=single|all`: 대조 실험. 1단계를 부르지 않는다. single 은 한
 ///   지시문(기준선), all 은 모든 갈래를 실은 2단계 지시문 하나로 묻는다.
-/// - `EVAL_TEMPERATURE=0`: 대조 실험. 서버와 달리 temperature 를 준다.
+/// - `EVAL_TEMPERATURE`: 기본 0 — 서버(record-query 의 ask)와 같다. 대조 실험은
+///   다른 값을 준다('none' 이면 보내지 않는다: 공급자 기본값).
 /// - `EVAL_REPLAY=파일`: API 대신 그 대답을 다시 먹인다 — 채점기·디코더·실행기만
 ///   바꿨을 때 모델을 다시 부르지 않고 잰다(지시문을 바꿨으면 다시 불러야 한다).
 ///   대답이 없는 문항은 '호출 실패' 로 빠진다.
 ///
 /// 서버를 거치지 않는다 — 운영 한도를 쓰지 않으려고. 대신 설정은 서버
-/// (gymdojo lib/model-json.ts)와 같게 둔다: max_tokens 400, thinking 끔,
-/// json_object, 지시문 뒤에 "Return a JSON object only.". 지시문 조립·이름
+/// (gymdojo lib/model-json.ts)와 같게 둔다: max_tokens 400, temperature 0,
+/// thinking 끔, json_object, 지시문 뒤에 "Return a JSON object only.". 지시문 조립·이름
 /// 정규화·요청은 앱의 [RecordQueryAi.queryIntent] 그대로다.
 ///
 /// **채점은 결과로 한다(outcome_grading.dart).** 정답 plan 과 모델 plan 을 둘 다
@@ -59,8 +60,8 @@ void main() {
   final model = env['EVAL_MODEL'] ?? 'deepseek-flash';
   final key = env['DEEPSEEK_API_KEY'] ?? '';
   final stage2 = env['EVAL_STAGE2'];
-  // 서버(gymdojo lib/model-json.ts)는 temperature 를 보내지 않는다 — 기본값이다.
-  final temperature = double.tryParse(env['EVAL_TEMPERATURE'] ?? '');
+  // 서버(gymdojo lib/record-query.ts)는 기록 질문에 temperature 0 을 보낸다.
+  final temperature = double.tryParse(env['EVAL_TEMPERATURE'] ?? '0');
   final dump = switch (env['EVAL_DUMP']) {
     final String path => File(path).openWrite(),
     null => null,

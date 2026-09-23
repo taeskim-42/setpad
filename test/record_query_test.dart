@@ -1392,7 +1392,7 @@ void main() {
         expect(statedPeriod('이번 주 100kg까지 갔나', today: t)?.period, 'thisWeek');
       });
 
-      test('숫자 조건은 글에 적힌 대로', () {
+      test('숫자 조건은 글에 적힌 대로 — 중국어·일본어 以上·以下 도 경계를 넣는다', () {
         final f = statedFilters('데드 80kg 이상 5회 이상 한 세트 수');
         expect((f.minWeight, f.unit, f.minReps), (80.0, 'kg', 5));
         final g = statedFilters('벤치 100파운드 이하');
@@ -1412,6 +1412,11 @@ void main() {
         final y = statedFilters('90kg 이상 80kg 이상 150kg 이하 160kg 이하');
         expect((y.minWeight, y.maxWeight), (90.0, 150.0));
         expect(statedFilters('100lb OR MORE').minWeight, 100);
+        final zh = statedFilters('卧推80公斤以上的组数');
+        expect((zh.minWeight, zh.unit), (80.0, 'kg'));
+        expect(statedFilters('10回以下のセット').maxReps, 10);
+        final either = statedFilters('80公斤以上或者10次以上的组');
+        expect((either.minWeight, either.minReps), (null, null));
       });
     });
   });
@@ -1537,6 +1542,47 @@ void main() {
         (true, false, null),
       );
       search.dispose();
+    });
+
+    test('1단계가 모델 쪽에서 실패하면 한 지시문으로 묻고, 쓴 원판은 두 부름의 합이다', () async {
+      final sent = <String>[];
+      final spent = <double?>[];
+      var first = 502;
+      final ai = RecordAi(
+        endpoint: 'https://example.test',
+        deviceId: 'device',
+        onPlates: (_, s) => spent.add(s),
+        client: MockClient((request) async {
+          if (request.url.path == '/api/device') {
+            return http.Response(jsonEncode({'token': 't'}), 200);
+          }
+          final body = jsonDecode(request.body) as Map;
+          sent.add(body['instructions'] as String);
+          final stage1 = body['instructions'] == familyInstructions;
+          final status = stage1 ? first : 200;
+          return http.Response(
+            jsonEncode({
+              if (status == 200)
+                'intent': stage1 ? {'t': <String>[]} : squat()
+              else
+                'error': 'upstream',
+              'plates': {'balance': 9.0, 'spent': stage1 ? 0.3 : 1.06},
+            }),
+            status,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      );
+      expect(await ai.queryIntent('스쿼트 최고', 'ko', names, unit: 'kg'), squat());
+      expect(sent, [familyInstructions, planInstructions]);
+      expect(spent, [0.3, 1.36]);
+      // 1단계가 되면 갈래 지시문으로 — 원판은 여전히 합이다.
+      sent.clear();
+      spent.clear();
+      first = 200;
+      await ai.queryIntent('스쿼트 최고', 'ko', names, unit: 'kg');
+      expect(sent, [familyInstructions, focusedInstructions(const {})]);
+      expect(spent, [0.3, 1.36]);
     });
 
     test('보내는 중인 질문을 다시 보내도 모델을 또 부르지 않는다', () async {

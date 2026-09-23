@@ -52,6 +52,25 @@ void main() {
       expect(namedExercises('running 거리', en), ['Running']);
     });
 
+    test('여러 낱말 사전 이름은 통째로 기록 이름이 된다 — 더 긴 이름의 앞부분이면 두지 않는다', () {
+      const vi = ['Bench Press', 'Đẩy Ngực Dốc Lên', 'Squat'];
+      expect(
+        canonicalizeExercises('squat gấp mấy lần đẩy ngực', vi),
+        'squat gấp mấy lần Bench Press',
+      );
+      // 인클라인은 목록에 있는 제 이름 그대로, 목록에 없어도 벤치로 바꾸지 않는다.
+      expect(
+        canonicalizeExercises('đẩy ngực dốc lên tháng này', vi),
+        'Đẩy Ngực Dốc Lên tháng này',
+      );
+      expect(
+        canonicalizeExercises('đẩy ngực dốc lên tháng này', ['Bench Press']),
+        'đẩy ngực dốc lên tháng này',
+      );
+      // 낱말 한가운데서는 바꾸지 않는다.
+      expect(canonicalizeExercises('đẩy ngựcx', ['Bench Press']), 'đẩy ngựcx');
+    });
+
     test('모델 글자가 깨진 이름(�)은 기록 하나에만 맞으면 그 운동이다', () {
       expect(resolvedExercise('�시업', names), '푸시업');
     });
@@ -350,7 +369,7 @@ void main() {
       expect(empty.scope.exercises, ['데드리프트']);
     });
 
-    test('기간 칸 — custom 칸, all 에 붙은 날짜, 0 과 음수 shift', () {
+    test('기간 칸 — custom 칸, all 에 붙은 날짜, 기간 이름 곁의 양끝 날짜, 0 과 음수 shift', () {
       final custom = read({
         'by': 'month',
         'measures': ['trainingDays'],
@@ -376,6 +395,45 @@ void main() {
         ],
       });
       expect(before.series.first.scope.until, DateTime(2026, 8, 19));
+      // "작년 12월보다 이번달" — 기간 이름 곁에 양끝 날짜를 적었으면 날짜가 기간이다.
+      final december = read({
+        'period': 'thisMonth',
+        'measures': ['trainingDays'],
+        'series': [
+          {'period': 'lastYear', 'since': '2025-12-01', 'until': '2025-12-31'},
+          <String, Object?>{},
+        ],
+      });
+      expect(december.series.first.scope.since, DateTime(2025, 12, 1));
+      expect(december.series.first.scope.until, DateTime(2025, 12, 31));
+      // 한쪽 날짜만이면 이름이 다른 쪽 끝인지 모른다 — 두 뜻이라 거절된다.
+      expect(
+        () => read({
+          'period': 'thisMonth',
+          'until': '2026-09-05',
+          'measures': ['trainingDays'],
+        }),
+        throwsFormatException,
+      );
+      // 날짜 범위를 기간 칸에 싸서 적었다.
+      final july = read({
+        'exercises': ['벤치프레스'],
+        'period': {'since': '2026-07-01', 'until': '2026-07-31'},
+      });
+      expect(
+        (july.scope.since, july.scope.until),
+        (DateTime(2026, 7, 1), DateTime(2026, 7, 31)),
+      );
+      // "9월 14일부터 18일까지" — 시작날을 기간 칸에 적었다.
+      final holiday = read({
+        'period': '2026-09-14',
+        'until': '2026-09-18',
+        'measures': ['volume'],
+      });
+      expect(
+        (holiday.scope.since, holiday.scope.until),
+        (DateTime(2026, 9, 14), DateTime(2026, 9, 18)),
+      );
       final zero = read({
         'exercises': ['데드리프트'],
         'period': 'lastMonth',
@@ -404,7 +462,7 @@ void main() {
       ]);
     });
 
-    test('series 가 이미 가른 묶음은 뺀다 — 해마다 두 해, 날마다 최장 연속', () {
+    test('series 가 이미 가른 묶음은 뺀다 — 해마다 두 해, 날마다 최장 연속, 평일·주말의 요일마다', () {
       expect(
         read({
           'by': 'year',
@@ -437,6 +495,147 @@ void main() {
         }),
         throwsA(isA<QueryLimit>()),
       );
+      expect(
+        read({
+          'by': 'weekday',
+          'measures': ['trainingDays'],
+          'series': [
+            {
+              'weekdays': [1, 2, 3, 4, 5],
+            },
+            {
+              'weekdays': [6, 7],
+            },
+          ],
+        }).by,
+        isNull,
+      );
+      // 주말 안에서 요일마다는 series 가 가른 것이 아니다 — 둔다.
+      expect(
+        read({
+          'by': 'weekday',
+          'measures': ['trainingDays'],
+          'weekdays': [6, 7],
+        }).by,
+        'weekday',
+      );
+    });
+
+    test(
+      '되받아 적은 것 — unrelated: false, total: true, 뺄 이름을 운동 칸에도, 윗단에 다시 적은 series 조건, 수 없는 기준, minReps',
+      () {
+        expect(
+          read({
+            'exercises': ['데드리프트'],
+            'measures': ['best'],
+            'against': {'unit': 'kg'},
+          }).against,
+          isNull,
+        );
+        // "한달에 평균 몇 키로씩" — 달마다 묶고 달당으로 나눈 추이는 속도 하나다.
+        final rate = read({
+          'exercises': ['벤치프레스'],
+          'by': 'month',
+          'per': 'month',
+          'measures': ['weightChange'],
+        });
+        expect((rate.by, rate.per), (null, null));
+        final five = read({
+          'exercises': ['벤치프레스'],
+          'measures': ['volume'],
+          'minReps': 5,
+        });
+        expect(five.scope.reps.single.op, '>=');
+        expect(
+          read({
+            'unrelated': false,
+            'exercises': ['스쿼트'],
+            'measures': ['best'],
+          }).names.keys,
+          ['스쿼트'],
+        );
+        expect(
+          read({
+            'exercises': ['스쿼트', '벤치프레스'],
+            'measures': ['best'],
+            'total': true,
+          }).total,
+          'sum',
+        );
+        final heaviest = read({
+          'exercises': ['벤치프레스'],
+          'exclude': ['벤치프레스'],
+          'by': 'exercise',
+          'measures': ['best'],
+          'order': 'desc',
+          'limit': 1,
+        });
+        expect(heaviest.scope.exercises, isEmpty);
+        expect(heaviest.exclude, ['벤치프레스']);
+        // "80kg 이상 또는 10회 이상" — 윗단에 다시 적으면 두 series 가 같아진다.
+        final either = read({
+          'weight': {'op': '>=', 'value': 80, 'unit': 'kg'},
+          'reps': {'op': '>=', 'value': 10},
+          'measures': ['setCount'],
+          'series': [
+            {
+              'weight': {'op': '>=', 'value': 80, 'unit': 'kg'},
+            },
+            {
+              'reps': {'op': '>=', 'value': 10},
+            },
+          ],
+        });
+        expect(either.series.map((s) => s.scope.reps.length), [0, 1]);
+        expect(either.series.map((s) => s.scope.weight.length), [1, 0]);
+        // 윗단 조건이 모두에 걸려도 series 가 서로 다르면 뜻이 있다 — 둔다.
+        final both = read({
+          'weight': {'op': '>=', 'value': 80, 'unit': 'kg'},
+          'measures': ['setCount'],
+          'series': [
+            {
+              'weight': {'op': '>=', 'value': 80, 'unit': 'kg'},
+              'period': 'lastMonth',
+            },
+            {'period': 'thisMonth'},
+          ],
+        });
+        expect(both.series.map((s) => s.scope.weight.length), [1, 1]);
+      },
+    );
+
+    test('이름 없이 조건끼리 무게만 견주면 운동마다다 — 서로 다른 운동의 무게를 한 수로 섞지 않는다', () {
+      Map<String, Object?> hours(int from, int to) => {
+        'hours': {'from': from, 'to': to},
+      };
+      expect(
+        read({
+          'measures': ['best'],
+          'series': [hours(5, 11), hours(17, 23)],
+        }).by,
+        'exercise',
+      );
+      // 이름·부위를 적었거나 무게 아닌 측정이 섞이면 섞은 수가 뜻이 있다 — 둔다.
+      for (final raw in [
+        {
+          'exercises': ['스쿼트'],
+          'measures': ['best'],
+          'series': [hours(5, 11), hours(17, 23)],
+        },
+        {
+          'measures': ['best'],
+          'series': [
+            {'part': 'legs'},
+            {'part': 'chest'},
+          ],
+        },
+        {
+          'measures': ['best', 'trainingDays'],
+          'series': [hours(5, 11), hours(17, 23)],
+        },
+      ]) {
+        expect(read(raw).by, isNull, reason: '$raw');
+      }
     });
 
     test('이름 하나의 순위는 그 한 줄이고, 운동별 비중 하나는 전체 대비다', () {
