@@ -1455,4 +1455,206 @@ class LEn extends L {
   String liveExerciseRemoved(String exercise) {
     return 'Someone in your session removed $exercise. What you were typing is still in the input line.';
   }
+
+  @override
+  String get trainerReport => 'Trainer report';
+
+  @override
+  String get trainerUnread => 'New report';
+
+  @override
+  String trainerRanAt(String when) {
+    return 'Prepared $when';
+  }
+
+  @override
+  String get trainerRunNow => 'Prepare now';
+
+  @override
+  String get trainerNoReport => 'No report yet. Prepare one now?';
+
+  @override
+  String get trainerOutdated =>
+      'This report needs a newer version. Please update the app.';
+
+  @override
+  String get trainerFailed =>
+      'Couldn\'t reach the server. Please try again shortly.';
+
+  @override
+  String get trainerActUnknown =>
+      'Couldn\'t confirm the result. Tapping again won\'t record it twice.';
+
+  @override
+  String get trainerDone => 'Done by the agent';
+
+  @override
+  String get trainerToday => 'Today\'s sessions';
+
+  @override
+  String get trainerTodo => 'To check';
+
+  @override
+  String get trainerAllClear => 'Everything to check is done.';
+
+  @override
+  String get trainerAttendance => 'Sessions to wrap up';
+
+  @override
+  String trainerVisited(String time) {
+    return 'Checked in $time';
+  }
+
+  @override
+  String trainerFinishAll(int count) {
+    return 'Complete all ($count)';
+  }
+
+  @override
+  String trainerFinishAsk(int count) {
+    return 'Complete $count — one session is deducted from the PT pass for each.';
+  }
+
+  @override
+  String get trainerFinish => 'Complete';
+
+  @override
+  String get trainerJoinRequest =>
+      'Membership request — review it on the Today screen of the web CRM.';
+
+  @override
+  String get trainerBook => 'Book';
+
+  @override
+  String get trainerSend => 'Send';
+
+  @override
+  String get trainerPaid => 'Payment received';
+
+  @override
+  String get trainerContacted => 'Contacted';
+
+  @override
+  String get trainerLater => 'Later';
+
+  @override
+  String trainerPrice(int price) {
+    final intl.NumberFormat priceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String priceString = priceNumberFormat.format(price);
+
+    return '₩$priceString';
+  }
+
+  @override
+  String trainerStarts(String d) {
+    return 'From $d';
+  }
+
+  @override
+  String get trainerPayHow => 'How was it paid?';
+
+  @override
+  String get trainerPaidListPrice =>
+      'The full list price is recorded as paid. For a discount or split payment, register it on the member\'s Membership tab in the web CRM.';
+
+  @override
+  String get payCard => 'Card';
+
+  @override
+  String get payCash => 'Cash';
+
+  @override
+  String get payTransfer => 'Bank transfer';
+
+  @override
+  String get payOther => 'Other';
+
+  @override
+  String get agentSettings => 'Agent settings';
+
+  @override
+  String get agentEnabled => 'Prepare at set times';
+
+  @override
+  String get agentTimes => 'Report times';
+
+  @override
+  String get agentAddTime => 'Add a time';
+
+  @override
+  String get agentDays => 'Days';
+
+  @override
+  String get agentAutoConfirm => 'Confirm PT requests right away';
+
+  @override
+  String get agentModes => 'Per task';
+
+  @override
+  String get agentModesHelp =>
+      'Manual — the agent leaves it alone. Draft — the agent prepares it and you finish it with a tap. Auto — the agent does it.';
+
+  @override
+  String get agentModeOff => 'Manual';
+
+  @override
+  String get agentModeDraft => 'Draft';
+
+  @override
+  String get agentModeAuto => 'Auto';
+
+  @override
+  String get taskPtSchedule => 'PT schedule';
+
+  @override
+  String get taskRenewal => 'Renewals';
+
+  @override
+  String get taskAttendance => 'Attendance';
+
+  @override
+  String get taskRoutine => 'Routines';
+
+  @override
+  String get taskContact => 'Member contact';
+
+  @override
+  String get gymPolicy => 'Gym policy';
+
+  @override
+  String get policyRenewalDays => 'Renewal notice timing (days before expiry)';
+
+  @override
+  String get policyLowSessions => 'Low PT threshold (PT sessions bookable)';
+
+  @override
+  String get policyAwayDays => 'Away after (days)';
+
+  @override
+  String get policyLapsedDays => 'Lapsed after (days)';
+
+  @override
+  String get policyOffer => 'Renewal offer text';
+
+  @override
+  String get policySave => 'Save policy';
+
+  @override
+  String get policySaved => 'Saved.';
+
+  @override
+  String get trainerWhichGym => 'Which gym?';
+
+  @override
+  String get trainerBack => 'Go back';
+
+  @override
+  String get trainerCopy => 'Copy message';
+
+  @override
+  String get trainerCopied => 'Copied';
+
+  @override
+  String get settingsTrainer => 'Trainer';
 }

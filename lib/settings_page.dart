@@ -10,6 +10,7 @@ import 'palette.dart';
 import 'paywall.dart';
 import 'rest_alarm.dart';
 import 'purchases.dart';
+import 'trainer.dart';
 
 /// 설정.
 ///
@@ -115,6 +116,17 @@ class SettingsPage extends StatelessWidget {
                     label: l.bookingNew,
                     accent: true,
                     onTap: () => openBooking(context, a),
+                  ),
+                ],
+                // 직원이면 에이전트 보고서로 가는 길. 목록 위 입구와 같은 곳이다.
+                // 회원용 '다니는 체육관' 밖에 따로 둔다 — 그 안이면 직원만인
+                // 사람이 '스티커에 폰을 대면…' 안내와 한 묶음으로 읽는다.
+                if (a.staff.isNotEmpty) ...[
+                  _Section(title: l.settingsTrainer),
+                  _Row(
+                    label: l.trainerReport,
+                    accent: true,
+                    onTap: () => openTrainer(context, a),
                   ),
                 ],
 

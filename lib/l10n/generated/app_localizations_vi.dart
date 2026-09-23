@@ -1441,4 +1441,207 @@ class LVi extends L {
   String liveExerciseRemoved(String exercise) {
     return 'Người tập cùng đã xóa $exercise. Nội dung bạn đang gõ vẫn còn trong dòng nhập.';
   }
+
+  @override
+  String get trainerReport => 'Báo cáo huấn luyện viên';
+
+  @override
+  String get trainerUnread => 'Báo cáo mới';
+
+  @override
+  String trainerRanAt(String when) {
+    return 'Tổng hợp lúc $when';
+  }
+
+  @override
+  String get trainerRunNow => 'Tổng hợp ngay';
+
+  @override
+  String get trainerNoReport => 'Chưa có báo cáo. Tổng hợp ngay nhé?';
+
+  @override
+  String get trainerOutdated =>
+      'Báo cáo này cần phiên bản mới hơn. Hãy cập nhật ứng dụng.';
+
+  @override
+  String get trainerFailed =>
+      'Không kết nối được máy chủ. Hãy thử lại sau ít phút.';
+
+  @override
+  String get trainerActUnknown =>
+      'Chưa xác nhận được kết quả. Bấm lại cũng không bị ghi hai lần.';
+
+  @override
+  String get trainerDone => 'Tác tử đã xử lý';
+
+  @override
+  String get trainerToday => 'Buổi tập hôm nay';
+
+  @override
+  String get trainerTodo => 'Cần xem';
+
+  @override
+  String get trainerAllClear => 'Đã xử lý hết các việc cần xem.';
+
+  @override
+  String get trainerAttendance => 'Buổi chưa chốt';
+
+  @override
+  String trainerVisited(String time) {
+    return 'Xác nhận đến $time';
+  }
+
+  @override
+  String trainerFinishAll(int count) {
+    return 'Hoàn tất tất cả ($count)';
+  }
+
+  @override
+  String trainerFinishAsk(int count) {
+    return 'Hoàn tất $count buổi — mỗi buổi trừ 1 lượt từ gói PT.';
+  }
+
+  @override
+  String get trainerFinish => 'Hoàn tất';
+
+  @override
+  String get trainerJoinRequest =>
+      'Yêu cầu đăng ký — hãy xem ở màn hình Hôm nay trong CRM trên web.';
+
+  @override
+  String get trainerBook => 'Đặt lịch';
+
+  @override
+  String get trainerSend => 'Gửi';
+
+  @override
+  String get trainerPaid => 'Đã nhận thanh toán';
+
+  @override
+  String get trainerContacted => 'Đã liên hệ';
+
+  @override
+  String get trainerLater => 'Để sau';
+
+  @override
+  String trainerPrice(int price) {
+    final intl.NumberFormat priceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String priceString = priceNumberFormat.format(price);
+
+    return '₩$priceString';
+  }
+
+  @override
+  String trainerStarts(String d) {
+    return 'Từ $d';
+  }
+
+  @override
+  String get trainerPayHow => 'Thanh toán bằng cách nào?';
+
+  @override
+  String get trainerPaidListPrice =>
+      'Sẽ ghi nhận thanh toán đúng giá niêm yết. Nếu giảm giá hoặc trả nhiều lần, hãy nhập ở thẻ Gói tập trong trang hội viên trên CRM web.';
+
+  @override
+  String get payCard => 'Thẻ';
+
+  @override
+  String get payCash => 'Tiền mặt';
+
+  @override
+  String get payTransfer => 'Chuyển khoản';
+
+  @override
+  String get payOther => 'Khác';
+
+  @override
+  String get agentSettings => 'Cài đặt tác tử';
+
+  @override
+  String get agentEnabled => 'Tổng hợp vào giờ đã đặt';
+
+  @override
+  String get agentTimes => 'Giờ tổng hợp';
+
+  @override
+  String get agentAddTime => 'Thêm giờ';
+
+  @override
+  String get agentDays => 'Ngày';
+
+  @override
+  String get agentAutoConfirm => 'Xác nhận yêu cầu PT ngay';
+
+  @override
+  String get agentModes => 'Theo từng việc';
+
+  @override
+  String get agentModesHelp =>
+      'Tự làm — tác tử không đụng tới. Nháp — tác tử chuẩn bị, bạn chạm để xử lý. Tự động — tác tử xử lý.';
+
+  @override
+  String get agentModeOff => 'Tự làm';
+
+  @override
+  String get agentModeDraft => 'Nháp';
+
+  @override
+  String get agentModeAuto => 'Tự động';
+
+  @override
+  String get taskPtSchedule => 'Lịch PT';
+
+  @override
+  String get taskRenewal => 'Gia hạn';
+
+  @override
+  String get taskAttendance => 'Điểm danh';
+
+  @override
+  String get taskRoutine => 'Chuẩn bị bài tập';
+
+  @override
+  String get taskContact => 'Liên hệ hội viên';
+
+  @override
+  String get gymPolicy => 'Chính sách phòng tập';
+
+  @override
+  String get policyRenewalDays =>
+      'Thời điểm nhắc gia hạn (số ngày trước khi hết hạn)';
+
+  @override
+  String get policyLowSessions => 'Ngưỡng sắp hết PT (số buổi PT còn đặt được)';
+
+  @override
+  String get policyAwayDays => 'Vắng mặt sau (ngày)';
+
+  @override
+  String get policyLapsedDays => 'Coi là rời bỏ sau (ngày)';
+
+  @override
+  String get policyOffer => 'Lời mời gia hạn';
+
+  @override
+  String get policySave => 'Lưu chính sách';
+
+  @override
+  String get policySaved => 'Đã lưu.';
+
+  @override
+  String get trainerWhichGym => 'Phòng tập nào?';
+
+  @override
+  String get trainerBack => 'Quay lại';
+
+  @override
+  String get trainerCopy => 'Sao chép tin nhắn';
+
+  @override
+  String get trainerCopied => 'Đã sao chép';
+
+  @override
+  String get settingsTrainer => 'Huấn luyện viên';
 }

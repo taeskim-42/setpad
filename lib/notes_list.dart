@@ -16,6 +16,7 @@ import 'palette.dart';
 import 'parser.dart';
 import 'paywall.dart';
 import 'settings.dart';
+import 'trainer.dart';
 
 /// 운동 기록 목록.
 ///
@@ -117,12 +118,35 @@ class _NotesListPageState extends State<NotesListPage>
   /// 다니는 곳이 있는가. 예약은 이 사람에게만 보인다.
   bool get _hasGym => widget.account?.gyms.isNotEmpty ?? false;
 
+  /// 직원으로 있는 도장. 트레이너 입구는 이 사람에게만 보인다. 입구의 점은
+  /// trainer.dart 의 reportUnread — 알림으로 연 보고서를 닫아도 거기서 꺼진다.
+  List<StaffGym> _staff = const [];
+
   @override
   void initState() {
     super.initState();
     _search.addListener(_changed);
     WidgetsBinding.instance.addObserver(this);
     _loadRoutines();
+    // 켤 때는 남겨 둔 로그인이 이 화면보다 늦게 되살아난다. 계정을 듣고 있다가
+    // 직원 목록이 오면 그때 보고서를 본다.
+    widget.account?.addListener(_accountChanged);
+    _staff = widget.account?.staff ?? const [];
+    if (_staff.isNotEmpty) unawaited(_checkReports());
+  }
+
+  /// /api/me 를 물을 때마다 직원 목록이 새로 온다. 그때만 다시 본다 — 계정은
+  /// 결제·체육관 때문에도 자주 알린다.
+  void _accountChanged() {
+    final staff = widget.account?.staff ?? const <StaffGym>[];
+    if (identical(staff, _staff)) return;
+    setState(() => _staff = staff);
+    unawaited(_checkReports());
+  }
+
+  Future<void> _checkReports() async {
+    final account = widget.account;
+    if (account != null) await checkReports(account);
   }
 
   Future<void> _loadRoutines() async {
@@ -173,6 +197,8 @@ class _NotesListPageState extends State<NotesListPage>
       _confirmed = null;
       // 자리를 비운 사이 트레이너가 등록해 주거나 루틴을 보냈을 수 있다.
       unawaited(_loadRoutines());
+      // 그사이 에이전트가 새 보고서를 썼을 수 있다.
+      if (_staff.isNotEmpty) unawaited(_checkReports());
       unawaited(
         _search.refresh(_locale ?? 'en').then((_) {
           // 칩으로 고른 표는 고른 그대로 둔다. 다시 물으면 확인 줄이 겹친다.
@@ -231,6 +257,7 @@ class _NotesListPageState extends State<NotesListPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    widget.account?.removeListener(_accountChanged);
     _search.removeListener(_changed);
     _search.dispose();
     _query.dispose();
@@ -557,6 +584,66 @@ class _NotesListPageState extends State<NotesListPage>
                                     ),
                                   ),
                                 ),
+                                Icon(
+                                  CupertinoIcons.chevron_right,
+                                  size: 15,
+                                  color: CupertinoColors.tertiaryLabel
+                                      .resolveFrom(context),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      // 트레이너 보고. **직원에게만 보인다** — 회원 화면에 뜨면
+                      // 무엇을 보라는 말인지 알 수 없다.
+                      if (_query.text.trim().isEmpty && _staff.isNotEmpty)
+                        SliverToBoxAdapter(
+                          child: CupertinoButton(
+                            padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
+                            onPressed: () =>
+                                openTrainer(context, widget.account!),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  CupertinoIcons.doc_text,
+                                  size: 18,
+                                  color: seal.resolveFrom(context),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  l.trainerReport,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: CupertinoColors.label.resolveFrom(
+                                      context,
+                                    ),
+                                  ),
+                                ),
+                                ValueListenableBuilder(
+                                  valueListenable: reportUnread,
+                                  builder: (context, unread, _) => !unread
+                                      ? const SizedBox.shrink()
+                                      : Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 6,
+                                          ),
+                                          child: Semantics(
+                                            label: l.trainerUnread,
+                                            child: Container(
+                                              width: 8,
+                                              height: 8,
+                                              decoration: BoxDecoration(
+                                                color: seal.resolveFrom(
+                                                  context,
+                                                ),
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                ),
+                                const Spacer(),
                                 Icon(
                                   CupertinoIcons.chevron_right,
                                   size: 15,

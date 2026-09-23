@@ -1430,4 +1430,204 @@ class LTh extends L {
   String liveExerciseRemoved(String exercise) {
     return 'คนที่ออกกำลังด้วยกันลบ $exercise แล้ว ข้อความที่พิมพ์อยู่ยังอยู่ในช่องพิมพ์';
   }
+
+  @override
+  String get trainerReport => 'รายงานเทรนเนอร์';
+
+  @override
+  String get trainerUnread => 'รายงานใหม่';
+
+  @override
+  String trainerRanAt(String when) {
+    return 'สรุปเมื่อ $when';
+  }
+
+  @override
+  String get trainerRunNow => 'สรุปตอนนี้';
+
+  @override
+  String get trainerNoReport => 'ยังไม่มีรายงาน สรุปตอนนี้เลยไหม';
+
+  @override
+  String get trainerOutdated => 'รายงานนี้ต้องใช้เวอร์ชันใหม่ โปรดอัปเดตแอป';
+
+  @override
+  String get trainerFailed =>
+      'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ โปรดลองอีกครั้งภายหลัง';
+
+  @override
+  String get trainerActUnknown => 'ยืนยันผลไม่ได้ กดอีกครั้งก็จะไม่บันทึกซ้ำ';
+
+  @override
+  String get trainerDone => 'สิ่งที่เอเจนต์ทำแล้ว';
+
+  @override
+  String get trainerToday => 'คลาสวันนี้';
+
+  @override
+  String get trainerTodo => 'สิ่งที่ต้องตรวจ';
+
+  @override
+  String get trainerAllClear => 'จัดการทุกอย่างที่ต้องตรวจแล้ว';
+
+  @override
+  String get trainerAttendance => 'คลาสที่ยังไม่ปิด';
+
+  @override
+  String trainerVisited(String time) {
+    return 'ยืนยันการมา $time';
+  }
+
+  @override
+  String trainerFinishAll(int count) {
+    return 'เสร็จทั้งหมด ($count)';
+  }
+
+  @override
+  String trainerFinishAsk(int count) {
+    return 'ทำเสร็จ $count รายการ — จะหักจากแพ็กเกจ PT รายการละ 1 ครั้ง';
+  }
+
+  @override
+  String get trainerFinish => 'ทำเสร็จ';
+
+  @override
+  String get trainerJoinRequest =>
+      'คำขอสมัคร — โปรดตรวจที่หน้า \"วันนี้\" ใน CRM บนเว็บ';
+
+  @override
+  String get trainerBook => 'จอง';
+
+  @override
+  String get trainerSend => 'ส่ง';
+
+  @override
+  String get trainerPaid => 'รับชำระแล้ว';
+
+  @override
+  String get trainerContacted => 'ติดต่อแล้ว';
+
+  @override
+  String get trainerLater => 'ภายหลัง';
+
+  @override
+  String trainerPrice(int price) {
+    final intl.NumberFormat priceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String priceString = priceNumberFormat.format(price);
+
+    return '₩$priceString';
+  }
+
+  @override
+  String trainerStarts(String d) {
+    return 'ตั้งแต่ $d';
+  }
+
+  @override
+  String get trainerPayHow => 'ชำระด้วยวิธีใด';
+
+  @override
+  String get trainerPaidListPrice =>
+      'จะบันทึกการชำระเต็มราคาสินค้า หากมีส่วนลดหรือแบ่งชำระ โปรดบันทึกที่แท็บสมาชิกภาพในหน้าสมาชิกของ CRM บนเว็บ';
+
+  @override
+  String get payCard => 'บัตร';
+
+  @override
+  String get payCash => 'เงินสด';
+
+  @override
+  String get payTransfer => 'โอนเงิน';
+
+  @override
+  String get payOther => 'อื่น ๆ';
+
+  @override
+  String get agentSettings => 'ตั้งค่าเอเจนต์';
+
+  @override
+  String get agentEnabled => 'สรุปตามเวลาที่ตั้งไว้';
+
+  @override
+  String get agentTimes => 'เวลาสรุป';
+
+  @override
+  String get agentAddTime => 'เพิ่มเวลา';
+
+  @override
+  String get agentDays => 'วัน';
+
+  @override
+  String get agentAutoConfirm => 'ยืนยันคำขอ PT ทันที';
+
+  @override
+  String get agentModes => 'แยกตามงาน';
+
+  @override
+  String get agentModesHelp =>
+      'ด้วยตัวเอง — เอเจนต์ไม่แตะต้อง ร่าง — เอเจนต์เตรียมไว้ให้คุณแตะเพื่อจัดการ อัตโนมัติ — เอเจนต์จัดการให้';
+
+  @override
+  String get agentModeOff => 'ด้วยตัวเอง';
+
+  @override
+  String get agentModeDraft => 'ร่าง';
+
+  @override
+  String get agentModeAuto => 'อัตโนมัติ';
+
+  @override
+  String get taskPtSchedule => 'ตาราง PT';
+
+  @override
+  String get taskRenewal => 'ต่ออายุ';
+
+  @override
+  String get taskAttendance => 'การเข้าเรียน';
+
+  @override
+  String get taskRoutine => 'เตรียมรูทีน';
+
+  @override
+  String get taskContact => 'ติดต่อสมาชิก';
+
+  @override
+  String get gymPolicy => 'นโยบายยิม';
+
+  @override
+  String get policyRenewalDays => 'ช่วงเวลาแจ้งต่ออายุ (กี่วันก่อนหมดอายุ)';
+
+  @override
+  String get policyLowSessions => 'เกณฑ์ PT ใกล้หมด (จำนวนครั้งที่จองได้)';
+
+  @override
+  String get policyAwayDays => 'ไม่มาเกิน (วัน)';
+
+  @override
+  String get policyLapsedDays => 'ถือว่าเลิกมาหลัง (วัน)';
+
+  @override
+  String get policyOffer => 'ข้อความเสนอต่ออายุ';
+
+  @override
+  String get policySave => 'บันทึกนโยบาย';
+
+  @override
+  String get policySaved => 'บันทึกแล้ว';
+
+  @override
+  String get trainerWhichGym => 'ยิมไหน';
+
+  @override
+  String get trainerBack => 'ย้อนกลับ';
+
+  @override
+  String get trainerCopy => 'คัดลอกข้อความ';
+
+  @override
+  String get trainerCopied => 'คัดลอกแล้ว';
+
+  @override
+  String get settingsTrainer => 'เทรนเนอร์';
 }

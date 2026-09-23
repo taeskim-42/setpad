@@ -12,6 +12,7 @@ import 'package:flutter/foundation.dart';
 import 'package:app_links/app_links.dart';
 
 import 'account.dart';
+import 'agent_alarm.dart';
 import 'daily.dart';
 import 'gym.dart';
 import 'gym_sheets.dart';
@@ -29,8 +30,19 @@ import 'package:intl/intl.dart';
 import 'set_grid.dart';
 import 'settings.dart';
 import 'share.dart';
+import 'trainer.dart';
 
-void main() => runApp(const SetpadApp());
+void main() {
+  runApp(const SetpadApp());
+  // 트레이너 보고 알림. 알림을 눌러 켜졌으면 그 탭을 여기서 받아 두었다가
+  // AgentAlarm.taps 로 넘긴다. 테스트는 main 을 부르지 않으니 채널도 안 깬다.
+  unawaited(AgentAlarm.init());
+}
+
+/// 보고 알림 탭. AgentAlarm.taps 는 한 번만 들을 수 있는 스트림이라 여기서 한 번
+/// 붙이고 나눠 듣는다 — 홈이 다시 만들어져도(테스트가 앱을 여러 번 띄운다)
+/// 두 번 붙다가 깨지지 않는다. 처음 붙을 때 쌓여 있던 콜드 스타트 탭이 온다.
+final _reportTaps = AgentAlarm.taps.asBroadcastStream();
 
 class SetpadApp extends StatelessWidget {
   /// [store] 는 테스트가 임시 폴더를 물릴 자리다. 비워 두면 앱 문서 디렉터리를
@@ -118,6 +130,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _watchTags();
+    _alarmTaps = _reportTaps.listen(_openReport);
     // 심박이 올 때마다 남긴다. HealthKit 이 실제로 얼마나 자주 깨워 주는지를
     // 재는 것이 지금 목적이다 — 그 값에 따라 휴식 타이머가 성립하는지가
     // 갈린다. 문서로 확인하지 못한 빈도 제한을 실측으로 대신한다.
@@ -215,9 +228,26 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 로그인과 결제. **없어도 앱은 그대로 돈다** — 켜지 않은 사람은 그냥 쓴다.
   /// 기기 id 는 store 가 처음 켤 때 만들므로 부를 때 읽는다.
   late final _account = Account(deviceId: () => _store.deviceId)
-    ..start().then((_) => _sendPendingWorkouts());
+    // 시작이 실패해도 알림 탭이 영영 기다리지 않게 늘 끝낸다.
+    ..start()
+        .whenComplete(_accountStarted.complete)
+        .then((_) => _sendPendingWorkouts());
 
   void _claimDaily() => unawaited(_account.claimDaily(_store));
+
+  /// 남겨 둔 로그인이 되살아났는가. 알림을 눌러 켜진 앱은 이것을 기다려야
+  /// 보고서를 읽을 토큰이 있다.
+  final _accountStarted = Completer<void>();
+  StreamSubscription<String>? _alarmTaps;
+
+  /// 보고 알림을 눌렀다. 그 도장의 트레이너 화면을 열고, 닫으면 목록의 점을
+  /// 다시 센다. 이제 그 도장 직원이 아니면 화면이 서버의 말(403)을 보여 주고
+  /// 그 도장 알림을 지운다.
+  Future<void> _openReport(String gymId) async {
+    await _accountStarted.future;
+    if (!mounted || !_account.signedIn) return;
+    await pushTrainer(context, _account, gymId);
+  }
 
   /// 스티커를 댔을 때. 앱이 닫혀 있었어도 열리면서 여기로 온다.
   StreamSubscription<Uri>? _tags;
@@ -230,7 +260,6 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// app_links 는 앱을 연 주소를 스트림으로도 주고 getInitialLink 로도 줘서
   /// 같은 태그가 두 번 들어온다. 안내창이 두 개 겹쳐 뜨던 이유다.
   String? _handling;
-
 
   String? _lastHandoff;
 
@@ -452,6 +481,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _tags?.cancel();
     _store.removeListener(_claimDaily);
+    _alarmTaps?.cancel();
     _account.dispose();
     _store.flush();
     if (widget.store == null) _store.dispose();
@@ -487,7 +517,6 @@ class EditorPage extends StatefulWidget {
 
   /// 상대가 대신 적어 준 내 기록을 받는다. 받은 것은 새 운동 문서로 열린다.
   final void Function(String token)? onTakeHandoff;
-
 
   /// 문장 해석과 식단 사진이 같은 문을 쓴다.
   final RecordAi ai;

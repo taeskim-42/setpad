@@ -1274,5 +1274,142 @@
         "type": "String"
       }
     }
+  },
+  "trainerReport": "트레이너 보고",
+  "@trainerReport": {
+    "description": "직원에게만 보이는 입구와 그 화면 제목. 에이전트가 정리한 보고서"
+  },
+  "trainerUnread": "새 보고서",
+  "@trainerUnread": {
+    "description": "입구 옆 점의 읽기 이름(스크린 리더)"
+  },
+  "trainerRanAt": "{when} 정리",
+  "@trainerRanAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trainerRunNow": "지금 정리하기",
+  "trainerNoReport": "아직 정리된 보고서가 없어요. 지금 정리해 볼까요?",
+  "trainerOutdated": "이 보고서는 새 버전에서 볼 수 있어요. 앱을 업데이트해 주세요.",
+  "trainerFailed": "서버에 닿지 못했어요. 잠시 뒤에 다시 해 주세요.",
+  "trainerActUnknown": "결과를 확인하지 못했어요. 다시 눌러도 두 번 기록되지 않아요.",
+  "trainerDone": "에이전트가 처리한 일",
+  "trainerToday": "오늘 수업",
+  "trainerTodo": "확인할 일",
+  "trainerAllClear": "확인할 일을 모두 처리했어요.",
+  "trainerAttendance": "마무리 전 수업",
+  "trainerVisited": "방문 확인 {time}",
+  "@trainerVisited": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trainerFinishAll": "모두 완료 ({count})",
+  "@trainerFinishAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainerFinishAsk": "{count}건 완료 — PT 이용권에서 1회씩 차감돼요.",
+  "@trainerFinishAsk": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trainerFinish": "완료하기",
+  "trainerJoinRequest": "등록 요청 — 웹 CRM 오늘 화면에서 확인해 주세요.",
+  "trainerBook": "잡기",
+  "trainerSend": "보내기",
+  "trainerPaid": "결제 받음",
+  "trainerContacted": "연락함",
+  "trainerLater": "나중에",
+  "trainerPrice": "{price}원",
+  "@trainerPrice": {
+    "description": "원화 금액. 상품가는 늘 원이다",
+    "placeholders": {
+      "price": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "trainerStarts": "{d}부터",
+  "@trainerStarts": {
+    "placeholders": {
+      "d": {
+        "type": "String"
+      }
+    }
+  },
+  "trainerPayHow": "어떻게 받으셨나요?",
+  "trainerPaidListPrice": "상품가 그대로 결제로 기록돼요. 할인·나눠 받기는 웹 CRM 회원 화면의 회원권 탭에서 등록해 주세요.",
+  "payCard": "카드",
+  "payCash": "현금",
+  "payTransfer": "계좌이체",
+  "payOther": "기타",
+  "agentSettings": "에이전트 설정",
+  "agentEnabled": "정해진 시각에 정리",
+  "@agentEnabled": {
+    "description": "서버 enabled — 끄면 정해진 시각에만 안 돈다. 지금 정리하기는 그대로. 웹 CRM 과 같은 말"
+  },
+  "agentTimes": "정리 시각",
+  "agentAddTime": "시각 추가",
+  "agentDays": "요일",
+  "agentAutoConfirm": "PT 신청 바로 확정",
+  "agentModes": "업무별 방식",
+  "agentModesHelp": "직접 — 에이전트는 손대지 않아요. 초안 — 에이전트가 준비하면 내가 눌러 처리해요. 자동 — 에이전트가 처리해요.",
+  "agentModeOff": "직접",
+  "@agentModeOff": {
+    "description": "서버 값 off — 에이전트는 손대지 않는다"
+  },
+  "agentModeDraft": "초안",
+  "@agentModeDraft": {
+    "description": "서버 값 draft — 에이전트가 준비하고 트레이너가 누른다"
+  },
+  "agentModeAuto": "자동",
+  "@agentModeAuto": {
+    "description": "서버 값 auto — PT 일정만 된다"
+  },
+  "taskPtSchedule": "PT 일정",
+  "taskRenewal": "재등록·재결제",
+  "taskAttendance": "출결 정리",
+  "taskRoutine": "루틴 준비",
+  "taskContact": "회원 연락",
+  "gymPolicy": "도장 방침",
+  "policyRenewalDays": "재등록 안내 시점 (만료 며칠 전)",
+  "policyLowSessions": "PT 부족 기준 (PT 예약 가능 횟수)",
+  "policyAwayDays": "미방문 기준 (일)",
+  "policyLapsedDays": "이탈 기간 (일)",
+  "policyOffer": "재등록 안내 문구",
+  "policySave": "방침 저장",
+  "policySaved": "저장했어요.",
+  "trainerWhichGym": "어느 도장인가요?",
+  "@trainerWhichGym": {
+    "description": "직원으로 있는 도장이 둘 이상일 때 트레이너 화면 앞에서 묻는 시트 제목. 회원용 bookingWhichGym 과 다른 말(도장)"
+  },
+  "trainerBack": "돌아가기",
+  "@trainerBack": {
+    "description": "트레이너 흐름의 확인·시트에서 물러나는 버튼. 웹 CRM 과 같은 말. 결제 시트 옆 \"취소\"는 결제 취소로 읽힌다"
+  },
+  "trainerCopy": "문구 복사",
+  "@trainerCopy": {
+    "description": "회원에게 보낼 문구를 복사하는 버튼(웹 CRM 과 같은 말)"
+  },
+  "trainerCopied": "복사했어요",
+  "@trainerCopied": {
+    "description": "문구를 복사한 뒤 화면 아래 잠깐 뜨는 말. 트레이너 문구는 해요체"
+  },
+  "settingsTrainer": "트레이너",
+  "@settingsTrainer": {
+    "description": "설정의 트레이너 섹션 제목. 회원용 \"다니는 체육관\" 섹션과 따로"
   }
 }

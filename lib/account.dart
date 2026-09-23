@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'api_route.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'agent_alarm.dart';
 import 'gym.dart';
 import 'notes.dart';
 import 'purchases.dart';
@@ -32,6 +33,9 @@ const dailyPlateSets = 10;
 
 /// 계정을 처음 만들면 받는 원판. 서버의 환영 원판과 같은 수여야 한다.
 const accountWelcomePlates = 5;
+
+/// 내가 일하는 도장. /api/me 가 준다.
+typedef StaffGym = ({String gymId, String gym});
 
 /// 로그인과 결제를 한자리에서 든다.
 ///
@@ -81,6 +85,10 @@ class Account extends ChangeNotifier {
 
   /// 내가 다니는 체육관. 없으면 앱은 그쪽 화면을 아예 안 그린다.
   List<Gym> gyms = const [];
+
+  /// 직원으로 있는 도장. 비어 있으면 트레이너 화면이 아예 없다. /api/me 에
+  /// 물어볼 때마다 새 목록이 된다 — 목록 화면은 그것으로 다시 읽을 때를 안다.
+  List<StaffGym> staff = const [];
 
   /// 체육관에서 온 것들을 가져오는 문. 로그인하지 않았으면 아무것도 안 온다.
   GymLink get link => GymLink(endpoint: endpoint, token: token, client: client);
@@ -155,6 +163,7 @@ class Account extends ChangeNotifier {
 
   bool get signedIn => token != null;
   bool get paid => plan != null;
+
   /// 스토어가 지금 파는 요금제. 값과 체험은 스토어가 준 그대로다.
   Map<Plan, Offer> get offers => _purchases.offers;
 
@@ -262,6 +271,13 @@ class Account extends ChangeNotifier {
             token = fresh;
             await _saveSession();
           }
+          final rows = body is Map ? body['staff'] : null;
+          staff = [
+            for (final row in rows is List ? rows : const [])
+              if (row is Map && row['gym_id'] is String)
+                (gymId: row['gym_id'] as String, gym: '${row['gym'] ?? ''}'),
+          ];
+          notifyListeners();
         } catch (_) {
           // 답을 못 읽었을 뿐이다. 알던 토큰을 그대로 쓴다.
         }
@@ -316,8 +332,11 @@ class Account extends ChangeNotifier {
     await _refresh();
     await refreshPlates();
     await refreshGyms();
+    // 직원 도장은 /api/me 만 알려 준다. 켤 때만 물으면 방금 로그인한 트레이너는
+    // 다음에 켤 때까지 트레이너 화면을 못 본다.
+    await _stillValid();
     notifyListeners();
-    return true;
+    return signedIn;
   }
 
   /// 로그아웃. **남긴 파일을 지우는 것까지가 로그아웃이다** — 지우기 전에
@@ -329,6 +348,12 @@ class Account extends ChangeNotifier {
     gyms = const [];
     RecordAi.forget();
     plates = platesSpent = null;
+
+    staff = const [];
+    // 보고 알림은 기기에 요일마다 걸려 있어 로그인과 함께 풀리지 않는다. 목록
+    // 화면은 staff 가 바뀔 때만 지우는데, 켜자마자 토큰이 거절되면 staff 가
+    // 처음부터 비어 있어 바뀐 적이 없다. 그래서 여기서 지운다.
+    unawaited(AgentAlarm.clearAll());
     notifyListeners();
     await _saveSession();
     // 이제 이 기기의 지갑이다.

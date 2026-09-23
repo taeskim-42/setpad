@@ -1408,4 +1408,202 @@ class LKo extends L {
   String liveExerciseRemoved(String exercise) {
     return '같이 하는 사람이 $exercise을(를) 지웠어요. 치던 글은 입력 줄에 남아 있어요.';
   }
+
+  @override
+  String get trainerReport => '트레이너 보고';
+
+  @override
+  String get trainerUnread => '새 보고서';
+
+  @override
+  String trainerRanAt(String when) {
+    return '$when 정리';
+  }
+
+  @override
+  String get trainerRunNow => '지금 정리하기';
+
+  @override
+  String get trainerNoReport => '아직 정리된 보고서가 없어요. 지금 정리해 볼까요?';
+
+  @override
+  String get trainerOutdated => '이 보고서는 새 버전에서 볼 수 있어요. 앱을 업데이트해 주세요.';
+
+  @override
+  String get trainerFailed => '서버에 닿지 못했어요. 잠시 뒤에 다시 해 주세요.';
+
+  @override
+  String get trainerActUnknown => '결과를 확인하지 못했어요. 다시 눌러도 두 번 기록되지 않아요.';
+
+  @override
+  String get trainerDone => '에이전트가 처리한 일';
+
+  @override
+  String get trainerToday => '오늘 수업';
+
+  @override
+  String get trainerTodo => '확인할 일';
+
+  @override
+  String get trainerAllClear => '확인할 일을 모두 처리했어요.';
+
+  @override
+  String get trainerAttendance => '마무리 전 수업';
+
+  @override
+  String trainerVisited(String time) {
+    return '방문 확인 $time';
+  }
+
+  @override
+  String trainerFinishAll(int count) {
+    return '모두 완료 ($count)';
+  }
+
+  @override
+  String trainerFinishAsk(int count) {
+    return '$count건 완료 — PT 이용권에서 1회씩 차감돼요.';
+  }
+
+  @override
+  String get trainerFinish => '완료하기';
+
+  @override
+  String get trainerJoinRequest => '등록 요청 — 웹 CRM 오늘 화면에서 확인해 주세요.';
+
+  @override
+  String get trainerBook => '잡기';
+
+  @override
+  String get trainerSend => '보내기';
+
+  @override
+  String get trainerPaid => '결제 받음';
+
+  @override
+  String get trainerContacted => '연락함';
+
+  @override
+  String get trainerLater => '나중에';
+
+  @override
+  String trainerPrice(int price) {
+    final intl.NumberFormat priceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String priceString = priceNumberFormat.format(price);
+
+    return '$priceString원';
+  }
+
+  @override
+  String trainerStarts(String d) {
+    return '$d부터';
+  }
+
+  @override
+  String get trainerPayHow => '어떻게 받으셨나요?';
+
+  @override
+  String get trainerPaidListPrice =>
+      '상품가 그대로 결제로 기록돼요. 할인·나눠 받기는 웹 CRM 회원 화면의 회원권 탭에서 등록해 주세요.';
+
+  @override
+  String get payCard => '카드';
+
+  @override
+  String get payCash => '현금';
+
+  @override
+  String get payTransfer => '계좌이체';
+
+  @override
+  String get payOther => '기타';
+
+  @override
+  String get agentSettings => '에이전트 설정';
+
+  @override
+  String get agentEnabled => '정해진 시각에 정리';
+
+  @override
+  String get agentTimes => '정리 시각';
+
+  @override
+  String get agentAddTime => '시각 추가';
+
+  @override
+  String get agentDays => '요일';
+
+  @override
+  String get agentAutoConfirm => 'PT 신청 바로 확정';
+
+  @override
+  String get agentModes => '업무별 방식';
+
+  @override
+  String get agentModesHelp =>
+      '직접 — 에이전트는 손대지 않아요. 초안 — 에이전트가 준비하면 내가 눌러 처리해요. 자동 — 에이전트가 처리해요.';
+
+  @override
+  String get agentModeOff => '직접';
+
+  @override
+  String get agentModeDraft => '초안';
+
+  @override
+  String get agentModeAuto => '자동';
+
+  @override
+  String get taskPtSchedule => 'PT 일정';
+
+  @override
+  String get taskRenewal => '재등록·재결제';
+
+  @override
+  String get taskAttendance => '출결 정리';
+
+  @override
+  String get taskRoutine => '루틴 준비';
+
+  @override
+  String get taskContact => '회원 연락';
+
+  @override
+  String get gymPolicy => '도장 방침';
+
+  @override
+  String get policyRenewalDays => '재등록 안내 시점 (만료 며칠 전)';
+
+  @override
+  String get policyLowSessions => 'PT 부족 기준 (PT 예약 가능 횟수)';
+
+  @override
+  String get policyAwayDays => '미방문 기준 (일)';
+
+  @override
+  String get policyLapsedDays => '이탈 기간 (일)';
+
+  @override
+  String get policyOffer => '재등록 안내 문구';
+
+  @override
+  String get policySave => '방침 저장';
+
+  @override
+  String get policySaved => '저장했어요.';
+
+  @override
+  String get trainerWhichGym => '어느 도장인가요?';
+
+  @override
+  String get trainerBack => '돌아가기';
+
+  @override
+  String get trainerCopy => '문구 복사';
+
+  @override
+  String get trainerCopied => '복사했어요';
+
+  @override
+  String get settingsTrainer => '트레이너';
 }

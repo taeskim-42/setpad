@@ -2358,6 +2358,366 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'같이 하는 사람이 {exercise}을(를) 지웠어요. 치던 글은 입력 줄에 남아 있어요.'**
   String liveExerciseRemoved(String exercise);
+
+  /// 직원에게만 보이는 입구와 그 화면 제목. 에이전트가 정리한 보고서
+  ///
+  /// In ko, this message translates to:
+  /// **'트레이너 보고'**
+  String get trainerReport;
+
+  /// 입구 옆 점의 읽기 이름(스크린 리더)
+  ///
+  /// In ko, this message translates to:
+  /// **'새 보고서'**
+  String get trainerUnread;
+
+  /// No description provided for @trainerRanAt.
+  ///
+  /// In ko, this message translates to:
+  /// **'{when} 정리'**
+  String trainerRanAt(String when);
+
+  /// No description provided for @trainerRunNow.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금 정리하기'**
+  String get trainerRunNow;
+
+  /// No description provided for @trainerNoReport.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 정리된 보고서가 없어요. 지금 정리해 볼까요?'**
+  String get trainerNoReport;
+
+  /// No description provided for @trainerOutdated.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 보고서는 새 버전에서 볼 수 있어요. 앱을 업데이트해 주세요.'**
+  String get trainerOutdated;
+
+  /// No description provided for @trainerFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'서버에 닿지 못했어요. 잠시 뒤에 다시 해 주세요.'**
+  String get trainerFailed;
+
+  /// No description provided for @trainerActUnknown.
+  ///
+  /// In ko, this message translates to:
+  /// **'결과를 확인하지 못했어요. 다시 눌러도 두 번 기록되지 않아요.'**
+  String get trainerActUnknown;
+
+  /// No description provided for @trainerDone.
+  ///
+  /// In ko, this message translates to:
+  /// **'에이전트가 처리한 일'**
+  String get trainerDone;
+
+  /// No description provided for @trainerToday.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 수업'**
+  String get trainerToday;
+
+  /// No description provided for @trainerTodo.
+  ///
+  /// In ko, this message translates to:
+  /// **'확인할 일'**
+  String get trainerTodo;
+
+  /// No description provided for @trainerAllClear.
+  ///
+  /// In ko, this message translates to:
+  /// **'확인할 일을 모두 처리했어요.'**
+  String get trainerAllClear;
+
+  /// No description provided for @trainerAttendance.
+  ///
+  /// In ko, this message translates to:
+  /// **'마무리 전 수업'**
+  String get trainerAttendance;
+
+  /// No description provided for @trainerVisited.
+  ///
+  /// In ko, this message translates to:
+  /// **'방문 확인 {time}'**
+  String trainerVisited(String time);
+
+  /// No description provided for @trainerFinishAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'모두 완료 ({count})'**
+  String trainerFinishAll(int count);
+
+  /// No description provided for @trainerFinishAsk.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}건 완료 — PT 이용권에서 1회씩 차감돼요.'**
+  String trainerFinishAsk(int count);
+
+  /// No description provided for @trainerFinish.
+  ///
+  /// In ko, this message translates to:
+  /// **'완료하기'**
+  String get trainerFinish;
+
+  /// No description provided for @trainerJoinRequest.
+  ///
+  /// In ko, this message translates to:
+  /// **'등록 요청 — 웹 CRM 오늘 화면에서 확인해 주세요.'**
+  String get trainerJoinRequest;
+
+  /// No description provided for @trainerBook.
+  ///
+  /// In ko, this message translates to:
+  /// **'잡기'**
+  String get trainerBook;
+
+  /// No description provided for @trainerSend.
+  ///
+  /// In ko, this message translates to:
+  /// **'보내기'**
+  String get trainerSend;
+
+  /// No description provided for @trainerPaid.
+  ///
+  /// In ko, this message translates to:
+  /// **'결제 받음'**
+  String get trainerPaid;
+
+  /// No description provided for @trainerContacted.
+  ///
+  /// In ko, this message translates to:
+  /// **'연락함'**
+  String get trainerContacted;
+
+  /// No description provided for @trainerLater.
+  ///
+  /// In ko, this message translates to:
+  /// **'나중에'**
+  String get trainerLater;
+
+  /// 원화 금액. 상품가는 늘 원이다
+  ///
+  /// In ko, this message translates to:
+  /// **'{price}원'**
+  String trainerPrice(int price);
+
+  /// No description provided for @trainerStarts.
+  ///
+  /// In ko, this message translates to:
+  /// **'{d}부터'**
+  String trainerStarts(String d);
+
+  /// No description provided for @trainerPayHow.
+  ///
+  /// In ko, this message translates to:
+  /// **'어떻게 받으셨나요?'**
+  String get trainerPayHow;
+
+  /// No description provided for @trainerPaidListPrice.
+  ///
+  /// In ko, this message translates to:
+  /// **'상품가 그대로 결제로 기록돼요. 할인·나눠 받기는 웹 CRM 회원 화면의 회원권 탭에서 등록해 주세요.'**
+  String get trainerPaidListPrice;
+
+  /// No description provided for @payCard.
+  ///
+  /// In ko, this message translates to:
+  /// **'카드'**
+  String get payCard;
+
+  /// No description provided for @payCash.
+  ///
+  /// In ko, this message translates to:
+  /// **'현금'**
+  String get payCash;
+
+  /// No description provided for @payTransfer.
+  ///
+  /// In ko, this message translates to:
+  /// **'계좌이체'**
+  String get payTransfer;
+
+  /// No description provided for @payOther.
+  ///
+  /// In ko, this message translates to:
+  /// **'기타'**
+  String get payOther;
+
+  /// No description provided for @agentSettings.
+  ///
+  /// In ko, this message translates to:
+  /// **'에이전트 설정'**
+  String get agentSettings;
+
+  /// 서버 enabled — 끄면 정해진 시각에만 안 돈다. 지금 정리하기는 그대로. 웹 CRM 과 같은 말
+  ///
+  /// In ko, this message translates to:
+  /// **'정해진 시각에 정리'**
+  String get agentEnabled;
+
+  /// No description provided for @agentTimes.
+  ///
+  /// In ko, this message translates to:
+  /// **'정리 시각'**
+  String get agentTimes;
+
+  /// No description provided for @agentAddTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'시각 추가'**
+  String get agentAddTime;
+
+  /// No description provided for @agentDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'요일'**
+  String get agentDays;
+
+  /// No description provided for @agentAutoConfirm.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 신청 바로 확정'**
+  String get agentAutoConfirm;
+
+  /// No description provided for @agentModes.
+  ///
+  /// In ko, this message translates to:
+  /// **'업무별 방식'**
+  String get agentModes;
+
+  /// No description provided for @agentModesHelp.
+  ///
+  /// In ko, this message translates to:
+  /// **'직접 — 에이전트는 손대지 않아요. 초안 — 에이전트가 준비하면 내가 눌러 처리해요. 자동 — 에이전트가 처리해요.'**
+  String get agentModesHelp;
+
+  /// 서버 값 off — 에이전트는 손대지 않는다
+  ///
+  /// In ko, this message translates to:
+  /// **'직접'**
+  String get agentModeOff;
+
+  /// 서버 값 draft — 에이전트가 준비하고 트레이너가 누른다
+  ///
+  /// In ko, this message translates to:
+  /// **'초안'**
+  String get agentModeDraft;
+
+  /// 서버 값 auto — PT 일정만 된다
+  ///
+  /// In ko, this message translates to:
+  /// **'자동'**
+  String get agentModeAuto;
+
+  /// No description provided for @taskPtSchedule.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 일정'**
+  String get taskPtSchedule;
+
+  /// No description provided for @taskRenewal.
+  ///
+  /// In ko, this message translates to:
+  /// **'재등록·재결제'**
+  String get taskRenewal;
+
+  /// No description provided for @taskAttendance.
+  ///
+  /// In ko, this message translates to:
+  /// **'출결 정리'**
+  String get taskAttendance;
+
+  /// No description provided for @taskRoutine.
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴 준비'**
+  String get taskRoutine;
+
+  /// No description provided for @taskContact.
+  ///
+  /// In ko, this message translates to:
+  /// **'회원 연락'**
+  String get taskContact;
+
+  /// No description provided for @gymPolicy.
+  ///
+  /// In ko, this message translates to:
+  /// **'도장 방침'**
+  String get gymPolicy;
+
+  /// No description provided for @policyRenewalDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'재등록 안내 시점 (만료 며칠 전)'**
+  String get policyRenewalDays;
+
+  /// No description provided for @policyLowSessions.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 부족 기준 (PT 예약 가능 횟수)'**
+  String get policyLowSessions;
+
+  /// No description provided for @policyAwayDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'미방문 기준 (일)'**
+  String get policyAwayDays;
+
+  /// No description provided for @policyLapsedDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'이탈 기간 (일)'**
+  String get policyLapsedDays;
+
+  /// No description provided for @policyOffer.
+  ///
+  /// In ko, this message translates to:
+  /// **'재등록 안내 문구'**
+  String get policyOffer;
+
+  /// No description provided for @policySave.
+  ///
+  /// In ko, this message translates to:
+  /// **'방침 저장'**
+  String get policySave;
+
+  /// No description provided for @policySaved.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장했어요.'**
+  String get policySaved;
+
+  /// 직원으로 있는 도장이 둘 이상일 때 트레이너 화면 앞에서 묻는 시트 제목. 회원용 bookingWhichGym 과 다른 말(도장)
+  ///
+  /// In ko, this message translates to:
+  /// **'어느 도장인가요?'**
+  String get trainerWhichGym;
+
+  /// 트레이너 흐름의 확인·시트에서 물러나는 버튼. 웹 CRM 과 같은 말. 결제 시트 옆 "취소"는 결제 취소로 읽힌다
+  ///
+  /// In ko, this message translates to:
+  /// **'돌아가기'**
+  String get trainerBack;
+
+  /// 회원에게 보낼 문구를 복사하는 버튼(웹 CRM 과 같은 말)
+  ///
+  /// In ko, this message translates to:
+  /// **'문구 복사'**
+  String get trainerCopy;
+
+  /// 문구를 복사한 뒤 화면 아래 잠깐 뜨는 말. 트레이너 문구는 해요체
+  ///
+  /// In ko, this message translates to:
+  /// **'복사했어요'**
+  String get trainerCopied;
+
+  /// 설정의 트레이너 섹션 제목. 회원용 "다니는 체육관" 섹션과 따로
+  ///
+  /// In ko, this message translates to:
+  /// **'트레이너'**
+  String get settingsTrainer;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

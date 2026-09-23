@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -7,6 +8,10 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // 트레이너 보고 알림(flutter_local_notifications). FlutterAppDelegate 가 받은
+    // 알림 이벤트를 플러그인에 넘긴다 — 앱이 떠 있을 때도 배너가 보이고, 눌러서
+    // 켜진 것을 알 수 있다. 실행이 끝나기 전에 걸어야 누른 알림을 놓치지 않는다.
+    UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

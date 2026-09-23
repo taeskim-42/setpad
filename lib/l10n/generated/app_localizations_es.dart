@@ -1466,4 +1466,207 @@ class LEs extends L {
   String liveExerciseRemoved(String exercise) {
     return 'Alguien de tu sesión eliminó $exercise. Lo que escribías sigue en la línea de entrada.';
   }
+
+  @override
+  String get trainerReport => 'Informe del entrenador';
+
+  @override
+  String get trainerUnread => 'Informe nuevo';
+
+  @override
+  String trainerRanAt(String when) {
+    return 'Preparado $when';
+  }
+
+  @override
+  String get trainerRunNow => 'Preparar ahora';
+
+  @override
+  String get trainerNoReport => 'Aún no hay informe. ¿Preparar uno ahora?';
+
+  @override
+  String get trainerOutdated =>
+      'Este informe requiere una versión más reciente. Actualiza la app.';
+
+  @override
+  String get trainerFailed =>
+      'No se pudo conectar con el servidor. Inténtalo de nuevo en un momento.';
+
+  @override
+  String get trainerActUnknown =>
+      'No se pudo confirmar el resultado. Si vuelves a tocar, no se registrará dos veces.';
+
+  @override
+  String get trainerDone => 'Hecho por el agente';
+
+  @override
+  String get trainerToday => 'Sesiones de hoy';
+
+  @override
+  String get trainerTodo => 'Por revisar';
+
+  @override
+  String get trainerAllClear => 'Ya está todo revisado.';
+
+  @override
+  String get trainerAttendance => 'Sesiones por cerrar';
+
+  @override
+  String trainerVisited(String time) {
+    return 'Visita confirmada $time';
+  }
+
+  @override
+  String trainerFinishAll(int count) {
+    return 'Completar todo ($count)';
+  }
+
+  @override
+  String trainerFinishAsk(int count) {
+    return 'Completar $count: se descuenta una sesión del bono de PT por cada una.';
+  }
+
+  @override
+  String get trainerFinish => 'Completar';
+
+  @override
+  String get trainerJoinRequest =>
+      'Solicitud de alta: revísala en la pantalla Hoy del CRM web.';
+
+  @override
+  String get trainerBook => 'Reservar';
+
+  @override
+  String get trainerSend => 'Enviar';
+
+  @override
+  String get trainerPaid => 'Pago recibido';
+
+  @override
+  String get trainerContacted => 'Contactado';
+
+  @override
+  String get trainerLater => 'Más tarde';
+
+  @override
+  String trainerPrice(int price) {
+    final intl.NumberFormat priceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String priceString = priceNumberFormat.format(price);
+
+    return '₩$priceString';
+  }
+
+  @override
+  String trainerStarts(String d) {
+    return 'Desde $d';
+  }
+
+  @override
+  String get trainerPayHow => '¿Cómo se pagó?';
+
+  @override
+  String get trainerPaidListPrice =>
+      'Se registra el precio completo como pagado. Para un descuento o un pago dividido, regístralo en la pestaña Membresía del miembro en el CRM web.';
+
+  @override
+  String get payCard => 'Tarjeta';
+
+  @override
+  String get payCash => 'Efectivo';
+
+  @override
+  String get payTransfer => 'Transferencia';
+
+  @override
+  String get payOther => 'Otro';
+
+  @override
+  String get agentSettings => 'Ajustes del agente';
+
+  @override
+  String get agentEnabled => 'Preparar a las horas fijadas';
+
+  @override
+  String get agentTimes => 'Horas del informe';
+
+  @override
+  String get agentAddTime => 'Añadir hora';
+
+  @override
+  String get agentDays => 'Días';
+
+  @override
+  String get agentAutoConfirm => 'Confirmar solicitudes de PT al instante';
+
+  @override
+  String get agentModes => 'Por tarea';
+
+  @override
+  String get agentModesHelp =>
+      'Manual: el agente no lo toca. Borrador: el agente lo prepara y tú lo terminas con un toque. Auto: el agente lo hace.';
+
+  @override
+  String get agentModeOff => 'Manual';
+
+  @override
+  String get agentModeDraft => 'Borrador';
+
+  @override
+  String get agentModeAuto => 'Auto';
+
+  @override
+  String get taskPtSchedule => 'Agenda de PT';
+
+  @override
+  String get taskRenewal => 'Renovaciones';
+
+  @override
+  String get taskAttendance => 'Asistencia';
+
+  @override
+  String get taskRoutine => 'Rutinas';
+
+  @override
+  String get taskContact => 'Contacto con socios';
+
+  @override
+  String get gymPolicy => 'Política del gimnasio';
+
+  @override
+  String get policyRenewalDays =>
+      'Momento del aviso de renovación (días antes)';
+
+  @override
+  String get policyLowSessions => 'Umbral de PT bajo (sesiones reservables)';
+
+  @override
+  String get policyAwayDays => 'Ausente tras (días)';
+
+  @override
+  String get policyLapsedDays => 'Baja tras (días)';
+
+  @override
+  String get policyOffer => 'Texto de la oferta de renovación';
+
+  @override
+  String get policySave => 'Guardar política';
+
+  @override
+  String get policySaved => 'Guardado.';
+
+  @override
+  String get trainerWhichGym => '¿Qué gimnasio?';
+
+  @override
+  String get trainerBack => 'Volver';
+
+  @override
+  String get trainerCopy => 'Copiar mensaje';
+
+  @override
+  String get trainerCopied => 'Copiado';
+
+  @override
+  String get settingsTrainer => 'Entrenador';
 }

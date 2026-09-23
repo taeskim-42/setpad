@@ -9,6 +9,11 @@
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
     <uses-permission android:name="android.permission.health.READ_HEART_RATE"/>
     <!-- 체중은 "건강 앱에서 가져오기" 를 눌렀을 때만 따로 묻는다(HealthLink.authorizeWeight). -->
+    <!-- 트레이너 보고 알림(lib/agent_alarm.dart). 재부팅하면 걸어 둔 알림이
+         지워지므로 플러그인이 다시 건다. 정확한 알람 권한(SCHEDULE_EXACT_ALARM,
+         USE_EXACT_ALARM)은 넣지 않는다 — Play 가 권한 사유로 거절한 전력이 있고,
+         몇 분 늦는 알림으로 충분하다. POST_NOTIFICATIONS 는 플러그인이 합쳐 준다. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <application
         android:label="setpad"
         android:name="${applicationName}"
@@ -81,6 +86,15 @@
                 <category android:name="android.intent.category.HEALTH_PERMISSIONS"/>
             </intent-filter>
         </activity-alias>
+        <!-- 걸어 둔 알림을 띄우고, 재부팅·앱 업데이트 뒤 다시 거는 플러그인 리시버. -->
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

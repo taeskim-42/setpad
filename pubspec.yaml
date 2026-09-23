@@ -54,6 +54,12 @@ dependencies:
   in_app_purchase_storekit: ^0.4.13
   app_links: ^7.2.1
   image_picker: ^1.2.3
+  # 트레이너에게 "에이전트 보고가 준비됐다" 를 정해진 요일·시각에 알린다
+  # (lib/agent_alarm.dart). 서버 푸시(APNs/FCM)를 새로 들이는 것보다 기기가
+  # 스스로 거는 편이 작다 — 시각은 설정에 이미 있다. timezone 은 이 플러그인이
+  # 시각을 TZDateTime 으로만 받아서 따라온다.
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.10.1
 
 dev_dependencies:
   flutter_test:

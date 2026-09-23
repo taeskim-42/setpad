@@ -1396,6 +1396,203 @@ class LZh extends L {
   String liveExerciseRemoved(String exercise) {
     return '一起训练的人删除了 $exercise。你正在输入的内容还在输入栏里。';
   }
+
+  @override
+  String get trainerReport => '教练报告';
+
+  @override
+  String get trainerUnread => '新报告';
+
+  @override
+  String trainerRanAt(String when) {
+    return '$when 整理';
+  }
+
+  @override
+  String get trainerRunNow => '立即整理';
+
+  @override
+  String get trainerNoReport => '还没有报告。现在整理一份吗？';
+
+  @override
+  String get trainerOutdated => '此报告需要新版本查看，请更新应用。';
+
+  @override
+  String get trainerFailed => '无法连接服务器，请稍后再试。';
+
+  @override
+  String get trainerActUnknown => '未能确认结果。再按一次也不会重复记录。';
+
+  @override
+  String get trainerDone => '代理已处理';
+
+  @override
+  String get trainerToday => '今日课程';
+
+  @override
+  String get trainerTodo => '待确认';
+
+  @override
+  String get trainerAllClear => '待确认事项已全部处理。';
+
+  @override
+  String get trainerAttendance => '待收尾的课程';
+
+  @override
+  String trainerVisited(String time) {
+    return '确认到店 $time';
+  }
+
+  @override
+  String trainerFinishAll(int count) {
+    return '全部完成 ($count)';
+  }
+
+  @override
+  String trainerFinishAsk(int count) {
+    return '完成 $count 项 — 每项从私教课次卡扣除 1 次。';
+  }
+
+  @override
+  String get trainerFinish => '确认完成';
+
+  @override
+  String get trainerJoinRequest => '注册申请 — 请在网页版 CRM 的“今天”页面确认。';
+
+  @override
+  String get trainerBook => '预约';
+
+  @override
+  String get trainerSend => '发送';
+
+  @override
+  String get trainerPaid => '已收款';
+
+  @override
+  String get trainerContacted => '已联系';
+
+  @override
+  String get trainerLater => '稍后';
+
+  @override
+  String trainerPrice(int price) {
+    final intl.NumberFormat priceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String priceString = priceNumberFormat.format(price);
+
+    return '₩$priceString';
+  }
+
+  @override
+  String trainerStarts(String d) {
+    return '$d起';
+  }
+
+  @override
+  String get trainerPayHow => '以什么方式收款？';
+
+  @override
+  String get trainerPaidListPrice =>
+      '将按商品原价记为已收款。折扣或分期收款请在网页 CRM 会员页面的会员卡标签中登记。';
+
+  @override
+  String get payCard => '刷卡';
+
+  @override
+  String get payCash => '现金';
+
+  @override
+  String get payTransfer => '转账';
+
+  @override
+  String get payOther => '其他';
+
+  @override
+  String get agentSettings => '代理设置';
+
+  @override
+  String get agentEnabled => '在设定时间整理';
+
+  @override
+  String get agentTimes => '整理时间';
+
+  @override
+  String get agentAddTime => '添加时间';
+
+  @override
+  String get agentDays => '星期';
+
+  @override
+  String get agentAutoConfirm => '私教申请立即确认';
+
+  @override
+  String get agentModes => '按任务';
+
+  @override
+  String get agentModesHelp => '手动 — 代理不处理。草稿 — 代理准备好，你点一下完成。自动 — 代理直接处理。';
+
+  @override
+  String get agentModeOff => '手动';
+
+  @override
+  String get agentModeDraft => '草稿';
+
+  @override
+  String get agentModeAuto => '自动';
+
+  @override
+  String get taskPtSchedule => '私教日程';
+
+  @override
+  String get taskRenewal => '续费';
+
+  @override
+  String get taskAttendance => '出勤整理';
+
+  @override
+  String get taskRoutine => '训练计划';
+
+  @override
+  String get taskContact => '联系会员';
+
+  @override
+  String get gymPolicy => '健身房规则';
+
+  @override
+  String get policyRenewalDays => '续费提醒时间（到期前几天）';
+
+  @override
+  String get policyLowSessions => '私教课不足标准（可预约次数）';
+
+  @override
+  String get policyAwayDays => '未到店标准（天）';
+
+  @override
+  String get policyLapsedDays => '流失期限（天）';
+
+  @override
+  String get policyOffer => '续费优惠文案';
+
+  @override
+  String get policySave => '保存规则';
+
+  @override
+  String get policySaved => '已保存。';
+
+  @override
+  String get trainerWhichGym => '哪一家健身房？';
+
+  @override
+  String get trainerBack => '返回';
+
+  @override
+  String get trainerCopy => '复制文案';
+
+  @override
+  String get trainerCopied => '已复制';
+
+  @override
+  String get settingsTrainer => '教练';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -2790,6 +2987,203 @@ class LZhHans extends LZh {
   String liveExerciseRemoved(String exercise) {
     return '一起训练的人删除了 $exercise。你正在输入的内容还在输入栏里。';
   }
+
+  @override
+  String get trainerReport => '教练报告';
+
+  @override
+  String get trainerUnread => '新报告';
+
+  @override
+  String trainerRanAt(String when) {
+    return '$when 整理';
+  }
+
+  @override
+  String get trainerRunNow => '立即整理';
+
+  @override
+  String get trainerNoReport => '还没有报告。现在整理一份吗？';
+
+  @override
+  String get trainerOutdated => '此报告需要新版本查看，请更新应用。';
+
+  @override
+  String get trainerFailed => '无法连接服务器，请稍后再试。';
+
+  @override
+  String get trainerActUnknown => '未能确认结果。再按一次也不会重复记录。';
+
+  @override
+  String get trainerDone => '代理已处理';
+
+  @override
+  String get trainerToday => '今日课程';
+
+  @override
+  String get trainerTodo => '待确认';
+
+  @override
+  String get trainerAllClear => '待确认事项已全部处理。';
+
+  @override
+  String get trainerAttendance => '待收尾的课程';
+
+  @override
+  String trainerVisited(String time) {
+    return '确认到店 $time';
+  }
+
+  @override
+  String trainerFinishAll(int count) {
+    return '全部完成 ($count)';
+  }
+
+  @override
+  String trainerFinishAsk(int count) {
+    return '完成 $count 项 — 每项从私教课次卡扣除 1 次。';
+  }
+
+  @override
+  String get trainerFinish => '确认完成';
+
+  @override
+  String get trainerJoinRequest => '注册申请 — 请在网页版 CRM 的“今天”页面确认。';
+
+  @override
+  String get trainerBook => '预约';
+
+  @override
+  String get trainerSend => '发送';
+
+  @override
+  String get trainerPaid => '已收款';
+
+  @override
+  String get trainerContacted => '已联系';
+
+  @override
+  String get trainerLater => '稍后';
+
+  @override
+  String trainerPrice(int price) {
+    final intl.NumberFormat priceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String priceString = priceNumberFormat.format(price);
+
+    return '₩$priceString';
+  }
+
+  @override
+  String trainerStarts(String d) {
+    return '$d起';
+  }
+
+  @override
+  String get trainerPayHow => '以什么方式收款？';
+
+  @override
+  String get trainerPaidListPrice =>
+      '将按商品原价记为已收款。折扣或分期收款请在网页 CRM 会员页面的会员卡标签中登记。';
+
+  @override
+  String get payCard => '刷卡';
+
+  @override
+  String get payCash => '现金';
+
+  @override
+  String get payTransfer => '转账';
+
+  @override
+  String get payOther => '其他';
+
+  @override
+  String get agentSettings => '代理设置';
+
+  @override
+  String get agentEnabled => '在设定时间整理';
+
+  @override
+  String get agentTimes => '整理时间';
+
+  @override
+  String get agentAddTime => '添加时间';
+
+  @override
+  String get agentDays => '星期';
+
+  @override
+  String get agentAutoConfirm => '私教申请立即确认';
+
+  @override
+  String get agentModes => '按任务';
+
+  @override
+  String get agentModesHelp => '手动 — 代理不处理。草稿 — 代理准备好，你点一下完成。自动 — 代理直接处理。';
+
+  @override
+  String get agentModeOff => '手动';
+
+  @override
+  String get agentModeDraft => '草稿';
+
+  @override
+  String get agentModeAuto => '自动';
+
+  @override
+  String get taskPtSchedule => '私教日程';
+
+  @override
+  String get taskRenewal => '续费';
+
+  @override
+  String get taskAttendance => '出勤整理';
+
+  @override
+  String get taskRoutine => '训练计划';
+
+  @override
+  String get taskContact => '联系会员';
+
+  @override
+  String get gymPolicy => '健身房规则';
+
+  @override
+  String get policyRenewalDays => '续费提醒时间（到期前几天）';
+
+  @override
+  String get policyLowSessions => '私教课不足标准（可预约次数）';
+
+  @override
+  String get policyAwayDays => '未到店标准（天）';
+
+  @override
+  String get policyLapsedDays => '流失期限（天）';
+
+  @override
+  String get policyOffer => '续费优惠文案';
+
+  @override
+  String get policySave => '保存规则';
+
+  @override
+  String get policySaved => '已保存。';
+
+  @override
+  String get trainerWhichGym => '哪一家健身房？';
+
+  @override
+  String get trainerBack => '返回';
+
+  @override
+  String get trainerCopy => '复制文案';
+
+  @override
+  String get trainerCopied => '已复制';
+
+  @override
+  String get settingsTrainer => '教练';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -4183,4 +4577,201 @@ class LZhHant extends LZh {
   String liveExerciseRemoved(String exercise) {
     return '一起訓練的人刪除了 $exercise。你正在輸入的內容還在輸入欄裡。';
   }
+
+  @override
+  String get trainerReport => '教練報告';
+
+  @override
+  String get trainerUnread => '新報告';
+
+  @override
+  String trainerRanAt(String when) {
+    return '$when 整理';
+  }
+
+  @override
+  String get trainerRunNow => '立即整理';
+
+  @override
+  String get trainerNoReport => '還沒有報告。現在整理一份嗎？';
+
+  @override
+  String get trainerOutdated => '此報告需要新版本查看，請更新 App。';
+
+  @override
+  String get trainerFailed => '無法連線伺服器，請稍後再試。';
+
+  @override
+  String get trainerActUnknown => '未能確認結果。再按一次也不會重複記錄。';
+
+  @override
+  String get trainerDone => '代理已處理';
+
+  @override
+  String get trainerToday => '今日課程';
+
+  @override
+  String get trainerTodo => '待確認';
+
+  @override
+  String get trainerAllClear => '待確認事項已全部處理。';
+
+  @override
+  String get trainerAttendance => '待收尾的課程';
+
+  @override
+  String trainerVisited(String time) {
+    return '確認到店 $time';
+  }
+
+  @override
+  String trainerFinishAll(int count) {
+    return '全部完成 ($count)';
+  }
+
+  @override
+  String trainerFinishAsk(int count) {
+    return '完成 $count 項 — 每項從私教課次卡扣除 1 次。';
+  }
+
+  @override
+  String get trainerFinish => '確認完成';
+
+  @override
+  String get trainerJoinRequest => '註冊申請 — 請在網頁版 CRM 的「今天」頁面確認。';
+
+  @override
+  String get trainerBook => '預約';
+
+  @override
+  String get trainerSend => '傳送';
+
+  @override
+  String get trainerPaid => '已收款';
+
+  @override
+  String get trainerContacted => '已聯絡';
+
+  @override
+  String get trainerLater => '稍後';
+
+  @override
+  String trainerPrice(int price) {
+    final intl.NumberFormat priceNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String priceString = priceNumberFormat.format(price);
+
+    return '₩$priceString';
+  }
+
+  @override
+  String trainerStarts(String d) {
+    return '$d起';
+  }
+
+  @override
+  String get trainerPayHow => '以什麼方式收款？';
+
+  @override
+  String get trainerPaidListPrice =>
+      '將按商品原價記為已收款。折扣或分期收款請在網頁 CRM 會員頁面的會員卡分頁中登記。';
+
+  @override
+  String get payCard => '刷卡';
+
+  @override
+  String get payCash => '現金';
+
+  @override
+  String get payTransfer => '轉帳';
+
+  @override
+  String get payOther => '其他';
+
+  @override
+  String get agentSettings => '代理設定';
+
+  @override
+  String get agentEnabled => '在設定時間整理';
+
+  @override
+  String get agentTimes => '整理時間';
+
+  @override
+  String get agentAddTime => '新增時間';
+
+  @override
+  String get agentDays => '星期';
+
+  @override
+  String get agentAutoConfirm => '私教申請立即確認';
+
+  @override
+  String get agentModes => '按任務';
+
+  @override
+  String get agentModesHelp => '手動 — 代理不處理。草稿 — 代理準備好，你點一下完成。自動 — 代理直接處理。';
+
+  @override
+  String get agentModeOff => '手動';
+
+  @override
+  String get agentModeDraft => '草稿';
+
+  @override
+  String get agentModeAuto => '自動';
+
+  @override
+  String get taskPtSchedule => '私教日程';
+
+  @override
+  String get taskRenewal => '續費';
+
+  @override
+  String get taskAttendance => '出勤整理';
+
+  @override
+  String get taskRoutine => '訓練計畫';
+
+  @override
+  String get taskContact => '聯絡會員';
+
+  @override
+  String get gymPolicy => '健身房規則';
+
+  @override
+  String get policyRenewalDays => '續費提醒時間（到期前幾天）';
+
+  @override
+  String get policyLowSessions => '私教課不足標準（可預約次數）';
+
+  @override
+  String get policyAwayDays => '未到店標準（天）';
+
+  @override
+  String get policyLapsedDays => '流失期限（天）';
+
+  @override
+  String get policyOffer => '續費優惠文案';
+
+  @override
+  String get policySave => '儲存規則';
+
+  @override
+  String get policySaved => '已儲存。';
+
+  @override
+  String get trainerWhichGym => '哪一家健身房？';
+
+  @override
+  String get trainerBack => '返回';
+
+  @override
+  String get trainerCopy => '複製文案';
+
+  @override
+  String get trainerCopied => '已複製';
+
+  @override
+  String get settingsTrainer => '教練';
 }
