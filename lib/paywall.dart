@@ -17,6 +17,9 @@ const freeInputPerDay = 10;
 const proInputPerDay = 20;
 const proPlatesPerMonth = 300;
 
+/// 연간의 무료 체험 동안은 이만큼만 채운다. 결제가 시작되면 위의 달 채움.
+const proTrialPlates = 30;
+
 /// App Store 의 표준 이용약관. 따로 약관을 두지 않은 앱은 이것을 건다.
 const appleEulaUrl =
     'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
@@ -177,7 +180,8 @@ class _PaywallState extends State<Paywall> {
                             Padding(
                               padding: const EdgeInsets.only(top: 6),
                               child: Text(
-                                l.planYearlyTrial(days, price),
+                                '${l.planYearlyTrial(days, price)}\n'
+                                '${l.planYearlyTrialPlates(proTrialPlates)}',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 13, color: muted),
                               ),

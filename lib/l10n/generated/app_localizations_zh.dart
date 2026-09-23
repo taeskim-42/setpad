@@ -471,6 +471,11 @@ class LZh extends L {
   }
 
   @override
+  String planYearlyTrialPlates(int n) {
+    return '免费试用期间补满到 $n 片。开始扣费后改为每月补满。';
+  }
+
+  @override
   String get planActive => '使用中';
 
   @override
@@ -2082,6 +2087,11 @@ class LZhHans extends LZh {
   }
 
   @override
+  String planYearlyTrialPlates(int n) {
+    return '免费试用期间补满到 $n 片。开始扣费后改为每月补满。';
+  }
+
+  @override
   String get planActive => '使用中';
 
   @override
@@ -3690,6 +3700,11 @@ class LZhHant extends LZh {
   @override
   String planYearlyTrial(int days, String price) {
     return '免費試用 $days 天，之後每年 $price。在試用結束前至少 24 小時取消，就不會扣款。';
+  }
+
+  @override
+  String planYearlyTrialPlates(int n) {
+    return '免費試用期間補滿到 $n 片。開始扣款後改為每月補滿。';
   }
 
   @override

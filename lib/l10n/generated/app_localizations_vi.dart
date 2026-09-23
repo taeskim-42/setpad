@@ -485,6 +485,11 @@ class LVi extends L {
   }
 
   @override
+  String planYearlyTrialPlates(int n) {
+    return 'Trong thời gian dùng thử miễn phí, nạp đầy đến $n bánh tạ. Khi bắt đầu tính phí sẽ chuyển sang nạp hằng tháng.';
+  }
+
+  @override
   String get planActive => 'Đang dùng';
 
   @override

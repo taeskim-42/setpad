@@ -442,6 +442,15 @@
       }
     }
   },
+  "planYearlyTrialPlates": "무료 체험 동안은 원판 {n}장까지 채웁니다. 결제가 시작되면 매달 채움으로 바뀝니다.",
+  "@planYearlyTrialPlates": {
+    "description": "연간 체험 안내 밑. 체험 동안 원판은 n장까지만(서버 lib/plate-pricing.ts PRO_TRIAL_CENTS).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "planActive": "이용 중",
   "restorePurchases": "구매 복원",
   "subscriptionRenews": "구독은 현재 기간이 끝나기 24시간 전까지 해지하지 않으면 같은 값으로 자동 갱신됩니다. 해지는 스토어의 구독 관리에서 언제든 할 수 있습니다.",

@@ -486,6 +486,11 @@ class LEn extends L {
   }
 
   @override
+  String planYearlyTrialPlates(int n) {
+    return 'During the free trial, plates are topped up to $n. Monthly top-ups start once billing does.';
+  }
+
+  @override
   String get planActive => 'Active';
 
   @override

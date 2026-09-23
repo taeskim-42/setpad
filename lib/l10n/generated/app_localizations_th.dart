@@ -483,6 +483,11 @@ class LTh extends L {
   }
 
   @override
+  String planYearlyTrialPlates(int n) {
+    return 'ระหว่างทดลองใช้ฟรี เติมแผ่นน้ำหนักให้ถึง $n แผ่น เมื่อเริ่มเรียกเก็บเงินจะเป็นการเติมรายเดือน';
+  }
+
+  @override
   String get planActive => 'กำลังใช้งาน';
 
   @override

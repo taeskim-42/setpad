@@ -478,6 +478,11 @@ class LKo extends L {
   }
 
   @override
+  String planYearlyTrialPlates(int n) {
+    return '무료 체험 동안은 원판 $n장까지 채웁니다. 결제가 시작되면 매달 채움으로 바뀝니다.';
+  }
+
+  @override
   String get planActive => '이용 중';
 
   @override

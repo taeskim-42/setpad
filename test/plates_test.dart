@@ -545,7 +545,14 @@ void main() {
         ..token = 'account-token';
       await openPaywall(tester, account);
       final l = await L.delegate.load(const Locale('ko'));
-      expect(find.text(l.planYearlyTrial(7, '\$19.99')), findsOneWidget);
+      // 체험 동안은 원판 30장뿐이라는 것도 같은 자리에 적는다(서버 PRO_TRIAL_CENTS).
+      expect(
+        find.text(
+          '${l.planYearlyTrial(7, '\$19.99')}\n'
+          '${l.planYearlyTrialPlates(proTrialPlates)}',
+        ),
+        findsOneWidget,
+      );
       expect(find.text('${l.planYearly} · \$19.99'), findsOneWidget);
       expect(find.textContaining(l.planMonthly), findsNothing);
       expect(
@@ -568,6 +575,7 @@ void main() {
       await openPaywall(tester, Account(client: _server([]), purchases: purchases)
         ..token = 'account-token');
       expect(find.textContaining(l.planYearlyTrial(7, '').split(' ').first), findsNothing);
+      expect(find.textContaining(l.planYearlyTrialPlates(proTrialPlates)), findsNothing);
       expect(find.text('${l.planYearly} · \$19.99'), findsOneWidget);
     });
 

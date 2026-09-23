@@ -124,6 +124,7 @@
   "planMonthly": "月額プラン",
   "planYearly": "年額プラン",
   "planYearlyTrial": "{days}日間の無料体験後、年額{price}。体験終了の24時間前までに解約すれば請求されません。",
+  "planYearlyTrialPlates": "無料体験中はプレートを{n}枚まで補充します。課金が始まると毎月の補充になります。",
   "planActive": "利用中",
   "restorePurchases": "購入を復元",
   "subscriptionRenews": "サブスクリプションは、現在の期間が終わる24時間前までに解約しない限り、同じ価格で自動更新されます。解約はストアのサブスクリプション管理からいつでもできます。",

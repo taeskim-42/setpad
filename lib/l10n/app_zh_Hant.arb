@@ -124,6 +124,7 @@
   "planMonthly": "月費方案",
   "planYearly": "年費方案",
   "planYearlyTrial": "免費試用 {days} 天，之後每年 {price}。在試用結束前至少 24 小時取消，就不會扣款。",
+  "planYearlyTrialPlates": "免費試用期間補滿到 {n} 片。開始扣款後改為每月補滿。",
   "planActive": "使用中",
   "restorePurchases": "回復購買",
   "subscriptionRenews": "除非在目前週期結束前至少 24 小時取消，訂閱會以相同價格自動續訂。可隨時在商店的訂閱管理中取消。",

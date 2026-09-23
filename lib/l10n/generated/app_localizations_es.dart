@@ -486,6 +486,11 @@ class LEs extends L {
   }
 
   @override
+  String planYearlyTrialPlates(int n) {
+    return 'Durante la prueba gratis, los discos se recargan hasta $n. La recarga mensual empieza cuando empieza el cobro.';
+  }
+
+  @override
   String get planActive => 'Activo';
 
   @override

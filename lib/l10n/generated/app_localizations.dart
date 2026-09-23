@@ -853,6 +853,12 @@ abstract class L {
   /// **'{days}일 무료 체험 뒤 연 {price}. 체험이 끝나기 24시간 전까지 해지하면 청구되지 않습니다.'**
   String planYearlyTrial(int days, String price);
 
+  /// 연간 체험 안내 밑. 체험 동안 원판은 n장까지만(서버 lib/plate-pricing.ts PRO_TRIAL_CENTS).
+  ///
+  /// In ko, this message translates to:
+  /// **'무료 체험 동안은 원판 {n}장까지 채웁니다. 결제가 시작되면 매달 채움으로 바뀝니다.'**
+  String planYearlyTrialPlates(int n);
+
   /// No description provided for @planActive.
   ///
   /// In ko, this message translates to:

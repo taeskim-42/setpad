@@ -476,6 +476,11 @@ class LJa extends L {
   }
 
   @override
+  String planYearlyTrialPlates(int n) {
+    return '無料体験中はプレートを$n枚まで補充します。課金が始まると毎月の補充になります。';
+  }
+
+  @override
   String get planActive => '利用中';
 
   @override

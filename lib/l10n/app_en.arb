@@ -124,6 +124,7 @@
   "planMonthly": "Monthly",
   "planYearly": "Yearly",
   "planYearlyTrial": "{days}-day free trial, then {price} a year. Cancel at least 24 hours before the trial ends and you won't be charged.",
+  "planYearlyTrialPlates": "During the free trial, plates are topped up to {n}. Monthly top-ups start once billing does.",
   "planActive": "Active",
   "restorePurchases": "Restore purchases",
   "subscriptionRenews": "Subscriptions renew automatically at the same price unless canceled at least 24 hours before the current period ends. Cancel anytime in your store's subscription settings.",

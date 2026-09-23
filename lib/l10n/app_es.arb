@@ -124,6 +124,7 @@
   "planMonthly": "Mensual",
   "planYearly": "Anual",
   "planYearlyTrial": "Prueba gratis de {days} días y luego {price} al año. Cancela al menos 24 horas antes de que termine la prueba y no se te cobrará.",
+  "planYearlyTrialPlates": "Durante la prueba gratis, los discos se recargan hasta {n}. La recarga mensual empieza cuando empieza el cobro.",
   "planActive": "Activo",
   "restorePurchases": "Restaurar compras",
   "subscriptionRenews": "La suscripción se renueva automáticamente al mismo precio salvo que la canceles al menos 24 horas antes de que termine el periodo actual. Puedes cancelarla cuando quieras en la gestión de suscripciones de la tienda.",
