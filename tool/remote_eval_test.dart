@@ -22,7 +22,7 @@ typedef _Case = ({
 /// 같은 질문, 같은 지시문, 같은 채점기 — 운영 모델을 직접 불러 잰다.
 ///
 /// **test/ 밖에 둔다.** 진짜 API 를 부르고 키가 있어야 하므로 평소 스위트에
-/// 섞이면 안 된다. 키가 없으면 건너뛴다. 재려면(약 257 + 212 + 295 = 764문항,
+/// 섞이면 안 된다. 키가 없으면 건너뛴다. 재려면(약 257 + 212 + 295 + 48 = 812문항,
 /// 사용자 승인 뒤에):
 ///
 ///     DEEPSEEK_API_KEY=... flutter test --no-pub tool/remote_eval_test.dart
@@ -39,11 +39,22 @@ typedef _Case = ({
 /// §3.5 + 검토 gaps) 위반이다.
 ///
 /// 모음:
-/// - v3: tool/questions/v3.json 257문항. 기록 이름은 문항마다(코퍼스 assumedLog 를
-///   그 언어의 사전 이름으로) — '한쪽 없음'·'퍼지 바꿔치기' 를 재려면 안 적은
-///   운동이 목록에 없어야 한다.
+/// - v3: tool/questions/v3.json 257문항. 기록 이름은 문항마다 사람이 친 듯한 목록
+///   이다 — 줄임말('벤치'·'데드'·'DL'), 별칭('스쾃'·'OHP'), 다른 언어 이름, 타이머
+///   제목('푸시업 60bpm'), 사전에 없는 제 이름('홈트 서킷') 둘. 사전 정식 이름만
+///   있으면 '적은 적 없다고 잘못 읽음'·'바꿔치기' 가 구조적으로 0 이다.
 /// - v2: v2.json 212문항, 정답은 [v3Gold] 로 옮긴 것. 이름은 그 언어 사전 전체.
 /// - heldout: v1 정답 → [v2Expected] → [v3Alternatives]. 이름은 [koNames].
+/// - final: tool/questions/final.json 48문항 — **떼어 둔 최종 모음**이다. v3·v2·
+///   heldout 은 지시문을 고치며 들여다본 조정용이라(heldout 도 네 번 조정에
+///   쓰였다) 더는 떼어 둔 평가가 아니다. final 은 지시문을 고칠 때 보지 않고, 한
+///   번만 잰다. 끝에서 N번째(오늘 vs 지난번)·그 뒤로·메모 상태·부분 합계·기준
+///   수·사람 이름을 담았다.
+///
+/// 판정(설계 §12.3 + v3 재검토): 사람에게 답이 없는 것은 모두 deadEnd 다 — 거절,
+/// 그리고 셀 수 있는 질문인데 앱이 받지 못한 무효 답·한도 거절. swapped 는 정답의
+/// never 가 기록 운동으로 바뀐 것에 더해, 규칙 층이 모델도 정답도 말하지 않은 기록
+/// 운동을 plan 에 넣은 것도 센다.
 ///
 /// `EVAL_DUMP=파일` 이면 모델의 날것 대답을 JSONL 로 남긴다. `EVAL_REPLAY=파일`
 /// 이면 API 대신 그 대답을 다시 먹인다 — 채점기만 바꿨을 때 모델을 다시 부르지
@@ -173,7 +184,7 @@ void main() {
 
   List<_Case> cases(String set) => [
     for (final c in load(set))
-      if (set == 'v3')
+      if (set == 'v3' || set == 'final')
         (
           q: c['q'] as String,
           lang: c['lang'] as String,
@@ -215,11 +226,11 @@ void main() {
   /// 문턱. 비율은 채점한 문항 중 %, 개수는 문항 수. 설계 §12.3 표와 검토 gap 4
   /// (falseNever·dictSwap 도 문턱). v2.json·heldout 은 v2 의 마지막 측정(v2 정확
   /// 92.0%·무효 1.9%·자신 있게 틀림 5.7%, heldout 93.2%·1.0%)에서 −1pt 까지.
-  const minExact = {'v3': 85.0, 'v2': 91.0, 'heldout': 92.2};
-  const maxInvalid = {'v3': 2.0, 'v2': 2.9, 'heldout': 2.0};
-  const maxSure = {'v3': 4.0, 'v2': 5.7};
+  const minExact = {'v3': 85.0, 'v2': 91.0, 'heldout': 92.2, 'final': 85.0};
+  const maxInvalid = {'v3': 2.0, 'v2': 2.9, 'heldout': 2.0, 'final': 2.0};
+  const maxSure = {'v3': 4.0, 'v2': 5.7, 'final': 4.0};
 
-  for (final set in ['v3', 'v2', 'heldout']) {
+  for (final set in ['v3', 'v2', 'heldout', 'final']) {
     test(
       '$model 로 $set 을 잰다',
       () async {
@@ -296,15 +307,37 @@ void main() {
               for (final t in tallies) {
                 t[1]++;
               }
+              // 셀 수 있는 질문인데 앱이 받지 못했다(모양 실수·한도) — 사람에게는
+              // 답이 없다.
+              final dead = goldCountable(
+                c.gold,
+                names: c.names,
+                lang: c.lang,
+                question: c.q,
+              );
+              if (dead) count['deadEnd'] = (count['deadEnd'] ?? 0) + 1;
               wrong.add(
-                '[${c.lang} ${c.cat}] ${c.q} → 무효 ${err.message} ⟨${raw()}⟩',
+                '[${c.lang} ${c.cat}]${dead ? ' <deadEnd>' : ''} ${c.q} → 무효 ${err.message} ⟨${raw()}⟩',
               );
               continue;
             }
             for (final t in tallies) {
               t[1]++;
             }
-            final v = verdicts(grade);
+            final v = {
+              ...verdicts(grade),
+              // 규칙 층이 모델도 정답도 말하지 않은 기록 운동을 넣었다(베트남어
+              // 'chung' → 런지). 모델 답의 이름과 견준다.
+              if (ruleSwapped(
+                plan,
+                grade,
+                names: c.names,
+                lang: c.lang,
+                question: c.q,
+                resolve: (n) => resolvedExercise(n, c.names, lang: c.lang),
+              ))
+                'swapped',
+            };
             for (final flag in v) {
               count[flag] = (count[flag] ?? 0) + 1;
             }
@@ -392,8 +425,11 @@ void main() {
             for (final e in perLang.entries)
               if (rate(e.value[0], e.value[1]) < 80)
                 '언어 ${e.key} ${pct(e.value[0], e.value[1])} < 80%',
-            if (replay.isEmpty && avgTokens > 2600) '평균 토큰 $avgTokens > 2600',
           ],
+          if ((set == 'v3' || set == 'final') &&
+              replay.isEmpty &&
+              avgTokens > 2600)
+            '평균 토큰 $avgTokens > 2600',
         ];
         // ignore: avoid_print
         print('$set 문턱: ${failed.isEmpty ? '모두 넘음' : failed.join(' · ')}');

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/exercises.dart';
+import 'package:setpad/record_query.dart' show exerciseKey;
 
 import 'question_grading.dart';
 
@@ -10,7 +11,7 @@ import 'question_grading.dart';
 ///
 ///     flutter test tool/question_grading_test.dart
 ///
-/// 정답 257문항(v3)과 옮긴 v2·dev·heldout 정답이 모두 문법을 지나는지, 정답이
+/// 정답 257문항(v3)·떼어 둔 48문항(final)과 옮긴 v2·dev·heldout 정답이 모두 문법을 지나는지, 정답이
 /// 자기와 견주면 맞음인지, 지표(deadEnd·swapped …)가 뜻대로 서는지 본다.
 List<Map<String, Object?>> _load(String name) =>
     (jsonDecode(File('tool/questions/$name.json').readAsStringSync()) as List)
@@ -20,6 +21,34 @@ List<Map<String, Object?>> _load(String name) =>
 
 /// 코퍼스 assumedLog 의 안 적은 운동. 정답의 never 는 이것뿐이어야 한다.
 const _notLogged = ['바벨로우', '힙쓰러스트', '케틀벨 스윙', '클린', '머슬업', '딥스', '수영'];
+
+/// v3·final 문항의 기록 이름은 사람이 친 듯한 목록이다. 사전 정식 이름 20개 중
+/// 몇을 줄임말·별칭·다른 언어·타이머 제목으로 바꾸고, 사전에 없는 제 이름 둘을
+/// 더했다. 바꾼 이름은 앱이 같은 운동으로 잇는다 — 그래서 정답은 정식 이름 그대로다.
+const _typed = {
+  '벤치': '벤치프레스',
+  '스쾃': '스쿼트',
+  '데드': '데드리프트',
+  'OHP': '오버헤드프레스',
+  '랫풀': '랫풀다운',
+  'Leg Press': '레그프레스',
+  '푸시업 60bpm': '푸시업',
+  '버피 타바타 20/10 8라운드': '버피',
+  'Bench': 'Bench Press',
+  'Back Squat': 'Squat',
+  'DL': 'Deadlift',
+  '랫풀다운': 'Lat Pulldown',
+  'Push Up 60bpm': 'Push Up',
+  'Bench Press': 'ベンチプレス',
+  'Squat': 'スクワット',
+  'デッド': 'デッドリフト',
+  'プッシュアップ 60bpm': 'プッシュアップ',
+  '俯卧撑 60bpm': '俯卧撑',
+  '伏地挺身 60bpm': '伏地挺身',
+  'Flexiones 60bpm': 'Flexiones',
+  'Hít Đất 60bpm': 'Hít Đất',
+  'วิดพื้น 60bpm': 'วิดพื้น',
+};
 
 const _ko = [
   '벤치프레스',
@@ -67,15 +96,36 @@ void main() {
         {'ko', 'en', 'ja', 'zh_Hans', 'zh_Hant', 'es', 'vi', 'th'},
       );
       for (final c in v3) {
-        expect(c['names'], hasLength(20), reason: '${c['id']}');
+        expect(c['names'], hasLength(22), reason: '${c['id']}');
         expect(c['gold'], isNotEmpty, reason: '${c['id']}');
+      }
+    });
+
+    test('사람이 친 이름은 앱이 그 정식 운동으로 잇고, 제 이름은 사전 운동이 아니다', () {
+      final dictionary = {for (final e in exercises) e.ko};
+      for (final c in [...v3, ..._load('final')]) {
+        final names = (c['names'] as List).cast<String>();
+        for (final n in names) {
+          final canonical = _typed[n];
+          if (canonical != null) {
+            expect(
+              exerciseKey(n),
+              exerciseKey(canonical),
+              reason: '${c['id']} $n',
+            );
+          }
+        }
+        // 끝의 둘은 사람이 지은 이름이다.
+        for (final n in names.skip(names.length - 2)) {
+          expect(dictionary, isNot(contains(exerciseKey(n))), reason: n);
+        }
       }
     });
 
     test('모든 정답 대안이 문법을 지나고, never 는 안 적은 운동뿐이다', () {
       final notLogged = {for (final n in _notLogged) exerciseIdentity(n)};
       var plans = 0;
-      for (final c in v3) {
+      for (final c in [...v3, ..._load('final')]) {
         final names = (c['names'] as List).cast<String>();
         for (final g in c['gold'] as List) {
           final Map<String, Object?> shape;
@@ -102,7 +152,7 @@ void main() {
 
     test('정답 대안은 모델 답으로 넣어도(이름 퍼지 켬) 맞음이고 지표가 서지 않는다', () {
       final flagged = <String>[];
-      for (final c in v3) {
+      for (final c in [...v3, ..._load('final')]) {
         for (final g in c['gold'] as List) {
           final grade = gradePlan(
             g,
@@ -683,6 +733,50 @@ void main() {
   });
 
   group('지표', () {
+    test('v3 재검토: 규칙 층이 넣은 기록 운동은 swapped, 셀 수 있는 질문의 무효는 막다른 길', () {
+      final vi = seedNames('vi');
+      const q = 'nhìn chung việc tập của tôi thế nào?';
+      final gold = [
+        {'by': 'exercise'},
+      ];
+      Grade grade(Object? got) =>
+          gradePlan(got, gold, names: vi, lang: 'vi', question: q);
+      // 모델은 맞게 {"by":"exercise"}, 앱이 런지 하나로 바꿨다.
+      expect(
+        ruleSwapped(
+          {'by': 'exercise'},
+          grade({
+            'exercises': ['Chùng Chân'],
+          }),
+          names: vi,
+          lang: 'vi',
+          question: q,
+        ),
+        isTrue,
+      );
+      expect(
+        ruleSwapped(
+          {'by': 'exercise'},
+          grade({'by': 'exercise'}),
+          names: vi,
+          lang: 'vi',
+          question: q,
+        ),
+        isFalse,
+      );
+      expect(goldCountable(gold, names: vi, lang: 'vi'), isTrue);
+      expect(
+        goldCountable(
+          [
+            {'kind': 'unrelated'},
+          ],
+          names: vi,
+          lang: 'vi',
+        ),
+        isFalse,
+      );
+    });
+
     final withRow = [
       {
         'exercises': ['벤치프레스', '바벨로우'],

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:setpad/exercises.dart';
 import 'package:setpad/parser.dart';
+import 'package:setpad/record_query.dart' show exerciseKey;
 
 /// 평가 기준일. 정답의 "지난달" 도, 모델의 "지난달" 도 이 날로 푼다.
 final evalToday = DateTime(2026, 9, 9);
@@ -383,10 +384,12 @@ bool _near(String raw, Exercise e) {
   return e.keys.any((k) => _edits(q, jamoOf(searchKey(k))) <= 1);
 }
 
-/// 문항의 기록: 이름 → 정체.
+/// 문항의 기록: 이름 → 정체. 기록 이름은 앱처럼 운동 열쇠([exerciseKey])로
+/// 사전에 잇는다 — 사람이 친 '벤치'·'DL'·'푸시업 60bpm' 은 벤치프레스·
+/// 데드리프트·푸시업의 기록이다.
 class _Log {
   _Log(this.names, this.lang, [this.app])
-    : ids = {for (final n in names) n: exerciseIdentity(n)};
+    : ids = {for (final n in names) n: exerciseIdentity(exerciseKey(n))};
   final List<String> names;
   final String lang;
   final String Function(String name)? app;
@@ -854,6 +857,55 @@ Grade gradePlan(
     want: closest.want,
     goldCountable: wants.every((w) => w['kind'] == 'plan'),
   );
+}
+
+/// 정답 대안이 모두 셀 plan 인가 — 그런 질문에 답이 없으면 막다른 길이다.
+bool goldCountable(
+  List<Object?> gold, {
+  required List<String> names,
+  required String lang,
+  String question = '',
+}) => gold.every(
+  (g) =>
+      planShape(
+        g,
+        names: names,
+        lang: lang,
+        question: question,
+        fuzzy: false,
+      )['kind'] ==
+      'plan',
+);
+
+/// 규칙 층의 바꿔치기: 앱이 센 plan([Grade.got])에 모델 답([raw])도, 가장 가까운
+/// 정답도 말하지 않은 **기록한** 운동이 들어왔다. 모델의 {"by":"exercise"} 가
+/// 글의 낱말 퍼지로 한 운동이 되는 것('chung' → 런지)이 이것이다.
+bool ruleSwapped(
+  Object? raw,
+  Grade grade, {
+  required List<String> names,
+  required String lang,
+  String question = '',
+  String Function(String name)? resolve,
+}) {
+  final Map<String, Object?> model;
+  try {
+    model = planShape(
+      raw,
+      names: names,
+      lang: lang,
+      question: question,
+      resolve: resolve,
+    );
+  } on FormatException {
+    return false;
+  }
+  final never = {...?(grade.got['never'] as List?)?.cast<String>()};
+  return _ids(grade.got)
+      .difference(never)
+      .difference(_ids(model))
+      .difference(_ids(grade.want))
+      .isNotEmpty;
 }
 
 Set<String> _ids(Map<String, Object?> shape) => {
