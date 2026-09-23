@@ -7,36 +7,53 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 · A keypad built for sets — digits and +/-, stepping by 2.5 kg
 · Same as last set? One tap
 · Search tolerates typos and matches partial words
+· Every set you did today sits in one table; tap a cell to fix it
 
-■ One-line setup
-· Write "bench 80kg, work up to 100 reps" and the weight and goal are filled in
-· The sentence is interpreted by AI on our server. The sentence is not stored there
-· Offline, or when it cannot be interpreted, what you typed simply becomes the name — logging is never blocked
+■ Sets and meals in one line
+· Type "bench 80kg 5x5" and it becomes an exercise; type "lunch burrito" or "ramen 500kcal" and it becomes a meal. If it guessed wrong, one tap switches it
+· Write "bench 80kg, work up to 100 reps" and the weight and goal are filled in. Words it could not place are shown, never dropped
+· Type yesterday's routine line again and its setup comes back
+· Offline, or when it cannot be read, what you typed is kept as written — logging is never blocked
 
-■ A note under any set
-· Write what you were thinking, right under the set. Notes stack up
-· Tap to edit, backspace to remove — like writing a document
+■ Ask your log, compare
+· Ask "Did my squat go up since last month?" or "bench vs row" and get a table computed from your saved sets, with periods and exercises side by side
+· The numbers are counted by your phone from your log, not by the AI
+· Record questions use plates (see below). Searching by exercise name is always free
+
+■ Meals, with a source for the calories
+· Log meals as text or a photo, then pick how much you ate
+· Calories show where they came from: a value from the Korean MFDS food composition database or USDA FoodData Central opens with the table's number and a link to the source; anything else is marked as an AI estimate
+· When the calories are unknown, it says unknown. Calories you type are used as written
+· See the day's intake and exercise energy in one line
+
+■ Together
+· Up to 6 people write one record together, live — name tags and cursors show who is editing what
+· Log a partner's sets on your phone and hand them over with a link
+· Start a Tabata or a tempo on several phones at the same moment, or take turns on one machine
 
 ■ Health app
 · Your workout is written to the Health app as a workout
 · Active energy measured by your watch is read back in (Apple Health, Health Connect)
 · During a Tabata rest, once your watch heart rate is 25 bpm below that round's peak, the rest ends and the next round is signalled. While resting you see ♥ now → target
 · What is read from your health app never leaves the device
-· The app never invents a calorie number. If nothing measured it, no calories are shown
+· Exercise calories are never invented. If nothing measured them, none are shown
+
+■ Gyms
+· Hold your phone to the gym's sticker and today's routine from your trainer opens. Book PT sessions in the app
+· Trainer mode: gym staff get a morning report with today's classes and to-dos, and handle each with a tap
+
+■ AI help and plates
+· One-line setup, meal calorie estimates and record questions ask for your consent the first time. With it, the text you type and meal photos (location removed) go through our server to DeepSeek's AI; our server does not store them. Turn it off any time in Settings — logging keeps working
+· Input help (one-line setup, meal estimates): 10 a day, free
+· Record questions use plates. You start with a few, and earn 1 on each day you log 10 sets
+· Pro subscription: plates topped up to 300 each month, input help 20 a day. Up to 30 plates during a free trial
 
 ■ Also
 · kg, lb, km, minutes, seconds — the unit that fits what you are doing
 · Dark mode follows your system setting
 · English, Korean, Japanese, Spanish, Thai, Vietnamese, Chinese (Simplified and Traditional)
 
-■ Meals, together
-· Log meals by photo or as text. When the calories are unknown, it says unknown
-· See the day's intake and exercise energy in one line
-· Together: connect with a code to see each other's log. Your partner's log is read-only
-· Start a Tabata or a tempo on both phones at the same moment — or take turns on one machine
-· Shared plans: invite by link, decide the next workout together, agree on the same version, then start
-
-Logging on your own needs no account. Gym links, working out together, shared plans and subscriptions need sign-in. No ads. Your log stays on your device; only gym-linked records and what you choose to share go to the server.
+Logging on your own needs no account. Gym links, working out together and subscriptions need sign-in. No ads. Your log is stored on your device; the privacy policy lists what goes to the server.
 
 Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy: https://darak.studio/setpad-privacy

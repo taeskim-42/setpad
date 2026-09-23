@@ -7,33 +7,50 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 · Bàn phím làm riêng cho hiệp — chỉ có số và +/-, bước 2,5 kg
 · Giống hiệp trước? Chạm một lần
 · Tìm kiếm vẫn ra kết quả dù gõ sai hoặc gõ thiếu
+· Mọi hiệp hôm nay nằm trong một bảng; chạm vào ô để sửa ngay
 
-■ Thiết lập một dòng
-· Viết "đẩy ngực 80kg cho đủ 100 lần" là mức tạ và mục tiêu tự được điền
-· Câu chữ được AI trên máy chủ của chúng tôi diễn giải. Câu chữ không được lưu ở đó
-· Khi ngoại tuyến hoặc không diễn giải được, điều bạn gõ sẽ thành tên bài tập — việc ghi không bao giờ bị chặn
+■ Hiệp tập và bữa ăn trên một dòng
+· Gõ "đẩy ngực 80kg 5x5" là bài tập; gõ "phở 450kcal" là bữa ăn. Nếu đoán sai, chạm một lần để đổi
+· Viết "đẩy ngực 80kg cho đủ 100 lần" là mức tạ và mục tiêu tự được điền. Những chữ không đưa được vào thiết lập vẫn hiện ra, không bị bỏ
+· Gõ lại dòng giáo án hôm qua là thiết lập cũ quay lại
+· Khi ngoại tuyến hoặc không đọc được, điều bạn gõ được giữ nguyên — việc ghi không bao giờ bị chặn
 
-■ Ghi chú dưới từng hiệp
-· Viết điều bạn đang nghĩ, ngay dưới hiệp vừa xong. Ghi chú xếp chồng lên nhau
-· Chạm để sửa, xoá lùi để bỏ — như đang viết một tài liệu
+■ Hỏi nhật ký và so sánh
+· Hỏi "Squat có tăng so với tháng trước không?" hay "đẩy ngực vs chèo tạ" để nhận bảng tính từ các hiệp đã lưu, so giai đoạn và bài tập cạnh nhau
+· Các con số do điện thoại đếm từ nhật ký của bạn, không phải AI
+· Câu hỏi về nhật ký dùng bánh tạ (xem bên dưới). Tìm theo tên bài tập luôn miễn phí
+
+■ Bữa ăn, có nguồn của calo
+· Ghi bữa ăn bằng chữ hoặc ảnh, rồi chọn lượng đã ăn
+· Calo cho biết nguồn: nếu giá trị lấy từ cơ sở dữ liệu thành phần thực phẩm của MFDS Hàn Quốc hoặc USDA FoodData Central, chạm vào sẽ thấy số trong bảng và liên kết tới nguồn; nếu không sẽ ghi là AI ước tính
+· Khi chưa rõ calo, ứng dụng ghi là chưa rõ. Số kcal bạn gõ được dùng đúng như vậy
+· Xem lượng nạp và năng lượng tập trong ngày trên một dòng
+
+■ Cùng nhau
+· Tối đa 6 người cùng viết một nhật ký theo thời gian thực; thẻ tên và con trỏ cho thấy ai đang sửa chỗ nào
+· Ghi hộ các hiệp của bạn tập trên điện thoại của bạn rồi gửi bằng liên kết
+· Bắt đầu Tabata hoặc nhịp trên nhiều máy cùng một lúc, hoặc hai người luân phiên trên một máy tập
 
 ■ Ứng dụng Sức khoẻ
 · Buổi tập được ghi vào Sức khoẻ như một buổi tập
 · Năng lượng hoạt động do đồng hồ đo được đọc về (Apple Health, Health Connect)
 · Khi nghỉ Tabata, nhịp tim từ đồng hồ giảm 25 bpm so với mức cao nhất của hiệp đó thì thời gian nghỉ kết thúc và hiệp tiếp theo được báo. Khi nghỉ bạn thấy ♥ hiện tại → mục tiêu
 · Dữ liệu đọc từ ứng dụng sức khỏe không rời khỏi thiết bị
-· Ứng dụng không tự bịa ra con số calo. Không đo được thì không hiển thị calo
+· Ứng dụng không tự bịa ra calo của buổi tập. Không đo được thì không hiển thị
+
+■ Phòng tập
+· Chạm điện thoại vào nhãn dán của phòng tập là giáo án hôm nay do huấn luyện viên soạn mở ra. Đặt lịch PT ngay trong ứng dụng
+· Chế độ huấn luyện viên: nhân viên phòng tập nhận báo cáo buổi sáng về lớp hôm nay và việc cần xem, xử lý chỉ với một chạm
+
+■ Trợ giúp AI và bánh tạ
+· Thiết lập một dòng, ước tính calo bữa ăn và câu hỏi về nhật ký sẽ hỏi sự đồng ý của bạn ở lần đầu. Khi đồng ý, chữ bạn gõ và ảnh bữa ăn (đã bỏ vị trí) đi qua máy chủ của chúng tôi tới AI của DeepSeek; máy chủ của chúng tôi không lưu lại. Tắt bất cứ lúc nào trong Cài đặt — việc ghi vẫn hoạt động
+· Trợ giúp ghi (thiết lập một dòng, ước tính bữa ăn): miễn phí 10 lần mỗi ngày
+· Câu hỏi về nhật ký dùng bánh tạ. Bạn có sẵn vài bánh lúc đầu và nhận 1 bánh mỗi ngày ghi đủ 10 hiệp
+· Gói Pro: bánh tạ được nạp lên tới 300 mỗi tháng, trợ giúp ghi 20 lần mỗi ngày. Tối đa 30 bánh trong thời gian dùng thử miễn phí
 
 ■ Ngoài ra
 · kg, lb, km, phút, giây — đơn vị hợp với việc bạn đang làm
 · Chế độ tối theo cài đặt hệ thống
 · Tiếng Việt, Anh, Hàn, Nhật, Tây Ban Nha, Thái và Trung (giản thể, phồn thể)
 
-■ Bữa ăn, tập cùng nhau
-· Ghi bữa ăn bằng ảnh hoặc chữ. Khi chưa rõ calo, ứng dụng ghi là chưa rõ
-· Xem lượng nạp và năng lượng tập trong ngày trên một dòng
-· Cùng nhau: kết nối bằng mã để xem ghi chép của nhau. Ghi chép của bạn tập chỉ để xem
-· Bắt đầu Tabata hoặc nhịp trên hai máy cùng một lúc — hoặc luân phiên trên một máy tập
-· Kế hoạch chung: mời bằng liên kết, cùng quyết định buổi tập tới, thống nhất cùng một phiên bản rồi bắt đầu
-
-Tự ghi một mình thì không cần tài khoản. Liên kết phòng tập, tập cùng nhau, kế hoạch chung và gói đăng ký cần đăng nhập. Không quảng cáo. Nhật ký nằm trên máy của bạn; chỉ các bản ghi liên kết với phòng tập và những gì bạn chọn chia sẻ mới lên máy chủ.
+Tự ghi một mình thì không cần tài khoản. Liên kết phòng tập, tập cùng nhau và gói đăng ký cần đăng nhập. Không quảng cáo. Nhật ký được lưu trên máy của bạn; chính sách quyền riêng tư ghi rõ những gì được gửi lên máy chủ.

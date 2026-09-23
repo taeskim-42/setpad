@@ -1,1 +1,1 @@
-entrenamiento,gimnasio,pesas,fuerza,diario,press banca,sentadilla,peso muerto,series,fitness
+entrenamiento,gimnasio,pesas,fuerza,calorías,comidas,press banca,sentadilla,peso muerto,series

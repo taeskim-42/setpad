@@ -1,0 +1,1 @@
+Hasta 6 personas editan un registro en vivo. Las preguntas comparan periodos y ejercicios. Una línea registra una serie o una comida, y las calorías muestran su fuente.

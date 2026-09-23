@@ -1,1 +1,1 @@
-workout,gym,lifting,strength,training log,workout log,bench press,squat,deadlift,sets,reps
+workout,gym,lifting,strength,training log,workout log,calories,meals,bench press,squat,deadlift,sets
