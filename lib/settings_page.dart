@@ -1,12 +1,14 @@
-import 'health_page.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 import 'account.dart';
 import 'booking_entry.dart';
+import 'health_page.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 import 'palette.dart';
 import 'paywall.dart';
+import 'rest_alarm.dart';
 import 'purchases.dart';
 
 /// 설정.
@@ -52,6 +54,18 @@ class SettingsPage extends StatelessWidget {
                 value: store.countAloud,
                 onChanged: (v) => store.setCountAloud(v),
               ),
+              // 디버그 빌드에만: 휴식 경보가 워치로 넘어가는지 실기기로 재는 단추.
+              // 누르고 5초 안에 폰을 내려놓고 워치의 운동 앱을 앞에 둔다.
+              if (kDebugMode)
+                _Row(
+                  key: const ValueKey('settings-rest-alarm-test'),
+                  label: '휴식 경보 시험 (5초 뒤)',
+                  onTap: () async {
+                    if (!await authorizeRestAlarm()) return;
+                    await Future<void>.delayed(const Duration(seconds: 5));
+                    await ringRestAlarm('다음 라운드 — 시험');
+                  },
+                ),
               // 건강 앱과 무엇을 왜 주고받는지 — 심박으로 휴식을 끊는 것까지.
               _Row(
                 key: const ValueKey('settings-health'),
