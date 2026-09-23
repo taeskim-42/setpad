@@ -1288,6 +1288,24 @@ Map<String, Object?> _repaired(Map<String, Object?> m) {
   if (m['unrelated'] == false) m.remove('unrelated');
   // "total": true — 합계를 적었다. total 의 값은 sum|mean 이고 true 는 합계뿐이다.
   if (m['total'] == true) m['total'] = 'sum';
+  // 측정 'weight' — 무게는 세트의 칸이지 측정이 아니다("저번에 얼마 들었지"). 측정을
+  // 안 적은 것으로 읽는다: 규칙 층이 글의 의도 낱말로 채우고, 없으면 기본 셋이다.
+  for (final x in [
+    m,
+    if (m['series'] case final List items) ...items.whereType<Map>(),
+  ]) {
+    if (x['measures'] case final List ms when ms.contains('weight')) {
+      final rest = [
+        for (final e in ms)
+          if (e != 'weight') e,
+      ];
+      if (rest.isEmpty) {
+        x.remove('measures');
+      } else {
+        x['measures'] = rest;
+      }
+    }
+  }
   // "벤치 말고 제일 무거운 것" 의 뺄 이름을 운동 칸에도 적었다 — 적은 이름을 모두
   // 빼면 남는 것이 없으니 운동 칸은 되받은 것이다.
   if (m['exercises'] case final List e
@@ -1443,6 +1461,12 @@ Map<String, Object?> _repaired(Map<String, Object?> m) {
       )) {
     if (m['by'] == m['per']) m.remove('by');
     m.remove('per');
+  }
+  // 그 밖에 같은 단위의 묶음과 평균("주당 평균 며칠" 의 by·per 가 둘 다 week)은
+  // 주마다 한 줄과 그 줄들의 평균이다 — 주당 평균은 주마다 센 수의 평균이다.
+  if (m['per'] != null && m['per'] == m['by'] && m['total'] == null) {
+    m.remove('per');
+    m['total'] = 'mean';
   }
   // "전체 볼륨에서 스쿼트 비중" — 비중인데 줄이 하나(운동 하나 또는 부위)뿐이면
   // 그 줄이 전체에서 차지하는 몫이다: 전체 ÷ 그 줄(기준이 먼저).

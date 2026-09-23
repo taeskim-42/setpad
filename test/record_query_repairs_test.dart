@@ -783,6 +783,33 @@ void main() {
       );
     });
 
+    // 실측(검색 v3 최종 재기): "เฉลี่ยสัปดาห์ละกี่วัน"(주당 평균 며칠)에 by·per 가 같은
+    // 주였다 — 주마다 한 줄과 그 줄들의 평균이다. "지난달 저번에 오버헤드 얼마
+    // 들었지" 에 측정 'weight' — 무게는 세트의 칸이지 측정이 아니다. 측정을 안 적은
+    // 것으로 읽고 글이 가리키는 측정(저번에 → 마지막)으로 채운다.
+    test('by 와 같은 per 는 그 줄들의 평균이고, 측정 weight 는 측정을 안 적은 것이다', () {
+      final weekly = read({
+        'by': 'week',
+        'measures': ['trainingDays'],
+        'per': 'week',
+      });
+      expect((weekly.by, weekly.per, weekly.total), ('week', null, 'mean'));
+      final last = read({
+        'exercises': ['벤치프레스'],
+        'period': 'lastMonth',
+        'measures': ['weight'],
+      }, q: '지난달 저번에 벤치 얼마 들었지?');
+      expect(last.measures, [Metric.last]);
+      // 다른 모르는 측정은 여전히 거절이다 — 뜻을 모른다.
+      expect(
+        () => read({
+          'exercises': ['러닝'],
+          'measures': ['pace'],
+        }),
+        throwsFormatException,
+      );
+    });
+
     test('측정은 한 줄에 넷까지 — 표의 칸 한도와 같다', () {
       expect(
         read({

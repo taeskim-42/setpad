@@ -312,9 +312,10 @@ void main() {
           },
           'compare',
         ),
+        // 같은 단위(by week + per week)는 주마다 한 줄과 그 평균이다(한도 아님).
         (
           {
-            'by': 'week',
+            'by': 'month',
             'measures': ['setCount'],
             'per': 'week',
           },
