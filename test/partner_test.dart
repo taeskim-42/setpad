@@ -357,6 +357,31 @@ void main() {
     expect(await anonymous.invite(), PartnerError.signInRequired);
   });
 
+  test('C·같이 하기 코드 칸에 받은 문구를 통째로 붙여 넣어도 코드를 뽑아 참여한다', () async {
+    expect(normalizePartnerCode('한 명 더 초대 · 코드 AB3K9Z'), 'AB3K9Z');
+    expect(normalizePartnerCode('Invite one more · code AB3K9Z'), 'AB3K9Z');
+    expect(normalizePartnerCode(' ab3-k9z '), 'AB3K9Z');
+    expect(
+      normalizePartnerCode('AB3K9Z 아니면 CD4M8N'),
+      isNull,
+      reason: '둘이면 어느 것인지 모른다',
+    );
+    expect(
+      normalizePartnerCode('https://x/plan/abcdefghijk_AB3K9Z-lmnopq'),
+      isNull,
+      reason: '링크 토큰 속 글자는 코드가 아니다',
+    );
+
+    final server = FakeServer();
+    final mina = Phone(server, '미나', 'p1'), jun = Phone(server, '준', 'p2');
+    addTearDown(mina.sync.dispose);
+    addTearDown(jun.sync.dispose);
+    await mina.sync.invite();
+    final code = mina.note.partner!.code!;
+    expect(await jun.sync.joinWithCode('한 명 더 초대 · 코드 $code'), isNull);
+    expect(jun.note.partner!.state, PartnerState.active);
+  });
+
   test('같은 토큰이 여러 번 들어와도, 응답을 못 받아 다시 보내도 참여는 한 번이다', () async {
     final server = FakeServer();
     final mina = Phone(server, '미나', 'a2'), jun = Phone(server, '준', 'b2');

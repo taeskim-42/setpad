@@ -168,38 +168,56 @@ const _counts = {'반': 0.5, '한': 1.0, '두': 2.0, '세': 3.0, '네': 4.0};
 /// 저장한다 — 여기서 못 읽었다고 기록이 거부되지 않는다.
 ///
 /// 쉼표로 음식을 가르고, 각 음식 끝의 "150g"·"2개"·"한 줄"·"반 개" 를 양으로
-/// 읽는다. "450kcal" 은 사람이 직접 적은 열량이다. 음식 사전을 찾지 않는다.
+/// 읽는다. "450kcal" 은 사람이 직접 적은 열량이다. 한 조각 안에서 열량 양쪽에
+/// 말이 있으면 음식이 둘이다("프로틴 120kcal 바나나"). 음식 사전을 찾지 않는다.
+///
+/// [kcal] 은 **모든 음식에 열량이 적혔을 때만** 그 합이다. 일부만 적었으면
+/// null 이다 — 안 적은 음식을 0 으로 치면 합계가 조용히 틀린다. 그때는 어림을
+/// 부르고, 적은 값은 서버가 그 음식에 그대로 쓴다.
 ({List<MealFood> foods, int? kcal}) parseMealText(String text) {
+  // 천 단위 쉼표는 수의 일부다: '2,000kcal' 은 2000 이지 '2' 와 '000kcal' 이 아니다.
+  final plain = text.replaceAll(RegExp(r'(?<=\d),(?=\d{3}(?!\d))'), '');
   final energy = RegExp(
-    r'(\d+(?:\.\d+)?)\s*(?:kcal|칼로리|㎉)',
+    r'(\d+(?:\.\d+)?)\s*(?:kcal|칼로리|㎉)(?:\s*(?:정도|쯤|가량|짜리))?',
     caseSensitive: false,
   );
-  final typed = energy.allMatches(text).map((m) => double.parse(m[1]!));
   final quantity = RegExp(
     r'\s*(\d+(?:\.\d+)?|반|한|두|세|네)\s*'
     r'(kg|g|ml|l|개|줄|컵|공기|그릇|조각|봉지|인분|장|캔|병|알|접시|스푼|숟갈)$',
     caseSensitive: false,
   );
   final foods = <MealFood>[];
-  for (final raw in text.replaceAll(energy, ' ').split(RegExp(r'[,，、\n]'))) {
-    final part = raw.trim().replaceAll(RegExp(r'\s+'), ' ');
-    if (part.isEmpty) continue;
-    final m = quantity.firstMatch(part);
-    final name = m == null ? part : part.substring(0, m.start).trim();
-    foods.add(
-      m == null || name.isEmpty
-          ? MealFood(part)
-          : MealFood(
-              name,
-              _counts[m[1]] ?? double.parse(m[1]!),
-              m[2]!.toLowerCase(),
-            ),
-    );
+  final typed = <double>[];
+  var unpriced = false;
+  for (final raw in plain.split(RegExp(r'[,，、\n]'))) {
+    final stated = [
+      for (final m in energy.allMatches(raw)) double.parse(m[1]!),
+    ];
+    final names = [
+      for (final p in raw.split(energy))
+        if (p.trim().isNotEmpty) p.trim().replaceAll(RegExp(r'\s+'), ' '),
+    ];
+    typed.addAll(stated);
+    // 열량보다 음식이 많으면 열량 없는 음식이 있다.
+    if (names.length > stated.length) unpriced = true;
+    for (final part in names) {
+      final m = quantity.firstMatch(part);
+      final name = m == null ? part : part.substring(0, m.start).trim();
+      foods.add(
+        m == null || name.isEmpty
+            ? MealFood(part)
+            : MealFood(
+                name,
+                _counts[m[1]] ?? double.parse(m[1]!),
+                m[2]!.toLowerCase(),
+              ),
+      );
+    }
   }
   final total = typed.fold<double>(0, (n, v) => n + v);
   return (
     foods: foods,
-    kcal: typed.isEmpty || total > 100000 ? null : total.round(),
+    kcal: typed.isEmpty || unpriced || total > 100000 ? null : total.round(),
   );
 }
 

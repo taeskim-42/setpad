@@ -945,6 +945,35 @@ class LTh extends L {
       'นี่คือค่าประมาณของอาหารทั้งหมดในรูป เลือกปริมาณที่คุณกิน';
 
   @override
+  String get mealTextUnknown =>
+      'ประมาณแคลอรีไม่ได้ เพราะไม่รู้จักอาหารนี้ แตะมื้อนั้นเพื่อเพิ่มชื่ออาหารหรือปริมาณ แล้วจะประมาณใหม่';
+
+  @override
+  String get mealTextOffline =>
+      'ประมาณแคลอรีไม่ได้ เพราะไม่มีการเชื่อมต่อ แตะมื้อนั้นแล้วกด Enter เพื่อประมาณใหม่';
+
+  @override
+  String get mealTextTooLong =>
+      'บันทึกอาหารที่ยาวเกิน 500 ตัวอักษรจะไม่ถูกประมาณ แตะมื้อนั้นแล้วแบ่งเขียนเพื่อให้ประมาณได้';
+
+  @override
+  String get queryUnrepresentable =>
+      'การค้นหาบันทึกคำนวณคำถามรูปแบบนี้ไม่ได้ รองรับได้ถึง 8 ท่า 20 อันดับ และเปรียบเทียบ 4 รายการ และเมื่อจัดกลุ่มตามสัปดาห์หรือเดือนได้เพียงค่าเดียว ลองถามแยกเป็นส่วน';
+
+  @override
+  String queryTooLong(int max) {
+    return 'คำถามยาวได้ไม่เกิน $max ตัวอักษร โปรดย่อให้สั้นลง';
+  }
+
+  @override
+  String get queryPressEnter => 'กด Enter เพื่อถามเกี่ยวกับบันทึกของคุณ';
+
+  @override
+  String policyNumberUnreadable(String text) {
+    return 'อ่านจำนวนวันหรือจำนวนครั้งจาก \'$text\' ไม่ได้ โปรดใส่ตัวเลข เช่น 14';
+  }
+
+  @override
   String get mealSources => 'แหล่งที่มา';
 
   @override

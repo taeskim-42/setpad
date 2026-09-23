@@ -311,7 +311,13 @@ class RecordAi {
             body['scope'] == 'input') {
           throw const RecordAiException(RecordAiStatus.quotaExceeded);
         }
-        throw const RecordAiException(RecordAiStatus.unavailable);
+        // 서버가 까닭을 적었으면 싣는다 — '모르는 음식' 과 '연결 안 됨' 은 할 말이 다르다.
+        throw RecordAiException(
+          RecordAiStatus.unavailable,
+          body is Map && body['error'] is String
+              ? body['error'] as String
+              : null,
+        );
       }
       throw const RecordAiException(RecordAiStatus.unavailable);
     } on http.ClientException {
@@ -523,10 +529,13 @@ class RecordAi {
 
 /// 서버 쪽이 못 해준 이유. 화면은 이걸 보고 무슨 말을 할지 정한다.
 class RecordAiException implements Exception {
-  const RecordAiException(this.status);
+  const RecordAiException(this.status, [this.code]);
   final RecordAiStatus status;
+
+  /// 서버가 적은 까닭('unknownFood', 'notFood', 'upstream' …). 없으면 null.
+  final String? code;
   @override
-  String toString() => 'RecordAiException(${status.name})';
+  String toString() => 'RecordAiException(${status.name}, $code)';
 }
 
 const _instructions = '''Extract ONE exercise setup from the user's input data.

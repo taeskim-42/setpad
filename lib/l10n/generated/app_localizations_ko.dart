@@ -933,6 +933,35 @@ class LKo extends L {
   String get mealPhotoWholeNote => '사진에 보이는 음식 전체를 어림한 값이에요. 그중 드신 만큼을 고르세요.';
 
   @override
+  String get mealTextUnknown =>
+      '무슨 음식인지 몰라 열량을 어림하지 못했어요. 끼니 줄을 눌러 음식 이름이나 양을 더 적으면 다시 어림해요.';
+
+  @override
+  String get mealTextOffline =>
+      '연결이 안 돼 열량을 어림하지 못했어요. 끼니 줄을 누르고 Enter 를 누르면 다시 어림해요.';
+
+  @override
+  String get mealTextTooLong =>
+      '500자가 넘는 식단 글은 어림하지 않아요. 끼니 줄을 눌러 나눠 적으면 어림해요.';
+
+  @override
+  String get queryUnrepresentable =>
+      '이 질문은 기록 검색이 셀 수 없는 모양이에요. 운동은 8개, 순위는 20개, 비교는 4개까지이고, 주·월별로 묶으면 측정은 하나만 돼요. 나눠서 물어 주세요.';
+
+  @override
+  String queryTooLong(int max) {
+    return '질문은 $max자까지예요. 줄여서 물어 주세요.';
+  }
+
+  @override
+  String get queryPressEnter => 'Enter 를 누르면 기록에 물어볼 수 있어요.';
+
+  @override
+  String policyNumberUnreadable(String text) {
+    return '\'$text\' 에서 일·회 수를 읽지 못했어요. 숫자로 적어 주세요. 예: 14';
+  }
+
+  @override
   String get mealSources => '출처';
 
   @override

@@ -924,6 +924,32 @@ class LZh extends L {
   String get mealPhotoWholeNote => '这是照片中全部食物的估算值，请选择您吃了其中多少。';
 
   @override
+  String get mealTextUnknown => '无法识别这种食物，未能估算热量。点按这餐补充食物名称或分量，即可重新估算。';
+
+  @override
+  String get mealTextOffline => '无法连接，未能估算热量。点按这餐后按 Enter 即可重新估算。';
+
+  @override
+  String get mealTextTooLong => '超过 500 字的饮食记录不会估算。点按这餐分开记录即可估算。';
+
+  @override
+  String get queryUnrepresentable =>
+      '记录搜索无法计算这种形式的问题。最多支持 8 个动作、前 20 名、4 项对比；按周或月分组时只能有一个指标。请分开提问。';
+
+  @override
+  String queryTooLong(int max) {
+    return '问题最多 $max 个字。请缩短后再问。';
+  }
+
+  @override
+  String get queryPressEnter => '按 Enter 即可询问您的记录。';
+
+  @override
+  String policyNumberUnreadable(String text) {
+    return '无法从“$text”中读出天数或次数。请输入数字，例如 14';
+  }
+
+  @override
   String get mealSources => '来源';
 
   @override
@@ -2540,6 +2566,32 @@ class LZhHans extends LZh {
   String get mealPhotoWholeNote => '这是照片中全部食物的估算值，请选择您吃了其中多少。';
 
   @override
+  String get mealTextUnknown => '无法识别这种食物，未能估算热量。点按这餐补充食物名称或分量，即可重新估算。';
+
+  @override
+  String get mealTextOffline => '无法连接，未能估算热量。点按这餐后按 Enter 即可重新估算。';
+
+  @override
+  String get mealTextTooLong => '超过 500 字的饮食记录不会估算。点按这餐分开记录即可估算。';
+
+  @override
+  String get queryUnrepresentable =>
+      '记录搜索无法计算这种形式的问题。最多支持 8 个动作、前 20 名、4 项对比；按周或月分组时只能有一个指标。请分开提问。';
+
+  @override
+  String queryTooLong(int max) {
+    return '问题最多 $max 个字。请缩短后再问。';
+  }
+
+  @override
+  String get queryPressEnter => '按 Enter 即可询问您的记录。';
+
+  @override
+  String policyNumberUnreadable(String text) {
+    return '无法从“$text”中读出天数或次数。请输入数字，例如 14';
+  }
+
+  @override
   String get mealSources => '来源';
 
   @override
@@ -4153,6 +4205,32 @@ class LZhHant extends LZh {
 
   @override
   String get mealPhotoWholeNote => '這是照片中全部食物的估算值，請選擇您吃了其中多少。';
+
+  @override
+  String get mealTextUnknown => '無法辨識這種食物，未能估算熱量。點按這餐補充食物名稱或份量，即可重新估算。';
+
+  @override
+  String get mealTextOffline => '無法連線，未能估算熱量。點按這餐後按 Enter 即可重新估算。';
+
+  @override
+  String get mealTextTooLong => '超過 500 字的飲食紀錄不會估算。點按這餐分開記錄即可估算。';
+
+  @override
+  String get queryUnrepresentable =>
+      '紀錄搜尋無法計算這種形式的問題。最多支援 8 個動作、前 20 名、4 項比較；按週或月分組時只能有一個指標。請分開提問。';
+
+  @override
+  String queryTooLong(int max) {
+    return '問題最多 $max 個字。請縮短後再問。';
+  }
+
+  @override
+  String get queryPressEnter => '按 Enter 即可詢問您的紀錄。';
+
+  @override
+  String policyNumberUnreadable(String text) {
+    return '無法從「$text」中讀出天數或次數。請輸入數字，例如 14';
+  }
 
   @override
   String get mealSources => '來源';

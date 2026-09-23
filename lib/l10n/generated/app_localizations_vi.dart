@@ -952,6 +952,35 @@ class LVi extends L {
       'Đây là ước tính cho toàn bộ món trong ảnh. Hãy chọn phần bạn đã ăn.';
 
   @override
+  String get mealTextUnknown =>
+      'Không ước tính được calo vì không nhận ra món ăn. Chạm vào bữa ăn để thêm tên món hoặc lượng, ứng dụng sẽ ước tính lại.';
+
+  @override
+  String get mealTextOffline =>
+      'Không ước tính được calo vì không có kết nối. Chạm vào bữa ăn và nhấn Enter để ước tính lại.';
+
+  @override
+  String get mealTextTooLong =>
+      'Ghi chú bữa ăn dài hơn 500 ký tự sẽ không được ước tính. Chạm vào bữa ăn và chia nhỏ để được ước tính.';
+
+  @override
+  String get queryUnrepresentable =>
+      'Tìm kiếm bản ghi không tính được câu hỏi có dạng này. Hỗ trợ tối đa 8 bài tập, top 20 và 4 mục so sánh, và chỉ một chỉ số khi nhóm theo tuần hoặc tháng. Hãy hỏi từng phần.';
+
+  @override
+  String queryTooLong(int max) {
+    return 'Câu hỏi tối đa $max ký tự. Vui lòng rút ngắn.';
+  }
+
+  @override
+  String get queryPressEnter => 'Nhấn Enter để hỏi về bản ghi của bạn.';
+
+  @override
+  String policyNumberUnreadable(String text) {
+    return 'Không đọc được số ngày hoặc số buổi từ \'$text\'. Hãy nhập một con số, ví dụ 14';
+  }
+
+  @override
   String get mealSources => 'Nguồn';
 
   @override

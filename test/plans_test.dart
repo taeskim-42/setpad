@@ -1,7 +1,13 @@
 // 공동 루틴의 글 읽기·바뀐 것 찾기·운동 시작·다음 계획 복사.
 // 서버와의 합의 흐름은 integration/plan_server_test.dart 가 실제 서버로 검증한다.
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/gym.dart';
 import 'package:setpad/plans.dart';
 
 void main() {
@@ -28,6 +34,43 @@ void main() {
     ]) {
       expect(planTokenFromLink(Uri.parse(other)), isNull, reason: other);
     }
+  });
+
+  test('C·계획 코드 칸에 받은 공유 문구를 붙여 넣으면 그 링크로, 코드가 든 문장이면 그 코드로 참여한다', () async {
+    const token = 'AbCdEfGhIjKlMnOpQrStUv_-';
+    expect(
+      planTokenInText(
+        "Let's plan our workout together in setpad: https://gym.darak.studio/plan/$token.",
+      ),
+      token,
+      reason: '문장 끝의 마침표는 링크가 아니다',
+    );
+    expect(planTokenInText('setpad://plan/$token 에서 열어 줘'), token);
+    expect(planTokenInText('AB3K9Z'), isNull);
+    expect(planTokenInText('https://gym.darak.studio/c/some-gym'), isNull);
+
+    final dir = Directory.systemTemp.createTempSync('setpad_plan_join_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final bodies = <Object?>[];
+    final plans = PlanStore(
+      directory: dir,
+      link: () => GymLink(
+        endpoint: 'https://x',
+        token: 'member',
+        client: MockClient((request) async {
+          bodies.add(jsonDecode(request.body));
+          return http.Response('{"error":"invalidCode"}', 404);
+        }),
+      ),
+    );
+    await plans.join(
+      'setpad에서 운동 계획을 같이 짜요: https://gym.darak.studio/plan/$token',
+    );
+    await plans.join('같이 짜요, 코드는 AB3K9Z 예요');
+    expect(bodies, [
+      {'token': token},
+      {'code': 'AB3K9Z'},
+    ]);
   });
 
   test('메모장처럼 친 글을 계획으로 읽고, 사용자 운동명을 그대로 둔다', () {

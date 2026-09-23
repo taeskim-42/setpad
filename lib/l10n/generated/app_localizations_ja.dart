@@ -930,6 +930,34 @@ class LJa extends L {
   String get mealPhotoWholeNote => '写真に写っている料理全体の推定値です。そのうち食べた分を選んでください。';
 
   @override
+  String get mealTextUnknown =>
+      '食べ物がわからず、カロリーを推定できませんでした。食事の行をタップして料理名や量を書き足すと、もう一度推定します。';
+
+  @override
+  String get mealTextOffline =>
+      '接続できず、カロリーを推定できませんでした。食事の行をタップしてEnterを押すと、もう一度推定します。';
+
+  @override
+  String get mealTextTooLong => '500文字を超える食事メモは推定しません。食事の行をタップして分けて書くと推定します。';
+
+  @override
+  String get queryUnrepresentable =>
+      'この質問は記録検索で計算できない形です。種目は8つ、ランキングは20件、比較は4つまでで、週・月ごとにまとめると指標は1つだけです。分けて質問してください。';
+
+  @override
+  String queryTooLong(int max) {
+    return '質問は$max文字までです。短くしてください。';
+  }
+
+  @override
+  String get queryPressEnter => 'Enterを押すと記録について質問できます。';
+
+  @override
+  String policyNumberUnreadable(String text) {
+    return '「$text」から日数・回数を読み取れませんでした。数字で入力してください。例: 14';
+  }
+
+  @override
   String get mealSources => '出典';
 
   @override

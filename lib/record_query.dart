@@ -1362,7 +1362,7 @@ extension RecordQueryAi on RecordAi {
     required String unit,
     DateTime? today,
   }) async {
-    if (!supported || text.trim().isEmpty || text.length > 600) {
+    if (!supported || text.trim().isEmpty || text.length > maxQuestionLength) {
       throw const FormatException('Query unavailable');
     }
     // "스쾃 PR" 의 스쾃은 후보 목록의 "스쿼트" 와 같은 운동인데 모델은 그걸
@@ -1457,6 +1457,13 @@ Examples of meaning, not fixed phrases:
 "이번주 날씨" => {"kind":"unrelated"}
 Final checks: no time words means no period. 최근/요즘 means recent. Never invent thresholds, measures or names. latest is the last session, not a date filter. Use only the keys named here. Return only the JSON for the final question.''';
 
+/// 담아 둔 거절의 표시. 그 아래에 서버가 준 의도를 그대로 둔다 — 앱이 새 모양을
+/// 셀 수 있게 되면 다시 묻지 않고 풀린다. 모델이 이 키를 내면 모르는 키라 어차피 거절이다.
+const _rejected = '_rejected';
+
+/// 질문 길이의 한도. 서버에 묻기 전에 앱이 거른다.
+const maxQuestionLength = 600;
+
 class RecordSearch extends ChangeNotifier {
   RecordSearch(this.ai, {DateTime Function()? now, QueryCache? cache})
     : _now = now ?? DateTime.now,
@@ -1473,10 +1480,19 @@ class RecordSearch extends ChangeNotifier {
   /// [noPlates] 는 원판이 모자라 못 물은 것이다. 실패와 문구가 다르다.
   /// [charged] 는 이번 답을 서버에서 받아 왔다는 뜻이다 — 담아 둔 답은 원판을
   /// 쓰지 않는다.
+  ///
+  /// [unrepresentable] 은 서버는 답했는데 앱이 셀 수 없는 모양이었다는 뜻이다
+  /// (운동 9개, 상위 30개, 주별 측정 둘 …). 다시 물어도 같다 — "다시 시도" 가
+  /// 아니라 무엇을 못 하는지 말하고, 그 거절을 담아 두어 원판이 또 나가지 않는다.
+  /// [tooLong] 은 보내기 전에 거른 긴 질문, [offline] 은 제출했는데 다시 확인해도
+  /// 서버에 닿지 못한 것이다.
   bool busy = false,
       failed = false,
       noPlates = false,
       charged = false,
+      unrepresentable = false,
+      tooLong = false,
+      offline = false,
       _disposed = false;
   int _version = 0;
   bool _generating = false;
@@ -1517,22 +1533,28 @@ class RecordSearch extends ChangeNotifier {
     failed = false;
     noPlates = false;
     charged = false;
+    unrepresentable = false;
+    tooLong = false;
+    offline = false;
     busy = false;
     if (text.trim().isEmpty ||
         names.any((n) => searchKey(n) == searchKey(text))) {
       notifyListeners();
       return;
     }
-    if (status != RecordAiStatus.ready && status != RecordAiStatus.checking) {
+    // 서버에 가지 않는 거절. 입력칸의 글은 그대로 두고 까닭만 말한다.
+    if (text.length > maxQuestionLength) {
+      tooLong = immediately;
       notifyListeners();
       return;
     }
     bool fromCache() {
       final cached = _cache[key];
       if (cached == null) return false;
+      final rejected = cached is Map && cached.containsKey(_rejected);
       try {
         plan = decodeRecordIntent(
-          cached,
+          rejected ? cached[_rejected] : cached,
           text,
           names,
           unit: unit,
@@ -1540,8 +1562,10 @@ class RecordSearch extends ChangeNotifier {
         );
         return true;
       } catch (_) {
-        // 규칙이 달라져 옛 의도를 못 푸는 수가 있다. 그냥 다시 묻는다.
-        return false;
+        // 담아 둔 거절은 거절 그대로다. 풀리던 의도를 규칙이 달라져 못 풀게 됐으면
+        // 그냥 다시 묻는다.
+        unrepresentable = rejected;
+        return rejected;
       }
     }
 
@@ -1555,9 +1579,12 @@ class RecordSearch extends ChangeNotifier {
     busy = true;
     notifyListeners();
     Future<void> run() async {
-      if (status == RecordAiStatus.checking) await refresh(locale);
+      // 연결이 안 된다고 굳어 있어도 제출할 때 한 번 다시 확인한다. 그사이 그물이
+      // 돌아왔을 수 있다 — 앱을 내렸다 올려야 풀리면 Enter 가 아무 일도 안 한다.
+      if (status != RecordAiStatus.ready) await refresh(locale);
       if (_disposed || version != _version) return;
       if (status != RecordAiStatus.ready) {
+        offline = true;
         busy = false;
         notifyListeners();
         return;
@@ -1579,11 +1606,11 @@ class RecordSearch extends ChangeNotifier {
           unit: unit,
           today: today,
         );
-        // 서버가 답했다 = 원판이 나갔다. 버릴 답이라도 풀리면 담는다 — 가려졌다
+        // 서버가 답했다 = 원판이 나갔다. 버릴 답이라도 담는다 — 가려졌다
         // 돌아온 앱이나 같은 질문을 다시 낸 사람이 같은 답을 또 사지 않는다.
-        // 못 푸는 의도는 담지 않는다. 담으면 매번 헛걸음한다.
+        // 셀 수 없는 모양이면 **그 거절을** 담는다. 같은 질문은 같은 모양으로
+        // 오니, 다시 물으면 원판만 또 나가고 같은 곳에서 막힌다.
         RecordQuery? result;
-        Object? unreadable;
         try {
           result = decodeRecordIntent(
             intent,
@@ -1593,8 +1620,8 @@ class RecordSearch extends ChangeNotifier {
             today: today,
           );
           if (!_disposed) _cache.put(key, intent);
-        } catch (e) {
-          unreadable = e;
+        } catch (_) {
+          if (!_disposed) _cache.put(key, {_rejected: intent});
         }
         if (_disposed || version != _version) {
           _generating = false;
@@ -1602,7 +1629,7 @@ class RecordSearch extends ChangeNotifier {
         }
         // 풀지 못해도 쓴 것은 쓴 것이다.
         charged = true;
-        if (unreadable != null) throw unreadable;
+        unrepresentable = result == null;
         plan = result;
         // Open requests show original records after scope confirmation.
         // Generated prose cannot certify dates, quantities or arithmetic.

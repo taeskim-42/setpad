@@ -708,23 +708,37 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
 
   /// 원문은 이미 저장됐다. 열량을 안 적은 끼니에 어림값을 붙여 볼 뿐이고,
   /// 못 붙이면 미상으로 남는다. 그사이 사람이 고쳤거나 지웠으면 손대지 않는다.
+  ///
+  /// 못 붙였으면 **왜인지 한 번 말한다** — 모르는 음식인지, 연결이 안 된 것인지.
+  /// 조용히 '열량 미상' 만 두면 무엇을 고쳐야 하는지 알 길이 없다. 끼니 줄을
+  /// 누르면 글이 입력 줄로 돌아오고, Enter 를 누르면 다시 어림한다.
   Future<void> _estimateMealText(MealEntry entry) async {
-    if (!widget.ai.supported) return;
+    final l = L.of(context);
+    void tell(String? message) =>
+        _documentHeaderKey.currentState?.tell(message);
+    // 서버는 500자까지 받는다. 보내 봐야 거절이니 먼저 말한다.
+    if (entry.text!.length > 500) return tell(l.mealTextTooLong);
+    if (!widget.ai.supported) return tell(l.mealTextOffline);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final MealEstimate estimate;
     try {
       estimate = await widget.ai.estimateMealText(entry.text!, locale: locale);
     } on RecordAiException catch (e) {
-      // 오늘 몫을 다 썼으면 그렇다고 말한다. 다른 실패는 조용히 미상으로 둔다.
-      if (e.status == RecordAiStatus.quotaExceeded && mounted) {
-        _documentHeaderKey.currentState?.tell(L.of(context).inputQuotaSpent);
-      }
+      if (!mounted) return;
+      tell(switch ((e.status, e.code)) {
+        (RecordAiStatus.quotaExceeded, _) => l.inputQuotaSpent,
+        (_, 'unknownFood' || 'notFood') => l.mealTextUnknown,
+        _ => l.mealTextOffline,
+      });
       return;
     } catch (_) {
+      if (mounted) tell(l.mealTextOffline);
       return;
     }
     final at = widget.note.meals.indexOf(entry);
     if (at < 0) return;
+    // 다시 어림해 붙었다. 앞서 말한 실패는 이제 틀린 말이다.
+    tell(null);
     widget.note.meals[at] = MealEntry(
       id: entry.id,
       at: entry.at,
@@ -1160,8 +1174,8 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
   // 식단은 아래 입력 줄에서도 저장된다. 저장소가 바뀌면 다시 그린다.
   void _onStore() => setState(() {});
 
-  /// 식단 글의 어림이 막힌 이유를 사진 쪽과 같은 자리에 적는다.
-  void tell(String message) => setState(() => _error = message);
+  /// 식단 글의 어림이 막힌 이유를 사진 쪽과 같은 자리에 적는다. null 이면 지운다.
+  void tell(String? message) => setState(() => _error = message);
 
   @override
   void initState() {

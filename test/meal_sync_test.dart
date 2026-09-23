@@ -272,6 +272,108 @@ void main() {
     expect(puts.last['source'], 'typed');
   });
 
+  test('C·식단 글 — 천 단위 쉼표는 수의 일부이고, 일부만 적은 열량은 합계로 끝내지 않는다', () {
+    // 쉼표 뒤만 읽던 때: '2,000kcal' 은 0, '1,200칼로리' 는 200 이었다.
+    expect(parseMealText('피자 2,000kcal').kcal, 2000);
+    final buffet = parseMealText('1,200칼로리 뷔페');
+    expect(buffet.kcal, 1200);
+    expect(buffet.foods.single.name, '뷔페');
+    expect(parseMealText('샐러드 300kcal 정도').kcal, 300);
+    // 열량을 안 적은 음식이 있으면 합계를 모른다 — 0 으로 치지 않는다.
+    final partial = parseMealText('닭가슴살 330kcal, 밥 한 공기');
+    expect(partial.kcal, isNull);
+    expect(partial.foods.map((f) => (f.name, f.amount, f.unit)), [
+      ('닭가슴살', null, null),
+      ('밥', 1.0, '공기'),
+    ]);
+    // 쉼표가 없어도 열량 양쪽의 말은 다른 음식이다.
+    final two = parseMealText('프로틴 120kcal 바나나');
+    expect(two.kcal, isNull);
+    expect(two.foods.map((f) => f.name), ['프로틴', '바나나']);
+    expect(parseMealText('프로틴 120kcal, 바나나 90kcal').kcal, 210);
+  });
+
+  testWidgets('C·식단 어림이 막히면 까닭을 한 번 말하고, 끼니 줄을 눌러 Enter 로 다시 어림한다', (
+    tester,
+  ) async {
+    final dir = Directory.systemTemp.createTempSync('setpad_meal_reason_');
+    final store = NotesStore(directory: dir);
+    addTearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+    final l = lookupL(const Locale('ko'));
+    final note = store.create();
+    late Future<MealEstimate> Function(String) reply;
+    final ai = FakeAi((text) => reply(text));
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: EditorPage(store: store, note: note, ai: ai),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final input = find.byType(CupertinoTextField);
+    Future<void> submit(String text) async {
+      await tester.enterText(input, text);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> write(String text) async {
+      await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
+      await tester.pumpAndSettle();
+      await submit(text);
+    }
+
+    // 모르는 음식 — 서버 422 unknownFood.
+    reply = (_) async => throw const RecordAiException(
+      RecordAiStatus.unavailable,
+      'unknownFood',
+    );
+    await write('엄마표 비밀 반찬 조금');
+    expect(note.meals.single.kcal, isNull);
+    expect(find.text(l.mealTextUnknown), findsOneWidget);
+
+    // 연결이 안 됨 — 까닭이 다르다.
+    reply = (_) async =>
+        throw const RecordAiException(RecordAiStatus.unavailable);
+    await write('김밥 한 줄');
+    expect(find.text(l.mealTextOffline), findsOneWidget);
+    expect(find.text(l.mealTextUnknown), findsNothing);
+
+    // 끼니 줄을 누르면 글이 돌아오고, 그대로 Enter 를 누르면 다시 어림한다.
+    reply = (_) async => const MealEstimate(kcal: 480, items: ['김밥']);
+    await tester.tap(find.byKey(const ValueKey('meal-1')));
+    await tester.pumpAndSettle();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(ai.asked.last, '김밥 한 줄');
+    expect(note.meals[1].kcal, 480);
+    expect(note.meals, hasLength(2), reason: '같은 끼니를 고친다');
+    expect(
+      find.text(l.mealTextOffline),
+      findsNothing,
+      reason: '붙었으면 실패 말은 지운다',
+    );
+
+    // 일부만 적은 열량은 합계로 끝내지 않고 어림을 부른다 — 글은 친 그대로 간다.
+    reply = (_) async => const MealEstimate(kcal: 630, items: ['닭가슴살', '밥']);
+    await write('닭가슴살 330kcal, 밥 한 공기');
+    expect(ai.asked.last, '닭가슴살 330kcal, 밥 한 공기');
+    expect(note.meals.last.kcal, 630);
+    expect(note.meals.last.source, MealEntry.estimate);
+
+    // 서버가 받지 않는 길이는 보내지 않고 까닭을 말한다. 끼니는 남는다.
+    final asked = ai.asked.length;
+    await write('김밥 한 줄, ' * 70);
+    expect(ai.asked, hasLength(asked));
+    expect(note.meals, hasLength(4));
+    expect(find.text(l.mealTextTooLong), findsOneWidget);
+  });
+
   testWidgets('표로 셈한 끼니는 출처를 누르면 그 표의 값과 링크가 나오고, 저장본에도 남는다', (tester) async {
     final dir = Directory.systemTemp.createTempSync('setpad_meal_sources_');
     final store = NotesStore(directory: dir);

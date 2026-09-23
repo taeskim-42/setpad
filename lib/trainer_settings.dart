@@ -43,9 +43,25 @@ const _policyNumbers = [
   'lapsed_days',
 ];
 
+/// 방침 숫자 칸의 글. '14일'·'3회'·'7 days' 처럼 단위가 붙어도 첫 수를 읽는다.
+/// 수가 없거나 주·달·해처럼 **다른 단위**면 null 이다 — '2주' 를 2일로 읽으면
+/// 뜻이 바뀐다. 칸은 일 또는 회를 센다.
+int? policyNumber(String text) {
+  final n = RegExp(r'\d+').firstMatch(text);
+  final longer = RegExp(
+    r'주|週|周|개월|달|月|년|年|tuần|tháng|năm|สัปดาห์|เดือน|ปี|'
+    r'\b(?:weeks?|wks?|months?|mes(?:es)?|semanas?|years?|años?)\b',
+    caseSensitive: false,
+  );
+  return n == null || longer.hasMatch(text) ? null : int.tryParse(n[0]!);
+}
+
 class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
   AgentState get _s => widget.state;
   bool _busy = false;
+
+  /// 읽지 못한 방침 칸. 그 칸 밑에 까닭을 적고, 저장은 보내지 않는다.
+  Set<String> _unreadable = {};
 
   late final _numbers = {
     for (final key in _policyNumbers)
@@ -87,19 +103,37 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
     final l = L.of(context);
     // 숫자 패드에는 닫는 키가 없다. 닫지 않으면 결과가 키보드 뒤에 가린다.
     FocusScope.of(context).unfocus();
-    setState(() => _busy = true);
+    final typed = {
+      for (final key in _policyNumbers) key: _numbers[key]!.text.trim(),
+    };
+    // 친 글에서 수를 못 읽은 칸은 그 칸에서 말한다. 서버에 보내면 저장 전체가
+    // 범위 문구로 거절돼 어느 칸의 무엇이 틀렸는지 흐려진다.
+    final unreadable = {
+      for (final e in typed.entries)
+        if (e.value.isNotEmpty && policyNumber(e.value) == null) e.key,
+    };
+    setState(() {
+      _unreadable = unreadable;
+      _busy = unreadable.isEmpty;
+    });
+    if (unreadable.isNotEmpty) return;
     final offer = _offer.text.trim();
-    // 숫자가 아니면 null 로 보낸다 — 서버가 허용 범위를 적어 거절한다.
+    // 빈 칸은 null 로 보낸다 — 서버가 허용 범위를 적어 거절한다.
     final reply = await widget.account.link.saveGymPolicy(widget.gymId, {
-      for (final key in _policyNumbers)
-        key: int.tryParse(_numbers[key]!.text.trim()),
+      for (final e in typed.entries) e.key: policyNumber(e.value),
       'renewal_offer': offer.isEmpty ? null : offer,
     });
     if (!mounted) return;
     final saved = reply.body?['policy'];
     setState(() {
       _busy = false;
-      if (saved is Map) _s.policy = Map<String, Object?>.from(saved);
+      if (saved is Map) {
+        _s.policy = Map<String, Object?>.from(saved);
+        // 읽은 대로 저장됐다 — '14일' 이 14 로 들어간 것이 보인다.
+        for (final key in _policyNumbers) {
+          _numbers[key]!.text = '${saved[key] ?? ''}';
+        }
+      }
     });
     await tellAgent(
       context,
@@ -247,18 +281,22 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
                 ('low_sessions', l.policyLowSessions),
                 ('away_days', l.policyAwayDays),
                 ('lapsed_days', l.policyLapsedDays),
-              ])
+              ]) ...[
                 _row(
                   label,
                   trailing: SizedBox(
                     width: 64,
                     child: CupertinoTextField(
+                      key: ValueKey('policy-$key'),
                       controller: _numbers[key],
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.end,
                     ),
                   ),
                 ),
+                if (_unreadable.contains(key))
+                  _note(l.policyNumberUnreadable(_numbers[key]!.text.trim())),
+              ],
               _row(l.policyOffer),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),

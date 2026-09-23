@@ -741,6 +741,67 @@ void main() {
       expect(find.text('미방문 기준은 2~60일이에요.'), findsOneWidget);
     });
 
+    testWidgets('C·방침 숫자 칸은 단위가 붙어도 첫 수를 읽고, 못 읽으면 그 칸 밑에 까닭을 적고 보내지 않는다', (
+      tester,
+    ) async {
+      final l = lookupL(const Locale('ko'));
+      final bodies = <Map>[];
+      final a = account((request) async {
+        final sent = jsonDecode(request.body) as Map;
+        bodies.add(sent);
+        return reply({
+          'policy': {...sent}..remove('gymId'),
+        });
+      });
+      final state = AgentState.fromJson({...agentBody(), 'role': 'owner'});
+      tall(tester);
+      await tester.pumpWidget(
+        app(
+          TrainerSettingsPage(
+            account: a,
+            gymId: gymId,
+            gymName: 'BPM 강남',
+            state: state,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      Finder field(String key) => find.byKey(ValueKey('policy-$key'));
+      await tester.enterText(field('renewal_notice_days'), '14일');
+      await tester.enterText(field('low_sessions'), '3회');
+      await tester.enterText(field('away_days'), '2주');
+      await tester.enterText(field('lapsed_days'), '30');
+
+      // '2주' 를 2일로 읽으면 뜻이 바뀐다 — 그 칸에서 말하고 저장은 보내지 않는다.
+      await tapText(tester, '방침 저장');
+      expect(bodies, isEmpty);
+      expect(find.text(l.policyNumberUnreadable('2주')), findsOneWidget);
+
+      await tester.enterText(field('away_days'), '14 days');
+      await tapText(tester, '방침 저장');
+      expect(bodies.single, {
+        'gymId': gymId,
+        'renewal_notice_days': 14,
+        'low_sessions': 3,
+        'away_days': 14,
+        'lapsed_days': 30,
+        'renewal_offer': null,
+      });
+      expect(find.text(l.policyNumberUnreadable('2주')), findsNothing);
+      // 읽은 대로 저장된 것이 칸에 보인다.
+      expect(
+        tester
+            .widget<CupertinoTextField>(field('renewal_notice_days'))
+            .controller!
+            .text,
+        '14',
+      );
+      expect(policyNumber('7 days'), 7);
+      expect(policyNumber('3 times'), 3, reason: "'times' 속 'mes' 는 달이 아니다");
+      expect(policyNumber('2 weeks'), isNull);
+      expect(policyNumber('한 달'), isNull);
+    });
+
     testWidgets('이 도장 직원이 아니면 서버의 말을 보여 주고 정리 버튼을 치운다', (tester) async {
       final a = account(
         (request) async => request.url.path == '/api/agent'

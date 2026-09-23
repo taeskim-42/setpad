@@ -966,6 +966,35 @@ class LEn extends L {
       'This estimates everything visible in the photo. Choose how much of it you ate.';
 
   @override
+  String get mealTextUnknown =>
+      'Couldn\'t estimate calories — the food wasn\'t recognized. Tap the meal to add a name or amount and it will be estimated again.';
+
+  @override
+  String get mealTextOffline =>
+      'Couldn\'t estimate calories — no connection. Tap the meal and press Enter to estimate again.';
+
+  @override
+  String get mealTextTooLong =>
+      'Meal notes over 500 characters aren\'t estimated. Tap the meal and split it up to get an estimate.';
+
+  @override
+  String get queryUnrepresentable =>
+      'Record search can\'t compute a question shaped like this. It handles up to 8 exercises, a top 20 and 4 comparisons, and only one measure when grouped by week or month. Try asking in parts.';
+
+  @override
+  String queryTooLong(int max) {
+    return 'Questions can be up to $max characters. Please shorten it.';
+  }
+
+  @override
+  String get queryPressEnter => 'Press Enter to ask about your records.';
+
+  @override
+  String policyNumberUnreadable(String text) {
+    return 'Couldn\'t read a number of days or sessions from \'$text\'. Enter a number, e.g. 14';
+  }
+
+  @override
   String get mealSources => 'Source';
 
   @override

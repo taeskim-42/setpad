@@ -1318,6 +1318,109 @@ void main() {
       expect(search.plan?.scope.exercises, ['스쿼트']);
       search.dispose();
     });
+
+    test(
+      'C·서버는 답했는데 셀 수 없는 모양이면 못 하는 것이라 말하고, 그 거절을 담아 원판이 또 나가지 않는다',
+      () async {
+        var calls = 0;
+        Future<Object?> reply(String instructions, String input) async {
+          calls++;
+          // 주 묶음에 측정 둘 — 앱이 셀 수 없는 모양이다.
+          return {
+            'by': 'week',
+            'measures': ['volume', 'setCount'],
+          };
+        }
+
+        final search = RecordSearch(
+          RecordAi(respond: reply),
+          cache: QueryCache(directory: _temp()),
+        );
+        await search.refresh('ko');
+        const question = '주별 볼륨이랑 세트 수';
+        search.search(question, 'ko', names, 'kg', immediately: true);
+        await pumpEventQueue();
+        expect(
+          (search.unrepresentable, search.failed, search.charged, search.plan),
+          (true, false, true, null),
+          reason: '일시 장애가 아니다 — "다시 시도" 가 아니다',
+        );
+
+        // 다시 눌러도 서버에 가지 않는다. 같은 곳에서 막힐 것에 원판을 또 내지 않는다.
+        search.search('', 'ko', names, 'kg');
+        search.search(question, 'ko', names, 'kg', immediately: true);
+        await pumpEventQueue();
+        expect(calls, 1);
+        expect((search.unrepresentable, search.charged), (true, false));
+        // 치는 중에도 담아 둔 거절이 보인다.
+        search.search(question, 'ko', names, 'kg');
+        expect(search.unrepresentable, isTrue);
+        search.dispose();
+      },
+    );
+
+    test('C·600자가 넘는 질문은 보내지 않고 그렇다고 말한다 — 입력칸의 글은 부르는 쪽이 둔다', () async {
+      var calls = 0;
+      final search = RecordSearch(
+        RecordAi(
+          respond: (_, _) async {
+            calls++;
+            return squat();
+          },
+        ),
+        cache: QueryCache(directory: _temp()),
+      );
+      await search.refresh('ko');
+      final long = '스쿼트 ${'요즘 어때 ' * 120}';
+      search.search(long, 'ko', names, 'kg');
+      expect(search.tooLong, isFalse, reason: '치는 동안에는 말하지 않는다');
+      search.search(long, 'ko', names, 'kg', immediately: true);
+      await pumpEventQueue();
+      expect((calls, search.tooLong, search.failed), (0, true, false));
+      search.dispose();
+    });
+
+    test(
+      'C·연결이 안 된다고 굳어 있어도 Enter 때 한 번 다시 확인한다 — 돌아왔으면 묻고, 아니면 그렇다고 말한다',
+      () async {
+        RecordAi.forget();
+        addTearDown(RecordAi.forget);
+        var online = false;
+        var calls = 0;
+        final ai = RecordAi(
+          endpoint: 'https://example.test',
+          deviceId: 'device',
+          client: MockClient((request) async {
+            if (!online) throw http.ClientException('offline');
+            if (request.url.path == '/api/device') {
+              return http.Response(jsonEncode({'token': 't'}), 200);
+            }
+            calls++;
+            return http.Response(
+              jsonEncode({'intent': squat()}),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }),
+        );
+        final search = RecordSearch(ai, cache: QueryCache(directory: _temp()));
+        await search.refresh('ko');
+        expect(search.status, RecordAiStatus.unavailable);
+
+        search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+        await pumpEventQueue();
+        expect((search.offline, search.plan, calls), (true, null, 0));
+
+        // 망이 돌아왔다. 앱을 내렸다 올리지 않아도 Enter 가 다시 확인한다.
+        online = true;
+        search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+        await pumpEventQueue();
+        expect(search.status, RecordAiStatus.ready);
+        expect((search.offline, calls), (false, 1));
+        expect(search.plan?.scope.exercises, ['스쿼트']);
+        search.dispose();
+      },
+    );
   });
 }
 
