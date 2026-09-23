@@ -15,7 +15,12 @@ TimingAudio createTimingAudio() => _WebAudio();
 
 class _WebAudio extends TimingAudio {
   @override
-  Future<void> configure({required bool active, int? bpm, String? cue}) async {
+  Future<void> configure({
+    required bool active,
+    int? bpm,
+    String? cue,
+    double? phase,
+  }) async {
     await _configure(active.toJS, (bpm ?? 0).toJS, (cue ?? '').toJS).toDart;
   }
 

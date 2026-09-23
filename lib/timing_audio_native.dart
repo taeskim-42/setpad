@@ -11,12 +11,17 @@ class _NativeAudio extends TimingAudio {
     });
   }
   @override
-  Future<void> configure({required bool active, int? bpm, String? cue}) =>
-      _channel.invokeMethod<void>('configure', {
-        'active': active,
-        'bpm': bpm,
-        'cue': cue,
-      });
+  Future<void> configure({
+    required bool active,
+    int? bpm,
+    String? cue,
+    double? phase,
+  }) => _channel.invokeMethod<void>('configure', {
+    'active': active,
+    'bpm': bpm,
+    'cue': cue,
+    'phase': phase,
+  });
 
   @override
   Future<void> speak(String text, String locale, {double rate = 1.15}) =>

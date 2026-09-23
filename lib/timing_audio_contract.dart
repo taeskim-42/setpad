@@ -1,6 +1,15 @@
 abstract class TimingAudio {
   void Function()? onInterrupted;
-  Future<void> configure({required bool active, int? bpm, String? cue});
+
+  /// [phase]: how far into the current beat the timer is, in seconds. The
+  /// click loop starts there, so after a pause or a re-sync the clicks stay on
+  /// the timer's beat grid instead of restarting from wherever play() lands.
+  Future<void> configure({
+    required bool active,
+    int? bpm,
+    String? cue,
+    double? phase,
+  });
 
   /// Read half a beat after the click this count belongs to (at most one
   /// second). [rate] multiplies the platform's default speech rate. A newer

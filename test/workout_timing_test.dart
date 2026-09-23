@@ -8,10 +8,17 @@ import 'package:setpad/l10n/generated/app_localizations.dart';
 class FakeAudio extends TimingAudio {
   final events = <String>[];
   final calls = <({bool active, int? bpm, String? cue})>[];
+  final phases = <double?>[];
   @override
-  Future<void> configure({required bool active, int? bpm, String? cue}) async {
+  Future<void> configure({
+    required bool active,
+    int? bpm,
+    String? cue,
+    double? phase,
+  }) async {
     events.add(active ? "configure" : "stop");
     calls.add((active: active, bpm: bpm, cue: cue));
+    phases.add(phase);
   }
 
   final spoken = <String>[];
@@ -266,17 +273,23 @@ void _aloud() {
       timer.dispose();
     });
 
-    Future<List<String>> counts(WidgetTester tester, int bpm, int beats) async {
+    Future<List<String>> counts(
+      WidgetTester tester,
+      int bpm,
+      int beats, {
+      bool jitter = false,
+    }) async {
       var now = Duration.zero;
       final audio = FakeAudio();
       final timer = WorkoutTimer(audio: audio, now: () => now)
         ..countAloud = true
         ..voiceLocale = 'ko';
       timer.toggle(Object(), TimingSpec(bpm: bpm));
-      // 50ms 마다 본다 — 실제 타이머와 같은 간격.
+      // 50ms 마다 본다 — 실제 타이머와 같은 간격. [jitter] 면 틱이 세 번에 한 번
+      // 40ms 늦게 돈다(프레임 빌드·GC). 박자를 알아채는 때가 들쭉날쭉해진다.
       final end = 3000 + beats * 60000 ~/ bpm;
-      for (var ms = 50; ms <= end; ms += 50) {
-        now = Duration(milliseconds: ms);
+      for (var k = 1; k * 50 <= end; k++) {
+        now = Duration(milliseconds: k * 50 + (jitter && k % 3 == 0 ? 40 : 0));
         timer.tick();
       }
       await tester.idle();
@@ -326,6 +339,54 @@ void _aloud() {
           lessThanOrEqualTo(gap + 0.001),
         );
       }
+    });
+
+    testWidgets('틱이 들쭉날쭉 늦어도 120bpm 에서 아흔아홉까지 하나도 안 빠진다', (tester) async {
+      final said = await counts(tester, TimingSpec.maxBpm, 99, jitter: true);
+      expect(said.take(99), [
+        for (var n = 1; n <= 99; n++) spokenCount(n, 'ko'),
+      ]);
+    });
+
+    testWidgets('박 중간에서 다시 켜면 클릭을 그 자리에서 잇고, 읽을 때가 지난 숫자는 다시 읽지 않는다', (
+      tester,
+    ) async {
+      var now = Duration.zero;
+      final audio = FakeAudio();
+      final timer = WorkoutTimer(audio: audio, now: () => now)
+        ..countAloud = true
+        ..voiceLocale = 'ko';
+      final spec = const TimingSpec(bpm: 60); // 한 박 1초
+      timer.toggle(Object(), spec);
+      for (var ms = 50; ms <= 5000; ms += 50) {
+        now = Duration(milliseconds: ms);
+        timer.tick();
+      }
+      await tester.idle();
+      // 박자 3 에 0.7초 들어섰을 때 멈췄다가 다시 켠다.
+      now = const Duration(milliseconds: 5700);
+      timer.tick();
+      timer.toggle(timer.owner!, spec);
+      await tester.idle();
+      final before = audio.spoken.length;
+      now = const Duration(milliseconds: 5800);
+      timer.toggle(timer.owner!, spec);
+      await tester.idle();
+      expect(
+        audio.phases.last,
+        closeTo(0.7, 0.01),
+        reason: '클릭이 박 안의 그 자리에서 시작한다',
+      );
+      expect(audio.spoken.length, before, reason: '반 박이 지나 셋은 다시 읽지 않는다');
+      for (var ms = 5850; ms <= 6900; ms += 50) {
+        now = Duration(milliseconds: ms);
+        timer.tick();
+      }
+      await tester.idle();
+      expect(audio.spoken.last, '넷');
+      timer.pause();
+      await tester.idle();
+      timer.dispose();
     });
 
     testWidgets('꺼져 있으면 아무 말도 안 한다', (tester) async {

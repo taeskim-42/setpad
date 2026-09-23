@@ -30,6 +30,7 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
     private val handler = Handler(Looper.getMainLooper())
     private var pendingSpeech: Runnable? = null
     private var cueEndsAt = 0L
+    private var spokenLocale: String? = null
 
     private fun prepareSpeech() {
         if (speech == null) speech = TextToSpeech(activity) { status ->
@@ -49,14 +50,16 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
         pendingSpeech?.let { handler.removeCallbacks(it) }; pendingSpeech = null
         val player = track
         val bpm = tempo
-        var patience = 300L
+        var patience = 150L
         // A Tabata with no BPM still announces its rounds, so there may be no beat to wait for.
         val countRemaining = if (player != null && bpm != null) {
             val frames = (60.0 / bpm * 22050).toInt()
             val period = 60000L / bpm
             val half = minOf(30000L / bpm, 1000L)
             val at = ((player.playbackHeadPosition.toLong() and 0xffffffffL) % frames) * 1000 / 22050
-            patience = period / 2
+            // No later than a quarter beat after the planned moment: a late word
+            // never lands on the next click and lateness cannot pile up.
+            patience = period / 4
             if (at > period * 3 / 4) period - at + half else maxOf(0L, half - at)
         } else 0L
         val delay = maxOf(countRemaining, cueEndsAt - SystemClock.elapsedRealtime(), 0L)
@@ -64,11 +67,15 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
         lateinit var task: Runnable
         task = Runnable {
             if (engine.isSpeaking && SystemClock.elapsedRealtime() < giveUpAt) {
-                handler.postDelayed(task, 30); return@Runnable
+                handler.postDelayed(task, 20); return@Runnable
             }
             pendingSpeech = null
             if (!engine.isSpeaking) {
-                runCatching { engine.language = Locale.forLanguageTag(locale) }
+                // Setting the language is a binder call; only when it changes.
+                if (locale != spokenLocale) {
+                    runCatching { engine.language = Locale.forLanguageTag(locale) }
+                    spokenLocale = locale
+                }
                 engine.setSpeechRate(rate)
                 engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "count")
             }
@@ -101,7 +108,11 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                 if (active) activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 else activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 if (bpm != tempo) {
-                    stopBeat()
+                    // Stopping cuts the voice. A tempo change while running (Tabata
+                    // work to rest) only drops a count still waiting: the round's
+                    // last number is allowed to finish.
+                    if (active) dropPending() else cancelSpeech()
+                    stopClick()
                     if (bpm != null) {
                         val player = beats.getOrPut(bpm) {
                             val samples = samples(click, 60.0 / bpm)
@@ -110,7 +121,13 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                             }
                         }
                         track = player
-                        player.reloadStaticData(); player.play(); tempo = bpm
+                        player.reloadStaticData()
+                        // Start where the timer is inside its beat, not at a fresh
+                        // click: after a pause or a re-sync the clicks stay on the grid.
+                        val frames = (60.0 / bpm * 22050).toInt()
+                        val at = ((call.argument<Double>("phase") ?: 0.0) * 22050).toInt()
+                        if (at in 1 until frames) runCatching { player.playbackHeadPosition = at }
+                        player.play(); tempo = bpm
                     }
                 }
                 val cue = call.argument<String>("cue")
@@ -161,7 +178,9 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
         check(player.write(samples, 0, samples.size) == samples.size)
         return player
     }
-    private fun stopBeat() { cancelSpeech(); track?.let { runCatching { it.stop() } }; track = null; tempo = null }
+    private fun dropPending() { pendingSpeech?.let { handler.removeCallbacks(it) }; pendingSpeech = null }
+    private fun stopClick() { track?.let { runCatching { it.stop() } }; track = null; tempo = null }
+    private fun stopBeat() { cancelSpeech(); stopClick() }
     private fun stop() { stopBeat(); runCatching { speech?.stop() }; runCatching { cueTrack?.stop() }; cueTrack = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     fun interrupt() { stop(); channel.invokeMethod("interrupted", null) }
     fun close() {

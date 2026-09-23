@@ -31,7 +31,8 @@ final class TimingBridge {
       guard call.method == "configure" else { result(FlutterMethodNotImplemented); return }
       do {
         try self.configure(active: args["active"] as? Bool ?? false,
-                           bpm: args["bpm"] as? Int, cueName: args["cue"] as? String)
+                           bpm: args["bpm"] as? Int, cueName: args["cue"] as? String,
+                           phase: args["phase"] as? Double ?? 0)
         result(nil)
       } catch {
         self.stop()
@@ -57,11 +58,13 @@ final class TimingBridge {
   private func speak(_ text: String, locale: String, rate: Double) {
     guard !text.isEmpty else { return }
     pendingSpeech?.cancel(); pendingSpeech = nil
-    var countRemaining = 0.0, patience = 0.3
+    var countRemaining = 0.0, patience = 0.15
     if let tempo, let beat {
       let period = 60.0 / Double(tempo), half = min(period / 2, 1.0), at = beat.currentTime
       countRemaining = at > period * 0.75 ? period - at + half : max(0, half - at)
-      patience = period * 0.5
+      // Start no later than a quarter beat after the planned moment, so a late
+      // word never lands on the next click and lateness cannot pile up.
+      patience = period * 0.25
     }
     let cueRemaining = cue.flatMap { $0.isPlaying ? max(0, $0.duration - $0.currentTime) : nil } ?? 0
     let delay = max(countRemaining, cueRemaining)
@@ -69,9 +72,9 @@ final class TimingBridge {
       if delay > 0 {
         try? await Task.sleep(nanoseconds: UInt64((delay + 0.005) * 1_000_000_000))
       }
-      var waited = 0.0
-      while let self, self.speech.isSpeaking, waited < patience, !Task.isCancelled {
-        try? await Task.sleep(nanoseconds: 30_000_000); waited += 0.03
+      let giveUp = Date().addingTimeInterval(patience)
+      while let self, self.speech.isSpeaking, Date() < giveUp, !Task.isCancelled {
+        try? await Task.sleep(nanoseconds: 20_000_000)
       }
       guard !Task.isCancelled, let self else { return }
       self.pendingSpeech = nil
@@ -90,7 +93,7 @@ final class TimingBridge {
     speech.stopSpeaking(at: .immediate)
   }
 
-  private func configure(active: Bool, bpm: Int?, cueName: String?) throws {
+  private func configure(active: Bool, bpm: Int?, cueName: String?, phase: Double) throws {
     let session = AVAudioSession.sharedInstance()
     // Activating the session costs tens of milliseconds, so do it once and
     // keep it. Doing it per cue was what put a lag before every beep.
@@ -103,11 +106,16 @@ final class TimingBridge {
     // The app allows 10 BPM; anything slower than this range is a typo.
     let validTempo = active ? bpm.flatMap { (10...300).contains($0) ? $0 : nil } : nil
     if validTempo != tempo || !active {
-      cancelSpeech()
+      // Stopping cuts the voice. A tempo change while running (Tabata work to
+      // rest) only drops a count still waiting: the last number of the round
+      // is allowed to finish.
+      if active { pendingSpeech?.cancel(); pendingSpeech = nil } else { cancelSpeech() }
       beat?.stop(); beat = nil; tempo = validTempo
       if let bpm = validTempo {
         let player = try beatPlayer(bpm)
-        player.currentTime = 0
+        // Start where the timer is inside its beat, not at a fresh click: after a
+        // pause or a re-sync the clicks stay on the timer's beat grid.
+        player.currentTime = min(max(0, phase), max(0, player.duration - 0.001))
         guard player.play() else { throw NSError(domain: "setpad.timing", code: 1) }
         beat = player
       }

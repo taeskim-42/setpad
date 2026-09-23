@@ -20,7 +20,12 @@ class FakeHealth extends HealthLink {
 
 class SilentAudio extends TimingAudio {
   @override
-  Future<void> configure({required bool active, int? bpm, String? cue}) async {}
+  Future<void> configure({
+    required bool active,
+    int? bpm,
+    String? cue,
+    double? phase,
+  }) async {}
   @override
   Future<void> speak(String text, String locale, {double rate = 1.15}) async {}
   @override

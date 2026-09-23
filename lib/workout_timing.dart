@@ -169,6 +169,9 @@ String spokenCount(int n, String languageCode) {
 /// 100bpm(0.6초)에 기본 속도로는 안 들어간다. 박자에 맞춰 빠르게 읽되 최대
 /// 두 배까지만 — 그 이상은 알아듣기 어렵다.
 ///
+/// 말은 클릭 뒤 반 박에 시작하므로(템포 앱과 같다) 반 박보다 긴 숫자는 다음
+/// 클릭 위로 이어진다. 의도한 것이다 — 숫자끼리 겹치지만 않으면 된다.
+///
 /// ponytail: 음절당 시간은 어림값이다. 기기 음성이 더 느리면 [syllableSeconds]
 /// 를 올린다(실기기에서 숫자가 빠지면 이것부터).
 const syllableSeconds = 0.2, speechLead = 0.08;
@@ -177,8 +180,9 @@ const syllableSeconds = 0.2, speechLead = 0.08;
   String languageCode,
   int bpm,
 ) {
-  // 한국어는 글자가 곧 음절이다. 다른 말은 숫자 한 자리를 두 음절쯤으로 본다.
-  final syllables = languageCode == 'ko' ? text.length : text.length * 1.8;
+  // 한국어는 글자가 곧 음절이다. 다른 말은 숫자 한 자리를 두세 음절로 본다 —
+  // seventy-seven 은 다섯, setenta y siete 는 여섯이다. 넉넉히 잡는다.
+  final syllables = languageCode == 'ko' ? text.length : text.length * 2.5;
   final budget = 60 / bpm * 0.9 - speechLead;
   final rate = budget <= 0
       ? 2.0
@@ -245,9 +249,22 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   int get beat {
     final bpm = spec?.bpm;
     if (bpm == null || !running || phase != TimingPhase.work) return 0;
+    return (_intoWork * bpm / 60).floor() + 1;
+  }
+
+  /// 운동 구간에 들어선 지 몇 초.
+  double get _intoWork {
     final seconds = elapsed.inMilliseconds / 1000 - 3;
-    final into = spec!.tabata ? seconds % (spec!.work + spec!.rest) : seconds;
-    return (into * bpm / 60).floor() + 1;
+    return spec!.tabata ? seconds % (spec!.work + spec!.rest) : seconds;
+  }
+
+  /// 지금 박자에 들어선 지 몇 초. 박자가 없으면 null. 나머지(%)로 구하지
+  /// 않는다 — 6.6 % 0.6 이 0.5999… 가 되어 박자 하나를 통째로 앞당긴다.
+  double? get _intoBeat {
+    final n = beat;
+    if (n == 0) return null;
+    final into = _intoWork - (n - 1) * 60 / spec!.bpm!;
+    return into < 0 ? 0 : into;
   }
 
   int get remaining {
@@ -333,7 +350,15 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
           ? 'work'
           : null,
     );
-    if (countAloud && _lastBeat > 0) _say(_lastBeat);
+    // 박 중간에서 다시 시작했으면(멈췄다 켬, 같이 하기 재동기화) 그 박자의 숫자는
+    // 읽을 때(반 박)가 아직 안 왔을 때만 읽는다. 지났으면 다음 박자부터.
+    final into = _intoBeat;
+    if (countAloud &&
+        _lastBeat > 0 &&
+        into != null &&
+        into < 60 / spec!.bpm! / 2) {
+      _say(_lastBeat);
+    }
     // 100ms 마다 보면 구간이 바뀐 것을 최대 100ms 늦게 안다 — 그만큼 소리가
     // 밀린다. 50ms 로 보면 절반이고, 하는 일은 값 비교뿐이라 싸다.
     _ticker = Timer.periodic(const Duration(milliseconds: 50), (_) => tick());
@@ -353,12 +378,14 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     if (bpm == null) return;
     final text = spokenCount(n, voiceLocale);
     final pace = countPace(text, voiceLocale, bpm);
-    final now = elapsed.inMilliseconds / 1000;
+    // 박자가 **시작한** 때로 잰다. 틱이 알아챈 때(0~50ms 늦다)로 재면 늦게
+    // 알아챈 박자 뒤의 숫자가 운에 따라 빠진다.
+    final start = elapsed.inMilliseconds / 1000 - (_intoBeat ?? 0);
     // 빨리 읽어도 한 박에 안 들어가면, 앞 말이 끝난 뒤 첫 박자에서 읽는다.
     // 예전에는 네이티브가 "아직 말하는 중" 이면 그냥 버려서 어느 숫자가 빠질지
     // 운이었다 — 여기서 미리 정하면 빠지는 박자가 늘 같다.
-    if (now + 0.001 < _voiceFreeAt) return;
-    _voiceFreeAt = now + pace.seconds;
+    if (start + 0.01 < _voiceFreeAt) return;
+    _voiceFreeAt = start + pace.seconds;
     _speak(text, rate: pace.rate);
   }
 
@@ -422,7 +449,13 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _commands = _commands.then((_) async {
       if (_disposed) return;
       try {
-        await _audio.configure(active: active, bpm: bpm, cue: cue);
+        // 박 안의 자리는 보내는 순간에 잰다 — 앞 명령을 기다린 만큼 늦었다.
+        await _audio.configure(
+          active: active,
+          bpm: bpm,
+          cue: cue,
+          phase: bpm == null ? null : _intoBeat,
+        );
       } catch (_) {
         if (!_disposed) {
           soundFailed = true;
