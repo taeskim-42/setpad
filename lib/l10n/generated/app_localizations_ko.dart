@@ -582,10 +582,68 @@ class LKo extends L {
   String get reviewNumbers => '숫자와 조건을 확인한 뒤 적용해 주세요.';
 
   @override
-  String get querySourceOnly => '원본 기록 보기';
+  String get queryByExercise => '운동별';
 
   @override
-  String get queryCompareOrder => '두 번째 기간 − 첫 번째 기간';
+  String get queryByDay => '날짜별';
+
+  @override
+  String get queryByWeek => '주별 (월요일 시작)';
+
+  @override
+  String get queryByMonth => '월별';
+
+  @override
+  String get queryByWeekday => '요일별';
+
+  @override
+  String get queryTotalSum => '합계';
+
+  @override
+  String get queryTotalMean => '평균';
+
+  @override
+  String queryDiff(String later, String earlier) {
+    return '차이 ($later − $earlier)';
+  }
+
+  @override
+  String queryExclude(String names) {
+    return '$names 제외';
+  }
+
+  @override
+  String queryMemo(String terms) {
+    return '메모: $terms';
+  }
+
+  @override
+  String queryLastSessions(int n) {
+    return '마지막 $n번';
+  }
+
+  @override
+  String queryBottomLimit(int n) {
+    return '하위 $n개 · 오름차순';
+  }
+
+  @override
+  String queryOutOfScope(String names) {
+    return '이 측정에 쓸 값이 없어 뺐어요: $names';
+  }
+
+  @override
+  String queryMissingFor(String names) {
+    return '값이 빠진 세트가 있어 계산하지 않았어요: $names';
+  }
+
+  @override
+  String get queryE1rmRule => '추정 1RM = 무게 × (1 + 횟수 ÷ 30), 1–10회 세트만';
+
+  @override
+  String queryMore(int n) {
+    return '외 $n개';
+  }
 
   @override
   String queryRankingLimit(int n) {

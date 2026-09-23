@@ -60,11 +60,11 @@ class _NotesListPageState extends State<NotesListPage>
 
   /// 의심스러운 해석을 사용자가 "맞아요" 로 확인한 계획. 같은 계획 객체일 때만
   /// 유효하다 — 검색어가 바뀌어 새 계획이 오면 자연히 풀린다.
-  RecordQueryPlan? _confirmed;
+  RecordQuery? _confirmed;
   String? _confirmedContext;
   String get _confirmationContext =>
       '${DateTime.now().toIso8601String().substring(0, 10)}|$_locale|${widget.store.weightUnit}';
-  bool _isConfirmed(RecordQueryPlan? plan) =>
+  bool _isConfirmed(RecordQuery? plan) =>
       plan != null &&
       identical(_confirmed, plan) &&
       _confirmedContext == _confirmationContext;
@@ -185,52 +185,6 @@ class _NotesListPageState extends State<NotesListPage>
     widget.onOpen(note);
   }
 
-  /// "스쿼트 · 최고 · 9월 1일 ~ 9월 30일" — 무엇을 어떻게 읽었는지 한 줄.
-  String _planSummary(L l, RecordQueryPlan plan) {
-    if (plan.requests.isEmpty) return plan.kind;
-    return [
-      if (plan.compare) l.queryCompareOrder,
-      if (plan.rank) l.queryRankingLimit(plan.limit),
-      for (final (index, r) in plan.requests.indexed)
-        [
-          if (plan.compare) '${index + 1}.',
-          r.exercise == '*' ? l.allNotes : r.exercise,
-          plan.kind == 'insight'
-              ? l.querySourceOnly
-              : _metricLabel(l, r.metric),
-          recordRequestScope(r, l),
-          if (plan.kind == 'answer' &&
-              [
-                stats.Metric.max,
-                stats.Metric.average,
-                stats.Metric.volume,
-                stats.Metric.trend,
-                stats.Metric.last,
-              ].contains(r.metric))
-            widget.store.weightUnit,
-        ].join(' · '),
-    ].join('\n');
-  }
-
-  String _metricLabel(L l, stats.Metric m) => switch (m) {
-    stats.Metric.max => l.metricMax,
-    stats.Metric.trend => l.metricTrend,
-    stats.Metric.last => l.metricLast,
-    stats.Metric.sessions => l.metricSessions,
-    stats.Metric.volume => l.metricVolume,
-    stats.Metric.reps => l.metricReps,
-    stats.Metric.sets => l.metricSets,
-    stats.Metric.average => l.metricAverage,
-    stats.Metric.best => l.metricMax,
-    stats.Metric.e1rm => l.metricE1rm,
-    stats.Metric.maxReps => l.metricMaxReps,
-    stats.Metric.distance => l.metricDistance,
-    stats.Metric.duration => l.metricDuration,
-    stats.Metric.first => l.metricFirst,
-    stats.Metric.daysSince => l.metricDaysSince,
-    stats.Metric.longest => l.metricLongest,
-  };
-
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -240,32 +194,21 @@ class _NotesListPageState extends State<NotesListPage>
     super.dispose();
   }
 
-  List<Note> get _visible {
+  /// 목록에 보일 기록. 답이 있으면 답에 쓰인 기록이다.
+  List<Note> _visible(RecordQuery? plan, RecordResult? result) {
     final q = _query.text.trim().toLowerCase();
     final all = widget.store.notes;
-    final plan = _search.plan;
+    if (result != null) {
+      return all.where((n) => result.evidence.contains(n.id)).toList();
+    }
     if (plan != null && plan.requiresConfirmation && !_isConfirmed(plan)) {
       return all;
     }
-    if (plan?.kind == 'insight') {
-      return all.where((n) => recordNoteMatches(n, plan!)).toList();
-    }
-    if (plan?.kind == 'answer') {
-      final ids = {
-        for (final request in plan!.requests)
-          for (final note in recordsForRequest(
-            all,
-            request,
-            widget.store.weightUnit,
-          ))
-            if (note.blocks.any((b) => b.sets.isNotEmpty)) note.id,
-      };
-      return all.where((n) => ids.contains(n.id)).toList();
-    }
-    if (plan?.searchNames.isNotEmpty == true) {
+    if (plan?.kind == 'find') {
       return all
           .where(
-            (n) => n.blocks.any((b) => plan!.searchNames.contains(b.exercise)),
+            (n) =>
+                n.blocks.any((b) => plan!.scope.exercises.contains(b.exercise)),
           )
           .toList();
     }
@@ -278,6 +221,38 @@ class _NotesListPageState extends State<NotesListPage>
                     suggest(q, n.blocks.map((b) => b.name).toList()).isNotEmpty,
               )
               .toList();
+  }
+
+  /// 결과를 카드로. 칸마다 한 장이다.
+  // ponytail: 임시 렌더. 표·차트 카드(TableCard)가 오면 바뀐다.
+  List<stats.Answer> _cards(RecordQuery plan, RecordResult result, L l) {
+    if (result.render == 'number') {
+      final a = result.rows.single.cells.single.answer;
+      if (a == null) return const [];
+      return [
+        stats.Answer(
+          metric: a.metric,
+          exercise: result.title,
+          points: a.points,
+          headline: a.headline,
+          numericValue: a.numericValue,
+          lines: [describeScope(plan.scope, l), ...a.lines].take(3).toList(),
+        ),
+      ];
+    }
+    return [
+      for (final row in result.rows)
+        for (final (i, cell) in row.cells.indexed)
+          if (cell.answer case final a?)
+            stats.Answer(
+              metric: a.metric,
+              exercise: '${row.label} · ${result.columns[i]}',
+              points: a.points,
+              headline: a.headline,
+              numericValue: a.numericValue,
+              lines: a.lines,
+            ),
+    ];
   }
 
   /// 이전 7일 / 이전 30일 / 그 앞은 달로. 메모 앱과 같은 구간이다.
@@ -318,7 +293,6 @@ class _NotesListPageState extends State<NotesListPage>
               child: ListenableBuilder(
                 listenable: widget.store,
                 builder: (context, _) {
-                  final groups = _grouped(_visible, l);
                   final plan = _search.plan;
                   // 자신 있게 틀릴 위험이 있으면 답을 내지 않고 한 번 묻는다.
                   // 틀린 숫자보다 탭 한 번이 싸다.
@@ -326,15 +300,18 @@ class _NotesListPageState extends State<NotesListPage>
                       plan != null &&
                       plan.requiresConfirmation &&
                       !_isConfirmed(plan);
-                  final answers = plan == null || doubtful
-                      ? const []
-                      : executeRecordPlan(
+                  final result =
+                      plan == null || doubtful || plan.kind != 'query'
+                      ? null
+                      : runQuery(
                           plan,
                           widget.store.notes,
-                          l,
-                          widget.store.weightUnit,
+                          l: l,
+                          unit: widget.store.weightUnit,
                           confirmed: _isConfirmed(plan),
                         );
+                  final visible = _visible(plan, result);
+                  final groups = _grouped(visible, l);
                   return CustomScrollView(
                     slivers: [
                       // 큰 제목은 스크롤하면 가운데 작은 제목으로 접힌다. iOS
@@ -472,15 +449,22 @@ class _NotesListPageState extends State<NotesListPage>
                                     l.queryFailed,
                                     style: const TextStyle(fontSize: 14),
                                   ),
+                                if (_search.quota)
+                                  Text(
+                                    l.quotaSpent,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
                                 if (plan?.kind == 'unsupported')
                                   Text(switch (plan?.reason) {
                                     'missingData' => l.queryMissingData,
                                     'ambiguous' => l.queryAmbiguous,
                                     _ => l.queryUnsupported,
                                   }, style: const TextStyle(fontSize: 14)),
-                                if (!doubtful &&
-                                    plan?.kind == 'answer' &&
-                                    answers.isEmpty)
+                                if (result != null &&
+                                    !result.rows.any(
+                                      (r) =>
+                                          r.cells.any((c) => c.answer != null),
+                                    ))
                                   Text(
                                     l.queryNoData,
                                     style: const TextStyle(fontSize: 14),
@@ -578,7 +562,7 @@ class _NotesListPageState extends State<NotesListPage>
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 Text(
-                                  '${l.readAsConfirm} · ${_planSummary(l, plan)}',
+                                  '${l.readAsConfirm} · ${describeQuery(plan, l, widget.store.weightUnit)}',
                                   style: TextStyle(
                                     fontSize: 15,
                                     color: CupertinoColors.label.resolveFrom(
@@ -614,20 +598,33 @@ class _NotesListPageState extends State<NotesListPage>
                             ),
                           ),
                         ),
-                      if (!doubtful && plan?.kind == 'insight')
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                            child: Text(l.querySourceOnly),
+                      if (result != null) ...[
+                        for (final answer in _cards(plan!, result, l))
+                          SliverToBoxAdapter(child: AnswerCard(answer: answer)),
+                        if (result.diff.isNotEmpty ||
+                            result.footnotes.isNotEmpty)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                              child: Text(
+                                [
+                                  ...result.diff,
+                                  ...result.footnotes,
+                                ].join('\n'),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: CupertinoColors.secondaryLabel
+                                      .resolveFrom(context),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      for (final answer in answers)
-                        SliverToBoxAdapter(child: AnswerCard(answer: answer)),
+                      ],
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
                           child: Text(
-                            l.noteCount(_visible.length),
+                            l.noteCount(visible.length),
                             style: TextStyle(
                               fontSize: 14,
                               color: CupertinoColors.secondaryLabel.resolveFrom(

@@ -591,10 +591,69 @@ class LEs extends L {
       'Revisa los números y las condiciones antes de aplicar.';
 
   @override
-  String get querySourceOnly => 'Ver registros originales';
+  String get queryByExercise => 'Por ejercicio';
 
   @override
-  String get queryCompareOrder => 'Segundo período − primer período';
+  String get queryByDay => 'Por día';
+
+  @override
+  String get queryByWeek => 'Por semana (desde el lunes)';
+
+  @override
+  String get queryByMonth => 'Por mes';
+
+  @override
+  String get queryByWeekday => 'Por día de la semana';
+
+  @override
+  String get queryTotalSum => 'Total';
+
+  @override
+  String get queryTotalMean => 'Promedio';
+
+  @override
+  String queryDiff(String later, String earlier) {
+    return 'Diferencia ($later − $earlier)';
+  }
+
+  @override
+  String queryExclude(String names) {
+    return 'Excepto $names';
+  }
+
+  @override
+  String queryMemo(String terms) {
+    return 'Nota: $terms';
+  }
+
+  @override
+  String queryLastSessions(int n) {
+    return 'Últimas $n sesiones';
+  }
+
+  @override
+  String queryBottomLimit(int n) {
+    return 'Últimos $n · ascendente';
+  }
+
+  @override
+  String queryOutOfScope(String names) {
+    return 'Excluido (sin valores para esta medida): $names';
+  }
+
+  @override
+  String queryMissingFor(String names) {
+    return 'Sin calcular (series con valores faltantes): $names';
+  }
+
+  @override
+  String get queryE1rmRule =>
+      '1RM est. = peso × (1 + reps ÷ 30), solo series de 1–10 reps';
+
+  @override
+  String queryMore(int n) {
+    return '$n más';
+  }
 
   @override
   String queryRankingLimit(int n) {

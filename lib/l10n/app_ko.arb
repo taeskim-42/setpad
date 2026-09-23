@@ -520,8 +520,84 @@
     }
   },
   "reviewNumbers": "숫자와 조건을 확인한 뒤 적용해 주세요.",
-  "querySourceOnly": "원본 기록 보기",
-  "queryCompareOrder": "두 번째 기간 − 첫 번째 기간",
+  "queryByExercise": "운동별",
+  "queryByDay": "날짜별",
+  "queryByWeek": "주별 (월요일 시작)",
+  "queryByMonth": "월별",
+  "queryByWeekday": "요일별",
+  "queryTotalSum": "합계",
+  "queryTotalMean": "평균",
+  "queryDiff": "차이 ({later} − {earlier})",
+  "@queryDiff": {
+    "description": "두 대상의 차이. 값은 뒤 − 앞이다.",
+    "placeholders": {
+      "later": {
+        "type": "String"
+      },
+      "earlier": {
+        "type": "String"
+      }
+    }
+  },
+  "queryExclude": "{names} 제외",
+  "@queryExclude": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "queryMemo": "메모: {terms}",
+  "@queryMemo": {
+    "placeholders": {
+      "terms": {
+        "type": "String"
+      }
+    }
+  },
+  "queryLastSessions": "마지막 {n}번",
+  "@queryLastSessions": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "queryBottomLimit": "하위 {n}개 · 오름차순",
+  "@queryBottomLimit": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "queryOutOfScope": "이 측정에 쓸 값이 없어 뺐어요: {names}",
+  "@queryOutOfScope": {
+    "description": "무게를 한 번도 적지 않은 운동처럼 이 측정의 대상이 아닌 운동. 빼고 센다.",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "queryMissingFor": "값이 빠진 세트가 있어 계산하지 않았어요: {names}",
+  "@queryMissingFor": {
+    "description": "값이 빠진 세트가 있어 칸을 비운 운동.",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "queryE1rmRule": "추정 1RM = 무게 × (1 + 횟수 ÷ 30), 1–10회 세트만",
+  "queryMore": "외 {n}개",
+  "@queryMore": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "queryRankingLimit": "상위 {n}개 · 내림차순",
   "@queryRankingLimit": {
     "placeholders": {

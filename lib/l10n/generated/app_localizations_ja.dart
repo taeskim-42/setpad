@@ -580,10 +580,68 @@ class LJa extends L {
   String get reviewNumbers => '数値と条件を確認してから適用してください。';
 
   @override
-  String get querySourceOnly => '元の記録を表示';
+  String get queryByExercise => '種目別';
 
   @override
-  String get queryCompareOrder => '2番目の期間 − 1番目の期間';
+  String get queryByDay => '日別';
+
+  @override
+  String get queryByWeek => '週別（月曜始まり）';
+
+  @override
+  String get queryByMonth => '月別';
+
+  @override
+  String get queryByWeekday => '曜日別';
+
+  @override
+  String get queryTotalSum => '合計';
+
+  @override
+  String get queryTotalMean => '平均';
+
+  @override
+  String queryDiff(String later, String earlier) {
+    return '差（$later − $earlier）';
+  }
+
+  @override
+  String queryExclude(String names) {
+    return '$namesを除く';
+  }
+
+  @override
+  String queryMemo(String terms) {
+    return 'メモ: $terms';
+  }
+
+  @override
+  String queryLastSessions(int n) {
+    return '直近$n回';
+  }
+
+  @override
+  String queryBottomLimit(int n) {
+    return '下位$n件・昇順';
+  }
+
+  @override
+  String queryOutOfScope(String names) {
+    return '対象外（この指標の値なし）: $names';
+  }
+
+  @override
+  String queryMissingFor(String names) {
+    return '未計算（値が欠けたセットあり）: $names';
+  }
+
+  @override
+  String get queryE1rmRule => '推定1RM = 重量 × (1 + 回数 ÷ 30)、1〜10回のセットのみ';
+
+  @override
+  String queryMore(int n) {
+    return 'ほか$n件';
+  }
 
   @override
   String queryRankingLimit(int n) {

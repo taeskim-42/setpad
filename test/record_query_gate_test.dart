@@ -8,8 +8,9 @@ import '../tool/question_grading.dart';
 ///
 /// 규칙 층("글에 또렷이 적힌 것은 코드가 읽는다")이 무엇을 약속하는지를
 /// 생성된 문장 전부에 대고 몇 초 만에 검사한다. 모델 출력은 **일부러 최악**
-/// 으로 흉내 낸다 — 메모 읽기로 빠지고, 의도를 틀리고, 기간과 조건을
-/// 떨어뜨리고, 사용자 철자를 그대로 돌려준다. 실제 모델이 그렇게 냈던
+/// 으로 흉내 낸다 — 메모 조건을 지어내고, 측정을 틀리고, 기간과 조건을
+/// 떨어뜨리고, 사용자 철자를 그대로 돌려준다. 채점은 v1 정답을 v2 모양으로
+/// 바꿔(v2Expected) 뜻 전체를 견준다. 실제 모델이 그렇게 냈던
 /// 날이 있었다(dev 에서 11건 회귀). 이 게이트는 그런 회귀를 시뮬레이터
 /// 없이 커밋 전에 잡는다.
 ///
@@ -37,61 +38,34 @@ void main() {
           .map((c) => c.cast<String, Object?>())
           .toList();
 
-  /// 모델이 낼 법한 최악의 출력 셋. 코드 층은 셋 모두에서 정답으로 돌아와야 한다.
+  /// 모델이 낼 법한 최악의 출력 넷. 코드 층은 넷 모두에서 정답으로 돌아와야 한다.
   List<Map<String, Object?>> worst(String question, String form) => [
-    // 1. 잡담에 이끌려 메모 읽기로 빠지고 terms 를 아무 낱말로 채웠다.
+    // 1. 잡담에 이끌려 메모 조건을 아무 낱말로 채웠고, 측정은 틀렸다.
     {
-      'action': 'readRecords',
       'exercises': [form],
-      'periods': ['all'],
-      'terms': [question.split(' ').last],
+      'memo': [question.split(' ').last],
+      'measures': ['trainingDays'],
     },
-    // 2. 의도를 틀렸다(전부 세트 수로), 기간과 조건은 떨어뜨렸다.
+    // 2. 측정을 틀렸다(전부 세트 수로), 기간과 조건은 떨어뜨렸다.
     {
-      'action': 'setCount',
       'exercises': [form],
-      'periods': ['all'],
+      'measures': ['setCount'],
     },
-    // 3. 순위로 냈다 — 운동 하나 지목한 순위는 언제나 무효다.
+    // 3. 운동 하나를 지목한 순위로 냈다.
     {
-      'action': 'rankExercises',
-      'metric': 'trainingDays',
+      'exercises': [form],
+      'by': 'exercise',
+      'measures': ['trainingDays'],
       'limit': 1,
-      'exercises': [form],
-      'periods': ['all'],
     },
     // 4. 운동 없는 순위로 냈다 — 실제 모델이 "정체기인가·늘고 있나·PR" 에
     //    가장 자주 내던 모양이다. 글에 운동이 하나 있으면 순위가 아니다.
     {
-      'action': 'rankExercises',
-      'metric': 'trainingDays',
+      'by': 'exercise',
+      'measures': ['trainingDays'],
       'limit': 1,
-      'exercises': [],
-      'periods': ['all'],
     },
   ];
-
-  List<String> grade(RecordQueryPlan p, Map<String, Object?> expected) =>
-      gradeRecordQuestion({
-        'kind': p.kind,
-        'rank': p.rank,
-        'compare': p.compare,
-        'requests': [
-          for (final r in p.requests)
-            {
-              'exercise': r.exercise,
-              'metric': r.metric.name,
-              'since': r.since?.toIso8601String().substring(0, 10),
-              'until': r.until?.toIso8601String().substring(0, 10),
-              'minWeight': r.minWeight,
-              'maxWeight': r.maxWeight,
-              'minReps': r.minReps,
-              'maxReps': r.maxReps,
-              'unit': r.weightUnit,
-            },
-        ],
-      }, expected) ??
-      ['ungraded'];
 
   for (final set in ['dev', 'heldout']) {
     test('규칙 층은 최악의 모델 출력을 정답으로 돌린다 — $set', () {
@@ -114,10 +88,12 @@ void main() {
           graded++;
           List<String> errors;
           try {
-            errors = grade(
-              RecordQueryPlan.decode(intent, names, question: q, today: today),
-              exp,
-            );
+            errors =
+                gradeRecordQuery(
+                  RecordQuery.decode(intent, names, question: q, today: today),
+                  exp,
+                ) ??
+                ['ungraded'];
           } catch (err) {
             errors = ['exception: $err'];
           }

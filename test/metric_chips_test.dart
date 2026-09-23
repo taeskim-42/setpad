@@ -78,20 +78,22 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       Future<Object?> reply(String instructions, String input) async {
         return {
-          'kind': 'answer',
-          'compare': true,
-          'queries': [
+          'exercises': ['벤치프레스'],
+          'measures': ['setCount'],
+          'weight': [
+            {'op': '>=', 'value': 60.125, 'unit': 'lb'},
+            {'op': '<=', 'value': 80.375, 'unit': 'lb'},
+          ],
+          'reps': [
+            {'op': '>=', 'value': 5},
+            {'op': '<=', 'value': 10},
+          ],
+          'compare': [
             for (final year in [2025, 2026])
               {
-                'exercise': '벤치프레스',
-                'metric': 'sets',
+                'period': 'custom',
                 'since': '$year-08-01',
                 'until': '$year-08-31',
-                'minWeight': 60.125,
-                'maxWeight': 80.375,
-                'weightUnit': 'lb',
-                'minReps': 5,
-                'maxReps': 10,
               },
           ],
         };
@@ -112,7 +114,7 @@ void main() {
         '≤ 80.375lb',
         '≥ 5회',
         '≤ 10회',
-        '두 번째 기간 − 첫 번째 기간',
+        '차이 (2 − 1)',
       ]) {
         expect(find.textContaining(text), findsOneWidget, reason: text);
       }
@@ -129,9 +131,8 @@ void main() {
       Future<Object?> reply(String instructions, String input) async {
         queries++;
         return {
-          'action': 'heaviest',
           'exercises': ['벤치프레스'],
-          'periods': ['all'],
+          'measures': ['best'],
         };
       }
 
@@ -240,10 +241,10 @@ void main() {
       // 글에 시간 말이 없는데 모델이 "최근 400일" 을 지어냈다 → 의심.
       // (400 인 이유: 픽스처 기록이 8월 4일이라 그 안에 들어야 답이 있다.)
       return {
-        'action': 'weightHistory',
         'exercises': ['스쿼트'],
-        'periods': ['recent'],
+        'period': 'recent',
         'days': 400,
+        'measures': ['weightChange'],
       };
     }
 

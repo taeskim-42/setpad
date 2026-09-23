@@ -1045,17 +1045,101 @@ abstract class L {
   /// **'숫자와 조건을 확인한 뒤 적용해 주세요.'**
   String get reviewNumbers;
 
-  /// No description provided for @querySourceOnly.
+  /// No description provided for @queryByExercise.
   ///
   /// In ko, this message translates to:
-  /// **'원본 기록 보기'**
-  String get querySourceOnly;
+  /// **'운동별'**
+  String get queryByExercise;
 
-  /// No description provided for @queryCompareOrder.
+  /// No description provided for @queryByDay.
   ///
   /// In ko, this message translates to:
-  /// **'두 번째 기간 − 첫 번째 기간'**
-  String get queryCompareOrder;
+  /// **'날짜별'**
+  String get queryByDay;
+
+  /// No description provided for @queryByWeek.
+  ///
+  /// In ko, this message translates to:
+  /// **'주별 (월요일 시작)'**
+  String get queryByWeek;
+
+  /// No description provided for @queryByMonth.
+  ///
+  /// In ko, this message translates to:
+  /// **'월별'**
+  String get queryByMonth;
+
+  /// No description provided for @queryByWeekday.
+  ///
+  /// In ko, this message translates to:
+  /// **'요일별'**
+  String get queryByWeekday;
+
+  /// No description provided for @queryTotalSum.
+  ///
+  /// In ko, this message translates to:
+  /// **'합계'**
+  String get queryTotalSum;
+
+  /// No description provided for @queryTotalMean.
+  ///
+  /// In ko, this message translates to:
+  /// **'평균'**
+  String get queryTotalMean;
+
+  /// 두 대상의 차이. 값은 뒤 − 앞이다.
+  ///
+  /// In ko, this message translates to:
+  /// **'차이 ({later} − {earlier})'**
+  String queryDiff(String later, String earlier);
+
+  /// No description provided for @queryExclude.
+  ///
+  /// In ko, this message translates to:
+  /// **'{names} 제외'**
+  String queryExclude(String names);
+
+  /// No description provided for @queryMemo.
+  ///
+  /// In ko, this message translates to:
+  /// **'메모: {terms}'**
+  String queryMemo(String terms);
+
+  /// No description provided for @queryLastSessions.
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막 {n}번'**
+  String queryLastSessions(int n);
+
+  /// No description provided for @queryBottomLimit.
+  ///
+  /// In ko, this message translates to:
+  /// **'하위 {n}개 · 오름차순'**
+  String queryBottomLimit(int n);
+
+  /// 무게를 한 번도 적지 않은 운동처럼 이 측정의 대상이 아닌 운동. 빼고 센다.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 측정에 쓸 값이 없어 뺐어요: {names}'**
+  String queryOutOfScope(String names);
+
+  /// 값이 빠진 세트가 있어 칸을 비운 운동.
+  ///
+  /// In ko, this message translates to:
+  /// **'값이 빠진 세트가 있어 계산하지 않았어요: {names}'**
+  String queryMissingFor(String names);
+
+  /// No description provided for @queryE1rmRule.
+  ///
+  /// In ko, this message translates to:
+  /// **'추정 1RM = 무게 × (1 + 횟수 ÷ 30), 1–10회 세트만'**
+  String get queryE1rmRule;
+
+  /// No description provided for @queryMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'외 {n}개'**
+  String queryMore(int n);
 
   /// No description provided for @queryRankingLimit.
   ///

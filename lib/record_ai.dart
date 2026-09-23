@@ -289,16 +289,20 @@ class RecordAi {
 
   /// 지시문과 프롬프트를 그대로 보내고 의도를 받는다. 기록 질문과 한 줄
   /// 설정이 같은 문을 쓴다 — 서버가 하는 일은 모델을 부르는 것뿐이다.
+  ///
+  /// [contract] 는 답의 모양이다. 없으면 서버는 옛 모양(1)으로 검사한다.
   Future<Object?> ask(
     String instructions,
     String input, {
     Duration timeout = const Duration(seconds: 20),
+    int? contract,
   }) async {
     final direct = respond;
     if (direct != null) return direct(instructions, input);
     final answer = await _ask('/api/record-query', {
       'instructions': instructions,
       'input': input,
+      'contract': ?contract,
     }, timeout: timeout);
     return answer['intent'];
   }

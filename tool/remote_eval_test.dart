@@ -103,11 +103,11 @@ void main() {
         final exp = (c['expected'] as Map).cast<String, Object?>();
         final q = c['q'] as String;
         final watch = Stopwatch()..start();
-        RecordQueryPlan? plan;
+        RecordQuery? plan;
         try {
-          plan = await ai.queryRecords(
+          plan = decodeRecordIntent(
+            await ai.queryIntent(q, 'ko', names, unit: 'kg', today: today),
             q,
-            'ko',
             names,
             unit: 'kg',
             today: today,
@@ -118,37 +118,16 @@ void main() {
           continue;
         }
         latencies.add(watch.elapsedMilliseconds);
-        final errors = gradeRecordQuestion({
-          'kind': plan.kind,
-          'rank': plan.rank,
-          'compare': plan.compare,
-          'requests': [
-            for (final r in plan.requests)
-              {
-                'exercise': r.exercise,
-                'metric': r.metric.name,
-                'since': r.since?.toIso8601String().substring(0, 10),
-                'until': r.until?.toIso8601String().substring(0, 10),
-                'minWeight': r.minWeight,
-                'maxWeight': r.maxWeight,
-                'minReps': r.minReps,
-                'maxReps': r.maxReps,
-                'unit': r.weightUnit,
-              },
-          ],
-        }, exp);
+        final errors = gradeRecordQuery(plan, exp);
         if (errors == null) continue;
         graded++;
         if (errors.isEmpty) {
           passed++;
         } else {
           for (final e in errors) {
-            final tag = e.split('.').last;
-            errorTags[tag] = (errorTags[tag] ?? 0) + 1;
+            errorTags[e] = (errorTags[e] ?? 0) + 1;
           }
-          if (wrong.length < 12) {
-            wrong.add('$q → $errors (의심 ${plan.doubts})');
-          }
+          if (wrong.length < 12) wrong.add('$q → $errors');
         }
         if (q.contains('최근에 언제 했어') || q.contains('전체 볼륨 얼마')) {
           // 기기 안 모델이 자신 있게 틀렸던 문장들.

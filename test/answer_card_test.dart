@@ -227,31 +227,12 @@ void main() {
       Future<Object?> reply(String instructions, String input) async {
         final question = jsonDecode(input)['question'] as String;
         if (!question.contains('최고') && !question.contains('추이')) {
-          return {
-            'kind': 'search',
-            'compare': false,
-            'queries': [],
-            'searchNames': [],
-          };
+          return {'kind': 'clarify'};
         }
-        if (question.contains('데드리프트')) {
-          return {
-            'kind': 'unsupported',
-            'compare': false,
-            'queries': [],
-            'searchNames': [],
-          };
-        }
+        if (question.contains('데드리프트')) return {'kind': 'missing'};
         return {
-          'kind': 'answer',
-          'compare': false,
-          'searchNames': [],
-          'queries': [
-            {
-              'exercise': question.contains('스쿼트') ? '스쿼트' : '벤치프레스',
-              'metric': 'max',
-            },
-          ],
+          'exercises': [question.contains('스쿼트') ? '스쿼트' : '벤치프레스'],
+          'measures': ['best'],
         };
       }
 

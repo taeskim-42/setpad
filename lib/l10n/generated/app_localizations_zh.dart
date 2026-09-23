@@ -575,10 +575,68 @@ class LZh extends L {
   String get reviewNumbers => '应用前请确认数字和条件。';
 
   @override
-  String get querySourceOnly => '查看原始记录';
+  String get queryByExercise => '按动作';
 
   @override
-  String get queryCompareOrder => '第二个时段 − 第一个时段';
+  String get queryByDay => '按天';
+
+  @override
+  String get queryByWeek => '按周（周一开始）';
+
+  @override
+  String get queryByMonth => '按月';
+
+  @override
+  String get queryByWeekday => '按星期';
+
+  @override
+  String get queryTotalSum => '合计';
+
+  @override
+  String get queryTotalMean => '平均';
+
+  @override
+  String queryDiff(String later, String earlier) {
+    return '差值（$later − $earlier）';
+  }
+
+  @override
+  String queryExclude(String names) {
+    return '除$names外';
+  }
+
+  @override
+  String queryMemo(String terms) {
+    return '备注：$terms';
+  }
+
+  @override
+  String queryLastSessions(int n) {
+    return '最近$n次';
+  }
+
+  @override
+  String queryBottomLimit(int n) {
+    return '后$n项 · 升序';
+  }
+
+  @override
+  String queryOutOfScope(String names) {
+    return '不适用（此指标无数值）：$names';
+  }
+
+  @override
+  String queryMissingFor(String names) {
+    return '未计算（有缺值的组）：$names';
+  }
+
+  @override
+  String get queryE1rmRule => '估算1RM = 重量 × (1 + 次数 ÷ 30)，仅限1–10次的组';
+
+  @override
+  String queryMore(int n) {
+    return '另外$n项';
+  }
 
   @override
   String queryRankingLimit(int n) {
@@ -1834,10 +1892,68 @@ class LZhHans extends LZh {
   String get reviewNumbers => '应用前请确认数字和条件。';
 
   @override
-  String get querySourceOnly => '查看原始记录';
+  String get queryByExercise => '按动作';
 
   @override
-  String get queryCompareOrder => '第二个时段 − 第一个时段';
+  String get queryByDay => '按天';
+
+  @override
+  String get queryByWeek => '按周（周一开始）';
+
+  @override
+  String get queryByMonth => '按月';
+
+  @override
+  String get queryByWeekday => '按星期';
+
+  @override
+  String get queryTotalSum => '合计';
+
+  @override
+  String get queryTotalMean => '平均';
+
+  @override
+  String queryDiff(String later, String earlier) {
+    return '差值（$later − $earlier）';
+  }
+
+  @override
+  String queryExclude(String names) {
+    return '除$names外';
+  }
+
+  @override
+  String queryMemo(String terms) {
+    return '备注：$terms';
+  }
+
+  @override
+  String queryLastSessions(int n) {
+    return '最近$n次';
+  }
+
+  @override
+  String queryBottomLimit(int n) {
+    return '后$n项 · 升序';
+  }
+
+  @override
+  String queryOutOfScope(String names) {
+    return '不适用（此指标无数值）：$names';
+  }
+
+  @override
+  String queryMissingFor(String names) {
+    return '未计算（有缺值的组）：$names';
+  }
+
+  @override
+  String get queryE1rmRule => '估算1RM = 重量 × (1 + 次数 ÷ 30)，仅限1–10次的组';
+
+  @override
+  String queryMore(int n) {
+    return '另外$n项';
+  }
 
   @override
   String queryRankingLimit(int n) {
@@ -3093,10 +3209,68 @@ class LZhHant extends LZh {
   String get reviewNumbers => '套用前請確認數字和條件。';
 
   @override
-  String get querySourceOnly => '查看原始紀錄';
+  String get queryByExercise => '按動作';
 
   @override
-  String get queryCompareOrder => '第二個時段 − 第一個時段';
+  String get queryByDay => '按天';
+
+  @override
+  String get queryByWeek => '按週（週一開始）';
+
+  @override
+  String get queryByMonth => '按月';
+
+  @override
+  String get queryByWeekday => '按星期';
+
+  @override
+  String get queryTotalSum => '合計';
+
+  @override
+  String get queryTotalMean => '平均';
+
+  @override
+  String queryDiff(String later, String earlier) {
+    return '差值（$later − $earlier）';
+  }
+
+  @override
+  String queryExclude(String names) {
+    return '除$names外';
+  }
+
+  @override
+  String queryMemo(String terms) {
+    return '備註：$terms';
+  }
+
+  @override
+  String queryLastSessions(int n) {
+    return '最近$n次';
+  }
+
+  @override
+  String queryBottomLimit(int n) {
+    return '後$n項 · 遞增';
+  }
+
+  @override
+  String queryOutOfScope(String names) {
+    return '不適用（此指標無數值）：$names';
+  }
+
+  @override
+  String queryMissingFor(String names) {
+    return '未計算（有缺值的組）：$names';
+  }
+
+  @override
+  String get queryE1rmRule => '估算1RM = 重量 × (1 + 次數 ÷ 30)，僅限1–10次的組';
+
+  @override
+  String queryMore(int n) {
+    return '另外$n項';
+  }
 
   @override
   String queryRankingLimit(int n) {

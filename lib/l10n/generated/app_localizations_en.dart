@@ -591,10 +591,69 @@ class LEn extends L {
       'Check the numbers and conditions before applying.';
 
   @override
-  String get querySourceOnly => 'View original records';
+  String get queryByExercise => 'By exercise';
 
   @override
-  String get queryCompareOrder => 'Second period − first period';
+  String get queryByDay => 'By day';
+
+  @override
+  String get queryByWeek => 'By week (from Monday)';
+
+  @override
+  String get queryByMonth => 'By month';
+
+  @override
+  String get queryByWeekday => 'By weekday';
+
+  @override
+  String get queryTotalSum => 'Total';
+
+  @override
+  String get queryTotalMean => 'Average';
+
+  @override
+  String queryDiff(String later, String earlier) {
+    return 'Difference ($later − $earlier)';
+  }
+
+  @override
+  String queryExclude(String names) {
+    return 'Except $names';
+  }
+
+  @override
+  String queryMemo(String terms) {
+    return 'Memo: $terms';
+  }
+
+  @override
+  String queryLastSessions(int n) {
+    return 'Last $n sessions';
+  }
+
+  @override
+  String queryBottomLimit(int n) {
+    return 'Bottom $n · ascending';
+  }
+
+  @override
+  String queryOutOfScope(String names) {
+    return 'Left out (no values for this measure): $names';
+  }
+
+  @override
+  String queryMissingFor(String names) {
+    return 'Not calculated (sets with missing values): $names';
+  }
+
+  @override
+  String get queryE1rmRule =>
+      'Est. 1RM = weight × (1 + reps ÷ 30), sets of 1–10 reps only';
+
+  @override
+  String queryMore(int n) {
+    return '$n more';
+  }
 
   @override
   String queryRankingLimit(int n) {

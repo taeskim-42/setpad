@@ -587,10 +587,69 @@ class LTh extends L {
   String get reviewNumbers => 'ตรวจสอบตัวเลขและเงื่อนไขก่อนนำไปใช้';
 
   @override
-  String get querySourceOnly => 'ดูบันทึกต้นฉบับ';
+  String get queryByExercise => 'ตามท่า';
 
   @override
-  String get queryCompareOrder => 'ช่วงที่สอง − ช่วงแรก';
+  String get queryByDay => 'ตามวัน';
+
+  @override
+  String get queryByWeek => 'ตามสัปดาห์ (เริ่มวันจันทร์)';
+
+  @override
+  String get queryByMonth => 'ตามเดือน';
+
+  @override
+  String get queryByWeekday => 'ตามวันในสัปดาห์';
+
+  @override
+  String get queryTotalSum => 'รวม';
+
+  @override
+  String get queryTotalMean => 'เฉลี่ย';
+
+  @override
+  String queryDiff(String later, String earlier) {
+    return 'ส่วนต่าง ($later − $earlier)';
+  }
+
+  @override
+  String queryExclude(String names) {
+    return 'ยกเว้น $names';
+  }
+
+  @override
+  String queryMemo(String terms) {
+    return 'บันทึก: $terms';
+  }
+
+  @override
+  String queryLastSessions(int n) {
+    return '$n ครั้งล่าสุด';
+  }
+
+  @override
+  String queryBottomLimit(int n) {
+    return 'ต่ำสุด $n รายการ · น้อยไปมาก';
+  }
+
+  @override
+  String queryOutOfScope(String names) {
+    return 'ไม่นับ (ไม่มีค่าสำหรับการวัดนี้): $names';
+  }
+
+  @override
+  String queryMissingFor(String names) {
+    return 'ไม่ได้คำนวณ (มีเซ็ตที่ขาดค่า): $names';
+  }
+
+  @override
+  String get queryE1rmRule =>
+      '1RM โดยประมาณ = น้ำหนัก × (1 + จำนวนครั้ง ÷ 30) เฉพาะเซ็ต 1–10 ครั้ง';
+
+  @override
+  String queryMore(int n) {
+    return 'อีก $n รายการ';
+  }
 
   @override
   String queryRankingLimit(int n) {

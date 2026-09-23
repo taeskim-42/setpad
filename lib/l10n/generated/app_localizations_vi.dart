@@ -589,10 +589,69 @@ class LVi extends L {
   String get reviewNumbers => 'Kiểm tra các số và điều kiện trước khi áp dụng.';
 
   @override
-  String get querySourceOnly => 'Xem bản ghi gốc';
+  String get queryByExercise => 'Theo bài tập';
 
   @override
-  String get queryCompareOrder => 'Giai đoạn thứ hai − giai đoạn thứ nhất';
+  String get queryByDay => 'Theo ngày';
+
+  @override
+  String get queryByWeek => 'Theo tuần (từ thứ Hai)';
+
+  @override
+  String get queryByMonth => 'Theo tháng';
+
+  @override
+  String get queryByWeekday => 'Theo thứ trong tuần';
+
+  @override
+  String get queryTotalSum => 'Tổng';
+
+  @override
+  String get queryTotalMean => 'Trung bình';
+
+  @override
+  String queryDiff(String later, String earlier) {
+    return 'Chênh lệch ($later − $earlier)';
+  }
+
+  @override
+  String queryExclude(String names) {
+    return 'Trừ $names';
+  }
+
+  @override
+  String queryMemo(String terms) {
+    return 'Ghi chú: $terms';
+  }
+
+  @override
+  String queryLastSessions(int n) {
+    return '$n buổi gần nhất';
+  }
+
+  @override
+  String queryBottomLimit(int n) {
+    return 'Thấp nhất $n · tăng dần';
+  }
+
+  @override
+  String queryOutOfScope(String names) {
+    return 'Bỏ qua (không có giá trị cho số đo này): $names';
+  }
+
+  @override
+  String queryMissingFor(String names) {
+    return 'Chưa tính (có hiệp thiếu giá trị): $names';
+  }
+
+  @override
+  String get queryE1rmRule =>
+      '1RM ước tính = mức tạ × (1 + số lần ÷ 30), chỉ hiệp 1–10 lần';
+
+  @override
+  String queryMore(int n) {
+    return 'Thêm $n';
+  }
 
   @override
   String queryRankingLimit(int n) {
