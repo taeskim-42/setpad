@@ -110,12 +110,15 @@ final _conditionWords = RegExp(
 
 /// 템포 표기("60bpm", "30 bpm", "bpm 60", "bpm:60") — 수는 1·2번 묶음이다.
 /// bpm 옆에 있어도 다른 것을 세는 수는 템포가 아니다: "3x10 bpm" 의 10(횟수),
-/// "bpm 3세트"·"bpm 3 sets" 의 3(세트 수), "bpm 100개" 의 100. 타이머
-/// ([TimingSpec]), 계획 줄, 입력 줄의 길 나누기가 이 한 정규식을 쓴다.
+/// "bpm 3세트"·"bpm 3 sets"·"bpm 3셋" 의 3(세트 수), "bpm 20x5"·"bpm 20 x 5" 의
+/// 20, "bpm 100개"·"bpm 3번" 의 수, "bpm 1칸"·"bpm 8 라운드" 의 수. "bpm 30 x3"
+/// 은 템포 30 에 3세트다(계획 글이 그렇게 적는다). "bpm N" 의 N 은 두 자리
+/// 이상이다 — 템포는 10 부터다(TimingSpec.minBpm). 타이머([TimingSpec]), 계획
+/// 줄, 입력 줄의 길 나누기가 이 한 정규식을 쓴다.
 final tempoPattern =
     '(?<![\\d.,]|(?<![a-z])[x×*]\\s*)([+-]?\\d+(?:[.,]\\d+)?)\\s*bpm(?![a-z])|'
-    '(?<![a-z])bpm\\s*[:=]?\\s*([+-]?\\d+(?:[.,]\\d+)?)(?![\\d.,])'
-    '(?!\\s*(?:$_units)(?![a-z])|[x×*]\\d)';
+    '(?<![a-z])bpm\\s*[:=]?\\s*(?=[+-]?\\d\\d)([+-]?\\d+(?:[.,]\\d+)?)(?![\\d.,])'
+    '(?!\\s*(?:$_units|칸|박|라운드|rounds?|ラウンド)(?![a-z])|[x×*]\\d|\\s*[x×*]\\s+\\d)';
 
 /// 타이머 토큰(60bpm, bpm 60, 30/15, x8, 10라운드). 글의 수가 모두 여기 쓰였으면
 /// 그 글은 타이머 이름이라 묻지 않고 바로 만든다.
@@ -513,23 +516,32 @@ class ParsedSet {
   int get hashCode => Object.hash(value, unit, reps, note, count);
 }
 
-/// 세트 수와 횟수를 뜻하는 말. 무게·거리·시간 단위는 units.dart 가 쥔다.
-const _counters =
-    '세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต|'
-    '회|개|rep|reps|回|次|lần|ครั้ง|veces|repeticiones|repetición|repeticion';
-final _setWord = RegExp(
-  r'^(세트|set|sets|セット|组|組|serie|series|hiệp|เซ็ต)$',
-  caseSensitive: false,
-);
+/// 세트 수를 뜻하는 말. 무게·거리·시간 단위는 units.dart 가 쥔다.
+const _setWords = '세트|셋|set|sets|セット|组|組|serie|series|hiệp|เซ็ต|เซต';
 
-final _units = '$unitPattern|$_counters';
+/// 세트 수와 횟수를 뜻하는 말.
+const _counters =
+    '$_setWords|회|개|번|렙|rep|reps|回|次|个|下|レップ|lần|ครั้ง|veces|'
+    'repeticiones|repetición|repeticion';
+final _setWord = RegExp('^(?:$_setWords)\$', caseSensitive: false);
+
+/// 단위와 세는 말 전부, 긴 것부터 — 끝을 묶지 않은 자리에서도 "reps" 가 "rep" 에
+/// 잘리지 않는다.
+final _units = ([
+  ...unitPattern.split('|'),
+  ..._counters.split('|'),
+]..sort((a, b) => b.length.compareTo(a.length))).join('|');
 
 /// 수. 쉼표는 [_readWords] 가 먼저 가른다 — 여기 오는 쉼표는 천 단위("1,000")
 /// 거나 소수("22,5")다.
 const _num = r'\d{1,3}(?:,\d{3})+|\d+(?:[.,]\d+)?';
 
-/// 수+단위 뒤에 붙는 조사·접미사. 떼고 읽는다 — "80kg에", "10회씩", "20kg짜리".
-const _tail = '(?:에|씩|으로|로|짜리)?';
+/// 수+단위 뒤에 붙는 조사·접미사. 떼고 읽는다 — "80kg에", "10회씩만", "20kg짜리",
+/// "60초간", "80kg을".
+const _tail = '(?:에서|에|씩|으로|로|짜리|을|를|이랑|랑|까지|만|간|동안|정도|쯤)*';
+
+/// 낱말 끝의 구두점 — 낱말의 몫이다("80kg,", "10회.", "(3세트)").
+const _end = '[,.!~)]*';
 
 final _unit = RegExp('^($_num)\\s*($_units)$_tail\$', caseSensitive: false);
 
@@ -539,7 +551,9 @@ final _spacedUnit = RegExp(
   '(\\d)\\s+($_units)(?=$_tail(?:\\s|\$))',
   caseSensitive: false,
 );
-final _repeat = RegExp(r'^[x×*](\d+)$', caseSensitive: false);
+
+/// 세트 수 "x3", "x3 sets".
+final _repeat = RegExp('^[x×*](\\d+)($_setWords)?\$', caseSensitive: false);
 
 /// 맨숫자.
 final _bare = RegExp(r'^(?:\d{1,3}(?:,\d{3})+|\d+(?:[.,]\d+)?)$');
@@ -547,16 +561,60 @@ final _bare = RegExp(r'^(?:\d{1,3}(?:,\d{3})+|\d+(?:[.,]\d+)?)$');
 /// 쉼표가 든 수와 그 뒤("80,10회" → "80,10" + "회").
 final _commaNumber = RegExp(r'^(\d+(?:,\d+)+)(.*)$');
 
-/// 친 글의 낱말. 띄어 쓴 수와 단위("60 초")는 한 낱말이다.
+/// 낱말 안의 쉼표는 수 사이에만 있다("1,000", "80,10") — 그 밖의 쉼표는 앞
+/// 낱말의 끝이다("80kg,10회" → "80kg,", "10회").
+const _chars = r'(?:[^\s,]|(?<=\d),(?=\d))';
+
+/// 친 글의 낱말. 띄어 쓴 수와 단위("60 초", "100 kg,")는 한 낱말이다.
 final _word = RegExp(
-  '\\S*\\d\\s+(?:$_units)$_tail(?=\\s|\$)|\\S+',
+  '$_chars*\\d\\s+(?:$_units)$_tail$_end(?=\\s|\$)|$_chars+,*',
   caseSensitive: false,
 );
+
+/// 'AxB'("3x10", "5x5@80kg") 로 시작하는 낱말.
+final _byReps = RegExp(r'^\d+(?:[.,]\d+)?[x×*]\d', caseSensitive: false);
+
+/// 한 낱말에 붙여 친 표기의 조각 — 수+단위, 'xN', 가름표(x × * @), 수.
+final _piece = RegExp(
+  '[x×*]\\d+(?![\\d.,])(?!$_units)|'
+  '(?:$_num)(?:$_units)$_tail(?=[\\dx×*@]|\$)|[x×*@]|$_num',
+  caseSensitive: false,
+);
+
+/// 한 낱말에 붙여 친 표기를 가른다 — "80kg10회", "80kg×10", "3セット×10回",
+/// "10reps@80kg", "1분30초". 조각이 모두 수+단위·'xN'·가름표·수이고 수+단위가
+/// 하나 이상일 때만이다("3x10", "MTS100", "80/10" 은 그대로).
+List<String> markPieces(String word) {
+  if (_byReps.hasMatch(word) || _repeat.hasMatch(word)) return [word];
+  final pieces = [for (final m in _piece.allMatches(word)) m[0]!];
+  return pieces.length > 1 &&
+          pieces.join() == word &&
+          pieces.any(_unit.hasMatch)
+      ? pieces
+      : [word];
+}
+
+/// "1:30" — 분:초.
+final _clock = RegExp(r'^(\d+):([0-5]\d)$');
+
+/// 줄 앞의 "2세트" — 뒤에 무게와 횟수가 다 오면 세트 번호다.
+final _ordinal = RegExp(r'^\d+(?:세트|셋)$');
 
 double _number(String s) => double.parse(
   RegExp(r'^\d{1,3}(?:,\d{3})+$').hasMatch(s)
       ? s.replaceAll(',', '')
       : s.replaceAll(',', '.'),
+);
+
+bool _whole(String bare) {
+  final n = _number(bare);
+  return n == n.roundToDouble();
+}
+
+/// 전각 글자("８０ｋｇ")는 반각으로. 길이가 같아 친 글의 자리는 그대로다.
+String _halfWidth(String s) => s.replaceAllMapped(
+  RegExp('[\uFF01-\uFF5E]'),
+  (m) => String.fromCharCode(m[0]!.codeUnitAt(0) - 0xFEE0),
 );
 
 /// 띄어 쓴 수와 단위를 붙인다. "5 sets" → "5sets".
@@ -573,21 +631,31 @@ const maxSetsPerLine = 20;
 /// 하나이고 친 순서대로 간다(test/set_line_table_test.dart 의 표가 main 과
 /// 나란히 보인다). 자리는 셋 — 값(무게·거리·시간), 횟수, 세트 수.
 ///
+/// 0. **낱말.** 전각 글자는 반각으로 읽는다. 수+단위에 붙은 조사("80kg을",
+///    "10회씩만")와 끝의 구두점·괄호("80kg,", "10회.", "(3세트)")는 떼고 읽고,
+///    앞의 '+'("+10kg")는 메모에 남는다. 붙여 친 표기("80kg10회", "80kg×10",
+///    "80公斤10次3组")는 조각으로 가른다. "1:30"·"1분 30초" 는 시간 하나(초)다.
+///    'AxB'("5x5", "3x10")가 든 줄은 거절한다 — 세트×횟수인지 무게×횟수인지
+///    모른다. 줄 앞의 "2세트" 뒤에 무게와 횟수가 다 오면 세트 번호라 메모다.
 /// 1. **쉼표.** "A,B" 에서 B 가 정확히 세 자리면 천 단위("1,000"). 무게·거리·
 ///    시간 단위가 붙었으면 소수("22,5kg", "80,10kg"). 맨숫자는 B 가 **한 자리**
-///    이고 줄에 횟수를 맡을 수(횟수 단위, 뒤의 맨숫자)가 따로 있을 때만 소수
-///    ("22,5 10" = 22.5×10). 그 밖은 두 수다 — "80,10", "80,10 3", "80,10회",
-///    "3,5세트" 의 쉼표는 수를 가른다.
-/// 2. **맨숫자의 몫.** 줄에 횟수 단위("10회")가 있으면 맨숫자는 값이다. 없으면
-///    첫 단위 값(kg·lb·시간·거리) **앞에** 맨숫자가 둘 이상일 때 그 짝이 값·횟수
-///    ("80 10 60초 휴식", "80 무릎 10"), 아니면 맨숫자는 횟수다("12",
-///    "10 80kg 3", "3 60초 2").
+///    이고 줄의 다른 곳(앞이든 뒤든)에 횟수를 맡을 수(온수 맨숫자, 'xN', 횟수
+///    단위)가 따로 있을 때만 소수("22,5 10", "10 22,5" = 22.5×10). 그 밖은 두
+///    수다 — "80,10", "80,10 3", "80,10회", "3,5세트" 의 쉼표는 수를 가른다.
+///    쉼표로 늘어놓은 수가 셋 이상("12,10,8", "10, 8, 6")이면 목록이라 메모다.
+/// 2. **맨숫자의 몫.** 줄에 무게 단위 값("100kg")이 있으면 맨숫자는 무게가
+///    아니다 — 횟수 단위가 없을 때만 횟수("5 5 100kg" = 100kg×5, 메모 5). 무게
+///    없이 횟수 단위("10회")가 있으면 맨숫자는 값이다. 둘 다 없으면 첫 단위 값
+///    (시간·거리) **앞에** 맨숫자가 둘 이상일 때 그 짝이 값·횟수("80 10 60초
+///    휴식")이고 — 짝에 소수가 있으면 소수가 값("10 22.5" = 22.5×10) — 아니면
+///    맨숫자는 횟수다("12", "3 60초 2").
 /// 3. **친 순서대로 빈 자리만 채운다.** 단위 값은 값 자리, 횟수 단위는 횟수
-///    자리, "x3"·"3세트" 는 세트 자리를 먼저 온 것이 갖는다. 횟수는 온수, 세트
-///    수는 1 이상의 온수만 받는다 — 소수("10.5회", "2.5세트")를 반올림해 지어내지
-///    않는다. 자리를 못 얻은 낱말은 **덮어쓰지도 버리지도 않고** 메모에 친
-///    그대로 남는다 — "80 10회 5분" 은 80×10 에 메모 "5분", "x0" 도 메모다.
-///    맨 소수는 횟수가 될 수 없어 값 자리로 간다("12.5" = 12.5, 13회가 아니다).
+///    자리, "x3"·"3세트" 는 세트 자리를 먼저 온 것이 갖는다. 무게 바로 뒤의
+///    "xN" 은 줄에 횟수 단위가 없으면 횟수가 먼저다("80kg x10" = 80kg×10). 횟수는
+///    온수, 세트 수는 1 이상의 온수만 받는다 — 소수("10.5회", "2.5세트")를
+///    반올림해 지어내지 않는다. 자리를 못 얻은 낱말은 **덮어쓰지도 버리지도 않고**
+///    메모에 친 그대로 남는다 — "80 10회 5분" 은 80×10 에 메모 "5분", "x0" 도
+///    메모다. 맨 소수는 횟수가 될 수 없어 값 자리로 간다("12.5" = 12.5).
 ///
 /// 값도 횟수도 없으면 세트가 아니다(null — 입력칸에 글이 남는다). 세트 수가
 /// [maxSetsPerLine] 을 넘어도 null 이고 [tooManySets] 가 까닭을 말한다.
@@ -600,7 +668,8 @@ ParsedSet? parseSetLine(String line) {
 bool tooManySets(String line) =>
     (_readSetLine(line)?.count ?? 0) > maxSetsPerLine;
 
-typedef _Word = ({String t, int start, int end});
+/// 낱말: 읽을 글([t]), 친 글 위의 자리, 뒤에 쉼표가 붙었는가.
+typedef _Word = ({String t, int start, int end, bool comma});
 
 bool _isReps(String t) => switch (_unit.firstMatch(t)) {
   final m? => unitOf(m[2]!) == null && !_setWord.hasMatch(m[2]!),
@@ -608,6 +677,17 @@ bool _isReps(String t) => switch (_unit.firstMatch(t)) {
 };
 
 bool _isValue(String t) => unitOf(_unit.firstMatch(t)?[2] ?? '') != null;
+
+bool _isWeight(String t) =>
+    unitById[unitOf(_unit.firstMatch(t)?[2] ?? '')]?.kind == UnitKind.weight;
+
+/// 시간 낱말의 온수 — [unit] 이 'min' 이나 's' 일 때.
+int? _wholeTime(String t, String unit) {
+  final m = _unit.firstMatch(t);
+  if (m == null || unitOf(m[2]!) != unit) return null;
+  final n = _number(m[1]!);
+  return n == n.roundToDouble() ? n.toInt() : null;
+}
 
 /// 쉼표마다 한 낱말로 가른다. 쉼표는 앞 수의 몫이고(메모에 떠돌지 않게) 단위는
 /// 끝 수에 남는다 — "80,10회" → "80", "10회".
@@ -621,22 +701,47 @@ List<_Word> _splitCommas(_Word w, String digits) {
       t: last ? w.t.substring(at) : g,
       start: w.start + at,
       end: last ? w.end : w.start + at + g.length + 1,
+      comma: last ? w.comma : true,
     ));
     at += g.length + 1;
   }
   return words;
 }
 
-/// 규칙 1 — 낱말을 원문 위의 자리와 함께 읽고, 쉼표 수를 가른다.
+/// 규칙 0·1 — 낱말을 원문 위의 자리와 함께 읽고, 쉼표 수를 가른다.
 List<_Word> _readWords(String text) {
   final words = <_Word>[];
   // 맨 "A,B"(B 한 자리) — 소수인지는 줄을 다 봐야 안다.
   final open = <int>{};
   for (final m in _word.allMatches(text)) {
-    var t = m[0]!.replaceAll(RegExp(r'\s+'), '');
-    // "80, 10" 의 쉼표는 가름표다.
-    if (RegExp(r'^\d+,$').hasMatch(t)) t = t.substring(0, t.length - 1);
-    final w = (t: t, start: m.start, end: m.end);
+    final raw = m[0]!;
+    final start = m.start + (raw.startsWith('+') ? 1 : 0);
+    final t = raw
+        .substring(start - m.start)
+        .replaceAll(RegExp(r'\s+'), '')
+        .replaceFirst(RegExp(r'^\('), '')
+        .replaceFirst(RegExp(r'[,.!~)]+$'), '');
+    final comma = RegExp(r',[,.!~)]*$').hasMatch(raw);
+    final pieces = markPieces(t);
+    if (pieces.length > 1) {
+      // 조각의 자리 — 떼어 낸 것은 공백·괄호뿐이라 친 글에서 차례로 찾는다.
+      var at = start;
+      for (final (k, p) in pieces.indexed) {
+        final from = at;
+        for (final ch in p.split('')) {
+          at = text.indexOf(ch, at) + 1;
+        }
+        final last = k == pieces.length - 1;
+        words.add((
+          t: p,
+          start: from,
+          end: last ? m.end : at,
+          comma: last && comma,
+        ));
+      }
+      continue;
+    }
+    final w = (t: t, start: start, end: m.end, comma: comma);
     final c = _commaNumber.firstMatch(t);
     if (c == null ||
         RegExp(r'^\d{1,3}(?:,\d{3})+$').hasMatch(c[1]!) ||
@@ -649,33 +754,87 @@ List<_Word> _readWords(String text) {
       words.addAll(_splitCommas(w, c[1]!));
     }
   }
-  if (open.isEmpty) return words;
-  final reps = words.any((w) => _isReps(w.t));
-  return [
+  bool counts(_Word w) =>
+      RegExp(r'^\d+$').hasMatch(w.t) || _repeat.hasMatch(w.t) || _isReps(w.t);
+  final read = [
     for (final (i, w) in words.indexed)
       if (!open.contains(i) ||
-          reps ||
-          words.skip(i + 1).any((l) => _bare.hasMatch(l.t)))
+          words.indexed.any((o) => o.$1 != i && counts(o.$2)))
         w
       else
         ..._splitCommas(w, w.t),
   ];
+  // 쉼표로 늘어놓은 수 셋 이상은 목록이다 — 값·횟수로 읽지 않고 메모에 둔다.
+  for (var i = 0; i < read.length;) {
+    var j = i;
+    while (j < read.length && read[j].comma && _bare.hasMatch(read[j].t)) {
+      j++;
+    }
+    final end =
+        j < read.length && (_bare.hasMatch(read[j].t) || _isReps(read[j].t))
+        ? j + 1
+        : j;
+    if (end - i >= 3) {
+      for (var k = i; k < end; k++) {
+        read[k] = (t: '', start: read[k].start, end: read[k].end, comma: true);
+      }
+    }
+    i = end > i ? end : i + 1;
+  }
+  // "1:30", "1분 30초" — 시간 하나(초).
+  final out = <_Word>[];
+  for (final w in read) {
+    final clock = _clock.firstMatch(w.t);
+    final t = clock == null
+        ? w.t
+        : '${int.parse(clock[1]!) * 60 + int.parse(clock[2]!)}s';
+    final minutes = out.isEmpty ? null : _wholeTime(out.last.t, 'min');
+    final seconds = _wholeTime(t, 's');
+    if (minutes != null && seconds != null && seconds < 60) {
+      out.last = (
+        t: '${minutes * 60 + seconds}s',
+        start: out.last.start,
+        end: w.end,
+        comma: w.comma,
+      );
+    } else {
+      out.add((t: t, start: w.start, end: w.end, comma: w.comma));
+    }
+  }
+  return out;
 }
 
 ParsedSet? _readSetLine(String line) {
-  final text = line.trim();
+  final typed = line.trim();
+  final text = _halfWidth(typed);
   final words = _readWords(text);
+  if (words.any((w) => _byReps.hasMatch(w.t))) return null;
+  // 줄 앞의 "2세트" 뒤에 무게와 횟수가 다 오면 세트 번호다 — 메모에 둔다.
+  if (words.isNotEmpty && _ordinal.hasMatch(words.first.t)) {
+    final rest = _readSetLine(typed.substring(words.first.end));
+    if (rest?.value != null && rest?.reps != null) {
+      words[0] = (
+        t: '',
+        start: words[0].start,
+        end: words[0].end,
+        comma: false,
+      );
+    }
+  }
   // 규칙 2 — 맨숫자가 맡는 자리(앞의 것이 먼저).
+  final weight = words.any((w) => _isWeight(w.t));
+  final repsWord = words.any((w) => _isReps(w.t));
   final firstValue = words.indexWhere((w) => _isValue(w.t));
-  final pair =
-      words
-          .take(firstValue < 0 ? words.length : firstValue)
-          .where((w) => _bare.hasMatch(w.t))
-          .length >
-      1;
-  final bareSlots = words.any((w) => _isReps(w.t))
+  final lead = words
+      .take(firstValue < 0 ? words.length : firstValue)
+      .where((w) => _bare.hasMatch(w.t));
+  final bareSlots = weight
+      ? repsWord
+            ? const <String>[]
+            : const ['reps']
+      : repsWord
       ? const ['value']
-      : pair
+      : lead.length > 1 && lead.every((w) => _whole(w.t))
       ? const ['value', 'reps']
       : const ['reps', 'value'];
   double? value;
@@ -710,7 +869,12 @@ ParsedSet? _readSetLine(String line) {
       return true;
     }
 
-    final slots = repeat != null || (m != null && _setWord.hasMatch(m[2]!))
+    final slots = repeat != null
+        // 무게 바로 뒤의 "x10" 은 횟수다("80kg x10") — 줄에 횟수 단위가 없을 때.
+        ? repeat[2] == null && !repsWord && i > 0 && _isWeight(words[i - 1].t)
+              ? const ['reps', 'count']
+              : const ['count']
+        : m != null && _setWord.hasMatch(m[2]!)
         ? const ['count']
         : known != null
         ? const ['value']
@@ -725,10 +889,10 @@ ParsedSet? _readSetLine(String line) {
   var from = 0;
   for (final (i, word) in words.indexed) {
     if (!used.contains(i)) continue;
-    rest.add(text.substring(from, word.start).trim());
+    rest.add(typed.substring(from, word.start).trim());
     from = word.end;
   }
-  rest.add(text.substring(from).trim());
+  rest.add(typed.substring(from).trim());
   final note = rest.where((s) => s.isNotEmpty).join(' ');
   return ParsedSet(
     value: value,

@@ -52,10 +52,8 @@ void main() {
         parseSetLine('5km 25분'),
         const ParsedSet(value: 5, unit: 'km', note: '25분'),
       );
-      expect(
-        parseSetLine('1분 30초'),
-        const ParsedSet(value: 1, unit: 'min', note: '30초'),
-      );
+      // 'N분 M초' 는 시간 하나(초)다 — 뒤의 초가 메모로 갈라지지 않는다.
+      expect(parseSetLine('1분 30초'), const ParsedSet(value: 90, unit: 's'));
       // 두 번째 횟수·세트 표기도 메모다.
       expect(parseSetLine('80 10회 12회')?.note, '12회');
       expect(parseSetLine('80 10 x3 x4')?.count, 3);
@@ -94,8 +92,9 @@ void main() {
         parseSetLine('60,12 무릎'),
         const ParsedSet(value: 60, reps: 12, note: '무릎'),
       );
-      // 남는 수는 메모에 친 그대로다.
-      expect(parseSetLine('80,10,8')?.note, '8');
+      // 쉼표로 늘어놓은 수 셋 이상은 목록(피라미드 횟수)이라 무게·횟수로 읽지 않는다.
+      expect(parseSetLine('80,10,8'), isNull);
+      expect(parseSetLine('80kg 12,10,8회')?.note, '12,10,8회');
       // 뒤에 횟수가 따로 있으면 쉼표 소수 무게다(es·vi) — 두 수로 쪼개지 않는다.
       expect(parseSetLine('22,5 10'), const ParsedSet(value: 22.5, reps: 10));
     });

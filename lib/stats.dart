@@ -122,7 +122,14 @@ UnitKind? _kind(LoggedSet set) =>
     set.value != null && set.value!.isFinite ? unitById[set.unit]?.kind : null;
 
 // 거리는 m, 시간은 초로 바꾸는 배수.
-const _base = {'km': 1000.0, 'm': 1.0, 'mi': 1609.344, 's': 1.0, 'min': 60.0};
+const _base = {
+  'km': 1000.0,
+  'm': 1.0,
+  'mi': 1609.344,
+  's': 1.0,
+  'min': 60.0,
+  'h': 3600.0,
+};
 
 /// 이 운동에서 "최고" 가 무엇인가. 무게를 적었으면 무게, 아니면 시간 →
 /// 거리 → 한 세트 반복 순이다. 기록 값을 보고 기기에서 정한다.
