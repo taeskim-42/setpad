@@ -1859,27 +1859,6 @@ class LEs extends L {
   String get settingsTrainer => 'Entrenador';
 
   @override
-  String get aiConsentTitle => '¿Activar la ayuda de IA?';
-
-  @override
-  String get aiConsentBody =>
-      'La configuración en una línea, la estimación de calorías de las comidas y las preguntas sobre tu registro las lee la IA de DeepSeek (China). Pasan por nuestro servidor (gym.darak.studio), que no las guarda.';
-
-  @override
-  String get aiConsentSent =>
-      'Qué se envía: el texto que escribes, las fotos de comidas (sin ubicación ni datos de captura) y los nombres de ejercicios de tu registro. Tus series, pesos, fechas y notas no se envían a la IA; el teléfono hace las cuentas.';
-
-  @override
-  String get aiConsentLater =>
-      'Si eliges Ahora no, lo que escribes se registra tal cual, y las kcal escritas y la búsqueda por nombre siguen funcionando. Puedes activarla o desactivarla cuando quieras en Ajustes › Ayuda de IA.';
-
-  @override
-  String get aiConsentAgree => 'Aceptar y activar';
-
-  @override
-  String get aiConsentNotNow => 'Ahora no';
-
-  @override
   String get aiSetting => 'Ayuda de IA (DeepSeek)';
 
   @override

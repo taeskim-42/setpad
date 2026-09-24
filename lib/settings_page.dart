@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import 'account.dart';
-import 'ai_consent.dart';
 import 'booking_entry.dart';
 import 'health_page.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -50,14 +49,12 @@ class SettingsPage extends StatelessWidget {
                 value: store.countAloud,
                 onChanged: (v) => store.setCountAloud(v),
               ),
-              // 켤 때는 무엇을 어디로 보내는지 다시 보여 주고 묻는다. 끄면 바로 꺼진다.
+              // 기본은 켜짐. 끄면 모델로 가는 것이 모두 멈추고 기기 안에서만 한다.
               _Toggle(
                 key: const ValueKey('settings-ai'),
                 label: l.aiSetting,
-                value: store.aiConsent == true,
-                onChanged: (v) => v
-                    ? askAiConsent(context, store, again: true)
-                    : store.setAiConsent(false),
+                value: store.aiOn,
+                onChanged: store.setAiOn,
               ),
               // 디버그 빌드에만: 휴식 경보가 워치로 넘어가는지 실기기로 재는 단추.
               // 누르고 5초 안에 폰을 내려놓고 워치의 운동 앱을 앞에 둔다.

@@ -383,14 +383,17 @@ class NotesStore extends ChangeNotifier {
   bool _countAloud = false;
   bool get countAloud => _countAloud;
 
-  /// AI 도움(DeepSeek)에 동의했는가. null 이면 아직 묻지 않았다 — 처음 AI 를
-  /// 부를 때 한 번 묻는다(ai_consent.dart). false 면 묻지 않고 기기 안에서만 한다.
-  bool? _aiConsent;
-  bool? get aiConsent => _aiConsent;
+  /// AI 도움(DeepSeek)을 쓰는가. 기본은 켜짐이고 묻지 않는다. 설정의 AI 도움
+  /// 줄에서 끄면 모델로 가는 문이 모두 닫히고 기기 안에서만 한다(RecordAi.enabled).
+  ///
+  /// 저장 키는 1.4.0 의 동의 시트가 쓰던 'aiConsent' 그대로다 — 거기서 '나중에' 를
+  /// 고른 사람(false)은 꺼진 채로 남고, 답하지 않은 사람(없음)은 켜진다.
+  bool _aiOn = true;
+  bool get aiOn => _aiOn;
 
-  void setAiConsent(bool value) {
-    if (value == _aiConsent) return;
-    _aiConsent = value;
+  void setAiOn(bool value) {
+    if (value == _aiOn) return;
+    _aiOn = value;
     notifyListeners();
     _scheduleSave();
   }
@@ -428,7 +431,7 @@ class NotesStore extends ChangeNotifier {
           final data = jsonDecode(await preferences.readAsString()) as Map;
           _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
           _countAloud = data['countAloud'] == true;
-          if (data['aiConsent'] case final bool consent) _aiConsent = consent;
+          _aiOn = data['aiConsent'] != false;
           final saved = data['deviceId'];
           if (saved is String && saved.length >= 16) _deviceId = saved;
           if (data['platesDay'] case final String day) _platesDay = day;
@@ -495,7 +498,7 @@ class NotesStore extends ChangeNotifier {
     final preferences = jsonEncode({
       'weightUnit': _weightUnit,
       'countAloud': _countAloud,
-      'aiConsent': ?_aiConsent,
+      'aiConsent': _aiOn,
       'deviceId': _deviceId,
       'platesDay': _platesDay,
       'exercises': _exerciseHistory,

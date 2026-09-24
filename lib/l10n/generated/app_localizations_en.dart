@@ -1842,27 +1842,6 @@ class LEn extends L {
   String get settingsTrainer => 'Trainer';
 
   @override
-  String get aiConsentTitle => 'Turn on AI help?';
-
-  @override
-  String get aiConsentBody =>
-      'One-line setup, meal calorie estimates and record questions are read by DeepSeek\'s AI (China). They go through our server (gym.darak.studio), which does not store them.';
-
-  @override
-  String get aiConsentSent =>
-      'What is sent: the text you type, meal photos (with location and capture details removed), and the exercise names in your log. Your sets, weights, dates and notes are not sent to the AI; the phone does the counting.';
-
-  @override
-  String get aiConsentLater =>
-      'If you choose Not now, what you type is still logged as written, and typed kcal and name search keep working. You can turn this on or off any time in Settings › AI help.';
-
-  @override
-  String get aiConsentAgree => 'Agree and turn on';
-
-  @override
-  String get aiConsentNotNow => 'Not now';
-
-  @override
   String get aiSetting => 'AI help (DeepSeek)';
 
   @override

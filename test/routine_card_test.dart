@@ -306,12 +306,12 @@ void main() {
       expect(find.text('스쿼트'), findsOneWidget);
     });
 
-    testWidgets('AI 도움을 켜지 않았으면 아무것도 보내지 않고 기기가 짜며, 연결 탓이라 하지 않는다', (
+    testWidgets('AI 도움을 꺼 두었으면 아무것도 보내지 않고 기기가 짜며, 연결 탓이라 하지 않는다', (
       tester,
     ) async {
       final sent = <String>[];
       final ai = RecordAi(
-        consent: () async => false,
+        enabled: () => false,
         respond: (_, input) async {
           sent.add(input);
           return {};
