@@ -4206,6 +4206,12 @@ abstract class L {
   /// **'몸 그림 — 부위별 운동과 자세 팁'**
   String get anatomyOpen;
 
+  /// No description provided for @anatomyPick.
+  ///
+  /// In ko, this message translates to:
+  /// **'몸 그림에서 운동 고르기'**
+  String get anatomyPick;
+
   /// No description provided for @anatomyFront.
   ///
   /// In ko, this message translates to:
@@ -4257,8 +4263,14 @@ abstract class L {
   /// No description provided for @anatomyUnknown.
   ///
   /// In ko, this message translates to:
-  /// **'근육을 모르는 운동은 세지 않았어요: {names}'**
-  String anatomyUnknown(String names);
+  /// **'근육을 모르는 운동 {n}개는 세지 않았어요. 이름을 누르면 검색에서 그 기록을 봐요.'**
+  String anatomyUnknown(int n);
+
+  /// No description provided for @anatomyUnknownMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'외 {n}개'**
+  String anatomyUnknownMore(int n);
 
   /// No description provided for @anatomyCardio.
   ///
@@ -4269,7 +4281,7 @@ abstract class L {
   /// No description provided for @anatomyCountNote.
   ///
   /// In ko, this message translates to:
-  /// **'근육은 ExRx.net 분류를 따른 어림이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.'**
+  /// **'근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.'**
   String get anatomyCountNote;
 
   /// No description provided for @anatomyLimits.
@@ -4317,7 +4329,7 @@ abstract class L {
   /// No description provided for @anatomyNever.
   ///
   /// In ko, this message translates to:
-  /// **'이 부위를 쓴 기록이 아직 없어요'**
+  /// **'표에 있는 운동으로는 이 부위를 쓴 기록이 아직 없어요'**
   String get anatomyNever;
 
   /// No description provided for @anatomyDone.
@@ -4362,6 +4374,12 @@ abstract class L {
   /// **'{role, select, primary{주로 씀} other{보조}}'**
   String anatomyRole(String role);
 
+  /// No description provided for @anatomyInterpNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'* 가 붙은 운동은 근육 배정이 출처를 옮긴 해석이에요'**
+  String get anatomyInterpNote;
+
   /// No description provided for @anatomyCues.
   ///
   /// In ko, this message translates to:
@@ -4371,7 +4389,7 @@ abstract class L {
   /// No description provided for @anatomyMistakes.
   ///
   /// In ko, this message translates to:
-  /// **'흔한 실수'**
+  /// **'피할 것'**
   String get anatomyMistakes;
 
   /// No description provided for @anatomySources.
@@ -4385,6 +4403,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'* 출처 없이 덧붙인 말'**
   String get anatomyUnsourced;
+
+  /// No description provided for @anatomyAdapted.
+  ///
+  /// In ko, this message translates to:
+  /// **'† 출처 문장을 옮겨 쓴 해석(비슷한 동작의 출처 포함)'**
+  String get anatomyAdapted;
 
   /// No description provided for @anatomyCuesEnglish.
   ///

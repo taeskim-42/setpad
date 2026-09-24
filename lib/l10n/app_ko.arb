@@ -2914,6 +2914,7 @@
   },
   "anatomyTitle": "몸 그림",
   "anatomyOpen": "몸 그림 — 부위별 운동과 자세 팁",
+  "anatomyPick": "몸 그림에서 운동 고르기",
   "anatomyFront": "앞",
   "anatomyBack": "뒤",
   "anatomyDays": "{n}일",
@@ -2950,11 +2951,19 @@
       }
     }
   },
-  "anatomyUnknown": "근육을 모르는 운동은 세지 않았어요: {names}",
+  "anatomyUnknown": "근육을 모르는 운동 {n}개는 세지 않았어요. 이름을 누르면 검색에서 그 기록을 봐요.",
   "@anatomyUnknown": {
     "placeholders": {
-      "names": {
-        "type": "String"
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "anatomyUnknownMore": "외 {n}개",
+  "@anatomyUnknownMore": {
+    "placeholders": {
+      "n": {
+        "type": "int"
       }
     }
   },
@@ -2966,7 +2975,7 @@
       }
     }
   },
-  "anatomyCountNote": "근육은 ExRx.net 분류를 따른 어림이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.",
+  "anatomyCountNote": "근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.",
   "anatomyLimits": "영상·자세 분석은 하지 않아요. 통증이 있으면 멈추고 전문가와 상의하세요.",
   "anatomyTapHint": "근육을 눌러 주세요 — 아래 목록에서도 고를 수 있어요",
   "anatomyNoSurface": "몸 안쪽 근육이라 그림에는 없어요",
@@ -3014,7 +3023,7 @@
       }
     }
   },
-  "anatomyNever": "이 부위를 쓴 기록이 아직 없어요",
+  "anatomyNever": "표에 있는 운동으로는 이 부위를 쓴 기록이 아직 없어요",
   "anatomyDone": "내가 한 운동",
   "anatomyTry": "이 부위를 주로 쓰는 운동",
   "anatomyTryGear": "쓴 적 있는 기구({list})로 할 수 있는 것",
@@ -3043,8 +3052,9 @@
       }
     }
   },
+  "anatomyInterpNote": "* 가 붙은 운동은 근육 배정이 출처를 옮긴 해석이에요",
   "anatomyCues": "자세 팁",
-  "anatomyMistakes": "흔한 실수",
+  "anatomyMistakes": "피할 것",
   "anatomySources": "출처: {sites}",
   "@anatomySources": {
     "placeholders": {
@@ -3054,6 +3064,7 @@
     }
   },
   "anatomyUnsourced": "* 출처 없이 덧붙인 말",
+  "anatomyAdapted": "† 출처 문장을 옮겨 쓴 해석(비슷한 동작의 출처 포함)",
   "anatomyCuesEnglish": "자세 팁은 아직 영어로만 있어요",
   "anatomyAddRoutine": "오늘 루틴에 넣기",
   "anatomyRoutineText": "오늘 {part} 루틴",

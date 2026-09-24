@@ -2759,6 +2759,9 @@ class LZh extends L {
   String get anatomyOpen => '身体图 — 按部位看动作和动作要点';
 
   @override
+  String get anatomyPick => '在身体图上选动作';
+
+  @override
   String get anatomyFront => '正面';
 
   @override
@@ -2819,8 +2822,13 @@ class LZh extends L {
   }
 
   @override
-  String anatomyUnknown(String names) {
-    return '不知道肌肉的动作没有计入：$names';
+  String anatomyUnknown(int n) {
+    return '有 $n 个不知道肌肉的动作没有计入。点名称可在搜索中查看记录。';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return '另外 $n 个';
   }
 
   @override
@@ -2830,7 +2838,7 @@ class LZh extends L {
 
   @override
   String get anatomyCountNote =>
-      '肌肉按 ExRx.net 的分类估算。主要肌肉每组算一组，辅助肌肉算半组，热身组也算一组。';
+      '肌肉按 ExRx.net、ACE 的分类估算。带 * 的动作，肌肉归属是推断的。主要肌肉每组算一组，辅助肌肉算半组，热身组也算一组。';
 
   @override
   String get anatomyLimits => '不做视频或动作分析。如有疼痛请停下并咨询专业人士。';
@@ -2862,7 +2870,7 @@ class LZh extends L {
   }
 
   @override
-  String get anatomyNever => '这个部位还没有记录';
+  String get anatomyNever => '表里的动作中，这个部位还没有记录';
 
   @override
   String get anatomyDone => '我做过的动作';
@@ -2896,10 +2904,13 @@ class LZh extends L {
   }
 
   @override
+  String get anatomyInterpNote => '* 该动作的肌肉归属是根据来源推断的';
+
+  @override
   String get anatomyCues => '动作要点';
 
   @override
-  String get anatomyMistakes => '常见错误';
+  String get anatomyMistakes => '要避免';
 
   @override
   String anatomySources(String sites) {
@@ -2908,6 +2919,9 @@ class LZh extends L {
 
   @override
   String get anatomyUnsourced => '* 无来源的补充';
+
+  @override
+  String get anatomyAdapted => '† 根据来源文字转述的推断（含相似动作的来源）';
 
   @override
   String get anatomyCuesEnglish => '动作要点目前只有英文';
@@ -5693,6 +5707,9 @@ class LZhHans extends LZh {
   String get anatomyOpen => '身体图 — 按部位看动作和动作要点';
 
   @override
+  String get anatomyPick => '在身体图上选动作';
+
+  @override
   String get anatomyFront => '正面';
 
   @override
@@ -5753,8 +5770,13 @@ class LZhHans extends LZh {
   }
 
   @override
-  String anatomyUnknown(String names) {
-    return '不知道肌肉的动作没有计入：$names';
+  String anatomyUnknown(int n) {
+    return '有 $n 个不知道肌肉的动作没有计入。点名称可在搜索中查看记录。';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return '另外 $n 个';
   }
 
   @override
@@ -5764,7 +5786,7 @@ class LZhHans extends LZh {
 
   @override
   String get anatomyCountNote =>
-      '肌肉按 ExRx.net 的分类估算。主要肌肉每组算一组，辅助肌肉算半组，热身组也算一组。';
+      '肌肉按 ExRx.net、ACE 的分类估算。带 * 的动作，肌肉归属是推断的。主要肌肉每组算一组，辅助肌肉算半组，热身组也算一组。';
 
   @override
   String get anatomyLimits => '不做视频或动作分析。如有疼痛请停下并咨询专业人士。';
@@ -5796,7 +5818,7 @@ class LZhHans extends LZh {
   }
 
   @override
-  String get anatomyNever => '这个部位还没有记录';
+  String get anatomyNever => '表里的动作中，这个部位还没有记录';
 
   @override
   String get anatomyDone => '我做过的动作';
@@ -5830,10 +5852,13 @@ class LZhHans extends LZh {
   }
 
   @override
+  String get anatomyInterpNote => '* 该动作的肌肉归属是根据来源推断的';
+
+  @override
   String get anatomyCues => '动作要点';
 
   @override
-  String get anatomyMistakes => '常见错误';
+  String get anatomyMistakes => '要避免';
 
   @override
   String anatomySources(String sites) {
@@ -5842,6 +5867,9 @@ class LZhHans extends LZh {
 
   @override
   String get anatomyUnsourced => '* 无来源的补充';
+
+  @override
+  String get anatomyAdapted => '† 根据来源文字转述的推断（含相似动作的来源）';
 
   @override
   String get anatomyCuesEnglish => '动作要点目前只有英文';
@@ -8626,6 +8654,9 @@ class LZhHant extends LZh {
   String get anatomyOpen => '身體圖 — 依部位看動作與動作要點';
 
   @override
+  String get anatomyPick => '在身體圖上選動作';
+
+  @override
   String get anatomyFront => '正面';
 
   @override
@@ -8686,8 +8717,13 @@ class LZhHant extends LZh {
   }
 
   @override
-  String anatomyUnknown(String names) {
-    return '不知道肌肉的動作沒有計入：$names';
+  String anatomyUnknown(int n) {
+    return '有 $n 個不知道肌肉的動作沒有計入。點名稱可在搜尋中查看紀錄。';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return '另外 $n 個';
   }
 
   @override
@@ -8697,7 +8733,7 @@ class LZhHant extends LZh {
 
   @override
   String get anatomyCountNote =>
-      '肌肉依 ExRx.net 的分類估算。主要肌肉每組算一組，輔助肌肉算半組，熱身組也算一組。';
+      '肌肉依 ExRx.net、ACE 的分類估算。帶 * 的動作，肌肉歸屬是推斷的。主要肌肉每組算一組，輔助肌肉算半組，熱身組也算一組。';
 
   @override
   String get anatomyLimits => '不做影片或動作分析。如有疼痛請停下並諮詢專業人士。';
@@ -8729,7 +8765,7 @@ class LZhHant extends LZh {
   }
 
   @override
-  String get anatomyNever => '這個部位還沒有紀錄';
+  String get anatomyNever => '表中的動作裡，這個部位還沒有紀錄';
 
   @override
   String get anatomyDone => '我做過的動作';
@@ -8763,10 +8799,13 @@ class LZhHant extends LZh {
   }
 
   @override
+  String get anatomyInterpNote => '* 此動作的肌肉歸屬是根據來源推斷的';
+
+  @override
   String get anatomyCues => '動作要點';
 
   @override
-  String get anatomyMistakes => '常見錯誤';
+  String get anatomyMistakes => '要避免';
 
   @override
   String anatomySources(String sites) {
@@ -8775,6 +8814,9 @@ class LZhHant extends LZh {
 
   @override
   String get anatomyUnsourced => '* 無來源的補充';
+
+  @override
+  String get anatomyAdapted => '† 根據來源文字轉述的推斷（含相似動作的來源）';
 
   @override
   String get anatomyCuesEnglish => '動作要點目前只有英文';

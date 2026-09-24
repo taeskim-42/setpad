@@ -2780,6 +2780,9 @@ class LJa extends L {
   String get anatomyOpen => 'ボディマップ — 部位別の種目とフォームのコツ';
 
   @override
+  String get anatomyPick => '体の図から種目を選ぶ';
+
+  @override
   String get anatomyFront => '前';
 
   @override
@@ -2841,8 +2844,13 @@ class LJa extends L {
   }
 
   @override
-  String anatomyUnknown(String names) {
-    return '筋肉がわからない種目は数えていません: $names';
+  String anatomyUnknown(int n) {
+    return '筋肉がわからない種目$n件は数えていません。名前をタップすると検索で記録を見られます。';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return 'ほか$n件';
   }
 
   @override
@@ -2852,7 +2860,7 @@ class LJa extends L {
 
   @override
   String get anatomyCountNote =>
-      '筋肉はExRx.netの分類に沿った目安です。主に使う筋肉は1セット、補助の筋肉は0.5セットとして数え、ウォームアップも1セットに数えます。';
+      '筋肉はExRx.net・ACEの分類に沿った目安です。* の付いた種目は筋肉の割り当てが解釈です。主に使う筋肉は1セット、補助の筋肉は0.5セットとして数え、ウォームアップも1セットに数えます。';
 
   @override
   String get anatomyLimits => '動画やフォームの分析はしません。痛みがあれば中止して専門家に相談してください。';
@@ -2884,7 +2892,7 @@ class LJa extends L {
   }
 
   @override
-  String get anatomyNever => 'この部位の記録はまだありません';
+  String get anatomyNever => '表にある種目では、この部位の記録はまだありません';
 
   @override
   String get anatomyDone => 'やった種目';
@@ -2918,10 +2926,13 @@ class LJa extends L {
   }
 
   @override
+  String get anatomyInterpNote => '* の付いた種目は、筋肉の割り当てが出典を置き換えた解釈です';
+
+  @override
   String get anatomyCues => 'フォームのコツ';
 
   @override
-  String get anatomyMistakes => 'よくある間違い';
+  String get anatomyMistakes => '避けること';
 
   @override
   String anatomySources(String sites) {
@@ -2930,6 +2941,9 @@ class LJa extends L {
 
   @override
   String get anatomyUnsourced => '* 出典なしで付け加えた内容';
+
+  @override
+  String get anatomyAdapted => '† 出典の文を言い換えた解釈（似た動作の出典を含む）';
 
   @override
   String get anatomyCuesEnglish => 'フォームのコツは今のところ英語のみです';

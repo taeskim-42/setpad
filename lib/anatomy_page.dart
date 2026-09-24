@@ -3,6 +3,8 @@
 /// 전부 기기에서 센다(모델·서버·원판 없음). 색은 해낸 내 세트로만 칠한다.
 /// 숫자는 내 세트를 그대로 옮긴 것뿐이다 — 권장량·목표 무게를 보이지 않는다.
 /// 그림이 작아 못 누르는 부위가 없게, 같은 부위를 아래 목록에서도 고른다.
+/// VoiceOver 는 목록 줄로 부위를 고른다 — 그림의 부위는 좌우가 떨어져 있어
+/// 사각형으로 읽히면 몸통을 가로질러 서로 겹친다.
 library;
 
 import 'dart:math' as math;
@@ -14,7 +16,6 @@ import 'package:flutter/foundation.dart'
         LicenseRegistry,
         mapEquals,
         visibleForTesting;
-import 'package:flutter/rendering.dart' show SemanticsProperties;
 import 'package:intl/intl.dart';
 
 import 'anatomy.dart';
@@ -166,7 +167,6 @@ class _AnatomyPageState extends State<AnatomyPage> {
         borderRadius: BorderRadius.circular(3),
       ),
     );
-    final unknown = load.unknown.keys.toList();
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(middle: Text(l.anatomyTitle)),
       child: SafeArea(
@@ -204,36 +204,26 @@ class _AnatomyPageState extends State<AnatomyPage> {
             LayoutBuilder(
               builder: (context, c) {
                 final size = Size(c.maxWidth, _figureHeight);
-                return GestureDetector(
-                  key: const ValueKey('anatomy-figure'),
-                  // 부위마다 시맨틱 노드가 있다(아래 painter) — 그림 전체를 한 버튼으로 읽지 않게.
-                  excludeFromSemantics: true,
-                  onTapUp: (d) {
-                    final m = _hit(_front, size, d.localPosition);
-                    m == null
-                        ? setState(() => _missed = true)
-                        : _openSheet(m, today);
-                  },
-                  child: CustomPaint(
-                    size: size,
-                    painter: _BodyPainter(
-                      front: _front,
-                      body: CupertinoColors.systemGrey6.resolveFrom(context),
-                      line: CupertinoColors.separator.resolveFrom(context),
-                      fills: {
-                        for (final m in regions) m: _fill(context, lv(m)),
-                      },
-                      semantics: {
-                        for (final m in regions)
-                          m: SemanticsProperties(
-                            label: l.muscleName(m.name),
-                            value: value(m),
-                            hint: l.anatomyRegionHint,
-                            button: true,
-                            textDirection: Directionality.of(context),
-                            onTap: () => _openSheet(m, today),
-                          ),
-                      },
+                // VoiceOver 는 아래 목록 줄로 고른다(줄마다 이름·세트·단계).
+                return ExcludeSemantics(
+                  child: GestureDetector(
+                    key: const ValueKey('anatomy-figure'),
+                    onTapUp: (d) {
+                      final m = _hit(_front, size, d.localPosition);
+                      m == null
+                          ? setState(() => _missed = true)
+                          : _openSheet(m, today);
+                    },
+                    child: CustomPaint(
+                      size: size,
+                      painter: _BodyPainter(
+                        front: _front,
+                        body: CupertinoColors.systemGrey6.resolveFrom(context),
+                        line: CupertinoColors.separator.resolveFrom(context),
+                        fills: {
+                          for (final m in regions) m: _fill(context, lv(m)),
+                        },
+                      ),
                     ),
                   ),
                 );
@@ -250,7 +240,7 @@ class _AnatomyPageState extends State<AnatomyPage> {
               ),
             if (!ever)
               Text(l.anatomyFirstTime, style: const TextStyle(fontSize: 14))
-            else if (max == 0 && unknown.isEmpty && load.cardio == 0)
+            else if (max == 0 && load.unknown.isEmpty && load.cardio == 0)
               Text(
                 l.anatomyEmptyWindow(_days),
                 style: const TextStyle(fontSize: 14),
@@ -274,18 +264,10 @@ class _AnatomyPageState extends State<AnatomyPage> {
                 ],
               ),
             ],
-            if (unknown.isNotEmpty)
+            if (load.unknown.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
-                child: Text(
-                  l.anatomyUnknown(
-                    [
-                      ...unknown.take(5),
-                      if (unknown.length > 5) '…',
-                    ].join(' · '),
-                  ),
-                  style: small,
-                ),
+                child: _UnknownNames(names: load.unknown.keys.toList()),
               ),
             if (load.cardio > 0)
               Padding(
@@ -297,52 +279,60 @@ class _AnatomyPageState extends State<AnatomyPage> {
               child: Text(l.anatomyCountNote, style: small),
             ),
             for (final m in regions)
-              GestureDetector(
-                key: ValueKey('anatomy-row-${m.name}'),
-                behavior: HitTestBehavior.opaque,
+              Semantics(
+                button: true,
+                label: l.muscleName(m.name),
+                value: value(m),
+                hint: l.anatomyRegionHint,
                 onTap: () => _openSheet(m, today),
-                child: Container(
-                  constraints: const BoxConstraints(minHeight: 44),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: CupertinoColors.separator.resolveFrom(context),
-                        width: 0.5,
+                excludeSemantics: true,
+                child: GestureDetector(
+                  key: ValueKey('anatomy-row-${m.name}'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _openSheet(m, today),
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: CupertinoColors.separator.resolveFrom(context),
+                          width: 0.5,
+                        ),
                       ),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      swatch(lv(m)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l.muscleName(m.name),
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            if (m == Muscle.hipFlexors)
-                              Text(l.anatomyNoSurface, style: small),
-                          ],
+                    child: Row(
+                      children: [
+                        swatch(lv(m)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l.muscleName(m.name),
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              if (m == Muscle.hipFlexors)
+                                Text(l.anatomyNoSurface, style: small),
+                            ],
+                          ),
                         ),
-                      ),
-                      Text(
-                        '${l.anatomySets(_days, formatNumber(load.of(m)))} · '
-                        '${l.anatomyLevel(_levels[lv(m)])}',
-                        style: small,
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        CupertinoIcons.chevron_right,
-                        size: 15,
-                        color: CupertinoColors.tertiaryLabel.resolveFrom(
-                          context,
+                        Text(
+                          '${l.anatomySets(_days, formatNumber(load.of(m)))} · '
+                          '${l.anatomyLevel(_levels[lv(m)])}',
+                          style: small,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Icon(
+                          CupertinoIcons.chevron_right,
+                          size: 15,
+                          color: CupertinoColors.tertiaryLabel.resolveFrom(
+                            context,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -361,12 +351,10 @@ class _BodyPainter extends CustomPainter {
     required this.body,
     required this.line,
     required this.fills,
-    required this.semantics,
   });
   final bool front;
   final Color body, line;
   final Map<Muscle, Color> fills;
-  final Map<Muscle, SemanticsProperties> semantics;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -389,31 +377,49 @@ class _BodyPainter extends CustomPainter {
   }
 
   @override
-  SemanticsBuilderCallback get semanticsBuilder => (size) {
-    final f = _fit(front, size);
-    return [
-      for (final e in _muscles[front]!.entries)
-        if (semantics[e.key] case final p?)
-          CustomPainterSemantics(
-            key: ValueKey(e.key),
-            rect: Rect.fromPoints(
-              e.value.getBounds().topLeft * f.s + f.o,
-              e.value.getBounds().bottomRight * f.s + f.o,
-            ),
-            properties: p,
-          ),
-    ];
-  };
-
-  @override
   bool shouldRepaint(_BodyPainter old) =>
       old.front != front ||
       old.body != body ||
       old.line != line ||
       !mapEquals(old.fills, fills);
+}
+
+/// 근육을 모르는 기록 이름: 몇 개인지 말하고, 이름을 누르면 검색칸에 넣는다.
+class _UnknownNames extends StatelessWidget {
+  const _UnknownNames({required this.names});
+  final List<String> names;
 
   @override
-  bool shouldRebuildSemantics(_BodyPainter old) => true;
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final small = TextStyle(
+      fontSize: 13,
+      color: CupertinoColors.secondaryLabel.resolveFrom(context),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l.anatomyUnknown(names.length), style: small),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            for (final name in names.take(5))
+              SuggestionChip(
+                key: ValueKey('anatomy-unknown:$name'),
+                label: name,
+                selected: false,
+                onTap: () => Navigator.pop(context, (search: name, add: null)),
+              ),
+            if (names.length > 5)
+              Text(l.anatomyUnknownMore(names.length - 5), style: small),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 class _MuscleSheet extends StatefulWidget {
@@ -435,6 +441,23 @@ class _MuscleSheetState extends State<_MuscleSheet> {
   String? _open;
   bool _more = false;
 
+  /// 기록을 훑는 셈은 시트를 열 때 한 번 — 줄을 펼칠 때마다 다시 세지 않는다.
+  late final BodyLoad week, month;
+  late final List<String> unknown;
+  late final List<DoneRow> done;
+  late final TryList t;
+
+  @override
+  void initState() {
+    super.initState();
+    final notes = widget.notes, today = widget.today;
+    week = bodyLoad(notes, today: today, days: 7);
+    month = bodyLoad(notes, today: today, days: 28);
+    unknown = bodyLoad(notes, today: today, days: null).unknown.keys.toList();
+    done = doneFor(notes, widget.muscle);
+    t = tryFor(widget.muscle, doneKeys(notes));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
@@ -443,10 +466,15 @@ class _MuscleSheetState extends State<_MuscleSheet> {
     final part = muscleCoarse[m]!;
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
     final small = TextStyle(fontSize: 13, color: muted);
-    final week = bodyLoad(widget.notes, today: widget.today, days: 7);
-    final month = bodyLoad(widget.notes, today: widget.today, days: 28);
-    final done = doneFor(widget.notes, m);
-    final t = tryFor(m, doneKeys(widget.notes));
+    bool doneInterp(DoneRow r) =>
+        r.primary ? moves[r.key]!.primaryInterp : moves[r.key]!.secondaryInterp;
+    // * 각주는 보이는 줄에 * 가 있을 때만.
+    final interp =
+        done.any(doneInterp) ||
+        [
+          ...t.shown,
+          if (_more || t.shown.isEmpty) ...t.hidden,
+        ].any((k) => moves[k]!.primaryInterp);
     final last = done.isEmpty
         ? null
         : done.map((r) => r.day).reduce((a, b) => a.isAfter(b) ? a : b);
@@ -534,10 +562,10 @@ class _MuscleSheetState extends State<_MuscleSheet> {
     Widget tryRow(String key) => row(
       id: 'try:$key',
       move: key,
-      title: moveName(key, lang),
-      subtitle: moves[key]!.gear.map(l.routineGear).join('·'),
+      title: '${moveName(key, lang)}${moves[key]!.primaryInterp ? ' *' : ''}',
+      subtitle: moveGear(key).map(l.routineGear).join('·'),
       // 사전 운동은 열쇠, 사전 밖 운동은 화면 언어 이름(카드 제목이 된다).
-      addKey: moves[key]!.names?.name(lang) ?? key,
+      addKey: moves[key]!.names == null ? key : moveName(key, lang),
     );
 
     return CupertinoPopupSurface(
@@ -578,7 +606,11 @@ class _MuscleSheetState extends State<_MuscleSheet> {
                   ),
                 ],
               ),
-              if (last == null)
+              // 표의 운동으로는 기록이 없다. 표에 없는 이름이 있으면 "없다" 고 하지 않고
+              // 그 이름을 보인다 — 근육을 몰라 못 셌을 뿐이다.
+              if (last == null && unknown.isNotEmpty)
+                _UnknownNames(names: unknown)
+              else if (last == null)
                 Text(l.anatomyNever, style: const TextStyle(fontSize: 14))
               else ...[
                 Text(
@@ -609,7 +641,8 @@ class _MuscleSheetState extends State<_MuscleSheet> {
                   id: 'done:${r.key}',
                   move: r.key,
                   title:
-                      '${r.name} · ${l.anatomyRole(r.primary ? 'primary' : 'secondary')}',
+                      '${r.name} · ${l.anatomyRole(r.primary ? 'primary' : 'secondary')}'
+                      '${doneInterp(r) ? ' *' : ''}',
                   // 마지막으로 한 날의 내 세트 그대로.
                   subtitle: '${setsText(l, r.sets)} · ${date(r.day)}',
                   addKey: exerciseKey(r.name),
@@ -644,6 +677,11 @@ class _MuscleSheetState extends State<_MuscleSheet> {
                 ),
               if (_more || t.shown.isEmpty)
                 for (final k in t.hidden) tryRow(k),
+              if (interp)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Text(l.anatomyInterpNote, style: small),
+                ),
             ],
           ),
         ),
@@ -651,12 +689,18 @@ class _MuscleSheetState extends State<_MuscleSheet> {
     );
   }
 
-  /// 자세 팁·흔한 실수. 한국어 밖 화면은 영어 문장이다 — 그렇다고 한 줄 적는다.
+  /// 자세 팁·피할 것. 한국어 밖 화면은 영어 문장이다 — 그렇다고 한 줄 적는다.
+  /// 근거는 셋으로 표시한다: 출처 문장(표시 없음), 출처 문장에서 옮긴 해석(†),
+  /// 출처 없이 덧붙인 말(*).
   List<Widget> _cues(L l, String lang, Move move, TextStyle small) {
     Widget line(Cue c) => Padding(
       padding: const EdgeInsets.only(top: 2),
       child: Text(
-        '• ${cueText(c, lang)}${c.sourced ? '' : ' *'}',
+        '• ${cueText(c, lang)}${switch (c.basis) {
+          Basis.source => '',
+          Basis.adapted => ' †',
+          Basis.none => ' *',
+        }}',
         style: const TextStyle(fontSize: 14),
       ),
     );
@@ -677,7 +721,8 @@ class _MuscleSheetState extends State<_MuscleSheet> {
       Text(
         [
           l.anatomySources(move.sites.join(' · ')),
-          if (all.any((c) => !c.sourced)) l.anatomyUnsourced,
+          if (all.any((c) => c.basis == Basis.adapted)) l.anatomyAdapted,
+          if (all.any((c) => c.basis == Basis.none)) l.anatomyUnsourced,
           if (lang != 'ko' && lang != 'en') l.anatomyCuesEnglish,
         ].join('\n'),
         style: small,

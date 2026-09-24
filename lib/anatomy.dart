@@ -10,9 +10,9 @@ import 'muscle_map_paths.dart';
 import 'notes.dart';
 import 'parser.dart' show searchKey;
 import 'record_query.dart' show exerciseKey, statName;
-import 'routine.dart' show PlanSet;
+import 'routine.dart' show PlanSet, exerciseGear;
 
-export 'anatomy_data.dart' show Cue, Move, moves;
+export 'anatomy_data.dart' show Basis, Cue, Move, moves;
 export 'muscle_map_paths.dart' show Muscle;
 
 /// 부위 → 거친 부위(exercisePart 값). 시트 머리와 "오늘 {부위} 루틴" 이 쓴다.
@@ -48,7 +48,7 @@ final backRegions = [
     if (backMuscles.containsKey(m)) m,
 ];
 
-/// 사전 밖 운동의 여덟 언어 이름 → 한국어 이름.
+/// 사전 밖 운동의 여덟 언어 이름과 별칭 → 한국어 이름.
 final _extraNames = {
   for (final e in moves.entries)
     if (e.value.names case final n?)
@@ -61,23 +61,34 @@ final _extraNames = {
         n.es,
         n.vi,
         n.th,
+        ...e.value.aliases,
       ])
         searchKey(name): e.key,
 };
 
+/// 기록 이름마다 한 번만 푼다 — 시트를 열 때마다 전체 기록을 훑는다.
+final _moveKeys = <String, String?>{};
+
 /// 기록 이름 → 표의 운동(한국어 이름). 표에 없으면 null — 근육을 지어내지 않는다.
-String? moveKey(String name) {
+String? moveKey(String name) => _moveKeys.putIfAbsent(name, () {
   final extra = _extraNames[searchKey(statName(name))];
   if (extra != null) return extra;
   final k = exerciseKey(name);
   return moves.containsKey(k) ? k : null;
-}
+});
 
-/// 표의 운동 이름(화면 언어).
+/// 표의 운동 이름(화면 언어). 사전 밖 운동은 한국어·영어 밖에서 영어 이름이다 —
+/// 다른 언어 이름은 원어민 확인 전 번역이다.
 String moveName(String key, String lang) =>
     exerciseByName[key.toLowerCase()]?.name(lang) ??
-    moves[key]?.names?.name(lang) ??
+    moves[key]?.names?.name(lang == 'ko' ? 'ko' : 'en') ??
     key;
+
+/// 운동의 기구. 사전 운동은 루틴과 같은 표(exerciseGear) 하나다.
+List<String> moveGear(String key) => switch (exerciseGear[key]) {
+  final g? => [g],
+  null => moves[key]?.gear ?? const [],
+};
 
 DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 int _daysBetween(DateTime from, DateTime to) => DateTime.utc(
@@ -101,15 +112,16 @@ class BodyLoad {
 }
 
 /// 오늘을 포함한 [days] 달력 날(7일 = 오늘과 앞의 6일)의 내 세트. 미래 날은 뺀다.
+/// [days] 가 null 이면 전 기간이다.
 BodyLoad bodyLoad(
   List<Note> notes, {
   required DateTime today,
-  required int days,
+  required int? days,
 }) {
   final out = BodyLoad();
   for (final n in notes) {
     final ago = _daysBetween(n.createdAt, today);
-    if (ago < 0 || ago >= days) continue;
+    if (ago < 0 || (days != null && ago >= days)) continue;
     for (final b in n.blocks) {
       final sets = b.sets.where((s) => s.mine).length;
       if (sets == 0) continue;
@@ -137,7 +149,7 @@ BodyLoad bodyLoad(
 int level(double v, double max) =>
     v <= 0 || max <= 0 ? 0 : (3 * v / max).ceil().clamp(1, 3);
 
-/// 내가 한 운동 한 줄: 마지막으로 한 날의 내 세트 그대로.
+/// 내가 한 운동 한 줄: 마지막으로 한 날의 내 세트 그대로(그날 블록을 모두 잇는다).
 typedef DoneRow = ({
   String key,
   String name,
@@ -147,31 +159,55 @@ typedef DoneRow = ({
 });
 
 /// 이 부위를 주동·보조로 쓴 내 운동(전 기간). 주동 먼저, 그다음 최근 순.
+/// 마지막 날은 기록 시각(createdAt)으로 가르고, 그날의 블록은 시각·칸 순으로 잇는다.
+/// 이름은 그날 가장 나중에 적은 것이다.
 List<DoneRow> doneFor(List<Note> notes, Muscle m) {
-  final last = <String, DoneRow>{};
+  final hits =
+      <
+        String,
+        List<({DateTime at, int seq, String name, List<PlanSet> sets})>
+      >{};
+  var seq = 0;
   for (final n in notes) {
-    final day = _day(n.createdAt);
     for (final b in n.blocks) {
-      final mine = b.sets.where((s) => s.mine).toList();
       final key = moveKey(b.exercise);
       final move = moves[key];
-      if (mine.isEmpty || move == null) continue;
-      final primary = move.primary.contains(m);
-      if (!primary && !move.secondary.contains(m)) continue;
-      final before = last[key];
-      if (before != null && before.day.isAfter(day)) continue;
-      last[key!] = (
-        key: key,
+      if (move == null) continue;
+      if (!move.primary.contains(m) && !move.secondary.contains(m)) continue;
+      final sets = [
+        for (final s in b.sets)
+          if (s.mine) (value: s.value, unit: s.unit, reps: s.reps),
+      ];
+      if (sets.isEmpty) continue;
+      (hits[key!] ??= []).add((
+        at: n.createdAt,
+        seq: seq++,
         name: b.exercise,
-        primary: primary,
-        day: day,
-        sets: [
-          for (final s in mine) (value: s.value, unit: s.unit, reps: s.reps),
-        ],
-      );
+        sets: sets,
+      ));
     }
   }
-  return last.values.toList()..sort(
+  final rows = [
+    for (final MapEntry(:key, :value) in hits.entries)
+      () {
+        final last = _day(
+          value.map((h) => h.at).reduce((a, b) => a.isAfter(b) ? a : b),
+        );
+        final day = value.where((h) => _day(h.at) == last).toList()
+          ..sort((a, b) {
+            final c = a.at.compareTo(b.at);
+            return c != 0 ? c : a.seq.compareTo(b.seq);
+          });
+        return (
+          key: key,
+          name: day.last.name,
+          primary: moves[key]!.primary.contains(m),
+          day: last,
+          sets: [for (final h in day) ...h.sets],
+        );
+      }(),
+  ];
+  return rows..sort(
     (a, b) =>
         a.primary != b.primary ? (a.primary ? -1 : 1) : b.day.compareTo(a.day),
   );
@@ -184,19 +220,34 @@ Set<String> doneKeys(List<Note> notes) => {
       if (b.sets.any((s) => s.mine)) ?moveKey(b.exercise),
 };
 
-/// 해 볼 만한 운동: 이 부위가 주동이고 아직 안 한 것. 내가 쓴 기구(없으면 맨몸만)로
-/// 할 수 있는 것은 [shown], 아닌 것은 [hidden]. 표의 운동을 한 번도 안 했으면 기구를
-/// 모르니 거르지 않는다([allGear]).
-({List<String> shown, List<String> hidden, Set<String> gear, bool allGear})
-tryFor(Muscle m, Set<String> done) {
-  final gear = {for (final k in done) ...?moves[k]?.gear}..remove('bodyweight');
+/// 해 볼 만한 운동 목록([tryFor]).
+typedef TryList = ({
+  List<String> shown,
+  List<String> hidden,
+  Set<String> gear,
+  bool allGear,
+});
+
+/// 해 볼 만한 운동: 이 부위가 주동이고 아직 안 한 것([Move.suggest] 가 거짓인 것은
+/// 빼고). 내가 쓴 기구(없으면 맨몸만)로 할 수 있는 것은 [shown], 아닌 것은 [hidden].
+/// 쓴 기구는 기구가 하나뿐인 운동에서만 짐작한다 — 맨몸 런지로 바벨을 썼다고 하지
+/// 않는다. 표의 운동을 한 번도 안 했으면 기구를 모르니 거르지 않는다([allGear]).
+TryList tryFor(Muscle m, Set<String> done) {
+  final gear = {
+    for (final k in done)
+      if (moveGear(k) case [final g]) g,
+  }..remove('bodyweight');
   final allGear = done.isEmpty;
   final shown = <String>[], hidden = <String>[];
   for (final e in moves.entries) {
-    if (!e.value.primary.contains(m) || done.contains(e.key)) continue;
+    if (!e.value.suggest ||
+        !e.value.primary.contains(m) ||
+        done.contains(e.key)) {
+      continue;
+    }
     final ok =
         allGear ||
-        e.value.gear.any((g) => g == 'bodyweight' || gear.contains(g));
+        moveGear(e.key).any((g) => g == 'bodyweight' || gear.contains(g));
     (ok ? shown : hidden).add(e.key);
   }
   return (shown: shown, hidden: hidden, gear: gear, allGear: allGear);

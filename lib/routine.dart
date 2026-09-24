@@ -2904,12 +2904,14 @@ String draftMark(RoutineDraft d) => jsonEncode([
 
 /// [시작] 할 칸 — 누를 때마다 새 id 의 칸과 세트(G18). 세트는 모두 안 한 것이다.
 List<ExerciseBlock> startBlocks(RoutineDraft draft) => [
-  for (final i in draft.items)
-    ExerciseBlock(i.title, [
-      for (final s in i.sets)
-        LoggedSet(value: s.value, unit: s.unit, reps: s.reps, done: false),
-    ], i.setup),
+  for (final i in draft.items) startBlock(i),
 ];
+
+/// 카드 한 칸 → 기록 한 칸(세트는 안 한 것).
+ExerciseBlock startBlock(RoutineItem i) => ExerciseBlock(i.title, [
+  for (final s in i.sets)
+    LoggedSet(value: s.value, unit: s.unit, reps: s.reps, done: false),
+], i.setup);
 
 // ─── 모델 ───────────────────────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show LicenseRegistry;
-import 'package:flutter/material.dart' show LicensePage;
+import 'package:flutter/material.dart' show Icons, LicensePage;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/anatomy.dart';
@@ -11,6 +11,7 @@ import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
 import 'package:setpad/record_ai.dart';
+import 'package:setpad/routine.dart' show exerciseGear;
 import 'package:setpad/settings_page.dart';
 
 import 'routine_fixture.dart';
@@ -96,7 +97,7 @@ void main() {
         final m = e.value;
         expect(m.primary, isNotEmpty, reason: e.key);
         expect(m.primary.toSet().intersection(m.secondary.toSet()), isEmpty);
-        expect(m.gear, isNotEmpty, reason: e.key);
+        expect(moveGear(e.key), isNotEmpty, reason: e.key);
         expect(m.cues, isNotEmpty, reason: e.key);
         expect(m.mistakes, isNotEmpty, reason: e.key);
         expect(m.sites, isNotEmpty, reason: e.key);
@@ -600,6 +601,487 @@ void main() {
       expect(find.byType(AnatomyPage), findsNothing);
       expect(searchText(tester), '벤치프레스');
       expect(asked(), 0);
+    });
+  });
+
+  // ─── 리뷰(내용·코드)에서 확인된 것을 고친다 ─────────────────────────────────
+  group('리뷰 고침 — 표', () {
+    test('업라이트 로우: 그립은 어깨너비나 조금 넓게(ExRx Safety), 좁은 그립은 피할 것', () {
+      final m = moves['업라이트 로우']!;
+      final cues = m.cues.map((c) => c.ko).join('\n');
+      expect(cues, contains('조금 넓게'));
+      expect(cues, isNot(contains('좁게')));
+      expect(m.cues.map((c) => c.en).join('\n'), contains('slightly wider'));
+      expect(
+        m.cues.singleWhere((c) => c.ko.contains('몸 가까이')).basis,
+        Basis.source,
+      );
+      expect(
+        m.mistakes.singleWhere((c) => c.ko.contains('좁은 그립')).basis,
+        Basis.source,
+      );
+      expect(m.mistakes.where((c) => c.ko.contains('불편한데도')), isEmpty);
+    });
+
+    test('파워클린은 셈에는 들지만 부위 추천에는 뜨지 않는다', () {
+      for (final m in [
+        Muscle.traps,
+        Muscle.quads,
+        Muscle.glutes,
+        Muscle.hamstrings,
+      ]) {
+        final t = tryFor(m, {});
+        expect([...t.shown, ...t.hidden], isNot(contains('파워클린')));
+      }
+      final load = bodyLoad(
+        [
+          ago(0, [
+            ExerciseBlock('파워클린', [kg(60, 3)]),
+          ]),
+        ],
+        today: today,
+        days: 7,
+      );
+      expect(load.of(Muscle.quads), greaterThan(0));
+      // 모든 부위에 추천할 운동이 남는다.
+      for (final m in Muscle.values) {
+        expect(tryFor(m, {}).shown, isNotEmpty, reason: m.name);
+      }
+    });
+
+    test('사전 운동의 기구는 루틴 표 하나 — 봉·평행봉 운동은 봉을 쓴 사람에게만', () {
+      final dict = {for (final e in exercises) e.ko};
+      for (final k in moves.keys.where(dict.contains)) {
+        expect(moveGear(k), [exerciseGear[k]], reason: k);
+        expect(moves[k]!.gear, isEmpty, reason: '$k: 표를 둘로 두지 않는다');
+      }
+      expect(moveGear('시티드 로우'), ['cable']);
+      expect(moveGear('버티컬 레그레이즈'), ['machine']);
+      expect(moveGear('백 익스텐션'), ['machine']);
+      final dumbbell = tryFor(Muscle.lats, {'덤벨컬'});
+      expect(dumbbell.shown, isNot(contains('풀업')));
+      expect(dumbbell.hidden, containsAll(['풀업', '친업']));
+      expect(tryFor(Muscle.triceps, {'덤벨컬'}).hidden, contains('딥스'));
+      expect(tryFor(Muscle.lats, {'풀업'}).shown, contains('친업'));
+    });
+
+    test('기구가 여럿인 운동으로는 쓴 기구를 짐작하지 않는다', () {
+      final lunge = tryFor(Muscle.chest, {'런지'});
+      expect(lunge.gear, isEmpty);
+      expect(lunge.shown, isNot(contains('벤치프레스')));
+      expect(tryFor(Muscle.chest, {'파머스 워크'}).gear, isEmpty);
+    });
+
+    test('근육 배정이 해석인 운동은 표시가 있다', () {
+      for (final k in [
+        '바벨로우',
+        '덤벨로우',
+        '시티드 로우',
+        '케이블 로우',
+        '티바로우',
+        '파워클린',
+        '파머스 워크',
+        '러시안 트위스트',
+      ]) {
+        expect(moves[k]!.primaryInterp, isTrue, reason: k);
+      }
+      for (final k in ['루마니안 데드리프트', '파워클린', '슈퍼맨', '러시안 트위스트']) {
+        expect(moves[k]!.secondaryInterp, isTrue, reason: k);
+      }
+      expect(moves['벤치프레스']!.primaryInterp, isFalse);
+      expect(moves['슈퍼맨']!.primaryInterp, isFalse);
+    });
+
+    test('팁 표시는 셋: 출처 있음 · 출처 문장에서 옮긴 해석 · 출처 없음', () {
+      final all = [
+        for (final m in moves.values) ...[...m.cues, ...m.mistakes],
+      ];
+      expect(all.where((c) => c.basis == Basis.adapted), hasLength(9));
+      expect(
+        moves['힙쓰러스트']!.mistakes.singleWhere((c) => c.ko.contains('과하게')).basis,
+        Basis.adapted,
+      );
+      expect(all.where((c) => c.basis == Basis.none), isNotEmpty);
+    });
+
+    test('데드리프트: 허리 근육은 버티는(등척성) 역할이라고 적는다', () {
+      final c = moves['데드리프트']!.cues.first;
+      expect(c.ko, contains('등척성'));
+      expect(c.basis, Basis.source);
+    });
+
+    test('티바로우 한국어가 뜻을 잃지 않는다', () {
+      expect(
+        moves['티바로우']!.mistakes.map((c) => c.ko),
+        contains('끝까지 들려고 상체를 45°보다 더 세운다 — 그럴 땐 무게를 줄인다'),
+      );
+    });
+
+    test('핵스쿼트·레그프레스: 같은 ExRx 페이지의 기계 안전 단계', () {
+      expect(
+        moves['핵스쿼트']!.cues.where(
+          (c) => c.ko.contains('안전 레버') && c.basis == Basis.source,
+        ),
+        hasLength(1),
+      );
+      expect(
+        moves['레그프레스']!.cues.where(
+          (c) => c.ko.contains('안전 받침') && c.basis == Basis.source,
+        ),
+        hasLength(1),
+      );
+    });
+
+    test('출처가 갈리는 주동은 합친다(ExRx + ACE)', () {
+      expect(
+        moves['해머컬']!.primary,
+        containsAll([Muscle.forearms, Muscle.biceps]),
+      );
+      expect(moves['불가리안 스플릿 스쿼트']!.primary, contains(Muscle.glutes));
+      expect(
+        moves['레그프레스']!.primary,
+        containsAll([Muscle.quads, Muscle.glutes, Muscle.hamstrings]),
+      );
+      expect(tryFor(Muscle.biceps, {}).shown, contains('해머컬'));
+    });
+
+    test('별칭은 하나씩 — 하이퍼익스텐션도 백 익스텐션으로 센다', () {
+      expect(moveKey('하이퍼익스텐션'), '백 익스텐션');
+      expect(moveKey('hyperextension'), '백 익스텐션');
+      expect(moveKey('farmers carry'), '파머스 워크');
+      expect(moveKey('파머스캐리'), '파머스 워크');
+      expect(moveKey("captain's chair"), '버티컬 레그레이즈');
+      expect(moveKey('facepull'), '페이스 풀');
+      expect(moveKey('rear delt fly'), '리버스 펙덱');
+      for (final m in moves.values) {
+        for (final a in m.aliases) {
+          expect(a.trim(), a);
+          expect(a, isNotEmpty);
+        }
+      }
+      final load = bodyLoad(
+        [
+          ago(0, [ExerciseBlock('하이퍼익스텐션', times(3, () => reps(12)))]),
+        ],
+        today: today,
+        days: 7,
+      );
+      expect(load.unknown, isEmpty);
+      expect(load.primary[Muscle.lowerBack], 3);
+    });
+
+    test('사전 밖 운동 이름: 한국어·영어 밖 화면은 영어 이름(번역 확인 전)', () {
+      expect(moveName('파머스 워크', 'ja'), "Farmer's Walk");
+      expect(moveName('슈퍼맨', 'vi'), 'Superman');
+      expect(moveName('파머스 워크', 'ko'), '파머스 워크');
+      expect(moveName('벤치프레스', 'ja'), exerciseByName['벤치프레스']!.ja);
+    });
+
+    test('머리말은 "흔한 실수" 가 아니라 "피할 것"', () {
+      expect(l.anatomyMistakes, '피할 것');
+      expect(lookupL(const Locale('en')).anatomyMistakes, 'Avoid');
+      expect(l.anatomyCountNote, contains('ACE'));
+    });
+  });
+
+  group('리뷰 고침 — 셈', () {
+    test('내가 한 운동: 마지막 날의 블록을 모두 잇는다', () {
+      final row = doneFor([
+        ago(0, [
+          ExerciseBlock('벤치프레스', times(3, () => kg(100, 3))),
+          ExerciseBlock('벤치프레스', times(2, () => kg(70, 10))),
+        ]),
+      ], Muscle.chest).single;
+      expect(row.sets, [
+        ...times(
+          3,
+          () => kg(100, 3),
+        ).map((s) => (value: s.value, unit: s.unit, reps: s.reps)),
+        ...times(
+          2,
+          () => kg(70, 10),
+        ).map((s) => (value: s.value, unit: s.unit, reps: s.reps)),
+      ]);
+    });
+
+    test('같은 날 기록 둘: 시각 순으로 잇고 이름은 나중 것', () {
+      Note at(int hour, List<ExerciseBlock> blocks) {
+        final t = today.add(Duration(hours: hour));
+        return Note(id: 'h$hour', createdAt: t, updatedAt: t, blocks: blocks);
+      }
+
+      final morning = at(8, [ExerciseBlock('벤치', times(3, () => kg(60, 10)))]);
+      final evening = at(20, [
+        ExerciseBlock('벤치프레스', times(3, () => kg(90, 3))),
+      ]);
+      // 가게 순서는 고친 시각 역순이다 — 아침 기록이 나중에 고쳐졌을 수 있다.
+      final row = doneFor([morning, evening], Muscle.chest).single;
+      expect(row.name, '벤치프레스');
+      expect(row.sets.map((s) => s.value), [60, 60, 60, 90, 90, 90]);
+    });
+
+    test('moveKey 는 이름마다 한 번만 푼다(같은 답)', () {
+      expect(moveKey('벤치'), moveKey('벤치'));
+      expect(moveKey('Face Pull'), '페이스 풀');
+    });
+  });
+
+  group('리뷰 고침 — 화면', () {
+    Future<void> pumpPage(WidgetTester tester, List<Note> notes) async {
+      tester.view
+        ..physicalSize = const Size(420, 2400)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: AnatomyPage(notes: notes, now: routineToday),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> tapArt(WidgetTester tester, bool front, Offset art) async {
+      final box = tester.getRect(find.byKey(const ValueKey('anatomy-figure')));
+      await tester.tapAt(box.topLeft + figurePoint(front, box.size, art));
+      await tester.pumpAndSettle();
+    }
+
+    Finder header(Muscle m) =>
+        find.text('${l.muscleName(m.name)} · ${l.queryPart(muscleCoarse[m]!)}');
+
+    testWidgets('등 쪽: 날개뼈 사이는 등 가운데(로우), 목 옆은 승모근 윗부분', (tester) async {
+      await pumpPage(tester, []);
+      await tester.tap(find.text(l.anatomyBack));
+      await tester.pumpAndSettle();
+      for (final p in const [Offset(480, 420), Offset(485, 480)]) {
+        await tapArt(tester, false, p);
+        expect(header(Muscle.upperBack), findsOneWidget, reason: '$p');
+        expect(find.text('바벨로우 *'), findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey('anatomy-close')));
+        await tester.pumpAndSettle();
+      }
+      await tapArt(tester, false, const Offset(470, 280));
+      expect(header(Muscle.traps), findsOneWidget);
+    });
+
+    testWidgets('근육 배정이 해석이면 역할 옆에 *, 출처 문장에서 옮긴 팁은 †', (tester) async {
+      await pumpPage(tester, [
+        ago(0, [ExerciseBlock('바벨로우', times(3, () => kg(60, 8)))]),
+      ]);
+      expect(find.text(l.anatomyCountNote), findsOneWidget);
+      await tester.tap(find.text(l.anatomyBack));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('anatomy-row-lats')));
+      await tester.pumpAndSettle();
+      expect(find.text('바벨로우 · ${l.anatomyRole('primary')} *'), findsOneWidget);
+      expect(find.text(l.anatomyInterpNote), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('anatomy-close')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('anatomy-row-glutes')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('anatomy-try:힙쓰러스트')));
+      await tester.pumpAndSettle();
+      expect(find.text(l.anatomyMistakes), findsOneWidget);
+      expect(find.text('• 엉덩이를 과하게 올려 허리가 꺾인다 †'), findsOneWidget);
+      expect(find.textContaining(l.anatomyAdapted), findsOneWidget);
+    });
+
+    testWidgets('표에 없는 이름만 있으면 "기록 없음" 이라 단정하지 않고, 이름으로 검색하게 한다', (
+      tester,
+    ) async {
+      AnatomyHandoff? got;
+      tester.view
+        ..physicalSize = const Size(420, 2400)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: Builder(
+            builder: (context) => CupertinoButton(
+              onPressed: () async =>
+                  got = await Navigator.of(context).push<AnatomyHandoff>(
+                    CupertinoPageRoute(
+                      builder: (_) => AnatomyPage(
+                        notes: [
+                          ago(0, [
+                            ExerciseBlock(
+                              '랫 풀 다운 머신',
+                              times(4, () => kg(50, 10)),
+                            ),
+                          ]),
+                        ],
+                        now: routineToday,
+                      ),
+                    ),
+                  ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.anatomyBack));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('anatomy-row-lats')));
+      await tester.pumpAndSettle();
+      expect(find.text(l.anatomyNever), findsNothing);
+      expect(find.text(l.anatomyUnknown(1)), findsNWidgets(2));
+      await tester.tap(
+        find.byKey(const ValueKey('anatomy-unknown:랫 풀 다운 머신')).last,
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(AnatomyPage), findsNothing);
+      expect(got?.search, '랫 풀 다운 머신');
+    });
+
+    testWidgets('모르는 이름이 다섯 개를 넘으면 몇 개 더인지 말한다', (tester) async {
+      await pumpPage(tester, [
+        ago(0, [
+          for (var i = 0; i < 7; i++) ExerciseBlock('민수식 운동$i', [kg(10, 10)]),
+        ]),
+      ]);
+      expect(find.text(l.anatomyUnknown(7)), findsOneWidget);
+      expect(find.text(l.anatomyUnknownMore(2)), findsOneWidget);
+    });
+
+    testWidgets('VoiceOver: 그림은 빠지고 목록 줄이 부위마다 한 버튼', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpPage(tester, [
+        ago(0, [ExerciseBlock('벤치프레스', times(4, () => kg(80, 5)))]),
+      ]);
+      final figure = tester.getRect(
+        find.byKey(const ValueKey('anatomy-figure')),
+      );
+      for (final m in frontRegions) {
+        final node = find.semantics.byLabel(l.muscleName(m.name));
+        expect(node, findsOne, reason: m.name);
+        final rect = tester.getRect(
+          find.byKey(ValueKey('anatomy-row-${m.name}')),
+        );
+        // 노드는 목록 줄 자리다 — 그림 위에서 서로 겹치는 사각형이 없다.
+        expect(rect.overlaps(figure), isFalse, reason: m.name);
+      }
+      semantics.dispose();
+    });
+  });
+
+  group('리뷰 고침 — 홈으로 넘기기', () {
+    Future<_Records> pumpHome(WidgetTester tester, {List<Note>? notes}) async {
+      tester.view
+        ..physicalSize = const Size(420, 2400)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final store = _Records(notes ?? relativeLog());
+      addTearDown(store.dispose);
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: NotesListPage(
+            store: store,
+            onOpen: (_) {},
+            ai: RecordAi(respond: (_, _) async => {}),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return store;
+    }
+
+    Future<void> add(WidgetTester tester, Muscle m, String id) async {
+      await tester.tap(find.bySemanticsLabel(l.anatomyOpen));
+      await tester.pumpAndSettle();
+      if (!frontRegions.contains(m)) {
+        await tester.tap(find.text(l.anatomyBack));
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.byKey(ValueKey('anatomy-row-${m.name}')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(ValueKey('anatomy-$id')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.anatomyAddRoutine));
+      await tester.pumpAndSettle();
+    }
+
+    String searchText(WidgetTester tester) => tester
+        .widget<CupertinoSearchTextField>(find.byType(CupertinoSearchTextField))
+        .controller!
+        .text;
+
+    List<String> names(Note n) => [for (final b in n.blocks) b.name];
+
+    testWidgets('시작한 뒤 또 넣으면 그 기록에 붙는다 — 기록은 하나', (tester) async {
+      final store = await pumpHome(tester);
+      await add(tester, Muscle.chest, 'done:벤치프레스');
+      await tester.tap(find.text(l.routineStart));
+      await tester.pumpAndSettle();
+      await add(tester, Muscle.chest, 'try:케이블 크로스오버');
+      await tester.tap(find.text(l.routineStarted));
+      await tester.pumpAndSettle();
+      expect(store.created, hasLength(1));
+      final got = names(store.created.single);
+      expect(got, contains('케이블 크로스오버'));
+      expect(got.where((n) => n == '벤치프레스'), hasLength(1));
+    });
+
+    testWidgets('다른 부위에서 넣어도 앞에 넣은 것이 남는다(검색칸을 비웠다 와도)', (tester) async {
+      final store = await pumpHome(tester);
+      await add(tester, Muscle.chest, 'done:벤치프레스');
+      await tester.enterText(find.byType(CupertinoSearchTextField), '');
+      await tester.pumpAndSettle();
+      await add(tester, Muscle.triceps, 'try:딥스');
+      expect(
+        searchText(tester),
+        l.anatomyRoutineText('${l.queryPart('chest')}·${l.queryPart('arms')}'),
+      );
+      await tester.tap(find.text(l.routineStart));
+      await tester.pumpAndSettle();
+      expect(names(store.created.single), containsAll(['벤치프레스', '딥스']));
+    });
+
+    testWidgets('✕ 로 뺀 운동을 몸 그림에서 다시 넣으면 들어간다', (tester) async {
+      final store = await pumpHome(tester);
+      await add(tester, Muscle.chest, 'try:케이블 크로스오버');
+      final row = find
+          .ancestor(
+            of: find.text('케이블 크로스오버').first,
+            matching: find.byType(Row),
+          )
+          .first;
+      await tester.tap(
+        find.descendant(of: row, matching: find.bySemanticsLabel(l.delete)),
+      );
+      await tester.pumpAndSettle();
+      await add(tester, Muscle.chest, 'try:케이블 크로스오버');
+      await tester.tap(find.text(l.routineStart));
+      await tester.pumpAndSettle();
+      expect(names(store.created.single), contains('케이블 크로스오버'));
+    });
+
+    testWidgets('몸 그림 버튼은 몸 모양, 기록이 없으면 첫 화면에서도 고른다', (tester) async {
+      await pumpHome(tester, notes: []);
+      final icon = tester.widget<Icon>(
+        find.descendant(
+          of: find.byWidgetPredicate(
+            (w) => w is Icon && w.semanticLabel == l.anatomyOpen,
+          ),
+          matching: find.byType(Icon),
+          matchRoot: true,
+        ),
+      );
+      expect(icon.icon, Icons.accessibility_new);
+      await tester.tap(find.text(l.anatomyPick));
+      await tester.pumpAndSettle();
+      expect(find.byType(AnatomyPage), findsOneWidget);
     });
   });
 }

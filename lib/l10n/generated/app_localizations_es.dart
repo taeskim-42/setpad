@@ -2891,6 +2891,9 @@ class LEs extends L {
       'Mapa del cuerpo — ejercicios y consejos de técnica por músculo';
 
   @override
+  String get anatomyPick => 'Elegir ejercicios en el mapa corporal';
+
+  @override
   String get anatomyFront => 'Frente';
 
   @override
@@ -2953,8 +2956,19 @@ class LEs extends L {
   }
 
   @override
-  String anatomyUnknown(String names) {
-    return 'No se contaron, músculos desconocidos: $names';
+  String anatomyUnknown(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'No se contaron $n ejercicios de músculos desconocidos',
+      one: 'No se contó 1 ejercicio de músculos desconocidos',
+    );
+    return '$_temp0. Toca un nombre para ver sus registros en la búsqueda.';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return 'y $n más';
   }
 
   @override
@@ -2964,7 +2978,7 @@ class LEs extends L {
 
   @override
   String get anatomyCountNote =>
-      'Los músculos siguen la clasificación de ExRx.net y son una estimación. Cada serie cuenta una vez para los músculos principales y media para los auxiliares; las series de calentamiento también cuentan.';
+      'Los músculos siguen las clasificaciones de ExRx.net y ACE y son una estimación. En los ejercicios con * la asignación de músculos es una interpretación. Cada serie cuenta una vez para los músculos principales y media para los auxiliares; las series de calentamiento también cuentan.';
 
   @override
   String get anatomyLimits =>
@@ -2998,7 +3012,8 @@ class LEs extends L {
   }
 
   @override
-  String get anatomyNever => 'Aún no hay series para este músculo';
+  String get anatomyNever =>
+      'Aún no hay series para este músculo entre los ejercicios de la tabla';
 
   @override
   String get anatomyDone => 'Ejercicios que hiciste';
@@ -3033,10 +3048,14 @@ class LEs extends L {
   }
 
   @override
+  String get anatomyInterpNote =>
+      '* la asignación de músculos de este ejercicio es una interpretación de su fuente';
+
+  @override
   String get anatomyCues => 'Consejos de técnica';
 
   @override
-  String get anatomyMistakes => 'Errores comunes';
+  String get anatomyMistakes => 'Evita';
 
   @override
   String anatomySources(String sites) {
@@ -3045,6 +3064,10 @@ class LEs extends L {
 
   @override
   String get anatomyUnsourced => '* añadido sin fuente';
+
+  @override
+  String get anatomyAdapted =>
+      '† interpretado a partir del texto de una fuente (incluida la de un ejercicio similar)';
 
   @override
   String get anatomyCuesEnglish =>

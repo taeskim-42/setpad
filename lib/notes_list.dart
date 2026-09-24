@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show Icons;
 
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
@@ -484,16 +485,16 @@ class _NotesListPageState extends State<NotesListPage>
       ),
     );
     if (got == null || !mounted) return;
-    final l = L.of(context);
     final String text;
     if (got.add case (:final key, :final part)) {
-      text = l.anatomyRoutineText(partName(l, part));
-      _device = (
-        text,
-        RoutineAsk(parts: [part], device: true, keys: const {'parts'}),
-      );
-      final edits = _edits.putIfAbsent(text, RoutineEdits.new);
-      if (!edits.added.contains(key)) edits.added.add(key);
+      final started = _addFromAnatomy(key, part);
+      text = _device!.$1;
+      if (started != null) {
+        _query.text = text;
+        setState(() {});
+        _open(started);
+        return;
+      }
     } else {
       text = got.search ?? '';
     }
@@ -504,6 +505,69 @@ class _NotesListPageState extends State<NotesListPage>
       _confirmed = null;
     });
     _ask();
+  }
+
+  /// 몸 그림에서 넣은 카드(글·요청·만든 날). 같은 날 부위를 오가며 넣은 것은 이
+  /// 카드 하나에 모은다 — 검색칸을 비웠다 와도 앞에 넣은 것이 남는다.
+  (String, RoutineAsk, DateTime)? _anatomy;
+
+  /// 몸 그림의 "오늘 루틴에 넣기". 오늘 몸 그림에서 넣던 카드에 더하고 부위를
+  /// 합친다(앞에 넣은 것을 버리지 않는다). ✕ 로 뺀 운동이면 카드의 넣기처럼
+  /// 되살린다. 그 카드로 오늘 이미 시작했으면 새 기록을 만들지 않고 시작한 기록에
+  /// 칸을 붙여 그 기록을 돌려준다(G18 — 같은 운동이 두 기록에 나뉘지 않는다).
+  Note? _addFromAnatomy(String key, String part) {
+    final l = L.of(context);
+    final now = DateTime.now();
+    final day = DateTime(now.year, now.month, now.day);
+    final prev = _anatomy?.$3 == day ? _anatomy : null;
+    final old = prev == null ? null : _edits[prev.$1];
+    final started = old?.started == null
+        ? null
+        : widget.store.notes.where((n) => n.id == old!.started).firstOrNull;
+    final startedToday =
+        started != null &&
+        DateTime(
+              started.createdAt.year,
+              started.createdAt.month,
+              started.createdAt.day,
+            ) ==
+            day;
+    final RoutineEdits edits;
+    final RoutineAsk ask;
+    final String text;
+    if (startedToday) {
+      // 시작한 카드는 부위를 그대로 둔다 — 부위를 합치면 카드에 다른 운동이 끼어
+      // 시작한 기록과 어긋난다. 넣은 칸만 더한다.
+      (text, ask, edits) = (prev!.$1, prev.$2, old!);
+    } else {
+      final parts = [...?prev?.$2.parts];
+      if (!parts.contains(part)) parts.add(part);
+      text = l.anatomyRoutineText(parts.map((p) => partName(l, p)).join('·'));
+      ask = RoutineAsk(parts: parts, device: true, keys: const {'parts'});
+      edits = (prev == null ? null : _edits.remove(prev.$1)) ?? RoutineEdits();
+      _edits[text] = edits;
+      _anatomy = (text, ask, day);
+    }
+    _device = (text, ask);
+    edits.removed.removeWhere((r) => r.endsWith('|$key'));
+    edits.restored.add(key);
+    if (!edits.added.contains(key)) edits.added.add(key);
+    if (!startedToday) return null;
+    final draft = composeRoutine(
+      widget.store.notes,
+      ask,
+      unit: widget.store.weightUnit,
+      lang: _lang,
+      edits: edits,
+    );
+    final item = draft.items.where((i) => i.key == key).firstOrNull;
+    if (item == null) return null;
+    if (!started.blocks.any((b) => exerciseKey(b.exercise) == key)) {
+      widget.store.update(started, [...started.blocks, startBlock(item)]);
+    }
+    // 카드가 바뀌었어도 시작한 기록은 이것이다 — [시작됨] 은 이 기록을 연다.
+    edits.startedMark = draftMark(draft);
+    return started;
   }
 
   /// 시작 = 트레이너 루틴과 같은 길(새 기록 + 편집기). 누를 때마다 새 칸이고, 이미
@@ -1032,9 +1096,10 @@ class _NotesListPageState extends State<NotesListPage>
                             CupertinoButton(
                               padding: EdgeInsets.zero,
                               onPressed: _openAnatomy,
+                              // 사람 아이콘은 계정으로 읽힌다 — 몸 모양을 쓴다.
                               child: Icon(
-                                CupertinoIcons.person,
-                                size: 21,
+                                Icons.accessibility_new,
+                                size: 22,
                                 semanticLabel: l.anatomyOpen,
                               ),
                             ),
@@ -1595,6 +1660,16 @@ class _NotesListPageState extends State<NotesListPage>
                                         .resolveFrom(context),
                                   ),
                                 ),
+                                // 기록이 없어도 몸 그림에서 운동을 고를 수 있다.
+                                if (_query.text.isEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 12),
+                                    child: SuggestionChip(
+                                      label: l.anatomyPick,
+                                      selected: false,
+                                      onTap: _openAnatomy,
+                                    ),
+                                  ),
                                 // 치는 동안은 글자로만 찾는다. 0건이면 질문이
                                 // 거절된 것처럼 보이니, 물어볼 수 있다고 알린다.
                                 if (_unasked(plan))

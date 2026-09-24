@@ -2839,6 +2839,9 @@ class LTh extends L {
       'แผนที่ร่างกาย — ท่าออกกำลังและเคล็ดลับท่าทางตามกล้ามเนื้อ';
 
   @override
+  String get anatomyPick => 'เลือกท่าจากภาพร่างกาย';
+
+  @override
   String get anatomyFront => 'ด้านหน้า';
 
   @override
@@ -2900,8 +2903,13 @@ class LTh extends L {
   }
 
   @override
-  String anatomyUnknown(String names) {
-    return 'ไม่ได้นับ เพราะไม่รู้กล้ามเนื้อ: $names';
+  String anatomyUnknown(int n) {
+    return 'ไม่ได้นับ $n ท่าที่ไม่รู้กล้ามเนื้อ แตะชื่อเพื่อดูบันทึกในการค้นหา';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return 'และอีก $n ท่า';
   }
 
   @override
@@ -2911,7 +2919,7 @@ class LTh extends L {
 
   @override
   String get anatomyCountNote =>
-      'กล้ามเนื้ออิงการจัดกลุ่มของ ExRx.net และเป็นค่าประมาณ เซ็ตหนึ่งนับเต็มสำหรับกล้ามเนื้อหลัก และครึ่งหนึ่งสำหรับกล้ามเนื้อช่วย เซ็ตวอร์มอัพก็นับด้วย';
+      'กล้ามเนื้ออิงการจัดกลุ่มของ ExRx.net และ ACE และเป็นค่าประมาณ ท่าที่มี * คือการตีความว่าใช้กล้ามเนื้อใด เซ็ตหนึ่งนับเต็มสำหรับกล้ามเนื้อหลัก และครึ่งหนึ่งสำหรับกล้ามเนื้อช่วย เซ็ตวอร์มอัพก็นับด้วย';
 
   @override
   String get anatomyLimits =>
@@ -2945,7 +2953,7 @@ class LTh extends L {
   }
 
   @override
-  String get anatomyNever => 'ยังไม่มีเซ็ตของกล้ามเนื้อนี้';
+  String get anatomyNever => 'ยังไม่มีเซ็ตของกล้ามเนื้อนี้จากท่าที่อยู่ในตาราง';
 
   @override
   String get anatomyDone => 'ท่าที่คุณเคยทำ';
@@ -2979,10 +2987,14 @@ class LTh extends L {
   }
 
   @override
+  String get anatomyInterpNote =>
+      '* ท่านี้ระบุกล้ามเนื้อโดยตีความจากแหล่งที่มา';
+
+  @override
   String get anatomyCues => 'เคล็ดลับท่าทาง';
 
   @override
-  String get anatomyMistakes => 'ข้อผิดพลาดที่พบบ่อย';
+  String get anatomyMistakes => 'สิ่งที่ควรเลี่ยง';
 
   @override
   String anatomySources(String sites) {
@@ -2991,6 +3003,10 @@ class LTh extends L {
 
   @override
   String get anatomyUnsourced => '* เพิ่มเติมโดยไม่มีที่มา';
+
+  @override
+  String get anatomyAdapted =>
+      '† ตีความจากข้อความของแหล่งที่มา (รวมถึงแหล่งของท่าที่คล้ายกัน)';
 
   @override
   String get anatomyCuesEnglish => 'ตอนนี้เคล็ดลับท่าทางมีเฉพาะภาษาอังกฤษ';

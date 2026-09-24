@@ -2871,6 +2871,9 @@ class LEn extends L {
   String get anatomyOpen => 'Body map — exercises and form tips by muscle';
 
   @override
+  String get anatomyPick => 'Pick exercises on the body map';
+
+  @override
   String get anatomyFront => 'Front';
 
   @override
@@ -2933,8 +2936,19 @@ class LEn extends L {
   }
 
   @override
-  String anatomyUnknown(String names) {
-    return 'Not counted, muscles unknown: $names';
+  String anatomyUnknown(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n exercises with unknown muscles were not counted',
+      one: '1 exercise with unknown muscles was not counted',
+    );
+    return '$_temp0. Tap a name to see its records in search.';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return 'and $n more';
   }
 
   @override
@@ -2944,7 +2958,7 @@ class LEn extends L {
 
   @override
   String get anatomyCountNote =>
-      'Muscles follow the ExRx.net classification and are an estimate. A set counts once for the main muscles and half for assisting muscles; warm-up sets count too.';
+      'Muscles follow the ExRx.net and ACE classifications and are an estimate. Exercises marked * have an interpreted muscle assignment. A set counts once for the main muscles and half for assisting muscles; warm-up sets count too.';
 
   @override
   String get anatomyLimits =>
@@ -2978,7 +2992,8 @@ class LEn extends L {
   }
 
   @override
-  String get anatomyNever => 'No sets for this muscle yet';
+  String get anatomyNever =>
+      'No sets for this muscle yet among exercises in the table';
 
   @override
   String get anatomyDone => 'Exercises you did';
@@ -3013,10 +3028,14 @@ class LEn extends L {
   }
 
   @override
+  String get anatomyInterpNote =>
+      '* the muscle assignment for this exercise is interpreted from its source';
+
+  @override
   String get anatomyCues => 'Form tips';
 
   @override
-  String get anatomyMistakes => 'Common mistakes';
+  String get anatomyMistakes => 'Avoid';
 
   @override
   String anatomySources(String sites) {
@@ -3025,6 +3044,10 @@ class LEn extends L {
 
   @override
   String get anatomyUnsourced => '* added without a source';
+
+  @override
+  String get anatomyAdapted =>
+      '† interpreted from a source\'s wording (incl. a similar exercise\'s source)';
 
   @override
   String get anatomyCuesEnglish => 'Form tips are in English only for now';

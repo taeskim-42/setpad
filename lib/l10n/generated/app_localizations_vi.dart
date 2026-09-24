@@ -2857,6 +2857,9 @@ class LVi extends L {
       'Bản đồ cơ thể — bài tập và mẹo tư thế theo nhóm cơ';
 
   @override
+  String get anatomyPick => 'Chọn bài trên hình cơ thể';
+
+  @override
   String get anatomyFront => 'Trước';
 
   @override
@@ -2919,8 +2922,13 @@ class LVi extends L {
   }
 
   @override
-  String anatomyUnknown(String names) {
-    return 'Chưa tính vì không rõ nhóm cơ: $names';
+  String anatomyUnknown(int n) {
+    return 'Chưa tính $n bài không rõ nhóm cơ. Chạm vào tên để xem bản ghi trong tìm kiếm.';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return 'và $n bài khác';
   }
 
   @override
@@ -2930,7 +2938,7 @@ class LVi extends L {
 
   @override
   String get anatomyCountNote =>
-      'Nhóm cơ theo phân loại của ExRx.net và chỉ là ước lượng. Mỗi hiệp tính một cho cơ chính và một nửa cho cơ hỗ trợ; hiệp khởi động cũng được tính.';
+      'Nhóm cơ theo phân loại của ExRx.net và ACE và chỉ là ước lượng. Bài có dấu * là nhóm cơ được suy diễn. Mỗi hiệp tính một cho cơ chính và một nửa cho cơ hỗ trợ; hiệp khởi động cũng được tính.';
 
   @override
   String get anatomyLimits =>
@@ -2964,7 +2972,8 @@ class LVi extends L {
   }
 
   @override
-  String get anatomyNever => 'Chưa có hiệp nào cho nhóm cơ này';
+  String get anatomyNever =>
+      'Chưa có hiệp nào cho nhóm cơ này trong các bài có trong bảng';
 
   @override
   String get anatomyDone => 'Bài bạn đã tập';
@@ -2999,10 +3008,14 @@ class LVi extends L {
   }
 
   @override
+  String get anatomyInterpNote =>
+      '* nhóm cơ của bài này được suy diễn từ nguồn';
+
+  @override
   String get anatomyCues => 'Mẹo tư thế';
 
   @override
-  String get anatomyMistakes => 'Lỗi thường gặp';
+  String get anatomyMistakes => 'Nên tránh';
 
   @override
   String anatomySources(String sites) {
@@ -3011,6 +3024,10 @@ class LVi extends L {
 
   @override
   String get anatomyUnsourced => '* thêm vào, không có nguồn';
+
+  @override
+  String get anatomyAdapted =>
+      '† suy diễn từ câu của nguồn (kể cả nguồn của bài tương tự)';
 
   @override
   String get anatomyCuesEnglish => 'Hiện mẹo tư thế chỉ có tiếng Anh';

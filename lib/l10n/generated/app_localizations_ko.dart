@@ -2786,6 +2786,9 @@ class LKo extends L {
   String get anatomyOpen => '몸 그림 — 부위별 운동과 자세 팁';
 
   @override
+  String get anatomyPick => '몸 그림에서 운동 고르기';
+
+  @override
   String get anatomyFront => '앞';
 
   @override
@@ -2847,8 +2850,13 @@ class LKo extends L {
   }
 
   @override
-  String anatomyUnknown(String names) {
-    return '근육을 모르는 운동은 세지 않았어요: $names';
+  String anatomyUnknown(int n) {
+    return '근육을 모르는 운동 $n개는 세지 않았어요. 이름을 누르면 검색에서 그 기록을 봐요.';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return '외 $n개';
   }
 
   @override
@@ -2858,7 +2866,7 @@ class LKo extends L {
 
   @override
   String get anatomyCountNote =>
-      '근육은 ExRx.net 분류를 따른 어림이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.';
+      '근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.';
 
   @override
   String get anatomyLimits => '영상·자세 분석은 하지 않아요. 통증이 있으면 멈추고 전문가와 상의하세요.';
@@ -2890,7 +2898,7 @@ class LKo extends L {
   }
 
   @override
-  String get anatomyNever => '이 부위를 쓴 기록이 아직 없어요';
+  String get anatomyNever => '표에 있는 운동으로는 이 부위를 쓴 기록이 아직 없어요';
 
   @override
   String get anatomyDone => '내가 한 운동';
@@ -2924,10 +2932,13 @@ class LKo extends L {
   }
 
   @override
+  String get anatomyInterpNote => '* 가 붙은 운동은 근육 배정이 출처를 옮긴 해석이에요';
+
+  @override
   String get anatomyCues => '자세 팁';
 
   @override
-  String get anatomyMistakes => '흔한 실수';
+  String get anatomyMistakes => '피할 것';
 
   @override
   String anatomySources(String sites) {
@@ -2936,6 +2947,9 @@ class LKo extends L {
 
   @override
   String get anatomyUnsourced => '* 출처 없이 덧붙인 말';
+
+  @override
+  String get anatomyAdapted => '† 출처 문장을 옮겨 쓴 해석(비슷한 동작의 출처 포함)';
 
   @override
   String get anatomyCuesEnglish => '자세 팁은 아직 영어로만 있어요';
