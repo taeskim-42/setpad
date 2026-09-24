@@ -2340,6 +2340,479 @@ class LVi extends L {
   }
 
   @override
+  String routineDate(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.Md(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
+
+  @override
+  String get routineHeaderToday => 'Bài tập hôm nay';
+
+  @override
+  String routineHeaderDay(String day) {
+    return 'Bài tập $day';
+  }
+
+  @override
+  String routineTomorrow(String date) {
+    return 'ngày mai ($date)';
+  }
+
+  @override
+  String routineWhyRotation(String date, int days) {
+    return 'Đã $days ngày chưa tập buổi $date — xếp giống hôm đó';
+  }
+
+  @override
+  String routineWhyFrom(String date) {
+    return 'Giống ngày $date';
+  }
+
+  @override
+  String routineWhyNamed(String date) {
+    return 'Thêm các bài tập cùng nó ngày $date';
+  }
+
+  @override
+  String routinePartRest(String list) {
+    return '28 ngày qua: $list trước';
+  }
+
+  @override
+  String routinePartDays(String part, int days) {
+    return '$part $days ngày';
+  }
+
+  @override
+  String routineEstimate(int minutes) {
+    return 'Khoảng $minutes phút';
+  }
+
+  @override
+  String routinePaceOwn(int sessions, String pace) {
+    return 'ước tính $pace mỗi hiệp theo $sessions buổi gần nhất';
+  }
+
+  @override
+  String routinePaceDefault(String pace) {
+    return 'ước tính theo mặc định $pace mỗi hiệp — ghi vài buổi để dùng nhịp của bạn';
+  }
+
+  @override
+  String routineMinSec(int m, int s) {
+    return '$m phút $s giây';
+  }
+
+  @override
+  String routineReadAs(String list) {
+    return 'Đọc là: $list';
+  }
+
+  @override
+  String routineCopied(String date) {
+    return 'như ngày $date';
+  }
+
+  @override
+  String routineRepsMatched(String date, int reps) {
+    return 'mức tạ đã làm $reps lần ngày $date';
+  }
+
+  @override
+  String get routineTyped => 'như đã gõ';
+
+  @override
+  String get routineFirst => 'lần đầu';
+
+  @override
+  String routineBlank(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'light': 'để trống mức tạ (buổi nhẹ)',
+      'pain': 'để trống mức tạ (có chỗ đau)',
+      'gear': 'để trống mức tạ (dụng cụ khác)',
+      'bodyweight': 'để trống mức tạ của dụng cụ',
+      'stale': 'để trống mức tạ (đã lâu)',
+      'repsUnmatched':
+          'để trống mức tạ (chưa có ngày làm đủ số hiệp và lần đó)',
+      'other': 'để trống mức tạ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineReference(String sets, String date) {
+    return 'Tham khảo: $sets ($date)';
+  }
+
+  @override
+  String routineBest(String set, String date) {
+    return 'Tham khảo: cao nhất $set ($date)';
+  }
+
+  @override
+  String routineStepped(String step, String evidence) {
+    return '+$step ($evidence)';
+  }
+
+  @override
+  String routineMemo(String date, String memo) {
+    return 'Ghi chú $date: $memo';
+  }
+
+  @override
+  String routineRecent(String part, String when) {
+    return '$part · $when';
+  }
+
+  @override
+  String routineDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n ngày trước',
+      one: 'hôm qua',
+      zero: 'hôm nay',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get routineFuture =>
+      'Xem trước — gõ \'bài tập\' vào hôm đó để bắt đầu thành bản ghi của hôm đó';
+
+  @override
+  String routineRefused(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'diet': 'Không lập thực đơn — ghi bữa ăn để xem calo',
+      'medical':
+          'Không đánh giá phục hồi hay tập sau phẫu thuật — ghi các bài bác sĩ hoặc chuyên viên trị liệu đưa, mình sẽ xếp thành bài tập',
+      'drug': 'Không hỗ trợ về thuốc',
+      'program': 'Mỗi lần chỉ xếp một ngày — đây là bài hôm nay',
+      'logging': 'Không đánh dấu hiệp chưa tập là xong — hãy chạm khi tập',
+      'format':
+          'Không có hẹn giờ EMOM, superset hay circuit — chỉ xếp thứ tự (tabata và bpm thì được)',
+      'person':
+          'Không xếp cho người khác — chỉ hiện tên bài trong nhật ký của bạn',
+      'other': 'Chỉ hỗ trợ nhật ký tập và bài tập',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineNotStated(String what) {
+    return 'Đã bỏ, không có trong câu bạn gõ: $what';
+  }
+
+  @override
+  String routineUnmet(String what) {
+    return 'Không áp dụng được: $what';
+  }
+
+  @override
+  String routineKeyName(String key) {
+    String _temp0 = intl.Intl.selectLogic(key, {
+      'when': 'ngày',
+      'from': 'ngày trước',
+      'parts': 'nhóm cơ',
+      'pattern': 'đẩy/kéo',
+      'exercises': 'bài tập',
+      'exclude': 'bài bỏ',
+      'avoid': 'nhóm cơ tránh',
+      'pain': 'chỗ đau',
+      'equipment': 'dụng cụ',
+      'count': 'số bài',
+      'minutes': 'thời gian',
+      'intensity': 'cường độ',
+      'timer': 'hẹn giờ',
+      'targets': 'số đã gõ',
+      'delta': 'tăng giảm tạ',
+      'other': 'điều kiện',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineUnknownName(String name) {
+    return 'Không có trong từ điển, đã bỏ: $name';
+  }
+
+  @override
+  String get routineNoSuchDay => 'Không có ngày đó — xếp theo nhật ký';
+
+  @override
+  String routineExcludeAbsent(String name) {
+    return 'Vốn không có bài cần bỏ: $name';
+  }
+
+  @override
+  String routineNoneMatched(String what) {
+    return 'Chưa ghi bài $what nào — có thể chọn để thêm';
+  }
+
+  @override
+  String routineFewer(int n) {
+    return 'Nhật ký chỉ có $n bài';
+  }
+
+  @override
+  String routineOtherUnit(String unit) {
+    return 'Các hiệp ghi bằng $unit giữ nguyên';
+  }
+
+  @override
+  String get routineBpmRange => 'bpm phải từ 10–120 — đã thêm không có hẹn giờ';
+
+  @override
+  String routineIntensityLine(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'light':
+          'Không biết nhẹ bao nhiêu nên để trống mức tạ và ghi lần trước bên cạnh',
+      'hard': 'Mức tạ giống lần trước',
+      'max': 'Không chọn mức tạ để phá kỷ lục — ghi kỷ lục bên cạnh',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineNoStep => 'Gõ mức muốn tăng (vd. +2.5kg)';
+
+  @override
+  String routinePain(String phrase, String list) {
+    return 'Vì \'$phrase\' nên bỏ: $list · để trống mức tạ · không đánh giá có an toàn không';
+  }
+
+  @override
+  String routinePainNone(String phrase) {
+    return '\'$phrase\' — không bỏ bài nào, để trống mức tạ · không đánh giá có an toàn không';
+  }
+
+  @override
+  String get routinePainWord => 'chỗ đau';
+
+  @override
+  String get routineFirstTime => 'Lần đầu — chọn bài để thêm (không có số)';
+
+  @override
+  String routineCountFit(int count, int minutes) {
+    return 'Đã khớp $count bài — khoảng $minutes phút';
+  }
+
+  @override
+  String routineNoMore(int minutes) {
+    return 'Không còn bài trong nhật ký để thêm — khoảng $minutes phút';
+  }
+
+  @override
+  String routineOverTime(int minutes) {
+    return 'Riêng các bài bạn nêu đã khoảng $minutes phút';
+  }
+
+  @override
+  String routineRecentMemo(String when, String name, String memo) {
+    return '$when, ghi chú $name: $memo';
+  }
+
+  @override
+  String routineRemoved(String label, String why) {
+    return 'Đã bỏ: $label — $why';
+  }
+
+  @override
+  String routineRemovedWhy(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'named': 'bạn đã nêu',
+      'avoid': 'nhóm cơ tránh',
+      'unknownPart': 'không rõ nhóm cơ',
+      'gear': 'dụng cụ khác',
+      'unknownGear': 'không rõ dụng cụ',
+      'otherPart': 'nhóm cơ khác',
+      'user': 'tự bỏ',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineRestore => 'Thêm lại';
+
+  @override
+  String routineAdd(String name) {
+    return '+ $name';
+  }
+
+  @override
+  String get routineOther => 'Bài khác';
+
+  @override
+  String routinePrevious(String date) {
+    return 'Trước đó ($date)';
+  }
+
+  @override
+  String routineByPart(String part) {
+    return 'Xếp bài $part';
+  }
+
+  @override
+  String routineStepChip(String step) {
+    return '+$step (mức bạn tự tăng)';
+  }
+
+  @override
+  String routineAskToo(String text) {
+    return 'Hỏi thêm: $text · bánh tạ';
+  }
+
+  @override
+  String get routineAsQuestion => 'Hỏi như câu hỏi nhật ký · bánh tạ';
+
+  @override
+  String get routineNoConditions => 'Xếp ngay không điều kiện';
+
+  @override
+  String get routineWithConditions => 'Đọc cả điều kiện · bánh tạ';
+
+  @override
+  String get routineMake => 'Xếp bài hôm nay';
+
+  @override
+  String routineMakePart(String part) {
+    return 'Xếp bài $part hôm nay';
+  }
+
+  @override
+  String get routineStart => 'Bắt đầu';
+
+  @override
+  String get routineStarted => 'Đã bắt đầu · Mở';
+
+  @override
+  String get routineWorking => 'Đang đọc điều kiện…';
+
+  @override
+  String get routineOffline =>
+      'Không có kết nối nên chưa đọc được điều kiện — xếp chỉ theo nhật ký';
+
+  @override
+  String get routineMisread =>
+      'Không đọc được điều kiện — xếp chỉ theo nhật ký. Gõ lại để đọc lần nữa';
+
+  @override
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': 'Không có kết nối',
+      'noPlates': 'Hết bánh tạ',
+      'other': 'Không đọc được câu trả lời',
+    });
+    return '$_temp0 nên chưa đọc được điều kiện (bài bỏ, chỗ đau) — chưa xếp bài';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return 'Mức tạ đã gõ: $count hiệp chính $from → $to';
+  }
+
+  @override
+  String get routineTypedKept => 'giữ nguyên mức tạ đã gõ';
+
+  @override
+  String get routinePlatesBefore =>
+      'Câu này đã dùng bánh tạ trước đó · lần này 0';
+
+  @override
+  String get routineRetry => 'Thử lại';
+
+  @override
+  String get routinePressEnter => 'Nhấn Enter để đọc cả điều kiện · bánh tạ';
+
+  @override
+  String get routineFromQuestion => 'Đọc là yêu cầu xếp bài';
+
+  @override
+  String routinePattern(String p) {
+    String _temp0 = intl.Intl.selectLogic(p, {
+      'push': 'đẩy',
+      'pull': 'kéo',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGear(String g) {
+    String _temp0 = intl.Intl.selectLogic(g, {
+      'barbell': 'tạ đòn',
+      'dumbbell': 'tạ đơn',
+      'machine': 'máy',
+      'cable': 'cáp',
+      'bodyweight': 'trọng lượng cơ thể',
+      'bar': 'xà đơn',
+      'kettlebell': 'tạ ấm',
+      'band': 'dây kháng lực',
+      'bench': 'ghế',
+      'other': 'dụng cụ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGearOnly(String list) {
+    return 'chỉ $list';
+  }
+
+  @override
+  String routineGearWithout(String list) {
+    return 'không $list';
+  }
+
+  @override
+  String routineMinutes(int n) {
+    return '$n phút';
+  }
+
+  @override
+  String routineCount(int n) {
+    return '$n bài';
+  }
+
+  @override
+  String routineIntensity(String k) {
+    String _temp0 = intl.Intl.selectLogic(k, {
+      'light': 'nhẹ',
+      'hard': 'nặng',
+      'max': 'thử kỷ lục',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineExclude(String list) {
+    return 'bỏ: $list';
+  }
+
+  @override
+  String routineAvoid(String list) {
+    return 'tránh: $list';
+  }
+
+  @override
+  String get routinePlatesZero => '0 bánh tạ';
+
+  @override
+  String get routineFullBody => 'Toàn thân';
+
+  @override
+  String get routineNoPlates =>
+      'Không đủ bánh tạ nên chưa đọc được điều kiện — xếp chỉ theo nhật ký';
+
+  @override
+  String get routineBack => 'Quay lại bài tập';
+
+  @override
   String queryBoundDropped(String value) {
     return 'Đã bỏ điều kiện $value — câu hỏi không ghi số này theo đơn vị đó';
   }

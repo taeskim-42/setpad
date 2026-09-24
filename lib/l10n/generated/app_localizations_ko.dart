@@ -2281,6 +2281,469 @@ class LKo extends L {
   }
 
   @override
+  String routineDate(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.Md(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
+
+  @override
+  String get routineHeaderToday => '오늘 루틴';
+
+  @override
+  String routineHeaderDay(String day) {
+    return '$day 루틴';
+  }
+
+  @override
+  String routineTomorrow(String date) {
+    return '내일($date)';
+  }
+
+  @override
+  String routineWhyRotation(String date, int days) {
+    return '$date 운동을 $days일 동안 안 했어요 — 그날처럼 짰어요';
+  }
+
+  @override
+  String routineWhyFrom(String date) {
+    return '$date 그대로 짰어요';
+  }
+
+  @override
+  String routineWhyNamed(String date) {
+    return '$date에 같이 하던 운동으로 채웠어요';
+  }
+
+  @override
+  String routinePartRest(String list) {
+    return '최근 28일: $list 전';
+  }
+
+  @override
+  String routinePartDays(String part, int days) {
+    return '$part $days일';
+  }
+
+  @override
+  String routineEstimate(int minutes) {
+    return '약 $minutes분';
+  }
+
+  @override
+  String routinePaceOwn(int sessions, String pace) {
+    return '최근 $sessions번 운동의 세트당 $pace로 어림';
+  }
+
+  @override
+  String routinePaceDefault(String pace) {
+    return '기본값 세트당 $pace로 어림 — 운동을 몇 번 적으면 내 속도로 바뀌어요';
+  }
+
+  @override
+  String routineMinSec(int m, int s) {
+    return '$m분 $s초';
+  }
+
+  @override
+  String routineReadAs(String list) {
+    return '이렇게 읽었어요: $list';
+  }
+
+  @override
+  String routineCopied(String date) {
+    return '$date 그대로';
+  }
+
+  @override
+  String routineRepsMatched(String date, int reps) {
+    return '$date에 $reps회 한 무게';
+  }
+
+  @override
+  String get routineTyped => '적은 대로';
+
+  @override
+  String get routineFirst => '처음';
+
+  @override
+  String routineBlank(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'light': '가볍게라 무게는 비웠어요',
+      'pain': '아픈 곳이 있어 무게는 비웠어요',
+      'gear': '기구가 달라 무게는 비웠어요',
+      'bodyweight': '기구 무게라 비웠어요',
+      'stale': '오래돼서 무게는 비웠어요',
+      'repsUnmatched': '그 횟수로 그만큼 한 날이 없어 무게는 비웠어요',
+      'other': '무게는 비웠어요',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineReference(String sets, String date) {
+    return '참고: $sets ($date)';
+  }
+
+  @override
+  String routineBest(String set, String date) {
+    return '참고: 최고 $set ($date)';
+  }
+
+  @override
+  String routineStepped(String step, String evidence) {
+    return '+$step ($evidence)';
+  }
+
+  @override
+  String routineMemo(String date, String memo) {
+    return '$date 메모: $memo';
+  }
+
+  @override
+  String routineRecent(String part, String when) {
+    return '$part · $when';
+  }
+
+  @override
+  String routineDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n일 전',
+      one: '어제',
+      zero: '오늘',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get routineFuture => '미리 보기예요 — 그날 \'루틴\'을 치면 그날 기록으로 시작할 수 있어요';
+
+  @override
+  String routineRefused(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'diet': '식단은 짜 드리지 않아요 — 끼니를 적으면 열량은 볼 수 있어요',
+      'medical': '재활·수술 뒤 운동은 판단하지 않아요 — 의사·치료사에게 받은 운동을 적으면 그대로 루틴으로 만들어요',
+      'drug': '약물은 도와드리지 않아요',
+      'program': '한 번에 하루치만 짜요 — 오늘 루틴이에요',
+      'logging': '안 한 세트를 완료로 적지는 않아요 — 할 때 눌러 주세요',
+      'format': 'EMOM·슈퍼세트·서킷 타이머는 없어요 — 순서만 짰어요(타바타·bpm 은 돼요)',
+      'person': '다른 사람 루틴은 짜 드리지 않아요 — 내 기록의 운동 이름만 보여요',
+      'other': '운동 기록과 루틴만 도와드려요',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineNotStated(String what) {
+    return '글에 없는 수라 뺐어요: $what';
+  }
+
+  @override
+  String routineUnmet(String what) {
+    return '못 맞춘 조건: $what';
+  }
+
+  @override
+  String routineKeyName(String key) {
+    String _temp0 = intl.Intl.selectLogic(key, {
+      'when': '날짜',
+      'from': '지난 날',
+      'parts': '부위',
+      'pattern': '밀기·당기기',
+      'exercises': '운동',
+      'exclude': '뺄 운동',
+      'avoid': '피할 부위',
+      'pain': '아픈 곳',
+      'equipment': '기구',
+      'count': '운동 수',
+      'minutes': '시간',
+      'intensity': '세기',
+      'timer': '타이머',
+      'targets': '적은 수',
+      'delta': '증감',
+      'other': '조건',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineUnknownName(String name) {
+    return '사전에 없어 뺐어요: $name';
+  }
+
+  @override
+  String get routineNoSuchDay => '그런 날이 없어요 — 기록으로 짰어요';
+
+  @override
+  String routineExcludeAbsent(String name) {
+    return '뺄 운동이 원래 없어요: $name';
+  }
+
+  @override
+  String routineNoneMatched(String what) {
+    return '기록한 $what 운동이 없어요 — 골라 넣을 수 있어요';
+  }
+
+  @override
+  String routineFewer(int n) {
+    return '기록으로 넣을 운동이 $n개예요';
+  }
+
+  @override
+  String routineOtherUnit(String unit) {
+    return '$unit로 적은 세트는 그대로 뒀어요';
+  }
+
+  @override
+  String get routineBpmRange => 'bpm 은 10–120 이에요 — 타이머 없이 넣었어요';
+
+  @override
+  String routineIntensityLine(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'light': '얼마나 가볍게 할지는 몰라 무게는 비워 두고 지난 기록을 옆에 적었어요',
+      'hard': '무게는 지난번 그대로예요',
+      'max': '몇 kg 에 도전할지는 정하지 않아요 — 최고 기록을 옆에 적었어요',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineNoStep => '올릴 만큼 적어 주세요(예: +2.5kg)';
+
+  @override
+  String routinePain(String phrase, String list) {
+    return '\'$phrase\' 때문에 뺀 것: $list · 무게는 비웠어요 · 괜찮은지는 판단하지 않아요';
+  }
+
+  @override
+  String routinePainNone(String phrase) {
+    return '\'$phrase\' — 뺀 운동은 없고 무게는 비웠어요 · 괜찮은지는 판단하지 않아요';
+  }
+
+  @override
+  String get routinePainWord => '아프다는 말';
+
+  @override
+  String get routineFirstTime => '처음이에요 — 넣을 운동을 고르면 숫자 없이 들어가요';
+
+  @override
+  String routineCountFit(int count, int minutes) {
+    return '$count개로 맞췄어요 — 약 $minutes분';
+  }
+
+  @override
+  String routineNoMore(int minutes) {
+    return '기록으로 더 넣을 운동이 없어요 — 약 $minutes분이에요';
+  }
+
+  @override
+  String routineOverTime(int minutes) {
+    return '말한 운동만으로 약 $minutes분이에요';
+  }
+
+  @override
+  String routineRecentMemo(String when, String name, String memo) {
+    return '$when $name 메모: $memo';
+  }
+
+  @override
+  String routineRemoved(String label, String why) {
+    return '뺀 것: $label — $why';
+  }
+
+  @override
+  String routineRemovedWhy(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'named': '말한 운동',
+      'avoid': '피할 부위',
+      'unknownPart': '부위를 몰라서',
+      'gear': '기구가 달라서',
+      'unknownGear': '기구를 몰라서',
+      'otherPart': '다른 부위라서',
+      'user': '직접 뺌',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineRestore => '넣기';
+
+  @override
+  String routineAdd(String name) {
+    return '+ $name';
+  }
+
+  @override
+  String get routineOther => '다른 루틴';
+
+  @override
+  String routinePrevious(String date) {
+    return '그 전($date)';
+  }
+
+  @override
+  String routineByPart(String part) {
+    return '$part 루틴으로 짜기';
+  }
+
+  @override
+  String routineStepChip(String step) {
+    return '+$step 올리기(스스로 올려 온 폭)';
+  }
+
+  @override
+  String routineAskToo(String text) {
+    return '이것도 물을까요: $text · 원판';
+  }
+
+  @override
+  String get routineAsQuestion => '기록 질문으로 묻기 · 원판';
+
+  @override
+  String get routineNoConditions => '조건 없이 바로 짜기';
+
+  @override
+  String get routineWithConditions => '조건까지 읽어 짜기 · 원판';
+
+  @override
+  String get routineMake => '오늘 루틴 만들기';
+
+  @override
+  String routineMakePart(String part) {
+    return '오늘 $part 루틴 만들기';
+  }
+
+  @override
+  String get routineStart => '시작';
+
+  @override
+  String get routineStarted => '시작함 · 열기';
+
+  @override
+  String get routineWorking => '조건을 읽는 중…';
+
+  @override
+  String get routineOffline => '조건은 연결이 안 돼 못 읽었어요 — 기록으로만 짰어요';
+
+  @override
+  String get routineMisread => '조건을 읽지 못했어요 — 기록으로만 짰어요. 말을 바꾸면 다시 읽어요';
+
+  @override
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': '연결이 안 돼',
+      'noPlates': '원판이 없어',
+      'other': '모델 답을 읽지 못해',
+    });
+    return '$_temp0 조건(빼기·아픈 곳)을 못 읽었어요 — 루틴을 만들지 않았어요';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return '적은 무게로: 작업 세트 $count개 $from → $to';
+  }
+
+  @override
+  String get routineTypedKept => '적은 무게는 그대로 뒀어요';
+
+  @override
+  String get routinePlatesBefore => '이 글에 앞서 원판을 썼어요 · 이번엔 0장';
+
+  @override
+  String get routineRetry => '다시 시도';
+
+  @override
+  String get routinePressEnter => 'Enter 를 누르면 조건까지 읽어 짜요 · 원판';
+
+  @override
+  String get routineFromQuestion => '루틴을 짜 달라는 말로 읽었어요';
+
+  @override
+  String routinePattern(String p) {
+    String _temp0 = intl.Intl.selectLogic(p, {
+      'push': '밀기',
+      'pull': '당기기',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGear(String g) {
+    String _temp0 = intl.Intl.selectLogic(g, {
+      'barbell': '바벨',
+      'dumbbell': '덤벨',
+      'machine': '머신',
+      'cable': '케이블',
+      'bodyweight': '맨몸',
+      'bar': '철봉',
+      'kettlebell': '케틀벨',
+      'band': '밴드',
+      'bench': '벤치',
+      'other': '기구',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGearOnly(String list) {
+    return '$list만';
+  }
+
+  @override
+  String routineGearWithout(String list) {
+    return '$list 없이';
+  }
+
+  @override
+  String routineMinutes(int n) {
+    return '$n분';
+  }
+
+  @override
+  String routineCount(int n) {
+    return '운동 $n개';
+  }
+
+  @override
+  String routineIntensity(String k) {
+    String _temp0 = intl.Intl.selectLogic(k, {
+      'light': '가볍게',
+      'hard': '무겁게',
+      'max': '최고 도전',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineExclude(String list) {
+    return '뺄 것: $list';
+  }
+
+  @override
+  String routineAvoid(String list) {
+    return '피할 부위: $list';
+  }
+
+  @override
+  String get routinePlatesZero => '원판 0장';
+
+  @override
+  String get routineFullBody => '전신';
+
+  @override
+  String get routineNoPlates => '조건은 원판이 없어 못 읽었어요 — 기록으로만 짰어요';
+
+  @override
+  String get routineBack => '루틴으로 돌아가기';
+
+  @override
   String queryBoundDropped(String value) {
     return '숫자 조건 $value 뺌 — 질문에 그 단위로 적힌 수가 아니에요';
   }

@@ -612,11 +612,13 @@ class RecordAi {
           throw const RecordAiException(RecordAiStatus.quotaExceeded);
         }
         // 서버가 까닭을 적었으면 싣는다 — '모르는 음식' 과 '연결 안 됨' 은 할 말이 다르다.
+        // 원판이 실려 왔으면 모델은 불렸고 값이 나갔다(502 upstream: 답이 깨짐).
         throw RecordAiException(
           RecordAiStatus.unavailable,
           code: body is Map && body['error'] is String
               ? body['error'] as String
               : null,
+          charged: body is Map && body['plates'] is Map,
         );
       }
       throw const RecordAiException(RecordAiStatus.unavailable);
@@ -845,7 +847,8 @@ class RecordAiException implements Exception {
   });
   final RecordAiStatus status;
 
-  /// 실패했어도 이 질문의 앞 부름(기록 질문 1단계)에 원판이 나갔다.
+  /// 실패했어도 이 질문에 원판이 나갔다 — 서버가 모델을 불렀는데 답이 깨졌거나(다시
+  /// 해도 또 나간다), 이 질문의 앞 부름(기록 질문 1단계)에 이미 나갔다.
   final bool charged;
 
   /// 서버가 아니라 연결이 문제였다(그물 없음, 시간 초과). 다시 해 볼 만하다.

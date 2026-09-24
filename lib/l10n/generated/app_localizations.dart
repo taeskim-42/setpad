@@ -3618,6 +3618,522 @@ abstract class L {
   /// **'기준 수 {value} 뺌 — 질문에 무게로 적힌 수가 아니에요'**
   String queryAgainstDropped(String value);
 
+  /// No description provided for @routineDate.
+  ///
+  /// In ko, this message translates to:
+  /// **'{d}'**
+  String routineDate(DateTime d);
+
+  /// No description provided for @routineHeaderToday.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 루틴'**
+  String get routineHeaderToday;
+
+  /// No description provided for @routineHeaderDay.
+  ///
+  /// In ko, this message translates to:
+  /// **'{day} 루틴'**
+  String routineHeaderDay(String day);
+
+  /// No description provided for @routineTomorrow.
+  ///
+  /// In ko, this message translates to:
+  /// **'내일({date})'**
+  String routineTomorrow(String date);
+
+  /// No description provided for @routineWhyRotation.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} 운동을 {days}일 동안 안 했어요 — 그날처럼 짰어요'**
+  String routineWhyRotation(String date, int days);
+
+  /// No description provided for @routineWhyFrom.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} 그대로 짰어요'**
+  String routineWhyFrom(String date);
+
+  /// No description provided for @routineWhyNamed.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date}에 같이 하던 운동으로 채웠어요'**
+  String routineWhyNamed(String date);
+
+  /// No description provided for @routinePartRest.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 28일: {list} 전'**
+  String routinePartRest(String list);
+
+  /// No description provided for @routinePartDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'{part} {days}일'**
+  String routinePartDays(String part, int days);
+
+  /// No description provided for @routineEstimate.
+  ///
+  /// In ko, this message translates to:
+  /// **'약 {minutes}분'**
+  String routineEstimate(int minutes);
+
+  /// No description provided for @routinePaceOwn.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 {sessions}번 운동의 세트당 {pace}로 어림'**
+  String routinePaceOwn(int sessions, String pace);
+
+  /// No description provided for @routinePaceDefault.
+  ///
+  /// In ko, this message translates to:
+  /// **'기본값 세트당 {pace}로 어림 — 운동을 몇 번 적으면 내 속도로 바뀌어요'**
+  String routinePaceDefault(String pace);
+
+  /// No description provided for @routineMinSec.
+  ///
+  /// In ko, this message translates to:
+  /// **'{m}분 {s}초'**
+  String routineMinSec(int m, int s);
+
+  /// No description provided for @routineReadAs.
+  ///
+  /// In ko, this message translates to:
+  /// **'이렇게 읽었어요: {list}'**
+  String routineReadAs(String list);
+
+  /// No description provided for @routineCopied.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} 그대로'**
+  String routineCopied(String date);
+
+  /// No description provided for @routineRepsMatched.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date}에 {reps}회 한 무게'**
+  String routineRepsMatched(String date, int reps);
+
+  /// No description provided for @routineTyped.
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 대로'**
+  String get routineTyped;
+
+  /// No description provided for @routineFirst.
+  ///
+  /// In ko, this message translates to:
+  /// **'처음'**
+  String get routineFirst;
+
+  /// No description provided for @routineBlank.
+  ///
+  /// In ko, this message translates to:
+  /// **'{why, select, light{가볍게라 무게는 비웠어요} pain{아픈 곳이 있어 무게는 비웠어요} gear{기구가 달라 무게는 비웠어요} bodyweight{기구 무게라 비웠어요} stale{오래돼서 무게는 비웠어요} repsUnmatched{그 횟수로 그만큼 한 날이 없어 무게는 비웠어요} other{무게는 비웠어요}}'**
+  String routineBlank(String why);
+
+  /// No description provided for @routineReference.
+  ///
+  /// In ko, this message translates to:
+  /// **'참고: {sets} ({date})'**
+  String routineReference(String sets, String date);
+
+  /// No description provided for @routineBest.
+  ///
+  /// In ko, this message translates to:
+  /// **'참고: 최고 {set} ({date})'**
+  String routineBest(String set, String date);
+
+  /// No description provided for @routineStepped.
+  ///
+  /// In ko, this message translates to:
+  /// **'+{step} ({evidence})'**
+  String routineStepped(String step, String evidence);
+
+  /// No description provided for @routineMemo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} 메모: {memo}'**
+  String routineMemo(String date, String memo);
+
+  /// No description provided for @routineRecent.
+  ///
+  /// In ko, this message translates to:
+  /// **'{part} · {when}'**
+  String routineRecent(String part, String when);
+
+  /// No description provided for @routineDaysAgo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n, plural, =0{오늘} =1{어제} other{{n}일 전}}'**
+  String routineDaysAgo(int n);
+
+  /// No description provided for @routineFuture.
+  ///
+  /// In ko, this message translates to:
+  /// **'미리 보기예요 — 그날 \'루틴\'을 치면 그날 기록으로 시작할 수 있어요'**
+  String get routineFuture;
+
+  /// No description provided for @routineRefused.
+  ///
+  /// In ko, this message translates to:
+  /// **'{kind, select, diet{식단은 짜 드리지 않아요 — 끼니를 적으면 열량은 볼 수 있어요} medical{재활·수술 뒤 운동은 판단하지 않아요 — 의사·치료사에게 받은 운동을 적으면 그대로 루틴으로 만들어요} drug{약물은 도와드리지 않아요} program{한 번에 하루치만 짜요 — 오늘 루틴이에요} logging{안 한 세트를 완료로 적지는 않아요 — 할 때 눌러 주세요} format{EMOM·슈퍼세트·서킷 타이머는 없어요 — 순서만 짰어요(타바타·bpm 은 돼요)} person{다른 사람 루틴은 짜 드리지 않아요 — 내 기록의 운동 이름만 보여요} other{운동 기록과 루틴만 도와드려요}}'**
+  String routineRefused(String kind);
+
+  /// No description provided for @routineNotStated.
+  ///
+  /// In ko, this message translates to:
+  /// **'글에 없는 수라 뺐어요: {what}'**
+  String routineNotStated(String what);
+
+  /// No description provided for @routineUnmet.
+  ///
+  /// In ko, this message translates to:
+  /// **'못 맞춘 조건: {what}'**
+  String routineUnmet(String what);
+
+  /// No description provided for @routineKeyName.
+  ///
+  /// In ko, this message translates to:
+  /// **'{key, select, when{날짜} from{지난 날} parts{부위} pattern{밀기·당기기} exercises{운동} exclude{뺄 운동} avoid{피할 부위} pain{아픈 곳} equipment{기구} count{운동 수} minutes{시간} intensity{세기} timer{타이머} targets{적은 수} delta{증감} other{조건}}'**
+  String routineKeyName(String key);
+
+  /// No description provided for @routineUnknownName.
+  ///
+  /// In ko, this message translates to:
+  /// **'사전에 없어 뺐어요: {name}'**
+  String routineUnknownName(String name);
+
+  /// No description provided for @routineNoSuchDay.
+  ///
+  /// In ko, this message translates to:
+  /// **'그런 날이 없어요 — 기록으로 짰어요'**
+  String get routineNoSuchDay;
+
+  /// No description provided for @routineExcludeAbsent.
+  ///
+  /// In ko, this message translates to:
+  /// **'뺄 운동이 원래 없어요: {name}'**
+  String routineExcludeAbsent(String name);
+
+  /// No description provided for @routineNoneMatched.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록한 {what} 운동이 없어요 — 골라 넣을 수 있어요'**
+  String routineNoneMatched(String what);
+
+  /// No description provided for @routineFewer.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록으로 넣을 운동이 {n}개예요'**
+  String routineFewer(int n);
+
+  /// No description provided for @routineOtherUnit.
+  ///
+  /// In ko, this message translates to:
+  /// **'{unit}로 적은 세트는 그대로 뒀어요'**
+  String routineOtherUnit(String unit);
+
+  /// No description provided for @routineBpmRange.
+  ///
+  /// In ko, this message translates to:
+  /// **'bpm 은 10–120 이에요 — 타이머 없이 넣었어요'**
+  String get routineBpmRange;
+
+  /// No description provided for @routineIntensityLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'{kind, select, light{얼마나 가볍게 할지는 몰라 무게는 비워 두고 지난 기록을 옆에 적었어요} hard{무게는 지난번 그대로예요} max{몇 kg 에 도전할지는 정하지 않아요 — 최고 기록을 옆에 적었어요} other{}}'**
+  String routineIntensityLine(String kind);
+
+  /// No description provided for @routineNoStep.
+  ///
+  /// In ko, this message translates to:
+  /// **'올릴 만큼 적어 주세요(예: +2.5kg)'**
+  String get routineNoStep;
+
+  /// No description provided for @routinePain.
+  ///
+  /// In ko, this message translates to:
+  /// **'\'{phrase}\' 때문에 뺀 것: {list} · 무게는 비웠어요 · 괜찮은지는 판단하지 않아요'**
+  String routinePain(String phrase, String list);
+
+  /// No description provided for @routinePainNone.
+  ///
+  /// In ko, this message translates to:
+  /// **'\'{phrase}\' — 뺀 운동은 없고 무게는 비웠어요 · 괜찮은지는 판단하지 않아요'**
+  String routinePainNone(String phrase);
+
+  /// No description provided for @routinePainWord.
+  ///
+  /// In ko, this message translates to:
+  /// **'아프다는 말'**
+  String get routinePainWord;
+
+  /// No description provided for @routineFirstTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'처음이에요 — 넣을 운동을 고르면 숫자 없이 들어가요'**
+  String get routineFirstTime;
+
+  /// No description provided for @routineCountFit.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}개로 맞췄어요 — 약 {minutes}분'**
+  String routineCountFit(int count, int minutes);
+
+  /// No description provided for @routineNoMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록으로 더 넣을 운동이 없어요 — 약 {minutes}분이에요'**
+  String routineNoMore(int minutes);
+
+  /// No description provided for @routineOverTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'말한 운동만으로 약 {minutes}분이에요'**
+  String routineOverTime(int minutes);
+
+  /// No description provided for @routineRecentMemo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{when} {name} 메모: {memo}'**
+  String routineRecentMemo(String when, String name, String memo);
+
+  /// No description provided for @routineRemoved.
+  ///
+  /// In ko, this message translates to:
+  /// **'뺀 것: {label} — {why}'**
+  String routineRemoved(String label, String why);
+
+  /// No description provided for @routineRemovedWhy.
+  ///
+  /// In ko, this message translates to:
+  /// **'{why, select, named{말한 운동} avoid{피할 부위} unknownPart{부위를 몰라서} gear{기구가 달라서} unknownGear{기구를 몰라서} otherPart{다른 부위라서} user{직접 뺌} other{}}'**
+  String routineRemovedWhy(String why);
+
+  /// No description provided for @routineRestore.
+  ///
+  /// In ko, this message translates to:
+  /// **'넣기'**
+  String get routineRestore;
+
+  /// No description provided for @routineAdd.
+  ///
+  /// In ko, this message translates to:
+  /// **'+ {name}'**
+  String routineAdd(String name);
+
+  /// No description provided for @routineOther.
+  ///
+  /// In ko, this message translates to:
+  /// **'다른 루틴'**
+  String get routineOther;
+
+  /// No description provided for @routinePrevious.
+  ///
+  /// In ko, this message translates to:
+  /// **'그 전({date})'**
+  String routinePrevious(String date);
+
+  /// No description provided for @routineByPart.
+  ///
+  /// In ko, this message translates to:
+  /// **'{part} 루틴으로 짜기'**
+  String routineByPart(String part);
+
+  /// No description provided for @routineStepChip.
+  ///
+  /// In ko, this message translates to:
+  /// **'+{step} 올리기(스스로 올려 온 폭)'**
+  String routineStepChip(String step);
+
+  /// No description provided for @routineAskToo.
+  ///
+  /// In ko, this message translates to:
+  /// **'이것도 물을까요: {text} · 원판'**
+  String routineAskToo(String text);
+
+  /// No description provided for @routineAsQuestion.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록 질문으로 묻기 · 원판'**
+  String get routineAsQuestion;
+
+  /// No description provided for @routineNoConditions.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건 없이 바로 짜기'**
+  String get routineNoConditions;
+
+  /// No description provided for @routineWithConditions.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건까지 읽어 짜기 · 원판'**
+  String get routineWithConditions;
+
+  /// No description provided for @routineMake.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 루틴 만들기'**
+  String get routineMake;
+
+  /// No description provided for @routineMakePart.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 {part} 루틴 만들기'**
+  String routineMakePart(String part);
+
+  /// No description provided for @routineStart.
+  ///
+  /// In ko, this message translates to:
+  /// **'시작'**
+  String get routineStart;
+
+  /// No description provided for @routineStarted.
+  ///
+  /// In ko, this message translates to:
+  /// **'시작함 · 열기'**
+  String get routineStarted;
+
+  /// No description provided for @routineWorking.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건을 읽는 중…'**
+  String get routineWorking;
+
+  /// No description provided for @routineOffline.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건은 연결이 안 돼 못 읽었어요 — 기록으로만 짰어요'**
+  String get routineOffline;
+
+  /// No description provided for @routineMisread.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건을 읽지 못했어요 — 기록으로만 짰어요. 말을 바꾸면 다시 읽어요'**
+  String get routineMisread;
+
+  /// No description provided for @routineHeldBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'{why, select, offline{연결이 안 돼} noPlates{원판이 없어} other{모델 답을 읽지 못해}} 조건(빼기·아픈 곳)을 못 읽었어요 — 루틴을 만들지 않았어요'**
+  String routineHeldBack(String why);
+
+  /// No description provided for @routineTypedWeight.
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 무게로: 작업 세트 {count}개 {from} → {to}'**
+  String routineTypedWeight(int count, String from, String to);
+
+  /// No description provided for @routineTypedKept.
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 무게는 그대로 뒀어요'**
+  String get routineTypedKept;
+
+  /// No description provided for @routinePlatesBefore.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 글에 앞서 원판을 썼어요 · 이번엔 0장'**
+  String get routinePlatesBefore;
+
+  /// No description provided for @routineRetry.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 시도'**
+  String get routineRetry;
+
+  /// No description provided for @routinePressEnter.
+  ///
+  /// In ko, this message translates to:
+  /// **'Enter 를 누르면 조건까지 읽어 짜요 · 원판'**
+  String get routinePressEnter;
+
+  /// No description provided for @routineFromQuestion.
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴을 짜 달라는 말로 읽었어요'**
+  String get routineFromQuestion;
+
+  /// No description provided for @routinePattern.
+  ///
+  /// In ko, this message translates to:
+  /// **'{p, select, push{밀기} pull{당기기} other{}}'**
+  String routinePattern(String p);
+
+  /// No description provided for @routineGear.
+  ///
+  /// In ko, this message translates to:
+  /// **'{g, select, barbell{바벨} dumbbell{덤벨} machine{머신} cable{케이블} bodyweight{맨몸} bar{철봉} kettlebell{케틀벨} band{밴드} bench{벤치} other{기구}}'**
+  String routineGear(String g);
+
+  /// No description provided for @routineGearOnly.
+  ///
+  /// In ko, this message translates to:
+  /// **'{list}만'**
+  String routineGearOnly(String list);
+
+  /// No description provided for @routineGearWithout.
+  ///
+  /// In ko, this message translates to:
+  /// **'{list} 없이'**
+  String routineGearWithout(String list);
+
+  /// No description provided for @routineMinutes.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}분'**
+  String routineMinutes(int n);
+
+  /// No description provided for @routineCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 {n}개'**
+  String routineCount(int n);
+
+  /// No description provided for @routineIntensity.
+  ///
+  /// In ko, this message translates to:
+  /// **'{k, select, light{가볍게} hard{무겁게} max{최고 도전} other{}}'**
+  String routineIntensity(String k);
+
+  /// No description provided for @routineExclude.
+  ///
+  /// In ko, this message translates to:
+  /// **'뺄 것: {list}'**
+  String routineExclude(String list);
+
+  /// No description provided for @routineAvoid.
+  ///
+  /// In ko, this message translates to:
+  /// **'피할 부위: {list}'**
+  String routineAvoid(String list);
+
+  /// No description provided for @routinePlatesZero.
+  ///
+  /// In ko, this message translates to:
+  /// **'원판 0장'**
+  String get routinePlatesZero;
+
+  /// No description provided for @routineFullBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'전신'**
+  String get routineFullBody;
+
+  /// No description provided for @routineNoPlates.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건은 원판이 없어 못 읽었어요 — 기록으로만 짰어요'**
+  String get routineNoPlates;
+
+  /// No description provided for @routineBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴으로 돌아가기'**
+  String get routineBack;
+
   /// 확인 줄: 모델이 낸 무게·횟수 조건의 수가 질문에 그 단위로 적힌 수가 아니라 뺐다.
   ///
   /// In ko, this message translates to:

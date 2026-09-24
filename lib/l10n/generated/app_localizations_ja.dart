@@ -2275,6 +2275,469 @@ class LJa extends L {
   }
 
   @override
+  String routineDate(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.Md(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
+
+  @override
+  String get routineHeaderToday => '今日のルーティン';
+
+  @override
+  String routineHeaderDay(String day) {
+    return '$dayのルーティン';
+  }
+
+  @override
+  String routineTomorrow(String date) {
+    return '明日($date)';
+  }
+
+  @override
+  String routineWhyRotation(String date, int days) {
+    return '$dateのメニューを$days日やっていません — その日と同じに組みました';
+  }
+
+  @override
+  String routineWhyFrom(String date) {
+    return '$dateと同じ';
+  }
+
+  @override
+  String routineWhyNamed(String date) {
+    return '$dateに一緒にやった種目で埋めました';
+  }
+
+  @override
+  String routinePartRest(String list) {
+    return '直近28日: $list前';
+  }
+
+  @override
+  String routinePartDays(String part, int days) {
+    return '$part$days日';
+  }
+
+  @override
+  String routineEstimate(int minutes) {
+    return '約$minutes分';
+  }
+
+  @override
+  String routinePaceOwn(int sessions, String pace) {
+    return '直近$sessions回の1セット$paceで見積もり';
+  }
+
+  @override
+  String routinePaceDefault(String pace) {
+    return '既定の1セット$paceで見積もり — 何回か記録すると自分のペースになります';
+  }
+
+  @override
+  String routineMinSec(int m, int s) {
+    return '$m分$s秒';
+  }
+
+  @override
+  String routineReadAs(String list) {
+    return '読み取り: $list';
+  }
+
+  @override
+  String routineCopied(String date) {
+    return '$dateと同じ';
+  }
+
+  @override
+  String routineRepsMatched(String date, int reps) {
+    return '$dateに$reps回できた重さ';
+  }
+
+  @override
+  String get routineTyped => '入力どおり';
+
+  @override
+  String get routineFirst => '初めて';
+
+  @override
+  String routineBlank(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'light': '軽めなので重さは空欄',
+      'pain': '痛みがあるので重さは空欄',
+      'gear': '器具が違うので重さは空欄',
+      'bodyweight': '器具の重さなので空欄',
+      'stale': '久しぶりなので重さは空欄',
+      'repsUnmatched': 'その回数・セット数でやった日がないので重さは空欄',
+      'other': '重さは空欄',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineReference(String sets, String date) {
+    return '参考: $sets($date)';
+  }
+
+  @override
+  String routineBest(String set, String date) {
+    return '参考: 最高 $set($date)';
+  }
+
+  @override
+  String routineStepped(String step, String evidence) {
+    return '+$step($evidence)';
+  }
+
+  @override
+  String routineMemo(String date, String memo) {
+    return '$dateのメモ: $memo';
+  }
+
+  @override
+  String routineRecent(String part, String when) {
+    return '$part · $when';
+  }
+
+  @override
+  String routineDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n日前',
+      one: '昨日',
+      zero: '今日',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get routineFuture => 'プレビューです — その日に「ルーティン」と入力するとその日の記録として始められます';
+
+  @override
+  String routineRefused(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'diet': '食事メニューは作りません — 食事を記録するとカロリーは見られます',
+      'medical': 'リハビリや手術後の運動は判断しません — 医師・療法士から受けた種目を記録すればそのままルーティンにします',
+      'drug': '薬物には協力できません',
+      'program': '一度に1日分だけ組みます — 今日のルーティンです',
+      'logging': 'やっていないセットを完了にはしません — やるときに押してください',
+      'format': 'EMOM・スーパーセット・サーキットのタイマーはありません — 順番だけ組みました(タバタ・bpmは使えます)',
+      'person': '他の人のルーティンは組みません — 自分の記録の種目名だけ表示します',
+      'other': 'トレーニング記録とルーティンだけお手伝いします',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineNotStated(String what) {
+    return '入力にない数なので外しました: $what';
+  }
+
+  @override
+  String routineUnmet(String what) {
+    return '合わせられなかった条件: $what';
+  }
+
+  @override
+  String routineKeyName(String key) {
+    String _temp0 = intl.Intl.selectLogic(key, {
+      'when': '日',
+      'from': '過去の日',
+      'parts': '部位',
+      'pattern': 'プッシュ/プル',
+      'exercises': '種目',
+      'exclude': '外す種目',
+      'avoid': '避ける部位',
+      'pain': '痛み',
+      'equipment': '器具',
+      'count': '種目数',
+      'minutes': '時間',
+      'intensity': '強度',
+      'timer': 'タイマー',
+      'targets': '入力した数',
+      'delta': '重さの増減',
+      'other': '条件',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineUnknownName(String name) {
+    return '辞書にないので外しました: $name';
+  }
+
+  @override
+  String get routineNoSuchDay => 'その日はありません — 記録から組みました';
+
+  @override
+  String routineExcludeAbsent(String name) {
+    return '外す種目はもともとありません: $name';
+  }
+
+  @override
+  String routineNoneMatched(String what) {
+    return '記録した$whatの種目がありません — 選んで追加できます';
+  }
+
+  @override
+  String routineFewer(int n) {
+    return '記録から入れられる種目は$nつです';
+  }
+
+  @override
+  String routineOtherUnit(String unit) {
+    return '$unitで記録したセットはそのままです';
+  }
+
+  @override
+  String get routineBpmRange => 'bpmは10–120です — タイマーなしで入れました';
+
+  @override
+  String routineIntensityLine(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'light': 'どれくらい軽くするか分からないので重さは空欄にし、前回の記録を横に書きました',
+      'hard': '重さは前回と同じです',
+      'max': '何kgに挑戦するかは決めません — 最高記録を横に書きました',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineNoStep => '上げる幅を入力してください(例: +2.5kg)';
+
+  @override
+  String routinePain(String phrase, String list) {
+    return '「$phrase」で外したもの: $list · 重さは空欄 · 大丈夫かどうかは判断しません';
+  }
+
+  @override
+  String routinePainNone(String phrase) {
+    return '「$phrase」 — 外した種目はなく重さは空欄 · 大丈夫かどうかは判断しません';
+  }
+
+  @override
+  String get routinePainWord => '痛み';
+
+  @override
+  String get routineFirstTime => '初めてです — 入れる種目を選ぶと数字なしで入ります';
+
+  @override
+  String routineCountFit(int count, int minutes) {
+    return '$count種目に合わせました — 約$minutes分';
+  }
+
+  @override
+  String routineNoMore(int minutes) {
+    return '記録から追加できる種目がありません — 約$minutes分です';
+  }
+
+  @override
+  String routineOverTime(int minutes) {
+    return '指定した種目だけで約$minutes分です';
+  }
+
+  @override
+  String routineRecentMemo(String when, String name, String memo) {
+    return '$whenの$nameのメモ: $memo';
+  }
+
+  @override
+  String routineRemoved(String label, String why) {
+    return '外したもの: $label — $why';
+  }
+
+  @override
+  String routineRemovedWhy(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'named': '指定した種目',
+      'avoid': '避ける部位',
+      'unknownPart': '部位が不明',
+      'gear': '器具が違う',
+      'unknownGear': '器具が不明',
+      'otherPart': '別の部位',
+      'user': '自分で外した',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineRestore => '戻す';
+
+  @override
+  String routineAdd(String name) {
+    return '+ $name';
+  }
+
+  @override
+  String get routineOther => '別のルーティン';
+
+  @override
+  String routinePrevious(String date) {
+    return 'その前($date)';
+  }
+
+  @override
+  String routineByPart(String part) {
+    return '$partで組む';
+  }
+
+  @override
+  String routineStepChip(String step) {
+    return '+$step上げる(自分の上げ幅)';
+  }
+
+  @override
+  String routineAskToo(String text) {
+    return 'これも聞く: $text · プレート';
+  }
+
+  @override
+  String get routineAsQuestion => '記録の質問として聞く · プレート';
+
+  @override
+  String get routineNoConditions => '条件なしですぐ組む';
+
+  @override
+  String get routineWithConditions => '条件まで読んで組む · プレート';
+
+  @override
+  String get routineMake => '今日のルーティンを作る';
+
+  @override
+  String routineMakePart(String part) {
+    return '今日の$partルーティンを作る';
+  }
+
+  @override
+  String get routineStart => '開始';
+
+  @override
+  String get routineStarted => '開始済み · 開く';
+
+  @override
+  String get routineWorking => '条件を読んでいます…';
+
+  @override
+  String get routineOffline => '接続できず条件は読めませんでした — 記録だけで組みました';
+
+  @override
+  String get routineMisread => '条件を読めませんでした — 記録だけで組みました。言い換えると読み直します';
+
+  @override
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': '接続できず',
+      'noPlates': 'プレートがなく',
+      'other': '答えを読めず',
+    });
+    return '$_temp0条件(外す・痛み)を読めなかったのでルーティンは作りませんでした';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return '入力した重さ: メインセット$countつ $from → $to';
+  }
+
+  @override
+  String get routineTypedKept => '入力した重さはそのまま';
+
+  @override
+  String get routinePlatesBefore => 'この文には前にプレートを使いました · 今回は0枚';
+
+  @override
+  String get routineRetry => '再試行';
+
+  @override
+  String get routinePressEnter => 'Enterで条件まで読んで組みます · プレート';
+
+  @override
+  String get routineFromQuestion => 'ルーティンの依頼として読みました';
+
+  @override
+  String routinePattern(String p) {
+    String _temp0 = intl.Intl.selectLogic(p, {
+      'push': 'プッシュ',
+      'pull': 'プル',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGear(String g) {
+    String _temp0 = intl.Intl.selectLogic(g, {
+      'barbell': 'バーベル',
+      'dumbbell': 'ダンベル',
+      'machine': 'マシン',
+      'cable': 'ケーブル',
+      'bodyweight': '自重',
+      'bar': '懸垂バー',
+      'kettlebell': 'ケトルベル',
+      'band': 'バンド',
+      'bench': 'ベンチ',
+      'other': '器具',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGearOnly(String list) {
+    return '$listのみ';
+  }
+
+  @override
+  String routineGearWithout(String list) {
+    return '$listなし';
+  }
+
+  @override
+  String routineMinutes(int n) {
+    return '$n分';
+  }
+
+  @override
+  String routineCount(int n) {
+    return '$n種目';
+  }
+
+  @override
+  String routineIntensity(String k) {
+    String _temp0 = intl.Intl.selectLogic(k, {
+      'light': '軽め',
+      'hard': '重め',
+      'max': 'PR挑戦',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineExclude(String list) {
+    return '外す: $list';
+  }
+
+  @override
+  String routineAvoid(String list) {
+    return '避ける: $list';
+  }
+
+  @override
+  String get routinePlatesZero => 'プレート0枚';
+
+  @override
+  String get routineFullBody => '全身';
+
+  @override
+  String get routineNoPlates => 'プレートがなく条件は読めませんでした — 記録だけで組みました';
+
+  @override
+  String get routineBack => 'ルーティンに戻る';
+
+  @override
   String queryBoundDropped(String value) {
     return '数の条件 $value を外しました — 質問にその単位で書かれた数ではありません';
   }

@@ -2371,6 +2371,482 @@ class LEs extends L {
   }
 
   @override
+  String routineDate(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.Md(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
+
+  @override
+  String get routineHeaderToday => 'Rutina de hoy';
+
+  @override
+  String routineHeaderDay(String day) {
+    return 'Rutina de $day';
+  }
+
+  @override
+  String routineTomorrow(String date) {
+    return 'mañana ($date)';
+  }
+
+  @override
+  String routineWhyRotation(String date, int days) {
+    return 'Hace $days días que no haces el entreno del $date — armada como ese día';
+  }
+
+  @override
+  String routineWhyFrom(String date) {
+    return 'Igual que el $date';
+  }
+
+  @override
+  String routineWhyNamed(String date) {
+    return 'Completada con lo que hiciste junto a eso el $date';
+  }
+
+  @override
+  String routinePartRest(String list) {
+    return 'Últimos 28 días: hace $list';
+  }
+
+  @override
+  String routinePartDays(String part, int days) {
+    return '$part $days d';
+  }
+
+  @override
+  String routineEstimate(int minutes) {
+    return 'Unos $minutes min';
+  }
+
+  @override
+  String routinePaceOwn(int sessions, String pace) {
+    return 'calculado a $pace por serie según tus últimos $sessions entrenos';
+  }
+
+  @override
+  String routinePaceDefault(String pace) {
+    return 'calculado con el valor por defecto de $pace por serie — registra algunos entrenos para usar tu ritmo';
+  }
+
+  @override
+  String routineMinSec(int m, int s) {
+    return '$m min $s s';
+  }
+
+  @override
+  String routineReadAs(String list) {
+    return 'Leído así: $list';
+  }
+
+  @override
+  String routineCopied(String date) {
+    return 'como el $date';
+  }
+
+  @override
+  String routineRepsMatched(String date, int reps) {
+    return 'peso con el que hiciste $reps reps el $date';
+  }
+
+  @override
+  String get routineTyped => 'como lo escribiste';
+
+  @override
+  String get routineFirst => 'primera vez';
+
+  @override
+  String routineBlank(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'light': 'peso en blanco (día suave)',
+      'pain': 'peso en blanco (mencionaste dolor)',
+      'gear': 'peso en blanco (otro equipo)',
+      'bodyweight': 'peso del equipo en blanco',
+      'stale': 'peso en blanco (hace tiempo)',
+      'repsUnmatched': 'peso en blanco (ningún día con esas series y reps)',
+      'other': 'peso en blanco',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineReference(String sets, String date) {
+    return 'Ref.: $sets ($date)';
+  }
+
+  @override
+  String routineBest(String set, String date) {
+    return 'Ref.: mejor $set ($date)';
+  }
+
+  @override
+  String routineStepped(String step, String evidence) {
+    return '+$step ($evidence)';
+  }
+
+  @override
+  String routineMemo(String date, String memo) {
+    return 'Nota del $date: $memo';
+  }
+
+  @override
+  String routineRecent(String part, String when) {
+    return '$part · $when';
+  }
+
+  @override
+  String routineDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'hace $n días',
+      one: 'ayer',
+      zero: 'hoy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get routineFuture =>
+      'Vista previa — escribe \'rutina\' ese día para empezarla como el registro de ese día';
+
+  @override
+  String routineRefused(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'diet':
+          'No hago planes de comidas — registra tus comidas para ver las calorías',
+      'medical':
+          'No juzgo rehabilitación ni entrenos tras una cirugía — registra los ejercicios que te dio tu médico o fisio y los convierto en rutina',
+      'drug': 'No ayudo con drogas',
+      'program': 'Planifico un día a la vez — esta es la de hoy',
+      'logging': 'No marco series como hechas por ti — tócalas al hacerlas',
+      'format':
+          'No hay temporizador EMOM, superserie ni circuito — solo el orden (tabata y bpm sí)',
+      'person':
+          'No planifico para otra persona — solo se muestran nombres de ejercicios de tu registro',
+      'other': 'Solo ayudo con tu registro y tus rutinas',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineNotStated(String what) {
+    return 'Quitado, no está en lo que escribiste: $what';
+  }
+
+  @override
+  String routineUnmet(String what) {
+    return 'No se pudo aplicar: $what';
+  }
+
+  @override
+  String routineKeyName(String key) {
+    String _temp0 = intl.Intl.selectLogic(key, {
+      'when': 'día',
+      'from': 'día anterior',
+      'parts': 'zona',
+      'pattern': 'empuje/tirón',
+      'exercises': 'ejercicios',
+      'exclude': 'exclusiones',
+      'avoid': 'zonas a evitar',
+      'pain': 'dolor',
+      'equipment': 'equipo',
+      'count': 'número de ejercicios',
+      'minutes': 'tiempo',
+      'intensity': 'intensidad',
+      'timer': 'temporizador',
+      'targets': 'números escritos',
+      'delta': 'cambio de peso',
+      'other': 'condición',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineUnknownName(String name) {
+    return 'No está en el diccionario, quitado: $name';
+  }
+
+  @override
+  String get routineNoSuchDay => 'No hay ese día — armada con tu registro';
+
+  @override
+  String routineExcludeAbsent(String name) {
+    return 'No había nada que quitar: $name';
+  }
+
+  @override
+  String routineNoneMatched(String what) {
+    return 'No hay ejercicios de $what registrados — elige para añadir';
+  }
+
+  @override
+  String routineFewer(int n) {
+    return 'Solo hay $n ejercicios en tu registro';
+  }
+
+  @override
+  String routineOtherUnit(String unit) {
+    return 'Las series en $unit quedaron igual';
+  }
+
+  @override
+  String get routineBpmRange =>
+      'El bpm va de 10 a 120 — añadido sin temporizador';
+
+  @override
+  String routineIntensityLine(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'light':
+          'No sé cuánto más suave — pesos en blanco con tus últimas series al lado',
+      'hard': 'Los pesos son los de la última vez',
+      'max': 'No elijo el peso del récord — tu mejor marca está al lado',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineNoStep => 'Escribe cuánto subir (p. ej. +2,5 kg)';
+
+  @override
+  String routinePain(String phrase, String list) {
+    return 'Por \'$phrase\', quitado: $list · pesos en blanco · no juzgo si es seguro';
+  }
+
+  @override
+  String routinePainNone(String phrase) {
+    return '\'$phrase\' — nada quitado, pesos en blanco · no juzgo si es seguro';
+  }
+
+  @override
+  String get routinePainWord => 'dolor';
+
+  @override
+  String get routineFirstTime =>
+      'Primera vez — elige ejercicios para añadir (sin números)';
+
+  @override
+  String routineCountFit(int count, int minutes) {
+    return 'Ajustada a $count ejercicios — unos $minutes min';
+  }
+
+  @override
+  String routineNoMore(int minutes) {
+    return 'No hay más ejercicios registrados para añadir — unos $minutes min';
+  }
+
+  @override
+  String routineOverTime(int minutes) {
+    return 'Solo lo que nombraste lleva unos $minutes min';
+  }
+
+  @override
+  String routineRecentMemo(String when, String name, String memo) {
+    return '$when, nota de $name: $memo';
+  }
+
+  @override
+  String routineRemoved(String label, String why) {
+    return 'Quitado: $label — $why';
+  }
+
+  @override
+  String routineRemovedWhy(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'named': 'lo nombraste',
+      'avoid': 'zona a evitar',
+      'unknownPart': 'zona desconocida',
+      'gear': 'otro equipo',
+      'unknownGear': 'equipo desconocido',
+      'otherPart': 'otra zona',
+      'user': 'quitado',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineRestore => 'Volver a poner';
+
+  @override
+  String routineAdd(String name) {
+    return '+ $name';
+  }
+
+  @override
+  String get routineOther => 'Otra';
+
+  @override
+  String routinePrevious(String date) {
+    return 'Anterior ($date)';
+  }
+
+  @override
+  String routineByPart(String part) {
+    return 'Armar rutina de $part';
+  }
+
+  @override
+  String routineStepChip(String step) {
+    return '+$step (tu propio incremento)';
+  }
+
+  @override
+  String routineAskToo(String text) {
+    return 'Preguntar también: $text · discos';
+  }
+
+  @override
+  String get routineAsQuestion => 'Preguntar sobre el registro · discos';
+
+  @override
+  String get routineNoConditions => 'Armar ya sin condiciones';
+
+  @override
+  String get routineWithConditions => 'Leer también las condiciones · discos';
+
+  @override
+  String get routineMake => 'Armar la rutina de hoy';
+
+  @override
+  String routineMakePart(String part) {
+    return 'Armar rutina de $part de hoy';
+  }
+
+  @override
+  String get routineStart => 'Empezar';
+
+  @override
+  String get routineStarted => 'Empezada · Abrir';
+
+  @override
+  String get routineWorking => 'Leyendo las condiciones…';
+
+  @override
+  String get routineOffline =>
+      'Sin conexión no pude leer las condiciones — armada solo con tu registro';
+
+  @override
+  String get routineMisread =>
+      'No pude leer las condiciones — armada solo con tu registro. Reformúlalo para leer de nuevo';
+
+  @override
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': 'Sin conexión',
+      'noPlates': 'Sin discos',
+      'other': 'La respuesta no se pudo leer',
+    });
+    return '$_temp0: no pude leer las condiciones (exclusiones, dolor), así que no armé la rutina';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return 'Peso escrito: $count series efectivas $from → $to';
+  }
+
+  @override
+  String get routineTypedKept => 'el peso escrito se mantiene';
+
+  @override
+  String get routinePlatesBefore =>
+      'Ya usaste discos con este texto · 0 esta vez';
+
+  @override
+  String get routineRetry => 'Reintentar';
+
+  @override
+  String get routinePressEnter =>
+      'Pulsa Intro para leer también las condiciones · discos';
+
+  @override
+  String get routineFromQuestion => 'Leído como petición de rutina';
+
+  @override
+  String routinePattern(String p) {
+    String _temp0 = intl.Intl.selectLogic(p, {
+      'push': 'empuje',
+      'pull': 'tirón',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGear(String g) {
+    String _temp0 = intl.Intl.selectLogic(g, {
+      'barbell': 'barra',
+      'dumbbell': 'mancuernas',
+      'machine': 'máquina',
+      'cable': 'polea',
+      'bodyweight': 'peso corporal',
+      'bar': 'barra de dominadas',
+      'kettlebell': 'pesa rusa',
+      'band': 'banda',
+      'bench': 'banco',
+      'other': 'equipo',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGearOnly(String list) {
+    return 'solo $list';
+  }
+
+  @override
+  String routineGearWithout(String list) {
+    return 'sin $list';
+  }
+
+  @override
+  String routineMinutes(int n) {
+    return '$n min';
+  }
+
+  @override
+  String routineCount(int n) {
+    return '$n ejercicios';
+  }
+
+  @override
+  String routineIntensity(String k) {
+    String _temp0 = intl.Intl.selectLogic(k, {
+      'light': 'suave',
+      'hard': 'pesado',
+      'max': 'intento de récord',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineExclude(String list) {
+    return 'quitar: $list';
+  }
+
+  @override
+  String routineAvoid(String list) {
+    return 'evitar: $list';
+  }
+
+  @override
+  String get routinePlatesZero => '0 discos';
+
+  @override
+  String get routineFullBody => 'Cuerpo completo';
+
+  @override
+  String get routineNoPlates =>
+      'Sin discos no pude leer las condiciones — armada solo con tu registro';
+
+  @override
+  String get routineBack => 'Volver a la rutina';
+
+  @override
   String queryBoundDropped(String value) {
     return 'Se quitó la condición $value: la pregunta no dice ese número en esa unidad';
   }

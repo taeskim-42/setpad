@@ -127,6 +127,43 @@ void main() {
     expect(hits, isEmpty);
   });
 
+  test('루틴 지시문 예시는 루틴 평가 문항과 같지 않고, 떼어 둔 루틴 모음과는 글꼴도 닮지 않는다', () {
+    List<String> texts(String set) => [
+      for (final c
+          in jsonDecode(File('tool/questions/$set.json').readAsStringSync())
+              as List)
+        (c as Map)['text'] as String,
+    ];
+    final examples = _examples();
+    final corpus = [...texts('routine'), ...texts('routine_heldout')];
+    final same = [
+      for (final e in examples)
+        for (final t in corpus)
+          if (_norm(e) == _norm(t) ||
+              (_norm(t).length >= 6 &&
+                  (_norm(e).contains(_norm(t)) || _norm(t).contains(_norm(e)))))
+            '$t  ⟵  "$e"',
+    ];
+    // 글꼴 닮음은 루틴 지시문(lib/routine.dart) 예시만 본다 — 떼어 둔 닮은 질문
+    // "최근 루틴 기록 쭉 보여줘" 는 기록 검색 예시 "스쿼트 기록 쭉 보여줘" 와 닮았다
+    // (그 문항은 가르기·루틴 지시문 평가용이고, 기록 검색 지시문의 점수에 쓰지 않는다).
+    final routineExamples = {
+      for (final m in RegExp(
+        r'^"(.+?)" =>',
+        multiLine: true,
+      ).allMatches(File('lib/routine.dart').readAsStringSync()))
+        m[1]!,
+    };
+    expect(routineExamples, hasLength(greaterThan(20)));
+    final close = [
+      for (final t in texts('routine_heldout'))
+        for (final e in routineExamples)
+          if (_overlap(t, e) >= 0.3) '$t ≈ 예시 "$e"',
+    ];
+    expect(same, isEmpty);
+    expect(close, isEmpty);
+  });
+
   test('지시문 예시는 평가 문항(v2·dev·heldout·v3)과 같지 않다', () {
     final examples = <String>{
       for (final f in Directory(

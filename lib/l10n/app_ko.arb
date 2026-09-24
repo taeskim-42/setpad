@@ -2348,6 +2348,543 @@
       }
     }
   },
+  "routineDate": "{d}",
+  "@routineDate": {
+    "placeholders": {
+      "d": {
+        "type": "DateTime",
+        "format": "Md"
+      }
+    }
+  },
+  "routineHeaderToday": "오늘 루틴",
+  "routineHeaderDay": "{day} 루틴",
+  "@routineHeaderDay": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "routineTomorrow": "내일({date})",
+  "@routineTomorrow": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineWhyRotation": "{date} 운동을 {days}일 동안 안 했어요 — 그날처럼 짰어요",
+  "@routineWhyRotation": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "routineWhyFrom": "{date} 그대로 짰어요",
+  "@routineWhyFrom": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineWhyNamed": "{date}에 같이 하던 운동으로 채웠어요",
+  "@routineWhyNamed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routinePartRest": "최근 28일: {list} 전",
+  "@routinePartRest": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "routinePartDays": "{part} {days}일",
+  "@routinePartDays": {
+    "placeholders": {
+      "part": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "routineEstimate": "약 {minutes}분",
+  "@routineEstimate": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "routinePaceOwn": "최근 {sessions}번 운동의 세트당 {pace}로 어림",
+  "@routinePaceOwn": {
+    "placeholders": {
+      "sessions": {
+        "type": "int"
+      },
+      "pace": {
+        "type": "String"
+      }
+    }
+  },
+  "routinePaceDefault": "기본값 세트당 {pace}로 어림 — 운동을 몇 번 적으면 내 속도로 바뀌어요",
+  "@routinePaceDefault": {
+    "placeholders": {
+      "pace": {
+        "type": "String"
+      }
+    }
+  },
+  "routineMinSec": "{m}분 {s}초",
+  "@routineMinSec": {
+    "placeholders": {
+      "m": {
+        "type": "int"
+      },
+      "s": {
+        "type": "int"
+      }
+    }
+  },
+  "routineReadAs": "이렇게 읽었어요: {list}",
+  "@routineReadAs": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "routineCopied": "{date} 그대로",
+  "@routineCopied": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineRepsMatched": "{date}에 {reps}회 한 무게",
+  "@routineRepsMatched": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "reps": {
+        "type": "int"
+      }
+    }
+  },
+  "routineTyped": "적은 대로",
+  "routineFirst": "처음",
+  "routineBlank": "{why, select, light{가볍게라 무게는 비웠어요} pain{아픈 곳이 있어 무게는 비웠어요} gear{기구가 달라 무게는 비웠어요} bodyweight{기구 무게라 비웠어요} stale{오래돼서 무게는 비웠어요} repsUnmatched{그 횟수로 그만큼 한 날이 없어 무게는 비웠어요} other{무게는 비웠어요}}",
+  "@routineBlank": {
+    "placeholders": {
+      "why": {
+        "type": "String"
+      }
+    }
+  },
+  "routineReference": "참고: {sets} ({date})",
+  "@routineReference": {
+    "placeholders": {
+      "sets": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineBest": "참고: 최고 {set} ({date})",
+  "@routineBest": {
+    "placeholders": {
+      "set": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineStepped": "+{step} ({evidence})",
+  "@routineStepped": {
+    "placeholders": {
+      "step": {
+        "type": "String"
+      },
+      "evidence": {
+        "type": "String"
+      }
+    }
+  },
+  "routineMemo": "{date} 메모: {memo}",
+  "@routineMemo": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "memo": {
+        "type": "String"
+      }
+    }
+  },
+  "routineRecent": "{part} · {when}",
+  "@routineRecent": {
+    "placeholders": {
+      "part": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "routineDaysAgo": "{n, plural, =0{오늘} =1{어제} other{{n}일 전}}",
+  "@routineDaysAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "routineFuture": "미리 보기예요 — 그날 '루틴'을 치면 그날 기록으로 시작할 수 있어요",
+  "routineRefused": "{kind, select, diet{식단은 짜 드리지 않아요 — 끼니를 적으면 열량은 볼 수 있어요} medical{재활·수술 뒤 운동은 판단하지 않아요 — 의사·치료사에게 받은 운동을 적으면 그대로 루틴으로 만들어요} drug{약물은 도와드리지 않아요} program{한 번에 하루치만 짜요 — 오늘 루틴이에요} logging{안 한 세트를 완료로 적지는 않아요 — 할 때 눌러 주세요} format{EMOM·슈퍼세트·서킷 타이머는 없어요 — 순서만 짰어요(타바타·bpm 은 돼요)} person{다른 사람 루틴은 짜 드리지 않아요 — 내 기록의 운동 이름만 보여요} other{운동 기록과 루틴만 도와드려요}}",
+  "@routineRefused": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "routineNotStated": "글에 없는 수라 뺐어요: {what}",
+  "@routineNotStated": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "routineUnmet": "못 맞춘 조건: {what}",
+  "@routineUnmet": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "routineKeyName": "{key, select, when{날짜} from{지난 날} parts{부위} pattern{밀기·당기기} exercises{운동} exclude{뺄 운동} avoid{피할 부위} pain{아픈 곳} equipment{기구} count{운동 수} minutes{시간} intensity{세기} timer{타이머} targets{적은 수} delta{증감} other{조건}}",
+  "@routineKeyName": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "routineUnknownName": "사전에 없어 뺐어요: {name}",
+  "@routineUnknownName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routineNoSuchDay": "그런 날이 없어요 — 기록으로 짰어요",
+  "routineExcludeAbsent": "뺄 운동이 원래 없어요: {name}",
+  "@routineExcludeAbsent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routineNoneMatched": "기록한 {what} 운동이 없어요 — 골라 넣을 수 있어요",
+  "@routineNoneMatched": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "routineFewer": "기록으로 넣을 운동이 {n}개예요",
+  "@routineFewer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "routineOtherUnit": "{unit}로 적은 세트는 그대로 뒀어요",
+  "@routineOtherUnit": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "routineBpmRange": "bpm 은 10–120 이에요 — 타이머 없이 넣었어요",
+  "routineIntensityLine": "{kind, select, light{얼마나 가볍게 할지는 몰라 무게는 비워 두고 지난 기록을 옆에 적었어요} hard{무게는 지난번 그대로예요} max{몇 kg 에 도전할지는 정하지 않아요 — 최고 기록을 옆에 적었어요} other{}}",
+  "@routineIntensityLine": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "routineNoStep": "올릴 만큼 적어 주세요(예: +2.5kg)",
+  "routinePain": "'{phrase}' 때문에 뺀 것: {list} · 무게는 비웠어요 · 괜찮은지는 판단하지 않아요",
+  "@routinePain": {
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      },
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "routinePainNone": "'{phrase}' — 뺀 운동은 없고 무게는 비웠어요 · 괜찮은지는 판단하지 않아요",
+  "@routinePainNone": {
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      }
+    }
+  },
+  "routinePainWord": "아프다는 말",
+  "routineFirstTime": "처음이에요 — 넣을 운동을 고르면 숫자 없이 들어가요",
+  "routineCountFit": "{count}개로 맞췄어요 — 약 {minutes}분",
+  "@routineCountFit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "routineNoMore": "기록으로 더 넣을 운동이 없어요 — 약 {minutes}분이에요",
+  "@routineNoMore": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "routineOverTime": "말한 운동만으로 약 {minutes}분이에요",
+  "@routineOverTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "routineRecentMemo": "{when} {name} 메모: {memo}",
+  "@routineRecentMemo": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "memo": {
+        "type": "String"
+      }
+    }
+  },
+  "routineRemoved": "뺀 것: {label} — {why}",
+  "@routineRemoved": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "why": {
+        "type": "String"
+      }
+    }
+  },
+  "routineRemovedWhy": "{why, select, named{말한 운동} avoid{피할 부위} unknownPart{부위를 몰라서} gear{기구가 달라서} unknownGear{기구를 몰라서} otherPart{다른 부위라서} user{직접 뺌} other{}}",
+  "@routineRemovedWhy": {
+    "placeholders": {
+      "why": {
+        "type": "String"
+      }
+    }
+  },
+  "routineRestore": "넣기",
+  "routineAdd": "+ {name}",
+  "@routineAdd": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routineOther": "다른 루틴",
+  "routinePrevious": "그 전({date})",
+  "@routinePrevious": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineByPart": "{part} 루틴으로 짜기",
+  "@routineByPart": {
+    "placeholders": {
+      "part": {
+        "type": "String"
+      }
+    }
+  },
+  "routineStepChip": "+{step} 올리기(스스로 올려 온 폭)",
+  "@routineStepChip": {
+    "placeholders": {
+      "step": {
+        "type": "String"
+      }
+    }
+  },
+  "routineAskToo": "이것도 물을까요: {text} · 원판",
+  "@routineAskToo": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "routineAsQuestion": "기록 질문으로 묻기 · 원판",
+  "routineNoConditions": "조건 없이 바로 짜기",
+  "routineWithConditions": "조건까지 읽어 짜기 · 원판",
+  "routineMake": "오늘 루틴 만들기",
+  "routineMakePart": "오늘 {part} 루틴 만들기",
+  "@routineMakePart": {
+    "placeholders": {
+      "part": {
+        "type": "String"
+      }
+    }
+  },
+  "routineStart": "시작",
+  "routineStarted": "시작함 · 열기",
+  "routineWorking": "조건을 읽는 중…",
+  "routineOffline": "조건은 연결이 안 돼 못 읽었어요 — 기록으로만 짰어요",
+  "routineMisread": "조건을 읽지 못했어요 — 기록으로만 짰어요. 말을 바꾸면 다시 읽어요",
+  "routineHeldBack": "{why, select, offline{연결이 안 돼} noPlates{원판이 없어} other{모델 답을 읽지 못해}} 조건(빼기·아픈 곳)을 못 읽었어요 — 루틴을 만들지 않았어요",
+  "@routineHeldBack": {
+    "placeholders": {
+      "why": {
+        "type": "String"
+      }
+    }
+  },
+  "routineTypedWeight": "적은 무게로: 작업 세트 {count}개 {from} → {to}",
+  "@routineTypedWeight": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "routineTypedKept": "적은 무게는 그대로 뒀어요",
+  "routinePlatesBefore": "이 글에 앞서 원판을 썼어요 · 이번엔 0장",
+  "routineRetry": "다시 시도",
+  "routinePressEnter": "Enter 를 누르면 조건까지 읽어 짜요 · 원판",
+  "routineFromQuestion": "루틴을 짜 달라는 말로 읽었어요",
+  "routinePattern": "{p, select, push{밀기} pull{당기기} other{}}",
+  "@routinePattern": {
+    "placeholders": {
+      "p": {
+        "type": "String"
+      }
+    }
+  },
+  "routineGear": "{g, select, barbell{바벨} dumbbell{덤벨} machine{머신} cable{케이블} bodyweight{맨몸} bar{철봉} kettlebell{케틀벨} band{밴드} bench{벤치} other{기구}}",
+  "@routineGear": {
+    "placeholders": {
+      "g": {
+        "type": "String"
+      }
+    }
+  },
+  "routineGearOnly": "{list}만",
+  "@routineGearOnly": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "routineGearWithout": "{list} 없이",
+  "@routineGearWithout": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "routineMinutes": "{n}분",
+  "@routineMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "routineCount": "운동 {n}개",
+  "@routineCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "routineIntensity": "{k, select, light{가볍게} hard{무겁게} max{최고 도전} other{}}",
+  "@routineIntensity": {
+    "placeholders": {
+      "k": {
+        "type": "String"
+      }
+    }
+  },
+  "routineExclude": "뺄 것: {list}",
+  "@routineExclude": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "routineAvoid": "피할 부위: {list}",
+  "@routineAvoid": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "routinePlatesZero": "원판 0장",
+  "routineFullBody": "전신",
+  "routineNoPlates": "조건은 원판이 없어 못 읽었어요 — 기록으로만 짰어요",
+  "routineBack": "루틴으로 돌아가기",
   "queryBoundDropped": "숫자 조건 {value} 뺌 — 질문에 그 단위로 적힌 수가 아니에요",
   "@queryBoundDropped": {
     "description": "확인 줄: 모델이 낸 무게·횟수 조건의 수가 질문에 그 단위로 적힌 수가 아니라 뺐다.",
