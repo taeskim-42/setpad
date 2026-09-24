@@ -35,6 +35,10 @@ enum RecordAiStatus {
 
   /// 원판이 모자라 기록 질문을 못 한다.
   noPlates,
+
+  /// 사람이 AI 도움(DeepSeek)을 켜지 않았다. 아무것도 보내지 않았다 — 친 글과
+  /// 적은 kcal 은 그대로 쓴다. 설정에서 켠다.
+  aiOff,
 }
 
 /// 사진 한 장의 어림 칼로리와 알아본 음식.
@@ -482,6 +486,7 @@ class RecordAi {
     this.accountToken,
     this.onPlates,
     this.onUnauthorized,
+    this.consent,
   });
 
   /// 기본 주소. 빌드할 때 --dart-define=API_BASE=... 로 바꾼다.
@@ -513,6 +518,21 @@ class RecordAi {
   /// 서버가 계정 토큰을 거절했다(만료, 서버 키 교체). 로그아웃하는 자리다 —
   /// 그 뒤의 재시도는 이 기기의 토큰으로 간다.
   final Future<void> Function()? onUnauthorized;
+
+  /// 모델에 보내도 되는가. 처음이면 사람에게 묻는 자리다(ai_consent.dart). 비어
+  /// 있으면 묻지 않는다 — 테스트와 평가 도구.
+  ///
+  /// **모델로 가는 문(ask·estimateMeal·estimateMealText)이 모두 여기를 지난다.**
+  /// 부르는 화면이 빠뜨려도 동의 없이 나가는 길은 없다. 음식 표 조회(isFood)와
+  /// 원판·기기 토큰은 모델이 아니라 지나지 않는다.
+  final Future<bool> Function()? consent;
+
+  /// 동의했으면 true. 사진을 고르기 전처럼 보내기 전에 미리 묻는 자리에서 쓴다.
+  Future<bool> allowed() async => await consent?.call() ?? true;
+
+  Future<void> _consented() async {
+    if (!await allowed()) throw const RecordAiException(RecordAiStatus.aiOff);
+  }
 
   bool get supported =>
       respond != null ||
@@ -706,6 +726,7 @@ class RecordAi {
     String? kind,
     List<double>? spent,
   }) async {
+    await _consented();
     final direct = respond;
     if (direct != null) return direct(instructions, input);
     final answer = await _ask(
@@ -732,6 +753,7 @@ class RecordAi {
     String? gymId,
     String? kind,
   }) async {
+    await _consented();
     final answer = await _ask('/api/meals/estimate', {
       // 촬영 정보(위치가 찍혀 있으면 위치까지)는 떼고 보낸다 — 접시만 보면 된다.
       'image': base64Encode(withoutPhotoMetadata(bytes)),
@@ -761,6 +783,7 @@ class RecordAi {
     String text, {
     required String locale,
   }) async {
+    await _consented();
     final answer = await _ask('/api/meals/estimate', {
       'text': text,
       'language': locale,

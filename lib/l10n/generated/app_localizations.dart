@@ -2941,6 +2941,60 @@ abstract class L {
   /// **'트레이너'**
   String get settingsTrainer;
 
+  /// AI 를 처음 부르기 전에 한 번 뜨는 동의 시트 제목. DeepSeek 로 무엇이 가는지 알리는 자리
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 도움을 켤까요?'**
+  String get aiConsentTitle;
+
+  /// No description provided for @aiConsentBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 줄 설정, 식단 열량 어림, 기록 질문은 DeepSeek(중국)의 AI가 읽어요. 우리 서버(gym.darak.studio)를 거쳐 가고, 우리 서버는 그 내용을 저장하지 않아요.'**
+  String get aiConsentBody;
+
+  /// 무엇을 보내는지. lib/record_ai.dart 의 요청과 같아야 한다 — 바꾸면 여기와 개인정보 처리방침을 같이 고친다
+  ///
+  /// In ko, this message translates to:
+  /// **'보내는 것: 친 글, 식단 사진(위치·촬영 정보를 뗀 것), 내 기록의 운동 이름. 세트·무게·날짜·메모 같은 기록은 AI에 보내지 않고 폰에서 셉니다.'**
+  String get aiConsentSent;
+
+  /// No description provided for @aiConsentLater.
+  ///
+  /// In ko, this message translates to:
+  /// **'‘나중에’를 골라도 친 글은 그대로 기록되고, 적은 kcal과 이름 찾기도 그대로 돼요. 설정 › AI 도움에서 언제든 켜고 끌 수 있어요.'**
+  String get aiConsentLater;
+
+  /// No description provided for @aiConsentAgree.
+  ///
+  /// In ko, this message translates to:
+  /// **'동의하고 켜기'**
+  String get aiConsentAgree;
+
+  /// No description provided for @aiConsentNotNow.
+  ///
+  /// In ko, this message translates to:
+  /// **'나중에'**
+  String get aiConsentNotNow;
+
+  /// No description provided for @aiSetting.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 도움 (DeepSeek)'**
+  String get aiSetting;
+
+  /// AI 도움을 켜지 않아 모델을 부르지 않았을 때 한 줄(운동 입력·식단 글·기록 질문)
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 도움이 꺼져 있어 적은 그대로 두었어요. 설정 › AI 도움에서 켤 수 있어요'**
+  String get aiOff;
+
+  /// No description provided for @aiOffPhoto.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 도움이 꺼져 있어 사진으로 어림하지 않았어요. 식단 글로 ‘김밥 450kcal’처럼 적으면 그대로 들어가요'**
+  String get aiOffPhoto;
+
   /// 측정에 날이 둘 이상 필요한데 하나뿐일 때 칸 아래 줄
   ///
   /// In ko, this message translates to:

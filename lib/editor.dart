@@ -1423,6 +1423,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   String Function(L l) _fallbackReason(Object error) => switch (error) {
     RecordAiException(status: RecordAiStatus.quotaExceeded) =>
       (l) => l.aiFallbackQuota,
+    RecordAiException(status: RecordAiStatus.aiOff) => (l) => l.aiOff,
     RecordAiException(offline: true) => (l) => l.aiFallbackOffline,
     RecordAiException() => (l) => l.aiFallbackServer,
     _ => (l) => l.aiFallbackUnread,

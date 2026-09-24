@@ -1754,6 +1754,36 @@ class LZh extends L {
   String get settingsTrainer => '教练';
 
   @override
+  String get aiConsentTitle => '要打开 AI 帮助吗？';
+
+  @override
+  String get aiConsentBody =>
+      '一行设置、餐食热量估算和记录提问由 DeepSeek（中国）的 AI 读取。内容经过我们的服务器（gym.darak.studio），服务器不保存这些内容。';
+
+  @override
+  String get aiConsentSent =>
+      '发送的内容：你输入的文字、餐食照片（已去除位置和拍摄信息）以及记录中的动作名称。组数、重量、日期、备注等记录不会发给 AI，由手机自己计算。';
+
+  @override
+  String get aiConsentLater =>
+      '选择“以后再说”后，输入的内容仍会照原样记录，手写的 kcal 和按名称查找也照常可用。可随时在 设置 › AI 帮助 中打开或关闭。';
+
+  @override
+  String get aiConsentAgree => '同意并打开';
+
+  @override
+  String get aiConsentNotNow => '以后再说';
+
+  @override
+  String get aiSetting => 'AI 帮助（DeepSeek）';
+
+  @override
+  String get aiOff => 'AI 帮助已关闭，已按输入原样保留。可在 设置 › AI 帮助 中打开';
+
+  @override
+  String get aiOffPhoto => 'AI 帮助已关闭，未根据照片估算。用文字写下餐食，例如“饭团 180kcal”，就会照原样记录';
+
+  @override
   String get answerNeedsTwoDays => '至少需要两天的记录';
 
   @override
@@ -4473,6 +4503,36 @@ class LZhHans extends LZh {
   String get settingsTrainer => '教练';
 
   @override
+  String get aiConsentTitle => '要打开 AI 帮助吗？';
+
+  @override
+  String get aiConsentBody =>
+      '一行设置、餐食热量估算和记录提问由 DeepSeek（中国）的 AI 读取。内容经过我们的服务器（gym.darak.studio），服务器不保存这些内容。';
+
+  @override
+  String get aiConsentSent =>
+      '发送的内容：你输入的文字、餐食照片（已去除位置和拍摄信息）以及记录中的动作名称。组数、重量、日期、备注等记录不会发给 AI，由手机自己计算。';
+
+  @override
+  String get aiConsentLater =>
+      '选择“以后再说”后，输入的内容仍会照原样记录，手写的 kcal 和按名称查找也照常可用。可随时在 设置 › AI 帮助 中打开或关闭。';
+
+  @override
+  String get aiConsentAgree => '同意并打开';
+
+  @override
+  String get aiConsentNotNow => '以后再说';
+
+  @override
+  String get aiSetting => 'AI 帮助（DeepSeek）';
+
+  @override
+  String get aiOff => 'AI 帮助已关闭，已按输入原样保留。可在 设置 › AI 帮助 中打开';
+
+  @override
+  String get aiOffPhoto => 'AI 帮助已关闭，未根据照片估算。用文字写下餐食，例如“饭团 180kcal”，就会照原样记录';
+
+  @override
   String get answerNeedsTwoDays => '至少需要两天的记录';
 
   @override
@@ -7189,6 +7249,36 @@ class LZhHant extends LZh {
 
   @override
   String get settingsTrainer => '教練';
+
+  @override
+  String get aiConsentTitle => '要開啟 AI 協助嗎？';
+
+  @override
+  String get aiConsentBody =>
+      '一行設定、餐點熱量估算和紀錄提問由 DeepSeek（中國）的 AI 讀取。內容會經過我們的伺服器（gym.darak.studio），伺服器不會儲存這些內容。';
+
+  @override
+  String get aiConsentSent =>
+      '傳送的內容：你輸入的文字、餐點照片（已移除位置和拍攝資訊）以及紀錄中的動作名稱。組數、重量、日期、備註等紀錄不會傳給 AI，由手機自己計算。';
+
+  @override
+  String get aiConsentLater =>
+      '選擇「以後再說」後，輸入的內容仍會照原樣記錄，手寫的 kcal 和依名稱搜尋也照常可用。可隨時在 設定 › AI 協助 中開啟或關閉。';
+
+  @override
+  String get aiConsentAgree => '同意並開啟';
+
+  @override
+  String get aiConsentNotNow => '以後再說';
+
+  @override
+  String get aiSetting => 'AI 協助（DeepSeek）';
+
+  @override
+  String get aiOff => 'AI 協助已關閉，已按輸入原樣保留。可在 設定 › AI 協助 中開啟';
+
+  @override
+  String get aiOffPhoto => 'AI 協助已關閉，未根據照片估算。用文字寫下餐點，例如「飯糰 180kcal」，就會照原樣記錄';
 
   @override
   String get answerNeedsTwoDays => '至少需要兩天的紀錄';

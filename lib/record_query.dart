@@ -4625,6 +4625,7 @@ class RecordSearch extends ChangeNotifier {
       charged = false,
       tooLong = false,
       offline = false,
+      aiOff = false,
       _disposed = false;
 
   /// 서버는 답했는데 앱이 셀 수 없는 한도·조합이었다([QueryLimit.kind]). 다시
@@ -4674,6 +4675,7 @@ class RecordSearch extends ChangeNotifier {
     unrepresentable = null;
     tooLong = false;
     offline = false;
+    aiOff = false;
     busy = false;
     if (text.trim().isEmpty ||
         names.any((n) => searchKey(n) == searchKey(text))) {
@@ -4795,6 +4797,10 @@ class RecordSearch extends ChangeNotifier {
             unreadable = true;
             // 1단계 원판은 나갔다 — 원판 줄이 그 값을 보인다.
             charged = e.charged;
+          } else if (e is RecordAiException &&
+              e.status == RecordAiStatus.aiOff) {
+            // AI 도움을 켜지 않았다. 아무것도 보내지 않았고, 목록과 칩은 그대로다.
+            aiOff = true;
           } else {
             failed = true;
           }

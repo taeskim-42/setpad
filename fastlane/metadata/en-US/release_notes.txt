@@ -1,10 +1,11 @@
 In this update
 
-· Every set you did today on one screen — tap a cell to fix it
-· Log meals as text, and calculate calories from how much you ate
-· Together: connect with a code to see each other's log, and plan workouts together by invite link
-· Shared timer: start Tabata or bpm on both phones at the same moment and see each other's reps while you rest
-· Estimate calories from a meal photo (photos are not stored)
-· Connect to a gym, receive routines, and book PT sessions
-· Persistent sign-in and in-app account deletion
-· Sticker check-ins and app links
+· Together: up to 6 people edit one record live — name tags and cursors show who is editing what
+· Sets and meals in one input line — it sorts them as you type, and one tap switches a wrong guess
+· Record questions compare periods and exercises side by side in a table
+· Meal calories show their source — the MFDS or USDA table value with a link to the original
+· Plates and Pro: record questions use plates, and you earn 1 on each day you log 10 sets
+· AI help tells you what goes to DeepSeek and asks for consent the first time. Turn it off any time in Settings
+· Log a partner's sets on your phone and hand them over with a link
+· Trainer mode: gym staff get a morning report with today's classes and to-dos, handled in a tap
+· Nothing you type is thrown away — words that could not be placed are shown, and unreadable lines are kept as typed

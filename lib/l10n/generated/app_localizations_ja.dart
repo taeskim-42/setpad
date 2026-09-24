@@ -1770,6 +1770,37 @@ class LJa extends L {
   String get settingsTrainer => 'トレーナー';
 
   @override
+  String get aiConsentTitle => 'AIヘルプをオンにしますか？';
+
+  @override
+  String get aiConsentBody =>
+      '一行設定、食事のカロリー推定、記録への質問は DeepSeek（中国）の AI が読み取ります。当社のサーバー（gym.darak.studio）を経由し、当社のサーバーは内容を保存しません。';
+
+  @override
+  String get aiConsentSent =>
+      '送るもの：入力した文章、食事の写真（位置情報と撮影情報を除いたもの）、記録にある種目名。セット・重量・日付・メモなどの記録は AI に送らず、端末で集計します。';
+
+  @override
+  String get aiConsentLater =>
+      '「後で」を選んでも、入力した内容はそのまま記録され、入力した kcal と名前検索もそのまま使えます。設定 › AIヘルプ でいつでもオン・オフできます。';
+
+  @override
+  String get aiConsentAgree => '同意してオンにする';
+
+  @override
+  String get aiConsentNotNow => '後で';
+
+  @override
+  String get aiSetting => 'AIヘルプ（DeepSeek）';
+
+  @override
+  String get aiOff => 'AIヘルプがオフなので、入力のまま残しました。設定 › AIヘルプ でオンにできます';
+
+  @override
+  String get aiOffPhoto =>
+      'AIヘルプがオフなので、写真からは推定しませんでした。食事をテキストで「おにぎり 180kcal」のように書くとそのまま入ります';
+
+  @override
   String get answerNeedsTwoDays => '2日以上の記録が必要です';
 
   @override

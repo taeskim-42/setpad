@@ -588,7 +588,8 @@ class _NotesListPageState extends State<NotesListPage>
       if (ask == null) {
         final mine = r.text == text;
         final failed =
-            mine && (r.failed || r.noPlates || r.misread || r.tooLong);
+            mine &&
+            (r.failed || r.noPlates || r.misread || r.tooLong || r.aiOff);
         if (r.busy) {
           status.add(l.routineWorking);
           return bare();
@@ -613,13 +614,15 @@ class _NotesListPageState extends State<NotesListPage>
           }
           if (unreadableConditions(text)) {
             status.add(
-              l.routineHeldBack(
-                misread || (mine && r.misread)
-                    ? 'misread'
-                    : mine && r.noPlates
-                    ? 'noPlates'
-                    : 'offline',
-              ),
+              mine && r.aiOff
+                  ? l.aiOff
+                  : l.routineHeldBack(
+                      misread || (mine && r.misread)
+                          ? 'misread'
+                          : mine && r.noPlates
+                          ? 'noPlates'
+                          : 'offline',
+                    ),
             );
             actions.add(plain());
             if (canRetry) actions.add(retry());
@@ -627,7 +630,9 @@ class _NotesListPageState extends State<NotesListPage>
           }
           ask = deviceAsk(text, recorded);
           status.add(
-            misread || (mine && r.misread)
+            mine && r.aiOff
+                ? l.aiOff
+                : misread || (mine && r.misread)
                 ? l.routineMisread
                 : mine && r.noPlates
                 ? l.routineNoPlates
@@ -744,7 +749,8 @@ class _NotesListPageState extends State<NotesListPage>
           _search.noPlates ||
           _search.unrepresentable != null ||
           _search.tooLong ||
-          _search.offline);
+          _search.offline ||
+          _search.aiOff);
 
   /// 목록에 보일 기록. 답이 있으면 답에 쓰인 기록이다.
   ///
@@ -1229,6 +1235,11 @@ class _NotesListPageState extends State<NotesListPage>
                                 if (_search.tooLong)
                                   Text(
                                     l.queryTooLong(maxQuestionLength),
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                if (_search.aiOff)
+                                  Text(
+                                    l.aiOff,
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 if (_search.noPlates) ..._noPlates(l),

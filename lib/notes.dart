@@ -383,6 +383,18 @@ class NotesStore extends ChangeNotifier {
   bool _countAloud = false;
   bool get countAloud => _countAloud;
 
+  /// AI 도움(DeepSeek)에 동의했는가. null 이면 아직 묻지 않았다 — 처음 AI 를
+  /// 부를 때 한 번 묻는다(ai_consent.dart). false 면 묻지 않고 기기 안에서만 한다.
+  bool? _aiConsent;
+  bool? get aiConsent => _aiConsent;
+
+  void setAiConsent(bool value) {
+    if (value == _aiConsent) return;
+    _aiConsent = value;
+    notifyListeners();
+    _scheduleSave();
+  }
+
   /// 이 기기를 가리키는 무작위 문자열. 사람을 가리키지 않는다.
   ///
   /// 질문을 서버에 보낼 때 셀 대상이 필요해서 만든다. 계정도 로그인도 없고,
@@ -416,6 +428,7 @@ class NotesStore extends ChangeNotifier {
           final data = jsonDecode(await preferences.readAsString()) as Map;
           _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
           _countAloud = data['countAloud'] == true;
+          if (data['aiConsent'] case final bool consent) _aiConsent = consent;
           final saved = data['deviceId'];
           if (saved is String && saved.length >= 16) _deviceId = saved;
           if (data['platesDay'] case final String day) _platesDay = day;
@@ -482,6 +495,7 @@ class NotesStore extends ChangeNotifier {
     final preferences = jsonEncode({
       'weightUnit': _weightUnit,
       'countAloud': _countAloud,
+      'aiConsent': ?_aiConsent,
       'deviceId': _deviceId,
       'platesDay': _platesDay,
       'exercises': _exerciseHistory,

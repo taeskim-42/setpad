@@ -1,0 +1,6 @@
+Trong bản cập nhật này
+· Cùng nhau: tối đa 6 người cùng sửa một nhật ký theo thời gian thực — thẻ tên và con trỏ cho thấy ai sửa chỗ nào
+· Hiệp tập và bữa ăn trên cùng một dòng nhập — tự phân loại khi gõ, đoán sai thì chạm một lần để đổi
+· Câu hỏi về nhật ký so sánh giai đoạn và bài tập cạnh nhau trong bảng
+· Calo bữa ăn có nguồn — giá trị từ bảng MFDS hoặc USDA kèm liên kết gốc
+· Bánh tạ và Pro: câu hỏi dùng bánh tạ, và bạn nhận 1 bánh mỗi ngày ghi đủ 10 hiệp

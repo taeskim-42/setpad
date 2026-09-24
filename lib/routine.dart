@@ -3012,8 +3012,11 @@ class RoutineSearch extends ChangeNotifier {
   /// [tooLong] 은 보내지 않은 긴 글(다시 해도 같다), [misread] 는 모델이 깨진 답을
   /// 낸 것(형식만 되받아 적음, 502 upstream) — 연결 문제가 아니다. 깨진 답은 담지
   /// 않고 한 번만 다시 물을 수 있다([retry]); 같은 글로 원판이 거듭 나가지 않는다.
+  /// [aiOff] 는 사람이 AI 도움을 켜지 않아 아무것도 보내지 않은 것이다 — 연결 탓이
+  /// 아니고, 다시 눌러도 같다(설정에서 켠다).
   bool busy = false,
       failed = false,
+      aiOff = false,
       noPlates = false,
       charged = false,
       chargedBefore = false,
@@ -3035,8 +3038,8 @@ class RoutineSearch extends ChangeNotifier {
   void _reset(String t) {
     text = t;
     answer = null;
-    busy = failed = noPlates = charged = chargedBefore = tooLong = misread =
-        retry = false;
+    busy = failed = aiOff = noPlates = charged = chargedBefore = tooLong =
+        misread = retry = false;
   }
 
   /// 치는 중 — 담아 둔 답만 본다. 원판은 나가지 않는다.
@@ -3065,13 +3068,13 @@ class RoutineSearch extends ChangeNotifier {
     if (t.length > maxQuestionLength || (_broken[key] ?? 0) >= 2) {
       tooLong = t.length > maxQuestionLength;
       misread = !tooLong;
-      retry = failed = noPlates = false;
+      retry = failed = aiOff = noPlates = false;
       if (!_disposed) notifyListeners();
       return;
     }
     final version = ++_version;
     busy = true;
-    failed = noPlates = misread = retry = false;
+    failed = aiOff = noPlates = misread = retry = false;
     notifyListeners();
     await _cache.load();
     answer ??= _cache[key];
@@ -3124,6 +3127,9 @@ class RoutineSearch extends ChangeNotifier {
       if (_disposed || version != _version) return;
       if (e is RecordAiException && e.status == RecordAiStatus.noPlates) {
         noPlates = true;
+      } else if (e is RecordAiException && e.status == RecordAiStatus.aiOff) {
+        // AI 도움을 켜지 않았다. 아무것도 보내지 않았다 — 기기가 기록으로만 짠다.
+        aiOff = true;
       } else if (e is RecordAiException && e.charged) {
         // 서버는 모델을 불렀고 원판이 나갔는데 답이 깨졌다(502 upstream). 연결이 아니다.
         broken();

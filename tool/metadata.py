@@ -26,9 +26,10 @@ T = {
 'ko': dict(
   name='setpad',
   subtitle='치면 남는 운동 기록',
-  short='운동 이름을 치고, 무게와 횟수를 칩니다. 그게 전부입니다.',
-  keywords='운동기록,헬스,웨이트,근력운동,운동일지,헬스일지,벤치프레스,스쿼트,데드리프트,세트,루틴,피트니스',
-  notes='이번 업데이트\n\n· 식단 사진으로 칼로리 추정 (사진은 저장하지 않음)\n· 체육관 연결, 루틴 수신, PT 예약\n· 로그인 유지와 앱 안 계정 삭제\n· 스티커 출석과 앱 링크',
+  short='운동도 식단도 한 줄에 치면 남는 기록. 여럿이 같이 쓰고, 기록에 물어봅니다.',
+  keywords='운동기록,헬스,웨이트,근력운동,운동일지,헬스일지,식단,칼로리,벤치프레스,스쿼트,데드리프트,세트,루틴',
+  promo='최대 6명이 한 기록을 같이 고치고, 기록 질문은 기간·운동을 나란히 비교합니다. 운동도 식단도 한 줄에 치면 알아서 갈라 남기고, 끼니 열량에는 출처가 붙습니다.',
+  notes='이번 업데이트',
   desc='''운동 이름을 치고, 무게와 횟수를 칩니다. 그게 전부입니다.
 
 setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 순간 메모장에 적듯 숫자를 칩니다. 화면을 옮겨 다니거나 드롭다운을 고를 일이 없습니다.
@@ -38,43 +39,61 @@ setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 
 · 세트 전용 키패드 — 숫자와 +/- 뿐입니다. 2.5kg씩 올리고 내립니다
 · 이전 세트와 같으면 한 번만 누르면 됩니다
 · 한글은 초성만 쳐도 찾습니다. 오타가 나도 찾습니다
+· 오늘 한 세트가 한 화면의 표로 보이고, 칸을 눌러 바로 고칩니다
 
-■ 한 줄 설정
-· "벤치 80kg 100개 채우기"라고 적으면 무게와 목표를 알아서 잡습니다
-· 문장은 서버의 AI가 해석합니다. 문장은 서버에 저장하지 않습니다
-· 인터넷이 없거나 해석이 안 되면 친 그대로 이름으로 남습니다 — 기록은 막히지 않습니다
+■ 운동도 식단도 한 줄에
+· 같은 입력 줄에 "벤치 80kg 5x5"를 치면 운동, "점심 김밥"이나 "라면 500kcal"을 치면 식단으로 남습니다. 잘못 갈렸으면 한 번 눌러 바꿉니다
+· "벤치 80kg 100개 채우기"라고 적으면 무게와 목표를 알아서 잡습니다. 설정에 못 옮긴 말은 버리지 않고 보여 줍니다
+· 어제 친 루틴 줄을 다시 치면 그 설정이 그대로 붙습니다
+· 인터넷이 없거나 해석이 안 되면 친 그대로 남습니다 — 기록은 막히지 않습니다
 
-■ 세트마다 메모
-· 세트 아래에 그때 생각을 그대로 답니다. 여러 줄이 쌓입니다
-· 눌러서 고치고, 지우기로 지웁니다 — 문서 쓰듯이
+■ 기록에 묻고 비교하기
+· "지난달보다 스쿼트 늘었어?", "벤치 vs 로우"처럼 물으면 저장된 세트로 계산해 표로 보여 줍니다. 기간과 운동을 나란히 비교합니다
+· 숫자는 AI가 아니라 폰이 기록에서 셉니다
+· 기록 질문에는 원판을 씁니다(아래 참고). 운동 이름으로 찾기는 언제나 무료입니다
+
+■ 식단과 열량의 출처
+· 식단을 글이나 사진으로 남기고, 먹은 양을 고르면 그만큼 계산합니다
+· 열량 옆에 출처가 붙습니다 — 식약처 식품영양성분 DB나 USDA FoodData Central의 값이면 누르면 그 값과 원본 링크가 나오고, 표에 없으면 AI 어림이라고 적습니다
+· 열량을 모르면 모른다고 적습니다. 직접 적은 kcal은 그대로 씁니다
+· 그날 먹은 것과 운동으로 쓴 것을 한 줄로 봅니다
+
+■ 같이 하기
+· 코드나 링크로 최대 6명이 한 기록을 같이 씁니다. 누가 어디를 고치는지 이름표와 커서로 보입니다
+· 옆 사람의 세트를 내 폰에서 대신 적고, 링크로 건넵니다
+· 타바타와 박자를 여러 폰에서 같은 순간에 시작합니다. 기구 하나를 둘이 번갈아 쓰는 교대도 됩니다
 
 ■ 건강 앱 연동
 · 친 운동이 건강 앱에 운동 기록으로 남습니다
 · 워치가 잰 활동 칼로리를 가져옵니다 (Apple 건강, 헬스 커넥트)
 · 타바타 휴식 중 워치 심박이 그 라운드 최고치보다 25bpm 내려오면 휴식을 끝내고 다음 라운드를 알립니다. 쉬는 동안 ♥ 지금 → 목표가 보입니다
 · 건강 앱에서 읽은 값은 기기 밖으로 나가지 않습니다
-· 앱이 칼로리를 지어내지 않습니다. 잰 것이 없으면 칼로리를 표시하지 않습니다
+· 운동 칼로리를 지어내지 않습니다. 잰 것이 없으면 표시하지 않습니다
+
+■ 체육관
+· 헬스장 스티커에 폰을 대면 트레이너가 짠 오늘 루틴이 열립니다. PT 예약도 앱에서 합니다
+· 트레이너 모드: 체육관 직원 계정이면 아침 보고서로 오늘 수업과 확인할 일을 보고, 한 번 눌러 처리합니다
+
+■ AI 도움과 원판
+· 한 줄 설정, 식단 열량 어림, 기록 질문은 처음 쓸 때 동의를 묻습니다. 동의하면 친 문장과 식단 사진(위치 정보를 뗀 것)이 우리 서버를 거쳐 DeepSeek의 AI로 가고, 우리 서버는 그 내용을 저장하지 않습니다. 설정에서 언제든 끌 수 있고, 꺼도 기록은 그대로 됩니다
+· 적기 도움(한 줄 설정·식단 어림)은 하루 10번 무료입니다
+· 기록 질문은 원판을 씁니다. 처음에 몇 장을 받고, 세트 10개를 채운 날마다 1장을 받습니다
+· Pro 구독: 매달 원판을 300장까지 채우고, 적기 도움은 하루 20번입니다. 무료 체험 중에는 30장까지
 
 ■ 그밖에
 · kg, lb, km, 분, 초 — 하는 운동에 맞는 단위를 씁니다
 · 다크 모드는 시스템 설정을 따릅니다
 · 한국어, 영어, 일본어, 스페인어, 태국어, 베트남어, 중국어(간체·번체)
 
-■ 식단·같이 하기
-· 식단을 사진이나 글로 남깁니다. 열량을 모르면 모른다고 적습니다
-· 그날 먹은 것과 운동으로 쓴 것을 한 줄로 봅니다
-· 같이 하기: 코드로 연결해 서로의 기록을 봅니다. 상대 기록은 읽기 전용입니다
-· 타바타와 박자를 둘이 같은 순간에 시작합니다. 기구 하나를 번갈아 쓰는 교대도 됩니다
-· 공동 루틴: 링크로 초대해 다음 운동을 함께 정하고, 같은 버전에 동의한 뒤 시작합니다
-
-혼자 기록하는 데는 계정이 필요 없습니다. 도장 연결, 같이 하기, 공동 루틴, 구독에는 로그인이 필요합니다. 광고가 없습니다. 기록은 기기에 남고, 도장에 연결한 기록과 공유하기로 한 것만 서버로 갑니다.'''),
+혼자 기록하는 데는 계정이 필요 없습니다. 체육관 연결, 같이 하기, 구독에는 로그인이 필요합니다. 광고가 없습니다. 내 기록은 기기에 저장되고, 무엇이 서버로 가는지는 개인정보 처리방침에 적었습니다.'''),
 
 'en': dict(
   name='setpad',
   subtitle='Type a set. It is logged.',
-  short='Type the exercise, type the weight and reps. That is the whole app.',
-  keywords='workout,gym,lifting,strength,training log,workout log,bench press,squat,deadlift,sets,reps',
-  notes='In this update\n\n· Estimate calories from a meal photo (photos are not stored)\n· Connect to a gym, receive routines, and book PT sessions\n· Persistent sign-in and in-app account deletion\n· Sticker check-ins and app links',
+  short='Type a set or a meal in one line. Log together, and ask your log.',
+  keywords='workout,gym,lifting,strength,training log,workout log,calories,meals,bench press,squat,deadlift,sets',
+  promo='Up to 6 people edit one record live. Record questions compare periods and exercises side by side. One line logs a set or a meal, and meal calories show their source.',
+  notes='In this update',
   desc='''Type the exercise, type the weight and reps. That is the whole app.
 
 setpad is not a routine builder. The moment a set is done you type the numbers, the way you would in a notes app. No screens to move between, no dropdowns to pick.
@@ -84,43 +103,61 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 · A keypad built for sets — digits and +/-, stepping by 2.5 kg
 · Same as last set? One tap
 · Search tolerates typos and matches partial words
+· Every set you did today sits in one table; tap a cell to fix it
 
-■ One-line setup
-· Write "bench 80kg, work up to 100 reps" and the weight and goal are filled in
-· The sentence is interpreted by AI on our server. The sentence is not stored there
-· Offline, or when it cannot be interpreted, what you typed simply becomes the name — logging is never blocked
+■ Sets and meals in one line
+· Type "bench 80kg 5x5" and it becomes an exercise; type "lunch burrito" or "ramen 500kcal" and it becomes a meal. If it guessed wrong, one tap switches it
+· Write "bench 80kg, work up to 100 reps" and the weight and goal are filled in. Words it could not place are shown, never dropped
+· Type yesterday's routine line again and its setup comes back
+· Offline, or when it cannot be read, what you typed is kept as written — logging is never blocked
 
-■ A note under any set
-· Write what you were thinking, right under the set. Notes stack up
-· Tap to edit, backspace to remove — like writing a document
+■ Ask your log, compare
+· Ask "Did my squat go up since last month?" or "bench vs row" and get a table computed from your saved sets, with periods and exercises side by side
+· The numbers are counted by your phone from your log, not by the AI
+· Record questions use plates (see below). Searching by exercise name is always free
+
+■ Meals, with a source for the calories
+· Log meals as text or a photo, then pick how much you ate
+· Calories show where they came from: a value from the Korean MFDS food composition database or USDA FoodData Central opens with the table's number and a link to the source; anything else is marked as an AI estimate
+· When the calories are unknown, it says unknown. Calories you type are used as written
+· See the day's intake and exercise energy in one line
+
+■ Together
+· Up to 6 people write one record together, live — name tags and cursors show who is editing what
+· Log a partner's sets on your phone and hand them over with a link
+· Start a Tabata or a tempo on several phones at the same moment, or take turns on one machine
 
 ■ Health app
 · Your workout is written to the Health app as a workout
 · Active energy measured by your watch is read back in (Apple Health, Health Connect)
 · During a Tabata rest, once your watch heart rate is 25 bpm below that round's peak, the rest ends and the next round is signalled. While resting you see ♥ now → target
 · What is read from your health app never leaves the device
-· The app never invents a calorie number. If nothing measured it, no calories are shown
+· Exercise calories are never invented. If nothing measured them, none are shown
+
+■ Gyms
+· Hold your phone to the gym's sticker and today's routine from your trainer opens. Book PT sessions in the app
+· Trainer mode: gym staff get a morning report with today's classes and to-dos, and handle each with a tap
+
+■ AI help and plates
+· One-line setup, meal calorie estimates and record questions ask for your consent the first time. With it, the text you type and meal photos (location removed) go through our server to DeepSeek's AI; our server does not store them. Turn it off any time in Settings — logging keeps working
+· Input help (one-line setup, meal estimates): 10 a day, free
+· Record questions use plates. You start with a few, and earn 1 on each day you log 10 sets
+· Pro subscription: plates topped up to 300 each month, input help 20 a day. Up to 30 plates during a free trial
 
 ■ Also
 · kg, lb, km, minutes, seconds — the unit that fits what you are doing
 · Dark mode follows your system setting
 · English, Korean, Japanese, Spanish, Thai, Vietnamese, Chinese (Simplified and Traditional)
 
-■ Meals, together
-· Log meals by photo or as text. When the calories are unknown, it says unknown
-· See the day's intake and exercise energy in one line
-· Together: connect with a code to see each other's log. Your partner's log is read-only
-· Start a Tabata or a tempo on both phones at the same moment — or take turns on one machine
-· Shared plans: invite by link, decide the next workout together, agree on the same version, then start
-
-Logging on your own needs no account. Gym links, working out together, shared plans and subscriptions need sign-in. No ads. Your log stays on your device; only gym-linked records and what you choose to share go to the server.'''),
+Logging on your own needs no account. Gym links, working out together and subscriptions need sign-in. No ads. Your log is stored on your device; the privacy policy lists what goes to the server.'''),
 
 'ja': dict(
   name='setpad',
   subtitle='打てば残る、筋トレ記録',
-  short='種目名を打ち、重量と回数を打つ。それだけのアプリです。',
-  keywords='筋トレ,ジム,ウエイト,トレーニング記録,筋トレ記録,ベンチプレス,スクワット,デッドリフト,セット,回数,フィットネス',
-  notes='今回のアップデート\n\n・食事写真からカロリーを推定（写真は保存しません）\n・ジム連携、ルーティン受信、PT予約\n・ログイン保持とアプリ内アカウント削除\n・ステッカーでのチェックインとアプリリンク',
+  short='運動も食事も一行で記録。みんなで一緒に書き、記録に質問できます。',
+  keywords='筋トレ,ジム,ウエイト,トレーニング記録,筋トレ記録,食事記録,カロリー,ベンチプレス,スクワット,デッドリフト,セット',
+  promo='最大6人で1つの記録をリアルタイムに編集。記録への質問は期間や種目を並べて比べます。運動も食事も一行で振り分けて記録し、食事のカロリーには出どころが付きます。',
+  notes='今回のアップデート',
   desc='''種目名を打ち、重量と回数を打つ。それだけのアプリです。
 
 setpadはルーティンを組み立てるアプリではありません。セットを終えたその場で、メモ帳に書くように数字を打ちます。画面を行き来したり、ドロップダウンを選んだりする必要はありません。
@@ -130,89 +167,125 @@ setpadはルーティンを組み立てるアプリではありません。セ�
 ・セット専用キーパッド — 数字と+/-だけ。2.5kg刻みで上下します
 ・前のセットと同じなら一度押すだけです
 ・入力の揺れや打ち間違いがあっても検索に引っかかります
+・今日の全セットが1画面の表に並び、セルをタップしてすぐ直せます
 
-■ 一行設定
-・「ベンチ 80kg 100回まで」と書けば、重量と目標を自動で設定します
-・文章はサーバーのAIが解釈します。文章はサーバーに保存しません
-・オフラインや解釈できないときは、入力したままが種目名になります — 記録は止まりません
+■ 運動も食事も一行で
+・同じ入力欄に「ベンチ 80kg 5x5」と打てば運動、「ラーメン 500kcal」と打てば食事として残ります。振り分けが違えば一度のタップで切り替えます
+・「ベンチ 80kg 100回まで」と書けば、重量と目標を自動で設定します。設定に移せなかった言葉は捨てずに表示します
+・昨日打ったルーティンの行をもう一度打つと、その設定がそのまま付きます
+・オフラインや解釈できないときも、入力したまま残ります — 記録は止まりません
 
-■ セットごとのメモ
-・そのとき考えたことを、セットのすぐ下に残せます。何行でも積み上がります
-・タップして直し、削除で消します — 文書を書くように
+■ 記録に質問して比べる
+・「先月よりスクワットは伸びた？」「ベンチ vs ロウ」のように聞くと、保存したセットから計算して表で見せます。期間や種目を並べて比べられます
+・数字は AI ではなく端末が記録から数えます
+・記録への質問にはプレートを使います（下記）。種目名での検索はいつでも無料です
+
+■ 食事とカロリーの出どころ
+・食事をテキストか写真で記録し、食べた量を選ぶとその分を計算します
+・カロリーの横に出どころが付きます — 韓国食品医薬品安全処の食品成分DBや USDA FoodData Central の値なら、タップでその値と元の表へのリンクが開きます。表にないものは AI の推定と表示します
+・カロリーが不明なら不明と表示します。自分で入力した kcal はそのまま使います
+・その日の摂取と運動消費を1行で見られます
+
+■ 一緒に
+・コードやリンクで最大6人が1つの記録を一緒に書きます。誰がどこを直しているか、名札とカーソルで見えます
+・隣の人のセットを自分のスマホで代わりに記録し、リンクで渡せます
+・タバタやテンポを複数のスマホで同じ瞬間にスタート。器具1台を2人で交代で使うこともできます
 
 ■ ヘルスケア連携
 ・記録した運動がヘルスケアにワークアウトとして残ります
 ・ウォッチが計測した消費エネルギーを読み込みます(Apple ヘルスケア、ヘルスコネクト)
 ・タバタの休憩中、ウォッチの心拍がそのラウンドの最高値より 25bpm 下がると休憩を終え、次のラウンドを知らせます。休憩中は ♥ 現在 → 目標 が表示されます
 ・ヘルスケアから読み取った値は端末の外に出ません
-・アプリがカロリーを推定することはありません。計測がなければカロリーは表示しません
+・運動のカロリーを作り出すことはありません。計測がなければ表示しません
+
+■ ジム
+・ジムのステッカーにスマホをかざすと、トレーナーが組んだ今日のルーティンが開きます。PT 予約もアプリでできます
+・トレーナーモード：ジムのスタッフは朝のレポートで今日のクラスと確認事項を見て、タップ一つで処理できます
+
+■ AI ヘルプとプレート
+・一行設定、食事のカロリー推定、記録への質問は、初めて使うときに同意を確認します。同意すると、入力した文章と食事の写真（位置情報を除く）が当社サーバーを経由して DeepSeek の AI に送られ、当社サーバーには保存しません。設定でいつでもオフにでき、オフでも記録はそのまま使えます
+・入力補助（一行設定・食事の推定）は1日10回まで無料です
+・記録への質問はプレートを使います。最初に数枚もらえ、10セットを記録した日ごとに1枚もらえます
+・Pro サブスクリプション：毎月プレートを300枚まで補充し、入力補助は1日20回。無料体験中は30枚まで
 
 ■ その他
 ・kg、lb、km、分、秒 — 種目に合った単位を使えます
 ・ダークモードはシステム設定に従います
 ・日本語、韓国語、英語、スペイン語、タイ語、ベトナム語、中国語（簡体字・繁体字）
 
-■ 食事・一緒に
-・食事を写真またはテキストで記録。カロリーが不明なら不明と表示します
-・その日の摂取と運動消費を1行で見られます
-・一緒に: コードでつながってお互いの記録を見ます。相手の記録は閲覧のみです
-・タバタやテンポを2台で同じ瞬間にスタート。器具1台を交代で使うこともできます
-・共同ルーティン: リンクで招待して次の運動を一緒に決め、同じバージョンに合意してから始めます
-
-一人で記録するだけならアカウントは不要です。ジム連携、一緒に、共同ルーティン、サブスクリプションにはログインが必要です。広告なし。記録は端末に残り、ジムに連携した記録と共有すると決めたものだけがサーバーに送られます。'''),
+一人で記録するだけならアカウントは不要です。ジム連携、一緒に、サブスクリプションにはログインが必要です。広告なし。記録は端末に保存され、サーバーに何が送られるかはプライバシーポリシーに記載しています。'''),
 
 'es': dict(
   name='setpad',
   subtitle='Escribe la serie. Ya está.',
-  short='Escribe el ejercicio, escribe el peso y las repeticiones. Eso es todo.',
-  keywords='entrenamiento,gimnasio,pesas,fuerza,diario,press banca,sentadilla,peso muerto,series,fitness',
-  notes='En esta actualización\n\n· Estimación de calorías a partir de una foto de comida (la foto no se guarda)\n· Conexión con el gimnasio, rutinas y reservas de PT\n· Inicio de sesión persistente y eliminación de la cuenta en la app\n· Registro con pegatinas y enlaces a la app',
+  short='Series y comidas en una línea. Registra en grupo y pregunta a tu registro.',
+  keywords='entrenamiento,gimnasio,pesas,fuerza,calorías,comidas,press banca,sentadilla,peso muerto,series',
+  promo='Hasta 6 personas editan un registro en vivo. Las preguntas comparan periodos y ejercicios. Una línea registra una serie o una comida, y las calorías muestran su fuente.',
+  notes='En esta actualización',
   desc='''Escribe el ejercicio, escribe el peso y las repeticiones. Eso es toda la app.
 
-setpad no es un creador de rutinas. En cuanto terminas una serie escribes los números, como lo harías en una app de notas. Sin pantallas por las que navegar, sin desplegables que elegir.
+setpad no es un creador de rutinas. En cuanto terminas una serie escribes los números, como en una app de notas. Sin pantallas ni desplegables.
 
 ■ Escribir es registrar
-· Escribe "Press banca" y el ejercicio se abre; escribe "80 12" y la serie queda registrada
+· Escribe "Press banca" y se abre el ejercicio; escribe "80 12" y queda la serie
 · Un teclado hecho para series — dígitos y +/-, en pasos de 2,5 kg
-· ¿Igual que la serie anterior? Un solo toque
+· ¿Igual que la anterior? Un toque
 · La búsqueda tolera erratas y encuentra palabras parciales
+· Todas las series de hoy en una tabla: toca una celda para corregirla
 
-■ Configuración en una línea
-· Escribe "banca 80kg hasta 100 repeticiones" y el peso y el objetivo se rellenan solos
-· La frase la interpreta una IA en nuestro servidor. La frase no se guarda allí
-· Sin conexión, o si no se puede interpretar, lo que escribiste queda como nombre — el registro nunca se bloquea
+■ Series y comidas en una línea
+· Escribe "banca 80kg 5x5" y es un ejercicio; escribe "ramen 500kcal" y es una comida. Si se equivoca, un toque lo cambia
+· Escribe "banca 80kg hasta 100 repeticiones" y el peso y el objetivo se rellenan solos. Lo que no pudo colocar se muestra, no se pierde
+· Repite la línea de rutina de ayer y vuelve su configuración
+· Sin conexión, o si no se puede leer, lo que escribiste queda tal cual — el registro nunca se bloquea
 
-■ Una nota bajo cualquier serie
-· Anota lo que estabas pensando, justo debajo de la serie. Las notas se acumulan
-· Toca para editar, retroceso para borrar — como al escribir un documento
+■ Pregunta a tu registro y compara
+· Pregunta "¿Mejoró mi sentadilla desde el mes pasado?" o "banca vs remo": una tabla con tus series guardadas compara periodos y ejercicios
+· Los números los cuenta tu teléfono, no la IA
+· Las preguntas usan discos (ver abajo). Buscar por nombre de ejercicio es siempre gratis
+
+■ Comidas, con la fuente de las calorías
+· Registra comidas con texto o foto y elige cuánto comiste
+· Las calorías muestran su fuente: un valor de la tabla del MFDS de Corea o de USDA FoodData Central muestra, al tocarlo, el número y un enlace al original; lo demás se marca como estimación de la IA
+· Si no se conocen las calorías, lo dice. Las kcal que escribes se usan tal cual
+· La ingesta del día y la energía del ejercicio, en una línea
+
+■ Juntos
+· Hasta 6 personas escriben un registro en vivo; nombres y cursores muestran quién edita qué
+· Anota las series de tu compañero en tu teléfono y pásaselas con un enlace
+· Empezad un Tabata o un tempo a la vez en varios teléfonos, o por turnos en una máquina
 
 ■ App Salud
-· Tu entrenamiento se guarda en Salud como un entrenamiento
+· Tu entrenamiento se guarda en Salud
 · Se lee la energía activa medida por tu reloj (Salud de Apple, Health Connect)
-· En el descanso de un Tabata, cuando el pulso del reloj baja 25 lpm del máximo de esa ronda, el descanso termina y se avisa la siguiente ronda. Mientras descansas ves ♥ ahora → objetivo
+· En el descanso de un Tabata, cuando el pulso del reloj baja 25 lpm del máximo de la ronda, se avisa la siguiente. Mientras descansas ves ♥ ahora → objetivo
 · Lo que se lee de la app de salud nunca sale del dispositivo
-· La app nunca se inventa las calorías. Si nadie las midió, no se muestran
+· Las calorías del ejercicio nunca se inventan. Si nadie las midió, no se muestran
+
+■ Gimnasios
+· Acerca el teléfono a la pegatina del gimnasio y se abre la rutina de hoy de tu entrenador. Reserva PT en la app
+· Modo entrenador: el personal del gimnasio ve cada mañana las clases de hoy y lo pendiente, y lo resuelve con un toque
+
+■ Ayuda de IA y discos
+· La primera vez, la configuración en una línea, la estimación de calorías y las preguntas piden tu consentimiento. Si aceptas, tu texto y las fotos de comidas (sin ubicación) pasan por nuestro servidor a la IA de DeepSeek; nuestro servidor no los guarda. Puedes desactivarla en Ajustes; el registro sigue funcionando
+· Ayuda para anotar (línea de configuración, estimación de comidas): 10 al día, gratis
+· Las preguntas usan discos. Empiezas con algunos y ganas 1 cada día que registras 10 series
+· Suscripción Pro: discos rellenados hasta 300 cada mes y ayuda para anotar 20 veces al día. Hasta 30 discos durante la prueba gratuita
 
 ■ Además
-· kg, lb, km, minutos, segundos — la unidad que corresponde a lo que haces
+· kg, lb, km, minutos, segundos — la unidad de cada ejercicio
 · El modo oscuro sigue la configuración del sistema
 · Español, inglés, coreano, japonés, tailandés, vietnamita y chino (simplificado y tradicional)
 
-■ Comidas, juntos
-· Registra comidas con foto o texto. Si no se conocen las calorías, lo dice
-· Mira la ingesta del día y la energía del ejercicio en una línea
-· Juntos: conéctate con un código para ver el registro del otro. El de tu compañero es de solo lectura
-· Empezad un Tabata o un tempo en los dos móviles en el mismo instante, o por turnos en una máquina
-· Planes compartidos: invita por enlace, decidid juntos el próximo entrenamiento, acordad la misma versión y empezad
-
-Para registrar por tu cuenta no hace falta cuenta. Los gimnasios, entrenar juntos, los planes compartidos y las suscripciones requieren iniciar sesión. Sin anuncios. Tu registro se queda en tu dispositivo; solo van al servidor los registros vinculados a un gimnasio y lo que decidas compartir.'''),
+Para registrar por tu cuenta no hace falta cuenta. Los gimnasios, entrenar juntos y las suscripciones requieren iniciar sesión. Sin anuncios. Tu registro se guarda en tu dispositivo; la política de privacidad detalla qué va al servidor.'''),
 
 'th': dict(
   name='setpad',
   subtitle='พิมพ์เซ็ต แล้วบันทึกเลย',
-  short='พิมพ์ชื่อท่า พิมพ์น้ำหนักและจำนวนครั้ง แค่นั้นทั้งแอป',
-  keywords='บันทึกออกกำลังกาย,ฟิตเนส,ยกน้ำหนัก,เวทเทรนนิ่ง,สมุดบันทึก,เบนช์เพรส,สควอท,เดดลิฟต์,เซ็ต,ยิม',
-  notes='ในการอัปเดตนี้\n\n· ประเมินแคลอรีจากภาพอาหาร (ไม่จัดเก็บภาพ)\n· เชื่อมต่อยิม รับโปรแกรม และจอง PT\n· คงสถานะการเข้าสู่ระบบและลบบัญชีในแอป\n· เช็กอินด้วยสติกเกอร์และลิงก์เข้าแอป',
+  short='พิมพ์เซ็ตหรือมื้ออาหารในบรรทัดเดียว บันทึกร่วมกัน และถามบันทึกของคุณได้',
+  keywords='บันทึกออกกำลังกาย,ฟิตเนส,ยกน้ำหนัก,เวทเทรนนิ่ง,แคลอรี,อาหาร,เบนช์เพรส,สควอท,เดดลิฟต์,เซ็ต,ยิม',
+  promo='แก้บันทึกเดียวกันพร้อมกันได้ถึง 6 คน คำถามถึงบันทึกเทียบช่วงเวลาและท่าให้เห็นเคียงกัน พิมพ์เซ็ตหรือมื้ออาหารในบรรทัดเดียว และแคลอรีมีแหล่งที่มากำกับ',
+  notes='ในการอัปเดตนี้',
   desc='''พิมพ์ชื่อท่า พิมพ์น้ำหนักและจำนวนครั้ง แค่นั้นทั้งแอป
 
 setpad ไม่ใช่แอปสร้างโปรแกรมฝึกล่วงหน้า พอจบเซ็ตก็พิมพ์ตัวเลขลงไปทันที เหมือนจดในแอปโน้ต ไม่ต้องสลับหน้าจอ ไม่ต้องเลือกจากรายการ
@@ -222,43 +295,61 @@ setpad ไม่ใช่แอปสร้างโปรแกรมฝึก�
 · แป้นพิมพ์ที่ทำมาเพื่อเซ็ต — มีแค่ตัวเลขกับ +/- ปรับทีละ 2.5 กก.
 · เหมือนเซ็ตก่อนหน้าไหม แตะครั้งเดียวพอ
 · ค้นหาได้แม้พิมพ์ผิดหรือพิมพ์ไม่ครบ
+· ทุกเซ็ตของวันนี้อยู่ในตารางเดียว แตะช่องเพื่อแก้ได้ทันที
 
-■ ตั้งค่าบรรทัดเดียว
-· เขียนว่า "เบนช์ 80 กก. ให้ครบ 100 ครั้ง" แล้วน้ำหนักกับเป้าหมายจะถูกตั้งให้เอง
-· ประโยคถูกตีความโดย AI บนเซิร์ฟเวอร์ของเรา และไม่ถูกเก็บไว้ที่นั่น
-· เมื่อออฟไลน์หรือตีความไม่ได้ สิ่งที่พิมพ์จะกลายเป็นชื่อท่าตามนั้น — การบันทึกไม่ถูกขวาง
+■ เซ็ตและอาหารในบรรทัดเดียว
+· พิมพ์ "เบนช์ 80kg 5x5" จะเป็นท่าออกกำลัง พิมพ์ "ข้าวผัด 550kcal" จะเป็นมื้ออาหาร ถ้าแยกผิดก็แตะครั้งเดียวเพื่อสลับ
+· เขียนว่า "เบนช์ 80 กก. ให้ครบ 100 ครั้ง" แล้วน้ำหนักกับเป้าหมายจะถูกตั้งให้เอง คำที่ใส่ในการตั้งค่าไม่ได้จะแสดงให้เห็น ไม่ถูกทิ้ง
+· พิมพ์บรรทัดโปรแกรมของเมื่อวานซ้ำ การตั้งค่าเดิมจะกลับมา
+· เมื่อออฟไลน์หรืออ่านไม่ได้ สิ่งที่พิมพ์จะถูกเก็บไว้ตามนั้น — การบันทึกไม่ถูกขวาง
 
-■ โน้ตใต้เซ็ต
-· จดสิ่งที่คิดตอนนั้นไว้ใต้เซ็ตได้เลย จดได้หลายบรรทัด
-· แตะเพื่อแก้ กดลบเพื่อลบ — เหมือนเขียนเอกสาร
+■ ถามบันทึกและเปรียบเทียบ
+· ถามว่า "สควอทดีขึ้นกว่าเดือนที่แล้วไหม" หรือ "เบนช์ vs โรว์" แล้วจะได้ตารางที่คำนวณจากเซ็ตที่บันทึกไว้ เทียบช่วงเวลาและท่าเคียงกัน
+· ตัวเลขนับโดยโทรศัพท์จากบันทึกของคุณ ไม่ใช่โดย AI
+· คำถามถึงบันทึกใช้แผ่นน้ำหนัก (ดูด้านล่าง) การค้นหาด้วยชื่อท่าฟรีเสมอ
+
+■ อาหาร พร้อมแหล่งที่มาของแคลอรี
+· บันทึกมื้ออาหารด้วยข้อความหรือรูป แล้วเลือกปริมาณที่กิน
+· แคลอรีบอกแหล่งที่มา: ถ้าเป็นค่าจากฐานข้อมูลส่วนประกอบอาหารของ MFDS เกาหลีหรือ USDA FoodData Central แตะแล้วจะเห็นค่าในตารางและลิงก์ต้นฉบับ ถ้าไม่ใช่จะระบุว่าเป็นค่าประมาณของ AI
+· ถ้าไม่ทราบแคลอรีก็จะบอกว่าไม่ทราบ kcal ที่พิมพ์เองจะใช้ตามนั้น
+· ดูการกินและพลังงานที่ใช้ออกกำลังของวันนั้นในบรรทัดเดียว
+
+■ ออกกำลังด้วยกัน
+· ใช้รหัสหรือลิงก์ให้สูงสุด 6 คนเขียนบันทึกเดียวกันพร้อมกัน ป้ายชื่อและเคอร์เซอร์บอกว่าใครกำลังแก้ตรงไหน
+· จดเซ็ตของเพื่อนแทนบนโทรศัพท์ของคุณ แล้วส่งให้ด้วยลิงก์
+· เริ่มทาบาตะหรือจังหวะบนหลายเครื่องในวินาทีเดียวกัน หรือสลับกันใช้เครื่องเดียวสองคน
 
 ■ แอปสุขภาพ
 · การออกกำลังกายจะถูกบันทึกลงแอปสุขภาพ
 · ดึงพลังงานที่นาฬิกาวัดไว้เข้ามา (Apple Health, Health Connect)
 · ระหว่างพักในทาบาตะ เมื่อหัวใจที่นาฬิกาวัดได้ต่ำกว่าค่าสูงสุดของรอบนั้น 25 bpm จะจบการพักและแจ้งรอบถัดไป ระหว่างพักจะเห็น ♥ ปัจจุบัน → เป้าหมาย
 · ค่าที่อ่านจากแอปสุขภาพจะไม่ออกจากอุปกรณ์
-· แอปไม่เดาแคลอรีเอง ถ้าไม่มีการวัดก็จะไม่แสดงแคลอรี
+· แอปไม่แต่งแคลอรีของการออกกำลังขึ้นเอง ถ้าไม่มีการวัดก็จะไม่แสดง
+
+■ ยิม
+· แตะโทรศัพท์ที่สติกเกอร์ของยิม โปรแกรมวันนี้ที่เทรนเนอร์จัดไว้จะเปิดขึ้น จอง PT ได้ในแอป
+· โหมดเทรนเนอร์: พนักงานยิมจะได้รายงานตอนเช้าเรื่องคลาสวันนี้และสิ่งที่ต้องตรวจ แล้วจัดการได้ในแตะเดียว
+
+■ ตัวช่วย AI และแผ่นน้ำหนัก
+· การตั้งค่าบรรทัดเดียว การประมาณแคลอรีอาหาร และคำถามถึงบันทึก จะขอความยินยอมเมื่อใช้ครั้งแรก เมื่อยินยอม ข้อความที่พิมพ์และรูปอาหาร (ลบตำแหน่งแล้ว) จะส่งผ่านเซิร์ฟเวอร์ของเราไปยัง AI ของ DeepSeek โดยเซิร์ฟเวอร์ของเราไม่จัดเก็บไว้ ปิดได้ทุกเมื่อในการตั้งค่า และการบันทึกยังใช้ได้ตามปกติ
+· ตัวช่วยจด (ตั้งค่าบรรทัดเดียว ประมาณอาหาร) ฟรีวันละ 10 ครั้ง
+· คำถามถึงบันทึกใช้แผ่นน้ำหนัก เริ่มต้นได้รับจำนวนหนึ่ง และได้ 1 แผ่นทุกวันที่บันทึกครบ 10 เซ็ต
+· สมัครสมาชิก Pro: เติมแผ่นน้ำหนักให้ถึง 300 แผ่นทุกเดือน ตัวช่วยจดวันละ 20 ครั้ง ระหว่างทดลองใช้ฟรีได้ถึง 30 แผ่น
 
 ■ อื่น ๆ
 · กก., ปอนด์, กม., นาที, วินาที — เลือกหน่วยให้ตรงกับสิ่งที่ทำ
 · โหมดมืดตามการตั้งค่าของระบบ
 · ไทย อังกฤษ เกาหลี ญี่ปุ่น สเปน เวียดนาม และจีน (ตัวย่อและตัวเต็ม)
 
-■ อาหาร และออกกำลังด้วยกัน
-· บันทึกมื้ออาหารด้วยรูปหรือข้อความ ถ้าไม่ทราบแคลอรีก็จะบอกว่าไม่ทราบ
-· ดูการกินและพลังงานที่ใช้ออกกำลังของวันนั้นในบรรทัดเดียว
-· ด้วยกัน: เชื่อมต่อด้วยรหัสเพื่อดูบันทึกของกันและกัน บันทึกของอีกฝ่ายอ่านได้อย่างเดียว
-· เริ่มทาบาตะหรือจังหวะบนสองเครื่องในวินาทีเดียวกัน หรือสลับกันใช้เครื่องเดียว
-· แผนร่วม: เชิญด้วยลิงก์ ตกลงการออกกำลังครั้งถัดไปด้วยกัน ยอมรับเวอร์ชันเดียวกัน แล้วเริ่ม
-
-การบันทึกคนเดียวไม่ต้องมีบัญชี การเชื่อมยิม การออกกำลังด้วยกัน แผนร่วม และการสมัครสมาชิกต้องเข้าสู่ระบบ ไม่มีโฆษณา บันทึกอยู่ในเครื่องของคุณ มีเพียงบันทึกที่เชื่อมกับยิมและสิ่งที่คุณเลือกแชร์เท่านั้นที่ส่งไปเซิร์ฟเวอร์'''),
+การบันทึกคนเดียวไม่ต้องมีบัญชี การเชื่อมยิม การออกกำลังด้วยกัน และการสมัครสมาชิกต้องเข้าสู่ระบบ ไม่มีโฆษณา บันทึกของคุณเก็บไว้ในเครื่อง และนโยบายความเป็นส่วนตัวระบุว่าอะไรถูกส่งไปเซิร์ฟเวอร์'''),
 
 'vi': dict(
   name='setpad',
   subtitle='Gõ một hiệp là xong',
-  short='Gõ tên bài tập, gõ mức tạ và số lần. Cả ứng dụng chỉ có vậy.',
-  keywords='nhật ký tập,gym,tạ,thể hình,sức mạnh,ghi chép tập luyện,đẩy ngực,squat,deadlift,hiệp,fitness',
-  notes='Trong bản cập nhật này\n\n· Ước tính calo từ ảnh bữa ăn (không lưu ảnh)\n· Kết nối phòng tập, nhận giáo án và đặt lịch PT\n· Duy trì đăng nhập và xoá tài khoản trong ứng dụng\n· Điểm danh bằng nhãn dán và liên kết ứng dụng',
+  short='Gõ hiệp tập hay bữa ăn trên một dòng. Ghi cùng nhau và hỏi nhật ký của bạn.',
+  keywords='nhật ký tập,gym,tạ,thể hình,sức mạnh,calo,bữa ăn,đẩy ngực,squat,deadlift,hiệp,fitness',
+  promo='Tối đa 6 người cùng sửa một nhật ký theo thời gian thực. Câu hỏi so sánh giai đoạn và bài tập cạnh nhau. Một dòng ghi hiệp tập hay bữa ăn, và calo luôn có nguồn.',
+  notes='Trong bản cập nhật này',
   desc='''Gõ tên bài tập, gõ mức tạ và số lần. Cả ứng dụng chỉ có vậy.
 
 setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ số ngay lúc đó, như viết vào ứng dụng ghi chú. Không phải chuyển qua lại giữa các màn hình, không phải chọn từ danh sách xổ xuống.
@@ -268,43 +359,61 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 · Bàn phím làm riêng cho hiệp — chỉ có số và +/-, bước 2,5 kg
 · Giống hiệp trước? Chạm một lần
 · Tìm kiếm vẫn ra kết quả dù gõ sai hoặc gõ thiếu
+· Mọi hiệp hôm nay nằm trong một bảng; chạm vào ô để sửa ngay
 
-■ Thiết lập một dòng
-· Viết "đẩy ngực 80kg cho đủ 100 lần" là mức tạ và mục tiêu tự được điền
-· Câu chữ được AI trên máy chủ của chúng tôi diễn giải. Câu chữ không được lưu ở đó
-· Khi ngoại tuyến hoặc không diễn giải được, điều bạn gõ sẽ thành tên bài tập — việc ghi không bao giờ bị chặn
+■ Hiệp tập và bữa ăn trên một dòng
+· Gõ "đẩy ngực 80kg 5x5" là bài tập; gõ "phở 450kcal" là bữa ăn. Nếu đoán sai, chạm một lần để đổi
+· Viết "đẩy ngực 80kg cho đủ 100 lần" là mức tạ và mục tiêu tự được điền. Những chữ không đưa được vào thiết lập vẫn hiện ra, không bị bỏ
+· Gõ lại dòng giáo án hôm qua là thiết lập cũ quay lại
+· Khi ngoại tuyến hoặc không đọc được, điều bạn gõ được giữ nguyên — việc ghi không bao giờ bị chặn
 
-■ Ghi chú dưới từng hiệp
-· Viết điều bạn đang nghĩ, ngay dưới hiệp vừa xong. Ghi chú xếp chồng lên nhau
-· Chạm để sửa, xoá lùi để bỏ — như đang viết một tài liệu
+■ Hỏi nhật ký và so sánh
+· Hỏi "Squat có tăng so với tháng trước không?" hay "đẩy ngực vs chèo tạ" để nhận bảng tính từ các hiệp đã lưu, so giai đoạn và bài tập cạnh nhau
+· Các con số do điện thoại đếm từ nhật ký của bạn, không phải AI
+· Câu hỏi về nhật ký dùng bánh tạ (xem bên dưới). Tìm theo tên bài tập luôn miễn phí
+
+■ Bữa ăn, có nguồn của calo
+· Ghi bữa ăn bằng chữ hoặc ảnh, rồi chọn lượng đã ăn
+· Calo cho biết nguồn: nếu giá trị lấy từ cơ sở dữ liệu thành phần thực phẩm của MFDS Hàn Quốc hoặc USDA FoodData Central, chạm vào sẽ thấy số trong bảng và liên kết tới nguồn; nếu không sẽ ghi là AI ước tính
+· Khi chưa rõ calo, ứng dụng ghi là chưa rõ. Số kcal bạn gõ được dùng đúng như vậy
+· Xem lượng nạp và năng lượng tập trong ngày trên một dòng
+
+■ Cùng nhau
+· Tối đa 6 người cùng viết một nhật ký theo thời gian thực; thẻ tên và con trỏ cho thấy ai đang sửa chỗ nào
+· Ghi hộ các hiệp của bạn tập trên điện thoại của bạn rồi gửi bằng liên kết
+· Bắt đầu Tabata hoặc nhịp trên nhiều máy cùng một lúc, hoặc hai người luân phiên trên một máy tập
 
 ■ Ứng dụng Sức khoẻ
 · Buổi tập được ghi vào Sức khoẻ như một buổi tập
 · Năng lượng hoạt động do đồng hồ đo được đọc về (Apple Health, Health Connect)
 · Khi nghỉ Tabata, nhịp tim từ đồng hồ giảm 25 bpm so với mức cao nhất của hiệp đó thì thời gian nghỉ kết thúc và hiệp tiếp theo được báo. Khi nghỉ bạn thấy ♥ hiện tại → mục tiêu
 · Dữ liệu đọc từ ứng dụng sức khỏe không rời khỏi thiết bị
-· Ứng dụng không tự bịa ra con số calo. Không đo được thì không hiển thị calo
+· Ứng dụng không tự bịa ra calo của buổi tập. Không đo được thì không hiển thị
+
+■ Phòng tập
+· Chạm điện thoại vào nhãn dán của phòng tập là giáo án hôm nay do huấn luyện viên soạn mở ra. Đặt lịch PT ngay trong ứng dụng
+· Chế độ huấn luyện viên: nhân viên phòng tập nhận báo cáo buổi sáng về lớp hôm nay và việc cần xem, xử lý chỉ với một chạm
+
+■ Trợ giúp AI và bánh tạ
+· Thiết lập một dòng, ước tính calo bữa ăn và câu hỏi về nhật ký sẽ hỏi sự đồng ý của bạn ở lần đầu. Khi đồng ý, chữ bạn gõ và ảnh bữa ăn (đã bỏ vị trí) đi qua máy chủ của chúng tôi tới AI của DeepSeek; máy chủ của chúng tôi không lưu lại. Tắt bất cứ lúc nào trong Cài đặt — việc ghi vẫn hoạt động
+· Trợ giúp ghi (thiết lập một dòng, ước tính bữa ăn): miễn phí 10 lần mỗi ngày
+· Câu hỏi về nhật ký dùng bánh tạ. Bạn có sẵn vài bánh lúc đầu và nhận 1 bánh mỗi ngày ghi đủ 10 hiệp
+· Gói Pro: bánh tạ được nạp lên tới 300 mỗi tháng, trợ giúp ghi 20 lần mỗi ngày. Tối đa 30 bánh trong thời gian dùng thử miễn phí
 
 ■ Ngoài ra
 · kg, lb, km, phút, giây — đơn vị hợp với việc bạn đang làm
 · Chế độ tối theo cài đặt hệ thống
 · Tiếng Việt, Anh, Hàn, Nhật, Tây Ban Nha, Thái và Trung (giản thể, phồn thể)
 
-■ Bữa ăn, tập cùng nhau
-· Ghi bữa ăn bằng ảnh hoặc chữ. Khi chưa rõ calo, ứng dụng ghi là chưa rõ
-· Xem lượng nạp và năng lượng tập trong ngày trên một dòng
-· Cùng nhau: kết nối bằng mã để xem ghi chép của nhau. Ghi chép của bạn tập chỉ để xem
-· Bắt đầu Tabata hoặc nhịp trên hai máy cùng một lúc — hoặc luân phiên trên một máy tập
-· Kế hoạch chung: mời bằng liên kết, cùng quyết định buổi tập tới, thống nhất cùng một phiên bản rồi bắt đầu
-
-Tự ghi một mình thì không cần tài khoản. Liên kết phòng tập, tập cùng nhau, kế hoạch chung và gói đăng ký cần đăng nhập. Không quảng cáo. Nhật ký nằm trên máy của bạn; chỉ các bản ghi liên kết với phòng tập và những gì bạn chọn chia sẻ mới lên máy chủ.'''),
+Tự ghi một mình thì không cần tài khoản. Liên kết phòng tập, tập cùng nhau và gói đăng ký cần đăng nhập. Không quảng cáo. Nhật ký được lưu trên máy của bạn; chính sách quyền riêng tư ghi rõ những gì được gửi lên máy chủ.'''),
 
 'zh-Hans': dict(
   name='setpad',
   subtitle='打一下，这组就记下了',
-  short='输入动作名，输入重量和次数。整个应用就这些。',
-  keywords='健身记录,举铁,力量训练,训练日志,卧推,深蹲,硬拉,组数,次数,健身房,健身',
-  notes='本次更新\n\n· 根据餐食照片估算热量（不保存照片）\n· 连接健身房、接收训练计划并预约私教\n· 保持登录及在 App 内删除账户\n· 贴纸签到与 App 链接',
+  short='一行输入训练或饮食，和朋友一起记录，还能向记录提问。',
+  keywords='健身记录,举铁,力量训练,训练日志,饮食记录,热量,卧推,深蹲,硬拉,组数,健身房',
+  promo='最多 6 人实时共同编辑一份记录；记录提问会把时间段和动作并排比较；一行输入训练或饮食自动分辨，餐食热量标明出处。',
+  notes='本次更新',
   desc='''输入动作名，输入重量和次数。整个应用就这些。
 
 setpad 不是用来提前编排计划的。做完一组，当场把数字打上去，就像在备忘录里写字一样。不用在页面之间来回切换，也不用从下拉框里挑。
@@ -314,43 +423,61 @@ setpad 不是用来提前编排计划的。做完一组，当场把数字打上�
 · 专为记录组数做的键盘 — 只有数字和 +/-，每次 2.5 公斤
 · 和上一组一样？点一下就行
 · 打错字、只打一半也能搜到
+· 今天做的所有组都在一张表里，点格子即可修改
 
-■ 一行设置
-· 写“卧推 80kg 做满 100 次”，重量和目标会自动填好
-· 这句话由我们服务器上的 AI 解析，句子不会保存在服务器上
-· 离线或无法解析时，你输入的内容会原样成为动作名 — 记录不会被挡住
+■ 训练和饮食，一行搞定
+· 在同一输入行输入“卧推 80kg 5x5”就是训练，输入“拉面 500kcal”就是饮食。分错了点一下就能切换
+· 写“卧推 80kg 做满 100 次”，重量和目标会自动填好。放不进设置的字会显示出来，不会丢掉
+· 再次输入昨天的训练行，原来的设置会自动带上
+· 离线或无法解析时，你输入的内容会原样保留 — 记录不会被挡住
 
-■ 每组下的备注
-· 把当时的想法写在这一组下面，可以写很多行
-· 点一下修改，退格删除 — 像写文档一样
+■ 向记录提问、比较
+· 问“深蹲比上个月涨了吗？”或“卧推 vs 划船”，就会用保存的组数算出表格，把时间段和动作并排比较
+· 数字由手机根据你的记录计算，而不是 AI
+· 记录提问会用到杠铃片（见下文）。按动作名称查找始终免费
+
+■ 饮食与热量出处
+· 用文字或照片记录饮食，选择吃了多少就按量计算
+· 热量旁标明出处：若数值来自韩国食药处食品营养成分数据库或 USDA FoodData Central，点一下即可看到表中的数值和原始链接；否则标为 AI 估算
+· 不知道热量时就标为未知。自己填写的 kcal 原样使用
+· 用一行查看当天的摄入和运动消耗
+
+■ 一起练
+· 用代码或链接，最多 6 人实时共写一份记录；名牌和光标显示谁在改哪里
+· 在自己的手机上替同伴记录组数，再用链接交给对方
+· 多台手机在同一瞬间开始 Tabata 或节拍，也可以两人轮流使用一台器械
 
 ■ 健康 App
 · 训练会作为一次锻炼写入“健康”App
 · 读取手表测得的活动能量(Apple 健康、Health Connect)
 · Tabata 休息期间,手表心率比该轮最高值低 25 bpm 时,休息结束并提示下一轮。休息时显示 ♥ 当前 → 目标
 · 从健康应用读取的数据不会离开设备
-· 应用不会自己编造卡路里。没有测量时不显示卡路里
+· 不会编造运动消耗的卡路里。没有测量时不显示
+
+■ 健身房
+· 把手机靠近健身房的贴纸，教练安排的今日训练计划就会打开。也能在 App 里预约私教
+· 教练模式：健身房员工每天早上收到报告，查看今天的课程和待办事项，点一下即可处理
+
+■ AI 帮助与杠铃片
+· 一行设置、餐食热量估算和记录提问在第一次使用时会征求你的同意。同意后，你输入的文字和餐食照片（已去除位置）会经我们的服务器发送给 DeepSeek 的 AI，我们的服务器不保存这些内容。可随时在设置中关闭，关闭后记录照常可用
+· 输入帮助（一行设置、餐食估算）每天免费 10 次
+· 记录提问使用杠铃片。一开始会有几片，每天完成 10 组再送 1 片
+· Pro 订阅：每月把杠铃片补足到 300 片，输入帮助每天 20 次。免费试用期间最多 30 片
 
 ■ 其他
 · 公斤、磅、公里、分钟、秒 — 用适合当前动作的单位
 · 深色模式跟随系统设置
 · 简体中文、繁体中文、英语、韩语、日语、西班牙语、泰语、越南语
 
-■ 饮食、一起练
-· 用照片或文字记录饮食。不知道热量时就标为未知
-· 用一行查看当天的摄入和运动消耗
-· 一起练：用代码连接，查看彼此的记录。对方的记录只读
-· 两台手机在同一瞬间开始 Tabata 或节拍，也可以轮流使用一台器械
-· 共同计划：用链接邀请，一起决定下一次训练，同意同一版本后开始
-
-独自记录不需要账号。连接健身房、一起练、共同计划和订阅需要登录。没有广告。记录留在你的设备上，只有与健身房关联的记录和你选择共享的内容会发送到服务器。'''),
+独自记录不需要账号。连接健身房、一起练和订阅需要登录。没有广告。你的记录保存在设备上，哪些内容会发送到服务器，请见隐私政策。'''),
 
 'zh-Hant': dict(
   name='setpad',
   subtitle='打一下，這組就記下了',
-  short='輸入動作名稱，輸入重量和次數。整個 App 就這些。',
-  keywords='健身紀錄,重訓,肌力訓練,訓練日誌,臥推,深蹲,硬舉,組數,次數,健身房,健身',
-  notes='本次更新\n\n· 根據餐點照片估算熱量（不儲存照片）\n· 連結健身房、接收訓練課表並預約教練課\n· 保持登入及在 App 內刪除帳號\n· 貼紙簽到與 App 連結',
+  short='一行輸入訓練或飲食，和朋友一起記錄，還能向紀錄提問。',
+  keywords='健身紀錄,重訓,肌力訓練,訓練日誌,飲食紀錄,熱量,臥推,深蹲,硬舉,組數,健身房',
+  promo='最多 6 人即時共同編輯一份紀錄；紀錄提問會把時段和動作並排比較；一行輸入訓練或飲食自動分辨，餐點熱量標明出處。',
+  notes='本次更新',
   desc='''輸入動作名稱，輸入重量和次數。整個 App 就這些。
 
 setpad 不是用來事先編排課表的。做完一組，當場把數字打上去，就像在備忘錄裡寫字一樣。不必在頁面之間來回切換，也不必從下拉選單裡挑。
@@ -360,36 +487,53 @@ setpad 不是用來事先編排課表的。做完一組，當場把數字打上�
 · 專為紀錄組數做的鍵盤 — 只有數字和 +/-，每次 2.5 公斤
 · 和上一組一樣？點一下就好
 · 打錯字、只打一半也搜得到
+· 今天做的所有組都在一張表裡，點格子即可修改
 
-■ 一行設定
-· 寫「臥推 80kg 做滿 100 下」，重量和目標會自動填好
-· 這句話由我們伺服器上的 AI 解析，句子不會儲存在伺服器上
-· 離線或無法解析時，你輸入的內容會原樣成為動作名稱 — 紀錄不會被擋住
+■ 訓練和飲食，一行搞定
+· 在同一輸入列輸入「臥推 80kg 5x5」就是訓練，輸入「拉麵 500kcal」就是飲食。分錯了點一下就能切換
+· 寫「臥推 80kg 做滿 100 下」，重量和目標會自動填好。放不進設定的字會顯示出來，不會丟掉
+· 再次輸入昨天的課表列，原本的設定會自動帶上
+· 離線或無法解析時，你輸入的內容會原樣保留 — 紀錄不會被擋住
 
-■ 每組下的備註
-· 把當時的想法寫在這一組下面，可以寫很多行
-· 點一下修改，退格刪除 — 像寫文件一樣
+■ 向紀錄提問、比較
+· 問「深蹲比上個月進步了嗎？」或「臥推 vs 划船」，就會用儲存的組數算出表格，把時段和動作並排比較
+· 數字由手機根據你的紀錄計算，而不是 AI
+· 紀錄提問會用到槓片（見下文）。依動作名稱搜尋始終免費
+
+■ 飲食與熱量出處
+· 用文字或照片記錄飲食，選擇吃了多少就依量計算
+· 熱量旁標明出處：若數值來自韓國食藥處食品營養成分資料庫或 USDA FoodData Central，點一下即可看到表中的數值和原始連結；否則標為 AI 估算
+· 不知道熱量時就標為未知。自己填寫的 kcal 原樣使用
+· 用一行查看當天的攝取和運動消耗
+
+■ 一起練
+· 用代碼或連結，最多 6 人即時共寫一份紀錄；名牌和游標顯示誰在改哪裡
+· 在自己的手機上替夥伴記錄組數，再用連結交給對方
+· 多支手機在同一瞬間開始 Tabata 或節拍，也可以兩人輪流使用一台器材
 
 ■ 健康 App
 · 訓練會以一次體能訓練寫入「健康」App
 · 讀取手錶測得的活動能量(Apple 健康、Health Connect)
 · Tabata 休息期間,手錶心率比該輪最高值低 25 bpm 時,休息結束並提示下一輪。休息時顯示 ♥ 目前 → 目標
 · 從健康 App 讀取的資料不會離開裝置
-· App 不會自己編造卡路里。沒有測量時不顯示卡路里
+· 不會編造運動消耗的卡路里。沒有測量時不顯示
+
+■ 健身房
+· 把手機靠近健身房的貼紙，教練安排的今日課表就會打開。也能在 App 裡預約教練課
+· 教練模式：健身房員工每天早上收到報告，查看今天的課程和待辦事項，點一下即可處理
+
+■ AI 協助與槓片
+· 一行設定、餐點熱量估算和紀錄提問在第一次使用時會徵求你的同意。同意後，你輸入的文字和餐點照片（已移除位置）會經我們的伺服器傳送給 DeepSeek 的 AI，我們的伺服器不會儲存這些內容。可隨時在設定中關閉，關閉後紀錄照常可用
+· 輸入幫助（一行設定、餐點估算）每天免費 10 次
+· 紀錄提問使用槓片。一開始會有幾片，每天完成 10 組再送 1 片
+· Pro 訂閱：每月把槓片補足到 300 片，輸入幫助每天 20 次。免費試用期間最多 30 片
 
 ■ 其他
 · 公斤、磅、公里、分鐘、秒 — 用適合當前動作的單位
 · 深色模式跟隨系統設定
 · 繁體中文、簡體中文、英文、韓文、日文、西班牙文、泰文、越南文
 
-■ 飲食、一起練
-· 用照片或文字記錄飲食。不知道熱量時就標為未知
-· 用一行查看當天的攝取和運動消耗
-· 一起練：用代碼連線，查看彼此的紀錄。對方的紀錄唯讀
-· 兩支手機在同一瞬間開始 Tabata 或節拍，也可以輪流使用一台器材
-· 共同計畫：用連結邀請，一起決定下一次訓練，同意同一版本後開始
-
-獨自記錄不需要帳號。連結健身房、一起練、共同計畫和訂閱需要登入。沒有廣告。紀錄留在你的裝置上，只有與健身房關聯的紀錄和你選擇分享的內容會傳送到伺服器。'''),
+獨自記錄不需要帳號。連結健身房、一起練和訂閱需要登入。沒有廣告。你的紀錄儲存在裝置上，哪些內容會傳送到伺服器，請見隱私權政策。'''),
 }
 
 PRIVACY = 'https://darak.studio/setpad-privacy'
@@ -411,48 +555,101 @@ LEGAL = {
 }
 
 
-# 이번 버전에 더해진 것. 출시 노트의 머리말 바로 아래에 끼운다.
+# 이번 버전(1.4.0)에 더해진 것. 머리말(notes) 아래에 이 순서로 붙는다. Play 의 변경
+# 사항은 500자 한도라 앞에서부터 들어가는 만큼만 싣는다 — 중요한 것을 앞에 둔다.
 NEWS = {
-    'ko': ['오늘 한 모든 세트를 한 화면에 — 칸을 눌러 바로 고칩니다',
-           '식단을 글로도 기록하고, 먹은 양으로 열량을 계산합니다',
-           '같이 하기: 코드로 연결해 서로의 기록을 보고, 링크로 초대해 운동 계획을 함께 짭니다',
-           '같이 하는 타이머: 타바타·bpm 을 두 폰에서 같은 순간에 시작하고, 쉬는 동안 서로의 횟수를 봅니다'],
-    'en': ['Every set you did today on one screen — tap a cell to fix it',
-           'Log meals as text, and calculate calories from how much you ate',
-           'Together: connect with a code to see each other\'s log, and plan workouts together by invite link',
-           'Shared timer: start Tabata or bpm on both phones at the same moment and see each other\'s reps while you rest'],
-    'ja': ['今日行った全セットを1画面に — セルをタップしてすぐ修正',
-           '食事をテキストでも記録し、食べた量からカロリーを計算',
-           '一緒に: コードでつながってお互いの記録を見たり、リンクで招待して運動計画を一緒に作成',
-           '一緒にタイマー: タバタ・bpmを2台で同じ瞬間に始め、休憩中にお互いの回数を見られます'],
-    'es': ['Todas las series de hoy en una pantalla: toca una celda para corregirla',
-           'Registra comidas como texto y calcula las calorías según lo que comiste',
-           'Juntos: conéctate con un código para ver el registro del otro y planifica entrenamientos por enlace',
-           'Temporizador compartido: empezad Tabata o bpm en el mismo instante y ved las repeticiones del otro al descansar'],
-    'th': ['ทุกเซ็ตของวันนี้ในหน้าจอเดียว — แตะช่องเพื่อแก้ไขได้ทันที',
-           'บันทึกมื้ออาหารเป็นข้อความ และคำนวณแคลอรีจากปริมาณที่กิน',
-           'ด้วยกัน: เชื่อมต่อด้วยรหัสเพื่อดูบันทึกของกันและกัน และวางแผนออกกำลังร่วมกันผ่านลิงก์เชิญ',
-           'ตัวจับเวลาร่วม: เริ่มทาบาตะหรือ bpm พร้อมกันบนสองเครื่อง และเห็นจำนวนครั้งของกันและกันตอนพัก'],
-    'vi': ['Mọi hiệp hôm nay trên một màn hình — chạm vào ô để sửa ngay',
-           'Ghi bữa ăn bằng chữ và tính calo theo lượng đã ăn',
-           'Cùng nhau: kết nối bằng mã để xem ghi chép của nhau, và cùng lên kế hoạch tập qua liên kết mời',
-           'Hẹn giờ chung: bắt đầu Tabata hoặc bpm cùng lúc trên hai máy và xem số lần của nhau khi nghỉ'],
-    'zh-Hans': ['今天做的所有组都在一屏 — 点格子即可修改',
-                '用文字记录饮食，并按实际食用量计算热量',
-                '一起练：用代码连接查看彼此的记录，并通过邀请链接一起制定训练计划',
-           '共同计时：两台手机同时开始 Tabata 或 bpm，休息时查看彼此的次数'],
-    'zh-Hant': ['今天做的所有組都在一個畫面 — 點格子即可修改',
-                '用文字記錄飲食，並依實際食用量計算熱量',
-                '一起練：用代碼連線查看彼此的紀錄，並透過邀請連結一起制定訓練計畫',
-           '共同計時：兩支手機同時開始 Tabata 或 bpm，休息時查看彼此的次數'],
+    'ko': ['같이 하기: 최대 6명이 한 기록을 실시간으로 같이 고칩니다 — 이름표와 커서로 누가 어디를 고치는지 보입니다',
+           '한 입력 줄에 운동도 식단도 — 치면 알아서 가르고, 잘못 갈렸으면 한 번 눌러 바꿉니다',
+           '기록 질문이 기간과 운동을 나란히 비교해 표로 보여 줍니다',
+           '끼니 열량에 출처가 붙습니다 — 식약처·USDA 표의 값과 원본 링크',
+           '원판과 Pro 구독: 기록 질문은 원판을 쓰고, 세트 10개를 채운 날마다 1장을 받습니다',
+           'AI 도움은 처음 쓸 때 DeepSeek로 무엇을 보내는지 알리고 동의를 묻습니다. 설정에서 언제든 끌 수 있습니다',
+           '옆 사람의 세트를 내 폰에서 대신 적고 링크로 건넵니다',
+           '트레이너 모드: 체육관 직원은 아침 보고서로 오늘 수업과 확인할 일을 보고 한 번에 처리합니다',
+           '친 글은 버리지 않습니다 — 설정에 못 옮긴 말은 보이고, 해석이 안 돼도 친 그대로 남습니다'],
+    'en': ['Together: up to 6 people edit one record live — name tags and cursors show who is editing what',
+           'Sets and meals in one input line — it sorts them as you type, and one tap switches a wrong guess',
+           'Record questions compare periods and exercises side by side in a table',
+           'Meal calories show their source — the MFDS or USDA table value with a link to the original',
+           'Plates and Pro: record questions use plates, and you earn 1 on each day you log 10 sets',
+           'AI help tells you what goes to DeepSeek and asks for consent the first time. Turn it off any time in Settings',
+           'Log a partner\'s sets on your phone and hand them over with a link',
+           'Trainer mode: gym staff get a morning report with today\'s classes and to-dos, handled in a tap',
+           'Nothing you type is thrown away — words that could not be placed are shown, and unreadable lines are kept as typed'],
+    'ja': ['一緒に：最大6人で1つの記録をリアルタイムに編集 — 名札とカーソルで誰がどこを直しているか見えます',
+           '1つの入力欄で運動も食事も — 自動で振り分け、違っていれば一度のタップで切り替え',
+           '記録への質問が期間や種目を並べて表で比べます',
+           '食事のカロリーに出どころ — 食品医薬品安全処・USDA の表の値と元のリンク',
+           'プレートと Pro：記録への質問はプレートを使い、10セットを記録した日ごとに1枚もらえます',
+           'AI ヘルプは初回に DeepSeek へ何を送るかを示して同意を確認。設定でいつでもオフにできます',
+           '隣の人のセットを自分のスマホで代わりに記録し、リンクで渡せます',
+           'トレーナーモード：ジムのスタッフは朝のレポートで今日のクラスと確認事項を見てタップで処理',
+           '入力は捨てません — 設定に移せなかった言葉は表示され、解釈できなくても入力のまま残ります'],
+    'es': ['Juntos: hasta 6 personas editan un registro en vivo; etiquetas y cursores muestran quién edita qué',
+           'Series y comidas en una sola línea: las separa al escribir y un toque corrige un error',
+           'Las preguntas comparan periodos y ejercicios lado a lado en una tabla',
+           'Las calorías muestran su fuente: el valor de la tabla del MFDS o del USDA con enlace al original',
+           'Discos y Pro: las preguntas usan discos y ganas 1 cada día que registras 10 series',
+           'La ayuda de IA explica qué va a DeepSeek y pide tu consentimiento la primera vez. Desactívala cuando quieras en Ajustes',
+           'Anota las series de tu compañero en tu teléfono y pásaselas con un enlace',
+           'Modo entrenador: el personal del gimnasio recibe un informe matutino con las clases y pendientes de hoy',
+           'Nada de lo que escribes se pierde: lo que no se pudo colocar se muestra y lo ilegible queda tal cual'],
+    'th': ['ออกกำลังด้วยกัน: สูงสุด 6 คนแก้บันทึกเดียวกันพร้อมกัน ป้ายชื่อและเคอร์เซอร์บอกว่าใครแก้ตรงไหน',
+           'เซ็ตและอาหารในช่องพิมพ์เดียว แยกให้เองขณะพิมพ์ ถ้าแยกผิดแตะครั้งเดียวเพื่อสลับ',
+           'คำถามถึงบันทึกเทียบช่วงเวลาและท่าเคียงกันในตาราง',
+           'แคลอรีของอาหารบอกแหล่งที่มา — ค่าจากตาราง MFDS หรือ USDA พร้อมลิงก์ต้นฉบับ',
+           'แผ่นน้ำหนักและ Pro: คำถามถึงบันทึกใช้แผ่นน้ำหนัก และได้ 1 แผ่นทุกวันที่บันทึกครบ 10 เซ็ต',
+           'ตัวช่วย AI บอกว่าอะไรจะส่งไปยัง DeepSeek และขอความยินยอมในครั้งแรก ปิดได้ทุกเมื่อในการตั้งค่า',
+           'จดเซ็ตของเพื่อนแทนบนโทรศัพท์ของคุณ แล้วส่งให้ด้วยลิงก์',
+           'โหมดเทรนเนอร์: พนักงานยิมได้รายงานตอนเช้าเรื่องคลาสวันนี้และสิ่งที่ต้องตรวจ จัดการได้ในแตะเดียว',
+           'ไม่ทิ้งสิ่งที่พิมพ์ — คำที่ใส่ในการตั้งค่าไม่ได้จะแสดงให้เห็น และบรรทัดที่อ่านไม่ได้ก็เก็บไว้ตามที่พิมพ์'],
+    'vi': ['Cùng nhau: tối đa 6 người cùng sửa một nhật ký theo thời gian thực — thẻ tên và con trỏ cho thấy ai sửa chỗ nào',
+           'Hiệp tập và bữa ăn trên cùng một dòng nhập — tự phân loại khi gõ, đoán sai thì chạm một lần để đổi',
+           'Câu hỏi về nhật ký so sánh giai đoạn và bài tập cạnh nhau trong bảng',
+           'Calo bữa ăn có nguồn — giá trị từ bảng MFDS hoặc USDA kèm liên kết gốc',
+           'Bánh tạ và Pro: câu hỏi dùng bánh tạ, và bạn nhận 1 bánh mỗi ngày ghi đủ 10 hiệp',
+           'Trợ giúp AI cho biết những gì gửi tới DeepSeek và hỏi sự đồng ý ở lần đầu. Tắt bất cứ lúc nào trong Cài đặt',
+           'Ghi hộ các hiệp của bạn tập trên điện thoại của bạn rồi gửi bằng liên kết',
+           'Chế độ huấn luyện viên: nhân viên phòng tập nhận báo cáo buổi sáng về lớp hôm nay và việc cần xem',
+           'Không bỏ điều bạn gõ — chữ không đưa được vào thiết lập vẫn hiện ra, dòng không đọc được giữ nguyên'],
+    'zh-Hans': ['一起练：最多 6 人实时共同编辑一份记录，名牌和光标显示谁在改哪里',
+                '训练和饮食用同一输入行 — 输入时自动分辨，分错了点一下切换',
+                '记录提问把时间段和动作并排放进表格比较',
+                '餐食热量标明出处 — 食药处或 USDA 表中的数值和原始链接',
+                '杠铃片与 Pro：记录提问使用杠铃片，每天完成 10 组送 1 片',
+                'AI 帮助首次使用时说明会发送什么给 DeepSeek 并征求同意，可随时在设置中关闭',
+                '在自己的手机上替同伴记录组数，再用链接交给对方',
+                '教练模式：健身房员工每天早上收到报告，查看今天的课程和待办并一键处理',
+                '输入的内容不会丢 — 放不进设置的字会显示出来，无法解析时也照原样保留'],
+    'zh-Hant': ['一起練：最多 6 人即時共同編輯一份紀錄，名牌和游標顯示誰在改哪裡',
+                '訓練和飲食用同一輸入列 — 輸入時自動分辨，分錯了點一下切換',
+                '紀錄提問把時段和動作並排放進表格比較',
+                '餐點熱量標明出處 — 食藥處或 USDA 表中的數值和原始連結',
+                '槓片與 Pro：紀錄提問使用槓片，每天完成 10 組送 1 片',
+                'AI 協助首次使用時說明會傳送什麼給 DeepSeek 並徵求同意，可隨時在設定中關閉',
+                '在自己的手機上替夥伴記錄組數，再用連結交給對方',
+                '教練模式：健身房員工每天早上收到報告，查看今天的課程和待辦並一鍵處理',
+                '輸入的內容不會丟 — 放不進設定的字會顯示出來，無法解析時也照原樣保留'],
 }
 
 
 def release_notes(key: str) -> str:
-    lines = T[key]['notes'].rstrip().split('\n')
-    # 머리말과 빈 줄 다음에 끼운다. 이미 있는 항목은 그대로 둔다.
-    at = next((i for i, line in enumerate(lines) if line.startswith('·')), len(lines))
-    return '\n'.join(lines[:at] + [f'· {n}' for n in NEWS[key]] + lines[at:])
+    return '\n'.join([T[key]['notes'], ''] + [f'· {n}' for n in NEWS[key]])
+
+
+# Play 의 '새로운 기능'은 언어마다 500자까지다. 넘으면 올리기가 통째로 거절된다.
+PLAY_CHANGELOG_CAP = 500
+
+
+def play_changelog(key: str) -> str:
+    """머리말과, 한도 안에 들어가는 만큼의 NEWS — 앞의 것이 먼저다."""
+    text = T[key]['notes']
+    for n in NEWS[key]:
+        more = f'{text}\n· {n}'
+        if len(more) > PLAY_CHANGELOG_CAP:
+            break
+        text = more
+    return text
 
 
 def ios_description(key: str) -> str:
@@ -479,6 +676,7 @@ def main():
         write(d / 'keywords.txt', t['keywords'])
         write(d / 'description.txt', ios_description(key))
         write(d / 'release_notes.txt', release_notes(key))
+        write(d / 'promotional_text.txt', t['promo'])
         write(d / 'privacy_url.txt', PRIVACY)
         write(d / 'support_url.txt', SUPPORT)
         write(d / 'marketing_url.txt', '')
@@ -487,6 +685,8 @@ def main():
         write(p / 'title.txt', t['name'])
         write(p / 'short_description.txt', t['short'])
         write(p / 'full_description.txt', t['desc'])
+        # versionCode 는 빌드할 때 시각으로 정해진다(Fastfile) — 번호 파일 대신 default.
+        write(p / 'changelogs' / 'default.txt', play_changelog(key))
 
     # Length limits the stores enforce. Catching them here beats a rejected upload.
     bad = []
@@ -499,6 +699,9 @@ def main():
             (f'{key} play description', t['desc'], 4000),
             (f'{key} play title', t['name'], 30),
             (f'{key} play short', t['short'], 80),
+            (f'{key} promotional text', t['promo'], 170),
+            (f'{key} release notes', release_notes(key), 4000),
+            (f'{key} play changelog', play_changelog(key), PLAY_CHANGELOG_CAP),
         ):
             if len(value) > cap:
                 bad.append(f'{label}: {len(value)} > {cap}')

@@ -10,7 +10,8 @@ import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
 import 'package:setpad/record_ai.dart';
-import 'package:setpad/record_query.dart' show maxQuestionLength;
+import 'package:setpad/record_query.dart'
+    show familyInstructions, maxQuestionLength;
 import 'package:setpad/routine.dart';
 import 'package:setpad/routine_card.dart';
 
@@ -218,6 +219,8 @@ void main() {
       tester,
       ai: RecordAi(
         respond: (i, _) async {
+          // 기록 검색 1단계(갈래 고르기)는 같은 질문의 앞 부름이다 — 세지 않는다.
+          if (i == familyInstructions) return {'t': <String>[]};
           calls.add(i == routineInstructions ? 'routine' : 'v3');
           return i == routineInstructions
               ? {'kind': 'question'}
@@ -240,6 +243,7 @@ void main() {
       tester,
       ai: RecordAi(
         respond: (i, _) async {
+          if (i == familyInstructions) return {'t': <String>[]};
           calls.add(i == routineInstructions ? 'routine' : 'v3');
           return {'kind': 'routine'};
         },
@@ -300,6 +304,33 @@ void main() {
       expect(find.text(l.routineRetry), findsOneWidget);
       expect(startButton(), findsOneWidget);
       expect(find.text('스쿼트'), findsOneWidget);
+    });
+
+    testWidgets('AI 도움을 켜지 않았으면 아무것도 보내지 않고 기기가 짜며, 연결 탓이라 하지 않는다', (
+      tester,
+    ) async {
+      final sent = <String>[];
+      final ai = RecordAi(
+        consent: () async => false,
+        respond: (_, input) async {
+          sent.add(input);
+          return {};
+        },
+      );
+      await pump(tester, ai: ai);
+      await type(tester, '하체로 짜줘', enter: true);
+      expect(sent, isEmpty);
+      expect(find.text(l.aiOff), findsOneWidget);
+      expect(find.text(l.routineOffline), findsNothing);
+      expect(find.text(l.routineRetry), findsNothing, reason: '다시 눌러도 같다');
+      expect(startButton(), findsOneWidget);
+      // 빼기 글은 기기가 조건을 못 읽으니 [시작] 없이 까닭과 조건 없이 짜기만(G1).
+      await type(tester, '스쿼트 말고', enter: true);
+      expect(sent, isEmpty);
+      expect(find.text(l.aiOff), findsOneWidget);
+      expect(find.text(l.routineHeldBack('offline')), findsNothing);
+      expect(startButton(), findsNothing);
+      expect(find.text(l.routineNoConditions), findsOneWidget);
     });
   });
 
@@ -404,6 +435,7 @@ void main() {
         tester,
         ai: RecordAi(
           respond: (i, _) async {
+            if (i == familyInstructions) return {'t': <String>[]};
             calls.add(i == routineInstructions ? 'routine' : 'v3');
             return {'kind': 'routine'};
           },
@@ -429,6 +461,7 @@ void main() {
         tester,
         ai: RecordAi(
           respond: (i, _) async {
+            if (i == familyInstructions) return {'t': <String>[]};
             calls.add(i == routineInstructions ? 'routine' : 'v3');
             return {'kind': 'routine'};
           },
@@ -448,6 +481,7 @@ void main() {
       tester,
       ai: RecordAi(
         respond: (i, _) async {
+          if (i == familyInstructions) return {'t': <String>[]};
           calls.add(i == routineInstructions ? 'routine' : 'v3');
           return {
             'exercises': ['스쿼트'],
@@ -692,6 +726,7 @@ void main() {
       tester,
       ai: RecordAi(
         respond: (i, _) async {
+          if (i == familyInstructions) return {'t': <String>[]};
           calls.add(i == routineInstructions ? 'routine' : 'v3');
           return i == routineInstructions
               ? {'kind': 'lookup'}
@@ -842,6 +877,7 @@ void main() {
       tester,
       ai: RecordAi(
         respond: (i, _) async {
+          if (i == familyInstructions) return {'t': <String>[]};
           calls.add(i == routineInstructions ? 'routine' : 'v3');
           return i == routineInstructions
               ? {

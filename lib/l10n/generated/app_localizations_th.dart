@@ -1812,6 +1812,38 @@ class LTh extends L {
   String get settingsTrainer => 'เทรนเนอร์';
 
   @override
+  String get aiConsentTitle => 'เปิดตัวช่วย AI ไหม';
+
+  @override
+  String get aiConsentBody =>
+      'การตั้งค่าบรรทัดเดียว การประมาณแคลอรีอาหาร และคำถามเกี่ยวกับบันทึก จะถูกอ่านโดย AI ของ DeepSeek (จีน) โดยส่งผ่านเซิร์ฟเวอร์ของเรา (gym.darak.studio) ซึ่งไม่จัดเก็บเนื้อหานั้น';
+
+  @override
+  String get aiConsentSent =>
+      'สิ่งที่ส่ง: ข้อความที่พิมพ์ รูปอาหาร (ลบตำแหน่งและข้อมูลการถ่ายออกแล้ว) และชื่อท่าในบันทึกของคุณ บันทึกอย่างเซ็ต น้ำหนัก วันที่ และโน้ต จะไม่ถูกส่งให้ AI โทรศัพท์เป็นผู้คำนวณเอง';
+
+  @override
+  String get aiConsentLater =>
+      'ถ้าเลือก ‘ไว้ทีหลัง’ สิ่งที่พิมพ์ก็ยังถูกบันทึกตามนั้น และ kcal ที่พิมพ์กับการค้นหาด้วยชื่อก็ยังใช้ได้ เปิดหรือปิดได้ทุกเมื่อที่ การตั้งค่า › ตัวช่วย AI';
+
+  @override
+  String get aiConsentAgree => 'ยอมรับและเปิด';
+
+  @override
+  String get aiConsentNotNow => 'ไว้ทีหลัง';
+
+  @override
+  String get aiSetting => 'ตัวช่วย AI (DeepSeek)';
+
+  @override
+  String get aiOff =>
+      'ตัวช่วย AI ปิดอยู่ จึงเก็บไว้ตามที่พิมพ์ เปิดได้ที่ การตั้งค่า › ตัวช่วย AI';
+
+  @override
+  String get aiOffPhoto =>
+      'ตัวช่วย AI ปิดอยู่ จึงไม่ได้ประมาณจากรูป พิมพ์มื้ออาหารเป็นข้อความ เช่น ‘ข้าวผัด 550kcal’ แล้วจะถูกบันทึกตามนั้น';
+
+  @override
   String get answerNeedsTwoDays => 'ต้องมีอย่างน้อยสองวัน';
 
   @override
