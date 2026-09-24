@@ -1027,16 +1027,23 @@ class LJa extends L {
   String queryLimit(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'exercises': '種目は一度に8つまで質問できます。分けて質問してください。',
-      'measures': '一度に数えられるのは3つまでです。分けて質問してください。',
+      'measures': '一度に数えられるのは4つまでです。分けて質問してください。',
       'ranking': 'ランキングは20件まで表示できます。20件以下で質問してください。',
       'sessions': '「直近N回」は100回までです。もっと長く見るには期間で質問してください。例: 今年',
       'days': '「最近N日」は3660日（約10年）までです。もっと長く見るには全期間で質問してください。',
-      'compare': '一度に比較できるのは4つまでです。分けて質問してください。',
+      'compare': '一度に比較できるのは6つまでです。分けて質問してください。',
       'compareGrouped':
           '比較と、種目・日・週・月・曜日ごとのまとめは、1つの質問で同時に計算できません。どちらか一方で質問してください。',
-      'groupedMeasure': '日・週・月・曜日ごとにまとめると数えられるのは1つだけで、推移・最後・最初・経過日数はまとめられません。',
+      'groupedMeasure':
+          '日・週・月・曜日ごとにまとめて複数の範囲を比べると数えられるのは1つだけで、推移・最後・最初・経過日数はまとめられません。',
       'ordering': 'ランキング・合計・平均は、種目別や週別のようにまとめて質問してください。',
       'datesTotal': '最後・最初の日付は合計や平均にできません。',
+      'perMeasure':
+          '日・週・月あたりの平均は、セット・回数・ボリューム・距離・時間・日数・kcal のように足せる数にだけ出せます。最高・平均重量は期間で聞いてください。',
+      'shareMeasure': '割合はセット数やボリュームのように足せる数でだけ出せます。',
+      'trainedMeasure':
+          '運動した日・休んだ日の絞り込みは、食べた・消費した kcal にだけ使います。運動記録はすべて運動した日のものです。',
+      'sameSeries': '比べる二つの範囲が同じに読めました。何と何を比べるか書いてください。',
       'other': 'この質問は記録検索で計算できない形です。分けて質問してください。',
     });
     return '$_temp0';
@@ -1761,4 +1768,514 @@ class LJa extends L {
 
   @override
   String get settingsTrainer => 'トレーナー';
+
+  @override
+  String get answerNeedsTwoDays => '2日以上の記録が必要です';
+
+  @override
+  String get answerNoBase => '基準になる値がありません';
+
+  @override
+  String answerPerWeek(String value) {
+    return '週あたり$value';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '月あたり$value';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return '最高記録のあと$n回';
+  }
+
+  @override
+  String get answerTimesUnit => '回';
+
+  @override
+  String answerTimes(int n) {
+    return '$n回';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return '$n日連続';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return '$n日休み';
+  }
+
+  @override
+  String get answerUntilToday => '今日';
+
+  @override
+  String answerEveryDays(String value) {
+    return 'ふだん$value日ごと';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return '平均$value日ごと';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return '連日 $a回 · 1日休んで $b回 · 2日休んで $c回 · 3日以上休んで $d回';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return '最長$n日の休みを含みます';
+  }
+
+  @override
+  String get answerNoMeals => '食事を記録した日がありません';
+
+  @override
+  String answerAbout(String value) {
+    return '約$value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '食事を記録した$n日';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return 'カロリー不明の食事$n件は合計に入っていません';
+  }
+
+  @override
+  String get answerNoWatch => 'ウォッチで計測した記録がありません';
+
+  @override
+  String answerWatchDays(int n) {
+    return 'ウォッチで計測した$n日';
+  }
+
+  @override
+  String get answerNoBoth => '摂取と消費の両方がある日がありません';
+
+  @override
+  String answerBothDays(int n) {
+    return '摂取と消費の両方がある$n日';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return '摂取だけの$n日は除きました';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$nか月';
+  }
+
+  @override
+  String get metricChangePct => '変化率';
+
+  @override
+  String get metricDaysSinceBest => '最高記録からの日数';
+
+  @override
+  String get metricSessionsSinceBest => '最高記録後の回数';
+
+  @override
+  String get metricMeanReps => 'セットあたりの回数';
+
+  @override
+  String get metricLongestStreak => '最長連続';
+
+  @override
+  String get metricLongestGap => '最長の空白';
+
+  @override
+  String get metricMeanGap => '運動の間隔';
+
+  @override
+  String get metricIntake => '摂取カロリー';
+
+  @override
+  String get metricBurned => '消費カロリー';
+
+  @override
+  String get metricBalance => '摂取 − 消費';
+
+  @override
+  String get queryAlone => 'ひとりの日';
+
+  @override
+  String get queryTogether => '一緒にした日';
+
+  @override
+  String get queryByPart => '部位別';
+
+  @override
+  String get queryCanSee => '記録からは重量・回数・セット・運動した日・食事のカロリーが分かります';
+
+  @override
+  String get queryDiffColumn => '差';
+
+  @override
+  String get queryFutureCell => 'まだ来ていない期間';
+
+  @override
+  String get queryGrowthRate => '伸びは週あたりの速さで順位をつけました（期間が違っても公平に）';
+
+  @override
+  String get queryHandoff => '受け取った記録だけ';
+
+  @override
+  String get queryNoHandoff => '受け取った記録を除く';
+
+  @override
+  String queryHandoffCount(int n) {
+    return '受け取った記録$n件を除く';
+  }
+
+  @override
+  String get queryHoursNote => '時刻は記録を作った時点です。あとでまとめて書いた記録はその時刻になります';
+
+  @override
+  String get queryMixedWeights => '複数の種目を混ぜた重量です';
+
+  @override
+  String get queryNcBodyweight =>
+      '体重は記録にありません。質問に体重を書けばその数と比べます（例: 体重80でデッドは何倍？）';
+
+  @override
+  String get queryNcHeartRate =>
+      '記録検索はまだ心拍を見ていません。種目別・休憩別の心拍はセットの時刻がないので見られません';
+
+  @override
+  String get queryNeverMark => '記録なし';
+
+  @override
+  String get queryNoBaseRatio => '基準値がないので比率を出せません';
+
+  @override
+  String get queryNoneCell => 'この範囲に記録なし';
+
+  @override
+  String get queryNoRoutine => 'ルーティン以外の日';
+
+  @override
+  String get queryRoutine => 'トレーナーのルーティンの日';
+
+  @override
+  String get queryOngoing => '進行中';
+
+  @override
+  String get queryOverlap => '運動日数は重なる日があるので比重を出せません。セット数で聞いてください';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': '胸',
+      'back': '背中',
+      'legs': '脚',
+      'shoulders': '肩',
+      'arms': '腕',
+      'core': '体幹',
+      'cardio': '有酸素',
+      'upper': '上半身',
+      'lower': '下半身',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => '倍率';
+
+  @override
+  String get queryRatioUnits => '単位が違うので比率を出せません';
+
+  @override
+  String get queryRestDay => '休んだ日';
+
+  @override
+  String get queryTrained => '運動した日';
+
+  @override
+  String get querySetFirst => '最初のセット';
+
+  @override
+  String get querySetLast => '最後のセット';
+
+  @override
+  String get queryShare => '比重';
+
+  @override
+  String get queryZeroFilled => 'やっていない種目も0として入れました';
+
+  @override
+  String queryAgainst(String value) {
+    return '基準 $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio倍 · 差 $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n日';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return '値の種類が違うセット$n件を除外';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '$from–$to時';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return 'もしかして$name？';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return 'メモにすべて: $terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text $n日';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return '該当メモ: $hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names: 記録がないので除いて数えました';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names: 記録がありません';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return 'メモになし: $terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return '回数のないセット$n件を除外';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return '記録にないので見られないもの: $things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return '見られないもの: $things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return '記録では答えられません: $things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return '重量のないセット$n件を除外（最多$reps回）';
+  }
+
+  @override
+  String queryNth(int n) {
+    return '最後から$n番目の運動日';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '距離を記録した$n回: $value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '時間を記録した$n回: $value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return '$namesを除く';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '（$n日）';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part: $names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '1日あたり',
+      'week': '週あたり',
+      'month': '月あたり',
+      'other': '平均',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/日',
+      'week': '/週',
+      'month': '/月',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value倍（$percent%）';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': '$n日目',
+      'week': '$n週目',
+      'month': '$nか月目',
+      'other': '$n番目',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return 'まだ来ていない期間なので$year年として読みました';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return '同じ$days日で比べると: $earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return '記録が短いので（3日・3週未満）順位から外しました: $names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'タバタ',
+      'bpm': 'BPMタイマー',
+      'other': 'タイマーなし',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return '部位が分からない種目は除きました: $names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '値が欠けて順位に入れられなかった$n件: $names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return '期間の日数が違うので（$lengths日）差と比率は週あたりで数えました';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$total週のうち$zeros週が0',
+      'month': '$totalか月のうち$zerosか月が0',
+      'other': '$total件のうち$zeros件が0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '可能な$m日のうち$percent%';
+  }
+
+  @override
+  String get queryOfflineLocal =>
+      'サーバーにつながらないため、文中の種目と期間だけで端末上で集計しました。つながったら Enter でもう一度聞いてください。';
+
+  @override
+  String get queryMisread => 'この質問は集計できる形に読めませんでした。言い方を変えて聞いてください。';
+
+  @override
+  String get queryMisreadLocal =>
+      '質問を集計できる形に読めなかったため、文中の種目と期間だけで端末上で集計しました。言い方を変えるともう一度読みます。';
+
+  @override
+  String get queryUnreadable =>
+      'モデルが読み取れない答えを2回返しました。接続の問題ではなく、その答えにプレートは使われていません。';
+
+  @override
+  String get queryAskAgain => 'もう一度聞く';
+
+  @override
+  String get queryUnreadablePaid =>
+      'モデルが読み取れない答えを2回返しました。接続の問題ではありません。その答えにプレートは使われておらず、下のプレートは質問を振り分けた最初の段階の分です。';
+
+  @override
+  String get queryUnreadableLocal => 'その間、文中の種目と期間で端末上で集計しました。';
+
+  @override
+  String get queryTotalUnits => '単位が違うため合計を出せません';
+
+  @override
+  String queryMemoDropped(String words) {
+    return 'メモの条件を外しました: $words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return '基準の数 $value を外しました — 質問に重さとして書かれた数ではありません';
+  }
+
+  @override
+  String queryBoundDropped(String value) {
+    return '数の条件 $value を外しました — 質問にその単位で書かれた数ではありません';
+  }
 }

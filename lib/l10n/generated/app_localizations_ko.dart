@@ -1032,17 +1032,23 @@ class LKo extends L {
   String queryLimit(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'exercises': '운동은 한 번에 8개까지 물을 수 있어요. 나눠서 물어 주세요.',
-      'measures': '한 번에 세 가지까지 셀 수 있어요. 나눠서 물어 주세요.',
+      'measures': '한 번에 네 가지까지 셀 수 있어요. 나눠서 물어 주세요.',
       'ranking': '순위는 20개까지 보여 줄 수 있어요. 20개 이하로 물어 주세요.',
       'sessions': '\'마지막 N번\'은 100번까지예요. 더 길게 보려면 기간으로 물어 주세요. 예: 올해',
       'days': '\'최근 N일\'은 3660일(약 10년)까지예요. 더 길게 보려면 전체 기간으로 물어 주세요.',
-      'compare': '한 번에 4가지까지 견줄 수 있어요. 나눠서 물어 주세요.',
+      'compare': '한 번에 6가지까지 견줄 수 있어요. 나눠서 물어 주세요.',
       'compareGrouped':
           '견주기와 운동·날·주·월·요일별 묶음은 한 질문에 함께 셀 수 없어요. 둘 중 하나로 물어 주세요.',
       'groupedMeasure':
-          '날·주·월·요일별로 묶으면 한 가지만 셀 수 있고, 추이·마지막·처음·안 한 지는 묶을 수 없어요.',
+          '날·주·월·요일별로 묶어 여러 범위를 견주면 한 가지만 셀 수 있고, 추이·마지막·처음·안 한 지는 묶을 수 없어요.',
       'ordering': '순위·합계·평균은 운동별이나 주별처럼 묶어서 물어 주세요.',
       'datesTotal': '마지막·처음 날짜는 더하거나 평균 낼 수 없어요.',
+      'perMeasure':
+          '날당·주당·달당 평균은 세트·횟수·볼륨·거리·시간·날 수·칼로리처럼 더하는 수에만 낼 수 있어요. 최고·평균 무게는 기간으로 물어 주세요.',
+      'shareMeasure': '비중은 세트 수·볼륨처럼 더하는 수로만 낼 수 있어요.',
+      'trainedMeasure':
+          '운동한 날·쉰 날로 고르기는 먹은·태운 칼로리에만 써요. 운동 기록은 모두 운동한 날의 것이에요.',
+      'sameSeries': '견줄 두 범위가 같게 읽혔어요. 무엇과 무엇을 견줄지 적어 주세요.',
       'other': '이 질문은 기록 검색이 셀 수 없는 모양이에요. 나눠서 물어 주세요.',
     });
     return '$_temp0';
@@ -1767,4 +1773,515 @@ class LKo extends L {
 
   @override
   String get settingsTrainer => '트레이너';
+
+  @override
+  String get answerNeedsTwoDays => '날이 둘 이상 있어야 해요';
+
+  @override
+  String get answerNoBase => '기준 값이 없어요';
+
+  @override
+  String answerPerWeek(String value) {
+    return '주당 $value';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '달당 $value';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return '최고 이후 $n번 했어요';
+  }
+
+  @override
+  String get answerTimesUnit => '번';
+
+  @override
+  String answerTimes(int n) {
+    return '$n번';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return '$n일 연속';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return '$n일 쉼';
+  }
+
+  @override
+  String get answerUntilToday => '오늘';
+
+  @override
+  String answerEveryDays(String value) {
+    return '보통 $value일마다';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return '평균 $value일마다';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return '연달아 $a번 · 하루 쉬고 $b번 · 이틀 쉬고 $c번 · 사흘 이상 쉬고 $d번';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return '가장 긴 쉼 $n일이 들어 있어요';
+  }
+
+  @override
+  String get answerNoMeals => '끼니를 적은 날이 없어요';
+
+  @override
+  String answerAbout(String value) {
+    return '약 $value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '끼니를 적은 $n일';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return '열량을 모르는 끼니 $n개는 합에 없어요';
+  }
+
+  @override
+  String get answerNoWatch => '워치로 잰 기록이 없어요';
+
+  @override
+  String answerWatchDays(int n) {
+    return '워치로 잰 $n일';
+  }
+
+  @override
+  String get answerNoBoth => '섭취와 소모가 둘 다 있는 날이 없어요';
+
+  @override
+  String answerBothDays(int n) {
+    return '섭취·소모가 둘 다 있는 $n일';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return '섭취만 있는 $n일은 뺐어요';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$n달';
+  }
+
+  @override
+  String get metricChangePct => '변화율';
+
+  @override
+  String get metricDaysSinceBest => '최고 이후 날';
+
+  @override
+  String get metricSessionsSinceBest => '최고 이후 횟수';
+
+  @override
+  String get metricMeanReps => '세트당 반복';
+
+  @override
+  String get metricLongestStreak => '최장 연속';
+
+  @override
+  String get metricLongestGap => '최장 공백';
+
+  @override
+  String get metricMeanGap => '운동 간격';
+
+  @override
+  String get metricIntake => '섭취 열량';
+
+  @override
+  String get metricBurned => '소모 열량';
+
+  @override
+  String get metricBalance => '섭취 − 소모';
+
+  @override
+  String get queryAlone => '혼자 한 날';
+
+  @override
+  String get queryTogether => '같이 한 날';
+
+  @override
+  String get queryByPart => '부위별';
+
+  @override
+  String get queryCanSee => '기록으로는 무게·횟수·세트·운동한 날·끼니 열량을 볼 수 있어요';
+
+  @override
+  String get queryDiffColumn => '차이';
+
+  @override
+  String get queryFutureCell => '아직 오지 않은 기간';
+
+  @override
+  String get queryGrowthRate => '성장은 주당 속도로 순위를 매겼어요 — 기간이 달라도 공정하게';
+
+  @override
+  String get queryHandoff => '건네받은 기록만';
+
+  @override
+  String get queryNoHandoff => '건네받은 기록 제외';
+
+  @override
+  String queryHandoffCount(int n) {
+    return '건네받은 기록 $n개 제외';
+  }
+
+  @override
+  String get queryHoursNote =>
+      '시각은 기록을 만든 때 기준이에요 — 나중에 몰아 적은 기록은 적은 시각으로 들어가요';
+
+  @override
+  String get queryMixedWeights => '여러 운동을 섞은 무게예요';
+
+  @override
+  String get queryNcBodyweight =>
+      '체중은 기록에 없어요 — 질문에 체중을 적으면 그 수와 견줘요(예: 체중 80인데 데드 몇 배?)';
+
+  @override
+  String get queryNcHeartRate =>
+      '기록 검색은 아직 심박을 안 봐요 — 운동별·휴식별 심박은 세트 시각이 없어 볼 수 없어요';
+
+  @override
+  String get queryNeverMark => '적은 적 없음';
+
+  @override
+  String get queryNoBaseRatio => '기준 값이 없어 비율을 못 내요';
+
+  @override
+  String get queryNoneCell => '이 범위엔 기록 없음';
+
+  @override
+  String get queryNoRoutine => '루틴 아닌 날';
+
+  @override
+  String get queryRoutine => '루틴으로 한 날';
+
+  @override
+  String get queryOngoing => '진행 중';
+
+  @override
+  String get queryOverlap => '운동일수는 겹치는 날이 있어 비중을 못 내요 — 세트 수로 물어 주세요';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': '가슴',
+      'back': '등',
+      'legs': '다리',
+      'shoulders': '어깨',
+      'arms': '팔',
+      'core': '코어',
+      'cardio': '유산소',
+      'upper': '상체',
+      'lower': '하체',
+      'other': '부위',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => '배수';
+
+  @override
+  String get queryRatioUnits => '단위가 달라 비율을 못 내요';
+
+  @override
+  String get queryRestDay => '쉰 날';
+
+  @override
+  String get queryTrained => '운동한 날';
+
+  @override
+  String get querySetFirst => '첫 세트';
+
+  @override
+  String get querySetLast => '마지막 세트';
+
+  @override
+  String get queryShare => '비중';
+
+  @override
+  String get queryZeroFilled => '안 한 운동도 0 으로 넣었어요';
+
+  @override
+  String queryAgainst(String value) {
+    return '기준 $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio배 · 차이 $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n일';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return '값이 다른 세트 $n개 제외';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '$from–$to시';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return '혹시 $name?';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return '메모에 모두: $terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text $n일';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return '걸린 메모: $hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names: 적은 기록이 없어 빼고 셌어요';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names: 적은 기록이 없어요';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return '메모 없음: $terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return '반복을 안 적은 세트 $n개 제외';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return '기록에 없어 못 본 것: $things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return '못 보는 것: $things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return '기록으로 답할 수 없어요: $things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return '무게 없는 세트 $n개 제외 (최다 $reps회)';
+  }
+
+  @override
+  String queryNth(int n) {
+    return '끝에서 $n번째 운동일';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '거리를 적은 $n번: $value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '시간을 적은 $n번: $value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return '$names 제외';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '($n일)';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part: $names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '하루 평균',
+      'week': '주당',
+      'month': '달당',
+      'other': '평균',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/일',
+      'week': '/주',
+      'month': '/달',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value배 ($percent%)';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': '$n번째 날',
+      'week': '$n번째 주',
+      'month': '$n번째 달',
+      'other': '$n번째',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return '아직 오지 않은 기간이라 $year년으로 읽었어요';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return '같은 $days일로 견주면: $earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return '기록이 짧아(3일·3주 미만) 순위에서 뺐어요: $names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': '타바타',
+      'bpm': 'bpm 타이머',
+      'other': '타이머 없이',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return '부위를 모르는 운동은 뺐어요: $names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '값이 빠져 순위에 못 넣은 $n개: $names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return '기간의 날 수가 달라요($lengths일) — 차이·비율은 주당으로 셌어요';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$total주 중 $zeros주는 0',
+      'month': '$total달 중 $zeros달은 0',
+      'other': '$total개 중 $zeros개는 0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '가능한 $m일 중 $percent%';
+  }
+
+  @override
+  String get queryOfflineLocal =>
+      '서버에 닿지 못해 글에 적힌 운동·기간으로만 기기에서 셌어요. 연결되면 Enter 로 다시 물어보세요.';
+
+  @override
+  String get queryMisread => '이 질문은 셀 수 있는 모양으로 읽지 못했어요. 말을 바꿔 물어봐 주세요.';
+
+  @override
+  String get queryMisreadLocal =>
+      '질문을 셀 수 있는 모양으로 읽지 못해 글에 적힌 운동·기간으로만 기기에서 셌어요. 말을 바꿔 물으면 다시 읽어요.';
+
+  @override
+  String get queryUnreadable =>
+      '모델이 읽을 수 없는 답을 두 번 보냈어요. 연결 문제가 아니고, 그 답에는 원판이 나가지 않았어요.';
+
+  @override
+  String get queryAskAgain => '다시 묻기';
+
+  @override
+  String get queryUnreadablePaid =>
+      '모델이 읽을 수 없는 답을 두 번 보냈어요. 연결 문제가 아니에요. 그 답에는 원판이 나가지 않았고, 아래 원판은 질문을 가른 첫 단계에 쓴 거예요.';
+
+  @override
+  String get queryUnreadableLocal => '그동안 글에 적힌 운동·기간으로는 기기에서 셌어요.';
+
+  @override
+  String get queryTotalUnits => '단위가 달라 합계를 못 내요';
+
+  @override
+  String queryMemoDropped(String words) {
+    return '메모 조건 뺌: $words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return '기준 수 $value 뺌 — 질문에 무게로 적힌 수가 아니에요';
+  }
+
+  @override
+  String queryBoundDropped(String value) {
+    return '숫자 조건 $value 뺌 — 질문에 그 단위로 적힌 수가 아니에요';
+  }
 }

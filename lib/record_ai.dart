@@ -554,6 +554,7 @@ class RecordAi {
     String path,
     Map<String, Object?>? payload, {
     Duration timeout = const Duration(seconds: 20),
+    List<double>? spent,
   }) async {
     final web = client ?? newApiClient();
     try {
@@ -590,7 +591,7 @@ class RecordAi {
         } on FormatException {
           body = null;
         }
-        _notice(body);
+        _notice(body, spent);
         if (response.statusCode == 200 && body is Map) {
           return body.cast<String, Object?>();
         }
@@ -631,15 +632,22 @@ class RecordAi {
 
   /// 답에 원판 잔액이 있으면 알린다. 질문의 답은 `plates` 안에, 지갑 조회와
   /// 402 는 바깥에 싣는다.
-  void _notice(Object? body) {
+  void _notice(Object? body, [List<double>? sum]) {
     if (body is! Map) return;
     final nested = body['plates'];
     final balance = nested is Map ? nested['balance'] : body['balance'];
     final spent = nested is Map ? nested['spent'] : null;
+    if (spent is num) sum?.add(spent.toDouble());
     if (balance is num) {
+      // 402 는 쓴 양 없이 잔액만 온다 — 같은 질문의 앞 부름(1단계)에 쓴 것은
+      // 쓴 것이다. 합을 싣는다.
+      final total = sum == null || sum.isEmpty
+          ? null
+          // 원판은 둘째 자리까지다 — 더하다 생긴 부동소수 꼬리를 뗀다.
+          : (sum.fold(0.0, (a, b) => a + b) * 100).round() / 100;
       onPlates?.call(
         balance.toDouble(),
-        spent is num ? spent.toDouble() : null,
+        spent is num ? (sum == null ? spent.toDouble() : total) : total,
       );
     }
   }
@@ -686,22 +694,29 @@ class RecordAi {
   ///
   /// [contract] 는 답의 모양이다. 없으면 서버는 옛 모양(1)으로 검사한다.
   /// [kind] 는 셈의 갈래다 — 'input'(한 줄 설정)은 하루 횟수로 세고, 없으면
-  /// 기록 질문('ask')이라 원판이 나간다.
+  /// 기록 질문('ask')이라 원판이 나간다. 한 질문을 여러 번 묻는 쪽은 같은
+  /// [spent] 를 넘긴다 — 쓴 원판을 모아 합으로 알린다.
   Future<Object?> ask(
     String instructions,
     String input, {
     Duration timeout = const Duration(seconds: 20),
     int? contract,
     String? kind,
+    List<double>? spent,
   }) async {
     final direct = respond;
     if (direct != null) return direct(instructions, input);
-    final answer = await _ask('/api/record-query', {
-      'instructions': instructions,
-      'input': input,
-      'contract': ?contract,
-      'kind': ?kind,
-    }, timeout: timeout);
+    final answer = await _ask(
+      '/api/record-query',
+      {
+        'instructions': instructions,
+        'input': input,
+        'contract': ?contract,
+        'kind': ?kind,
+      },
+      timeout: timeout,
+      spent: spent,
+    );
     return answer['intent'];
   }
 
@@ -822,8 +837,16 @@ class RecordAi {
 
 /// 서버 쪽이 못 해준 이유. 화면은 이걸 보고 무슨 말을 할지 정한다.
 class RecordAiException implements Exception {
-  const RecordAiException(this.status, {this.offline = false, this.code});
+  const RecordAiException(
+    this.status, {
+    this.offline = false,
+    this.code,
+    this.charged = false,
+  });
   final RecordAiStatus status;
+
+  /// 실패했어도 이 질문의 앞 부름(기록 질문 1단계)에 원판이 나갔다.
+  final bool charged;
 
   /// 서버가 아니라 연결이 문제였다(그물 없음, 시간 초과). 다시 해 볼 만하다.
   final bool offline;

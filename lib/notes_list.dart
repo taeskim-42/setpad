@@ -8,6 +8,7 @@ import 'answer_card.dart';
 import 'record_query.dart';
 import 'stats.dart' as stats;
 import 'editor.dart' show SuggestionChip;
+import 'exercises.dart' show exerciseByName;
 import 'gym.dart';
 import 'booking_entry.dart';
 import 'record_ai.dart';
@@ -54,9 +55,13 @@ class _NotesListPageState extends State<NotesListPage>
   late final _search = RecordSearch(widget.ai);
   String? _locale;
 
-  /// 칩으로 고른 것. 질문을 해석하는 자리가 아니라 **고르는** 자리다 — 고르면
-  /// 틀릴 것이 없고 기다릴 것도 없다. 문장 해석은 부차 경로로 남아 있다.
-  stats.Metric? _pick;
+  /// 칩으로 고른 측정(plan 의 측정 이름). 질문을 해석하는 자리가 아니라 **고르는**
+  /// 자리다 — 고르면 틀릴 것이 없고 기다릴 것도 없다. 칩도 모델 plan 과 같은
+  /// 실행기([runPlan])로 센다.
+  String? _pick;
+
+  /// "혹시 ○○?" 칩으로 이름을 바꾼 plan. 바꾼 원래 plan 과 같은 객체일 때만 쓴다.
+  (RecordQuery, RecordQuery)? _swap;
 
   /// 이름이 둘 이상일 때 고른 칩. [_multiChips] 의 몇 번째인지다.
   int? _chip;
@@ -77,8 +82,14 @@ class _NotesListPageState extends State<NotesListPage>
   String? get _bareName {
     final q = _query.text.trim();
     if (q.isEmpty) return null;
-    final hit = suggest(q, _names, limit: 1);
-    return hit.isEmpty ? null : hit.first;
+    final hit = suggest(q, _recorded, limit: 1);
+    if (hit.isNotEmpty) return hit.first;
+    // 안 적은 사전 운동도 이름이다 — 모델 없이 "적은 기록이 없어요" 를 보인다.
+    // 사전은 강한 맞춤만 받는다('클린' 은 크런치가 아니다).
+    final e = dictionaryMatch(q)?.exercise;
+    return e == null
+        ? null
+        : _known.where((n) => exerciseKey(n) == e.ko).firstOrNull;
   }
 
   /// 칩을 띄울 운동. 이름만 쳤으면 그것, 문장이면 글이 지목한 것 넷까지,
@@ -88,29 +99,55 @@ class _NotesListPageState extends State<NotesListPage>
     final bare = _bareName;
     if (bare != null) return [bare];
     final q = _query.text.trim();
-    final named = namedExercises(q, _names).take(4).toList();
+    // 안 적은 사전 운동은 이름이 글에 그대로 있을 때만 더한다. 낱말 퍼지로 사전까지
+    // 넓히면 '클린' 이 크런치가, 'best' 가 벤트오버가 된다.
+    final compact = searchKey(q);
+    final words = {
+      for (final w in q.split(RegExp(r'\s+')))
+        if (dictionaryMatch(stripParticle(w)) case (
+          :final exercise,
+          exact: true,
+        ))
+          exercise,
+    };
+    final recorded = _recorded;
+    final pool = [
+      ...recorded,
+      for (final n in _known.skip(recorded.length))
+        if (exerciseByName[n.toLowerCase()] case final e?
+            when words.contains(e) ||
+                e.keys.any(
+                  (k) =>
+                      searchKey(k).length >= 3 &&
+                      compact.contains(searchKey(k)),
+                ))
+          n,
+    ];
+    final named = namedExercises(q, pool).take(4).toList();
     if (named.isNotEmpty) return named;
     for (final raw in q.split(RegExp(r'\s+'))) {
       final word = stripParticle(raw);
       if (word.length < 2 || word.contains(RegExp(r'\d'))) continue;
-      final hit = suggest(word, _names, limit: 1);
+      final hit = suggest(word, recorded, limit: 1);
       if (hit.isNotEmpty) return [hit.first];
     }
     return const [];
   }
 
-  /// 이름이 둘 이상일 때의 칩. 비교는 "기록 비교" 의 기본 측정 셋이다.
-  List<(String, List<stats.Metric>)> _multiChips(L l) => [
-    (l.queryCompareChip, RecordQuery.defaultMeasures),
-    (l.metricMax, const [stats.Metric.best]),
-    (l.metricSessions, const [stats.Metric.sessions]),
-    (l.metricVolume, const [stats.Metric.volume]),
+  /// 이름이 둘 이상일 때의 칩(측정 이름). 비교는 측정을 안 적은 plan — "기록 비교" 의
+  /// 기본 셋이다.
+  List<(String, String?)> _multiChips(L l) => [
+    (l.queryCompareChip, null),
+    (l.metricMax, 'best'),
+    (l.metricSessions, 'trainingDays'),
+    (l.metricVolume, 'volume'),
   ];
 
-  List<String> get _names => widget.store.notes
-      .expand((n) => n.blocks.map((b) => b.exercise))
-      .toSet()
-      .toList();
+  /// 기록한 운동 = 해낸 세트가 있는 운동. 계획만 있는 루틴 칸은 아니다.
+  List<String> get _recorded => recordedExercises(widget.store.notes);
+
+  /// 칩이 알아보는 이름: 기록한 운동 + 안 적은 사전 운동(화면 언어).
+  List<String> get _known => knownExercises(_recorded, _locale ?? 'en');
 
   /// 트레이너가 내려준 것. 체육관에 안 다니면 늘 비어 있다.
   List<Routine> _routines = const [];
@@ -216,12 +253,67 @@ class _NotesListPageState extends State<NotesListPage>
     _search.search(
       _bareName == null ? _query.text : '',
       _locale ?? 'en',
-      _names,
+      _recorded,
       widget.store.weightUnit,
       immediately: immediately,
       notes: widget.store.notes,
     );
   }
+
+  /// 기기가 글에서 만든 plan — 칩으로 고른 것, 또는 서버에 닿지 못해 글에 적힌
+  /// 이름·기간·의도 낱말로 만든 것. 모델 plan 이 아니라 확인을 묻지 않는다.
+  RecordQuery? _localPlan(List<String> mentioned, L l) {
+    if (mentioned.isEmpty) return null;
+    final spec = switch ((_pick, _chip)) {
+      (final m?, _) when mentioned.length == 1 => {
+        'exercises': mentioned,
+        'measures': [m],
+      },
+      (_, final i?) when mentioned.length > 1 => {
+        'exercises': mentioned,
+        if (_multiChips(l)[i].$2 case final m?) 'measures': [m],
+      },
+      _ => null,
+    };
+    if (spec == null && !_unreached && !_misread) return null;
+    final strong = spec != null
+        ? const <String>[]
+        : namedExercises(_query.text.trim(), mentioned, fuzzy: false);
+    if (spec == null && strong.isEmpty) return null;
+    try {
+      return spec != null
+          ? decodeRecordIntent(
+              spec,
+              '',
+              _recorded,
+              unit: widget.store.weightUnit,
+              locale: _locale ?? 'en',
+            )
+          : wordsPlan(
+              _query.text.trim(),
+              // 모델 없이 저절로 세는 길이다 — 칩과 달리 사람이 고르지 않았다.
+              // 글에 정확히(이름·별칭·줄임말) 적힌 운동만 센다. 낱말 퍼지로
+              // 잡힌 것('chung' → 런지)은 칩으로만 둔다.
+              strong,
+              _recorded,
+              unit: widget.store.weightUnit,
+              locale: _locale ?? 'en',
+            );
+    } on FormatException {
+      return null;
+    }
+  }
+
+  /// Enter 를 눌렀는데 서버에 닿지 못했다(연결·서버 오류). 칩이 없어도 글에 적힌
+  /// 운동은 기기에서 센다 — 막다른 길이 없다.
+  bool get _unreached =>
+      _chip == null && _pick == null && (_search.offline || _search.failed);
+
+  /// Enter 를 눌러 서버는 답했는데 그 답을 셀 plan 으로 읽지 못했다(모델이 두 번
+  /// 다 읽을 수 없는 답을 낸 것 포함). 연결 문제가 아니다 — 그렇게 말하지 않고,
+  /// 글에 적힌 운동은 기기에서 센다.
+  bool get _misread =>
+      _chip == null && _pick == null && (_search.misread || _search.unreadable);
 
   void _open(Note note) {
     _search.cancel();
@@ -272,6 +364,8 @@ class _NotesListPageState extends State<NotesListPage>
       _search.ai.supported &&
       !(_search.busy ||
           _search.failed ||
+          _search.misread ||
+          _search.unreadable ||
           _search.noPlates ||
           _search.unrepresentable != null ||
           _search.tooLong ||
@@ -338,20 +432,29 @@ class _NotesListPageState extends State<NotesListPage>
     }).toList();
   }
 
-  /// 답 한 장. 모양은 실행기가 정했다 — 숫자 하나, 표, 차트.
+  /// 답 한 장. 모양은 실행기가 정했다 — 숫자 하나, 표, 차트. 위에는 못 보는 것·
+  /// 적은 적 없는 운동, 아래에는 차이·각주.
   Widget _answer(RecordQuery q, RecordResult r, L l) {
+    final faint = TextStyle(
+      fontSize: 13,
+      color: CupertinoColors.secondaryLabel.resolveFrom(context),
+    );
+    Widget text(List<String> lines, EdgeInsets padding) => Padding(
+      padding: padding,
+      child: Text(lines.join('\n'), style: faint),
+    );
     final Widget card;
+    var notes = [...r.lines, ...r.footnotes];
     switch (r.render) {
       case 'table':
         // 표는 차이와 각주를 제 안에 싣는다.
-        return TableCard(query: q, result: r);
+        card = TableCard(query: q, result: r);
+        notes = const [];
       case 'chart':
         final dots = [
           for (final row in r.rows)
             if (row.cells.single.answer case final a?
-                when a.numericValue != null &&
-                    a.points.isNotEmpty &&
-                    row.start != null)
+                when a.numericValue != null && row.start != null)
               (row, a),
         ];
         final total = r.total?.single.answer;
@@ -359,14 +462,14 @@ class _NotesListPageState extends State<NotesListPage>
           answer: stats.Answer(
             metric: q.measures.single,
             exercise: r.title,
-            // 값이 없는 구간은 점을 찍지 않는다.
+            // 값이 없는 구간은 점을 찍지 않는다. 개수형의 0 인 구간은 값(0)이다.
             points: [
               for (final (row, a) in dots)
                 stats.DayPoint(
                   row.start!,
                   a.numericValue!,
                   0,
-                  a.points.first.unit,
+                  a.unit ?? a.points.firstOrNull?.unit ?? '',
                 ),
             ],
             // 합계·평균이 있으면 그것, 없으면 마지막 구간과 그 값.
@@ -382,9 +485,14 @@ class _NotesListPageState extends State<NotesListPage>
           ),
         );
       default:
-        final a = r.rows.single.cells.single.answer;
+        final c = r.rows.single.cells.single;
+        final a = c.answer;
+        final why = c.reason == 'never' ? null : cellReason(l, c.reason);
         card = a == null
-            ? const SizedBox.shrink()
+            // 셀 수 없는 칸도 까닭을 말한다(적은 적 없음은 위 줄이 말한다).
+            ? why == null
+                  ? const SizedBox.shrink()
+                  : text([why], const EdgeInsets.fromLTRB(20, 4, 20, 4))
             : AnswerCard(
                 answer: stats.Answer(
                   metric: a.metric,
@@ -392,6 +500,7 @@ class _NotesListPageState extends State<NotesListPage>
                   points: a.points,
                   headline: a.headline,
                   numericValue: a.numericValue,
+                  unit: a.unit,
                   lines: [
                     describeScope(q.scope, l),
                     ...a.lines,
@@ -399,22 +508,14 @@ class _NotesListPageState extends State<NotesListPage>
                 ),
               );
     }
-    final notes = [...r.diff, ...r.footnotes];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (r.header.isNotEmpty)
+          text(r.header, const EdgeInsets.fromLTRB(20, 4, 20, 0)),
         card,
         if (notes.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-            child: Text(
-              notes.join('\n'),
-              style: TextStyle(
-                fontSize: 13,
-                color: CupertinoColors.secondaryLabel.resolveFrom(context),
-              ),
-            ),
-          ),
+          text(notes, const EdgeInsets.fromLTRB(20, 0, 20, 8)),
       ],
     );
   }
@@ -458,35 +559,41 @@ class _NotesListPageState extends State<NotesListPage>
                 listenable: widget.store,
                 builder: (context, _) {
                   final mentioned = _mentioned;
-                  final plan = _search.plan;
+                  final asked = _search.plan;
+                  // "혹시 ○○?" 로 이름을 바꿨으면 그 plan 이다(모델도 원판도 안 쓴다).
+                  final plan = switch (_swap) {
+                    (final from, final to) when identical(from, asked) => to,
+                    _ => asked,
+                  };
                   // 자신 있게 틀릴 위험이 있으면 답을 내지 않고 한 번 묻는다.
                   // 틀린 숫자보다 탭 한 번이 싸다.
                   final doubtful =
                       plan != null &&
                       plan.requiresConfirmation &&
                       !_isConfirmed(plan);
-                  // 이름 여럿의 칩은 고른 것이라 묻지 않는다. 모델도 안 부른다.
-                  final picked = _chip != null && mentioned.length > 1
-                      ? RecordQuery(
-                          scope: QueryScope(exercises: mentioned),
-                          by: 'exercise',
-                          measures: _multiChips(l)[_chip!].$2,
-                        )
-                      : null;
+                  // 칩과 연결이 안 될 때의 plan 은 기기가 만든 것이라 묻지 않는다.
+                  final local = _localPlan(mentioned, l);
                   final query =
-                      picked ??
+                      local ??
                       (plan == null || doubtful || plan.kind != 'query'
                           ? null
                           : plan);
                   final result = query == null
                       ? null
-                      : runQuery(
+                      : runPlan(
                           query,
                           widget.store.notes,
                           l: l,
                           unit: widget.store.weightUnit,
-                          confirmed: _isConfirmed(query),
+                          confirmed: local != null || _isConfirmed(query),
                         );
+                  final recordedKeys = {
+                    for (final r in _recorded) exerciseKey(r),
+                  };
+                  final unrecorded = [
+                    for (final n in mentioned)
+                      if (!recordedKeys.contains(exerciseKey(n))) n,
+                  ];
                   final visible = _visible(plan, result, mentioned);
                   final groups = _grouped(visible, l);
                   return CustomScrollView(
@@ -684,6 +791,39 @@ class _NotesListPageState extends State<NotesListPage>
                                     l.queryFailed,
                                     style: const TextStyle(fontSize: 14),
                                   ),
+                                // 모델이 읽을 수 없는 답을 두 번 냈다 — 연결 문제가
+                                // 아니고 그 답에는 원판이 나가지 않았다(1단계 몫은
+                                // 원판 줄이 말한다). 글에 적힌 운동은 그동안 기기에서
+                                // 세고, 같은 글로 다시 묻는다.
+                                if (_search.unreadable) ...[
+                                  Text(
+                                    [
+                                      _search.charged
+                                          ? l.queryUnreadablePaid
+                                          : l.queryUnreadable,
+                                      if (local != null) l.queryUnreadableLocal,
+                                    ].join(' '),
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(44, 44),
+                                    onPressed: () => _ask(immediately: true),
+                                    child: Text(
+                                      l.queryAskAgain,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  ),
+                                ],
+                                // 서버는 답했다 — 연결 문구가 아니라 읽지 못했다고
+                                // 말하고, 말을 바꾸면 다시 읽는다고 알린다.
+                                if (_search.misread)
+                                  Text(
+                                    _misread && local != null
+                                        ? l.queryMisreadLocal
+                                        : l.queryMisread,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
                                 // 다시 해도 같은 거절이다. "다시 시도" 가 아니라
                                 // 무엇을 못 하는지 말한다.
                                 if (_search.unrepresentable case final kind?)
@@ -697,17 +837,37 @@ class _NotesListPageState extends State<NotesListPage>
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 if (_search.noPlates) ..._noPlates(l),
-                                if (plan?.kind == 'unsupported')
-                                  Text(switch (plan?.reason) {
-                                    'missingData' => l.queryMissingData,
-                                    'ambiguous' => l.queryAmbiguous,
-                                    _ => l.queryUnsupported,
-                                  }, style: const TextStyle(fontSize: 14)),
+                                // 거절도 까닭별이다: 무관한 질문, 무엇을 셀지 모름,
+                                // 기록에 없는 것만 물음(무엇이 없는지 적는다).
+                                if (local == null &&
+                                    plan?.kind == 'unsupported')
+                                  Text(
+                                    refusalLines(plan!, l).join('\n'),
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                // 이름만 찾았는데 적은 적 없는 운동.
+                                if (local == null &&
+                                    plan?.kind == 'find' &&
+                                    plan!.never.isNotEmpty)
+                                  Text(
+                                    l.queryNeverRows(
+                                      plan.never
+                                          .map((k) => plan.names[k] ?? k)
+                                          .join(', '),
+                                    ),
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                // 줄마다 0·까닭이 있으면 표가 말한다. 셀 것이 하나도
+                                // 없을 때만 이 줄이다.
                                 if (result != null &&
                                     !result.rows.any(
-                                      (r) =>
-                                          r.cells.any((c) => c.answer != null),
-                                    ))
+                                      (r) => r.cells.any(
+                                        (c) =>
+                                            c.answer != null ||
+                                            cellReason(l, c.reason) != null,
+                                      ),
+                                    ) &&
+                                    result.header.isEmpty)
                                   Text(
                                     l.queryNoData,
                                     style: const TextStyle(fontSize: 14),
@@ -729,7 +889,13 @@ class _NotesListPageState extends State<NotesListPage>
                                 // 서버에 못 닿았을 때만 알린다. 준비 상태를
                                 // 늘어놓던 줄은 읽을 것이 없어 뺐다. 칩이 뜬
                                 // 글이어도 Enter 를 눌렀으면 왜 답이 없는지 말한다.
-                                if (_search.offline ||
+                                // 글에 운동이 있으면 기기에서 세고 그렇다고 말한다.
+                                if (_unreached && local != null)
+                                  Text(
+                                    l.queryOfflineLocal,
+                                    style: const TextStyle(fontSize: 14),
+                                  )
+                                else if (_search.offline ||
                                     (mentioned.isEmpty &&
                                         _search.status ==
                                             RecordAiStatus.unavailable))
@@ -762,6 +928,20 @@ class _NotesListPageState extends State<NotesListPage>
                                     ),
                                   ),
                                 ),
+                                // 안 적은 운동도 칩이 뜬다. 답이 없을 때는 여기서
+                                // 먼저 말한다(답이 있으면 답 위 줄이 말한다).
+                                if (unrecorded.isNotEmpty && result == null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 2),
+                                    child: Text(
+                                      l.queryNeverRows(unrecorded.join(', ')),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: CupertinoColors.secondaryLabel
+                                            .resolveFrom(context),
+                                      ),
+                                    ),
+                                  ),
                                 const SizedBox(height: 8),
                                 Wrap(
                                   spacing: 8,
@@ -769,14 +949,11 @@ class _NotesListPageState extends State<NotesListPage>
                                   children: [
                                     if (mentioned case [final name])
                                       for (final (metric, label) in [
-                                        (stats.Metric.max, l.metricMax),
-                                        (stats.Metric.trend, l.metricTrend),
-                                        (stats.Metric.last, l.metricLast),
-                                        (
-                                          stats.Metric.sessions,
-                                          l.metricSessions,
-                                        ),
-                                        (stats.Metric.volume, l.metricVolume),
+                                        ('best', l.metricMax),
+                                        ('weightChange', l.metricTrend),
+                                        ('latest', l.metricLast),
+                                        ('trainingDays', l.metricSessions),
+                                        ('volume', l.metricVolume),
                                       ])
                                         SuggestionChip(
                                           label: label,
@@ -787,7 +964,7 @@ class _NotesListPageState extends State<NotesListPage>
                                             _search.search(
                                               '',
                                               _locale ?? 'en',
-                                              _names,
+                                              _recorded,
                                               widget.store.weightUnit,
                                             );
                                             setState(
@@ -810,7 +987,7 @@ class _NotesListPageState extends State<NotesListPage>
                                             _search.search(
                                               '',
                                               _locale ?? 'en',
-                                              _names,
+                                              _recorded,
                                               widget.store.weightUnit,
                                             );
                                             setState(
@@ -825,18 +1002,6 @@ class _NotesListPageState extends State<NotesListPage>
                             ),
                           ),
                         ),
-                      if (_pick case final metric? when mentioned.length == 1)
-                        SliverToBoxAdapter(
-                          child: AnswerCard(
-                            answer: stats.answer(
-                              widget.store.notes,
-                              metric,
-                              mentioned.single,
-                              labels: l,
-                              unit: widget.store.weightUnit,
-                            ),
-                          ),
-                        ),
                       if (doubtful)
                         SliverToBoxAdapter(
                           child: Padding(
@@ -847,7 +1012,7 @@ class _NotesListPageState extends State<NotesListPage>
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 Text(
-                                  '${l.readAsConfirm} · ${describeQuery(plan, l, widget.store.weightUnit)}',
+                                  '${l.readAsConfirm} · ${describePlan(plan, l, widget.store.weightUnit, notes: widget.store.notes)}',
                                   style: TextStyle(
                                     fontSize: 15,
                                     color: CupertinoColors.label.resolveFrom(
@@ -867,7 +1032,41 @@ class _NotesListPageState extends State<NotesListPage>
                             ),
                           ),
                         ),
-                      if (!doubtful && plan != null && plan.readAs.isNotEmpty)
+                      // "혹시 ○○?" — 적은 적 없는 이름에 가까운 운동. 누르면 그
+                      // 이름으로 다시 센다(모델도 원판도 안 쓴다).
+                      if (local == null &&
+                          plan != null &&
+                          plan.maybe.isNotEmpty)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                            child: Wrap(
+                              spacing: 8,
+                              runSpacing: 6,
+                              children: [
+                                for (final MapEntry(key: from, value: names)
+                                    in plan.maybe.entries)
+                                  for (final to in names)
+                                    SuggestionChip(
+                                      label: l.queryMaybe(to),
+                                      selected: false,
+                                      onTap: () => setState(() {
+                                        final swapped = plan.withName(from, to);
+                                        // 이미 "맞아요" 한 읽기면 이름만 바꾼 것도 확인된 것이다.
+                                        if (_isConfirmed(plan)) {
+                                          _confirmed = swapped;
+                                        }
+                                        _swap = (asked!, swapped);
+                                      }),
+                                    ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (local == null &&
+                          !doubtful &&
+                          plan != null &&
+                          plan.readAs.isNotEmpty)
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),

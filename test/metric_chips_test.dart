@@ -73,19 +73,18 @@ void main() {
       await pump(
         tester,
         ai: RecordAi(
-          respond: (_, _) async {
+          respond: (i, _) async {
+            // 1단계(갈래 고르기)는 세지 않는다 — 질문 하나에 plan 한 번.
+            if (i == familyInstructions) return {'t': <String>[]};
             calls++;
             return {
               'by': 'week',
-              'measures': ['volume', 'setCount'],
+              'measures': ['weightChange'],
             };
           },
         ),
       );
-      await tester.enterText(
-        find.byType(CupertinoSearchTextField),
-        '주별 볼륨이랑 세트 수',
-      );
+      await tester.enterText(find.byType(CupertinoSearchTextField), '주별 무게 추이');
       await tester.pumpAndSettle();
       expect(find.text(l.noSearchResults), findsOneWidget);
       expect(find.text(l.queryPressEnter), findsOneWidget);
@@ -93,7 +92,8 @@ void main() {
 
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
-      expect(calls, 1);
+      // 모델이 고른 조합일 수 있어 까닭을 적어 한 번 다시 묻고, 그래도 같으면 말한다.
+      expect(calls, 2);
       expect(find.text(l.queryLimit('groupedMeasure')), findsOneWidget);
       expect(find.text(l.queryFailed), findsNothing);
       expect(find.text(l.queryPressEnter), findsNothing);
@@ -101,33 +101,50 @@ void main() {
       // 다시 눌러도 같은 거절이고 원판이 또 나가지 않는다.
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
-      expect(calls, 1);
+      expect(calls, 2);
       expect(find.text(l.queryLimit('groupedMeasure')), findsOneWidget);
     },
   );
 
-  testWidgets('C·연결이 안 되던 기기에서 Enter 를 누르면 다시 확인하고, 안 되면 칩이 떠 있어도 그렇다고 말한다', (
-    tester,
-  ) async {
-    final l = lookupL(const Locale('ko'));
-    RecordAi.forget();
-    addTearDown(RecordAi.forget);
-    await pump(
-      tester,
-      ai: RecordAi(
-        endpoint: 'https://example.test',
-        deviceId: 'device',
-        client: MockClient((_) async => throw http.ClientException('offline')),
-      ),
-    );
-    await tester.enterText(find.byType(CupertinoSearchTextField), '스쿼트 요즘 어때');
-    await tester.pumpAndSettle();
-    expect(find.text(l.metricMax), findsOneWidget, reason: '운동이 잡혀 칩이 떴다');
-    expect(find.text(l.queryOffline), findsNothing);
-    await tester.testTextInput.receiveAction(TextInputAction.done);
-    await tester.pumpAndSettle();
-    expect(find.text(l.queryOffline), findsOneWidget);
-  });
+  testWidgets(
+    'C·연결이 안 되던 기기에서 Enter 를 누르면 다시 확인하고, 안 되면 글의 운동을 기기에서 세고 그렇다고 말한다',
+    (tester) async {
+      final l = lookupL(const Locale('ko'));
+      RecordAi.forget();
+      addTearDown(RecordAi.forget);
+      await pump(
+        tester,
+        ai: RecordAi(
+          endpoint: 'https://example.test',
+          deviceId: 'device',
+          client: MockClient(
+            (_) async => throw http.ClientException('offline'),
+          ),
+        ),
+      );
+      await tester.enterText(
+        find.byType(CupertinoSearchTextField),
+        '스쿼트 요즘 어때',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(l.metricMax), findsOneWidget, reason: '운동이 잡혀 칩이 떴다');
+      expect(find.text(l.queryOffline), findsNothing);
+      expect(find.byType(AnswerCard), findsNothing);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      // 막다른 길이 없다: 글에 적힌 운동('요즘 어때' = 추이)을 기기에서 센다.
+      expect(find.text(l.queryOfflineLocal), findsOneWidget);
+      expect(find.byType(AnswerCard), findsOneWidget);
+      expect(find.textContaining(l.readAsConfirm), findsNothing);
+
+      // 글에 운동이 없으면 셀 것이 없다 — 연결되면 물을 수 있다고만 말한다.
+      await tester.enterText(find.byType(CupertinoSearchTextField), '요즘 어때');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(find.text(l.queryOffline), findsOneWidget);
+      expect(find.byType(AnswerCard), findsNothing);
+    },
+  );
 
   testWidgets('운동 이름이 잡히면 칩 다섯 개가 뜬다', (tester) async {
     await pump(tester);
@@ -159,7 +176,7 @@ void main() {
             {'op': '>=', 'value': 5},
             {'op': '<=', 'value': 10},
           ],
-          'compare': [
+          'series': [
             for (final year in [2025, 2026])
               {
                 'period': 'custom',
@@ -201,6 +218,8 @@ void main() {
     (tester) async {
       var queries = 0;
       Future<Object?> reply(String instructions, String input) async {
+        // 1단계(갈래 고르기)는 세지 않는다 — 질문 하나에 plan 한 번.
+        if (instructions == familyInstructions) return {'t': <String>[]};
         queries++;
         return {
           'exercises': ['벤치프레스'],
@@ -428,7 +447,9 @@ void main() {
         tester,
         records: pair,
         ai: RecordAi(
-          respond: (_, _) {
+          respond: (i, _) {
+            // 1단계(갈래 고르기)는 세지 않는다 — 질문 하나에 plan 한 번.
+            if (i == familyInstructions) return Future.value({'t': <String>[]});
             asked++;
             return pending.future;
           },
@@ -485,7 +506,7 @@ void main() {
       expect(table, findsNothing, reason: '다시 누르면 접힌다');
     });
 
-    testWidgets('모델이 v2 질의를 주면 확인 줄을 띄우고, 맞아요 뒤에 표를 띄운다', (tester) async {
+    testWidgets('모델 plan 은 확인 줄을 띄우고, 맞아요 뒤에 칩과 같은 표를 띄운다', (tester) async {
       String? instructions;
       await pump(
         tester,
@@ -502,12 +523,16 @@ void main() {
       await tester.enterText(find.byType(CupertinoSearchTextField), question);
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
-      expect(instructions, contains('"벤치프레스 vs 바벨로우 기록 비교" =>'));
+      // v3 지시문(contract 3). 평가 문항은 예시에 없다 — 오염 검사.
+      expect(instructions, planInstructions);
+      expect(instructions, isNot(contains(question)));
 
       expect(table, findsNothing, reason: '확인 전에는 답이 없다');
+      // 윗단의 두 이름은 series 둘이다. 확인 줄은 series 마다 한 줄.
       expect(
         find.textContaining(
-          '${l.readAsConfirm} · 벤치프레스 · 바벨로우 · 최고 · 운동한 날 · 마지막 · kg',
+          '${l.readAsConfirm} · 최고 · 운동한 날 · 마지막 · kg · 차이 (2 − 1)\n'
+          '1. 벤치프레스 · 전체 기간\n2. 바벨로우 · 전체 기간',
         ),
         findsOneWidget,
       );
@@ -668,7 +693,9 @@ void main() {
       expect(find.text('87.5kg × 2회'), findsNWidgets(2));
     });
 
-    testWidgets('범위 안에 기록이 없는 운동은 칸마다 — 이고, 기록 없음이라 적는다', (tester) async {
+    testWidgets('범위 안에 기록이 없는 운동은 개수만 0 이고 나머지는 — 이며, 까닭은 한 번 적고 차이도 낸다(G8)', (
+      tester,
+    ) async {
       final q = RecordQuery(
         scope: QueryScope(
           exercises: const ['벤치프레스', '바벨로우'],
@@ -691,9 +718,15 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('87.5kg × 2회'), findsNWidgets(2));
-      expect(find.text('—'), findsNWidgets(3), reason: '로우의 세 칸');
-      expect(find.text(l.queryNoRecord), findsOneWidget);
-      expect(find.textContaining('차이'), findsNothing, reason: '한쪽이 비면 차이가 없다');
+      expect(find.text('—'), findsNWidgets(2), reason: '로우의 최고·마지막');
+      expect(find.text('0일 기록'), findsOneWidget, reason: '운동일수는 0 이 참이다');
+      expect(find.text(l.queryNoneCell), findsOneWidget, reason: '까닭은 한 번');
+      expect(
+        find.text('운동한 날 · 차이 (바벨로우 − 벤치프레스): -1일 (-100%)'),
+        findsOneWidget,
+        reason: '점 없는 0 칸도 차이를 낸다',
+      );
+      expect(tester.takeException(), isNull);
     });
   });
 }

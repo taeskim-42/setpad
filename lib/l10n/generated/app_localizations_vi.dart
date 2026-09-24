@@ -1057,21 +1057,29 @@ class LVi extends L {
   String queryLimit(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'exercises': 'Mỗi lần hỏi được tối đa 8 bài tập. Hãy hỏi từng phần.',
-      'measures': 'Mỗi lần đếm được tối đa 3 thứ. Hãy hỏi từng phần.',
+      'measures': 'Mỗi lần đếm được tối đa 4 thứ. Hãy hỏi từng phần.',
       'ranking': 'Bảng xếp hạng hiển thị tối đa 20. Hãy hỏi 20 trở xuống.',
       'sessions':
           '\'N buổi gần nhất\' tối đa 100 buổi. Muốn xem dài hơn, hãy hỏi theo khoảng thời gian, ví dụ năm nay.',
       'days':
           '\'N ngày gần đây\' tối đa 3660 ngày (khoảng 10 năm). Muốn xem dài hơn, hãy hỏi toàn bộ thời gian.',
-      'compare': 'Mỗi lần so sánh được tối đa 4 thứ. Hãy hỏi từng phần.',
+      'compare': 'Mỗi lần so sánh được tối đa 6 thứ. Hãy hỏi từng phần.',
       'compareGrouped':
           'Một câu hỏi không thể vừa so sánh vừa nhóm theo bài tập, ngày, tuần, tháng hoặc thứ trong tuần. Hãy hỏi một trong hai.',
       'groupedMeasure':
-          'Khi nhóm theo ngày, tuần, tháng hoặc thứ trong tuần chỉ đếm được một thứ, và xu hướng, lần cuối, lần đầu, số ngày kể từ lần cuối không nhóm được.',
+          'Khi so sánh nhiều khoảng và nhóm theo ngày, tuần, tháng hoặc thứ trong tuần chỉ đếm được một thứ, và xu hướng, lần cuối, lần đầu, số ngày kể từ lần cuối không nhóm được.',
       'ordering':
           'Xếp hạng, tổng và trung bình cần nhóm, ví dụ theo bài tập hoặc theo tuần.',
       'datesTotal':
           'Ngày lần cuối và lần đầu không cộng hay lấy trung bình được.',
+      'perMeasure':
+          'Trung bình theo ngày, tuần hoặc tháng chỉ dùng cho các số cộng được như hiệp, lần, khối lượng, quãng đường, thời gian, số ngày và kcal. Hãy hỏi mức tạ cao nhất hoặc trung bình theo khoảng thời gian.',
+      'shareMeasure':
+          'Tỷ trọng chỉ tính được với các số cộng được như số hiệp hoặc khối lượng.',
+      'trainedMeasure':
+          'Lọc ngày có tập hoặc ngày nghỉ chỉ dùng cho kcal ăn vào và đốt. Mọi ghi chép tập luyện đều thuộc ngày có tập.',
+      'sameSeries':
+          'Hai vế cần so sánh được đọc giống nhau. Hãy nói rõ so sánh cái gì với cái gì.',
       'other':
           'Tìm kiếm bản ghi không tính được câu hỏi có dạng này. Hãy hỏi từng phần.',
     });
@@ -1819,4 +1827,520 @@ class LVi extends L {
 
   @override
   String get settingsTrainer => 'Huấn luyện viên';
+
+  @override
+  String get answerNeedsTwoDays => 'Cần ít nhất hai ngày';
+
+  @override
+  String get answerNoBase => 'Không có giá trị gốc';
+
+  @override
+  String answerPerWeek(String value) {
+    return '$value mỗi tuần';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '$value mỗi tháng';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return '$n buổi kể từ kỷ lục';
+  }
+
+  @override
+  String get answerTimesUnit => ' lần';
+
+  @override
+  String answerTimes(int n) {
+    return '$n lần';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return '$n ngày liên tiếp';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return 'nghỉ $n ngày';
+  }
+
+  @override
+  String get answerUntilToday => 'hôm nay';
+
+  @override
+  String answerEveryDays(String value) {
+    return 'Thường $value ngày một lần';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return 'Trung bình $value ngày một lần';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return 'Liền nhau $a lần · nghỉ 1 ngày $b lần · nghỉ 2 ngày $c lần · nghỉ từ 3 ngày $d lần';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return 'Có một lần nghỉ dài $n ngày';
+  }
+
+  @override
+  String get answerNoMeals => 'Không có ngày nào ghi bữa ăn';
+
+  @override
+  String answerAbout(String value) {
+    return 'khoảng $value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '$n ngày có ghi bữa ăn';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return '$n bữa không rõ calo không được tính';
+  }
+
+  @override
+  String get answerNoWatch => 'Không có buổi tập đo bằng đồng hồ';
+
+  @override
+  String answerWatchDays(int n) {
+    return '$n ngày đo bằng đồng hồ';
+  }
+
+  @override
+  String get answerNoBoth => 'Không có ngày nào có cả ăn và đốt';
+
+  @override
+  String answerBothDays(int n) {
+    return '$n ngày có cả ăn và đốt';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return 'Đã bỏ $n ngày chỉ có ăn';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$n tháng';
+  }
+
+  @override
+  String get metricChangePct => 'Tỷ lệ thay đổi';
+
+  @override
+  String get metricDaysSinceBest => 'Ngày từ kỷ lục';
+
+  @override
+  String get metricSessionsSinceBest => 'Buổi từ kỷ lục';
+
+  @override
+  String get metricMeanReps => 'Lần mỗi hiệp';
+
+  @override
+  String get metricLongestStreak => 'Chuỗi dài nhất';
+
+  @override
+  String get metricLongestGap => 'Lần nghỉ dài nhất';
+
+  @override
+  String get metricMeanGap => 'Khoảng cách giữa buổi tập';
+
+  @override
+  String get metricIntake => 'Calo nạp vào';
+
+  @override
+  String get metricBurned => 'Calo tiêu hao';
+
+  @override
+  String get metricBalance => 'Nạp − tiêu hao';
+
+  @override
+  String get queryAlone => 'Tập một mình';
+
+  @override
+  String get queryTogether => 'Tập cùng bạn';
+
+  @override
+  String get queryByPart => 'Theo nhóm cơ';
+
+  @override
+  String get queryCanSee =>
+      'Nhật ký cho biết mức tạ, số lần, số hiệp, ngày tập và calo bữa ăn';
+
+  @override
+  String get queryDiffColumn => 'Chênh lệch';
+
+  @override
+  String get queryFutureCell => 'Chưa tới';
+
+  @override
+  String get queryGrowthRate =>
+      'Mức tăng được xếp theo tốc độ mỗi tuần để so sánh công bằng';
+
+  @override
+  String get queryHandoff => 'Chỉ bản ghi được chuyển cho bạn';
+
+  @override
+  String get queryNoHandoff => 'Không tính bản ghi được chuyển';
+
+  @override
+  String queryHandoffCount(int n) {
+    return 'Bỏ $n bản ghi được chuyển';
+  }
+
+  @override
+  String get queryHoursNote =>
+      'Giờ là lúc tạo bản ghi; ghi bù sau sẽ tính theo lúc ghi';
+
+  @override
+  String get queryMixedWeights => 'Mức tạ này gộp nhiều bài tập';
+
+  @override
+  String get queryNcBodyweight =>
+      'Nhật ký không có cân nặng. Ghi cân nặng vào câu hỏi để so sánh (vd: nặng 80, deadlift gấp mấy lần?)';
+
+  @override
+  String get queryNcHeartRate =>
+      'Tìm kiếm chưa xem nhịp tim; theo bài hay theo lúc nghỉ thì không được vì hiệp không có giờ';
+
+  @override
+  String get queryNeverMark => 'Chưa từng ghi';
+
+  @override
+  String get queryNoBaseRatio => 'Không có giá trị gốc nên không tính tỷ lệ';
+
+  @override
+  String get queryNoneCell => 'Không có bản ghi trong phạm vi này';
+
+  @override
+  String get queryNoRoutine => 'Ngày không theo giáo án';
+
+  @override
+  String get queryRoutine => 'Ngày theo giáo án HLV';
+
+  @override
+  String get queryOngoing => 'đang diễn ra';
+
+  @override
+  String get queryOverlap =>
+      'Ngày tập bị trùng nên không tính tỷ trọng; hãy hỏi theo số hiệp';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': 'Ngực',
+      'back': 'Lưng',
+      'legs': 'Chân',
+      'shoulders': 'Vai',
+      'arms': 'Tay',
+      'core': 'Core',
+      'cardio': 'Cardio',
+      'upper': 'Thân trên',
+      'lower': 'Thân dưới',
+      'other': 'Nhóm cơ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => 'Tỷ lệ';
+
+  @override
+  String get queryRatioUnits => 'Khác đơn vị nên không tính tỷ lệ';
+
+  @override
+  String get queryRestDay => 'Ngày nghỉ';
+
+  @override
+  String get queryTrained => 'Ngày tập';
+
+  @override
+  String get querySetFirst => 'Hiệp đầu';
+
+  @override
+  String get querySetLast => 'Hiệp cuối';
+
+  @override
+  String get queryShare => 'Tỷ trọng';
+
+  @override
+  String get queryZeroFilled => 'Bài không tập được tính là 0';
+
+  @override
+  String queryAgainst(String value) {
+    return 'so với $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio lần · chênh $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n ngày';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return 'Bỏ $n hiệp khác loại giá trị';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '${from}h–${to}h';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return 'Có phải $name?';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return 'Ghi chú có đủ: $terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text ($n ngày)';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return 'Ghi chú khớp: $hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names: chưa từng ghi, đã tính không có';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names: chưa từng ghi';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return 'Ghi chú không có: $terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return 'Bỏ $n hiệp không ghi số lần';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return 'Không có trong nhật ký nên không xem được: $things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return 'Không xem được: $things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return 'Nhật ký không trả lời được: $things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return 'Bỏ $n hiệp không có tạ (nhiều nhất $reps lần)';
+  }
+
+  @override
+  String queryNth(int n) {
+    return 'Buổi tập thứ $n tính từ cuối';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '$n hiệp ghi quãng đường: $value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '$n hiệp ghi thời gian: $value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return 'không tính $names';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '($n ngày)';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part: $names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': 'mỗi ngày',
+      'week': 'mỗi tuần',
+      'month': 'mỗi tháng',
+      'other': 'trung bình',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/ngày',
+      'week': '/tuần',
+      'month': '/tháng',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value lần ($percent%)';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': 'Ngày $n',
+      'week': 'Tuần $n',
+      'month': 'Tháng $n',
+      'other': 'Thứ $n',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return 'Chưa tới nên hiểu là năm $year';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return 'Cùng $days ngày: $earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return 'Quá ngắn để xếp hạng (dưới 3 ngày hoặc 3 tuần): $names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata',
+      'bpm': 'Hẹn giờ BPM',
+      'other': 'Không hẹn giờ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return 'Đã bỏ bài không rõ nhóm cơ: $names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '$n mục không xếp hạng vì thiếu giá trị: $names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return 'Các giai đoạn dài khác nhau ($lengths ngày) nên chênh lệch và tỷ lệ tính theo tuần';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$zeros/$total tuần bằng 0',
+      'month': '$zeros/$total tháng bằng 0',
+      'other': '$zeros/$total bằng 0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '$percent% trong $m ngày có thể';
+  }
+
+  @override
+  String get queryOfflineLocal =>
+      'Không kết nối được máy chủ nên đã đếm trên máy chỉ theo bài tập và thời gian trong câu. Khi có mạng, nhấn Enter để hỏi lại.';
+
+  @override
+  String get queryMisread =>
+      'Không đọc được câu hỏi này thành phép đếm. Hãy thử hỏi theo cách khác.';
+
+  @override
+  String get queryMisreadLocal =>
+      'Không đọc được câu hỏi thành phép đếm nên đã đếm trên máy chỉ theo bài tập và khoảng thời gian trong câu. Hỏi theo cách khác để đọc lại.';
+
+  @override
+  String get queryUnreadable =>
+      'Mô hình đã gửi câu trả lời không đọc được hai lần. Không phải do kết nối, và câu trả lời đó không tốn bánh tạ nào.';
+
+  @override
+  String get queryAskAgain => 'Hỏi lại';
+
+  @override
+  String get queryUnreadablePaid =>
+      'Mô hình đã gửi câu trả lời không đọc được hai lần. Không phải do kết nối. Câu trả lời đó không tốn bánh tạ nào; số bánh tạ bên dưới là cho bước đầu phân loại câu hỏi.';
+
+  @override
+  String get queryUnreadableLocal =>
+      'Trong lúc đó, đã đếm trên máy theo bài tập và khoảng thời gian trong câu.';
+
+  @override
+  String get queryTotalUnits => 'Đơn vị khác nhau nên không cộng tổng được';
+
+  @override
+  String queryMemoDropped(String words) {
+    return 'Đã bỏ điều kiện ghi chú: $words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return 'Đã bỏ số mốc $value — đó không phải cân nặng ghi trong câu hỏi';
+  }
+
+  @override
+  String queryBoundDropped(String value) {
+    return 'Đã bỏ điều kiện $value — câu hỏi không ghi số này theo đơn vị đó';
+  }
 }

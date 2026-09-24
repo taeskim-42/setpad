@@ -5,6 +5,7 @@ library;
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
+import 'daily.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'parser.dart';
 import 'editor.dart';
@@ -33,7 +34,35 @@ enum Metric {
   first,
   daysSince,
   longest,
+
+  /// 첫날 최고 → 마지막 날 최고의 변화율(%). 속도(%/주)는 [Answer.rate].
+  changePct,
+
+  /// 최고에 마지막으로 닿은 날부터 오늘까지.
+  daysSinceBest,
+
+  /// 최고에 마지막으로 닿은 뒤 한 운동일 수 — 그만둔 운동이 '정체' 로 오르지 않는다.
+  sessionsSinceBest,
+
+  /// 세트당 반복.
+  meanReps,
+
+  /// 날 모음 측정 — [dayAnswer].
+  longestStreak,
+  longestGap,
+  meanGap,
+
+  /// 끼니·워치 측정 — [energyAnswer].
+  intake,
+  burned,
+  balance,
 }
+
+/// 운동한 날들로만 세는 측정.
+const dayMetrics = {Metric.longestStreak, Metric.longestGap, Metric.meanGap};
+
+/// 끼니와 워치 kcal 로 세는 측정.
+const energyMetrics = {Metric.intake, Metric.burned, Metric.balance};
 
 /// 한 운동의 하루치. 그날 가장 무겁게 든 세트를 그날의 값으로 삼는다.
 class DayPoint {
@@ -53,6 +82,8 @@ class Answer {
     this.headline,
     this.numericValue,
     this.lines = const [],
+    this.unit,
+    this.rate,
   });
 
   final Metric metric;
@@ -67,6 +98,32 @@ class Answer {
 
   /// 번호를 붙여 아래에 까는 짧은 사실들.
   final List<String> lines;
+
+  /// [numericValue] 의 단위(kg, 회, 세트, 일, km, kcal …). 점이 없는 답(0 으로
+  /// 채운 칸, 날 모음)도 단위를 안다 — 차이·합계가 점에서 단위를 읽으면 빈 칸에서 죽는다.
+  final String? unit;
+
+  /// 성장의 속도: 주당 변화(추이는 단위/주, 변화율은 %/주). 순위와 차이는 폭이 다른
+  /// 운동끼리 총 변화가 아니라 이것으로 견준다.
+  final double? rate;
+
+  Answer copyWith({
+    String? exercise,
+    String? headline,
+    double? numericValue,
+    List<String>? lines,
+    String? unit,
+    List<DayPoint>? points,
+  }) => Answer(
+    metric: metric,
+    exercise: exercise ?? this.exercise,
+    points: points ?? this.points,
+    headline: headline ?? this.headline,
+    numericValue: numericValue ?? this.numericValue,
+    lines: lines ?? this.lines,
+    unit: unit ?? this.unit,
+    rate: rate,
+  );
 
   bool get isEmpty => points.isEmpty && headline == null;
 }
@@ -185,12 +242,26 @@ Answer answer(
   final today = now ?? DateTime.now();
   final empty = Answer(metric: metric, exercise: exercise, points: const []);
   final picked = _done(notes, exercise, since);
+  if (dayMetrics.contains(metric)) {
+    return dayAnswer(
+      {for (final (d, _) in picked) d}.toList(),
+      metric,
+      end: today,
+      labels: l,
+      exercise: exercise,
+    );
+  }
+  // 끼니·워치는 운동 칸이 아니라 날에 붙는다 — [energyAnswer] 가 센다.
+  if (energyMetrics.contains(metric)) return empty;
   // 이 측정이 모든 세트에 요구하는 숫자의 종류. 최장은 시간을 적었으면 시간이다.
   final needs = switch (metric) {
     Metric.max ||
     Metric.average ||
     Metric.volume ||
     Metric.trend ||
+    Metric.changePct ||
+    Metric.daysSinceBest ||
+    Metric.sessionsSinceBest ||
     Metric.e1rm => UnitKind.weight,
     Metric.distance => UnitKind.distance,
     Metric.duration => UnitKind.duration,
@@ -205,6 +276,7 @@ Answer answer(
     Metric.volume,
     Metric.e1rm,
     Metric.maxReps,
+    Metric.meanReps,
   ].contains(metric);
   // Unknown contributing measurements cannot be omitted from a total or best.
   if (picked.any(
@@ -266,6 +338,7 @@ Answer answer(
       exercise: exercise,
       points: points,
       numericValue: total,
+      unit: unitLabel,
       headline: metric == Metric.reps
           ? l.repsCount(total.toInt())
           : metric == Metric.sets
@@ -336,6 +409,7 @@ Answer answer(
         exercise: exercise,
         points: points,
         numericValue: ago.toDouble(),
+        unit: l.queryDayUnit,
         headline: l.answerAgo(ago),
         lines: [date(day), l.answerSets(sets.length)],
       );
@@ -346,6 +420,32 @@ Answer answer(
       points: points,
       headline: sets.map(label).join('  '),
       lines: [date(day), l.answerSets(sets.length), l.answerAgo(ago)],
+    );
+  }
+  if (metric == Metric.meanReps) {
+    final reps = [for (final (_, s) in picked) s.reps!];
+    if (reps.isEmpty) return empty;
+    final mean = reps.fold<int>(0, (n, r) => n + r) / reps.length;
+    final byDay = <DateTime, List<int>>{};
+    for (final (d, s) in picked) {
+      byDay.putIfAbsent(d, () => []).add(s.reps!);
+    }
+    return Answer(
+      metric: metric,
+      exercise: exercise,
+      points: [
+        for (final d in byDay.keys.toList()..sort())
+          DayPoint(
+            d,
+            byDay[d]!.fold<int>(0, (n, r) => n + r) / byDay[d]!.length,
+            0,
+            l.queryRepUnit,
+          ),
+      ],
+      numericValue: mean,
+      unit: l.queryRepUnit,
+      headline: '${formatRoundedQuantity(mean, l.localeName)}${l.queryRepUnit}',
+      lines: [l.answerSets(reps.length), l.answerDays(byDay.length)],
     );
   }
   // 세트마다 값 하나를 내고 날마다 모은다: 합이면 총 거리·시간, 아니면 그날의
@@ -408,6 +508,7 @@ Answer answer(
         exercise: exercise,
         points: points,
         numericValue: total,
+        unit: suffix,
         headline: '${fmt(total)}$suffix',
         lines: [l.answerSets(count), l.answerDays(points.length)],
       );
@@ -418,6 +519,7 @@ Answer answer(
       exercise: exercise,
       points: points,
       numericValue: top.value,
+      unit: suffix,
       headline: metric == Metric.maxReps
           ? l.repsCount(top.value.toInt())
           : metric == Metric.longest && units.length == 1
@@ -459,6 +561,7 @@ Answer answer(
         exercise: exercise,
         points: points,
         numericValue: top.value,
+        unit: top.unit,
         headline: top.reps == 0
             ? '$weight${top.unit}'
             : l.answerWeightReps('$weight${top.unit}', l.repsCount(top.reps)),
@@ -472,18 +575,23 @@ Answer answer(
     case Metric.trend:
       final first = points.first, last = points.last;
       final gap = last.value - first.value;
+      final weeks = _weeks(first.day, last.day);
       return Answer(
         metric: metric,
         exercise: exercise,
         points: points,
         numericValue: gap,
+        unit: last.unit,
+        rate: points.length < 2 ? null : gap / weeks,
         headline:
             '${formatRoundedQuantity(gap, l.localeName, signed: true)}${last.unit}',
         lines: [
           l.answerChange(
-            l.answerWeeks(_weeks(first.day, last.day)),
+            l.answerWeeks(weeks),
             '${fmt(first.value)} → ${fmt(last.value)}${last.unit}',
           ),
+          if (points.length > 1)
+            ..._speed(gap, first.day, last.day, last.unit, l),
           _plateau(points, l) ??
               l.answerPeak(
                 '${fmt(points.map((p) => p.value).reduce((a, b) => a > b ? a : b))}${last.unit}',
@@ -495,6 +603,66 @@ Answer answer(
             ).format(points.length / _weeks(first.day, last.day)),
           ),
         ],
+      );
+
+    case Metric.changePct:
+      final first = points.first, last = points.last;
+      if (points.length < 2) {
+        return _insufficient(metric, exercise, points, l.answerNeedsTwoDays);
+      }
+      if (first.value <= 0) {
+        return _insufficient(metric, exercise, points, l.answerNoBase);
+      }
+      final pct = (last.value - first.value) / first.value * 100;
+      final weeks = _weeks(first.day, last.day);
+      String signed(double v) =>
+          '${formatRoundedQuantity(v, l.localeName, signed: true)}%';
+      return Answer(
+        metric: metric,
+        exercise: exercise,
+        points: points,
+        numericValue: pct,
+        unit: '%',
+        rate: pct / weeks,
+        headline: signed(pct),
+        lines: [
+          l.answerChange(
+            l.answerWeeks(weeks),
+            '${fmt(first.value)} → ${fmt(last.value)}${last.unit}',
+          ),
+          l.queryPeriod(date(first.day), date(last.day)),
+          l.answerPerWeek(signed(pct / weeks)),
+          if (weeks > 8) l.answerPerMonth(signed(pct / weeks * 52 / 12)),
+        ],
+      );
+
+    case Metric.daysSinceBest:
+    case Metric.sessionsSinceBest:
+      final top = points.map((p) => p.value).reduce((a, b) => a > b ? a : b);
+      final hit = points.lastWhere((p) => p.value >= top);
+      final ago = _daysBetween(hit.day, today).clamp(0, 99999);
+      final after = points.where((p) => p.day.isAfter(hit.day)).length;
+      final peak = l.answerPeak('${fmt(top)}${hit.unit}');
+      if (metric == Metric.daysSinceBest) {
+        return Answer(
+          metric: metric,
+          exercise: exercise,
+          points: points,
+          numericValue: ago.toDouble(),
+          unit: l.queryDayUnit,
+          headline: l.answerAgo(ago),
+          lines: ['$peak · ${date(hit.day)}', l.answerTimesAfter(after)],
+        );
+      }
+      final lastAgo = _daysBetween(points.last.day, today).clamp(0, 99999);
+      return Answer(
+        metric: metric,
+        exercise: exercise,
+        points: points,
+        numericValue: after.toDouble(),
+        unit: l.answerTimesUnit,
+        headline: l.answerTimes(after),
+        lines: ['$peak · ${date(hit.day)}', l.answerAgo(lastAgo)],
       );
 
     case Metric.last:
@@ -509,6 +677,13 @@ Answer answer(
     case Metric.first:
     case Metric.daysSince:
     case Metric.longest:
+    case Metric.meanReps:
+    case Metric.longestStreak:
+    case Metric.longestGap:
+    case Metric.meanGap:
+    case Metric.intake:
+    case Metric.burned:
+    case Metric.balance:
       throw StateError('Handled before the daily-best metrics');
     case Metric.average:
       final values = [
@@ -522,6 +697,7 @@ Answer answer(
         exercise: exercise,
         points: points,
         numericValue: mean,
+        unit: unit,
         headline: '${fmt(mean)}$unit',
         lines: [
           l.queryAverage,
@@ -547,6 +723,7 @@ Answer answer(
         exercise: exercise,
         points: points,
         numericValue: total,
+        unit: points.last.unit,
         headline: '${fmt(total)}${points.last.unit}',
         lines: [
           l.answerSets(count),
@@ -559,6 +736,220 @@ Answer answer(
 
 int _weeks(DateTime a, DateTime b) =>
     (b.difference(a).inDays / 7).ceil().clamp(1, 9999);
+
+/// 추이의 속도 줄: 주당, 8주를 넘으면 달당도.
+List<String> _speed(
+  double change,
+  DateTime from,
+  DateTime to,
+  String unit,
+  L l,
+) {
+  final weeks = _weeks(from, to);
+  String signed(double v) =>
+      '${formatRoundedQuantity(v, l.localeName, signed: true)}$unit';
+  return [
+    l.answerPerWeek(signed(change / weeks)),
+    if (weeks > 8) l.answerPerMonth(signed(change / weeks * 52 / 12)),
+  ];
+}
+
+/// 셀 기록은 있는데 이 측정으로는 값이 안 나온다(날이 하나뿐, 기준이 0). 0 이 아니라
+/// '—' 와 까닭이다.
+Answer _insufficient(
+  Metric metric,
+  String exercise,
+  List<DayPoint> points,
+  String why,
+) => Answer(
+  metric: metric,
+  exercise: exercise,
+  points: points,
+  headline: '—',
+  lines: [why],
+);
+
+/// 운동한 날들로 세는 측정: 최장 연속, 최장 공백, 운동 간격. [days] 는 그 범위에서
+/// 세트가 하나라도 남은 날이다. [end] 는 창의 끝(오늘을 넘지 않는다) — 마지막
+/// 운동일 뒤로 쉬고 있는 날도 공백이다.
+Answer dayAnswer(
+  List<DateTime> days,
+  Metric metric, {
+  required DateTime end,
+  L? labels,
+  String exercise = '*',
+}) {
+  final l = labels ?? lookupL(const Locale('ko'));
+  String date(DateTime d) => DateFormat.MMMd(l.localeName).format(d);
+  final sorted = {for (final d in days) _day(d)}.toList()..sort();
+  if (sorted.isEmpty) {
+    return Answer(metric: metric, exercise: exercise, points: const []);
+  }
+  final points = [for (final d in sorted) DayPoint(d, 1, 0, l.queryDayUnit)];
+  final unit = l.queryDayUnit;
+  switch (metric) {
+    case Metric.longestStreak:
+      var best = (from: sorted.first, to: sorted.first, n: 1);
+      var run = (from: sorted.first, n: 1);
+      for (var i = 1; i < sorted.length; i++) {
+        run = _daysBetween(sorted[i - 1], sorted[i]) == 1
+            ? (from: run.from, n: run.n + 1)
+            : (from: sorted[i], n: 1);
+        if (run.n > best.n) best = (from: run.from, to: sorted[i], n: run.n);
+      }
+      return Answer(
+        metric: metric,
+        exercise: exercise,
+        points: points,
+        numericValue: best.n.toDouble(),
+        unit: unit,
+        headline: l.answerStreak(best.n),
+        lines: [l.queryPeriod(date(best.from), date(best.to))],
+      );
+    case Metric.longestGap:
+      final last = _day(end).isBefore(sorted.last) ? sorted.last : _day(end);
+      var best = (
+        from: sorted.last,
+        to: last,
+        n: _daysBetween(sorted.last, last),
+      );
+      var open = best.n > 0;
+      for (var i = 1; i < sorted.length; i++) {
+        final n = _daysBetween(sorted[i - 1], sorted[i]) - 1;
+        if (n > best.n) {
+          best = (from: sorted[i - 1], to: sorted[i], n: n);
+          open = false;
+        }
+      }
+      return Answer(
+        metric: metric,
+        exercise: exercise,
+        points: points,
+        numericValue: best.n.toDouble(),
+        unit: unit,
+        headline: l.answerRestDays(best.n),
+        lines: [
+          if (best.n > 0)
+            l.queryPeriod(
+              date(best.from.add(const Duration(days: 1))),
+              open
+                  ? l.answerUntilToday
+                  : date(best.to.subtract(const Duration(days: 1))),
+            ),
+          l.answerDays(sorted.length),
+        ],
+      );
+    default:
+      // 운동 간격: 헤드라인은 중앙값이다 — 한 번의 긴 휴가가 '보통' 을 부풀리지 않는다.
+      if (sorted.length < 2) {
+        return _insufficient(metric, exercise, points, l.answerNeedsTwoDays);
+      }
+      final gaps = [
+        for (var i = 1; i < sorted.length; i++)
+          _daysBetween(sorted[i - 1], sorted[i]),
+      ];
+      final ordered = [...gaps]..sort();
+      final mid = ordered.length ~/ 2;
+      final median = ordered.length.isOdd
+          ? ordered[mid].toDouble()
+          : (ordered[mid - 1] + ordered[mid]) / 2;
+      final mean = gaps.fold<int>(0, (a, b) => a + b) / gaps.length;
+      final span = _daysBetween(sorted.first, sorted.last);
+      int count(bool Function(int rest) test) =>
+          gaps.where((g) => test(g - 1)).length;
+      final longest = ordered.last;
+      String n(double v) => formatRoundedQuantity(v, l.localeName);
+      return Answer(
+        metric: metric,
+        exercise: exercise,
+        points: points,
+        numericValue: median,
+        unit: unit,
+        headline: l.answerEveryDays(n(median)),
+        lines: [
+          l.answerMeanEvery(n(mean)),
+          l.answerGapSpread(
+            count((r) => r == 0),
+            count((r) => r == 1),
+            count((r) => r == 2),
+            count((r) => r >= 3),
+          ),
+          if (gaps.length > 2 && longest * 3 >= span)
+            l.answerLongestIncluded(longest - 1),
+        ],
+      );
+  }
+}
+
+/// 끼니와 워치 kcal 로 세는 측정. [logs] 는 이미 고른 날들이다([dayLogs]).
+/// 없는 것은 0 이 아니다: 끼니를 안 적은 날은 섭취 셈 밖이고, 워치로 안 잰
+/// 운동은 소모 셈 밖이다. 차이는 둘 다 있는 날만 뺀다([DayLog.difference]).
+Answer energyAnswer(List<DayLog> logs, Metric metric, {L? labels}) {
+  final l = labels ?? lookupL(const Locale('ko'));
+  String fmt(double v, {bool signed = false}) =>
+      formatRoundedQuantity(v, l.localeName, signed: signed);
+  const kcal = 'kcal';
+  Answer total(
+    List<(DateTime, double)> values,
+    String none,
+    String Function(String) head,
+    List<String> lines, {
+    bool signed = false,
+  }) {
+    if (values.isEmpty) {
+      return _insufficient(metric, '*', const [], none);
+    }
+    final sum = values.fold<double>(0, (n, v) => n + v.$2);
+    return Answer(
+      metric: metric,
+      exercise: '*',
+      points: [for (final (d, v) in values) DayPoint(d, v, 0, kcal)],
+      numericValue: sum,
+      unit: kcal,
+      headline: head('${fmt(sum, signed: signed)}$kcal'),
+      lines: lines,
+    );
+  }
+
+  switch (metric) {
+    case Metric.intake:
+      final eaten = [
+        for (final d in logs)
+          if (d.intake case final v?) (d.day, v.toDouble()),
+      ];
+      final unknown = logs.fold<int>(0, (n, d) => n + d.unknownMeals);
+      final about = logs.any((d) => d.intakeEstimated);
+      return total(
+        eaten,
+        l.answerNoMeals,
+        (v) => about ? l.answerAbout(v) : v,
+        [
+          l.answerMealDays(eaten.length),
+          if (unknown > 0) l.queryUnknownMeals(unknown),
+        ],
+      );
+    case Metric.burned:
+      final used = [
+        for (final d in logs)
+          if (d.burned case final v?) (d.day, v),
+      ];
+      return total(used, l.answerNoWatch, (v) => v, [
+        l.answerWatchDays(used.length),
+      ]);
+    default:
+      final both = [
+        for (final d in logs)
+          if (d.difference case final v?) (d.day, v.toDouble()),
+      ];
+      final eatenOnly = logs
+          .where((d) => d.intake != null && d.burned == null)
+          .length;
+      return total(both, l.answerNoBoth, (v) => v, [
+        l.answerBothDays(both.length),
+        if (eatenOnly > 0) l.answerIntakeOnlyDays(eatenOnly),
+      ], signed: true);
+  }
+}
 
 // Convert only for this comparison; saved entries retain their original units.
 double _weight(LoggedSet set, String unit) {
