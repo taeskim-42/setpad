@@ -34,7 +34,7 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 ■ Health app
 · Your workout is written to the Health app as a workout
 · Active energy measured by your watch is read back in (Apple Health, Health Connect)
-· During a Tabata rest, once your watch heart rate is 25 bpm below that round's peak, the rest ends and the next round is signalled. While resting you see ♥ now → target
+· During a Tabata rest, once your watch heart rate is 25 bpm below that round's peak, the rest ends and the next round is signalled. While resting you see heart rate now → target
 · What is read from your health app never leaves the device
 · Exercise calories are never invented. If nothing measured them, none are shown
 

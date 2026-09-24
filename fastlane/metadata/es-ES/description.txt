@@ -34,7 +34,7 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 ■ App Salud
 · Tu entrenamiento se guarda en Salud
 · Se lee la energía activa medida por tu reloj (Salud de Apple, Health Connect)
-· En el descanso de un Tabata, cuando el pulso del reloj baja 25 lpm del máximo de la ronda, se avisa la siguiente. Mientras descansas ves ♥ ahora → objetivo
+· En el descanso de un Tabata, cuando el pulso del reloj baja 25 lpm del máximo de la ronda, se avisa la siguiente. Mientras descansas ves pulso ahora → objetivo
 · Lo que se lee de la app de salud nunca sale del dispositivo
 · Las calorías del ejercicio nunca se inventan. Si nadie las midió, no se muestran
 
