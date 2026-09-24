@@ -48,6 +48,8 @@ const exerciseGear = <String, String>{
   '디클라인 벤치프레스': 'barbell',
   '데드리프트': 'barbell',
   '루마니안 데드리프트': 'barbell',
+  '굿모닝': 'barbell',
+  '파워클린': 'barbell',
   '바벨로우': 'barbell',
   '스쿼트': 'barbell',
   '프론트 스쿼트': 'barbell',
@@ -136,6 +138,8 @@ const exercisePattern = <String, String>{
   '킥백': 'push',
   '데드리프트': 'pull',
   '루마니안 데드리프트': 'pull',
+  '굿모닝': 'pull',
+  '파워클린': 'pull',
   '랫풀다운': 'pull',
   '풀업': 'pull',
   '친업': 'pull',
@@ -3083,10 +3087,15 @@ class RoutineSearch extends ChangeNotifier {
       if (!_disposed) notifyListeners();
       return;
     }
-    void broken() {
+    // [paid] 가 false 면 서버가 원판을 돌려준 깨진 답이다(gymdojo record-query 가 한 번
+    // 더 묻고도 못 읽은 'unreadable').
+    void broken({bool paid = true}) {
       final n = _broken[key] = (_broken[key] ?? 0) + 1;
-      misread = charged = true;
-      _charged.add(key);
+      misread = true;
+      if (paid) {
+        charged = true;
+        _charged.add(key);
+      }
       retry = n < 2;
     }
 
@@ -3133,6 +3142,9 @@ class RoutineSearch extends ChangeNotifier {
       } else if (e is RecordAiException && e.charged) {
         // 서버는 모델을 불렀고 원판이 나갔는데 답이 깨졌다(502 upstream). 연결이 아니다.
         broken();
+      } else if (e is RecordAiException && e.code == 'unreadable') {
+        // 서버가 한 번 더 물어도 깨진 답이었다 — 연결이 아니고, 원판은 돌려받았다.
+        broken(paid: false);
       } else {
         failed = true;
         status = RecordAiStatus.unavailable;

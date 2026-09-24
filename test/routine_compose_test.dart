@@ -929,7 +929,7 @@ void main() {
     });
   });
 
-  test('기구 표: 사전의 모든 운동에 기구가 있다(58)', () {
+  test('기구 표: 사전의 모든 운동에 기구가 있다(60)', () {
     for (final e in exercises) {
       expect(exerciseGear[e.ko], isNotNull, reason: e.ko);
     }

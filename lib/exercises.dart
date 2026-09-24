@@ -826,6 +826,9 @@ const exercisePart = <String, String>{
   '푸시업': 'chest',
   '데드리프트': 'back',
   '루마니안 데드리프트': 'back',
+  // 힙 힌지·바닥에서 끄는 들기는 데드리프트처럼 등으로 센다.
+  '굿모닝': 'back',
+  '파워클린': 'back',
   '랫풀다운': 'back',
   '풀업': 'back',
   '친업': 'back',

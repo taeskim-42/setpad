@@ -666,6 +666,30 @@ void main() {
     });
   });
 
+  testWidgets('서버가 다시 묻고도 못 읽은 답(502 unreadable)은 연결 문구가 아니고 원판도 안 나갔다', (
+    tester,
+  ) async {
+    var asked = 0;
+    await pump(
+      tester,
+      ai: RecordAi(
+        respond: (_, _) async {
+          asked++;
+          throw const RecordAiException(
+            RecordAiStatus.unavailable,
+            code: 'unreadable',
+          );
+        },
+      ),
+    );
+    await type(tester, '하체로 짜줘', enter: true);
+    expect(asked, 1);
+    expect(find.text(l.routineMisread), findsOneWidget);
+    expect(find.text(l.routineOffline), findsNothing);
+    expect(find.text(l.routinePlatesBefore), findsNothing);
+    expect(startButton(), findsOneWidget);
+  });
+
   test('검토#15 502 upstream 에 원판이 실려 오면 원판이 나간 실패다', () async {
     Future<RecordAiException> fail(Map<String, Object?> body) async {
       final ai = RecordAi(

@@ -2451,12 +2451,12 @@ void main() {
       }
     });
 
-    test('부위 표: 사전 58개 모두, 레그레이즈는 코어, 러닝은 유산소, 상체·하체 펼침', () {
-      expect(exercises, hasLength(58));
+    test('부위 표: 사전 60개 모두, 레그레이즈는 코어, 러닝은 유산소, 상체·하체 펼침', () {
+      expect(exercises, hasLength(60));
       for (final e in exercises) {
         expect(exercisePart[e.ko], isNotNull, reason: e.ko);
       }
-      expect(exercisePart.length, 58);
+      expect(exercisePart.length, 60);
       expect(partOf('레그레이즈'), 'core');
       expect(partOf('Running'), 'cardio');
       expect(partOf('Deadlift'), 'back');
