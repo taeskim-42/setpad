@@ -43,7 +43,7 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 · Trainer mode: gym staff get a morning report with today's classes and to-dos, and handle each with a tap
 
 ■ AI help and plates
-· One-line setup, meal calorie estimates and record questions ask for your consent the first time. With it, the text you type and meal photos (location removed) go through our server to DeepSeek's AI; our server does not store them. Turn it off any time in Settings — logging keeps working
+· When you use one-line setup, meal calorie estimates or record questions, the text you type and meal photos (location removed) go through our server to DeepSeek's AI; our server does not store them. Turn it off any time in Settings › AI help — logging keeps working
 · Input help (one-line setup, meal estimates): 10 a day, free
 · Record questions use plates. You start with a few, and earn 1 on each day you log 10 sets
 · Pro subscription: plates topped up to 300 each month, input help 20 a day. Up to 30 plates during a free trial
