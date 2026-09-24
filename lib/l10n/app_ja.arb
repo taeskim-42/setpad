@@ -646,6 +646,8 @@
   "routineMisread": "条件を読めませんでした — 記録だけで組みました。言い換えると読み直します",
   "routineHeldBack": "{why, select, offline{接続できず} noPlates{プレートがなく} other{答えを読めず}}条件(外す・痛み)を読めなかったのでルーティンは作りませんでした",
   "routineTypedWeight": "入力した重さ: メインセット{count}つ {from} → {to}",
+  "routineTypedKept": "入力した重さはそのまま",
+  "routinePlatesBefore": "この文には前にプレートを使いました · 今回は0枚",
   "routineRetry": "再試行",
   "routinePressEnter": "Enterで条件まで読んで組みます · プレート",
   "routineFromQuestion": "ルーティンの依頼として読みました",

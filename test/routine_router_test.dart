@@ -207,6 +207,24 @@ void main() {
       }
       // 명령 낱말이 없어도 기록을 묻는 말이 아니면 의료 글은 기기가 거절한다 —
       // 오프라인·원판 없음에서도 시작 카드가 없고 원판도 나가지 않는다.
+      // 해도 되나를 묻는 말(조언)이면 명령 낱말이 없어도 거절이다.
+      for (final t in [
+        '무릎 수술 2주 됐는데 하체 해도 돼?',
+        '수술 후 스쿼트 괜찮아?',
+        '재활 운동 언제부터 해도 돼?',
+        'can I squat after surgery?',
+        'is it safe to deadlift with a herniated disc',
+        'リハビリ中だけどスクワットしてもいい？',
+      ]) {
+        expect(routeHome(t), HomeRoute.refuse, reason: t);
+        expect(homeRefusal(t), 'medical', reason: t);
+      }
+      // 기록을 묻는 의료 낱말 글은 기록 질문 그대로다.
+      expect(routeHome('재활 운동 몇 번 했어'), HomeRoute.question);
+      expect(routeHome('rehab sessions this month'), HomeRoute.question);
+    });
+
+    test('검토#1 의료 낱말이 든 제목 찾기(묻는 말·명령·조언 없이)는 기록 검색이다', () {
       for (final t in [
         '재활',
         '디스크',
@@ -215,14 +233,18 @@ void main() {
         '手術',
         'リハビリ',
         '재활 운동',
-        '무릎 수술 2주 됐는데 하체 해도 돼?',
+        '재활 일지',
+        'rehab log',
+        'rehab notes',
+        '재활 스쿼트',
+        '재활 PT',
+        'post surgery squat',
+        '재활 끝나고 첫 운동',
+        '재활 스쿼트 괜찮았던 기록',
       ]) {
-        expect(routeHome(t), HomeRoute.refuse, reason: t);
-        expect(homeRefusal(t), 'medical', reason: t);
+        expect(homeRefusal(t), isNull, reason: t);
+        expect(routeHome(t), HomeRoute.question, reason: t);
       }
-      // 기록을 묻는 의료 낱말 글은 기록 질문 그대로다.
-      expect(routeHome('재활 운동 몇 번 했어'), HomeRoute.question);
-      expect(routeHome('rehab sessions this month'), HomeRoute.question);
     });
 
     test('검토#4 만들어·뽑아·골라·부탁은 기록 낱말과 같이 있으면 기록 질문이다', () {
@@ -253,6 +275,31 @@ void main() {
         '운동 시간표 짜줘',
       ]) {
         expect(routeHome(t), HomeRoute.routine, reason: t);
+      }
+    });
+
+    test('검증 O1 운동표·계획표·식단표·リスト 는 만들 것이지 기록 출력이 아니다', () {
+      for (final t in [
+        '운동 계획표 만들어줘',
+        '운동표 만들어줘',
+        '운동 순서표 만들어줘',
+        '루틴 기록 뽑아서 오늘 거 만들어줘',
+        'トレーニングのリストを作って',
+        'メニュー一覧を作って',
+      ]) {
+        expect(routeHome(t), HomeRoute.routine, reason: t);
+      }
+      // 식단표는 식단이다 — 기기 거절(원판 0) 그대로.
+      expect(routeHome('식단표 만들어줘'), HomeRoute.refuse);
+      expect(homeRefusal('식단표 만들어줘'), 'diet');
+      // 진짜 기록 출력(떨어진 표·기록의 목록·마지막 요청이 기록)은 기록 질문이다.
+      for (final t in [
+        '벤치 기록 표로 뽑아줘',
+        '記録の一覧を作って',
+        'トレーニングの記録の一覧を作って',
+        '루틴 기록 뽑아서 그래프로 만들어줘',
+      ]) {
+        expect(routeHome(t), HomeRoute.question, reason: t);
       }
     });
 

@@ -646,6 +646,8 @@
   "routineMisread": "Không đọc được điều kiện — xếp chỉ theo nhật ký. Gõ lại để đọc lần nữa",
   "routineHeldBack": "{why, select, offline{Không có kết nối} noPlates{Hết bánh tạ} other{Không đọc được câu trả lời}} nên chưa đọc được điều kiện (bài bỏ, chỗ đau) — chưa xếp bài",
   "routineTypedWeight": "Mức tạ đã gõ: {count} hiệp chính {from} → {to}",
+  "routineTypedKept": "giữ nguyên mức tạ đã gõ",
+  "routinePlatesBefore": "Câu này đã dùng bánh tạ trước đó · lần này 0",
   "routineRetry": "Thử lại",
   "routinePressEnter": "Nhấn Enter để đọc cả điều kiện · bánh tạ",
   "routineFromQuestion": "Đọc là yêu cầu xếp bài",

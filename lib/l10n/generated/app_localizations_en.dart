@@ -2708,6 +2708,13 @@ class LEn extends L {
   }
 
   @override
+  String get routineTypedKept => 'typed weight kept';
+
+  @override
+  String get routinePlatesBefore =>
+      'Plates were used on this text earlier · 0 this time';
+
+  @override
   String get routineRetry => 'Try again';
 
   @override

@@ -646,6 +646,8 @@
   "routineMisread": "อ่านเงื่อนไขไม่ได้ — จัดจากบันทึกอย่างเดียว พิมพ์ใหม่เพื่ออ่านอีกครั้ง",
   "routineHeldBack": "{why, select, offline{ไม่มีการเชื่อมต่อ} noPlates{แผ่นน้ำหนักไม่พอ} other{อ่านคำตอบไม่ได้}} จึงอ่านเงื่อนไข (ท่าที่ตัด อาการเจ็บ) ไม่ได้ — ไม่ได้จัดรูทีน",
   "routineTypedWeight": "น้ำหนักที่พิมพ์: เซ็ตหลัก {count} เซ็ต {from} → {to}",
+  "routineTypedKept": "คงน้ำหนักที่พิมพ์ไว้",
+  "routinePlatesBefore": "ข้อความนี้เคยใช้แผ่นไปแล้ว · ครั้งนี้ 0 แผ่น",
   "routineRetry": "ลองอีกครั้ง",
   "routinePressEnter": "กด Enter เพื่ออ่านเงื่อนไขด้วย · แผ่น",
   "routineFromQuestion": "อ่านเป็นคำขอจัดรูทีน",

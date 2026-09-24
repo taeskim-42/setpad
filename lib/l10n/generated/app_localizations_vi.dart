@@ -2694,6 +2694,13 @@ class LVi extends L {
   }
 
   @override
+  String get routineTypedKept => 'giữ nguyên mức tạ đã gõ';
+
+  @override
+  String get routinePlatesBefore =>
+      'Câu này đã dùng bánh tạ trước đó · lần này 0';
+
+  @override
   String get routineRetry => 'Thử lại';
 
   @override

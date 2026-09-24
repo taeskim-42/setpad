@@ -2727,6 +2727,13 @@ class LEs extends L {
   }
 
   @override
+  String get routineTypedKept => 'el peso escrito se mantiene';
+
+  @override
+  String get routinePlatesBefore =>
+      'Ya usaste discos con este texto · 0 esta vez';
+
+  @override
   String get routineRetry => 'Reintentar';
 
   @override

@@ -673,8 +673,8 @@ void main() {
       expect(bench.sets.skip(1), everyElement((s) => s.reps != null));
       expect(bench.why, 'typedWeight');
       expect(bench.retyped?.count, bench.sets.length - 1);
-      expect(bench.retyped?.from.value, isNot(100.0));
-      expect(bench.retyped?.from.unit, 'kg');
+      expect(bench.retyped?.from.map((s) => s.value), [85.0]);
+      expect(bench.retyped?.from.single.unit, 'kg');
       expect(bench.reference, isNotNull);
       // 친 lb 는 kg 기록 위에서도 lb 다 — 225lb 가 225kg 가 되지 않는다.
       final lb = compose({
@@ -717,6 +717,182 @@ void main() {
       final copied = none.items.firstWhere((i) => i.key == '스쿼트');
       expect(copied.why, 'copied');
       expect(copied.sets.first, (value: 60.0, unit: 'kg', reps: 8));
+    });
+
+    test('검증 O2 친 무게가 워밍업보다 가벼우면 그 워밍업도 작업 세트가 된다 — 무엇을 바꿨는지 모두 말한다', () {
+      final d = compose({
+        'targets': [
+          {'exercise': '벤치프레스', 'weight': 50, 'unit': 'kg'},
+        ],
+      }, '벤치 50kg 로 짜줘');
+      final bench = d.items.firstWhere((i) => i.key == '벤치프레스');
+      // 9/7 벤치 60×10 · 85×5 ×3 — 60 도 50 보다 무거워 작업 세트다. 횟수는 그대로.
+      expect(bench.sets, [
+        (value: 50.0, unit: 'kg', reps: 10),
+        ...List.filled(3, (value: 50.0, unit: 'kg', reps: 5)),
+      ]);
+      expect(bench.why, 'typedWeight');
+      expect(bench.retyped?.count, 4);
+      expect(bench.retyped?.from.map((s) => s.value), [60.0, 85.0]);
+      expect(bench.retyped?.to.value, 50.0);
+      // 친 무게가 워밍업보다 무거우면 워밍업은 그대로다(검토#9).
+      final up = compose({
+        'targets': [
+          {'exercise': '벤치프레스', 'weight': 70, 'unit': 'kg'},
+        ],
+      }, '벤치 70kg 로 짜줘');
+      final b70 = up.items.firstWhere((i) => i.key == '벤치프레스');
+      expect(b70.sets.first, (value: 60.0, unit: 'kg', reps: 10));
+      expect(b70.retyped?.count, 3);
+      expect(b70.retyped?.from.map((s) => s.value), [85.0]);
+    });
+
+    test('검증 O3 무게와 총 횟수를 치면 총 횟수를 지킨다 — 옮긴 횟수·세트로 어긋나지 않는다', () {
+      final log = [
+        session('s1', 9, 7, [
+          ExerciseBlock(
+            '벤치프레스',
+            [kg(60, 10), ...times(3, () => kg(85, 5))],
+            const WorkoutSetup(
+              name: '벤치프레스',
+              weight: 85,
+              repsPerSet: 5,
+              totalSets: 3,
+            ),
+          ),
+        ]),
+      ];
+      final d = compose(
+        {
+          'targets': [
+            {'exercise': '벤치프레스', 'weight': 100, 'unit': 'kg', 'total': 30},
+          ],
+        },
+        '벤치 100kg로 총 30개',
+        notes: log,
+      );
+      final s = d.items.firstWhere((i) => i.key == '벤치프레스').setup!;
+      expect(s.totalReps, 30);
+      expect(s.weight, 100);
+      expect(s.repsPerSet, isNull);
+      expect(s.totalSets, isNull);
+      // 설정이 없던 운동: 옮긴 횟수(10+5×3=25)로 50 을 어기지 않고, 설정에 친 무게도 든다.
+      final e = compose({
+        'targets': [
+          {'exercise': '벤치프레스', 'weight': 60, 'unit': 'kg', 'total': 50},
+        ],
+      }, '벤치 60kg로 총 50개');
+      final bench = e.items.firstWhere((i) => i.key == '벤치프레스');
+      final reps = bench.sets.map((x) => x.reps).whereType<int>();
+      expect(reps.isEmpty || reps.fold(0, (a, b) => a + b) == 50, isTrue);
+      expect(bench.sets.every((x) => x.value == 60), isTrue);
+      expect(bench.setup?.totalReps, 50);
+      expect(bench.setup?.weight, 60);
+      expect(bench.setup?.repsOnly, isFalse);
+    });
+
+    test('검증 O4 비우는 까닭(오래됨·가볍게·기구)이 있어도 친 무게는 남기고 나머지를 비운 까닭을 말한다', () {
+      const typed = {
+        'targets': [
+          {'exercise': '벤치프레스', 'weight': 100, 'unit': 'kg'},
+        ],
+      };
+      final stale = compose(
+        typed,
+        '벤치 100kg로 짜줘',
+        notes: [
+          session('o1', 7, 20, [
+            ExerciseBlock('벤치프레스', [kg(60, 10), ...times(3, () => kg(85, 5))]),
+          ]),
+        ],
+      );
+      final light = compose({
+        ...typed,
+        'intensity': 'light',
+      }, '가볍게 벤치 100kg로 짜줘');
+      final gear = compose({
+        ...typed,
+        'exercises': ['벤치프레스'],
+        'equipment': {
+          'only': ['dumbbell'],
+        },
+      }, '덤벨만 있는데 벤치 100kg로 짜줘');
+      for (final (d, why) in [
+        (stale, 'stale'),
+        (light, 'light'),
+        (gear, 'gear'),
+      ]) {
+        final bench = d.items.firstWhere((i) => i.key == '벤치프레스');
+        expect(bench.sets, [
+          (value: null, unit: 'kg', reps: 10),
+          ...List.filled(3, (value: 100.0, unit: 'kg', reps: 5)),
+        ], reason: why);
+        expect(bench.blank, why);
+        expect(bench.typedKept, isTrue, reason: why);
+        expect(bench.why, 'typedWeight', reason: why);
+        expect(bench.retyped?.count, 3, reason: why);
+      }
+      // 모든 세트가 친 무게면 비운 것이 없다 — "무게는 비웠어요" 라고 하지 않는다.
+      final all = compose(
+        {
+          'targets': [
+            {
+              'exercise': '벤치프레스',
+              'weight': 100,
+              'unit': 'kg',
+              'reps': 5,
+              'sets': 3,
+            },
+          ],
+        },
+        '벤치 100kg 5개 3세트',
+        notes: [
+          session('o1', 7, 20, [
+            ExerciseBlock('벤치프레스', [kg(60, 10), ...times(3, () => kg(85, 5))]),
+          ]),
+        ],
+      );
+      final full = all.items.firstWhere((i) => i.key == '벤치프레스');
+      expect(full.sets, List.filled(3, (value: 100.0, unit: 'kg', reps: 5)));
+      expect(full.blank, isNull);
+      expect(full.typedKept, isFalse);
+      expect(full.reference, isNotNull);
+      // 친 무게가 없으면 전처럼 모두 비운다(G11).
+      final none = compose(
+        {},
+        '오늘 루틴 짜줘',
+        notes: [
+          session('o1', 7, 20, [
+            ExerciseBlock('벤치프레스', [kg(60, 10), ...times(3, () => kg(85, 5))]),
+          ]),
+        ],
+      );
+      expect(none.items.single.sets.every((s) => s.value == null), isTrue);
+      expect(none.items.single.typedKept, isFalse);
+    });
+
+    test('검증 부위 칩은 아픈 부위를 권하지 않는다', () {
+      final shoulder = compose({
+        'avoid': ['shoulders'],
+        'pain': '어깨 아파서',
+        'intensity': 'light',
+      }, '어깨 아파서 살살 짜줘');
+      expect(shoulder.partChip, isNot('shoulders'));
+      final upper = compose({
+        'avoid': ['upper'],
+        'pain': '상체 아파서',
+      }, '상체 아파서 살살 짜줘');
+      expect(
+        upper.partChip == null ||
+            !partGroups['upper']!.contains(upper.partChip),
+        isTrue,
+        reason: '${upper.partChip}',
+      );
+      // 어디가 아픈지 모르면 부위를 권하지 않는다.
+      final unknown = compose({'pain': '아파서'}, '아파서 살살 짜줘');
+      expect(unknown.partChip, isNull);
+      // 아픈 곳이 없으면 칩은 그대로(r-001).
+      expect(compose({}, '오늘 루틴 짜줘').partChip, 'shoulders');
     });
 
     test('검토#1 기기가 읽은 의료 글은 어느 길로 와도 시작할 카드가 없다(G3)', () {

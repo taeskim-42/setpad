@@ -3990,6 +3990,18 @@ abstract class L {
   /// **'적은 무게로: 작업 세트 {count}개 {from} → {to}'**
   String routineTypedWeight(int count, String from, String to);
 
+  /// No description provided for @routineTypedKept.
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 무게는 그대로 뒀어요'**
+  String get routineTypedKept;
+
+  /// No description provided for @routinePlatesBefore.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 글에 앞서 원판을 썼어요 · 이번엔 0장'**
+  String get routinePlatesBefore;
+
   /// No description provided for @routineRetry.
   ///
   /// In ko, this message translates to:

@@ -2628,6 +2628,12 @@ class LKo extends L {
   }
 
   @override
+  String get routineTypedKept => '적은 무게는 그대로 뒀어요';
+
+  @override
+  String get routinePlatesBefore => '이 글에 앞서 원판을 썼어요 · 이번엔 0장';
+
+  @override
   String get routineRetry => '다시 시도';
 
   @override

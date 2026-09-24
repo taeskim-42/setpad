@@ -271,13 +271,14 @@ class RoutineCard extends StatelessWidget {
       'typed' => l.routineTyped,
       'typedWeight' when i.retyped != null => l.routineTypedWeight(
         i.retyped!.count,
-        formatValue(i.retyped!.from.value!, i.retyped!.from.unit),
+        i.retyped!.from.map((s) => formatValue(s.value!, s.unit)).join('·'),
         formatValue(i.retyped!.to.value!, i.retyped!.to.unit),
       ),
       _ => l.routineFirst,
     };
     final notes = [
       if (i.blank != null) l.routineBlank(i.blank!),
+      if (i.typedKept) l.routineTypedKept,
       if (i.reference case final r?)
         r.best
             ? l.routineBest(setsText(l, r.sets), date(r.day))

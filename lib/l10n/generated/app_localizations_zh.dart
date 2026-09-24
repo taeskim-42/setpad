@@ -2603,6 +2603,12 @@ class LZh extends L {
   }
 
   @override
+  String get routineTypedKept => '输入的重量保留不变';
+
+  @override
+  String get routinePlatesBefore => '这段文字之前用过片 · 这次 0 片';
+
+  @override
   String get routineRetry => '重试';
 
   @override
@@ -5291,6 +5297,12 @@ class LZhHans extends LZh {
   }
 
   @override
+  String get routineTypedKept => '输入的重量保留不变';
+
+  @override
+  String get routinePlatesBefore => '这段文字之前用过片 · 这次 0 片';
+
+  @override
   String get routineRetry => '重试';
 
   @override
@@ -7976,6 +7988,12 @@ class LZhHant extends LZh {
   String routineTypedWeight(int count, String from, String to) {
     return '照輸入的重量:正式組 $count 組 $from → $to';
   }
+
+  @override
+  String get routineTypedKept => '輸入的重量保留不變';
+
+  @override
+  String get routinePlatesBefore => '這段文字之前用過片 · 這次 0 片';
 
   @override
   String get routineRetry => '重試';

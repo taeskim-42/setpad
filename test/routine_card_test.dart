@@ -409,7 +409,11 @@ void main() {
           },
         ),
       );
-      for (final t in ['무릎 수술 2주 됐는데 하체 해도 돼?', 'rehab', 'リハビリ']) {
+      for (final t in [
+        '무릎 수술 2주 됐는데 하체 해도 돼?',
+        'can I squat after surgery?',
+        'リハビリ中だけどスクワットしてもいい？',
+      ]) {
         await type(tester, t, enter: true);
         expect(find.text(l.routineRefused('medical')), findsOneWidget);
         expect(startButton(), findsNothing);
@@ -436,6 +440,120 @@ void main() {
       expect(find.text(l.routineWithConditions), findsNothing);
       expect(find.text(l.routineNoConditions), findsNothing);
     });
+  });
+
+  testWidgets('검토#1 의료 낱말이 든 제목 찾기는 거절하지 않고 기록 검색에 묻는다', (tester) async {
+    final calls = <String>[];
+    await pump(
+      tester,
+      ai: RecordAi(
+        respond: (i, _) async {
+          calls.add(i == routineInstructions ? 'routine' : 'v3');
+          return {
+            'exercises': ['스쿼트'],
+          };
+        },
+      ),
+    );
+    await type(tester, '재활 스쿼트', enter: true);
+    expect(calls, ['v3']);
+    expect(find.text(l.routineRefused('medical')), findsNothing);
+  });
+
+  testWidgets('검토#6 원판이 나간 글은 다시 쳐도 "원판 0장" 이라 하지 않는다 — 앞서 썼다고 말한다', (
+    tester,
+  ) async {
+    var asked = 0;
+    await pump(
+      tester,
+      ai: RecordAi(
+        respond: (_, _) async {
+          asked++;
+          return {};
+        },
+      ),
+    );
+    await type(tester, '스쿼트 말고', enter: true);
+    await tester.tap(find.text(l.routineRetry));
+    await tester.pumpAndSettle();
+    expect(asked, 2);
+    await type(tester, '하체 루틴');
+    await type(tester, '스쿼트 말고', enter: true);
+    // 깨진 답을 두 번 받은 글은 보내지 않는다 — 이번엔 원판이 나가지 않았다.
+    expect(asked, 2);
+    await tester.tap(find.text(l.routineNoConditions));
+    await tester.pumpAndSettle();
+    expect(startButton(), findsOneWidget);
+    expect(find.text(l.routinePlatesZero), findsNothing);
+    expect(find.text(l.routinePlatesBefore), findsOneWidget);
+    // 담아 둔 답도 같다: 이번엔 0장이지만 이 글에는 앞서 원판이 나갔다.
+    await type(tester, '하체로 짜줘', enter: true);
+    expect(asked, 3);
+    expect(find.text(l.routinePlatesBefore), findsNothing);
+    await type(tester, '하체 루틴');
+    await type(tester, '하체로 짜줘', enter: true);
+    expect(asked, 3);
+    expect(startButton(), findsOneWidget);
+    expect(find.text(l.routinePlatesZero), findsNothing);
+    expect(find.text(l.routinePlatesBefore), findsOneWidget);
+    // 한 번도 보내지 않은 글의 칩 카드만 원판 0장이다.
+    await type(tester, '하체 루틴');
+    await tester.tap(find.text(l.routineMakePart(l.queryPart('legs'))));
+    await tester.pumpAndSettle();
+    expect(find.text(l.routinePlatesZero), findsOneWidget);
+  });
+
+  testWidgets('검증 O2·O4 친 무게는 비우지 않고, 바꾼 세트와 나머지를 비운 까닭을 말한다', (tester) async {
+    await pump(
+      tester,
+      records: relativeLog([
+        session('o1', 7, 20, [
+          ExerciseBlock('벤치프레스', [kg(60, 10), ...times(3, () => kg(85, 5))]),
+        ]),
+      ]),
+      ai: RecordAi(
+        respond: (_, _) async => {
+          'exercises': ['벤치프레스'],
+          'targets': [
+            {'exercise': '벤치프레스', 'weight': 50, 'unit': 'kg'},
+          ],
+        },
+      ),
+    );
+    await type(tester, '벤치 50kg 로 짜줘', enter: true);
+    expect(
+      find.textContaining(l.routineTypedWeight(4, '60kg·85kg', '50kg')),
+      findsOneWidget,
+    );
+    expect(find.textContaining(l.routineBlank('stale')), findsNothing);
+    expect(find.textContaining('50kg×10'), findsWidgets);
+  });
+
+  testWidgets('검증 O4 오래된 기록이어도 친 무게는 남고 나머지를 비운 까닭을 말한다', (tester) async {
+    await pump(
+      tester,
+      records: relativeLog([
+        session('o1', 7, 20, [
+          ExerciseBlock('벤치프레스', [kg(60, 10), ...times(3, () => kg(85, 5))]),
+        ]),
+      ]),
+      ai: RecordAi(
+        respond: (_, _) async => {
+          'exercises': ['벤치프레스'],
+          'targets': [
+            {'exercise': '벤치프레스', 'weight': 100, 'unit': 'kg'},
+          ],
+        },
+      ),
+    );
+    await type(tester, '벤치 100kg 로 짜줘', enter: true);
+    expect(find.textContaining(l.routineBlank('stale')), findsOneWidget);
+    expect(find.textContaining(l.routineTypedKept), findsOneWidget);
+    expect(
+      find.textContaining(l.routineTypedWeight(3, '85kg', '100kg')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('100kg×5'), findsWidgets);
   });
 
   group('검토#2·#15 모델이 깨진 답을 내면', () {

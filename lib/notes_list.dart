@@ -677,8 +677,10 @@ class _NotesListPageState extends State<NotesListPage>
     }
     final account = widget.account;
     // 원판 줄: 이 글로 서버가 답했으면(깨진 답 뒤에 칩으로 짠 카드여도) 원판이
-    // 나갔다. 묻지 않고 칩으로 짠 카드만 원판 0이다.
+    // 나갔다. 다시 친 글이 이번엔 보내지 않았어도 앞서 원판이 나갔으면 그렇게 말한다.
+    // 한 번도 원판이 나가지 않은 글의 카드만 원판 0이다.
     final charged = r.charged && r.text == text;
+    final before = r.chargedBefore && r.text == text;
     final started = _started(draft, edits);
     final card = RoutineCard(
       draft: draft,
@@ -705,7 +707,7 @@ class _NotesListPageState extends State<NotesListPage>
       onPart: () => setState(() => edits.part = draft.partChip),
       onStep: () => setState(() => edits.step = true),
       spent: !charged
-          ? null
+          ? (before ? l.routinePlatesBefore : null)
           : account?.platesSpent != null
           ? l.platesSpent(account!.platesSpent!, account.plates!)
           : '',

@@ -646,6 +646,8 @@
   "routineMisread": "Couldn't read the conditions — built from your log only. Rephrase to read again",
   "routineHeldBack": "{why, select, offline{No connection, so I} noPlates{Out of plates, so I} other{The answer was unreadable, so I}} couldn't read the conditions (exclusions, pain) — no routine was made",
   "routineTypedWeight": "Typed weight: {count} working sets {from} → {to}",
+  "routineTypedKept": "typed weight kept",
+  "routinePlatesBefore": "Plates were used on this text earlier · 0 this time",
   "routineRetry": "Try again",
   "routinePressEnter": "Press Enter to read the conditions too · plates",
   "routineFromQuestion": "Read as a routine request",

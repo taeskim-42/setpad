@@ -127,7 +127,10 @@ List<String> routineViolations(
           !ask.named.contains(k)) {
         out.add('C4 $k ($g)');
       }
-      if (!ok && i.sets.any(weighed)) out.add('C4 무게 $k');
+      // 친 무게는 기구가 달라도 남는다 — 옮긴 무게만 본다.
+      if (!ok && i.sets.any((s) => weighed(s) && s.value != typed[k]?.weight)) {
+        out.add('C4 무게 $k');
+      }
     }
     // C5 지어낸 수 0.
     final t = typed[k];

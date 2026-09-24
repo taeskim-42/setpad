@@ -2621,6 +2621,12 @@ class LJa extends L {
   }
 
   @override
+  String get routineTypedKept => '入力した重さはそのまま';
+
+  @override
+  String get routinePlatesBefore => 'この文には前にプレートを使いました · 今回は0枚';
+
+  @override
   String get routineRetry => '再試行';
 
   @override

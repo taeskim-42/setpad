@@ -646,6 +646,8 @@
   "routineMisread": "沒能讀懂條件 — 只照紀錄排了。換個說法會重新讀",
   "routineHeldBack": "{why, select, offline{沒有連線,} noPlates{槓鈴片不夠,} other{沒能讀懂回答,}}沒能讀條件(拿掉的動作、疼痛),所以沒有排訓練",
   "routineTypedWeight": "照輸入的重量:正式組 {count} 組 {from} → {to}",
+  "routineTypedKept": "輸入的重量保留不變",
+  "routinePlatesBefore": "這段文字之前用過片 · 這次 0 片",
   "routineRetry": "重試",
   "routinePressEnter": "按 Enter 連條件一起讀 · 片",
   "routineFromQuestion": "讀作訓練安排請求",

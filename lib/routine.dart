@@ -229,10 +229,12 @@ final _anyMakeWords = _re(
 
 /// 만들어 달라는 것이 기록이다(목록·그래프·표·요약 …) — "루틴 기록 뽑아줘", "PT 루틴
 /// 목록 뽑아줘", "make me a chart of my routine". 루틴 명사가 있어도 루틴 명령이 아니다.
+/// 붙은 '표'(운동표·계획표·식단표·시간표)와 루틴 명사의 リスト·一覧(トレーニングのリスト)은
+/// 짤 것이다. "기록 뽑아서 … 만들어줘" 처럼 이어 가는 말(서·고)이면 요청은 뒤에 있다.
 final _recordObject = _re(
-  r'(기록|그래프|차트|(?<!시간|발)표|목록|리스트|요약|내역|통계|순위)\s*(으로|로|를|을|만)?\s*(좀\s*)?(만들어|뽑아|골라|정리|부탁)|'
+  r'(기록|그래프|차트|(?<![가-힣])표|목록|리스트|요약|내역|통계|순위)\s*(으로|로|를|을|만)?\s*(좀\s*)?(만들어|뽑아|골라|정리|부탁)(?!\s*(해|하)?\s*(서|고)(\s|$))|'
   r'\b(make|build|give|get|create)\s+(me|us)\s+((a|an|the|my)\s+)?(charts?|graphs?|lists?|summary|table|history|records?|stats)\b|'
-  r'(記録|グラフ|一覧|リスト)(を|の)?(作って|ちょうだい|お願い)',
+  r'(記録の?(一覧|リスト)?|グラフ)(を|の)?(作って|ちょうだい|お願い)',
 );
 
 /// 루틴을 짜 달라는 명령이 있는가.
@@ -412,18 +414,31 @@ final _routineNouns = _re(
   r'루틴|운동|routine|workout|training|トレーニング|メニュー|训练|訓練|课表|課表|rutina|entren|buổi tập|lịch tập|ตารางเล่น|เล่น',
 );
 
+/// 해도 되나를 묻는 말(조언). 의료 낱말과 같이 있으면 명령이 없어도 의료 판단을 묻는 글이다.
+final _adviceWords = _re(
+  r'해도\s?(돼|되|될|괜찮)|하면\s?안\s?(돼|되)|괜찮(아|을까|나|니|은지|은가)|(돼|될까|되나)\s*[?？]|'
+  r'\b(can|could|should|may)\s+i\b|\bis it (ok|okay|safe|fine)\b|\b(ok|okay|safe) to\b|'
+  r'てもいい|ても大丈夫|大丈夫|していい|'
+  r'可以|能不能|能做|行吗|行嗎|'
+  r'puedo|se puede|es seguro|'
+  r'được không|có nên|có sao không|'
+  r'ได้ไหม|ได้มั้ย|ได้หรือเปล่า',
+);
+
 /// 기기에서 먼저 거절하는 갈래(원판 0). 의료·약물은 루틴을 달라는 글이면 명령
 /// 낱말이 없어도("재활 중인데 오늘 뭐 할까") 거절한다(G3) — 모델을 못 쓸 때(연결·
-/// 원판·읽지 못함) 기록으로 짠 [시작] 카드가 뜨면 안 된다. 의료 낱말은 기록을 묻는
-/// 말("재활 운동 몇 번 했어")이 아니면 낱말만 있어도("재활", "rehab", "수술 뒤 하체
-/// 해도 돼?") 거절한다 — 모델로 넘기면 조건까지 읽기 칩으로 원판이 나간다. 식단은
-/// 명령 + 운동 낱말이 없을 때만(끼니 질문과 겹친다).
+/// 원판·읽지 못함) 기록으로 짠 [시작] 카드가 뜨면 안 된다. 의료 낱말에 해도 되나를
+/// 묻는 말("수술 뒤 하체 해도 돼?", "can I squat after surgery")도 거절이다. 낱말만
+/// 있는 글("재활 일지", "rehab log", "재활 스쿼트")은 제목 찾기라 기록 검색으로 간다 —
+/// 기록 검색이 루틴이라 하면 칩 없이 거절 줄만 보인다. 식단은 명령 + 운동 낱말이
+/// 없을 때만(끼니 질문과 겹친다).
 String? homeRefusal(String text) {
   if (_promptWords.hasMatch(text)) return 'other';
   final make = _commands(text);
   final wants = make || _wordsRoute(text.trim()) == HomeRoute.routine;
-  final lookup = _askWords.hasMatch(text) || _recordPeriod.hasMatch(text);
-  if (_medicalWords.hasMatch(text) && (wants || !lookup)) return 'medical';
+  if (_medicalWords.hasMatch(text) && (wants || _adviceWords.hasMatch(text))) {
+    return 'medical';
+  }
   if (wants && _drugWords.hasMatch(text)) return 'drug';
   if (make && _dietWords.hasMatch(text) && !_routineNouns.hasMatch(text)) {
     return 'diet';
@@ -1439,6 +1454,7 @@ class RoutineItem {
     this.stepped,
     this.sourceTitle,
     this.retyped,
+    this.typedKept = false,
   });
 
   /// 운동 열쇠.
@@ -1450,12 +1466,16 @@ class RoutineItem {
   /// copied | repsMatched | typed | typedWeight | first | timer.
   String why;
 
-  /// 무게만 친 칸: 친 무게로 바꾼 작업 세트(원래 → 친 무게)와 그 수.
-  final ({PlanSet from, PlanSet to, int count})? retyped;
+  /// 무게만 친 칸: 친 무게로 바꾼 작업 세트(원래 무게들, 가벼운 것부터 → 친 무게)와 그 수.
+  final ({List<PlanSet> from, PlanSet to, int count})? retyped;
   DateTime? day;
 
   /// 무게를 비운 까닭: light | pain | gear | stale | bodyweight | max(없음) | repsUnmatched.
+  /// 친 무게는 비우지 않는다 — 옮긴 무게만 비웠으면 [typedKept].
   String? blank;
+
+  /// [blank] 로 옮긴 무게는 비웠지만 친 무게는 남겼다.
+  final bool typedKept;
   RoutineRef? reference;
 
   /// 옮긴 칸의 내 세트 메모(옮기지는 않는다).
@@ -2220,10 +2240,18 @@ RoutineDraft composeRoutine(
           day: _day(pick.createdAt),
         ));
       }
-      // 뽑힌 날에 없는 부위가 가장 오래 쉬었으면 "(부위)로 짜기" 칩.
+      // 뽑힌 날에 없는 부위가 가장 오래 쉬었으면 "(부위)로 짜기" 칩. 아픈 부위(avoid)는
+      // 권하지 않는다 — 어디가 아픈지 모르면 부위 칩이 없다.
       final picked = {for (final c in candidates) _part(c.key)};
-      final top = draft.partRest.entries.firstOrNull;
-      if (top != null && !picked.contains(top.key)) draft.partChip = top.key;
+      bool avoided(String p) => ask.avoid.any(
+        (a) => a == 'full' || (partGroups[a]?.contains(p) ?? a == p),
+      );
+      final top = draft.partRest.keys.where((p) => !avoided(p)).firstOrNull;
+      if (top != null &&
+          !picked.contains(top) &&
+          (ask.pain == null || ask.avoid.isNotEmpty)) {
+        draft.partChip = top;
+      }
       // 거름에 걸린 칸은 줄로(넣기).
       for (final b in _mineBlocks(pick)) {
         final r = filtered(exerciseKey(b.exercise), b.name, named: false);
@@ -2427,11 +2455,17 @@ RoutineDraft composeRoutine(
     if (light) blank ??= 'light';
     if (painBlank && target?.weight == null) blank ??= 'pain';
 
-    // L0: 친 수. 무게만 쳤으면(횟수·세트 없이) 작업 세트 — 옮긴 세트 가운데 가장
-    // 무거운 세트 — 의 무게만 친 무게로 바꾸고 워밍업은 그대로 둔다. 바꾼 것은 칸에
-    // 적는다(retyped). 옮길 세트가 없으면 한 세트에 횟수는 비운다. 지난 기록은 참고 줄로.
+    // L0: 친 수. 무게만 쳤으면(횟수·세트·총 횟수 없이) 작업 세트 — 옮긴 세트 가운데
+    // 가장 무거운 세트와 친 무게보다 무거운 세트 — 의 무게만 친 무게로 바꾸고 나머지
+    // 워밍업은 그대로 둔다(워밍업이 작업 세트보다 무겁게 남지 않는다). 바꾼 것은 칸에
+    // 적는다(retyped). 옮길 세트가 없으면 한 세트에 횟수는 비운다. 총 횟수를 쳤으면 옮긴
+    // 횟수·세트로 어기지 않게 친 수만 적는다. 지난 기록은 참고 줄로.
     final weightOnly = target?.weight != null && target?.reps == null;
-    final top = weightOnly && target!.sets == null && target.seconds == null
+    final top =
+        weightOnly &&
+            target!.sets == null &&
+            target.seconds == null &&
+            target.total == null
         ? sets
               .where(_weighed)
               .fold<PlanSet?>(
@@ -2439,14 +2473,20 @@ RoutineDraft composeRoutine(
                 (a, s) => a == null || _kg(s) > _kg(a) ? s : a,
               )
         : null;
-    ({PlanSet from, PlanSet to, int count})? retyped;
+    ({List<PlanSet> from, PlanSet to, int count})? retyped;
     if (top != null) {
       final w = target!.weight!, wu = target.unit ?? unit;
-      bool working(PlanSet s) => s.value == top.value && s.unit == top.unit;
+      final PlanSet to = (value: w, unit: wu, reps: null);
+      bool working(PlanSet s) =>
+          _weighed(s) &&
+          ((s.value == top.value && s.unit == top.unit) || _kg(s) > _kg(to));
+      final work = sets.where(working).toList();
       retyped = (
-        from: top,
-        to: (value: w, unit: wu, reps: null),
-        count: sets.where(working).length,
+        from: {
+          for (final s in work) (value: s.value, unit: s.unit, reps: null),
+        }.toList()..sort((a, b) => _kg(a).compareTo(_kg(b))),
+        to: to,
+        count: work.length,
       );
       sets = [
         for (final s in sets)
@@ -2522,10 +2562,19 @@ RoutineDraft composeRoutine(
       }
       changed = true;
     }
+    // 비우기: 옮긴 무게만 비운다. 친 무게는 남기고(typedKept) 나머지를 비운 까닭은
+    // 그대로 말한다. 친 무게뿐이라 비운 것이 없으면 "비웠어요" 라고 하지 않는다.
+    bool typedSet(PlanSet s) =>
+        target?.weight != null &&
+        s.value == target!.weight &&
+        s.unit == (target.unit ?? unit);
+    bool wipe(PlanSet s) => _weighed(s) && !typedSet(s);
+    final typedKept = blank != null && sets.any(typedSet);
+    final shownBlank = typedKept && !sets.any(wipe) ? null : blank;
     if (blank != null) {
       sets = [
         for (final s in sets)
-          (value: _weighed(s) ? null : s.value, unit: s.unit, reps: s.reps),
+          (value: wipe(s) ? null : s.value, unit: s.unit, reps: s.reps),
       ];
       changed = changed || sets.isNotEmpty;
     }
@@ -2542,7 +2591,7 @@ RoutineDraft composeRoutine(
       final typed = target != null && retyped == null;
       setup = WorkoutSetup(
         name: setup.name,
-        weight: blank != null ? null : (weighedSets.firstOrNull?.value),
+        weight: weighedSets.firstOrNull?.value,
         unit: weighedSets.firstOrNull?.unit ?? setup.unit,
         totalReps: target?.total ?? (typed ? null : setup.totalReps),
         repsPerSet: target?.reps ?? (typed ? null : setup.repsPerSet),
@@ -2552,8 +2601,10 @@ RoutineDraft composeRoutine(
     } else if (target?.total != null) {
       setup = WorkoutSetup(
         name: exerciseKey(key),
-        totalReps: target!.total,
-        repsOnly: true,
+        weight: target!.weight,
+        unit: target.unit ?? unit,
+        totalReps: target.total,
+        repsOnly: target.weight == null,
       );
     }
     if (changed && src != null) title = _plainTitle(src);
@@ -2587,10 +2638,11 @@ RoutineDraft composeRoutine(
       title: title,
       sets: sets,
       setup: setup,
-      why: blank == null ? why : (why == 'typedWeight' ? 'copied' : why),
-      retyped: blank == null ? retyped : null,
+      why: why,
+      retyped: retyped,
       day: itemDay,
-      blank: blank,
+      blank: shownBlank,
+      typedKept: typedKept && shownBlank != null,
       reference: reference,
       memo: memo == null ? null : (day: c.day!, text: memo),
       fixed: c.fixed,
@@ -2954,7 +3006,8 @@ class RoutineSearch extends ChangeNotifier {
   /// 서버가 준(또는 담아 둔) 모델 답.
   Object? answer;
 
-  /// [charged] 는 이번 답을 서버에서 받았다(원판이 나갔다)는 뜻이다.
+  /// [charged] 는 이번 답을 서버에서 받았다(원판이 나갔다)는 뜻이다. [chargedBefore] 는
+  /// 이번엔 보내지 않았지만(담아 둔 답·깨진 답 두 번) 이 글로 앞서 원판이 나갔다는 뜻이다.
   ///
   /// [tooLong] 은 보내지 않은 긴 글(다시 해도 같다), [misread] 는 모델이 깨진 답을
   /// 낸 것(형식만 되받아 적음, 502 upstream) — 연결 문제가 아니다. 깨진 답은 담지
@@ -2963,6 +3016,7 @@ class RoutineSearch extends ChangeNotifier {
       failed = false,
       noPlates = false,
       charged = false,
+      chargedBefore = false,
       tooLong = false,
       misread = false,
       retry = false,
@@ -2972,13 +3026,17 @@ class RoutineSearch extends ChangeNotifier {
   /// 글(담는 열쇠)마다 깨진 답을 받은 횟수.
   final _broken = <String, int>{};
 
+  /// 원판이 나간 글(담는 열쇠).
+  final _charged = <String>{};
+
   static String cacheKey(String text, String locale, String unit, int year) =>
       jsonEncode(['r1', text.trim(), locale, unit, year]);
 
   void _reset(String t) {
     text = t;
     answer = null;
-    busy = failed = noPlates = charged = tooLong = misread = retry = false;
+    busy = failed = noPlates = charged = chargedBefore = tooLong = misread =
+        retry = false;
   }
 
   /// 치는 중 — 담아 둔 답만 본다. 원판은 나가지 않는다.
@@ -2987,6 +3045,7 @@ class RoutineSearch extends ChangeNotifier {
     if (t.trim() != text) {
       _version++;
       _reset(t.trim());
+      chargedBefore = _charged.contains(key);
     }
     answer ??= _cache[key];
     if (!_disposed) notifyListeners();
@@ -3024,6 +3083,7 @@ class RoutineSearch extends ChangeNotifier {
     void broken() {
       final n = _broken[key] = (_broken[key] ?? 0) + 1;
       misread = charged = true;
+      _charged.add(key);
       retry = n < 2;
     }
 
@@ -3058,6 +3118,7 @@ class RoutineSearch extends ChangeNotifier {
       } else {
         answer = got;
         charged = true;
+        _charged.add(key);
       }
     } catch (e) {
       if (_disposed || version != _version) return;

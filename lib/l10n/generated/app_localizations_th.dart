@@ -2676,6 +2676,13 @@ class LTh extends L {
   }
 
   @override
+  String get routineTypedKept => 'คงน้ำหนักที่พิมพ์ไว้';
+
+  @override
+  String get routinePlatesBefore =>
+      'ข้อความนี้เคยใช้แผ่นไปแล้ว · ครั้งนี้ 0 แผ่น';
+
+  @override
   String get routineRetry => 'ลองอีกครั้ง';
 
   @override

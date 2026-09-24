@@ -646,6 +646,8 @@
   "routineMisread": "No pude leer las condiciones — armada solo con tu registro. Reformúlalo para leer de nuevo",
   "routineHeldBack": "{why, select, offline{Sin conexión} noPlates{Sin discos} other{La respuesta no se pudo leer}}: no pude leer las condiciones (exclusiones, dolor), así que no armé la rutina",
   "routineTypedWeight": "Peso escrito: {count} series efectivas {from} → {to}",
+  "routineTypedKept": "el peso escrito se mantiene",
+  "routinePlatesBefore": "Ya usaste discos con este texto · 0 esta vez",
   "routineRetry": "Reintentar",
   "routinePressEnter": "Pulsa Intro para leer también las condiciones · discos",
   "routineFromQuestion": "Leído como petición de rutina",
