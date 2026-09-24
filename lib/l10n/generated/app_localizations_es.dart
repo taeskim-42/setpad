@@ -2676,6 +2676,11 @@ class LEs extends L {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return 'Se mantienen los $n ejercicios que elegiste: más de los $usual que sueles hacer en una sesión';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$when, nota de $name: $memo';
   }
@@ -2882,4 +2887,219 @@ class LEs extends L {
   String queryBoundDropped(String value) {
     return 'Se quitó la condición $value: la pregunta no dice ese número en esa unidad';
   }
+
+  @override
+  String get anatomyTitle => 'Mapa del cuerpo';
+
+  @override
+  String get anatomyOpen =>
+      'Mapa del cuerpo — ejercicios y consejos de técnica por músculo';
+
+  @override
+  String get anatomyPick => 'Elegir ejercicios en el mapa corporal';
+
+  @override
+  String get anatomyFront => 'Frente';
+
+  @override
+  String get anatomyBack => 'Espalda';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n días';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': 'Pecho',
+      'frontDelts': 'Deltoides anterior',
+      'sideDelts': 'Deltoides lateral',
+      'rearDelts': 'Deltoides posterior',
+      'traps': 'Trapecio superior',
+      'upperBack': 'Espalda media',
+      'lats': 'Dorsales',
+      'lowerBack': 'Zona lumbar',
+      'biceps': 'Bíceps',
+      'triceps': 'Tríceps',
+      'forearms': 'Antebrazos',
+      'abs': 'Abdominales',
+      'obliques': 'Oblicuos',
+      'hipFlexors': 'Flexores de cadera',
+      'glutes': 'Glúteos',
+      'quads': 'Cuádriceps',
+      'hamstrings': 'Isquiotibiales',
+      'adductors': 'Aductores',
+      'calves': 'Gemelos',
+      'other': 'Músculo',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': 'poco',
+      'mid': 'medio',
+      'high': 'mucho',
+      'other': 'nada',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend =>
+      'Cuantas más series tuvo un músculo en este periodo, más oscuro se ve';
+
+  @override
+  String get anatomyFirstTime =>
+      'Aún no hay series hechas, por eso no hay color. Toca un músculo para ver ejercicios que lo usan y consejos de técnica.';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return 'No hay series hechas en los últimos $n días';
+  }
+
+  @override
+  String anatomyUnknown(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'No se contaron $n ejercicios de músculos desconocidos',
+      one: 'No se contó 1 ejercicio de músculos desconocidos',
+    );
+    return '$_temp0. Toca un nombre para ver sus registros en la búsqueda.';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return 'y $n más';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return 'Series de cardio fuera del mapa: $n';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      'Los músculos siguen las clasificaciones de ExRx.net y ACE y son una estimación. En los ejercicios con * la asignación de músculos es una interpretación. Cada serie cuenta una vez para los músculos principales y media para los auxiliares; las series de calentamiento también cuentan.';
+
+  @override
+  String get anatomyLimits =>
+      'No analiza vídeo ni técnica. Si algo duele, para y consulta a un profesional.';
+
+  @override
+  String get anatomyTapHint =>
+      'Toca un músculo — también puedes elegirlo en la lista de abajo';
+
+  @override
+  String get anatomyNoSurface => 'Músculo profundo, no está en el dibujo';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return 'Series en $days días: $sets';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return 'Series — últimos 7 días: $week · 28 días: $month';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28 días: como principal $primary · como auxiliar $secondary (cuenta la mitad)';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return 'Última vez: $date ($ago)';
+  }
+
+  @override
+  String get anatomyNever =>
+      'Aún no hay series para este músculo entre los ejercicios de la tabla';
+
+  @override
+  String get anatomyDone => 'Ejercicios que hiciste';
+
+  @override
+  String get anatomyTry => 'Ejercicios que lo usan sobre todo';
+
+  @override
+  String anatomyTryGear(String list) {
+    return 'Con el equipo que has usado ($list)';
+  }
+
+  @override
+  String get anatomyAllGear => 'No hay equipo registrado, se muestran todos';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return '$n más con otro equipo';
+  }
+
+  @override
+  String get anatomyTriedAll =>
+      'Ya hiciste todos los ejercicios que usan sobre todo este músculo';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': 'principal',
+      'other': 'auxiliar',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyInterpNote =>
+      '* la asignación de músculos de este ejercicio es una interpretación de su fuente';
+
+  @override
+  String get anatomyCues => 'Consejos de técnica';
+
+  @override
+  String get anatomyMistakes => 'Evita';
+
+  @override
+  String anatomySources(String sites) {
+    return 'Fuentes: $sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '‡ añadido sin fuente';
+
+  @override
+  String get anatomyAdapted =>
+      '† interpretado a partir del texto de una fuente (incluida la de un ejercicio similar)';
+
+  @override
+  String get anatomyCuesEnglish =>
+      'Por ahora los consejos de técnica solo están en inglés';
+
+  @override
+  String get anatomyAddRoutine => 'Añadir a la rutina de hoy';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return 'Rutina de $part de hoy';
+  }
+
+  @override
+  String get anatomySearch => 'Ver en la búsqueda';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return 'Series en $days días: $sets, $level';
+  }
+
+  @override
+  String get anatomyRegionHint => 'Toca dos veces para ver ejercicios';
+
+  @override
+  String get anatomyClose => 'Cerrar';
+
+  @override
+  String get openSourceLicenses => 'Licencias de código abierto';
 }

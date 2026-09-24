@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show showLicensePage;
 
 import 'account.dart';
 import 'ai_consent.dart';
@@ -169,6 +170,12 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ],
               ],
+              // 쓰는 오픈소스의 고지문. 몸 그림 그림(MIT)의 조건이 고지문을 싣는 것이다.
+              _Row(
+                key: const ValueKey('settings-licenses'),
+                label: l.openSourceLicenses,
+                onTap: () => showLicensePage(context: context),
+              ),
               const SizedBox(height: 40),
             ],
           ),

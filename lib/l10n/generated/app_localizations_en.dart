@@ -2657,6 +2657,11 @@ class LEn extends L {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return 'Kept all $n exercises you picked — more than the $usual you usually do in one workout';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$when $name memo: $memo';
   }
@@ -2863,4 +2868,217 @@ class LEn extends L {
   String queryBoundDropped(String value) {
     return 'Dropped the condition $value — the question doesn\'t state that number in that unit';
   }
+
+  @override
+  String get anatomyTitle => 'Body map';
+
+  @override
+  String get anatomyOpen => 'Body map — exercises and form tips by muscle';
+
+  @override
+  String get anatomyPick => 'Pick exercises on the body map';
+
+  @override
+  String get anatomyFront => 'Front';
+
+  @override
+  String get anatomyBack => 'Back';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n days';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': 'Chest',
+      'frontDelts': 'Front delts',
+      'sideDelts': 'Side delts',
+      'rearDelts': 'Rear delts',
+      'traps': 'Upper traps',
+      'upperBack': 'Mid back',
+      'lats': 'Lats',
+      'lowerBack': 'Lower back',
+      'biceps': 'Biceps',
+      'triceps': 'Triceps',
+      'forearms': 'Forearms',
+      'abs': 'Abs',
+      'obliques': 'Obliques',
+      'hipFlexors': 'Hip flexors',
+      'glutes': 'Glutes',
+      'quads': 'Quads',
+      'hamstrings': 'Hamstrings',
+      'adductors': 'Adductors',
+      'calves': 'Calves',
+      'other': 'Muscle',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': 'light',
+      'mid': 'medium',
+      'high': 'heavy',
+      'other': 'none',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend =>
+      'The more sets a muscle got in this period, the darker it is';
+
+  @override
+  String get anatomyFirstTime =>
+      'No sets done yet, so nothing is colored. Tap a muscle to see exercises that use it and form tips.';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return 'No sets done in the last $n days';
+  }
+
+  @override
+  String anatomyUnknown(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n exercises with unknown muscles were not counted',
+      one: '1 exercise with unknown muscles was not counted',
+    );
+    return '$_temp0. Tap a name to see its records in search.';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return 'and $n more';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return 'Cardio sets not on the muscle map: $n';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      'Muscles follow the ExRx.net and ACE classifications and are an estimate. Exercises marked * have an interpreted muscle assignment. A set counts once for the main muscles and half for assisting muscles; warm-up sets count too.';
+
+  @override
+  String get anatomyLimits =>
+      'No video or form analysis. If something hurts, stop and talk to a professional.';
+
+  @override
+  String get anatomyTapHint =>
+      'Tap a muscle — you can also pick one from the list below';
+
+  @override
+  String get anatomyNoSurface => 'Deep muscle, not on the drawing';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return '$days-day sets: $sets';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return 'Sets — last 7 days: $week · 28 days: $month';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28 days: main muscle $primary · assisting $secondary (counted as half)';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return 'Last: $date ($ago)';
+  }
+
+  @override
+  String get anatomyNever =>
+      'No sets for this muscle yet among exercises in the table';
+
+  @override
+  String get anatomyDone => 'Exercises you did';
+
+  @override
+  String get anatomyTry => 'Exercises that mainly use it';
+
+  @override
+  String anatomyTryGear(String list) {
+    return 'With equipment you\'ve used ($list)';
+  }
+
+  @override
+  String get anatomyAllGear => 'No equipment on record, so all are shown';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return '$n more with other equipment';
+  }
+
+  @override
+  String get anatomyTriedAll =>
+      'You\'ve done every exercise that mainly uses this muscle';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': 'main',
+      'other': 'assisting',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyInterpNote =>
+      '* the muscle assignment for this exercise is interpreted from its source';
+
+  @override
+  String get anatomyCues => 'Form tips';
+
+  @override
+  String get anatomyMistakes => 'Avoid';
+
+  @override
+  String anatomySources(String sites) {
+    return 'Sources: $sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '‡ added without a source';
+
+  @override
+  String get anatomyAdapted =>
+      '† interpreted from a source\'s wording (incl. a similar exercise\'s source)';
+
+  @override
+  String get anatomyCuesEnglish => 'Form tips are in English only for now';
+
+  @override
+  String get anatomyAddRoutine => 'Add to today\'s routine';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return 'Today\'s $part routine';
+  }
+
+  @override
+  String get anatomySearch => 'Show in search';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return '$days-day sets: $sets, $level';
+  }
+
+  @override
+  String get anatomyRegionHint => 'Double-tap to see exercises';
+
+  @override
+  String get anatomyClose => 'Close';
+
+  @override
+  String get openSourceLicenses => 'Open-source licenses';
 }

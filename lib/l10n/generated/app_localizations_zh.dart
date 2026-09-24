@@ -2550,6 +2550,11 @@ class LZh extends L {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return '你选的 $n 个动作都保留了——比平时一次做的 $usual 个多';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$when$name备注: $memo';
   }
@@ -2751,6 +2756,205 @@ class LZh extends L {
   String queryBoundDropped(String value) {
     return '已去掉条件 $value — 问题里没有用这个单位写这个数';
   }
+
+  @override
+  String get anatomyTitle => '身体图';
+
+  @override
+  String get anatomyOpen => '身体图 — 按部位看动作和动作要点';
+
+  @override
+  String get anatomyPick => '在身体图上选动作';
+
+  @override
+  String get anatomyFront => '正面';
+
+  @override
+  String get anatomyBack => '背面';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n天';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': '胸',
+      'frontDelts': '前三角肌',
+      'sideDelts': '中三角肌',
+      'rearDelts': '后三角肌',
+      'traps': '上斜方肌',
+      'upperBack': '中背部',
+      'lats': '背阔肌',
+      'lowerBack': '下背部',
+      'biceps': '肱二头肌',
+      'triceps': '肱三头肌',
+      'forearms': '前臂',
+      'abs': '腹肌',
+      'obliques': '腹斜肌',
+      'hipFlexors': '髋屈肌',
+      'glutes': '臀部',
+      'quads': '股四头肌',
+      'hamstrings': '腘绳肌',
+      'adductors': '大腿内侧',
+      'calves': '小腿',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': '少',
+      'mid': '中',
+      'high': '多',
+      'other': '无',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend => '这段时间组数越多的部位颜色越深';
+
+  @override
+  String get anatomyFirstTime => '还没有完成的组，所以没有颜色。点一个部位，可以看使用它的动作和动作要点。';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return '最近$n天没有完成的组';
+  }
+
+  @override
+  String anatomyUnknown(int n) {
+    return '有 $n 个不知道肌肉的动作没有计入。点名称可在搜索中查看记录。';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return '另外 $n 个';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return '有氧$n组没有计入身体图';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      '肌肉按 ExRx.net、ACE 的分类估算。带 * 的动作，肌肉归属是推断的。主要肌肉每组算一组，辅助肌肉算半组，热身组也算一组。';
+
+  @override
+  String get anatomyLimits => '不做视频或动作分析。如有疼痛请停下并咨询专业人士。';
+
+  @override
+  String get anatomyTapHint => '请点肌肉 — 也可以在下面的列表里选';
+
+  @override
+  String get anatomyNoSurface => '深层肌肉，图上没有';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return '$days天 $sets组';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return '最近7天 $week组 · 28天 $month组';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28天中主要使用 $primary组 · 辅助 $secondary组（按半组算）';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return '最近一次：$date（$ago）';
+  }
+
+  @override
+  String get anatomyNever => '表里的动作中，这个部位还没有记录';
+
+  @override
+  String get anatomyDone => '我做过的动作';
+
+  @override
+  String get anatomyTry => '主要使用这个部位的动作';
+
+  @override
+  String anatomyTryGear(String list) {
+    return '用过的器械（$list）能做的';
+  }
+
+  @override
+  String get anatomyAllGear => '没有器械记录，全部显示';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return '再看$n个其他器械的动作';
+  }
+
+  @override
+  String get anatomyTriedAll => '主要使用这个部位的动作都做过了';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': '主要',
+      'other': '辅助',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyInterpNote => '* 该动作的肌肉归属是根据来源推断的';
+
+  @override
+  String get anatomyCues => '动作要点';
+
+  @override
+  String get anatomyMistakes => '要避免';
+
+  @override
+  String anatomySources(String sites) {
+    return '来源：$sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '‡ 无来源的补充';
+
+  @override
+  String get anatomyAdapted => '† 根据来源文字转述的推断（含相似动作的来源）';
+
+  @override
+  String get anatomyCuesEnglish => '动作要点目前只有英文';
+
+  @override
+  String get anatomyAddRoutine => '加入今天的训练';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return '今天的$part训练';
+  }
+
+  @override
+  String get anatomySearch => '在搜索中查看';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return '最近$days天 $sets组，$level';
+  }
+
+  @override
+  String get anatomyRegionHint => '双击查看动作';
+
+  @override
+  String get anatomyClose => '关闭';
+
+  @override
+  String get openSourceLicenses => '开源许可';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -5299,6 +5503,11 @@ class LZhHans extends LZh {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return '你选的 $n 个动作都保留了——比平时一次做的 $usual 个多';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$when$name备注: $memo';
   }
@@ -5500,6 +5709,205 @@ class LZhHans extends LZh {
   String queryBoundDropped(String value) {
     return '已去掉条件 $value — 问题里没有用这个单位写这个数';
   }
+
+  @override
+  String get anatomyTitle => '身体图';
+
+  @override
+  String get anatomyOpen => '身体图 — 按部位看动作和动作要点';
+
+  @override
+  String get anatomyPick => '在身体图上选动作';
+
+  @override
+  String get anatomyFront => '正面';
+
+  @override
+  String get anatomyBack => '背面';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n天';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': '胸',
+      'frontDelts': '前三角肌',
+      'sideDelts': '中三角肌',
+      'rearDelts': '后三角肌',
+      'traps': '上斜方肌',
+      'upperBack': '中背部',
+      'lats': '背阔肌',
+      'lowerBack': '下背部',
+      'biceps': '肱二头肌',
+      'triceps': '肱三头肌',
+      'forearms': '前臂',
+      'abs': '腹肌',
+      'obliques': '腹斜肌',
+      'hipFlexors': '髋屈肌',
+      'glutes': '臀部',
+      'quads': '股四头肌',
+      'hamstrings': '腘绳肌',
+      'adductors': '大腿内侧',
+      'calves': '小腿',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': '少',
+      'mid': '中',
+      'high': '多',
+      'other': '无',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend => '这段时间组数越多的部位颜色越深';
+
+  @override
+  String get anatomyFirstTime => '还没有完成的组，所以没有颜色。点一个部位，可以看使用它的动作和动作要点。';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return '最近$n天没有完成的组';
+  }
+
+  @override
+  String anatomyUnknown(int n) {
+    return '有 $n 个不知道肌肉的动作没有计入。点名称可在搜索中查看记录。';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return '另外 $n 个';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return '有氧$n组没有计入身体图';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      '肌肉按 ExRx.net、ACE 的分类估算。带 * 的动作，肌肉归属是推断的。主要肌肉每组算一组，辅助肌肉算半组，热身组也算一组。';
+
+  @override
+  String get anatomyLimits => '不做视频或动作分析。如有疼痛请停下并咨询专业人士。';
+
+  @override
+  String get anatomyTapHint => '请点肌肉 — 也可以在下面的列表里选';
+
+  @override
+  String get anatomyNoSurface => '深层肌肉，图上没有';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return '$days天 $sets组';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return '最近7天 $week组 · 28天 $month组';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28天中主要使用 $primary组 · 辅助 $secondary组（按半组算）';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return '最近一次：$date（$ago）';
+  }
+
+  @override
+  String get anatomyNever => '表里的动作中，这个部位还没有记录';
+
+  @override
+  String get anatomyDone => '我做过的动作';
+
+  @override
+  String get anatomyTry => '主要使用这个部位的动作';
+
+  @override
+  String anatomyTryGear(String list) {
+    return '用过的器械（$list）能做的';
+  }
+
+  @override
+  String get anatomyAllGear => '没有器械记录，全部显示';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return '再看$n个其他器械的动作';
+  }
+
+  @override
+  String get anatomyTriedAll => '主要使用这个部位的动作都做过了';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': '主要',
+      'other': '辅助',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyInterpNote => '* 该动作的肌肉归属是根据来源推断的';
+
+  @override
+  String get anatomyCues => '动作要点';
+
+  @override
+  String get anatomyMistakes => '要避免';
+
+  @override
+  String anatomySources(String sites) {
+    return '来源：$sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '‡ 无来源的补充';
+
+  @override
+  String get anatomyAdapted => '† 根据来源文字转述的推断（含相似动作的来源）';
+
+  @override
+  String get anatomyCuesEnglish => '动作要点目前只有英文';
+
+  @override
+  String get anatomyAddRoutine => '加入今天的训练';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return '今天的$part训练';
+  }
+
+  @override
+  String get anatomySearch => '在搜索中查看';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return '最近$days天 $sets组，$level';
+  }
+
+  @override
+  String get anatomyRegionHint => '双击查看动作';
+
+  @override
+  String get anatomyClose => '关闭';
+
+  @override
+  String get openSourceLicenses => '开源许可';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -8047,6 +8455,11 @@ class LZhHant extends LZh {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return '你選的 $n 個動作都保留了——比平常一次做的 $usual 個多';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$when$name備註: $memo';
   }
@@ -8248,4 +8661,203 @@ class LZhHant extends LZh {
   String queryBoundDropped(String value) {
     return '已去掉條件 $value — 問題裡沒有用這個單位寫這個數';
   }
+
+  @override
+  String get anatomyTitle => '身體圖';
+
+  @override
+  String get anatomyOpen => '身體圖 — 依部位看動作與動作要點';
+
+  @override
+  String get anatomyPick => '在身體圖上選動作';
+
+  @override
+  String get anatomyFront => '正面';
+
+  @override
+  String get anatomyBack => '背面';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n天';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': '胸',
+      'frontDelts': '前三角肌',
+      'sideDelts': '中三角肌',
+      'rearDelts': '後三角肌',
+      'traps': '上斜方肌',
+      'upperBack': '中背部',
+      'lats': '背闊肌',
+      'lowerBack': '下背部',
+      'biceps': '肱二頭肌',
+      'triceps': '肱三頭肌',
+      'forearms': '前臂',
+      'abs': '腹肌',
+      'obliques': '腹斜肌',
+      'hipFlexors': '髖屈肌',
+      'glutes': '臀部',
+      'quads': '股四頭肌',
+      'hamstrings': '膕繩肌',
+      'adductors': '大腿內側',
+      'calves': '小腿',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': '少',
+      'mid': '中',
+      'high': '多',
+      'other': '無',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend => '這段時間組數越多的部位顏色越深';
+
+  @override
+  String get anatomyFirstTime => '還沒有完成的組，所以沒有顏色。點一個部位，可以看使用它的動作與動作要點。';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return '最近$n天沒有完成的組';
+  }
+
+  @override
+  String anatomyUnknown(int n) {
+    return '有 $n 個不知道肌肉的動作沒有計入。點名稱可在搜尋中查看紀錄。';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return '另外 $n 個';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return '有氧$n組沒有計入身體圖';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      '肌肉依 ExRx.net、ACE 的分類估算。帶 * 的動作，肌肉歸屬是推斷的。主要肌肉每組算一組，輔助肌肉算半組，熱身組也算一組。';
+
+  @override
+  String get anatomyLimits => '不做影片或動作分析。如有疼痛請停下並諮詢專業人士。';
+
+  @override
+  String get anatomyTapHint => '請點肌肉 — 也可以在下面的列表裡選';
+
+  @override
+  String get anatomyNoSurface => '深層肌肉，圖上沒有';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return '$days天 $sets組';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return '最近7天 $week組 · 28天 $month組';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28天中主要使用 $primary組 · 輔助 $secondary組（按半組算）';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return '最近一次：$date（$ago）';
+  }
+
+  @override
+  String get anatomyNever => '表中的動作裡，這個部位還沒有紀錄';
+
+  @override
+  String get anatomyDone => '我做過的動作';
+
+  @override
+  String get anatomyTry => '主要使用這個部位的動作';
+
+  @override
+  String anatomyTryGear(String list) {
+    return '用過的器材（$list）能做的';
+  }
+
+  @override
+  String get anatomyAllGear => '沒有器材紀錄，全部顯示';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return '再看$n個其他器材的動作';
+  }
+
+  @override
+  String get anatomyTriedAll => '主要使用這個部位的動作都做過了';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': '主要',
+      'other': '輔助',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyInterpNote => '* 此動作的肌肉歸屬是根據來源推斷的';
+
+  @override
+  String get anatomyCues => '動作要點';
+
+  @override
+  String get anatomyMistakes => '要避免';
+
+  @override
+  String anatomySources(String sites) {
+    return '來源：$sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '‡ 無來源的補充';
+
+  @override
+  String get anatomyAdapted => '† 根據來源文字轉述的推斷（含相似動作的來源）';
+
+  @override
+  String get anatomyCuesEnglish => '動作要點目前只有英文';
+
+  @override
+  String get anatomyAddRoutine => '加入今天的訓練';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return '今天的$part訓練';
+  }
+
+  @override
+  String get anatomySearch => '在搜尋中查看';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return '最近$days天 $sets組，$level';
+  }
+
+  @override
+  String get anatomyRegionHint => '點兩下查看動作';
+
+  @override
+  String get anatomyClose => '關閉';
+
+  @override
+  String get openSourceLicenses => '開源授權';
 }

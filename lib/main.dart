@@ -20,6 +20,7 @@ import 'gym_sheets.dart';
 import 'handoff.dart';
 import 'meal.dart';
 import 'meal_amount_sheet.dart';
+import 'anatomy_page.dart' show registerArtworkLicense;
 import 'notes.dart';
 import 'palette.dart';
 import 'partner.dart';
@@ -34,6 +35,7 @@ import 'share.dart';
 import 'trainer.dart';
 
 void main() {
+  registerArtworkLicense();
   runApp(const SetpadApp());
   // 트레이너 보고 알림. 알림을 눌러 켜졌으면 그 탭을 여기서 받아 두었다가
   // AgentAlarm.taps 로 넘긴다. 테스트는 main 을 부르지 않으니 채널도 안 깬다.

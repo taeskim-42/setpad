@@ -3948,6 +3948,12 @@ abstract class L {
   /// **'말한 운동만으로 약 {minutes}분이에요'**
   String routineOverTime(int minutes);
 
+  /// No description provided for @routineOverUsual.
+  ///
+  /// In ko, this message translates to:
+  /// **'고른 운동 {n}개를 모두 넣었어요 — 평소 한 번에 하는 {usual}개보다 많아요'**
+  String routineOverUsual(int n, int usual);
+
   /// No description provided for @routineRecentMemo.
   ///
   /// In ko, this message translates to:
@@ -4193,6 +4199,270 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'숫자 조건 {value} 뺌 — 질문에 그 단위로 적힌 수가 아니에요'**
   String queryBoundDropped(String value);
+
+  /// No description provided for @anatomyTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'몸 그림'**
+  String get anatomyTitle;
+
+  /// No description provided for @anatomyOpen.
+  ///
+  /// In ko, this message translates to:
+  /// **'몸 그림 — 부위별 운동과 자세 팁'**
+  String get anatomyOpen;
+
+  /// No description provided for @anatomyPick.
+  ///
+  /// In ko, this message translates to:
+  /// **'몸 그림에서 운동 고르기'**
+  String get anatomyPick;
+
+  /// No description provided for @anatomyFront.
+  ///
+  /// In ko, this message translates to:
+  /// **'앞'**
+  String get anatomyFront;
+
+  /// No description provided for @anatomyBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'뒤'**
+  String get anatomyBack;
+
+  /// No description provided for @anatomyDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}일'**
+  String anatomyDays(int n);
+
+  /// No description provided for @muscleName.
+  ///
+  /// In ko, this message translates to:
+  /// **'{m, select, chest{가슴} frontDelts{앞 어깨} sideDelts{옆 어깨} rearDelts{뒤 어깨} traps{승모근 윗부분} upperBack{등 가운데} lats{광배근} lowerBack{허리} biceps{이두} triceps{삼두} forearms{전완} abs{복근} obliques{옆구리} hipFlexors{고관절 굴곡근} glutes{엉덩이} quads{허벅지 앞} hamstrings{허벅지 뒤} adductors{허벅지 안쪽} calves{종아리} other{부위}}'**
+  String muscleName(String m);
+
+  /// No description provided for @anatomyLevel.
+  ///
+  /// In ko, this message translates to:
+  /// **'{level, select, low{적음} mid{중간} high{많음} other{없음}}'**
+  String anatomyLevel(String level);
+
+  /// No description provided for @anatomyLegend.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 기간에 세트가 많은 부위일수록 진해요'**
+  String get anatomyLegend;
+
+  /// No description provided for @anatomyFirstTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 해낸 세트가 없어 색이 없어요. 부위를 누르면 그 부위를 쓰는 운동과 자세 팁을 볼 수 있어요.'**
+  String get anatomyFirstTime;
+
+  /// No description provided for @anatomyEmptyWindow.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 {n}일에 해낸 세트가 없어요'**
+  String anatomyEmptyWindow(int n);
+
+  /// No description provided for @anatomyUnknown.
+  ///
+  /// In ko, this message translates to:
+  /// **'근육을 모르는 운동 {n}개는 세지 않았어요. 이름을 누르면 검색에서 그 기록을 봐요.'**
+  String anatomyUnknown(int n);
+
+  /// No description provided for @anatomyUnknownMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'외 {n}개'**
+  String anatomyUnknownMore(int n);
+
+  /// No description provided for @anatomyCardio.
+  ///
+  /// In ko, this message translates to:
+  /// **'유산소 {n}세트는 근육 그림에 넣지 않았어요'**
+  String anatomyCardio(int n);
+
+  /// No description provided for @anatomyCountNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.'**
+  String get anatomyCountNote;
+
+  /// No description provided for @anatomyLimits.
+  ///
+  /// In ko, this message translates to:
+  /// **'영상·자세 분석은 하지 않아요. 통증이 있으면 멈추고 전문가와 상의하세요.'**
+  String get anatomyLimits;
+
+  /// No description provided for @anatomyTapHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'근육을 눌러 주세요 — 아래 목록에서도 고를 수 있어요'**
+  String get anatomyTapHint;
+
+  /// No description provided for @anatomyNoSurface.
+  ///
+  /// In ko, this message translates to:
+  /// **'몸 안쪽 근육이라 그림에는 없어요'**
+  String get anatomyNoSurface;
+
+  /// No description provided for @anatomySets.
+  ///
+  /// In ko, this message translates to:
+  /// **'{days}일 {sets}세트'**
+  String anatomySets(int days, String sets);
+
+  /// No description provided for @anatomySetsLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 7일 {week}세트 · 28일 {month}세트'**
+  String anatomySetsLine(String week, String month);
+
+  /// No description provided for @anatomyBreakdown.
+  ///
+  /// In ko, this message translates to:
+  /// **'28일 중 주로 쓴 세트 {primary} · 보조로 쓴 세트 {secondary}(반으로 셈)'**
+  String anatomyBreakdown(int primary, int secondary);
+
+  /// No description provided for @anatomyLast.
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막: {date}({ago})'**
+  String anatomyLast(String date, String ago);
+
+  /// No description provided for @anatomyNever.
+  ///
+  /// In ko, this message translates to:
+  /// **'표에 있는 운동으로는 이 부위를 쓴 기록이 아직 없어요'**
+  String get anatomyNever;
+
+  /// No description provided for @anatomyDone.
+  ///
+  /// In ko, this message translates to:
+  /// **'내가 한 운동'**
+  String get anatomyDone;
+
+  /// No description provided for @anatomyTry.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 부위를 주로 쓰는 운동'**
+  String get anatomyTry;
+
+  /// No description provided for @anatomyTryGear.
+  ///
+  /// In ko, this message translates to:
+  /// **'쓴 적 있는 기구({list})로 할 수 있는 것'**
+  String anatomyTryGear(String list);
+
+  /// No description provided for @anatomyAllGear.
+  ///
+  /// In ko, this message translates to:
+  /// **'기구 기록이 없어 전부 보여요'**
+  String get anatomyAllGear;
+
+  /// No description provided for @anatomyMoreGear.
+  ///
+  /// In ko, this message translates to:
+  /// **'다른 기구 운동 {n}개 더 보기'**
+  String anatomyMoreGear(int n);
+
+  /// No description provided for @anatomyTriedAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 부위를 주로 쓰는 운동은 다 해 봤어요'**
+  String get anatomyTriedAll;
+
+  /// No description provided for @anatomyRole.
+  ///
+  /// In ko, this message translates to:
+  /// **'{role, select, primary{주로 씀} other{보조}}'**
+  String anatomyRole(String role);
+
+  /// No description provided for @anatomyInterpNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'* 가 붙은 운동은 근육 배정이 출처를 옮긴 해석이에요'**
+  String get anatomyInterpNote;
+
+  /// No description provided for @anatomyCues.
+  ///
+  /// In ko, this message translates to:
+  /// **'자세 팁'**
+  String get anatomyCues;
+
+  /// No description provided for @anatomyMistakes.
+  ///
+  /// In ko, this message translates to:
+  /// **'피할 것'**
+  String get anatomyMistakes;
+
+  /// No description provided for @anatomySources.
+  ///
+  /// In ko, this message translates to:
+  /// **'출처: {sites}'**
+  String anatomySources(String sites);
+
+  /// No description provided for @anatomyUnsourced.
+  ///
+  /// In ko, this message translates to:
+  /// **'‡ 출처 없이 덧붙인 말'**
+  String get anatomyUnsourced;
+
+  /// No description provided for @anatomyAdapted.
+  ///
+  /// In ko, this message translates to:
+  /// **'† 출처 문장을 옮겨 쓴 해석(비슷한 동작의 출처 포함)'**
+  String get anatomyAdapted;
+
+  /// No description provided for @anatomyCuesEnglish.
+  ///
+  /// In ko, this message translates to:
+  /// **'자세 팁은 아직 영어로만 있어요'**
+  String get anatomyCuesEnglish;
+
+  /// No description provided for @anatomyAddRoutine.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 루틴에 넣기'**
+  String get anatomyAddRoutine;
+
+  /// No description provided for @anatomyRoutineText.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 {part} 루틴'**
+  String anatomyRoutineText(String part);
+
+  /// No description provided for @anatomySearch.
+  ///
+  /// In ko, this message translates to:
+  /// **'검색에서 보기'**
+  String get anatomySearch;
+
+  /// No description provided for @anatomyRegionValue.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 {days}일 {sets}세트, {level}'**
+  String anatomyRegionValue(int days, String sets, String level);
+
+  /// No description provided for @anatomyRegionHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'두 번 눌러 운동 보기'**
+  String get anatomyRegionHint;
+
+  /// No description provided for @anatomyClose.
+  ///
+  /// In ko, this message translates to:
+  /// **'닫기'**
+  String get anatomyClose;
+
+  /// No description provided for @openSourceLicenses.
+  ///
+  /// In ko, this message translates to:
+  /// **'오픈소스 라이선스'**
+  String get openSourceLicenses;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

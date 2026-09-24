@@ -2708,6 +2708,17 @@
       }
     }
   },
+  "routineOverUsual": "고른 운동 {n}개를 모두 넣었어요 — 평소 한 번에 하는 {usual}개보다 많아요",
+  "@routineOverUsual": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "usual": {
+        "type": "int"
+      }
+    }
+  },
   "routineRecentMemo": "{when} {name} 메모: {memo}",
   "@routineRecentMemo": {
     "placeholders": {
@@ -2911,5 +2922,186 @@
         "type": "String"
       }
     }
-  }
+  },
+  "anatomyTitle": "몸 그림",
+  "anatomyOpen": "몸 그림 — 부위별 운동과 자세 팁",
+  "anatomyPick": "몸 그림에서 운동 고르기",
+  "anatomyFront": "앞",
+  "anatomyBack": "뒤",
+  "anatomyDays": "{n}일",
+  "@anatomyDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "muscleName": "{m, select, chest{가슴} frontDelts{앞 어깨} sideDelts{옆 어깨} rearDelts{뒤 어깨} traps{승모근 윗부분} upperBack{등 가운데} lats{광배근} lowerBack{허리} biceps{이두} triceps{삼두} forearms{전완} abs{복근} obliques{옆구리} hipFlexors{고관절 굴곡근} glutes{엉덩이} quads{허벅지 앞} hamstrings{허벅지 뒤} adductors{허벅지 안쪽} calves{종아리} other{부위}}",
+  "@muscleName": {
+    "placeholders": {
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "anatomyLevel": "{level, select, low{적음} mid{중간} high{많음} other{없음}}",
+  "@anatomyLevel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "anatomyLegend": "이 기간에 세트가 많은 부위일수록 진해요",
+  "anatomyFirstTime": "아직 해낸 세트가 없어 색이 없어요. 부위를 누르면 그 부위를 쓰는 운동과 자세 팁을 볼 수 있어요.",
+  "anatomyEmptyWindow": "최근 {n}일에 해낸 세트가 없어요",
+  "@anatomyEmptyWindow": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "anatomyUnknown": "근육을 모르는 운동 {n}개는 세지 않았어요. 이름을 누르면 검색에서 그 기록을 봐요.",
+  "@anatomyUnknown": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "anatomyUnknownMore": "외 {n}개",
+  "@anatomyUnknownMore": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "anatomyCardio": "유산소 {n}세트는 근육 그림에 넣지 않았어요",
+  "@anatomyCardio": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "anatomyCountNote": "근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.",
+  "anatomyLimits": "영상·자세 분석은 하지 않아요. 통증이 있으면 멈추고 전문가와 상의하세요.",
+  "anatomyTapHint": "근육을 눌러 주세요 — 아래 목록에서도 고를 수 있어요",
+  "anatomyNoSurface": "몸 안쪽 근육이라 그림에는 없어요",
+  "anatomySets": "{days}일 {sets}세트",
+  "@anatomySets": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "sets": {
+        "type": "String"
+      }
+    }
+  },
+  "anatomySetsLine": "최근 7일 {week}세트 · 28일 {month}세트",
+  "@anatomySetsLine": {
+    "placeholders": {
+      "week": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "anatomyBreakdown": "28일 중 주로 쓴 세트 {primary} · 보조로 쓴 세트 {secondary}(반으로 셈)",
+  "@anatomyBreakdown": {
+    "placeholders": {
+      "primary": {
+        "type": "int"
+      },
+      "secondary": {
+        "type": "int"
+      }
+    }
+  },
+  "anatomyLast": "마지막: {date}({ago})",
+  "@anatomyLast": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
+  "anatomyNever": "표에 있는 운동으로는 이 부위를 쓴 기록이 아직 없어요",
+  "anatomyDone": "내가 한 운동",
+  "anatomyTry": "이 부위를 주로 쓰는 운동",
+  "anatomyTryGear": "쓴 적 있는 기구({list})로 할 수 있는 것",
+  "@anatomyTryGear": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "anatomyAllGear": "기구 기록이 없어 전부 보여요",
+  "anatomyMoreGear": "다른 기구 운동 {n}개 더 보기",
+  "@anatomyMoreGear": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "anatomyTriedAll": "이 부위를 주로 쓰는 운동은 다 해 봤어요",
+  "anatomyRole": "{role, select, primary{주로 씀} other{보조}}",
+  "@anatomyRole": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "anatomyInterpNote": "* 가 붙은 운동은 근육 배정이 출처를 옮긴 해석이에요",
+  "anatomyCues": "자세 팁",
+  "anatomyMistakes": "피할 것",
+  "anatomySources": "출처: {sites}",
+  "@anatomySources": {
+    "placeholders": {
+      "sites": {
+        "type": "String"
+      }
+    }
+  },
+  "anatomyUnsourced": "‡ 출처 없이 덧붙인 말",
+  "anatomyAdapted": "† 출처 문장을 옮겨 쓴 해석(비슷한 동작의 출처 포함)",
+  "anatomyCuesEnglish": "자세 팁은 아직 영어로만 있어요",
+  "anatomyAddRoutine": "오늘 루틴에 넣기",
+  "anatomyRoutineText": "오늘 {part} 루틴",
+  "@anatomyRoutineText": {
+    "placeholders": {
+      "part": {
+        "type": "String"
+      }
+    }
+  },
+  "anatomySearch": "검색에서 보기",
+  "anatomyRegionValue": "최근 {days}일 {sets}세트, {level}",
+  "@anatomyRegionValue": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "sets": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "anatomyRegionHint": "두 번 눌러 운동 보기",
+  "anatomyClose": "닫기",
+  "openSourceLicenses": "오픈소스 라이선스"
 }

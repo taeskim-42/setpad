@@ -2571,6 +2571,11 @@ class LJa extends L {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return '選んだ$n種目をすべて入れました — いつも1回にする$usual種目より多いです';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$whenの$nameのメモ: $memo';
   }
@@ -2772,4 +2777,204 @@ class LJa extends L {
   String queryBoundDropped(String value) {
     return '数の条件 $value を外しました — 質問にその単位で書かれた数ではありません';
   }
+
+  @override
+  String get anatomyTitle => 'ボディマップ';
+
+  @override
+  String get anatomyOpen => 'ボディマップ — 部位別の種目とフォームのコツ';
+
+  @override
+  String get anatomyPick => '体の図から種目を選ぶ';
+
+  @override
+  String get anatomyFront => '前';
+
+  @override
+  String get anatomyBack => '後ろ';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n日';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': '胸',
+      'frontDelts': '肩の前部',
+      'sideDelts': '肩の側部',
+      'rearDelts': '肩の後部',
+      'traps': '僧帽筋上部',
+      'upperBack': '背中の中部',
+      'lats': '広背筋',
+      'lowerBack': '腰',
+      'biceps': '上腕二頭筋',
+      'triceps': '上腕三頭筋',
+      'forearms': '前腕',
+      'abs': '腹筋',
+      'obliques': '腹斜筋',
+      'hipFlexors': '股関節屈筋',
+      'glutes': 'お尻',
+      'quads': '太もも前',
+      'hamstrings': '太もも裏',
+      'adductors': '内もも',
+      'calves': 'ふくらはぎ',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': '少ない',
+      'mid': '中くらい',
+      'high': '多い',
+      'other': 'なし',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend => 'この期間にセットが多い部位ほど濃くなります';
+
+  @override
+  String get anatomyFirstTime =>
+      'まだ完了したセットがないので色はありません。部位をタップすると、その部位を使う種目とフォームのコツが見られます。';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return '直近$n日に完了したセットはありません';
+  }
+
+  @override
+  String anatomyUnknown(int n) {
+    return '筋肉がわからない種目$n件は数えていません。名前をタップすると検索で記録を見られます。';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return 'ほか$n件';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return '有酸素$nセットはボディマップに入れていません';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      '筋肉はExRx.net・ACEの分類に沿った目安です。* の付いた種目は筋肉の割り当てが解釈です。主に使う筋肉は1セット、補助の筋肉は0.5セットとして数え、ウォームアップも1セットに数えます。';
+
+  @override
+  String get anatomyLimits => '動画やフォームの分析はしません。痛みがあれば中止して専門家に相談してください。';
+
+  @override
+  String get anatomyTapHint => '筋肉をタップしてください — 下のリストからも選べます';
+
+  @override
+  String get anatomyNoSurface => '体の奥の筋肉なので図にはありません';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return '$days日 $setsセット';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return '直近7日 $weekセット · 28日 $monthセット';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28日のうち主に使ったセット $primary · 補助 $secondary(半分で計算)';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return '最後: $date($ago)';
+  }
+
+  @override
+  String get anatomyNever => '表にある種目では、この部位の記録はまだありません';
+
+  @override
+  String get anatomyDone => 'やった種目';
+
+  @override
+  String get anatomyTry => 'この部位を主に使う種目';
+
+  @override
+  String anatomyTryGear(String list) {
+    return '使ったことのある器具($list)でできるもの';
+  }
+
+  @override
+  String get anatomyAllGear => '器具の記録がないのですべて表示しています';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return 'ほかの器具の種目をあと$n個見る';
+  }
+
+  @override
+  String get anatomyTriedAll => 'この部位を主に使う種目はすべてやりました';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': '主に使う',
+      'other': '補助',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyInterpNote => '* の付いた種目は、筋肉の割り当てが出典からの解釈です';
+
+  @override
+  String get anatomyCues => 'フォームのコツ';
+
+  @override
+  String get anatomyMistakes => '避けること';
+
+  @override
+  String anatomySources(String sites) {
+    return '出典: $sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '‡ 出典なしで付け加えた内容';
+
+  @override
+  String get anatomyAdapted => '† 出典の文を言い換えた解釈（似た動作の出典を含む）';
+
+  @override
+  String get anatomyCuesEnglish => 'フォームのコツは今のところ英語のみです';
+
+  @override
+  String get anatomyAddRoutine => '今日のルーティンに入れる';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return '今日の$partルーティン';
+  }
+
+  @override
+  String get anatomySearch => '検索で見る';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return '直近$days日 $setsセット、$level';
+  }
+
+  @override
+  String get anatomyRegionHint => 'ダブルタップで種目を見る';
+
+  @override
+  String get anatomyClose => '閉じる';
+
+  @override
+  String get openSourceLicenses => 'オープンソースライセンス';
 }
