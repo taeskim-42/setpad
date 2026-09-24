@@ -563,7 +563,7 @@ class _MuscleSheetState extends State<_MuscleSheet> {
       id: 'try:$key',
       move: key,
       title: '${moveName(key, lang)}${moves[key]!.primaryInterp ? ' *' : ''}',
-      subtitle: moveGear(key).map(l.routineGear).join('·'),
+      subtitle: moveNeeds(key).map(l.routineGear).join('·'),
       // 사전 운동은 열쇠, 사전 밖 운동은 화면 언어 이름(카드 제목이 된다).
       addKey: moves[key]!.names == null ? key : moveName(key, lang),
     );
@@ -606,13 +606,12 @@ class _MuscleSheetState extends State<_MuscleSheet> {
                   ),
                 ],
               ),
-              // 표의 운동으로는 기록이 없다. 표에 없는 이름이 있으면 "없다" 고 하지 않고
-              // 그 이름을 보인다 — 근육을 몰라 못 셌을 뿐이다.
-              if (last == null && unknown.isNotEmpty)
-                _UnknownNames(names: unknown)
-              else if (last == null)
-                Text(l.anatomyNever, style: const TextStyle(fontSize: 14))
-              else ...[
+              // 표의 운동으로는 기록이 없다(문구가 그 범위를 말한다). 표에 없는 이름이
+              // 있으면 그 이름도 보인다 — 근육을 몰라 못 셌을 뿐, 없는 것이 아니다.
+              if (last == null) ...[
+                Text(l.anatomyNever, style: const TextStyle(fontSize: 14)),
+                if (unknown.isNotEmpty) _UnknownNames(names: unknown),
+              ] else ...[
                 Text(
                   l.anatomySetsLine(
                     formatNumber(week.of(m)),
@@ -691,7 +690,8 @@ class _MuscleSheetState extends State<_MuscleSheet> {
 
   /// 자세 팁·피할 것. 한국어 밖 화면은 영어 문장이다 — 그렇다고 한 줄 적는다.
   /// 근거는 셋으로 표시한다: 출처 문장(표시 없음), 출처 문장에서 옮긴 해석(†),
-  /// 출처 없이 덧붙인 말(*).
+  /// 출처 없이 덧붙인 말(‡). * 는 근육 배정이 해석인 운동의 표시다 — 한 시트에 둘 다
+  /// 나올 수 있어 표시와 각주를 따로 둔다.
   List<Widget> _cues(L l, String lang, Move move, TextStyle small) {
     Widget line(Cue c) => Padding(
       padding: const EdgeInsets.only(top: 2),
@@ -699,7 +699,7 @@ class _MuscleSheetState extends State<_MuscleSheet> {
         '• ${cueText(c, lang)}${switch (c.basis) {
           Basis.source => '',
           Basis.adapted => ' †',
-          Basis.none => ' *',
+          Basis.none => ' ‡',
         }}',
         style: const TextStyle(fontSize: 14),
       ),

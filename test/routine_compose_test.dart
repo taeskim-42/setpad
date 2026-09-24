@@ -929,6 +929,85 @@ void main() {
     });
   });
 
+  group('몸 그림 리뷰2', () {
+    final chest = RoutineAsk(
+      parts: const ['chest'],
+      device: true,
+      keys: const {'parts'},
+    );
+
+    test('넣은 운동은 개수 맞추기가 자르지 않는다 — 평소보다 많으면 한 줄', () {
+      final added = ['벤치프레스', '케이블 크로스오버', '펙덱 플라이', '체스트 프레스'];
+      final d = composeRoutine(
+        defaultLog(),
+        chest,
+        now: today,
+        edits: RoutineEdits()..added.addAll(added),
+      );
+      // 벤치프레스는 가슴 날의 후보이기도 하다 — 그래도 넣은 것이라 고정이다.
+      expect(keys(d), containsAll(added));
+      expect(
+        d.items.where((i) => added.contains(i.key)).every((i) => i.fixed),
+        isTrue,
+      );
+      // 최근 28일 한 번에 한 운동 수(중앙값) 3개보다 많다.
+      expect(d.lines.where((l) => l.code == 'overUsual').map((l) => l.args), [
+        [4, 3],
+      ]);
+      // 넷 이하면 줄이 없다.
+      final three = composeRoutine(
+        defaultLog(),
+        chest,
+        now: today,
+        edits: RoutineEdits()..added.addAll(added.take(3)),
+      );
+      expect(three.lines.where((l) => l.code == 'overUsual'), isEmpty);
+      expect(keys(three), containsAll(added.take(3)));
+    });
+
+    test('같은 날 같은 운동 칸이 둘이면 그날 내 세트를 모두 옮긴다(몸 그림 시트와 같다)', () {
+      final notes = [
+        session('0908b', 9, 8, [
+          ExerciseBlock('벤치프레스', times(3, () => kg(100, 3))),
+          ExerciseBlock('덤벨 프레스', times(3, () => kg(30, 10))),
+          ExerciseBlock('벤치프레스', [
+            ...times(2, () => kg(70, 10)),
+            kg(120, 1, author: '민수'),
+            kg(60, 12, done: false),
+          ]),
+        ]),
+        ...defaultLog(),
+      ];
+      List<PlanSet> sets(RoutineDraft d) =>
+          d.items.firstWhere((i) => i.key == '벤치프레스').sets;
+      final want = [
+        ...List.filled(3, (value: 100.0, unit: 'kg', reps: 3)),
+        ...List.filled(2, (value: 70.0, unit: 'kg', reps: 10)),
+      ];
+      // 부위로 고른 칸(후보)과 넣기로 붙인 칸(마지막 날) 모두.
+      final byPart = composeRoutine(notes, chest, now: today);
+      expect(sets(byPart), want);
+      final legs = RoutineAsk(
+        parts: const ['legs'],
+        device: true,
+        keys: const {'parts'},
+      );
+      final added = composeRoutine(
+        notes,
+        legs,
+        now: today,
+        edits: RoutineEdits()..added.add('벤치프레스'),
+      );
+      expect(sets(added), want);
+      for (final d in [byPart, added]) {
+        expect(
+          routineViolations(d, d == byPart ? chest : legs, notes, '오늘 루틴'),
+          isEmpty,
+        );
+      }
+    });
+  });
+
   test('기구 표: 사전의 모든 운동에 기구가 있다(60)', () {
     for (final e in exercises) {
       expect(exerciseGear[e.ko], isNotNull, reason: e.ko);

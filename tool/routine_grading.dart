@@ -40,12 +40,14 @@ List<String> routineViolations(
   final out = <String>[];
   final recorded = recordedExercises(notes);
   final recordedKeys = {for (final r in recorded) exerciseKey(r)};
-  // 그 운동의 내 세트(값·단위·횟수)와 한 날 최대 세트 수.
+  // 그 운동의 내 세트(값·단위·횟수)와 한 날 최대 세트 수(그날 그 운동의 칸을 모두 센다
+  // — 짜기는 그날 칸을 모두 옮긴다).
   final mine = <String, Set<(double?, String, int?)>>{};
   final values = <String, Set<(double, String)>>{};
-  final maxSets = <String, int>{};
+  final daySets = <(String, DateTime), int>{};
   final titleNumbers = <String, Set<num>>{};
   for (final n in notes) {
+    final day = DateTime(n.createdAt.year, n.createdAt.month, n.createdAt.day);
     for (final b in n.blocks) {
       final k = exerciseKey(b.exercise);
       final sets = b.sets.where((s) => s.mine).toList();
@@ -56,14 +58,19 @@ List<String> routineViolations(
           values.putIfAbsent(k, () => {}).add((s.value!, s.unit));
         }
       }
-      maxSets[k] = [
-        maxSets[k] ?? 0,
-        sets.length,
-      ].reduce((a, b) => a > b ? a : b);
+      daySets.update(
+        (k, day),
+        (v) => v + sets.length,
+        ifAbsent: () => sets.length,
+      );
       titleNumbers.putIfAbsent(k, () => {}).addAll([
         for (final x in statedNumbers(b.name)) x.value,
       ]);
     }
+  }
+  final maxSets = <String, int>{};
+  for (final MapEntry(key: (k, _), value: v) in daySets.entries) {
+    if (v > (maxSets[k] ?? 0)) maxSets[k] = v;
   }
   final typed = {
     for (final t in ask.targets) resolvedExercise(t.exercise, recorded): t,

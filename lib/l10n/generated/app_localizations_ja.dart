@@ -2571,6 +2571,11 @@ class LJa extends L {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return '選んだ$n種目をすべて入れました — いつも1回にする$usual種目より多いです';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$whenの$nameのメモ: $memo';
   }
@@ -2926,7 +2931,7 @@ class LJa extends L {
   }
 
   @override
-  String get anatomyInterpNote => '* の付いた種目は、筋肉の割り当てが出典を置き換えた解釈です';
+  String get anatomyInterpNote => '* の付いた種目は、筋肉の割り当てが出典からの解釈です';
 
   @override
   String get anatomyCues => 'フォームのコツ';
@@ -2940,7 +2945,7 @@ class LJa extends L {
   }
 
   @override
-  String get anatomyUnsourced => '* 出典なしで付け加えた内容';
+  String get anatomyUnsourced => '‡ 出典なしで付け加えた内容';
 
   @override
   String get anatomyAdapted => '† 出典の文を言い換えた解釈（似た動作の出典を含む）';

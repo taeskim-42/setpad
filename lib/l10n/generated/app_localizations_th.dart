@@ -2625,6 +2625,11 @@ class LTh extends L {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return 'ใส่ครบทั้ง $n ท่าที่คุณเลือกแล้ว — มากกว่า $usual ท่าที่มักทำต่อครั้ง';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return 'โน้ต$name $when: $memo';
   }
@@ -3002,7 +3007,7 @@ class LTh extends L {
   }
 
   @override
-  String get anatomyUnsourced => '* เพิ่มเติมโดยไม่มีที่มา';
+  String get anatomyUnsourced => '‡ เพิ่มเติมโดยไม่มีที่มา';
 
   @override
   String get anatomyAdapted =>

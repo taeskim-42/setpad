@@ -269,6 +269,8 @@ class RoutineCard extends StatelessWidget {
         i.sets.firstOrNull?.reps ?? 0,
       ),
       'typed' => l.routineTyped,
+      // 시작한 기록에만 있는 칸 — 기록 그대로라 옮긴 날을 말하지 않는다.
+      'record' => null,
       'typedWeight' when i.retyped != null => l.routineTypedWeight(
         i.retyped!.count,
         i.retyped!.from.map((s) => formatValue(s.value!, s.unit)).join('·'),
@@ -308,14 +310,18 @@ class RoutineCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  [if (i.sets.isNotEmpty) setsText(l, i.sets), why].join('   '),
+                  [
+                    if (i.sets.isNotEmpty) setsText(l, i.sets),
+                    ?why,
+                  ].join('   '),
                   style: const TextStyle(fontSize: 14),
                 ),
                 if (notes.isNotEmpty) Text(notes.join('\n'), style: faint),
               ],
             ),
           ),
-          if (onRemove != null)
+          // 시작한 기록에만 있는 칸은 ✕ 가 없다 — 카드에서 뺄 것이 없다(기록에서 뺀다).
+          if (onRemove != null && i.why != 'record')
             CupertinoButton(
               padding: EdgeInsets.zero,
               minimumSize: const Size(44, 44),
@@ -418,6 +424,7 @@ List<String> routineLineTexts(L l, RoutineLine line) {
     ],
     'firstTime' => [l.routineFirstTime],
     'countFit' => [l.routineCountFit(a[0] as int, a[1] as int)],
+    'overUsual' => [l.routineOverUsual(a[0] as int, a[1] as int)],
     'noMore' => [l.routineNoMore(a[0] as int)],
     'overTime' => [l.routineOverTime(a[0] as int)],
     'recentMemo' => [

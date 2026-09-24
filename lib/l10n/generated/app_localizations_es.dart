@@ -2676,6 +2676,11 @@ class LEs extends L {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return 'Se mantienen los $n ejercicios que elegiste: más de los $usual que sueles hacer en una sesión';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$when, nota de $name: $memo';
   }
@@ -3063,7 +3068,7 @@ class LEs extends L {
   }
 
   @override
-  String get anatomyUnsourced => '* añadido sin fuente';
+  String get anatomyUnsourced => '‡ añadido sin fuente';
 
   @override
   String get anatomyAdapted =>

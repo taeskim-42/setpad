@@ -2550,6 +2550,11 @@ class LZh extends L {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return '你选的 $n 个动作都保留了——比平时一次做的 $usual 个多';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$when$name备注: $memo';
   }
@@ -2918,7 +2923,7 @@ class LZh extends L {
   }
 
   @override
-  String get anatomyUnsourced => '* 无来源的补充';
+  String get anatomyUnsourced => '‡ 无来源的补充';
 
   @override
   String get anatomyAdapted => '† 根据来源文字转述的推断（含相似动作的来源）';
@@ -5498,6 +5503,11 @@ class LZhHans extends LZh {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return '你选的 $n 个动作都保留了——比平时一次做的 $usual 个多';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$when$name备注: $memo';
   }
@@ -5866,7 +5876,7 @@ class LZhHans extends LZh {
   }
 
   @override
-  String get anatomyUnsourced => '* 无来源的补充';
+  String get anatomyUnsourced => '‡ 无来源的补充';
 
   @override
   String get anatomyAdapted => '† 根据来源文字转述的推断（含相似动作的来源）';
@@ -8445,6 +8455,11 @@ class LZhHant extends LZh {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return '你選的 $n 個動作都保留了——比平常一次做的 $usual 個多';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$when$name備註: $memo';
   }
@@ -8813,7 +8828,7 @@ class LZhHant extends LZh {
   }
 
   @override
-  String get anatomyUnsourced => '* 無來源的補充';
+  String get anatomyUnsourced => '‡ 無來源的補充';
 
   @override
   String get anatomyAdapted => '† 根據來源文字轉述的推斷（含相似動作的來源）';

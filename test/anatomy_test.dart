@@ -11,7 +11,8 @@ import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
 import 'package:setpad/record_ai.dart';
-import 'package:setpad/routine.dart' show exerciseGear;
+import 'package:setpad/routine.dart' show benchExercises, exerciseGear;
+import 'package:setpad/routine_card.dart' show RoutineCard, setsText;
 import 'package:setpad/settings_page.dart';
 
 import 'routine_fixture.dart';
@@ -236,12 +237,15 @@ void main() {
   });
 
   group('기구 거르기', () {
-    test('덤벨만 쓴 사람의 가슴: 덤벨·맨몸만 보이고 나머지는 접힌다', () {
+    test('덤벨만 쓴 사람의 가슴: 덤벨·맨몸만 보이고 나머지는 접힌다(벤치 운동도)', () {
       final t = tryFor(Muscle.chest, {'덤벨컬'});
       expect(t.allGear, isFalse);
-      expect(t.shown, ['덤벨 프레스', '인클라인 덤벨 프레스', '푸시업']);
-      expect(t.hidden, hasLength(6));
-      expect(t.hidden, contains('벤치프레스'));
+      // 덤벨 프레스는 벤치에 눕는다 — 벤치를 쓴 기록이 없으면 접힌다(루틴 표와 같다).
+      expect(t.shown, ['푸시업']);
+      expect(t.hidden, hasLength(8));
+      expect(t.hidden, containsAll(['벤치프레스', '덤벨 프레스']));
+      final bench = tryFor(Muscle.chest, {'덤벨컬', '불가리안 스플릿 스쿼트'});
+      expect(bench.shown, ['덤벨 프레스', '인클라인 덤벨 프레스', '푸시업']);
     });
 
     test('표의 운동을 한 번도 안 했으면 거르지 않는다', () {
@@ -406,14 +410,14 @@ void main() {
       expect(find.text(l.anatomyEmptyWindow(7)), findsOneWidget);
     });
 
-    testWidgets('기구 거르기: 덤벨만 썼으면 바벨·머신·케이블은 더 보기 뒤에', (tester) async {
+    testWidgets('기구 거르기: 덤벨만 썼으면 바벨·머신·케이블·벤치 운동은 더 보기 뒤에', (tester) async {
       await pumpPage(tester, [
         ago(1, [ExerciseBlock('덤벨컬', times(3, () => kg(12, 10)))]),
       ]);
       await tester.tap(find.byKey(const ValueKey('anatomy-row-chest')));
       await tester.pumpAndSettle();
-      expect(find.text('덤벨 프레스'), findsOneWidget);
       expect(find.text('푸시업'), findsOneWidget);
+      expect(find.text('덤벨 프레스'), findsNothing);
       expect(find.text('벤치프레스'), findsNothing);
       expect(
         find.text(
@@ -423,9 +427,10 @@ void main() {
         ),
         findsOneWidget,
       );
-      await tester.tap(find.text(l.anatomyMoreGear(6)));
+      await tester.tap(find.text(l.anatomyMoreGear(8)));
       await tester.pumpAndSettle();
       expect(find.text('벤치프레스'), findsOneWidget);
+      expect(find.text('덤벨 프레스'), findsOneWidget);
     });
 
     testWidgets('영어 밖 화면의 자세 팁은 영어 문장과 그렇다는 한 줄', (tester) async {
@@ -869,7 +874,11 @@ void main() {
 
     testWidgets('근육 배정이 해석이면 역할 옆에 *, 출처 문장에서 옮긴 팁은 †', (tester) async {
       await pumpPage(tester, [
-        ago(0, [ExerciseBlock('바벨로우', times(3, () => kg(60, 8)))]),
+        ago(0, [
+          ExerciseBlock('바벨로우', times(3, () => kg(60, 8))),
+          // 힙쓰러스트는 벤치에 등을 댄다 — 벤치를 쓴 기록이 있어야 접히지 않는다.
+          ExerciseBlock('벤치프레스', times(3, () => kg(60, 8))),
+        ]),
       ]);
       expect(find.text(l.anatomyCountNote), findsOneWidget);
       await tester.tap(find.text(l.anatomyBack));
@@ -890,7 +899,7 @@ void main() {
       expect(find.textContaining(l.anatomyAdapted), findsOneWidget);
     });
 
-    testWidgets('표에 없는 이름만 있으면 "기록 없음" 이라 단정하지 않고, 이름으로 검색하게 한다', (
+    testWidgets('표에 없는 이름만 있으면 "표의 운동으로는 기록 없음" 과 그 이름들, 이름으로 검색하게 한다', (
       tester,
     ) async {
       AnatomyHandoff? got;
@@ -932,7 +941,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('anatomy-row-lats')));
       await tester.pumpAndSettle();
-      expect(find.text(l.anatomyNever), findsNothing);
+      expect(find.text(l.anatomyNever), findsOneWidget);
       expect(find.text(l.anatomyUnknown(1)), findsNWidgets(2));
       await tester.tap(
         find.byKey(const ValueKey('anatomy-unknown:랫 풀 다운 머신')).last,
@@ -1082,6 +1091,402 @@ void main() {
       await tester.tap(find.text(l.anatomyPick));
       await tester.pumpAndSettle();
       expect(find.byType(AnatomyPage), findsOneWidget);
+    });
+  });
+
+  // ─── 두 번째 리뷰(독립 검증)에서 확인된 것을 고친다 ────────────────────────────
+  group('리뷰2 — 오늘 루틴에 넣기', () {
+    late List<Note> opened;
+    Future<_Records> pumpHome(WidgetTester tester, {List<Note>? notes}) async {
+      opened = [];
+      tester.view
+        ..physicalSize = const Size(420, 2400)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final store = _Records(notes ?? relativeLog());
+      addTearDown(store.dispose);
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: NotesListPage(
+            store: store,
+            onOpen: opened.add,
+            ai: RecordAi(respond: (_, _) async => {}),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return store;
+    }
+
+    Future<void> add(WidgetTester tester, Muscle m, String id) async {
+      await tester.tap(find.bySemanticsLabel(l.anatomyOpen));
+      await tester.pumpAndSettle();
+      if (!frontRegions.contains(m)) {
+        await tester.tap(find.text(l.anatomyBack));
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.byKey(ValueKey('anatomy-row-${m.name}')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(ValueKey('anatomy-$id')));
+      await tester.tap(find.byKey(ValueKey('anatomy-$id')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text(l.anatomyAddRoutine));
+      await tester.tap(find.text(l.anatomyAddRoutine));
+      await tester.pumpAndSettle();
+    }
+
+    String searchText(WidgetTester tester) => tester
+        .widget<CupertinoSearchTextField>(find.byType(CupertinoSearchTextField))
+        .controller!
+        .text;
+    List<String> names(Note n) => [for (final b in n.blocks) b.name];
+    List<String> cardTexts(WidgetTester tester) => [
+      for (final t in tester.widgetList<Text>(
+        find.descendant(
+          of: find.byType(RoutineCard),
+          matching: find.byType(Text),
+        ),
+      ))
+        t.data ?? '',
+    ];
+    // 카드 칸의 제목: 번호(1, 2, …) 바로 뒤의 글.
+    List<String> cardTitles(WidgetTester tester) {
+      final t = cardTexts(tester);
+      final out = <String>[];
+      for (var i = 0; i + 1 < t.length; i++) {
+        if (t[i] == '${out.length + 1}') out.add(t[++i]);
+      }
+      return out;
+    }
+
+    Future<void> removeOnCard(WidgetTester tester, String name) async {
+      final row = find
+          .ancestor(of: find.text(name).first, matching: find.byType(Row))
+          .first;
+      await tester.tap(
+        find.descendant(of: row, matching: find.bySemanticsLabel(l.delete)),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    String wanted(String id) => id.substring(id.indexOf(':') + 1);
+    final chestOnly = [
+      (Muscle.chest, 'done:벤치프레스'),
+      (Muscle.chest, 'try:케이블 크로스오버'),
+      (Muscle.chest, 'try:펙덱 플라이'),
+      (Muscle.chest, 'try:체스트 프레스'),
+    ];
+    final mixed = [
+      (Muscle.chest, 'done:벤치프레스'),
+      (Muscle.triceps, 'try:딥스'),
+      (Muscle.rearDelts, 'try:리버스 펙덱'),
+      (Muscle.rearDelts, 'try:페이스 풀'),
+      (Muscle.chest, 'try:케이블 크로스오버'),
+    ];
+
+    for (final (label, seq) in [('같은 부위', chestOnly), ('여러 부위', mixed)]) {
+      testWidgets('넣은 운동 ${seq.length}개($label, 시작 전): 첫 운동도 카드·기록에 남고, '
+          '평소보다 많다고 한 줄', (tester) async {
+        final store = await pumpHome(tester);
+        for (final (m, id) in seq) {
+          await add(tester, m, id);
+        }
+        final want = [for (final (_, id) in seq) wanted(id)];
+        expect(cardTitles(tester), containsAll(want));
+        // fixture 의 최근 28일 한 번에 한 운동 수(중앙값)는 3개다.
+        // 카드의 줄들은 한 글에 줄바꿈으로 모인다.
+        expect(
+          find.textContaining(l.routineOverUsual(want.length, 3)),
+          findsOneWidget,
+        );
+        await tester.tap(find.text(l.routineStart));
+        await tester.pumpAndSettle();
+        expect(names(store.created.single), containsAll(want));
+      });
+
+      testWidgets('넣은 운동 ${seq.length}개($label, 시작 뒤): 기록 하나에 모두, '
+          '카드는 그 기록 그대로', (tester) async {
+        final store = await pumpHome(tester);
+        await add(tester, seq.first.$1, seq.first.$2);
+        await tester.tap(find.text(l.routineStart));
+        await tester.pumpAndSettle();
+        for (final (m, id) in seq.skip(1)) {
+          await add(tester, m, id);
+        }
+        expect(store.created, hasLength(1));
+        final record = store.created.single;
+        expect(
+          names(record),
+          containsAll([for (final (_, id) in seq) wanted(id)]),
+        );
+        expect(names(record).where((n) => n == '벤치프레스'), hasLength(1));
+        // 카드는 시작한 기록의 칸을 그 순서대로 보인다(몸 그림에서 붙인 칸까지).
+        expect(cardTitles(tester), names(record));
+        // 넣은 것이 평소 크기를 채워 초안에서 빠진 칸(푸시업)도 기록에 있으니 보이되,
+        // ✕ 는 없다 — 눌러도 바뀔 것이 없다(기록에서 뺀다).
+        final pushup = find
+            .ancestor(
+              of: find.text('푸시업 60bpm').first,
+              matching: find.byType(Row),
+            )
+            .first;
+        expect(
+          find.descendant(
+            of: pushup,
+            matching: find.bySemanticsLabel(l.delete),
+          ),
+          findsNothing,
+        );
+        expect(find.text(l.routineStarted), findsOneWidget);
+        await tester.tap(find.text(l.routineStarted));
+        await tester.pumpAndSettle();
+        expect(store.created, hasLength(1));
+        expect(opened.last.id, record.id);
+      });
+    }
+
+    testWidgets('시작 뒤 다른 부위를 넣으면 글도 그 부위까지(기록에 든 부위)', (tester) async {
+      await pumpHome(tester);
+      await add(tester, Muscle.chest, 'done:벤치프레스');
+      await tester.tap(find.text(l.routineStart));
+      await tester.pumpAndSettle();
+      await add(tester, Muscle.triceps, 'try:딥스');
+      expect(
+        searchText(tester),
+        l.anatomyRoutineText('${l.queryPart('chest')}·${l.queryPart('arms')}'),
+      );
+      expect(find.text(l.routineStarted), findsOneWidget);
+    });
+
+    testWidgets('시작 뒤 ✕ 로 카드를 바꾸면 새 루틴 — 몸 그림으로 넣어도 시작한 기록인 척하지 않고 '
+        '그 기록을 바꾸지 않는다', (tester) async {
+      final store = await pumpHome(tester);
+      await add(tester, Muscle.chest, 'done:벤치프레스');
+      await tester.tap(find.text(l.routineStart));
+      await tester.pumpAndSettle();
+      final before = names(store.created.single);
+      expect(before, contains('덤벨 프레스'));
+      await removeOnCard(tester, '덤벨 프레스');
+      await add(tester, Muscle.chest, 'try:케이블 크로스오버');
+      expect(names(store.created.single), before);
+      expect(find.text(l.routineStarted), findsNothing);
+      expect(find.text(l.routineStart), findsOneWidget);
+      expect(
+        find.text(l.routineRemoved('덤벨 프레스', l.routineRemovedWhy('user'))),
+        findsOneWidget,
+      );
+      expect(cardTitles(tester), isNot(contains('덤벨 프레스')));
+      expect(cardTitles(tester), contains('케이블 크로스오버'));
+    });
+
+    Future<void> typedChestCard(WidgetTester tester) async {
+      await tester.enterText(
+        find.byType(CupertinoSearchTextField),
+        l.anatomyRoutineText(l.queryPart('chest')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.routineMakePart(l.queryPart('chest'))));
+      await tester.pumpAndSettle();
+      await removeOnCard(tester, '덤벨 프레스');
+    }
+
+    final userRemoved = l.routineRemoved('덤벨 프레스', l.routineRemovedWhy('user'));
+
+    testWidgets('친 글 카드의 ✕ 는 몸 그림으로 넣어도 남는다', (tester) async {
+      final store = await pumpHome(tester);
+      await typedChestCard(tester);
+      expect(find.text(userRemoved), findsOneWidget);
+      await add(tester, Muscle.chest, 'try:케이블 크로스오버');
+      expect(find.text(userRemoved), findsOneWidget);
+      expect(cardTitles(tester), isNot(contains('덤벨 프레스')));
+      await tester.tap(find.text(l.routineStart));
+      await tester.pumpAndSettle();
+      expect(names(store.created.single), isNot(contains('덤벨 프레스')));
+      expect(names(store.created.single), contains('케이블 크로스오버'));
+    });
+
+    testWidgets('친 글 카드로 시작한 뒤 몸 그림으로 넣으면 그 기록에 — ✕ 줄도 남고 기록은 하나', (
+      tester,
+    ) async {
+      final store = await pumpHome(tester);
+      await typedChestCard(tester);
+      await tester.tap(find.text(l.routineStart));
+      await tester.pumpAndSettle();
+      await add(tester, Muscle.chest, 'try:케이블 크로스오버');
+      expect(store.created, hasLength(1));
+      expect(names(store.created.single), contains('케이블 크로스오버'));
+      expect(names(store.created.single), isNot(contains('덤벨 프레스')));
+      expect(find.text(userRemoved), findsOneWidget);
+      expect(cardTitles(tester), names(store.created.single));
+      await tester.tap(find.text(l.routineStarted));
+      await tester.pumpAndSettle();
+      expect(store.created, hasLength(1));
+    });
+
+    testWidgets('시트에 보인 마지막 날 세트 = 카드 = 시작한 기록(그날 블록 모두, 내 세트)', (
+      tester,
+    ) async {
+      final at = DateTime.now().subtract(const Duration(days: 1));
+      final store = await pumpHome(
+        tester,
+        notes: [
+          Note(
+            id: 'two',
+            createdAt: at,
+            updatedAt: at,
+            blocks: [
+              ExerciseBlock('벤치프레스', times(3, () => kg(100, 3))),
+              ExerciseBlock('벤치프레스', [
+                ...times(2, () => kg(70, 10)),
+                kg(120, 1, author: '민수'),
+                kg(60, 12, done: false),
+              ]),
+            ],
+          ),
+          ...relativeLog(),
+        ],
+      );
+      const shown = '100kg×3 ×3 · 70kg×10 ×2';
+      await tester.tap(find.bySemanticsLabel(l.anatomyOpen));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('anatomy-row-chest')));
+      await tester.pumpAndSettle();
+      expect(find.textContaining(shown), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('anatomy-done:벤치프레스')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.anatomyAddRoutine));
+      await tester.pumpAndSettle();
+      expect(
+        cardTexts(tester).where((t) => t.startsWith('$shown ')),
+        hasLength(1),
+      );
+      await tester.tap(find.text(l.routineStart));
+      await tester.pumpAndSettle();
+      final bench = store.created.single.blocks.singleWhere(
+        (b) => b.name == '벤치프레스',
+      );
+      expect(
+        setsText(l, [
+          for (final s in bench.sets)
+            (value: s.value, unit: s.unit, reps: s.reps),
+        ]),
+        shown,
+      );
+      expect(bench.sets.every((s) => !s.done), isTrue);
+    });
+  });
+
+  group('리뷰2 — 시트', () {
+    Future<void> pumpPage(WidgetTester tester, List<Note> notes) async {
+      tester.view
+        ..physicalSize = const Size(420, 2400)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: AnatomyPage(notes: notes, now: routineToday),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('근육 배정 해석(*)과 출처 없는 팁(‡)은 다른 표시, 각주도 따로', (tester) async {
+      // 바벨로우: 주동 배정이 해석이고, 피할 것에 출처 없는 줄이 있다 — 한 시트에 둘 다.
+      expect(moves['바벨로우']!.primaryInterp, isTrue);
+      final unsourced = [
+        ...moves['바벨로우']!.cues,
+        ...moves['바벨로우']!.mistakes,
+      ].firstWhere((c) => c.basis == Basis.none);
+      await pumpPage(tester, [
+        ago(0, [ExerciseBlock('바벨로우', times(3, () => kg(60, 8)))]),
+      ]);
+      await tester.tap(find.text(l.anatomyBack));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('anatomy-row-lats')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('anatomy-done:바벨로우')));
+      await tester.pumpAndSettle();
+      expect(find.text('바벨로우 · ${l.anatomyRole('primary')} *'), findsOneWidget);
+      expect(find.text('• ${unsourced.ko} ‡'), findsOneWidget);
+      expect(find.text('• ${unsourced.ko} *'), findsNothing);
+      expect(find.text(l.anatomyInterpNote), findsOneWidget);
+      expect(find.textContaining(l.anatomyUnsourced), findsOneWidget);
+      expect(l.anatomyInterpNote, startsWith('*'));
+      expect(l.anatomyUnsourced, startsWith('‡'));
+      for (final loc in L.supportedLocales) {
+        final x = lookupL(loc);
+        expect(x.anatomyUnsourced, startsWith('‡'), reason: '$loc');
+        expect(x.anatomyUnsourced, isNot(contains('*')), reason: '$loc');
+        expect(x.anatomyInterpNote, startsWith('*'), reason: '$loc');
+      }
+    });
+
+    testWidgets('표의 운동 기록이 없고 모르는 이름만 있으면 두 줄: 이 부위 기록 없음 + 모르는 이름', (
+      tester,
+    ) async {
+      await pumpPage(tester, [
+        ago(0, [
+          ExerciseBlock('요가 스트레칭', [LoggedSet(value: 20, unit: 'min')]),
+        ]),
+      ]);
+      await tester.tap(find.byKey(const ValueKey('anatomy-row-calves')));
+      await tester.pumpAndSettle();
+      expect(find.text(l.anatomyNever), findsOneWidget);
+      // 그림 아래 한 줄 + 시트 한 줄.
+      expect(find.text(l.anatomyUnknown(1)), findsNWidgets(2));
+    });
+  });
+
+  group('리뷰2 — 기구', () {
+    test('벤치가 있어야 하는 운동은 몸 그림에서도 벤치 — 루틴 표(benchExercises) 하나', () {
+      for (final k in benchExercises) {
+        expect(moves.containsKey(k), isTrue, reason: k);
+      }
+      // 몸 그림 팁이 벤치에 몸을 받치게 하는 운동은 루틴도 벤치 운동으로 본다.
+      expect(benchExercises, containsAll(['덤벨로우', '킥백']));
+      // 불가리안 스플릿 스쿼트는 맨몸이지만 뒷발을 벤치에 올린다. 맨몸만 한 사람(벤치
+      // 기록 없음)에게는 접히고, 벤치 운동을 한 사람에게는 보인다.
+      expect(tryFor(Muscle.quads, {'런지'}).hidden, contains('불가리안 스플릿 스쿼트'));
+      expect(
+        tryFor(Muscle.quads, {'런지'}).shown,
+        isNot(contains('불가리안 스플릿 스쿼트')),
+      );
+      final bench = tryFor(Muscle.quads, {'런지', '덤벨 프레스'});
+      expect(bench.shown, contains('불가리안 스플릿 스쿼트'));
+      expect(bench.gear, contains('bench'));
+    });
+
+    testWidgets('해 볼 운동 줄의 기구에 벤치까지', (tester) async {
+      tester.view
+        ..physicalSize = const Size(420, 2400)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: AnatomyPage(notes: const [], now: routineToday),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('anatomy-row-quads')));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('anatomy-try:불가리안 스플릿 스쿼트')),
+          matching: find.text(
+            '${l.routineGear('bodyweight')}·${l.routineGear('bench')}',
+          ),
+        ),
+        findsOneWidget,
+      );
     });
   });
 }

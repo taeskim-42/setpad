@@ -2643,6 +2643,11 @@ class LVi extends L {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return 'Đã giữ cả $n bài bạn chọn — nhiều hơn $usual bài bạn thường tập mỗi buổi';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$when, ghi chú $name: $memo';
   }
@@ -3023,7 +3028,7 @@ class LVi extends L {
   }
 
   @override
-  String get anatomyUnsourced => '* thêm vào, không có nguồn';
+  String get anatomyUnsourced => '‡ thêm vào, không có nguồn';
 
   @override
   String get anatomyAdapted =>

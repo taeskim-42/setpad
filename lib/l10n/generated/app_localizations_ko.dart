@@ -2577,6 +2577,11 @@ class LKo extends L {
   }
 
   @override
+  String routineOverUsual(int n, int usual) {
+    return '고른 운동 $n개를 모두 넣었어요 — 평소 한 번에 하는 $usual개보다 많아요';
+  }
+
+  @override
   String routineRecentMemo(String when, String name, String memo) {
     return '$when $name 메모: $memo';
   }
@@ -2946,7 +2951,7 @@ class LKo extends L {
   }
 
   @override
-  String get anatomyUnsourced => '* 출처 없이 덧붙인 말';
+  String get anatomyUnsourced => '‡ 출처 없이 덧붙인 말';
 
   @override
   String get anatomyAdapted => '† 출처 문장을 옮겨 쓴 해석(비슷한 동작의 출처 포함)';

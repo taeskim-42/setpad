@@ -2708,6 +2708,17 @@
       }
     }
   },
+  "routineOverUsual": "고른 운동 {n}개를 모두 넣었어요 — 평소 한 번에 하는 {usual}개보다 많아요",
+  "@routineOverUsual": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "usual": {
+        "type": "int"
+      }
+    }
+  },
   "routineRecentMemo": "{when} {name} 메모: {memo}",
   "@routineRecentMemo": {
     "placeholders": {
@@ -3063,7 +3074,7 @@
       }
     }
   },
-  "anatomyUnsourced": "* 출처 없이 덧붙인 말",
+  "anatomyUnsourced": "‡ 출처 없이 덧붙인 말",
   "anatomyAdapted": "† 출처 문장을 옮겨 쓴 해석(비슷한 동작의 출처 포함)",
   "anatomyCuesEnglish": "자세 팁은 아직 영어로만 있어요",
   "anatomyAddRoutine": "오늘 루틴에 넣기",

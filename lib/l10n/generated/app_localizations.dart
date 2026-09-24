@@ -3948,6 +3948,12 @@ abstract class L {
   /// **'말한 운동만으로 약 {minutes}분이에요'**
   String routineOverTime(int minutes);
 
+  /// No description provided for @routineOverUsual.
+  ///
+  /// In ko, this message translates to:
+  /// **'고른 운동 {n}개를 모두 넣었어요 — 평소 한 번에 하는 {usual}개보다 많아요'**
+  String routineOverUsual(int n, int usual);
+
   /// No description provided for @routineRecentMemo.
   ///
   /// In ko, this message translates to:
@@ -4401,7 +4407,7 @@ abstract class L {
   /// No description provided for @anatomyUnsourced.
   ///
   /// In ko, this message translates to:
-  /// **'* 출처 없이 덧붙인 말'**
+  /// **'‡ 출처 없이 덧붙인 말'**
   String get anatomyUnsourced;
 
   /// No description provided for @anatomyAdapted.

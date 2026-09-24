@@ -114,6 +114,9 @@ const benchExercises = {
   '인클라인 덤벨 프레스',
   '불가리안 스플릿 스쿼트',
   '힙쓰러스트',
+  // 몸 그림 팁(ExRx)이 벤치에 무릎·손을 짚게 한다.
+  '덤벨로우',
+  '킥백',
 };
 
 /// 밀기·당기기(한국어 이름 → push | pull). 하체·코어·유산소는 어느 쪽도 아니다.
@@ -1488,6 +1491,9 @@ class RoutineItem {
   /// 같은 부위를 48시간 안에 했다: 부위와 며칠 전.
   ({String part, int days})? recent;
 
+  /// 이 칸의 시간 어림(초) — [RoutineDraft.seconds] 는 칸들의 합이다.
+  int seconds = 0;
+
   /// 사람이 지목했거나 수를 친 칸 — 시간 맞추기가 빼지 않는다.
   final bool fixed;
 
@@ -1918,6 +1924,15 @@ RoutineDraft composeRoutine(
     draft.applied.add('equipment');
   }
 
+  // 옮길 세트: 그날 그 운동의 내 칸을 모두 시각·칸 순으로 잇는다 — 몸 그림 시트의
+  // "내가 한 운동" 줄과 같은 세트다(첫 칸만 옮기지 않는다).
+  List<PlanSet> daySets(String key, DateTime d) => [
+    for (final n in history.reversed)
+      if (_day(n.createdAt) == d)
+        for (final b in _mineBlocks(n))
+          if (exerciseKey(b.exercise) == key) ..._mineOf(b),
+  ];
+
   // 원천 블록: 그 운동을 마지막으로 한 날의 칸.
   ({ExerciseBlock block, DateTime day})? lastBlock(String key) {
     for (final n in history) {
@@ -2319,8 +2334,9 @@ RoutineDraft composeRoutine(
             if (c.day == draft.sourceDay) c.key,
         }
       : null;
+  // 사람이 넣은 운동(몸 그림·넣기 칩)은 후보에 있어도 고정 — 개수 맞추기가 자르지 않는다.
   for (final c in candidates) {
-    take(c.key, c.block, c.day);
+    take(c.key, c.block, c.day, fixed: e.added.contains(c.key));
   }
   for (final k in e.added) {
     if (!seen.contains(k)) {
@@ -2382,7 +2398,7 @@ RoutineDraft composeRoutine(
     if (spec != null && spec.tabata) return spec.duration;
     final n =
         targetByKey[c.key]?.sets ??
-        (c.block == null ? setsPerBlock : _mineOf(c.block!).length);
+        (c.block == null ? setsPerBlock : daySets(c.key, c.day!).length);
     return n * pace.pace;
   }
 
@@ -2395,11 +2411,12 @@ RoutineDraft composeRoutine(
     defaultFree = free.where((c) => firstSession.contains(c.key)).length;
   } else if (draft.source == 'conditions') {
     final sizes = [for (final n in window) _mineBlocks(n).length];
-    defaultFree = math.max(
-      0,
-      (sizes.isEmpty ? 4 : _median(sizes).round().clamp(1, 8)) -
-          fixedPart.length,
-    );
+    final usual = sizes.isEmpty ? 4 : _median(sizes).round().clamp(1, 8);
+    defaultFree = math.max(0, usual - fixedPart.length);
+    // 고정한 칸이 평소 크기를 넘으면 빼지 않고 그렇다고 말한다.
+    if (fixedPart.length > usual && ask.count == null && ask.minutes == null) {
+      draft.lines.add(RoutineLine('overUsual', [fixedPart.length, usual]));
+    }
   }
   var k = math.min(defaultFree, free.length);
   if (ask.count != null) {
@@ -2440,10 +2457,9 @@ RoutineDraft composeRoutine(
       _ => null,
     };
     final src = c.block;
-    var sets = src == null ? <PlanSet>[] : _mineOf(src);
-    final ref = src == null
-        ? null
-        : (sets: _mineOf(src), day: c.day!, best: false);
+    final copied = src == null ? <PlanSet>[] : daySets(key, c.day!);
+    var sets = copied;
+    final ref = src == null ? null : (sets: copied, day: c.day!, best: false);
     var why = src == null ? 'first' : 'copied';
     var itemDay = c.day;
     String? blank;
@@ -2652,6 +2668,7 @@ RoutineDraft composeRoutine(
       fixed: c.fixed,
       sourceTitle: src?.name,
     );
+    item.seconds = estimate(c);
     // 같은 부위를 48시간 안에 했다(G13) — 판단하지 않고 보이기만.
     final p = _part(key);
     if (p != null) {
@@ -2901,6 +2918,44 @@ String draftMark(RoutineDraft d) => jsonEncode([
       for (final s in i.sets) [s.value, s.unit, s.reps],
     ],
 ]);
+
+/// 시작한 기록 그대로의 카드(G18): 기록의 칸을 그 순서대로 보인다 — 몸 그림에서 붙인
+/// 칸까지, 카드와 기록이 어긋나지 않는다. 초안에 같은 운동 칸이 있으면 그 칸(옮긴 날·
+/// 참고 줄)이고, 초안에 없는 칸은 기록 그대로다(why 'record'). 시간 어림도 그 칸들로 하고,
+/// 기록에 든 운동의 "뺀 것" 줄은 없앤다(목록과 어긋난다).
+void showStarted(RoutineDraft d, Note started) {
+  final plan = [...d.items];
+  final shown = <RoutineItem>[];
+  for (final b in started.blocks) {
+    final key = exerciseKey(b.exercise);
+    final i = plan.indexWhere((i) => i.key == key);
+    if (i >= 0) {
+      shown.add(plan.removeAt(i));
+      continue;
+    }
+    final spec = TimingSpec.parse(b.name);
+    final sets = [
+      for (final s in b.sets) (value: s.value, unit: s.unit, reps: s.reps),
+    ];
+    shown.add(
+      RoutineItem(
+          key: key,
+          title: b.name,
+          sets: sets,
+          setup: b.setup,
+          why: 'record',
+        )
+        ..seconds = spec != null && spec.tabata
+            ? spec.duration
+            : sets.length * d.pace,
+    );
+  }
+  d.items
+    ..clear()
+    ..addAll(shown);
+  d.seconds = shown.fold(0, (a, i) => a + i.seconds);
+  d.removed.removeWhere((r) => shown.any((i) => i.key == r.key));
+}
 
 /// [시작] 할 칸 — 누를 때마다 새 id 의 칸과 세트(G18). 세트는 모두 안 한 것이다.
 List<ExerciseBlock> startBlocks(RoutineDraft draft) => [

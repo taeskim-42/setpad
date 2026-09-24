@@ -10,7 +10,7 @@ import 'muscle_map_paths.dart';
 import 'notes.dart';
 import 'parser.dart' show searchKey;
 import 'record_query.dart' show exerciseKey, statName;
-import 'routine.dart' show PlanSet, exerciseGear;
+import 'routine.dart' show PlanSet, benchExercises, exerciseGear;
 
 export 'anatomy_data.dart' show Basis, Cue, Move, moves;
 export 'muscle_map_paths.dart' show Muscle;
@@ -89,6 +89,13 @@ List<String> moveGear(String key) => switch (exerciseGear[key]) {
   final g? => [g],
   null => moves[key]?.gear ?? const [],
 };
+
+/// 운동에 있어야 하는 것: 기구(그중 하나)와 벤치. 벤치는 루틴과 같은 표(benchExercises)다
+/// — 불가리안 스플릿 스쿼트는 맨몸·벤치다.
+List<String> moveNeeds(String key) => [
+  ...moveGear(key),
+  if (benchExercises.contains(key)) 'bench',
+];
 
 DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 int _daysBetween(DateTime from, DateTime to) => DateTime.utc(
@@ -231,11 +238,14 @@ typedef TryList = ({
 /// 해 볼 만한 운동: 이 부위가 주동이고 아직 안 한 것([Move.suggest] 가 거짓인 것은
 /// 빼고). 내가 쓴 기구(없으면 맨몸만)로 할 수 있는 것은 [shown], 아닌 것은 [hidden].
 /// 쓴 기구는 기구가 하나뿐인 운동에서만 짐작한다 — 맨몸 런지로 바벨을 썼다고 하지
-/// 않는다. 표의 운동을 한 번도 안 했으면 기구를 모르니 거르지 않는다([allGear]).
+/// 않는다. 벤치 운동을 했으면 벤치가 있고, 벤치 운동은 벤치가 있어야 보인다.
+/// 표의 운동을 한 번도 안 했으면 기구를 모르니 거르지 않는다([allGear]).
 TryList tryFor(Muscle m, Set<String> done) {
   final gear = {
-    for (final k in done)
+    for (final k in done) ...[
       if (moveGear(k) case [final g]) g,
+      if (benchExercises.contains(k)) 'bench',
+    ],
   }..remove('bodyweight');
   final allGear = done.isEmpty;
   final shown = <String>[], hidden = <String>[];
@@ -247,7 +257,8 @@ TryList tryFor(Muscle m, Set<String> done) {
     }
     final ok =
         allGear ||
-        moveGear(e.key).any((g) => g == 'bodyweight' || gear.contains(g));
+        (moveGear(e.key).any((g) => g == 'bodyweight' || gear.contains(g)) &&
+            (!benchExercises.contains(e.key) || gear.contains('bench')));
     (ok ? shown : hidden).add(e.key);
   }
   return (shown: shown, hidden: hidden, gear: gear, allGear: allGear);
