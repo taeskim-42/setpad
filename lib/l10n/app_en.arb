@@ -577,6 +577,8 @@
   "queryMisreadLocal": "The question couldn't be read into something to count, so this was counted on your device from the exercises and period in your text only. Rephrase it to ask again.",
   "queryUnreadable": "The model sent an unreadable answer twice. It isn't your connection, and no plates were spent on that answer.",
   "queryAskAgain": "Ask again",
+  "queryUnreadablePaid": "The model sent an unreadable answer twice. It isn't your connection. That answer spent no plates; the plates below went to the first step, which sorted your question.",
+  "queryUnreadableLocal": "Meanwhile, the exercises and period in your text were counted on your device.",
   "queryTotalUnits": "Units differ, so there's no total",
   "queryMemoDropped": "Memo condition left out: {words}",
   "queryAgainstDropped": "Reference number {value} left out — it isn't a weight written in the question",

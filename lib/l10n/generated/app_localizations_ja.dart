@@ -2248,6 +2248,13 @@ class LJa extends L {
   String get queryAskAgain => 'もう一度聞く';
 
   @override
+  String get queryUnreadablePaid =>
+      'モデルが読み取れない答えを2回返しました。接続の問題ではありません。その答えにプレートは使われておらず、下のプレートは質問を振り分けた最初の段階の分です。';
+
+  @override
+  String get queryUnreadableLocal => 'その間、文中の種目と期間で端末上で集計しました。';
+
+  @override
   String get queryTotalUnits => '単位が違うため合計を出せません';
 
   @override

@@ -2312,6 +2312,14 @@ class LVi extends L {
   String get queryAskAgain => 'Hỏi lại';
 
   @override
+  String get queryUnreadablePaid =>
+      'Mô hình đã gửi câu trả lời không đọc được hai lần. Không phải do kết nối. Câu trả lời đó không tốn bánh tạ nào; số bánh tạ bên dưới là cho bước đầu phân loại câu hỏi.';
+
+  @override
+  String get queryUnreadableLocal =>
+      'Trong lúc đó, đã đếm trên máy theo bài tập và khoảng thời gian trong câu.';
+
+  @override
   String get queryTotalUnits => 'Đơn vị khác nhau nên không cộng tổng được';
 
   @override

@@ -2228,6 +2228,13 @@ class LZh extends L {
   String get queryAskAgain => '再问一次';
 
   @override
+  String get queryUnreadablePaid =>
+      '模型两次返回了无法读取的回答。不是网络问题。这个回答没有消耗杠铃片，下面的杠铃片用于给问题分类的第一步。';
+
+  @override
+  String get queryUnreadableLocal => '同时已按文字中的动作和时间在设备上计算。';
+
+  @override
   String get queryTotalUnits => '单位不同，无法合计';
 
   @override
@@ -4470,6 +4477,13 @@ class LZhHans extends LZh {
   String get queryAskAgain => '再问一次';
 
   @override
+  String get queryUnreadablePaid =>
+      '模型两次返回了无法读取的回答。不是网络问题。这个回答没有消耗杠铃片，下面的杠铃片用于给问题分类的第一步。';
+
+  @override
+  String get queryUnreadableLocal => '同时已按文字中的动作和时间在设备上计算。';
+
+  @override
   String get queryTotalUnits => '单位不同，无法合计';
 
   @override
@@ -6709,6 +6723,13 @@ class LZhHant extends LZh {
 
   @override
   String get queryAskAgain => '再問一次';
+
+  @override
+  String get queryUnreadablePaid =>
+      '模型兩次回傳了無法讀取的回答。不是網路問題。這個回答沒有消耗槓片，下方的槓片用於替問題分類的第一步。';
+
+  @override
+  String get queryUnreadableLocal => '同時已依文字中的動作和時間在裝置上計算。';
 
   @override
   String get queryTotalUnits => '單位不同，無法合計';

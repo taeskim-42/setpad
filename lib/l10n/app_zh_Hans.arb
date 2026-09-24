@@ -577,6 +577,8 @@
   "queryMisreadLocal": "无法把问题读成可统计的形式，仅按文字中的动作和时间在设备上计算。换个说法再问即可重新读取。",
   "queryUnreadable": "模型两次返回了无法读取的回答。不是网络问题，这个回答没有消耗杠铃片。",
   "queryAskAgain": "再问一次",
+  "queryUnreadablePaid": "模型两次返回了无法读取的回答。不是网络问题。这个回答没有消耗杠铃片，下面的杠铃片用于给问题分类的第一步。",
+  "queryUnreadableLocal": "同时已按文字中的动作和时间在设备上计算。",
   "queryTotalUnits": "单位不同，无法合计",
   "queryMemoDropped": "已去掉备注条件：{words}",
   "queryAgainstDropped": "已去掉基准数 {value}——它不是问题里写的重量",

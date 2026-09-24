@@ -810,8 +810,16 @@ class RecordAi {
 
 /// 서버 쪽이 못 해준 이유. 화면은 이걸 보고 무슨 말을 할지 정한다.
 class RecordAiException implements Exception {
-  const RecordAiException(this.status, {this.offline = false, this.code});
+  const RecordAiException(
+    this.status, {
+    this.offline = false,
+    this.code,
+    this.charged = false,
+  });
   final RecordAiStatus status;
+
+  /// 실패했어도 이 질문의 앞 부름(기록 질문 1단계)에 원판이 나갔다.
+  final bool charged;
 
   /// 서버가 아니라 연결이 문제였다(그물 없음, 시간 초과). 다시 해 볼 만하다.
   final bool offline;

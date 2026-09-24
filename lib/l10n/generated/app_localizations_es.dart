@@ -2343,6 +2343,14 @@ class LEs extends L {
   String get queryAskAgain => 'Preguntar de nuevo';
 
   @override
+  String get queryUnreadablePaid =>
+      'El modelo envió dos veces una respuesta ilegible. No es tu conexión. Esa respuesta no gastó discos; los discos de abajo son del primer paso, que clasificó tu pregunta.';
+
+  @override
+  String get queryUnreadableLocal =>
+      'Mientras tanto, se contó en tu dispositivo con los ejercicios y el periodo del texto.';
+
+  @override
   String get queryTotalUnits => 'Las unidades son distintas; no hay total';
 
   @override

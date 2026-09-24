@@ -3576,6 +3576,18 @@ abstract class L {
   /// **'다시 묻기'**
   String get queryAskAgain;
 
+  /// queryUnreadable 과 같은데 이 질문의 1단계(갈래 고르기)에는 원판이 나갔다. 그 값은 아래 원판 줄(platesSpent)이 보인다.
+  ///
+  /// In ko, this message translates to:
+  /// **'모델이 읽을 수 없는 답을 두 번 보냈어요. 연결 문제가 아니에요. 그 답에는 원판이 나가지 않았고, 아래 원판은 질문을 가른 첫 단계에 쓴 거예요.'**
+  String get queryUnreadablePaid;
+
+  /// 읽을 수 없는 답 문구 뒤에 붙는다: 글에 적힌 운동이 있어 그동안 기기에서 센 답을 보인다.
+  ///
+  /// In ko, this message translates to:
+  /// **'그동안 글에 적힌 운동·기간으로는 기기에서 셌어요.'**
+  String get queryUnreadableLocal;
+
   /// 합계 줄: 줄마다 단위가 달라(맞출 수 없어) 더하지 못했다.
   ///
   /// In ko, this message translates to:

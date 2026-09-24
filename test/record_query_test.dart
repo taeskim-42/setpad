@@ -1591,13 +1591,15 @@ void main() {
     // 못 읽으면 원판을 돌려주고 'unreadable' 이다. 앱은 연결 문구가 아니라 그 까닭을
     // 말하고, 담지 않으며, 다시 물을 때 1단계를 또 사지 않는다.
     test(
-      '서버가 두 번 물어도 못 읽은 답(unreadable): 1단계면 한 지시문으로, 2단계면 담지 않고 다시 물을 수 있다',
+      '서버가 두 번 물어도 못 읽은 답(unreadable): 1단계면 한 지시문으로, 2단계면 담지 않고 다시 물을 수 있다 — 1단계 원판은 원판 줄에 그대로',
       () async {
         final sent = <String>[];
+        final notices = <(double, double?)>[];
         var unreadable = {'cls': false, 'plan': true};
         final ai = RecordAi(
           endpoint: 'https://example.test',
           deviceId: 'device',
+          onPlates: (balance, spent) => notices.add((balance, spent)),
           client: MockClient((request) async {
             if (request.url.path == '/api/device') {
               return http.Response(jsonEncode({'token': 't'}), 200);
@@ -1633,6 +1635,16 @@ void main() {
           (true, false, false, null),
         );
         expect(sent, ['cls', 'plan']);
+        // 2단계 답에는 원판이 안 나갔어도 1단계 0.3장은 나갔다 — 원판 줄(charged)이
+        // 그 값을 보인다(Account.platesSpent = 마지막 알림의 쓴 양).
+        expect(search.charged, isTrue);
+        expect(notices, [(5.0, 0.3)]);
+        // 다시 눌러 또 못 읽으면 이번에는 1단계를 사지 않았다 — 원판 줄이 없다.
+        sent.clear();
+        search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+        await pumpEventQueue();
+        expect(sent, ['plan']);
+        expect((search.unreadable, search.charged), (true, false));
         // 다시 누르면 다시 묻는다(담지 않았다) — 1단계 꼬리표는 담아 두어 또 사지 않는다.
         sent.clear();
         unreadable = {'cls': false, 'plan': false};
@@ -1762,6 +1774,162 @@ void main() {
       ];
       await ai.queryIntent(typed, 'ko', many, unit: 'kg');
       expect(prompts, hasLength(1));
+    });
+
+    // 재검토: '한도에 걸린 답은 까닭을 적어 다시 묻기' 가 사람이 한도를 넘게 물은 질문에도
+    // 걸려, 모델이 "Answer again within the limits" 를 따라 상위 30 → 20, 150번 → 100번,
+    // 일곱 견주기 → 여섯(풀업이 빠짐)으로 좁힌 plan 이 알림 없이 담겼다.
+    test(
+      '사람이 한도를 넘게 물은 질문(상위 30·최근 150번·일곱 견주기·11년)은 다시 묻지 않고 한도 문구로 답한다 — 조용히 좁히지 않는다',
+      () async {
+        const seven = [...names, '풀업'];
+        final prompts = <String>[];
+        var answers = <Object?>[];
+        final ai = RecordAi(
+          respond: (i, _) async {
+            if (i == familyInstructions) return {'t': <String>[]};
+            prompts.add(i);
+            return answers.removeAt(0);
+          },
+        );
+        Map<String, Object?> s(String n) => {
+          'exercises': [n],
+        };
+        final narrowed = {
+          'by': 'exercise',
+          'measures': ['setCount'],
+          'order': 'desc',
+          'limit': 20,
+        };
+        for (final (question, kind, first) in [
+          (
+            '가장 많이 한 운동 30개 순위',
+            'ranking',
+            <String, Object?>{...narrowed, 'limit': 30},
+          ),
+          (
+            '가장 많이 한 운동 서른 개 순위',
+            'ranking',
+            <String, Object?>{...narrowed, 'limit': 30},
+          ),
+          (
+            '스쿼트 최근 150번 평균 무게',
+            'sessions',
+            <String, Object?>{
+              'exercises': ['스쿼트'],
+              'measures': ['meanWeight'],
+              'sessions': 150,
+            },
+          ),
+          (
+            '${seven.join(' ')} 각각 따로 비교',
+            'compare',
+            <String, Object?>{
+              'series': [for (final n in seven) s(n)],
+              'measures': ['best'],
+            },
+          ),
+          (
+            '스쿼트 최근 11년 최고',
+            'days',
+            <String, Object?>{
+              'exercises': ['스쿼트'],
+              'measures': ['best'],
+              'period': 'recent',
+              'days': 4015,
+            },
+          ),
+        ]) {
+          prompts.clear();
+          answers = [first, narrowed];
+          final got = await ai.queryIntent(
+            question,
+            'ko',
+            seven,
+            unit: 'kg',
+            today: today,
+          );
+          expect(prompts, hasLength(1), reason: question);
+          expect(got, first, reason: question);
+          expect(
+            () => decodeRecordIntent(
+              got,
+              question,
+              seven,
+              unit: 'kg',
+              today: today,
+            ),
+            throwsA(isA<QueryLimit>().having((e) => e.kind, 'kind', kind)),
+            reason: question,
+          );
+        }
+        // 화면: 한도 문구(왜·어떻게)가 나가고 셀 plan 은 없다.
+        final search = RecordSearch(ai, cache: QueryCache(directory: _temp()));
+        await search.refresh('ko');
+        prompts.clear();
+        answers = [
+          {...narrowed, 'limit': 30},
+          narrowed,
+        ];
+        search.search(
+          '가장 많이 한 운동 30개 순위',
+          'ko',
+          seven,
+          'kg',
+          immediately: true,
+        );
+        await pumpEventQueue();
+        expect(prompts, hasLength(1));
+        expect((search.unrepresentable, search.plan), ('ranking', null));
+        search.dispose();
+        // 모델이 지어낸 초과(글에 30 이 없다, 2024년은 개수가 아니다)는 여전히 까닭을 적어
+        // 한 번 다시 묻는다.
+        for (final question in ['가장 많이 한 운동 순위', '2024년 가장 많이 한 운동 순위']) {
+          prompts.clear();
+          answers = [
+            {...narrowed, 'limit': 30},
+            narrowed,
+          ];
+          expect(
+            await ai.queryIntent(
+              question,
+              'ko',
+              seven,
+              unit: 'kg',
+              today: today,
+            ),
+            narrowed,
+            reason: question,
+          );
+          expect(prompts, hasLength(2), reason: question);
+          expect(prompts.last, contains('limit is at most 20'));
+        }
+      },
+    );
+
+    test('askedBeyondLimit: 적힌 수·이름 수가 한도를 넘을 때만 사람 탓이다', () {
+      const seven = [...names, '풀업'];
+      for (final (kind, question, beyond) in [
+        ('ranking', 'top 30 exercises by sets', true),
+        ('ranking', '벤치 100kg 넘긴 날 순위', false),
+        ('ranking', '가장 많이 한 운동 20개', false),
+        ('sessions', '스쿼트 최근 백오십 번', true),
+        ('sessions', '스쿼트 최근 150회 평균', true),
+        ('days', '최근 5000일 스쿼트', true),
+        ('days', '최근 3개월 스쿼트', false),
+        ('days', '지난 11 years squat', true),
+        ('compare', '${seven.join(', ')} 비교', true),
+        ('compare', '벤치 스쿼트 데드 비교', false),
+        ('measures', '벤치 최고 추이 마지막 볼륨 세트 수 평균', true),
+        ('measures', '벤치 최고랑 평균', false),
+        ('groupedMeasure', '상위 30개', false),
+      ]) {
+        expect(
+          askedBeyondLimit(kind, question, seven),
+          beyond,
+          reason: '$kind $question',
+        );
+      }
     });
 
     test('모델이 적은 긴 이름 목록(빼기 포함)은 사람이 적지 않았으면 한도가 아니라 읽지 못한 것이다', () {

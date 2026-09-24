@@ -2325,6 +2325,14 @@ class LEn extends L {
   String get queryAskAgain => 'Ask again';
 
   @override
+  String get queryUnreadablePaid =>
+      'The model sent an unreadable answer twice. It isn\'t your connection. That answer spent no plates; the plates below went to the first step, which sorted your question.';
+
+  @override
+  String get queryUnreadableLocal =>
+      'Meanwhile, the exercises and period in your text were counted on your device.';
+
+  @override
   String get queryTotalUnits => 'Units differ, so there\'s no total';
 
   @override

@@ -4176,10 +4176,20 @@ extension RecordQueryAi on RecordAi {
       spent: spent,
     );
     // 빈 답·깨진 답은 서버가 한 번 더 묻는다(gymdojo record-query 'unreadable').
-    // 여기서는 셀 수 없는 모양을 본다: 모델이 부류를 열 개로 풀어 적는 것처럼
-    // 한도·모양에 걸린 답은 사람 탓이 아니다. 까닭을 적어 한 번만 다시 묻고, 그래도
-    // 걸리면 그 답을 돌려준다 — 화면이 까닭을 말하고 담아 둔다.
-    final first = await plan();
+    // 여기서는 셀 수 없는 모양을 본다: 모델이 부류를 열 개로 풀어 적는 것처럼 질문이
+    // 넘기지 않은 한도·모양에 걸린 답은 모델 탓이다. 까닭을 적어 한 번만 다시 묻고,
+    // 그래도 걸리면 그 답을 돌려준다 — 화면이 까닭을 말하고 담아 둔다. 사람이 한도를
+    // 넘게 물었으면 다시 묻지 않는다([askedBeyondLimit]).
+    final Object? first;
+    try {
+      first = await plan();
+    } on RecordAiException catch (e) {
+      // 2단계 답을 못 읽었어도 1단계(갈래 고르기)에 쓴 원판은 나갔다 — 화면이 그 값을 말한다.
+      if (e.code == 'unreadable' && spent.isNotEmpty) {
+        throw RecordAiException(e.status, code: e.code, charged: true);
+      }
+      rethrow;
+    }
     final rejected = _rejection(first, text, names, unit, today, locale);
     if (rejected == null) return first;
     try {
@@ -4192,9 +4202,11 @@ extension RecordQueryAi on RecordAi {
 }
 
 /// 모델 답이 앱의 한도·모양에 걸린 까닭(모델에게 보낼 말). 셀 수 있거나, 사람이
-/// 이름을 아홉 넘게 적어 걸린 것이면 null — 다시 물어도 같다.
-/// ponytail: 다른 한도는 모델 탓인지 가르지 않고 한 번 다시 묻는다(질문이 정말 한도를
-/// 넘으면 부름 하나가 더 나간다). 잦으면 한도마다 질문 글로 가른다.
+/// 한도를 넘게 물어 걸린 것이면 null — 다시 묻지 않는다. 모델이 한도 안으로 좁혀
+/// 답하면 질문이 알림 없이 바뀐다(상위 30 → 20, 일곱 견주기에서 하나가 빠짐). 첫
+/// 답의 한도 문구가 왜·어떻게를 말한다.
+/// ponytail: 묶음 한도(groupedMeasure 등)는 모델 탓인지 가르지 않고 한 번 다시 묻는다
+/// — 바뀐 읽기는 확인 줄("이렇게 읽었어요 · 맞아요")이 보인다.
 String? _rejection(
   Object? intent,
   String text,
@@ -4215,13 +4227,50 @@ String? _rejection(
     return null;
   } on QueryLimit catch (e) {
     // 이름 한도는 사람이 아홉 넘게 적었을 때만 온다([decodeRecordIntent]).
-    if (e.kind == 'exercises') return null;
+    if (e.kind == 'exercises' || askedBeyondLimit(e.kind, text, names)) {
+      return null;
+    }
     return _limitNotes[e.kind] ?? 'the app cannot count that combination';
   } on FormatException catch (e) {
     return e.message == 'Listed names not asked'
         ? 'it listed more than 8 exercise names the question did not name. Name only the exercises the question names; for a kind of exercise use part, for two groups use two series of at most 8 names'
         : 'the app could not read it (${e.message})';
   }
+}
+
+/// 사람이 질문에 한도를 넘게 적었는가 — 적힌 수(글로 쓴 수 포함)가 그 한도를 넘거나
+/// ("상위 30개", "최근 150번", "최근 11년", "7개 비교"), 견줄 운동·셀 것을 한도보다
+/// 많이 적었다. 날짜·무게로 적힌 수("2024년", "100kg")는 개수가 아니다. 한도에 걸린
+/// 답이 모델이 지어낸 초과인지 가르는 데만 쓴다.
+bool askedBeyondLimit(String kind, String text, List<String> names) {
+  final question = canonicalizeExercises(text, names);
+  bool over(int max) => statedNumbers(question).any((n) {
+    final unit = RegExp(
+      r'^\s*(년|개월|달|주|월|일|years?|months?|weeks?|kg|lbs?|키로|킬로|파운드|%)',
+      caseSensitive: false,
+    ).firstMatch(question.substring(n.end))?[1]?.toLowerCase();
+    // 'days' 한도만 기간을 날로 센다. 다른 한도에서 기간·무게의 수는 개수가 아니다.
+    final days = switch (unit) {
+      null => 1,
+      '년' || 'year' || 'years' => 365,
+      '개월' || '달' || 'month' || 'months' => 30,
+      '주' || 'week' || 'weeks' => 7,
+      '일' => 1,
+      _ => 0,
+    };
+    return kind == 'days'
+        ? n.value * days > max
+        : unit == null && n.value > max;
+  });
+  return switch (kind) {
+    'ranking' => over(20),
+    'sessions' => over(100),
+    'days' => over(3660),
+    'compare' =>
+      over(6) || namedExercises(question, names, fuzzy: false).length > 6,
+    'measures' => metricFamilies(question).length > 4,
+    _ => false,
+  };
 }
 
 /// [QueryLimit.kind] → 모델에게 보내는 한도(app_ko.arb queryLimit 과 같은 뜻).
@@ -4553,8 +4602,9 @@ class RecordSearch extends ChangeNotifier {
   RecordQuery? plan;
 
   /// [noPlates] 는 원판이 모자라 못 물은 것이다. 실패와 문구가 다르다.
-  /// [charged] 는 이번 답을 서버에서 받아 왔다는 뜻이다 — 담아 둔 답은 원판을
-  /// 쓰지 않는다.
+  /// [charged] 는 이번 질문에 원판이 나갔다는 뜻이다 — 서버에서 답을 받아 왔거나,
+  /// 2단계 답은 못 읽었어도([unreadable]) 1단계를 샀다. 담아 둔 답은 원판을 쓰지
+  /// 않는다.
   ///
   /// [tooLong] 은 보내기 전에 거른 긴 질문, [offline] 은 제출했는데 다시 확인해도
   /// 서버에 닿지 못한 것이다. [failed] 는 서버·그물 오류(다시 시도), [misread] 는
@@ -4738,6 +4788,8 @@ class RecordSearch extends ChangeNotifier {
             noPlates = true;
           } else if (e is RecordAiException && e.code == 'unreadable') {
             unreadable = true;
+            // 1단계 원판은 나갔다 — 원판 줄이 그 값을 보인다.
+            charged = e.charged;
           } else {
             failed = true;
           }

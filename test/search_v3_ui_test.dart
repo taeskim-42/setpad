@@ -392,7 +392,7 @@ void main() {
   });
 
   testWidgets(
-    '모델이 두 번 다 읽을 수 없는 답을 내면(unreadable) 연결 문구가 아니라 그 까닭을 말하고, 다시 묻기는 1단계를 또 사지 않는다',
+    '모델이 두 번 다 읽을 수 없는 답을 내면(unreadable) 연결 문구가 아니라 그 까닭을 말하고, 글의 운동은 기기에서 세며, 다시 묻기는 1단계를 또 사지 않는다',
     (tester) async {
       var stageOne = 0, planCalls = 0;
       var broken = true;
@@ -421,24 +421,61 @@ void main() {
         ),
       );
       await ask(tester, '벤치프레스 최고 기록 얼마야');
-      expect(find.text(l.queryUnreadable), findsOneWidget);
+      // upstream·misread 처럼 글에 적힌 운동은 기기에서 센다 — 다시 묻기와 함께.
+      expect(
+        find.text('${l.queryUnreadable} ${l.queryUnreadableLocal}'),
+        findsOneWidget,
+      );
       for (final other in [
         l.queryFailed,
         l.queryOffline,
         l.queryOfflineLocal,
         l.queryMisread,
+        l.queryMisreadLocal,
       ]) {
         expect(find.text(other), findsNothing, reason: other);
       }
-      expect(find.byType(AnswerCard), findsNothing);
+      expect(find.byType(AnswerCard), findsOneWidget, reason: '기기에서 센 답');
+      expect(find.textContaining(l.readAsConfirm), findsNothing);
+      expect(find.text(l.queryAskAgain), findsOneWidget);
       broken = false;
       await tester.tap(find.text(l.queryAskAgain));
       await tester.pumpAndSettle();
       expect((stageOne, planCalls), (1, 2), reason: '1단계 꼬리표는 담아 두었다');
-      expect(find.text(l.queryUnreadable), findsNothing);
+      expect(find.textContaining(l.queryUnreadable), findsNothing);
       // 다시 받은 답도 모델이 쓴 plan 이다 — 확인부터.
       expect(find.textContaining(l.readAsConfirm), findsOneWidget);
       expect(find.byType(AnswerCard), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'unreadable: 1단계 원판이 나갔으면 "원판이 나가지 않았어요" 라고만 하지 않는다 — 글에 운동이 없으면 기기 답 없이 다시 묻기',
+    (tester) async {
+      await pump(
+        tester,
+        RecordAi(
+          respond: (i, _) async {
+            if (i == familyInstructions) {
+              return {
+                't': ['rank'],
+              };
+            }
+            // 서버는 1단계 원판을 받고 2단계 답은 못 읽었다.
+            throw const RecordAiException(
+              RecordAiStatus.unavailable,
+              code: 'unreadable',
+              charged: true,
+            );
+          },
+        ),
+      );
+      await ask(tester, '가장 많이 한 운동 순위');
+      expect(find.text(l.queryUnreadablePaid), findsOneWidget);
+      expect(find.text(l.queryUnreadable), findsNothing);
+      expect(find.byType(AnswerCard), findsNothing, reason: '글에 운동이 없다');
+      expect(find.text(l.queryAskAgain), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

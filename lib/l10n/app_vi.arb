@@ -577,6 +577,8 @@
   "queryMisreadLocal": "Không đọc được câu hỏi thành phép đếm nên đã đếm trên máy chỉ theo bài tập và khoảng thời gian trong câu. Hỏi theo cách khác để đọc lại.",
   "queryUnreadable": "Mô hình đã gửi câu trả lời không đọc được hai lần. Không phải do kết nối, và câu trả lời đó không tốn bánh tạ nào.",
   "queryAskAgain": "Hỏi lại",
+  "queryUnreadablePaid": "Mô hình đã gửi câu trả lời không đọc được hai lần. Không phải do kết nối. Câu trả lời đó không tốn bánh tạ nào; số bánh tạ bên dưới là cho bước đầu phân loại câu hỏi.",
+  "queryUnreadableLocal": "Trong lúc đó, đã đếm trên máy theo bài tập và khoảng thời gian trong câu.",
   "queryTotalUnits": "Đơn vị khác nhau nên không cộng tổng được",
   "queryMemoDropped": "Đã bỏ điều kiện ghi chú: {words}",
   "queryAgainstDropped": "Đã bỏ số mốc {value} — đó không phải cân nặng ghi trong câu hỏi",

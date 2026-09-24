@@ -577,6 +577,8 @@
   "queryMisreadLocal": "No se pudo interpretar la pregunta; se contó en tu dispositivo solo con los ejercicios y el periodo del texto. Reformúlala para volver a preguntar.",
   "queryUnreadable": "El modelo envió dos veces una respuesta ilegible. No es tu conexión, y esa respuesta no gastó discos.",
   "queryAskAgain": "Preguntar de nuevo",
+  "queryUnreadablePaid": "El modelo envió dos veces una respuesta ilegible. No es tu conexión. Esa respuesta no gastó discos; los discos de abajo son del primer paso, que clasificó tu pregunta.",
+  "queryUnreadableLocal": "Mientras tanto, se contó en tu dispositivo con los ejercicios y el periodo del texto.",
   "queryTotalUnits": "Las unidades son distintas; no hay total",
   "queryMemoDropped": "Condición de nota omitida: {words}",
   "queryAgainstDropped": "Número de referencia {value} omitido: no es un peso escrito en la pregunta",

@@ -2295,6 +2295,14 @@ class LTh extends L {
   String get queryAskAgain => 'ถามอีกครั้ง';
 
   @override
+  String get queryUnreadablePaid =>
+      'โมเดลส่งคำตอบที่อ่านไม่ได้มาสองครั้ง ไม่ใช่ปัญหาการเชื่อมต่อ คำตอบนั้นไม่ได้ใช้แผ่นน้ำหนัก แผ่นน้ำหนักด้านล่างใช้ไปกับขั้นแรกที่จัดประเภทคำถาม';
+
+  @override
+  String get queryUnreadableLocal =>
+      'ระหว่างนี้ได้นับในเครื่องจากท่าและช่วงเวลาในข้อความแล้ว';
+
+  @override
   String get queryTotalUnits => 'หน่วยต่างกัน จึงรวมไม่ได้';
 
   @override

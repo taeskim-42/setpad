@@ -309,9 +309,11 @@ class _NotesListPageState extends State<NotesListPage>
   bool get _unreached =>
       _chip == null && _pick == null && (_search.offline || _search.failed);
 
-  /// Enter 를 눌러 서버는 답했는데 그 답을 셀 plan 으로 읽지 못했다. 연결 문제가
-  /// 아니다 — 그렇게 말하지 않고, 글에 적힌 운동은 기기에서 센다.
-  bool get _misread => _chip == null && _pick == null && _search.misread;
+  /// Enter 를 눌러 서버는 답했는데 그 답을 셀 plan 으로 읽지 못했다(모델이 두 번
+  /// 다 읽을 수 없는 답을 낸 것 포함). 연결 문제가 아니다 — 그렇게 말하지 않고,
+  /// 글에 적힌 운동은 기기에서 센다.
+  bool get _misread =>
+      _chip == null && _pick == null && (_search.misread || _search.unreadable);
 
   void _open(Note note) {
     _search.cancel();
@@ -790,10 +792,17 @@ class _NotesListPageState extends State<NotesListPage>
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 // 모델이 읽을 수 없는 답을 두 번 냈다 — 연결 문제가
-                                // 아니고 원판도 나가지 않았다. 같은 글로 다시 묻는다.
+                                // 아니고 그 답에는 원판이 나가지 않았다(1단계 몫은
+                                // 원판 줄이 말한다). 글에 적힌 운동은 그동안 기기에서
+                                // 세고, 같은 글로 다시 묻는다.
                                 if (_search.unreadable) ...[
                                   Text(
-                                    l.queryUnreadable,
+                                    [
+                                      _search.charged
+                                          ? l.queryUnreadablePaid
+                                          : l.queryUnreadable,
+                                      if (local != null) l.queryUnreadableLocal,
+                                    ].join(' '),
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                   CupertinoButton(
