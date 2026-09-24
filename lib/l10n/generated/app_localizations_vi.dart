@@ -2848,4 +2848,195 @@ class LVi extends L {
   String queryBoundDropped(String value) {
     return 'Đã bỏ điều kiện $value — câu hỏi không ghi số này theo đơn vị đó';
   }
+
+  @override
+  String get anatomyTitle => 'Bản đồ cơ thể';
+
+  @override
+  String get anatomyOpen =>
+      'Bản đồ cơ thể — bài tập và mẹo tư thế theo nhóm cơ';
+
+  @override
+  String get anatomyFront => 'Trước';
+
+  @override
+  String get anatomyBack => 'Sau';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n ngày';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': 'Ngực',
+      'frontDelts': 'Vai trước',
+      'sideDelts': 'Vai giữa',
+      'rearDelts': 'Vai sau',
+      'traps': 'Cầu vai trên',
+      'upperBack': 'Giữa lưng',
+      'lats': 'Xô',
+      'lowerBack': 'Lưng dưới',
+      'biceps': 'Tay trước',
+      'triceps': 'Tay sau',
+      'forearms': 'Cẳng tay',
+      'abs': 'Bụng',
+      'obliques': 'Bụng chéo',
+      'hipFlexors': 'Cơ gập hông',
+      'glutes': 'Mông',
+      'quads': 'Đùi trước',
+      'hamstrings': 'Đùi sau',
+      'adductors': 'Đùi trong',
+      'calves': 'Bắp chân',
+      'other': 'Nhóm cơ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': 'ít',
+      'mid': 'vừa',
+      'high': 'nhiều',
+      'other': 'không',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend =>
+      'Nhóm cơ càng nhiều hiệp trong giai đoạn này thì màu càng đậm';
+
+  @override
+  String get anatomyFirstTime =>
+      'Chưa có hiệp nào hoàn thành nên chưa có màu. Chạm vào một nhóm cơ để xem bài tập dùng nó và mẹo tư thế.';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return 'Không có hiệp nào hoàn thành trong $n ngày qua';
+  }
+
+  @override
+  String anatomyUnknown(String names) {
+    return 'Chưa tính vì không rõ nhóm cơ: $names';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return 'Số hiệp cardio không đưa vào bản đồ: $n';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      'Nhóm cơ theo phân loại của ExRx.net và chỉ là ước lượng. Mỗi hiệp tính một cho cơ chính và một nửa cho cơ hỗ trợ; hiệp khởi động cũng được tính.';
+
+  @override
+  String get anatomyLimits =>
+      'Không phân tích video hay tư thế. Nếu thấy đau, hãy dừng lại và hỏi chuyên gia.';
+
+  @override
+  String get anatomyTapHint =>
+      'Hãy chạm vào một nhóm cơ — cũng có thể chọn trong danh sách bên dưới';
+
+  @override
+  String get anatomyNoSurface => 'Cơ nằm sâu, không có trên hình';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return 'Số hiệp $days ngày: $sets';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return 'Số hiệp — 7 ngày qua: $week · 28 ngày: $month';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28 ngày: cơ chính $primary · hỗ trợ $secondary (tính một nửa)';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return 'Lần cuối: $date ($ago)';
+  }
+
+  @override
+  String get anatomyNever => 'Chưa có hiệp nào cho nhóm cơ này';
+
+  @override
+  String get anatomyDone => 'Bài bạn đã tập';
+
+  @override
+  String get anatomyTry => 'Bài chủ yếu dùng nhóm cơ này';
+
+  @override
+  String anatomyTryGear(String list) {
+    return 'Với dụng cụ bạn đã dùng ($list)';
+  }
+
+  @override
+  String get anatomyAllGear => 'Chưa có dụng cụ trong nhật ký nên hiện tất cả';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return 'Xem thêm $n bài với dụng cụ khác';
+  }
+
+  @override
+  String get anatomyTriedAll =>
+      'Bạn đã tập hết các bài chủ yếu dùng nhóm cơ này';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': 'chính',
+      'other': 'hỗ trợ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyCues => 'Mẹo tư thế';
+
+  @override
+  String get anatomyMistakes => 'Lỗi thường gặp';
+
+  @override
+  String anatomySources(String sites) {
+    return 'Nguồn: $sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '* thêm vào, không có nguồn';
+
+  @override
+  String get anatomyCuesEnglish => 'Hiện mẹo tư thế chỉ có tiếng Anh';
+
+  @override
+  String get anatomyAddRoutine => 'Thêm vào lịch tập hôm nay';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return 'Lịch tập $part hôm nay';
+  }
+
+  @override
+  String get anatomySearch => 'Xem trong tìm kiếm';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return 'Số hiệp $days ngày: $sets, $level';
+  }
+
+  @override
+  String get anatomyRegionHint => 'Chạm hai lần để xem bài tập';
+
+  @override
+  String get anatomyClose => 'Đóng';
+
+  @override
+  String get openSourceLicenses => 'Giấy phép mã nguồn mở';
 }

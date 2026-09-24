@@ -2778,4 +2778,190 @@ class LKo extends L {
   String queryBoundDropped(String value) {
     return '숫자 조건 $value 뺌 — 질문에 그 단위로 적힌 수가 아니에요';
   }
+
+  @override
+  String get anatomyTitle => '몸 그림';
+
+  @override
+  String get anatomyOpen => '몸 그림 — 부위별 운동과 자세 팁';
+
+  @override
+  String get anatomyFront => '앞';
+
+  @override
+  String get anatomyBack => '뒤';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n일';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': '가슴',
+      'frontDelts': '앞 어깨',
+      'sideDelts': '옆 어깨',
+      'rearDelts': '뒤 어깨',
+      'traps': '승모근 윗부분',
+      'upperBack': '등 가운데',
+      'lats': '광배근',
+      'lowerBack': '허리',
+      'biceps': '이두',
+      'triceps': '삼두',
+      'forearms': '전완',
+      'abs': '복근',
+      'obliques': '옆구리',
+      'hipFlexors': '고관절 굴곡근',
+      'glutes': '엉덩이',
+      'quads': '허벅지 앞',
+      'hamstrings': '허벅지 뒤',
+      'adductors': '허벅지 안쪽',
+      'calves': '종아리',
+      'other': '부위',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': '적음',
+      'mid': '중간',
+      'high': '많음',
+      'other': '없음',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend => '이 기간에 세트가 많은 부위일수록 진해요';
+
+  @override
+  String get anatomyFirstTime =>
+      '아직 해낸 세트가 없어 색이 없어요. 부위를 누르면 그 부위를 쓰는 운동과 자세 팁을 볼 수 있어요.';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return '최근 $n일에 해낸 세트가 없어요';
+  }
+
+  @override
+  String anatomyUnknown(String names) {
+    return '근육을 모르는 운동은 세지 않았어요: $names';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return '유산소 $n세트는 근육 그림에 넣지 않았어요';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      '근육은 ExRx.net 분류를 따른 어림이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.';
+
+  @override
+  String get anatomyLimits => '영상·자세 분석은 하지 않아요. 통증이 있으면 멈추고 전문가와 상의하세요.';
+
+  @override
+  String get anatomyTapHint => '근육을 눌러 주세요 — 아래 목록에서도 고를 수 있어요';
+
+  @override
+  String get anatomyNoSurface => '몸 안쪽 근육이라 그림에는 없어요';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return '$days일 $sets세트';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return '최근 7일 $week세트 · 28일 $month세트';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28일 중 주로 쓴 세트 $primary · 보조로 쓴 세트 $secondary(반으로 셈)';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return '마지막: $date($ago)';
+  }
+
+  @override
+  String get anatomyNever => '이 부위를 쓴 기록이 아직 없어요';
+
+  @override
+  String get anatomyDone => '내가 한 운동';
+
+  @override
+  String get anatomyTry => '이 부위를 주로 쓰는 운동';
+
+  @override
+  String anatomyTryGear(String list) {
+    return '쓴 적 있는 기구($list)로 할 수 있는 것';
+  }
+
+  @override
+  String get anatomyAllGear => '기구 기록이 없어 전부 보여요';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return '다른 기구 운동 $n개 더 보기';
+  }
+
+  @override
+  String get anatomyTriedAll => '이 부위를 주로 쓰는 운동은 다 해 봤어요';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': '주로 씀',
+      'other': '보조',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyCues => '자세 팁';
+
+  @override
+  String get anatomyMistakes => '흔한 실수';
+
+  @override
+  String anatomySources(String sites) {
+    return '출처: $sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '* 출처 없이 덧붙인 말';
+
+  @override
+  String get anatomyCuesEnglish => '자세 팁은 아직 영어로만 있어요';
+
+  @override
+  String get anatomyAddRoutine => '오늘 루틴에 넣기';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return '오늘 $part 루틴';
+  }
+
+  @override
+  String get anatomySearch => '검색에서 보기';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return '최근 $days일 $sets세트, $level';
+  }
+
+  @override
+  String get anatomyRegionHint => '두 번 눌러 운동 보기';
+
+  @override
+  String get anatomyClose => '닫기';
+
+  @override
+  String get openSourceLicenses => '오픈소스 라이선스';
 }

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 import 'account.dart';
+import 'anatomy_page.dart';
 import 'answer_card.dart';
 import 'record_query.dart';
 import 'stats.dart' as stats;
@@ -472,6 +473,38 @@ class _NotesListPageState extends State<NotesListPage>
         ),
     ],
   );
+
+  /// 몸 그림. 돌아오면 넘긴 것을 검색칸에 둔다 — 제출하지 않으니 모델·원판을 쓰지
+  /// 않는다. 루틴에 넣기는 "오늘 {부위} 루틴 만들기" 칩과 같은 기기 요청에 그 운동을
+  /// 넣기([RoutineEdits.added])로 더한다 — 숫자는 composeRoutine 이 내 기록에서 옮긴다.
+  Future<void> _openAnatomy() async {
+    final got = await Navigator.of(context).push<AnatomyHandoff>(
+      CupertinoPageRoute(
+        builder: (_) => AnatomyPage(notes: widget.store.notes),
+      ),
+    );
+    if (got == null || !mounted) return;
+    final l = L.of(context);
+    final String text;
+    if (got.add case (:final key, :final part)) {
+      text = l.anatomyRoutineText(partName(l, part));
+      _device = (
+        text,
+        RoutineAsk(parts: [part], device: true, keys: const {'parts'}),
+      );
+      final edits = _edits.putIfAbsent(text, RoutineEdits.new);
+      if (!edits.added.contains(key)) edits.added.add(key);
+    } else {
+      text = got.search ?? '';
+    }
+    _query.text = text;
+    setState(() {
+      _pick = null;
+      _chip = null;
+      _confirmed = null;
+    });
+    _ask();
+  }
 
   /// 시작 = 트레이너 루틴과 같은 길(새 기록 + 편집기). 누를 때마다 새 칸이고, 이미
   /// 시작했으면 그 기록을 연다 — 두 번 눌러도 기록은 하나다(G18).
@@ -996,6 +1029,15 @@ class _NotesListPageState extends State<NotesListPage>
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: _openAnatomy,
+                              child: Icon(
+                                CupertinoIcons.person,
+                                size: 21,
+                                semanticLabel: l.anatomyOpen,
+                              ),
+                            ),
                             CupertinoButton(
                               padding: EdgeInsets.zero,
                               onPressed: () => showWeightSettings(

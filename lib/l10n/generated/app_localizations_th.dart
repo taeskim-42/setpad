@@ -2830,4 +2830,193 @@ class LTh extends L {
   String queryBoundDropped(String value) {
     return 'ตัดเงื่อนไข $value ออก — คำถามไม่ได้ระบุตัวเลขนี้ในหน่วยนั้น';
   }
+
+  @override
+  String get anatomyTitle => 'แผนที่ร่างกาย';
+
+  @override
+  String get anatomyOpen =>
+      'แผนที่ร่างกาย — ท่าออกกำลังและเคล็ดลับท่าทางตามกล้ามเนื้อ';
+
+  @override
+  String get anatomyFront => 'ด้านหน้า';
+
+  @override
+  String get anatomyBack => 'ด้านหลัง';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n วัน';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': 'อก',
+      'frontDelts': 'ไหล่หน้า',
+      'sideDelts': 'ไหล่ข้าง',
+      'rearDelts': 'ไหล่หลัง',
+      'traps': 'บ่าบน',
+      'upperBack': 'หลังช่วงกลาง',
+      'lats': 'ปีก',
+      'lowerBack': 'หลังล่าง',
+      'biceps': 'ไบเซ็ป',
+      'triceps': 'ไตรเซ็ป',
+      'forearms': 'แขนท่อนล่าง',
+      'abs': 'หน้าท้อง',
+      'obliques': 'ท้องด้านข้าง',
+      'hipFlexors': 'กล้ามเนื้องอสะโพก',
+      'glutes': 'ก้น',
+      'quads': 'ต้นขาหน้า',
+      'hamstrings': 'ต้นขาหลัง',
+      'adductors': 'ต้นขาด้านใน',
+      'calves': 'น่อง',
+      'other': 'กล้ามเนื้อ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': 'น้อย',
+      'mid': 'ปานกลาง',
+      'high': 'มาก',
+      'other': 'ไม่มี',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend => 'กล้ามเนื้อที่มีเซ็ตมากในช่วงนี้จะมีสีเข้มกว่า';
+
+  @override
+  String get anatomyFirstTime =>
+      'ยังไม่มีเซ็ตที่ทำเสร็จ จึงยังไม่มีสี แตะกล้ามเนื้อเพื่อดูท่าที่ใช้กล้ามเนื้อนั้นและเคล็ดลับท่าทาง';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return 'ไม่มีเซ็ตที่ทำเสร็จใน $n วันที่ผ่านมา';
+  }
+
+  @override
+  String anatomyUnknown(String names) {
+    return 'ไม่ได้นับ เพราะไม่รู้กล้ามเนื้อ: $names';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return 'เซ็ตคาร์ดิโอที่ไม่ได้ใส่ในแผนที่: $n';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      'กล้ามเนื้ออิงการจัดกลุ่มของ ExRx.net และเป็นค่าประมาณ เซ็ตหนึ่งนับเต็มสำหรับกล้ามเนื้อหลัก และครึ่งหนึ่งสำหรับกล้ามเนื้อช่วย เซ็ตวอร์มอัพก็นับด้วย';
+
+  @override
+  String get anatomyLimits =>
+      'ไม่มีการวิเคราะห์วิดีโอหรือท่าทาง หากเจ็บ ให้หยุดและปรึกษาผู้เชี่ยวชาญ';
+
+  @override
+  String get anatomyTapHint =>
+      'แตะที่กล้ามเนื้อ — หรือเลือกจากรายการด้านล่างก็ได้';
+
+  @override
+  String get anatomyNoSurface => 'กล้ามเนื้อชั้นลึก ไม่มีในภาพ';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return 'เซ็ตใน $days วัน: $sets';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return 'เซ็ต — 7 วันล่าสุด: $week · 28 วัน: $month';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28 วัน: กล้ามเนื้อหลัก $primary · ช่วย $secondary (นับครึ่ง)';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return 'ครั้งล่าสุด: $date ($ago)';
+  }
+
+  @override
+  String get anatomyNever => 'ยังไม่มีเซ็ตของกล้ามเนื้อนี้';
+
+  @override
+  String get anatomyDone => 'ท่าที่คุณเคยทำ';
+
+  @override
+  String get anatomyTry => 'ท่าที่ใช้กล้ามเนื้อนี้เป็นหลัก';
+
+  @override
+  String anatomyTryGear(String list) {
+    return 'ทำได้ด้วยอุปกรณ์ที่เคยใช้ ($list)';
+  }
+
+  @override
+  String get anatomyAllGear => 'ยังไม่มีอุปกรณ์ในบันทึก จึงแสดงทั้งหมด';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return 'ดูอีก $n ท่าที่ใช้อุปกรณ์อื่น';
+  }
+
+  @override
+  String get anatomyTriedAll => 'คุณทำครบทุกท่าที่ใช้กล้ามเนื้อนี้เป็นหลักแล้ว';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': 'หลัก',
+      'other': 'ช่วย',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyCues => 'เคล็ดลับท่าทาง';
+
+  @override
+  String get anatomyMistakes => 'ข้อผิดพลาดที่พบบ่อย';
+
+  @override
+  String anatomySources(String sites) {
+    return 'ที่มา: $sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '* เพิ่มเติมโดยไม่มีที่มา';
+
+  @override
+  String get anatomyCuesEnglish => 'ตอนนี้เคล็ดลับท่าทางมีเฉพาะภาษาอังกฤษ';
+
+  @override
+  String get anatomyAddRoutine => 'เพิ่มในรูทีนวันนี้';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return 'รูทีน$partวันนี้';
+  }
+
+  @override
+  String get anatomySearch => 'ดูในการค้นหา';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return 'เซ็ตใน $days วัน: $sets, $level';
+  }
+
+  @override
+  String get anatomyRegionHint => 'แตะสองครั้งเพื่อดูท่า';
+
+  @override
+  String get anatomyClose => 'ปิด';
+
+  @override
+  String get openSourceLicenses => 'สัญญาอนุญาตโอเพนซอร์ส';
 }
