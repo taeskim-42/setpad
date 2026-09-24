@@ -363,7 +363,8 @@ platform :android do
       skip_upload_metadata: true,
       skip_upload_images: true,
       skip_upload_screenshots: true,
-      skip_upload_changelogs: true,
+      # 이번 판의 새 소개(changelogs/default.txt)를 함께 올린다.
+      skip_upload_changelogs: false,
       release_status: "completed",
     )
   end
