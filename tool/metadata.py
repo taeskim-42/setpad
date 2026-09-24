@@ -75,7 +75,7 @@ setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 
 · 트레이너 모드: 체육관 직원 계정이면 아침 보고서로 오늘 수업과 확인할 일을 보고, 한 번 눌러 처리합니다
 
 ■ AI 도움과 원판
-· 한 줄 설정, 식단 열량 어림, 기록 질문은 처음 쓸 때 동의를 묻습니다. 동의하면 친 문장과 식단 사진(위치 정보를 뗀 것)이 우리 서버를 거쳐 DeepSeek의 AI로 가고, 우리 서버는 그 내용을 저장하지 않습니다. 설정에서 언제든 끌 수 있고, 꺼도 기록은 그대로 됩니다
+· 한 줄 설정, 식단 열량 어림, 기록 질문을 쓰면 친 문장과 식단 사진(위치 정보를 뗀 것)이 우리 서버를 거쳐 DeepSeek의 AI로 가고, 우리 서버는 그 내용을 저장하지 않습니다. 설정 › AI 도움에서 언제든 끌 수 있고, 꺼도 기록은 그대로 됩니다
 · 적기 도움(한 줄 설정·식단 어림)은 하루 10번 무료입니다
 · 기록 질문은 원판을 씁니다. 처음에 몇 장을 받고, 세트 10개를 채운 날마다 1장을 받습니다
 · Pro 구독: 매달 원판을 300장까지 채우고, 적기 도움은 하루 20번입니다. 무료 체험 중에는 30장까지
@@ -139,7 +139,7 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 · Trainer mode: gym staff get a morning report with today's classes and to-dos, and handle each with a tap
 
 ■ AI help and plates
-· One-line setup, meal calorie estimates and record questions ask for your consent the first time. With it, the text you type and meal photos (location removed) go through our server to DeepSeek's AI; our server does not store them. Turn it off any time in Settings — logging keeps working
+· When you use one-line setup, meal calorie estimates or record questions, the text you type and meal photos (location removed) go through our server to DeepSeek's AI; our server does not store them. Turn it off any time in Settings › AI help — logging keeps working
 · Input help (one-line setup, meal estimates): 10 a day, free
 · Record questions use plates. You start with a few, and earn 1 on each day you log 10 sets
 · Pro subscription: plates topped up to 300 each month, input help 20 a day. Up to 30 plates during a free trial
@@ -203,7 +203,7 @@ setpadはルーティンを組み立てるアプリではありません。セ�
 ・トレーナーモード：ジムのスタッフは朝のレポートで今日のクラスと確認事項を見て、タップ一つで処理できます
 
 ■ AI ヘルプとプレート
-・一行設定、食事のカロリー推定、記録への質問は、初めて使うときに同意を確認します。同意すると、入力した文章と食事の写真（位置情報を除く）が当社サーバーを経由して DeepSeek の AI に送られ、当社サーバーには保存しません。設定でいつでもオフにでき、オフでも記録はそのまま使えます
+・一行設定、食事のカロリー推定、記録への質問を使うと、入力した文章と食事の写真（位置情報を除く）が当社サーバーを経由して DeepSeek の AI に送られ、当社サーバーには保存しません。設定 › AIヘルプ でいつでもオフにでき、オフでも記録はそのまま使えます
 ・入力補助（一行設定・食事の推定）は1日10回まで無料です
 ・記録への質問はプレートを使います。最初に数枚もらえ、10セットを記録した日ごとに1枚もらえます
 ・Pro サブスクリプション：毎月プレートを300枚まで補充し、入力補助は1日20回。無料体験中は30枚まで
@@ -267,7 +267,7 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 · Modo entrenador: el personal del gimnasio ve cada mañana las clases de hoy y lo pendiente, y lo resuelve con un toque
 
 ■ Ayuda de IA y discos
-· La primera vez, la configuración en una línea, la estimación de calorías y las preguntas piden tu consentimiento. Si aceptas, tu texto y las fotos de comidas (sin ubicación) pasan por nuestro servidor a la IA de DeepSeek; nuestro servidor no los guarda. Puedes desactivarla en Ajustes; el registro sigue funcionando
+· Al usar la configuración en una línea, la estimación de calorías o las preguntas, tu texto y las fotos de comidas (sin ubicación) pasan por nuestro servidor a la IA de DeepSeek; nuestro servidor no los guarda. Puedes desactivarla en Ajustes › Ayuda de IA; el registro sigue funcionando
 · Ayuda para anotar (línea de configuración, estimación de comidas): 10 al día, gratis
 · Las preguntas usan discos. Empiezas con algunos y ganas 1 cada día que registras 10 series
 · Suscripción Pro: discos rellenados hasta 300 cada mes y ayuda para anotar 20 veces al día. Hasta 30 discos durante la prueba gratuita
@@ -331,7 +331,7 @@ setpad ไม่ใช่แอปสร้างโปรแกรมฝึก�
 · โหมดเทรนเนอร์: พนักงานยิมจะได้รายงานตอนเช้าเรื่องคลาสวันนี้และสิ่งที่ต้องตรวจ แล้วจัดการได้ในแตะเดียว
 
 ■ ตัวช่วย AI และแผ่นน้ำหนัก
-· การตั้งค่าบรรทัดเดียว การประมาณแคลอรีอาหาร และคำถามถึงบันทึก จะขอความยินยอมเมื่อใช้ครั้งแรก เมื่อยินยอม ข้อความที่พิมพ์และรูปอาหาร (ลบตำแหน่งแล้ว) จะส่งผ่านเซิร์ฟเวอร์ของเราไปยัง AI ของ DeepSeek โดยเซิร์ฟเวอร์ของเราไม่จัดเก็บไว้ ปิดได้ทุกเมื่อในการตั้งค่า และการบันทึกยังใช้ได้ตามปกติ
+· เมื่อใช้การตั้งค่าบรรทัดเดียว การประมาณแคลอรีอาหาร หรือคำถามถึงบันทึก ข้อความที่พิมพ์และรูปอาหาร (ลบตำแหน่งแล้ว) จะส่งผ่านเซิร์ฟเวอร์ของเราไปยัง AI ของ DeepSeek โดยเซิร์ฟเวอร์ของเราไม่จัดเก็บไว้ ปิดได้ทุกเมื่อที่ การตั้งค่า › ตัวช่วย AI และการบันทึกยังใช้ได้ตามปกติ
 · ตัวช่วยจด (ตั้งค่าบรรทัดเดียว ประมาณอาหาร) ฟรีวันละ 10 ครั้ง
 · คำถามถึงบันทึกใช้แผ่นน้ำหนัก เริ่มต้นได้รับจำนวนหนึ่ง และได้ 1 แผ่นทุกวันที่บันทึกครบ 10 เซ็ต
 · สมัครสมาชิก Pro: เติมแผ่นน้ำหนักให้ถึง 300 แผ่นทุกเดือน ตัวช่วยจดวันละ 20 ครั้ง ระหว่างทดลองใช้ฟรีได้ถึง 30 แผ่น
@@ -395,7 +395,7 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 · Chế độ huấn luyện viên: nhân viên phòng tập nhận báo cáo buổi sáng về lớp hôm nay và việc cần xem, xử lý chỉ với một chạm
 
 ■ Trợ giúp AI và bánh tạ
-· Thiết lập một dòng, ước tính calo bữa ăn và câu hỏi về nhật ký sẽ hỏi sự đồng ý của bạn ở lần đầu. Khi đồng ý, chữ bạn gõ và ảnh bữa ăn (đã bỏ vị trí) đi qua máy chủ của chúng tôi tới AI của DeepSeek; máy chủ của chúng tôi không lưu lại. Tắt bất cứ lúc nào trong Cài đặt — việc ghi vẫn hoạt động
+· Khi dùng thiết lập một dòng, ước tính calo bữa ăn hoặc câu hỏi về nhật ký, chữ bạn gõ và ảnh bữa ăn (đã bỏ vị trí) đi qua máy chủ của chúng tôi tới AI của DeepSeek; máy chủ của chúng tôi không lưu lại. Tắt bất cứ lúc nào trong Cài đặt › Trợ giúp AI — việc ghi vẫn hoạt động
 · Trợ giúp ghi (thiết lập một dòng, ước tính bữa ăn): miễn phí 10 lần mỗi ngày
 · Câu hỏi về nhật ký dùng bánh tạ. Bạn có sẵn vài bánh lúc đầu và nhận 1 bánh mỗi ngày ghi đủ 10 hiệp
 · Gói Pro: bánh tạ được nạp lên tới 300 mỗi tháng, trợ giúp ghi 20 lần mỗi ngày. Tối đa 30 bánh trong thời gian dùng thử miễn phí
@@ -459,7 +459,7 @@ setpad 不是用来提前编排计划的。做完一组，当场把数字打上�
 · 教练模式：健身房员工每天早上收到报告，查看今天的课程和待办事项，点一下即可处理
 
 ■ AI 帮助与杠铃片
-· 一行设置、餐食热量估算和记录提问在第一次使用时会征求你的同意。同意后，你输入的文字和餐食照片（已去除位置）会经我们的服务器发送给 DeepSeek 的 AI，我们的服务器不保存这些内容。可随时在设置中关闭，关闭后记录照常可用
+· 使用一行设置、餐食热量估算和记录提问时，你输入的文字和餐食照片（已去除位置）会经我们的服务器发送给 DeepSeek 的 AI，我们的服务器不保存这些内容。可随时在 设置 › AI 帮助 中关闭，关闭后记录照常可用
 · 输入帮助（一行设置、餐食估算）每天免费 10 次
 · 记录提问使用杠铃片。一开始会有几片，每天完成 10 组再送 1 片
 · Pro 订阅：每月把杠铃片补足到 300 片，输入帮助每天 20 次。免费试用期间最多 30 片
@@ -523,7 +523,7 @@ setpad 不是用來事先編排課表的。做完一組，當場把數字打上�
 · 教練模式：健身房員工每天早上收到報告，查看今天的課程和待辦事項，點一下即可處理
 
 ■ AI 協助與槓片
-· 一行設定、餐點熱量估算和紀錄提問在第一次使用時會徵求你的同意。同意後，你輸入的文字和餐點照片（已移除位置）會經我們的伺服器傳送給 DeepSeek 的 AI，我們的伺服器不會儲存這些內容。可隨時在設定中關閉，關閉後紀錄照常可用
+· 使用一行設定、餐點熱量估算和紀錄提問時，你輸入的文字和餐點照片（已移除位置）會經我們的伺服器傳送給 DeepSeek 的 AI，我們的伺服器不會儲存這些內容。可隨時在 設定 › AI 協助 中關閉，關閉後紀錄照常可用
 · 輸入幫助（一行設定、餐點估算）每天免費 10 次
 · 紀錄提問使用槓片。一開始會有幾片，每天完成 10 組再送 1 片
 · Pro 訂閱：每月把槓片補足到 300 片，輸入幫助每天 20 次。免費試用期間最多 30 片
@@ -563,7 +563,7 @@ NEWS = {
            '기록 질문이 기간과 운동을 나란히 비교해 표로 보여 줍니다',
            '끼니 열량에 출처가 붙습니다 — 식약처·USDA 표의 값과 원본 링크',
            '원판과 Pro 구독: 기록 질문은 원판을 쓰고, 세트 10개를 채운 날마다 1장을 받습니다',
-           'AI 도움은 처음 쓸 때 DeepSeek로 무엇을 보내는지 알리고 동의를 묻습니다. 설정에서 언제든 끌 수 있습니다',
+           'AI 도움(DeepSeek)은 설정 › AI 도움에서 언제든 끌 수 있습니다 — 꺼도 기록은 그대로 됩니다',
            '옆 사람의 세트를 내 폰에서 대신 적고 링크로 건넵니다',
            '트레이너 모드: 체육관 직원은 아침 보고서로 오늘 수업과 확인할 일을 보고 한 번에 처리합니다',
            '친 글은 버리지 않습니다 — 설정에 못 옮긴 말은 보이고, 해석이 안 돼도 친 그대로 남습니다'],
@@ -572,7 +572,7 @@ NEWS = {
            'Record questions compare periods and exercises side by side in a table',
            'Meal calories show their source — the MFDS or USDA table value with a link to the original',
            'Plates and Pro: record questions use plates, and you earn 1 on each day you log 10 sets',
-           'AI help tells you what goes to DeepSeek and asks for consent the first time. Turn it off any time in Settings',
+           'AI help (DeepSeek) can be turned off any time in Settings › AI help — logging keeps working',
            'Log a partner\'s sets on your phone and hand them over with a link',
            'Trainer mode: gym staff get a morning report with today\'s classes and to-dos, handled in a tap',
            'Nothing you type is thrown away — words that could not be placed are shown, and unreadable lines are kept as typed'],
@@ -581,7 +581,7 @@ NEWS = {
            '記録への質問が期間や種目を並べて表で比べます',
            '食事のカロリーに出どころ — 食品医薬品安全処・USDA の表の値と元のリンク',
            'プレートと Pro：記録への質問はプレートを使い、10セットを記録した日ごとに1枚もらえます',
-           'AI ヘルプは初回に DeepSeek へ何を送るかを示して同意を確認。設定でいつでもオフにできます',
+           'AI ヘルプ（DeepSeek）は 設定 › AIヘルプ でいつでもオフにできます。オフでも記録はそのまま使えます',
            '隣の人のセットを自分のスマホで代わりに記録し、リンクで渡せます',
            'トレーナーモード：ジムのスタッフは朝のレポートで今日のクラスと確認事項を見てタップで処理',
            '入力は捨てません — 設定に移せなかった言葉は表示され、解釈できなくても入力のまま残ります'],
@@ -590,7 +590,7 @@ NEWS = {
            'Las preguntas comparan periodos y ejercicios lado a lado en una tabla',
            'Las calorías muestran su fuente: el valor de la tabla del MFDS o del USDA con enlace al original',
            'Discos y Pro: las preguntas usan discos y ganas 1 cada día que registras 10 series',
-           'La ayuda de IA explica qué va a DeepSeek y pide tu consentimiento la primera vez. Desactívala cuando quieras en Ajustes',
+           'La ayuda de IA (DeepSeek) se puede desactivar cuando quieras en Ajustes › Ayuda de IA; el registro sigue funcionando',
            'Anota las series de tu compañero en tu teléfono y pásaselas con un enlace',
            'Modo entrenador: el personal del gimnasio recibe un informe matutino con las clases y pendientes de hoy',
            'Nada de lo que escribes se pierde: lo que no se pudo colocar se muestra y lo ilegible queda tal cual'],
@@ -599,7 +599,7 @@ NEWS = {
            'คำถามถึงบันทึกเทียบช่วงเวลาและท่าเคียงกันในตาราง',
            'แคลอรีของอาหารบอกแหล่งที่มา — ค่าจากตาราง MFDS หรือ USDA พร้อมลิงก์ต้นฉบับ',
            'แผ่นน้ำหนักและ Pro: คำถามถึงบันทึกใช้แผ่นน้ำหนัก และได้ 1 แผ่นทุกวันที่บันทึกครบ 10 เซ็ต',
-           'ตัวช่วย AI บอกว่าอะไรจะส่งไปยัง DeepSeek และขอความยินยอมในครั้งแรก ปิดได้ทุกเมื่อในการตั้งค่า',
+           'ตัวช่วย AI (DeepSeek) ปิดได้ทุกเมื่อที่ การตั้งค่า › ตัวช่วย AI และการบันทึกยังใช้ได้ตามปกติ',
            'จดเซ็ตของเพื่อนแทนบนโทรศัพท์ของคุณ แล้วส่งให้ด้วยลิงก์',
            'โหมดเทรนเนอร์: พนักงานยิมได้รายงานตอนเช้าเรื่องคลาสวันนี้และสิ่งที่ต้องตรวจ จัดการได้ในแตะเดียว',
            'ไม่ทิ้งสิ่งที่พิมพ์ — คำที่ใส่ในการตั้งค่าไม่ได้จะแสดงให้เห็น และบรรทัดที่อ่านไม่ได้ก็เก็บไว้ตามที่พิมพ์'],
@@ -608,7 +608,7 @@ NEWS = {
            'Câu hỏi về nhật ký so sánh giai đoạn và bài tập cạnh nhau trong bảng',
            'Calo bữa ăn có nguồn — giá trị từ bảng MFDS hoặc USDA kèm liên kết gốc',
            'Bánh tạ và Pro: câu hỏi dùng bánh tạ, và bạn nhận 1 bánh mỗi ngày ghi đủ 10 hiệp',
-           'Trợ giúp AI cho biết những gì gửi tới DeepSeek và hỏi sự đồng ý ở lần đầu. Tắt bất cứ lúc nào trong Cài đặt',
+           'Trợ giúp AI (DeepSeek) có thể tắt bất cứ lúc nào trong Cài đặt › Trợ giúp AI — việc ghi vẫn hoạt động',
            'Ghi hộ các hiệp của bạn tập trên điện thoại của bạn rồi gửi bằng liên kết',
            'Chế độ huấn luyện viên: nhân viên phòng tập nhận báo cáo buổi sáng về lớp hôm nay và việc cần xem',
            'Không bỏ điều bạn gõ — chữ không đưa được vào thiết lập vẫn hiện ra, dòng không đọc được giữ nguyên'],
@@ -617,7 +617,7 @@ NEWS = {
                 '记录提问把时间段和动作并排放进表格比较',
                 '餐食热量标明出处 — 食药处或 USDA 表中的数值和原始链接',
                 '杠铃片与 Pro：记录提问使用杠铃片，每天完成 10 组送 1 片',
-                'AI 帮助首次使用时说明会发送什么给 DeepSeek 并征求同意，可随时在设置中关闭',
+                'AI 帮助（DeepSeek）可随时在 设置 › AI 帮助 中关闭，关闭后记录照常可用',
                 '在自己的手机上替同伴记录组数，再用链接交给对方',
                 '教练模式：健身房员工每天早上收到报告，查看今天的课程和待办并一键处理',
                 '输入的内容不会丢 — 放不进设置的字会显示出来，无法解析时也照原样保留'],
@@ -626,7 +626,7 @@ NEWS = {
                 '紀錄提問把時段和動作並排放進表格比較',
                 '餐點熱量標明出處 — 食藥處或 USDA 表中的數值和原始連結',
                 '槓片與 Pro：紀錄提問使用槓片，每天完成 10 組送 1 片',
-                'AI 協助首次使用時說明會傳送什麼給 DeepSeek 並徵求同意，可隨時在設定中關閉',
+                'AI 協助（DeepSeek）可隨時在 設定 › AI 協助 中關閉，關閉後紀錄照常可用',
                 '在自己的手機上替夥伴記錄組數，再用連結交給對方',
                 '教練模式：健身房員工每天早上收到報告，查看今天的課程和待辦並一鍵處理',
                 '輸入的內容不會丟 — 放不進設定的字會顯示出來，無法解析時也照原樣保留'],

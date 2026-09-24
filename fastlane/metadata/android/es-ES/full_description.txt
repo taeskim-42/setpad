@@ -43,7 +43,7 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 · Modo entrenador: el personal del gimnasio ve cada mañana las clases de hoy y lo pendiente, y lo resuelve con un toque
 
 ■ Ayuda de IA y discos
-· La primera vez, la configuración en una línea, la estimación de calorías y las preguntas piden tu consentimiento. Si aceptas, tu texto y las fotos de comidas (sin ubicación) pasan por nuestro servidor a la IA de DeepSeek; nuestro servidor no los guarda. Puedes desactivarla en Ajustes; el registro sigue funcionando
+· Al usar la configuración en una línea, la estimación de calorías o las preguntas, tu texto y las fotos de comidas (sin ubicación) pasan por nuestro servidor a la IA de DeepSeek; nuestro servidor no los guarda. Puedes desactivarla en Ajustes › Ayuda de IA; el registro sigue funcionando
 · Ayuda para anotar (línea de configuración, estimación de comidas): 10 al día, gratis
 · Las preguntas usan discos. Empiezas con algunos y ganas 1 cada día que registras 10 series
 · Suscripción Pro: discos rellenados hasta 300 cada mes y ayuda para anotar 20 veces al día. Hasta 30 discos durante la prueba gratuita

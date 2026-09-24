@@ -1,14 +1,14 @@
 No account is needed to review setpad. Every AI feature below works signed out: the app uses an anonymous random device ID, and a new device starts with 3 plates.
 
-AI consent (DeepSeek)
-- The first time any AI feature is used, a sheet explains what is sent (the text you type, meal photos with location and capture details removed, and the exercise names in your log), that it goes through our server gym.darak.studio to DeepSeek's AI, that our server does not store it, and links the privacy policy. Choices: "Agree and turn on" / "Not now".
-- "Not now" never blocks the app: typed lines are still logged as written, calories typed as "500kcal" still count, name search still works, and one line says AI help is off.
-- To change it later: on the list screen tap the gear icon (top right) › Settings › Recording › "AI help (DeepSeek)". The same Settings page is in the "…" menu of a record screen.
+AI help (DeepSeek) and how to turn it off
+- AI help is on by default. When an AI feature is used, what is sent (the text you type, meal photos with location and capture details removed, and the exercise names in your log) goes through our server gym.darak.studio to DeepSeek's AI; our server does not store it. The privacy policy describes this.
+- To turn it off: on the list screen tap the gear icon (top right) › Settings › Recording › "AI help (DeepSeek)". The same Settings page is in the "…" menu of a record screen. While it is off, nothing is sent to the AI.
+- Off never blocks the app: typed lines are still logged as written, calories typed as "500kcal" still count, name search still works, today's routine is built on the phone, and one line says AI help is off.
 - Health data read from Apple Health (active energy, heart rate) is never sent to our server or to the AI.
 
 How to try the AI features (signed out)
 1. Launch the app. Today's record opens; tap the exercise-name field at the bottom.
-2. One-line setup: type "bench 80kg 5x5" and press Return. Accept the consent sheet. A sheet shows 80 kg and 5 sets of 5; tap Done. Then type "80 5" to log a set.
+2. One-line setup: type "bench 80kg 5x5" and press Return. A sheet shows 80 kg and 5 sets of 5; tap Done. Then type "80 5" to log a set.
 3. Meal from text: in the same field type "lunch burrito" and press Return. It is logged as a meal ("Logged as a meal"; "Make it exercise" undoes it) and its calories are estimated. When the number came from a food table (Korean MFDS or USDA), the meal shows that source with a link.
 4. Meal photo: with the exercise-name field focused, tap "Meal photo" above the keyboard and take or choose a food photo.
 5. Record question: go back to "All Workouts", type "best bench press" in the search field and press Return, then tap "Yes" to confirm. The table is computed on the phone from the saved sets; the AI only turns the question into a query.

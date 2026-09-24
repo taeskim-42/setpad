@@ -1829,27 +1829,6 @@ class LVi extends L {
   String get settingsTrainer => 'Huấn luyện viên';
 
   @override
-  String get aiConsentTitle => 'Bật trợ giúp AI?';
-
-  @override
-  String get aiConsentBody =>
-      'Thiết lập một dòng, ước tính calo bữa ăn và câu hỏi về nhật ký được AI của DeepSeek (Trung Quốc) đọc. Dữ liệu đi qua máy chủ của chúng tôi (gym.darak.studio), nơi không lưu lại nội dung đó.';
-
-  @override
-  String get aiConsentSent =>
-      'Những gì được gửi: chữ bạn gõ, ảnh bữa ăn (đã bỏ vị trí và thông tin chụp) và tên bài tập trong nhật ký của bạn. Hiệp, mức tạ, ngày và ghi chú không được gửi cho AI; điện thoại tự tính.';
-
-  @override
-  String get aiConsentLater =>
-      'Nếu chọn Để sau, những gì bạn gõ vẫn được ghi đúng như vậy, kcal đã gõ và tìm theo tên vẫn dùng được. Bạn có thể bật hoặc tắt bất cứ lúc nào trong Cài đặt › Trợ giúp AI.';
-
-  @override
-  String get aiConsentAgree => 'Đồng ý và bật';
-
-  @override
-  String get aiConsentNotNow => 'Để sau';
-
-  @override
   String get aiSetting => 'Trợ giúp AI (DeepSeek)';
 
   @override

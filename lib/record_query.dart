@@ -4799,7 +4799,7 @@ class RecordSearch extends ChangeNotifier {
             charged = e.charged;
           } else if (e is RecordAiException &&
               e.status == RecordAiStatus.aiOff) {
-            // AI 도움을 켜지 않았다. 아무것도 보내지 않았고, 목록과 칩은 그대로다.
+            // AI 도움을 꺼 두었다. 아무것도 보내지 않았고, 목록과 칩은 그대로다.
             aiOff = true;
           } else {
             failed = true;

@@ -5,7 +5,7 @@ Trong bản cập nhật này
 · Câu hỏi về nhật ký so sánh giai đoạn và bài tập cạnh nhau trong bảng
 · Calo bữa ăn có nguồn — giá trị từ bảng MFDS hoặc USDA kèm liên kết gốc
 · Bánh tạ và Pro: câu hỏi dùng bánh tạ, và bạn nhận 1 bánh mỗi ngày ghi đủ 10 hiệp
-· Trợ giúp AI cho biết những gì gửi tới DeepSeek và hỏi sự đồng ý ở lần đầu. Tắt bất cứ lúc nào trong Cài đặt
+· Trợ giúp AI (DeepSeek) có thể tắt bất cứ lúc nào trong Cài đặt › Trợ giúp AI — việc ghi vẫn hoạt động
 · Ghi hộ các hiệp của bạn tập trên điện thoại của bạn rồi gửi bằng liên kết
 · Chế độ huấn luyện viên: nhân viên phòng tập nhận báo cáo buổi sáng về lớp hôm nay và việc cần xem
 · Không bỏ điều bạn gõ — chữ không đưa được vào thiết lập vẫn hiện ra, dòng không đọc được giữ nguyên

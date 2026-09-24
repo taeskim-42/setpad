@@ -13,7 +13,6 @@ import 'package:app_links/app_links.dart';
 
 import 'account.dart';
 import 'agent_alarm.dart';
-import 'ai_consent.dart';
 import 'daily.dart';
 import 'gym.dart';
 import 'gym_sheets.dart';
@@ -231,18 +230,13 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 로그인과 결제. **없어도 앱은 그대로 돈다** — 켜지 않은 사람은 그냥 쓴다.
   /// 기기 id 는 store 가 처음 켤 때 만들므로 부를 때 읽는다.
   late final _account =
-      Account(deviceId: () => _store.deviceId, aiConsent: _aiConsent)
+      Account(deviceId: () => _store.deviceId, aiEnabled: () => _store.aiOn)
         // 시작이 실패해도 알림 탭이 영영 기다리지 않게 늘 끝낸다.
         ..start()
             .whenComplete(_accountStarted.complete)
             .then((_) => _sendPendingWorkouts());
 
   void _claimDaily() => unawaited(_account.claimDaily(_store));
-
-  /// 모델에 보내기 전에 한 번 묻는다. 시트는 편집 화면 위에 뜬다(같은 내비게이터).
-  Future<bool> _aiConsent() => mounted
-      ? askAiConsent(context, _store)
-      : Future.value(_store.aiConsent ?? false);
 
   /// 남겨 둔 로그인이 되살아났는가. 알림을 눌러 켜진 앱은 이것을 기다려야
   /// 보고서를 읽을 토큰이 있다.
@@ -1277,13 +1271,12 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
 
   Future<void> _addMeal(ImageSource source) async {
     final l = L.of(context);
-    // 사진을 고르기 전에 묻는다 — 고른 뒤에 거절하면 헛걸음이다. 꺼 두었으면
+    // 사진을 고르기 전에 본다 — 고른 뒤에 막히면 헛걸음이다. 꺼 두었으면
     // 글로 적는 길을 말한다(적은 kcal 은 그대로 들어간다).
-    if (!await widget.ai.allowed()) {
-      if (mounted) setState(() => _error = (text: l.aiOffPhoto, meal: null));
+    if (!widget.ai.allowed) {
+      setState(() => _error = (text: l.aiOffPhoto, meal: null));
       return;
     }
-    if (!mounted) return;
     final XFile? file;
     try {
       // 1024px 이면 접시가 충분히 보이고, 보내는 양은 수백 KB 다.

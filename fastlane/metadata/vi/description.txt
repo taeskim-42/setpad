@@ -43,7 +43,7 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 · Chế độ huấn luyện viên: nhân viên phòng tập nhận báo cáo buổi sáng về lớp hôm nay và việc cần xem, xử lý chỉ với một chạm
 
 ■ Trợ giúp AI và bánh tạ
-· Thiết lập một dòng, ước tính calo bữa ăn và câu hỏi về nhật ký sẽ hỏi sự đồng ý của bạn ở lần đầu. Khi đồng ý, chữ bạn gõ và ảnh bữa ăn (đã bỏ vị trí) đi qua máy chủ của chúng tôi tới AI của DeepSeek; máy chủ của chúng tôi không lưu lại. Tắt bất cứ lúc nào trong Cài đặt — việc ghi vẫn hoạt động
+· Khi dùng thiết lập một dòng, ước tính calo bữa ăn hoặc câu hỏi về nhật ký, chữ bạn gõ và ảnh bữa ăn (đã bỏ vị trí) đi qua máy chủ của chúng tôi tới AI của DeepSeek; máy chủ của chúng tôi không lưu lại. Tắt bất cứ lúc nào trong Cài đặt › Trợ giúp AI — việc ghi vẫn hoạt động
 · Trợ giúp ghi (thiết lập một dòng, ước tính bữa ăn): miễn phí 10 lần mỗi ngày
 · Câu hỏi về nhật ký dùng bánh tạ. Bạn có sẵn vài bánh lúc đầu và nhận 1 bánh mỗi ngày ghi đủ 10 hiệp
 · Gói Pro: bánh tạ được nạp lên tới 300 mỗi tháng, trợ giúp ghi 20 lần mỗi ngày. Tối đa 30 bánh trong thời gian dùng thử miễn phí
