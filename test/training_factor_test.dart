@@ -156,6 +156,23 @@ void main() {
     });
   });
 
+  test('횟수도 거리·시간도 없는 칸은 지어내지 않는다 — 유산소 이름이면 심폐, 아니면 가르지 않음(1×0 없음)', () {
+    for (final s in [
+      LoggedSet(),
+      LoggedSet(unit: 'kg'),
+      LoggedSet(value: 0, unit: 'kg', reps: 0),
+    ]) {
+      final run = factorOf(ExerciseBlock('러닝', [s]))!;
+      expect(run.factor, Factor.cardio);
+      expect(run.args, ['러닝']);
+      expect(factorOf(ExerciseBlock('스쿼트', [s])), isNull);
+    }
+    expect(
+      factorOf(ExerciseBlock('스쿼트', [LoggedSet(value: 100, unit: 'kg')])),
+      isNull,
+    );
+  });
+
   group('하루', () {
     Factor? day(List<Note> notes, int m, int d) =>
         dayFactor(notesByDay(notes)[DateTime(2026, m, d)]!)?.factor;

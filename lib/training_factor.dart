@@ -106,6 +106,13 @@ FactorRead? factorOf(ExerciseBlock b) {
       ? mine
       : mine.where((s) => s.value == top.value && s.unit == top.unit).toList();
   final r = [for (final s in work) s.reps ?? 0];
+  // 횟수가 하나도 없다(체크만 한 칸). "1×0" 을 지어내지 않는다 — 유산소 이름이면 심폐로
+  // 칸 이름을 대고, 아니면 가르지 않는다.
+  if (r.every((x) => x <= 0)) {
+    return partOf(exerciseKey(b.exercise)) == 'cardio'
+        ? read(Factor.cardio, 'distance', [b.name])
+        : null;
+  }
   if (r.length == 1 && r.first >= singleFillReps) {
     return read(Factor.endurance, 'single', ['${r.first}']);
   }
