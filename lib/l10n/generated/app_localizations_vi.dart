@@ -3117,6 +3117,9 @@ class LVi extends L {
   String get anatomyClose => 'Đóng';
 
   @override
+  String get anatomyZoomReset => 'Kích thước gốc';
+
+  @override
   String anatomyTileSets(String n) {
     return '$n hiệp';
   }

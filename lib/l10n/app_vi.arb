@@ -737,6 +737,7 @@
   "anatomyRegionValue": "Số hiệp {days} ngày: {sets}, {level}",
   "anatomyRegionHint": "Chạm hai lần để xem bài tập",
   "anatomyClose": "Đóng",
+  "anatomyZoomReset": "Kích thước gốc",
   "anatomyTileSets": "{n} hiệp",
   "anatomyLastLabel": "Lần cuối",
   "openSourceLicenses": "Giấy phép mã nguồn mở",

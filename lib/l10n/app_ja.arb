@@ -737,6 +737,7 @@
   "anatomyRegionValue": "直近{days}日 {sets}セット、{level}",
   "anatomyRegionHint": "ダブルタップで種目を見る",
   "anatomyClose": "閉じる",
+  "anatomyZoomReset": "元のサイズ",
   "anatomyTileSets": "{n}セット",
   "anatomyLastLabel": "最後",
   "openSourceLicenses": "オープンソースライセンス",

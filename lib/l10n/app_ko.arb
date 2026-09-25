@@ -3167,6 +3167,7 @@
   },
   "anatomyRegionHint": "두 번 눌러 운동 보기",
   "anatomyClose": "닫기",
+  "anatomyZoomReset": "원래 크기",
   "anatomyTileSets": "{n}세트",
   "@anatomyTileSets": {
     "placeholders": {

@@ -3097,6 +3097,9 @@ class LTh extends L {
   String get anatomyClose => 'ปิด';
 
   @override
+  String get anatomyZoomReset => 'ขนาดเดิม';
+
+  @override
   String anatomyTileSets(String n) {
     return '$n เซ็ต';
   }

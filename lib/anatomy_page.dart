@@ -131,6 +131,19 @@ class _AnatomyPageState extends State<AnatomyPage> {
   int _days = 7;
   bool _missed = false;
 
+  /// 그림 확대. 두 손가락이 그림에 닿았거나 확대된 동안에는 화면이 스크롤되지
+  /// 않는다 — 벌리는 손가락이 페이지를 끌어 그림이 달아났다.
+  final _zoom = TransformationController();
+  int _fingers = 0;
+  bool get _zoomed => _zoom.value.getMaxScaleOnAxis() > 1.01;
+  bool get _lock => _fingers >= 2 || _zoomed;
+
+  @override
+  void dispose() {
+    _zoom.dispose();
+    super.dispose();
+  }
+
   /// 시트를 연 근육. 그림에서 그 자리만 다른 색으로 칠해 어디를 보는지 보인다.
   Muscle? _selected;
 
@@ -178,6 +191,7 @@ class _AnatomyPageState extends State<AnatomyPage> {
       navigationBar: CupertinoNavigationBar(middle: Text(l.anatomyTitle)),
       child: SafeArea(
         child: ListView(
+          physics: _lock ? const NeverScrollableScrollPhysics() : null,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
             Row(
@@ -213,31 +227,65 @@ class _AnatomyPageState extends State<AnatomyPage> {
                 final size = Size(c.maxWidth, _figureHeight);
                 // VoiceOver 는 아래 목록 줄로 고른다(줄마다 이름·세트·단계).
                 return ExcludeSemantics(
-                  child: GestureDetector(
-                    key: const ValueKey('anatomy-figure'),
-                    onTapUp: (d) {
-                      final m = _hit(_front, size, d.localPosition);
-                      m == null
-                          ? setState(() => _missed = true)
-                          : _openSheet(m, today);
-                    },
-                    child: CustomPaint(
-                      size: size,
-                      painter: _BodyPainter(
-                        front: _front,
-                        body: CupertinoColors.systemGrey6.resolveFrom(context),
-                        line: CupertinoColors.separator.resolveFrom(context),
-                        fills: {
-                          for (final m in regions) m: _fill(context, lv(m)),
+                  child: Listener(
+                    onPointerDown: (_) => setState(() => _fingers++),
+                    onPointerUp: (_) => setState(() => _fingers--),
+                    onPointerCancel: (_) => setState(() => _fingers--),
+                    child: InteractiveViewer(
+                      transformationController: _zoom,
+                      minScale: 1,
+                      maxScale: 4,
+                      // 확대 전 한 손가락은 페이지 스크롤이다. 확대한 뒤에만 그림을 끈다.
+                      panEnabled: _zoomed,
+                      onInteractionEnd: (_) => setState(() {}),
+                      child: GestureDetector(
+                        key: const ValueKey('anatomy-figure'),
+                        onTapUp: (d) {
+                          final m = _hit(_front, size, d.localPosition);
+                          m == null
+                              ? setState(() => _missed = true)
+                              : _openSheet(m, today);
                         },
-                        selected: _selected,
-                        mark: CupertinoColors.activeBlue.resolveFrom(context),
+                        child: CustomPaint(
+                          size: size,
+                          painter: _BodyPainter(
+                            front: _front,
+                            body: CupertinoColors.systemGrey6.resolveFrom(
+                              context,
+                            ),
+                            line: CupertinoColors.separator.resolveFrom(
+                              context,
+                            ),
+                            fills: {
+                              for (final m in regions) m: _fill(context, lv(m)),
+                            },
+                            selected: _selected,
+                            mark: CupertinoColors.activeBlue.resolveFrom(
+                              context,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 );
               },
             ),
+            if (_zoomed)
+              Align(
+                alignment: Alignment.centerRight,
+                child: CupertinoButton(
+                  key: const ValueKey('anatomy-zoom-reset'),
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(44, 32),
+                  onPressed: () =>
+                      setState(() => _zoom.value = Matrix4.identity()),
+                  child: Text(
+                    l.anatomyZoomReset,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+              ),
             const SizedBox(height: 12),
             if (_missed)
               Text(

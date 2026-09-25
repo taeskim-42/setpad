@@ -737,6 +737,7 @@
   "anatomyRegionValue": "เซ็ตใน {days} วัน: {sets}, {level}",
   "anatomyRegionHint": "แตะสองครั้งเพื่อดูท่า",
   "anatomyClose": "ปิด",
+  "anatomyZoomReset": "ขนาดเดิม",
   "anatomyTileSets": "{n} เซ็ต",
   "anatomyLastLabel": "ล่าสุด",
   "openSourceLicenses": "สัญญาอนุญาตโอเพนซอร์ส",

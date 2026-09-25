@@ -3039,6 +3039,9 @@ class LKo extends L {
   String get anatomyClose => '닫기';
 
   @override
+  String get anatomyZoomReset => '원래 크기';
+
+  @override
   String anatomyTileSets(String n) {
     return '$n세트';
   }

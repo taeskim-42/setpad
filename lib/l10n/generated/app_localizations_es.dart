@@ -3158,6 +3158,9 @@ class LEs extends L {
   String get anatomyClose => 'Cerrar';
 
   @override
+  String get anatomyZoomReset => 'Tamaño original';
+
+  @override
   String anatomyTileSets(String n) {
     return '$n series';
   }

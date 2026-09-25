@@ -3137,6 +3137,9 @@ class LEn extends L {
   String get anatomyClose => 'Close';
 
   @override
+  String get anatomyZoomReset => 'Reset zoom';
+
+  @override
   String anatomyTileSets(String n) {
     return '$n sets';
   }

@@ -737,6 +737,7 @@
   "anatomyRegionValue": "{days}-day sets: {sets}, {level}",
   "anatomyRegionHint": "Double-tap to see exercises",
   "anatomyClose": "Close",
+  "anatomyZoomReset": "Reset zoom",
   "anatomyTileSets": "{n} sets",
   "anatomyLastLabel": "Last",
   "openSourceLicenses": "Open-source licenses",

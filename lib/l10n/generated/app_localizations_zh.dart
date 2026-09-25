@@ -3011,6 +3011,9 @@ class LZh extends L {
   String get anatomyClose => '关闭';
 
   @override
+  String get anatomyZoomReset => '恢复原大小';
+
+  @override
   String anatomyTileSets(String n) {
     return '$n组';
   }
@@ -6184,6 +6187,9 @@ class LZhHans extends LZh {
   String get anatomyClose => '关闭';
 
   @override
+  String get anatomyZoomReset => '恢复原大小';
+
+  @override
   String anatomyTileSets(String n) {
     return '$n组';
   }
@@ -9354,6 +9360,9 @@ class LZhHant extends LZh {
 
   @override
   String get anatomyClose => '關閉';
+
+  @override
+  String get anatomyZoomReset => '恢復原大小';
 
   @override
   String anatomyTileSets(String n) {

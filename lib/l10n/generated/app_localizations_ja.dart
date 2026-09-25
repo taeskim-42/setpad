@@ -3033,6 +3033,9 @@ class LJa extends L {
   String get anatomyClose => '閉じる';
 
   @override
+  String get anatomyZoomReset => '元のサイズ';
+
+  @override
   String anatomyTileSets(String n) {
     return '$nセット';
   }

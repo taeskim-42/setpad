@@ -737,6 +737,7 @@
   "anatomyRegionValue": "最近{days}天 {sets}组，{level}",
   "anatomyRegionHint": "双击查看动作",
   "anatomyClose": "关闭",
+  "anatomyZoomReset": "恢复原大小",
   "anatomyTileSets": "{n}组",
   "anatomyLastLabel": "最近一次",
   "openSourceLicenses": "开源许可",

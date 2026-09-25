@@ -4536,6 +4536,12 @@ abstract class L {
   /// **'닫기'**
   String get anatomyClose;
 
+  /// No description provided for @anatomyZoomReset.
+  ///
+  /// In ko, this message translates to:
+  /// **'원래 크기'**
+  String get anatomyZoomReset;
+
   /// No description provided for @anatomyTileSets.
   ///
   /// In ko, this message translates to:
