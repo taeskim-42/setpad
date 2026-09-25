@@ -1,5 +1,6 @@
 import 'package:setpad/editor.dart';
 import 'package:setpad/notes.dart';
+import 'package:setpad/record_ai.dart' show WorkoutSetup;
 
 /// 코퍼스 assumedLog(기준일 2026-09-09 수)에 실제 세트를 붙인 기록(설계 §12.1).
 ///
@@ -120,8 +121,97 @@ List<Note> fewLog() => [
   ]),
 ];
 
+/// 시각 [t] 에 시작한 기록 하나(세트당 45분 안팎).
+Note at(DateTime t, List<ExerciseBlock> blocks) => Note(
+  id: t.toIso8601String(),
+  createdAt: t,
+  updatedAt: t.add(const Duration(minutes: 45)),
+  blocks: blocks,
+);
+
+/// 합성 주(설계 §8.1): [monday] 부터 [days] 일, 요일(1–7)마다 [plan] 의 칸으로 19시에
+/// 한 기록. [skip] 의 날은 쉰다.
+List<Note> weekLog(
+  DateTime monday,
+  int days,
+  Map<int, List<ExerciseBlock> Function()> plan, {
+  Set<DateTime> skip = const {},
+}) => [
+  for (var i = 0; i < days; i++)
+    if (plan[monday.add(Duration(days: i)).weekday] case final p?)
+      if (!skip.contains(monday.add(Duration(days: i))))
+        at(monday.add(Duration(days: i, hours: 19)), p()),
+];
+
+/// 월 가슴 / 화 등 / 수 하체 / 목 어깨 / 금 팔(모두 3세트).
+final splitPlan = <int, List<ExerciseBlock> Function()>{
+  1: () => [
+    ExerciseBlock('벤치프레스', times(3, () => kg(80, 5))),
+    ExerciseBlock('인클라인 벤치프레스', times(3, () => kg(50, 10))),
+  ],
+  2: () => [
+    ExerciseBlock('데드리프트', times(3, () => kg(100, 5))),
+    ExerciseBlock('랫풀다운', times(3, () => kg(55, 10))),
+  ],
+  3: () => [
+    ExerciseBlock('스쿼트', times(3, () => kg(90, 5))),
+    ExerciseBlock('레그컬', times(3, () => kg(40, 12))),
+  ],
+  4: () => [
+    ExerciseBlock('오버헤드프레스', times(3, () => kg(40, 8))),
+    ExerciseBlock('사이드 레터럴 레이즈', times(3, () => kg(8, 15))),
+  ],
+  5: () => [
+    ExerciseBlock('바벨컬', times(3, () => kg(30, 10))),
+    ExerciseBlock('케이블 푸시다운', times(3, () => kg(25, 12))),
+  ],
+};
+
+/// 방식만 다른 한 주(설계 §2.4): 월 순발력(5×5) · 화 근지구력(채우기·줄어드는 횟수) ·
+/// 수 근력(3×10) · 목 지속력(10회×7세트) · 금 심폐(타바타).
+final methodPlan = <int, List<ExerciseBlock> Function()>{
+  1: () => [
+    ExerciseBlock(
+      '스쿼트 100kg 5x5',
+      times(5, () => kg(100, 5)),
+      const WorkoutSetup(name: '스쿼트', weight: 100, repsPerSet: 5, totalSets: 5),
+    ),
+    ExerciseBlock('벤치프레스', times(5, () => kg(80, 5))),
+  ],
+  2: () => [
+    ExerciseBlock('스쿼트 60kg 100개 채우기', [
+      kg(60, 30),
+      kg(60, 25),
+      kg(60, 25),
+      kg(60, 20),
+    ], const WorkoutSetup(name: '스쿼트', weight: 60, totalReps: 100)),
+    ExerciseBlock('푸시업 100개 채우기', [reps(30), reps(25), reps(25), reps(20)]),
+    ExerciseBlock('랫풀다운', [kg(40, 23), kg(40, 18), kg(40, 15)]),
+  ],
+  3: () => [
+    ExerciseBlock('스쿼트', times(3, () => kg(80, 10))),
+    ExerciseBlock('벤치프레스', times(3, () => kg(60, 10))),
+  ],
+  4: () => [
+    ExerciseBlock('스쿼트 30bpm', times(7, () => kg(60, 10))),
+    ExerciseBlock('벤치프레스 30bpm', [...times(6, () => kg(40, 10)), kg(40, 7)]),
+  ],
+  5: () => [
+    ExerciseBlock('스쿼트 타바타', [reps(80)]),
+    ExerciseBlock('버피 타바타', [reps(40)]),
+  ],
+};
+
+List<Note> methodWeek(DateTime monday) => weekLog(monday, 5, methodPlan);
+
+/// 코퍼스 기준일(9/9 수) 앞의 합성 기록: 방식 주 두 벌(8/24·8/31), 분할 3주(8/17–9/6).
 List<Note> logFor(String? profile) => switch (profile) {
   'empty' => <Note>[],
   'few' => fewLog(),
+  'methodWeek' => [
+    ...methodWeek(DateTime(2026, 8, 24)),
+    ...methodWeek(DateTime(2026, 8, 31)),
+  ],
+  'split' => weekLog(DateTime(2026, 8, 17), 21, splitPlan),
   _ => defaultLog(),
 };
