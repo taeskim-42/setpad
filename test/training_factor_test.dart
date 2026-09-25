@@ -111,6 +111,20 @@ void main() {
       );
     });
 
+    test('8 의 횟수 문턱: 5회 이하는 6세트를 넘겨도 지속력이 아니다(무거운 6×3 = 순발력)', () {
+      // 워밍업 뒤 140×3×6 — "10개를 몇 세트"(BG:42)가 아니다.
+      final dl = of('데드리프트', [
+        kg(60, 5),
+        kg(100, 5),
+        ...times(6, () => kg(140, 3)),
+      ])!;
+      expect(show(dl), 'power sets 6,3');
+      expect(f('벤치프레스', times(8, () => kg(100, 2))), Factor.power);
+      // 경계: 5회×6세트는 순발력, 6회×6세트는 지속력.
+      expect(f('스쿼트', times(6, () => kg(120, 5))), Factor.power);
+      expect(f('스쿼트', times(6, () => kg(100, 6))), Factor.sustain);
+    });
+
     test('9 작업 세트 최대 5회 이하 → 순발력, 6회는 근력', () {
       final x = of('스쿼트', times(3, () => kg(90, 5)))!;
       expect(show(x), 'power sets 3,5');
@@ -189,6 +203,39 @@ void main() {
         ]),
       ];
       expect(day(plank, 9, 1), isNull);
+    });
+
+    test('순발력과 근력은 한 칸으로 센다 — 5×5 + 3×10 날에 채우기 마무리(7세트)가 붙어도 근력 쪽(F1)', () {
+      final day = [
+        at(DateTime(2026, 9, 14, 19), [
+          ExerciseBlock('스쿼트', times(5, () => kg(100, 5))),
+          ExerciseBlock('루마니안 데드리프트', times(3, () => kg(80, 10))),
+          ExerciseBlock('레그컬', times(3, () => kg(40, 12))),
+          ExerciseBlock('푸시업 100개 채우기', [
+            reps(20),
+            reps(15),
+            reps(15),
+            reps(15),
+            reps(15),
+            reps(10),
+            reps(10),
+          ]),
+        ]),
+      ];
+      final x = dayFactor(day)!;
+      // 셈은 근력 칸(5+3+3 = 11 > 7). 이름은 그 칸 안에서 큰 쪽(3×10·3×12 의 6 > 5).
+      expect(x.factor, Factor.strength);
+      expect(show(x.read), 'strength sets 3,10');
+      // 5×5 만이면 순발력 이름이 남는다.
+      expect(
+        dayFactor([
+          at(DateTime(2026, 9, 14, 19), [
+            ExerciseBlock('스쿼트', times(5, () => kg(100, 5))),
+            ExerciseBlock('푸시업 100개 채우기', [reps(60), reps(40)]),
+          ]),
+        ])!.factor,
+        Factor.power,
+      );
     });
 
     test('하루 두 번(아침 러닝 + 저녁 웨이트)은 한 날 — 세트가 많은 쪽', () {

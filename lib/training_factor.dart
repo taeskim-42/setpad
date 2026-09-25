@@ -1,7 +1,8 @@
 /// 체력 요인 — 기록된 **방식**으로 칸(운동 한 블록)과 하루의 요인을 가른다.
 ///
 /// 요인은 운동 종목이 아니라 변인(세트·횟수·채우기·타바타)으로 갈린다(repstack
-/// training_constants.rb TM01–TM05). 입력은 내 해낸 세트(`mine`)와 제목·설정뿐이다 —
+/// training_constants.rb TM01–TM04 를 바꿔 가져옴 — TM05 의 속도·완전 회복은 기록에
+/// 없어 "작업 세트 5회 이하" 로 대신한다). 입력은 내 해낸 세트(`mine`)와 제목·설정뿐이다 —
 /// 가동범위·보통 휴식·심박 휴식은 기록에 없어 쓰지 않는다. bpm 은 근력·근지구력·
 /// 지속력이 모두 30 이라 신호가 아니다.
 library;
@@ -30,7 +31,7 @@ typedef FactorRead = ({
 const singleFillReps = 50; // 한 세트 50회 이상 = 근지구력(중급 "100회 도전")
 const dropFirstReps = 15; // 세트마다 최대: 첫 세트 15회 이상
 const dropRatio = 0.8; // 끝 세트 ≤ 첫 세트의 80%
-const holdSets = 6; // 같은 횟수 6세트 이상 = 지속력(초급 5→6→7세트)
+const holdSets = 6; // 같은 횟수(5회 넘게) 6세트 이상 = 지속력(초급 5→6→7세트)
 const powerReps = 5; // 작업 세트 최대 5회 이하 = 순발력(power 5×5)
 
 /// 주간 목표(repstack 요일표의 개수: 월·목 근력, 화 근지구력, 수 지속력, 금 심폐).
@@ -116,8 +117,10 @@ FactorRead? factorOf(ExerciseBlock b) {
       r.last <= r.first * dropRatio) {
     return read(Factor.endurance, 'drop', [r.join('·')]);
   }
-  // 지속력: 같은 횟수를 6세트 이상 — 끝 세트는 모자라도 된다(실패로 끝나는 방식).
+  // 지속력: 같은 횟수(순발력 문턱 넘게)를 6세트 이상 — 끝 세트는 모자라도 된다(실패로
+  // 끝나는 방식). 무거운 6×3 은 "10개를 몇 세트"(BG:42)가 아니라 아래 순발력이다.
   if (r.length >= holdSets &&
+      r.first > powerReps &&
       r.sublist(0, r.length - 1).toSet().length == 1 &&
       r.last <= r.first) {
     return read(Factor.sustain, 'hold', ['${r.first}', '${r.length}']);
@@ -128,26 +131,41 @@ FactorRead? factorOf(ExerciseBlock b) {
   return read(Factor.strength, 'sets', shape);
 }
 
-/// 하루(그날 내 기록 전부)의 요인: 칸마다 무게를 더해 가장 큰 요인, 같으면 그날 첫
-/// 칸의 요인. 근거는 그 요인의 첫 칸이다. 가를 칸이 없으면 null.
-({Factor factor, FactorRead read})? dayFactor(Iterable<Note> notes) {
+/// 하루(그날 내 기록 전부)의 요인 — [dayFactorOf] 를 기록 시각 순의 칸으로.
+({Factor factor, FactorRead read})? dayFactor(Iterable<Note> notes) =>
+    dayFactorOf([
+      for (final n in [
+        ...notes,
+      ]..sort((a, b) => a.createdAt.compareTo(b.createdAt)))
+        ...n.blocks,
+    ]);
+
+/// 칸들(시각 순)의 요인: 칸마다 무게를 더해 가장 큰 요인, 같으면 먼저 나온 요인. 순발력은
+/// 근력 칸으로 센다(F1). 이름은 그 칸 안에서 무게가 큰 쪽(같으면 먼저 나온 쪽)이다 —
+/// 5×5 만 한 날은 순발력, 3×10 이 더 많으면 근력. 근거는 그 요인의 첫 칸이다. 가를 칸이
+/// 없으면 null.
+({Factor factor, FactorRead read})? dayFactorOf(
+  Iterable<ExerciseBlock> blocks,
+) {
   final w = <Factor, int>{};
-  final firstRead = <Factor, FactorRead>{};
-  Factor? first;
-  final sorted = [...notes]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-  for (final n in sorted) {
-    for (final b in n.blocks) {
-      final x = factorOf(b);
-      if (x == null) continue;
-      first ??= x.factor;
-      firstRead.putIfAbsent(x.factor, () => x);
-      w.update(x.factor, (v) => v + x.weight, ifAbsent: () => x.weight);
-    }
+  final reads = <Factor, FactorRead>{}; // 먼저 나온 순
+  for (final b in blocks) {
+    final x = factorOf(b);
+    if (x == null) continue;
+    reads.putIfAbsent(x.factor, () => x);
+    w.update(x.factor, (v) => v + x.weight, ifAbsent: () => x.weight);
   }
   if (w.isEmpty) return null;
-  final best = w.values.reduce((a, b) => a > b ? a : b);
-  final f = w[first] == best ? first! : w.keys.firstWhere((k) => w[k] == best);
-  return (factor: f, read: firstRead[f]!);
+  final group = <Factor, int>{};
+  for (final e in w.entries) {
+    group.update(merged(e.key), (v) => v + e.value, ifAbsent: () => e.value);
+  }
+  // 같으면 앞의 것이 남는다.
+  Factor top(Iterable<Factor> fs, int Function(Factor) of) =>
+      fs.reduce((a, b) => of(b) > of(a) ? b : a);
+  final g = top(group.keys, (f) => group[f]!);
+  final f = top(reads.keys.where((f) => merged(f) == g), (f) => w[f]!);
+  return (factor: f, read: reads[f]!);
 }
 
 DateTime calendarDay(DateTime d) => DateTime(d.year, d.month, d.day);
