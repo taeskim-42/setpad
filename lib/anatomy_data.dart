@@ -71,13 +71,20 @@ class Move {
 }
 
 /// 한국어 이름 → 운동. 사전 운동의 열쇠는 exerciseKey 와 같다.
+/// 삼두의 세 머리. ExRx 는 "Triceps Brachii" 하나로 적는다 — 머리마다 같은 역할로 센다.
+const tricepsHeads = [
+  Muscle.tricepsLong,
+  Muscle.tricepsLateral,
+  Muscle.tricepsMedial,
+];
+
 const moves = <String, Move>{
   // 벤치프레스 (Bench Press)
   // 근육 🟩 주동 ← ExRx Target: Pectoralis Major, Sternal
   //      🟩 보조 ← ExRx Synergists: Pectoralis Major, Clavicular, Deltoid, Anterior, Triceps Brachii, Coracobrachialis
   '벤치프레스': Move(
     primary: [Muscle.chest],
-    secondary: [Muscle.frontDelts, Muscle.triceps],
+    secondary: [Muscle.frontDelts, ...tricepsHeads],
     sites: ['ACE', 'ExRx.net'],
     cues: [
       // 🟩 exrx:PectoralSternal/BBBenchPress "Dismount barbell from rack over upper chest"
@@ -125,7 +132,7 @@ const moves = <String, Move>{
   //      🟩 보조 ← ExRx Synergists: Pectoralis Major, Sternal, Deltoid, Anterior, Triceps Brachii, Coracobrachialis
   '인클라인 벤치프레스': Move(
     primary: [Muscle.chest],
-    secondary: [Muscle.frontDelts, Muscle.triceps],
+    secondary: [Muscle.frontDelts, ...tricepsHeads],
     sites: ['ACE', 'ExRx.net'],
     cues: [
       // 🟩 exrx:PectoralClavicular/BBInclineBenchPress "Dismount barbell from rack over upper chest"
@@ -173,7 +180,7 @@ const moves = <String, Move>{
   //      🟩 보조 ← ExRx Synergists: Pectoralis Major, Clavicular, Deltoid, Anterior, Triceps Brachii, Coracobrachialis
   '디클라인 벤치프레스': Move(
     primary: [Muscle.chest],
-    secondary: [Muscle.frontDelts, Muscle.triceps],
+    secondary: [Muscle.frontDelts, ...tricepsHeads],
     sites: ['ExRx.net'],
     cues: [
       // 🟩 exrx:PectoralSternal/BBDeclineBenchPress "Lie supine on decline bench with feet under leg brace"
@@ -215,7 +222,7 @@ const moves = <String, Move>{
   //      🟩 보조 ← ExRx Synergists: Pectoralis Major, Clavicular, Deltoid, Anterior, Triceps Brachii, Coracobrachialis
   '덤벨 프레스': Move(
     primary: [Muscle.chest],
-    secondary: [Muscle.frontDelts, Muscle.triceps],
+    secondary: [Muscle.frontDelts, ...tricepsHeads],
     sites: ['ACE', 'ExRx.net'],
     cues: [
       // 🟩 exrx:PectoralSternal/DBBenchPress "Kick weights to shoulder and lie back"
@@ -263,7 +270,7 @@ const moves = <String, Move>{
   //      🟩 보조 ← ExRx Synergists: Pectoralis Major, Sternal, Deltoid, Anterior, Triceps Brachii, Coracobrachialis
   '인클라인 덤벨 프레스': Move(
     primary: [Muscle.chest],
-    secondary: [Muscle.frontDelts, Muscle.triceps],
+    secondary: [Muscle.frontDelts, ...tricepsHeads],
     sites: ['ACE', 'ExRx.net'],
     cues: [
       // 🟩 exrx:PectoralClavicular/DBInclineBenchPress "Position dumbbells to sides of chest with upper arm under each dumbbell"
@@ -311,7 +318,7 @@ const moves = <String, Move>{
   //      🟩 보조 ← ExRx Synergists: Pectoralis Major, Clavicular, Deltoid, Anterior, Triceps Brachii, Coracobrachialis
   '체스트 프레스': Move(
     primary: [Muscle.chest],
-    secondary: [Muscle.frontDelts, Muscle.triceps],
+    secondary: [Muscle.frontDelts, ...tricepsHeads],
     sites: ['ACE', 'ExRx.net'],
     cues: [
       // 🟩 exrx:PectoralSternal/LVChestPress "Sit on seat with chest approximately height of horizontal handles"
@@ -430,7 +437,7 @@ const moves = <String, Move>{
   //      🟩 보조 ← ExRx Synergists: Pectoralis Major, Clavicular, Deltoid, Anterior, Triceps Brachii, Coracobrachialis
   '푸시업': Move(
     primary: [Muscle.chest],
-    secondary: [Muscle.frontDelts, Muscle.triceps],
+    secondary: [Muscle.frontDelts, ...tricepsHeads],
     sites: ['ACE', 'ExRx.net'],
     cues: [
       // 🟩 exrx:PectoralSternal/BWPushup "hands slightly wider than shoulder width"
@@ -584,6 +591,9 @@ const moves = <String, Move>{
       Muscle.biceps,
       Muscle.forearms,
       Muscle.upperBack,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.teresMajor,
       Muscle.rearDelts,
     ],
     sites: ['ACE', 'ExRx.net'],
@@ -637,6 +647,9 @@ const moves = <String, Move>{
       Muscle.biceps,
       Muscle.forearms,
       Muscle.upperBack,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.teresMajor,
       Muscle.rearDelts,
     ],
     sites: ['ACE', 'ExRx.net'],
@@ -690,6 +703,7 @@ const moves = <String, Move>{
       Muscle.biceps,
       Muscle.forearms,
       Muscle.upperBack,
+      Muscle.teresMajor,
       Muscle.rearDelts,
       Muscle.chest,
     ],
@@ -742,7 +756,15 @@ const moves = <String, Move>{
   '바벨로우': Move(
     primary: [Muscle.lats, Muscle.upperBack],
     primaryInterp: true,
-    secondary: [Muscle.rearDelts, Muscle.biceps, Muscle.forearms, Muscle.chest],
+    secondary: [
+      Muscle.rearDelts,
+      Muscle.biceps,
+      Muscle.forearms,
+      Muscle.chest,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.teresMajor,
+    ],
     sites: ['ACE', 'ExRx.net'],
     cues: [
       // 🟩 exrx:BackGeneral/BBBentOverRow "Bend knees slightly and bend over bar with back straight"
@@ -788,7 +810,15 @@ const moves = <String, Move>{
   '덤벨로우': Move(
     primary: [Muscle.lats, Muscle.upperBack],
     primaryInterp: true,
-    secondary: [Muscle.rearDelts, Muscle.biceps, Muscle.forearms, Muscle.chest],
+    secondary: [
+      Muscle.rearDelts,
+      Muscle.biceps,
+      Muscle.forearms,
+      Muscle.chest,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.teresMajor,
+    ],
     sites: ['ACE', 'ExRx.net'],
     cues: [
       // 🟩 exrx:BackGeneral/DBBentOverRow "placing knee and hand of supporting arm on bench"
@@ -834,7 +864,15 @@ const moves = <String, Move>{
   '시티드 로우': Move(
     primary: [Muscle.lats, Muscle.upperBack],
     primaryInterp: true,
-    secondary: [Muscle.rearDelts, Muscle.biceps, Muscle.forearms, Muscle.chest],
+    secondary: [
+      Muscle.rearDelts,
+      Muscle.biceps,
+      Muscle.forearms,
+      Muscle.chest,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.teresMajor,
+    ],
     sites: ['ACE', 'ExRx.net'],
     cues: [
       // 🟩 exrx:BackGeneral/LVSeatedRow "Sit on seat and position chest against pad"
@@ -882,6 +920,9 @@ const moves = <String, Move>{
       Muscle.biceps,
       Muscle.forearms,
       Muscle.chest,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.teresMajor,
     ],
     sites: ['ACE', 'ExRx.net'],
     cues: [
@@ -932,7 +973,15 @@ const moves = <String, Move>{
   '티바로우': Move(
     primary: [Muscle.lats, Muscle.upperBack],
     primaryInterp: true,
-    secondary: [Muscle.rearDelts, Muscle.biceps, Muscle.forearms, Muscle.chest],
+    secondary: [
+      Muscle.rearDelts,
+      Muscle.biceps,
+      Muscle.forearms,
+      Muscle.chest,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.teresMajor,
+    ],
     sites: ['ExRx.net'],
     cues: [
       // 🟩 exrx:BackGeneral/LVTBarRow "Bend knees slightly and bend over lever handles with back straight"
@@ -1560,7 +1609,7 @@ const moves = <String, Move>{
     primary: [Muscle.frontDelts],
     secondary: [
       Muscle.chest,
-      Muscle.triceps,
+      ...tricepsHeads,
       Muscle.sideDelts,
       Muscle.upperBack,
     ],
@@ -1614,7 +1663,7 @@ const moves = <String, Move>{
     secondary: [
       Muscle.sideDelts,
       Muscle.chest,
-      Muscle.triceps,
+      ...tricepsHeads,
       Muscle.upperBack,
     ],
     sites: ['ACE', 'ExRx.net'],
@@ -1666,7 +1715,7 @@ const moves = <String, Move>{
     primary: [Muscle.frontDelts],
     secondary: [
       Muscle.sideDelts,
-      Muscle.triceps,
+      ...tricepsHeads,
       Muscle.upperBack,
       Muscle.chest,
     ],
@@ -1805,7 +1854,12 @@ const moves = <String, Move>{
   //      🟩 보조 ← ExRx Synergists: Infraspinatus, Teres Minor, Deltoid, Lateral, Trapezius, Middle, Trapezius, Lower, Rhomboids
   '벤트오버 레터럴 레이즈': Move(
     primary: [Muscle.rearDelts],
-    secondary: [Muscle.upperBack, Muscle.sideDelts],
+    secondary: [
+      Muscle.upperBack,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.sideDelts,
+    ],
     sites: ['ExRx.net'],
     cues: [
       // 🟩 exrx:DeltoidPosterior/DBRearLateralRaise "bend over through hips with back flat, close to horizontal"
@@ -1860,6 +1914,8 @@ const moves = <String, Move>{
       Muscle.biceps,
       Muscle.forearms,
       Muscle.upperBack,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
     ],
     sites: ['ExRx.net'],
     cues: [
@@ -2155,7 +2211,7 @@ const moves = <String, Move>{
   // 근육 🟩 주동 ← ExRx Target: Triceps Brachii
   //      🟩 보조 ← ExRx Synergists: None
   '트라이셉스 익스텐션': Move(
-    primary: [Muscle.triceps],
+    primary: [...tricepsHeads],
     sites: ['ACE', 'ExRx.net'],
     cues: [
       // 🟩 exrx:Triceps/DBTriExt "Position one dumbbell over head with both hands"
@@ -2198,7 +2254,7 @@ const moves = <String, Move>{
   // 근육 🟩 주동 ← ExRx Target: Triceps Brachii
   //      🟩 보조 ← ExRx Synergists: None
   '케이블 푸시다운': Move(
-    primary: [Muscle.triceps],
+    primary: [...tricepsHeads],
     sites: ['ACE', 'ExRx.net'],
     cues: [
       // 🟩 exrx:Triceps/CBPushdown "Position elbows to side"
@@ -2241,7 +2297,7 @@ const moves = <String, Move>{
   // 근육 🟩 주동 ← ExRx Target: Triceps Brachii
   //      🟩 보조 ← ExRx Synergists: Deltoid, Anterior, Pectoralis Major, Sternal, Pectoralis Major, Clavicular, Pectoralis Minor, Rhomboids, Levator Scapulae, Latissimus Dorsi, Coracobrachialis
   '딥스': Move(
-    primary: [Muscle.triceps],
+    primary: [...tricepsHeads],
     secondary: [Muscle.frontDelts, Muscle.chest, Muscle.upperBack, Muscle.lats],
     sites: ['ExRx.net'],
     cues: [
@@ -2281,7 +2337,7 @@ const moves = <String, Move>{
   // 근육 🟩 주동 ← ExRx Target: Triceps Brachii
   //      🟩 보조 ← ExRx Synergists: None
   '킥백': Move(
-    primary: [Muscle.triceps],
+    primary: [...tricepsHeads],
     sites: ['ACE', 'ExRx.net'],
     cues: [
       // 🟩 exrx:Triceps/DBKickback "Position upper arm parallel to floor"
@@ -2617,7 +2673,12 @@ const moves = <String, Move>{
   //      🟩 보조 ← ExRx Synergists: Infraspinatus, Teres Minor, Deltoid, Lateral, Trapezius, Middle, Trapezius, Lower, Rhomboids
   '리버스 펙덱': Move(
     primary: [Muscle.rearDelts],
-    secondary: [Muscle.upperBack, Muscle.sideDelts],
+    secondary: [
+      Muscle.upperBack,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.sideDelts,
+    ],
     gear: ['machine'],
     sites: ['ExRx.net'],
     // 이름: ko·en 은 출처 이름, 나머지는 🟦 번역.
@@ -2677,6 +2738,8 @@ const moves = <String, Move>{
     primary: [Muscle.rearDelts],
     secondary: [
       Muscle.upperBack,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
       Muscle.sideDelts,
       Muscle.biceps,
       Muscle.forearms,

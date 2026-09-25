@@ -2847,6 +2847,12 @@ class LKo extends L {
       'hamstrings': '허벅지 뒤',
       'adductors': '허벅지 안쪽',
       'calves': '종아리',
+      'infraspinatus': '극하근',
+      'teresMinor': '소원근',
+      'teresMajor': '대원근',
+      'tricepsLong': '삼두 장두',
+      'tricepsLateral': '삼두 외측두',
+      'tricepsMedial': '삼두 내측두',
       'other': '부위',
     });
     return '$_temp0';
@@ -2931,6 +2937,9 @@ class LKo extends L {
 
   @override
   String get anatomyTry => '이 부위를 주로 쓰는 운동';
+
+  @override
+  String get anatomyTrySecondary => '이 부위를 보조로 쓰는 운동';
 
   @override
   String anatomyTryGear(String list) {

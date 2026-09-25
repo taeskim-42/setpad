@@ -2901,6 +2901,12 @@ class LTh extends L {
       'hamstrings': 'ต้นขาหลัง',
       'adductors': 'ต้นขาด้านใน',
       'calves': 'น่อง',
+      'infraspinatus': 'อินฟราสไปนาตัส',
+      'teresMinor': 'เทเรสไมเนอร์',
+      'teresMajor': 'เทเรสเมเจอร์',
+      'tricepsLong': 'ไตรเซปส์หัวยาว',
+      'tricepsLateral': 'ไตรเซปส์หัวด้านข้าง',
+      'tricepsMedial': 'ไตรเซปส์หัวด้านใน',
       'other': 'กล้ามเนื้อ',
     });
     return '$_temp0';
@@ -2987,6 +2993,9 @@ class LTh extends L {
 
   @override
   String get anatomyTry => 'ท่าที่ใช้กล้ามเนื้อนี้เป็นหลัก';
+
+  @override
+  String get anatomyTrySecondary => 'ท่าที่ใช้ส่วนนี้เป็นกล้ามเนื้อช่วย';
 
   @override
   String anatomyTryGear(String list) {

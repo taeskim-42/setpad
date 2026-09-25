@@ -109,13 +109,17 @@ void main() {
       }
     });
 
-    test('모든 부위에 주동 운동이 있다 — 누르면 빈 목록이 없다', () {
+    test('모든 부위에 운동이 있다 — 주동이 없으면 보조로 쓰는 운동, 누르면 빈 목록이 없다', () {
       for (final m in Muscle.values) {
         expect(
-          moves.values.where((v) => v.primary.contains(m)),
+          moves.values.where(
+            (v) => v.primary.contains(m) || v.secondary.contains(m),
+          ),
           isNotEmpty,
           reason: m.name,
         );
+        final t = tryFor(m, {});
+        expect([...t.shown, ...t.hidden], isNotEmpty, reason: m.name);
         expect(muscleCoarse[m], isNotNull);
       }
     });
@@ -181,7 +185,9 @@ void main() {
       expect(load.of(Muscle.chest), 4);
       expect(load.secondary[Muscle.frontDelts], 4);
       expect(load.of(Muscle.frontDelts), 2);
-      expect(load.of(Muscle.triceps), 2);
+      for (final head in tricepsHeads) {
+        expect(load.of(head), 2, reason: "$head");
+      }
       expect(load.of(Muscle.lats), 0);
     });
 
@@ -676,7 +682,7 @@ void main() {
       final dumbbell = tryFor(Muscle.lats, {'덤벨컬'});
       expect(dumbbell.shown, isNot(contains('풀업')));
       expect(dumbbell.hidden, containsAll(['풀업', '친업']));
-      expect(tryFor(Muscle.triceps, {'덤벨컬'}).hidden, contains('딥스'));
+      expect(tryFor(Muscle.tricepsLong, {'덤벨컬'}).hidden, contains('딥스'));
       expect(tryFor(Muscle.lats, {'풀업'}).shown, contains('친업'));
     });
 
@@ -1062,7 +1068,7 @@ void main() {
       await add(tester, Muscle.chest, 'done:벤치프레스');
       await tester.enterText(find.byType(CupertinoSearchTextField), '');
       await tester.pumpAndSettle();
-      await add(tester, Muscle.triceps, 'try:딥스');
+      await add(tester, Muscle.tricepsLong, 'try:딥스');
       expect(
         searchText(tester),
         l.anatomyRoutineText('${l.queryPart('chest')}·${l.queryPart('arms')}'),
@@ -1196,7 +1202,7 @@ void main() {
     ];
     final mixed = [
       (Muscle.chest, 'done:벤치프레스'),
-      (Muscle.triceps, 'try:딥스'),
+      (Muscle.tricepsLong, 'try:딥스'),
       (Muscle.rearDelts, 'try:리버스 펙덱'),
       (Muscle.rearDelts, 'try:페이스 풀'),
       (Muscle.chest, 'try:케이블 크로스오버'),
@@ -1268,7 +1274,7 @@ void main() {
       await add(tester, Muscle.chest, 'done:벤치프레스');
       await tester.tap(find.text(l.routineStart));
       await tester.pumpAndSettle();
-      await add(tester, Muscle.triceps, 'try:딥스');
+      await add(tester, Muscle.tricepsLong, 'try:딥스');
       expect(
         searchText(tester),
         l.anatomyRoutineText('${l.queryPart('chest')}·${l.queryPart('arms')}'),

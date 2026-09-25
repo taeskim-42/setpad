@@ -12,7 +12,7 @@ import 'parser.dart' show searchKey;
 import 'record_query.dart' show exerciseKey, statName;
 import 'routine.dart' show PlanSet, benchExercises, exerciseGear;
 
-export 'anatomy_data.dart' show Basis, Cue, Move, moves;
+export 'anatomy_data.dart' show Basis, Cue, Move, moves, tricepsHeads;
 export 'muscle_map_paths.dart' show Muscle;
 
 /// 부위 → 거친 부위(exercisePart 값). 시트 머리와 "오늘 {부위} 루틴" 이 쓴다.
@@ -23,10 +23,15 @@ const muscleCoarse = <Muscle, String>{
   Muscle.rearDelts: 'shoulders',
   Muscle.traps: 'shoulders',
   Muscle.upperBack: 'back',
+  Muscle.infraspinatus: 'back',
+  Muscle.teresMinor: 'back',
+  Muscle.teresMajor: 'back',
   Muscle.lats: 'back',
   Muscle.lowerBack: 'back',
   Muscle.biceps: 'arms',
-  Muscle.triceps: 'arms',
+  Muscle.tricepsLong: 'arms',
+  Muscle.tricepsLateral: 'arms',
+  Muscle.tricepsMedial: 'arms',
   Muscle.forearms: 'arms',
   Muscle.abs: 'core',
   Muscle.obliques: 'core',
@@ -233,6 +238,10 @@ typedef TryList = ({
   List<String> hidden,
   Set<String> gear,
   bool allGear,
+
+  /// 이 부위가 주동인 운동이 표에 없어(극하근·소원근·대원근 — ExRx 가 보조로만
+  /// 적는다) 보조로 쓰는 운동을 대신 보였다. 화면 제목이 그렇다고 말한다.
+  bool secondary,
 });
 
 /// 해 볼 만한 운동: 이 부위가 주동이고 아직 안 한 것([Move.suggest] 가 거짓인 것은
@@ -249,10 +258,12 @@ TryList tryFor(Muscle m, Set<String> done) {
   }..remove('bodyweight');
   final allGear = done.isEmpty;
   final shown = <String>[], hidden = <String>[];
+  final secondary = !moves.values.any(
+    (v) => v.suggest && v.primary.contains(m),
+  );
   for (final e in moves.entries) {
-    if (!e.value.suggest ||
-        !e.value.primary.contains(m) ||
-        done.contains(e.key)) {
+    final role = secondary ? e.value.secondary : e.value.primary;
+    if (!e.value.suggest || !role.contains(m) || done.contains(e.key)) {
       continue;
     }
     final ok =
@@ -261,7 +272,13 @@ TryList tryFor(Muscle m, Set<String> done) {
             (!benchExercises.contains(e.key) || gear.contains('bench')));
     (ok ? shown : hidden).add(e.key);
   }
-  return (shown: shown, hidden: hidden, gear: gear, allGear: allGear);
+  return (
+    shown: shown,
+    hidden: hidden,
+    gear: gear,
+    allGear: allGear,
+    secondary: secondary,
+  );
 }
 
 /// 자세 팁 한 줄의 글(화면 언어). 한국어 밖은 영어다 — 화면이 그렇다고 말한다.

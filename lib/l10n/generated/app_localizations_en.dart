@@ -2932,6 +2932,12 @@ class LEn extends L {
       'hamstrings': 'Hamstrings',
       'adductors': 'Adductors',
       'calves': 'Calves',
+      'infraspinatus': 'Infraspinatus',
+      'teresMinor': 'Teres minor',
+      'teresMajor': 'Teres major',
+      'tricepsLong': 'Triceps long head',
+      'tricepsLateral': 'Triceps lateral head',
+      'tricepsMedial': 'Triceps medial head',
       'other': 'Muscle',
     });
     return '$_temp0';
@@ -3026,6 +3032,9 @@ class LEn extends L {
 
   @override
   String get anatomyTry => 'Exercises that mainly use it';
+
+  @override
+  String get anatomyTrySecondary => 'Exercises that work this as a helper';
 
   @override
   String anatomyTryGear(String list) {

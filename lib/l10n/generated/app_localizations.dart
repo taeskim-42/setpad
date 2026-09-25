@@ -4269,7 +4269,7 @@ abstract class L {
   /// No description provided for @muscleName.
   ///
   /// In ko, this message translates to:
-  /// **'{m, select, chest{가슴} frontDelts{앞 어깨} sideDelts{옆 어깨} rearDelts{뒤 어깨} traps{승모근 윗부분} upperBack{등 가운데} lats{광배근} lowerBack{허리} biceps{이두} triceps{삼두} forearms{전완} abs{복근} obliques{옆구리} hipFlexors{고관절 굴곡근} glutes{엉덩이} quads{허벅지 앞} hamstrings{허벅지 뒤} adductors{허벅지 안쪽} calves{종아리} other{부위}}'**
+  /// **'{m, select, chest{가슴} frontDelts{앞 어깨} sideDelts{옆 어깨} rearDelts{뒤 어깨} traps{승모근 윗부분} upperBack{등 가운데} lats{광배근} lowerBack{허리} biceps{이두} triceps{삼두} forearms{전완} abs{복근} obliques{옆구리} hipFlexors{고관절 굴곡근} glutes{엉덩이} quads{허벅지 앞} hamstrings{허벅지 뒤} adductors{허벅지 안쪽} calves{종아리} infraspinatus{극하근} teresMinor{소원근} teresMajor{대원근} tricepsLong{삼두 장두} tricepsLateral{삼두 외측두} tricepsMedial{삼두 내측두} other{부위}}'**
   String muscleName(String m);
 
   /// No description provided for @anatomyLevel.
@@ -4379,6 +4379,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'이 부위를 주로 쓰는 운동'**
   String get anatomyTry;
+
+  /// No description provided for @anatomyTrySecondary.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 부위를 보조로 쓰는 운동'**
+  String get anatomyTrySecondary;
 
   /// No description provided for @anatomyTryGear.
   ///

@@ -2820,6 +2820,12 @@ class LZh extends L {
       'hamstrings': '腘绳肌',
       'adductors': '大腿内侧',
       'calves': '小腿',
+      'infraspinatus': '冈下肌',
+      'teresMinor': '小圆肌',
+      'teresMajor': '大圆肌',
+      'tricepsLong': '肱三头肌长头',
+      'tricepsLateral': '肱三头肌外侧头',
+      'tricepsMedial': '肱三头肌内侧头',
       'other': '部位',
     });
     return '$_temp0';
@@ -2903,6 +2909,9 @@ class LZh extends L {
 
   @override
   String get anatomyTry => '主要使用这个部位的动作';
+
+  @override
+  String get anatomyTrySecondary => '辅助使用此部位的动作';
 
   @override
   String anatomyTryGear(String list) {
@@ -5957,6 +5966,12 @@ class LZhHans extends LZh {
       'hamstrings': '腘绳肌',
       'adductors': '大腿内侧',
       'calves': '小腿',
+      'infraspinatus': '冈下肌',
+      'teresMinor': '小圆肌',
+      'teresMajor': '大圆肌',
+      'tricepsLong': '肱三头肌长头',
+      'tricepsLateral': '肱三头肌外侧头',
+      'tricepsMedial': '肱三头肌内侧头',
       'other': '部位',
     });
     return '$_temp0';
@@ -6040,6 +6055,9 @@ class LZhHans extends LZh {
 
   @override
   String get anatomyTry => '主要使用这个部位的动作';
+
+  @override
+  String get anatomyTrySecondary => '辅助使用此部位的动作';
 
   @override
   String anatomyTryGear(String list) {
@@ -9093,6 +9111,12 @@ class LZhHant extends LZh {
       'hamstrings': '膕繩肌',
       'adductors': '大腿內側',
       'calves': '小腿',
+      'infraspinatus': '岡下肌',
+      'teresMinor': '小圓肌',
+      'teresMajor': '大圓肌',
+      'tricepsLong': '肱三頭肌長頭',
+      'tricepsLateral': '肱三頭肌外側頭',
+      'tricepsMedial': '肱三頭肌內側頭',
       'other': '部位',
     });
     return '$_temp0';
@@ -9176,6 +9200,9 @@ class LZhHant extends LZh {
 
   @override
   String get anatomyTry => '主要使用這個部位的動作';
+
+  @override
+  String get anatomyTrySecondary => '輔助使用此部位的動作';
 
   @override
   String anatomyTryGear(String list) {

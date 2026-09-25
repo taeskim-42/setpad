@@ -754,7 +754,7 @@ class _MuscleSheetState extends State<_MuscleSheet> {
                       search: r.name,
                     ),
                 ]),
-              header(l.anatomyTry),
+              header(t.secondary ? l.anatomyTrySecondary : l.anatomyTry),
               if (t.shown.isEmpty && t.hidden.isEmpty)
                 Text(l.anatomyTriedAll, style: small)
               else

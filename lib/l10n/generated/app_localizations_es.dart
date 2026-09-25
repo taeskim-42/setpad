@@ -2952,6 +2952,12 @@ class LEs extends L {
       'hamstrings': 'Isquiotibiales',
       'adductors': 'Aductores',
       'calves': 'Gemelos',
+      'infraspinatus': 'Infraespinoso',
+      'teresMinor': 'Redondo menor',
+      'teresMajor': 'Redondo mayor',
+      'tricepsLong': 'Tríceps, cabeza larga',
+      'tricepsLateral': 'Tríceps, cabeza lateral',
+      'tricepsMedial': 'Tríceps, cabeza medial',
       'other': 'Músculo',
     });
     return '$_temp0';
@@ -3046,6 +3052,9 @@ class LEs extends L {
 
   @override
   String get anatomyTry => 'Ejercicios que lo usan sobre todo';
+
+  @override
+  String get anatomyTrySecondary => 'Ejercicios que la usan como apoyo';
 
   @override
   String anatomyTryGear(String list) {

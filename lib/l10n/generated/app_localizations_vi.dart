@@ -2918,6 +2918,12 @@ class LVi extends L {
       'hamstrings': 'Đùi sau',
       'adductors': 'Đùi trong',
       'calves': 'Bắp chân',
+      'infraspinatus': 'Cơ dưới gai',
+      'teresMinor': 'Cơ tròn bé',
+      'teresMajor': 'Cơ tròn lớn',
+      'tricepsLong': 'Tam đầu – đầu dài',
+      'tricepsLateral': 'Tam đầu – đầu ngoài',
+      'tricepsMedial': 'Tam đầu – đầu trong',
       'other': 'Nhóm cơ',
     });
     return '$_temp0';
@@ -3006,6 +3012,9 @@ class LVi extends L {
 
   @override
   String get anatomyTry => 'Bài chủ yếu dùng nhóm cơ này';
+
+  @override
+  String get anatomyTrySecondary => 'Bài tập dùng phần này để hỗ trợ';
 
   @override
   String anatomyTryGear(String list) {

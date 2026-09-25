@@ -2841,6 +2841,12 @@ class LJa extends L {
       'hamstrings': '太もも裏',
       'adductors': '内もも',
       'calves': 'ふくらはぎ',
+      'infraspinatus': '棘下筋',
+      'teresMinor': '小円筋',
+      'teresMajor': '大円筋',
+      'tricepsLong': '上腕三頭筋 長頭',
+      'tricepsLateral': '上腕三頭筋 外側頭',
+      'tricepsMedial': '上腕三頭筋 内側頭',
       'other': '部位',
     });
     return '$_temp0';
@@ -2925,6 +2931,9 @@ class LJa extends L {
 
   @override
   String get anatomyTry => 'この部位を主に使う種目';
+
+  @override
+  String get anatomyTrySecondary => 'この部位を補助で使う種目';
 
   @override
   String anatomyTryGear(String list) {
