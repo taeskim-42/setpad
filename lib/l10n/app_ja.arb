@@ -649,6 +649,8 @@
   "routineRestore": "戻す",
   "routineAdd": "+ {name}",
   "routineOther": "別のルーティン",
+  "routineWhyShow": "根拠を見る",
+  "routineWhyHide": "根拠を閉じる",
   "routinePrevious": "その前({date})",
   "routineByPart": "{part}で組む",
   "routineStepChip": "+{step}上げる(自分の上げ幅)",

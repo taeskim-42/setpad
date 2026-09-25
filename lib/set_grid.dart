@@ -41,8 +41,9 @@ TextStyle _cellStyle(BuildContext context) =>
       color: CupertinoColors.label.resolveFrom(context),
     );
 
-/// 몇 번째 세트인지와 값. 해내지 않은 세트는 빈 동그라미가 붙고 흐리다 —
-/// 계획과 수행이 섞여 보이면 안 된다.
+/// 몇 번째 세트인지와 값. 해냈는지는 글자가 아니라 칸이 말한다 — 해낸 칸은
+/// 초록으로 차고, 아직인 칸은 흐린 글자에 빈 칸이다. 번호 뒤에 붙던 빈
+/// 동그라미('1○')는 '10' 으로 읽혔다.
 InlineSpan _cellSpan(
   BuildContext context,
   L l,
@@ -62,7 +63,7 @@ InlineSpan _cellSpan(
         ),
       ),
     TextSpan(
-      text: set.done ? '${i + 1} ' : '${i + 1}○ ',
+      text: '${i + 1} ',
       style: TextStyle(
         fontSize: 10,
         color: CupertinoColors.tertiaryLabel.resolveFrom(context),
@@ -142,6 +143,7 @@ class SetGrid extends StatelessWidget {
     final scaler = MediaQuery.textScalerOf(context);
     final label = CupertinoColors.label.resolveFrom(context);
     final faint = CupertinoColors.tertiaryLabel.resolveFrom(context);
+    final green = CupertinoColors.systemGreen.resolveFrom(context);
     final style = _cellStyle(context);
     InlineSpan span(int i, LoggedSet set) =>
         _cellSpan(context, l, block, i, set);
@@ -186,6 +188,8 @@ class SetGrid extends StatelessWidget {
                 button: onTapSet != null,
                 label:
                     '${l.setOrdinal(i + 1)} ${setLabel(value: set.value, unit: set.unit, reps: set.reps, formatReps: l.repsCount)}',
+                // 해낸 세트인지는 색만이 아니라 읽어 주는 말로도 전한다.
+                checked: set.done,
                 excludeSemantics: true,
                 child: GestureDetector(
                   key: ValueKey('set-cell-$i'),
@@ -208,21 +212,25 @@ class SetGrid extends StatelessWidget {
                         minHeight: onTapSet == null ? 30 : 28,
                       ),
                       alignment: Alignment.centerLeft,
-                      // 칠하지 않고 가는 테두리만 — 칸이라는 것은 보이되 종이는
-                      // 하얗게. 고치는 칸만 색이 찬다.
+                      // 아직인 칸은 칠하지 않고 가는 테두리만, 해낸 칸은 옅은 초록으로
+                      // 찬다 — 한눈에 몇 세트 남았는지 보인다. 고치는 칸은 호박색.
                       decoration: BoxDecoration(
                         color: i == editingSet
                             ? sealTint.resolveFrom(context)
+                            : onTapSet != null && set.done
+                            ? green.withValues(alpha: 0.14)
                             : null,
                         border: cursors[i] != null
                             ? Border.all(color: cursors[i]!, width: 1.5)
                             : onTapSet == null || i == editingSet
                             ? null
                             : Border.all(
-                                color: CupertinoColors.separator.resolveFrom(
-                                  context,
-                                ),
-                                width: 0.5,
+                                color: set.done
+                                    ? green.withValues(alpha: 0.45)
+                                    : CupertinoColors.separator.resolveFrom(
+                                        context,
+                                      ),
+                                width: set.done ? 1 : 0.5,
                               ),
                         borderRadius: BorderRadius.circular(6),
                       ),

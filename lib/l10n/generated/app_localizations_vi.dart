@@ -2699,6 +2699,12 @@ class LVi extends L {
   String get routineOther => 'Bài khác';
 
   @override
+  String get routineWhyShow => 'Xem lý do';
+
+  @override
+  String get routineWhyHide => 'Ẩn lý do';
+
+  @override
   String routinePrevious(String date) {
     return 'Trước đó ($date)';
   }

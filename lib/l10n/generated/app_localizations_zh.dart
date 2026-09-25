@@ -2606,6 +2606,12 @@ class LZh extends L {
   String get routineOther => '换一个';
 
   @override
+  String get routineWhyShow => '查看依据';
+
+  @override
+  String get routineWhyHide => '收起依据';
+
+  @override
   String routinePrevious(String date) {
     return '更早($date)';
   }
@@ -5729,6 +5735,12 @@ class LZhHans extends LZh {
   String get routineOther => '换一个';
 
   @override
+  String get routineWhyShow => '查看依据';
+
+  @override
+  String get routineWhyHide => '收起依据';
+
+  @override
   String routinePrevious(String date) {
     return '更早($date)';
   }
@@ -8849,6 +8861,12 @@ class LZhHant extends LZh {
 
   @override
   String get routineOther => '換一個';
+
+  @override
+  String get routineWhyShow => '查看依據';
+
+  @override
+  String get routineWhyHide => '收起依據';
 
   @override
   String routinePrevious(String date) {

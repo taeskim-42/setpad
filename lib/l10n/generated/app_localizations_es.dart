@@ -2732,6 +2732,12 @@ class LEs extends L {
   String get routineOther => 'Otra';
 
   @override
+  String get routineWhyShow => 'Por qué';
+
+  @override
+  String get routineWhyHide => 'Ocultar';
+
+  @override
   String routinePrevious(String date) {
     return 'Anterior ($date)';
   }

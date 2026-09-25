@@ -2783,6 +2783,8 @@
     }
   },
   "routineOther": "다른 루틴",
+  "routineWhyShow": "근거 보기",
+  "routineWhyHide": "근거 접기",
   "routinePrevious": "그 전({date})",
   "@routinePrevious": {
     "placeholders": {

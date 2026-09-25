@@ -112,7 +112,8 @@ void main() {
     for (final name in ['스쿼트', '루마니안 데드리프트', '레그컬']) {
       expect(find.text(name), findsOneWidget, reason: name);
     }
-    expect(find.text(l.routinePlatesZero), findsOneWidget);
+    // 기기가 짠 카드는 원판 줄이 없다 — '원판 0장' 은 읽을 것이 없어 뺐다.
+    expect(find.text(l.routinePlatesZero), findsNothing);
     expect(asked, 0);
     // 친 글은 검색칸에 그대로 남는다.
     expect(
@@ -525,7 +526,8 @@ void main() {
     await type(tester, '하체 루틴');
     await tester.tap(find.text(l.routineMakePart(l.queryPart('legs'))));
     await tester.pumpAndSettle();
-    expect(find.text(l.routinePlatesZero), findsOneWidget);
+    // 기기가 짠 카드는 원판 줄이 없다 — '원판 0장' 은 읽을 것이 없어 뺐다.
+    expect(find.text(l.routinePlatesZero), findsNothing);
   });
 
   testWidgets('검증 O2·O4 친 무게는 비우지 않고, 바꾼 세트와 나머지를 비운 까닭을 말한다', (tester) async {
@@ -792,7 +794,8 @@ void main() {
     await tester.tap(find.text(l.routineMakePart(l.queryPart('legs'))));
     await tester.pumpAndSettle();
     expect(find.text('레그프레스'), findsOneWidget);
-    expect(find.text(l.routinePlatesZero), findsOneWidget);
+    // 기기가 짠 카드는 원판 줄이 없다 — '원판 0장' 은 읽을 것이 없어 뺐다.
+    expect(find.text(l.routinePlatesZero), findsNothing);
     await tester.showKeyboard(search);
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
@@ -1014,6 +1017,9 @@ void main() {
       find.textContaining(l.routineFactorMissing(l.routineFactor('cardio'))),
       findsOneWidget,
     );
+    // 요인 셈은 '근거 보기' 안에 있다.
+    await tester.tap(find.byKey(const ValueKey('routine-details')));
+    await tester.pumpAndSettle();
     expect(
       find.textContaining('${l.routineFactor('strength')} 1'),
       findsOneWidget,

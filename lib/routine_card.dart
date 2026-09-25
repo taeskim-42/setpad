@@ -145,10 +145,6 @@ class RoutineCard extends StatelessWidget {
           )
         : l.routineHeaderToday;
     final readAs = a == null || a.device ? null : _readAs(l, a);
-    final lines = [
-      ?readAs,
-      for (final line in d.lines) ...routineLineTexts(l, line),
-    ];
     final why = routineWhy(l, d);
     // 원천 날의 체력 요인(설명만): "근력 날 · 3×10".
     final factor = switch (d.factor) {
@@ -175,6 +171,23 @@ class RoutineCard extends StatelessWidget {
     final pace = d.paceSessions > 0
         ? l.routinePaceOwn(d.paceSessions, _minSec(l, d.pace))
         : l.routinePaceDefault(_minSec(l, d.pace));
+    // 위에는 짠 것과 꼭 알아야 할 것만, 까닭(메모·부위별 쉰 날·시간 셈)은
+    // '근거 보기' 안에 — 줄이 열 개 넘게 쌓이면 루틴이 안 보였다.
+    final memos = [
+      for (final line in d.lines)
+        if (line.code == 'recentMemo') ...routineLineTexts(l, line),
+    ];
+    final shown = [
+      ?readAs,
+      for (final line in d.lines)
+        if (line.code != 'recentMemo') ...routineLineTexts(l, line),
+    ];
+    final details = [
+      ?counts,
+      if (rest.isNotEmpty) l.routinePartRest(rest.join(' · ')),
+      if (d.items.isNotEmpty) pace,
+      ...memos,
+    ];
     return [
       Padding(
         padding: const EdgeInsets.only(top: 6),
@@ -184,8 +197,9 @@ class RoutineCard extends StatelessWidget {
               child: Text(
                 head,
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: 20,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: -0.4,
                   color: CupertinoColors.label.resolveFrom(context),
                 ),
               ),
@@ -199,18 +213,29 @@ class RoutineCard extends StatelessWidget {
           ],
         ),
       ),
-      if (factor != null) Text(factor, style: body),
-      if (lines.isNotEmpty) Text(lines.join('\n'), style: body),
-      if (why != null) Text(why, style: faint),
-      if (counts != null) Text(counts, style: faint),
-      if (rest.isNotEmpty)
-        Text(l.routinePartRest(rest.join(' · ')), style: faint),
-      if (d.items.isNotEmpty)
-        Text('${l.routineEstimate(d.minutes)} · $pace', style: faint),
-      const SizedBox(height: 6),
-      for (final (n, i) in d.items.indexed) _item(context, l, n + 1, i, faint),
+      // 어떤 날인지·얼마나 걸리는지·어디서 왔는지를 알약 몇 개로.
+      Padding(
+        padding: const EdgeInsets.only(top: 6, bottom: 2),
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            if (factor != null) _Pill(factor),
+            if (d.items.isNotEmpty) _Pill(l.routineEstimate(d.minutes)),
+            if (why != null) _Pill(why),
+          ],
+        ),
+      ),
+      if (shown.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(shown.join('\n'), style: body),
+        ),
+      const SizedBox(height: 8),
+      for (final (n, i) in d.items.indexed)
+        _item(context, l, n + 1, i, faint, d.sourceDay),
       if (d.removed.isNotEmpty) ...[
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         for (final r in d.removed)
           Row(
             children: [
@@ -260,18 +285,23 @@ class RoutineCard extends StatelessWidget {
       if (d.future)
         Text(l.routineFuture, style: faint)
       else if (d.startable || started)
-        Row(
-          children: [
-            CupertinoButton.filled(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              minimumSize: const Size(44, 40),
-              onPressed: onStart,
-              child: Text(started ? l.routineStarted : l.routineStart),
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(spent ?? l.routinePlatesZero, style: faint)),
-          ],
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Row(
+            children: [
+              CupertinoButton.filled(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                minimumSize: const Size(44, 40),
+                onPressed: onStart,
+                child: Text(started ? l.routineStarted : l.routineStart),
+              ),
+              const SizedBox(width: 12),
+              // 원판을 쓴 때만 적는다 — 기기가 짠 루틴의 '원판 0장' 은 읽을 것이 없다.
+              if (spent case final s?) Expanded(child: Text(s, style: faint)),
+            ],
+          ),
         ),
+      if (details.isNotEmpty) _Details(details, style: faint),
     ];
   }
 
@@ -288,9 +318,12 @@ class RoutineCard extends StatelessWidget {
     int n,
     RoutineItem i,
     TextStyle faint,
+    DateTime? source,
   ) {
     String date(DateTime x) => l.routineDate(x);
     final why = switch (i.why) {
+      // 카드가 이미 '지난주 금요일 그대로' 라고 했으면 칸마다 되풀이하지 않는다.
+      'copied' when i.day != null && i.day == source => null,
       'copied' when i.day != null => l.routineCopied(date(i.day!)),
       'lightDropped' when i.day != null => l.routineLightDropped(date(i.day!)),
       'repsMatched' when i.day != null => l.routineRepsMatched(
@@ -317,20 +350,20 @@ class RoutineCard extends StatelessWidget {
       if (i.stepped case final s?)
         l.routineStepped('${formatNumber(s.step)}${s.unit}', s.evidence),
       if (i.memo case final m?) l.routineMemo(date(m.day), m.text),
-      if (i.recent case final r?)
-        l.routineRecent(
-          r.muscle != null
-              ? l.muscleName(r.muscle!.name)
-              : partName(l, r.part!),
-          l.routineDaysAgo(r.days),
-        ),
+      // 부위가 며칠 쉬었는지는 '근거 보기' 의 부위별 쉰 날이 말한다.
     ];
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 20, child: Text('$n', style: faint)),
+          SizedBox(
+            width: 24,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text('$n', style: faint),
+            ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,19 +371,21 @@ class RoutineCard extends StatelessWidget {
                 Text(
                   i.title,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: CupertinoColors.label.resolveFrom(context),
                   ),
                 ),
-                Text(
-                  [
-                    if (i.sets.isNotEmpty) setsText(l, i.sets),
-                    ?why,
-                  ].join('   '),
-                  style: const TextStyle(fontSize: 14),
-                ),
-                if (notes.isNotEmpty) Text(notes.join('\n'), style: faint),
+                if (i.sets.isNotEmpty)
+                  Text(
+                    setsText(l, i.sets),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                if ([?why, ...notes] case final more when more.isNotEmpty)
+                  Text(more.join('\n'), style: faint),
               ],
             ),
           ),
@@ -369,6 +404,72 @@ class RoutineCard extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// 짠 루틴의 요약 알약 하나(순발력 날 · 약 61분 · 지난주 금요일 그대로).
+class _Pill extends StatelessWidget {
+  const _Pill(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+    decoration: BoxDecoration(
+      color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Text(
+      text,
+      style: TextStyle(
+        fontSize: 13,
+        color: CupertinoColors.secondaryLabel.resolveFrom(context),
+      ),
+    ),
+  );
+}
+
+/// '근거 보기' — 접혀 있다가 누르면 까닭 줄들이 펼쳐진다.
+class _Details extends StatefulWidget {
+  const _Details(this.lines, {required this.style});
+  final List<String> lines;
+  final TextStyle style;
+
+  @override
+  State<_Details> createState() => _DetailsState();
+}
+
+class _DetailsState extends State<_Details> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CupertinoButton(
+          key: const ValueKey('routine-details'),
+          padding: EdgeInsets.zero,
+          minimumSize: const Size(44, 36),
+          onPressed: () => setState(() => _open = !_open),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _open ? l.routineWhyHide : l.routineWhyShow,
+                style: const TextStyle(fontSize: 13),
+              ),
+              Icon(
+                _open ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,
+                size: 13,
+              ),
+            ],
+          ),
+        ),
+        if (_open) Text(widget.lines.join('\n'), style: widget.style),
+      ],
     );
   }
 }

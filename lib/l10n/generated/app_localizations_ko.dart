@@ -2633,6 +2633,12 @@ class LKo extends L {
   String get routineOther => '다른 루틴';
 
   @override
+  String get routineWhyShow => '근거 보기';
+
+  @override
+  String get routineWhyHide => '근거 접기';
+
+  @override
   String routinePrevious(String date) {
     return '그 전($date)';
   }

@@ -649,6 +649,8 @@
   "routineRestore": "ใส่กลับ",
   "routineAdd": "+ {name}",
   "routineOther": "รูทีนอื่น",
+  "routineWhyShow": "ดูเหตุผล",
+  "routineWhyHide": "ซ่อนเหตุผล",
   "routinePrevious": "ก่อนหน้า ({date})",
   "routineByPart": "จัดรูทีน{part}",
   "routineStepChip": "+{step} (ระยะที่คุณเพิ่มเอง)",

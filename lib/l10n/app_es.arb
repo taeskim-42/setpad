@@ -649,6 +649,8 @@
   "routineRestore": "Volver a poner",
   "routineAdd": "+ {name}",
   "routineOther": "Otra",
+  "routineWhyShow": "Por qué",
+  "routineWhyHide": "Ocultar",
   "routinePrevious": "Anterior ({date})",
   "routineByPart": "Armar rutina de {part}",
   "routineStepChip": "+{step} (tu propio incremento)",

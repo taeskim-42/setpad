@@ -2713,6 +2713,12 @@ class LEn extends L {
   String get routineOther => 'Another';
 
   @override
+  String get routineWhyShow => 'Why this';
+
+  @override
+  String get routineWhyHide => 'Hide why';
+
+  @override
   String routinePrevious(String date) {
     return 'Before ($date)';
   }

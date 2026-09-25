@@ -4008,6 +4008,18 @@ abstract class L {
   /// **'다른 루틴'**
   String get routineOther;
 
+  /// No description provided for @routineWhyShow.
+  ///
+  /// In ko, this message translates to:
+  /// **'근거 보기'**
+  String get routineWhyShow;
+
+  /// No description provided for @routineWhyHide.
+  ///
+  /// In ko, this message translates to:
+  /// **'근거 접기'**
+  String get routineWhyHide;
+
   /// No description provided for @routinePrevious.
   ///
   /// In ko, this message translates to:

@@ -2682,6 +2682,12 @@ class LTh extends L {
   String get routineOther => 'รูทีนอื่น';
 
   @override
+  String get routineWhyShow => 'ดูเหตุผล';
+
+  @override
+  String get routineWhyHide => 'ซ่อนเหตุผล';
+
+  @override
   String routinePrevious(String date) {
     return 'ก่อนหน้า ($date)';
   }

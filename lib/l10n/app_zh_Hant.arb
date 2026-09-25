@@ -649,6 +649,8 @@
   "routineRestore": "加回",
   "routineAdd": "+ {name}",
   "routineOther": "換一個",
+  "routineWhyShow": "查看依據",
+  "routineWhyHide": "收起依據",
   "routinePrevious": "更早({date})",
   "routineByPart": "照{part}安排",
   "routineStepChip": "+{step}(你自己的加重幅度)",

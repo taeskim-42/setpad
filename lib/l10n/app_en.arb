@@ -649,6 +649,8 @@
   "routineRestore": "Add back",
   "routineAdd": "+ {name}",
   "routineOther": "Another",
+  "routineWhyShow": "Why this",
+  "routineWhyHide": "Hide why",
   "routinePrevious": "Before ({date})",
   "routineByPart": "Build a {part} routine",
   "routineStepChip": "+{step} (your own step)",

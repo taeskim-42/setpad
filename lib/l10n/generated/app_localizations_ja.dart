@@ -2627,6 +2627,12 @@ class LJa extends L {
   String get routineOther => '別のルーティン';
 
   @override
+  String get routineWhyShow => '根拠を見る';
+
+  @override
+  String get routineWhyHide => '根拠を閉じる';
+
+  @override
   String routinePrevious(String date) {
     return 'その前($date)';
   }

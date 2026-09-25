@@ -1359,10 +1359,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text(l.anatomyAddRoutine));
       await tester.pumpAndSettle();
-      expect(
-        cardTexts(tester).where((t) => t.startsWith('$shown ')),
-        hasLength(1),
-      );
+      expect(cardTexts(tester).where((t) => t == shown), hasLength(1));
       await tester.tap(find.text(l.routineStart));
       await tester.pumpAndSettle();
       final bench = store.created.single.blocks.singleWhere(

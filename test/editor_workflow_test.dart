@@ -38,6 +38,40 @@ Future<void> flush(WidgetTester tester, NotesStore store) async {
 }
 
 void main() {
+  testWidgets('해낸 세트는 칸이 초록으로 차고, 아직인 세트는 빈 칸이다 — 번호에 동그라미를 붙이지 않는다', (
+    tester,
+  ) async {
+    final c = RoutineEditorController()
+      ..addExercise('벤치프레스')
+      ..addSet('80 10')
+      ..addSet('80 8')
+      ..toggleDone(0, 1)
+      ..closeBlock();
+    await pumpPage(
+      tester,
+      CupertinoPageScaffold(
+        child: SafeArea(child: RoutineEditor(controller: c)),
+      ),
+    );
+    expect(c.blocks.single.sets.map((s) => s.done), [true, false]);
+    Color? fill(int i) =>
+        (tester
+                    .widget<Container>(
+                      find
+                          .descendant(
+                            of: find.byKey(ValueKey('set-cell-$i')),
+                            matching: find.byType(Container),
+                          )
+                          .first,
+                    )
+                    .decoration
+                as BoxDecoration?)
+            ?.color;
+    expect(fill(0), isNotNull, reason: '해낸 칸은 찬다');
+    expect(fill(1), isNull, reason: '아직인 칸은 비어 있다');
+    expect(find.textContaining('○'), findsNothing);
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test(
@@ -276,7 +310,7 @@ void main() {
         ),
       );
       expect(
-        tester.widget<Text>(find.text('1○ 80×10')).style!.decoration,
+        tester.widget<Text>(find.text('1 80×10')).style!.decoration,
         isNot(TextDecoration.lineThrough),
       );
       final handles = find.byWidgetPredicate(
@@ -290,7 +324,7 @@ void main() {
       await gesture.moveBy(const Offset(0, 25));
       await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
-      expect(find.text('1○ 80×10'), findsNothing);
+      expect(find.text('1 80×10'), findsNothing);
       expect(find.text('1 40×15'), findsNothing);
       expect(find.text('둘째 운동 메모'), findsNothing);
       expect(
@@ -383,7 +417,7 @@ void main() {
       expect(c.blocks.single.name, '인클라인 벤치프레스');
       expect(c.blocks.single.setup!.name, '인클라인 벤치프레스');
       expect(c.blocks.single.setup!.totalReps, 100);
-      await tester.tap(find.text('1○ 80×10'));
+      await tester.tap(find.text('1 80×10'));
       await tester.pumpAndSettle();
       tester.widget<SetKeypad>(find.byType(SetKeypad)).onKey('75 9');
       expect(c.blocks.single.sets.first.value, 75);
@@ -396,7 +430,7 @@ void main() {
       expect(set.notes, ['어깨 조심']);
       expect(c.blocks.single.sets.last.reps, 12);
       expect(tester.widget<CupertinoTextField>(input).controller!.text, '80 8');
-      await tester.tap(find.text('1○ 75×9'));
+      await tester.tap(find.text('1 75×9'));
       await tester.pumpAndSettle();
       tester.widget<SetKeypad>(find.byType(SetKeypad)).onKey('75 999');
       tester.widget<SetKeypad>(find.byType(SetKeypad)).onSubmit();

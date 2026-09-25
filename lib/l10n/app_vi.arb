@@ -649,6 +649,8 @@
   "routineRestore": "Thêm lại",
   "routineAdd": "+ {name}",
   "routineOther": "Bài khác",
+  "routineWhyShow": "Xem lý do",
+  "routineWhyHide": "Ẩn lý do",
   "routinePrevious": "Trước đó ({date})",
   "routineByPart": "Xếp bài {part}",
   "routineStepChip": "+{step} (mức bạn tự tăng)",
