@@ -2887,7 +2887,8 @@ RecordResult? runPlan(
     );
   }
 
-  /// series [i] 의 [group] 으로 측정 [m] 한 칸. [within] 은 시간 묶음의 날 고르기.
+  /// series [i] 의 [group] 으로 측정 [m] 한 칸. [logs] 는 시간 묶음의 날 기록이다
+  /// (에너지 칸만 부른다).
   /// 운동일수의 작은 줄: 창 안에서 요일 조건을 지나는 달력 날 중 몇 %. 주중 5일과
   /// 주말 2일처럼 날 수가 다른 범위를 개수만으로 견주지 않게 한다.
   Cell possible(int i, Cell c) {
@@ -2921,21 +2922,14 @@ RecordResult? runPlan(
     List<Note> group,
     Metric m, {
     List<Note>? basis,
-    bool Function(DateTime)? within,
+    List<DayLog> Function()? logs,
     DateTime? start,
   }) {
     if (neverAll(i)) return empty(m, 'never', start);
     if (future(i)) return empty(m, 'future', start);
     Cell c;
     if (energyMetrics.contains(m)) {
-      final a = energyAnswer(
-        [
-          for (final d in logsOf(i))
-            if (within == null || within(d.day)) d,
-        ],
-        m,
-        labels: l,
-      );
+      final a = energyAnswer(logs?.call() ?? logsOf(i), m, labels: l);
       c = Cell(a, days: {for (final p in a.points) p.day});
     } else if (dayMetrics.contains(m)) {
       // 조건이 판정하지 못한 운동(값이 빠진 세트가 있는 상한 조건)의 날은 세지
@@ -3146,25 +3140,51 @@ RecordResult? runPlan(
         1;
     List<Note> within(int i, bool Function(DateTime) test) =>
         kept[i].notes.where((note) => test(_day(note.createdAt))).toList();
-    ResultRow row(String name, DateTime? start, bool Function(DateTime) test) =>
-        ResultRow(name, [
-          for (final (i, m) in cols)
-            compute(
-              i,
-              within(i, test),
-              m,
-              basis: kept[i].notes,
-              within: test,
-              start: start,
-            ),
-        ], start: start);
+    // 줄마다 모든 기록을 다시 거르면 줄 수 × 기록 수만큼 돈다 — 날별 200줄이면
+    // 칸 하나에 수십 ms 다. 기록과 날 기록을 묶음 열쇠(날·주의 월요일·달의
+    // 1일·요일)로 series 마다 한 번 나눠 두고, 줄은 제 열쇠의 몫만 가져간다.
+    DateTime bucket(DateTime d) => switch (by) {
+      'week' => _monday(d),
+      'month' => DateTime(d.year, d.month),
+      _ => d,
+    };
+    Object keyOf(DateTime d) => by == 'weekday' ? d.weekday : bucket(d);
+    Map<Object, List<T>> split<T>(List<T> xs, DateTime Function(T) day) {
+      final out = <Object, List<T>>{};
+      for (final x in xs) {
+        (out[keyOf(day(x))] ??= []).add(x);
+      }
+      return out;
+    }
+
+    final noteBins = <int, Map<Object, List<Note>>>{};
+    final logBins = <int, Map<Object, List<DayLog>>>{};
+    List<Note> notesAt(int i, Object key) =>
+        (noteBins[i] ??= split(
+          kept[i].notes,
+          (note) => _day(note.createdAt),
+        ))[key] ??
+        [];
+    List<DayLog> logsAt(int i, Object key) =>
+        (logBins[i] ??= split(logsOf(i), (d) => d.day))[key] ?? [];
+    ResultRow row(String name, DateTime? start, Object key) => ResultRow(name, [
+      for (final (i, m) in cols)
+        compute(
+          i,
+          notesAt(i, key),
+          m,
+          basis: kept[i].notes,
+          logs: () => logsAt(i, key),
+          start: start,
+        ),
+    ], start: start);
     if (by == 'weekday') {
       rows = [
         for (var d = 1; d <= 7; d++)
           row(
             DateFormat.E(locale).format(DateTime(2024, 1, d)), // 월요일부터
             null,
-            (x) => x.weekday == d,
+            d,
           ),
       ];
     } else if (sameWindow || n == 1) {
@@ -3178,15 +3198,12 @@ RecordResult? runPlan(
       }.toList()..sort();
       if (by == 'day') {
         rows = [
-          for (final d in days)
-            row(DateFormat.MMMd(locale).format(d), d, (x) => x == d),
+          for (final d in days) row(DateFormat.MMMd(locale).format(d), d, d),
         ];
       } else {
-        // 빈 구간도 줄이다 — 주당 평균은 쉰 주까지 나눠야 맞다. 주는 월요일에
-        // 시작한다. 끝은 오늘을 넘지 않는다 — 오지 않은 주는 쉰 주가 아니다.
+        // 빈 구간도 줄이다 — 주당 평균은 쉰 주까지 나눠야 맞다. 끝은 오늘을
+        // 넘지 않는다 — 오지 않은 주는 쉰 주가 아니다.
         final week = by == 'week';
-        DateTime bucket(DateTime d) =>
-            week ? _monday(d) : DateTime(d.year, d.month);
         final first = series.first.scope.since ?? days.firstOrNull;
         if (first != null) {
           final end = bucket(endOf(0));
@@ -3203,7 +3220,7 @@ RecordResult? runPlan(
                 (week ? DateFormat.MMMd(locale) : DateFormat.yMMM(locale))
                     .format(at),
                 at,
-                (x) => bucket(x) == at,
+                at,
               ),
             );
           }
@@ -3266,7 +3283,10 @@ RecordResult? runPlan(
                       within(i, test),
                       ms[i],
                       basis: kept[i].notes,
-                      within: test,
+                      logs: () => [
+                        for (final d in logsOf(i))
+                          if (test(d.day)) d,
+                      ],
                       start: a,
                     );
                     final len = _between(a, b) + 1;
