@@ -2639,7 +2639,7 @@
     }
   },
   "routineBpmRange": "bpm 은 10–120 이에요 — 타이머 없이 넣었어요",
-  "routineIntensityLine": "{kind, select, light{가볍게: 칸마다 마지막 세트 하나를 뺐어요 — 무게는 지난번 그대로예요} hard{무게는 지난번 그대로예요} max{몇 kg 에 도전할지는 정하지 않아요 — 최고 기록을 옆에 적었어요} other{}}",
+  "routineIntensityLine": "{kind, select, light{가볍게: 칸마다 마지막 세트 하나를 뺐어요 — 무게는 지난번 그대로예요} lightBlank{가볍게: 칸마다 마지막 세트 하나를 뺐어요} hard{무게는 지난번 그대로예요} max{몇 kg 에 도전할지는 정하지 않아요 — 최고 기록을 옆에 적었어요} other{}}",
   "@routineIntensityLine": {
     "placeholders": {
       "kind": {
@@ -3164,7 +3164,7 @@
       }
     }
   },
-  "routineWhyFactorAll": "{f, select, strength{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 근력으로 {date}처럼 짰어요} endurance{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 근지구력으로 {date}처럼 짰어요} sustain{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 지속력으로 {date}처럼 짰어요} cardio{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 심폐로 {date}처럼 짰어요} other{{date}처럼 짰어요}}",
+  "routineWhyFactorAll": "{f, select, strength{이번 주 요인은 다 채웠어요 — 다음 차례인 근력으로 {date}처럼 짰어요} endurance{이번 주 요인은 다 채웠어요 — 다음 차례인 근지구력으로 {date}처럼 짰어요} sustain{이번 주 요인은 다 채웠어요 — 다음 차례인 지속력으로 {date}처럼 짰어요} cardio{이번 주 요인은 다 채웠어요 — 다음 차례인 심폐로 {date}처럼 짰어요} other{{date}처럼 짰어요}}",
   "@routineWhyFactorAll": {
     "placeholders": {
       "f": {
@@ -3217,6 +3217,88 @@
   },
   "routineLightKept": "세트를 뺄 수 없어 그대로 둔 칸(한 세트·채우기·타바타): {list}",
   "@routineLightKept": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "routineWhyWeekdaySkip": "{how, select, alt{다른 루틴: {weeks}주 전 {day}({date})로 짰어요} other{지난주 {day}은 거른 운동뿐이라 {weeks}주 전 {day}({date})로 짰어요}}",
+  "@routineWhyWeekdaySkip": {
+    "description": "같은 요일을 건너뛴 까닭: how = alt(다른 루틴) | filtered(거른 칸뿐)",
+    "placeholders": {
+      "how": {
+        "type": "String"
+      },
+      "weeks": {
+        "type": "int"
+      },
+      "day": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineWhyNearSkip": "{how, select, alt{다른 루틴: 가까운 {near}로 짰어요} other{{day}은 거른 운동뿐이라 가까운 {near}로 짰어요}}",
+  "@routineWhyNearSkip": {
+    "description": "같은 요일 대신 이웃 요일: how = alt | filtered",
+    "placeholders": {
+      "how": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "near": {
+        "type": "String"
+      }
+    }
+  },
+  "routineWhyFactorNoDay": "모자란 요인은 최근 28일에 쓸 수 있는 날이 없어 {date} {factor} 날처럼 짰어요",
+  "@routineWhyFactorNoDay": {
+    "description": "모자란 요인의 날이 없어 다른 요인 날로 짰다",
+    "placeholders": {
+      "factor": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineFactorLost": "{date} {factor} 날로 짰지만 {factor} 칸은 빠졌어요",
+  "@routineFactorLost": {
+    "description": "요인 원천인데 그 요인 칸이 루틴에서 빠졌다",
+    "placeholders": {
+      "factor": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineFactorFiltered": "빼라고 한 운동을 빼면 최근 28일에 남는 날이 없는 요인: {list}",
+  "@routineFactorFiltered": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "routineLightDropped": "{date}에서 한 세트 뺌",
+  "@routineLightDropped": {
+    "description": "가볍게: 이 칸은 원천 날에서 세트 하나를 뺐다",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineDoneToday": "오늘 이미 한 운동이 들어 있어요: {list}",
+  "@routineDoneToday": {
     "placeholders": {
       "list": {
         "type": "String"

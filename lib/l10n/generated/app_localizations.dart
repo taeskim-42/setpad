@@ -3861,7 +3861,7 @@ abstract class L {
   /// No description provided for @routineIntensityLine.
   ///
   /// In ko, this message translates to:
-  /// **'{kind, select, light{가볍게: 칸마다 마지막 세트 하나를 뺐어요 — 무게는 지난번 그대로예요} hard{무게는 지난번 그대로예요} max{몇 kg 에 도전할지는 정하지 않아요 — 최고 기록을 옆에 적었어요} other{}}'**
+  /// **'{kind, select, light{가볍게: 칸마다 마지막 세트 하나를 뺐어요 — 무게는 지난번 그대로예요} lightBlank{가볍게: 칸마다 마지막 세트 하나를 뺐어요} hard{무게는 지난번 그대로예요} max{몇 kg 에 도전할지는 정하지 않아요 — 최고 기록을 옆에 적었어요} other{}}'**
   String routineIntensityLine(String kind);
 
   /// No description provided for @routineNoStep.
@@ -4467,7 +4467,7 @@ abstract class L {
   /// No description provided for @routineWhyFactorAll.
   ///
   /// In ko, this message translates to:
-  /// **'{f, select, strength{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 근력으로 {date}처럼 짰어요} endurance{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 근지구력으로 {date}처럼 짰어요} sustain{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 지속력으로 {date}처럼 짰어요} cardio{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 심폐로 {date}처럼 짰어요} other{{date}처럼 짰어요}}'**
+  /// **'{f, select, strength{이번 주 요인은 다 채웠어요 — 다음 차례인 근력으로 {date}처럼 짰어요} endurance{이번 주 요인은 다 채웠어요 — 다음 차례인 근지구력으로 {date}처럼 짰어요} sustain{이번 주 요인은 다 채웠어요 — 다음 차례인 지속력으로 {date}처럼 짰어요} cardio{이번 주 요인은 다 채웠어요 — 다음 차례인 심폐로 {date}처럼 짰어요} other{{date}처럼 짰어요}}'**
   String routineWhyFactorAll(String f, String date);
 
   /// No description provided for @routineWeekCounts.
@@ -4511,6 +4511,48 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'세트를 뺄 수 없어 그대로 둔 칸(한 세트·채우기·타바타): {list}'**
   String routineLightKept(String list);
+
+  /// 같은 요일을 건너뛴 까닭: how = alt(다른 루틴) | filtered(거른 칸뿐)
+  ///
+  /// In ko, this message translates to:
+  /// **'{how, select, alt{다른 루틴: {weeks}주 전 {day}({date})로 짰어요} other{지난주 {day}은 거른 운동뿐이라 {weeks}주 전 {day}({date})로 짰어요}}'**
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date);
+
+  /// 같은 요일 대신 이웃 요일: how = alt | filtered
+  ///
+  /// In ko, this message translates to:
+  /// **'{how, select, alt{다른 루틴: 가까운 {near}로 짰어요} other{{day}은 거른 운동뿐이라 가까운 {near}로 짰어요}}'**
+  String routineWhyNearSkip(String how, String day, String near);
+
+  /// 모자란 요인의 날이 없어 다른 요인 날로 짰다
+  ///
+  /// In ko, this message translates to:
+  /// **'모자란 요인은 최근 28일에 쓸 수 있는 날이 없어 {date} {factor} 날처럼 짰어요'**
+  String routineWhyFactorNoDay(String factor, String date);
+
+  /// 요인 원천인데 그 요인 칸이 루틴에서 빠졌다
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} {factor} 날로 짰지만 {factor} 칸은 빠졌어요'**
+  String routineFactorLost(String factor, String date);
+
+  /// No description provided for @routineFactorFiltered.
+  ///
+  /// In ko, this message translates to:
+  /// **'빼라고 한 운동을 빼면 최근 28일에 남는 날이 없는 요인: {list}'**
+  String routineFactorFiltered(String list);
+
+  /// 가볍게: 이 칸은 원천 날에서 세트 하나를 뺐다
+  ///
+  /// In ko, this message translates to:
+  /// **'{date}에서 한 세트 뺌'**
+  String routineLightDropped(String date);
+
+  /// No description provided for @routineDoneToday.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 이미 한 운동이 들어 있어요: {list}'**
+  String routineDoneToday(String list);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

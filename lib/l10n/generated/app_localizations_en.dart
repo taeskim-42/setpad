@@ -2593,6 +2593,7 @@ class LEn extends L {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'light':
           'Light: one set dropped from each exercise — weights are the same as last time',
+      'lightBlank': 'Light: one set dropped from each exercise',
       'hard': 'Weights are the same as last time',
       'max': 'I don\'t pick a PR weight — your best is shown beside it',
       'other': '',
@@ -3127,13 +3128,13 @@ class LEn extends L {
   String routineWhyFactorAll(String f, String date) {
     String _temp0 = intl.Intl.selectLogic(f, {
       'strength':
-          'Every factor is covered this week — strength waited longest, so built like $date',
+          'Every factor is covered this week — strength is next, so built like $date',
       'endurance':
-          'Every factor is covered this week — muscular endurance waited longest, so built like $date',
+          'Every factor is covered this week — muscular endurance is next, so built like $date',
       'sustain':
-          'Every factor is covered this week — sustain waited longest, so built like $date',
+          'Every factor is covered this week — sustain is next, so built like $date',
       'cardio':
-          'Every factor is covered this week — cardio waited longest, so built like $date',
+          'Every factor is covered this week — cardio is next, so built like $date',
       'other': 'Built like $date',
     });
     return '$_temp0';
@@ -3176,5 +3177,50 @@ class LEn extends L {
   @override
   String routineLightKept(String list) {
     return 'Kept as is (one set, fill or tabata): $list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': 'Another routine: the $day $weeks weeks ago ($date)',
+      'other':
+          'Last $day had only excluded exercises — built from the $day $weeks weeks ago ($date)',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': 'Another routine: the nearby $near',
+      'other':
+          'Your $day logs had only excluded exercises — built from the nearby $near',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return 'No usable day in the last 28 days for the factors you\'re low on — built like the $factor day on $date';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return 'Built from the $factor day on $date, but its $factor exercises were left out';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return 'No day left in the last 28 days once your exclusions are removed: $list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return 'one set fewer than $date';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return 'Already done today: $list';
   }
 }

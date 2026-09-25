@@ -270,14 +270,29 @@ List<String> routineViolations(
       (d.sourceDay == null || d.target == null || d.weekCounts == null)) {
     out.add('C14 요인 까닭 없음');
   }
-  // C15 요인 원천: 옮긴 날의 하루 요인이 채우려는 요인이다(순발력은 근력 칸).
+  // C15 요인 원천: 루틴에 남은 원천 날 칸(내 칸, 시각 순)의 요인이 채우려는 요인이다
+  // (순발력은 근력 칸). 빠졌으면 그렇다고 말하는 줄(factorLost)이 있어야 하고, 남았으면
+  // 그 줄이 없어야 한다.
   if (d.source == 'factor' && d.sourceDay != null && d.target != null) {
-    final f = dayFactor([
-      for (final n in notes)
-        if (calendarDay(n.createdAt) == d.sourceDay) n,
+    final kept = {
+      for (final i in d.items)
+        if (i.day == d.sourceDay) i.key,
+    };
+    final f = dayFactorOf([
+      for (final n in [
+        ...notes,
+      ]..sort((a, b) => a.createdAt.compareTo(b.createdAt)))
+        if (calendarDay(n.createdAt) == d.sourceDay)
+          for (final b in n.blocks)
+            if (kept.contains(exerciseKey(b.exercise))) b,
     ])?.factor;
-    if (f == null || merged(f) != d.target) {
-      out.add('C15 ${d.sourceDay} ${f?.name} ≠ ${d.target!.name}');
+    final held = f != null && merged(f) == d.target;
+    final lost = d.lines.any((l) => l.code == 'factorLost');
+    if (held == lost) {
+      out.add(
+        'C15 ${d.sourceDay} ${f?.name} ${lost ? '= (빠졌다는 줄)' : '≠'} '
+        '${d.target!.name}',
+      );
     }
   }
   return out;

@@ -2562,6 +2562,7 @@ class LTh extends L {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'light':
           'เบาๆ: ลดเซ็ตสุดท้ายของแต่ละท่าลงหนึ่งเซ็ต — น้ำหนักเท่าครั้งก่อน',
+      'lightBlank': 'เบาๆ: ลดเซ็ตสุดท้ายของแต่ละท่าลงหนึ่งเซ็ต',
       'hard': 'น้ำหนักเท่าครั้งก่อน',
       'max': 'ไม่กำหนดน้ำหนักที่จะลอง — เขียนสถิติสูงสุดไว้ข้างๆ',
       'other': '',
@@ -3087,13 +3088,13 @@ class LTh extends L {
   String routineWhyFactorAll(String f, String date) {
     String _temp0 = intl.Intl.selectLogic(f, {
       'strength':
-          'สัปดาห์นี้ครบทุกด้านแล้ว — ความแข็งแรงห่างนานที่สุด จึงจัดเหมือน $date',
+          'สัปดาห์นี้ครบทุกด้านแล้ว — ถึงคิวความแข็งแรง จึงจัดเหมือน $date',
       'endurance':
-          'สัปดาห์นี้ครบทุกด้านแล้ว — ความทนทานของกล้ามเนื้อห่างนานที่สุด จึงจัดเหมือน $date',
+          'สัปดาห์นี้ครบทุกด้านแล้ว — ถึงคิวความทนทานของกล้ามเนื้อ จึงจัดเหมือน $date',
       'sustain':
-          'สัปดาห์นี้ครบทุกด้านแล้ว — ความต่อเนื่องห่างนานที่สุด จึงจัดเหมือน $date',
+          'สัปดาห์นี้ครบทุกด้านแล้ว — ถึงคิวความต่อเนื่อง จึงจัดเหมือน $date',
       'cardio':
-          'สัปดาห์นี้ครบทุกด้านแล้ว — หัวใจและปอดห่างนานที่สุด จึงจัดเหมือน $date',
+          'สัปดาห์นี้ครบทุกด้านแล้ว — ถึงคิวหัวใจและปอด จึงจัดเหมือน $date',
       'other': 'จัดเหมือน $date',
     });
     return '$_temp0';
@@ -3136,5 +3137,49 @@ class LTh extends L {
   @override
   String routineLightKept(String list) {
     return 'คงไว้ตามเดิม (เซ็ตเดียว ให้ครบจำนวน หรือทาบาตะ): $list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': 'รูทีนอื่น: $dayเมื่อ $weeks สัปดาห์ก่อน ($date)',
+      'other':
+          '$dayที่แล้วมีแต่ท่าที่ตัดออก — จัดจาก$dayเมื่อ $weeks สัปดาห์ก่อน ($date)',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': 'รูทีนอื่น: วันใกล้เคียง $near',
+      'other': 'บันทึก$dayมีแต่ท่าที่ตัดออก — จัดจากวันใกล้เคียง $near',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return 'ด้านที่ยังขาดไม่มีวันที่ใช้ได้ใน 28 วันล่าสุด — จึงจัดเหมือนวัน$factor $date';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return 'จัดจากวัน$factor $date แต่ท่า$factorถูกตัดออก';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return 'ตัดท่าที่ขอให้ตัดแล้วไม่เหลือวันใน 28 วันล่าสุด: $list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return 'น้อยกว่าวันที่ $date หนึ่งเซ็ต';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return 'มีท่าที่ทำไปแล้ววันนี้: $list';
   }
 }

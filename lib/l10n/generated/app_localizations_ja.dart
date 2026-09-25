@@ -2508,6 +2508,7 @@ class LJa extends L {
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'light': '軽め: 各種目の最後の1セットを減らしました — 重さは前回と同じです',
+      'lightBlank': '軽め: 各種目の最後の1セットを減らしました',
       'hard': '重さは前回と同じです',
       'max': '何kgに挑戦するかは決めません — 最高記録を横に書きました',
       'other': '',
@@ -3022,10 +3023,10 @@ class LJa extends L {
   @override
   String routineWhyFactorAll(String f, String date) {
     String _temp0 = intl.Intl.selectLogic(f, {
-      'strength': '今週の要素はすべて満たしました — いちばん長くやっていない筋力で$dateと同じに組みました',
-      'endurance': '今週の要素はすべて満たしました — いちばん長くやっていない筋持久力で$dateと同じに組みました',
-      'sustain': '今週の要素はすべて満たしました — いちばん長くやっていない持続力で$dateと同じに組みました',
-      'cardio': '今週の要素はすべて満たしました — いちばん長くやっていない心肺で$dateと同じに組みました',
+      'strength': '今週の要素はすべて満たしました — 次の番の筋力で$dateと同じに組みました',
+      'endurance': '今週の要素はすべて満たしました — 次の番の筋持久力で$dateと同じに組みました',
+      'sustain': '今週の要素はすべて満たしました — 次の番の持続力で$dateと同じに組みました',
+      'cardio': '今週の要素はすべて満たしました — 次の番の心肺で$dateと同じに組みました',
       'other': '$dateと同じに組みました',
     });
     return '$_temp0';
@@ -3067,5 +3068,48 @@ class LJa extends L {
   @override
   String routineLightKept(String list) {
     return 'そのままにした種目(1セット・回数達成・タバタ): $list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '別のルーティン: $weeks週間前の$day($date)で組みました',
+      'other': '先週の$dayは除外した種目だけなので$weeks週間前の$day($date)で組みました',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '別のルーティン: 近い$nearで組みました',
+      'other': '$dayは除外した種目だけなので近い$nearで組みました',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return '足りない要素は直近28日に使える日がないので$dateの$factorの日と同じに組みました';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return '$dateの$factorの日で組みましたが、$factorの種目は外れました';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return '除外した種目を除くと直近28日に残る日がない要素: $list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return '$dateより1セット少なく';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return '今日すでにやった種目が入っています: $list';
   }
 }

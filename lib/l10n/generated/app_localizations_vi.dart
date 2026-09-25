@@ -2579,6 +2579,7 @@ class LVi extends L {
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'light': 'Nhẹ: bớt hiệp cuối của mỗi bài — mức tạ giống lần trước',
+      'lightBlank': 'Nhẹ: bớt hiệp cuối của mỗi bài',
       'hard': 'Mức tạ giống lần trước',
       'max': 'Không chọn mức tạ để phá kỷ lục — ghi kỷ lục bên cạnh',
       'other': '',
@@ -3107,13 +3108,13 @@ class LVi extends L {
   String routineWhyFactorAll(String f, String date) {
     String _temp0 = intl.Intl.selectLogic(f, {
       'strength':
-          'Tuần này đã đủ mọi mặt — sức mạnh lâu chưa tập nhất nên xếp giống $date',
+          'Tuần này đã đủ mọi mặt — đến lượt sức mạnh nên xếp giống $date',
       'endurance':
-          'Tuần này đã đủ mọi mặt — sức bền cơ lâu chưa tập nhất nên xếp giống $date',
+          'Tuần này đã đủ mọi mặt — đến lượt sức bền cơ nên xếp giống $date',
       'sustain':
-          'Tuần này đã đủ mọi mặt — sức duy trì lâu chưa tập nhất nên xếp giống $date',
+          'Tuần này đã đủ mọi mặt — đến lượt sức duy trì nên xếp giống $date',
       'cardio':
-          'Tuần này đã đủ mọi mặt — tim phổi lâu chưa tập nhất nên xếp giống $date',
+          'Tuần này đã đủ mọi mặt — đến lượt tim phổi nên xếp giống $date',
       'other': 'Xếp giống $date',
     });
     return '$_temp0';
@@ -3156,5 +3157,49 @@ class LVi extends L {
   @override
   String routineLightKept(String list) {
     return 'Giữ nguyên (một hiệp, tập đủ số hoặc tabata): $list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': 'Bài khác: $day $weeks tuần trước ($date)',
+      'other':
+          '$day tuần trước chỉ có bài đã loại — xếp theo $day $weeks tuần trước ($date)',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': 'Bài khác: ngày gần đó $near',
+      'other': 'Ghi chép $day chỉ có bài đã loại — xếp theo ngày gần đó $near',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return 'Mặt còn thiếu không có ngày dùng được trong 28 ngày — xếp giống ngày $factor $date';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return 'Xếp theo ngày $factor $date, nhưng bài $factor đã bị bỏ ra';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return 'Bỏ các bài bạn loại thì không còn ngày nào trong 28 ngày: $list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return 'ít hơn ngày $date một hiệp';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return 'Có bài đã tập hôm nay: $list';
   }
 }

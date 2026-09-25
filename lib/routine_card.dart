@@ -136,11 +136,10 @@ class RoutineCard extends StatelessWidget {
     Widget Function(List<RoutineAction>) chips,
   ) {
     String date(DateTime x) => l.routineDate(x);
-    String weekday(DateTime x) => '${l.weekdayLabel(x)}(${date(x)})';
     final a = ask;
     final head = d.future
         ? l.routineHeaderDay(
-            d.day.difference(d.today).inDays == 1
+            d.day == DateTime(d.today.year, d.today.month, d.today.day + 1)
                 ? l.routineTomorrow(date(d.day))
                 : '${l.weekdayLabel(d.day)}(${date(d.day)})',
           )
@@ -150,29 +149,7 @@ class RoutineCard extends StatelessWidget {
       ?readAs,
       for (final line in d.lines) ...routineLineTexts(l, line),
     ];
-    final why = switch (d.source) {
-      'rotation' when d.sourceDay != null && d.restDays != null =>
-        l.routineWhyRotation(date(d.sourceDay!), d.restDays!),
-      'from' when d.sourceDay != null => l.routineWhyFrom(date(d.sourceDay!)),
-      'conditions' when d.sourceDay != null => l.routineWhyNamed(
-        date(d.sourceDay!),
-      ),
-      'weekday' when d.sourceDay != null && d.near => l.routineWhyNear(
-        l.weekdayLabel(d.day),
-        weekday(d.sourceDay!),
-      ),
-      'weekday' when d.sourceDay != null => l.routineWhyWeekday(
-        d.weeksAgo ?? 1,
-        l.weekdayLabel(d.sourceDay!),
-        date(d.sourceDay!),
-      ),
-      'factor' when d.sourceDay != null && d.target != null =>
-        (d.short ? l.routineWhyFactor : l.routineWhyFactorAll)(
-          d.target!.name,
-          weekday(d.sourceDay!),
-        ),
-      _ => null,
-    };
+    final why = routineWhy(l, d);
     // 원천 날의 체력 요인(설명만): "근력 날 · 3×10".
     final factor = switch (d.factor) {
       final f? when d.source == 'weekday' || d.source == 'factor' =>
@@ -315,6 +292,7 @@ class RoutineCard extends StatelessWidget {
     String date(DateTime x) => l.routineDate(x);
     final why = switch (i.why) {
       'copied' when i.day != null => l.routineCopied(date(i.day!)),
+      'lightDropped' when i.day != null => l.routineLightDropped(date(i.day!)),
       'repsMatched' when i.day != null => l.routineRepsMatched(
         date(i.day!),
         i.sets.firstOrNull?.reps ?? 0,
@@ -443,6 +421,53 @@ String? _readAs(L l, RoutineAsk a) {
   return parts.isEmpty ? null : l.routineReadAs(parts.join(' · '));
 }
 
+/// 카드의 "왜" 줄 — 원천을 고른 까닭. 말할 것이 없으면 null.
+String? routineWhy(L l, RoutineDraft d) {
+  final src = d.sourceDay;
+  if (src == null) return null;
+  final date = l.routineDate(src);
+  final weekday = '${l.weekdayLabel(src)}($date)';
+  final target = d.target;
+  return switch (d.source) {
+    'rotation' when d.restDays != null => l.routineWhyRotation(
+      date,
+      d.restDays!,
+    ),
+    'from' => l.routineWhyFrom(date),
+    'conditions' => l.routineWhyNamed(date),
+    'weekday' when d.near && d.skipped != null => l.routineWhyNearSkip(
+      d.skipped!,
+      l.weekdayLabel(d.day),
+      weekday,
+    ),
+    'weekday' when d.near => l.routineWhyNear(l.weekdayLabel(d.day), weekday),
+    'weekday' when d.skipped != null => l.routineWhyWeekdaySkip(
+      d.skipped!,
+      d.weeksAgo ?? 1,
+      l.weekdayLabel(src),
+      date,
+    ),
+    'weekday' => l.routineWhyWeekday(
+      d.weeksAgo ?? 1,
+      l.weekdayLabel(src),
+      date,
+    ),
+    // 목표 요인 칸이 루틴에서 빠졌으면 줄(factorLost)이 말한다.
+    'factor'
+        when target == null || d.lines.any((x) => x.code == 'factorLost') =>
+      null,
+    'factor' when d.short => l.routineWhyFactor(target!.name, weekday),
+    // "다 채웠어요" 는 모든 요인이 목표에 닿았을 때만. 아니면 모자란 요인의 날이 없었다.
+    'factor'
+        when factorGoal.entries.every(
+          (g) => (d.weekCounts?[g.key] ?? 0) >= g.value,
+        ) =>
+      l.routineWhyFactorAll(target!.name, weekday),
+    'factor' => l.routineWhyFactorNoDay(l.routineFactor(target!.name), weekday),
+    _ => null,
+  };
+}
+
 /// 카드 줄 하나의 문구(화면 언어). 줄이 없어지는 일은 없다 — 모르는 줄은 코드를 보인다.
 List<String> routineLineTexts(L l, RoutineLine line) {
   final a = line.args;
@@ -468,7 +493,12 @@ List<String> routineLineTexts(L l, RoutineLine line) {
     'fewer' => [l.routineFewer(a[0] as int)],
     'otherUnit' => [l.routineOtherUnit(s(0))],
     'bpmRange' => [l.routineBpmRange],
-    'light' || 'hard' || 'max' => [l.routineIntensityLine(line.code)],
+    // 비운 칸이 있으면(아픔·기구·오래됨) "무게는 지난번 그대로" 를 빼고 말한다.
+    'light' || 'hard' || 'max' => switch ((line.code, a.contains('blank'))) {
+      ('light', true) => [l.routineIntensityLine('lightBlank')],
+      ('hard', true) => const [],
+      _ => [l.routineIntensityLine(line.code)],
+    },
     'noStep' => [l.routineNoStep],
     'pain' => [
       (a[1] as List).isEmpty
@@ -491,6 +521,18 @@ List<String> routineLineTexts(L l, RoutineLine line) {
         (a[0] as List).map((f) => l.routineFactor('$f')).join('·'),
       ),
     ],
+    'factorFiltered' => [
+      l.routineFactorFiltered(
+        (a[0] as List).map((f) => l.routineFactor('$f')).join('·'),
+      ),
+    ],
+    'factorLost' => [
+      l.routineFactorLost(
+        l.routineFactor(s(0)),
+        '${l.weekdayLabel(a[1] as DateTime)}(${l.routineDate(a[1] as DateTime)})',
+      ),
+    ],
+    'doneToday' => [l.routineDoneToday((a[0] as List).join('·'))],
     'fillHint' => [l.routineFillHint],
     'lightKept' => [l.routineLightKept((a[0] as List).join('·'))],
     _ => [line.toString()],

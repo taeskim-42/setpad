@@ -1542,6 +1542,10 @@ class RoutineDraft {
   int? weeksAgo;
   bool near = false;
 
+  /// weekday: 더 가까운 같은 요일을 건너뛴 까닭 — 'alt'(다른 루틴) · 'filtered'(거른 칸
+  /// 뿐) · null(기록이 없다).
+  String? skipped;
+
   /// 원천 날의 체력 요인과 근거 — 설명만 한다(고른 날을 바꾸지 않는다).
   ({Factor factor, FactorRead read})? factor;
 
@@ -1554,6 +1558,9 @@ class RoutineDraft {
 
   /// 28일 안에 따로 한 날이 없어 건너뛴 요인(줄로 말한다).
   final missing = <Factor>[];
+
+  /// 그 요인의 날은 있지만 거른 칸을 빼면 그 요인 날이 아니어서 건너뛴 요인(줄로).
+  final factorFiltered = <Factor>[];
 
   /// 방식 칩: 'weekday'(지난주 ○요일처럼) · 'tabata'(타바타로) · 요인 이름(그 요인
   /// 으로 짜기, [count] 는 이번 주 셈). 누르면 [RoutineEdits.mode].
@@ -1736,8 +1743,7 @@ List<Note> _fromNotes(
   final rates = <double>[];
   final recent = [
     for (final n in notes)
-      if (_days(n.createdAt, today) <= 60 &&
-          _day(n.createdAt).isBefore(today.add(const Duration(days: 1))))
+      if (_days(n.createdAt, today) <= 60 && !_day(n.createdAt).isAfter(today))
         n,
   ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   for (final n in recent) {
@@ -1851,10 +1857,12 @@ RoutineDraft composeRoutine(
   if (e.part != null) ask = ask.withParts([e.part!]);
   if (e.mode == 'tabata') ask = ask.withTimer(const RoutineTimer.tabata());
   final today = _day(now ?? DateTime.now());
+  // 달력 날로 더한다 — 24시간을 더하면 서머타임이 끝나는 날 하루가 어긋난다.
+  DateTime plus(int n) => DateTime(today.year, today.month, today.day + n);
   final day = switch (ask.when) {
-    'tomorrow' => today.add(const Duration(days: 1)),
+    'tomorrow' => plus(1),
     // 오늘과 같은 요일은 오늘이다("수요일 루틴" 을 수요일에).
-    final int w => today.add(Duration(days: (w - today.weekday) % 7)),
+    final int w => plus((w - today.weekday) % 7),
     _ => today,
   };
   final draft = RoutineDraft(day: day, today: today);
@@ -2299,9 +2307,15 @@ RoutineDraft composeRoutine(
   var picks = <DateTime>[];
   if (draft.source == 'none') {
     final mode = e.mode ?? (day.weekday >= 6 ? 'factor' : 'weekday');
+    // 요인은 거른 뒤 남는 칸으로 가른다 — "스쿼트 말고" 로 채우기 칸이 빠진 날은 근지구력
+    // 날이 아니다. 거르기 전 요인은 건너뛴 까닭(거름 · 날 없음)을 가를 때만 쓴다.
     final factorOn = {
-      for (final x in byDay.entries) x.key: dayFactor(x.value)?.factor,
+      for (final d in byDay.keys) d: dayFactorOf(keptOn(d))?.factor,
     };
+    bool hadDay(Factor f) => byDay.values.any((ns) {
+      final x = dayFactor(ns)?.factor;
+      return x != null && merged(x) == f;
+    });
     final last = <Factor, DateTime>{};
     for (final x in notesByDay(history).entries) {
       if (dayFactor(x.value)?.factor case final f?) {
@@ -2318,12 +2332,13 @@ RoutineDraft composeRoutine(
         if (factorOn[d] != null && merged(factorOn[d]!) == f && usable(d)) d,
     ]..sort(byRest);
     DateTime ago(int n) => DateTime(day.year, day.month, day.day - n);
+    final w1 = [for (var k = 1; k <= 4; k++) ago(7 * k)];
     if (mode == 'weekday') {
       // W1 같은 요일 1–4주 전(최근 것부터) → W2 지난 몇 주의 이웃 요일(±1). 어제·그제는
       // 이웃이 아니다 — 어제 한 것을 오늘 다시 권하게 된다.
       picks = [
-        for (var k = 1; k <= 4; k++)
-          if (usable(ago(7 * k))) ago(7 * k),
+        for (final d in w1)
+          if (usable(d)) d,
         ...[
           for (final n in const [6, 8, 13, 15, 20, 22, 27])
             if (usable(ago(n))) ago(n),
@@ -2337,7 +2352,7 @@ RoutineDraft composeRoutine(
           in forced != null ? [merged(forced)] : rankFactors(counts, last)) {
         final pool = daysOf(f);
         if (pool.isEmpty) {
-          draft.missing.add(f);
+          (hadDay(f) ? draft.factorFiltered : draft.missing).add(f);
           continue;
         }
         draft.target = f;
@@ -2358,6 +2373,13 @@ RoutineDraft composeRoutine(
           draft.lines.add(const RoutineLine('fillHint'));
         }
       }
+      if (draft.factorFiltered.isNotEmpty) {
+        draft.lines.add(
+          RoutineLine('factorFiltered', [
+            [for (final f in draft.factorFiltered) f.name],
+          ]),
+        );
+      }
       if (draft.missing.contains(Factor.cardio)) {
         draft.modeChips.add((mode: 'tabata', count: null));
       }
@@ -2376,13 +2398,34 @@ RoutineDraft composeRoutine(
       draft.source = mode == 'weekday' ? 'weekday' : 'factor';
       draft.sourceDay = pick;
       draft.restDays = restOn(pick);
-      draft.factor = dayFactor(byDay[pick]!);
+      // 칩을 가를 요인(거른 뒤 칸). 카드의 요인은 자른 뒤 남은 칸으로 다시 센다(아래).
+      draft.factor = dayFactorOf(keptOn(pick));
+      // 거름에 걸린 칸은 줄로(넣기) — 고른 날과, 거른 칸뿐이라 건너뛴 같은 요일.
+      var shown = [pick];
       if (draft.source == 'weekday') {
         if (gap % 7 == 0) {
           draft.weeksAgo = gap ~/ 7;
         } else {
           draft.near = true;
         }
+        // 더 가까운 같은 요일을 건너뛴 까닭: 다른 루틴이면 그것, 아니면 지난주(이웃이면
+        // 같은 요일 모두)에 내 기록이 있었는가 — 있었으면 거른 칸뿐이었다.
+        final passed = [
+          for (final d in w1)
+            if (draft.near || d.isAfter(pick)) d,
+        ];
+        if (passed.isNotEmpty) {
+          draft.skipped = i > 0
+              ? 'alt'
+              : (draft.near ? passed : [w1.first]).any(byDay.containsKey)
+              ? 'filtered'
+              : null;
+        }
+        shown = [
+          pick,
+          for (final d in passed)
+            if (byDay.containsKey(d) && !usable(d)) d,
+        ];
         // 이 날의 요인을 이번 주 다 채웠고 모자란 요인이 있으면 칩 하나.
         final own = draft.factor == null ? null : merged(draft.factor!.factor);
         if (own != null && counts[own]! >= factorGoal[own]!) {
@@ -2398,11 +2441,12 @@ RoutineDraft composeRoutine(
         candidates.add((key: exerciseKey(b.exercise), block: b, day: pick));
       }
       chipPart();
-      // 거름에 걸린 칸은 줄로(넣기).
-      for (final n in byDay[pick]!) {
-        for (final b in _mineBlocks(n)) {
-          final r = filtered(exerciseKey(b.exercise), b.name, named: false);
-          if (r != null) draft.removed.add(r);
+      for (final d in shown) {
+        for (final n in byDay[d]!) {
+          for (final b in _mineBlocks(n)) {
+            final r = filtered(exerciseKey(b.exercise), b.name, named: false);
+            if (r != null) draft.removed.add(r);
+          }
         }
       }
       // 채울 후보: 다른 후보 날, 그 밖의 28일(쉰 날이 긴 것부터) — 개수·시간 맞추기.
@@ -2591,6 +2635,15 @@ RoutineDraft composeRoutine(
   var list = chosen;
   final fixedPart = list.where((c) => c.fixed).toList();
   final free = list.where((c) => !c.fixed).toList();
+  // 요인 원천: 목표 요인 칸을 먼저 남긴다 — 개수·시간 맞추기가 그 칸을 자르면 "○○이
+  // 부족해서" 가 빈말이 된다. 남긴 칸은 원래 순서대로 보인다.
+  bool aim(({String key, ExerciseBlock? block, DateTime? day, bool fixed}) c) {
+    if (draft.source != 'factor' || c.day != draft.sourceDay) return false;
+    final f = c.block == null ? null : factorOf(c.block!)?.factor;
+    return f != null && merged(f) == draft.target;
+  }
+
+  final order = [...free.where(aim), ...free.where((c) => !aim(c))];
   // 조건 고르기·처음이 아니면 기본 크기는 원천의 첫날 칸이다.
   var defaultFree = free.length;
   if (firstSession != null) {
@@ -2617,8 +2670,8 @@ RoutineDraft composeRoutine(
     final base = fixedPart.fold(0, (a, c) => a + estimate(c));
     var bestK = 0, bestGap = (base - goal).abs();
     var sum = base;
-    for (var i = 0; i < free.length; i++) {
-      sum += estimate(free[i]);
+    for (var i = 0; i < order.length; i++) {
+      sum += estimate(order[i]);
       final gap = (sum - goal).abs();
       if (gap < bestGap) {
         bestGap = gap;
@@ -2627,8 +2680,29 @@ RoutineDraft composeRoutine(
     }
     k = bestK;
   }
-  list = [...fixedPart, ...free.take(k)];
-  if (fixedCount == 0 && list.isEmpty && free.isNotEmpty) list = [free.first];
+  final taken = order.take(k).toSet();
+  list = [...fixedPart, ...free.where(taken.contains)];
+  if (fixedCount == 0 && list.isEmpty && free.isNotEmpty) list = [order.first];
+
+  // 카드의 요인은 루틴에 남은 원천 날 칸으로 센다 — 뺀 칸(거름·✕·개수)을 설명하지 않는다.
+  // 요인 원천인데 목표 요인이 남지 않았으면 "부족해서" 대신 빠졌다고 말한다.
+  if (draft.source == 'weekday' || draft.source == 'factor') {
+    final stay = {
+      for (final c in list)
+        if (c.day == draft.sourceDay) c.key,
+    };
+    draft.factor = dayFactorOf([
+      for (final b in keptOn(draft.sourceDay!))
+        if (stay.contains(exerciseKey(b.exercise))) b,
+    ]);
+    if (draft.source == 'factor' &&
+        (draft.factor == null ||
+            merged(draft.factor!.factor) != draft.target)) {
+      draft.lines.add(
+        RoutineLine('factorLost', [draft.target!.name, draft.sourceDay]),
+      );
+    }
+  }
 
   // 48시간 안에 같은 주동 근육(몸 그림 표)을 했다(G13) — 판단하지 않고 보이기만.
   // 원천을 빼거나 바꾸지 않는다. 표에 없는 운동은 부위로 본다. 기록은 최근 것부터라
@@ -2655,6 +2729,7 @@ RoutineDraft composeRoutine(
   // 칸마다 숫자(§7.1 사다리 + G4·G8·G10·G11).
   final light = ask.intensity == 'light';
   final lightKept = <String>[];
+  final sourceOf = <RoutineItem, ExerciseBlock>{};
   final painBlank = ask.pain != null;
   for (final c in list) {
     final key = c.key;
@@ -2800,6 +2875,7 @@ RoutineDraft composeRoutine(
       if (sets.length > 1 && !fill && !tabata) {
         sets = sets.sublist(0, sets.length - 1);
         changed = dropped = true;
+        why = 'lightDropped';
       } else {
         lightKept.add(src.name);
       }
@@ -2902,7 +2978,24 @@ RoutineDraft composeRoutine(
     );
     item.seconds = estimate(c);
     item.recent = recentFor(key);
+    if (src != null) sourceOf[item] = src;
     draft.items.add(item);
+  }
+
+  // 오늘 이미 한 운동이 들었다 — 원천은 그대로 두고 말한다(다른 루틴을 누를 수 있다).
+  // 이 카드로 시작한 기록은 빼고 본다(하고 있는 루틴이다).
+  if (!draft.future &&
+      const {'weekday', 'factor', 'rotation'}.contains(draft.source)) {
+    final doneKeys = {
+      for (final n in history)
+        if (n.id != e.started && _day(n.createdAt) == today)
+          for (final b in _mineBlocks(n)) exerciseKey(b.exercise),
+    };
+    final done = [
+      for (final i in draft.items)
+        if (doneKeys.contains(i.key)) i.title,
+    ];
+    if (done.isNotEmpty) draft.lines.add(RoutineLine('doneToday', [done]));
   }
 
   if (lightKept.isNotEmpty) {
@@ -2922,7 +3015,12 @@ RoutineDraft composeRoutine(
   // 세기(§7.3).
   if (ask.intensity != null) {
     draft.applied.add('intensity');
-    draft.lines.add(RoutineLine(ask.intensity!));
+    // 비운 칸이 있으면 "무게는 지난번 그대로" 라고 하지 않는다.
+    draft.lines.add(
+      RoutineLine(ask.intensity!, [
+        if (draft.items.any((i) => i.blank != null)) 'blank',
+      ]),
+    );
   }
   // 올리기 칩(스스로 올려 온 폭): 무겁게, 또는 같은 요일 원천(§4.4) — 누를 때만 든다.
   // 모자란 요인을 채우는 날(factor)과 가볍게·친 증감에는 띄우지 않는다.
@@ -2958,8 +3056,11 @@ RoutineDraft composeRoutine(
             repsOnly: u.repsOnly,
           );
         }
-        final src = lastBlock(i.key)?.block;
-        if (src != null) i.title = _plainTitle(src);
+        // 제목의 수는 옛 값이 된다 — 그 칸의 원천 제목에서 수만 뺀다. 다른 날의 제목(타이머)
+        // 으로 바꾸지 않고, 이미 바꾼 제목(친 타이머)은 그대로 둔다.
+        if (sourceOf[i] case final b? when i.title == b.name) {
+          i.title = _plainTitle(b);
+        }
       }
     }
     if (steps.isEmpty) {

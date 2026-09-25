@@ -1,11 +1,15 @@
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/anatomy.dart' show Muscle;
 import 'package:setpad/editor.dart';
 import 'package:setpad/handoff.dart' show ProxyRecord;
+import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/record_ai.dart' show WorkoutSetup;
 import 'package:setpad/record_query.dart' show recordedExercises;
 import 'package:setpad/routine.dart';
+import 'package:setpad/routine_card.dart' show routineLineTexts, routineWhy;
 import 'package:setpad/training_factor.dart';
 
 import '../tool/routine_grading.dart';
@@ -13,6 +17,8 @@ import 'routine_fixture.dart';
 
 /// 평일 = 같은 요일 하루(설계 routine-v2 §3.1, §8.1 S1–S5·S9–S11·S14·S15, §4.4).
 void main() {
+  setUpAll(() => initializeDateFormatting());
+  final l = lookupL(const Locale('ko'));
   const bare = RoutineAsk(device: true);
   // 월 가슴 / 화 등 / 수 하체 / 목 어깨 / 금 팔 — 8/31(월)부터 9/16(수)까지.
   final split = weekLog(DateTime(2026, 8, 31), 17, splitPlan);
@@ -34,6 +40,9 @@ void main() {
   }
 
   List<String> keys(RoutineDraft d) => [for (final i in d.items) i.key];
+  List<String> texts(RoutineDraft d) => [
+    for (final x in d.lines) ...routineLineTexts(l, x),
+  ];
 
   test('S1 보통 주: 목요일엔 지난 목요일 하루 그대로 — 칸·세트·요인 설명', () {
     final d = make(split, thu);
@@ -196,6 +205,13 @@ void main() {
       expect(d.near, isTrue);
       expect(d.sourceDay, DateTime(2026, 9, 11));
       expect(keys(d), ['바벨컬', '케이블 푸시다운']);
+      // 목요일 기록은 있다 — 거름에 다 걸렸다고 말하고, 거른 칸은 줄로(넣기).
+      expect(d.skipped, 'filtered');
+      expect(routineWhy(l, d), '목요일은 거른 운동뿐이라 가까운 금요일(9. 11.)로 짰어요');
+      expect(
+        d.removed.map((r) => (r.key, r.reason)),
+        containsAll([('오버헤드프레스', 'avoid'), ('사이드 레터럴 레이즈', 'avoid')]),
+      );
     });
 
     test('시간은 다음 후보 날의 칸으로 맞춘다', () {
@@ -216,6 +232,142 @@ void main() {
       );
       expect(d.source, 'conditions');
     });
+  });
+
+  test('다른 루틴을 눌러 넘어간 날은 "기록이 없어" 가 아니라 다른 루틴이라고 말한다', () {
+    expect(routineWhy(l, make(split, thu)), '지난주 목요일(9. 10.) 운동 그대로예요');
+    final alt = make(split, thu, edits: RoutineEdits()..alt = 1);
+    expect((alt.weeksAgo, alt.skipped), (2, 'alt'));
+    expect(routineWhy(l, alt), '다른 루틴: 2주 전 목요일(9. 3.)로 짰어요');
+    final near = make(split, thu, edits: RoutineEdits()..alt = 2);
+    expect((near.near, near.skipped), (true, 'alt'));
+    expect(routineWhy(l, near), '다른 루틴: 가까운 금요일(9. 11.)로 짰어요');
+    // 지난 목요일이 정말 없으면 그대로 "기록이 없어".
+    final gone = make(
+      weekLog(
+        DateTime(2026, 8, 31),
+        17,
+        splitPlan,
+        skip: {DateTime(2026, 9, 10)},
+      ),
+      thu,
+    );
+    expect(gone.skipped, isNull);
+    expect(routineWhy(l, gone), '지난주 목요일엔 기록이 없어 2주 전 목요일(9. 3.)로 짰어요');
+  });
+
+  test('지난주 같은 요일이 거름에 다 걸려 2주 전으로 가면 그렇게 말하고 거른 칸을 줄로', () {
+    final log = [
+      at(DateTime(2026, 9, 3, 19), [
+        ExerciseBlock('바벨컬', times(3, () => kg(30, 10))),
+      ]),
+      at(DateTime(2026, 9, 10, 19), [
+        ExerciseBlock('오버헤드프레스', times(3, () => kg(40, 8))),
+      ]),
+    ];
+    final d = make(
+      log,
+      thu,
+      gold: {
+        'exclude': ['오버헤드프레스'],
+      },
+      text: '오버헤드프레스 말고',
+    );
+    expect((d.weeksAgo, d.skipped), (2, 'filtered'));
+    expect(routineWhy(l, d), '지난주 목요일은 거른 운동뿐이라 2주 전 목요일(9. 3.)로 짰어요');
+    expect(d.removed.map((r) => r.key), ['오버헤드프레스']);
+  });
+
+  test('머리의 요인은 루틴에 남은 칸으로 — 뺀 칸(지속력 스쿼트)을 설명하지 않는다', () {
+    final log = [
+      at(DateTime(2026, 9, 10, 19), [
+        ExerciseBlock('스쿼트 30bpm', times(7, () => kg(60, 10))),
+        ExerciseBlock('벤치프레스', times(3, () => kg(60, 10))),
+      ]),
+    ];
+    expect(make(log, thu).factor?.factor, Factor.sustain);
+    final d = make(
+      log,
+      thu,
+      gold: {
+        'exclude': ['스쿼트'],
+      },
+      text: '스쿼트 말고',
+    );
+    expect(keys(d), ['벤치프레스']);
+    expect(d.factor?.factor, Factor.strength);
+    expect(d.factor?.read.args, ['3', '10']);
+  });
+
+  test('올리기 칩을 눌러도 제목은 원천 칸의 제목(다른 날의 타바타 제목으로 바뀌지 않는다)', () {
+    final log = [
+      for (final (i, w) in [80.0, 82.5, 85.0, 87.5].indexed)
+        at(DateTime(2026, 8, 20 + 7 * i, 19), [
+          ExerciseBlock('스쿼트 30bpm', times(3, () => kg(w, 5))),
+        ]),
+      at(DateTime(2026, 9, 14, 19), [
+        ExerciseBlock('스쿼트 타바타', [reps(80)]),
+      ]),
+    ];
+    final before = make(log, thu);
+    expect(
+      (before.source, before.items.single.title),
+      ('weekday', '스쿼트 30bpm'),
+    );
+    final up = make(log, thu, edits: RoutineEdits()..step = true);
+    expect(up.items.single.title, '스쿼트 30bpm');
+    expect(up.items.single.sets.every((s) => s.value == 90), isTrue);
+  });
+
+  test('서머타임이 끝나는 주말에도 "내일"·"월요일" 은 달력 날(TZ=America/New_York 로도 돌린다)', () {
+    final log = weekLog(DateTime(2026, 10, 5), 26, splitPlan);
+    final sun = make(
+      log,
+      DateTime(2026, 11, 1, 10),
+      gold: {'when': 'tomorrow'},
+      text: '내일 루틴 짜줘',
+    );
+    expect((sun.day, sun.source), (DateTime(2026, 11, 2), 'weekday'));
+    final sat = make(
+      log,
+      DateTime(2026, 10, 31, 10),
+      gold: {'when': 1},
+      text: '월요일 루틴 짜줘',
+    );
+    expect((sat.day, sat.source), (DateTime(2026, 11, 2), 'weekday'));
+  });
+
+  test('가볍게 + 아픔: 무게를 비운 칸이 있으면 "무게는 지난번 그대로" 라고 하지 않는다', () {
+    final d = make(
+      split,
+      thu,
+      gold: {'intensity': 'light', 'pain': '어깨'},
+      text: '어깨가 좀 아파서 가볍게',
+    );
+    expect(d.items.any((i) => i.blank != null), isTrue);
+    expect(texts(d), contains('가볍게: 칸마다 마지막 세트 하나를 뺐어요'));
+    expect(texts(d).where((t) => t.contains('무게는 지난번 그대로')), isEmpty);
+  });
+
+  test('오늘 아침 이미 같은 운동을 했으면 한 줄로 말한다(원천은 그대로)', () {
+    final log = [
+      ...split,
+      at(DateTime(2026, 9, 17, 7), [
+        ExerciseBlock('오버헤드프레스', times(3, () => kg(40, 8))),
+        ExerciseBlock('사이드 레터럴 레이즈', times(3, () => kg(8, 15))),
+      ]),
+    ];
+    final d = make(log, thu);
+    expect(d.sourceDay, DateTime(2026, 9, 10));
+    expect(texts(d), contains('오늘 이미 한 운동이 들어 있어요: 오버헤드프레스·사이드 레터럴 레이즈'));
+    expect(texts(make(split, thu)).where((t) => t.contains('오늘 이미')), isEmpty);
+    // 이 카드로 시작한 기록(하고 있는 루틴)은 "이미 한" 이 아니다.
+    final started = make(
+      log,
+      thu,
+      edits: RoutineEdits()..started = log.last.id,
+    );
+    expect(texts(started).where((t) => t.contains('오늘 이미')), isEmpty);
   });
 
   test('S11 요일 지정: 수요일에 "금요일 루틴" 은 지난 금요일', () {
@@ -262,6 +414,10 @@ void main() {
     final ohp = d.items.first;
     expect(ohp.sets, List.filled(2, (value: 40.0, unit: 'kg', reps: 8)));
     expect(ohp.blank, isNull);
+    // 세트를 뺀 칸은 "9/10 그대로" 가 아니다.
+    expect(ohp.why, 'lightDropped');
+    expect(d.items.last.why, 'copied');
+    expect(texts(d), contains('가볍게: 칸마다 마지막 세트 하나를 뺐어요 — 무게는 지난번 그대로예요'));
     for (final i in d.items.skip(1)) {
       expect(i.sets.length, i.key == '푸시업' ? 3 : 1, reason: i.title);
       expect(i.blank, isNull, reason: i.title);

@@ -46,6 +46,7 @@ void main() {
       final rows = load('routine').where((r) => r['intent'] != 'question');
       final broken = <String>[];
       var drafts = 0, within48h = 0, partWithin48h = 0, rotations = 0;
+      var stepped = 0;
       final sources = <String, int>{};
       // 기록을 정하지 않은 문항은 기록 셋 모두(픽스처·방식 주·분할)에서 짠다.
       for (final (r, log) in [
@@ -72,6 +73,19 @@ void main() {
         for (final v in routineViolations(draft, ask, notes, text)) {
           broken.add('${r['id']} [$log] $text: $v');
         }
+        // 올리기 칩을 누른 카드도 같은 불변식(제목·타이머·수).
+        if (draft.stepChip?.apply ?? false) {
+          stepped++;
+          final up = composeRoutine(
+            notes,
+            ask,
+            now: today,
+            edits: RoutineEdits()..step = true,
+          );
+          for (final v in routineViolations(up, ask, notes, text)) {
+            broken.add('${r['id']} [$log] $text [올리기]: $v');
+          }
+        }
         if (draft.source == 'rotation') {
           rotations++;
           final recent = recentKeys(notes, today);
@@ -83,7 +97,8 @@ void main() {
       }
       // ignore: avoid_print
       print(
-        '짠 카드 $drafts · 불변식 깨짐 ${broken.length} · 원천 $sources\n'
+        '짠 카드 $drafts(올리기 칩 누름 $stepped) · 불변식 깨짐 ${broken.length} · '
+        '원천 $sources\n'
         'C10(정보): 회전 $rotations 중 48시간 안에 한 운동이 든 것 $within48h · '
         '같은 부위가 든 것 $partWithin48h\n${broken.join('\n')}',
       );

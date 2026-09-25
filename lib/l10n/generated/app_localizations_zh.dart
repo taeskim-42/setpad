@@ -2487,6 +2487,7 @@ class LZh extends L {
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'light': '轻一点:每个动作少做最后一组 — 重量和上次一样',
+      'lightBlank': '轻一点:每个动作少做最后一组',
       'hard': '重量和上次一样',
       'max': '不决定挑战多少公斤 — 旁边写了最好成绩',
       'other': '',
@@ -3000,10 +3001,10 @@ class LZh extends L {
   @override
   String routineWhyFactorAll(String f, String date) {
     String _temp0 = intl.Intl.selectLogic(f, {
-      'strength': '本周各项都已完成 — 力量最久没练,照$date安排',
-      'endurance': '本周各项都已完成 — 肌耐力最久没练,照$date安排',
-      'sustain': '本周各项都已完成 — 持续力最久没练,照$date安排',
-      'cardio': '本周各项都已完成 — 心肺最久没练,照$date安排',
+      'strength': '本周各项都已完成 — 轮到力量,照$date安排',
+      'endurance': '本周各项都已完成 — 轮到肌耐力,照$date安排',
+      'sustain': '本周各项都已完成 — 轮到持续力,照$date安排',
+      'cardio': '本周各项都已完成 — 轮到心肺,照$date安排',
       'other': '照$date安排',
     });
     return '$_temp0';
@@ -3045,6 +3046,49 @@ class LZh extends L {
   @override
   String routineLightKept(String list) {
     return '保持不变(一组、完成次数或Tabata):$list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '换一个:照$weeks周前的$day($date)安排',
+      'other': '上周$day只有排除的动作,照$weeks周前的$day($date)安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '换一个:照相近的$near安排',
+      'other': '$day的记录只有排除的动作,照相近的$near安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return '不足的项目最近28天没有可用的日子,照$date的$factor日安排';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return '照$date的$factor日安排,但$factor的动作被去掉了';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return '去掉排除的动作后最近28天没有剩下的日子:$list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return '比$date少一组';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return '包含今天已经练过的动作:$list';
   }
 }
 
@@ -5531,6 +5575,7 @@ class LZhHans extends LZh {
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'light': '轻一点:每个动作少做最后一组 — 重量和上次一样',
+      'lightBlank': '轻一点:每个动作少做最后一组',
       'hard': '重量和上次一样',
       'max': '不决定挑战多少公斤 — 旁边写了最好成绩',
       'other': '',
@@ -6044,10 +6089,10 @@ class LZhHans extends LZh {
   @override
   String routineWhyFactorAll(String f, String date) {
     String _temp0 = intl.Intl.selectLogic(f, {
-      'strength': '本周各项都已完成 — 力量最久没练,照$date安排',
-      'endurance': '本周各项都已完成 — 肌耐力最久没练,照$date安排',
-      'sustain': '本周各项都已完成 — 持续力最久没练,照$date安排',
-      'cardio': '本周各项都已完成 — 心肺最久没练,照$date安排',
+      'strength': '本周各项都已完成 — 轮到力量,照$date安排',
+      'endurance': '本周各项都已完成 — 轮到肌耐力,照$date安排',
+      'sustain': '本周各项都已完成 — 轮到持续力,照$date安排',
+      'cardio': '本周各项都已完成 — 轮到心肺,照$date安排',
       'other': '照$date安排',
     });
     return '$_temp0';
@@ -6089,6 +6134,49 @@ class LZhHans extends LZh {
   @override
   String routineLightKept(String list) {
     return '保持不变(一组、完成次数或Tabata):$list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '换一个:照$weeks周前的$day($date)安排',
+      'other': '上周$day只有排除的动作,照$weeks周前的$day($date)安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '换一个:照相近的$near安排',
+      'other': '$day的记录只有排除的动作,照相近的$near安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return '不足的项目最近28天没有可用的日子,照$date的$factor日安排';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return '照$date的$factor日安排,但$factor的动作被去掉了';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return '去掉排除的动作后最近28天没有剩下的日子:$list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return '比$date少一组';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return '包含今天已经练过的动作:$list';
   }
 }
 
@@ -8574,6 +8662,7 @@ class LZhHant extends LZh {
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'light': '輕一點:每個動作少做最後一組 — 重量和上次一樣',
+      'lightBlank': '輕一點:每個動作少做最後一組',
       'hard': '重量和上次一樣',
       'max': '不決定挑戰多少公斤 — 旁邊寫了最佳紀錄',
       'other': '',
@@ -9087,10 +9176,10 @@ class LZhHant extends LZh {
   @override
   String routineWhyFactorAll(String f, String date) {
     String _temp0 = intl.Intl.selectLogic(f, {
-      'strength': '本週各項都已完成 — 力量最久沒練,照$date安排',
-      'endurance': '本週各項都已完成 — 肌耐力最久沒練,照$date安排',
-      'sustain': '本週各項都已完成 — 持續力最久沒練,照$date安排',
-      'cardio': '本週各項都已完成 — 心肺最久沒練,照$date安排',
+      'strength': '本週各項都已完成 — 輪到力量,照$date安排',
+      'endurance': '本週各項都已完成 — 輪到肌耐力,照$date安排',
+      'sustain': '本週各項都已完成 — 輪到持續力,照$date安排',
+      'cardio': '本週各項都已完成 — 輪到心肺,照$date安排',
       'other': '照$date安排',
     });
     return '$_temp0';
@@ -9132,5 +9221,48 @@ class LZhHant extends LZh {
   @override
   String routineLightKept(String list) {
     return '維持不變(一組、完成次數或Tabata):$list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '換一個:照$weeks週前的$day($date)安排',
+      'other': '上週$day只有排除的動作,照$weeks週前的$day($date)安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '換一個:照相近的$near安排',
+      'other': '$day的紀錄只有排除的動作,照相近的$near安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return '不足的項目最近28天沒有可用的日子,照$date的$factor日安排';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return '照$date的$factor日安排,但$factor的動作被去掉了';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return '去掉排除的動作後最近28天沒有剩下的日子:$list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return '比$date少一組';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return '包含今天已經練過的動作:$list';
   }
 }

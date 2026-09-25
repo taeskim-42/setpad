@@ -2514,6 +2514,7 @@ class LKo extends L {
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'light': '가볍게: 칸마다 마지막 세트 하나를 뺐어요 — 무게는 지난번 그대로예요',
+      'lightBlank': '가볍게: 칸마다 마지막 세트 하나를 뺐어요',
       'hard': '무게는 지난번 그대로예요',
       'max': '몇 kg 에 도전할지는 정하지 않아요 — 최고 기록을 옆에 적었어요',
       'other': '',
@@ -3028,10 +3029,10 @@ class LKo extends L {
   @override
   String routineWhyFactorAll(String f, String date) {
     String _temp0 = intl.Intl.selectLogic(f, {
-      'strength': '이번 주 요인은 다 채웠어요 — 가장 오래 안 한 근력으로 $date처럼 짰어요',
-      'endurance': '이번 주 요인은 다 채웠어요 — 가장 오래 안 한 근지구력으로 $date처럼 짰어요',
-      'sustain': '이번 주 요인은 다 채웠어요 — 가장 오래 안 한 지속력으로 $date처럼 짰어요',
-      'cardio': '이번 주 요인은 다 채웠어요 — 가장 오래 안 한 심폐로 $date처럼 짰어요',
+      'strength': '이번 주 요인은 다 채웠어요 — 다음 차례인 근력으로 $date처럼 짰어요',
+      'endurance': '이번 주 요인은 다 채웠어요 — 다음 차례인 근지구력으로 $date처럼 짰어요',
+      'sustain': '이번 주 요인은 다 채웠어요 — 다음 차례인 지속력으로 $date처럼 짰어요',
+      'cardio': '이번 주 요인은 다 채웠어요 — 다음 차례인 심폐로 $date처럼 짰어요',
       'other': '$date처럼 짰어요',
     });
     return '$_temp0';
@@ -3073,5 +3074,48 @@ class LKo extends L {
   @override
   String routineLightKept(String list) {
     return '세트를 뺄 수 없어 그대로 둔 칸(한 세트·채우기·타바타): $list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '다른 루틴: $weeks주 전 $day($date)로 짰어요',
+      'other': '지난주 $day은 거른 운동뿐이라 $weeks주 전 $day($date)로 짰어요',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '다른 루틴: 가까운 $near로 짰어요',
+      'other': '$day은 거른 운동뿐이라 가까운 $near로 짰어요',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return '모자란 요인은 최근 28일에 쓸 수 있는 날이 없어 $date $factor 날처럼 짰어요';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return '$date $factor 날로 짰지만 $factor 칸은 빠졌어요';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return '빼라고 한 운동을 빼면 최근 28일에 남는 날이 없는 요인: $list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return '$date에서 한 세트 뺌';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return '오늘 이미 한 운동이 들어 있어요: $list';
   }
 }
