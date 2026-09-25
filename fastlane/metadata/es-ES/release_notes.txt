@@ -3,7 +3,7 @@ Novedades
 · Rutina de hoy: basada en el mismo día de la semana pasada; el fin de semana completa el factor físico que te falta esta semana
 · Mapa corporal: toca un músculo para ver ejercicios y consejos de técnica — espalda y tríceps por músculo, con zoom de dos dedos
 · Una línea escrita se convierte en ejercicio al momento; toca una etiqueta para corregir peso u objetivo ahí mismo
-· Una ★ marca las series que superan tu peso máximo y las series hechas se colorean de verde
+· Una estrella marca las series que superan tu peso máximo y las series hechas se colorean de verde
 · Energía del día: comido · ejercicio · diferencia (superávit/déficit) de un vistazo
 · Un registro por día — abajo se ve el entrenamiento del mismo día de la semana pasada
 · La lista se agrupa por mes y va rápida aunque tengas muchos registros

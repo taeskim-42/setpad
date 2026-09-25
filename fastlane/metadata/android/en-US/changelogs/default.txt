@@ -3,5 +3,5 @@ What's new
 · Today's routine: built from the same weekday last week; on weekends it fills the fitness factor you're short on this week
 · Body map: tap a muscle to see exercises and form tips — back and triceps down to individual muscles, pinch to zoom
 · A typed line becomes an exercise right away; tap a chip to fix weight or goal in place
-· A ★ marks sets that beat your heaviest weight, and finished sets fill green
+· A star marks sets that beat your heaviest weight, and finished sets fill green
 · AI help can be turned off in Settings › AI help
