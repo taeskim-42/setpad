@@ -608,6 +608,24 @@ void keypadTests() {
       expect(n.summary(setOrdinal: (x) => '$x세트', reps: (x) => '$x회'), '3세트');
     });
 
+    test('끼니만 적은 날은 먹은 것이 제목이다 — 새 운동으로 비우지 않는다', () {
+      final n =
+          Note(id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now())
+            ..meals.addAll([
+              MealEntry(at: DateTime.now(), kcal: 290, text: '그릭요거트 200g'),
+              MealEntry(at: DateTime.now(), kcal: 650, text: '김치찌개, 밥 한 공기'),
+            ]);
+      expect(n.title, '그릭요거트 200g · 김치찌개, 밥 한 공기');
+      expect(
+        Note(
+          id: '2',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ).title,
+        isNull,
+      );
+    });
+
     test('취소한 세트는 총계에서 빠진다', () {
       final n = Note(
         id: '1',

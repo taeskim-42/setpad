@@ -280,13 +280,15 @@ class LEn extends L {
       'Enter a whole number of 1 or more — keep ranges and times in the title';
 
   @override
-  String get setupMergeUp => 'Merge into previous';
-
-  @override
-  String get setupKeepApart => 'Keep separate';
-
-  @override
   String get setupRepsOnly => 'Reps only';
+
+  @override
+  String setupSplit(int count) {
+    return 'Split into $count exercises';
+  }
+
+  @override
+  String get setupMergeAll => 'Merge into one';
 
   @override
   String goalProgress(int done, int goal) {
@@ -305,9 +307,6 @@ class LEn extends L {
 
   @override
   String get repsInputHint => 'Reps';
-
-  @override
-  String get setupTitle => 'Exercise setup';
 
   @override
   String get setupWeight => 'Default weight';
@@ -667,10 +666,6 @@ class LEn extends L {
   String readAsNote(String from, String to) {
     return '$from → $to';
   }
-
-  @override
-  String get reviewNumbers =>
-      'Check the numbers and conditions before applying.';
 
   @override
   String get queryByExercise => 'By exercise';
@@ -1575,6 +1570,21 @@ class LEn extends L {
 
   @override
   String get mealsTitle => 'Meals';
+
+  @override
+  String get energyBurned => 'Exercise';
+
+  @override
+  String get energyDifference => 'Net';
+
+  @override
+  String get estimateTag => 'est.';
+
+  @override
+  String get energyNotLogged => 'Not logged';
+
+  @override
+  String get energyNotMeasured => 'Not measured';
 
   @override
   String get recordMenu => 'More';

@@ -182,14 +182,20 @@
   "setupNameTooLong": "운동 이름은 120자까지예요",
   "setupWeightInvalid": "0보다 크고 2000 이하인 수로 적어 주세요",
   "setupCountInvalid": "1 이상의 정수로 적어 주세요 — 범위·시간은 제목에 남겨 두세요",
-  "setupMergeUp": "앞 운동에 합치기",
-  "setupKeepApart": "따로 두기",
   "setupRepsOnly": "횟수만 기록",
+  "setupSplit": "운동 {count}개로 나눴어요",
+  "@setupSplit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setupMergeAll": "한 칸으로 합치기",
   "goalProgress": "{done}/{goal}회",
   "repsPerSetLabel": "세트당 {n}회",
   "setProgress": "{done}/{goal}세트",
   "repsInputHint": "횟수",
-  "setupTitle": "운동 설정",
   "setupWeight": "기본 무게",
   "setupTotalReps": "총 목표 횟수",
   "setupSetReps": "세트당 횟수",
@@ -583,7 +589,6 @@
       }
     }
   },
-  "reviewNumbers": "숫자와 조건을 확인한 뒤 적용해 주세요.",
   "queryByExercise": "운동별",
   "queryByDay": "날짜별",
   "queryByWeek": "주별 (월요일 시작)",
@@ -852,7 +857,7 @@
   },
   "mealText": "식단 적기",
   "mealTextHint": "먹은 것을 적어 주세요. 예: 김밥 한 줄, 우유 200ml",
-  "kcalApprox": "약 {n}kcal",
+  "kcalApprox": "{n}kcal 추정",
   "@kcalApprox": {
     "placeholders": {
       "n": {
@@ -956,7 +961,7 @@
   "mealSourceMfds": "식약처 식품영양성분 DB",
   "mealSourceUsda": "USDA FoodData Central",
   "mealAmountInvalid": "0 이상의 숫자를 입력해 주세요.",
-  "dayEnergyFull": "섭취 {intake} · 운동 {burned} = {diff}kcal",
+  "dayEnergyFull": "먹은 것 {intake} · 운동 {burned} = {diff}kcal",
   "@dayEnergyFull": {
     "placeholders": {
       "intake": {
@@ -970,7 +975,7 @@
       }
     }
   },
-  "dayEnergyApprox": "섭취 약 {intake} · 운동 {burned} = 약 {diff}kcal",
+  "dayEnergyApprox": "먹은 것 {intake} · 운동 {burned} = {diff}kcal (추정)",
   "@dayEnergyApprox": {
     "placeholders": {
       "intake": {
@@ -1352,8 +1357,13 @@
     }
   },
   "mealsTitle": "먹은 것",
+  "energyBurned": "운동",
+  "energyDifference": "차이",
+  "estimateTag": "추정",
+  "energyNotLogged": "미기록",
+  "energyNotMeasured": "미측정",
   "recordMenu": "더 보기",
-  "dayIntakeOnly": "섭취 {intake}kcal · 운동 소모 미측정",
+  "dayIntakeOnly": "먹은 것 {intake}kcal · 운동 소모 미측정",
   "@dayIntakeOnly": {
     "placeholders": {
       "intake": {
@@ -1361,7 +1371,7 @@
       }
     }
   },
-  "dayIntakeOnlyApprox": "섭취 약 {intake}kcal · 운동 소모 미측정",
+  "dayIntakeOnlyApprox": "먹은 것 {intake}kcal (추정) · 운동 소모 미측정",
   "@dayIntakeOnlyApprox": {
     "placeholders": {
       "intake": {

@@ -251,7 +251,9 @@ void main() {
     expect(meal.text, '김밥 한 줄, 라면 반 개', reason: '원문 그대로');
     expect(meal.kcal, 713);
     expect(meal.source, MealEntry.estimate);
-    expect(find.textContaining('약 713kcal'), findsWidgets);
+    expect(find.text('713kcal'), findsWidgets);
+    // 어림이라는 것은 숫자 앞 '약'(藥으로 읽혔다)이 아니라 먹은 것 칸의 추정 표시다.
+    expect(find.text('추정'), findsOneWidget);
     // 서버에는 미상으로 먼저, 어림값으로 나중에 — 같은 줄에.
     expect(puts.map((p) => p['kcal']), [null, 713]);
     expect(puts.map((p) => p['path']).toSet(), {'/api/meals/${meal.id}'});

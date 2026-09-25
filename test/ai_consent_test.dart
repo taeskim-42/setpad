@@ -434,6 +434,8 @@ void main() {
       await submit(tester, '스쿼트 100kg 3x5');
       expect(line.asked, hasLength(1));
       expectNoPrompt();
+      // setAiOn 의 저장 대기(0.4초). 예전엔 확인 창이 열리는 동안 지나갔다.
+      await tester.pump(const Duration(milliseconds: 600));
     });
 
     testWidgets('식단 글: 친 글과 적은 kcal 은 그대로 남고, 열량을 안 적은 끼니는 AI 가 꺼졌다고 말한다', (

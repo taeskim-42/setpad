@@ -7,6 +7,7 @@ import 'notes.dart';
 import 'account.dart';
 import 'anatomy_page.dart';
 import 'answer_card.dart';
+import 'day_energy.dart';
 import 'record_query.dart';
 import 'stats.dart' as stats;
 import 'editor.dart' show SuggestionChip;
@@ -1888,6 +1889,10 @@ class _Row extends StatelessWidget {
                         const SizedBox(height: 6),
                         HealthSummary(calories: note.calories),
                       ],
+                      if (note.meals.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        _MealLine(note),
+                      ],
                     ],
                   ],
                 ),
@@ -1998,4 +2003,54 @@ List<InlineSpan> highlightMatch(
     spans.add(TextSpan(text: parts[i], style: matched ? hit : null));
   }
   return spans;
+}
+
+/// 목록의 먹은 것 한 줄 — 열량과, 운동한 날이면 무엇을 먹었는지. 끼니만 적은
+/// 날은 제목이 이미 먹은 것이라 열량만.
+class _MealLine extends StatelessWidget {
+  const _MealLine(this.note);
+  final Note note;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final unknown = note.unknownMeals;
+    final kcal = unknown == note.meals.length
+        ? l.mealKcalUnknown
+        : [
+            l.kcal(note.intake!),
+            if (unknown > 0) l.dayUnknownMeals(unknown),
+          ].join(' · ');
+    return Row(
+      children: [
+        Text(l.mealsTitle, style: TextStyle(fontSize: 13, color: muted)),
+        const SizedBox(width: 6),
+        // 행이 버튼이라 색을 적지 않으면 버튼 색(호박)을 물려받는다.
+        Text(
+          kcal,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: CupertinoColors.label.resolveFrom(context),
+          ),
+        ),
+        if (note.meals.any((m) => m.approximate)) ...[
+          const SizedBox(width: 4),
+          const EstimateTag(),
+        ],
+        if (note.blocks.isNotEmpty) ...[
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              note.mealsText,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 13, color: muted),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }

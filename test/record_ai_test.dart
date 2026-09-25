@@ -95,6 +95,36 @@ Future<void> submit(WidgetTester tester, String text) async {
   await tester.pumpAndSettle();
 }
 
+/// 칩을 눌러 그 자리에서 고치기 시작한다. 확인 창은 없다.
+Future<void> editChip(WidgetTester tester, String key, String text) async {
+  await tester.tap(find.byKey(ValueKey('setup-$key')));
+  await tester.pump();
+  await tester.pump();
+  // 누른 칩이 포커스를 받아야 기기에서 키보드가 그 칸에 뜬다. enterText 는
+  // 포커스를 스스로 주므로 먼저 따로 본다.
+  expect(chipFocused(tester, key), isTrue, reason: '칩 $key 이 포커스를 받는다');
+  await tester.enterText(find.byKey(ValueKey('setup-field-$key')), text);
+  await tester.pump();
+}
+
+bool chipFocused(WidgetTester tester, String key) => tester
+    .widget<EditableText>(
+      find.descendant(
+        of: find.byKey(ValueKey('setup-field-$key')),
+        matching: find.byType(EditableText),
+      ),
+    )
+    .focusNode
+    .hasFocus;
+
+Future<void> applyChip(WidgetTester tester) async {
+  await tester.tap(find.byKey(const ValueKey('setup-apply')));
+  await tester.pumpAndSettle();
+}
+
+CupertinoButton applyButton(WidgetTester tester) =>
+    tester.widget(find.byKey(const ValueKey('setup-apply')));
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -132,37 +162,32 @@ void main() {
     expect(rest.titles, ['벤치 80kg 10회 30초 휴식']);
   });
 
-  testWidgets(
-    'X14: canceling a numeric proposal preserves input and writes nothing',
-    (tester) async {
-      final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
-      await submit(tester, example);
-      expect(c.blocks, isEmpty);
-      await tester.tap(find.text('취소'));
-      await tester.pumpAndSettle();
-      expect(c.blocks, isEmpty);
-      expect(
-        tester.widget<CupertinoTextField>(field).controller!.text,
-        example,
-      );
-    },
-  );
-
-  testWidgets('corrected numbers are applied only after confirmation', (
-    tester,
-  ) async {
+  testWidgets('X14: 읽은 줄은 확인 창 없이 바로 칸이 된다 — 페이지를 옮기지 않는다', (tester) async {
     final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
     await submit(tester, example);
-    final weight = find.byType(CupertinoTextFormFieldRow).at(1);
-    await tester.enterText(weight, '82.125');
-    expect(c.blocks, isEmpty);
-    await tester.tap(find.text('완료'));
-    await tester.pumpAndSettle();
+    expect(c.blocks.single.name, example);
+    expect(c.blocks.single.setup!.totalReps, 100);
+    expect(find.byType(CupertinoTextFormFieldRow), findsNothing);
+    expect(find.text('80kg'), findsOneWidget, reason: '읽은 값은 칸의 칩으로 보인다');
+    expect(
+      Navigator.of(tester.element(field)).canPop(),
+      isFalse,
+      reason: '새 화면이 없다',
+    );
+    expect(tester.widget<CupertinoTextField>(field).controller!.text, isEmpty);
+  });
+
+  testWidgets('읽은 수가 틀렸으면 칩을 눌러 그 자리에서 고친다', (tester) async {
+    final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
+    await submit(tester, example);
+    await editChip(tester, 'weight', '82.125');
+    expect(c.blocks.single.setup!.weight, 80, reason: '✓ 전에는 그대로다');
+    await applyChip(tester);
     expect(c.blocks.single.setup!.weight, 82.125);
     // 해석기는 '벤치프레스' 라고 답했지만 사람이 친 것은 '벤치' 다. 약어를 풀어
     // 저장 이름을 바꾸지 않는다 — 바꾸려면 후보를 직접 누른다.
     expect(c.blocks.single.exercise, '벤치');
-    // 창에서 값을 고쳐도 제목은 친 글 그대로다.
+    // 칩에서 값을 고쳐도 제목은 친 글 그대로다.
     expect(c.blocks.single.name, example);
     expect(c.blocks.single.sets, isEmpty);
   });
@@ -394,12 +419,9 @@ void main() {
     final c = await pumpEditor(tester, ai);
     await submit(tester, example);
     expect(ai.calls, 1);
-    expect(c.blocks, isEmpty, reason: 'Unconfirmed numbers are never applied');
-    expect(find.textContaining('숫자와 조건을 확인'), findsOneWidget);
-    await tester.tap(find.text('완료'));
-    await tester.pumpAndSettle();
     expect(c.totalSets, 0);
-    expect(find.text('80kg · 0/100회'), findsOneWidget);
+    expect(find.text('80kg'), findsOneWidget);
+    expect(find.text('0/100회'), findsOneWidget);
     // 친 문장이 제목으로 남는다. 이 칸이 가리키는 운동은 **친 이름**('벤치')
     // 이고 사전에 익히는 것도 그 이름이다 — 문장이 다음 후보로 뜨면 안 되고,
     // 해석기가 고른 '벤치프레스' 로 기록이 합쳐져도 안 된다.
@@ -417,7 +439,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(c.lastSet!.value, 80);
     expect(c.lastSet!.reps, 20);
-    expect(find.text('80kg · 20/100회'), findsOneWidget);
+    expect(find.text('20/100회'), findsOneWidget);
     expect(ai.calls, 1);
   });
 
@@ -497,7 +519,7 @@ void main() {
     expect(ai.calls, 1, reason: '예전엔 이름으로 빠지던 표현할 수 있는 글');
   });
 
-  testWidgets('X6: 여러 운동은 한 창에서 칸별로 확인하고 칸 여럿이 된다', (tester) async {
+  testWidgets('X6: 여러 운동은 바로 칸 여럿이 되고, 못 옮긴 말은 한 줄로 보인다', (tester) async {
     const text = '벤치 5x5 스쿼트 100kg 5x5 휴식 90초';
     final ai = FakeAi(RecordAiStatus.ready)
       ..answer = answerFor(
@@ -515,19 +537,23 @@ void main() {
       );
     final c = await pumpEditor(tester, ai);
     await submit(tester, text);
-    expect(find.text('벤치 5x5'), findsOneWidget, reason: '칸 머리');
-    expect(find.textContaining('설정에 못 옮긴 말: 휴식 90초'), findsOneWidget);
-    await tester.tap(find.text('완료'));
-    await tester.pumpAndSettle();
     expect(
       [for (final b in c.blocks) b.name],
       ['벤치 5x5', '스쿼트 100kg 5x5 휴식 90초'],
     );
     expect(c.blocks[1].setup!.weight, 100);
     expect(c.blocks[0].setup!.totalSets, 5);
+    expect(find.textContaining('설정에 못 옮긴 말: 휴식 90초'), findsOneWidget);
+    expect(find.textContaining('운동 2개로 나눴어요'), findsOneWidget);
+    // 다음 세트를 치기 시작하면 나눈 것을 받아들인 것이다.
+    await tester.tap(
+      find.descendant(of: find.byType(SetKeypad), matching: find.text('6')),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('setup-merge')), findsNothing);
   });
 
-  testWidgets('창에서 고쳐도 제목은 친 글 그대로 — bpm 타이머가 남는다(감사 notes 5)', (tester) async {
+  testWidgets('칩에서 고쳐도 제목은 친 글 그대로 — bpm 타이머가 남는다(감사 notes 5)', (tester) async {
     const text = 'bpm 푸시업 1칸 100개 채우기';
     final ai = FakeAi(RecordAiStatus.ready)
       ..answer = answerFor([
@@ -536,78 +562,103 @@ void main() {
     final c = await pumpEditor(tester, ai);
     await submit(tester, text);
     expect(find.textContaining('설정에 못 옮긴 말: 1칸'), findsOneWidget);
-    await tester.enterText(find.byType(CupertinoTextFormFieldRow).at(2), '120');
-    await tester.tap(find.text('완료'));
-    await tester.pumpAndSettle();
+    await editChip(tester, 'totalReps', '120');
+    await applyChip(tester);
     expect(c.blocks.single.name, text);
     expect(c.blocks.single.setup!.totalReps, 120);
     expect(TimingSpec.parse(c.blocks.single.name)?.bpm, 120);
   });
 
-  testWidgets('X15: 틀린 칸은 그 밑에 이유를 말하고, 이유가 보이는 동안 완료는 꺼진다', (tester) async {
-    final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
-    await submit(tester, example);
-    final rows = find.byType(CupertinoTextFormFieldRow);
-    CupertinoButton done() =>
-        tester.widget(find.widgetWithText(CupertinoButton, '완료'));
-    await tester.enterText(rows.at(3), '8-12');
-    await tester.pump();
-    expect(find.textContaining('1 이상의 정수로 적어 주세요'), findsOneWidget);
-    expect(done().onPressed, isNull, reason: '읽을 수 없는 칸을 빈칸으로 저장하지 않는다');
-    await tester.enterText(rows.at(3), '');
-    await tester.pump();
-    expect(done().onPressed, isNotNull, reason: '빈칸은 틀린 칸이 아니다');
-    await tester.enterText(rows.at(1), '60kg');
-    await tester.pump();
-    expect(find.textContaining('0보다 크고 2000 이하'), findsOneWidget);
-    expect(done().onPressed, isNull);
-    await tester.enterText(rows.at(1), '-20');
-    await tester.pump();
-    expect(find.textContaining('0보다 크고 2000 이하'), findsOneWidget);
-    expect(done().onPressed, isNull);
-    await tester.enterText(rows.at(1), '60');
-    await tester.enterText(rows.at(0), '');
-    await tester.pump();
-    expect(find.text('운동 이름을 적어 주세요'), findsOneWidget);
-    expect(done().onPressed, isNull);
-    await tester.enterText(rows.at(0), '벤치');
-    await tester.pump();
-    await tester.tap(find.text('완료'));
-    await tester.pumpAndSettle();
-    expect(c.blocks.single.setup!.weight, 60);
-    expect(c.blocks.single.setup!.totalReps, 100);
-  });
-
-  testWidgets('X15: 칸의 1,000 은 천, 22,5 는 22.5 다 — 쉼표를 소수점으로만 읽지 않는다', (
+  testWidgets('X15: 틀린 값은 칩 밑에 이유를 말하고, 그동안 ✓ 는 꺼지며 떠나면 전 값을 둔다', (
     tester,
   ) async {
     final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
     await submit(tester, example);
-    final rows = find.byType(CupertinoTextFormFieldRow);
-    await tester.enterText(rows.at(1), '22,5');
-    await tester.enterText(rows.at(2), '1,000');
+    // 비어 있는 설정은 + 로 펼친다.
+    await tester.tap(find.byKey(const ValueKey('setup-more')));
     await tester.pump();
-    await tester.tap(find.text('완료'));
-    await tester.pumpAndSettle();
+    await editChip(tester, 'repsPerSet', '8-12');
+    expect(find.textContaining('1 이상의 정수로 적어 주세요'), findsOneWidget);
+    expect(
+      applyButton(tester).onPressed,
+      isNull,
+      reason: '읽을 수 없는 값을 빈칸으로 저장하지 않는다',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey('setup-field-repsPerSet')),
+      findsOneWidget,
+      reason: 'Enter 로도 닫히지 않는다',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('setup-field-repsPerSet')),
+      '8',
+    );
+    await tester.pump();
+    await applyChip(tester);
+    expect(c.blocks.single.setup!.repsPerSet, 8);
+    await editChip(tester, 'repsPerSet', '');
+    expect(applyButton(tester).onPressed, isNotNull, reason: '빈칸은 틀린 값이 아니다');
+    await applyChip(tester);
+    expect(c.blocks.single.setup!.repsPerSet, isNull, reason: '빈칸은 그 설정을 뺀다');
+
+    for (final bad in ['60kg', '-20']) {
+      await editChip(tester, 'weight', bad);
+      expect(find.textContaining('0보다 크고 2000 이하'), findsOneWidget);
+      expect(applyButton(tester).onPressed, isNull);
+      // 다른 곳으로 떠났다 — 전 값을 두고 닫는다.
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('setup-field-weight')), findsNothing);
+      expect(c.blocks.single.setup!.weight, 80);
+    }
+    await editChip(tester, 'weight', '60');
+    await applyChip(tester);
+    await editChip(tester, 'name', '');
+    expect(find.text('운동 이름을 적어 주세요'), findsOneWidget);
+    expect(applyButton(tester).onPressed, isNull);
+    await tester.enterText(
+      find.byKey(const ValueKey('setup-field-name')),
+      '벤치',
+    );
+    await tester.pump();
+    await applyChip(tester);
+    expect(c.blocks.single.setup!.weight, 60);
+    expect(c.blocks.single.setup!.totalReps, 100);
+  });
+
+  testWidgets('X15: 칩의 1,000 은 천, 22,5 는 22.5 다 — 쉼표를 소수점으로만 읽지 않는다', (
+    tester,
+  ) async {
+    final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
+    await submit(tester, example);
+    await editChip(tester, 'weight', '22,5');
+    await applyChip(tester);
+    await editChip(tester, 'totalReps', '1,000');
+    await applyChip(tester);
     expect(c.blocks.single.setup!.weight, 22.5);
     expect(c.blocks.single.setup!.totalReps, 1000);
   });
 
-  testWidgets('설정 없는 칸에도 ⚙ 가 있어 나중에 설정을 붙인다 — 제목은 그대로', (tester) async {
+  testWidgets('설정 없는 칸에도 ⚙ 가 있어 그 자리에서 설정을 붙인다 — 제목은 그대로', (tester) async {
     final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
     c.addExercise('러닝 5km 3세트');
     c.closeBlock();
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(CupertinoIcons.gear_alt));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(CupertinoTextFormFieldRow).at(0), '러닝');
-    await tester.enterText(find.byType(CupertinoTextFormFieldRow).at(4), '3');
-    await tester.tap(find.text('완료'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await editChip(tester, 'name', '러닝');
+    await applyChip(tester);
+    expect(c.blocks.single.exercise, '러닝');
+    // 하나를 고친 뒤에도 펼친 채다 — 다음 빈 칩을 바로 누른다.
+    await editChip(tester, 'totalSets', '3');
+    await applyChip(tester);
     expect(c.blocks.single.name, '러닝 5km 3세트');
     expect(c.blocks.single.exercise, '러닝');
     expect(c.blocks.single.setup!.totalSets, 3);
     expect(find.byIcon(CupertinoIcons.gear_alt), findsNothing);
+    expect(find.text('0/3세트'), findsOneWidget);
   });
 
   testWidgets('X12: 답을 기다리다 다른 카드를 눌러도 친 문장은 입력칸 초안으로 남는다', (tester) async {
@@ -632,9 +683,10 @@ void main() {
     expect(tester.widget<CupertinoTextField>(field).controller!.text, example);
   });
 
-  testWidgets('X13: 창을 연 채 앱을 내렸다 돌아와 완료해도 적용된다', (tester) async {
+  testWidgets('X13: 칩을 고치다 앱을 내렸다 돌아와 ✓ 해도 적용된다', (tester) async {
     final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
     await submit(tester, example);
+    await editChip(tester, 'totalReps', '120');
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
@@ -643,9 +695,8 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('완료'));
-    await tester.pumpAndSettle();
-    expect(c.blocks.single.setup!.totalReps, 100);
+    await applyChip(tester);
+    expect(c.blocks.single.setup!.totalReps, 120);
     expect(c.blocks.single.name, example);
   });
 
@@ -667,20 +718,17 @@ void main() {
   });
 
   testWidgets(
-    'a quick submission waits for availability rather than losing plan intent',
+    'a quick submission does not wait for availability — the plan is applied',
     (tester) async {
       final ai = FakeAi(RecordAiStatus.ready)
         ..pendingStatus = Completer<RecordAiStatus>();
       final c = await pumpEditor(tester, ai);
       await submit(tester, example);
-      expect(c.blocks, isEmpty);
-      ai.pendingStatus!.complete(RecordAiStatus.ready);
-      await tester.pumpAndSettle();
-      expect(c.blocks, isEmpty);
-      await tester.tap(find.text('완료'));
-      await tester.pumpAndSettle();
       expect(c.blocks.single.setup!.totalReps, 100);
       expect(ai.calls, 1);
+      ai.pendingStatus!.complete(RecordAiStatus.ready);
+      await tester.pumpAndSettle();
+      expect(c.blocks, hasLength(1));
     },
   );
 
@@ -1311,7 +1359,7 @@ void main() {
     expect(readSetupAnswer('내일 회의 3시', {'exercises': []}).food, isFalse);
   });
 
-  testWidgets('X11: 답을 기다리다 앱을 내렸다 돌아오면 늦은 답을 버리지 않고 확인 창을 연다', (tester) async {
+  testWidgets('X11: 답을 기다리다 앱을 내렸다 돌아오면 늦은 답을 버리지 않고 칸을 만든다', (tester) async {
     final ai = FakeAi(RecordAiStatus.ready)
       ..pending = Completer<Map<String, Object?>>();
     final c = await pumpEditor(tester, ai);
@@ -1333,9 +1381,6 @@ void main() {
     ]) {
       tester.binding.handleAppLifecycleStateChanged(state);
     }
-    await tester.pumpAndSettle();
-    expect(find.textContaining('숫자와 조건을 확인'), findsOneWidget);
-    await tester.tap(find.text('완료'));
     await tester.pumpAndSettle();
     expect(c.blocks.single.setup!.totalReps, 100);
     expect(ai.calls, 1, reason: '다시 묻지 않는다');
@@ -1364,12 +1409,7 @@ void main() {
     );
   });
 
-  testWidgets('X6: 여러 운동 창에서 잘못 나뉜 운동은 앞 운동에 합친다 — 친 말은 제목에 이어 붙는다', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(800, 4000);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
+  testWidgets('X6: 잘못 나뉜 줄은 한 번 눌러 한 칸으로 합친다 — 친 말이 제목이 된다', (tester) async {
     const text = '벤치 80kg 8회 드랍 60kg 8회 드랍 40kg 실패까지';
     final ai = FakeAi(RecordAiStatus.ready)
       ..answer = answerFor(
@@ -1387,32 +1427,84 @@ void main() {
       );
     final c = await pumpEditor(tester, ai);
     await submit(tester, text);
-    expect(find.text('앞 운동에 합치기'), findsNWidgets(2), reason: '첫 운동에는 없다');
-    await tester.tap(find.text('앞 운동에 합치기').last);
-    await tester.pump();
-    expect(find.text('따로 두기'), findsOneWidget);
-    await tester.tap(find.text('앞 운동에 합치기'));
-    await tester.pump();
-    await tester.tap(find.text('완료'));
+    expect(c.blocks, hasLength(3));
+    expect(find.textContaining('운동 3개로 나눴어요'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('setup-merge')));
     await tester.pumpAndSettle();
     expect(c.blocks.single.name, text);
     expect(c.blocks.single.setup!.weight, 80);
     expect(c.blocks.single.setup!.repsPerSet, 8);
+    expect(find.byKey(const ValueKey('setup-merge')), findsNothing);
   });
 
-  testWidgets('확인 창에서 "횟수만 기록" 을 켜고 끈다', (tester) async {
+  testWidgets('"횟수만 기록" 은 칩 하나로 켜고 끈다', (tester) async {
     final ai = FakeAi(RecordAiStatus.ready)
       ..answer = answerFor([
         {'text': '스쿼트 100개 채우기', 'name': '스쿼트', 'totalReps': 100},
       ]);
     final c = await pumpEditor(tester, ai);
     await submit(tester, '스쿼트 100개 채우기');
-    expect(find.text('횟수만 기록'), findsOneWidget);
-    await tester.tap(find.byType(CupertinoSwitch));
+    await tester.tap(find.byKey(const ValueKey('setup-more')));
     await tester.pump();
-    await tester.tap(find.text('완료'));
+    expect(find.text('+ 횟수만 기록'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('setup-repsOnly')));
     await tester.pumpAndSettle();
     expect(c.blocks.single.setup!.repsOnly, isTrue);
+    await tester.tap(find.byKey(const ValueKey('setup-repsOnly')));
+    await tester.pumpAndSettle();
+    expect(c.blocks.single.setup!.repsOnly, isFalse);
+    // 펼친 빈 칩은 − 로 접는다.
+    await tester.tap(find.byKey(const ValueKey('setup-more')));
+    await tester.pump();
+    expect(find.text('+ 횟수만 기록'), findsNothing);
+  });
+
+  testWidgets('칩을 고치는 사이 답이 와도 칩의 포커스를 뺏지 않는다 — 치다 만 값을 저장하지 않는다', (
+    tester,
+  ) async {
+    final ai = FakeAi(RecordAiStatus.ready)
+      ..pending = Completer<Map<String, Object?>>();
+    final c = await pumpEditor(
+      tester,
+      ai,
+      controller: RoutineEditorController()
+        ..addExercise(
+          '스쿼트 80kg',
+          setup: const WorkoutSetup(name: '스쿼트', weight: 80),
+        )
+        ..closeBlock(),
+    );
+    await submit(tester, example);
+    await tester.tap(find.byKey(const ValueKey('setup-weight')));
+    await tester.pump();
+    await tester.pump();
+    expect(chipFocused(tester, 'weight'), isTrue);
+    tester.testTextInput.enterText('1');
+    await tester.pump();
+    ai.pending!.complete(benchAnswer);
+    await tester.pumpAndSettle();
+    expect(c.blocks, hasLength(2), reason: '답은 칸이 된다');
+    expect(chipFocused(tester, 'weight'), isTrue, reason: '칩은 열린 채 포커스도 그대로');
+    expect(c.blocks.first.setup!.weight, 80, reason: '100 을 치려던 1 을 저장하지 않는다');
+    tester.testTextInput.enterText('100');
+    await tester.pump();
+    await applyChip(tester);
+    expect(c.blocks.first.setup!.weight, 100);
+  });
+
+  testWidgets('합친 제목이 120자를 넘으면 한 칸으로 합치기를 내놓지 않는다', (tester) async {
+    final text = '벤치 80kg 8회 ${'가' * 60} 스쿼트 100kg 5회 ${'나' * 60}';
+    expect(text.length, greaterThan(120));
+    final ai = FakeAi(RecordAiStatus.ready)
+      ..answer = answerFor([
+        {'text': '벤치 80kg 8회', 'name': '벤치', 'weight': 80, 'repsPerSet': 8},
+        {'text': '스쿼트 100kg 5회', 'name': '스쿼트', 'weight': 100, 'repsPerSet': 5},
+      ]);
+    final c = await pumpEditor(tester, ai);
+    await submit(tester, text);
+    expect(c.blocks, hasLength(2));
+    expect(c.blocks.every((b) => b.name.length <= 120), isTrue);
+    expect(find.byKey(const ValueKey('setup-merge')), findsNothing);
   });
 
   test('429 중 IP 하루 한도는 적기 도움 한도가 아니다', () async {

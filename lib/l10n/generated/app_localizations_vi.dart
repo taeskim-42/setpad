@@ -280,13 +280,15 @@ class LVi extends L {
       'Nhập số nguyên từ 1 trở lên — giữ khoảng và thời gian trong tiêu đề';
 
   @override
-  String get setupMergeUp => 'Gộp vào bài trước';
-
-  @override
-  String get setupKeepApart => 'Để riêng';
-
-  @override
   String get setupRepsOnly => 'Chỉ ghi số lần';
+
+  @override
+  String setupSplit(int count) {
+    return 'Đã tách thành $count bài tập';
+  }
+
+  @override
+  String get setupMergeAll => 'Gộp thành một';
 
   @override
   String goalProgress(int done, int goal) {
@@ -305,9 +307,6 @@ class LVi extends L {
 
   @override
   String get repsInputHint => 'Số lần';
-
-  @override
-  String get setupTitle => 'Thiết lập bài tập';
 
   @override
   String get setupWeight => 'Mức tạ mặc định';
@@ -666,9 +665,6 @@ class LVi extends L {
   String readAsNote(String from, String to) {
     return '$from → $to';
   }
-
-  @override
-  String get reviewNumbers => 'Kiểm tra các số và điều kiện trước khi áp dụng.';
 
   @override
   String get queryByExercise => 'Theo bài tập';
@@ -1561,6 +1557,21 @@ class LVi extends L {
 
   @override
   String get mealsTitle => 'Bữa ăn';
+
+  @override
+  String get energyBurned => 'Tập luyện';
+
+  @override
+  String get energyDifference => 'Chênh lệch';
+
+  @override
+  String get estimateTag => 'ước tính';
+
+  @override
+  String get energyNotLogged => 'Chưa ghi';
+
+  @override
+  String get energyNotMeasured => 'Chưa đo';
 
   @override
   String get recordMenu => 'Thêm';

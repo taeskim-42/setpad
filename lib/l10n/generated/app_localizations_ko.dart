@@ -273,13 +273,15 @@ class LKo extends L {
   String get setupCountInvalid => '1 이상의 정수로 적어 주세요 — 범위·시간은 제목에 남겨 두세요';
 
   @override
-  String get setupMergeUp => '앞 운동에 합치기';
-
-  @override
-  String get setupKeepApart => '따로 두기';
-
-  @override
   String get setupRepsOnly => '횟수만 기록';
+
+  @override
+  String setupSplit(int count) {
+    return '운동 $count개로 나눴어요';
+  }
+
+  @override
+  String get setupMergeAll => '한 칸으로 합치기';
 
   @override
   String goalProgress(int done, int goal) {
@@ -298,9 +300,6 @@ class LKo extends L {
 
   @override
   String get repsInputHint => '횟수';
-
-  @override
-  String get setupTitle => '운동 설정';
 
   @override
   String get setupWeight => '기본 무게';
@@ -654,9 +653,6 @@ class LKo extends L {
   }
 
   @override
-  String get reviewNumbers => '숫자와 조건을 확인한 뒤 적용해 주세요.';
-
-  @override
   String get queryByExercise => '운동별';
 
   @override
@@ -954,7 +950,7 @@ class LKo extends L {
     );
     final String nString = nNumberFormat.format(n);
 
-    return '약 ${nString}kcal';
+    return '${nString}kcal 추정';
   }
 
   @override
@@ -1100,12 +1096,12 @@ class LKo extends L {
 
   @override
   String dayEnergyFull(String intake, String burned, String diff) {
-    return '섭취 $intake · 운동 $burned = ${diff}kcal';
+    return '먹은 것 $intake · 운동 $burned = ${diff}kcal';
   }
 
   @override
   String dayEnergyApprox(String intake, String burned, String diff) {
-    return '섭취 약 $intake · 운동 $burned = 약 ${diff}kcal';
+    return '먹은 것 $intake · 운동 $burned = ${diff}kcal (추정)';
   }
 
   @override
@@ -1515,16 +1511,31 @@ class LKo extends L {
   String get mealsTitle => '먹은 것';
 
   @override
+  String get energyBurned => '운동';
+
+  @override
+  String get energyDifference => '차이';
+
+  @override
+  String get estimateTag => '추정';
+
+  @override
+  String get energyNotLogged => '미기록';
+
+  @override
+  String get energyNotMeasured => '미측정';
+
+  @override
   String get recordMenu => '더 보기';
 
   @override
   String dayIntakeOnly(String intake) {
-    return '섭취 ${intake}kcal · 운동 소모 미측정';
+    return '먹은 것 ${intake}kcal · 운동 소모 미측정';
   }
 
   @override
   String dayIntakeOnlyApprox(String intake) {
-    return '섭취 약 ${intake}kcal · 운동 소모 미측정';
+    return '먹은 것 ${intake}kcal (추정) · 운동 소모 미측정';
   }
 
   @override

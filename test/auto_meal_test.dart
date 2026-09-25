@@ -281,8 +281,6 @@ void main() {
     expect(c.blocks.single.name, '케이블 크런치');
     c.closeBlock();
     await submit(tester, '벤치 80kg 5x5');
-    await tester.tap(find.text('완료'));
-    await tester.pumpAndSettle();
     expect(c.blocks.last.setup?.weight, 80);
     expect(ai.lookups, isEmpty);
     expect(meals, isEmpty);

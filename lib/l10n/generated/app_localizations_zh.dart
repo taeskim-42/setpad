@@ -266,13 +266,15 @@ class LZh extends L {
   String get setupCountInvalid => '请输入1以上的整数 — 范围和时间请留在标题中';
 
   @override
-  String get setupMergeUp => '合并到上一个动作';
-
-  @override
-  String get setupKeepApart => '分开保留';
-
-  @override
   String get setupRepsOnly => '只记次数';
+
+  @override
+  String setupSplit(int count) {
+    return '已拆成 $count 个动作';
+  }
+
+  @override
+  String get setupMergeAll => '合并为一项';
 
   @override
   String goalProgress(int done, int goal) {
@@ -291,9 +293,6 @@ class LZh extends L {
 
   @override
   String get repsInputHint => '次数';
-
-  @override
-  String get setupTitle => '动作设置';
 
   @override
   String get setupWeight => '默认重量';
@@ -644,9 +643,6 @@ class LZh extends L {
   String readAsNote(String from, String to) {
     return '$from → $to';
   }
-
-  @override
-  String get reviewNumbers => '应用前请确认数字和条件。';
 
   @override
   String get queryByExercise => '按动作';
@@ -1494,6 +1490,21 @@ class LZh extends L {
 
   @override
   String get mealsTitle => '饮食';
+
+  @override
+  String get energyBurned => '运动';
+
+  @override
+  String get energyDifference => '差值';
+
+  @override
+  String get estimateTag => '估算';
+
+  @override
+  String get energyNotLogged => '未记录';
+
+  @override
+  String get energyNotMeasured => '未测量';
 
   @override
   String get recordMenu => '更多';
@@ -3361,13 +3372,15 @@ class LZhHans extends LZh {
   String get setupCountInvalid => '请输入1以上的整数 — 范围和时间请留在标题中';
 
   @override
-  String get setupMergeUp => '合并到上一个动作';
-
-  @override
-  String get setupKeepApart => '分开保留';
-
-  @override
   String get setupRepsOnly => '只记次数';
+
+  @override
+  String setupSplit(int count) {
+    return '已拆成 $count 个动作';
+  }
+
+  @override
+  String get setupMergeAll => '合并为一项';
 
   @override
   String goalProgress(int done, int goal) {
@@ -3386,9 +3399,6 @@ class LZhHans extends LZh {
 
   @override
   String get repsInputHint => '次数';
-
-  @override
-  String get setupTitle => '动作设置';
 
   @override
   String get setupWeight => '默认重量';
@@ -3739,9 +3749,6 @@ class LZhHans extends LZh {
   String readAsNote(String from, String to) {
     return '$from → $to';
   }
-
-  @override
-  String get reviewNumbers => '应用前请确认数字和条件。';
 
   @override
   String get queryByExercise => '按动作';
@@ -4589,6 +4596,21 @@ class LZhHans extends LZh {
 
   @override
   String get mealsTitle => '饮食';
+
+  @override
+  String get energyBurned => '运动';
+
+  @override
+  String get energyDifference => '差值';
+
+  @override
+  String get estimateTag => '估算';
+
+  @override
+  String get energyNotLogged => '未记录';
+
+  @override
+  String get energyNotMeasured => '未测量';
 
   @override
   String get recordMenu => '更多';
@@ -6456,13 +6478,15 @@ class LZhHant extends LZh {
   String get setupCountInvalid => '請輸入1以上的整數 — 範圍和時間請留在標題中';
 
   @override
-  String get setupMergeUp => '合併到上一個動作';
-
-  @override
-  String get setupKeepApart => '分開保留';
-
-  @override
   String get setupRepsOnly => '只記次數';
+
+  @override
+  String setupSplit(int count) {
+    return '已拆成 $count 個動作';
+  }
+
+  @override
+  String get setupMergeAll => '合併為一項';
 
   @override
   String goalProgress(int done, int goal) {
@@ -6481,9 +6505,6 @@ class LZhHant extends LZh {
 
   @override
   String get repsInputHint => '次數';
-
-  @override
-  String get setupTitle => '動作設定';
 
   @override
   String get setupWeight => '預設重量';
@@ -6834,9 +6855,6 @@ class LZhHant extends LZh {
   String readAsNote(String from, String to) {
     return '$from → $to';
   }
-
-  @override
-  String get reviewNumbers => '套用前請確認數字和條件。';
 
   @override
   String get queryByExercise => '按動作';
@@ -7683,6 +7701,21 @@ class LZhHant extends LZh {
 
   @override
   String get mealsTitle => '飲食';
+
+  @override
+  String get energyBurned => '運動';
+
+  @override
+  String get energyDifference => '差值';
+
+  @override
+  String get estimateTag => '估算';
+
+  @override
+  String get energyNotLogged => '未記錄';
+
+  @override
+  String get energyNotMeasured => '未測量';
 
   @override
   String get recordMenu => '更多';

@@ -274,9 +274,20 @@ class Note {
   /// 첫 운동은 그날을 대표하지 않는다 — 그냥 먼저 친 것뿐이다.
   ///
   /// 길면 화면이 잘라 준다. 앞의 몇 개만 보여도 첫 하나보다 낫다.
-  String? get title => blocks.isEmpty
-      ? draft?.text.trim()
-      : blocks.map((b) => b.name).toSet().join(' · ');
+  ///
+  /// 운동 없이 끼니만 적은 날(쉬는 날의 식단)은 먹은 것이 제목이다 — '새 운동'
+  /// 으로 비워 두면 그날 무엇을 했는지 목록에서 안 보인다.
+  String? get title {
+    if (blocks.isNotEmpty) return blocks.map((b) => b.name).toSet().join(' · ');
+    final typed = draft?.text.trim();
+    if (typed != null && typed.isNotEmpty) return typed;
+    final eaten = mealsText;
+    return eaten.trim().isEmpty ? typed : eaten;
+  }
+
+  /// 먹은 것을 한 줄로 — 끼니마다 친 글 그대로.
+  String get mealsText =>
+      [for (final m in meals) m.text ?? m.items.join(', ')].join(' · ');
 
   /// 제목 아래 한 줄 — 그날 총계.
   ///
@@ -293,11 +304,13 @@ class Note {
     return total == 0 ? '' : setOrdinal(total);
   }
 
-  /// 검색이 훑는 글. 운동 이름과 메모만 본다 — 숫자로 찾는 사람은 없다.
-  String get searchText => blocks
-      .map((b) => [b.name, ...b.sets.expand((s) => s.notes)].join(' '))
-      .join(' ')
-      .toLowerCase();
+  /// 검색이 훑는 글. 운동 이름과 메모, 먹은 것을 본다 — 끼니만 적은 날은 먹은
+  /// 것이 제목이라, 제목에 보이는 글로 못 찾으면 막다른 길이다. 숫자로 찾는
+  /// 사람은 없다.
+  String get searchText => [
+    for (final b in blocks) ...[b.name, ...b.sets.expand((s) => s.notes)],
+    mealsText,
+  ].join(' ').toLowerCase();
 
   Map<String, dynamic> toJson() => {
     'id': id,

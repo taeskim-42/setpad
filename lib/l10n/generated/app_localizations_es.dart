@@ -280,13 +280,15 @@ class LEs extends L {
       'Escribe un número entero de 1 o más — deja rangos y tiempos en el título';
 
   @override
-  String get setupMergeUp => 'Unir con el anterior';
-
-  @override
-  String get setupKeepApart => 'Mantener aparte';
-
-  @override
   String get setupRepsOnly => 'Solo repeticiones';
+
+  @override
+  String setupSplit(int count) {
+    return 'Dividido en $count ejercicios';
+  }
+
+  @override
+  String get setupMergeAll => 'Unir en uno';
 
   @override
   String goalProgress(int done, int goal) {
@@ -305,9 +307,6 @@ class LEs extends L {
 
   @override
   String get repsInputHint => 'Reps';
-
-  @override
-  String get setupTitle => 'Configurar ejercicio';
 
   @override
   String get setupWeight => 'Peso predeterminado';
@@ -667,10 +666,6 @@ class LEs extends L {
   String readAsNote(String from, String to) {
     return '$from → $to';
   }
-
-  @override
-  String get reviewNumbers =>
-      'Revisa los números y las condiciones antes de aplicar.';
 
   @override
   String get queryByExercise => 'Por ejercicio';
@@ -1591,6 +1586,21 @@ class LEs extends L {
 
   @override
   String get mealsTitle => 'Comidas';
+
+  @override
+  String get energyBurned => 'Ejercicio';
+
+  @override
+  String get energyDifference => 'Diferencia';
+
+  @override
+  String get estimateTag => 'aprox.';
+
+  @override
+  String get energyNotLogged => 'Sin registro';
+
+  @override
+  String get energyNotMeasured => 'Sin medir';
 
   @override
   String get recordMenu => 'Más';

@@ -9,7 +9,7 @@ import 'keypad.dart';
 import 'meal.dart';
 import 'collapsing_drag.dart';
 import 'record_ai.dart';
-import 'workout_setup_sheet.dart';
+import 'setup_chips.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'exercises.dart';
 import 'health.dart';
@@ -793,6 +793,14 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 운동 이름 줄에 친 글을 알아서 끼니로 남겼다. 입력 줄 위에 '운동으로 바꾸기'
   /// 가 한 줄 뜬다 — 다음에 무언가 칠 때까지.
   ({String text, VoidCallback? undo})? _autoMeal;
+
+  /// 한 줄이 여러 칸이 됐다. 잘못 나뉜 것(드롭 세트의 둘째 무게)이면 입력 줄 위의
+  /// 한 줄에서 친 글 그대로 한 칸으로 되돌린다 — 다음에 무언가 칠 때까지.
+  ({String text, List<ExerciseBlock> blocks})? _split;
+
+  /// 설정 칩을 다 펼친 칸(⚙·+ 를 누름)과, 칩 하나를 고치는 중인지.
+  String? _setupOpen;
+  bool _setupEditing = false;
   bool get _editingRecord => _recordTitle || _recordSet != null;
 
   /// 화살표로 **고른** 후보. -1 이면 고른 것이 없고 Enter 는 친 글 그대로
@@ -1283,7 +1291,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     _input.clear();
     final undo = widget.onMealText!(clean, null);
     setState(() => _autoMeal = (text: clean, undo: undo));
-    _focus.requestFocus();
+    _takeFocus();
   }
 
   /// '운동으로 바꾸기' — 그 끼니를 지우고 같은 글을 운동으로 적는다(가르지 않는다).
@@ -1346,57 +1354,33 @@ class _RoutineEditorState extends State<RoutineEditor>
     // 모델이 읽은 부분만 제목이 되고 나머지가 사라지면 안 된다(X2).
     if (!reading.fits) {
       setState(() => _aiNotice = (l) => l.inputNameTooLong);
-      _focus.requestFocus();
+      _takeFocus();
       return;
     }
+    // 확인 창 없이 바로 칸이 된다. 읽은 값은 칸의 칩으로 보이고, 틀렸으면 그
+    // 칩을 눌러 그 자리에서 고친다. 제목은 친 글이라 잘못 읽어도 친 말은 남는다.
     final titles = reading.titles;
-    final proposed = [for (final e in reading.exercises) e.setup];
-    bool planned(WorkoutSetup s) => s.hasPlan || s.repsOnly;
-    // 설정할 것도, 알릴 것도 없는 운동 하나("민수식 로우 2")는 묻지 않고 만든다.
-    final ask =
-        proposed.length > 1 ||
-        planned(proposed.single) ||
-        reading.dropped.isNotEmpty;
-    if (ask) _focus.unfocus();
-    final List<WorkoutSetup?>? setups = ask
-        ? await editWorkoutSetups(
-            context,
-            proposed,
-            titles: titles,
-            sourceText: text,
-            unparsed: reading.unparsed,
-            dropped: reading.dropped,
-          )
-        : proposed;
-    // 창이 열린 뒤에는 사람이 확정한 것을 적용한다 — 그사이 요청 번호가
-    // 바뀌었어도(앱을 내렸다 돌아옴) 버리지 않는다.
-    if (!mounted) return;
-    if (setups == null) {
-      _focus.requestFocus();
-      return;
-    }
-    if (_text == text) _input.clear();
-    // 제목은 친 글이다. 창에서 값을 고쳐도 바뀌지 않는다 — 익히는 것은 운동 이름.
-    // 앞 운동에 합친 칸(null)은 제목만 앞 칸에 이어 붙는다.
-    final made = <(String, WorkoutSetup)>[];
-    for (final (i, setup) in setups.indexed) {
-      if (setup != null) {
-        made.add((titles[i], setup));
-      } else if (made.isNotEmpty) {
-        made.last = ('${made.last.$1} ${titles[i]}', made.last.$2);
-      }
-    }
+    _input.clear();
     // 이름만 읽은 설정도 칸에 둔다 — 같은 줄을 다시 치면 모델을 또 부르지 않고
     // 그 읽음을 쓴다([RoutineEditorController.earlierSetup]).
-    for (final (title, setup) in made) {
-      _c.addExercise(title, setup: setup, learnAs: setup.name);
+    final made = <ExerciseBlock>[];
+    for (final (i, e) in reading.exercises.indexed) {
+      _c.addExercise(titles[i], setup: e.setup, learnAs: e.setup.name);
+      made.add(_c.blocks.last);
     }
-    // 묻지 않고 만든 칸에도 못 옮긴 말은 한 줄로 보인다('러닝 5km' 의 5km).
-    if (!ask && reading.unparsed.isNotEmpty) {
-      final words = reading.unparsed.join(' · ');
-      setState(() => _aiNotice = (l) => l.setupUnparsed(words));
-    }
-    _focus.requestFocus();
+    // 칸에 못 옮긴 말('러닝 5km' 의 5km)과 지어내 뺀 수는 한 줄씩 보인다.
+    final unparsed = reading.unparsed.join(' · ');
+    final dropped = reading.dropped.join(', ');
+    setState(() {
+      if (unparsed.isNotEmpty || dropped.isNotEmpty) {
+        _aiNotice = (l) => [
+          if (unparsed.isNotEmpty) l.setupUnparsed(unparsed),
+          if (dropped.isNotEmpty) l.setupDropped(dropped),
+        ].join('\n');
+      }
+      _split = made.length > 1 ? (text: text.trim(), blocks: made) : null;
+    });
+    _takeFocus();
   }
 
   /// 모델을 못 썼다. 그래도 친 글 그대로 칸을 만들고 이유를 한 줄 말한다 —
@@ -1409,7 +1393,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     final clean = text.trim();
     if (clean.length > 120) {
       setState(() => _aiNotice = (l) => l.inputNameTooLong);
-      _focus.requestFocus();
+      _takeFocus();
       return;
     }
     _input.clear();
@@ -1417,7 +1401,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     // 수 낱말을 뺀 이름만 익히고, 이름이 안 남으면 익히지 않는다.
     _c.addExercise(clean, learnAs: learn ? learnableName(clean) ?? '' : '');
     setState(() => _aiNotice = reason);
-    _focus.requestFocus();
+    _takeFocus();
   }
 
   String Function(L l) _fallbackReason(Object error) => switch (error) {
@@ -1470,21 +1454,73 @@ class _RoutineEditorState extends State<RoutineEditor>
           ),
         );
 
-  Future<void> _editSetup(int index) async {
-    if (_editingRecord && !_finishRecordEdit()) return;
-    final block = _c.blocks[index];
-    _focus.unfocus();
-    // 설정 없는 칸도 연다 — 모델을 못 써서 적은 그대로 만든 칸에 나중에 붙인다.
-    final setup = await editWorkoutSetup(
-      context,
-      block.setup ?? WorkoutSetup(name: block.exercise),
-    );
-    if (!mounted) return;
-    if (setup != null &&
-        (block.setup != null || setup.hasPlan || setup.repsOnly)) {
-      _c.updateSetup(_c.blocks.indexOf(block), setup);
+  /// 한 줄에서 나뉜 칸들을 친 글 그대로 한 칸으로 — 설정은 첫 칸의 것이다.
+  void _mergeSplit() {
+    final split = _split;
+    if (split == null || split.text.length > 120) return;
+    final setup = split.blocks.first.setup;
+    for (final b in split.blocks) {
+      _c.removeBlockObject(b);
     }
+    _c.addExercise(split.text, setup: setup, learnAs: setup?.name);
+    setState(() => _split = null);
     _reopen();
+  }
+
+  Widget? _splitLine(BuildContext context) {
+    final split = _split;
+    // 나뉜 칸에 세트를 적기 시작했거나 하나라도 지웠으면 더는 되돌릴 것이 아니다.
+    // 합친 제목은 친 글 전부다 — 120자를 넘으면 합칠 수 없다(칸 제목 한도).
+    if (split == null ||
+        split.text.length > 120 ||
+        !split.blocks.every((b) => _c.blocks.contains(b) && b.sets.isEmpty)) {
+      return null;
+    }
+    final l = L.of(context);
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(
+          '${l.setupSplit(split.blocks.length)} · ',
+          style: TextStyle(
+            fontSize: 13,
+            color: CupertinoColors.secondaryLabel.resolveFrom(context),
+          ),
+        ),
+        CupertinoButton(
+          key: const ValueKey('setup-merge'),
+          padding: EdgeInsets.zero,
+          minimumSize: const Size(44, 32),
+          onPressed: _mergeSplit,
+          child: Text(
+            l.setupMergeAll,
+            style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 답·폴백이 늦게 와도 고치던 칩의 포커스는 뺏지 않는다 — 뺏으면 치다 만 값
+  /// ('100' 을 치려던 '1')이 그대로 저장된다. 칩을 다 고치면 [_setupField] 가
+  /// 입력 줄로 돌려준다.
+  void _takeFocus() {
+    if (!_setupEditing) _focus.requestFocus();
+  }
+
+  /// ⚙·+ — 설정 칩을 다 펼치거나 접는다. 설정 없는 칸도 여기서 붙인다.
+  void _toggleSetup(ExerciseBlock block) =>
+      setState(() => _setupOpen = _setupOpen == block.id ? null : block.id);
+
+  /// 칩 하나를 고치는 동안 키패드를 내리고 입력 줄이 포커스를 되찾지 않는다.
+  /// 끝나면 입력 줄로 돌아간다.
+  void _setupField(bool editing) {
+    if (!mounted) return;
+    setState(() {
+      _setupEditing = editing;
+      if (editing) _timingKeyboardHidden = true;
+    });
+    if (!editing) _reopen();
   }
 
   EditorDraft get _draft => EditorDraft(
@@ -1873,6 +1909,7 @@ class _RoutineEditorState extends State<RoutineEditor>
         if (has) {
           _aiNotice = null;
           _autoMeal = null;
+          _split = null;
         }
       });
     }
@@ -1951,7 +1988,9 @@ class _RoutineEditorState extends State<RoutineEditor>
     // keyboardType 을 바꾸는 것만으로는 **이미 올라와 있는** 키보드가 내려가지
     // 않는다. 운동 이름을 칠 때 뜬 키보드가 세트 모드에서도 그대로 남아
     // 키패드를 덮었다.
-    if (_padMode) SystemChannels.textInput.invokeMethod('TextInput.hide');
+    if (_padMode && !_setupEditing) {
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
+    }
 
     // 줄이 늘었을 때만 따라 내린다. 예전에는 컨트롤러가 바뀔 때마다 무조건
     // 맨 아래로 내렸는데, 세트를 켜고 끄거나 메모를 고칠 때도 화면이 출렁였다.
@@ -2157,7 +2196,7 @@ class _RoutineEditorState extends State<RoutineEditor>
       _resumeElsewhere();
     }
     _saveDraft();
-    _focus.requestFocus();
+    _takeFocus();
   }
 
   /// 저장된 세트를 고치다가 "세트 추가" — 고친 값을 저장하고 같은 운동의
@@ -2479,7 +2518,27 @@ class _RoutineEditorState extends State<RoutineEditor>
                               _startEditNote(i, set, note),
                           onRemoveNote: (set, note) =>
                               _c.removeNote(i, set, note),
-                          onEditSetup: () => _editSetup(i),
+                          onOpenSetup: () => _toggleSetup(blocks[i]),
+                          setup:
+                              (blocks[i].setup?.countsReps ?? false) ||
+                                  _setupOpen == blocks[i].id
+                              ? SetupChips(
+                                  key: ValueKey('setup-${blocks[i].id}'),
+                                  title: blocks[i].name,
+                                  setup: blocks[i].setup,
+                                  reps: blocks[i].completedReps,
+                                  sets: blocks[i].sets
+                                      .where((s) => s.mine)
+                                      .length,
+                                  open: _setupOpen == blocks[i].id,
+                                  onToggle: () => _toggleSetup(blocks[i]),
+                                  onChanged: (setup) => _c.updateSetup(
+                                    _c.blocks.indexOf(blocks[i]),
+                                    setup,
+                                  ),
+                                  onEditing: _setupField,
+                                )
+                              : null,
                           uniformCell: widestSetCell(context, blocks),
                           cursors: [
                             for (final p in widget.presence)
@@ -2528,12 +2587,15 @@ class _RoutineEditorState extends State<RoutineEditor>
                                   ),
                                 ),
                               ?_noticeLine(context),
+                              ?_splitLine(context),
                             ],
                           ),
                         ),
                       // 적은 그대로 만든 칸 바로 아래 — 왜 설정이 없는지.
                       if (!_c.naming && _aiNotice != null)
                         SliverToBoxAdapter(child: _noticeLine(context)),
+                      if (!_c.naming && _splitLine(context) != null)
+                        SliverToBoxAdapter(child: _splitLine(context)),
                       if (widget.footer != null)
                         SliverToBoxAdapter(child: widget.footer!),
                     ],
@@ -2830,7 +2892,8 @@ class _BlockView extends StatelessWidget {
     required this.onOpen,
     required this.onEditNote,
     required this.onRemoveNote,
-    required this.onEditSetup,
+    required this.onOpenSetup,
+    this.setup,
     this.uniformCell,
     this.cursors = const [],
   });
@@ -2858,7 +2921,12 @@ class _BlockView extends StatelessWidget {
   /// (세트 번호, 메모 번호).
   final void Function(int, int) onEditNote;
   final void Function(int, int) onRemoveNote;
-  final VoidCallback onEditSetup;
+
+  /// ⚙ — 설정 칩을 펼친다.
+  final VoidCallback onOpenSetup;
+
+  /// 제목 밑의 설정 칩. 설정이 없고 펼치지도 않았으면 null.
+  final Widget? setup;
 
   /// 문서 전체에서 맞출 칸 폭.
   final double? uniformCell;
@@ -2941,10 +3009,10 @@ class _BlockView extends StatelessWidget {
                   ),
                 ),
               dragHandle,
-              // 설정 없는 칸도 나중에 설정을 붙인다. 있으면 아래 요약 줄을 누른다.
+              // 설정 없는 칸도 나중에 설정을 붙인다. 있으면 아래 칩을 누른다.
               if (!collapsed && !(block.setup?.countsReps ?? false))
                 GestureDetector(
-                  onTap: onEditSetup,
+                  onTap: onOpenSetup,
                   behavior: HitTestBehavior.opaque,
                   child: Semantics(
                     button: true,
@@ -2981,21 +3049,7 @@ class _BlockView extends StatelessWidget {
           ),
           if (!collapsed) ...[
             ?timing,
-            if (block.setup?.countsReps ?? false)
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size.fromHeight(28),
-                onPressed: onEditSetup,
-                child: Text(
-                  setupSummary(
-                    block.setup!,
-                    L.of(context),
-                    block.completedReps,
-                    block.sets.where((s) => s.mine).length,
-                  ),
-                  style: TextStyle(fontSize: 13, color: muted),
-                ),
-              ),
+            ?setup,
             // 읽는 자리는 조밀하게 — 세트마다 한 칸, 한 줄에 여러 칸.
             if (block.sets.isNotEmpty || cursors.any((p) => p.set != null))
               SetGrid(

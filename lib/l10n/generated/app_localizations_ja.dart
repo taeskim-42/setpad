@@ -271,13 +271,15 @@ class LJa extends L {
   String get setupCountInvalid => '1以上の整数を入力してください — 範囲や時間はタイトルに残してください';
 
   @override
-  String get setupMergeUp => '前の種目にまとめる';
-
-  @override
-  String get setupKeepApart => '分けておく';
-
-  @override
   String get setupRepsOnly => '回数だけ記録';
+
+  @override
+  String setupSplit(int count) {
+    return '$countつの種目に分けました';
+  }
+
+  @override
+  String get setupMergeAll => '1つにまとめる';
 
   @override
   String goalProgress(int done, int goal) {
@@ -296,9 +298,6 @@ class LJa extends L {
 
   @override
   String get repsInputHint => '回数';
-
-  @override
-  String get setupTitle => '種目の設定';
 
   @override
   String get setupWeight => '基本重量';
@@ -649,9 +648,6 @@ class LJa extends L {
   String readAsNote(String from, String to) {
     return '$from → $to';
   }
-
-  @override
-  String get reviewNumbers => '数値と条件を確認してから適用してください。';
 
   @override
   String get queryByExercise => '種目別';
@@ -1508,6 +1504,21 @@ class LJa extends L {
 
   @override
   String get mealsTitle => '食事';
+
+  @override
+  String get energyBurned => '運動';
+
+  @override
+  String get energyDifference => '差';
+
+  @override
+  String get estimateTag => '推定';
+
+  @override
+  String get energyNotLogged => '未記録';
+
+  @override
+  String get energyNotMeasured => '未計測';
 
   @override
   String get recordMenu => 'その他';

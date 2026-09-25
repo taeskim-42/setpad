@@ -280,13 +280,15 @@ class LTh extends L {
       'ใส่จำนวนเต็มตั้งแต่ 1 ขึ้นไป — ช่วงและเวลาให้คงไว้ในชื่อ';
 
   @override
-  String get setupMergeUp => 'รวมกับท่าก่อนหน้า';
-
-  @override
-  String get setupKeepApart => 'แยกไว้';
-
-  @override
   String get setupRepsOnly => 'บันทึกแค่จำนวนครั้ง';
+
+  @override
+  String setupSplit(int count) {
+    return 'แยกเป็น $count ท่า';
+  }
+
+  @override
+  String get setupMergeAll => 'รวมเป็นรายการเดียว';
 
   @override
   String goalProgress(int done, int goal) {
@@ -305,9 +307,6 @@ class LTh extends L {
 
   @override
   String get repsInputHint => 'จำนวนครั้ง';
-
-  @override
-  String get setupTitle => 'ตั้งค่าท่า';
 
   @override
   String get setupWeight => 'น้ำหนักเริ่มต้น';
@@ -664,9 +663,6 @@ class LTh extends L {
   String readAsNote(String from, String to) {
     return '$from → $to';
   }
-
-  @override
-  String get reviewNumbers => 'ตรวจสอบตัวเลขและเงื่อนไขก่อนนำไปใช้';
 
   @override
   String get queryByExercise => 'ตามท่า';
@@ -1547,6 +1543,21 @@ class LTh extends L {
 
   @override
   String get mealsTitle => 'อาหาร';
+
+  @override
+  String get energyBurned => 'ออกกำลังกาย';
+
+  @override
+  String get energyDifference => 'ส่วนต่าง';
+
+  @override
+  String get estimateTag => 'ประมาณ';
+
+  @override
+  String get energyNotLogged => 'ยังไม่บันทึก';
+
+  @override
+  String get energyNotMeasured => 'ยังไม่วัด';
 
   @override
   String get recordMenu => 'เพิ่มเติม';

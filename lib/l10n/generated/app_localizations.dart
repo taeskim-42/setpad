@@ -541,23 +541,23 @@ abstract class L {
   /// **'1 이상의 정수로 적어 주세요 — 범위·시간은 제목에 남겨 두세요'**
   String get setupCountInvalid;
 
-  /// No description provided for @setupMergeUp.
-  ///
-  /// In ko, this message translates to:
-  /// **'앞 운동에 합치기'**
-  String get setupMergeUp;
-
-  /// No description provided for @setupKeepApart.
-  ///
-  /// In ko, this message translates to:
-  /// **'따로 두기'**
-  String get setupKeepApart;
-
   /// No description provided for @setupRepsOnly.
   ///
   /// In ko, this message translates to:
   /// **'횟수만 기록'**
   String get setupRepsOnly;
+
+  /// No description provided for @setupSplit.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 {count}개로 나눴어요'**
+  String setupSplit(int count);
+
+  /// No description provided for @setupMergeAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 칸으로 합치기'**
+  String get setupMergeAll;
 
   /// No description provided for @goalProgress.
   ///
@@ -582,12 +582,6 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'횟수'**
   String get repsInputHint;
-
-  /// No description provided for @setupTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'운동 설정'**
-  String get setupTitle;
 
   /// No description provided for @setupWeight.
   ///
@@ -1165,12 +1159,6 @@ abstract class L {
   /// **'{from} → {to}'**
   String readAsNote(String from, String to);
 
-  /// No description provided for @reviewNumbers.
-  ///
-  /// In ko, this message translates to:
-  /// **'숫자와 조건을 확인한 뒤 적용해 주세요.'**
-  String get reviewNumbers;
-
   /// No description provided for @queryByExercise.
   ///
   /// In ko, this message translates to:
@@ -1624,7 +1612,7 @@ abstract class L {
   /// No description provided for @kcalApprox.
   ///
   /// In ko, this message translates to:
-  /// **'약 {n}kcal'**
+  /// **'{n}kcal 추정'**
   String kcalApprox(int n);
 
   /// No description provided for @mealKcalUnknown.
@@ -1804,13 +1792,13 @@ abstract class L {
   /// No description provided for @dayEnergyFull.
   ///
   /// In ko, this message translates to:
-  /// **'섭취 {intake} · 운동 {burned} = {diff}kcal'**
+  /// **'먹은 것 {intake} · 운동 {burned} = {diff}kcal'**
   String dayEnergyFull(String intake, String burned, String diff);
 
   /// No description provided for @dayEnergyApprox.
   ///
   /// In ko, this message translates to:
-  /// **'섭취 약 {intake} · 운동 {burned} = 약 {diff}kcal'**
+  /// **'먹은 것 {intake} · 운동 {burned} = {diff}kcal (추정)'**
   String dayEnergyApprox(String intake, String burned, String diff);
 
   /// No description provided for @dayBurnedMissing.
@@ -2485,6 +2473,36 @@ abstract class L {
   /// **'먹은 것'**
   String get mealsTitle;
 
+  /// No description provided for @energyBurned.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동'**
+  String get energyBurned;
+
+  /// No description provided for @energyDifference.
+  ///
+  /// In ko, this message translates to:
+  /// **'차이'**
+  String get energyDifference;
+
+  /// No description provided for @estimateTag.
+  ///
+  /// In ko, this message translates to:
+  /// **'추정'**
+  String get estimateTag;
+
+  /// No description provided for @energyNotLogged.
+  ///
+  /// In ko, this message translates to:
+  /// **'미기록'**
+  String get energyNotLogged;
+
+  /// No description provided for @energyNotMeasured.
+  ///
+  /// In ko, this message translates to:
+  /// **'미측정'**
+  String get energyNotMeasured;
+
   /// No description provided for @recordMenu.
   ///
   /// In ko, this message translates to:
@@ -2494,13 +2512,13 @@ abstract class L {
   /// No description provided for @dayIntakeOnly.
   ///
   /// In ko, this message translates to:
-  /// **'섭취 {intake}kcal · 운동 소모 미측정'**
+  /// **'먹은 것 {intake}kcal · 운동 소모 미측정'**
   String dayIntakeOnly(String intake);
 
   /// No description provided for @dayIntakeOnlyApprox.
   ///
   /// In ko, this message translates to:
-  /// **'섭취 약 {intake}kcal · 운동 소모 미측정'**
+  /// **'먹은 것 {intake}kcal (추정) · 운동 소모 미측정'**
   String dayIntakeOnlyApprox(String intake);
 
   /// No description provided for @dayUnknownMeals.

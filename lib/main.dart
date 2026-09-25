@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 
+import 'day_energy.dart';
 import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'health.dart';
@@ -1451,7 +1452,6 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
     // 하루치다 — 이 문서 하나가 아니라 그날의 문서와 끼니 전부.
     final log = dayLogs(widget.store.notes, from: at, to: at).firstOrNull;
-    final energy = log == null ? null : dayEnergyText(l, log);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -1462,18 +1462,12 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: muted),
           ),
-          // 섭취 · 운동 · 차이를 작은 한 줄로.
-          if (energy != null)
+          // 먹은 것 · 운동 · 차이를 세 칸으로. 둘 다 없는 날은 칸을 세우지 않는다.
+          if (log != null && (log.intake != null || log.burned != null))
             Padding(
               key: const ValueKey('day-summary'),
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                energy,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.label.resolveFrom(context),
-                ),
-              ),
+              padding: const EdgeInsets.only(top: 8, bottom: 4),
+              child: DayEnergy(log),
             ),
           if (note.meals.isNotEmpty) ...[
             const SizedBox(height: 4),
@@ -1481,31 +1475,55 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
               Row(
                 children: [
                   Expanded(
+                    // 먹은 것이 앞, 열량은 오른쪽 끝에 — 줄마다 같은 자리라 훑어 읽힌다.
+                    // 어림이라는 것은 위 '먹은 것' 칸의 추정 표시가 말한다.
                     child: GestureDetector(
                       key: ValueKey('meal-$i'),
                       behavior: HitTestBehavior.opaque,
                       onTap: () => _editMeal(i),
-                      child: Text(
-                        [
-                          widget.estimating.contains(meal)
-                              ? l.mealEstimating
-                              : meal.kcal == null
-                              ? l.mealKcalUnknown
-                              : meal.partial
-                              ? l.kcalAtLeast(meal.kcal!)
-                              : meal.approximate
-                              ? l.kcalApprox(meal.kcal!)
-                              : l.kcal(meal.kcal!),
-                          meal.text ?? meal.items.join(', '),
-                          if (meal.basis != null &&
-                              meal.eaten != null &&
-                              !(meal.basis!.unit == MealBasis.photo &&
-                                  meal.eaten == 1))
-                            mealEatenText(l, meal.basis!, meal.eaten!),
-                        ].where((t) => t.isNotEmpty).join(' · '),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 13, color: muted),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                [
+                                  meal.text ?? meal.items.join(', '),
+                                  if (meal.basis != null &&
+                                      meal.eaten != null &&
+                                      !(meal.basis!.unit == MealBasis.photo &&
+                                          meal.eaten == 1))
+                                    mealEatenText(l, meal.basis!, meal.eaten!),
+                                ].where((t) => t.isNotEmpty).join(' · '),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: CupertinoColors.label.resolveFrom(
+                                    context,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              widget.estimating.contains(meal)
+                                  ? l.mealEstimating
+                                  : meal.kcal == null
+                                  ? l.mealKcalUnknown
+                                  : meal.partial
+                                  ? l.kcalAtLeast(meal.kcal!)
+                                  : l.kcal(meal.kcal!),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: muted,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
