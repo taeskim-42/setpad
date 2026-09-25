@@ -3298,16 +3298,27 @@ class _Suggestions extends StatelessWidget {
               if (onMeal != null)
                 CupertinoButton(
                   key: const ValueKey('meal-button'),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
                   minimumSize: const Size(44, 44),
-                  color: mealMode ? sealTint.resolveFrom(context) : null,
-                  borderRadius: BorderRadius.circular(12),
                   onPressed: onMeal,
-                  child: Icon(
-                    Icons.restaurant,
-                    size: 20,
-                    semanticLabel: L.of(context).mealAdd,
-                    color: seal.resolveFrom(context),
+                  // 눌린 모양은 아이콘 둘레의 작은 원이다. 단추 전체(44)를 칠하면
+                  // 막대 높이를 꽉 채워 테두리에 잘린 네모로 보였다.
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: mealMode ? seal.resolveFrom(context) : null,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.restaurant,
+                      size: 18,
+                      semanticLabel: L.of(context).mealAdd,
+                      color: mealMode
+                          ? CupertinoColors.white
+                          : seal.resolveFrom(context),
+                    ),
                   ),
                 ),
               if (onMeal != null) ...[
