@@ -8,6 +8,7 @@ import 'notes.dart';
 import 'account.dart';
 import 'anatomy_page.dart';
 import 'answer_card.dart';
+import 'daily.dart';
 import 'day_energy.dart';
 import 'record_query.dart';
 import 'stats.dart' as stats;
@@ -194,6 +195,7 @@ class _NotesListPageState extends State<NotesListPage>
   @override
   void initState() {
     super.initState();
+    widget.store.addListener(_storeChanged);
     _search.addListener(_changed);
     _routine.addListener(_changed);
     WidgetsBinding.instance.addObserver(this);
@@ -251,9 +253,52 @@ class _NotesListPageState extends State<NotesListPage>
     if (mounted) setState(() {});
   }
 
+  /// 떠 있는 답. 모델이 준 같은 plan·같은 기록이면 다시 세지 않는다 — '칼로리
+  /// 추이' 같은 날별 답은 전체 기록을 훑는다. 기기가 만든 plan(칩)은 그릴 때마다
+  /// 새로 나오고 칩을 누르면 바뀌니 기억하지 않는다 — 이름 몇 개만 세는 싼 셈이다.
+  (Object, int, String, bool, String)? _answerKey;
+  RecordResult? _answerMemo;
+
+  RecordResult? _resultFor(
+    RecordQuery query, {
+    required bool local,
+    required L l,
+    required bool confirmed,
+  }) {
+    final key = (
+      query,
+      widget.store.revision,
+      widget.store.weightUnit,
+      confirmed,
+      '${l.localeName} ${dayOf(DateTime.now())}',
+    );
+    if (!local && key == _answerKey) return _answerMemo;
+    final result = runPlan(
+      query,
+      widget.store.notes,
+      l: l,
+      unit: widget.store.weightUnit,
+      confirmed: confirmed,
+    );
+    _answerKey = key;
+    _answerMemo = result;
+    return result;
+  }
+
+  /// 편집기 밑에 가려져 있으면 다시 그리지 않는다 — 편집기에서 한 글자 칠 때마다
+  /// (초안 저장이 알린다) 가려진 목록 전체와 떠 있는 답을 다시 세서 키 하나가
+  /// 300ms 걸렸다. 돌아와 보이면 TickerMode 가 바뀌어 한 번 그린다.
+  bool _shown = true;
+
+  void _storeChanged() {
+    if (mounted && _shown) setState(() {});
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // 가려지면 TickerMode 가 꺼진다. 다시 보이면 이 뒤에 build 가 돈다.
+    _shown = TickerMode.valuesOf(context).enabled;
     final locale = Localizations.localeOf(context).toLanguageTag();
     if (locale != _locale) {
       _locale = locale;
@@ -818,6 +863,7 @@ class _NotesListPageState extends State<NotesListPage>
 
   @override
   void dispose() {
+    widget.store.removeListener(_storeChanged);
     WidgetsBinding.instance.removeObserver(this);
     widget.account?.removeListener(_accountChanged);
     _search.removeListener(_changed);
@@ -883,18 +929,22 @@ class _NotesListPageState extends State<NotesListPage>
       // "가장 많이 한 운동 3개" — 글로 거를 것이 없는 질문이다. 해석을 기다리는
       // 동안과 확인 전에는 다 보인다. 문장을 글자로 찾으면 0 이 된다.
       if (_search.busy || plan?.kind == 'query') return all;
-      return q.isEmpty
-          ? all
-          : all
-                .where(
-                  (n) =>
-                      searchKey(n.searchText).contains(searchKey(q)) ||
-                      suggest(
-                        q,
-                        n.blocks.map((b) => b.name).toList(),
-                      ).isNotEmpty,
-                )
-                .toList();
+      if (q.isEmpty) return all;
+      // 퍼지 맞춤은 이름마다 따로 매긴다 — 기록마다 부르지 않고 다른 이름들에 한
+      // 번만(자르지 않고) 부른다. 기록마다 부르던 것이 글자 하나에 수십 ms 였다.
+      final names = {
+        for (final n in all)
+          for (final b in n.blocks) b.name,
+      }.toList();
+      final fuzzy = suggest(q, names, limit: names.length).toSet();
+      final key = searchKey(q);
+      return all
+          .where(
+            (n) =>
+                searchKey(n.searchText).contains(key) ||
+                n.blocks.any((b) => fuzzy.contains(b.name)),
+          )
+          .toList();
     }
     return all.where((n) {
       final d = DateTime(n.createdAt.year, n.createdAt.month, n.createdAt.day);
@@ -1034,9 +1084,8 @@ class _NotesListPageState extends State<NotesListPage>
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () => FocusScope.of(context).unfocus(),
-              child: ListenableBuilder(
-                listenable: widget.store,
-                builder: (context, _) {
+              child: Builder(
+                builder: (context) {
                   final text = _query.text.trim();
                   final route = _routeOf(text);
                   final routineMode =
@@ -1064,11 +1113,10 @@ class _NotesListPageState extends State<NotesListPage>
                           : plan);
                   final result = query == null
                       ? null
-                      : runPlan(
+                      : _resultFor(
                           query,
-                          widget.store.notes,
+                          local: local != null,
                           l: l,
-                          unit: widget.store.weightUnit,
                           confirmed: local != null || _isConfirmed(query),
                         );
                   final recordedKeys = {
@@ -1696,12 +1744,25 @@ class _NotesListPageState extends State<NotesListPage>
                           SliverMainAxisGroup(
                             slivers: [
                               PinnedHeaderSliver(child: _GroupHeader(title)),
-                              SliverToBoxAdapter(
-                                child: _Group(
-                                  notes: notes,
+                              // 보이는 줄만 만든다 — 한 해치 200여 줄을 통째로 짓던
+                              // 것이 목록을 다시 그릴 때마다의 대부분이었다.
+                              SliverList.separated(
+                                itemCount: notes.length,
+                                itemBuilder: (context, i) => _Row(
+                                  key: ValueKey(notes[i].id),
+                                  note: notes[i],
                                   query: _query.text.trim(),
                                   onOpen: _open,
                                   onDelete: widget.store.delete,
+                                ),
+                                separatorBuilder: (context, _) => Padding(
+                                  // 구분선은 글자가 시작하는 자리부터 그린다.
+                                  padding: const EdgeInsets.only(left: 20),
+                                  child: Container(
+                                    height: 0.5,
+                                    color: CupertinoColors.separator
+                                        .resolveFrom(context),
+                                  ),
                                 ),
                               ),
                             ],
@@ -1758,55 +1819,9 @@ class _GroupHeader extends StatelessWidget {
   );
 }
 
-class _Group extends StatelessWidget {
-  const _Group({
-    required this.notes,
-    required this.query,
-    required this.onOpen,
-    required this.onDelete,
-  });
-
-  final List<Note> notes;
-  final String query;
-  final void Function(Note) onOpen;
-  final void Function(Note) onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 카드에 담지 않는다. 메모 앱의 목록은 한 장의 종이 위에 줄이 그어진
-        // 모양이고, 카드에 담으면 기록 하나하나가 무거워 보인다.
-        Column(
-          children: [
-            for (var i = 0; i < notes.length; i++) ...[
-              if (i > 0)
-                // 구분선은 글자가 시작하는 자리부터 그린다. 왼쪽 끝까지
-                // 긋는 것은 안드로이드 쪽 관습이다.
-                Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: Container(
-                    height: 0.5,
-                    color: CupertinoColors.separator.resolveFrom(context),
-                  ),
-                ),
-              _Row(
-                note: notes[i],
-                query: query,
-                onOpen: onOpen,
-                onDelete: onDelete,
-              ),
-            ],
-          ],
-        ),
-      ],
-    );
-  }
-}
-
 class _Row extends StatelessWidget {
   const _Row({
+    super.key,
     required this.note,
     required this.query,
     required this.onOpen,

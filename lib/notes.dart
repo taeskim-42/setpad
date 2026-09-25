@@ -383,6 +383,17 @@ class NotesStore extends ChangeNotifier {
 
   final Directory? _override;
   final List<Note> _notes = [];
+
+  /// 알릴 때마다 오른다. 화면이 '기록이 바뀌었나' 를 싸게 물어, 바뀌지 않았으면
+  /// 전체 기록을 다시 세지 않는다(떠 있는 답·오늘 루틴).
+  int revision = 0;
+
+  @override
+  void notifyListeners() {
+    revision++;
+    super.notifyListeners();
+  }
+
   Timer? _debounce;
   Future<void> _writes = Future.value();
   final List<String> _exerciseHistory = [];
