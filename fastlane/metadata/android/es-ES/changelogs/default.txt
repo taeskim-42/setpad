@@ -1,6 +1,6 @@
-En esta actualización
-· Juntos: hasta 6 personas editan un registro en vivo; etiquetas y cursores muestran quién edita qué
-· Series y comidas en una sola línea: las separa al escribir y un toque corrige un error
-· Las preguntas comparan periodos y ejercicios lado a lado en una tabla
-· Las calorías muestran su fuente: el valor de la tabla del MFDS o del USDA con enlace al original
-· Discos y Pro: las preguntas usan discos y ganas 1 cada día que registras 10 series
+Novedades
+
+· Rutina de hoy: basada en el mismo día de la semana pasada; el fin de semana completa el factor físico que te falta esta semana
+· Mapa corporal: toca un músculo para ver ejercicios y consejos de técnica — espalda y tríceps por músculo, con zoom de dos dedos
+· Una línea escrita se convierte en ejercicio al momento; toca una etiqueta para corregir peso u objetivo ahí mismo
+· La ayuda de IA se puede desactivar en Ajustes › Ayuda de IA
