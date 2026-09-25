@@ -23,7 +23,7 @@ import 'routine_grading.dart';
 /// [routineIntent]·[RecordQueryAi.queryIntent] 그대로다.
 ///
 /// 잰다:
-/// 1. 루틴 지시문 × 코퍼스 207(tool/questions/routine.json): 의도(M1), 키(M2), 못 하는
+/// 1. 루틴 지시문 × 코퍼스 211(tool/questions/routine.json): 의도(M1), 키(M2), 못 하는
 ///    것(M3), 무효(M4), 지어낸 수(M5), 안전(M6 — 의료·약물에 시작 카드 0), 모델 답으로
 ///    짠 카드의 불변식 C1–C13(M7), 토큰(M8).
 /// 2. 루틴 지시문 × 떼어 둔 모음 139(routine_heldout.json): 의도·안전.
@@ -167,7 +167,7 @@ void main() {
   const timeout = Timeout(Duration(minutes: 25));
 
   test(
-    '1. 루틴 지시문 × 코퍼스 207',
+    '1. 루틴 지시문 × 코퍼스 211',
     () async {
       final rows = load('routine');
       final grades = <String, RoutineGrade>{};

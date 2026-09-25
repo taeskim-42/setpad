@@ -6,7 +6,7 @@ import 'package:setpad/routine.dart';
 
 /// 홈 검색칸 가르기(설계 §4.2, §12.1 R1–R5). 네트워크 없이 매번 잰다.
 ///
-/// 모음: routine.json(코퍼스 207 — 낱말표를 보며 고친 개발용), routine_adversarial
+/// 모음: routine.json(코퍼스 211 — 낱말표를 보며 고친 개발용), routine_adversarial
 /// .json(검토의 49 — 개발용), routine_heldout.json(가르기를 옮기기 **전에** 쓴 떼어
 /// 둔 모음 139), 기록 검색 모음(v3·v2·heldout·dev·final 1,113).
 void main() {
