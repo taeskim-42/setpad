@@ -729,6 +729,8 @@
   "anatomyRegionValue": "最近{days}天 {sets}组，{level}",
   "anatomyRegionHint": "双击查看动作",
   "anatomyClose": "关闭",
+  "anatomyTileSets": "{n}组",
+  "anatomyLastLabel": "最近一次",
   "openSourceLicenses": "开源许可",
   "routineFactor": "{f, select, strength{力量} endurance{肌耐力} sustain{持续力} power{爆发力} cardio{心肺} other{}}",
   "routineFactorDay": "{factor}日 · {why}",

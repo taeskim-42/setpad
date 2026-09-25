@@ -330,9 +330,19 @@ void main() {
 
     testWidgets('그림을 누르면 그 부위, 근육 밖은 안내', (tester) async {
       await pumpPage(tester, []);
-      Finder header(String m) => find.text(
-        '${l.muscleName(m)} · ${l.queryPart(muscleCoarse[Muscle.values.byName(m)]!)}',
-      );
+      // 근육과 부위 이름이 같으면('가슴 · 가슴') 한 번만 적는다.
+      Finder header(String m) {
+        final muscle = l.muscleName(m);
+        final region = l.queryPart(muscleCoarse[Muscle.values.byName(m)]!);
+        final title = muscle == region ? muscle : '$muscle · $region';
+        return find.byWidgetPredicate(
+          (w) =>
+              w is Text &&
+              w.key == const ValueKey('anatomy-title') &&
+              w.data == title,
+        );
+      }
+
       Future<void> close() async {
         await tester.tap(find.byKey(const ValueKey('anatomy-close')));
         await tester.pumpAndSettle();
@@ -885,7 +895,12 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('anatomy-row-lats')));
       await tester.pumpAndSettle();
-      expect(find.text('바벨로우 · ${l.anatomyRole('primary')} *'), findsOneWidget);
+      expect(find.text('바벨로우 *'), findsOneWidget);
+      expect(
+        find.text(l.anatomyRole('primary')),
+        findsWidgets,
+        reason: '역할은 이름 옆 표지로',
+      );
       expect(find.text(l.anatomyInterpNote), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('anatomy-close')));
       await tester.pumpAndSettle();
@@ -1409,7 +1424,12 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('anatomy-done:바벨로우')));
       await tester.pumpAndSettle();
-      expect(find.text('바벨로우 · ${l.anatomyRole('primary')} *'), findsOneWidget);
+      expect(find.text('바벨로우 *'), findsOneWidget);
+      expect(
+        find.text(l.anatomyRole('primary')),
+        findsWidgets,
+        reason: '역할은 이름 옆 표지로',
+      );
       expect(find.text('• ${unsourced.ko} ‡'), findsOneWidget);
       expect(find.text('• ${unsourced.ko} *'), findsNothing);
       expect(find.text(l.anatomyInterpNote), findsOneWidget);

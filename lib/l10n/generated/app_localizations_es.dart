@@ -3122,6 +3122,14 @@ class LEs extends L {
   String get anatomyClose => 'Cerrar';
 
   @override
+  String anatomyTileSets(String n) {
+    return '$n series';
+  }
+
+  @override
+  String get anatomyLastLabel => 'Última';
+
+  @override
   String get openSourceLicenses => 'Licencias de código abierto';
 
   @override

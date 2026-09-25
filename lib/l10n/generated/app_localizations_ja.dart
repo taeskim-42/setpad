@@ -2997,6 +2997,14 @@ class LJa extends L {
   String get anatomyClose => '閉じる';
 
   @override
+  String anatomyTileSets(String n) {
+    return '$nセット';
+  }
+
+  @override
+  String get anatomyLastLabel => '最後';
+
+  @override
   String get openSourceLicenses => 'オープンソースライセンス';
 
   @override

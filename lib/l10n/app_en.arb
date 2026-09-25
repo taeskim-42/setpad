@@ -729,6 +729,8 @@
   "anatomyRegionValue": "{days}-day sets: {sets}, {level}",
   "anatomyRegionHint": "Double-tap to see exercises",
   "anatomyClose": "Close",
+  "anatomyTileSets": "{n} sets",
+  "anatomyLastLabel": "Last",
   "openSourceLicenses": "Open-source licenses",
   "routineFactor": "{f, select, strength{Strength} endurance{Muscular endurance} sustain{Sustain} power{Power} cardio{Cardio} other{}}",
   "routineFactorDay": "{factor} day · {why}",

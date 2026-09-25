@@ -729,6 +729,8 @@
   "anatomyRegionValue": "Số hiệp {days} ngày: {sets}, {level}",
   "anatomyRegionHint": "Chạm hai lần để xem bài tập",
   "anatomyClose": "Đóng",
+  "anatomyTileSets": "{n} hiệp",
+  "anatomyLastLabel": "Lần cuối",
   "openSourceLicenses": "Giấy phép mã nguồn mở",
   "routineFactor": "{f, select, strength{Sức mạnh} endurance{Sức bền cơ} sustain{Sức duy trì} power{Sức bật} cardio{Tim phổi} other{}}",
   "routineFactorDay": "Ngày {factor} · {why}",

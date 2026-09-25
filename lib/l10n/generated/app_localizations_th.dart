@@ -3061,6 +3061,14 @@ class LTh extends L {
   String get anatomyClose => 'ปิด';
 
   @override
+  String anatomyTileSets(String n) {
+    return '$n เซ็ต';
+  }
+
+  @override
+  String get anatomyLastLabel => 'ล่าสุด';
+
+  @override
   String get openSourceLicenses => 'สัญญาอนุญาตโอเพนซอร์ส';
 
   @override

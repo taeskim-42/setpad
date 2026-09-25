@@ -482,12 +482,12 @@ class _MuscleSheetState extends State<_MuscleSheet> {
     void add(String key) =>
         Navigator.pop(context, (search: null, add: (key: key, part: part)));
     Widget header(String text) => Padding(
-      padding: const EdgeInsets.only(top: 20, bottom: 4),
+      padding: const EdgeInsets.only(top: 22, bottom: 2),
       child: Semantics(
         header: true,
         child: Text(
           text,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
         ),
       ),
     );
@@ -498,6 +498,7 @@ class _MuscleSheetState extends State<_MuscleSheet> {
       required String subtitle,
       required String addKey,
       String? search,
+      String? tag,
     }) {
       final open = _open == id;
       return Column(
@@ -516,7 +517,23 @@ class _MuscleSheetState extends State<_MuscleSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, style: const TextStyle(fontSize: 16)),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            if (tag != null) ...[
+                              const SizedBox(width: 6),
+                              _Tag(tag),
+                            ],
+                          ],
+                        ),
                         if (subtitle.isNotEmpty) Text(subtitle, style: small),
                       ],
                     ),
@@ -559,6 +576,30 @@ class _MuscleSheetState extends State<_MuscleSheet> {
       );
     }
 
+    // 운동 줄들은 둥근 묶음 한 장에 — 줄마다 떠 있으면 어디서 어디까지가 한
+    // 무리인지 안 보였다.
+    Widget group(List<Widget> rows) => Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (i, r) in rows.indexed) ...[
+            if (i > 0)
+              Container(
+                height: 0.5,
+                color: CupertinoColors.separator.resolveFrom(context),
+              ),
+            r,
+          ],
+        ],
+      ),
+    );
+
     Widget tryRow(String key) => row(
       id: 'try:$key',
       move: key,
@@ -568,7 +609,14 @@ class _MuscleSheetState extends State<_MuscleSheet> {
       addKey: moves[key]!.names == null ? key : moveName(key, lang),
     );
 
-    return CupertinoPopupSurface(
+    final muscle = l.muscleName(m.name), region = partName(l, part);
+    // 반투명 판(CupertinoPopupSurface)은 뒤의 몸 그림이 번져 글이 안 읽혔다 —
+    // 불투명한 종이 한 장에 손잡이.
+    return Container(
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       child: SafeArea(
         top: false,
         child: ConstrainedBox(
@@ -577,18 +625,32 @@ class _MuscleSheetState extends State<_MuscleSheet> {
           ),
           child: ListView(
             shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
             children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 5,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemFill.resolveFrom(context),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
               Row(
                 children: [
                   Expanded(
                     child: Semantics(
                       header: true,
+                      // 근육과 부위 이름이 같으면('가슴 · 가슴') 한 번만.
                       child: Text(
-                        '${l.muscleName(m.name)} · ${partName(l, part)}',
+                        muscle == region ? muscle : '$muscle · $region',
+                        key: const ValueKey('anatomy-title'),
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 22,
                           fontWeight: FontWeight.w700,
+                          letterSpacing: -0.4,
                         ),
                       ),
                     ),
@@ -612,41 +674,56 @@ class _MuscleSheetState extends State<_MuscleSheet> {
                 Text(l.anatomyNever, style: const TextStyle(fontSize: 14)),
                 if (unknown.isNotEmpty) _UnknownNames(names: unknown),
               ] else ...[
-                Text(
-                  l.anatomySetsLine(
-                    formatNumber(week.of(m)),
-                    formatNumber(month.of(m)),
+                // 세 수를 칸으로 — 한 줄에 몰아 적으면 무엇이 무엇인지 안 읽혔다.
+                const SizedBox(height: 8),
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _Stat(
+                        l.anatomyDays(7),
+                        l.anatomyTileSets(formatNumber(week.of(m))),
+                      ),
+                      const SizedBox(width: 8),
+                      _Stat(
+                        l.anatomyDays(28),
+                        l.anatomyTileSets(formatNumber(month.of(m))),
+                      ),
+                      const SizedBox(width: 8),
+                      _Stat(
+                        l.anatomyLastLabel,
+                        date(last),
+                        sub: l.routineDaysAgo(_daysBetween(last, widget.today)),
+                      ),
+                    ],
                   ),
-                  style: const TextStyle(fontSize: 14),
                 ),
-                Text(
-                  l.anatomyBreakdown(
-                    month.primary[m] ?? 0,
-                    month.secondary[m] ?? 0,
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    l.anatomyBreakdown(
+                      month.primary[m] ?? 0,
+                      month.secondary[m] ?? 0,
+                    ),
+                    style: small,
                   ),
-                  style: small,
-                ),
-                Text(
-                  l.anatomyLast(
-                    date(last),
-                    l.routineDaysAgo(_daysBetween(last, widget.today)),
-                  ),
-                  style: small,
                 ),
               ],
               if (done.isNotEmpty) header(l.anatomyDone),
-              for (final r in done)
-                row(
-                  id: 'done:${r.key}',
-                  move: r.key,
-                  title:
-                      '${r.name} · ${l.anatomyRole(r.primary ? 'primary' : 'secondary')}'
-                      '${doneInterp(r) ? ' *' : ''}',
-                  // 마지막으로 한 날의 내 세트 그대로.
-                  subtitle: '${setsText(l, r.sets)} · ${date(r.day)}',
-                  addKey: exerciseKey(r.name),
-                  search: r.name,
-                ),
+              if (done.isNotEmpty)
+                group([
+                  for (final r in done)
+                    row(
+                      id: 'done:${r.key}',
+                      move: r.key,
+                      title: '${r.name}${doneInterp(r) ? ' *' : ''}',
+                      tag: l.anatomyRole(r.primary ? 'primary' : 'secondary'),
+                      // 마지막으로 한 날의 내 세트 그대로.
+                      subtitle: '${setsText(l, r.sets)} · ${date(r.day)}',
+                      addKey: exerciseKey(r.name),
+                      search: r.name,
+                    ),
+                ]),
               header(l.anatomyTry),
               if (t.shown.isEmpty && t.hidden.isEmpty)
                 Text(l.anatomyTriedAll, style: small)
@@ -662,7 +739,8 @@ class _MuscleSheetState extends State<_MuscleSheet> {
                         ),
                   style: small,
                 ),
-              for (final k in t.shown) tryRow(k),
+              if (t.shown.isNotEmpty)
+                group([for (final k in t.shown) tryRow(k)]),
               // 거른 뒤 남은 것이 없으면 펼친 채로 — 빈 목록을 보이지 않는다.
               if (t.hidden.isNotEmpty && !_more && t.shown.isNotEmpty)
                 CupertinoButton(
@@ -674,8 +752,8 @@ class _MuscleSheetState extends State<_MuscleSheet> {
                     style: const TextStyle(fontSize: 15),
                   ),
                 ),
-              if (_more || t.shown.isEmpty)
-                for (final k in t.hidden) tryRow(k),
+              if ((_more || t.shown.isEmpty) && t.hidden.isNotEmpty)
+                group([for (final k in t.hidden) tryRow(k)]),
               if (interp)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
@@ -729,4 +807,68 @@ class _MuscleSheetState extends State<_MuscleSheet> {
       ),
     ];
   }
+}
+
+/// 시트 머리의 수 한 칸(7일 · 28일 · 마지막).
+class _Stat extends StatelessWidget {
+  const _Stat(this.label, this.value, {this.sub});
+  final String label, value;
+  final String? sub;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        decoration: BoxDecoration(
+          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: TextStyle(fontSize: 12, color: muted)),
+            const SizedBox(height: 2),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+            if (sub != null)
+              Text(sub!, style: TextStyle(fontSize: 11, color: muted)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 운동 줄 옆의 작은 표지(주로 씀 · 보조).
+class _Tag extends StatelessWidget {
+  const _Tag(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+    decoration: BoxDecoration(
+      color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+      borderRadius: BorderRadius.circular(5),
+    ),
+    child: Text(
+      text,
+      style: TextStyle(
+        fontSize: 11,
+        color: CupertinoColors.secondaryLabel.resolveFrom(context),
+      ),
+    ),
+  );
 }

@@ -4488,6 +4488,18 @@ abstract class L {
   /// **'닫기'**
   String get anatomyClose;
 
+  /// No description provided for @anatomyTileSets.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}세트'**
+  String anatomyTileSets(String n);
+
+  /// No description provided for @anatomyLastLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막'**
+  String get anatomyLastLabel;
+
   /// No description provided for @openSourceLicenses.
   ///
   /// In ko, this message translates to:

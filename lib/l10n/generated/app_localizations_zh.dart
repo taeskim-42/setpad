@@ -2975,6 +2975,14 @@ class LZh extends L {
   String get anatomyClose => '关闭';
 
   @override
+  String anatomyTileSets(String n) {
+    return '$n组';
+  }
+
+  @override
+  String get anatomyLastLabel => '最近一次';
+
+  @override
   String get openSourceLicenses => '开源许可';
 
   @override
@@ -6104,6 +6112,14 @@ class LZhHans extends LZh {
   String get anatomyClose => '关闭';
 
   @override
+  String anatomyTileSets(String n) {
+    return '$n组';
+  }
+
+  @override
+  String get anatomyLastLabel => '最近一次';
+
+  @override
   String get openSourceLicenses => '开源许可';
 
   @override
@@ -9230,6 +9246,14 @@ class LZhHant extends LZh {
 
   @override
   String get anatomyClose => '關閉';
+
+  @override
+  String anatomyTileSets(String n) {
+    return '$n組';
+  }
+
+  @override
+  String get anatomyLastLabel => '最近一次';
 
   @override
   String get openSourceLicenses => '開源授權';

@@ -729,6 +729,8 @@
   "anatomyRegionValue": "直近{days}日 {sets}セット、{level}",
   "anatomyRegionHint": "ダブルタップで種目を見る",
   "anatomyClose": "閉じる",
+  "anatomyTileSets": "{n}セット",
+  "anatomyLastLabel": "最後",
   "openSourceLicenses": "オープンソースライセンス",
   "routineFactor": "{f, select, strength{筋力} endurance{筋持久力} sustain{持続力} power{瞬発力} cardio{心肺} other{}}",
   "routineFactorDay": "{factor}の日 · {why}",

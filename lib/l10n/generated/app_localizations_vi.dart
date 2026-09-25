@@ -3081,6 +3081,14 @@ class LVi extends L {
   String get anatomyClose => 'Đóng';
 
   @override
+  String anatomyTileSets(String n) {
+    return '$n hiệp';
+  }
+
+  @override
+  String get anatomyLastLabel => 'Lần cuối';
+
+  @override
   String get openSourceLicenses => 'Giấy phép mã nguồn mở';
 
   @override

@@ -3003,6 +3003,14 @@ class LKo extends L {
   String get anatomyClose => '닫기';
 
   @override
+  String anatomyTileSets(String n) {
+    return '$n세트';
+  }
+
+  @override
+  String get anatomyLastLabel => '마지막';
+
+  @override
   String get openSourceLicenses => '오픈소스 라이선스';
 
   @override

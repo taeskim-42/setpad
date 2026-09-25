@@ -729,6 +729,8 @@
   "anatomyRegionValue": "เซ็ตใน {days} วัน: {sets}, {level}",
   "anatomyRegionHint": "แตะสองครั้งเพื่อดูท่า",
   "anatomyClose": "ปิด",
+  "anatomyTileSets": "{n} เซ็ต",
+  "anatomyLastLabel": "ล่าสุด",
   "openSourceLicenses": "สัญญาอนุญาตโอเพนซอร์ส",
   "routineFactor": "{f, select, strength{ความแข็งแรง} endurance{ความทนทานของกล้ามเนื้อ} sustain{ความต่อเนื่อง} power{พลังระเบิด} cardio{หัวใจและปอด} other{}}",
   "routineFactorDay": "วัน{factor} · {why}",

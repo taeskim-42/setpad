@@ -3126,6 +3126,15 @@
   },
   "anatomyRegionHint": "두 번 눌러 운동 보기",
   "anatomyClose": "닫기",
+  "anatomyTileSets": "{n}세트",
+  "@anatomyTileSets": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "anatomyLastLabel": "마지막",
   "openSourceLicenses": "오픈소스 라이선스",
   "routineFactor": "{f, select, strength{근력} endurance{근지구력} sustain{지속력} power{순발력} cardio{심폐} other{}}",
   "@routineFactor": {

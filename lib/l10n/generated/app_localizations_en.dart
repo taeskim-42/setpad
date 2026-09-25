@@ -3101,6 +3101,14 @@ class LEn extends L {
   String get anatomyClose => 'Close';
 
   @override
+  String anatomyTileSets(String n) {
+    return '$n sets';
+  }
+
+  @override
+  String get anatomyLastLabel => 'Last';
+
+  @override
   String get openSourceLicenses => 'Open-source licenses';
 
   @override
