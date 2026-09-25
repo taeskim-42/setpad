@@ -9,7 +9,6 @@ import 'account.dart';
 import 'anatomy_page.dart';
 import 'answer_card.dart';
 import 'daily.dart';
-import 'day_energy.dart';
 import 'milestones.dart';
 import 'record_query.dart';
 import 'stats.dart' as stats;
@@ -18,7 +17,6 @@ import 'exercises.dart' show exerciseByName, langKeyOf;
 import 'gym.dart';
 import 'booking_entry.dart';
 import 'record_ai.dart';
-import 'health_summary.dart';
 import 'palette.dart';
 import 'parser.dart';
 import 'paywall.dart';
@@ -1854,6 +1852,31 @@ class _Row extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final summary = note.summary(setOrdinal: l.setOrdinal, reps: l.repsCount);
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    WidgetSpan icon(IconData i) => WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 2),
+        child: Icon(i, size: 12, color: muted),
+      ),
+    );
+    final intake = note.meals.isEmpty || note.unknownMeals == note.meals.length
+        ? null
+        : note.intake;
+    // 숫자만 한 줄로: 세트 · 운동 칼로리 · 먹은 칼로리.
+    final meta = <InlineSpan>[
+      for (final part
+          in <List<InlineSpan>>[
+            if (summary.isNotEmpty) [TextSpan(text: summary)],
+            if (note.calories case final c?)
+              [icon(CupertinoIcons.flame), TextSpan(text: l.kcal(c.round()))],
+            if (intake != null)
+              [icon(Icons.restaurant), TextSpan(text: l.kcal(intake))],
+          ].indexed.expand(
+            (e) => [if (e.$1 > 0) const TextSpan(text: '  ·  '), ...e.$2],
+          ))
+        part,
+    ];
 
     return Dismissible(
       key: ValueKey(note.id),
@@ -1891,8 +1914,34 @@ class _Row extends StatelessWidget {
           // 최소 44 는 iOS 의 최소 터치 크기(kMinInteractiveDimensionCupertino).
           constraints: const BoxConstraints(minHeight: 44),
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+          // 한 줄에 하나씩 쌓던 날짜·칼로리·식단·표지를 줄였다 — 왼쪽 날짜 배지,
+          // 제목 한 줄(최고 무게를 넘긴 날은 끝에 ★), 숫자만 모은 한 줄. 자세한
+          // 것(추정 표시, 먹은 음식)은 기록을 열면 있다.
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(
+                width: 34,
+                child: Column(
+                  children: [
+                    Text(
+                      '${note.createdAt.day}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        height: 1.15,
+                        color: CupertinoColors.label.resolveFrom(context),
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    Text(
+                      DateFormat.E(l.localeName).format(note.createdAt),
+                      style: TextStyle(fontSize: 11, color: muted),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1900,83 +1949,57 @@ class _Row extends StatelessWidget {
                   children: [
                     Text.rich(
                       TextSpan(
-                        children: highlightMatch(
-                          note.title ?? l.untitledNote,
-                          query,
-                          hit: TextStyle(color: seal.resolveFrom(context)),
-                        ),
+                        children: [
+                          ...highlightMatch(
+                            note.title ?? l.untitledNote,
+                            query,
+                            hit: TextStyle(color: seal.resolveFrom(context)),
+                          ),
+                        ],
                       ),
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        // 본문 17pt, 자간 -0.41 — iOS 의 body 다.
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        height: 1.3,
-                        letterSpacing: -0.41,
+                        fontSize: 16,
+                        fontWeight: note.blocks.isEmpty
+                            ? FontWeight.w500
+                            : FontWeight.w600,
+                        height: 1.35,
+                        letterSpacing: -0.3,
                         color: note.title == null
-                            ? CupertinoColors.secondaryLabel.resolveFrom(
-                                context,
-                              )
+                            ? muted
                             : CupertinoColors.label.resolveFrom(context),
                       ),
                     ),
-                    ...[
-                      const SizedBox(height: 5),
-                      Text(
-                        [
-                          l.dayLabel(note.createdAt),
-                          l.weekdayLabel(note.createdAt),
-                          if (summary.isNotEmpty) summary,
-                        ].join('  '),
+                    if (meta.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text.rich(
+                        TextSpan(children: meta),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          // 부제는 footnote 13pt.
                           fontSize: 13,
-                          letterSpacing: -0.08,
-                          color: CupertinoColors.secondaryLabel.resolveFrom(
-                            context,
-                          ),
+                          color: muted,
+                          fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
-                      // 칼로리는 숫자가 있을 때만 스스로 나타난다.
-                      if (note.calories != null) ...[
-                        const SizedBox(height: 6),
-                        HealthSummary(calories: note.calories),
-                      ],
-                      if (note.meals.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        _MealLine(note),
-                      ],
-                      // 마일스톤 — 최고 무게를 새로 넘긴 날.
-                      if (record)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Row(
-                            children: [
-                              Text(
-                                '★ ',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: seal.resolveFrom(context),
-                                ),
-                              ),
-                              Text(
-                                l.milestoneBest,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: seal.resolveFrom(context),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                     ],
                   ],
                 ),
               ),
+              // 마일스톤 — 최고 무게를 새로 넘긴 날.
+              if (record)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8, top: 2),
+                  child: Semantics(
+                    label: l.milestoneBest,
+                    child: Icon(
+                      CupertinoIcons.star_fill,
+                      size: 15,
+                      color: seal.resolveFrom(context),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -2083,54 +2106,4 @@ List<InlineSpan> highlightMatch(
     spans.add(TextSpan(text: parts[i], style: matched ? hit : null));
   }
   return spans;
-}
-
-/// 목록의 먹은 것 한 줄 — 열량과, 운동한 날이면 무엇을 먹었는지. 끼니만 적은
-/// 날은 제목이 이미 먹은 것이라 열량만.
-class _MealLine extends StatelessWidget {
-  const _MealLine(this.note);
-  final Note note;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = L.of(context);
-    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
-    final unknown = note.unknownMeals;
-    final kcal = unknown == note.meals.length
-        ? l.mealKcalUnknown
-        : [
-            l.kcal(note.intake!),
-            if (unknown > 0) l.dayUnknownMeals(unknown),
-          ].join(' · ');
-    return Row(
-      children: [
-        Text(l.mealsTitle, style: TextStyle(fontSize: 13, color: muted)),
-        const SizedBox(width: 6),
-        // 행이 버튼이라 색을 적지 않으면 버튼 색(호박)을 물려받는다.
-        Text(
-          kcal,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: CupertinoColors.label.resolveFrom(context),
-          ),
-        ),
-        if (note.meals.any((m) => m.approximate)) ...[
-          const SizedBox(width: 4),
-          const EstimateTag(),
-        ],
-        if (note.blocks.isNotEmpty) ...[
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              note.mealsText,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 13, color: muted),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
 }
