@@ -2934,6 +2934,113 @@ class LZh extends L {
 
   @override
   String get openSourceLicenses => '开源许可';
+
+  @override
+  String routineFactor(String f) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '力量',
+      'endurance': '肌耐力',
+      'sustain': '持续力',
+      'power': '爆发力',
+      'cardio': '心肺',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineFactorDay(String factor, String why) {
+    return '$factor日 · $why';
+  }
+
+  @override
+  String routineFactorWhy(String kind, String a, String b) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata $a',
+      'fill': '完成 $a 次',
+      'fillTitle': '标题“$a”',
+      'distance': '$a',
+      'open': '每组 $a 次,组数不限',
+      'single': '一组 $a 次',
+      'drop': '每组力竭 $a',
+      'hold': '$a 次 × $b 组',
+      'other': '$a×$b',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyWeekday(int weeks, String day, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '上周$day没有记录,照$weeks周前的$day($date)安排',
+      one: '和上周$day($date)一样',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNear(String day, String near) {
+    return '没有$day的记录,照相近的$near安排';
+  }
+
+  @override
+  String routineWhyFactor(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '本周力量不足,照$date安排',
+      'endurance': '本周肌耐力不足,照$date安排',
+      'sustain': '本周持续力不足,照$date安排',
+      'cardio': '本周心肺不足,照$date安排',
+      'other': '照$date安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorAll(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '本周各项都已完成 — 力量最久没练,照$date安排',
+      'endurance': '本周各项都已完成 — 肌耐力最久没练,照$date安排',
+      'sustain': '本周各项都已完成 — 持续力最久没练,照$date安排',
+      'cardio': '本周各项都已完成 — 心肺最久没练,照$date安排',
+      'other': '照$date安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWeekCounts(String range, String list) {
+    return '最近7天($range):$list';
+  }
+
+  @override
+  String routineFactorMissing(String list) {
+    return '最近28天没有单独练过的:$list';
+  }
+
+  @override
+  String get routineFillHint => '要练完成次数,请写上目标(例:深蹲完成100次)';
+
+  @override
+  String get routineTabataChip => '改成Tabata';
+
+  @override
+  String routineLikeLastWeek(String day) {
+    return '像上周$day一样';
+  }
+
+  @override
+  String routineFactorChip(String f, int n) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '按力量安排 · 本周$n次',
+      'endurance': '按肌耐力安排 · 本周$n次',
+      'sustain': '按持续力安排 · 本周$n次',
+      'cardio': '按心肺安排 · 本周$n次',
+      'other': '',
+    });
+    return '$_temp0';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -5866,6 +5973,113 @@ class LZhHans extends LZh {
 
   @override
   String get openSourceLicenses => '开源许可';
+
+  @override
+  String routineFactor(String f) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '力量',
+      'endurance': '肌耐力',
+      'sustain': '持续力',
+      'power': '爆发力',
+      'cardio': '心肺',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineFactorDay(String factor, String why) {
+    return '$factor日 · $why';
+  }
+
+  @override
+  String routineFactorWhy(String kind, String a, String b) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata $a',
+      'fill': '完成 $a 次',
+      'fillTitle': '标题“$a”',
+      'distance': '$a',
+      'open': '每组 $a 次,组数不限',
+      'single': '一组 $a 次',
+      'drop': '每组力竭 $a',
+      'hold': '$a 次 × $b 组',
+      'other': '$a×$b',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyWeekday(int weeks, String day, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '上周$day没有记录,照$weeks周前的$day($date)安排',
+      one: '和上周$day($date)一样',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNear(String day, String near) {
+    return '没有$day的记录,照相近的$near安排';
+  }
+
+  @override
+  String routineWhyFactor(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '本周力量不足,照$date安排',
+      'endurance': '本周肌耐力不足,照$date安排',
+      'sustain': '本周持续力不足,照$date安排',
+      'cardio': '本周心肺不足,照$date安排',
+      'other': '照$date安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorAll(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '本周各项都已完成 — 力量最久没练,照$date安排',
+      'endurance': '本周各项都已完成 — 肌耐力最久没练,照$date安排',
+      'sustain': '本周各项都已完成 — 持续力最久没练,照$date安排',
+      'cardio': '本周各项都已完成 — 心肺最久没练,照$date安排',
+      'other': '照$date安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWeekCounts(String range, String list) {
+    return '最近7天($range):$list';
+  }
+
+  @override
+  String routineFactorMissing(String list) {
+    return '最近28天没有单独练过的:$list';
+  }
+
+  @override
+  String get routineFillHint => '要练完成次数,请写上目标(例:深蹲完成100次)';
+
+  @override
+  String get routineTabataChip => '改成Tabata';
+
+  @override
+  String routineLikeLastWeek(String day) {
+    return '像上周$day一样';
+  }
+
+  @override
+  String routineFactorChip(String f, int n) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '按力量安排 · 本周$n次',
+      'endurance': '按肌耐力安排 · 本周$n次',
+      'sustain': '按持续力安排 · 本周$n次',
+      'cardio': '按心肺安排 · 本周$n次',
+      'other': '',
+    });
+    return '$_temp0';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -8797,4 +9011,111 @@ class LZhHant extends LZh {
 
   @override
   String get openSourceLicenses => '開源授權';
+
+  @override
+  String routineFactor(String f) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '力量',
+      'endurance': '肌耐力',
+      'sustain': '持續力',
+      'power': '爆發力',
+      'cardio': '心肺',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineFactorDay(String factor, String why) {
+    return '$factor日 · $why';
+  }
+
+  @override
+  String routineFactorWhy(String kind, String a, String b) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata $a',
+      'fill': '完成 $a 下',
+      'fillTitle': '標題「$a」',
+      'distance': '$a',
+      'open': '每組 $a 下,組數不限',
+      'single': '一組 $a 下',
+      'drop': '每組力竭 $a',
+      'hold': '$a 下 × $b 組',
+      'other': '$a×$b',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyWeekday(int weeks, String day, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '上週$day沒有紀錄,照$weeks週前的$day($date)安排',
+      one: '和上週$day($date)一樣',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNear(String day, String near) {
+    return '沒有$day的紀錄,照相近的$near安排';
+  }
+
+  @override
+  String routineWhyFactor(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '本週力量不足,照$date安排',
+      'endurance': '本週肌耐力不足,照$date安排',
+      'sustain': '本週持續力不足,照$date安排',
+      'cardio': '本週心肺不足,照$date安排',
+      'other': '照$date安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorAll(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '本週各項都已完成 — 力量最久沒練,照$date安排',
+      'endurance': '本週各項都已完成 — 肌耐力最久沒練,照$date安排',
+      'sustain': '本週各項都已完成 — 持續力最久沒練,照$date安排',
+      'cardio': '本週各項都已完成 — 心肺最久沒練,照$date安排',
+      'other': '照$date安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWeekCounts(String range, String list) {
+    return '最近7天($range):$list';
+  }
+
+  @override
+  String routineFactorMissing(String list) {
+    return '最近28天沒有單獨練過的:$list';
+  }
+
+  @override
+  String get routineFillHint => '要練完成次數,請寫上目標(例:深蹲完成100下)';
+
+  @override
+  String get routineTabataChip => '改成Tabata';
+
+  @override
+  String routineLikeLastWeek(String day) {
+    return '像上週$day一樣';
+  }
+
+  @override
+  String routineFactorChip(String f, int n) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '按力量安排 · 本週$n次',
+      'endurance': '按肌耐力安排 · 本週$n次',
+      'sustain': '按持續力安排 · 本週$n次',
+      'cardio': '按心肺安排 · 本週$n次',
+      'other': '',
+    });
+    return '$_temp0';
+  }
 }

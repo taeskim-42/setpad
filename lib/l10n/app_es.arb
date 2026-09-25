@@ -718,5 +718,18 @@
   "anatomyRegionValue": "Series en {days} días: {sets}, {level}",
   "anatomyRegionHint": "Toca dos veces para ver ejercicios",
   "anatomyClose": "Cerrar",
-  "openSourceLicenses": "Licencias de código abierto"
+  "openSourceLicenses": "Licencias de código abierto",
+  "routineFactor": "{f, select, strength{Fuerza} endurance{Resistencia muscular} sustain{Sostenimiento} power{Potencia} cardio{Cardio} other{}}",
+  "routineFactorDay": "Día de {factor} · {why}",
+  "routineFactorWhy": "{kind, select, tabata{Tabata {a}} fill{Completar {a} reps} fillTitle{Título ‘{a}’} distance{{a}} open{{a} reps por serie, series abiertas} single{Una serie de {a}} drop{Máximo por serie {a}} hold{{a} reps × {b} series} other{{a}×{b}}}",
+  "routineWhyWeekday": "{weeks, plural, =1{Igual que el {day} pasado ({date})} other{Sin registro el {day} pasado — armada con el {day} de hace {weeks} semanas ({date})}}",
+  "routineWhyNear": "Sin registro del {day} — armada con el día cercano {near}",
+  "routineWhyFactor": "{f, select, strength{Esta semana falta fuerza — armada con {date}} endurance{Esta semana falta resistencia muscular — armada con {date}} sustain{Esta semana falta sostenimiento — armada con {date}} cardio{Esta semana falta cardio — armada con {date}} other{Armada con {date}}}",
+  "routineWhyFactorAll": "{f, select, strength{Esta semana ya cubriste todo — la fuerza es la que más espera, armada como {date}} endurance{Esta semana ya cubriste todo — la resistencia muscular es la que más espera, armada como {date}} sustain{Esta semana ya cubriste todo — el sostenimiento es el que más espera, armada como {date}} cardio{Esta semana ya cubriste todo — el cardio es el que más espera, armada como {date}} other{Armada como {date}}}",
+  "routineWeekCounts": "Últimos 7 días ({range}): {list}",
+  "routineFactorMissing": "Sin un día propio en los últimos 28 días: {list}",
+  "routineFillHint": "Para completar, escribe la meta (p. ej. sentadilla completar 100)",
+  "routineTabataChip": "Hacerla tabata",
+  "routineLikeLastWeek": "Como el {day} pasado",
+  "routineFactorChip": "{f, select, strength{Armar para fuerza · {n} esta semana} endurance{Armar para resistencia muscular · {n} esta semana} sustain{Armar para sostenimiento · {n} esta semana} cardio{Armar para cardio · {n} esta semana} other{}}"
 }

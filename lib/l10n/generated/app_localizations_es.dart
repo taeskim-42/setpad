@@ -3081,4 +3081,117 @@ class LEs extends L {
 
   @override
   String get openSourceLicenses => 'Licencias de código abierto';
+
+  @override
+  String routineFactor(String f) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': 'Fuerza',
+      'endurance': 'Resistencia muscular',
+      'sustain': 'Sostenimiento',
+      'power': 'Potencia',
+      'cardio': 'Cardio',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineFactorDay(String factor, String why) {
+    return 'Día de $factor · $why';
+  }
+
+  @override
+  String routineFactorWhy(String kind, String a, String b) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata $a',
+      'fill': 'Completar $a reps',
+      'fillTitle': 'Título ‘$a’',
+      'distance': '$a',
+      'open': '$a reps por serie, series abiertas',
+      'single': 'Una serie de $a',
+      'drop': 'Máximo por serie $a',
+      'hold': '$a reps × $b series',
+      'other': '$a×$b',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyWeekday(int weeks, String day, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other:
+          'Sin registro el $day pasado — armada con el $day de hace $weeks semanas ($date)',
+      one: 'Igual que el $day pasado ($date)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNear(String day, String near) {
+    return 'Sin registro del $day — armada con el día cercano $near';
+  }
+
+  @override
+  String routineWhyFactor(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': 'Esta semana falta fuerza — armada con $date',
+      'endurance': 'Esta semana falta resistencia muscular — armada con $date',
+      'sustain': 'Esta semana falta sostenimiento — armada con $date',
+      'cardio': 'Esta semana falta cardio — armada con $date',
+      'other': 'Armada con $date',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorAll(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength':
+          'Esta semana ya cubriste todo — la fuerza es la que más espera, armada como $date',
+      'endurance':
+          'Esta semana ya cubriste todo — la resistencia muscular es la que más espera, armada como $date',
+      'sustain':
+          'Esta semana ya cubriste todo — el sostenimiento es el que más espera, armada como $date',
+      'cardio':
+          'Esta semana ya cubriste todo — el cardio es el que más espera, armada como $date',
+      'other': 'Armada como $date',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWeekCounts(String range, String list) {
+    return 'Últimos 7 días ($range): $list';
+  }
+
+  @override
+  String routineFactorMissing(String list) {
+    return 'Sin un día propio en los últimos 28 días: $list';
+  }
+
+  @override
+  String get routineFillHint =>
+      'Para completar, escribe la meta (p. ej. sentadilla completar 100)';
+
+  @override
+  String get routineTabataChip => 'Hacerla tabata';
+
+  @override
+  String routineLikeLastWeek(String day) {
+    return 'Como el $day pasado';
+  }
+
+  @override
+  String routineFactorChip(String f, int n) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': 'Armar para fuerza · $n esta semana',
+      'endurance': 'Armar para resistencia muscular · $n esta semana',
+      'sustain': 'Armar para sostenimiento · $n esta semana',
+      'cardio': 'Armar para cardio · $n esta semana',
+      'other': '',
+    });
+    return '$_temp0';
+  }
 }

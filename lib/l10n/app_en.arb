@@ -718,5 +718,18 @@
   "anatomyRegionValue": "{days}-day sets: {sets}, {level}",
   "anatomyRegionHint": "Double-tap to see exercises",
   "anatomyClose": "Close",
-  "openSourceLicenses": "Open-source licenses"
+  "openSourceLicenses": "Open-source licenses",
+  "routineFactor": "{f, select, strength{Strength} endurance{Muscular endurance} sustain{Sustain} power{Power} cardio{Cardio} other{}}",
+  "routineFactorDay": "{factor} day · {why}",
+  "routineFactorWhy": "{kind, select, tabata{Tabata {a}} fill{Fill {a} reps} fillTitle{Title ‘{a}’} distance{{a}} open{{a} reps per set, sets left open} single{One set of {a}} drop{Max each set {a}} hold{{a} reps × {b} sets} other{{a}×{b}}}",
+  "routineWhyWeekday": "{weeks, plural, =1{Same as last {day} ({date})} other{No log last {day} — built from the {day} {weeks} weeks ago ({date})}}",
+  "routineWhyNear": "No {day} log — built from the nearby {near}",
+  "routineWhyFactor": "{f, select, strength{Low on strength this week — built from {date}} endurance{Low on muscular endurance this week — built from {date}} sustain{Low on sustain this week — built from {date}} cardio{Low on cardio this week — built from {date}} other{Built from {date}}}",
+  "routineWhyFactorAll": "{f, select, strength{Every factor is covered this week — strength waited longest, so built like {date}} endurance{Every factor is covered this week — muscular endurance waited longest, so built like {date}} sustain{Every factor is covered this week — sustain waited longest, so built like {date}} cardio{Every factor is covered this week — cardio waited longest, so built like {date}} other{Built like {date}}}",
+  "routineWeekCounts": "Last 7 days ({range}): {list}",
+  "routineFactorMissing": "No separate day in the last 28 days for: {list}",
+  "routineFillHint": "For a fill session, type the target (e.g. squat fill 100)",
+  "routineTabataChip": "Make it tabata",
+  "routineLikeLastWeek": "Like last {day}",
+  "routineFactorChip": "{f, select, strength{Build for strength · {n} this week} endurance{Build for muscular endurance · {n} this week} sustain{Build for sustain · {n} this week} cardio{Build for cardio · {n} this week} other{}}"
 }

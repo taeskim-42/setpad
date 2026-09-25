@@ -718,5 +718,18 @@
   "anatomyRegionValue": "最近{days}天 {sets}组，{level}",
   "anatomyRegionHint": "双击查看动作",
   "anatomyClose": "关闭",
-  "openSourceLicenses": "开源许可"
+  "openSourceLicenses": "开源许可",
+  "routineFactor": "{f, select, strength{力量} endurance{肌耐力} sustain{持续力} power{爆发力} cardio{心肺} other{}}",
+  "routineFactorDay": "{factor}日 · {why}",
+  "routineFactorWhy": "{kind, select, tabata{Tabata {a}} fill{完成 {a} 次} fillTitle{标题“{a}”} distance{{a}} open{每组 {a} 次,组数不限} single{一组 {a} 次} drop{每组力竭 {a}} hold{{a} 次 × {b} 组} other{{a}×{b}}}",
+  "routineWhyWeekday": "{weeks, plural, =1{和上周{day}({date})一样} other{上周{day}没有记录,照{weeks}周前的{day}({date})安排}}",
+  "routineWhyNear": "没有{day}的记录,照相近的{near}安排",
+  "routineWhyFactor": "{f, select, strength{本周力量不足,照{date}安排} endurance{本周肌耐力不足,照{date}安排} sustain{本周持续力不足,照{date}安排} cardio{本周心肺不足,照{date}安排} other{照{date}安排}}",
+  "routineWhyFactorAll": "{f, select, strength{本周各项都已完成 — 力量最久没练,照{date}安排} endurance{本周各项都已完成 — 肌耐力最久没练,照{date}安排} sustain{本周各项都已完成 — 持续力最久没练,照{date}安排} cardio{本周各项都已完成 — 心肺最久没练,照{date}安排} other{照{date}安排}}",
+  "routineWeekCounts": "最近7天({range}):{list}",
+  "routineFactorMissing": "最近28天没有单独练过的:{list}",
+  "routineFillHint": "要练完成次数,请写上目标(例:深蹲完成100次)",
+  "routineTabataChip": "改成Tabata",
+  "routineLikeLastWeek": "像上周{day}一样",
+  "routineFactorChip": "{f, select, strength{按力量安排 · 本周{n}次} endurance{按肌耐力安排 · 本周{n}次} sustain{按持续力安排 · 本周{n}次} cardio{按心肺安排 · 本周{n}次} other{}}"
 }

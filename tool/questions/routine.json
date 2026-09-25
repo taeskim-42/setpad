@@ -205,5 +205,9 @@
 {"id": "q-037", "text": "hôm qua tập gì", "lang": "vi", "cat": "record_question", "intent": "question", "gold": [{"kind": "question"}], "ignore": []},
 {"id": "q-038", "text": "tuần này tập mấy buổi", "lang": "vi", "cat": "record_question", "intent": "question", "gold": [{"kind": "question"}], "ignore": []},
 {"id": "q-039", "text": "วันนี้เล่นอะไรไปแล้ว", "lang": "th", "cat": "record_question", "intent": "question", "gold": [{"kind": "question"}], "ignore": []},
-{"id": "q-040", "text": "เล่นขาครั้งล่าสุดเมื่อไหร่", "lang": "th", "cat": "record_question", "intent": "question", "gold": [{"kind": "question"}], "ignore": []}
+{"id": "q-040", "text": "เล่นขาครั้งล่าสุดเมื่อไหร่", "lang": "th", "cat": "record_question", "intent": "question", "gold": [{"kind": "question"}], "ignore": []},
+{"id": "r-168", "text": "루틴 만들어줘", "lang": "ko", "cat": "plain", "intent": "routine", "gold": [{}], "ignore": []},
+{"id": "r-169", "text": "토요일 루틴 짜줘", "lang": "ko", "cat": "plain", "intent": "routine", "gold": [{"when": 6}], "ignore": []},
+{"id": "r-170", "text": "주말 루틴 뭐 하지", "lang": "ko", "cat": "balance", "intent": "routine", "gold": [{}, {"when": 6}], "ignore": ["when"]},
+{"id": "r-171", "text": "이번 주 부족한 거 위주로", "lang": "ko", "cat": "balance", "intent": "routine", "gold": [{}], "ignore": []}
 ]

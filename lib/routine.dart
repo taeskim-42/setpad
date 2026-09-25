@@ -18,6 +18,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
+import 'anatomy.dart' show moveKey, moves;
 import 'daily.dart' show sessionEnd;
 import 'editor.dart' show ExerciseBlock, LoggedSet;
 import 'exercises.dart';
@@ -36,6 +37,8 @@ import 'record_query.dart'
         statName,
         recordedExercises,
         resolvedExercise;
+import 'muscle_map_paths.dart' show Muscle;
+import 'training_factor.dart';
 import 'workout_timing.dart' show TimingSpec;
 
 // ─── 표: 기구·밀기/당기기 (결정적, 판단이라 테스트로 못 박는다) ───────────────
@@ -649,11 +652,20 @@ class RoutineAsk {
   bool get forSomeoneElse => refused.containsKey('person');
 
   /// "(부위)로 짜기" 칩 — 부위만 바꾸고 나머지(시간·개수·증감·거절 …)는 잇는다.
-  RoutineAsk withParts(List<String> p) => RoutineAsk(
+  RoutineAsk withParts(List<String> p) => _with(parts: p, key: 'parts');
+
+  /// "타바타로" 칩 — 친 타이머 조건과 같은 길(기록한 맨몸 운동에 타바타).
+  RoutineAsk withTimer(RoutineTimer t) => _with(timer: t, key: 'timer');
+
+  RoutineAsk _with({
+    List<String>? parts,
+    RoutineTimer? timer,
+    required String key,
+  }) => RoutineAsk(
     question: question,
     when: when,
     from: from,
-    parts: p,
+    parts: parts ?? this.parts,
     pattern: pattern,
     exercises: exercises,
     exclude: exclude,
@@ -664,7 +676,7 @@ class RoutineAsk {
     count: count,
     minutes: minutes,
     intensity: intensity,
-    timer: timer,
+    timer: timer ?? this.timer,
     targets: targets,
     delta: delta,
     notComputable: notComputable,
@@ -672,7 +684,7 @@ class RoutineAsk {
     ask: ask,
     dropped: dropped,
     named: named,
-    keys: {...keys, 'parts'},
+    keys: {...keys, key},
     device: device,
   );
 }
@@ -1488,8 +1500,9 @@ class RoutineItem {
   /// 옮긴 칸의 내 세트 메모(옮기지는 않는다).
   ({DateTime day, String text})? memo;
 
-  /// 같은 부위를 48시간 안에 했다: 부위와 며칠 전.
-  ({String part, int days})? recent;
+  /// 48시간 안에 같은 주동 근육(몸 그림 표, 표에 없는 운동은 부위)을 했다: 그 근육
+  /// 또는 부위와 며칠 전.
+  ({String? part, Muscle? muscle, int days})? recent;
 
   /// 이 칸의 시간 어림(초) — [RoutineDraft.seconds] 는 칸들의 합이다.
   int seconds = 0;
@@ -1518,12 +1531,33 @@ class RoutineDraft {
   final DateTime day, today;
   bool get future => day.isAfter(today);
 
-  /// trainer | from | conditions | rotation | first | none.
+  /// from | conditions | weekday | factor | rotation | first | none.
   String source = 'none';
   DateTime? sourceDay;
 
-  /// 회전: 고른 운동을 쉰 날 수.
+  /// 회전·같은 요일·요인: 고른 운동을 쉰 날 수.
   int? restDays;
+
+  /// weekday: 같은 요일 몇 주 전인가(W1), 또는 지난 몇 주의 이웃 요일인가(W2).
+  int? weeksAgo;
+  bool near = false;
+
+  /// 원천 날의 체력 요인과 근거 — 설명만 한다(고른 날을 바꾸지 않는다).
+  ({Factor factor, FactorRead read})? factor;
+
+  /// factor: 채우려는 요인(순발력은 근력 칸)과 이번 주 그 요인이 모자랐는가.
+  Factor? target;
+  bool short = false;
+
+  /// 최근 7일(짜는 날과 앞 6일, 오늘까지)의 요인별 날 수.
+  Map<Factor, int>? weekCounts;
+
+  /// 28일 안에 따로 한 날이 없어 건너뛴 요인(줄로 말한다).
+  final missing = <Factor>[];
+
+  /// 방식 칩: 'weekday'(지난주 ○요일처럼) · 'tabata'(타바타로) · 요인 이름(그 요인
+  /// 으로 짜기, [count] 는 이번 주 셈). 누르면 [RoutineEdits.mode].
+  final modeChips = <({String mode, int? count})>[];
   final items = <RoutineItem>[];
   final removed = <RoutineRemoved>[];
   final lines = <RoutineLine>[];
@@ -1563,6 +1597,9 @@ class RoutineEdits {
 
   /// "(부위)로 짜기" 칩.
   String? part;
+
+  /// 방식 칩([RoutineDraft.modeChips]): 'weekday' · 'tabata' · 요인 이름.
+  String? mode;
 
   /// 시작한 기록의 id — 다시 누르면 새로 만들지 않고 그 기록을 연다. 시작한 뒤
   /// 카드가 바뀌면([startedMark] 와 다르면) 새로 시작한다.
@@ -1812,6 +1849,7 @@ RoutineDraft composeRoutine(
 }) {
   final e = edits ?? RoutineEdits();
   if (e.part != null) ask = ask.withParts([e.part!]);
+  if (e.mode == 'tabata') ask = ask.withTimer(const RoutineTimer.tabata());
   final today = _day(now ?? DateTime.now());
   final day = switch (ask.when) {
     'tomorrow' => today.add(const Duration(days: 1)),
@@ -2080,7 +2118,8 @@ RoutineDraft composeRoutine(
       }
       if (ask.pattern != null && patternOf(k) != ask.pattern) return false;
       if (timerSelects) {
-        final title = lastSeen[k]!.block.name;
+        // 사전 운동(칩 후보)은 기록이 없다 — 이름으로 본다.
+        final title = lastSeen[k]?.block.name ?? k;
         final timed = ask.timer!.tabata
             ? (TimingSpec.parse(title)?.tabata ?? false)
             : TimingSpec.parse(title)?.bpm != null;
@@ -2223,13 +2262,170 @@ RoutineDraft composeRoutine(
       }
     }
   }
+  // 부위 칩: 원천 칸에 없는 부위가 가장 오래 쉬었으면 "(부위)로 짜기". 아픈 부위
+  // (avoid)는 권하지 않는다 — 어디가 아픈지 모르면 부위 칩이 없다.
+  void chipPart() {
+    final picked = {for (final c in candidates) _part(c.key)};
+    bool avoided(String p) => ask.avoid.any(
+      (a) => a == 'full' || (partGroups[a]?.contains(p) ?? a == p),
+    );
+    final top = draft.partRest.keys.where((p) => !avoided(p)).firstOrNull;
+    if (top != null &&
+        !picked.contains(top) &&
+        (ask.pain == null || ask.avoid.isNotEmpty)) {
+      draft.partChip = top;
+    }
+  }
+
+  // 같은 요일(평일) · 모자란 체력 요인(주말) — 사람이 말한 원천이 없을 때만(routine-v2
+  // §3). 단위는 하루다: 그날 내 기록 전부를 시각 순으로 옮긴다. 숫자는 옮기기만 한다.
+  // 요인은 그날을 설명만 하고, 평일에 고른 날을 바꾸지 않는다(모자란 요인은 칩).
+  final byDay = notesByDay(window);
+  List<ExerciseBlock> keptOn(DateTime d) => [
+    for (final n in [
+      ...?byDay[d],
+    ]..sort((a, b) => a.createdAt.compareTo(b.createdAt)))
+      ...kept(n),
+  ];
+  bool usable(DateTime d) => keptOn(d).isNotEmpty;
+  int restOn(DateTime d) =>
+      keptOn(d).map((b) => rest(exerciseKey(b.exercise))).reduce(math.min);
+  // 운동 쉰 날이 긴 것부터, 같으면 최근 것부터(회전과 같은 셈).
+  int byRest(DateTime a, DateTime b) {
+    final ra = restOn(a), rb = restOn(b);
+    return ra != rb ? rb.compareTo(ra) : b.compareTo(a);
+  }
+
+  var picks = <DateTime>[];
+  if (draft.source == 'none') {
+    final mode = e.mode ?? (day.weekday >= 6 ? 'factor' : 'weekday');
+    final factorOn = {
+      for (final x in byDay.entries) x.key: dayFactor(x.value)?.factor,
+    };
+    final last = <Factor, DateTime>{};
+    for (final x in notesByDay(history).entries) {
+      if (dayFactor(x.value)?.factor case final f?) {
+        last.update(
+          merged(f),
+          (v) => x.key.isAfter(v) ? x.key : v,
+          ifAbsent: () => x.key,
+        );
+      }
+    }
+    final counts = draft.weekCounts = weekCounts(history, day, today);
+    List<DateTime> daysOf(Factor f) => [
+      for (final d in byDay.keys)
+        if (factorOn[d] != null && merged(factorOn[d]!) == f && usable(d)) d,
+    ]..sort(byRest);
+    DateTime ago(int n) => DateTime(day.year, day.month, day.day - n);
+    if (mode == 'weekday') {
+      // W1 같은 요일 1–4주 전(최근 것부터) → W2 지난 몇 주의 이웃 요일(±1). 어제·그제는
+      // 이웃이 아니다 — 어제 한 것을 오늘 다시 권하게 된다.
+      picks = [
+        for (var k = 1; k <= 4; k++)
+          if (usable(ago(7 * k))) ago(7 * k),
+        ...[
+          for (final n in const [6, 8, 13, 15, 20, 22, 27])
+            if (usable(ago(n))) ago(n),
+        ]..sort(byRest),
+      ];
+    } else {
+      // 모자람이 큰 요인부터, 그 요인으로 한 날이 28일 안에 있는 첫 요인. 없는 요인은
+      // 조용히 버리지 않고 줄로 말한다.
+      final forced = Factor.values.asNameMap()[mode];
+      for (final f
+          in forced != null ? [merged(forced)] : rankFactors(counts, last)) {
+        final pool = daysOf(f);
+        if (pool.isEmpty) {
+          draft.missing.add(f);
+          continue;
+        }
+        draft.target = f;
+        draft.short = factorGoal[f]! > counts[f]!;
+        picks = pool;
+        break;
+      }
+      if (draft.missing.isNotEmpty) {
+        draft.lines.add(
+          RoutineLine('factorMissing', [
+            [for (final f in draft.missing) f.name],
+          ]),
+        );
+        // 채우기 목표 수는 사람이 친 수여야 한다 — 지어내지 않고 적는 법을 말한다.
+        if (draft.missing.any(
+          (f) => f == Factor.endurance || f == Factor.sustain,
+        )) {
+          draft.lines.add(const RoutineLine('fillHint'));
+        }
+      }
+      if (draft.missing.contains(Factor.cardio)) {
+        draft.modeChips.add((mode: 'tabata', count: null));
+      }
+      if (usable(ago(7))) draft.modeChips.add((mode: 'weekday', count: null));
+    }
+    final others = [
+      for (final d in byDay.keys)
+        if (!picks.contains(d) && usable(d)) d,
+    ]..sort(byRest);
+    draft.hasOther = picks.length + others.length > 1;
+    // 다른 루틴: 후보 날을 먼저 돌고, 다 돌면 회전 순위로 넘어간다.
+    final i = others.isEmpty && picks.isNotEmpty ? e.alt % picks.length : e.alt;
+    if (i < picks.length) {
+      final pick = picks[i];
+      final gap = _days(pick, day);
+      draft.source = mode == 'weekday' ? 'weekday' : 'factor';
+      draft.sourceDay = pick;
+      draft.restDays = restOn(pick);
+      draft.factor = dayFactor(byDay[pick]!);
+      if (draft.source == 'weekday') {
+        if (gap % 7 == 0) {
+          draft.weeksAgo = gap ~/ 7;
+        } else {
+          draft.near = true;
+        }
+        // 이 날의 요인을 이번 주 다 채웠고 모자란 요인이 있으면 칩 하나.
+        final own = draft.factor == null ? null : merged(draft.factor!.factor);
+        if (own != null && counts[own]! >= factorGoal[own]!) {
+          for (final f in rankFactors(counts, last)) {
+            if (factorGoal[f]! > counts[f]! && daysOf(f).isNotEmpty) {
+              draft.modeChips.add((mode: f.name, count: counts[f]));
+              break;
+            }
+          }
+        }
+      }
+      for (final b in keptOn(pick)) {
+        candidates.add((key: exerciseKey(b.exercise), block: b, day: pick));
+      }
+      chipPart();
+      // 거름에 걸린 칸은 줄로(넣기).
+      for (final n in byDay[pick]!) {
+        for (final b in _mineBlocks(n)) {
+          final r = filtered(exerciseKey(b.exercise), b.name, named: false);
+          if (r != null) draft.removed.add(r);
+        }
+      }
+      // 채울 후보: 다른 후보 날, 그 밖의 28일(쉰 날이 긴 것부터) — 개수·시간 맞추기.
+      for (final d in [...picks, ...others]) {
+        if (d == pick) continue;
+        for (final b in keptOn(d)) {
+          candidates.add((key: exerciseKey(b.exercise), block: b, day: d));
+        }
+      }
+    }
+  }
+
   if (draft.source == 'none' ||
       (draft.source == 'conditions' &&
           candidates.isEmpty &&
           front.isNotEmpty &&
           !selects)) {
     // 회전: 최근 28일의 운동 중 가장 오래 쉰 것(같으면 최근). 거름을 먼저 적용한다.
-    var pool = window;
+    // 같은 요일·요인 후보 날은 앞에서 돌았다 — 그 날들은 빼고 이어 돈다.
+    var pool = [
+      for (final n in window)
+        if (!picks.contains(_day(n.createdAt))) n,
+    ];
     if (pool.isEmpty && restAll.isNotEmpty) pool = [restAll.first];
     // 후보: 내 칸이 m(칸 수 중앙값) 개 이상인 운동. 거름에 걸린 칸을 빼고도 한 칸은
     // 남아야 한다 — "스쿼트 말고" 는 하체 날에서 스쿼트만 뺀다.
@@ -2247,8 +2443,8 @@ RoutineDraft composeRoutine(
       return ra != rb ? rb.compareTo(ra) : b.createdAt.compareTo(a.createdAt);
     });
     if (ranked.isNotEmpty) {
-      final pick = ranked[e.alt % ranked.length];
-      draft.hasOther = ranked.length > 1;
+      final pick = ranked[(e.alt - picks.length) % ranked.length];
+      draft.hasOther = picks.length + ranked.length > 1;
       if (draft.source == 'none') draft.source = 'rotation';
       draft.sourceDay = _day(pick.createdAt);
       draft.restDays = restOf(pick);
@@ -2259,18 +2455,7 @@ RoutineDraft composeRoutine(
           day: _day(pick.createdAt),
         ));
       }
-      // 뽑힌 날에 없는 부위가 가장 오래 쉬었으면 "(부위)로 짜기" 칩. 아픈 부위(avoid)는
-      // 권하지 않는다 — 어디가 아픈지 모르면 부위 칩이 없다.
-      final picked = {for (final c in candidates) _part(c.key)};
-      bool avoided(String p) => ask.avoid.any(
-        (a) => a == 'full' || (partGroups[a]?.contains(p) ?? a == p),
-      );
-      final top = draft.partRest.keys.where((p) => !avoided(p)).firstOrNull;
-      if (top != null &&
-          !picked.contains(top) &&
-          (ask.pain == null || ask.avoid.isNotEmpty)) {
-        draft.partChip = top;
-      }
+      chipPart();
       // 거름에 걸린 칸은 줄로(넣기).
       for (final b in _mineBlocks(pick)) {
         final r = filtered(exerciseKey(b.exercise), b.name, named: false);
@@ -2328,7 +2513,8 @@ RoutineDraft composeRoutine(
   for (final c in candidates) {
     if (!sourceKeys.contains(c.key)) sourceKeys.add(c.key);
   }
-  final firstSession = draft.source == 'rotation' || draft.source == 'from'
+  final firstSession =
+      const {'rotation', 'from', 'weekday', 'factor'}.contains(draft.source)
       ? {
           for (final c in candidates)
             if (c.day == draft.sourceDay) c.key,
@@ -2444,6 +2630,28 @@ RoutineDraft composeRoutine(
   list = [...fixedPart, ...free.take(k)];
   if (fixedCount == 0 && list.isEmpty && free.isNotEmpty) list = [free.first];
 
+  // 48시간 안에 같은 주동 근육(몸 그림 표)을 했다(G13) — 판단하지 않고 보이기만.
+  // 원천을 빼거나 바꾸지 않는다. 표에 없는 운동은 부위로 본다. 기록은 최근 것부터라
+  // 처음 겹친 것이 가장 가까운 날이다.
+  ({String? part, Muscle? muscle, int days})? recentFor(String key) {
+    final primary = moves[moveKey(key)]?.primary;
+    final p = _part(key);
+    for (final n in history) {
+      final ago = _days(n.createdAt, day);
+      if (ago < 0 || ago > 2) continue;
+      for (final b in _mineBlocks(n)) {
+        if (primary != null) {
+          final other = moves[moveKey(b.exercise)]?.primary ?? const [];
+          final hit = primary.where(other.contains).firstOrNull;
+          if (hit != null) return (part: null, muscle: hit, days: ago);
+        } else if (p != null && _part(exerciseKey(b.exercise)) == p) {
+          return (part: p, muscle: null, days: ago);
+        }
+      }
+    }
+    return null;
+  }
+
   // 칸마다 숫자(§7.1 사다리 + G4·G8·G10·G11).
   final light = ask.intensity == 'light';
   final painBlank = ask.pain != null;
@@ -2472,7 +2680,6 @@ RoutineDraft composeRoutine(
         sets.any(_weighed)) {
       blank ??= 'bodyweight';
     }
-    if (light) blank ??= 'light';
     if (painBlank && target?.weight == null) blank ??= 'pain';
 
     // L0: 친 수. 무게만 쳤으면(횟수·세트·총 횟수 없이) 작업 세트 — 옮긴 세트 가운데
@@ -2582,6 +2789,7 @@ RoutineDraft composeRoutine(
       }
       changed = true;
     }
+    if (light) blank ??= 'light';
     // 비우기: 옮긴 무게만 비운다. 친 무게는 남기고(typedKept) 나머지를 비운 까닭은
     // 그대로 말한다. 친 무게뿐이라 비운 것이 없으면 "비웠어요" 라고 하지 않는다.
     bool typedSet(PlanSet s) =>
@@ -2669,20 +2877,7 @@ RoutineDraft composeRoutine(
       sourceTitle: src?.name,
     );
     item.seconds = estimate(c);
-    // 같은 부위를 48시간 안에 했다(G13) — 판단하지 않고 보이기만.
-    final p = _part(key);
-    if (p != null) {
-      final recentDays = [
-        for (final n in history)
-          if (_days(n.createdAt, day) <= 2 &&
-              _days(n.createdAt, day) >= 0 &&
-              _mineBlocks(n).any((b) => _part(exerciseKey(b.exercise)) == p))
-            _days(n.createdAt, day),
-      ];
-      if (recentDays.isNotEmpty) {
-        item.recent = (part: p, days: recentDays.reduce(math.min));
-      }
-    }
+    item.recent = recentFor(key);
     draft.items.add(item);
   }
 
@@ -2700,43 +2895,49 @@ RoutineDraft composeRoutine(
   if (ask.intensity != null) {
     draft.applied.add('intensity');
     draft.lines.add(RoutineLine(ask.intensity!));
-    if (ask.intensity == 'hard') {
-      final steps = <String>[];
-      for (final i in draft.items) {
-        final s = ownStep(history, i.key, today);
-        if (s == null) continue;
-        steps.add('${_num(s.step)}${s.unit}');
-        if (e.step) {
-          i.sets = [
-            for (final x in i.sets)
-              _weighed(x) && x.unit == s.unit
-                  ? (value: x.value! + s.step, unit: x.unit, reps: x.reps)
-                  : x,
-          ];
-          i.stepped = s;
-          if (i.setup != null &&
-              i.setup!.weight != null &&
-              i.setup!.unit == s.unit) {
-            final u = i.setup!;
-            i.setup = WorkoutSetup(
-              name: u.name,
-              weight: u.weight! + s.step,
-              unit: u.unit,
-              totalReps: u.totalReps,
-              repsPerSet: u.repsPerSet,
-              totalSets: u.totalSets,
-              repsOnly: u.repsOnly,
-            );
-          }
-          final src = lastBlock(i.key)?.block;
-          if (src != null) i.title = _plainTitle(src);
+  }
+  // 올리기 칩(스스로 올려 온 폭): 무겁게, 또는 같은 요일 원천(§4.4) — 누를 때만 든다.
+  // 모자란 요인을 채우는 날(factor)과 가볍게·친 증감에는 띄우지 않는다.
+  final hard = ask.intensity == 'hard';
+  if (hard ||
+      (draft.source == 'weekday' &&
+          ask.intensity == null &&
+          ask.delta == null)) {
+    final steps = <String>[];
+    for (final i in draft.items) {
+      final s = ownStep(history, i.key, today);
+      if (s == null) continue;
+      steps.add('${_num(s.step)}${s.unit}');
+      if (e.step) {
+        i.sets = [
+          for (final x in i.sets)
+            _weighed(x) && x.unit == s.unit
+                ? (value: x.value! + s.step, unit: x.unit, reps: x.reps)
+                : x,
+        ];
+        i.stepped = s;
+        if (i.setup != null &&
+            i.setup!.weight != null &&
+            i.setup!.unit == s.unit) {
+          final u = i.setup!;
+          i.setup = WorkoutSetup(
+            name: u.name,
+            weight: u.weight! + s.step,
+            unit: u.unit,
+            totalReps: u.totalReps,
+            repsPerSet: u.repsPerSet,
+            totalSets: u.totalSets,
+            repsOnly: u.repsOnly,
+          );
         }
+        final src = lastBlock(i.key)?.block;
+        if (src != null) i.title = _plainTitle(src);
       }
-      if (steps.isEmpty) {
-        draft.lines.add(const RoutineLine('noStep'));
-      } else {
-        draft.stepChip = (text: steps.toSet().join(' · '), apply: !e.step);
-      }
+    }
+    if (steps.isEmpty) {
+      if (hard) draft.lines.add(const RoutineLine('noStep'));
+    } else {
+      draft.stepChip = (text: steps.toSet().join(' · '), apply: !e.step);
     }
   }
   if (ask.delta != null) draft.applied.add('delta');

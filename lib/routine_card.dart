@@ -7,6 +7,7 @@ import 'l10n/generated/app_localizations.dart';
 import 'palette.dart';
 import 'record_query.dart' show notComputableLines;
 import 'routine.dart';
+import 'training_factor.dart';
 import 'units.dart';
 
 /// 카드 위의 칩 하나(글과 누를 일).
@@ -36,6 +37,7 @@ class RoutineCard extends StatelessWidget {
     this.onPrevious,
     this.onPart,
     this.onStep,
+    this.onMode,
     this.spent,
     this.lang = 'ko',
   });
@@ -55,6 +57,9 @@ class RoutineCard extends StatelessWidget {
   final void Function(RoutineItem)? onRemove;
   final void Function(String key)? onRestore, onAdd;
   final VoidCallback? onOther, onPrevious, onPart, onStep;
+
+  /// 방식 칩([RoutineDraft.modeChips]) — 누르면 [RoutineEdits.mode].
+  final void Function(String mode)? onMode;
 
   /// 원판 줄(서버가 답했을 때만). 없으면 기기가 짠 것 — "원판 0장".
   final String? spent;
@@ -131,6 +136,7 @@ class RoutineCard extends StatelessWidget {
     Widget Function(List<RoutineAction>) chips,
   ) {
     String date(DateTime x) => l.routineDate(x);
+    String weekday(DateTime x) => '${l.weekdayLabel(x)}(${date(x)})';
     final a = ask;
     final head = d.future
         ? l.routineHeaderDay(
@@ -150,6 +156,39 @@ class RoutineCard extends StatelessWidget {
       'from' when d.sourceDay != null => l.routineWhyFrom(date(d.sourceDay!)),
       'conditions' when d.sourceDay != null => l.routineWhyNamed(
         date(d.sourceDay!),
+      ),
+      'weekday' when d.sourceDay != null && d.near => l.routineWhyNear(
+        l.weekdayLabel(d.day),
+        weekday(d.sourceDay!),
+      ),
+      'weekday' when d.sourceDay != null => l.routineWhyWeekday(
+        d.weeksAgo ?? 1,
+        l.weekdayLabel(d.sourceDay!),
+        date(d.sourceDay!),
+      ),
+      'factor' when d.sourceDay != null && d.target != null =>
+        (d.short ? l.routineWhyFactor : l.routineWhyFactorAll)(
+          d.target!.name,
+          weekday(d.sourceDay!),
+        ),
+      _ => null,
+    };
+    // 원천 날의 체력 요인(설명만): "근력 날 · 3×10".
+    final factor = switch (d.factor) {
+      final f? when d.source == 'weekday' || d.source == 'factor' =>
+        l.routineFactorDay(
+          l.routineFactor(f.factor.name),
+          factorWhy(l, f.read),
+        ),
+      _ => null,
+    };
+    // 최근 7일 요인 셈(모자란 요인으로 짠 날만).
+    final counts = switch (d.weekCounts) {
+      final c? when d.source == 'factor' => l.routineWeekCounts(
+        '${date(DateTime(d.day.year, d.day.month, d.day.day - 6))}–'
+        '${date(d.future ? d.today : d.day)}',
+        [for (final e in c.entries) '${l.routineFactor(e.key.name)} ${e.value}']
+            .join(' · '),
       ),
       _ => null,
     };
@@ -183,8 +222,10 @@ class RoutineCard extends StatelessWidget {
           ],
         ),
       ),
+      if (factor != null) Text(factor, style: body),
       if (lines.isNotEmpty) Text(lines.join('\n'), style: body),
       if (why != null) Text(why, style: faint),
+      if (counts != null) Text(counts, style: faint),
       if (rest.isNotEmpty)
         Text(l.routinePartRest(rest.join(' · ')), style: faint),
       if (d.items.isNotEmpty)
@@ -228,6 +269,16 @@ class RoutineCard extends StatelessWidget {
           (label: l.routineStepChip(s.text), onTap: onStep!),
         if (d.previousDay != null && onPrevious != null)
           (label: l.routinePrevious(date(d.previousDay!)), onTap: onPrevious!),
+        if (onMode != null)
+          for (final c in d.modeChips)
+            (
+              label: switch (c.mode) {
+                'tabata' => l.routineTabataChip,
+                'weekday' => l.routineLikeLastWeek(l.weekdayLabel(d.day)),
+                final f => l.routineFactorChip(f, c.count ?? 0),
+              },
+              onTap: () => onMode!(c.mode),
+            ),
       ]),
       if (d.future)
         Text(l.routineFuture, style: faint)
@@ -289,7 +340,12 @@ class RoutineCard extends StatelessWidget {
         l.routineStepped('${formatNumber(s.step)}${s.unit}', s.evidence),
       if (i.memo case final m?) l.routineMemo(date(m.day), m.text),
       if (i.recent case final r?)
-        l.routineRecent(partName(l, r.part), l.routineDaysAgo(r.days)),
+        l.routineRecent(
+          r.muscle != null
+              ? l.muscleName(r.muscle!.name)
+              : partName(l, r.part!),
+          l.routineDaysAgo(r.days),
+        ),
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
@@ -430,9 +486,22 @@ List<String> routineLineTexts(L l, RoutineLine line) {
     'recentMemo' => [
       l.routineRecentMemo(l.routineDaysAgo(a[0] as int), s(1), s(2)),
     ],
+    'factorMissing' => [
+      l.routineFactorMissing(
+        (a[0] as List).map((f) => l.routineFactor('$f')).join('·'),
+      ),
+    ],
+    'fillHint' => [l.routineFillHint],
     _ => [line.toString()],
   };
 }
+
+/// 요인을 가른 근거 한 줄("3×10", "채우기 100개", "타바타 20/10×8" …).
+String factorWhy(L l, FactorRead r) => l.routineFactorWhy(
+  r.why,
+  r.args.firstOrNull ?? '',
+  r.args.length > 1 ? r.args[1] : '',
+);
 
 /// 부위 이름. 전신은 기록 검색 문구에 없어 따로 둔다.
 String partName(L l, String part) =>

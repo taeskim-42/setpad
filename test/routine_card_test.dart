@@ -48,22 +48,6 @@ class _Records extends NotesStore {
   }
 }
 
-/// 고정 기록을 오늘 기준으로 옮긴다(화면은 지금 시각으로 짠다).
-List<Note> relativeLog([List<Note>? log]) {
-  final shift = DateTime.now().difference(routineToday);
-  final days = Duration(days: shift.inDays);
-  return [
-    for (final n in log ?? defaultLog())
-      Note(
-        id: n.id,
-        createdAt: n.createdAt.add(days),
-        updatedAt: n.updatedAt.add(days),
-        blocks: n.blocks,
-        routineId: n.routineId,
-      ),
-  ];
-}
-
 /// 오늘 루틴 카드(설계 §12.1 카드 + 검토 G1·G14·G16·G18).
 void main() {
   setUpAll(() => initializeDateFormatting());
@@ -74,8 +58,9 @@ void main() {
     WidgetTester tester, {
     RecordAi ai = const RecordAi(),
     List<Note>? records,
+    DateTime? now,
   }) async {
-    final store = _Records(records ?? relativeLog());
+    final store = _Records(records ?? defaultLog());
     addTearDown(store.dispose);
     final opened = <Note>[];
     await tester.pumpWidget(
@@ -83,7 +68,13 @@ void main() {
         locale: const Locale('ko'),
         localizationsDelegates: L.localizationsDelegates,
         supportedLocales: L.supportedLocales,
-        home: NotesListPage(store: store, onOpen: opened.add, ai: ai),
+        home: NotesListPage(
+          store: store,
+          onOpen: opened.add,
+          ai: ai,
+          // 요일 규칙이 있어 시계를 못 박는다 — 기준일 9/9(수) 18시.
+          now: () => now ?? routineToday,
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -540,11 +531,11 @@ void main() {
   testWidgets('검증 O2·O4 친 무게는 비우지 않고, 바꾼 세트와 나머지를 비운 까닭을 말한다', (tester) async {
     await pump(
       tester,
-      records: relativeLog([
+      records: [
         session('o1', 7, 20, [
           ExerciseBlock('벤치프레스', [kg(60, 10), ...times(3, () => kg(85, 5))]),
         ]),
-      ]),
+      ],
       ai: RecordAi(
         respond: (_, _) async => {
           'exercises': ['벤치프레스'],
@@ -566,11 +557,11 @@ void main() {
   testWidgets('검증 O4 오래된 기록이어도 친 무게는 남고 나머지를 비운 까닭을 말한다', (tester) async {
     await pump(
       tester,
-      records: relativeLog([
+      records: [
         session('o1', 7, 20, [
           ExerciseBlock('벤치프레스', [kg(60, 10), ...times(3, () => kg(85, 5))]),
         ]),
-      ]),
+      ],
       ai: RecordAi(
         respond: (_, _) async => {
           'exercises': ['벤치프레스'],
@@ -969,6 +960,86 @@ void main() {
     expect(trainerY, lessThan(headY));
     await tester.tap(find.textContaining('하체 B'));
     expect(tapped?.id, 'b');
+  });
+
+  testWidgets('S13 평일 카드: 쌤 루틴 아래 같은 요일 초안 — 지난주 수요일 줄과 요인 머리', (tester) async {
+    await pump(tester);
+    await type(tester, '오늘 루틴 짜줘');
+    final d = DateTime(2026, 9, 2);
+    expect(
+      find.text(l.routineWhyWeekday(1, l.weekdayLabel(d), l.routineDate(d))),
+      findsOneWidget,
+    );
+    // 9/2: 스쿼트 3×5(순발력 4세트) 대 루마니안·레그컬(근력 6세트) → 근력 날, 첫 근력 칸.
+    expect(
+      find.text(
+        l.routineFactorDay(
+          l.routineFactor('strength'),
+          l.routineFactorWhy('sets', '3', '10'),
+        ),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('주말 카드: 모자란 요인 줄·셈 줄·없는 요인 줄, 타바타로 칩을 누르면 타바타', (tester) async {
+    final mw = methodWeek(DateTime(2026, 9, 14));
+    await pump(
+      tester,
+      records: [
+        mw[0],
+        mw[1],
+        mw[3],
+        at(DateTime(2026, 9, 15, 7), [
+          ExerciseBlock('버피', times(3, () => reps(15))),
+        ]),
+      ],
+      now: DateTime(2026, 9, 19, 10),
+    );
+    await type(tester, '오늘 루틴 짜줘');
+    final mon = DateTime(2026, 9, 14);
+    expect(
+      find.text(
+        l.routineWhyFactor(
+          'strength',
+          '${l.weekdayLabel(mon)}(${l.routineDate(mon)})',
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining(l.routineFactor('cardio')), findsWidgets);
+    expect(
+      find.textContaining(l.routineFactorMissing(l.routineFactor('cardio'))),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('${l.routineFactor('strength')} 1'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text(l.routineTabataChip));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('타바타'), findsWidgets);
+    expect(find.text(l.routineTabataChip), findsNothing);
+  });
+
+  testWidgets('평일 조정 칩: 누르면 그 요인으로 한 날', (tester) async {
+    final changed = {
+      ...methodPlan,
+      4: () => [ExerciseBlock('스쿼트', times(3, () => kg(80, 10)))],
+    };
+    await pump(
+      tester,
+      records: [
+        ...methodWeek(DateTime(2026, 8, 31)),
+        ...weekLog(DateTime(2026, 9, 7), 5, changed),
+        ...weekLog(DateTime(2026, 9, 14), 3, methodPlan),
+      ],
+      now: DateTime(2026, 9, 17, 18),
+    );
+    await type(tester, '오늘 루틴 짜줘');
+    await tester.tap(find.text(l.routineFactorChip('sustain', 0)));
+    await tester.pumpAndSettle();
+    expect(find.text('스쿼트 30bpm'), findsOneWidget);
   });
 }
 

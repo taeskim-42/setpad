@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:setpad/anatomy.dart' show Muscle;
 import 'package:setpad/editor.dart';
 import 'package:setpad/exercises.dart';
 import 'package:setpad/notes.dart';
@@ -45,9 +46,18 @@ void main() {
       final rows = load('routine').where((r) => r['intent'] != 'question');
       final broken = <String>[];
       var drafts = 0, within48h = 0, partWithin48h = 0, rotations = 0;
-      for (final r in rows) {
+      final sources = <String, int>{};
+      // 기록을 정하지 않은 문항은 기록 셋 모두(픽스처·방식 주·분할)에서 짠다.
+      for (final (r, log) in [
+        for (final r in rows)
+          for (final log
+              in r['log'] == null
+                  ? const ['default', 'methodWeek', 'split']
+                  : [r['log'] as String])
+            (r, log),
+      ]) {
         final text = r['text'] as String;
-        final notes = logFor(r['log'] as String?);
+        final notes = logFor(log);
         final gold = (r['gold'] as List).first;
         final ask = decodeRoutineAsk(
           gold,
@@ -58,8 +68,9 @@ void main() {
         if (ask.question) continue;
         final draft = composeRoutine(notes, ask, now: today);
         drafts++;
+        sources.update(draft.source, (v) => v + 1, ifAbsent: () => 1);
         for (final v in routineViolations(draft, ask, notes, text)) {
-          broken.add('${r['id']} $text: $v');
+          broken.add('${r['id']} [$log] $text: $v');
         }
         if (draft.source == 'rotation') {
           rotations++;
@@ -72,7 +83,7 @@ void main() {
       }
       // ignore: avoid_print
       print(
-        '짠 카드 $drafts · 불변식 깨짐 ${broken.length}\n'
+        '짠 카드 $drafts · 불변식 깨짐 ${broken.length} · 원천 $sources\n'
         'C10(정보): 회전 $rotations 중 48시간 안에 한 운동이 든 것 $within48h · '
         '같은 부위가 든 것 $partWithin48h\n${broken.join('\n')}',
       );
@@ -81,9 +92,10 @@ void main() {
   });
 
   group('못 박는 결과', () {
-    test('r-001 맨 요청 → 가장 오래 쉰 9/2 하체(같으면 최근), 어깨로 짜기 칩', () {
+    test('r-001 맨 요청(수) → 지난주 수요일 9/2 하체 하루, 어깨로 짜기 칩', () {
       final d = compose({}, '오늘 루틴 짜줘');
-      expect(d.source, 'rotation');
+      expect(d.source, 'weekday');
+      expect(d.weeksAgo, 1);
       expect(d.sourceDay, DateTime(2026, 9, 2));
       expect(d.restDays, 7);
       expect(keys(d), ['스쿼트', '루마니안 데드리프트', '레그컬']);
@@ -510,7 +522,8 @@ void main() {
       final memo = d.lines.firstWhere((l) => l.code == 'recentMemo');
       expect(memo.args, [1, '데드리프트', '허리 뻐근']);
       final rdl = d.items.firstWhere((i) => i.key == '루마니안 데드리프트');
-      expect(rdl.recent, (part: 'back', days: 1));
+      // 어제 데드리프트(허리·엉덩이)와 루마니안(엉덩이·허벅지 뒤)의 주동 근육이 겹친다.
+      expect(rdl.recent, (part: null, muscle: Muscle.glutes, days: 1));
     });
 
     test('G14: 내일 루틴은 미리보기 — 시작 없음, 쉰 날은 내일 기준', () {
@@ -521,6 +534,11 @@ void main() {
       expect(d.future, isTrue);
       expect(d.startable, isFalse);
       expect(d.day, DateTime(2026, 9, 10));
+      // 목요일 기록이 없어 지난 몇 주의 이웃 요일 — 가장 오래 쉰 9/2(수).
+      expect(
+        (d.source, d.near, d.sourceDay),
+        ('weekday', true, DateTime(2026, 9, 2)),
+      );
       expect(d.restDays, 8);
     });
 

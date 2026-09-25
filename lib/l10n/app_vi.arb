@@ -718,5 +718,18 @@
   "anatomyRegionValue": "Số hiệp {days} ngày: {sets}, {level}",
   "anatomyRegionHint": "Chạm hai lần để xem bài tập",
   "anatomyClose": "Đóng",
-  "openSourceLicenses": "Giấy phép mã nguồn mở"
+  "openSourceLicenses": "Giấy phép mã nguồn mở",
+  "routineFactor": "{f, select, strength{Sức mạnh} endurance{Sức bền cơ} sustain{Sức duy trì} power{Sức bật} cardio{Tim phổi} other{}}",
+  "routineFactorDay": "Ngày {factor} · {why}",
+  "routineFactorWhy": "{kind, select, tabata{Tabata {a}} fill{Đủ {a} lần} fillTitle{Tên ‘{a}’} distance{{a}} open{{a} lần mỗi hiệp, không cố định số hiệp} single{Một hiệp {a} lần} drop{Tối đa mỗi hiệp {a}} hold{{a} lần × {b} hiệp} other{{a}×{b}}}",
+  "routineWhyWeekday": "{weeks, plural, =1{Giống {day} tuần trước ({date})} other{{day} tuần trước không có ghi chép — xếp theo {day} {weeks} tuần trước ({date})}}",
+  "routineWhyNear": "Không có ghi chép {day} — xếp theo ngày gần đó {near}",
+  "routineWhyFactor": "{f, select, strength{Tuần này còn thiếu sức mạnh — xếp theo {date}} endurance{Tuần này còn thiếu sức bền cơ — xếp theo {date}} sustain{Tuần này còn thiếu sức duy trì — xếp theo {date}} cardio{Tuần này còn thiếu tim phổi — xếp theo {date}} other{Xếp theo {date}}}",
+  "routineWhyFactorAll": "{f, select, strength{Tuần này đã đủ mọi mặt — sức mạnh lâu chưa tập nhất nên xếp giống {date}} endurance{Tuần này đã đủ mọi mặt — sức bền cơ lâu chưa tập nhất nên xếp giống {date}} sustain{Tuần này đã đủ mọi mặt — sức duy trì lâu chưa tập nhất nên xếp giống {date}} cardio{Tuần này đã đủ mọi mặt — tim phổi lâu chưa tập nhất nên xếp giống {date}} other{Xếp giống {date}}}",
+  "routineWeekCounts": "7 ngày gần nhất ({range}): {list}",
+  "routineFactorMissing": "Không có ngày tập riêng trong 28 ngày: {list}",
+  "routineFillHint": "Muốn tập cho đủ số, hãy ghi mục tiêu (vd: squat đủ 100 cái)",
+  "routineTabataChip": "Tập kiểu tabata",
+  "routineLikeLastWeek": "Giống {day} tuần trước",
+  "routineFactorChip": "{f, select, strength{Xếp cho sức mạnh · tuần này {n} lần} endurance{Xếp cho sức bền cơ · tuần này {n} lần} sustain{Xếp cho sức duy trì · tuần này {n} lần} cardio{Xếp cho tim phổi · tuần này {n} lần} other{}}"
 }

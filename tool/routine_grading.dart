@@ -4,9 +4,10 @@ import 'package:setpad/parser.dart';
 import 'package:setpad/record_query.dart'
     show exerciseKey, recordedExercises, resolvedExercise;
 import 'package:setpad/routine.dart';
+import 'package:setpad/training_factor.dart';
 import 'package:setpad/workout_timing.dart';
 
-/// 오늘 루틴 채점(설계 §12.1 C1–C13, §12.3 M1–M9). 오프라인 테스트
+/// 오늘 루틴 채점(설계 §12.1 C1–C13, routine-v2 §7 C14–C15, §12.3 M1–M9). 오프라인 테스트
 /// (test/routine_compose_test.dart)와 실제 모델 평가(tool/routine_eval_test.dart)가
 /// 같은 것을 쓴다.
 
@@ -30,7 +31,7 @@ import 'package:setpad/workout_timing.dart';
   return (keys: keys, parts: {for (final k in keys) partOf(k)});
 }
 
-/// C1–C13. 깨진 것의 설명 목록(비면 통과).
+/// C1–C15. 깨진 것의 설명 목록(비면 통과).
 List<String> routineViolations(
   RoutineDraft d,
   RoutineAsk ask,
@@ -257,6 +258,26 @@ List<String> routineViolations(
           (l.code == 'noSuchDay' && k == 'from'),
     )) {
       out.add('C13 줄 없음 $k');
+    }
+  }
+  // C14 고른 까닭: 같은 요일·요인 원천이면 카드가 말할 사실(몇 주 전·이웃, 요인·셈)이
+  // 있다.
+  if (d.source == 'weekday' &&
+      (d.sourceDay == null || (d.weeksAgo == null && !d.near))) {
+    out.add('C14 같은 요일 까닭 없음');
+  }
+  if (d.source == 'factor' &&
+      (d.sourceDay == null || d.target == null || d.weekCounts == null)) {
+    out.add('C14 요인 까닭 없음');
+  }
+  // C15 요인 원천: 옮긴 날의 하루 요인이 채우려는 요인이다(순발력은 근력 칸).
+  if (d.source == 'factor' && d.sourceDay != null && d.target != null) {
+    final f = dayFactor([
+      for (final n in notes)
+        if (calendarDay(n.createdAt) == d.sourceDay) n,
+    ])?.factor;
+    if (f == null || merged(f) != d.target) {
+      out.add('C15 ${d.sourceDay} ${f?.name} ≠ ${d.target!.name}');
     }
   }
   return out;

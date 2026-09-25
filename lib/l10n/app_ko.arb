@@ -3091,5 +3091,128 @@
   },
   "anatomyRegionHint": "두 번 눌러 운동 보기",
   "anatomyClose": "닫기",
-  "openSourceLicenses": "오픈소스 라이선스"
+  "openSourceLicenses": "오픈소스 라이선스",
+  "routineFactor": "{f, select, strength{근력} endurance{근지구력} sustain{지속력} power{순발력} cardio{심폐} other{}}",
+  "@routineFactor": {
+    "description": "체력 요인 이름(repstack FF01–FF05)",
+    "placeholders": {
+      "f": {
+        "type": "String"
+      }
+    }
+  },
+  "routineFactorDay": "{factor} 날 · {why}",
+  "@routineFactorDay": {
+    "description": "카드 머리 아래: 원천 날의 요인과 근거(3×10 …)",
+    "placeholders": {
+      "factor": {
+        "type": "String"
+      },
+      "why": {
+        "type": "String"
+      }
+    }
+  },
+  "routineFactorWhy": "{kind, select, tabata{타바타 {a}} fill{채우기 {a}개} fillTitle{제목 ‘{a}’} distance{{a}} open{{a}회씩, 세트 수 열어 둠} single{한 세트 {a}회} drop{세트마다 최대 {a}} hold{{a}회×{b}세트} other{{a}×{b}}}",
+  "@routineFactorWhy": {
+    "description": "요인을 가른 근거. a·b 는 수나 원문 조각",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "routineWhyWeekday": "{weeks, plural, =1{지난주 {day}({date}) 운동 그대로예요} other{지난주 {day}엔 기록이 없어 {weeks}주 전 {day}({date})로 짰어요}}",
+  "@routineWhyWeekday": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      },
+      "day": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineWhyNear": "{day} 기록이 없어 가까운 {near}로 짰어요",
+  "@routineWhyNear": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "near": {
+        "type": "String"
+      }
+    }
+  },
+  "routineWhyFactor": "{f, select, strength{이번 주 근력이 부족해서 {date}로 짰어요} endurance{이번 주 근지구력이 부족해서 {date}로 짰어요} sustain{이번 주 지속력이 부족해서 {date}로 짰어요} cardio{이번 주 심폐가 부족해서 {date}로 짰어요} other{{date}로 짰어요}}",
+  "@routineWhyFactor": {
+    "placeholders": {
+      "f": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineWhyFactorAll": "{f, select, strength{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 근력으로 {date}처럼 짰어요} endurance{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 근지구력으로 {date}처럼 짰어요} sustain{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 지속력으로 {date}처럼 짰어요} cardio{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 심폐로 {date}처럼 짰어요} other{{date}처럼 짰어요}}",
+  "@routineWhyFactorAll": {
+    "placeholders": {
+      "f": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineWeekCounts": "최근 7일({range}): {list}",
+  "@routineWeekCounts": {
+    "placeholders": {
+      "range": {
+        "type": "String"
+      },
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "routineFactorMissing": "최근 28일에 따로 한 날이 없는 요인: {list}",
+  "@routineFactorMissing": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "routineFillHint": "채우기는 목표 수를 적어 주세요(예: 스쿼트 100개 채우기)",
+  "routineTabataChip": "타바타로",
+  "routineLikeLastWeek": "지난주 {day}처럼",
+  "@routineLikeLastWeek": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "routineFactorChip": "{f, select, strength{근력으로 짜기 · 이번 주 {n}번} endurance{근지구력으로 짜기 · 이번 주 {n}번} sustain{지속력으로 짜기 · 이번 주 {n}번} cardio{심폐로 짜기 · 이번 주 {n}번} other{}}",
+  "@routineFactorChip": {
+    "placeholders": {
+      "f": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  }
 }

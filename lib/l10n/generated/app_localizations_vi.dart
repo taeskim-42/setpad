@@ -3040,4 +3040,117 @@ class LVi extends L {
 
   @override
   String get openSourceLicenses => 'Giấy phép mã nguồn mở';
+
+  @override
+  String routineFactor(String f) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': 'Sức mạnh',
+      'endurance': 'Sức bền cơ',
+      'sustain': 'Sức duy trì',
+      'power': 'Sức bật',
+      'cardio': 'Tim phổi',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineFactorDay(String factor, String why) {
+    return 'Ngày $factor · $why';
+  }
+
+  @override
+  String routineFactorWhy(String kind, String a, String b) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata $a',
+      'fill': 'Đủ $a lần',
+      'fillTitle': 'Tên ‘$a’',
+      'distance': '$a',
+      'open': '$a lần mỗi hiệp, không cố định số hiệp',
+      'single': 'Một hiệp $a lần',
+      'drop': 'Tối đa mỗi hiệp $a',
+      'hold': '$a lần × $b hiệp',
+      'other': '$a×$b',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyWeekday(int weeks, String day, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other:
+          '$day tuần trước không có ghi chép — xếp theo $day $weeks tuần trước ($date)',
+      one: 'Giống $day tuần trước ($date)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNear(String day, String near) {
+    return 'Không có ghi chép $day — xếp theo ngày gần đó $near';
+  }
+
+  @override
+  String routineWhyFactor(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': 'Tuần này còn thiếu sức mạnh — xếp theo $date',
+      'endurance': 'Tuần này còn thiếu sức bền cơ — xếp theo $date',
+      'sustain': 'Tuần này còn thiếu sức duy trì — xếp theo $date',
+      'cardio': 'Tuần này còn thiếu tim phổi — xếp theo $date',
+      'other': 'Xếp theo $date',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorAll(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength':
+          'Tuần này đã đủ mọi mặt — sức mạnh lâu chưa tập nhất nên xếp giống $date',
+      'endurance':
+          'Tuần này đã đủ mọi mặt — sức bền cơ lâu chưa tập nhất nên xếp giống $date',
+      'sustain':
+          'Tuần này đã đủ mọi mặt — sức duy trì lâu chưa tập nhất nên xếp giống $date',
+      'cardio':
+          'Tuần này đã đủ mọi mặt — tim phổi lâu chưa tập nhất nên xếp giống $date',
+      'other': 'Xếp giống $date',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWeekCounts(String range, String list) {
+    return '7 ngày gần nhất ($range): $list';
+  }
+
+  @override
+  String routineFactorMissing(String list) {
+    return 'Không có ngày tập riêng trong 28 ngày: $list';
+  }
+
+  @override
+  String get routineFillHint =>
+      'Muốn tập cho đủ số, hãy ghi mục tiêu (vd: squat đủ 100 cái)';
+
+  @override
+  String get routineTabataChip => 'Tập kiểu tabata';
+
+  @override
+  String routineLikeLastWeek(String day) {
+    return 'Giống $day tuần trước';
+  }
+
+  @override
+  String routineFactorChip(String f, int n) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': 'Xếp cho sức mạnh · tuần này $n lần',
+      'endurance': 'Xếp cho sức bền cơ · tuần này $n lần',
+      'sustain': 'Xếp cho sức duy trì · tuần này $n lần',
+      'cardio': 'Xếp cho tim phổi · tuần này $n lần',
+      'other': '',
+    });
+    return '$_temp0';
+  }
 }

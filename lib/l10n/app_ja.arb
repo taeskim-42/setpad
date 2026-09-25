@@ -718,5 +718,18 @@
   "anatomyRegionValue": "直近{days}日 {sets}セット、{level}",
   "anatomyRegionHint": "ダブルタップで種目を見る",
   "anatomyClose": "閉じる",
-  "openSourceLicenses": "オープンソースライセンス"
+  "openSourceLicenses": "オープンソースライセンス",
+  "routineFactor": "{f, select, strength{筋力} endurance{筋持久力} sustain{持続力} power{瞬発力} cardio{心肺} other{}}",
+  "routineFactorDay": "{factor}の日 · {why}",
+  "routineFactorWhy": "{kind, select, tabata{タバタ {a}} fill{{a}回達成} fillTitle{タイトル「{a}」} distance{{a}} open{1セット{a}回、セット数は自由} single{1セット{a}回} drop{毎セット最大 {a}} hold{{a}回×{b}セット} other{{a}×{b}}}",
+  "routineWhyWeekday": "{weeks, plural, =1{先週の{day}({date})と同じです} other{先週の{day}は記録がないので{weeks}週間前の{day}({date})で組みました}}",
+  "routineWhyNear": "{day}の記録がないので近い{near}で組みました",
+  "routineWhyFactor": "{f, select, strength{今週は筋力が足りないので{date}で組みました} endurance{今週は筋持久力が足りないので{date}で組みました} sustain{今週は持続力が足りないので{date}で組みました} cardio{今週は心肺が足りないので{date}で組みました} other{{date}で組みました}}",
+  "routineWhyFactorAll": "{f, select, strength{今週の要素はすべて満たしました — いちばん長くやっていない筋力で{date}と同じに組みました} endurance{今週の要素はすべて満たしました — いちばん長くやっていない筋持久力で{date}と同じに組みました} sustain{今週の要素はすべて満たしました — いちばん長くやっていない持続力で{date}と同じに組みました} cardio{今週の要素はすべて満たしました — いちばん長くやっていない心肺で{date}と同じに組みました} other{{date}と同じに組みました}}",
+  "routineWeekCounts": "直近7日({range}): {list}",
+  "routineFactorMissing": "直近28日に単独でやった日がない要素: {list}",
+  "routineFillHint": "回数達成は目標回数を書いてください(例: スクワット100回達成)",
+  "routineTabataChip": "タバタで",
+  "routineLikeLastWeek": "先週の{day}のように",
+  "routineFactorChip": "{f, select, strength{筋力で組む · 今週{n}回} endurance{筋持久力で組む · 今週{n}回} sustain{持続力で組む · 今週{n}回} cardio{心肺で組む · 今週{n}回} other{}}"
 }

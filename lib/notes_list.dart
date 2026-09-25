@@ -39,9 +39,13 @@ class NotesListPage extends StatefulWidget {
     required this.onOpen,
     this.ai = const RecordAi(),
     this.account,
+    this.now = DateTime.now,
   });
 
   final NotesStore store;
+
+  /// 오늘 루틴을 짜는 시계. 요일로 원천이 갈리므로 테스트가 못 박는다.
+  final DateTime Function() now;
 
   /// 질문을 해석해 주는 쪽. 서버에 묻는다.
   final RecordAi ai;
@@ -559,6 +563,7 @@ class _NotesListPageState extends State<NotesListPage>
   RoutineDraft _compose(RoutineAsk ask, RoutineEdits edits) => composeRoutine(
     widget.store.notes,
     ask,
+    now: widget.now(),
     unit: widget.store.weightUnit,
     lang: _lang,
     edits: edits,
@@ -798,6 +803,7 @@ class _NotesListPageState extends State<NotesListPage>
       onPrevious: () => setState(() => edits.previous = true),
       onPart: () => setState(() => edits.part = draft.partChip),
       onStep: () => setState(() => edits.step = true),
+      onMode: (mode) => setState(() => edits.mode = mode),
       spent: !charged
           ? (before ? l.routinePlatesBefore : null)
           : account?.platesSpent != null

@@ -4427,6 +4427,84 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'오픈소스 라이선스'**
   String get openSourceLicenses;
+
+  /// 체력 요인 이름(repstack FF01–FF05)
+  ///
+  /// In ko, this message translates to:
+  /// **'{f, select, strength{근력} endurance{근지구력} sustain{지속력} power{순발력} cardio{심폐} other{}}'**
+  String routineFactor(String f);
+
+  /// 카드 머리 아래: 원천 날의 요인과 근거(3×10 …)
+  ///
+  /// In ko, this message translates to:
+  /// **'{factor} 날 · {why}'**
+  String routineFactorDay(String factor, String why);
+
+  /// 요인을 가른 근거. a·b 는 수나 원문 조각
+  ///
+  /// In ko, this message translates to:
+  /// **'{kind, select, tabata{타바타 {a}} fill{채우기 {a}개} fillTitle{제목 ‘{a}’} distance{{a}} open{{a}회씩, 세트 수 열어 둠} single{한 세트 {a}회} drop{세트마다 최대 {a}} hold{{a}회×{b}세트} other{{a}×{b}}}'**
+  String routineFactorWhy(String kind, String a, String b);
+
+  /// No description provided for @routineWhyWeekday.
+  ///
+  /// In ko, this message translates to:
+  /// **'{weeks, plural, =1{지난주 {day}({date}) 운동 그대로예요} other{지난주 {day}엔 기록이 없어 {weeks}주 전 {day}({date})로 짰어요}}'**
+  String routineWhyWeekday(int weeks, String day, String date);
+
+  /// No description provided for @routineWhyNear.
+  ///
+  /// In ko, this message translates to:
+  /// **'{day} 기록이 없어 가까운 {near}로 짰어요'**
+  String routineWhyNear(String day, String near);
+
+  /// No description provided for @routineWhyFactor.
+  ///
+  /// In ko, this message translates to:
+  /// **'{f, select, strength{이번 주 근력이 부족해서 {date}로 짰어요} endurance{이번 주 근지구력이 부족해서 {date}로 짰어요} sustain{이번 주 지속력이 부족해서 {date}로 짰어요} cardio{이번 주 심폐가 부족해서 {date}로 짰어요} other{{date}로 짰어요}}'**
+  String routineWhyFactor(String f, String date);
+
+  /// No description provided for @routineWhyFactorAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'{f, select, strength{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 근력으로 {date}처럼 짰어요} endurance{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 근지구력으로 {date}처럼 짰어요} sustain{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 지속력으로 {date}처럼 짰어요} cardio{이번 주 요인은 다 채웠어요 — 가장 오래 안 한 심폐로 {date}처럼 짰어요} other{{date}처럼 짰어요}}'**
+  String routineWhyFactorAll(String f, String date);
+
+  /// No description provided for @routineWeekCounts.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 7일({range}): {list}'**
+  String routineWeekCounts(String range, String list);
+
+  /// No description provided for @routineFactorMissing.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 28일에 따로 한 날이 없는 요인: {list}'**
+  String routineFactorMissing(String list);
+
+  /// No description provided for @routineFillHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'채우기는 목표 수를 적어 주세요(예: 스쿼트 100개 채우기)'**
+  String get routineFillHint;
+
+  /// No description provided for @routineTabataChip.
+  ///
+  /// In ko, this message translates to:
+  /// **'타바타로'**
+  String get routineTabataChip;
+
+  /// No description provided for @routineLikeLastWeek.
+  ///
+  /// In ko, this message translates to:
+  /// **'지난주 {day}처럼'**
+  String routineLikeLastWeek(String day);
+
+  /// No description provided for @routineFactorChip.
+  ///
+  /// In ko, this message translates to:
+  /// **'{f, select, strength{근력으로 짜기 · 이번 주 {n}번} endurance{근지구력으로 짜기 · 이번 주 {n}번} sustain{지속력으로 짜기 · 이번 주 {n}번} cardio{심폐로 짜기 · 이번 주 {n}번} other{}}'**
+  String routineFactorChip(String f, int n);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

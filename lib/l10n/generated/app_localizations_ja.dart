@@ -2956,4 +2956,111 @@ class LJa extends L {
 
   @override
   String get openSourceLicenses => 'オープンソースライセンス';
+
+  @override
+  String routineFactor(String f) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '筋力',
+      'endurance': '筋持久力',
+      'sustain': '持続力',
+      'power': '瞬発力',
+      'cardio': '心肺',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineFactorDay(String factor, String why) {
+    return '$factorの日 · $why';
+  }
+
+  @override
+  String routineFactorWhy(String kind, String a, String b) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'タバタ $a',
+      'fill': '$a回達成',
+      'fillTitle': 'タイトル「$a」',
+      'distance': '$a',
+      'open': '1セット$a回、セット数は自由',
+      'single': '1セット$a回',
+      'drop': '毎セット最大 $a',
+      'hold': '$a回×$bセット',
+      'other': '$a×$b',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyWeekday(int weeks, String day, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '先週の$dayは記録がないので$weeks週間前の$day($date)で組みました',
+      one: '先週の$day($date)と同じです',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNear(String day, String near) {
+    return '$dayの記録がないので近い$nearで組みました';
+  }
+
+  @override
+  String routineWhyFactor(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '今週は筋力が足りないので$dateで組みました',
+      'endurance': '今週は筋持久力が足りないので$dateで組みました',
+      'sustain': '今週は持続力が足りないので$dateで組みました',
+      'cardio': '今週は心肺が足りないので$dateで組みました',
+      'other': '$dateで組みました',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorAll(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '今週の要素はすべて満たしました — いちばん長くやっていない筋力で$dateと同じに組みました',
+      'endurance': '今週の要素はすべて満たしました — いちばん長くやっていない筋持久力で$dateと同じに組みました',
+      'sustain': '今週の要素はすべて満たしました — いちばん長くやっていない持続力で$dateと同じに組みました',
+      'cardio': '今週の要素はすべて満たしました — いちばん長くやっていない心肺で$dateと同じに組みました',
+      'other': '$dateと同じに組みました',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWeekCounts(String range, String list) {
+    return '直近7日($range): $list';
+  }
+
+  @override
+  String routineFactorMissing(String list) {
+    return '直近28日に単独でやった日がない要素: $list';
+  }
+
+  @override
+  String get routineFillHint => '回数達成は目標回数を書いてください(例: スクワット100回達成)';
+
+  @override
+  String get routineTabataChip => 'タバタで';
+
+  @override
+  String routineLikeLastWeek(String day) {
+    return '先週の$dayのように';
+  }
+
+  @override
+  String routineFactorChip(String f, int n) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '筋力で組む · 今週$n回',
+      'endurance': '筋持久力で組む · 今週$n回',
+      'sustain': '持続力で組む · 今週$n回',
+      'cardio': '心肺で組む · 今週$n回',
+      'other': '',
+    });
+    return '$_temp0';
+  }
 }
