@@ -582,6 +582,12 @@ void keypadTests() {
       final used = store.create()..blocks.add(ExerciseBlock('풀업'));
       store.discardIfEmpty(used);
       expect(store.notes.single.blocks.single.name, '풀업');
+
+      // 쉬는 날 식단만 적은 기록은 빈 기록이 아니다.
+      final meal = store.create()
+        ..meals.add(MealEntry(at: DateTime(2026, 9, 20, 12), kcal: 650));
+      store.discardIfEmpty(meal);
+      expect(store.notes, contains(meal));
     });
 
     test('제목은 그날 한 운동 전부, 요약은 총 세트 수다', () {

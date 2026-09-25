@@ -617,9 +617,12 @@ class NotesStore extends ChangeNotifier {
     _scheduleSave();
   }
 
-  /// 아무것도 안 친 메모는 목록에 남길 이유가 없다. 메모 앱과 같다.
+  /// 아무것도 안 친 메모는 목록에 남길 이유가 없다. 메모 앱과 같다. 끼니만 적은
+  /// 기록(쉬는 날의 식단)은 빈 기록이 아니다.
   void discardIfEmpty(Note note) {
-    if (note.blocks.isEmpty && (note.draft?.text.trim().isEmpty ?? true)) {
+    if (note.blocks.isEmpty &&
+        note.meals.isEmpty &&
+        (note.draft?.text.trim().isEmpty ?? true)) {
       delete(note);
     }
   }

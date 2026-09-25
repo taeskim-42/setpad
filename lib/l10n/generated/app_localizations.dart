@@ -1597,11 +1597,17 @@ abstract class L {
   /// **'오늘 운동'**
   String get fitAll;
 
-  /// No description provided for @sameDayOther.
+  /// No description provided for @sameDayToday.
   ///
   /// In ko, this message translates to:
-  /// **'같은 날의 다른 기록'**
-  String get sameDayOther;
+  /// **'오늘 {time}에 남긴 다른 기록'**
+  String sameDayToday(String time);
+
+  /// No description provided for @sameDayOn.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} {time}에 남긴 다른 기록'**
+  String sameDayOn(String date, String time);
 
   /// No description provided for @mealText.
   ///

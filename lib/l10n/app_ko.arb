@@ -831,7 +831,25 @@
     }
   },
   "fitAll": "오늘 운동",
-  "sameDayOther": "같은 날의 다른 기록",
+  "sameDayToday": "오늘 {time}에 남긴 다른 기록",
+  "@sameDayToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sameDayOn": "{date} {time}에 남긴 다른 기록",
+  "@sameDayOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "mealText": "식단 적기",
   "mealTextHint": "먹은 것을 적어 주세요. 예: 김밥 한 줄, 우유 200ml",
   "kcalApprox": "약 {n}kcal",

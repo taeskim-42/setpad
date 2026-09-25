@@ -932,7 +932,14 @@ class LKo extends L {
   String get fitAll => '오늘 운동';
 
   @override
-  String get sameDayOther => '같은 날의 다른 기록';
+  String sameDayToday(String time) {
+    return '오늘 $time에 남긴 다른 기록';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return '$date $time에 남긴 다른 기록';
+  }
 
   @override
   String get mealText => '식단 적기';

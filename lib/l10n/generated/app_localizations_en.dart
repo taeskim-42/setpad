@@ -970,7 +970,14 @@ class LEn extends L {
   String get fitAll => 'Today\'s workout';
 
   @override
-  String get sameDayOther => 'Other records from this day';
+  String sameDayToday(String time) {
+    return 'Another record from today, $time';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return 'Another record from $date, $time';
+  }
 
   @override
   String get mealText => 'Write meal';

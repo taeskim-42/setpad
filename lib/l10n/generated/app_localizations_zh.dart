@@ -922,7 +922,14 @@ class LZh extends L {
   String get fitAll => '今天的训练';
 
   @override
-  String get sameDayOther => '当天的其他记录';
+  String sameDayToday(String time) {
+    return '今天 $time 的其他记录';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return '$date $time 的其他记录';
+  }
 
   @override
   String get mealText => '记录饮食';
@@ -4010,7 +4017,14 @@ class LZhHans extends LZh {
   String get fitAll => '今天的训练';
 
   @override
-  String get sameDayOther => '当天的其他记录';
+  String sameDayToday(String time) {
+    return '今天 $time 的其他记录';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return '$date $time 的其他记录';
+  }
 
   @override
   String get mealText => '记录饮食';
@@ -7097,7 +7111,14 @@ class LZhHant extends LZh {
   String get fitAll => '今天的訓練';
 
   @override
-  String get sameDayOther => '當天的其他紀錄';
+  String sameDayToday(String time) {
+    return '今天 $time 的其他紀錄';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return '$date $time 的其他紀錄';
+  }
 
   @override
   String get mealText => '記錄飲食';

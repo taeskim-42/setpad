@@ -949,7 +949,14 @@ class LTh extends L {
   String get fitAll => 'การออกกำลังวันนี้';
 
   @override
-  String get sameDayOther => 'บันทึกอื่นในวันเดียวกัน';
+  String sameDayToday(String time) {
+    return 'บันทึกอื่นของวันนี้ เวลา $time';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return 'บันทึกอื่นของวันที่ $date เวลา $time';
+  }
 
   @override
   String get mealText => 'จดมื้ออาหาร';

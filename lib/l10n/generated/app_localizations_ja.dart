@@ -928,7 +928,14 @@ class LJa extends L {
   String get fitAll => '今日の運動';
 
   @override
-  String get sameDayOther => '同じ日のほかの記録';
+  String sameDayToday(String time) {
+    return '今日 $time のほかの記録';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return '$date $time のほかの記録';
+  }
 
   @override
   String get mealText => '食事を書く';

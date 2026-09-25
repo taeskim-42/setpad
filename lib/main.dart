@@ -1588,6 +1588,15 @@ class _SameDay extends StatelessWidget {
   const _SameDay({required this.notes});
   final List<Note> notes;
 
+  /// 언제의 기록인지 날짜까지 적는다. '같은 날' 만으로는 요일로 읽혔다.
+  static String _when(L l, DateTime at) {
+    final time = DateFormat.jm(l.localeName).format(at);
+    return dayOf(at) == dayOf(DateTime.now())
+        ? l.sameDayToday(time)
+        : l.sameDayOn(DateFormat.MMMEd(l.localeName).format(at), time);
+  }
+
+  /// 지금 적는 기록과 섞여 보이지 않게, 기록마다 회색 카드 한 장에 읽기 전용으로.
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
@@ -1595,18 +1604,44 @@ class _SameDay extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final n in notes) ...[
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text(
-                '${l.sameDayOther} · ${DateFormat.jm(l.localeName).format(n.createdAt)}',
-                style: TextStyle(fontSize: 13, color: muted),
+          for (final n in notes)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+              decoration: BoxDecoration(
+                color: CupertinoColors.secondarySystemBackground.resolveFrom(
+                  context,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Icon(CupertinoIcons.clock, size: 14, color: muted),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            _when(l, n.createdAt),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: muted,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  for (final b in n.blocks) BlockSummary(block: b),
+                ],
               ),
             ),
-            for (final b in n.blocks) BlockSummary(block: b),
-          ],
         ],
       ),
     );

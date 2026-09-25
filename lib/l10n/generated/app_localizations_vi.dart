@@ -956,7 +956,14 @@ class LVi extends L {
   String get fitAll => 'Buổi tập hôm nay';
 
   @override
-  String get sameDayOther => 'Bản ghi khác trong ngày';
+  String sameDayToday(String time) {
+    return 'Bản ghi khác hôm nay lúc $time';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return 'Bản ghi khác ngày $date lúc $time';
+  }
 
   @override
   String get mealText => 'Ghi bữa ăn';

@@ -978,7 +978,14 @@ class LEs extends L {
   String get fitAll => 'Entrenamiento de hoy';
 
   @override
-  String get sameDayOther => 'Otros registros de este día';
+  String sameDayToday(String time) {
+    return 'Otro registro de hoy, $time';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return 'Otro registro del $date, $time';
+  }
 
   @override
   String get mealText => 'Escribir comida';
