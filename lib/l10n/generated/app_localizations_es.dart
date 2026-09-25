@@ -51,9 +51,6 @@ class LEs extends L {
   String get previous7Days => 'Últimos 7 días';
 
   @override
-  String get previous30Days => 'Últimos 30 días';
-
-  @override
   String monthLabel(int m) {
     return '$m';
   }
@@ -2084,6 +2081,10 @@ class LEs extends L {
   @override
   String get queryNcBodyweight =>
       'El peso corporal no está en el registro. Escríbelo en la pregunta y se compara (p. ej.: peso 80, ¿cuántas veces es mi peso muerto?)';
+
+  @override
+  String get queryNcWeightForecast =>
+      'No se calcula el peso futuro: el registro tiene lo que comiste y lo que quemaron los entrenamientos, pero no tu metabolismo en reposo ni la actividad diaria';
 
   @override
   String get queryNcHeartRate =>

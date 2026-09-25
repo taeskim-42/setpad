@@ -51,9 +51,6 @@ class LEn extends L {
   String get previous7Days => 'Previous 7 Days';
 
   @override
-  String get previous30Days => 'Previous 30 Days';
-
-  @override
   String monthLabel(int m) {
     return '$m';
   }
@@ -2066,6 +2063,10 @@ class LEn extends L {
   @override
   String get queryNcBodyweight =>
       'Bodyweight isn\'t in your log. Put it in the question and it\'s compared (e.g. I weigh 80, how many times is my deadlift?)';
+
+  @override
+  String get queryNcWeightForecast =>
+      'Future bodyweight isn\'t calculated — your log has what you ate and what workouts burned, but not your resting metabolism or everyday activity';
 
   @override
   String get queryNcHeartRate =>

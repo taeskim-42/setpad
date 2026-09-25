@@ -51,9 +51,6 @@ class LVi extends L {
   String get previous7Days => '7 ngày qua';
 
   @override
-  String get previous30Days => '30 ngày qua';
-
-  @override
   String monthLabel(int m) {
     return 'Tháng $m';
   }
@@ -2054,6 +2051,10 @@ class LVi extends L {
   @override
   String get queryNcBodyweight =>
       'Nhật ký không có cân nặng. Ghi cân nặng vào câu hỏi để so sánh (vd: nặng 80, deadlift gấp mấy lần?)';
+
+  @override
+  String get queryNcWeightForecast =>
+      'Không tính cân nặng sau này — nhật ký chỉ có những gì bạn ăn và lượng calo đốt khi tập, không có trao đổi chất lúc nghỉ và hoạt động hằng ngày';
 
   @override
   String get queryNcHeartRate =>

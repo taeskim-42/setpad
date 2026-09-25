@@ -3667,8 +3667,10 @@ RecordResult? runPlan(
       final a = c.answer;
       if (a?.numericValue == null) continue;
       final v = a!.numericValue!;
-      // 기준 수의 단위가 답의 단위(kg·lb)와 다르면 바꿔 견준다.
+      // 기준 수는 체중(무게)이다. 무게가 아닌 답(kcal·횟수)과는 견주지 않는다 —
+      // '섭취 48630kcal ÷ 80kcal = 607배' 가 나왔다.
       final weighed = a.unit == 'kg' || a.unit == 'lb';
+      if (!weighed) continue;
       final target = weighed && t.unit != null && t.unit != a.unit
           ? (a.unit == 'lb' ? t.value / 0.45359237 : t.value * 0.45359237)
           : t.value;
@@ -3723,6 +3725,9 @@ RecordResult? runPlan(
         ? namedLabels.join(' · ')
         : parts.isNotEmpty
         ? parts.map(l.queryPart).join(' · ')
+        // 먹은 것·운동 소모는 운동의 것이 아니다 — '모든 운동' 제목을 달지 않는다.
+        : metrics.every(energyMetrics.contains)
+        ? ''
         : l.allNotes,
     columns: columns,
     rows: rows,
@@ -3838,13 +3843,29 @@ List<String> notComputableLines(L l, List<String> things) {
     r'체중|몸무게|bodyweight|body weight|体重|體重|cân nặng|peso corporal|น้ำหนักตัว',
     caseSensitive: false,
   );
+  // "한 달 뒤 몇 kg" — 체중을 적어도 답할 수 없는 질문이다. 모델은 조각을 나눠
+  // 준다(["체중", "예측"]) — 목록 전체로 본다. 이때 '체중을 적으면 견줘요' 는 틀린
+  // 안내다(이미 적었다).
+  final forecast = RegExp(
+    r'예측|예상|될까|될지|되나|뒤|후|추세|전망|forecast|predict|project|future|after|'
+    r'予測|予想|後|后|预测|預測|dự đoán|dự báo|pronóstic|predic|proyec|คาด|ทำนาย',
+    caseSensitive: false,
+  );
+  final all = things.join(' ');
+  final ahead = body.hasMatch(all) && forecast.hasMatch(all);
   final rest = [
     for (final t in things)
-      if (!heart.hasMatch(t) && !body.hasMatch(t)) t,
+      if (!heart.hasMatch(t) &&
+          !body.hasMatch(t) &&
+          !(ahead && forecast.hasMatch(t)))
+        t,
   ];
   return [
     if (things.any(heart.hasMatch)) l.queryNcHeartRate,
-    if (things.any(body.hasMatch)) l.queryNcBodyweight,
+    if (ahead)
+      l.queryNcWeightForecast
+    else if (things.any(body.hasMatch))
+      l.queryNcBodyweight,
     if (rest.isNotEmpty) l.queryNotComputable(rest.join(' · ')),
   ];
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
+import 'package:intl/intl.dart';
 
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
@@ -992,25 +993,31 @@ class _NotesListPageState extends State<NotesListPage>
     );
   }
 
-  /// 이전 7일 / 이전 30일 / 그 앞은 달로. 메모 앱과 같은 구간이다.
+  /// 이전 7일, 그 앞은 달마다. '이전 30일' 은 두 달에 걸쳐 8월 기록이 '8월' 머리
+  /// 위에 섞였다. 줄에 적힌 날짜(만든 날)로 가르고 달은 최근 것부터, 올해가
+  /// 아니면 해도 적는다 — 달만으로 묶으면 작년 9월과 올해 9월이 한 묶음이었다.
   List<(String, List<Note>)> _grouped(List<Note> notes, L l) {
     final now = DateTime.now();
-    final week = <Note>[], month = <Note>[];
-    final older = <String, List<Note>>{};
+    final week = <Note>[];
+    final months = <DateTime, List<Note>>{};
     for (final n in notes) {
-      final days = now.difference(n.updatedAt).inDays;
-      if (days < 7) {
+      final at = n.createdAt;
+      if (now.difference(at).inDays < 7) {
         week.add(n);
-      } else if (days < 30) {
-        month.add(n);
       } else {
-        older.putIfAbsent(l.monthLabel(n.updatedAt.month), () => []).add(n);
+        months.putIfAbsent(DateTime(at.year, at.month), () => []).add(n);
       }
     }
+    final keys = months.keys.toList()..sort((a, b) => b.compareTo(a));
     return [
       if (week.isNotEmpty) (l.previous7Days, week),
-      if (month.isNotEmpty) (l.previous30Days, month),
-      ...older.entries.map((e) => (e.key, e.value)),
+      for (final m in keys)
+        (
+          m.year == now.year
+              ? l.monthLabel(m.month)
+              : DateFormat.yMMMM(l.localeName).format(m),
+          months[m]!,
+        ),
     ];
   }
 
@@ -1683,16 +1690,22 @@ class _NotesListPageState extends State<NotesListPage>
                           ),
                         )
                       else
-                        SliverList.builder(
-                          itemCount: groups.length,
-                          itemBuilder: (context, i) => _Group(
-                            title: groups[i].$1,
-                            notes: groups[i].$2,
-                            query: _query.text.trim(),
-                            onOpen: _open,
-                            onDelete: widget.store.delete,
+                        // 달 제목은 그 달을 지나는 동안 위에 붙어 있다 — 어느 달을
+                        // 보는 중인지 늘 보인다. 다음 달이 오면 밀려난다.
+                        for (final (title, notes) in groups)
+                          SliverMainAxisGroup(
+                            slivers: [
+                              PinnedHeaderSliver(child: _GroupHeader(title)),
+                              SliverToBoxAdapter(
+                                child: _Group(
+                                  notes: notes,
+                                  query: _query.text.trim(),
+                                  onOpen: _open,
+                                  onDelete: widget.store.delete,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
                       // 검색창에 마지막 줄이 가리지 않도록 띄운다.
                       const SliverToBoxAdapter(child: SizedBox(height: 12)),
                     ],
@@ -1719,16 +1732,40 @@ class _NotesListPageState extends State<NotesListPage>
 }
 
 /// 날짜 묶음 하나. iOS 의 inset grouped 표 한 덩이다.
+/// 묶음 제목(이전 7일 · 9월 · 2025년 9월). 붙어 있는 동안 아래 줄을 가리도록
+/// 바탕을 칠한다.
+class _GroupHeader extends StatelessWidget {
+  const _GroupHeader(this.title);
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    color: CupertinoColors.systemBackground.resolveFrom(context),
+    // 좌우 20 은 목록 줄의 글자 시작과 같다.
+    padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
+    child: Semantics(
+      header: true,
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.5,
+          color: CupertinoColors.label.resolveFrom(context),
+        ),
+      ),
+    ),
+  );
+}
+
 class _Group extends StatelessWidget {
   const _Group({
-    required this.title,
     required this.notes,
     required this.query,
     required this.onOpen,
     required this.onDelete,
   });
 
-  final String title;
   final List<Note> notes;
   final String query;
   final void Function(Note) onOpen;
@@ -1739,19 +1776,6 @@ class _Group extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          // 좌우 16 은 iOS 의 기본 여백(_kNavBarEdgePadding)과 같은 값이다.
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.4,
-              color: CupertinoColors.label.resolveFrom(context),
-            ),
-          ),
-        ),
         // 카드에 담지 않는다. 메모 앱의 목록은 한 장의 종이 위에 줄이 그어진
         // 모양이고, 카드에 담으면 기록 하나하나가 무거워 보인다.
         Column(

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/exercises.dart';
 import 'package:setpad/parser.dart';
@@ -533,6 +534,43 @@ void keypadTests() {
       await settle(tester);
       expect(find.text('모든 운동'), findsOneWidget);
       expect(find.text('스쿼트'), findsOneWidget);
+    });
+
+    testWidgets('목록은 이전 7일, 그 앞은 달마다 — 올해가 아니면 해까지, 달 제목은 줄의 날짜와 같다', (
+      tester,
+    ) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_months');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final store = NotesStore(directory: dir);
+      final now = DateTime.now();
+      final recent = now.subtract(const Duration(days: 2));
+      final older = now.subtract(const Duration(days: 40));
+      final lastYear = DateTime(now.year - 1, 9, 10);
+      store.create(at: lastYear).blocks.add(ExerciseBlock('작년 스쿼트'));
+      store.create(at: older).blocks.add(ExerciseBlock('지난달 벤치'));
+      store.create(at: recent).blocks.add(ExerciseBlock('요즘 데드'));
+
+      tester.platformDispatcher.localesTestValue = [const Locale('ko')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+      tester.view.physicalSize = const Size(390, 3000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(SetpadApp(store: store));
+      await settle(tester);
+      await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+      await settle(tester);
+
+      final l = await L.delegate.load(const Locale('ko'));
+      final monthTitle = older.year == now.year
+          ? l.monthLabel(older.month)
+          : DateFormat.yMMMM('ko').format(older);
+      expect(find.text('이전 7일'), findsOneWidget);
+      expect(find.text('이전 30일'), findsNothing);
+      expect(find.text(monthTitle), findsOneWidget);
+      expect(find.text('${now.year - 1}년 9월'), findsOneWidget);
+      double top(String t) => tester.getTopLeft(find.text(t)).dy;
+      expect(top('이전 7일'), lessThan(top(monthTitle)));
+      expect(top(monthTitle), lessThan(top('${now.year - 1}년 9월')));
     });
 
     testWidgets('하단 검색이 이름으로 거른다', (tester) async {

@@ -51,9 +51,6 @@ class LZh extends L {
   String get previous7Days => '过去 7 天';
 
   @override
-  String get previous30Days => '过去 30 天';
-
-  @override
   String monthLabel(int m) {
     return '$m月';
   }
@@ -1972,6 +1969,10 @@ class LZh extends L {
 
   @override
   String get queryNcBodyweight => '记录里没有体重。在问题里写上体重就会拿来比较（例：体重80，硬拉是几倍？）';
+
+  @override
+  String get queryNcWeightForecast =>
+      '不计算以后会是多少公斤——记录里只有吃了什么和运动消耗，没有基础代谢和日常活动消耗的热量';
 
   @override
   String get queryNcHeartRate => '记录搜索暂时不看心率；按动作或休息的心率因为组没有时间而无法查看';
@@ -3173,9 +3174,6 @@ class LZhHans extends LZh {
   String get previous7Days => '过去 7 天';
 
   @override
-  String get previous30Days => '过去 30 天';
-
-  @override
   String monthLabel(int m) {
     return '$m月';
   }
@@ -5096,6 +5094,10 @@ class LZhHans extends LZh {
   String get queryNcBodyweight => '记录里没有体重。在问题里写上体重就会拿来比较（例：体重80，硬拉是几倍？）';
 
   @override
+  String get queryNcWeightForecast =>
+      '不计算以后会是多少公斤——记录里只有吃了什么和运动消耗，没有基础代谢和日常活动消耗的热量';
+
+  @override
   String get queryNcHeartRate => '记录搜索暂时不看心率；按动作或休息的心率因为组没有时间而无法查看';
 
   @override
@@ -6293,9 +6295,6 @@ class LZhHant extends LZh {
 
   @override
   String get previous7Days => '過去 7 天';
-
-  @override
-  String get previous30Days => '過去 30 天';
 
   @override
   String monthLabel(int m) {
@@ -8215,6 +8214,10 @@ class LZhHant extends LZh {
 
   @override
   String get queryNcBodyweight => '紀錄裡沒有體重。在問題裡寫上體重就會拿來比較（例：體重80，硬舉是幾倍？）';
+
+  @override
+  String get queryNcWeightForecast =>
+      '不計算以後會是多少公斤——紀錄裡只有吃了什麼和運動消耗，沒有基礎代謝和日常活動消耗的熱量';
 
   @override
   String get queryNcHeartRate => '紀錄搜尋暫時不看心率；按動作或休息的心率因為組沒有時間而無法查看';

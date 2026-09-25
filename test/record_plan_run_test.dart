@@ -679,6 +679,29 @@ void main() {
     expect(plan(raw, question: '데드 체중의 2배 넘었어?').against, isNull);
   });
 
+  test('기준 체중은 무게 답과만 견준다 — 섭취 kcal 을 80kg 으로 나누지 않는다', () {
+    final r = run({
+      'period': 'thisMonth',
+      'measures': ['intake', 'balance'],
+      'against': {'value': 80, 'unit': 'kg'},
+    }, question: '지금 체중 80kg인데 이 칼로리 섭취 추세면 한달뒤 몇키로가 될까?');
+    expect(r.lines, isEmpty, reason: '"≈607배" 같은 줄이 없다');
+    expect(r.title, isEmpty, reason: '먹은 것·운동 소모만 물었다 — "모든 운동" 제목을 달지 않는다');
+  });
+
+  test('"한 달 뒤 몇 kg" 은 체중을 적어도 답할 수 없다고 까닭을 말한다', () {
+    for (final said in [
+      ['체중 변화 예측', '한 달 뒤 체중'],
+      ['체중', '예측'],
+    ]) {
+      expect(notComputableLines(l, said), [
+        l.queryNcWeightForecast,
+      ], reason: '$said');
+    }
+    // 체중 자체만 없는 질문은 '체중을 적으면 견줘요' 를 그대로 안내한다.
+    expect(notComputableLines(l, ['체중']), [l.queryNcBodyweight]);
+  });
+
   test('G17: 섭취 − 소모는 둘 다 있는 날만 뺀다', () {
     final r = run({
       'period': 'thisMonth',
@@ -692,7 +715,7 @@ void main() {
       l.answerIntakeOnlyDays(1),
     ]);
     expect(intake.answer!.numericValue, 2000);
-    expect(intake.answer!.headline, l.answerAbout('2000kcal'));
+    expect(intake.answer!.headline, l.answerAbout('2,000kcal'));
     expect(intake.answer!.lines, [l.answerMealDays(3), l.queryUnknownMeals(1)]);
     expect(burned.answer!.numericValue, 550);
     // 쉰 날 먹은 것 / 운동한 날 먹은 것.

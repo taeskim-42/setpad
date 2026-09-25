@@ -51,9 +51,6 @@ class LJa extends L {
   String get previous7Days => '過去7日間';
 
   @override
-  String get previous30Days => '過去30日間';
-
-  @override
   String monthLabel(int m) {
     return '$m月';
   }
@@ -1990,6 +1987,10 @@ class LJa extends L {
   @override
   String get queryNcBodyweight =>
       '体重は記録にありません。質問に体重を書けばその数と比べます（例: 体重80でデッドは何倍？）';
+
+  @override
+  String get queryNcWeightForecast =>
+      '何kgになるかは計算しません。記録にあるのは食べた分と運動の消費だけで、基礎代謝や日常の活動で使うカロリーがありません';
 
   @override
   String get queryNcHeartRate =>

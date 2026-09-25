@@ -181,13 +181,7 @@ abstract class L {
   /// **'이전 7일'**
   String get previous7Days;
 
-  /// No description provided for @previous30Days.
-  ///
-  /// In ko, this message translates to:
-  /// **'이전 30일'**
-  String get previous30Days;
-
-  /// 30일보다 오래된 묶음의 제목
+  /// 이전 7일보다 앞, 올해의 달 묶음 제목
   ///
   /// In ko, this message translates to:
   /// **'{m}월'**
@@ -3294,6 +3288,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'체중은 기록에 없어요 — 질문에 체중을 적으면 그 수와 견줘요(예: 체중 80인데 데드 몇 배?)'**
   String get queryNcBodyweight;
+
+  /// No description provided for @queryNcWeightForecast.
+  ///
+  /// In ko, this message translates to:
+  /// **'몇 kg 이 될지는 계산하지 않아요 — 기록에는 먹은 것과 운동 소모만 있고, 기초대사량·일상 활동으로 쓰는 칼로리가 없어요'**
+  String get queryNcWeightForecast;
 
   /// 못 보는 것: 심박(정직하게)
   ///

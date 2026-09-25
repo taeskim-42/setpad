@@ -51,9 +51,6 @@ class LTh extends L {
   String get previous7Days => '7 วันที่ผ่านมา';
 
   @override
-  String get previous30Days => '30 วันที่ผ่านมา';
-
-  @override
   String monthLabel(int m) {
     return 'เดือน $m';
   }
@@ -2037,6 +2034,10 @@ class LTh extends L {
   @override
   String get queryNcBodyweight =>
       'ไม่มีน้ำหนักตัวในบันทึก ใส่น้ำหนักในคำถามแล้วจะเทียบให้ (เช่น หนัก 80 เดดลิฟต์ได้กี่เท่า)';
+
+  @override
+  String get queryNcWeightForecast =>
+      'ไม่คำนวณว่าน้ำหนักจะเป็นเท่าไร เพราะบันทึกมีแค่สิ่งที่กินและแคลอรีจากการออกกำลังกาย ไม่มีการเผาผลาญขณะพักและกิจกรรมประจำวัน';
 
   @override
   String get queryNcHeartRate =>

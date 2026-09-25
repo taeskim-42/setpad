@@ -51,9 +51,6 @@ class LKo extends L {
   String get previous7Days => '이전 7일';
 
   @override
-  String get previous30Days => '이전 30일';
-
-  @override
   String monthLabel(int m) {
     return '$m월';
   }
@@ -1996,6 +1993,10 @@ class LKo extends L {
   @override
   String get queryNcBodyweight =>
       '체중은 기록에 없어요 — 질문에 체중을 적으면 그 수와 견줘요(예: 체중 80인데 데드 몇 배?)';
+
+  @override
+  String get queryNcWeightForecast =>
+      '몇 kg 이 될지는 계산하지 않아요 — 기록에는 먹은 것과 운동 소모만 있고, 기초대사량·일상 활동으로 쓰는 칼로리가 없어요';
 
   @override
   String get queryNcHeartRate =>

@@ -547,9 +547,14 @@ class TableCard extends StatelessWidget {
     final Widget grid;
     if (contrast) {
       grid = table([
-        TableRow(
-          children: [const SizedBox.shrink(), for (final t in targets) head(t)],
-        ),
+        // 대상이 하나면 칸 머리가 제목(또는 '모든 운동')을 되풀이할 뿐이다.
+        if (targets.length > 1)
+          TableRow(
+            children: [
+              const SizedBox.shrink(),
+              for (final t in targets) head(t),
+            ],
+          ),
         for (var m = 0; m < measures.length; m++)
           TableRow(
             decoration: line,
@@ -673,18 +678,19 @@ class TableCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Semantics(
-                        header: true,
-                        child: Text(
-                          r.title,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.9,
-                            height: 1.12,
+                      if (r.title.isNotEmpty)
+                        Semantics(
+                          header: true,
+                          child: Text(
+                            r.title,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.9,
+                              height: 1.12,
+                            ),
                           ),
                         ),
-                      ),
                       if (headline != null) ...[
                         const SizedBox(height: 10),
                         Text(

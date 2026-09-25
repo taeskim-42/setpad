@@ -78,7 +78,7 @@ void main() {
 
   test('볼륨은 무게×횟수의 합이다', () {
     // 60*12 + 65*10 + 70*8 + 80*5 + 75*6 = 720+650+560+400+450
-    expect(answer(notes, Metric.volume, '벤치프레스').headline, '2780kg');
+    expect(answer(notes, Metric.volume, '벤치프레스').headline, '2,780kg');
   });
 
   test('since 밖의 날은 빠진다', () {
@@ -234,10 +234,10 @@ void main() {
     });
 
     test('볼륨: 벤치 2080, 로우는 150lb 를 kg 로 바꿔 ≈1720.19', () {
-      expect(ask(Metric.volume, '벤치프레스').headline, '2080kg');
+      expect(ask(Metric.volume, '벤치프레스').headline, '2,080kg');
       final row = ask(Metric.volume, '바벨로우');
       expect(row.numericValue, closeTo(960 + 420 + 150 * 0.45359237 * 5, 1e-9));
-      expect(row.headline, '≈1720.19kg');
+      expect(row.headline, '≈1,720.19kg');
     });
 
     test('무게가 없으면 최고는 반복·시간·거리다', () {
@@ -453,7 +453,7 @@ void main() {
       );
       final l = lookupL(const Locale('ko'));
       final intake = energyAnswer(logs, Metric.intake);
-      expect((intake.numericValue, intake.headline), (1600, '1600kcal'));
+      expect((intake.numericValue, intake.headline), (1600, '1,600kcal'));
       expect(intake.lines, [l.answerMealDays(2), l.queryUnknownMeals(1)]);
       final burned = energyAnswer(logs, Metric.burned);
       expect(burned.numericValue, 400);

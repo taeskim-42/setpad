@@ -41,10 +41,9 @@
     }
   },
   "previous7Days": "이전 7일",
-  "previous30Days": "이전 30일",
   "monthLabel": "{m}월",
   "@monthLabel": {
-    "description": "30일보다 오래된 묶음의 제목",
+    "description": "이전 7일보다 앞, 올해의 달 묶음 제목",
     "placeholders": {
       "m": {
         "type": "int"
@@ -1856,6 +1855,7 @@
     "description": "각주: 여러 운동을 섞은 무게"
   },
   "queryNcBodyweight": "체중은 기록에 없어요 — 질문에 체중을 적으면 그 수와 견줘요(예: 체중 80인데 데드 몇 배?)",
+  "queryNcWeightForecast": "몇 kg 이 될지는 계산하지 않아요 — 기록에는 먹은 것과 운동 소모만 있고, 기초대사량·일상 활동으로 쓰는 칼로리가 없어요",
   "@queryNcBodyweight": {
     "description": "못 보는 것: 체중(질문에 적으면 견줌)"
   },
