@@ -98,8 +98,9 @@ void main() {
   });
 
   // 이번 주: 월 근력 · 수 지속력 · 목 근력 · 금 타바타. 지난 화(9/8)는 스쿼트 채우기(4세트)
-  // + 벤치 3×10 — 근지구력 날.
-  List<Note> endLog({bool fillFirst = true}) {
+  // + 벤치 3×10 — 채우기가 본운동이라 근지구력 날. [warmUp] 이면 러닝 10분으로 몸을 푼 뒤라
+  // 채우기가 첫 칸이 아니어도 본운동이다.
+  List<Note> endLog({bool warmUp = false}) {
     final fill = ExerciseBlock('스쿼트 60kg 100개 채우기', [
       kg(60, 30),
       kg(60, 25),
@@ -108,7 +109,11 @@ void main() {
     ], const WorkoutSetup(name: '스쿼트', weight: 60, totalReps: 100));
     final bench = ExerciseBlock('벤치프레스', times(3, () => kg(60, 10)));
     return [
-      at(DateTime(2026, 9, 8, 19), fillFirst ? [fill, bench] : [bench, fill]),
+      at(DateTime(2026, 9, 8, 19), [
+        if (warmUp) ExerciseBlock('러닝', [timed(10, 'min')]),
+        fill,
+        bench,
+      ]),
       at(DateTime(2026, 9, 14, 19), [
         ExerciseBlock('데드리프트', times(3, () => kg(100, 10))),
         ExerciseBlock('랫풀다운', times(3, () => kg(50, 10))),
@@ -149,24 +154,29 @@ void main() {
   });
 
   test('개수를 줄여도 목표 요인 칸은 남긴다(그날 순서대로) — 요인 머리도 남은 칸으로', () {
-    final log = endLog(fillFirst: false);
+    // 몸풀기 러닝이 첫 칸이라 앞에서 자르면 채우기가 빠진다.
+    final log = endLog(warmUp: true);
+    const why = '이번 주 근지구력이 부족해서 화요일(9. 8.)로 짰어요';
     final d = make(log, sat, gold: {'count': 1}, text: '1개만');
     expect((d.source, d.target), ('factor', Factor.endurance));
     expect(d.items.map((i) => i.title), ['스쿼트 60kg 100개 채우기']);
     expect(d.factor?.factor, Factor.endurance);
+    expect(routineWhy(l, d), why);
     final two = make(log, sat, gold: {'count': 2}, text: '2개만');
-    expect(two.items.map((i) => i.title), ['벤치프레스', '스쿼트 60kg 100개 채우기']);
+    expect(two.items.map((i) => i.title), ['러닝', '스쿼트 60kg 100개 채우기']);
+    expect(two.factor?.factor, Factor.endurance);
+    expect(routineWhy(l, two), why);
   });
 
   test('목표 요인 칸을 ✕ 로 빼면 "부족해서" 대신 빠졌다고 말한다', () {
-    final log = endLog(fillFirst: false);
+    final log = endLog(warmUp: true);
     final d = make(
       log,
       sat,
       edits: RoutineEdits()..removed.add('2026-09-08|스쿼트'),
     );
     expect((d.source, d.target), ('factor', Factor.endurance));
-    expect(d.items.map((i) => i.key), ['벤치프레스']);
+    expect(d.items.map((i) => i.key), ['러닝', '벤치프레스']);
     expect(d.factor?.factor, Factor.strength);
     expect(routineWhy(l, d), isNull);
     expect([
@@ -179,8 +189,9 @@ void main() {
       mw[0],
       mw[1],
       mw[3],
-      // 기록한 맨몸 운동 — 타바타로 칩이 이것에 타바타를 붙인다.
-      at(DateTime(2026, 9, 15, 7), [
+      // 기록한 맨몸 운동 — 타바타로 칩이 이것에 타바타를 붙인다. 화요일 채우기 뒤의
+      // 마무리라 그날은 근지구력 날 그대로다(본운동은 첫 칸).
+      at(DateTime(2026, 9, 15, 20), [
         ExerciseBlock('버피', times(3, () => reps(15))),
       ]),
     ];
@@ -323,24 +334,37 @@ void main() {
     );
   });
 
-  test('픽스처 토요일(오늘 9/9): 심폐 날(9/1 러닝)이 첫 원천, 다른 루틴 → 9/5', () {
-    final d = make(
-      defaultLog(),
+  test('픽스처 토요일(오늘 9/9): 심폐 날(9/1 러닝)이 첫 원천, 다른 루틴 → 타바타로 시작한 9/5', () {
+    // 픽스처의 9/5 는 푸시업이 본운동이고 타바타는 마무리라 근력 날이다 — 타바타를 앞에 두어
+    // 두 번째 심폐 날로 만든다.
+    final log = [
+      for (final n in defaultLog())
+        n.id == '0905' ? session('0905', 9, 5, n.blocks.reversed.toList()) : n,
+    ];
+    RoutineDraft saturday({int alt = 0}) => make(
+      log,
       routineToday,
       gold: {'when': 6},
       text: '토요일 루틴 짜줘',
+      edits: RoutineEdits()..alt = alt,
     );
+    final d = saturday();
     expect(d.target, Factor.cardio);
     expect(d.missing, [Factor.endurance, Factor.sustain]);
     expect(d.sourceDay, DateTime(2026, 9, 1));
-    final alt = make(
+    final alt = saturday(alt: 1);
+    expect((alt.source, alt.sourceDay), ('factor', DateTime(2026, 9, 5)));
+    expect(alt.factor?.factor, Factor.cardio);
+    expect(routineWhy(l, alt), '이번 주 심폐가 부족해서 토요일(9. 5.)로 짰어요');
+    // 픽스처 그대로면 심폐 날은 9/1 하나 — 다른 루틴은 회전으로 넘어간다.
+    final plain = make(
       defaultLog(),
       routineToday,
       gold: {'when': 6},
       text: '토요일 루틴 짜줘',
       edits: RoutineEdits()..alt = 1,
     );
-    expect(alt.sourceDay, DateTime(2026, 9, 5));
+    expect((plain.source, plain.sourceDay), ('rotation', DateTime(2026, 9, 2)));
   });
 
   test('채점 C14·C15: 고른 까닭이 없거나 원천 날의 요인이 목표와 다르면 깨짐', () {
@@ -351,7 +375,7 @@ void main() {
       contains(startsWith('C15')),
     );
     // C15 는 루틴에 남은 칸으로 본다 — 채우기 칸이 빠졌는데 말하지 않으면 깨짐.
-    final log = endLog(fillFirst: false);
+    final log = endLog(warmUp: true);
     final cut = make(log, sat);
     cut.items.removeWhere((i) => i.key == '스쿼트');
     expect(

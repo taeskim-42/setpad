@@ -140,32 +140,21 @@ FactorRead? factorOf(ExerciseBlock b) {
         ...n.blocks,
     ]);
 
-/// 칸들(시각 순)의 요인: 칸마다 무게를 더해 가장 큰 요인, 같으면 먼저 나온 요인. 순발력은
-/// 근력 칸으로 센다(F1). 이름은 그 칸 안에서 무게가 큰 쪽(같으면 먼저 나온 쪽)이다 —
-/// 5×5 만 한 날은 순발력, 3×10 이 더 많으면 근력. 근거는 그 요인의 첫 칸이다. 가를 칸이
-/// 없으면 null.
+/// 칸들(시각 순)의 요인: 그날의 본운동 — 요인을 가를 수 있는 첫 칸 — 의 요인이다. 마무리로
+/// 붙인 채우기나 보조 운동은 그날을 바꾸지 않는다(사용자 결정, 2026-09-25). 다만 뒤에 다른
+/// 운동이 이어지는 앞머리 유산소(거리·시간)는 몸풀기로 보고 건너뛴다. 가를 칸이 없으면 null.
+/// 주간 셈에서 순발력은 근력 칸으로 센다([merged], F1).
 ({Factor factor, FactorRead read})? dayFactorOf(
   Iterable<ExerciseBlock> blocks,
 ) {
-  final w = <Factor, int>{};
-  final reads = <Factor, FactorRead>{}; // 먼저 나온 순
-  for (final b in blocks) {
-    final x = factorOf(b);
-    if (x == null) continue;
-    reads.putIfAbsent(x.factor, () => x);
-    w.update(x.factor, (v) => v + x.weight, ifAbsent: () => x.weight);
-  }
-  if (w.isEmpty) return null;
-  final group = <Factor, int>{};
-  for (final e in w.entries) {
-    group.update(merged(e.key), (v) => v + e.value, ifAbsent: () => e.value);
-  }
-  // 같으면 앞의 것이 남는다.
-  Factor top(Iterable<Factor> fs, int Function(Factor) of) =>
-      fs.reduce((a, b) => of(b) > of(a) ? b : a);
-  final g = top(group.keys, (f) => group[f]!);
-  final f = top(reads.keys.where((f) => merged(f) == g), (f) => w[f]!);
-  return (factor: f, read: reads[f]!);
+  final reads = [for (final b in blocks) ?factorOf(b)];
+  if (reads.isEmpty) return null;
+  final lifted = reads.any((x) => x.why != 'distance');
+  final main = reads.firstWhere(
+    (x) => !(lifted && x.why == 'distance'),
+    orElse: () => reads.first,
+  );
+  return (factor: main.factor, read: main);
 }
 
 DateTime calendarDay(DateTime d) => DateTime(d.year, d.month, d.day);

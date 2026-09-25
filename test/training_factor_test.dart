@@ -163,15 +163,19 @@ void main() {
     Factor? day(List<Note> notes, int m, int d) =>
         dayFactor(notesByDay(notes)[DateTime(2026, m, d)]!)?.factor;
 
-    test('픽스처(K): 무게를 더해 가장 큰 요인', () {
-      final log = defaultLog();
-      expect(day(log, 8, 24), Factor.strength);
-      expect(day(log, 9, 1), Factor.cardio);
-      expect(day(log, 9, 2), Factor.strength);
-      // 푸시업 3세트(근력) 대 타바타 8라운드(심폐).
-      expect(day(log, 9, 5), Factor.cardio);
-      expect(day(log, 9, 8), Factor.strength);
-    });
+    test(
+      '픽스처(K): 그날 본운동(첫 칸)의 요인 — 3×5 로 시작한 날은 순발력(셈은 근력), 타바타 마무리는 그날을 바꾸지 않는다',
+      () {
+        final log = defaultLog();
+        expect(day(log, 8, 24), Factor.power);
+        expect(merged(day(log, 8, 24)!), Factor.strength);
+        expect(day(log, 9, 1), Factor.cardio);
+        expect(day(log, 9, 2), Factor.power);
+        // 푸시업 3세트(첫 칸)가 본운동이고 타바타 8라운드는 마무리다.
+        expect(day(log, 9, 5), Factor.strength);
+        expect(day(log, 9, 8), Factor.power);
+      },
+    );
 
     test('방식 주(L): 월 순발력 · 화 근지구력 · 수 근력 · 목 지속력 · 금 심폐', () {
       final log = methodWeek(DateTime(2026, 9, 14));
@@ -205,40 +209,69 @@ void main() {
       expect(day(plank, 9, 1), isNull);
     });
 
-    test('순발력과 근력은 한 칸으로 센다 — 5×5 + 3×10 날에 채우기 마무리(7세트)가 붙어도 근력 쪽(F1)', () {
-      final day = [
-        at(DateTime(2026, 9, 14, 19), [
-          ExerciseBlock('스쿼트', times(5, () => kg(100, 5))),
-          ExerciseBlock('루마니안 데드리프트', times(3, () => kg(80, 10))),
-          ExerciseBlock('레그컬', times(3, () => kg(40, 12))),
-          ExerciseBlock('푸시업 100개 채우기', [
-            reps(20),
-            reps(15),
-            reps(15),
-            reps(15),
-            reps(15),
-            reps(10),
-            reps(10),
-          ]),
-        ]),
-      ];
-      final x = dayFactor(day)!;
-      // 셈은 근력 칸(5+3+3 = 11 > 7). 이름은 그 칸 안에서 큰 쪽(3×10·3×12 의 6 > 5).
-      expect(x.factor, Factor.strength);
-      expect(show(x.read), 'strength sets 3,10');
-      // 5×5 만이면 순발력 이름이 남는다.
-      expect(
-        dayFactor([
+    test(
+      '그날 요인은 본운동(첫 칸) — 5×5 로 시작한 날은 뒤에 3×10·채우기 마무리가 붙어도 순발력 날, 주간 셈은 근력 칸(F1)',
+      () {
+        final day = [
           at(DateTime(2026, 9, 14, 19), [
             ExerciseBlock('스쿼트', times(5, () => kg(100, 5))),
-            ExerciseBlock('푸시업 100개 채우기', [reps(60), reps(40)]),
+            ExerciseBlock('루마니안 데드리프트', times(3, () => kg(80, 10))),
+            ExerciseBlock('레그컬', times(3, () => kg(40, 12))),
+            ExerciseBlock('푸시업 100개 채우기', [
+              reps(20),
+              reps(15),
+              reps(15),
+              reps(15),
+              reps(15),
+              reps(10),
+              reps(10),
+            ]),
           ]),
-        ])!.factor,
-        Factor.power,
-      );
+        ];
+        final x = dayFactor(day)!;
+        expect(x.factor, Factor.power);
+        expect(merged(x.factor), Factor.strength);
+        // 5×5 뒤에 채우기만 붙어도 그날은 본운동의 요인이다.
+        expect(
+          dayFactor([
+            at(DateTime(2026, 9, 14, 19), [
+              ExerciseBlock('스쿼트', times(5, () => kg(100, 5))),
+              ExerciseBlock('푸시업 100개 채우기', [reps(60), reps(40)]),
+            ]),
+          ])!.factor,
+          Factor.power,
+        );
+      },
+    );
+
+    test('본운동 3×10 두 칸 + 마무리 크런치 100개 채우기(7세트)는 근력 날 — 마무리가 그날을 바꾸지 않는다', () {
+      final day = [
+        at(DateTime(2026, 9, 16, 19), [
+          ExerciseBlock('벤치프레스', times(3, () => kg(60, 10))),
+          ExerciseBlock('바벨로우', times(3, () => kg(50, 10))),
+          ExerciseBlock('크런치 100개 채우기', times(7, () => reps(15))),
+        ]),
+      ];
+      expect(dayFactor(day)!.factor, Factor.strength);
     });
 
-    test('하루 두 번(아침 러닝 + 저녁 웨이트)은 한 날 — 세트가 많은 쪽', () {
+    test('앞머리 몸풀기 유산소는 건너뛴다 — 러닝머신 뒤 5×5 는 순발력 날, 러닝만 한 날은 심폐', () {
+      final warm = [
+        at(DateTime(2026, 9, 17, 19), [
+          ExerciseBlock('러닝', [timed(10, 'min')]),
+          ExerciseBlock('스쿼트', times(5, () => kg(100, 5))),
+        ]),
+      ];
+      expect(dayFactor(warm)!.factor, Factor.power);
+      final run = [
+        at(DateTime(2026, 9, 18, 7), [
+          ExerciseBlock('러닝', [timed(5, 'km')]),
+        ]),
+      ];
+      expect(dayFactor(run)!.factor, Factor.cardio);
+    });
+
+    test('하루 두 번(아침 러닝 + 저녁 웨이트)은 한 날 — 앞머리 유산소는 건너뛰고 본운동', () {
       final two = [
         at(DateTime(2026, 9, 10, 7), [
           ExerciseBlock('러닝', [timed(5, 'km')]),

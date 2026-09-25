@@ -2398,7 +2398,7 @@ RoutineDraft composeRoutine(
       draft.source = mode == 'weekday' ? 'weekday' : 'factor';
       draft.sourceDay = pick;
       draft.restDays = restOn(pick);
-      // 칩을 가를 요인(거른 뒤 칸). 카드의 요인은 자른 뒤 남은 칸으로 다시 센다(아래).
+      // 칩을 가를 요인(거른 뒤 칸). 카드의 요인은 자른 뒤 남은 칸으로 다시 가른다(아래).
       draft.factor = dayFactorOf(keptOn(pick));
       // 거름에 걸린 칸은 줄로(넣기) — 고른 날과, 거른 칸뿐이라 건너뛴 같은 요일.
       var shown = [pick];
@@ -2684,7 +2684,8 @@ RoutineDraft composeRoutine(
   list = [...fixedPart, ...free.where(taken.contains)];
   if (fixedCount == 0 && list.isEmpty && free.isNotEmpty) list = [order.first];
 
-  // 카드의 요인은 루틴에 남은 원천 날 칸으로 센다 — 뺀 칸(거름·✕·개수)을 설명하지 않는다.
+  // 카드의 요인은 루틴에 남은 원천 날 칸의 본운동(첫 칸)으로 가른다 — 뺀 칸(거름·✕·개수)을
+  // 설명하지 않는다.
   // 요인 원천인데 목표 요인이 남지 않았으면 "부족해서" 대신 빠졌다고 말한다.
   if (draft.source == 'weekday' || draft.source == 'factor') {
     final stay = {

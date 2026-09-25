@@ -98,7 +98,7 @@ void main() {
     expect(d.weeksAgo, isNull);
   });
 
-  test('S3 하루 두 번(아침 러닝 + 저녁 웨이트)은 하루 통째, 요인은 세트가 많은 쪽', () {
+  test('S3 하루 두 번(아침 러닝 + 저녁 웨이트)은 하루 통째, 요인은 앞머리 러닝을 건너뛴 본운동', () {
     final log = [
       ...split,
       at(DateTime(2026, 9, 10, 7), [

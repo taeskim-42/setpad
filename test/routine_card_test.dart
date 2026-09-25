@@ -970,12 +970,13 @@ void main() {
       find.text(l.routineWhyWeekday(1, l.weekdayLabel(d), l.routineDate(d))),
       findsOneWidget,
     );
-    // 9/2: 스쿼트 3×5(순발력 4세트) 대 루마니안·레그컬(근력 6세트) → 근력 날, 첫 근력 칸.
+    // 9/2: 본운동(첫 칸) 스쿼트의 작업 세트 3×5 → 순발력 날. 뒤의 루마니안·레그컬(3×10)은
+    // 그날을 바꾸지 않는다.
     expect(
       find.text(
         l.routineFactorDay(
-          l.routineFactor('strength'),
-          l.routineFactorWhy('sets', '3', '10'),
+          l.routineFactor('power'),
+          l.routineFactorWhy('sets', '3', '5'),
         ),
       ),
       findsOneWidget,
@@ -990,7 +991,8 @@ void main() {
         mw[0],
         mw[1],
         mw[3],
-        at(DateTime(2026, 9, 15, 7), [
+        // 화요일 채우기 뒤 마무리 버피 — 그날은 근지구력 날 그대로다.
+        at(DateTime(2026, 9, 15, 20), [
           ExerciseBlock('버피', times(3, () => reps(15))),
         ]),
       ],
