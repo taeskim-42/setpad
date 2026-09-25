@@ -251,6 +251,8 @@
   "sameDayToday": "Registro aparte de hoy, {time}",
   "sameDayOn": "Registro aparte del {date}, {time}",
   "sameDayMore": "{first} y {n} más",
+  "lastWeekDay": "El {weekday} pasado ({date})",
+  "weeksAgoDay": "{weekday} de hace {n} semanas ({date})",
   "mealText": "Escribir comida",
   "mealTextHint": "¿Qué comiste? p. ej. 2 plátanos, leche 200ml",
   "kcalApprox": "≈ {n} kcal",

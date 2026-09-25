@@ -251,6 +251,8 @@
   "sameDayToday": "今天 {time} 另外保存的紀錄",
   "sameDayOn": "{date} {time} 另外保存的紀錄",
   "sameDayMore": "{first} 等{n}項",
+  "lastWeekDay": "上週{weekday}（{date}）的訓練",
+  "weeksAgoDay": "{n}週前{weekday}（{date}）的訓練",
   "mealText": "記錄飲食",
   "mealTextHint": "吃了什麼？例如：香蕉2根，牛奶200ml",
   "kcalApprox": "約 {n} 大卡",

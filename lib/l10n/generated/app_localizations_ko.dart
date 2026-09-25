@@ -949,6 +949,16 @@ class LKo extends L {
   }
 
   @override
+  String lastWeekDay(String weekday, String date) {
+    return '지난주 $weekday($date) 운동';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$n주 전 $weekday($date) 운동';
+  }
+
+  @override
   String get mealText => '식단 적기';
 
   @override

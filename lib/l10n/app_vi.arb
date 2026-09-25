@@ -251,6 +251,8 @@
   "sameDayToday": "Bản ghi riêng hôm nay lúc {time}",
   "sameDayOn": "Bản ghi riêng ngày {date} lúc {time}",
   "sameDayMore": "{first} và {n} bài khác",
+  "lastWeekDay": "{weekday} tuần trước ({date})",
+  "weeksAgoDay": "{weekday} {n} tuần trước ({date})",
   "mealText": "Ghi bữa ăn",
   "mealTextHint": "Bạn đã ăn gì? VD: 2 quả chuối, sữa 200ml",
   "kcalApprox": "≈ {n} kcal",

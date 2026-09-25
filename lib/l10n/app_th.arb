@@ -251,6 +251,8 @@
   "sameDayToday": "บันทึกแยกของวันนี้ เวลา {time}",
   "sameDayOn": "บันทึกแยกของวันที่ {date} เวลา {time}",
   "sameDayMore": "{first} และอีก {n} ท่า",
+  "lastWeekDay": "{weekday}ที่แล้ว ({date})",
+  "weeksAgoDay": "{weekday} เมื่อ {n} สัปดาห์ก่อน ({date})",
   "mealText": "จดมื้ออาหาร",
   "mealTextHint": "กินอะไรไปบ้าง เช่น กล้วย 2 ลูก, นม 200ml",
   "kcalApprox": "≈ {n} kcal",

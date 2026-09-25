@@ -251,6 +251,8 @@
   "sameDayToday": "今日 {time} に別に残した記録",
   "sameDayOn": "{date} {time} に別に残した記録",
   "sameDayMore": "{first} ほか{n}件",
+  "lastWeekDay": "先週の{weekday}（{date}）の運動",
+  "weeksAgoDay": "{n}週間前の{weekday}（{date}）の運動",
   "mealText": "食事を書く",
   "mealTextHint": "食べたものを書いてください。例: バナナ2本、牛乳200ml",
   "kcalApprox": "約{n}kcal",

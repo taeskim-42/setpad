@@ -251,6 +251,8 @@
   "sameDayToday": "Separate record from today, {time}",
   "sameDayOn": "Separate record from {date}, {time}",
   "sameDayMore": "{first} + {n} more",
+  "lastWeekDay": "Last {weekday} ({date})",
+  "weeksAgoDay": "{weekday} {n} weeks ago ({date})",
   "mealText": "Write meal",
   "mealTextHint": "What did you eat? e.g. 2 bananas, milk 200ml",
   "kcalApprox": "≈ {n} kcal",

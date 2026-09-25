@@ -967,6 +967,16 @@ class LTh extends L {
   }
 
   @override
+  String lastWeekDay(String weekday, String date) {
+    return '$weekdayที่แล้ว ($date)';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$weekday เมื่อ $n สัปดาห์ก่อน ($date)';
+  }
+
+  @override
   String get mealText => 'จดมื้ออาหาร';
 
   @override

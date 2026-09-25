@@ -907,47 +907,35 @@ void main() {
       expect(find.text('3 47.5×10'), findsOneWidget);
     });
 
-    testWidgets('같은 날의 다른 문서는 합치지 않고 아래에 읽기 전용으로 보인다', (tester) async {
-      final dir = Directory.systemTemp.createTempSync('setpad_sameday_');
+    testWidgets('하루에 기록은 한 곳이고, 아래에는 지난주 같은 요일 운동이 접혀 보인다', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_lastweek_');
       final store = NotesStore(directory: dir);
       addTearDown(() {
         store.dispose();
         dir.deleteSync(recursive: true);
       });
-      final morning = store.create(
+      final now = DateTime.now();
+      final lastWeek = store.create(
+        at: now.subtract(const Duration(days: 7)),
         blocks: [
           ExerciseBlock('아침 달리기', [LoggedSet(value: 5, unit: 'km')]),
         ],
       );
-      final evening = store.create(
-        blocks: [
-          ExerciseBlock('벤치프레스', [LoggedSet(value: 80, reps: 10)]),
-        ],
-      );
-      await pumpPage(tester, EditorPage(store: store, note: evening));
-      // 요일이 아니라 그날이다 — 언제 남긴 기록인지 적는다.
+      final today = store.today()
+        ..blocks.add(ExerciseBlock('벤치프레스', [LoggedSet(value: 80, reps: 10)]));
       expect(
-        find.textContaining(RegExp(r'오늘 .+에 따로 남긴 기록')),
-        findsOneWidget,
+        identical(store.today(), today),
+        isTrue,
+        reason: '오늘 기록이 있으면 새로 만들지 않는다',
       );
+      await pumpPage(tester, EditorPage(store: store, note: today));
+      expect(find.textContaining(RegExp(r'^지난주 .+ 운동')), findsOneWidget);
       // 기본은 접힌 한 줄 — 누르면 세트까지 펼친다.
       expect(find.textContaining('아침 달리기'), findsOneWidget);
       expect(find.text('1 5km'), findsNothing);
-      await tester.tap(find.byKey(ValueKey('same-day-${morning.id}')));
+      await tester.tap(find.byKey(ValueKey('past-${lastWeek.id}')));
       await tester.pumpAndSettle();
-      expect(find.text('아침 달리기'), findsOneWidget);
       expect(find.text('1 5km'), findsOneWidget);
-      expect(evening.blocks, hasLength(1), reason: '원본을 합치지 않는다');
-      expect(morning.blocks, hasLength(1));
-
-      // 전체 보기에도 두 문서가 다 들어간다.
-      await tester.tap(find.byKey(const ValueKey('record-menu')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('menu-day-sheet')));
-      await tester.pumpAndSettle();
-      expect(find.byType(InteractiveViewer), findsOneWidget);
-      expect(find.text('1 5km'), findsWidgets);
-      expect(find.text('1 80×10'), findsWidgets);
     });
   });
 }

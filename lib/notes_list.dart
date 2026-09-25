@@ -1784,7 +1784,8 @@ class _NotesListPageState extends State<NotesListPage>
               _ask();
             },
             onSubmitted: (_) => _ask(immediately: true),
-            onNew: () => _open(widget.store.create()),
+            // 새 기록 단추도 오늘 기록이 있으면 그것을 연다 — 하루 한 곳.
+            onNew: () => _open(widget.store.today()),
           ),
         ],
       ),

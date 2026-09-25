@@ -848,6 +848,31 @@
   },
   "sameDayOn": "{date} {time}에 따로 남긴 기록",
   "sameDayMore": "{first} 외 {n}개",
+  "lastWeekDay": "지난주 {weekday}({date}) 운동",
+  "@lastWeekDay": {
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "weeksAgoDay": "{n}주 전 {weekday}({date}) 운동",
+  "@weeksAgoDay": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "weekday": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "@sameDayOn": {
     "placeholders": {
       "date": {

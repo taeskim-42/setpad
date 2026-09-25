@@ -156,18 +156,9 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) => _open(_todayOrNew()));
   }
 
-  /// 오늘 고친 메모가 있으면 이어 쓴다. 하루에 앱을 여러 번 여는 흐름에서
-  /// 열 때마다 새 기록이 쌓이면 목록이 못 쓰게 된다.
-  Note _todayOrNew() {
-    final now = DateTime.now();
-    for (final n in _store.notes) {
-      final d = n.updatedAt;
-      if (d.year == now.year && d.month == now.month && d.day == now.day) {
-        return n;
-      }
-    }
-    return _store.create();
-  }
+  /// 오늘 기록을 이어 쓴다. 하루에 앱을 여러 번 여는 흐름에서 열 때마다 새 기록이
+  /// 쌓이면 목록이 못 쓰게 된다.
+  Note _todayOrNew() => _store.today();
 
   Future<void> _open(Note note) async {
     await Navigator.of(context).push(
@@ -683,6 +674,27 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
 
+  /// 지난주 같은 요일의 운동 — 없으면 4주 전까지 같은 요일을 거슬러 본다. 오늘
+  /// 무엇을 얼마나 할지 옆에서 본다(읽기 전용). 같은 날 기록은 하나로 모은다
+  /// ([NotesStore.today]) — 그래서 여기 보일 것은 지난 운동이다.
+  (Note, int)? get _lastWeek {
+    final at = widget.note.createdAt;
+    for (var w = 1; w <= 4; w++) {
+      final d = DateTime(at.year, at.month, at.day - 7 * w);
+      for (final n in widget.store.notes) {
+        final c = n.createdAt;
+        if (n != widget.note &&
+            n.blocks.any((b) => b.sets.isNotEmpty) &&
+            c.year == d.year &&
+            c.month == d.month &&
+            c.day == d.day) {
+          return (n, w);
+        }
+      }
+    }
+    return null;
+  }
+
   /// 글로 적은 한 끼를 저장한다. 묻지 않는다 — 모르는 음식도, 양이 없는 글도
   /// 친 그대로 남고, 열량은 사람이 적었을 때만 있다. 일부만 적었으면 적은 합을
   /// 먼저 넣어 둔다 — 어림이 막혀도 적은 수는 합계에서 빠지지 않는다. 고치다
@@ -1164,9 +1176,23 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                         estimating: _estimatingMeals,
                         onRetryMeal: _estimateMealText,
                       ),
-                      footer: _sameDay.isEmpty
-                          ? null
-                          : _SameDay(notes: _sameDay),
+                      footer: switch (_lastWeek) {
+                        (final n, final w) => Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: _PastCard(
+                            note: n,
+                            title:
+                                (w == 1
+                                ? l.lastWeekDay
+                                : (String a, String b) =>
+                                      l.weeksAgoDay(w, a, b))(
+                                  l.weekdayLabel(n.createdAt),
+                                  l.routineDate(n.createdAt),
+                                ),
+                          ),
+                        ),
+                        _ => null,
+                      },
                       mealText: _mealText,
                       onMealText: _saveMealText,
                       recentMeals: <String>{
@@ -1640,43 +1666,20 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
   }
 }
 
-/// 같은 날의 다른 기록 — 읽기 전용이다. 원본은 제 문서에 그대로 있고 여기서는
-/// 보여 주기만 한다. 고치려면 그 문서를 연다.
-class _SameDay extends StatelessWidget {
-  const _SameDay({required this.notes});
-  final List<Note> notes;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 20),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [for (final n in notes) _SameDayCard(note: n)],
-    ),
-  );
-}
-
-/// 같은 날짜에 따로 남긴 운동 기록 하나 — 기본은 접힌 한 줄("오늘 오전 7:10에 한
-/// 다른 운동 · 데드리프트 외 3개"), 누르면 세트까지 읽기 전용으로 펼친다. 펼친
-/// 채로 두면 지금 적는 기록보다 길어 무엇을 적는 중인지 흐려졌다.
-class _SameDayCard extends StatefulWidget {
-  const _SameDayCard({required this.note});
+/// 지난 운동 한 장 — 기본은 접힌 한 줄("지난주 금요일(9. 18.) 운동 · 스쿼트 외 3개"),
+/// 누르면 세트까지 읽기 전용으로 펼친다. 펼친 채로 두면 지금 적는 기록보다 길어
+/// 무엇을 적는 중인지 흐려졌다.
+class _PastCard extends StatefulWidget {
+  const _PastCard({required this.note, required this.title});
   final Note note;
+  final String title;
 
   @override
-  State<_SameDayCard> createState() => _SameDayCardState();
+  State<_PastCard> createState() => _PastCardState();
 }
 
-class _SameDayCardState extends State<_SameDayCard> {
+class _PastCardState extends State<_PastCard> {
   bool _open = false;
-
-  /// 언제의 기록인지 날짜까지 적는다. '같은 날' 만으로는 요일로 읽혔다.
-  static String _when(L l, DateTime at) {
-    final time = DateFormat.jm(l.localeName).format(at);
-    return dayOf(at) == dayOf(DateTime.now())
-        ? l.sameDayToday(time)
-        : l.sameDayOn(DateFormat.MMMEd(l.localeName).format(at), time);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1688,7 +1691,6 @@ class _SameDayCardState extends State<_SameDayCard> {
         ? names.join()
         : l.sameDayMore(names.first, names.length - 1);
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
       decoration: BoxDecoration(
         color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
@@ -1698,21 +1700,21 @@ class _SameDayCardState extends State<_SameDayCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            key: ValueKey('same-day-${n.id}'),
+            key: ValueKey('past-${n.id}'),
             behavior: HitTestBehavior.opaque,
             onTap: () => setState(() => _open = !_open),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Row(
                 children: [
-                  Icon(CupertinoIcons.clock, size: 14, color: muted),
+                  Icon(CupertinoIcons.calendar, size: 14, color: muted),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text.rich(
                       TextSpan(
                         children: [
                           TextSpan(
-                            text: _when(l, n.createdAt),
+                            text: widget.title,
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           if (what.isNotEmpty && !_open)

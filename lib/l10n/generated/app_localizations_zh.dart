@@ -939,6 +939,16 @@ class LZh extends L {
   }
 
   @override
+  String lastWeekDay(String weekday, String date) {
+    return '上周$weekday（$date）的训练';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$n周前$weekday（$date）的训练';
+  }
+
+  @override
   String get mealText => '记录饮食';
 
   @override
@@ -4090,6 +4100,16 @@ class LZhHans extends LZh {
   }
 
   @override
+  String lastWeekDay(String weekday, String date) {
+    return '上周$weekday（$date）的训练';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$n周前$weekday（$date）的训练';
+  }
+
+  @override
   String get mealText => '记录饮食';
 
   @override
@@ -7237,6 +7257,16 @@ class LZhHant extends LZh {
   @override
   String sameDayMore(String first, int n) {
     return '$first 等$n項';
+  }
+
+  @override
+  String lastWeekDay(String weekday, String date) {
+    return '上週$weekday（$date）的訓練';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$n週前$weekday（$date）的訓練';
   }
 
   @override

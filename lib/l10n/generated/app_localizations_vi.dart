@@ -974,6 +974,16 @@ class LVi extends L {
   }
 
   @override
+  String lastWeekDay(String weekday, String date) {
+    return '$weekday tuần trước ($date)';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$weekday $n tuần trước ($date)';
+  }
+
+  @override
   String get mealText => 'Ghi bữa ăn';
 
   @override

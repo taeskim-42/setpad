@@ -945,6 +945,16 @@ class LJa extends L {
   }
 
   @override
+  String lastWeekDay(String weekday, String date) {
+    return '先週の$weekday（$date）の運動';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$n週間前の$weekday（$date）の運動';
+  }
+
+  @override
   String get mealText => '食事を書く';
 
   @override

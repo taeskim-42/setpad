@@ -595,6 +595,22 @@ class NotesStore extends ChangeNotifier {
 
   void _sort() => _notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
+  /// 그날의 기록 — 하루에 한 곳에 적는다. 오늘 만든 기록이 있으면 그것, 없으면
+  /// 새로. 같은 날 기록이 둘이면 하나는 고칠 수 없는 곳에 따로 보였다.
+  Note today({DateTime? now}) {
+    final t = now ?? DateTime.now();
+    for (final n in _notes) {
+      final d = n.createdAt;
+      if (n.proxy == null &&
+          d.year == t.year &&
+          d.month == t.month &&
+          d.day == t.day) {
+        return n;
+      }
+    }
+    return create(at: now);
+  }
+
   Note create({
     List<ExerciseBlock>? blocks,
     String? gymId,

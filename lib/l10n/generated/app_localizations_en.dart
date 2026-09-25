@@ -987,6 +987,16 @@ class LEn extends L {
   }
 
   @override
+  String lastWeekDay(String weekday, String date) {
+    return 'Last $weekday ($date)';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$weekday $n weeks ago ($date)';
+  }
+
+  @override
   String get mealText => 'Write meal';
 
   @override

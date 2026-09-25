@@ -1615,6 +1615,18 @@ abstract class L {
   /// **'{first} 외 {n}개'**
   String sameDayMore(String first, int n);
 
+  /// No description provided for @lastWeekDay.
+  ///
+  /// In ko, this message translates to:
+  /// **'지난주 {weekday}({date}) 운동'**
+  String lastWeekDay(String weekday, String date);
+
+  /// No description provided for @weeksAgoDay.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}주 전 {weekday}({date}) 운동'**
+  String weeksAgoDay(int n, String weekday, String date);
+
   /// No description provided for @mealText.
   ///
   /// In ko, this message translates to:
