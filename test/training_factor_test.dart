@@ -17,13 +17,11 @@ void main() {
       x == null ? '-' : '${x.factor.name} ${x.why} ${x.args.join(',')}';
 
   group('칸 하나', () {
-    test('1 타바타 제목 → 심폐(확실), 라운드 수만큼 센다', () {
+    test('1 타바타 제목 → 심폐(확실), 한 세트로 남아도', () {
       final x = of('버피 타바타', [reps(10)])!;
       expect(x.factor, Factor.cardio);
       expect(x.sure, isTrue);
       expect(show(x), 'cardio tabata 20/10×8');
-      expect(x.weight, 8);
-      expect(of('버피 타바타', times(10, () => reps(10)))!.weight, 10);
     });
 
     test('2 설정 totalReps → 근지구력(확실)', () {
@@ -153,7 +151,6 @@ void main() {
         kg(140, 3, author: '민수'),
       ])!;
       expect(dl.args, ['3', '5']);
-      expect(dl.weight, 3);
       expect(of('벤치프레스', [kg(60, 10, done: false)]), isNull);
       expect(of('벤치프레스', [kg(60, 10, author: '민수')]), isNull);
     });
@@ -271,7 +268,52 @@ void main() {
       expect(dayFactor(run)!.factor, Factor.cardio);
     });
 
-    test('하루 두 번(아침 러닝 + 저녁 웨이트)은 한 날 — 앞머리 유산소는 건너뛰고 본운동', () {
+    test('앞머리 유산소는 짧을 때(20분 이하 또는 3km 이하)만 몸풀기 — 길거나 수를 모르면 그날은 심폐', () {
+      Factor? lead(LoggedSet cardio, String name, ExerciseBlock then) =>
+          dayFactorOf([
+            ExerciseBlock(name, [cardio]),
+            then,
+          ])?.factor;
+      final squat = ExerciseBlock('스쿼트', times(5, () => kg(100, 5)));
+      expect(lead(timed(10, 'min'), '러닝', squat), Factor.power);
+      expect(lead(timed(3, 'km'), '러닝', squat), Factor.power);
+      expect(
+        lead(
+          timed(10, 'km'),
+          '러닝',
+          ExerciseBlock('푸시업', times(3, () => reps(20))),
+        ),
+        Factor.cardio,
+      );
+      expect(
+        lead(
+          timed(30, 'min'),
+          '사이클',
+          ExerciseBlock('바벨컬', times(3, () => kg(30, 10))),
+        ),
+        Factor.cardio,
+      );
+      // 수 없는 러닝(단위만) — 짧은지 알 수 없어 몸풀기로 보지 않는다.
+      expect(lead(LoggedSet(unit: 'km'), '러닝', squat), Factor.cardio);
+      // 경계와 단위: 20분·1200초·3000m 는 몸풀기, 21분·0.5시간·2마일(3.2km)은 아니다.
+      expect(lead(timed(20, 'min'), '러닝', squat), Factor.power);
+      expect(lead(timed(1200, 's'), '러닝', squat), Factor.power);
+      expect(lead(timed(3000, 'm'), '러닝', squat), Factor.power);
+      expect(lead(timed(1.5, 'mi'), '러닝', squat), Factor.power);
+      expect(lead(timed(21, 'min'), '러닝', squat), Factor.cardio);
+      expect(lead(timed(0.5, 'h'), '러닝', squat), Factor.cardio);
+      expect(lead(timed(2, 'mi'), '러닝', squat), Factor.cardio);
+      // 2.5km 를 25분 — 거리든 시간이든 하나만 짧아도 몸풀기.
+      expect(
+        dayFactorOf([
+          ExerciseBlock('러닝', [timed(2.5, 'km'), timed(25, 'min')]),
+          squat,
+        ])?.factor,
+        Factor.power,
+      );
+    });
+
+    test('하루 두 번(아침 러닝 5km + 저녁 웨이트)은 한 날 — 5km 는 몸풀기가 아니라 그날은 심폐', () {
       final two = [
         at(DateTime(2026, 9, 10, 7), [
           ExerciseBlock('러닝', [timed(5, 'km')]),
@@ -279,7 +321,7 @@ void main() {
         at(DateTime(2026, 9, 10, 19), splitPlan[4]!()),
       ];
       expect(notesByDay(two), hasLength(1));
-      expect(day(two, 9, 10), Factor.strength);
+      expect(day(two, 9, 10), Factor.cardio);
     });
   });
 

@@ -9,7 +9,8 @@ import 'package:setpad/notes.dart';
 import 'package:setpad/record_ai.dart' show WorkoutSetup;
 import 'package:setpad/record_query.dart' show recordedExercises;
 import 'package:setpad/routine.dart';
-import 'package:setpad/routine_card.dart' show routineLineTexts, routineWhy;
+import 'package:setpad/routine_card.dart'
+    show factorWhy, routineLineTexts, routineWhy;
 import 'package:setpad/training_factor.dart';
 
 import '../tool/routine_grading.dart';
@@ -98,7 +99,7 @@ void main() {
     expect(d.weeksAgo, isNull);
   });
 
-  test('S3 하루 두 번(아침 러닝 + 저녁 웨이트)은 하루 통째, 요인은 앞머리 러닝을 건너뛴 본운동', () {
+  test('S3 하루 두 번(아침 러닝 + 저녁 웨이트)은 하루 통째, 5km 러닝은 몸풀기가 아니라 심폐 날', () {
     final log = [
       ...split,
       at(DateTime(2026, 9, 10, 7), [
@@ -108,8 +109,39 @@ void main() {
     final d = make(log, thu);
     expect(d.sourceDay, DateTime(2026, 9, 10));
     expect(keys(d), ['러닝', '오버헤드프레스', '사이드 레터럴 레이즈']);
-    expect(d.factor?.factor, Factor.strength);
+    expect(d.factor?.factor, Factor.cardio);
   });
+
+  test(
+    '개수를 줄여도 그날 본운동은 남긴다(그날 순서대로) — 몸풀기만 남고 스쿼트가 잘리지 않는다, 요인 머리도 남은 칸으로',
+    () {
+      final log = [
+        at(DateTime(2026, 9, 10, 19), [
+          ExerciseBlock('러닝', [timed(10, 'min')]),
+          ExerciseBlock('스쿼트', times(5, () => kg(100, 5))),
+          ExerciseBlock('레그프레스', times(3, () => kg(150, 10))),
+        ]),
+      ];
+      String? head(RoutineDraft d) => d.factor == null
+          ? null
+          : l.routineFactorDay(
+              l.routineFactor(d.factor!.factor.name),
+              factorWhy(l, d.factor!.read),
+            );
+      final all = make(log, thu);
+      expect((all.source, all.sourceDay), ('weekday', DateTime(2026, 9, 10)));
+      expect(keys(all), ['러닝', '스쿼트', '레그프레스']);
+      expect(head(all), '순발력 날 · 5×5');
+      final one = make(log, thu, gold: {'count': 1}, text: '1개만');
+      expect(one.source, 'weekday');
+      expect(keys(one), ['스쿼트']);
+      expect(head(one), '순발력 날 · 5×5');
+      // 본운동 다음은 그날 순서 — 몸풀기 러닝이 레그프레스보다 앞이다(주말 요인 원천과 같다).
+      final two = make(log, thu, gold: {'count': 2}, text: '2개만');
+      expect(keys(two), ['러닝', '스쿼트']);
+      expect(head(two), '순발력 날 · 5×5');
+    },
+  );
 
   test('S4 자정 넘김: 목 00:30 에 시작한 수요일 밤 운동은 목요일 — 수요일엔 이웃', () {
     final mid = [

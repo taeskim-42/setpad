@@ -15,7 +15,7 @@ import 'workout_timing.dart' show TimingSpec;
 
 enum Factor { strength, endurance, sustain, power, cardio }
 
-/// 칸 하나의 판별: 요인·확실도·근거(문구 종류와 수)·무게(하루 셈에서의 몫).
+/// 칸 하나의 판별: 요인·확실도·근거(문구 종류와 수).
 ///
 /// 근거 [why]: tabata · fill · fillTitle · distance · open · single · drop · hold ·
 /// sets. [args] 는 언어와 무관한 수와 원문 조각이다.
@@ -24,7 +24,6 @@ typedef FactorRead = ({
   bool sure,
   String why,
   List<String> args,
-  int weight,
 });
 
 // 문턱(repstack 상수와 BG 예에서 끌어낸 해석 — 테스트로 못 박는다).
@@ -33,6 +32,8 @@ const dropFirstReps = 15; // 세트마다 최대: 첫 세트 15회 이상
 const dropRatio = 0.8; // 끝 세트 ≤ 첫 세트의 80%
 const holdSets = 6; // 같은 횟수(5회 넘게) 6세트 이상 = 지속력(초급 5→6→7세트)
 const powerReps = 5; // 작업 세트 최대 5회 이하 = 순발력(power 5×5)
+const warmUpMinutes = 20; // 앞머리 유산소가 20분 이하거나
+const warmUpKm = 3; // 3km 이하면 몸풀기(사용자 결정, 2026-09-25)
 
 /// 주간 목표(repstack 요일표의 개수: 월·목 근력, 화 근지구력, 수 지속력, 금 심폐).
 /// 순발력은 근력과 같은 월요일이라 근력 칸에 센다.
@@ -49,7 +50,9 @@ final _fillWord = RegExp(
   r'채우|총\s?\d|\btotal\b|\breach\b',
   caseSensitive: false,
 );
-const _timeUnits = {'s', 'min', 'h', 'km', 'm', 'mi'};
+const _minutes = {'s': 1 / 60, 'min': 1.0, 'h': 60.0};
+const _km = {'m': 0.001, 'km': 1.0, 'mi': 1.609344};
+final _timeUnits = {..._minutes.keys, ..._km.keys};
 
 String _n(num v) => v == v.roundToDouble() ? '${v.round()}' : '$v';
 
@@ -60,24 +63,18 @@ double _kg(LoggedSet s) => s.unit == 'lb' ? s.value! * 0.45359237 : s.value!;
 FactorRead? factorOf(ExerciseBlock b) {
   final mine = b.sets.where((s) => s.mine).toList();
   if (mine.isEmpty) return null;
-  final n = mine.length;
   FactorRead read(
     Factor f,
     String why,
     List<String> args, {
     bool sure = false,
-  }) => (factor: f, sure: sure, why: why, args: args, weight: n);
+  }) => (factor: f, sure: sure, why: why, args: args);
   final spec = TimingSpec.parse(b.name);
   final u = b.setup;
   if (spec != null && spec.tabata) {
-    // 타바타 칸은 한 세트로 남기도 한다 — 라운드 수만큼 센다.
-    return (
-      factor: Factor.cardio,
-      sure: true,
-      why: 'tabata',
-      args: ['${spec.work}/${spec.rest}×${spec.rounds}'],
-      weight: n > spec.rounds ? n : spec.rounds,
-    );
+    return read(Factor.cardio, 'tabata', [
+      '${spec.work}/${spec.rest}×${spec.rounds}',
+    ], sure: true);
   }
   if (u?.totalReps != null) {
     return read(Factor.endurance, 'fill', ['${u!.totalReps}'], sure: true);
@@ -140,21 +137,45 @@ FactorRead? factorOf(ExerciseBlock b) {
         ...n.blocks,
     ]);
 
-/// 칸들(시각 순)의 요인: 그날의 본운동 — 요인을 가를 수 있는 첫 칸 — 의 요인이다. 마무리로
-/// 붙인 채우기나 보조 운동은 그날을 바꾸지 않는다(사용자 결정, 2026-09-25). 다만 뒤에 다른
-/// 운동이 이어지는 앞머리 유산소(거리·시간)는 몸풀기로 보고 건너뛴다. 가를 칸이 없으면 null.
-/// 주간 셈에서 순발력은 근력 칸으로 센다([merged], F1).
+/// 유산소 칸이 몸풀기만큼 짧은가: 내 세트의 시간 합이 [warmUpMinutes] 분 이하거나 거리
+/// 합이 [warmUpKm] km 이하. 수가 없으면(단위만) 짧은지 몰라 짧지 않다.
+bool _short(ExerciseBlock b) {
+  bool within(Map<String, double> to, num most) {
+    final xs = [
+      for (final s in b.sets)
+        if (s.mine && s.value != null && to[s.unit] != null)
+          s.value! * to[s.unit]!,
+    ];
+    return xs.isNotEmpty && xs.reduce((a, c) => a + c) <= most;
+  }
+
+  return within(_minutes, warmUpMinutes) || within(_km, warmUpKm);
+}
+
+/// 칸들(시각 순)의 본운동: 요인을 가를 수 있는 첫 칸. 마무리로 붙인 채우기나 보조 운동은
+/// 그날을 바꾸지 않는다(사용자 결정, 2026-09-25). 다만 뒤에 다른 운동이 이어지는 앞머리
+/// 유산소(거리·시간)가 짧으면([_short]) 몸풀기로 보고 건너뛴다 — 러닝 10km 뒤 푸시업은
+/// 심폐 날이다. 가를 칸이 없으면 null.
+ExerciseBlock? mainBlock(Iterable<ExerciseBlock> blocks) {
+  final reads = [
+    for (final b in blocks)
+      if (factorOf(b) case final r?) (block: b, why: r.why),
+  ];
+  if (reads.isEmpty) return null;
+  final lifted = reads.any((x) => x.why != 'distance');
+  return reads
+      .firstWhere((x) => !(lifted && x.why == 'distance' && _short(x.block)))
+      .block;
+}
+
+/// 칸들(시각 순)의 요인: 본운동([mainBlock])의 요인. 주간 셈에서 순발력은 근력 칸으로
+/// 센다([merged], F1).
 ({Factor factor, FactorRead read})? dayFactorOf(
   Iterable<ExerciseBlock> blocks,
 ) {
-  final reads = [for (final b in blocks) ?factorOf(b)];
-  if (reads.isEmpty) return null;
-  final lifted = reads.any((x) => x.why != 'distance');
-  final main = reads.firstWhere(
-    (x) => !(lifted && x.why == 'distance'),
-    orElse: () => reads.first,
-  );
-  return (factor: main.factor, read: main);
+  final b = mainBlock(blocks);
+  final r = b == null ? null : factorOf(b);
+  return r == null ? null : (factor: r.factor, read: r);
 }
 
 DateTime calendarDay(DateTime d) => DateTime(d.year, d.month, d.day);

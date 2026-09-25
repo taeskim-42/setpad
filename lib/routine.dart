@@ -2635,10 +2635,21 @@ RoutineDraft composeRoutine(
   var list = chosen;
   final fixedPart = list.where((c) => c.fixed).toList();
   final free = list.where((c) => !c.fixed).toList();
-  // 요인 원천: 목표 요인 칸을 먼저 남긴다 — 개수·시간 맞추기가 그 칸을 자르면 "○○이
-  // 부족해서" 가 빈말이 된다. 남긴 칸은 원래 순서대로 보인다.
+  // 요인 원천은 목표 요인 칸을, 같은 요일 원천은 그날 본운동([mainBlock])을 먼저 남긴다 —
+  // 개수·시간 맞추기가 그 칸을 자르면 "○○이 부족해서"·"○○ 날" 이 빈말이 되고 몸풀기만
+  // 남는다. 남긴 칸은 원래 순서대로 보인다.
+  final dayMain = draft.source == 'weekday'
+      ? mainBlock([
+          for (final c in free)
+            if (c.day == draft.sourceDay) ?c.block,
+        ])
+      : null;
   bool aim(({String key, ExerciseBlock? block, DateTime? day, bool fixed}) c) {
-    if (draft.source != 'factor' || c.day != draft.sourceDay) return false;
+    if (c.day != draft.sourceDay) return false;
+    if (draft.source == 'weekday') {
+      return dayMain != null && identical(c.block, dayMain);
+    }
+    if (draft.source != 'factor') return false;
     final f = c.block == null ? null : factorOf(c.block!)?.factor;
     return f != null && merged(f) == draft.target;
   }
