@@ -44,6 +44,13 @@ void main() {
   List<String> texts(RoutineDraft d) => [
     for (final x in d.lines) ...routineLineTexts(l, x),
   ];
+  // 카드의 요인 머리("순발력 날 · 5×5").
+  String? head(RoutineDraft d) => d.factor == null
+      ? null
+      : l.routineFactorDay(
+          l.routineFactor(d.factor!.factor.name),
+          factorWhy(l, d.factor!.read),
+        );
 
   test('S1 보통 주: 목요일엔 지난 목요일 하루 그대로 — 칸·세트·요인 설명', () {
     final d = make(split, thu);
@@ -113,7 +120,7 @@ void main() {
   });
 
   test(
-    '개수를 줄여도 그날 본운동은 남긴다(그날 순서대로) — 몸풀기만 남고 스쿼트가 잘리지 않는다, 요인 머리도 남은 칸으로',
+    '개수·시간을 줄이면 본운동 → 그날 다른 칸 → 몸풀기 순으로 남긴다(보이기는 그날 순서) — 요인 머리도 남은 칸으로',
     () {
       final log = [
         at(DateTime(2026, 9, 10, 19), [
@@ -122,12 +129,6 @@ void main() {
           ExerciseBlock('레그프레스', times(3, () => kg(150, 10))),
         ]),
       ];
-      String? head(RoutineDraft d) => d.factor == null
-          ? null
-          : l.routineFactorDay(
-              l.routineFactor(d.factor!.factor.name),
-              factorWhy(l, d.factor!.read),
-            );
       final all = make(log, thu);
       expect((all.source, all.sourceDay), ('weekday', DateTime(2026, 9, 10)));
       expect(keys(all), ['러닝', '스쿼트', '레그프레스']);
@@ -136,12 +137,44 @@ void main() {
       expect(one.source, 'weekday');
       expect(keys(one), ['스쿼트']);
       expect(head(one), '순발력 날 · 5×5');
-      // 본운동 다음은 그날 순서 — 몸풀기 러닝이 레그프레스보다 앞이다(주말 요인 원천과 같다).
+      // 본운동 다음은 몸풀기가 아닌 칸(그날 순서), 몸풀기 러닝은 맨 나중이다.
       final two = make(log, thu, gold: {'count': 2}, text: '2개만');
-      expect(keys(two), ['러닝', '스쿼트']);
+      expect(keys(two), ['스쿼트', '레그프레스']);
       expect(head(two), '순발력 날 · 5×5');
+      final three = make(log, thu, gold: {'count': 3}, text: '3개만');
+      expect(keys(three), ['러닝', '스쿼트', '레그프레스']);
+      expect(head(three), '순발력 날 · 5×5');
+      // 시간도 같은 순서로 채운다: 세트당 150초 — 스쿼트 5 + 레그프레스 3 = 20분.
+      final twenty = make(log, thu, gold: {'minutes': 20}, text: '20분');
+      expect(keys(twenty), ['스쿼트', '레그프레스']);
+      expect(head(twenty), '순발력 날 · 5×5');
     },
   );
+
+  test('수 없는 러닝: 앞머리면 몸풀기, 그것만 한 날은 심폐 — 요인 머리에 0km·0분이 없다', () {
+    Note day(List<ExerciseBlock> blocks) =>
+        at(DateTime(2026, 9, 10, 19), blocks);
+    final run = ExerciseBlock('러닝', [LoggedSet(unit: 'km')]);
+    final only = make([
+      day([run]),
+    ], thu);
+    expect((only.source, only.factor?.factor), ('weekday', Factor.cardio));
+    expect(head(only), '심폐 날 · 러닝');
+    final zero = make([
+      day([
+        ExerciseBlock('러닝', [timed(0, 'min')]),
+      ]),
+    ], thu);
+    expect(head(zero), '심폐 날 · 러닝');
+    final warm = make([
+      day([
+        ExerciseBlock('러닝', [LoggedSet(unit: 'km')]),
+        ExerciseBlock('스쿼트', times(5, () => kg(100, 5))),
+      ]),
+    ], thu);
+    expect(keys(warm), ['러닝', '스쿼트']);
+    expect(head(warm), '순발력 날 · 5×5');
+  });
 
   test('S4 자정 넘김: 목 00:30 에 시작한 수요일 밤 운동은 목요일 — 수요일엔 이웃', () {
     final mid = [

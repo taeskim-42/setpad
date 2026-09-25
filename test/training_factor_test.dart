@@ -268,7 +268,7 @@ void main() {
       expect(dayFactor(run)!.factor, Factor.cardio);
     });
 
-    test('앞머리 유산소는 짧을 때(20분 이하 또는 3km 이하)만 몸풀기 — 길거나 수를 모르면 그날은 심폐', () {
+    test('앞머리 유산소는 짧을 때(20분 이하 또는 3km 이하)와 수가 없을 때 몸풀기 — 길면 그날은 심폐', () {
       Factor? lead(LoggedSet cardio, String name, ExerciseBlock then) =>
           dayFactorOf([
             ExerciseBlock(name, [cardio]),
@@ -293,8 +293,9 @@ void main() {
         ),
         Factor.cardio,
       );
-      // 수 없는 러닝(단위만) — 짧은지 알 수 없어 몸풀기로 보지 않는다.
-      expect(lead(LoggedSet(unit: 'km'), '러닝', squat), Factor.cardio);
+      // 수 없는 러닝(단위만, 체크만 한 칸) — 수 없는 앞머리 러닝은 대개 몸풀기다.
+      expect(lead(LoggedSet(unit: 'km'), '러닝', squat), Factor.power);
+      expect(lead(LoggedSet(unit: 'min'), '러닝', squat), Factor.power);
       // 경계와 단위: 20분·1200초·3000m 는 몸풀기, 21분·0.5시간·2마일(3.2km)은 아니다.
       expect(lead(timed(20, 'min'), '러닝', squat), Factor.power);
       expect(lead(timed(1200, 's'), '러닝', squat), Factor.power);
@@ -310,6 +311,18 @@ void main() {
           squat,
         ])?.factor,
         Factor.power,
+      );
+    });
+
+    test('수 없는 러닝만 한 날은 그래도 심폐 — 근거에 0km·0분을 지어내지 않고 칸 이름을 댄다', () {
+      FactorRead? only(List<LoggedSet> sets) =>
+          dayFactorOf([ExerciseBlock('러닝', sets)])?.read;
+      expect(show(only([LoggedSet(unit: 'km')])), 'cardio distance 러닝');
+      expect(show(only([timed(0, 'min')])), 'cardio distance 러닝');
+      // 수가 있는 세트가 뒤에 있으면 그 수.
+      expect(
+        show(only([LoggedSet(unit: 'km'), timed(5, 'km')])),
+        'cardio distance 5km',
       );
     });
 

@@ -84,8 +84,13 @@ FactorRead? factorOf(ExerciseBlock b) {
   }
   if (mine.any((s) => _timeUnits.contains(s.unit))) {
     if (partOf(exerciseKey(b.exercise)) != 'cardio') return null;
-    final s = mine.firstWhere((s) => _timeUnits.contains(s.unit));
-    return read(Factor.cardio, 'distance', ['${_n(s.value ?? 0)}${s.unit}']);
+    // 수가 있는 첫 세트. 없으면(체크만 한 러닝) 0km 를 지어내지 않고 칸 이름을 댄다.
+    final s = mine
+        .where((s) => _timeUnits.contains(s.unit) && (s.value ?? 0) > 0)
+        .firstOrNull;
+    return read(Factor.cardio, 'distance', [
+      s == null ? b.name : '${_n(s.value!)}${s.unit}',
+    ]);
   }
   if (u?.repsPerSet != null && u?.totalSets == null) {
     return read(Factor.sustain, 'open', ['${u!.repsPerSet}']);
@@ -138,18 +143,22 @@ FactorRead? factorOf(ExerciseBlock b) {
     ]);
 
 /// 유산소 칸이 몸풀기만큼 짧은가: 내 세트의 시간 합이 [warmUpMinutes] 분 이하거나 거리
-/// 합이 [warmUpKm] km 이하. 수가 없으면(단위만) 짧은지 몰라 짧지 않다.
+/// 합이 [warmUpKm] km 이하. 시간도 거리도 수가 없으면(단위만, 체크만 한 러닝) 짧다 —
+/// 수 없는 앞머리 러닝은 대개 몸풀기다.
 bool _short(ExerciseBlock b) {
-  bool within(Map<String, double> to, num most) {
+  double? sum(Map<String, double> to) {
     final xs = [
       for (final s in b.sets)
         if (s.mine && s.value != null && to[s.unit] != null)
           s.value! * to[s.unit]!,
     ];
-    return xs.isNotEmpty && xs.reduce((a, c) => a + c) <= most;
+    return xs.isEmpty ? null : xs.reduce((a, c) => a + c);
   }
 
-  return within(_minutes, warmUpMinutes) || within(_km, warmUpKm);
+  final m = sum(_minutes), km = sum(_km);
+  return (m == null && km == null) ||
+      (m != null && m <= warmUpMinutes) ||
+      (km != null && km <= warmUpKm);
 }
 
 /// 칸들(시각 순)의 본운동: 요인을 가를 수 있는 첫 칸. 마무리로 붙인 채우기나 보조 운동은

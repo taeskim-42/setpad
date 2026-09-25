@@ -2635,26 +2635,37 @@ RoutineDraft composeRoutine(
   var list = chosen;
   final fixedPart = list.where((c) => c.fixed).toList();
   final free = list.where((c) => !c.fixed).toList();
-  // 요인 원천은 목표 요인 칸을, 같은 요일 원천은 그날 본운동([mainBlock])을 먼저 남긴다 —
-  // 개수·시간 맞추기가 그 칸을 자르면 "○○이 부족해서"·"○○ 날" 이 빈말이 되고 몸풀기만
-  // 남는다. 남긴 칸은 원래 순서대로 보인다.
-  final dayMain = draft.source == 'weekday'
-      ? mainBlock([
-          for (final c in free)
-            if (c.day == draft.sourceDay) ?c.block,
-        ])
+  // 같은 요일·요인 원천은 개수·시간 맞추기에서 그날 본운동([mainBlock])을 먼저, 다음은
+  // 그날 다른 칸(그날 순서), 본운동 앞에서 건너뛴 몸풀기 유산소, 다른 날 칸 순으로 남긴다 —
+  // 본운동을 자르면 "○○이 부족해서"·"○○ 날" 이 빈말이 되고 몸풀기만 남는다. 남긴 칸은
+  // 원래 순서대로 보인다.
+  final dayBlocks = [
+    for (final c in free)
+      if (c.day == draft.sourceDay) ?c.block,
+  ];
+  final dayMain = const {'weekday', 'factor'}.contains(draft.source)
+      ? mainBlock(dayBlocks)
       : null;
-  bool aim(({String key, ExerciseBlock? block, DateTime? day, bool fixed}) c) {
-    if (c.day != draft.sourceDay) return false;
-    if (draft.source == 'weekday') {
-      return dayMain != null && identical(c.block, dayMain);
-    }
-    if (draft.source != 'factor') return false;
-    final f = c.block == null ? null : factorOf(c.block!)?.factor;
-    return f != null && merged(f) == draft.target;
-  }
-
-  final order = [...free.where(aim), ...free.where((c) => !aim(c))];
+  final warmUps = dayMain == null
+      ? const <ExerciseBlock>[]
+      : dayBlocks
+            .takeWhile((b) => !identical(b, dayMain))
+            .where((b) => factorOf(b)?.why == 'distance')
+            .toList();
+  int rank(({String key, ExerciseBlock? block, DateTime? day, bool fixed}) c) =>
+      c.day != draft.sourceDay
+      ? 3
+      : identical(c.block, dayMain)
+      ? 0
+      : warmUps.any((b) => identical(b, c.block))
+      ? 2
+      : 1;
+  final order = dayMain == null
+      ? free
+      : [
+          for (final r in const [0, 1, 2, 3])
+            ...free.where((c) => rank(c) == r),
+        ];
   // 조건 고르기·처음이 아니면 기본 크기는 원천의 첫날 칸이다.
   var defaultFree = free.length;
   if (firstSession != null) {

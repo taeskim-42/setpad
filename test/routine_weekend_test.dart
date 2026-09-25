@@ -153,20 +153,33 @@ void main() {
     ], contains('빼라고 한 운동을 빼면 최근 28일에 남는 날이 없는 요인: 근지구력'));
   });
 
-  test('개수를 줄여도 목표 요인 칸은 남긴다(그날 순서대로) — 요인 머리도 남은 칸으로', () {
-    // 몸풀기 러닝이 첫 칸이라 앞에서 자르면 채우기가 빠진다.
-    final log = endLog(warmUp: true);
-    const why = '이번 주 근지구력이 부족해서 화요일(9. 8.)로 짰어요';
-    final d = make(log, sat, gold: {'count': 1}, text: '1개만');
-    expect((d.source, d.target), ('factor', Factor.endurance));
-    expect(d.items.map((i) => i.title), ['스쿼트 60kg 100개 채우기']);
-    expect(d.factor?.factor, Factor.endurance);
-    expect(routineWhy(l, d), why);
-    final two = make(log, sat, gold: {'count': 2}, text: '2개만');
-    expect(two.items.map((i) => i.title), ['러닝', '스쿼트 60kg 100개 채우기']);
-    expect(two.factor?.factor, Factor.endurance);
-    expect(routineWhy(l, two), why);
-  });
+  test(
+    '개수를 줄이면 본운동(목표 요인 칸) → 다른 칸 → 몸풀기 순으로 남긴다(보이기는 그날 순서) — 요인 머리도 남은 칸으로',
+    () {
+      // 몸풀기 러닝이 첫 칸이라 앞에서 자르면 채우기가 빠진다. 몸풀기는 맨 나중이다.
+      final log = endLog(warmUp: true);
+      const why = '이번 주 근지구력이 부족해서 화요일(9. 8.)로 짰어요';
+      final d = make(log, sat, gold: {'count': 1}, text: '1개만');
+      expect((d.source, d.target), ('factor', Factor.endurance));
+      expect(d.items.map((i) => i.title), ['스쿼트 60kg 100개 채우기']);
+      expect(d.factor?.factor, Factor.endurance);
+      expect(routineWhy(l, d), why);
+      final two = make(log, sat, gold: {'count': 2}, text: '2개만');
+      expect(two.items.map((i) => i.title), ['스쿼트 60kg 100개 채우기', '벤치프레스']);
+      expect(two.factor?.factor, Factor.endurance);
+      expect(two.factor?.read.why, 'fill');
+      expect(routineWhy(l, two), why);
+      expect(two.lines.map((x) => x.code), isNot(contains('factorLost')));
+      final three = make(log, sat, gold: {'count': 3}, text: '3개만');
+      expect(three.items.map((i) => i.title), [
+        '러닝',
+        '스쿼트 60kg 100개 채우기',
+        '벤치프레스',
+      ]);
+      expect(three.factor?.factor, Factor.endurance);
+      expect(routineWhy(l, three), why);
+    },
+  );
 
   test('목표 요인 칸을 ✕ 로 빼면 "부족해서" 대신 빠졌다고 말한다', () {
     final log = endLog(warmUp: true);
