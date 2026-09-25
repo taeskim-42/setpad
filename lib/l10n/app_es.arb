@@ -472,7 +472,7 @@
   "trainerCopy": "Copiar mensaje",
   "trainerCopied": "Copiado",
   "settingsTrainer": "Entrenador",
-  "aiSetting": "Ayuda de IA (DeepSeek)",
+  "aiSetting": "Ayuda de IA",
   "aiOff": "La ayuda de IA está desactivada, así que se guardó tal cual. Actívala en Ajustes › Ayuda de IA",
   "aiOffPhoto": "La ayuda de IA está desactivada, así que la foto no se estimó. Escribe la comida como texto, p. ej. ‘arroz 200kcal’, y entra tal cual",
   "answerNeedsTwoDays": "Hacen falta al menos dos días",

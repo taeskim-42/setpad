@@ -1754,7 +1754,7 @@ class LZh extends L {
   String get settingsTrainer => '教练';
 
   @override
-  String get aiSetting => 'AI 帮助（DeepSeek）';
+  String get aiSetting => 'AI 帮助';
 
   @override
   String get aiOff => 'AI 帮助已关闭，已按输入原样保留。可在 设置 › AI 帮助 中打开';
@@ -4842,7 +4842,7 @@ class LZhHans extends LZh {
   String get settingsTrainer => '教练';
 
   @override
-  String get aiSetting => 'AI 帮助（DeepSeek）';
+  String get aiSetting => 'AI 帮助';
 
   @override
   String get aiOff => 'AI 帮助已关闭，已按输入原样保留。可在 设置 › AI 帮助 中打开';
@@ -7929,7 +7929,7 @@ class LZhHant extends LZh {
   String get settingsTrainer => '教練';
 
   @override
-  String get aiSetting => 'AI 協助（DeepSeek）';
+  String get aiSetting => 'AI 協助';
 
   @override
   String get aiOff => 'AI 協助已關閉，已按輸入原樣保留。可在 設定 › AI 協助 中開啟';

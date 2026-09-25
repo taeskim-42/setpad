@@ -1842,7 +1842,7 @@ class LEn extends L {
   String get settingsTrainer => 'Trainer';
 
   @override
-  String get aiSetting => 'AI help (DeepSeek)';
+  String get aiSetting => 'AI help';
 
   @override
   String get aiOff =>

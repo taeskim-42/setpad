@@ -1859,7 +1859,7 @@ class LEs extends L {
   String get settingsTrainer => 'Entrenador';
 
   @override
-  String get aiSetting => 'Ayuda de IA (DeepSeek)';
+  String get aiSetting => 'Ayuda de IA';
 
   @override
   String get aiOff =>

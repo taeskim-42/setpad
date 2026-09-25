@@ -1812,7 +1812,7 @@ class LTh extends L {
   String get settingsTrainer => 'เทรนเนอร์';
 
   @override
-  String get aiSetting => 'ตัวช่วย AI (DeepSeek)';
+  String get aiSetting => 'ตัวช่วย AI';
 
   @override
   String get aiOff =>

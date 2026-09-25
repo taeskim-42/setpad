@@ -472,7 +472,7 @@
   "trainerCopy": "複製文案",
   "trainerCopied": "已複製",
   "settingsTrainer": "教練",
-  "aiSetting": "AI 協助（DeepSeek）",
+  "aiSetting": "AI 協助",
   "aiOff": "AI 協助已關閉，已按輸入原樣保留。可在 設定 › AI 協助 中開啟",
   "aiOffPhoto": "AI 協助已關閉，未根據照片估算。用文字寫下餐點，例如「飯糰 180kcal」，就會照原樣記錄",
   "answerNeedsTwoDays": "至少需要兩天的紀錄",

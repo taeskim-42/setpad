@@ -1770,7 +1770,7 @@ class LJa extends L {
   String get settingsTrainer => 'トレーナー';
 
   @override
-  String get aiSetting => 'AIヘルプ（DeepSeek）';
+  String get aiSetting => 'AIヘルプ';
 
   @override
   String get aiOff => 'AIヘルプがオフなので、入力のまま残しました。設定 › AIヘルプ でオンにできます';

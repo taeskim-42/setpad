@@ -1829,7 +1829,7 @@ class LVi extends L {
   String get settingsTrainer => 'Huấn luyện viên';
 
   @override
-  String get aiSetting => 'Trợ giúp AI (DeepSeek)';
+  String get aiSetting => 'Trợ giúp AI';
 
   @override
   String get aiOff =>

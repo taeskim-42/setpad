@@ -1533,7 +1533,7 @@
   "@settingsTrainer": {
     "description": "설정의 트레이너 섹션 제목. 회원용 \"다니는 체육관\" 섹션과 따로"
   },
-  "aiSetting": "AI 도움 (DeepSeek)",
+  "aiSetting": "AI 도움",
   "aiOff": "AI 도움이 꺼져 있어 적은 그대로 두었어요. 설정 › AI 도움에서 켤 수 있어요",
   "@aiOff": {
     "description": "AI 도움을 꺼 두어 모델을 부르지 않았을 때 한 줄(운동 입력·식단 글·기록 질문)"

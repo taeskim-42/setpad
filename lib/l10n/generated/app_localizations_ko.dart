@@ -1775,7 +1775,7 @@ class LKo extends L {
   String get settingsTrainer => '트레이너';
 
   @override
-  String get aiSetting => 'AI 도움 (DeepSeek)';
+  String get aiSetting => 'AI 도움';
 
   @override
   String get aiOff => 'AI 도움이 꺼져 있어 적은 그대로 두었어요. 설정 › AI 도움에서 켤 수 있어요';

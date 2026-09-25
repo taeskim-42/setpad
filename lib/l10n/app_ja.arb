@@ -472,7 +472,7 @@
   "trainerCopy": "文面をコピー",
   "trainerCopied": "コピーしました",
   "settingsTrainer": "トレーナー",
-  "aiSetting": "AIヘルプ（DeepSeek）",
+  "aiSetting": "AIヘルプ",
   "aiOff": "AIヘルプがオフなので、入力のまま残しました。設定 › AIヘルプ でオンにできます",
   "aiOffPhoto": "AIヘルプがオフなので、写真からは推定しませんでした。食事をテキストで「おにぎり 180kcal」のように書くとそのまま入ります",
   "answerNeedsTwoDays": "2日以上の記録が必要です",

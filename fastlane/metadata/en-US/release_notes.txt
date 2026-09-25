@@ -5,7 +5,7 @@ In this update
 · Record questions compare periods and exercises side by side in a table
 · Meal calories show their source — the MFDS or USDA table value with a link to the original
 · Plates and Pro: record questions use plates, and you earn 1 on each day you log 10 sets
-· AI help (DeepSeek) can be turned off any time in Settings › AI help — logging keeps working
+· AI help can be turned off any time in Settings › AI help — logging keeps working
 · Log a partner's sets on your phone and hand them over with a link
 · Trainer mode: gym staff get a morning report with today's classes and to-dos, handled in a tap
 · Nothing you type is thrown away — words that could not be placed are shown, and unreadable lines are kept as typed

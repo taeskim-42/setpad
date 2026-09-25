@@ -472,7 +472,7 @@
   "trainerCopy": "复制文案",
   "trainerCopied": "已复制",
   "settingsTrainer": "教练",
-  "aiSetting": "AI 帮助（DeepSeek）",
+  "aiSetting": "AI 帮助",
   "aiOff": "AI 帮助已关闭，已按输入原样保留。可在 设置 › AI 帮助 中打开",
   "aiOffPhoto": "AI 帮助已关闭，未根据照片估算。用文字写下餐食，例如“饭团 180kcal”，就会照原样记录",
   "answerNeedsTwoDays": "至少需要两天的记录",

@@ -1,8 +1,8 @@
 No account is needed to review setpad. Every AI feature below works signed out: the app uses an anonymous random device ID, and a new device starts with 3 plates.
 
-AI help (DeepSeek) and how to turn it off
+AI help (the AI service is DeepSeek) and how to turn it off
 - AI help is on by default. When an AI feature is used, what is sent (the text you type, meal photos with location and capture details removed, and the exercise names in your log) goes through our server gym.darak.studio to DeepSeek's AI; our server does not store it. The privacy policy describes this.
-- To turn it off: on the list screen tap the gear icon (top right) › Settings › Recording › "AI help (DeepSeek)". The same Settings page is in the "…" menu of a record screen. While it is off, nothing is sent to the AI.
+- To turn it off: on the list screen tap the gear icon (top right) › Settings › Recording › "AI help". The same Settings page is in the "…" menu of a record screen. While it is off, nothing is sent to the AI.
 - Off never blocks the app: typed lines are still logged as written, calories typed as "500kcal" still count, name search still works, today's routine is built on the phone, and one line says AI help is off.
 - Health data read from Apple Health (active energy, heart rate) is never sent to our server or to the AI.
 

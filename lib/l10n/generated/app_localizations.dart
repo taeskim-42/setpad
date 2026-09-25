@@ -2944,7 +2944,7 @@ abstract class L {
   /// No description provided for @aiSetting.
   ///
   /// In ko, this message translates to:
-  /// **'AI 도움 (DeepSeek)'**
+  /// **'AI 도움'**
   String get aiSetting;
 
   /// AI 도움을 꺼 두어 모델을 부르지 않았을 때 한 줄(운동 입력·식단 글·기록 질문)

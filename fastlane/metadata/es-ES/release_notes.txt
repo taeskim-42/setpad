@@ -5,7 +5,7 @@ En esta actualización
 · Las preguntas comparan periodos y ejercicios lado a lado en una tabla
 · Las calorías muestran su fuente: el valor de la tabla del MFDS o del USDA con enlace al original
 · Discos y Pro: las preguntas usan discos y ganas 1 cada día que registras 10 series
-· La ayuda de IA (DeepSeek) se puede desactivar cuando quieras en Ajustes › Ayuda de IA; el registro sigue funcionando
+· La ayuda de IA se puede desactivar cuando quieras en Ajustes › Ayuda de IA; el registro sigue funcionando
 · Anota las series de tu compañero en tu teléfono y pásaselas con un enlace
 · Modo entrenador: el personal del gimnasio recibe un informe matutino con las clases y pendientes de hoy
 · Nada de lo que escribes se pierde: lo que no se pudo colocar se muestra y lo ilegible queda tal cual
