@@ -56,7 +56,7 @@ class LTh extends L {
   }
 
   @override
-  String get search => 'ค้นหา';
+  String get search => 'ค้นหาหรือถาม';
 
   @override
   String get newNote => 'บันทึกใหม่';

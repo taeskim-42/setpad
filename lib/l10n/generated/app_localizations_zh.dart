@@ -56,7 +56,7 @@ class LZh extends L {
   }
 
   @override
-  String get search => '搜索';
+  String get search => '搜索或提问';
 
   @override
   String get newNote => '新建记录';
@@ -3193,7 +3193,7 @@ class LZhHans extends LZh {
   }
 
   @override
-  String get search => '搜索';
+  String get search => '搜索或提问';
 
   @override
   String get newNote => '新建记录';
@@ -6330,7 +6330,7 @@ class LZhHant extends LZh {
   }
 
   @override
-  String get search => '搜尋';
+  String get search => '搜尋或提問';
 
   @override
   String get newNote => '新增記錄';

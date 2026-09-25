@@ -131,13 +131,20 @@ class _AnatomyPageState extends State<AnatomyPage> {
   int _days = 7;
   bool _missed = false;
 
+  /// 시트를 연 근육. 그림에서 그 자리만 다른 색으로 칠해 어디를 보는지 보인다.
+  Muscle? _selected;
+
   Future<void> _openSheet(Muscle m, DateTime today) async {
-    setState(() => _missed = false);
+    setState(() {
+      _missed = false;
+      _selected = m;
+    });
     final got = await showCupertinoModalPopup<AnatomyHandoff>(
       context: context,
       builder: (_) =>
           _MuscleSheet(muscle: m, notes: widget.notes, today: today),
     );
+    if (mounted) setState(() => _selected = null);
     if (got != null && mounted) Navigator.of(context).pop(got);
   }
 
@@ -223,6 +230,8 @@ class _AnatomyPageState extends State<AnatomyPage> {
                         fills: {
                           for (final m in regions) m: _fill(context, lv(m)),
                         },
+                        selected: _selected,
+                        mark: CupertinoColors.activeBlue.resolveFrom(context),
                       ),
                     ),
                   ),
@@ -351,10 +360,16 @@ class _BodyPainter extends CustomPainter {
     required this.body,
     required this.line,
     required this.fills,
+    this.selected,
+    required this.mark,
   });
   final bool front;
   final Color body, line;
   final Map<Muscle, Color> fills;
+
+  /// 고른 근육 — 부하 색(호박) 대신 [mark] 로 칠하고 굵게 두른다.
+  final Muscle? selected;
+  final Color mark;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -369,9 +384,22 @@ class _BodyPainter extends CustomPainter {
       ..color = line;
     canvas.drawPath(_bodies[front]!, Paint()..color = body);
     for (final e in _muscles[front]!.entries) {
+      if (e.key == selected) continue;
       canvas
         ..drawPath(e.value, Paint()..color = fills[e.key] ?? body)
         ..drawPath(e.value, stroke);
+    }
+    // 고른 근육은 맨 위에 — 이웃 테두리에 가리지 않게.
+    if (_muscles[front]![selected] case final path?) {
+      canvas
+        ..drawPath(path, Paint()..color = mark.withValues(alpha: 0.85))
+        ..drawPath(
+          path,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.5 / f.s
+            ..color = mark,
+        );
     }
     canvas.restore();
   }
@@ -381,6 +409,8 @@ class _BodyPainter extends CustomPainter {
       old.front != front ||
       old.body != body ||
       old.line != line ||
+      old.selected != selected ||
+      old.mark != mark ||
       !mapEquals(old.fills, fills);
 }
 

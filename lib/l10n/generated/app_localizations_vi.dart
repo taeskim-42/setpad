@@ -56,7 +56,7 @@ class LVi extends L {
   }
 
   @override
-  String get search => 'Tìm kiếm';
+  String get search => 'Tìm hoặc hỏi';
 
   @override
   String get newNote => 'Bản ghi mới';

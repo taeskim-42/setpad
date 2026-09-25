@@ -190,7 +190,7 @@ abstract class L {
   /// No description provided for @search.
   ///
   /// In ko, this message translates to:
-  /// **'검색'**
+  /// **'찾거나 물어보세요'**
   String get search;
 
   /// No description provided for @newNote.

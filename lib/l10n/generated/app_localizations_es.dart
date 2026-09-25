@@ -56,7 +56,7 @@ class LEs extends L {
   }
 
   @override
-  String get search => 'Buscar';
+  String get search => 'Busca o pregunta';
 
   @override
   String get newNote => 'Nuevo registro';

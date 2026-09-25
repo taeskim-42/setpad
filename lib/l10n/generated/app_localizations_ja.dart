@@ -56,7 +56,7 @@ class LJa extends L {
   }
 
   @override
-  String get search => '検索';
+  String get search => '検索・質問';
 
   @override
   String get newNote => '新規記録';

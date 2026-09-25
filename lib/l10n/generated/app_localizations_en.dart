@@ -56,7 +56,7 @@ class LEn extends L {
   }
 
   @override
-  String get search => 'Search';
+  String get search => 'Search or ask';
 
   @override
   String get newNote => 'New workout';

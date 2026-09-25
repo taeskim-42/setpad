@@ -56,7 +56,7 @@ class LKo extends L {
   }
 
   @override
-  String get search => '검색';
+  String get search => '찾거나 물어보세요';
 
   @override
   String get newNote => '새 운동';
