@@ -1619,6 +1619,15 @@ class LEs extends L {
   String get fold => 'Contraer';
 
   @override
+  String get energySurplus => 'Superávit';
+
+  @override
+  String get energyDeficit => 'Déficit';
+
+  @override
+  String get milestoneBest => 'Récord de peso';
+
+  @override
   String get energyDiffFormula => 'Comido − ejercicio';
 
   @override

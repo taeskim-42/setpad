@@ -709,8 +709,12 @@ class RoutineEditor extends StatefulWidget {
     this.presence = const [],
     this.onPresence,
     this.timer,
+    this.records,
   });
   final RoutineEditorController controller;
+
+  /// 운동 칸마다 최고 무게를 새로 넘긴 세트 번호([weightRecords]). 그 칸에 ★.
+  final Set<int> Function(ExerciseBlock block)? records;
 
   /// 같이 운동 중이면 있다. 타이머를 같은 순간에 돌리는 데 쓴다.
   final PartnerSync? partner;
@@ -2557,6 +2561,8 @@ class _RoutineEditorState extends State<RoutineEditor>
                                 )
                               : null,
                           uniformCell: widestSetCell(context, blocks),
+                          records:
+                              widget.records?.call(blocks[i]) ?? const {},
                           cursors: [
                             for (final p in widget.presence)
                               if (p.block == blocks[i].id) p,
@@ -2891,6 +2897,7 @@ class _BlockView extends StatelessWidget {
     this.collapsed = false,
     this.titleInput,
     this.timing,
+    this.records = const {},
     this.editingSet,
     required this.onEditTitle,
     required this.onEditSet,
@@ -2942,6 +2949,9 @@ class _BlockView extends StatelessWidget {
 
   /// 문서 전체에서 맞출 칸 폭.
   final double? uniformCell;
+
+  /// 최고 무게를 새로 넘긴 세트 번호.
+  final Set<int> records;
 
   /// 닫힌 카드를 눌러 그 운동을 다시 연다. 열려 있으면 null 이다.
   final VoidCallback? onOpen;
@@ -3066,6 +3076,7 @@ class _BlockView extends StatelessWidget {
             if (block.sets.isNotEmpty || cursors.any((p) => p.set != null))
               SetGrid(
                 block: block,
+                records: records,
                 uniform: uniformCell,
                 onTapSet: onEditSet,
                 // 빈 칸 하나가 늘 남아 있다. 누르면 이 운동에 다음 세트를 적는다.

@@ -2521,6 +2521,24 @@ abstract class L {
   /// **'접기'**
   String get fold;
 
+  /// No description provided for @energySurplus.
+  ///
+  /// In ko, this message translates to:
+  /// **'흑자'**
+  String get energySurplus;
+
+  /// No description provided for @energyDeficit.
+  ///
+  /// In ko, this message translates to:
+  /// **'적자'**
+  String get energyDeficit;
+
+  /// No description provided for @milestoneBest.
+  ///
+  /// In ko, this message translates to:
+  /// **'최고 무게'**
+  String get milestoneBest;
+
   /// No description provided for @energyDiffFormula.
   ///
   /// In ko, this message translates to:

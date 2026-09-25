@@ -1536,6 +1536,15 @@ class LJa extends L {
   String get fold => '閉じる';
 
   @override
+  String get energySurplus => '黒字';
+
+  @override
+  String get energyDeficit => '赤字';
+
+  @override
+  String get milestoneBest => '最高重量';
+
+  @override
   String get energyDiffFormula => '食べた分 − 運動';
 
   @override

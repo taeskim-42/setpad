@@ -10,6 +10,7 @@ import 'anatomy_page.dart';
 import 'answer_card.dart';
 import 'daily.dart';
 import 'day_energy.dart';
+import 'milestones.dart';
 import 'record_query.dart';
 import 'stats.dart' as stats;
 import 'editor.dart' show SuggestionChip;
@@ -283,6 +284,16 @@ class _NotesListPageState extends State<NotesListPage>
     _answerKey = key;
     _answerMemo = result;
     return result;
+  }
+
+  /// 최고 무게를 새로 넘긴 기록들. 기록이 바뀔 때만 다시 센다.
+  (int, Set<String>)? _recordsMemo;
+  Set<String> _recordNotes() {
+    final rev = widget.store.revision;
+    if (_recordsMemo case (final r, final ids) when r == rev) return ids;
+    final ids = weightRecords(widget.store.notes).keys.toSet();
+    _recordsMemo = (rev, ids);
+    return ids;
   }
 
   /// 편집기 밑에 가려져 있으면 다시 그리지 않는다 — 편집기에서 한 글자 칠 때마다
@@ -1754,6 +1765,7 @@ class _NotesListPageState extends State<NotesListPage>
                                   query: _query.text.trim(),
                                   onOpen: _open,
                                   onDelete: widget.store.delete,
+                                  record: _recordNotes().contains(notes[i].id),
                                 ),
                                 separatorBuilder: (context, _) => Padding(
                                   // 구분선은 글자가 시작하는 자리부터 그린다.
@@ -1827,12 +1839,16 @@ class _Row extends StatelessWidget {
     required this.query,
     required this.onOpen,
     required this.onDelete,
+    this.record = false,
   });
 
   final Note note;
   final String query;
   final void Function(Note) onOpen;
   final void Function(Note) onDelete;
+
+  /// 이 기록에서 어느 운동이든 최고 무게를 새로 넘겼다.
+  final bool record;
 
   @override
   Widget build(BuildContext context) {
@@ -1933,6 +1949,30 @@ class _Row extends StatelessWidget {
                         const SizedBox(height: 4),
                         _MealLine(note),
                       ],
+                      // 마일스톤 — 최고 무게를 새로 넘긴 날.
+                      if (record)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Row(
+                            children: [
+                              Text(
+                                '★ ',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: seal.resolveFrom(context),
+                                ),
+                              ),
+                              Text(
+                                l.milestoneBest,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: seal.resolveFrom(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ],
                 ),

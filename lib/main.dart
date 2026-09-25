@@ -6,6 +6,8 @@ import 'package:flutter/scheduler.dart';
 
 import 'day_energy.dart';
 import 'editor.dart';
+import 'milestones.dart';
+import 'unfold.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'health.dart';
 import 'health_page.dart';
@@ -661,6 +663,17 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
 
   /// 같은 날 만든 다른 기록들. 하루에 문서가 여럿일 수 있다 — 오전에 한 장,
   /// 저녁에 한 장. 합치거나 베끼지 않고 이 문서 아래에 읽기 전용으로 보여 준다.
+  /// 이 기록에서 최고 무게를 새로 넘긴 세트. 기록이 바뀔 때만 다시 센다 — 편집기는
+  /// 칸마다 묻는다.
+  (int, Map<String, Set<int>>)? _recordsMemo;
+  Map<String, Set<int>> _records() {
+    final rev = widget.store.revision;
+    if (_recordsMemo case (final r, final m) when r == rev) return m;
+    final m = weightRecords(widget.store.notes)[widget.note.id] ?? const {};
+    _recordsMemo = (rev, m);
+    return m;
+  }
+
   List<Note> get _sameDay {
     final at = widget.note.createdAt;
     return [
@@ -1203,6 +1216,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                       onDraftChanged: (draft) =>
                           widget.store.updateDraft(widget.note, draft),
                       onForgetExercise: widget.store.forgetExercise,
+                      records: (b) => _records()[b.id] ?? const {},
                       onMealPhoto: () =>
                           _documentHeaderKey.currentState?._pick(),
                     ),
@@ -1508,52 +1522,71 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
             Padding(
               key: const ValueKey('day-summary'),
               padding: const EdgeInsets.only(top: 6, bottom: 2),
-              child: _energyOpen
-                  // 펼친 뒤에는 접는 자리가 보여야 한다 — 칸을 눌러도 접히지만
-                  // 그것은 알 수 없었다.
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        DayEnergy(log),
-                        CupertinoButton(
-                          key: const ValueKey('day-summary-fold'),
-                          padding: const EdgeInsets.only(top: 2),
-                          minimumSize: const Size(44, 30),
-                          onPressed: () => setState(() => _energyOpen = false),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                l.fold,
-                                style: const TextStyle(fontSize: 13),
+              // 한 줄 ↔ 세 칸을 부드럽게 바꾼다.
+              child: AnimatedSize(
+                duration: Unfold.duration,
+                curve: Curves.easeInOut,
+                alignment: Alignment.topCenter,
+                child: AnimatedSwitcher(
+                  duration: Unfold.duration,
+                  child: _energyOpen
+                      // 펼친 뒤에는 접는 자리가 보여야 한다 — 칸을 눌러도 접히지만
+                      // 그것은 알 수 없었다.
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            DayEnergy(log),
+                            CupertinoButton(
+                              key: const ValueKey('day-summary-fold'),
+                              padding: const EdgeInsets.only(top: 2),
+                              minimumSize: const Size(44, 30),
+                              onPressed: () =>
+                                  setState(() => _energyOpen = false),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    l.fold,
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                  const Icon(
+                                    CupertinoIcons.chevron_up,
+                                    size: 13,
+                                  ),
+                                ],
                               ),
-                              const Icon(CupertinoIcons.chevron_up, size: 13),
+                            ),
+                          ],
+                        )
+                      : GestureDetector(
+                          key: const ValueKey('day-summary-line'),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => setState(() => _energyOpen = true),
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  [
+                                    dayEnergyText(l, log) ?? '',
+                                    if ((log.difference ?? 0) > 0)
+                                      l.energySurplus,
+                                    if ((log.difference ?? 0) < 0)
+                                      l.energyDeficit,
+                                  ].join(' · '),
+                                  style: TextStyle(fontSize: 13, color: muted),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                CupertinoIcons.chevron_down,
+                                size: 12,
+                                color: muted,
+                              ),
                             ],
                           ),
                         ),
-                      ],
-                    )
-                  : GestureDetector(
-                      key: const ValueKey('day-summary-line'),
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => setState(() => _energyOpen = true),
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              dayEnergyText(l, log) ?? '',
-                              style: TextStyle(fontSize: 13, color: muted),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            CupertinoIcons.chevron_down,
-                            size: 12,
-                            color: muted,
-                          ),
-                        ],
-                      ),
-                    ),
+                ),
+              ),
             ),
           if (note.meals.isNotEmpty) ...[
             const SizedBox(height: 4),
@@ -1746,19 +1779,21 @@ class _PastCardState extends State<_PastCard> {
                       style: TextStyle(fontSize: 13, color: muted),
                     ),
                   ),
-                  Icon(
-                    _open
-                        ? CupertinoIcons.chevron_up
-                        : CupertinoIcons.chevron_down,
-                    size: 13,
-                    color: muted,
-                  ),
+                  UnfoldChevron(open: _open, color: muted),
                 ],
               ),
             ),
           ),
-          if (_open)
-            for (final b in n.blocks) BlockSummary(block: b),
+          // 지난 운동은 무엇을 얼마나 했는지만 — 그날 메모는 뺀다.
+          Unfold(
+            open: _open,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final b in n.blocks) BlockSummary(block: b, notes: false),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -1541,6 +1541,15 @@ class LKo extends L {
   String get fold => '접기';
 
   @override
+  String get energySurplus => '흑자';
+
+  @override
+  String get energyDeficit => '적자';
+
+  @override
+  String get milestoneBest => '최고 무게';
+
+  @override
   String get energyDiffFormula => '먹은 것 − 운동';
 
   @override

@@ -1522,6 +1522,15 @@ class LZh extends L {
   String get fold => '收起';
 
   @override
+  String get energySurplus => '盈余';
+
+  @override
+  String get energyDeficit => '赤字';
+
+  @override
+  String get milestoneBest => '最大重量';
+
+  @override
   String get energyDiffFormula => '摄入 − 运动';
 
   @override
@@ -4686,6 +4695,15 @@ class LZhHans extends LZh {
   String get fold => '收起';
 
   @override
+  String get energySurplus => '盈余';
+
+  @override
+  String get energyDeficit => '赤字';
+
+  @override
+  String get milestoneBest => '最大重量';
+
+  @override
   String get energyDiffFormula => '摄入 − 运动';
 
   @override
@@ -7847,6 +7865,15 @@ class LZhHant extends LZh {
 
   @override
   String get fold => '收起';
+
+  @override
+  String get energySurplus => '盈餘';
+
+  @override
+  String get energyDeficit => '赤字';
+
+  @override
+  String get milestoneBest => '最大重量';
 
   @override
   String get energyDiffFormula => '攝取 − 運動';

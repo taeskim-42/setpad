@@ -1603,6 +1603,15 @@ class LEn extends L {
   String get fold => 'Collapse';
 
   @override
+  String get energySurplus => 'Surplus';
+
+  @override
+  String get energyDeficit => 'Deficit';
+
+  @override
+  String get milestoneBest => 'Heaviest yet';
+
+  @override
   String get energyDiffFormula => 'Eaten − exercise';
 
   @override

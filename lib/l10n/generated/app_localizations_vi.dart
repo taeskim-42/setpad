@@ -1590,6 +1590,15 @@ class LVi extends L {
   String get fold => 'Thu gọn';
 
   @override
+  String get energySurplus => 'Dư';
+
+  @override
+  String get energyDeficit => 'Thiếu';
+
+  @override
+  String get milestoneBest => 'Mức tạ cao nhất';
+
+  @override
   String get energyDiffFormula => 'Đã ăn − tập luyện';
 
   @override

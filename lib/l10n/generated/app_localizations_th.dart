@@ -1576,6 +1576,15 @@ class LTh extends L {
   String get fold => 'ย่อ';
 
   @override
+  String get energySurplus => 'เกิน';
+
+  @override
+  String get energyDeficit => 'ขาด';
+
+  @override
+  String get milestoneBest => 'น้ำหนักสูงสุด';
+
+  @override
   String get energyDiffFormula => 'ที่กิน − ออกกำลังกาย';
 
   @override

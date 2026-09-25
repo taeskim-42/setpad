@@ -46,7 +46,12 @@ class DayEnergy extends StatelessWidget {
           _Tile(
             label: l.energyDifference,
             value: diff == null ? null : signed(diff),
-            note: l.energyDiffFormula,
+            // + 는 흑자(운동보다 더 먹음), − 는 적자. 뜻은 ⓘ 가 말한다.
+            note: [
+              if (diff != null && diff > 0) l.energySurplus,
+              if (diff != null && diff < 0) l.energyDeficit,
+              l.energyDiffFormula,
+            ].join(' · '),
             estimate: diff != null && day.intakeEstimated,
             onTap: () => showCupertinoDialog<void>(
               context: context,

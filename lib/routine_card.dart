@@ -8,6 +8,7 @@ import 'palette.dart';
 import 'record_query.dart' show notComputableLines;
 import 'routine.dart';
 import 'training_factor.dart';
+import 'unfold.dart';
 import 'units.dart';
 
 /// 카드 위의 칩 하나(글과 누를 일).
@@ -461,14 +462,14 @@ class _DetailsState extends State<_Details> {
                 _open ? l.routineWhyHide : l.routineWhyShow,
                 style: const TextStyle(fontSize: 13),
               ),
-              Icon(
-                _open ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,
-                size: 13,
-              ),
+              UnfoldChevron(open: _open),
             ],
           ),
         ),
-        if (_open) Text(widget.lines.join('\n'), style: widget.style),
+        Unfold(
+          open: _open,
+          child: Text(widget.lines.join('\n'), style: widget.style),
+        ),
       ],
     );
   }
