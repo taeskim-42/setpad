@@ -254,8 +254,11 @@ void main() {
     expect(meal.kcal, 713);
     expect(meal.source, MealEntry.estimate);
     expect(find.text('713kcal'), findsWidgets);
-    // 어림이라는 것은 숫자 앞 '약'(藥으로 읽혔다)이 아니라 먹은 것 칸의 추정 표시다.
-    expect(find.text('추정'), findsOneWidget);
+    // 그날 에너지는 접힌 한 줄이다. 펼치면 어림은 먹은 것 칸의 추정 표시로 보인다
+    // (숫자 앞 '약' 은 藥으로 읽혔다).
+    await tester.tap(find.byKey(const ValueKey('day-summary-line')));
+    await tester.pumpAndSettle();
+    expect(find.text('추정'), findsWidgets);
     // 서버에는 미상으로 먼저, 어림값으로 나중에 — 같은 줄에.
     expect(puts.map((p) => p['kcal']), [null, 713]);
     expect(puts.map((p) => p['path']).toSet(), {'/api/meals/${meal.id}'});

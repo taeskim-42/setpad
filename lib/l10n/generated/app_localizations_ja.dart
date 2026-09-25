@@ -931,12 +931,17 @@ class LJa extends L {
 
   @override
   String sameDayToday(String time) {
-    return '今日 $time のほかの記録';
+    return '今日 $time に別に残した記録';
   }
 
   @override
   String sameDayOn(String date, String time) {
-    return '$date $time のほかの記録';
+    return '$date $time に別に残した記録';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first ほか$n件';
   }
 
   @override

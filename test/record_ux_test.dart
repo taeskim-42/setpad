@@ -927,9 +927,14 @@ void main() {
       await pumpPage(tester, EditorPage(store: store, note: evening));
       // 요일이 아니라 그날이다 — 언제 남긴 기록인지 적는다.
       expect(
-        find.textContaining(RegExp(r'^오늘 .+에 남긴 다른 기록$')),
+        find.textContaining(RegExp(r'오늘 .+에 따로 남긴 기록')),
         findsOneWidget,
       );
+      // 기본은 접힌 한 줄 — 누르면 세트까지 펼친다.
+      expect(find.textContaining('아침 달리기'), findsOneWidget);
+      expect(find.text('1 5km'), findsNothing);
+      await tester.tap(find.byKey(ValueKey('same-day-${morning.id}')));
+      await tester.pumpAndSettle();
       expect(find.text('아침 달리기'), findsOneWidget);
       expect(find.text('1 5km'), findsOneWidget);
       expect(evening.blocks, hasLength(1), reason: '원본을 합치지 않는다');

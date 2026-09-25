@@ -925,12 +925,17 @@ class LZh extends L {
 
   @override
   String sameDayToday(String time) {
-    return '今天 $time 的其他记录';
+    return '今天 $time 另外保存的记录';
   }
 
   @override
   String sameDayOn(String date, String time) {
-    return '$date $time 的其他记录';
+    return '$date $time 另外保存的记录';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first 等$n项';
   }
 
   @override
@@ -4071,12 +4076,17 @@ class LZhHans extends LZh {
 
   @override
   String sameDayToday(String time) {
-    return '今天 $time 的其他记录';
+    return '今天 $time 另外保存的记录';
   }
 
   @override
   String sameDayOn(String date, String time) {
-    return '$date $time 的其他记录';
+    return '$date $time 另外保存的记录';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first 等$n项';
   }
 
   @override
@@ -7216,12 +7226,17 @@ class LZhHant extends LZh {
 
   @override
   String sameDayToday(String time) {
-    return '今天 $time 的其他紀錄';
+    return '今天 $time 另外保存的紀錄';
   }
 
   @override
   String sameDayOn(String date, String time) {
-    return '$date $time 的其他紀錄';
+    return '$date $time 另外保存的紀錄';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first 等$n項';
   }
 
   @override

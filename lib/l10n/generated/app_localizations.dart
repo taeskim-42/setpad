@@ -1600,14 +1600,20 @@ abstract class L {
   /// No description provided for @sameDayToday.
   ///
   /// In ko, this message translates to:
-  /// **'오늘 {time}에 남긴 다른 기록'**
+  /// **'오늘 {time}에 따로 남긴 기록'**
   String sameDayToday(String time);
 
   /// No description provided for @sameDayOn.
   ///
   /// In ko, this message translates to:
-  /// **'{date} {time}에 남긴 다른 기록'**
+  /// **'{date} {time}에 따로 남긴 기록'**
   String sameDayOn(String date, String time);
+
+  /// No description provided for @sameDayMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'{first} 외 {n}개'**
+  String sameDayMore(String first, int n);
 
   /// No description provided for @mealText.
   ///

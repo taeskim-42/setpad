@@ -960,12 +960,17 @@ class LVi extends L {
 
   @override
   String sameDayToday(String time) {
-    return 'Bản ghi khác hôm nay lúc $time';
+    return 'Bản ghi riêng hôm nay lúc $time';
   }
 
   @override
   String sameDayOn(String date, String time) {
-    return 'Bản ghi khác ngày $date lúc $time';
+    return 'Bản ghi riêng ngày $date lúc $time';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first và $n bài khác';
   }
 
   @override

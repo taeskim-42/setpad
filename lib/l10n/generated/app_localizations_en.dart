@@ -973,12 +973,17 @@ class LEn extends L {
 
   @override
   String sameDayToday(String time) {
-    return 'Another record from today, $time';
+    return 'Separate record from today, $time';
   }
 
   @override
   String sameDayOn(String date, String time) {
-    return 'Another record from $date, $time';
+    return 'Separate record from $date, $time';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first + $n more';
   }
 
   @override

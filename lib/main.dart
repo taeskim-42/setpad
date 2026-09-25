@@ -1228,6 +1228,9 @@ class _DocumentHeader extends StatefulWidget {
 /// 식단은 사진 한 장으로 어림한다. 운동으로 쓴 것과 먹은 것을 같은 줄에
 /// 두면 "오늘 얼마나 남았나" 가 한눈에 읽힌다. 숫자는 어림이라고 적는다.
 class _DocumentHeaderState extends State<_DocumentHeader> {
+  /// 그날 에너지 세 칸을 펼쳤는가. 기본은 접힌 한 줄.
+  bool _energyOpen = false;
+
   bool _estimating = false;
 
   /// 머리의 알림 한 줄과, 그것이 어느 끼니의 어림 실패인가(사진 쪽 말이면 null).
@@ -1473,12 +1476,38 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: muted),
           ),
-          // 먹은 것 · 운동 · 차이를 세 칸으로. 둘 다 없는 날은 칸을 세우지 않는다.
+          // 그날 에너지는 한 줄로 접어 둔다 — 운동을 적는 화면에서 세 칸은 컸다.
+          // 누르면 먹은 것 · 운동 · 차이 세 칸. 둘 다 없는 날은 줄도 없다.
           if (log != null && (log.intake != null || log.burned != null))
             Padding(
               key: const ValueKey('day-summary'),
-              padding: const EdgeInsets.only(top: 8, bottom: 4),
-              child: DayEnergy(log),
+              padding: const EdgeInsets.only(top: 6, bottom: 2),
+              child: _energyOpen
+                  ? GestureDetector(
+                      onTap: () => setState(() => _energyOpen = false),
+                      child: DayEnergy(log),
+                    )
+                  : GestureDetector(
+                      key: const ValueKey('day-summary-line'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => setState(() => _energyOpen = true),
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              dayEnergyText(l, log) ?? '',
+                              style: TextStyle(fontSize: 13, color: muted),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            CupertinoIcons.chevron_down,
+                            size: 12,
+                            color: muted,
+                          ),
+                        ],
+                      ),
+                    ),
             ),
           if (note.meals.isNotEmpty) ...[
             const SizedBox(height: 4),
@@ -1617,6 +1646,30 @@ class _SameDay extends StatelessWidget {
   const _SameDay({required this.notes});
   final List<Note> notes;
 
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 20),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [for (final n in notes) _SameDayCard(note: n)],
+    ),
+  );
+}
+
+/// 같은 날짜에 따로 남긴 운동 기록 하나 — 기본은 접힌 한 줄("오늘 오전 7:10에 한
+/// 다른 운동 · 데드리프트 외 3개"), 누르면 세트까지 읽기 전용으로 펼친다. 펼친
+/// 채로 두면 지금 적는 기록보다 길어 무엇을 적는 중인지 흐려졌다.
+class _SameDayCard extends StatefulWidget {
+  const _SameDayCard({required this.note});
+  final Note note;
+
+  @override
+  State<_SameDayCard> createState() => _SameDayCardState();
+}
+
+class _SameDayCardState extends State<_SameDayCard> {
+  bool _open = false;
+
   /// 언제의 기록인지 날짜까지 적는다. '같은 날' 만으로는 요일로 읽혔다.
   static String _when(L l, DateTime at) {
     final time = DateFormat.jm(l.localeName).format(at);
@@ -1625,52 +1678,65 @@ class _SameDay extends StatelessWidget {
         : l.sameDayOn(DateFormat.MMMEd(l.localeName).format(at), time);
   }
 
-  /// 지금 적는 기록과 섞여 보이지 않게, 기록마다 회색 카드 한 장에 읽기 전용으로.
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
-    return Padding(
-      padding: const EdgeInsets.only(top: 20),
+    final n = widget.note;
+    final names = n.blocks.map((b) => b.name).toSet().toList();
+    final what = names.length <= 1
+        ? names.join()
+        : l.sameDayMore(names.first, names.length - 1);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+      decoration: BoxDecoration(
+        color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final n in notes)
-            Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-              decoration: BoxDecoration(
-                color: CupertinoColors.secondarySystemBackground.resolveFrom(
-                  context,
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          GestureDetector(
+            key: ValueKey('same-day-${n.id}'),
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(() => _open = !_open),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Row(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        Icon(CupertinoIcons.clock, size: 14, color: muted),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            _when(l, n.createdAt),
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: muted,
-                            ),
+                  Icon(CupertinoIcons.clock, size: 14, color: muted),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: _when(l, n.createdAt),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
-                        ),
-                      ],
+                          if (what.isNotEmpty && !_open)
+                            TextSpan(text: ' · $what'),
+                        ],
+                      ),
+                      maxLines: _open ? null : 1,
+                      overflow: _open ? null : TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, color: muted),
                     ),
                   ),
-                  for (final b in n.blocks) BlockSummary(block: b),
+                  Icon(
+                    _open
+                        ? CupertinoIcons.chevron_up
+                        : CupertinoIcons.chevron_down,
+                    size: 13,
+                    color: muted,
+                  ),
                 ],
               ),
             ),
+          ),
+          if (_open)
+            for (final b in n.blocks) BlockSummary(block: b),
         ],
       ),
     );

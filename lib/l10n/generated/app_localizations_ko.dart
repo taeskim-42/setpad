@@ -935,12 +935,17 @@ class LKo extends L {
 
   @override
   String sameDayToday(String time) {
-    return '오늘 $time에 남긴 다른 기록';
+    return '오늘 $time에 따로 남긴 기록';
   }
 
   @override
   String sameDayOn(String date, String time) {
-    return '$date $time에 남긴 다른 기록';
+    return '$date $time에 따로 남긴 기록';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first 외 $n개';
   }
 
   @override

@@ -953,12 +953,17 @@ class LTh extends L {
 
   @override
   String sameDayToday(String time) {
-    return 'บันทึกอื่นของวันนี้ เวลา $time';
+    return 'บันทึกแยกของวันนี้ เวลา $time';
   }
 
   @override
   String sameDayOn(String date, String time) {
-    return 'บันทึกอื่นของวันที่ $date เวลา $time';
+    return 'บันทึกแยกของวันที่ $date เวลา $time';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first และอีก $n ท่า';
   }
 
   @override

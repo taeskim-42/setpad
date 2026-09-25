@@ -838,7 +838,7 @@
     }
   },
   "fitAll": "오늘 운동",
-  "sameDayToday": "오늘 {time}에 남긴 다른 기록",
+  "sameDayToday": "오늘 {time}에 따로 남긴 기록",
   "@sameDayToday": {
     "placeholders": {
       "time": {
@@ -846,7 +846,8 @@
       }
     }
   },
-  "sameDayOn": "{date} {time}에 남긴 다른 기록",
+  "sameDayOn": "{date} {time}에 따로 남긴 기록",
+  "sameDayMore": "{first} 외 {n}개",
   "@sameDayOn": {
     "placeholders": {
       "date": {
@@ -854,6 +855,16 @@
       },
       "time": {
         "type": "String"
+      }
+    }
+  },
+  "@sameDayMore": {
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
       }
     }
   },

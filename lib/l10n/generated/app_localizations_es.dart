@@ -981,12 +981,17 @@ class LEs extends L {
 
   @override
   String sameDayToday(String time) {
-    return 'Otro registro de hoy, $time';
+    return 'Registro aparte de hoy, $time';
   }
 
   @override
   String sameDayOn(String date, String time) {
-    return 'Otro registro del $date, $time';
+    return 'Registro aparte del $date, $time';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first y $n más';
   }
 
   @override
