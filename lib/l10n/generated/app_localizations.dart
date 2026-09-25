@@ -3861,7 +3861,7 @@ abstract class L {
   /// No description provided for @routineIntensityLine.
   ///
   /// In ko, this message translates to:
-  /// **'{kind, select, light{얼마나 가볍게 할지는 몰라 무게는 비워 두고 지난 기록을 옆에 적었어요} hard{무게는 지난번 그대로예요} max{몇 kg 에 도전할지는 정하지 않아요 — 최고 기록을 옆에 적었어요} other{}}'**
+  /// **'{kind, select, light{가볍게: 칸마다 마지막 세트 하나를 뺐어요 — 무게는 지난번 그대로예요} hard{무게는 지난번 그대로예요} max{몇 kg 에 도전할지는 정하지 않아요 — 최고 기록을 옆에 적었어요} other{}}'**
   String routineIntensityLine(String kind);
 
   /// No description provided for @routineNoStep.
@@ -4505,6 +4505,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{f, select, strength{근력으로 짜기 · 이번 주 {n}번} endurance{근지구력으로 짜기 · 이번 주 {n}번} sustain{지속력으로 짜기 · 이번 주 {n}번} cardio{심폐로 짜기 · 이번 주 {n}번} other{}}'**
   String routineFactorChip(String f, int n);
+
+  /// No description provided for @routineLightKept.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트를 뺄 수 없어 그대로 둔 칸(한 세트·채우기·타바타): {list}'**
+  String routineLightKept(String list);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

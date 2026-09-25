@@ -2592,7 +2592,7 @@ class LEn extends L {
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'light':
-          'Not sure how light — weights left blank with your last sets beside them',
+          'Light: one set dropped from each exercise — weights are the same as last time',
       'hard': 'Weights are the same as last time',
       'max': 'I don\'t pick a PR weight — your best is shown beside it',
       'other': '',
@@ -3171,5 +3171,10 @@ class LEn extends L {
       'other': '',
     });
     return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return 'Kept as is (one set, fill or tabata): $list';
   }
 }

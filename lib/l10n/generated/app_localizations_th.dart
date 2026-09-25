@@ -2561,7 +2561,7 @@ class LTh extends L {
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'light':
-          'ไม่รู้ว่าจะเบาแค่ไหน จึงเว้นน้ำหนักไว้และเขียนสถิติล่าสุดไว้ข้างๆ',
+          'เบาๆ: ลดเซ็ตสุดท้ายของแต่ละท่าลงหนึ่งเซ็ต — น้ำหนักเท่าครั้งก่อน',
       'hard': 'น้ำหนักเท่าครั้งก่อน',
       'max': 'ไม่กำหนดน้ำหนักที่จะลอง — เขียนสถิติสูงสุดไว้ข้างๆ',
       'other': '',
@@ -3131,5 +3131,10 @@ class LTh extends L {
       'other': '',
     });
     return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return 'คงไว้ตามเดิม (เซ็ตเดียว ให้ครบจำนวน หรือทาบาตะ): $list';
   }
 }

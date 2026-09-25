@@ -624,7 +624,7 @@
   "routineFewer": "Only {n} exercises from your log",
   "routineOtherUnit": "Sets logged in {unit} left as they were",
   "routineBpmRange": "bpm must be 10–120 — added without a timer",
-  "routineIntensityLine": "{kind, select, light{Not sure how light — weights left blank with your last sets beside them} hard{Weights are the same as last time} max{I don't pick a PR weight — your best is shown beside it} other{}}",
+  "routineIntensityLine": "{kind, select, light{Light: one set dropped from each exercise — weights are the same as last time} hard{Weights are the same as last time} max{I don't pick a PR weight — your best is shown beside it} other{}}",
   "routineNoStep": "Type how much to add (e.g. +2.5kg)",
   "routinePain": "Because of '{phrase}', dropped: {list} · weights left blank · I don't judge whether it's safe",
   "routinePainNone": "'{phrase}' — nothing dropped, weights left blank · I don't judge whether it's safe",
@@ -731,5 +731,6 @@
   "routineFillHint": "For a fill session, type the target (e.g. squat fill 100)",
   "routineTabataChip": "Make it tabata",
   "routineLikeLastWeek": "Like last {day}",
-  "routineFactorChip": "{f, select, strength{Build for strength · {n} this week} endurance{Build for muscular endurance · {n} this week} sustain{Build for sustain · {n} this week} cardio{Build for cardio · {n} this week} other{}}"
+  "routineFactorChip": "{f, select, strength{Build for strength · {n} this week} endurance{Build for muscular endurance · {n} this week} sustain{Build for sustain · {n} this week} cardio{Build for cardio · {n} this week} other{}}",
+  "routineLightKept": "Kept as is (one set, fill or tabata): {list}"
 }

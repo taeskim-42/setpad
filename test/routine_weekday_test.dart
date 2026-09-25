@@ -3,6 +3,7 @@ import 'package:setpad/anatomy.dart' show Muscle;
 import 'package:setpad/editor.dart';
 import 'package:setpad/handoff.dart' show ProxyRecord;
 import 'package:setpad/notes.dart';
+import 'package:setpad/record_ai.dart' show WorkoutSetup;
 import 'package:setpad/record_query.dart' show recordedExercises;
 import 'package:setpad/routine.dart';
 import 'package:setpad/training_factor.dart';
@@ -10,7 +11,7 @@ import 'package:setpad/training_factor.dart';
 import '../tool/routine_grading.dart';
 import 'routine_fixture.dart';
 
-/// 평일 = 같은 요일 하루(설계 routine-v2 §3.1, §8.1 S1–S5·S9–S11·S15, §4.4).
+/// 평일 = 같은 요일 하루(설계 routine-v2 §3.1, §8.1 S1–S5·S9–S11·S14·S15, §4.4).
 void main() {
   const bare = RoutineAsk(device: true);
   // 월 가슴 / 화 등 / 수 하체 / 목 어깨 / 금 팔 — 8/31(월)부터 9/16(수)까지.
@@ -242,6 +243,31 @@ void main() {
     final up = make(log, thu, edits: RoutineEdits()..step = true);
     expect(up.items.single.sets.every((s) => s.value == 90), isTrue);
     expect(up.items.single.stepped?.step, 2.5);
+  });
+
+  test('S14 가볍게 = 칸마다 마지막 세트 하나 빼기, 무게는 내 값 — 채우기·타바타·한 세트 칸은 그대로(F5)', () {
+    final log = [
+      at(DateTime(2026, 9, 10, 19), [
+        ExerciseBlock('오버헤드프레스', times(3, () => kg(40, 8))),
+        ExerciseBlock(
+          '푸시업 100개 채우기',
+          [reps(40), reps(30), reps(30)],
+          const WorkoutSetup(name: '푸시업', totalReps: 100, repsOnly: true),
+        ),
+        ExerciseBlock('버피 타바타', [reps(10)]),
+        ExerciseBlock('풀업', [reps(8)]),
+      ]),
+    ];
+    final d = make(log, thu, gold: {'intensity': 'light'}, text: '가볍게 하고 싶어');
+    final ohp = d.items.first;
+    expect(ohp.sets, List.filled(2, (value: 40.0, unit: 'kg', reps: 8)));
+    expect(ohp.blank, isNull);
+    for (final i in d.items.skip(1)) {
+      expect(i.sets.length, i.key == '푸시업' ? 3 : 1, reason: i.title);
+      expect(i.blank, isNull, reason: i.title);
+    }
+    final kept = d.lines.firstWhere((l) => l.code == 'lightKept');
+    expect(kept.args.single, ['푸시업 100개 채우기', '버피 타바타', '풀업']);
   });
 
   test('S15 근육 겹침: 어제 데드리프트(허리·엉덩이) → 오늘 레그프레스에 "엉덩이 · 어제", 원천은 그대로', () {

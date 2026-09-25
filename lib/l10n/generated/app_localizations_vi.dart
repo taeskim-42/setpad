@@ -2578,8 +2578,7 @@ class LVi extends L {
   @override
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
-      'light':
-          'Không biết nhẹ bao nhiêu nên để trống mức tạ và ghi lần trước bên cạnh',
+      'light': 'Nhẹ: bớt hiệp cuối của mỗi bài — mức tạ giống lần trước',
       'hard': 'Mức tạ giống lần trước',
       'max': 'Không chọn mức tạ để phá kỷ lục — ghi kỷ lục bên cạnh',
       'other': '',
@@ -3152,5 +3151,10 @@ class LVi extends L {
       'other': '',
     });
     return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return 'Giữ nguyên (một hiệp, tập đủ số hoặc tabata): $list';
   }
 }

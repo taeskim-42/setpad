@@ -624,7 +624,7 @@
   "routineFewer": "記録から入れられる種目は{n}つです",
   "routineOtherUnit": "{unit}で記録したセットはそのままです",
   "routineBpmRange": "bpmは10–120です — タイマーなしで入れました",
-  "routineIntensityLine": "{kind, select, light{どれくらい軽くするか分からないので重さは空欄にし、前回の記録を横に書きました} hard{重さは前回と同じです} max{何kgに挑戦するかは決めません — 最高記録を横に書きました} other{}}",
+  "routineIntensityLine": "{kind, select, light{軽め: 各種目の最後の1セットを減らしました — 重さは前回と同じです} hard{重さは前回と同じです} max{何kgに挑戦するかは決めません — 最高記録を横に書きました} other{}}",
   "routineNoStep": "上げる幅を入力してください(例: +2.5kg)",
   "routinePain": "「{phrase}」で外したもの: {list} · 重さは空欄 · 大丈夫かどうかは判断しません",
   "routinePainNone": "「{phrase}」 — 外した種目はなく重さは空欄 · 大丈夫かどうかは判断しません",
@@ -731,5 +731,6 @@
   "routineFillHint": "回数達成は目標回数を書いてください(例: スクワット100回達成)",
   "routineTabataChip": "タバタで",
   "routineLikeLastWeek": "先週の{day}のように",
-  "routineFactorChip": "{f, select, strength{筋力で組む · 今週{n}回} endurance{筋持久力で組む · 今週{n}回} sustain{持続力で組む · 今週{n}回} cardio{心肺で組む · 今週{n}回} other{}}"
+  "routineFactorChip": "{f, select, strength{筋力で組む · 今週{n}回} endurance{筋持久力で組む · 今週{n}回} sustain{持続力で組む · 今週{n}回} cardio{心肺で組む · 今週{n}回} other{}}",
+  "routineLightKept": "そのままにした種目(1セット・回数達成・タバタ): {list}"
 }

@@ -2507,7 +2507,7 @@ class LJa extends L {
   @override
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
-      'light': 'どれくらい軽くするか分からないので重さは空欄にし、前回の記録を横に書きました',
+      'light': '軽め: 各種目の最後の1セットを減らしました — 重さは前回と同じです',
       'hard': '重さは前回と同じです',
       'max': '何kgに挑戦するかは決めません — 最高記録を横に書きました',
       'other': '',
@@ -3062,5 +3062,10 @@ class LJa extends L {
       'other': '',
     });
     return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return 'そのままにした種目(1セット・回数達成・タバタ): $list';
   }
 }

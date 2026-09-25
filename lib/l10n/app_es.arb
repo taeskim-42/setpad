@@ -624,7 +624,7 @@
   "routineFewer": "Solo hay {n} ejercicios en tu registro",
   "routineOtherUnit": "Las series en {unit} quedaron igual",
   "routineBpmRange": "El bpm va de 10 a 120 — añadido sin temporizador",
-  "routineIntensityLine": "{kind, select, light{No sé cuánto más suave — pesos en blanco con tus últimas series al lado} hard{Los pesos son los de la última vez} max{No elijo el peso del récord — tu mejor marca está al lado} other{}}",
+  "routineIntensityLine": "{kind, select, light{Suave: una serie menos en cada ejercicio — los pesos son los de la última vez} hard{Los pesos son los de la última vez} max{No elijo el peso del récord — tu mejor marca está al lado} other{}}",
   "routineNoStep": "Escribe cuánto subir (p. ej. +2,5 kg)",
   "routinePain": "Por '{phrase}', quitado: {list} · pesos en blanco · no juzgo si es seguro",
   "routinePainNone": "'{phrase}' — nada quitado, pesos en blanco · no juzgo si es seguro",
@@ -731,5 +731,6 @@
   "routineFillHint": "Para completar, escribe la meta (p. ej. sentadilla completar 100)",
   "routineTabataChip": "Hacerla tabata",
   "routineLikeLastWeek": "Como el {day} pasado",
-  "routineFactorChip": "{f, select, strength{Armar para fuerza · {n} esta semana} endurance{Armar para resistencia muscular · {n} esta semana} sustain{Armar para sostenimiento · {n} esta semana} cardio{Armar para cardio · {n} esta semana} other{}}"
+  "routineFactorChip": "{f, select, strength{Armar para fuerza · {n} esta semana} endurance{Armar para resistencia muscular · {n} esta semana} sustain{Armar para sostenimiento · {n} esta semana} cardio{Armar para cardio · {n} esta semana} other{}}",
+  "routineLightKept": "Sin cambios (una serie, completar o tabata): {list}"
 }

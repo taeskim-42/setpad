@@ -624,7 +624,7 @@
   "routineFewer": "Nhật ký chỉ có {n} bài",
   "routineOtherUnit": "Các hiệp ghi bằng {unit} giữ nguyên",
   "routineBpmRange": "bpm phải từ 10–120 — đã thêm không có hẹn giờ",
-  "routineIntensityLine": "{kind, select, light{Không biết nhẹ bao nhiêu nên để trống mức tạ và ghi lần trước bên cạnh} hard{Mức tạ giống lần trước} max{Không chọn mức tạ để phá kỷ lục — ghi kỷ lục bên cạnh} other{}}",
+  "routineIntensityLine": "{kind, select, light{Nhẹ: bớt hiệp cuối của mỗi bài — mức tạ giống lần trước} hard{Mức tạ giống lần trước} max{Không chọn mức tạ để phá kỷ lục — ghi kỷ lục bên cạnh} other{}}",
   "routineNoStep": "Gõ mức muốn tăng (vd. +2.5kg)",
   "routinePain": "Vì '{phrase}' nên bỏ: {list} · để trống mức tạ · không đánh giá có an toàn không",
   "routinePainNone": "'{phrase}' — không bỏ bài nào, để trống mức tạ · không đánh giá có an toàn không",
@@ -731,5 +731,6 @@
   "routineFillHint": "Muốn tập cho đủ số, hãy ghi mục tiêu (vd: squat đủ 100 cái)",
   "routineTabataChip": "Tập kiểu tabata",
   "routineLikeLastWeek": "Giống {day} tuần trước",
-  "routineFactorChip": "{f, select, strength{Xếp cho sức mạnh · tuần này {n} lần} endurance{Xếp cho sức bền cơ · tuần này {n} lần} sustain{Xếp cho sức duy trì · tuần này {n} lần} cardio{Xếp cho tim phổi · tuần này {n} lần} other{}}"
+  "routineFactorChip": "{f, select, strength{Xếp cho sức mạnh · tuần này {n} lần} endurance{Xếp cho sức bền cơ · tuần này {n} lần} sustain{Xếp cho sức duy trì · tuần này {n} lần} cardio{Xếp cho tim phổi · tuần này {n} lần} other{}}",
+  "routineLightKept": "Giữ nguyên (một hiệp, tập đủ số hoặc tabata): {list}"
 }

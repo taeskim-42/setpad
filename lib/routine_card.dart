@@ -492,6 +492,7 @@ List<String> routineLineTexts(L l, RoutineLine line) {
       ),
     ],
     'fillHint' => [l.routineFillHint],
+    'lightKept' => [l.routineLightKept((a[0] as List).join('·'))],
     _ => [line.toString()],
   };
 }

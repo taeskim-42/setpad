@@ -624,7 +624,7 @@
   "routineFewer": "紀錄裡只有{n}個動作",
   "routineOtherUnit": "用{unit}記錄的組保持不變",
   "routineBpmRange": "bpm 須在10–120 — 不帶計時加入",
-  "routineIntensityLine": "{kind, select, light{不知道要輕多少,重量留空,旁邊寫了上次的紀錄} hard{重量和上次一樣} max{不決定挑戰多少公斤 — 旁邊寫了最佳紀錄} other{}}",
+  "routineIntensityLine": "{kind, select, light{輕一點:每個動作少做最後一組 — 重量和上次一樣} hard{重量和上次一樣} max{不決定挑戰多少公斤 — 旁邊寫了最佳紀錄} other{}}",
   "routineNoStep": "請輸入要加多少(例如 +2.5kg)",
   "routinePain": "因為「{phrase}」拿掉了: {list} · 重量留空 · 不判斷是否安全",
   "routinePainNone": "「{phrase}」 — 沒拿掉動作,重量留空 · 不判斷是否安全",
@@ -731,5 +731,6 @@
   "routineFillHint": "要練完成次數,請寫上目標(例:深蹲完成100下)",
   "routineTabataChip": "改成Tabata",
   "routineLikeLastWeek": "像上週{day}一樣",
-  "routineFactorChip": "{f, select, strength{按力量安排 · 本週{n}次} endurance{按肌耐力安排 · 本週{n}次} sustain{按持續力安排 · 本週{n}次} cardio{按心肺安排 · 本週{n}次} other{}}"
+  "routineFactorChip": "{f, select, strength{按力量安排 · 本週{n}次} endurance{按肌耐力安排 · 本週{n}次} sustain{按持續力安排 · 本週{n}次} cardio{按心肺安排 · 本週{n}次} other{}}",
+  "routineLightKept": "維持不變(一組、完成次數或Tabata):{list}"
 }

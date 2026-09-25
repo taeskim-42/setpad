@@ -2486,7 +2486,7 @@ class LZh extends L {
   @override
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
-      'light': '不知道要轻多少,重量留空,旁边写了上次的记录',
+      'light': '轻一点:每个动作少做最后一组 — 重量和上次一样',
       'hard': '重量和上次一样',
       'max': '不决定挑战多少公斤 — 旁边写了最好成绩',
       'other': '',
@@ -3040,6 +3040,11 @@ class LZh extends L {
       'other': '',
     });
     return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return '保持不变(一组、完成次数或Tabata):$list';
   }
 }
 
@@ -5525,7 +5530,7 @@ class LZhHans extends LZh {
   @override
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
-      'light': '不知道要轻多少,重量留空,旁边写了上次的记录',
+      'light': '轻一点:每个动作少做最后一组 — 重量和上次一样',
       'hard': '重量和上次一样',
       'max': '不决定挑战多少公斤 — 旁边写了最好成绩',
       'other': '',
@@ -6079,6 +6084,11 @@ class LZhHans extends LZh {
       'other': '',
     });
     return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return '保持不变(一组、完成次数或Tabata):$list';
   }
 }
 
@@ -8563,7 +8573,7 @@ class LZhHant extends LZh {
   @override
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
-      'light': '不知道要輕多少,重量留空,旁邊寫了上次的紀錄',
+      'light': '輕一點:每個動作少做最後一組 — 重量和上次一樣',
       'hard': '重量和上次一樣',
       'max': '不決定挑戰多少公斤 — 旁邊寫了最佳紀錄',
       'other': '',
@@ -9117,5 +9127,10 @@ class LZhHant extends LZh {
       'other': '',
     });
     return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return '維持不變(一組、完成次數或Tabata):$list';
   }
 }

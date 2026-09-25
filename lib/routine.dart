@@ -2654,6 +2654,7 @@ RoutineDraft composeRoutine(
 
   // 칸마다 숫자(§7.1 사다리 + G4·G8·G10·G11).
   final light = ask.intensity == 'light';
+  final lightKept = <String>[];
   final painBlank = ask.pain != null;
   for (final c in list) {
     final key = c.key;
@@ -2789,7 +2790,20 @@ RoutineDraft composeRoutine(
       }
       changed = true;
     }
-    if (light) blank ??= 'light';
+    // 가볍게(F5): 마지막 세트 하나를 뺀다 — 무게는 내 값 그대로(repstack 적용기의 세트
+    // ±1 만). 한 세트뿐인 칸·채우기·타바타는 뺄 수 없어(채우기 목표 수를 줄이면 새 수를
+    // 지어낸다) 그대로 두고 줄로 말한다. 친 수가 있는 칸은 친 대로다.
+    var dropped = false;
+    if (light && target == null && src != null) {
+      final fill = src.setup?.totalReps != null;
+      final tabata = TimingSpec.parse(src.name)?.tabata ?? false;
+      if (sets.length > 1 && !fill && !tabata) {
+        sets = sets.sublist(0, sets.length - 1);
+        changed = dropped = true;
+      } else {
+        lightKept.add(src.name);
+      }
+    }
     // 비우기: 옮긴 무게만 비운다. 친 무게는 남기고(typedKept) 나머지를 비운 까닭은
     // 그대로 말한다. 친 무게뿐이라 비운 것이 없으면 "비웠어요" 라고 하지 않는다.
     bool typedSet(PlanSet s) =>
@@ -2817,13 +2831,23 @@ RoutineDraft composeRoutine(
           ? sets.where((s) => s.value == target!.weight).toList()
           : sets.where(_weighed).toList();
       final typed = target != null && retyped == null;
+      // 세트만 뺐으면 무게는 설정 그대로, 세트 수만 줄인다.
+      final onlyDropped = dropped && ask.delta == null && blank == null;
       setup = WorkoutSetup(
         name: setup.name,
-        weight: weighedSets.firstOrNull?.value,
-        unit: weighedSets.firstOrNull?.unit ?? setup.unit,
+        weight: onlyDropped ? setup.weight : weighedSets.firstOrNull?.value,
+        unit: onlyDropped
+            ? setup.unit
+            : weighedSets.firstOrNull?.unit ?? setup.unit,
         totalReps: target?.total ?? (typed ? null : setup.totalReps),
         repsPerSet: target?.reps ?? (typed ? null : setup.repsPerSet),
-        totalSets: target?.sets ?? (typed ? null : setup.totalSets),
+        totalSets:
+            target?.sets ??
+            (typed
+                ? null
+                : dropped && setup.totalSets != null
+                ? sets.length
+                : setup.totalSets),
         repsOnly: setup.repsOnly,
       );
     } else if (target?.total != null) {
@@ -2879,6 +2903,10 @@ RoutineDraft composeRoutine(
     item.seconds = estimate(c);
     item.recent = recentFor(key);
     draft.items.add(item);
+  }
+
+  if (lightKept.isNotEmpty) {
+    draft.lines.add(RoutineLine('lightKept', [lightKept]));
   }
 
   // 남의 루틴: 이름만(G2).

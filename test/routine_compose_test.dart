@@ -279,7 +279,7 @@ void main() {
       expect(d.startable, isFalse);
     });
 
-    test('G4: 숫자를 바꾼 칸은 설정·제목도 같이 — 가볍게면 설정 무게가 비고 제목에 옛 무게가 없다', () {
+    test('G4: 숫자를 바꾼 칸은 설정·제목도 같이 — 가볍게면 세트 하나를 빼고(설정 세트 수도) 제목에 옛 수가 없다', () {
       final log = [
         session('0907s', 9, 7, [
           ExerciseBlock(
@@ -299,9 +299,12 @@ void main() {
         '가볍게 하고 싶어',
         notes: log,
       ).items.single;
-      expect(light.setup?.weight, isNull);
-      expect(light.title.contains('100'), isFalse, reason: light.title);
-      expect(light.sets.every((s) => s.value == null && s.reps == 5), isTrue);
+      // F5: 무게는 내 값 그대로, 마지막 세트 하나를 뺀다.
+      expect(light.setup?.weight, 100);
+      expect(light.setup?.totalSets, 4);
+      expect(light.title, '스쿼트');
+      expect(light.sets, List.filled(4, (value: 100.0, unit: 'kg', reps: 5)));
+      expect(light.blank, isNull);
       final plus = compose(
         {
           'from': {},
@@ -809,7 +812,7 @@ void main() {
       expect(bench.setup?.repsOnly, isFalse);
     });
 
-    test('검증 O4 비우는 까닭(오래됨·가볍게·기구)이 있어도 친 무게는 남기고 나머지를 비운 까닭을 말한다', () {
+    test('검증 O4 비우는 까닭(오래됨·기구)이 있어도 친 무게는 남기고 나머지를 비운 까닭을 말한다', () {
       const typed = {
         'targets': [
           {'exercise': '벤치프레스', 'weight': 100, 'unit': 'kg'},
@@ -824,10 +827,6 @@ void main() {
           ]),
         ],
       );
-      final light = compose({
-        ...typed,
-        'intensity': 'light',
-      }, '가볍게 벤치 100kg로 짜줘');
       final gear = compose({
         ...typed,
         'exercises': ['벤치프레스'],
@@ -835,11 +834,7 @@ void main() {
           'only': ['dumbbell'],
         },
       }, '덤벨만 있는데 벤치 100kg로 짜줘');
-      for (final (d, why) in [
-        (stale, 'stale'),
-        (light, 'light'),
-        (gear, 'gear'),
-      ]) {
+      for (final (d, why) in [(stale, 'stale'), (gear, 'gear')]) {
         final bench = d.items.firstWhere((i) => i.key == '벤치프레스');
         expect(bench.sets, [
           (value: null, unit: 'kg', reps: 10),

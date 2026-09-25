@@ -2611,7 +2611,7 @@ class LEs extends L {
   String routineIntensityLine(String kind) {
     String _temp0 = intl.Intl.selectLogic(kind, {
       'light':
-          'No sé cuánto más suave — pesos en blanco con tus últimas series al lado',
+          'Suave: una serie menos en cada ejercicio — los pesos son los de la última vez',
       'hard': 'Los pesos son los de la última vez',
       'max': 'No elijo el peso del récord — tu mejor marca está al lado',
       'other': '',
@@ -3193,5 +3193,10 @@ class LEs extends L {
       'other': '',
     });
     return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return 'Sin cambios (una serie, completar o tabata): $list';
   }
 }
