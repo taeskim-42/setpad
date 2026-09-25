@@ -278,6 +278,16 @@ void main() {
       }
     });
 
+    test('F8 "루틴 만들어줘" 는 맨 요청(모델 없음, 원판 0) — 조건이 붙으면 그대로 루틴', () {
+      for (final t in ['루틴 만들어줘', '오늘 루틴 만들어 줘', '운동 만들어줘']) {
+        expect(routeHome(t), HomeRoute.bare, reason: t);
+      }
+      for (final t in ['하체 루틴 만들어줘', '기록 보고 루틴 만들어줘']) {
+        expect(routeHome(t), HomeRoute.routine, reason: t);
+      }
+      expect(routeHome('루틴 그래프로 만들어줘'), HomeRoute.question);
+    });
+
     test('검증 O1 운동표·계획표·식단표·リスト 는 만들 것이지 기록 출력이 아니다', () {
       for (final t in [
         '운동 계획표 만들어줘',
