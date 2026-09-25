@@ -1600,6 +1600,9 @@ class LEn extends L {
   String get energyDifference => 'Net';
 
   @override
+  String get fold => 'Collapse';
+
+  @override
   String get energyDiffFormula => 'Eaten − exercise';
 
   @override

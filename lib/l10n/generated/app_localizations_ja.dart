@@ -1533,6 +1533,9 @@ class LJa extends L {
   String get energyDifference => '差';
 
   @override
+  String get fold => '閉じる';
+
+  @override
   String get energyDiffFormula => '食べた分 − 運動';
 
   @override

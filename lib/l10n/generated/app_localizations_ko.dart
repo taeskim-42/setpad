@@ -1538,6 +1538,9 @@ class LKo extends L {
   String get energyDifference => '차이';
 
   @override
+  String get fold => '접기';
+
+  @override
   String get energyDiffFormula => '먹은 것 − 운동';
 
   @override

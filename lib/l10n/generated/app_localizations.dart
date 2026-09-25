@@ -2515,6 +2515,12 @@ abstract class L {
   /// **'차이'**
   String get energyDifference;
 
+  /// No description provided for @fold.
+  ///
+  /// In ko, this message translates to:
+  /// **'접기'**
+  String get fold;
+
   /// No description provided for @energyDiffFormula.
   ///
   /// In ko, this message translates to:

@@ -1587,6 +1587,9 @@ class LVi extends L {
   String get energyDifference => 'Chênh lệch';
 
   @override
+  String get fold => 'Thu gọn';
+
+  @override
   String get energyDiffFormula => 'Đã ăn − tập luyện';
 
   @override

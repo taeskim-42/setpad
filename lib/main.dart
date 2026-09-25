@@ -1509,9 +1509,29 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
               key: const ValueKey('day-summary'),
               padding: const EdgeInsets.only(top: 6, bottom: 2),
               child: _energyOpen
-                  ? GestureDetector(
-                      onTap: () => setState(() => _energyOpen = false),
-                      child: DayEnergy(log),
+                  // 펼친 뒤에는 접는 자리가 보여야 한다 — 칸을 눌러도 접히지만
+                  // 그것은 알 수 없었다.
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        DayEnergy(log),
+                        CupertinoButton(
+                          key: const ValueKey('day-summary-fold'),
+                          padding: const EdgeInsets.only(top: 2),
+                          minimumSize: const Size(44, 30),
+                          onPressed: () => setState(() => _energyOpen = false),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                l.fold,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                              const Icon(CupertinoIcons.chevron_up, size: 13),
+                            ],
+                          ),
+                        ),
+                      ],
                     )
                   : GestureDetector(
                       key: const ValueKey('day-summary-line'),

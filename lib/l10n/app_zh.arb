@@ -401,6 +401,7 @@
   "mealsTitle": "饮食",
   "energyBurned": "运动",
   "energyDifference": "差值",
+  "fold": "收起",
   "energyDiffFormula": "摄入 − 运动",
   "energyDiffExplain": "记录的摄入热量减去运动消耗的热量。正数表示吃得比运动消耗的多，负数表示更少。\n\n不包含基础代谢和日常活动的消耗，所以并不等于体重的增减。",
   "estimateTag": "估算",

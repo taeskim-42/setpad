@@ -1573,6 +1573,9 @@ class LTh extends L {
   String get energyDifference => 'ส่วนต่าง';
 
   @override
+  String get fold => 'ย่อ';
+
+  @override
   String get energyDiffFormula => 'ที่กิน − ออกกำลังกาย';
 
   @override

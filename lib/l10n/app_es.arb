@@ -401,6 +401,7 @@
   "mealsTitle": "Comidas",
   "energyBurned": "Ejercicio",
   "energyDifference": "Diferencia",
+  "fold": "Contraer",
   "energyDiffFormula": "Comido − ejercicio",
   "energyDiffExplain": "Calorías que registraste comiendo menos las que quemaste entrenando. Positivo: comiste más de lo que quemaste entrenando; negativo: menos.\n\nNo incluye tu metabolismo en reposo ni la actividad diaria, así que no equivale a tu cambio de peso.",
   "estimateTag": "aprox.",

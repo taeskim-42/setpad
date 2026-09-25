@@ -1519,6 +1519,9 @@ class LZh extends L {
   String get energyDifference => '差值';
 
   @override
+  String get fold => '收起';
+
+  @override
   String get energyDiffFormula => '摄入 − 运动';
 
   @override
@@ -4680,6 +4683,9 @@ class LZhHans extends LZh {
   String get energyDifference => '差值';
 
   @override
+  String get fold => '收起';
+
+  @override
   String get energyDiffFormula => '摄入 − 运动';
 
   @override
@@ -7838,6 +7844,9 @@ class LZhHant extends LZh {
 
   @override
   String get energyDifference => '差值';
+
+  @override
+  String get fold => '收起';
 
   @override
   String get energyDiffFormula => '攝取 − 運動';

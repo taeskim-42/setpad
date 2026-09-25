@@ -1616,6 +1616,9 @@ class LEs extends L {
   String get energyDifference => 'Diferencia';
 
   @override
+  String get fold => 'Contraer';
+
+  @override
   String get energyDiffFormula => 'Comido − ejercicio';
 
   @override
