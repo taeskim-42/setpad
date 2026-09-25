@@ -1093,12 +1093,15 @@ void keypadTests() {
       );
       await settle(tester);
 
-      await tester.tap(
+      // 식단은 글자 없이 포크·나이프 아이콘 하나다 — 후보 칩 자리를 먹지 않는다.
+      expect(
         find.descendant(
           of: find.byKey(const ValueKey('exercise-suggestions')),
           matching: find.text('식단 사진'),
         ),
+        findsNothing,
       );
+      await tester.tap(find.byKey(const ValueKey('meal-button')));
       expect(opened, 1);
     });
   });

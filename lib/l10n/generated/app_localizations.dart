@@ -1537,6 +1537,24 @@ abstract class L {
   /// **'식단 사진'**
   String get mealPhoto;
 
+  /// No description provided for @mealAdd.
+  ///
+  /// In ko, this message translates to:
+  /// **'식단 남기기'**
+  String get mealAdd;
+
+  /// No description provided for @mealWrite.
+  ///
+  /// In ko, this message translates to:
+  /// **'글로 적기'**
+  String get mealWrite;
+
+  /// No description provided for @mealTypeHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'음식은 운동 이름 줄에 바로 쳐도 식단으로 남아요'**
+  String get mealTypeHint;
+
   /// No description provided for @mealCamera.
   ///
   /// In ko, this message translates to:
@@ -2484,6 +2502,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'차이'**
   String get energyDifference;
+
+  /// No description provided for @energyDiffFormula.
+  ///
+  /// In ko, this message translates to:
+  /// **'먹은 것 − 운동'**
+  String get energyDiffFormula;
+
+  /// No description provided for @energyDiffExplain.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록한 먹은 것에서 운동으로 쓴 칼로리를 뺀 값이에요. + 면 운동으로 쓴 것보다 더 먹은 것이고, − 면 덜 먹은 거예요.\n\n기초대사량과 일상 활동으로 쓰는 칼로리는 들어 있지 않아서, 이 값이 곧 살이 찌거나 빠지는 양은 아니에요.'**
+  String get energyDiffExplain;
 
   /// No description provided for @estimateTag.
   ///

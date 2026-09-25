@@ -157,6 +157,8 @@ Future<({RoutineEditorController c, List<String> asked})> inputLine(
 
 /// 식단 글을 한 줄 넣는다.
 Future<void> writeMeal(WidgetTester tester, String text) async {
+  await tester.tap(find.byKey(const ValueKey('meal-button')));
+  await tester.pumpAndSettle();
   await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
   await tester.pumpAndSettle();
   await submit(tester, text);
@@ -174,7 +176,7 @@ Future<List<String>> pickMealPhoto(WidgetTester tester) async {
   addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
   await tester.tap(find.byType(CupertinoTextField).last);
   await tester.pumpAndSettle();
-  await tester.tap(find.text(l.mealPhoto));
+  await tester.tap(find.byKey(const ValueKey('meal-button')));
   await tester.pumpAndSettle();
   await tester.tap(find.text(l.mealCamera));
   await tester.pumpAndSettle();

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -1501,6 +1502,22 @@ class _RoutineEditorState extends State<RoutineEditor>
     );
   }
 
+  /// 식단 아이콘. 식단 글을 적는 중이면 운동 입력으로 돌아가고, 아니면 사진·앨범·
+  /// 글을 고르는 시트(사진을 못 쓰는 화면이면 바로 식단 글).
+  VoidCallback? get _onMeal {
+    final text = widget.mealText, photo = widget.onMealPhoto;
+    if (text == null && photo == null) return null;
+    return () {
+      if (_mealMode) {
+        text?.value = null;
+      } else if (photo != null) {
+        photo();
+      } else {
+        text!.value = (text: '', index: null);
+      }
+    };
+  }
+
   /// 답·폴백이 늦게 와도 고치던 칩의 포커스는 뺏지 않는다 — 뺏으면 치다 만 값
   /// ('100' 을 치려던 '1')이 그대로 저장된다. 칩을 다 고치면 [_setupField] 가
   /// 입력 줄로 돌려준다.
@@ -2614,7 +2631,7 @@ class _RoutineEditorState extends State<RoutineEditor>
             highlight: _highlight,
             onPick: (name) => _commit(name),
             onForget: _forgetExercise,
-            onMealPhoto: widget.onMealPhoto,
+            onMeal: _onMeal,
             mealMode: _mealMode,
             // 운동 이름을 적는 바로 그 줄에 음식을 쳤다면, 한 번 눌러 끼니로 남긴다.
             // Enter 에서 알아서 가르지만([_name]) 근거가 없으면 운동이다 — 그렇게 못
@@ -2631,11 +2648,6 @@ class _RoutineEditorState extends State<RoutineEditor>
                     widget.onMealText!(text, null);
                   }
                 : null,
-            onMealText: widget.mealText == null
-                ? null
-                : () => widget.mealText!.value = _mealMode
-                      ? null
-                      : (text: '', index: null),
           ),
         // Both keyboards share one bottom area. Keep the keypad anchored while
         // the system inset shrinks; only text mode needs space above the IME.
@@ -3242,21 +3254,21 @@ class _Suggestions extends StatelessWidget {
     required this.highlight,
     required this.onPick,
     required this.onForget,
-    this.onMealPhoto,
-    this.onMealText,
+    this.onMeal,
     this.onLogAsMeal,
     this.mealMode = false,
   });
 
   /// 지금 친 글을 끼니로 남긴다. 칠 것이 없거나 운동 이름을 적는 중이 아니면 null.
   final VoidCallback? onLogAsMeal;
-  final VoidCallback? onMealText;
+
+  /// 식단 아이콘. 식단을 남길 길이 없으면 null.
+  final VoidCallback? onMeal;
   final bool mealMode;
   final List<String> matches;
   final int highlight;
   final ValueChanged<String> onPick;
   final ValueChanged<String> onForget;
-  final VoidCallback? onMealPhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -3280,40 +3292,25 @@ class _Suggestions extends StatelessWidget {
           ),
           child: Row(
             children: [
-              if (onMealPhoto != null) ...[
+              // 식단은 포크·나이프 아이콘 하나 — 누르면 사진·앨범·글을 고른다. 글자
+              // 단추 둘(식단 사진·식단 적기)은 운동 후보 칩 자리를 먹었다. 식단 글을
+              // 적는 중이면 눌린 모양이고, 다시 누르면 운동 입력으로 돌아간다.
+              if (onMeal != null)
                 CupertinoButton(
+                  key: const ValueKey('meal-button'),
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   minimumSize: const Size(44, 44),
-                  onPressed: onMealPhoto,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(CupertinoIcons.camera, size: 18),
-                      const SizedBox(width: 5),
-                      Text(
-                        L.of(context).mealPhoto,
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              if (onMealText != null)
-                CupertinoButton(
-                  key: const ValueKey('meal-text-toggle'),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: const Size(44, 44),
-                  onPressed: onMealText,
+                  color: mealMode ? sealTint.resolveFrom(context) : null,
+                  borderRadius: BorderRadius.circular(12),
+                  onPressed: onMeal,
                   child: Icon(
-                    CupertinoIcons.square_pencil,
-                    size: 19,
-                    semanticLabel: L.of(context).mealText,
-                    color: mealMode
-                        ? seal.resolveFrom(context)
-                        : CupertinoColors.secondaryLabel.resolveFrom(context),
+                    Icons.restaurant,
+                    size: 20,
+                    semanticLabel: L.of(context).mealAdd,
+                    color: seal.resolveFrom(context),
                   ),
                 ),
-              if (onMealPhoto != null || onMealText != null) ...[
+              if (onMeal != null) ...[
                 Container(
                   width: 0.5,
                   height: 24,

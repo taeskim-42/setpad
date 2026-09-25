@@ -939,6 +939,16 @@ class LEs extends L {
   String get mealPhoto => 'Foto de comida';
 
   @override
+  String get mealAdd => 'Registrar comida';
+
+  @override
+  String get mealWrite => 'Escribirlo';
+
+  @override
+  String get mealTypeHint =>
+      'También puedes escribir la comida directamente en la línea del ejercicio';
+
+  @override
   String get mealCamera => 'Cámara';
 
   @override
@@ -1592,6 +1602,13 @@ class LEs extends L {
 
   @override
   String get energyDifference => 'Diferencia';
+
+  @override
+  String get energyDiffFormula => 'Comido − ejercicio';
+
+  @override
+  String get energyDiffExplain =>
+      'Calorías que registraste comiendo menos las que quemaste entrenando. Positivo: comiste más de lo que quemaste entrenando; negativo: menos.\n\nNo incluye tu metabolismo en reposo ni la actividad diaria, así que no equivale a tu cambio de peso.';
 
   @override
   String get estimateTag => 'aprox.';

@@ -891,6 +891,15 @@ class LJa extends L {
   String get mealPhoto => '食事の写真';
 
   @override
+  String get mealAdd => '食事を記録';
+
+  @override
+  String get mealWrite => '文字で入力';
+
+  @override
+  String get mealTypeHint => '食べ物は種目名の行にそのまま入力しても食事として残ります';
+
+  @override
   String get mealCamera => 'カメラ';
 
   @override
@@ -1510,6 +1519,13 @@ class LJa extends L {
 
   @override
   String get energyDifference => '差';
+
+  @override
+  String get energyDiffFormula => '食べた分 − 運動';
+
+  @override
+  String get energyDiffExplain =>
+      '記録した食事のカロリーから、運動で消費したカロリーを引いた値です。プラスなら運動で使った分より多く食べ、マイナスなら少なく食べています。\n\n基礎代謝や日常の活動で使うカロリーは含まれないため、体重の増減そのものではありません。';
 
   @override
   String get estimateTag => '推定';

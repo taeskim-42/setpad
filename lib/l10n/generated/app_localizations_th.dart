@@ -912,6 +912,16 @@ class LTh extends L {
   String get mealPhoto => 'รูปอาหาร';
 
   @override
+  String get mealAdd => 'บันทึกมื้ออาหาร';
+
+  @override
+  String get mealWrite => 'พิมพ์เอง';
+
+  @override
+  String get mealTypeHint =>
+      'พิมพ์ชื่ออาหารลงในบรรทัดชื่อท่าได้เลย ระบบจะบันทึกเป็นมื้ออาหาร';
+
+  @override
   String get mealCamera => 'กล้อง';
 
   @override
@@ -1549,6 +1559,13 @@ class LTh extends L {
 
   @override
   String get energyDifference => 'ส่วนต่าง';
+
+  @override
+  String get energyDiffFormula => 'ที่กิน − ออกกำลังกาย';
+
+  @override
+  String get energyDiffExplain =>
+      'แคลอรีที่บันทึกว่ากิน ลบด้วยแคลอรีที่ใช้ไปกับการออกกำลังกาย ค่าบวกคือกินมากกว่าที่ออกกำลังกายใช้ไป ค่าลบคือกินน้อยกว่า\n\nยังไม่รวมการเผาผลาญขณะพักและกิจกรรมประจำวัน จึงไม่ใช่น้ำหนักที่ขึ้นหรือลง';
 
   @override
   String get estimateTag => 'ประมาณ';

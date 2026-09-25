@@ -238,6 +238,8 @@ void main() {
     final input = find.byType(CupertinoTextField);
     Future<void> write(String text) async {
       // 식단 적기는 입력 줄 위 막대에 있다 — 화면 맨 위의 버튼은 뺐다.
+      await tester.tap(find.byKey(const ValueKey('meal-button')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
       await tester.pumpAndSettle();
       await tester.enterText(input, text);
@@ -349,6 +351,8 @@ void main() {
     }
 
     Future<void> write(String text) async {
+      await tester.tap(find.byKey(const ValueKey('meal-button')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
       await tester.pumpAndSettle();
       await submit(text);
@@ -430,6 +434,8 @@ void main() {
       }
 
       Future<void> write(String text) async {
+        await tester.tap(find.byKey(const ValueKey('meal-button')));
+        await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
         await tester.pumpAndSettle();
         await submit(text);
@@ -544,6 +550,8 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    await tester.tap(find.byKey(const ValueKey('meal-button')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
     await tester.pumpAndSettle();
     await submit('김밥');
@@ -560,6 +568,8 @@ void main() {
     expect(find.text(l.mealTextOffline), findsNothing);
 
     // 실패한 끼니를 지워도 그 끼니의 말은 남지 않는다.
+    await tester.tap(find.byKey(const ValueKey('meal-button')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
     await tester.pumpAndSettle();
     await submit('엄마표 반찬 조금');
@@ -605,6 +615,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     Future<void> write(String text) async {
+      await tester.tap(find.byKey(const ValueKey('meal-button')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(CupertinoTextField), text);

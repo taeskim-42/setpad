@@ -919,6 +919,16 @@ class LVi extends L {
   String get mealPhoto => 'Ảnh bữa ăn';
 
   @override
+  String get mealAdd => 'Ghi bữa ăn';
+
+  @override
+  String get mealWrite => 'Gõ chữ';
+
+  @override
+  String get mealTypeHint =>
+      'Bạn cũng có thể gõ món ăn thẳng vào dòng tên bài tập';
+
+  @override
   String get mealCamera => 'Máy ảnh';
 
   @override
@@ -1563,6 +1573,13 @@ class LVi extends L {
 
   @override
   String get energyDifference => 'Chênh lệch';
+
+  @override
+  String get energyDiffFormula => 'Đã ăn − tập luyện';
+
+  @override
+  String get energyDiffExplain =>
+      'Lượng calo bạn đã ghi là đã ăn trừ đi lượng calo đốt khi tập. Số dương là ăn nhiều hơn lượng đốt khi tập; số âm là ít hơn.\n\nChưa tính trao đổi chất lúc nghỉ và hoạt động hằng ngày, nên đây không phải là mức tăng giảm cân.';
 
   @override
   String get estimateTag => 'ước tính';

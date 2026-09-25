@@ -885,6 +885,15 @@ class LZh extends L {
   String get mealPhoto => '餐食照片';
 
   @override
+  String get mealAdd => '记录饮食';
+
+  @override
+  String get mealWrite => '用文字记录';
+
+  @override
+  String get mealTypeHint => '直接在动作名称那一行输入食物，也会记为饮食';
+
+  @override
   String get mealCamera => '相机';
 
   @override
@@ -1496,6 +1505,13 @@ class LZh extends L {
 
   @override
   String get energyDifference => '差值';
+
+  @override
+  String get energyDiffFormula => '摄入 − 运动';
+
+  @override
+  String get energyDiffExplain =>
+      '记录的摄入热量减去运动消耗的热量。正数表示吃得比运动消耗的多，负数表示更少。\n\n不包含基础代谢和日常活动的消耗，所以并不等于体重的增减。';
 
   @override
   String get estimateTag => '估算';
@@ -3991,6 +4007,15 @@ class LZhHans extends LZh {
   String get mealPhoto => '餐食照片';
 
   @override
+  String get mealAdd => '记录饮食';
+
+  @override
+  String get mealWrite => '用文字记录';
+
+  @override
+  String get mealTypeHint => '直接在动作名称那一行输入食物，也会记为饮食';
+
+  @override
   String get mealCamera => '相机';
 
   @override
@@ -4602,6 +4627,13 @@ class LZhHans extends LZh {
 
   @override
   String get energyDifference => '差值';
+
+  @override
+  String get energyDiffFormula => '摄入 − 运动';
+
+  @override
+  String get energyDiffExplain =>
+      '记录的摄入热量减去运动消耗的热量。正数表示吃得比运动消耗的多，负数表示更少。\n\n不包含基础代谢和日常活动的消耗，所以并不等于体重的增减。';
 
   @override
   String get estimateTag => '估算';
@@ -7096,6 +7128,15 @@ class LZhHant extends LZh {
   String get mealPhoto => '餐食照片';
 
   @override
+  String get mealAdd => '記錄飲食';
+
+  @override
+  String get mealWrite => '用文字記錄';
+
+  @override
+  String get mealTypeHint => '直接在動作名稱那一行輸入食物，也會記為飲食';
+
+  @override
   String get mealCamera => '相機';
 
   @override
@@ -7707,6 +7748,13 @@ class LZhHant extends LZh {
 
   @override
   String get energyDifference => '差值';
+
+  @override
+  String get energyDiffFormula => '攝取 − 運動';
+
+  @override
+  String get energyDiffExplain =>
+      '記錄的攝取熱量減去運動消耗的熱量。正數表示吃得比運動消耗的多，負數表示更少。\n\n不包含基礎代謝和日常活動的消耗，所以並不等於體重的增減。';
 
   @override
   String get estimateTag => '估算';

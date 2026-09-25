@@ -931,6 +931,16 @@ class LEn extends L {
   String get mealPhoto => 'Meal photo';
 
   @override
+  String get mealAdd => 'Log a meal';
+
+  @override
+  String get mealWrite => 'Type it';
+
+  @override
+  String get mealTypeHint =>
+      'You can also type food straight into the exercise line';
+
+  @override
   String get mealCamera => 'Camera';
 
   @override
@@ -1576,6 +1586,13 @@ class LEn extends L {
 
   @override
   String get energyDifference => 'Net';
+
+  @override
+  String get energyDiffFormula => 'Eaten − exercise';
+
+  @override
+  String get energyDiffExplain =>
+      'Calories you logged eating minus calories burned in workouts. Plus means you ate more than your workouts burned; minus means less.\n\nIt leaves out your resting metabolism and everyday activity, so it isn\'t your weight change.';
 
   @override
   String get estimateTag => 'est.';

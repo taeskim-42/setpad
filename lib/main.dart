@@ -1418,9 +1418,11 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     final l = L.of(context);
     showCupertinoModalPopup<void>(
       context: context,
+      // 식단 단추는 아이콘 하나다 — 사진·앨범·글을 여기서 고른다. 글자 단추 둘은
+      // 운동 후보 칩 자리를 먹었다.
       builder: (ctx) => CupertinoActionSheet(
-        title: Text(l.mealPhoto),
-        message: Text(l.mealEstimateNote),
+        title: Text(l.mealAdd),
+        message: Text(l.mealTypeHint),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
@@ -1436,6 +1438,15 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
             },
             child: Text(l.mealGallery),
           ),
+          if (widget.mealText case final text?)
+            CupertinoActionSheetAction(
+              key: const ValueKey('meal-text-toggle'),
+              onPressed: () {
+                Navigator.pop(ctx);
+                text.value = (text: '', index: null);
+              },
+              child: Text(l.mealWrite),
+            ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(ctx),

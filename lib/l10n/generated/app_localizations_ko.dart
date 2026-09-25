@@ -895,6 +895,15 @@ class LKo extends L {
   String get mealPhoto => '식단 사진';
 
   @override
+  String get mealAdd => '식단 남기기';
+
+  @override
+  String get mealWrite => '글로 적기';
+
+  @override
+  String get mealTypeHint => '음식은 운동 이름 줄에 바로 쳐도 식단으로 남아요';
+
+  @override
   String get mealCamera => '카메라';
 
   @override
@@ -1515,6 +1524,13 @@ class LKo extends L {
 
   @override
   String get energyDifference => '차이';
+
+  @override
+  String get energyDiffFormula => '먹은 것 − 운동';
+
+  @override
+  String get energyDiffExplain =>
+      '기록한 먹은 것에서 운동으로 쓴 칼로리를 뺀 값이에요. + 면 운동으로 쓴 것보다 더 먹은 것이고, − 면 덜 먹은 거예요.\n\n기초대사량과 일상 활동으로 쓰는 칼로리는 들어 있지 않아서, 이 값이 곧 살이 찌거나 빠지는 양은 아니에요.';
 
   @override
   String get estimateTag => '추정';
