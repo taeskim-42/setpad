@@ -13,6 +13,7 @@ import 'package:setpad/stats.dart';
 
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/anatomy.dart' show moves, unsourcedMachines;
 import 'package:setpad/exercises.dart';
 import 'package:setpad/parser.dart';
 import 'package:setpad/notes.dart';
@@ -2451,12 +2452,12 @@ void main() {
       }
     });
 
-    test('부위 표: 사전 108개 모두(헬스장 머신 포함), 레그레이즈는 코어, 러닝은 유산소, 상체·하체 펼침', () {
-      expect(exercises, hasLength(108));
+    test('부위 표: 사전 117개 모두(헬스장 머신·유산소 머신 포함), 레그레이즈는 코어, 러닝은 유산소, 상체·하체 펼침', () {
+      expect(exercises, hasLength(117));
       for (final e in exercises) {
         expect(exercisePart[e.ko], isNotNull, reason: e.ko);
       }
-      expect(exercisePart.length, 108);
+      expect(exercisePart.length, 117);
       expect(partOf('레그레이즈'), 'core');
       expect(partOf('Running'), 'cardio');
       expect(partOf('Deadlift'), 'back');
@@ -2466,6 +2467,31 @@ void main() {
       expect(inPart('스쿼트', 'lower'), isTrue);
       expect(inPart('스쿼트', 'upper'), isFalse);
       expect(inPart('플랭크', 'upper'), isFalse);
+    });
+
+    test('헬스장 머신 2차: 기구 제품명·한국 헬스장 이름·오타 표기로도 같은 운동이다', () {
+      String? of(String raw) => dictionaryMatch(raw)?.exercise.ko;
+      for (final (raw, ko) in [
+        ('천국의 계단', '스텝밀'),
+        ('크로스트레이너', '일립티컬'),
+        ('트레드밀', '러닝'),
+        ('해머스트랭스 하이로우', '하이 로우'),
+        ('해머스트렝스 아이소 래터럴 하이 로우', '하이 로우'),
+        ('Matrix Ultra Diverging Lat Pulldown', '머신 랫풀다운'),
+        ('Hammer Strength Ground Base Jammer', '잼머 프레스'),
+        ('동키 카프레이즈', '동키 레이즈'),
+        ('Technogym Selection 900 Upper Back', '어퍼 백 로우'),
+      ]) {
+        expect(of(raw), ko, reason: raw);
+        expect(dictionaryMatch(raw)!.exact, isTrue, reason: raw);
+      }
+      expect(partOf('천국의 계단'), 'cardio');
+      expect(partOf('버티컬 레그프레스'), 'legs');
+      // 근육 출처를 열지 못한 머신은 근육 표에 없다.
+      for (final ko in ['동키 레이즈', '버티컬 레그프레스', '넥 머신', '잼머 프레스']) {
+        expect(unsourcedMachines, contains(ko));
+        expect(moves.containsKey(ko), isFalse, reason: ko);
+      }
     });
 
     test('이름 풀기: 바밸로우는 기록의 덤벨로우가 아니다, 영어 이름은 기록으로, 사전에 없는 이름은 그대로', () {

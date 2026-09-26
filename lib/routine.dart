@@ -155,6 +155,16 @@ const exerciseGear = <String, String>{
   '티비아 레이즈 머신': 'machine',
   '머신 크런치': 'machine',
   '로터리 토르소': 'machine',
+  // 헬스장 머신 더(2차 조사)
+  '동키 레이즈': 'machine',
+  '버티컬 레그프레스': 'machine',
+  '런지 머신': 'machine',
+  '멀티 힙': 'machine',
+  '어퍼 백 로우': 'machine',
+  '잼머 프레스': 'machine',
+  '넥 머신': 'machine',
+  '스텝밀': 'machine',
+  '일립티컬': 'machine',
 };
 
 /// 벤치가 있어야 하는 운동. "벤치 없이" 가 이것을 뺀다.

@@ -79,6 +79,15 @@ const unsourcedMachines = {
   '펜듈럼 스쿼트',
   '벨트 스쿼트',
   '티비아 레이즈 머신',
+  // 2차 조사(2026-09-26): ExRx·보관본(web.archive.org)·제조사 페이지가 이 환경의 망 정책으로
+  // 막혀 원문을 열지 못했다 — 근육은 '확인 못 함'.
+  '동키 레이즈',
+  '버티컬 레그프레스',
+  '런지 머신',
+  '멀티 힙',
+  '어퍼 백 로우',
+  '잼머 프레스',
+  '넥 머신',
 };
 
 /// 삼두의 세 머리. ExRx 는 "Triceps Brachii" 하나로 적는다 — 머리마다 같은 역할로 센다.
@@ -3212,7 +3221,13 @@ const moves = <String, Move>{
       'Khép Hông Máy',
       'ฮิปแอดดักชัน',
     ),
-    aliases: ['adductor', '어덕터'],
+    aliases: [
+      'adductor',
+      '어덕터',
+      'Matrix Ultra Hip Adductor',
+      'Nautilus Impact Adductor',
+      'Precor Resolute Inner Thigh',
+    ],
     cues: [
       // 🟩 exrx:HipAdductors/LVSeatedHipAdduction "position legs apart until slight stretch is felt"
       (
@@ -3386,6 +3401,10 @@ const moves = <String, Move>{
       'Nhón Bắp Chân Ngồi',
       'ซีทเต็ดคาล์ฟเรส',
     ),
+    aliases: [
+      'Hammer Strength Plate Loaded Seated Calf Raise',
+      'Precor Resolute Seated Calf',
+    ],
     cues: [
       // 🟩 exrx:Soleus/LVSeatedCalfRaise "Place forefeet on platform with heels extending off"
       (
