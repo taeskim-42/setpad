@@ -26,15 +26,26 @@ void main() {
       client: MockClient((request) async {
         if (request.url.path.endsWith('/api/auth/app')) {
           return http.Response(
-            jsonEncode({'token': 't', 'user': {'nickname': '도전자'}}), 200,
-            headers: {'content-type': 'application/json'});
+            jsonEncode({
+              'token': 't',
+              'user': {'nickname': '도전자'},
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
         }
         return http.Response(
-          jsonEncode({'plan': null, 'selling': false, 'gyms': []}), 200,
-          headers: {'content-type': 'application/json'});
+          jsonEncode({'plan': null, 'selling': false, 'gyms': []}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
       }),
-      signInWith: () async =>
-          (method: SignInMethod.apple, idToken: 'id', nickname: '도전자', code: null),
+      signInWith: () async => (
+        method: SignInMethod.apple,
+        idToken: 'id',
+        nickname: '도전자',
+        code: null,
+      ),
     );
     await tester.pumpWidget(
       CupertinoApp(

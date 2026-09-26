@@ -26,9 +26,13 @@ List<String> suggest(
   for (final name in pool.toSet()) {
     // 한글 이름과 영어 검색 키 중 더 좋은 쪽을 그 운동의 점수로 삼는다.
     int? rank;
-    for (final key
-        in exerciseByName[name.toLowerCase()]?.keys ??
-            [name.toLowerCase(), chosungOf(name.toLowerCase())]) {
+    // 목록의 이름 그 자체와 그 초성은 늘 키다 — 그 이름이 다른 운동의 별칭이어도
+    // ('해머 로우' 는 아이소 래터럴 로우의 기구 이름) 'ㅎㅁㄹㅇ' 로 찾혀야 한다.
+    for (final key in {
+      name.toLowerCase(),
+      chosungOf(name.toLowerCase()),
+      ...?exerciseByName[name.toLowerCase()]?.keys,
+    }) {
       final r = _rank(key, q);
       if (r != null && (rank == null || r < rank)) rank = r;
     }
@@ -130,7 +134,19 @@ const genericAliasWords = {
     for (final e in near.entries)
       if (e.value == best) e.key,
   ];
-  return top.length == 1 ? (exercise: top.single, exact: false) : null;
+  if (top.length == 1) return (exercise: top.single, exact: false);
+  // 앞부분 오타로 여럿이 같이 닿으면('스쿼드' → 스쿼트 · 스쿼트 머신), 이름 전체가
+  // 같은 거리로 맞는 하나만 고른다. 그런 것도 여럿이면 없다.
+  final whole = [
+    for (final e in top)
+      if (e.keys.any(
+        (k) =>
+            !chosung.hasMatch(k) &&
+            _typoDistance(jamoOf(searchKey(k)), jq, 1, prefix: false) == best,
+      ))
+        e,
+  ];
+  return whole.length == 1 ? (exercise: whole.single, exact: false) : null;
 }
 
 int? _rank(String key, String q) {

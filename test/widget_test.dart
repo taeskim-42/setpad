@@ -931,8 +931,10 @@ void keypadTests() {
 
     test('짧은 질의에는 관대하지 않다 — 아무거나 걸리면 못 쓴다', () {
       // 두 글자까지는 오타를 봐주지 않는다. 걸리는 것은 전부 진짜 앞글자 일치다.
+      // 기구 제품명 별칭('해머 호리즌탈 벤치')으로 걸린 머신은 이름에 '벤' 이 없을 수 있다.
       for (final name in find_('벤')) {
-        expect(name.toLowerCase().contains('벤'), isTrue, reason: name);
+        final keys = exerciseByName[name.toLowerCase()]!.keys;
+        expect(keys.any((k) => k.contains('벤')), isTrue, reason: name);
       }
       expect(find_('ㅋㅋ'), isEmpty);
     });

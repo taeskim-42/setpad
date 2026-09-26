@@ -2561,8 +2561,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                                 )
                               : null,
                           uniformCell: widestSetCell(context, blocks),
-                          records:
-                              widget.records?.call(blocks[i]) ?? const {},
+                          records: widget.records?.call(blocks[i]) ?? const {},
                           cursors: [
                             for (final p in widget.presence)
                               if (p.block == blocks[i].id) p,

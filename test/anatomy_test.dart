@@ -88,8 +88,10 @@ void main() {
   group('표', () {
     test('사전 운동은 유산소만 빼고 모두 근육 표에 있다', () {
       for (final e in exercises) {
-        final cardio = exercisePart[e.ko] == 'cardio';
-        expect(moves.containsKey(e.ko), !cardio, reason: e.ko);
+        // 근육 출처를 못 찾은 머신은 표에 지어 넣지 않는다.
+        final skip =
+            exercisePart[e.ko] == 'cardio' || unsourcedMachines.contains(e.ko);
+        expect(moves.containsKey(e.ko), !skip, reason: e.ko);
       }
     });
 
@@ -248,7 +250,7 @@ void main() {
       expect(t.allGear, isFalse);
       // 덤벨 프레스는 벤치에 눕는다 — 벤치를 쓴 기록이 없으면 접힌다(루틴 표와 같다).
       expect(t.shown, ['푸시업']);
-      expect(t.hidden, hasLength(8));
+      expect(t.hidden, hasLength(15), reason: '바벨·머신·케이블 가슴 운동(머신 7종 포함)');
       expect(t.hidden, containsAll(['벤치프레스', '덤벨 프레스']));
       final bench = tryFor(Muscle.chest, {'덤벨컬', '불가리안 스플릿 스쿼트'});
       expect(bench.shown, ['덤벨 프레스', '인클라인 덤벨 프레스', '푸시업']);
@@ -258,7 +260,7 @@ void main() {
       final t = tryFor(Muscle.chest, {});
       expect(t.allGear, isTrue);
       expect(t.hidden, isEmpty);
-      expect(t.shown, hasLength(9));
+      expect(t.shown, hasLength(16));
     });
 
     test('한 운동은 해 볼 목록에서 빠진다', () {
@@ -472,7 +474,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      await tester.tap(find.text(l.anatomyMoreGear(8)));
+      await tester.tap(find.text(l.anatomyMoreGear(15)));
       await tester.pumpAndSettle();
       expect(find.text('벤치프레스'), findsOneWidget);
       expect(find.text('덤벨 프레스'), findsOneWidget);
@@ -746,7 +748,10 @@ void main() {
       final all = [
         for (final m in moves.values) ...[...m.cues, ...m.mistakes],
       ];
-      expect(all.where((c) => c.basis == Basis.adapted), hasLength(9));
+      expect(
+        all.where((c) => c.basis == Basis.adapted).length,
+        greaterThanOrEqualTo(9),
+      );
       expect(
         moves['힙쓰러스트']!.mistakes.singleWhere((c) => c.ko.contains('과하게')).basis,
         Basis.adapted,

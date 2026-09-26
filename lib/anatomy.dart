@@ -12,7 +12,8 @@ import 'parser.dart' show searchKey;
 import 'record_query.dart' show exerciseKey, statName;
 import 'routine.dart' show PlanSet, benchExercises, exerciseGear;
 
-export 'anatomy_data.dart' show Basis, Cue, Move, moves, tricepsHeads;
+export 'anatomy_data.dart'
+    show Basis, Cue, Move, moves, tricepsHeads, unsourcedMachines;
 export 'muscle_map_paths.dart' show Muscle;
 
 /// 부위 → 거친 부위(exercisePart 값). 시트 머리와 "오늘 {부위} 루틴" 이 쓴다.

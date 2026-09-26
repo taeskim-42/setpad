@@ -71,6 +71,16 @@ class Move {
 }
 
 /// 한국어 이름 → 운동. 사전 운동의 열쇠는 exerciseKey 와 같다.
+/// 사전에는 있지만 근육 표에는 없는 머신 — 근육 배정의 출처를 찾지 못했다(2026-09-26
+/// 조사). 지어 넣지 않는다. 몸 그림은 이 운동의 세트를 '근육을 모르는 기록' 으로 센다.
+const unsourcedMachines = {
+  '그립 머신',
+  '리버스 V 스쿼트',
+  '펜듈럼 스쿼트',
+  '벨트 스쿼트',
+  '티비아 레이즈 머신',
+};
+
 /// 삼두의 세 머리. ExRx 는 "Triceps Brachii" 하나로 적는다 — 머리마다 같은 역할로 센다.
 const tricepsHeads = [
   Muscle.tricepsLong,
@@ -2692,7 +2702,16 @@ const moves = <String, Move>{
       'Ép Vai Sau Máy',
       'รีเวิร์สเพคเด็ค',
     ),
-    aliases: ['reverse fly', 'rear delt fly'],
+    aliases: [
+      '리버스 펙덱',
+      '리어델트 머신',
+      '리버스 플라이 머신',
+      'Life Fitness Insignia Pectoral Fly / Rear Deltoid',
+      'Technogym Selection 900 Reverse Fly',
+      'DRAX Pure Plate Bent Over Lateral Raise',
+      'reverse fly',
+      'rear delt fly',
+    ],
     cues: [
       // 🟩 exrx:DeltoidPosterior/LVRearLateralRaise "Grasp parallel handles with thumbs up at shoulder height"
       (
@@ -3446,6 +3465,1739 @@ const moves = <String, Move>{
         ko: '발이 발판에서 미끄러진다',
         en: 'Feet slipping on the platform',
         basis: Basis.none,
+      ),
+    ],
+  ),
+  // ── 헬스장 머신(2026-09-26 조사). 근육은 ExRx 등 원문(주석), 팁의 근거는 줄마다. ──
+  // 아이소 래터럴 체스트 프레스 (Iso-Lateral Chest Press (plate-loaded, horizontal))
+  // 근육 🟩 ← Target: Pectoralis Major, Sternal. Synergists: Pectoralis Major, Clavicular; Deltoid, Anterior; Triceps Brachii; Coracobrachialis. (Coracobrachialis has no enum id; Pectoralis Major Clavicular maps to chest = primary)
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/PectoralSternal/LVChestPressH
+  '아이소 래터럴 체스트 프레스': Move(
+    primary: [Muscle.chest],
+    secondary: [
+      Muscle.frontDelts,
+      Muscle.tricepsLong,
+      Muscle.tricepsLateral,
+      Muscle.tricepsMedial,
+    ],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Sit on seat with chest approximately height of handles.
+      (
+        ko: '가슴이 손잡이 높이쯤 오도록 시트에 앉는다',
+        en: 'Sit so your chest is about level with the handles',
+        basis: Basis.source,
+      ),
+      // 🟩 Grasp handles with wide overhand grip; elbows out to sides just below shoulders.
+      (
+        ko: '넓은 오버핸드 그립, 팔꿈치는 어깨 바로 아래 옆으로',
+        en: 'Wide overhand grip, elbows out to the sides just below the shoulders',
+        basis: Basis.source,
+      ),
+      // 🟩 Press levers until arms are extended. Return weight until chest muscles are slightly stretched.
+      (
+        ko: '팔이 펴질 때까지 밀고, 가슴이 살짝 늘어날 때까지만 되돌린다',
+        en: 'Press until arms extend; return until the chest is only slightly stretched',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Range of motion will be compromised if grip is too wide.
+      (
+        ko: '그립을 너무 넓게 잡아 가동 범위가 줄어듦',
+        en: 'Gripping too wide, which cuts range of motion',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 인클라인 체스트 프레스 머신 (Incline Chest Press Machine)
+  // 근육 🟦 ← Target: Pectoralis Major, Clavicular. Synergists: Pectoralis Major, Sternal; Deltoid, Anterior; Triceps Brachii. (Plate-loaded page LVInclineChestPressPL is not archived by the Wayback Machine; this is ExRx's Lever Incline Chest Press page, same movement on a lever machine)
+  // 출처: https://web.archive.org/web/20251029151535/https://exrx.net/WeightExercises/PectoralClavicular/LVInclineChestPress
+  '인클라인 체스트 프레스 머신': Move(
+    primary: [Muscle.chest],
+    secondary: [
+      Muscle.frontDelts,
+      Muscle.tricepsLong,
+      Muscle.tricepsLateral,
+      Muscle.tricepsMedial,
+    ],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Sit on seat with upper chest just above grips on lever.
+      (
+        ko: '윗가슴이 손잡이보다 살짝 위에 오도록 앉는다',
+        en: 'Sit with your upper chest just above the grips',
+        basis: Basis.source,
+      ),
+      // 🟩 Grasp handles with wide oblique overhand grip and position elbows out to sides.
+      (
+        ko: '넓은 오버핸드 그립, 팔꿈치는 옆으로',
+        en: 'Wide overhand grip, elbows out to the sides',
+        basis: Basis.source,
+      ),
+      // 🟩 Return weight until shoulders or chest feels slightly stretched.
+      (
+        ko: '어깨나 가슴이 살짝 늘어날 때까지만 되돌린다',
+        en: 'Return only until the shoulders or chest feel slightly stretched',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Range of motion will be compromised if grip is too wide
+      (
+        ko: '그립을 너무 넓게 잡아 가동 범위가 줄어듦',
+        en: 'Gripping too wide, which cuts range of motion',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 디클라인 체스트 프레스 머신 (Decline Chest Press Machine)
+  // 근육 🟩 ← Target: Pectoralis Major, Sternal. Synergists: Pectoralis Major, Clavicular; Deltoid, Anterior; Triceps Brachii.
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/PectoralSternal/LVDeclineChestPressPL
+  '디클라인 체스트 프레스 머신': Move(
+    primary: [Muscle.chest],
+    secondary: [
+      Muscle.frontDelts,
+      Muscle.tricepsLong,
+      Muscle.tricepsLateral,
+      Muscle.tricepsMedial,
+    ],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Sit on seat with lever grips lower chest height.
+      (
+        ko: '손잡이가 가슴 아래쪽 높이에 오도록 앉는다',
+        en: 'Sit so the grips are at lower-chest height',
+        basis: Basis.source,
+      ),
+      // 🟩 Grasp grips with wide overhand grip; elbows out to sides just below shoulders.
+      (
+        ko: '넓은 오버핸드 그립, 팔꿈치는 어깨 바로 아래 옆으로',
+        en: 'Wide overhand grip, elbows out just below the shoulders',
+        basis: Basis.source,
+      ),
+      // 🟩 Press lever until arms are extended. Return weight until chest muscles are slightly stretched.
+      (
+        ko: '팔이 펴질 때까지 밀고, 가슴이 살짝 늘어날 때까지만 되돌린다',
+        en: 'Press to full extension; return until the chest is slightly stretched',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Range of motion will be compromised if grip is too wide.
+      (
+        ko: '그립을 너무 넓게 잡아 가동 범위가 줄어듦',
+        en: 'Gripping too wide, which cuts range of motion',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 와이드 체스트 프레스 (Iso-Lateral Wide Chest Press)
+  // 근육 🟦 ← No ExRx page found for Wide Chest; closest (Lever Chest Press, plate-loaded): Target: Pectoralis Major, Sternal. Synergists: Pectoralis Major, Clavicular; Deltoid, Anterior; Triceps Brachii; Coracobrachialis.
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/PectoralSternal/LVChestPressH
+  '와이드 체스트 프레스': Move(
+    primary: [Muscle.chest],
+    secondary: [
+      Muscle.frontDelts,
+      Muscle.tricepsLong,
+      Muscle.tricepsLateral,
+      Muscle.tricepsMedial,
+    ],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟦 Grasp handles with wide overhand grip; elbows out to sides just below shoulders.
+      (
+        ko: '팔꿈치는 어깨 바로 아래에서 옆으로 벌린다',
+        en: 'Keep elbows out to the sides just below the shoulders',
+        basis: Basis.adapted,
+      ),
+      // 🟦 Return weight until chest muscles are slightly stretched.
+      (
+        ko: '가슴이 살짝 늘어날 때까지만 되돌린다',
+        en: 'Return only until the chest is slightly stretched',
+        basis: Basis.adapted,
+      ),
+    ],
+    mistakes: [
+      // 🟦 Range of motion will be compromised if grip is too wide.
+      (
+        ko: '그립을 과하게 넓혀 가동 범위가 줄어듦',
+        en: 'Gripping excessively wide, which cuts range of motion',
+        basis: Basis.adapted,
+      ),
+    ],
+  ),
+  // 슈퍼 인클라인 프레스 (Iso-Lateral Super Incline Press)
+  // 근육 🟦 ← Closest ExRx page (Lever Incline Chest Press on Military Press Machine): Target: Pectoralis Major, Clavicular. Synergists: Deltoid, Anterior; Triceps Brachii.
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/PectoralClavicular/LVInclineChestPressOnHammerMilitaryPress
+  '슈퍼 인클라인 프레스': Move(
+    primary: [Muscle.chest],
+    secondary: [
+      Muscle.frontDelts,
+      Muscle.tricepsLong,
+      Muscle.tricepsLateral,
+      Muscle.tricepsMedial,
+    ],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟦 Sit on seat with upper chest just above base of handles on lever.
+      (
+        ko: '윗가슴이 손잡이 밑동보다 살짝 위에 오도록 앉는다',
+        en: 'Sit with your upper chest just above the base of the handles',
+        basis: Basis.adapted,
+      ),
+      // 🟦 Lift levers into starting position with elbows slightly low.
+      (
+        ko: '시작할 때 팔꿈치를 살짝 낮게 두고 레버를 든다',
+        en: 'Lift the levers into the start with elbows slightly low',
+        basis: Basis.adapted,
+      ),
+      // 🟦 Return weight until chest muscles are slightly stretched with elbows positioned out to sides.
+      (
+        ko: '팔꿈치를 옆으로 두고 가슴이 살짝 늘어날 때까지만 내린다',
+        en: 'Lower with elbows out until the chest is slightly stretched',
+        basis: Basis.adapted,
+      ),
+    ],
+    mistakes: [
+      // 🟦 lower levers only as far back to allow slight stretch to be felt in chest or shoulders.
+      (
+        ko: '가슴이나 어깨가 살짝 늘어나는 지점보다 더 깊이 내림',
+        en: 'Lowering past a slight stretch in the chest or shoulders',
+        basis: Basis.adapted,
+      ),
+    ],
+  ),
+  // 스미스머신 벤치프레스 (Smith Machine Bench Press)
+  // 근육 🟩 ← Target: Pectoralis Major, Sternal. Synergists: Pectoralis Major, Clavicular; Deltoid, Anterior; Triceps Brachii.
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/PectoralSternal/SMBenchPress
+  '스미스머신 벤치프레스': Move(
+    primary: [Muscle.chest],
+    secondary: [
+      Muscle.frontDelts,
+      Muscle.tricepsLong,
+      Muscle.tricepsLateral,
+      Muscle.tricepsMedial,
+    ],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Lie supine on bench with chest under bar.
+      (
+        ko: '가슴이 바 아래에 오도록 벤치에 눕는다',
+        en: 'Lie on the bench with your chest under the bar',
+        basis: Basis.source,
+      ),
+      // 🟩 Disengage bar by rotating bar back.
+      (
+        ko: '바를 뒤로 돌려 걸쇠를 푼다',
+        en: 'Unhook the bar by rotating it back',
+        basis: Basis.source,
+      ),
+      // 🟩 Lower weight to chest. Press bar until arms are extended.
+      (
+        ko: '가슴까지 내리고 팔이 펴질 때까지 민다',
+        en: 'Lower to the chest, then press until arms are extended',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Range of motion will be compromised if grip is too wide.
+      (
+        ko: '그립을 너무 넓게 잡아 가동 범위가 줄어듦',
+        en: 'Gripping too wide, which cuts range of motion',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 스미스머신 인클라인 벤치프레스 (Smith Machine Incline Bench Press)
+  // 근육 🟩 ← Target: Pectoralis Major, Clavicular. Synergists: Pectoralis Major, Sternal; Deltoid, Anterior; Triceps Brachii; Coracobrachialis.
+  // 출처: https://web.archive.org/web/2024/https://exrx.net/WeightExercises/PectoralClavicular/SMInclineBenchPress
+  '스미스머신 인클라인 벤치프레스': Move(
+    primary: [Muscle.chest],
+    secondary: [
+      Muscle.frontDelts,
+      Muscle.tricepsLong,
+      Muscle.tricepsLateral,
+      Muscle.tricepsMedial,
+    ],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Lie supine on incline bench with upper chest under bar.
+      (
+        ko: '윗가슴이 바 아래에 오도록 인클라인 벤치에 눕는다',
+        en: 'Lie on the incline bench with your upper chest under the bar',
+        basis: Basis.source,
+      ),
+      // 🟩 Disengage bar by rotating bar back.
+      (
+        ko: '바를 뒤로 돌려 걸쇠를 푼다',
+        en: 'Unhook the bar by rotating it back',
+        basis: Basis.source,
+      ),
+      // 🟩 Lower weight to upper chest. Press bar until arms are extended.
+      (
+        ko: '윗가슴까지 내리고 팔이 펴질 때까지 민다',
+        en: 'Lower to the upper chest, then press until arms are extended',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Range of motion will be compromised if grip is too wide.
+      (
+        ko: '그립을 너무 넓게 잡아 가동 범위가 줄어듦',
+        en: 'Gripping too wide, which cuts range of motion',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 시티드 딥스 머신 (Seated Dip Machine)
+  // 근육 🟩 ← Target: Triceps Brachii. Synergists: Deltoid, Anterior; Pectoralis Major, Sternal; Pectoralis Major, Clavicular; Pectoralis Minor; Rhomboids; Levator Scapulae; Latissimus Dorsi. (Pectoralis Minor has no enum id)
+  // 출처: https://web.archive.org/web/2024/https://exrx.net/WeightExercises/Triceps/LVTriDip
+  '시티드 딥스 머신': Move(
+    primary: [Muscle.tricepsLong, Muscle.tricepsLateral, Muscle.tricepsMedial],
+    secondary: [Muscle.frontDelts, Muscle.chest, Muscle.upperBack, Muscle.lats],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 If possible, place handles in narrow position. Sit on seat with back against pad.
+      (
+        ko: '가능하면 손잡이를 좁은 위치로 두고 등을 패드에 붙여 앉는다',
+        en: 'Set handles narrow if possible; sit with your back against the pad',
+        basis: Basis.source,
+      ),
+      // 🟩 Push levers down by straightening arms downward.
+      (
+        ko: '팔꿈치를 뒤로 향하게 하고 팔을 아래로 펴며 민다',
+        en: 'Elbows pointing back, push the levers down by straightening your arms',
+        basis: Basis.source,
+      ),
+      // 🟩 Allow lever bar to raise with elbows pointing back until shoulders are slightly stretched.
+      (
+        ko: '어깨가 살짝 늘어날 때까지만 올라오게 둔다',
+        en: 'Let the lever rise only until the shoulders are slightly stretched',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟦 Allow lever bar to raise with elbows pointing back until shoulders are slightly stretched.
+      (
+        ko: '어깨가 과하게 늘어날 만큼 깊이 올라오게 둠',
+        en: 'Letting the lever rise past a slight shoulder stretch',
+        basis: Basis.adapted,
+      ),
+    ],
+  ),
+  // 어시스트 딥스 (Assisted Dip (machine))
+  // 근육 🟩 ← Target: Triceps Brachii. Synergists: Deltoid, Anterior; Pectoralis Major, Sternal; Pectoralis Major, Clavicular; Pectoralis Minor; Rhomboids; Levator Scapulae; Latissimus Dorsi; Coracobrachialis. (Pectoralis Minor, Coracobrachialis have no enum id)
+  // 출처: https://web.archive.org/web/2024/https://exrx.net/WeightExercises/Triceps/ASTriDip
+  '어시스트 딥스': Move(
+    primary: [Muscle.tricepsLong, Muscle.tricepsLateral, Muscle.tricepsMedial],
+    secondary: [Muscle.frontDelts, Muscle.chest, Muscle.upperBack, Muscle.lats],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Mount shoulder width dip bar, arms straight with shoulders above hands.
+      (
+        ko: '팔을 펴고 어깨가 손 위에 오게 바에 올라선다',
+        en: 'Mount the bars with arms straight and shoulders above hands',
+        basis: Basis.source,
+      ),
+      // 🟩 Step down onto assistance lever. Keep hips and knees straight.
+      (
+        ko: '보조 레버에 올라서고 엉덩이와 무릎은 곧게 편다',
+        en: 'Step onto the assist lever; keep hips and knees straight',
+        basis: Basis.source,
+      ),
+      // 🟩 Lower body until slight stretch is felt in shoulders. Push body up until arms are straight.
+      (
+        ko: '어깨가 살짝 늘어날 때까지 내려갔다가 팔이 펴질 때까지 민다',
+        en: 'Lower until a slight shoulder stretch, then push up until arms are straight',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟦 Lower body until slight stretch is felt in shoulders.
+      (
+        ko: '어깨가 살짝 늘어나는 지점보다 더 깊이 내려감',
+        en: 'Dropping deeper than a slight shoulder stretch',
+        basis: Basis.adapted,
+      ),
+    ],
+  ),
+  // 어시스트 풀업 (Assisted Pull-up (machine))
+  // 근육 🟩 ← Target: Latissimus Dorsi. Synergists: Brachialis; Brachioradialis; Biceps Brachii; Teres Major; Deltoid, Posterior; Infraspinatus; Teres Minor; Rhomboids; Levator Scapulae; Trapezius, Lower; Trapezius, Middle; Pectoralis Minor. (Pectoralis Minor has no enum id)
+  // 출처: https://web.archive.org/web/2021/https://exrx.net/WeightExercises/LatissimusDorsi/AsPullupKneeling
+  '어시스트 풀업': Move(
+    primary: [Muscle.lats],
+    secondary: [
+      Muscle.biceps,
+      Muscle.forearms,
+      Muscle.teresMajor,
+      Muscle.rearDelts,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.upperBack,
+    ],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Step up and grasp bar with wide overhand grip. Kneel on padded platform and lower body down with arm extended.
+      (
+        ko: '넓은 오버핸드 그립으로 바를 잡고 패드에 무릎을 꿇는다',
+        en: 'Grip the bar wide overhand and kneel on the pad',
+        basis: Basis.source,
+      ),
+      // 🟩 Pull body up until neck reaches height of hands.
+      (
+        ko: '목이 손 높이에 올 때까지 당긴다',
+        en: 'Pull up until your neck reaches hand height',
+        basis: Basis.source,
+      ),
+      // 🟩 Lower body until arms and shoulders are fully extended.
+      (
+        ko: '팔과 어깨가 완전히 펴질 때까지 내려온다',
+        en: 'Lower until arms and shoulders are fully extended',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Range of motion will decrease if grip is too wide
+      (
+        ko: '그립을 너무 넓게 잡아 가동 범위가 줄어듦',
+        en: 'Gripping too wide, which cuts range of motion',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 하이 로우 (High Row Machine)
+  // 근육 🟦 ← Target: Back, General. Synergists: Trapezius, Middle; Trapezius, Lower; Rhomboids; Latissimus Dorsi; Teres Major; Deltoid, Posterior; Infraspinatus; Teres Minor; Brachialis; Brachioradialis; Pectoralis Major, Sternal. Dynamic Stabilizers: Biceps Brachii; Triceps, Long Head (LVSeatedHighRowPL has no
+  // 출처: https://web.archive.org/web/20230531190822/https://exrx.net/WeightExercises/BackGeneral/LVSeatedHighRow
+  '하이 로우': Move(
+    primary: [Muscle.upperBack, Muscle.lats],
+    secondary: [
+      Muscle.teresMajor,
+      Muscle.rearDelts,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.biceps,
+      Muscle.forearms,
+      Muscle.chest,
+    ],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Pull lever back until elbows are behind back and shoulders are pulled back.
+      (
+        ko: '팔꿈치가 등 뒤로 갈 때까지 당기고 어깨를 뒤로 모은다',
+        en: 'Pull until elbows are behind the back and shoulders are pulled back',
+        basis: Basis.source,
+      ),
+      // 🟩 Return until arms are extended and shoulders are stretched forward.
+      (
+        ko: '돌아갈 때는 팔을 펴고 어깨가 앞으로 늘어나게 둔다',
+        en: 'Return until arms are extended and shoulders stretch forward',
+        basis: Basis.source,
+      ),
+      // 🟩 The seat or grip should be adjusted to allow wrists to follow elbows.
+      (
+        ko: '손목이 팔꿈치를 따라가도록 시트·손잡이 높이를 맞춘다',
+        en: 'Set seat or grip so wrists follow the elbows',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Chest pad should be adjusted to allow shoulders to stretch forward.
+      (
+        ko: '가슴 패드를 너무 뒤로 두어 어깨가 앞으로 늘어나지 못하게 하는 것',
+        en: 'Setting the chest pad so the shoulders cannot stretch forward',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 머신 로우로우 (Low Row Machine)
+  // 근육 🟦 ← Target: Back, General. Synergists: Trapezius, Middle; Trapezius, Lower; Rhomboids; Latissimus Dorsi; Teres Major; Deltoid, Posterior; Infraspinatus; Teres Minor; Brachialis; Brachioradialis; Pectoralis Major, Sternal. Dynamic Stabilizers: Biceps Brachii; Triceps, Long Head
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/BackGeneral/LVSeatedLowRow
+  '머신 로우로우': Move(
+    primary: [Muscle.upperBack, Muscle.lats],
+    secondary: [
+      Muscle.teresMajor,
+      Muscle.rearDelts,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.biceps,
+      Muscle.forearms,
+      Muscle.chest,
+    ],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Sit on seat and position chest against pad. Grasp lever handles with overhand/neutral grip.
+      (
+        ko: '가슴을 패드에 대고 오버핸드/뉴트럴 그립으로 잡는다',
+        en: 'Chest on the pad, overhand or neutral grip',
+        basis: Basis.source,
+      ),
+      // 🟩 When completing pull, lift chest slightly and pull shoulder blades together while keeping lower chest on pad.
+      (
+        ko: '마지막에 가슴을 살짝 들고 견갑을 모으되 아랫가슴은 패드에 붙인다',
+        en: 'At the finish, lift the chest slightly and squeeze the shoulder blades, lower chest stays on the pad',
+        basis: Basis.source,
+      ),
+      // 🟩 Let shoulders roll forward when arms extend.
+      (
+        ko: '팔을 펼 때 어깨가 앞으로 말리게 둔다',
+        en: 'Let the shoulders roll forward as the arms extend',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Seat or grip should be adjusted to allow wrists to follow elbows.
+      (
+        ko: '손목이 팔꿈치를 따라가지 않게 시트·그립을 맞추지 않는 것',
+        en: 'Not adjusting seat or grip so the wrists follow the elbows',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 아이소 래터럴 로우 (Iso-Lateral Row (chest-supported plate-loaded row))
+  // 근육 🟦 ← Target: Back, General. Synergists: Trapezius, Middle; Trapezius, Lower; Rhomboids; Latissimus Dorsi; Teres Major; Deltoid, Posterior; Infraspinatus; Teres Minor; Brachialis; Brachioradialis; Pectoralis Major, Sternal. Dynamic Stabilizers: Biceps Brachii; Triceps, Long Head
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/BackGeneral/LVNarrowGripSeatedRowH
+  '아이소 래터럴 로우': Move(
+    primary: [Muscle.upperBack, Muscle.lats],
+    secondary: [
+      Muscle.teresMajor,
+      Muscle.rearDelts,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.biceps,
+      Muscle.forearms,
+      Muscle.chest,
+    ],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Sit on seat and position chest against pad.
+      (
+        ko: '가슴을 패드에 대고 앉는다',
+        en: 'Sit with the chest against the pad',
+        basis: Basis.source,
+      ),
+      // 🟩 Pull levers back until elbows are behind back and shoulders are pulled back.
+      (
+        ko: '팔꿈치가 등 뒤로 갈 때까지 당기고 어깨를 뒤로 모은다',
+        en: 'Pull until elbows are behind the back and shoulders are pulled back',
+        basis: Basis.source,
+      ),
+      // 🟩 Return until arms are extended and shoulders are stretched forward.
+      (
+        ko: '팔을 다 펴고 어깨가 앞으로 늘어나게 돌아간다',
+        en: 'Return until arms are extended and shoulders stretch forward',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 pull shoulder blades together while keeping lower chest on pad.
+      (
+        ko: '당길 때 아랫가슴이 패드에서 떨어지는 것',
+        en: 'Lifting the lower chest off the pad during the pull',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // DY 로우 (Iso-Lateral D.Y. Row)
+  // 근육 🟦 ← Target: Back, General. Synergists: Trapezius, Middle; Trapezius, Lower; Rhomboids; Latissimus Dorsi; Teres Major; Deltoid, Posterior; Infraspinatus; Teres Minor; Brachialis; Brachioradialis; Pectoralis Major, Sternal. Dynamic Stabilizers: Biceps Brachii; Triceps, Long Head (no ExRx page for D.Y. Row
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/BackGeneral/LVSeatedUnderhandRow
+  'DY 로우': Move(
+    primary: [Muscle.upperBack, Muscle.lats],
+    secondary: [
+      Muscle.teresMajor,
+      Muscle.rearDelts,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.biceps,
+      Muscle.forearms,
+      Muscle.chest,
+    ],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟦 Grasp lever handles with underhand grip.
+      (
+        ko: '언더핸드 그립으로 손잡이를 잡는다',
+        en: 'Grasp the handles with an underhand grip',
+        basis: Basis.adapted,
+      ),
+      // 🟦 Pull levers back until elbows are behind back and shoulders are pulled back.
+      (
+        ko: '팔꿈치가 등 뒤로 갈 때까지 당기고 어깨를 뒤로 모은다',
+        en: 'Pull until elbows are behind the back and shoulders are pulled back',
+        basis: Basis.adapted,
+      ),
+      // 🟦 When completing pull, lift chest slightly and pull shoulder blades together while keeping lower chest on pad.
+      (
+        ko: '마지막에 가슴을 살짝 들고 견갑을 모은다',
+        en: 'At the finish, lift the chest slightly and squeeze the shoulder blades',
+        basis: Basis.adapted,
+      ),
+    ],
+    mistakes: [
+      // 🟦 Seat or grip should be adjusted to allow wrists to follow elbows.
+      (
+        ko: '손목이 팔꿈치를 따라가지 않게 시트·그립을 두는 것',
+        en: 'Seat or grip set so the wrists do not follow the elbows',
+        basis: Basis.adapted,
+      ),
+    ],
+  ),
+  // 머신 랫풀다운 (Machine Lat Pulldown (front / iso-lateral))
+  // 근육 🟩 ← Target: Latissimus Dorsi. Synergists: Brachialis; Brachioradialis; Biceps Brachii; Teres Major; Deltoid, Posterior; Infraspinatus; Teres Minor; Rhomboids; Levator Scapulae; Trapezius, Lower; Trapezius, Middle; Pectoralis Minor. Dynamic Stabilizers: Triceps, Long Head
+  // 출처: https://web.archive.org/web/20230605085034/https://exrx.net/WeightExercises/LatissimusDorsi/LVFrontPulldown
+  '머신 랫풀다운': Move(
+    primary: [Muscle.lats],
+    secondary: [
+      Muscle.biceps,
+      Muscle.forearms,
+      Muscle.teresMajor,
+      Muscle.rearDelts,
+      Muscle.infraspinatus,
+      Muscle.teresMinor,
+      Muscle.upperBack,
+      Muscle.chest,
+    ],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Sit with thighs under supports.
+      (
+        ko: '허벅지를 지지대 아래에 고정하고 앉는다',
+        en: 'Sit with thighs locked under the supports',
+        basis: Basis.source,
+      ),
+      // 🟩 Pull down lever to upper chest.
+      (
+        ko: '손잡이를 윗가슴까지 당긴다',
+        en: 'Pull the lever down to the upper chest',
+        basis: Basis.source,
+      ),
+      // 🟩 Return until arms and shoulders are fully extended.
+      (
+        ko: '팔과 어깨가 완전히 펴질 때까지 올려 보낸다',
+        en: 'Return until arms and shoulders are fully extended',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟦 Return until arms and shoulders are fully extended.
+      (
+        ko: '반동으로 끝까지 올리지 않고 짧게 반복하는 것',
+        en: 'Cutting the top short instead of fully extending arms and shoulders',
+        basis: Basis.adapted,
+      ),
+    ],
+  ),
+  // 와이드 풀다운 (Iso-Lateral Wide Pulldown)
+  // 근육 🟦 ← Target: Latissimus Dorsi. Synergists: Brachialis; Brachioradialis; Biceps Brachii; Teres Major; Rhomboids; Levator Scapulae; Pectoralis Minor; Trapezius, Lower; Pectoralis Major, Sternal; Coracobrachialis. Dynamic Stabilizers: Triceps, Long Head (LVPulldownH not retrievable; this is Lever Pulldown [
+  // 출처: https://web.archive.org/web/20250826162959/https://exrx.net/WeightExercises/LatissimusDorsi/LVPulldown
+  '와이드 풀다운': Move(
+    primary: [Muscle.lats],
+    secondary: [
+      Muscle.biceps,
+      Muscle.forearms,
+      Muscle.teresMajor,
+      Muscle.upperBack,
+      Muscle.chest,
+    ],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Reach up and grasp handles with wide overhand grip.
+      (
+        ko: '넓은 오버핸드 그립으로 손잡이를 잡는다',
+        en: 'Grasp the handles with a wide overhand grip',
+        basis: Basis.source,
+      ),
+      // 🟩 Pull levers down to sides of shoulders.
+      (
+        ko: '손잡이를 어깨 옆까지 끌어내린다',
+        en: 'Pull the levers down to the sides of the shoulders',
+        basis: Basis.source,
+      ),
+      // 🟩 Return until arms and shoulders are fully extended.
+      (
+        ko: '팔과 어깨가 완전히 펴질 때까지 돌아간다',
+        en: 'Return until arms and shoulders are fully extended',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Range of motion will be compromised if grip is too wide.
+      (
+        ko: '그립을 지나치게 넓게 잡아 가동범위를 잃는 것',
+        en: 'Gripping too wide and losing range of motion',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 풀오버 머신 (Pullover Machine)
+  // 근육 🟩 ← Target: Latissimus Dorsi. Synergists: Pectoralis Major, Sternal; Pectoralis Minor; Triceps, Long Head; Teres Major; Deltoid, Posterior; Rhomboids; Levator Scapulae. Stabilizers: Trapezius, Lower
+  // 출처: https://web.archive.org/web/20240105211036/https://exrx.net/WeightExercises/LatissimusDorsi/LVPullover
+  '풀오버 머신': Move(
+    primary: [Muscle.lats],
+    secondary: [
+      Muscle.chest,
+      Muscle.tricepsLong,
+      Muscle.teresMajor,
+      Muscle.rearDelts,
+      Muscle.upperBack,
+    ],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Adjust seat height so lever is near shoulder axis.
+      (
+        ko: '레버 축이 어깨 축 근처에 오도록 시트 높이를 맞춘다',
+        en: 'Set seat height so the lever is near the shoulder axis',
+        basis: Basis.source,
+      ),
+      // 🟩 Pull lever forward and down until elbows are to sides.
+      (
+        ko: '팔꿈치를 패드에 대고 앞·아래로 당겨 팔꿈치가 옆구리에 오게 한다',
+        en: 'Elbows on pads; pull forward and down until elbows reach your sides',
+        basis: Basis.source,
+      ),
+      // 🟩 When finished, push foot lever before releasing arm from lever.
+      (
+        ko: '끝나면 팔을 빼기 전에 발 레버를 먼저 민다',
+        en: 'When finished, push the foot lever before releasing your arms',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Actual range of motion is dependent upon individual shoulder flexibility.
+      (
+        ko: '어깨 유연성을 넘어서 억지로 가동범위를 늘리는 것',
+        en: 'Forcing range beyond your shoulder flexibility',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 백 익스텐션 머신 (Back Extension Machine)
+  // 근육 🟩 ← Target: Erector Spinae. Synergists (see comments): Gluteus Maximus; Adductor Magnus; Hamstrings. Stabilizers: Quadriceps
+  // 출처: https://web.archive.org/web/20231213140134/https://exrx.net/WeightExercises/ErectorSpinae/LVBackExtension
+  '백 익스텐션 머신': Move(
+    primary: [Muscle.lowerBack],
+    secondary: [Muscle.glutes, Muscle.adductors, Muscle.hamstrings],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Sit in machine with feet on platform, back under padded lever, and hips against back of seat.
+      (
+        ko: '발은 발판에, 등은 패드 아래, 엉덩이는 시트 뒤에 붙인다',
+        en: 'Feet on platform, back under the pad, hips against the back of the seat',
+        basis: Basis.source,
+      ),
+      // 🟩 Extend lower hips and low back until extended.
+      (
+        ko: '엉덩이와 허리를 펴서 끝까지 신전한다',
+        en: 'Extend hips and low back until fully extended',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Those with limited hip flexor flexibility may need to stop before full extension on this particular type of apparatus (fulcrum near hip).
+      (
+        ko: '고관절 굴곡근 유연성이 부족한데 끝까지 억지로 펴는 것',
+        en: 'Forcing full extension with limited hip flexor flexibility',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 리버스 하이퍼 (Reverse Hyperextension)
+  // 근육 🟩 ← Target: Gluteus Maximus. Synergists: Hamstrings. Stabilizers: Erector Spinae. Antagonist Stabilizers: Rectus Abdominis; Obliques
+  // 출처: https://web.archive.org/web/20251025035459/https://exrx.net/WeightExercises/GluteusMaximus/LVReverseHyperextension
+  '리버스 하이퍼': Move(
+    primary: [Muscle.glutes],
+    secondary: [Muscle.hamstrings],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Lay torso and waist on bench and grasp handles.
+      (
+        ko: '상체를 벤치에 엎드리고 손잡이를 잡아 다리를 곧게 늘어뜨린다',
+        en: 'Lie torso on the bench, grip the handles, legs hanging straight down',
+        basis: Basis.source,
+      ),
+      // 🟩 Raise lever by extending hips as high as possible with legs nearly straight.
+      (
+        ko: '다리를 거의 편 채 엉덩이를 펴서 최대한 높이 올린다',
+        en: 'Raise the legs by extending the hips as high as possible, legs nearly straight',
+        basis: Basis.source,
+      ),
+      // 🟩 Lower legs to original position.
+      (
+        ko: '처음 위치로 내린다',
+        en: 'Lower the legs to the starting position',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟦 백 익스텐션(exrx:ErectorSpinae/BW45HyperextensionHips "Do not lower weight beyond mild stretch throughout hamstrings and low back")에서 옮김
+      (
+        ko: '가볍게 늘어나는 느낌을 넘어 깊이 내려간다',
+        en: 'Lowering past a mild stretch',
+        basis: Basis.adapted,
+      ),
+    ],
+  ),
+  // 글루트 햄 레이즈 (Glute Ham Raise)
+  // 근육 🟦 ← Target: Hamstrings. Synergists: Gluteus Maximus; Adductor Magnus; Gastrocnemius; Sartorius; Gracilis; Popliteus. Stabilizers: Erector Spinae. Antagonist Stabilizers: Rectus Abdominis; Obliques; Tibialis Anterior (BWGluteHamRaiseHips not archived; this is the barbell Glute-Ham Raise page; Sartorius/P
+  // 출처: https://web.archive.org/web/20260313082021/https://exrx.net/WeightExercises/Hamstrings/BBGluteHamRaise
+  '글루트 햄 레이즈': Move(
+    primary: [Muscle.hamstrings],
+    secondary: [Muscle.glutes, Muscle.adductors, Muscle.calves],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Place ankles between ankle roller pads with feet on vertical platform and position knees on pad with lower thighs against large padded hump.
+      (
+        ko: '발목을 롤러 사이에 끼우고 무릎은 패드에, 허벅지 아래쪽은 둥근 패드에 댄다',
+        en: 'Ankles between the rollers, knees on the pad, lower thighs against the hump',
+        basis: Basis.source,
+      ),
+      // 🟩 From lower position, raise torso by extending hips until fully extended. Continue to raise body by flexing knees until body is upright.
+      (
+        ko: '엉덩이를 먼저 펴고, 이어서 무릎을 굽혀 몸을 세운다',
+        en: 'Extend the hips first, then flex the knees to bring the body upright',
+        basis: Basis.source,
+      ),
+      // 🟩 Exercise can be performed without added weight until more resistance is needed.
+      (
+        ko: '힘이 붙기 전에는 무게 없이 한다',
+        en: 'Do it without added weight until you need more resistance',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟦 백 익스텐션(exrx:ErectorSpinae/BW45HyperextensionHips "Do not lower weight beyond mild stretch throughout hamstrings and low back")에서 옮김
+      (
+        ko: '가볍게 늘어나는 느낌을 넘어 깊이 내려간다',
+        en: 'Lowering past a mild stretch',
+        basis: Basis.adapted,
+      ),
+    ],
+  ),
+  // 노르딕 햄 컬 (Assisted Nordic Hamstring Curl (machine))
+  // 근육 🟦 ← Target: Hamstrings. Synergists: Gastrocnemius Gracilis Sartorius Popliteus Pectoralis Major, Sternal Pectoralis Major, Clavicular Deltoid, Anterior Triceps Brachii Wrist Flexors (closest page: self-assisted hamstring raise; arm push-off synergists omitted because the machine supplies the assist)
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Hamstrings/ASHamstringRaiseSelf
+  '노르딕 햄 컬': Move(
+    primary: [Muscle.hamstrings],
+    secondary: [Muscle.calves],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟦 Lower body with hips straight by slowly straightening knees.
+      (
+        ko: '엉덩이를 편 채로 무릎만 천천히 펴며 내려간다',
+        en: 'Lower your body with hips straight by slowly straightening the knees',
+        basis: Basis.adapted,
+      ),
+      // 🟦 Control descent only with hamstrings as low as possible
+      (
+        ko: '햄스트링만으로 최대한 낮게까지 버티며 내려간다',
+        en: 'Control the descent with the hamstrings as low as you can',
+        basis: Basis.adapted,
+      ),
+      // 🟦 push off only hard enough to minimally assist raising of body with hamstrings only.
+      (
+        ko: '도움은 올라올 만큼만 최소로',
+        en: 'Use only as much assist as you need to rise',
+        basis: Basis.adapted,
+      ),
+    ],
+    mistakes: [
+      // 🟦 Lower body with hips straight by slowly straightening knees.
+      (
+        ko: '엉덩이를 접어 허리로 버티기',
+        en: 'Bending at the hips instead of keeping them straight',
+        basis: Basis.adapted,
+      ),
+    ],
+  ),
+  // 머신 레터럴 레이즈 (Lateral Raise Machine)
+  // 근육 🟩 ← Target: Deltoid, Lateral. Synergists: Deltoid, Anterior Supraspinatus Trapezius, Middle Trapezius, Lower Serratus Anterior, Inferior Digitations
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/DeltoidLateral/LVLateralRaise
+  '머신 레터럴 레이즈': Move(
+    primary: [Muscle.sideDelts],
+    secondary: [Muscle.frontDelts, Muscle.upperBack],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Situate bent arms between padded lever and sides of body.
+      (
+        ko: '팔을 굽혀 패드와 몸통 사이에 둔다',
+        en: 'Place bent arms between the pads and your sides',
+        basis: Basis.source,
+      ),
+      // 🟩 Raise arms to sides until upper arms are horizontal.
+      (
+        ko: '위팔이 수평이 될 때까지 옆으로 든다',
+        en: 'Raise arms to the sides until upper arms are horizontal',
+        basis: Basis.source,
+      ),
+      // 🟩 If necessary, lean forward slightly to keep elbows directly lateral to body.
+      (
+        ko: '필요하면 살짝 앞으로 기울여 팔꿈치를 몸 옆에 둔다',
+        en: 'Lean forward slightly if needed to keep elbows directly to the side',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟦 Raise arms to sides until upper arms are horizontal.
+      (
+        ko: '위팔을 수평보다 높이 들어 올리기',
+        en: 'Raising the upper arms above horizontal',
+        basis: Basis.adapted,
+      ),
+    ],
+  ),
+  // 바이킹 프레스 (Viking Press)
+  // 근육 🟦 ← Target: Deltoid, Anterior. Synergists: Pectoralis Major, Clavicular Triceps Brachii Deltoid, Lateral Trapezius, Middle Trapezius, Lower Serratus Anterior, Inferior Digitations (closest page: Lever Shoulder Press, parallel grip; no ExRx Viking Press page found)
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/DeltoidAnterior/LVShoulderPressParGrip
+  '바이킹 프레스': Move(
+    primary: [Muscle.frontDelts],
+    secondary: [
+      Muscle.chest,
+      Muscle.tricepsLong,
+      Muscle.tricepsLateral,
+      Muscle.tricepsMedial,
+      Muscle.sideDelts,
+      Muscle.upperBack,
+    ],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟦 Sit on seat and grasp parallel bar grips in front of shoulders on each side.
+      (
+        ko: '어깨 앞에서 평행 손잡이를 잡는다',
+        en: 'Grip the parallel handles in front of the shoulders',
+        basis: Basis.adapted,
+      ),
+      // 🟦 Press lever upward until arms are extended overhead. Lower and repeat.
+      (
+        ko: '팔이 머리 위로 펴질 때까지 민다',
+        en: 'Press until arms are extended overhead',
+        basis: Basis.adapted,
+      ),
+    ],
+    mistakes: [
+      (
+        ko: '허리를 과하게 젖혀 밀기',
+        en: 'Over-arching the lower back to press',
+        basis: Basis.none,
+      ),
+    ],
+  ),
+  // 스미스머신 숄더프레스 (Smith Machine Shoulder Press)
+  // 근육 🟩 ← Target: Deltoid, Anterior. Synergists: Pectoralis Major, Clavicular Triceps Brachii Deltoid, Lateral Trapezius, Middle Trapezius, Lower Serratus Anterior, Inferior Digitations
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/DeltoidAnterior/SMShoulderPress
+  '스미스머신 숄더프레스': Move(
+    primary: [Muscle.frontDelts],
+    secondary: [
+      Muscle.chest,
+      Muscle.tricepsLong,
+      Muscle.tricepsLateral,
+      Muscle.tricepsMedial,
+      Muscle.sideDelts,
+      Muscle.upperBack,
+    ],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Sit on bench with bar positioned in front of shoulders. Grasp bar with wide overhand grip.
+      (
+        ko: '바를 어깨 앞에 두고 넓게 오버그립으로 잡는다',
+        en: 'Bar in front of shoulders, wide overhand grip',
+        basis: Basis.source,
+      ),
+      // 🟩 Press bar upward until arms are extended overhead. Lower bar to front of shoulders and repeat.
+      (
+        ko: '팔이 머리 위로 펴질 때까지 밀고 어깨 앞까지 내린다',
+        en: 'Press until arms extend overhead, lower to front of shoulders',
+        basis: Basis.source,
+      ),
+      // 🟩 Pull head back slightly so bar does not make contact with head.
+      (
+        ko: '머리를 살짝 뒤로 빼 바가 닿지 않게',
+        en: 'Pull head back slightly so the bar clears it',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Range of motion will be compromised if grip is too wide .
+      (
+        ko: '그립을 너무 넓게 잡아 가동범위 줄이기',
+        en: 'Gripping too wide, which cuts range of motion',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 머신 바이셉스 컬 (Biceps Curl Machine)
+  // 근육 🟩 ← Target: Brachialis. Synergists: Biceps Brachii Brachioradialis
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Brachialis/LVPreacherCurl
+  '머신 바이셉스 컬': Move(
+    primary: [Muscle.biceps],
+    secondary: [Muscle.forearms],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Align elbows at same pivot point as fulcrum of lever.
+      (
+        ko: '팔꿈치를 기계 회전축에 맞춘다',
+        en: 'Align elbows with the machine\'s pivot point',
+        basis: Basis.source,
+      ),
+      // 🟩 Seat should be adjusted to allow armpit to rest near top of pad.
+      (
+        ko: '겨드랑이가 패드 위쪽에 닿게 의자 높이를 맞춘다',
+        en: 'Set the seat so the armpit rests near the top of the pad',
+        basis: Basis.source,
+      ),
+      // 🟩 Lower handles until arms are fully extended.
+      (
+        ko: '팔을 끝까지 펴서 내린다',
+        en: 'Lower until arms are fully extended',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Back of upper arm should remain on pad throughout movement.
+      (
+        ko: '위팔 뒤쪽이 패드에서 떨어지기',
+        en: 'Letting the back of the upper arm lift off the pad',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 머신 트라이셉스 익스텐션 (Triceps Extension Machine)
+  // 근육 🟩 ← Target: Triceps Brachii. Synergists: None
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Triceps/LVTriExt
+  '머신 트라이셉스 익스텐션': Move(
+    primary: [Muscle.tricepsLong, Muscle.tricepsLateral, Muscle.tricepsMedial],
+    secondary: [],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Grasp handles and place back of upper arms parallel on padding with elbows approximately in line with lever's fulcrum.
+      (
+        ko: '위팔 뒤쪽을 패드에 대고 팔꿈치를 회전축에 맞춘다',
+        en: 'Upper arms on the pad, elbows in line with the pivot',
+        basis: Basis.source,
+      ),
+      // 🟩 Push lever down until arms are fully extended.
+      (
+        ko: '팔이 완전히 펴질 때까지 민다',
+        en: 'Push until arms are fully extended',
+        basis: Basis.source,
+      ),
+      // 🟩 Adjust seat height, so back of upper arms rest on padding.
+      (
+        ko: '위팔이 패드에 닿도록 의자 높이를 맞춘다',
+        en: 'Adjust seat height so upper arms rest on the pad',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 If seat is too high, shoulder will need to rise near end of extension to complete final range of motion
+      (
+        ko: '의자가 너무 높아 끝에서 어깨가 들림',
+        en: 'Seat too high, so the shoulder rises at lockout',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // V 스쿼트 (V-Squat Machine)
+  // 근육 🟩 ← Target: Quadriceps. Synergists: Gluteus Maximus Adductor Magnus Soleus
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Quadriceps/LVVSquat
+  'V 스쿼트': Move(
+    primary: [Muscle.quads],
+    secondary: [Muscle.glutes, Muscle.adductors, Muscle.calves],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Position shoulders under shoulder pads with back against back pad.
+      (
+        ko: '어깨를 패드 아래, 등을 등받이에 붙인다',
+        en: 'Shoulders under the pads, back against the back pad',
+        basis: Basis.source,
+      ),
+      // 🟩 Place feet on platform, shoulder or hip width apart.
+      (
+        ko: '발은 어깨나 골반 너비로',
+        en: 'Feet shoulder or hip width apart',
+        basis: Basis.source,
+      ),
+      // 🟩 Squat down with knees pointed same direction as feet.
+      (
+        ko: '무릎은 발끝과 같은 방향으로 앉는다',
+        en: 'Squat with knees pointed the same way as the feet',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 If insufficient, hip flexibility forces pelvis to pull away from back pad at lower portions of movement, only lower sled just short of spinal articulation.
+      (
+        ko: '깊이 내려가며 골반이 등받이에서 떨어지기',
+        en: 'Pelvis pulling away from the back pad at the bottom',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 스쿼트 머신 (Squat Press Machine (lever squat))
+  // 근육 🟩 ← Target: Quadriceps. Synergists: Gluteus Maximus, Adductor Magnus, Soleus
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Quadriceps/LVSquatPL
+  '스쿼트 머신': Move(
+    primary: [Muscle.quads],
+    secondary: [Muscle.glutes, Muscle.adductors, Muscle.calves],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Lower lever by bending hips back while allowing knees to bend forward, keeping back straight and knees pointed same direction as feet.
+      (
+        ko: '엉덩이를 뒤로 빼며 무릎을 굽혀 내려가기',
+        en: 'Lower by bending hips back while knees bend forward',
+        basis: Basis.source,
+      ),
+      // 🟩 Descend until thighs are just past parallel to floor.
+      (
+        ko: '허벅지가 평행을 살짝 지날 때까지',
+        en: 'Descend until thighs are just past parallel',
+        basis: Basis.source,
+      ),
+      // 🟩 Keep head facing forward, back straight and feet flat on floor with equal distribution of weight through forefoot and heel.
+      (
+        ko: '발바닥 전체로 고르게 밀기',
+        en: 'Keep feet flat, weight through forefoot and heel',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Knees should point same direction as feet throughout movement.
+      (
+        ko: '무릎이 안쪽으로 모이기',
+        en: 'Knees caving away from toe direction',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 스미스머신 스쿼트 (Smith Machine Squat)
+  // 근육 🟩 ← Target: Quadriceps. Synergists: Gluteus Maximus, Adductor Magnus, Soleus
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Quadriceps/SMSquat
+  '스미스머신 스쿼트': Move(
+    primary: [Muscle.quads],
+    secondary: [Muscle.glutes, Muscle.adductors, Muscle.calves],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 With bar upper chest height, position bar on back of shoulders and grasp bar to sides. Place feet under bar.
+      (
+        ko: '바를 어깨 뒤에 얹고 발은 바 아래에',
+        en: 'Bar on back of shoulders, feet under the bar',
+        basis: Basis.source,
+      ),
+      // 🟩 Descend until thighs are just past parallel to floor.
+      (
+        ko: '허벅지가 평행을 살짝 지날 때까지 앉기',
+        en: 'Squat until thighs are just past parallel',
+        basis: Basis.source,
+      ),
+      // 🟩 Keep head facing forward, back straight and feet flat on floor with equal distribution of weight through forefoot and heel.
+      (
+        ko: '등은 곧게, 발바닥 전체로 체중 분산',
+        en: 'Back straight, weight spread over forefoot and heel',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Knees should point same direction as feet throughout movement.
+      (
+        ko: '무릎과 발끝 방향이 어긋나기',
+        en: 'Knees not tracking the toes',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 45도 레그프레스 (45° Leg Press (sled))
+  // 근육 🟩 ← Target: Quadriceps. Synergists: Gluteus Maximus, Adductor Magnus, Soleus
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Quadriceps/SL45LegPress
+  '45도 레그프레스': Move(
+    primary: [Muscle.quads],
+    secondary: [Muscle.glutes, Muscle.adductors, Muscle.calves],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Keep knees pointed same directions as feet.
+      (
+        ko: '무릎은 발끝과 같은 방향',
+        en: 'Keep knees pointed same direction as feet',
+        basis: Basis.source,
+      ),
+      // 🟩 Do not allow heels to raise off of platform, pushing with both heel and forefoot.
+      (
+        ko: '뒤꿈치와 앞꿈치로 함께 밀기',
+        en: 'Push with both heel and forefoot',
+        basis: Basis.source,
+      ),
+      // 🟩 Placing feet slightly high on platform emphasizes Gluteus Maximus. Placing feet slightly lower on platform emphasizes Quadriceps.
+      (
+        ko: '발을 높게 두면 둔근, 낮게 두면 대퇴사두 강조',
+        en: 'Feet high emphasizes glutes, low emphasizes quads',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Adjust safety brace and back support to accommodate near full range of motion without forcing hips to bend at waist.
+      (
+        ko: '너무 깊게 내려 허리가 말리기',
+        en: 'Going so deep the hips/lower back round',
+        basis: Basis.source,
+      ),
+      // 🟩 Do not allow heels to raise off of platform
+      (
+        ko: '뒤꿈치가 발판에서 뜨기',
+        en: 'Heels lifting off the platform',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 시티드 레그프레스 (Seated (Horizontal) Leg Press)
+  // 근육 🟩 ← Target: Quadriceps. Synergists: Gluteus Maximus, Adductor Magnus, Soleus
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Quadriceps/LVSeatedLegPress
+  '시티드 레그프레스': Move(
+    primary: [Muscle.quads],
+    secondary: [Muscle.glutes, Muscle.adductors, Muscle.calves],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Keep knees pointed same directions as feet.
+      (
+        ko: '무릎은 발끝과 같은 방향',
+        en: 'Keep knees pointed same direction as feet',
+        basis: Basis.source,
+      ),
+      // 🟩 Do not allow heels to raise off of platform, pushing with both heel and forefoot.
+      (
+        ko: '뒤꿈치와 앞꿈치로 함께 밀기',
+        en: 'Push with both heel and forefoot',
+        basis: Basis.source,
+      ),
+      // 🟩 Adjust seat and back support to accommodate near full range of motion without forcing hips to bend at waist.
+      (
+        ko: '시트·등받이를 가동범위에 맞춰 조절',
+        en: 'Set seat and back support for near full range',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Do not allow heels to raise off of platform
+      (
+        ko: '뒤꿈치가 발판에서 뜨기',
+        en: 'Heels lifting off the platform',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 시티드 레그컬 (Seated Leg Curl)
+  // 근육 🟩 ← Target: Hamstrings. Synergists: Gastrocnemius, Gracilis, Sartorius, Popliteus (Gracilis/Sartorius/Popliteus have no enum id; omitted)
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Hamstrings/LVSeatedLegCurl
+  '시티드 레그컬': Move(
+    primary: [Muscle.hamstrings],
+    secondary: [Muscle.calves],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Position back of seat so knees are aligned with fulcrum of lever.
+      (
+        ko: '무릎을 기계 회전축에 맞추기',
+        en: 'Align knees with the lever\'s pivot',
+        basis: Basis.source,
+      ),
+      // 🟩 Position lever pad so it makes contact with lowers leg just above ankles.
+      (
+        ko: '패드는 발목 바로 위에',
+        en: 'Lever pad just above the ankles',
+        basis: Basis.source,
+      ),
+      // 🟩 Return lever until knees are straight.
+      (
+        ko: '무릎이 펴질 때까지 되돌리기',
+        en: 'Return until knees are straight',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Secure lap pad on thighs just above knees.
+      (
+        ko: '무릎 위 허벅지 패드를 고정하지 않기',
+        en: 'Not securing the lap pad above the knees',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 라잉 레그컬 (Lying Leg Curl)
+  // 근육 🟩 ← Target: Hamstrings. Synergists: Gastrocnemius, Sartorius, Gracilis, Popliteus (Sartorius/Gracilis/Popliteus have no enum id; omitted)
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Hamstrings/LVLyingLegCurl
+  '라잉 레그컬': Move(
+    primary: [Muscle.hamstrings],
+    secondary: [Muscle.calves],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Lie prone on bench with knees just beyond edge of bench and lower legs under lever pads.
+      (
+        ko: '무릎은 벤치 끝을 살짝 넘기기',
+        en: 'Knees just beyond the bench edge',
+        basis: Basis.source,
+      ),
+      // 🟩 Keep torso on bench to reduce hyperextension of lower back.
+      (
+        ko: '상체를 벤치에 붙여 허리 과신전 줄이기',
+        en: 'Keep torso on bench to limit lower-back arching',
+        basis: Basis.source,
+      ),
+      // 🟩 Lower lever pads until knees are straight.
+      (
+        ko: '무릎이 펴질 때까지 내리기',
+        en: 'Lower until knees are straight',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Keep torso on bench to reduce hyperextension of lower back.
+      (
+        ko: '상체를 들어 허리를 꺾기',
+        en: 'Lifting the torso and arching the lower back',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 닐링 레그컬 (Kneeling Leg Curl)
+  // 근육 🟩 ← Target: Hamstrings. Synergists: Gastrocnemius, Gracilis, Sartorius, Popliteus (Gracilis/Sartorius/Popliteus have no enum id; omitted)
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Hamstrings/LVKneelingLegCurl
+  '닐링 레그컬': Move(
+    primary: [Muscle.hamstrings],
+    secondary: [Muscle.calves],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Mount machine by placing supporting knee on horizontal pad and other leg under roller pad with knee against vertical pad.
+      (
+        ko: '받치는 무릎은 수평 패드, 운동하는 다리는 롤러 아래',
+        en: 'Support knee on horizontal pad, working leg under roller',
+        basis: Basis.source,
+      ),
+      // 🟩 Raise ankle to back of thigh by flexing knee.
+      (
+        ko: '발목을 허벅지 뒤로 끌어올리기',
+        en: 'Raise ankle to back of thigh',
+        basis: Basis.source,
+      ),
+      // 🟩 Lower ankle until knee is straight. Repeat. Continue with opposite leg.
+      (
+        ko: '무릎이 펴질 때까지 내리고 반대쪽도',
+        en: 'Lower until straight, then switch legs',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟦 레그컬(ace:153 "Avoid arching your back during this movement")에서 옮김
+      (ko: '허리를 젖힌다', en: 'Arching the low back', basis: Basis.adapted),
+    ],
+  ),
+  // 스탠딩 레그컬 (Standing Leg Curl)
+  // 근육 🟩 ← Target: Hamstrings. Synergists: Gastrocnemius, Sartorius, Gracilis (Sartorius/Gracilis have no enum id; omitted)
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Hamstrings/LVStandingLegCurl
+  '스탠딩 레그컬': Move(
+    primary: [Muscle.hamstrings],
+    secondary: [Muscle.calves],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Position exercising leg with lever pad behind lower leg and upper pad in front of lower thigh.
+      (
+        ko: '패드는 종아리 뒤, 윗패드는 허벅지 아래 앞쪽',
+        en: 'Lever pad behind lower leg, upper pad in front of lower thigh',
+        basis: Basis.source,
+      ),
+      // 🟩 Stand with body weight shifted on foot of resting leg and raise foot of exercising leg slightly off of floor or platform.
+      (
+        ko: '쉬는 다리에 체중을 싣기',
+        en: 'Shift body weight onto the resting leg',
+        basis: Basis.source,
+      ),
+      // 🟩 Return lever until knee is straight. Repeat. Continue with opposite leg.
+      (
+        ko: '무릎이 펴질 때까지 되돌리고 반대쪽도',
+        en: 'Return until knee is straight, then switch legs',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟦 레그컬(ace:153 "Avoid arching your back during this movement")에서 옮김
+      (ko: '허리를 젖힌다', en: 'Arching the low back', basis: Basis.adapted),
+    ],
+  ),
+  // 힙 쓰러스트 머신 (Hip Thrust Machine (Glute Drive))
+  // 근육 🟦 ← (ExRx has no machine page; closest Barbell Hip Thrust) Target: Gluteus Maximus. Synergists: Quadriceps. Dynamic Stabilizers: Hamstrings. Stabilizers: Erector Spinae. Antagonist Stabilizers: Rectus Abdominis, Obliques
+  // 출처: https://web.archive.org/web/20260403013537/https://exrx.net/WeightExercises/GluteusMaximus/BBHipThrust
+  '힙 쓰러스트 머신': Move(
+    primary: [Muscle.glutes],
+    secondary: [Muscle.quads],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟦 Raise bar upward by extending hips until straight.
+      (
+        ko: '엉덩이를 펴서 몸통과 허벅지가 일직선이 될 때까지 올린다',
+        en: 'Extend hips until straight',
+        basis: Basis.adapted,
+      ),
+      // 🟦 Movement should occur through hip with torso rigid.
+      (
+        ko: '몸통은 단단히 고정하고 움직임은 고관절에서만',
+        en: 'Move through the hip with a rigid torso',
+        basis: Basis.adapted,
+      ),
+      // 🟦 Place feet on floor approximately shoulder width with knees bent.
+      (
+        ko: '발은 어깨너비, 무릎은 굽힌 채로',
+        en: 'Feet about shoulder width, knees bent',
+        basis: Basis.adapted,
+      ),
+    ],
+    mistakes: [
+      // 🟦 Avoid chest arching upward and anterior pelvic tilt, both producing spinal hyperextension.
+      (
+        ko: '가슴을 들어 올리거나 골반을 앞으로 기울여 허리를 과신전하기',
+        en: 'Arching the chest up or tilting the pelvis forward, hyperextending the spine',
+        basis: Basis.adapted,
+      ),
+    ],
+  ),
+  // 글루트 킥백 머신 (Glute Kickback Machine (standing hip extension))
+  // 근육 🟦 ← (Lever Standing Hip Extension) Target: Gluteus Maximus. Synergists: Hamstrings, Adductor Magnus. Stabilizers: Obliques, Erector Spinae, Quadratus Lumborum, Gluteus Medius, Gluteus Minimus. Antagonist Stabilizers: Rectus Abdominis
+  // 출처: https://web.archive.org/web/20250424003811/https://exrx.net/WeightExercises/GluteusMaximus/LVStandingHipExtension
+  '글루트 킥백 머신': Move(
+    primary: [Muscle.glutes],
+    secondary: [Muscle.hamstrings, Muscle.adductors],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Stand on platform facing to one side and grasp bar for support. Place leg nearest machine on padded roller while standing on other leg.
+      (
+        ko: '손잡이를 잡고 한쪽 다리로 지지한 채 반대 다리로 민다',
+        en: 'Hold the bar for support and stand on the other leg',
+        basis: Basis.source,
+      ),
+      // 🟩 Lower lever by extending hip.
+      (
+        ko: '고관절을 펴서 레버를 뒤·아래로 민다',
+        en: 'Drive the lever by extending the hip',
+        basis: Basis.source,
+      ),
+      // 🟩 Return until knee is higher than hip.
+      (
+        ko: '돌아올 때 무릎이 엉덩이보다 높아질 때까지 충분히 굽힌다',
+        en: 'Return until the knee is higher than the hip',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      (
+        ko: '허리를 젖혀 반동으로 다리를 차기',
+        en: 'Arching the lower back to swing the leg',
+        basis: Basis.none,
+      ),
+    ],
+  ),
+  // 힙 어브덕션 (Seated Hip Abduction Machine)
+  // 근육 🟦 ← Target: Hip Abductors (listed below). Synergists: Gluteus Medius, Gluteus Minimus, Gluteus Maximus, Piriformis, Obturator externus. Stabilizers: No significant stabilizers
+  // 출처: https://web.archive.org/web/20260306091312/https://exrx.net/WeightExercises/HipAbductor/LVSeatedHipAbduction
+  '힙 어브덕션': Move(
+    primary: [Muscle.glutes],
+    secondary: [],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Lie back and grasp bars to sides.
+      (
+        ko: '등을 기대고 양옆 손잡이를 잡는다',
+        en: 'Lie back and grasp the bars to the sides',
+        basis: Basis.source,
+      ),
+      // 🟩 Move legs apart as far as possible. Return and repeat.
+      (
+        ko: '다리를 가능한 한 넓게 벌렸다가 돌아온다',
+        en: 'Move legs apart as far as possible, then return',
+        basis: Basis.source,
+      ),
+      // 🟩 If available, place heels on foot bars.
+      (
+        ko: '발판이 있으면 뒤꿈치를 올린다',
+        en: 'Place heels on the foot bars if available',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Also see ROM Criteria and Spot Reduction Myth .
+      (
+        ko: '이 운동으로 허벅지 바깥 살만 빠진다고 기대하기(부분 감량은 근거 없음)',
+        en: 'Expecting spot fat loss on the outer thigh',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 스탠딩 힙 어브덕션 (Standing Hip Abduction Machine)
+  // 근육 🟦 ← Target: Hip Abductors (listed below). Synergists: Tensor Fasciae Latae, Gluteus Medius, Gluteus Minimus. Stabilizers: Hip Abductors (opposite)
+  // 출처: https://web.archive.org/web/20231121055450/https://exrx.net/WeightExercises/HipAbductor/LVStandHipAbduction
+  '스탠딩 힙 어브덕션': Move(
+    primary: [Muscle.glutes],
+    secondary: [],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Adjust platform so lever fulcrum is same height as hip articulation.
+      (
+        ko: '레버 축을 고관절 높이에 맞춘다',
+        en: 'Align the lever pivot with the hip joint',
+        basis: Basis.source,
+      ),
+      // 🟩 Place outside of thigh against roller pad and shift body weight to opposite leg.
+      (
+        ko: '허벅지 바깥을 패드에 대고 체중은 반대 다리에',
+        en: 'Outside of thigh on the pad, weight on the opposite leg',
+        basis: Basis.source,
+      ),
+      // 🟩 Raise leg against roller pad to side by abduction hip. Return and repeat.
+      (
+        ko: '다리를 옆으로 들어 올렸다가 돌아온다',
+        en: 'Raise the leg to the side, return and repeat',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      (
+        ko: '상체를 옆으로 기울여 다리를 더 높이 올리려 하기',
+        en: 'Leaning the torso sideways to lift the leg higher',
+        basis: Basis.none,
+      ),
+    ],
+  ),
+  // 스탠딩 카프레이즈 머신 (Standing Calf Raise Machine)
+  // 근육 🟩 ← Target: Gastrocnemius. Synergists: Soleus. Stabilizers: Trapezius, Upper; Trapezius, Middle; Levator Scapulae
+  // 출처: https://web.archive.org/web/20250819125737/https://exrx.net/WeightExercises/Gastrocnemius/LVStandingCalfRaisePL
+  '스탠딩 카프레이즈 머신': Move(
+    primary: [Muscle.calves],
+    secondary: [],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Position toes and balls of feet on calf block with arches and heels extending off.
+      (
+        ko: '발끝과 발볼만 블록에 올리고 뒤꿈치는 밖으로',
+        en: 'Toes and balls of feet on the block, heels off',
+        basis: Basis.source,
+      ),
+      // 🟩 Raise heels by extending ankles as high as possible.
+      (
+        ko: '뒤꿈치를 최대한 높이 들어 올린다',
+        en: 'Raise heels as high as possible',
+        basis: Basis.source,
+      ),
+      // 🟩 Keep knees straight throughout exercise or bend knees slightly only during stretch.
+      (
+        ko: '무릎은 끝까지 편 상태를 유지한다',
+        en: 'Keep knees straight throughout',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟦 Quadriceps serve as synergist muscle if knees are bent slightly during stretch.
+      (
+        ko: '무릎을 굽혔다 펴며 다리 힘으로 밀어 올리기',
+        en: 'Bending and extending the knees to push the weight up',
+        basis: Basis.adapted,
+      ),
+    ],
+  ),
+  // 카프 익스텐션 (Seated Calf Extension (calf press machine))
+  // 근육 🟩 ← Target: Gastrocnemius. Synergists: Soleus. Stabilizers: No significant stabilizers
+  // 출처: https://web.archive.org/web/20260520125617/https://exrx.net/WeightExercises/Gastrocnemius/LVSeatedCalfExtension
+  '카프 익스텐션': Move(
+    primary: [Muscle.calves],
+    secondary: [],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Sit on seat and position forefeet on horizontal foot bar. Grasp handles to sides and straighten knees.
+      (
+        ko: '앞꿈치를 발판 가로대에 올리고 무릎을 편다',
+        en: 'Forefeet on the foot bar, knees straight',
+        basis: Basis.source,
+      ),
+      // 🟩 Push lever by extending ankles as far as possible.
+      (
+        ko: '발목을 최대한 펴서 민다',
+        en: 'Push by extending ankles as far as possible',
+        basis: Basis.source,
+      ),
+      // 🟩 Return by bending ankles until calves are stretched.
+      (
+        ko: '종아리가 늘어날 때까지 돌아온다',
+        en: 'Return until calves are stretched',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 Reposition stance if feet slip.
+      (
+        ko: '발이 미끄러지는데 그대로 계속하기',
+        en: 'Continuing while the feet slip',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 머신 크런치 (Ab Crunch Machine)
+  // 근육 🟩 ← Target: Rectus Abdominis. Synergists: Obliques. Stabilizers: Pectoralis Major, Sternal; Latissimus Dorsi; Teres Major; Deltoid, Posterior; Triceps, Long Head
+  // 출처: https://web.archive.org/web/20260609063648/https://exrx.net/WeightExercises/RectusAbdominis/LVSeatedCrunch
+  '머신 크런치': Move(
+    primary: [Muscle.abs],
+    secondary: [Muscle.obliques],
+    primaryInterp: false,
+    secondaryInterp: false,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Sit on machine with back and hips against back supports.
+      (
+        ko: '등과 엉덩이를 등받이에 붙이고 앉는다',
+        en: 'Sit with back and hips against the supports',
+        basis: Basis.source,
+      ),
+      // 🟩 With hips stationary, flex waist so elbows travel downward.
+      (
+        ko: '엉덩이는 고정하고 허리를 말아 팔꿈치를 아래로',
+        en: 'Keep hips stationary and flex the waist so elbows travel down',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      (
+        ko: '팔로 손잡이를 당겨 무게를 내리기',
+        en: 'Pulling the handles down with the arms',
+        basis: Basis.none,
+      ),
+      // 🟩 See Spot Reduction Myth .
+      (
+        ko: '이 운동으로 뱃살이 부분적으로 빠진다고 기대하기',
+        en: 'Expecting spot fat loss on the belly',
+        basis: Basis.source,
+      ),
+    ],
+  ),
+  // 로터리 토르소 (Rotary Torso Machine)
+  // 근육 🟦 ← Target Obliques Synergists Psoas major Quadratus lumborum Iliocastalis lumborum Iliocastalis thoracis
+  // 출처: https://web.archive.org/web/2025/https://exrx.net/WeightExercises/Obliques/LVTwist
+  '로터리 토르소': Move(
+    primary: [Muscle.obliques],
+    secondary: [Muscle.hipFlexors, Muscle.lowerBack],
+    primaryInterp: true,
+    secondaryInterp: true,
+    sites: ['ExRx.net'],
+    cues: [
+      // 🟩 Adjust range of motion setting on machine to one side.
+      (
+        ko: '시작 전 머신의 가동 범위를 한쪽으로 맞춘다',
+        en: 'Set the machine\'s range-of-motion setting to one side before starting',
+        basis: Basis.source,
+      ),
+      // 🟩 Sit with legs against padding. Place torso against pad and grasp handles.
+      (
+        ko: '다리를 패드에 붙이고 상체를 패드에 댄 채 손잡이를 잡는다',
+        en: 'Sit with legs against the padding, torso against the pad, and grasp the handles',
+        basis: Basis.source,
+      ),
+      // 🟩 Rotate torso through waist to opposite side. Return and repeat.
+      (
+        ko: '허리에서 상체를 반대쪽으로 돌렸다가 돌아온다',
+        en: 'Rotate the torso through the waist to the opposite side, then return',
+        basis: Basis.source,
+      ),
+      // 🟩 Adjust range of motion setting to opposite side and repeat in opposite direction.
+      (
+        ko: '한쪽이 끝나면 설정을 반대로 바꿔 반대 방향도 한다',
+        en: 'Switch the range setting and repeat in the opposite direction',
+        basis: Basis.source,
+      ),
+    ],
+    mistakes: [
+      // 🟩 See Spot Reduction Myth .
+      (
+        ko: '옆구리 살을 빼려는 목적으로만 하지 않기 (부분 감량은 근거 없음)',
+        en: 'Don\'t rely on it to burn side fat - spot reduction is a myth',
+        basis: Basis.source,
+      ),
+      // 🟦 Adjust range of motion setting to opposite side and repeat in opposite direction.
+      (
+        ko: '한 방향만 하고 끝내지 않기',
+        en: 'Don\'t train only one direction',
+        basis: Basis.adapted,
       ),
     ],
   ),
