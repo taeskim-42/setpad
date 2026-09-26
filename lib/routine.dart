@@ -2302,6 +2302,8 @@ RoutineDraft composeRoutine(
     }
   }
   // 이름만 지목했으면(나머지는 알아서) 그 운동을 한 가장 최근 날의 짝들로 채운다.
+  // 글에 적힌 이름일 때만이다 — "전거근 운동 뭐할까" 에 모델이 고른 운동은 그
+  // 근육의 답이라, 그날 같이 한 데드리프트로 채우면 묻지 않은 운동이 섞인다.
   final selects =
       ask.parts.isNotEmpty ||
       ask.pattern != null ||
@@ -2310,12 +2312,12 @@ RoutineDraft composeRoutine(
       ask.without.isNotEmpty;
   if (draft.source == 'conditions' &&
       candidates.isEmpty &&
-      front.isNotEmpty &&
+      userNamed.isNotEmpty &&
       !selects) {
     final withFirst = restAll
         .where(
           (n) =>
-              _mineBlocks(n).any((b) => exerciseKey(b.exercise) == front.first),
+              _mineBlocks(n).any((b) => exerciseKey(b.exercise) == userNamed.first),
         )
         .firstOrNull;
     if (withFirst != null) {
@@ -2521,7 +2523,7 @@ RoutineDraft composeRoutine(
   if (draft.source == 'none' ||
       (draft.source == 'conditions' &&
           candidates.isEmpty &&
-          front.isNotEmpty &&
+          userNamed.isNotEmpty &&
           !selects)) {
     // 회전: 최근 28일의 운동 중 가장 오래 쉰 것(같으면 최근). 거름을 먼저 적용한다.
     // 같은 요일·요인 후보 날은 앞에서 돌았다 — 그 날들은 빼고 이어 돈다.

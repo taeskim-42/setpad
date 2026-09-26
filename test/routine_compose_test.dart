@@ -942,6 +942,14 @@ void main() {
       expect(d.startable, isTrue);
     });
 
+    test('근육으로 모델이 고른 운동은 그날 같이 한 운동으로 채우지 않는다', () {
+      // "전거근 운동 뭐할까" → the model picks by muscle; nothing was named in the text.
+      final d = compose({
+        'exercises': ['오버헤드프레스', '사이드 레터럴 레이즈'],
+      }, '전거근 운동 뭐할까?');
+      expect(keys(d).toSet(), {'오버헤드프레스', '사이드 레터럴 레이즈'});
+    });
+
     test('검토#12 초안의 표지는 카드가 바뀌면 바뀐다', () {
       final a = compose({}, '오늘 루틴 짜줘');
       final b = compose({}, '오늘 루틴 짜줘');
