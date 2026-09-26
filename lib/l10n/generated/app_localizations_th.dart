@@ -1495,9 +1495,6 @@ class LTh extends L {
   String get togetherLog => 'บันทึก';
 
   @override
-  String get mealLogAs => 'บันทึกเป็นมื้ออาหาร';
-
-  @override
   String get mealAutoLogged => 'บันทึกเป็นมื้ออาหารแล้ว';
 
   @override

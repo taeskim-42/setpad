@@ -1506,13 +1506,23 @@ class _RoutineEditorState extends State<RoutineEditor>
     );
   }
 
-  /// 식단 아이콘. 식단 글을 적는 중이면 운동 입력으로 돌아가고, 아니면 사진·앨범·
+  /// 식단 아이콘. 식단 글을 적는 중이면 운동 입력으로 돌아가고, 운동 이름 줄에 친
+  /// 글이 있으면 그 글을 끼니로 남긴다(Enter 는 근거가 없으면 운동으로 가른다 —
+  /// [_name]. 그렇게 못 가른 줄을 사람이 끼니로 보낸다). 빈 줄이면 사진·앨범·
   /// 글을 고르는 시트(사진을 못 쓰는 화면이면 바로 식단 글).
   VoidCallback? get _onMeal {
     final text = widget.mealText, photo = widget.onMealPhoto;
     if (text == null && photo == null) return null;
     return () {
-      if (_mealMode) {
+      if (!_mealMode &&
+          _c.naming &&
+          !_editingRecord &&
+          widget.onMealText != null &&
+          _text.trim().isNotEmpty) {
+        final typed = _text.trim();
+        _input.clear();
+        widget.onMealText!(typed, null);
+      } else if (_mealMode) {
         text?.value = null;
       } else if (photo != null) {
         photo();
@@ -2638,21 +2648,6 @@ class _RoutineEditorState extends State<RoutineEditor>
             onForget: _forgetExercise,
             onMeal: _onMeal,
             mealMode: _mealMode,
-            // 운동 이름을 적는 바로 그 줄에 음식을 쳤다면, 한 번 눌러 끼니로 남긴다.
-            // Enter 에서 알아서 가르지만([_name]) 근거가 없으면 운동이다 — 그렇게 못
-            // 가른 줄을 사람이 끼니로 보낸다.
-            onLogAsMeal:
-                !_mealMode &&
-                    _c.naming &&
-                    !_editingRecord &&
-                    widget.onMealText != null &&
-                    _text.trim().isNotEmpty
-                ? () {
-                    final text = _text.trim();
-                    _input.clear();
-                    widget.onMealText!(text, null);
-                  }
-                : null,
           ),
         // Both keyboards share one bottom area. Keep the keypad anchored while
         // the system inset shrinks; only text mode needs space above the IME.
@@ -3265,12 +3260,8 @@ class _Suggestions extends StatelessWidget {
     required this.onPick,
     required this.onForget,
     this.onMeal,
-    this.onLogAsMeal,
     this.mealMode = false,
   });
-
-  /// 지금 친 글을 끼니로 남긴다. 칠 것이 없거나 운동 이름을 적는 중이 아니면 null.
-  final VoidCallback? onLogAsMeal;
 
   /// 식단 아이콘. 식단을 남길 길이 없으면 null.
   final VoidCallback? onMeal;
@@ -3304,7 +3295,8 @@ class _Suggestions extends StatelessWidget {
             children: [
               // 식단은 포크·나이프 아이콘 하나 — 누르면 사진·앨범·글을 고른다. 글자
               // 단추 둘(식단 사진·식단 적기)은 운동 후보 칩 자리를 먹었다. 식단 글을
-              // 적는 중이면 눌린 모양이고, 다시 누르면 운동 입력으로 돌아간다.
+              // 적는 중이면 눌린 모양이고, 다시 누르면 운동 입력으로 돌아간다. 운동
+              // 이름 줄에 친 글이 있으면 그 글을 끼니로 남긴다('식단으로 기록' 칩 대신).
               if (onMeal != null)
                 CupertinoButton(
                   key: const ValueKey('meal-button'),
@@ -3338,26 +3330,6 @@ class _Suggestions extends StatelessWidget {
                   color: CupertinoColors.separator.resolveFrom(context),
                 ),
                 const SizedBox(width: 8),
-              ],
-              if (onLogAsMeal != null) ...[
-                CupertinoButton(
-                  key: const ValueKey('log-as-meal'),
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  minimumSize: const Size(44, 32),
-                  color: CupertinoColors.tertiarySystemFill.resolveFrom(
-                    context,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  onPressed: onLogAsMeal,
-                  child: Text(
-                    L.of(context).mealLogAs,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: seal.resolveFrom(context),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
               ],
               Expanded(
                 child: ListView.separated(
