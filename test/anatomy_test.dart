@@ -334,31 +334,33 @@ void main() {
       expect(find.text(l.anatomySearch), findsNothing);
     });
 
-    testWidgets('그림은 두 손가락으로 확대되고, 그동안 화면은 스크롤되지 않는다', (tester) async {
+    testWidgets('그림은 두 손가락으로 확대되고, 목록 밖에 있어 스크롤과 엉키지 않는다', (tester) async {
       await pumpPage(tester, []);
-      ScrollPhysics? physics() =>
-          tester.widget<ListView>(find.byType(ListView).first).physics;
-      expect(physics(), isNot(isA<NeverScrollableScrollPhysics>()));
-      final c = tester.getCenter(find.byKey(const ValueKey('anatomy-figure')));
+      final figure = find.byKey(const ValueKey('anatomy-figure'));
+      expect(
+        find.ancestor(of: figure, matching: find.byType(ListView)),
+        findsNothing,
+        reason: '그림은 스크롤되는 목록 밖이다',
+      );
+      final c = tester.getCenter(figure);
       final a = await tester.startGesture(c - const Offset(20, 0));
       final b = await tester.startGesture(c + const Offset(20, 0), pointer: 2);
       await tester.pump();
-      expect(
-        physics(),
-        isA<NeverScrollableScrollPhysics>(),
-        reason: '두 손가락이 닿은 동안',
-      );
       await a.moveBy(const Offset(-60, 0));
       await b.moveBy(const Offset(60, 0));
       await tester.pump();
       await a.up();
       await b.up();
       await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
       expect(find.byKey(const ValueKey('anatomy-zoom-reset')), findsOneWidget);
-      expect(physics(), isA<NeverScrollableScrollPhysics>(), reason: '확대된 동안');
+      // 목록은 그대로 스크롤된다.
+      await tester.drag(find.byType(ListView).first, const Offset(0, -200));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
       await tester.tap(find.byKey(const ValueKey('anatomy-zoom-reset')));
       await tester.pumpAndSettle();
-      expect(physics(), isNot(isA<NeverScrollableScrollPhysics>()));
+      expect(find.byKey(const ValueKey('anatomy-zoom-reset')), findsNothing);
     });
 
     testWidgets('그림을 누르면 그 부위, 근육 밖은 안내', (tester) async {

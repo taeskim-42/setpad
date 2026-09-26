@@ -131,12 +131,11 @@ class _AnatomyPageState extends State<AnatomyPage> {
   int _days = 7;
   bool _missed = false;
 
-  /// 그림 확대. 두 손가락이 그림에 닿았거나 확대된 동안에는 화면이 스크롤되지
-  /// 않는다 — 벌리는 손가락이 페이지를 끌어 그림이 달아났다.
+  /// 그림 확대. 그림은 스크롤되는 목록 밖 위쪽에 고정한다 — 목록 안에 두면 벌리는
+  /// 손가락이 페이지를 끌었고, 그걸 막으려 스크롤을 잠그면 진행 중인 드래그와
+  /// 엉켜 Scrollable 이 깨졌다(_hold == null 단정).
   final _zoom = TransformationController();
-  int _fingers = 0;
   bool get _zoomed => _zoom.value.getMaxScaleOnAxis() > 1.01;
-  bool get _lock => _fingers >= 2 || _zoomed;
 
   @override
   void dispose() {
@@ -190,212 +189,253 @@ class _AnatomyPageState extends State<AnatomyPage> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(middle: Text(l.anatomyTitle)),
       child: SafeArea(
-        child: ListView(
-          physics: _lock ? const NeverScrollableScrollPhysics() : null,
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-          children: [
-            Row(
+        child: LayoutBuilder(
+          builder: (context, page) {
+            // 작은 화면에서도 아래 목록 자리가 남게, 그림은 화면의 55% 까지.
+            final figure = math.min(_figureHeight, page.maxHeight * 0.55);
+            return Column(
               children: [
-                Expanded(
-                  child: CupertinoSlidingSegmentedControl<bool>(
-                    groupValue: _front,
-                    children: {
-                      true: Text(l.anatomyFront),
-                      false: Text(l.anatomyBack),
-                    },
-                    onValueChanged: (v) => setState(() {
-                      _front = v ?? true;
-                      _missed = false;
-                    }),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CupertinoSlidingSegmentedControl<bool>(
+                              groupValue: _front,
+                              children: {
+                                true: Text(l.anatomyFront),
+                                false: Text(l.anatomyBack),
+                              },
+                              onValueChanged: (v) => setState(() {
+                                _front = v ?? true;
+                                _missed = false;
+                              }),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: CupertinoSlidingSegmentedControl<int>(
+                              groupValue: _days,
+                              children: {
+                                for (final d in const [7, 28])
+                                  d: Text(l.anatomyDays(d)),
+                              },
+                              onValueChanged: (v) =>
+                                  setState(() => _days = v ?? 7),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      LayoutBuilder(
+                        builder: (context, c) {
+                          final size = Size(c.maxWidth, figure);
+                          // VoiceOver 는 아래 목록 줄로 고른다(줄마다 이름·세트·단계).
+                          return ExcludeSemantics(
+                            child: ClipRect(
+                              child: InteractiveViewer(
+                                transformationController: _zoom,
+                                minScale: 1,
+                                maxScale: 4,
+                                // 확대 전에는 끌 것이 없다. 확대한 뒤에만 그림을 끈다.
+                                panEnabled: _zoomed,
+                                onInteractionEnd: (_) => setState(() {}),
+                                child: GestureDetector(
+                                  key: const ValueKey('anatomy-figure'),
+                                  onTapUp: (d) {
+                                    final m = _hit(
+                                      _front,
+                                      size,
+                                      d.localPosition,
+                                    );
+                                    m == null
+                                        ? setState(() => _missed = true)
+                                        : _openSheet(m, today);
+                                  },
+                                  child: CustomPaint(
+                                    size: size,
+                                    painter: _BodyPainter(
+                                      front: _front,
+                                      body: CupertinoColors.systemGrey6
+                                          .resolveFrom(context),
+                                      line: CupertinoColors.separator
+                                          .resolveFrom(context),
+                                      fills: {
+                                        for (final m in regions)
+                                          m: _fill(context, lv(m)),
+                                      },
+                                      selected: _selected,
+                                      mark: CupertinoColors.activeBlue
+                                          .resolveFrom(context),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      if (_zoomed)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: CupertinoButton(
+                            key: const ValueKey('anatomy-zoom-reset'),
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(44, 32),
+                            onPressed: () => setState(
+                              () => _zoom.value = Matrix4.identity(),
+                            ),
+                            child: Text(
+                              l.anatomyZoomReset,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
                 Expanded(
-                  child: CupertinoSlidingSegmentedControl<int>(
-                    groupValue: _days,
-                    children: {
-                      for (final d in const [7, 28]) d: Text(l.anatomyDays(d)),
-                    },
-                    onValueChanged: (v) => setState(() => _days = v ?? 7),
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                    children: [
+                      const SizedBox(height: 12),
+                      if (_missed)
+                        Text(
+                          l.anatomyTapHint,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: seal.resolveFrom(context),
+                          ),
+                        ),
+                      if (!ever)
+                        Text(
+                          l.anatomyFirstTime,
+                          style: const TextStyle(fontSize: 14),
+                        )
+                      else if (max == 0 &&
+                          load.unknown.isEmpty &&
+                          load.cardio == 0)
+                        Text(
+                          l.anatomyEmptyWindow(_days),
+                          style: const TextStyle(fontSize: 14),
+                        )
+                      else ...[
+                        Text(
+                          l.anatomyLegend,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 4,
+                          children: [
+                            for (var i = 0; i < 4; i++)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  swatch(i),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    l.anatomyLevel(_levels[i]),
+                                    style: small,
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ],
+                      if (load.unknown.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: _UnknownNames(
+                            names: load.unknown.keys.toList(),
+                          ),
+                        ),
+                      if (load.cardio > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            l.anatomyCardio(load.cardio),
+                            style: small,
+                          ),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6, bottom: 12),
+                        child: Text(l.anatomyCountNote, style: small),
+                      ),
+                      for (final m in regions)
+                        Semantics(
+                          button: true,
+                          label: l.muscleName(m.name),
+                          value: value(m),
+                          hint: l.anatomyRegionHint,
+                          onTap: () => _openSheet(m, today),
+                          excludeSemantics: true,
+                          child: GestureDetector(
+                            key: ValueKey('anatomy-row-${m.name}'),
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _openSheet(m, today),
+                            child: Container(
+                              constraints: const BoxConstraints(minHeight: 44),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                    color: CupertinoColors.separator
+                                        .resolveFrom(context),
+                                    width: 0.5,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  swatch(lv(m)),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          l.muscleName(m.name),
+                                          style: const TextStyle(fontSize: 16),
+                                        ),
+                                        if (m == Muscle.hipFlexors)
+                                          Text(
+                                            l.anatomyNoSurface,
+                                            style: small,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    '${l.anatomySets(_days, formatNumber(load.of(m)))} · '
+                                    '${l.anatomyLevel(_levels[lv(m)])}',
+                                    style: small,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    CupertinoIcons.chevron_right,
+                                    size: 15,
+                                    color: CupertinoColors.tertiaryLabel
+                                        .resolveFrom(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      Text(l.anatomyLimits, style: small),
+                    ],
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            LayoutBuilder(
-              builder: (context, c) {
-                final size = Size(c.maxWidth, _figureHeight);
-                // VoiceOver 는 아래 목록 줄로 고른다(줄마다 이름·세트·단계).
-                return ExcludeSemantics(
-                  child: Listener(
-                    onPointerDown: (_) => setState(() => _fingers++),
-                    onPointerUp: (_) => setState(() => _fingers--),
-                    onPointerCancel: (_) => setState(() => _fingers--),
-                    child: InteractiveViewer(
-                      transformationController: _zoom,
-                      minScale: 1,
-                      maxScale: 4,
-                      // 확대 전 한 손가락은 페이지 스크롤이다. 확대한 뒤에만 그림을 끈다.
-                      panEnabled: _zoomed,
-                      onInteractionEnd: (_) => setState(() {}),
-                      child: GestureDetector(
-                        key: const ValueKey('anatomy-figure'),
-                        onTapUp: (d) {
-                          final m = _hit(_front, size, d.localPosition);
-                          m == null
-                              ? setState(() => _missed = true)
-                              : _openSheet(m, today);
-                        },
-                        child: CustomPaint(
-                          size: size,
-                          painter: _BodyPainter(
-                            front: _front,
-                            body: CupertinoColors.systemGrey6.resolveFrom(
-                              context,
-                            ),
-                            line: CupertinoColors.separator.resolveFrom(
-                              context,
-                            ),
-                            fills: {
-                              for (final m in regions) m: _fill(context, lv(m)),
-                            },
-                            selected: _selected,
-                            mark: CupertinoColors.activeBlue.resolveFrom(
-                              context,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-            if (_zoomed)
-              Align(
-                alignment: Alignment.centerRight,
-                child: CupertinoButton(
-                  key: const ValueKey('anatomy-zoom-reset'),
-                  padding: EdgeInsets.zero,
-                  minimumSize: const Size(44, 32),
-                  onPressed: () =>
-                      setState(() => _zoom.value = Matrix4.identity()),
-                  child: Text(
-                    l.anatomyZoomReset,
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 12),
-            if (_missed)
-              Text(
-                l.anatomyTapHint,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: seal.resolveFrom(context),
-                ),
-              ),
-            if (!ever)
-              Text(l.anatomyFirstTime, style: const TextStyle(fontSize: 14))
-            else if (max == 0 && load.unknown.isEmpty && load.cardio == 0)
-              Text(
-                l.anatomyEmptyWindow(_days),
-                style: const TextStyle(fontSize: 14),
-              )
-            else ...[
-              Text(l.anatomyLegend, style: const TextStyle(fontSize: 14)),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 12,
-                runSpacing: 4,
-                children: [
-                  for (var i = 0; i < 4; i++)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        swatch(i),
-                        const SizedBox(width: 4),
-                        Text(l.anatomyLevel(_levels[i]), style: small),
-                      ],
-                    ),
-                ],
-              ),
-            ],
-            if (load.unknown.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: _UnknownNames(names: load.unknown.keys.toList()),
-              ),
-            if (load.cardio > 0)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(l.anatomyCardio(load.cardio), style: small),
-              ),
-            Padding(
-              padding: const EdgeInsets.only(top: 6, bottom: 12),
-              child: Text(l.anatomyCountNote, style: small),
-            ),
-            for (final m in regions)
-              Semantics(
-                button: true,
-                label: l.muscleName(m.name),
-                value: value(m),
-                hint: l.anatomyRegionHint,
-                onTap: () => _openSheet(m, today),
-                excludeSemantics: true,
-                child: GestureDetector(
-                  key: ValueKey('anatomy-row-${m.name}'),
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => _openSheet(m, today),
-                  child: Container(
-                    constraints: const BoxConstraints(minHeight: 44),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(
-                          color: CupertinoColors.separator.resolveFrom(context),
-                          width: 0.5,
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        swatch(lv(m)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l.muscleName(m.name),
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                              if (m == Muscle.hipFlexors)
-                                Text(l.anatomyNoSurface, style: small),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          '${l.anatomySets(_days, formatNumber(load.of(m)))} · '
-                          '${l.anatomyLevel(_levels[lv(m)])}',
-                          style: small,
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          CupertinoIcons.chevron_right,
-                          size: 15,
-                          color: CupertinoColors.tertiaryLabel.resolveFrom(
-                            context,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 16),
-            Text(l.anatomyLimits, style: small),
-          ],
+            );
+          },
         ),
       ),
     );
