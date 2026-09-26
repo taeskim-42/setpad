@@ -2,13 +2,15 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'keypad.dart';
+import 'meal.dart';
 import 'collapsing_drag.dart';
 import 'record_ai.dart';
-import 'workout_setup_sheet.dart';
+import 'setup_chips.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'exercises.dart';
 import 'health.dart';
@@ -149,6 +151,10 @@ class ExerciseBlock {
   /// **스쿼트**를 봐야 하므로, 한 줄 설정이 알아낸 이름을 여기서 낸다.
   String get exercise => setup?.name ?? name;
 
+  /// 이 칸에서 익힐 운동 이름. 설정을 적은 제목('벤치 80kg 5x5')은 이름이 아니다 —
+  /// 설정의 이름, 없으면 수 낱말을 뺀 이름. 이름이 안 남으면 null.
+  String? get learnedName => setup?.name ?? learnableName(name);
+
   /// 내가 적은 마지막 세트. 같이 고치는 문서에서 옆 사람의 단위·무게를 잇지
   /// 않으려고 쓴다. 내 세트가 없으면 그냥 마지막 세트.
   LoggedSet? get myLast =>
@@ -157,14 +163,43 @@ class ExerciseBlock {
       sets.where((s) => s.mine).fold(0, (n, s) => n + (s.reps ?? 0));
 }
 
+WorkoutSetup? _noSetup(String _) => null;
+
 /// 에디터의 상태. 화면과 떼어 둔 이유는 상위 화면(복사 버튼 등)이 같은 상태를
 /// 봐야 하고, 위젯 테스트에서 직접 찔러볼 수 있어야 해서다.
 class RoutineEditorController extends ChangeNotifier {
   RoutineEditorController({
     Iterable<String> history = const [],
     this.weightUnit = defaultUnit,
+    this.savedSetup = _noSetup,
   }) {
     _learned.addAll(history);
+  }
+
+  /// 저장된 기록에서 제목이 똑같은 칸의 설정(NotesStore.setupOf).
+  final WorkoutSetup? Function(String title) savedSetup;
+
+  /// 모델이 읽어 만든 칸 가운데 제목이 [title] 인 가장 최근 것의 설정 — 이 기록
+  /// 먼저, 없으면 저장된 기록에서. 이름만 읽은 것('민수식 로우 2')도 설정이다.
+  ///
+  /// 설정의 수가 모두 제목에 있을 때만 준다. ⚙ 로 고친 설정은 글과 다를 수 있다
+  /// ('벤치 80kg 5x5' 를 85kg 으로) — 그때는 null 이라 다시 읽는다.
+  WorkoutSetup? earlierSetup(String title) {
+    final setup =
+        blocks.reversed
+            .where((b) => b.name == title && b.setup != null)
+            .firstOrNull
+            ?.setup ??
+        savedSetup(title);
+    if (setup == null) return null;
+    final stated = statedNumbers(title).map((n) => n.value);
+    final values = [
+      setup.weight,
+      setup.totalReps,
+      setup.repsPerSet,
+      setup.totalSets,
+    ].nonNulls;
+    return values.every((v) => stated.any((n) => n == v)) ? setup : null;
   }
 
   String weightUnit;
@@ -222,8 +257,10 @@ class RoutineEditorController extends ChangeNotifier {
     // 익히는 것은 운동 이름이다. 친 문장을 통째로 익히면 다음에 그 문장이
     // 후보로 뜬다 — "타바타 벤치프레스 30kg 100개" 가 사전에 남던 것이 그것이다.
     final learned = (learnAs ?? clean).trim();
-    _learned.remove(learned);
-    _learned.insert(0, learned);
+    if (learned.isNotEmpty) {
+      _learned.remove(learned);
+      _learned.insert(0, learned);
+    }
     _active = blocks.length - 1;
     notifyListeners();
   }
@@ -315,9 +352,10 @@ class RoutineEditorController extends ChangeNotifier {
     }
   }
 
+  /// 설정만 바꾼다. 제목은 사람이 친 글 그대로 둔다 — 제목이 곧 타이머라
+  /// 'bpm 푸시업 100개 채우기' 가 '푸시업' 으로 바뀌면 bpm 이 사라진다.
   void updateSetup(int index, WorkoutSetup setup) {
     if (index < 0 || index >= blocks.length) return;
-    blocks[index].name = setup.name;
     blocks[index].setup = setup;
     notifyListeners();
   }
@@ -363,6 +401,26 @@ class RoutineEditorController extends ChangeNotifier {
       done: previous.done,
       author: previous.author,
     );
+    notifyListeners();
+  }
+
+  /// 고친 세트 줄에 같이 친 것 — 메모는 그 세트에 더하고, "x3" 이면 같은 세트를
+  /// 운동 끝에 더 둔다. 새로 친 세트 줄과 같다([addSet]) — 같이 고치는 문서도 새
+  /// 세트를 끝에 붙이므로 순서가 어긋나지 않는다. 사본은 적은 사람을 물려받는다.
+  void extendSet(int block, int index, {String? note, int count = 1}) {
+    final set = blocks[block].sets[index];
+    if (note != null) set.notes.add(note);
+    blocks[block].sets.addAll([
+      for (var i = 1; i < count; i++)
+        LoggedSet(
+          value: set.value,
+          unit: set.unit,
+          reps: set.reps,
+          notes: [?note],
+          done: set.done,
+          author: set.author,
+        ),
+    ]);
     notifyListeners();
   }
 
@@ -471,10 +529,13 @@ class RoutineEditorController extends ChangeNotifier {
     blocks
       ..clear()
       ..addAll(saved);
-    // 저장된 이름도 이 기기에서 친 이름이다. 자동완성이 알아야 한다.
+    // 저장된 이름도 이 기기에서 친 이름이다. 자동완성이 알아야 한다. 익히는 것은
+    // 운동 이름이다 — 제목 문장('벤치 80kg 5x5')이 아니다.
     for (final b in saved.reversed) {
-      _learned.remove(b.name);
-      _learned.insert(0, b.name);
+      final name = b.learnedName;
+      if (name == null) continue;
+      _learned.remove(name);
+      _learned.insert(0, name);
     }
     _active = -1;
     _lastClosed = null;
@@ -648,8 +709,12 @@ class RoutineEditor extends StatefulWidget {
     this.presence = const [],
     this.onPresence,
     this.timer,
+    this.records,
   });
   final RoutineEditorController controller;
+
+  /// 운동 칸마다 최고 무게를 새로 넘긴 세트 번호([weightRecords]). 그 칸에 ★.
+  final Set<int> Function(ExerciseBlock block)? records;
 
   /// 같이 운동 중이면 있다. 타이머를 같은 순간에 돌리는 데 쓴다.
   final PartnerSync? partner;
@@ -686,8 +751,9 @@ class RoutineEditor extends StatefulWidget {
   /// 에서 값을 넣으면 그 글을 불러와 고치고, 저장하거나 그만두면 null 이 된다.
   final ValueNotifier<({String text, int? index})?>? mealText;
 
-  /// 식단 글을 저장한다. index 가 있으면 그 끼니를 고친 것이다.
-  final void Function(String text, int? index)? onMealText;
+  /// 식단 글을 저장한다. index 가 있으면 그 끼니를 고친 것이다. 새로 남긴 끼니면
+  /// 그것을 지우는 함수를 돌려준다('운동으로 바꾸기').
+  final VoidCallback? Function(String text, int? index)? onMealText;
 
   /// 전에 적은 식단 글들. 식단을 적는 동안 후보로 뜬다.
   final List<String> recentMeals;
@@ -728,6 +794,18 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 고치던 메모가 달린 세트. 앞의 운동·세트가 지워져도 번호가 아니라 이것을 따라간다.
   String? _editingSetId;
   EditorDraft? _resume;
+
+  /// 운동 이름 줄에 친 글을 알아서 끼니로 남겼다. 입력 줄 위에 '운동으로 바꾸기'
+  /// 가 한 줄 뜬다 — 다음에 무언가 칠 때까지.
+  ({String text, VoidCallback? undo})? _autoMeal;
+
+  /// 한 줄이 여러 칸이 됐다. 잘못 나뉜 것(드롭 세트의 둘째 무게)이면 입력 줄 위의
+  /// 한 줄에서 친 글 그대로 한 칸으로 되돌린다 — 다음에 무언가 칠 때까지.
+  ({String text, List<ExerciseBlock> blocks})? _split;
+
+  /// 설정 칩을 다 펼친 칸(⚙·+ 를 누름)과, 칩 하나를 고치는 중인지.
+  String? _setupOpen;
+  bool _setupEditing = false;
   bool get _editingRecord => _recordTitle || _recordSet != null;
 
   /// 화살표로 **고른** 후보. -1 이면 고른 것이 없고 Enter 는 친 글 그대로
@@ -788,10 +866,10 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   bool _aiBusy = false;
-  bool _aiFailed = false;
 
-  /// 실패가 오늘 적기 도움을 다 쓴 탓인가. 문구만 다르고 길은 같다.
-  bool _aiQuota = false;
+  /// 적기 도움이 남긴 한 줄 — 왜 적은 그대로 만들었는지, 왜 입력칸에 두었는지.
+  /// 다음에 무언가 치면 사라진다.
+  String Function(L l)? _aiNotice;
   int _aiRequest = 0;
   String? _locale;
   String? _submittedText;
@@ -1152,83 +1230,328 @@ class _RoutineEditorState extends State<RoutineEditor>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 앱을 내리면 타이머가 멈춘다. 돌아오면 같이 하던 자리로 곧바로 돌아간다.
+    // 답을 기다리다 앱을 내려도 요청은 버리지 않는다(X11) — 늦은 답이 오면 확인
+    // 창이 열려 있고, 돌아온 사람이 거기서 고른다. 다시 물어 한도를 또 쓰지 않는다.
     if (state == AppLifecycleState.resumed) _followShared();
-    if (state == AppLifecycleState.paused && _aiBusy) {
-      _aiRequest++;
-      widget.ai.cancel();
-      setState(() => _aiBusy = false);
-    }
   }
 
-  Future<void> _interpret(String text) async {
+  /// 운동 이름을 적는 줄에 친 글. 먼저 끼니인지 가른다(순서가 정해져 있다):
+  ///
+  /// 1. 운동 근거 — 같은 줄로 만든 칸, 운동 단위, 익힌 이름·사전 이름.
+  /// 2. 끼니 근거 — 열량, 끼니 낱말 + 다른 말, 음식에만 쓰는 양.
+  /// 3. 음식 표 — 이름이 정확히 같은 음식(서버, 모델 없음, 한도 안 씀).
+  /// 4. 수가 든 줄은 모델이 읽고, 음식이라고 답하면("food") 끼니.
+  /// 5. 모두 아니면 지금처럼 운동이고 '끼니로' 칩이 남는다.
+  ///
+  /// 그물이 없으면 3·4 를 건너뛴다. [classify] 가 false 면 가르지 않고 운동이다
+  /// ('운동으로 바꾸기').
+  Future<void> _name(String text, {bool classify = true}) async {
+    final numbered = hasSetupIntent(text);
+    // 설정을 붙여 만든 칸과 똑같은 줄(어제의 '벤치 80kg 5x5')은 그 설정을 다시
+    // 쓴다 — 다시 묻지 않고, 설정 없이 만들지도 않는다. 익힌 이름만 같은 줄은
+    // 아니다: 제목에서 익힌 이름이 수를 품었어도 모델이 읽는다.
+    if (numbered) {
+      if (_c.earlierSetup(text.trim()) case final setup?) {
+        _input.clear();
+        _c.addExercise(text.trim(), setup: setup, learnAs: setup.name);
+        _reopen();
+        return;
+      }
+    }
+    final exercise =
+        !classify ||
+        widget.onMealText == null ||
+        exerciseEvidence(text, _c.recentExercises);
+    if (!exercise && mealEvidence(text)) return _logMeal(text);
+    // 수 없는 이름은 제목이 되므로 120자까지다. 끼니가 아니면 글을 입력칸에 두고
+    // 알린다 — 표에 묻기 전에.
+    if (!numbered && text.trim().length > 120) {
+      setState(() => _aiNotice = (l) => l.inputNameTooLong);
+      return;
+    }
+    if (!exercise && widget.ai.supported) {
+      if (_aiBusy) return;
+      final request = ++_aiRequest;
+      _submittedText = text;
+      setState(() {
+        _aiBusy = true;
+        _aiNotice = null;
+      });
+      final food = await widget.ai.isFood(text.trim());
+      if (!mounted || request != _aiRequest) return;
+      setState(() => _aiBusy = false);
+      // 기다리는 사이 글을 고쳤거나 다른 카드로 갔으면 친 글은 입력칸에 그대로다.
+      if (!_c.naming || _text != text) return;
+      if (food) return _logMeal(text);
+    }
+    // 수 없는 이름은 물을 것이 없다 — 바로 운동이다.
+    if (!numbered) return _commit(text);
+    // 물어보고 안 되면 그때 알린다. 미리 상태를 확인하느라 기다리지 않는다.
+    return _interpret(text, mealOk: !exercise);
+  }
+
+  /// 끼니로 남긴다. 입력 줄 위의 한 줄에서 되돌릴 수 있다.
+  void _logMeal(String text) {
+    final clean = text.trim();
+    _input.clear();
+    final undo = widget.onMealText!(clean, null);
+    setState(() => _autoMeal = (text: clean, undo: undo));
+    _takeFocus();
+  }
+
+  /// '운동으로 바꾸기' — 그 끼니를 지우고 같은 글을 운동으로 적는다(가르지 않는다).
+  void _undoMeal() {
+    final meal = _autoMeal;
+    if (meal == null || _aiBusy) return;
+    meal.undo?.call();
+    _input.value = TextEditingValue(
+      text: meal.text,
+      selection: TextSelection.collapsed(offset: meal.text.length),
+    );
+    setState(() => _autoMeal = null);
+    unawaited(_name(meal.text, classify: false));
+  }
+
+  Future<void> _interpret(String text, {bool mealOk = false}) async {
     if (_aiBusy) return;
+    // 이만큼 긴 글은 모델에 보내지 않는다. 글은 입력칸에 그대로 둔다.
+    if (text.length > 600) {
+      setState(() => _aiNotice = (l) => l.inputTooLong);
+      return;
+    }
     final request = ++_aiRequest;
     _submittedText = text;
     setState(() {
       _aiBusy = true;
-      _aiFailed = false;
+      _aiNotice = null;
     });
+    SetupReading reading;
     try {
-      final answer = await widget.ai.interpret(
+      reading = await widget.ai.interpret(
         text,
         _locale ?? 'en',
         _c.vocabulary(_lang),
         defaultWeightUnit: _c.weightUnit,
       );
-      // 누가 해석했든 이름은 친 글이다. 해석기가 사전 이름으로 바꿔 왔으면
-      // 친 글로 되돌리고, 가를 수 없으면 실패로 돌려 원문을 그대로 쓰게 한다.
-      final name = typedName(text, answer.name);
-      if (name == null) throw const FormatException('Name not in the input');
-      final proposal = name == answer.name
-          ? answer
-          : WorkoutSetup.fromJson({...answer.toJson(), 'name': name});
-      if (!mounted || request != _aiRequest || !_c.naming || _text != text) {
-        return;
-      }
-      _focus.unfocus();
-      final setup = await editWorkoutSetup(context, proposal, sourceText: text);
-      if (!mounted || request != _aiRequest || !_c.naming || _text != text) {
-        return;
-      }
-      if (setup == null) {
-        _focus.requestFocus();
-        return;
-      }
-      setState(() => _aiBusy = false);
-      _input.clear();
-      // 친 글이 그대로 제목이 된다. 확인 창에서 사람이 고쳤을 때만 고친
-      // 이름을 쓴다 — 모델이 이름을 바로잡는 일은 없다.
-      final planned = setup.hasPlan || setup.repsOnly;
-      _c.addExercise(
-        mapEquals(proposal.toJson(), setup.toJson()) ? text.trim() : setup.name,
-        setup: planned ? setup : null,
-        learnAs: setup.name,
-      );
-      _focus.requestFocus();
     } catch (e) {
       if (mounted && request == _aiRequest) {
-        setState(() {
-          _aiBusy = false;
-          _aiFailed = true;
-          _aiQuota =
-              e is RecordAiException &&
-              e.status == RecordAiStatus.quotaExceeded;
-        });
-        _focus.requestFocus();
+        _aiBusy = false;
+        _fallback(text, _fallbackReason(e));
       }
+      return;
     } finally {
+      // 기다리는 것은 답까지다. 확인 창이 열린 동안은 바쁘지 않다 — 그래야 창을
+      // 연 채 앱을 내렸다 돌아와도 요청이 버려지지 않는다(X13).
       if (mounted && request == _aiRequest) setState(() => _aiBusy = false);
     }
+    // 기다리는 사이 글을 고쳤거나 다른 카드로 갔으면 늦은 답은 쓰지 않는다.
+    if (!mounted || request != _aiRequest || !_c.naming || _text != text) {
+      return;
+    }
+    if (reading.exercises.isEmpty) {
+      // 음식이라는 답이면 끼니다 — 운동 근거가 없던 줄만.
+      if (reading.food && mealOk) return _logMeal(text);
+      // 운동이 아니라는 답이다. 칸은 만들되 이름으로 익히지 않는다.
+      _fallback(text, (l) => l.aiFallbackUnread, learn: false);
+      return;
+    }
+    // 제목에 친 말을 다 담지 못한다(120자 넘는 글). 칸을 만들지 않고 글을 둔다 —
+    // 모델이 읽은 부분만 제목이 되고 나머지가 사라지면 안 된다(X2).
+    if (!reading.fits) {
+      setState(() => _aiNotice = (l) => l.inputNameTooLong);
+      _takeFocus();
+      return;
+    }
+    // 확인 창 없이 바로 칸이 된다. 읽은 값은 칸의 칩으로 보이고, 틀렸으면 그
+    // 칩을 눌러 그 자리에서 고친다. 제목은 친 글이라 잘못 읽어도 친 말은 남는다.
+    final titles = reading.titles;
+    _input.clear();
+    // 이름만 읽은 설정도 칸에 둔다 — 같은 줄을 다시 치면 모델을 또 부르지 않고
+    // 그 읽음을 쓴다([RoutineEditorController.earlierSetup]).
+    final made = <ExerciseBlock>[];
+    for (final (i, e) in reading.exercises.indexed) {
+      _c.addExercise(titles[i], setup: e.setup, learnAs: e.setup.name);
+      made.add(_c.blocks.last);
+    }
+    // 칸에 못 옮긴 말('러닝 5km' 의 5km)과 지어내 뺀 수는 한 줄씩 보인다.
+    final unparsed = reading.unparsed.join(' · ');
+    final dropped = reading.dropped.join(', ');
+    setState(() {
+      if (unparsed.isNotEmpty || dropped.isNotEmpty) {
+        _aiNotice = (l) => [
+          if (unparsed.isNotEmpty) l.setupUnparsed(unparsed),
+          if (dropped.isNotEmpty) l.setupDropped(dropped),
+        ].join('\n');
+      }
+      _split = made.length > 1 ? (text: text.trim(), blocks: made) : null;
+    });
+    _takeFocus();
   }
 
-  Future<void> _editSetup(int index) async {
-    if (_editingRecord && !_finishRecordEdit()) return;
-    final block = _c.blocks[index];
-    _focus.unfocus();
-    final setup = await editWorkoutSetup(context, block.setup!);
-    if (!mounted) return;
-    if (setup != null) _c.updateSetup(_c.blocks.indexOf(block), setup);
+  /// 모델을 못 썼다. 그래도 친 글 그대로 칸을 만들고 이유를 한 줄 말한다 —
+  /// 막다른 길은 없다. 제목이 될 수 없는 긴 글만 입력칸에 두고 나누라고 한다.
+  void _fallback(
+    String text,
+    String Function(L l) reason, {
+    bool learn = true,
+  }) {
+    final clean = text.trim();
+    if (clean.length > 120) {
+      setState(() => _aiNotice = (l) => l.inputNameTooLong);
+      _takeFocus();
+      return;
+    }
+    _input.clear();
+    // 문장을 통째로 익히면 다음에 그 문장이 후보로 뜨고, 똑같이 치면 묻지 않는다.
+    // 수 낱말을 뺀 이름만 익히고, 이름이 안 남으면 익히지 않는다.
+    _c.addExercise(clean, learnAs: learn ? learnableName(clean) ?? '' : '');
+    setState(() => _aiNotice = reason);
+    _takeFocus();
+  }
+
+  String Function(L l) _fallbackReason(Object error) => switch (error) {
+    RecordAiException(status: RecordAiStatus.quotaExceeded) =>
+      (l) => l.aiFallbackQuota,
+    RecordAiException(status: RecordAiStatus.aiOff) => (l) => l.aiOff,
+    RecordAiException(offline: true) => (l) => l.aiFallbackOffline,
+    RecordAiException() => (l) => l.aiFallbackServer,
+    _ => (l) => l.aiFallbackUnread,
+  };
+
+  Widget? _autoMealLine(BuildContext context) {
+    if (_autoMeal == null || !_c.naming || _mealMode) return null;
+    final l = L.of(context);
+    // 줄바꿈이 되게 Wrap — 좁은 화면·긴 문구(태국어)에서 넘치지 않는다.
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(
+          '${l.mealAutoLogged} · ',
+          style: TextStyle(
+            fontSize: 13,
+            color: CupertinoColors.secondaryLabel.resolveFrom(context),
+          ),
+        ),
+        CupertinoButton(
+          key: const ValueKey('meal-undo'),
+          padding: EdgeInsets.zero,
+          minimumSize: const Size(44, 32),
+          onPressed: _undoMeal,
+          child: Text(
+            l.mealAutoUndo,
+            style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget? _noticeLine(BuildContext context) => _aiNotice == null
+      ? null
+      : Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Text(
+            _aiNotice!(L.of(context)),
+            style: TextStyle(
+              fontSize: 13,
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            ),
+          ),
+        );
+
+  /// 한 줄에서 나뉜 칸들을 친 글 그대로 한 칸으로 — 설정은 첫 칸의 것이다.
+  void _mergeSplit() {
+    final split = _split;
+    if (split == null || split.text.length > 120) return;
+    final setup = split.blocks.first.setup;
+    for (final b in split.blocks) {
+      _c.removeBlockObject(b);
+    }
+    _c.addExercise(split.text, setup: setup, learnAs: setup?.name);
+    setState(() => _split = null);
     _reopen();
+  }
+
+  Widget? _splitLine(BuildContext context) {
+    final split = _split;
+    // 나뉜 칸에 세트를 적기 시작했거나 하나라도 지웠으면 더는 되돌릴 것이 아니다.
+    // 합친 제목은 친 글 전부다 — 120자를 넘으면 합칠 수 없다(칸 제목 한도).
+    if (split == null ||
+        split.text.length > 120 ||
+        !split.blocks.every((b) => _c.blocks.contains(b) && b.sets.isEmpty)) {
+      return null;
+    }
+    final l = L.of(context);
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(
+          '${l.setupSplit(split.blocks.length)} · ',
+          style: TextStyle(
+            fontSize: 13,
+            color: CupertinoColors.secondaryLabel.resolveFrom(context),
+          ),
+        ),
+        CupertinoButton(
+          key: const ValueKey('setup-merge'),
+          padding: EdgeInsets.zero,
+          minimumSize: const Size(44, 32),
+          onPressed: _mergeSplit,
+          child: Text(
+            l.setupMergeAll,
+            style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 식단 아이콘. 식단 글을 적는 중이면 운동 입력으로 돌아가고, 운동 이름 줄에 친
+  /// 글이 있으면 그 글을 끼니로 남긴다(Enter 는 근거가 없으면 운동으로 가른다 —
+  /// [_name]. 그렇게 못 가른 줄을 사람이 끼니로 보낸다). 빈 줄이면 사진·앨범·
+  /// 글을 고르는 시트(사진을 못 쓰는 화면이면 바로 식단 글).
+  VoidCallback? get _onMeal {
+    final text = widget.mealText, photo = widget.onMealPhoto;
+    if (text == null && photo == null) return null;
+    return () {
+      if (!_mealMode &&
+          _c.naming &&
+          !_editingRecord &&
+          widget.onMealText != null &&
+          _text.trim().isNotEmpty) {
+        final typed = _text.trim();
+        _input.clear();
+        widget.onMealText!(typed, null);
+      } else if (_mealMode) {
+        text?.value = null;
+      } else if (photo != null) {
+        photo();
+      } else {
+        text!.value = (text: '', index: null);
+      }
+    };
+  }
+
+  /// 답·폴백이 늦게 와도 고치던 칩의 포커스는 뺏지 않는다 — 뺏으면 치다 만 값
+  /// ('100' 을 치려던 '1')이 그대로 저장된다. 칩을 다 고치면 [_setupField] 가
+  /// 입력 줄로 돌려준다.
+  void _takeFocus() {
+    if (!_setupEditing) _focus.requestFocus();
+  }
+
+  /// ⚙·+ — 설정 칩을 다 펼치거나 접는다. 설정 없는 칸도 여기서 붙인다.
+  void _toggleSetup(ExerciseBlock block) =>
+      setState(() => _setupOpen = _setupOpen == block.id ? null : block.id);
+
+  /// 칩 하나를 고치는 동안 키패드를 내리고 입력 줄이 포커스를 되찾지 않는다.
+  /// 끝나면 입력 줄로 돌아간다.
+  void _setupField(bool editing) {
+    if (!mounted) return;
+    setState(() {
+      _setupEditing = editing;
+      if (editing) _timingKeyboardHidden = true;
+    });
+    if (!editing) _reopen();
   }
 
   EditorDraft get _draft => EditorDraft(
@@ -1322,10 +1645,14 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   void _beginRecordEdit(
     ExerciseBlock block,
-    int? index, {
+    int? tapped, {
     bool selectAll = true,
   }) {
+    // 누른 세트는 번호가 아니라 그 세트로 잡는다 — 앞 편집을 끝내며 번호가 밀릴 수 있다.
+    final id = tapped == null ? null : block.sets[tapped].id;
     if (_editingRecord && !_finishRecordEdit()) return;
+    final index = id == null ? null : block.sets.indexWhere((s) => s.id == id);
+    if (index == -1) return;
     final resume = _draft;
     widget.mealText?.value = null;
     final set = index == null ? null : block.sets[index];
@@ -1362,15 +1689,21 @@ class _RoutineEditorState extends State<RoutineEditor>
     _saveDraft();
   }
 
-  bool _applyRecordEdit() {
+  /// 치는 대로 부르고([done] 아님), 편집을 끝낼 때 한 번 더 부른다([done]).
+  /// 줄에 같이 친 메모와 "x3" 은 끝낼 때 한 번만 쓴다 — 치는 도중(x → x3 →
+  /// x30)에 세트를 늘렸다 줄였다 하지 않고, 메모가 글자마다 쌓이지 않게.
+  bool _applyRecordEdit({bool done = false}) {
     if (!_editingRecord || !_c.inBlock) return false;
     if (_input.value.composing.isValid && !_input.value.composing.isCollapsed) {
       return false;
     }
+    final parsed = _recordTitle ? null : parseSetLine(_text);
+    final extra =
+        done && parsed != null && (parsed.note != null || parsed.count > 1);
     // 연 뒤로 한 글자도 안 바꿨으면 아무것도 쓰지 않는다. 그사이 같이 고치는
     // 사람이 이 칸을 바꿨다면, 내가 열 때의 값으로 되돌리면 안 된다.
     // (쳤다가 원래대로 되돌린 것은 고친 것이다 — 중간 값이 남아 있다.)
-    if (_text == _recordStartText && !_recordTouched) return true;
+    if (_text == _recordStartText && !_recordTouched && !extra) return true;
     _recordTouched = true;
     if (_recordTitle) {
       final name = _text.trim();
@@ -1382,7 +1715,6 @@ class _RoutineEditorState extends State<RoutineEditor>
       }
       return true;
     }
-    final parsed = parseSetLine(_text);
     final index = _recordSet!;
     if (index >= _c.blocks[_c.activeIndex].sets.length) return false;
     if (parsed == null) {
@@ -1391,26 +1723,35 @@ class _RoutineEditorState extends State<RoutineEditor>
       return false;
     }
     final previous = _c.blocks[_c.activeIndex].sets[index];
-    if (previous.value == parsed.value &&
-        previous.reps == parsed.reps &&
-        previous.unit == (parsed.unit ?? previous.unit)) {
-      return true;
+    if (previous.value != parsed.value ||
+        previous.reps != parsed.reps ||
+        previous.unit != (parsed.unit ?? previous.unit)) {
+      _c.updateSet(
+        _c.activeIndex,
+        index,
+        LoggedSet(
+          value: parsed.value,
+          unit: parsed.unit ?? previous.unit,
+          reps: parsed.reps,
+        ),
+      );
     }
-    _c.updateSet(
-      _c.activeIndex,
-      index,
-      LoggedSet(
-        value: parsed.value,
-        unit: parsed.unit ?? previous.unit,
-        reps: parsed.reps,
-      ),
-    );
+    if (extra) {
+      _c.extendSet(
+        _c.activeIndex,
+        index,
+        note: parsed.note,
+        count: parsed.count,
+      );
+    }
     return true;
   }
 
+  /// [validate] 가 false 면(세트·운동을 지울 때) 못 읽는 글이어도 끝낸다. 읽히는
+  /// 줄의 메모·xN 은 그래도 적용한다 — 조용히 버리지 않는다.
   bool _finishRecordEdit({bool validate = true}) {
     if (!_editingRecord) return true;
-    if (validate && !_applyRecordEdit()) {
+    if (!_applyRecordEdit(done: true) && validate) {
       if (!_recordTitle) setState(() => _invalidSet = true);
       return false;
     }
@@ -1438,6 +1779,11 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (_wantText) {
       _commit();
       if (_wantText) return;
+    }
+    // 치던 운동 이름(답을 기다리던 문장까지)은 버리지 않는다. 그 카드를 끝내고
+    // 나오면 입력칸으로 돌아온다(X12).
+    if (_c.naming && _text.trim().isNotEmpty) {
+      _resume = EditorDraft(text: _text, resume: _resume);
     }
     _input.clear();
     setState(() {
@@ -1589,7 +1935,13 @@ class _RoutineEditorState extends State<RoutineEditor>
       setState(() {
         _hasInput = has;
         _invalidSet = false;
-        _aiFailed = false;
+        // 남긴 한 줄은 다음에 무언가 칠 때까지 둔다. 입력칸을 비우는 것으로는
+        // 지우지 않는다 — 칸을 만들며 비우는 바로 그때 보여야 한다.
+        if (has) {
+          _aiNotice = null;
+          _autoMeal = null;
+          _split = null;
+        }
       });
     }
     _saveDraft();
@@ -1667,7 +2019,9 @@ class _RoutineEditorState extends State<RoutineEditor>
     // keyboardType 을 바꾸는 것만으로는 **이미 올라와 있는** 키보드가 내려가지
     // 않는다. 운동 이름을 칠 때 뜬 키보드가 세트 모드에서도 그대로 남아
     // 키패드를 덮었다.
-    if (_padMode) SystemChannels.textInput.invokeMethod('TextInput.hide');
+    if (_padMode && !_setupEditing) {
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
+    }
 
     // 줄이 늘었을 때만 따라 내린다. 예전에는 컨트롤러가 바뀔 때마다 무조건
     // 맨 아래로 내렸는데, 세트를 켜고 끄거나 메모를 고칠 때도 화면이 출렁였다.
@@ -1806,27 +2160,27 @@ class _RoutineEditorState extends State<RoutineEditor>
       widget.mealText!.value = null;
       return;
     }
-    // 타이머 이름("버피 타바타")은 묻지 않고 바로 만든다. 다만 "bpm 푸시업 100개
-    // 채우기" 처럼 목표까지 든 문장은 해석을 거쳐야 한다 — 이름에 bpm 이 남으니
-    // 타이머는 그대로 붙고, 100개 채우기는 설정으로 붙는다.
-    if (_c.naming &&
+    // 타이머 이름("버피 타바타 30/15 10라운드")은 묻지 않고 바로 만든다 — 글의
+    // 수가 모두 타이머 토큰에 쓰였을 때다. "bpm 푸시업 100개 채우기" 처럼 다른
+    // 수가 든 문장은 해석을 거친다 — 제목에 bpm 이 남으니 타이머는 그대로 붙고,
+    // 100개 채우기는 설정으로 붙는다.
+    final timerOnly =
         TimingSpec.parse(value) != null &&
-        !hasSetupIntent(value)) {
+        !hasSetupIntent(value.replaceAll(timerTokens, ' '));
+    // 타이머 이름은 제목이 되므로 120자까지다. 글은 입력칸에 둔다. 수 없는 이름은
+    // 끼니인지 가른 뒤에 본다([_name]) — 긴 식단 글은 끼니가 된다.
+    if (pick == null && _c.naming && value.trim().length > 120 && timerOnly) {
+      setState(() => _aiNotice = (l) => l.inputNameTooLong);
+      return;
+    }
+    if (_c.naming && timerOnly) {
       _input.clear();
       _c.addExercise(value.trim());
       _reopen();
       return;
     }
-    if (pick == null &&
-        _c.naming &&
-        value.trim().isNotEmpty &&
-        !hasSetupIntent(value)) {
-      _commit(value);
-      return;
-    }
-    // 물어보고 안 되면 그때 알린다. 미리 상태를 확인하느라 기다리지 않는다.
     if (pick == null && _c.naming && value.trim().isNotEmpty) {
-      _interpret(value);
+      unawaited(_name(value));
       return;
     }
     final editing = _editing;
@@ -1873,14 +2227,14 @@ class _RoutineEditorState extends State<RoutineEditor>
       _resumeElsewhere();
     }
     _saveDraft();
-    _focus.requestFocus();
+    _takeFocus();
   }
 
   /// 저장된 세트를 고치다가 "세트 추가" — 고친 값을 저장하고 같은 운동의
   /// **새 세트 자리**로 간다. 새 세트는 거기서 확정해야 생긴다. "완료" 는
   /// 편집을 끝내고 있던 자리로 돌아가므로 둘은 다른 일을 한다.
   void _addSetAfterEdit() {
-    if (!_applyRecordEdit()) {
+    if (!_applyRecordEdit(done: true)) {
       setState(() => _invalidSet = true);
       return;
     }
@@ -2178,12 +2532,16 @@ class _RoutineEditorState extends State<RoutineEditor>
                           inputSet: _editing?.$2 ?? blocks[i].sets.length - 1,
                           isMemo: _wantText,
                           onToggle: (set) => _c.toggleDone(i, set),
+                          // 고치던 세트를 지운다. 줄에 같이 친 메모·xN 은 먼저
+                          // 적용한다 — "x3" 이면 그 사본은 남는다.
                           onRemoveSet: (set) {
                             _finishRecordEdit(validate: false);
                             _c.removeSet(i, set);
                           },
                           onRemoveBlock: (block) {
-                            _finishRecordEdit(validate: false);
+                            // 다른 운동을 지우면 고치던 줄은 평소처럼 확정한다 —
+                            // 못 읽는 글이면 입력칸에 이유와 함께 남는다.
+                            _finishRecordEdit(validate: i != openIndex);
                             _c.removeBlockObject(block);
                             _resumeElsewhere();
                           },
@@ -2191,8 +2549,29 @@ class _RoutineEditorState extends State<RoutineEditor>
                               _startEditNote(i, set, note),
                           onRemoveNote: (set, note) =>
                               _c.removeNote(i, set, note),
-                          onEditSetup: () => _editSetup(i),
+                          onOpenSetup: () => _toggleSetup(blocks[i]),
+                          setup:
+                              (blocks[i].setup?.countsReps ?? false) ||
+                                  _setupOpen == blocks[i].id
+                              ? SetupChips(
+                                  key: ValueKey('setup-${blocks[i].id}'),
+                                  title: blocks[i].name,
+                                  setup: blocks[i].setup,
+                                  reps: blocks[i].completedReps,
+                                  sets: blocks[i].sets
+                                      .where((s) => s.mine)
+                                      .length,
+                                  open: _setupOpen == blocks[i].id,
+                                  onToggle: () => _toggleSetup(blocks[i]),
+                                  onChanged: (setup) => _c.updateSetup(
+                                    _c.blocks.indexOf(blocks[i]),
+                                    setup,
+                                  ),
+                                  onEditing: _setupField,
+                                )
+                              : null,
                           uniformCell: widestSetCell(context, blocks),
+                          records: widget.records?.call(blocks[i]) ?? const {},
                           cursors: [
                             for (final p in widget.presence)
                               if (p.block == blocks[i].id) p,
@@ -2206,6 +2585,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              ?_autoMealLine(context),
                               _buildInput(bold: true),
                               for (final p in widget.presence)
                                 if (p.block == null && p.text.isNotEmpty)
@@ -2238,29 +2618,16 @@ class _RoutineEditorState extends State<RoutineEditor>
                                     ),
                                   ),
                                 ),
-                              if (_aiFailed) ...[
-                                Text(
-                                  _aiQuota
-                                      ? L.of(context).inputQuotaSpent
-                                      : L.of(context).aiFailure,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: CupertinoColors.secondaryLabel
-                                        .resolveFrom(context),
-                                  ),
-                                ),
-                                CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () => _commit(_text),
-                                  child: Text(
-                                    L.of(context).aiUseName,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                              ],
+                              ?_noticeLine(context),
+                              ?_splitLine(context),
                             ],
                           ),
                         ),
+                      // 적은 그대로 만든 칸 바로 아래 — 왜 설정이 없는지.
+                      if (!_c.naming && _aiNotice != null)
+                        SliverToBoxAdapter(child: _noticeLine(context)),
+                      if (!_c.naming && _splitLine(context) != null)
+                        SliverToBoxAdapter(child: _splitLine(context)),
                       if (widget.footer != null)
                         SliverToBoxAdapter(child: widget.footer!),
                     ],
@@ -2279,28 +2646,8 @@ class _RoutineEditorState extends State<RoutineEditor>
             highlight: _highlight,
             onPick: (name) => _commit(name),
             onForget: _forgetExercise,
-            onMealPhoto: widget.onMealPhoto,
+            onMeal: _onMeal,
             mealMode: _mealMode,
-            // 운동 이름을 적는 바로 그 줄에 음식을 쳤다면, 한 번 눌러 끼니로 남긴다.
-            // 앱이 알아서 가르지 않는다 — "케이블 크런치" 를 과자로 읽으면 기록이
-            // 바뀐다. 사람이 누른다.
-            onLogAsMeal:
-                !_mealMode &&
-                    _c.naming &&
-                    !_editingRecord &&
-                    widget.onMealText != null &&
-                    _text.trim().isNotEmpty
-                ? () {
-                    final text = _text.trim();
-                    _input.clear();
-                    widget.onMealText!(text, null);
-                  }
-                : null,
-            onMealText: widget.mealText == null
-                ? null
-                : () => widget.mealText!.value = _mealMode
-                      ? null
-                      : (text: '', index: null),
           ),
         // Both keyboards share one bottom area. Keep the keypad anchored while
         // the system inset shrinks; only text mode needs space above the IME.
@@ -2523,7 +2870,9 @@ class _RoutineEditorState extends State<RoutineEditor>
           ),
           if (_invalidSet)
             Text(
-              L.of(context).setRequired,
+              tooManySets(_text)
+                  ? L.of(context).setsPerLineMax(maxSetsPerLine)
+                  : L.of(context).setRequired,
               style: TextStyle(
                 fontSize: 13,
                 color: CupertinoColors.secondaryLabel.resolveFrom(context),
@@ -2542,6 +2891,7 @@ class _BlockView extends StatelessWidget {
     this.collapsed = false,
     this.titleInput,
     this.timing,
+    this.records = const {},
     this.editingSet,
     required this.onEditTitle,
     required this.onEditSet,
@@ -2555,7 +2905,8 @@ class _BlockView extends StatelessWidget {
     required this.onOpen,
     required this.onEditNote,
     required this.onRemoveNote,
-    required this.onEditSetup,
+    required this.onOpenSetup,
+    this.setup,
     this.uniformCell,
     this.cursors = const [],
   });
@@ -2583,10 +2934,18 @@ class _BlockView extends StatelessWidget {
   /// (세트 번호, 메모 번호).
   final void Function(int, int) onEditNote;
   final void Function(int, int) onRemoveNote;
-  final VoidCallback onEditSetup;
+
+  /// ⚙ — 설정 칩을 펼친다.
+  final VoidCallback onOpenSetup;
+
+  /// 제목 밑의 설정 칩. 설정이 없고 펼치지도 않았으면 null.
+  final Widget? setup;
 
   /// 문서 전체에서 맞출 칸 폭.
   final double? uniformCell;
+
+  /// 최고 무게를 새로 넘긴 세트 번호.
+  final Set<int> records;
 
   /// 닫힌 카드를 눌러 그 운동을 다시 연다. 열려 있으면 null 이다.
   final VoidCallback? onOpen;
@@ -2666,6 +3025,27 @@ class _BlockView extends StatelessWidget {
                   ),
                 ),
               dragHandle,
+              // 설정 없는 칸도 나중에 설정을 붙인다. 있으면 아래 칩을 누른다.
+              if (!collapsed && !(block.setup?.countsReps ?? false))
+                GestureDetector(
+                  onTap: onOpenSetup,
+                  behavior: HitTestBehavior.opaque,
+                  child: Semantics(
+                    button: true,
+                    label: L.of(context).setupAdd,
+                    child: SizedBox(
+                      width: 32,
+                      height: 28,
+                      child: Icon(
+                        CupertinoIcons.gear_alt,
+                        size: 17,
+                        color: CupertinoColors.tertiaryLabel.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               // 지우기는 늘 제자리에 있다. 잘못 닿아도 지우기 전에 묻는다.
               if (!collapsed)
                 GestureDetector(
@@ -2685,25 +3065,12 @@ class _BlockView extends StatelessWidget {
           ),
           if (!collapsed) ...[
             ?timing,
-            if (block.setup != null)
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size.fromHeight(28),
-                onPressed: onEditSetup,
-                child: Text(
-                  setupSummary(
-                    block.setup!,
-                    L.of(context),
-                    block.completedReps,
-                    block.sets.where((s) => s.mine).length,
-                  ),
-                  style: TextStyle(fontSize: 13, color: muted),
-                ),
-              ),
+            ?setup,
             // 읽는 자리는 조밀하게 — 세트마다 한 칸, 한 줄에 여러 칸.
             if (block.sets.isNotEmpty || cursors.any((p) => p.set != null))
               SetGrid(
                 block: block,
+                records: records,
                 uniform: uniformCell,
                 onTapSet: onEditSet,
                 // 빈 칸 하나가 늘 남아 있다. 누르면 이 운동에 다음 세트를 적는다.
@@ -2892,21 +3259,17 @@ class _Suggestions extends StatelessWidget {
     required this.highlight,
     required this.onPick,
     required this.onForget,
-    this.onMealPhoto,
-    this.onMealText,
-    this.onLogAsMeal,
+    this.onMeal,
     this.mealMode = false,
   });
 
-  /// 지금 친 글을 끼니로 남긴다. 칠 것이 없거나 운동 이름을 적는 중이 아니면 null.
-  final VoidCallback? onLogAsMeal;
-  final VoidCallback? onMealText;
+  /// 식단 아이콘. 식단을 남길 길이 없으면 null.
+  final VoidCallback? onMeal;
   final bool mealMode;
   final List<String> matches;
   final int highlight;
   final ValueChanged<String> onPick;
   final ValueChanged<String> onForget;
-  final VoidCallback? onMealPhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -2930,66 +3293,43 @@ class _Suggestions extends StatelessWidget {
           ),
           child: Row(
             children: [
-              if (onMealPhoto != null) ...[
+              // 식단은 포크·나이프 아이콘 하나 — 누르면 사진·앨범·글을 고른다. 글자
+              // 단추 둘(식단 사진·식단 적기)은 운동 후보 칩 자리를 먹었다. 식단 글을
+              // 적는 중이면 눌린 모양이고, 다시 누르면 운동 입력으로 돌아간다. 운동
+              // 이름 줄에 친 글이 있으면 그 글을 끼니로 남긴다('식단으로 기록' 칩 대신).
+              if (onMeal != null)
                 CupertinoButton(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  key: const ValueKey('meal-button'),
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
                   minimumSize: const Size(44, 44),
-                  onPressed: onMealPhoto,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(CupertinoIcons.camera, size: 18),
-                      const SizedBox(width: 5),
-                      Text(
-                        L.of(context).mealPhoto,
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                    ],
+                  onPressed: onMeal,
+                  // 눌린 모양은 아이콘 둘레의 작은 원이다. 단추 전체(44)를 칠하면
+                  // 막대 높이를 꽉 채워 테두리에 잘린 네모로 보였다.
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: mealMode ? seal.resolveFrom(context) : null,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.restaurant,
+                      size: 18,
+                      semanticLabel: L.of(context).mealAdd,
+                      color: mealMode
+                          ? CupertinoColors.white
+                          : seal.resolveFrom(context),
+                    ),
                   ),
                 ),
-              ],
-              if (onMealText != null)
-                CupertinoButton(
-                  key: const ValueKey('meal-text-toggle'),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: const Size(44, 44),
-                  onPressed: onMealText,
-                  child: Icon(
-                    CupertinoIcons.square_pencil,
-                    size: 19,
-                    semanticLabel: L.of(context).mealText,
-                    color: mealMode
-                        ? seal.resolveFrom(context)
-                        : CupertinoColors.secondaryLabel.resolveFrom(context),
-                  ),
-                ),
-              if (onMealPhoto != null || onMealText != null) ...[
+              if (onMeal != null) ...[
                 Container(
                   width: 0.5,
                   height: 24,
                   color: CupertinoColors.separator.resolveFrom(context),
                 ),
                 const SizedBox(width: 8),
-              ],
-              if (onLogAsMeal != null) ...[
-                CupertinoButton(
-                  key: const ValueKey('log-as-meal'),
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  minimumSize: const Size(44, 32),
-                  color: CupertinoColors.tertiarySystemFill.resolveFrom(
-                    context,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  onPressed: onLogAsMeal,
-                  child: Text(
-                    L.of(context).mealLogAs,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: seal.resolveFrom(context),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
               ],
               Expanded(
                 child: ListView.separated(

@@ -25,7 +25,10 @@ void main() {
             child: RoutineEditor(
               controller: c,
               mealText: meal,
-              onMealText: (text, _) => saved.add(text),
+              onMealText: (text, _) {
+                saved.add(text);
+                return null;
+              },
             ),
           ),
         ),
@@ -38,7 +41,7 @@ void main() {
         .text
         .replaceAll(String.fromCharCode(0x200B), '');
 
-    await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
+    await tester.tap(find.byKey(const ValueKey('meal-button')));
     await tester.pumpAndSettle();
     expect(meal.value, isNotNull, reason: '식단 적기 중');
     expect(typed(), isEmpty);

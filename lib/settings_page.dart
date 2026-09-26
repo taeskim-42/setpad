@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show showLicensePage;
 
 import 'account.dart';
+import 'body_page.dart';
 import 'booking_entry.dart';
 import 'health_page.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -18,11 +20,7 @@ import 'trainer.dart';
 /// 예약·복원·로그인이 팝업 한 장에 줄로 쌓여 있었다. 줄이 늘수록 무엇을
 /// 파는지가 안 보였고, 실제로 이용권도 그 줄 중 하나였다.
 class SettingsPage extends StatelessWidget {
-  const SettingsPage({
-    super.key,
-    required this.store,
-    this.account,
-  });
+  const SettingsPage({super.key, required this.store, this.account});
   final NotesStore store;
   final Account? account;
 
@@ -53,6 +51,13 @@ class SettingsPage extends StatelessWidget {
                 value: store.countAloud,
                 onChanged: (v) => store.setCountAloud(v),
               ),
+              // 기본은 켜짐. 끄면 모델로 가는 것이 모두 멈추고 기기 안에서만 한다.
+              _Toggle(
+                key: const ValueKey('settings-ai'),
+                label: l.aiSetting,
+                value: store.aiOn,
+                onChanged: store.setAiOn,
+              ),
               // 디버그 빌드에만: 휴식 경보가 워치로 넘어가는지 실기기로 재는 단추.
               // 누르고 5초 안에 폰을 내려놓고 워치의 운동 앱을 앞에 둔다.
               if (kDebugMode)
@@ -65,6 +70,16 @@ class SettingsPage extends StatelessWidget {
                     await ringRestAlarm('다음 라운드 — 시험');
                   },
                 ),
+              // 기초대사량 셈에 쓰는 키·몸무게·나이·성별. 기기 안에만 둔다.
+              _Row(
+                key: const ValueKey('settings-body'),
+                label: l.bodyTitle,
+                onTap: () => Navigator.of(context).push(
+                  CupertinoPageRoute<void>(
+                    builder: (_) => BodyPage(store: store),
+                  ),
+                ),
+              ),
               // 건강 앱과 무엇을 왜 주고받는지 — 심박으로 휴식을 끊는 것까지.
               _Row(
                 key: const ValueKey('settings-health'),
@@ -85,7 +100,9 @@ class SettingsPage extends StatelessWidget {
                 if (a.selling || a.paid) ...[
                   _Section(title: l.proTitle),
                   _Row(
-                    label: a.paid ? l.proOwned : l.proPaid(proPlatesPerMonth, proInputPerDay),
+                    label: a.paid
+                        ? l.proOwned
+                        : l.proPaid(proPlatesPerMonth, proInputPerDay),
                     detail: switch (a.plan) {
                       Plan.yearly => l.planYearly,
                       Plan.monthly => l.planMonthly,
@@ -161,6 +178,12 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ],
               ],
+              // 쓰는 오픈소스의 고지문. 몸 그림 그림(MIT)의 조건이 고지문을 싣는 것이다.
+              _Row(
+                key: const ValueKey('settings-licenses'),
+                label: l.openSourceLicenses,
+                onTap: () => showLicensePage(context: context),
+              ),
               const SizedBox(height: 40),
             ],
           ),
@@ -348,6 +371,7 @@ class _Choice extends StatelessWidget {
 
 class _Toggle extends StatelessWidget {
   const _Toggle({
+    super.key,
     required this.label,
     required this.value,
     required this.onChanged,

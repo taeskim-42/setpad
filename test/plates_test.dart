@@ -109,12 +109,16 @@ void main() {
           seen,
           (_) => _json({
             'intent': {
-              'isExercise': true,
-              'name': '스쿼트',
-              'weight': 60,
-              'unit': 'kg',
-              'repsPerSet': 10,
-              'totalSets': 5,
+              'exercises': [
+                {
+                  'text': '스쿼트 60kg 10회 5세트',
+                  'name': '스쿼트',
+                  'weight': 60,
+                  'unit': 'kg',
+                  'repsPerSet': 10,
+                  'totalSets': 5,
+                },
+              ],
             },
           }, 200),
         ),
@@ -126,6 +130,7 @@ void main() {
           jsonDecode(r.body) as Map,
       ];
       expect(bodies.first['kind'], 'input');
+      expect(bodies.first['contract'], 2, reason: '여러 운동을 받는 새 계약');
       expect(bodies.last.containsKey('kind'), isFalse);
     });
   });
@@ -345,19 +350,22 @@ void main() {
     });
 
     test('Apple 은 거래 id 를, Google 은 구매 토큰을 서버에 보낸다', () {
-      PurchaseDetails purchase(String source, String id, PurchaseStatus status) =>
-          PurchaseDetails(
-            purchaseID: '2000000123',
-            productID: id,
-            verificationData: PurchaseVerificationData(
-              localVerificationData: '{}',
-              // StoreKit 2 가 주는 것은 거래의 JWS 다. 서버는 거래 id 로 묻는다.
-              serverVerificationData: 'eyJhbGciOiJFUzI1NiIsIng1YyI6WyJNSUl.jws',
-              source: source,
-            ),
-            transactionDate: null,
-            status: status,
-          );
+      PurchaseDetails purchase(
+        String source,
+        String id,
+        PurchaseStatus status,
+      ) => PurchaseDetails(
+        purchaseID: '2000000123',
+        productID: id,
+        verificationData: PurchaseVerificationData(
+          localVerificationData: '{}',
+          // StoreKit 2 가 주는 것은 거래의 JWS 다. 서버는 거래 id 로 묻는다.
+          serverVerificationData: 'eyJhbGciOiJFUzI1NiIsIng1YyI6WyJNSUl.jws',
+          source: source,
+        ),
+        transactionDate: null,
+        status: status,
+      );
       expect(
         proofOf(
           purchase(
@@ -430,12 +438,18 @@ void main() {
         ]) {
           final offer = offersFrom(play(options))[Plan.yearly]!;
           expect((offer.price, offer.trialDays), ('₩29,000', 7));
-          expect((offer.buy as GooglePlayProductDetails).offerToken, 'trial-token');
+          expect(
+            (offer.buy as GooglePlayProductDetails).offerToken,
+            'trial-token',
+          );
         }
         // 체험 자격이 없으면 Play 는 체험 오퍼를 주지 않는다.
         final offer = offersFrom(play([base]))[Plan.yearly]!;
         expect((offer.price, offer.trialDays), ('₩29,000', null));
-        expect((offer.buy as GooglePlayProductDetails).offerToken, 'base-token');
+        expect(
+          (offer.buy as GooglePlayProductDetails).offerToken,
+          'base-token',
+        );
       });
 
       test('App Store: 무료 체험 소개 오퍼는 자격이 있을 때만 약속한다', () {
@@ -530,9 +544,7 @@ void main() {
       currencyCode: 'KRW',
     );
 
-    testWidgets('체험은 스토어가 줄 때만 단추 밑에 적고, 값이 없는 요금제는 팔지 않는다', (
-      tester,
-    ) async {
+    testWidgets('체험은 스토어가 줄 때만 단추 밑에 적고, 값이 없는 요금제는 팔지 않는다', (tester) async {
       final purchases = Purchases()
         ..offers = {
           Plan.yearly: (
@@ -572,10 +584,19 @@ void main() {
           trialDays: null,
         ),
       };
-      await openPaywall(tester, Account(client: _server([]), purchases: purchases)
-        ..token = 'account-token');
-      expect(find.textContaining(l.planYearlyTrial(7, '').split(' ').first), findsNothing);
-      expect(find.textContaining(l.planYearlyTrialPlates(proTrialPlates)), findsNothing);
+      await openPaywall(
+        tester,
+        Account(client: _server([]), purchases: purchases)
+          ..token = 'account-token',
+      );
+      expect(
+        find.textContaining(l.planYearlyTrial(7, '').split(' ').first),
+        findsNothing,
+      );
+      expect(
+        find.textContaining(l.planYearlyTrialPlates(proTrialPlates)),
+        findsNothing,
+      );
       expect(find.text('${l.planYearly} · \$19.99'), findsOneWidget);
     });
 

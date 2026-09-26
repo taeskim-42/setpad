@@ -181,13 +181,7 @@ abstract class L {
   /// **'이전 7일'**
   String get previous7Days;
 
-  /// No description provided for @previous30Days.
-  ///
-  /// In ko, this message translates to:
-  /// **'이전 30일'**
-  String get previous30Days;
-
-  /// 30일보다 오래된 묶음의 제목
+  /// 이전 7일보다 앞, 올해의 달 묶음 제목
   ///
   /// In ko, this message translates to:
   /// **'{m}월'**
@@ -196,7 +190,7 @@ abstract class L {
   /// No description provided for @search.
   ///
   /// In ko, this message translates to:
-  /// **'검색'**
+  /// **'찾거나 물어보세요'**
   String get search;
 
   /// No description provided for @newNote.
@@ -331,6 +325,12 @@ abstract class L {
   /// **'세트를 먼저 입력해 주세요. 예: 60 12'**
   String get setRequired;
 
+  /// No description provided for @setsPerLineMax.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 번에 {n}세트까지예요. 줄을 나눠 적어 주세요.'**
+  String setsPerLineMax(int n);
+
   /// No description provided for @aiTitle.
   ///
   /// In ko, this message translates to:
@@ -457,6 +457,102 @@ abstract class L {
   /// **'운동 이름으로 사용'**
   String get aiUseName;
 
+  /// No description provided for @aiFallbackQuota.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 적기 도움을 다 써서 적은 그대로 만들었어요'**
+  String get aiFallbackQuota;
+
+  /// No description provided for @aiFallbackOffline.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결이 안 돼 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요'**
+  String get aiFallbackOffline;
+
+  /// No description provided for @aiFallbackServer.
+  ///
+  /// In ko, this message translates to:
+  /// **'서버가 답하지 않아 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요'**
+  String get aiFallbackServer;
+
+  /// No description provided for @aiFallbackUnread.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정으로 읽을 말을 찾지 못해 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요'**
+  String get aiFallbackUnread;
+
+  /// No description provided for @inputNameTooLong.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 이름은 120자까지예요 — 줄을 나눠 적어 주세요'**
+  String get inputNameTooLong;
+
+  /// No description provided for @inputTooLong.
+  ///
+  /// In ko, this message translates to:
+  /// **'600자가 넘는 글은 읽지 않아요 — 줄을 나눠 적어 주세요'**
+  String get inputTooLong;
+
+  /// No description provided for @setupAdd.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정 붙이기'**
+  String get setupAdd;
+
+  /// No description provided for @setupUnparsed.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정에 못 옮긴 말: {words} — 제목에 그대로 남아요'**
+  String setupUnparsed(String words);
+
+  /// No description provided for @setupDropped.
+  ///
+  /// In ko, this message translates to:
+  /// **'글에 없는 수라 뺐어요: {numbers}'**
+  String setupDropped(String numbers);
+
+  /// No description provided for @setupNameMissing.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 이름을 적어 주세요'**
+  String get setupNameMissing;
+
+  /// No description provided for @setupNameTooLong.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 이름은 120자까지예요'**
+  String get setupNameTooLong;
+
+  /// No description provided for @setupWeightInvalid.
+  ///
+  /// In ko, this message translates to:
+  /// **'0보다 크고 2000 이하인 수로 적어 주세요'**
+  String get setupWeightInvalid;
+
+  /// No description provided for @setupCountInvalid.
+  ///
+  /// In ko, this message translates to:
+  /// **'1 이상의 정수로 적어 주세요 — 범위·시간은 제목에 남겨 두세요'**
+  String get setupCountInvalid;
+
+  /// No description provided for @setupRepsOnly.
+  ///
+  /// In ko, this message translates to:
+  /// **'횟수만 기록'**
+  String get setupRepsOnly;
+
+  /// No description provided for @setupSplit.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 {count}개로 나눴어요'**
+  String setupSplit(int count);
+
+  /// No description provided for @setupMergeAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 칸으로 합치기'**
+  String get setupMergeAll;
+
   /// No description provided for @goalProgress.
   ///
   /// In ko, this message translates to:
@@ -480,12 +576,6 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'횟수'**
   String get repsInputHint;
-
-  /// No description provided for @setupTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'운동 설정'**
-  String get setupTitle;
 
   /// No description provided for @setupWeight.
   ///
@@ -1063,12 +1153,6 @@ abstract class L {
   /// **'{from} → {to}'**
   String readAsNote(String from, String to);
 
-  /// No description provided for @reviewNumbers.
-  ///
-  /// In ko, this message translates to:
-  /// **'숫자와 조건을 확인한 뒤 적용해 주세요.'**
-  String get reviewNumbers;
-
   /// No description provided for @queryByExercise.
   ///
   /// In ko, this message translates to:
@@ -1447,6 +1531,24 @@ abstract class L {
   /// **'식단 사진'**
   String get mealPhoto;
 
+  /// No description provided for @mealAdd.
+  ///
+  /// In ko, this message translates to:
+  /// **'식단 남기기'**
+  String get mealAdd;
+
+  /// No description provided for @mealWrite.
+  ///
+  /// In ko, this message translates to:
+  /// **'글로 적기'**
+  String get mealWrite;
+
+  /// No description provided for @mealTypeHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'음식은 운동 이름 줄에 바로 쳐도 식단으로 남아요'**
+  String get mealTypeHint;
+
   /// No description provided for @mealCamera.
   ///
   /// In ko, this message translates to:
@@ -1495,11 +1597,35 @@ abstract class L {
   /// **'오늘 운동'**
   String get fitAll;
 
-  /// No description provided for @sameDayOther.
+  /// No description provided for @sameDayToday.
   ///
   /// In ko, this message translates to:
-  /// **'같은 날의 다른 기록'**
-  String get sameDayOther;
+  /// **'오늘 {time}에 따로 남긴 기록'**
+  String sameDayToday(String time);
+
+  /// No description provided for @sameDayOn.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} {time}에 따로 남긴 기록'**
+  String sameDayOn(String date, String time);
+
+  /// No description provided for @sameDayMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'{first} 외 {n}개'**
+  String sameDayMore(String first, int n);
+
+  /// No description provided for @lastWeekDay.
+  ///
+  /// In ko, this message translates to:
+  /// **'지난주 {weekday}({date}) 운동'**
+  String lastWeekDay(String weekday, String date);
+
+  /// No description provided for @weeksAgoDay.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}주 전 {weekday}({date}) 운동'**
+  String weeksAgoDay(int n, String weekday, String date);
 
   /// No description provided for @mealText.
   ///
@@ -1516,7 +1642,7 @@ abstract class L {
   /// No description provided for @kcalApprox.
   ///
   /// In ko, this message translates to:
-  /// **'약 {n}kcal'**
+  /// **'{n}kcal 추정'**
   String kcalApprox(int n);
 
   /// No description provided for @mealKcalUnknown.
@@ -1585,6 +1711,72 @@ abstract class L {
   /// **'사진에 보이는 음식 전체를 어림한 값이에요. 그중 드신 만큼을 고르세요.'**
   String get mealPhotoWholeNote;
 
+  /// No description provided for @mealTextUnknown.
+  ///
+  /// In ko, this message translates to:
+  /// **'무슨 음식인지 몰라 열량을 어림하지 못했어요. 끼니 줄을 눌러 음식 이름이나 양을 더 적으면 다시 어림해요.'**
+  String get mealTextUnknown;
+
+  /// No description provided for @mealTextOffline.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결이 안 돼 열량을 어림하지 못했어요. 끼니 줄을 누르고 Enter 를 누르면 다시 어림해요.'**
+  String get mealTextOffline;
+
+  /// No description provided for @mealTextTooLong.
+  ///
+  /// In ko, this message translates to:
+  /// **'500자가 넘는 식단 글은 어림하지 않아요. 끼니 줄을 눌러 나눠 적으면 어림해요.'**
+  String get mealTextTooLong;
+
+  /// No description provided for @queryTooLong.
+  ///
+  /// In ko, this message translates to:
+  /// **'질문은 {max}자까지예요. 줄여서 물어 주세요.'**
+  String queryTooLong(int max);
+
+  /// No description provided for @queryPressEnter.
+  ///
+  /// In ko, this message translates to:
+  /// **'Enter 를 누르면 기록에 물어볼 수 있어요.'**
+  String get queryPressEnter;
+
+  /// No description provided for @mealRetry.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 어림'**
+  String get mealRetry;
+
+  /// No description provided for @kcalAtLeast.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}kcal 이상'**
+  String kcalAtLeast(int n);
+
+  /// No description provided for @mealTextPartial.
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 {n}kcal만 합계에 넣었어요. 나머지 음식은 열량을 몰라요.'**
+  String mealTextPartial(int n);
+
+  /// No description provided for @mealTextBelowTyped.
+  ///
+  /// In ko, this message translates to:
+  /// **'어림값이 글에 적은 {n}kcal보다 작아 받지 않았어요. 적은 {n}kcal만 합계에 넣었어요.'**
+  String mealTextBelowTyped(int n);
+
+  /// No description provided for @queryLimit.
+  ///
+  /// In ko, this message translates to:
+  /// **'{kind, select, exercises{운동은 한 번에 8개까지 물을 수 있어요. 나눠서 물어 주세요.} measures{한 번에 네 가지까지 셀 수 있어요. 나눠서 물어 주세요.} ranking{순위는 20개까지 보여 줄 수 있어요. 20개 이하로 물어 주세요.} sessions{\'마지막 N번\'은 100번까지예요. 더 길게 보려면 기간으로 물어 주세요. 예: 올해} days{\'최근 N일\'은 3660일(약 10년)까지예요. 더 길게 보려면 전체 기간으로 물어 주세요.} compare{한 번에 6가지까지 견줄 수 있어요. 나눠서 물어 주세요.} compareGrouped{견주기와 운동·날·주·월·요일별 묶음은 한 질문에 함께 셀 수 없어요. 둘 중 하나로 물어 주세요.} groupedMeasure{날·주·월·요일별로 묶어 여러 범위를 견주면 한 가지만 셀 수 있고, 추이·마지막·처음·안 한 지는 묶을 수 없어요.} ordering{순위·합계·평균은 운동별이나 주별처럼 묶어서 물어 주세요.} datesTotal{마지막·처음 날짜는 더하거나 평균 낼 수 없어요.} perMeasure{날당·주당·달당 평균은 세트·횟수·볼륨·거리·시간·날 수·칼로리처럼 더하는 수에만 낼 수 있어요. 최고·평균 무게는 기간으로 물어 주세요.} shareMeasure{비중은 세트 수·볼륨처럼 더하는 수로만 낼 수 있어요.} trainedMeasure{운동한 날·쉰 날로 고르기는 먹은·태운 칼로리에만 써요. 운동 기록은 모두 운동한 날의 것이에요.} sameSeries{견줄 두 범위가 같게 읽혔어요. 무엇과 무엇을 견줄지 적어 주세요.} other{이 질문은 기록 검색이 셀 수 없는 모양이에요. 나눠서 물어 주세요.}}'**
+  String queryLimit(String kind);
+
+  /// No description provided for @policyNumberRejected.
+  ///
+  /// In ko, this message translates to:
+  /// **'{why, select, decimal{\'{text}\' — 소수는 받지 않아요. 정수로 적어 주세요. 예: 14} range{\'{text}\' — 범위가 아니라 수 하나로 적어 주세요. 예: 14} negative{\'{text}\' — 0보다 작은 수는 받지 않아요. 예: 14} unit{\'{text}\' — 이 칸은 일·회로 세요. 시간·주·달은 일 수로 바꿔 적어 주세요. 예: 14} many{\'{text}\' — 수는 하나만 적어 주세요. 예: 14} other{\'{text}\' 에서 일·회 수를 읽지 못했어요. 숫자로 적어 주세요. 예: 14}}'**
+  String policyNumberRejected(String text, String why);
+
   /// No description provided for @mealSources.
   ///
   /// In ko, this message translates to:
@@ -1630,13 +1822,13 @@ abstract class L {
   /// No description provided for @dayEnergyFull.
   ///
   /// In ko, this message translates to:
-  /// **'섭취 {intake} · 운동 {burned} = {diff}kcal'**
+  /// **'먹은 것 {intake} · 운동 {burned} = {diff}kcal'**
   String dayEnergyFull(String intake, String burned, String diff);
 
   /// No description provided for @dayEnergyApprox.
   ///
   /// In ko, this message translates to:
-  /// **'섭취 약 {intake} · 운동 {burned} = 약 {diff}kcal'**
+  /// **'먹은 것 {intake} · 운동 {burned} = {diff}kcal (추정)'**
   String dayEnergyApprox(String intake, String burned, String diff);
 
   /// No description provided for @dayBurnedMissing.
@@ -2197,11 +2389,17 @@ abstract class L {
   /// **'기록'**
   String get togetherLog;
 
-  /// No description provided for @mealLogAs.
+  /// No description provided for @mealAutoLogged.
   ///
   /// In ko, this message translates to:
-  /// **'식단으로 기록'**
-  String get mealLogAs;
+  /// **'끼니로 남겼어요'**
+  String get mealAutoLogged;
+
+  /// No description provided for @mealAutoUndo.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동으로 바꾸기'**
+  String get mealAutoUndo;
 
   /// No description provided for @proxyWrite.
   ///
@@ -2299,6 +2497,72 @@ abstract class L {
   /// **'먹은 것'**
   String get mealsTitle;
 
+  /// No description provided for @energyBurned.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동'**
+  String get energyBurned;
+
+  /// No description provided for @energyDifference.
+  ///
+  /// In ko, this message translates to:
+  /// **'차이'**
+  String get energyDifference;
+
+  /// No description provided for @fold.
+  ///
+  /// In ko, this message translates to:
+  /// **'접기'**
+  String get fold;
+
+  /// No description provided for @energySurplus.
+  ///
+  /// In ko, this message translates to:
+  /// **'흑자'**
+  String get energySurplus;
+
+  /// No description provided for @energyDeficit.
+  ///
+  /// In ko, this message translates to:
+  /// **'적자'**
+  String get energyDeficit;
+
+  /// No description provided for @milestoneBest.
+  ///
+  /// In ko, this message translates to:
+  /// **'최고 무게'**
+  String get milestoneBest;
+
+  /// No description provided for @energyDiffFormula.
+  ///
+  /// In ko, this message translates to:
+  /// **'먹은 것 − 운동'**
+  String get energyDiffFormula;
+
+  /// No description provided for @energyDiffExplain.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록한 먹은 것에서 그날 쓴 칼로리(기초대사량 + 운동)를 뺀 값이에요. + 면 쓴 것보다 더 먹은 것(흑자), − 면 덜 먹은 거예요(적자).\n\n기초대사량은 건강 앱의 휴식 에너지를 먼저 쓰고, 없으면 내 몸 정보로 셈해요(추정). 걷기 같은 일상 활동은 들어 있지 않아서, 이 값이 곧 살이 찌거나 빠지는 양은 아니에요.'**
+  String get energyDiffExplain;
+
+  /// No description provided for @estimateTag.
+  ///
+  /// In ko, this message translates to:
+  /// **'추정'**
+  String get estimateTag;
+
+  /// No description provided for @energyNotLogged.
+  ///
+  /// In ko, this message translates to:
+  /// **'미기록'**
+  String get energyNotLogged;
+
+  /// No description provided for @energyNotMeasured.
+  ///
+  /// In ko, this message translates to:
+  /// **'미측정'**
+  String get energyNotMeasured;
+
   /// No description provided for @recordMenu.
   ///
   /// In ko, this message translates to:
@@ -2308,13 +2572,13 @@ abstract class L {
   /// No description provided for @dayIntakeOnly.
   ///
   /// In ko, this message translates to:
-  /// **'섭취 {intake}kcal · 운동 소모 미측정'**
+  /// **'먹은 것 {intake}kcal · 운동 소모 미측정'**
   String dayIntakeOnly(String intake);
 
   /// No description provided for @dayIntakeOnlyApprox.
   ///
   /// In ko, this message translates to:
-  /// **'섭취 약 {intake}kcal · 운동 소모 미측정'**
+  /// **'먹은 것 {intake}kcal (추정) · 운동 소모 미측정'**
   String dayIntakeOnlyApprox(String intake);
 
   /// No description provided for @dayUnknownMeals.
@@ -2346,6 +2610,90 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'읽기 · 활동 칼로리 — 운동한 시간 동안 워치가 잰 활동 칼로리를 그 기록에 붙입니다. 잰 것이 없으면 칼로리를 표시하지 않습니다.'**
   String get healthDataCalories;
+
+  /// No description provided for @healthDataBasal.
+  ///
+  /// In ko, this message translates to:
+  /// **'읽기 · 휴식 에너지(기초대사량) — 그날 쓴 칼로리에 넣어 먹은 것과의 차이를 셉니다. 잰 것이 없으면 설정 › 내 몸 정보로 셈합니다.'**
+  String get healthDataBasal;
+
+  /// No description provided for @bodyTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'내 몸 정보'**
+  String get bodyTitle;
+
+  /// No description provided for @bodyNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'기초대사량을 셈하는 데만 씁니다. 건강 앱에 휴식 에너지가 있으면 그 값을 먼저 씁니다. 이 정보는 기기 밖으로 보내지 않습니다.'**
+  String get bodyNote;
+
+  /// No description provided for @bodyHeight.
+  ///
+  /// In ko, this message translates to:
+  /// **'키 (cm)'**
+  String get bodyHeight;
+
+  /// No description provided for @bodyWeight.
+  ///
+  /// In ko, this message translates to:
+  /// **'몸무게 (kg)'**
+  String get bodyWeight;
+
+  /// No description provided for @bodyBirthYear.
+  ///
+  /// In ko, this message translates to:
+  /// **'태어난 해'**
+  String get bodyBirthYear;
+
+  /// No description provided for @bodySex.
+  ///
+  /// In ko, this message translates to:
+  /// **'성별'**
+  String get bodySex;
+
+  /// No description provided for @bodyMale.
+  ///
+  /// In ko, this message translates to:
+  /// **'남'**
+  String get bodyMale;
+
+  /// No description provided for @bodyFemale.
+  ///
+  /// In ko, this message translates to:
+  /// **'여'**
+  String get bodyFemale;
+
+  /// No description provided for @bodyBmr.
+  ///
+  /// In ko, this message translates to:
+  /// **'하루 기초대사량 약 {kcal}kcal (Mifflin-St Jeor 식)'**
+  String bodyBmr(String kcal);
+
+  /// No description provided for @energySpent.
+  ///
+  /// In ko, this message translates to:
+  /// **'쓴 것'**
+  String get energySpent;
+
+  /// No description provided for @energySpentNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'기초 {basal} + 운동 {exercise}'**
+  String energySpentNote(String basal, String exercise);
+
+  /// No description provided for @energyDiffFormulaBasal.
+  ///
+  /// In ko, this message translates to:
+  /// **'먹은 것 − 쓴 것'**
+  String get energyDiffFormulaBasal;
+
+  /// No description provided for @energyLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'먹은 것 {intake} · 쓴 것 {used} = {diff}kcal'**
+  String energyLine(String intake, String used, String diff);
 
   /// No description provided for @healthDataHeart.
   ///
@@ -2760,6 +3108,1661 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'트레이너'**
   String get settingsTrainer;
+
+  /// No description provided for @aiSetting.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 도움'**
+  String get aiSetting;
+
+  /// AI 도움을 꺼 두어 모델을 부르지 않았을 때 한 줄(운동 입력·식단 글·기록 질문)
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 도움이 꺼져 있어 적은 그대로 두었어요. 설정 › AI 도움에서 켤 수 있어요'**
+  String get aiOff;
+
+  /// No description provided for @aiOffPhoto.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 도움이 꺼져 있어 사진으로 어림하지 않았어요. 식단 글로 ‘김밥 450kcal’처럼 적으면 그대로 들어가요'**
+  String get aiOffPhoto;
+
+  /// 측정에 날이 둘 이상 필요한데 하나뿐일 때 칸 아래 줄
+  ///
+  /// In ko, this message translates to:
+  /// **'날이 둘 이상 있어야 해요'**
+  String get answerNeedsTwoDays;
+
+  /// 변화율의 첫 값이 0 이라 셀 수 없을 때
+  ///
+  /// In ko, this message translates to:
+  /// **'기준 값이 없어요'**
+  String get answerNoBase;
+
+  /// 주당 변화 속도
+  ///
+  /// In ko, this message translates to:
+  /// **'주당 {value}'**
+  String answerPerWeek(String value);
+
+  /// 달당 변화 속도(8주 넘을 때)
+  ///
+  /// In ko, this message translates to:
+  /// **'달당 {value}'**
+  String answerPerMonth(String value);
+
+  /// 최고 기록 뒤로 한 운동일 수
+  ///
+  /// In ko, this message translates to:
+  /// **'최고 이후 {n}번 했어요'**
+  String answerTimesAfter(int n);
+
+  /// 횟수 단위(숫자 뒤에 붙음)
+  ///
+  /// In ko, this message translates to:
+  /// **'번'**
+  String get answerTimesUnit;
+
+  /// 횟수
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}번'**
+  String answerTimes(int n);
+
+  /// 최장 연속 운동일
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}일 연속'**
+  String answerStreak(int n);
+
+  /// 최장 공백
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}일 쉼'**
+  String answerRestDays(int n);
+
+  /// 공백이 오늘까지 이어질 때 끝 날짜 자리
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘'**
+  String get answerUntilToday;
+
+  /// 운동 간격 중앙값
+  ///
+  /// In ko, this message translates to:
+  /// **'보통 {value}일마다'**
+  String answerEveryDays(String value);
+
+  /// 운동 간격 평균
+  ///
+  /// In ko, this message translates to:
+  /// **'평균 {value}일마다'**
+  String answerMeanEvery(String value);
+
+  /// 운동 간격 분포: 쉰 날 0·1·2·3 이상
+  ///
+  /// In ko, this message translates to:
+  /// **'연달아 {a}번 · 하루 쉬고 {b}번 · 이틀 쉬고 {c}번 · 사흘 이상 쉬고 {d}번'**
+  String answerGapSpread(int a, int b, int c, int d);
+
+  /// 긴 휴가 하나가 평균을 부풀릴 때
+  ///
+  /// In ko, this message translates to:
+  /// **'가장 긴 쉼 {n}일이 들어 있어요'**
+  String answerLongestIncluded(int n);
+
+  /// 섭취 측정인데 끼니가 없을 때
+  ///
+  /// In ko, this message translates to:
+  /// **'끼니를 적은 날이 없어요'**
+  String get answerNoMeals;
+
+  /// 어림이 섞인 열량
+  ///
+  /// In ko, this message translates to:
+  /// **'약 {value}'**
+  String answerAbout(String value);
+
+  /// 섭취를 센 날 수
+  ///
+  /// In ko, this message translates to:
+  /// **'끼니를 적은 {n}일'**
+  String answerMealDays(int n);
+
+  /// 열량 모르는 끼니 수
+  ///
+  /// In ko, this message translates to:
+  /// **'열량을 모르는 끼니 {n}개는 합에 없어요'**
+  String queryUnknownMeals(int n);
+
+  /// 소모 측정인데 워치 기록이 없을 때
+  ///
+  /// In ko, this message translates to:
+  /// **'워치로 잰 기록이 없어요'**
+  String get answerNoWatch;
+
+  /// 소모를 센 날 수
+  ///
+  /// In ko, this message translates to:
+  /// **'워치로 잰 {n}일'**
+  String answerWatchDays(int n);
+
+  /// 섭취−소모인데 둘 다 있는 날이 없을 때
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취와 소모가 둘 다 있는 날이 없어요'**
+  String get answerNoBoth;
+
+  /// 섭취·소모가 둘 다 있는 날 수
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취·소모가 둘 다 있는 {n}일'**
+  String answerBothDays(int n);
+
+  /// 섭취만 있어 차이에서 뺀 날
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취만 있는 {n}일은 뺐어요'**
+  String answerIntakeOnlyDays(int n);
+
+  /// 달 수
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}달'**
+  String answerMonths(int n);
+
+  /// 측정: 무게 변화율
+  ///
+  /// In ko, this message translates to:
+  /// **'변화율'**
+  String get metricChangePct;
+
+  /// 측정: 최고 이후 지난 날
+  ///
+  /// In ko, this message translates to:
+  /// **'최고 이후 날'**
+  String get metricDaysSinceBest;
+
+  /// 측정: 최고 이후 운동일 수(정체)
+  ///
+  /// In ko, this message translates to:
+  /// **'최고 이후 횟수'**
+  String get metricSessionsSinceBest;
+
+  /// 측정: 세트당 반복
+  ///
+  /// In ko, this message translates to:
+  /// **'세트당 반복'**
+  String get metricMeanReps;
+
+  /// 측정: 최장 연속 운동일
+  ///
+  /// In ko, this message translates to:
+  /// **'최장 연속'**
+  String get metricLongestStreak;
+
+  /// 측정: 최장 공백
+  ///
+  /// In ko, this message translates to:
+  /// **'최장 공백'**
+  String get metricLongestGap;
+
+  /// 측정: 운동 간격
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 간격'**
+  String get metricMeanGap;
+
+  /// 측정: 섭취 열량
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취 열량'**
+  String get metricIntake;
+
+  /// 측정: 워치 소모 열량
+  ///
+  /// In ko, this message translates to:
+  /// **'소모 열량'**
+  String get metricBurned;
+
+  /// 측정: 섭취 − 소모
+  ///
+  /// In ko, this message translates to:
+  /// **'섭취 − 소모'**
+  String get metricBalance;
+
+  /// 범위: 혼자 한 날
+  ///
+  /// In ko, this message translates to:
+  /// **'혼자 한 날'**
+  String get queryAlone;
+
+  /// 범위: 같이 한 날(누가 들어온 같이 하기)
+  ///
+  /// In ko, this message translates to:
+  /// **'같이 한 날'**
+  String get queryTogether;
+
+  /// 묶음: 부위별
+  ///
+  /// In ko, this message translates to:
+  /// **'부위별'**
+  String get queryByPart;
+
+  /// 셀 것이 없는 질문에 기록으로 볼 수 있는 것
+  ///
+  /// In ko, this message translates to:
+  /// **'기록으로는 무게·횟수·세트·운동한 날·끼니 열량을 볼 수 있어요'**
+  String get queryCanSee;
+
+  /// 표의 차이 칸 머리
+  ///
+  /// In ko, this message translates to:
+  /// **'차이'**
+  String get queryDiffColumn;
+
+  /// 칸: 아직 오지 않은 기간
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 오지 않은 기간'**
+  String get queryFutureCell;
+
+  /// 각주: 성장 순위는 주당 속도
+  ///
+  /// In ko, this message translates to:
+  /// **'성장은 주당 속도로 순위를 매겼어요 — 기간이 달라도 공정하게'**
+  String get queryGrowthRate;
+
+  /// 범위: 건네받은 기록만
+  ///
+  /// In ko, this message translates to:
+  /// **'건네받은 기록만'**
+  String get queryHandoff;
+
+  /// 범위: 건네받은 기록 제외
+  ///
+  /// In ko, this message translates to:
+  /// **'건네받은 기록 제외'**
+  String get queryNoHandoff;
+
+  /// 확인 줄: 뺀 건네받은 기록 수
+  ///
+  /// In ko, this message translates to:
+  /// **'건네받은 기록 {n}개 제외'**
+  String queryHandoffCount(int n);
+
+  /// 각주: 시간대는 기록을 만든 시각 기준
+  ///
+  /// In ko, this message translates to:
+  /// **'시각은 기록을 만든 때 기준이에요 — 나중에 몰아 적은 기록은 적은 시각으로 들어가요'**
+  String get queryHoursNote;
+
+  /// 각주: 여러 운동을 섞은 무게
+  ///
+  /// In ko, this message translates to:
+  /// **'여러 운동을 섞은 무게예요'**
+  String get queryMixedWeights;
+
+  /// 못 보는 것: 체중(질문에 적으면 견줌)
+  ///
+  /// In ko, this message translates to:
+  /// **'체중은 기록에 없어요 — 질문에 체중을 적으면 그 수와 견줘요(예: 체중 80인데 데드 몇 배?)'**
+  String get queryNcBodyweight;
+
+  /// No description provided for @queryNcWeightForecast.
+  ///
+  /// In ko, this message translates to:
+  /// **'몇 kg 이 될지는 계산하지 않아요 — 기록에는 먹은 것과 운동 소모만 있고, 기초대사량·일상 활동으로 쓰는 칼로리가 없어요'**
+  String get queryNcWeightForecast;
+
+  /// 못 보는 것: 심박(정직하게)
+  ///
+  /// In ko, this message translates to:
+  /// **'기록 검색은 아직 심박을 안 봐요 — 운동별·휴식별 심박은 세트 시각이 없어 볼 수 없어요'**
+  String get queryNcHeartRate;
+
+  /// 한 번도 적지 않은 운동 표시
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 적 없음'**
+  String get queryNeverMark;
+
+  /// 각주: 기준 값이 없어 비율 못 냄
+  ///
+  /// In ko, this message translates to:
+  /// **'기준 값이 없어 비율을 못 내요'**
+  String get queryNoBaseRatio;
+
+  /// 칸: 적은 적은 있지만 이 범위엔 없음
+  ///
+  /// In ko, this message translates to:
+  /// **'이 범위엔 기록 없음'**
+  String get queryNoneCell;
+
+  /// 범위: 루틴 아닌 날
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴 아닌 날'**
+  String get queryNoRoutine;
+
+  /// 범위: 트레이너 루틴으로 한 날
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴으로 한 날'**
+  String get queryRoutine;
+
+  /// 진행 중인 기간 표시
+  ///
+  /// In ko, this message translates to:
+  /// **'진행 중'**
+  String get queryOngoing;
+
+  /// 각주: 운동일수는 겹쳐 비중 못 냄
+  ///
+  /// In ko, this message translates to:
+  /// **'운동일수는 겹치는 날이 있어 비중을 못 내요 — 세트 수로 물어 주세요'**
+  String get queryOverlap;
+
+  /// 부위 이름
+  ///
+  /// In ko, this message translates to:
+  /// **'{part, select, chest{가슴} back{등} legs{다리} shoulders{어깨} arms{팔} core{코어} cardio{유산소} upper{상체} lower{하체} other{부위}}'**
+  String queryPart(String part);
+
+  /// 표의 배수 칸 머리
+  ///
+  /// In ko, this message translates to:
+  /// **'배수'**
+  String get queryRatioColumn;
+
+  /// 각주: 단위가 달라 비율 못 냄
+  ///
+  /// In ko, this message translates to:
+  /// **'단위가 달라 비율을 못 내요'**
+  String get queryRatioUnits;
+
+  /// 범위: 쉰 날(운동 안 한 날)
+  ///
+  /// In ko, this message translates to:
+  /// **'쉰 날'**
+  String get queryRestDay;
+
+  /// 범위: 운동한 날
+  ///
+  /// In ko, this message translates to:
+  /// **'운동한 날'**
+  String get queryTrained;
+
+  /// 범위: 첫 세트만
+  ///
+  /// In ko, this message translates to:
+  /// **'첫 세트'**
+  String get querySetFirst;
+
+  /// 범위: 마지막 세트만
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막 세트'**
+  String get querySetLast;
+
+  /// 비중(합 대비 %)
+  ///
+  /// In ko, this message translates to:
+  /// **'비중'**
+  String get queryShare;
+
+  /// 각주: 제일 적게 한 순위에 안 한 운동을 0 으로
+  ///
+  /// In ko, this message translates to:
+  /// **'안 한 운동도 0 으로 넣었어요'**
+  String get queryZeroFilled;
+
+  /// 확인 줄: 질문의 기준 수
+  ///
+  /// In ko, this message translates to:
+  /// **'기준 {value}'**
+  String queryAgainst(String value);
+
+  /// 기준 수와 견준 줄
+  ///
+  /// In ko, this message translates to:
+  /// **'{value} ÷ {target} = {ratio}배 · 차이 {diff}'**
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  );
+
+  /// 확인 줄: 한 운동으로 합친 기록 이름들
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} = {names}'**
+  String queryAlias(String name, String names);
+
+  /// 날 수
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}일'**
+  String queryDayCount(int n);
+
+  /// 칸: 값의 종류가 달라 뺀 세트
+  ///
+  /// In ko, this message translates to:
+  /// **'값이 다른 세트 {n}개 제외'**
+  String queryDroppedSets(int n);
+
+  /// 범위: 시간대
+  ///
+  /// In ko, this message translates to:
+  /// **'{from}–{to}시'**
+  String queryHours(int from, int to);
+
+  /// 적은 적 없는 이름에 가까운 운동
+  ///
+  /// In ko, this message translates to:
+  /// **'혹시 {name}?'**
+  String queryMaybe(String name);
+
+  /// 범위: 메모에 모든 낱말
+  ///
+  /// In ko, this message translates to:
+  /// **'메모에 모두: {terms}'**
+  String queryMemoAll(String terms);
+
+  /// 걸린 메모 글과 그 날 수
+  ///
+  /// In ko, this message translates to:
+  /// **'{text} {n}일'**
+  String queryMemoHit(String text, int n);
+
+  /// 확인 줄: 메모 조건에 실제로 걸린 메모들
+  ///
+  /// In ko, this message translates to:
+  /// **'걸린 메모: {hits}'**
+  String queryMemoHits(String hits);
+
+  /// 여러 이름 중 일부만 기록이 없을 때
+  ///
+  /// In ko, this message translates to:
+  /// **'{names}: 적은 기록이 없어 빼고 셌어요'**
+  String queryNeverPartial(String names);
+
+  /// 기록이 없는 운동 줄
+  ///
+  /// In ko, this message translates to:
+  /// **'{names}: 적은 기록이 없어요'**
+  String queryNeverRows(String names);
+
+  /// 범위: 메모에 이 낱말이 없는 날
+  ///
+  /// In ko, this message translates to:
+  /// **'메모 없음: {terms}'**
+  String queryNoMemo(String terms);
+
+  /// 칸: 반복을 안 적어 뺀 세트
+  ///
+  /// In ko, this message translates to:
+  /// **'반복을 안 적은 세트 {n}개 제외'**
+  String queryNoRepsSets(int n);
+
+  /// 카드 위: 기록에 없어 못 본 것
+  ///
+  /// In ko, this message translates to:
+  /// **'기록에 없어 못 본 것: {things}'**
+  String queryNotComputable(String things);
+
+  /// 확인 줄 끝: 못 보는 것
+  ///
+  /// In ko, this message translates to:
+  /// **'못 보는 것: {things}'**
+  String queryNotComputableTail(String things);
+
+  /// 셀 것이 하나도 없는 질문
+  ///
+  /// In ko, this message translates to:
+  /// **'기록으로 답할 수 없어요: {things}'**
+  String queryNothingComputable(String things);
+
+  /// 칸: 무게 없는 세트를 빼고 셈
+  ///
+  /// In ko, this message translates to:
+  /// **'무게 없는 세트 {n}개 제외 (최다 {reps}회)'**
+  String queryNoWeightSets(int n, int reps);
+
+  /// 범위: 끝에서 N번째 운동일
+  ///
+  /// In ko, this message translates to:
+  /// **'끝에서 {n}번째 운동일'**
+  String queryNth(int n);
+
+  /// 칸: 시간 칸에서 뺀 거리 세트의 합
+  ///
+  /// In ko, this message translates to:
+  /// **'거리를 적은 {n}번: {value}'**
+  String queryOtherDistance(int n, String value);
+
+  /// 칸: 거리 칸에서 뺀 시간 세트의 합
+  ///
+  /// In ko, this message translates to:
+  /// **'시간을 적은 {n}번: {value}'**
+  String queryOtherDuration(int n, String value);
+
+  /// 칸: 값이 빠져 합에서 뺀 운동(부분 합계)
+  ///
+  /// In ko, this message translates to:
+  /// **'{names} 제외'**
+  String queryPartial(String names);
+
+  /// 모자란 마지막 구간의 날 수
+  ///
+  /// In ko, this message translates to:
+  /// **'({n}일)'**
+  String queryPartialChunk(int n);
+
+  /// 확인 줄: 부위와 거기 든 기록한 운동
+  ///
+  /// In ko, this message translates to:
+  /// **'{part}: {names}'**
+  String queryPartMembers(String part, String names);
+
+  /// 확인 줄: 날당·주당·달당 평균
+  ///
+  /// In ko, this message translates to:
+  /// **'{per, select, day{하루 평균} week{주당} month{달당} other{평균}}'**
+  String queryPer(String per);
+
+  /// 숫자 뒤: /일 /주 /달
+  ///
+  /// In ko, this message translates to:
+  /// **'{per, select, day{/일} week{/주} month{/달} other{/}}'**
+  String queryPerSuffix(String per);
+
+  /// 확인 줄: 무엇을 무엇으로 나누는지
+  ///
+  /// In ko, this message translates to:
+  /// **'{a} ÷ {b}'**
+  String queryRatioHead(String a, String b);
+
+  /// 비율 줄: a ÷ b(기준)
+  ///
+  /// In ko, this message translates to:
+  /// **'{a} ÷ {b} = {value}배 ({percent}%)'**
+  String queryRatioLine(String a, String b, String value, String percent);
+
+  /// 창이 다른 series 의 상대 구간 줄 이름
+  ///
+  /// In ko, this message translates to:
+  /// **'{by, select, day{{n}번째 날} week{{n}번째 주} month{{n}번째 달} other{{n}번째}}'**
+  String queryRelative(String by, int n);
+
+  /// 확인 줄: 앞날 기간을 작년으로 읽음
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 오지 않은 기간이라 {year}년으로 읽었어요'**
+  String queryRolled(String year);
+
+  /// 진행 중인 창과 같은 날 수로 자른 비교
+  ///
+  /// In ko, this message translates to:
+  /// **'같은 {days}일로 견주면: {earlier} → {later}'**
+  String querySamePeriod(int days, String earlier, String later);
+
+  /// 각주: 기록이 짧아 성장 순위에서 뺌
+  ///
+  /// In ko, this message translates to:
+  /// **'기록이 짧아(3일·3주 미만) 순위에서 뺐어요: {names}'**
+  String queryShortGrowth(String names);
+
+  /// 범위: 타이머
+  ///
+  /// In ko, this message translates to:
+  /// **'{kind, select, tabata{타바타} bpm{bpm 타이머} other{타이머 없이}}'**
+  String queryTimer(String kind);
+
+  /// 각주: 부위를 모르는 운동
+  ///
+  /// In ko, this message translates to:
+  /// **'부위를 모르는 운동은 뺐어요: {names}'**
+  String queryUnknownPart(String names);
+
+  /// 값이 빠져 순위에 못 넣은 줄
+  ///
+  /// In ko, this message translates to:
+  /// **'값이 빠져 순위에 못 넣은 {n}개: {names}'**
+  String queryUnranked(int n, String names);
+
+  /// 각주: 길이가 다른 기간은 주당으로 견줌
+  ///
+  /// In ko, this message translates to:
+  /// **'기간의 날 수가 달라요({lengths}일) — 차이·비율은 주당으로 셌어요'**
+  String queryWindowLengths(String lengths);
+
+  /// 개수형 주·달 묶음에서 0 인 구간 수
+  ///
+  /// In ko, this message translates to:
+  /// **'{by, select, week{{total}주 중 {zeros}주는 0} month{{total}달 중 {zeros}달은 0} other{{total}개 중 {zeros}개는 0}}'**
+  String queryZeroBuckets(String by, int total, int zeros);
+
+  /// 운동일수 작은 줄: 가능한 날 중 %
+  ///
+  /// In ko, this message translates to:
+  /// **'가능한 {m}일 중 {percent}%'**
+  String queryPossibleDays(int m, String percent);
+
+  /// 서버에 닿지 못해 글에 적힌 운동·기간·의도 낱말로 기기에서 센 답 위에 붙는 줄.
+  ///
+  /// In ko, this message translates to:
+  /// **'서버에 닿지 못해 글에 적힌 운동·기간으로만 기기에서 셌어요. 연결되면 Enter 로 다시 물어보세요.'**
+  String get queryOfflineLocal;
+
+  /// 서버는 답했는데 앱이 그 답을 셀 수 있는 plan 으로 읽지 못했다(모양 실수). 연결 문제가 아니다 — 같은 질문은 담아 두어 원판을 다시 쓰지 않는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 질문은 셀 수 있는 모양으로 읽지 못했어요. 말을 바꿔 물어봐 주세요.'**
+  String get queryMisread;
+
+  /// 모델 답을 읽지 못해 글에 적힌 운동·기간으로 기기에서 센 답 위에 붙는 줄.
+  ///
+  /// In ko, this message translates to:
+  /// **'질문을 셀 수 있는 모양으로 읽지 못해 글에 적힌 운동·기간으로만 기기에서 셌어요. 말을 바꿔 물으면 다시 읽어요.'**
+  String get queryMisreadLocal;
+
+  /// 서버가 모델에 두 번 물었는데 두 번 다 읽을 수 없는 답(빈 답·깨진 JSON)이었다(error unreadable). 원판은 돌려줬고 연결 문제가 아니다 — 담지 않으니 다시 물을 수 있다.
+  ///
+  /// In ko, this message translates to:
+  /// **'모델이 읽을 수 없는 답을 두 번 보냈어요. 연결 문제가 아니고, 그 답에는 원판이 나가지 않았어요.'**
+  String get queryUnreadable;
+
+  /// 읽을 수 없는 답 뒤에 같은 질문을 다시 묻는 단추.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 묻기'**
+  String get queryAskAgain;
+
+  /// queryUnreadable 과 같은데 이 질문의 1단계(갈래 고르기)에는 원판이 나갔다. 그 값은 아래 원판 줄(platesSpent)이 보인다.
+  ///
+  /// In ko, this message translates to:
+  /// **'모델이 읽을 수 없는 답을 두 번 보냈어요. 연결 문제가 아니에요. 그 답에는 원판이 나가지 않았고, 아래 원판은 질문을 가른 첫 단계에 쓴 거예요.'**
+  String get queryUnreadablePaid;
+
+  /// 읽을 수 없는 답 문구 뒤에 붙는다: 글에 적힌 운동이 있어 그동안 기기에서 센 답을 보인다.
+  ///
+  /// In ko, this message translates to:
+  /// **'그동안 글에 적힌 운동·기간으로는 기기에서 셌어요.'**
+  String get queryUnreadableLocal;
+
+  /// 합계 줄: 줄마다 단위가 달라(맞출 수 없어) 더하지 못했다.
+  ///
+  /// In ko, this message translates to:
+  /// **'단위가 달라 합계를 못 내요'**
+  String get queryTotalUnits;
+
+  /// 확인 줄: 모델이 낸 메모 조건을 규칙이 뺐다.
+  ///
+  /// In ko, this message translates to:
+  /// **'메모 조건 뺌: {words}'**
+  String queryMemoDropped(String words);
+
+  /// 확인 줄: 모델이 낸 기준 수가 질문에 무게로 적힌 수가 아니라 뺐다.
+  ///
+  /// In ko, this message translates to:
+  /// **'기준 수 {value} 뺌 — 질문에 무게로 적힌 수가 아니에요'**
+  String queryAgainstDropped(String value);
+
+  /// No description provided for @routineDate.
+  ///
+  /// In ko, this message translates to:
+  /// **'{d}'**
+  String routineDate(DateTime d);
+
+  /// No description provided for @routineHeaderToday.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 루틴'**
+  String get routineHeaderToday;
+
+  /// No description provided for @routineHeaderDay.
+  ///
+  /// In ko, this message translates to:
+  /// **'{day} 루틴'**
+  String routineHeaderDay(String day);
+
+  /// No description provided for @routineTomorrow.
+  ///
+  /// In ko, this message translates to:
+  /// **'내일({date})'**
+  String routineTomorrow(String date);
+
+  /// No description provided for @routineWhyRotation.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} 운동을 {days}일 동안 안 했어요 — 그날처럼 짰어요'**
+  String routineWhyRotation(String date, int days);
+
+  /// No description provided for @routineWhyFrom.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} 그대로 짰어요'**
+  String routineWhyFrom(String date);
+
+  /// No description provided for @routineWhyNamed.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date}에 같이 하던 운동으로 채웠어요'**
+  String routineWhyNamed(String date);
+
+  /// No description provided for @routinePartRest.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 28일: {list} 전'**
+  String routinePartRest(String list);
+
+  /// No description provided for @routinePartDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'{part} {days}일'**
+  String routinePartDays(String part, int days);
+
+  /// No description provided for @routineEstimate.
+  ///
+  /// In ko, this message translates to:
+  /// **'약 {minutes}분'**
+  String routineEstimate(int minutes);
+
+  /// No description provided for @routinePaceOwn.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 {sessions}번 운동의 세트당 {pace}로 어림'**
+  String routinePaceOwn(int sessions, String pace);
+
+  /// No description provided for @routinePaceDefault.
+  ///
+  /// In ko, this message translates to:
+  /// **'기본값 세트당 {pace}로 어림 — 운동을 몇 번 적으면 내 속도로 바뀌어요'**
+  String routinePaceDefault(String pace);
+
+  /// No description provided for @routineMinSec.
+  ///
+  /// In ko, this message translates to:
+  /// **'{m}분 {s}초'**
+  String routineMinSec(int m, int s);
+
+  /// No description provided for @routineReadAs.
+  ///
+  /// In ko, this message translates to:
+  /// **'이렇게 읽었어요: {list}'**
+  String routineReadAs(String list);
+
+  /// No description provided for @routineCopied.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} 그대로'**
+  String routineCopied(String date);
+
+  /// No description provided for @routineRepsMatched.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date}에 {reps}회 한 무게'**
+  String routineRepsMatched(String date, int reps);
+
+  /// No description provided for @routineTyped.
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 대로'**
+  String get routineTyped;
+
+  /// No description provided for @routineFirst.
+  ///
+  /// In ko, this message translates to:
+  /// **'처음'**
+  String get routineFirst;
+
+  /// No description provided for @routineBlank.
+  ///
+  /// In ko, this message translates to:
+  /// **'{why, select, light{가볍게라 무게는 비웠어요} pain{아픈 곳이 있어 무게는 비웠어요} gear{기구가 달라 무게는 비웠어요} bodyweight{기구 무게라 비웠어요} stale{오래돼서 무게는 비웠어요} repsUnmatched{그 횟수로 그만큼 한 날이 없어 무게는 비웠어요} other{무게는 비웠어요}}'**
+  String routineBlank(String why);
+
+  /// No description provided for @routineReference.
+  ///
+  /// In ko, this message translates to:
+  /// **'참고: {sets} ({date})'**
+  String routineReference(String sets, String date);
+
+  /// No description provided for @routineBest.
+  ///
+  /// In ko, this message translates to:
+  /// **'참고: 최고 {set} ({date})'**
+  String routineBest(String set, String date);
+
+  /// No description provided for @routineStepped.
+  ///
+  /// In ko, this message translates to:
+  /// **'+{step} ({evidence})'**
+  String routineStepped(String step, String evidence);
+
+  /// No description provided for @routineMemo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} 메모: {memo}'**
+  String routineMemo(String date, String memo);
+
+  /// No description provided for @routineRecent.
+  ///
+  /// In ko, this message translates to:
+  /// **'{part} · {when}'**
+  String routineRecent(String part, String when);
+
+  /// No description provided for @routineDaysAgo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n, plural, =0{오늘} =1{어제} other{{n}일 전}}'**
+  String routineDaysAgo(int n);
+
+  /// No description provided for @routineFuture.
+  ///
+  /// In ko, this message translates to:
+  /// **'미리 보기예요 — 그날 \'루틴\'을 치면 그날 기록으로 시작할 수 있어요'**
+  String get routineFuture;
+
+  /// No description provided for @routineRefused.
+  ///
+  /// In ko, this message translates to:
+  /// **'{kind, select, diet{식단은 짜 드리지 않아요 — 끼니를 적으면 열량은 볼 수 있어요} medical{재활·수술 뒤 운동은 판단하지 않아요 — 의사·치료사에게 받은 운동을 적으면 그대로 루틴으로 만들어요} drug{약물은 도와드리지 않아요} program{한 번에 하루치만 짜요 — 오늘 루틴이에요} logging{안 한 세트를 완료로 적지는 않아요 — 할 때 눌러 주세요} format{EMOM·슈퍼세트·서킷 타이머는 없어요 — 순서만 짰어요(타바타·bpm 은 돼요)} person{다른 사람 루틴은 짜 드리지 않아요 — 내 기록의 운동 이름만 보여요} other{운동 기록과 루틴만 도와드려요}}'**
+  String routineRefused(String kind);
+
+  /// No description provided for @routineNotStated.
+  ///
+  /// In ko, this message translates to:
+  /// **'글에 없는 수라 뺐어요: {what}'**
+  String routineNotStated(String what);
+
+  /// No description provided for @routineUnmet.
+  ///
+  /// In ko, this message translates to:
+  /// **'못 맞춘 조건: {what}'**
+  String routineUnmet(String what);
+
+  /// No description provided for @routineKeyName.
+  ///
+  /// In ko, this message translates to:
+  /// **'{key, select, when{날짜} from{지난 날} parts{부위} pattern{밀기·당기기} exercises{운동} exclude{뺄 운동} avoid{피할 부위} pain{아픈 곳} equipment{기구} count{운동 수} minutes{시간} intensity{세기} timer{타이머} targets{적은 수} delta{증감} other{조건}}'**
+  String routineKeyName(String key);
+
+  /// No description provided for @routineUnknownName.
+  ///
+  /// In ko, this message translates to:
+  /// **'사전에 없어 뺐어요: {name}'**
+  String routineUnknownName(String name);
+
+  /// No description provided for @routineNoSuchDay.
+  ///
+  /// In ko, this message translates to:
+  /// **'그런 날이 없어요 — 기록으로 짰어요'**
+  String get routineNoSuchDay;
+
+  /// No description provided for @routineExcludeAbsent.
+  ///
+  /// In ko, this message translates to:
+  /// **'뺄 운동이 원래 없어요: {name}'**
+  String routineExcludeAbsent(String name);
+
+  /// No description provided for @routineNoneMatched.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록한 {what} 운동이 없어요 — 골라 넣을 수 있어요'**
+  String routineNoneMatched(String what);
+
+  /// No description provided for @routineFewer.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록으로 넣을 운동이 {n}개예요'**
+  String routineFewer(int n);
+
+  /// No description provided for @routineOtherUnit.
+  ///
+  /// In ko, this message translates to:
+  /// **'{unit}로 적은 세트는 그대로 뒀어요'**
+  String routineOtherUnit(String unit);
+
+  /// No description provided for @routineBpmRange.
+  ///
+  /// In ko, this message translates to:
+  /// **'bpm 은 10–120 이에요 — 타이머 없이 넣었어요'**
+  String get routineBpmRange;
+
+  /// No description provided for @routineIntensityLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'{kind, select, light{가볍게: 칸마다 마지막 세트 하나를 뺐어요 — 무게는 지난번 그대로예요} lightBlank{가볍게: 칸마다 마지막 세트 하나를 뺐어요} hard{무게는 지난번 그대로예요} max{몇 kg 에 도전할지는 정하지 않아요 — 최고 기록을 옆에 적었어요} other{}}'**
+  String routineIntensityLine(String kind);
+
+  /// No description provided for @routineNoStep.
+  ///
+  /// In ko, this message translates to:
+  /// **'올릴 만큼 적어 주세요(예: +2.5kg)'**
+  String get routineNoStep;
+
+  /// No description provided for @routinePain.
+  ///
+  /// In ko, this message translates to:
+  /// **'\'{phrase}\' 때문에 뺀 것: {list} · 무게는 비웠어요 · 괜찮은지는 판단하지 않아요'**
+  String routinePain(String phrase, String list);
+
+  /// No description provided for @routinePainNone.
+  ///
+  /// In ko, this message translates to:
+  /// **'\'{phrase}\' — 뺀 운동은 없고 무게는 비웠어요 · 괜찮은지는 판단하지 않아요'**
+  String routinePainNone(String phrase);
+
+  /// No description provided for @routinePainWord.
+  ///
+  /// In ko, this message translates to:
+  /// **'아프다는 말'**
+  String get routinePainWord;
+
+  /// No description provided for @routineFirstTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'처음이에요 — 넣을 운동을 고르면 숫자 없이 들어가요'**
+  String get routineFirstTime;
+
+  /// No description provided for @routineCountFit.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}개로 맞췄어요 — 약 {minutes}분'**
+  String routineCountFit(int count, int minutes);
+
+  /// No description provided for @routineNoMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록으로 더 넣을 운동이 없어요 — 약 {minutes}분이에요'**
+  String routineNoMore(int minutes);
+
+  /// No description provided for @routineOverTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'말한 운동만으로 약 {minutes}분이에요'**
+  String routineOverTime(int minutes);
+
+  /// No description provided for @routineOverUsual.
+  ///
+  /// In ko, this message translates to:
+  /// **'고른 운동 {n}개를 모두 넣었어요 — 평소 한 번에 하는 {usual}개보다 많아요'**
+  String routineOverUsual(int n, int usual);
+
+  /// No description provided for @routineRecentMemo.
+  ///
+  /// In ko, this message translates to:
+  /// **'{when} {name} 메모: {memo}'**
+  String routineRecentMemo(String when, String name, String memo);
+
+  /// No description provided for @routineRemoved.
+  ///
+  /// In ko, this message translates to:
+  /// **'뺀 것: {label} — {why}'**
+  String routineRemoved(String label, String why);
+
+  /// No description provided for @routineRemovedWhy.
+  ///
+  /// In ko, this message translates to:
+  /// **'{why, select, named{말한 운동} avoid{피할 부위} unknownPart{부위를 몰라서} gear{기구가 달라서} unknownGear{기구를 몰라서} otherPart{다른 부위라서} user{직접 뺌} other{}}'**
+  String routineRemovedWhy(String why);
+
+  /// No description provided for @routineRestore.
+  ///
+  /// In ko, this message translates to:
+  /// **'넣기'**
+  String get routineRestore;
+
+  /// No description provided for @routineAdd.
+  ///
+  /// In ko, this message translates to:
+  /// **'+ {name}'**
+  String routineAdd(String name);
+
+  /// No description provided for @routineOther.
+  ///
+  /// In ko, this message translates to:
+  /// **'다른 루틴'**
+  String get routineOther;
+
+  /// No description provided for @routineWhyShow.
+  ///
+  /// In ko, this message translates to:
+  /// **'근거 보기'**
+  String get routineWhyShow;
+
+  /// No description provided for @routineWhyHide.
+  ///
+  /// In ko, this message translates to:
+  /// **'근거 접기'**
+  String get routineWhyHide;
+
+  /// No description provided for @routinePrevious.
+  ///
+  /// In ko, this message translates to:
+  /// **'그 전({date})'**
+  String routinePrevious(String date);
+
+  /// No description provided for @routineByPart.
+  ///
+  /// In ko, this message translates to:
+  /// **'{part} 루틴으로 짜기'**
+  String routineByPart(String part);
+
+  /// No description provided for @routineStepChip.
+  ///
+  /// In ko, this message translates to:
+  /// **'+{step} 올리기(스스로 올려 온 폭)'**
+  String routineStepChip(String step);
+
+  /// No description provided for @routineAskToo.
+  ///
+  /// In ko, this message translates to:
+  /// **'이것도 물을까요: {text} · 원판'**
+  String routineAskToo(String text);
+
+  /// No description provided for @routineAsQuestion.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록 질문으로 묻기 · 원판'**
+  String get routineAsQuestion;
+
+  /// No description provided for @routineNoConditions.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건 없이 바로 짜기'**
+  String get routineNoConditions;
+
+  /// No description provided for @routineWithConditions.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건까지 읽어 짜기 · 원판'**
+  String get routineWithConditions;
+
+  /// No description provided for @routineMake.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 루틴 만들기'**
+  String get routineMake;
+
+  /// No description provided for @routineMakePart.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 {part} 루틴 만들기'**
+  String routineMakePart(String part);
+
+  /// No description provided for @routineStart.
+  ///
+  /// In ko, this message translates to:
+  /// **'시작'**
+  String get routineStart;
+
+  /// No description provided for @routineStarted.
+  ///
+  /// In ko, this message translates to:
+  /// **'시작함 · 열기'**
+  String get routineStarted;
+
+  /// No description provided for @routineWorking.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건을 읽는 중…'**
+  String get routineWorking;
+
+  /// No description provided for @routineOffline.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건은 연결이 안 돼 못 읽었어요 — 기록으로만 짰어요'**
+  String get routineOffline;
+
+  /// No description provided for @routineMisread.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건을 읽지 못했어요 — 기록으로만 짰어요. 말을 바꾸면 다시 읽어요'**
+  String get routineMisread;
+
+  /// No description provided for @routineHeldBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'{why, select, offline{연결이 안 돼} noPlates{원판이 없어} other{모델 답을 읽지 못해}} 조건(빼기·아픈 곳)을 못 읽었어요 — 루틴을 만들지 않았어요'**
+  String routineHeldBack(String why);
+
+  /// No description provided for @routineTypedWeight.
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 무게로: 작업 세트 {count}개 {from} → {to}'**
+  String routineTypedWeight(int count, String from, String to);
+
+  /// No description provided for @routineTypedKept.
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 무게는 그대로 뒀어요'**
+  String get routineTypedKept;
+
+  /// No description provided for @routinePlatesBefore.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 글에 앞서 원판을 썼어요 · 이번엔 0장'**
+  String get routinePlatesBefore;
+
+  /// No description provided for @routineRetry.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 시도'**
+  String get routineRetry;
+
+  /// No description provided for @routinePressEnter.
+  ///
+  /// In ko, this message translates to:
+  /// **'Enter 를 누르면 조건까지 읽어 짜요 · 원판'**
+  String get routinePressEnter;
+
+  /// No description provided for @routineFromQuestion.
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴을 짜 달라는 말로 읽었어요'**
+  String get routineFromQuestion;
+
+  /// No description provided for @routinePattern.
+  ///
+  /// In ko, this message translates to:
+  /// **'{p, select, push{밀기} pull{당기기} other{}}'**
+  String routinePattern(String p);
+
+  /// No description provided for @routineGear.
+  ///
+  /// In ko, this message translates to:
+  /// **'{g, select, barbell{바벨} dumbbell{덤벨} machine{머신} cable{케이블} bodyweight{맨몸} bar{철봉} kettlebell{케틀벨} band{밴드} bench{벤치} other{기구}}'**
+  String routineGear(String g);
+
+  /// No description provided for @routineGearOnly.
+  ///
+  /// In ko, this message translates to:
+  /// **'{list}만'**
+  String routineGearOnly(String list);
+
+  /// No description provided for @routineGearWithout.
+  ///
+  /// In ko, this message translates to:
+  /// **'{list} 없이'**
+  String routineGearWithout(String list);
+
+  /// No description provided for @routineMinutes.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}분'**
+  String routineMinutes(int n);
+
+  /// No description provided for @routineCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 {n}개'**
+  String routineCount(int n);
+
+  /// No description provided for @routineIntensity.
+  ///
+  /// In ko, this message translates to:
+  /// **'{k, select, light{가볍게} hard{무겁게} max{최고 도전} other{}}'**
+  String routineIntensity(String k);
+
+  /// No description provided for @routineExclude.
+  ///
+  /// In ko, this message translates to:
+  /// **'뺄 것: {list}'**
+  String routineExclude(String list);
+
+  /// No description provided for @routineAvoid.
+  ///
+  /// In ko, this message translates to:
+  /// **'피할 부위: {list}'**
+  String routineAvoid(String list);
+
+  /// No description provided for @routinePlatesZero.
+  ///
+  /// In ko, this message translates to:
+  /// **'원판 0장'**
+  String get routinePlatesZero;
+
+  /// No description provided for @routineFullBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'전신'**
+  String get routineFullBody;
+
+  /// No description provided for @routineNoPlates.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건은 원판이 없어 못 읽었어요 — 기록으로만 짰어요'**
+  String get routineNoPlates;
+
+  /// No description provided for @routineBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴으로 돌아가기'**
+  String get routineBack;
+
+  /// 확인 줄: 모델이 낸 무게·횟수 조건의 수가 질문에 그 단위로 적힌 수가 아니라 뺐다.
+  ///
+  /// In ko, this message translates to:
+  /// **'숫자 조건 {value} 뺌 — 질문에 그 단위로 적힌 수가 아니에요'**
+  String queryBoundDropped(String value);
+
+  /// No description provided for @anatomyTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'몸 그림'**
+  String get anatomyTitle;
+
+  /// No description provided for @anatomyOpen.
+  ///
+  /// In ko, this message translates to:
+  /// **'몸 그림 — 부위별 운동과 자세 팁'**
+  String get anatomyOpen;
+
+  /// No description provided for @anatomyPick.
+  ///
+  /// In ko, this message translates to:
+  /// **'몸 그림에서 운동 고르기'**
+  String get anatomyPick;
+
+  /// No description provided for @anatomyFront.
+  ///
+  /// In ko, this message translates to:
+  /// **'앞'**
+  String get anatomyFront;
+
+  /// No description provided for @anatomyBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'뒤'**
+  String get anatomyBack;
+
+  /// No description provided for @anatomyDays.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}일'**
+  String anatomyDays(int n);
+
+  /// No description provided for @muscleName.
+  ///
+  /// In ko, this message translates to:
+  /// **'{m, select, chest{가슴} frontDelts{앞 어깨} sideDelts{옆 어깨} rearDelts{뒤 어깨} traps{승모근 윗부분} upperBack{등 가운데} lats{광배근} lowerBack{허리} biceps{이두} triceps{삼두} forearms{전완} abs{복근} obliques{옆구리} hipFlexors{고관절 굴곡근} glutes{엉덩이} quads{허벅지 앞} hamstrings{허벅지 뒤} adductors{허벅지 안쪽} calves{종아리} infraspinatus{극하근} teresMinor{소원근} teresMajor{대원근} tricepsLong{삼두 장두} tricepsLateral{삼두 외측두} tricepsMedial{삼두 내측두} other{부위}}'**
+  String muscleName(String m);
+
+  /// No description provided for @anatomyLevel.
+  ///
+  /// In ko, this message translates to:
+  /// **'{level, select, low{적음} mid{중간} high{많음} other{없음}}'**
+  String anatomyLevel(String level);
+
+  /// No description provided for @anatomyLegend.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 기간에 세트가 많은 부위일수록 진해요'**
+  String get anatomyLegend;
+
+  /// No description provided for @anatomyFirstTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 해낸 세트가 없어 색이 없어요. 부위를 누르면 그 부위를 쓰는 운동과 자세 팁을 볼 수 있어요.'**
+  String get anatomyFirstTime;
+
+  /// No description provided for @anatomyEmptyWindow.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 {n}일에 해낸 세트가 없어요'**
+  String anatomyEmptyWindow(int n);
+
+  /// No description provided for @anatomyUnknown.
+  ///
+  /// In ko, this message translates to:
+  /// **'근육을 모르는 운동 {n}개는 세지 않았어요. 이름을 누르면 검색에서 그 기록을 봐요.'**
+  String anatomyUnknown(int n);
+
+  /// No description provided for @anatomyUnknownMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'외 {n}개'**
+  String anatomyUnknownMore(int n);
+
+  /// No description provided for @anatomyCardio.
+  ///
+  /// In ko, this message translates to:
+  /// **'유산소 {n}세트는 근육 그림에 넣지 않았어요'**
+  String anatomyCardio(int n);
+
+  /// No description provided for @anatomyCountNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.'**
+  String get anatomyCountNote;
+
+  /// No description provided for @anatomyLimits.
+  ///
+  /// In ko, this message translates to:
+  /// **'영상·자세 분석은 하지 않아요. 통증이 있으면 멈추고 전문가와 상의하세요.'**
+  String get anatomyLimits;
+
+  /// No description provided for @anatomyTapHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'근육을 눌러 주세요 — 아래 목록에서도 고를 수 있어요'**
+  String get anatomyTapHint;
+
+  /// No description provided for @anatomyNoSurface.
+  ///
+  /// In ko, this message translates to:
+  /// **'몸 안쪽 근육이라 그림에는 없어요'**
+  String get anatomyNoSurface;
+
+  /// No description provided for @anatomySets.
+  ///
+  /// In ko, this message translates to:
+  /// **'{days}일 {sets}세트'**
+  String anatomySets(int days, String sets);
+
+  /// No description provided for @anatomySetsLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 7일 {week}세트 · 28일 {month}세트'**
+  String anatomySetsLine(String week, String month);
+
+  /// No description provided for @anatomyBreakdown.
+  ///
+  /// In ko, this message translates to:
+  /// **'28일 중 주로 쓴 세트 {primary} · 보조로 쓴 세트 {secondary}(반으로 셈)'**
+  String anatomyBreakdown(int primary, int secondary);
+
+  /// No description provided for @anatomyLast.
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막: {date}({ago})'**
+  String anatomyLast(String date, String ago);
+
+  /// No description provided for @anatomyNever.
+  ///
+  /// In ko, this message translates to:
+  /// **'표에 있는 운동으로는 이 부위를 쓴 기록이 아직 없어요'**
+  String get anatomyNever;
+
+  /// No description provided for @anatomyDone.
+  ///
+  /// In ko, this message translates to:
+  /// **'내가 한 운동'**
+  String get anatomyDone;
+
+  /// No description provided for @anatomyTry.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 부위를 주로 쓰는 운동'**
+  String get anatomyTry;
+
+  /// No description provided for @anatomyTrySecondary.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 부위를 보조로 쓰는 운동'**
+  String get anatomyTrySecondary;
+
+  /// No description provided for @anatomyTryGear.
+  ///
+  /// In ko, this message translates to:
+  /// **'쓴 적 있는 기구({list})로 할 수 있는 것'**
+  String anatomyTryGear(String list);
+
+  /// No description provided for @anatomyAllGear.
+  ///
+  /// In ko, this message translates to:
+  /// **'기구 기록이 없어 전부 보여요'**
+  String get anatomyAllGear;
+
+  /// No description provided for @anatomyMoreGear.
+  ///
+  /// In ko, this message translates to:
+  /// **'다른 기구 운동 {n}개 더 보기'**
+  String anatomyMoreGear(int n);
+
+  /// No description provided for @anatomyTriedAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 부위를 주로 쓰는 운동은 다 해 봤어요'**
+  String get anatomyTriedAll;
+
+  /// No description provided for @anatomyRole.
+  ///
+  /// In ko, this message translates to:
+  /// **'{role, select, primary{주로 씀} other{보조}}'**
+  String anatomyRole(String role);
+
+  /// No description provided for @anatomyInterpNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'* 가 붙은 운동은 근육 배정이 출처를 옮긴 해석이에요'**
+  String get anatomyInterpNote;
+
+  /// No description provided for @anatomyCues.
+  ///
+  /// In ko, this message translates to:
+  /// **'자세 팁'**
+  String get anatomyCues;
+
+  /// No description provided for @anatomyMistakes.
+  ///
+  /// In ko, this message translates to:
+  /// **'피할 것'**
+  String get anatomyMistakes;
+
+  /// No description provided for @anatomySources.
+  ///
+  /// In ko, this message translates to:
+  /// **'출처: {sites}'**
+  String anatomySources(String sites);
+
+  /// No description provided for @anatomyUnsourced.
+  ///
+  /// In ko, this message translates to:
+  /// **'‡ 출처 없이 덧붙인 말'**
+  String get anatomyUnsourced;
+
+  /// No description provided for @anatomyAdapted.
+  ///
+  /// In ko, this message translates to:
+  /// **'† 출처 문장을 옮겨 쓴 해석(비슷한 동작의 출처 포함)'**
+  String get anatomyAdapted;
+
+  /// No description provided for @anatomyCuesEnglish.
+  ///
+  /// In ko, this message translates to:
+  /// **'자세 팁은 아직 영어로만 있어요'**
+  String get anatomyCuesEnglish;
+
+  /// No description provided for @anatomyAddRoutine.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 루틴에 넣기'**
+  String get anatomyAddRoutine;
+
+  /// No description provided for @anatomyRoutineText.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 {part} 루틴'**
+  String anatomyRoutineText(String part);
+
+  /// No description provided for @anatomySearch.
+  ///
+  /// In ko, this message translates to:
+  /// **'검색에서 보기'**
+  String get anatomySearch;
+
+  /// No description provided for @anatomyRegionValue.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 {days}일 {sets}세트, {level}'**
+  String anatomyRegionValue(int days, String sets, String level);
+
+  /// No description provided for @anatomyRegionHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'두 번 눌러 운동 보기'**
+  String get anatomyRegionHint;
+
+  /// No description provided for @anatomyClose.
+  ///
+  /// In ko, this message translates to:
+  /// **'닫기'**
+  String get anatomyClose;
+
+  /// No description provided for @anatomyZoomReset.
+  ///
+  /// In ko, this message translates to:
+  /// **'원래 크기'**
+  String get anatomyZoomReset;
+
+  /// No description provided for @anatomyTileSets.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}세트'**
+  String anatomyTileSets(String n);
+
+  /// No description provided for @anatomyLastLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막'**
+  String get anatomyLastLabel;
+
+  /// No description provided for @openSourceLicenses.
+  ///
+  /// In ko, this message translates to:
+  /// **'오픈소스 라이선스'**
+  String get openSourceLicenses;
+
+  /// 체력 요인 이름(repstack FF01–FF05)
+  ///
+  /// In ko, this message translates to:
+  /// **'{f, select, strength{근력} endurance{근지구력} sustain{지속력} power{순발력} cardio{심폐} other{}}'**
+  String routineFactor(String f);
+
+  /// 카드 머리 아래: 원천 날의 요인과 근거(3×10 …)
+  ///
+  /// In ko, this message translates to:
+  /// **'{factor} 날 · {why}'**
+  String routineFactorDay(String factor, String why);
+
+  /// 요인을 가른 근거. a·b 는 수나 원문 조각
+  ///
+  /// In ko, this message translates to:
+  /// **'{kind, select, tabata{타바타 {a}} fill{채우기 {a}개} fillTitle{제목 ‘{a}’} distance{{a}} open{{a}회씩, 세트 수 열어 둠} single{한 세트 {a}회} drop{세트마다 최대 {a}} hold{{a}회×{b}세트} other{{a}×{b}}}'**
+  String routineFactorWhy(String kind, String a, String b);
+
+  /// No description provided for @routineWhyWeekday.
+  ///
+  /// In ko, this message translates to:
+  /// **'{weeks, plural, =1{지난주 {day}({date}) 운동 그대로예요} other{지난주 {day}엔 기록이 없어 {weeks}주 전 {day}({date})로 짰어요}}'**
+  String routineWhyWeekday(int weeks, String day, String date);
+
+  /// No description provided for @routineWhyNear.
+  ///
+  /// In ko, this message translates to:
+  /// **'{day} 기록이 없어 가까운 {near}로 짰어요'**
+  String routineWhyNear(String day, String near);
+
+  /// No description provided for @routineWhyFactor.
+  ///
+  /// In ko, this message translates to:
+  /// **'{f, select, strength{이번 주 근력이 부족해서 {date}로 짰어요} endurance{이번 주 근지구력이 부족해서 {date}로 짰어요} sustain{이번 주 지속력이 부족해서 {date}로 짰어요} cardio{이번 주 심폐가 부족해서 {date}로 짰어요} other{{date}로 짰어요}}'**
+  String routineWhyFactor(String f, String date);
+
+  /// No description provided for @routineWhyFactorAll.
+  ///
+  /// In ko, this message translates to:
+  /// **'{f, select, strength{이번 주 요인은 다 채웠어요 — 다음 차례인 근력으로 {date}처럼 짰어요} endurance{이번 주 요인은 다 채웠어요 — 다음 차례인 근지구력으로 {date}처럼 짰어요} sustain{이번 주 요인은 다 채웠어요 — 다음 차례인 지속력으로 {date}처럼 짰어요} cardio{이번 주 요인은 다 채웠어요 — 다음 차례인 심폐로 {date}처럼 짰어요} other{{date}처럼 짰어요}}'**
+  String routineWhyFactorAll(String f, String date);
+
+  /// No description provided for @routineWeekCounts.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 7일({range}): {list}'**
+  String routineWeekCounts(String range, String list);
+
+  /// No description provided for @routineFactorMissing.
+  ///
+  /// In ko, this message translates to:
+  /// **'최근 28일에 따로 한 날이 없는 요인: {list}'**
+  String routineFactorMissing(String list);
+
+  /// No description provided for @routineFillHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'채우기는 목표 수를 적어 주세요(예: 스쿼트 100개 채우기)'**
+  String get routineFillHint;
+
+  /// No description provided for @routineTabataChip.
+  ///
+  /// In ko, this message translates to:
+  /// **'타바타로'**
+  String get routineTabataChip;
+
+  /// No description provided for @routineLikeLastWeek.
+  ///
+  /// In ko, this message translates to:
+  /// **'지난주 {day}처럼'**
+  String routineLikeLastWeek(String day);
+
+  /// No description provided for @routineFactorChip.
+  ///
+  /// In ko, this message translates to:
+  /// **'{f, select, strength{근력으로 짜기 · 이번 주 {n}번} endurance{근지구력으로 짜기 · 이번 주 {n}번} sustain{지속력으로 짜기 · 이번 주 {n}번} cardio{심폐로 짜기 · 이번 주 {n}번} other{}}'**
+  String routineFactorChip(String f, int n);
+
+  /// No description provided for @routineLightKept.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트를 뺄 수 없어 그대로 둔 칸(한 세트·채우기·타바타): {list}'**
+  String routineLightKept(String list);
+
+  /// 같은 요일을 건너뛴 까닭: how = alt(다른 루틴) | filtered(거른 칸뿐)
+  ///
+  /// In ko, this message translates to:
+  /// **'{how, select, alt{다른 루틴: {weeks}주 전 {day}({date})로 짰어요} other{지난주 {day}은 거른 운동뿐이라 {weeks}주 전 {day}({date})로 짰어요}}'**
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date);
+
+  /// 같은 요일 대신 이웃 요일: how = alt | filtered
+  ///
+  /// In ko, this message translates to:
+  /// **'{how, select, alt{다른 루틴: 가까운 {near}로 짰어요} other{{day}은 거른 운동뿐이라 가까운 {near}로 짰어요}}'**
+  String routineWhyNearSkip(String how, String day, String near);
+
+  /// 모자란 요인의 날이 없어 다른 요인 날로 짰다
+  ///
+  /// In ko, this message translates to:
+  /// **'모자란 요인은 최근 28일에 쓸 수 있는 날이 없어 {date} {factor} 날처럼 짰어요'**
+  String routineWhyFactorNoDay(String factor, String date);
+
+  /// 요인 원천인데 그 요인 칸이 루틴에서 빠졌다
+  ///
+  /// In ko, this message translates to:
+  /// **'{date} {factor} 날로 짰지만 {factor} 칸은 빠졌어요'**
+  String routineFactorLost(String factor, String date);
+
+  /// No description provided for @routineFactorFiltered.
+  ///
+  /// In ko, this message translates to:
+  /// **'빼라고 한 운동을 빼면 최근 28일에 남는 날이 없는 요인: {list}'**
+  String routineFactorFiltered(String list);
+
+  /// 가볍게: 이 칸은 원천 날에서 세트 하나를 뺐다
+  ///
+  /// In ko, this message translates to:
+  /// **'{date}에서 한 세트 뺌'**
+  String routineLightDropped(String date);
+
+  /// No description provided for @routineDoneToday.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 이미 한 운동이 들어 있어요: {list}'**
+  String routineDoneToday(String list);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

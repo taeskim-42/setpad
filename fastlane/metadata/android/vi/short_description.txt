@@ -1,1 +1,1 @@
-Gõ tên bài tập, gõ mức tạ và số lần. Cả ứng dụng chỉ có vậy.
+Gõ hiệp tập hay bữa ăn trên một dòng. Ghi cùng nhau và hỏi nhật ký của bạn.

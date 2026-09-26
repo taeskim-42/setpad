@@ -41,8 +41,9 @@ TextStyle _cellStyle(BuildContext context) =>
       color: CupertinoColors.label.resolveFrom(context),
     );
 
-/// 몇 번째 세트인지와 값. 해내지 않은 세트는 빈 동그라미가 붙고 흐리다 —
-/// 계획과 수행이 섞여 보이면 안 된다.
+/// 몇 번째 세트인지와 값. 해냈는지는 글자가 아니라 칸이 말한다 — 해낸 칸은
+/// 초록으로 차고, 아직인 칸은 흐린 글자에 빈 칸이다. 번호 뒤에 붙던 빈
+/// 동그라미('1○')는 '10' 으로 읽혔다.
 InlineSpan _cellSpan(
   BuildContext context,
   L l,
@@ -62,7 +63,7 @@ InlineSpan _cellSpan(
         ),
       ),
     TextSpan(
-      text: set.done ? '${i + 1} ' : '${i + 1}○ ',
+      text: '${i + 1} ',
       style: TextStyle(
         fontSize: 10,
         color: CupertinoColors.tertiaryLabel.resolveFrom(context),
@@ -120,7 +121,11 @@ class SetGrid extends StatelessWidget {
     this.editingSet,
     this.uniform,
     this.cursors = const {},
+    this.records = const {},
   });
+
+  /// 최고 무게를 새로 넘긴 세트 번호 — 호박색 테두리와 ★.
+  final Set<int> records;
 
   /// 세트 번호 → 그 칸을 지금 만지는 사람의 색. 마지막 빈 칸의 번호는 세트 수다.
   final Map<int, Color> cursors;
@@ -142,6 +147,7 @@ class SetGrid extends StatelessWidget {
     final scaler = MediaQuery.textScalerOf(context);
     final label = CupertinoColors.label.resolveFrom(context);
     final faint = CupertinoColors.tertiaryLabel.resolveFrom(context);
+    final green = CupertinoColors.systemGreen.resolveFrom(context);
     final style = _cellStyle(context);
     InlineSpan span(int i, LoggedSet set) =>
         _cellSpan(context, l, block, i, set);
@@ -186,6 +192,8 @@ class SetGrid extends StatelessWidget {
                 button: onTapSet != null,
                 label:
                     '${l.setOrdinal(i + 1)} ${setLabel(value: set.value, unit: set.unit, reps: set.reps, formatReps: l.repsCount)}',
+                // 해낸 세트인지는 색만이 아니라 읽어 주는 말로도 전한다.
+                checked: set.done,
                 excludeSemantics: true,
                 child: GestureDetector(
                   key: ValueKey('set-cell-$i'),
@@ -194,44 +202,73 @@ class SetGrid extends StatelessWidget {
                   child: SizedBox(
                     // 열 폭의 합이 반올림으로 줄 폭을 넘지 않게 조금 덜 준다.
                     width: cell(i, set) - 0.01,
-                    child: Container(
-                      // 고칠 수 있는 자리면 세트마다 제 상자다 — 눌러 고치는 칸이라는
-                      // 것이 보인다. 읽기만 하는 자리(오늘 한 장)는 맨 글자다.
-                      margin: onTapSet == null
-                          ? EdgeInsets.zero
-                          : const EdgeInsets.fromLTRB(0, 1, 4, 1),
-                      padding: onTapSet == null
-                          ? EdgeInsets.zero
-                          : const EdgeInsets.symmetric(horizontal: 4),
-                      // 상자일 때는 위아래 틈을 합쳐 전과 같은 30 이다.
-                      constraints: BoxConstraints(
-                        minHeight: onTapSet == null ? 30 : 28,
-                      ),
-                      alignment: Alignment.centerLeft,
-                      // 칠하지 않고 가는 테두리만 — 칸이라는 것은 보이되 종이는
-                      // 하얗게. 고치는 칸만 색이 찬다.
-                      decoration: BoxDecoration(
-                        color: i == editingSet
-                            ? sealTint.resolveFrom(context)
-                            : null,
-                        border: cursors[i] != null
-                            ? Border.all(color: cursors[i]!, width: 1.5)
-                            : onTapSet == null || i == editingSet
-                            ? null
-                            : Border.all(
-                                color: CupertinoColors.separator.resolveFrom(
-                                  context,
-                                ),
-                                width: 0.5,
+                    // 최고 무게를 새로 넘긴 세트는 칸 모서리에 ★ — 칸 폭은 그대로다.
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          // 고칠 수 있는 자리면 세트마다 제 상자다 — 눌러 고치는 칸이라는
+                          // 것이 보인다. 읽기만 하는 자리(오늘 한 장)는 맨 글자다.
+                          margin: onTapSet == null
+                              ? EdgeInsets.zero
+                              : const EdgeInsets.fromLTRB(0, 1, 4, 1),
+                          padding: onTapSet == null
+                              ? EdgeInsets.zero
+                              : const EdgeInsets.symmetric(horizontal: 4),
+                          // 상자일 때는 위아래 틈을 합쳐 전과 같은 30 이다.
+                          constraints: BoxConstraints(
+                            minHeight: onTapSet == null ? 30 : 28,
+                          ),
+                          alignment: Alignment.centerLeft,
+                          // 아직인 칸은 칠하지 않고 가는 테두리만, 해낸 칸은 옅은 초록으로
+                          // 찬다 — 한눈에 몇 세트 남았는지 보인다. 고치는 칸은 호박색.
+                          decoration: BoxDecoration(
+                            color: i == editingSet
+                                ? sealTint.resolveFrom(context)
+                                : onTapSet != null && set.done
+                                ? green.withValues(alpha: 0.14)
+                                : null,
+                            border: cursors[i] != null
+                                ? Border.all(color: cursors[i]!, width: 1.5)
+                                : records.contains(i)
+                                ? Border.all(
+                                    color: seal.resolveFrom(context),
+                                    width: 1.5,
+                                  )
+                                : onTapSet == null || i == editingSet
+                                ? null
+                                : Border.all(
+                                    color: set.done
+                                        ? green.withValues(alpha: 0.45)
+                                        : CupertinoColors.separator.resolveFrom(
+                                            context,
+                                          ),
+                                    width: set.done ? 1 : 0.5,
+                                  ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text.rich(
+                            span(i, set),
+                            maxLines: 1,
+                            softWrap: false,
+                            style: style.copyWith(
+                              color: set.done ? label : faint,
+                            ),
+                          ),
+                        ),
+                        if (records.contains(i))
+                          Positioned(
+                            top: -5,
+                            right: 0,
+                            child: Text(
+                              '★',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: seal.resolveFrom(context),
                               ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text.rich(
-                        span(i, set),
-                        maxLines: 1,
-                        softWrap: false,
-                        style: style.copyWith(color: set.done ? label : faint),
-                      ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
@@ -279,8 +316,11 @@ class SetGrid extends StatelessWidget {
 /// 운동 이름 한 줄과 그 아래의 칸들. 읽기 전용 자리(같은 날의 다른 기록,
 /// 전체 보기)가 쓴다 — 편집 화면은 같은 [SetGrid] 위에 제 입력 줄을 얹는다.
 class BlockSummary extends StatelessWidget {
-  const BlockSummary({super.key, required this.block});
+  const BlockSummary({super.key, required this.block, this.notes = true});
   final ExerciseBlock block;
+
+  /// 세트 메모를 보일까. 지난 운동 카드처럼 참고만 하는 자리는 뺀다.
+  final bool notes;
 
   @override
   Widget build(BuildContext context) {
@@ -313,12 +353,13 @@ class BlockSummary extends StatelessWidget {
             ],
           ),
           SetGrid(block: block),
-          for (final (i, set) in block.sets.indexed)
-            for (final note in set.notes)
-              Text(
-                '${i + 1}  $note',
-                style: TextStyle(fontSize: 13, height: 1.35, color: muted),
-              ),
+          if (notes)
+            for (final (i, set) in block.sets.indexed)
+              for (final note in set.notes)
+                Text(
+                  '${i + 1}  $note',
+                  style: TextStyle(fontSize: 13, height: 1.35, color: muted),
+                ),
         ],
       ),
     );

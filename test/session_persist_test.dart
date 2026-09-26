@@ -17,13 +17,16 @@ void main() {
   Account account(http.Client web) => Account(client: web, storageDir: dir);
 
   test('남겨 둔 로그인으로 다시 켠다', () async {
-    File('${dir.path}/session.json')
-        .writeAsStringSync(jsonEncode({'token': 'saved', 'nickname': '김회원'}));
+    File(
+      '${dir.path}/session.json',
+    ).writeAsStringSync(jsonEncode({'token': 'saved', 'nickname': '김회원'}));
     var asked = '';
-    final a = account(MockClient((request) async {
-      asked = request.headers['authorization'] ?? '';
-      return http.Response(jsonEncode({'plan': null, 'selling': false}), 200);
-    }));
+    final a = account(
+      MockClient((request) async {
+        asked = request.headers['authorization'] ?? '';
+        return http.Response(jsonEncode({'plan': null, 'selling': false}), 200);
+      }),
+    );
     await a.restoreSession();
     expect(a.signedIn, isTrue);
     expect(a.nickname, '김회원');
@@ -33,16 +36,29 @@ void main() {
   test('살아 있는 토큰을 보면 서버가 준 새 토큰으로 바꿔 둔다', () async {
     final f = File('${dir.path}/session.json')
       ..writeAsStringSync(jsonEncode({'token': 'old', 'nickname': '김회원'}));
-    final a = account(MockClient((request) async {
-      if (request.url.path.endsWith('/api/me')) {
-        // http.Response(String) 은 charset 이 없으면 latin1 로 싸므로 본문에 한글을 넣지 않는다.
-        return http.Response(jsonEncode({'user': {'nickname': 'kim'}, 'gyms': [], 'token': 'fresh'}), 200);
-      }
-      return http.Response(jsonEncode({'plan': null, 'selling': false}), 200);
-    }));
+    final a = account(
+      MockClient((request) async {
+        if (request.url.path.endsWith('/api/me')) {
+          // http.Response(String) 은 charset 이 없으면 latin1 로 싸므로 본문에 한글을 넣지 않는다.
+          return http.Response(
+            jsonEncode({
+              'user': {'nickname': 'kim'},
+              'gyms': [],
+              'token': 'fresh',
+            }),
+            200,
+          );
+        }
+        return http.Response(jsonEncode({'plan': null, 'selling': false}), 200);
+      }),
+    );
     await a.restoreSession();
     expect(a.token, 'fresh');
-    expect(jsonDecode(f.readAsStringSync())['token'], 'fresh', reason: '다음에 켤 때도 새 토큰이어야 한다');
+    expect(
+      jsonDecode(f.readAsStringSync())['token'],
+      'fresh',
+      reason: '다음에 켤 때도 새 토큰이어야 한다',
+    );
   });
 
   test('서버가 거절한 토큰은 지운다', () async {
@@ -55,9 +71,12 @@ void main() {
   });
 
   test('그물이 없을 뿐이면 로그인을 지키지 않고 버리지 않는다', () async {
-    File('${dir.path}/session.json')
-        .writeAsStringSync(jsonEncode({'token': 'good', 'nickname': '김회원'}));
-    final a = account(MockClient((_) async => throw const SocketException('꺼짐')));
+    File(
+      '${dir.path}/session.json',
+    ).writeAsStringSync(jsonEncode({'token': 'good', 'nickname': '김회원'}));
+    final a = account(
+      MockClient((_) async => throw const SocketException('꺼짐')),
+    );
     await a.restoreSession();
     expect(a.signedIn, isTrue, reason: '못 물어본 것과 거절당한 것은 다르다');
   });
@@ -72,8 +91,10 @@ void main() {
           asked++;
           sentAuth = request.headers['authorization'];
           return http.Response(
-            jsonEncode({'plan': null, 'selling': true}), 200,
-            headers: {'content-type': 'application/json'});
+            jsonEncode({'plan': null, 'selling': true}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
         }
         return http.Response('{}', 200);
       }),
@@ -89,10 +110,12 @@ void main() {
     final f = File('${dir.path}/session.json')
       ..writeAsStringSync(jsonEncode({'token': 'good', 'nickname': '김회원'}));
     var method = '';
-    final a = account(MockClient((request) async {
-      method = request.method;
-      return http.Response('{"ok":true}', 200);
-    }))..token = 'good';
+    final a = account(
+      MockClient((request) async {
+        method = request.method;
+        return http.Response('{"ok":true}', 200);
+      }),
+    )..token = 'good';
     expect(await a.deleteAccount(), isNull);
     expect(method, 'DELETE');
     expect(a.signedIn, isFalse);
@@ -100,10 +123,15 @@ void main() {
   });
 
   test('관장은 탈퇴가 막히고 이유가 그대로 온다', () async {
-    final a = account(MockClient((_) async => http.Response(
-        jsonEncode({'error': 'blocked', 'message': '도장을 먼저 지워 주세요.'}), 409,
-        headers: {'content-type': 'application/json'})))
-      ..token = 'good';
+    final a = account(
+      MockClient(
+        (_) async => http.Response(
+          jsonEncode({'error': 'blocked', 'message': '도장을 먼저 지워 주세요.'}),
+          409,
+          headers: {'content-type': 'application/json'},
+        ),
+      ),
+    )..token = 'good';
     expect(await a.deleteAccount(), '도장을 먼저 지워 주세요.');
     expect(a.signedIn, isTrue, reason: '못 지웠으면 로그인은 그대로여야 한다');
   });
@@ -114,11 +142,21 @@ void main() {
     final web = MockClient((request) async {
       sent = jsonDecode(request.body) as Map<String, Object?>;
       return http.Response(
-        jsonEncode({'token': 't', 'user': {'nickname': '김회원'}}), 200,
-        headers: {'content-type': 'application/json'});
+        jsonEncode({
+          'token': 't',
+          'user': {'nickname': '김회원'},
+        }),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
     });
     await exchange(
-      (method: SignInMethod.apple, idToken: 'id', nickname: '김회원', code: 'auth-code'),
+      (
+        method: SignInMethod.apple,
+        idToken: 'id',
+        nickname: '김회원',
+        code: 'auth-code',
+      ),
       'https://example.com',
       client: web,
     );
@@ -134,8 +172,13 @@ void main() {
       client: MockClient((request) async {
         sent = jsonDecode(request.body) as Map<String, Object?>;
         return http.Response(
-          jsonEncode({'token': 't', 'user': {'nickname': 'x'}}), 200,
-          headers: {'content-type': 'application/json'});
+          jsonEncode({
+            'token': 't',
+            'user': {'nickname': 'x'},
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
       }),
     );
     expect(sent!.containsKey('code'), isFalse);
@@ -146,8 +189,12 @@ void main() {
     final a = Account(
       client: MockClient((_) async => http.Response('꺼짐', 500)),
       storageDir: dir,
-      signInWith: () async =>
-          (method: SignInMethod.apple, idToken: 'id', nickname: '김회원', code: 'c'),
+      signInWith: () async => (
+        method: SignInMethod.apple,
+        idToken: 'id',
+        nickname: '김회원',
+        code: 'c',
+      ),
     );
     expect(await a.signIn(), isFalse);
     expect(a.signInRefused, isTrue);

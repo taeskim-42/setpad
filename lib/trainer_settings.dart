@@ -7,6 +7,7 @@ import 'account.dart';
 import 'editor.dart' show SuggestionChip;
 import 'l10n/generated/app_localizations.dart';
 import 'palette.dart';
+import 'parser.dart' show statedNumbers;
 import 'trainer.dart';
 
 /// 에이전트 설정 — 내 것(시각·요일·업무별 방식)과, 관장이면 도장 방침.
@@ -43,9 +44,100 @@ const _policyNumbers = [
   'lapsed_days',
 ];
 
+/// 방침 숫자 칸의 글. 칸은 일 또는 회를 센다. 문법은 하나다 — **수 하나 + 일·회
+/// 단위 + 붙은 말**: '14', '14 전', '14일', '3회', '7 days', '14일 전', '14일간',
+/// '3회 이하', '약 14일', '14 days ago'. 붙은 말에는 다른 수, 글로 쓴 수량('두 번',
+/// 'two', '열흘'), 일·회가 아닌 기간 단위('달', 'weeks')가 없어야 한다 — '한 달
+/// 14일' 의 14 는 칸의 값이 아니다. 받지 않는 글은 다른 수로 읽지 않고 [why] 로
+/// 까닭을 준다(먼저 걸린 것): decimal('1.5'), unit('48시간', '2주', '한 달 14일',
+/// 'two weeks 3 days' — 일로 바꿔 적어야 한다), range('10~14일', '열흘에서
+/// 14일', 'one to 3 days'), negative('-3', '약 -3일'), many('14일 2회', '14일 두
+/// 번' — 수가 둘), other(숫자가 없다 — '열흘', 'ten').
+({int? value, String? why}) policyNumber(String text) {
+  // 전각 숫자('１４')도 숫자다.
+  final t = text.trim().replaceAllMapped(
+    RegExp('[０-９]'),
+    (m) => String.fromCharCode(m[0]!.codeUnitAt(0) - 0xFF10 + 0x30),
+  );
+  bool has(RegExp r) => r.hasMatch(t);
+  final digits = RegExp(r'\d+(?:[.,]\d+)?').allMatches(t).length;
+  // 글로 쓴 수. 숫자에 붙은 말('14일분' 의 '일분')은 그 숫자의 단위다.
+  final written =
+      statedNumbers(t)
+          .where(
+            (n) =>
+                !t.substring(n.start, n.end).contains(RegExp(r'\d')) &&
+                !(n.start > 0 && RegExp(r'\d').hasMatch(t[n.start - 1])),
+          )
+          .length +
+      _writtenCounts.allMatches(t).length;
+  final quantities = digits + written;
+  final n = quantities == 1 && written == 0 && !has(_otherUnits)
+      ? _policyGrammar.firstMatch(t)
+      : null;
+  if (n != null) return (value: int.parse(n[1] ?? n[2]!), why: null);
+  return (
+    value: null,
+    why: has(RegExp(r'\d\s*[.,]\s*\d'))
+        ? 'decimal'
+        : has(_otherUnits)
+        ? 'unit'
+        : quantities > 1 && has(_rangeWord)
+        ? 'range'
+        : has(RegExp(r'(?:^|[\p{L}\s])[-−–]\s*\d', unicode: true))
+        ? 'negative'
+        : quantities > 1
+        ? 'many'
+        : digits == 0
+        ? 'other'
+        : 'unit',
+  );
+}
+
+final _policyGrammar = RegExp(
+  r'^(\d+)\s*(?:전|前|before|antes|trước|ก่อน)?$'
+  // 앞은 글자만, 뒤는 수 없는 말만.
+  r'|^[\p{L}\p{M}\s]*(\d+)\s*'
+  r'(?:일|회|번|日|天|次|回|วัน|ครั้ง|ngày|lần|días?|veces|days?|times?)\D*$',
+  caseSensitive: false,
+  unicode: true,
+);
+
+/// 일·회가 아닌 기간 — 시간·분·주·달·해. 우리말 '분'·한자 '分' 은 넣지 않는다
+/// ('14일분', '14日分' 은 14일 치다).
+final _otherUnits = RegExp(
+  r'(?:시간|주일|주간|주|달|개월|년)(?:간|동안|이내|후|전|뒤|쯤|정도)?(?![가-힣])|'
+  r'\b(?:hours?|hrs?|minutes?|mins?|weeks?|wks?|months?|years?|yrs?|horas?|'
+  r'minutos?|semanas?|mes|meses|años?)\b|'
+  r'(?<![\p{L}])(?:giờ|phút|tuần|tháng|năm)(?![\p{L}])|'
+  r'ชั่วโมง|นาที|สัปดาห์|อาทิตย์|เดือน|ปี|時間|週間|週|周|星期|小时|小時|ヶ月|か月|カ月|ヵ月|个月|個月|月|年',
+  caseSensitive: false,
+  unicode: true,
+);
+
+/// 글로 쓴 수 가운데 [statedNumbers] 가 안 읽는 것 — 날수를 세는 우리말, 스페인어·
+/// 베트남어·태국어 수.
+final _writtenCounts = RegExp(
+  r'하루|이틀|사흘|나흘|닷새|엿새|이레|여드레|아흐레|열흘|보름|'
+  r'(?<![\p{L}])(?:dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|'
+  r'trece|catorce|quince|veinte|treinta|một|hai|ba|bốn|sáu|bảy|tám|chín|mười)'
+  r'(?![\p{L}])|หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า|สิบ',
+  caseSensitive: false,
+  unicode: true,
+);
+
+/// 두 수 사이의 범위 표기.
+final _rangeWord = RegExp(
+  r'[~\-–—〜～]|에서|부터|\bto\b|\bhasta\b|至|到|đến|ถึง',
+  caseSensitive: false,
+);
+
 class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
   AgentState get _s => widget.state;
   bool _busy = false;
+
+  /// 읽지 못한 방침 칸과 그 까닭. 그 칸 밑에 적고, 저장은 보내지 않는다.
+  Map<String, String> _unreadable = {};
 
   late final _numbers = {
     for (final key in _policyNumbers)
@@ -87,19 +179,38 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
     final l = L.of(context);
     // 숫자 패드에는 닫는 키가 없다. 닫지 않으면 결과가 키보드 뒤에 가린다.
     FocusScope.of(context).unfocus();
-    setState(() => _busy = true);
+    final typed = {
+      for (final key in _policyNumbers) key: _numbers[key]!.text.trim(),
+    };
+    // 친 글에서 수를 못 읽은 칸은 그 칸에서 말한다. 서버에 보내면 저장 전체가
+    // 범위 문구로 거절돼 어느 칸의 무엇이 틀렸는지 흐려진다.
+    final read = {
+      for (final e in typed.entries)
+        if (e.value.isNotEmpty) e.key: policyNumber(e.value),
+    };
+    final unreadable = {for (final e in read.entries) e.key: ?e.value.why};
+    setState(() {
+      _unreadable = unreadable;
+      _busy = unreadable.isEmpty;
+    });
+    if (unreadable.isNotEmpty) return;
     final offer = _offer.text.trim();
-    // 숫자가 아니면 null 로 보낸다 — 서버가 허용 범위를 적어 거절한다.
+    // 빈 칸은 null 로 보낸다 — 서버가 허용 범위를 적어 거절한다.
     final reply = await widget.account.link.saveGymPolicy(widget.gymId, {
-      for (final key in _policyNumbers)
-        key: int.tryParse(_numbers[key]!.text.trim()),
+      for (final key in _policyNumbers) key: read[key]?.value,
       'renewal_offer': offer.isEmpty ? null : offer,
     });
     if (!mounted) return;
     final saved = reply.body?['policy'];
     setState(() {
       _busy = false;
-      if (saved is Map) _s.policy = Map<String, Object?>.from(saved);
+      if (saved is Map) {
+        _s.policy = Map<String, Object?>.from(saved);
+        // 읽은 대로 저장됐다 — '14일' 이 14 로 들어간 것이 보인다.
+        for (final key in _policyNumbers) {
+          _numbers[key]!.text = '${saved[key] ?? ''}';
+        }
+      }
     });
     await tellAgent(
       context,
@@ -247,18 +358,24 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
                 ('low_sessions', l.policyLowSessions),
                 ('away_days', l.policyAwayDays),
                 ('lapsed_days', l.policyLapsedDays),
-              ])
+              ]) ...[
                 _row(
                   label,
                   trailing: SizedBox(
                     width: 64,
                     child: CupertinoTextField(
+                      key: ValueKey('policy-$key'),
                       controller: _numbers[key],
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.end,
                     ),
                   ),
                 ),
+                if (_unreadable[key] case final why?)
+                  _note(
+                    l.policyNumberRejected(_numbers[key]!.text.trim(), why),
+                  ),
+              ],
               _row(l.policyOffer),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),

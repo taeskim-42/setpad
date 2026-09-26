@@ -1,3 +1,4 @@
+import 'body.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -71,6 +72,14 @@ class MealEntry {
   final List<MealSource> sources;
 
   bool get approximate => kcal != null && source != typed && source != label;
+
+  /// 글에 적은 열량이 일부 음식의 것뿐이다("닭가슴살 330kcal, 밥 한 공기").
+  /// [kcal] 은 적은 합이라 온전한 값이 아니다 — 모르는 끼니처럼 센다.
+  bool get partial {
+    if (source != typed || text == null) return false;
+    final parsed = parseMealText(text!);
+    return parsed.kcal == null && parsed.typed != null;
+  }
 
   Map<String, Object?> toJson() => {
     'id': id,
@@ -255,7 +264,8 @@ class Note {
       meals.isEmpty ? null : meals.fold<int>(0, (n, m) => n + (m.kcal ?? 0));
 
   /// 열량을 모르는 끼니 수. 합계를 온전한 총합처럼 보이면 안 되는 이유다.
-  int get unknownMeals => meals.where((m) => m.kcal == null).length;
+  int get unknownMeals =>
+      meals.where((m) => m.kcal == null || m.partial).length;
 
   /// 목록에 뜨는 제목 — 그날 한 운동 이름 전부.
   ///
@@ -265,9 +275,20 @@ class Note {
   /// 첫 운동은 그날을 대표하지 않는다 — 그냥 먼저 친 것뿐이다.
   ///
   /// 길면 화면이 잘라 준다. 앞의 몇 개만 보여도 첫 하나보다 낫다.
-  String? get title => blocks.isEmpty
-      ? draft?.text.trim()
-      : blocks.map((b) => b.name).toSet().join(' · ');
+  ///
+  /// 운동 없이 끼니만 적은 날(쉬는 날의 식단)은 먹은 것이 제목이다 — '새 운동'
+  /// 으로 비워 두면 그날 무엇을 했는지 목록에서 안 보인다.
+  String? get title {
+    if (blocks.isNotEmpty) return blocks.map((b) => b.name).toSet().join(' · ');
+    final typed = draft?.text.trim();
+    if (typed != null && typed.isNotEmpty) return typed;
+    final eaten = mealsText;
+    return eaten.trim().isEmpty ? typed : eaten;
+  }
+
+  /// 먹은 것을 한 줄로 — 끼니마다 친 글 그대로.
+  String get mealsText =>
+      [for (final m in meals) m.text ?? m.items.join(', ')].join(' · ');
 
   /// 제목 아래 한 줄 — 그날 총계.
   ///
@@ -284,11 +305,13 @@ class Note {
     return total == 0 ? '' : setOrdinal(total);
   }
 
-  /// 검색이 훑는 글. 운동 이름과 메모만 본다 — 숫자로 찾는 사람은 없다.
-  String get searchText => blocks
-      .map((b) => [b.name, ...b.sets.expand((s) => s.notes)].join(' '))
-      .join(' ')
-      .toLowerCase();
+  /// 검색이 훑는 글. 운동 이름과 메모, 먹은 것을 본다 — 끼니만 적은 날은 먹은
+  /// 것이 제목이라, 제목에 보이는 글로 못 찾으면 막다른 길이다. 숫자로 찾는
+  /// 사람은 없다.
+  String get searchText => [
+    for (final b in blocks) ...[b.name, ...b.sets.expand((s) => s.notes)],
+    mealsText,
+  ].join(' ').toLowerCase();
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -361,6 +384,17 @@ class NotesStore extends ChangeNotifier {
 
   final Directory? _override;
   final List<Note> _notes = [];
+
+  /// 알릴 때마다 오른다. 화면이 '기록이 바뀌었나' 를 싸게 물어, 바뀌지 않았으면
+  /// 전체 기록을 다시 세지 않는다(떠 있는 답·오늘 루틴).
+  int revision = 0;
+
+  @override
+  void notifyListeners() {
+    revision++;
+    super.notifyListeners();
+  }
+
   Timer? _debounce;
   Future<void> _writes = Future.value();
   final List<String> _exerciseHistory = [];
@@ -373,6 +407,31 @@ class NotesStore extends ChangeNotifier {
   /// 나오면 곤란한 사람이 있고, 켜는 것이 끄는 것보다 쉬워야 한다.
   bool _countAloud = false;
   bool get countAloud => _countAloud;
+
+  /// 내 몸 정보(기초대사량 셈에만). 기기 밖으로 보내지 않는다.
+  BodyProfile _body = const BodyProfile();
+  BodyProfile get body => _body;
+
+  void setBody(BodyProfile value) {
+    _body = value;
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  /// AI 도움(DeepSeek)을 쓰는가. 기본은 켜짐이고 묻지 않는다. 설정의 AI 도움
+  /// 줄에서 끄면 모델로 가는 문이 모두 닫히고 기기 안에서만 한다(RecordAi.enabled).
+  ///
+  /// 저장 키는 1.4.0 의 동의 시트가 쓰던 'aiConsent' 그대로다 — 거기서 '나중에' 를
+  /// 고른 사람(false)은 꺼진 채로 남고, 답하지 않은 사람(없음)은 켜진다.
+  bool _aiOn = true;
+  bool get aiOn => _aiOn;
+
+  void setAiOn(bool value) {
+    if (value == _aiOn) return;
+    _aiOn = value;
+    notifyListeners();
+    _scheduleSave();
+  }
 
   /// 이 기기를 가리키는 무작위 문자열. 사람을 가리키지 않는다.
   ///
@@ -407,6 +466,8 @@ class NotesStore extends ChangeNotifier {
           final data = jsonDecode(await preferences.readAsString()) as Map;
           _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
           _countAloud = data['countAloud'] == true;
+          _body = BodyProfile.fromJson(data['body']);
+          _aiOn = data['aiConsent'] != false;
           final saved = data['deviceId'];
           if (saved is String && saved.length >= 16) _deviceId = saved;
           if (data['platesDay'] case final String day) _platesDay = day;
@@ -443,9 +504,12 @@ class NotesStore extends ChangeNotifier {
       _sort();
       for (final n in _notes) {
         for (final b in n.blocks.reversed) {
-          if (!_forgottenExercises.contains(b.name) &&
-              !_exerciseHistory.contains(b.name)) {
-            _exerciseHistory.add(b.name);
+          // 익히는 것은 운동 이름이다 — 제목 문장('벤치 80kg 5x5')이 아니다.
+          final name = b.learnedName;
+          if (name != null &&
+              !_forgottenExercises.contains(name) &&
+              !_exerciseHistory.contains(name)) {
+            _exerciseHistory.add(name);
           }
         }
       }
@@ -470,6 +534,8 @@ class NotesStore extends ChangeNotifier {
     final preferences = jsonEncode({
       'weightUnit': _weightUnit,
       'countAloud': _countAloud,
+      'body': _body.toJson(),
+      'aiConsent': _aiOn,
       'deviceId': _deviceId,
       'platesDay': _platesDay,
       'exercises': _exerciseHistory,
@@ -509,6 +575,14 @@ class NotesStore extends ChangeNotifier {
     _scheduleSave();
   }
 
+  /// 설정을 붙여 만든 칸 가운데 제목이 [title] 인 가장 최근 것의 설정. 같은 루틴
+  /// 줄을 다음 날 또 치면 편집기가 이 설정을 다시 쓴다.
+  WorkoutSetup? setupOf(String title) => _notes
+      .expand((n) => n.blocks)
+      .where((b) => b.name == title && b.setup != null)
+      .firstOrNull
+      ?.setup;
+
   void rememberExercise(String name) {
     if (name.trim().isEmpty) return;
     _forgottenExercises.remove(name);
@@ -533,6 +607,22 @@ class NotesStore extends ChangeNotifier {
   }
 
   void _sort() => _notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
+  /// 그날의 기록 — 하루에 한 곳에 적는다. 오늘 만든 기록이 있으면 그것, 없으면
+  /// 새로. 같은 날 기록이 둘이면 하나는 고칠 수 없는 곳에 따로 보였다.
+  Note today({DateTime? now}) {
+    final t = now ?? DateTime.now();
+    for (final n in _notes) {
+      final d = n.createdAt;
+      if (n.proxy == null &&
+          d.year == t.year &&
+          d.month == t.month &&
+          d.day == t.day) {
+        return n;
+      }
+    }
+    return create(at: now);
+  }
 
   Note create({
     List<ExerciseBlock>? blocks,
@@ -580,9 +670,12 @@ class NotesStore extends ChangeNotifier {
     _scheduleSave();
   }
 
-  /// 아무것도 안 친 메모는 목록에 남길 이유가 없다. 메모 앱과 같다.
+  /// 아무것도 안 친 메모는 목록에 남길 이유가 없다. 메모 앱과 같다. 끼니만 적은
+  /// 기록(쉬는 날의 식단)은 빈 기록이 아니다.
   void discardIfEmpty(Note note) {
-    if (note.blocks.isEmpty && (note.draft?.text.trim().isEmpty ?? true)) {
+    if (note.blocks.isEmpty &&
+        note.meals.isEmpty &&
+        (note.draft?.text.trim().isEmpty ?? true)) {
       delete(note);
     }
   }

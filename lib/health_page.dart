@@ -39,6 +39,7 @@ class HealthDataPage extends StatelessWidget {
             line(l.healthDataIntro, color: muted),
             line(l.healthDataWrite),
             line(l.healthDataCalories),
+            line(l.healthDataBasal),
             line(l.healthDataHeart),
             line(l.healthDataStays),
             line(

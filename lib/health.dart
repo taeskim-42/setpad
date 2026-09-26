@@ -35,6 +35,8 @@ class HealthLink {
   static const _access = {
     HealthDataType.WORKOUT: HealthDataAccess.WRITE,
     HealthDataType.ACTIVE_ENERGY_BURNED: HealthDataAccess.READ,
+    // 기초대사량 — 그날 쓴 칼로리에 넣는다. 없으면 몸 정보로 셈한다(body.dart).
+    HealthDataType.BASAL_ENERGY_BURNED: HealthDataAccess.READ,
     HealthDataType.HEART_RATE: HealthDataAccess.READ,
   };
 
@@ -101,6 +103,43 @@ class HealthLink {
       return total;
     } catch (e) {
       debugPrint('활동 칼로리 읽기 실패: $e');
+      return null;
+    }
+  }
+
+  /// 그 기간의 기초대사량(kcal). 잰 것이 없으면 null.
+  ///
+  /// iOS 는 워치·폰이 쌓은 휴식 에너지 조각의 합이다. Android(Health Connect)는
+  /// '하루 몇 kcal' 비율을 적어 두므로, 기간 끝 전의 마지막 값을 기간 길이만큼 셈한다.
+  Future<double?> basalEnergy(DateTime start, DateTime end) async {
+    if (!supported) return null;
+    try {
+      await _ensureConfigured();
+      final points = await _health.getHealthDataFromTypes(
+        types: [HealthDataType.BASAL_ENERGY_BURNED],
+        startTime: _platform == TargetPlatform.android
+            ? start.subtract(const Duration(days: 30))
+            : start,
+        endTime: end,
+      );
+      final values = [
+        for (final p in points)
+          if (p.type == HealthDataType.BASAL_ENERGY_BURNED &&
+              p.value is NumericHealthValue)
+            (
+              at: p.dateFrom,
+              v: (p.value as NumericHealthValue).numericValue.toDouble(),
+            ),
+      ];
+      if (values.isEmpty) return null;
+      if (_platform == TargetPlatform.android) {
+        values.sort((a, b) => a.at.compareTo(b.at));
+        final perDay = values.last.v;
+        return perDay * end.difference(start).inMinutes / 1440;
+      }
+      return values.fold<double>(0, (n, x) => n + x.v);
+    } catch (e) {
+      debugPrint('기초대사량 읽기 실패: $e');
       return null;
     }
   }

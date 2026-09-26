@@ -49,6 +49,7 @@ class Account extends ChangeNotifier {
     this.client,
     this.storageDir,
     this.deviceId,
+    this.aiEnabled,
     Future<Credential?> Function()? signInWith,
   }) : _purchases = purchases ?? Purchases(),
        _signInWith = signInWith ?? signInWithPlatform;
@@ -64,6 +65,9 @@ class Account extends ChangeNotifier {
 
   /// 이 기기의 id. 기기 id 는 저장소를 읽은 뒤에 생기므로 부를 때 읽는다.
   final String Function()? deviceId;
+
+  /// AI 도움이 켜져 있는가([RecordAi.enabled]).
+  final bool Function()? aiEnabled;
 
   /// 제공자 로그인 창을 여는 일. 테스트는 진짜 애플 창을 열 수 없다.
   final Future<Credential?> Function() _signInWith;
@@ -101,6 +105,7 @@ class Account extends ChangeNotifier {
     accountToken: () => token,
     onPlates: _setPlates,
     onUnauthorized: signOut,
+    enabled: aiEnabled,
   );
 
   /// 남은 원판. 서버가 알려 준 값이고, 모르면 null.

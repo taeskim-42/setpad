@@ -140,22 +140,23 @@ void main() {
     );
   });
 
-  test('값이 빠진 세트가 든 운동은 칸을 비우고 각주에 적는다', () {
+  test('맨몸 세트가 섞인 운동의 최고는 무게 세트로 세고, 뺀 세트를 말한다', () {
     final r = run(of('딥스', 'best'));
-    expect(r.rows.single.cells.single.reason, 'unknown');
-    expect(r.footnotes, [l.queryMissingFor('딥스')]);
+    final c = r.rows.single.cells.single;
+    expect((c.reason, c.answer!.numericValue), (null, 20));
+    expect(c.answer!.lines.first, l.queryNoWeightSets(1, 12));
+    expect(r.footnotes, isEmpty);
   });
-
   test('전체 합계는 운동 단위로 해당 없음을 뺀다', () {
     final thisWeek = run({
       'period': 'thisWeek',
       'measures': ['volume'],
     });
-    expect(thisWeek.rows.single.cells.single.reason, 'unknown');
-    expect(thisWeek.footnotes, [
-      l.queryOutOfScope('러닝'),
-      l.queryMissingFor('딥스'),
-    ]);
+    // 딥스의 맨몸 세트 하나가 이번 주 볼륨 전체를 지우지 않는다(벤치 175 + 딥스 200).
+    final week = thisWeek.rows.single.cells.single;
+    expect((week.reason, week.answer!.numericValue), (null, 375));
+    expect(week.answer!.lines.first, l.queryNoWeightSets(1, 12));
+    expect(thisWeek.footnotes, [l.queryOutOfScope('러닝')]);
     final lastWeek = run({
       'period': 'lastWeek',
       'measures': ['volume'],
@@ -222,18 +223,24 @@ void main() {
     expect(trend.headline, '+2.5kg');
     final r = run({
       ...of('벤치프레스', 'best'),
-      'compare': [
+      'series': [
         {'period': 'lastMonth'},
         {'period': 'thisMonth'},
       ],
     });
     expect(r.render, 'table');
-    expect(r.columns, ['2026-08-01 – 2026-08-31', '2026-09-01 – 2026-09-23']);
+    // v3 의 방향은 하나다: 줄 = series, 칸 = 측정.
+    expect(r.columns, ['최고']);
+    // 진행 중인 달은 표시한다.
+    expect(r.rows.map((row) => row.label), [
+      '2026-08-01 – 2026-08-31',
+      '2026-09-01 – 2026-09-23 · ${l.queryOngoing}',
+    ]);
     expect(
-      [for (final c in r.rows.single.cells) c.answer!.numericValue],
+      [for (final row in r.rows) row.cells.single.answer!.numericValue],
       [85, 87.5],
     );
-    expect(r.diff.single, contains('+2.5kg (≈+2.94%)'));
+    expect(r.lines.single, contains('+2.5kg (≈+2.94%)'));
   });
 
   test('가장 오래 안 한 운동 셋 — 나머지는 가린다', () {
@@ -264,11 +271,8 @@ void main() {
     });
     expect(r.rows.single.label, '스쿼트');
     expect(r.rows.single.cells.single.answer!.headline, '105kg × 3회');
-    expect(r.footnotes, [
-      l.queryOutOfScope('러닝, 풀업, 플랭크'),
-      l.queryMissingFor('딥스'),
-      l.queryMore(2),
-    ]);
+    // 딥스는 맨몸 세트를 빼고 20kg 으로 순위에 든다(누락이 아니다).
+    expect(r.footnotes, [l.queryOutOfScope('러닝, 풀업, 플랭크'), l.queryMore(2)]);
   });
 
   test('합계와 주당 평균 — 빈 주도 센다', () {
@@ -277,7 +281,9 @@ void main() {
       'measures': ['best'],
       'total': 'sum',
     });
-    expect(sum.total!.single.answer!.numericValue, 192.5);
+    // 최고의 합계에는 추정 1RM 도 곁들인다 — 어느 기준인지 칸이 말한다.
+    expect(sum.columns, ['최고', '추정 1RM']);
+    expect(sum.total!.first.answer!.numericValue, 192.5);
     final weeks = run({
       'by': 'week',
       'measures': ['trainingDays'],
@@ -299,8 +305,8 @@ void main() {
     final q = RecordQuery.decode(of('벤치프레스', 'best'), names, today: today);
     expect(q.requiresConfirmation, isTrue);
     expect(runQuery(q, fixture, l: l, unit: 'kg', today: today), isNull);
-    const chip = RecordQuery(
-      scope: QueryScope(exercises: ['벤치프레스', '바벨로우']),
+    final chip = RecordQuery(
+      scope: const QueryScope(exercises: ['벤치프레스', '바벨로우']),
       by: 'exercise',
     );
     expect(chip.requiresConfirmation, isFalse);
@@ -434,7 +440,8 @@ void main() {
       'measures': ['best'],
       'total': 'sum',
     });
-    expect(sum.total!.single.answer!.numericValue, 192.5);
+    expect(sum.rows, hasLength(2));
+    expect(sum.total!.first.answer!.numericValue, 192.5);
   });
 
   test('시간 묶음의 최고는 한 번만 푼다 — kg 과 회가 한 차트에 섞이지 않는다', () {
@@ -469,10 +476,16 @@ void main() {
     final cells = [for (final row in r.rows) row.cells.single];
     expect(
       [for (final c in cells) c.answer?.metric],
-      [Metric.max, null, Metric.max, null],
+      [Metric.max, Metric.max, Metric.max, null],
     );
-    expect([for (final c in cells) c.reason], [null, 'unknown', null, 'none']);
-    expect(r.footnotes, [l.queryMissingFor('딥스')]);
+    // 맨몸만 한 주는 무게 칸이 '—' 와 까닭이다 — 회로 바꿔 찍지 않는다.
+    expect(
+      [for (final c in cells) c.answer?.numericValue],
+      [10, null, 15, null],
+    );
+    expect(cells[1].answer!.lines, [l.queryNoWeightSets(1, 15)]);
+    expect([for (final c in cells) c.reason], [null, null, null, 'none']);
+    expect(r.footnotes, isEmpty);
   });
 
   test('추정 1RM: 11회 이상 세트뿐이면 해당 없음이지 누락이 아니다', () {
@@ -495,7 +508,7 @@ void main() {
       today: today,
       confirmed: true,
     )!;
-    expect(r.rows.single.cells.single.reason, 'none');
+    expect(r.rows.single.cells.single.reason, 'na');
     expect(r.footnotes, [l.queryE1rmRule, l.queryOutOfScope('레그프레스')]);
   });
 

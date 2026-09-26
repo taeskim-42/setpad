@@ -104,8 +104,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('1. 사용자가 만든 운동 이름', () {
-    test('이름에 든 숫자는 수치가 아니고, 모델이 바꾼 이름은 친 글로 되돌린다', () async {
-      expect(hasSetupIntent('민수식 로우 2'), isFalse);
+    test('이름에 든 숫자는 모델이 이름에 넣고, 모델이 바꾼 이름은 친 글로 되돌린다', () async {
+      // 수가 든 글은 모델로 간다 — 2 가 이름인지는 모델이 이름에 넣어 답한다.
+      expect(hasSetupIntent('민수식 로우 2'), isTrue);
+      expect(hasSetupIntent('민수식 로우'), isFalse);
       expect(hasSetupIntent('내 방식 벤치 변형 30kg 12회'), isTrue);
       expect(typedName('내 방식 벤치 변형 30kg 12회', '벤치프레스'), '내 방식 벤치 변형');
       expect(typedName('민수식 로우 2 30kg 12회', '민수식 로우 2'), '민수식 로우 2');
@@ -115,25 +117,29 @@ void main() {
       // 모델이 사전 이름으로 바꿔 답해도 저장되는 이름은 친 글이다.
       final ai = RecordAi(
         respond: (_, _) async => {
-          'isExercise': true,
-          'name': '벤치프레스',
-          'weight': 30,
-          'unit': 'kg',
-          'totalReps': null,
-          'repsPerSet': 12,
-          'totalSets': null,
-          'repsOnly': false,
+          'exercises': [
+            {
+              'name': '벤치프레스',
+              'weight': 30,
+              'unit': 'kg',
+              'totalReps': null,
+              'repsPerSet': 12,
+              'totalSets': null,
+              'repsOnly': false,
+            },
+          ],
         },
       );
-      final setup = await ai.interpret('내 방식 벤치 변형 30kg 12회', 'ko', ['벤치프레스']);
+      final setup = (await ai.interpret('내 방식 벤치 변형 30kg 12회', 'ko', [
+        '벤치프레스',
+      ])).exercises.single.setup;
       expect(setup.name, '내 방식 벤치 변형');
       expect(setup.weight, 30);
       expect(setup.repsPerSet, 12);
-      // 이름을 가를 수 없으면 실패로 돌려 원문을 사람이 직접 쓰게 한다.
-      await expectLater(
-        ai.interpret('30kg 12회', 'ko', ['벤치프레스']),
-        throwsFormatException,
-      );
+      // X9: 이름을 가를 수 없어도 던지지 않는다. 확인 창이 그 이름을 보여 준다.
+      final bare = await ai.interpret('30kg 12회', 'ko', ['벤치프레스']);
+      expect(bare.exercises.single.setup.name, '벤치프레스');
+      expect(bare.exercises.single.setup.weight, 30);
     });
 
     testWidgets('Enter 는 친 이름을 넣고, 후보는 눌렀을 때만 들어가며, 다시 열어도 그대로다', (
@@ -187,7 +193,13 @@ void main() {
         '벤',
         '벤치프레스',
       ]);
-      expect(reopened.exerciseHistory, containsAll(names));
+      // 익히는 것은 운동 이름이다. 모델 없이(테스트는 오프라인) 만든 '민수식 로우 2'
+      // 는 수 낱말을 뺀 이름으로 익힌다 — 제목 문장을 이름으로 익히지 않는다(X8).
+      expect(
+        reopened.exerciseHistory,
+        containsAll(['내 방식 벤치', '벽 짚고 반쯤 스쿼트', '민수식 로우']),
+      );
+      expect(reopened.exerciseHistory, isNot(contains('민수식 로우 2')));
     });
   });
 
@@ -297,6 +309,164 @@ void main() {
       expect(find.textContaining('세트를 먼저 입력'), findsOneWidget);
       expect(c.blocks.single.sets.single.value, 80);
       expect(c.blocks.single.sets.single.reps, 10);
+    });
+  });
+
+  group('세트 줄에 친 것은 버리지 않는다', () {
+    testWidgets('저장된 세트를 고치며 친 메모와 반복 수를 버리지 않는다', (tester) async {
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 10 첫 세트')
+        ..addSet('70 8');
+      await pumpEditor(tester, c);
+      final sets = c.blocks.single.sets;
+
+      await tester.tap(find.text('1 80×10'));
+      await tester.pumpAndSettle();
+      await keys(tester, '80 10 무릎 아픔');
+      expect(sets.first.notes, ['첫 세트'], reason: '치는 동안 글자마다 쌓이지 않는다');
+      await tester.tap(padKey('완료'));
+      await tester.pumpAndSettle();
+      expect(sets.first.notes, ['첫 세트', '무릎 아픔']);
+
+      await tester.tap(find.text('2 70×8'));
+      await tester.pumpAndSettle();
+      await keys(tester, '72.5 8 x3');
+      expect(sets, hasLength(2), reason: '치는 동안(x → x3)에는 늘리지 않는다');
+      await tester.tap(padKey('완료'));
+      await tester.pumpAndSettle();
+      expect(sets.map((s) => (s.value, s.reps)), [
+        (80.0, 10),
+        (72.5, 8),
+        (72.5, 8),
+        (72.5, 8),
+      ]);
+      expect(sets.first.notes, ['첫 세트', '무릎 아픔'], reason: '다른 세트는 그대로다');
+    });
+
+    testWidgets('x3 을 친 채 같은 운동의 뒤 세트를 누르면 누른 그 세트를 고친다', (tester) async {
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 10')
+        ..addSet('70 8');
+      await pumpEditor(tester, c);
+      final sets = c.blocks.single.sets;
+      await tester.tap(find.text('1 80×10'));
+      await tester.pumpAndSettle();
+      await keys(tester, '80 10 x3');
+      await tester.tap(find.text('2 70×8'));
+      await tester.pumpAndSettle();
+      expect(typed(tester), '70kg 8', reason: '누른 세트가 열린다 — 방금 생긴 사본이 아니다');
+      await keys(tester, '75 8');
+      await tester.tap(padKey('완료'));
+      await tester.pumpAndSettle();
+      // 사본은 addSet 처럼 끝에 붙는다 — 같이 고치는 문서(서버·상대 화면)와 순서가 같다.
+      expect(sets.map((s) => (s.value, s.reps)), [
+        (80.0, 10),
+        (75.0, 8),
+        (80.0, 10),
+        (80.0, 10),
+      ]);
+    });
+
+    test('사본은 끝에 붙고 적은 사람을 물려받는다 — 상대 세트가 내 세트로 바뀌지 않는다', () {
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('60 10')
+        ..addSet('50 12');
+      c.blocks.single.sets.first.author = '민수';
+      c.extendSet(0, 0, note: '좋았음', count: 3);
+      expect(
+        c.blocks.single.sets.map((s) => (s.value, s.author, s.notes.join(','))),
+        [
+          (60.0, '민수', '좋았음'),
+          (50.0, null, ''),
+          (60.0, '민수', '좋았음'),
+          (60.0, '민수', '좋았음'),
+        ],
+      );
+    });
+
+    testWidgets('고치는 중에 다른 운동을 지워도 줄에 친 메모·xN 은 적용된다', (tester) async {
+      final c = RoutineEditorController()
+        ..addExercise('스쿼트')
+        ..addSet('100 5')
+        ..addExercise('벤치프레스')
+        ..addSet('80 10');
+      await pumpEditor(tester, c);
+      await tester.tap(find.text('1 80×10'));
+      await tester.pumpAndSettle();
+      await keys(tester, '80 10 x2 좋았음');
+      await tester.tap(find.byIcon(CupertinoIcons.trash).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CupertinoDialogAction, '삭제'));
+      await tester.pumpAndSettle();
+      expect(c.blocks.map((b) => b.name), ['벤치프레스']);
+      expect(
+        c.blocks.single.sets.map((s) => (s.value, s.reps, s.notes.join(','))),
+        [(80.0, 10, '좋았음'), (80.0, 10, '좋았음')],
+      );
+    });
+
+    testWidgets('고치는 중에 다른 운동을 지울 때 못 읽는 글은 입력칸에 남는다', (tester) async {
+      final c = RoutineEditorController()
+        ..addExercise('스쿼트')
+        ..addSet('100 5')
+        ..addExercise('벤치프레스')
+        ..addSet('80 10');
+      await pumpEditor(tester, c);
+      await tester.tap(find.text('1 80×10'));
+      await tester.pumpAndSettle();
+      await keys(tester, '80 10 x30');
+      await tester.tap(find.byIcon(CupertinoIcons.trash).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CupertinoDialogAction, '삭제'));
+      await tester.pumpAndSettle();
+      expect(c.blocks.map((b) => b.name), ['벤치프레스']);
+      expect(typed(tester), '80 10 x30');
+      expect(find.text('한 번에 20세트까지예요. 줄을 나눠 적어 주세요.'), findsOneWidget);
+    });
+
+    testWidgets('고치던 세트를 × 로 지워도 줄에 친 xN 은 버리지 않는다 — 사본이 남는다', (tester) async {
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 10')
+        ..addSet('70 8');
+      await pumpEditor(tester, c);
+      await tester.tap(find.text('2 70×8'));
+      await tester.pumpAndSettle();
+      await keys(tester, '70 8 x3 무릎');
+      await tester.tap(find.byIcon(CupertinoIcons.xmark));
+      await tester.pumpAndSettle();
+      expect(
+        c.blocks.single.sets.map((s) => (s.value, s.reps, s.notes.join(','))),
+        [(80.0, 10, ''), (70.0, 8, '무릎'), (70.0, 8, '무릎')],
+      );
+    });
+
+    testWidgets('X16 한 줄에 20세트를 넘기면 자르지 않고, 글을 두고 이유를 말한다', (tester) async {
+      final c = RoutineEditorController()..addExercise('푸시업');
+      await pumpEditor(tester, c);
+      await keys(tester, '10 x30');
+      pad(tester).onSubmit();
+      await tester.pumpAndSettle();
+      expect(c.blocks.single.sets, isEmpty);
+      expect(find.text('한 번에 20세트까지예요. 줄을 나눠 적어 주세요.'), findsOneWidget);
+      expect(find.textContaining('세트를 먼저 입력'), findsNothing);
+      expect(typed(tester), '10 x30');
+
+      // 고치는 세트에서도 같다 — 원래 세트는 그대로다.
+      c.addSet('50 10 x20');
+      await tester.pumpAndSettle();
+      expect(c.blocks.single.sets, hasLength(20));
+      await tester.tap(find.text('1 50×10'));
+      await tester.pumpAndSettle();
+      await keys(tester, '50 12 x21');
+      await tester.tap(padKey('완료'));
+      await tester.pumpAndSettle();
+      expect(find.text('한 번에 20세트까지예요. 줄을 나눠 적어 주세요.'), findsOneWidget);
+      expect(c.blocks.single.sets, hasLength(20));
+      expect(c.blocks.single.sets.first.reps, 10);
     });
   });
 
@@ -507,6 +677,8 @@ void main() {
       // 서버를 못 쓰는 상태 — 기본 RecordAi 는 기기 id 가 없어 지원되지 않는다.
       await pumpPage(tester, EditorPage(store: store, note: note));
       // 식단 적기는 입력 줄 위 막대에 있다 — 화면 맨 위의 버튼은 뺐다.
+      await tester.tap(find.byKey(const ValueKey('meal-button')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
       await tester.pumpAndSettle();
       await submit(tester, '점심 김밥 한 줄, 라면 반 개');
@@ -534,7 +706,7 @@ void main() {
       expect(meal.foods.single.unit, '줄');
     });
 
-    testWidgets('운동 이름을 적는 줄에 음식을 쳤으면 한 번 눌러 끼니로 남긴다 — 알아서 바꾸지는 않는다', (
+    testWidgets('운동 이름을 적는 줄에 음식을 쳤으면 포크·나이프를 한 번 눌러 끼니로 남긴다 — 알아서 바꾸지는 않는다', (
       tester,
     ) async {
       final dir = Directory.systemTemp.createTempSync('setpad_meal_chip_');
@@ -545,25 +717,21 @@ void main() {
       });
       final note = store.create();
       await pumpPage(tester, EditorPage(store: store, note: note));
-      // 아무것도 안 쳤으면 누를 것도 없다.
-      expect(find.byKey(const ValueKey('log-as-meal')), findsNothing);
 
+      // 따로 누를 칩은 없다 — 포크·나이프가 친 글을 끼니로 보낸다.
       await tester.enterText(input, '김치찌개');
       await tester.pump();
-      expect(find.text('식단으로 기록'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('log-as-meal')));
+      expect(find.text('식단으로 기록'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('meal-button')));
       await tester.pumpAndSettle();
       expect(note.meals.single.text, '김치찌개');
       expect(note.blocks, isEmpty, reason: '운동 칸이 생기면 안 된다');
       expect(typed(tester), isEmpty, reason: '입력 줄은 비워져 다음 것을 칠 수 있다');
-      expect(find.byKey(const ValueKey('log-as-meal')), findsNothing);
 
       // 누르지 않고 그냥 넣으면 예전 그대로 운동 이름이다 — 앱이 음식이라고 넘겨짚지 않는다.
       await submit(tester, '케이블 크런치');
       expect(note.blocks.single.name, '케이블 크런치');
       expect(note.meals, hasLength(1));
-      // 세트를 적는 중에는 나오지 않는다.
-      expect(find.byKey(const ValueKey('log-as-meal')), findsNothing);
 
       await tester.pumpWidget(const SizedBox());
       await flush(tester, store);
@@ -735,38 +903,35 @@ void main() {
       expect(find.text('3 47.5×10'), findsOneWidget);
     });
 
-    testWidgets('같은 날의 다른 문서는 합치지 않고 아래에 읽기 전용으로 보인다', (tester) async {
-      final dir = Directory.systemTemp.createTempSync('setpad_sameday_');
+    testWidgets('하루에 기록은 한 곳이고, 아래에는 지난주 같은 요일 운동이 접혀 보인다', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_lastweek_');
       final store = NotesStore(directory: dir);
       addTearDown(() {
         store.dispose();
         dir.deleteSync(recursive: true);
       });
-      final morning = store.create(
+      final now = DateTime.now();
+      final lastWeek = store.create(
+        at: now.subtract(const Duration(days: 7)),
         blocks: [
           ExerciseBlock('아침 달리기', [LoggedSet(value: 5, unit: 'km')]),
         ],
       );
-      final evening = store.create(
-        blocks: [
-          ExerciseBlock('벤치프레스', [LoggedSet(value: 80, reps: 10)]),
-        ],
+      final today = store.today()
+        ..blocks.add(ExerciseBlock('벤치프레스', [LoggedSet(value: 80, reps: 10)]));
+      expect(
+        identical(store.today(), today),
+        isTrue,
+        reason: '오늘 기록이 있으면 새로 만들지 않는다',
       );
-      await pumpPage(tester, EditorPage(store: store, note: evening));
-      expect(find.textContaining('같은 날의 다른 기록'), findsOneWidget);
-      expect(find.text('아침 달리기'), findsOneWidget);
+      await pumpPage(tester, EditorPage(store: store, note: today));
+      expect(find.textContaining(RegExp(r'^지난주 .+ 운동')), findsOneWidget);
+      // 기본은 접힌 한 줄 — 누르면 세트까지 펼친다.
+      expect(find.textContaining('아침 달리기'), findsOneWidget);
+      expect(find.text('1 5km'), findsNothing);
+      await tester.tap(find.byKey(ValueKey('past-${lastWeek.id}')));
+      await tester.pumpAndSettle();
       expect(find.text('1 5km'), findsOneWidget);
-      expect(evening.blocks, hasLength(1), reason: '원본을 합치지 않는다');
-      expect(morning.blocks, hasLength(1));
-
-      // 전체 보기에도 두 문서가 다 들어간다.
-      await tester.tap(find.byKey(const ValueKey('record-menu')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('menu-day-sheet')));
-      await tester.pumpAndSettle();
-      expect(find.byType(InteractiveViewer), findsOneWidget);
-      expect(find.text('1 5km'), findsWidgets);
-      expect(find.text('1 80×10'), findsWidgets);
     });
   });
 }

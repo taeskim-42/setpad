@@ -6,7 +6,8 @@ String formatRoundedQuantity(
   String locale, {
   bool signed = false,
 }) {
-  final formatter = NumberFormat('0.##', locale);
+  // 천 단위는 끊어 읽는다 — '48630kcal' 은 한눈에 안 읽혔다.
+  final formatter = NumberFormat('#,##0.##', locale);
   final text = formatter.format(value);
   final approximate = formatter.parse(text).toDouble() != value;
   return '${approximate ? '≈' : ''}${signed && value >= 0 ? '+' : ''}$text';

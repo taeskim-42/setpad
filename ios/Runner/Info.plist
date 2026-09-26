@@ -102,7 +102,7 @@
 	<key>NSAlarmKitUsageDescription</key>
 	<string>타바타 휴식 중 심박이 내려오면 휴식을 끝내고, 폰을 보지 않아도 다음 라운드를 손목까지 알리려고 경보를 씁니다.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>운동한 시간 동안 워치가 잰 활동 칼로리를 그 기록에 붙이고, 타바타 휴식 중 심박이 충분히 내려오면 휴식을 끝내고 다음 라운드를 알리려고 심박수를 읽습니다. 읽은 값은 기기 밖으로 보내지 않습니다.</string>
+	<string>운동한 시간 동안 워치가 잰 활동 칼로리를 그 기록에 붙이고, 그날 쓴 칼로리에 휴식 에너지(기초대사량)를 넣고, 타바타 휴식 중 심박이 충분히 내려오면 휴식을 끝내고 다음 라운드를 알리려고 심박수를 읽습니다. 읽은 값은 기기 밖으로 보내지 않습니다.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>여기서 친 운동을 건강 앱의 운동 기록으로 남깁니다.</string>
 	<key>NSCameraUsageDescription</key>

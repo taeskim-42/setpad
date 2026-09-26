@@ -4,7 +4,11 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 
+import 'body.dart';
+import 'day_energy.dart';
 import 'editor.dart';
+import 'milestones.dart';
+import 'unfold.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'health.dart';
 import 'health_page.dart';
@@ -19,6 +23,7 @@ import 'gym_sheets.dart';
 import 'handoff.dart';
 import 'meal.dart';
 import 'meal_amount_sheet.dart';
+import 'anatomy_page.dart' show registerArtworkLicense;
 import 'notes.dart';
 import 'palette.dart';
 import 'partner.dart';
@@ -33,6 +38,7 @@ import 'share.dart';
 import 'trainer.dart';
 
 void main() {
+  registerArtworkLicense();
   runApp(const SetpadApp());
   // 트레이너 보고 알림. 알림을 눌러 켜졌으면 그 탭을 여기서 받아 두었다가
   // AgentAlarm.taps 로 넘긴다. 테스트는 main 을 부르지 않으니 채널도 안 깬다.
@@ -153,18 +159,9 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) => _open(_todayOrNew()));
   }
 
-  /// 오늘 고친 메모가 있으면 이어 쓴다. 하루에 앱을 여러 번 여는 흐름에서
-  /// 열 때마다 새 기록이 쌓이면 목록이 못 쓰게 된다.
-  Note _todayOrNew() {
-    final now = DateTime.now();
-    for (final n in _store.notes) {
-      final d = n.updatedAt;
-      if (d.year == now.year && d.month == now.month && d.day == now.day) {
-        return n;
-      }
-    }
-    return _store.create();
-  }
+  /// 오늘 기록을 이어 쓴다. 하루에 앱을 여러 번 여는 흐름에서 열 때마다 새 기록이
+  /// 쌓이면 목록이 못 쓰게 된다.
+  Note _todayOrNew() => _store.today();
 
   Future<void> _open(Note note) async {
     await Navigator.of(context).push(
@@ -227,11 +224,12 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
 
   /// 로그인과 결제. **없어도 앱은 그대로 돈다** — 켜지 않은 사람은 그냥 쓴다.
   /// 기기 id 는 store 가 처음 켤 때 만들므로 부를 때 읽는다.
-  late final _account = Account(deviceId: () => _store.deviceId)
-    // 시작이 실패해도 알림 탭이 영영 기다리지 않게 늘 끝낸다.
-    ..start()
-        .whenComplete(_accountStarted.complete)
-        .then((_) => _sendPendingWorkouts());
+  late final _account =
+      Account(deviceId: () => _store.deviceId, aiEnabled: () => _store.aiOn)
+        // 시작이 실패해도 알림 탭이 영영 기다리지 않게 늘 끝낸다.
+        ..start()
+            .whenComplete(_accountStarted.complete)
+            .then((_) => _sendPendingWorkouts());
 
   void _claimDaily() => unawaited(_account.claimDaily(_store));
 
@@ -552,9 +550,14 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   }
 
   final _documentHeaderKey = GlobalKey<_DocumentHeaderState>();
+
+  /// 어림을 기다리는 끼니. 그 줄은 '다시 어림' 대신 어림 중이라고 말한다.
+  /// 고친 끼니는 새 객체라서, 옛 끼니의 늦은 답이 새 줄의 표시를 지우지 않는다.
+  final _estimatingMeals = <MealEntry>{};
   late final _editor = RoutineEditorController(
     history: widget.store.exerciseHistory,
     weightUnit: widget.store.weightUnit,
+    savedSetup: widget.store.setupOf,
   );
   String? _lastLearned;
   final _mealText = ValueNotifier<({String text, int? index})?>(null);
@@ -604,6 +607,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
         RoutineEditorController(
             history: widget.store.exerciseHistory,
             weightUnit: widget.store.weightUnit,
+            savedSetup: widget.store.setupOf,
           )
           ..restore(proxy.blocks)
           ..addListener(_persistProxy);
@@ -660,6 +664,17 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
 
   /// 같은 날 만든 다른 기록들. 하루에 문서가 여럿일 수 있다 — 오전에 한 장,
   /// 저녁에 한 장. 합치거나 베끼지 않고 이 문서 아래에 읽기 전용으로 보여 준다.
+  /// 이 기록에서 최고 무게를 새로 넘긴 세트. 기록이 바뀔 때만 다시 센다 — 편집기는
+  /// 칸마다 묻는다.
+  (int, Map<String, Set<int>>)? _recordsMemo;
+  Map<String, Set<int>> _records() {
+    final rev = widget.store.revision;
+    if (_recordsMemo case (final r, final m) when r == rev) return m;
+    final m = weightRecords(widget.store.notes)[widget.note.id] ?? const {};
+    _recordsMemo = (rev, m);
+    return m;
+  }
+
   List<Note> get _sameDay {
     final at = widget.note.createdAt;
     return [
@@ -673,28 +688,65 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
 
+  /// 지난주 같은 요일의 운동 — 없으면 4주 전까지 같은 요일을 거슬러 본다. 오늘
+  /// 무엇을 얼마나 할지 옆에서 본다(읽기 전용). 같은 날 기록은 하나로 모은다
+  /// ([NotesStore.today]) — 그래서 여기 보일 것은 지난 운동이다.
+  (Note, int)? get _lastWeek {
+    final at = widget.note.createdAt;
+    for (var w = 1; w <= 4; w++) {
+      final d = DateTime(at.year, at.month, at.day - 7 * w);
+      for (final n in widget.store.notes) {
+        final c = n.createdAt;
+        if (n != widget.note &&
+            n.blocks.any((b) => b.sets.isNotEmpty) &&
+            c.year == d.year &&
+            c.month == d.month &&
+            c.day == d.day) {
+          return (n, w);
+        }
+      }
+    }
+    return null;
+  }
+
   /// 글로 적은 한 끼를 저장한다. 묻지 않는다 — 모르는 음식도, 양이 없는 글도
-  /// 친 그대로 남고, 열량은 사람이 적었을 때만 있다. 고치다 다 지우면 그
-  /// 끼니가 없어진다.
-  void _saveMealText(String text, int? index) {
+  /// 친 그대로 남고, 열량은 사람이 적었을 때만 있다. 일부만 적었으면 적은 합을
+  /// 먼저 넣어 둔다 — 어림이 막혀도 적은 수는 합계에서 빠지지 않는다. 고치다
+  /// 다 지우면 그 끼니가 없어진다.
+  ///
+  /// 새로 남긴 끼니면 그것을 지우는 함수를 돌려준다 — 운동 줄에서 알아서 끼니로
+  /// 남긴 것을 '운동으로 바꾸기' 로 되돌린다. 그사이 어림이 붙어 바뀌었어도 같은
+  /// 끼니(id)를 지운다.
+  VoidCallback? _saveMealText(String text, int? index) {
     final meals = widget.note.meals;
     final old = index != null && index < meals.length ? meals[index] : null;
+    VoidCallback? undo;
     if (text.isEmpty) {
       if (old != null) widget.note.removeMeal(old);
     } else {
       final parsed = parseMealText(text);
+      final kcal = parsed.kcal ?? parsed.typed;
       final entry = MealEntry(
         id: old?.id, // 고친 끼니는 서버의 같은 줄이다.
         at: old?.at ?? DateTime.now(),
-        kcal: parsed.kcal,
+        kcal: kcal,
         text: text,
-        source: parsed.kcal == null ? null : MealEntry.typed,
+        source: kcal == null ? null : MealEntry.typed,
         foods: parsed.foods,
       );
       old == null ? meals.add(entry) : meals[index!] = entry;
       if (parsed.kcal == null) _estimateMealText(entry);
+      if (old == null) {
+        undo = () {
+          final now = widget.note.meals.where((m) => m.id == entry.id);
+          if (now.isEmpty) return;
+          widget.note.removeMeal(now.first);
+          _mealsChanged();
+        };
+      }
     }
     _mealsChanged();
+    return undo;
   }
 
   /// 끼니가 바뀌었다. 먼저 이 기기에 쓰고, 그다음 서버의 같은 줄에 맞춘다 —
@@ -707,24 +759,64 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   }
 
   /// 원문은 이미 저장됐다. 열량을 안 적은 끼니에 어림값을 붙여 볼 뿐이고,
-  /// 못 붙이면 미상으로 남는다. 그사이 사람이 고쳤거나 지웠으면 손대지 않는다.
+  /// 못 붙이면 미상으로 남는다. 그사이 사람이 고쳤거나 지웠으면 손대지 않고
+  /// 말도 하지 않는다 — 그 끼니의 일이 아니다.
+  ///
+  /// 못 붙였으면 **왜인지 한 번 말한다** — 모르는 음식인지, 연결이 안 된 것인지.
+  /// 조용히 '열량 미상' 만 두면 무엇을 고쳐야 하는지 알 길이 없다. 그 끼니 줄에
+  /// '다시 어림' 이 뜨고, 줄을 눌러 고친 뒤 Enter 를 눌러도 다시 어림한다.
+  ///
+  /// 글에 적힌 열량은 버리지 않는다. 어림이 적은 합보다 작으면 받지 않는다 —
+  /// 적은 음식 값만으로도 그보다 크다. 그때와 어림이 막혔을 때는 적은 합이
+  /// 남아 있고([_saveMealText]), 그렇다고 말한다.
   Future<void> _estimateMealText(MealEntry entry) async {
-    if (!widget.ai.supported) return;
+    final l = L.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final MealEstimate estimate;
-    try {
-      estimate = await widget.ai.estimateMealText(entry.text!, locale: locale);
-    } on RecordAiException catch (e) {
-      // 오늘 몫을 다 썼으면 그렇다고 말한다. 다른 실패는 조용히 미상으로 둔다.
-      if (e.status == RecordAiStatus.quotaExceeded && mounted) {
-        _documentHeaderKey.currentState?.tell(L.of(context).inputQuotaSpent);
+    final typed = parseMealText(entry.text!).typed;
+    MealEstimate? estimate;
+    String? failure;
+    // 서버는 500자까지 받는다. 보내 봐야 거절이니 먼저 말한다.
+    if (entry.text!.length > 500) {
+      failure = l.mealTextTooLong;
+    } else if (!widget.ai.supported) {
+      failure = l.mealTextOffline;
+    } else {
+      _estimatingMeals.add(entry);
+      try {
+        estimate = await widget.ai.estimateMealText(
+          entry.text!,
+          locale: locale,
+        );
+      } on RecordAiException catch (e) {
+        failure = switch ((e.status, e.code)) {
+          (RecordAiStatus.aiOff, _) => l.aiOff,
+          (RecordAiStatus.quotaExceeded, _) => l.inputQuotaSpent,
+          (_, 'unknownFood' || 'notFood') => l.mealTextUnknown,
+          // 서버도 적은 합보다 작은 어림을 내보내지 않는다 — 아래의 같은 까닭이다.
+          (_, 'belowTyped') when typed != null => null,
+          _ => l.mealTextOffline,
+        };
+      } catch (_) {
+        failure = l.mealTextOffline;
+      } finally {
+        _estimatingMeals.remove(entry);
       }
-      return;
-    } catch (_) {
-      return;
     }
+    if (!mounted) return;
     final at = widget.note.meals.indexOf(entry);
     if (at < 0) return;
+    void tell(String? message) =>
+        _documentHeaderKey.currentState?.tell(message, entry);
+    if (estimate == null || (typed != null && estimate.kcal < typed)) {
+      return tell(
+        [
+          failure ?? l.mealTextBelowTyped(typed!),
+          if (failure != null && typed != null) l.mealTextPartial(typed),
+        ].join('\n'),
+      );
+    }
+    // 다시 어림해 붙었다. 이 끼니가 앞서 말한 실패는 이제 틀린 말이다.
+    tell(null);
     widget.note.meals[at] = MealEntry(
       id: entry.id,
       at: entry.at,
@@ -784,6 +876,8 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
             text: m.text ?? m.items.join(', '),
             kcal: m.kcal == null
                 ? l.mealKcalUnknown
+                : m.partial
+                ? l.kcalAtLeast(m.kcal!)
                 : m.approximate
                 ? l.kcalApprox(m.kcal!)
                 : l.kcal(m.kcal!),
@@ -1093,10 +1187,26 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                         ai: widget.ai,
                         mealText: _mealText,
                         onMealsChanged: _mealsChanged,
+                        estimating: _estimatingMeals,
+                        onRetryMeal: _estimateMealText,
                       ),
-                      footer: _sameDay.isEmpty
-                          ? null
-                          : _SameDay(notes: _sameDay),
+                      footer: switch (_lastWeek) {
+                        (final n, final w) => Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: _PastCard(
+                            note: n,
+                            title:
+                                (w == 1
+                                ? l.lastWeekDay
+                                : (String a, String b) =>
+                                      l.weeksAgoDay(w, a, b))(
+                                  l.weekdayLabel(n.createdAt),
+                                  l.routineDate(n.createdAt),
+                                ),
+                          ),
+                        ),
+                        _ => null,
+                      },
                       mealText: _mealText,
                       onMealText: _saveMealText,
                       recentMeals: <String>{
@@ -1107,6 +1217,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                       onDraftChanged: (draft) =>
                           widget.store.updateDraft(widget.note, draft),
                       onForgetExercise: widget.store.forgetExercise,
+                      records: (b) => _records()[b.id] ?? const {},
                       onMealPhoto: () =>
                           _documentHeaderKey.currentState?._pick(),
                     ),
@@ -1128,10 +1239,16 @@ class _DocumentHeader extends StatefulWidget {
     required this.ai,
     this.mealText,
     this.onMealsChanged,
+    this.estimating = const {},
+    this.onRetryMeal,
   });
   final Note note;
   final NotesStore store;
   final RecordAi ai;
+
+  /// 어림을 기다리는 끼니와, 열량을 모르는 글 끼니를 다시 어림하는 길.
+  final Set<MealEntry> estimating;
+  final Future<void> Function(MealEntry)? onRetryMeal;
 
   /// 식단 글은 아래 입력 줄에서 친다. 여기서는 그 모드를 켜기만 한다.
   final ValueNotifier<({String text, int? index})?>? mealText;
@@ -1152,21 +1269,56 @@ class _DocumentHeader extends StatefulWidget {
 /// 식단은 사진 한 장으로 어림한다. 운동으로 쓴 것과 먹은 것을 같은 줄에
 /// 두면 "오늘 얼마나 남았나" 가 한눈에 읽힌다. 숫자는 어림이라고 적는다.
 class _DocumentHeaderState extends State<_DocumentHeader> {
+  /// 그날 에너지 세 칸을 펼쳤는가. 기본은 접힌 한 줄.
+  bool _energyOpen = false;
+
+  /// 건강 앱이 잰 그날 휴식 에너지. 없으면 몸 정보로 셈한다([basalFor]).
+  static final _health = HealthLink();
+  double? _measuredBasal;
+
+  Future<void> _loadBasal() async {
+    final day = dayOf(widget.note.createdAt);
+    final next = day.add(const Duration(days: 1));
+    final now = DateTime.now();
+    final got = await _health.basalEnergy(day, now.isBefore(next) ? now : next);
+    if (mounted && got != _measuredBasal) setState(() => _measuredBasal = got);
+  }
+
   bool _estimating = false;
-  String? _error;
+
+  /// 머리의 알림 한 줄과, 그것이 어느 끼니의 어림 실패인가(사진 쪽 말이면 null).
+  /// 끼니는 그 객체다 — 고치면 새 객체라, 고치거나 지운 끼니의 말은 보이지 않는다.
+  ({String text, MealEntry? meal})? _error;
+
+  /// 보일 알림. 그 끼니가 이 문서에 그대로 있을 때만 — 사람이 열량을 적어
+  /// 고쳤거나 지웠으면 '어림하지 못했어요' 는 이제 틀린 말이다.
+  String? get _notice {
+    final e = _error;
+    return e == null || e.meal == null || note.meals.contains(e.meal)
+        ? e?.text
+        : null;
+  }
 
   Note get note => widget.note;
 
   // 식단은 아래 입력 줄에서도 저장된다. 저장소가 바뀌면 다시 그린다.
   void _onStore() => setState(() {});
 
-  /// 식단 글의 어림이 막힌 이유를 사진 쪽과 같은 자리에 적는다.
-  void tell(String message) => setState(() => _error = message);
+  /// 식단 글 끼니 [meal] 의 어림이 막힌 이유를 사진 쪽과 같은 자리에 적는다.
+  /// null 이면 지우되, **그 끼니가 남긴 말만** 지운다 — 다른 끼니의 어림이
+  /// 붙었다고 앞 끼니의 '모르는 음식' 을 덮지 않는다.
+  void tell(String? message, MealEntry meal) {
+    if (message == null && _error?.meal != meal) return;
+    setState(
+      () => _error = message == null ? null : (text: message, meal: meal),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
     widget.store.addListener(_onStore);
+    unawaited(_loadBasal());
   }
 
   @override
@@ -1177,6 +1329,12 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
 
   Future<void> _addMeal(ImageSource source) async {
     final l = L.of(context);
+    // 사진을 고르기 전에 본다 — 고른 뒤에 막히면 헛걸음이다. 꺼 두었으면
+    // 글로 적는 길을 말한다(적은 kcal 은 그대로 들어간다).
+    if (!widget.ai.allowed) {
+      setState(() => _error = (text: l.aiOffPhoto, meal: null));
+      return;
+    }
     final XFile? file;
     try {
       // 1024px 이면 접시가 충분히 보이고, 보내는 양은 수백 KB 다.
@@ -1187,7 +1345,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
         imageQuality: 80,
       );
     } catch (_) {
-      if (mounted) setState(() => _error = l.mealFailed);
+      if (mounted) setState(() => _error = (text: l.mealFailed, meal: null));
       return;
     }
     if (file == null || !mounted) return;
@@ -1246,11 +1404,16 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
       }
       _changed();
     } on RecordAiException catch (e) {
-      _error = e.status == RecordAiStatus.quotaExceeded
-          ? l.inputQuotaSpent
-          : l.mealFailed;
+      _error = (
+        text: switch (e.status) {
+          RecordAiStatus.quotaExceeded => l.inputQuotaSpent,
+          RecordAiStatus.aiOff => l.aiOffPhoto,
+          _ => l.mealFailed,
+        },
+        meal: null,
+      );
     } catch (_) {
-      _error = l.mealFailed;
+      _error = (text: l.mealFailed, meal: null);
     }
     if (mounted) setState(() => _estimating = false);
   }
@@ -1312,9 +1475,11 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     final l = L.of(context);
     showCupertinoModalPopup<void>(
       context: context,
+      // 식단 단추는 아이콘 하나다 — 사진·앨범·글을 여기서 고른다. 글자 단추 둘은
+      // 운동 후보 칩 자리를 먹었다.
       builder: (ctx) => CupertinoActionSheet(
-        title: Text(l.mealPhoto),
-        message: Text(l.mealEstimateNote),
+        title: Text(l.mealAdd),
+        message: Text(l.mealTypeHint),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
@@ -1330,6 +1495,15 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
             },
             child: Text(l.mealGallery),
           ),
+          if (widget.mealText case final text?)
+            CupertinoActionSheetAction(
+              key: const ValueKey('meal-text-toggle'),
+              onPressed: () {
+                Navigator.pop(ctx);
+                text.value = (text: '', index: null);
+              },
+              child: Text(l.mealWrite),
+            ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(ctx),
@@ -1346,7 +1520,11 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
     // 하루치다 — 이 문서 하나가 아니라 그날의 문서와 끼니 전부.
     final log = dayLogs(widget.store.notes, from: at, to: at).firstOrNull;
-    final energy = log == null ? null : dayEnergyText(l, log);
+    final basal = basalFor(
+      dayOf(at),
+      widget.store.body,
+      measured: _measuredBasal,
+    );
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -1357,16 +1535,76 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: muted),
           ),
-          // 섭취 · 운동 · 차이를 작은 한 줄로.
-          if (energy != null)
+          // 그날 에너지는 한 줄로 접어 둔다 — 운동을 적는 화면에서 세 칸은 컸다.
+          // 누르면 먹은 것 · 운동 · 차이 세 칸. 둘 다 없는 날은 줄도 없다.
+          if (log != null &&
+              (log.intake != null || log.burned != null || basal != null))
             Padding(
               key: const ValueKey('day-summary'),
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                energy,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: CupertinoColors.label.resolveFrom(context),
+              padding: const EdgeInsets.only(top: 6, bottom: 2),
+              // 한 줄 ↔ 세 칸을 부드럽게 바꾼다.
+              child: AnimatedSize(
+                duration: Unfold.duration,
+                curve: Curves.easeInOut,
+                alignment: Alignment.topCenter,
+                child: AnimatedSwitcher(
+                  duration: Unfold.duration,
+                  child: _energyOpen
+                      // 펼친 뒤에는 접는 자리가 보여야 한다 — 칸을 눌러도 접히지만
+                      // 그것은 알 수 없었다.
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            DayEnergy(log, basal: basal),
+                            CupertinoButton(
+                              key: const ValueKey('day-summary-fold'),
+                              padding: const EdgeInsets.only(top: 2),
+                              minimumSize: const Size(44, 30),
+                              onPressed: () =>
+                                  setState(() => _energyOpen = false),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    l.fold,
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                  const Icon(
+                                    CupertinoIcons.chevron_up,
+                                    size: 13,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      : GestureDetector(
+                          key: const ValueKey('day-summary-line'),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => setState(() => _energyOpen = true),
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  [
+                                    energyLine(l, log, basal),
+                                    if ((log.difference ?? 0) > 0)
+                                      l.energySurplus,
+                                    if ((log.difference ?? 0) < 0)
+                                      l.energyDeficit,
+                                  ].join(' · '),
+                                  style: TextStyle(fontSize: 13, color: muted),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                CupertinoIcons.chevron_down,
+                                size: 12,
+                                color: muted,
+                              ),
+                            ],
+                          ),
+                        ),
                 ),
               ),
             ),
@@ -1376,30 +1614,77 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
               Row(
                 children: [
                   Expanded(
+                    // 먹은 것이 앞, 열량은 오른쪽 끝에 — 줄마다 같은 자리라 훑어 읽힌다.
+                    // 어림이라는 것은 위 '먹은 것' 칸의 추정 표시가 말한다.
                     child: GestureDetector(
                       key: ValueKey('meal-$i'),
                       behavior: HitTestBehavior.opaque,
                       onTap: () => _editMeal(i),
-                      child: Text(
-                        [
-                          meal.kcal == null
-                              ? l.mealKcalUnknown
-                              : meal.approximate
-                              ? l.kcalApprox(meal.kcal!)
-                              : l.kcal(meal.kcal!),
-                          meal.text ?? meal.items.join(', '),
-                          if (meal.basis != null &&
-                              meal.eaten != null &&
-                              !(meal.basis!.unit == MealBasis.photo &&
-                                  meal.eaten == 1))
-                            mealEatenText(l, meal.basis!, meal.eaten!),
-                        ].where((t) => t.isNotEmpty).join(' · '),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 13, color: muted),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                [
+                                  meal.text ?? meal.items.join(', '),
+                                  if (meal.basis != null &&
+                                      meal.eaten != null &&
+                                      !(meal.basis!.unit == MealBasis.photo &&
+                                          meal.eaten == 1))
+                                    mealEatenText(l, meal.basis!, meal.eaten!),
+                                ].where((t) => t.isNotEmpty).join(' · '),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: CupertinoColors.label.resolveFrom(
+                                    context,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              widget.estimating.contains(meal)
+                                  ? l.mealEstimating
+                                  : meal.kcal == null
+                                  ? l.mealKcalUnknown
+                                  : meal.partial
+                                  ? l.kcalAtLeast(meal.kcal!)
+                                  : l.kcal(meal.kcal!),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: muted,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
+                  // 글은 있는데 열량을 (다) 모른다 — 그 자리에서 다시 어림한다.
+                  // 어림을 기다리는 동안은 줄이 그렇다고 말하니 단추를 두지 않는다.
+                  if (widget.onRetryMeal != null &&
+                      meal.text != null &&
+                      (meal.kcal == null || meal.partial) &&
+                      !widget.estimating.contains(meal))
+                    CupertinoButton(
+                      key: ValueKey('meal-retry-$i'),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      minimumSize: const Size(32, 32),
+                      onPressed: () {
+                        widget.onRetryMeal!(meal);
+                        setState(() {});
+                      },
+                      child: Text(
+                        l.mealRetry,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
                   // 표에서 찾은 값으로 셈했으면 그 표를 보여 준다 — 숫자만으로는 믿을 까닭이 없다.
                   if (meal.sources.isNotEmpty)
                     CupertinoButton(
@@ -1413,6 +1698,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                       ),
                     ),
                   CupertinoButton(
+                    key: ValueKey('meal-delete-$i'),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     minimumSize: const Size(32, 32),
                     onPressed: () {
@@ -1425,9 +1711,9 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                 ],
               ),
           ],
-          if (_error != null)
+          if (_notice case final notice?)
             Text(
-              _error!,
+              notice,
               style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
             ),
           // 식단 사진·글 버튼은 여기 없다. 입력 줄 위의 막대에 같은 것이 늘 있어서
@@ -1453,31 +1739,81 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
   }
 }
 
-/// 같은 날의 다른 기록 — 읽기 전용이다. 원본은 제 문서에 그대로 있고 여기서는
-/// 보여 주기만 한다. 고치려면 그 문서를 연다.
-class _SameDay extends StatelessWidget {
-  const _SameDay({required this.notes});
-  final List<Note> notes;
+/// 지난 운동 한 장 — 기본은 접힌 한 줄("지난주 금요일(9. 18.) 운동 · 스쿼트 외 3개"),
+/// 누르면 세트까지 읽기 전용으로 펼친다. 펼친 채로 두면 지금 적는 기록보다 길어
+/// 무엇을 적는 중인지 흐려졌다.
+class _PastCard extends StatefulWidget {
+  const _PastCard({required this.note, required this.title});
+  final Note note;
+  final String title;
+
+  @override
+  State<_PastCard> createState() => _PastCardState();
+}
+
+class _PastCardState extends State<_PastCard> {
+  bool _open = false;
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
-    return Padding(
-      padding: const EdgeInsets.only(top: 20),
+    final n = widget.note;
+    final names = n.blocks.map((b) => b.name).toSet().toList();
+    final what = names.length <= 1
+        ? names.join()
+        : l.sameDayMore(names.first, names.length - 1);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+      decoration: BoxDecoration(
+        color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final n in notes) ...[
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text(
-                '${l.sameDayOther} · ${DateFormat.jm(l.localeName).format(n.createdAt)}',
-                style: TextStyle(fontSize: 13, color: muted),
+          GestureDetector(
+            key: ValueKey('past-${n.id}'),
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(() => _open = !_open),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Row(
+                children: [
+                  Icon(CupertinoIcons.calendar, size: 14, color: muted),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: widget.title,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          if (what.isNotEmpty && !_open)
+                            TextSpan(text: ' · $what'),
+                        ],
+                      ),
+                      maxLines: _open ? null : 1,
+                      overflow: _open ? null : TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, color: muted),
+                    ),
+                  ),
+                  UnfoldChevron(open: _open, color: muted),
+                ],
               ),
             ),
-            for (final b in n.blocks) BlockSummary(block: b),
-          ],
+          ),
+          // 지난 운동은 무엇을 얼마나 했는지만 — 그날 메모는 뺀다.
+          Unfold(
+            open: _open,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final b in n.blocks) BlockSummary(block: b, notes: false),
+              ],
+            ),
+          ),
         ],
       ),
     );

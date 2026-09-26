@@ -42,8 +42,12 @@ void main() {
         'name': '타바타 총 200회 채우기 20/10 8라운드',
         'sets': [],
         'setup': {
-          'name': '타바타', 'weight': null, 'unit': 'kg',
-          'totalReps': 200, 'repsPerSet': null, 'totalSets': null,
+          'name': '타바타',
+          'weight': null,
+          'unit': 'kg',
+          'totalReps': 200,
+          'repsPerSet': null,
+          'totalSets': null,
           'repsOnly': true,
         },
       },
@@ -57,9 +61,15 @@ void main() {
   test('웹이 이름에 적어 보내는 타이머를 앱이 그대로 읽는다', () {
     // 서버 planName 이 만드는 문구 그대로. `timing` 필드는 앱이 읽지 않고, 이름이 계약이다.
     final tabata = TimingSpec.parse('타바타 총 200회 채우기 20/10 8라운드')!;
-    expect((tabata.tabata, tabata.work, tabata.rest, tabata.rounds, tabata.bpm), (true, 20, 10, 8, null));
+    expect(
+      (tabata.tabata, tabata.work, tabata.rest, tabata.rounds, tabata.bpm),
+      (true, 20, 10, 8, null),
+    );
     final full = TimingSpec.parse('버피 타바타 총 200회 채우기 30/15 10라운드 90bpm')!;
-    expect((full.tabata, full.work, full.rest, full.rounds, full.bpm), (true, 30, 15, 10, 90));
+    expect(
+      (full.tabata, full.work, full.rest, full.rounds, full.bpm),
+      (true, 30, 15, 10, 90),
+    );
     final beat = TimingSpec.parse('푸시업 총 100회 채우기 120bpm')!;
     expect((beat.tabata, beat.bpm), (false, 120));
     expect(TimingSpec.parse('벤치프레스'), isNull);
@@ -324,7 +334,8 @@ void _shared() {
       ('{"error":"noGym"}', JoinState.failed),
     ]) {
       final link = linkThat(
-        (_) async => http.Response(answer, answer.contains('error') ? 404 : 200),
+        (_) async =>
+            http.Response(answer, answer.contains('error') ? 404 : 200),
       );
       expect(await link.requestJoin('g1'), expected);
     }
@@ -366,10 +377,15 @@ void _meals() {
     final ai = RecordAi(
       deviceId: 'device-0123456789abcdef',
       client: MockClient((request) async {
-        if (request.url.path == '/api/device') return http.Response('{"token":"t"}', 200);
+        if (request.url.path == '/api/device') {
+          return http.Response('{"token":"t"}', 200);
+        }
         path = request.url.path;
         sent = jsonDecode(request.body) as Map<String, Object?>;
-        return http.Response('{"kcal":650,"items":["kimchi stew","rice"],"saved":true}', 200);
+        return http.Response(
+          '{"kcal":650,"items":["kimchi stew","rice"],"saved":true}',
+          200,
+        );
       }),
     );
     final estimate = await ai.estimateMeal(
@@ -392,14 +408,30 @@ void _meals() {
     final ai = RecordAi(
       deviceId: 'device-0123456789abcdef',
       client: MockClient((request) async {
-        if (request.url.path == '/api/device') return http.Response('{"token":"t"}', 200);
-        return http.Response(jsonEncode({
-          'kcal': 150, 'items': ['choco pie'], 'confidence': 'high',
-          'label': {'perServingKcal': 150, 'servingSize': '1 serving 35g', 'servingsPerPackage': 12, 'product': 'Choco Pie'},
-        }), 200);
+        if (request.url.path == '/api/device') {
+          return http.Response('{"token":"t"}', 200);
+        }
+        return http.Response(
+          jsonEncode({
+            'kcal': 150,
+            'items': ['choco pie'],
+            'confidence': 'high',
+            'label': {
+              'perServingKcal': 150,
+              'servingSize': '1 serving 35g',
+              'servingsPerPackage': 12,
+              'product': 'Choco Pie',
+            },
+          }),
+          200,
+        );
       }),
     );
-    final estimate = await ai.estimateMeal(Uint8List.fromList([1]), mime: 'image/jpeg', locale: 'ko');
+    final estimate = await ai.estimateMeal(
+      Uint8List.fromList([1]),
+      mime: 'image/jpeg',
+      locale: 'ko',
+    );
     final label = estimate.label!;
     expect(label.perServingKcal, 150);
     expect(label.servingsPerPackage, 12);
@@ -416,7 +448,9 @@ void _meals() {
     expect(note.intake, isNull, reason: '안 적은 것과 0 은 다르다');
     note.meals.add(MealEntry(at: at, kcal: 650, items: ['김치찌개']));
     note.meals.add(MealEntry(at: at, kcal: 200));
-    final back = Note.fromJson(jsonDecode(jsonEncode(note.toJson())) as Map<String, dynamic>);
+    final back = Note.fromJson(
+      jsonDecode(jsonEncode(note.toJson())) as Map<String, dynamic>,
+    );
     expect(back.intake, 850);
     expect(back.meals.first.items, ['김치찌개']);
     expect(MealEntry.tryFromJson({'at': 'nope', 'kcal': 1}), isNull);

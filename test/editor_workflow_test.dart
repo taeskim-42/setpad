@@ -38,6 +38,40 @@ Future<void> flush(WidgetTester tester, NotesStore store) async {
 }
 
 void main() {
+  testWidgets('해낸 세트는 칸이 초록으로 차고, 아직인 세트는 빈 칸이다 — 번호에 동그라미를 붙이지 않는다', (
+    tester,
+  ) async {
+    final c = RoutineEditorController()
+      ..addExercise('벤치프레스')
+      ..addSet('80 10')
+      ..addSet('80 8')
+      ..toggleDone(0, 1)
+      ..closeBlock();
+    await pumpPage(
+      tester,
+      CupertinoPageScaffold(
+        child: SafeArea(child: RoutineEditor(controller: c)),
+      ),
+    );
+    expect(c.blocks.single.sets.map((s) => s.done), [true, false]);
+    Color? fill(int i) =>
+        (tester
+                    .widget<Container>(
+                      find
+                          .descendant(
+                            of: find.byKey(ValueKey('set-cell-$i')),
+                            matching: find.byType(Container),
+                          )
+                          .first,
+                    )
+                    .decoration
+                as BoxDecoration?)
+            ?.color;
+    expect(fill(0), isNotNull, reason: '해낸 칸은 찬다');
+    expect(fill(1), isNull, reason: '아직인 칸은 비어 있다');
+    expect(find.textContaining('○'), findsNothing);
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test(
@@ -91,16 +125,30 @@ void main() {
     final ai = RecordAi(
       respond: (instructions, input) async {
         calls++;
-        throw const FormatException('Must not generate a plan from a name');
+        // 수가 든 이름은 모델에 가고, 모델은 그 수를 이름에 넣어 답한다.
+        return {
+          'exercises': [
+            {'text': 'MTS100 로우', 'name': 'MTS100 로우', 'totalSets': 3},
+          ],
+        };
       },
     );
-    for (final name in ['체스트 프레스 머신', '해머스트렝스 로우', 'MTS100 로우']) {
-      final setup = await ai.interpret(name, 'ko', [name]);
+    for (final name in ['체스트 프레스 머신', '해머스트렝스 로우']) {
+      final setup = (await ai.interpret(name, 'ko', [
+        name,
+      ])).exercises.single.setup;
       expect(setup.name, name);
       expect(setup.hasPlan, isFalse);
       expect(setup.repsOnly, isFalse);
     }
     expect(calls, 0);
+    // 이름 속 100 은 이름이 쓴 수다. 글에 없는 3 은 지어낸 것이라 뺀다.
+    final machine = await ai.interpret('MTS100 로우', 'ko', ['MTS100 로우']);
+    expect(calls, 1);
+    expect(machine.exercises.single.setup.name, 'MTS100 로우');
+    expect(machine.exercises.single.setup.hasPlan, isFalse);
+    expect(machine.dropped, ['3']);
+    expect(machine.unparsed, isEmpty);
     expect(hasSetupIntent('벤치 팔십 키로로 백 개 채울래'), isTrue);
   });
 
@@ -262,7 +310,7 @@ void main() {
         ),
       );
       expect(
-        tester.widget<Text>(find.text('1○ 80×10')).style!.decoration,
+        tester.widget<Text>(find.text('1 80×10')).style!.decoration,
         isNot(TextDecoration.lineThrough),
       );
       final handles = find.byWidgetPredicate(
@@ -276,7 +324,7 @@ void main() {
       await gesture.moveBy(const Offset(0, 25));
       await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
-      expect(find.text('1○ 80×10'), findsNothing);
+      expect(find.text('1 80×10'), findsNothing);
       expect(find.text('1 40×15'), findsNothing);
       expect(find.text('둘째 운동 메모'), findsNothing);
       expect(
@@ -369,7 +417,7 @@ void main() {
       expect(c.blocks.single.name, '인클라인 벤치프레스');
       expect(c.blocks.single.setup!.name, '인클라인 벤치프레스');
       expect(c.blocks.single.setup!.totalReps, 100);
-      await tester.tap(find.text('1○ 80×10'));
+      await tester.tap(find.text('1 80×10'));
       await tester.pumpAndSettle();
       tester.widget<SetKeypad>(find.byType(SetKeypad)).onKey('75 9');
       expect(c.blocks.single.sets.first.value, 75);
@@ -382,7 +430,7 @@ void main() {
       expect(set.notes, ['어깨 조심']);
       expect(c.blocks.single.sets.last.reps, 12);
       expect(tester.widget<CupertinoTextField>(input).controller!.text, '80 8');
-      await tester.tap(find.text('1○ 75×9'));
+      await tester.tap(find.text('1 75×9'));
       await tester.pumpAndSettle();
       tester.widget<SetKeypad>(find.byType(SetKeypad)).onKey('75 999');
       tester.widget<SetKeypad>(find.byType(SetKeypad)).onSubmit();

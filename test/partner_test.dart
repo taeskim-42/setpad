@@ -3,13 +3,19 @@
 // 서버는 lib/partner-sessions.ts 와 같은 규칙의 가짜다. 진짜 서버의 규칙은
 // gymdojo 의 partner-sessions.test.ts 가 실제 Postgres 로 지킨다.
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:flutter/cupertino.dart' show CupertinoApp, CupertinoTextField;
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:setpad/account.dart';
 import 'package:setpad/daily.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/gym.dart';
+import 'package:setpad/l10n/generated/app_localizations.dart';
+import 'package:setpad/main.dart' show EditorPage;
 import 'package:setpad/notes.dart';
 import 'package:setpad/partner.dart';
 
@@ -355,6 +361,87 @@ void main() {
     );
     addTearDown(anonymous.dispose);
     expect(await anonymous.invite(), PartnerError.signInRequired);
+  });
+
+  test('C·같이 하기 코드 칸에 받은 문구를 통째로 붙여 넣어도 코드를 뽑아 참여한다', () async {
+    expect(normalizePartnerCode('한 명 더 초대 · 코드 AB3K9Z'), 'AB3K9Z');
+    expect(normalizePartnerCode('Invite one more · code AB3K9Z'), 'AB3K9Z');
+    expect(normalizePartnerCode(' ab3-k9z '), 'AB3K9Z');
+    expect(
+      normalizePartnerCode('AB3K9Z 아니면 CD4M8N'),
+      isNull,
+      reason: '둘이면 어느 것인지 모른다',
+    );
+    expect(
+      normalizePartnerCode('https://x/plan/abcdefghijk_AB3K9Z-lmnopq'),
+      isNull,
+      reason: '링크 토큰 속 글자는 코드가 아니다',
+    );
+
+    final server = FakeServer();
+    final mina = Phone(server, '미나', 'p1'), jun = Phone(server, '준', 'p2');
+    addTearDown(mina.sync.dispose);
+    addTearDown(jun.sync.dispose);
+    await mina.sync.invite();
+    final code = mina.note.partner!.code!;
+    expect(await jun.sync.joinWithCode('한 명 더 초대 · 코드 $code'), isNull);
+    expect(jun.note.partner!.state, PartnerState.active);
+  });
+
+  test('C·손으로 옮겨 적은 소문자 코드도 문장 속에서 찾는다 — 낱말이 하나일 때만', () {
+    expect(normalizePartnerCode('코드 ab3k9z'), 'AB3K9Z');
+    expect(normalizePartnerCode('code: ab3k9z'), 'AB3K9Z');
+    // 원문 대문자 코드가 있으면 그것이다 — 소문자 영어 낱말이 코드처럼 보여도.
+    expect(normalizePartnerCode('please join · code AB3K9Z'), 'AB3K9Z');
+    expect(normalizePartnerCode('코드 ab3k9z 아니면 cd4m8n'), isNull);
+  });
+
+  testWidgets('C·같이 하기 코드 칸에 받은 문구를 붙여 넣으면 칸이 자르지 않고 그 코드로 참여한다', (
+    tester,
+  ) async {
+    final dir = Directory.systemTemp.createTempSync('setpad_partner_paste_');
+    final store = NotesStore(directory: dir);
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final joins = <Map>[];
+    final account = Account(
+      storageDir: dir,
+      client: MockClient((request) async {
+        if (request.url.path.endsWith('/join')) {
+          joins.add(jsonDecode(request.body) as Map);
+          return http.Response('{"error":"invalidCode"}', 404);
+        }
+        return http.Response('{}', 200);
+      }),
+    )..token = 'member';
+    final l = lookupL(const Locale('ko'));
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: EditorPage(store: store, note: store.create(), account: account),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('record-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('menu-partner')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l.partnerEnter));
+    await tester.pumpAndSettle();
+    final field = find.byKey(const ValueKey('partner-code'));
+    const pasted = '한 명 더 초대 · 코드 AB3K9Z';
+    await tester.enterText(field, pasted);
+    await tester.pump();
+    expect(
+      tester.widget<CupertinoTextField>(field).controller!.text,
+      pasted,
+      reason: '칸이 여덟 글자에서 자르면 코드가 사라진다',
+    );
+    await tester.tap(find.text(l.partnerEnter).last);
+    await tester.pumpAndSettle();
+    expect(joins.map((b) => b['code']), ['AB3K9Z']);
+    expect(find.text(l.partnerErrFormat), findsNothing);
   });
 
   test('같은 토큰이 여러 번 들어와도, 응답을 못 받아 다시 보내도 참여는 한 번이다', () async {

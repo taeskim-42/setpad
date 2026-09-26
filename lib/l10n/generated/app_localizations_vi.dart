@@ -51,15 +51,12 @@ class LVi extends L {
   String get previous7Days => '7 ngày qua';
 
   @override
-  String get previous30Days => '30 ngày qua';
-
-  @override
   String monthLabel(int m) {
     return 'Tháng $m';
   }
 
   @override
-  String get search => 'Tìm kiếm';
+  String get search => 'Tìm hoặc hỏi';
 
   @override
   String get newNote => 'Bản ghi mới';
@@ -151,6 +148,11 @@ class LVi extends L {
   String get setRequired => 'Nhập hiệp trước, ví dụ: 60 12.';
 
   @override
+  String setsPerLineMax(int n) {
+    return 'Tối đa $n hiệp mỗi dòng. Hãy chia thành nhiều dòng.';
+  }
+
+  @override
   String get aiTitle => 'Thiết lập bằng một câu';
 
   @override
@@ -225,6 +227,67 @@ class LVi extends L {
   String get aiUseName => 'Dùng làm tên bài tập';
 
   @override
+  String get aiFallbackQuota =>
+      'Bạn đã dùng hết trợ giúp nhập hôm nay nên đã thêm đúng như bạn gõ';
+
+  @override
+  String get aiFallbackOffline =>
+      'Không có kết nối nên đã thêm đúng như bạn gõ. Có thể thêm thiết lập từ ⚙ của thẻ';
+
+  @override
+  String get aiFallbackServer =>
+      'Máy chủ không phản hồi nên đã thêm đúng như bạn gõ. Có thể thêm thiết lập từ ⚙ của thẻ';
+
+  @override
+  String get aiFallbackUnread =>
+      'Không tìm thấy gì để thiết lập nên đã thêm đúng như bạn gõ. Có thể thêm thiết lập từ ⚙ của thẻ';
+
+  @override
+  String get inputNameTooLong =>
+      'Tên bài tập tối đa 120 ký tự — hãy tách thành nhiều dòng';
+
+  @override
+  String get inputTooLong =>
+      'Văn bản dài hơn 600 ký tự sẽ không được đọc — hãy tách thành nhiều dòng';
+
+  @override
+  String get setupAdd => 'Thêm thiết lập';
+
+  @override
+  String setupUnparsed(String words) {
+    return 'Chưa chuyển vào thiết lập: $words — vẫn giữ trong tiêu đề';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return 'Đã bỏ các số không có trong văn bản: $numbers';
+  }
+
+  @override
+  String get setupNameMissing => 'Nhập tên bài tập';
+
+  @override
+  String get setupNameTooLong => 'Tối đa 120 ký tự';
+
+  @override
+  String get setupWeightInvalid => 'Nhập số lớn hơn 0 và không quá 2000';
+
+  @override
+  String get setupCountInvalid =>
+      'Nhập số nguyên từ 1 trở lên — giữ khoảng và thời gian trong tiêu đề';
+
+  @override
+  String get setupRepsOnly => 'Chỉ ghi số lần';
+
+  @override
+  String setupSplit(int count) {
+    return 'Đã tách thành $count bài tập';
+  }
+
+  @override
+  String get setupMergeAll => 'Gộp thành một';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal lần';
   }
@@ -241,9 +304,6 @@ class LVi extends L {
 
   @override
   String get repsInputHint => 'Số lần';
-
-  @override
-  String get setupTitle => 'Thiết lập bài tập';
 
   @override
   String get setupWeight => 'Mức tạ mặc định';
@@ -604,9 +664,6 @@ class LVi extends L {
   }
 
   @override
-  String get reviewNumbers => 'Kiểm tra các số và điều kiện trước khi áp dụng.';
-
-  @override
   String get queryByExercise => 'Theo bài tập';
 
   @override
@@ -859,6 +916,16 @@ class LVi extends L {
   String get mealPhoto => 'Ảnh bữa ăn';
 
   @override
+  String get mealAdd => 'Ghi bữa ăn';
+
+  @override
+  String get mealWrite => 'Gõ chữ';
+
+  @override
+  String get mealTypeHint =>
+      'Bạn cũng có thể gõ món ăn thẳng vào dòng tên bài tập';
+
+  @override
   String get mealCamera => 'Máy ảnh';
 
   @override
@@ -892,7 +959,29 @@ class LVi extends L {
   String get fitAll => 'Buổi tập hôm nay';
 
   @override
-  String get sameDayOther => 'Bản ghi khác trong ngày';
+  String sameDayToday(String time) {
+    return 'Bản ghi riêng hôm nay lúc $time';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return 'Bản ghi riêng ngày $date lúc $time';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first và $n bài khác';
+  }
+
+  @override
+  String lastWeekDay(String weekday, String date) {
+    return '$weekday tuần trước ($date)';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$weekday $n tuần trước ($date)';
+  }
 
   @override
   String get mealText => 'Ghi bữa ăn';
@@ -950,6 +1039,93 @@ class LVi extends L {
   @override
   String get mealPhotoWholeNote =>
       'Đây là ước tính cho toàn bộ món trong ảnh. Hãy chọn phần bạn đã ăn.';
+
+  @override
+  String get mealTextUnknown =>
+      'Không ước tính được calo vì không nhận ra món ăn. Chạm vào bữa ăn để thêm tên món hoặc lượng, ứng dụng sẽ ước tính lại.';
+
+  @override
+  String get mealTextOffline =>
+      'Không ước tính được calo vì không có kết nối. Chạm vào bữa ăn và nhấn Enter để ước tính lại.';
+
+  @override
+  String get mealTextTooLong =>
+      'Ghi chú bữa ăn dài hơn 500 ký tự sẽ không được ước tính. Chạm vào bữa ăn và chia nhỏ để được ước tính.';
+
+  @override
+  String queryTooLong(int max) {
+    return 'Câu hỏi tối đa $max ký tự. Vui lòng rút ngắn.';
+  }
+
+  @override
+  String get queryPressEnter => 'Nhấn Enter để hỏi về bản ghi của bạn.';
+
+  @override
+  String get mealRetry => 'Ước tính lại';
+
+  @override
+  String kcalAtLeast(int n) {
+    return '≥ $n kcal';
+  }
+
+  @override
+  String mealTextPartial(int n) {
+    return 'Chỉ tính $n kcal bạn đã ghi; calo của các món còn lại chưa rõ.';
+  }
+
+  @override
+  String mealTextBelowTyped(int n) {
+    return 'Giá trị ước tính thấp hơn $n kcal bạn đã ghi nên không được dùng. Chỉ tính $n kcal của bạn.';
+  }
+
+  @override
+  String queryLimit(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'exercises': 'Mỗi lần hỏi được tối đa 8 bài tập. Hãy hỏi từng phần.',
+      'measures': 'Mỗi lần đếm được tối đa 4 thứ. Hãy hỏi từng phần.',
+      'ranking': 'Bảng xếp hạng hiển thị tối đa 20. Hãy hỏi 20 trở xuống.',
+      'sessions':
+          '\'N buổi gần nhất\' tối đa 100 buổi. Muốn xem dài hơn, hãy hỏi theo khoảng thời gian, ví dụ năm nay.',
+      'days':
+          '\'N ngày gần đây\' tối đa 3660 ngày (khoảng 10 năm). Muốn xem dài hơn, hãy hỏi toàn bộ thời gian.',
+      'compare': 'Mỗi lần so sánh được tối đa 6 thứ. Hãy hỏi từng phần.',
+      'compareGrouped':
+          'Một câu hỏi không thể vừa so sánh vừa nhóm theo bài tập, ngày, tuần, tháng hoặc thứ trong tuần. Hãy hỏi một trong hai.',
+      'groupedMeasure':
+          'Khi so sánh nhiều khoảng và nhóm theo ngày, tuần, tháng hoặc thứ trong tuần chỉ đếm được một thứ, và xu hướng, lần cuối, lần đầu, số ngày kể từ lần cuối không nhóm được.',
+      'ordering':
+          'Xếp hạng, tổng và trung bình cần nhóm, ví dụ theo bài tập hoặc theo tuần.',
+      'datesTotal':
+          'Ngày lần cuối và lần đầu không cộng hay lấy trung bình được.',
+      'perMeasure':
+          'Trung bình theo ngày, tuần hoặc tháng chỉ dùng cho các số cộng được như hiệp, lần, khối lượng, quãng đường, thời gian, số ngày và kcal. Hãy hỏi mức tạ cao nhất hoặc trung bình theo khoảng thời gian.',
+      'shareMeasure':
+          'Tỷ trọng chỉ tính được với các số cộng được như số hiệp hoặc khối lượng.',
+      'trainedMeasure':
+          'Lọc ngày có tập hoặc ngày nghỉ chỉ dùng cho kcal ăn vào và đốt. Mọi ghi chép tập luyện đều thuộc ngày có tập.',
+      'sameSeries':
+          'Hai vế cần so sánh được đọc giống nhau. Hãy nói rõ so sánh cái gì với cái gì.',
+      'other':
+          'Tìm kiếm bản ghi không tính được câu hỏi có dạng này. Hãy hỏi từng phần.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String policyNumberRejected(String text, String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'decimal':
+          '\'$text\' — không nhận số thập phân. Hãy nhập số nguyên, ví dụ 14',
+      'range': '\'$text\' — hãy nhập một con số, không phải khoảng, ví dụ 14',
+      'negative': '\'$text\' — không nhận số nhỏ hơn 0, ví dụ 14',
+      'unit':
+          '\'$text\' — ô này đếm theo ngày hoặc buổi. Hãy đổi giờ, tuần hoặc tháng sang số ngày, ví dụ 14',
+      'many': '\'$text\' — hãy chỉ nhập một con số, ví dụ 14',
+      'other':
+          'Không đọc được số ngày hoặc số buổi từ \'$text\'. Hãy nhập một con số, ví dụ 14',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get mealSources => 'Nguồn';
@@ -1332,7 +1508,10 @@ class LVi extends L {
   String get togetherLog => 'Ghi';
 
   @override
-  String get mealLogAs => 'Ghi là bữa ăn';
+  String get mealAutoLogged => 'Đã ghi thành bữa ăn';
+
+  @override
+  String get mealAutoUndo => 'Đổi thành bài tập';
 
   @override
   String get proxyWrite => 'Ghi hộ';
@@ -1399,6 +1578,40 @@ class LVi extends L {
   String get mealsTitle => 'Bữa ăn';
 
   @override
+  String get energyBurned => 'Tập luyện';
+
+  @override
+  String get energyDifference => 'Chênh lệch';
+
+  @override
+  String get fold => 'Thu gọn';
+
+  @override
+  String get energySurplus => 'Dư';
+
+  @override
+  String get energyDeficit => 'Thiếu';
+
+  @override
+  String get milestoneBest => 'Mức tạ cao nhất';
+
+  @override
+  String get energyDiffFormula => 'Đã ăn − tập luyện';
+
+  @override
+  String get energyDiffExplain =>
+      'Lượng calo đã ghi là đã ăn trừ lượng calo đã dùng trong ngày (chuyển hóa cơ bản + tập luyện). Số dương là dư, số âm là thiếu.\n\nChuyển hóa cơ bản lấy từ năng lượng nghỉ của ứng dụng Sức khỏe, hoặc tính từ Thông tin cơ thể (ước tính). Chưa tính hoạt động hằng ngày như đi bộ, nên đây không phải mức tăng giảm cân.';
+
+  @override
+  String get estimateTag => 'ước tính';
+
+  @override
+  String get energyNotLogged => 'Chưa ghi';
+
+  @override
+  String get energyNotMeasured => 'Chưa đo';
+
+  @override
   String get recordMenu => 'Thêm';
 
   @override
@@ -1430,6 +1643,56 @@ class LVi extends L {
   @override
   String get healthDataCalories =>
       'Đọc · Calo hoạt động — lượng calo hoạt động đồng hồ đo được trong lúc tập được gắn vào bản ghi đó. Nếu không đo được gì, ứng dụng không hiển thị calo.';
+
+  @override
+  String get healthDataBasal =>
+      'Đọc · Năng lượng nghỉ (chuyển hóa cơ bản) — cộng vào lượng calo đã dùng trong ngày để so với lượng đã ăn. Nếu không có, sẽ tính từ Cài đặt › Thông tin cơ thể.';
+
+  @override
+  String get bodyTitle => 'Thông tin cơ thể';
+
+  @override
+  String get bodyNote =>
+      'Chỉ dùng để tính chuyển hóa cơ bản. Nếu ứng dụng Sức khỏe có năng lượng nghỉ thì dùng giá trị đó trước. Thông tin này không rời khỏi thiết bị.';
+
+  @override
+  String get bodyHeight => 'Chiều cao (cm)';
+
+  @override
+  String get bodyWeight => 'Cân nặng (kg)';
+
+  @override
+  String get bodyBirthYear => 'Năm sinh';
+
+  @override
+  String get bodySex => 'Giới tính';
+
+  @override
+  String get bodyMale => 'Nam';
+
+  @override
+  String get bodyFemale => 'Nữ';
+
+  @override
+  String bodyBmr(String kcal) {
+    return 'Chuyển hóa cơ bản khoảng $kcal kcal/ngày (Mifflin-St Jeor)';
+  }
+
+  @override
+  String get energySpent => 'Đã dùng';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return 'Cơ bản $basal + tập $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => 'Đã ăn − đã dùng';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return 'Ăn $intake · dùng $used = $diff kcal';
+  }
 
   @override
   String get healthDataHeart =>
@@ -1670,4 +1933,1409 @@ class LVi extends L {
 
   @override
   String get settingsTrainer => 'Huấn luyện viên';
+
+  @override
+  String get aiSetting => 'Trợ giúp AI';
+
+  @override
+  String get aiOff =>
+      'Trợ giúp AI đang tắt nên được giữ đúng như đã gõ. Bật trong Cài đặt › Trợ giúp AI';
+
+  @override
+  String get aiOffPhoto =>
+      'Trợ giúp AI đang tắt nên ảnh không được ước tính. Hãy gõ bữa ăn thành chữ, ví dụ ‘phở 450kcal’, và nó được ghi đúng như vậy';
+
+  @override
+  String get answerNeedsTwoDays => 'Cần ít nhất hai ngày';
+
+  @override
+  String get answerNoBase => 'Không có giá trị gốc';
+
+  @override
+  String answerPerWeek(String value) {
+    return '$value mỗi tuần';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '$value mỗi tháng';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return '$n buổi kể từ kỷ lục';
+  }
+
+  @override
+  String get answerTimesUnit => ' lần';
+
+  @override
+  String answerTimes(int n) {
+    return '$n lần';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return '$n ngày liên tiếp';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return 'nghỉ $n ngày';
+  }
+
+  @override
+  String get answerUntilToday => 'hôm nay';
+
+  @override
+  String answerEveryDays(String value) {
+    return 'Thường $value ngày một lần';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return 'Trung bình $value ngày một lần';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return 'Liền nhau $a lần · nghỉ 1 ngày $b lần · nghỉ 2 ngày $c lần · nghỉ từ 3 ngày $d lần';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return 'Có một lần nghỉ dài $n ngày';
+  }
+
+  @override
+  String get answerNoMeals => 'Không có ngày nào ghi bữa ăn';
+
+  @override
+  String answerAbout(String value) {
+    return 'khoảng $value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '$n ngày có ghi bữa ăn';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return '$n bữa không rõ calo không được tính';
+  }
+
+  @override
+  String get answerNoWatch => 'Không có buổi tập đo bằng đồng hồ';
+
+  @override
+  String answerWatchDays(int n) {
+    return '$n ngày đo bằng đồng hồ';
+  }
+
+  @override
+  String get answerNoBoth => 'Không có ngày nào có cả ăn và đốt';
+
+  @override
+  String answerBothDays(int n) {
+    return '$n ngày có cả ăn và đốt';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return 'Đã bỏ $n ngày chỉ có ăn';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$n tháng';
+  }
+
+  @override
+  String get metricChangePct => 'Tỷ lệ thay đổi';
+
+  @override
+  String get metricDaysSinceBest => 'Ngày từ kỷ lục';
+
+  @override
+  String get metricSessionsSinceBest => 'Buổi từ kỷ lục';
+
+  @override
+  String get metricMeanReps => 'Lần mỗi hiệp';
+
+  @override
+  String get metricLongestStreak => 'Chuỗi dài nhất';
+
+  @override
+  String get metricLongestGap => 'Lần nghỉ dài nhất';
+
+  @override
+  String get metricMeanGap => 'Khoảng cách giữa buổi tập';
+
+  @override
+  String get metricIntake => 'Calo nạp vào';
+
+  @override
+  String get metricBurned => 'Calo tiêu hao';
+
+  @override
+  String get metricBalance => 'Nạp − tiêu hao';
+
+  @override
+  String get queryAlone => 'Tập một mình';
+
+  @override
+  String get queryTogether => 'Tập cùng bạn';
+
+  @override
+  String get queryByPart => 'Theo nhóm cơ';
+
+  @override
+  String get queryCanSee =>
+      'Nhật ký cho biết mức tạ, số lần, số hiệp, ngày tập và calo bữa ăn';
+
+  @override
+  String get queryDiffColumn => 'Chênh lệch';
+
+  @override
+  String get queryFutureCell => 'Chưa tới';
+
+  @override
+  String get queryGrowthRate =>
+      'Mức tăng được xếp theo tốc độ mỗi tuần để so sánh công bằng';
+
+  @override
+  String get queryHandoff => 'Chỉ bản ghi được chuyển cho bạn';
+
+  @override
+  String get queryNoHandoff => 'Không tính bản ghi được chuyển';
+
+  @override
+  String queryHandoffCount(int n) {
+    return 'Bỏ $n bản ghi được chuyển';
+  }
+
+  @override
+  String get queryHoursNote =>
+      'Giờ là lúc tạo bản ghi; ghi bù sau sẽ tính theo lúc ghi';
+
+  @override
+  String get queryMixedWeights => 'Mức tạ này gộp nhiều bài tập';
+
+  @override
+  String get queryNcBodyweight =>
+      'Nhật ký không có cân nặng. Ghi cân nặng vào câu hỏi để so sánh (vd: nặng 80, deadlift gấp mấy lần?)';
+
+  @override
+  String get queryNcWeightForecast =>
+      'Không tính cân nặng sau này — nhật ký chỉ có những gì bạn ăn và lượng calo đốt khi tập, không có trao đổi chất lúc nghỉ và hoạt động hằng ngày';
+
+  @override
+  String get queryNcHeartRate =>
+      'Tìm kiếm chưa xem nhịp tim; theo bài hay theo lúc nghỉ thì không được vì hiệp không có giờ';
+
+  @override
+  String get queryNeverMark => 'Chưa từng ghi';
+
+  @override
+  String get queryNoBaseRatio => 'Không có giá trị gốc nên không tính tỷ lệ';
+
+  @override
+  String get queryNoneCell => 'Không có bản ghi trong phạm vi này';
+
+  @override
+  String get queryNoRoutine => 'Ngày không theo giáo án';
+
+  @override
+  String get queryRoutine => 'Ngày theo giáo án HLV';
+
+  @override
+  String get queryOngoing => 'đang diễn ra';
+
+  @override
+  String get queryOverlap =>
+      'Ngày tập bị trùng nên không tính tỷ trọng; hãy hỏi theo số hiệp';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': 'Ngực',
+      'back': 'Lưng',
+      'legs': 'Chân',
+      'shoulders': 'Vai',
+      'arms': 'Tay',
+      'core': 'Core',
+      'cardio': 'Cardio',
+      'upper': 'Thân trên',
+      'lower': 'Thân dưới',
+      'other': 'Nhóm cơ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => 'Tỷ lệ';
+
+  @override
+  String get queryRatioUnits => 'Khác đơn vị nên không tính tỷ lệ';
+
+  @override
+  String get queryRestDay => 'Ngày nghỉ';
+
+  @override
+  String get queryTrained => 'Ngày tập';
+
+  @override
+  String get querySetFirst => 'Hiệp đầu';
+
+  @override
+  String get querySetLast => 'Hiệp cuối';
+
+  @override
+  String get queryShare => 'Tỷ trọng';
+
+  @override
+  String get queryZeroFilled => 'Bài không tập được tính là 0';
+
+  @override
+  String queryAgainst(String value) {
+    return 'so với $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio lần · chênh $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n ngày';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return 'Bỏ $n hiệp khác loại giá trị';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '${from}h–${to}h';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return 'Có phải $name?';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return 'Ghi chú có đủ: $terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text ($n ngày)';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return 'Ghi chú khớp: $hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names: chưa từng ghi, đã tính không có';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names: chưa từng ghi';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return 'Ghi chú không có: $terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return 'Bỏ $n hiệp không ghi số lần';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return 'Không có trong nhật ký nên không xem được: $things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return 'Không xem được: $things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return 'Nhật ký không trả lời được: $things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return 'Bỏ $n hiệp không có tạ (nhiều nhất $reps lần)';
+  }
+
+  @override
+  String queryNth(int n) {
+    return 'Buổi tập thứ $n tính từ cuối';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '$n hiệp ghi quãng đường: $value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '$n hiệp ghi thời gian: $value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return 'không tính $names';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '($n ngày)';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part: $names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': 'mỗi ngày',
+      'week': 'mỗi tuần',
+      'month': 'mỗi tháng',
+      'other': 'trung bình',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/ngày',
+      'week': '/tuần',
+      'month': '/tháng',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value lần ($percent%)';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': 'Ngày $n',
+      'week': 'Tuần $n',
+      'month': 'Tháng $n',
+      'other': 'Thứ $n',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return 'Chưa tới nên hiểu là năm $year';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return 'Cùng $days ngày: $earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return 'Quá ngắn để xếp hạng (dưới 3 ngày hoặc 3 tuần): $names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata',
+      'bpm': 'Hẹn giờ BPM',
+      'other': 'Không hẹn giờ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return 'Đã bỏ bài không rõ nhóm cơ: $names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '$n mục không xếp hạng vì thiếu giá trị: $names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return 'Các giai đoạn dài khác nhau ($lengths ngày) nên chênh lệch và tỷ lệ tính theo tuần';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$zeros/$total tuần bằng 0',
+      'month': '$zeros/$total tháng bằng 0',
+      'other': '$zeros/$total bằng 0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '$percent% trong $m ngày có thể';
+  }
+
+  @override
+  String get queryOfflineLocal =>
+      'Không kết nối được máy chủ nên đã đếm trên máy chỉ theo bài tập và thời gian trong câu. Khi có mạng, nhấn Enter để hỏi lại.';
+
+  @override
+  String get queryMisread =>
+      'Không đọc được câu hỏi này thành phép đếm. Hãy thử hỏi theo cách khác.';
+
+  @override
+  String get queryMisreadLocal =>
+      'Không đọc được câu hỏi thành phép đếm nên đã đếm trên máy chỉ theo bài tập và khoảng thời gian trong câu. Hỏi theo cách khác để đọc lại.';
+
+  @override
+  String get queryUnreadable =>
+      'Mô hình đã gửi câu trả lời không đọc được hai lần. Không phải do kết nối, và câu trả lời đó không tốn bánh tạ nào.';
+
+  @override
+  String get queryAskAgain => 'Hỏi lại';
+
+  @override
+  String get queryUnreadablePaid =>
+      'Mô hình đã gửi câu trả lời không đọc được hai lần. Không phải do kết nối. Câu trả lời đó không tốn bánh tạ nào; số bánh tạ bên dưới là cho bước đầu phân loại câu hỏi.';
+
+  @override
+  String get queryUnreadableLocal =>
+      'Trong lúc đó, đã đếm trên máy theo bài tập và khoảng thời gian trong câu.';
+
+  @override
+  String get queryTotalUnits => 'Đơn vị khác nhau nên không cộng tổng được';
+
+  @override
+  String queryMemoDropped(String words) {
+    return 'Đã bỏ điều kiện ghi chú: $words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return 'Đã bỏ số mốc $value — đó không phải cân nặng ghi trong câu hỏi';
+  }
+
+  @override
+  String routineDate(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.Md(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
+
+  @override
+  String get routineHeaderToday => 'Bài tập hôm nay';
+
+  @override
+  String routineHeaderDay(String day) {
+    return 'Bài tập $day';
+  }
+
+  @override
+  String routineTomorrow(String date) {
+    return 'ngày mai ($date)';
+  }
+
+  @override
+  String routineWhyRotation(String date, int days) {
+    return 'Đã $days ngày chưa tập buổi $date — xếp giống hôm đó';
+  }
+
+  @override
+  String routineWhyFrom(String date) {
+    return 'Giống ngày $date';
+  }
+
+  @override
+  String routineWhyNamed(String date) {
+    return 'Thêm các bài tập cùng nó ngày $date';
+  }
+
+  @override
+  String routinePartRest(String list) {
+    return '28 ngày qua: $list trước';
+  }
+
+  @override
+  String routinePartDays(String part, int days) {
+    return '$part $days ngày';
+  }
+
+  @override
+  String routineEstimate(int minutes) {
+    return 'Khoảng $minutes phút';
+  }
+
+  @override
+  String routinePaceOwn(int sessions, String pace) {
+    return 'ước tính $pace mỗi hiệp theo $sessions buổi gần nhất';
+  }
+
+  @override
+  String routinePaceDefault(String pace) {
+    return 'ước tính theo mặc định $pace mỗi hiệp — ghi vài buổi để dùng nhịp của bạn';
+  }
+
+  @override
+  String routineMinSec(int m, int s) {
+    return '$m phút $s giây';
+  }
+
+  @override
+  String routineReadAs(String list) {
+    return 'Đọc là: $list';
+  }
+
+  @override
+  String routineCopied(String date) {
+    return 'như ngày $date';
+  }
+
+  @override
+  String routineRepsMatched(String date, int reps) {
+    return 'mức tạ đã làm $reps lần ngày $date';
+  }
+
+  @override
+  String get routineTyped => 'như đã gõ';
+
+  @override
+  String get routineFirst => 'lần đầu';
+
+  @override
+  String routineBlank(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'light': 'để trống mức tạ (buổi nhẹ)',
+      'pain': 'để trống mức tạ (có chỗ đau)',
+      'gear': 'để trống mức tạ (dụng cụ khác)',
+      'bodyweight': 'để trống mức tạ của dụng cụ',
+      'stale': 'để trống mức tạ (đã lâu)',
+      'repsUnmatched':
+          'để trống mức tạ (chưa có ngày làm đủ số hiệp và lần đó)',
+      'other': 'để trống mức tạ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineReference(String sets, String date) {
+    return 'Tham khảo: $sets ($date)';
+  }
+
+  @override
+  String routineBest(String set, String date) {
+    return 'Tham khảo: cao nhất $set ($date)';
+  }
+
+  @override
+  String routineStepped(String step, String evidence) {
+    return '+$step ($evidence)';
+  }
+
+  @override
+  String routineMemo(String date, String memo) {
+    return 'Ghi chú $date: $memo';
+  }
+
+  @override
+  String routineRecent(String part, String when) {
+    return '$part · $when';
+  }
+
+  @override
+  String routineDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n ngày trước',
+      one: 'hôm qua',
+      zero: 'hôm nay',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get routineFuture =>
+      'Xem trước — gõ \'bài tập\' vào hôm đó để bắt đầu thành bản ghi của hôm đó';
+
+  @override
+  String routineRefused(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'diet': 'Không lập thực đơn — ghi bữa ăn để xem calo',
+      'medical':
+          'Không đánh giá phục hồi hay tập sau phẫu thuật — ghi các bài bác sĩ hoặc chuyên viên trị liệu đưa, mình sẽ xếp thành bài tập',
+      'drug': 'Không hỗ trợ về thuốc',
+      'program': 'Mỗi lần chỉ xếp một ngày — đây là bài hôm nay',
+      'logging': 'Không đánh dấu hiệp chưa tập là xong — hãy chạm khi tập',
+      'format':
+          'Không có hẹn giờ EMOM, superset hay circuit — chỉ xếp thứ tự (tabata và bpm thì được)',
+      'person':
+          'Không xếp cho người khác — chỉ hiện tên bài trong nhật ký của bạn',
+      'other': 'Chỉ hỗ trợ nhật ký tập và bài tập',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineNotStated(String what) {
+    return 'Đã bỏ, không có trong câu bạn gõ: $what';
+  }
+
+  @override
+  String routineUnmet(String what) {
+    return 'Không áp dụng được: $what';
+  }
+
+  @override
+  String routineKeyName(String key) {
+    String _temp0 = intl.Intl.selectLogic(key, {
+      'when': 'ngày',
+      'from': 'ngày trước',
+      'parts': 'nhóm cơ',
+      'pattern': 'đẩy/kéo',
+      'exercises': 'bài tập',
+      'exclude': 'bài bỏ',
+      'avoid': 'nhóm cơ tránh',
+      'pain': 'chỗ đau',
+      'equipment': 'dụng cụ',
+      'count': 'số bài',
+      'minutes': 'thời gian',
+      'intensity': 'cường độ',
+      'timer': 'hẹn giờ',
+      'targets': 'số đã gõ',
+      'delta': 'tăng giảm tạ',
+      'other': 'điều kiện',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineUnknownName(String name) {
+    return 'Không có trong từ điển, đã bỏ: $name';
+  }
+
+  @override
+  String get routineNoSuchDay => 'Không có ngày đó — xếp theo nhật ký';
+
+  @override
+  String routineExcludeAbsent(String name) {
+    return 'Vốn không có bài cần bỏ: $name';
+  }
+
+  @override
+  String routineNoneMatched(String what) {
+    return 'Chưa ghi bài $what nào — có thể chọn để thêm';
+  }
+
+  @override
+  String routineFewer(int n) {
+    return 'Nhật ký chỉ có $n bài';
+  }
+
+  @override
+  String routineOtherUnit(String unit) {
+    return 'Các hiệp ghi bằng $unit giữ nguyên';
+  }
+
+  @override
+  String get routineBpmRange => 'bpm phải từ 10–120 — đã thêm không có hẹn giờ';
+
+  @override
+  String routineIntensityLine(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'light': 'Nhẹ: bớt hiệp cuối của mỗi bài — mức tạ giống lần trước',
+      'lightBlank': 'Nhẹ: bớt hiệp cuối của mỗi bài',
+      'hard': 'Mức tạ giống lần trước',
+      'max': 'Không chọn mức tạ để phá kỷ lục — ghi kỷ lục bên cạnh',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineNoStep => 'Gõ mức muốn tăng (vd. +2.5kg)';
+
+  @override
+  String routinePain(String phrase, String list) {
+    return 'Vì \'$phrase\' nên bỏ: $list · để trống mức tạ · không đánh giá có an toàn không';
+  }
+
+  @override
+  String routinePainNone(String phrase) {
+    return '\'$phrase\' — không bỏ bài nào, để trống mức tạ · không đánh giá có an toàn không';
+  }
+
+  @override
+  String get routinePainWord => 'chỗ đau';
+
+  @override
+  String get routineFirstTime => 'Lần đầu — chọn bài để thêm (không có số)';
+
+  @override
+  String routineCountFit(int count, int minutes) {
+    return 'Đã khớp $count bài — khoảng $minutes phút';
+  }
+
+  @override
+  String routineNoMore(int minutes) {
+    return 'Không còn bài trong nhật ký để thêm — khoảng $minutes phút';
+  }
+
+  @override
+  String routineOverTime(int minutes) {
+    return 'Riêng các bài bạn nêu đã khoảng $minutes phút';
+  }
+
+  @override
+  String routineOverUsual(int n, int usual) {
+    return 'Đã giữ cả $n bài bạn chọn — nhiều hơn $usual bài bạn thường tập mỗi buổi';
+  }
+
+  @override
+  String routineRecentMemo(String when, String name, String memo) {
+    return '$when, ghi chú $name: $memo';
+  }
+
+  @override
+  String routineRemoved(String label, String why) {
+    return 'Đã bỏ: $label — $why';
+  }
+
+  @override
+  String routineRemovedWhy(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'named': 'bạn đã nêu',
+      'avoid': 'nhóm cơ tránh',
+      'unknownPart': 'không rõ nhóm cơ',
+      'gear': 'dụng cụ khác',
+      'unknownGear': 'không rõ dụng cụ',
+      'otherPart': 'nhóm cơ khác',
+      'user': 'tự bỏ',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineRestore => 'Thêm lại';
+
+  @override
+  String routineAdd(String name) {
+    return '+ $name';
+  }
+
+  @override
+  String get routineOther => 'Bài khác';
+
+  @override
+  String get routineWhyShow => 'Xem lý do';
+
+  @override
+  String get routineWhyHide => 'Ẩn lý do';
+
+  @override
+  String routinePrevious(String date) {
+    return 'Trước đó ($date)';
+  }
+
+  @override
+  String routineByPart(String part) {
+    return 'Xếp bài $part';
+  }
+
+  @override
+  String routineStepChip(String step) {
+    return '+$step (mức bạn tự tăng)';
+  }
+
+  @override
+  String routineAskToo(String text) {
+    return 'Hỏi thêm: $text · bánh tạ';
+  }
+
+  @override
+  String get routineAsQuestion => 'Hỏi như câu hỏi nhật ký · bánh tạ';
+
+  @override
+  String get routineNoConditions => 'Xếp ngay không điều kiện';
+
+  @override
+  String get routineWithConditions => 'Đọc cả điều kiện · bánh tạ';
+
+  @override
+  String get routineMake => 'Xếp bài hôm nay';
+
+  @override
+  String routineMakePart(String part) {
+    return 'Xếp bài $part hôm nay';
+  }
+
+  @override
+  String get routineStart => 'Bắt đầu';
+
+  @override
+  String get routineStarted => 'Đã bắt đầu · Mở';
+
+  @override
+  String get routineWorking => 'Đang đọc điều kiện…';
+
+  @override
+  String get routineOffline =>
+      'Không có kết nối nên chưa đọc được điều kiện — xếp chỉ theo nhật ký';
+
+  @override
+  String get routineMisread =>
+      'Không đọc được điều kiện — xếp chỉ theo nhật ký. Gõ lại để đọc lần nữa';
+
+  @override
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': 'Không có kết nối',
+      'noPlates': 'Hết bánh tạ',
+      'other': 'Không đọc được câu trả lời',
+    });
+    return '$_temp0 nên chưa đọc được điều kiện (bài bỏ, chỗ đau) — chưa xếp bài';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return 'Mức tạ đã gõ: $count hiệp chính $from → $to';
+  }
+
+  @override
+  String get routineTypedKept => 'giữ nguyên mức tạ đã gõ';
+
+  @override
+  String get routinePlatesBefore =>
+      'Câu này đã dùng bánh tạ trước đó · lần này 0';
+
+  @override
+  String get routineRetry => 'Thử lại';
+
+  @override
+  String get routinePressEnter => 'Nhấn Enter để đọc cả điều kiện · bánh tạ';
+
+  @override
+  String get routineFromQuestion => 'Đọc là yêu cầu xếp bài';
+
+  @override
+  String routinePattern(String p) {
+    String _temp0 = intl.Intl.selectLogic(p, {
+      'push': 'đẩy',
+      'pull': 'kéo',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGear(String g) {
+    String _temp0 = intl.Intl.selectLogic(g, {
+      'barbell': 'tạ đòn',
+      'dumbbell': 'tạ đơn',
+      'machine': 'máy',
+      'cable': 'cáp',
+      'bodyweight': 'trọng lượng cơ thể',
+      'bar': 'xà đơn',
+      'kettlebell': 'tạ ấm',
+      'band': 'dây kháng lực',
+      'bench': 'ghế',
+      'other': 'dụng cụ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGearOnly(String list) {
+    return 'chỉ $list';
+  }
+
+  @override
+  String routineGearWithout(String list) {
+    return 'không $list';
+  }
+
+  @override
+  String routineMinutes(int n) {
+    return '$n phút';
+  }
+
+  @override
+  String routineCount(int n) {
+    return '$n bài';
+  }
+
+  @override
+  String routineIntensity(String k) {
+    String _temp0 = intl.Intl.selectLogic(k, {
+      'light': 'nhẹ',
+      'hard': 'nặng',
+      'max': 'thử kỷ lục',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineExclude(String list) {
+    return 'bỏ: $list';
+  }
+
+  @override
+  String routineAvoid(String list) {
+    return 'tránh: $list';
+  }
+
+  @override
+  String get routinePlatesZero => '0 bánh tạ';
+
+  @override
+  String get routineFullBody => 'Toàn thân';
+
+  @override
+  String get routineNoPlates =>
+      'Không đủ bánh tạ nên chưa đọc được điều kiện — xếp chỉ theo nhật ký';
+
+  @override
+  String get routineBack => 'Quay lại bài tập';
+
+  @override
+  String queryBoundDropped(String value) {
+    return 'Đã bỏ điều kiện $value — câu hỏi không ghi số này theo đơn vị đó';
+  }
+
+  @override
+  String get anatomyTitle => 'Bản đồ cơ thể';
+
+  @override
+  String get anatomyOpen =>
+      'Bản đồ cơ thể — bài tập và mẹo tư thế theo nhóm cơ';
+
+  @override
+  String get anatomyPick => 'Chọn bài trên hình cơ thể';
+
+  @override
+  String get anatomyFront => 'Trước';
+
+  @override
+  String get anatomyBack => 'Sau';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n ngày';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': 'Ngực',
+      'frontDelts': 'Vai trước',
+      'sideDelts': 'Vai giữa',
+      'rearDelts': 'Vai sau',
+      'traps': 'Cầu vai trên',
+      'upperBack': 'Giữa lưng',
+      'lats': 'Xô',
+      'lowerBack': 'Lưng dưới',
+      'biceps': 'Tay trước',
+      'triceps': 'Tay sau',
+      'forearms': 'Cẳng tay',
+      'abs': 'Bụng',
+      'obliques': 'Bụng chéo',
+      'hipFlexors': 'Cơ gập hông',
+      'glutes': 'Mông',
+      'quads': 'Đùi trước',
+      'hamstrings': 'Đùi sau',
+      'adductors': 'Đùi trong',
+      'calves': 'Bắp chân',
+      'infraspinatus': 'Cơ dưới gai',
+      'teresMinor': 'Cơ tròn bé',
+      'teresMajor': 'Cơ tròn lớn',
+      'tricepsLong': 'Tam đầu – đầu dài',
+      'tricepsLateral': 'Tam đầu – đầu ngoài',
+      'tricepsMedial': 'Tam đầu – đầu trong',
+      'other': 'Nhóm cơ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': 'ít',
+      'mid': 'vừa',
+      'high': 'nhiều',
+      'other': 'không',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend =>
+      'Nhóm cơ càng nhiều hiệp trong giai đoạn này thì màu càng đậm';
+
+  @override
+  String get anatomyFirstTime =>
+      'Chưa có hiệp nào hoàn thành nên chưa có màu. Chạm vào một nhóm cơ để xem bài tập dùng nó và mẹo tư thế.';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return 'Không có hiệp nào hoàn thành trong $n ngày qua';
+  }
+
+  @override
+  String anatomyUnknown(int n) {
+    return 'Chưa tính $n bài không rõ nhóm cơ. Chạm vào tên để xem bản ghi trong tìm kiếm.';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return 'và $n bài khác';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return 'Số hiệp cardio không đưa vào bản đồ: $n';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      'Nhóm cơ theo phân loại của ExRx.net và ACE và chỉ là ước lượng. Bài có dấu * là nhóm cơ được suy diễn. Mỗi hiệp tính một cho cơ chính và một nửa cho cơ hỗ trợ; hiệp khởi động cũng được tính.';
+
+  @override
+  String get anatomyLimits =>
+      'Không phân tích video hay tư thế. Nếu thấy đau, hãy dừng lại và hỏi chuyên gia.';
+
+  @override
+  String get anatomyTapHint =>
+      'Hãy chạm vào một nhóm cơ — cũng có thể chọn trong danh sách bên dưới';
+
+  @override
+  String get anatomyNoSurface => 'Cơ nằm sâu, không có trên hình';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return 'Số hiệp $days ngày: $sets';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return 'Số hiệp — 7 ngày qua: $week · 28 ngày: $month';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28 ngày: cơ chính $primary · hỗ trợ $secondary (tính một nửa)';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return 'Lần cuối: $date ($ago)';
+  }
+
+  @override
+  String get anatomyNever =>
+      'Chưa có hiệp nào cho nhóm cơ này trong các bài có trong bảng';
+
+  @override
+  String get anatomyDone => 'Bài bạn đã tập';
+
+  @override
+  String get anatomyTry => 'Bài chủ yếu dùng nhóm cơ này';
+
+  @override
+  String get anatomyTrySecondary => 'Bài tập dùng phần này để hỗ trợ';
+
+  @override
+  String anatomyTryGear(String list) {
+    return 'Với dụng cụ bạn đã dùng ($list)';
+  }
+
+  @override
+  String get anatomyAllGear => 'Chưa có dụng cụ trong nhật ký nên hiện tất cả';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return 'Xem thêm $n bài với dụng cụ khác';
+  }
+
+  @override
+  String get anatomyTriedAll =>
+      'Bạn đã tập hết các bài chủ yếu dùng nhóm cơ này';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': 'chính',
+      'other': 'hỗ trợ',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyInterpNote =>
+      '* nhóm cơ của bài này được suy diễn từ nguồn';
+
+  @override
+  String get anatomyCues => 'Mẹo tư thế';
+
+  @override
+  String get anatomyMistakes => 'Nên tránh';
+
+  @override
+  String anatomySources(String sites) {
+    return 'Nguồn: $sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '‡ thêm vào, không có nguồn';
+
+  @override
+  String get anatomyAdapted =>
+      '† suy diễn từ câu của nguồn (kể cả nguồn của bài tương tự)';
+
+  @override
+  String get anatomyCuesEnglish => 'Hiện mẹo tư thế chỉ có tiếng Anh';
+
+  @override
+  String get anatomyAddRoutine => 'Thêm vào lịch tập hôm nay';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return 'Lịch tập $part hôm nay';
+  }
+
+  @override
+  String get anatomySearch => 'Xem trong tìm kiếm';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return 'Số hiệp $days ngày: $sets, $level';
+  }
+
+  @override
+  String get anatomyRegionHint => 'Chạm hai lần để xem bài tập';
+
+  @override
+  String get anatomyClose => 'Đóng';
+
+  @override
+  String get anatomyZoomReset => 'Kích thước gốc';
+
+  @override
+  String anatomyTileSets(String n) {
+    return '$n hiệp';
+  }
+
+  @override
+  String get anatomyLastLabel => 'Lần cuối';
+
+  @override
+  String get openSourceLicenses => 'Giấy phép mã nguồn mở';
+
+  @override
+  String routineFactor(String f) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': 'Sức mạnh',
+      'endurance': 'Sức bền cơ',
+      'sustain': 'Sức duy trì',
+      'power': 'Sức bật',
+      'cardio': 'Tim phổi',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineFactorDay(String factor, String why) {
+    return 'Ngày $factor · $why';
+  }
+
+  @override
+  String routineFactorWhy(String kind, String a, String b) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata $a',
+      'fill': 'Đủ $a lần',
+      'fillTitle': 'Tên ‘$a’',
+      'distance': '$a',
+      'open': '$a lần mỗi hiệp, không cố định số hiệp',
+      'single': 'Một hiệp $a lần',
+      'drop': 'Tối đa mỗi hiệp $a',
+      'hold': '$a lần × $b hiệp',
+      'other': '$a×$b',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyWeekday(int weeks, String day, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other:
+          '$day tuần trước không có ghi chép — xếp theo $day $weeks tuần trước ($date)',
+      one: 'Giống $day tuần trước ($date)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNear(String day, String near) {
+    return 'Không có ghi chép $day — xếp theo ngày gần đó $near';
+  }
+
+  @override
+  String routineWhyFactor(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': 'Tuần này còn thiếu sức mạnh — xếp theo $date',
+      'endurance': 'Tuần này còn thiếu sức bền cơ — xếp theo $date',
+      'sustain': 'Tuần này còn thiếu sức duy trì — xếp theo $date',
+      'cardio': 'Tuần này còn thiếu tim phổi — xếp theo $date',
+      'other': 'Xếp theo $date',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorAll(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength':
+          'Tuần này đã đủ mọi mặt — đến lượt sức mạnh nên xếp giống $date',
+      'endurance':
+          'Tuần này đã đủ mọi mặt — đến lượt sức bền cơ nên xếp giống $date',
+      'sustain':
+          'Tuần này đã đủ mọi mặt — đến lượt sức duy trì nên xếp giống $date',
+      'cardio':
+          'Tuần này đã đủ mọi mặt — đến lượt tim phổi nên xếp giống $date',
+      'other': 'Xếp giống $date',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWeekCounts(String range, String list) {
+    return '7 ngày gần nhất ($range): $list';
+  }
+
+  @override
+  String routineFactorMissing(String list) {
+    return 'Không có ngày tập riêng trong 28 ngày: $list';
+  }
+
+  @override
+  String get routineFillHint =>
+      'Muốn tập cho đủ số, hãy ghi mục tiêu (vd: squat đủ 100 cái)';
+
+  @override
+  String get routineTabataChip => 'Tập kiểu tabata';
+
+  @override
+  String routineLikeLastWeek(String day) {
+    return 'Giống $day tuần trước';
+  }
+
+  @override
+  String routineFactorChip(String f, int n) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': 'Xếp cho sức mạnh · tuần này $n lần',
+      'endurance': 'Xếp cho sức bền cơ · tuần này $n lần',
+      'sustain': 'Xếp cho sức duy trì · tuần này $n lần',
+      'cardio': 'Xếp cho tim phổi · tuần này $n lần',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return 'Giữ nguyên (một hiệp, tập đủ số hoặc tabata): $list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': 'Bài khác: $day $weeks tuần trước ($date)',
+      'other':
+          '$day tuần trước chỉ có bài đã loại — xếp theo $day $weeks tuần trước ($date)',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': 'Bài khác: ngày gần đó $near',
+      'other': 'Ghi chép $day chỉ có bài đã loại — xếp theo ngày gần đó $near',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return 'Mặt còn thiếu không có ngày dùng được trong 28 ngày — xếp giống ngày $factor $date';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return 'Xếp theo ngày $factor $date, nhưng bài $factor đã bị bỏ ra';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return 'Bỏ các bài bạn loại thì không còn ngày nào trong 28 ngày: $list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return 'ít hơn ngày $date một hiệp';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return 'Có bài đã tập hôm nay: $list';
+  }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/exercises.dart';
 import 'package:setpad/parser.dart';
@@ -535,6 +536,43 @@ void keypadTests() {
       expect(find.text('스쿼트'), findsOneWidget);
     });
 
+    testWidgets('목록은 이전 7일, 그 앞은 달마다 — 올해가 아니면 해까지, 달 제목은 줄의 날짜와 같다', (
+      tester,
+    ) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_months');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final store = NotesStore(directory: dir);
+      final now = DateTime.now();
+      final recent = now.subtract(const Duration(days: 2));
+      final older = now.subtract(const Duration(days: 40));
+      final lastYear = DateTime(now.year - 1, 9, 10);
+      store.create(at: lastYear).blocks.add(ExerciseBlock('작년 스쿼트'));
+      store.create(at: older).blocks.add(ExerciseBlock('지난달 벤치'));
+      store.create(at: recent).blocks.add(ExerciseBlock('요즘 데드'));
+
+      tester.platformDispatcher.localesTestValue = [const Locale('ko')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+      tester.view.physicalSize = const Size(390, 3000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(SetpadApp(store: store));
+      await settle(tester);
+      await tester.tap(find.byType(CupertinoNavigationBarBackButton));
+      await settle(tester);
+
+      final l = await L.delegate.load(const Locale('ko'));
+      final monthTitle = older.year == now.year
+          ? l.monthLabel(older.month)
+          : DateFormat.yMMMM('ko').format(older);
+      expect(find.text('이전 7일'), findsOneWidget);
+      expect(find.text('이전 30일'), findsNothing);
+      expect(find.text(monthTitle), findsOneWidget);
+      expect(find.text('${now.year - 1}년 9월'), findsOneWidget);
+      double top(String t) => tester.getTopLeft(find.text(t)).dy;
+      expect(top('이전 7일'), lessThan(top(monthTitle)));
+      expect(top(monthTitle), lessThan(top('${now.year - 1}년 9월')));
+    });
+
     testWidgets('하단 검색이 이름으로 거른다', (tester) async {
       final dir = Directory.systemTemp.createTempSync('setpad_search');
       addTearDown(() => dir.deleteSync(recursive: true));
@@ -582,6 +620,12 @@ void keypadTests() {
       final used = store.create()..blocks.add(ExerciseBlock('풀업'));
       store.discardIfEmpty(used);
       expect(store.notes.single.blocks.single.name, '풀업');
+
+      // 쉬는 날 식단만 적은 기록은 빈 기록이 아니다.
+      final meal = store.create()
+        ..meals.add(MealEntry(at: DateTime(2026, 9, 20, 12), kcal: 650));
+      store.discardIfEmpty(meal);
+      expect(store.notes, contains(meal));
     });
 
     test('제목은 그날 한 운동 전부, 요약은 총 세트 수다', () {
@@ -600,6 +644,24 @@ void keypadTests() {
       );
       expect(n.title, '벤치프레스 · 딥스');
       expect(n.summary(setOrdinal: (x) => '$x세트', reps: (x) => '$x회'), '3세트');
+    });
+
+    test('끼니만 적은 날은 먹은 것이 제목이다 — 새 운동으로 비우지 않는다', () {
+      final n =
+          Note(id: '1', createdAt: DateTime.now(), updatedAt: DateTime.now())
+            ..meals.addAll([
+              MealEntry(at: DateTime.now(), kcal: 290, text: '그릭요거트 200g'),
+              MealEntry(at: DateTime.now(), kcal: 650, text: '김치찌개, 밥 한 공기'),
+            ]);
+      expect(n.title, '그릭요거트 200g · 김치찌개, 밥 한 공기');
+      expect(
+        Note(
+          id: '2',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ).title,
+        isNull,
+      );
     });
 
     test('취소한 세트는 총계에서 빠진다', () {
@@ -869,8 +931,10 @@ void keypadTests() {
 
     test('짧은 질의에는 관대하지 않다 — 아무거나 걸리면 못 쓴다', () {
       // 두 글자까지는 오타를 봐주지 않는다. 걸리는 것은 전부 진짜 앞글자 일치다.
+      // 기구 제품명 별칭('해머 호리즌탈 벤치')으로 걸린 머신은 이름에 '벤' 이 없을 수 있다.
       for (final name in find_('벤')) {
-        expect(name.toLowerCase().contains('벤'), isTrue, reason: name);
+        final keys = exerciseByName[name.toLowerCase()]!.keys;
+        expect(keys.any((k) => k.contains('벤')), isTrue, reason: name);
       }
       expect(find_('ㅋㅋ'), isEmpty);
     });
@@ -1069,12 +1133,15 @@ void keypadTests() {
       );
       await settle(tester);
 
-      await tester.tap(
+      // 식단은 글자 없이 포크·나이프 아이콘 하나다 — 후보 칩 자리를 먹지 않는다.
+      expect(
         find.descendant(
           of: find.byKey(const ValueKey('exercise-suggestions')),
           matching: find.text('식단 사진'),
         ),
+        findsNothing,
       );
+      await tester.tap(find.byKey(const ValueKey('meal-button')));
       expect(opened, 1);
     });
   });

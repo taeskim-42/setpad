@@ -1,42 +1,59 @@
 Escribe el ejercicio, escribe el peso y las repeticiones. Eso es toda la app.
 
-setpad no es un creador de rutinas. En cuanto terminas una serie escribes los números, como lo harías en una app de notas. Sin pantallas por las que navegar, sin desplegables que elegir.
+setpad no es un creador de rutinas. En cuanto terminas una serie escribes los números, como en una app de notas. Sin pantallas ni desplegables.
 
 ■ Escribir es registrar
-· Escribe "Press banca" y el ejercicio se abre; escribe "80 12" y la serie queda registrada
+· Escribe "Press banca" y se abre el ejercicio; escribe "80 12" y queda la serie
 · Un teclado hecho para series — dígitos y +/-, en pasos de 2,5 kg
-· ¿Igual que la serie anterior? Un solo toque
+· ¿Igual que la anterior? Un toque
 · La búsqueda tolera erratas y encuentra palabras parciales
+· Todas las series de hoy en una tabla: toca una celda para corregirla
 
-■ Configuración en una línea
-· Escribe "banca 80kg hasta 100 repeticiones" y el peso y el objetivo se rellenan solos
-· La frase la interpreta una IA en nuestro servidor. La frase no se guarda allí
-· Sin conexión, o si no se puede interpretar, lo que escribiste queda como nombre — el registro nunca se bloquea
+■ Series y comidas en una línea
+· Escribe "banca 80kg 5x5" y es un ejercicio; escribe "ramen 500kcal" y es una comida. Si se equivoca, un toque lo cambia
+· Escribe "banca 80kg hasta 100 repeticiones" y el peso y el objetivo se rellenan solos. Lo que no pudo colocar se muestra, no se pierde
+· Repite la línea de rutina de ayer y vuelve su configuración
+· Sin conexión, o si no se puede leer, lo que escribiste queda tal cual — el registro nunca se bloquea
 
-■ Una nota bajo cualquier serie
-· Anota lo que estabas pensando, justo debajo de la serie. Las notas se acumulan
-· Toca para editar, retroceso para borrar — como al escribir un documento
+■ Pregunta a tu registro y compara
+· Pregunta "¿Mejoró mi sentadilla desde el mes pasado?" o "banca vs remo": una tabla con tus series guardadas compara periodos y ejercicios
+· Los números los cuenta tu teléfono, no la IA
+· Las preguntas usan discos (ver abajo). Buscar por nombre de ejercicio es siempre gratis
+
+■ Comidas, con la fuente de las calorías
+· Registra comidas con texto o foto y elige cuánto comiste
+· Las calorías muestran su fuente: un valor de la tabla del MFDS de Corea o de USDA FoodData Central muestra, al tocarlo, el número y un enlace al original; lo demás se marca como estimación de la IA
+· Si no se conocen las calorías, lo dice. Las kcal que escribes se usan tal cual
+· La ingesta del día y la energía del ejercicio, en una línea
+
+■ Juntos
+· Hasta 6 personas escriben un registro en vivo; nombres y cursores muestran quién edita qué
+· Anota las series de tu compañero en tu teléfono y pásaselas con un enlace
+· Empezad un Tabata o un tempo a la vez en varios teléfonos, o por turnos en una máquina
 
 ■ App Salud
-· Tu entrenamiento se guarda en Salud como un entrenamiento
+· Tu entrenamiento se guarda en Salud
 · Se lee la energía activa medida por tu reloj (Salud de Apple, Health Connect)
-· En el descanso de un Tabata, cuando el pulso del reloj baja 25 lpm del máximo de esa ronda, el descanso termina y se avisa la siguiente ronda. Mientras descansas ves ♥ ahora → objetivo
+· En el descanso de un Tabata, cuando el pulso del reloj baja 25 lpm del máximo de la ronda, se avisa la siguiente. Mientras descansas ves pulso ahora → objetivo
 · Lo que se lee de la app de salud nunca sale del dispositivo
-· La app nunca se inventa las calorías. Si nadie las midió, no se muestran
+· Las calorías del ejercicio nunca se inventan. Si nadie las midió, no se muestran
+
+■ Gimnasios
+· Acerca el teléfono a la pegatina del gimnasio y se abre la rutina de hoy de tu entrenador. Reserva PT en la app
+· Modo entrenador: el personal del gimnasio ve cada mañana las clases de hoy y lo pendiente, y lo resuelve con un toque
+
+■ Ayuda de IA y discos
+· Al usar la configuración en una línea, la estimación de calorías o las preguntas, tu texto y las fotos de comidas (sin ubicación) pasan por nuestro servidor a un servicio de IA externo; nuestro servidor no los guarda. Puedes desactivarla en Ajustes › Ayuda de IA; el registro sigue funcionando
+· Ayuda para anotar (línea de configuración, estimación de comidas): 10 al día, gratis
+· Las preguntas usan discos. Empiezas con algunos y ganas 1 cada día que registras 10 series
+· Suscripción Pro: discos rellenados hasta 300 cada mes y ayuda para anotar 20 veces al día. Hasta 30 discos durante la prueba gratuita
 
 ■ Además
-· kg, lb, km, minutos, segundos — la unidad que corresponde a lo que haces
+· kg, lb, km, minutos, segundos — la unidad de cada ejercicio
 · El modo oscuro sigue la configuración del sistema
 · Español, inglés, coreano, japonés, tailandés, vietnamita y chino (simplificado y tradicional)
 
-■ Comidas, juntos
-· Registra comidas con foto o texto. Si no se conocen las calorías, lo dice
-· Mira la ingesta del día y la energía del ejercicio en una línea
-· Juntos: conéctate con un código para ver el registro del otro. El de tu compañero es de solo lectura
-· Empezad un Tabata o un tempo en los dos móviles en el mismo instante, o por turnos en una máquina
-· Planes compartidos: invita por enlace, decidid juntos el próximo entrenamiento, acordad la misma versión y empezad
-
-Para registrar por tu cuenta no hace falta cuenta. Los gimnasios, entrenar juntos, los planes compartidos y las suscripciones requieren iniciar sesión. Sin anuncios. Tu registro se queda en tu dispositivo; solo van al servidor los registros vinculados a un gimnasio y lo que decidas compartir.
+Para registrar por tu cuenta no hace falta cuenta. Los gimnasios, entrenar juntos y las suscripciones requieren iniciar sesión. Sin anuncios. Tu registro se guarda en tu dispositivo; la política de privacidad detalla qué va al servidor.
 
 Términos de uso (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Política de privacidad: https://darak.studio/setpad-privacy

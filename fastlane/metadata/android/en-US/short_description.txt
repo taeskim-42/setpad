@@ -1,1 +1,1 @@
-Type the exercise, type the weight and reps. That is the whole app.
+Type a set or a meal in one line. Log together, and ask your log.

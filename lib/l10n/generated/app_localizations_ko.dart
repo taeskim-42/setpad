@@ -51,15 +51,12 @@ class LKo extends L {
   String get previous7Days => '이전 7일';
 
   @override
-  String get previous30Days => '이전 30일';
-
-  @override
   String monthLabel(int m) {
     return '$m월';
   }
 
   @override
-  String get search => '검색';
+  String get search => '찾거나 물어보세요';
 
   @override
   String get newNote => '새 운동';
@@ -151,6 +148,11 @@ class LKo extends L {
   String get setRequired => '세트를 먼저 입력해 주세요. 예: 60 12';
 
   @override
+  String setsPerLineMax(int n) {
+    return '한 번에 $n세트까지예요. 줄을 나눠 적어 주세요.';
+  }
+
+  @override
   String get aiTitle => '한 줄 설정';
 
   @override
@@ -224,6 +226,61 @@ class LKo extends L {
   String get aiUseName => '운동 이름으로 사용';
 
   @override
+  String get aiFallbackQuota => '오늘 적기 도움을 다 써서 적은 그대로 만들었어요';
+
+  @override
+  String get aiFallbackOffline => '연결이 안 돼 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요';
+
+  @override
+  String get aiFallbackServer => '서버가 답하지 않아 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요';
+
+  @override
+  String get aiFallbackUnread =>
+      '설정으로 읽을 말을 찾지 못해 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요';
+
+  @override
+  String get inputNameTooLong => '운동 이름은 120자까지예요 — 줄을 나눠 적어 주세요';
+
+  @override
+  String get inputTooLong => '600자가 넘는 글은 읽지 않아요 — 줄을 나눠 적어 주세요';
+
+  @override
+  String get setupAdd => '설정 붙이기';
+
+  @override
+  String setupUnparsed(String words) {
+    return '설정에 못 옮긴 말: $words — 제목에 그대로 남아요';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return '글에 없는 수라 뺐어요: $numbers';
+  }
+
+  @override
+  String get setupNameMissing => '운동 이름을 적어 주세요';
+
+  @override
+  String get setupNameTooLong => '운동 이름은 120자까지예요';
+
+  @override
+  String get setupWeightInvalid => '0보다 크고 2000 이하인 수로 적어 주세요';
+
+  @override
+  String get setupCountInvalid => '1 이상의 정수로 적어 주세요 — 범위·시간은 제목에 남겨 두세요';
+
+  @override
+  String get setupRepsOnly => '횟수만 기록';
+
+  @override
+  String setupSplit(int count) {
+    return '운동 $count개로 나눴어요';
+  }
+
+  @override
+  String get setupMergeAll => '한 칸으로 합치기';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal회';
   }
@@ -240,9 +297,6 @@ class LKo extends L {
 
   @override
   String get repsInputHint => '횟수';
-
-  @override
-  String get setupTitle => '운동 설정';
 
   @override
   String get setupWeight => '기본 무게';
@@ -596,9 +650,6 @@ class LKo extends L {
   }
 
   @override
-  String get reviewNumbers => '숫자와 조건을 확인한 뒤 적용해 주세요.';
-
-  @override
   String get queryByExercise => '운동별';
 
   @override
@@ -841,6 +892,15 @@ class LKo extends L {
   String get mealPhoto => '식단 사진';
 
   @override
+  String get mealAdd => '식단 남기기';
+
+  @override
+  String get mealWrite => '글로 적기';
+
+  @override
+  String get mealTypeHint => '음식은 운동 이름 줄에 바로 쳐도 식단으로 남아요';
+
+  @override
   String get mealCamera => '카메라';
 
   @override
@@ -874,7 +934,29 @@ class LKo extends L {
   String get fitAll => '오늘 운동';
 
   @override
-  String get sameDayOther => '같은 날의 다른 기록';
+  String sameDayToday(String time) {
+    return '오늘 $time에 따로 남긴 기록';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return '$date $time에 따로 남긴 기록';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first 외 $n개';
+  }
+
+  @override
+  String lastWeekDay(String weekday, String date) {
+    return '지난주 $weekday($date) 운동';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$n주 전 $weekday($date) 운동';
+  }
 
   @override
   String get mealText => '식단 적기';
@@ -889,7 +971,7 @@ class LKo extends L {
     );
     final String nString = nNumberFormat.format(n);
 
-    return '약 ${nString}kcal';
+    return '${nString}kcal 추정';
   }
 
   @override
@@ -933,6 +1015,83 @@ class LKo extends L {
   String get mealPhotoWholeNote => '사진에 보이는 음식 전체를 어림한 값이에요. 그중 드신 만큼을 고르세요.';
 
   @override
+  String get mealTextUnknown =>
+      '무슨 음식인지 몰라 열량을 어림하지 못했어요. 끼니 줄을 눌러 음식 이름이나 양을 더 적으면 다시 어림해요.';
+
+  @override
+  String get mealTextOffline =>
+      '연결이 안 돼 열량을 어림하지 못했어요. 끼니 줄을 누르고 Enter 를 누르면 다시 어림해요.';
+
+  @override
+  String get mealTextTooLong =>
+      '500자가 넘는 식단 글은 어림하지 않아요. 끼니 줄을 눌러 나눠 적으면 어림해요.';
+
+  @override
+  String queryTooLong(int max) {
+    return '질문은 $max자까지예요. 줄여서 물어 주세요.';
+  }
+
+  @override
+  String get queryPressEnter => 'Enter 를 누르면 기록에 물어볼 수 있어요.';
+
+  @override
+  String get mealRetry => '다시 어림';
+
+  @override
+  String kcalAtLeast(int n) {
+    return '${n}kcal 이상';
+  }
+
+  @override
+  String mealTextPartial(int n) {
+    return '적은 ${n}kcal만 합계에 넣었어요. 나머지 음식은 열량을 몰라요.';
+  }
+
+  @override
+  String mealTextBelowTyped(int n) {
+    return '어림값이 글에 적은 ${n}kcal보다 작아 받지 않았어요. 적은 ${n}kcal만 합계에 넣었어요.';
+  }
+
+  @override
+  String queryLimit(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'exercises': '운동은 한 번에 8개까지 물을 수 있어요. 나눠서 물어 주세요.',
+      'measures': '한 번에 네 가지까지 셀 수 있어요. 나눠서 물어 주세요.',
+      'ranking': '순위는 20개까지 보여 줄 수 있어요. 20개 이하로 물어 주세요.',
+      'sessions': '\'마지막 N번\'은 100번까지예요. 더 길게 보려면 기간으로 물어 주세요. 예: 올해',
+      'days': '\'최근 N일\'은 3660일(약 10년)까지예요. 더 길게 보려면 전체 기간으로 물어 주세요.',
+      'compare': '한 번에 6가지까지 견줄 수 있어요. 나눠서 물어 주세요.',
+      'compareGrouped':
+          '견주기와 운동·날·주·월·요일별 묶음은 한 질문에 함께 셀 수 없어요. 둘 중 하나로 물어 주세요.',
+      'groupedMeasure':
+          '날·주·월·요일별로 묶어 여러 범위를 견주면 한 가지만 셀 수 있고, 추이·마지막·처음·안 한 지는 묶을 수 없어요.',
+      'ordering': '순위·합계·평균은 운동별이나 주별처럼 묶어서 물어 주세요.',
+      'datesTotal': '마지막·처음 날짜는 더하거나 평균 낼 수 없어요.',
+      'perMeasure':
+          '날당·주당·달당 평균은 세트·횟수·볼륨·거리·시간·날 수·칼로리처럼 더하는 수에만 낼 수 있어요. 최고·평균 무게는 기간으로 물어 주세요.',
+      'shareMeasure': '비중은 세트 수·볼륨처럼 더하는 수로만 낼 수 있어요.',
+      'trainedMeasure':
+          '운동한 날·쉰 날로 고르기는 먹은·태운 칼로리에만 써요. 운동 기록은 모두 운동한 날의 것이에요.',
+      'sameSeries': '견줄 두 범위가 같게 읽혔어요. 무엇과 무엇을 견줄지 적어 주세요.',
+      'other': '이 질문은 기록 검색이 셀 수 없는 모양이에요. 나눠서 물어 주세요.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String policyNumberRejected(String text, String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'decimal': '\'$text\' — 소수는 받지 않아요. 정수로 적어 주세요. 예: 14',
+      'range': '\'$text\' — 범위가 아니라 수 하나로 적어 주세요. 예: 14',
+      'negative': '\'$text\' — 0보다 작은 수는 받지 않아요. 예: 14',
+      'unit': '\'$text\' — 이 칸은 일·회로 세요. 시간·주·달은 일 수로 바꿔 적어 주세요. 예: 14',
+      'many': '\'$text\' — 수는 하나만 적어 주세요. 예: 14',
+      'other': '\'$text\' 에서 일·회 수를 읽지 못했어요. 숫자로 적어 주세요. 예: 14',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String get mealSources => '출처';
 
   @override
@@ -958,12 +1117,12 @@ class LKo extends L {
 
   @override
   String dayEnergyFull(String intake, String burned, String diff) {
-    return '섭취 $intake · 운동 $burned = ${diff}kcal';
+    return '먹은 것 $intake · 운동 $burned = ${diff}kcal';
   }
 
   @override
   String dayEnergyApprox(String intake, String burned, String diff) {
-    return '섭취 약 $intake · 운동 $burned = 약 ${diff}kcal';
+    return '먹은 것 $intake · 운동 $burned = ${diff}kcal (추정)';
   }
 
   @override
@@ -1302,7 +1461,10 @@ class LKo extends L {
   String get togetherLog => '기록';
 
   @override
-  String get mealLogAs => '식단으로 기록';
+  String get mealAutoLogged => '끼니로 남겼어요';
+
+  @override
+  String get mealAutoUndo => '운동으로 바꾸기';
 
   @override
   String get proxyWrite => '대신 적기';
@@ -1367,16 +1529,50 @@ class LKo extends L {
   String get mealsTitle => '먹은 것';
 
   @override
+  String get energyBurned => '운동';
+
+  @override
+  String get energyDifference => '차이';
+
+  @override
+  String get fold => '접기';
+
+  @override
+  String get energySurplus => '흑자';
+
+  @override
+  String get energyDeficit => '적자';
+
+  @override
+  String get milestoneBest => '최고 무게';
+
+  @override
+  String get energyDiffFormula => '먹은 것 − 운동';
+
+  @override
+  String get energyDiffExplain =>
+      '기록한 먹은 것에서 그날 쓴 칼로리(기초대사량 + 운동)를 뺀 값이에요. + 면 쓴 것보다 더 먹은 것(흑자), − 면 덜 먹은 거예요(적자).\n\n기초대사량은 건강 앱의 휴식 에너지를 먼저 쓰고, 없으면 내 몸 정보로 셈해요(추정). 걷기 같은 일상 활동은 들어 있지 않아서, 이 값이 곧 살이 찌거나 빠지는 양은 아니에요.';
+
+  @override
+  String get estimateTag => '추정';
+
+  @override
+  String get energyNotLogged => '미기록';
+
+  @override
+  String get energyNotMeasured => '미측정';
+
+  @override
   String get recordMenu => '더 보기';
 
   @override
   String dayIntakeOnly(String intake) {
-    return '섭취 ${intake}kcal · 운동 소모 미측정';
+    return '먹은 것 ${intake}kcal · 운동 소모 미측정';
   }
 
   @override
   String dayIntakeOnlyApprox(String intake) {
-    return '섭취 약 ${intake}kcal · 운동 소모 미측정';
+    return '먹은 것 ${intake}kcal (추정) · 운동 소모 미측정';
   }
 
   @override
@@ -1397,6 +1593,56 @@ class LKo extends L {
   @override
   String get healthDataCalories =>
       '읽기 · 활동 칼로리 — 운동한 시간 동안 워치가 잰 활동 칼로리를 그 기록에 붙입니다. 잰 것이 없으면 칼로리를 표시하지 않습니다.';
+
+  @override
+  String get healthDataBasal =>
+      '읽기 · 휴식 에너지(기초대사량) — 그날 쓴 칼로리에 넣어 먹은 것과의 차이를 셉니다. 잰 것이 없으면 설정 › 내 몸 정보로 셈합니다.';
+
+  @override
+  String get bodyTitle => '내 몸 정보';
+
+  @override
+  String get bodyNote =>
+      '기초대사량을 셈하는 데만 씁니다. 건강 앱에 휴식 에너지가 있으면 그 값을 먼저 씁니다. 이 정보는 기기 밖으로 보내지 않습니다.';
+
+  @override
+  String get bodyHeight => '키 (cm)';
+
+  @override
+  String get bodyWeight => '몸무게 (kg)';
+
+  @override
+  String get bodyBirthYear => '태어난 해';
+
+  @override
+  String get bodySex => '성별';
+
+  @override
+  String get bodyMale => '남';
+
+  @override
+  String get bodyFemale => '여';
+
+  @override
+  String bodyBmr(String kcal) {
+    return '하루 기초대사량 약 ${kcal}kcal (Mifflin-St Jeor 식)';
+  }
+
+  @override
+  String get energySpent => '쓴 것';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return '기초 $basal + 운동 $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => '먹은 것 − 쓴 것';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return '먹은 것 $intake · 쓴 것 $used = ${diff}kcal';
+  }
 
   @override
   String get healthDataHeart =>
@@ -1632,4 +1878,1379 @@ class LKo extends L {
 
   @override
   String get settingsTrainer => '트레이너';
+
+  @override
+  String get aiSetting => 'AI 도움';
+
+  @override
+  String get aiOff => 'AI 도움이 꺼져 있어 적은 그대로 두었어요. 설정 › AI 도움에서 켤 수 있어요';
+
+  @override
+  String get aiOffPhoto =>
+      'AI 도움이 꺼져 있어 사진으로 어림하지 않았어요. 식단 글로 ‘김밥 450kcal’처럼 적으면 그대로 들어가요';
+
+  @override
+  String get answerNeedsTwoDays => '날이 둘 이상 있어야 해요';
+
+  @override
+  String get answerNoBase => '기준 값이 없어요';
+
+  @override
+  String answerPerWeek(String value) {
+    return '주당 $value';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '달당 $value';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return '최고 이후 $n번 했어요';
+  }
+
+  @override
+  String get answerTimesUnit => '번';
+
+  @override
+  String answerTimes(int n) {
+    return '$n번';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return '$n일 연속';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return '$n일 쉼';
+  }
+
+  @override
+  String get answerUntilToday => '오늘';
+
+  @override
+  String answerEveryDays(String value) {
+    return '보통 $value일마다';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return '평균 $value일마다';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return '연달아 $a번 · 하루 쉬고 $b번 · 이틀 쉬고 $c번 · 사흘 이상 쉬고 $d번';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return '가장 긴 쉼 $n일이 들어 있어요';
+  }
+
+  @override
+  String get answerNoMeals => '끼니를 적은 날이 없어요';
+
+  @override
+  String answerAbout(String value) {
+    return '약 $value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '끼니를 적은 $n일';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return '열량을 모르는 끼니 $n개는 합에 없어요';
+  }
+
+  @override
+  String get answerNoWatch => '워치로 잰 기록이 없어요';
+
+  @override
+  String answerWatchDays(int n) {
+    return '워치로 잰 $n일';
+  }
+
+  @override
+  String get answerNoBoth => '섭취와 소모가 둘 다 있는 날이 없어요';
+
+  @override
+  String answerBothDays(int n) {
+    return '섭취·소모가 둘 다 있는 $n일';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return '섭취만 있는 $n일은 뺐어요';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$n달';
+  }
+
+  @override
+  String get metricChangePct => '변화율';
+
+  @override
+  String get metricDaysSinceBest => '최고 이후 날';
+
+  @override
+  String get metricSessionsSinceBest => '최고 이후 횟수';
+
+  @override
+  String get metricMeanReps => '세트당 반복';
+
+  @override
+  String get metricLongestStreak => '최장 연속';
+
+  @override
+  String get metricLongestGap => '최장 공백';
+
+  @override
+  String get metricMeanGap => '운동 간격';
+
+  @override
+  String get metricIntake => '섭취 열량';
+
+  @override
+  String get metricBurned => '소모 열량';
+
+  @override
+  String get metricBalance => '섭취 − 소모';
+
+  @override
+  String get queryAlone => '혼자 한 날';
+
+  @override
+  String get queryTogether => '같이 한 날';
+
+  @override
+  String get queryByPart => '부위별';
+
+  @override
+  String get queryCanSee => '기록으로는 무게·횟수·세트·운동한 날·끼니 열량을 볼 수 있어요';
+
+  @override
+  String get queryDiffColumn => '차이';
+
+  @override
+  String get queryFutureCell => '아직 오지 않은 기간';
+
+  @override
+  String get queryGrowthRate => '성장은 주당 속도로 순위를 매겼어요 — 기간이 달라도 공정하게';
+
+  @override
+  String get queryHandoff => '건네받은 기록만';
+
+  @override
+  String get queryNoHandoff => '건네받은 기록 제외';
+
+  @override
+  String queryHandoffCount(int n) {
+    return '건네받은 기록 $n개 제외';
+  }
+
+  @override
+  String get queryHoursNote =>
+      '시각은 기록을 만든 때 기준이에요 — 나중에 몰아 적은 기록은 적은 시각으로 들어가요';
+
+  @override
+  String get queryMixedWeights => '여러 운동을 섞은 무게예요';
+
+  @override
+  String get queryNcBodyweight =>
+      '체중은 기록에 없어요 — 질문에 체중을 적으면 그 수와 견줘요(예: 체중 80인데 데드 몇 배?)';
+
+  @override
+  String get queryNcWeightForecast =>
+      '몇 kg 이 될지는 계산하지 않아요 — 기록에는 먹은 것과 운동 소모만 있고, 기초대사량·일상 활동으로 쓰는 칼로리가 없어요';
+
+  @override
+  String get queryNcHeartRate =>
+      '기록 검색은 아직 심박을 안 봐요 — 운동별·휴식별 심박은 세트 시각이 없어 볼 수 없어요';
+
+  @override
+  String get queryNeverMark => '적은 적 없음';
+
+  @override
+  String get queryNoBaseRatio => '기준 값이 없어 비율을 못 내요';
+
+  @override
+  String get queryNoneCell => '이 범위엔 기록 없음';
+
+  @override
+  String get queryNoRoutine => '루틴 아닌 날';
+
+  @override
+  String get queryRoutine => '루틴으로 한 날';
+
+  @override
+  String get queryOngoing => '진행 중';
+
+  @override
+  String get queryOverlap => '운동일수는 겹치는 날이 있어 비중을 못 내요 — 세트 수로 물어 주세요';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': '가슴',
+      'back': '등',
+      'legs': '다리',
+      'shoulders': '어깨',
+      'arms': '팔',
+      'core': '코어',
+      'cardio': '유산소',
+      'upper': '상체',
+      'lower': '하체',
+      'other': '부위',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => '배수';
+
+  @override
+  String get queryRatioUnits => '단위가 달라 비율을 못 내요';
+
+  @override
+  String get queryRestDay => '쉰 날';
+
+  @override
+  String get queryTrained => '운동한 날';
+
+  @override
+  String get querySetFirst => '첫 세트';
+
+  @override
+  String get querySetLast => '마지막 세트';
+
+  @override
+  String get queryShare => '비중';
+
+  @override
+  String get queryZeroFilled => '안 한 운동도 0 으로 넣었어요';
+
+  @override
+  String queryAgainst(String value) {
+    return '기준 $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio배 · 차이 $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n일';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return '값이 다른 세트 $n개 제외';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '$from–$to시';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return '혹시 $name?';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return '메모에 모두: $terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text $n일';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return '걸린 메모: $hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names: 적은 기록이 없어 빼고 셌어요';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names: 적은 기록이 없어요';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return '메모 없음: $terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return '반복을 안 적은 세트 $n개 제외';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return '기록에 없어 못 본 것: $things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return '못 보는 것: $things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return '기록으로 답할 수 없어요: $things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return '무게 없는 세트 $n개 제외 (최다 $reps회)';
+  }
+
+  @override
+  String queryNth(int n) {
+    return '끝에서 $n번째 운동일';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '거리를 적은 $n번: $value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '시간을 적은 $n번: $value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return '$names 제외';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '($n일)';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part: $names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '하루 평균',
+      'week': '주당',
+      'month': '달당',
+      'other': '평균',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/일',
+      'week': '/주',
+      'month': '/달',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value배 ($percent%)';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': '$n번째 날',
+      'week': '$n번째 주',
+      'month': '$n번째 달',
+      'other': '$n번째',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return '아직 오지 않은 기간이라 $year년으로 읽었어요';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return '같은 $days일로 견주면: $earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return '기록이 짧아(3일·3주 미만) 순위에서 뺐어요: $names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': '타바타',
+      'bpm': 'bpm 타이머',
+      'other': '타이머 없이',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return '부위를 모르는 운동은 뺐어요: $names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '값이 빠져 순위에 못 넣은 $n개: $names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return '기간의 날 수가 달라요($lengths일) — 차이·비율은 주당으로 셌어요';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$total주 중 $zeros주는 0',
+      'month': '$total달 중 $zeros달은 0',
+      'other': '$total개 중 $zeros개는 0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '가능한 $m일 중 $percent%';
+  }
+
+  @override
+  String get queryOfflineLocal =>
+      '서버에 닿지 못해 글에 적힌 운동·기간으로만 기기에서 셌어요. 연결되면 Enter 로 다시 물어보세요.';
+
+  @override
+  String get queryMisread => '이 질문은 셀 수 있는 모양으로 읽지 못했어요. 말을 바꿔 물어봐 주세요.';
+
+  @override
+  String get queryMisreadLocal =>
+      '질문을 셀 수 있는 모양으로 읽지 못해 글에 적힌 운동·기간으로만 기기에서 셌어요. 말을 바꿔 물으면 다시 읽어요.';
+
+  @override
+  String get queryUnreadable =>
+      '모델이 읽을 수 없는 답을 두 번 보냈어요. 연결 문제가 아니고, 그 답에는 원판이 나가지 않았어요.';
+
+  @override
+  String get queryAskAgain => '다시 묻기';
+
+  @override
+  String get queryUnreadablePaid =>
+      '모델이 읽을 수 없는 답을 두 번 보냈어요. 연결 문제가 아니에요. 그 답에는 원판이 나가지 않았고, 아래 원판은 질문을 가른 첫 단계에 쓴 거예요.';
+
+  @override
+  String get queryUnreadableLocal => '그동안 글에 적힌 운동·기간으로는 기기에서 셌어요.';
+
+  @override
+  String get queryTotalUnits => '단위가 달라 합계를 못 내요';
+
+  @override
+  String queryMemoDropped(String words) {
+    return '메모 조건 뺌: $words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return '기준 수 $value 뺌 — 질문에 무게로 적힌 수가 아니에요';
+  }
+
+  @override
+  String routineDate(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.Md(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
+
+  @override
+  String get routineHeaderToday => '오늘 루틴';
+
+  @override
+  String routineHeaderDay(String day) {
+    return '$day 루틴';
+  }
+
+  @override
+  String routineTomorrow(String date) {
+    return '내일($date)';
+  }
+
+  @override
+  String routineWhyRotation(String date, int days) {
+    return '$date 운동을 $days일 동안 안 했어요 — 그날처럼 짰어요';
+  }
+
+  @override
+  String routineWhyFrom(String date) {
+    return '$date 그대로 짰어요';
+  }
+
+  @override
+  String routineWhyNamed(String date) {
+    return '$date에 같이 하던 운동으로 채웠어요';
+  }
+
+  @override
+  String routinePartRest(String list) {
+    return '최근 28일: $list 전';
+  }
+
+  @override
+  String routinePartDays(String part, int days) {
+    return '$part $days일';
+  }
+
+  @override
+  String routineEstimate(int minutes) {
+    return '약 $minutes분';
+  }
+
+  @override
+  String routinePaceOwn(int sessions, String pace) {
+    return '최근 $sessions번 운동의 세트당 $pace로 어림';
+  }
+
+  @override
+  String routinePaceDefault(String pace) {
+    return '기본값 세트당 $pace로 어림 — 운동을 몇 번 적으면 내 속도로 바뀌어요';
+  }
+
+  @override
+  String routineMinSec(int m, int s) {
+    return '$m분 $s초';
+  }
+
+  @override
+  String routineReadAs(String list) {
+    return '이렇게 읽었어요: $list';
+  }
+
+  @override
+  String routineCopied(String date) {
+    return '$date 그대로';
+  }
+
+  @override
+  String routineRepsMatched(String date, int reps) {
+    return '$date에 $reps회 한 무게';
+  }
+
+  @override
+  String get routineTyped => '적은 대로';
+
+  @override
+  String get routineFirst => '처음';
+
+  @override
+  String routineBlank(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'light': '가볍게라 무게는 비웠어요',
+      'pain': '아픈 곳이 있어 무게는 비웠어요',
+      'gear': '기구가 달라 무게는 비웠어요',
+      'bodyweight': '기구 무게라 비웠어요',
+      'stale': '오래돼서 무게는 비웠어요',
+      'repsUnmatched': '그 횟수로 그만큼 한 날이 없어 무게는 비웠어요',
+      'other': '무게는 비웠어요',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineReference(String sets, String date) {
+    return '참고: $sets ($date)';
+  }
+
+  @override
+  String routineBest(String set, String date) {
+    return '참고: 최고 $set ($date)';
+  }
+
+  @override
+  String routineStepped(String step, String evidence) {
+    return '+$step ($evidence)';
+  }
+
+  @override
+  String routineMemo(String date, String memo) {
+    return '$date 메모: $memo';
+  }
+
+  @override
+  String routineRecent(String part, String when) {
+    return '$part · $when';
+  }
+
+  @override
+  String routineDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n일 전',
+      one: '어제',
+      zero: '오늘',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get routineFuture => '미리 보기예요 — 그날 \'루틴\'을 치면 그날 기록으로 시작할 수 있어요';
+
+  @override
+  String routineRefused(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'diet': '식단은 짜 드리지 않아요 — 끼니를 적으면 열량은 볼 수 있어요',
+      'medical': '재활·수술 뒤 운동은 판단하지 않아요 — 의사·치료사에게 받은 운동을 적으면 그대로 루틴으로 만들어요',
+      'drug': '약물은 도와드리지 않아요',
+      'program': '한 번에 하루치만 짜요 — 오늘 루틴이에요',
+      'logging': '안 한 세트를 완료로 적지는 않아요 — 할 때 눌러 주세요',
+      'format': 'EMOM·슈퍼세트·서킷 타이머는 없어요 — 순서만 짰어요(타바타·bpm 은 돼요)',
+      'person': '다른 사람 루틴은 짜 드리지 않아요 — 내 기록의 운동 이름만 보여요',
+      'other': '운동 기록과 루틴만 도와드려요',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineNotStated(String what) {
+    return '글에 없는 수라 뺐어요: $what';
+  }
+
+  @override
+  String routineUnmet(String what) {
+    return '못 맞춘 조건: $what';
+  }
+
+  @override
+  String routineKeyName(String key) {
+    String _temp0 = intl.Intl.selectLogic(key, {
+      'when': '날짜',
+      'from': '지난 날',
+      'parts': '부위',
+      'pattern': '밀기·당기기',
+      'exercises': '운동',
+      'exclude': '뺄 운동',
+      'avoid': '피할 부위',
+      'pain': '아픈 곳',
+      'equipment': '기구',
+      'count': '운동 수',
+      'minutes': '시간',
+      'intensity': '세기',
+      'timer': '타이머',
+      'targets': '적은 수',
+      'delta': '증감',
+      'other': '조건',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineUnknownName(String name) {
+    return '사전에 없어 뺐어요: $name';
+  }
+
+  @override
+  String get routineNoSuchDay => '그런 날이 없어요 — 기록으로 짰어요';
+
+  @override
+  String routineExcludeAbsent(String name) {
+    return '뺄 운동이 원래 없어요: $name';
+  }
+
+  @override
+  String routineNoneMatched(String what) {
+    return '기록한 $what 운동이 없어요 — 골라 넣을 수 있어요';
+  }
+
+  @override
+  String routineFewer(int n) {
+    return '기록으로 넣을 운동이 $n개예요';
+  }
+
+  @override
+  String routineOtherUnit(String unit) {
+    return '$unit로 적은 세트는 그대로 뒀어요';
+  }
+
+  @override
+  String get routineBpmRange => 'bpm 은 10–120 이에요 — 타이머 없이 넣었어요';
+
+  @override
+  String routineIntensityLine(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'light': '가볍게: 칸마다 마지막 세트 하나를 뺐어요 — 무게는 지난번 그대로예요',
+      'lightBlank': '가볍게: 칸마다 마지막 세트 하나를 뺐어요',
+      'hard': '무게는 지난번 그대로예요',
+      'max': '몇 kg 에 도전할지는 정하지 않아요 — 최고 기록을 옆에 적었어요',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineNoStep => '올릴 만큼 적어 주세요(예: +2.5kg)';
+
+  @override
+  String routinePain(String phrase, String list) {
+    return '\'$phrase\' 때문에 뺀 것: $list · 무게는 비웠어요 · 괜찮은지는 판단하지 않아요';
+  }
+
+  @override
+  String routinePainNone(String phrase) {
+    return '\'$phrase\' — 뺀 운동은 없고 무게는 비웠어요 · 괜찮은지는 판단하지 않아요';
+  }
+
+  @override
+  String get routinePainWord => '아프다는 말';
+
+  @override
+  String get routineFirstTime => '처음이에요 — 넣을 운동을 고르면 숫자 없이 들어가요';
+
+  @override
+  String routineCountFit(int count, int minutes) {
+    return '$count개로 맞췄어요 — 약 $minutes분';
+  }
+
+  @override
+  String routineNoMore(int minutes) {
+    return '기록으로 더 넣을 운동이 없어요 — 약 $minutes분이에요';
+  }
+
+  @override
+  String routineOverTime(int minutes) {
+    return '말한 운동만으로 약 $minutes분이에요';
+  }
+
+  @override
+  String routineOverUsual(int n, int usual) {
+    return '고른 운동 $n개를 모두 넣었어요 — 평소 한 번에 하는 $usual개보다 많아요';
+  }
+
+  @override
+  String routineRecentMemo(String when, String name, String memo) {
+    return '$when $name 메모: $memo';
+  }
+
+  @override
+  String routineRemoved(String label, String why) {
+    return '뺀 것: $label — $why';
+  }
+
+  @override
+  String routineRemovedWhy(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'named': '말한 운동',
+      'avoid': '피할 부위',
+      'unknownPart': '부위를 몰라서',
+      'gear': '기구가 달라서',
+      'unknownGear': '기구를 몰라서',
+      'otherPart': '다른 부위라서',
+      'user': '직접 뺌',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineRestore => '넣기';
+
+  @override
+  String routineAdd(String name) {
+    return '+ $name';
+  }
+
+  @override
+  String get routineOther => '다른 루틴';
+
+  @override
+  String get routineWhyShow => '근거 보기';
+
+  @override
+  String get routineWhyHide => '근거 접기';
+
+  @override
+  String routinePrevious(String date) {
+    return '그 전($date)';
+  }
+
+  @override
+  String routineByPart(String part) {
+    return '$part 루틴으로 짜기';
+  }
+
+  @override
+  String routineStepChip(String step) {
+    return '+$step 올리기(스스로 올려 온 폭)';
+  }
+
+  @override
+  String routineAskToo(String text) {
+    return '이것도 물을까요: $text · 원판';
+  }
+
+  @override
+  String get routineAsQuestion => '기록 질문으로 묻기 · 원판';
+
+  @override
+  String get routineNoConditions => '조건 없이 바로 짜기';
+
+  @override
+  String get routineWithConditions => '조건까지 읽어 짜기 · 원판';
+
+  @override
+  String get routineMake => '오늘 루틴 만들기';
+
+  @override
+  String routineMakePart(String part) {
+    return '오늘 $part 루틴 만들기';
+  }
+
+  @override
+  String get routineStart => '시작';
+
+  @override
+  String get routineStarted => '시작함 · 열기';
+
+  @override
+  String get routineWorking => '조건을 읽는 중…';
+
+  @override
+  String get routineOffline => '조건은 연결이 안 돼 못 읽었어요 — 기록으로만 짰어요';
+
+  @override
+  String get routineMisread => '조건을 읽지 못했어요 — 기록으로만 짰어요. 말을 바꾸면 다시 읽어요';
+
+  @override
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': '연결이 안 돼',
+      'noPlates': '원판이 없어',
+      'other': '모델 답을 읽지 못해',
+    });
+    return '$_temp0 조건(빼기·아픈 곳)을 못 읽었어요 — 루틴을 만들지 않았어요';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return '적은 무게로: 작업 세트 $count개 $from → $to';
+  }
+
+  @override
+  String get routineTypedKept => '적은 무게는 그대로 뒀어요';
+
+  @override
+  String get routinePlatesBefore => '이 글에 앞서 원판을 썼어요 · 이번엔 0장';
+
+  @override
+  String get routineRetry => '다시 시도';
+
+  @override
+  String get routinePressEnter => 'Enter 를 누르면 조건까지 읽어 짜요 · 원판';
+
+  @override
+  String get routineFromQuestion => '루틴을 짜 달라는 말로 읽었어요';
+
+  @override
+  String routinePattern(String p) {
+    String _temp0 = intl.Intl.selectLogic(p, {
+      'push': '밀기',
+      'pull': '당기기',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGear(String g) {
+    String _temp0 = intl.Intl.selectLogic(g, {
+      'barbell': '바벨',
+      'dumbbell': '덤벨',
+      'machine': '머신',
+      'cable': '케이블',
+      'bodyweight': '맨몸',
+      'bar': '철봉',
+      'kettlebell': '케틀벨',
+      'band': '밴드',
+      'bench': '벤치',
+      'other': '기구',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGearOnly(String list) {
+    return '$list만';
+  }
+
+  @override
+  String routineGearWithout(String list) {
+    return '$list 없이';
+  }
+
+  @override
+  String routineMinutes(int n) {
+    return '$n분';
+  }
+
+  @override
+  String routineCount(int n) {
+    return '운동 $n개';
+  }
+
+  @override
+  String routineIntensity(String k) {
+    String _temp0 = intl.Intl.selectLogic(k, {
+      'light': '가볍게',
+      'hard': '무겁게',
+      'max': '최고 도전',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineExclude(String list) {
+    return '뺄 것: $list';
+  }
+
+  @override
+  String routineAvoid(String list) {
+    return '피할 부위: $list';
+  }
+
+  @override
+  String get routinePlatesZero => '원판 0장';
+
+  @override
+  String get routineFullBody => '전신';
+
+  @override
+  String get routineNoPlates => '조건은 원판이 없어 못 읽었어요 — 기록으로만 짰어요';
+
+  @override
+  String get routineBack => '루틴으로 돌아가기';
+
+  @override
+  String queryBoundDropped(String value) {
+    return '숫자 조건 $value 뺌 — 질문에 그 단위로 적힌 수가 아니에요';
+  }
+
+  @override
+  String get anatomyTitle => '몸 그림';
+
+  @override
+  String get anatomyOpen => '몸 그림 — 부위별 운동과 자세 팁';
+
+  @override
+  String get anatomyPick => '몸 그림에서 운동 고르기';
+
+  @override
+  String get anatomyFront => '앞';
+
+  @override
+  String get anatomyBack => '뒤';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n일';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': '가슴',
+      'frontDelts': '앞 어깨',
+      'sideDelts': '옆 어깨',
+      'rearDelts': '뒤 어깨',
+      'traps': '승모근 윗부분',
+      'upperBack': '등 가운데',
+      'lats': '광배근',
+      'lowerBack': '허리',
+      'biceps': '이두',
+      'triceps': '삼두',
+      'forearms': '전완',
+      'abs': '복근',
+      'obliques': '옆구리',
+      'hipFlexors': '고관절 굴곡근',
+      'glutes': '엉덩이',
+      'quads': '허벅지 앞',
+      'hamstrings': '허벅지 뒤',
+      'adductors': '허벅지 안쪽',
+      'calves': '종아리',
+      'infraspinatus': '극하근',
+      'teresMinor': '소원근',
+      'teresMajor': '대원근',
+      'tricepsLong': '삼두 장두',
+      'tricepsLateral': '삼두 외측두',
+      'tricepsMedial': '삼두 내측두',
+      'other': '부위',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': '적음',
+      'mid': '중간',
+      'high': '많음',
+      'other': '없음',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend => '이 기간에 세트가 많은 부위일수록 진해요';
+
+  @override
+  String get anatomyFirstTime =>
+      '아직 해낸 세트가 없어 색이 없어요. 부위를 누르면 그 부위를 쓰는 운동과 자세 팁을 볼 수 있어요.';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return '최근 $n일에 해낸 세트가 없어요';
+  }
+
+  @override
+  String anatomyUnknown(int n) {
+    return '근육을 모르는 운동 $n개는 세지 않았어요. 이름을 누르면 검색에서 그 기록을 봐요.';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return '외 $n개';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return '유산소 $n세트는 근육 그림에 넣지 않았어요';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      '근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.';
+
+  @override
+  String get anatomyLimits => '영상·자세 분석은 하지 않아요. 통증이 있으면 멈추고 전문가와 상의하세요.';
+
+  @override
+  String get anatomyTapHint => '근육을 눌러 주세요 — 아래 목록에서도 고를 수 있어요';
+
+  @override
+  String get anatomyNoSurface => '몸 안쪽 근육이라 그림에는 없어요';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return '$days일 $sets세트';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return '최근 7일 $week세트 · 28일 $month세트';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28일 중 주로 쓴 세트 $primary · 보조로 쓴 세트 $secondary(반으로 셈)';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return '마지막: $date($ago)';
+  }
+
+  @override
+  String get anatomyNever => '표에 있는 운동으로는 이 부위를 쓴 기록이 아직 없어요';
+
+  @override
+  String get anatomyDone => '내가 한 운동';
+
+  @override
+  String get anatomyTry => '이 부위를 주로 쓰는 운동';
+
+  @override
+  String get anatomyTrySecondary => '이 부위를 보조로 쓰는 운동';
+
+  @override
+  String anatomyTryGear(String list) {
+    return '쓴 적 있는 기구($list)로 할 수 있는 것';
+  }
+
+  @override
+  String get anatomyAllGear => '기구 기록이 없어 전부 보여요';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return '다른 기구 운동 $n개 더 보기';
+  }
+
+  @override
+  String get anatomyTriedAll => '이 부위를 주로 쓰는 운동은 다 해 봤어요';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': '주로 씀',
+      'other': '보조',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyInterpNote => '* 가 붙은 운동은 근육 배정이 출처를 옮긴 해석이에요';
+
+  @override
+  String get anatomyCues => '자세 팁';
+
+  @override
+  String get anatomyMistakes => '피할 것';
+
+  @override
+  String anatomySources(String sites) {
+    return '출처: $sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '‡ 출처 없이 덧붙인 말';
+
+  @override
+  String get anatomyAdapted => '† 출처 문장을 옮겨 쓴 해석(비슷한 동작의 출처 포함)';
+
+  @override
+  String get anatomyCuesEnglish => '자세 팁은 아직 영어로만 있어요';
+
+  @override
+  String get anatomyAddRoutine => '오늘 루틴에 넣기';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return '오늘 $part 루틴';
+  }
+
+  @override
+  String get anatomySearch => '검색에서 보기';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return '최근 $days일 $sets세트, $level';
+  }
+
+  @override
+  String get anatomyRegionHint => '두 번 눌러 운동 보기';
+
+  @override
+  String get anatomyClose => '닫기';
+
+  @override
+  String get anatomyZoomReset => '원래 크기';
+
+  @override
+  String anatomyTileSets(String n) {
+    return '$n세트';
+  }
+
+  @override
+  String get anatomyLastLabel => '마지막';
+
+  @override
+  String get openSourceLicenses => '오픈소스 라이선스';
+
+  @override
+  String routineFactor(String f) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '근력',
+      'endurance': '근지구력',
+      'sustain': '지속력',
+      'power': '순발력',
+      'cardio': '심폐',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineFactorDay(String factor, String why) {
+    return '$factor 날 · $why';
+  }
+
+  @override
+  String routineFactorWhy(String kind, String a, String b) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': '타바타 $a',
+      'fill': '채우기 $a개',
+      'fillTitle': '제목 ‘$a’',
+      'distance': '$a',
+      'open': '$a회씩, 세트 수 열어 둠',
+      'single': '한 세트 $a회',
+      'drop': '세트마다 최대 $a',
+      'hold': '$a회×$b세트',
+      'other': '$a×$b',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyWeekday(int weeks, String day, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '지난주 $day엔 기록이 없어 $weeks주 전 $day($date)로 짰어요',
+      one: '지난주 $day($date) 운동 그대로예요',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNear(String day, String near) {
+    return '$day 기록이 없어 가까운 $near로 짰어요';
+  }
+
+  @override
+  String routineWhyFactor(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '이번 주 근력이 부족해서 $date로 짰어요',
+      'endurance': '이번 주 근지구력이 부족해서 $date로 짰어요',
+      'sustain': '이번 주 지속력이 부족해서 $date로 짰어요',
+      'cardio': '이번 주 심폐가 부족해서 $date로 짰어요',
+      'other': '$date로 짰어요',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorAll(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '이번 주 요인은 다 채웠어요 — 다음 차례인 근력으로 $date처럼 짰어요',
+      'endurance': '이번 주 요인은 다 채웠어요 — 다음 차례인 근지구력으로 $date처럼 짰어요',
+      'sustain': '이번 주 요인은 다 채웠어요 — 다음 차례인 지속력으로 $date처럼 짰어요',
+      'cardio': '이번 주 요인은 다 채웠어요 — 다음 차례인 심폐로 $date처럼 짰어요',
+      'other': '$date처럼 짰어요',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWeekCounts(String range, String list) {
+    return '최근 7일($range): $list';
+  }
+
+  @override
+  String routineFactorMissing(String list) {
+    return '최근 28일에 따로 한 날이 없는 요인: $list';
+  }
+
+  @override
+  String get routineFillHint => '채우기는 목표 수를 적어 주세요(예: 스쿼트 100개 채우기)';
+
+  @override
+  String get routineTabataChip => '타바타로';
+
+  @override
+  String routineLikeLastWeek(String day) {
+    return '지난주 $day처럼';
+  }
+
+  @override
+  String routineFactorChip(String f, int n) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '근력으로 짜기 · 이번 주 $n번',
+      'endurance': '근지구력으로 짜기 · 이번 주 $n번',
+      'sustain': '지속력으로 짜기 · 이번 주 $n번',
+      'cardio': '심폐로 짜기 · 이번 주 $n번',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return '세트를 뺄 수 없어 그대로 둔 칸(한 세트·채우기·타바타): $list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '다른 루틴: $weeks주 전 $day($date)로 짰어요',
+      'other': '지난주 $day은 거른 운동뿐이라 $weeks주 전 $day($date)로 짰어요',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '다른 루틴: 가까운 $near로 짰어요',
+      'other': '$day은 거른 운동뿐이라 가까운 $near로 짰어요',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return '모자란 요인은 최근 28일에 쓸 수 있는 날이 없어 $date $factor 날처럼 짰어요';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return '$date $factor 날로 짰지만 $factor 칸은 빠졌어요';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return '빼라고 한 운동을 빼면 최근 28일에 남는 날이 없는 요인: $list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return '$date에서 한 세트 뺌';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return '오늘 이미 한 운동이 들어 있어요: $list';
+  }
 }

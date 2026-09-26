@@ -1,0 +1,24 @@
+No account is needed to review setpad. Every AI feature below works signed out: the app uses an anonymous random device ID, and a new device starts with 3 plates.
+
+AI help (the AI service is DeepSeek) and how to turn it off
+- AI help is on by default. When an AI feature is used, what is sent (the text you type, meal photos with location and capture details removed, and the exercise names in your log) goes through our server gym.darak.studio to DeepSeek's AI; our server does not store it. The privacy policy describes this.
+- To turn it off: on the list screen tap the gear icon (top right) › Settings › Recording › "AI help". The same Settings page is in the "…" menu of a record screen. While it is off, nothing is sent to the AI.
+- Off never blocks the app: typed lines are still logged as written, calories typed as "500kcal" still count, name search still works, today's routine is built on the phone, and one line says AI help is off.
+- Health data read from Apple Health (active energy, heart rate) is never sent to our server or to the AI.
+
+How to try the AI features (signed out)
+1. Launch the app. Today's record opens; tap the exercise-name field at the bottom.
+2. One-line setup: type "bench 80kg 5x5" and press Return. A sheet shows 80 kg and 5 sets of 5; tap Done. Then type "80 5" to log a set.
+3. Meal from text: in the same field type "lunch burrito" and press Return. It is logged as a meal ("Logged as a meal"; "Make it exercise" undoes it) and its calories are estimated. When the number came from a food table (Korean MFDS or USDA), the meal shows that source with a link.
+4. Meal photo: with the exercise-name field focused, tap "Meal photo" above the keyboard and take or choose a food photo.
+5. Record question: go back to "All Workouts", type "best bench press" in the search field and press Return, then tap "Yes" to confirm. The table is computed on the phone from the saved sets; the AI only turns the question into a query.
+
+6. Today's routine: in the same search field type "today's routine" (or "오늘 루틴 짜줘") and press Return. A routine is built on the phone from the user's own past sessions (weights are copied from their logs, never invented); tap "Start" to open it as today's record. On a fresh install with no logs, the card says "First time" and offers starter exercises (squat, bench press, lat pulldown, overhead press, plank) to add without numbers.
+
+What plates are
+- Plates are setpad's allowance for AI record questions (step 5). A question usually costs about 1–2 plates, charged by the AI tokens it actually used. Plates are not sold on their own, cannot be transferred, and have no cash value.
+- A new device gets 3 plates, a signed-in account 5, and 1 more on each day the user logs 10 sets. The Pro subscription (auto-renewable) tops plates up to 300 each month and raises input help from 10 to 20 a day.
+- Input help (one-line setup and meal estimates) does not use plates: 10 a day free.
+- Everything else (logging, timers, Health, working out together, gyms) is free.
+
+Features that need sign-in (optional to review): Together (up to 6 people edit one record live), gym connection, and the Pro subscription. Trainer mode only appears for staff accounts of a gym.

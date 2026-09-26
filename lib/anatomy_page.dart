@@ -1,0 +1,992 @@
+/// 몸 그림 — 부위를 누르면 그 부위를 쓰는 운동, 내 기록, 자세 팁.
+///
+/// 전부 기기에서 센다(모델·서버·원판 없음). 색은 해낸 내 세트로만 칠한다.
+/// 숫자는 내 세트를 그대로 옮긴 것뿐이다 — 권장량·목표 무게를 보이지 않는다.
+/// 그림이 작아 못 누르는 부위가 없게, 같은 부위를 아래 목록에서도 고른다.
+/// VoiceOver 는 목록 줄로 부위를 고른다 — 그림의 부위는 좌우가 떨어져 있어
+/// 사각형으로 읽히면 몸통을 가로질러 서로 겹친다.
+library;
+
+import 'dart:math' as math;
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart'
+    show
+        LicenseEntryWithLineBreaks,
+        LicenseRegistry,
+        mapEquals,
+        visibleForTesting;
+import 'package:intl/intl.dart';
+
+import 'anatomy.dart';
+import 'editor.dart' show SuggestionChip;
+import 'exercises.dart' show langKeyOf;
+import 'l10n/generated/app_localizations.dart';
+import 'muscle_map_paths.dart';
+import 'notes.dart';
+import 'palette.dart';
+import 'record_query.dart' show exerciseKey;
+import 'routine_card.dart' show partName, setsText;
+import 'units.dart' show formatNumber;
+
+/// 몸 그림 그림(MIT)의 조건은 고지문을 싣는 것이다 — 설정 > 오픈소스 라이선스에 뜬다.
+/// 앱이 뜰 때(main) 한 번 부른다.
+void registerArtworkLicense() => LicenseRegistry.addLicense(
+  () => Stream.value(
+    const LicenseEntryWithLineBreaks([
+      'MuscleMap body artwork (Jsplice/MuscleMap)',
+    ], muscleMapLicense),
+  ),
+);
+
+/// 홈으로 넘기는 것: 검색칸에 넣을 이름, 또는 오늘 루틴에 넣을 운동 열쇠와 그 부위.
+typedef AnatomyHandoff = ({String? search, ({String key, String part})? add});
+
+Path _path(List<List<double>> subs) {
+  final path = Path();
+  for (final s in subs) {
+    path.moveTo(s[0], s[1]);
+    for (var i = 2; i < s.length; i += 6) {
+      path.cubicTo(s[i], s[i + 1], s[i + 2], s[i + 3], s[i + 4], s[i + 5]);
+    }
+    path.close();
+  }
+  return path;
+}
+
+final _bodies = {true: _path(frontBody), false: _path(backBody)};
+final _muscles = {
+  true: {for (final e in frontMuscles.entries) e.key: _path(e.value)},
+  false: {for (final e in backMuscles.entries) e.key: _path(e.value)},
+};
+
+/// 그림 높이. 옆 어깨처럼 얇은 부위는 가까운 부위 고르기와 목록이 받친다.
+const _figureHeight = 440.0;
+
+/// 그림 좌표 → 화면 좌표: 높이를 맞추고 가로 가운데.
+({double s, Offset o}) _fit(bool front, Size size) {
+  final b = front ? frontBounds : backBounds;
+  final s = size.height / (b[3] - b[1]);
+  return (
+    s: s,
+    o: Offset((size.width - (b[2] - b[0]) * s) / 2 - b[0] * s, -b[1] * s),
+  );
+}
+
+@visibleForTesting
+Offset figurePoint(bool front, Size size, Offset art) {
+  final f = _fit(front, size);
+  return art * f.s + f.o;
+}
+
+/// 누른 곳의 부위. 정확히 든 부위가 없으면 [reach](화면 pt) 안에서 가장 가까운 것.
+Muscle? _hit(bool front, Size size, Offset screen, {double reach = 24}) {
+  final f = _fit(front, size);
+  final p = (screen - f.o) / f.s;
+  final r = reach / f.s;
+  for (final ring in [0.0, r / 3, r * 2 / 3, r]) {
+    for (var i = 0; i < (ring == 0 ? 1 : 8); i++) {
+      final q = p + Offset.fromDirection(i * math.pi / 4, ring);
+      for (final e in _muscles[front]!.entries) {
+        if (e.value.contains(q)) return e.key;
+      }
+    }
+  }
+  return null;
+}
+
+DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
+int _daysBetween(DateTime from, DateTime to) => DateTime.utc(
+  to.year,
+  to.month,
+  to.day,
+).difference(DateTime.utc(from.year, from.month, from.day)).inDays;
+
+const _levels = ['none', 'low', 'mid', 'high'];
+
+Color _fill(BuildContext context, int level) => level == 0
+    ? CupertinoColors.systemGrey4.resolveFrom(context)
+    : seal
+          .resolveFrom(context)
+          .withValues(alpha: const [0.0, .3, .6, .95][level]);
+
+String _lang(BuildContext context) {
+  final locale = Localizations.localeOf(context);
+  return langKeyOf(locale.languageCode, locale.scriptCode, locale.countryCode);
+}
+
+class AnatomyPage extends StatefulWidget {
+  const AnatomyPage({super.key, required this.notes, this.now});
+  final List<Note> notes;
+
+  /// 테스트가 오늘을 고정하는 자리.
+  final DateTime? now;
+
+  @override
+  State<AnatomyPage> createState() => _AnatomyPageState();
+}
+
+class _AnatomyPageState extends State<AnatomyPage> {
+  bool _front = true;
+  int _days = 7;
+  bool _missed = false;
+
+  /// 그림 확대. 그림은 스크롤되는 목록 밖 위쪽에 고정한다 — 목록 안에 두면 벌리는
+  /// 손가락이 페이지를 끌었고, 그걸 막으려 스크롤을 잠그면 진행 중인 드래그와
+  /// 엉켜 Scrollable 이 깨졌다(_hold == null 단정).
+  final _zoom = TransformationController();
+  bool get _zoomed => _zoom.value.getMaxScaleOnAxis() > 1.01;
+
+  @override
+  void dispose() {
+    _zoom.dispose();
+    super.dispose();
+  }
+
+  /// 시트를 연 근육. 그림에서 그 자리만 다른 색으로 칠해 어디를 보는지 보인다.
+  Muscle? _selected;
+
+  Future<void> _openSheet(Muscle m, DateTime today) async {
+    setState(() {
+      _missed = false;
+      _selected = m;
+    });
+    final got = await showCupertinoModalPopup<AnatomyHandoff>(
+      context: context,
+      builder: (_) =>
+          _MuscleSheet(muscle: m, notes: widget.notes, today: today),
+    );
+    if (mounted) setState(() => _selected = null);
+    if (got != null && mounted) Navigator.of(context).pop(got);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final today = _day(widget.now ?? DateTime.now());
+    final load = bodyLoad(widget.notes, today: today, days: _days);
+    final max = load.max;
+    final ever = widget.notes.any(
+      (n) => n.blocks.any((b) => b.sets.any((s) => s.mine)),
+    );
+    final regions = _front ? frontRegions : backRegions;
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final small = TextStyle(fontSize: 13, color: muted);
+    int lv(Muscle m) => level(load.of(m), max);
+    String value(Muscle m) => l.anatomyRegionValue(
+      _days,
+      formatNumber(load.of(m)),
+      l.anatomyLevel(_levels[lv(m)]),
+    );
+    Widget swatch(int level) => Container(
+      width: 14,
+      height: 14,
+      decoration: BoxDecoration(
+        color: _fill(context, level),
+        borderRadius: BorderRadius.circular(3),
+      ),
+    );
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(middle: Text(l.anatomyTitle)),
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, page) {
+            // 작은 화면에서도 아래 목록 자리가 남게, 그림은 화면의 55% 까지.
+            final figure = math.min(_figureHeight, page.maxHeight * 0.55);
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CupertinoSlidingSegmentedControl<bool>(
+                              groupValue: _front,
+                              children: {
+                                true: Text(l.anatomyFront),
+                                false: Text(l.anatomyBack),
+                              },
+                              onValueChanged: (v) => setState(() {
+                                _front = v ?? true;
+                                _missed = false;
+                              }),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: CupertinoSlidingSegmentedControl<int>(
+                              groupValue: _days,
+                              children: {
+                                for (final d in const [7, 28])
+                                  d: Text(l.anatomyDays(d)),
+                              },
+                              onValueChanged: (v) =>
+                                  setState(() => _days = v ?? 7),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      LayoutBuilder(
+                        builder: (context, c) {
+                          final size = Size(c.maxWidth, figure);
+                          // VoiceOver 는 아래 목록 줄로 고른다(줄마다 이름·세트·단계).
+                          return ExcludeSemantics(
+                            child: ClipRect(
+                              child: InteractiveViewer(
+                                transformationController: _zoom,
+                                minScale: 1,
+                                maxScale: 4,
+                                // 확대 전에는 끌 것이 없다. 확대한 뒤에만 그림을 끈다.
+                                panEnabled: _zoomed,
+                                onInteractionEnd: (_) => setState(() {}),
+                                child: GestureDetector(
+                                  key: const ValueKey('anatomy-figure'),
+                                  onTapUp: (d) {
+                                    final m = _hit(
+                                      _front,
+                                      size,
+                                      d.localPosition,
+                                    );
+                                    m == null
+                                        ? setState(() => _missed = true)
+                                        : _openSheet(m, today);
+                                  },
+                                  child: CustomPaint(
+                                    size: size,
+                                    painter: _BodyPainter(
+                                      front: _front,
+                                      body: CupertinoColors.systemGrey6
+                                          .resolveFrom(context),
+                                      line: CupertinoColors.separator
+                                          .resolveFrom(context),
+                                      fills: {
+                                        for (final m in regions)
+                                          m: _fill(context, lv(m)),
+                                      },
+                                      selected: _selected,
+                                      mark: CupertinoColors.activeBlue
+                                          .resolveFrom(context),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      if (_zoomed)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: CupertinoButton(
+                            key: const ValueKey('anatomy-zoom-reset'),
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(44, 32),
+                            onPressed: () => setState(
+                              () => _zoom.value = Matrix4.identity(),
+                            ),
+                            child: Text(
+                              l.anatomyZoomReset,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                    children: [
+                      const SizedBox(height: 12),
+                      if (_missed)
+                        Text(
+                          l.anatomyTapHint,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: seal.resolveFrom(context),
+                          ),
+                        ),
+                      if (!ever)
+                        Text(
+                          l.anatomyFirstTime,
+                          style: const TextStyle(fontSize: 14),
+                        )
+                      else if (max == 0 &&
+                          load.unknown.isEmpty &&
+                          load.cardio == 0)
+                        Text(
+                          l.anatomyEmptyWindow(_days),
+                          style: const TextStyle(fontSize: 14),
+                        )
+                      else ...[
+                        Text(
+                          l.anatomyLegend,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 4,
+                          children: [
+                            for (var i = 0; i < 4; i++)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  swatch(i),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    l.anatomyLevel(_levels[i]),
+                                    style: small,
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ],
+                      if (load.unknown.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: _UnknownNames(
+                            names: load.unknown.keys.toList(),
+                          ),
+                        ),
+                      if (load.cardio > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            l.anatomyCardio(load.cardio),
+                            style: small,
+                          ),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6, bottom: 12),
+                        child: Text(l.anatomyCountNote, style: small),
+                      ),
+                      for (final m in regions)
+                        Semantics(
+                          button: true,
+                          label: l.muscleName(m.name),
+                          value: value(m),
+                          hint: l.anatomyRegionHint,
+                          onTap: () => _openSheet(m, today),
+                          excludeSemantics: true,
+                          child: GestureDetector(
+                            key: ValueKey('anatomy-row-${m.name}'),
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _openSheet(m, today),
+                            child: Container(
+                              constraints: const BoxConstraints(minHeight: 44),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                    color: CupertinoColors.separator
+                                        .resolveFrom(context),
+                                    width: 0.5,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  swatch(lv(m)),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          l.muscleName(m.name),
+                                          style: const TextStyle(fontSize: 16),
+                                        ),
+                                        if (m == Muscle.hipFlexors)
+                                          Text(
+                                            l.anatomyNoSurface,
+                                            style: small,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    '${l.anatomySets(_days, formatNumber(load.of(m)))} · '
+                                    '${l.anatomyLevel(_levels[lv(m)])}',
+                                    style: small,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    CupertinoIcons.chevron_right,
+                                    size: 15,
+                                    color: CupertinoColors.tertiaryLabel
+                                        .resolveFrom(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      Text(l.anatomyLimits, style: small),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _BodyPainter extends CustomPainter {
+  _BodyPainter({
+    required this.front,
+    required this.body,
+    required this.line,
+    required this.fills,
+    this.selected,
+    required this.mark,
+  });
+  final bool front;
+  final Color body, line;
+  final Map<Muscle, Color> fills;
+
+  /// 고른 근육 — 부하 색(호박) 대신 [mark] 로 칠하고 굵게 두른다.
+  final Muscle? selected;
+  final Color mark;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final f = _fit(front, size);
+    canvas
+      ..save()
+      ..translate(f.o.dx, f.o.dy)
+      ..scale(f.s);
+    final stroke = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1 / f.s
+      ..color = line;
+    canvas.drawPath(_bodies[front]!, Paint()..color = body);
+    for (final e in _muscles[front]!.entries) {
+      if (e.key == selected) continue;
+      canvas
+        ..drawPath(e.value, Paint()..color = fills[e.key] ?? body)
+        ..drawPath(e.value, stroke);
+    }
+    // 고른 근육은 맨 위에 — 이웃 테두리에 가리지 않게.
+    if (_muscles[front]![selected] case final path?) {
+      canvas
+        ..drawPath(path, Paint()..color = mark.withValues(alpha: 0.85))
+        ..drawPath(
+          path,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.5 / f.s
+            ..color = mark,
+        );
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_BodyPainter old) =>
+      old.front != front ||
+      old.body != body ||
+      old.line != line ||
+      old.selected != selected ||
+      old.mark != mark ||
+      !mapEquals(old.fills, fills);
+}
+
+/// 근육을 모르는 기록 이름: 몇 개인지 말하고, 이름을 누르면 검색칸에 넣는다.
+class _UnknownNames extends StatelessWidget {
+  const _UnknownNames({required this.names});
+  final List<String> names;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final small = TextStyle(
+      fontSize: 13,
+      color: CupertinoColors.secondaryLabel.resolveFrom(context),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l.anatomyUnknown(names.length), style: small),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            for (final name in names.take(5))
+              SuggestionChip(
+                key: ValueKey('anatomy-unknown:$name'),
+                label: name,
+                selected: false,
+                onTap: () => Navigator.pop(context, (search: name, add: null)),
+              ),
+            if (names.length > 5)
+              Text(l.anatomyUnknownMore(names.length - 5), style: small),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _MuscleSheet extends StatefulWidget {
+  const _MuscleSheet({
+    required this.muscle,
+    required this.notes,
+    required this.today,
+  });
+  final Muscle muscle;
+  final List<Note> notes;
+  final DateTime today;
+
+  @override
+  State<_MuscleSheet> createState() => _MuscleSheetState();
+}
+
+class _MuscleSheetState extends State<_MuscleSheet> {
+  /// 펼친 운동 줄('done:열쇠' / 'try:열쇠').
+  String? _open;
+  bool _more = false;
+
+  /// 기록을 훑는 셈은 시트를 열 때 한 번 — 줄을 펼칠 때마다 다시 세지 않는다.
+  late final BodyLoad week, month;
+  late final List<String> unknown;
+  late final List<DoneRow> done;
+  late final TryList t;
+
+  @override
+  void initState() {
+    super.initState();
+    final notes = widget.notes, today = widget.today;
+    week = bodyLoad(notes, today: today, days: 7);
+    month = bodyLoad(notes, today: today, days: 28);
+    unknown = bodyLoad(notes, today: today, days: null).unknown.keys.toList();
+    done = doneFor(notes, widget.muscle);
+    t = tryFor(widget.muscle, doneKeys(notes));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final lang = _lang(context);
+    final m = widget.muscle;
+    final part = muscleCoarse[m]!;
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final small = TextStyle(fontSize: 13, color: muted);
+    bool doneInterp(DoneRow r) =>
+        r.primary ? moves[r.key]!.primaryInterp : moves[r.key]!.secondaryInterp;
+    // * 각주는 보이는 줄에 * 가 있을 때만.
+    final interp =
+        done.any(doneInterp) ||
+        [
+          ...t.shown,
+          if (_more || t.shown.isEmpty) ...t.hidden,
+        ].any((k) => moves[k]!.primaryInterp);
+    final last = done.isEmpty
+        ? null
+        : done.map((r) => r.day).reduce((a, b) => a.isAfter(b) ? a : b);
+    String date(DateTime d) => DateFormat.MMMd(l.localeName).format(d);
+    void add(String key) =>
+        Navigator.pop(context, (search: null, add: (key: key, part: part)));
+    Widget header(String text) => Padding(
+      padding: const EdgeInsets.only(top: 22, bottom: 2),
+      child: Semantics(
+        header: true,
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
+    Widget row({
+      required String id,
+      required String move,
+      required String title,
+      required String subtitle,
+      required String addKey,
+      String? search,
+      String? tag,
+    }) {
+      final open = _open == id;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          GestureDetector(
+            key: ValueKey('anatomy-$id'),
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(() => _open = open ? null : id),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 44),
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            if (tag != null) ...[
+                              const SizedBox(width: 6),
+                              _Tag(tag),
+                            ],
+                          ],
+                        ),
+                        if (subtitle.isNotEmpty) Text(subtitle, style: small),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    open
+                        ? CupertinoIcons.chevron_up
+                        : CupertinoIcons.chevron_down,
+                    size: 15,
+                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (open) ..._cues(l, lang, moves[move]!, small),
+          if (open)
+            Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 8),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  SuggestionChip(
+                    label: l.anatomyAddRoutine,
+                    selected: false,
+                    onTap: () => add(addKey),
+                  ),
+                  if (search != null)
+                    SuggestionChip(
+                      label: l.anatomySearch,
+                      selected: false,
+                      onTap: () =>
+                          Navigator.pop(context, (search: search, add: null)),
+                    ),
+                ],
+              ),
+            ),
+        ],
+      );
+    }
+
+    // 운동 줄들은 둥근 묶음 한 장에 — 줄마다 떠 있으면 어디서 어디까지가 한
+    // 무리인지 안 보였다.
+    Widget group(List<Widget> rows) => Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (i, r) in rows.indexed) ...[
+            if (i > 0)
+              Container(
+                height: 0.5,
+                color: CupertinoColors.separator.resolveFrom(context),
+              ),
+            r,
+          ],
+        ],
+      ),
+    );
+
+    Widget tryRow(String key) => row(
+      id: 'try:$key',
+      move: key,
+      title: '${moveName(key, lang)}${moves[key]!.primaryInterp ? ' *' : ''}',
+      subtitle: moveNeeds(key).map(l.routineGear).join('·'),
+      // 사전 운동은 열쇠, 사전 밖 운동은 화면 언어 이름(카드 제목이 된다).
+      addKey: moves[key]!.names == null ? key : moveName(key, lang),
+    );
+
+    final muscle = l.muscleName(m.name), region = partName(l, part);
+    // 반투명 판(CupertinoPopupSurface)은 뒤의 몸 그림이 번져 글이 안 읽혔다 —
+    // 불투명한 종이 한 장에 손잡이.
+    return Container(
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+          ),
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 5,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemFill.resolveFrom(context),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Semantics(
+                      header: true,
+                      // 근육과 부위 이름이 같으면('가슴 · 가슴') 한 번만.
+                      child: Text(
+                        muscle == region ? muscle : '$muscle · $region',
+                        key: const ValueKey('anatomy-title'),
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                    ),
+                  ),
+                  CupertinoButton(
+                    key: const ValueKey('anatomy-close'),
+                    padding: EdgeInsets.zero,
+                    onPressed: () => Navigator.pop(context),
+                    child: Icon(
+                      CupertinoIcons.xmark_circle_fill,
+                      size: 26,
+                      semanticLabel: l.anatomyClose,
+                      color: CupertinoColors.systemGrey.resolveFrom(context),
+                    ),
+                  ),
+                ],
+              ),
+              // 표의 운동으로는 기록이 없다(문구가 그 범위를 말한다). 표에 없는 이름이
+              // 있으면 그 이름도 보인다 — 근육을 몰라 못 셌을 뿐, 없는 것이 아니다.
+              if (last == null) ...[
+                Text(l.anatomyNever, style: const TextStyle(fontSize: 14)),
+                if (unknown.isNotEmpty) _UnknownNames(names: unknown),
+              ] else ...[
+                // 세 수를 칸으로 — 한 줄에 몰아 적으면 무엇이 무엇인지 안 읽혔다.
+                const SizedBox(height: 8),
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _Stat(
+                        l.anatomyDays(7),
+                        l.anatomyTileSets(formatNumber(week.of(m))),
+                      ),
+                      const SizedBox(width: 8),
+                      _Stat(
+                        l.anatomyDays(28),
+                        l.anatomyTileSets(formatNumber(month.of(m))),
+                      ),
+                      const SizedBox(width: 8),
+                      _Stat(
+                        l.anatomyLastLabel,
+                        date(last),
+                        sub: l.routineDaysAgo(_daysBetween(last, widget.today)),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    l.anatomyBreakdown(
+                      month.primary[m] ?? 0,
+                      month.secondary[m] ?? 0,
+                    ),
+                    style: small,
+                  ),
+                ),
+              ],
+              if (done.isNotEmpty) header(l.anatomyDone),
+              if (done.isNotEmpty)
+                group([
+                  for (final r in done)
+                    row(
+                      id: 'done:${r.key}',
+                      move: r.key,
+                      title: '${r.name}${doneInterp(r) ? ' *' : ''}',
+                      tag: l.anatomyRole(r.primary ? 'primary' : 'secondary'),
+                      // 마지막으로 한 날의 내 세트 그대로.
+                      subtitle: '${setsText(l, r.sets)} · ${date(r.day)}',
+                      addKey: exerciseKey(r.name),
+                      search: r.name,
+                    ),
+                ]),
+              header(t.secondary ? l.anatomyTrySecondary : l.anatomyTry),
+              if (t.shown.isEmpty && t.hidden.isEmpty)
+                Text(l.anatomyTriedAll, style: small)
+              else
+                Text(
+                  t.allGear
+                      ? l.anatomyAllGear
+                      : l.anatomyTryGear(
+                          [
+                            ...t.gear,
+                            'bodyweight',
+                          ].map(l.routineGear).join('·'),
+                        ),
+                  style: small,
+                ),
+              if (t.shown.isNotEmpty)
+                group([for (final k in t.shown) tryRow(k)]),
+              // 거른 뒤 남은 것이 없으면 펼친 채로 — 빈 목록을 보이지 않는다.
+              if (t.hidden.isNotEmpty && !_more && t.shown.isNotEmpty)
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  alignment: Alignment.centerLeft,
+                  onPressed: () => setState(() => _more = true),
+                  child: Text(
+                    l.anatomyMoreGear(t.hidden.length),
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ),
+              if ((_more || t.shown.isEmpty) && t.hidden.isNotEmpty)
+                group([for (final k in t.hidden) tryRow(k)]),
+              if (interp)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Text(l.anatomyInterpNote, style: small),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 자세 팁·피할 것. 한국어 밖 화면은 영어 문장이다 — 그렇다고 한 줄 적는다.
+  /// 근거는 셋으로 표시한다: 출처 문장(표시 없음), 출처 문장에서 옮긴 해석(†),
+  /// 출처 없이 덧붙인 말(‡). * 는 근육 배정이 해석인 운동의 표시다 — 한 시트에 둘 다
+  /// 나올 수 있어 표시와 각주를 따로 둔다.
+  List<Widget> _cues(L l, String lang, Move move, TextStyle small) {
+    Widget line(Cue c) => Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(
+        '• ${cueText(c, lang)}${switch (c.basis) {
+          Basis.source => '',
+          Basis.adapted => ' †',
+          Basis.none => ' ‡',
+        }}',
+        style: const TextStyle(fontSize: 14),
+      ),
+    );
+    final all = [...move.cues, ...move.mistakes];
+    return [
+      Text(
+        l.anatomyCues,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+      for (final c in move.cues) line(c),
+      const SizedBox(height: 6),
+      Text(
+        l.anatomyMistakes,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+      for (final c in move.mistakes) line(c),
+      const SizedBox(height: 4),
+      Text(
+        [
+          l.anatomySources(move.sites.join(' · ')),
+          if (all.any((c) => c.basis == Basis.adapted)) l.anatomyAdapted,
+          if (all.any((c) => c.basis == Basis.none)) l.anatomyUnsourced,
+          if (lang != 'ko' && lang != 'en') l.anatomyCuesEnglish,
+        ].join('\n'),
+        style: small,
+      ),
+    ];
+  }
+}
+
+/// 시트 머리의 수 한 칸(7일 · 28일 · 마지막).
+class _Stat extends StatelessWidget {
+  const _Stat(this.label, this.value, {this.sub});
+  final String label, value;
+  final String? sub;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        decoration: BoxDecoration(
+          color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: TextStyle(fontSize: 12, color: muted)),
+            const SizedBox(height: 2),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+            if (sub != null)
+              Text(sub!, style: TextStyle(fontSize: 11, color: muted)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 운동 줄 옆의 작은 표지(주로 씀 · 보조).
+class _Tag extends StatelessWidget {
+  const _Tag(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+    decoration: BoxDecoration(
+      color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+      borderRadius: BorderRadius.circular(5),
+    ),
+    child: Text(
+      text,
+      style: TextStyle(
+        fontSize: 11,
+        color: CupertinoColors.secondaryLabel.resolveFrom(context),
+      ),
+    ),
+  );
+}

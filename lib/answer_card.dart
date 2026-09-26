@@ -283,13 +283,23 @@ class DotChartPainter extends CustomPainter {
       oldDelegate.trail != trail;
 }
 
+/// 값이 없거나 0 으로 채운 칸의 까닭 — 적은 적 없음, 이 범위엔 없음, 아직 안 온
+/// 기간. 값이 빠진 세트·대상 아님은 각주가 말한다(null).
+String? cellReason(L l, String? reason) => switch (reason) {
+  'never' => l.queryNeverMark,
+  'none' => l.queryNoneCell,
+  'future' => l.queryFutureCell,
+  _ => null,
+};
+
 class AnswerCard extends StatelessWidget {
   const AnswerCard({super.key, required this.answer});
   final Answer answer;
 
   @override
   Widget build(BuildContext context) {
-    if (answer.points.isEmpty) return const SizedBox.shrink();
+    // 점이 없는 수(0 으로 채운 칸, 연속·간격·섭취)도 답이다.
+    if (answer.isEmpty) return const SizedBox.shrink();
     final ink = answerInk.resolveFrom(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
@@ -331,11 +341,13 @@ class AnswerCard extends StatelessWidget {
                         ),
                       ],
                       const SizedBox(height: 28),
-                      DotChart(
-                        points: answer.points,
-                        exercise: answer.exercise,
-                      ),
-                      const SizedBox(height: 28),
+                      if (answer.points.isNotEmpty) ...[
+                        DotChart(
+                          points: answer.points,
+                          exercise: answer.exercise,
+                        ),
+                        const SizedBox(height: 28),
+                      ],
                       for (final (i, line) in answer.lines.take(3).indexed)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 6),
@@ -386,9 +398,11 @@ class AnswerCard extends StatelessWidget {
 
 /// 여럿을 나란히 본 답. 겉은 [AnswerCard] 와 같은 종이다.
 ///
-/// 대상이 셋 이하이고 순위가 아니면 **대조형**이다 — 줄은 측정, 칸은 대상.
-/// "벤치 vs 로우" 가 이 모양이다. 순위·요일별·대상 넷 이상은 **목록형**이다 —
-/// 줄은 대상에 번호를 달고, 칸은 측정이다. 숫자는 [runQuery] 가 이미 셌다.
+/// [runPlan] 의 결과는 늘 한 방향이다: 줄 = series 또는 묶음, 칸 = 측정 또는
+/// series(+ 차이·배수·비중). 줄이 셋 이하이고 순위가 아니며 묶음이 운동·부위뿐이면
+/// **대조형**이다 — 대상(줄)을 칸으로 세우고 측정을 줄로 편다. "벤치 vs 로우" 가
+/// 이 모양이다. 그 밖은 **목록형**이다 — 대상에 번호를 달고, 칸은 측정이다.
+/// 숫자는 실행기가 이미 셌다.
 class TableCard extends StatelessWidget {
   const TableCard({super.key, required this.query, required this.result});
   final RecordQuery query;
@@ -400,40 +414,49 @@ class TableCard extends StatelessWidget {
     final ink = answerInk.resolveFrom(context);
     final faint = ink.withValues(alpha: 0.55);
     final r = result;
-    // 비교는 runQuery 가 줄 = 측정, 칸 = 범위로 낸다. 여기서 대상 × 측정으로 편다.
-    final compare = query.compare.isNotEmpty;
-    final targets = compare ? r.columns : [for (final row in r.rows) row.label];
-    final measures = compare
-        ? [for (final row in r.rows) row.label]
-        : r.columns;
+    final targets = [for (final row in r.rows) row.label];
+    final measures = r.columns;
     if (targets.isEmpty || measures.isEmpty) return const SizedBox.shrink();
-    Cell at(int t, int m) => compare ? r.rows[m].cells[t] : r.rows[t].cells[m];
-    bool nothing(int t) => [
-      for (var m = 0; m < measures.length; m++) at(t, m),
-    ].every((c) => c.reason == 'none');
+    Cell at(int t, int m) => r.rows[t].cells[m];
+    // 줄마다 까닭(적은 적 없음 …)은 처음 한 칸에서만 말한다.
+    int? said(int t) {
+      for (var m = 0; m < measures.length; m++) {
+        if (cellReason(l, at(t, m).reason) != null) return m;
+      }
+      return null;
+    }
 
     final totals = r.total;
     final word = query.total == 'mean' ? l.queryTotalMean : l.queryTotalSum;
     final headline = totals != null
         ? [
             for (final (m, c) in totals.indexed)
-              [
-                word,
-                if (totals.length > 1) measures[m],
-                c.answer?.headline ?? '—',
-              ].join(' '),
+              if (c.reason != 'notAsked')
+                [
+                  // 부분 합계면 무엇을 뺐는지 이름에 있다("합계 (데드리프트 제외)").
+                  c.answer?.exercise ?? word,
+                  if (totals.length > 1) measures[m],
+                  c.answer?.headline ?? '—',
+                ].join(' '),
           ].join(' · ')
         // 차이 줄은 "측정 · 차이 (뒤 − 앞): 값" 이다. 헤드라인에는 값만 올리고
         // 무엇에서 무엇을 뺐는지는 아래 줄이 그대로 말한다.
-        : measures.length == 1 && targets.length == 2 && r.diff.length == 1
-        ? r.diff.single.split(': ').last
+        : measures.length == 1 && targets.length == 2 && r.lines.length == 1
+        ? r.lines.single.split(': ').last
         : null;
-    final notes = [
-      if (!compare) describeScope(query.scope, l),
-      ...r.footnotes,
-    ].take(3);
+    // series 가 여럿이면 줄 이름이 서로 다른 조각을 말한다. 모두에 같은 조각(기간 …)은
+    // 여기 한 줄이다.
+    final scopes = [
+      for (final s in query.series) describeScope(s.scope, l).split(' · '),
+    ];
+    final common = scopes.first
+        .where((p) => scopes.every((s) => s.contains(p)))
+        .join(' · ');
+    final notes = [if (common.isNotEmpty) common, ...r.footnotes];
     final contrast =
-        targets.length <= 3 && query.order == null && query.by != 'weekday';
+        targets.length <= 3 &&
+        query.order == null &&
+        (query.by == null || query.by == 'exercise' || query.by == 'part');
 
     const gap = EdgeInsets.fromLTRB(12, 7, 0, 7);
     final line = BoxDecoration(
@@ -456,19 +479,26 @@ class TableCard extends StatelessWidget {
         style: const TextStyle(fontSize: 15, height: 1.3, letterSpacing: -0.3),
       ),
     );
-    // 값 한 칸. 모르거나 없으면 "—". 마지막·처음은 날짜가 본문이고 그날
-    // 세트가 보조 줄이다.
-    Widget value(Cell c, {bool empty = false}) {
+    // 값 한 칸. 모르거나 없으면 "—", 개수형은 0. 마지막·처음은 날짜가 본문이고
+    // 그날 세트가 보조 줄이다. 묻지 않은 칸(series 마다 측정이 다를 때)은 빈칸이다.
+    // [say] 면 까닭을 보조 줄에 적는다.
+    Widget value(Cell c, {bool say = false}) {
+      if (c.reason == 'notAsked') return const SizedBox.shrink();
       final a = c.answer;
+      final why = cellReason(l, c.reason);
       final dated =
-          a != null && (a.metric == Metric.last || a.metric == Metric.first);
+          a != null &&
+          why == null &&
+          (a.metric == Metric.last || a.metric == Metric.first);
       final body = a == null
           ? '—'
           : dated
           ? a.lines.first
           : a.headline ?? '—';
-      final sub = a == null
-          ? (empty ? l.queryNoRecord : null)
+      final sub = why != null
+          ? (say ? why : null)
+          : a == null
+          ? null
           : dated
           ? a.headline
           : a.lines.firstOrNull;
@@ -517,16 +547,21 @@ class TableCard extends StatelessWidget {
     final Widget grid;
     if (contrast) {
       grid = table([
-        TableRow(
-          children: [const SizedBox.shrink(), for (final t in targets) head(t)],
-        ),
+        // 대상이 하나면 칸 머리가 제목(또는 '모든 운동')을 되풀이할 뿐이다.
+        if (targets.length > 1)
+          TableRow(
+            children: [
+              const SizedBox.shrink(),
+              for (final t in targets) head(t),
+            ],
+          ),
         for (var m = 0; m < measures.length; m++)
           TableRow(
             decoration: line,
             children: [
               label(measures[m]),
               for (var t = 0; t < targets.length; t++)
-                value(at(t, m), empty: m == 0 && nothing(t)),
+                value(at(t, m), say: said(t) == m),
             ],
           ),
       ]);
@@ -590,7 +625,7 @@ class TableCard extends StatelessWidget {
                   decoration: line,
                   children: [
                     name(t, const EdgeInsets.symmetric(vertical: 7)),
-                    value(at(t, 0), empty: nothing(t)),
+                    value(at(t, 0), say: said(t) == 0),
                   ],
                 ),
             ])
@@ -616,10 +651,7 @@ class TableCard extends StatelessWidget {
                           children: [
                             for (var m = 0; m < measures.length; m++)
                               Expanded(
-                                child: value(
-                                  at(t, m),
-                                  empty: m == 0 && nothing(t),
-                                ),
+                                child: value(at(t, m), say: said(t) == m),
                               ),
                           ],
                         ),
@@ -646,18 +678,19 @@ class TableCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Semantics(
-                        header: true,
-                        child: Text(
-                          r.title,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.9,
-                            height: 1.12,
+                      if (r.title.isNotEmpty)
+                        Semantics(
+                          header: true,
+                          child: Text(
+                            r.title,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.9,
+                              height: 1.12,
+                            ),
                           ),
                         ),
-                      ),
                       if (headline != null) ...[
                         const SizedBox(height: 10),
                         Text(
@@ -671,7 +704,7 @@ class TableCard extends StatelessWidget {
                       ],
                       const SizedBox(height: 20),
                       grid,
-                      for (final d in r.diff)
+                      for (final d in r.lines)
                         Padding(
                           padding: const EdgeInsets.only(top: 12),
                           child: Text(

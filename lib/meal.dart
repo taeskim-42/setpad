@@ -2,6 +2,7 @@
 /// 열량은 곱셈 한 번이지만 틀리면 하루 합계가 통째로 틀린다.
 library;
 
+import 'parser.dart';
 import 'record_ai.dart';
 import 'units.dart';
 
@@ -168,40 +169,108 @@ const _counts = {'반': 0.5, '한': 1.0, '두': 2.0, '세': 3.0, '네': 4.0};
 /// 저장한다 — 여기서 못 읽었다고 기록이 거부되지 않는다.
 ///
 /// 쉼표로 음식을 가르고, 각 음식 끝의 "150g"·"2개"·"한 줄"·"반 개" 를 양으로
-/// 읽는다. "450kcal" 은 사람이 직접 적은 열량이다. 음식 사전을 찾지 않는다.
-({List<MealFood> foods, int? kcal}) parseMealText(String text) {
+/// 읽는다. "450kcal" 은 사람이 직접 적은 열량이다. 한 조각 안에서 열량 양쪽에
+/// 말이 있으면 음식이 둘이다("프로틴 120kcal 바나나"). 다만 양·먹었다는 말·
+/// 괄호뿐인 토막("먹음", "한 잔", "(100g)")은 음식이 아니라 앞 음식의 말이다.
+/// 음식 사전을 찾지 않는다.
+///
+/// [typed] 는 적힌 열량의 합이다. [kcal] 은 **모든 음식에 열량이 적혔을 때만**
+/// 그 합이다. 일부만 적었으면 null 이다 — 안 적은 음식을 0 으로 치면 합계가
+/// 조용히 틀린다. 그때는 어림을 부르고, 적은 값은 서버가 그 음식에 그대로 쓴다.
+({List<MealFood> foods, int? kcal, int? typed}) parseMealText(String text) {
+  // 천 단위 쉼표는 수의 일부다: '2,000kcal' 은 2000 이지 '2' 와 '000kcal' 이 아니다.
+  final plain = text.replaceAll(RegExp(r'(?<=\d),(?=\d{3}(?!\d))'), '');
   final energy = RegExp(
-    r'(\d+(?:\.\d+)?)\s*(?:kcal|칼로리|㎉)',
+    r'(\d+(?:\.\d+)?)\s*(?:kcal|칼로리|㎉)(?:\s*(?:정도|쯤|가량|짜리))?',
     caseSensitive: false,
   );
-  final typed = energy.allMatches(text).map((m) => double.parse(m[1]!));
   final quantity = RegExp(
     r'\s*(\d+(?:\.\d+)?|반|한|두|세|네)\s*'
     r'(kg|g|ml|l|개|줄|컵|공기|그릇|조각|봉지|인분|장|캔|병|알|접시|스푼|숟갈)$',
     caseSensitive: false,
   );
-  final foods = <MealFood>[];
-  for (final raw in text.replaceAll(energy, ' ').split(RegExp(r'[,，、\n]'))) {
-    final part = raw.trim().replaceAll(RegExp(r'\s+'), ' ');
-    if (part.isEmpty) continue;
-    final m = quantity.firstMatch(part);
-    final name = m == null ? part : part.substring(0, m.start).trim();
-    foods.add(
-      m == null || name.isEmpty
-          ? MealFood(part)
-          : MealFood(
-              name,
-              _counts[m[1]] ?? double.parse(m[1]!),
-              m[2]!.toLowerCase(),
-            ),
-    );
+  final names = <String>[];
+  final typed = <double>[];
+  for (final raw in plain.split(RegExp(r'[,，、\n]'))) {
+    typed.addAll([for (final m in energy.allMatches(raw)) double.parse(m[1]!)]);
+    for (final p in raw.split(energy)) {
+      final part = p.trim().replaceAll(RegExp(r'\s+'), ' ');
+      if (part.isEmpty) continue;
+      if (names.isNotEmpty && _aside(part)) {
+        names.last = '${names.last} $part';
+      } else {
+        names.add(part);
+      }
+    }
   }
+  final foods = [
+    for (final part in names)
+      if (quantity.firstMatch(part) case final m?
+          when part.substring(0, m.start).trim().isNotEmpty)
+        MealFood(
+          part.substring(0, m.start).trim(),
+          _counts[m[1]] ?? double.parse(m[1]!),
+          m[2]!.toLowerCase(),
+        )
+      else
+        MealFood(part),
+  ];
   final total = typed.fold<double>(0, (n, v) => n + v);
+  final sum = typed.isEmpty || total > 100000 ? null : total.round();
+  // 열량보다 음식이 많으면 열량 없는 음식이 있다.
   return (
     foods: foods,
-    kcal: typed.isEmpty || total > 100000 ? null : total.round(),
+    kcal: names.length > typed.length ? null : sum,
+    typed: sum,
   );
 }
+
+/// 음식이 아니라 앞 음식에 붙는 말뿐인 토막인가: 양("한 잔", "2개", "(100g)",
+/// "2 cups"), 먹었다는 말("먹음", "먹었어요"), 어림 말("정도", "총"). 이것들을
+/// 지우고 남는 글자가 없어야 한다 — '총각김치' 는 '각김치' 가 남아 음식이다.
+bool _aside(String part) => part
+    .replaceAll(RegExp(r'[(\[（][^)\]）]*[)\]）]'), ' ')
+    .replaceAll(
+      RegExp(
+        r'(?:\d+(?:\.\d+)?|반|한|두|세|네)\s*'
+        r'(?:kg|g|ml|l|개|줄|컵|잔|공기|그릇|조각|봉지|인분|장|캔|병|알|접시|스푼|숟갈|'
+        r'cups?|glass(?:es)?|pieces?|slices?|bowls?|servings?)(?![A-Za-z])',
+        caseSensitive: false,
+      ),
+      ' ',
+    )
+    .replaceAll(
+      RegExp(
+        r'먹(?:음|었[가-힣]*|은\s*듯|고)|마심|마셨[가-힣]*|섭취(?:함|했[가-힣]*)?|'
+        r'정도|쯤|가량|대략|약|총|'
+        r'\b(?:ate|had|eaten|drank|about|around|approx|total)\b',
+        caseSensitive: false,
+      ),
+      ' ',
+    )
+    .replaceAll(RegExp(r'[\s.~!?·:-]'), '')
+    .isEmpty;
+
+/// 친 줄에 **끼니라는 근거**가 있는가. 운동 근거([exerciseEvidence])를 먼저 보고,
+/// 그다음에 본다: 열량(kcal·칼로리), 음식에만 쓰는 양([foodUnits]), 끼니 낱말(아침·점심·
+/// 저녁·간식·야식)에 다른 말이 붙은 글, 흔한 음식 낱말(밥·계란·커피·맥주·salad…).
+bool mealEvidence(String text) {
+  if (_kcal.hasMatch(text) || foodUnits.hasMatch(text)) return true;
+  final bare = [
+    for (final w in text.trim().split(RegExp(r'\s+')))
+      w.replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), '').toLowerCase(),
+  ]..removeWhere((w) => w.isEmpty);
+  final words = bare.map(stripParticle).toList();
+  return (words.length > 1 && words.any(_mealWords.contains)) ||
+      [...bare, ...words].any(foodWords.contains);
+}
+
+final _kcal = RegExp(r'kcal|칼로리|㎉', caseSensitive: false);
+
+const _mealWords = {
+  '아침', '점심', '저녁', '간식', '야식', '아점', '브런치', //
+  'breakfast', 'lunch', 'dinner', 'supper', 'snack', 'brunch',
+};
 
 /// 먹은 양을 글로. "150g", "2.5개", "1.5회분" 은 화면 언어가 붙인다.
 String amountText(double n) => formatNumber((n * 100).round() / 100);

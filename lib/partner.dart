@@ -46,9 +46,26 @@ final _codeShape = RegExp(r'^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$');
 
 /// 사람이 친 코드를 서버와 같은 규칙으로 다듬는다. 모양이 틀리면 null 이고,
 /// 그때는 서버에 묻지 않는다.
+///
+/// 받은 문구를 통째로 붙여 넣어도 된다("한 명 더 초대 · 코드 AB3K9Z"). 글 속에
+/// 코드 모양의 낱말이 **하나뿐이면** 그것이다 — 둘 이상이면 어느 것인지 모르니
+/// 고르지 않는다. 링크 토큰 속 글자는 낱말이 아니다.
+///
+/// 원문 그대로에서 못 찾으면 대문자로 바꿔 한 번 더 찾는다 — 손으로 옮겨 적은
+/// "코드 ab3k9z". 원문 대문자를 먼저 보는 것은, 대문자로 바꾸면 영어 낱말
+/// ("please")도 코드처럼 보여서다.
 String? normalizePartnerCode(String raw) {
   final code = raw.replaceAll(RegExp(r'[\s-]'), '').toUpperCase();
-  return _codeShape.hasMatch(code) ? code : null;
+  if (_codeShape.hasMatch(code)) return code;
+  final word = RegExp(
+    r'(?<![A-Za-z0-9_-])[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}(?![A-Za-z0-9_-])',
+  );
+  String? only(String text) {
+    final words = word.allMatches(text).map((m) => m[0]!).toSet();
+    return words.length == 1 ? words.single : null;
+  }
+
+  return only(raw) ?? only(raw.toUpperCase());
 }
 
 /// 같이 하는 사람 한 명. [key] 는 서버가 지어 준 이 세션 안의 이름표다 — 계정이 아니다.

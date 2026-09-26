@@ -27,6 +27,7 @@ import 'notes.dart';
 import 'parser.dart';
 import 'partner.dart';
 import 'units.dart';
+import 'workout_timing.dart';
 
 final _random = Random();
 String _newId(String prefix) =>
@@ -108,40 +109,272 @@ class PlanTarget {
   ].join(' · ');
 }
 
-const _setWords = r'세트|sets?|セット|组|組|series?|hiệp|เซ็ต';
-final _planLine = RegExp(
-  '^(.+?)\\s*(?:[x×*]\\s*(\\d{1,2})|(\\d{1,2})\\s*(?:$_setWords))\\s*\$',
+const _setWords = r'세트|셋|sets?|セット|组|組|series?|hiệp|เซ็ต|เซต';
+
+/// 세트 수 표기: "x3", "4세트", "5sets".
+final _setsMark = RegExp(
+  '^(?:[x×*](\\d{1,2})|(\\d{1,2})(?:$_setWords))\$',
   caseSensitive: false,
 );
 
+/// 세트 수×횟수: "3x10", "5×5", "4x8-12", "3x10회", "3xmax", "3x실패" →
+/// (세트 수, 목표 글). 맨 수·범위 횟수는 "10reps" 로 적는다. 뒤가 무게·시간
+/// 값("3x60kg")이면 아니다.
+(int, String)? _byReps(String w) {
+  final m = RegExp(r'^(\d+)[x×*](.+)$', caseSensitive: false).firstMatch(w);
+  if (m == null) return null;
+  final sets = int.parse(m[1]!), b = m[2]!;
+  if (RegExp(r'^\d+(?:[-~]\d+)?$').hasMatch(b)) return (sets, '${b}reps');
+  if (!b.contains(RegExp(r'\d'))) return (sets, b);
+  return switch (parseSetLine(b)) {
+    ParsedSet(value: null, reps: _?, note: null, count: 1) => (sets, b),
+    _ => null,
+  };
+}
+
+/// 맨숫자 하나. 이름일 수 있다("민수식 로우 2").
+final _bareNumber = RegExp(r'^\d+(?:\.\d+)?$');
+
+/// 수 표기 사이의 이음말 — "80kg x 5", "3 sets of 5", "5x5 @ 100kg", "30초 / 15초".
+final _joiner = RegExp(r'^(?:[x×*@/]|of)$', caseSensitive: false);
+
+/// 줄 앞의 목록 표지("1.", "2)", "-", "•")와 이름 끝의 ':'("스쿼트: 5x5") —
+/// 글의 모양이라 이름에 넣지 않는다.
+final _listMark = RegExp(r'^(?:[-*•·]|\d{1,2}[.)])\s+');
+final _nameColon = RegExp(r'(?<=\D):(?=\s*\d)');
+
+/// 이름에 붙여 친 표기의 자리 — "벤치3세트", "스쿼트5x5", "레그컬x3"(로마자
+/// 뒤의 x 는 이름일 수 있어 가르지 않는다).
+final _glued = RegExp(
+  r'(?<=(?![xX])\p{L})(?=\d)|(?<=[^\x00-\x7F])(?=[xX×*]\d)',
+  unicode: true,
+);
+
+/// 수 표기 — 세트 수, 'AxB', 수+단위("80kg", "10회", "80,10", "(60kg)"),
+/// 범위("10-12회").
+bool _numberMark(String w) =>
+    _setsMark.hasMatch(w) ||
+    _byReps(w) != null ||
+    switch (RegExp(r'^\d+(?:[.,]\d+)?[-~](\d.*)$').firstMatch(w)) {
+      final r? => _bareNumber.hasMatch(r[1]!) || _numberMark(r[1]!),
+      null => false,
+    } ||
+    (!_bareNumber.hasMatch(w) &&
+        switch (parseSetLine(w)) {
+          ParsedSet(note: null) => true,
+          _ => false,
+        });
+
+bool _weightMark(String w) =>
+    unitById[parseSetLine(w)?.unit]?.kind == UnitKind.weight;
+
+/// 띄어 쓴 표기를 붙이고 붙여 친 표기를 갈라 낱말로 나눈다: "80 kg" → "80kg",
+/// "3 x 10" → "3x10", "x 3" → "x3", "벤치3세트" → "벤치" "3세트", "80kg×10回" →
+/// "80kg" "×" "10回". 낱말마다 [text] 위의 자리를 준다 — 붙이고 가르는 것은
+/// 공백뿐이라 친 글에서 차례로 찾는다.
+List<({String t, int start, int end})> _markWords(String text) {
+  final joined = joinSpacedUnits(text)
+      .replaceAll('@', ' @ ')
+      // "3 x 10" — 'x' 뒤가 횟수("10", "8-12", "10회", "max")일 때만. 앞이 'x'
+      // 이면("80kg x 5 x 3" 의 5) 붙이지 않는다 — 무게 x 횟수 x 세트다.
+      .replaceAllMapped(
+        RegExp(
+          r'(^|\s)(?<![x×*]\s+)(\d+)\s*([x×*])\s*(?=(\S+))',
+          caseSensitive: false,
+        ),
+        (m) => _byReps('${m[2]}x${m[4]}') == null
+            ? m[0]!
+            : '${m[1]}${m[2]}${m[3]}',
+      )
+      .replaceAllMapped(
+        RegExp(r'(^|\s)([x×*])\s+(?=\d+(?:\s|$))', caseSensitive: false),
+        (m) => '${m[1]}${m[2]}',
+      );
+  final words = <String>[];
+  for (final w in joined.split(RegExp(r'\s+')).where((w) => w.isNotEmpty)) {
+    final pieces = markPieces(w);
+    if (pieces.length > 1) {
+      words.addAll(pieces);
+      continue;
+    }
+    // 구두점만 붙은 수("A1.", "B2)")는 슈퍼세트 표지라 가르지 않는다.
+    final cut = _glued.allMatches(w).map((c) => c.start).where((at) {
+      final rest = w.substring(at);
+      return !RegExp(r'^\d+[,.!~)]*$').hasMatch(rest) &&
+          (_numberMark(rest) || markPieces(rest).length > 1);
+    }).firstOrNull;
+    words.addAll(
+      cut == null
+          ? [w]
+          : [w.substring(0, cut), ...markPieces(w.substring(cut))],
+    );
+  }
+  var at = 0;
+  return [
+    for (final t in words)
+      () {
+        final start = text.indexOf(t[0], at);
+        at = start;
+        for (final ch in t.split('')) {
+          at = text.indexOf(ch, at) + 1;
+        }
+        return (t: t, start: start, end: at);
+      }(),
+  ];
+}
+
+/// 계획 한 줄 → 이름, 세트 수, 목표 글(무게·횟수 — 이름에 섞지 않는다).
+///
+/// **이름에서는 수 표기만 뺀다** — 세트 수, 'AxB', 수+단위, 범위, 이어진
+/// 맨숫자("80 10"), 수 표기 바로 뒤의 맨숫자("80kg 5"), 수 표기 사이의 이음말
+/// ("x", "@", "of", "/"). 그 사이·뒤의 글 낱말("케틀벨 16kg 스윙" 의 스윙)은
+/// 이름에 남는다. 이름은 친 글 그대로다("3 x 10 벤치"). 타이머가 읽는 낱말
+/// ([TimingSpec.marks] — "30 bpm", "bpm 30", 타바타의 "30초 / 15초"·"x8"·"8
+/// 라운드")도 어디에 오든 통째로 이름에 남는다 — 타이머는 이름에서 붙는다. 줄
+/// **앞**의 수 표기도 이름이다("400m 인터벌 x6", "21s 바벨컬 3세트", "3x10
+/// 벤치") — 이름보다 먼저 친 수가 무엇을 세는지는 모른다. 옛 제목("5x5
+/// 스트렝스")도 그래서 제목으로 남는다. 무게 바로 뒤의 "xN" 은 횟수다
+/// ("80kg x 5 x 3" = 80kg x5 목표, 3세트) — 세트 줄과 같다.
+({String name, int sets, String? target}) _planLine(String line) {
+  final body = line.replaceFirst(_listMark, '').replaceAll(_nameColon, ' ');
+  final marks = TimingSpec.marks(body);
+  final words = <({String t, int start, int end})>[], timer = <bool>[];
+  // 타이머 낱말 사이의 글. 표기는 여기서만 붙여 읽는다 — "20 x8" 의 x8 이
+  // 라운드면 20x8(세트 수×횟수)로 붙지 않는다.
+  int? from;
+  var to = 0;
+  void flush() {
+    if (from case final at?) {
+      final read = _markWords(body.substring(at, to));
+      words.addAll(
+        read.map((w) => (t: w.t, start: at + w.start, end: at + w.end)),
+      );
+      timer.addAll(read.map((_) => false));
+      from = null;
+    }
+  }
+
+  for (final m in RegExp(r'\S+').allMatches(body)) {
+    if (marks.any((t) => t.start < m.end && m.start < t.end)) {
+      flush();
+      words.add((t: m[0]!, start: m.start, end: m.end));
+      timer.add(true);
+    } else {
+      from ??= m.start;
+      to = m.end;
+    }
+  }
+  flush();
+  bool bare(int i) =>
+      i < words.length && !timer[i] && _bareNumber.hasMatch(words[i].t);
+  bool joiner(int i) =>
+      i < words.length && !timer[i] && _joiner.hasMatch(words[i].t);
+  final mark = [
+    for (final (i, w) in words.indexed) !timer[i] && _numberMark(w.t),
+  ];
+  bool counted(int i) => i < words.length && (mark[i] || bare(i));
+  final number = List.filled(words.length, false);
+  for (var i = 0; i < words.length; i++) {
+    final after = i > 0 && number[i - 1];
+    number[i] =
+        mark[i] ||
+        (bare(i) &&
+            (after || bare(i + 1) || (joiner(i + 1) && counted(i + 2)))) ||
+        (joiner(i) && after && counted(i + 1));
+  }
+  for (var i = 0; i < words.length && number[i]; i++) {
+    number[i] = false;
+  }
+  if (!number.contains(true)) return (name: body.trim(), sets: 0, target: null);
+  int? sets;
+  final name = <String>[], target = <String>[];
+  for (final (i, w) in words.indexed) {
+    if (!number[i]) {
+      // 이어진 이름 낱말은 친 글 그대로 한 조각이다("3 x 10 벤치", "Squat@home").
+      name.add(
+        i > 0 && !number[i - 1]
+            ? '${name.removeLast()}${body.substring(words[i - 1].end, w.end)}'
+            : body.substring(w.start, w.end),
+      );
+      continue;
+    }
+    final byReps = _byReps(w.t), mark = _setsMark.firstMatch(w.t);
+    final n = byReps?.$1 ?? int.tryParse(mark?[1] ?? mark?[2] ?? '');
+    final reps = mark?[1] != null && i > 0 && _weightMark(words[i - 1].t);
+    // 세트 수는 한 번, 서버가 받는 50까지. 넘거나 두 번째면 목표 글에 친 그대로 남는다.
+    if (sets == null && n != null && n <= 50 && !reps) {
+      sets = n;
+      if (byReps != null) target.add(byReps.$2);
+    } else {
+      target.add(w.t);
+    }
+  }
+  return (
+    name: name.join(' '),
+    sets: sets ?? 0,
+    target: target.isEmpty ? null : target.join(' '),
+  );
+}
+
 /// 메모장처럼 친 글을 계획으로 읽는다. 첫 줄은 제목, 나머지는 한 줄에 한 종목:
-/// "스쿼트 4세트", "레그컬 x3", "민수식 로우 2"(세트 수 없이 이름만).
+/// "스쿼트 4세트", "레그컬 x3", "벤치 3x10", "민수식 로우 2"(세트 수 없이 이름만).
+/// 첫 줄이 종목처럼 적혔으면("스쿼트 4세트") 제목 없이 전부 종목이다. 첫 줄이
+/// 비었으면 제목이 없다 — [planText] 가 제목 없는 계획을 그렇게 그린다. 저장된
+/// 제목([title])과 같은 첫 글 줄은 수가 들어 있어도("스트롱리프트 5x5"), 앞에 빈
+/// 줄이 있어도 제목이다.
 ///
 /// **이름은 바꾸지 않는다.** 앞서 있던 종목과 이름이 같으면 그 id 를 잇는다 —
 /// 순서를 바꿔도 각자의 목표가 제 종목에 붙어 있어야 한다.
-({String title, List<PlanItem> items}) parsePlanText(
+///
+/// 무게·횟수("80kg 5회", 'AxB' 의 B)는 이름에 넣지 않고 [targets] 로 준다 —
+/// 종목 id → 목표 글. 목표는 각자의 것이라 공통 계획에 자리가 없다.
+({String title, List<PlanItem> items, Map<String, String> targets})
+parsePlanText(
   String text, {
   List<PlanItem> previous = const [],
+  String title = '',
 }) {
   final lines = text
       .split('\n')
       .map((l) => l.trim())
       .where((l) => l.isNotEmpty)
       .toList();
-  if (lines.isEmpty) return (title: '', items: const []);
+  if (lines.isEmpty) return (title: '', items: const [], targets: const {});
+  final first = _planLine(lines.first);
+  final titled =
+      (title.isNotEmpty && lines.first == title) ||
+      (text.split('\n').first.trim().isNotEmpty &&
+          first.sets == 0 &&
+          first.target == null);
   final unused = [...previous];
   final items = <PlanItem>[];
-  for (final line in lines.skip(1)) {
-    final m = _planLine.firstMatch(line);
-    final name = (m?[1] ?? line).trim();
-    final sets = int.tryParse(m?[2] ?? m?[3] ?? '') ?? 0;
-    final at = unused.indexWhere((p) => p.name == name);
+  final targets = <String, String>{};
+  for (final line in lines.skip(titled ? 1 : 0)) {
+    final read = _planLine(line);
+    final at = unused.indexWhere((p) => p.name == read.name);
     final id = at < 0 ? _newId('i') : unused.removeAt(at).id;
-    items.add(PlanItem(id: id, name: name, sets: sets.clamp(0, 50)));
+    items.add(PlanItem(id: id, name: read.name, sets: read.sets));
+    if (read.target case final target?) targets[id] = target;
   }
-  return (title: lines.first, items: items);
+  return (title: titled ? lines.first : '', items: items, targets: targets);
 }
 
+/// 목표 한 줄을 읽는다 — 세트 한 줄을 읽는 그 파서다: "100 5", "100kg 5회 x3
+/// 무릎 조심". 못 읽으면 글 전체가 메모로 남는다. 단위를 안 쳤으면 [unit].
+PlanTarget? planTarget(String typed, String unit) {
+  final text = typed.trim();
+  if (text.isEmpty) return null;
+  final parsed = parseSetLine(text);
+  return PlanTarget(
+    value: parsed?.value,
+    unit: parsed?.unit ?? unit,
+    reps: parsed?.reps,
+    sets: parsed != null && parsed.count > 1 ? parsed.count : null,
+    note: parsed == null ? text : parsed.note,
+  );
+}
+
+/// 계획을 글로. 제목이 없으면 첫 줄이 빈다 — 첫 종목이 제목으로 읽히지 않게.
 String planText(
   String title,
   List<PlanItem> items,
@@ -421,7 +654,16 @@ List<ExerciseBlock> blocksFromPlan(
 ) => [
   for (final item in plan.items)
     ExerciseBlock(item.name, [
-      for (var s = 0; s < (targets[item.id]?.sets ?? item.sets); s++)
+      // 세트 수를 안 정했어도 목표가 있으면 한 세트로 둔다 — 목표가 사라지지 않게.
+      for (
+        var s = 0;
+        s <
+            max(
+              targets[item.id]?.sets ?? item.sets,
+              targets[item.id] == null ? 0 : 1,
+            );
+        s++
+      )
         LoggedSet(
           value: targets[item.id]?.value,
           unit: targets[item.id]?.unit ?? defaultUnit,
@@ -726,6 +968,9 @@ class PlanStore extends ChangeNotifier {
     String typed, {
     bool isToken = false,
   }) async {
+    // 받은 공유 문구나 링크를 코드 칸에 붙여 넣었다 — 그 링크의 초대로 참여한다.
+    final linked = isToken ? null : planTokenInText(typed);
+    if (linked != null) return join(linked, isToken: true);
     final code = isToken ? null : normalizePartnerCode(typed);
     if (!isToken && code == null) {
       return (plan: null, error: PartnerError.invalidFormat);
@@ -743,13 +988,19 @@ class PlanStore extends ChangeNotifier {
     return (plan: plan, error: null);
   }
 
-  void setTarget(SharedPlan plan, String itemId, PlanTarget? target) {
+  /// [push] 가 false 면 서버에는 부르는 쪽이 [pushTargets] 로 보낸다(치는 동안 모으기).
+  void setTarget(
+    SharedPlan plan,
+    String itemId,
+    PlanTarget? target, {
+    bool push = true,
+  }) {
     target == null || target.isEmpty
         ? plan.myTargets.remove(itemId)
         : plan.myTargets[itemId] = target;
     plan.targetsRevision++;
     save();
-    unawaited(pushTargets(plan));
+    if (push) unawaited(pushTargets(plan));
   }
 
   Future<void> pushTargets(SharedPlan plan) async {
@@ -865,6 +1116,16 @@ String? planTokenFromLink(Uri uri) {
       ? token
       : null;
 }
+
+/// 붙여 넣은 글 속의 초대 링크 토큰. 공유 문구("… 같이 짜요: https://…/plan/<토큰>")
+/// 를 통째로 붙여 넣어도 찾는다. 문장 끝의 마침표는 링크가 아니다.
+String? planTokenInText(String text) => RegExp(r'[a-z][a-z0-9+.-]*://\S+')
+    .allMatches(text)
+    .map((m) => Uri.tryParse(m[0]!.replaceFirst(RegExp(r'[.,!?)\]]+$'), '')))
+    .nonNulls
+    .map(planTokenFromLink)
+    .nonNulls
+    .firstOrNull;
 
 extension<T> on T {
   T let(void Function(T) f) {

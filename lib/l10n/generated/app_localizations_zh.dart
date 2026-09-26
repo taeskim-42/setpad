@@ -51,15 +51,12 @@ class LZh extends L {
   String get previous7Days => '过去 7 天';
 
   @override
-  String get previous30Days => '过去 30 天';
-
-  @override
   String monthLabel(int m) {
     return '$m月';
   }
 
   @override
-  String get search => '搜索';
+  String get search => '搜索或提问';
 
   @override
   String get newNote => '新建记录';
@@ -151,6 +148,11 @@ class LZh extends L {
   String get setRequired => '请先输入一组，例如：60 12';
 
   @override
+  String setsPerLineMax(int n) {
+    return '每行最多 $n 组，请分成几行输入。';
+  }
+
+  @override
   String get aiTitle => '一句话设置';
 
   @override
@@ -218,6 +220,60 @@ class LZh extends L {
   String get aiUseName => '用作动作名称';
 
   @override
+  String get aiFallbackQuota => '今天的输入辅助已用完，已按原文添加';
+
+  @override
+  String get aiFallbackOffline => '无法连接，已按原文添加。可在卡片的⚙中添加设置';
+
+  @override
+  String get aiFallbackServer => '服务器没有响应，已按原文添加。可在卡片的⚙中添加设置';
+
+  @override
+  String get aiFallbackUnread => '没有找到可设置的内容，已按原文添加。可在卡片的⚙中添加设置';
+
+  @override
+  String get inputNameTooLong => '动作名称最多120个字 — 请分行输入';
+
+  @override
+  String get inputTooLong => '超过600个字的文字不会读取 — 请分行输入';
+
+  @override
+  String get setupAdd => '添加设置';
+
+  @override
+  String setupUnparsed(String words) {
+    return '未转入设置的内容：$words — 保留在标题中';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return '已去掉原文中没有的数字：$numbers';
+  }
+
+  @override
+  String get setupNameMissing => '请输入动作名称';
+
+  @override
+  String get setupNameTooLong => '最多120个字';
+
+  @override
+  String get setupWeightInvalid => '请输入大于0且不超过2000的数字';
+
+  @override
+  String get setupCountInvalid => '请输入1以上的整数 — 范围和时间请留在标题中';
+
+  @override
+  String get setupRepsOnly => '只记次数';
+
+  @override
+  String setupSplit(int count) {
+    return '已拆成 $count 个动作';
+  }
+
+  @override
+  String get setupMergeAll => '合并为一项';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal次';
   }
@@ -234,9 +290,6 @@ class LZh extends L {
 
   @override
   String get repsInputHint => '次数';
-
-  @override
-  String get setupTitle => '动作设置';
 
   @override
   String get setupWeight => '默认重量';
@@ -589,9 +642,6 @@ class LZh extends L {
   }
 
   @override
-  String get reviewNumbers => '应用前请确认数字和条件。';
-
-  @override
   String get queryByExercise => '按动作';
 
   @override
@@ -832,6 +882,15 @@ class LZh extends L {
   String get mealPhoto => '餐食照片';
 
   @override
+  String get mealAdd => '记录饮食';
+
+  @override
+  String get mealWrite => '用文字记录';
+
+  @override
+  String get mealTypeHint => '直接在动作名称那一行输入食物，也会记为饮食';
+
+  @override
   String get mealCamera => '相机';
 
   @override
@@ -865,7 +924,29 @@ class LZh extends L {
   String get fitAll => '今天的训练';
 
   @override
-  String get sameDayOther => '当天的其他记录';
+  String sameDayToday(String time) {
+    return '今天 $time 另外保存的记录';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return '$date $time 另外保存的记录';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first 等$n项';
+  }
+
+  @override
+  String lastWeekDay(String weekday, String date) {
+    return '上周$weekday（$date）的训练';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$n周前$weekday（$date）的训练';
+  }
 
   @override
   String get mealText => '记录饮食';
@@ -922,6 +1003,77 @@ class LZh extends L {
 
   @override
   String get mealPhotoWholeNote => '这是照片中全部食物的估算值，请选择您吃了其中多少。';
+
+  @override
+  String get mealTextUnknown => '无法识别这种食物，未能估算热量。点按这餐补充食物名称或分量，即可重新估算。';
+
+  @override
+  String get mealTextOffline => '无法连接，未能估算热量。点按这餐后按 Enter 即可重新估算。';
+
+  @override
+  String get mealTextTooLong => '超过 500 字的饮食记录不会估算。点按这餐分开记录即可估算。';
+
+  @override
+  String queryTooLong(int max) {
+    return '问题最多 $max 个字。请缩短后再问。';
+  }
+
+  @override
+  String get queryPressEnter => '按 Enter 即可询问您的记录。';
+
+  @override
+  String get mealRetry => '重新估算';
+
+  @override
+  String kcalAtLeast(int n) {
+    return '至少 $n 千卡';
+  }
+
+  @override
+  String mealTextPartial(int n) {
+    return '只计入了你写的 $n 千卡，其余食物的热量未知。';
+  }
+
+  @override
+  String mealTextBelowTyped(int n) {
+    return '估算值低于你写的 $n 千卡，因此未采用。只计入了你写的 $n 千卡。';
+  }
+
+  @override
+  String queryLimit(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'exercises': '一次最多可问 8 个动作。请分开提问。',
+      'measures': '一次最多统计 4 项。请分开提问。',
+      'ranking': '排名最多显示 20 个。请问 20 个以内。',
+      'sessions': '“最近 N 次”最多 100 次。想看更久，请按时间段提问，例如今年。',
+      'days': '“最近 N 天”最多 3660 天（约 10 年）。想看更久，请按全部时间提问。',
+      'compare': '一次最多对比 6 项。请分开提问。',
+      'compareGrouped': '同一个问题不能既对比又按动作、日、周、月或星期分组。请二选一提问。',
+      'groupedMeasure': '按日、周、月或星期分组比较多个范围时只能统计一项，且趋势、最后一次、第一次、距上次天数不能分组。',
+      'ordering': '排名、合计和平均需要分组，例如按动作或按周。',
+      'datesTotal': '最后一次和第一次的日期不能相加或求平均。',
+      'perMeasure':
+          '按天、周、月的平均只能用于可相加的数，如组数、次数、容量、距离、时间、天数和 kcal。最高或平均重量请按时间段来问。',
+      'shareMeasure': '占比只能用组数、容量这类可相加的数来算。',
+      'trainedMeasure': '按训练日或休息日筛选只用于摄入和消耗的 kcal。训练记录都来自训练日。',
+      'sameSeries': '要比较的两个范围被读成了一样的。请写明拿什么和什么比较。',
+      'other': '记录搜索无法计算这种形式的问题。请分开提问。',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String policyNumberRejected(String text, String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'decimal': '“$text”— 不接受小数。请输入整数，例如 14',
+      'range': '“$text”— 请输入一个数字，而不是范围，例如 14',
+      'negative': '“$text”— 不接受小于 0 的数，例如 14',
+      'unit': '“$text”— 此栏按天数或次数计。请把小时、周或月换算成天数，例如 14',
+      'many': '“$text”— 请只输入一个数字，例如 14',
+      'other': '无法从“$text”中读出天数或次数。请输入数字，例如 14',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get mealSources => '来源';
@@ -1290,7 +1442,10 @@ class LZh extends L {
   String get togetherLog => '记录';
 
   @override
-  String get mealLogAs => '记为饮食';
+  String get mealAutoLogged => '已记为一餐';
+
+  @override
+  String get mealAutoUndo => '改为运动';
 
   @override
   String get proxyWrite => '代为记录';
@@ -1355,6 +1510,40 @@ class LZh extends L {
   String get mealsTitle => '饮食';
 
   @override
+  String get energyBurned => '运动';
+
+  @override
+  String get energyDifference => '差值';
+
+  @override
+  String get fold => '收起';
+
+  @override
+  String get energySurplus => '盈余';
+
+  @override
+  String get energyDeficit => '赤字';
+
+  @override
+  String get milestoneBest => '最大重量';
+
+  @override
+  String get energyDiffFormula => '摄入 − 运动';
+
+  @override
+  String get energyDiffExplain =>
+      '记录的摄入热量减去当天消耗的热量（基础代谢 + 运动）。正数为盈余，负数为赤字。\n\n基础代谢优先使用健康应用的静息能量，没有时用身体信息计算（估算）。不包含步行等日常活动，所以并不等于体重的增减。';
+
+  @override
+  String get estimateTag => '估算';
+
+  @override
+  String get energyNotLogged => '未记录';
+
+  @override
+  String get energyNotMeasured => '未测量';
+
+  @override
   String get recordMenu => '更多';
 
   @override
@@ -1385,6 +1574,55 @@ class LZh extends L {
   @override
   String get healthDataCalories =>
       '读取 · 活动能量 — 训练期间手表测得的活动能量会附到该记录上。没有测量时不显示热量。';
+
+  @override
+  String get healthDataBasal =>
+      '读取 · 静息能量（基础代谢）— 计入当天消耗的热量，与摄入比较。没有记录时，用 设置 › 身体信息 计算。';
+
+  @override
+  String get bodyTitle => '身体信息';
+
+  @override
+  String get bodyNote => '仅用于计算基础代谢。健康应用有静息能量时优先使用。此信息不会离开设备。';
+
+  @override
+  String get bodyHeight => '身高 (cm)';
+
+  @override
+  String get bodyWeight => '体重 (kg)';
+
+  @override
+  String get bodyBirthYear => '出生年份';
+
+  @override
+  String get bodySex => '性别';
+
+  @override
+  String get bodyMale => '男';
+
+  @override
+  String get bodyFemale => '女';
+
+  @override
+  String bodyBmr(String kcal) {
+    return '每日基础代谢约 $kcal kcal（Mifflin-St Jeor 公式）';
+  }
+
+  @override
+  String get energySpent => '消耗';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return '基础 $basal + 运动 $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => '摄入 − 消耗';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return '摄入 $intake · 消耗 $used = $diff kcal';
+  }
 
   @override
   String get healthDataHeart =>
@@ -1618,6 +1856,1374 @@ class LZh extends L {
 
   @override
   String get settingsTrainer => '教练';
+
+  @override
+  String get aiSetting => 'AI 帮助';
+
+  @override
+  String get aiOff => 'AI 帮助已关闭，已按输入原样保留。可在 设置 › AI 帮助 中打开';
+
+  @override
+  String get aiOffPhoto => 'AI 帮助已关闭，未根据照片估算。用文字写下餐食，例如“饭团 180kcal”，就会照原样记录';
+
+  @override
+  String get answerNeedsTwoDays => '至少需要两天的记录';
+
+  @override
+  String get answerNoBase => '没有基准值';
+
+  @override
+  String answerPerWeek(String value) {
+    return '每周 $value';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '每月 $value';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return '最佳之后练了 $n 次';
+  }
+
+  @override
+  String get answerTimesUnit => '次';
+
+  @override
+  String answerTimes(int n) {
+    return '$n 次';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return '连续 $n 天';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return '休息 $n 天';
+  }
+
+  @override
+  String get answerUntilToday => '今天';
+
+  @override
+  String answerEveryDays(String value) {
+    return '通常每 $value 天一次';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return '平均每 $value 天一次';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return '连续 $a 次 · 休 1 天 $b 次 · 休 2 天 $c 次 · 休 3 天以上 $d 次';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return '其中最长休息 $n 天';
+  }
+
+  @override
+  String get answerNoMeals => '没有记录餐食的日子';
+
+  @override
+  String answerAbout(String value) {
+    return '约 $value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '记录餐食的 $n 天';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return '热量未知的 $n 餐未计入合计';
+  }
+
+  @override
+  String get answerNoWatch => '没有手表测量的记录';
+
+  @override
+  String answerWatchDays(int n) {
+    return '手表测量的 $n 天';
+  }
+
+  @override
+  String get answerNoBoth => '没有同时有摄入和消耗的日子';
+
+  @override
+  String answerBothDays(int n) {
+    return '同时有摄入和消耗的 $n 天';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return '已去掉只有摄入的 $n 天';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$n 个月';
+  }
+
+  @override
+  String get metricChangePct => '变化率';
+
+  @override
+  String get metricDaysSinceBest => '距最佳天数';
+
+  @override
+  String get metricSessionsSinceBest => '最佳后次数';
+
+  @override
+  String get metricMeanReps => '每组次数';
+
+  @override
+  String get metricLongestStreak => '最长连续';
+
+  @override
+  String get metricLongestGap => '最长间隔';
+
+  @override
+  String get metricMeanGap => '训练间隔';
+
+  @override
+  String get metricIntake => '摄入热量';
+
+  @override
+  String get metricBurned => '消耗热量';
+
+  @override
+  String get metricBalance => '摄入 − 消耗';
+
+  @override
+  String get queryAlone => '独自训练的日子';
+
+  @override
+  String get queryTogether => '和伙伴一起的日子';
+
+  @override
+  String get queryByPart => '按部位';
+
+  @override
+  String get queryCanSee => '记录可以查看重量、次数、组数、训练天数和餐食热量';
+
+  @override
+  String get queryDiffColumn => '差值';
+
+  @override
+  String get queryFutureCell => '尚未到来的时间';
+
+  @override
+  String get queryGrowthRate => '增长按每周速度排名，时间跨度不同也公平';
+
+  @override
+  String get queryHandoff => '只看收到的记录';
+
+  @override
+  String get queryNoHandoff => '不含收到的记录';
+
+  @override
+  String queryHandoffCount(int n) {
+    return '不含收到的 $n 条记录';
+  }
+
+  @override
+  String get queryHoursNote => '时间以创建记录时为准，事后补记的按补记时间计算';
+
+  @override
+  String get queryMixedWeights => '这是多个动作混合的重量';
+
+  @override
+  String get queryNcBodyweight => '记录里没有体重。在问题里写上体重就会拿来比较（例：体重80，硬拉是几倍？）';
+
+  @override
+  String get queryNcWeightForecast =>
+      '不计算以后会是多少公斤——记录里只有吃了什么和运动消耗，没有基础代谢和日常活动消耗的热量';
+
+  @override
+  String get queryNcHeartRate => '记录搜索暂时不看心率；按动作或休息的心率因为组没有时间而无法查看';
+
+  @override
+  String get queryNeverMark => '从未记录';
+
+  @override
+  String get queryNoBaseRatio => '没有基准值，无法算比例';
+
+  @override
+  String get queryNoneCell => '此范围内没有记录';
+
+  @override
+  String get queryNoRoutine => '非课表的日子';
+
+  @override
+  String get queryRoutine => '按教练课表的日子';
+
+  @override
+  String get queryOngoing => '进行中';
+
+  @override
+  String get queryOverlap => '训练天数有重叠，无法算占比；请按组数提问';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': '胸',
+      'back': '背',
+      'legs': '腿',
+      'shoulders': '肩',
+      'arms': '手臂',
+      'core': '核心',
+      'cardio': '有氧',
+      'upper': '上半身',
+      'lower': '下半身',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => '倍数';
+
+  @override
+  String get queryRatioUnits => '单位不同，无法算比例';
+
+  @override
+  String get queryRestDay => '休息日';
+
+  @override
+  String get queryTrained => '训练日';
+
+  @override
+  String get querySetFirst => '第一组';
+
+  @override
+  String get querySetLast => '最后一组';
+
+  @override
+  String get queryShare => '占比';
+
+  @override
+  String get queryZeroFilled => '没做的动作也按 0 计入';
+
+  @override
+  String queryAgainst(String value) {
+    return '对比 $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio 倍 · 差 $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n 天';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return '已排除 $n 组其他类型的值';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '$from–$to点';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return '是不是 $name？';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return '备注全部包含：$terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text $n 天';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return '匹配的备注：$hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names：没有记录，已排除后统计';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names：没有记录';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return '备注不含：$terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return '已排除 $n 组未记次数的';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return '记录中没有、无法查看：$things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return '无法查看：$things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return '记录无法回答：$things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return '已排除 $n 组无重量（最多 $reps 次）';
+  }
+
+  @override
+  String queryNth(int n) {
+    return '倒数第 $n 个训练日';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '记录距离的 $n 次：$value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '记录时间的 $n 次：$value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return '不含 $names';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '（$n 天）';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part：$names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '每天',
+      'week': '每周',
+      'month': '每月',
+      'other': '平均',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/天',
+      'week': '/周',
+      'month': '/月',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value 倍（$percent%）';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': '第 $n 天',
+      'week': '第 $n 周',
+      'month': '第 $n 个月',
+      'other': '第 $n 个',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return '尚未到来，按 $year 年理解';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return '按相同 $days 天比较：$earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return '记录太短（不足 3 天或 3 周），未参与排名：$names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata',
+      'bpm': 'BPM 计时',
+      'other': '无计时',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return '已排除部位未知的动作：$names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '因缺值未能排名的 $n 个：$names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return '时间段天数不同（$lengths 天），差值和比例按每周计算';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$total 周中有 $zeros 周为 0',
+      'month': '$total 个月中有 $zeros 个月为 0',
+      'other': '$total 个中有 $zeros 个为 0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '可训练 $m 天中的 $percent%';
+  }
+
+  @override
+  String get queryOfflineLocal => '无法连接服务器，仅按文字中的动作和时间在设备上计算。联网后按 Enter 再问一次。';
+
+  @override
+  String get queryMisread => '无法把这个问题读成可以统计的形式。请换个说法再问。';
+
+  @override
+  String get queryMisreadLocal =>
+      '无法把问题读成可统计的形式，仅按文字中的动作和时间在设备上计算。换个说法再问即可重新读取。';
+
+  @override
+  String get queryUnreadable => '模型两次返回了无法读取的回答。不是网络问题，这个回答没有消耗杠铃片。';
+
+  @override
+  String get queryAskAgain => '再问一次';
+
+  @override
+  String get queryUnreadablePaid =>
+      '模型两次返回了无法读取的回答。不是网络问题。这个回答没有消耗杠铃片，下面的杠铃片用于给问题分类的第一步。';
+
+  @override
+  String get queryUnreadableLocal => '同时已按文字中的动作和时间在设备上计算。';
+
+  @override
+  String get queryTotalUnits => '单位不同，无法合计';
+
+  @override
+  String queryMemoDropped(String words) {
+    return '已去掉备注条件：$words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return '已去掉基准数 $value——它不是问题里写的重量';
+  }
+
+  @override
+  String routineDate(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.Md(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
+
+  @override
+  String get routineHeaderToday => '今天的训练';
+
+  @override
+  String routineHeaderDay(String day) {
+    return '$day的训练';
+  }
+
+  @override
+  String routineTomorrow(String date) {
+    return '明天($date)';
+  }
+
+  @override
+  String routineWhyRotation(String date, int days) {
+    return '$date的训练已经$days天没做了 — 照那天安排';
+  }
+
+  @override
+  String routineWhyFrom(String date) {
+    return '和$date一样';
+  }
+
+  @override
+  String routineWhyNamed(String date) {
+    return '用$date一起练的动作补齐';
+  }
+
+  @override
+  String routinePartRest(String list) {
+    return '最近28天: $list前';
+  }
+
+  @override
+  String routinePartDays(String part, int days) {
+    return '$part$days天';
+  }
+
+  @override
+  String routineEstimate(int minutes) {
+    return '约$minutes分钟';
+  }
+
+  @override
+  String routinePaceOwn(int sessions, String pace) {
+    return '按最近$sessions次训练每组$pace估算';
+  }
+
+  @override
+  String routinePaceDefault(String pace) {
+    return '按默认每组$pace估算 — 多记几次就会用你的节奏';
+  }
+
+  @override
+  String routineMinSec(int m, int s) {
+    return '$m分$s秒';
+  }
+
+  @override
+  String routineReadAs(String list) {
+    return '读作: $list';
+  }
+
+  @override
+  String routineCopied(String date) {
+    return '同$date';
+  }
+
+  @override
+  String routineRepsMatched(String date, int reps) {
+    return '$date做$reps次的重量';
+  }
+
+  @override
+  String get routineTyped => '按输入';
+
+  @override
+  String get routineFirst => '第一次';
+
+  @override
+  String routineBlank(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'light': '重量留空(轻松日)',
+      'pain': '重量留空(提到疼痛)',
+      'gear': '重量留空(器械不同)',
+      'bodyweight': '器械重量留空',
+      'stale': '重量留空(隔了很久)',
+      'repsUnmatched': '重量留空(没有那样组数和次数的日子)',
+      'other': '重量留空',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineReference(String sets, String date) {
+    return '参考: $sets($date)';
+  }
+
+  @override
+  String routineBest(String set, String date) {
+    return '参考: 最好 $set($date)';
+  }
+
+  @override
+  String routineStepped(String step, String evidence) {
+    return '+$step($evidence)';
+  }
+
+  @override
+  String routineMemo(String date, String memo) {
+    return '$date备注: $memo';
+  }
+
+  @override
+  String routineRecent(String part, String when) {
+    return '$part · $when';
+  }
+
+  @override
+  String routineDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n天前',
+      one: '昨天',
+      zero: '今天',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get routineFuture => '这是预览 — 那天输入“训练”就能作为当天的记录开始';
+
+  @override
+  String routineRefused(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'diet': '不安排饮食 — 记录饮食可以看热量',
+      'medical': '不判断康复或术后训练 — 记下医生或治疗师给的动作,就按原样排成训练',
+      'drug': '不提供药物方面的帮助',
+      'program': '一次只排一天 — 这是今天的训练',
+      'logging': '不会把没做的组记为完成 — 做的时候点一下',
+      'format': '没有EMOM、超级组或循环计时 — 只排顺序(Tabata和bpm可以)',
+      'person': '不替别人排训练 — 只显示你记录里的动作名称',
+      'other': '只帮忙处理训练记录和训练安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineNotStated(String what) {
+    return '输入里没有这个数,已去掉: $what';
+  }
+
+  @override
+  String routineUnmet(String what) {
+    return '没能满足的条件: $what';
+  }
+
+  @override
+  String routineKeyName(String key) {
+    String _temp0 = intl.Intl.selectLogic(key, {
+      'when': '日期',
+      'from': '之前的日子',
+      'parts': '部位',
+      'pattern': '推/拉',
+      'exercises': '动作',
+      'exclude': '去掉的动作',
+      'avoid': '避开的部位',
+      'pain': '疼痛',
+      'equipment': '器械',
+      'count': '动作数',
+      'minutes': '时间',
+      'intensity': '强度',
+      'timer': '计时',
+      'targets': '输入的数字',
+      'delta': '重量增减',
+      'other': '条件',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineUnknownName(String name) {
+    return '词典里没有,已去掉: $name';
+  }
+
+  @override
+  String get routineNoSuchDay => '没有那天 — 按记录排了';
+
+  @override
+  String routineExcludeAbsent(String name) {
+    return '本来就没有要去掉的动作: $name';
+  }
+
+  @override
+  String routineNoneMatched(String what) {
+    return '没有记录过$what动作 — 可以选来添加';
+  }
+
+  @override
+  String routineFewer(int n) {
+    return '记录里只有$n个动作';
+  }
+
+  @override
+  String routineOtherUnit(String unit) {
+    return '用$unit记录的组保持不变';
+  }
+
+  @override
+  String get routineBpmRange => 'bpm 须在10–120 — 不带计时加入';
+
+  @override
+  String routineIntensityLine(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'light': '轻一点:每个动作少做最后一组 — 重量和上次一样',
+      'lightBlank': '轻一点:每个动作少做最后一组',
+      'hard': '重量和上次一样',
+      'max': '不决定挑战多少公斤 — 旁边写了最好成绩',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineNoStep => '请输入要加多少(例如 +2.5kg)';
+
+  @override
+  String routinePain(String phrase, String list) {
+    return '因为“$phrase”去掉了: $list · 重量留空 · 不判断是否安全';
+  }
+
+  @override
+  String routinePainNone(String phrase) {
+    return '“$phrase” — 没去掉动作,重量留空 · 不判断是否安全';
+  }
+
+  @override
+  String get routinePainWord => '疼痛';
+
+  @override
+  String get routineFirstTime => '第一次 — 选动作加入(没有数字)';
+
+  @override
+  String routineCountFit(int count, int minutes) {
+    return '调整为$count个动作 — 约$minutes分钟';
+  }
+
+  @override
+  String routineNoMore(int minutes) {
+    return '记录里没有更多动作可加 — 约$minutes分钟';
+  }
+
+  @override
+  String routineOverTime(int minutes) {
+    return '只你说的动作就约$minutes分钟';
+  }
+
+  @override
+  String routineOverUsual(int n, int usual) {
+    return '你选的 $n 个动作都保留了——比平时一次做的 $usual 个多';
+  }
+
+  @override
+  String routineRecentMemo(String when, String name, String memo) {
+    return '$when$name备注: $memo';
+  }
+
+  @override
+  String routineRemoved(String label, String why) {
+    return '已去掉: $label — $why';
+  }
+
+  @override
+  String routineRemovedWhy(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'named': '你说的动作',
+      'avoid': '避开的部位',
+      'unknownPart': '部位不明',
+      'gear': '器械不同',
+      'unknownGear': '器械不明',
+      'otherPart': '其他部位',
+      'user': '手动去掉',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineRestore => '加回';
+
+  @override
+  String routineAdd(String name) {
+    return '+ $name';
+  }
+
+  @override
+  String get routineOther => '换一个';
+
+  @override
+  String get routineWhyShow => '查看依据';
+
+  @override
+  String get routineWhyHide => '收起依据';
+
+  @override
+  String routinePrevious(String date) {
+    return '更早($date)';
+  }
+
+  @override
+  String routineByPart(String part) {
+    return '按$part安排';
+  }
+
+  @override
+  String routineStepChip(String step) {
+    return '+$step(你自己的加重幅度)';
+  }
+
+  @override
+  String routineAskToo(String text) {
+    return '也问问: $text · 片';
+  }
+
+  @override
+  String get routineAsQuestion => '作为记录问题来问 · 片';
+
+  @override
+  String get routineNoConditions => '不带条件直接排';
+
+  @override
+  String get routineWithConditions => '连条件一起读 · 片';
+
+  @override
+  String get routineMake => '安排今天的训练';
+
+  @override
+  String routineMakePart(String part) {
+    return '安排今天的$part训练';
+  }
+
+  @override
+  String get routineStart => '开始';
+
+  @override
+  String get routineStarted => '已开始 · 打开';
+
+  @override
+  String get routineWorking => '正在读条件…';
+
+  @override
+  String get routineOffline => '没有连接,没能读条件 — 只按记录排了';
+
+  @override
+  String get routineMisread => '没能读懂条件 — 只按记录排了。换个说法会重新读';
+
+  @override
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': '没有连接,',
+      'noPlates': '杠铃片不够,',
+      'other': '没能读懂回答,',
+    });
+    return '$_temp0没能读条件(去掉的动作、疼痛),所以没有排训练';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return '按输入的重量:正式组 $count 组 $from → $to';
+  }
+
+  @override
+  String get routineTypedKept => '输入的重量保留不变';
+
+  @override
+  String get routinePlatesBefore => '这段文字之前用过片 · 这次 0 片';
+
+  @override
+  String get routineRetry => '重试';
+
+  @override
+  String get routinePressEnter => '按回车连条件一起读 · 片';
+
+  @override
+  String get routineFromQuestion => '读作训练安排请求';
+
+  @override
+  String routinePattern(String p) {
+    String _temp0 = intl.Intl.selectLogic(p, {
+      'push': '推',
+      'pull': '拉',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGear(String g) {
+    String _temp0 = intl.Intl.selectLogic(g, {
+      'barbell': '杠铃',
+      'dumbbell': '哑铃',
+      'machine': '器械',
+      'cable': '绳索',
+      'bodyweight': '徒手',
+      'bar': '单杠',
+      'kettlebell': '壶铃',
+      'band': '弹力带',
+      'bench': '卧推凳',
+      'other': '器材',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGearOnly(String list) {
+    return '只用$list';
+  }
+
+  @override
+  String routineGearWithout(String list) {
+    return '不用$list';
+  }
+
+  @override
+  String routineMinutes(int n) {
+    return '$n分钟';
+  }
+
+  @override
+  String routineCount(int n) {
+    return '$n个动作';
+  }
+
+  @override
+  String routineIntensity(String k) {
+    String _temp0 = intl.Intl.selectLogic(k, {
+      'light': '轻松',
+      'hard': '大重量',
+      'max': '冲PR',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineExclude(String list) {
+    return '去掉: $list';
+  }
+
+  @override
+  String routineAvoid(String list) {
+    return '避开: $list';
+  }
+
+  @override
+  String get routinePlatesZero => '0 片';
+
+  @override
+  String get routineFullBody => '全身';
+
+  @override
+  String get routineNoPlates => '杠铃片不够,没能读条件 — 只按记录排了';
+
+  @override
+  String get routineBack => '回到训练';
+
+  @override
+  String queryBoundDropped(String value) {
+    return '已去掉条件 $value — 问题里没有用这个单位写这个数';
+  }
+
+  @override
+  String get anatomyTitle => '身体图';
+
+  @override
+  String get anatomyOpen => '身体图 — 按部位看动作和动作要点';
+
+  @override
+  String get anatomyPick => '在身体图上选动作';
+
+  @override
+  String get anatomyFront => '正面';
+
+  @override
+  String get anatomyBack => '背面';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n天';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': '胸',
+      'frontDelts': '前三角肌',
+      'sideDelts': '中三角肌',
+      'rearDelts': '后三角肌',
+      'traps': '上斜方肌',
+      'upperBack': '中背部',
+      'lats': '背阔肌',
+      'lowerBack': '下背部',
+      'biceps': '肱二头肌',
+      'triceps': '肱三头肌',
+      'forearms': '前臂',
+      'abs': '腹肌',
+      'obliques': '腹斜肌',
+      'hipFlexors': '髋屈肌',
+      'glutes': '臀部',
+      'quads': '股四头肌',
+      'hamstrings': '腘绳肌',
+      'adductors': '大腿内侧',
+      'calves': '小腿',
+      'infraspinatus': '冈下肌',
+      'teresMinor': '小圆肌',
+      'teresMajor': '大圆肌',
+      'tricepsLong': '肱三头肌长头',
+      'tricepsLateral': '肱三头肌外侧头',
+      'tricepsMedial': '肱三头肌内侧头',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': '少',
+      'mid': '中',
+      'high': '多',
+      'other': '无',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend => '这段时间组数越多的部位颜色越深';
+
+  @override
+  String get anatomyFirstTime => '还没有完成的组，所以没有颜色。点一个部位，可以看使用它的动作和动作要点。';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return '最近$n天没有完成的组';
+  }
+
+  @override
+  String anatomyUnknown(int n) {
+    return '有 $n 个不知道肌肉的动作没有计入。点名称可在搜索中查看记录。';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return '另外 $n 个';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return '有氧$n组没有计入身体图';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      '肌肉按 ExRx.net、ACE 的分类估算。带 * 的动作，肌肉归属是推断的。主要肌肉每组算一组，辅助肌肉算半组，热身组也算一组。';
+
+  @override
+  String get anatomyLimits => '不做视频或动作分析。如有疼痛请停下并咨询专业人士。';
+
+  @override
+  String get anatomyTapHint => '请点肌肉 — 也可以在下面的列表里选';
+
+  @override
+  String get anatomyNoSurface => '深层肌肉，图上没有';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return '$days天 $sets组';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return '最近7天 $week组 · 28天 $month组';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28天中主要使用 $primary组 · 辅助 $secondary组（按半组算）';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return '最近一次：$date（$ago）';
+  }
+
+  @override
+  String get anatomyNever => '表里的动作中，这个部位还没有记录';
+
+  @override
+  String get anatomyDone => '我做过的动作';
+
+  @override
+  String get anatomyTry => '主要使用这个部位的动作';
+
+  @override
+  String get anatomyTrySecondary => '辅助使用此部位的动作';
+
+  @override
+  String anatomyTryGear(String list) {
+    return '用过的器械（$list）能做的';
+  }
+
+  @override
+  String get anatomyAllGear => '没有器械记录，全部显示';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return '再看$n个其他器械的动作';
+  }
+
+  @override
+  String get anatomyTriedAll => '主要使用这个部位的动作都做过了';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': '主要',
+      'other': '辅助',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyInterpNote => '* 该动作的肌肉归属是根据来源推断的';
+
+  @override
+  String get anatomyCues => '动作要点';
+
+  @override
+  String get anatomyMistakes => '要避免';
+
+  @override
+  String anatomySources(String sites) {
+    return '来源：$sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '‡ 无来源的补充';
+
+  @override
+  String get anatomyAdapted => '† 根据来源文字转述的推断（含相似动作的来源）';
+
+  @override
+  String get anatomyCuesEnglish => '动作要点目前只有英文';
+
+  @override
+  String get anatomyAddRoutine => '加入今天的训练';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return '今天的$part训练';
+  }
+
+  @override
+  String get anatomySearch => '在搜索中查看';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return '最近$days天 $sets组，$level';
+  }
+
+  @override
+  String get anatomyRegionHint => '双击查看动作';
+
+  @override
+  String get anatomyClose => '关闭';
+
+  @override
+  String get anatomyZoomReset => '恢复原大小';
+
+  @override
+  String anatomyTileSets(String n) {
+    return '$n组';
+  }
+
+  @override
+  String get anatomyLastLabel => '最近一次';
+
+  @override
+  String get openSourceLicenses => '开源许可';
+
+  @override
+  String routineFactor(String f) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '力量',
+      'endurance': '肌耐力',
+      'sustain': '持续力',
+      'power': '爆发力',
+      'cardio': '心肺',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineFactorDay(String factor, String why) {
+    return '$factor日 · $why';
+  }
+
+  @override
+  String routineFactorWhy(String kind, String a, String b) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata $a',
+      'fill': '完成 $a 次',
+      'fillTitle': '标题“$a”',
+      'distance': '$a',
+      'open': '每组 $a 次,组数不限',
+      'single': '一组 $a 次',
+      'drop': '每组力竭 $a',
+      'hold': '$a 次 × $b 组',
+      'other': '$a×$b',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyWeekday(int weeks, String day, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '上周$day没有记录,照$weeks周前的$day($date)安排',
+      one: '和上周$day($date)一样',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNear(String day, String near) {
+    return '没有$day的记录,照相近的$near安排';
+  }
+
+  @override
+  String routineWhyFactor(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '本周力量不足,照$date安排',
+      'endurance': '本周肌耐力不足,照$date安排',
+      'sustain': '本周持续力不足,照$date安排',
+      'cardio': '本周心肺不足,照$date安排',
+      'other': '照$date安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorAll(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '本周各项都已完成 — 轮到力量,照$date安排',
+      'endurance': '本周各项都已完成 — 轮到肌耐力,照$date安排',
+      'sustain': '本周各项都已完成 — 轮到持续力,照$date安排',
+      'cardio': '本周各项都已完成 — 轮到心肺,照$date安排',
+      'other': '照$date安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWeekCounts(String range, String list) {
+    return '最近7天($range):$list';
+  }
+
+  @override
+  String routineFactorMissing(String list) {
+    return '最近28天没有单独练过的:$list';
+  }
+
+  @override
+  String get routineFillHint => '要练完成次数,请写上目标(例:深蹲完成100次)';
+
+  @override
+  String get routineTabataChip => '改成Tabata';
+
+  @override
+  String routineLikeLastWeek(String day) {
+    return '像上周$day一样';
+  }
+
+  @override
+  String routineFactorChip(String f, int n) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '按力量安排 · 本周$n次',
+      'endurance': '按肌耐力安排 · 本周$n次',
+      'sustain': '按持续力安排 · 本周$n次',
+      'cardio': '按心肺安排 · 本周$n次',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return '保持不变(一组、完成次数或Tabata):$list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '换一个:照$weeks周前的$day($date)安排',
+      'other': '上周$day只有排除的动作,照$weeks周前的$day($date)安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '换一个:照相近的$near安排',
+      'other': '$day的记录只有排除的动作,照相近的$near安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return '不足的项目最近28天没有可用的日子,照$date的$factor日安排';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return '照$date的$factor日安排,但$factor的动作被去掉了';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return '去掉排除的动作后最近28天没有剩下的日子:$list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return '比$date少一组';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return '包含今天已经练过的动作:$list';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1667,15 +3273,12 @@ class LZhHans extends LZh {
   String get previous7Days => '过去 7 天';
 
   @override
-  String get previous30Days => '过去 30 天';
-
-  @override
   String monthLabel(int m) {
     return '$m月';
   }
 
   @override
-  String get search => '搜索';
+  String get search => '搜索或提问';
 
   @override
   String get newNote => '新建记录';
@@ -1767,6 +3370,11 @@ class LZhHans extends LZh {
   String get setRequired => '请先输入一组，例如：60 12';
 
   @override
+  String setsPerLineMax(int n) {
+    return '每行最多 $n 组，请分成几行输入。';
+  }
+
+  @override
   String get aiTitle => '一句话设置';
 
   @override
@@ -1834,6 +3442,60 @@ class LZhHans extends LZh {
   String get aiUseName => '用作动作名称';
 
   @override
+  String get aiFallbackQuota => '今天的输入辅助已用完，已按原文添加';
+
+  @override
+  String get aiFallbackOffline => '无法连接，已按原文添加。可在卡片的⚙中添加设置';
+
+  @override
+  String get aiFallbackServer => '服务器没有响应，已按原文添加。可在卡片的⚙中添加设置';
+
+  @override
+  String get aiFallbackUnread => '没有找到可设置的内容，已按原文添加。可在卡片的⚙中添加设置';
+
+  @override
+  String get inputNameTooLong => '动作名称最多120个字 — 请分行输入';
+
+  @override
+  String get inputTooLong => '超过600个字的文字不会读取 — 请分行输入';
+
+  @override
+  String get setupAdd => '添加设置';
+
+  @override
+  String setupUnparsed(String words) {
+    return '未转入设置的内容：$words — 保留在标题中';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return '已去掉原文中没有的数字：$numbers';
+  }
+
+  @override
+  String get setupNameMissing => '请输入动作名称';
+
+  @override
+  String get setupNameTooLong => '最多120个字';
+
+  @override
+  String get setupWeightInvalid => '请输入大于0且不超过2000的数字';
+
+  @override
+  String get setupCountInvalid => '请输入1以上的整数 — 范围和时间请留在标题中';
+
+  @override
+  String get setupRepsOnly => '只记次数';
+
+  @override
+  String setupSplit(int count) {
+    return '已拆成 $count 个动作';
+  }
+
+  @override
+  String get setupMergeAll => '合并为一项';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal次';
   }
@@ -1850,9 +3512,6 @@ class LZhHans extends LZh {
 
   @override
   String get repsInputHint => '次数';
-
-  @override
-  String get setupTitle => '动作设置';
 
   @override
   String get setupWeight => '默认重量';
@@ -2205,9 +3864,6 @@ class LZhHans extends LZh {
   }
 
   @override
-  String get reviewNumbers => '应用前请确认数字和条件。';
-
-  @override
   String get queryByExercise => '按动作';
 
   @override
@@ -2448,6 +4104,15 @@ class LZhHans extends LZh {
   String get mealPhoto => '餐食照片';
 
   @override
+  String get mealAdd => '记录饮食';
+
+  @override
+  String get mealWrite => '用文字记录';
+
+  @override
+  String get mealTypeHint => '直接在动作名称那一行输入食物，也会记为饮食';
+
+  @override
   String get mealCamera => '相机';
 
   @override
@@ -2481,7 +4146,29 @@ class LZhHans extends LZh {
   String get fitAll => '今天的训练';
 
   @override
-  String get sameDayOther => '当天的其他记录';
+  String sameDayToday(String time) {
+    return '今天 $time 另外保存的记录';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return '$date $time 另外保存的记录';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first 等$n项';
+  }
+
+  @override
+  String lastWeekDay(String weekday, String date) {
+    return '上周$weekday（$date）的训练';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$n周前$weekday（$date）的训练';
+  }
 
   @override
   String get mealText => '记录饮食';
@@ -2538,6 +4225,77 @@ class LZhHans extends LZh {
 
   @override
   String get mealPhotoWholeNote => '这是照片中全部食物的估算值，请选择您吃了其中多少。';
+
+  @override
+  String get mealTextUnknown => '无法识别这种食物，未能估算热量。点按这餐补充食物名称或分量，即可重新估算。';
+
+  @override
+  String get mealTextOffline => '无法连接，未能估算热量。点按这餐后按 Enter 即可重新估算。';
+
+  @override
+  String get mealTextTooLong => '超过 500 字的饮食记录不会估算。点按这餐分开记录即可估算。';
+
+  @override
+  String queryTooLong(int max) {
+    return '问题最多 $max 个字。请缩短后再问。';
+  }
+
+  @override
+  String get queryPressEnter => '按 Enter 即可询问您的记录。';
+
+  @override
+  String get mealRetry => '重新估算';
+
+  @override
+  String kcalAtLeast(int n) {
+    return '至少 $n 千卡';
+  }
+
+  @override
+  String mealTextPartial(int n) {
+    return '只计入了你写的 $n 千卡，其余食物的热量未知。';
+  }
+
+  @override
+  String mealTextBelowTyped(int n) {
+    return '估算值低于你写的 $n 千卡，因此未采用。只计入了你写的 $n 千卡。';
+  }
+
+  @override
+  String queryLimit(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'exercises': '一次最多可问 8 个动作。请分开提问。',
+      'measures': '一次最多统计 4 项。请分开提问。',
+      'ranking': '排名最多显示 20 个。请问 20 个以内。',
+      'sessions': '“最近 N 次”最多 100 次。想看更久，请按时间段提问，例如今年。',
+      'days': '“最近 N 天”最多 3660 天（约 10 年）。想看更久，请按全部时间提问。',
+      'compare': '一次最多对比 6 项。请分开提问。',
+      'compareGrouped': '同一个问题不能既对比又按动作、日、周、月或星期分组。请二选一提问。',
+      'groupedMeasure': '按日、周、月或星期分组比较多个范围时只能统计一项，且趋势、最后一次、第一次、距上次天数不能分组。',
+      'ordering': '排名、合计和平均需要分组，例如按动作或按周。',
+      'datesTotal': '最后一次和第一次的日期不能相加或求平均。',
+      'perMeasure':
+          '按天、周、月的平均只能用于可相加的数，如组数、次数、容量、距离、时间、天数和 kcal。最高或平均重量请按时间段来问。',
+      'shareMeasure': '占比只能用组数、容量这类可相加的数来算。',
+      'trainedMeasure': '按训练日或休息日筛选只用于摄入和消耗的 kcal。训练记录都来自训练日。',
+      'sameSeries': '要比较的两个范围被读成了一样的。请写明拿什么和什么比较。',
+      'other': '记录搜索无法计算这种形式的问题。请分开提问。',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String policyNumberRejected(String text, String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'decimal': '“$text”— 不接受小数。请输入整数，例如 14',
+      'range': '“$text”— 请输入一个数字，而不是范围，例如 14',
+      'negative': '“$text”— 不接受小于 0 的数，例如 14',
+      'unit': '“$text”— 此栏按天数或次数计。请把小时、周或月换算成天数，例如 14',
+      'many': '“$text”— 请只输入一个数字，例如 14',
+      'other': '无法从“$text”中读出天数或次数。请输入数字，例如 14',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get mealSources => '来源';
@@ -2906,7 +4664,10 @@ class LZhHans extends LZh {
   String get togetherLog => '记录';
 
   @override
-  String get mealLogAs => '记为饮食';
+  String get mealAutoLogged => '已记为一餐';
+
+  @override
+  String get mealAutoUndo => '改为运动';
 
   @override
   String get proxyWrite => '代为记录';
@@ -2971,6 +4732,40 @@ class LZhHans extends LZh {
   String get mealsTitle => '饮食';
 
   @override
+  String get energyBurned => '运动';
+
+  @override
+  String get energyDifference => '差值';
+
+  @override
+  String get fold => '收起';
+
+  @override
+  String get energySurplus => '盈余';
+
+  @override
+  String get energyDeficit => '赤字';
+
+  @override
+  String get milestoneBest => '最大重量';
+
+  @override
+  String get energyDiffFormula => '摄入 − 运动';
+
+  @override
+  String get energyDiffExplain =>
+      '记录的摄入热量减去当天消耗的热量（基础代谢 + 运动）。正数为盈余，负数为赤字。\n\n基础代谢优先使用健康应用的静息能量，没有时用身体信息计算（估算）。不包含步行等日常活动，所以并不等于体重的增减。';
+
+  @override
+  String get estimateTag => '估算';
+
+  @override
+  String get energyNotLogged => '未记录';
+
+  @override
+  String get energyNotMeasured => '未测量';
+
+  @override
   String get recordMenu => '更多';
 
   @override
@@ -3001,6 +4796,55 @@ class LZhHans extends LZh {
   @override
   String get healthDataCalories =>
       '读取 · 活动能量 — 训练期间手表测得的活动能量会附到该记录上。没有测量时不显示热量。';
+
+  @override
+  String get healthDataBasal =>
+      '读取 · 静息能量（基础代谢）— 计入当天消耗的热量，与摄入比较。没有记录时，用 设置 › 身体信息 计算。';
+
+  @override
+  String get bodyTitle => '身体信息';
+
+  @override
+  String get bodyNote => '仅用于计算基础代谢。健康应用有静息能量时优先使用。此信息不会离开设备。';
+
+  @override
+  String get bodyHeight => '身高 (cm)';
+
+  @override
+  String get bodyWeight => '体重 (kg)';
+
+  @override
+  String get bodyBirthYear => '出生年份';
+
+  @override
+  String get bodySex => '性别';
+
+  @override
+  String get bodyMale => '男';
+
+  @override
+  String get bodyFemale => '女';
+
+  @override
+  String bodyBmr(String kcal) {
+    return '每日基础代谢约 $kcal kcal（Mifflin-St Jeor 公式）';
+  }
+
+  @override
+  String get energySpent => '消耗';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return '基础 $basal + 运动 $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => '摄入 − 消耗';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return '摄入 $intake · 消耗 $used = $diff kcal';
+  }
 
   @override
   String get healthDataHeart =>
@@ -3234,6 +5078,1374 @@ class LZhHans extends LZh {
 
   @override
   String get settingsTrainer => '教练';
+
+  @override
+  String get aiSetting => 'AI 帮助';
+
+  @override
+  String get aiOff => 'AI 帮助已关闭，已按输入原样保留。可在 设置 › AI 帮助 中打开';
+
+  @override
+  String get aiOffPhoto => 'AI 帮助已关闭，未根据照片估算。用文字写下餐食，例如“饭团 180kcal”，就会照原样记录';
+
+  @override
+  String get answerNeedsTwoDays => '至少需要两天的记录';
+
+  @override
+  String get answerNoBase => '没有基准值';
+
+  @override
+  String answerPerWeek(String value) {
+    return '每周 $value';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '每月 $value';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return '最佳之后练了 $n 次';
+  }
+
+  @override
+  String get answerTimesUnit => '次';
+
+  @override
+  String answerTimes(int n) {
+    return '$n 次';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return '连续 $n 天';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return '休息 $n 天';
+  }
+
+  @override
+  String get answerUntilToday => '今天';
+
+  @override
+  String answerEveryDays(String value) {
+    return '通常每 $value 天一次';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return '平均每 $value 天一次';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return '连续 $a 次 · 休 1 天 $b 次 · 休 2 天 $c 次 · 休 3 天以上 $d 次';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return '其中最长休息 $n 天';
+  }
+
+  @override
+  String get answerNoMeals => '没有记录餐食的日子';
+
+  @override
+  String answerAbout(String value) {
+    return '约 $value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '记录餐食的 $n 天';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return '热量未知的 $n 餐未计入合计';
+  }
+
+  @override
+  String get answerNoWatch => '没有手表测量的记录';
+
+  @override
+  String answerWatchDays(int n) {
+    return '手表测量的 $n 天';
+  }
+
+  @override
+  String get answerNoBoth => '没有同时有摄入和消耗的日子';
+
+  @override
+  String answerBothDays(int n) {
+    return '同时有摄入和消耗的 $n 天';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return '已去掉只有摄入的 $n 天';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$n 个月';
+  }
+
+  @override
+  String get metricChangePct => '变化率';
+
+  @override
+  String get metricDaysSinceBest => '距最佳天数';
+
+  @override
+  String get metricSessionsSinceBest => '最佳后次数';
+
+  @override
+  String get metricMeanReps => '每组次数';
+
+  @override
+  String get metricLongestStreak => '最长连续';
+
+  @override
+  String get metricLongestGap => '最长间隔';
+
+  @override
+  String get metricMeanGap => '训练间隔';
+
+  @override
+  String get metricIntake => '摄入热量';
+
+  @override
+  String get metricBurned => '消耗热量';
+
+  @override
+  String get metricBalance => '摄入 − 消耗';
+
+  @override
+  String get queryAlone => '独自训练的日子';
+
+  @override
+  String get queryTogether => '和伙伴一起的日子';
+
+  @override
+  String get queryByPart => '按部位';
+
+  @override
+  String get queryCanSee => '记录可以查看重量、次数、组数、训练天数和餐食热量';
+
+  @override
+  String get queryDiffColumn => '差值';
+
+  @override
+  String get queryFutureCell => '尚未到来的时间';
+
+  @override
+  String get queryGrowthRate => '增长按每周速度排名，时间跨度不同也公平';
+
+  @override
+  String get queryHandoff => '只看收到的记录';
+
+  @override
+  String get queryNoHandoff => '不含收到的记录';
+
+  @override
+  String queryHandoffCount(int n) {
+    return '不含收到的 $n 条记录';
+  }
+
+  @override
+  String get queryHoursNote => '时间以创建记录时为准，事后补记的按补记时间计算';
+
+  @override
+  String get queryMixedWeights => '这是多个动作混合的重量';
+
+  @override
+  String get queryNcBodyweight => '记录里没有体重。在问题里写上体重就会拿来比较（例：体重80，硬拉是几倍？）';
+
+  @override
+  String get queryNcWeightForecast =>
+      '不计算以后会是多少公斤——记录里只有吃了什么和运动消耗，没有基础代谢和日常活动消耗的热量';
+
+  @override
+  String get queryNcHeartRate => '记录搜索暂时不看心率；按动作或休息的心率因为组没有时间而无法查看';
+
+  @override
+  String get queryNeverMark => '从未记录';
+
+  @override
+  String get queryNoBaseRatio => '没有基准值，无法算比例';
+
+  @override
+  String get queryNoneCell => '此范围内没有记录';
+
+  @override
+  String get queryNoRoutine => '非课表的日子';
+
+  @override
+  String get queryRoutine => '按教练课表的日子';
+
+  @override
+  String get queryOngoing => '进行中';
+
+  @override
+  String get queryOverlap => '训练天数有重叠，无法算占比；请按组数提问';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': '胸',
+      'back': '背',
+      'legs': '腿',
+      'shoulders': '肩',
+      'arms': '手臂',
+      'core': '核心',
+      'cardio': '有氧',
+      'upper': '上半身',
+      'lower': '下半身',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => '倍数';
+
+  @override
+  String get queryRatioUnits => '单位不同，无法算比例';
+
+  @override
+  String get queryRestDay => '休息日';
+
+  @override
+  String get queryTrained => '训练日';
+
+  @override
+  String get querySetFirst => '第一组';
+
+  @override
+  String get querySetLast => '最后一组';
+
+  @override
+  String get queryShare => '占比';
+
+  @override
+  String get queryZeroFilled => '没做的动作也按 0 计入';
+
+  @override
+  String queryAgainst(String value) {
+    return '对比 $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio 倍 · 差 $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n 天';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return '已排除 $n 组其他类型的值';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '$from–$to点';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return '是不是 $name？';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return '备注全部包含：$terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text $n 天';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return '匹配的备注：$hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names：没有记录，已排除后统计';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names：没有记录';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return '备注不含：$terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return '已排除 $n 组未记次数的';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return '记录中没有、无法查看：$things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return '无法查看：$things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return '记录无法回答：$things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return '已排除 $n 组无重量（最多 $reps 次）';
+  }
+
+  @override
+  String queryNth(int n) {
+    return '倒数第 $n 个训练日';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '记录距离的 $n 次：$value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '记录时间的 $n 次：$value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return '不含 $names';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '（$n 天）';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part：$names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '每天',
+      'week': '每周',
+      'month': '每月',
+      'other': '平均',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/天',
+      'week': '/周',
+      'month': '/月',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value 倍（$percent%）';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': '第 $n 天',
+      'week': '第 $n 周',
+      'month': '第 $n 个月',
+      'other': '第 $n 个',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return '尚未到来，按 $year 年理解';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return '按相同 $days 天比较：$earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return '记录太短（不足 3 天或 3 周），未参与排名：$names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata',
+      'bpm': 'BPM 计时',
+      'other': '无计时',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return '已排除部位未知的动作：$names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '因缺值未能排名的 $n 个：$names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return '时间段天数不同（$lengths 天），差值和比例按每周计算';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$total 周中有 $zeros 周为 0',
+      'month': '$total 个月中有 $zeros 个月为 0',
+      'other': '$total 个中有 $zeros 个为 0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '可训练 $m 天中的 $percent%';
+  }
+
+  @override
+  String get queryOfflineLocal => '无法连接服务器，仅按文字中的动作和时间在设备上计算。联网后按 Enter 再问一次。';
+
+  @override
+  String get queryMisread => '无法把这个问题读成可以统计的形式。请换个说法再问。';
+
+  @override
+  String get queryMisreadLocal =>
+      '无法把问题读成可统计的形式，仅按文字中的动作和时间在设备上计算。换个说法再问即可重新读取。';
+
+  @override
+  String get queryUnreadable => '模型两次返回了无法读取的回答。不是网络问题，这个回答没有消耗杠铃片。';
+
+  @override
+  String get queryAskAgain => '再问一次';
+
+  @override
+  String get queryUnreadablePaid =>
+      '模型两次返回了无法读取的回答。不是网络问题。这个回答没有消耗杠铃片，下面的杠铃片用于给问题分类的第一步。';
+
+  @override
+  String get queryUnreadableLocal => '同时已按文字中的动作和时间在设备上计算。';
+
+  @override
+  String get queryTotalUnits => '单位不同，无法合计';
+
+  @override
+  String queryMemoDropped(String words) {
+    return '已去掉备注条件：$words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return '已去掉基准数 $value——它不是问题里写的重量';
+  }
+
+  @override
+  String routineDate(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.Md(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
+
+  @override
+  String get routineHeaderToday => '今天的训练';
+
+  @override
+  String routineHeaderDay(String day) {
+    return '$day的训练';
+  }
+
+  @override
+  String routineTomorrow(String date) {
+    return '明天($date)';
+  }
+
+  @override
+  String routineWhyRotation(String date, int days) {
+    return '$date的训练已经$days天没做了 — 照那天安排';
+  }
+
+  @override
+  String routineWhyFrom(String date) {
+    return '和$date一样';
+  }
+
+  @override
+  String routineWhyNamed(String date) {
+    return '用$date一起练的动作补齐';
+  }
+
+  @override
+  String routinePartRest(String list) {
+    return '最近28天: $list前';
+  }
+
+  @override
+  String routinePartDays(String part, int days) {
+    return '$part$days天';
+  }
+
+  @override
+  String routineEstimate(int minutes) {
+    return '约$minutes分钟';
+  }
+
+  @override
+  String routinePaceOwn(int sessions, String pace) {
+    return '按最近$sessions次训练每组$pace估算';
+  }
+
+  @override
+  String routinePaceDefault(String pace) {
+    return '按默认每组$pace估算 — 多记几次就会用你的节奏';
+  }
+
+  @override
+  String routineMinSec(int m, int s) {
+    return '$m分$s秒';
+  }
+
+  @override
+  String routineReadAs(String list) {
+    return '读作: $list';
+  }
+
+  @override
+  String routineCopied(String date) {
+    return '同$date';
+  }
+
+  @override
+  String routineRepsMatched(String date, int reps) {
+    return '$date做$reps次的重量';
+  }
+
+  @override
+  String get routineTyped => '按输入';
+
+  @override
+  String get routineFirst => '第一次';
+
+  @override
+  String routineBlank(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'light': '重量留空(轻松日)',
+      'pain': '重量留空(提到疼痛)',
+      'gear': '重量留空(器械不同)',
+      'bodyweight': '器械重量留空',
+      'stale': '重量留空(隔了很久)',
+      'repsUnmatched': '重量留空(没有那样组数和次数的日子)',
+      'other': '重量留空',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineReference(String sets, String date) {
+    return '参考: $sets($date)';
+  }
+
+  @override
+  String routineBest(String set, String date) {
+    return '参考: 最好 $set($date)';
+  }
+
+  @override
+  String routineStepped(String step, String evidence) {
+    return '+$step($evidence)';
+  }
+
+  @override
+  String routineMemo(String date, String memo) {
+    return '$date备注: $memo';
+  }
+
+  @override
+  String routineRecent(String part, String when) {
+    return '$part · $when';
+  }
+
+  @override
+  String routineDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n天前',
+      one: '昨天',
+      zero: '今天',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get routineFuture => '这是预览 — 那天输入“训练”就能作为当天的记录开始';
+
+  @override
+  String routineRefused(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'diet': '不安排饮食 — 记录饮食可以看热量',
+      'medical': '不判断康复或术后训练 — 记下医生或治疗师给的动作,就按原样排成训练',
+      'drug': '不提供药物方面的帮助',
+      'program': '一次只排一天 — 这是今天的训练',
+      'logging': '不会把没做的组记为完成 — 做的时候点一下',
+      'format': '没有EMOM、超级组或循环计时 — 只排顺序(Tabata和bpm可以)',
+      'person': '不替别人排训练 — 只显示你记录里的动作名称',
+      'other': '只帮忙处理训练记录和训练安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineNotStated(String what) {
+    return '输入里没有这个数,已去掉: $what';
+  }
+
+  @override
+  String routineUnmet(String what) {
+    return '没能满足的条件: $what';
+  }
+
+  @override
+  String routineKeyName(String key) {
+    String _temp0 = intl.Intl.selectLogic(key, {
+      'when': '日期',
+      'from': '之前的日子',
+      'parts': '部位',
+      'pattern': '推/拉',
+      'exercises': '动作',
+      'exclude': '去掉的动作',
+      'avoid': '避开的部位',
+      'pain': '疼痛',
+      'equipment': '器械',
+      'count': '动作数',
+      'minutes': '时间',
+      'intensity': '强度',
+      'timer': '计时',
+      'targets': '输入的数字',
+      'delta': '重量增减',
+      'other': '条件',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineUnknownName(String name) {
+    return '词典里没有,已去掉: $name';
+  }
+
+  @override
+  String get routineNoSuchDay => '没有那天 — 按记录排了';
+
+  @override
+  String routineExcludeAbsent(String name) {
+    return '本来就没有要去掉的动作: $name';
+  }
+
+  @override
+  String routineNoneMatched(String what) {
+    return '没有记录过$what动作 — 可以选来添加';
+  }
+
+  @override
+  String routineFewer(int n) {
+    return '记录里只有$n个动作';
+  }
+
+  @override
+  String routineOtherUnit(String unit) {
+    return '用$unit记录的组保持不变';
+  }
+
+  @override
+  String get routineBpmRange => 'bpm 须在10–120 — 不带计时加入';
+
+  @override
+  String routineIntensityLine(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'light': '轻一点:每个动作少做最后一组 — 重量和上次一样',
+      'lightBlank': '轻一点:每个动作少做最后一组',
+      'hard': '重量和上次一样',
+      'max': '不决定挑战多少公斤 — 旁边写了最好成绩',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineNoStep => '请输入要加多少(例如 +2.5kg)';
+
+  @override
+  String routinePain(String phrase, String list) {
+    return '因为“$phrase”去掉了: $list · 重量留空 · 不判断是否安全';
+  }
+
+  @override
+  String routinePainNone(String phrase) {
+    return '“$phrase” — 没去掉动作,重量留空 · 不判断是否安全';
+  }
+
+  @override
+  String get routinePainWord => '疼痛';
+
+  @override
+  String get routineFirstTime => '第一次 — 选动作加入(没有数字)';
+
+  @override
+  String routineCountFit(int count, int minutes) {
+    return '调整为$count个动作 — 约$minutes分钟';
+  }
+
+  @override
+  String routineNoMore(int minutes) {
+    return '记录里没有更多动作可加 — 约$minutes分钟';
+  }
+
+  @override
+  String routineOverTime(int minutes) {
+    return '只你说的动作就约$minutes分钟';
+  }
+
+  @override
+  String routineOverUsual(int n, int usual) {
+    return '你选的 $n 个动作都保留了——比平时一次做的 $usual 个多';
+  }
+
+  @override
+  String routineRecentMemo(String when, String name, String memo) {
+    return '$when$name备注: $memo';
+  }
+
+  @override
+  String routineRemoved(String label, String why) {
+    return '已去掉: $label — $why';
+  }
+
+  @override
+  String routineRemovedWhy(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'named': '你说的动作',
+      'avoid': '避开的部位',
+      'unknownPart': '部位不明',
+      'gear': '器械不同',
+      'unknownGear': '器械不明',
+      'otherPart': '其他部位',
+      'user': '手动去掉',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineRestore => '加回';
+
+  @override
+  String routineAdd(String name) {
+    return '+ $name';
+  }
+
+  @override
+  String get routineOther => '换一个';
+
+  @override
+  String get routineWhyShow => '查看依据';
+
+  @override
+  String get routineWhyHide => '收起依据';
+
+  @override
+  String routinePrevious(String date) {
+    return '更早($date)';
+  }
+
+  @override
+  String routineByPart(String part) {
+    return '按$part安排';
+  }
+
+  @override
+  String routineStepChip(String step) {
+    return '+$step(你自己的加重幅度)';
+  }
+
+  @override
+  String routineAskToo(String text) {
+    return '也问问: $text · 片';
+  }
+
+  @override
+  String get routineAsQuestion => '作为记录问题来问 · 片';
+
+  @override
+  String get routineNoConditions => '不带条件直接排';
+
+  @override
+  String get routineWithConditions => '连条件一起读 · 片';
+
+  @override
+  String get routineMake => '安排今天的训练';
+
+  @override
+  String routineMakePart(String part) {
+    return '安排今天的$part训练';
+  }
+
+  @override
+  String get routineStart => '开始';
+
+  @override
+  String get routineStarted => '已开始 · 打开';
+
+  @override
+  String get routineWorking => '正在读条件…';
+
+  @override
+  String get routineOffline => '没有连接,没能读条件 — 只按记录排了';
+
+  @override
+  String get routineMisread => '没能读懂条件 — 只按记录排了。换个说法会重新读';
+
+  @override
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': '没有连接,',
+      'noPlates': '杠铃片不够,',
+      'other': '没能读懂回答,',
+    });
+    return '$_temp0没能读条件(去掉的动作、疼痛),所以没有排训练';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return '按输入的重量:正式组 $count 组 $from → $to';
+  }
+
+  @override
+  String get routineTypedKept => '输入的重量保留不变';
+
+  @override
+  String get routinePlatesBefore => '这段文字之前用过片 · 这次 0 片';
+
+  @override
+  String get routineRetry => '重试';
+
+  @override
+  String get routinePressEnter => '按回车连条件一起读 · 片';
+
+  @override
+  String get routineFromQuestion => '读作训练安排请求';
+
+  @override
+  String routinePattern(String p) {
+    String _temp0 = intl.Intl.selectLogic(p, {
+      'push': '推',
+      'pull': '拉',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGear(String g) {
+    String _temp0 = intl.Intl.selectLogic(g, {
+      'barbell': '杠铃',
+      'dumbbell': '哑铃',
+      'machine': '器械',
+      'cable': '绳索',
+      'bodyweight': '徒手',
+      'bar': '单杠',
+      'kettlebell': '壶铃',
+      'band': '弹力带',
+      'bench': '卧推凳',
+      'other': '器材',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGearOnly(String list) {
+    return '只用$list';
+  }
+
+  @override
+  String routineGearWithout(String list) {
+    return '不用$list';
+  }
+
+  @override
+  String routineMinutes(int n) {
+    return '$n分钟';
+  }
+
+  @override
+  String routineCount(int n) {
+    return '$n个动作';
+  }
+
+  @override
+  String routineIntensity(String k) {
+    String _temp0 = intl.Intl.selectLogic(k, {
+      'light': '轻松',
+      'hard': '大重量',
+      'max': '冲PR',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineExclude(String list) {
+    return '去掉: $list';
+  }
+
+  @override
+  String routineAvoid(String list) {
+    return '避开: $list';
+  }
+
+  @override
+  String get routinePlatesZero => '0 片';
+
+  @override
+  String get routineFullBody => '全身';
+
+  @override
+  String get routineNoPlates => '杠铃片不够,没能读条件 — 只按记录排了';
+
+  @override
+  String get routineBack => '回到训练';
+
+  @override
+  String queryBoundDropped(String value) {
+    return '已去掉条件 $value — 问题里没有用这个单位写这个数';
+  }
+
+  @override
+  String get anatomyTitle => '身体图';
+
+  @override
+  String get anatomyOpen => '身体图 — 按部位看动作和动作要点';
+
+  @override
+  String get anatomyPick => '在身体图上选动作';
+
+  @override
+  String get anatomyFront => '正面';
+
+  @override
+  String get anatomyBack => '背面';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n天';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': '胸',
+      'frontDelts': '前三角肌',
+      'sideDelts': '中三角肌',
+      'rearDelts': '后三角肌',
+      'traps': '上斜方肌',
+      'upperBack': '中背部',
+      'lats': '背阔肌',
+      'lowerBack': '下背部',
+      'biceps': '肱二头肌',
+      'triceps': '肱三头肌',
+      'forearms': '前臂',
+      'abs': '腹肌',
+      'obliques': '腹斜肌',
+      'hipFlexors': '髋屈肌',
+      'glutes': '臀部',
+      'quads': '股四头肌',
+      'hamstrings': '腘绳肌',
+      'adductors': '大腿内侧',
+      'calves': '小腿',
+      'infraspinatus': '冈下肌',
+      'teresMinor': '小圆肌',
+      'teresMajor': '大圆肌',
+      'tricepsLong': '肱三头肌长头',
+      'tricepsLateral': '肱三头肌外侧头',
+      'tricepsMedial': '肱三头肌内侧头',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': '少',
+      'mid': '中',
+      'high': '多',
+      'other': '无',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend => '这段时间组数越多的部位颜色越深';
+
+  @override
+  String get anatomyFirstTime => '还没有完成的组，所以没有颜色。点一个部位，可以看使用它的动作和动作要点。';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return '最近$n天没有完成的组';
+  }
+
+  @override
+  String anatomyUnknown(int n) {
+    return '有 $n 个不知道肌肉的动作没有计入。点名称可在搜索中查看记录。';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return '另外 $n 个';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return '有氧$n组没有计入身体图';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      '肌肉按 ExRx.net、ACE 的分类估算。带 * 的动作，肌肉归属是推断的。主要肌肉每组算一组，辅助肌肉算半组，热身组也算一组。';
+
+  @override
+  String get anatomyLimits => '不做视频或动作分析。如有疼痛请停下并咨询专业人士。';
+
+  @override
+  String get anatomyTapHint => '请点肌肉 — 也可以在下面的列表里选';
+
+  @override
+  String get anatomyNoSurface => '深层肌肉，图上没有';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return '$days天 $sets组';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return '最近7天 $week组 · 28天 $month组';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28天中主要使用 $primary组 · 辅助 $secondary组（按半组算）';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return '最近一次：$date（$ago）';
+  }
+
+  @override
+  String get anatomyNever => '表里的动作中，这个部位还没有记录';
+
+  @override
+  String get anatomyDone => '我做过的动作';
+
+  @override
+  String get anatomyTry => '主要使用这个部位的动作';
+
+  @override
+  String get anatomyTrySecondary => '辅助使用此部位的动作';
+
+  @override
+  String anatomyTryGear(String list) {
+    return '用过的器械（$list）能做的';
+  }
+
+  @override
+  String get anatomyAllGear => '没有器械记录，全部显示';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return '再看$n个其他器械的动作';
+  }
+
+  @override
+  String get anatomyTriedAll => '主要使用这个部位的动作都做过了';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': '主要',
+      'other': '辅助',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyInterpNote => '* 该动作的肌肉归属是根据来源推断的';
+
+  @override
+  String get anatomyCues => '动作要点';
+
+  @override
+  String get anatomyMistakes => '要避免';
+
+  @override
+  String anatomySources(String sites) {
+    return '来源：$sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '‡ 无来源的补充';
+
+  @override
+  String get anatomyAdapted => '† 根据来源文字转述的推断（含相似动作的来源）';
+
+  @override
+  String get anatomyCuesEnglish => '动作要点目前只有英文';
+
+  @override
+  String get anatomyAddRoutine => '加入今天的训练';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return '今天的$part训练';
+  }
+
+  @override
+  String get anatomySearch => '在搜索中查看';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return '最近$days天 $sets组，$level';
+  }
+
+  @override
+  String get anatomyRegionHint => '双击查看动作';
+
+  @override
+  String get anatomyClose => '关闭';
+
+  @override
+  String get anatomyZoomReset => '恢复原大小';
+
+  @override
+  String anatomyTileSets(String n) {
+    return '$n组';
+  }
+
+  @override
+  String get anatomyLastLabel => '最近一次';
+
+  @override
+  String get openSourceLicenses => '开源许可';
+
+  @override
+  String routineFactor(String f) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '力量',
+      'endurance': '肌耐力',
+      'sustain': '持续力',
+      'power': '爆发力',
+      'cardio': '心肺',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineFactorDay(String factor, String why) {
+    return '$factor日 · $why';
+  }
+
+  @override
+  String routineFactorWhy(String kind, String a, String b) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata $a',
+      'fill': '完成 $a 次',
+      'fillTitle': '标题“$a”',
+      'distance': '$a',
+      'open': '每组 $a 次,组数不限',
+      'single': '一组 $a 次',
+      'drop': '每组力竭 $a',
+      'hold': '$a 次 × $b 组',
+      'other': '$a×$b',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyWeekday(int weeks, String day, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '上周$day没有记录,照$weeks周前的$day($date)安排',
+      one: '和上周$day($date)一样',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNear(String day, String near) {
+    return '没有$day的记录,照相近的$near安排';
+  }
+
+  @override
+  String routineWhyFactor(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '本周力量不足,照$date安排',
+      'endurance': '本周肌耐力不足,照$date安排',
+      'sustain': '本周持续力不足,照$date安排',
+      'cardio': '本周心肺不足,照$date安排',
+      'other': '照$date安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorAll(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '本周各项都已完成 — 轮到力量,照$date安排',
+      'endurance': '本周各项都已完成 — 轮到肌耐力,照$date安排',
+      'sustain': '本周各项都已完成 — 轮到持续力,照$date安排',
+      'cardio': '本周各项都已完成 — 轮到心肺,照$date安排',
+      'other': '照$date安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWeekCounts(String range, String list) {
+    return '最近7天($range):$list';
+  }
+
+  @override
+  String routineFactorMissing(String list) {
+    return '最近28天没有单独练过的:$list';
+  }
+
+  @override
+  String get routineFillHint => '要练完成次数,请写上目标(例:深蹲完成100次)';
+
+  @override
+  String get routineTabataChip => '改成Tabata';
+
+  @override
+  String routineLikeLastWeek(String day) {
+    return '像上周$day一样';
+  }
+
+  @override
+  String routineFactorChip(String f, int n) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '按力量安排 · 本周$n次',
+      'endurance': '按肌耐力安排 · 本周$n次',
+      'sustain': '按持续力安排 · 本周$n次',
+      'cardio': '按心肺安排 · 本周$n次',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return '保持不变(一组、完成次数或Tabata):$list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '换一个:照$weeks周前的$day($date)安排',
+      'other': '上周$day只有排除的动作,照$weeks周前的$day($date)安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '换一个:照相近的$near安排',
+      'other': '$day的记录只有排除的动作,照相近的$near安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return '不足的项目最近28天没有可用的日子,照$date的$factor日安排';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return '照$date的$factor日安排,但$factor的动作被去掉了';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return '去掉排除的动作后最近28天没有剩下的日子:$list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return '比$date少一组';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return '包含今天已经练过的动作:$list';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3283,15 +6495,12 @@ class LZhHant extends LZh {
   String get previous7Days => '過去 7 天';
 
   @override
-  String get previous30Days => '過去 30 天';
-
-  @override
   String monthLabel(int m) {
     return '$m月';
   }
 
   @override
-  String get search => '搜尋';
+  String get search => '搜尋或提問';
 
   @override
   String get newNote => '新增記錄';
@@ -3383,6 +6592,11 @@ class LZhHant extends LZh {
   String get setRequired => '請先輸入一組，例如：60 12';
 
   @override
+  String setsPerLineMax(int n) {
+    return '每行最多 $n 組，請分成幾行輸入。';
+  }
+
+  @override
   String get aiTitle => '一句話設定';
 
   @override
@@ -3450,6 +6664,60 @@ class LZhHant extends LZh {
   String get aiUseName => '用作動作名稱';
 
   @override
+  String get aiFallbackQuota => '今天的輸入輔助已用完，已按原文新增';
+
+  @override
+  String get aiFallbackOffline => '無法連線，已按原文新增。可在卡片的⚙中新增設定';
+
+  @override
+  String get aiFallbackServer => '伺服器沒有回應，已按原文新增。可在卡片的⚙中新增設定';
+
+  @override
+  String get aiFallbackUnread => '沒有找到可設定的內容，已按原文新增。可在卡片的⚙中新增設定';
+
+  @override
+  String get inputNameTooLong => '動作名稱最多120個字 — 請分行輸入';
+
+  @override
+  String get inputTooLong => '超過600個字的文字不會讀取 — 請分行輸入';
+
+  @override
+  String get setupAdd => '新增設定';
+
+  @override
+  String setupUnparsed(String words) {
+    return '未轉入設定的內容：$words — 保留在標題中';
+  }
+
+  @override
+  String setupDropped(String numbers) {
+    return '已去掉原文中沒有的數字：$numbers';
+  }
+
+  @override
+  String get setupNameMissing => '請輸入動作名稱';
+
+  @override
+  String get setupNameTooLong => '最多120個字';
+
+  @override
+  String get setupWeightInvalid => '請輸入大於0且不超過2000的數字';
+
+  @override
+  String get setupCountInvalid => '請輸入1以上的整數 — 範圍和時間請留在標題中';
+
+  @override
+  String get setupRepsOnly => '只記次數';
+
+  @override
+  String setupSplit(int count) {
+    return '已拆成 $count 個動作';
+  }
+
+  @override
+  String get setupMergeAll => '合併為一項';
+
+  @override
   String goalProgress(int done, int goal) {
     return '$done/$goal次';
   }
@@ -3466,9 +6734,6 @@ class LZhHant extends LZh {
 
   @override
   String get repsInputHint => '次數';
-
-  @override
-  String get setupTitle => '動作設定';
 
   @override
   String get setupWeight => '預設重量';
@@ -3821,9 +7086,6 @@ class LZhHant extends LZh {
   }
 
   @override
-  String get reviewNumbers => '套用前請確認數字和條件。';
-
-  @override
   String get queryByExercise => '按動作';
 
   @override
@@ -4063,6 +7325,15 @@ class LZhHant extends LZh {
   String get mealPhoto => '餐食照片';
 
   @override
+  String get mealAdd => '記錄飲食';
+
+  @override
+  String get mealWrite => '用文字記錄';
+
+  @override
+  String get mealTypeHint => '直接在動作名稱那一行輸入食物，也會記為飲食';
+
+  @override
   String get mealCamera => '相機';
 
   @override
@@ -4096,7 +7367,29 @@ class LZhHant extends LZh {
   String get fitAll => '今天的訓練';
 
   @override
-  String get sameDayOther => '當天的其他紀錄';
+  String sameDayToday(String time) {
+    return '今天 $time 另外保存的紀錄';
+  }
+
+  @override
+  String sameDayOn(String date, String time) {
+    return '$date $time 另外保存的紀錄';
+  }
+
+  @override
+  String sameDayMore(String first, int n) {
+    return '$first 等$n項';
+  }
+
+  @override
+  String lastWeekDay(String weekday, String date) {
+    return '上週$weekday（$date）的訓練';
+  }
+
+  @override
+  String weeksAgoDay(int n, String weekday, String date) {
+    return '$n週前$weekday（$date）的訓練';
+  }
 
   @override
   String get mealText => '記錄飲食';
@@ -4153,6 +7446,77 @@ class LZhHant extends LZh {
 
   @override
   String get mealPhotoWholeNote => '這是照片中全部食物的估算值，請選擇您吃了其中多少。';
+
+  @override
+  String get mealTextUnknown => '無法辨識這種食物，未能估算熱量。點按這餐補充食物名稱或份量，即可重新估算。';
+
+  @override
+  String get mealTextOffline => '無法連線，未能估算熱量。點按這餐後按 Enter 即可重新估算。';
+
+  @override
+  String get mealTextTooLong => '超過 500 字的飲食紀錄不會估算。點按這餐分開記錄即可估算。';
+
+  @override
+  String queryTooLong(int max) {
+    return '問題最多 $max 個字。請縮短後再問。';
+  }
+
+  @override
+  String get queryPressEnter => '按 Enter 即可詢問您的紀錄。';
+
+  @override
+  String get mealRetry => '重新估算';
+
+  @override
+  String kcalAtLeast(int n) {
+    return '至少 $n 大卡';
+  }
+
+  @override
+  String mealTextPartial(int n) {
+    return '只計入了你寫的 $n 大卡，其餘食物的熱量未知。';
+  }
+
+  @override
+  String mealTextBelowTyped(int n) {
+    return '估算值低於你寫的 $n 大卡，因此未採用。只計入了你寫的 $n 大卡。';
+  }
+
+  @override
+  String queryLimit(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'exercises': '一次最多可問 8 個動作。請分開提問。',
+      'measures': '一次最多統計 4 項。請分開提問。',
+      'ranking': '排名最多顯示 20 個。請問 20 個以內。',
+      'sessions': '「最近 N 次」最多 100 次。想看更久，請按時間段提問，例如今年。',
+      'days': '「最近 N 天」最多 3660 天（約 10 年）。想看更久，請按全部時間提問。',
+      'compare': '一次最多比較 6 項。請分開提問。',
+      'compareGrouped': '同一個問題不能既比較又按動作、日、週、月或星期分組。請擇一提問。',
+      'groupedMeasure': '按日、週、月或星期分組比較多個範圍時只能統計一項，且趨勢、最後一次、第一次、距上次天數不能分組。',
+      'ordering': '排名、合計和平均需要分組，例如按動作或按週。',
+      'datesTotal': '最後一次和第一次的日期不能相加或求平均。',
+      'perMeasure':
+          '按天、週、月的平均只能用於可相加的數，如組數、次數、容量、距離、時間、天數和 kcal。最高或平均重量請按時間段來問。',
+      'shareMeasure': '佔比只能用組數、容量這類可相加的數來算。',
+      'trainedMeasure': '按訓練日或休息日篩選只用於攝取和消耗的 kcal。訓練記錄都來自訓練日。',
+      'sameSeries': '要比較的兩個範圍被讀成了一樣的。請寫明拿什麼和什麼比較。',
+      'other': '紀錄搜尋無法計算這種形式的問題。請分開提問。',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String policyNumberRejected(String text, String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'decimal': '「$text」— 不接受小數。請輸入整數，例如 14',
+      'range': '「$text」— 請輸入一個數字，而不是範圍，例如 14',
+      'negative': '「$text」— 不接受小於 0 的數，例如 14',
+      'unit': '「$text」— 此欄按天數或次數計。請把小時、週或月換算成天數，例如 14',
+      'many': '「$text」— 請只輸入一個數字，例如 14',
+      'other': '無法從「$text」中讀出天數或次數。請輸入數字，例如 14',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get mealSources => '來源';
@@ -4521,7 +7885,10 @@ class LZhHant extends LZh {
   String get togetherLog => '記錄';
 
   @override
-  String get mealLogAs => '記為飲食';
+  String get mealAutoLogged => '已記為一餐';
+
+  @override
+  String get mealAutoUndo => '改為運動';
 
   @override
   String get proxyWrite => '代為記錄';
@@ -4586,6 +7953,40 @@ class LZhHant extends LZh {
   String get mealsTitle => '飲食';
 
   @override
+  String get energyBurned => '運動';
+
+  @override
+  String get energyDifference => '差值';
+
+  @override
+  String get fold => '收起';
+
+  @override
+  String get energySurplus => '盈餘';
+
+  @override
+  String get energyDeficit => '赤字';
+
+  @override
+  String get milestoneBest => '最大重量';
+
+  @override
+  String get energyDiffFormula => '攝取 − 運動';
+
+  @override
+  String get energyDiffExplain =>
+      '記錄的攝取熱量減去當天消耗的熱量（基礎代謝 + 運動）。正數為盈餘，負數為赤字。\n\n基礎代謝優先使用健康 App 的靜息能量，沒有時用身體資訊計算（估算）。不包含走路等日常活動，所以並不等於體重的增減。';
+
+  @override
+  String get estimateTag => '估算';
+
+  @override
+  String get energyNotLogged => '未記錄';
+
+  @override
+  String get energyNotMeasured => '未測量';
+
+  @override
   String get recordMenu => '更多';
 
   @override
@@ -4616,6 +8017,55 @@ class LZhHant extends LZh {
   @override
   String get healthDataCalories =>
       '讀取 · 活動能量 — 訓練期間手錶測得的活動能量會附到該記錄上。沒有測量時不顯示熱量。';
+
+  @override
+  String get healthDataBasal =>
+      '讀取 · 靜息能量（基礎代謝）— 計入當天消耗的熱量，與攝取比較。沒有紀錄時，用 設定 › 身體資訊 計算。';
+
+  @override
+  String get bodyTitle => '身體資訊';
+
+  @override
+  String get bodyNote => '僅用於計算基礎代謝。健康 App 有靜息能量時優先使用。此資訊不會離開裝置。';
+
+  @override
+  String get bodyHeight => '身高 (cm)';
+
+  @override
+  String get bodyWeight => '體重 (kg)';
+
+  @override
+  String get bodyBirthYear => '出生年份';
+
+  @override
+  String get bodySex => '性別';
+
+  @override
+  String get bodyMale => '男';
+
+  @override
+  String get bodyFemale => '女';
+
+  @override
+  String bodyBmr(String kcal) {
+    return '每日基礎代謝約 $kcal kcal（Mifflin-St Jeor 公式）';
+  }
+
+  @override
+  String get energySpent => '消耗';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return '基礎 $basal + 運動 $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => '攝取 − 消耗';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return '攝取 $intake · 消耗 $used = $diff kcal';
+  }
 
   @override
   String get healthDataHeart =>
@@ -4849,4 +8299,1372 @@ class LZhHant extends LZh {
 
   @override
   String get settingsTrainer => '教練';
+
+  @override
+  String get aiSetting => 'AI 協助';
+
+  @override
+  String get aiOff => 'AI 協助已關閉，已按輸入原樣保留。可在 設定 › AI 協助 中開啟';
+
+  @override
+  String get aiOffPhoto => 'AI 協助已關閉，未根據照片估算。用文字寫下餐點，例如「飯糰 180kcal」，就會照原樣記錄';
+
+  @override
+  String get answerNeedsTwoDays => '至少需要兩天的紀錄';
+
+  @override
+  String get answerNoBase => '沒有基準值';
+
+  @override
+  String answerPerWeek(String value) {
+    return '每週 $value';
+  }
+
+  @override
+  String answerPerMonth(String value) {
+    return '每月 $value';
+  }
+
+  @override
+  String answerTimesAfter(int n) {
+    return '最佳之後練了 $n 次';
+  }
+
+  @override
+  String get answerTimesUnit => '次';
+
+  @override
+  String answerTimes(int n) {
+    return '$n 次';
+  }
+
+  @override
+  String answerStreak(int n) {
+    return '連續 $n 天';
+  }
+
+  @override
+  String answerRestDays(int n) {
+    return '休息 $n 天';
+  }
+
+  @override
+  String get answerUntilToday => '今天';
+
+  @override
+  String answerEveryDays(String value) {
+    return '通常每 $value 天一次';
+  }
+
+  @override
+  String answerMeanEvery(String value) {
+    return '平均每 $value 天一次';
+  }
+
+  @override
+  String answerGapSpread(int a, int b, int c, int d) {
+    return '連續 $a 次 · 休 1 天 $b 次 · 休 2 天 $c 次 · 休 3 天以上 $d 次';
+  }
+
+  @override
+  String answerLongestIncluded(int n) {
+    return '其中最長休息 $n 天';
+  }
+
+  @override
+  String get answerNoMeals => '沒有記錄餐食的日子';
+
+  @override
+  String answerAbout(String value) {
+    return '約 $value';
+  }
+
+  @override
+  String answerMealDays(int n) {
+    return '記錄餐食的 $n 天';
+  }
+
+  @override
+  String queryUnknownMeals(int n) {
+    return '熱量未知的 $n 餐未計入合計';
+  }
+
+  @override
+  String get answerNoWatch => '沒有手錶測量的紀錄';
+
+  @override
+  String answerWatchDays(int n) {
+    return '手錶測量的 $n 天';
+  }
+
+  @override
+  String get answerNoBoth => '沒有同時有攝取和消耗的日子';
+
+  @override
+  String answerBothDays(int n) {
+    return '同時有攝取和消耗的 $n 天';
+  }
+
+  @override
+  String answerIntakeOnlyDays(int n) {
+    return '已去掉只有攝取的 $n 天';
+  }
+
+  @override
+  String answerMonths(int n) {
+    return '$n 個月';
+  }
+
+  @override
+  String get metricChangePct => '變化率';
+
+  @override
+  String get metricDaysSinceBest => '距最佳天數';
+
+  @override
+  String get metricSessionsSinceBest => '最佳後次數';
+
+  @override
+  String get metricMeanReps => '每組次數';
+
+  @override
+  String get metricLongestStreak => '最長連續';
+
+  @override
+  String get metricLongestGap => '最長間隔';
+
+  @override
+  String get metricMeanGap => '訓練間隔';
+
+  @override
+  String get metricIntake => '攝取熱量';
+
+  @override
+  String get metricBurned => '消耗熱量';
+
+  @override
+  String get metricBalance => '攝取 − 消耗';
+
+  @override
+  String get queryAlone => '獨自訓練的日子';
+
+  @override
+  String get queryTogether => '和夥伴一起的日子';
+
+  @override
+  String get queryByPart => '按部位';
+
+  @override
+  String get queryCanSee => '紀錄可以查看重量、次數、組數、訓練天數和餐食熱量';
+
+  @override
+  String get queryDiffColumn => '差值';
+
+  @override
+  String get queryFutureCell => '尚未到來的時間';
+
+  @override
+  String get queryGrowthRate => '成長按每週速度排名，時間跨度不同也公平';
+
+  @override
+  String get queryHandoff => '只看收到的紀錄';
+
+  @override
+  String get queryNoHandoff => '不含收到的紀錄';
+
+  @override
+  String queryHandoffCount(int n) {
+    return '不含收到的 $n 筆紀錄';
+  }
+
+  @override
+  String get queryHoursNote => '時間以建立紀錄時為準，事後補記的按補記時間計算';
+
+  @override
+  String get queryMixedWeights => '這是多個動作混合的重量';
+
+  @override
+  String get queryNcBodyweight => '紀錄裡沒有體重。在問題裡寫上體重就會拿來比較（例：體重80，硬舉是幾倍？）';
+
+  @override
+  String get queryNcWeightForecast =>
+      '不計算以後會是多少公斤——紀錄裡只有吃了什麼和運動消耗，沒有基礎代謝和日常活動消耗的熱量';
+
+  @override
+  String get queryNcHeartRate => '紀錄搜尋暫時不看心率；按動作或休息的心率因為組沒有時間而無法查看';
+
+  @override
+  String get queryNeverMark => '從未記錄';
+
+  @override
+  String get queryNoBaseRatio => '沒有基準值，無法算比例';
+
+  @override
+  String get queryNoneCell => '此範圍內沒有紀錄';
+
+  @override
+  String get queryNoRoutine => '非課表的日子';
+
+  @override
+  String get queryRoutine => '按教練課表的日子';
+
+  @override
+  String get queryOngoing => '進行中';
+
+  @override
+  String get queryOverlap => '訓練天數有重疊，無法算占比；請按組數提問';
+
+  @override
+  String queryPart(String part) {
+    String _temp0 = intl.Intl.selectLogic(part, {
+      'chest': '胸',
+      'back': '背',
+      'legs': '腿',
+      'shoulders': '肩',
+      'arms': '手臂',
+      'core': '核心',
+      'cardio': '有氧',
+      'upper': '上半身',
+      'lower': '下半身',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get queryRatioColumn => '倍數';
+
+  @override
+  String get queryRatioUnits => '單位不同，無法算比例';
+
+  @override
+  String get queryRestDay => '休息日';
+
+  @override
+  String get queryTrained => '訓練日';
+
+  @override
+  String get querySetFirst => '第一組';
+
+  @override
+  String get querySetLast => '最後一組';
+
+  @override
+  String get queryShare => '占比';
+
+  @override
+  String get queryZeroFilled => '沒做的動作也按 0 計入';
+
+  @override
+  String queryAgainst(String value) {
+    return '對比 $value';
+  }
+
+  @override
+  String queryAgainstLine(
+    String value,
+    String target,
+    String ratio,
+    String diff,
+  ) {
+    return '$value ÷ $target = $ratio 倍 · 差 $diff';
+  }
+
+  @override
+  String queryAlias(String name, String names) {
+    return '$name = $names';
+  }
+
+  @override
+  String queryDayCount(int n) {
+    return '$n 天';
+  }
+
+  @override
+  String queryDroppedSets(int n) {
+    return '已排除 $n 組其他類型的值';
+  }
+
+  @override
+  String queryHours(int from, int to) {
+    return '$from–$to點';
+  }
+
+  @override
+  String queryMaybe(String name) {
+    return '是不是 $name？';
+  }
+
+  @override
+  String queryMemoAll(String terms) {
+    return '備註全部包含：$terms';
+  }
+
+  @override
+  String queryMemoHit(String text, int n) {
+    return '$text $n 天';
+  }
+
+  @override
+  String queryMemoHits(String hits) {
+    return '符合的備註：$hits';
+  }
+
+  @override
+  String queryNeverPartial(String names) {
+    return '$names：沒有紀錄，已排除後統計';
+  }
+
+  @override
+  String queryNeverRows(String names) {
+    return '$names：沒有紀錄';
+  }
+
+  @override
+  String queryNoMemo(String terms) {
+    return '備註不含：$terms';
+  }
+
+  @override
+  String queryNoRepsSets(int n) {
+    return '已排除 $n 組未記次數的';
+  }
+
+  @override
+  String queryNotComputable(String things) {
+    return '紀錄中沒有、無法查看：$things';
+  }
+
+  @override
+  String queryNotComputableTail(String things) {
+    return '無法查看：$things';
+  }
+
+  @override
+  String queryNothingComputable(String things) {
+    return '紀錄無法回答：$things';
+  }
+
+  @override
+  String queryNoWeightSets(int n, int reps) {
+    return '已排除 $n 組無重量（最多 $reps 次）';
+  }
+
+  @override
+  String queryNth(int n) {
+    return '倒數第 $n 個訓練日';
+  }
+
+  @override
+  String queryOtherDistance(int n, String value) {
+    return '記錄距離的 $n 次：$value';
+  }
+
+  @override
+  String queryOtherDuration(int n, String value) {
+    return '記錄時間的 $n 次：$value';
+  }
+
+  @override
+  String queryPartial(String names) {
+    return '不含 $names';
+  }
+
+  @override
+  String queryPartialChunk(int n) {
+    return '（$n 天）';
+  }
+
+  @override
+  String queryPartMembers(String part, String names) {
+    return '$part：$names';
+  }
+
+  @override
+  String queryPer(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '每天',
+      'week': '每週',
+      'month': '每月',
+      'other': '平均',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPerSuffix(String per) {
+    String _temp0 = intl.Intl.selectLogic(per, {
+      'day': '/天',
+      'week': '/週',
+      'month': '/月',
+      'other': '/',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRatioHead(String a, String b) {
+    return '$a ÷ $b';
+  }
+
+  @override
+  String queryRatioLine(String a, String b, String value, String percent) {
+    return '$a ÷ $b = $value 倍（$percent%）';
+  }
+
+  @override
+  String queryRelative(String by, int n) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'day': '第 $n 天',
+      'week': '第 $n 週',
+      'month': '第 $n 個月',
+      'other': '第 $n 個',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryRolled(String year) {
+    return '尚未到來，按 $year 年理解';
+  }
+
+  @override
+  String querySamePeriod(int days, String earlier, String later) {
+    return '按相同 $days 天比較：$earlier → $later';
+  }
+
+  @override
+  String queryShortGrowth(String names) {
+    return '紀錄太短（不足 3 天或 3 週），未參與排名：$names';
+  }
+
+  @override
+  String queryTimer(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata',
+      'bpm': 'BPM 計時',
+      'other': '無計時',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryUnknownPart(String names) {
+    return '已排除部位未知的動作：$names';
+  }
+
+  @override
+  String queryUnranked(int n, String names) {
+    return '因缺值未能排名的 $n 個：$names';
+  }
+
+  @override
+  String queryWindowLengths(String lengths) {
+    return '時間段天數不同（$lengths 天），差值和比例按每週計算';
+  }
+
+  @override
+  String queryZeroBuckets(String by, int total, int zeros) {
+    String _temp0 = intl.Intl.selectLogic(by, {
+      'week': '$total 週中有 $zeros 週為 0',
+      'month': '$total 個月中有 $zeros 個月為 0',
+      'other': '$total 個中有 $zeros 個為 0',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String queryPossibleDays(int m, String percent) {
+    return '可訓練 $m 天中的 $percent%';
+  }
+
+  @override
+  String get queryOfflineLocal => '無法連線到伺服器，僅依文字中的動作和時間在裝置上計算。連線後按 Enter 再問一次。';
+
+  @override
+  String get queryMisread => '無法把這個問題讀成可以統計的形式。請換個說法再問。';
+
+  @override
+  String get queryMisreadLocal =>
+      '無法把問題讀成可統計的形式，僅依文字中的動作和時間在裝置上計算。換個說法再問即可重新讀取。';
+
+  @override
+  String get queryUnreadable => '模型兩次回傳了無法讀取的回答。不是網路問題，這個回答沒有消耗槓片。';
+
+  @override
+  String get queryAskAgain => '再問一次';
+
+  @override
+  String get queryUnreadablePaid =>
+      '模型兩次回傳了無法讀取的回答。不是網路問題。這個回答沒有消耗槓片，下方的槓片用於替問題分類的第一步。';
+
+  @override
+  String get queryUnreadableLocal => '同時已依文字中的動作和時間在裝置上計算。';
+
+  @override
+  String get queryTotalUnits => '單位不同，無法合計';
+
+  @override
+  String queryMemoDropped(String words) {
+    return '已去掉備註條件：$words';
+  }
+
+  @override
+  String queryAgainstDropped(String value) {
+    return '已去掉基準數 $value——它不是問題裡寫的重量';
+  }
+
+  @override
+  String routineDate(DateTime d) {
+    final intl.DateFormat dDateFormat = intl.DateFormat.Md(localeName);
+    final String dString = dDateFormat.format(d);
+
+    return '$dString';
+  }
+
+  @override
+  String get routineHeaderToday => '今天的訓練';
+
+  @override
+  String routineHeaderDay(String day) {
+    return '$day的訓練';
+  }
+
+  @override
+  String routineTomorrow(String date) {
+    return '明天($date)';
+  }
+
+  @override
+  String routineWhyRotation(String date, int days) {
+    return '$date的訓練已經$days天沒做了 — 照那天安排';
+  }
+
+  @override
+  String routineWhyFrom(String date) {
+    return '和$date一樣';
+  }
+
+  @override
+  String routineWhyNamed(String date) {
+    return '用$date一起練的動作補齊';
+  }
+
+  @override
+  String routinePartRest(String list) {
+    return '最近28天: $list前';
+  }
+
+  @override
+  String routinePartDays(String part, int days) {
+    return '$part$days天';
+  }
+
+  @override
+  String routineEstimate(int minutes) {
+    return '約$minutes分鐘';
+  }
+
+  @override
+  String routinePaceOwn(int sessions, String pace) {
+    return '按最近$sessions次訓練每組$pace估算';
+  }
+
+  @override
+  String routinePaceDefault(String pace) {
+    return '按預設每組$pace估算 — 多記幾次就會用你的節奏';
+  }
+
+  @override
+  String routineMinSec(int m, int s) {
+    return '$m分$s秒';
+  }
+
+  @override
+  String routineReadAs(String list) {
+    return '讀作: $list';
+  }
+
+  @override
+  String routineCopied(String date) {
+    return '同$date';
+  }
+
+  @override
+  String routineRepsMatched(String date, int reps) {
+    return '$date做$reps下的重量';
+  }
+
+  @override
+  String get routineTyped => '照輸入';
+
+  @override
+  String get routineFirst => '第一次';
+
+  @override
+  String routineBlank(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'light': '重量留空(輕鬆日)',
+      'pain': '重量留空(提到疼痛)',
+      'gear': '重量留空(器材不同)',
+      'bodyweight': '器材重量留空',
+      'stale': '重量留空(隔了很久)',
+      'repsUnmatched': '重量留空(沒有那樣組數和次數的日子)',
+      'other': '重量留空',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineReference(String sets, String date) {
+    return '參考: $sets($date)';
+  }
+
+  @override
+  String routineBest(String set, String date) {
+    return '參考: 最佳 $set($date)';
+  }
+
+  @override
+  String routineStepped(String step, String evidence) {
+    return '+$step($evidence)';
+  }
+
+  @override
+  String routineMemo(String date, String memo) {
+    return '$date備註: $memo';
+  }
+
+  @override
+  String routineRecent(String part, String when) {
+    return '$part · $when';
+  }
+
+  @override
+  String routineDaysAgo(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n天前',
+      one: '昨天',
+      zero: '今天',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get routineFuture => '這是預覽 — 那天輸入「訓練」就能作為當天的紀錄開始';
+
+  @override
+  String routineRefused(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'diet': '不安排飲食 — 記錄飲食可以看熱量',
+      'medical': '不判斷復健或術後訓練 — 記下醫生或治療師給的動作,就照原樣排成訓練',
+      'drug': '不提供藥物方面的協助',
+      'program': '一次只排一天 — 這是今天的訓練',
+      'logging': '不會把沒做的組記為完成 — 做的時候點一下',
+      'format': '沒有EMOM、超級組或循環計時 — 只排順序(Tabata和bpm可以)',
+      'person': '不替別人排訓練 — 只顯示你紀錄裡的動作名稱',
+      'other': '只協助訓練紀錄和訓練安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineNotStated(String what) {
+    return '輸入裡沒有這個數,已拿掉: $what';
+  }
+
+  @override
+  String routineUnmet(String what) {
+    return '沒能滿足的條件: $what';
+  }
+
+  @override
+  String routineKeyName(String key) {
+    String _temp0 = intl.Intl.selectLogic(key, {
+      'when': '日期',
+      'from': '之前的日子',
+      'parts': '部位',
+      'pattern': '推/拉',
+      'exercises': '動作',
+      'exclude': '拿掉的動作',
+      'avoid': '避開的部位',
+      'pain': '疼痛',
+      'equipment': '器材',
+      'count': '動作數',
+      'minutes': '時間',
+      'intensity': '強度',
+      'timer': '計時',
+      'targets': '輸入的數字',
+      'delta': '重量增減',
+      'other': '條件',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineUnknownName(String name) {
+    return '詞典裡沒有,已拿掉: $name';
+  }
+
+  @override
+  String get routineNoSuchDay => '沒有那天 — 照紀錄排了';
+
+  @override
+  String routineExcludeAbsent(String name) {
+    return '本來就沒有要拿掉的動作: $name';
+  }
+
+  @override
+  String routineNoneMatched(String what) {
+    return '沒有紀錄過$what動作 — 可以選來加入';
+  }
+
+  @override
+  String routineFewer(int n) {
+    return '紀錄裡只有$n個動作';
+  }
+
+  @override
+  String routineOtherUnit(String unit) {
+    return '用$unit記錄的組保持不變';
+  }
+
+  @override
+  String get routineBpmRange => 'bpm 須在10–120 — 不帶計時加入';
+
+  @override
+  String routineIntensityLine(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'light': '輕一點:每個動作少做最後一組 — 重量和上次一樣',
+      'lightBlank': '輕一點:每個動作少做最後一組',
+      'hard': '重量和上次一樣',
+      'max': '不決定挑戰多少公斤 — 旁邊寫了最佳紀錄',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineNoStep => '請輸入要加多少(例如 +2.5kg)';
+
+  @override
+  String routinePain(String phrase, String list) {
+    return '因為「$phrase」拿掉了: $list · 重量留空 · 不判斷是否安全';
+  }
+
+  @override
+  String routinePainNone(String phrase) {
+    return '「$phrase」 — 沒拿掉動作,重量留空 · 不判斷是否安全';
+  }
+
+  @override
+  String get routinePainWord => '疼痛';
+
+  @override
+  String get routineFirstTime => '第一次 — 選動作加入(沒有數字)';
+
+  @override
+  String routineCountFit(int count, int minutes) {
+    return '調整為$count個動作 — 約$minutes分鐘';
+  }
+
+  @override
+  String routineNoMore(int minutes) {
+    return '紀錄裡沒有更多動作可加 — 約$minutes分鐘';
+  }
+
+  @override
+  String routineOverTime(int minutes) {
+    return '只你說的動作就約$minutes分鐘';
+  }
+
+  @override
+  String routineOverUsual(int n, int usual) {
+    return '你選的 $n 個動作都保留了——比平常一次做的 $usual 個多';
+  }
+
+  @override
+  String routineRecentMemo(String when, String name, String memo) {
+    return '$when$name備註: $memo';
+  }
+
+  @override
+  String routineRemoved(String label, String why) {
+    return '已拿掉: $label — $why';
+  }
+
+  @override
+  String routineRemovedWhy(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'named': '你說的動作',
+      'avoid': '避開的部位',
+      'unknownPart': '部位不明',
+      'gear': '器材不同',
+      'unknownGear': '器材不明',
+      'otherPart': '其他部位',
+      'user': '手動拿掉',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get routineRestore => '加回';
+
+  @override
+  String routineAdd(String name) {
+    return '+ $name';
+  }
+
+  @override
+  String get routineOther => '換一個';
+
+  @override
+  String get routineWhyShow => '查看依據';
+
+  @override
+  String get routineWhyHide => '收起依據';
+
+  @override
+  String routinePrevious(String date) {
+    return '更早($date)';
+  }
+
+  @override
+  String routineByPart(String part) {
+    return '照$part安排';
+  }
+
+  @override
+  String routineStepChip(String step) {
+    return '+$step(你自己的加重幅度)';
+  }
+
+  @override
+  String routineAskToo(String text) {
+    return '也問問: $text · 片';
+  }
+
+  @override
+  String get routineAsQuestion => '當作紀錄問題來問 · 片';
+
+  @override
+  String get routineNoConditions => '不帶條件直接排';
+
+  @override
+  String get routineWithConditions => '連條件一起讀 · 片';
+
+  @override
+  String get routineMake => '安排今天的訓練';
+
+  @override
+  String routineMakePart(String part) {
+    return '安排今天的$part訓練';
+  }
+
+  @override
+  String get routineStart => '開始';
+
+  @override
+  String get routineStarted => '已開始 · 打開';
+
+  @override
+  String get routineWorking => '正在讀條件…';
+
+  @override
+  String get routineOffline => '沒有連線,沒能讀條件 — 只照紀錄排了';
+
+  @override
+  String get routineMisread => '沒能讀懂條件 — 只照紀錄排了。換個說法會重新讀';
+
+  @override
+  String routineHeldBack(String why) {
+    String _temp0 = intl.Intl.selectLogic(why, {
+      'offline': '沒有連線,',
+      'noPlates': '槓鈴片不夠,',
+      'other': '沒能讀懂回答,',
+    });
+    return '$_temp0沒能讀條件(拿掉的動作、疼痛),所以沒有排訓練';
+  }
+
+  @override
+  String routineTypedWeight(int count, String from, String to) {
+    return '照輸入的重量:正式組 $count 組 $from → $to';
+  }
+
+  @override
+  String get routineTypedKept => '輸入的重量保留不變';
+
+  @override
+  String get routinePlatesBefore => '這段文字之前用過片 · 這次 0 片';
+
+  @override
+  String get routineRetry => '重試';
+
+  @override
+  String get routinePressEnter => '按 Enter 連條件一起讀 · 片';
+
+  @override
+  String get routineFromQuestion => '讀作訓練安排請求';
+
+  @override
+  String routinePattern(String p) {
+    String _temp0 = intl.Intl.selectLogic(p, {
+      'push': '推',
+      'pull': '拉',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGear(String g) {
+    String _temp0 = intl.Intl.selectLogic(g, {
+      'barbell': '槓鈴',
+      'dumbbell': '啞鈴',
+      'machine': '器械',
+      'cable': '滑輪',
+      'bodyweight': '徒手',
+      'bar': '單槓',
+      'kettlebell': '壺鈴',
+      'band': '彈力帶',
+      'bench': '臥推椅',
+      'other': '器材',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineGearOnly(String list) {
+    return '只用$list';
+  }
+
+  @override
+  String routineGearWithout(String list) {
+    return '不用$list';
+  }
+
+  @override
+  String routineMinutes(int n) {
+    return '$n分鐘';
+  }
+
+  @override
+  String routineCount(int n) {
+    return '$n個動作';
+  }
+
+  @override
+  String routineIntensity(String k) {
+    String _temp0 = intl.Intl.selectLogic(k, {
+      'light': '輕鬆',
+      'hard': '大重量',
+      'max': '挑戰PR',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineExclude(String list) {
+    return '拿掉: $list';
+  }
+
+  @override
+  String routineAvoid(String list) {
+    return '避開: $list';
+  }
+
+  @override
+  String get routinePlatesZero => '0 片';
+
+  @override
+  String get routineFullBody => '全身';
+
+  @override
+  String get routineNoPlates => '槓片不夠,沒能讀條件 — 只照紀錄排了';
+
+  @override
+  String get routineBack => '回到訓練';
+
+  @override
+  String queryBoundDropped(String value) {
+    return '已去掉條件 $value — 問題裡沒有用這個單位寫這個數';
+  }
+
+  @override
+  String get anatomyTitle => '身體圖';
+
+  @override
+  String get anatomyOpen => '身體圖 — 依部位看動作與動作要點';
+
+  @override
+  String get anatomyPick => '在身體圖上選動作';
+
+  @override
+  String get anatomyFront => '正面';
+
+  @override
+  String get anatomyBack => '背面';
+
+  @override
+  String anatomyDays(int n) {
+    return '$n天';
+  }
+
+  @override
+  String muscleName(String m) {
+    String _temp0 = intl.Intl.selectLogic(m, {
+      'chest': '胸',
+      'frontDelts': '前三角肌',
+      'sideDelts': '中三角肌',
+      'rearDelts': '後三角肌',
+      'traps': '上斜方肌',
+      'upperBack': '中背部',
+      'lats': '背闊肌',
+      'lowerBack': '下背部',
+      'biceps': '肱二頭肌',
+      'triceps': '肱三頭肌',
+      'forearms': '前臂',
+      'abs': '腹肌',
+      'obliques': '腹斜肌',
+      'hipFlexors': '髖屈肌',
+      'glutes': '臀部',
+      'quads': '股四頭肌',
+      'hamstrings': '膕繩肌',
+      'adductors': '大腿內側',
+      'calves': '小腿',
+      'infraspinatus': '岡下肌',
+      'teresMinor': '小圓肌',
+      'teresMajor': '大圓肌',
+      'tricepsLong': '肱三頭肌長頭',
+      'tricepsLateral': '肱三頭肌外側頭',
+      'tricepsMedial': '肱三頭肌內側頭',
+      'other': '部位',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String anatomyLevel(String level) {
+    String _temp0 = intl.Intl.selectLogic(level, {
+      'low': '少',
+      'mid': '中',
+      'high': '多',
+      'other': '無',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyLegend => '這段時間組數越多的部位顏色越深';
+
+  @override
+  String get anatomyFirstTime => '還沒有完成的組，所以沒有顏色。點一個部位，可以看使用它的動作與動作要點。';
+
+  @override
+  String anatomyEmptyWindow(int n) {
+    return '最近$n天沒有完成的組';
+  }
+
+  @override
+  String anatomyUnknown(int n) {
+    return '有 $n 個不知道肌肉的動作沒有計入。點名稱可在搜尋中查看紀錄。';
+  }
+
+  @override
+  String anatomyUnknownMore(int n) {
+    return '另外 $n 個';
+  }
+
+  @override
+  String anatomyCardio(int n) {
+    return '有氧$n組沒有計入身體圖';
+  }
+
+  @override
+  String get anatomyCountNote =>
+      '肌肉依 ExRx.net、ACE 的分類估算。帶 * 的動作，肌肉歸屬是推斷的。主要肌肉每組算一組，輔助肌肉算半組，熱身組也算一組。';
+
+  @override
+  String get anatomyLimits => '不做影片或動作分析。如有疼痛請停下並諮詢專業人士。';
+
+  @override
+  String get anatomyTapHint => '請點肌肉 — 也可以在下面的列表裡選';
+
+  @override
+  String get anatomyNoSurface => '深層肌肉，圖上沒有';
+
+  @override
+  String anatomySets(int days, String sets) {
+    return '$days天 $sets組';
+  }
+
+  @override
+  String anatomySetsLine(String week, String month) {
+    return '最近7天 $week組 · 28天 $month組';
+  }
+
+  @override
+  String anatomyBreakdown(int primary, int secondary) {
+    return '28天中主要使用 $primary組 · 輔助 $secondary組（按半組算）';
+  }
+
+  @override
+  String anatomyLast(String date, String ago) {
+    return '最近一次：$date（$ago）';
+  }
+
+  @override
+  String get anatomyNever => '表中的動作裡，這個部位還沒有紀錄';
+
+  @override
+  String get anatomyDone => '我做過的動作';
+
+  @override
+  String get anatomyTry => '主要使用這個部位的動作';
+
+  @override
+  String get anatomyTrySecondary => '輔助使用此部位的動作';
+
+  @override
+  String anatomyTryGear(String list) {
+    return '用過的器材（$list）能做的';
+  }
+
+  @override
+  String get anatomyAllGear => '沒有器材紀錄，全部顯示';
+
+  @override
+  String anatomyMoreGear(int n) {
+    return '再看$n個其他器材的動作';
+  }
+
+  @override
+  String get anatomyTriedAll => '主要使用這個部位的動作都做過了';
+
+  @override
+  String anatomyRole(String role) {
+    String _temp0 = intl.Intl.selectLogic(role, {
+      'primary': '主要',
+      'other': '輔助',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get anatomyInterpNote => '* 此動作的肌肉歸屬是根據來源推斷的';
+
+  @override
+  String get anatomyCues => '動作要點';
+
+  @override
+  String get anatomyMistakes => '要避免';
+
+  @override
+  String anatomySources(String sites) {
+    return '來源：$sites';
+  }
+
+  @override
+  String get anatomyUnsourced => '‡ 無來源的補充';
+
+  @override
+  String get anatomyAdapted => '† 根據來源文字轉述的推斷（含相似動作的來源）';
+
+  @override
+  String get anatomyCuesEnglish => '動作要點目前只有英文';
+
+  @override
+  String get anatomyAddRoutine => '加入今天的訓練';
+
+  @override
+  String anatomyRoutineText(String part) {
+    return '今天的$part訓練';
+  }
+
+  @override
+  String get anatomySearch => '在搜尋中查看';
+
+  @override
+  String anatomyRegionValue(int days, String sets, String level) {
+    return '最近$days天 $sets組，$level';
+  }
+
+  @override
+  String get anatomyRegionHint => '點兩下查看動作';
+
+  @override
+  String get anatomyClose => '關閉';
+
+  @override
+  String get anatomyZoomReset => '恢復原大小';
+
+  @override
+  String anatomyTileSets(String n) {
+    return '$n組';
+  }
+
+  @override
+  String get anatomyLastLabel => '最近一次';
+
+  @override
+  String get openSourceLicenses => '開源授權';
+
+  @override
+  String routineFactor(String f) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '力量',
+      'endurance': '肌耐力',
+      'sustain': '持續力',
+      'power': '爆發力',
+      'cardio': '心肺',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineFactorDay(String factor, String why) {
+    return '$factor日 · $why';
+  }
+
+  @override
+  String routineFactorWhy(String kind, String a, String b) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'tabata': 'Tabata $a',
+      'fill': '完成 $a 下',
+      'fillTitle': '標題「$a」',
+      'distance': '$a',
+      'open': '每組 $a 下,組數不限',
+      'single': '一組 $a 下',
+      'drop': '每組力竭 $a',
+      'hold': '$a 下 × $b 組',
+      'other': '$a×$b',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyWeekday(int weeks, String day, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      weeks,
+      locale: localeName,
+      other: '上週$day沒有紀錄,照$weeks週前的$day($date)安排',
+      one: '和上週$day($date)一樣',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNear(String day, String near) {
+    return '沒有$day的紀錄,照相近的$near安排';
+  }
+
+  @override
+  String routineWhyFactor(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '本週力量不足,照$date安排',
+      'endurance': '本週肌耐力不足,照$date安排',
+      'sustain': '本週持續力不足,照$date安排',
+      'cardio': '本週心肺不足,照$date安排',
+      'other': '照$date安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorAll(String f, String date) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '本週各項都已完成 — 輪到力量,照$date安排',
+      'endurance': '本週各項都已完成 — 輪到肌耐力,照$date安排',
+      'sustain': '本週各項都已完成 — 輪到持續力,照$date安排',
+      'cardio': '本週各項都已完成 — 輪到心肺,照$date安排',
+      'other': '照$date安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWeekCounts(String range, String list) {
+    return '最近7天($range):$list';
+  }
+
+  @override
+  String routineFactorMissing(String list) {
+    return '最近28天沒有單獨練過的:$list';
+  }
+
+  @override
+  String get routineFillHint => '要練完成次數,請寫上目標(例:深蹲完成100下)';
+
+  @override
+  String get routineTabataChip => '改成Tabata';
+
+  @override
+  String routineLikeLastWeek(String day) {
+    return '像上週$day一樣';
+  }
+
+  @override
+  String routineFactorChip(String f, int n) {
+    String _temp0 = intl.Intl.selectLogic(f, {
+      'strength': '按力量安排 · 本週$n次',
+      'endurance': '按肌耐力安排 · 本週$n次',
+      'sustain': '按持續力安排 · 本週$n次',
+      'cardio': '按心肺安排 · 本週$n次',
+      'other': '',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineLightKept(String list) {
+    return '維持不變(一組、完成次數或Tabata):$list';
+  }
+
+  @override
+  String routineWhyWeekdaySkip(String how, int weeks, String day, String date) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '換一個:照$weeks週前的$day($date)安排',
+      'other': '上週$day只有排除的動作,照$weeks週前的$day($date)安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyNearSkip(String how, String day, String near) {
+    String _temp0 = intl.Intl.selectLogic(how, {
+      'alt': '換一個:照相近的$near安排',
+      'other': '$day的紀錄只有排除的動作,照相近的$near安排',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String routineWhyFactorNoDay(String factor, String date) {
+    return '不足的項目最近28天沒有可用的日子,照$date的$factor日安排';
+  }
+
+  @override
+  String routineFactorLost(String factor, String date) {
+    return '照$date的$factor日安排,但$factor的動作被去掉了';
+  }
+
+  @override
+  String routineFactorFiltered(String list) {
+    return '去掉排除的動作後最近28天沒有剩下的日子:$list';
+  }
+
+  @override
+  String routineLightDropped(String date) {
+    return '比$date少一組';
+  }
+
+  @override
+  String routineDoneToday(String list) {
+    return '包含今天已經練過的動作:$list';
+  }
 }
