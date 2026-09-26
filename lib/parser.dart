@@ -18,11 +18,13 @@ List<String> suggest(
   List<String> pool, {
   int limit = 6,
   List<String> preferred = const [],
+  bool brandNames = false,
 }) {
   final q = query.trim().toLowerCase();
   if (q.isEmpty) return const [];
 
   final scored = <({String name, int rank})>[];
+  final shown = <String, String>{};
   for (final name in pool.toSet()) {
     // 한글 이름과 영어 검색 키 중 더 좋은 쪽을 그 운동의 점수로 삼는다.
     int? rank;
@@ -36,7 +38,24 @@ List<String> suggest(
       final r = _rank(key, q);
       if (r != null && (rank == null || r < rank)) rank = r;
     }
-    if (rank != null) scored.add((name: name, rank: rank));
+    if (rank == null) continue;
+    scored.add((name: name, rank: rank));
+    // '해머스트랭스' 로 찾힌 칩이 '숄더프레스' 로만 보이면 무엇이 찾혔는지 모른다 —
+    // 이름은 안 맞고 제품명(more)으로만 맞았으면 그 제품명을 보여 준다.
+    if (brandNames &&
+        _rank(name.toLowerCase(), q) == null &&
+        _rank(chosungOf(name.toLowerCase()), q) == null) {
+      String? best;
+      int? bestRank;
+      for (final m in exerciseByName[name.toLowerCase()]?.more ?? const []) {
+        final r = _rank(m.toLowerCase(), q);
+        if (r != null && (bestRank == null || r < bestRank)) {
+          best = m;
+          bestRank = r;
+        }
+      }
+      if (best != null) shown[name] = best;
+    }
   }
 
   scored.sort((a, b) {
@@ -48,7 +67,7 @@ List<String> suggest(
     );
     return recent != 0 ? recent : a.name.length.compareTo(b.name.length);
   });
-  return scored.take(limit).map((e) => e.name).toList();
+  return scored.take(limit).map((e) => shown[e.name] ?? e.name).toList();
 }
 
 /// 별칭 칸의 구(句)에 흔히 든 낱말('db row' 의 row, 'kick back' 의 back, 'dead

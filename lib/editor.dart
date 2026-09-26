@@ -2133,7 +2133,13 @@ class _RoutineEditorState extends State<RoutineEditor>
       ? const []
       : _text.trim().isEmpty
       ? _c.recentExercises.take(6).toList()
-      : suggest(_text, _c.vocabulary(_lang), preferred: _c.recentExercises);
+      : suggest(
+          _text,
+          _c.vocabulary(_lang),
+          preferred: _c.recentExercises,
+          limit: 12,
+          brandNames: true,
+        );
 
   /// 사전에서 어느 언어의 이름을 낼지. 검색은 언어를 가리지 않는다.
   String get _lang {

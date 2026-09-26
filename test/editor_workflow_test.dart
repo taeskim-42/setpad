@@ -112,6 +112,11 @@ void main() {
         '체스트 프레스',
       );
       expect(suggest('밴치', ['벤치프레스']).single, '벤치프레스');
+      // Brand-only matches show the product name so the lifter sees what matched.
+      expect(suggest('해머스트랭스', ['숄더프레스', '벤치프레스'], brandNames: true), [
+        '해머스트랭스 숄더프레스',
+      ]);
+      expect(suggest('숄더', ['숄더프레스'], brandNames: true), ['숄더프레스']);
       final pool = [...List.generate(100, (i) => '운동 $i'), '우리센터 등머신'];
       expect(
         retrieveExercises('우리센터 등머신 40kg 100개 채우기', pool),
