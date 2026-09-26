@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
 
 import 'account.dart';
+import 'body_page.dart';
 import 'booking_entry.dart';
 import 'health_page.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -69,6 +70,16 @@ class SettingsPage extends StatelessWidget {
                     await ringRestAlarm('다음 라운드 — 시험');
                   },
                 ),
+              // 기초대사량 셈에 쓰는 키·몸무게·나이·성별. 기기 안에만 둔다.
+              _Row(
+                key: const ValueKey('settings-body'),
+                label: l.bodyTitle,
+                onTap: () => Navigator.of(context).push(
+                  CupertinoPageRoute<void>(
+                    builder: (_) => BodyPage(store: store),
+                  ),
+                ),
+              ),
               // 건강 앱과 무엇을 왜 주고받는지 — 심박으로 휴식을 끊는 것까지.
               _Row(
                 key: const ValueKey('settings-health'),

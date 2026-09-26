@@ -1589,7 +1589,7 @@ class LTh extends L {
 
   @override
   String get energyDiffExplain =>
-      'แคลอรีที่บันทึกว่ากิน ลบด้วยแคลอรีที่ใช้ไปกับการออกกำลังกาย ค่าบวกคือกินมากกว่าที่ออกกำลังกายใช้ไป ค่าลบคือกินน้อยกว่า\n\nยังไม่รวมการเผาผลาญขณะพักและกิจกรรมประจำวัน จึงไม่ใช่น้ำหนักที่ขึ้นหรือลง';
+      'แคลอรีที่บันทึกว่ากิน ลบด้วยแคลอรีที่ใช้ในวันนั้น (การเผาผลาญพื้นฐาน + ออกกำลังกาย) ค่าบวกคือเกิน ค่าลบคือขาด\n\nการเผาผลาญพื้นฐานใช้พลังงานขณะพักจากแอปสุขภาพก่อน ถ้าไม่มีจะคำนวณจากข้อมูลร่างกาย (ประมาณ) ยังไม่รวมกิจกรรมประจำวันอย่างการเดิน จึงไม่ใช่น้ำหนักที่ขึ้นหรือลง';
 
   @override
   String get estimateTag => 'ประมาณ';
@@ -1632,6 +1632,56 @@ class LTh extends L {
   @override
   String get healthDataCalories =>
       'อ่าน · แคลอรี่ที่เผาผลาญ — แคลอรี่ที่นาฬิกาวัดได้ระหว่างออกกำลังกายจะถูกเพิ่มในบันทึกนั้น ถ้าไม่มีการวัด จะไม่แสดงแคลอรี่';
+
+  @override
+  String get healthDataBasal =>
+      'อ่าน · พลังงานขณะพัก (การเผาผลาญพื้นฐาน) — รวมเข้ากับแคลอรีที่ใช้ในวันนั้นเพื่อเทียบกับที่กิน ถ้าไม่มีข้อมูลจะคำนวณจาก การตั้งค่า › ข้อมูลร่างกาย';
+
+  @override
+  String get bodyTitle => 'ข้อมูลร่างกาย';
+
+  @override
+  String get bodyNote =>
+      'ใช้เพื่อคำนวณการเผาผลาญพื้นฐานเท่านั้น ถ้าแอปสุขภาพมีพลังงานขณะพักจะใช้ค่านั้นก่อน ข้อมูลนี้ไม่ออกจากอุปกรณ์';
+
+  @override
+  String get bodyHeight => 'ส่วนสูง (ซม.)';
+
+  @override
+  String get bodyWeight => 'น้ำหนัก (กก.)';
+
+  @override
+  String get bodyBirthYear => 'ปีเกิด';
+
+  @override
+  String get bodySex => 'เพศ';
+
+  @override
+  String get bodyMale => 'ชาย';
+
+  @override
+  String get bodyFemale => 'หญิง';
+
+  @override
+  String bodyBmr(String kcal) {
+    return 'การเผาผลาญพื้นฐานประมาณ $kcal kcal ต่อวัน (Mifflin-St Jeor)';
+  }
+
+  @override
+  String get energySpent => 'ใช้ไป';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return 'พื้นฐาน $basal + ออกกำลังกาย $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => 'ที่กิน − ใช้ไป';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return 'กิน $intake · ใช้ $used = $diff kcal';
+  }
 
   @override
   String get healthDataHeart =>

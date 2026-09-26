@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Health Connect. 이 셋은 lib/health.dart 의 _access 와 하나씩 짝이다 —
-         WORKOUT 쓰기, 활동 칼로리 읽기, 심박 읽기. 더 넣지 않는다.
+    <!-- Health Connect. 이 넷은 lib/health.dart 의 _access 와 하나씩 짝이다 —
+         WORKOUT 쓰기, 활동 칼로리 읽기, 심박 읽기, 기초대사량 읽기(그날 쓴 칼로리,
+         2026-09-26). 더 넣지 않는다.
          심박은 타바타 휴식을 끊는 데 쓴다(lib/rest_recovery.dart). Play 가 한 번
          "기능에 필요 없어 보인다" 며 반려했다(2026-09-23) — 기능이 타이머 줄에만
          보였다. 그래서 까닭을 설정·권한 설명 화면(lib/health_page.dart)과 스토어
@@ -8,6 +9,7 @@
     <uses-permission android:name="android.permission.health.WRITE_EXERCISE"/>
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
     <uses-permission android:name="android.permission.health.READ_HEART_RATE"/>
+    <uses-permission android:name="android.permission.health.READ_BASAL_METABOLIC_RATE"/>
     <!-- 체중은 "건강 앱에서 가져오기" 를 눌렀을 때만 따로 묻는다(HealthLink.authorizeWeight). -->
     <!-- 트레이너 보고 알림(lib/agent_alarm.dart). 재부팅하면 걸어 둔 알림이
          지워지므로 플러그인이 다시 건다. 정확한 알람 권한(SCHEDULE_EXACT_ALARM,

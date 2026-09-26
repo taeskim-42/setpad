@@ -57,4 +57,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('기초대사량'), findsNothing);
   });
+
+  testWidgets('기초대사량이 있으면 운동 칸은 쓴 것(기초 + 운동), 차이는 먹은 것 − 쓴 것', (tester) async {
+    final note = workout(500)
+      ..meals.add(
+        MealEntry(
+          at: day.add(const Duration(hours: 12)),
+          kcal: 2400,
+          source: MealEntry.typed,
+          text: '밥',
+        ),
+      );
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: CupertinoPageScaffold(
+          child: Center(
+            child: DayEnergy(
+              dayLogs([note], from: day, to: day).single,
+              basal: (kcal: 1700, estimate: true),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('쓴 것'), findsOneWidget);
+    expect(find.text('−2,200 kcal'), findsOneWidget);
+    expect(find.text('+200 kcal'), findsOneWidget);
+    expect(find.textContaining('기초 1,700 + 운동 500'), findsOneWidget);
+    expect(find.text('추정'), findsWidgets, reason: '몸 정보로 셈한 기초대사는 추정');
+  });
 }

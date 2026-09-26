@@ -1,3 +1,4 @@
+import 'body.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -407,6 +408,16 @@ class NotesStore extends ChangeNotifier {
   bool _countAloud = false;
   bool get countAloud => _countAloud;
 
+  /// 내 몸 정보(기초대사량 셈에만). 기기 밖으로 보내지 않는다.
+  BodyProfile _body = const BodyProfile();
+  BodyProfile get body => _body;
+
+  void setBody(BodyProfile value) {
+    _body = value;
+    notifyListeners();
+    _scheduleSave();
+  }
+
   /// AI 도움(DeepSeek)을 쓰는가. 기본은 켜짐이고 묻지 않는다. 설정의 AI 도움
   /// 줄에서 끄면 모델로 가는 문이 모두 닫히고 기기 안에서만 한다(RecordAi.enabled).
   ///
@@ -455,6 +466,7 @@ class NotesStore extends ChangeNotifier {
           final data = jsonDecode(await preferences.readAsString()) as Map;
           _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
           _countAloud = data['countAloud'] == true;
+          _body = BodyProfile.fromJson(data['body']);
           _aiOn = data['aiConsent'] != false;
           final saved = data['deviceId'];
           if (saved is String && saved.length >= 16) _deviceId = saved;
@@ -522,6 +534,7 @@ class NotesStore extends ChangeNotifier {
     final preferences = jsonEncode({
       'weightUnit': _weightUnit,
       'countAloud': _countAloud,
+      'body': _body.toJson(),
       'aiConsent': _aiOn,
       'deviceId': _deviceId,
       'platesDay': _platesDay,

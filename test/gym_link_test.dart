@@ -377,8 +377,9 @@ void _meals() {
     final ai = RecordAi(
       deviceId: 'device-0123456789abcdef',
       client: MockClient((request) async {
-        if (request.url.path == '/api/device')
+        if (request.url.path == '/api/device') {
           return http.Response('{"token":"t"}', 200);
+        }
         path = request.url.path;
         sent = jsonDecode(request.body) as Map<String, Object?>;
         return http.Response(
@@ -407,8 +408,9 @@ void _meals() {
     final ai = RecordAi(
       deviceId: 'device-0123456789abcdef',
       client: MockClient((request) async {
-        if (request.url.path == '/api/device')
+        if (request.url.path == '/api/device') {
           return http.Response('{"token":"t"}', 200);
+        }
         return http.Response(
           jsonEncode({
             'kcal': 150,

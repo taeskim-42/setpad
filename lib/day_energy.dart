@@ -11,14 +11,25 @@ import 'palette.dart';
 /// 약(藥)으로 읽혔고, 셈이 한눈에 들어오지 않았다. 없는 값은 0 이 아니라 '—' 와
 /// 그 까닭(미기록·미측정)이다. 어림이 섞였으면 칸 머리에 [EstimateTag].
 class DayEnergy extends StatelessWidget {
-  const DayEnergy(this.day, {super.key});
+  const DayEnergy(this.day, {super.key, this.basal});
   final DayLog day;
+
+  /// 그날 기초대사량(건강 앱, 없으면 몸 정보로 셈). 있으면 운동 칸이 '쓴 것'
+  /// (기초 + 운동)이 되고 차이는 먹은 것 − 쓴 것이다.
+  final ({double kcal, bool estimate})? basal;
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
     final n = NumberFormat.decimalPattern(l.localeName);
-    final intake = day.intake, burned = day.burned, diff = day.difference;
+    final intake = day.intake, burned = day.burned;
+    final b = basal;
+    final used = b == null ? burned : b.kcal + (burned ?? 0);
+    final diff = b == null
+        ? day.difference
+        : intake == null
+        ? null
+        : intake - used!.round();
     final unknown = day.unknownMeals;
     // 세 칸은 같은 키다 — 설명 줄이 있는 칸만 길쭉하면 들쭉날쭉해 보였다.
     return IntrinsicHeight(
@@ -37,9 +48,15 @@ class DayEnergy extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           _Tile(
-            label: l.energyBurned,
-            value: burned == null ? null : signed(-burned.round()),
-            note: burned == null ? l.energyNotMeasured : null,
+            label: b == null ? l.energyBurned : l.energySpent,
+            value: used == null ? null : signed(-used.round()),
+            note: b == null
+                ? (burned == null ? l.energyNotMeasured : null)
+                : l.energySpentNote(
+                    n.format(b.kcal.round()),
+                    n.format((burned ?? 0).round()),
+                  ),
+            estimate: b?.estimate ?? false,
           ),
           const SizedBox(width: 8),
           // 차이는 뜻을 모르면 읽을 수 없다 — 셈을 늘 적고, 누르면 무엇이 빠졌는지까지.
@@ -50,9 +67,10 @@ class DayEnergy extends StatelessWidget {
             note: [
               if (diff != null && diff > 0) l.energySurplus,
               if (diff != null && diff < 0) l.energyDeficit,
-              l.energyDiffFormula,
+              b == null ? l.energyDiffFormula : l.energyDiffFormulaBasal,
             ].join(' · '),
-            estimate: diff != null && day.intakeEstimated,
+            estimate:
+                diff != null && (day.intakeEstimated || (b?.estimate ?? false)),
             onTap: () => showCupertinoDialog<void>(
               context: context,
               barrierDismissible: true,
@@ -188,4 +206,12 @@ class EstimateTag extends StatelessWidget {
       style: TextStyle(fontSize: 10, color: seal.resolveFrom(context)),
     ),
   );
+}
+
+/// 접힌 한 줄. 기초대사량이 있으면 '먹은 것 · 쓴 것 = 차이', 없으면 예전 줄.
+String energyLine(L l, DayLog day, ({double kcal, bool estimate})? basal) {
+  final intake = day.intake;
+  if (basal == null || intake == null) return dayEnergyText(l, day) ?? '';
+  final used = (basal.kcal + (day.burned ?? 0)).round();
+  return l.energyLine(signed(intake), signed(-used), signed(intake - used));
 }

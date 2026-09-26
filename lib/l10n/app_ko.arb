@@ -1402,7 +1402,7 @@
   "energyDeficit": "적자",
   "milestoneBest": "최고 무게",
   "energyDiffFormula": "먹은 것 − 운동",
-  "energyDiffExplain": "기록한 먹은 것에서 운동으로 쓴 칼로리를 뺀 값이에요. + 면 운동으로 쓴 것보다 더 먹은 것이고, − 면 덜 먹은 거예요.\n\n기초대사량과 일상 활동으로 쓰는 칼로리는 들어 있지 않아서, 이 값이 곧 살이 찌거나 빠지는 양은 아니에요.",
+  "energyDiffExplain": "기록한 먹은 것에서 그날 쓴 칼로리(기초대사량 + 운동)를 뺀 값이에요. + 면 쓴 것보다 더 먹은 것(흑자), − 면 덜 먹은 거예요(적자).\n\n기초대사량은 건강 앱의 휴식 에너지를 먼저 쓰고, 없으면 내 몸 정보로 셈해요(추정). 걷기 같은 일상 활동은 들어 있지 않아서, 이 값이 곧 살이 찌거나 빠지는 양은 아니에요.",
   "estimateTag": "추정",
   "energyNotLogged": "미기록",
   "energyNotMeasured": "미측정",
@@ -1435,6 +1435,50 @@
   "healthDataIntro": "setpad가 건강 앱(Apple 건강, 헬스 커넥트)과 주고받는 것과 그 이유입니다.",
   "healthDataWrite": "쓰기 · 운동 — 기록을 마치면 그 운동을 운동 세션으로 남깁니다.",
   "healthDataCalories": "읽기 · 활동 칼로리 — 운동한 시간 동안 워치가 잰 활동 칼로리를 그 기록에 붙입니다. 잰 것이 없으면 칼로리를 표시하지 않습니다.",
+  "healthDataBasal": "읽기 · 휴식 에너지(기초대사량) — 그날 쓴 칼로리에 넣어 먹은 것과의 차이를 셉니다. 잰 것이 없으면 설정 › 내 몸 정보로 셈합니다.",
+  "bodyTitle": "내 몸 정보",
+  "bodyNote": "기초대사량을 셈하는 데만 씁니다. 건강 앱에 휴식 에너지가 있으면 그 값을 먼저 씁니다. 이 정보는 기기 밖으로 보내지 않습니다.",
+  "bodyHeight": "키 (cm)",
+  "bodyWeight": "몸무게 (kg)",
+  "bodyBirthYear": "태어난 해",
+  "bodySex": "성별",
+  "bodyMale": "남",
+  "bodyFemale": "여",
+  "bodyBmr": "하루 기초대사량 약 {kcal}kcal (Mifflin-St Jeor 식)",
+  "@bodyBmr": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
+  "energySpent": "쓴 것",
+  "energySpentNote": "기초 {basal} + 운동 {exercise}",
+  "@energySpentNote": {
+    "placeholders": {
+      "basal": {
+        "type": "String"
+      },
+      "exercise": {
+        "type": "String"
+      }
+    }
+  },
+  "energyDiffFormulaBasal": "먹은 것 − 쓴 것",
+  "energyLine": "먹은 것 {intake} · 쓴 것 {used} = {diff}kcal",
+  "@energyLine": {
+    "placeholders": {
+      "intake": {
+        "type": "String"
+      },
+      "used": {
+        "type": "String"
+      },
+      "diff": {
+        "type": "String"
+      }
+    }
+  },
   "healthDataHeart": "읽기 · 심박수 — 타바타 휴식 중 심박이 그 라운드의 최고치보다 25bpm 내려오면 휴식을 끝내고 다음 라운드 시작을 알립니다. 쉬는 동안 타이머 줄에 ♥ 지금 → 목표로 보입니다. 심박이 없거나 90초보다 오래된 값이면 휴식은 시간대로 끝납니다.",
   "healthDataStays": "건강 앱에서 읽은 값은 기기 밖으로 나가지 않습니다. 서버로 보내지 않고, 광고나 마케팅에 쓰지 않습니다.",
   "healthDataRevokeIos": "권한은 iPhone 설정 → 개인정보 보호 및 보안 → 건강 → setpad에서 언제든 끌 수 있습니다.",

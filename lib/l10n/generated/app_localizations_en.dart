@@ -1616,7 +1616,7 @@ class LEn extends L {
 
   @override
   String get energyDiffExplain =>
-      'Calories you logged eating minus calories burned in workouts. Plus means you ate more than your workouts burned; minus means less.\n\nIt leaves out your resting metabolism and everyday activity, so it isn\'t your weight change.';
+      'Calories you logged eating minus the calories you used that day (basal metabolism + workouts). Plus is a surplus, minus a deficit.\n\nBasal metabolism comes from the Health app\'s resting energy, or is calculated from My body (estimate). Everyday activity like walking isn\'t included, so this isn\'t your weight change.';
 
   @override
   String get estimateTag => 'est.';
@@ -1659,6 +1659,56 @@ class LEn extends L {
   @override
   String get healthDataCalories =>
       'Read · Active calories — the active calories your watch measured during the workout are added to that record. If nothing was measured, no calories are shown.';
+
+  @override
+  String get healthDataBasal =>
+      'Read · Resting energy (basal metabolism) — added to the calories you used that day to compare with what you ate. If none is recorded, it\'s calculated from Settings › My body.';
+
+  @override
+  String get bodyTitle => 'My body';
+
+  @override
+  String get bodyNote =>
+      'Used only to calculate your basal metabolism. Resting energy from the Health app is used first when available. This stays on your device.';
+
+  @override
+  String get bodyHeight => 'Height (cm)';
+
+  @override
+  String get bodyWeight => 'Weight (kg)';
+
+  @override
+  String get bodyBirthYear => 'Birth year';
+
+  @override
+  String get bodySex => 'Sex';
+
+  @override
+  String get bodyMale => 'Male';
+
+  @override
+  String get bodyFemale => 'Female';
+
+  @override
+  String bodyBmr(String kcal) {
+    return 'Basal metabolism about $kcal kcal a day (Mifflin-St Jeor)';
+  }
+
+  @override
+  String get energySpent => 'Used';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return 'Basal $basal + exercise $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => 'Eaten − used';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return 'Eaten $intake · used $used = $diff kcal';
+  }
 
   @override
   String get healthDataHeart =>

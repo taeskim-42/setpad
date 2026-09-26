@@ -1554,7 +1554,7 @@ class LKo extends L {
 
   @override
   String get energyDiffExplain =>
-      '기록한 먹은 것에서 운동으로 쓴 칼로리를 뺀 값이에요. + 면 운동으로 쓴 것보다 더 먹은 것이고, − 면 덜 먹은 거예요.\n\n기초대사량과 일상 활동으로 쓰는 칼로리는 들어 있지 않아서, 이 값이 곧 살이 찌거나 빠지는 양은 아니에요.';
+      '기록한 먹은 것에서 그날 쓴 칼로리(기초대사량 + 운동)를 뺀 값이에요. + 면 쓴 것보다 더 먹은 것(흑자), − 면 덜 먹은 거예요(적자).\n\n기초대사량은 건강 앱의 휴식 에너지를 먼저 쓰고, 없으면 내 몸 정보로 셈해요(추정). 걷기 같은 일상 활동은 들어 있지 않아서, 이 값이 곧 살이 찌거나 빠지는 양은 아니에요.';
 
   @override
   String get estimateTag => '추정';
@@ -1596,6 +1596,56 @@ class LKo extends L {
   @override
   String get healthDataCalories =>
       '읽기 · 활동 칼로리 — 운동한 시간 동안 워치가 잰 활동 칼로리를 그 기록에 붙입니다. 잰 것이 없으면 칼로리를 표시하지 않습니다.';
+
+  @override
+  String get healthDataBasal =>
+      '읽기 · 휴식 에너지(기초대사량) — 그날 쓴 칼로리에 넣어 먹은 것과의 차이를 셉니다. 잰 것이 없으면 설정 › 내 몸 정보로 셈합니다.';
+
+  @override
+  String get bodyTitle => '내 몸 정보';
+
+  @override
+  String get bodyNote =>
+      '기초대사량을 셈하는 데만 씁니다. 건강 앱에 휴식 에너지가 있으면 그 값을 먼저 씁니다. 이 정보는 기기 밖으로 보내지 않습니다.';
+
+  @override
+  String get bodyHeight => '키 (cm)';
+
+  @override
+  String get bodyWeight => '몸무게 (kg)';
+
+  @override
+  String get bodyBirthYear => '태어난 해';
+
+  @override
+  String get bodySex => '성별';
+
+  @override
+  String get bodyMale => '남';
+
+  @override
+  String get bodyFemale => '여';
+
+  @override
+  String bodyBmr(String kcal) {
+    return '하루 기초대사량 약 ${kcal}kcal (Mifflin-St Jeor 식)';
+  }
+
+  @override
+  String get energySpent => '쓴 것';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return '기초 $basal + 운동 $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => '먹은 것 − 쓴 것';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return '먹은 것 $intake · 쓴 것 $used = ${diff}kcal';
+  }
 
   @override
   String get healthDataHeart =>

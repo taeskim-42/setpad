@@ -1549,7 +1549,7 @@ class LJa extends L {
 
   @override
   String get energyDiffExplain =>
-      '記録した食事のカロリーから、運動で消費したカロリーを引いた値です。プラスなら運動で使った分より多く食べ、マイナスなら少なく食べています。\n\n基礎代謝や日常の活動で使うカロリーは含まれないため、体重の増減そのものではありません。';
+      '記録した食事のカロリーから、その日の消費カロリー（基礎代謝＋運動）を引いた値です。プラスは黒字、マイナスは赤字です。\n\n基礎代謝はヘルスケアの安静時エネルギーを優先し、なければ体の情報から計算します（推定）。歩くなどの日常の活動は含まれないため、体重の増減そのものではありません。';
 
   @override
   String get estimateTag => '推定';
@@ -1591,6 +1591,56 @@ class LJa extends L {
   @override
   String get healthDataCalories =>
       '読み取り・アクティブカロリー — 運動中にウォッチが計測したアクティブカロリーをその記録に付けます。計測がなければカロリーは表示しません。';
+
+  @override
+  String get healthDataBasal =>
+      '読み取り · 安静時エネルギー（基礎代謝）— その日の消費カロリーに加え、食べた分との差を計算します。記録がなければ 設定 › 体の情報 から計算します。';
+
+  @override
+  String get bodyTitle => '体の情報';
+
+  @override
+  String get bodyNote =>
+      '基礎代謝の計算にだけ使います。ヘルスケアに安静時エネルギーがあればそちらを優先します。この情報は端末の外に送りません。';
+
+  @override
+  String get bodyHeight => '身長 (cm)';
+
+  @override
+  String get bodyWeight => '体重 (kg)';
+
+  @override
+  String get bodyBirthYear => '生まれ年';
+
+  @override
+  String get bodySex => '性別';
+
+  @override
+  String get bodyMale => '男性';
+
+  @override
+  String get bodyFemale => '女性';
+
+  @override
+  String bodyBmr(String kcal) {
+    return '1日の基礎代謝 約${kcal}kcal（Mifflin-St Jeor式）';
+  }
+
+  @override
+  String get energySpent => '消費';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return '基礎 $basal + 運動 $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => '食べた分 − 消費';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return '食べた分 $intake · 消費 $used = ${diff}kcal';
+  }
 
   @override
   String get healthDataHeart =>

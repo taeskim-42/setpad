@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 
+import 'body.dart';
 import 'day_energy.dart';
 import 'editor.dart';
 import 'milestones.dart';
@@ -1271,6 +1272,18 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
   /// 그날 에너지 세 칸을 펼쳤는가. 기본은 접힌 한 줄.
   bool _energyOpen = false;
 
+  /// 건강 앱이 잰 그날 휴식 에너지. 없으면 몸 정보로 셈한다([basalFor]).
+  static final _health = HealthLink();
+  double? _measuredBasal;
+
+  Future<void> _loadBasal() async {
+    final day = dayOf(widget.note.createdAt);
+    final next = day.add(const Duration(days: 1));
+    final now = DateTime.now();
+    final got = await _health.basalEnergy(day, now.isBefore(next) ? now : next);
+    if (mounted && got != _measuredBasal) setState(() => _measuredBasal = got);
+  }
+
   bool _estimating = false;
 
   /// 머리의 알림 한 줄과, 그것이 어느 끼니의 어림 실패인가(사진 쪽 말이면 null).
@@ -1305,6 +1318,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
   void initState() {
     super.initState();
     widget.store.addListener(_onStore);
+    unawaited(_loadBasal());
   }
 
   @override
@@ -1506,6 +1520,11 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
     // 하루치다 — 이 문서 하나가 아니라 그날의 문서와 끼니 전부.
     final log = dayLogs(widget.store.notes, from: at, to: at).firstOrNull;
+    final basal = basalFor(
+      dayOf(at),
+      widget.store.body,
+      measured: _measuredBasal,
+    );
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -1518,7 +1537,8 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
           ),
           // 그날 에너지는 한 줄로 접어 둔다 — 운동을 적는 화면에서 세 칸은 컸다.
           // 누르면 먹은 것 · 운동 · 차이 세 칸. 둘 다 없는 날은 줄도 없다.
-          if (log != null && (log.intake != null || log.burned != null))
+          if (log != null &&
+              (log.intake != null || log.burned != null || basal != null))
             Padding(
               key: const ValueKey('day-summary'),
               padding: const EdgeInsets.only(top: 6, bottom: 2),
@@ -1535,7 +1555,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            DayEnergy(log),
+                            DayEnergy(log, basal: basal),
                             CupertinoButton(
                               key: const ValueKey('day-summary-fold'),
                               padding: const EdgeInsets.only(top: 2),
@@ -1567,7 +1587,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                               Flexible(
                                 child: Text(
                                   [
-                                    dayEnergyText(l, log) ?? '',
+                                    energyLine(l, log, basal),
                                     if ((log.difference ?? 0) > 0)
                                       l.energySurplus,
                                     if ((log.difference ?? 0) < 0)

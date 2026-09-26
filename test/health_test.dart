@@ -100,10 +100,12 @@ void main() {
         expect(args['types'], [
           'WORKOUT',
           'ACTIVE_ENERGY_BURNED',
+          'BASAL_ENERGY_BURNED',
           'HEART_RATE',
         ]);
         expect(args['permissions'], [
           HealthDataAccess.WRITE.index,
+          HealthDataAccess.READ.index,
           HealthDataAccess.READ.index,
           HealthDataAccess.READ.index,
         ]);

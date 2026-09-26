@@ -1535,7 +1535,7 @@ class LZh extends L {
 
   @override
   String get energyDiffExplain =>
-      '记录的摄入热量减去运动消耗的热量。正数表示吃得比运动消耗的多，负数表示更少。\n\n不包含基础代谢和日常活动的消耗，所以并不等于体重的增减。';
+      '记录的摄入热量减去当天消耗的热量（基础代谢 + 运动）。正数为盈余，负数为赤字。\n\n基础代谢优先使用健康应用的静息能量，没有时用身体信息计算（估算）。不包含步行等日常活动，所以并不等于体重的增减。';
 
   @override
   String get estimateTag => '估算';
@@ -1577,6 +1577,55 @@ class LZh extends L {
   @override
   String get healthDataCalories =>
       '读取 · 活动能量 — 训练期间手表测得的活动能量会附到该记录上。没有测量时不显示热量。';
+
+  @override
+  String get healthDataBasal =>
+      '读取 · 静息能量（基础代谢）— 计入当天消耗的热量，与摄入比较。没有记录时，用 设置 › 身体信息 计算。';
+
+  @override
+  String get bodyTitle => '身体信息';
+
+  @override
+  String get bodyNote => '仅用于计算基础代谢。健康应用有静息能量时优先使用。此信息不会离开设备。';
+
+  @override
+  String get bodyHeight => '身高 (cm)';
+
+  @override
+  String get bodyWeight => '体重 (kg)';
+
+  @override
+  String get bodyBirthYear => '出生年份';
+
+  @override
+  String get bodySex => '性别';
+
+  @override
+  String get bodyMale => '男';
+
+  @override
+  String get bodyFemale => '女';
+
+  @override
+  String bodyBmr(String kcal) {
+    return '每日基础代谢约 $kcal kcal（Mifflin-St Jeor 公式）';
+  }
+
+  @override
+  String get energySpent => '消耗';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return '基础 $basal + 运动 $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => '摄入 − 消耗';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return '摄入 $intake · 消耗 $used = $diff kcal';
+  }
 
   @override
   String get healthDataHeart =>
@@ -4711,7 +4760,7 @@ class LZhHans extends LZh {
 
   @override
   String get energyDiffExplain =>
-      '记录的摄入热量减去运动消耗的热量。正数表示吃得比运动消耗的多，负数表示更少。\n\n不包含基础代谢和日常活动的消耗，所以并不等于体重的增减。';
+      '记录的摄入热量减去当天消耗的热量（基础代谢 + 运动）。正数为盈余，负数为赤字。\n\n基础代谢优先使用健康应用的静息能量，没有时用身体信息计算（估算）。不包含步行等日常活动，所以并不等于体重的增减。';
 
   @override
   String get estimateTag => '估算';
@@ -4753,6 +4802,55 @@ class LZhHans extends LZh {
   @override
   String get healthDataCalories =>
       '读取 · 活动能量 — 训练期间手表测得的活动能量会附到该记录上。没有测量时不显示热量。';
+
+  @override
+  String get healthDataBasal =>
+      '读取 · 静息能量（基础代谢）— 计入当天消耗的热量，与摄入比较。没有记录时，用 设置 › 身体信息 计算。';
+
+  @override
+  String get bodyTitle => '身体信息';
+
+  @override
+  String get bodyNote => '仅用于计算基础代谢。健康应用有静息能量时优先使用。此信息不会离开设备。';
+
+  @override
+  String get bodyHeight => '身高 (cm)';
+
+  @override
+  String get bodyWeight => '体重 (kg)';
+
+  @override
+  String get bodyBirthYear => '出生年份';
+
+  @override
+  String get bodySex => '性别';
+
+  @override
+  String get bodyMale => '男';
+
+  @override
+  String get bodyFemale => '女';
+
+  @override
+  String bodyBmr(String kcal) {
+    return '每日基础代谢约 $kcal kcal（Mifflin-St Jeor 公式）';
+  }
+
+  @override
+  String get energySpent => '消耗';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return '基础 $basal + 运动 $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => '摄入 − 消耗';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return '摄入 $intake · 消耗 $used = $diff kcal';
+  }
 
   @override
   String get healthDataHeart =>
@@ -7886,7 +7984,7 @@ class LZhHant extends LZh {
 
   @override
   String get energyDiffExplain =>
-      '記錄的攝取熱量減去運動消耗的熱量。正數表示吃得比運動消耗的多，負數表示更少。\n\n不包含基礎代謝和日常活動的消耗，所以並不等於體重的增減。';
+      '記錄的攝取熱量減去當天消耗的熱量（基礎代謝 + 運動）。正數為盈餘，負數為赤字。\n\n基礎代謝優先使用健康 App 的靜息能量，沒有時用身體資訊計算（估算）。不包含走路等日常活動，所以並不等於體重的增減。';
 
   @override
   String get estimateTag => '估算';
@@ -7928,6 +8026,55 @@ class LZhHant extends LZh {
   @override
   String get healthDataCalories =>
       '讀取 · 活動能量 — 訓練期間手錶測得的活動能量會附到該記錄上。沒有測量時不顯示熱量。';
+
+  @override
+  String get healthDataBasal =>
+      '讀取 · 靜息能量（基礎代謝）— 計入當天消耗的熱量，與攝取比較。沒有紀錄時，用 設定 › 身體資訊 計算。';
+
+  @override
+  String get bodyTitle => '身體資訊';
+
+  @override
+  String get bodyNote => '僅用於計算基礎代謝。健康 App 有靜息能量時優先使用。此資訊不會離開裝置。';
+
+  @override
+  String get bodyHeight => '身高 (cm)';
+
+  @override
+  String get bodyWeight => '體重 (kg)';
+
+  @override
+  String get bodyBirthYear => '出生年份';
+
+  @override
+  String get bodySex => '性別';
+
+  @override
+  String get bodyMale => '男';
+
+  @override
+  String get bodyFemale => '女';
+
+  @override
+  String bodyBmr(String kcal) {
+    return '每日基礎代謝約 $kcal kcal（Mifflin-St Jeor 公式）';
+  }
+
+  @override
+  String get energySpent => '消耗';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return '基礎 $basal + 運動 $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => '攝取 − 消耗';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return '攝取 $intake · 消耗 $used = $diff kcal';
+  }
 
   @override
   String get healthDataHeart =>

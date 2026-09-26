@@ -1603,7 +1603,7 @@ class LVi extends L {
 
   @override
   String get energyDiffExplain =>
-      'Lượng calo bạn đã ghi là đã ăn trừ đi lượng calo đốt khi tập. Số dương là ăn nhiều hơn lượng đốt khi tập; số âm là ít hơn.\n\nChưa tính trao đổi chất lúc nghỉ và hoạt động hằng ngày, nên đây không phải là mức tăng giảm cân.';
+      'Lượng calo đã ghi là đã ăn trừ lượng calo đã dùng trong ngày (chuyển hóa cơ bản + tập luyện). Số dương là dư, số âm là thiếu.\n\nChuyển hóa cơ bản lấy từ năng lượng nghỉ của ứng dụng Sức khỏe, hoặc tính từ Thông tin cơ thể (ước tính). Chưa tính hoạt động hằng ngày như đi bộ, nên đây không phải mức tăng giảm cân.';
 
   @override
   String get estimateTag => 'ước tính';
@@ -1646,6 +1646,56 @@ class LVi extends L {
   @override
   String get healthDataCalories =>
       'Đọc · Calo hoạt động — lượng calo hoạt động đồng hồ đo được trong lúc tập được gắn vào bản ghi đó. Nếu không đo được gì, ứng dụng không hiển thị calo.';
+
+  @override
+  String get healthDataBasal =>
+      'Đọc · Năng lượng nghỉ (chuyển hóa cơ bản) — cộng vào lượng calo đã dùng trong ngày để so với lượng đã ăn. Nếu không có, sẽ tính từ Cài đặt › Thông tin cơ thể.';
+
+  @override
+  String get bodyTitle => 'Thông tin cơ thể';
+
+  @override
+  String get bodyNote =>
+      'Chỉ dùng để tính chuyển hóa cơ bản. Nếu ứng dụng Sức khỏe có năng lượng nghỉ thì dùng giá trị đó trước. Thông tin này không rời khỏi thiết bị.';
+
+  @override
+  String get bodyHeight => 'Chiều cao (cm)';
+
+  @override
+  String get bodyWeight => 'Cân nặng (kg)';
+
+  @override
+  String get bodyBirthYear => 'Năm sinh';
+
+  @override
+  String get bodySex => 'Giới tính';
+
+  @override
+  String get bodyMale => 'Nam';
+
+  @override
+  String get bodyFemale => 'Nữ';
+
+  @override
+  String bodyBmr(String kcal) {
+    return 'Chuyển hóa cơ bản khoảng $kcal kcal/ngày (Mifflin-St Jeor)';
+  }
+
+  @override
+  String get energySpent => 'Đã dùng';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return 'Cơ bản $basal + tập $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => 'Đã ăn − đã dùng';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return 'Ăn $intake · dùng $used = $diff kcal';
+  }
 
   @override
   String get healthDataHeart =>

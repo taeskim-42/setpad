@@ -1632,7 +1632,7 @@ class LEs extends L {
 
   @override
   String get energyDiffExplain =>
-      'Calorías que registraste comiendo menos las que quemaste entrenando. Positivo: comiste más de lo que quemaste entrenando; negativo: menos.\n\nNo incluye tu metabolismo en reposo ni la actividad diaria, así que no equivale a tu cambio de peso.';
+      'Calorías que registraste comiendo menos las que gastaste ese día (metabolismo basal + entrenamientos). Positivo es superávit; negativo, déficit.\n\nEl metabolismo basal sale de la energía en reposo de la app Salud o se calcula con Mi cuerpo (estimación). No incluye la actividad diaria como caminar, así que no equivale a tu cambio de peso.';
 
   @override
   String get estimateTag => 'aprox.';
@@ -1675,6 +1675,56 @@ class LEs extends L {
   @override
   String get healthDataCalories =>
       'Lectura · Calorías activas — las calorías activas que midió tu reloj durante el entrenamiento se añaden a ese registro. Si no se midió nada, no se muestran calorías.';
+
+  @override
+  String get healthDataBasal =>
+      'Lectura · Energía en reposo (metabolismo basal) — se suma a las calorías gastadas del día para compararlas con lo que comiste. Si no hay datos, se calcula con Ajustes › Mi cuerpo.';
+
+  @override
+  String get bodyTitle => 'Mi cuerpo';
+
+  @override
+  String get bodyNote =>
+      'Solo se usa para calcular tu metabolismo basal. Si la app Salud tiene energía en reposo, se usa primero. No sale de tu dispositivo.';
+
+  @override
+  String get bodyHeight => 'Altura (cm)';
+
+  @override
+  String get bodyWeight => 'Peso (kg)';
+
+  @override
+  String get bodyBirthYear => 'Año de nacimiento';
+
+  @override
+  String get bodySex => 'Sexo';
+
+  @override
+  String get bodyMale => 'Hombre';
+
+  @override
+  String get bodyFemale => 'Mujer';
+
+  @override
+  String bodyBmr(String kcal) {
+    return 'Metabolismo basal de unas $kcal kcal al día (Mifflin-St Jeor)';
+  }
+
+  @override
+  String get energySpent => 'Gastado';
+
+  @override
+  String energySpentNote(String basal, String exercise) {
+    return 'Basal $basal + ejercicio $exercise';
+  }
+
+  @override
+  String get energyDiffFormulaBasal => 'Comido − gastado';
+
+  @override
+  String energyLine(String intake, String used, String diff) {
+    return 'Comido $intake · gastado $used = $diff kcal';
+  }
 
   @override
   String get healthDataHeart =>
