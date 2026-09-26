@@ -1442,9 +1442,6 @@ class LZh extends L {
   String get togetherLog => '记录';
 
   @override
-  String get mealLogAs => '记为饮食';
-
-  @override
   String get mealAutoLogged => '已记为一餐';
 
   @override
@@ -4667,9 +4664,6 @@ class LZhHans extends LZh {
   String get togetherLog => '记录';
 
   @override
-  String get mealLogAs => '记为饮食';
-
-  @override
   String get mealAutoLogged => '已记为一餐';
 
   @override
@@ -7889,9 +7883,6 @@ class LZhHant extends LZh {
 
   @override
   String get togetherLog => '記錄';
-
-  @override
-  String get mealLogAs => '記為飲食';
 
   @override
   String get mealAutoLogged => '已記為一餐';

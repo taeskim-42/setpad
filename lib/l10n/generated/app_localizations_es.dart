@@ -1537,9 +1537,6 @@ class LEs extends L {
   String get togetherLog => 'Anotar';
 
   @override
-  String get mealLogAs => 'Anotar como comida';
-
-  @override
   String get mealAutoLogged => 'Guardado como comida';
 
   @override

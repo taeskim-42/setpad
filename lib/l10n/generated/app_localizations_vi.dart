@@ -1508,9 +1508,6 @@ class LVi extends L {
   String get togetherLog => 'Ghi';
 
   @override
-  String get mealLogAs => 'Ghi là bữa ăn';
-
-  @override
   String get mealAutoLogged => 'Đã ghi thành bữa ăn';
 
   @override

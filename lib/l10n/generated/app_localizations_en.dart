@@ -1521,9 +1521,6 @@ class LEn extends L {
   String get togetherLog => 'Log';
 
   @override
-  String get mealLogAs => 'Log as meal';
-
-  @override
   String get mealAutoLogged => 'Logged as a meal';
 
   @override

@@ -380,7 +380,6 @@
   "togetherLeftRound": "{name} stopped in round {n}",
   "togetherMe": "Me",
   "togetherLog": "Log",
-  "mealLogAs": "Log as meal",
   "mealAutoLogged": "Logged as a meal",
   "mealAutoUndo": "Make it exercise",
   "proxyWrite": "Log for them",

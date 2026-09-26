@@ -1461,9 +1461,6 @@ class LKo extends L {
   String get togetherLog => '기록';
 
   @override
-  String get mealLogAs => '식단으로 기록';
-
-  @override
   String get mealAutoLogged => '끼니로 남겼어요';
 
   @override

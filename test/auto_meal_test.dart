@@ -302,7 +302,7 @@ void main() {
     expect(ai.lookups, ['두리안 2개']);
   });
 
-  testWidgets('그물이 없으면 표와 모델을 건너뛰고 운동이다 — 끼니로 칩은 남는다', (tester) async {
+  testWidgets('그물이 없으면 표와 모델을 건너뛰고 운동이다 — 포크·나이프로 끼니는 남긴다', (tester) async {
     final ai = _Ai(online: false, table: {'김치찌개'});
     final (c, meals) = await pump(tester, ai);
     await submit(tester, '김치찌개');
@@ -315,7 +315,24 @@ void main() {
     expect(meals, ['라면 1봉지']);
     await tester.enterText(_field, '김치찌개');
     await tester.pump();
-    expect(find.byKey(const ValueKey('log-as-meal')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('meal-button')));
+    await tester.pumpAndSettle();
+    expect(meals, ['라면 1봉지', '김치찌개']);
+  });
+
+  testWidgets('운동 이름 줄에 친 글은 포크·나이프를 누르면 끼니 하나로 남고, 입력 줄은 비워진다', (
+    tester,
+  ) async {
+    final (c, meals) = await pump(tester, _Ai());
+    // '식단으로 기록' 칩은 없다 — 포크·나이프 하나가 한다.
+    await tester.enterText(_field, '김치찌개');
+    await tester.pump();
+    expect(find.text('식단으로 기록'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('meal-button')));
+    await tester.pumpAndSettle();
+    expect(meals, ['김치찌개']);
+    expect(c.blocks, isEmpty, reason: '운동 칸이 생기면 안 된다');
+    expect(tester.widget<CupertinoTextField>(_field).controller!.text, isEmpty);
   });
   testWidgets('표에 없는 음식을 운동으로 익혀도, 그 낱말이 든 다른 줄은 모델의 food 답으로 끼니다', (
     tester,

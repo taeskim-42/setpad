@@ -2389,12 +2389,6 @@ abstract class L {
   /// **'기록'**
   String get togetherLog;
 
-  /// No description provided for @mealLogAs.
-  ///
-  /// In ko, this message translates to:
-  /// **'식단으로 기록'**
-  String get mealLogAs;
-
   /// No description provided for @mealAutoLogged.
   ///
   /// In ko, this message translates to:
