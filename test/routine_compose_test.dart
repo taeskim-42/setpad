@@ -245,6 +245,34 @@ void main() {
       expect(codes(d), contains('firstTime'));
     });
 
+    test('기록 없는 근육 성장 목표도 맞는 운동을 골라 시작할 수 있다', () {
+      const text = '나는 대원근을 키우고 싶음.';
+      final ask = decodeRoutineAsk(
+        {
+          'exercises': ['랫풀다운', '풀업'],
+        },
+        text,
+        [],
+      );
+      final draft = compose(ask, text, notes: const []);
+      expect(draft.addable, ['랫풀다운', '풀업']);
+      final logged = compose(ask, text);
+      expect(logged.startable, isTrue);
+      expect(keys(logged).every(['랫풀다운', '풀업'].contains), isTrue);
+      final selected = compose(
+        ask,
+        text,
+        notes: const [],
+        edits: RoutineEdits()..added.add('랫풀다운'),
+      );
+      expect(selected.startable, isTrue);
+      expect(keys(selected), contains('랫풀다운'));
+      expect(selected.items.single.sets.every((s) => s.value == null), isTrue);
+      final omitted = compose({}, text, notes: const []);
+      expect(omitted.addable, isNotEmpty);
+      expect(omitted.addable.every((name) => partOf(name) == 'back'), isTrue);
+    });
+
     test('r-137 데드 빼고 지난주 당기기 날처럼 → 9/4, 데드는 원래 없다고 말한다', () {
       final d = compose({
         'from': {'period': 'lastWeek', 'pattern': 'pull'},

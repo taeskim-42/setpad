@@ -12,6 +12,20 @@ void main() {
   List<String> codes(RoutineAsk a) => [for (final l in a.dropped) l.code];
 
   group('모양 — 통째로 던지는 것은 모양 문제뿐(G5)', () {
+    test('모델이 부위를 생략해도 조건 없는 성장 목표는 남긴다', () {
+      final ask = decode({}, '나는 대원근을 키우고 싶음.');
+      expect(ask.parts, ['back']);
+      expect(ask.keys, contains('parts'));
+      expect(() => decode({}, '대원근 말고 가슴 키우기'), throwsFormatException);
+      expect(() => decode({}, '수술 후 대원근 키우기'), throwsFormatException);
+      expect(
+        decode({
+          'exercises': ['랫풀다운', '풀업'],
+        }, '나는 대원근을 키우고 싶음.').parts,
+        isEmpty,
+      );
+    });
+
     test('객체가 아님·2000자 초과·모르는 윗단 키', () {
       expect(() => decode('[1]', 'x'), throwsFormatException);
       expect(() => decode('not json', 'x'), throwsFormatException);

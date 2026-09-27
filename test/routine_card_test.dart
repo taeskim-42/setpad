@@ -96,6 +96,83 @@ void main() {
 
   Finder startButton() => find.widgetWithText(CupertinoButton, l.routineStart);
 
+  testWidgets(
+    'a muscle growth wish creates and starts a routine from recorded exercises',
+    (tester) async {
+      final calls = <String>[];
+      final store = await pump(
+        tester,
+        records: defaultLog(),
+        ai: RecordAi(
+          respond: (instructions, input) async {
+            calls.add(instructions);
+            return instructions == routineInstructions
+                ? {
+                    'exercises': ['랫풀다운', '풀업'],
+                  }
+                : {'kind': 'unrelated'};
+          },
+        ),
+      );
+      await type(tester, '나는 대원근을 키우고 싶음.', enter: true);
+      expect(calls, [routineInstructions]);
+      expect(find.text(l.queryUnsupported), findsNothing);
+      expect(find.byType(RoutineCard), findsOneWidget);
+      expect(find.text('랫풀다운'), findsOneWidget);
+      expect(find.text('풀업'), findsOneWidget);
+      await tester.ensureVisible(startButton());
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      expect(store.created, hasLength(1));
+      expect(store.created.single.blocks.map((block) => block.name), [
+        '랫풀다운',
+        '풀업',
+      ]);
+      expect(
+        store.created.single.blocks
+            .expand((block) => block.sets)
+            .every((set) => !set.done),
+        isTrue,
+      );
+    },
+  );
+
+  testWidgets(
+    'a growth goal without history starts after selecting an exercise',
+    (tester) async {
+      final store = await pump(
+        tester,
+        records: [],
+        ai: RecordAi(
+          respond: (instructions, _) async =>
+              instructions == routineInstructions
+              ? {
+                  'exercises': ['랫풀다운', '풀업'],
+                }
+              : {'kind': 'unrelated'},
+        ),
+      );
+      await type(tester, '나는 대원근을 키우고 싶음.', enter: true);
+      expect(find.byType(RoutineCard), findsOneWidget);
+      expect(find.text(l.queryUnsupported), findsNothing);
+      final add = find.text(l.routineAdd('랫풀다운'));
+      await tester.ensureVisible(add);
+      await tester.tap(add);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(startButton());
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      expect(store.created, hasLength(1));
+      expect(store.created.single.blocks.single.name, '랫풀다운');
+      expect(
+        store.created.single.blocks.single.sets.every(
+          (set) => !set.done && set.value == null && set.reps == null,
+        ),
+        isTrue,
+      );
+    },
+  );
+
   testWidgets('맨 요청: 치는 동안 카드가 뜨고 모델은 부르지 않는다(원판 0)', (tester) async {
     var asked = 0;
     await pump(

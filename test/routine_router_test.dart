@@ -158,6 +158,33 @@ void main() {
   });
 
   group('기기가 읽는 것', () {
+    test('성장 목표와 바람의 활용은 루틴이며 기록 질문과 의료 거절은 유지한다', () {
+      for (final text in [
+        '나는 대원근을 키우고 싶음.',
+        '대원근을 키우고 싶습니다',
+        '광배근을 키우고 싶네요',
+        '대원근 키우기',
+        '광배근 성장 목표',
+        '가슴 발달',
+        'I want to grow my teres major.',
+        'Build bigger lats',
+      ]) {
+        expect(routeHome(text), HomeRoute.routine, reason: text);
+      }
+      expect(readParts('나는 대원근을 키우고 싶음.'), ['back']);
+      expect(deviceAsk('대원근 키우기', []).parts, ['back']);
+      for (final text in [
+        '대원근 키우려고 지난주 몇 번 했어?',
+        '광배근 성장 기록 보여줘',
+        '강아지 키우기',
+        'I want to build a house',
+      ]) {
+        expect(routeHome(text), HomeRoute.question, reason: text);
+      }
+      expect(routeHome('수술 후 대원근을 키우고 싶음'), HomeRoute.refuse);
+      expect(homeRefusal('수술 후 대원근 키우기'), 'medical');
+    });
+
     test('맨 요청의 앞날(G14): 내일·요일은 기기가 읽고 원판 0', () {
       expect(routeHome('내일 루틴 짜줘'), HomeRoute.bare);
       expect(readWhen('내일 루틴 짜줘'), 'tomorrow');
