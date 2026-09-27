@@ -1054,6 +1054,25 @@ class LEn extends L {
       'This estimates everything visible in the photo. Choose how much of it you ate.';
 
   @override
+  String get mealReviewTitle => 'Review food and amount';
+
+  @override
+  String get mealReviewNote =>
+      'Check the food names and amounts. Edit amounts below. If a food differs, cancel and edit your entry or take another photo.';
+
+  @override
+  String get mealEstimatedAmount =>
+      'AI estimated this amount. Adjust it to what you ate.';
+
+  @override
+  String get mealLabelReviewNote =>
+      'Compare calories, serving size and units with the photo. Correct misread values before saving.';
+
+  @override
+  String get mealTextNeedsReview =>
+      'The calorie total or amount eaten is unclear. Tap the meal and enter the calories you actually ate, or a clear amount.';
+
+  @override
   String get mealTextUnknown =>
       'Couldn\'t estimate calories — the food wasn\'t recognized. Tap the meal to add a name or amount and it will be estimated again.';
 

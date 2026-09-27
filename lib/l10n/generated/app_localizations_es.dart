@@ -1062,6 +1062,25 @@ class LEs extends L {
       'Es una estimación de todo lo que se ve en la foto. Elige cuánto comiste.';
 
   @override
+  String get mealReviewTitle => 'Revisar alimento y cantidad';
+
+  @override
+  String get mealReviewNote =>
+      'Comprueba los alimentos y las cantidades. Puedes corregir las cantidades abajo. Si el alimento no coincide, cancela y corrige el texto o toma otra foto.';
+
+  @override
+  String get mealEstimatedAmount =>
+      'La IA estimó esta cantidad. Ajústala a lo que comiste.';
+
+  @override
+  String get mealLabelReviewNote =>
+      'Compara las calorías, la porción y las unidades con la foto. Corrige los errores antes de guardar.';
+
+  @override
+  String get mealTextNeedsReview =>
+      'El total de calorías o la cantidad consumida no están claros. Toca la comida e introduce las calorías consumidas o una cantidad precisa.';
+
+  @override
   String get mealTextUnknown =>
       'No se pudieron estimar las calorías: no se reconoció el alimento. Toca la comida para añadir un nombre o una cantidad y se estimará de nuevo.';
 

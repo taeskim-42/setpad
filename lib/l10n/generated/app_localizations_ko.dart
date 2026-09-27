@@ -1015,6 +1015,24 @@ class LKo extends L {
   String get mealPhotoWholeNote => '사진에 보이는 음식 전체를 어림한 값이에요. 그중 드신 만큼을 고르세요.';
 
   @override
+  String get mealReviewTitle => '음식과 양 확인';
+
+  @override
+  String get mealReviewNote =>
+      '음식명과 먹은 양을 확인해 주세요. 양은 아래에서 고칠 수 있어요. 음식이 다르면 취소하고 다시 입력하거나 촬영해 주세요.';
+
+  @override
+  String get mealEstimatedAmount => 'AI가 추정한 양이에요. 실제 먹은 양으로 고쳐 주세요.';
+
+  @override
+  String get mealLabelReviewNote =>
+      '사진의 열량·기준량·단위를 대조하고 잘못 읽힌 값을 고친 뒤 저장해 주세요.';
+
+  @override
+  String get mealTextNeedsReview =>
+      '총열량이나 먹은 양이 명확하지 않아요. 끼니 줄을 눌러 실제 먹은 열량 또는 정확한 양을 적어 주세요.';
+
+  @override
   String get mealTextUnknown =>
       '무슨 음식인지 몰라 열량을 어림하지 못했어요. 끼니 줄을 눌러 음식 이름이나 양을 더 적으면 다시 어림해요.';
 

@@ -23,6 +23,7 @@ import 'gym_sheets.dart';
 import 'handoff.dart';
 import 'meal.dart';
 import 'meal_amount_sheet.dart';
+import 'meal_review_sheet.dart';
 import 'anatomy_page.dart' show registerArtworkLicense;
 import 'notes.dart';
 import 'palette.dart';
@@ -770,13 +771,17 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   /// 적은 음식 값만으로도 그보다 크다. 그때와 어림이 막혔을 때는 적은 합이
   /// 남아 있고([_saveMealText]), 그렇다고 말한다.
   Future<void> _estimateMealText(MealEntry entry) async {
+    if (_estimatingMeals.contains(entry)) return;
     final l = L.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final typed = parseMealText(entry.text!).typed;
+    final parsed = parseMealText(entry.text!);
+    final typed = parsed.typed;
     MealEstimate? estimate;
     String? failure;
     // 서버는 500자까지 받는다. 보내 봐야 거절이니 먼저 말한다.
-    if (entry.text!.length > 500) {
+    if (parsed.needsReview) {
+      failure = l.mealTextNeedsReview;
+    } else if (entry.text!.length > 500) {
       failure = l.mealTextTooLong;
     } else if (!widget.ai.supported) {
       failure = l.mealTextOffline;
@@ -792,6 +797,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
           (RecordAiStatus.aiOff, _) => l.aiOff,
           (RecordAiStatus.quotaExceeded, _) => l.inputQuotaSpent,
           (_, 'unknownFood' || 'notFood') => l.mealTextUnknown,
+          (_, 'ambiguousAmount') => l.mealTextNeedsReview,
           // 서버도 적은 합보다 작은 어림을 내보내지 않는다 — 아래의 같은 까닭이다.
           (_, 'belowTyped') when typed != null => null,
           _ => l.mealTextOffline,
@@ -803,8 +809,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
       }
     }
     if (!mounted) return;
-    final at = widget.note.meals.indexOf(entry);
-    if (at < 0) return;
+    if (!widget.note.meals.contains(entry)) return;
     void tell(String? message) =>
         _documentHeaderKey.currentState?.tell(message, entry);
     if (estimate == null || (typed != null && estimate.kcal < typed)) {
@@ -815,16 +820,27 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
         ].join('\n'),
       );
     }
-    // 다시 어림해 붙었다. 이 끼니가 앞서 말한 실패는 이제 틀린 말이다.
+    final reviewed = estimate.requiresConfirmation
+        ? await reviewMealEstimate(context, estimate)
+        : (kcal: estimate.kcal.toDouble(), text: null);
+    if (!mounted || !widget.note.meals.contains(entry) || reviewed == null) {
+      return;
+    }
+    final kcal = reviewed.kcal.round();
+    if (typed != null && kcal < typed) return tell(l.mealTextBelowTyped(typed));
+    final at = widget.note.meals.indexOf(entry);
     tell(null);
     widget.note.meals[at] = MealEntry(
       id: entry.id,
       at: entry.at,
-      kcal: estimate.kcal,
-      items: estimate.items,
+      kcal: kcal,
+      items: estimate.confirmedItems,
       text: entry.text,
+      reviewedText: reviewed.text,
       source: MealEntry.estimate,
-      foods: entry.foods,
+      foods: reviewed.text == null
+          ? entry.foods
+          : parseMealText(reviewed.text!).foods,
       sources: estimate.sources,
     );
     _mealsChanged();
@@ -873,7 +889,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
       meals: [
         for (final m in day?.meals ?? const <MealEntry>[])
           (
-            text: m.text ?? m.items.join(', '),
+            text: m.description,
             kcal: m.kcal == null
                 ? l.mealKcalUnknown
                 : m.partial
@@ -1211,7 +1227,8 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                       onMealText: _saveMealText,
                       recentMeals: <String>{
                         for (final n in widget.store.notes)
-                          for (final m in n.meals.reversed) ?m.text,
+                          for (final m in n.meals.reversed)
+                            if (m.text != null) ?m.currentText,
                       }.take(24).toList(),
                       initialDraft: widget.note.draft,
                       onDraftChanged: (draft) =>
@@ -1372,29 +1389,39 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
       );
       final label = estimate.label;
       if (label != null) {
-        // 성분표는 인쇄된 숫자다. 얼마나 먹었는지만 받아 계산한다. 취소하면
-        // 아무것도 남기지 않는다 — 다시 찍어도 끼니가 둘이 되지 않는다.
+        // OCR values stay editable beside the original photo until confirmed.
         if (!mounted) return;
         setState(() => _estimating = false);
         final picked = await askMealAmount(
           context,
           bases: basesOf(label),
           title: label.product,
+          note: l.mealLabelReviewNote,
+          photo: bytes,
+          allowUnitEdit: true,
         );
         if (picked == null || !mounted) return;
         note.meals.add(_measured(picked, MealEntry.label, label.product));
       } else {
-        // 사진 어림은 **보이는 음식 전체**의 값이다. 묻지 않고 전체로 남기고,
-        // 덜 먹었으면 그 줄을 눌러 고친다 — 매번 창을 띄우지 않는다.
+        if (!mounted) return;
+        setState(() => _estimating = false);
+        final reviewed = await reviewMealEstimate(
+          context,
+          estimate,
+          photo: bytes,
+        );
+        if (reviewed == null || !mounted) return;
+        final kcal = reviewed.kcal.round();
         note.meals.add(
           MealEntry(
             at: DateTime.now(),
-            kcal: estimate.kcal,
-            items: estimate.items,
+            kcal: kcal,
+            items: estimate.confirmedItems,
+            reviewedText: reviewed.text,
             source: MealEntry.estimate,
             sources: estimate.sources,
             basis: MealBasis(
-              kcal: estimate.kcal.toDouble(),
+              kcal: reviewed.kcal,
               amount: 1,
               unit: MealBasis.photo,
             ),
@@ -1436,6 +1463,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     source: source,
     basis: picked.basis,
     eaten: picked.eaten,
+    reviewedText: old?.reviewedText,
     // 양만 고쳤다. 100g 당 값은 그대로라 근거도 그대로다.
     sources: old?.sources ?? const [],
   );
@@ -1446,7 +1474,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
   Future<void> _editMeal(int index) async {
     final meal = note.meals[index];
     if (meal.text != null) {
-      widget.mealText?.value = (text: meal.text!, index: index);
+      widget.mealText?.value = (text: meal.currentText!, index: index);
       return;
     }
     final basis = meal.basis;
@@ -1460,7 +1488,12 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
       initialBasis: basis,
       initialEaten: meal.eaten,
     );
-    if (picked == null || !mounted || index >= note.meals.length) return;
+    if (picked == null ||
+        !mounted ||
+        index >= note.meals.length ||
+        note.meals[index] != meal) {
+      return;
+    }
     note.meals[index] = _measured(
       picked,
       meal.source ?? MealEntry.estimate,
@@ -1627,7 +1660,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                             Expanded(
                               child: Text(
                                 [
-                                  meal.text ?? meal.items.join(', '),
+                                  meal.description,
                                   if (meal.basis != null &&
                                       meal.eaten != null &&
                                       !(meal.basis!.unit == MealBasis.photo &&

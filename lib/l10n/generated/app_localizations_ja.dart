@@ -1011,6 +1011,23 @@ class LJa extends L {
   String get mealPhotoWholeNote => '写真に写っている料理全体の推定値です。そのうち食べた分を選んでください。';
 
   @override
+  String get mealReviewTitle => '食品と量を確認';
+
+  @override
+  String get mealReviewNote =>
+      '食品名と食べた量を確認してください。量は下で修正できます。食品が違う場合はキャンセルして再入力または再撮影してください。';
+
+  @override
+  String get mealEstimatedAmount => 'AIが推定した量です。実際に食べた量に修正してください。';
+
+  @override
+  String get mealLabelReviewNote => '写真の熱量・基準量・単位と照合し、読み違えた値を修正してから保存してください。';
+
+  @override
+  String get mealTextNeedsReview =>
+      '合計カロリーまたは食べた量が不明です。食事をタップして、実際に摂取したカロリーか正確な量を入力してください。';
+
+  @override
   String get mealTextUnknown =>
       '食べ物がわからず、カロリーを推定できませんでした。食事の行をタップして料理名や量を書き足すと、もう一度推定します。';
 

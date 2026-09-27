@@ -305,6 +305,11 @@ void main() {
       await writeMeal(tester, '김밥 한 줄');
       expectNoPrompt();
       expect(s.paths, contains('/api/meals/estimate'));
+      expect(note.meals.single.kcal, isNull);
+      final confirm = find.byKey(const ValueKey('meal-review-confirm'));
+      await tester.ensureVisible(confirm);
+      await tester.tap(confirm);
+      await tester.pumpAndSettle();
       expect(note.meals.single.kcal, 480);
     });
 

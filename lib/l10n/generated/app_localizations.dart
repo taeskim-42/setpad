@@ -1711,6 +1711,36 @@ abstract class L {
   /// **'사진에 보이는 음식 전체를 어림한 값이에요. 그중 드신 만큼을 고르세요.'**
   String get mealPhotoWholeNote;
 
+  /// No description provided for @mealReviewTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'음식과 양 확인'**
+  String get mealReviewTitle;
+
+  /// No description provided for @mealReviewNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'음식명과 먹은 양을 확인해 주세요. 양은 아래에서 고칠 수 있어요. 음식이 다르면 취소하고 다시 입력하거나 촬영해 주세요.'**
+  String get mealReviewNote;
+
+  /// No description provided for @mealEstimatedAmount.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI가 추정한 양이에요. 실제 먹은 양으로 고쳐 주세요.'**
+  String get mealEstimatedAmount;
+
+  /// No description provided for @mealLabelReviewNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진의 열량·기준량·단위를 대조하고 잘못 읽힌 값을 고친 뒤 저장해 주세요.'**
+  String get mealLabelReviewNote;
+
+  /// No description provided for @mealTextNeedsReview.
+  ///
+  /// In ko, this message translates to:
+  /// **'총열량이나 먹은 양이 명확하지 않아요. 끼니 줄을 눌러 실제 먹은 열량 또는 정확한 양을 적어 주세요.'**
+  String get mealTextNeedsReview;
+
   /// No description provided for @mealTextUnknown.
   ///
   /// In ko, this message translates to:

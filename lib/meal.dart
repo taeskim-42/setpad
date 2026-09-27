@@ -31,7 +31,12 @@ class MealBasis {
   /// 0 이 아니다. 0kcal 은 "먹었는데 열량이 없다" 는 다른 말이다.
   int? kcalFor(double eaten) {
     final v = kcal * eaten / amount;
-    if (!(kcal >= 0 && amount > 0 && eaten >= 0) || !v.isFinite || v > 100000) {
+    if (!kcal.isFinite ||
+        !amount.isFinite ||
+        !eaten.isFinite ||
+        !(kcal >= 0 && kcal <= 100000 && amount > 0 && eaten >= 0) ||
+        !v.isFinite ||
+        v > 100000) {
       return null;
     }
     return v.round();
@@ -63,23 +68,90 @@ class MealBasis {
 /// 총 회분이 적혀 있으면 포장 전체도 된다(한 봉지가 1회분이어도).
 List<MealBasis> basesOf(NutritionLabel label) {
   final per = label.perServingKcal.toDouble();
-  final printed = RegExp(
-    r'(\d+(?:\.\d+)?)\s*(g|ml|㎖|개|조각|장|알|봉지|캔|병|컵)',
-    caseSensitive: false,
-  ).firstMatch(label.servingSize);
-  final amount = printed == null ? null : double.parse(printed[1]!);
+  final printed = _printedServing(label.servingSize);
   final whole = label.servingsPerPackage;
   return [
-    if (amount != null && amount > 0)
-      MealBasis(
-        kcal: per,
-        amount: amount,
-        unit: printed![2]!.toLowerCase().replaceAll('㎖', 'ml'),
-      ),
+    if (printed != null)
+      MealBasis(kcal: per, amount: printed.amount, unit: printed.unit),
     MealBasis(kcal: per, amount: 1, unit: MealBasis.serving),
-    if (whole != null && whole > 0)
+    if (whole != null &&
+        whole.isFinite &&
+        whole > 0 &&
+        whole <= 10000 &&
+        per * whole <= 100000)
       MealBasis(kcal: per * whole, amount: 1, unit: MealBasis.package),
   ];
+}
+
+/// Reads a whole number token, never a valid suffix of a malformed number.
+double? parseMealAmount(String text) {
+  var token = text.trim();
+  if (RegExp(r'^[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?$').hasMatch(token)) {
+    token = token.replaceAll(',', '');
+  } else if (RegExp(r'^\d+,\d{1,2}$|^0,\d+$').hasMatch(token)) {
+    token = token.replaceAll(',', '.');
+  } else if (!RegExp(r'^(?:\d+(?:\.\d+)?|\.\d+)$').hasMatch(token)) {
+    return null;
+  }
+  final n = double.tryParse(token);
+  return n != null && n.isFinite && n >= 0 ? n : null;
+}
+
+const _quantityNumber =
+    r'(?:\d[\d.,]*(?:\s*/\s*\d[\d.,]*)?|\.\d+|½|¼|¾|반|한|두|세|네)';
+const _quantityUnit =
+    r'(?:kg|㎏|g|ml|㎖|l|ℓ|개|줄|컵|잔|공기|그릇|조각|봉지|인분|장|캔|병|알|접시|스푼|숟갈)';
+final _mealQuantity = RegExp(
+  '($_quantityNumber)\\s*($_quantityUnit)(?![A-Za-z])',
+  caseSensitive: false,
+);
+
+double? _quantityValue(String text) {
+  final token = text.trim();
+  final word = {..._counts, '½': 0.5, '¼': 0.25, '¾': 0.75}[token];
+  if (word != null) return word;
+  final parts = token.split('/');
+  final n = parseMealAmount(parts.first);
+  if (parts.length == 1) return n;
+  final d = parts.length == 2 ? parseMealAmount(parts.last) : null;
+  return n != null && d != null && d > 0 ? n / d : null;
+}
+
+({double amount, String unit})? _readQuantity(Match match) {
+  if (RegExp(
+    r'[\d.,/+\-]\s*$',
+  ).hasMatch(match.input.substring(0, match.start))) {
+    return null;
+  }
+  final n = _quantityValue(match[1]!);
+  if (n == null) return null;
+  final quantity = switch (match[2]!.toLowerCase()) {
+    'kg' || '㎏' => (amount: n * 1000, unit: 'g'),
+    'l' || 'ℓ' => (amount: n * 1000, unit: 'ml'),
+    '㎖' => (amount: n, unit: 'ml'),
+    final unit => (amount: n, unit: unit),
+  };
+  return quantity.amount.isFinite ? quantity : null;
+}
+
+({double amount, String unit})? _printedServing(String text) {
+  // Parentheses can give an equivalent weight; the leading printed unit wins.
+  final main = text.replaceAll(RegExp(r'\([^()]*\)|（[^（）]*）'), '').trim();
+  final matches = _mealQuantity.allMatches(main).toList();
+  if (matches.length != 1) return null;
+  final match = matches.single;
+  final rest = main
+      .replaceRange(match.start, match.end, '')
+      .replaceAll(
+        RegExp(
+          r'\b(?:1\s*serving|per\s*serving|serving\s*size)\b|1\s*회\s*제공량|제공량|총\s*내용량|내용량|중량|용량|당|[\s:：]',
+          caseSensitive: false,
+        ),
+        '',
+      );
+  if (rest.isNotEmpty) return null;
+  final printed = _readQuantity(match);
+  return printed != null && printed.amount > 0 ? printed : null;
 }
 
 /// 열량을 계산한 표의 한 줄. 숫자를 믿을 수 있게 **값과 링크를 같이** 둔다 —
@@ -165,35 +237,31 @@ class MealFood {
 
 const _counts = {'반': 0.5, '한': 1.0, '두': 2.0, '세': 3.0, '네': 4.0};
 
-/// 친 식단 글을 **확인되는 만큼만** 구조로 읽는다. 원문은 부르는 쪽이 그대로
-/// 저장한다 — 여기서 못 읽었다고 기록이 거부되지 않는다.
-///
-/// 쉼표로 음식을 가르고, 각 음식 끝의 "150g"·"2개"·"한 줄"·"반 개" 를 양으로
-/// 읽는다. "450kcal" 은 사람이 직접 적은 열량이다. 한 조각 안에서 열량 양쪽에
-/// 말이 있으면 음식이 둘이다("프로틴 120kcal 바나나"). 다만 양·먹었다는 말·
-/// 괄호뿐인 토막("먹음", "한 잔", "(100g)")은 음식이 아니라 앞 음식의 말이다.
-/// 음식 사전을 찾지 않는다.
-///
-/// [typed] 는 적힌 열량의 합이다. [kcal] 은 **모든 음식에 열량이 적혔을 때만**
-/// 그 합이다. 일부만 적었으면 null 이다 — 안 적은 음식을 0 으로 치면 합계가
-/// 조용히 틀린다. 그때는 어림을 부르고, 적은 값은 서버가 그 음식에 그대로 쓴다.
-({List<MealFood> foods, int? kcal, int? typed}) parseMealText(String text) {
-  // 천 단위 쉼표는 수의 일부다: '2,000kcal' 은 2000 이지 '2' 와 '000kcal' 이 아니다.
-  final plain = text.replaceAll(RegExp(r'(?<=\d),(?=\d{3}(?!\d))'), '');
-  final energy = RegExp(
-    r'(\d+(?:\.\d+)?)\s*(?:kcal|칼로리|㎉)(?:\s*(?:정도|쯤|가량|짜리))?',
-    caseSensitive: false,
-  );
+/// Only unambiguous consumed calories are returned in [typed].
+/// Ambiguous labels, ranges and conflicting totals must not become AI lower bounds.
+({List<MealFood> foods, int? kcal, int? typed, bool needsReview}) parseMealText(
+  String text,
+) {
+  final plain = text.replaceAllMapped(RegExp(r'\d[\d.,]*'), (m) {
+    final token = m[0]!;
+    return token.contains(',') && parseMealAmount(token) != null
+        ? parseMealAmount(token).toString()
+        : token;
+  });
   final quantity = RegExp(
-    r'\s*(\d+(?:\.\d+)?|반|한|두|세|네)\s*'
-    r'(kg|g|ml|l|개|줄|컵|공기|그릇|조각|봉지|인분|장|캔|병|알|접시|스푼|숟갈)$',
+    '\\s*($_quantityNumber)\\s*($_quantityUnit)\$',
     caseSensitive: false,
   );
   final names = <String>[];
-  final typed = <double>[];
+  final clauses = <String>[];
   for (final raw in plain.split(RegExp(r'[,，、\n]'))) {
-    typed.addAll([for (final m in energy.allMatches(raw)) double.parse(m[1]!)]);
-    for (final p in raw.split(energy)) {
+    if (clauses.isNotEmpty &&
+        (_aside(raw.trim()) || raw.replaceAll(_energy, '').trim().isEmpty)) {
+      clauses.last += ' $raw';
+    } else if (raw.trim().isNotEmpty) {
+      clauses.add(raw);
+    }
+    for (final p in raw.split(_energy)) {
       final part = p.trim().replaceAll(RegExp(r'\s+'), ' ');
       if (part.isEmpty) continue;
       if (names.isNotEmpty && _aside(part)) {
@@ -206,22 +274,178 @@ const _counts = {'반': 0.5, '한': 1.0, '두': 2.0, '세': 3.0, '네': 4.0};
   final foods = [
     for (final part in names)
       if (quantity.firstMatch(part) case final m?
-          when part.substring(0, m.start).trim().isNotEmpty)
+          when part.substring(0, m.start).trim().isNotEmpty &&
+              _quantityValue(m[1]!) != null)
         MealFood(
           part.substring(0, m.start).trim(),
-          _counts[m[1]] ?? double.parse(m[1]!),
+          _quantityValue(m[1]!),
           m[2]!.toLowerCase(),
         )
       else
         MealFood(part),
   ];
-  final total = typed.fold<double>(0, (n, v) => n + v);
-  final sum = typed.isEmpty || total > 100000 ? null : total.round();
-  // 열량보다 음식이 많으면 열량 없는 음식이 있다.
+  final reading = _readCalories(plain, clauses, names.length);
   return (
     foods: foods,
-    kcal: names.length > typed.length ? null : sum,
-    typed: sum,
+    kcal: reading.kcal,
+    typed: reading.typed,
+    needsReview: reading.needsReview,
+  );
+}
+
+final _energy = RegExp(
+  r'(?<![A-Za-z\d.,/+\-])([+-]?(?:\d[\d.,]*(?:\s*/\s*\d[\d.,]*)?|\.\d+))\s*'
+  r'(?:kcal|칼로리|㎉)(?:\s*(?:정도|쯤|가량|짜리|씩))?',
+  caseSensitive: false,
+);
+const _totalWords = r'(?:총\s*칼로리|총열량|총(?:합계|합|계|량)?|합계|전체|합쳐서|합해서|합산|도합|total)';
+final _totalPrefix = RegExp(
+  '(?:^|\\s)$_totalWords(?:은|는|이|가)?(?:\\s*[:=]\\s*|\\s*)\$',
+  caseSensitive: false,
+);
+final _portionModifier = RegExp(
+  r'반\s*의?\s*반|반\s*만|(?:^|\s)반(?=\s*(?:먹|섭취|마))|절반|남[겼김]|나눠|조금|일부|'
+  r'\d+(?:\.\d+)?\s*%|먹지\s*않|마시지\s*않|(?:안|못)\s*(?:먹|마)|\bhalf\b',
+  caseSensitive: false,
+);
+
+({int? kcal, int? typed, bool needsReview}) _readCalories(
+  String text,
+  List<String> clauses,
+  int foodCount,
+) {
+  const unknown = (kcal: null, typed: null, needsReview: true);
+  final matches = _energy.allMatches(text).toList();
+  if (matches.isEmpty) {
+    return (kcal: null, typed: null, needsReview: _kcal.hasMatch(text));
+  }
+  if (RegExp(
+    r'[~〜～‐‑‒–—―−﹣－]|\d\s*-\s*\d|kcal\s*-|\d[eE]\d|이상|이하|미만|초과|또는|대신|제외|빼고|빼서|뺌|뺀|비교|보다|안\s*먹|못\s*먹|먹지\s*않|\b(?:or|minus|less|between)\b|'
+    r'(?:kcal|칼로리|㎉)\s*(?:짜리\s*)?(?:에서|중|가운데|to\b)',
+    caseSensitive: false,
+  ).hasMatch(text)) {
+    return unknown;
+  }
+  if (matches.any((m) => parseMealAmount(m[1]!) == null)) return unknown;
+  final totals = <double>[];
+  final values = <double>[];
+  var count = 0;
+  for (final clause in clauses) {
+    final calories = _energy.allMatches(clause).toList();
+    final modifier = _portionModifier.hasMatch(clause);
+    if (modifier &&
+        (calories.isNotEmpty ||
+            _aside(clause.replaceAll(_portionModifier, '')))) {
+      return unknown;
+    }
+    final ordinary = <RegExpMatch>[];
+    for (final m in calories) {
+      final n = parseMealAmount(m[1]!);
+      if (n == null || n > 100000) return unknown;
+      if (_totalPrefix.hasMatch(clause.substring(0, m.start))) {
+        totals.add(n);
+      } else {
+        ordinary.add(m);
+      }
+    }
+    final quantities = _mealQuantity.allMatches(clause).toList();
+    final perUnit = RegExp(
+      '($_quantityUnit)\\s*당',
+      caseSensitive: false,
+    ).firstMatch(clause)?[1]?.toLowerCase();
+    final each = RegExp(
+      r'(?:kcal|칼로리|㎉)\s*(?:짜리|씩)',
+      caseSensitive: false,
+    ).hasMatch(clause);
+    final basisMarker =
+        perUnit != null ||
+        each ||
+        quantities.any(
+          (q) => clause.substring(q.end).trimLeft().startsWith('당'),
+        ) ||
+        RegExp(r'기준|\bper\b|kcal\s*/', caseSensitive: false).hasMatch(clause);
+    if (quantities.any((q) => _readQuantity(q) == null)) return unknown;
+    final fractionalTail =
+        calories.isNotEmpty &&
+        quantities.any(
+          (q) => q.start >= calories.last.end && _readQuantity(q)!.amount < 1,
+        );
+    if (ordinary.isEmpty) {
+      if (calories.isNotEmpty &&
+          (basisMarker || quantities.length > 1 || fractionalTail)) {
+        return unknown;
+      }
+      continue;
+    }
+    for (var i = 1; i < ordinary.length; i++) {
+      if (_aside(clause.substring(ordinary[i - 1].end, ordinary[i].start))) {
+        return unknown;
+      }
+    }
+    if (ordinary.length == 1 &&
+        quantities.length == 1 &&
+        quantities.single.start >= ordinary.single.end &&
+        (perUnit != null || each)) {
+      final eaten = _readQuantity(quantities.single)!;
+      if (!_aside(clause.substring(quantities.single.end)) ||
+          (perUnit != null && perUnit != eaten.unit) ||
+          (perUnit == null && const ['g', 'ml'].contains(eaten.unit))) {
+        return unknown;
+      }
+      values.add(parseMealAmount(ordinary.single[1]!)! * eaten.amount);
+      count++;
+    } else if (ordinary.length == 1 &&
+        quantities.length == 2 &&
+        quantities.first.end <= ordinary.single.start &&
+        quantities.last.start >= ordinary.single.end) {
+      final basis = _readQuantity(quantities.first);
+      final eaten = _readQuantity(quantities.last);
+      // No density conversion or guessing how much of a package was eaten.
+      if (basis == null ||
+          eaten == null ||
+          basis.amount <= 0 ||
+          basis.unit != eaten.unit) {
+        return unknown;
+      }
+      final between = clause.substring(
+        ordinary.single.end,
+        quantities.last.start,
+      );
+      final tail = clause.substring(quantities.last.end);
+      if (!_aside('$between $tail')) return unknown;
+      values.add(
+        parseMealAmount(ordinary.single[1]!)! * eaten.amount / basis.amount,
+      );
+      count++;
+    } else {
+      if (basisMarker ||
+          (ordinary.length == 1 && quantities.length > 1) ||
+          fractionalTail) {
+        return unknown;
+      }
+      values.addAll(ordinary.map((m) => parseMealAmount(m[1]!)!));
+      count += ordinary.length;
+    }
+  }
+  final sum = values.fold<double>(0, (a, b) => a + b);
+  if (!sum.isFinite || sum > 100000) return unknown;
+  if (count > 1 && count > foodCount) return unknown;
+  if (totals.isNotEmpty) {
+    final total = totals.first;
+    if (totals.any((n) => n != total) ||
+        sum.round() > total.round() ||
+        (values.isNotEmpty &&
+            foodCount <= count &&
+            sum.round() != total.round())) {
+      return unknown;
+    }
+    return (kcal: total.round(), typed: total.round(), needsReview: false);
+  }
+  final typed = values.isEmpty ? null : sum.round();
+  return (
+    kcal: foodCount > count ? null : typed,
+    typed: typed,
+    needsReview: false,
   );
 }
 
@@ -232,7 +456,7 @@ bool _aside(String part) => part
     .replaceAll(RegExp(r'[(\[（][^)\]）]*[)\]）]'), ' ')
     .replaceAll(
       RegExp(
-        r'(?:\d+(?:\.\d+)?|반|한|두|세|네)\s*'
+        '$_quantityNumber\\s*'
         r'(?:kg|g|ml|l|개|줄|컵|잔|공기|그릇|조각|봉지|인분|장|캔|병|알|접시|스푼|숟갈|'
         r'cups?|glass(?:es)?|pieces?|slices?|bowls?|servings?)(?![A-Za-z])',
         caseSensitive: false,
@@ -242,13 +466,13 @@ bool _aside(String part) => part
     .replaceAll(
       RegExp(
         r'먹(?:음|었[가-힣]*|은\s*듯|고)|마심|마셨[가-힣]*|섭취(?:함|했[가-힣]*)?|'
-        r'정도|쯤|가량|대략|약|총|'
+        '정도|쯤|가량|대략|약|$_totalWords(?:은|는|이|가)?|'
         r'\b(?:ate|had|eaten|drank|about|around|approx|total)\b',
         caseSensitive: false,
       ),
       ' ',
     )
-    .replaceAll(RegExp(r'[\s.~!?·:-]'), '')
+    .replaceAll(RegExp(r'[\s().~!?·:=\[\]（）：-]'), '')
     .isEmpty;
 
 /// 친 줄에 **끼니라는 근거**가 있는가. 운동 근거([exerciseEvidence])를 먼저 보고,

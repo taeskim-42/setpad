@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:flutter/cupertino.dart';
 
 import 'l10n/generated/app_localizations.dart';
 import 'meal.dart';
 import 'palette.dart';
 import 'share.dart';
+import 'units.dart';
 
 String mealUnitLabel(L l, String unit) => switch (unit) {
   MealBasis.serving => l.mealUnitServing,
@@ -73,6 +76,14 @@ Future<void> showMealSources(
   },
 );
 
+Widget mealReviewPhoto(Uint8List photo) => SizedBox(
+  height: 180,
+  child: InteractiveViewer(
+    maxScale: 5,
+    child: Image.memory(photo, fit: BoxFit.contain),
+  ),
+);
+
 Future<({MealBasis basis, double eaten})?> askMealAmount(
   BuildContext context, {
   required List<MealBasis> bases,
@@ -80,6 +91,8 @@ Future<({MealBasis basis, double eaten})?> askMealAmount(
   String? note,
   MealBasis? initialBasis,
   double? initialEaten,
+  Uint8List? photo,
+  bool allowUnitEdit = false,
 }) => showCupertinoModalPopup<({MealBasis basis, double eaten})>(
   context: context,
   builder: (context) => _MealAmountSheet(
@@ -88,6 +101,8 @@ Future<({MealBasis basis, double eaten})?> askMealAmount(
     note: note,
     initialBasis: initialBasis,
     initialEaten: initialEaten,
+    photo: photo,
+    allowUnitEdit: allowUnitEdit,
   ),
 );
 
@@ -98,11 +113,15 @@ class _MealAmountSheet extends StatefulWidget {
     this.note,
     this.initialBasis,
     this.initialEaten,
+    this.photo,
+    this.allowUnitEdit = false,
   });
   final List<MealBasis> bases;
   final String? title, note;
   final MealBasis? initialBasis;
   final double? initialEaten;
+  final Uint8List? photo;
+  final bool allowUnitEdit;
 
   @override
   State<_MealAmountSheet> createState() => _MealAmountSheetState();
@@ -110,19 +129,23 @@ class _MealAmountSheet extends StatefulWidget {
 
 class _MealAmountSheetState extends State<_MealAmountSheet> {
   late int _pick;
+  bool _basisEdited = false;
   final _kcal = TextEditingController();
   final _amount = TextEditingController();
   final _eaten = TextEditingController();
+  final _printedUnit = TextEditingController();
 
-  String get _unit => widget.bases[_pick].unit;
+  String get _unit => widget.allowUnitEdit && _measured
+      ? _printedUnit.text.trim()
+      : widget.bases[_pick].unit;
 
   bool get _portion => _unit == MealBasis.package || _unit == MealBasis.photo;
 
   /// 인쇄된 단위(g·개…)만 기준량이 있다. 회분·포장·사진은 늘 "1" 이다.
   bool get _measured =>
-      _unit != MealBasis.serving &&
-      _unit != MealBasis.package &&
-      _unit != MealBasis.photo;
+      widget.bases[_pick].unit != MealBasis.serving &&
+      widget.bases[_pick].unit != MealBasis.package &&
+      widget.bases[_pick].unit != MealBasis.photo;
 
   @override
   void initState() {
@@ -135,21 +158,25 @@ class _MealAmountSheetState extends State<_MealAmountSheet> {
   }
 
   void _load(MealBasis basis, [double? eaten]) {
-    _kcal.text = amountText(basis.kcal);
-    _amount.text = amountText(basis.amount);
+    _kcal.text = formatNumber(basis.kcal);
+    _amount.text = formatNumber(basis.amount);
+    _printedUnit.text = basis.unit;
     // 기본은 한 번 제공량만큼 — 고치기 가장 가까운 출발점이다.
-    _eaten.text = amountText(eaten ?? (_measured ? basis.amount : 1));
+    _eaten.text = formatNumber(eaten ?? (_measured ? basis.amount : 1));
   }
 
-  static double? _number(String text) {
-    final n = double.tryParse(text.trim().replaceAll(',', '.'));
-    return n != null && n.isFinite && n >= 0 ? n : null;
-  }
+  static double? _number(String text) => parseMealAmount(text);
 
   MealBasis? get _basis {
     final kcal = _number(_kcal.text);
     final amount = _measured ? _number(_amount.text) : 1.0;
-    if (kcal == null || amount == null || amount <= 0) return null;
+    if (kcal == null ||
+        amount == null ||
+        amount <= 0 ||
+        _unit.isEmpty ||
+        _unit.length > 20) {
+      return null;
+    }
     return MealBasis(kcal: kcal, amount: amount, unit: _unit);
   }
 
@@ -158,6 +185,7 @@ class _MealAmountSheetState extends State<_MealAmountSheet> {
     _kcal.dispose();
     _amount.dispose();
     _eaten.dispose();
+    _printedUnit.dispose();
     super.dispose();
   }
 
@@ -169,7 +197,9 @@ class _MealAmountSheetState extends State<_MealAmountSheet> {
           controller: c,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           textAlign: TextAlign.end,
-          onChanged: (_) => setState(() {}),
+          onChanged: (_) => setState(() {
+            if (key != 'meal-eaten') _basisEdited = true;
+          }),
         ),
       );
 
@@ -183,134 +213,155 @@ class _MealAmountSheetState extends State<_MealAmountSheet> {
     final unit = mealUnitLabel(l, _unit);
     final base = _measured ? (_number(_amount.text) ?? 1) : 1.0;
     return CupertinoPopupSurface(
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            16,
-            20,
-            12 + MediaQuery.viewInsetsOf(context).bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                widget.title ?? l.mealAmountAsk,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              if (widget.note != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    widget.note!,
-                    style: TextStyle(fontSize: 13, color: muted),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * .9,
+        ),
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              16,
+              20,
+              12 + MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  widget.title ?? l.mealAmountAsk,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              if (widget.bases.length > 1) ...[
-                const SizedBox(height: 12),
-                CupertinoSlidingSegmentedControl<int>(
-                  groupValue: _pick,
-                  children: {
-                    for (final (i, b) in widget.bases.indexed)
-                      i: Text(
-                        mealUnitLabel(l, b.unit),
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                  },
-                  onValueChanged: (i) => setState(() {
-                    _pick = i ?? 0;
-                    _load(widget.bases[_pick]);
-                  }),
-                ),
-              ],
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(child: Text(l.mealBasis)),
-                  _field(_kcal, 'meal-basis-kcal'),
-                  const Text(' kcal / '),
-                  if (_measured)
-                    _field(_amount, 'meal-basis-amount', width: 64),
-                  Text(_measured ? ' $unit' : '1 $unit'),
+                if (widget.note != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      widget.note!,
+                      style: TextStyle(fontSize: 13, color: muted),
+                    ),
+                  ),
+                if (widget.photo != null) ...[
+                  const SizedBox(height: 12),
+                  mealReviewPhoto(widget.photo!),
                 ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(child: Text(l.mealEaten)),
-                  _field(_eaten, 'meal-eaten'),
-                  Text(' $unit'),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  // 포장과 사진은 "그중 얼마" 라서 전체·절반이고, 나머지는 배수다.
-                  for (final (label, n) in [
-                    (_portion ? l.mealHalf : '½×', base / 2),
-                    (_portion ? l.mealWhole : '1×', base),
-                    if (!_portion) ('2×', base * 2),
-                  ])
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: CupertinoButton(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        minimumSize: const Size(44, 32),
-                        color: CupertinoColors.tertiarySystemFill.resolveFrom(
-                          context,
+                if (widget.bases.length > 1 && !_basisEdited) ...[
+                  const SizedBox(height: 12),
+                  CupertinoSlidingSegmentedControl<int>(
+                    groupValue: _pick,
+                    children: {
+                      for (final (i, b) in widget.bases.indexed)
+                        i: Text(
+                          mealUnitLabel(l, b.unit),
+                          style: const TextStyle(fontSize: 13),
                         ),
-                        onPressed: () =>
-                            setState(() => _eaten.text = amountText(n)),
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: CupertinoColors.label.resolveFrom(context),
+                    },
+                    onValueChanged: (i) => setState(() {
+                      _pick = i ?? 0;
+                      _load(widget.bases[_pick]);
+                    }),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(child: Text(l.mealBasis)),
+                    _field(_kcal, 'meal-basis-kcal'),
+                    const Text(' kcal / '),
+                    if (_measured)
+                      _field(_amount, 'meal-basis-amount', width: 64),
+                    if (widget.allowUnitEdit && _measured)
+                      SizedBox(
+                        width: 56,
+                        child: CupertinoTextField(
+                          key: const ValueKey('meal-basis-unit'),
+                          controller: _printedUnit,
+                          onChanged: (_) => setState(() => _basisEdited = true),
+                        ),
+                      )
+                    else
+                      Text(_measured ? ' $unit' : '1 $unit'),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(child: Text(l.mealEaten)),
+                    _field(_eaten, 'meal-eaten'),
+                    Text(' $unit'),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    // 포장과 사진은 "그중 얼마" 라서 전체·절반이고, 나머지는 배수다.
+                    for (final (label, n) in [
+                      (_portion ? l.mealHalf : '½×', base / 2),
+                      (_portion ? l.mealWhole : '1×', base),
+                      if (!_portion) ('2×', base * 2),
+                    ])
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: CupertinoButton(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          minimumSize: const Size(44, 32),
+                          color: CupertinoColors.tertiarySystemFill.resolveFrom(
+                            context,
+                          ),
+                          onPressed: () =>
+                              setState(() => _eaten.text = formatNumber(n)),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: CupertinoColors.label.resolveFrom(context),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                kcal == null ? l.mealAmountInvalid : l.kcal(kcal),
-                key: const ValueKey('meal-amount-kcal'),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: kcal == null ? 13 : 28,
-                  fontWeight: FontWeight.w600,
-                  color: kcal == null ? seal.resolveFrom(context) : null,
+                  ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: CupertinoButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(l.cancel),
-                    ),
+                const SizedBox(height: 12),
+                Text(
+                  kcal == null ? l.mealAmountInvalid : l.kcal(kcal),
+                  key: const ValueKey('meal-amount-kcal'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: kcal == null ? 13 : 28,
+                    fontWeight: FontWeight.w600,
+                    color: kcal == null ? seal.resolveFrom(context) : null,
                   ),
-                  Expanded(
-                    child: CupertinoButton.filled(
-                      onPressed: kcal == null
-                          ? null
-                          : () => Navigator.pop(context, (
-                              basis: basis!,
-                              eaten: eaten!,
-                            )),
-                      child: Text(l.doneEditing),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CupertinoButton(
+                        key: const ValueKey('meal-review-cancel'),
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(l.cancel),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    Expanded(
+                      child: CupertinoButton.filled(
+                        key: const ValueKey('meal-review-confirm'),
+                        onPressed: kcal == null
+                            ? null
+                            : () => Navigator.pop(context, (
+                                basis: basis!,
+                                eaten: eaten!,
+                              )),
+                        child: Text(l.doneEditing),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

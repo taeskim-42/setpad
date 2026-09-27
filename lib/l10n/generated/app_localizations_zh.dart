@@ -1005,6 +1005,21 @@ class LZh extends L {
   String get mealPhotoWholeNote => '这是照片中全部食物的估算值，请选择您吃了其中多少。';
 
   @override
+  String get mealReviewTitle => '确认食物和份量';
+
+  @override
+  String get mealReviewNote => '请确认食物名称和摄入量。可在下方修改份量。如果食物不符，请取消并修改文字或重新拍照。';
+
+  @override
+  String get mealEstimatedAmount => '此份量由AI估算，请改为实际摄入量。';
+
+  @override
+  String get mealLabelReviewNote => '请对照照片检查热量、标准份量和单位，修正识别错误后再保存。';
+
+  @override
+  String get mealTextNeedsReview => '总热量或食用量不明确。请点按餐食，填写实际摄入的热量或明确的食用量。';
+
+  @override
   String get mealTextUnknown => '无法识别这种食物，未能估算热量。点按这餐补充食物名称或分量，即可重新估算。';
 
   @override
@@ -4227,6 +4242,21 @@ class LZhHans extends LZh {
   String get mealPhotoWholeNote => '这是照片中全部食物的估算值，请选择您吃了其中多少。';
 
   @override
+  String get mealReviewTitle => '确认食物和份量';
+
+  @override
+  String get mealReviewNote => '请确认食物名称和摄入量。可在下方修改份量。如果食物不符，请取消并修改文字或重新拍照。';
+
+  @override
+  String get mealEstimatedAmount => '此份量由AI估算，请改为实际摄入量。';
+
+  @override
+  String get mealLabelReviewNote => '请对照照片检查热量、标准份量和单位，修正识别错误后再保存。';
+
+  @override
+  String get mealTextNeedsReview => '总热量或食用量不明确。请点按餐食，填写实际摄入的热量或明确的食用量。';
+
+  @override
   String get mealTextUnknown => '无法识别这种食物，未能估算热量。点按这餐补充食物名称或分量，即可重新估算。';
 
   @override
@@ -7446,6 +7476,21 @@ class LZhHant extends LZh {
 
   @override
   String get mealPhotoWholeNote => '這是照片中全部食物的估算值，請選擇您吃了其中多少。';
+
+  @override
+  String get mealReviewTitle => '確認食物和份量';
+
+  @override
+  String get mealReviewNote => '請確認食物名稱和攝取量。可在下方修改份量。如果食物不符，請取消並修改文字或重新拍照。';
+
+  @override
+  String get mealEstimatedAmount => '此份量由AI估算，請改為實際攝取量。';
+
+  @override
+  String get mealLabelReviewNote => '請對照照片檢查熱量、標準份量和單位，修正辨識錯誤後再儲存。';
+
+  @override
+  String get mealTextNeedsReview => '總熱量或食用量不明確。請點按餐食，填寫實際攝取的熱量或明確的食用量。';
 
   @override
   String get mealTextUnknown => '無法辨識這種食物，未能估算熱量。點按這餐補充食物名稱或份量，即可重新估算。';

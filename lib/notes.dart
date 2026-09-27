@@ -24,6 +24,7 @@ class MealEntry {
     required this.kcal,
     this.items = const [],
     this.text,
+    this.reviewedText,
     this.source,
     this.basis,
     this.eaten,
@@ -54,6 +55,11 @@ class MealEntry {
 
   /// 사람이 친 글 그대로. 글로 적은 끼니에만 있다.
   final String? text;
+
+  /// Confirmed food and amounts; the original input remains in [text].
+  final String? reviewedText;
+  String? get currentText => reviewedText ?? text;
+  String get description => currentText ?? items.join(', ');
 
   /// [kcal] 이 어디서 왔나. 화면이 "약" 을 붙일지 정한다. 예전 기록은 null
   /// 이고 어림으로 다룬다 — 그때는 사진 어림뿐이었다.
@@ -88,6 +94,7 @@ class MealEntry {
     'kcal': kcal,
     'items': items,
     'text': ?text,
+    'reviewedText': ?reviewedText,
     'source': ?source,
     'basis': ?basis?.toJson(),
     'eaten': ?eaten,
@@ -104,11 +111,25 @@ class MealEntry {
     final when = DateTime.tryParse(at);
     if (when == null) return null;
     final eaten = j['eaten'], source = j['source'];
+    final stored = kcal is num && kcal.isFinite && kcal >= 0
+        ? kcal.round()
+        : null;
+    final parsed = source == typed && text is String
+        ? parseMealText(text)
+        : null;
+    // Repair only values derived from explicit text; estimates need fresh evidence.
+    final corrected =
+        parsed != null && (parsed.typed != null || parsed.needsReview)
+        ? parsed.kcal ?? parsed.typed
+        : stored;
     return MealEntry(
       at: when,
-      kcal: kcal is num && kcal.isFinite && kcal >= 0 ? kcal.round() : null,
+      kcal: corrected,
       items: (j['items'] as List?)?.whereType<String>().toList() ?? const [],
       text: text is String ? text : null,
+      reviewedText: j['reviewedText'] is String
+          ? j['reviewedText'] as String
+          : null,
       source: source is String ? source : null,
       basis: MealBasis.tryFromJson(j['basis']),
       eaten: eaten is num && eaten >= 0 ? eaten.toDouble() : null,
@@ -118,7 +139,7 @@ class MealEntry {
       ],
       sources: MealSource.listFrom(j['sources']),
       id: j['id'] is String ? j['id'] as String : null,
-      dirty: j['dirty'] == true,
+      dirty: j['dirty'] == true || corrected != stored,
     );
   }
 }
@@ -287,8 +308,7 @@ class Note {
   }
 
   /// 먹은 것을 한 줄로 — 끼니마다 친 글 그대로.
-  String get mealsText =>
-      [for (final m in meals) m.text ?? m.items.join(', ')].join(' · ');
+  String get mealsText => [for (final m in meals) m.description].join(' · ');
 
   /// 제목 아래 한 줄 — 그날 총계.
   ///

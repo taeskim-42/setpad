@@ -37,8 +37,44 @@ class FakeAi extends RecordAi {
   }
 }
 
+Future<void> _confirmMeal(WidgetTester tester) async {
+  final confirm = find.byKey(const ValueKey('meal-review-confirm'));
+  if (confirm.evaluate().isEmpty) return;
+  await tester.ensureVisible(confirm);
+  await tester.tap(confirm);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'confirmed amounts survive reload and are sent instead of the original draft',
+    () async {
+      Map<String, dynamic>? sent;
+      final link = GymLink(
+        endpoint: 'https://x',
+        token: 't',
+        client: MockClient((request) async {
+          sent = jsonDecode(request.body) as Map<String, dynamic>;
+          return http.Response('{"id":"row"}', 200);
+        }),
+      );
+      final meal = MealEntry.tryFromJson(
+        MealEntry(
+          at: DateTime(2026, 9, 27, 12),
+          kcal: 400,
+          text: '밥 100g',
+          reviewedText: '쌀밥 200g',
+          source: MealEntry.estimate,
+        ).toJson(),
+      )!;
+      await link.saveMeal(gym, meal);
+      expect(meal.text, '밥 100g');
+      expect(sent!['text'], '쌀밥 200g');
+      expect(sent!['kcal'], 400);
+    },
+  );
 
   test('확정은 끼니의 id 로 PUT, 고치면 같은 id, 지우면 DELETE — 그물이 없으면 밀린다', () async {
     final calls = <(String, String, Map<String, Object?>?)>[];
@@ -235,16 +271,20 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     final input = find.byType(CupertinoTextField);
     Future<void> write(String text) async {
       // 식단 적기는 입력 줄 위 막대에 있다 — 화면 맨 위의 버튼은 뺐다.
       await tester.tap(find.byKey(const ValueKey('meal-button')));
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
       await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
       await tester.enterText(input, text);
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
     }
 
     reply = (_) async => const MealEstimate(kcal: 713, items: ['김밥', '라면']);
@@ -258,6 +298,7 @@ void main() {
     // (숫자 앞 '약' 은 藥으로 읽혔다).
     await tester.tap(find.byKey(const ValueKey('day-summary-line')));
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     expect(find.text('추정'), findsWidgets);
     // 서버에는 미상으로 먼저, 어림값으로 나중에 — 같은 줄에.
     expect(puts.map((p) => p['kcal']), [null, 713]);
@@ -346,18 +387,22 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     final input = find.byType(CupertinoTextField);
     Future<void> submit(String text) async {
       await tester.enterText(input, text);
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
     }
 
     Future<void> write(String text) async {
       await tester.tap(find.byKey(const ValueKey('meal-button')));
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
       await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
       await submit(text);
     }
 
@@ -381,8 +426,10 @@ void main() {
     reply = (_) async => const MealEstimate(kcal: 480, items: ['김밥']);
     await tester.tap(find.byKey(const ValueKey('meal-1')));
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     expect(ai.asked.last, '김밥 한 줄');
     expect(note.meals[1].kcal, 480);
     expect(note.meals, hasLength(2), reason: '같은 끼니를 고친다');
@@ -429,18 +476,22 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
       final input = find.byType(CupertinoTextField);
       Future<void> submit(String text) async {
         await tester.enterText(input, text);
         await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pumpAndSettle();
+        await _confirmMeal(tester);
       }
 
       Future<void> write(String text) async {
         await tester.tap(find.byKey(const ValueKey('meal-button')));
         await tester.pumpAndSettle();
+        await _confirmMeal(tester);
         await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
         await tester.pumpAndSettle();
+        await _confirmMeal(tester);
         await submit(text);
       }
 
@@ -453,11 +504,13 @@ void main() {
       // 그사이 열량을 적어 고쳤다. 옛 끼니의 실패는 이 끼니의 말이 아니다.
       await tester.tap(find.byKey(const ValueKey('meal-0')));
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
       await submit('김밥 480kcal');
       pending.completeError(
         const RecordAiException(RecordAiStatus.unavailable),
       );
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
       expect(
         (note.meals.single.kcal, note.meals.single.text),
         (480, '김밥 480kcal'),
@@ -480,6 +533,7 @@ void main() {
       reply = (_) async => const MealEstimate(kcal: 300, items: ['반찬']);
       await tester.tap(find.byKey(const ValueKey('meal-retry-1')));
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
       expect(ai.asked.last, '엄마표 반찬 조금');
       expect(
         (note.meals[1].kcal, note.meals[1].source),
@@ -505,6 +559,7 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey('meal-retry-3')));
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
       expect(
         (note.meals[3].kcal, note.meals[3].source),
         (330, MealEntry.typed),
@@ -546,23 +601,28 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     final input = find.byType(CupertinoTextField);
     Future<void> submit(String text) async {
       await tester.enterText(input, text);
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
     }
 
     await tester.tap(find.byKey(const ValueKey('meal-button')));
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     await submit('김밥');
     expect(find.text(l.mealTextOffline), findsOneWidget);
 
     // 안내가 시킨 대로 줄을 눌러 열량을 적었다 — 어림할 일이 없으니 옛 말은 틀린 말이다.
     await tester.tap(find.byKey(const ValueKey('meal-0')));
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     await submit('김밥 480kcal');
     expect(
       (note.meals.single.kcal, note.meals.single.source),
@@ -573,12 +633,15 @@ void main() {
     // 실패한 끼니를 지워도 그 끼니의 말은 남지 않는다.
     await tester.tap(find.byKey(const ValueKey('meal-button')));
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     await submit('엄마표 반찬 조금');
     expect(find.text(l.mealTextOffline), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('meal-delete-1')));
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     expect(note.meals.single.text, '김밥 480kcal');
     expect(find.text(l.mealTextOffline), findsNothing);
   });
@@ -617,14 +680,18 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     Future<void> write(String text) async {
       await tester.tap(find.byKey(const ValueKey('meal-button')));
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
       await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
       await tester.enterText(find.byType(CupertinoTextField), text);
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
+      await _confirmMeal(tester);
     }
 
     await write('김치찌개 400g');
@@ -635,11 +702,13 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('meal-sources-0')));
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     expect(find.text('열량 근거'), findsOneWidget);
     expect(find.text('김치찌개_돼지고기'), findsOneWidget);
     expect(find.text('100g당 61kcal · 식약처 식품영양성분 DB'), findsOneWidget);
     await tester.tap(find.text('김치찌개_돼지고기'));
     await tester.pumpAndSettle();
+    await _confirmMeal(tester);
     expect(find.text('열량 근거'), findsNothing);
 
     // 저장본에도 남는다 — 다시 열어도 같은 링크다.

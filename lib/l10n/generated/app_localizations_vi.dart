@@ -1041,6 +1041,25 @@ class LVi extends L {
       'Đây là ước tính cho toàn bộ món trong ảnh. Hãy chọn phần bạn đã ăn.';
 
   @override
+  String get mealReviewTitle => 'Kiểm tra món ăn và lượng';
+
+  @override
+  String get mealReviewNote =>
+      'Kiểm tra tên món và lượng đã ăn. Sửa lượng bên dưới. Nếu món không đúng, hãy hủy rồi sửa nội dung hoặc chụp lại.';
+
+  @override
+  String get mealEstimatedAmount =>
+      'Lượng này do AI ước tính. Hãy sửa theo lượng bạn đã ăn.';
+
+  @override
+  String get mealLabelReviewNote =>
+      'Đối chiếu calo, khẩu phần và đơn vị với ảnh. Sửa số liệu đọc sai trước khi lưu.';
+
+  @override
+  String get mealTextNeedsReview =>
+      'Tổng calo hoặc lượng đã ăn chưa rõ. Chạm vào bữa ăn và nhập lượng calo thực tế hoặc lượng ăn cụ thể.';
+
+  @override
   String get mealTextUnknown =>
       'Không ước tính được calo vì không nhận ra món ăn. Chạm vào bữa ăn để thêm tên món hoặc lượng, ứng dụng sẽ ước tính lại.';
 

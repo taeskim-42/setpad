@@ -285,7 +285,7 @@ extension MealLink on GymLink {
       'eatenOn': '${meal.at.year}-${two(meal.at.month)}-${two(meal.at.day)}',
       'kcal': meal.kcal,
       'source': ?meal.source,
-      'text': ?meal.text,
+      'text': ?meal.currentText,
       'items': meal.items,
       // 코치가 읽는 줄은 서버가 한국어로 짓는다. 단위 이름도 거기에 맞춘다.
       if (basis != null && eaten != null)

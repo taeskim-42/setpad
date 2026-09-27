@@ -49,6 +49,8 @@ class MealEstimate {
     this.saved = false,
     this.label,
     this.sources = const [],
+    this.components = const [],
+    this.requiresConfirmation = true,
   });
   final int kcal;
   final List<String> items;
@@ -59,12 +61,156 @@ class MealEstimate {
   /// 코치의 식단 목록에도 남았는가.
   final bool saved;
 
-  /// 사진이 영양성분표였으면 읽은 값. 어림이 아니라 인쇄된 숫자다.
+  /// Unverified OCR values; the user checks them against the photo before saving.
   final NutritionLabel? label;
+  final List<MealComponent> components;
+  final bool requiresConfirmation;
+
+  List<String> get confirmedItems => components.isEmpty
+      ? items
+      : [
+          for (final c in components)
+            if (c.amount == null)
+              ...parseMealText(c.evidence).foods.map((f) => f.name)
+            else
+              c.name,
+        ];
+
+  static MealEstimate fromJson(Map<String, dynamic> answer) {
+    const invalid = RecordAiException(RecordAiStatus.unavailable);
+    final kcal = answer['kcal'];
+    if (kcal is! num || !kcal.isFinite || kcal < 0 || kcal > 100000) {
+      throw invalid;
+    }
+    final label = NutritionLabel.tryFromJson(answer['label']);
+    if (answer['label'] != null &&
+        (label == null || label.perServingKcal.round() != kcal.round())) {
+      throw invalid;
+    }
+    final components = <MealComponent>[];
+    if (answer.containsKey('components') ||
+        answer.containsKey('requiresConfirmation')) {
+      final rows = answer['components'];
+      if (rows is! List ||
+          rows.length > 12 ||
+          answer['requiresConfirmation'] is! bool) {
+        throw invalid;
+      }
+      for (final row in rows) {
+        if (row is! Map) throw invalid;
+        final name = row['name'],
+            evidence = row['evidence'],
+            value = row['kcal'];
+        if (name is! String ||
+            name.trim().isEmpty ||
+            evidence is! String ||
+            evidence.trim().isEmpty ||
+            value is! num ||
+            !value.isFinite ||
+            value < 0 ||
+            value > 100000 ||
+            row['estimatedAmount'] is! bool) {
+          throw invalid;
+        }
+        final amount = row['amount'], unit = row['unit'];
+        final density = row['kcalPer100'], ref = row['ref'];
+        final typed = row['source'] == 'typed';
+        String? maker;
+        if (typed) {
+          if (amount != null ||
+              unit != null ||
+              density != null ||
+              ref != null ||
+              row['estimatedAmount'] != false ||
+              parseMealText(evidence).kcal != value.round()) {
+            throw invalid;
+          }
+        } else {
+          if (row['source'] != 'mfds' ||
+              ref is! String ||
+              ref.isEmpty ||
+              amount is! num ||
+              !amount.isFinite ||
+              amount <= 0 ||
+              amount > 100000 ||
+              (unit != 'g' && unit != 'ml') ||
+              density is! num ||
+              !density.isFinite ||
+              density < 0 ||
+              density > 1000 ||
+              (value - amount * density / 100).abs() > 0.000001) {
+            throw invalid;
+          }
+          final refs = answer['refs'];
+          if (refs is! List) throw invalid;
+          final matches = refs.whereType<Map>().where((r) => r['code'] == ref);
+          if (matches.length != 1) throw invalid;
+          final r = matches.single;
+          if (r['name'] != name ||
+              r['per'] != unit ||
+              r['kcalPer100'] != density) {
+            throw invalid;
+          }
+          maker = r['maker'] is String ? r['maker'] as String : null;
+        }
+        components.add(
+          MealComponent(
+            name: name,
+            evidence: evidence,
+            kcal: value.toDouble(),
+            maker: maker,
+            amount: (amount as num?)?.toDouble(),
+            unit: unit as String?,
+            kcalPer100: (density as num?)?.toDouble(),
+            estimatedAmount: row['estimatedAmount'] as bool,
+          ),
+        );
+      }
+      if (label != null) {
+        if (components.isNotEmpty ||
+            label.perServingKcal.round() != kcal.round()) {
+          throw invalid;
+        }
+      } else if (components.isEmpty ||
+          components.fold(0.0, (sum, c) => sum + c.kcal).round() !=
+              kcal.round()) {
+        throw invalid;
+      }
+    }
+    return MealEstimate(
+      kcal: kcal.round(),
+      items:
+          (answer['items'] as List?)?.whereType<String>().toList() ?? const [],
+      saved: answer['saved'] == true,
+      label: label,
+      sources: MealSource.listFrom(answer['refs']),
+      components: components,
+      // Explicit calories are already handled locally; network estimates need review.
+      requiresConfirmation: true,
+    );
+  }
 }
 
-/// 영양성분표. 한국 표는 "1회 제공량당" 으로 적혀 있어 몇 회분 먹었는지만
-/// 고르면 정확한 값이 나온다.
+class MealComponent {
+  const MealComponent({
+    required this.name,
+    required this.evidence,
+    required this.kcal,
+    this.amount,
+    this.unit,
+    this.kcalPer100,
+    this.estimatedAmount = false,
+    this.maker,
+  });
+  final String name, evidence;
+  final String? maker;
+  final double kcal;
+  final double? amount, kcalPer100;
+  final String? unit;
+  final bool estimatedAmount;
+}
+
+/// An OCR proposal containing one calorie value and its matching printed basis.
 class NutritionLabel {
   const NutritionLabel({
     required this.perServingKcal,
@@ -72,24 +218,33 @@ class NutritionLabel {
     this.servingsPerPackage,
     this.product,
   });
-  final int perServingKcal;
+  final num perServingKcal;
   final String servingSize;
   final double? servingsPerPackage;
   final String? product;
 
   /// 몇 회분을 먹었을 때의 열량. 반 개도 되게 소수도 받는다.
-  int kcalFor(double servings) => (perServingKcal * servings).round();
+  int? kcalFor(double servings) => MealBasis(
+    kcal: perServingKcal.toDouble(),
+    amount: 1,
+    unit: MealBasis.serving,
+  ).kcalFor(servings);
 
   static NutritionLabel? tryFromJson(Object? j) {
     if (j is! Map) return null;
     final per = j['perServingKcal'];
-    if (per is! num || per < 0) return null;
+    if (per is! num || !per.isFinite || per < 0 || per > 100000) return null;
     final servings = j['servingsPerPackage'];
     final product = j['product'];
     return NutritionLabel(
-      perServingKcal: per.round(),
+      perServingKcal: per,
       servingSize: j['servingSize'] is String ? j['servingSize'] as String : '',
-      servingsPerPackage: servings is num && servings > 0
+      servingsPerPackage:
+          servings is num &&
+              servings.isFinite &&
+              servings > 0 &&
+              servings <= 10000 &&
+              per * servings <= 100000
           ? servings.toDouble()
           : null,
       product: product is String && product.isNotEmpty ? product : null,
@@ -765,16 +920,7 @@ class RecordAi {
       // (GymLink.saveMeal) — 여기서 저장되면 취소해도 서버에 남는다.
       'save': false,
     }, timeout: const Duration(seconds: 60));
-    final kcal = answer['kcal'];
-    if (kcal is! num) throw const RecordAiException(RecordAiStatus.unavailable);
-    return MealEstimate(
-      kcal: kcal.toInt(),
-      items:
-          (answer['items'] as List?)?.whereType<String>().toList() ?? const [],
-      saved: answer['saved'] == true,
-      label: NutritionLabel.tryFromJson(answer['label']),
-      sources: MealSource.listFrom(answer['refs']),
-    );
+    return MealEstimate.fromJson(answer);
   }
 
   /// 글로 적은 식단의 열량을 어림한다. 못 하면 던진다 — 부르는 쪽은 그 끼니를
@@ -789,14 +935,7 @@ class RecordAi {
       'language': locale,
       'save': false,
     }, timeout: const Duration(seconds: 30));
-    final kcal = answer['kcal'];
-    if (kcal is! num) throw const RecordAiException(RecordAiStatus.unavailable);
-    return MealEstimate(
-      kcal: kcal.toInt(),
-      items:
-          (answer['items'] as List?)?.whereType<String>().toList() ?? const [],
-      sources: MealSource.listFrom(answer['refs']),
-    );
+    return MealEstimate.fromJson(answer);
   }
 
   /// 친 줄이 음식 표의 음식인가 — 음식 이름이나 대표 이름이 **정확히** 같을 때만.
