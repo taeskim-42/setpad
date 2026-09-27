@@ -166,6 +166,8 @@ platform :ios do
       submit_for_review: false,
       force: true,
       precheck_include_in_app_purchases: false,
+      # 등록정보를 올리는 이 단계가 releaseType 을 쓰는 유일한 곳이다. submit 과 같은 값.
+      automatic_release: ENV["MANUAL_RELEASE"] != "1",
     )
   end
 
@@ -202,6 +204,25 @@ platform :ios do
       UI.user_error!("아직 처리 중입니다: 기대한 빌드 #{expected}, 지금 보이는 빌드 #{build}")
     end
 
+    # **출시 방식은 여기서 직접 정한다.** deliver 는 skip_metadata 면 등록정보 단계를 통째로
+    # 건너뛰는데, releaseType 도 그 단계에서만 쓴다 — 그래서 아래 automatic_release 는
+    # 아무 일도 하지 않았고, 1.4.1 은 MANUAL_RELEASE=1 로 냈는데도 승인 즉시 출시됐다
+    # (2026-09-26, deliver 2.237 upload_metadata.rb#upload). 버전 레코드에 바로 쓰고 되읽는다.
+    manual = ENV["MANUAL_RELEASE"] == "1"
+    wanted = manual ? "MANUAL" : "AFTER_APPROVAL"
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
+      **Actions.lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+    )
+    record = Spaceship::ConnectAPI::App.find(IOS_APP_ID)
+      .get_edit_app_store_version(platform: "IOS")
+    UI.user_error!("#{version} 의 편집 가능한 버전 레코드가 없습니다") unless record
+    UI.user_error!("버전 레코드 #{record.version_string} 가 #{version} 이 아닙니다") unless record.version_string == version
+    record.update(attributes: { release_type: wanted }) unless record.release_type == wanted
+    now = Spaceship::ConnectAPI::App.find(IOS_APP_ID)
+      .get_edit_app_store_version(platform: "IOS").release_type
+    UI.user_error!("출시 방식이 #{now} 입니다 — #{wanted} 로 바뀌지 않았습니다") unless now == wanted
+    UI.success("출시 방식: #{now}#{manual ? " (승인 뒤 사람이 출시)" : ""}")
+
     deliver(
       api_key: asc_key,
       app_identifier: IOS_APP_ID,
@@ -214,8 +235,8 @@ platform :ios do
       force: true,
       run_precheck_before_submit: false,
       submit_for_review: true,
-      # 기본은 승인 즉시 출시다. 실기기 확인이 덜 끝난 빌드는 MANUAL_RELEASE=1 로
-      # 내서, 승인 뒤에 사람이 출시 버튼을 누르게 한다.
+      # skip_metadata 라서 deliver 는 이 값을 쓰지 않는다 — 출시 방식은 위에서 정했다.
+      # 남겨 두는 것은 skip_metadata 를 끄는 날 두 곳이 어긋나지 않게 하려는 것이다.
       automatic_release: ENV["MANUAL_RELEASE"] != "1",
       submission_information: {
         # Info.plist 의 ITSAppUsesNonExemptEncryption=false 와 같은 값이어야

@@ -4,13 +4,13 @@ AI help (the AI service is DeepSeek) and how to turn it off
 - AI help is on by default. When an AI feature is used, what is sent (the text you type, meal photos with location and capture details removed, and the exercise names in your log) goes through our server gym.darak.studio to DeepSeek's AI; our server does not store it. The privacy policy describes this.
 - To turn it off: on the list screen tap the gear icon (top right) › Settings › Recording › "AI help". The same Settings page is in the "…" menu of a record screen. While it is off, nothing is sent to the AI.
 - Off never blocks the app: typed lines are still logged as written, calories typed as "500kcal" still count, name search still works, today's routine is built on the phone, and one line says AI help is off.
-- Health data read from Apple Health (active energy, heart rate) is never sent to our server or to the AI.
+- Health data read from Apple Health (active energy, resting energy, heart rate) is never sent to our server or to the AI. Resting energy is added to the day's calories used; without it the app estimates it from Settings › My body, which also stays on the phone.
 
 How to try the AI features (signed out)
 1. Launch the app. Today's record opens; tap the exercise-name field at the bottom.
-2. One-line setup: type "bench 80kg 5x5" and press Return. A sheet shows 80 kg and 5 sets of 5; tap Done. Then type "80 5" to log a set.
-3. Meal from text: in the same field type "lunch burrito" and press Return. It is logged as a meal ("Logged as a meal"; "Make it exercise" undoes it) and its calories are estimated. When the number came from a food table (Korean MFDS or USDA), the meal shows that source with a link.
-4. Meal photo: with the exercise-name field focused, tap "Meal photo" above the keyboard and take or choose a food photo.
+2. One-line setup: type "bench 80kg 5x5" and press Return. The exercise appears right away, with chips under its title showing 80 kg and 5 sets of 5; tap a chip to change a value in place. Then type "80 5" to log a set.
+3. Meal from text: in the same field type "lunch burrito" and press Return. It is logged as a meal ("Logged as a meal"; "Make it exercise" undoes it). Its calories are then estimated and a review sheet opens: check the food and amount, fix the amount if needed, and tap Done — nothing is saved as calories before this. When the number came from a food table (Korean MFDS or USDA), the meal shows that source with a link.
+4. Meal photo: tap the fork-and-knife button at the left of the bar above the keyboard, choose Camera or From library, and pick a food photo. The same review sheet opens before anything is saved.
 5. Record question: go back to "All Workouts", type "best bench press" in the search field and press Return, then tap "Yes" to confirm. The table is computed on the phone from the saved sets; the AI only turns the question into a query.
 
 6. Today's routine: in the same search field type "today's routine" (or "오늘 루틴 짜줘") and press Return. A routine is built on the phone from the user's own past sessions (weights are copied from their logs, never invented); tap "Start" to open it as today's record. On a fresh install with no logs, the card says "First time" and offers starter exercises (squat, bench press, lat pulldown, overhead press, plank) to add without numbers.
