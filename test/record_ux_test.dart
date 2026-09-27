@@ -219,8 +219,10 @@ void main() {
       await tester.tap(find.text('1 80×10'));
       await tester.pumpAndSettle();
       expect(padKey('세트 추가'), findsOneWidget);
-      expect(padKey('완료'), findsOneWidget, reason: '두 버튼의 이름이 다르다');
+      // 무게 칸을 고른 채 열린다 — 큰 키는 [다음](횟수 칸으로)이고 세트 추가와 이름이 다르다.
+      expect(padKey('다음'), findsOneWidget, reason: '두 버튼의 이름이 다르다');
       await keys(tester, '82.5 9');
+      expect(padKey('완료'), findsOneWidget, reason: '횟수 칸에서는 완료');
       await tester.tap(padKey('완료'));
       await tester.pumpAndSettle();
       expect(bench.sets, hasLength(2));
@@ -300,10 +302,14 @@ void main() {
       await pumpEditor(tester, c);
       await tester.tap(find.text('1 80×10'));
       await tester.pumpAndSettle();
-      for (var i = 0; i < 8; i++) {
-        pad(tester).onBackspace();
-      }
+      // 지우기는 고른 칸만 지운다 — 무게를 비우고, 다음으로 횟수 칸에 가서 횟수도 비운다.
+      // (빈 횟수 칸에서 한 번 더 지우면 무게 칸으로 돌아간다.)
+      pad(tester).onBackspace();
+      pad(tester).onSubmit();
       await tester.pump();
+      pad(tester).onBackspace();
+      await tester.pump();
+      expect(padKey('완료'), findsOneWidget);
       pad(tester).onSubmit();
       await tester.pumpAndSettle();
       expect(find.textContaining('세트를 먼저 입력'), findsOneWidget);

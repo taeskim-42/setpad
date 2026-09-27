@@ -1212,6 +1212,88 @@ String bumpLastNumber(String line, int direction) {
   return '$before$text${match.group(2)}';
 }
 
+/// 세트 줄의 칸 하나 — 친 글 위의 수 자리([start], [end]). 비어 있는 칸은
+/// start == end 다(무게를 지운 "kg 9" 의 무게 칸).
+typedef LineField = ({int start, int end});
+
+/// 세트 줄의 무게(값) 칸과 횟수 칸. 고치는 세트 줄에서 칸 하나만 고르고, 누른
+/// 자리가 어느 칸인지 알고, ± 가 그 칸만 미는 데 쓴다. 칸은 **수만** 가리킨다 —
+/// 단위는 칸 밖이라 수를 새로 쳐도 "kg" 는 남는다. [valueEnd] 는 값 칸이 단위까지
+/// 끝나는 자리, [unit] 은 그 단위다.
+///
+/// 줄 앞의 값(단위 붙은 수, 수를 지운 단위만도)이 값 칸이고 그 뒤의 첫 수가 횟수
+/// 칸이다. 단위가 없으면 맨숫자 둘("80 9")은 값·횟수, 맨숫자 하나("9")는 횟수다 —
+/// [parseSetLine] 과 같은 읽기다. "x3"·"3세트" 는 세트 수라 칸이 아니다.
+({LineField? value, LineField? reps, int valueEnd, String? unit}) setLineFields(
+  String line,
+) {
+  final lead = RegExp(
+    '^(\\s*)(\\d*(?:\\.\\d*)?)\\s*($unitPattern)(?![A-Za-z가-힣])',
+    caseSensitive: false,
+  ).firstMatch(line);
+  if (lead != null) {
+    final start = lead[1]!.length;
+    final value = (start: start, end: start + lead[2]!.length);
+    final after = RegExp(
+      r'^\s+(\d+(?![\d.])|(?=\s|$))',
+    ).firstMatch(line.substring(lead.end));
+    final reps = after == null
+        ? null
+        : (
+            start: lead.end + after[0]!.length - after[1]!.length,
+            end: lead.end + after[0]!.length,
+          );
+    return (
+      value: value,
+      reps: reps,
+      valueEnd: lead.end,
+      unit: unitOf(lead[3]!),
+    );
+  }
+  final bare = RegExp(
+    r'(?<![\dxX×*.])\d+(?:\.\d+)?(?![\d.])(?!\s*(?:세트|sets?\b))',
+  ).allMatches(line).toList();
+  LineField span(Match m) => (start: m.start, end: m.end);
+  if (bare.length >= 2) {
+    return (
+      value: span(bare[0]),
+      reps: span(bare[1]),
+      valueEnd: bare[0].end,
+      unit: null,
+    );
+  }
+  return (
+    value: null,
+    reps: bare.isEmpty ? null : span(bare.single),
+    valueEnd: 0,
+    unit: null,
+  );
+}
+
+/// [line] 의 [field] 칸 수를 [step] 만큼 민다(단위는 그대로). 0 아래로는 가지 않고,
+/// 횟수는 1 아래로 가지 않는다 — 고치는 세트가 빈 세트가 되면 안 된다.
+String bumpField(
+  String line,
+  LineField field,
+  double step,
+  int direction, {
+  bool reps = false,
+}) {
+  final text = line.substring(field.start, field.end);
+  final number = RegExp(r'\d+(?:\.\d*)?').firstMatch(text);
+  if (number == null) return line;
+  final current = double.parse(number[0]!.replaceFirst(RegExp(r'\.$'), ''));
+  final floor = reps ? 1.0 : 0.0;
+  final next = (current + direction * step).clamp(floor, 9999).toDouble();
+  final start = field.start + number.start, end = field.start + number.end;
+  return line.replaceRange(start, end, stepNumber(next));
+}
+
+/// 민 수를 적는 모양. 소수 폭(1.25)은 제 자릿수로 — "81.3" 으로 반올림하지 않는다.
+String stepNumber(double v) => v == v.roundToDouble()
+    ? v.round().toString()
+    : v.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '');
+
 /// 낱말 끝의 조사를 뗀다. "벤치프레스는" → "벤치프레스". 남는 것이 두 글자
 /// 아래면 떼지 않는다 — "데드" 의 "드" 를 조사로 보면 안 된다.
 String stripParticle(String word) {

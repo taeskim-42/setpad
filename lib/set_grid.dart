@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/semantics.dart' show CustomSemanticsAction;
 
 import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -49,8 +50,9 @@ InlineSpan _cellSpan(
   L l,
   ExerciseBlock block,
   int i,
-  LoggedSet set,
-) => TextSpan(
+  LoggedSet set, {
+  String? label,
+}) => TextSpan(
   children: [
     // 같이 고친 문서에서 남이 적은 세트. 그 사람의 첫 글자를 그 사람 색으로.
     if (set.author case final who? when who.isNotEmpty)
@@ -70,7 +72,9 @@ InlineSpan _cellSpan(
       ),
     ),
     TextSpan(
-      text: cellLabel(set, shared: sharedUnit(block), formatReps: l.repsCount),
+      text:
+          label ??
+          cellLabel(set, shared: sharedUnit(block), formatReps: l.repsCount),
     ),
   ],
 );
@@ -117,6 +121,7 @@ class SetGrid extends StatelessWidget {
     super.key,
     required this.block,
     this.onTapSet,
+    this.onMove,
     this.onAdd,
     this.editingSet,
     this.uniform,
@@ -134,7 +139,13 @@ class SetGrid extends StatelessWidget {
   final double? uniform;
 
   final ExerciseBlock block;
-  final ValueChanged<int>? onTapSet;
+
+  /// 칸을 눌렀다: 세트 번호와, "80×9" 의 × 뒤(횟수 쪽)를 눌렀는가.
+  final void Function(int index, bool reps)? onTapSet;
+
+  /// 칸을 길게 눌러 끌어다 놓았다: [from] 의 세트가 [to] 자리로(옮긴 뒤의 번호).
+  /// null 이면 끌 수 없다 — 같이 고치는 기록은 세트 순서를 서로 맞추지 못한다.
+  final void Function(int from, int to)? onMove;
 
   /// 마지막에 빈 칸 하나. 누르면 다음 세트를 받는다 — 칸이 늘 하나 비어 있어야
   /// "여기에 적는다" 가 보인다.
@@ -185,6 +196,110 @@ class SetGrid extends StatelessWidget {
           2 => needs[i],
           _ => (needs[i] / width).ceil().clamp(1, columns) * width,
         };
+        // 칸 하나의 상자. [target] 이면 끌어 온 세트가 놓일 자리라 호박색 테두리다.
+        Widget cellBox(int i, LoggedSet set, {bool target = false}) => SizedBox(
+          // 열 폭의 합이 반올림으로 줄 폭을 넘지 않게 조금 덜 준다.
+          width: cell(i, set) - 0.01,
+          // 최고 무게를 새로 넘긴 세트는 칸 모서리에 ★ — 칸 폭은 그대로다.
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                // 고칠 수 있는 자리면 세트마다 제 상자다 — 눌러 고치는 칸이라는
+                // 것이 보인다. 읽기만 하는 자리(오늘 한 장)는 맨 글자다.
+                margin: onTapSet == null
+                    ? EdgeInsets.zero
+                    : const EdgeInsets.fromLTRB(0, 1, 4, 1),
+                padding: onTapSet == null
+                    ? EdgeInsets.zero
+                    : const EdgeInsets.symmetric(horizontal: 4),
+                // 상자일 때는 위아래 틈을 합쳐 전과 같은 30 이다.
+                constraints: BoxConstraints(
+                  minHeight: onTapSet == null ? 30 : 28,
+                ),
+                alignment: Alignment.centerLeft,
+                // 아직인 칸은 칠하지 않고 가는 테두리만, 해낸 칸은 옅은 초록으로
+                // 찬다 — 한눈에 몇 세트 남았는지 보인다. 고치는 칸은 호박색.
+                decoration: BoxDecoration(
+                  color: i == editingSet
+                      ? sealTint.resolveFrom(context)
+                      : onTapSet != null && set.done
+                      ? green.withValues(alpha: 0.14)
+                      : null,
+                  border: target
+                      ? Border.all(color: seal.resolveFrom(context), width: 2)
+                      : cursors[i] != null
+                      ? Border.all(color: cursors[i]!, width: 1.5)
+                      : records.contains(i)
+                      ? Border.all(color: seal.resolveFrom(context), width: 1.5)
+                      : onTapSet == null || i == editingSet
+                      ? null
+                      : Border.all(
+                          color: set.done
+                              ? green.withValues(alpha: 0.45)
+                              : CupertinoColors.separator.resolveFrom(context),
+                          width: set.done ? 1 : 0.5,
+                        ),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text.rich(
+                  span(i, set),
+                  maxLines: 1,
+                  softWrap: false,
+                  style: style.copyWith(color: set.done ? label : faint),
+                ),
+              ),
+              if (records.contains(i))
+                Positioned(
+                  top: -5,
+                  right: 0,
+                  child: Text(
+                    '★',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: seal.resolveFrom(context),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+        Widget tile(int i, LoggedSet set, {bool target = false}) =>
+            GestureDetector(
+              key: ValueKey('set-cell-$i'),
+              onTapUp: onTapSet == null
+                  ? null
+                  : (d) => onTapSet!(
+                      i,
+                      _repsSide(context, l, i, set, d.localPosition.dx),
+                    ),
+              behavior: HitTestBehavior.opaque,
+              child: cellBox(i, set, target: target),
+            );
+        // 세트를 길게 눌러 끌어다 다른 칸에 놓으면 그 자리로 옮긴다. 누르기(고치기)와
+        // 목록 스크롤은 그대로다 — 길게 눌러야 끌린다.
+        Widget movable(int i, LoggedSet set) => DragTarget<int>(
+          onWillAcceptWithDetails: (d) => d.data != i,
+          onAcceptWithDetails: (d) => onMove!(d.data, i),
+          builder: (context, candidate, _) => LongPressDraggable<int>(
+            data: i,
+            feedback: Opacity(
+              opacity: 0.9,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemBackground.resolveFrom(context),
+                  borderRadius: BorderRadius.circular(6),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x33000000), blurRadius: 8),
+                  ],
+                ),
+                child: cellBox(i, set),
+              ),
+            ),
+            childWhenDragging: Opacity(opacity: 0.3, child: cellBox(i, set)),
+            child: tile(i, set, target: candidate.isNotEmpty),
+          ),
+        );
         return Wrap(
           children: [
             for (final (i, set) in block.sets.indexed)
@@ -194,84 +309,20 @@ class SetGrid extends StatelessWidget {
                     '${l.setOrdinal(i + 1)} ${setLabel(value: set.value, unit: set.unit, reps: set.reps, formatReps: l.repsCount)}',
                 // 해낸 세트인지는 색만이 아니라 읽어 주는 말로도 전한다.
                 checked: set.done,
+                // 읽어 주기에서도 누르고(고치기) 옮긴다 — 끌기는 손가락으로만 된다.
+                onTap: onTapSet == null ? null : () => onTapSet!(i, false),
+                customSemanticsActions: onMove == null
+                    ? null
+                    : {
+                        if (i > 0)
+                          CustomSemanticsAction(label: l.moveSetEarlier): () =>
+                              onMove!(i, i - 1),
+                        if (i < block.sets.length - 1)
+                          CustomSemanticsAction(label: l.moveSetLater): () =>
+                              onMove!(i, i + 1),
+                      },
                 excludeSemantics: true,
-                child: GestureDetector(
-                  key: ValueKey('set-cell-$i'),
-                  onTap: onTapSet == null ? null : () => onTapSet!(i),
-                  behavior: HitTestBehavior.opaque,
-                  child: SizedBox(
-                    // 열 폭의 합이 반올림으로 줄 폭을 넘지 않게 조금 덜 준다.
-                    width: cell(i, set) - 0.01,
-                    // 최고 무게를 새로 넘긴 세트는 칸 모서리에 ★ — 칸 폭은 그대로다.
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Container(
-                          // 고칠 수 있는 자리면 세트마다 제 상자다 — 눌러 고치는 칸이라는
-                          // 것이 보인다. 읽기만 하는 자리(오늘 한 장)는 맨 글자다.
-                          margin: onTapSet == null
-                              ? EdgeInsets.zero
-                              : const EdgeInsets.fromLTRB(0, 1, 4, 1),
-                          padding: onTapSet == null
-                              ? EdgeInsets.zero
-                              : const EdgeInsets.symmetric(horizontal: 4),
-                          // 상자일 때는 위아래 틈을 합쳐 전과 같은 30 이다.
-                          constraints: BoxConstraints(
-                            minHeight: onTapSet == null ? 30 : 28,
-                          ),
-                          alignment: Alignment.centerLeft,
-                          // 아직인 칸은 칠하지 않고 가는 테두리만, 해낸 칸은 옅은 초록으로
-                          // 찬다 — 한눈에 몇 세트 남았는지 보인다. 고치는 칸은 호박색.
-                          decoration: BoxDecoration(
-                            color: i == editingSet
-                                ? sealTint.resolveFrom(context)
-                                : onTapSet != null && set.done
-                                ? green.withValues(alpha: 0.14)
-                                : null,
-                            border: cursors[i] != null
-                                ? Border.all(color: cursors[i]!, width: 1.5)
-                                : records.contains(i)
-                                ? Border.all(
-                                    color: seal.resolveFrom(context),
-                                    width: 1.5,
-                                  )
-                                : onTapSet == null || i == editingSet
-                                ? null
-                                : Border.all(
-                                    color: set.done
-                                        ? green.withValues(alpha: 0.45)
-                                        : CupertinoColors.separator.resolveFrom(
-                                            context,
-                                          ),
-                                    width: set.done ? 1 : 0.5,
-                                  ),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text.rich(
-                            span(i, set),
-                            maxLines: 1,
-                            softWrap: false,
-                            style: style.copyWith(
-                              color: set.done ? label : faint,
-                            ),
-                          ),
-                        ),
-                        if (records.contains(i))
-                          Positioned(
-                            top: -5,
-                            right: 0,
-                            child: Text(
-                              '★',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: seal.resolveFrom(context),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
+                child: onMove == null ? tile(i, set) : movable(i, set),
               ),
             // 빈 칸은 늘 있다. 줄이 꽉 찼으면 다음 줄로 내려간다.
             if (onAdd != null)
@@ -279,28 +330,42 @@ class SetGrid extends StatelessWidget {
                 button: true,
                 label: l.addSet,
                 excludeSemantics: true,
-                child: GestureDetector(
-                  key: const ValueKey('add-set-cell'),
-                  onTap: onAdd,
-                  behavior: HitTestBehavior.opaque,
-                  child: SizedBox(
-                    width: addWidth - 0.01,
-                    child: Container(
-                      margin: const EdgeInsets.fromLTRB(0, 1, 4, 1),
-                      constraints: const BoxConstraints(minHeight: 28),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color:
-                              cursors[block.sets.length] ??
-                              CupertinoColors.separator.resolveFrom(context),
-                          width: cursors[block.sets.length] != null ? 1.5 : 0.5,
+                // 끌어 온 세트를 빈 칸에 놓으면 맨 끝으로 간다.
+                child: DragTarget<int>(
+                  onWillAcceptWithDetails: (d) =>
+                      onMove != null && d.data != block.sets.length - 1,
+                  onAcceptWithDetails: (d) =>
+                      onMove!(d.data, block.sets.length - 1),
+                  builder: (context, candidate, _) => GestureDetector(
+                    key: const ValueKey('add-set-cell'),
+                    onTap: onAdd,
+                    behavior: HitTestBehavior.opaque,
+                    child: SizedBox(
+                      width: addWidth - 0.01,
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(0, 1, 4, 1),
+                        constraints: const BoxConstraints(minHeight: 28),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: candidate.isNotEmpty
+                                ? seal.resolveFrom(context)
+                                : cursors[block.sets.length] ??
+                                      CupertinoColors.separator.resolveFrom(
+                                        context,
+                                      ),
+                            width: candidate.isNotEmpty
+                                ? 2
+                                : cursors[block.sets.length] != null
+                                ? 1.5
+                                : 0.5,
+                          ),
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '${block.sets.length + 1}',
-                        style: TextStyle(fontSize: 10, color: faint),
+                        child: Text(
+                          '${block.sets.length + 1}',
+                          style: TextStyle(fontSize: 10, color: faint),
+                        ),
                       ),
                     ),
                   ),
@@ -310,6 +375,40 @@ class SetGrid extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// 칸의 어느 쪽을 눌렀나 — "80×9" 의 × 뒤(횟수 쪽)를 눌렀으면 true. 횟수만 있는
+  /// 칸("8회")은 늘 횟수, 값만 있는 칸("60초")은 늘 값이다.
+  bool _repsSide(BuildContext context, L l, int i, LoggedSet set, double x) {
+    if (set.reps == null) return false;
+    if (set.value == null) return true;
+    final full = cellLabel(
+      set,
+      shared: sharedUnit(block),
+      formatReps: l.repsCount,
+    );
+    final times = full.indexOf('×');
+    if (times < 0) return false;
+    double width(String cut) {
+      final painter = TextPainter(
+        text: TextSpan(
+          style: _cellStyle(context),
+          children: [_cellSpan(context, l, block, i, set, label: cut)],
+        ),
+        textDirection: TextDirection.ltr,
+        textScaler: MediaQuery.textScalerOf(context),
+        maxLines: 1,
+      )..layout();
+      final w = painter.width;
+      painter.dispose();
+      return w;
+    }
+
+    // 상자 안쪽 여백 4 다음에 글자가 온다. 횟수 글자(× 뒤) 위를 누른 때만 횟수 칸이다 —
+    // 짧은 칸은 가운데가 × 근처라, 가운데를 누르면 늘 무게로 시작해야 헷갈리지 않는다.
+    // 글자 뒤의 빈 여백도 칸을 누른 것(기본: 무게)이다.
+    final split = 4 + width(full.substring(0, times + 1)) - 1;
+    return x >= split && x <= 4 + width(full) + 2;
   }
 }
 

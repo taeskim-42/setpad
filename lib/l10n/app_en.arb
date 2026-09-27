@@ -83,6 +83,8 @@
   "setupSetReps": "Reps per set",
   "setupTotalSets": "Set goal",
   "moveExercise": "Move exercise",
+  "moveSetEarlier": "Move earlier",
+  "moveSetLater": "Move later",
   "weightUnitSetting": "Default weight unit",
   "weightUnitHelp": "Used for new exercises. Existing weights and units stay as recorded.",
   "answerDays": "{n} recorded days",

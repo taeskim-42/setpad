@@ -312,6 +312,12 @@ class LJa extends L {
   String get moveExercise => '種目を移動';
 
   @override
+  String get moveSetEarlier => '前へ移動';
+
+  @override
+  String get moveSetLater => '後ろへ移動';
+
+  @override
   String get weightUnitSetting => '重量の既定単位';
 
   @override

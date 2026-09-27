@@ -314,6 +314,12 @@ class LKo extends L {
   String get moveExercise => '운동 이동';
 
   @override
+  String get moveSetEarlier => '앞으로 옮기기';
+
+  @override
+  String get moveSetLater => '뒤로 옮기기';
+
+  @override
   String get weightUnitSetting => '기본 무게 단위';
 
   @override

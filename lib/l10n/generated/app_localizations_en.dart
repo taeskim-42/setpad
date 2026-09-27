@@ -321,6 +321,12 @@ class LEn extends L {
   String get moveExercise => 'Move exercise';
 
   @override
+  String get moveSetEarlier => 'Move earlier';
+
+  @override
+  String get moveSetLater => 'Move later';
+
+  @override
   String get weightUnitSetting => 'Default weight unit';
 
   @override

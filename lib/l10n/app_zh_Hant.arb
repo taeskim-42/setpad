@@ -83,6 +83,8 @@
   "setupSetReps": "每組次數",
   "setupTotalSets": "組數目標",
   "moveExercise": "移動動作",
+  "moveSetEarlier": "前移",
+  "moveSetLater": "後移",
   "weightUnitSetting": "預設重量單位",
   "weightUnitHelp": "用於新輸入的動作。已有紀錄的重量和單位保持不變。",
   "answerDays": "{n}天紀錄",

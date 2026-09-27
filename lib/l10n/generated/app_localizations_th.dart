@@ -321,6 +321,12 @@ class LTh extends L {
   String get moveExercise => 'ย้ายท่าออกกำลังกาย';
 
   @override
+  String get moveSetEarlier => 'ย้ายไปก่อนหน้า';
+
+  @override
+  String get moveSetLater => 'ย้ายไปถัดไป';
+
+  @override
   String get weightUnitSetting => 'หน่วยน้ำหนักเริ่มต้น';
 
   @override

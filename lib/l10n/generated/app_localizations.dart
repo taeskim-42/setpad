@@ -607,6 +607,18 @@ abstract class L {
   /// **'운동 이동'**
   String get moveExercise;
 
+  /// No description provided for @moveSetEarlier.
+  ///
+  /// In ko, this message translates to:
+  /// **'앞으로 옮기기'**
+  String get moveSetEarlier;
+
+  /// No description provided for @moveSetLater.
+  ///
+  /// In ko, this message translates to:
+  /// **'뒤로 옮기기'**
+  String get moveSetLater;
+
   /// No description provided for @weightUnitSetting.
   ///
   /// In ko, this message translates to:

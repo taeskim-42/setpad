@@ -321,6 +321,12 @@ class LEs extends L {
   String get moveExercise => 'Mover ejercicio';
 
   @override
+  String get moveSetEarlier => 'Mover antes';
+
+  @override
+  String get moveSetLater => 'Mover después';
+
+  @override
   String get weightUnitSetting => 'Unidad de peso predeterminada';
 
   @override

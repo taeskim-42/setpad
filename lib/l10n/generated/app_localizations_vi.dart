@@ -321,6 +321,12 @@ class LVi extends L {
   String get moveExercise => 'Di chuyển bài tập';
 
   @override
+  String get moveSetEarlier => 'Chuyển lên trước';
+
+  @override
+  String get moveSetLater => 'Chuyển ra sau';
+
+  @override
   String get weightUnitSetting => 'Đơn vị cân nặng mặc định';
 
   @override

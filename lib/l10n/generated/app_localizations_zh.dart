@@ -307,6 +307,12 @@ class LZh extends L {
   String get moveExercise => '移动动作';
 
   @override
+  String get moveSetEarlier => '前移';
+
+  @override
+  String get moveSetLater => '后移';
+
+  @override
   String get weightUnitSetting => '默认重量单位';
 
   @override
@@ -3544,6 +3550,12 @@ class LZhHans extends LZh {
   String get moveExercise => '移动动作';
 
   @override
+  String get moveSetEarlier => '前移';
+
+  @override
+  String get moveSetLater => '后移';
+
+  @override
   String get weightUnitSetting => '默认重量单位';
 
   @override
@@ -6779,6 +6791,12 @@ class LZhHant extends LZh {
 
   @override
   String get moveExercise => '移動動作';
+
+  @override
+  String get moveSetEarlier => '前移';
+
+  @override
+  String get moveSetLater => '後移';
 
   @override
   String get weightUnitSetting => '預設重量單位';

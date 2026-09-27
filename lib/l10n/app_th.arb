@@ -83,6 +83,8 @@
   "setupSetReps": "จำนวนครั้งต่อเซ็ต",
   "setupTotalSets": "เป้าหมายเซ็ต",
   "moveExercise": "ย้ายท่าออกกำลังกาย",
+  "moveSetEarlier": "ย้ายไปก่อนหน้า",
+  "moveSetLater": "ย้ายไปถัดไป",
   "weightUnitSetting": "หน่วยน้ำหนักเริ่มต้น",
   "weightUnitHelp": "ใช้กับท่าออกกำลังกายใหม่ น้ำหนักและหน่วยที่บันทึกไว้จะไม่เปลี่ยน",
   "answerDays": "บันทึก {n} วัน",

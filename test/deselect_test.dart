@@ -33,17 +33,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(typed(), contains('80'), reason: '그 세트가 입력 줄에 올라온다');
     expect(find.text('4세트'), findsNothing);
-    // 값을 고친다.
+    // 횟수만 고친다 — [다음] 으로 횟수 칸을 골라 새 수를 친다.
     final pad = tester.widget<SetKeypad>(find.byType(SetKeypad));
-    pad.onBackspace();
-    pad.onBackspace();
-    pad.onKey('12');
+    pad.onSubmit();
+    await tester.pump();
+    tester.widget<SetKeypad>(find.byType(SetKeypad)).onKey('12');
     await tester.pump();
     // 빈 곳을 누른다 — 선택이 풀리고 고친 값이 남는다.
     final list = tester.getRect(find.byType(CustomScrollView));
     await tester.tapAt(Offset(list.center.dx, list.bottom - 20));
     await tester.pumpAndSettle();
     expect(c.blocks.single.sets.first.reps, 12);
+    expect(c.blocks.single.sets.first.value, 80, reason: '무게는 그대로다');
     expect(c.blocks.single.sets, hasLength(2));
     expect(typed(), isEmpty, reason: '입력 줄은 비어 다음 세트를 받는다');
   });

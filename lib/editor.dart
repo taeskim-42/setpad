@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart' show RenderEditable;
+import 'package:flutter/scheduler.dart' show SchedulerBinding;
 import 'package:flutter/services.dart';
 
 import 'keypad.dart';
@@ -479,6 +481,22 @@ class RoutineEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 세트 하나를 같은 운동 안의 다른 자리로 옮긴다([to] 는 옮긴 뒤의 번호). 세트는
+  /// id 를 그대로 가져가므로 고치던 세트·메모는 옮긴 자리를 따라간다.
+  void moveSet(int block, int from, int to) {
+    if (block < 0 || block >= blocks.length) return;
+    final sets = blocks[block].sets;
+    if (from == to ||
+        from < 0 ||
+        from >= sets.length ||
+        to < 0 ||
+        to >= sets.length) {
+      return;
+    }
+    sets.insert(to, sets.removeAt(from));
+    notifyListeners();
+  }
+
   /// 세트 하나 취소.
   void removeSet(int block, int set) {
     final b = blocks[block];
@@ -852,6 +870,8 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   void _syncSentinel() {
     if (_wantsSentinel && _input.text.isEmpty) {
+      // 방금 지워진 표지는 한 프레임 뒤에 정한다([_afterSentinelErased]).
+      if (_erasedSentinel) return;
       _input.value = const TextEditingValue(
         text: _zw,
         selection: TextSelection.collapsed(offset: 1),
@@ -863,6 +883,24 @@ class _RoutineEditorState extends State<RoutineEditor>
         selection: TextSelection.collapsed(offset: clean.length),
       );
     }
+  }
+
+  /// 자판이 심어 둔 글자를 지웠다. 빈 자리에서 지우기일 수도, 조합하는 자판이
+  /// 새 글자를 넣기 전에 앞 글자를 먼저 지운 것일 수도 있다. **그 자리에서 되돌리지
+  /// 않는다** — 되돌린 글이 자판이 곧바로 넣은 글자를 덮으면 자판과 입력칸이 서로
+  /// 다른 글을 들고, 두 번째 글자부터 사라진다. 받아 두고 한 프레임 뒤에도 비어
+  /// 있을 때만 앞줄로 간다.
+  bool _erasedSentinel = false;
+
+  void _afterSentinelErased() {
+    if (!mounted || !_erasedSentinel) return;
+    _erasedSentinel = false;
+    // 그사이 글자가 들어왔다 — 지우기가 아니라 치는 중이다.
+    if (_input.text.isNotEmpty) return;
+    if (_wantsSentinel) {
+      _backspaceOnEmpty();
+    }
+    if (mounted) _syncSentinel();
   }
 
   bool _aiBusy = false;
@@ -933,14 +971,177 @@ class _RoutineEditorState extends State<RoutineEditor>
     return _step ?? (unitById[_unit] ?? unitById[defaultUnit]!).step;
   }
 
-  /// 무게(또는 거리·시간)를 지나 횟수를 치고 있는가.
-  bool get _typingReps =>
-      (_setup?.countsReps ?? false) ||
-      RegExp(
-        '($unitPattern)\\s*[\\d.]*\$',
-        caseSensitive: false,
-      ).hasMatch(_text) ||
-      _text.trimLeft().contains(' ');
+  /// 무게(또는 거리·시간)를 지나 횟수를 치고 있는가. 고치는 세트 줄이면 커서가
+  /// 든 칸이 정한다 — 줄에 공백이 있어도 무게 칸을 고르고 있으면 무게다.
+  bool get _typingReps => _editingSetLine
+      ? _editingReps
+      : (_setup?.countsReps ?? false) ||
+            RegExp(
+              '($unitPattern)\\s*[\\d.]*\$',
+              caseSensitive: false,
+            ).hasMatch(_text) ||
+            _text.trimLeft().contains(' ');
+
+  // ── 저장된 세트 고치기: 칸 하나씩 ─────────────────────────────────────
+  //
+  // 세트를 누르면 줄 전체("80kg 9")가 아니라 **무게 칸**만 고른다. 새 수를 치면 그
+  // 칸만 바뀌고 횟수는 남는다. [다음] 이 횟수 칸으로 넘기고, 줄을 누르면 누른 칸을
+  // 고른다. 예전에는 줄 전체를 골라 두어서 "85" 를 치면 "85" 한 줄 — 무게 없는
+  // 85회 — 가 됐고, 이 모드의 큰 키는 [완료] 라 무게 뒤로 넘어갈 길도 없었다.
+
+  /// 저장된 세트의 줄을 고치는 중(제목 고치기가 아니라).
+  bool get _editingSetLine => _recordSet != null && !_recordTitle;
+
+  /// 고치는 세트 줄에서 커서(고른 칸)가 횟수 칸에 있는가.
+  bool get _editingReps {
+    final f = setLineFields(_input.text);
+    final reps = f.reps;
+    if (reps == null) return false;
+    return f.value == null || _input.selection.start >= reps.start;
+  }
+
+  /// [다음] 이 무게 칸에서 횟수 칸으로 넘길 수 있는가. 무게 단위(또는 단위 없는
+  /// 값)일 때만 — 시간·거리 세트("60초", "5km")에는 횟수 칸이 없다.
+  bool get _canMoveToReps {
+    if (!_editingSetLine || _editingReps) return false;
+    final f = setLineFields(_input.text);
+    if (f.value == null) return false;
+    final unit = f.unit;
+    return unit == null || unitById[unit]?.kind == UnitKind.weight;
+  }
+
+  /// 칸 하나를 고른다. 새로 치면 그 칸이 바뀐다.
+  void _selectField(LineField field) {
+    _input.selection = TextSelection(
+      baseOffset: field.start,
+      extentOffset: field.end,
+    );
+    setState(() {});
+  }
+
+  /// 무게 칸에서 [다음] — 횟수 칸으로. 횟수가 없던 세트는 빈 횟수 칸을 연다.
+  bool _nextEditField() {
+    if (!_canMoveToReps) return false;
+    final f = setLineFields(_input.text);
+    final reps = f.reps;
+    if (reps != null) {
+      _selectField(reps);
+      return true;
+    }
+    final text = _input.text.replaceRange(f.valueEnd, f.valueEnd, ' ');
+    _input.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: f.valueEnd + 1),
+    );
+    setState(() {});
+    return true;
+  }
+
+  /// 입력 줄을 눌렀다. 고치는 세트 줄이면 누른 자리의 칸을 고른다.
+  void _onInputTap() {
+    if (_editingSetLine) _selectFieldAt(_tapAt);
+    _reopen();
+  }
+
+  void _selectFieldAt(Offset? at) {
+    final editable = _editable();
+    if (at == null || editable == null) return;
+    final offset = editable.getPositionForPoint(at).offset;
+    final f = setLineFields(_input.text);
+    final reps = f.reps != null && (f.value == null || offset > f.valueEnd);
+    final field = reps ? f.reps : f.value;
+    if (field != null) _selectField(field);
+  }
+
+  /// 입력 줄을 누른 자리(전역).
+  Offset? _tapAt;
+
+  /// 입력 줄의 글자 칸. 누른 자리가 몇 번째 글자인지 알려고 쓴다.
+  RenderEditable? _editable() {
+    RenderEditable? found;
+    void visit(RenderObject o) {
+      if (found != null) return;
+      if (o is RenderEditable) {
+        found = o;
+        return;
+      }
+      o.visitChildren(visit);
+    }
+
+    final root = _inputKey.currentContext?.findRenderObject();
+    if (root != null) visit(root);
+    return found;
+  }
+
+  /// 고치는 세트 줄을 읽기 전에 치는 도중의 흔적을 걷는다: 무게를 지운 자리의
+  /// 단위만("kg 9"), 소수점까지만 친 수("82.kg 9").
+  static String _setLine(String text) => text
+      .replaceAllMapped(RegExp(r'(\d)\.(?!\d)'), (m) => m[1]!)
+      .replaceFirst(
+        RegExp('^\\s*($unitPattern)(?![A-Za-z가-힣])\\s*', caseSensitive: false),
+        '',
+      );
+
+  /// ± — 고른 칸(고치는 세트) 또는 치고 있는 칸(새 세트)의 수만, 키에 적힌 폭으로
+  /// 민다. 예전에는 늘 줄의 마지막 수를 2.5 씩 밀어서 "80 9" 가 "80 11.5" 가 됐고,
+  /// 길게 눌러 고른 폭도 쓰지 않았다.
+  void _adjust(int direction) {
+    var text = _input.text;
+    final step = _stepSize;
+    final reps = _typingReps;
+    if (_editingSetLine) {
+      final f = setLineFields(text);
+      final field = reps ? f.reps : f.value;
+      if (field == null) return;
+      final String next;
+      if (field.start == field.end) {
+        // 빈 칸: + 는 한 단계를 세운다.
+        if (direction < 0) return;
+        next = text.replaceRange(field.start, field.end, stepNumber(step));
+      } else {
+        next = bumpField(text, field, step, direction, reps: reps);
+      }
+      _input.value = TextEditingValue(text: next);
+      final after = setLineFields(next);
+      final kept = reps ? after.reps : after.value;
+      if (kept != null) _selectField(kept);
+      setState(() {});
+      return;
+    }
+    // "80." 처럼 소수점까지만 친 수는 그 수로 본다.
+    if (RegExp(r'\d\.$').hasMatch(text)) {
+      text = text.substring(0, text.length - 1);
+    }
+    final trailing = RegExp(r'(\d+(?:\.\d+)?)(\s*)$').firstMatch(text);
+    // 횟수를 치는 중인데 끝의 수가 무게다("80 " — 다음을 막 누른 자리): 횟수가 아직 없다.
+    final repsNumber =
+        trailing != null &&
+        trailing[2]!.isEmpty &&
+        ((_setup?.countsReps ?? false) ||
+            RegExp(
+              '(\\s|$unitPattern)\$',
+              caseSensitive: false,
+            ).hasMatch(text.substring(0, trailing.start)));
+    final String next;
+    if (reps && !repsNumber || !reps && trailing == null) {
+      if (direction < 0) return;
+      final seed = stepNumber(step);
+      next = reps
+          ? '${text.trimRight()}${text.trim().isEmpty ? '' : ' '}$seed'
+          : '${text.trimRight()}$seed';
+    } else {
+      final number = double.parse(trailing![1]!);
+      final moved = number + direction * step;
+      next = moved <= 0
+          ? text.substring(0, trailing.start)
+          : text.replaceRange(trailing.start, trailing.end, stepNumber(moved));
+    }
+    _input.value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: next.length),
+    );
+    setState(() {});
+  }
 
   /// 길게 눌러 미는 폭을 고른다. 원판이 나라마다 다르고 사람마다 올리는
   /// 폭이 다르다 — 2.5 를 박아두면 파운드로 하는 사람은 매번 손으로 친다.
@@ -1012,6 +1213,9 @@ class _RoutineEditorState extends State<RoutineEditor>
     final session = widget.partner?.session;
     return session?.state == PartnerState.active ? session!.timer : null;
   }
+
+  /// 다른 사람과 이 기록을 같이 고치는 중.
+  bool get _together => widget.partner?.session?.state == PartnerState.active;
 
   bool _live(SharedTimer? t) =>
       t != null && t.started && !t.overAt(widget.partner?.clock.now);
@@ -1619,14 +1823,14 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   void _editTitle(ExerciseBlock block) => _beginRecordEdit(block, null);
-  void _editSet(ExerciseBlock block, int index) {
+  void _editSet(ExerciseBlock block, int index, {bool reps = false}) {
     // 같은 세트를 둘이 동시에 고치면 나중 것만 남는다. 먼저 잡은 사람에게 둔다.
     final busy = _busyOn(block, block.sets[index]);
     if (busy != null) {
       unawaited(_say(L.of(context).liveSetBusy(busy)));
       return;
     }
-    _beginRecordEdit(block, index);
+    _beginRecordEdit(block, index, reps: reps);
   }
 
   Future<void> _say(String message) => showCupertinoDialog<void>(
@@ -1647,6 +1851,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     ExerciseBlock block,
     int? tapped, {
     bool selectAll = true,
+    bool reps = false,
   }) {
     // 누른 세트는 번호가 아니라 그 세트로 잡는다 — 앞 편집을 끝내며 번호가 밀릴 수 있다.
     final id = tapped == null ? null : block.sets[tapped].id;
@@ -1674,12 +1879,23 @@ class _RoutineEditorState extends State<RoutineEditor>
     );
     _recordStartText = _input.text;
     _recordTouched = false;
-    _input.selection = TextSelection(
-      // 지우기로 돌아왔으면 커서는 줄 끝이다. 눌러서 열었으면 통째로 고른다 —
-      // 바로 새 값을 치면 되게.
-      baseOffset: selectAll ? 0 : _input.text.length,
-      extentOffset: _input.text.length,
-    );
+    final fields = set == null || !selectAll
+        ? null
+        : setLineFields(_input.text);
+    final pick = fields == null
+        ? null
+        : reps
+        ? fields.reps ?? fields.value
+        : fields.value ?? fields.reps;
+    _input.selection = pick != null
+        // 눌러서 열었으면 칸 하나(무게, 칸의 횟수 쪽을 눌렀으면 횟수)를 고른다 — 새
+        // 수를 치면 그 칸만 바뀐다.
+        ? TextSelection(baseOffset: pick.start, extentOffset: pick.end)
+        : TextSelection(
+            // 지우기로 돌아왔으면 커서는 줄 끝이다. 이름은 통째로 고른다.
+            baseOffset: selectAll ? 0 : _input.text.length,
+            extentOffset: _input.text.length,
+          );
     setState(() {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -1697,7 +1913,11 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (_input.value.composing.isValid && !_input.value.composing.isCollapsed) {
       return false;
     }
-    final parsed = _recordTitle ? null : parseSetLine(_text);
+    final line = _recordTitle ? _text : _setLine(_text);
+    // 무게를 막 지웠거나("kg 9") 소수점까지만 쳤다("82.kg 9") — 치는 중이다. 그 사이
+    // 값을 쓰면 세트가 잠깐 무게 없는 세트가 되어 칸과 같이 하는 사람 화면이 깜빡인다.
+    if (!done && !_recordTitle && line != _text) return true;
+    final parsed = _recordTitle ? null : parseSetLine(line);
     final extra =
         done && parsed != null && (parsed.note != null || parsed.count > 1);
     // 연 뒤로 한 글자도 안 바꿨으면 아무것도 쓰지 않는다. 그사이 같이 고치는
@@ -2282,6 +2502,7 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   void _nextSet() {
     if (_editingRecord) {
+      if (_nextEditField()) return;
       _finishRecordEdit();
       return;
     }
@@ -2295,9 +2516,19 @@ class _RoutineEditorState extends State<RoutineEditor>
     _commit();
   }
 
-  /// 키패드가 커서 자리에 글자를 넣는다.
+  /// 키패드가 커서 자리에 글자를 넣는다. 고치는 세트 줄에서는 고른 칸이 바뀌고,
+  /// 공백이 든 글(줄 하나, 붙여 넣기)은 줄을 통째로 바꾼다.
   void _insert(String text) {
-    final v = _input.value;
+    var v = _input.value;
+    if (_editingSetLine) {
+      // 횟수에는 소수점이 없다.
+      if (text == '.' && _editingReps) return;
+      if (text.contains(RegExp(r'\s'))) {
+        v = v.copyWith(
+          selection: TextSelection(baseOffset: 0, extentOffset: v.text.length),
+        );
+      }
+    }
     final start = v.selection.start < 0 ? v.text.length : v.selection.start;
     final end = v.selection.end < 0 ? v.text.length : v.selection.end;
     final next = v.text.replaceRange(start, end, text);
@@ -2371,6 +2602,23 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (v.text.isEmpty) {
       _backspaceOnEmpty();
       return;
+    }
+    // 고치는 세트 줄: 지우기는 칸 안의 수만 지운다. 빈 횟수 칸에서 지우면 무게 칸 끝으로
+    // 가고, 빈 무게 칸에서는 지울 것이 없다 — 단위나 칸 사이를 지워 "80k" 를 만들지 않는다.
+    if (_editingSetLine && v.selection.isCollapsed) {
+      final f = setLineFields(v.text);
+      final value = f.value, reps = f.reps;
+      final at = v.selection.start;
+      if (reps != null &&
+          value != null &&
+          at > f.valueEnd &&
+          at <= reps.start) {
+        _input.selection = TextSelection.collapsed(offset: value.end);
+        setState(() {});
+        return;
+      }
+      if (value != null && at <= value.start) return;
+      if (value != null && at > value.end && at <= f.valueEnd) return;
     }
     // 고른 글이 있으면 그것을, 없으면 커서 앞 한 글자를 지운다.
     final end = v.selection.end < 0 ? v.text.length : v.selection.end;
@@ -2475,7 +2723,13 @@ class _RoutineEditorState extends State<RoutineEditor>
                           key: ObjectKey(blocks[i]),
                           collapsed: _reordering,
                           onEditTitle: () => _editTitle(blocks[i]),
-                          onEditSet: (set) => _editSet(blocks[i], set),
+                          onEditSet: (set, reps) =>
+                              _editSet(blocks[i], set, reps: reps),
+                          // 같이 고치는 기록은 세트 순서를 서로 맞추지 못한다(순서를 옮기는
+                          // 수정이 없다) — 그 동안은 끌지 않는다.
+                          onMoveSet: _together
+                              ? null
+                              : (from, to) => _c.moveSet(i, from, to),
                           dragHandle: CollapsingDragStartListener(
                             index: i,
                             prepare: (pointer) =>
@@ -2674,14 +2928,21 @@ class _RoutineEditorState extends State<RoutineEditor>
                   ? SetKeypad(
                       onKey: _insert,
                       onBackspace: _keypadBackspace,
-                      onAddSet: parseSetLine(_text) == null
+                      onAddSet:
+                          parseSetLine(
+                                _editingSetLine ? _setLine(_text) : _text,
+                              ) ==
+                              null
                           ? null
                           : _recordSet != null
                           ? _addSetAfterEdit
                           : () => _commit(),
                       onSubmit: _nextSet,
+                      // 고치는 세트의 무게 칸에서는 [다음](횟수 칸으로), 그 밖에서는 [완료].
                       submitLabel: _recordSet != null
-                          ? L.of(context).doneEditing
+                          ? (_canMoveToReps
+                                ? L.of(context).next
+                                : L.of(context).doneEditing)
                           : _hasInput
                           ? L.of(context).next
                           : L.of(context).finishExercise,
@@ -2700,16 +2961,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                           (_) => _reopen(),
                         );
                       },
-                      onAdjust: (direction) {
-                        final next = bumpLastNumber(_text, direction);
-                        _input.value = TextEditingValue(
-                          text: next,
-                          selection: TextSelection.collapsed(
-                            offset: next.length,
-                          ),
-                        );
-                        setState(() {});
-                      },
+                      onAdjust: _adjust,
                       // 무게를 치는 중이면 원판 단위, kg 를 지나 횟수를 치는 중이면 하나.
                       // 무엇의 2.5 인지 보여야 한다. 횟수를 치는 중이면 단위가 없으므로
                       // 숫자만 낸다 — "1회" 는 늘 1이라 붙일 값이 없다.
@@ -2779,6 +3031,14 @@ class _RoutineEditorState extends State<RoutineEditor>
     );
   }
 
+  /// 글자판으로 치는 입력칸의 메뉴 — CupertinoTextField 의 기본과 같다.
+  static Widget _textMenu(BuildContext context, EditableTextState state) =>
+      SystemContextMenu.isSupportedByField(state)
+      ? SystemContextMenu.editableText(editableTextState: state)
+      : CupertinoAdaptiveTextSelectionToolbar.editableText(
+          editableTextState: state,
+        );
+
   Widget _buildInput({bool bold = false}) {
     final platform = defaultTargetPlatform;
     final touch =
@@ -2806,74 +3066,87 @@ class _RoutineEditorState extends State<RoutineEditor>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Stack(
-            children: [
-              // 심어 둔 글자 때문에 칸이 "비어 있지 않아" 안내문이 사라진다.
-              // 그때는 같은 자리에 직접 그린다.
-              if (_input.text == _zw)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(hint, style: hintStyle),
+          // 누른 자리를 적어 둔다 — 고치는 세트 줄이면 그 자리의 칸(무게·횟수)을 고른다.
+          // Listener 는 제스처 경쟁에 끼지 않아 입력칸의 누르기를 빼앗지 않는다.
+          Listener(
+            onPointerDown: (e) => _tapAt = e.position,
+            child: Stack(
+              children: [
+                // 심어 둔 글자 때문에 칸이 "비어 있지 않아" 안내문이 사라진다.
+                // 그때는 같은 자리에 직접 그린다.
+                if (_input.text == _zw)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(hint, style: hintStyle),
+                      ),
                     ),
                   ),
+                CupertinoTextField(
+                  // iOS 자동 고침과 예측 막대를 끈다. "랫풀다운" 을 멋대로 고치는 것을
+                  // 막고, 예측 막대가 프레임마다 뱉던 NSLayoutConstraint 경고도 같이
+                  // 사라진다 — 그 경고는 iOS 키보드의 것이지 우리 것이 아니다.
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  controller: _input,
+                  focusNode: _focus,
+                  autofocus: true,
+                  readOnly: readOnly,
+                  showCursor: !_padMode,
+                  keyboardType: readOnly
+                      ? TextInputType.none
+                      : _wantText
+                      ? TextInputType.multiline
+                      : TextInputType.text,
+                  textInputAction: TextInputAction.done,
+                  minLines: _wantText ? 2 : 1,
+                  maxLines: _wantText ? null : 1,
+                  onTap: _onInputTap,
+                  onSubmitted: (_) => _commit(
+                    _highlight >= 0 &&
+                            _highlight < _matches.length &&
+                            TimingSpec.parse(_text) == null
+                        ? _matches[_highlight]
+                        : null,
+                  ),
+                  onChanged: (_) => setState(() => _highlight = -1),
+                  inputFormatters: [
+                    // 심어 둔 글자가 지워졌다 = 빈 자리에서 지우기를 눌렀을 수 있다.
+                    // 지운 대로 받고, 한 프레임 뒤에 정한다([_erasedSentinel]).
+                    TextInputFormatter.withFunction((before, after) {
+                      if (before.text == _zw && after.text.isEmpty) {
+                        _erasedSentinel = true;
+                        SchedulerBinding.instance
+                          ..addPostFrameCallback((_) => _afterSentinelErased())
+                          ..ensureVisualUpdate();
+                      }
+                      return after;
+                    }),
+                  ],
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: _wantText ? 1.5 : null,
+                    letterSpacing: bold ? -0.41 : 0,
+                    fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                    color: CupertinoColors.label.resolveFrom(context),
+                  ),
+                  cursorColor: CupertinoColors.label.resolveFrom(context),
+                  decoration: const BoxDecoration(),
+                  padding: EdgeInsets.symmetric(vertical: bold ? 10 : 6),
+                  // 안내문은 늘 null 이 아닌 값을 준다 — null 과 글을 오가면 입력칸의 짜임이
+                  // 첫 글자에서 바뀌어(안쪽 입력기가 다른 부모로 옮겨진다) 조합 중인 글자를
+                  // 흔든다. 심어 둔 글자가 있을 때는 위의 것이 대신 보이므로 빈 글이다.
+                  placeholder: _input.text == _zw ? '' : hint,
+                  placeholderStyle: hintStyle,
+                  // 키패드로 치는 줄에는 복사·선택 메뉴가 쓸모없다 — 눌러 칸을 고르는 자리다.
+                  // 두 번 누르기의 낱말 선택("80kg")도 끈다. 누르기는 [_onInputTap] 이 받는다.
+                  enableInteractiveSelection: !_padMode,
+                  contextMenuBuilder: _padMode ? null : _textMenu,
                 ),
-              CupertinoTextField(
-                // iOS 자동 고침과 예측 막대를 끈다. "랫풀다운" 을 멋대로 고치는 것을
-                // 막고, 예측 막대가 프레임마다 뱉던 NSLayoutConstraint 경고도 같이
-                // 사라진다 — 그 경고는 iOS 키보드의 것이지 우리 것이 아니다.
-                autocorrect: false,
-                enableSuggestions: false,
-                controller: _input,
-                focusNode: _focus,
-                autofocus: true,
-                readOnly: readOnly,
-                showCursor: !_padMode,
-                keyboardType: readOnly
-                    ? TextInputType.none
-                    : _wantText
-                    ? TextInputType.multiline
-                    : TextInputType.text,
-                textInputAction: TextInputAction.done,
-                minLines: _wantText ? 2 : 1,
-                maxLines: _wantText ? null : 1,
-                onTap: _reopen,
-                onSubmitted: (_) => _commit(
-                  _highlight >= 0 &&
-                          _highlight < _matches.length &&
-                          TimingSpec.parse(_text) == null
-                      ? _matches[_highlight]
-                      : null,
-                ),
-                onChanged: (_) => setState(() => _highlight = -1),
-                inputFormatters: [
-                  // 심어 둔 글자가 지워졌다 = 빈 자리에서 지우기를 눌렀다. 글자는
-                  // 되돌려 두고(다음 지우기도 알아야 한다) 앞줄로 돌아간다.
-                  TextInputFormatter.withFunction((before, after) {
-                    final erased = before.text == _zw && after.text.isEmpty;
-                    if (!erased) return after;
-                    scheduleMicrotask(() {
-                      if (mounted) _backspaceOnEmpty();
-                    });
-                    return before;
-                  }),
-                ],
-                style: TextStyle(
-                  fontSize: 17,
-                  height: _wantText ? 1.5 : null,
-                  letterSpacing: bold ? -0.41 : 0,
-                  fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                  color: CupertinoColors.label.resolveFrom(context),
-                ),
-                cursorColor: CupertinoColors.label.resolveFrom(context),
-                decoration: const BoxDecoration(),
-                padding: EdgeInsets.symmetric(vertical: bold ? 10 : 6),
-                placeholder: _input.text == _zw ? null : hint,
-                placeholderStyle: hintStyle,
-              ),
-            ],
+              ],
+            ),
           ),
           if (_invalidSet)
             Text(
@@ -2902,6 +3175,7 @@ class _BlockView extends StatelessWidget {
     this.editingSet,
     required this.onEditTitle,
     required this.onEditSet,
+    this.onMoveSet,
     required this.block,
     this.input,
     required this.inputSet,
@@ -2928,7 +3202,12 @@ class _BlockView extends StatelessWidget {
   final Widget? timing;
   final int? editingSet;
   final VoidCallback onEditTitle;
-  final ValueChanged<int> onEditSet;
+
+  /// 세트 칸을 눌렀다(세트 번호, 횟수 쪽을 눌렀는가).
+  final void Function(int set, bool reps) onEditSet;
+
+  /// 세트를 끌어 옮겼다. null 이면 끌 수 없다(같이 고치는 기록).
+  final void Function(int from, int to)? onMoveSet;
 
   /// 이 운동이 아직 세트를 받는 중이면 입력 줄이 카드 안에 들어온다.
   final Widget? input;
@@ -3080,6 +3359,7 @@ class _BlockView extends StatelessWidget {
                 records: records,
                 uniform: uniformCell,
                 onTapSet: onEditSet,
+                onMove: onMoveSet,
                 // 빈 칸 하나가 늘 남아 있다. 누르면 이 운동에 다음 세트를 적는다.
                 onAdd: input == null ? onOpen : null,
                 editingSet: editingSet,
