@@ -27,6 +27,13 @@ const sealTint = CupertinoDynamicColor.withBrightness(
   darkColor: Color(0xFF332B19),
 );
 
+/// [seal] 로 칠한 버튼 위의 글자. 어두울 때 [seal] 은 밝은 금색이라 흰 글자가
+/// 묻힌다(대비 약 1.8:1). 그때는 [sealTint] 의 어두운 색으로 뒤집는다(약 7.7:1).
+const sealOn = CupertinoDynamicColor.withBrightness(
+  color: CupertinoColors.white,
+  darkColor: Color(0xFF332B19),
+);
+
 /// 해낸 세트 줄에 깔리는 옅은 초록.
 const doneTint = CupertinoDynamicColor.withBrightness(
   color: Color(0xFFF1F7F4),

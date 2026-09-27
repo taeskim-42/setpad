@@ -2646,7 +2646,8 @@ class _RoutineEditorState extends State<RoutineEditor>
         if ((matches.isNotEmpty ||
                 widget.onMealPhoto != null ||
                 widget.mealText != null) &&
-            !_textKeyboardHidden)
+            !_textKeyboardHidden &&
+            !_padMode)
           _Suggestions(
             matches: matches,
             highlight: _highlight,

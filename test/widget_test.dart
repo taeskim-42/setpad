@@ -1143,6 +1143,17 @@ void keypadTests() {
       );
       await tester.tap(find.byKey(const ValueKey('meal-button')));
       expect(opened, 1);
+
+      await tester.enterText(padField, '벤치프레스');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await settle(tester);
+      expect(find.byType(SetKeypad), findsOneWidget);
+      expect(find.byKey(const ValueKey('exercise-suggestions')), findsNothing);
+
+      await tester.tap(padKey('운동 완료'));
+      await settle(tester);
+      expect(find.byType(SetKeypad), findsNothing);
+      expect(find.byKey(const ValueKey('meal-button')), findsOneWidget);
     });
   });
 

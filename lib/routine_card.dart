@@ -5,7 +5,7 @@ import 'exercises.dart';
 import 'gym.dart' show Routine;
 import 'l10n/generated/app_localizations.dart';
 import 'palette.dart';
-import 'record_query.dart' show notComputableLines;
+import 'record_query.dart' show exerciseKey, notComputableLines;
 import 'routine.dart';
 import 'training_factor.dart';
 import 'unfold.dart';
@@ -75,17 +75,24 @@ class RoutineCard extends StatelessWidget {
     );
     const body = TextStyle(fontSize: 14);
     final d = draft;
-    Widget chips(List<RoutineAction> list) => Padding(
-      padding: const EdgeInsets.only(top: 6, bottom: 2),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 6,
-        children: [
-          for (final a in list)
-            SuggestionChip(label: a.label, selected: false, onTap: a.onTap),
-        ],
-      ),
-    );
+    // 칩이 없으면 자리도 없다 — 빈 줄의 여백이 [시작] 위 간격을 들쭉날쭉하게 했다.
+    Widget chips(List<RoutineAction> list) => list.isEmpty
+        ? const SizedBox.shrink()
+        : Padding(
+            padding: const EdgeInsets.only(top: 6, bottom: 2),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                for (final a in list)
+                  SuggestionChip(
+                    label: a.label,
+                    selected: false,
+                    onTap: a.onTap,
+                  ),
+              ],
+            ),
+          );
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
       child: Column(
@@ -145,7 +152,9 @@ class RoutineCard extends StatelessWidget {
                 : '${l.weekdayLabel(d.day)}(${date(d.day)})',
           )
         : l.routineHeaderToday;
-    final readAs = a == null || a.device ? null : _readAs(l, a);
+    final readAs = a == null || a.device
+        ? null
+        : _readAs(l, a, listed: _allListed(d, a));
     final why = routineWhy(l, d);
     // 원천 날의 체력 요인(설명만): "근력 날 · 3×10".
     final factor = switch (d.factor) {
@@ -179,7 +188,6 @@ class RoutineCard extends StatelessWidget {
         if (line.code == 'recentMemo') ...routineLineTexts(l, line),
     ];
     final shown = [
-      ?readAs,
       for (final line in d.lines)
         if (line.code != 'recentMemo') ...routineLineTexts(l, line),
     ];
@@ -227,6 +235,13 @@ class RoutineCard extends StatelessWidget {
           ],
         ),
       ),
+      // 읽은 조건은 모델이 알아들은 것을 되비추는 말이라 목록보다 한 단계 옅게 둔다.
+      // 꼭 알아야 할 줄(거절·아픈 곳·못 맞춘 조건)은 본문 그대로.
+      if (readAs != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(readAs, style: faint),
+        ),
       if (shown.isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(top: 4),
@@ -284,17 +299,26 @@ class RoutineCard extends StatelessWidget {
             ),
       ]),
       if (d.future)
-        Text(l.routineFuture, style: faint)
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(l.routineFuture, style: faint),
+        )
       else if (d.startable || started)
         Padding(
-          padding: const EdgeInsets.only(top: 4),
+          // 목록과 [시작] 사이는 칩이 있든 없든 같은 숨을 둔다.
+          padding: const EdgeInsets.only(top: 12),
           child: Row(
             children: [
               CupertinoButton.filled(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 minimumSize: const Size(44, 40),
+                // 어두울 때 금색 바탕에 흰 글자는 묻힌다 — [sealOn].
+                foregroundColor: sealOn.resolveFrom(context),
                 onPressed: onStart,
-                child: Text(started ? l.routineStarted : l.routineStart),
+                child: Text(
+                  started ? l.routineStarted : l.routineStart,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
               const SizedBox(width: 12),
               // 원판을 쓴 때만 적는다 — 기기가 짠 루틴의 '원판 0장' 은 읽을 것이 없다.
@@ -499,8 +523,25 @@ String setsText(L l, List<PlanSet> sets) {
   return out.join(' · ');
 }
 
+/// 읽은 운동이 모두 사람이 글에 친 이름이고 카드에 보이면(칸·뺀 것·넣을 칩) true —
+/// 그때 "이렇게 읽었어요" 의 운동 이름은 바로 아래 목록의 되풀이다. 모델이 고른
+/// 운동이 하나라도 있으면 false: 그 이름들은 "모델이 이렇게 골랐다" 는 말이라 남긴다.
+bool _allListed(RoutineDraft d, RoutineAsk a) {
+  if (a.exercises.isEmpty) return false;
+  final shown = {
+    for (final i in d.items) i.key,
+    for (final r in d.removed) r.key,
+    for (final k in d.addable) exerciseKey(k),
+  };
+  return a.exercises.every((raw) {
+    final k = exerciseKey(raw);
+    return a.named.contains(k) && shown.contains(k);
+  });
+}
+
 /// 모델이 읽은 조건 한 줄 — "이렇게 읽었어요: 다리 · 덤벨만 · 30분 · 뺄 것: 런지".
-String? _readAs(L l, RoutineAsk a) {
+/// [listed] 면 운동 이름은 적지 않는다([_allListed]).
+String? _readAs(L l, RoutineAsk a, {bool listed = false}) {
   final parts = [
     for (final p in a.parts) partName(l, p),
     if (a.pattern != null) l.routinePattern(a.pattern!),
@@ -515,7 +556,7 @@ String? _readAs(L l, RoutineAsk a) {
       a.timer!.tabata ? 'tabata' : 'bpm ${a.timer!.bpm ?? ''}'.trim(),
     if (a.delta != null)
       '${a.delta!.value > 0 ? '+' : ''}${formatNumber(a.delta!.value)}${a.delta!.unit}',
-    if (a.exercises.isNotEmpty) a.exercises.join('·'),
+    if (a.exercises.isNotEmpty && !listed) a.exercises.join('·'),
     if (a.exclude.isNotEmpty) l.routineExclude(a.exclude.join('·')),
     if (a.avoid.isNotEmpty)
       l.routineAvoid(a.avoid.map((p) => partName(l, p)).join('·')),
