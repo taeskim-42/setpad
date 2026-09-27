@@ -1,6 +1,6 @@
 Novedades
 
 · Revisión de comidas: antes de guardar una comida escrita o fotografiada ves los alimentos y cantidades; cambia una cantidad y las calorías se recalculan
+· Toca una serie registrada para editar primero el peso: escribir cambia solo ese campo, Siguiente pasa a las repeticiones y ± mueve solo el campo elegido
+· Mantén pulsada una serie y arrástrala para reordenarla
 · Nombra un músculo, como "rutina para crecer los dorsales", y la rutina de hoy usa ejercicios para él
-· Las calorías gastadas incluyen el metabolismo basal: de tu app de salud o calculado en Ajustes › Mi cuerpo
-· 57 máquinas de gimnasio nuevas; también sirven marcas como Hammer Strength

@@ -1,6 +1,7 @@
 Có gì mới
 
 · Kiểm tra bữa ăn: trước khi lưu bữa ăn nhập bằng chữ hoặc ảnh, bạn thấy món và lượng — sửa lượng là calo tính lại ngay
+· Chạm vào hiệp đã ghi để sửa mức tạ trước — gõ chỉ đổi ô đó, Tiếp để sang số lần, ± chỉ đổi ô đang chọn
+· Nhấn giữ một hiệp rồi kéo để đổi thứ tự
 · Calo đã dùng trong ngày gồm cả chuyển hóa cơ bản — lấy từ ứng dụng sức khỏe, hoặc tính từ Cài đặt › Thông tin cơ thể
 · Thêm 57 máy tập phòng gym — gõ tên hãng như Hammer Strength cũng được
-· Thẻ lịch tập hôm nay dễ đọc hơn, nút Bắt đầu rõ ràng ở chế độ tối

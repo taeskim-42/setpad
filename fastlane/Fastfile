@@ -386,7 +386,9 @@ platform :android do
       skip_upload_screenshots: true,
       # 이번 판의 새 소개(changelogs/default.txt)를 함께 올린다.
       skip_upload_changelogs: false,
-      release_status: "completed",
+      # completed 는 곧바로 구글 심사로 가고, 관리형 게시가 꺼져 있으면 승인 즉시 나간다.
+      # PLAY_STATUS=draft 면 운영 트랙에 초안으로만 둔다 — 심사도 게시도 없다(사람이 보낸다).
+      release_status: ENV.fetch("PLAY_STATUS", "completed"),
     )
   end
 

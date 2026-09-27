@@ -1,6 +1,8 @@
 What's new
 
 · Meal check: before a typed or photographed meal is saved, you see the foods and amounts — change an amount and the calories update
+· Tap a logged set to edit its weight first — typing changes only that field, Next moves to reps, and ± moves just the chosen field
+· Long-press a set and drag it to reorder
 · Name a muscle, like "I want to grow my lats", and today's routine uses exercises for it
 · Calories used now include your resting energy — from your health app, or estimated from Settings › My body
 · 57 gym machines added — brand names like Hammer Strength work too
