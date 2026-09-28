@@ -237,6 +237,19 @@ void main() {
     },
   );
 
+  test(
+    'no time-range delete when another record’s workout covers this start',
+    () async {
+      final saved = await link.saveWorkout(
+        start: start,
+        end: end,
+        clearLegacy: false,
+      );
+      expect(calls.map((c) => c.method), ['writeWorkoutDataUUID']);
+      expect(saved!.id, 'w1');
+    },
+  );
+
   test('leaving again with the same interval writes nothing', () async {
     final first = await link.saveWorkout(
       start: start,

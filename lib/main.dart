@@ -208,6 +208,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
       title: note.title,
       energyBurned: kcal,
       previous: note.healthWorkout,
+      clearLegacy: !sessionOverlapsOther(note, _store.notes, start),
     );
     var changed = !identical(saved, note.healthWorkout);
     note.healthWorkout = saved;

@@ -74,6 +74,30 @@ void main() {
     expect(sessionEnd(edited), edited.createdAt.add(maxSession));
   });
 
+  test('다른 기록의 운동 시간대가 이 시작 시각에 걸쳐 있으면 알아본다', () {
+    final first = workout(day.add(const Duration(hours: 18)));
+    final second = workout(day.add(const Duration(hours: 18, minutes: 30)));
+    final later = workout(day.add(const Duration(hours: 21)));
+    final all = [first, second, later];
+    expect(
+      sessionOverlapsOther(second, all, second.createdAt),
+      isTrue,
+      reason: '첫 기록의 18:00~19:00 안에서 시작했다',
+    );
+    expect(sessionOverlapsOther(first, all, first.createdAt), isFalse);
+    expect(sessionOverlapsOther(later, all, later.createdAt), isFalse);
+    final empty = Note(
+      id: 'empty',
+      createdAt: day.add(const Duration(hours: 20, minutes: 30)),
+      updatedAt: day.add(const Duration(hours: 21, minutes: 30)),
+    );
+    expect(
+      sessionOverlapsOther(later, [...all, empty], later.createdAt),
+      isFalse,
+      reason: '세트가 없는 기록은 건강 앱에 운동을 남기지 않는다',
+    );
+  });
+
   test('미기록·미측정·열량 미상은 0 이 아니다', () {
     final noMeals = workout(day.add(const Duration(hours: 18)), kcal: 400);
     final log = dayLogs([noMeals], from: day, to: day).single;

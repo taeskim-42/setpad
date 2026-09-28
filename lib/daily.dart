@@ -153,3 +153,25 @@ DateTime sessionStart(Note note, List<Note> all) {
   }
   return start;
 }
+
+/// [at] 앞뒤 [slack] 안에 **다른** 기록의 운동 시간대가 걸쳐 있는가.
+///
+/// 건강 앱에서 이 기록의 옛 운동을 시작 시각으로 찾아 지울 때 본다. 다른 기록의
+/// 운동이 그 시각을 덮고 있으면 그것까지 걸릴 수 있어 지우지 않는다. 다른 기록이
+/// 남긴 구간은 [Note.createdAt]~[sessionEnd] 안에 있으므로 그 범위로 넉넉히 본다.
+bool sessionOverlapsOther(
+  Note note,
+  List<Note> all,
+  DateTime at, {
+  Duration slack = const Duration(seconds: 1),
+}) {
+  for (final other in all) {
+    if (identical(other, note)) continue;
+    if (!other.blocks.any((b) => b.sets.any((s) => s.mine))) continue;
+    if (other.createdAt.isBefore(at.add(slack)) &&
+        sessionEnd(other).isAfter(at.subtract(slack))) {
+      return true;
+    }
+  }
+  return false;
+}

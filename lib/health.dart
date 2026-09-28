@@ -282,24 +282,27 @@ class HealthLink {
   ///
   /// [previous] 가 없으면 이 앱이 **같은 시작 시각**에 남긴 운동을 먼저 지운다 —
   /// 1.4.2 전 판이 나올 때마다 쌓아 둔 이 기록의 운동들이다. 건강 앱은 이 앱이 쓴
-  /// 것만 지우게 한다.
+  /// 것만 지우게 한다. 다른 기록의 운동이 그 시각에 걸쳐 있으면 부르는 쪽이
+  /// [clearLegacy] 를 끈다 — 시간으로 지우기가 걸친 운동까지 잡을 수 있다.
   Future<HealthWorkout?> saveWorkout({
     required DateTime start,
     required DateTime end,
     String? title,
     double? energyBurned,
     HealthWorkout? previous,
+    bool clearLegacy = true,
   }) async {
     // 시작과 끝이 같으면 건강 앱이 받지 않는다.
     if (!supported || !end.isAfter(start)) return previous;
     final ios = _platform == TargetPlatform.iOS;
     // Android 는 칼로리를 주면 운동과 한 묶음으로 '총 소모 칼로리' 기록을 쓴다. 그
     // 쓰기 권한은 청하지 않으므로 묶음째 실패해 운동도 안 남았다. 워치가 잰 활동
-    // 칼로리를 총 칼로리로 다시 적는 것도 틀리다. iOS 는 운동에 붙는 요약 값이다.
-    final kcal = ios ? energyBurned?.round() : null;
+    // 칼로리를 총 칼로리로 다시 적는 것도 틀리다. iOS 는 운동에 붙는 요약 값이다 —
+    // 이번에 못 읽었으면 적어 둔 값을 그대로 둔다.
+    final kcal = ios ? (energyBurned?.round() ?? previous?.kcal) : null;
     if (previous != null &&
         previous.covers(start, end) &&
-        (kcal == null || kcal == previous.kcal)) {
+        kcal == previous.kcal) {
       return previous;
     }
     var current = previous;
@@ -312,7 +315,7 @@ class HealthLink {
         );
         if (!gone) return previous;
         current = null;
-      } else {
+      } else if (clearLegacy) {
         await _health.delete(
           type: HealthDataType.WORKOUT,
           startTime: start.subtract(const Duration(seconds: 1)),
