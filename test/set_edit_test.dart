@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/rendering.dart' show RenderEditable, RenderParagraph;
 import 'package:flutter/semantics.dart' show CustomSemanticsAction;
@@ -330,6 +331,103 @@ void main() {
       for (final e in find.text('운동 이름').evaluate()) {
         expect(e.findAncestorWidgetOfExactType<Visibility>()?.visible, isFalse);
       }
+    });
+  });
+
+  group('1-b. iOS — 빈 줄 표지는 골라 둔다', () {
+    RoutineEditorController done() => RoutineEditorController()
+      ..addExercise('벤치프레스')
+      ..addSet('80 5')
+      ..closeBlock();
+
+    Future<void> ios(WidgetTester tester, RoutineEditorController c) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      await pumpEditor(tester, c);
+    }
+
+    /// iOS 엔진이 하는 대로: 표시 없는 글이 없으면 고른 범위를, 있으면 표시 범위를
+    /// 바꾼다(FlutterTextInputView setMarkedText). 음절이 넘어가면 앞 음절을 확정한다.
+    Future<void> compose(WidgetTester tester, List<String> steps) async {
+      for (final s in steps) {
+        final committed = s.length > 1 ? s.substring(0, s.length - 1) : '';
+        tester.testTextInput.updateEditingValue(
+          TextEditingValue(
+            text: s,
+            selection: TextSelection.collapsed(offset: s.length),
+            composing: TextRange(start: committed.length, end: s.length),
+          ),
+        );
+        await tester.pump();
+      }
+      tester.testTextInput.updateEditingValue(
+        TextEditingValue(
+          text: steps.last,
+          selection: TextSelection.collapsed(offset: steps.last.length),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('운동 완료 뒤 빈 줄은 표지가 골라져 있고, 한글 첫 글자가 표지를 덮어쓴다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      expect(field(tester).text, '\u200B');
+      expect(
+        field(tester).selection,
+        const TextSelection(baseOffset: 0, extentOffset: 1),
+        reason: '커서가 표지 뒤에 있으면 iOS 한글 조합이 앞 음절을 지웠다',
+      );
+      expect(find.byKey(const ValueKey('sentinel-caret')), findsOneWidget);
+      // ㅎ → 해 → 햄 → 해머(해 확정, 머 조합): 첫 글자가 골라 둔 표지를 바꾼다.
+      await compose(tester, ['ㅎ', '해', '햄', '해머']);
+      expect(field(tester).text, '해머');
+      expect(c.naming, isTrue);
+      expect(find.byType(SetKeypad), findsNothing);
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('누르거나 화살표로 커서가 움직여도 표지를 다시 골라 둔다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: '\u200B',
+          selection: TextSelection.collapsed(offset: 1),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        field(tester).selection,
+        const TextSelection(baseOffset: 0, extentOffset: 1),
+      );
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('빈 자리에서 지우기(골라 둔 표지를 지움)는 여전히 앞 세트로 간다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(selection: TextSelection.collapsed(offset: 0)),
+      );
+      await tester.pumpAndSettle();
+      expect(c.activeIndex, 0);
+      expect(field(tester).text, '80kg 5');
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('영어도 첫 글자가 표지를 바꾼다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: 'c',
+          selection: TextSelection.collapsed(offset: 1),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(field(tester).text, 'c');
+      expect(find.byKey(const ValueKey('sentinel-caret')), findsNothing);
+      debugDefaultTargetPlatformOverride = null;
     });
   });
 

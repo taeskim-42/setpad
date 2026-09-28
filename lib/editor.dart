@@ -872,10 +872,13 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (_wantsSentinel && _input.text.isEmpty) {
       // 방금 지워진 표지는 한 프레임 뒤에 정한다([_afterSentinelErased]).
       if (_erasedSentinel) return;
-      _input.value = const TextEditingValue(
-        text: _zw,
-        selection: TextSelection.collapsed(offset: 1),
-      );
+      _input.value = TextEditingValue(text: _zw, selection: _sentinelSelection);
+    } else if (_wantsSentinel &&
+        _input.text == _zw &&
+        _input.selection != _sentinelSelection &&
+        !_input.value.composing.isValid) {
+      // 누르기·화살표가 커서를 표지 앞뒤로 옮겼다. 다시 골라 둔다.
+      _input.selection = _sentinelSelection;
     } else if (!_wantsSentinel && _input.text.contains(_zw)) {
       final clean = _text;
       _input.value = TextEditingValue(
@@ -884,6 +887,17 @@ class _RoutineEditorState extends State<RoutineEditor>
       );
     }
   }
+
+  /// iOS 에서는 표지를 **골라 둔다**(커서를 표지 뒤에 두지 않는다). 첫 글자가 골라
+  /// 둔 표지를 덮어쓰므로 조합은 정말 빈 줄에서 시작한다 — 검색칸과 같다. 표지 바로
+  /// 뒤에서 한글을 조합하면 음절이 넘어갈 때마다 앞 음절이 지워졌다("해머" → "머",
+  /// 2026-09-28 시뮬레이터 보고. 영어를 먼저 친 뒤의 한글, 검색칸의 한글은 멀쩡했다).
+  /// 빈 자리에서 지우기는 골라 둔 표지를 지우므로 그대로 알 수 있다.
+  static bool get _selectsSentinel =>
+      defaultTargetPlatform == TargetPlatform.iOS;
+  static TextSelection get _sentinelSelection => _selectsSentinel
+      ? const TextSelection(baseOffset: 0, extentOffset: 1)
+      : const TextSelection.collapsed(offset: 1);
 
   /// 자판이 심어 둔 글자를 지웠다. 빈 자리에서 지우기일 수도, 조합하는 자판이
   /// 새 글자를 넣기 전에 앞 글자를 먼저 지운 것일 수도 있다. **그 자리에서 되돌리지
@@ -3073,13 +3087,34 @@ class _RoutineEditorState extends State<RoutineEditor>
             child: Stack(
               children: [
                 // 심어 둔 글자 때문에 칸이 "비어 있지 않아" 안내문이 사라진다.
-                // 그때는 같은 자리에 직접 그린다.
+                // 그때는 같은 자리에 직접 그린다. iOS 에서는 표지를 골라 두어(범위
+                // 선택) 입력칸이 커서를 그리지 않으므로 커서도 여기서 그린다.
                 if (_input.text == _zw)
                   Positioned.fill(
                     child: IgnorePointer(
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: Text(hint, style: hintStyle),
+                        child: Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+                            Text(hint, style: hintStyle),
+                            if (_selectsSentinel)
+                              ListenableBuilder(
+                                listenable: _focus,
+                                builder: (context, _) => _focus.hasFocus
+                                    ? _SentinelCaret(
+                                        height:
+                                            MediaQuery.textScalerOf(
+                                              context,
+                                            ).scale(17) *
+                                            1.2,
+                                        color: CupertinoColors.label
+                                            .resolveFrom(context),
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -3830,4 +3865,48 @@ class _CursorTag extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 골라 둔 빈 줄 표지 앞의 커서. 입력칸은 범위가 골라져 있으면 커서를 그리지
+/// 않는다 — 같은 모양(폭 2, 둥근 끝)과 같은 박자(0.5초)로 대신 그린다.
+class _SentinelCaret extends StatefulWidget {
+  const _SentinelCaret({required this.height, required this.color});
+  final double height;
+  final Color color;
+
+  @override
+  State<_SentinelCaret> createState() => _SentinelCaretState();
+}
+
+class _SentinelCaretState extends State<_SentinelCaret> {
+  Timer? _timer;
+  bool _on = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      if (mounted) setState(() => _on = !_on);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Opacity(
+    opacity: _on ? 1 : 0,
+    child: Container(
+      key: const ValueKey('sentinel-caret'),
+      width: 2,
+      height: widget.height,
+      decoration: BoxDecoration(
+        color: widget.color,
+        borderRadius: BorderRadius.circular(2),
+      ),
+    ),
+  );
 }
