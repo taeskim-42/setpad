@@ -7,3 +7,4 @@ Novedades
 · Las calorías gastadas incluyen el metabolismo basal: de tu app de salud o calculado en Ajustes › Mi cuerpo
 · 57 máquinas de gimnasio nuevas; también sirven marcas como Hammer Strength
 · La tarjeta de la rutina de hoy se lee mejor y Empezar resalta en modo oscuro
+· Corregido: al escribir en coreano el nombre del siguiente ejercicio se perdían letras, y una serie podía perder el peso al editarla

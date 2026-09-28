@@ -6,3 +6,4 @@ Có gì mới
 · Calo đã dùng trong ngày gồm cả chuyển hóa cơ bản — lấy từ ứng dụng sức khỏe, hoặc tính từ Cài đặt › Thông tin cơ thể
 · Thêm 57 máy tập phòng gym — gõ tên hãng như Hammer Strength cũng được
 · Thẻ lịch tập hôm nay dễ đọc hơn, nút Bắt đầu rõ ràng ở chế độ tối
+· Đã sửa: gõ tiếng Hàn bị mất chữ ở tên bài tập tiếp theo, và hiệp có thể mất mức tạ khi đang sửa

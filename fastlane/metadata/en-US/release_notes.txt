@@ -7,3 +7,4 @@ What's new
 · Calories used now include your resting energy — from your health app, or estimated from Settings › My body
 · 57 gym machines added — brand names like Hammer Strength work too
 · Today's routine card is easier to read; Start stands out in dark mode
+· Fixed: Korean typing lost characters in the next exercise name after finishing one, and a set could lose its weight while being edited
