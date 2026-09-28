@@ -16,6 +16,9 @@ class FakeHealth extends HealthLink {
       _beats.stream;
   void push(int bpm, DateTime at) =>
       _beats.add((bpm: bpm, at: at, lag: Duration.zero));
+
+  /// 누가 심박을 받고 있는가.
+  bool get watched => _beats.hasListener;
 }
 
 class SilentAudio extends TimingAudio {
@@ -111,6 +114,48 @@ void main() {
     expect(recovery.recovered, isFalse);
     expect(recovery.bpm, isNull);
     expect(recovery.target, isNull);
+  });
+
+  test('멈추면 심박을 더 받지 않고, 다시 켜면 다시 받는다', () async {
+    expect(recovery.listening, isTrue);
+    recovery.beginRound();
+    await push(150);
+    recovery.stop();
+    expect(recovery.listening, isFalse);
+    expect(health.watched, isFalse, reason: '건강 앱 쪽 받기도 끊겨야 읽기가 멈춘다');
+    await push(170);
+    expect(recovery.bpm, 150, reason: '멈춘 뒤 온 값은 받지 않는다');
+    recovery.listen();
+    expect(health.watched, isTrue);
+    await push(160);
+    expect(recovery.bpm, 160);
+  });
+
+  test('심박은 타바타가 도는 동안에만 쓴다', () {
+    var now = Duration.zero;
+    final timer = WorkoutTimer(audio: SilentAudio(), now: () => now);
+    addTearDown(timer.dispose);
+    expect(timer.wantsHeart, isFalse, reason: '타이머를 켜지 않았다');
+
+    const metronome = TimingSpec(bpm: 60);
+    timer.toggle(#metronome, metronome);
+    expect(timer.running, isTrue);
+    expect(timer.wantsHeart, isFalse, reason: '박자 타이머에는 쉬는 시간이 없다');
+    timer.toggle(#metronome, metronome);
+    expect(timer.running, isFalse);
+
+    const tabata = TimingSpec(tabata: true, work: 20, rest: 10, rounds: 1);
+    timer.toggle(#tabata, tabata);
+    expect(timer.wantsHeart, isTrue);
+    now = const Duration(seconds: 10);
+    timer.toggle(#tabata, tabata);
+    expect(timer.wantsHeart, isFalse, reason: '멈췄다');
+    timer.toggle(#tabata, tabata);
+    expect(timer.wantsHeart, isTrue, reason: '다시 돈다');
+    now = const Duration(seconds: 60);
+    timer.tick();
+    expect(timer.phase, TimingPhase.complete);
+    expect(timer.wantsHeart, isFalse, reason: '끝났다');
   });
 
   test('휴식을 건너뛰면 다음 라운드의 운동으로 간다', () {

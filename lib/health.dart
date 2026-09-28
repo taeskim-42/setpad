@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:health/health.dart';
 
+import 'notes.dart' show HealthWorkout;
+
 /// 한 번 잰 심박. [at] 은 **잰 시각**이고 [lag] 은 그것이 우리에게
 /// 도착하기까지 걸린 시간이다. 휴식을 심박으로 끊으려면 값이 최신이어야
 /// 하므로, 값만 있고 시각이 없으면 쓸 수가 없다.
@@ -13,7 +15,8 @@ typedef HeartBeat = ({int bpm, DateTime at, Duration lag});
 /// 건강 앱 연동.
 ///
 /// **하는 일은 둘이다.** 여기서 친 운동을 건강 앱에 운동 기록으로 남기고,
-/// 그 시간 동안 **애플워치가 이미 잰** 활동 칼로리를 읽어 온다.
+/// 그 시간 동안 **애플워치가 이미 잰** 활동 칼로리를 읽어 온다. 그 밖에 심박은
+/// 타바타가 도는 동안에만(rest_recovery.dart), 기초대사량은 그날 쓴 칼로리를 셀 때만 읽는다.
 ///
 /// **칼로리를 직접 추정하지 않는다.** 무게와 횟수로 소모량을 계산하는 공식은
 /// 세트 수·휴식·수행 속도를 못 보기 때문에 그럴듯한 숫자를 만들 뿐이다.
@@ -269,34 +272,73 @@ class HealthLink {
     }
   }
 
-  /// 운동 하나를 건강 앱에 남긴다. 성공하면 true.
-  Future<bool> writeWorkout({
+  /// 이 기록을 건강 앱의 운동 하나로 맞춘다. 돌려주는 값이 **이제 건강 앱에 있는**
+  /// 이 기록의 운동이다(없으면 null).
+  ///
+  /// 편집기를 나올 때마다 부른다. 새로 쓰기만 하면 나올 때마다 같은 운동이 하나씩
+  /// 쌓인다. 그래서 남긴 것([previous])과 구간·칼로리가 같으면 건드리지 않고, 다르면
+  /// **그 운동 하나만** 지우고 새로 쓴다. 못 지웠으면 새로 쓰지 않는다 — 옛것이 남아
+  /// 있으면 둘이 된다(사람이 건강 앱에서 지웠으면 다시 넣지 않는 셈이기도 하다).
+  ///
+  /// [previous] 가 없으면 이 앱이 **같은 시작 시각**에 남긴 운동을 먼저 지운다 —
+  /// 1.4.2 전 판이 나올 때마다 쌓아 둔 이 기록의 운동들이다. 건강 앱은 이 앱이 쓴
+  /// 것만 지우게 한다.
+  Future<HealthWorkout?> saveWorkout({
     required DateTime start,
     required DateTime end,
     String? title,
     double? energyBurned,
+    HealthWorkout? previous,
   }) async {
-    if (!supported) return false;
     // 시작과 끝이 같으면 건강 앱이 받지 않는다.
-    if (!end.isAfter(start)) return false;
+    if (!supported || !end.isAfter(start)) return previous;
+    final ios = _platform == TargetPlatform.iOS;
+    // Android 는 칼로리를 주면 운동과 한 묶음으로 '총 소모 칼로리' 기록을 쓴다. 그
+    // 쓰기 권한은 청하지 않으므로 묶음째 실패해 운동도 안 남았다. 워치가 잰 활동
+    // 칼로리를 총 칼로리로 다시 적는 것도 틀리다. iOS 는 운동에 붙는 요약 값이다.
+    final kcal = ios ? energyBurned?.round() : null;
+    if (previous != null &&
+        previous.covers(start, end) &&
+        (kcal == null || kcal == previous.kcal)) {
+      return previous;
+    }
+    var current = previous;
     try {
       await _ensureConfigured();
-      return await _health.writeWorkoutData(
+      if (previous != null) {
+        final gone = await _health.deleteByUUID(
+          uuid: previous.id,
+          type: HealthDataType.WORKOUT,
+        );
+        if (!gone) return previous;
+        current = null;
+      } else {
+        await _health.delete(
+          type: HealthDataType.WORKOUT,
+          startTime: start.subtract(const Duration(seconds: 1)),
+          endTime: start.add(const Duration(seconds: 1)),
+        );
+      }
+      final id = await _health.writeWorkoutDataUUID(
         // iOS 의 HealthKit 에는 STRENGTH_TRAINING 이 없다 — 폰 로그가 "not supported
         // on iOS" 로 거절했다. 안드로이드는 반대로 TRADITIONAL 을 모른다.
-        activityType: Platform.isIOS
+        activityType: ios
             ? HealthWorkoutActivityType.TRADITIONAL_STRENGTH_TRAINING
             : HealthWorkoutActivityType.STRENGTH_TRAINING,
         start: start,
         end: end,
         title: title,
-        totalEnergyBurned: energyBurned?.round(),
+        totalEnergyBurned: kcal,
         // iOS 는 manual/automatic 만 받는다. 사람이 친 기록이므로 manual 이다.
         recordingMethod: RecordingMethod.manual,
       );
+      // 못 쓰면 플러그인이 빈 글(또는 'null')을 준다.
+      if (id != null && id.isNotEmpty && id != 'null') {
+        current = HealthWorkout(id: id, from: start, to: end, kcal: kcal);
+      }
     } catch (e) {
       debugPrint('운동 기록 쓰기 실패: $e');
-      return false;
     }
+    return current;
   }
 }

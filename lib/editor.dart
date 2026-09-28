@@ -1211,7 +1211,8 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 타이머가 구간을 넘길 때마다 기준선을 다시 잡는다. 세트가 시작되면
   /// 최고 심박을 새로 세고, 휴식이 시작되면 그때부터 회복을 본다.
   void _followTimer() {
-    if (!_workoutTimer.running) {
+    if (!_workoutTimer.wantsHeart) {
+      _recovery.stop();
       if (_seenPhase != null) {
         _seenPhase = null;
         _seenRound = null;

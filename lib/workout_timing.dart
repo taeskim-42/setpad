@@ -235,6 +235,11 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   Duration get elapsed =>
       _elapsed + (running ? _time - _started : Duration.zero);
 
+  /// 지금 심박이 쓸모 있는가 — 타바타가 돌고 있을 때만이다. 심박은 쉬는 시간을
+  /// 끊는 데만 쓰는데, 박자 타이머에는 쉬는 시간이 없다. 그 밖에는 읽지 않는다.
+  bool get wantsHeart =>
+      running && spec?.tabata == true && phase != TimingPhase.complete;
+
   /// 시작 전 3초. 메트로놈도 센다 — 첫 클릭이 바로 울리면 손이 자리에 없다.
   /// 템포 앱의 "Start in 3s" 와 같다: 띠·띠·띠 뒤에 한 옥타브 위 긴 소리.
   TimingPhase get phase {

@@ -28,6 +28,13 @@ final class HeartRateObserver {
       default: result(FlutterMethodNotImplemented)
       }
     }
+    // 1.4.1 까지는 편집기를 나올 때마다 관찰을 걸고 풀지 않았다. 백그라운드 전달은
+    // 앱을 다시 켜도 남아 워치가 심박을 쓸 때마다 앱을 깨운다 — 켤 때 한 번 푼다.
+    // 타바타가 돌면 start 가 다시 건다.
+    if HKHealthStore.isHealthDataAvailable(),
+       let type = HKObjectType.quantityType(forIdentifier: .heartRate) {
+      store.disableBackgroundDelivery(for: type) { _, _ in }
+    }
   }
 
   private func start(_ result: @escaping FlutterResult) {

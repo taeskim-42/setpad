@@ -67,6 +67,17 @@ class RestRecovery extends ChangeNotifier {
     _feed ??= health.beats().listen(_took, onError: (_) {});
   }
 
+  /// 심박 받기를 멈춘다. 타바타가 멈추면 부른다 — 휴식을 끊을 일이 없는데 계속
+  /// 읽지 않는다(Android 는 10초마다 읽고, iOS 는 워치가 쓸 때마다 앱을 깨운다).
+  /// 받아 둔 값은 남긴다 — 다시 켜면 같은 값은 [_took] 이 거른다.
+  void stop() {
+    _feed?.cancel();
+    _feed = null;
+  }
+
+  /// 지금 심박을 받고 있는가.
+  bool get listening => _feed != null;
+
   /// 한 세트가 시작됐다. 기준선을 새로 잡는다.
   ///
   /// 최고는 **휴식 동안에도** 계속 갱신한다 — 세트 직후 몇 초 동안 심박이

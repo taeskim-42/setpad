@@ -211,6 +211,52 @@ List<ExerciseBlock> blocksFromJson(Object? blocks) => [
       ),
 ];
 
+/// 이 기록을 건강 앱에 남긴 운동 하나. 다시 맞출 때 **이것만** 지우고 새로 쓴다 —
+/// 편집기를 나올 때마다 새로 쓰기만 하면 같은 운동이 건강 앱에 여러 번 쌓인다.
+class HealthWorkout {
+  const HealthWorkout({
+    required this.id,
+    required this.from,
+    required this.to,
+    this.kcal,
+  });
+
+  /// 건강 앱이 준 식별자(HealthKit UUID, Health Connect 기록 id).
+  final String id;
+
+  /// 남긴 구간.
+  final DateTime from, to;
+
+  /// 운동에 함께 적은 활동 칼로리. Android 는 적지 않는다(null).
+  final int? kcal;
+
+  /// 이 구간 그대로인가. 건강 앱에는 밀리초까지만 간다.
+  bool covers(DateTime start, DateTime end) =>
+      from.millisecondsSinceEpoch == start.millisecondsSinceEpoch &&
+      to.millisecondsSinceEpoch == end.millisecondsSinceEpoch;
+
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'from': from.toIso8601String(),
+    'to': to.toIso8601String(),
+    'kcal': ?kcal,
+  };
+
+  static HealthWorkout? tryFromJson(Object? j) {
+    if (j is! Map) return null;
+    final id = j['id'], kcal = j['kcal'];
+    final from = j['from'] is String ? DateTime.tryParse(j['from']) : null;
+    final to = j['to'] is String ? DateTime.tryParse(j['to']) : null;
+    if (id is! String || id.isEmpty || from == null || to == null) return null;
+    return HealthWorkout(
+      id: id,
+      from: from,
+      to: to,
+      kcal: kcal is num ? kcal.round() : null,
+    );
+  }
+}
+
 /// 한 번의 운동 기록. 메모 앱의 메모 한 장에 해당한다.
 ///
 /// 제목을 따로 받지 않는다 — 첫 운동 이름이 곧 제목이다. 메모 앱이 첫 줄을
@@ -235,6 +281,9 @@ class Note {
   /// 이 운동 동안 **애플워치가 잰** 활동 칼로리. 잰 것이 없으면 null 이다.
   /// 앱이 추정하지 않는다 — 0 과 "아무도 안 쟀다"는 다른 말이다.
   double? calories;
+
+  /// 이 기록을 건강 앱에 남긴 운동. 아직 안 남겼거나 1.4.2 전에 남겼으면 null.
+  HealthWorkout? healthWorkout;
   EditorDraft? draft;
 
   /// 트레이너가 내려준 루틴으로 시작한 기록이면 어디 것인지 남는다.
@@ -338,6 +387,7 @@ class Note {
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
     if (calories != null) 'calories': calories,
+    'healthWorkout': ?healthWorkout?.toJson(),
     if (draft != null) 'draft': draft!.toJson(),
     if (gymId != null) 'gymId': gymId,
     if (routineId != null) 'routineId': routineId,
@@ -373,6 +423,7 @@ class Note {
   static Note _restore(Map<String, dynamic> j, Note note) {
     final sent = j['sentAt'];
     if (sent is String) note.sentAt = DateTime.tryParse(sent);
+    note.healthWorkout = HealthWorkout.tryFromJson(j['healthWorkout']);
     for (final m in (j['meals'] as List? ?? const [])) {
       final meal = MealEntry.tryFromJson(m);
       if (meal != null) note.meals.add(meal);

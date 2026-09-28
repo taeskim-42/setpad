@@ -179,7 +179,9 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     );
     // 아무것도 안 치고 나온 새 기록은 남기지 않는다.
     _store.discardIfEmpty(note);
-    unawaited(_syncHealth(note));
+    _healthSync = _healthSync
+        .then((_) => _syncHealth(note))
+        .catchError((Object e) => debugPrint('건강 앱 맞추기 실패: $e'));
   }
 
   /// 편집을 마치고 나올 때 건강 앱과 맞춘다.
@@ -198,30 +200,27 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     if (!end.isAfter(start)) return;
 
     if (!await _health.authorize()) return;
-    // 관찰은 한 번만 걸면 계속 산다.
-    unawaited(_health.watchHeartRate());
-
-    // 심박이 얼마나 늦게 도착하는지 남긴다. 심박으로 휴식을 끊어 주는 기능을
-    // 만들지 말지가 이 값에 달려 있다 — 몇 초면 되고 몇 분이면 못 한다.
-    final hr = await _health.latestHeartRate();
-    debugPrint(
-      hr == null
-          ? '[심박] 최근 30분에 잰 것이 없다'
-          : '[심박] ${hr.bpm}bpm · 잰 시각 ${hr.at} · 지연 ${hr.lag.inSeconds}초',
-    );
 
     final kcal = await _health.activeEnergy(start, end);
-    await _health.writeWorkout(
+    final saved = await _health.saveWorkout(
       start: start,
       end: end,
       title: note.title,
       energyBurned: kcal,
+      previous: note.healthWorkout,
     );
-    if (kcal != null && mounted) {
+    var changed = !identical(saved, note.healthWorkout);
+    note.healthWorkout = saved;
+    if (kcal != null && kcal != note.calories) {
       note.calories = kcal;
-      _store.touch();
+      changed = true;
     }
+    if (changed && mounted) _store.touch();
   }
+
+  /// 건강 앱 맞추기는 한 번에 하나씩. 빨리 두 번 나오면 둘이 같은 옛 운동을 보고
+  /// 각자 새로 써서 운동이 둘이 된다.
+  Future<void> _healthSync = Future.value();
 
   /// 로그인과 결제. **없어도 앱은 그대로 돈다** — 켜지 않은 사람은 그냥 쓴다.
   /// 기기 id 는 store 가 처음 켤 때 만들므로 부를 때 읽는다.
