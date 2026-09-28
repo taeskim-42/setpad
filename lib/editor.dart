@@ -836,8 +836,11 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 글자가 하나 있어야 "빈 자리에서 지우기" 를 알 수 있다. 운동 이름을
   /// 기다리는 빈 칸에만 심고, 읽을 때는 늘 [_text] 로 걷어 낸다. 치는 도중에는
   /// 값을 건드리지 않는다 — 한글 조합이 깨진다.
-  static const _zw = '\u200B';
-  String get _text => _input.text.replaceAll(_zw, '');
+  // A regular space is an IME word boundary; a zero-width character is not.
+  static String get _zw => _selectsSentinel ? ' ' : '\u200B';
+  String get _text => _selectsSentinel
+      ? (_input.text == _zw ? '' : _input.text)
+      : _input.text.replaceAll(_zw, '');
   bool get _wantsSentinel =>
       _c.naming && !_editingRecord && !_mealMode && _c.blocks.isNotEmpty;
 
@@ -869,9 +872,10 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   void _syncSentinel() {
+    final composing = _input.value.composing;
+    if (composing.isValid && !composing.isCollapsed) return;
     if (_wantsSentinel && _input.text.isEmpty) {
-      // 방금 지워진 표지는 한 프레임 뒤에 정한다([_afterSentinelErased]).
-      if (_erasedSentinel) return;
+      if (_erasedSentinel || _sentinelRestorePending) return;
       _input.value = TextEditingValue(text: _zw, selection: _sentinelSelection);
     } else if (_wantsSentinel &&
         _input.text == _zw &&
@@ -879,7 +883,8 @@ class _RoutineEditorState extends State<RoutineEditor>
         !_input.value.composing.isValid) {
       // 누르기·화살표가 커서를 표지 앞뒤로 옮겼다. 다시 골라 둔다.
       _input.selection = _sentinelSelection;
-    } else if (!_wantsSentinel && _input.text.contains(_zw)) {
+    } else if (!_wantsSentinel &&
+        (_selectsSentinel ? _input.text == _zw : _input.text.contains(_zw))) {
       final clean = _text;
       _input.value = TextEditingValue(
         text: clean,
@@ -905,6 +910,13 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 다른 글을 들고, 두 번째 글자부터 사라진다. 받아 두고 한 프레임 뒤에도 비어
   /// 있을 때만 앞줄로 간다.
   bool _erasedSentinel = false;
+  bool _sentinelRestorePending = false;
+
+  void _afterTextErased() {
+    if (!mounted || !_sentinelRestorePending) return;
+    _sentinelRestorePending = false;
+    if (_input.text.isEmpty && _wantsSentinel) _syncSentinel();
+  }
 
   void _afterSentinelErased() {
     if (!mounted || !_erasedSentinel) return;
@@ -1951,7 +1963,9 @@ class _RoutineEditorState extends State<RoutineEditor>
     }
     final index = _recordSet!;
     if (index >= _c.blocks[_c.activeIndex].sets.length) return false;
-    if (parsed == null) {
+    // An unfinished value field must never turn a weighted set into reps only.
+    if (parsed == null ||
+        (_recordOriginal?.value != null && parsed.value == null)) {
       final original = _recordOriginal;
       if (original != null) _c.updateSet(_c.activeIndex, index, original);
       return false;
@@ -3118,67 +3132,82 @@ class _RoutineEditorState extends State<RoutineEditor>
                       ),
                     ),
                   ),
-                CupertinoTextField(
-                  // iOS 자동 고침과 예측 막대를 끈다. "랫풀다운" 을 멋대로 고치는 것을
-                  // 막고, 예측 막대가 프레임마다 뱉던 NSLayoutConstraint 경고도 같이
-                  // 사라진다 — 그 경고는 iOS 키보드의 것이지 우리 것이 아니다.
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  controller: _input,
-                  focusNode: _focus,
-                  autofocus: true,
-                  readOnly: readOnly,
-                  showCursor: !_padMode,
-                  keyboardType: readOnly
-                      ? TextInputType.none
-                      : _wantText
-                      ? TextInputType.multiline
-                      : TextInputType.text,
-                  textInputAction: TextInputAction.done,
-                  minLines: _wantText ? 2 : 1,
-                  maxLines: _wantText ? null : 1,
-                  onTap: _onInputTap,
-                  onSubmitted: (_) => _commit(
-                    _highlight >= 0 &&
-                            _highlight < _matches.length &&
-                            TimingSpec.parse(_text) == null
-                        ? _matches[_highlight]
-                        : null,
+                // 골라 둔 표지(iOS 는 보통 공백)가 선택 색으로 칠해지지 않게 한다 — 늘 감싸고
+                // 색만 바꾼다. 감쌌다 풀었다 하면 입력칸이 새로 만들어진다.
+                DefaultSelectionStyle.merge(
+                  selectionColor: _input.text == _zw
+                      ? const Color(0x00000000)
+                      : null,
+                  child: CupertinoTextField(
+                    // iOS 자동 고침과 예측 막대를 끈다. "랫풀다운" 을 멋대로 고치는 것을
+                    // 막고, 예측 막대가 프레임마다 뱉던 NSLayoutConstraint 경고도 같이
+                    // 사라진다 — 그 경고는 iOS 키보드의 것이지 우리 것이 아니다.
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    controller: _input,
+                    focusNode: _focus,
+                    autofocus: true,
+                    readOnly: readOnly,
+                    showCursor: !_padMode,
+                    keyboardType: readOnly
+                        ? TextInputType.none
+                        : _wantText
+                        ? TextInputType.multiline
+                        : TextInputType.text,
+                    textInputAction: TextInputAction.done,
+                    minLines: _wantText ? 2 : 1,
+                    maxLines: _wantText ? null : 1,
+                    onTap: _onInputTap,
+                    onSubmitted: (_) => _commit(
+                      _highlight >= 0 &&
+                              _highlight < _matches.length &&
+                              TimingSpec.parse(_text) == null
+                          ? _matches[_highlight]
+                          : null,
+                    ),
+                    onChanged: (_) => setState(() => _highlight = -1),
+                    inputFormatters: [
+                      // 심어 둔 글자가 지워졌다 = 빈 자리에서 지우기를 눌렀을 수 있다.
+                      // 지운 대로 받고, 한 프레임 뒤에 정한다([_erasedSentinel]).
+                      TextInputFormatter.withFunction((before, after) {
+                        if (before.text == _zw && after.text.isEmpty) {
+                          _erasedSentinel = true;
+                          SchedulerBinding.instance
+                            ..addPostFrameCallback(
+                              (_) => _afterSentinelErased(),
+                            )
+                            ..ensureVisualUpdate();
+                        } else if (before.text.isNotEmpty &&
+                            after.text.isEmpty) {
+                          _sentinelRestorePending = true;
+                          SchedulerBinding.instance
+                            ..addPostFrameCallback((_) => _afterTextErased())
+                            ..ensureVisualUpdate();
+                        }
+                        return after;
+                      }),
+                    ],
+                    style: TextStyle(
+                      fontSize: 17,
+                      height: _wantText ? 1.5 : null,
+                      letterSpacing: bold ? -0.41 : 0,
+                      fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: CupertinoColors.label.resolveFrom(context),
+                    ),
+                    cursorColor: CupertinoColors.label.resolveFrom(context),
+                    decoration: const BoxDecoration(),
+                    padding: EdgeInsets.symmetric(vertical: bold ? 10 : 6),
+                    // 안내문은 늘 null 이 아닌 값을 준다 — null 과 글을 오가면 입력칸의 짜임이
+                    // 첫 글자에서 바뀌어(안쪽 입력기가 다른 부모로 옮겨진다) 조합 중인 글자를
+                    // 흔든다. 심어 둔 글자가 있을 때는 위의 것이 대신 보이므로 빈 글이다.
+                    placeholder: _input.text == _zw ? '' : hint,
+                    placeholderStyle: hintStyle,
+                    // 키패드로 치는 줄에는 복사·선택 메뉴가 쓸모없다 — 눌러 칸을 고르는 자리다.
+                    // 두 번 누르기의 낱말 선택("80kg")도 끈다. 누르기는 [_onInputTap] 이 받는다.
+                    enableInteractiveSelection: !_padMode,
+                    contextMenuBuilder: _padMode ? null : _textMenu,
                   ),
-                  onChanged: (_) => setState(() => _highlight = -1),
-                  inputFormatters: [
-                    // 심어 둔 글자가 지워졌다 = 빈 자리에서 지우기를 눌렀을 수 있다.
-                    // 지운 대로 받고, 한 프레임 뒤에 정한다([_erasedSentinel]).
-                    TextInputFormatter.withFunction((before, after) {
-                      if (before.text == _zw && after.text.isEmpty) {
-                        _erasedSentinel = true;
-                        SchedulerBinding.instance
-                          ..addPostFrameCallback((_) => _afterSentinelErased())
-                          ..ensureVisualUpdate();
-                      }
-                      return after;
-                    }),
-                  ],
-                  style: TextStyle(
-                    fontSize: 17,
-                    height: _wantText ? 1.5 : null,
-                    letterSpacing: bold ? -0.41 : 0,
-                    fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                    color: CupertinoColors.label.resolveFrom(context),
-                  ),
-                  cursorColor: CupertinoColors.label.resolveFrom(context),
-                  decoration: const BoxDecoration(),
-                  padding: EdgeInsets.symmetric(vertical: bold ? 10 : 6),
-                  // 안내문은 늘 null 이 아닌 값을 준다 — null 과 글을 오가면 입력칸의 짜임이
-                  // 첫 글자에서 바뀌어(안쪽 입력기가 다른 부모로 옮겨진다) 조합 중인 글자를
-                  // 흔든다. 심어 둔 글자가 있을 때는 위의 것이 대신 보이므로 빈 글이다.
-                  placeholder: _input.text == _zw ? '' : hint,
-                  placeholderStyle: hintStyle,
-                  // 키패드로 치는 줄에는 복사·선택 메뉴가 쓸모없다 — 눌러 칸을 고르는 자리다.
-                  // 두 번 누르기의 낱말 선택("80kg")도 끈다. 누르기는 [_onInputTap] 이 받는다.
-                  enableInteractiveSelection: !_padMode,
-                  contextMenuBuilder: _padMode ? null : _textMenu,
                 ),
               ],
             ),

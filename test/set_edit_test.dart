@@ -199,6 +199,29 @@ void main() {
       expect(sets(c).first, (90.5, 9));
     });
 
+    testWidgets('무게를 지운 뒤 완료하거나 다시 열어도 횟수 전용으로 바뀌지 않는다', (tester) async {
+      final c = bench();
+      await pumpEditor(tester, c);
+      await tester.tap(find.byKey(const ValueKey('set-cell-0')));
+      await tester.pumpAndSettle();
+      pad(tester).onBackspace();
+      await tester.pump();
+      expect(field(tester).text, 'kg 9');
+      await tester.tap(padKey('다음'));
+      await tester.pump();
+      await tester.tap(padKey('완료'));
+      await tester.pumpAndSettle();
+      expect(sets(c).first, (80.0, 9));
+      await tester.tap(find.byKey(const ValueKey('set-cell-0')));
+      await tester.pumpAndSettle();
+      expect(sets(c).first, (80.0, 9));
+      final rect = tester.getRect(input.first);
+      await tester.tapAt(Offset(rect.left + 2, rect.center.dy));
+      await tester.pump();
+      await press(tester, '85');
+      expect(sets(c).first, (85.0, 9));
+    });
+
     testWidgets('시간 세트는 횟수 칸이 없어 큰 키가 바로 완료다', (tester) async {
       final c = RoutineEditorController()
         ..addExercise('플랭크')
@@ -371,7 +394,7 @@ void main() {
     testWidgets('운동 완료 뒤 빈 줄은 표지가 골라져 있고, 한글 첫 글자가 표지를 덮어쓴다', (tester) async {
       final c = done();
       await ios(tester, c);
-      expect(field(tester).text, '\u200B');
+      expect(field(tester).text, ' ');
       expect(
         field(tester).selection,
         const TextSelection(baseOffset: 0, extentOffset: 1),
@@ -391,7 +414,7 @@ void main() {
       await ios(tester, c);
       tester.testTextInput.updateEditingValue(
         const TextEditingValue(
-          text: '\u200B',
+          text: ' ',
           selection: TextSelection.collapsed(offset: 1),
         ),
       );
@@ -412,6 +435,66 @@ void main() {
       await tester.pumpAndSettle();
       expect(c.activeIndex, 0);
       expect(field(tester).text, '80kg 5');
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('표지 뒤에서 시작한 한글 조합도 음절과 공백을 보존한다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      for (final text in [' ㅎ', ' 해', ' 해머', ' 해머스', ' 해머스트랭스 하이로우']) {
+        final value = TextEditingValue(
+          text: text,
+          selection: TextSelection.collapsed(offset: text.length),
+          composing: TextRange(start: text.length - 1, end: text.length),
+        );
+        tester.testTextInput.updateEditingValue(value);
+        await tester.pump();
+        expect(field(tester).value, value);
+        expect(c.naming, isTrue);
+      }
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(c.blocks.last.name, '해머스트랭스 하이로우');
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('한글 조합 중간의 임시 삭제 때 표지를 다시 넣지 않는다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: 'ㅎ',
+          selection: TextSelection.collapsed(offset: 1),
+        ),
+      );
+      await tester.pump();
+      expect(field(tester).text, 'ㅎ');
+
+      tester.testTextInput.updateEditingValue(const TextEditingValue());
+      expect(field(tester).text, isEmpty);
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: '해',
+          selection: TextSelection.collapsed(offset: 1),
+        ),
+      );
+      await tester.pump();
+      expect(field(tester).text, '해');
+
+      tester.testTextInput.updateEditingValue(const TextEditingValue());
+      expect(field(tester).text, isEmpty);
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: '해머',
+          selection: TextSelection.collapsed(offset: 2),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(field(tester).text, '해머');
+      expect(c.naming, isTrue);
       debugDefaultTargetPlatformOverride = null;
     });
 
