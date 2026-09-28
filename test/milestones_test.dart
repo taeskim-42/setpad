@@ -45,4 +45,31 @@ void main() {
       's3': {0},
     }, reason: '240lb ≈ 108.9kg 는 105 를 넘는다');
   });
+
+  test('무게를 올려 가는 세트는 맨 윗 세트 하나만 ★ — 몸풀기 세트마다 붙지 않는다', () {
+    final before = day('p0', 1, [
+      ExerciseBlock('벤치프레스', [LoggedSet(value: 20, reps: 10)], null, 'b0'),
+    ]);
+    final pyramid = day('p1', 2, [
+      ExerciseBlock(
+        '벤치프레스',
+        [
+          for (final kg in <double>[20, 40, 60, 80, 100, 110, 120])
+            LoggedSet(value: kg, reps: kg == 120 ? 7 : 10),
+          LoggedSet(value: 100, reps: 8),
+        ],
+        null,
+        'b1',
+      ),
+    ]);
+    // 다음 날 같은 무게는 새 기록이 아니다.
+    final same = day('p2', 3, [
+      ExerciseBlock('벤치프레스', [LoggedSet(value: 120, reps: 5)], null, 'b2'),
+    ]);
+    final r = weightRecords([before, pyramid, same]);
+    expect(r['p1'], {
+      'b1': {6},
+    });
+    expect(r['p2'], isNull);
+  });
 }

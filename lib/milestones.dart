@@ -6,11 +6,15 @@ import 'editor.dart' show LoggedSet;
 import 'notes.dart';
 import 'record_query.dart' show exerciseKey;
 
-/// 기록 id → 운동 칸 id → 최고 무게를 새로 넘긴 세트 번호들.
+/// 기록 id → 운동 칸 id → 최고 무게를 새로 넘긴 세트 번호(칸마다 하나).
 ///
 /// 만든 순서대로 한 번 훑는다. 운동마다 그때까지의 최고(kg 로 바꿔 견줌)를 들고
-/// 가다 넘긴 내 세트(해낸 것)만 적는다. 처음 하는 운동은 넘길 기록이 없어 적지
-/// 않는다 — 첫 세트마다 ★ 가 붙으면 뜻이 없다.
+/// 가다, 한 칸에서 가장 무거운 내 세트(해낸 것)가 그 최고를 넘겼으면 그 무게에 처음
+/// 닿은 세트 하나만 적는다. 처음 하는 운동은 넘길 기록이 없어 적지 않는다 — 첫
+/// 세트마다 ★ 가 붙으면 뜻이 없다.
+///
+/// 칸 안에서 무게를 올려 가는 세트(20 → 40 → … → 120)마다 적으면 몸풀기까지 ★ 투성이가
+/// 된다(2026-09-28 사용자 보고: 일곱 칸 중 여섯에 ★). 새 기록은 그날의 맨 윗 세트다.
 Map<String, Map<String, Set<int>>> weightRecords(Iterable<Note> notes) {
   final ordered = notes.toList()
     ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
@@ -19,15 +23,21 @@ Map<String, Map<String, Set<int>>> weightRecords(Iterable<Note> notes) {
   for (final n in ordered) {
     for (final b in n.blocks) {
       final key = exerciseKey(b.exercise);
+      int? top;
+      double? topKg;
       for (final (i, s) in b.sets.indexed) {
         final kg = _kg(s);
-        if (kg == null) continue;
-        final before = best[key];
-        if (before != null && kg > before + 1e-9) {
-          ((out[n.id] ??= {})[b.id] ??= {}).add(i);
+        if (kg != null && (topKg == null || kg > topKg + 1e-9)) {
+          top = i;
+          topKg = kg;
         }
-        if (before == null || kg > before) best[key] = kg;
       }
+      if (top == null || topKg == null) continue;
+      final before = best[key];
+      if (before != null && topKg > before + 1e-9) {
+        ((out[n.id] ??= {})[b.id] ??= {}).add(top);
+      }
+      if (before == null || topKg > before) best[key] = topKg;
     }
   }
   return out;

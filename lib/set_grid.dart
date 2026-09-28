@@ -169,23 +169,24 @@ class SetGrid extends StatelessWidget {
         final avail = box.maxWidth;
         final columns = (avail / (62 * scaler.scale(1))).floor().clamp(2, 8);
         final width = avail / columns;
-        // 글이 한 열보다 넓으면("102.5×10") 두 열을 차지한다. 제 폭대로 두면
-        // 옆 칸과 붙고 아래위 열이 어긋난다.
         final needs = [
           for (final (i, set) in block.sets.indexed)
             _cellNeed(context, l, block, i, set, boxed: onTapSet != null),
         ];
-        // 칸 폭은 세 갈래다. (1) 칸마다 한 열, 넓은 값만 제 폭 — 빈 칸까지 한 줄에
-        // 들어가면 이것이다. 열이 맞고 넓은 값이 두 열을 먹지 않는다. (2) 안 들어가면
-        // 전부 제 폭으로 바싹 — 열은 어긋나지만 줄 하나를 아낀다. (3) 그래도 안
-        // 들어가면 열 단위로 접고, 빈 칸은 다음 줄로 내려간다. 빈 칸은 늘 있다.
+        // 칸 폭은 세 갈래다. (1) 문서 전체의 가장 넓은 칸 폭으로 빈 칸까지 한 줄에 들어가면
+        // 그것 — 운동끼리 열이 맞는다. (2) 안 들어가면 제 폭으로 바싹 붙여 한 줄 — 줄 하나를
+        // 아낀다(8종목 40세트가 한 화면에 드는 것이 이것 덕이다). (3) 그래도 넘치면 **모든 칸을
+        // 같은 폭**(이 운동의 가장 넓은 칸, 문서 열 폭보다 좁지 않게)으로 두고 다음 줄로 흘린다.
+        // 예전 (3)은 한 열보다 넓은 값만 두 열을 먹게 해서 한 운동 안에서 칸 크기가 들쭉날쭉했다
+        // (2026-09-28 사용자 보고: 20×10 … 80×10 은 한 칸, 100×10·110×10 은 두 칸, 120×7 은
+        // 다시 한 칸).
         const addWidth = 28.0;
         final withAdd = onAdd == null ? 0.0 : addWidth;
         final total = needs.fold(0.0, (a, b) => a + b);
-        // 문서 전체의 가장 넓은 칸에 맞춘다 — 그래야 운동끼리 열이 맞는다.
         final column = [width, ?uniform].reduce((a, b) => a > b ? a : b);
         final aligned = [for (final n in needs) n > column ? n : column];
         final alignedTotal = aligned.fold(0.0, (a, b) => a + b);
+        final widest = needs.fold(column, (a, b) => a > b ? a : b);
         final mode = alignedTotal + withAdd <= avail + 0.5
             ? 1
             : total + withAdd <= avail + 0.5
@@ -194,7 +195,7 @@ class SetGrid extends StatelessWidget {
         double cell(int i, LoggedSet set) => switch (mode) {
           1 => aligned[i],
           2 => needs[i],
-          _ => (needs[i] / width).ceil().clamp(1, columns) * width,
+          _ => widest > avail ? avail : widest,
         };
         // 칸 하나의 상자. [target] 이면 끌어 온 세트가 놓일 자리라 호박색 테두리다.
         Widget cellBox(int i, LoggedSet set, {bool target = false}) => SizedBox(
