@@ -818,5 +818,16 @@
   "mealChooseProduct": "Chọn sản phẩm khác ›",
   "mealNeedsChoice": "Không có sản phẩm đúng tên này. Hãy chọn loại bạn đã ăn.",
   "mealAiEstimate": "AI ước tính — không có trong bảng thực phẩm nào",
-  "mealChoiceTitle": "“{food}” — sản phẩm nào?"
+  "mealChoiceTitle": "“{food}” — sản phẩm nào?",
+  "bodyGoal": "Mục tiêu tập",
+  "bodyGoalLose": "Giảm mỡ",
+  "bodyGoalMaintain": "Duy trì",
+  "bodyGoalGain": "Tăng cơ",
+  "bodyTargets": "Mục tiêu/ngày {kcal} kcal · Tinh bột {carbs}g · Đạm {protein}g · Béo {fat}g",
+  "bodyTargetsNeed": "Chọn mục tiêu và nhập cân nặng, chiều cao, năm sinh, giới tính (hoặc bản ghi cơ thể) để xem mục tiêu",
+  "bodyTargetsNote": "Tính cho ngày không tập; ngày tập cộng thêm phần tập. Năng lượng: BMR × 1,2 + tập, giảm −20% · tăng +10%. Đạm: giảm 2,2 g/kg (2,6 g/kg khối nạc nếu biết), duy trì 1,6 g, tăng 2,0 g. Béo: 25% năng lượng. Tinh bột: phần còn lại. Chỉ để tham khảo, không phải lời khuyên y tế.",
+  "dayMacros": "Đã ăn: Tinh bột {carbs} · Đạm {protein} · Béo {fat}g",
+  "dayMacrosVsTarget": "TB {carbs}/{carbsTarget} · Đạm {protein}/{proteinTarget} · Béo {fat}/{fatTarget}g",
+  "dayMacrosGoal": "Mục tiêu theo {kcal} kcal gồm cả buổi tập hôm nay — đổi mục tiêu ở Cơ thể",
+  "dayMacrosMissing": "Không tính {n} bữa chưa rõ dinh dưỡng"
 }

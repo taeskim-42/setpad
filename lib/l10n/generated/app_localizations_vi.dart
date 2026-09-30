@@ -3495,4 +3495,56 @@ class LVi extends L {
   String mealChoiceTitle(String food) {
     return '“$food” — sản phẩm nào?';
   }
+
+  @override
+  String get bodyGoal => 'Mục tiêu tập';
+
+  @override
+  String get bodyGoalLose => 'Giảm mỡ';
+
+  @override
+  String get bodyGoalMaintain => 'Duy trì';
+
+  @override
+  String get bodyGoalGain => 'Tăng cơ';
+
+  @override
+  String bodyTargets(int kcal, int carbs, int protein, int fat) {
+    return 'Mục tiêu/ngày $kcal kcal · Tinh bột ${carbs}g · Đạm ${protein}g · Béo ${fat}g';
+  }
+
+  @override
+  String get bodyTargetsNeed =>
+      'Chọn mục tiêu và nhập cân nặng, chiều cao, năm sinh, giới tính (hoặc bản ghi cơ thể) để xem mục tiêu';
+
+  @override
+  String get bodyTargetsNote =>
+      'Tính cho ngày không tập; ngày tập cộng thêm phần tập. Năng lượng: BMR × 1,2 + tập, giảm −20% · tăng +10%. Đạm: giảm 2,2 g/kg (2,6 g/kg khối nạc nếu biết), duy trì 1,6 g, tăng 2,0 g. Béo: 25% năng lượng. Tinh bột: phần còn lại. Chỉ để tham khảo, không phải lời khuyên y tế.';
+
+  @override
+  String dayMacros(String carbs, String protein, String fat) {
+    return 'Đã ăn: Tinh bột $carbs · Đạm $protein · Béo ${fat}g';
+  }
+
+  @override
+  String dayMacrosVsTarget(
+    String carbs,
+    String carbsTarget,
+    String protein,
+    String proteinTarget,
+    String fat,
+    String fatTarget,
+  ) {
+    return 'TB $carbs/$carbsTarget · Đạm $protein/$proteinTarget · Béo $fat/${fatTarget}g';
+  }
+
+  @override
+  String dayMacrosGoal(int kcal) {
+    return 'Mục tiêu theo $kcal kcal gồm cả buổi tập hôm nay — đổi mục tiêu ở Cơ thể';
+  }
+
+  @override
+  String dayMacrosMissing(int n) {
+    return 'Không tính $n bữa chưa rõ dinh dưỡng';
+  }
 }

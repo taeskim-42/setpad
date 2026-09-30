@@ -818,5 +818,16 @@
   "mealChooseProduct": "Elegir otro producto ›",
   "mealNeedsChoice": "No hay un producto con este nombre exacto. Elige el que comiste.",
   "mealAiEstimate": "Estimación de IA — no está en ninguna tabla de alimentos",
-  "mealChoiceTitle": "«{food}»: ¿qué producto?"
+  "mealChoiceTitle": "«{food}»: ¿qué producto?",
+  "bodyGoal": "Objetivo",
+  "bodyGoalLose": "Perder grasa",
+  "bodyGoalMaintain": "Mantener",
+  "bodyGoalGain": "Ganar músculo",
+  "bodyTargets": "Objetivo diario {kcal} kcal · HC {carbs} g · P {protein} g · G {fat} g",
+  "bodyTargetsNeed": "Elige un objetivo e introduce peso, altura, año de nacimiento y sexo (o un registro corporal)",
+  "bodyTargetsNote": "Para un día sin entrenar; los días de entreno suman ese ejercicio. Calorías: metabolismo basal × 1,2 + ejercicio, perder −20 % · ganar +10 %. Proteína: perder 2,2 g/kg (2,6 g/kg de masa magra si se conoce), mantener 1,6 g, ganar 2,0 g. Grasa: 25 % de las calorías. Hidratos: el resto. Solo orientativo, no es consejo médico.",
+  "dayMacros": "Comido: HC {carbs} · P {protein} · G {fat} g",
+  "dayMacrosVsTarget": "HC {carbs}/{carbsTarget} · P {protein}/{proteinTarget} · G {fat}/{fatTarget} g",
+  "dayMacrosGoal": "Objetivos para {kcal} kcal con el ejercicio de hoy — cambia el objetivo en Cuerpo",
+  "dayMacrosMissing": "No cuentan {n} comidas sin macros"
 }

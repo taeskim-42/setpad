@@ -28,6 +28,7 @@ class _BodyPageState extends State<BodyPage> {
     text: _start.birthYear?.toString() ?? '',
   );
   late String? _sex = _start.sex;
+  late String? _goal = _start.goal;
 
   static String _text(double? v) => v == null ? '' : formatNumber(v);
 
@@ -141,6 +142,7 @@ class _BodyPageState extends State<BodyPage> {
         },
         birthYear: y != null && y > 1900 && y <= DateTime.now().year ? y : null,
         sex: _sex,
+        goal: _goal,
       ),
     );
     setState(() {});
@@ -150,7 +152,16 @@ class _BodyPageState extends State<BodyPage> {
   Widget build(BuildContext context) {
     final l = L.of(context);
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
-    final bmr = widget.store.body.bmrPerDay(DateTime.now());
+    final today = DateTime.now();
+    final record = recordOn(today, widget.store.bodyRecords);
+    final bmr = bmrOn(today, widget.store.body, record);
+    // 운동하지 않은 날 기준의 목표 — 운동한 날은 하루 화면이 그날 운동을 더해 보인다.
+    final target = macroTarget(
+      goal: widget.store.body.goal,
+      weightKg: widget.store.weightOnDay(today),
+      bmrPerDay: bmr,
+      leanKg: leanOf(record),
+    );
     Widget field(
       String label,
       TextEditingController c, {
@@ -202,6 +213,44 @@ class _BodyPageState extends State<BodyPage> {
                   style: const TextStyle(fontSize: 15),
                 ),
               ),
+            CupertinoFormSection.insetGrouped(
+              header: Text(l.bodyGoal),
+              footer: Text(
+                l.bodyTargetsNote,
+                style: TextStyle(fontSize: 13, color: muted),
+              ),
+              children: [
+                CupertinoFormRow(
+                  child: CupertinoSlidingSegmentedControl<String>(
+                    key: const ValueKey('body-goal'),
+                    groupValue: _goal,
+                    children: {
+                      'lose': Text(l.bodyGoalLose),
+                      'maintain': Text(l.bodyGoalMaintain),
+                      'gain': Text(l.bodyGoalGain),
+                    },
+                    onValueChanged: (v) {
+                      _goal = v;
+                      _save();
+                    },
+                  ),
+                ),
+                CupertinoFormRow(
+                  child: Text(
+                    target == null
+                        ? l.bodyTargetsNeed
+                        : l.bodyTargets(
+                            target.kcal.round(),
+                            target.carbs.round(),
+                            target.protein.round(),
+                            target.fat.round(),
+                          ),
+                    key: const ValueKey('body-targets'),
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ),
+              ],
+            ),
             _records(context, l, muted),
           ],
         ),

@@ -17,6 +17,7 @@ import 'package:intl/intl.dart';
 
 import 'body.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'meal.dart';
 import 'notes.dart';
 
 /// 기기의 현지 날짜. 시간대가 붙어 들어온 시각(서버·가져온 자료)은 UTC 로 풀려
@@ -48,6 +49,20 @@ class DayLog {
 
   /// 어림값이 섞였는가. 섞였으면 결과에도 "약" 이 붙는다.
   bool get intakeEstimated => meals.any((m) => m.approximate);
+
+  /// 탄단지를 아는 끼니의 합. 아는 끼니가 없으면 null.
+  MealMacros? get macros {
+    final known = meals.map((m) => m.macros).whereType<MealMacros>().toList();
+    if (known.isEmpty) return null;
+    return (
+      carbs: known.fold(0.0, (a, m) => a + m.carbs),
+      protein: known.fold(0.0, (a, m) => a + m.protein),
+      fat: known.fold(0.0, (a, m) => a + m.fat),
+    );
+  }
+
+  /// 탄단지를 모르는 끼니 수. [macros] 에는 안 들어간다.
+  int get mealsWithoutMacros => meals.where((m) => m.macros == null).length;
 
   /// 운동 중 활동 에너지의 합: 워치가 잰 문서는 잰 값, 안 잰 문서는 몸무게로 어림한 값.
   /// 잰 것도 어림할 것도 없으면 null.
@@ -110,11 +125,11 @@ List<DayLog> dayLogs(
   return days.values.toList()..sort((a, b) => a.day.compareTo(b.day));
 }
 
-/// 워치가 안 잰 운동 문서의 활동 에너지 어림. 내 세트가 없거나 몸무게를 모르면 null.
+/// 워치가 안 잰 운동 문서의 활동 에너지 어림 — 종목마다([workoutKcal]). 내 세트가 없거나 몸무게를
+/// 모르면 null.
 double? noteEstimate(Note note, double? weightKg) {
   if (note.calories != null) return null;
-  final sets = note.blocks.expand((b) => b.sets).where((s) => s.mine).length;
-  return strengthKcal(sets: sets, weightKg: weightKg);
+  return workoutKcal(note.blocks, weightKg);
 }
 
 /// 하루의 에너지 한 줄. 없는 것은 없다고 쓴다 — 0 으로 채우지 않는다.

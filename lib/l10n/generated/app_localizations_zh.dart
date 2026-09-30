@@ -3370,6 +3370,57 @@ class LZh extends L {
   String mealChoiceTitle(String food) {
     return '“$food”——是哪款产品?';
   }
+
+  @override
+  String get bodyGoal => '训练目标';
+
+  @override
+  String get bodyGoalLose => '减脂';
+
+  @override
+  String get bodyGoalMaintain => '维持';
+
+  @override
+  String get bodyGoalGain => '增肌';
+
+  @override
+  String bodyTargets(int kcal, int carbs, int protein, int fat) {
+    return '每日目标 ${kcal}kcal · 碳水 ${carbs}g · 蛋白质 ${protein}g · 脂肪 ${fat}g';
+  }
+
+  @override
+  String get bodyTargetsNeed => '选择目标并填写体重、身高、出生年份和性别(或体成分记录)即可看到每日目标';
+
+  @override
+  String get bodyTargetsNote =>
+      '以不运动的日子为准,运动日会加上当天的运动。热量:基础代谢 × 1.2 + 运动,减脂 −20% · 增肌 +10%。蛋白质:减脂每公斤体重 2.2g(知道去脂体重则每公斤去脂 2.6g),维持 1.6g,增肌 2.0g。脂肪:热量的 25%。碳水:其余。仅供参考,不是医疗建议。';
+
+  @override
+  String dayMacros(String carbs, String protein, String fat) {
+    return '已吃:碳水 $carbs · 蛋白质 $protein · 脂肪 ${fat}g';
+  }
+
+  @override
+  String dayMacrosVsTarget(
+    String carbs,
+    String carbsTarget,
+    String protein,
+    String proteinTarget,
+    String fat,
+    String fatTarget,
+  ) {
+    return '碳水 $carbs/$carbsTarget · 蛋白质 $protein/$proteinTarget · 脂肪 $fat/${fatTarget}g';
+  }
+
+  @override
+  String dayMacrosGoal(int kcal) {
+    return '目标按含今天运动的 ${kcal}kcal 计算 — 在身体信息里更改目标';
+  }
+
+  @override
+  String dayMacrosMissing(int n) {
+    return '未计入 $n 顿不知营养素的餐';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6738,6 +6789,57 @@ class LZhHans extends LZh {
   String mealChoiceTitle(String food) {
     return '“$food”——是哪款产品?';
   }
+
+  @override
+  String get bodyGoal => '训练目标';
+
+  @override
+  String get bodyGoalLose => '减脂';
+
+  @override
+  String get bodyGoalMaintain => '维持';
+
+  @override
+  String get bodyGoalGain => '增肌';
+
+  @override
+  String bodyTargets(int kcal, int carbs, int protein, int fat) {
+    return '每日目标 ${kcal}kcal · 碳水 ${carbs}g · 蛋白质 ${protein}g · 脂肪 ${fat}g';
+  }
+
+  @override
+  String get bodyTargetsNeed => '选择目标并填写体重、身高、出生年份和性别(或体成分记录)即可看到每日目标';
+
+  @override
+  String get bodyTargetsNote =>
+      '以不运动的日子为准,运动日会加上当天的运动。热量:基础代谢 × 1.2 + 运动,减脂 −20% · 增肌 +10%。蛋白质:减脂每公斤体重 2.2g(知道去脂体重则每公斤去脂 2.6g),维持 1.6g,增肌 2.0g。脂肪:热量的 25%。碳水:其余。仅供参考,不是医疗建议。';
+
+  @override
+  String dayMacros(String carbs, String protein, String fat) {
+    return '已吃:碳水 $carbs · 蛋白质 $protein · 脂肪 ${fat}g';
+  }
+
+  @override
+  String dayMacrosVsTarget(
+    String carbs,
+    String carbsTarget,
+    String protein,
+    String proteinTarget,
+    String fat,
+    String fatTarget,
+  ) {
+    return '碳水 $carbs/$carbsTarget · 蛋白质 $protein/$proteinTarget · 脂肪 $fat/${fatTarget}g';
+  }
+
+  @override
+  String dayMacrosGoal(int kcal) {
+    return '目标按含今天运动的 ${kcal}kcal 计算 — 在身体信息里更改目标';
+  }
+
+  @override
+  String dayMacrosMissing(int n) {
+    return '未计入 $n 顿不知营养素的餐';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10105,5 +10207,56 @@ class LZhHant extends LZh {
   @override
   String mealChoiceTitle(String food) {
     return '「$food」——是哪款產品?';
+  }
+
+  @override
+  String get bodyGoal => '訓練目標';
+
+  @override
+  String get bodyGoalLose => '減脂';
+
+  @override
+  String get bodyGoalMaintain => '維持';
+
+  @override
+  String get bodyGoalGain => '增肌';
+
+  @override
+  String bodyTargets(int kcal, int carbs, int protein, int fat) {
+    return '每日目標 ${kcal}kcal · 碳水 ${carbs}g · 蛋白質 ${protein}g · 脂肪 ${fat}g';
+  }
+
+  @override
+  String get bodyTargetsNeed => '選擇目標並填寫體重、身高、出生年份和性別(或體成分記錄)即可看到每日目標';
+
+  @override
+  String get bodyTargetsNote =>
+      '以不運動的日子為準,運動日會加上當天的運動。熱量:基礎代謝 × 1.2 + 運動,減脂 −20% · 增肌 +10%。蛋白質:減脂每公斤體重 2.2g(知道去脂體重則每公斤去脂 2.6g),維持 1.6g,增肌 2.0g。脂肪:熱量的 25%。碳水:其餘。僅供參考,不是醫療建議。';
+
+  @override
+  String dayMacros(String carbs, String protein, String fat) {
+    return '已吃:碳水 $carbs · 蛋白質 $protein · 脂肪 ${fat}g';
+  }
+
+  @override
+  String dayMacrosVsTarget(
+    String carbs,
+    String carbsTarget,
+    String protein,
+    String proteinTarget,
+    String fat,
+    String fatTarget,
+  ) {
+    return '碳水 $carbs/$carbsTarget · 蛋白質 $protein/$proteinTarget · 脂肪 $fat/${fatTarget}g';
+  }
+
+  @override
+  String dayMacrosGoal(int kcal) {
+    return '目標按含今天運動的 ${kcal}kcal 計算 — 在身體資訊裡更改目標';
+  }
+
+  @override
+  String dayMacrosMissing(int n) {
+    return '未計入 $n 頓不知營養素的餐';
   }
 }

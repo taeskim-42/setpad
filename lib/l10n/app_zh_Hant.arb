@@ -818,5 +818,16 @@
   "mealChooseProduct": "換成其他產品 ›",
   "mealNeedsChoice": "表裡沒有完全同名的產品。請選擇你吃的那一款。",
   "mealAiEstimate": "AI 估算 — 各食品表都沒有這個食物,由 AI 估算",
-  "mealChoiceTitle": "「{food}」——是哪款產品?"
+  "mealChoiceTitle": "「{food}」——是哪款產品?",
+  "bodyGoal": "訓練目標",
+  "bodyGoalLose": "減脂",
+  "bodyGoalMaintain": "維持",
+  "bodyGoalGain": "增肌",
+  "bodyTargets": "每日目標 {kcal}kcal · 碳水 {carbs}g · 蛋白質 {protein}g · 脂肪 {fat}g",
+  "bodyTargetsNeed": "選擇目標並填寫體重、身高、出生年份和性別(或體成分記錄)即可看到每日目標",
+  "bodyTargetsNote": "以不運動的日子為準,運動日會加上當天的運動。熱量:基礎代謝 × 1.2 + 運動,減脂 −20% · 增肌 +10%。蛋白質:減脂每公斤體重 2.2g(知道去脂體重則每公斤去脂 2.6g),維持 1.6g,增肌 2.0g。脂肪:熱量的 25%。碳水:其餘。僅供參考,不是醫療建議。",
+  "dayMacros": "已吃:碳水 {carbs} · 蛋白質 {protein} · 脂肪 {fat}g",
+  "dayMacrosVsTarget": "碳水 {carbs}/{carbsTarget} · 蛋白質 {protein}/{proteinTarget} · 脂肪 {fat}/{fatTarget}g",
+  "dayMacrosGoal": "目標按含今天運動的 {kcal}kcal 計算 — 在身體資訊裡更改目標",
+  "dayMacrosMissing": "未計入 {n} 頓不知營養素的餐"
 }

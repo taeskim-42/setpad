@@ -512,11 +512,9 @@ class NotesStore extends ChangeNotifier {
       orElse: () => record,
     );
     if (latest.weightKg != null || heightCm != null) {
-      _body = BodyProfile(
-        heightCm: heightCm ?? _body.heightCm,
+      _body = _body.copyWith(
+        heightCm: heightCm,
         weightKg: latest.weightKg ?? _body.weightKg,
-        birthYear: _body.birthYear,
-        sex: _body.sex,
       );
     }
     notifyListeners();

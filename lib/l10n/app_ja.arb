@@ -818,5 +818,16 @@
   "mealChooseProduct": "別の製品にする ›",
   "mealNeedsChoice": "この名前どおりの製品が表にありません。食べた製品を選んでください。",
   "mealAiEstimate": "AI 推定 — どの食品表にもないため AI が見積もりました",
-  "mealChoiceTitle": "「{food}」— どの製品ですか?"
+  "mealChoiceTitle": "「{food}」— どの製品ですか?",
+  "bodyGoal": "トレーニングの目的",
+  "bodyGoalLose": "減量",
+  "bodyGoalMaintain": "維持",
+  "bodyGoalGain": "筋肉を増やす",
+  "bodyTargets": "1日の目標 {kcal}kcal · 炭水化物 {carbs}g · たんぱく質 {protein}g · 脂質 {fat}g",
+  "bodyTargetsNeed": "目的と体重・身長・生まれ年・性別(または体組成の記録)を入れると1日の目標が出ます",
+  "bodyTargetsNote": "運動しない日の基準で、運動した日はその分を足します。熱量: 基礎代謝 × 1.2 + 運動、減量 −20% · 増量 +10%。たんぱく質: 減量 体重1kgあたり2.2g(除脂肪量が分かれば除脂肪1kgあたり2.6g)、維持1.6g、増量2.0g。脂質: 熱量の25%。炭水化物: 残り。目安であり医学的助言ではありません。",
+  "dayMacros": "食べた量: 炭水化物 {carbs} · たんぱく質 {protein} · 脂質 {fat}g",
+  "dayMacrosVsTarget": "炭 {carbs}/{carbsTarget} · た {protein}/{proteinTarget} · 脂 {fat}/{fatTarget}g",
+  "dayMacrosGoal": "今日の運動を含む {kcal}kcal 基準 — 目的は体の情報で変えられます",
+  "dayMacrosMissing": "三大栄養素が分からない食事 {n} 件は含みません"
 }

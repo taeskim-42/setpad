@@ -5027,6 +5027,79 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'‘{food}’ — 어떤 제품인가요?'**
   String mealChoiceTitle(String food);
+
+  /// No description provided for @bodyGoal.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 목적'**
+  String get bodyGoal;
+
+  /// No description provided for @bodyGoalLose.
+  ///
+  /// In ko, this message translates to:
+  /// **'감량'**
+  String get bodyGoalLose;
+
+  /// No description provided for @bodyGoalMaintain.
+  ///
+  /// In ko, this message translates to:
+  /// **'유지'**
+  String get bodyGoalMaintain;
+
+  /// No description provided for @bodyGoalGain.
+  ///
+  /// In ko, this message translates to:
+  /// **'근육 증가'**
+  String get bodyGoalGain;
+
+  /// No description provided for @bodyTargets.
+  ///
+  /// In ko, this message translates to:
+  /// **'하루 목표 {kcal}kcal · 탄 {carbs}g · 단 {protein}g · 지 {fat}g'**
+  String bodyTargets(int kcal, int carbs, int protein, int fat);
+
+  /// No description provided for @bodyTargetsNeed.
+  ///
+  /// In ko, this message translates to:
+  /// **'목적과 몸무게·키·태어난 해·성별(또는 체성분 기록)을 적으면 하루 목표가 나와요'**
+  String get bodyTargetsNeed;
+
+  /// No description provided for @bodyTargetsNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 안 한 날 기준이고, 운동한 날은 그날 운동만큼 더해요. 열량: 기초대사량 × 1.2 + 운동, 감량 −20% · 증량 +10%. 단백질: 감량 체중 kg당 2.2g(제지방량을 알면 제지방 kg당 2.6g), 유지 1.6g, 증량 2.0g. 지방: 열량의 25%. 탄수화물: 나머지. 기초대사량은 체성분 결과지 값 → 제지방량(Katch–McArdle) → 키·몸무게 순으로 써요. 참고값이며 의학적 조언이 아니에요.'**
+  String get bodyTargetsNote;
+
+  /// No description provided for @dayMacros.
+  ///
+  /// In ko, this message translates to:
+  /// **'먹은 탄단지: 탄 {carbs} · 단 {protein} · 지 {fat}g'**
+  String dayMacros(String carbs, String protein, String fat);
+
+  /// No description provided for @dayMacrosVsTarget.
+  ///
+  /// In ko, this message translates to:
+  /// **'탄 {carbs}/{carbsTarget} · 단 {protein}/{proteinTarget} · 지 {fat}/{fatTarget}g'**
+  String dayMacrosVsTarget(
+    String carbs,
+    String carbsTarget,
+    String protein,
+    String proteinTarget,
+    String fat,
+    String fatTarget,
+  );
+
+  /// No description provided for @dayMacrosGoal.
+  ///
+  /// In ko, this message translates to:
+  /// **'목표는 오늘 운동을 더한 {kcal}kcal 기준 — 몸 정보에서 목적을 바꿔요'**
+  String dayMacrosGoal(int kcal);
+
+  /// No description provided for @dayMacrosMissing.
+  ///
+  /// In ko, this message translates to:
+  /// **'탄단지를 모르는 끼니 {n}개는 빠졌어요'**
+  String dayMacrosMissing(int n);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -818,5 +818,16 @@
   "mealChooseProduct": "Choose another product ›",
   "mealNeedsChoice": "No product with exactly this name. Choose the one you ate.",
   "mealAiEstimate": "AI estimate — not in any food table, so AI estimated it",
-  "mealChoiceTitle": "“{food}” — which product?"
+  "mealChoiceTitle": "“{food}” — which product?",
+  "bodyGoal": "Training goal",
+  "bodyGoalLose": "Lose fat",
+  "bodyGoalMaintain": "Maintain",
+  "bodyGoalGain": "Build muscle",
+  "bodyTargets": "Daily target {kcal} kcal · C {carbs}g · P {protein}g · F {fat}g",
+  "bodyTargetsNeed": "Set a goal and your weight, height, birth year and sex (or a body composition record) to see daily targets",
+  "bodyTargetsNote": "Based on a rest day; training days add that day's exercise. Calories: BMR × 1.2 + exercise, lose −20% · build +10%. Protein: lose 2.2 g per kg (2.6 g per kg lean mass if known), maintain 1.6 g, build 2.0 g. Fat: 25% of calories. Carbs: the rest. BMR comes from your body composition sheet, then lean mass (Katch–McArdle), then height and weight. For reference only, not medical advice.",
+  "dayMacros": "Eaten: C {carbs} · P {protein} · F {fat}g",
+  "dayMacrosVsTarget": "C {carbs}/{carbsTarget} · P {protein}/{proteinTarget} · F {fat}/{fatTarget}g",
+  "dayMacrosGoal": "Targets for {kcal} kcal including today's exercise — change the goal in Body",
+  "dayMacrosMissing": "{n} meals without macros are not counted"
 }

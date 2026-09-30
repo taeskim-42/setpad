@@ -3516,4 +3516,56 @@ class LEn extends L {
   String mealChoiceTitle(String food) {
     return '“$food” — which product?';
   }
+
+  @override
+  String get bodyGoal => 'Training goal';
+
+  @override
+  String get bodyGoalLose => 'Lose fat';
+
+  @override
+  String get bodyGoalMaintain => 'Maintain';
+
+  @override
+  String get bodyGoalGain => 'Build muscle';
+
+  @override
+  String bodyTargets(int kcal, int carbs, int protein, int fat) {
+    return 'Daily target $kcal kcal · C ${carbs}g · P ${protein}g · F ${fat}g';
+  }
+
+  @override
+  String get bodyTargetsNeed =>
+      'Set a goal and your weight, height, birth year and sex (or a body composition record) to see daily targets';
+
+  @override
+  String get bodyTargetsNote =>
+      'Based on a rest day; training days add that day\'s exercise. Calories: BMR × 1.2 + exercise, lose −20% · build +10%. Protein: lose 2.2 g per kg (2.6 g per kg lean mass if known), maintain 1.6 g, build 2.0 g. Fat: 25% of calories. Carbs: the rest. BMR comes from your body composition sheet, then lean mass (Katch–McArdle), then height and weight. For reference only, not medical advice.';
+
+  @override
+  String dayMacros(String carbs, String protein, String fat) {
+    return 'Eaten: C $carbs · P $protein · F ${fat}g';
+  }
+
+  @override
+  String dayMacrosVsTarget(
+    String carbs,
+    String carbsTarget,
+    String protein,
+    String proteinTarget,
+    String fat,
+    String fatTarget,
+  ) {
+    return 'C $carbs/$carbsTarget · P $protein/$proteinTarget · F $fat/${fatTarget}g';
+  }
+
+  @override
+  String dayMacrosGoal(int kcal) {
+    return 'Targets for $kcal kcal including today\'s exercise — change the goal in Body';
+  }
+
+  @override
+  String dayMacrosMissing(int n) {
+    return '$n meals without macros are not counted';
+  }
 }

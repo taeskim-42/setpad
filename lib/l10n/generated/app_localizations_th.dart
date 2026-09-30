@@ -3473,4 +3473,56 @@ class LTh extends L {
   String mealChoiceTitle(String food) {
     return '“$food” — สินค้าไหน?';
   }
+
+  @override
+  String get bodyGoal => 'เป้าหมาย';
+
+  @override
+  String get bodyGoalLose => 'ลดไขมัน';
+
+  @override
+  String get bodyGoalMaintain => 'คงที่';
+
+  @override
+  String get bodyGoalGain => 'เพิ่มกล้าม';
+
+  @override
+  String bodyTargets(int kcal, int carbs, int protein, int fat) {
+    return 'เป้าต่อวัน $kcal kcal · คาร์บ $carbs ก. · โปรตีน $protein ก. · ไขมัน $fat ก.';
+  }
+
+  @override
+  String get bodyTargetsNeed =>
+      'เลือกเป้าหมายและกรอกน้ำหนัก ส่วนสูง ปีเกิด เพศ (หรือบันทึกองค์ประกอบร่างกาย) เพื่อดูเป้าต่อวัน';
+
+  @override
+  String get bodyTargetsNote =>
+      'คิดจากวันที่ไม่ได้ออกกำลัง วันที่ออกกำลังจะบวกเพิ่ม พลังงาน: BMR × 1.2 + ออกกำลัง ลด −20% · เพิ่ม +10% โปรตีน: ลด 2.2 ก./กก. (ถ้ารู้มวลไร้ไขมัน 2.6 ก./กก.) คงที่ 1.6 ก. เพิ่ม 2.0 ก. ไขมัน 25% ของพลังงาน คาร์บ: ที่เหลือ เป็นค่าอ้างอิง ไม่ใช่คำแนะนำทางการแพทย์';
+
+  @override
+  String dayMacros(String carbs, String protein, String fat) {
+    return 'กินแล้ว: คาร์บ $carbs · โปรตีน $protein · ไขมัน $fat ก.';
+  }
+
+  @override
+  String dayMacrosVsTarget(
+    String carbs,
+    String carbsTarget,
+    String protein,
+    String proteinTarget,
+    String fat,
+    String fatTarget,
+  ) {
+    return 'คาร์บ $carbs/$carbsTarget · โปรตีน $protein/$proteinTarget · ไขมัน $fat/$fatTarget ก.';
+  }
+
+  @override
+  String dayMacrosGoal(int kcal) {
+    return 'เป้าหมายตาม $kcal kcal รวมการออกกำลังวันนี้ — เปลี่ยนเป้าหมายได้ในข้อมูลร่างกาย';
+  }
+
+  @override
+  String dayMacrosMissing(int n) {
+    return 'ไม่นับ $n มื้อที่ไม่รู้สารอาหาร';
+  }
 }

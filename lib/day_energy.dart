@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 
+import 'body.dart';
 import 'daily.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'palette.dart';
@@ -214,4 +215,51 @@ String energyLine(L l, DayLog day, ({double kcal, bool estimate})? basal) {
   if (basal == null || intake == null) return dayEnergyText(l, day) ?? '';
   final used = (basal.kcal + (day.burned ?? 0)).round();
   return l.energyLine(signed(intake), signed(-used), signed(intake - used));
+}
+
+/// 그날 먹은 탄단지와, 운동 목적을 정했으면 그 목표. "탄 180/250 · 단 95/144 · 지 50/62g".
+/// 탄단지를 모르는 끼니는 합에 안 들어가고 그 수를 옆에 적는다.
+class DayMacros extends StatelessWidget {
+  const DayMacros(this.day, {super.key, this.target});
+  final DayLog day;
+  final MacroTarget? target;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final m = day.macros, t = target;
+    String g(double? v) => v == null ? '—' : v.round().toString();
+    final line = t == null
+        ? l.dayMacros(g(m?.carbs), g(m?.protein), g(m?.fat))
+        : l.dayMacrosVsTarget(
+            g(m?.carbs),
+            g(t.carbs),
+            g(m?.protein),
+            g(t.protein),
+            g(m?.fat),
+            g(t.fat),
+          );
+    final missing = day.mealsWithoutMacros;
+    return Padding(
+      key: const ValueKey('day-macros'),
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(line, style: const TextStyle(fontSize: 14)),
+          if (t != null)
+            Text(
+              l.dayMacrosGoal(t.kcal.round()),
+              style: TextStyle(fontSize: 12, color: muted),
+            ),
+          if (missing > 0 && m != null)
+            Text(
+              l.dayMacrosMissing(missing),
+              style: TextStyle(fontSize: 12, color: muted),
+            ),
+        ],
+      ),
+    );
+  }
 }

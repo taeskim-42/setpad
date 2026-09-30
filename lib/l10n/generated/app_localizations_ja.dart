@@ -3397,4 +3397,55 @@ class LJa extends L {
   String mealChoiceTitle(String food) {
     return '「$food」— どの製品ですか?';
   }
+
+  @override
+  String get bodyGoal => 'トレーニングの目的';
+
+  @override
+  String get bodyGoalLose => '減量';
+
+  @override
+  String get bodyGoalMaintain => '維持';
+
+  @override
+  String get bodyGoalGain => '筋肉を増やす';
+
+  @override
+  String bodyTargets(int kcal, int carbs, int protein, int fat) {
+    return '1日の目標 ${kcal}kcal · 炭水化物 ${carbs}g · たんぱく質 ${protein}g · 脂質 ${fat}g';
+  }
+
+  @override
+  String get bodyTargetsNeed => '目的と体重・身長・生まれ年・性別(または体組成の記録)を入れると1日の目標が出ます';
+
+  @override
+  String get bodyTargetsNote =>
+      '運動しない日の基準で、運動した日はその分を足します。熱量: 基礎代謝 × 1.2 + 運動、減量 −20% · 増量 +10%。たんぱく質: 減量 体重1kgあたり2.2g(除脂肪量が分かれば除脂肪1kgあたり2.6g)、維持1.6g、増量2.0g。脂質: 熱量の25%。炭水化物: 残り。目安であり医学的助言ではありません。';
+
+  @override
+  String dayMacros(String carbs, String protein, String fat) {
+    return '食べた量: 炭水化物 $carbs · たんぱく質 $protein · 脂質 ${fat}g';
+  }
+
+  @override
+  String dayMacrosVsTarget(
+    String carbs,
+    String carbsTarget,
+    String protein,
+    String proteinTarget,
+    String fat,
+    String fatTarget,
+  ) {
+    return '炭 $carbs/$carbsTarget · た $protein/$proteinTarget · 脂 $fat/${fatTarget}g';
+  }
+
+  @override
+  String dayMacrosGoal(int kcal) {
+    return '今日の運動を含む ${kcal}kcal 基準 — 目的は体の情報で変えられます';
+  }
+
+  @override
+  String dayMacrosMissing(int n) {
+    return '三大栄養素が分からない食事 $n 件は含みません';
+  }
 }

@@ -3538,4 +3538,56 @@ class LEs extends L {
   String mealChoiceTitle(String food) {
     return '«$food»: ¿qué producto?';
   }
+
+  @override
+  String get bodyGoal => 'Objetivo';
+
+  @override
+  String get bodyGoalLose => 'Perder grasa';
+
+  @override
+  String get bodyGoalMaintain => 'Mantener';
+
+  @override
+  String get bodyGoalGain => 'Ganar músculo';
+
+  @override
+  String bodyTargets(int kcal, int carbs, int protein, int fat) {
+    return 'Objetivo diario $kcal kcal · HC $carbs g · P $protein g · G $fat g';
+  }
+
+  @override
+  String get bodyTargetsNeed =>
+      'Elige un objetivo e introduce peso, altura, año de nacimiento y sexo (o un registro corporal)';
+
+  @override
+  String get bodyTargetsNote =>
+      'Para un día sin entrenar; los días de entreno suman ese ejercicio. Calorías: metabolismo basal × 1,2 + ejercicio, perder −20 % · ganar +10 %. Proteína: perder 2,2 g/kg (2,6 g/kg de masa magra si se conoce), mantener 1,6 g, ganar 2,0 g. Grasa: 25 % de las calorías. Hidratos: el resto. Solo orientativo, no es consejo médico.';
+
+  @override
+  String dayMacros(String carbs, String protein, String fat) {
+    return 'Comido: HC $carbs · P $protein · G $fat g';
+  }
+
+  @override
+  String dayMacrosVsTarget(
+    String carbs,
+    String carbsTarget,
+    String protein,
+    String proteinTarget,
+    String fat,
+    String fatTarget,
+  ) {
+    return 'HC $carbs/$carbsTarget · P $protein/$proteinTarget · G $fat/$fatTarget g';
+  }
+
+  @override
+  String dayMacrosGoal(int kcal) {
+    return 'Objetivos para $kcal kcal con el ejercicio de hoy — cambia el objetivo en Cuerpo';
+  }
+
+  @override
+  String dayMacrosMissing(int n) {
+    return 'No cuentan $n comidas sin macros';
+  }
 }

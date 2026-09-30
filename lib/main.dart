@@ -1570,10 +1570,20 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
       to: at,
       weightOn: widget.store.weightOnDay,
     ).firstOrNull;
+    final record = recordOn(dayOf(at), widget.store.bodyRecords);
     final basal = basalFor(
       dayOf(at),
       widget.store.body,
       measured: _measuredBasal,
+      record: record,
+    );
+    // 운동 목적을 정했으면 그날의 탄단지 목표 — 먹은 것과 나란히 보인다.
+    final target = macroTarget(
+      goal: widget.store.body.goal,
+      weightKg: widget.store.weightOnDay(at),
+      bmrPerDay: bmrOn(dayOf(at), widget.store.body, record),
+      exerciseKcal: log?.burned ?? 0,
+      leanKg: leanOf(record),
     );
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -1606,6 +1616,8 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             DayEnergy(log, basal: basal),
+                            if (log.macros != null || target != null)
+                              DayMacros(log, target: target),
                             CupertinoButton(
                               key: const ValueKey('day-summary-fold'),
                               padding: const EdgeInsets.only(top: 2),
