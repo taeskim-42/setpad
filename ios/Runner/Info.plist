@@ -14,8 +14,6 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
-	<!-- iOS 는 여기 적힌 언어만 앱에 알려준다. 빠지면 일본어 기기에서도
-	     개발 언어로 떨어진다. lib/l10n 의 arb 목록과 같이 유지할 것. -->
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>ko</string>
@@ -29,9 +27,12 @@
 	</array>
 	<key>CFBundleName</key>
 	<string>setpad</string>
-	<!-- 웹에서 앱으로 되돌아오는 길. 유니버설 링크는 iOS 가 한 번
-	     "사파리로 열기"를 기억하면 되돌릴 방법이 없어서, 스티커가 웹으로
-	     떨어졌을 때 그 화면에서 앱을 여는 수단이 따로 있어야 한다. -->
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(FLUTTER_BUILD_NAME)</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -45,16 +46,22 @@
 			</array>
 		</dict>
 	</array>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAlarmKitUsageDescription</key>
+	<string>타바타 휴식 중 심박이 내려오면 휴식을 끝내고, 폰을 보지 않아도 다음 라운드를 손목까지 알리려고 경보를 씁니다.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>식단 사진이나 인바디 같은 체성분 결과지를 찍어 칼로리·체성분 값을 읽습니다. 사진은 저장하지 않습니다.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>운동한 시간 동안 워치가 잰 활동 칼로리를 그 기록에 붙이고, 그날 쓴 칼로리에 휴식 에너지(기초대사량)를 넣고, 타바타 휴식 중 심박이 충분히 내려오면 휴식을 끝내고 다음 라운드를 알리려고 심박수를 읽습니다. 읽은 값은 기기 밖으로 보내지 않습니다.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>여기서 친 운동을 건강 앱의 운동 기록으로 남깁니다.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>앨범의 식단 사진이나 체성분 결과지 사진으로 칼로리·체성분 값을 읽습니다. 사진은 저장하지 않습니다.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -76,10 +83,6 @@
 			</array>
 		</dict>
 	</dict>
-	<!-- 이 앱은 네트워크를 쓰지 않고 암호화도 하지 않는다. 명시해 두면
-	     업로드할 때마다 수출 규정 문답이 뜨지 않는다. -->
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -99,15 +102,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSAlarmKitUsageDescription</key>
-	<string>타바타 휴식 중 심박이 내려오면 휴식을 끝내고, 폰을 보지 않아도 다음 라운드를 손목까지 알리려고 경보를 씁니다.</string>
-	<key>NSHealthShareUsageDescription</key>
-	<string>운동한 시간 동안 워치가 잰 활동 칼로리를 그 기록에 붙이고, 그날 쓴 칼로리에 휴식 에너지(기초대사량)를 넣고, 타바타 휴식 중 심박이 충분히 내려오면 휴식을 끝내고 다음 라운드를 알리려고 심박수를 읽습니다. 읽은 값은 기기 밖으로 보내지 않습니다.</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>여기서 친 운동을 건강 앱의 운동 기록으로 남깁니다.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>식단 사진을 찍어 칼로리를 어림합니다. 사진은 저장하지 않습니다.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>앨범의 식단 사진으로 칼로리를 어림합니다. 사진은 저장하지 않습니다.</string>
 </dict>
 </plist>

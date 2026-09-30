@@ -1,6 +1,7 @@
 What's new
 
-· Meal check: before a typed or photographed meal is saved, you see the foods and amounts — change an amount and the calories update
-· Tap a logged set to edit its weight first — typing changes only that field, Next moves to reps, and ± moves just the chosen field
-· Long-press a set and drag it to reorder
-· Name a muscle, like "I want to grow my lats", and today's routine uses exercises for it
+· Snap an InBody-style body composition sheet to log weight, skeletal muscle and body fat (Settings › Body)
+· Daily calorie and macro targets for your goal: lose fat, maintain or build muscle
+· Carbs, protein and fat for every meal, from Korea MFDS, USDA and Open Food Facts
+· A much bigger food table: over 2 million products worldwide
+· When a food comes in several flavours, pick the one you ate. Foods in no table are estimated by AI
