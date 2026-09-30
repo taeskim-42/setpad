@@ -71,6 +71,7 @@ class AgentState {
     : settings = AgentSettings.fromJson(m['settings'] as Map),
       policy = Map<String, Object?>.from(m['policy'] as Map),
       owner = m['role'] == 'owner',
+      telegram = TelegramLink.parse(m['telegram']),
       runs = _each(m['runs'], AgentRun.fromJson);
 
   AgentSettings settings;
@@ -78,11 +79,31 @@ class AgentState {
   /// 도장 방침. 관장만 바꾸고, 화면은 숫자 넷과 문구 하나를 그대로 보여 준다.
   Map<String, Object?> policy;
   final bool owner;
+
+  /// 내 텔레그램 연결. 설정 화면에서 연결·해제하면 여기에 넣어 둔다.
+  TelegramLink? telegram;
   final List<AgentRun> runs;
 
   /// 가장 최근에 끝난 보고서. 서버는 그 하나에만 본문을 싣는다.
   AgentRun? get latest => runs.where((r) => r.report != null).firstOrNull;
   bool get unread => latest != null && !latest!.read;
+}
+
+/// 내 텔레그램 개인 대화 연결(서버 lib/agent-channels.ts). 정해진 시각의 정리가
+/// 끝나면 거기로 건수만 간다. 이 필드를 모르는 서버면 null 이다.
+class TelegramLink {
+  const TelegramLink({required this.configured, required this.connected});
+
+  static TelegramLink? parse(Object? m) => m is Map
+      ? TelegramLink(
+          configured: m['configured'] == true,
+          connected: m['connected'] == true,
+        )
+      : null;
+
+  /// 서버에 봇이 있다. 없으면 연결할 수 없으니 설정에 줄을 두지 않는다.
+  final bool configured;
+  final bool connected;
 }
 
 class AgentRun {
@@ -358,6 +379,30 @@ extension TrainerLink on GymLink {
 
   Future<void> markRead(String gymId, String runId) =>
       _agent('POST', '/api/agent/read', {'gymId': gymId, 'runId': runId});
+
+  /// 연결 상태만 다시 묻는다 — 링크를 열고 돌아왔을 때. 못 받으면 null.
+  Future<TelegramLink?> telegramState(String gymId) async => TelegramLink.parse(
+    (await _agent(
+      'GET',
+      '/api/agent/telegram?gymId=${Uri.encodeQueryComponent(gymId)}',
+      null,
+      const Duration(seconds: 15),
+    )).body,
+  );
+
+  /// 10분 동안 한 번 쓰는 연결 링크(body['url'], https://t.me/…?start=…).
+  /// 텔레그램에서 ‘시작’을 누르면 그 개인 대화가 연결된다. 직원당 하루 10번.
+  Future<AgentReply> connectTelegram(String gymId) => _agent(
+    'POST',
+    '/api/agent/telegram',
+    {'gymId': gymId, 'action': 'connect'},
+  );
+
+  Future<AgentReply> disconnectTelegram(String gymId) => _agent(
+    'POST',
+    '/api/agent/telegram',
+    {'gymId': gymId, 'action': 'disconnect'},
+  );
 }
 
 /// 보고 알림을 설정과 맞춘다. 설정을 받거나 저장할 때마다 부른다.

@@ -1905,6 +1905,37 @@ class LVi extends L {
   String get agentModeAuto => 'Tự động';
 
   @override
+  String get agentTelegram => 'Thông báo qua Telegram';
+
+  @override
+  String get agentTelegramHelp =>
+      'Khi bản tổng hợp theo giờ đã đặt xong, chúng tôi chỉ gửi số lượng đến Telegram của chính bạn. Không gửi tên hội viên hay tin nhắn.';
+
+  @override
+  String get agentTelegramConnect => 'Kết nối Telegram';
+
+  @override
+  String get agentTelegramConnected => 'Đã kết nối';
+
+  @override
+  String get agentTelegramDisconnect => 'Ngắt kết nối';
+
+  @override
+  String get agentTelegramCheck => 'Kiểm tra kết nối';
+
+  @override
+  String get agentTelegramWaiting =>
+      'Nhấn Bắt đầu trong Telegram rồi quay lại đây. Liên kết chỉ dùng được một lần trong 10 phút.';
+
+  @override
+  String get agentTelegramCopied =>
+      'Đã sao chép liên kết. Hãy mở trong Telegram.';
+
+  @override
+  String get agentTelegramNotYet =>
+      'Chưa kết nối. Hãy kiểm tra bạn đã nhấn Bắt đầu trong Telegram.';
+
+  @override
   String get taskPtSchedule => 'Lịch PT';
 
   @override

@@ -3043,6 +3043,60 @@ abstract class L {
   /// **'자동'**
   String get agentModeAuto;
 
+  /// 에이전트 설정의 섹션 제목. 정해진 시각의 정리가 끝나면 본인 텔레그램 개인 대화로 건수만 보낸다(서버 lib/agent-channels.ts agentReportText)
+  ///
+  /// In ko, this message translates to:
+  /// **'텔레그램 알림'**
+  String get agentTelegram;
+
+  /// No description provided for @agentTelegramHelp.
+  ///
+  /// In ko, this message translates to:
+  /// **'정해진 시각에 정리가 끝나면 본인 텔레그램으로 건수만 알려요. 회원 이름과 문구는 보내지 않아요.'**
+  String get agentTelegramHelp;
+
+  /// No description provided for @agentTelegramConnect.
+  ///
+  /// In ko, this message translates to:
+  /// **'텔레그램 연결'**
+  String get agentTelegramConnect;
+
+  /// No description provided for @agentTelegramConnected.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결됨'**
+  String get agentTelegramConnected;
+
+  /// No description provided for @agentTelegramDisconnect.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결 해제'**
+  String get agentTelegramDisconnect;
+
+  /// No description provided for @agentTelegramCheck.
+  ///
+  /// In ko, this message translates to:
+  /// **'연결 확인'**
+  String get agentTelegramCheck;
+
+  /// 연결 링크를 연 뒤. ‘시작’은 텔레그램 봇 대화의 Start 버튼(한국어 텔레그램의 말)
+  ///
+  /// In ko, this message translates to:
+  /// **'텔레그램에서 ‘시작’을 누른 뒤 돌아오면 연결돼요. 링크는 10분 안에 한 번 쓸 수 있어요.'**
+  String get agentTelegramWaiting;
+
+  /// 링크를 열지 못하는 곳(웹 번들)에서 대신 복사했을 때
+  ///
+  /// In ko, this message translates to:
+  /// **'링크를 복사했어요. 텔레그램에서 열어 주세요.'**
+  String get agentTelegramCopied;
+
+  /// No description provided for @agentTelegramNotYet.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 연결되지 않았어요. 텔레그램에서 ‘시작’을 눌렀는지 확인해 주세요.'**
+  String get agentTelegramNotYet;
+
   /// No description provided for @taskPtSchedule.
   ///
   /// In ko, this message translates to:

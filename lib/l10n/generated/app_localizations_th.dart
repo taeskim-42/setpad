@@ -1889,6 +1889,36 @@ class LTh extends L {
   String get agentModeAuto => 'อัตโนมัติ';
 
   @override
+  String get agentTelegram => 'แจ้งเตือนทาง Telegram';
+
+  @override
+  String get agentTelegramHelp =>
+      'เมื่อสรุปตามเวลาที่ตั้งไว้เสร็จ เราจะส่งแค่จำนวนไปที่ Telegram ของคุณเอง ไม่ส่งชื่อสมาชิกหรือข้อความ';
+
+  @override
+  String get agentTelegramConnect => 'เชื่อมต่อ Telegram';
+
+  @override
+  String get agentTelegramConnected => 'เชื่อมต่อแล้ว';
+
+  @override
+  String get agentTelegramDisconnect => 'ยกเลิกการเชื่อมต่อ';
+
+  @override
+  String get agentTelegramCheck => 'ตรวจสอบการเชื่อมต่อ';
+
+  @override
+  String get agentTelegramWaiting =>
+      'กด \"เริ่ม\" ใน Telegram แล้วกลับมาที่นี่ ลิงก์ใช้ได้ครั้งเดียวภายใน 10 นาที';
+
+  @override
+  String get agentTelegramCopied => 'คัดลอกลิงก์แล้ว โปรดเปิดใน Telegram';
+
+  @override
+  String get agentTelegramNotYet =>
+      'ยังไม่ได้เชื่อมต่อ โปรดตรวจสอบว่ากด \"เริ่ม\" ใน Telegram แล้ว';
+
+  @override
   String get taskPtSchedule => 'ตาราง PT';
 
   @override

@@ -322,6 +322,41 @@ void main() {
     });
   });
 
+  test('텔레그램: 모르는 서버면 null, 연결·해제·상태는 서버가 읽는 모양으로', () async {
+    expect(AgentState.fromJson(agentBody()).telegram, isNull);
+    final parsed = AgentState.fromJson({
+      ...agentBody(),
+      'telegram': {'configured': true, 'connected': false},
+    }).telegram!;
+    expect((parsed.configured, parsed.connected), (true, false));
+
+    final sent = <http.Request>[];
+    final link = linkThat((request) async {
+      sent.add(request);
+      return request.method == 'GET'
+          ? reply({'configured': true, 'connected': true})
+          : reply({
+              'url': 'https://t.me/GymDojoBot?start=abc',
+              'expiresAt': '2026-09-30T05:00:00.000Z',
+            });
+    });
+    final started = await link.connectTelegram(gymId);
+    expect(started.body!['url'], 'https://t.me/GymDojoBot?start=abc');
+    await link.disconnectTelegram(gymId);
+    expect((await link.telegramState(gymId))!.connected, isTrue);
+    expect(sent.map((r) => '${r.method} ${r.url.path}'), [
+      'POST /api/agent/telegram',
+      'POST /api/agent/telegram',
+      'GET /api/agent/telegram',
+    ]);
+    expect(jsonDecode(sent[0].body), {'gymId': gymId, 'action': 'connect'});
+    expect(jsonDecode(sent[1].body), {'gymId': gymId, 'action': 'disconnect'});
+    expect(sent[2].url.queryParameters['gymId'], gymId);
+
+    final offline = linkThat((_) async => throw const SocketException('꺼짐'));
+    expect(await offline.telegramState(gymId), isNull);
+  });
+
   test('요청 열쇠는 서버가 받는 UUID v4 다', () {
     expect(List.generate(50, (_) => uuid4()).every(v4.hasMatch), isTrue);
   });
@@ -932,6 +967,143 @@ void main() {
           isTrue,
           reason: '$locale',
         );
+      }
+    });
+
+    Map<String, Object?> withTelegram(Object? telegram) => {
+      ...agentBody(),
+      'telegram': telegram,
+    };
+    const botLink = 'https://t.me/GymDojoBot?start=abc';
+
+    testWidgets('텔레그램: 링크를 열고, 돌아오면 조용히 다시 묻고, 해제하면 연결 줄로 돌아간다', (
+      tester,
+    ) async {
+      final opened = <Object?>[];
+      const share = MethodChannel('setpad/share');
+      final messenger = tester.binding.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(share, (call) async {
+        opened.add((call.arguments as Map)['url']);
+        return true;
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(share, null));
+      var connected = false;
+      final actions = <Object?>[];
+      final a = account((request) async {
+        if (request.url.path != '/api/agent/telegram') return server(request);
+        if (request.method == 'GET') {
+          return reply({'configured': true, 'connected': connected});
+        }
+        final action = (jsonDecode(request.body) as Map)['action'];
+        actions.add(action);
+        return action == 'connect'
+            ? reply({'url': botLink, 'expiresAt': '2026-09-30T05:00:00.000Z'})
+            : reply({'ok': true});
+      });
+      final state = AgentState.fromJson(
+        withTelegram({'configured': true, 'connected': false}),
+      );
+      Future<void> comeBack() async {
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.inactive,
+        );
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        await tester.pumpAndSettle();
+      }
+
+      tall(tester);
+      await tester.pumpWidget(
+        app(
+          TrainerSettingsPage(
+            account: a,
+            gymId: gymId,
+            gymName: 'BPM 강남',
+            state: state,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('텔레그램 알림'), findsOneWidget);
+      expect(find.text('연결 확인'), findsNothing);
+
+      await tapText(tester, '텔레그램 연결');
+      expect(actions, ['connect']);
+      expect(opened, [botLink]);
+      expect(find.text('연결 확인'), findsOneWidget);
+
+      // ‘시작’을 누르기 전에 돌아왔다 — 말없이 기다린다.
+      await comeBack();
+      expect(find.byType(CupertinoAlertDialog), findsNothing);
+      expect(find.text('연결 확인'), findsOneWidget);
+      // 직접 물으면 아직이라고 말한다.
+      await tapText(tester, '연결 확인');
+      expect(find.textContaining('아직 연결되지 않았어요'), findsOneWidget);
+      await tapText(tester, '확인');
+
+      connected = true;
+      await comeBack();
+      expect(find.text('연결됨'), findsOneWidget);
+      expect(find.text('연결 확인'), findsNothing);
+      expect(state.telegram!.connected, isTrue, reason: '트레이너 화면과 같은 상태');
+
+      await tapText(tester, '연결 해제');
+      expect(actions, ['connect', 'disconnect']);
+      expect(find.text('텔레그램 연결'), findsOneWidget);
+      expect(state.telegram!.connected, isFalse);
+    });
+
+    testWidgets('텔레그램: 링크를 못 여는 곳이면 복사해 두고, 서버에 봇이 없으면 줄이 없다', (tester) async {
+      final copied = <Object?>[];
+      const share = MethodChannel('setpad/share');
+      final messenger = tester.binding.defaultBinaryMessenger;
+      // 열지 못한다(https 가 아니거나 웹 번들처럼 채널이 없을 때 openUrl 은 false).
+      messenger.setMockMethodCallHandler(share, (call) async => false);
+      messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copied.add((call.arguments as Map)['text']);
+        }
+        return null;
+      });
+      addTearDown(() {
+        messenger.setMockMethodCallHandler(share, null);
+        messenger.setMockMethodCallHandler(SystemChannels.platform, null);
+      });
+      final a = account(
+        (request) async => request.url.path == '/api/agent/telegram'
+            ? reply({'url': botLink, 'expiresAt': '2026-09-30T05:00:00.000Z'})
+            : server(request),
+      );
+      Future<void> open(Object? telegram) async {
+        // 새 화면으로 — 앞 화면의 상태·대화상자를 이어받지 않는다.
+        await tester.pumpWidget(const SizedBox());
+        await tester.pumpWidget(
+          app(
+            TrainerSettingsPage(
+              account: a,
+              gymId: gymId,
+              gymName: 'BPM 강남',
+              state: AgentState.fromJson(withTelegram(telegram)),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      tall(tester);
+      await open({'configured': true, 'connected': false});
+      await tapText(tester, '텔레그램 연결');
+      expect(copied, [botLink]);
+      expect(find.text('링크를 복사했어요. 텔레그램에서 열어 주세요.'), findsOneWidget);
+
+      for (final telegram in [
+        null,
+        {'configured': false, 'connected': false},
+      ]) {
+        await open(telegram);
+        expect(find.text('텔레그램 알림'), findsNothing, reason: '$telegram');
+        expect(find.text('정해진 시각에 정리'), findsOneWidget);
       }
     });
 

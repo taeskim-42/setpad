@@ -1825,6 +1825,33 @@ class LZh extends L {
   String get agentModeAuto => '自动';
 
   @override
+  String get agentTelegram => 'Telegram 通知';
+
+  @override
+  String get agentTelegramHelp => '按设定时间整理完成后，只把数量发到你本人的 Telegram。不发送会员姓名或文案。';
+
+  @override
+  String get agentTelegramConnect => '连接 Telegram';
+
+  @override
+  String get agentTelegramConnected => '已连接';
+
+  @override
+  String get agentTelegramDisconnect => '断开连接';
+
+  @override
+  String get agentTelegramCheck => '检查连接';
+
+  @override
+  String get agentTelegramWaiting => '在 Telegram 中点击“开始”后回到这里。链接在 10 分钟内只能用一次。';
+
+  @override
+  String get agentTelegramCopied => '已复制链接，请在 Telegram 中打开。';
+
+  @override
+  String get agentTelegramNotYet => '尚未连接。请确认已在 Telegram 中点击“开始”。';
+
+  @override
   String get taskPtSchedule => '私教日程';
 
   @override
@@ -5068,6 +5095,33 @@ class LZhHans extends LZh {
   String get agentModeAuto => '自动';
 
   @override
+  String get agentTelegram => 'Telegram 通知';
+
+  @override
+  String get agentTelegramHelp => '按设定时间整理完成后，只把数量发到你本人的 Telegram。不发送会员姓名或文案。';
+
+  @override
+  String get agentTelegramConnect => '连接 Telegram';
+
+  @override
+  String get agentTelegramConnected => '已连接';
+
+  @override
+  String get agentTelegramDisconnect => '断开连接';
+
+  @override
+  String get agentTelegramCheck => '检查连接';
+
+  @override
+  String get agentTelegramWaiting => '在 Telegram 中点击“开始”后回到这里。链接在 10 分钟内只能用一次。';
+
+  @override
+  String get agentTelegramCopied => '已复制链接，请在 Telegram 中打开。';
+
+  @override
+  String get agentTelegramNotYet => '尚未连接。请确认已在 Telegram 中点击“开始”。';
+
+  @override
   String get taskPtSchedule => '私教日程';
 
   @override
@@ -8308,6 +8362,34 @@ class LZhHant extends LZh {
 
   @override
   String get agentModeAuto => '自動';
+
+  @override
+  String get agentTelegram => 'Telegram 通知';
+
+  @override
+  String get agentTelegramHelp => '按設定時間整理完成後，只把數量傳到你本人的 Telegram。不傳送會員姓名或文案。';
+
+  @override
+  String get agentTelegramConnect => '連接 Telegram';
+
+  @override
+  String get agentTelegramConnected => '已連接';
+
+  @override
+  String get agentTelegramDisconnect => '中斷連接';
+
+  @override
+  String get agentTelegramCheck => '檢查連接';
+
+  @override
+  String get agentTelegramWaiting =>
+      '在 Telegram 中點選「開始」後回到這裡。連結在 10 分鐘內只能使用一次。';
+
+  @override
+  String get agentTelegramCopied => '已複製連結，請在 Telegram 中開啟。';
+
+  @override
+  String get agentTelegramNotYet => '尚未連接。請確認已在 Telegram 中點選「開始」。';
 
   @override
   String get taskPtSchedule => '私教日程';

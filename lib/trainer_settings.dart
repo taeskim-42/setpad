@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import 'account.dart';
@@ -8,6 +9,7 @@ import 'editor.dart' show SuggestionChip;
 import 'l10n/generated/app_localizations.dart';
 import 'palette.dart';
 import 'parser.dart' show statedNumbers;
+import 'share.dart' show openUrl;
 import 'trainer.dart';
 
 /// 에이전트 설정 — 내 것(시각·요일·업무별 방식)과, 관장이면 도장 방침.
@@ -132,9 +134,13 @@ final _rangeWord = RegExp(
   caseSensitive: false,
 );
 
-class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
+class _TrainerSettingsPageState extends State<TrainerSettingsPage>
+    with WidgetsBindingObserver {
   AgentState get _s => widget.state;
   bool _busy = false;
+
+  /// 연결 링크를 열었다. 텔레그램에서 돌아와 앱이 다시 앞에 오면 조용히 다시 묻는다.
+  bool _waitingTelegram = false;
 
   /// 읽지 못한 방침 칸과 그 까닭. 그 칸 밑에 적고, 저장은 보내지 않는다.
   Map<String, String> _unreadable = {};
@@ -148,12 +154,78 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     for (final c in _numbers.values) {
       c.dispose();
     }
     _offer.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _waitingTelegram) {
+      unawaited(_checkTelegram(quiet: true));
+    }
+  }
+
+  /// 서버가 1회용 링크를 주면 텔레그램으로 연다. 못 여는 곳(웹 번들)이면 복사해 둔다.
+  Future<void> _connectTelegram() async {
+    final l = L.of(context);
+    setState(() => _busy = true);
+    final reply = await widget.account.link.connectTelegram(widget.gymId);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    final url = reply.body?['url'];
+    // 서버가 만든 봇 링크만 연다.
+    if (url is! String || !url.startsWith('https://t.me/')) {
+      await tellAgent(context, reply.message ?? l.trainerFailed);
+      return;
+    }
+    setState(() => _waitingTelegram = true);
+    if (await openUrl(url)) return;
+    await Clipboard.setData(ClipboardData(text: url));
+    if (mounted) await tellAgent(context, l.agentTelegramCopied);
+  }
+
+  /// [quiet] 면(앱이 앞으로 돌아왔을 때) 아직이어도 말하지 않는다 — 시작을 누르기 전일 수 있다.
+  Future<void> _checkTelegram({bool quiet = false}) async {
+    final l = L.of(context);
+    final link = await widget.account.link.telegramState(widget.gymId);
+    if (!mounted) return;
+    if (link != null) {
+      setState(() {
+        _s.telegram = link;
+        if (link.connected) _waitingTelegram = false;
+      });
+    }
+    if (quiet || (link?.connected ?? false)) return;
+    await tellAgent(
+      context,
+      link == null ? l.trainerFailed : l.agentTelegramNotYet,
+    );
+  }
+
+  Future<void> _disconnectTelegram() async {
+    setState(() => _busy = true);
+    final reply = await widget.account.link.disconnectTelegram(widget.gymId);
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      if (reply.body != null) {
+        _s.telegram = const TelegramLink(configured: true, connected: false);
+      }
+    });
+    if (reply.body == null) {
+      await tellAgent(context, reply.message ?? L.of(context).trainerFailed);
+    }
   }
 
   Future<void> _save(Map<String, Object?> change) async {
@@ -351,6 +423,41 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
             _note(l.agentModesHelp),
             for (final task in _tasks) _mode(l, task, s.modes[task] ?? 'draft'),
 
+            // 서버에 봇이 없거나 이 필드를 모르는 서버면 줄을 두지 않는다.
+            if (_s.telegram case final telegram? when telegram.configured) ...[
+              _section(l.agentTelegram),
+              _note(l.agentTelegramHelp),
+              if (telegram.connected) ...[
+                _row(
+                  l.agentTelegramConnected,
+                  trailing: Icon(
+                    CupertinoIcons.checkmark_alt_circle_fill,
+                    size: 20,
+                    color: CupertinoColors.systemGreen.resolveFrom(context),
+                  ),
+                ),
+                _row(
+                  l.agentTelegramDisconnect,
+                  destructive: true,
+                  onTap: _disconnectTelegram,
+                ),
+              ] else ...[
+                _row(
+                  l.agentTelegramConnect,
+                  accent: true,
+                  onTap: _connectTelegram,
+                ),
+                if (_waitingTelegram) ...[
+                  _row(
+                    l.agentTelegramCheck,
+                    accent: true,
+                    onTap: _checkTelegram,
+                  ),
+                  _note(l.agentTelegramWaiting),
+                ],
+              ],
+            ],
+
             if (_s.owner) ...[
               _section(l.gymPolicy),
               for (final (key, label) in [
@@ -433,6 +540,7 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
     String label, {
     Widget? trailing,
     bool accent = false,
+    bool destructive = false,
     VoidCallback? onTap,
   }) {
     final body = Container(
@@ -454,7 +562,9 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: accent ? FontWeight.w600 : FontWeight.w400,
-                color: accent
+                color: destructive
+                    ? CupertinoColors.systemRed.resolveFrom(context)
+                    : accent
                     ? seal.resolveFrom(context)
                     : CupertinoColors.label.resolveFrom(context),
               ),
@@ -466,10 +576,13 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage> {
     );
     return onTap == null || _busy
         ? body
-        : GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onTap,
-            child: body,
+        : Semantics(
+            button: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onTap,
+              child: body,
+            ),
           );
   }
 

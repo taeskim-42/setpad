@@ -1850,6 +1850,35 @@ class LKo extends L {
   String get agentModeAuto => '자동';
 
   @override
+  String get agentTelegram => '텔레그램 알림';
+
+  @override
+  String get agentTelegramHelp =>
+      '정해진 시각에 정리가 끝나면 본인 텔레그램으로 건수만 알려요. 회원 이름과 문구는 보내지 않아요.';
+
+  @override
+  String get agentTelegramConnect => '텔레그램 연결';
+
+  @override
+  String get agentTelegramConnected => '연결됨';
+
+  @override
+  String get agentTelegramDisconnect => '연결 해제';
+
+  @override
+  String get agentTelegramCheck => '연결 확인';
+
+  @override
+  String get agentTelegramWaiting =>
+      '텔레그램에서 ‘시작’을 누른 뒤 돌아오면 연결돼요. 링크는 10분 안에 한 번 쓸 수 있어요.';
+
+  @override
+  String get agentTelegramCopied => '링크를 복사했어요. 텔레그램에서 열어 주세요.';
+
+  @override
+  String get agentTelegramNotYet => '아직 연결되지 않았어요. 텔레그램에서 ‘시작’을 눌렀는지 확인해 주세요.';
+
+  @override
   String get taskPtSchedule => 'PT 일정';
 
   @override

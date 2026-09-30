@@ -1934,6 +1934,36 @@ class LEs extends L {
   String get agentModeAuto => 'Auto';
 
   @override
+  String get agentTelegram => 'Avisos por Telegram';
+
+  @override
+  String get agentTelegramHelp =>
+      'Cuando el informe programado esté listo, enviamos solo los recuentos a tu propio Telegram. Sin nombres de socios ni mensajes.';
+
+  @override
+  String get agentTelegramConnect => 'Conectar Telegram';
+
+  @override
+  String get agentTelegramConnected => 'Conectado';
+
+  @override
+  String get agentTelegramDisconnect => 'Desconectar';
+
+  @override
+  String get agentTelegramCheck => 'Comprobar conexión';
+
+  @override
+  String get agentTelegramWaiting =>
+      'Pulsa Iniciar en Telegram y vuelve aquí. El enlace sirve una vez, durante 10 minutos.';
+
+  @override
+  String get agentTelegramCopied => 'Enlace copiado. Ábrelo en Telegram.';
+
+  @override
+  String get agentTelegramNotYet =>
+      'Aún no está conectado. Comprueba que pulsaste Iniciar en Telegram.';
+
+  @override
   String get taskPtSchedule => 'Agenda de PT';
 
   @override

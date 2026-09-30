@@ -1918,6 +1918,36 @@ class LEn extends L {
   String get agentModeAuto => 'Auto';
 
   @override
+  String get agentTelegram => 'Telegram alerts';
+
+  @override
+  String get agentTelegramHelp =>
+      'When the scheduled report is ready, we send just the counts to your own Telegram. No member names or messages.';
+
+  @override
+  String get agentTelegramConnect => 'Connect Telegram';
+
+  @override
+  String get agentTelegramConnected => 'Connected';
+
+  @override
+  String get agentTelegramDisconnect => 'Disconnect';
+
+  @override
+  String get agentTelegramCheck => 'Check connection';
+
+  @override
+  String get agentTelegramWaiting =>
+      'Tap Start in Telegram, then come back here. The link works once, within 10 minutes.';
+
+  @override
+  String get agentTelegramCopied => 'Link copied. Open it in Telegram.';
+
+  @override
+  String get agentTelegramNotYet =>
+      'Not connected yet. Check that you tapped Start in Telegram.';
+
+  @override
   String get taskPtSchedule => 'PT schedule';
 
   @override

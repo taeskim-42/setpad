@@ -1844,6 +1844,35 @@ class LJa extends L {
   String get agentModeAuto => '自動';
 
   @override
+  String get agentTelegram => 'Telegram 通知';
+
+  @override
+  String get agentTelegramHelp =>
+      '決まった時刻のまとめが終わると、ご自身の Telegram に件数だけお知らせします。会員の名前や文面は送りません。';
+
+  @override
+  String get agentTelegramConnect => 'Telegram を連携';
+
+  @override
+  String get agentTelegramConnected => '連携済み';
+
+  @override
+  String get agentTelegramDisconnect => '連携を解除';
+
+  @override
+  String get agentTelegramCheck => '連携を確認';
+
+  @override
+  String get agentTelegramWaiting =>
+      'Telegram で「開始」を押してから戻ってください。リンクは10分以内に1回だけ使えます。';
+
+  @override
+  String get agentTelegramCopied => 'リンクをコピーしました。Telegram で開いてください。';
+
+  @override
+  String get agentTelegramNotYet => 'まだ連携されていません。Telegram で「開始」を押したか確認してください。';
+
+  @override
   String get taskPtSchedule => 'PT日程';
 
   @override
