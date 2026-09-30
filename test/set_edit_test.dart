@@ -438,6 +438,64 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
+    testWidgets('조합이 끝난 빈 줄에서 커서를 옮겨도 지우기와 커서가 유지된다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+      for (final offset in [0, 1]) {
+        tester.testTextInput.updateEditingValue(
+          TextEditingValue(
+            text: ' ',
+            selection: TextSelection.collapsed(offset: offset),
+            composing: TextRange.collapsed(offset),
+          ),
+        );
+        await tester.pump();
+        expect(
+          field(tester).selection,
+          const TextSelection(baseOffset: 0, extentOffset: 1),
+        );
+        expect(find.byKey(const ValueKey('sentinel-caret')), findsOneWidget);
+      }
+
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(selection: TextSelection.collapsed(offset: 0)),
+      );
+      await tester.pumpAndSettle();
+      expect(c.activeIndex, 0);
+      expect(field(tester).text, '80kg 5');
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('빈 줄에서 백스페이스로 세트를 열고 숫자를 지워도 커서가 보인다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(selection: TextSelection.collapsed(offset: 0)),
+      );
+      await tester.pumpAndSettle();
+      expect(field(tester).text, '80kg 5');
+      expect(field(tester).selection, const TextSelection.collapsed(offset: 6));
+
+      pad(tester).onBackspace();
+      await tester.pump();
+      expect(field(tester).text, '80kg ');
+      final editable = tester.widget<EditableText>(find.byType(EditableText));
+      expect(editable.focusNode.hasFocus, isTrue);
+      expect(editable.showCursor, isTrue);
+      final state = tester.state<EditableTextState>(find.byType(EditableText));
+      var visible = state.cursorCurrentlyVisible;
+      for (var i = 0; i < 12 && !visible; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        visible = state.cursorCurrentlyVisible;
+      }
+      expect(visible, isTrue);
+      debugDefaultTargetPlatformOverride = null;
+    });
+
     testWidgets('표지 뒤에서 시작한 한글 조합도 음절과 공백을 보존한다', (tester) async {
       final c = done();
       await ios(tester, c);

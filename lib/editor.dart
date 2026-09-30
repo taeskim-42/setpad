@@ -879,9 +879,9 @@ class _RoutineEditorState extends State<RoutineEditor>
       _input.value = TextEditingValue(text: _zw, selection: _sentinelSelection);
     } else if (_wantsSentinel &&
         _input.text == _zw &&
-        _input.selection != _sentinelSelection &&
-        !_input.value.composing.isValid) {
-      // 누르기·화살표가 커서를 표지 앞뒤로 옮겼다. 다시 골라 둔다.
+        _input.selection != _sentinelSelection) {
+      // A collapsed composing range has finished composing too. Restore the
+      // selection so backspace can delete the sentinel even at offset zero.
       _input.selection = _sentinelSelection;
     } else if (!_wantsSentinel &&
         (_selectsSentinel ? _input.text == _zw : _input.text.contains(_zw))) {
@@ -3149,7 +3149,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                     focusNode: _focus,
                     autofocus: true,
                     readOnly: readOnly,
-                    showCursor: !_padMode,
+                    showCursor: true,
                     keyboardType: readOnly
                         ? TextInputType.none
                         : _wantText
