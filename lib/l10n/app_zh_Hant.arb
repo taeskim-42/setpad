@@ -814,5 +814,9 @@
   "bodyWeightShort": "體重",
   "bodyMuscleShort": "骨骼肌",
   "bodyFatShort": "體脂",
-  "bodyRecordDelete": "刪除這條記錄?"
+  "bodyRecordDelete": "刪除這條記錄?",
+  "mealChooseProduct": "換成其他產品 ›",
+  "mealNeedsChoice": "表裡沒有完全同名的產品。請選擇你吃的那一款。",
+  "mealAiEstimate": "AI 估算 — 各食品表都沒有這個食物,由 AI 估算",
+  "mealChoiceTitle": "「{food}」——是哪款產品?"
 }

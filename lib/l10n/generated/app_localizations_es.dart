@@ -3522,4 +3522,20 @@ class LEs extends L {
 
   @override
   String get bodyRecordDelete => '¿Borrar este registro?';
+
+  @override
+  String get mealChooseProduct => 'Elegir otro producto ›';
+
+  @override
+  String get mealNeedsChoice =>
+      'No hay un producto con este nombre exacto. Elige el que comiste.';
+
+  @override
+  String get mealAiEstimate =>
+      'Estimación de IA — no está en ninguna tabla de alimentos';
+
+  @override
+  String mealChoiceTitle(String food) {
+    return '«$food»: ¿qué producto?';
+  }
 }

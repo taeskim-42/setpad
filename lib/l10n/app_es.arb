@@ -814,5 +814,9 @@
   "bodyWeightShort": "Peso",
   "bodyMuscleShort": "Músculo",
   "bodyFatShort": "Grasa",
-  "bodyRecordDelete": "¿Borrar este registro?"
+  "bodyRecordDelete": "¿Borrar este registro?",
+  "mealChooseProduct": "Elegir otro producto ›",
+  "mealNeedsChoice": "No hay un producto con este nombre exacto. Elige el que comiste.",
+  "mealAiEstimate": "Estimación de IA — no está en ninguna tabla de alimentos",
+  "mealChoiceTitle": "«{food}»: ¿qué producto?"
 }

@@ -3479,4 +3479,20 @@ class LVi extends L {
 
   @override
   String get bodyRecordDelete => 'Xóa bản ghi này?';
+
+  @override
+  String get mealChooseProduct => 'Chọn sản phẩm khác ›';
+
+  @override
+  String get mealNeedsChoice =>
+      'Không có sản phẩm đúng tên này. Hãy chọn loại bạn đã ăn.';
+
+  @override
+  String get mealAiEstimate =>
+      'AI ước tính — không có trong bảng thực phẩm nào';
+
+  @override
+  String mealChoiceTitle(String food) {
+    return '“$food” — sản phẩm nào?';
+  }
 }

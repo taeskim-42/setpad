@@ -814,5 +814,9 @@
   "bodyWeightShort": "Cân nặng",
   "bodyMuscleShort": "Cơ",
   "bodyFatShort": "Mỡ",
-  "bodyRecordDelete": "Xóa bản ghi này?"
+  "bodyRecordDelete": "Xóa bản ghi này?",
+  "mealChooseProduct": "Chọn sản phẩm khác ›",
+  "mealNeedsChoice": "Không có sản phẩm đúng tên này. Hãy chọn loại bạn đã ăn.",
+  "mealAiEstimate": "AI ước tính — không có trong bảng thực phẩm nào",
+  "mealChoiceTitle": "“{food}” — sản phẩm nào?"
 }

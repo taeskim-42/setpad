@@ -814,5 +814,9 @@
   "bodyWeightShort": "Weight",
   "bodyMuscleShort": "Muscle",
   "bodyFatShort": "Fat",
-  "bodyRecordDelete": "Delete this record?"
+  "bodyRecordDelete": "Delete this record?",
+  "mealChooseProduct": "Choose another product ›",
+  "mealNeedsChoice": "No product with exactly this name. Choose the one you ate.",
+  "mealAiEstimate": "AI estimate — not in any food table, so AI estimated it",
+  "mealChoiceTitle": "“{food}” — which product?"
 }

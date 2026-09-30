@@ -814,5 +814,9 @@
   "bodyWeightShort": "น้ำหนัก",
   "bodyMuscleShort": "กล้ามเนื้อ",
   "bodyFatShort": "ไขมัน",
-  "bodyRecordDelete": "ลบบันทึกนี้ไหม"
+  "bodyRecordDelete": "ลบบันทึกนี้ไหม",
+  "mealChooseProduct": "เลือกสินค้าอื่น ›",
+  "mealNeedsChoice": "ไม่มีสินค้าชื่อนี้ตรงๆ เลือกสินค้าที่คุณกิน",
+  "mealAiEstimate": "AI ประมาณ — ไม่มีในตารางอาหาร AI จึงประมาณให้",
+  "mealChoiceTitle": "“{food}” — สินค้าไหน?"
 }

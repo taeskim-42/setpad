@@ -3356,6 +3356,20 @@ class LZh extends L {
 
   @override
   String get bodyRecordDelete => '删除这条记录?';
+
+  @override
+  String get mealChooseProduct => '换成其他产品 ›';
+
+  @override
+  String get mealNeedsChoice => '表里没有完全同名的产品。请选择你吃的那一款。';
+
+  @override
+  String get mealAiEstimate => 'AI 估算 — 各食品表都没有这个食物,由 AI 估算';
+
+  @override
+  String mealChoiceTitle(String food) {
+    return '“$food”——是哪款产品?';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6710,6 +6724,20 @@ class LZhHans extends LZh {
 
   @override
   String get bodyRecordDelete => '删除这条记录?';
+
+  @override
+  String get mealChooseProduct => '换成其他产品 ›';
+
+  @override
+  String get mealNeedsChoice => '表里没有完全同名的产品。请选择你吃的那一款。';
+
+  @override
+  String get mealAiEstimate => 'AI 估算 — 各食品表都没有这个食物,由 AI 估算';
+
+  @override
+  String mealChoiceTitle(String food) {
+    return '“$food”——是哪款产品?';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10064,4 +10092,18 @@ class LZhHant extends LZh {
 
   @override
   String get bodyRecordDelete => '刪除這條記錄?';
+
+  @override
+  String get mealChooseProduct => '換成其他產品 ›';
+
+  @override
+  String get mealNeedsChoice => '表裡沒有完全同名的產品。請選擇你吃的那一款。';
+
+  @override
+  String get mealAiEstimate => 'AI 估算 — 各食品表都沒有這個食物,由 AI 估算';
+
+  @override
+  String mealChoiceTitle(String food) {
+    return '「$food」——是哪款產品?';
+  }
 }

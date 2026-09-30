@@ -3383,4 +3383,18 @@ class LJa extends L {
 
   @override
   String get bodyRecordDelete => 'この記録を削除しますか?';
+
+  @override
+  String get mealChooseProduct => '別の製品にする ›';
+
+  @override
+  String get mealNeedsChoice => 'この名前どおりの製品が表にありません。食べた製品を選んでください。';
+
+  @override
+  String get mealAiEstimate => 'AI 推定 — どの食品表にもないため AI が見積もりました';
+
+  @override
+  String mealChoiceTitle(String food) {
+    return '「$food」— どの製品ですか?';
+  }
 }

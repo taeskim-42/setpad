@@ -288,6 +288,213 @@ void main() {
     );
   });
 
+  testWidgets('맛 변종만 있으면 고르기 전에는 저장하지 않고, 고르면 그 제품의 양·출처로 저장한다', (
+    tester,
+  ) async {
+    ReviewedMeal? saved;
+    const olive = MealSource(
+      name: '올리브짜파게티',
+      kcalPer100: 436,
+      per: 'g',
+      url: 'https://example.com/olive',
+      kind: 'processed',
+    );
+    const mala = MealSource(
+      name: '마라짜파게티',
+      kcalPer100: 425,
+      per: 'g',
+      url: 'https://example.com/mala',
+      kind: 'processed',
+    );
+    final estimate = MealEstimate(
+      kcal: 610,
+      components: const [
+        MealComponent(
+          name: '올리브짜파게티',
+          evidence: '짜파게티 한 봉지',
+          kcal: 610.4,
+          amount: 140,
+          unit: 'g',
+          kcalPer100: 436,
+          needsChoice: true,
+          source: olive,
+          alternatives: [
+            MealComponent(
+              name: '마라짜파게티',
+              evidence: '짜파게티 한 봉지',
+              kcal: 595,
+              amount: 140,
+              unit: 'g',
+              kcalPer100: 425,
+              source: mala,
+            ),
+          ],
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      app(
+        Builder(
+          builder: (context) => CupertinoButton(
+            child: const Text('open'),
+            onPressed: () async =>
+                saved = await reviewMealEstimate(context, estimate),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('meal-review-needs-choice-0')),
+      findsOneWidget,
+    );
+    final confirm = find.byKey(const ValueKey('meal-review-confirm'));
+    await tester.ensureVisible(confirm);
+    expect(
+      tester.widget<CupertinoButton>(confirm).onPressed,
+      isNull,
+      reason: '고르기 전에는 저장하지 않는다',
+    );
+    await tester.tap(find.byKey(const ValueKey('meal-review-choose-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('meal-choice-0-1')));
+    await tester.pumpAndSettle();
+    expect(find.text('마라짜파게티'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('meal-review-needs-choice-0')),
+      findsNothing,
+    );
+    await tester.ensureVisible(confirm);
+    await tester.tap(confirm);
+    await tester.pumpAndSettle();
+    expect(saved!.kcal.round(), 595);
+    expect(saved!.sources!.single.name, '마라짜파게티');
+    expect(saved!.text, '마라짜파게티 140g');
+  });
+
+  testWidgets('AI 가 어림한 음식은 그렇게 적는다', (tester) async {
+    final estimate = MealEstimate(
+      kcal: 120,
+      components: const [
+        MealComponent(
+          name: '무지개깨비죽',
+          evidence: '무지개깨비죽 한 그릇',
+          kcal: 120,
+          amount: 80,
+          unit: 'g',
+          kcalPer100: 150,
+          estimatedAmount: true,
+          ai: true,
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      app(
+        Builder(
+          builder: (context) => CupertinoButton(
+            child: const Text('open'),
+            onPressed: () => reviewMealEstimate(context, estimate),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('meal-review-ai-0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('meal-review-choose-0')), findsNothing);
+  });
+
+  test('서버의 AI 성분·대안·고르기 표시를 읽는다', () {
+    final e = MealEstimate.fromJson({
+      'kcal': 610,
+      'requiresConfirmation': true,
+      'refs': [
+        {
+          'code': 'P1',
+          'name': '올리브짜파게티',
+          'maker': '(주)농심',
+          'kind': 'processed',
+          'per': 'g',
+          'kcalPer100': 436,
+          'url': 'https://example.com/p1',
+        },
+      ],
+      'components': [
+        {
+          'name': '올리브짜파게티',
+          'evidence': '짜파게티 한 봉지',
+          'ref': 'P1',
+          'source': 'mfds',
+          'amount': 140,
+          'unit': 'g',
+          'kcalPer100': 436,
+          'kcal': 610.4,
+          'estimatedAmount': false,
+          'needsChoice': true,
+          'alternatives': [
+            {
+              'ref': 'P2',
+              'name': '마라짜파게티',
+              'maker': '(주)농심',
+              'kind': 'processed',
+              'amount': 140,
+              'unit': 'g',
+              'kcalPer100': 425,
+              'kcal': 595,
+              'estimatedAmount': false,
+              'url': 'https://example.com/p2',
+            },
+            {
+              'ref': 'P3',
+              'name': '틀린 줄',
+              'amount': 140,
+              'unit': 'g',
+              'kcalPer100': 425,
+              'kcal': 999,
+              'url': 'https://example.com/p3',
+            },
+          ],
+        },
+      ],
+    });
+    final c = e.components.single;
+    expect(
+      [
+        c.needsChoice,
+        c.source!.name,
+        c.alternatives.map((a) => a.name).toList(),
+      ],
+      [
+        true,
+        '올리브짜파게티',
+        ['마라짜파게티'],
+      ],
+    );
+    final ai = MealEstimate.fromJson({
+      'kcal': 120,
+      'requiresConfirmation': true,
+      'refs': [],
+      'components': [
+        {
+          'name': '무지개깨비죽',
+          'evidence': '무지개깨비죽 한 그릇',
+          'ref': null,
+          'source': 'ai',
+          'amount': 80,
+          'unit': 'g',
+          'kcalPer100': 150,
+          'kcal': 120,
+          'estimatedAmount': true,
+        },
+      ],
+    });
+    expect(
+      [ai.components.single.ai, ai.components.single.source],
+      [true, null],
+    );
+  });
+
   testWidgets('review keeps input precision and rounds only the final total', (
     tester,
   ) async {

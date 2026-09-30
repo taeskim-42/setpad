@@ -814,5 +814,9 @@
   "bodyWeightShort": "体重",
   "bodyMuscleShort": "骨格筋",
   "bodyFatShort": "体脂肪",
-  "bodyRecordDelete": "この記録を削除しますか?"
+  "bodyRecordDelete": "この記録を削除しますか?",
+  "mealChooseProduct": "別の製品にする ›",
+  "mealNeedsChoice": "この名前どおりの製品が表にありません。食べた製品を選んでください。",
+  "mealAiEstimate": "AI 推定 — どの食品表にもないため AI が見積もりました",
+  "mealChoiceTitle": "「{food}」— どの製品ですか?"
 }

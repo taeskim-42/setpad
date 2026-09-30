@@ -120,7 +120,9 @@ class MealEstimate {
         final amount = row['amount'], unit = row['unit'];
         final density = row['kcalPer100'], ref = row['ref'];
         final typed = row['source'] == 'typed';
+        final ai = row['source'] == 'ai';
         String? maker;
+        MealSource? source;
         if (typed) {
           if (amount != null ||
               unit != null ||
@@ -128,6 +130,21 @@ class MealEstimate {
               ref != null ||
               row['estimatedAmount'] != false ||
               parseMealText(evidence).kcal != value.round()) {
+            throw invalid;
+          }
+        } else if (ai) {
+          // 어느 표에도 없어 AI 가 어림한 음식. 표의 줄이 없으니 refs 에도 없다.
+          if (ref != null ||
+              amount is! num ||
+              !amount.isFinite ||
+              amount <= 0 ||
+              amount > 100000 ||
+              (unit != 'g' && unit != 'ml') ||
+              density is! num ||
+              !density.isFinite ||
+              density < 0 ||
+              density > 1000 ||
+              (value - amount * density / 100).abs() > 0.01) {
             throw invalid;
           }
         } else {
@@ -143,7 +160,8 @@ class MealEstimate {
               !density.isFinite ||
               density < 0 ||
               density > 1000 ||
-              (value - amount * density / 100).abs() > 0.000001) {
+              // 서버가 셈을 소수 둘째 자리에서 끊어 보낼 때가 있다(고를 제품).
+              (value - amount * density / 100).abs() > 0.01) {
             throw invalid;
           }
           final refs = answer['refs'];
@@ -157,6 +175,7 @@ class MealEstimate {
             throw invalid;
           }
           maker = r['maker'] is String ? r['maker'] as String : null;
+          source = MealSource.tryFromJson(r);
         }
         components.add(
           MealComponent(
@@ -169,6 +188,12 @@ class MealEstimate {
             kcalPer100: (density as num?)?.toDouble(),
             estimatedAmount: row['estimatedAmount'] as bool,
             macros: typed ? null : mealMacrosFromJson(row),
+            ai: ai,
+            needsChoice: !typed && row['needsChoice'] == true,
+            source: source,
+            alternatives: typed
+                ? const []
+                : MealComponent.alternativesFrom(row['alternatives'], evidence),
           ),
         );
       }
@@ -209,12 +234,110 @@ class MealComponent {
     this.estimatedAmount = false,
     this.maker,
     this.macros,
+    this.ai = false,
+    this.needsChoice = false,
+    this.source,
+    this.alternatives = const [],
   });
   final String name, evidence;
   final String? maker;
 
   /// [amount] 만큼의 탄단지(g). 양을 고치면 같은 비율로 다시 곱한다.
   final MealMacros? macros;
+
+  /// 어느 표에도 없어 AI 가 어림한 음식이다. 화면이 그렇게 말한다.
+  final bool ai;
+
+  /// 표에 친 이름 그대로의 제품이 없어(맛 변종만) 서버가 첫 제품을 채웠다. 사람이 골라야 저장한다.
+  final bool needsChoice;
+
+  /// 이 값을 낸 표의 줄. AI 어림이나 적은 kcal 이면 null.
+  final MealSource? source;
+
+  /// 바꿀 수 있는 다른 제품들, 이 글의 양으로 셈한 것.
+  final List<MealComponent> alternatives;
+
+  /// 서버가 준 대안 목록. 모양이 틀린 줄은 버린다 — 대안이 없어도 끼니는 된다.
+  static List<MealComponent> alternativesFrom(Object? rows, String evidence) {
+    if (rows is! List) return const [];
+    final out = <MealComponent>[];
+    for (final r in rows.take(12)) {
+      if (r is! Map) continue;
+      final name = r['name'], amount = r['amount'], unit = r['unit'];
+      final density = r['kcalPer100'], kcal = r['kcal'];
+      if (name is! String ||
+          name.trim().isEmpty ||
+          amount is! num ||
+          !amount.isFinite ||
+          amount <= 0 ||
+          amount > 100000 ||
+          (unit != 'g' && unit != 'ml') ||
+          density is! num ||
+          !density.isFinite ||
+          density < 0 ||
+          density > 1000 ||
+          kcal is! num ||
+          (kcal - amount * density / 100).abs() > 0.01) {
+        continue;
+      }
+      final url = r['url'];
+      out.add(
+        MealComponent(
+          name: name,
+          evidence: evidence,
+          kcal: kcal.toDouble(),
+          amount: amount.toDouble(),
+          unit: unit as String,
+          kcalPer100: density.toDouble(),
+          estimatedAmount: r['estimatedAmount'] == true,
+          maker: r['maker'] is String ? r['maker'] as String : null,
+          macros: mealMacrosFromJson(r),
+          source: url is String
+              ? MealSource.tryFromJson({
+                  'name': name,
+                  'kcalPer100': density,
+                  'per': unit,
+                  'url': url,
+                  'kind': r['kind'] is String ? r['kind'] : '',
+                })
+              : null,
+        ),
+      );
+    }
+    return out;
+  }
+
+  /// 이 대안으로 바꾼 성분. 원래 것은 대안 목록으로 돌아가고, 고른 것이므로 needsChoice 는 풀린다.
+  MealComponent switchTo(MealComponent other) => MealComponent(
+    name: other.name,
+    evidence: evidence,
+    kcal: other.kcal,
+    amount: other.amount,
+    unit: other.unit,
+    kcalPer100: other.kcalPer100,
+    estimatedAmount: other.estimatedAmount,
+    maker: other.maker,
+    macros: other.macros,
+    source: other.source,
+    alternatives: [
+      if (!identical(other, this)) withoutAlternatives(),
+      for (final a in alternatives)
+        if (!identical(a, other)) a,
+    ],
+  );
+
+  MealComponent withoutAlternatives() => MealComponent(
+    name: name,
+    evidence: evidence,
+    kcal: kcal,
+    amount: amount,
+    unit: unit,
+    kcalPer100: kcalPer100,
+    estimatedAmount: estimatedAmount,
+    maker: maker,
+    macros: macros,
+    source: source,
+  );
   final double kcal;
   final double? amount, kcalPer100;
   final String? unit;
@@ -926,7 +1049,8 @@ class RecordAi {
       'mime': mime,
       'language': locale,
       // 출처를 Open Food Facts 라고 적을 줄 안다 — 서버는 그때만 그 표를 쓴다.
-      'sources': const ['off'],
+      // 이 앱은 Open Food Facts 출처, 다른 제품 고르기, 표에 없는 음식의 AI 어림을 보일 줄 안다.
+      'sources': const ['off', 'choices', 'ai'],
       'gymId': ?gymId,
       'kind': ?kind,
       // 추정은 추정일 뿐이다. 먹은 양까지 확정한 끼니는 앱이 따로 올린다
@@ -986,7 +1110,7 @@ class RecordAi {
     final answer = await _ask('/api/meals/estimate', {
       'text': text,
       'language': locale,
-      'sources': const ['off'],
+      'sources': const ['off', 'choices', 'ai'],
       'save': false,
     }, timeout: const Duration(seconds: 30));
     return MealEstimate.fromJson(answer);

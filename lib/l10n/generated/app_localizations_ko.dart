@@ -3390,4 +3390,18 @@ class LKo extends L {
 
   @override
   String get bodyRecordDelete => '이 기록을 지울까요?';
+
+  @override
+  String get mealChooseProduct => '다른 제품으로 바꾸기 ›';
+
+  @override
+  String get mealNeedsChoice => '적은 이름 그대로인 제품이 표에 없어요. 맞는 제품을 골라 주세요.';
+
+  @override
+  String get mealAiEstimate => 'AI 추정 — 어느 표에도 없는 음식이라 AI 가 어림했어요';
+
+  @override
+  String mealChoiceTitle(String food) {
+    return '‘$food’ — 어떤 제품인가요?';
+  }
 }

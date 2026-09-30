@@ -3459,4 +3459,18 @@ class LTh extends L {
 
   @override
   String get bodyRecordDelete => 'ลบบันทึกนี้ไหม';
+
+  @override
+  String get mealChooseProduct => 'เลือกสินค้าอื่น ›';
+
+  @override
+  String get mealNeedsChoice => 'ไม่มีสินค้าชื่อนี้ตรงๆ เลือกสินค้าที่คุณกิน';
+
+  @override
+  String get mealAiEstimate => 'AI ประมาณ — ไม่มีในตารางอาหาร AI จึงประมาณให้';
+
+  @override
+  String mealChoiceTitle(String food) {
+    return '“$food” — สินค้าไหน?';
+  }
 }

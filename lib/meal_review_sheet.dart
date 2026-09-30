@@ -9,7 +9,12 @@ import 'record_ai.dart';
 import 'units.dart';
 
 /// 사람이 확인한 끼니: 열량, 고친 양이 든 글, 그리고 모든 음식에 값이 있으면 탄단지.
-typedef ReviewedMeal = ({double kcal, String? text, MealMacros? macros});
+typedef ReviewedMeal = ({
+  double kcal,
+  String? text,
+  MealMacros? macros,
+  List<MealSource>? sources,
+});
 
 Future<ReviewedMeal?> reviewMealEstimate(
   BuildContext context,
@@ -35,6 +40,7 @@ Future<ReviewedMeal?> reviewMealEstimate(
       kcal: picked.basis.kcal * picked.eaten / picked.basis.amount,
       text: null,
       macros: null,
+      sources: null,
     );
   }
   return showCupertinoModalPopup<ReviewedMeal>(
@@ -53,15 +59,18 @@ class _MealReviewSheet extends StatefulWidget {
 }
 
 class _MealReviewSheetState extends State<_MealReviewSheet> {
+  /// 지금 고른 성분들. 다른 제품으로 바꾸면 이 목록이 바뀐다.
+  late final List<MealComponent> _items = [...widget.estimate.components];
+
   late final _amounts = [
-    for (final c in widget.estimate.components)
+    for (final c in _items)
       TextEditingController(
         text: c.amount == null ? '' : formatNumber(c.amount!),
       ),
   ];
 
   double? _calories(int i) {
-    final c = widget.estimate.components[i];
+    final c = _items[i];
     if (c.amount == null) return c.kcal;
     final amount = parseMealAmount(_amounts[i].text);
     if (amount == null || amount > 100000) return null;
@@ -69,9 +78,48 @@ class _MealReviewSheetState extends State<_MealReviewSheet> {
     return kcal.isFinite && kcal <= 100000 ? kcal : null;
   }
 
+  /// 이 음식의 다른 제품을 고른다. 지금 것도 목록에 있어 그대로 두고 '확인' 할 수 있다.
+  Future<void> _choose(int i) async {
+    final l = L.of(context);
+    final c = _items[i];
+    final options = [c, ...c.alternatives];
+    final picked = await showCupertinoModalPopup<MealComponent>(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: Text(l.mealChoiceTitle(c.evidence)),
+        actions: [
+          for (final (k, o) in options.indexed)
+            CupertinoActionSheetAction(
+              key: ValueKey('meal-choice-$i-$k'),
+              onPressed: () => Navigator.pop(context, o),
+              child: Text(
+                [
+                  o.name,
+                  if (o.maker?.isNotEmpty == true) o.maker!,
+                  '${formatNumber(o.amount!)}${o.unit}',
+                  l.kcal(o.kcal.round()),
+                ].join(' · '),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 15),
+              ),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.cancel),
+        ),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _items[i] = c.switchTo(picked);
+      _amounts[i].text = formatNumber(_items[i].amount!);
+    });
+  }
+
   /// 고친 양만큼의 탄단지. 서버가 준 양에 대한 값을 같은 비율로 곱한다.
   MealMacros? _macros(int i) {
-    final c = widget.estimate.components[i];
+    final c = _items[i];
     final m = c.macros;
     if (m == null || c.amount == null || c.amount! <= 0) return null;
     final amount = parseMealAmount(_amounts[i].text);
@@ -137,7 +185,7 @@ class _MealReviewSheetState extends State<_MealReviewSheet> {
                   const SizedBox(height: 12),
                   mealReviewPhoto(widget.photo!),
                 ],
-                for (final (i, c) in widget.estimate.components.indexed) ...[
+                for (final (i, c) in _items.indexed) ...[
                   const SizedBox(height: 16),
                   Text(
                     c.name,
@@ -147,6 +195,42 @@ class _MealReviewSheetState extends State<_MealReviewSheet> {
                     Text(
                       c.maker!,
                       style: TextStyle(fontSize: 13, color: muted),
+                    ),
+                  if (c.ai)
+                    Text(
+                      l.mealAiEstimate,
+                      key: ValueKey('meal-review-ai-$i'),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: CupertinoColors.systemOrange.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                  if (c.needsChoice)
+                    Text(
+                      l.mealNeedsChoice,
+                      key: ValueKey('meal-review-needs-choice-$i'),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: CupertinoColors.systemOrange.resolveFrom(
+                          context,
+                        ),
+                      ),
+                    ),
+                  if (c.alternatives.isNotEmpty)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: CupertinoButton(
+                        key: ValueKey('meal-review-choose-$i'),
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(44, 32),
+                        onPressed: () => _choose(i),
+                        child: Text(
+                          l.mealChooseProduct,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
                     ),
                   Text(
                     c.evidence,
@@ -225,18 +309,23 @@ class _MealReviewSheetState extends State<_MealReviewSheet> {
                     Expanded(
                       child: CupertinoButton.filled(
                         key: const ValueKey('meal-review-confirm'),
-                        onPressed: total == null
+                        // 서버가 대신 채운 제품은 사람이 고르기 전에는 저장하지 않는다.
+                        onPressed:
+                            total == null || _items.any((c) => c.needsChoice)
                             ? null
                             : () => Navigator.pop(context, (
                                 kcal: sum,
                                 text: [
-                                  for (final (i, c)
-                                      in widget.estimate.components.indexed)
+                                  for (final (i, c) in _items.indexed)
                                     c.amount == null
                                         ? c.evidence
                                         : '${c.name} ${formatNumber(parseMealAmount(_amounts[i].text)!)}${c.unit}',
                                 ].join(', '),
                                 macros: macros,
+                                sources: [
+                                  for (final c in _items)
+                                    if (c.source != null) c.source!,
+                                ],
                               )),
                         child: Text(l.doneEditing),
                       ),

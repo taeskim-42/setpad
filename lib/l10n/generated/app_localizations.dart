@@ -5003,6 +5003,30 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'이 기록을 지울까요?'**
   String get bodyRecordDelete;
+
+  /// No description provided for @mealChooseProduct.
+  ///
+  /// In ko, this message translates to:
+  /// **'다른 제품으로 바꾸기 ›'**
+  String get mealChooseProduct;
+
+  /// No description provided for @mealNeedsChoice.
+  ///
+  /// In ko, this message translates to:
+  /// **'적은 이름 그대로인 제품이 표에 없어요. 맞는 제품을 골라 주세요.'**
+  String get mealNeedsChoice;
+
+  /// No description provided for @mealAiEstimate.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 추정 — 어느 표에도 없는 음식이라 AI 가 어림했어요'**
+  String get mealAiEstimate;
+
+  /// No description provided for @mealChoiceTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'‘{food}’ — 어떤 제품인가요?'**
+  String mealChoiceTitle(String food);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

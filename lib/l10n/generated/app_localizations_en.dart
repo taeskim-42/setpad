@@ -3500,4 +3500,20 @@ class LEn extends L {
 
   @override
   String get bodyRecordDelete => 'Delete this record?';
+
+  @override
+  String get mealChooseProduct => 'Choose another product ›';
+
+  @override
+  String get mealNeedsChoice =>
+      'No product with exactly this name. Choose the one you ate.';
+
+  @override
+  String get mealAiEstimate =>
+      'AI estimate — not in any food table, so AI estimated it';
+
+  @override
+  String mealChoiceTitle(String food) {
+    return '“$food” — which product?';
+  }
 }
