@@ -3280,6 +3280,82 @@ class LZh extends L {
   String routineDoneToday(String list) {
     return '包含今天已经练过的动作:$list';
   }
+
+  @override
+  String kcalEstimated(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '约${nString}kcal';
+  }
+
+  @override
+  String dayBurnedOnlyApprox(String n) {
+    return '运动 ${n}kcal(估算)· 未记录饮食';
+  }
+
+  @override
+  String get bodyRecordsTitle => '体成分记录';
+
+  @override
+  String get bodyRecordsEmpty => '还没有记录';
+
+  @override
+  String get bodyRecordsNote => '记录只保存在本机。长按删除。';
+
+  @override
+  String get bodyScanNote =>
+      '拍下 InBody 等体成分结果单,AI 会读取上面印的数值。照片只在读取时发送,不会保存。只有你确认的数值保存在本机,最新体重用于基础代谢和运动热量估算。长按删除。';
+
+  @override
+  String get bodyScanCamera => '拍照';
+
+  @override
+  String get bodyScanLibrary => '从相册选择';
+
+  @override
+  String get bodyScanReading => '正在读取…';
+
+  @override
+  String get bodyScanFailed => '没能读取。请重拍,让数字清晰可见。';
+
+  @override
+  String get bodyReviewTitle => '请确认读取的数值';
+
+  @override
+  String get bodyReviewNote => '与结果单不符就修改,不清楚的留空。';
+
+  @override
+  String get bodyMeasuredOn => '测量日期';
+
+  @override
+  String get bodyMuscle => '骨骼肌 (kg)';
+
+  @override
+  String get bodyFatKg => '体脂肪量 (kg)';
+
+  @override
+  String get bodyFatPercent => '体脂率 (%)';
+
+  @override
+  String get bodyBmrField => '基础代谢 (kcal)';
+
+  @override
+  String get bodyVisceral => '内脏脂肪等级';
+
+  @override
+  String get bodyWeightShort => '体重';
+
+  @override
+  String get bodyMuscleShort => '骨骼肌';
+
+  @override
+  String get bodyFatShort => '体脂';
+
+  @override
+  String get bodyRecordDelete => '删除这条记录?';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6558,6 +6634,82 @@ class LZhHans extends LZh {
   String routineDoneToday(String list) {
     return '包含今天已经练过的动作:$list';
   }
+
+  @override
+  String kcalEstimated(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '约${nString}kcal';
+  }
+
+  @override
+  String dayBurnedOnlyApprox(String n) {
+    return '运动 ${n}kcal(估算)· 未记录饮食';
+  }
+
+  @override
+  String get bodyRecordsTitle => '体成分记录';
+
+  @override
+  String get bodyRecordsEmpty => '还没有记录';
+
+  @override
+  String get bodyRecordsNote => '记录只保存在本机。长按删除。';
+
+  @override
+  String get bodyScanNote =>
+      '拍下 InBody 等体成分结果单,AI 会读取上面印的数值。照片只在读取时发送,不会保存。只有你确认的数值保存在本机,最新体重用于基础代谢和运动热量估算。长按删除。';
+
+  @override
+  String get bodyScanCamera => '拍照';
+
+  @override
+  String get bodyScanLibrary => '从相册选择';
+
+  @override
+  String get bodyScanReading => '正在读取…';
+
+  @override
+  String get bodyScanFailed => '没能读取。请重拍,让数字清晰可见。';
+
+  @override
+  String get bodyReviewTitle => '请确认读取的数值';
+
+  @override
+  String get bodyReviewNote => '与结果单不符就修改,不清楚的留空。';
+
+  @override
+  String get bodyMeasuredOn => '测量日期';
+
+  @override
+  String get bodyMuscle => '骨骼肌 (kg)';
+
+  @override
+  String get bodyFatKg => '体脂肪量 (kg)';
+
+  @override
+  String get bodyFatPercent => '体脂率 (%)';
+
+  @override
+  String get bodyBmrField => '基础代谢 (kcal)';
+
+  @override
+  String get bodyVisceral => '内脏脂肪等级';
+
+  @override
+  String get bodyWeightShort => '体重';
+
+  @override
+  String get bodyMuscleShort => '骨骼肌';
+
+  @override
+  String get bodyFatShort => '体脂';
+
+  @override
+  String get bodyRecordDelete => '删除这条记录?';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -9836,4 +9988,80 @@ class LZhHant extends LZh {
   String routineDoneToday(String list) {
     return '包含今天已經練過的動作:$list';
   }
+
+  @override
+  String kcalEstimated(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '約${nString}kcal';
+  }
+
+  @override
+  String dayBurnedOnlyApprox(String n) {
+    return '運動 ${n}kcal(估算)· 未記錄飲食';
+  }
+
+  @override
+  String get bodyRecordsTitle => '體成分記錄';
+
+  @override
+  String get bodyRecordsEmpty => '還沒有記錄';
+
+  @override
+  String get bodyRecordsNote => '記錄只保存在本機。長按刪除。';
+
+  @override
+  String get bodyScanNote =>
+      '拍下 InBody 等體成分結果單,AI 會讀取上面印的數值。照片只在讀取時傳送,不會保存。只有你確認的數值保存在本機,最新體重用於基礎代謝和運動熱量估算。長按刪除。';
+
+  @override
+  String get bodyScanCamera => '拍照';
+
+  @override
+  String get bodyScanLibrary => '從相簿選擇';
+
+  @override
+  String get bodyScanReading => '正在讀取…';
+
+  @override
+  String get bodyScanFailed => '沒能讀取。請重拍,讓數字清晰可見。';
+
+  @override
+  String get bodyReviewTitle => '請確認讀取的數值';
+
+  @override
+  String get bodyReviewNote => '與結果單不符就修改,不清楚的留空。';
+
+  @override
+  String get bodyMeasuredOn => '測量日期';
+
+  @override
+  String get bodyMuscle => '骨骼肌 (kg)';
+
+  @override
+  String get bodyFatKg => '體脂肪量 (kg)';
+
+  @override
+  String get bodyFatPercent => '體脂率 (%)';
+
+  @override
+  String get bodyBmrField => '基礎代謝 (kcal)';
+
+  @override
+  String get bodyVisceral => '內臟脂肪等級';
+
+  @override
+  String get bodyWeightShort => '體重';
+
+  @override
+  String get bodyMuscleShort => '骨骼肌';
+
+  @override
+  String get bodyFatShort => '體脂';
+
+  @override
+  String get bodyRecordDelete => '刪除這條記錄?';
 }

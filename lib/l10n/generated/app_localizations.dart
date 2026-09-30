@@ -4871,6 +4871,138 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'오늘 이미 한 운동이 들어 있어요: {list}'**
   String routineDoneToday(String list);
+
+  /// No description provided for @kcalEstimated.
+  ///
+  /// In ko, this message translates to:
+  /// **'약 {n}kcal'**
+  String kcalEstimated(int n);
+
+  /// No description provided for @dayBurnedOnlyApprox.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 {n}kcal (추정) · 식단 미기록'**
+  String dayBurnedOnlyApprox(String n);
+
+  /// No description provided for @bodyRecordsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'체성분 기록'**
+  String get bodyRecordsTitle;
+
+  /// No description provided for @bodyRecordsEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 기록이 없어요'**
+  String get bodyRecordsEmpty;
+
+  /// No description provided for @bodyRecordsNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록은 기기 안에만 둡니다. 길게 누르면 지웁니다.'**
+  String get bodyRecordsNote;
+
+  /// No description provided for @bodyScanNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'인바디 같은 결과지를 찍으면 AI 가 적힌 값을 읽어요. 사진은 읽을 때만 보내고 남기지 않아요. 확인한 값만 기기에 저장하고, 가장 최근 몸무게가 기초대사량과 운동 칼로리 어림에 쓰여요. 길게 누르면 지웁니다.'**
+  String get bodyScanNote;
+
+  /// No description provided for @bodyScanCamera.
+  ///
+  /// In ko, this message translates to:
+  /// **'결과지 찍기'**
+  String get bodyScanCamera;
+
+  /// No description provided for @bodyScanLibrary.
+  ///
+  /// In ko, this message translates to:
+  /// **'사진에서 고르기'**
+  String get bodyScanLibrary;
+
+  /// No description provided for @bodyScanReading.
+  ///
+  /// In ko, this message translates to:
+  /// **'결과지를 읽는 중…'**
+  String get bodyScanReading;
+
+  /// No description provided for @bodyScanFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'결과지를 읽지 못했어요. 숫자가 잘 보이게 다시 찍어 주세요.'**
+  String get bodyScanFailed;
+
+  /// No description provided for @bodyReviewTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'읽은 값을 확인하세요'**
+  String get bodyReviewTitle;
+
+  /// No description provided for @bodyReviewNote.
+  ///
+  /// In ko, this message translates to:
+  /// **'결과지와 다르면 고치고, 모르는 칸은 비워 두세요.'**
+  String get bodyReviewNote;
+
+  /// No description provided for @bodyMeasuredOn.
+  ///
+  /// In ko, this message translates to:
+  /// **'잰 날'**
+  String get bodyMeasuredOn;
+
+  /// No description provided for @bodyMuscle.
+  ///
+  /// In ko, this message translates to:
+  /// **'골격근량 (kg)'**
+  String get bodyMuscle;
+
+  /// No description provided for @bodyFatKg.
+  ///
+  /// In ko, this message translates to:
+  /// **'체지방량 (kg)'**
+  String get bodyFatKg;
+
+  /// No description provided for @bodyFatPercent.
+  ///
+  /// In ko, this message translates to:
+  /// **'체지방률 (%)'**
+  String get bodyFatPercent;
+
+  /// No description provided for @bodyBmrField.
+  ///
+  /// In ko, this message translates to:
+  /// **'기초대사량 (kcal)'**
+  String get bodyBmrField;
+
+  /// No description provided for @bodyVisceral.
+  ///
+  /// In ko, this message translates to:
+  /// **'내장지방 레벨'**
+  String get bodyVisceral;
+
+  /// No description provided for @bodyWeightShort.
+  ///
+  /// In ko, this message translates to:
+  /// **'체중'**
+  String get bodyWeightShort;
+
+  /// No description provided for @bodyMuscleShort.
+  ///
+  /// In ko, this message translates to:
+  /// **'골격근'**
+  String get bodyMuscleShort;
+
+  /// No description provided for @bodyFatShort.
+  ///
+  /// In ko, this message translates to:
+  /// **'체지방'**
+  String get bodyFatShort;
+
+  /// No description provided for @bodyRecordDelete.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 기록을 지울까요?'**
+  String get bodyRecordDelete;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

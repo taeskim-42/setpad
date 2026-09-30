@@ -3421,4 +3421,83 @@ class LEn extends L {
   String routineDoneToday(String list) {
     return 'Already done today: $list';
   }
+
+  @override
+  String kcalEstimated(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '~$nString kcal';
+  }
+
+  @override
+  String dayBurnedOnlyApprox(String n) {
+    return 'Exercise $n kcal (est.) · no meals logged';
+  }
+
+  @override
+  String get bodyRecordsTitle => 'Body composition';
+
+  @override
+  String get bodyRecordsEmpty => 'No records yet';
+
+  @override
+  String get bodyRecordsNote =>
+      'Records stay on this device. Long-press to delete.';
+
+  @override
+  String get bodyScanNote =>
+      'Snap a body composition sheet (e.g. InBody) and AI reads the printed values. The photo is sent only to read it and is not kept. Only the values you confirm are saved on this device; the latest weight is used for BMR and exercise estimates. Long-press to delete.';
+
+  @override
+  String get bodyScanCamera => 'Take photo';
+
+  @override
+  String get bodyScanLibrary => 'Choose photo';
+
+  @override
+  String get bodyScanReading => 'Reading the sheet…';
+
+  @override
+  String get bodyScanFailed =>
+      'Couldn\'t read the sheet. Try again with the numbers in clear view.';
+
+  @override
+  String get bodyReviewTitle => 'Check the values';
+
+  @override
+  String get bodyReviewNote =>
+      'Fix anything that differs from the sheet; leave unknown fields empty.';
+
+  @override
+  String get bodyMeasuredOn => 'Measured on';
+
+  @override
+  String get bodyMuscle => 'Skeletal muscle (kg)';
+
+  @override
+  String get bodyFatKg => 'Body fat (kg)';
+
+  @override
+  String get bodyFatPercent => 'Body fat (%)';
+
+  @override
+  String get bodyBmrField => 'BMR (kcal)';
+
+  @override
+  String get bodyVisceral => 'Visceral fat level';
+
+  @override
+  String get bodyWeightShort => 'Weight';
+
+  @override
+  String get bodyMuscleShort => 'Muscle';
+
+  @override
+  String get bodyFatShort => 'Fat';
+
+  @override
+  String get bodyRecordDelete => 'Delete this record?';
 }

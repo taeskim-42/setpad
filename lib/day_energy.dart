@@ -56,7 +56,7 @@ class DayEnergy extends StatelessWidget {
                     n.format(b.kcal.round()),
                     n.format((burned ?? 0).round()),
                   ),
-            estimate: b?.estimate ?? false,
+            estimate: (b?.estimate ?? false) || day.burnedEstimated,
           ),
           const SizedBox(width: 8),
           // 차이는 뜻을 모르면 읽을 수 없다 — 셈을 늘 적고, 누르면 무엇이 빠졌는지까지.

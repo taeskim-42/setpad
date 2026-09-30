@@ -153,4 +153,22 @@ void main() {
     expect(signed(-450), '−450');
     expect(signed(0), '0');
   });
+
+  test('워치가 안 잰 문서는 몸무게로 어림해 더하고 "추정" 을 단다 — 몸무게가 없으면 어림하지 않는다', () {
+    final watched = workout(day.add(const Duration(hours: 8)), kcal: 300);
+    final plain = workout(day.add(const Duration(hours: 18)));
+    final logs = dayLogs(
+      [watched, plain],
+      from: day,
+      to: day,
+      weightOn: (_) => 60,
+    );
+    final log = logs.single;
+    // 1세트 = 2.5분 → 4 × 60 × 2.5/60 = 10kcal
+    expect(log.burned, closeTo(310, 0.001));
+    expect(log.burnedEstimated, isTrue);
+    final noWeight = dayLogs([watched, plain], from: day, to: day).single;
+    expect([noWeight.burned, noWeight.burnedEstimated], [300, false]);
+    expect(noteEstimate(watched, 60), isNull, reason: '워치가 잰 문서는 어림하지 않는다');
+  });
 }

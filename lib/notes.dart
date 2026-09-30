@@ -495,6 +495,46 @@ class NotesStore extends ChangeNotifier {
     _scheduleSave();
   }
 
+  /// 체성분 기록, 잰 날 순. 기기 안에만 둔다.
+  List<BodyRecord> _bodyRecords = [];
+  List<BodyRecord> get bodyRecords => List.unmodifiable(_bodyRecords);
+
+  /// 기록을 더한다(같은 id 면 바꾼다). 가장 최근 기록의 몸무게가 몸 정보의 몸무게가 된다 —
+  /// 기초대사량과 운동 어림이 새 몸무게로 셈한다.
+  void saveBodyRecord(BodyRecord record, {double? heightCm}) {
+    _bodyRecords = [
+      for (final r in _bodyRecords)
+        if (r.id != record.id) r,
+      record,
+    ]..sort((a, b) => a.on.compareTo(b.on));
+    final latest = _bodyRecords.lastWhere(
+      (r) => r.weightKg != null,
+      orElse: () => record,
+    );
+    if (latest.weightKg != null || heightCm != null) {
+      _body = BodyProfile(
+        heightCm: heightCm ?? _body.heightCm,
+        weightKg: latest.weightKg ?? _body.weightKg,
+        birthYear: _body.birthYear,
+        sex: _body.sex,
+      );
+    }
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  void deleteBodyRecord(String id) {
+    _bodyRecords = [
+      for (final r in _bodyRecords)
+        if (r.id != id) r,
+    ];
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  /// 그날 운동을 어림할 몸무게. 없으면 null — 그러면 어림하지 않는다.
+  double? weightOnDay(DateTime day) => weightOn(day, _bodyRecords, _body);
+
   /// AI 도움(DeepSeek)을 쓰는가. 기본은 켜짐이고 묻지 않는다. 설정의 AI 도움
   /// 줄에서 끄면 모델로 가는 문이 모두 닫히고 기기 안에서만 한다(RecordAi.enabled).
   ///
@@ -544,6 +584,10 @@ class NotesStore extends ChangeNotifier {
           _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
           _countAloud = data['countAloud'] == true;
           _body = BodyProfile.fromJson(data['body']);
+          _bodyRecords = [
+            for (final r in (data['bodyRecords'] as List? ?? const []))
+              ?BodyRecord.tryFromJson(r),
+          ]..sort((a, b) => a.on.compareTo(b.on));
           _aiOn = data['aiConsent'] != false;
           final saved = data['deviceId'];
           if (saved is String && saved.length >= 16) _deviceId = saved;
@@ -612,6 +656,8 @@ class NotesStore extends ChangeNotifier {
       'weightUnit': _weightUnit,
       'countAloud': _countAloud,
       'body': _body.toJson(),
+      if (_bodyRecords.isNotEmpty)
+        'bodyRecords': [for (final r in _bodyRecords) r.toJson()],
       'aiConsent': _aiOn,
       'deviceId': _deviceId,
       'platesDay': _platesDay,

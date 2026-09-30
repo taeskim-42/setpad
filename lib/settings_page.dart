@@ -76,7 +76,7 @@ class SettingsPage extends StatelessWidget {
                 label: l.bodyTitle,
                 onTap: () => Navigator.of(context).push(
                   CupertinoPageRoute<void>(
-                    builder: (_) => BodyPage(store: store),
+                    builder: (_) => BodyPage(store: store, ai: account?.ai),
                   ),
                 ),
               ),

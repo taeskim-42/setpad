@@ -3307,4 +3307,80 @@ class LJa extends L {
   String routineDoneToday(String list) {
     return '今日すでにやった種目が入っています: $list';
   }
+
+  @override
+  String kcalEstimated(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '約${nString}kcal';
+  }
+
+  @override
+  String dayBurnedOnlyApprox(String n) {
+    return '運動 ${n}kcal(推定)· 食事未記録';
+  }
+
+  @override
+  String get bodyRecordsTitle => '体組成の記録';
+
+  @override
+  String get bodyRecordsEmpty => 'まだ記録がありません';
+
+  @override
+  String get bodyRecordsNote => '記録はこの端末にだけ保存します。長押しで削除します。';
+
+  @override
+  String get bodyScanNote =>
+      'InBody などの結果用紙を撮ると AI が印字された値を読みます。写真は読むときだけ送り、残しません。確認した値だけを端末に保存し、最新の体重を基礎代謝と運動カロリーの推定に使います。長押しで削除します。';
+
+  @override
+  String get bodyScanCamera => '撮影する';
+
+  @override
+  String get bodyScanLibrary => '写真を選ぶ';
+
+  @override
+  String get bodyScanReading => '読み取り中…';
+
+  @override
+  String get bodyScanFailed => '読み取れませんでした。数字がはっきり見えるように撮り直してください。';
+
+  @override
+  String get bodyReviewTitle => '読み取った値を確認';
+
+  @override
+  String get bodyReviewNote => '用紙と違えば直し、分からない欄は空けてください。';
+
+  @override
+  String get bodyMeasuredOn => '測定日';
+
+  @override
+  String get bodyMuscle => '骨格筋量 (kg)';
+
+  @override
+  String get bodyFatKg => '体脂肪量 (kg)';
+
+  @override
+  String get bodyFatPercent => '体脂肪率 (%)';
+
+  @override
+  String get bodyBmrField => '基礎代謝量 (kcal)';
+
+  @override
+  String get bodyVisceral => '内臓脂肪レベル';
+
+  @override
+  String get bodyWeightShort => '体重';
+
+  @override
+  String get bodyMuscleShort => '骨格筋';
+
+  @override
+  String get bodyFatShort => '体脂肪';
+
+  @override
+  String get bodyRecordDelete => 'この記録を削除しますか?';
 }

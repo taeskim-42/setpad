@@ -3381,4 +3381,82 @@ class LTh extends L {
   String routineDoneToday(String list) {
     return 'มีท่าที่ทำไปแล้ววันนี้: $list';
   }
+
+  @override
+  String kcalEstimated(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '~$nString kcal';
+  }
+
+  @override
+  String dayBurnedOnlyApprox(String n) {
+    return 'ออกกำลัง $n kcal (ประมาณ) · ไม่ได้บันทึกอาหาร';
+  }
+
+  @override
+  String get bodyRecordsTitle => 'องค์ประกอบร่างกาย';
+
+  @override
+  String get bodyRecordsEmpty => 'ยังไม่มีบันทึก';
+
+  @override
+  String get bodyRecordsNote =>
+      'บันทึกเก็บไว้ในเครื่องนี้เท่านั้น กดค้างเพื่อลบ';
+
+  @override
+  String get bodyScanNote =>
+      'ถ่ายใบผลองค์ประกอบร่างกาย (เช่น InBody) แล้ว AI จะอ่านค่าที่พิมพ์ไว้ ส่งรูปเพื่ออ่านเท่านั้นและไม่เก็บไว้ บันทึกเฉพาะค่าที่คุณยืนยันในเครื่อง น้ำหนักล่าสุดใช้คำนวณ BMR และประมาณแคลอรีออกกำลัง กดค้างเพื่อลบ';
+
+  @override
+  String get bodyScanCamera => 'ถ่ายรูป';
+
+  @override
+  String get bodyScanLibrary => 'เลือกรูป';
+
+  @override
+  String get bodyScanReading => 'กำลังอ่าน…';
+
+  @override
+  String get bodyScanFailed => 'อ่านไม่ได้ ลองถ่ายใหม่ให้เห็นตัวเลขชัดเจน';
+
+  @override
+  String get bodyReviewTitle => 'ตรวจสอบค่า';
+
+  @override
+  String get bodyReviewNote =>
+      'แก้ค่าที่ไม่ตรงกับใบผล และเว้นว่างช่องที่ไม่รู้';
+
+  @override
+  String get bodyMeasuredOn => 'วันที่วัด';
+
+  @override
+  String get bodyMuscle => 'มวลกล้ามเนื้อ (กก.)';
+
+  @override
+  String get bodyFatKg => 'ไขมัน (กก.)';
+
+  @override
+  String get bodyFatPercent => 'ไขมัน (%)';
+
+  @override
+  String get bodyBmrField => 'BMR (kcal)';
+
+  @override
+  String get bodyVisceral => 'ไขมันในช่องท้อง';
+
+  @override
+  String get bodyWeightShort => 'น้ำหนัก';
+
+  @override
+  String get bodyMuscleShort => 'กล้ามเนื้อ';
+
+  @override
+  String get bodyFatShort => 'ไขมัน';
+
+  @override
+  String get bodyRecordDelete => 'ลบบันทึกนี้ไหม';
 }

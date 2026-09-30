@@ -3314,4 +3314,80 @@ class LKo extends L {
   String routineDoneToday(String list) {
     return '오늘 이미 한 운동이 들어 있어요: $list';
   }
+
+  @override
+  String kcalEstimated(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '약 ${nString}kcal';
+  }
+
+  @override
+  String dayBurnedOnlyApprox(String n) {
+    return '운동 ${n}kcal (추정) · 식단 미기록';
+  }
+
+  @override
+  String get bodyRecordsTitle => '체성분 기록';
+
+  @override
+  String get bodyRecordsEmpty => '아직 기록이 없어요';
+
+  @override
+  String get bodyRecordsNote => '기록은 기기 안에만 둡니다. 길게 누르면 지웁니다.';
+
+  @override
+  String get bodyScanNote =>
+      '인바디 같은 결과지를 찍으면 AI 가 적힌 값을 읽어요. 사진은 읽을 때만 보내고 남기지 않아요. 확인한 값만 기기에 저장하고, 가장 최근 몸무게가 기초대사량과 운동 칼로리 어림에 쓰여요. 길게 누르면 지웁니다.';
+
+  @override
+  String get bodyScanCamera => '결과지 찍기';
+
+  @override
+  String get bodyScanLibrary => '사진에서 고르기';
+
+  @override
+  String get bodyScanReading => '결과지를 읽는 중…';
+
+  @override
+  String get bodyScanFailed => '결과지를 읽지 못했어요. 숫자가 잘 보이게 다시 찍어 주세요.';
+
+  @override
+  String get bodyReviewTitle => '읽은 값을 확인하세요';
+
+  @override
+  String get bodyReviewNote => '결과지와 다르면 고치고, 모르는 칸은 비워 두세요.';
+
+  @override
+  String get bodyMeasuredOn => '잰 날';
+
+  @override
+  String get bodyMuscle => '골격근량 (kg)';
+
+  @override
+  String get bodyFatKg => '체지방량 (kg)';
+
+  @override
+  String get bodyFatPercent => '체지방률 (%)';
+
+  @override
+  String get bodyBmrField => '기초대사량 (kcal)';
+
+  @override
+  String get bodyVisceral => '내장지방 레벨';
+
+  @override
+  String get bodyWeightShort => '체중';
+
+  @override
+  String get bodyMuscleShort => '골격근';
+
+  @override
+  String get bodyFatShort => '체지방';
+
+  @override
+  String get bodyRecordDelete => '이 기록을 지울까요?';
 }

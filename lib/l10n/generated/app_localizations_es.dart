@@ -3443,4 +3443,83 @@ class LEs extends L {
   String routineDoneToday(String list) {
     return 'Ya hecho hoy: $list';
   }
+
+  @override
+  String kcalEstimated(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '~$nString kcal';
+  }
+
+  @override
+  String dayBurnedOnlyApprox(String n) {
+    return 'Ejercicio $n kcal (est.) · sin comidas';
+  }
+
+  @override
+  String get bodyRecordsTitle => 'Composición corporal';
+
+  @override
+  String get bodyRecordsEmpty => 'Aún no hay registros';
+
+  @override
+  String get bodyRecordsNote =>
+      'Los registros quedan en este dispositivo. Mantén pulsado para borrar.';
+
+  @override
+  String get bodyScanNote =>
+      'Fotografía un informe de composición corporal (p. ej. InBody) y la IA lee los valores. La foto solo se envía para leerla y no se guarda. Solo se guardan en el dispositivo los valores que confirmes; el último peso se usa para el metabolismo basal y las estimaciones de ejercicio. Mantén pulsado para borrar.';
+
+  @override
+  String get bodyScanCamera => 'Hacer foto';
+
+  @override
+  String get bodyScanLibrary => 'Elegir foto';
+
+  @override
+  String get bodyScanReading => 'Leyendo el informe…';
+
+  @override
+  String get bodyScanFailed =>
+      'No se pudo leer. Vuelve a intentarlo con los números bien visibles.';
+
+  @override
+  String get bodyReviewTitle => 'Revisa los valores';
+
+  @override
+  String get bodyReviewNote =>
+      'Corrige lo que no coincida y deja vacío lo que no sepas.';
+
+  @override
+  String get bodyMeasuredOn => 'Fecha';
+
+  @override
+  String get bodyMuscle => 'Músculo esquelético (kg)';
+
+  @override
+  String get bodyFatKg => 'Grasa corporal (kg)';
+
+  @override
+  String get bodyFatPercent => 'Grasa corporal (%)';
+
+  @override
+  String get bodyBmrField => 'Metabolismo basal (kcal)';
+
+  @override
+  String get bodyVisceral => 'Grasa visceral';
+
+  @override
+  String get bodyWeightShort => 'Peso';
+
+  @override
+  String get bodyMuscleShort => 'Músculo';
+
+  @override
+  String get bodyFatShort => 'Grasa';
+
+  @override
+  String get bodyRecordDelete => '¿Borrar este registro?';
 }

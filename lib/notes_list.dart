@@ -1764,6 +1764,9 @@ class _NotesListPageState extends State<NotesListPage>
                                   onOpen: _open,
                                   onDelete: widget.store.delete,
                                   record: _recordNotes().contains(notes[i].id),
+                                  weightKg: widget.store.weightOnDay(
+                                    notes[i].createdAt,
+                                  ),
                                 ),
                                 separatorBuilder: (context, _) => Padding(
                                   // 구분선은 글자가 시작하는 자리부터 그린다.
@@ -1838,9 +1841,13 @@ class _Row extends StatelessWidget {
     required this.onOpen,
     required this.onDelete,
     this.record = false,
+    this.weightKg,
   });
 
   final Note note;
+
+  /// 그날 몸무게. 워치가 안 잰 문서의 운동 칼로리를 어림하는 데 쓴다.
+  final double? weightKg;
   final String query;
   final void Function(Note) onOpen;
   final void Function(Note) onDelete;
@@ -1869,7 +1876,12 @@ class _Row extends StatelessWidget {
           in <List<InlineSpan>>[
             if (summary.isNotEmpty) [TextSpan(text: summary)],
             if (note.calories case final c?)
-              [icon(CupertinoIcons.flame), TextSpan(text: l.kcal(c.round()))],
+              [icon(CupertinoIcons.flame), TextSpan(text: l.kcal(c.round()))]
+            else if (noteEstimate(note, weightKg) case final e?)
+              [
+                icon(CupertinoIcons.flame),
+                TextSpan(text: l.kcalEstimated(e.round())),
+              ],
             if (intake != null)
               [icon(Icons.restaurant), TextSpan(text: l.kcal(intake))],
           ].indexed.expand(

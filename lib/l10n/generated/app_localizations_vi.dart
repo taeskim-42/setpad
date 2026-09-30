@@ -3402,4 +3402,81 @@ class LVi extends L {
   String routineDoneToday(String list) {
     return 'Có bài đã tập hôm nay: $list';
   }
+
+  @override
+  String kcalEstimated(int n) {
+    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
+      localeName,
+    );
+    final String nString = nNumberFormat.format(n);
+
+    return '~$nString kcal';
+  }
+
+  @override
+  String dayBurnedOnlyApprox(String n) {
+    return 'Tập $n kcal (ước tính) · chưa ghi bữa ăn';
+  }
+
+  @override
+  String get bodyRecordsTitle => 'Thành phần cơ thể';
+
+  @override
+  String get bodyRecordsEmpty => 'Chưa có bản ghi';
+
+  @override
+  String get bodyRecordsNote =>
+      'Bản ghi chỉ lưu trên máy này. Nhấn giữ để xóa.';
+
+  @override
+  String get bodyScanNote =>
+      'Chụp phiếu kết quả thành phần cơ thể (vd. InBody), AI sẽ đọc các giá trị in trên đó. Ảnh chỉ gửi để đọc và không được lưu. Chỉ những giá trị bạn xác nhận được lưu trên máy; cân nặng mới nhất dùng cho BMR và ước tính calo khi tập. Nhấn giữ để xóa.';
+
+  @override
+  String get bodyScanCamera => 'Chụp ảnh';
+
+  @override
+  String get bodyScanLibrary => 'Chọn ảnh';
+
+  @override
+  String get bodyScanReading => 'Đang đọc…';
+
+  @override
+  String get bodyScanFailed => 'Không đọc được. Hãy chụp lại để số rõ ràng.';
+
+  @override
+  String get bodyReviewTitle => 'Kiểm tra các giá trị';
+
+  @override
+  String get bodyReviewNote => 'Sửa nếu khác phiếu, để trống ô không biết.';
+
+  @override
+  String get bodyMeasuredOn => 'Ngày đo';
+
+  @override
+  String get bodyMuscle => 'Cơ xương (kg)';
+
+  @override
+  String get bodyFatKg => 'Mỡ cơ thể (kg)';
+
+  @override
+  String get bodyFatPercent => 'Tỷ lệ mỡ (%)';
+
+  @override
+  String get bodyBmrField => 'BMR (kcal)';
+
+  @override
+  String get bodyVisceral => 'Mỡ nội tạng';
+
+  @override
+  String get bodyWeightShort => 'Cân nặng';
+
+  @override
+  String get bodyMuscleShort => 'Cơ';
+
+  @override
+  String get bodyFatShort => 'Mỡ';
+
+  @override
+  String get bodyRecordDelete => 'Xóa bản ghi này?';
 }

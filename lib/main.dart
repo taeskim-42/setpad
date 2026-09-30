@@ -872,7 +872,12 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   void _showDaySheet() {
     final l = L.of(context);
     final at = widget.note.createdAt;
-    final day = dayLogs(widget.store.notes, from: at, to: at).firstOrNull;
+    final day = dayLogs(
+      widget.store.notes,
+      from: at,
+      to: at,
+      weightOn: widget.store.weightOnDay,
+    ).firstOrNull;
     showFitAll(
       context,
       [
@@ -1554,7 +1559,12 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     final at = note.createdAt;
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
     // 하루치다 — 이 문서 하나가 아니라 그날의 문서와 끼니 전부.
-    final log = dayLogs(widget.store.notes, from: at, to: at).firstOrNull;
+    final log = dayLogs(
+      widget.store.notes,
+      from: at,
+      to: at,
+      weightOn: widget.store.weightOnDay,
+    ).firstOrNull;
     final basal = basalFor(
       dayOf(at),
       widget.store.body,

@@ -15,6 +15,7 @@ library;
 
 import 'package:intl/intl.dart';
 
+import 'body.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 
@@ -27,8 +28,11 @@ DateTime dayOf(DateTime t) {
 
 /// 하루치. 값이 null 이면 **기록이 없다**는 뜻이지 0 이 아니다.
 class DayLog {
-  DayLog(this.day);
+  DayLog(this.day, {this.weightKg});
   final DateTime day;
+
+  /// 그날의 몸무게. 있으면 워치가 안 잰 운동 문서를 어림한다([strengthKcal]).
+  final double? weightKg;
 
   /// 그날 끼니들(문서가 여럿이어도 id 로 한 번씩만).
   final List<MealEntry> meals = [];
@@ -45,13 +49,20 @@ class DayLog {
   /// 어림값이 섞였는가. 섞였으면 결과에도 "약" 이 붙는다.
   bool get intakeEstimated => meals.any((m) => m.approximate);
 
-  /// 워치가 잰 운동 중 활동 에너지의 합. 잰 문서가 하나도 없으면 null.
+  /// 운동 중 활동 에너지의 합: 워치가 잰 문서는 잰 값, 안 잰 문서는 몸무게로 어림한 값.
+  /// 잰 것도 어림할 것도 없으면 null.
   double? get burned {
-    final measured = notes.where((n) => n.calories != null);
-    return measured.isEmpty
-        ? null
-        : measured.fold<double>(0, (n, note) => n + note.calories!);
+    double? total;
+    for (final note in notes) {
+      final kcal = note.calories ?? noteEstimate(note, weightKg);
+      if (kcal != null) total = (total ?? 0) + kcal;
+    }
+    return total;
   }
+
+  /// [burned] 에 어림이 섞였는가. 섞였으면 화면이 "추정" 을 붙인다.
+  bool get burnedEstimated =>
+      notes.any((n) => n.calories == null && noteEstimate(n, weightKg) != null);
 
   /// 섭취 − 운동. 둘 다 있을 때만 있다. 열량 미상 끼니는 셈에 안 들어간다 — 그
   /// 사실은 [unknownMeals] 가 따로 말하고, 화면은 그 수를 옆에 적는다.
@@ -68,6 +79,7 @@ List<DayLog> dayLogs(
   List<Note> notes, {
   required DateTime from,
   required DateTime to,
+  double? Function(DateTime day)? weightOn,
 }) {
   final first = dayOf(from), last = dayOf(to);
   bool within(DateTime t) {
@@ -76,7 +88,10 @@ List<DayLog> dayLogs(
   }
 
   final days = <DateTime, DayLog>{};
-  DayLog at(DateTime t) => days.putIfAbsent(dayOf(t), () => DayLog(dayOf(t)));
+  DayLog at(DateTime t) => days.putIfAbsent(
+    dayOf(t),
+    () => DayLog(dayOf(t), weightKg: weightOn?.call(dayOf(t))),
+  );
   final seenMeals = <String>{};
   for (final note in notes) {
     // 세트도 칼로리도 없는 빈 문서는 운동한 날로 치지 않는다.
@@ -95,6 +110,13 @@ List<DayLog> dayLogs(
   return days.values.toList()..sort((a, b) => a.day.compareTo(b.day));
 }
 
+/// 워치가 안 잰 운동 문서의 활동 에너지 어림. 내 세트가 없거나 몸무게를 모르면 null.
+double? noteEstimate(Note note, double? weightKg) {
+  if (note.calories != null) return null;
+  final sets = note.blocks.expand((b) => b.sets).where((s) => s.mine).length;
+  return strengthKcal(sets: sets, weightKg: weightKg);
+}
+
 /// 하루의 에너지 한 줄. 없는 것은 없다고 쓴다 — 0 으로 채우지 않는다.
 ///
 /// 먹은 것은 +, 운동으로 쓴 것은 −, 그 합이 차이다. 부호가 곧 뜻이라 숫자 앞에
@@ -102,7 +124,11 @@ List<DayLog> dayLogs(
 String? dayEnergyText(L l, DayLog day) {
   final intake = day.intake, burned = day.burned;
   if (intake == null && burned == null) return null;
-  if (intake == null) return l.dayBurnedOnly(signed(-burned!.round()));
+  if (intake == null) {
+    return (day.burnedEstimated ? l.dayBurnedOnlyApprox : l.dayBurnedOnly)(
+      signed(-burned!.round()),
+    );
+  }
   // 열량 미상 끼니가 있으면 아는 것으로만 셈하고 그 수를 옆에 적는다 — 0 으로
   // 치지도, 셈을 접지도 않는다.
   final unknown = day.unknownMeals > 0
@@ -114,7 +140,9 @@ String? dayEnergyText(L l, DayLog day) {
         ) +
         unknown;
   }
-  return (day.intakeEstimated ? l.dayEnergyApprox : l.dayEnergyFull)(
+  return (day.intakeEstimated || day.burnedEstimated
+          ? l.dayEnergyApprox
+          : l.dayEnergyFull)(
         signed(intake),
         signed(-burned.round()),
         signed(day.difference!),

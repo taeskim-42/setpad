@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 import 'api_route.dart';
+import 'body.dart';
 import 'meal.dart';
 
 import 'parser.dart';
@@ -933,6 +934,46 @@ class RecordAi {
       'save': false,
     }, timeout: const Duration(seconds: 60));
     return MealEstimate.fromJson(answer);
+  }
+
+  /// 체성분 결과지(인바디 등) 사진 → 적힌 값. 서버는 저장하지 않는다. 결과지가 아니거나
+  /// 읽은 칸이 없으면 code 'notBodySheet' 로 던진다 — 부르는 쪽은 "읽지 못했다" 고 말한다.
+  Future<BodyRecord> scanBody(
+    Uint8List bytes, {
+    required String mime,
+    required String id,
+  }) async {
+    _checkOn();
+    final answer = await _ask('/api/body/scan', {
+      'image': base64Encode(withoutPhotoMetadata(bytes)),
+      'mime': mime,
+    }, timeout: const Duration(seconds: 60));
+    double? n(Object? v) =>
+        v is num && v.isFinite && v > 0 ? v.toDouble() : null;
+    final day = answer['measuredOn'] is String
+        ? DateTime.tryParse(answer['measuredOn'] as String)
+        : null;
+    final today = DateTime.now();
+    final record = BodyRecord(
+      id: id,
+      on: day == null
+          ? DateTime(today.year, today.month, today.day)
+          : DateTime(day.year, day.month, day.day),
+      weightKg: n(answer['weightKg']),
+      skeletalMuscleKg: n(answer['skeletalMuscleKg']),
+      bodyFatKg: n(answer['bodyFatKg']),
+      bodyFatPercent: n(answer['bodyFatPercent']),
+      bmi: n(answer['bmi']),
+      bmrKcal: n(answer['bmrKcal']),
+      visceralFatLevel: n(answer['visceralFatLevel']),
+    );
+    if (record.empty) {
+      throw const RecordAiException(
+        RecordAiStatus.unavailable,
+        code: 'notBodySheet',
+      );
+    }
+    return record;
   }
 
   /// 글로 적은 식단의 열량을 어림한다. 못 하면 던진다 — 부르는 쪽은 그 끼니를
