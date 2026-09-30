@@ -1855,6 +1855,18 @@ abstract class L {
   /// **'USDA FoodData Central'**
   String get mealSourceUsda;
 
+  /// No description provided for @mealSourceOff.
+  ///
+  /// In ko, this message translates to:
+  /// **'Open Food Facts'**
+  String get mealSourceOff;
+
+  /// No description provided for @mealMacros.
+  ///
+  /// In ko, this message translates to:
+  /// **'탄 {carbs}g · 단 {protein}g · 지 {fat}g'**
+  String mealMacros(String carbs, String protein, String fat);
+
   /// No description provided for @mealAmountInvalid.
   ///
   /// In ko, this message translates to:

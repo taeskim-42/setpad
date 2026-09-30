@@ -1174,6 +1174,14 @@ class LVi extends L {
   String get mealSourceUsda => 'USDA FoodData Central';
 
   @override
+  String get mealSourceOff => 'Open Food Facts';
+
+  @override
+  String mealMacros(String carbs, String protein, String fat) {
+    return 'Tinh bột ${carbs}g · Đạm ${protein}g · Béo ${fat}g';
+  }
+
+  @override
   String get mealAmountInvalid => 'Hãy nhập số từ 0 trở lên.';
 
   @override

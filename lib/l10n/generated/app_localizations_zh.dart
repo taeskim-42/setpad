@@ -1117,6 +1117,14 @@ class LZh extends L {
   String get mealSourceUsda => 'USDA FoodData Central';
 
   @override
+  String get mealSourceOff => 'Open Food Facts';
+
+  @override
+  String mealMacros(String carbs, String protein, String fat) {
+    return '碳水 ${carbs}g · 蛋白质 ${protein}g · 脂肪 ${fat}g';
+  }
+
+  @override
   String get mealAmountInvalid => '请输入不小于 0 的数字。';
 
   @override
@@ -4387,6 +4395,14 @@ class LZhHans extends LZh {
   String get mealSourceUsda => 'USDA FoodData Central';
 
   @override
+  String get mealSourceOff => 'Open Food Facts';
+
+  @override
+  String mealMacros(String carbs, String protein, String fat) {
+    return '碳水 ${carbs}g · 蛋白质 ${protein}g · 脂肪 ${fat}g';
+  }
+
+  @override
   String get mealAmountInvalid => '请输入不小于 0 的数字。';
 
   @override
@@ -7654,6 +7670,14 @@ class LZhHant extends LZh {
 
   @override
   String get mealSourceUsda => 'USDA FoodData Central';
+
+  @override
+  String get mealSourceOff => 'Open Food Facts';
+
+  @override
+  String mealMacros(String carbs, String protein, String fat) {
+    return '碳水 ${carbs}g · 蛋白質 ${protein}g · 脂肪 ${fat}g';
+  }
 
   @override
   String get mealAmountInvalid => '請輸入不小於 0 的數字。';

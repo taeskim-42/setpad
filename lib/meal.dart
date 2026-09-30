@@ -171,10 +171,11 @@ class MealSource {
   final String per;
   final String url;
 
-  /// 'usda' 면 미국 농무부 표, 아니면 식약처 표다.
+  /// 'usda' 면 미국 농무부 표, 'off' 면 Open Food Facts, 아니면 식약처 표다.
   final String kind;
 
   bool get usda => kind == 'usda';
+  bool get off => kind == 'off';
 
   Map<String, Object?> toJson() => {
     'name': name,
@@ -498,3 +499,23 @@ const _mealWords = {
 
 /// 먹은 양을 글로. "150g", "2.5개", "1.5회분" 은 화면 언어가 붙인다.
 String amountText(double n) => formatNumber((n * 100).round() / 100);
+
+/// 먹은 양의 탄단지(g). 표에 값이 없는 음식이 하나라도 있으면 끼니 전체를 모른다(null) — 일부만 더한
+/// 수는 한 끼 전체처럼 읽힌다.
+typedef MealMacros = ({double carbs, double protein, double fat});
+
+MealMacros? mealMacrosFromJson(Object? j) {
+  if (j is! Map) return null;
+  double? g(Object? v) =>
+      v is num && v.isFinite && v >= 0 && v <= 10000 ? v.toDouble() : null;
+  final carbs = g(j['carbs']), protein = g(j['protein']), fat = g(j['fat']);
+  return carbs == null || protein == null || fat == null
+      ? null
+      : (carbs: carbs, protein: protein, fat: fat);
+}
+
+Map<String, Object?> mealMacrosToJson(MealMacros m) => {
+  'carbs': m.carbs,
+  'protein': m.protein,
+  'fat': m.fat,
+};

@@ -233,6 +233,7 @@ void main() {
     expect(bodies.single, {
       'text': '김밥 한 줄, 라면 반 개',
       'language': 'ko',
+      'sources': ['off'],
       'save': false,
     });
   });

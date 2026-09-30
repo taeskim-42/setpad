@@ -822,7 +822,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     }
     final reviewed = estimate.requiresConfirmation
         ? await reviewMealEstimate(context, estimate)
-        : (kcal: estimate.kcal.toDouble(), text: null);
+        : (kcal: estimate.kcal.toDouble(), text: null, macros: estimate.macros);
     if (!mounted || !widget.note.meals.contains(entry) || reviewed == null) {
       return;
     }
@@ -842,6 +842,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
           ? entry.foods
           : parseMealText(reviewed.text!).foods,
       sources: estimate.sources,
+      macros: reviewed.macros,
     );
     _mealsChanged();
   }
@@ -1420,6 +1421,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
             reviewedText: reviewed.text,
             source: MealEntry.estimate,
             sources: estimate.sources,
+            macros: reviewed.macros,
             basis: MealBasis(
               kcal: reviewed.kcal,
               amount: 1,
@@ -1685,7 +1687,11 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                                   ? l.mealKcalUnknown
                                   : meal.partial
                                   ? l.kcalAtLeast(meal.kcal!)
-                                  : l.kcal(meal.kcal!),
+                                  : [
+                                      l.kcal(meal.kcal!),
+                                      if (meal.macros case final m?)
+                                        mealMacrosText(l, m),
+                                    ].join(' · '),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: muted,

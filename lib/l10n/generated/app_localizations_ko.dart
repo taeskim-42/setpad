@@ -1137,6 +1137,14 @@ class LKo extends L {
   String get mealSourceUsda => 'USDA FoodData Central';
 
   @override
+  String get mealSourceOff => 'Open Food Facts';
+
+  @override
+  String mealMacros(String carbs, String protein, String fat) {
+    return '탄 ${carbs}g · 단 ${protein}g · 지 ${fat}g';
+  }
+
+  @override
   String get mealAmountInvalid => '0 이상의 숫자를 입력해 주세요.';
 
   @override

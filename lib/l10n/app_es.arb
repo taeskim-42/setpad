@@ -291,6 +291,8 @@
   "mealSourcePer": "{kcal} kcal por 100 {unit}",
   "mealSourceMfds": "Base de datos de composición de alimentos del MFDS (Corea)",
   "mealSourceUsda": "USDA FoodData Central",
+  "mealSourceOff": "Open Food Facts",
+  "mealMacros": "HC {carbs} g · P {protein} g · G {fat} g",
   "mealAmountInvalid": "Introduce un número igual o mayor que 0.",
   "dayEnergyFull": "Ingesta {intake} · ejercicio {burned} = {diff} kcal",
   "dayEnergyApprox": "Ingesta ≈ {intake} · ejercicio {burned} ≈ {diff} kcal",

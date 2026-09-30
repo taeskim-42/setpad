@@ -291,6 +291,8 @@
   "mealSourcePer": "{kcal} kcal ต่อ 100 {unit}",
   "mealSourceMfds": "ฐานข้อมูลองค์ประกอบอาหารของ MFDS เกาหลี",
   "mealSourceUsda": "USDA FoodData Central",
+  "mealSourceOff": "Open Food Facts",
+  "mealMacros": "คาร์บ {carbs} ก. · โปรตีน {protein} ก. · ไขมัน {fat} ก.",
   "mealAmountInvalid": "กรุณาใส่ตัวเลขตั้งแต่ 0 ขึ้นไป",
   "dayEnergyFull": "กิน {intake} · ออกกำลัง {burned} = {diff} kcal",
   "dayEnergyApprox": "กิน ≈ {intake} · ออกกำลัง {burned} ≈ {diff} kcal",

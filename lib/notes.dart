@@ -30,9 +30,13 @@ class MealEntry {
     this.eaten,
     this.foods = const [],
     this.sources = const [],
+    this.macros,
     String? id,
     this.dirty = true,
   }) : id = id ?? newMealId();
+
+  /// 먹은 양의 탄단지. 표에서 계산한 끼니에만 있다. 양을 따로 고치면 믿을 수 없어 지운다.
+  final MealMacros? macros;
   final DateTime at;
 
   /// 이 기기가 지은 이름. 서버의 같은 줄을 가리키는 열쇠라서, 다시 보내도 한
@@ -100,6 +104,7 @@ class MealEntry {
     'eaten': ?eaten,
     if (foods.isNotEmpty) 'foods': [for (final f in foods) f.toJson()],
     if (sources.isNotEmpty) 'sources': [for (final s in sources) s.toJson()],
+    if (macros != null) 'macros': mealMacrosToJson(macros!),
   };
 
   static MealEntry? tryFromJson(Object? j) {
@@ -138,6 +143,7 @@ class MealEntry {
           ?MealFood.tryFromJson(f),
       ],
       sources: MealSource.listFrom(j['sources']),
+      macros: mealMacrosFromJson(j['macros']),
       id: j['id'] is String ? j['id'] as String : null,
       dirty: j['dirty'] == true || corrected != stored,
     );

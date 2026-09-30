@@ -291,6 +291,8 @@
   "mealSourcePer": "{kcal} kcal mỗi 100 {unit}",
   "mealSourceMfds": "CSDL thành phần thực phẩm của MFDS Hàn Quốc",
   "mealSourceUsda": "USDA FoodData Central",
+  "mealSourceOff": "Open Food Facts",
+  "mealMacros": "Tinh bột {carbs}g · Đạm {protein}g · Béo {fat}g",
   "mealAmountInvalid": "Hãy nhập số từ 0 trở lên.",
   "dayEnergyFull": "Nạp {intake} · tập {burned} = {diff} kcal",
   "dayEnergyApprox": "Nạp ≈ {intake} · tập {burned} ≈ {diff} kcal",

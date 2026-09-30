@@ -177,10 +177,121 @@ void main() {
     },
   );
 
+  testWidgets('탄단지: 음식마다 양만큼, 양을 고치면 같은 비율로, 합계를 저장한다', (tester) async {
+    ReviewedMeal? saved;
+    final estimate = MealEstimate(
+      kcal: 607,
+      components: const [
+        MealComponent(
+          name: 'Chapagetti',
+          evidence: '짜파게티 한 봉지',
+          kcal: 607.04,
+          amount: 140,
+          unit: 'g',
+          kcalPer100: 433.6,
+          macros: (carbs: 95.1, protein: 11.2, fat: 19.7),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      app(
+        Builder(
+          builder: (context) => CupertinoButton(
+            child: const Text('open'),
+            onPressed: () async =>
+                saved = await reviewMealEstimate(context, estimate),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text('탄 95g · 단 11g · 지 20g'), findsWidgets);
+    await tester.enterText(
+      find.byKey(const ValueKey('meal-review-amount-0')),
+      '70',
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('meal-review-macros')))
+          .data,
+      '탄 48g · 단 6g · 지 10g',
+    );
+    final confirm = find.byKey(const ValueKey('meal-review-confirm'));
+    await tester.ensureVisible(confirm);
+    await tester.tap(confirm);
+    await tester.pumpAndSettle();
+    expect(saved!.macros!.carbs, closeTo(47.55, 1e-9));
+    expect(saved!.macros!.protein, closeTo(5.6, 1e-9));
+  });
+
+  testWidgets('탄단지 없는 음식이 하나라도 있으면 합계를 내지 않는다', (tester) async {
+    ReviewedMeal? saved;
+    final estimate = MealEstimate(
+      kcal: 700,
+      components: const [
+        MealComponent(
+          name: 'a',
+          evidence: 'a 100g',
+          kcal: 400,
+          amount: 100,
+          unit: 'g',
+          kcalPer100: 400,
+          macros: (carbs: 50, protein: 10, fat: 10),
+        ),
+        MealComponent(
+          name: 'b',
+          evidence: 'b 100g',
+          kcal: 300,
+          amount: 100,
+          unit: 'g',
+          kcalPer100: 300,
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      app(
+        Builder(
+          builder: (context) => CupertinoButton(
+            child: const Text('open'),
+            onPressed: () async =>
+                saved = await reviewMealEstimate(context, estimate),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('meal-review-macros')), findsNothing);
+    final confirm = find.byKey(const ValueKey('meal-review-confirm'));
+    await tester.ensureVisible(confirm);
+    await tester.tap(confirm);
+    await tester.pumpAndSettle();
+    expect(saved!.macros, isNull);
+  });
+
+  test('끼니의 탄단지는 저장했다 그대로 읽힌다, 예전 기록은 null', () {
+    final entry = MealEntry(
+      at: DateTime(2026, 9, 30),
+      kcal: 607,
+      macros: (carbs: 95.1, protein: 11.2, fat: 19.7),
+    );
+    final back = MealEntry.tryFromJson(jsonDecode(jsonEncode(entry.toJson())))!;
+    expect(back.macros, (carbs: 95.1, protein: 11.2, fat: 19.7));
+    expect(
+      MealEntry.tryFromJson({
+        'at': '2026-09-30T00:00:00.000',
+        'kcal': 5,
+      })!.macros,
+      isNull,
+    );
+  });
+
   testWidgets('review keeps input precision and rounds only the final total', (
     tester,
   ) async {
-    ({double kcal, String? text})? saved;
+    ReviewedMeal? saved;
     final estimate = MealEstimate(
       kcal: 1,
       components: [

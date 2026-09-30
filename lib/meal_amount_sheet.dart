@@ -61,7 +61,11 @@ Future<void> showMealSources(
                 ),
                 Text(
                   '${l.mealSourcePer(source.per, amountText(source.kcalPer100))}'
-                  ' · ${source.usda ? l.mealSourceUsda : l.mealSourceMfds}',
+                  ' · ${source.usda
+                      ? l.mealSourceUsda
+                      : source.off
+                      ? l.mealSourceOff
+                      : l.mealSourceMfds}',
                   style: TextStyle(fontSize: 13, color: muted),
                 ),
               ],

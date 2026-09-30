@@ -1187,6 +1187,14 @@ class LEn extends L {
   String get mealSourceUsda => 'USDA FoodData Central';
 
   @override
+  String get mealSourceOff => 'Open Food Facts';
+
+  @override
+  String mealMacros(String carbs, String protein, String fat) {
+    return 'C ${carbs}g · P ${protein}g · F ${fat}g';
+  }
+
+  @override
   String get mealAmountInvalid => 'Enter a number of 0 or more.';
 
   @override

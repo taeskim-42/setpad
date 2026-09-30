@@ -1005,6 +1005,21 @@
   },
   "mealSourceMfds": "식약처 식품영양성분 DB",
   "mealSourceUsda": "USDA FoodData Central",
+  "mealSourceOff": "Open Food Facts",
+  "mealMacros": "탄 {carbs}g · 단 {protein}g · 지 {fat}g",
+  "@mealMacros": {
+    "placeholders": {
+      "carbs": {
+        "type": "String"
+      },
+      "protein": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      }
+    }
+  },
   "mealAmountInvalid": "0 이상의 숫자를 입력해 주세요.",
   "dayEnergyFull": "먹은 것 {intake} · 운동 {burned} = {diff}kcal",
   "@dayEnergyFull": {

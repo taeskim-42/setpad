@@ -291,6 +291,8 @@
   "mealSourcePer": "每100{unit} {kcal}kcal",
   "mealSourceMfds": "韓國食品醫藥品安全處 食品營養成分資料庫",
   "mealSourceUsda": "USDA FoodData Central",
+  "mealSourceOff": "Open Food Facts",
+  "mealMacros": "碳水 {carbs}g · 蛋白質 {protein}g · 脂肪 {fat}g",
   "mealAmountInvalid": "請輸入不小於 0 的數字。",
   "dayEnergyFull": "攝取 {intake} · 運動 {burned} = {diff} 大卡",
   "dayEnergyApprox": "攝取 約 {intake} · 運動 {burned} ≈ {diff} 大卡",

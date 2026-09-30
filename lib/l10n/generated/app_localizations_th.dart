@@ -1164,6 +1164,14 @@ class LTh extends L {
   String get mealSourceUsda => 'USDA FoodData Central';
 
   @override
+  String get mealSourceOff => 'Open Food Facts';
+
+  @override
+  String mealMacros(String carbs, String protein, String fat) {
+    return 'คาร์บ $carbs ก. · โปรตีน $protein ก. · ไขมัน $fat ก.';
+  }
+
+  @override
   String get mealAmountInvalid => 'กรุณาใส่ตัวเลขตั้งแต่ 0 ขึ้นไป';
 
   @override

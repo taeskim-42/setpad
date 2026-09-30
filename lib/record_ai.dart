@@ -51,9 +51,13 @@ class MealEstimate {
     this.sources = const [],
     this.components = const [],
     this.requiresConfirmation = true,
+    this.macros,
   });
   final int kcal;
   final List<String> items;
+
+  /// 서버가 표의 값으로 곱한 탄단지. 모든 음식에 값이 있을 때만 온다.
+  final MealMacros? macros;
 
   /// 열량을 계산한 표의 줄들. 모델 혼자 어림했으면 비어 있다.
   final List<MealSource> sources;
@@ -163,6 +167,7 @@ class MealEstimate {
             unit: unit as String?,
             kcalPer100: (density as num?)?.toDouble(),
             estimatedAmount: row['estimatedAmount'] as bool,
+            macros: typed ? null : mealMacrosFromJson(row),
           ),
         );
       }
@@ -187,6 +192,7 @@ class MealEstimate {
       components: components,
       // Explicit calories are already handled locally; network estimates need review.
       requiresConfirmation: true,
+      macros: mealMacrosFromJson(answer),
     );
   }
 }
@@ -201,9 +207,13 @@ class MealComponent {
     this.kcalPer100,
     this.estimatedAmount = false,
     this.maker,
+    this.macros,
   });
   final String name, evidence;
   final String? maker;
+
+  /// [amount] 만큼의 탄단지(g). 양을 고치면 같은 비율로 다시 곱한다.
+  final MealMacros? macros;
   final double kcal;
   final double? amount, kcalPer100;
   final String? unit;
@@ -914,6 +924,8 @@ class RecordAi {
       'image': base64Encode(withoutPhotoMetadata(bytes)),
       'mime': mime,
       'language': locale,
+      // 출처를 Open Food Facts 라고 적을 줄 안다 — 서버는 그때만 그 표를 쓴다.
+      'sources': const ['off'],
       'gymId': ?gymId,
       'kind': ?kind,
       // 추정은 추정일 뿐이다. 먹은 양까지 확정한 끼니는 앱이 따로 올린다
@@ -933,6 +945,7 @@ class RecordAi {
     final answer = await _ask('/api/meals/estimate', {
       'text': text,
       'language': locale,
+      'sources': const ['off'],
       'save': false,
     }, timeout: const Duration(seconds: 30));
     return MealEstimate.fromJson(answer);

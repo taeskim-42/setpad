@@ -1131,6 +1131,14 @@ class LJa extends L {
   String get mealSourceUsda => 'USDA FoodData Central';
 
   @override
+  String get mealSourceOff => 'Open Food Facts';
+
+  @override
+  String mealMacros(String carbs, String protein, String fat) {
+    return '炭水化物 ${carbs}g · たんぱく質 ${protein}g · 脂質 ${fat}g';
+  }
+
+  @override
   String get mealAmountInvalid => '0以上の数字を入力してください。';
 
   @override
