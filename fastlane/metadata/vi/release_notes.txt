@@ -1,8 +1,6 @@
 Có gì mới
 
-· Chụp phiếu thành phần cơ thể (như InBody) để ghi cân nặng, cơ xương và mỡ (Cài đặt › Cơ thể)
-· Mục tiêu calo và dinh dưỡng mỗi ngày theo mục đích: giảm mỡ, duy trì hay tăng cơ
-· Tính tinh bột, đạm, béo cho mỗi bữa, từ bảng MFDS, USDA và Open Food Facts
-· Bảng thực phẩm lớn hơn nhiều: hơn 2 triệu sản phẩm trên thế giới
-· Món có nhiều vị thì chọn đúng loại bạn ăn. Món không có trong bảng nào sẽ do AI ước tính
-· Không có đồng hồ? Calo khi tập được ước tính theo bài tập và cân nặng (ghi là ước tính)
+· Nhập lịch sử tập: đọc các buổi tập cũ từ ghi chú, tệp văn bản hoặc ảnh chụp màn hình, kiểm tra theo ngày rồi lưu tất cả một lần (Cài đặt › Ghi chép)
+· Tập cùng: khi mọi người xác nhận lịch tập cùng xây dựng, lịch đó trở thành buổi tập của từng người
+· Mở cài đặt bài tập (mức tạ và mục tiêu số hiệp) bằng nút "…" trên thẻ
+· Đã sửa: bữa ăn thêm sau vào bản ghi ngày trước bị tính vào tổng hôm nay

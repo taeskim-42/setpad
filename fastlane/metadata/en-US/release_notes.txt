@@ -1,8 +1,6 @@
 What's new
 
-· Snap an InBody-style body composition sheet to log weight, skeletal muscle and body fat (Settings › Body)
-· Daily calorie and macro targets for your goal: lose fat, maintain or build muscle
-· Carbs, protein and fat for every meal, from Korea MFDS, USDA and Open Food Facts
-· A much bigger food table: over 2 million products worldwide
-· When a food comes in several flavours, pick the one you ate. Foods in no table are estimated by AI
-· No watch? Exercise calories are estimated from the exercise and your weight (marked as estimates)
+· Import workout history: read past workouts from notes, text files or screenshots, check them by date, then save them all at once (Settings › Recording)
+· Together: once everyone confirms the routine you built together, it becomes each person's workout
+· Open an exercise's settings (weight and set goals) from the "…" button on its card
+· Fixed: a meal added later to a past record was counted in today's total
