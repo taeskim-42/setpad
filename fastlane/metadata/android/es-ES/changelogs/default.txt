@@ -1,6 +1,6 @@
 Novedades
 
-· Fotografía un informe de composición corporal (tipo InBody) para registrar peso, músculo esquelético y grasa (Ajustes › Cuerpo)
-· Objetivos diarios de calorías y macros según tu meta: perder grasa, mantener o ganar músculo
-· Hidratos, proteína y grasa de cada comida, con datos de MFDS, USDA y Open Food Facts
-· Una tabla de alimentos mucho mayor: más de 2 millones de productos
+· Importar entrenamientos: lee entrenamientos pasados de notas, archivos de texto o capturas, revísalos por fecha y guárdalos de una vez (Ajustes › Registro)
+· Juntos: cuando todos confirman la rutina creada en grupo, pasa a ser el entrenamiento de cada uno
+· Abre los ajustes de un ejercicio (peso y series objetivo) con el botón «…» de su tarjeta
+· Corregido: una comida añadida más tarde a un registro pasado se contaba en el total de hoy
