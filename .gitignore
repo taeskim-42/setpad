@@ -52,3 +52,4 @@ fastlane/test_output/
 # 스크린샷 원본. 올라가는 것은 fastlane/screenshots 와
 # fastlane/metadata/android/*/images 다 — 원본까지 두면 같은 그림이 두 벌 된다.
 /shots/
+graphify-out/
