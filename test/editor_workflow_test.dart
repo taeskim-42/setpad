@@ -318,10 +318,21 @@ void main() {
         tester.widget<Text>(find.text('1 80×10')).style!.decoration,
         isNot(TextDecoration.lineThrough),
       );
+      expect(find.byIcon(CupertinoIcons.trash), findsNothing);
+      expect(find.byIcon(CupertinoIcons.line_horizontal_3), findsNothing);
+      final destination =
+          tester.getCenter(
+            find.byKey(ValueKey('exercise-settings-${c.blocks.last.id}')),
+          ) +
+          const Offset(0, 150);
+      await tester.tap(
+        find.byKey(ValueKey('exercise-settings-${c.blocks.first.id}')),
+      );
+      await tester.pumpAndSettle();
       final handles = find.byWidgetPredicate(
         (w) => w is ReorderableDragStartListener,
       );
-      final destination = tester.getCenter(handles.last) + const Offset(0, 150);
+      expect(handles, findsOneWidget);
       final gesture = await tester.startGesture(
         tester.getCenter(handles.first),
       );
@@ -329,6 +340,7 @@ void main() {
       await gesture.moveBy(const Offset(0, 25));
       await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
+      expect(handles, findsNWidgets(3));
       expect(find.text('1 80×10'), findsNothing);
       expect(find.text('1 40×15'), findsNothing);
       expect(find.text('둘째 운동 메모'), findsNothing);
@@ -368,6 +380,10 @@ void main() {
           ),
         ),
       );
+      await tester.tap(
+        find.byKey(ValueKey('exercise-settings-${c.blocks.first.id}')),
+      );
+      await tester.pumpAndSettle();
       final handles = find.byWidgetPredicate(
         (w) => w is ReorderableDragStartListener,
       );
@@ -518,6 +534,10 @@ void main() {
           child: SafeArea(child: RoutineEditor(controller: c)),
         ),
       );
+      await tester.tap(
+        find.byKey(ValueKey('exercise-settings-${c.blocks.single.id}')),
+      );
+      await tester.pumpAndSettle();
       for (final cancelBeforeLayout in [true, false]) {
         final handle = find.byWidgetPredicate(
           (w) => w is ReorderableDragStartListener,

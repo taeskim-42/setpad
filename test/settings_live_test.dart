@@ -68,6 +68,13 @@ void main() {
     expect(find.text('lb'), findsOneWidget, reason: '저장소 변화가 화면에 닿아야 한다');
   });
 
+  testWidgets('운동 기록 가져오기는 설정에서 연다', (tester) async {
+    await open(tester);
+    await tester.tap(find.byKey(const ValueKey('settings-workout-import')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('workout-import-text')), findsOneWidget);
+  });
+
   testWidgets('이름을 눌러도 로그아웃되지 않는다', (tester) async {
     final (_, account) = await open(tester);
     await tester.runAsync(() => account.signIn());

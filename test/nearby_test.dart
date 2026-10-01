@@ -100,7 +100,7 @@ void main() {
       'title': '',
     });
     // 창을 닫으면 거둔다 — 지나가다 닿은 폰에 묻지 않게.
-    await tester.tap(find.text('확인'));
+    await tester.tap(find.byKey(const ValueKey('partner-sheet-close')));
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 500));
     expect(calls.last.method, 'clear');

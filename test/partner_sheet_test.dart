@@ -1,4 +1,5 @@
 // 같이 하기 창 — 상태를 보여 주기만 하고, 닫아도 연결은 그대로인가.
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -11,9 +12,95 @@ import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/main.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/partner.dart';
+import 'package:setpad/sign_in.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('로그인 대기 중 중복 요청을 막고 취소 후 재시도하면 성공한 창만 닫힌다', (tester) async {
+    final dir = Directory.systemTemp.createTempSync('setpad_partner_sign_in_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final store = NotesStore(directory: dir);
+    var provider = Completer<Credential?>();
+    late Completer<void> verified;
+    var attempts = 0;
+    final account = Account(
+      storageDir: dir,
+      signInWith: () {
+        attempts++;
+        return provider.future;
+      },
+      client: MockClient((request) async {
+        if (request.url.path.endsWith('/api/me')) verified.complete();
+        return http.Response(
+          jsonEncode(
+            request.url.path.endsWith('/api/auth/app')
+                ? {
+                    'token': 'member',
+                    'user': {'nickname': '도전자'},
+                  }
+                : {'plan': null, 'selling': false, 'gyms': []},
+          ),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: EditorPage(store: store, note: store.create(), account: account),
+      ),
+    );
+    await tester.pumpAndSettle();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('record-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('menu-partner')));
+    await tester.pumpAndSettle();
+    final close = find.byKey(const ValueKey('partner-sheet-close'));
+    final loginPosition = tester.getCenter(find.text('로그인'));
+    await tester.tapAt(loginPosition);
+    await tester.pump();
+    expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+    await tester.tapAt(loginPosition);
+    expect(attempts, 1);
+    provider.complete(null);
+    await tester.pumpAndSettle();
+    expect(account.signedIn, isFalse);
+    expect(close, findsOneWidget);
+    expect(find.text('로그인').hitTestable(), findsOneWidget);
+
+    await tester.runAsync(() async {
+      provider = Completer<Credential?>();
+      verified = Completer<void>();
+      await tester.tap(find.text('로그인'));
+    });
+    await tester.pump();
+    expect(attempts, 2);
+    expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+    await tester.runAsync(() async {
+      provider.complete((
+        method: SignInMethod.apple,
+        idToken: 'id',
+        nickname: '도전자',
+        code: null,
+      ));
+      await verified.future;
+      await Future<void>.delayed(Duration.zero);
+    });
+    await tester.pumpAndSettle();
+    expect(account.signedIn, isTrue);
+    expect(close, findsNothing);
+    expect(find.byType(EditorPage), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    store.dispose();
+    account.dispose();
+  });
 
   testWidgets('로그인 안내 → 코드 표시 → 상대 참여 → 작은 상태 줄 → 상대 기록 → 종료', (tester) async {
     final dir = Directory.systemTemp.createTempSync('setpad_partner_ui_');
@@ -85,19 +172,41 @@ void main() {
     // 틀린 코드는 그 이유를 말한다.
     await tester.tap(find.text('코드 입력'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const ValueKey('partner-code')), 'abc');
-    await tester.tap(find.text('코드 입력').last);
+    // Keep the form usable above the keyboard on a small screen with larger text.
+    tester.view
+      ..devicePixelRatio = 1
+      ..physicalSize = const Size(320, 568)
+      ..viewInsets = const FakeViewPadding(bottom: 260);
+    tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    final code = find.byKey(const ValueKey('partner-code'));
+    final submit = find.text('코드 입력').last;
+    final close = find.byKey(const ValueKey('partner-sheet-close'));
+    await tester.ensureVisible(code);
+    expect(code.hitTestable(), findsOneWidget);
+    await tester.enterText(code, 'abc');
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
     await tester.pump();
     expect(find.text('코드는 여섯 글자입니다. 다시 확인해 주세요.'), findsOneWidget);
-    await tester.enterText(
-      find.byKey(const ValueKey('partner-code')),
-      'zzzzz9',
-    );
-    await tester.tap(find.text('코드 입력').last);
+    expect(tester.takeException(), isNull);
+    await tester.ensureVisible(code);
+    await tester.enterText(code, 'zzzzz9');
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
     await tester.pumpAndSettle();
     expect(find.textContaining('맞는 코드가 없습니다'), findsOneWidget);
-    await tester.tap(find.text('확인'));
+    expect(tester.takeException(), isNull);
+    await tester.ensureVisible(close);
+    expect(close.hitTestable(), findsOneWidget);
+    await tester.tap(close);
+    tester.view.reset();
+    tester.platformDispatcher.clearTextScaleFactorTestValue();
     await tester.pumpAndSettle();
+    expect(close, findsNothing);
 
     // 코드를 만든다 — 만료 시간과 함께 보인다. 아직 "함께 운동 중" 이 아니다.
     // 같이 하기는 … 메뉴 안에 있다.
@@ -112,7 +221,7 @@ void main() {
     expect(find.textContaining('뒤 만료'), findsOneWidget);
     expect(find.byKey(const ValueKey('partner-banner')), findsNothing);
     // 창을 닫아도 초대는 살아 있다.
-    await tester.tap(find.text('확인'));
+    await tester.tap(close);
     await tester.pump(const Duration(milliseconds: 500));
     expect(note.partner!.state, PartnerState.waiting);
 
@@ -158,7 +267,7 @@ void main() {
     await tester.pump();
     expect(note.partner!.state, PartnerState.ended);
     expect(find.textContaining('내 기록은 그대로 남아 있습니다'), findsOneWidget);
-    await tester.tap(find.text('확인'));
+    await tester.tap(close);
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.byKey(const ValueKey('partner-banner')), findsNothing);
 

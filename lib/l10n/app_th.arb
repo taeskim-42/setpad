@@ -829,5 +829,48 @@
   "dayMacros": "กินแล้ว: คาร์บ {carbs} · โปรตีน {protein} · ไขมัน {fat} ก.",
   "dayMacrosVsTarget": "คาร์บ {carbs}/{carbsTarget} · โปรตีน {protein}/{proteinTarget} · ไขมัน {fat}/{fatTarget} ก.",
   "dayMacrosGoal": "เป้าหมายตาม {kcal} kcal รวมการออกกำลังวันนี้ — เปลี่ยนเป้าหมายได้ในข้อมูลร่างกาย",
-  "dayMacrosMissing": "ไม่นับ {n} มื้อที่ไม่รู้สารอาหาร"
+  "dayMacrosMissing": "ไม่นับ {n} มื้อที่ไม่รู้สารอาหาร",
+  "partnerRoutinePlanning": "สร้างรูทีนร่วมกัน",
+  "partnerRoutineReadyTitle": "รูทีนที่แชร์กัน",
+  "partnerRoutineProgress": "ยืนยันแล้ว {accepted}/{total} คน",
+  "@partnerRoutineProgress": {
+    "placeholders": {
+      "accepted": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerRoutineConfirm": "ยืนยันรูทีนของฉัน",
+  "partnerRoutineConfirmed": "ยืนยันแล้ว",
+  "partnerRoutineFinalized": "ทุกคนยืนยันแล้ว เพิ่มลงในการออกกำลังกายของคุณแล้ว",
+  "partnerRoutineChanged": "รูทีนเปลี่ยนแล้ว โปรดตรวจสอบเวอร์ชันล่าสุด",
+  "partnerRoutineEmpty": "เพิ่มท่าออกกำลังกายอย่างน้อยหนึ่งท่าก่อน",
+  "partnerRoutineStarted": "รูทีนนี้ยืนยันแล้ว",
+  "workoutImportTitle": "นำเข้าประวัติการออกกำลังกาย",
+  "workoutImportHint": "วางบันทึกหรือเพิ่มไฟล์ข้อความและภาพหน้าจอหลายภาพ ข้อมูลจะยังไม่ถูกบันทึกก่อนตรวจสอบ",
+  "workoutImportTextPlaceholder": "วางประวัติการออกกำลังกายที่นี่",
+  "workoutImportPaste": "วาง",
+  "workoutImportTextFiles": "ไฟล์ข้อความ",
+  "workoutImportScreenshots": "เพิ่มภาพหน้าจอ",
+  "workoutImportAnalyze": "สร้างตัวอย่าง",
+  "workoutImportWorking": "กำลังอ่านประวัติ…",
+  "workoutImportEmpty": "เพิ่มข้อความหรือภาพหน้าจอก่อน",
+  "workoutImportFailed": "อ่านไม่สำเร็จ ข้อมูลต้นฉบับยังอยู่ ลองอีกครั้ง",
+  "workoutImportReview": "ตรวจสอบและแก้ไขวันที่กับท่าออกกำลังกาย แล้วบันทึกทั้งหมด",
+  "workoutImportMissingDate": "ต้องตรวจสอบวันที่",
+  "workoutImportChooseDate": "เลือกวันที่",
+  "workoutImportUnparsed": "ต้องตรวจสอบ",
+  "workoutImportSave": "บันทึกทั้งหมด",
+  "workoutImportAddExercise": "เพิ่มท่าออกกำลังกาย",
+  "workoutImportAddSet": "เพิ่มเซ็ต",
+  "workoutImportRemove": "ลบ",
+  "workoutImportDuplicate": "อาจมีประวัติคล้ายกันอยู่แล้ว",
+  "workoutImportTextLimit": "อ่านข้อความได้ไม่เกิน 6,000 ตัวอักษรต่อครั้ง",
+  "workoutImportEditSources": "แก้ไขต้นฉบับ",
+  "workoutImportImageLimit": "เพิ่มภาพหน้าจอได้สูงสุด 5 ภาพต่อครั้ง",
+  "workoutImportAiOff": "ตัวช่วย AI ปิดอยู่ จึงอ่านประวัติไม่ได้ เปิดได้ที่ การตั้งค่า › ตัวช่วย AI",
+  "workoutImportPartial": "อ่านไม่สำเร็จ {n} รายการ ต้นฉบับยังอยู่ แก้ไขแล้วลองอีกครั้ง"
 }

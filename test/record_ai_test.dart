@@ -97,6 +97,10 @@ Future<void> submit(WidgetTester tester, String text) async {
 
 /// 칩을 눌러 그 자리에서 고치기 시작한다. 확인 창은 없다.
 Future<void> editChip(WidgetTester tester, String key, String text) async {
+  if (find.byKey(ValueKey('setup-$key')).evaluate().isEmpty) {
+    await tester.tap(find.bySemanticsLabel('설정'));
+    await tester.pump();
+  }
   await tester.tap(find.byKey(ValueKey('setup-$key')));
   await tester.pump();
   await tester.pump();
@@ -168,7 +172,7 @@ void main() {
     expect(c.blocks.single.name, example);
     expect(c.blocks.single.setup!.totalReps, 100);
     expect(find.byType(CupertinoTextFormFieldRow), findsNothing);
-    expect(find.text('80kg'), findsOneWidget, reason: '읽은 값은 칸의 칩으로 보인다');
+    expect(find.text('80kg'), findsNothing, reason: '설정은 열었을 때만 보인다');
     expect(
       Navigator.of(tester.element(field)).canPop(),
       isFalse,
@@ -177,9 +181,12 @@ void main() {
     expect(tester.widget<CupertinoTextField>(field).controller!.text, isEmpty);
   });
 
-  testWidgets('읽은 수가 틀렸으면 칩을 눌러 그 자리에서 고친다', (tester) async {
+  testWidgets('설정 태그는 접혀 있고, 열어 수정하고 다시 닫아도 목표와 기록이 남는다', (tester) async {
     final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
     await submit(tester, example);
+    expect(find.byKey(const ValueKey('setup-weight')), findsNothing);
+    expect(find.byKey(const ValueKey('setup-repsOnly')), findsNothing);
+    expect(find.text('0/100회'), findsOneWidget);
     await editChip(tester, 'weight', '82.125');
     expect(c.blocks.single.setup!.weight, 80, reason: '✓ 전에는 그대로다');
     await applyChip(tester);
@@ -190,6 +197,27 @@ void main() {
     // 칩에서 값을 고쳐도 제목은 친 글 그대로다.
     expect(c.blocks.single.name, example);
     expect(c.blocks.single.sets, isEmpty);
+    await tester.tap(find.byKey(const ValueKey('setup-more')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('setup-weight')), findsNothing);
+    expect(find.byKey(const ValueKey('setup-repsOnly')), findsNothing);
+    expect(find.text('0/100회'), findsOneWidget);
+    expect(c.blocks.single.setup!.totalReps, 100);
+    expect(c.blocks.single.setup!.repsOnly, isTrue);
+    c.addSet('20');
+    await tester.pumpAndSettle();
+    expect(find.text('20/100회'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('설정'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('setup-weight')), findsOneWidget);
+    expect(find.byKey(const ValueKey('setup-repsOnly')), findsOneWidget);
+    expect(c.blocks.single.setup!.weight, 82.125);
+    await editChip(tester, 'totalReps', '120');
+    await tester.tap(find.bySemanticsLabel('설정'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('setup-weight')), findsNothing);
+    expect(c.blocks.single.setup!.totalReps, 120);
+    expect(c.blocks.single.sets.single.reps, 20);
   });
 
   test(
@@ -420,7 +448,7 @@ void main() {
     await submit(tester, example);
     expect(ai.calls, 1);
     expect(c.totalSets, 0);
-    expect(find.text('80kg'), findsOneWidget);
+    expect(find.text('80kg'), findsNothing);
     expect(find.text('0/100회'), findsOneWidget);
     // 친 문장이 제목으로 남는다. 이 칸이 가리키는 운동은 **친 이름**('벤치')
     // 이고 사전에 익히는 것도 그 이름이다 — 문장이 다음 후보로 뜨면 안 되고,
@@ -574,8 +602,8 @@ void main() {
   ) async {
     final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
     await submit(tester, example);
-    // 비어 있는 설정은 + 로 펼친다.
-    await tester.tap(find.byKey(const ValueKey('setup-more')));
+    // Open the exercise settings before editing a missing value.
+    await tester.tap(find.bySemanticsLabel('설정'));
     await tester.pump();
     await editChip(tester, 'repsPerSet', '8-12');
     expect(find.textContaining('1 이상의 정수로 적어 주세요'), findsOneWidget);
@@ -641,12 +669,12 @@ void main() {
     expect(c.blocks.single.setup!.totalReps, 1000);
   });
 
-  testWidgets('설정 없는 칸에도 ⚙ 가 있어 그 자리에서 설정을 붙인다 — 제목은 그대로', (tester) async {
+  testWidgets('설정 없는 칸에도 더보기가 있어 그 자리에서 설정을 붙인다 — 제목은 그대로', (tester) async {
     final c = await pumpEditor(tester, FakeAi(RecordAiStatus.ready));
     c.addExercise('러닝 5km 3세트');
     c.closeBlock();
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(CupertinoIcons.gear_alt));
+    await tester.tap(find.bySemanticsLabel('설정'));
     await tester.pump();
     await editChip(tester, 'name', '러닝');
     await applyChip(tester);
@@ -657,7 +685,7 @@ void main() {
     expect(c.blocks.single.name, '러닝 5km 3세트');
     expect(c.blocks.single.exercise, '러닝');
     expect(c.blocks.single.setup!.totalSets, 3);
-    expect(find.byIcon(CupertinoIcons.gear_alt), findsNothing);
+    expect(find.bySemanticsLabel('설정'), findsOneWidget);
     expect(find.text('0/3세트'), findsOneWidget);
   });
 
@@ -1403,9 +1431,9 @@ void main() {
     expect(c.blocks.single.exercise, '러닝');
     expect(find.textContaining('설정에 못 옮긴 말: 5km'), findsOneWidget);
     expect(
-      find.byIcon(CupertinoIcons.gear_alt),
+      find.bySemanticsLabel('설정'),
       findsOneWidget,
-      reason: '설정 요약 줄 대신 설정 붙이기 단추',
+      reason: '설정 요약 줄 대신 더보기 단추',
     );
   });
 
@@ -1444,7 +1472,7 @@ void main() {
       ]);
     final c = await pumpEditor(tester, ai);
     await submit(tester, '스쿼트 100개 채우기');
-    await tester.tap(find.byKey(const ValueKey('setup-more')));
+    await tester.tap(find.bySemanticsLabel('설정'));
     await tester.pump();
     expect(find.text('+ 횟수만 기록'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('setup-repsOnly')));
@@ -1475,6 +1503,8 @@ void main() {
         ..closeBlock(),
     );
     await submit(tester, example);
+    await tester.tap(find.bySemanticsLabel('설정'));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('setup-weight')));
     await tester.pump();
     await tester.pump();

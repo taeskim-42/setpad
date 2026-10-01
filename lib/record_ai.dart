@@ -1032,6 +1032,40 @@ class RecordAi {
     return answer['intent'];
   }
 
+  /// Parse one text archive or one workout screenshot. Results are never saved on the server.
+  Future<Map<String, Object?>> importWorkout({
+    required String locale,
+    String? text,
+    Uint8List? image,
+    String? mime,
+  }) {
+    _checkOn();
+    if ((text != null) == (image != null) ||
+        (text != null && (text.trim().isEmpty || text.length > 4000)) ||
+        (image != null &&
+            (mime == null ||
+                !const {
+                  'image/jpeg',
+                  'image/png',
+                  'image/webp',
+                }.contains(mime) ||
+                image.isEmpty ||
+                image.length > 4500000))) {
+      throw const FormatException('Invalid workout import');
+    }
+    return _ask(
+      '/api/workout-import',
+      text != null
+          ? {'text': text, 'language': locale}
+          : {
+              'image': base64Encode(withoutPhotoMetadata(image!)),
+              'mime': mime,
+              'language': locale,
+            },
+      timeout: const Duration(seconds: 60),
+    );
+  }
+
   /// 사진 한 장의 칼로리를 어림한다. 사진은 서버에 남지 않고 모델에만 간다.
   ///
   /// 도장 회원이 `gymId` 를 주면 서버가 코치의 식단 목록에도 한 줄 남긴다.

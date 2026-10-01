@@ -284,6 +284,15 @@ class Note {
   DateTime updatedAt;
   List<ExerciseBlock> blocks;
 
+  /// 이 기록에 새로 넣는 끼니의 시각. 지난 기록에 늦게 적은 끼니는 그날의 같은
+  /// 시각이다 — 지금으로 두면 하루 합계와 서버의 먹은 날이 오늘로 간다.
+  DateTime mealTime([DateTime? now]) {
+    final t = now ?? DateTime.now(), c = createdAt;
+    return t.year == c.year && t.month == c.month && t.day == c.day
+        ? t
+        : DateTime(c.year, c.month, c.day, t.hour, t.minute, t.second);
+  }
+
   /// 이 운동 동안 **애플워치가 잰** 활동 칼로리. 잰 것이 없으면 null 이다.
   /// 앱이 추정하지 않는다 — 0 과 "아무도 안 쟀다"는 다른 말이다.
   double? calories;
@@ -735,7 +744,7 @@ class NotesStore extends ChangeNotifier {
     final t = now ?? DateTime.now();
     for (final n in _notes) {
       final d = n.createdAt;
-      if (n.proxy == null &&
+      if ((n.proxy == null || (n.title?.isNotEmpty ?? false)) &&
           d.year == t.year &&
           d.month == t.month &&
           d.day == t.day) {
@@ -753,10 +762,15 @@ class NotesStore extends ChangeNotifier {
     DateTime? at,
   }) {
     final now = at ?? DateTime.now();
+    // Imported workouts share one instant per day; ids must still differ.
+    var n = now.microsecondsSinceEpoch;
+    while (_notes.any((x) => x.id == '$n')) {
+      n++;
+    }
     final note = Note(
       // 계획에서 시작한 운동은 서버가 기억하는 id 를 받는다 — 시작을 다시 눌러도
       // 같은 문서가 열리게.
-      id: id ?? now.microsecondsSinceEpoch.toString(),
+      id: id ?? '$n',
       createdAt: now,
       updatedAt: now,
       blocks: blocks,

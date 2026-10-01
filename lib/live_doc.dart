@@ -83,6 +83,62 @@ List<ExerciseBlock> blocksOfDoc(
   return blocks;
 }
 
+/// Keep performed work separate from the routine being planned. [planned] sets are the plan itself,
+/// not work already done.
+List<Json> completedBeforeRoutine(
+  List<ExerciseBlock> blocks, {
+  Set<String> planned = const {},
+}) => [
+  for (final b in blocks)
+    if (b.sets.any((s) => s.mine && s.done && !planned.contains(s.id)))
+      {
+        'id': b.id,
+        'name': b.name,
+        if (b.setup != null) 'setup': b.setup!.toJson(),
+        'sets': [
+          for (final s in b.sets)
+            if (s.mine && s.done && !planned.contains(s.id))
+              {
+                'id': s.id,
+                'value': s.value,
+                'unit': s.unit,
+                'reps': s.reps,
+                'notes': [...s.notes],
+                'done': true,
+              },
+        ],
+      },
+];
+
+/// Everyone receives the same unfinished routine while keeping performed sets.
+List<ExerciseBlock> personalRoutine(List<Json> doc, List<Json> completed) {
+  final history = blocksFromJson(completed);
+  final completedIds = {
+    for (final b in history)
+      for (final s in b.sets) s.id,
+  };
+  final planned = blocksFromJson([
+    for (final b in doc)
+      {
+        ...b,
+        'sets': [
+          for (final s in b['sets'] as List)
+            {
+              ...(s as Map),
+              if (completedIds.contains(s['id'])) 'id': newId(),
+              'author': null,
+              'done': false,
+            },
+        ],
+      },
+  ]);
+  final historyById = {for (final b in history) b.id: b};
+  for (final b in planned) {
+    b.sets.addAll(historyById.remove(b.id)?.sets ?? const []);
+  }
+  return [...planned, ...historyById.values];
+}
+
 /// 견줄 때의 모양. 서버를 한 번 거치면 60.0 이 60 이 되고(JSON), jsonb 는 키
 /// 순서를 바꾼다. 그대로 견주면 늘 달라 보여서 받은 뒤 첫 수정마다 모든 세트를
 /// 다시 보내 — 그사이 남이 고친 것을 옛 값으로 덮었다.

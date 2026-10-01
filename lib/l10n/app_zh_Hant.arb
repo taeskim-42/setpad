@@ -829,5 +829,48 @@
   "dayMacros": "已吃:碳水 {carbs} · 蛋白質 {protein} · 脂肪 {fat}g",
   "dayMacrosVsTarget": "碳水 {carbs}/{carbsTarget} · 蛋白質 {protein}/{proteinTarget} · 脂肪 {fat}/{fatTarget}g",
   "dayMacrosGoal": "目標按含今天運動的 {kcal}kcal 計算 — 在身體資訊裡更改目標",
-  "dayMacrosMissing": "未計入 {n} 頓不知營養素的餐"
+  "dayMacrosMissing": "未計入 {n} 頓不知營養素的餐",
+  "partnerRoutinePlanning": "一起建立訓練計畫",
+  "partnerRoutineReadyTitle": "共享訓練計畫",
+  "partnerRoutineProgress": "已確認 {accepted}/{total} 人",
+  "@partnerRoutineProgress": {
+    "placeholders": {
+      "accepted": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerRoutineConfirm": "確認我的計畫",
+  "partnerRoutineConfirmed": "已確認",
+  "partnerRoutineFinalized": "所有人都已確認，已加入你的訓練紀錄。",
+  "partnerRoutineChanged": "訓練計畫已變更，請查看最新版本。",
+  "partnerRoutineEmpty": "請先新增至少一項訓練。",
+  "partnerRoutineStarted": "此訓練計畫已確認。",
+  "workoutImportTitle": "匯入訓練紀錄",
+  "workoutImportHint": "貼上備忘錄，或新增文字檔和多張截圖。檢查預覽前不會儲存。",
+  "workoutImportTextPlaceholder": "在此貼上訓練紀錄",
+  "workoutImportPaste": "貼上",
+  "workoutImportTextFiles": "文字檔",
+  "workoutImportScreenshots": "新增截圖",
+  "workoutImportAnalyze": "建立預覽",
+  "workoutImportWorking": "正在讀取訓練紀錄…",
+  "workoutImportEmpty": "請先新增文字或截圖。",
+  "workoutImportFailed": "讀取失敗。原始內容仍在，請重試。",
+  "workoutImportReview": "檢查並編輯日期和訓練項目，然後全部儲存。",
+  "workoutImportMissingDate": "需要確認日期",
+  "workoutImportChooseDate": "選擇日期",
+  "workoutImportUnparsed": "需要檢查",
+  "workoutImportSave": "全部儲存",
+  "workoutImportAddExercise": "新增訓練",
+  "workoutImportAddSet": "新增組",
+  "workoutImportRemove": "刪除",
+  "workoutImportDuplicate": "可能已有相似紀錄",
+  "workoutImportTextLimit": "每次最多讀取6,000個字元。",
+  "workoutImportEditSources": "編輯來源",
+  "workoutImportImageLimit": "每批最多新增5張截圖。",
+  "workoutImportAiOff": "AI 協助已關閉，無法讀取紀錄。可在 設定 › AI 協助 中開啟",
+  "workoutImportPartial": "有 {n} 項未能讀取。原始內容仍在，修改後可重試。"
 }

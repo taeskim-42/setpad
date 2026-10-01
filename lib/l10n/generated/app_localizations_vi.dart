@@ -3547,4 +3547,114 @@ class LVi extends L {
   String dayMacrosMissing(int n) {
     return 'Không tính $n bữa chưa rõ dinh dưỡng';
   }
+
+  @override
+  String get partnerRoutinePlanning => 'Cùng tạo lịch tập';
+
+  @override
+  String get partnerRoutineReadyTitle => 'Lịch tập chung';
+
+  @override
+  String partnerRoutineProgress(int accepted, int total) {
+    return '$accepted/$total người đã xác nhận';
+  }
+
+  @override
+  String get partnerRoutineConfirm => 'Xác nhận lịch của tôi';
+
+  @override
+  String get partnerRoutineConfirmed => 'Đã xác nhận';
+
+  @override
+  String get partnerRoutineFinalized =>
+      'Mọi người đã xác nhận. Đã thêm vào buổi tập của bạn.';
+
+  @override
+  String get partnerRoutineChanged =>
+      'Lịch tập đã thay đổi. Hãy xem phiên bản mới nhất.';
+
+  @override
+  String get partnerRoutineEmpty => 'Hãy thêm ít nhất một bài tập trước.';
+
+  @override
+  String get partnerRoutineStarted => 'Lịch tập này đã được xác nhận.';
+
+  @override
+  String get workoutImportTitle => 'Nhập lịch sử tập luyện';
+
+  @override
+  String get workoutImportHint =>
+      'Dán ghi chú hoặc thêm tệp văn bản và nhiều ảnh chụp màn hình. Chưa lưu gì trước khi xem lại.';
+
+  @override
+  String get workoutImportTextPlaceholder => 'Dán lịch sử tập luyện vào đây';
+
+  @override
+  String get workoutImportPaste => 'Dán';
+
+  @override
+  String get workoutImportTextFiles => 'Tệp văn bản';
+
+  @override
+  String get workoutImportScreenshots => 'Thêm ảnh chụp';
+
+  @override
+  String get workoutImportAnalyze => 'Tạo bản xem trước';
+
+  @override
+  String get workoutImportWorking => 'Đang đọc lịch sử…';
+
+  @override
+  String get workoutImportEmpty => 'Hãy thêm văn bản hoặc ảnh trước.';
+
+  @override
+  String get workoutImportFailed =>
+      'Không thể đọc. Nguồn vẫn được giữ; hãy thử lại.';
+
+  @override
+  String get workoutImportReview =>
+      'Xem và sửa ngày cùng bài tập rồi lưu tất cả.';
+
+  @override
+  String get workoutImportMissingDate => 'Cần kiểm tra ngày';
+
+  @override
+  String get workoutImportChooseDate => 'Chọn ngày';
+
+  @override
+  String get workoutImportUnparsed => 'Cần xem lại';
+
+  @override
+  String get workoutImportSave => 'Lưu tất cả';
+
+  @override
+  String get workoutImportAddExercise => 'Thêm bài tập';
+
+  @override
+  String get workoutImportAddSet => 'Thêm hiệp';
+
+  @override
+  String get workoutImportRemove => 'Xóa';
+
+  @override
+  String get workoutImportDuplicate => 'Có thể đã có buổi tập tương tự';
+
+  @override
+  String get workoutImportTextLimit => 'Mỗi lần đọc tối đa 6.000 ký tự.';
+
+  @override
+  String get workoutImportEditSources => 'Sửa nguồn';
+
+  @override
+  String get workoutImportImageLimit =>
+      'Mỗi lần có thể thêm tối đa 5 ảnh chụp.';
+
+  @override
+  String get workoutImportAiOff =>
+      'Trợ giúp AI đang tắt nên không đọc được lịch sử. Bật trong Cài đặt › Trợ giúp AI';
+
+  @override
+  String workoutImportPartial(int n) {
+    return 'Không đọc được $n nguồn. Nguồn vẫn còn để sửa và thử lại.';
+  }
 }

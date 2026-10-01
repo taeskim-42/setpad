@@ -3597,5 +3597,56 @@
         "type": "int"
       }
     }
+  },
+  "partnerRoutinePlanning": "루틴 함께 만들기",
+  "partnerRoutineReadyTitle": "함께 만든 루틴",
+  "partnerRoutineProgress": "{accepted}/{total}명 확인",
+  "@partnerRoutineProgress": {
+    "placeholders": {
+      "accepted": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerRoutineConfirm": "내 루틴 확인",
+  "partnerRoutineConfirmed": "확인 완료",
+  "partnerRoutineFinalized": "모두 확인했어요. 내 운동 기록으로 옮겼습니다.",
+  "partnerRoutineChanged": "루틴이 바뀌었어요. 최신 내용을 확인해 주세요.",
+  "partnerRoutineEmpty": "운동을 하나 이상 추가해 주세요.",
+  "partnerRoutineStarted": "이미 확정된 루틴입니다.",
+  "workoutImportTitle": "운동 기록 가져오기",
+  "workoutImportHint": "메모를 붙여넣거나 텍스트 파일과 여러 캡처를 추가하세요. 원본은 미리보기 전까지 저장되지 않습니다.",
+  "workoutImportTextPlaceholder": "운동 기록을 여기에 붙여넣으세요",
+  "workoutImportPaste": "붙여넣기",
+  "workoutImportTextFiles": "텍스트 파일",
+  "workoutImportScreenshots": "캡처 추가",
+  "workoutImportAnalyze": "미리보기 만들기",
+  "workoutImportWorking": "기록을 읽는 중…",
+  "workoutImportEmpty": "텍스트나 캡처를 추가해 주세요.",
+  "workoutImportFailed": "읽지 못했어요. 원본을 유지했으니 다시 시도해 주세요.",
+  "workoutImportReview": "날짜와 운동을 확인하고 고친 뒤 모두 저장하세요.",
+  "workoutImportMissingDate": "날짜 확인 필요",
+  "workoutImportChooseDate": "날짜 선택",
+  "workoutImportUnparsed": "확인이 필요한 내용",
+  "workoutImportSave": "모두 저장",
+  "workoutImportAddExercise": "운동 추가",
+  "workoutImportAddSet": "세트 추가",
+  "workoutImportRemove": "삭제",
+  "workoutImportDuplicate": "비슷한 날짜·운동 기록이 있어요",
+  "workoutImportTextLimit": "원문은 6,000자까지 한 번에 읽을 수 있어요.",
+  "workoutImportEditSources": "원문 수정",
+  "workoutImportImageLimit": "한 번에 캡처는 최대 5장까지 추가할 수 있어요.",
+  "workoutImportAiOff": "AI 도움이 꺼져 있어 가져올 기록을 읽을 수 없어요. 설정 › AI 도움에서 켤 수 있어요",
+  "workoutImportPartial": "{n}개는 읽지 못했어요. 원문은 그대로 있으니 고쳐서 다시 해 보세요.",
+  "@workoutImportPartial": {
+    "description": "운동 기록 가져오기에서 일부 원문(글 조각·캡처)을 못 읽었을 때",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -829,5 +829,48 @@
   "dayMacros": "Comido: HC {carbs} · P {protein} · G {fat} g",
   "dayMacrosVsTarget": "HC {carbs}/{carbsTarget} · P {protein}/{proteinTarget} · G {fat}/{fatTarget} g",
   "dayMacrosGoal": "Objetivos para {kcal} kcal con el ejercicio de hoy — cambia el objetivo en Cuerpo",
-  "dayMacrosMissing": "No cuentan {n} comidas sin macros"
+  "dayMacrosMissing": "No cuentan {n} comidas sin macros",
+  "partnerRoutinePlanning": "Crear rutina juntos",
+  "partnerRoutineReadyTitle": "Rutina compartida",
+  "partnerRoutineProgress": "{accepted}/{total} confirmados",
+  "@partnerRoutineProgress": {
+    "placeholders": {
+      "accepted": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerRoutineConfirm": "Confirmar mi rutina",
+  "partnerRoutineConfirmed": "Confirmado",
+  "partnerRoutineFinalized": "Todos confirmaron. Añadida a tu entrenamiento.",
+  "partnerRoutineChanged": "La rutina cambió. Revisa la última versión.",
+  "partnerRoutineEmpty": "Añade al menos un ejercicio primero.",
+  "partnerRoutineStarted": "La rutina ya está confirmada.",
+  "workoutImportTitle": "Importar entrenamientos",
+  "workoutImportHint": "Pega notas o añade archivos de texto y varias capturas. No se guarda nada antes de revisar.",
+  "workoutImportTextPlaceholder": "Pega aquí tu historial de entrenamiento",
+  "workoutImportPaste": "Pegar",
+  "workoutImportTextFiles": "Archivos de texto",
+  "workoutImportScreenshots": "Añadir capturas",
+  "workoutImportAnalyze": "Crear vista previa",
+  "workoutImportWorking": "Leyendo entrenamientos…",
+  "workoutImportEmpty": "Añade texto o capturas primero.",
+  "workoutImportFailed": "No se pudo leer. Tus fuentes siguen aquí; inténtalo de nuevo.",
+  "workoutImportReview": "Revisa y edita fechas y ejercicios; luego guarda todo.",
+  "workoutImportMissingDate": "Revisar fecha",
+  "workoutImportChooseDate": "Elegir fecha",
+  "workoutImportUnparsed": "Requiere revisión",
+  "workoutImportSave": "Guardar todo",
+  "workoutImportAddExercise": "Añadir ejercicio",
+  "workoutImportAddSet": "Añadir serie",
+  "workoutImportRemove": "Eliminar",
+  "workoutImportDuplicate": "Puede que ya exista un entrenamiento similar",
+  "workoutImportTextLimit": "Un lote admite hasta 6.000 caracteres.",
+  "workoutImportEditSources": "Editar fuentes",
+  "workoutImportImageLimit": "Añade hasta 5 capturas por lote.",
+  "workoutImportAiOff": "La ayuda de IA está desactivada, así que no se puede leer el historial. Actívala en Ajustes › Ayuda de IA",
+  "workoutImportPartial": "No se pudieron leer {n} de las fuentes. Siguen ahí para corregirlas y reintentar."
 }

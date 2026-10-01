@@ -107,6 +107,39 @@ void main() {
     expect(diffDoc(server, local), isEmpty);
   });
 
+  test('확정된 루틴은 미완료 계획으로 복사하고, 기존에 수행한 세트는 개인 기록에 보존한다', () {
+    final prior = [
+      ExerciseBlock(
+        '벤치',
+        [set('same-id', 10)..done = true, set('draft-id', 8)..done = false],
+        null,
+        'B',
+      ),
+      ExerciseBlock('로우', [set('old-row', 12)..done = true], null, 'R'),
+    ];
+    final planned = docOf([
+      ExerciseBlock('벤치', [set('same-id', 8)..done = true], null, 'B'),
+      ExerciseBlock('스쿼트', [set('planned-squat', 5)..done = true], null, 'S'),
+    ]);
+
+    final result = personalRoutine(planned, completedBeforeRoutine(prior));
+    expect(result.map((b) => b.name), ['벤치', '스쿼트', '로우']);
+    expect(result[0].sets.map((s) => s.done), [false, true]);
+    expect(
+      result[0].sets.first.id,
+      isNot('same-id'),
+      reason: '계획 세트와 완료 세트의 id 는 분리한다',
+    );
+    expect(result[0].sets.last.id, 'same-id');
+    expect(result[0].sets.last.reps, 10);
+    expect(
+      result[1].sets.single.done,
+      isFalse,
+      reason: '다른 사람이 체크한 루틴 세트도 계획으로만 복사한다',
+    );
+    expect(result[2].sets.single.reps, 12, reason: '루틴에서 빠진 기존 운동도 버리지 않는다');
+  });
+
   test('고치기가 늦게 닿아도 지워진 세트나 운동을 되살리지 않는다 — 새 것만 새 것이라고 말한다', () {
     final base = docOf([
       ExerciseBlock('벤치', [set('a', 10)], null, 'B'),
@@ -270,5 +303,38 @@ void main() {
       ],
     ).single.sets;
     expect(sets.map((s) => s.author), [null, '미나']);
+  });
+
+  test('루틴을 짜는 동안 적은 세트는 계획이다 — 확정해도 두 번, 한 번은 한 것으로 생기지 않는다', () {
+    final done = LoggedSet(value: 40, unit: 'kg', reps: 10);
+    final before = [
+      ExerciseBlock('벤치', [done]),
+    ];
+    final snapshot = completedBeforeRoutine(before);
+    final planning = [
+      ExerciseBlock(
+        '벤치',
+        [
+          done,
+          LoggedSet(value: 60, unit: 'kg', reps: 8),
+          LoggedSet(value: 60, unit: 'kg', reps: 8),
+        ],
+        null,
+        before.single.id,
+      ),
+    ];
+    final doc = docOf(planning);
+    final mine = personalRoutine(doc, snapshot);
+    expect(mine.single.sets.map((s) => (s.reps, s.done)), [
+      (10, false),
+      (8, false),
+      (8, false),
+      (10, true),
+    ], reason: '미리 한 세트만 한 것으로 남는다');
+    final planned = {
+      for (final b in doc)
+        for (final s in b['sets'] as List) '${(s as Map)['id']}',
+    };
+    expect(completedBeforeRoutine(planning, planned: planned), isEmpty);
   });
 }

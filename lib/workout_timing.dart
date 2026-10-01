@@ -584,7 +584,7 @@ class TogetherTiming {
   final ValueChanged<int> onLog;
 }
 
-class WorkoutTimingControls extends StatelessWidget {
+class WorkoutTimingControls extends StatefulWidget {
   const WorkoutTimingControls({
     super.key,
     required this.owner,
@@ -594,6 +594,7 @@ class WorkoutTimingControls extends StatelessWidget {
     this.onChanged,
     this.recovery,
     this.together,
+    this.settingsOpen,
   });
 
   /// 같이 운동 중일 때만 있다.
@@ -609,11 +610,78 @@ class WorkoutTimingControls extends StatelessWidget {
   /// 버튼으로 고친 설정. 받는 쪽이 운동 이름을 다시 적는다 — 제목이 설정이다.
   final ValueChanged<TimingSpec>? onChanged;
 
+  /// When provided, the exercise's settings button controls this panel.
+  final bool? settingsOpen;
+
+  @override
+  State<WorkoutTimingControls> createState() => _WorkoutTimingControlsState();
+}
+
+class _WorkoutTimingControlsState extends State<WorkoutTimingControls> {
+  bool _settingsOpen = false;
+
+  bool get _canPropose {
+    final duo = widget.together;
+    return duo != null &&
+        !duo.live &&
+        !duo.waiting &&
+        !duo.busy &&
+        !(identical(widget.timer.owner, widget.owner) &&
+            widget.timer.running) &&
+        widget.spec.valid;
+  }
+
+  bool get _canAlternate =>
+      widget.spec.tabata &&
+      widget.spec.work + 2 * widget.spec.rest <= TimingSpec.maxSeconds;
+
+  void _propose(bool alternate) {
+    // The session may change while the start menu is open.
+    if (!_canPropose || (alternate && !_canAlternate)) return;
+    setState(() => _settingsOpen = false);
+    widget.onStart();
+    widget.together!.onPropose(alternate);
+  }
+
+  void _chooseStart() {
+    final l = L.of(context);
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (sheet) => CupertinoActionSheet(
+        actions: [
+          for (final (label, alternate) in [
+            (l.togetherStart, false),
+            (l.togetherAlternate, true),
+          ])
+            CupertinoActionSheetAction(
+              key: ValueKey(
+                alternate ? 'together-alternate' : 'together-simultaneous',
+              ),
+              onPressed: () {
+                Navigator.pop(sheet);
+                if (mounted) _propose(alternate);
+              },
+              child: Text(label),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(sheet),
+          child: Text(l.cancel),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     // 심박이 바뀌어도 다시 그려야 한다. 둘 다 듣는다.
-    listenable: recovery == null ? timer : Listenable.merge([timer, recovery]),
+    listenable: widget.recovery == null
+        ? widget.timer
+        : Listenable.merge([widget.timer, widget.recovery]),
     builder: (context, _) {
+      final owner = widget.owner, timer = widget.timer;
+      final spec = widget.spec, together = widget.together;
+      final recovery = widget.recovery, onChanged = widget.onChanged;
       final l = L.of(context);
       final selected = identical(timer.owner, owner);
       final running = selected && timer.running;
@@ -623,7 +691,9 @@ class WorkoutTimingControls extends StatelessWidget {
       final counted = spokenCount(beat, l.localeName.split('_').first);
       // 템포 앱처럼 초를 맨숫자로 크게. "0:20" 보다 "20" 이 힐끗 봐도 읽힌다.
       // 1분을 넘는 구간만 분:초. 메트로놈은 준비 뒤로는 몇 번째 박자인지.
-      final big = !spec.tabata && phase != TimingPhase.ready
+      final big = !selected
+          ? ''
+          : !spec.tabata && phase != TimingPhase.ready
           ? (beat > 0 ? '$beat' : '')
           : seconds < 60
           ? '$seconds'
@@ -693,21 +763,19 @@ class WorkoutTimingControls extends StatelessWidget {
           // "5 · 다섯" 처럼 같은 것을 두 번 쓰지 않는다.
           : l.timingMetronome;
       void toggle() {
+        if (_canPropose) {
+          _propose(false);
+          return;
+        }
+        if (duo != null && !duo.live && !running) return;
+        setState(() => _settingsOpen = false);
         if (duo != null && duo.onToggle()) return;
-        if (!running) onStart();
+        if (!running) widget.onStart();
         timer.toggle(owner, spec);
       }
 
-      // 돌아가는 중에 길이를 바꾸면 두 폰이 어긋난다. 같이 하는 동안은 잠근다.
-      final canPropose =
-          duo != null &&
-          !duo.live &&
-          !duo.waiting &&
-          !duo.busy &&
-          !running &&
-          spec.valid;
-      final canAlternate =
-          spec.tabata && spec.work + 2 * spec.rest <= TimingSpec.maxSeconds;
+      final canPropose = _canPropose;
+      final canToggle = duo == null || duo.live || running || canPropose;
       // 쉬는 동안, 방금 끝난 라운드를 아직 안 적었으면 한 번 눌러 적게 한다.
       // 숨이 찬 10초에 숫자판을 열어 치라고 할 수는 없다.
       final owesCount =
@@ -763,11 +831,13 @@ class WorkoutTimingControls extends StatelessWidget {
         ],
       ];
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.only(top: 4, bottom: 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [for (final c in cells) Expanded(child: c)]),
+            if (editable &&
+                ((widget.settingsOpen ?? _settingsOpen) || !spec.valid))
+              Row(children: [for (final c in cells) Expanded(child: c)]),
             if (!spec.valid)
               Text(
                 l.timingInvalid,
@@ -782,7 +852,7 @@ class WorkoutTimingControls extends StatelessWidget {
                   Expanded(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: toggle,
+                      onTap: selected && canToggle ? toggle : null,
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
@@ -820,34 +890,77 @@ class WorkoutTimingControls extends StatelessWidget {
                       ),
                     ),
                   ),
-                  CupertinoButton(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    onPressed: toggle,
-                    child: Text(
-                      duo != null && duo.live
-                          ? (duo.left ? l.togetherRejoin : l.togetherLeave)
-                          : running
-                          ? l.timingPause
-                          : l.timingStart,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                  if (!(duo?.waiting ?? false) || running)
+                    CupertinoButton(
+                      key: canPropose ? const ValueKey('together-start') : null,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      minimumSize: const Size(44, 44),
+                      color: sealTint.resolveFrom(context),
+                      borderRadius: BorderRadius.circular(22),
+                      onPressed: !canToggle
+                          ? null
+                          : canPropose && _canAlternate
+                          ? _chooseStart
+                          : toggle,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            duo != null && duo.live
+                                ? (duo.left
+                                      ? l.togetherRejoin
+                                      : l.togetherLeave)
+                                : running
+                                ? l.timingPause
+                                : duo != null
+                                ? l.togetherStart
+                                : l.timingStart,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: seal.resolveFrom(context),
+                            ),
+                          ),
+                          if (canPropose && _canAlternate) ...[
+                            const SizedBox(width: 6),
+                            Icon(
+                              CupertinoIcons.chevron_down,
+                              size: 12,
+                              color: seal.resolveFrom(context),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                  ),
-                  CupertinoButton(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    // 같이 하는 동안 나만 되감을 수는 없다.
-                    onPressed: selected && !(duo?.live ?? false)
-                        ? timer.reset
-                        : null,
-                    child: Icon(
-                      CupertinoIcons.arrow_counterclockwise,
-                      size: 18,
-                      semanticLabel: l.timingReset,
+                  if (selected && !(duo?.live ?? false))
+                    CupertinoButton(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      onPressed: timer.reset,
+                      child: Icon(
+                        CupertinoIcons.arrow_counterclockwise,
+                        size: 18,
+                        semanticLabel: l.timingReset,
+                      ),
                     ),
-                  ),
+                  if (editable && widget.settingsOpen == null)
+                    CupertinoButton(
+                      key: const ValueKey('timing-settings-toggle'),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: const Size(44, 44),
+                      onPressed: () =>
+                          setState(() => _settingsOpen = !_settingsOpen),
+                      child: Icon(
+                        _settingsOpen
+                            ? CupertinoIcons.chevron_up
+                            : CupertinoIcons.slider_horizontal_3,
+                        size: 18,
+                        semanticLabel: l.settingsTitle,
+                      ),
+                    ),
                 ],
               ),
               // 라운드마다 한 칸. 템포 앱의 고리를 글줄에 맞게 눕힌 것이다.
-              if (spec.tabata)
+              if (spec.tabata && selected)
                 _RoundBar(
                   rounds: spec.rounds,
                   done: doneRounds,
@@ -861,39 +974,6 @@ class WorkoutTimingControls extends StatelessWidget {
                 ),
             ],
             if (duo != null && spec.valid) ...[
-              if (canPropose)
-                Row(
-                  children: [
-                    CupertinoButton(
-                      key: const ValueKey('together-start'),
-                      padding: const EdgeInsets.only(right: 16),
-                      minimumSize: const Size(0, 32),
-                      onPressed: () => duo.onPropose(false),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(CupertinoIcons.person_2_fill, size: 15),
-                          const SizedBox(width: 6),
-                          Text(
-                            l.togetherStart,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (canAlternate)
-                      CupertinoButton(
-                        key: const ValueKey('together-alternate'),
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(0, 32),
-                        onPressed: () => duo.onPropose(true),
-                        child: Text(
-                          l.togetherAlternate,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      ),
-                  ],
-                ),
               if (duo.waiting) ...[
                 Row(
                   children: [

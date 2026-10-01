@@ -170,8 +170,10 @@ void main() {
     },
   );
   testWidgets(
-    'controls appear from the title without creating sets and collapse while dragging',
+    'timer settings open on demand and collapse when the edited timer starts',
     (tester) async {
+      var now = Duration.zero;
+      final timer = WorkoutTimer(audio: FakeAudio(), now: () => now);
       final c = RoutineEditorController()
         ..addExercise('버피 타바타')
         ..closeBlock();
@@ -180,16 +182,101 @@ void main() {
           locale: const Locale('ko'),
           supportedLocales: L.supportedLocales,
           localizationsDelegates: L.localizationsDelegates,
-          home: CupertinoPageScaffold(child: RoutineEditor(controller: c)),
+          home: CupertinoPageScaffold(
+            child: RoutineEditor(controller: c, timer: timer),
+          ),
         ),
       );
       await tester.pumpAndSettle();
       expect(find.byType(WorkoutTimingControls), findsOneWidget);
       expect(find.text('시작'), findsOneWidget);
+      final settings = find.byKey(
+        ValueKey('exercise-settings-${c.blocks.single.id}'),
+      );
+      expect(
+        find.byKey(const ValueKey('timing-settings-toggle')),
+        findsNothing,
+      );
+      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
+      expect(find.text('3'), findsNothing);
+      expect(find.byIcon(CupertinoIcons.arrow_counterclockwise), findsNothing);
+      await tester.tap(settings);
+      await tester.pump();
+      expect(find.text('운동 20초'), findsOneWidget);
+      await tester.tap(find.byIcon(CupertinoIcons.plus).first);
+      await tester.pump();
+      expect(TimingSpec.parse(c.blocks.single.name)!.work, 25);
+      await tester.tap(find.text('시작'));
+      await tester.pump();
+      expect(timer.running, isTrue);
+      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
+      expect(find.text('3'), findsOneWidget);
+      expect(find.text('일시정지'), findsOneWidget);
+      expect(
+        find.byIcon(CupertinoIcons.arrow_counterclockwise),
+        findsOneWidget,
+      );
+      now = const Duration(seconds: 3);
+      timer.tick();
+      await tester.pump();
+      expect(find.text('25'), findsOneWidget);
+      await tester.tap(find.text('일시정지'));
+      await tester.pumpAndSettle();
+      expect(settings, findsOneWidget);
       expect(c.blocks.single.sets, isEmpty);
       c.renameBlock(0, '버피');
       await tester.pumpAndSettle();
       expect(find.byType(WorkoutTimingControls), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+      timer.dispose();
+    },
+  );
+  testWidgets(
+    'external settings state controls editing without a second toggle',
+    (tester) async {
+      final timer = WorkoutTimer(audio: FakeAudio());
+      final owner = Object();
+      var spec = const TimingSpec(tabata: true);
+      Future<void> show(bool open) => tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          supportedLocales: L.supportedLocales,
+          localizationsDelegates: L.localizationsDelegates,
+          home: CupertinoPageScaffold(
+            child: WorkoutTimingControls(
+              owner: owner,
+              spec: spec,
+              timer: timer,
+              settingsOpen: open,
+              onChanged: (next) => spec = next,
+              onStart: () {},
+            ),
+          ),
+        ),
+      );
+      await show(false);
+      expect(
+        find.byKey(const ValueKey('timing-settings-toggle')),
+        findsNothing,
+      );
+      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
+      await show(true);
+      expect(
+        find.byKey(const ValueKey('timing-settings-toggle')),
+        findsNothing,
+      );
+      await tester.tap(find.byIcon(CupertinoIcons.plus).first);
+      expect(spec.work, 25);
+      await show(false);
+      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
+      await show(true);
+      expect(find.text('운동 25초'), findsOneWidget);
+      await tester.tap(find.text('시작'));
+      await tester.pump();
+      expect(timer.running, isTrue);
+      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+      timer.dispose();
     },
   );
   _adjustable();

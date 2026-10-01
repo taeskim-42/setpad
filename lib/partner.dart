@@ -39,6 +39,9 @@ enum PartnerError {
   tooManyTries,
   network,
   server,
+  routineChanged,
+  emptyRoutine,
+  routineStarted,
 }
 
 /// 코드에 쓰는 글자. 서버와 같다 — 0·O, 1·I 가 없다.
@@ -162,6 +165,30 @@ class PartnerSession {
   List<PartnerPresence> presence = const [];
   String? me;
 
+  /// Null means this server has not advertised routine confirmation support.
+  List<String>? routineAcceptedKeys;
+  int? routineFinalizedVersion;
+  int? routineAppliedVersion;
+  List<Json>? routineCompleted;
+
+  bool get routineReady => routineFinalizedVersion != null;
+  bool get routinePlanning =>
+      state == PartnerState.active &&
+      routineAcceptedKeys != null &&
+      !routineReady;
+  bool get myRoutineAccepted => routineAcceptedKeys?.contains(me) ?? false;
+  int get routineParticipantCount => others.length + 1;
+  int get routineAcceptedCount =>
+      routineAcceptedKeys
+          ?.where((key) => key == me || others.any((p) => p.key == key))
+          .length ??
+      0;
+  Set<String> get preservedSetIds => {
+    for (final b in routineCompleted ?? const <Json>[])
+      for (final s in b['sets'] as List)
+        if ((s as Map)['id'] is String) s['id'] as String,
+  };
+
   /// 상대가 내 세트를 대신 적어 주고 있다. 받기 전에는 내 기록이 아니다.
   ({String token, int revision, String from})? handoff;
 
@@ -183,6 +210,10 @@ class PartnerSession {
     'partnerUpdatedAt': ?partnerUpdatedAt?.toIso8601String(),
     'docBase': ?docBase,
     'docBaseVersion': docBaseVersion,
+    'routineAcceptedKeys': ?routineAcceptedKeys,
+    'routineFinalizedVersion': ?routineFinalizedVersion,
+    'routineAppliedVersion': ?routineAppliedVersion,
+    'routineCompleted': ?routineCompleted,
   };
 
   static PartnerSession? tryFromJson(Object? j) {
@@ -214,7 +245,18 @@ class PartnerSession {
           : null
       ..docBaseVersion = j['docBaseVersion'] is int
           ? j['docBaseVersion'] as int
-          : 0;
+          : 0
+      ..routineAcceptedKeys = j['routineAcceptedKeys'] is List
+          ? (j['routineAcceptedKeys'] as List).whereType<String>().toList()
+          : null
+      ..routineFinalizedVersion = j['routineFinalizedVersion'] as int?
+      ..routineAppliedVersion = j['routineAppliedVersion'] as int?
+      ..routineCompleted = j['routineCompleted'] is List
+          ? [
+              for (final b in j['routineCompleted'] as List)
+                if (b is Map) b.cast<String, Object?>(),
+            ]
+          : null;
   }
 }
 
@@ -251,6 +293,9 @@ extension PartnerLink on GymLink {
             (_, 'expired') => PartnerError.expired,
             (_, 'ended') || (_, 'notFound') => PartnerError.ended,
             (_, 'ownInvite') => PartnerError.ownInvite,
+            (_, 'conflict') => PartnerError.routineChanged,
+            (_, 'routineFinalized') => PartnerError.routineStarted,
+            (_, 'emptyRoutine') => PartnerError.emptyRoutine,
             (429, _) => PartnerError.tooManyTries,
             (400, _) => PartnerError.invalidFormat,
             _ => PartnerError.server,
@@ -444,7 +489,10 @@ class PartnerSync extends ChangeNotifier {
     if (old?.id == next.id) {
       next
         ..docBase = old!.docBase
-        ..docBaseVersion = old.docBaseVersion;
+        ..docBaseVersion = old.docBaseVersion
+        ..routineAppliedVersion = old.routineAppliedVersion
+        ..routineFinalizedVersion = old.routineFinalizedVersion
+        ..routineCompleted = old.routineCompleted;
     }
     final docJson = body['doc'];
     if (docJson is Map &&
@@ -455,6 +503,15 @@ class PartnerSync extends ChangeNotifier {
           if (b is Map) b.cast<String, Object?>(),
       ];
       next.docVersion = docJson['version'] as int;
+      if (docJson['accepted'] is List) {
+        next.routineAcceptedKeys = (docJson['accepted'] as List)
+            .whereType<String>()
+            .toSet()
+            .toList();
+        if (docJson['finalizedVersion'] is int) {
+          next.routineFinalizedVersion = docJson['finalizedVersion'] as int;
+        }
+      }
     } else {
       next.doc = null;
     }
@@ -543,7 +600,10 @@ class PartnerSync extends ChangeNotifier {
       return reply.error;
     }
     reachable = reply.error != PartnerError.network;
-    if (reply.error == null) {
+    if (reply.error == null ||
+        (reply.body?['id'] is String &&
+            (reply.error == PartnerError.routineChanged ||
+                reply.error == PartnerError.routineStarted))) {
       _apply(reply.body!);
       onChanged();
     } else if (reply.error == PartnerError.ended && session != null && quiet) {
@@ -604,6 +664,43 @@ class PartnerSync extends ChangeNotifier {
     if (id == null || !session!.open) return;
     await _run((l) => l.partnerSessionState(id), quiet: true);
     if (session?.state == PartnerState.active) await _push();
+  }
+
+  bool get canConfirmRoutine {
+    final s = session;
+    return s != null &&
+        s.routinePlanning &&
+        !s.myRoutineAccepted &&
+        s.me != null &&
+        s.others.isNotEmpty &&
+        reachable &&
+        !busy &&
+        !_sendingDoc &&
+        !_initing &&
+        _pendingDoc.isEmpty &&
+        _shadow != null &&
+        s.docVersion == s.docBaseVersion &&
+        s.docVersion >= _ackedDoc &&
+        diffDoc(_shadow!, docOf(note.blocks)).isEmpty;
+  }
+
+  /// Confirm only the version on screen, after every local edit reached the server.
+  Future<PartnerError?> confirmRoutine() {
+    final s = session;
+    if (s?.routineReady == true) return Future.value(null);
+    if (!canConfirmRoutine) {
+      error = !reachable
+          ? PartnerError.network
+          : s?.doc?.isEmpty == true
+          ? PartnerError.emptyRoutine
+          : PartnerError.routineChanged;
+      notifyListeners();
+      return Future.value(error);
+    }
+    final version = s!.docVersion;
+    return _run(
+      (l) => l.partnerDoc(s.id, {'action': 'accept', 'version': version}),
+    );
   }
 
   /// 내 기록이 바뀌었다. 번호를 올려 **먼저 저장**하고, 조금 모아서 보낸다.
@@ -745,12 +842,47 @@ class PartnerSync extends ChangeNotifier {
   /// 서버 문서가 새로 왔으면 편집기에 놓을 운동들. 한 번만 내준다.
   List<ExerciseBlock>? takeDoc() {
     final s = session;
-    if (!_docFresh || s == null || _shadow == null) return null;
+    if (!_docFresh || s == null) return null;
     _docFresh = false;
+    if (s.routineReady) {
+      final version = s.routineFinalizedVersion;
+      final agreed = s.doc ?? s.docBase;
+      if (version == null ||
+          s.routineAppliedVersion == version ||
+          agreed == null) {
+        return null;
+      }
+      // Taken when planning started ([_receiveDoc]). Without it, sets in the agreed routine are the
+      // plan, not work done — counting them would add every planned set twice, once as done.
+      final completed =
+          s.routineCompleted ??
+          completedBeforeRoutine(
+            note.blocks,
+            planned: {
+              for (final b in agreed)
+                for (final set in b['sets'] as List) '${(set as Map)['id']}',
+            },
+          );
+      s
+        ..routineCompleted = completed
+        ..routineAppliedVersion = version;
+      _shadow = null;
+      _pendingDoc.clear();
+      _ackedDoc = 0;
+      return personalRoutine(agreed, completed);
+    }
+    if (_shadow == null) return null;
     return blocksOfDoc(_shadow!, s.me, local: note.blocks);
   }
 
   void _receiveDoc(PartnerSession s) {
+    if (s.routineReady) {
+      _shadow = null;
+      _pendingDoc.clear();
+      _ackedDoc = 0;
+      _docFresh = s.routineAppliedVersion != s.routineFinalizedVersion;
+      return;
+    }
     if (s.state != PartnerState.active) {
       _shadow = null;
       _pendingDoc.clear();
@@ -759,6 +891,10 @@ class PartnerSync extends ChangeNotifier {
       // 잇는다 — "처음 참여" 로 합치면 내 옛 사본이 남의 새 값을 덮는다.
       // 다른 세션이 되면 [_apply] 가 옮겨 오지 않으므로 저절로 버려진다.
       return;
+    }
+    // What was done before planning stays performed work; sets typed while planning are the plan.
+    if (s.routinePlanning && s.routineCompleted == null) {
+      s.routineCompleted = completedBeforeRoutine(note.blocks);
     }
     // 화면을 다시 열었거나 앱을 다시 켰다. 마지막으로 받은 문서와 내 기록의 차이가
     // 곧 아직 못 올린 내 수정이다(오프라인에서 적은 세트 포함) — 그것을 다시 싣는다.
@@ -820,7 +956,11 @@ class PartnerSync extends ChangeNotifier {
 
   /// 편집기의 문서가 바뀌었다. 내가 믿는 문서와의 차이만 보낸다.
   void pushDoc() {
-    if (_shadow == null || session?.state != PartnerState.active) return;
+    if (_shadow == null ||
+        session?.state != PartnerState.active ||
+        session?.routineReady == true) {
+      return;
+    }
     _queueDoc(docOf(note.blocks));
   }
 

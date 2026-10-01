@@ -3568,4 +3568,114 @@ class LEn extends L {
   String dayMacrosMissing(int n) {
     return '$n meals without macros are not counted';
   }
+
+  @override
+  String get partnerRoutinePlanning => 'Co-create a routine';
+
+  @override
+  String get partnerRoutineReadyTitle => 'Shared routine';
+
+  @override
+  String partnerRoutineProgress(int accepted, int total) {
+    return '$accepted/$total confirmed';
+  }
+
+  @override
+  String get partnerRoutineConfirm => 'Confirm my routine';
+
+  @override
+  String get partnerRoutineConfirmed => 'Confirmed';
+
+  @override
+  String get partnerRoutineFinalized =>
+      'Everyone confirmed. Added to your workout.';
+
+  @override
+  String get partnerRoutineChanged =>
+      'The routine changed. Review the latest version.';
+
+  @override
+  String get partnerRoutineEmpty => 'Add at least one exercise first.';
+
+  @override
+  String get partnerRoutineStarted => 'This routine is already confirmed.';
+
+  @override
+  String get workoutImportTitle => 'Import workout history';
+
+  @override
+  String get workoutImportHint =>
+      'Paste notes or add text files and multiple screenshots. Nothing is saved before review.';
+
+  @override
+  String get workoutImportTextPlaceholder => 'Paste your workout history here';
+
+  @override
+  String get workoutImportPaste => 'Paste';
+
+  @override
+  String get workoutImportTextFiles => 'Text files';
+
+  @override
+  String get workoutImportScreenshots => 'Add screenshots';
+
+  @override
+  String get workoutImportAnalyze => 'Build preview';
+
+  @override
+  String get workoutImportWorking => 'Reading workouts…';
+
+  @override
+  String get workoutImportEmpty => 'Add text or screenshots first.';
+
+  @override
+  String get workoutImportFailed =>
+      'Could not read this. Your sources are still here; try again.';
+
+  @override
+  String get workoutImportReview =>
+      'Review and edit dates and exercises, then save everything.';
+
+  @override
+  String get workoutImportMissingDate => 'Date needs review';
+
+  @override
+  String get workoutImportChooseDate => 'Choose date';
+
+  @override
+  String get workoutImportUnparsed => 'Needs review';
+
+  @override
+  String get workoutImportSave => 'Save all';
+
+  @override
+  String get workoutImportAddExercise => 'Add exercise';
+
+  @override
+  String get workoutImportAddSet => 'Add set';
+
+  @override
+  String get workoutImportRemove => 'Delete';
+
+  @override
+  String get workoutImportDuplicate => 'A similar workout may already exist';
+
+  @override
+  String get workoutImportTextLimit =>
+      'One batch can contain up to 6,000 characters.';
+
+  @override
+  String get workoutImportEditSources => 'Edit sources';
+
+  @override
+  String get workoutImportImageLimit => 'Add up to 5 screenshots per batch.';
+
+  @override
+  String get workoutImportAiOff =>
+      'AI help is off, so the history can\'t be read. Turn it on in Settings › AI help';
+
+  @override
+  String workoutImportPartial(int n) {
+    return 'Couldn\'t read $n of the sources. They\'re still there to fix and try again.';
+  }
 }

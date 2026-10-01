@@ -829,5 +829,48 @@
   "dayMacros": "Đã ăn: Tinh bột {carbs} · Đạm {protein} · Béo {fat}g",
   "dayMacrosVsTarget": "TB {carbs}/{carbsTarget} · Đạm {protein}/{proteinTarget} · Béo {fat}/{fatTarget}g",
   "dayMacrosGoal": "Mục tiêu theo {kcal} kcal gồm cả buổi tập hôm nay — đổi mục tiêu ở Cơ thể",
-  "dayMacrosMissing": "Không tính {n} bữa chưa rõ dinh dưỡng"
+  "dayMacrosMissing": "Không tính {n} bữa chưa rõ dinh dưỡng",
+  "partnerRoutinePlanning": "Cùng tạo lịch tập",
+  "partnerRoutineReadyTitle": "Lịch tập chung",
+  "partnerRoutineProgress": "{accepted}/{total} người đã xác nhận",
+  "@partnerRoutineProgress": {
+    "placeholders": {
+      "accepted": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerRoutineConfirm": "Xác nhận lịch của tôi",
+  "partnerRoutineConfirmed": "Đã xác nhận",
+  "partnerRoutineFinalized": "Mọi người đã xác nhận. Đã thêm vào buổi tập của bạn.",
+  "partnerRoutineChanged": "Lịch tập đã thay đổi. Hãy xem phiên bản mới nhất.",
+  "partnerRoutineEmpty": "Hãy thêm ít nhất một bài tập trước.",
+  "partnerRoutineStarted": "Lịch tập này đã được xác nhận.",
+  "workoutImportTitle": "Nhập lịch sử tập luyện",
+  "workoutImportHint": "Dán ghi chú hoặc thêm tệp văn bản và nhiều ảnh chụp màn hình. Chưa lưu gì trước khi xem lại.",
+  "workoutImportTextPlaceholder": "Dán lịch sử tập luyện vào đây",
+  "workoutImportPaste": "Dán",
+  "workoutImportTextFiles": "Tệp văn bản",
+  "workoutImportScreenshots": "Thêm ảnh chụp",
+  "workoutImportAnalyze": "Tạo bản xem trước",
+  "workoutImportWorking": "Đang đọc lịch sử…",
+  "workoutImportEmpty": "Hãy thêm văn bản hoặc ảnh trước.",
+  "workoutImportFailed": "Không thể đọc. Nguồn vẫn được giữ; hãy thử lại.",
+  "workoutImportReview": "Xem và sửa ngày cùng bài tập rồi lưu tất cả.",
+  "workoutImportMissingDate": "Cần kiểm tra ngày",
+  "workoutImportChooseDate": "Chọn ngày",
+  "workoutImportUnparsed": "Cần xem lại",
+  "workoutImportSave": "Lưu tất cả",
+  "workoutImportAddExercise": "Thêm bài tập",
+  "workoutImportAddSet": "Thêm hiệp",
+  "workoutImportRemove": "Xóa",
+  "workoutImportDuplicate": "Có thể đã có buổi tập tương tự",
+  "workoutImportTextLimit": "Mỗi lần đọc tối đa 6.000 ký tự.",
+  "workoutImportEditSources": "Sửa nguồn",
+  "workoutImportImageLimit": "Mỗi lần có thể thêm tối đa 5 ảnh chụp.",
+  "workoutImportAiOff": "Trợ giúp AI đang tắt nên không đọc được lịch sử. Bật trong Cài đặt › Trợ giúp AI",
+  "workoutImportPartial": "Không đọc được {n} nguồn. Nguồn vẫn còn để sửa và thử lại."
 }

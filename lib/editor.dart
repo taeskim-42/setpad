@@ -2771,8 +2771,8 @@ class _RoutineEditorState extends State<RoutineEditor>
                                   blocks[i],
                                   GlobalKey.new,
                                 ),
-                                width: 36,
-                                height: _reordering ? 44 : 28,
+                                width: 44,
+                                height: 44,
                                 child: const Icon(
                                   CupertinoIcons.line_horizontal_3,
                                   size: 18,
@@ -2789,6 +2789,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                                   spec: TimingSpec.parse(blocks[i].name)!,
                                   timer: _workoutTimer,
                                   recovery: _recovery,
+                                  settingsOpen: _setupOpen == blocks[i].id,
                                   together: _togetherFor(
                                     blocks[i],
                                     L.of(context),
@@ -2798,9 +2799,10 @@ class _RoutineEditorState extends State<RoutineEditor>
                                     SystemChannels.textInput.invokeMethod(
                                       'TextInput.hide',
                                     );
-                                    setState(
-                                      () => _timingKeyboardHidden = true,
-                                    );
+                                    setState(() {
+                                      _timingKeyboardHidden = true;
+                                      _setupOpen = null;
+                                    });
                                   },
                                   // 설정을 따로 저장하지 않는다. 제목을 다시
                                   // 적으면 글로 고친 것과 같은 자리가 바뀐다.
@@ -2839,9 +2841,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                           onRemoveNote: (set, note) =>
                               _c.removeNote(i, set, note),
                           onOpenSetup: () => _toggleSetup(blocks[i]),
-                          setup:
-                              (blocks[i].setup?.countsReps ?? false) ||
-                                  _setupOpen == blocks[i].id
+                          setup: _setupOpen == blocks[i].id
                               ? SetupChips(
                                   key: ValueKey('setup-${blocks[i].id}'),
                                   title: blocks[i].name,
@@ -2850,7 +2850,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                                   sets: blocks[i].sets
                                       .where((s) => s.mine)
                                       .length,
-                                  open: _setupOpen == blocks[i].id,
+                                  open: true,
                                   onToggle: () => _toggleSetup(blocks[i]),
                                   onChanged: (setup) => _c.updateSetup(
                                     _c.blocks.indexOf(blocks[i]),
@@ -3073,6 +3073,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     final touch =
         platform == TargetPlatform.iOS || platform == TargetPlatform.android;
     final readOnly = touch && !bold && !_wantText && _c.inBlock;
+    final selectsText = !_padMode && !(_wantsSentinel && _input.text == _zw);
     final hint = _mealMode
         ? L.of(context).mealTextHint
         : bold
@@ -3204,10 +3205,10 @@ class _RoutineEditorState extends State<RoutineEditor>
                     // 흔든다. 심어 둔 글자가 있을 때는 위의 것이 대신 보이므로 빈 글이다.
                     placeholder: _input.text == _zw ? '' : hint,
                     placeholderStyle: hintStyle,
-                    // 키패드로 치는 줄에는 복사·선택 메뉴가 쓸모없다 — 눌러 칸을 고르는 자리다.
-                    // 두 번 누르기의 낱말 선택("80kg")도 끈다. 누르기는 [_onInputTap] 이 받는다.
-                    enableInteractiveSelection: !_padMode,
-                    contextMenuBuilder: _padMode ? null : _textMenu,
+                    // The IME sentinel is internal, not selectable user text.
+                    // Keep its replacement selection, but never expose handles.
+                    enableInteractiveSelection: selectsText,
+                    contextMenuBuilder: selectsText ? _textMenu : null,
                   ),
                 ),
               ],
@@ -3286,10 +3287,10 @@ class _BlockView extends StatelessWidget {
   final void Function(int, int) onEditNote;
   final void Function(int, int) onRemoveNote;
 
-  /// ⚙ — 설정 칩을 펼친다.
+  /// Open the exercise settings from its overflow button.
   final VoidCallback onOpenSetup;
 
-  /// 제목 밑의 설정 칩. 설정이 없고 펼치지도 않았으면 null.
+  /// Setup chips are visible only while the exercise settings are open.
   final Widget? setup;
 
   /// 문서 전체에서 맞출 칸 폭.
@@ -3323,10 +3324,15 @@ class _BlockView extends StatelessWidget {
   Widget _card(BuildContext context) {
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
     final unit = sharedUnit(block);
+    final l = L.of(context);
+    final progress = [
+      if (block.setup?.totalReps case final goal?)
+        l.goalProgress(block.completedReps, goal),
+      if (block.setup?.totalSets case final goal?)
+        l.setProgress(block.sets.where((s) => s.mine).length, goal),
+    ].join(' · ');
     return Container(
-      // 상자들이 제 여백을 가져서 카드 사이는 그만큼 좁혀도 된다 — 8종목 40세트가
-      // 한 화면에 들어가는 밀도는 지킨다.
-      margin: EdgeInsets.only(bottom: collapsed ? 16 : 6),
+      margin: const EdgeInsets.only(bottom: 16),
       padding: EdgeInsets.only(bottom: collapsed ? 12 : 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3334,27 +3340,36 @@ class _BlockView extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child:
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     titleInput ??
-                    GestureDetector(
-                      onTap: collapsed ? null : onEditTitle,
-                      behavior: HitTestBehavior.opaque,
-                      // 이름은 맨 글자다. 상자를 씌워 봤더니 줄마다 회색이라 지저분했다 —
-                      // 눌러 고치는 것은 세트 칸의 테두리가 말해 준다.
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Text(
-                          block.name,
-                          maxLines: collapsed ? 1 : null,
-                          overflow: collapsed ? TextOverflow.ellipsis : null,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: -0.41,
+                        GestureDetector(
+                          onTap: collapsed ? null : onEditTitle,
+                          behavior: HitTestBehavior.opaque,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Text(
+                              block.name,
+                              maxLines: collapsed ? 1 : null,
+                              overflow: collapsed
+                                  ? TextOverflow.ellipsis
+                                  : null,
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.41,
+                              ),
+                            ),
                           ),
                         ),
+                    if (!collapsed && setup == null && progress.isNotEmpty)
+                      Text(
+                        progress,
+                        style: TextStyle(fontSize: 13, color: muted),
                       ),
-                    ),
+                  ],
+                ),
               ),
               // 여섯이 한 운동에 몰려도 제목을 밀어내지 않는다 — 둘까지 이름, 나머지는 수.
               for (final p in cursors.take(2)) _CursorTag(p),
@@ -3366,7 +3381,6 @@ class _BlockView extends StatelessWidget {
                     style: TextStyle(fontSize: 11, color: muted),
                   ),
                 ),
-              // 칸에서 뺀 단위를 여기 한 번 적는다.
               if (unit != null && !collapsed)
                 Padding(
                   padding: const EdgeInsets.only(left: 6),
@@ -3375,41 +3389,32 @@ class _BlockView extends StatelessWidget {
                     style: TextStyle(fontSize: 13, color: muted),
                   ),
                 ),
-              dragHandle,
-              // 설정 없는 칸도 나중에 설정을 붙인다. 있으면 아래 칩을 누른다.
-              if (!collapsed && !(block.setup?.countsReps ?? false))
-                GestureDetector(
-                  onTap: onOpenSetup,
-                  behavior: HitTestBehavior.opaque,
-                  child: Semantics(
-                    button: true,
-                    label: L.of(context).setupAdd,
-                    child: SizedBox(
-                      width: 32,
-                      height: 28,
-                      child: Icon(
-                        CupertinoIcons.gear_alt,
-                        size: 17,
-                        color: CupertinoColors.tertiaryLabel.resolveFrom(
-                          context,
-                        ),
-                      ),
-                    ),
+              if (collapsed || setup != null) dragHandle,
+              if (!collapsed && setup != null)
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(44, 44),
+                  onPressed: () => _confirmRemove(context),
+                  child: Icon(
+                    CupertinoIcons.trash,
+                    semanticLabel: l.delete,
+                    size: 17,
+                    color: CupertinoColors.tertiaryLabel.resolveFrom(context),
                   ),
                 ),
-              // 지우기는 늘 제자리에 있다. 잘못 닿아도 지우기 전에 묻는다.
               if (!collapsed)
-                GestureDetector(
-                  onTap: () => _confirmRemove(context),
-                  behavior: HitTestBehavior.opaque,
-                  child: SizedBox(
-                    width: 36,
-                    height: 28,
-                    child: Icon(
-                      CupertinoIcons.trash,
-                      size: 17,
-                      color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-                    ),
+                CupertinoButton(
+                  key: ValueKey('exercise-settings-${block.id}'),
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(44, 44),
+                  onPressed: onOpenSetup,
+                  child: Icon(
+                    setup == null
+                        ? CupertinoIcons.ellipsis
+                        : CupertinoIcons.chevron_up,
+                    semanticLabel: l.settingsTitle,
+                    size: 19,
+                    color: muted,
                   ),
                 ),
             ],

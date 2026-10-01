@@ -829,5 +829,48 @@
   "dayMacros": "Eaten: C {carbs} · P {protein} · F {fat}g",
   "dayMacrosVsTarget": "C {carbs}/{carbsTarget} · P {protein}/{proteinTarget} · F {fat}/{fatTarget}g",
   "dayMacrosGoal": "Targets for {kcal} kcal including today's exercise — change the goal in Body",
-  "dayMacrosMissing": "{n} meals without macros are not counted"
+  "dayMacrosMissing": "{n} meals without macros are not counted",
+  "partnerRoutinePlanning": "Co-create a routine",
+  "partnerRoutineReadyTitle": "Shared routine",
+  "partnerRoutineProgress": "{accepted}/{total} confirmed",
+  "@partnerRoutineProgress": {
+    "placeholders": {
+      "accepted": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerRoutineConfirm": "Confirm my routine",
+  "partnerRoutineConfirmed": "Confirmed",
+  "partnerRoutineFinalized": "Everyone confirmed. Added to your workout.",
+  "partnerRoutineChanged": "The routine changed. Review the latest version.",
+  "partnerRoutineEmpty": "Add at least one exercise first.",
+  "partnerRoutineStarted": "This routine is already confirmed.",
+  "workoutImportTitle": "Import workout history",
+  "workoutImportHint": "Paste notes or add text files and multiple screenshots. Nothing is saved before review.",
+  "workoutImportTextPlaceholder": "Paste your workout history here",
+  "workoutImportPaste": "Paste",
+  "workoutImportTextFiles": "Text files",
+  "workoutImportScreenshots": "Add screenshots",
+  "workoutImportAnalyze": "Build preview",
+  "workoutImportWorking": "Reading workouts…",
+  "workoutImportEmpty": "Add text or screenshots first.",
+  "workoutImportFailed": "Could not read this. Your sources are still here; try again.",
+  "workoutImportReview": "Review and edit dates and exercises, then save everything.",
+  "workoutImportMissingDate": "Date needs review",
+  "workoutImportChooseDate": "Choose date",
+  "workoutImportUnparsed": "Needs review",
+  "workoutImportSave": "Save all",
+  "workoutImportAddExercise": "Add exercise",
+  "workoutImportAddSet": "Add set",
+  "workoutImportRemove": "Delete",
+  "workoutImportDuplicate": "A similar workout may already exist",
+  "workoutImportTextLimit": "One batch can contain up to 6,000 characters.",
+  "workoutImportEditSources": "Edit sources",
+  "workoutImportImageLimit": "Add up to 5 screenshots per batch.",
+  "workoutImportAiOff": "AI help is off, so the history can't be read. Turn it on in Settings › AI help",
+  "workoutImportPartial": "Couldn't read {n} of the sources. They're still there to fix and try again."
 }

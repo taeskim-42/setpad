@@ -10,9 +10,11 @@ import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 import 'palette.dart';
 import 'paywall.dart';
+import 'record_ai.dart';
 import 'rest_alarm.dart';
 import 'purchases.dart';
 import 'trainer.dart';
+import 'workout_import.dart';
 
 /// 설정.
 ///
@@ -57,6 +59,23 @@ class SettingsPage extends StatelessWidget {
                 label: l.aiSetting,
                 value: store.aiOn,
                 onChanged: store.setAiOn,
+              ),
+              _Row(
+                key: const ValueKey('settings-workout-import'),
+                label: l.workoutImportTitle,
+                onTap: () => Navigator.of(context).push(
+                  CupertinoPageRoute<void>(
+                    builder: (_) => WorkoutImportPage(
+                      store: store,
+                      ai:
+                          account?.ai ??
+                          RecordAi(
+                            deviceId: store.deviceId,
+                            enabled: () => store.aiOn,
+                          ),
+                    ),
+                  ),
+                ),
               ),
               // 디버그 빌드에만: 휴식 경보가 워치로 넘어가는지 실기기로 재는 단추.
               // 누르고 5초 안에 폰을 내려놓고 워치의 운동 앱을 앞에 둔다.

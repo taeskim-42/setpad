@@ -60,6 +60,7 @@ dependencies:
   # 시각을 TZDateTime 으로만 받아서 따라온다.
   flutter_local_notifications: ^18.0.1
   timezone: ^0.10.1
+  file_selector: ^1.1.0
 
 dev_dependencies:
   flutter_test:

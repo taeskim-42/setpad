@@ -5100,6 +5100,204 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'탄단지를 모르는 끼니 {n}개는 빠졌어요'**
   String dayMacrosMissing(int n);
+
+  /// No description provided for @partnerRoutinePlanning.
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴 함께 만들기'**
+  String get partnerRoutinePlanning;
+
+  /// No description provided for @partnerRoutineReadyTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'함께 만든 루틴'**
+  String get partnerRoutineReadyTitle;
+
+  /// No description provided for @partnerRoutineProgress.
+  ///
+  /// In ko, this message translates to:
+  /// **'{accepted}/{total}명 확인'**
+  String partnerRoutineProgress(int accepted, int total);
+
+  /// No description provided for @partnerRoutineConfirm.
+  ///
+  /// In ko, this message translates to:
+  /// **'내 루틴 확인'**
+  String get partnerRoutineConfirm;
+
+  /// No description provided for @partnerRoutineConfirmed.
+  ///
+  /// In ko, this message translates to:
+  /// **'확인 완료'**
+  String get partnerRoutineConfirmed;
+
+  /// No description provided for @partnerRoutineFinalized.
+  ///
+  /// In ko, this message translates to:
+  /// **'모두 확인했어요. 내 운동 기록으로 옮겼습니다.'**
+  String get partnerRoutineFinalized;
+
+  /// No description provided for @partnerRoutineChanged.
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴이 바뀌었어요. 최신 내용을 확인해 주세요.'**
+  String get partnerRoutineChanged;
+
+  /// No description provided for @partnerRoutineEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동을 하나 이상 추가해 주세요.'**
+  String get partnerRoutineEmpty;
+
+  /// No description provided for @partnerRoutineStarted.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 확정된 루틴입니다.'**
+  String get partnerRoutineStarted;
+
+  /// No description provided for @workoutImportTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 기록 가져오기'**
+  String get workoutImportTitle;
+
+  /// No description provided for @workoutImportHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'메모를 붙여넣거나 텍스트 파일과 여러 캡처를 추가하세요. 원본은 미리보기 전까지 저장되지 않습니다.'**
+  String get workoutImportHint;
+
+  /// No description provided for @workoutImportTextPlaceholder.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 기록을 여기에 붙여넣으세요'**
+  String get workoutImportTextPlaceholder;
+
+  /// No description provided for @workoutImportPaste.
+  ///
+  /// In ko, this message translates to:
+  /// **'붙여넣기'**
+  String get workoutImportPaste;
+
+  /// No description provided for @workoutImportTextFiles.
+  ///
+  /// In ko, this message translates to:
+  /// **'텍스트 파일'**
+  String get workoutImportTextFiles;
+
+  /// No description provided for @workoutImportScreenshots.
+  ///
+  /// In ko, this message translates to:
+  /// **'캡처 추가'**
+  String get workoutImportScreenshots;
+
+  /// No description provided for @workoutImportAnalyze.
+  ///
+  /// In ko, this message translates to:
+  /// **'미리보기 만들기'**
+  String get workoutImportAnalyze;
+
+  /// No description provided for @workoutImportWorking.
+  ///
+  /// In ko, this message translates to:
+  /// **'기록을 읽는 중…'**
+  String get workoutImportWorking;
+
+  /// No description provided for @workoutImportEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'텍스트나 캡처를 추가해 주세요.'**
+  String get workoutImportEmpty;
+
+  /// No description provided for @workoutImportFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'읽지 못했어요. 원본을 유지했으니 다시 시도해 주세요.'**
+  String get workoutImportFailed;
+
+  /// No description provided for @workoutImportReview.
+  ///
+  /// In ko, this message translates to:
+  /// **'날짜와 운동을 확인하고 고친 뒤 모두 저장하세요.'**
+  String get workoutImportReview;
+
+  /// No description provided for @workoutImportMissingDate.
+  ///
+  /// In ko, this message translates to:
+  /// **'날짜 확인 필요'**
+  String get workoutImportMissingDate;
+
+  /// No description provided for @workoutImportChooseDate.
+  ///
+  /// In ko, this message translates to:
+  /// **'날짜 선택'**
+  String get workoutImportChooseDate;
+
+  /// No description provided for @workoutImportUnparsed.
+  ///
+  /// In ko, this message translates to:
+  /// **'확인이 필요한 내용'**
+  String get workoutImportUnparsed;
+
+  /// No description provided for @workoutImportSave.
+  ///
+  /// In ko, this message translates to:
+  /// **'모두 저장'**
+  String get workoutImportSave;
+
+  /// No description provided for @workoutImportAddExercise.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 추가'**
+  String get workoutImportAddExercise;
+
+  /// No description provided for @workoutImportAddSet.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트 추가'**
+  String get workoutImportAddSet;
+
+  /// No description provided for @workoutImportRemove.
+  ///
+  /// In ko, this message translates to:
+  /// **'삭제'**
+  String get workoutImportRemove;
+
+  /// No description provided for @workoutImportDuplicate.
+  ///
+  /// In ko, this message translates to:
+  /// **'비슷한 날짜·운동 기록이 있어요'**
+  String get workoutImportDuplicate;
+
+  /// No description provided for @workoutImportTextLimit.
+  ///
+  /// In ko, this message translates to:
+  /// **'원문은 6,000자까지 한 번에 읽을 수 있어요.'**
+  String get workoutImportTextLimit;
+
+  /// No description provided for @workoutImportEditSources.
+  ///
+  /// In ko, this message translates to:
+  /// **'원문 수정'**
+  String get workoutImportEditSources;
+
+  /// No description provided for @workoutImportImageLimit.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 번에 캡처는 최대 5장까지 추가할 수 있어요.'**
+  String get workoutImportImageLimit;
+
+  /// No description provided for @workoutImportAiOff.
+  ///
+  /// In ko, this message translates to:
+  /// **'AI 도움이 꺼져 있어 가져올 기록을 읽을 수 없어요. 설정 › AI 도움에서 켤 수 있어요'**
+  String get workoutImportAiOff;
+
+  /// 운동 기록 가져오기에서 일부 원문(글 조각·캡처)을 못 읽었을 때
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}개는 읽지 못했어요. 원문은 그대로 있으니 고쳐서 다시 해 보세요.'**
+  String workoutImportPartial(int n);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

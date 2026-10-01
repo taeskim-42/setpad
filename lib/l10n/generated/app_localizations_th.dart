@@ -3525,4 +3525,114 @@ class LTh extends L {
   String dayMacrosMissing(int n) {
     return 'ไม่นับ $n มื้อที่ไม่รู้สารอาหาร';
   }
+
+  @override
+  String get partnerRoutinePlanning => 'สร้างรูทีนร่วมกัน';
+
+  @override
+  String get partnerRoutineReadyTitle => 'รูทีนที่แชร์กัน';
+
+  @override
+  String partnerRoutineProgress(int accepted, int total) {
+    return 'ยืนยันแล้ว $accepted/$total คน';
+  }
+
+  @override
+  String get partnerRoutineConfirm => 'ยืนยันรูทีนของฉัน';
+
+  @override
+  String get partnerRoutineConfirmed => 'ยืนยันแล้ว';
+
+  @override
+  String get partnerRoutineFinalized =>
+      'ทุกคนยืนยันแล้ว เพิ่มลงในการออกกำลังกายของคุณแล้ว';
+
+  @override
+  String get partnerRoutineChanged =>
+      'รูทีนเปลี่ยนแล้ว โปรดตรวจสอบเวอร์ชันล่าสุด';
+
+  @override
+  String get partnerRoutineEmpty => 'เพิ่มท่าออกกำลังกายอย่างน้อยหนึ่งท่าก่อน';
+
+  @override
+  String get partnerRoutineStarted => 'รูทีนนี้ยืนยันแล้ว';
+
+  @override
+  String get workoutImportTitle => 'นำเข้าประวัติการออกกำลังกาย';
+
+  @override
+  String get workoutImportHint =>
+      'วางบันทึกหรือเพิ่มไฟล์ข้อความและภาพหน้าจอหลายภาพ ข้อมูลจะยังไม่ถูกบันทึกก่อนตรวจสอบ';
+
+  @override
+  String get workoutImportTextPlaceholder => 'วางประวัติการออกกำลังกายที่นี่';
+
+  @override
+  String get workoutImportPaste => 'วาง';
+
+  @override
+  String get workoutImportTextFiles => 'ไฟล์ข้อความ';
+
+  @override
+  String get workoutImportScreenshots => 'เพิ่มภาพหน้าจอ';
+
+  @override
+  String get workoutImportAnalyze => 'สร้างตัวอย่าง';
+
+  @override
+  String get workoutImportWorking => 'กำลังอ่านประวัติ…';
+
+  @override
+  String get workoutImportEmpty => 'เพิ่มข้อความหรือภาพหน้าจอก่อน';
+
+  @override
+  String get workoutImportFailed =>
+      'อ่านไม่สำเร็จ ข้อมูลต้นฉบับยังอยู่ ลองอีกครั้ง';
+
+  @override
+  String get workoutImportReview =>
+      'ตรวจสอบและแก้ไขวันที่กับท่าออกกำลังกาย แล้วบันทึกทั้งหมด';
+
+  @override
+  String get workoutImportMissingDate => 'ต้องตรวจสอบวันที่';
+
+  @override
+  String get workoutImportChooseDate => 'เลือกวันที่';
+
+  @override
+  String get workoutImportUnparsed => 'ต้องตรวจสอบ';
+
+  @override
+  String get workoutImportSave => 'บันทึกทั้งหมด';
+
+  @override
+  String get workoutImportAddExercise => 'เพิ่มท่าออกกำลังกาย';
+
+  @override
+  String get workoutImportAddSet => 'เพิ่มเซ็ต';
+
+  @override
+  String get workoutImportRemove => 'ลบ';
+
+  @override
+  String get workoutImportDuplicate => 'อาจมีประวัติคล้ายกันอยู่แล้ว';
+
+  @override
+  String get workoutImportTextLimit =>
+      'อ่านข้อความได้ไม่เกิน 6,000 ตัวอักษรต่อครั้ง';
+
+  @override
+  String get workoutImportEditSources => 'แก้ไขต้นฉบับ';
+
+  @override
+  String get workoutImportImageLimit => 'เพิ่มภาพหน้าจอได้สูงสุด 5 ภาพต่อครั้ง';
+
+  @override
+  String get workoutImportAiOff =>
+      'ตัวช่วย AI ปิดอยู่ จึงอ่านประวัติไม่ได้ เปิดได้ที่ การตั้งค่า › ตัวช่วย AI';
+
+  @override
+  String workoutImportPartial(int n) {
+    return 'อ่านไม่สำเร็จ $n รายการ ต้นฉบับยังอยู่ แก้ไขแล้วลองอีกครั้ง';
+  }
 }

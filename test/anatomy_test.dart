@@ -294,9 +294,10 @@ void main() {
       WidgetTester tester,
       List<Note> notes, {
       Locale locale = const Locale('ko'),
+      double height = 2400,
     }) async {
       tester.view
-        ..physicalSize = const Size(420, 2400)
+        ..physicalSize = Size(420, height)
         ..devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
@@ -336,14 +337,21 @@ void main() {
       expect(find.text(l.anatomySearch), findsNothing);
     });
 
-    testWidgets('그림은 두 손가락으로 확대되고, 목록 밖에 있어 스크롤과 엉키지 않는다', (tester) async {
-      await pumpPage(tester, []);
+    testWidgets('그림과 근육 목록이 함께 스크롤되고 그림은 확대된다', (tester) async {
+      await pumpPage(tester, [], height: 840);
       final figure = find.byKey(const ValueKey('anatomy-figure'));
       expect(
-        find.ancestor(of: figure, matching: find.byType(ListView)),
-        findsNothing,
-        reason: '그림은 스크롤되는 목록 밖이다',
+        find.ancestor(of: figure, matching: find.byType(CustomScrollView)),
+        findsOneWidget,
+        reason: '그림과 근육 목록은 같은 세로 스크롤 영역이다',
       );
+      final selectorY = tester.getTopLeft(find.text(l.anatomyFront)).dy;
+      final figureY = tester.getTopLeft(figure).dy;
+      await tester.drag(figure, const Offset(0, -180));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(figure).dy, lessThan(figureY));
+      expect(tester.getTopLeft(find.text(l.anatomyFront)).dy, selectorY);
+
       final c = tester.getCenter(figure);
       final a = await tester.startGesture(c - const Offset(20, 0));
       final b = await tester.startGesture(c + const Offset(20, 0), pointer: 2);
@@ -356,10 +364,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(find.byKey(const ValueKey('anatomy-zoom-reset')), findsOneWidget);
-      // 목록은 그대로 스크롤된다.
-      await tester.drag(find.byType(ListView).first, const Offset(0, -200));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('anatomy-zoom-reset')),
+      );
       await tester.tap(find.byKey(const ValueKey('anatomy-zoom-reset')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('anatomy-zoom-reset')), findsNothing);

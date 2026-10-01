@@ -61,7 +61,7 @@
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>여기서 친 운동을 건강 앱의 운동 기록으로 남깁니다.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>앨범의 식단 사진이나 체성분 결과지 사진으로 칼로리·체성분 값을 읽습니다. 사진은 저장하지 않습니다.</string>
+	<string>앨범의 식단 사진·체성분 결과지 사진으로 칼로리·체성분 값을, 운동 기록 캡처로 지난 운동 기록을 읽습니다. 사진은 저장하지 않습니다.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

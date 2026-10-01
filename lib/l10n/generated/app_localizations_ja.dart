@@ -3448,4 +3448,108 @@ class LJa extends L {
   String dayMacrosMissing(int n) {
     return '三大栄養素が分からない食事 $n 件は含みません';
   }
+
+  @override
+  String get partnerRoutinePlanning => 'ルーティンを一緒に作成';
+
+  @override
+  String get partnerRoutineReadyTitle => '共有ルーティン';
+
+  @override
+  String partnerRoutineProgress(int accepted, int total) {
+    return '$accepted/$total人が確認';
+  }
+
+  @override
+  String get partnerRoutineConfirm => '自分のルーティンを確認';
+
+  @override
+  String get partnerRoutineConfirmed => '確認済み';
+
+  @override
+  String get partnerRoutineFinalized => '全員が確認しました。自分の記録に追加しました。';
+
+  @override
+  String get partnerRoutineChanged => 'ルーティンが変更されました。最新の内容を確認してください。';
+
+  @override
+  String get partnerRoutineEmpty => '先に運動を1つ以上追加してください。';
+
+  @override
+  String get partnerRoutineStarted => 'ルーティンは確定済みです。';
+
+  @override
+  String get workoutImportTitle => '運動記録を読み込む';
+
+  @override
+  String get workoutImportHint =>
+      'メモを貼り付けるか、テキストファイルと複数の画像を追加してください。確認前には保存されません。';
+
+  @override
+  String get workoutImportTextPlaceholder => 'ここに運動記録を貼り付け';
+
+  @override
+  String get workoutImportPaste => '貼り付け';
+
+  @override
+  String get workoutImportTextFiles => 'テキストファイル';
+
+  @override
+  String get workoutImportScreenshots => '画像を追加';
+
+  @override
+  String get workoutImportAnalyze => 'プレビューを作成';
+
+  @override
+  String get workoutImportWorking => '記録を読み取り中…';
+
+  @override
+  String get workoutImportEmpty => 'テキストか画像を追加してください。';
+
+  @override
+  String get workoutImportFailed => '読み取れませんでした。元データは残っています。もう一度お試しください。';
+
+  @override
+  String get workoutImportReview => '日付と運動を確認・編集してから、すべて保存してください。';
+
+  @override
+  String get workoutImportMissingDate => '日付を確認';
+
+  @override
+  String get workoutImportChooseDate => '日付を選択';
+
+  @override
+  String get workoutImportUnparsed => '要確認';
+
+  @override
+  String get workoutImportSave => 'すべて保存';
+
+  @override
+  String get workoutImportAddExercise => '運動を追加';
+
+  @override
+  String get workoutImportAddSet => 'セットを追加';
+
+  @override
+  String get workoutImportRemove => '削除';
+
+  @override
+  String get workoutImportDuplicate => '似た記録がすでにある可能性があります';
+
+  @override
+  String get workoutImportTextLimit => '一度に読み込めるテキストは6,000文字までです。';
+
+  @override
+  String get workoutImportEditSources => '入力を編集';
+
+  @override
+  String get workoutImportImageLimit => '画像は1回につき最大5枚まで追加できます。';
+
+  @override
+  String get workoutImportAiOff => 'AIヘルプがオフなので記録を読み取れません。設定 › AIヘルプ でオンにできます';
+
+  @override
+  String workoutImportPartial(int n) {
+    return '$n件は読み取れませんでした。元データは残っているので、直してもう一度お試しください。';
+  }
 }

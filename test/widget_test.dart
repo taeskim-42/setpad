@@ -814,6 +814,8 @@ void keypadTests() {
 
     testWidgets('삭제는 물어보고, 취소하면 남는다', (tester) async {
       await twoExercises(tester);
+      await tester.tap(find.bySemanticsLabel('설정').first);
+      await settle(tester);
       await tester.tap(find.byIcon(CupertinoIcons.trash).first);
       await settle(tester);
 
@@ -822,11 +824,15 @@ void keypadTests() {
 
       await tester.tap(find.text('취소'));
       await settle(tester);
+      await tester.tap(find.bySemanticsLabel('설정').first);
+      await settle(tester);
       expect(blockTitle('벤치프레스'), findsOneWidget);
     });
 
     testWidgets('삭제를 누르면 지워진다', (tester) async {
       await twoExercises(tester);
+      await tester.tap(find.bySemanticsLabel('설정').first);
+      await settle(tester);
       await tester.tap(find.byIcon(CupertinoIcons.trash).first);
       await settle(tester);
       await tester.tap(find.widgetWithText(CupertinoDialogAction, '삭제'));

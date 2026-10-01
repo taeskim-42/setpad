@@ -42,7 +42,7 @@ void main() {
     final add = tester.getRect(addSetButton);
     final finish = tester.getRect(padKey('운동 완료'));
     expect(add.bottom, lessThan(finish.top));
-    expect(tester.widget<CupertinoTextField>(padField).showCursor, isFalse);
+    expect(tester.widget<CupertinoTextField>(padField).showCursor, isTrue);
     await tester.tap(addSetButton);
     await settle(tester);
     expect(controller(tester).inBlock, isTrue);

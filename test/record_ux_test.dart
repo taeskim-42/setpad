@@ -403,6 +403,10 @@ void main() {
       await tester.tap(find.text('1 80×10'));
       await tester.pumpAndSettle();
       await keys(tester, '80 10 x2 좋았음');
+      await tester.tap(
+        find.byKey(ValueKey('exercise-settings-${c.blocks.first.id}')),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.byIcon(CupertinoIcons.trash).first);
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(CupertinoDialogAction, '삭제'));
@@ -424,6 +428,10 @@ void main() {
       await tester.tap(find.text('1 80×10'));
       await tester.pumpAndSettle();
       await keys(tester, '80 10 x30');
+      await tester.tap(
+        find.byKey(ValueKey('exercise-settings-${c.blocks.first.id}')),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.byIcon(CupertinoIcons.trash).first);
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(CupertinoDialogAction, '삭제'));
@@ -796,7 +804,7 @@ void main() {
   });
 
   group('8. 오늘 한 세트 전부', () {
-    testWidgets('390×844 에서 8종목 40세트가 스크롤 없이 다 보이고, 칸을 누르면 그 세트를 고친다', (
+    testWidgets('390×844 에서 8종목 40세트를 스크롤로 모두 보고, 칸을 누르면 그 세트를 고친다', (
       tester,
     ) async {
       await tester.runAsync(loadRealFont);
@@ -844,18 +852,23 @@ void main() {
       await tester.tapAt(const Offset(195, 110));
       await tester.pumpAndSettle();
 
-      final scroll = tester
-          .widget<CustomScrollView>(
-            find.descendant(
-              of: find.byType(RoutineEditor),
-              matching: find.byType(CustomScrollView),
-            ),
+      final scrollable = find
+          .descendant(
+            of: find.byType(RoutineEditor),
+            matching: find.byType(Scrollable),
           )
-          .controller!;
-      expect(scroll.offset, 0);
+          .first;
+      await tester.scrollUntilVisible(
+        find.byKey(ObjectKey(blocks.first)),
+        -160,
+        scrollable: scrollable,
+      );
       const screen = Rect.fromLTRB(0, 47, 390, 844 - 34);
       var cells = 0;
       for (final block in blocks) {
+        final card = find.byKey(ObjectKey(block));
+        await tester.scrollUntilVisible(card, 160, scrollable: scrollable);
+        await tester.pumpAndSettle();
         final title = find.descendant(
           of: find.byType(SliverReorderableList),
           matching: find.text(block.name),
@@ -872,32 +885,43 @@ void main() {
           tester.renderObject<RenderParagraph>(title).didExceedMaxLines,
           isFalse,
         );
-      }
-      for (final cell
-          in find
-              .byWidgetPredicate(
-                (w) => w.key is ValueKey && '${w.key}'.contains('set-cell-'),
-              )
-              .evaluate()) {
-        final box = cell.renderObject! as RenderBox;
-        final rect = box.localToGlobal(Offset.zero) & box.size;
-        expect(
-          screen.contains(rect.topLeft) && screen.contains(rect.bottomRight),
-          isTrue,
-          reason: '세트 칸 $rect 이 화면 밖이다',
-        );
-        cells++;
+        for (final cell
+            in find
+                .descendant(
+                  of: card,
+                  matching: find.byWidgetPredicate(
+                    (w) =>
+                        w.key is ValueKey && '${w.key}'.contains('set-cell-'),
+                  ),
+                )
+                .evaluate()) {
+          final box = cell.renderObject! as RenderBox;
+          final rect = box.localToGlobal(Offset.zero) & box.size;
+          expect(
+            screen.contains(rect.topLeft) && screen.contains(rect.bottomRight),
+            isTrue,
+            reason: '세트 칸 $rect 이 화면 밖이다',
+          );
+          cells++;
+        }
+        if (block == blocks.first) {
+          expect(find.text('1 40×12'), findsOneWidget);
+          expect(find.text('5 50×8'), findsOneWidget);
+        }
+        if (block.name == '풀업') expect(find.text('1 12회'), findsOneWidget);
+        if (block.name == '플랭크') expect(find.text('5 40초'), findsOneWidget);
+        if (block.name == '레그프레스') expect(find.text('lb'), findsOneWidget);
       }
       expect(cells, 40, reason: '세트마다 한 칸 — 합치지도 접지도 않는다');
-      // 값이 서로 다른 세트가 제 값으로 적혀 있다. 단위가 다른 운동은 제목 줄에.
-      expect(find.text('1 40×12'), findsOneWidget);
-      expect(find.text('5 50×8'), findsOneWidget);
-      expect(find.text('1 12회'), findsOneWidget);
-      expect(find.text('5 40초'), findsOneWidget);
-      expect(find.text('lb'), findsOneWidget);
       expect(tester.takeException(), isNull);
 
       // 칸을 누르면 바로 그 세트를 고친다. 앞쪽 운동의 가운데 세트로 본다.
+      await tester.scrollUntilVisible(
+        find.byKey(ObjectKey(blocks.first)),
+        -160,
+        scrollable: scrollable,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('3 45×10'));
       await tester.pumpAndSettle();
       expect(typed(tester), '45kg 10');

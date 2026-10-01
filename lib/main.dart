@@ -604,6 +604,16 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     );
     // 이름은 같이 하는 상대를 따라간다. 혼자 적기 시작했다가 나중에 연결해도 맞는다.
     if (proxy.name.isEmpty) proxy.name = note.partner?.partnerName ?? '';
+    if (proxy.blocks.isEmpty && note.partner?.doc != null) {
+      proxy.blocks = blocksFromJson(note.partner!.doc).map((block) {
+        for (final set in block.sets) {
+          set
+            ..author = null
+            ..done = false;
+        }
+        return block;
+      }).toList();
+    }
     _proxyEditor ??=
         RoutineEditorController(
             history: widget.store.exerciseHistory,
@@ -729,7 +739,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
       final kcal = parsed.kcal ?? parsed.typed;
       final entry = MealEntry(
         id: old?.id, // 고친 끼니는 서버의 같은 줄이다.
-        at: old?.at ?? DateTime.now(),
+        at: old?.at ?? widget.note.mealTime(),
         kcal: kcal,
         text: text,
         source: kcal == null ? null : MealEntry.typed,
@@ -974,9 +984,13 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     // 세션이 열리면 돌고, 끝나면 멈춘다.
     (widget.note.partner?.open ?? false) ? _partner!.start() : _partner!.stop();
     // 같이 고치는 문서가 새로 왔다. 편집기를 그것으로 — 내 커서는 그 운동을 따라간다.
+    final appliedVersion = widget.note.partner?.routineAppliedVersion;
     final doc = _partner.takeDoc();
     if (doc != null) {
       final lost = _editor.replaceBlocks(doc);
+      if (widget.note.partner?.routineAppliedVersion != appliedVersion) {
+        widget.store.touch();
+      }
       if (lost != null) {
         unawaited(
           showCupertinoDialog<void>(
@@ -1118,11 +1132,24 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              _partner!.reachable
-                                  ? l.partnerWith(
-                                      widget.note.partner!.partnerName ?? '',
-                                    )
-                                  : l.partnerReconnecting,
+                              [
+                                if (!_partner!.reachable) l.partnerReconnecting,
+                                if (widget.note.partner!.routinePlanning) ...[
+                                  l.partnerRoutinePlanning,
+                                  l.partnerRoutineProgress(
+                                    widget.note.partner!.routineAcceptedCount,
+                                    widget
+                                        .note
+                                        .partner!
+                                        .routineParticipantCount,
+                                  ),
+                                ] else if (widget.note.partner!.routineReady)
+                                  l.partnerRoutineReadyTitle
+                                else
+                                  l.partnerWith(
+                                    widget.note.partner!.partnerName ?? '',
+                                  ),
+                              ].join(' · '),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -1132,6 +1159,30 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                               ),
                             ),
                           ),
+                          if (!_writingFor &&
+                              widget.note.partner!.routinePlanning)
+                            CupertinoButton(
+                              key: const ValueKey(
+                                'partner-routine-confirm-editor',
+                              ),
+                              padding: const EdgeInsets.only(left: 4),
+                              minimumSize: const Size(44, 28),
+                              onPressed:
+                                  widget.note.partner!.myRoutineAccepted ||
+                                      !_partner.canConfirmRoutine ||
+                                      widget.note.draft?.text
+                                              .trim()
+                                              .isNotEmpty ==
+                                          true
+                                  ? null
+                                  : () => unawaited(_partner.confirmRoutine()),
+                              child: Text(
+                                widget.note.partner!.myRoutineAccepted
+                                    ? l.partnerRoutineConfirmed
+                                    : l.partnerRoutineConfirm,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
                           if (!_writingFor)
                             CupertinoButton(
                               key: const ValueKey('write-for'),
@@ -1425,7 +1476,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
         final kcal = reviewed.kcal.round();
         note.meals.add(
           MealEntry(
-            at: DateTime.now(),
+            at: note.mealTime(),
             kcal: kcal,
             items: estimate.confirmedItems,
             reviewedText: reviewed.text,
@@ -1467,7 +1518,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     MealEntry? old,
   }) => MealEntry(
     id: old?.id, // 양을 고친 끼니는 서버의 같은 줄이다.
-    at: old?.at ?? DateTime.now(),
+    at: old?.at ?? note.mealTime(),
     kcal: picked.basis.kcalFor(picked.eaten),
     items: old != null && old.basis?.unit == MealBasis.photo
         ? old.items

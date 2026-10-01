@@ -829,5 +829,48 @@
   "dayMacros": "食べた量: 炭水化物 {carbs} · たんぱく質 {protein} · 脂質 {fat}g",
   "dayMacrosVsTarget": "炭 {carbs}/{carbsTarget} · た {protein}/{proteinTarget} · 脂 {fat}/{fatTarget}g",
   "dayMacrosGoal": "今日の運動を含む {kcal}kcal 基準 — 目的は体の情報で変えられます",
-  "dayMacrosMissing": "三大栄養素が分からない食事 {n} 件は含みません"
+  "dayMacrosMissing": "三大栄養素が分からない食事 {n} 件は含みません",
+  "partnerRoutinePlanning": "ルーティンを一緒に作成",
+  "partnerRoutineReadyTitle": "共有ルーティン",
+  "partnerRoutineProgress": "{accepted}/{total}人が確認",
+  "@partnerRoutineProgress": {
+    "placeholders": {
+      "accepted": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerRoutineConfirm": "自分のルーティンを確認",
+  "partnerRoutineConfirmed": "確認済み",
+  "partnerRoutineFinalized": "全員が確認しました。自分の記録に追加しました。",
+  "partnerRoutineChanged": "ルーティンが変更されました。最新の内容を確認してください。",
+  "partnerRoutineEmpty": "先に運動を1つ以上追加してください。",
+  "partnerRoutineStarted": "ルーティンは確定済みです。",
+  "workoutImportTitle": "運動記録を読み込む",
+  "workoutImportHint": "メモを貼り付けるか、テキストファイルと複数の画像を追加してください。確認前には保存されません。",
+  "workoutImportTextPlaceholder": "ここに運動記録を貼り付け",
+  "workoutImportPaste": "貼り付け",
+  "workoutImportTextFiles": "テキストファイル",
+  "workoutImportScreenshots": "画像を追加",
+  "workoutImportAnalyze": "プレビューを作成",
+  "workoutImportWorking": "記録を読み取り中…",
+  "workoutImportEmpty": "テキストか画像を追加してください。",
+  "workoutImportFailed": "読み取れませんでした。元データは残っています。もう一度お試しください。",
+  "workoutImportReview": "日付と運動を確認・編集してから、すべて保存してください。",
+  "workoutImportMissingDate": "日付を確認",
+  "workoutImportChooseDate": "日付を選択",
+  "workoutImportUnparsed": "要確認",
+  "workoutImportSave": "すべて保存",
+  "workoutImportAddExercise": "運動を追加",
+  "workoutImportAddSet": "セットを追加",
+  "workoutImportRemove": "削除",
+  "workoutImportDuplicate": "似た記録がすでにある可能性があります",
+  "workoutImportTextLimit": "一度に読み込めるテキストは6,000文字までです。",
+  "workoutImportEditSources": "入力を編集",
+  "workoutImportImageLimit": "画像は1回につき最大5枚まで追加できます。",
+  "workoutImportAiOff": "AIヘルプがオフなので記録を読み取れません。設定 › AIヘルプ でオンにできます",
+  "workoutImportPartial": "{n}件は読み取れませんでした。元データは残っているので、直してもう一度お試しください。"
 }

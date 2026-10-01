@@ -20,6 +20,9 @@ String partnerErrorText(L l, PartnerError error) => switch (error) {
   PartnerError.tooManyTries => l.partnerErrTries,
   PartnerError.network => l.partnerErrNetwork,
   PartnerError.server => l.partnerErrServer,
+  PartnerError.routineChanged => l.partnerRoutineChanged,
+  PartnerError.emptyRoutine => l.partnerRoutineEmpty,
+  PartnerError.routineStarted => l.partnerRoutineStarted,
 };
 
 /// 같이 하기.
@@ -60,6 +63,7 @@ class _PartnerSheet extends StatefulWidget {
 class _PartnerSheetState extends State<_PartnerSheet> {
   final _code = TextEditingController();
   bool _typing = false;
+  bool _signingIn = false;
   Timer? _tick;
   bool _nearby = false;
   String? _offered;
@@ -82,6 +86,20 @@ class _PartnerSheetState extends State<_PartnerSheet> {
   }
 
   PartnerSync get sync => widget.sync;
+
+  Future<void> _signIn() async {
+    if (_signingIn) return;
+    setState(() => _signingIn = true);
+    try {
+      final signedIn = await widget.account.signIn();
+      if (signedIn && mounted && ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    } finally {
+      if (mounted) setState(() => _signingIn = false);
+    }
+  }
+
   void _changed() {
     _syncNearby();
     setState(() {});
@@ -119,76 +137,141 @@ class _PartnerSheetState extends State<_PartnerSheet> {
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
     final session = sync.session;
     final error = sync.error;
-    return CupertinoPopupSurface(
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            16,
-            20,
-            12 + MediaQuery.viewInsetsOf(context).bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l.partnerInvite,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (!widget.account.signedIn) ...[
-                Text(l.partnerSignIn, style: TextStyle(color: muted)),
-                CupertinoButton.filled(
-                  // 로그인하고 나면 이 창이 그대로 다음 단계를 보여 준다.
-                  onPressed: () => widget.account.signIn(),
-                  child: Text(l.partnerSignInAction),
-                ),
-              ] else if (session?.state == PartnerState.active)
-                ..._active(l, session!, muted)
-              else if (session?.state == PartnerState.waiting && session!.host)
-                ..._waiting(l, session, muted)
-              else
-                ..._start(l, session, muted),
-              if (error != null && widget.account.signedIn)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    partnerErrorText(l, error),
-                    key: const ValueKey('partner-error'),
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: seal.resolveFrom(context),
+        minimum: const EdgeInsets.all(12),
+        child: SizedBox(
+          width: 440,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: ColoredBox(
+              color: CupertinoColors.systemBackground.resolveFrom(context),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: sealTint.resolveFrom(context),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            CupertinoIcons.person_2_fill,
+                            size: 22,
+                            color: seal.resolveFrom(context),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            l.partnerInvite,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        CupertinoButton(
+                          key: const ValueKey('partner-sheet-close'),
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(44, 44),
+                          onPressed: () => Navigator.pop(context),
+                          child: Icon(
+                            CupertinoIcons.xmark_circle_fill,
+                            size: 28,
+                            color: CupertinoColors.secondaryLabel.resolveFrom(
+                              context,
+                            ),
+                            semanticLabel: CupertinoLocalizations.of(
+                              context,
+                            ).modalBarrierDismissLabel,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    const SizedBox(height: 20),
+                    if (_signingIn || !widget.account.signedIn) ...[
+                      Text(
+                        l.partnerSignIn,
+                        style: TextStyle(
+                          fontSize: 15,
+                          height: 1.4,
+                          color: muted,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      CupertinoButton(
+                        color: CupertinoColors.label.resolveFrom(context),
+                        borderRadius: BorderRadius.circular(14),
+                        minimumSize: const Size(44, 50),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
+                        onPressed: _signingIn ? null : _signIn,
+                        child: _signingIn
+                            ? Semantics(
+                                label: l.partnerSignInAction,
+                                child: const CupertinoActivityIndicator(),
+                              )
+                            : Text(
+                                l.partnerSignInAction,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: CupertinoColors.systemBackground
+                                      .resolveFrom(context),
+                                ),
+                              ),
+                      ),
+                    ] else if (session?.state == PartnerState.active)
+                      ..._active(l, session!, muted)
+                    else if (session?.state == PartnerState.waiting &&
+                        session!.host)
+                      ..._waiting(l, session, muted)
+                    else
+                      ..._start(l, session, muted),
+                    if (error != null && widget.account.signedIn)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          partnerErrorText(l, error),
+                          key: const ValueKey('partner-error'),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: seal.resolveFrom(context),
+                          ),
+                        ),
+                      ),
+                    if (widget.onWriteFor != null && widget.account.signedIn)
+                      CupertinoButton(
+                        key: const ValueKey('sheet-write-for'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          widget.onWriteFor!();
+                        },
+                        child: Text(
+                          L.of(context).proxyWrite,
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                      ),
+                    if (sync.busy)
+                      CupertinoButton(
+                        key: const ValueKey('partner-cancel'),
+                        onPressed: sync.cancel,
+                        child: Text(l.cancel),
+                      ),
+                  ],
                 ),
-              if (widget.onWriteFor != null && widget.account.signedIn)
-                CupertinoButton(
-                  key: const ValueKey('sheet-write-for'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    widget.onWriteFor!();
-                  },
-                  child: Text(
-                    L.of(context).proxyWrite,
-                    style: const TextStyle(fontSize: 15),
-                  ),
-                ),
-              if (sync.busy)
-                CupertinoButton(
-                  key: const ValueKey('partner-cancel'),
-                  onPressed: sync.cancel,
-                  child: Text(l.cancel),
-                ),
-              CupertinoButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l.ok),
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -337,6 +420,41 @@ class _PartnerSheetState extends State<_PartnerSheet> {
       l.partnerWith(session.partnerName ?? ''),
       style: const TextStyle(fontSize: 15),
     ),
+    if (session.routinePlanning) ...[
+      const SizedBox(height: 12),
+      Text(
+        l.partnerRoutinePlanning,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      Text(
+        l.partnerRoutineProgress(
+          session.routineAcceptedCount,
+          session.routineParticipantCount,
+        ),
+        style: TextStyle(fontSize: 13, color: muted),
+      ),
+      CupertinoButton(
+        key: const ValueKey('partner-routine-confirm'),
+        onPressed: session.myRoutineAccepted || !sync.canConfirmRoutine
+            ? null
+            : sync.confirmRoutine,
+        child: Text(
+          session.myRoutineAccepted
+              ? l.partnerRoutineConfirmed
+              : l.partnerRoutineConfirm,
+        ),
+      ),
+    ] else if (session.routineReady) ...[
+      const SizedBox(height: 12),
+      Text(
+        l.partnerRoutineReadyTitle,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      Text(
+        l.partnerRoutineFinalized,
+        style: TextStyle(fontSize: 13, color: muted),
+      ),
+    ],
     if (!sync.reachable)
       Text(l.partnerReconnecting, style: TextStyle(fontSize: 13, color: muted)),
     if (sync.conflict != null) ...[

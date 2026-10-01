@@ -3590,4 +3590,115 @@ class LEs extends L {
   String dayMacrosMissing(int n) {
     return 'No cuentan $n comidas sin macros';
   }
+
+  @override
+  String get partnerRoutinePlanning => 'Crear rutina juntos';
+
+  @override
+  String get partnerRoutineReadyTitle => 'Rutina compartida';
+
+  @override
+  String partnerRoutineProgress(int accepted, int total) {
+    return '$accepted/$total confirmados';
+  }
+
+  @override
+  String get partnerRoutineConfirm => 'Confirmar mi rutina';
+
+  @override
+  String get partnerRoutineConfirmed => 'Confirmado';
+
+  @override
+  String get partnerRoutineFinalized =>
+      'Todos confirmaron. Añadida a tu entrenamiento.';
+
+  @override
+  String get partnerRoutineChanged =>
+      'La rutina cambió. Revisa la última versión.';
+
+  @override
+  String get partnerRoutineEmpty => 'Añade al menos un ejercicio primero.';
+
+  @override
+  String get partnerRoutineStarted => 'La rutina ya está confirmada.';
+
+  @override
+  String get workoutImportTitle => 'Importar entrenamientos';
+
+  @override
+  String get workoutImportHint =>
+      'Pega notas o añade archivos de texto y varias capturas. No se guarda nada antes de revisar.';
+
+  @override
+  String get workoutImportTextPlaceholder =>
+      'Pega aquí tu historial de entrenamiento';
+
+  @override
+  String get workoutImportPaste => 'Pegar';
+
+  @override
+  String get workoutImportTextFiles => 'Archivos de texto';
+
+  @override
+  String get workoutImportScreenshots => 'Añadir capturas';
+
+  @override
+  String get workoutImportAnalyze => 'Crear vista previa';
+
+  @override
+  String get workoutImportWorking => 'Leyendo entrenamientos…';
+
+  @override
+  String get workoutImportEmpty => 'Añade texto o capturas primero.';
+
+  @override
+  String get workoutImportFailed =>
+      'No se pudo leer. Tus fuentes siguen aquí; inténtalo de nuevo.';
+
+  @override
+  String get workoutImportReview =>
+      'Revisa y edita fechas y ejercicios; luego guarda todo.';
+
+  @override
+  String get workoutImportMissingDate => 'Revisar fecha';
+
+  @override
+  String get workoutImportChooseDate => 'Elegir fecha';
+
+  @override
+  String get workoutImportUnparsed => 'Requiere revisión';
+
+  @override
+  String get workoutImportSave => 'Guardar todo';
+
+  @override
+  String get workoutImportAddExercise => 'Añadir ejercicio';
+
+  @override
+  String get workoutImportAddSet => 'Añadir serie';
+
+  @override
+  String get workoutImportRemove => 'Eliminar';
+
+  @override
+  String get workoutImportDuplicate =>
+      'Puede que ya exista un entrenamiento similar';
+
+  @override
+  String get workoutImportTextLimit => 'Un lote admite hasta 6.000 caracteres.';
+
+  @override
+  String get workoutImportEditSources => 'Editar fuentes';
+
+  @override
+  String get workoutImportImageLimit => 'Añade hasta 5 capturas por lote.';
+
+  @override
+  String get workoutImportAiOff =>
+      'La ayuda de IA está desactivada, así que no se puede leer el historial. Actívala en Ajustes › Ayuda de IA';
+
+  @override
+  String workoutImportPartial(int n) {
+    return 'No se pudieron leer $n de las fuentes. Siguen ahí para corregirlas y reintentar.';
+  }
 }

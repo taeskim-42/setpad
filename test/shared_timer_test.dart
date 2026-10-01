@@ -394,6 +394,14 @@ void main() {
       await mount(tester, timer, Object(), tabata, null);
       expect(find.text('같이 시작'), findsNothing);
       expect(find.text('시작'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('timing-settings-toggle')));
+      await tester.pump();
+      expect(find.text('운동 20초'), findsOneWidget);
+      await tester.tap(find.text('시작'));
+      await tester.pump();
+      expect(timer.running, isTrue);
+      expect(find.text('일시정지'), findsOneWidget);
+      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
       timer.dispose();
     });
 
@@ -402,30 +410,77 @@ void main() {
       final owner = Object();
       final proposed = <bool>[];
       var cancelled = 0;
-      TogetherTiming duo({bool waiting = false}) => TogetherTiming(
-        partner: '미나',
-        waiting: waiting,
-        onPropose: proposed.add,
-        onToggle: () => false,
-        onCancel: () => cancelled++,
-        onLog: (_) {},
-      );
+      TogetherTiming duo({bool waiting = false, bool busy = false}) =>
+          TogetherTiming(
+            partner: '미나',
+            waiting: waiting,
+            busy: busy,
+            onPropose: proposed.add,
+            onToggle: () => false,
+            onCancel: () => cancelled++,
+            onLog: (_) {},
+          );
 
       await mount(tester, timer, owner, tabata, duo());
-      await tester.tap(find.text('같이 시작'));
-      await tester.tap(find.text('교대로'));
+      expect(find.text('시작'), findsNothing);
+      expect(find.text('같이 시작'), findsOneWidget);
+      expect(find.text('교대로'), findsNothing);
+      expect(find.byKey(const ValueKey('together-mode')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('together-start')));
+      await tester.pumpAndSettle();
+      expect(proposed, isEmpty);
+      await tester.tap(find.byKey(const ValueKey('together-simultaneous')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('together-start')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('together-alternate')));
+      await tester.pumpAndSettle();
       expect(proposed, [false, true]);
+      expect(
+        timer.running,
+        isFalse,
+        reason: 'Proposing must not start a solo timer.',
+      );
 
       // 박자만 있는 운동에는 번갈아 할 구간이 없다.
       await mount(tester, timer, owner, const TimingSpec(bpm: 60), duo());
       expect(find.text('같이 시작'), findsOneWidget);
       expect(find.text('교대로'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('together-start')));
+      await tester.pump();
+      expect(proposed, [false, true, false]);
+      expect(find.byType(CupertinoActionSheet), findsNothing);
 
       await mount(tester, timer, owner, tabata, duo(waiting: true));
       expect(find.text('미나 님을 기다리는 중…'), findsOneWidget);
       expect(find.text('같이 시작'), findsNothing);
+      expect(
+        find.byKey(const ValueKey('timing-settings-toggle')),
+        findsNothing,
+      );
+      expect(find.text('시작'), findsNothing);
+      await tester.tap(find.textContaining('준비'));
+      await tester.pump();
+      expect(timer.running, isFalse);
       await tester.tap(find.text('취소'));
       expect(cancelled, 1);
+
+      await mount(tester, timer, owner, tabata, duo(busy: true));
+      await tester.tap(find.text('같이 시작'));
+      await tester.tap(find.textContaining('준비'));
+      await tester.pump();
+      expect(timer.running, isFalse);
+      expect(proposed, [false, true, false]);
+
+      timer.toggle(owner, tabata);
+      await tester.pump();
+      await tester.tap(find.text('일시정지'));
+      await tester.pump();
+      expect(
+        timer.running,
+        isFalse,
+        reason: 'An existing solo timer can still pause.',
+      );
       timer.dispose();
     });
 
@@ -460,6 +515,10 @@ void main() {
       await mount(tester, timer, owner, tabata, duo());
       expect(find.byKey(const ValueKey('together-log')), findsNothing);
       expect(find.text('그만'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('timing-settings-toggle')),
+        findsNothing,
+      );
       // 표에 상대 이름이 이미 있으면 "같이" 를 또 적지 않는다.
       expect(find.text('미나 님과 같이'), findsNothing);
       expect(find.text('–  –  –'), findsOneWidget, reason: '내 줄은 아직 비어 있다');

@@ -3421,6 +3421,109 @@ class LZh extends L {
   String dayMacrosMissing(int n) {
     return '未计入 $n 顿不知营养素的餐';
   }
+
+  @override
+  String get partnerRoutinePlanning => '一起创建训练计划';
+
+  @override
+  String get partnerRoutineReadyTitle => '共享训练计划';
+
+  @override
+  String partnerRoutineProgress(int accepted, int total) {
+    return '已确认 $accepted/$total 人';
+  }
+
+  @override
+  String get partnerRoutineConfirm => '确认我的计划';
+
+  @override
+  String get partnerRoutineConfirmed => '已确认';
+
+  @override
+  String get partnerRoutineFinalized => '所有人都已确认，已添加到你的训练记录。';
+
+  @override
+  String get partnerRoutineChanged => '训练计划已更改，请检查最新版本。';
+
+  @override
+  String get partnerRoutineEmpty => '请先添加至少一项训练。';
+
+  @override
+  String get partnerRoutineStarted => '此训练计划已确认。';
+
+  @override
+  String get workoutImportTitle => '导入训练记录';
+
+  @override
+  String get workoutImportHint => '粘贴备忘录，或添加文本文件和多张截图。检查预览前不会保存。';
+
+  @override
+  String get workoutImportTextPlaceholder => '在此粘贴训练记录';
+
+  @override
+  String get workoutImportPaste => '粘贴';
+
+  @override
+  String get workoutImportTextFiles => '文本文件';
+
+  @override
+  String get workoutImportScreenshots => '添加截图';
+
+  @override
+  String get workoutImportAnalyze => '生成预览';
+
+  @override
+  String get workoutImportWorking => '正在读取训练记录…';
+
+  @override
+  String get workoutImportEmpty => '请先添加文本或截图。';
+
+  @override
+  String get workoutImportFailed => '读取失败。原始内容仍在，请重试。';
+
+  @override
+  String get workoutImportReview => '检查并编辑日期和训练项目，然后全部保存。';
+
+  @override
+  String get workoutImportMissingDate => '需要确认日期';
+
+  @override
+  String get workoutImportChooseDate => '选择日期';
+
+  @override
+  String get workoutImportUnparsed => '需要检查';
+
+  @override
+  String get workoutImportSave => '全部保存';
+
+  @override
+  String get workoutImportAddExercise => '添加训练';
+
+  @override
+  String get workoutImportAddSet => '添加组';
+
+  @override
+  String get workoutImportRemove => '删除';
+
+  @override
+  String get workoutImportDuplicate => '可能已有相似记录';
+
+  @override
+  String get workoutImportTextLimit => '每次最多读取6,000个字符。';
+
+  @override
+  String get workoutImportEditSources => '编辑来源';
+
+  @override
+  String get workoutImportImageLimit => '每批最多添加5张截图。';
+
+  @override
+  String get workoutImportAiOff => 'AI 帮助已关闭，无法读取记录。可在 设置 › AI 帮助 中打开';
+
+  @override
+  String workoutImportPartial(int n) {
+    return '有 $n 项未能读取。原始内容仍在，修改后可重试。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6840,6 +6943,109 @@ class LZhHans extends LZh {
   String dayMacrosMissing(int n) {
     return '未计入 $n 顿不知营养素的餐';
   }
+
+  @override
+  String get partnerRoutinePlanning => '一起创建训练计划';
+
+  @override
+  String get partnerRoutineReadyTitle => '共享训练计划';
+
+  @override
+  String partnerRoutineProgress(int accepted, int total) {
+    return '已确认 $accepted/$total 人';
+  }
+
+  @override
+  String get partnerRoutineConfirm => '确认我的计划';
+
+  @override
+  String get partnerRoutineConfirmed => '已确认';
+
+  @override
+  String get partnerRoutineFinalized => '所有人都已确认，已添加到你的训练记录。';
+
+  @override
+  String get partnerRoutineChanged => '训练计划已更改，请检查最新版本。';
+
+  @override
+  String get partnerRoutineEmpty => '请先添加至少一项训练。';
+
+  @override
+  String get partnerRoutineStarted => '此训练计划已确认。';
+
+  @override
+  String get workoutImportTitle => '导入训练记录';
+
+  @override
+  String get workoutImportHint => '粘贴备忘录，或添加文本文件和多张截图。检查预览前不会保存。';
+
+  @override
+  String get workoutImportTextPlaceholder => '在此粘贴训练记录';
+
+  @override
+  String get workoutImportPaste => '粘贴';
+
+  @override
+  String get workoutImportTextFiles => '文本文件';
+
+  @override
+  String get workoutImportScreenshots => '添加截图';
+
+  @override
+  String get workoutImportAnalyze => '生成预览';
+
+  @override
+  String get workoutImportWorking => '正在读取训练记录…';
+
+  @override
+  String get workoutImportEmpty => '请先添加文本或截图。';
+
+  @override
+  String get workoutImportFailed => '读取失败。原始内容仍在，请重试。';
+
+  @override
+  String get workoutImportReview => '检查并编辑日期和训练项目，然后全部保存。';
+
+  @override
+  String get workoutImportMissingDate => '需要确认日期';
+
+  @override
+  String get workoutImportChooseDate => '选择日期';
+
+  @override
+  String get workoutImportUnparsed => '需要检查';
+
+  @override
+  String get workoutImportSave => '全部保存';
+
+  @override
+  String get workoutImportAddExercise => '添加训练';
+
+  @override
+  String get workoutImportAddSet => '添加组';
+
+  @override
+  String get workoutImportRemove => '删除';
+
+  @override
+  String get workoutImportDuplicate => '可能已有相似记录';
+
+  @override
+  String get workoutImportTextLimit => '每次最多读取6,000个字符。';
+
+  @override
+  String get workoutImportEditSources => '编辑来源';
+
+  @override
+  String get workoutImportImageLimit => '每批最多添加5张截图。';
+
+  @override
+  String get workoutImportAiOff => 'AI 帮助已关闭，无法读取记录。可在 设置 › AI 帮助 中打开';
+
+  @override
+  String workoutImportPartial(int n) {
+    return '有 $n 项未能读取。原始内容仍在，修改后可重试。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10258,5 +10464,108 @@ class LZhHant extends LZh {
   @override
   String dayMacrosMissing(int n) {
     return '未計入 $n 頓不知營養素的餐';
+  }
+
+  @override
+  String get partnerRoutinePlanning => '一起建立訓練計畫';
+
+  @override
+  String get partnerRoutineReadyTitle => '共享訓練計畫';
+
+  @override
+  String partnerRoutineProgress(int accepted, int total) {
+    return '已確認 $accepted/$total 人';
+  }
+
+  @override
+  String get partnerRoutineConfirm => '確認我的計畫';
+
+  @override
+  String get partnerRoutineConfirmed => '已確認';
+
+  @override
+  String get partnerRoutineFinalized => '所有人都已確認，已加入你的訓練紀錄。';
+
+  @override
+  String get partnerRoutineChanged => '訓練計畫已變更，請查看最新版本。';
+
+  @override
+  String get partnerRoutineEmpty => '請先新增至少一項訓練。';
+
+  @override
+  String get partnerRoutineStarted => '此訓練計畫已確認。';
+
+  @override
+  String get workoutImportTitle => '匯入訓練紀錄';
+
+  @override
+  String get workoutImportHint => '貼上備忘錄，或新增文字檔和多張截圖。檢查預覽前不會儲存。';
+
+  @override
+  String get workoutImportTextPlaceholder => '在此貼上訓練紀錄';
+
+  @override
+  String get workoutImportPaste => '貼上';
+
+  @override
+  String get workoutImportTextFiles => '文字檔';
+
+  @override
+  String get workoutImportScreenshots => '新增截圖';
+
+  @override
+  String get workoutImportAnalyze => '建立預覽';
+
+  @override
+  String get workoutImportWorking => '正在讀取訓練紀錄…';
+
+  @override
+  String get workoutImportEmpty => '請先新增文字或截圖。';
+
+  @override
+  String get workoutImportFailed => '讀取失敗。原始內容仍在，請重試。';
+
+  @override
+  String get workoutImportReview => '檢查並編輯日期和訓練項目，然後全部儲存。';
+
+  @override
+  String get workoutImportMissingDate => '需要確認日期';
+
+  @override
+  String get workoutImportChooseDate => '選擇日期';
+
+  @override
+  String get workoutImportUnparsed => '需要檢查';
+
+  @override
+  String get workoutImportSave => '全部儲存';
+
+  @override
+  String get workoutImportAddExercise => '新增訓練';
+
+  @override
+  String get workoutImportAddSet => '新增組';
+
+  @override
+  String get workoutImportRemove => '刪除';
+
+  @override
+  String get workoutImportDuplicate => '可能已有相似紀錄';
+
+  @override
+  String get workoutImportTextLimit => '每次最多讀取6,000個字元。';
+
+  @override
+  String get workoutImportEditSources => '編輯來源';
+
+  @override
+  String get workoutImportImageLimit => '每批最多新增5張截圖。';
+
+  @override
+  String get workoutImportAiOff => 'AI 協助已關閉，無法讀取紀錄。可在 設定 › AI 協助 中開啟';
+
+  @override
+  String workoutImportPartial(int n) {
+    return '有 $n 項未能讀取。原始內容仍在，修改後可重試。';
   }
 }

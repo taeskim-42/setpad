@@ -829,5 +829,48 @@
   "dayMacros": "已吃:碳水 {carbs} · 蛋白质 {protein} · 脂肪 {fat}g",
   "dayMacrosVsTarget": "碳水 {carbs}/{carbsTarget} · 蛋白质 {protein}/{proteinTarget} · 脂肪 {fat}/{fatTarget}g",
   "dayMacrosGoal": "目标按含今天运动的 {kcal}kcal 计算 — 在身体信息里更改目标",
-  "dayMacrosMissing": "未计入 {n} 顿不知营养素的餐"
+  "dayMacrosMissing": "未计入 {n} 顿不知营养素的餐",
+  "partnerRoutinePlanning": "一起创建训练计划",
+  "partnerRoutineReadyTitle": "共享训练计划",
+  "partnerRoutineProgress": "已确认 {accepted}/{total} 人",
+  "@partnerRoutineProgress": {
+    "placeholders": {
+      "accepted": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerRoutineConfirm": "确认我的计划",
+  "partnerRoutineConfirmed": "已确认",
+  "partnerRoutineFinalized": "所有人都已确认，已添加到你的训练记录。",
+  "partnerRoutineChanged": "训练计划已更改，请检查最新版本。",
+  "partnerRoutineEmpty": "请先添加至少一项训练。",
+  "partnerRoutineStarted": "此训练计划已确认。",
+  "workoutImportTitle": "导入训练记录",
+  "workoutImportHint": "粘贴备忘录，或添加文本文件和多张截图。检查预览前不会保存。",
+  "workoutImportTextPlaceholder": "在此粘贴训练记录",
+  "workoutImportPaste": "粘贴",
+  "workoutImportTextFiles": "文本文件",
+  "workoutImportScreenshots": "添加截图",
+  "workoutImportAnalyze": "生成预览",
+  "workoutImportWorking": "正在读取训练记录…",
+  "workoutImportEmpty": "请先添加文本或截图。",
+  "workoutImportFailed": "读取失败。原始内容仍在，请重试。",
+  "workoutImportReview": "检查并编辑日期和训练项目，然后全部保存。",
+  "workoutImportMissingDate": "需要确认日期",
+  "workoutImportChooseDate": "选择日期",
+  "workoutImportUnparsed": "需要检查",
+  "workoutImportSave": "全部保存",
+  "workoutImportAddExercise": "添加训练",
+  "workoutImportAddSet": "添加组",
+  "workoutImportRemove": "删除",
+  "workoutImportDuplicate": "可能已有相似记录",
+  "workoutImportTextLimit": "每次最多读取6,000个字符。",
+  "workoutImportEditSources": "编辑来源",
+  "workoutImportImageLimit": "每批最多添加5张截图。",
+  "workoutImportAiOff": "AI 帮助已关闭，无法读取记录。可在 设置 › AI 帮助 中打开",
+  "workoutImportPartial": "有 {n} 项未能读取。原始内容仍在，修改后可重试。"
 }

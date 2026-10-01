@@ -391,9 +391,12 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('운동 완료 뒤 빈 줄은 표지가 골라져 있고, 한글 첫 글자가 표지를 덮어쓴다', (tester) async {
+    testWidgets('빈 줄의 내부 표지는 선택 핸들 없이 유지되고, 한글을 치면 일반 선택이 돌아온다', (
+      tester,
+    ) async {
       final c = done();
       await ios(tester, c);
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
       expect(field(tester).text, ' ');
       expect(
         field(tester).selection,
@@ -401,9 +404,38 @@ void main() {
         reason: '커서가 표지 뒤에 있으면 iOS 한글 조합이 앞 음절을 지웠다',
       );
       expect(find.byKey(const ValueKey('sentinel-caret')), findsOneWidget);
+      await tester.tap(input.first);
+      await tester.pumpAndSettle();
+      await tester.longPress(input.first);
+      await tester.pumpAndSettle();
+      final textField = tester.widget<CupertinoTextField>(input.first);
+      expect(textField.focusNode!.hasFocus, isTrue);
+      expect(textField.showCursor, isTrue);
+      expect(textField.enableInteractiveSelection, isFalse);
+      expect(textField.contextMenuBuilder, isNull);
+      expect(
+        tester
+                .state<EditableTextState>(find.byType(EditableText))
+                .selectionOverlay
+                ?.handlesAreVisible ??
+            false,
+        isFalse,
+      );
+      expect(find.byKey(const ValueKey('sentinel-caret')), findsOneWidget);
       // ㅎ → 해 → 햄 → 해머(해 확정, 머 조합): 첫 글자가 골라 둔 표지를 바꾼다.
       await compose(tester, ['ㅎ', '해', '햄', '해머']);
       expect(field(tester).text, '해머');
+      expect(
+        tester
+            .widget<CupertinoTextField>(input.first)
+            .enableInteractiveSelection,
+        isTrue,
+      );
+      expect(
+        tester.widget<CupertinoTextField>(input.first).contextMenuBuilder,
+        isNotNull,
+      );
+      expect(find.byKey(const ValueKey('sentinel-caret')), findsNothing);
       expect(c.naming, isTrue);
       expect(find.byType(SetKeypad), findsNothing);
       debugDefaultTargetPlatformOverride = null;
