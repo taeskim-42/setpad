@@ -902,9 +902,12 @@ class _RoutineEditorState extends State<RoutineEditor>
       _input.value = TextEditingValue(text: _zw, selection: _sentinelSelection);
     } else if (_wantsSentinel &&
         _input.text == _zw &&
-        _input.selection != _sentinelSelection) {
+        (!_input.selection.isValid ||
+            (_input.selection.isCollapsed &&
+                _input.selection.baseOffset == 0))) {
       // 자판(스페이스바 끌기, 화살표)이 커서를 표지 앞으로 옮겼다. 거기서는 지우기가
-      // 아무것도 안 지우므로 표지 뒤로 되돌리되, 자판이 조용해진 뒤에.
+      // 아무것도 안 지우므로 표지 뒤로 되돌리되, 자판이 조용해진 뒤에. 표지를 고른
+      // 것(자판은 지우기 전에 앞 글자를 고른다)은 그대로 둔다 — 지우기도 치기도 된다.
       if (!settled) return _settleLater();
       _input.value = _input.value.copyWith(
         selection: _sentinelSelection,
@@ -936,6 +939,11 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   /// 자판이 방금 값을 보냈다 — 표지를 손대지 않는다.
   bool get _imeBusy => _imeSettle?.isActive ?? false;
+
+  /// 자판이 마지막으로 **글을** 바꾼 뒤 [_imeQuiet] 가 지나지 않았다 — 꾹 누른 지우기처럼
+  /// 이어지는 편집 중이다. 선택만 옮긴 것(자판은 지우기 전에 앞 글자를 고른다)은 세지
+  /// 않는다 — 세면 빈 줄의 지우기가 늘 '이어지는 편집' 이 되어 앞 세트로 못 간다.
+  Timer? _editBurst;
 
   /// 자판(또는 사람)이 입력칸을 바꿨다. 조용해질 때까지 표지 손보기를 미룬다.
   void _settleLater() {
@@ -2310,6 +2318,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     widget.mealText?.removeListener(_onMealRequest);
     _c.removeListener(_onChanged);
     _imeSettle?.cancel();
+    _editBurst?.cancel();
     _input.removeListener(_onInput);
     _input.dispose();
     _focus.dispose();
@@ -3280,10 +3289,15 @@ class _RoutineEditorState extends State<RoutineEditor>
                       // 자리에서 지우기를 눌렀을 수 있다 — 그때 다시 본다([_settle]).
                       TextInputFormatter.withFunction((before, after) {
                         if (before.text == _zw && after.text.isEmpty) {
-                          // 바로 앞까지 자판이 바빴으면(지우기를 꾹 눌러 친 글을
-                          // 지우던 중) 빈 자리 지우기가 아니다.
-                          _erasedSentinel = !_imeBusy;
+                          // 바로 앞까지 글이 바뀌고 있었으면(지우기를 꾹 눌러 친
+                          // 글을 지우던 중) 빈 자리 지우기가 아니다.
+                          _erasedSentinel = !(_editBurst?.isActive ?? false);
+                        } else if (after.text.isNotEmpty) {
+                          // 지운 뒤 글자가 들어왔다 — 치는 중이다.
+                          _erasedSentinel = false;
                         }
+                        _editBurst?.cancel();
+                        _editBurst = Timer(_imeQuiet, () {});
                         _settleLater();
                         return after;
                       }),

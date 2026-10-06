@@ -508,6 +508,52 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
+    testWidgets('자판이 지우기 전에 표지를 먼저 골라도 빈 자리 지우기로 앞 세트로 간다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      tester.testTextInput.log.clear();
+      // UIKit 자판: 앞 글자를 고르고(선택만 바뀐 값), 지운다.
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: ' ',
+          selection: TextSelection(baseOffset: 0, extentOffset: 1),
+        ),
+      );
+      await tester.pump();
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(selection: TextSelection.collapsed(offset: 0)),
+      );
+      await tester.pump();
+      expect(pushed(tester), isEmpty, reason: '고른 선택을 되돌리며 밀지 않는다');
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+      expect(c.activeIndex, 0);
+      expect(field(tester).text, '80kg 5');
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('표지를 지운 직후 쳤다가 곧 지운 것은 빈 자리 지우기가 아니다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      for (final t in ['', 'ㅇ', '']) {
+        tester.testTextInput.updateEditingValue(
+          TextEditingValue(
+            text: t,
+            selection: TextSelection.collapsed(offset: t.length),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+      expect(c.naming, isTrue);
+      expect(find.byType(SetKeypad), findsNothing);
+      expect(field(tester).text, ' ');
+      debugDefaultTargetPlatformOverride = null;
+    });
+
     testWidgets('친 글을 지우기로 다 지워도 표지는 남고, 따로 누른 지우기만 앞 세트로 간다', (tester) async {
       final c = done();
       await ios(tester, c);
@@ -715,6 +761,76 @@ void main() {
             reason: '치는 동안 연결 설정을 다시 보내지 않는다',
           );
           await tester.pumpAndSettle();
+          debugDefaultTargetPlatformOverride = null;
+        },
+      );
+    }
+
+    for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+      testWidgets(
+        '${platform.name}: 표지만 있는 줄을 누르고·길게 누르고·두 번 눌러도 선택과 자판은 그대로다',
+        (tester) async {
+          debugDefaultTargetPlatformOverride = platform;
+          addTearDown(() => debugDefaultTargetPlatformOverride = null);
+          await finishExercise(tester);
+          final before = field(tester).value;
+          tester.testTextInput.log.clear();
+          await tester.tap(input.first);
+          await tester.pump(const Duration(milliseconds: 50));
+          await tester.tap(input.first);
+          await tester.pump(const Duration(milliseconds: 400));
+          await tester.longPress(input.first);
+          await tester.pump(const Duration(milliseconds: 400));
+          expect(field(tester).value, before);
+          expect(pushed(tester), isEmpty);
+          expect(
+            tester.widget<CupertinoTextField>(input.first).focusNode!.hasFocus,
+            isTrue,
+          );
+          await tester.pumpAndSettle();
+          debugDefaultTargetPlatformOverride = null;
+        },
+      );
+
+      testWidgets(
+        '${platform.name}: 이름을 넣고 다음 운동을 끝낼 때까지 맺는 연결이 모두 선택 이동을 받고 제안을 끄지 않는다',
+        (tester) async {
+          debugDefaultTargetPlatformOverride = platform;
+          addTearDown(() => debugDefaultTargetPlatformOverride = null);
+          await finishExercise(tester);
+          final prefix = platform == TargetPlatform.iOS ? ' ' : '\u200B';
+          tester.testTextInput.updateEditingValue(
+            TextEditingValue(
+              text: '$prefix스쿼트',
+              selection: TextSelection.collapsed(offset: prefix.length + 3),
+            ),
+          );
+          await tester.pump();
+          await tester.testTextInput.receiveAction(TextInputAction.done);
+          await tester.pumpAndSettle();
+          pad(tester).onKey('8');
+          pad(tester).onKey('0');
+          await tester.pump();
+          pad(tester).onSubmit();
+          await tester.pump();
+          pad(tester).onKey('5');
+          await tester.pump();
+          pad(tester).onSubmit();
+          await tester.pumpAndSettle();
+          pad(tester).onSubmit();
+          await tester.pumpAndSettle();
+          final configs = [
+            for (final call in tester.testTextInput.log)
+              if (call.method == 'TextInput.setClient')
+                ((call.arguments as List)[1] as Map).cast<String, Object?>(),
+          ];
+          expect(configs, isNotEmpty);
+          for (final config in configs) {
+            if (config['inputType'] case {'name': 'TextInputType.none'})
+              continue;
+            expect(config['enableInteractiveSelection'], isTrue);
+            expect(config['enableSuggestions'], isTrue);
+          }
           debugDefaultTargetPlatformOverride = null;
         },
       );
