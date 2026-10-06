@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -539,4 +540,83 @@ void main() {
     expect(c.blocks.single.name, '벤치프레스');
     expect(find.byKey(const ValueKey('exercise-to-meal')), findsNothing);
   });
+
+  for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+    testWidgets('${platform.name}: 식단 글 모드에서 한글을 칠 때 앱은 자판으로 값을 되밀지 않는다', (
+      tester,
+    ) async {
+      debugDefaultTargetPlatformOverride = platform;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final meal = ValueNotifier<({String text, int? index})?>(null);
+      final meals = <String>[];
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 5')
+        ..closeBlock();
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: CupertinoPageScaffold(
+            resizeToAvoidBottomInset: false,
+            child: SafeArea(
+              child: RoutineEditor(
+                controller: c,
+                ai: _Ai(),
+                mealText: meal,
+                onMealText: (text, index) {
+                  meals.add(text);
+                  return null;
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      meal.value = (text: '', index: null);
+      await tester.pumpAndSettle();
+      final field = tester.widget<CupertinoTextField>(_field).controller!;
+      expect(field.text, isEmpty, reason: '식단 줄에는 표지가 없다');
+      tester.testTextInput.log.clear();
+      // 지우고-넣기(사이에 빈 값)와 조합 범위, 사이마다 프레임.
+      for (final v in [
+        const TextEditingValue(
+          text: 'ㅇ',
+          selection: TextSelection.collapsed(offset: 1),
+        ),
+        const TextEditingValue(selection: TextSelection.collapsed(offset: 0)),
+        const TextEditingValue(
+          text: '아',
+          selection: TextSelection.collapsed(offset: 1),
+          composing: TextRange(start: 0, end: 1),
+        ),
+        const TextEditingValue(
+          text: '아이',
+          selection: TextSelection.collapsed(offset: 2),
+          composing: TextRange(start: 1, end: 2),
+        ),
+        const TextEditingValue(
+          text: '아이스',
+          selection: TextSelection.collapsed(offset: 3),
+        ),
+      ]) {
+        tester.testTextInput.updateEditingValue(v);
+        await tester.pump(const Duration(milliseconds: 16));
+        expect(field.value, v);
+      }
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+        tester.testTextInput.log.where(
+          (call) => call.method == 'TextInput.setEditingState',
+        ),
+        isEmpty,
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(meals, ['아이스']);
+      debugDefaultTargetPlatformOverride = null;
+    });
+  }
 }

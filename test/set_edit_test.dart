@@ -826,8 +826,9 @@ void main() {
           ];
           expect(configs, isNotEmpty);
           for (final config in configs) {
-            if (config['inputType'] case {'name': 'TextInputType.none'})
+            if (config['inputType'] case {'name': 'TextInputType.none'}) {
               continue;
+            }
             expect(config['enableInteractiveSelection'], isTrue);
             expect(config['enableSuggestions'], isTrue);
           }

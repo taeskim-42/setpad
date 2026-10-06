@@ -853,7 +853,11 @@ class _RoutineEditorState extends State<RoutineEditor>
       ? (_input.text.startsWith(_zw) ? _input.text.substring(1) : _input.text)
       : _input.text.replaceAll(_zw, '');
   bool get _wantsSentinel =>
-      _c.naming && !_editingRecord && !_mealMode && _c.blocks.isNotEmpty;
+      _c.naming &&
+      !_editingRecord &&
+      !_mealMode &&
+      !_wantText &&
+      _c.blocks.isNotEmpty;
 
   bool get _mealMode => widget.mealText?.value != null;
 
@@ -894,17 +898,18 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 입력 연결의 설정(enableInteractiveSelection 등)도 표지에 따라 바꾸지 않는다 —
   /// 설정은 연결을 맺을 때만 엔진으로 가서, 표지가 있던 때의 값이 치는 내내 남는다.
   void _syncSentinel({bool settled = false}) {
-    if (!settled && _imeBusy) return;
+    if (!settled && _imeBusy) {
+      // 자판이 바쁜 동안 커서만 표지 앞으로 옮겼다(스페이스바 끌기) — 끌기가 끝날
+      // 때까지 더 기다린다.
+      if (_sentinelCaretLost) _settleLater();
+      return;
+    }
     final composing = _input.value.composing;
     if (composing.isValid && !composing.isCollapsed) return;
     if (_wantsSentinel && _input.text.isEmpty) {
       if (_erasedSentinel) return;
       _input.value = TextEditingValue(text: _zw, selection: _sentinelSelection);
-    } else if (_wantsSentinel &&
-        _input.text == _zw &&
-        (!_input.selection.isValid ||
-            (_input.selection.isCollapsed &&
-                _input.selection.baseOffset == 0))) {
+    } else if (_sentinelCaretLost) {
       // 자판(스페이스바 끌기, 화살표)이 커서를 표지 앞으로 옮겼다. 거기서는 지우기가
       // 아무것도 안 지우므로 표지 뒤로 되돌리되, 자판이 조용해진 뒤에. 표지를 고른
       // 것(자판은 지우기 전에 앞 글자를 고른다)은 그대로 둔다 — 지우기도 치기도 된다.
@@ -936,6 +941,14 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 이만큼 늦는다.
   static const _imeQuiet = Duration(milliseconds: 150);
   Timer? _imeSettle;
+
+  /// 표지만 있는 줄에서 커서가 표지 앞(0)에 있다 — 거기서는 지우기가 아무것도 안
+  /// 지운다.
+  bool get _sentinelCaretLost =>
+      _wantsSentinel &&
+      _input.text == _zw &&
+      (!_input.selection.isValid ||
+          (_input.selection.isCollapsed && _input.selection.baseOffset == 0));
 
   /// 자판이 방금 값을 보냈다 — 표지를 손대지 않는다.
   bool get _imeBusy => _imeSettle?.isActive ?? false;
