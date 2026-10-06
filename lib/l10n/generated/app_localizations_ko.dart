@@ -1499,6 +1499,12 @@ class LKo extends L {
   String get mealAutoUndo => '운동으로 바꾸기';
 
   @override
+  String get exerciseAutoLogged => '운동으로 적었어요';
+
+  @override
+  String get exerciseAutoUndo => '끼니로 바꾸기';
+
+  @override
   String get proxyWrite => '대신 적기';
 
   @override

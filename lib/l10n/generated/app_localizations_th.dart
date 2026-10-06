@@ -1534,6 +1534,12 @@ class LTh extends L {
   String get mealAutoUndo => 'เปลี่ยนเป็นการออกกำลังกาย';
 
   @override
+  String get exerciseAutoLogged => 'บันทึกเป็นการออกกำลังกายแล้ว';
+
+  @override
+  String get exerciseAutoUndo => 'เปลี่ยนเป็นมื้ออาหาร';
+
+  @override
   String get proxyWrite => 'บันทึกแทน';
 
   @override

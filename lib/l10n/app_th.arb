@@ -391,6 +391,8 @@
   "togetherLog": "บันทึก",
   "mealAutoLogged": "บันทึกเป็นมื้ออาหารแล้ว",
   "mealAutoUndo": "เปลี่ยนเป็นการออกกำลังกาย",
+  "exerciseAutoLogged": "บันทึกเป็นการออกกำลังกายแล้ว",
+  "exerciseAutoUndo": "เปลี่ยนเป็นมื้ออาหาร",
   "proxyWrite": "บันทึกแทน",
   "proxyWriting": "กำลังบันทึกของ {name}",
   "proxyDefaultName": "คู่ฝึก",

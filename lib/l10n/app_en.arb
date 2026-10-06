@@ -391,6 +391,8 @@
   "togetherLog": "Log",
   "mealAutoLogged": "Logged as a meal",
   "mealAutoUndo": "Make it exercise",
+  "exerciseAutoLogged": "Logged as exercise",
+  "exerciseAutoUndo": "Make it a meal",
   "proxyWrite": "Log for them",
   "proxyWriting": "Logging {name}'s workout",
   "proxyDefaultName": "Partner",

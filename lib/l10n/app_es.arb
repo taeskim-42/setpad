@@ -391,6 +391,8 @@
   "togetherLog": "Anotar",
   "mealAutoLogged": "Guardado como comida",
   "mealAutoUndo": "Cambiar a ejercicio",
+  "exerciseAutoLogged": "Guardado como ejercicio",
+  "exerciseAutoUndo": "Cambiar a comida",
   "proxyWrite": "Anotar por él",
   "proxyWriting": "Anotando el entrenamiento de {name}",
   "proxyDefaultName": "Compañero",

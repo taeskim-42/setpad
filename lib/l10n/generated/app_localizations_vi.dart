@@ -1547,6 +1547,12 @@ class LVi extends L {
   String get mealAutoUndo => 'Đổi thành bài tập';
 
   @override
+  String get exerciseAutoLogged => 'Đã ghi thành bài tập';
+
+  @override
+  String get exerciseAutoUndo => 'Đổi thành bữa ăn';
+
+  @override
   String get proxyWrite => 'Ghi hộ';
 
   @override

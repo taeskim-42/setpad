@@ -391,6 +391,8 @@
   "togetherLog": "記錄",
   "mealAutoLogged": "已記為一餐",
   "mealAutoUndo": "改為運動",
+  "exerciseAutoLogged": "已記為運動",
+  "exerciseAutoUndo": "改為一餐",
   "proxyWrite": "代為記錄",
   "proxyWriting": "正在記錄{name}的訓練",
   "proxyDefaultName": "對方",

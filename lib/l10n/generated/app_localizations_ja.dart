@@ -1493,6 +1493,12 @@ class LJa extends L {
   String get mealAutoUndo => '運動に変える';
 
   @override
+  String get exerciseAutoLogged => '運動として記録しました';
+
+  @override
+  String get exerciseAutoUndo => '食事に変える';
+
+  @override
   String get proxyWrite => '代わりに記録';
 
   @override

@@ -391,6 +391,8 @@
   "togetherLog": "Ghi",
   "mealAutoLogged": "Đã ghi thành bữa ăn",
   "mealAutoUndo": "Đổi thành bài tập",
+  "exerciseAutoLogged": "Đã ghi thành bài tập",
+  "exerciseAutoUndo": "Đổi thành bữa ăn",
   "proxyWrite": "Ghi hộ",
   "proxyWriting": "Đang ghi buổi tập của {name}",
   "proxyDefaultName": "Bạn tập",

@@ -2455,6 +2455,18 @@ abstract class L {
   /// **'운동으로 바꾸기'**
   String get mealAutoUndo;
 
+  /// No description provided for @exerciseAutoLogged.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동으로 적었어요'**
+  String get exerciseAutoLogged;
+
+  /// No description provided for @exerciseAutoUndo.
+  ///
+  /// In ko, this message translates to:
+  /// **'끼니로 바꾸기'**
+  String get exerciseAutoUndo;
+
   /// No description provided for @proxyWrite.
   ///
   /// In ko, this message translates to:

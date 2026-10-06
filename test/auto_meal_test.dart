@@ -1,5 +1,7 @@
-// 입력 줄 하나로 운동과 끼니를 가른다 (v3 §2). 순서: 운동 근거 → 끼니 근거 →
-// 음식 표 → 모델의 "food" → 운동. 알아서 끼니가 되면 '운동으로 바꾸기' 로 되돌린다.
+// 입력 줄 하나로 운동과 끼니를 가른다 (v3 §2). 순서: 운동 근거(사전·단위) → 분명한
+// 끼니 근거(이름 전체가 음식·양·열량) → 익힌 이름 → 약한 끼니 근거 → 음식 표 → 모델의
+// "food" → 운동. 알아서 끼니가 되면 '운동으로 바꾸기', 근거 없이 운동이 되면 '끼니로
+// 바꾸기' 로 되돌린다.
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
@@ -7,6 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/exercises.dart';
+import 'package:setpad/keypad.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/meal.dart';
 import 'package:setpad/parser.dart';
@@ -99,7 +103,7 @@ void main() {
     ]) {
       expect(mealEvidence(text), isTrue, reason: text);
     }
-    for (final text in ['점심', '김치찌개', '푸시업 20개', '버피 30개', '세트 메뉴']) {
+    for (final text in ['점심', '마라샹궈', '푸시업 20개', '버피 30개', '세트 메뉴']) {
       expect(mealEvidence(text), isFalse, reason: text);
     }
   });
@@ -189,11 +193,60 @@ void main() {
     expect(namedExercises('클린 최고 기록', ['파워클린', '클린']), ['클린']);
   });
 
+  test('이름 전체가 음식이면 분명한 끼니다 — 붙여 쓴 이름·끝말·조사도', () {
+    for (final text in [
+      '아메리카노',
+      '아이스 아메리카노',
+      '아이스아메리카노',
+      '아메리카노를',
+      '아아',
+      '바닐라라떼',
+      '콜드브루',
+      '녹차',
+      '김치찌개',
+      '점심 김치찌개',
+      '김치볶음밥',
+      '닭가슴살 샐러드',
+      '청포도',
+      '갈비탕',
+      '짜장면',
+      '물',
+    ]) {
+      expect(foodName(text), isTrue, reason: text);
+      expect(clearMealEvidence(text), isTrue, reason: text);
+      expect(exerciseEvidence(text, const []), isFalse, reason: text);
+    }
+    // 낱말 하나만 음식이거나 운동 이름에 흔한 끝말은 이름 전체가 음식이 아니다.
+    for (final text in [
+      '치킨윙 머신',
+      '덤벨 측면',
+      '풀업바',
+      '마라샹궈',
+      '민수식 로우',
+      '케이블 크런치',
+      '스쿼트 대회',
+    ]) {
+      expect(foodName(text), isFalse, reason: text);
+    }
+  });
+
+  test('운동 사전의 어떤 이름도 음식 이름이 아니고, 흔한 음식 낱말은 운동 근거가 아니다', () {
+    for (final e in exercises) {
+      for (final k in e.keys) {
+        expect(foodName(k), isFalse, reason: k);
+      }
+    }
+    for (final w in foodWords) {
+      expect(exerciseEvidence(w, const []), isFalse, reason: w);
+    }
+  });
+
   Future<(RoutineEditorController, List<String>)> pump(
     WidgetTester tester,
-    _Ai ai,
-  ) async {
-    final c = RoutineEditorController();
+    _Ai ai, {
+    List<String> history = const [],
+  }) async {
+    final c = RoutineEditorController(history: history);
     final meals = <String>[];
     await tester.pumpWidget(
       CupertinoApp(
@@ -229,10 +282,10 @@ void main() {
   testWidgets('음식 표에 있는 이름은 끼니로 남고, 한 줄에서 운동으로 바꾼다 — 바꾸면 다시 가르지 않는다', (
     tester,
   ) async {
-    final ai = _Ai(table: {'김치찌개'});
+    final ai = _Ai(table: {'마라샹궈'});
     final (c, meals) = await pump(tester, ai);
-    await submit(tester, '김치찌개');
-    expect(meals, ['김치찌개']);
+    await submit(tester, '마라샹궈');
+    expect(meals, ['마라샹궈']);
     expect(c.blocks, isEmpty);
     expect(ai.asked, isEmpty, reason: '음식 표는 모델이 아니다');
     expect(find.textContaining('끼니로 남겼어요'), findsOneWidget);
@@ -240,8 +293,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('meal-undo')));
     await tester.pumpAndSettle();
     expect(meals, isEmpty, reason: '그 끼니를 지운다');
-    expect(c.blocks.single.name, '김치찌개');
-    expect(ai.lookups, ['김치찌개'], reason: '바꾼 뒤에는 표를 다시 보지 않는다');
+    expect(c.blocks.single.name, '마라샹궈');
+    expect(ai.lookups, ['마라샹궈'], reason: '바꾼 뒤에는 표를 다시 보지 않는다');
     expect(find.textContaining('끼니로 남겼어요'), findsNothing);
   });
 
@@ -303,21 +356,23 @@ void main() {
   });
 
   testWidgets('그물이 없으면 표와 모델을 건너뛰고 운동이다 — 포크·나이프로 끼니는 남긴다', (tester) async {
-    final ai = _Ai(online: false, table: {'김치찌개'});
+    final ai = _Ai(online: false, table: {'마라샹궈'});
     final (c, meals) = await pump(tester, ai);
-    await submit(tester, '김치찌개');
+    await submit(tester, '마라샹궈');
     expect(ai.lookups, isEmpty);
     expect(meals, isEmpty);
-    expect(c.blocks.single.name, '김치찌개');
+    expect(c.blocks.single.name, '마라샹궈');
     // 끼니 근거는 그물 없이도 본다.
     c.closeBlock();
     await submit(tester, '라면 1봉지');
     expect(meals, ['라면 1봉지']);
-    await tester.enterText(_field, '김치찌개');
+    await submit(tester, '김치찌개');
+    expect(meals, ['라면 1봉지', '김치찌개'], reason: '흔한 음식 이름은 그물 없이도 끼니다');
+    await tester.enterText(_field, '마라샹궈');
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('meal-button')));
     await tester.pumpAndSettle();
-    expect(meals, ['라면 1봉지', '김치찌개']);
+    expect(meals, ['라면 1봉지', '김치찌개', '마라샹궈']);
   });
 
   testWidgets('운동 이름 줄에 친 글은 포크·나이프를 누르면 끼니 하나로 남고, 입력 줄은 비워진다', (
@@ -436,5 +491,52 @@ void main() {
     expect(meals, ['ข้าวผัด']);
     expect(find.byKey(const ValueKey('meal-undo')), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('운동으로 잘못 익힌 음식 이름(아메리카노)도 다시 치면 끼니다', (tester) async {
+    final ai = _Ai();
+    final (c, meals) = await pump(tester, ai, history: ['아메리카노', '마라샹궈']);
+    await submit(tester, '아메리카노');
+    expect(meals, ['아메리카노']);
+    expect(c.blocks, isEmpty);
+    expect(ai.lookups, isEmpty, reason: '분명한 끼니는 표에 묻지 않는다');
+    // 음식 낱말이 아닌 익힌 이름은 여전히 운동이다 — 표에도 묻지 않는다.
+    await submit(tester, '마라샹궈');
+    expect(c.blocks.single.name, '마라샹궈');
+    expect(ai.lookups, isEmpty);
+    expect(find.byKey(const ValueKey('exercise-to-meal')), findsNothing);
+  });
+
+  testWidgets('근거 없이 만든 운동 칸은 한 줄에서 끼니로 바꾸고, 그 이름을 익히지 않는다', (tester) async {
+    final ai = _Ai(online: false);
+    final (c, meals) = await pump(tester, ai);
+    await submit(tester, '마라샹궈');
+    expect(c.blocks.single.name, '마라샹궈');
+    expect(find.textContaining('운동으로 적었어요'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('exercise-to-meal')));
+    await tester.pumpAndSettle();
+    expect(c.blocks, isEmpty, reason: '빈 운동 칸을 지운다');
+    expect(meals, ['마라샹궈']);
+    expect(c.recentExercises, isNot(contains('마라샹궈')));
+    expect(find.byKey(const ValueKey('meal-undo')), findsOneWidget);
+    expect(find.byKey(const ValueKey('exercise-to-meal')), findsNothing);
+  });
+
+  testWidgets('근거 없이 만든 칸에 세트를 치면 끼니로 바꾸기 줄은 사라진다', (tester) async {
+    final (c, _) = await pump(tester, _Ai(online: false));
+    await submit(tester, '마라샹궈');
+    expect(find.byKey(const ValueKey('exercise-to-meal')), findsOneWidget);
+    // 세트 줄은 키패드로 친다.
+    tester.widget<SetKeypad>(find.byType(SetKeypad)).onKey('8');
+    await tester.pump();
+    expect(find.byKey(const ValueKey('exercise-to-meal')), findsNothing);
+    expect(c.blocks.single.name, '마라샹궈');
+  });
+
+  testWidgets('운동 근거가 있는 칸에는 끼니로 바꾸기 줄이 없다', (tester) async {
+    final (c, _) = await pump(tester, _Ai(online: false));
+    await submit(tester, '벤치프레스');
+    expect(c.blocks.single.name, '벤치프레스');
+    expect(find.byKey(const ValueKey('exercise-to-meal')), findsNothing);
   });
 }

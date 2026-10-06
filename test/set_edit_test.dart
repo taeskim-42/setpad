@@ -357,7 +357,7 @@ void main() {
     });
   });
 
-  group('1-b. iOS — 빈 줄 표지는 골라 둔다', () {
+  group('1-b. iOS — 빈 줄 표지는 공백, 커서는 그 뒤', () {
     RoutineEditorController done() => RoutineEditorController()
       ..addExercise('벤치프레스')
       ..addSet('80 5')
@@ -368,135 +368,189 @@ void main() {
       await pumpEditor(tester, c);
     }
 
-    /// iOS 엔진이 하는 대로: 표시 없는 글이 없으면 고른 범위를, 있으면 표시 범위를
-    /// 바꾼다(FlutterTextInputView setMarkedText). 음절이 넘어가면 앞 음절을 확정한다.
-    Future<void> compose(WidgetTester tester, List<String> steps) async {
-      for (final s in steps) {
-        final committed = s.length > 1 ? s.substring(0, s.length - 1) : '';
+    List<String> pushed(WidgetTester tester) => [
+      for (final call in tester.testTextInput.log)
+        if (call.method == 'TextInput.setEditingState')
+          '${(call.arguments as Map)['text']}',
+    ];
+
+    /// iOS 한글 자판이 하는 대로: marked text 없이, 바뀌는 음절을 하나씩 지우고(지울
+    /// 때마다 값을 보낸다) 새 글을 넣는다. 사이마다 화면이 그려진다. [states] 는 사람이
+    /// 본 글(표지 뒤).
+    Future<void> iosType(WidgetTester tester, List<String> states) async {
+      var old = '';
+      for (final next in states) {
+        var common = 0;
+        while (common < old.length &&
+            common < next.length &&
+            old[common] == next[common]) {
+          common++;
+        }
+        for (var n = old.length - 1; n >= common; n--) {
+          final t = ' ${old.substring(0, n)}';
+          tester.testTextInput.updateEditingValue(
+            TextEditingValue(
+              text: t,
+              selection: TextSelection.collapsed(offset: t.length),
+            ),
+          );
+          await tester.pump();
+          expect(field(tester).text, t);
+        }
+        final t = ' $next';
         tester.testTextInput.updateEditingValue(
           TextEditingValue(
-            text: s,
-            selection: TextSelection.collapsed(offset: s.length),
-            composing: TextRange(start: committed.length, end: s.length),
+            text: t,
+            selection: TextSelection.collapsed(offset: t.length),
           ),
         );
         await tester.pump();
+        expect(field(tester).text, t);
+        old = next;
       }
-      tester.testTextInput.updateEditingValue(
-        TextEditingValue(
-          text: steps.last,
-          selection: TextSelection.collapsed(offset: steps.last.length),
-        ),
-      );
-      await tester.pumpAndSettle();
     }
 
-    testWidgets('빈 줄의 내부 표지는 선택 핸들 없이 유지되고, 한글을 치면 일반 선택이 돌아온다', (
+    testWidgets('운동 완료 뒤 빈 줄은 공백 표지 뒤에 커서가 있고, 누르기가 그 자리를 흔들지 않는다', (
       tester,
     ) async {
       final c = done();
       await ios(tester, c);
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
       expect(field(tester).text, ' ');
-      expect(
-        field(tester).selection,
-        const TextSelection(baseOffset: 0, extentOffset: 1),
-        reason: '커서가 표지 뒤에 있으면 iOS 한글 조합이 앞 음절을 지웠다',
-      );
+      expect(field(tester).selection, const TextSelection.collapsed(offset: 1));
       expect(find.byKey(const ValueKey('sentinel-caret')), findsOneWidget);
+      final textField = tester.widget<CupertinoTextField>(input.first);
+      // 입력 연결의 설정은 표지에 따라 바뀌지 않는다 — 끄면 iOS 엔진이 자판의 선택
+      // 이동을 치는 내내 버린다(1.5.1 회귀). 핸들·메뉴는 화면 쪽 것으로만 감춘다.
+      expect(textField.enableInteractiveSelection, isTrue);
+      expect(textField.contextMenuBuilder, isNull);
+      expect(textField.showCursor, isFalse, reason: '안내문 앞의 커서를 대신 그린다');
+      expect(
+        tester
+            .widget<EditableText>(find.byType(EditableText))
+            .selectionControls,
+        same(emptyTextSelectionControls),
+      );
+      tester.testTextInput.log.clear();
       await tester.tap(input.first);
       await tester.pumpAndSettle();
       await tester.longPress(input.first);
       await tester.pumpAndSettle();
-      final textField = tester.widget<CupertinoTextField>(input.first);
       expect(textField.focusNode!.hasFocus, isTrue);
-      expect(textField.showCursor, isTrue);
-      expect(textField.enableInteractiveSelection, isFalse);
-      expect(textField.contextMenuBuilder, isNull);
-      expect(
-        tester
-                .state<EditableTextState>(find.byType(EditableText))
-                .selectionOverlay
-                ?.handlesAreVisible ??
-            false,
-        isFalse,
-      );
-      expect(find.byKey(const ValueKey('sentinel-caret')), findsOneWidget);
-      // ㅎ → 해 → 햄 → 해머(해 확정, 머 조합): 첫 글자가 골라 둔 표지를 바꾼다.
-      await compose(tester, ['ㅎ', '해', '햄', '해머']);
-      expect(field(tester).text, '해머');
-      expect(
-        tester
-            .widget<CupertinoTextField>(input.first)
-            .enableInteractiveSelection,
-        isTrue,
-      );
-      expect(
-        tester.widget<CupertinoTextField>(input.first).contextMenuBuilder,
-        isNotNull,
-      );
-      expect(find.byKey(const ValueKey('sentinel-caret')), findsNothing);
-      expect(c.naming, isTrue);
-      expect(find.byType(SetKeypad), findsNothing);
+      expect(field(tester).selection, const TextSelection.collapsed(offset: 1));
+      expect(pushed(tester), isEmpty, reason: '누르기가 자판 쪽 선택을 바꾸지 않는다');
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('누르거나 화살표로 커서가 움직여도 표지를 다시 골라 둔다', (tester) async {
-      final c = done();
-      await ios(tester, c);
-      tester.testTextInput.updateEditingValue(
-        const TextEditingValue(
-          text: ' ',
-          selection: TextSelection.collapsed(offset: 1),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(
-        field(tester).selection,
-        const TextSelection(baseOffset: 0, extentOffset: 1),
-      );
-      debugDefaultTargetPlatformOverride = null;
-    });
-
-    testWidgets('빈 자리에서 지우기(골라 둔 표지를 지움)는 여전히 앞 세트로 간다', (tester) async {
-      final c = done();
-      await ios(tester, c);
-      tester.testTextInput.updateEditingValue(
-        const TextEditingValue(selection: TextSelection.collapsed(offset: 0)),
-      );
-      await tester.pumpAndSettle();
-      expect(c.activeIndex, 0);
-      expect(field(tester).text, '80kg 5');
-      debugDefaultTargetPlatformOverride = null;
-    });
-
-    testWidgets('조합이 끝난 빈 줄에서 커서를 옮겨도 지우기와 커서가 유지된다', (tester) async {
+    testWidgets('한글 자판의 지우고-넣기를 그대로 받는다 — 아이스 아메리카노, 표지는 지워지지 않는다', (
+      tester,
+    ) async {
       final c = done();
       await ios(tester, c);
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      tester.testTextInput.log.clear();
+      await iosType(tester, [
+        'ㅇ', '아', '앙', '아이', '아잇', '아이스', '아이스 ', //
+        '아이스 ㅇ', '아이스 아', '아이스 암', '아이스 아메', '아이스 아멜', //
+        '아이스 아메리', '아이스 아메릭', '아이스 아메리카', '아이스 아메리칸', //
+        '아이스 아메리카노',
+      ]);
+      expect(pushed(tester), isEmpty, reason: '치는 동안 앱은 자판으로 아무것도 밀지 않는다');
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(field(tester).text, ' 아이스 아메리카노');
+      expect(pushed(tester), isEmpty);
+      expect(tester.widget<CupertinoTextField>(input.first).showCursor, isTrue);
+      expect(
+        tester
+            .widget<EditableText>(find.byType(EditableText))
+            .selectionControls,
+        isNot(same(emptyTextSelectionControls)),
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(c.blocks.last.name, '아이스 아메리카노');
+      debugDefaultTargetPlatformOverride = null;
+    });
 
-      for (final offset in [0, 1]) {
-        tester.testTextInput.updateEditingValue(
-          TextEditingValue(
-            text: ' ',
-            selection: TextSelection.collapsed(offset: offset),
-            composing: TextRange.collapsed(offset),
-          ),
-        );
-        await tester.pump();
-        expect(
-          field(tester).selection,
-          const TextSelection(baseOffset: 0, extentOffset: 1),
-        );
-        expect(find.byKey(const ValueKey('sentinel-caret')), findsOneWidget);
-      }
+    testWidgets('커서가 표지 앞으로 가면 자판이 조용해진 뒤 한 번만 표지 뒤로 되돌린다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      tester.testTextInput.log.clear();
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: ' ',
+          selection: TextSelection.collapsed(offset: 0),
+        ),
+      );
+      await tester.pump();
+      expect(field(tester).selection, const TextSelection.collapsed(offset: 0));
+      expect(pushed(tester), isEmpty);
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(field(tester).selection, const TextSelection.collapsed(offset: 1));
+      expect(pushed(tester), [' ']);
+      debugDefaultTargetPlatformOverride = null;
+    });
 
+    testWidgets('빈 자리에서 지우기(표지를 지움)는 자판이 조용해진 뒤 앞 세트로 간다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
       tester.testTextInput.updateEditingValue(
         const TextEditingValue(selection: TextSelection.collapsed(offset: 0)),
       );
+      await tester.pump();
+      expect(c.activeIndex, -1, reason: '그 자리에서 가지 않는다');
+      await tester.pump(const Duration(milliseconds: 200));
       await tester.pumpAndSettle();
       expect(c.activeIndex, 0);
       expect(field(tester).text, '80kg 5');
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('친 글을 지우기로 다 지워도 표지는 남고, 따로 누른 지우기만 앞 세트로 간다', (tester) async {
+      final c = done();
+      await ios(tester, c);
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      tester.testTextInput.log.clear();
+      await iosType(tester, ['ㅅ', '스', '']);
+      expect(field(tester).text, ' ');
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(pushed(tester), isEmpty, reason: '표지가 남아 있어 다시 심을 일이 없다');
+      expect(c.naming, isTrue);
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(selection: TextSelection.collapsed(offset: 0)),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+      expect(field(tester).text, '80kg 5');
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('지우기를 꾹 눌러 친 글과 표지를 잇달아 지우면 앞 세트로 가지 않고 표지만 다시 심는다', (
+      tester,
+    ) async {
+      final c = done();
+      await ios(tester, c);
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      await iosType(tester, ['ㅅ', '스']);
+      await tester.pump(const Duration(milliseconds: 300));
+      // 자동 반복: 100ms 마다 한 글자씩.
+      for (final t in [' ', '']) {
+        tester.testTextInput.updateEditingValue(
+          TextEditingValue(
+            text: t,
+            selection: TextSelection.collapsed(offset: t.length),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+      expect(c.naming, isTrue, reason: '꾹 지우기는 빈 자리 지우기가 아니다');
+      expect(find.byType(SetKeypad), findsNothing);
+      expect(field(tester).text, ' ');
+      expect(field(tester).selection, const TextSelection.collapsed(offset: 1));
       debugDefaultTargetPlatformOverride = null;
     });
 
@@ -508,6 +562,7 @@ void main() {
       tester.testTextInput.updateEditingValue(
         const TextEditingValue(selection: TextSelection.collapsed(offset: 0)),
       );
+      await tester.pump(const Duration(milliseconds: 200));
       await tester.pumpAndSettle();
       expect(field(tester).text, '80kg 5');
       expect(field(tester).selection, const TextSelection.collapsed(offset: 6));
@@ -528,7 +583,7 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('표지 뒤에서 시작한 한글 조합도 음절과 공백을 보존한다', (tester) async {
+    testWidgets('표지 뒤에서 조합하는 한글도 음절과 공백을 보존한다', (tester) async {
       final c = done();
       await ios(tester, c);
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
@@ -549,57 +604,221 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('한글 조합 중간의 임시 삭제 때 표지를 다시 넣지 않는다', (tester) async {
+    testWidgets('자판이 표지까지 통째로 바꿔 넣어도(임시 빈 값 포함) 앱은 끼어들지 않는다', (tester) async {
       final c = done();
       await ios(tester, c);
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
-
-      tester.testTextInput.updateEditingValue(
-        const TextEditingValue(
-          text: 'ㅎ',
-          selection: TextSelection.collapsed(offset: 1),
-        ),
-      );
-      await tester.pump();
-      expect(field(tester).text, 'ㅎ');
-
-      tester.testTextInput.updateEditingValue(const TextEditingValue());
-      expect(field(tester).text, isEmpty);
-      tester.testTextInput.updateEditingValue(
-        const TextEditingValue(
-          text: '해',
-          selection: TextSelection.collapsed(offset: 1),
-        ),
-      );
-      await tester.pump();
-      expect(field(tester).text, '해');
-
-      tester.testTextInput.updateEditingValue(const TextEditingValue());
-      expect(field(tester).text, isEmpty);
-      tester.testTextInput.updateEditingValue(
-        const TextEditingValue(
-          text: '해머',
-          selection: TextSelection.collapsed(offset: 2),
-        ),
-      );
+      tester.testTextInput.log.clear();
+      for (final t in ['ㅎ', '', '해', '', '해머']) {
+        tester.testTextInput.updateEditingValue(
+          TextEditingValue(
+            text: t,
+            selection: TextSelection.collapsed(offset: t.length),
+          ),
+        );
+        await tester.pump();
+        expect(field(tester).text, t);
+      }
+      await tester.pump(const Duration(milliseconds: 200));
       await tester.pumpAndSettle();
       expect(field(tester).text, '해머');
+      expect(pushed(tester), isEmpty);
       expect(c.naming, isTrue);
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('영어도 첫 글자가 표지를 바꾼다', (tester) async {
+    testWidgets('영어도 표지 뒤에 친다', (tester) async {
       final c = done();
       await ios(tester, c);
       tester.testTextInput.updateEditingValue(
         const TextEditingValue(
-          text: 'c',
-          selection: TextSelection.collapsed(offset: 1),
+          text: ' c',
+          selection: TextSelection.collapsed(offset: 2),
         ),
       );
       await tester.pumpAndSettle();
-      expect(field(tester).text, 'c');
+      expect(field(tester).text, ' c');
       expect(find.byKey(const ValueKey('sentinel-caret')), findsNothing);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(c.blocks.last.name, 'c');
+      debugDefaultTargetPlatformOverride = null;
+    });
+  });
+
+  /// 2026-10-06 사용자 보고(1.5.1): "아이스 아메리카노" 를 치면 "아아아이이이스스스".
+  /// 앱이 치는 도중에 자판 쪽 상태를 바꾸지 않는다 — 입력 연결의 설정도, 입력칸의 값도.
+  group('1-c. 치는 동안 자판이 보는 것은 앱이 바꾸지 않는다', () {
+    Map<String, Object?> lastConfig(WidgetTester tester) {
+      Map<String, Object?>? config;
+      for (final call in tester.testTextInput.log) {
+        if (call.method == 'TextInput.setClient') {
+          config = ((call.arguments as List)[1] as Map).cast<String, Object?>();
+        } else if (call.method == 'TextInput.updateConfig') {
+          config = (call.arguments as Map).cast<String, Object?>();
+        }
+      }
+      return config!;
+    }
+
+    List<String> pushed(WidgetTester tester) => [
+      for (final call in tester.testTextInput.log)
+        if (call.method == 'TextInput.setEditingState')
+          '${(call.arguments as Map)['text']}',
+    ];
+
+    Future<void> finishExercise(WidgetTester tester) async {
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 5');
+      await pumpEditor(tester, c);
+      // 키패드의 완료로 운동을 끝낸다 — 시스템 자판 연결이 이때 새로 맺어진다.
+      pad(tester).onSubmit();
+      await tester.pumpAndSettle();
+      expect(c.naming, isTrue);
+    }
+
+    for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
+      testWidgets(
+        '${platform.name}: 운동을 끝낸 빈 이름 줄의 연결도 선택 이동을 받고, 제안을 끄지 않는다',
+        (tester) async {
+          debugDefaultTargetPlatformOverride = platform;
+          await finishExercise(tester);
+          expect(
+            field(tester).text,
+            platform == TargetPlatform.iOS ? ' ' : '​',
+          );
+          final config = lastConfig(tester);
+          // false 면 iOS 엔진이 자판의 setSelectedTextRange 를 모두 버린다.
+          expect(config['enableInteractiveSelection'], isTrue);
+          // false 면 Android 가 칸을 VISIBLE_PASSWORD 로 만들어 Gboard 가 한글을 끈다.
+          expect(config['enableSuggestions'], isTrue);
+          expect(config['autocorrect'], isFalse);
+          tester.testTextInput.log.clear();
+          for (final t in ['ㅅ', '스', '스쿼', '스쿼트']) {
+            tester.testTextInput.updateEditingValue(
+              TextEditingValue(
+                text: t,
+                selection: TextSelection.collapsed(offset: t.length),
+                composing: TextRange(start: t.length - 1, end: t.length),
+              ),
+            );
+            await tester.pump();
+          }
+          expect(
+            tester.testTextInput.log.where(
+              (c) =>
+                  c.method == 'TextInput.updateConfig' ||
+                  c.method == 'TextInput.setClient',
+            ),
+            isEmpty,
+            reason: '치는 동안 연결 설정을 다시 보내지 않는다',
+          );
+          await tester.pumpAndSettle();
+          debugDefaultTargetPlatformOverride = null;
+        },
+      );
+    }
+
+    testWidgets('iOS 한글 자판의 지우고-넣기 사이에 화면이 그려져도 앱은 자판으로 값을 되밀지 않는다', (
+      tester,
+    ) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      await finishExercise(tester);
+      tester.testTextInput.log.clear();
+      // ㅇ ㅏ ㅇ ㅣ ㅅ ㅡ — 음절을 바꿀 때마다 지우고 넣는다. 표지 뒤라 지운 값은 ' '
+      // 이다. 사이마다 프레임.
+      for (final t in [
+        ' ㅇ',
+        ' ',
+        ' 아',
+        ' ',
+        ' 앙',
+        ' ',
+        ' 아이',
+        ' 아',
+        ' 아잇',
+        ' 아',
+        ' 아이스',
+      ]) {
+        tester.testTextInput.updateEditingValue(
+          TextEditingValue(
+            text: t,
+            selection: TextSelection.collapsed(offset: t.length),
+          ),
+        );
+        await tester.pump();
+        expect(field(tester).text, t, reason: '자판이 보낸 값 그대로');
+      }
+      expect(pushed(tester), isEmpty, reason: '치는 도중 표지를 되밀면 자판의 조합이 흔들린다');
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+      expect(field(tester).text, ' 아이스');
+      expect(pushed(tester), isEmpty);
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('이름 줄의 첫 표지는 연결을 맺을 때 이미 들어 있고, 그 뒤로는 되밀지 않는다', (tester) async {
+      await finishExercise(tester);
+      final log = tester.testTextInput.log;
+      final client = log.lastIndexWhere(
+        (c) => c.method == 'TextInput.setClient',
+      );
+      expect(client, greaterThanOrEqualTo(0));
+      final first = log
+          .skip(client)
+          .firstWhere((c) => c.method == 'TextInput.setEditingState');
+      expect((first.arguments as Map)['text'], '​');
+      expect(pushed(tester).where((t) => t == '​'), hasLength(1));
+    });
+
+    testWidgets('Android: 자판이 조합 영역을 쥔 채 쉬어도 앱은 값을 되밀지 않는다', (tester) async {
+      await finishExercise(tester);
+      tester.testTextInput.log.clear();
+      for (final value in [
+        const TextEditingValue(
+          text: '​아',
+          selection: TextSelection.collapsed(offset: 2),
+          composing: TextRange(start: 1, end: 2),
+        ),
+        const TextEditingValue(
+          text: '​Bench',
+          selection: TextSelection.collapsed(offset: 6),
+          composing: TextRange(start: 1, end: 6),
+        ),
+      ]) {
+        tester.testTextInput.updateEditingValue(value);
+        await tester.pump(const Duration(seconds: 1));
+        expect(field(tester).value, value);
+      }
+      expect(pushed(tester), isEmpty);
+    });
+
+    testWidgets('iOS: 친 글을 다 지우고 자판이 조용해지면 표지를 다시 심고, 그 표지를 지우면 앞 세트로 간다', (
+      tester,
+    ) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      await finishExercise(tester);
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: '아',
+          selection: TextSelection.collapsed(offset: 1),
+        ),
+      );
+      await tester.pump();
+      tester.testTextInput.updateEditingValue(const TextEditingValue());
+      await tester.pump();
+      expect(field(tester).text, isEmpty, reason: '곧바로 심지 않는다');
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(field(tester).text, ' ');
+      expect(field(tester).selection, const TextSelection.collapsed(offset: 1));
+      // 표지를 지운다 = 빈 자리에서 지우기.
+      tester.testTextInput.updateEditingValue(const TextEditingValue());
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+      expect(field(tester).text, '80kg 5');
       debugDefaultTargetPlatformOverride = null;
     });
   });

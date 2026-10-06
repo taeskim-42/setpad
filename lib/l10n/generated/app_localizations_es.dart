@@ -1576,6 +1576,12 @@ class LEs extends L {
   String get mealAutoUndo => 'Cambiar a ejercicio';
 
   @override
+  String get exerciseAutoLogged => 'Guardado como ejercicio';
+
+  @override
+  String get exerciseAutoUndo => 'Cambiar a comida';
+
+  @override
   String get proxyWrite => 'Anotar por él';
 
   @override

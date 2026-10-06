@@ -1351,6 +1351,8 @@
   "togetherLog": "기록",
   "mealAutoLogged": "끼니로 남겼어요",
   "mealAutoUndo": "운동으로 바꾸기",
+  "exerciseAutoLogged": "운동으로 적었어요",
+  "exerciseAutoUndo": "끼니로 바꾸기",
   "proxyWrite": "대신 적기",
   "proxyWriting": "{name} 님의 기록을 적는 중",
   "@proxyWriting": {
