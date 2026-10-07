@@ -1292,6 +1292,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                           for (final m in n.meals.reversed)
                             if (m.text != null) ?m.currentText,
                       }.take(24).toList(),
+                      doneExercises: () => widget.store.doneExercises,
                       initialDraft: widget.note.draft,
                       onDraftChanged: (draft) =>
                           widget.store.updateDraft(widget.note, draft),

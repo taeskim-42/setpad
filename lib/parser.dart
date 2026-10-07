@@ -519,16 +519,36 @@ String? learnableName(String title) =>
     ? typedName(title, '')
     : title.trim();
 
-/// 친 줄에 **운동이라는 근거**가 있는가. 입력 줄 하나로 운동과 끼니를 가를 때
-/// 맨 먼저 본다 — '케이블 크런치' 를 과자로 읽으면 기록이 바뀐다.
+/// 수를 뺀 이름 **전체**가 운동 이름인가 — 판정자에게 묻지 않고 운동으로 둘 만큼
+/// 분명한 것만이다.
+///
+/// - 사전 이름(여덟 언어·별칭·초성), 또는 이름 전체가 사전 이름의 앞부분('벤치',
+///   '데드') — 로마자는 네 글자부터('ham' 은 햄이지 해머컬이 아니다).
+/// - 사람이 세트를 적은 이름([done]). 음식에만 쓰는 양([foodUnits])이 있으면 보지 않는다.
+///
+/// 낱말 하나가 운동 낱말인 것('크런치 초콜릿', 'walking taco', 'chips and dip')이나 운동
+/// 단위만 있는 것('모둠회 1세트', 'Chicken McNuggets 2x10')은 아니다 — 판정자가 가르고,
+/// 판정이 없을 때만 [exerciseEvidence] 가 본다(2026-10-07 실측에서 이 규칙들이 판정자보다
+/// 먼저 끼니 9줄을 운동으로 만들었다).
+bool exerciseName(String text, Iterable<String> done) {
+  final name = learnableName(text);
+  if (name == null) return false;
+  final whole = searchKey(name);
+  if (_exerciseKeys.contains(whole) ||
+      _aliasWords.contains(whole) ||
+      (!foodUnits.hasMatch(text) && done.any((n) => searchKey(n) == whole))) {
+    return true;
+  }
+  final latin = RegExp(r'^[a-z]+$').hasMatch(whole);
+  return whole.length >= (latin ? 4 : 2) &&
+      _exerciseKeys.any((k) => k.startsWith(whole));
+}
+
+/// 친 줄에 **운동이라는 근거**가 있는가 — 판정자(Solar·음식 표)가 답하지 못했을 때
+/// 쓴다(연결 없음, 시간 초과, AI 도움 꺼짐). [exerciseName] 에 더해:
 ///
 /// - 운동 단위: 수 뒤의 kg·lb·회·세트·rep, AxB, 그리고 bpm·타바타·라운드. 이름이 흔한 음식
 ///   낱말 하나면([foodWords]) 아니다 — '치킨 1세트'.
-/// - 수를 뺀 이름이 사전 이름(여덟 언어·별칭·초성)이다. 이름 전체가 사전 이름의
-///   앞부분이어도('벤치', '데드') — 로마자는 네 글자부터('ham' 은 햄이지 해머컬이 아니다).
-/// - 수를 뺀 이름 **전체**가 익힌 이름([learned])이다. 낱말 묶음으로는 보지 않고, 음식에만
-///   쓰는 양([foodUnits])이 있으면 보지 않는다 — 표에 없는 음식이 한 번 운동 칸이 되어
-///   익혀졌어도 '삶은 계란 2개'·'커피 1잔' 까지 운동이 되지 않게.
 /// - 이름 속 낱말 묶음이 사전 이름이다('아침 러닝'), 또는 종목·유산소 낱말이 있다
 ///   ('저녁 요가', '트레드밀 300kcal' — 저녁은 때이고 kcal 은 소모 열량이다).
 bool exerciseEvidence(String text, Iterable<String> learned) {
@@ -536,17 +556,7 @@ bool exerciseEvidence(String text, Iterable<String> learned) {
   final whole = searchKey(name ?? '');
   if (_exerciseUnits.hasMatch(text) && !foodWords.contains(whole)) return true;
   if (name == null) return false;
-  if (_exerciseKeys.contains(whole) ||
-      _aliasWords.contains(whole) ||
-      (!foodUnits.hasMatch(text) &&
-          learned.any((n) => searchKey(n) == whole))) {
-    return true;
-  }
-  final latin = RegExp(r'^[a-z]+$').hasMatch(whole);
-  if (whole.length >= (latin ? 4 : 2) &&
-      _exerciseKeys.any((k) => k.startsWith(whole))) {
-    return true;
-  }
+  if (exerciseName(text, learned)) return true;
   final raw = [
     for (final w in name.split(RegExp(r'\s+')))
       if (searchKey(w) case final k when k.isNotEmpty) k,
@@ -617,18 +627,6 @@ const foodWords = {
   'cookies', 'cake', 'brownie', 'granola', 'oatmeal', 'cereal', 'yogurt', //
   'almonds', 'banana', 'apple', 'protein', 'shake',
 };
-
-/// 이 말로 끝나는 붙여 쓴 이름도 음식이다('아이스아메리카노', '바닐라라떼', '김치볶음밥',
-/// '닭가슴살샐러드'). 한글만 — 운동 사전(여덟 언어 1,457 이름)에 이 말로 끝나는 이름은
-/// 없다. '면'·'차'·'티'·'바'·'회'·'전' 처럼 운동 이름에도 흔한 한 글자('측면', '1차',
-/// '풀업바', '대회', '도전')는 넣지 않는다.
-const foodEndings = [
-  '라떼', '라테', '아메리카노', '커피', '에이드', '스무디', '주스', '쥬스', '밀크티', '버블티', //
-  '프라푸치노', '마끼아또', '찌개', '볶음', '덮밥', '국밥', '김밥', '초밥', '라면', '짬뽕', '짜장면', //
-  '냉면', '쫄면', '국수', '우동', '파스타', '스파게티', '리조또', '피자', '버거', '샐러드', '샌드위치', //
-  '토스트', '케이크', '도넛', '쿠키', '치킨', '전골', '구이', '튀김', '만두', '떡볶이', '돈까스', //
-  '돈가스', '카레', '도시락', '요거트', '스테이크', '탕', '죽', '국', '밥', '빵', '떡', '찜', //
-];
 
 /// 운동을 가리키는 낱말('아침 루틴 A', '하체 운동', 'leg day workout'). 낱말 전체일
 /// 때만이다 — '닭가슴살' 의 가슴은 아니다.

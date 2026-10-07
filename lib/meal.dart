@@ -476,11 +476,12 @@ bool _aside(String part) => part
     .replaceAll(RegExp(r'[\s().~!?·:=\[\]（）：-]'), '')
     .isEmpty;
 
-/// 친 줄에 **끼니라는 근거**가 있는가. 운동 근거([exerciseEvidence])를 먼저 보고,
-/// 그다음에 본다: 열량(kcal·칼로리), 음식에만 쓰는 양([foodUnits]), 끼니 낱말(아침·점심·
-/// 저녁·간식·야식)에 다른 말이 붙은 글, 흔한 음식 낱말(밥·계란·커피·맥주·salad…).
+/// 친 줄에 **끼니라는 근거**가 있는가 — 판정자(Solar·음식 표)가 답하지 못했을 때만
+/// 쓴다(연결 없음, 시간 초과). 열량(kcal·칼로리), 음식에만 쓰는 양([foodUnits]), 끼니
+/// 낱말(아침·점심·저녁·간식·야식)에 다른 말이 붙은 글, 흔한 음식 낱말(밥·계란·커피·
+/// 맥주·salad…).
 bool mealEvidence(String text) {
-  if (clearMealEvidence(text)) return true;
+  if (_kcal.hasMatch(text) || clearMealEvidence(text)) return true;
   final bare = [
     for (final w in text.trim().split(RegExp(r'\s+')))
       w.replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), '').toLowerCase(),
@@ -490,42 +491,10 @@ bool mealEvidence(String text) {
       [...bare, ...words].any(foodWords.contains);
 }
 
-/// 끼니라는 근거가 **분명한가** — 열량, 음식에만 쓰는 양, 또는 이름 전체가 음식이다
-/// ([foodName]). 운동 사전·운동 단위 다음에, **익힌 운동 이름보다 먼저** 본다: 음식
-/// 이름이 한 번 운동 칸이 되었다고(그물이 없었거나 잘못 눌렀거나) 그 뒤로 늘 운동이면
-/// 안 된다 — 저장된 칸 이름은 앱을 켤 때마다 다시 익힌다.
-bool clearMealEvidence(String text) =>
-    _kcal.hasMatch(text) || foodUnits.hasMatch(text) || foodName(text);
-
-/// 수를 뺀 이름 **전체**가 음식인가 — 흔한 음식 낱말 그대로이거나([foodWords]), 음식
-/// 낱말·끝말로 끝나는 붙여 쓴 한글 이름이다('아이스 아메리카노', '바닐라라떼',
-/// '점심 김치찌개', '닭가슴살 샐러드'). 이름 속 낱말 하나만 음식인 것('치킨윙 머신')은
-/// 아니다 — 그것은 [mealEvidence] 의 약한 근거다.
-bool foodName(String text) {
-  final name = learnableName(text);
-  if (name == null) return false;
-  final key = searchKey(
-    name,
-  ).replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), '');
-  // 조사를 뗀 것과 안 뗀 것 둘 다 본다 — '청포도' 의 '도' 는 조사가 아니다.
-  for (final k in {key, stripParticle(key)}) {
-    if (k.isEmpty) continue;
-    if (foodWords.contains(k)) return true;
-    if (RegExp(r'^[가-힣]+$').hasMatch(k) &&
-        _hangulFoodEndings.any((e) => k.length > e.length && k.endsWith(e))) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/// 음식 끝말과, 두 글자 넘는 한글 음식 낱말('아메리카노', '닭가슴살'). 한 글자 낱말
-/// ('회'·'귤')은 끝말로 보지 않는다 — [foodEndings] 에 넣은 것만.
-final _hangulFoodEndings = {
-  ...foodEndings,
-  for (final w in foodWords)
-    if (w.length >= 2 && RegExp(r'^[가-힣]+$').hasMatch(w)) w,
-};
+/// 끼니라는 근거가 **분명한가** — 음식에만 쓰는 양(g·ml·공기·인분·잔…). 운동에는 이
+/// 단위가 없어 뜻이 하나뿐이라 판정자에게 묻지 않는다. 열량(kcal)은 소모 열량일 수도
+/// 있어 여기 넣지 않는다('트레드밀 300kcal').
+bool clearMealEvidence(String text) => foodUnits.hasMatch(text);
 
 final _kcal = RegExp(r'kcal|칼로리|㎉', caseSensitive: false);
 

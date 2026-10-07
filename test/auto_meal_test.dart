@@ -10,7 +10,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/editor.dart';
-import 'package:setpad/exercises.dart';
 import 'package:setpad/keypad.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/meal.dart';
@@ -18,11 +17,19 @@ import 'package:setpad/parser.dart';
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/record_query.dart';
 
-/// 음식 표와 모델 대신 대답한다. [online] 이 false 면 그물이 없는 것이다.
+/// 판정자·음식 표와 모델 대신 대답한다. [online] 이 false 면 그물이 없는 것이다.
+/// [judge] 는 판정자(Solar)의 답, [table] 은 음식 표에 정확히 있는 이름 — 둘 다
+/// 없으면 판정 없음(null).
 class _Ai extends RecordAi {
-  _Ai({this.online = true, this.table = const {}, this.answer});
+  _Ai({
+    this.online = true,
+    this.table = const {},
+    this.judge = const {},
+    this.answer,
+  });
   final bool online;
   final Set<String> table;
+  final Map<String, bool> judge;
   final Map<String, Object?>? answer;
   final lookups = <String>[];
   final asked = <String>[];
@@ -31,9 +38,9 @@ class _Ai extends RecordAi {
   bool get supported => online;
 
   @override
-  Future<bool> isFood(String text) async {
+  Future<MealCheck> isMeal(String text) async {
     lookups.add(text);
-    return table.contains(text);
+    return (judged: judge[text], table: table.contains(text));
   }
 
   @override
@@ -194,49 +201,7 @@ void main() {
     expect(namedExercises('클린 최고 기록', ['파워클린', '클린']), ['클린']);
   });
 
-  test('이름 전체가 음식이면 분명한 끼니다 — 붙여 쓴 이름·끝말·조사도', () {
-    for (final text in [
-      '아메리카노',
-      '아이스 아메리카노',
-      '아이스아메리카노',
-      '아메리카노를',
-      '아아',
-      '바닐라라떼',
-      '콜드브루',
-      '녹차',
-      '김치찌개',
-      '점심 김치찌개',
-      '김치볶음밥',
-      '닭가슴살 샐러드',
-      '청포도',
-      '갈비탕',
-      '짜장면',
-      '물',
-    ]) {
-      expect(foodName(text), isTrue, reason: text);
-      expect(clearMealEvidence(text), isTrue, reason: text);
-      expect(exerciseEvidence(text, const []), isFalse, reason: text);
-    }
-    // 낱말 하나만 음식이거나 운동 이름에 흔한 끝말은 이름 전체가 음식이 아니다.
-    for (final text in [
-      '치킨윙 머신',
-      '덤벨 측면',
-      '풀업바',
-      '마라샹궈',
-      '민수식 로우',
-      '케이블 크런치',
-      '스쿼트 대회',
-    ]) {
-      expect(foodName(text), isFalse, reason: text);
-    }
-  });
-
-  test('운동 사전의 어떤 이름도 음식 이름이 아니고, 흔한 음식 낱말은 운동 근거가 아니다', () {
-    for (final e in exercises) {
-      for (final k in e.keys) {
-        expect(foodName(k), isFalse, reason: k);
-      }
-    }
+  test('흔한 음식 낱말은 운동 근거가 아니다', () {
     for (final w in foodWords) {
       expect(exerciseEvidence(w, const []), isFalse, reason: w);
     }
@@ -246,6 +211,7 @@ void main() {
     WidgetTester tester,
     _Ai ai, {
     List<String> history = const [],
+    List<String> done = const [],
   }) async {
     final c = RoutineEditorController(history: history);
     final meals = <String>[];
@@ -265,6 +231,7 @@ void main() {
                 meals.add(text);
                 return () => meals.remove(text);
               },
+              doneExercises: () => done,
             ),
           ),
         ),
@@ -299,46 +266,53 @@ void main() {
     expect(find.textContaining('끼니로 남겼어요'), findsNothing);
   });
 
-  testWidgets('끼니 근거가 있으면 표도 모델도 묻지 않고 끼니다 — 다음에 치면 되돌리기 줄은 사라진다', (
-    tester,
-  ) async {
-    final ai = _Ai();
-    final (c, meals) = await pump(tester, ai);
-    await submit(tester, '점심 김밥 한 줄');
-    expect(meals, ['점심 김밥 한 줄']);
-    expect(ai.lookups, isEmpty);
-    expect(ai.asked, isEmpty);
-    await tester.enterText(_field, '벤');
-    await tester.pump();
-    expect(find.textContaining('끼니로 남겼어요'), findsNothing);
-    expect(c.blocks, isEmpty);
-  });
+  testWidgets(
+    '분명한 끼니(열량·음식 양)는 묻지 않고, 끼니 낱말은 판정이 없을 때만 쓴다 — 다음에 치면 되돌리기 줄은 사라진다',
+    (tester) async {
+      final ai = _Ai();
+      final (c, meals) = await pump(tester, ai);
+      await submit(tester, '삼겹살 2인분');
+      expect(meals, ['삼겹살 2인분']);
+      expect(ai.lookups, isEmpty, reason: '음식에만 쓰는 양은 뜻이 하나뿐이다');
+      await submit(tester, '점심 김밥 한 줄');
+      expect(meals, ['삼겹살 2인분', '점심 김밥 한 줄']);
+      expect(ai.lookups, ['점심 김밥 한 줄'], reason: '판정자가 먼저, 낱말 목록은 답이 없을 때');
+      expect(ai.asked, isEmpty);
+      await tester.enterText(_field, '벤');
+      await tester.pump();
+      expect(find.textContaining('끼니로 남겼어요'), findsNothing);
+      expect(c.blocks, isEmpty);
+    },
+  );
 
-  testWidgets('운동 근거가 먼저다 — 케이블 크런치·벤치 80kg 5x5 는 표를 보지 않는다', (tester) async {
-    final ai = _Ai(
-      table: {'케이블 크런치'},
-      answer: {
-        'exercises': [
-          {
-            'text': '벤치 80kg 5x5',
-            'name': '벤치',
-            'weight': 80,
-            'repsPerSet': 5,
-            'totalSets': 5,
-          },
-        ],
-        'food': true,
-      },
-    );
-    final (c, meals) = await pump(tester, ai);
-    await submit(tester, '케이블 크런치');
-    expect(c.blocks.single.name, '케이블 크런치');
-    c.closeBlock();
-    await submit(tester, '벤치 80kg 5x5');
-    expect(c.blocks.last.setup?.weight, 80);
-    expect(ai.lookups, isEmpty);
-    expect(meals, isEmpty);
-  });
+  testWidgets(
+    '운동 근거가 표보다 먼저다 — 판정이 없으면 케이블 크런치는 같은 이름의 과자가 표에 있어도 운동, 벤치 80kg 5x5 는 묻지도 않는다',
+    (tester) async {
+      final ai = _Ai(
+        table: {'케이블 크런치'},
+        answer: {
+          'exercises': [
+            {
+              'text': '벤치 80kg 5x5',
+              'name': '벤치',
+              'weight': 80,
+              'repsPerSet': 5,
+              'totalSets': 5,
+            },
+          ],
+          'food': true,
+        },
+      );
+      final (c, meals) = await pump(tester, ai);
+      await submit(tester, '케이블 크런치');
+      expect(c.blocks.single.name, '케이블 크런치');
+      c.closeBlock();
+      await submit(tester, '벤치 80kg 5x5');
+      expect(c.blocks.last.setup?.weight, 80);
+      expect(ai.lookups, ['케이블 크런치']);
+      expect(meals, isEmpty);
+    },
+  );
 
   testWidgets('수가 든 줄: 표에 없으면 모델이 읽고, 음식이라고 답하면 끼니다', (tester) async {
     final ai = _Ai(answer: {'exercises': [], 'unparsed': [], 'food': true});
@@ -435,7 +409,7 @@ void main() {
     );
     await tester.enterText(_field, '민수식 로우');
     await tester.testTextInput.receiveAction(TextInputAction.done);
-    await tester.pump(const Duration(milliseconds: 1600));
+    await tester.pump(RecordAi.decideWait + const Duration(milliseconds: 100));
     expect(paths, ['/api/foods/match']);
     expect(c.blocks.single.name, '민수식 로우');
     await tester.pumpAndSettle();
@@ -457,7 +431,7 @@ void main() {
     await submit(tester, name);
     expect(c.blocks, isEmpty);
     expect(find.textContaining('120'), findsOneWidget);
-    expect(ai.lookups, isEmpty, reason: '긴 이름은 표에 묻지 않는다');
+    expect(ai.lookups, [line, name], reason: '200자까지는 판정자가 끼니인지 먼저 본다');
   });
 
   testWidgets('좁은 화면·긴 문구(태국어)에서도 되돌리기 줄이 넘치지 않는다', (tester) async {
@@ -494,18 +468,36 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('운동으로 잘못 익힌 음식 이름(아메리카노)도 다시 치면 끼니다', (tester) async {
-    final ai = _Ai();
-    final (c, meals) = await pump(tester, ai, history: ['아메리카노', '마라샹궈']);
-    await submit(tester, '아메리카노');
-    expect(meals, ['아메리카노']);
-    expect(c.blocks, isEmpty);
-    expect(ai.lookups, isEmpty, reason: '분명한 끼니는 표에 묻지 않는다');
-    // 음식 낱말이 아닌 익힌 이름은 여전히 운동이다 — 표에도 묻지 않는다.
-    await submit(tester, '마라샹궈');
-    expect(c.blocks.single.name, '마라샹궈');
-    expect(ai.lookups, isEmpty);
-    expect(find.byKey(const ValueKey('exercise-to-meal')), findsNothing);
+  testWidgets(
+    '자동으로 만든 칸의 이름(세트 없음)은 근거가 아니다 — 아메리카노가 한 번 운동 칸이 되었어도 판정자가 가른다',
+    (tester) async {
+      final ai = _Ai(judge: {'아메리카노': true, '마라샹궈': true});
+      final (c, meals) = await pump(
+        tester,
+        ai,
+        history: ['아메리카노', '마라샹궈', '민수식 로우'],
+        done: ['민수식 로우'],
+      );
+      await submit(tester, '아메리카노');
+      await submit(tester, '마라샹궈');
+      expect(meals, ['아메리카노', '마라샹궈']);
+      expect(c.blocks, isEmpty);
+      expect(ai.lookups, ['아메리카노', '마라샹궈']);
+      // 세트를 적은 운동 이름은 사람이 운동으로 남긴 것이다 — 묻지 않고 운동이다.
+      await submit(tester, '민수식 로우');
+      expect(c.blocks.single.name, '민수식 로우');
+      expect(ai.lookups, ['아메리카노', '마라샹궈']);
+      expect(find.byKey(const ValueKey('exercise-to-meal')), findsNothing);
+    },
+  );
+
+  testWidgets('판정자의 답이 낱말 목록보다 먼저다 — 운동이라고 하면 음식 낱말이 있어도 운동이다', (tester) async {
+    final ai = _Ai(judge: {'치킨윙': false});
+    final (c, meals) = await pump(tester, ai);
+    await submit(tester, '치킨윙');
+    expect(meals, isEmpty);
+    expect(c.blocks.single.name, '치킨윙');
+    expect(find.byKey(const ValueKey('exercise-to-meal')), findsOneWidget);
   });
 
   testWidgets('근거 없이 만든 운동 칸은 한 줄에서 끼니로 바꾸고, 그 이름을 익히지 않는다', (tester) async {

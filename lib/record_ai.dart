@@ -766,6 +766,12 @@ String _wordAround(String text, int start, int end) {
 /// **로그인했으면 계정 토큰으로, 아니면 기기 토큰으로 간다.** 원판은 그 토큰의
 /// 주인(계정 또는 이 기기)의 지갑에서 나간다 — 기기 토큰만 쓰면 산 사람도
 /// 서버에는 무료 기기로 보인다. 질문 문장은 저장되지 않는다.
+/// 끼니 판단([RecordAi.isMeal]). [judged] 는 판정자(Solar)의 답 — true 끼니, false
+/// 운동, 답하지 않았으면 null. [table] 은 음식 표에 이름이 정확히 같은 음식이 있다는
+/// 것이다. 표에는 운동 이름과 같은 제품도 있어('케이블 크런치' 과자) 판정이 없을 때
+/// 기기 안의 규칙과 같은 무게로만 쓴다.
+typedef MealCheck = ({bool? judged, bool table});
+
 class RecordAi {
   const RecordAi({
     this.endpoint = defaultEndpoint,
@@ -812,8 +818,9 @@ class RecordAi {
   /// 한다. 비어 있으면 켜진 것이다 — 테스트와 평가 도구.
   ///
   /// **모델로 가는 문(ask·estimateMeal·estimateMealText)이 모두 여기를 지난다.**
-  /// 부르는 화면이 빠뜨려도 꺼 둔 사람의 것이 나가는 길은 없다. 음식 표
-  /// 조회(isFood)와 원판·기기 토큰은 모델이 아니라 지나지 않는다.
+  /// 부르는 화면이 빠뜨려도 꺼 둔 사람의 것이 나가는 길은 없다. 끼니 판단(isMeal)은
+  /// 켜져 있을 때만 모델(Solar Decide)에 묻고, 꺼져 있으면 음식 표만 본다. 원판·기기
+  /// 토큰은 모델이 아니라 지나지 않는다.
   final bool Function()? enabled;
 
   /// 켜져 있으면 true. 사진을 고르기 전처럼 보내기 전에 미리 보는 자리에서 쓴다.
@@ -1150,25 +1157,37 @@ class RecordAi {
     return MealEstimate.fromJson(answer);
   }
 
-  /// 친 줄이 음식 표의 음식인가 — 음식 이름이나 대표 이름이 **정확히** 같을 때만.
-  /// 모델을 부르지 않고 적기 도움 한도도 쓰지 않는다. 못 물으면(연결·서버) false:
-  /// 운동으로 두고 '끼니로' 칩이 남는다.
+  /// 친 줄이 끼니인가. AI 도움이 켜져 있으면 서버가 Upstage Solar Decide 에 묻고
+  /// (`decide`), 꺼져 있으면 음식 표(이름이 **정확히** 같은 음식)만 본다. 적기 도움
+  /// 한도는 쓰지 않는다. 답은 [MealCheck] — 못 물으면(연결·서버·시간 초과) 둘 다 없다.
   ///
-  /// 기기 토큰 받기까지 합쳐 [foodWait] 만 기다린다 — 사전에 없는 이름은 이 답을
-  /// 기다려야 칸이 된다(운영 조회 p95 185ms). 헬스장 신호가 약해도 칸은 곧 생긴다.
-  Future<bool> isFood(String text) async {
-    if (respond != null || !supported) return false;
+  /// 기기 토큰 받기까지 합쳐 [foodWait]·[decideWait] 만 기다린다 — 사전에 없는 이름은
+  /// 이 답을 기다려야 칸이 된다. 헬스장 신호가 약해도 칸은 곧 생긴다.
+  Future<MealCheck> isMeal(String text) async {
+    const none = (judged: null, table: false);
+    if (respond != null || !supported) return none;
+    final decide = allowed;
+    final wait = decide ? decideWait : foodWait;
     try {
       final answer = await _ask('/api/foods/match', {
         'text': text,
-      }, timeout: foodWait).timeout(foodWait);
-      return answer['food'] == true;
+        if (decide) 'decide': true,
+      }, timeout: wait).timeout(wait);
+      final food = answer['food'] == true;
+      return answer['decided'] == true
+          ? (judged: food, table: false)
+          : (judged: null, table: food);
     } catch (_) {
-      return false;
+      return none;
     }
   }
 
+  /// 표만 볼 때(운영 조회 p95 185ms).
   static const foodWait = Duration(milliseconds: 1500);
+
+  /// Solar 에 물을 때. 서버는 Solar 를 2초에서 끊고 표 답을 준다 — 그 2초에 왕복과
+  /// 기기 토큰 받기를 더한 만큼.
+  static const decideWait = Duration(milliseconds: 3000);
 
   /// 오가던 요청을 버린다. 서버 쪽은 그냥 끝나게 둔다 — 이미 센 것이고,
   /// 취소를 알리자고 왕복을 한 번 더 하는 것이 더 비싸다.

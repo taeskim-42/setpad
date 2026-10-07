@@ -486,6 +486,14 @@ class NotesStore extends ChangeNotifier {
   final List<String> _exerciseHistory = [];
   final Set<String> _forgottenExercises = {};
   List<String> get exerciseHistory => List.unmodifiable(_exerciseHistory);
+
+  /// 세트를 하나라도 적은 운동 이름 — 사람이 운동으로 남긴 것. 운동과 끼니를 가를
+  /// 때 근거가 된다(익힌 이름 [exerciseHistory] 는 근거 없이 만든 칸도 든다).
+  Set<String> get doneExercises => {
+    for (final n in _notes)
+      for (final b in n.blocks)
+        if (b.sets.isNotEmpty) ?b.learnedName,
+  };
   String _weightUnit = defaultUnit;
   String get weightUnit => _weightUnit;
 

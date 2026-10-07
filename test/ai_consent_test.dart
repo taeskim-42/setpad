@@ -416,10 +416,13 @@ void main() {
       expect(s.paths, isEmpty, reason: '기기 토큰조차 받으러 가지 않는다');
     });
 
-    test('음식 표 조회와 수 없는 이름은 모델이 아니다 — 꺼 두어도 된다', () async {
+    test('꺼 두면 끼니 판단은 음식 표만 본다(모델에 묻지 않는다) — 수 없는 이름도 모델이 아니다', () async {
       final store = tempStore()..setAiOn(false);
       final s = serverAi(() => store.aiOn);
-      expect(await s.ai.isFood('김치찌개'), isFalse);
+      expect(await s.ai.isMeal('김치찌개'), (
+        judged: null,
+        table: false,
+      ), reason: '모델에 묻지 않았고 표에도 없다');
       expect(s.paths, contains('/api/foods/match'));
       final reading = await s.ai.interpret('벤치프레스', 'ko', const []);
       expect(reading.exercises.single.setup.name, '벤치프레스');

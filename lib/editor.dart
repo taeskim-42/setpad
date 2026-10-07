@@ -706,6 +706,8 @@ Future<bool> confirmRemoveExercise(
 
 /// 하나의 편집 흐름. 결과를 보는 곳과 치는 곳이 나뉘어 있지 않고,
 /// 커서가 늘 "지금 쓰는 자리"에 있다.
+Iterable<String> _noExercises() => const [];
+
 class RoutineEditor extends StatefulWidget {
   const RoutineEditor({
     super.key,
@@ -721,6 +723,7 @@ class RoutineEditor extends StatefulWidget {
     this.mealText,
     this.onMealText,
     this.recentMeals = const [],
+    this.doneExercises = _noExercises,
     this.recovery,
     this.partner,
     this.presence = const [],
@@ -772,8 +775,14 @@ class RoutineEditor extends StatefulWidget {
   /// 그것을 지우는 함수를 돌려준다('운동으로 바꾸기').
   final VoidCallback? Function(String text, int? index)? onMealText;
 
-  /// 전에 적은 식단 글들. 식단을 적는 동안 후보로 뜬다.
+  /// 전에 적은 식단 글들. 식단을 적는 동안 후보로 뜬다. 친 줄이 이 가운데 하나와
+  /// 똑같으면 끼니다 — 사람이 남긴 끼니라서.
   final List<String> recentMeals;
+
+  /// 세트를 하나라도 적은 운동 이름(지난 기록). 친 줄이 이 이름이면 운동이다 —
+  /// 사람이 운동으로 남긴 것이라서. 자동으로 만든 칸의 이름은 세트가 없으면 들지
+  /// 않는다: 끼니가 한 번 운동 칸이 되었다고 늘 운동이 되지 않는다.
+  final Iterable<String> Function() doneExercises;
 
   @override
   State<RoutineEditor> createState() => _RoutineEditorState();
@@ -1455,15 +1464,18 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (state == AppLifecycleState.resumed) _followShared();
   }
 
-  /// 운동 이름을 적는 줄에 친 글. 먼저 끼니인지 가른다(순서가 정해져 있다):
+  /// 운동 이름을 적는 줄에 친 글 → 끼니인가 운동인가 한 번 판단해 남긴다.
   ///
-  /// 1. 운동 근거 — 같은 줄로 만든 칸, 운동 단위, 익힌 이름·사전 이름.
-  /// 2. 끼니 근거 — 열량, 끼니 낱말 + 다른 말, 음식에만 쓰는 양.
-  /// 3. 음식 표 — 이름이 정확히 같은 음식(서버, 모델 없음, 한도 안 씀).
-  /// 4. 수가 든 줄은 모델이 읽고, 음식이라고 답하면("food") 끼니.
-  /// 5. 모두 아니면 지금처럼 운동이고 '끼니로' 칩이 남는다.
+  /// 사람이 남긴 것과 뜻이 하나뿐인 것은 바로 가른다 — 음식에만 쓰는 양(g·공기·인분)이
+  /// 있거나 전에 남긴 끼니와 똑같으면 끼니, 이름 전체가 사전의 운동 이름이거나 세트를
+  /// 적은 운동 이름이면 운동([exerciseName]). 나머지는 판정자 하나가 가른다: AI 도움이
+  /// 켜져 있으면 Upstage Solar Decide, 꺼져 있으면 음식 표([RecordAi.isMeal]). 판정이
+  /// 없을 때만(연결 없음·시간 초과·표에 없음) 기기 안의 규칙([exerciseEvidence] →
+  /// [mealEvidence])으로 가른다. 판정이나 규칙으로 운동이 되면 '끼니로 바꾸기' 줄이 남는다.
   ///
-  /// 그물이 없으면 3·4 를 건너뛴다. [classify] 가 false 면 가르지 않고 운동이다
+  /// 자동으로 내린 판단은 기억하지 않는다 — 기억하는 것은 사람이 세트를 적은 운동
+  /// 이름과 남긴 끼니뿐이라, 틀린 판단이 다음 판단을 끌고 가지 않는다(9/23 이후 몇 번
+  /// 고쳐도 되돌아왔던 '아메리카노' → 운동). [classify] 가 false 면 가르지 않고 운동이다
   /// ('운동으로 바꾸기').
   Future<void> _name(String text, {bool classify = true}) async {
     final numbered = hasSetupIntent(text);
@@ -1478,23 +1490,20 @@ class _RoutineEditorState extends State<RoutineEditor>
         return;
       }
     }
-    // 가르는 순서: 운동 사전·운동 단위 → 분명한 끼니(이름 전체가 음식, 음식의 양,
-    // 열량) → 익힌 이름 → 약한 끼니 근거 → 음식 표. 분명한 끼니가 익힌 이름보다
-    // 먼저다 — '아메리카노' 가 한 번 운동 칸이 되었다고 늘 운동이면 안 된다.
-    final exercise =
-        !classify ||
-        widget.onMealText == null ||
-        exerciseEvidence(text, const []);
-    if (!exercise && clearMealEvidence(text)) return _logMeal(text);
-    final known = exercise || exerciseEvidence(text, _c.recentExercises);
-    if (!known && mealEvidence(text)) return _logMeal(text);
-    // 수 없는 이름은 제목이 되므로 120자까지다. 끼니가 아니면 글을 입력칸에 두고
-    // 알린다 — 표에 묻기 전에.
-    if (!numbered && text.trim().length > 120) {
-      setState(() => _aiNotice = (l) => l.inputNameTooLong);
-      return;
+    final done = {
+      ...widget.doneExercises(),
+      for (final b in _c.blocks)
+        if (b.sets.isNotEmpty) ?b.learnedName,
+    };
+    final classifying = classify && widget.onMealText != null;
+    if (classifying && clearMealEvidence(text)) return _logMeal(text);
+    final known = !classifying || exerciseName(text, done);
+    if (!known && widget.recentMeals.contains(text.trim())) {
+      return _logMeal(text);
     }
-    if (!known && widget.ai.supported) {
+    MealCheck check = (judged: null, table: false);
+    // 판정자는 200자까지 받는다(서버). 그보다 긴 글은 기기 안의 규칙으로 가른다.
+    if (!known && widget.ai.supported && text.trim().length <= 200) {
       if (_aiBusy) return;
       final request = ++_aiRequest;
       _submittedText = text;
@@ -1502,18 +1511,29 @@ class _RoutineEditorState extends State<RoutineEditor>
         _aiBusy = true;
         _aiNotice = null;
       });
-      final food = await widget.ai.isFood(text.trim());
+      check = await widget.ai.isMeal(text.trim());
       if (!mounted || request != _aiRequest) return;
       setState(() => _aiBusy = false);
       // 기다리는 사이 글을 고쳤거나 다른 카드로 갔으면 친 글은 입력칸에 그대로다.
       if (!_c.naming || _text != text) return;
-      if (food) return _logMeal(text);
+    }
+    if (!known &&
+        (check.judged ??
+            (!exerciseEvidence(text, done) &&
+                (check.table || mealEvidence(text))))) {
+      return _logMeal(text);
+    }
+    // 수 없는 이름은 제목이 되므로 120자까지다. 끼니가 아니면 글을 입력칸에 두고
+    // 알린다.
+    if (!numbered && text.trim().length > 120) {
+      setState(() => _aiNotice = (l) => l.inputNameTooLong);
+      return;
     }
     // 수 없는 이름은 물을 것이 없다 — 바로 운동이다.
     if (!numbered) {
       _commit(text);
-      // 근거 없이 운동이 되었다(표에 없거나 그물이 없었다). 끼니였으면 칸 아래 한
-      // 줄에서 바꾼다 — 카드를 지우고 다시 칠 일이 없다.
+      // 근거 없이 운동이 되었다. 끼니였으면 칸 아래 한 줄에서 바꾼다 — 카드를 지우고
+      // 다시 칠 일이 없다.
       if (!known && _c.inBlock) {
         setState(
           () => _autoExercise = (
@@ -1524,8 +1544,9 @@ class _RoutineEditorState extends State<RoutineEditor>
       }
       return;
     }
-    // 물어보고 안 되면 그때 알린다. 미리 상태를 확인하느라 기다리지 않는다.
-    return _interpret(text, mealOk: !known);
+    // 판정자가 답하지 못했을 때만 설정을 읽는 모델이 끼니라고 답할 수 있다 — 판정자는
+    // 하나다. 물어보고 안 되면 그때 알린다.
+    return _interpret(text, mealOk: !known && check.judged == null);
   }
 
   /// 끼니로 남긴다. 입력 줄 위의 한 줄에서 되돌릴 수 있다.

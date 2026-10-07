@@ -1054,54 +1054,80 @@ void main() {
     expect(rpe.unparsed, ['RPE 8']);
   });
 
-  test('v3 §2: 음식 표 조회는 /api/foods/match 에 글만 보내고, 못 물으면 음식이 아니다', () async {
-    final sent = <(String, Object?)>[];
-    Future<bool> ask(MockClientHandler foods) {
-      RecordAi.forget();
-      return RecordAi(
-        endpoint: 'https://example.com',
-        deviceId: 'device',
-        client: MockClient((request) async {
-          if (request.url.path == '/api/device') {
-            return http.Response(jsonEncode({'token': 't'}), 200);
-          }
-          sent.add((request.url.path, jsonDecode(request.body)));
-          return foods(request);
-        }),
-      ).isFood('김치찌개');
-    }
+  test(
+    '끼니 판단: AI 가 켜져 있으면 decide 를 실어 판정자에게, 꺼져 있으면 표만 — 못 물으면 판정 없음',
+    () async {
+      final sent = <(String, Object?)>[];
+      Future<MealCheck> ask(MockClientHandler foods, {bool ai = true}) {
+        RecordAi.forget();
+        return RecordAi(
+          endpoint: 'https://example.com',
+          deviceId: 'device',
+          enabled: () => ai,
+          client: MockClient((request) async {
+            if (request.url.path == '/api/device') {
+              return http.Response(jsonEncode({'token': 't'}), 200);
+            }
+            sent.add((request.url.path, jsonDecode(request.body)));
+            return foods(request);
+          }),
+        ).isMeal('김치찌개');
+      }
 
-    expect(
-      await ask(
-        (_) async => http.Response(
-          jsonEncode({'food': true, 'name': '김치찌개', 'kind': 'dish'}),
-          200,
-          headers: {'content-type': 'application/json; charset=utf-8'},
+      http.Response json(Map<String, Object?> body) => http.Response(
+        jsonEncode(body),
+        200,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      );
+
+      expect(
+        await ask(
+          (_) async => json({'food': true, 'decided': true, 'p': 0.98}),
         ),
-      ),
-      isTrue,
-    );
-    expect(sent.single.$1, '/api/foods/match');
-    expect(sent.single.$2, {'text': '김치찌개'});
-    expect(
-      await ask((_) async => http.Response(jsonEncode({'food': false}), 200)),
-      isFalse,
-    );
-    for (final fail in <MockClientHandler>[
-      (_) async => http.Response(jsonEncode({'error': 'quotaExceeded'}), 429),
-      (_) async => http.Response('oops', 502),
-      (_) async => throw const SocketException('no route'),
-    ]) {
-      expect(await ask(fail), isFalse);
-    }
-    // 모델 대신 대답하는 자리(테스트·평가)와 기기 토큰이 없는 곳은 묻지 않는다.
-    expect(
-      await RecordAi(respond: (_, _) async => null).isFood('김치찌개'),
-      isFalse,
-    );
-    expect(await const RecordAi().isFood('김치찌개'), isFalse);
-    RecordAi.forget();
-  });
+        (judged: true, table: false),
+      );
+      expect(sent.single.$1, '/api/foods/match');
+      expect(sent.single.$2, {'text': '김치찌개', 'decide': true});
+      expect(
+        await ask(
+          (_) async => json({'food': false, 'decided': true, 'p': 0.02}),
+        ),
+        (judged: false, table: false),
+        reason: '판정자가 운동이라고 했다',
+      );
+      expect(await ask((_) async => json({'food': false})), (
+        judged: null,
+        table: false,
+      ), reason: '판정자가 답하지 못하고 표에도 없다');
+      sent.clear();
+      expect(
+        await ask(
+          (_) async => json({'food': true, 'name': '김치찌개', 'kind': 'dish'}),
+          ai: false,
+        ),
+        (judged: null, table: true),
+        reason: '표의 일치는 판정이 아니다',
+      );
+      expect(sent.single.$2, {'text': '김치찌개'}, reason: '꺼 두면 모델에 묻지 않는다');
+      for (final fail in <MockClientHandler>[
+        (_) async => http.Response(jsonEncode({'error': 'quotaExceeded'}), 429),
+        (_) async => http.Response('oops', 502),
+        (_) async => throw const SocketException('no route'),
+      ]) {
+        expect(await ask(fail), (judged: null, table: false));
+      }
+      // 모델 대신 대답하는 자리(테스트·평가)와 기기 토큰이 없는 곳은 묻지 않는다.
+      expect(await RecordAi(respond: (_, _) async => null).isMeal('김치찌개'), (
+        judged: null,
+        table: false,
+      ));
+      expect(await const RecordAi().isMeal('김치찌개'), (
+        judged: null,
+        table: false,
+      ));
+      RecordAi.forget();
+    },
+  );
 
   test('X4: 와이파이 로그인 화면(HTML)·TLS·소켓 실패는 연결 문제다 — "읽지 못함" 이 아니다', () async {
     for (final handler in <MockClientHandler>[
