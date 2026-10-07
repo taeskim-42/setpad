@@ -839,13 +839,18 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 글자가 하나 있어야 "빈 자리에서 지우기" 를 알 수 있다. 운동 이름을
   /// 기다리는 빈 칸에만 심고, 읽을 때는 늘 [_text] 로 걷어 낸다.
   ///
-  /// 커서는 **늘 표지 뒤**다([_sentinelSelection]). 친 글이 표지를 덮어쓰지 않으므로
-  /// 치는 동안 입력칸이 비는 일이 없고 — iOS 한글 자판이 음절을 바꾸며 지우고-넣기
-  /// 사이에 보내는 값도 표지 그대로다 — 앱이 표지를 다시 심어 자판으로 되밀 일이 없다.
-  /// 예전에 iOS 는 표지를 골라 두어 첫 글자가 덮어썼고, 그래서 친 글을 지울 때마다
-  /// 칸이 비어 앱이 표지를 다시 밀어 넣었다 — 그 되밀기가 자판의 조합과 부딪혔다
-  /// ("해머" → "머", 9/28). iOS 의 표지가 공백인 것은 자판이 그 뒤를 낱말의 시작으로
-  /// 보게 하려는 것이다 — 문장의 둘째 낱말을 치는 것과 같다.
+  /// **치는 동안 입력칸은 자판의 것이다.** 앱이 쓴 값은 순번 없이 자판으로 되밀려
+  /// (TextInput.setEditingState) 엔진이 그대로 덮어쓰고, iOS 한글 자판은 키 하나에
+  /// [음절 고르기 → 지우기 → 다시 넣기] 를 따로따로 보낸다. 그 사이 어디에 앱의 쓰기가
+  /// 끼어도 음절이 지워지거나 겹쳤다("해머" → "머" 9/28, "아아아메메메리리리카노" 1.5.1).
+  /// 언제 써도 되는지 알려 주는 신호는 없어 시간으로 짐작해 왔지만(한 프레임, 150ms)
+  /// 짐작은 빈도만 줄였다. 그래서 표지는 앱이 만든 전환에서만 심고([_plant]) 자판이
+  /// 보낸 값에는 답하지 않는다 — 자판이 표지를 지우거나 커서를 옮겨도 고치지 않는다.
+  /// 표지를 잃은 줄은 다음 전환까지 빈 자리 지우기가 안 될 뿐 글은 깨지지 않는다.
+  ///
+  /// 커서는 표지 뒤다([_sentinelSelection]). iOS 한글 자판은 자기가 넣은 음절만 골라
+  /// 바꾸므로 그 앞의 표지는 조합에 끼지 않는다(시뮬레이터 화면 자판, tool/ime_check).
+  /// iOS 의 표지가 공백인 것은 자판이 그 뒤를 낱말의 시작으로 보게 하려는 것이다.
   static bool get _spaceSentinel => defaultTargetPlatform == TargetPlatform.iOS;
   static String get _zw => _spaceSentinel ? ' ' : '\u200B';
   static const _sentinelSelection = TextSelection.collapsed(offset: 1);
@@ -886,92 +891,29 @@ class _RoutineEditorState extends State<RoutineEditor>
     });
   }
 
-  /// 표지를 넣고·커서를 표지 뒤로 되돌리고·걷어 낸다.
+  /// 앱이 만든 전환으로 빈 이름 줄이 되었으면 표지를 심고, 표지가 필요 없는 줄이
+  /// 되었으면 표지만 남은 것을 걷는다. **자판이 보낸 값에는 부르지 않는다**([_onInput]).
+  /// 친 글 앞에 붙은 표지는 두고 읽을 때 걸러 낸다([_text]) — 사람이 치는 글을 앱이
+  /// 고쳐 쓰지 않는다.
   ///
-  /// **자판이 막 값을 보냈으면 그 자리에서 하지 않는다.** 앱이 입력칸 값을 바꾸면 그
-  /// 값이 자판으로 되밀려(TextInput.setEditingState) 자판이 들고 있던 조합이 흔들린다
-  /// — 음절이 지워지거나("해머" → "머") 겹친다. 자판이 [_imeQuiet] 동안 조용해진
-  /// 뒤([_settle])의 값을 보고 정한다. 조합 중(composing)이면 그때도 손대지 않는다.
-  /// 앱이 일으킨 전환(운동 완료로 이름 줄이 됨)에서는 바로 넣는다 — 입력 연결이 그
-  /// 다음 프레임에 맺어지면서 표지를 처음부터 함께 가져간다.
-  ///
-  /// 입력 연결의 설정(enableInteractiveSelection 등)도 표지에 따라 바꾸지 않는다 —
-  /// 설정은 연결을 맺을 때만 엔진으로 가서, 표지가 있던 때의 값이 치는 내내 남는다.
-  void _syncSentinel({bool settled = false}) {
-    if (!settled && _imeBusy) {
-      // 자판이 바쁜 동안 커서만 표지 앞으로 옮겼다(스페이스바 끌기) — 끌기가 끝날
-      // 때까지 더 기다린다.
-      if (_sentinelCaretLost) _settleLater();
-      return;
-    }
-    final composing = _input.value.composing;
-    if (composing.isValid && !composing.isCollapsed) return;
+  /// 입력 연결의 설정(enableInteractiveSelection 등)은 표지에 따라 바꾸지 않는다 —
+  /// 설정은 연결을 맺을 때만 엔진으로 가서, 그때의 값이 치는 내내 남는다.
+  void _plant() {
     if (_wantsSentinel && _input.text.isEmpty) {
-      if (_erasedSentinel) return;
       _input.value = TextEditingValue(text: _zw, selection: _sentinelSelection);
-    } else if (_sentinelCaretLost) {
-      // 자판(스페이스바 끌기, 화살표)이 커서를 표지 앞으로 옮겼다. 거기서는 지우기가
-      // 아무것도 안 지우므로 표지 뒤로 되돌리되, 자판이 조용해진 뒤에. 표지를 고른
-      // 것(자판은 지우기 전에 앞 글자를 고른다)은 그대로 둔다 — 지우기도 치기도 된다.
-      if (!settled) return _settleLater();
-      _input.value = _input.value.copyWith(
-        selection: _sentinelSelection,
-        composing: TextRange.empty,
-      );
     } else if (!_wantsSentinel && _input.text == _zw) {
-      // 표지가 필요 없는 줄이 되었다(식단 적기, 이름 고치기). 표지뿐이면 걷는다. 친 글
-      // 앞에 붙은 표지는 두고 읽을 때 걸러 낸다([_text]) — 사람이 치는 글을 앱이
-      // 고쳐 쓰지 않는다.
       _input.value = const TextEditingValue(
         selection: TextSelection.collapsed(offset: 0),
       );
     }
   }
 
-  /// 빈 줄에서 지우기를 눌러 표지가 지워졌다. **그 자리에서 앞 세트로 가지 않는다**
-  /// — 자판이 새 글자를 넣기 전에 앞 글자를 먼저 지운 것일 수도 있다. 받아 두고
-  /// 자판이 조용해진 뒤에도 비어 있을 때만 앞줄로 간다([_settle]). 지우기를 꾹 눌러
-  /// 친 글을 다 지우다 표지까지 지운 것(그 직전에도 자판이 바빴다)은 빈 자리 지우기가
-  /// 아니다 — 표지만 다시 심는다.
-  bool _erasedSentinel = false;
+  /// 자판(또는 붙여넣기 같은 프레임워크의 편집)이 마지막으로 입력칸에 준 값.
+  /// [_onInput] 은 이 값이 들어온 것이면 자판의 편집으로 보고 손대지 않는다.
+  TextEditingValue? _keyboardValue;
 
-  /// 자판이 값을 보낸 뒤 이만큼 조용하면 그때 표지를 정한다. 한 번의 키에 자판이
-  /// 보내는 값들(지우고-넣기)은 몇 ms 안에 오고, 그 사이에 화면이 한 번 그려질 수는
-  /// 있다 — 한 프레임 미루기로는 모자랐다. 빈 자리 지우기가 앞 세트를 여는 것은
-  /// 이만큼 늦는다.
-  static const _imeQuiet = Duration(milliseconds: 150);
-  Timer? _imeSettle;
-
-  /// 표지만 있는 줄에서 커서가 표지 앞(0)에 있다 — 거기서는 지우기가 아무것도 안
-  /// 지운다.
-  bool get _sentinelCaretLost =>
-      _wantsSentinel &&
-      _input.text == _zw &&
-      (!_input.selection.isValid ||
-          (_input.selection.isCollapsed && _input.selection.baseOffset == 0));
-
-  /// 자판이 방금 값을 보냈다 — 표지를 손대지 않는다.
-  bool get _imeBusy => _imeSettle?.isActive ?? false;
-
-  /// 자판이 마지막으로 **글을** 바꾼 뒤 [_imeQuiet] 가 지나지 않았다 — 꾹 누른 지우기처럼
-  /// 이어지는 편집 중이다. 선택만 옮긴 것(자판은 지우기 전에 앞 글자를 고른다)은 세지
-  /// 않는다 — 세면 빈 줄의 지우기가 늘 '이어지는 편집' 이 되어 앞 세트로 못 간다.
-  Timer? _editBurst;
-
-  /// 자판(또는 사람)이 입력칸을 바꿨다. 조용해질 때까지 표지 손보기를 미룬다.
-  void _settleLater() {
-    _imeSettle?.cancel();
-    _imeSettle = Timer(_imeQuiet, _settle);
-  }
-
-  void _settle() {
-    if (!mounted) return;
-    final erased = _erasedSentinel;
-    _erasedSentinel = false;
-    // 지운 뒤 글자가 들어왔으면 지우기가 아니라 치는 중이었다.
-    if (erased && _input.text.isEmpty && _wantsSentinel) _backspaceOnEmpty();
-    if (mounted) _syncSentinel(settled: true);
-  }
+  /// [_onInput] 이 마지막으로 본 글. 글이 바뀐 알림만 표지를 볼 일이 있다.
+  String _seenText = '';
 
   bool _aiBusy = false;
 
@@ -1494,6 +1436,9 @@ class _RoutineEditorState extends State<RoutineEditor>
     _recovery.addListener(_followHeart);
     widget.partner?.addListener(_followShared);
     WidgetsBinding.instance.addObserver(this);
+    // 운동이 있는 기록을 열었으면 첫 입력 연결이 표지를 처음부터 가져간다.
+    _plant();
+    _seenText = _input.text;
   }
 
   @override
@@ -2287,7 +2232,12 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   void _onInput() {
-    _syncSentinel();
+    final text = _input.text;
+    if (text != _seenText) {
+      _seenText = text;
+      // 자판이 준 값이 아니다 — 앱이 줄을 비우거나 바꿨다. 그때만 표지를 본다.
+      if (_input.value != _keyboardValue) _plant();
+    }
     if (_editingRecord) _applyRecordEdit();
     _tellPresence();
     if (_aiBusy && _text != _submittedText) {
@@ -2330,8 +2280,6 @@ class _RoutineEditorState extends State<RoutineEditor>
     widget.ai.cancel();
     widget.mealText?.removeListener(_onMealRequest);
     _c.removeListener(_onChanged);
-    _imeSettle?.cancel();
-    _editBurst?.cancel();
     _input.removeListener(_onInput);
     _input.dispose();
     _focus.dispose();
@@ -2381,7 +2329,8 @@ class _RoutineEditorState extends State<RoutineEditor>
     }
     _followEditedSet();
     _saveDraft();
-    _syncSentinel();
+    // 남이 고친 것은 내가 치는 중에도 온다 — 그때는 입력칸에 손대지 않는다.
+    if (!_c.remote) _plant();
     _tellPresence();
     if (mounted) setState(() {});
     // keyboardType 을 바꾸는 것만으로는 **이미 올라와 있는** 키보드가 내려가지
@@ -2693,9 +2642,6 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 않는다.** 직전 세트를 입력칸으로 불러 커서를 끝에 둘 뿐이고, 그 뒤에 치는
   /// 것은 그 세트를 고친다. 세트를 지우는 것은 그 줄의 × 다.
   void _backspaceOnEmpty() {
-    // 같은 지우기를 두 번 받지 않는다 — 키 이벤트(_onKey)와 표지 지움([_settle])이
-    // 한 번의 지우기에 둘 다 올 수 있다.
-    _erasedSentinel = false;
     if (_mealMode) {
       // 빈 식단 줄에서 지우기는 식단 적기를 접는 것이다 — 고치던 끼니가 아니면
       // 마지막 세트로 돌아간다. 운동 이름 줄에서와 같은 손놀림이다.
@@ -3297,21 +3243,24 @@ class _RoutineEditorState extends State<RoutineEditor>
                     ),
                     onChanged: (_) => setState(() => _highlight = -1),
                     inputFormatters: [
-                      // 자판이 보낸 값은 **그대로** 받는다. 표지는 자판이 조용해진
-                      // 뒤에 정한다([_syncSentinel]). 심어 둔 글자가 지워졌으면 빈
-                      // 자리에서 지우기를 눌렀을 수 있다 — 그때 다시 본다([_settle]).
+                      // 자판이 보낸 값은 **그대로** 받고, 앱은 그 값에 답해 쓰지 않는다.
                       TextInputFormatter.withFunction((before, after) {
-                        if (before.text == _zw && after.text.isEmpty) {
-                          // 바로 앞까지 글이 바뀌고 있었으면(지우기를 꾹 눌러 친
-                          // 글을 지우던 중) 빈 자리 지우기가 아니다.
-                          _erasedSentinel = !(_editBurst?.isActive ?? false);
-                        } else if (after.text.isNotEmpty) {
-                          // 지운 뒤 글자가 들어왔다 — 치는 중이다.
-                          _erasedSentinel = false;
+                        // 표지만 남은 줄에서 자판이 표지를 지웠다 — 빈 자리에서
+                        // 지우기다. 자판은 자기가 넣은 음절만 골라 바꾸고 커서는 표지
+                        // 뒤라, 치는 동안의 지우고-넣기는 표지를 건드리지 않는다. 포매터
+                        // 안에서는 쓰지 않는다(이 값이 곧 입력칸에 들어간다) — 이
+                        // 편집을 받은 뒤 본다. 갈 곳이 없었으면(남이 고치는 세트) 표지를
+                        // 다시 심어 다음 지우기도 받는다.
+                        if (_wantsSentinel &&
+                            before.text == _zw &&
+                            after.text.isEmpty) {
+                          scheduleMicrotask(() {
+                            if (!mounted || _input.text.isNotEmpty) return;
+                            _backspaceOnEmpty();
+                            _plant();
+                          });
                         }
-                        _editBurst?.cancel();
-                        _editBurst = Timer(_imeQuiet, () {});
-                        _settleLater();
+                        _keyboardValue = after;
                         return after;
                       }),
                     ],
@@ -3332,13 +3281,14 @@ class _RoutineEditorState extends State<RoutineEditor>
                     placeholder: _input.text == _zw ? '' : hint,
                     placeholderStyle: hintStyle,
                     // enableInteractiveSelection 은 입력 연결의 설정이다 — 연결을 맺을
-                    // 때 엔진으로 가고, 글이 바뀐다고 다시 가지 않는다. 표지가 있다고
-                    // 끄면 그 값이 치는 내내 남아, iOS 엔진이 자판의 선택 이동
-                    // (setSelectedTextRange)을 모두 버린다 — 한글 음절이 바뀌지 않고
-                    // 겹쳤다(1.5.1, "아이스" → "아아아이이이스스스"). 그래서 모드로만 정하고,
-                    // 표지의 핸들·메뉴는 화면 쪽 것(selectionControls, contextMenuBuilder)
-                    // 으로만 감춘다 — 이것들은 자판으로 가지 않는다.
-                    enableInteractiveSelection: !_padMode,
+                    // 때 엔진으로 가고, 글이 바뀐다고 다시 가지 않는다. 끄면 그 값이
+                    // 치는 내내 남아, iOS 엔진이 자판의 선택 이동(setSelectedTextRange)을
+                    // 모두 버린다 — 한글 음절을 바꾸지 못하고 겹친다(1.5.1, "아메리카노" →
+                    // "아아아메메메리리리카노"). 그래서 연결이 있을 수 있는 칸(readOnly 가
+                    // 아닌 칸)에서는 늘 켠다. 표지의 핸들·메뉴는 화면 쪽 것
+                    // (selectionControls, contextMenuBuilder)으로만 감춘다 — 이것들은
+                    // 자판으로 가지 않는다.
+                    enableInteractiveSelection: !readOnly,
                     selectionControls: sentinel
                         ? emptyTextSelectionControls
                         : null,
@@ -3348,9 +3298,10 @@ class _RoutineEditorState extends State<RoutineEditor>
                   ),
                 ),
                 // 표지만 있는 줄의 누르기는 입력칸의 선택 제스처 대신 이것이 받는다 —
-                // 누르기가 커서를 표지 앞으로 옮기거나 표지를 고르면 그 선택이 자판으로
-                // 가고, 앱이 되돌리며 또 민다. 늘 두고 ignoring 만 바꾼다 — 넣었다
-                // 뺐다 하면 입력칸이 새로 만들어진다.
+                // 누르기가 커서를 표지 앞으로 옮기거나 표지를 고르면 첫 글자가 표지를
+                // 덮거나 지우기가 표지를 못 지운다. 앱은 그것을 되돌리지 않으므로(되돌리기는
+                // 자판으로 되민다) 애초에 옮기지 않는다. 늘 두고 ignoring 만 바꾼다 —
+                // 넣었다 뺐다 하면 입력칸이 새로 만들어진다.
                 Positioned.fill(
                   key: const ValueKey('sentinel-tap'),
                   child: IgnorePointer(
