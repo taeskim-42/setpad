@@ -220,6 +220,9 @@ class LTh extends L {
   String get aiWorking => 'กำลังตั้งค่าท่า…';
 
   @override
+  String get aiJudging => 'กำลังอ่าน…';
+
+  @override
   String get aiFailure =>
       'ตีความข้อความไม่ได้ โปรดแก้ไขแล้วลองใหม่ หรือใช้เป็นชื่อท่า';
 

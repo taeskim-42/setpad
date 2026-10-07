@@ -1,7 +1,7 @@
-// 입력 줄 하나로 운동과 끼니를 가른다 (v3 §2). 순서: 운동 근거(사전·단위) → 분명한
-// 끼니 근거(이름 전체가 음식·양·열량) → 익힌 이름 → 약한 끼니 근거 → 음식 표 → 모델의
-// "food" → 운동. 알아서 끼니가 되면 '운동으로 바꾸기', 근거 없이 운동이 되면 '끼니로
-// 바꾸기' 로 되돌린다.
+// 입력 줄 하나로 운동과 끼니를 가른다. 순서: 음식에만 쓰는 양 → 끼니, 이름 전체가 사전
+// 이름이거나 세트를 적은 이름 → 운동, 전에 남긴 끼니 → 끼니, 그 밖은 판정자(Solar·음식 표)
+// 하나, 판정이 없을 때만 기기 안의 규칙. 알아서 끼니가 되면 '운동으로 바꾸기', 판정이나
+// 규칙으로 운동이 되면 '끼니로 바꾸기' 로 되돌린다.
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
@@ -26,7 +26,11 @@ class _Ai extends RecordAi {
     this.table = const {},
     this.judge = const {},
     this.answer,
+    this.pending,
   });
+
+  /// 있으면 판정자의 답을 이것이 끝날 때까지 미룬다.
+  final Completer<MealCheck>? pending;
   final bool online;
   final Set<String> table;
   final Map<String, bool> judge;
@@ -43,6 +47,7 @@ class _Ai extends RecordAi {
   Future<MealCheck> isMeal(String text, {bool exerciseHint = false}) async {
     lookups.add(text);
     if (exerciseHint) hinted.add(text);
+    if (pending case final wait?) return wait.future;
     return (judged: judge[text], table: table.contains(text));
   }
 
@@ -501,6 +506,22 @@ void main() {
     expect(meals, isEmpty);
     expect(c.blocks.single.name, '치킨윙');
     expect(find.byKey(const ValueKey('exercise-to-meal')), findsOneWidget);
+  });
+
+  testWidgets('판정을 기다리는 동안은 "읽는 중…" 이다 — 끼니일 수도 있어 "운동 설정 중…" 이라고 하지 않는다', (
+    tester,
+  ) async {
+    final pending = Completer<MealCheck>();
+    final (_, meals) = await pump(tester, _Ai(pending: pending));
+    await tester.enterText(_field, '아메리카노');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    expect(find.text('읽는 중…'), findsOneWidget);
+    expect(find.text('운동 설정 중…'), findsNothing);
+    pending.complete((judged: true, table: false));
+    await tester.pumpAndSettle();
+    expect(meals, ['아메리카노']);
+    expect(find.text('읽는 중…'), findsNothing);
   });
 
   testWidgets('운동 낱말·단위가 든 줄은 판정자에게 힌트를 같이 보낸다 — 서버가 끼니 문턱을 높인다', (

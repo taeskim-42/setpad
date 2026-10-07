@@ -220,6 +220,9 @@ class LKo extends L {
   String get aiWorking => '운동 설정 중…';
 
   @override
+  String get aiJudging => '읽는 중…';
+
+  @override
   String get aiFailure => '문장을 해석하지 못했습니다. 내용을 고쳐 다시 입력하거나 운동 이름으로 사용할 수 있습니다.';
 
   @override

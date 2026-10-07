@@ -220,6 +220,9 @@ class LEn extends L {
   String get aiWorking => 'Setting up exercise…';
 
   @override
+  String get aiJudging => 'Reading…';
+
+  @override
   String get aiFailure =>
       'Could not interpret this entry. Edit it and try again, or use it as an exercise name.';
 

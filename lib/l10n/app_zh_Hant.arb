@@ -56,6 +56,7 @@
   "aiPrepare": "準備模型",
   "aiRetry": "重新檢查",
   "aiWorking": "正在設定動作…",
+  "aiJudging": "正在讀取…",
   "aiFailure": "無法理解此內容。請修改後重試，或將其作為動作名稱。",
   "aiUseName": "用作動作名稱",
   "aiFallbackQuota": "今天的輸入輔助已用完，已按原文新增",

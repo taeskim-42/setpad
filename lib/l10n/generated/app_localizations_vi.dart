@@ -220,6 +220,9 @@ class LVi extends L {
   String get aiWorking => 'Đang thiết lập bài tập…';
 
   @override
+  String get aiJudging => 'Đang đọc…';
+
+  @override
   String get aiFailure =>
       'Không hiểu được nội dung. Hãy sửa rồi thử lại, hoặc dùng làm tên bài tập.';
 

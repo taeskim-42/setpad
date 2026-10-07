@@ -56,6 +56,7 @@
   "aiPrepare": "Prepare model",
   "aiRetry": "Check again",
   "aiWorking": "Setting up exercise…",
+  "aiJudging": "Reading…",
   "aiFailure": "Could not interpret this entry. Edit it and try again, or use it as an exercise name.",
   "aiUseName": "Use as exercise name",
   "aiFallbackQuota": "You've used today's input help, so it was added as typed",

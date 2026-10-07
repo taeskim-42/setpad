@@ -214,6 +214,9 @@ class LZh extends L {
   String get aiWorking => '正在设置动作…';
 
   @override
+  String get aiJudging => '正在读取…';
+
+  @override
   String get aiFailure => '无法理解此内容。请修改后重试，或将其作为动作名称。';
 
   @override
@@ -3742,6 +3745,9 @@ class LZhHans extends LZh {
   String get aiWorking => '正在设置动作…';
 
   @override
+  String get aiJudging => '正在读取…';
+
+  @override
   String get aiFailure => '无法理解此内容。请修改后重试，或将其作为动作名称。';
 
   @override
@@ -7268,6 +7274,9 @@ class LZhHant extends LZh {
 
   @override
   String get aiWorking => '正在設定動作…';
+
+  @override
+  String get aiJudging => '正在讀取…';
 
   @override
   String get aiFailure => '無法理解此內容。請修改後重試，或將其作為動作名稱。';

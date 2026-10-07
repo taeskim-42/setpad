@@ -56,6 +56,7 @@
   "aiPrepare": "准备模型",
   "aiRetry": "重新检查",
   "aiWorking": "正在设置动作…",
+  "aiJudging": "正在读取…",
   "aiFailure": "无法理解此内容。请修改后重试，或将其作为动作名称。",
   "aiUseName": "用作动作名称",
   "aiFallbackQuota": "今天的输入辅助已用完，已按原文添加",

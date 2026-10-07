@@ -445,6 +445,12 @@ abstract class L {
   /// **'운동 설정 중…'**
   String get aiWorking;
 
+  /// 운동 이름 줄에 친 글이 운동인지 끼니인지 판정자에게 묻는 동안 — 끼니일 수도 있어 '운동 설정 중' 이라고 하지 않는다
+  ///
+  /// In ko, this message translates to:
+  /// **'읽는 중…'**
+  String get aiJudging;
+
   /// No description provided for @aiFailure.
   ///
   /// In ko, this message translates to:

@@ -220,6 +220,9 @@ class LEs extends L {
   String get aiWorking => 'Configurando ejercicio…';
 
   @override
+  String get aiJudging => 'Leyendo…';
+
+  @override
   String get aiFailure =>
       'No se pudo interpretar la entrada. Edítala o úsala como nombre del ejercicio.';
 

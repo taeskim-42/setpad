@@ -926,6 +926,10 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   bool _aiBusy = false;
 
+  /// 바쁜 까닭이 끼니인지 운동인지 묻는 것이다 — 끼니일 수도 있어 '운동 설정 중' 이라고
+  /// 하지 않는다.
+  bool _judging = false;
+
   /// 적기 도움이 남긴 한 줄 — 왜 적은 그대로 만들었는지, 왜 입력칸에 두었는지.
   /// 다음에 무언가 치면 사라진다.
   String Function(L l)? _aiNotice;
@@ -1508,13 +1512,14 @@ class _RoutineEditorState extends State<RoutineEditor>
       final request = ++_aiRequest;
       _submittedText = text;
       setState(() {
-        _aiBusy = true;
+        _aiBusy = _judging = true;
         _aiNotice = null;
       });
       check = await widget.ai.isMeal(
         text.trim(),
         exerciseHint: exerciseEvidence(text, done),
       );
+      _judging = false;
       if (!mounted || request != _aiRequest) return;
       setState(() => _aiBusy = false);
       // 기다리는 사이 글을 고쳤거나 다른 카드로 갔으면 친 글은 입력칸에 그대로다.
@@ -2267,7 +2272,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (_aiBusy && _text != _submittedText) {
       _aiRequest++;
       widget.ai.cancel();
-      _aiBusy = false;
+      _aiBusy = _judging = false;
     }
     final has = _text.trim().isNotEmpty;
     if (mounted) {
@@ -2991,7 +2996,9 @@ class _RoutineEditorState extends State<RoutineEditor>
                                     vertical: 8,
                                   ),
                                   child: Text(
-                                    L.of(context).aiWorking,
+                                    _judging
+                                        ? L.of(context).aiJudging
+                                        : L.of(context).aiWorking,
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: CupertinoColors.secondaryLabel

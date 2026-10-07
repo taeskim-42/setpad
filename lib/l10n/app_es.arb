@@ -56,6 +56,7 @@
   "aiPrepare": "Preparar modelo",
   "aiRetry": "Comprobar de nuevo",
   "aiWorking": "Configurando ejercicio…",
+  "aiJudging": "Leyendo…",
   "aiFailure": "No se pudo interpretar la entrada. Edítala o úsala como nombre del ejercicio.",
   "aiUseName": "Usar como nombre",
   "aiFallbackQuota": "Ya usaste la ayuda de hoy, así que se añadió tal como lo escribiste",

@@ -219,6 +219,9 @@ class LJa extends L {
   String get aiWorking => '種目を設定中…';
 
   @override
+  String get aiJudging => '読み取り中…';
+
+  @override
   String get aiFailure => '文章を解釈できませんでした。修正して再入力するか、種目名として使用してください。';
 
   @override
