@@ -39,9 +39,10 @@ if [[ -z $UDID ]]; then
   xcrun simctl spawn $UDID defaults write com.apple.Preferences KeyboardsCurrentAndNext -array 'ko_KR@sw=Korean;hw=Automatic' 'en_US@sw=QWERTY;hw=Automatic'
   # A fresh device shows the slide-to-type intro over the first keyboard and eats the taps.
   xcrun simctl spawn $UDID defaults write com.apple.keyboard.preferences DidShowContinuousPathIntroduction -bool true
-  defaults write com.apple.iphonesimulator DevicePreferences -dict-add $UDID '<dict><key>ConnectHardwareKeyboard</key><false/></dict>'
   xcrun simctl shutdown $UDID
 fi
+# Software keyboard on this device only (adds/replaces this one entry, leaves other devices alone).
+defaults write com.apple.iphonesimulator DevicePreferences -dict-add $UDID '<dict><key>ConnectHardwareKeyboard</key><false/></dict>'
 
 # 2. The host project that carries the UI test bundle (setpad's own project stays untouched).
 if [[ ! -d $HOST/ios/Runner.xcodeproj ]]; then
