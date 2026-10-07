@@ -227,4 +227,80 @@ final class ImeUITests: XCTestCase {
     dump("k1-meal-typed", app)
     shot("k1-meal-typed")
   }
+
+  /// Prints the key labels of each installed keyboard (globe key cycles them).
+  func testKeyboardLabels() {
+    let app = XCUIApplication(bundleIdentifier: "com.tskim.workoutlog")
+    app.launch()
+    _ = app.textFields.firstMatch.waitForExistence(timeout: 25)
+    input(app).tap()
+    let intro = app.buttons.matching(NSPredicate(format: "label IN %@", ["Continue", "계속"])).firstMatch
+    if intro.waitForExistence(timeout: 2) { intro.tap() }
+    _ = app.keys.firstMatch.waitForExistence(timeout: 5)
+    for round in 0..<4 {
+      print("IMERESULT kb\(round) keys=\(app.keys.allElementsBoundByIndex.map { $0.label })")
+      let globe = app.buttons.matching(NSPredicate(format: "label IN %@", ["Next keyboard", "다음 키보드", "Next Keyboard", "다음 키보드로 전환"])).firstMatch
+      if !globe.exists { break }
+      globe.tap()
+      sleep(1)
+    }
+  }
+
+  /// 천지인 (iOS "Korean 10-Key"): ㅣㆍㅡ vowels, a consonant key cycles on repeat (ㅇ→ㅁ, ㄴ→ㄹ,
+  /// ㄱ→ㅋ, ㅈ→ㅊ). Needs that keyboard installed first on the simulator (run.sh adds it).
+  func tenKey(_ app: XCUIApplication, _ keys: [String]) {
+    for k in keys {
+      if k == "\n" { app.typeText("\n"); continue }
+      tenKeyLabel(app, k).tap()
+    }
+  }
+
+  /// 10-key keys are found by label; their identifiers are not the jamo.
+  func tenKeyLabel(_ app: XCUIApplication, _ label: String) -> XCUIElement {
+    app.keys.matching(NSPredicate(format: "label == %@", label)).firstMatch
+  }
+
+  func tenKeyboard(_ app: XCUIApplication) {
+    let intro = app.buttons.matching(NSPredicate(format: "label IN %@", ["Continue", "계속"])).firstMatch
+    for _ in 0..<5 {
+      if intro.waitForExistence(timeout: 1) { intro.tap() }
+      if tenKeyLabel(app, "ㆍ").waitForExistence(timeout: 2) { return }
+      app.buttons.matching(NSPredicate(format: "label IN %@", ["Next keyboard", "다음 키보드", "Next Keyboard", "다음 키보드로 전환"])).firstMatch.tap()
+    }
+    print("IMERESULT buttons:", app.buttons.allElementsBoundByIndex.map { $0.label })
+    XCTFail("no 10-key keyboard")
+  }
+
+  func testSetpadChunjiin() {
+    let app = XCUIApplication(bundleIdentifier: "com.tskim.workoutlog")
+    app.launch()
+    _ = app.textFields.firstMatch.waitForExistence(timeout: 25)
+    input(app).tap()
+    tenKeyboard(app)
+    // 벤치
+    tenKey(app, ["ㅂ", "ㆍ", "ㅣ", "ㅣ", "ㄴ", "ㅈ", "ㅈ", "ㅣ"])
+    dump("t0-first-name", app)
+    tenKey(app, ["\n"])
+    sleep(2)
+    tapLabel(app, "운동 완료")
+    sleep(2)
+    if !tenKeyLabel(app, "ㆍ").exists { input(app).tap() }
+    tenKeyboard(app)
+    dump("t1-name-line", app)
+    // 아메리카노: ㅇㅣㆍ / ㅇㅇㆍㅣㅣ / ㄴㄴㅣ / ㄱㄱㅣㆍ / ㄴㆍㅡ
+    tenKey(app, ["ㅇ", "ㅣ", "ㆍ", "ㅇ", "ㅇ", "ㆍ", "ㅣ", "ㅣ", "ㄴ", "ㄴ", "ㅣ", "ㄱ", "ㄱ", "ㅣ", "ㆍ", "ㄴ", "ㆍ", "ㅡ"])
+    sleep(1)
+    dump("t2-typed-americano", app)
+    shot("t2-chunjiin")
+    // erase it all, then one more delete on the empty line → the last set opens
+    let delete = tenKeyLabel(app, "삭제")
+    // 천지인 deletes stroke by stroke ("아" → "이" → ""); delete until only the marker is left.
+    for _ in 0..<40 where (input(app).value as? String) != " " { delete.tap() }
+    sleep(1)
+    dump("t3-erased", app)
+    delete.tap()
+    sleep(2)
+    dump("t4-delete-on-empty", app)
+    shot("t4-chunjiin-delete")
+  }
 }

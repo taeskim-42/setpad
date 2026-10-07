@@ -5,6 +5,7 @@
 # actual 2-set software keyboard through XCUITest (no Mac focus is taken) and prints what
 # each field ended up holding. It is how the 1.5.1 bug ("아메리카노" → "아아아메메메리리리카노")
 # was reproduced and how the fix was checked (2026-10-07). Run it after touching any input.
+# Scenarios type with the 2-set keyboard (두벌식) except testSetpadChunjiin (천지인, iOS 10-Key).
 #
 #   tool/ime_check/run.sh                      # all scenarios against a fresh debug build
 #   tool/ime_check/run.sh testSetpadBackspace  # some scenarios
@@ -23,7 +24,7 @@ WORK=${TMPDIR:-/tmp}/setpad-ime
 HOST=$WORK/host
 SHOTS=$WORK/shots
 API_BASE=${API_BASE:-http://127.0.0.1:9}
-TESTS=(${@:-testRepro testSetpadAfterFinish testSetpadBackspace testSetpadMemo testSetpadJudge testSetpadMealMode})
+TESTS=(${@:-testRepro testSetpadAfterFinish testSetpadBackspace testSetpadMemo testSetpadJudge testSetpadMealMode testSetpadChunjiin})
 mkdir -p $WORK $SHOTS
 
 # 1. The simulator: Korean first, software keyboard.
@@ -58,7 +59,22 @@ cp $HERE/ImeUITests.swift $HOST/ios/ImeUITests/ImeUITests.swift
 (cd $ROOT && flutter build ios --simulator --debug --dart-define=API_BASE=$API_BASE >/dev/null)
 APP=$ROOT/build/ios/iphonesimulator/Runner.app
 
+# One keyboard per scenario: switching with the globe key does not work reliably under XCUITest,
+# so the simulator gets only the layout the scenario types with (천지인 = iOS "Korean 10-Key").
+keyboard() {
+  [[ $CURRENT == $1 ]] && return
+  xcrun simctl boot $UDID 2>/dev/null || true
+  xcrun simctl bootstatus $UDID -b >/dev/null
+  xcrun simctl spawn $UDID defaults write -g AppleKeyboards -array "ko_KR@sw=$1;hw=Automatic"
+  xcrun simctl spawn $UDID defaults write com.apple.Preferences KeyboardsCurrentAndNext -array "ko_KR@sw=$1;hw=Automatic"
+  xcrun simctl spawn $UDID defaults write com.apple.Preferences KeyboardLastUsed -string "ko_KR@sw=$1;hw=Automatic"
+  xcrun simctl shutdown $UDID
+  CURRENT=$1
+}
+CURRENT=
+
 for T in $TESTS; do
+  [[ $T == testSetpadChunjiin ]] && keyboard Korean10Key || keyboard Korean
   # xcodebuild may shut the simulator down after a run; boot and reinstall for a fresh app.
   xcrun simctl boot $UDID 2>/dev/null || true
   xcrun simctl bootstatus $UDID -b >/dev/null
