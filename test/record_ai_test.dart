@@ -1058,7 +1058,11 @@ void main() {
     '끼니 판단: AI 가 켜져 있으면 decide 를 실어 판정자에게, 꺼져 있으면 표만 — 못 물으면 판정 없음',
     () async {
       final sent = <(String, Object?)>[];
-      Future<MealCheck> ask(MockClientHandler foods, {bool ai = true}) {
+      Future<MealCheck> ask(
+        MockClientHandler foods, {
+        bool ai = true,
+        bool hint = false,
+      }) {
         RecordAi.forget();
         return RecordAi(
           endpoint: 'https://example.com',
@@ -1071,7 +1075,7 @@ void main() {
             sent.add((request.url.path, jsonDecode(request.body)));
             return foods(request);
           }),
-        ).isMeal('김치찌개');
+        ).isMeal('김치찌개', exerciseHint: hint);
       }
 
       http.Response json(Map<String, Object?> body) => http.Response(
@@ -1109,6 +1113,16 @@ void main() {
         reason: '표의 일치는 판정이 아니다',
       );
       expect(sent.single.$2, {'text': '김치찌개'}, reason: '꺼 두면 모델에 묻지 않는다');
+      sent.clear();
+      await ask((_) async => json({'food': false}), hint: true);
+      expect(sent.single.$2, {
+        'text': '김치찌개',
+        'decide': true,
+        'hint': 'exercise',
+      }, reason: '운동 낱말이 있으면 서버가 문턱을 높인다');
+      sent.clear();
+      await ask((_) async => json({'food': false}), ai: false, hint: true);
+      expect(sent.single.$2, {'text': '김치찌개'}, reason: '꺼 두면 힌트도 없다');
       for (final fail in <MockClientHandler>[
         (_) async => http.Response(jsonEncode({'error': 'quotaExceeded'}), 429),
         (_) async => http.Response('oops', 502),

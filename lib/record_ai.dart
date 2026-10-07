@@ -1161,9 +1161,12 @@ class RecordAi {
   /// (`decide`), 꺼져 있으면 음식 표(이름이 **정확히** 같은 음식)만 본다. 적기 도움
   /// 한도는 쓰지 않는다. 답은 [MealCheck] — 못 물으면(연결·서버·시간 초과) 둘 다 없다.
   ///
+  /// [exerciseHint] 는 줄에 운동 낱말·단위가 있다는 것('점심 산책', '아침 루틴 A') — 서버는
+  /// 그때 끼니로 볼 문턱을 높인다(DECIDE_MEAL_MIN_HINTED_PCT).
+  ///
   /// 기기 토큰 받기까지 합쳐 [foodWait]·[decideWait] 만 기다린다 — 사전에 없는 이름은
   /// 이 답을 기다려야 칸이 된다. 헬스장 신호가 약해도 칸은 곧 생긴다.
-  Future<MealCheck> isMeal(String text) async {
+  Future<MealCheck> isMeal(String text, {bool exerciseHint = false}) async {
     const none = (judged: null, table: false);
     if (respond != null || !supported) return none;
     final decide = allowed;
@@ -1172,6 +1175,7 @@ class RecordAi {
       final answer = await _ask('/api/foods/match', {
         'text': text,
         if (decide) 'decide': true,
+        if (decide && exerciseHint) 'hint': 'exercise',
       }, timeout: wait).timeout(wait);
       final food = answer['food'] == true;
       return answer['decided'] == true

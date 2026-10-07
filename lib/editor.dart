@@ -1511,7 +1511,10 @@ class _RoutineEditorState extends State<RoutineEditor>
         _aiBusy = true;
         _aiNotice = null;
       });
-      check = await widget.ai.isMeal(text.trim());
+      check = await widget.ai.isMeal(
+        text.trim(),
+        exerciseHint: exerciseEvidence(text, done),
+      );
       if (!mounted || request != _aiRequest) return;
       setState(() => _aiBusy = false);
       // 기다리는 사이 글을 고쳤거나 다른 카드로 갔으면 친 글은 입력칸에 그대로다.

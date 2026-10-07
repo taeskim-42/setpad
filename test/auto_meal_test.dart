@@ -37,9 +37,12 @@ class _Ai extends RecordAi {
   @override
   bool get supported => online;
 
+  final hinted = <String>[];
+
   @override
-  Future<MealCheck> isMeal(String text) async {
+  Future<MealCheck> isMeal(String text, {bool exerciseHint = false}) async {
     lookups.add(text);
+    if (exerciseHint) hinted.add(text);
     return (judged: judge[text], table: table.contains(text));
   }
 
@@ -498,6 +501,20 @@ void main() {
     expect(meals, isEmpty);
     expect(c.blocks.single.name, '치킨윙');
     expect(find.byKey(const ValueKey('exercise-to-meal')), findsOneWidget);
+  });
+
+  testWidgets('운동 낱말·단위가 든 줄은 판정자에게 힌트를 같이 보낸다 — 서버가 끼니 문턱을 높인다', (
+    tester,
+  ) async {
+    final ai = _Ai(judge: {'점심 산책': false, '마라샹궈': true});
+    final (c, meals) = await pump(tester, ai);
+    await submit(tester, '점심 산책');
+    expect(c.blocks.single.name, '점심 산책');
+    c.closeBlock();
+    await submit(tester, '마라샹궈');
+    expect(meals, ['마라샹궈']);
+    expect(ai.lookups, ['점심 산책', '마라샹궈']);
+    expect(ai.hinted, ['점심 산책']);
   });
 
   testWidgets('근거 없이 만든 운동 칸은 한 줄에서 끼니로 바꾸고, 그 이름을 익히지 않는다', (tester) async {
