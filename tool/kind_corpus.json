@@ -1,0 +1,2102 @@
+[
+ {
+  "text": "벤치",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "데드",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "랫풀",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "스쿼트",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "스쾃",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "사레레",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "벤오레",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "오헤프 40kg 5x5",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "인클 벤치 60kg 10회",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "rdl 60kg 3x10",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "qpscl",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "벤치 80kg 5x5",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "데드 140 3x3",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "스쿼트 100kg 5세트",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "랫풀다운 50kg 12회 4세트",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "풀업 10개 5세트",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "푸시업 100개 채우기",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "팔굽혀펴기 30개",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "플랭크 1분 3세트",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "버피 타바타",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "러닝 5km",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "트레드밀 경사 12 속도 5 30분",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "천국의 계단 20분",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "로잉머신 2000m",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "줄넘기 1000개",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "사이클 30분 140bpm",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "인터벌 달리기 30초/30초 10라운드",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "러닝 300kcal",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "수영",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "수영 자유형 1km",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "등산",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "자전거 30분",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "요가",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "필라테스",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "탁구 1시간",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "따릉이 출퇴근",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "스크린골프 18홀",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "만보 걷기",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "마라톤 하프",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "스프린트 100m 10회",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "복싱 원투 콤보 3라운드",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "크로스핏 와드",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "머프",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "폼롤러 10분",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "PT 50분",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "굿모닝",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "굿모닝 40kg 3x10",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "케이블 크런치 3세트",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "크런치 50개",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "런지 20회",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "해머컬 12kg 3x12",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "덤벨컬 10kg 12회 3세트",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "스모 데드 140kg 3x3",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "카프레이즈 4x20",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "버피 50개",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "버터플라이 3세트",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "하이로우 머신 4세트",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "힙쓰러스트 100kg 10회",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "케틀벨 스윙 24kg 20회",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "불가리안 스플릿 스쿼트 3세트",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "프렌치 프레스 3x12",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "아침 공복 유산소 30분",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "저녁 요가",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "점심 산책",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "등 운동",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "가슴 운동",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "하체 조짐",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "민수식 로우",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "쌀포대 스쿼트 20개",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "생수통 숄더프레스",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "물구나무 서기 30초",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "애기 안고 스쿼트 20개",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "버드독 3세트",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "메디신볼 슬램 20개",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "밴치프레스",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "스퀏",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "스쿼트트",
+  "lang": "ko",
+  "kind": "exercise"
+ },
+ {
+  "text": "아메리카노",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "아이스아메리카노",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "아이스 아메리카노",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "바닐라라떼",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "김치찌개",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "제육볶음",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "닭가슴살 200g",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "삶은 계란 3개",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "프로틴 쉐이크 1잔",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "라면 2개",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "맥주 500ml",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "치킨 1세트",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "바나나 2개",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "김치볶음밥",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "빅맥",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "와퍼",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "아침 김밥",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "점심 제육",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "저녁 샐러드",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "아아",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "아아 벤티",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "스벅 돌체라떼",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "게토레이",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "프로틴 1스쿱",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "부스터 1스쿱",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "크레아틴 5g",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "BCAA",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "물 2L",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "하이볼 2잔",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "치맥",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "회식 삼겹살 소주",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "신라면",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "엽떡",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "싸이버거",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "맥스파이시 상하이 버거",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "빅맥 세트",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "교촌 허니콤보",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "서브웨이 이탈리안 비엠티",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "편의점 도시락",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "김밥 2줄",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "짜장면 곱빼기",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "마라탕",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "마라샹궈",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "삼겹살 2인분",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "목살 1kg 넷이서",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "등갈비",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "등심 스테이크",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "닭가슴살 샐러드",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "현미밥 반공기",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "오트밀 40g",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "그릭요거트 그래놀라",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "요거트 볼",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "프로틴바",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "피자 2조각",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "3분카레",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "모둠회 1세트",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "만두 10개",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "덤플링 6개",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "핫도그",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "크로플 2개",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "바베큐 폭립",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "카프레제 샐러드",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "프랑크 소시지",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "불가리스 1병",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "크런치 초콜릿",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "버터 10g",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "햄 2장",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "양송이 스프",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "프렌치프레스 커피",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "운동 후 바나나",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "야식 치킨",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "라면 먹음",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "치킨 시켜먹음",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "아이스아메리카노노",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "김치찌게",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "dkapflzksh",
+  "lang": "ko",
+  "kind": "meal"
+ },
+ {
+  "text": "점심 먹고 러닝 5km",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "저녁 먹고 산책",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "김밥 먹고 등산",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "벤치 5세트 하고 치킨",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "러닝 5km + 프로틴 쉐이크",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "헬스 끝나고 치킨",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "아아아아메메메메리리리카카카",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "ㅂ베벤벤ㅊ치",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "ㄷ다달닭가가슴슴살살",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "ㅋㅋㅋㅋ",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "ㅁㄴㅇㄹ",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "123",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "벤티",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "런치",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "치킨윙",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "점심",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "프렌치 프레스",
+  "lang": "ko",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "bench 225 5x5",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "Deadlift 3x5 315 lb",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "RDL 3x8",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "OHP 5/3/1",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "hammer curls 3x12",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "good mornings 3x10",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "cable crunch 4x15",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "Turkish get-up 5 each side",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "5k run 27:30",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "treadmill 30 min @ 140 bpm",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "tabata burpees 8 rounds",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "fill 100 push-ups",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "kettlebell swings 3x20 24kg",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "pancake stretch 2 min",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "mountain climbers 3x30s",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "Cuban press 3x10",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "dragon flag 3x5",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "devil press 10 reps",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "Fran 4:32",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "Kroc rows 2x20",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "chest day",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "after dinner walk",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "pickleball 1 hr",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "walking lunges 3x20",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "Russian twists 3x20",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "dips 3x10",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "Arnold press 3x10",
+  "lang": "en",
+  "kind": "exercise"
+ },
+ {
+  "text": "protein shake",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "ham sandwich",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "Big Mac meal",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "2 boiled eggs",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "chicken breast 200g",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "Crunch bar",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "White Russian",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "Arnold Palmer",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "Mountain Dew 20 oz",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "kettle corn",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "pancakes with syrup",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "turkey club",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "Cuban sandwich",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "dragon fruit bowl",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "deviled eggs",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "chips and dip",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "walking taco",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "curly fries",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "iced latte grande",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "2 beers",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "post-workout shake",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "pre-workout meal: oatmeal and banana",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "Chicken McNuggets 2x10",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "lunch: burrito bowl",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "dumplings x6",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "french press coffee",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "1 scoop pre-workout",
+  "lang": "en",
+  "kind": "meal"
+ },
+ {
+  "text": "ate lunch then ran 5k",
+  "lang": "en",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "leg day then pizza",
+  "lang": "en",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "dip",
+  "lang": "en",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "beer mile",
+  "lang": "en",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "asdfgh",
+  "lang": "en",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "lunch",
+  "lang": "en",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "ベンチプレス 80kg 5回×3セット",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "デッド 140kg 3回",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "スクワット 100kg 5×5",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "懸垂 10回×3",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "腕立て伏せ 50回",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "ランジ 20回",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "ハンマーカール 12回 3セット",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "クランチ 30回",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "グッドモーニング 3セット",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "胸トレ",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "ランニング 5km 30分",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "ヨガ 60分",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "ラジオ体操",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "皇居ラン",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "バーピー タバタ 8ラウンド",
+  "lang": "ja",
+  "kind": "exercise"
+ },
+ {
+  "text": "カツ丼",
+  "lang": "ja",
+  "kind": "meal"
+ },
+ {
+  "text": "ラーメン 大盛り",
+  "lang": "ja",
+  "kind": "meal"
+ },
+ {
+  "text": "おにぎり 2個",
+  "lang": "ja",
+  "kind": "meal"
+ },
+ {
+  "text": "サラダチキン",
+  "lang": "ja",
+  "kind": "meal"
+ },
+ {
+  "text": "プロテイン 1杯",
+  "lang": "ja",
+  "kind": "meal"
+ },
+ {
+  "text": "チーズバーガー",
+  "lang": "ja",
+  "kind": "meal"
+ },
+ {
+  "text": "朝ごはん 納豆ご飯",
+  "lang": "ja",
+  "kind": "meal"
+ },
+ {
+  "text": "ハムサンド",
+  "lang": "ja",
+  "kind": "meal"
+ },
+ {
+  "text": "鶏むね肉 200g",
+  "lang": "ja",
+  "kind": "meal"
+ },
+ {
+  "text": "クランチチョコ",
+  "lang": "ja",
+  "kind": "meal"
+ },
+ {
+  "text": "ヨーグルト",
+  "lang": "ja",
+  "kind": "meal"
+ },
+ {
+  "text": "ジムビーム ハイボール",
+  "lang": "ja",
+  "kind": "meal"
+ },
+ {
+  "text": "昼ごはん食べてからランニング 5km",
+  "lang": "ja",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "ランチ",
+  "lang": "ja",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "ああああ",
+  "lang": "ja",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "卧推 80kg 5组",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "硬拉 140公斤 3x5",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "深蹲 100kg 5×5",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "引体向上 10个",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "俯卧撑 100个",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "跑步 5公里",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "撸铁",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "练腿",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "练胸",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "早安式体前屈 3组",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "卷腹 3组20次",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "八段锦",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "动感单车 45分钟",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "平板支撑 2分钟",
+  "lang": "zh_Hans",
+  "kind": "exercise"
+ },
+ {
+  "text": "鸡胸肉 200克",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "煮鸡蛋 3个",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "蛋白粉 一勺",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "兰州拉面",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "麻辣烫",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "冰美式",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "珍珠奶茶",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "早餐 豆浆油条",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "鸡腿饭",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "撸串",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "鸡肉卷",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "健身餐",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "巨无霸",
+  "lang": "zh_Hans",
+  "kind": "meal"
+ },
+ {
+  "text": "吃完午饭去跑步5公里",
+  "lang": "zh_Hans",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "午饭",
+  "lang": "zh_Hans",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "啊啊啊啊",
+  "lang": "zh_Hans",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "臥推 60公斤 5下x5組",
+  "lang": "zh_Hant",
+  "kind": "exercise"
+ },
+ {
+  "text": "硬舉 120kg 3x5",
+  "lang": "zh_Hant",
+  "kind": "exercise"
+ },
+ {
+  "text": "滑輪下拉 12下",
+  "lang": "zh_Hant",
+  "kind": "exercise"
+ },
+ {
+  "text": "伏地挺身 50下",
+  "lang": "zh_Hant",
+  "kind": "exercise"
+ },
+ {
+  "text": "慢跑 30分鐘",
+  "lang": "zh_Hant",
+  "kind": "exercise"
+ },
+ {
+  "text": "游泳 1500公尺",
+  "lang": "zh_Hant",
+  "kind": "exercise"
+ },
+ {
+  "text": "重訓",
+  "lang": "zh_Hant",
+  "kind": "exercise"
+ },
+ {
+  "text": "飛輪 45分鐘",
+  "lang": "zh_Hant",
+  "kind": "exercise"
+ },
+ {
+  "text": "棒式 1分鐘",
+  "lang": "zh_Hant",
+  "kind": "exercise"
+ },
+ {
+  "text": "超慢跑",
+  "lang": "zh_Hant",
+  "kind": "exercise"
+ },
+ {
+  "text": "練腿",
+  "lang": "zh_Hant",
+  "kind": "exercise"
+ },
+ {
+  "text": "雞胸肉 150克",
+  "lang": "zh_Hant",
+  "kind": "meal"
+ },
+ {
+  "text": "滷肉飯",
+  "lang": "zh_Hant",
+  "kind": "meal"
+ },
+ {
+  "text": "珍珠奶茶 半糖少冰",
+  "lang": "zh_Hant",
+  "kind": "meal"
+ },
+ {
+  "text": "茶葉蛋 2顆",
+  "lang": "zh_Hant",
+  "kind": "meal"
+ },
+ {
+  "text": "雞腿便當",
+  "lang": "zh_Hant",
+  "kind": "meal"
+ },
+ {
+  "text": "鹽酥雞",
+  "lang": "zh_Hant",
+  "kind": "meal"
+ },
+ {
+  "text": "冰棒",
+  "lang": "zh_Hant",
+  "kind": "meal"
+ },
+ {
+  "text": "車輪餅 2個",
+  "lang": "zh_Hant",
+  "kind": "meal"
+ },
+ {
+  "text": "重乳酪蛋糕",
+  "lang": "zh_Hant",
+  "kind": "meal"
+ },
+ {
+  "text": "乳清蛋白一杯",
+  "lang": "zh_Hant",
+  "kind": "meal"
+ },
+ {
+  "text": "早餐 蛋餅",
+  "lang": "zh_Hant",
+  "kind": "meal"
+ },
+ {
+  "text": "吃完晚餐去慢跑",
+  "lang": "zh_Hant",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "午餐",
+  "lang": "zh_Hant",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "嗯嗯嗯嗯",
+  "lang": "zh_Hant",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "press de banca 80kg 5x5",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "peso muerto 140 kg 3x3",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "sentadillas 4x10",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "jalón al pecho 3x12",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "dominadas 5x5",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "flexiones 50",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "correr 5 km",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "plancha 3x45s",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "curl martillo 3x12",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "remo 2000 m",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "burpees tabata 8 rondas",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "zancadas 3x12",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "pádel 1 hora",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "clase de salsa 1 hora",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "abdominales 3x20",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "buenos días con barra 3x10",
+  "lang": "es",
+  "kind": "exercise"
+ },
+ {
+  "text": "pechuga de pollo 200 g",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "pollo a la plancha con ensalada",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "3 huevos revueltos",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "batido de proteínas",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "tortilla de patatas",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "paella",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "tacos al pastor x3",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "café con leche",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "2 cervezas",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "desayuno: tostadas con aguacate",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "jamón serrano",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "jugo de remolacha",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "nachos con salsa",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "barrita de proteína",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "churros con chocolate",
+  "lang": "es",
+  "kind": "meal"
+ },
+ {
+  "text": "comí y luego corrí 5 km",
+  "lang": "es",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "salsa",
+  "lang": "es",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "buenos días",
+  "lang": "es",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "jajaja",
+  "lang": "es",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "เบนช์เพรส 60kg 5x5",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "เดดลิฟต์ 100 กก. 3x5",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "สควอท 5 เซ็ต",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "วิดพื้น 50 ครั้ง",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "วิ่ง 5 กม.",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "วิ่งเช้า ๓ กม.",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "ว่ายน้ำ 1 ชั่วโมง",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "มวยไทย 1 ชม.",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "ปั่นจักรยาน 20 กม.",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "แพลงก์ 1 นาที",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "เวทเทรนนิ่ง",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "เล่นอก",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "เล่นขา",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "กู๊ดมอร์นิ่ง 3 เซ็ต",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "เบอร์ปี้ 50 ครั้ง",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "ตะกร้อ 1 ชม.",
+  "lang": "th",
+  "kind": "exercise"
+ },
+ {
+  "text": "ข้าวมันไก่",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "กะเพราหมูสับไข่ดาว",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "ส้มตำ",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "ผัดไทย",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "อกไก่ 200 กรัม",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "ไข่ต้ม 2 ฟอง",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "เวย์โปรตีน 1 สกู๊ป",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "ชาไทย",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "ชานมไข่มุก",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "อเมริกาโน่เย็น",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "เบียร์ 2 ขวด",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "ข้าวขาหมู",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "มื้อเช้า โจ๊ก",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "เบอร์เกอร์",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "กาแฟปั่น",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "น้ำเปล่า 1 ขวด",
+  "lang": "th",
+  "kind": "meal"
+ },
+ {
+  "text": "กินข้าวเสร็จแล้วไปวิ่ง 5 กม.",
+  "lang": "th",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "555",
+  "lang": "th",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "ปั่น",
+  "lang": "th",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "đẩy ngực 60kg 5x5",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "deadlift 100kg 3x5",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "squat 5x5 80kg",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "kéo xô 3x12",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "hít đất 50 cái",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "hít xà 10 cái",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "gập bụng 3 hiệp 20 cái",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "chạy bộ 5km",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "chay bo 5km",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "bơi 1 tiếng",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "đạp xe 20km",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "plank 1 phút",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "tập ngực",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "thể dục buổi sáng",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "pickleball 2 tiếng",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "burpee tabata 8 hiệp",
+  "lang": "vi",
+  "kind": "exercise"
+ },
+ {
+  "text": "phở bò",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "pho bo",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "bánh mì thịt",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "cơm tấm sườn",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "bún chả",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "ức gà luộc 200g",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "trứng luộc 3 quả",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "cà phê sữa đá",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "trà sữa trân châu",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "bia 2 lon",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "whey 1 muỗng",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "bữa sáng xôi",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "bánh bao 2 cái",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "sinh tố bơ",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "xà lách trộn",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "com chay",
+  "lang": "vi",
+  "kind": "meal"
+ },
+ {
+  "text": "ăn trưa xong chạy bộ 5km",
+  "lang": "vi",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "chay",
+  "lang": "vi",
+  "kind": "ambiguous"
+ },
+ {
+  "text": "hihi",
+  "lang": "vi",
+  "kind": "ambiguous"
+ }
+]
