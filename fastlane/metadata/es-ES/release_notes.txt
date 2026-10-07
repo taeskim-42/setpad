@@ -1,6 +1,5 @@
 Novedades
 
-· Importar entrenamientos: lee entrenamientos pasados de notas, archivos de texto o capturas, revísalos por fecha y guárdalos de una vez (Ajustes › Registro)
-· Juntos: cuando todos confirman la rutina creada en grupo, pasa a ser el entrenamiento de cada uno
-· Abre los ajustes de un ejercicio (peso y series objetivo) con el botón «…» de su tarjeta
-· Corregido: una comida añadida más tarde a un registro pasado se contaba en el total de hoy
+· Escritura: se corrigió que las letras se duplicaran ("아아아메메메…") en el nombre del siguiente ejercicio después de terminar uno (con el teclado coreano)
+· ¿Comida o ejercicio?: la IA decide si una línea escrita en el campo de ejercicio es una comida o un ejercicio. Si se equivoca, toca «Cambiar a comida» o «Cambiar a ejercicio» debajo una vez y lo recordará la próxima vez
+· Los demás campos de texto (importar entrenamientos, rutinas compartidas) ya no cortan lo que estás escribiendo

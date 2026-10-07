@@ -1,10 +1,10 @@
 No account is needed to review setpad. Every AI feature below works signed out: the app uses an anonymous random device ID, and a new device starts with 3 plates.
 
-AI help (the AI service is DeepSeek) and how to turn it off
-- AI help is on by default. When an AI feature is used, what is sent (the text you type, meal photos with location and capture details removed, and the exercise names in your log) goes through our server gym.darak.studio to DeepSeek's AI; our server does not store it. The privacy policy describes this.
-- To turn it off: on the list screen tap the gear icon (top right) › Settings › Recording › "AI help". The same Settings page is in the "…" menu of a record screen. While it is off, nothing is sent to the AI.
+AI help (DeepSeek; Upstage only tells meal from exercise) and how to turn it off
+- AI help is on by default. When an AI feature is used, what is sent (the text you type, meal photos with location and capture details removed, and the exercise names in your log) goes through our server gym.darak.studio to DeepSeek's AI; a line typed in the exercise-name field goes to Upstage's AI only to tell a meal from an exercise. Our server stores neither; the privacy policy describes this.
+- To turn it off: on the list screen tap the gear icon › Settings › Recording › "AI help". While it is off, nothing is sent to the AI.
 - Off never blocks the app: typed lines and "500kcal" still count, search works, and routines are built on the phone.
-- Body composition sheet (1.5.0, optional): Settings › My body › "Take photo". The photo goes via our server to DeepSeek only to read the printed numbers and is not stored; values are checked before saving and stay on the phone.
+- Body composition sheet (optional): Settings › My body › "Take photo". The photo goes via our server to DeepSeek only to read the printed numbers and is not stored; values are checked before saving and stay on the phone.
 - Workout import (optional): Settings › Recording › "Import workout history". Text or screenshots go via our server to DeepSeek only to read sets, are not stored, and nothing is saved before "Save all".
 - Health data read from Apple Health (active energy, resting energy, heart rate) is never sent to our server or to the AI. Resting energy adds to calories used; without it the app estimates it from Settings › My body (kept on the phone).
 
@@ -12,7 +12,7 @@ How to try the AI features (signed out)
 1. Launch the app; today's record opens. Tap the exercise-name field at the bottom.
 2. One-line setup: type "bench 80kg 5x5" and press Return. The exercise appears right away with its goal under the title; tap "…" on the card to see the chips (80 kg, 5 sets of 5) and change a value in place. Then type "80 5" to log a set.
 3. Meal from text: in the same field type "lunch burrito" and press Return. It is logged as a meal ("Logged as a meal"; "Make it exercise" undoes it). A review sheet then shows the food, amount and calories; fix the amount if needed and tap Done — nothing is saved before this.
-   1.5.0: the sheet shows carbs/protein/fat; "Choose another product" switches flavours (try "짜파게티 한 봉지"); a food in no table is labelled "AI estimate".
+   The sheet shows carbs/protein/fat; "Choose another product" switches flavours (try "짜파게티 한 봉지"); a food in no table is labelled "AI estimate".
 4. Meal photo: tap the fork-and-knife button at the left of the bar above the keyboard, choose Camera or From library, and pick a food photo. The same review sheet opens before anything is saved.
 5. Record question: go back to "All Workouts", type "best bench press" in the search field and press Return, then tap "Yes" to confirm. The table is computed on the phone from the saved sets; the AI only turns the question into a query.
 6. Today's routine: in the same search field type "today's routine" (or "오늘 루틴 짜줘") and press Return. It is built on the phone from the user's past sessions (weights copied, never invented); tap "Start". With no logs it offers starter exercises without numbers.

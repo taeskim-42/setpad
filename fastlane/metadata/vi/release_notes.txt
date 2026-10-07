@@ -1,6 +1,5 @@
 Có gì mới
 
-· Nhập lịch sử tập: đọc các buổi tập cũ từ ghi chú, tệp văn bản hoặc ảnh chụp màn hình, kiểm tra theo ngày rồi lưu tất cả một lần (Cài đặt › Ghi chép)
-· Tập cùng: khi mọi người xác nhận lịch tập cùng xây dựng, lịch đó trở thành buổi tập của từng người
-· Mở cài đặt bài tập (mức tạ và mục tiêu số hiệp) bằng nút "…" trên thẻ
-· Đã sửa: bữa ăn thêm sau vào bản ghi ngày trước bị tính vào tổng hôm nay
+· Gõ phím: sửa lỗi chữ bị lặp ("아아아메메메…") trong tên bài tập tiếp theo sau khi xong một bài (xảy ra với bàn phím tiếng Hàn)
+· Bữa ăn hay bài tập: AI xác định dòng gõ trong ô tên bài tập là bữa ăn hay bài tập. Nếu sai, chạm "Đổi thành bữa ăn" hoặc "Đổi thành bài tập" bên dưới một lần, lần sau sẽ nhớ
+· Các ô nhập khác (nhập lịch sử tập…) không còn làm gián đoạn khi đang gõ

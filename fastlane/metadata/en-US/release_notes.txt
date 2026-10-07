@@ -1,6 +1,5 @@
 What's new
 
-· Import workout history: read past workouts from notes, text files or screenshots, check them by date, then save them all at once (Settings › Recording)
-· Together: once everyone confirms the routine you built together, it becomes each person's workout
-· Open an exercise's settings (weight and set goals) from the "…" button on its card
-· Fixed: a meal added later to a past record was counted in today's total
+· Typing: fixed letters doubling ("아아아메메메…") in the next exercise name after finishing an exercise (seen with the Korean keyboard)
+· Meal or exercise: AI now tells whether a line typed in the exercise field is a meal or an exercise. If it gets one wrong, tap "Make it a meal" or "Make it exercise" below it once and it remembers next time
+· Other text fields (workout import, shared routines) no longer break typing in progress
