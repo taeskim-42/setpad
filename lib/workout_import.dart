@@ -605,7 +605,9 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
   Widget _workoutCard(L l, _ImportWorkout workout, int index) {
     final date = workout.date;
     return Container(
-      key: ValueKey('workout-import-session-$index'),
+      // Cards, exercises and sets are keyed by identity, not position:
+      // removing one must not hand its text fields' state to the next.
+      key: ObjectKey(workout),
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 14),
       decoration: BoxDecoration(
@@ -616,6 +618,7 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
+            key: ValueKey('workout-import-session-$index'),
             children: [
               Expanded(
                 child: CupertinoButton(
@@ -685,6 +688,7 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
     _ImportExercise exercise,
     _ImportWorkout workout,
   ) => Padding(
+    key: ObjectKey(exercise),
     padding: const EdgeInsets.only(top: 8),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -722,6 +726,7 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
         ),
         for (final set in exercise.sets)
           Padding(
+            key: ObjectKey(set),
             padding: const EdgeInsets.only(top: 6),
             child: Row(
               children: [

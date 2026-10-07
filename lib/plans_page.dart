@@ -305,6 +305,10 @@ class PlanPage extends StatefulWidget {
 
 class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
   late final _text = TextEditingController();
+
+  /// While the plan text has focus the keyboard owns it: a write would be
+  /// pushed into the IME and break composition, so remote text waits for blur.
+  final _focus = FocusNode();
   Timer? _poll;
   String? _day;
   bool _busy = false;
@@ -338,7 +342,11 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
     _syncNearby();
     // 서버에서 새 내용이 왔고 내가 고치는 중이 아니면 글도 따라간다. 글이 이미
     // 같은 계획이면 건드리지 않는다 — 줄에 치고 있는 목표("80kg 5회")가 지워진다.
-    if (plan.draft == null && !_typed.sameAs(plan.content)) _load(plan.content);
+    if (!_focus.hasFocus &&
+        plan.draft == null &&
+        !_typed.sameAs(plan.content)) {
+      _load(plan.content);
+    }
     setState(() {});
   }
 
@@ -352,6 +360,7 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     plans.addListener(_changed);
+    _focus.addListener(_changed);
     WidgetsBinding.instance.addObserver(this);
     // 보이는 동안만 상대의 변경을 확인한다.
     _poll = Timer.periodic(
@@ -369,7 +378,7 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_text.text.isEmpty) _load(plan.shown);
+    if (_text.text.isEmpty && !_focus.hasFocus) _load(plan.shown);
   }
 
   @override
@@ -386,6 +395,7 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
     Nearby.instance.clear();
     WidgetsBinding.instance.removeObserver(this);
     plans.removeListener(_changed);
+    _focus.dispose();
     _text.dispose();
     super.dispose();
   }
@@ -638,6 +648,7 @@ class _PlanPageState extends State<PlanPage> with WidgetsBindingObserver {
             CupertinoTextField(
               key: const ValueKey('plan-text'),
               controller: _text,
+              focusNode: _focus,
               readOnly: _closed,
               minLines: 5,
               maxLines: null,

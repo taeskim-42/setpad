@@ -329,6 +329,80 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
+  testWidgets(
+    '칸에 포커스가 있는 동안 상대의 변경이 와도 글을 덮어쓰지 않고(자판으로 밀지 않는다), 포커스가 떠나면 따라간다',
+    (tester) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_plan_focus_');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final notes = NotesStore(directory: dir);
+      addTearDown(notes.dispose);
+      var version = 1;
+      final items = [
+        {'id': 'a', 'name': '벤치', 'sets': 3},
+      ];
+      Map<String, Object?> body() => {
+        'id': 'srv',
+        'role': 'owner',
+        'state': 'pending',
+        'version': version,
+        'title': '하체',
+        'plannedOn': null,
+        'items': items,
+      };
+      final plans = PlanStore(
+        directory: dir,
+        link: () => GymLink(
+          endpoint: 'https://x',
+          token: 'member',
+          client: MockClient(
+            (_) async =>
+                http.Response.bytes(utf8.encode(jsonEncode(body())), 200),
+          ),
+        ),
+      );
+      final plan = SharedPlan(localId: 'p-focus')..apply(body());
+      plans.add(plan);
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: PlanPage(
+            plan: plan,
+            plans: plans,
+            notes: notes,
+            onOpenNote: (_) {},
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+      final box = find.byKey(const ValueKey('plan-text'));
+      String text() => tester.widget<CupertinoTextField>(box).controller!.text;
+      expect(text(), '하체\n벤치 3세트');
+
+      await tester.showKeyboard(box);
+      tester.testTextInput.log.clear();
+      // 상대가 한 줄 더했다 — 4초마다 묻는 확인에 실려 온다.
+      version = 2;
+      items.add({'id': 'b', 'name': '스쿼트', 'sets': 5});
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(plan.content.items, hasLength(2), reason: '확인은 했다');
+      expect(text(), '하체\n벤치 3세트', reason: '포커스 중인 칸은 자판의 것이다');
+      expect(
+        tester.testTextInput.log.map((c) => c.method),
+        isNot(contains('TextInput.setEditingState')),
+      );
+
+      FocusManager.instance.primaryFocus!.unfocus();
+      await tester.pump();
+      expect(text(), '하체\n벤치 3세트\n스쿼트 5세트');
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
+    },
+  );
+
   group('계획 글은 다시 열어도 같은 계획이다', () {
     Future<SharedPlan> open(
       WidgetTester tester,

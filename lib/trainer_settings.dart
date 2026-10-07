@@ -280,6 +280,8 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage>
         _s.policy = Map<String, Object?>.from(saved);
         // 읽은 대로 저장됐다 — '14일' 이 14 로 들어간 것이 보인다.
         for (final key in _policyNumbers) {
+          // Leave a field typed into while the save was in flight.
+          if (_numbers[key]!.text.trim() != typed[key]) continue;
           _numbers[key]!.text = '${saved[key] ?? ''}';
         }
       }
@@ -489,6 +491,10 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage>
                 child: CupertinoTextField(
                   controller: _offer,
                   maxLength: 200,
+                  // Android's default cuts a syllable mid-composition and
+                  // pushes the cut back into the IME.
+                  maxLengthEnforcement:
+                      MaxLengthEnforcement.truncateAfterCompositionEnds,
                   maxLines: 3,
                   minLines: 1,
                 ),

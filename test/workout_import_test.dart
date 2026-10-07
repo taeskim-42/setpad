@@ -230,4 +230,91 @@ void main() {
     expect(store.notes, hasLength(2));
     expect(store.notes.map((n) => n.id).toSet(), hasLength(2));
   });
+
+  testWidgets('위의 날·운동을 지워도 치던 칸은 제 글 그대로다 — 다른 칸의 글이 자판으로 가지 않는다', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 2000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final directory = Directory.systemTemp.createTempSync('setpad_import_');
+    addTearDown(() => directory.deleteSync(recursive: true));
+    final store = NotesStore(directory: directory);
+    addTearDown(store.dispose);
+    Map<String, Object?> exercise(String name) => {
+      'name': name,
+      'sets': [
+        {'value': 60, 'unit': 'kg', 'reps': 5, 'notes': [], 'done': true},
+      ],
+    };
+    final ai = RecordAi(
+      endpoint: 'https://example.test',
+      accountToken: () => 'test-token',
+      client: MockClient(
+        (_) async => http.Response.bytes(
+          utf8.encode(
+            jsonEncode({
+              'sessions': [
+                {
+                  'date': '2026-09-01',
+                  'title': null,
+                  'exercises': [exercise('벤치프레스')],
+                },
+                {
+                  'date': '2026-09-02',
+                  'title': null,
+                  'exercises': [exercise('스쿼트'), exercise('데드리프트')],
+                },
+              ],
+              'unparsed': [],
+              'saved': false,
+            }),
+          ),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        ),
+      ),
+    );
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: WorkoutImportPage(store: store, ai: ai),
+      ),
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('workout-import-text')),
+      '9/1 벤치프레스\n9/2 스쿼트 데드리프트',
+    );
+    await tester.tap(find.byKey(const ValueKey('workout-import-primary')));
+    await tester.pumpAndSettle();
+
+    await tester.showKeyboard(find.text('데드리프트'));
+    tester.testTextInput.log.clear();
+    final delete = find.byIcon(CupertinoIcons.delete);
+    // 첫째 날을 지운다.
+    await tester.tap(delete.first);
+    await tester.pumpAndSettle();
+    // 남은 휴지통: [그날, 스쿼트, 그 세트, 데드리프트, 그 세트] — 스쿼트를 지운다.
+    await tester.tap(delete.at(1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('벤치프레스'), findsNothing);
+    expect(find.text('스쿼트'), findsNothing);
+    final typing = tester
+        .widgetList<EditableText>(find.byType(EditableText))
+        .where((e) => e.focusNode.hasFocus);
+    expect(typing.single.controller.text, '데드리프트');
+    expect(
+      tester.testTextInput.log.map((c) => c.method),
+      isNot(
+        anyOf(
+          contains('TextInput.setEditingState'),
+          contains('TextInput.setClient'),
+          contains('TextInput.clearClient'),
+        ),
+      ),
+    );
+  });
 }

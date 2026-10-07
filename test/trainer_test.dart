@@ -860,6 +860,93 @@ void main() {
       }
     });
 
+    testWidgets('C·방침을 보내는 동안 다시 친 칸은 서버의 답이 덮지 않는다', (tester) async {
+      final answer = Completer<http.Response>();
+      final state = AgentState.fromJson({...agentBody(), 'role': 'owner'});
+      tall(tester);
+      await tester.pumpWidget(
+        app(
+          TrainerSettingsPage(
+            account: account((_) => answer.future),
+            gymId: gymId,
+            gymName: 'BPM 강남',
+            state: state,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      Finder field(String key) => find.byKey(ValueKey('policy-$key'));
+      String text(String key) =>
+          tester.widget<CupertinoTextField>(field(key)).controller!.text;
+
+      await tester.enterText(field('away_days'), '14일');
+      await tapText(tester, '방침 저장');
+      await tester.enterText(field('away_days'), '21');
+      answer.complete(
+        reply({
+          'policy': {'renewal_notice_days': 7, 'away_days': 14},
+        }),
+      );
+      await tester.pumpAndSettle();
+      expect(text('away_days'), '21', reason: '답을 기다리는 동안 친 글');
+      expect(text('renewal_notice_days'), '7');
+    });
+
+    testWidgets(
+      'C·재등록 제안 글은 200자에서도 조합 중인 음절을 자르지 않는다 — 자른 값을 자판으로 되밀면 조합이 끊긴다',
+      (tester) async {
+        final state = AgentState.fromJson({...agentBody(), 'role': 'owner'});
+        tall(tester);
+        await tester.pumpWidget(
+          app(
+            TrainerSettingsPage(
+              account: account((_) async => reply({})),
+              gymId: gymId,
+              gymName: 'BPM 강남',
+              state: state,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final offer = find.byWidgetPredicate(
+          (w) => w is CupertinoTextField && w.maxLength == 200,
+        );
+        String text() =>
+            tester.widget<CupertinoTextField>(offer).controller!.text;
+        TextEditingValue typed(
+          String text, {
+          TextRange composing = TextRange.empty,
+        }) => TextEditingValue(
+          text: text,
+          selection: TextSelection.collapsed(offset: text.length),
+          composing: composing,
+        );
+        final full = 'a' * 199;
+
+        await tester.showKeyboard(offer);
+        tester.testTextInput.updateEditingValue(
+          typed('$full한', composing: const TextRange(start: 199, end: 200)),
+        );
+        await tester.pump();
+        tester.testTextInput.log.clear();
+        // 200자째를 조합하는 중에 다음 음절이 시작됐다.
+        tester.testTextInput.updateEditingValue(
+          typed('$full한ㄱ', composing: const TextRange(start: 200, end: 201)),
+        );
+        await tester.pump();
+        expect(text(), '$full한ㄱ');
+        expect(
+          tester.testTextInput.log.map((c) => c.method),
+          isNot(contains('TextInput.setEditingState')),
+        );
+        // 조합이 끝나면 200자로 자른다.
+        tester.testTextInput.updateEditingValue(typed('$full한ㄱ'));
+        await tester.pump();
+        expect(text(), '$full한');
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.android),
+    );
+
     test('C·방침 숫자 칸의 문법 — 수 하나 + 일·회 + 붙은 말, 다른 수량이 섞이면 까닭과 함께 막는다', () {
       // 전(add020d)과 다른 줄의 까닭.
       const quantity = '다른 수·글로 쓴 수량·기간이 섞이면 그 수는 칸의 값이 아니다 — 전에는 숫자만 저장했다';
