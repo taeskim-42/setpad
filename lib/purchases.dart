@@ -9,7 +9,7 @@ import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 ///
 /// **id 는 스토어에 등록한 것과 글자 그대로 같아야 한다.** 애플은 번들을 앞에
 /// 붙이고 구글은 안 붙이는데, 스토어마다 따로 정한 것이라 코드가 둘 다 안다.
-/// 평생 이용권은 더 팔지 않는다.
+/// 평생 이용권은 없다.
 enum Plan { yearly, monthly }
 
 const _ids = <Plan, ({String apple, String google})>{
