@@ -8,8 +8,6 @@ import 'package:http/testing.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
-import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
-import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 import 'package:setpad/account.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
@@ -391,24 +389,29 @@ void main() {
     });
 
     group('스토어가 준 요금제', () {
-      PricingPhaseWrapper phase(String period, int micros, String price) =>
-          PricingPhaseWrapper(
-            billingCycleCount: micros == 0 ? 1 : 0,
-            billingPeriod: period,
-            formattedPrice: price,
-            priceAmountMicros: micros,
-            priceCurrencyCode: 'KRW',
-            recurrenceMode: micros == 0
-                ? RecurrenceMode.finiteRecurring
-                : RecurrenceMode.infiniteRecurring,
-          );
-      final trial = SubscriptionOfferDetailsWrapper(
+      // [once]: 앞서 한 번만 내는 단계(할인). 아니면 이어서 내는 단계.
+      PricingPhaseWrapper phase(
+        String period,
+        int micros,
+        String price, {
+        bool once = false,
+      }) => PricingPhaseWrapper(
+        billingCycleCount: once ? 1 : 0,
+        billingPeriod: period,
+        formattedPrice: price,
+        priceAmountMicros: micros,
+        priceCurrencyCode: 'KRW',
+        recurrenceMode: once
+            ? RecurrenceMode.finiteRecurring
+            : RecurrenceMode.infiniteRecurring,
+      );
+      final promo = SubscriptionOfferDetailsWrapper(
         basePlanId: 'yearly',
-        offerId: 'trial',
+        offerId: 'promo',
         offerTags: const [],
-        offerIdToken: 'trial-token',
+        offerIdToken: 'promo-token',
         pricingPhases: [
-          phase('P7D', 0, '무료'),
+          phase('P1M', 9900000000, '₩9,900', once: true),
           phase('P1Y', 29000000000, '₩29,000'),
         ],
       );
@@ -431,67 +434,41 @@ void main() {
         ),
       );
 
-      test('Play: 기본 요금제와 체험 오퍼가 따로 와도 체험 오퍼로 사고 값은 체험 뒤 값이다', () {
+      test('Play: 기본 요금제와 할인 오퍼가 따로 와도 기본 요금제로 사고 값은 이어서 내는 값이다', () {
         for (final options in [
-          [trial, base],
-          [base, trial],
+          [promo, base],
+          [base, promo],
+          [base],
         ]) {
           final offer = offersFrom(play(options))[Plan.yearly]!;
-          expect((offer.price, offer.trialDays), ('₩29,000', 7));
+          expect(offer.price, '₩29,000');
           expect(
             (offer.buy as GooglePlayProductDetails).offerToken,
-            'trial-token',
+            'base-token',
           );
         }
-        // 체험 자격이 없으면 Play 는 체험 오퍼를 주지 않는다.
-        final offer = offersFrom(play([base]))[Plan.yearly]!;
-        expect((offer.price, offer.trialDays), ('₩29,000', null));
+        // 기본 요금제가 없으면 있는 오퍼로 판다 — 값은 첫 단계(할인)가 아니라
+        // 이어서 내는 마지막 단계다.
+        final only = offersFrom(play([promo]))[Plan.yearly]!;
+        expect(only.price, '₩29,000');
         expect(
-          (offer.buy as GooglePlayProductDetails).offerToken,
-          'base-token',
+          (only.buy as GooglePlayProductDetails).offerToken,
+          'promo-token',
         );
       });
 
-      test('App Store: 무료 체험 소개 오퍼는 자격이 있을 때만 약속한다', () {
-        final product = AppStoreProduct2Details.fromSK2Product(
-          SK2Product(
+      test('App Store: 값은 스토어가 준 문자열 그대로다', () {
+        final offer = offersFrom([
+          ProductDetails(
             id: 'com.tskim.workoutlog.yearly',
-            displayName: '연 이용권',
-            displayPrice: '₩29,000',
+            title: '연 이용권',
             description: '',
-            price: 29000,
-            type: SK2ProductType.autoRenewable,
-            priceLocale: SK2PriceLocale(
-              currencyCode: 'KRW',
-              currencySymbol: '₩',
-            ),
-            subscription: SK2SubscriptionInfo(
-              subscriptionGroupID: 'pro',
-              subscriptionPeriod: const SK2SubscriptionPeriod(
-                value: 1,
-                unit: SK2SubscriptionPeriodUnit.year,
-              ),
-              promotionalOffers: [
-                SK2SubscriptionOffer(
-                  price: 0,
-                  type: SK2SubscriptionOfferType.introductory,
-                  period: const SK2SubscriptionPeriod(
-                    value: 1,
-                    unit: SK2SubscriptionPeriodUnit.week,
-                  ),
-                  periodCount: 1,
-                  paymentMode: SK2SubscriptionOfferPaymentMode.freeTrial,
-                ),
-              ],
-            ),
+            price: '₩29,000',
+            rawPrice: 29000,
+            currencyCode: 'KRW',
           ),
-        );
-        final eligible = offersFrom(
-          [product],
-          introEligible: {'com.tskim.workoutlog.yearly'},
-        )[Plan.yearly]!;
-        expect((eligible.price, eligible.trialDays), ('₩29,000', 7));
-        expect(offersFrom([product])[Plan.yearly]!.trialDays, isNull);
+        ])[Plan.yearly]!;
+        expect(offer.price, '₩29,000');
       });
     });
 
@@ -544,27 +521,18 @@ void main() {
       currencyCode: 'KRW',
     );
 
-    testWidgets('체험은 스토어가 줄 때만 단추 밑에 적고, 값이 없는 요금제는 팔지 않는다', (tester) async {
+    testWidgets('값이 있는 요금제만 판다 — 체험 문구는 없다', (tester) async {
       final purchases = Purchases()
         ..offers = {
           Plan.yearly: (
             buy: product('com.tskim.workoutlog.yearly', '\$19.99'),
             price: '\$19.99',
-            trialDays: 7,
           ),
         };
       final account = Account(client: _server([]), purchases: purchases)
         ..token = 'account-token';
       await openPaywall(tester, account);
       final l = await L.delegate.load(const Locale('ko'));
-      // 체험 동안은 원판 30장뿐이라는 것도 같은 자리에 적는다(서버 PRO_TRIAL_CENTS).
-      expect(
-        find.text(
-          '${l.planYearlyTrial(7, '\$19.99')}\n'
-          '${l.planYearlyTrialPlates(proTrialPlates)}',
-        ),
-        findsOneWidget,
-      );
       expect(find.text('${l.planYearly} · \$19.99'), findsOneWidget);
       expect(find.textContaining(l.planMonthly), findsNothing);
       expect(
@@ -575,29 +543,6 @@ void main() {
       expect(find.text(l.subscriptionRenews), findsOneWidget);
       expect(find.text(l.termsOfUse), findsOneWidget);
       expect(find.text(l.healthDataPrivacy), findsOneWidget);
-
-      // 체험 자격이 없으면(스토어가 체험을 안 주면) 약속하지 않는다.
-      purchases.offers = {
-        Plan.yearly: (
-          buy: product('com.tskim.workoutlog.yearly', '\$19.99'),
-          price: '\$19.99',
-          trialDays: null,
-        ),
-      };
-      await openPaywall(
-        tester,
-        Account(client: _server([]), purchases: purchases)
-          ..token = 'account-token',
-      );
-      expect(
-        find.textContaining(l.planYearlyTrial(7, '').split(' ').first),
-        findsNothing,
-      );
-      expect(
-        find.textContaining(l.planYearlyTrialPlates(proTrialPlates)),
-        findsNothing,
-      );
-      expect(find.text('${l.planYearly} · \$19.99'), findsOneWidget);
     });
 
     for (final (code, problem) in [

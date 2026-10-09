@@ -169,7 +169,7 @@ class Account extends ChangeNotifier {
   bool get signedIn => token != null;
   bool get paid => plan != null;
 
-  /// 스토어가 지금 파는 요금제. 값과 체험은 스토어가 준 그대로다.
+  /// 스토어가 지금 파는 요금제. 값은 스토어가 준 그대로다.
   Map<Plan, Offer> get offers => _purchases.offers;
 
   Future<void> start() async {

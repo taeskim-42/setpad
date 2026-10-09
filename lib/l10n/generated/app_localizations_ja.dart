@@ -533,16 +533,6 @@ class LJa extends L {
   String get planYearly => '年額プラン';
 
   @override
-  String planYearlyTrial(int days, String price) {
-    return '$days日間の無料体験後、年額$price。体験終了の24時間前までに解約すれば請求されません。';
-  }
-
-  @override
-  String planYearlyTrialPlates(int n) {
-    return '無料体験中はプレートを$n枚まで補充します。課金が始まると毎月の補充になります。';
-  }
-
-  @override
   String get planActive => '利用中';
 
   @override

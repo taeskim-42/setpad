@@ -550,16 +550,6 @@ class LEn extends L {
   String get planYearly => 'Yearly';
 
   @override
-  String planYearlyTrial(int days, String price) {
-    return '$days-day free trial, then $price a year. Cancel at least 24 hours before the trial ends and you won\'t be charged.';
-  }
-
-  @override
-  String planYearlyTrialPlates(int n) {
-    return 'During the free trial, plates are topped up to $n. Monthly top-ups start once billing does.';
-  }
-
-  @override
   String get planActive => 'Active';
 
   @override

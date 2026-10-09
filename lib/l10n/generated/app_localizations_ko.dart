@@ -536,16 +536,6 @@ class LKo extends L {
   String get planYearly => '연 이용권';
 
   @override
-  String planYearlyTrial(int days, String price) {
-    return '$days일 무료 체험 뒤 연 $price. 체험이 끝나기 24시간 전까지 해지하면 청구되지 않습니다.';
-  }
-
-  @override
-  String planYearlyTrialPlates(int n) {
-    return '무료 체험 동안은 원판 $n장까지 채웁니다. 결제가 시작되면 매달 채움으로 바뀝니다.';
-  }
-
-  @override
   String get planActive => '이용 중';
 
   @override

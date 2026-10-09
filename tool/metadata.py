@@ -78,7 +78,7 @@ setpad는 루틴을 미리 짜 두는 앱이 아닙니다. 세트를 끝낸 그 
 · 한 줄 설정, 식단 열량 어림, 기록 질문을 쓰면 친 문장과 식단 사진(위치 정보를 뗀 것)이 우리 서버를 거쳐 외부 AI 서비스로 가고, 우리 서버는 그 내용을 저장하지 않습니다. 설정 › AI 도움에서 언제든 끌 수 있고, 꺼도 기록은 그대로 됩니다
 · 적기 도움(한 줄 설정·식단 어림)은 하루 10번 무료입니다
 · 기록 질문은 원판을 씁니다. 처음에 몇 장을 받고, 세트 10개를 채운 날마다 1장을 받습니다
-· Pro 구독: 매달 원판을 300장까지 채우고, 적기 도움은 하루 20번입니다. 무료 체험 중에는 30장까지
+· Pro 구독: 매달 원판을 300장까지 채우고, 적기 도움은 하루 20번입니다
 
 ■ 그밖에
 · kg, lb, km, 분, 초 — 하는 운동에 맞는 단위를 씁니다
@@ -142,7 +142,7 @@ setpad is not a routine builder. The moment a set is done you type the numbers, 
 · When you use one-line setup, meal calorie estimates or record questions, the text you type and meal photos (location removed) go through our server to an external AI service; our server does not store them. Turn it off any time in Settings › AI help — logging keeps working
 · Input help (one-line setup, meal estimates): 10 a day, free
 · Record questions use plates. You start with a few, and earn 1 on each day you log 10 sets
-· Pro subscription: plates topped up to 300 each month, input help 20 a day. Up to 30 plates during a free trial
+· Pro subscription: plates topped up to 300 each month, input help 20 a day
 
 ■ Also
 · kg, lb, km, minutes, seconds — the unit that fits what you are doing
@@ -206,7 +206,7 @@ setpadはルーティンを組み立てるアプリではありません。セ�
 ・一行設定、食事のカロリー推定、記録への質問を使うと、入力した文章と食事の写真（位置情報を除く）が当社サーバーを経由して 外部の AI サービスに送られ、当社サーバーには保存しません。設定 › AIヘルプ でいつでもオフにでき、オフでも記録はそのまま使えます
 ・入力補助（一行設定・食事の推定）は1日10回まで無料です
 ・記録への質問はプレートを使います。最初に数枚もらえ、10セットを記録した日ごとに1枚もらえます
-・Pro サブスクリプション：毎月プレートを300枚まで補充し、入力補助は1日20回。無料体験中は30枚まで
+・Pro サブスクリプション：毎月プレートを300枚まで補充し、入力補助は1日20回
 
 ■ その他
 ・kg、lb、km、分、秒 — 種目に合った単位を使えます
@@ -270,7 +270,7 @@ setpad no es un creador de rutinas. En cuanto terminas una serie escribes los n�
 · Al usar la configuración en una línea, la estimación de calorías o las preguntas, tu texto y las fotos de comidas (sin ubicación) pasan por nuestro servidor a un servicio de IA externo; nuestro servidor no los guarda. Puedes desactivarla en Ajustes › Ayuda de IA; el registro sigue funcionando
 · Ayuda para anotar (línea de configuración, estimación de comidas): 10 al día, gratis
 · Las preguntas usan discos. Empiezas con algunos y ganas 1 cada día que registras 10 series
-· Suscripción Pro: discos rellenados hasta 300 cada mes y ayuda para anotar 20 veces al día. Hasta 30 discos durante la prueba gratuita
+· Suscripción Pro: discos rellenados hasta 300 cada mes y ayuda para anotar 20 veces al día
 
 ■ Además
 · kg, lb, km, minutos, segundos — la unidad de cada ejercicio
@@ -334,7 +334,7 @@ setpad ไม่ใช่แอปสร้างโปรแกรมฝึก�
 · เมื่อใช้การตั้งค่าบรรทัดเดียว การประมาณแคลอรีอาหาร หรือคำถามถึงบันทึก ข้อความที่พิมพ์และรูปอาหาร (ลบตำแหน่งแล้ว) จะส่งผ่านเซิร์ฟเวอร์ของเราไปยังบริการ AI ภายนอก โดยเซิร์ฟเวอร์ของเราไม่จัดเก็บไว้ ปิดได้ทุกเมื่อที่ การตั้งค่า › ตัวช่วย AI และการบันทึกยังใช้ได้ตามปกติ
 · ตัวช่วยจด (ตั้งค่าบรรทัดเดียว ประมาณอาหาร) ฟรีวันละ 10 ครั้ง
 · คำถามถึงบันทึกใช้แผ่นน้ำหนัก เริ่มต้นได้รับจำนวนหนึ่ง และได้ 1 แผ่นทุกวันที่บันทึกครบ 10 เซ็ต
-· สมัครสมาชิก Pro: เติมแผ่นน้ำหนักให้ถึง 300 แผ่นทุกเดือน ตัวช่วยจดวันละ 20 ครั้ง ระหว่างทดลองใช้ฟรีได้ถึง 30 แผ่น
+· สมัครสมาชิก Pro: เติมแผ่นน้ำหนักให้ถึง 300 แผ่นทุกเดือน ตัวช่วยจดวันละ 20 ครั้ง
 
 ■ อื่น ๆ
 · กก., ปอนด์, กม., นาที, วินาที — เลือกหน่วยให้ตรงกับสิ่งที่ทำ
@@ -398,7 +398,7 @@ setpad không phải công cụ dựng giáo án. Xong hiệp nào bạn gõ s�
 · Khi dùng thiết lập một dòng, ước tính calo bữa ăn hoặc câu hỏi về nhật ký, chữ bạn gõ và ảnh bữa ăn (đã bỏ vị trí) đi qua máy chủ của chúng tôi tới dịch vụ AI bên ngoài; máy chủ của chúng tôi không lưu lại. Tắt bất cứ lúc nào trong Cài đặt › Trợ giúp AI — việc ghi vẫn hoạt động
 · Trợ giúp ghi (thiết lập một dòng, ước tính bữa ăn): miễn phí 10 lần mỗi ngày
 · Câu hỏi về nhật ký dùng bánh tạ. Bạn có sẵn vài bánh lúc đầu và nhận 1 bánh mỗi ngày ghi đủ 10 hiệp
-· Gói Pro: bánh tạ được nạp lên tới 300 mỗi tháng, trợ giúp ghi 20 lần mỗi ngày. Tối đa 30 bánh trong thời gian dùng thử miễn phí
+· Gói Pro: bánh tạ được nạp lên tới 300 mỗi tháng, trợ giúp ghi 20 lần mỗi ngày
 
 ■ Ngoài ra
 · kg, lb, km, phút, giây — đơn vị hợp với việc bạn đang làm
@@ -462,7 +462,7 @@ setpad 不是用来提前编排计划的。做完一组，当场把数字打上�
 · 使用一行设置、餐食热量估算和记录提问时，你输入的文字和餐食照片（已去除位置）会经我们的服务器发送给外部 AI 服务，我们的服务器不保存这些内容。可随时在 设置 › AI 帮助 中关闭，关闭后记录照常可用
 · 输入帮助（一行设置、餐食估算）每天免费 10 次
 · 记录提问使用杠铃片。一开始会有几片，每天完成 10 组再送 1 片
-· Pro 订阅：每月把杠铃片补足到 300 片，输入帮助每天 20 次。免费试用期间最多 30 片
+· Pro 订阅：每月把杠铃片补足到 300 片，输入帮助每天 20 次
 
 ■ 其他
 · 公斤、磅、公里、分钟、秒 — 用适合当前动作的单位
@@ -526,7 +526,7 @@ setpad 不是用來事先編排課表的。做完一組，當場把數字打上�
 · 使用一行設定、餐點熱量估算和紀錄提問時，你輸入的文字和餐點照片（已移除位置）會經我們的伺服器傳送給外部 AI 服務，我們的伺服器不會儲存這些內容。可隨時在 設定 › AI 協助 中關閉，關閉後紀錄照常可用
 · 輸入幫助（一行設定、餐點估算）每天免費 10 次
 · 紀錄提問使用槓片。一開始會有幾片，每天完成 10 組再送 1 片
-· Pro 訂閱：每月把槓片補足到 300 片，輸入幫助每天 20 次。免費試用期間最多 30 片
+· Pro 訂閱：每月把槓片補足到 300 片，輸入幫助每天 20 次
 
 ■ 其他
 · 公斤、磅、公里、分鐘、秒 — 用適合當前動作的單位

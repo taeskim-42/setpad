@@ -550,16 +550,6 @@ class LEs extends L {
   String get planYearly => 'Anual';
 
   @override
-  String planYearlyTrial(int days, String price) {
-    return 'Prueba gratis de $days días y luego $price al año. Cancela al menos 24 horas antes de que termine la prueba y no se te cobrará.';
-  }
-
-  @override
-  String planYearlyTrialPlates(int n) {
-    return 'Durante la prueba gratis, los discos se recargan hasta $n. La recarga mensual empieza cuando empieza el cobro.';
-  }
-
-  @override
   String get planActive => 'Activo';
 
   @override

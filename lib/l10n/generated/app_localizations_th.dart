@@ -547,16 +547,6 @@ class LTh extends L {
   String get planYearly => 'รายปี';
 
   @override
-  String planYearlyTrial(int days, String price) {
-    return 'ทดลองใช้ฟรี $days วัน จากนั้น $price ต่อปี ยกเลิกอย่างน้อย 24 ชั่วโมงก่อนสิ้นสุดช่วงทดลองจะไม่ถูกเรียกเก็บเงิน';
-  }
-
-  @override
-  String planYearlyTrialPlates(int n) {
-    return 'ระหว่างทดลองใช้ฟรี เติมแผ่นน้ำหนักให้ถึง $n แผ่น เมื่อเริ่มเรียกเก็บเงินจะเป็นการเติมรายเดือน';
-  }
-
-  @override
   String get planActive => 'กำลังใช้งาน';
 
   @override

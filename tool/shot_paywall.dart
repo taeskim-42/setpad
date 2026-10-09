@@ -27,12 +27,10 @@ void main() {
       Plan.yearly: (
         buy: _p('com.tskim.workoutlog.yearly', '연 이용권', '₩29,000', 29000),
         price: '₩29,000',
-        trialDays: 7,
       ),
       Plan.monthly: (
         buy: _p('com.tskim.workoutlog.monthly', '월 이용권', '₩4,900', 4900),
         price: '₩4,900',
-        trialDays: null,
       ),
     };
   final account = Account(purchases: purchases)..token = 'screenshot';

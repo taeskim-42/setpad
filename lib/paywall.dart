@@ -17,9 +17,6 @@ const freeInputPerDay = 10;
 const proInputPerDay = 20;
 const proPlatesPerMonth = 300;
 
-/// 연간의 무료 체험 동안은 이만큼만 채운다. 결제가 시작되면 위의 달 채움.
-const proTrialPlates = 30;
-
 /// App Store 의 표준 이용약관. 따로 약관을 두지 않은 앱은 이것을 건다.
 const appleEulaUrl =
     'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
@@ -145,48 +142,26 @@ class _PaywallState extends State<Paywall> {
                       ),
                     ),
                   ),
-                // 스토어가 값을 준 요금제만 판다. 값 없이 파는 단추나, 스토어가
-                // 모르는 체험을 약속하는 글은 그리지 않는다. 가진 것은 늘 보인다.
+                // 스토어가 값을 준 요금제만 판다. 값 없이 파는 단추는 그리지 않는다.
+                // 가진 것은 늘 보인다.
                 for (final plan in Plan.values)
                   if (offers[plan] != null || owned == plan)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10),
-                      child: Column(
-                        children: [
-                          _BuyButton(
-                            label: plan == Plan.yearly
-                                ? l.planYearly
-                                : l.planMonthly,
-                            // 값은 스토어가 준 문자열 그대로. 나라마다 통화도
-                            // 자릿수도 다르고, 우리가 적으면 반드시 어긋난다.
-                            price: offers[plan]?.price,
-                            filled: plan == Plan.yearly,
-                            active: owned == plan,
-                            // 바꾸는 것은 스토어의 구독 관리에서 한다. 여기서
-                            // 하나 더 사면 구독이 둘이 되는 스토어가 있다.
-                            onPressed:
-                                _busy || owned != null || !account.signedIn
-                                ? null
-                                : () => _buy(plan),
-                          ),
-                          // 체험은 얼마 동안이고 끝나면 얼마가 나가는지, 사는
-                          // 단추 바로 밑에 적는다. 스토어가 이 사람에게 체험을
-                          // 줄 때만(자격이 없거나 오퍼가 없으면 바로 청구된다).
-                          if (offers[plan] case (
-                            :final price,
-                            trialDays: final days?,
-                            buy: _,
-                          ) when plan == Plan.yearly && owned == null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Text(
-                                '${l.planYearlyTrial(days, price)}\n'
-                                '${l.planYearlyTrialPlates(proTrialPlates)}',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 13, color: muted),
-                              ),
-                            ),
-                        ],
+                      child: _BuyButton(
+                        label: plan == Plan.yearly
+                            ? l.planYearly
+                            : l.planMonthly,
+                        // 값은 스토어가 준 문자열 그대로. 나라마다 통화도
+                        // 자릿수도 다르고, 우리가 적으면 반드시 어긋난다.
+                        price: offers[plan]?.price,
+                        filled: plan == Plan.yearly,
+                        active: owned == plan,
+                        // 바꾸는 것은 스토어의 구독 관리에서 한다. 여기서
+                        // 하나 더 사면 구독이 둘이 되는 스토어가 있다.
+                        onPressed: _busy || owned != null || !account.signedIn
+                            ? null
+                            : () => _buy(plan),
                       ),
                     ),
                 const SizedBox(height: 6),
