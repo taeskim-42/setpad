@@ -1,5 +1,3 @@
 Có gì mới
 
-· Gõ phím: sửa lỗi chữ bị lặp ("아아아메메메…") trong tên bài tập tiếp theo sau khi xong một bài (xảy ra với bàn phím tiếng Hàn)
-· Bữa ăn hay bài tập: AI xác định dòng gõ trong ô tên bài tập là bữa ăn hay bài tập. Nếu sai, chạm "Đổi thành bữa ăn" hoặc "Đổi thành bài tập" bên dưới một lần, lần sau sẽ nhớ
-· Các ô nhập khác (nhập lịch sử tập…) không còn làm gián đoạn khi đang gõ
+· Chỉnh lại màn hình gói đăng ký — bản miễn phí có bánh tạ khi đăng ký và 1 bánh mỗi ngày ghi đủ 10 hiệp; Pro nạp bánh tạ lên tới 300 mỗi tháng

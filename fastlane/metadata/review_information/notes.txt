@@ -13,10 +13,10 @@ How to try the AI features (signed out)
 2. One-line setup: type "bench 80kg 5x5" and press Return. The exercise appears right away with its goal under the title; tap "…" on the card to see the chips (80 kg, 5 sets of 5) and change a value in place. Then type "80 5" to log a set.
 3. Meal from text: in the same field type "lunch burrito" and press Return. It is logged as a meal ("Logged as a meal"; "Make it exercise" undoes it). A review sheet then shows the food, amount and calories; fix the amount if needed and tap Done — nothing is saved before this.
    The sheet shows carbs/protein/fat; "Choose another product" switches flavours (try "짜파게티 한 봉지"); a food in no table is labelled "AI estimate".
-4. Meal photo: tap the fork-and-knife button at the left of the bar above the keyboard, choose Camera or From library, and pick a food photo. The same review sheet opens before anything is saved.
+4. Meal photo: tap the fork-and-knife button at the left of the bar above the keyboard, choose Camera or From library, and pick a food photo. Same review sheet as step 3.
 5. Record question: go back to "All Workouts", type "best bench press" in the search field and press Return, then tap "Yes" to confirm. The table is computed on the phone from the saved sets; the AI only turns the question into a query.
 6. Today's routine: in the same search field type "today's routine" (or "오늘 루틴 짜줘") and press Return. It is built on the phone from the user's past sessions (weights copied, never invented); tap "Start". With no logs it offers starter exercises without numbers.
-7. Settings › My body › Training goal: daily calorie and macro targets (reference, not medical advice). Without a watch, exercise calories are estimated and marked "estimate".
+7. Settings › My body › Training goal: calorie and macro targets (reference, not medical advice); without a watch, exercise calories are marked "estimate".
 
 What plates are
 - Plates are the allowance for AI record questions (step 5), about 1–2 per question by tokens used. They are not sold on their own, not transferable, and have no cash value.
@@ -24,4 +24,4 @@ What plates are
 - Input help (one-line setup, meal estimates, workout import) does not use plates: 10 a day free.
 - Logging, timers, Health, working out together and gyms are free.
 
-Features that need sign-in (optional to review): Together (up to 6 people edit one record live), gym connection, and the Pro subscription. Trainer mode only appears for staff accounts of a gym.
+Features that need sign-in (optional to review): Together (up to 6 people edit one record live), gym connection, and the Pro subscription (Settings › Pro; Monthly/Yearly, auto-renewable, no trial). Trainer mode shows only for gym staff accounts.

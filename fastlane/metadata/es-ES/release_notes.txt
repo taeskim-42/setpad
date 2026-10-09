@@ -1,5 +1,3 @@
 Novedades
 
-· Escritura: se corrigió que las letras se duplicaran ("아아아메메메…") en el nombre del siguiente ejercicio después de terminar uno (con el teclado coreano)
-· ¿Comida o ejercicio?: la IA decide si una línea escrita en el campo de ejercicio es una comida o un ejercicio. Si se equivoca, toca «Cambiar a comida» o «Cambiar a ejercicio» debajo una vez y lo recordará la próxima vez
-· Los demás campos de texto (importar entrenamientos, rutinas compartidas) ya no cortan lo que estás escribiendo
+· Hemos ordenado la pantalla de suscripción: gratis incluye discos de bienvenida y 1 disco cada día que registras 10 series; Pro rellena hasta 300 discos cada mes
