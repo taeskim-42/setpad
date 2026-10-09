@@ -777,7 +777,8 @@ class LTh extends L {
   String get proOwned => 'กำลังใช้งาน ขอบคุณครับ';
 
   @override
-  String get proSignInFirst => 'แพ็กเกจผูกกับบัญชี กรุณาเข้าสู่ระบบก่อน';
+  String get proSignInOptional =>
+      'ซื้อได้โดยไม่ต้องเข้าสู่ระบบ เข้าสู่ระบบเมื่อใดก็ได้เพื่อใช้แพ็กเกจบนอุปกรณ์อื่นด้วย';
 
   @override
   String platesBalance(num n) {

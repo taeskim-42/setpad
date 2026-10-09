@@ -321,7 +321,8 @@ class Account extends ChangeNotifier {
     final result = await exchange(
       credential,
       endpoint,
-      currentToken: token,
+      // 로그인 전이면 기기 토큰이다 — 서버가 이 기기에서 산 것을 계정으로 옮긴다.
+      currentToken: await ai.bearer(),
       client: client,
     );
     if (result == null) {
@@ -377,9 +378,9 @@ class Account extends ChangeNotifier {
     return null;
   }
 
-  /// 결제는 로그인이 있어야 한다 — 권한은 기기가 아니라 사람에게 붙는다.
+  /// **로그인 없이 산다**(App Store 5.1.1(v)). 로그인 전에 산 것은 이 기기에
+  /// 붙고, 이 기기에서 로그인하면 계정으로 옮겨 가 다른 기기에서도 쓴다.
   Future<bool> buy(Plan wanted) async {
-    if (!signedIn && !await signIn()) return false;
     purchaseProblem = null;
     notifyListeners();
     await _purchases.buy(wanted);
@@ -388,21 +389,25 @@ class Account extends ChangeNotifier {
 
   /// 애플이 요구한다. 기기를 바꾼 사람의 유일한 길이기도 하다.
   Future<void> restore() async {
-    if (!signedIn && !await signIn()) return;
     await _purchases.restore();
   }
 
   /// 스토어가 준 구매를 서버에 넘긴다. **서버의 답을 읽는다** — 거절당했는데
   /// 아무 말이 없으면 돈을 낸 사람은 산 줄 알고 기다린다.
   Future<void> _send(PurchaseProof proof) async {
-    if (token == null) return;
+    final bearer = await ai.bearer();
+    if (bearer == null) {
+      purchaseProblem = PurchaseProblem.notConfirmed;
+      notifyListeners();
+      return;
+    }
     final web = client ?? newApiClient();
     try {
       final response = await web.post(
         Uri.parse('$endpoint/api/purchase'),
         headers: {
           'content-type': 'application/json',
-          'authorization': 'Bearer $token',
+          'authorization': 'Bearer $bearer',
         },
         body: jsonEncode({
           'store': proof.apple ? 'apple' : 'google',
@@ -439,12 +444,14 @@ class Account extends ChangeNotifier {
   Future<void> sendForTest(PurchaseProof proof) => _send(proof);
 
   Future<void> _refresh() async {
+    // 로그인 전에는 기기 토큰이다 — 로그인 없이 산 것도 여기서 보인다.
+    final bearer = await ai.bearer();
     final web = client ?? newApiClient();
     try {
       final response = await web.get(
         Uri.parse('$endpoint/api/purchase'),
-        // 로그인 전에는 붙일 것이 없다. 'Bearer null' 을 보내지 않는다.
-        headers: {if (token != null) 'authorization': 'Bearer $token'},
+        // 'Bearer null' 을 보내지 않는다.
+        headers: {if (bearer != null) 'authorization': 'Bearer $bearer'},
       );
       if (response.statusCode != 200) return;
       final body = jsonDecode(utf8.decode(response.bodyBytes));

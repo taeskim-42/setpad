@@ -124,7 +124,7 @@ class _PaywallState extends State<Paywall> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 14),
                     child: Text(
-                      l.proSignInFirst,
+                      l.proSignInOptional,
                       style: TextStyle(fontSize: 14, color: muted),
                     ),
                   ),
@@ -159,7 +159,7 @@ class _PaywallState extends State<Paywall> {
                         active: owned == plan,
                         // 바꾸는 것은 스토어의 구독 관리에서 한다. 여기서
                         // 하나 더 사면 구독이 둘이 되는 스토어가 있다.
-                        onPressed: _busy || owned != null || !account.signedIn
+                        onPressed: _busy || owned != null
                             ? null
                             : () => _buy(plan),
                       ),

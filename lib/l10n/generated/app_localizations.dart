@@ -1339,11 +1339,11 @@ abstract class L {
   /// **'이용 중입니다. 고맙습니다.'**
   String get proOwned;
 
-  /// No description provided for @proSignInFirst.
+  /// No description provided for @proSignInOptional.
   ///
   /// In ko, this message translates to:
-  /// **'이용권은 계정에 붙습니다. 먼저 로그인해 주세요.'**
-  String get proSignInFirst;
+  /// **'로그인 없이도 살 수 있습니다. 로그인하면 다른 기기에서도 이용권을 씁니다.'**
+  String get proSignInOptional;
 
   /// 원판 잔액. 1.5 처럼 소수가 있다.
   ///

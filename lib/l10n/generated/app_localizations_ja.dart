@@ -759,7 +759,7 @@ class LJa extends L {
   String get proOwned => 'ご利用中です。ありがとうございます。';
 
   @override
-  String get proSignInFirst => 'プランはアカウントに紐づきます。先にログインしてください。';
+  String get proSignInOptional => 'ログインしなくても購入できます。ログインすると他の端末でもプランを使えます。';
 
   @override
   String platesBalance(num n) {

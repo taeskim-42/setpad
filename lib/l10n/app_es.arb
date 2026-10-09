@@ -205,7 +205,7 @@
   "proPaid": "Pro: discos recargados hasta {n} cada mes · ayuda para anotar {input} veces al día",
   "proEverythingElseFree": "El registro, los temporizadores, los avisos en la muñeca, entrenar juntos y los gimnasios funcionan sin Pro.",
   "proOwned": "Activo. Gracias.",
-  "proSignInFirst": "El plan va ligado a una cuenta. Inicia sesión primero.",
+  "proSignInOptional": "No hace falta iniciar sesión para comprar. Inicia sesión cuando quieras para usar el plan en tus otros dispositivos.",
   "platesBalance": "{n, plural, =1{Te queda 1 disco} other{Te quedan {n} discos}}",
   "platesSpent": "Usaste {spent, plural, =1{1 disco} other{{spent} discos}} · {balance, plural, =1{queda 1} other{quedan {balance}}}",
   "noPlates": "No tienes discos suficientes. Recibes 1 cada día que completas {sets} series.",

@@ -205,7 +205,7 @@
   "proPaid": "Pro：每月補滿到 {n} 片 · 輸入幫助每天 {input} 次",
   "proEverythingElseFree": "記錄、計時、手腕提醒、一起訓練和健身房功能，不訂閱也全部可用。",
   "proOwned": "已開通，謝謝。",
-  "proSignInFirst": "訂閱綁定帳戶，請先登入。",
+  "proSignInOptional": "不必登入也能購買。隨時登入，即可在其他裝置上使用訂閱。",
   "platesBalance": "剩餘槓片 {n} 片",
   "platesSpent": "用了 {spent} 片 · 剩餘 {balance} 片",
   "noPlates": "槓片不夠了。每天完成 {sets} 組可得 1 片。",

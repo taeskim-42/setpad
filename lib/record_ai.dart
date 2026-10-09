@@ -840,6 +840,18 @@ class RecordAi {
   /// 받아 둔 기기 토큰을 버린다. 로그인·로그아웃 때 부른다.
   static void forget() => _token = null;
 
+  /// 계정 토큰, 없으면 이 기기의 토큰. 로그인 없이 산 것이 서버에 닿는 문이다.
+  Future<String?> bearer() async {
+    final web = client ?? newApiClient();
+    try {
+      return await _authorize(web);
+    } catch (_) {
+      return null;
+    } finally {
+      if (client == null) web.close();
+    }
+  }
+
   Future<String?> _authorize(http.Client web) async {
     final account = accountToken?.call();
     if (account != null) return account;

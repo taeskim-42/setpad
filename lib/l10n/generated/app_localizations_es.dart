@@ -780,8 +780,8 @@ class LEs extends L {
   String get proOwned => 'Activo. Gracias.';
 
   @override
-  String get proSignInFirst =>
-      'El plan va ligado a una cuenta. Inicia sesión primero.';
+  String get proSignInOptional =>
+      'No hace falta iniciar sesión para comprar. Inicia sesión cuando quieras para usar el plan en tus otros dispositivos.';
 
   @override
   String platesBalance(num n) {

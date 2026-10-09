@@ -763,7 +763,7 @@ class LKo extends L {
   String get proOwned => '이용 중입니다. 고맙습니다.';
 
   @override
-  String get proSignInFirst => '이용권은 계정에 붙습니다. 먼저 로그인해 주세요.';
+  String get proSignInOptional => '로그인 없이도 살 수 있습니다. 로그인하면 다른 기기에서도 이용권을 씁니다.';
 
   @override
   String platesBalance(num n) {

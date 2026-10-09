@@ -205,7 +205,7 @@
   "proPaid": "Pro: nạp đầy đến {n} bánh tạ mỗi tháng · trợ giúp ghi {input} lần mỗi ngày",
   "proEverythingElseFree": "Ghi chép, hẹn giờ, nhắc trên cổ tay, tập cùng nhau và phòng gym đều dùng được mà không cần Pro.",
   "proOwned": "Đang hoạt động. Cảm ơn bạn.",
-  "proSignInFirst": "Gói gắn với tài khoản. Vui lòng đăng nhập trước.",
+  "proSignInOptional": "Không cần đăng nhập để mua. Đăng nhập bất cứ lúc nào để dùng gói trên các thiết bị khác.",
   "platesBalance": "Còn {n} bánh tạ",
   "platesSpent": "Đã dùng {spent} bánh tạ · còn {balance}",
   "noPlates": "Không đủ bánh tạ. Mỗi ngày hoàn thành {sets} hiệp bạn nhận 1 bánh.",

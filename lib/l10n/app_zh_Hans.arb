@@ -205,7 +205,7 @@
   "proPaid": "Pro：每月补满到 {n} 片 · 输入帮助每天 {input} 次",
   "proEverythingElseFree": "记录、计时、手腕提醒、一起训练和健身房功能，不订阅也全部可用。",
   "proOwned": "已开通，谢谢。",
-  "proSignInFirst": "订阅绑定账户，请先登录。",
+  "proSignInOptional": "无需登录即可购买。随时登录，即可在其他设备上使用订阅。",
   "platesBalance": "剩余杠铃片 {n} 片",
   "platesSpent": "用了 {spent} 片 · 剩余 {balance} 片",
   "noPlates": "杠铃片不够了。每天完成 {sets} 组可得 1 片。",

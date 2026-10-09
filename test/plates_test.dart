@@ -545,6 +545,46 @@ void main() {
       expect(find.text(l.healthDataPrivacy), findsOneWidget);
     });
 
+    // App Store 5.1.1(v): 계정 기반이 아닌 구매에 가입을 요구하면 거절된다.
+    testWidgets('로그인 없이 산다 — 단추가 켜져 있고 구매는 기기 토큰으로 간다', (tester) async {
+      final seen = <http.Request>[];
+      final purchases = Purchases()
+        ..offers = {
+          Plan.yearly: (
+            buy: product('com.tskim.workoutlog.yearly', '\$19.99'),
+            price: '\$19.99',
+          ),
+        };
+      final account = Account(
+        client: _server(seen),
+        purchases: purchases,
+        deviceId: () => 'device-id-0123456789',
+        signInWith: () => fail('로그인 창을 열면 안 된다'),
+      );
+      await openPaywall(tester, account);
+      final l = await L.delegate.load(const Locale('ko'));
+      expect(find.text(l.proSignInOptional), findsOneWidget);
+      final button = tester.widget<CupertinoButton>(
+        find.ancestor(
+          of: find.text('${l.planYearly} · \$19.99'),
+          matching: find.byType(CupertinoButton),
+        ),
+      );
+      expect(button.onPressed, isNotNull);
+      await tester.runAsync(
+        () => account.sendForTest((
+          plan: Plan.yearly,
+          token: 'receipt',
+          apple: true,
+        )),
+      );
+      final sent = seen.lastWhere(
+        (r) => r.method == 'POST' && r.url.path == '/api/purchase',
+      );
+      expect(_bearer(sent), 'Bearer device-token');
+      expect(account.purchaseProblem, isNull);
+    });
+
     for (final (code, problem) in [
       (409, PurchaseProblem.otherAccount),
       (402, PurchaseProblem.notConfirmed),

@@ -754,7 +754,7 @@ class LZh extends L {
   String get proOwned => '已开通，谢谢。';
 
   @override
-  String get proSignInFirst => '订阅绑定账户，请先登录。';
+  String get proSignInOptional => '无需登录即可购买。随时登录，即可在其他设备上使用订阅。';
 
   @override
   String platesBalance(num n) {
@@ -4275,7 +4275,7 @@ class LZhHans extends LZh {
   String get proOwned => '已开通，谢谢。';
 
   @override
-  String get proSignInFirst => '订阅绑定账户，请先登录。';
+  String get proSignInOptional => '无需登录即可购买。随时登录，即可在其他设备上使用订阅。';
 
   @override
   String platesBalance(num n) {
@@ -7795,7 +7795,7 @@ class LZhHant extends LZh {
   String get proOwned => '已開通，謝謝。';
 
   @override
-  String get proSignInFirst => '訂閱綁定帳戶，請先登入。';
+  String get proSignInOptional => '不必登入也能購買。隨時登入，即可在其他裝置上使用訂閱。';
 
   @override
   String platesBalance(num n) {

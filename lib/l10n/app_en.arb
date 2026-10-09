@@ -205,7 +205,7 @@
   "proPaid": "Pro: plates topped up to {n} every month · input help {input} times a day",
   "proEverythingElseFree": "Logging, timers, wrist alerts, health sync, working out together and gyms all work without Pro.",
   "proOwned": "Active. Thank you.",
-  "proSignInFirst": "A plan belongs to an account. Please sign in first.",
+  "proSignInOptional": "No sign-in needed to buy. Sign in any time to use your plan on your other devices too.",
   "platesBalance": "{n, plural, =1{1 plate left} other{{n} plates left}}",
   "platesSpent": "Used {spent, plural, =1{1 plate} other{{spent} plates}} · {balance} left",
   "noPlates": "Not enough plates. You get 1 on each day you finish {sets} sets.",

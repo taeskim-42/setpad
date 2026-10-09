@@ -779,8 +779,8 @@ class LVi extends L {
   String get proOwned => 'Đang hoạt động. Cảm ơn bạn.';
 
   @override
-  String get proSignInFirst =>
-      'Gói gắn với tài khoản. Vui lòng đăng nhập trước.';
+  String get proSignInOptional =>
+      'Không cần đăng nhập để mua. Đăng nhập bất cứ lúc nào để dùng gói trên các thiết bị khác.';
 
   @override
   String platesBalance(num n) {

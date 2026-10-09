@@ -205,7 +205,7 @@
   "proPaid": "Pro：毎月プレートを{n}枚まで補充 · 入力補助は1日{input}回",
   "proEverythingElseFree": "記録・タイマー・手首の通知・一緒にやる・ジムはプランなしで全部使えます。",
   "proOwned": "ご利用中です。ありがとうございます。",
-  "proSignInFirst": "プランはアカウントに紐づきます。先にログインしてください。",
+  "proSignInOptional": "ログインしなくても購入できます。ログインすると他の端末でもプランを使えます。",
   "platesBalance": "残りプレート{n}枚",
   "platesSpent": "プレート{spent}枚使用 · 残り{balance}枚",
   "noPlates": "プレートが足りません。{sets}セット達成した日ごとに1枚もらえます。",

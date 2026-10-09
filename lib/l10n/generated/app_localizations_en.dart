@@ -780,8 +780,8 @@ class LEn extends L {
   String get proOwned => 'Active. Thank you.';
 
   @override
-  String get proSignInFirst =>
-      'A plan belongs to an account. Please sign in first.';
+  String get proSignInOptional =>
+      'No sign-in needed to buy. Sign in any time to use your plan on your other devices too.';
 
   @override
   String platesBalance(num n) {
