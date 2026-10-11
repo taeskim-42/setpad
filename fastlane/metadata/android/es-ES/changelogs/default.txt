@@ -1,3 +1,5 @@
 Novedades
 
-· Hemos ordenado la pantalla de suscripción: gratis incluye discos de bienvenida y 1 disco cada día que registras 10 series; Pro rellena hasta 300 discos cada mes
+· Inicia sesión con Kakao o Google: usa la cuenta que ya tienes en la web (gym.darak.studio) y vincula otros métodos en Ajustes › Cuenta
+· Los cambios en un entrenamiento del gimnasio vuelven a llegar a tu entrenador, y los pesos en lb se envían convertidos a kg
+· Correcciones en rutinas recibidas, Juntos y anotar por un compañero

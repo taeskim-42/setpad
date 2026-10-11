@@ -405,6 +405,14 @@ void main() {
     },
   );
 
+  test('a weightless setup does not override the lb default unit', () {
+    final c = RoutineEditorController()
+      ..weightUnit = 'lb'
+      ..addExercise('벤치프레스', setup: const WorkoutSetup(name: '벤치프레스'))
+      ..addSet('135 5');
+    expect(c.blocks.single.sets.single.unit, 'lb');
+  });
+
   testWidgets(
     'titles and sets can be edited without losing goals, notes or drafts',
     (tester) async {

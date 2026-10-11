@@ -26,3 +26,5 @@ What plates are
 Pro (Settings › Pro; Monthly/Yearly, no trial) is bought and restored without signing in. Optional sign-in later moves it to the account for the user's other devices (5.1.1(v)).
 
 Features that need sign-in (optional to review): Together (up to 6 people edit one record live) and gym connection. Trainer mode shows only for gym staff accounts.
+
+Sign-in (1.6.0): Settings › Account › Sign in opens a chooser with Sign in with Apple, Google and Kakao. Apple uses the native sheet. Google and Kakao open the system browser at our website (gym.darak.studio), where the login happens, and return to the app through the setpad:// URL scheme; no account is created until the app sends the result to our server. Sign in with Apple is always offered alongside the others (4.8). Signed-in users can link the other methods under Settings › Account and delete the account there.

@@ -332,6 +332,11 @@ class Note {
   int? handoffRevision;
   bool handoffTouched = false;
 
+  /// 체육관 스티커를 대서 연 기록이다 — 그 자체로 출석이다. 받은 루틴을 열어만 봐도
+  /// 출석은 남아야 하고(루틴 완료는 아니다), 집에서 목록의 루틴을 열어 본 것은
+  /// 출석이 아니다. 둘을 가르는 것이 이것이다.
+  bool checkedIn = false;
+
   /// 그날 끼니들. 운동 칼로리와 견주어 보려고 둔다.
   final List<MealEntry> meals = [];
 
@@ -414,6 +419,7 @@ class Note {
     'handoffToken': ?handoffToken,
     'handoffRevision': ?handoffRevision,
     if (handoffTouched) 'handoffTouched': true,
+    if (checkedIn) 'checkedIn': true,
     'planId': ?planId,
     'planVersion': ?planVersion,
     if (planAgreed) 'planAgreed': true,
@@ -448,7 +454,8 @@ class Note {
       ..proxy = ProxyRecord.tryFromJson(j['proxy'])
       ..handoffToken = j['handoffToken'] as String?
       ..handoffRevision = (j['handoffRevision'] as num?)?.toInt()
-      ..handoffTouched = j['handoffTouched'] == true;
+      ..handoffTouched = j['handoffTouched'] == true
+      ..checkedIn = j['checkedIn'] == true;
     note
       ..planId = j['planId'] as String?
       ..planVersion = (j['planVersion'] as num?)?.toInt()
@@ -816,21 +823,68 @@ class NotesStore extends ChangeNotifier {
   /// 아무것도 안 친 메모는 목록에 남길 이유가 없다. 메모 앱과 같다. 끼니만 적은
   /// 기록(쉬는 날의 식단)은 빈 기록이 아니다.
   void discardIfEmpty(Note note) {
+    // 그물 없이 끝낸 같이 하기는 이 기록에만 '끝났다고 알릴 것' 이 남아 있다. 지우면
+    // 상대 폰에서 세션이 안 끝난다.
+    if (note.partner?.endPending ?? false) return;
     // 루틴을 열어만 봤다. 받은 루틴은 목록에 그대로 있고, 이것은 한 것이 아니다.
+    // 끼니·대신 적기는 touch() 로만 저장돼 updatedAt 이 그대로다 — 그것까지 봐야
+    // 세트 없이 끼니 사진만 남긴 루틴 기록이 끼니째 지워지지 않는다. 스티커로 연
+    // 것은 출석이라 남긴다(아직 못 보냈으면 다음에 간다).
     if (note.routineId != null &&
+        !note.checkedIn &&
         note.sentAt == null &&
-        !note.updatedAt.isAfter(note.createdAt)) {
+        !note.updatedAt.isAfter(note.createdAt) &&
+        _blankBesidesSets(note)) {
       delete(note);
       return;
     }
-    if (note.blocks.isEmpty &&
-        note.meals.isEmpty &&
-        (note.draft?.text.trim().isEmpty ?? true)) {
+    if (note.blocks.isEmpty && _blankBesidesSets(note)) {
       // 루틴 없이 온 날의 출석은 빈 기록이다. 아직 못 보냈으면 지우지 않는다 —
-      // 지우면 신호 없던 날의 출석이 트레이너에게 영영 안 간다.
-      if (note.gymId != null && note.sentAt == null) return;
+      // 지우면 신호 없던 날의 출석이 트레이너에게 영영 안 간다. 보냈어도 세 시간은
+      // 둔다: 그사이 다시 대면 이 기록을 다시 열어야 같은 방문이 둘로 세지 않는다
+      // (main.dart _attendOnly). 지나면 [pruneVisits] 가 치운다.
+      if (note.gymId != null &&
+          (note.sentAt == null || note.createdAt.isAfter(visitWindowStart()))) {
+        return;
+      }
       delete(note);
     }
+  }
+
+  /// 같은 방문으로 보는 시간. 웹이 열린 운동을 다시 여는 세 시간과 같다.
+  static const visitWindow = Duration(hours: 3);
+  static DateTime visitWindowStart() => DateTime.now().subtract(visitWindow);
+
+  /// 세트 말고는 남긴 것이 없다 — 끼니도, 서버에 알릴 끼니 삭제도, 대신 적은 것도,
+  /// 친 글도. 이것이 아니면 기록을 지울 때 그것들이 같이 사라진다.
+  static bool _blankBesidesSets(Note n) =>
+      n.meals.isEmpty &&
+      n.deletedMeals.isEmpty &&
+      n.proxy == null &&
+      (n.draft?.text.trim().isEmpty ?? true);
+
+  /// 편집기가 지금 열어 둔 기록. 정리하다 지우면 그 뒤에 친 것이 목록에 없는 기록에
+  /// 쓰여 사라진다.
+  final Set<Note> open = {};
+
+  /// 보낸 지 세 시간이 지난 빈 출석 기록을 치운다. 앱이 밀린 것을 보낼 때 같이 돈다.
+  void pruneVisits() {
+    final stale = [
+      for (final n in _notes)
+        // 루틴 기록도 블록을 다 지웠으면 빈 출석이다. 열어만 본 루틴은 블록이 차 있어 남는다.
+        if (n.gymId != null &&
+            n.sentAt != null &&
+            n.blocks.isEmpty &&
+            _blankBesidesSets(n) &&
+            !open.contains(n) &&
+            !(n.partner?.endPending ?? false) &&
+            !n.createdAt.isAfter(visitWindowStart()))
+          n,
+    ];
+    if (stale.isEmpty) return;
+    _notes.removeWhere(stale.contains);
+    notifyListeners();
+    _scheduleSave();
   }
 
   @override

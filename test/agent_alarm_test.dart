@@ -1,5 +1,8 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/agent_alarm.dart';
+import 'package:setpad/app_locale.dart';
+import 'package:setpad/l10n/generated/app_localizations.dart';
 
 void main() {
   // 2026-09-23(수) 07:05 한국 = 전날 22:05 UTC.
@@ -69,5 +72,27 @@ void main() {
       weekdays: [1],
     );
     await AgentAlarm.clearAll();
+  });
+
+  test('알림 문구는 기기 언어를 따른다 — 한국어 고정이 아니다', () {
+    expect(
+      lookupL(const Locale('en')).agentAlarmBody('Gym'),
+      'Gym · Check the agent report',
+    );
+    expect(lookupL(const Locale('ko')).agentAlarmTitle, '오늘 정리가 준비됐어요');
+  });
+
+  test('대만·홍콩 기기는 화면처럼 알림도 번체다', () {
+    String title(Locale device) =>
+        lookupL(appLocale([device], L.supportedLocales)).agentAlarmTitle;
+    final hant = lookupL(
+      const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
+    ).agentAlarmTitle;
+    final hans = lookupL(
+      const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
+    ).agentAlarmTitle;
+    expect(title(const Locale('zh', 'TW')), hant);
+    expect(title(const Locale('zh', 'HK')), hant);
+    expect(title(const Locale('zh', 'CN')), hans);
   });
 }

@@ -221,7 +221,7 @@
   "bookingWhichGym": "¿Qué gimnasio?",
   "tagSignIn": "Iniciar sesión",
   "accountDelete": "Eliminar cuenta",
-  "accountDeleteAsk": "Esto no se puede deshacer. Tus rutinas, registros, bonos y reservas desaparecerán.",
+  "accountDeleteAsk": "Esto no se puede deshacer. Tus rutinas, registros, bonos y reservas desaparecerán. Una suscripción de App Store o Google Play se sigue cobrando hasta que la canceles en la tienda.",
   "accountDeleteDo": "Eliminar",
   "accountDeleteFailed": "No se pudo eliminar la cuenta. Inténtalo de nuevo en un momento.",
   "signInFailed": "No se pudo iniciar sesión. Inténtalo de nuevo en un momento.",
@@ -883,5 +883,16 @@
   "signInTaken": "Este método de inicio de sesión ya está vinculado a otra cuenta.",
   "tagOffline": "No se pudo conectar con el gimnasio. Vuelve a acercar el teléfono cuando tengas señal.",
   "handoffMine": "Este es un registro que escribiste y enviaste. Ábrelo en el teléfono de quien lo recibe.",
-  "partnerErrFull": "Está lleno. Nadie más puede unirse a esta sesión."
+  "partnerErrFull": "Está lleno. Nadie más puede unirse a esta sesión.",
+  "agentAlarmTitle": "El resumen de hoy está listo",
+  "agentAlarmBody": "{gym} · Revisa el informe del agente",
+  "@agentAlarmBody": {
+    "placeholders": {
+      "gym": {
+        "type": "String"
+      }
+    }
+  },
+  "agentAlarmChannel": "Informe del agente",
+  "agentAlarmChannelDesc": "Te avisa cuando el informe del entrenador está listo"
 }

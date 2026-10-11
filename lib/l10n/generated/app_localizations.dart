@@ -1438,7 +1438,7 @@ abstract class L {
   /// No description provided for @accountDeleteAsk.
   ///
   /// In ko, this message translates to:
-  /// **'되돌릴 수 없습니다. 받은 루틴, 운동 기록, 이용권, 예약이 모두 사라집니다.'**
+  /// **'되돌릴 수 없습니다. 받은 루틴, 운동 기록, 이용권, 예약이 모두 사라집니다. App Store·Google Play 구독은 스토어에서 직접 해지하기 전까지 계속 결제됩니다.'**
   String get accountDeleteAsk;
 
   /// No description provided for @accountDeleteDo.
@@ -5364,6 +5364,30 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'자리가 다 찼어요. 이 세션에는 더 들어갈 수 없어요.'**
   String get partnerErrFull;
+
+  /// No description provided for @agentAlarmTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 정리가 준비됐어요'**
+  String get agentAlarmTitle;
+
+  /// No description provided for @agentAlarmBody.
+  ///
+  /// In ko, this message translates to:
+  /// **'{gym} · 에이전트 보고를 확인해 주세요'**
+  String agentAlarmBody(String gym);
+
+  /// No description provided for @agentAlarmChannel.
+  ///
+  /// In ko, this message translates to:
+  /// **'에이전트 보고'**
+  String get agentAlarmChannel;
+
+  /// No description provided for @agentAlarmChannelDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'트레이너 보고가 준비되면 알려요'**
+  String get agentAlarmChannelDesc;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -101,6 +101,52 @@ void main() {
     expect((sets.last as Map)['done'], isFalse, reason: '취소한 세트는 안 한 것이다');
   });
 
+  test('서버 한도를 넘는 기록은 한도 안으로 맞춰서 보낸다', () {
+    final items = loggedItems([
+      ExerciseBlock('레그프레스', [
+        LoggedSet(value: 1100000, reps: 20000),
+        LoggedSet(value: -5, reps: -1),
+        for (var i = 0; i < 120; i++) LoggedSet(value: 10, reps: 1),
+      ]),
+      ExerciseBlock('  ', [LoggedSet(value: 1, reps: 1)]),
+      ExerciseBlock('가' * 300, []),
+      for (var i = 0; i < 120; i++) ExerciseBlock('운동$i', []),
+    ]);
+    expect(items, hasLength(100), reason: '이름 빈 것은 빠지고 100개에서 멈춘다');
+    final sets = items.first['sets'] as List;
+    expect(sets, hasLength(100));
+    expect(sets[0], {'kg': 9999, 'reps': 10000, 'done': true});
+    expect(sets[1], {'kg': 0, 'reps': 0, 'done': true});
+    expect((items[1]['name'] as String).length, 200);
+  });
+
+  test('시작 시각은 오프셋을 붙여 보낸다', () async {
+    Map<String, Object?>? sent;
+    final link = GymLink(
+      endpoint: 'https://example.com',
+      token: 'x',
+      client: MockClient((request) async {
+        sent = jsonDecode(request.body) as Map<String, Object?>;
+        return http.Response('{"id":"1"}', 200);
+      }),
+    );
+    await link.sendWorkout(
+      gymId: 'g1',
+      localId: 'n',
+      startedAt: DateTime(2026, 10, 11, 10),
+      blocks: const [],
+    );
+    expect(
+      sent!['startedAt'],
+      matches(RegExp(r'Z$')),
+      reason: '오프셋 없으면 서버가 한국 시각으로 읽는다',
+    );
+    expect(
+      DateTime.parse(sent!['startedAt'] as String),
+      DateTime(2026, 10, 11, 10).toUtc(),
+    );
+  });
+
   test('문장형 제목이어도 집계는 운동 이름으로 나간다', () {
     // "스쿼트 100kg 100개 채우기" 처럼 친 것은 제목으로 남지만, 트레이너가
     // 보는 것은 스쿼트여야 한다.
@@ -241,6 +287,32 @@ void _pending() {
     expect(sent, ['a', 'c']);
     expect(edited.sentAt!.isAfter(edited.updatedAt), isTrue);
     expect(looked.sentAt, isNull);
+  });
+
+  test('스티커로 연 루틴은 열어만 봐도 방문으로 가고, 적으면 같은 줄에 루틴이 붙는다', () async {
+    final sent = <Map<String, Object?>>[];
+    final link = GymLink(
+      endpoint: 'https://example.com',
+      token: 'x',
+      client: MockClient((request) async {
+        sent.add((jsonDecode(request.body) as Map).cast<String, Object?>());
+        return http.Response('{"id":"1"}', 200);
+      }),
+    );
+    final tagged = made('t', gymId: 'g')
+      ..routineId = 'r'
+      ..checkedIn = true;
+    await sendPending(link, [tagged], onSent: () {});
+    expect(sent.single['localId'], 't');
+    expect(sent.single['routineId'], isNull, reason: '루틴을 붙이면 서버가 완료로 닫는다');
+    expect(sent.single['result'], isEmpty);
+
+    // 세트를 적었다 — 같은 줄에 루틴과 세트가 붙는다.
+    tagged.updatedAt = DateTime.now().add(const Duration(minutes: 1));
+    await sendPending(link, [tagged], onSent: () {});
+    expect(sent.last['localId'], 't');
+    expect(sent.last['routineId'], 'r');
+    expect(sent.last['result'], isNotEmpty);
   });
 
   test('lb 는 kg 로 바꿔 보내고, 시간·거리는 무게 칸을 비운다', () {

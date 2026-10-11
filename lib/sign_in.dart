@@ -143,12 +143,23 @@ Future<Credential?> signInViaWeb(SignInMethod method, String endpoint) async {
     if (identical(_webReturn, waiting)) _webReturn = null;
     return null;
   }
-  final back = await waiting.future.timeout(
-    const Duration(minutes: 5),
-    onTimeout: () => null,
-  );
-  if (identical(_webReturn, waiting)) _webReturn = null;
+  final Uri? back;
+  try {
+    // 안드로이드에서 브라우저를 그냥 닫으면 돌아오는 주소가 없다. 다섯 분이 지나면
+    // 그만둔 것으로 본다 — 그만둔 사람에게 '실패' 라고 하지 않는다. 서버가 못 받아 준
+    // 것은 서버가 error 를 붙여 앱으로 돌려보낸다(시도를 잃은 경우도).
+    back = await waiting.future.timeout(
+      const Duration(minutes: 5),
+      onTimeout: () => null,
+    );
+  } finally {
+    if (identical(_webReturn, waiting)) _webReturn = null;
+  }
 
+  // 사람이 그만둔 것(cancelled)과 다시 눌러 앞의 것을 버린 것(null)은 말할 것이
+  // 없다. 그 밖의 error 는 서버가 못 받아 준 것이다.
+  final error = back?.queryParameters['error'];
+  if (error != null && error != 'cancelled') throw const WebSignInFailed();
   final handoff = back?.queryParameters['handoff'];
   if (handoff == null || handoff.isEmpty) return null;
   return (
@@ -158,6 +169,17 @@ Future<Credential?> signInViaWeb(SignInMethod method, String endpoint) async {
     code: null,
     verifier: verifier,
   );
+}
+
+/// 기다리던 웹 로그인을 그만둔다(null 로 끝낸다). 기다리던 것이 있었으면 true.
+///
+/// 브라우저는 앱 밖에서 열려, 사람이 카카오 화면에서 그냥 돌아오면 앱은 알 길이
+/// 없다. 같은 스티커를 다시 대는 것이 그 신호다(main.dart _openTag).
+bool cancelWebSignIn() {
+  final waiting = _webReturn;
+  if (waiting == null || waiting.isCompleted) return false;
+  waiting.complete(null);
+  return true;
 }
 
 /// `setpad://signin?…` 가 왔다. 기다리던 로그인이 있으면 깨운다. 그 주소였으면 true.
@@ -173,6 +195,12 @@ String _urlSafe(List<int> bytes) => base64Url.encode(bytes).replaceAll('=', '');
 String _randomUrlSafe() {
   final random = Random.secure();
   return _urlSafe(List.generate(32, (_) => random.nextInt(256)));
+}
+
+/// 웹 로그인이 error 로 돌아왔거나 끝내 안 돌아왔다. 사람이 그만둔 것과 달리
+/// 말해 줘야 한다([Account.signInRefused]).
+class WebSignInFailed implements Exception {
+  const WebSignInFailed();
 }
 
 /// 로그인한 채로 붙이려던 수단이 이미 다른 계정의 것이다. 서버는 말없이 그쪽으로

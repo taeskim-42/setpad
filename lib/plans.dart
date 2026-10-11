@@ -749,6 +749,8 @@ extension PlanLink on GymLink {
             (_, 'expired') => PartnerError.expired,
             (_, 'withdrawn') || (_, 'notFound') => PartnerError.ended,
             (_, 'ownInvite') => PartnerError.ownInvite,
+            // 여섯 명이 찼다. 서버 고장이 아니다 — 다시 해도 안 들어간다.
+            (_, 'full') => PartnerError.full,
             (429, _) => PartnerError.tooManyTries,
             (400, _) => PartnerError.invalidFormat,
             _ => PartnerError.server,

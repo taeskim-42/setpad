@@ -962,7 +962,7 @@ bool _isValue(String t) => unitOf(_unit.firstMatch(t)?[2] ?? '') != null;
 bool _isWeight(String t) =>
     unitById[unitOf(_unit.firstMatch(t)?[2] ?? '')]?.kind == UnitKind.weight;
 
-/// 시간 낱말의 온수 — [unit] 이 'min' 이나 's' 일 때.
+/// 시간 낱말의 온수 — [unit] 이 'h', 'min', 's' 일 때.
 int? _wholeTime(String t, String unit) {
   final m = _unit.firstMatch(t);
   if (m == null || unitOf(m[2]!) != unit) return null;
@@ -1069,9 +1069,19 @@ List<_Word> _readWords(String text) {
     final t = clock == null
         ? w.t
         : '${int.parse(clock[1]!) * 60 + int.parse(clock[2]!)}s';
+    // "1시간 30분" 은 90분 하나다 — 합치지 않으면 1시간만 값이 되고 30분은 메모로 간다.
+    final hours = out.isEmpty ? null : _wholeTime(out.last.t, 'h');
+    final mins = _wholeTime(t, 'min');
     final minutes = out.isEmpty ? null : _wholeTime(out.last.t, 'min');
     final seconds = _wholeTime(t, 's');
-    if (minutes != null && seconds != null && seconds < 60) {
+    if (hours != null && mins != null && mins < 60) {
+      out.last = (
+        t: '${hours * 60 + mins}min',
+        start: out.last.start,
+        end: w.end,
+        comma: w.comma,
+      );
+    } else if (minutes != null && seconds != null && seconds < 60) {
       out.last = (
         t: '${minutes * 60 + seconds}s',
         start: out.last.start,

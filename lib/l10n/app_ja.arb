@@ -221,7 +221,7 @@
   "bookingWhichGym": "どのジムですか？",
   "tagSignIn": "ログイン",
   "accountDelete": "アカウント削除",
-  "accountDeleteAsk": "元に戻せません。ルーティン、記録、チケット、予約がすべて消えます。",
+  "accountDeleteAsk": "元に戻せません。ルーティン、記録、チケット、予約がすべて消えます。App Store・Google Play の購読は、ストアで解約するまで課金が続きます。",
   "accountDeleteDo": "削除する",
   "accountDeleteFailed": "削除できませんでした。少ししてからもう一度お試しください。",
   "signInFailed": "ログインできませんでした。少ししてからもう一度お試しください。",
@@ -883,5 +883,16 @@
   "signInTaken": "このログイン方法はすでに別のアカウントに連携されています。",
   "tagOffline": "ジムに接続できませんでした。電波が入ったらもう一度かざしてください。",
   "handoffMine": "これはあなたが書いて送った記録です。受け取る人の端末で開いてください。",
-  "partnerErrFull": "満員です。このセッションにはこれ以上参加できません。"
+  "partnerErrFull": "満員です。このセッションにはこれ以上参加できません。",
+  "agentAlarmTitle": "今日のまとめができました",
+  "agentAlarmBody": "{gym} · エージェントの報告を確認してください",
+  "@agentAlarmBody": {
+    "placeholders": {
+      "gym": {
+        "type": "String"
+      }
+    }
+  },
+  "agentAlarmChannel": "エージェント報告",
+  "agentAlarmChannelDesc": "トレーナーの報告ができたらお知らせします"
 }

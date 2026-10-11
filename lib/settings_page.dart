@@ -181,7 +181,14 @@ class SettingsPage extends StatelessWidget {
                         _Row(
                           key: ValueKey('settings-link-${method.name}'),
                           label: l.linkSignIn(providerName(l, method)),
-                          detail: a.signInTaken ? l.signInTaken : null,
+                          // 실패 문구는 방금 시도한 수단의 줄에만 붙인다.
+                          detail: a.lastSignIn != method
+                              ? null
+                              : a.signInTaken
+                              ? l.signInTaken
+                              : a.signInRefused
+                              ? l.signInFailed
+                              : null,
                           onTap: () => a.signIn(method),
                         ),
                 ] else

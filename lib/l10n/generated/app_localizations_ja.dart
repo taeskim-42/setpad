@@ -830,7 +830,8 @@ class LJa extends L {
   String get accountDelete => 'アカウント削除';
 
   @override
-  String get accountDeleteAsk => '元に戻せません。ルーティン、記録、チケット、予約がすべて消えます。';
+  String get accountDeleteAsk =>
+      '元に戻せません。ルーティン、記録、チケット、予約がすべて消えます。App Store・Google Play の購読は、ストアで解約するまで課金が続きます。';
 
   @override
   String get accountDeleteDo => '削除する';
@@ -3583,4 +3584,18 @@ class LJa extends L {
 
   @override
   String get partnerErrFull => '満員です。このセッションにはこれ以上参加できません。';
+
+  @override
+  String get agentAlarmTitle => '今日のまとめができました';
+
+  @override
+  String agentAlarmBody(String gym) {
+    return '$gym · エージェントの報告を確認してください';
+  }
+
+  @override
+  String get agentAlarmChannel => 'エージェント報告';
+
+  @override
+  String get agentAlarmChannelDesc => 'トレーナーの報告ができたらお知らせします';
 }

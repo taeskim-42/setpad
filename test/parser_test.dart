@@ -54,6 +54,8 @@ void main() {
       );
       // 'N분 M초' 는 시간 하나(초)다 — 뒤의 초가 메모로 갈라지지 않는다.
       expect(parseSetLine('1분 30초'), const ParsedSet(value: 90, unit: 's'));
+      // 'N시간 M분' 도 하나(분)다 — 1시간만 남고 30분이 메모로 가면 90분이 60분으로 기록된다.
+      expect(parseSetLine('1시간 30분'), const ParsedSet(value: 90, unit: 'min'));
       // 두 번째 횟수·세트 표기도 메모다.
       expect(parseSetLine('80 10회 12회')?.note, '12회');
       expect(parseSetLine('80 10 x3 x4')?.count, 3);

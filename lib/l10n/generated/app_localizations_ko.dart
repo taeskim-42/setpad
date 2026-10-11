@@ -834,7 +834,8 @@ class LKo extends L {
   String get accountDelete => '회원 탈퇴';
 
   @override
-  String get accountDeleteAsk => '되돌릴 수 없습니다. 받은 루틴, 운동 기록, 이용권, 예약이 모두 사라집니다.';
+  String get accountDeleteAsk =>
+      '되돌릴 수 없습니다. 받은 루틴, 운동 기록, 이용권, 예약이 모두 사라집니다. App Store·Google Play 구독은 스토어에서 직접 해지하기 전까지 계속 결제됩니다.';
 
   @override
   String get accountDeleteDo => '탈퇴합니다';
@@ -3591,4 +3592,18 @@ class LKo extends L {
 
   @override
   String get partnerErrFull => '자리가 다 찼어요. 이 세션에는 더 들어갈 수 없어요.';
+
+  @override
+  String get agentAlarmTitle => '오늘 정리가 준비됐어요';
+
+  @override
+  String agentAlarmBody(String gym) {
+    return '$gym · 에이전트 보고를 확인해 주세요';
+  }
+
+  @override
+  String get agentAlarmChannel => '에이전트 보고';
+
+  @override
+  String get agentAlarmChannelDesc => '트레이너 보고가 준비되면 알려요';
 }

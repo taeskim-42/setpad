@@ -348,7 +348,9 @@ extension PartnerLink on GymLink {
     'revision': revision,
     'base': base,
     if (force) 'force': true,
-    'result': blocksToJson(blocks),
+    // 서버(validResult)는 운동 100개·운동당 세트 100개·64KB 를 넘으면 통째로
+    // 거절한다. 같이 고치는 문서와 같은 자르기를 써서 넘친 끝만 빠지게 한다.
+    'result': docOf(blocks.take(100).toList()),
   });
 
   Future<PartnerReply> partnerTimer(String id, Map<String, Object?> action) =>
@@ -403,6 +405,34 @@ extension PartnerLink on GymLink {
 
   Future<PartnerReply> endPartnerSession(String id) =>
       _partner('POST', '/api/partner-sessions/$id/end');
+}
+
+/// 그물 없이 끝낸 같이 하기를 서버에 알린다. 편집기의 폴링은 끝난 세션에서
+/// 돌지 않고, 앱을 껐다 켜면 그 기록을 다시 열어도 시작하지 않는다 — 그래서
+/// 앱이 밀린 운동을 보낼 때 이것도 같이 보낸다. 서버가 답을 했으면(이미 끝났다·
+/// 없다 포함) 다 된 것이고, 그물이 막혔거나 로그인이 풀렸거나 서버가 넘어졌으면
+/// (5xx·429 — 배포 중일 수 있다) 다음에.
+Future<void> sendPendingEnds(
+  GymLink link,
+  List<Note> notes, {
+  required void Function() onSent,
+}) async {
+  if (!link.supported) return;
+  var changed = false;
+  for (final note in notes) {
+    final s = note.partner;
+    if (s == null || !s.endPending) continue;
+    final reply = await link.endPartnerSession(s.id);
+    if (reply.error == PartnerError.network ||
+        reply.error == PartnerError.server ||
+        reply.error == PartnerError.tooManyTries) {
+      break;
+    }
+    if (reply.error == PartnerError.signInRequired) continue;
+    s.endPending = false;
+    changed = true;
+  }
+  if (changed) onSent();
 }
 
 /// 한 운동 문서의 같이 하기. 화면은 이것을 듣고 그리기만 한다.
@@ -728,6 +758,7 @@ class PartnerSync extends ChangeNotifier {
     if (s == null ||
         s.state != PartnerState.active ||
         s.pushed >= s.revision ||
+        (s.id, s.revision) == _refused ||
         conflict != null ||
         _pushing ||
         _disposed) {
@@ -756,9 +787,17 @@ class PartnerSync extends ChangeNotifier {
         revision: (reply.body!['revision'] as num?)?.toInt() ?? 0,
         blocks: blocksFromJson(reply.body!['result']),
       );
+    } else if (reply.body?['error'] == 'invalidInput') {
+      // 잘라도 서버가 못 받는 크기다(긴 메모). 같은 본문을 폴링마다 다시 보내지
+      // 않는다. pushed 는 올리지 않는다 — 올리면 다음 업로드의 base 가 서버와
+      // 어긋나 없는 충돌이 뜬다. 고쳐서 번호가 바뀌면 다시 해 본다.
+      _refused = (s.id, sending);
     }
     notifyListeners();
   }
+
+  /// 서버가 내용 때문에 거절한 기록 번호. 이 번호로는 다시 보내지 않는다.
+  (String, int)? _refused;
 
   /// 다른 기기가 공유한 더 새 기록. 있으면 이 기기의 변경은 올라가지 않고 있다.
   ({int revision, List<ExerciseBlock> blocks})? conflict;
@@ -1127,14 +1166,7 @@ class PartnerSync extends ChangeNotifier {
     _listen();
     var ticks = 0;
     _poll = Timer.periodic(interval, (_) async {
-      final pending = session;
-      if (pending != null && pending.endPending) {
-        final reply = await link().endPartnerSession(pending.id);
-        if (reply.error != PartnerError.network) {
-          pending.endPending = false;
-          onChanged();
-        }
-      }
+      await sendPendingEnds(link(), [note], onSent: onChanged);
       if (_pendingDoc.isNotEmpty) unawaited(_flushDoc());
       _heartbeat();
       // 스트림이 살아 있으면 폴링은 열 번에 한 번만.

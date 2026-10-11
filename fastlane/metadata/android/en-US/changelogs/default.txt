@@ -1,3 +1,5 @@
 What's new
 
-· Subscription screen tidied up: free gives sign-up plates and 1 plate on each day you log 10 sets; Pro tops plates up to 300 every month
+· Sign in with Kakao or Google — use the account you already have on the web (gym.darak.studio), and link other sign-in methods under Settings › Account
+· Edits to a gym workout now reach your trainer again, and lb weights are converted to kg when sent
+· Fixes for received routines, Together and writing for a partner

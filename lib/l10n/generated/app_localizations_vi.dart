@@ -856,7 +856,7 @@ class LVi extends L {
 
   @override
   String get accountDeleteAsk =>
-      'Không thể hoàn tác. Giáo án, nhật ký tập, gói tập và lịch hẹn sẽ mất hết.';
+      'Không thể hoàn tác. Giáo án, nhật ký tập, gói tập và lịch hẹn sẽ mất hết. Gói đăng ký App Store hoặc Google Play vẫn tiếp tục bị tính phí cho đến khi bạn hủy trong cửa hàng.';
 
   @override
   String get accountDeleteDo => 'Xóa tài khoản';
@@ -3692,4 +3692,19 @@ class LVi extends L {
   @override
   String get partnerErrFull =>
       'Đã đầy. Không ai khác có thể tham gia phiên này.';
+
+  @override
+  String get agentAlarmTitle => 'Bản tổng kết hôm nay đã sẵn sàng';
+
+  @override
+  String agentAlarmBody(String gym) {
+    return '$gym · Hãy xem báo cáo của trợ lý';
+  }
+
+  @override
+  String get agentAlarmChannel => 'Báo cáo của trợ lý';
+
+  @override
+  String get agentAlarmChannelDesc =>
+      'Báo khi báo cáo huấn luyện viên đã sẵn sàng';
 }

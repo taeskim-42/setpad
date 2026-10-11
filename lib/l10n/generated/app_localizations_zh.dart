@@ -824,7 +824,8 @@ class LZh extends L {
   String get accountDelete => '注销账号';
 
   @override
-  String get accountDeleteAsk => '无法撤销。训练计划、记录、次卡和预约都会消失。';
+  String get accountDeleteAsk =>
+      '无法撤销。训练计划、记录、次卡和预约都会消失。App Store 或 Google Play 的订阅在你于商店取消之前会继续扣费。';
 
   @override
   String get accountDeleteDo => '确认注销';
@@ -3555,6 +3556,20 @@ class LZh extends L {
 
   @override
   String get partnerErrFull => '已满员。此会话无法再加入。';
+
+  @override
+  String get agentAlarmTitle => '今天的汇总已准备好';
+
+  @override
+  String agentAlarmBody(String gym) {
+    return '$gym · 请查看智能体报告';
+  }
+
+  @override
+  String get agentAlarmChannel => '智能体报告';
+
+  @override
+  String get agentAlarmChannelDesc => '教练报告准备好时通知你';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -4377,7 +4392,8 @@ class LZhHans extends LZh {
   String get accountDelete => '注销账号';
 
   @override
-  String get accountDeleteAsk => '无法撤销。训练计划、记录、次卡和预约都会消失。';
+  String get accountDeleteAsk =>
+      '无法撤销。训练计划、记录、次卡和预约都会消失。App Store 或 Google Play 的订阅在你于商店取消之前会继续扣费。';
 
   @override
   String get accountDeleteDo => '确认注销';
@@ -7108,6 +7124,20 @@ class LZhHans extends LZh {
 
   @override
   String get partnerErrFull => '已满员。此会话无法再加入。';
+
+  @override
+  String get agentAlarmTitle => '今天的汇总已准备好';
+
+  @override
+  String agentAlarmBody(String gym) {
+    return '$gym · 请查看智能体报告';
+  }
+
+  @override
+  String get agentAlarmChannel => '智能体报告';
+
+  @override
+  String get agentAlarmChannelDesc => '教练报告准备好时通知你';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -7929,7 +7959,8 @@ class LZhHant extends LZh {
   String get accountDelete => '註銷帳號';
 
   @override
-  String get accountDeleteAsk => '無法復原。訓練計畫、紀錄、堂數和預約都會消失。';
+  String get accountDeleteAsk =>
+      '無法復原。訓練計畫、紀錄、堂數和預約都會消失。App Store 或 Google Play 的訂閱在你於商店取消之前會繼續扣款。';
 
   @override
   String get accountDeleteDo => '確認註銷';
@@ -10661,4 +10692,18 @@ class LZhHant extends LZh {
 
   @override
   String get partnerErrFull => '已額滿。此工作階段無法再加入。';
+
+  @override
+  String get agentAlarmTitle => '今天的彙整已準備好';
+
+  @override
+  String agentAlarmBody(String gym) {
+    return '$gym · 請查看智慧代理報告';
+  }
+
+  @override
+  String get agentAlarmChannel => '智慧代理報告';
+
+  @override
+  String get agentAlarmChannelDesc => '教練報告準備好時通知你';
 }

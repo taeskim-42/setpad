@@ -1,3 +1,5 @@
 Có gì mới
 
-· Chỉnh lại màn hình gói đăng ký — bản miễn phí có bánh tạ khi đăng ký và 1 bánh mỗi ngày ghi đủ 10 hiệp; Pro nạp bánh tạ lên tới 300 mỗi tháng
+· Đăng nhập bằng Kakao hoặc Google — dùng tài khoản bạn đã có trên web (gym.darak.studio), và liên kết các cách đăng nhập khác trong Cài đặt › Tài khoản
+· Sửa bản ghi ở phòng gym sẽ được gửi lại cho huấn luyện viên, và mức tạ lb được đổi sang kg khi gửi
+· Sửa các lỗi nhỏ ở bài tập nhận được, Tập cùng nhau và ghi hộ bạn tập

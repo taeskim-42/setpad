@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/account.dart';
+import 'package:setpad/purchases.dart';
 import 'package:setpad/sign_in.dart';
 
 /// 로그인은 기기에 남아야 한다. 안 남으면 앱을 껐다 켤 때마다 로그아웃이고,
@@ -208,6 +210,26 @@ void main() {
     expect(a.signInRefused, isTrue);
   });
 
+  test('로그아웃하면 앞서 실패한 표시도 지운다', () async {
+    final a = Account(
+      client: MockClient((_) async => http.Response('꺼짐', 500)),
+      storageDir: dir,
+      signInWith: (_) async => (
+        method: SignInMethod.kakao,
+        idToken: 'h',
+        nickname: null,
+        code: null,
+        verifier: 'v',
+      ),
+    );
+    expect(await a.signIn(SignInMethod.kakao), isFalse);
+    expect(a.signInRefused, isTrue);
+    expect(a.lastSignIn, SignInMethod.kakao);
+    await a.signOut();
+    expect(a.signInRefused, isFalse);
+    expect(a.lastSignIn, isNull);
+  });
+
   test('사람이 창을 닫은 것은 실패로 치지 않는다', () async {
     final a = Account(
       client: MockClient((_) async => http.Response('{}', 200)),
@@ -218,10 +240,42 @@ void main() {
     expect(a.signInRefused, isFalse, reason: '스스로 그만둔 것에 경고를 띄우지 않는다');
   });
 
+  test('스토어가 멈춰도 로그인이 살아나면 스티커는 기다리지 않는다', () async {
+    // 스티커·링크는 토큰만 있으면 된다. start() 전체를 기다리면 스토어 조회가
+    // 늘어지는 동안 스티커가 아무 말이 없다.
+    File(
+      '${dir.path}/session.json',
+    ).writeAsStringSync(jsonEncode({'token': 'saved', 'nickname': '김회원'}));
+    final a = Account(
+      client: MockClient((_) async => http.Response('{}', 200)),
+      storageDir: dir,
+      purchases: _StuckPurchases(),
+    );
+    unawaited(a.start());
+    await a.restored.timeout(const Duration(seconds: 5));
+    expect(a.signedIn, isTrue);
+  });
+
+  test('웹 로그인이 실패로 돌아오면 조용히 넘어가지 않는다', () async {
+    final a = Account(
+      client: MockClient((_) async => http.Response('{}', 200)),
+      storageDir: dir,
+      signInWith: (_) async => throw const WebSignInFailed(),
+    );
+    expect(await a.signIn(SignInMethod.kakao), isFalse);
+    expect(a.signInRefused, isTrue);
+  });
+
   test('깨진 파일은 조용히 무시한다', () async {
     File('${dir.path}/session.json').writeAsStringSync('{망가짐');
     final a = account(MockClient((_) async => http.Response('{}', 200)));
     await a.restoreSession();
     expect(a.signedIn, isFalse);
   });
+}
+
+/// 응답이 영영 안 오는 스토어.
+class _StuckPurchases extends Purchases {
+  @override
+  Future<bool> start({bool apple = true}) => Completer<bool>().future;
 }

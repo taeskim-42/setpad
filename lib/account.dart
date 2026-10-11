@@ -177,9 +177,19 @@ class Account extends ChangeNotifier {
   /// 스토어가 지금 파는 요금제. 값은 스토어가 준 그대로다.
   Map<Plan, Offer> get offers => _purchases.offers;
 
+  /// 남겨 둔 로그인이 되살아났다(또는 못 살렸다). 스티커·링크·알림 탭은 토큰만
+  /// 있으면 되므로 [start] 전체가 아니라 이것만 기다린다 — 스토어 조회·이용권·원판
+  /// 물음이 약한 그물에서 늘어지면 스티커가 아무 말 없이 멈춰 있었다.
+  Future<void> get restored => _restored.future;
+  final _restored = Completer<void>();
+
   Future<void> start() async {
     _watch ??= _purchases.proofs.listen(_send);
-    await restoreSession();
+    try {
+      await restoreSession();
+    } finally {
+      if (!_restored.isCompleted) _restored.complete();
+    }
     await _purchases.start(apple: platformSignIn == SignInMethod.apple);
     // **로그인 전에도 묻는다.** 파는지 여부는 사람이 아니라 서버가 정하는
     // 것이고, 서버는 로그인 없이도 답한다. 안 물으면 아직 로그인 안 한
@@ -320,15 +330,23 @@ class Account extends ChangeNotifier {
   /// 붙이려던 수단이 이미 다른 계정의 것이라 서버가 거절했다. 로그인은 그대로다.
   bool signInTaken = false;
 
+  /// 마지막으로 시도한 수단. 설정은 실패 문구를 이 수단의 줄에만 붙인다.
+  SignInMethod? lastSignIn;
+
   /// 들어간다. [method] 가 없으면 기기가 직접 하는 수단이다. 이미 로그인해 있으면
   /// 그 계정에 수단을 하나 더 붙인다.
   Future<bool> signIn([SignInMethod? method]) async {
     signInRefused = signInTaken = false;
     final chosen = method ?? platformSignIn;
     if (chosen == null) return false;
+    lastSignIn = chosen;
     Credential? credential;
     try {
       credential = await _signInWith(chosen);
+    } on WebSignInFailed {
+      signInRefused = true;
+      notifyListeners();
+      return false;
     } catch (error) {
       // 사람이 창을 닫으면 여기로 온다. 실패가 아니라 그만둔 것이다.
       debugPrint('[로그인] 제공자 단계에서 멈췄다: $error');
@@ -374,6 +392,9 @@ class Account extends ChangeNotifier {
   Future<void> signOut() async {
     token = null;
     nickname = '';
+    // 로그인한 채로 수단을 붙이다 실패한 표시가 로그아웃 뒤 로그인 줄에 남지 않게.
+    signInRefused = signInTaken = false;
+    lastSignIn = null;
     providers = const [];
     plan = null;
     gyms = const [];
@@ -473,11 +494,14 @@ class Account extends ChangeNotifier {
     final bearer = await ai.bearer();
     final web = client ?? newApiClient();
     try {
-      final response = await web.get(
-        Uri.parse('$endpoint/api/purchase'),
-        // 'Bearer null' 을 보내지 않는다.
-        headers: {if (bearer != null) 'authorization': 'Bearer $bearer'},
-      );
+      // 다른 물음과 같이 끝이 있다. 연결된 뒤 답이 멈추면 start() 가 끝나지 않는다.
+      final response = await web
+          .get(
+            Uri.parse('$endpoint/api/purchase'),
+            // 'Bearer null' 을 보내지 않는다.
+            headers: {if (bearer != null) 'authorization': 'Bearer $bearer'},
+          )
+          .timeout(const Duration(seconds: 15));
       if (response.statusCode != 200) return;
       final body = jsonDecode(utf8.decode(response.bodyBytes));
       final name = body is Map ? body['plan'] : null;

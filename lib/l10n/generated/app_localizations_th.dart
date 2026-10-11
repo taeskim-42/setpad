@@ -851,7 +851,7 @@ class LTh extends L {
 
   @override
   String get accountDeleteAsk =>
-      'ย้อนกลับไม่ได้ โปรแกรม บันทึกการฝึก แพ็กเกจ และการจองจะหายทั้งหมด';
+      'ย้อนกลับไม่ได้ โปรแกรม บันทึกการฝึก แพ็กเกจ และการจองจะหายทั้งหมด การสมัครสมาชิก App Store หรือ Google Play จะยังถูกเรียกเก็บเงินต่อจนกว่าคุณจะยกเลิกในสโตร์';
 
   @override
   String get accountDeleteDo => 'ลบบัญชี';
@@ -3668,4 +3668,18 @@ class LTh extends L {
 
   @override
   String get partnerErrFull => 'เต็มแล้ว ไม่สามารถเข้าร่วมเซสชันนี้ได้อีก';
+
+  @override
+  String get agentAlarmTitle => 'สรุปของวันนี้พร้อมแล้ว';
+
+  @override
+  String agentAlarmBody(String gym) {
+    return '$gym · โปรดตรวจสอบรายงานของเอเจนต์';
+  }
+
+  @override
+  String get agentAlarmChannel => 'รายงานเอเจนต์';
+
+  @override
+  String get agentAlarmChannelDesc => 'แจ้งเตือนเมื่อรายงานของเทรนเนอร์พร้อม';
 }

@@ -868,7 +868,7 @@ class LEn extends L {
 
   @override
   String get accountDeleteAsk =>
-      'This cannot be undone. Your routines, workout records, passes and bookings will all be gone.';
+      'This cannot be undone. Your routines, workout records, passes and bookings will all be gone. An App Store or Google Play subscription keeps billing until you cancel it in the store.';
 
   @override
   String get accountDeleteDo => 'Delete';
@@ -3712,4 +3712,19 @@ class LEn extends L {
 
   @override
   String get partnerErrFull => 'It\'s full. No one else can join this session.';
+
+  @override
+  String get agentAlarmTitle => 'Today\'s summary is ready';
+
+  @override
+  String agentAlarmBody(String gym) {
+    return '$gym · Check the agent report';
+  }
+
+  @override
+  String get agentAlarmChannel => 'Agent report';
+
+  @override
+  String get agentAlarmChannelDesc =>
+      'Notifies you when the trainer report is ready';
 }

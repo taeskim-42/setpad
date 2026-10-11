@@ -221,7 +221,7 @@
   "bookingWhichGym": "哪一家健身房？",
   "tagSignIn": "登入",
   "accountDelete": "註銷帳號",
-  "accountDeleteAsk": "無法復原。訓練計畫、紀錄、堂數和預約都會消失。",
+  "accountDeleteAsk": "無法復原。訓練計畫、紀錄、堂數和預約都會消失。App Store 或 Google Play 的訂閱在你於商店取消之前會繼續扣款。",
   "accountDeleteDo": "確認註銷",
   "accountDeleteFailed": "註銷失敗，請稍後再試。",
   "signInFailed": "登入失敗，請稍後再試。",
@@ -883,5 +883,16 @@
   "signInTaken": "此登入方式已連結到其他帳號。",
   "tagOffline": "無法連線到健身房。有訊號後請再碰一次。",
   "handoffMine": "這是你寫好並送出的紀錄。請在收件者的手機上開啟。",
-  "partnerErrFull": "已額滿。此工作階段無法再加入。"
+  "partnerErrFull": "已額滿。此工作階段無法再加入。",
+  "agentAlarmTitle": "今天的彙整已準備好",
+  "agentAlarmBody": "{gym} · 請查看智慧代理報告",
+  "@agentAlarmBody": {
+    "placeholders": {
+      "gym": {
+        "type": "String"
+      }
+    }
+  },
+  "agentAlarmChannel": "智慧代理報告",
+  "agentAlarmChannelDesc": "教練報告準備好時通知你"
 }

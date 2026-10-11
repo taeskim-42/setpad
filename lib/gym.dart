@@ -140,7 +140,8 @@ class GymLink {
                 'gymId': gymId,
                 'localId': localId,
                 'routineId': ?routineId,
-                'startedAt': startedAt.toIso8601String(),
+                // 오프셋 없는 로컬 시각은 서버가 한국 시각으로 읽는다 — UTC(Z)로 보내 폰의 시간대와 무관하게 한다.
+                'startedAt': startedAt.toUtc().toIso8601String(),
                 'result': loggedItems(blocks),
                 'note': ?note,
               }),
@@ -190,16 +191,28 @@ double? kgOf(LoggedSet set) => switch (set.unit) {
   _ => null,
 };
 
+/// 서버가 받는 기록의 한도(isWorkoutResult). 하나라도 넘으면 서버는 기록 전체를
+/// 400 으로 거절하고 앱은 그 기록을 다시 보내 봐야 소용이 없으므로, 보내기 전에
+/// 한도 안으로 맞춘다 — 오타 하나가 그날의 출석까지 잃게 하지 않는다.
+const _maxKg = 9999;
+const _maxReps = 10000;
+const _maxSets = 100;
+const _maxExercises = 100;
+const _maxNameLength = 200;
+
 /// 앱의 기록을 웹이 읽는 모양으로 바꾼다. 계획과 같은 모양에 done 이 붙는다.
 List<Map<String, Object?>> loggedItems(List<ExerciseBlock> blocks) => [
-  for (final block in blocks)
+  for (final block
+      in blocks.where((b) => b.exercise.trim().isNotEmpty).take(_maxExercises))
     {
-      'name': block.exercise,
+      'name': block.exercise.length > _maxNameLength
+          ? block.exercise.substring(0, _maxNameLength)
+          : block.exercise,
       'sets': [
-        for (final set in block.sets)
+        for (final set in block.sets.take(_maxSets))
           {
-            'kg': ?kgOf(set),
-            if (set.reps != null) 'reps': set.reps,
+            'kg': ?kgOf(set)?.clamp(0, _maxKg),
+            if (set.reps != null) 'reps': set.reps!.clamp(0, _maxReps),
             'done': set.done,
           },
       ],
@@ -211,12 +224,14 @@ List<Map<String, Object?>> loggedItems(List<ExerciseBlock> blocks) => [
 /// 닫고 트레이너는 0/15세트를 본다.
 bool needsSend(Note note) {
   if (note.gymId == null) return false;
-  if (note.routineId != null && !note.updatedAt.isAfter(note.createdAt)) {
-    return false;
-  }
+  if (_lookedOnly(note) && !note.checkedIn) return false;
   final sent = note.sentAt;
   return sent == null || note.updatedAt.isAfter(sent);
 }
+
+/// 받은 루틴을 열어만 봤다(아무 세트도 안 적었다).
+bool _lookedOnly(Note note) =>
+    note.routineId != null && !note.updatedAt.isAfter(note.createdAt);
 
 /// 아직 못 보낸 기록을 보낸다. 보낸 뒤에 고친 것도 다시 간다.
 ///
@@ -241,13 +256,16 @@ Future<void> sendPending(
   for (final note in waiting) {
     // 보내는 동안 고친 것은 다음에 또 가야 한다. 시각은 보내기 전에 찍는다.
     final at = DateTime.now();
+    // 스티커로 열고 아직 안 적었다 — 방문만 보낸다. 루틴을 붙이면 서버가 그 루틴을
+    // '완료' 로 닫는다. 적기 시작하면 같은 줄에 루틴과 세트가 붙는다(서버가 허용).
+    final visitOnly = _lookedOnly(note);
     final outcome = await link.sendWorkoutOutcome(
       gymId: note.gymId!,
       localId: note.id,
-      routineId: note.routineId,
+      routineId: visitOnly ? null : note.routineId,
       startedAt: note.createdAt,
       // 같이 고친 기록에는 옆 사람의 세트도 있다. 트레이너에게는 내 것만.
-      blocks: mineOnly(note.blocks),
+      blocks: visitOnly ? const [] : mineOnly(note.blocks),
     );
     // 그물이 막혔으면 나머지도 막힌다. 다음 기회에.
     if (outcome == SendOutcome.retry) break;

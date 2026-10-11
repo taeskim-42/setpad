@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/gym.dart';
+import 'package:setpad/partner.dart' show PartnerError;
 import 'package:setpad/plans.dart';
 import 'package:setpad/workout_timing.dart';
 
@@ -74,6 +75,22 @@ void main() {
       {'token': token},
       {'code': 'AB3K9Z'},
     ]);
+  });
+
+  test('자리가 찬 공동 루틴(409 full)은 서버 문제가 아니라 자리가 찼다고 말한다', () async {
+    final dir = Directory.systemTemp.createTempSync('setpad_plan_full_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final plans = PlanStore(
+      directory: dir,
+      link: () => GymLink(
+        endpoint: 'https://x',
+        token: 'member',
+        client: MockClient(
+          (_) async => http.Response('{"error":"full"}', 409),
+        ),
+      ),
+    );
+    expect((await plans.join('AB3K9Z')).error, PartnerError.full);
   });
 
   test('메모장처럼 친 글을 계획으로 읽고, 사용자 운동명을 그대로 둔다', () {

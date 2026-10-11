@@ -51,7 +51,11 @@ class SetupChips extends StatefulWidget {
     required this.onToggle,
     required this.onChanged,
     required this.onEditing,
+    this.weightUnit = defaultUnit,
   });
+
+  /// 이 사람이 무게를 적는 단위. 무게가 아직 없는 설정의 단위 칩은 이것으로 연다.
+  final String weightUnit;
 
   /// 칸 제목. 설정의 운동 이름이 이와 같으면 이름 칩을 따로 보이지 않는다.
   final String title;
@@ -123,7 +127,9 @@ class _SetupChipsState extends State<SetupChips> {
       text: text,
       selection: TextSelection(baseOffset: 0, extentOffset: text.length),
     );
-    _unit = s.unit;
+    // 무게 없는 설정의 unit 은 기본값(kg)일 뿐이다. 그때는 이 사람의 단위로 연다 — lb 를
+    // 쓰는 사람에게 kg 가 먼저 뜨면 무게를 잘못 적는다(editor.dart 의 _unit 과 같은 규칙).
+    _unit = s.weight != null ? s.unit : widget.weightUnit;
     setState(() => _key = key);
     // autofocus 는 쓰지 않는다 — 입력 줄이 같은 화면에서 포커스를 쥐고 있으면
     // 버려진다. 아직 붙지 않은 노드라도 붙는 순간 포커스를 받는다.

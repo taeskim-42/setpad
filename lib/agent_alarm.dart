@@ -1,8 +1,12 @@
 import 'dart:async';
 
+import 'app_locale.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
+
+import 'l10n/generated/app_localizations.dart';
 
 /// 트레이너 보고 시각 알림.
 ///
@@ -94,6 +98,14 @@ class AgentAlarm {
         if (p.payload == gymId) await _plugin.cancel(p.id);
       }
       if (!enabled) return;
+      // 위젯 트리 밖이라 context 가 없다 — 기기 언어로 찾는다. 앱 안 언어 설정이
+      // 따로 있어도 시스템 언어를 따르고, 다음 sync 때 바뀐다.
+      final l = lookupL(
+        appLocale(
+          WidgetsBinding.instance.platformDispatcher.locales,
+          L.supportedLocales,
+        ),
+      );
       final slots = agentAlarmSlots(
         gymId,
         runMinutes,
@@ -103,10 +115,10 @@ class AgentAlarm {
       for (final (:id, :at) in slots) {
         await _plugin.zonedSchedule(
           id,
-          '오늘 정리가 준비됐어요',
-          '$gymName · 에이전트 보고를 확인해 주세요',
+          l.agentAlarmTitle,
+          l.agentAlarmBody(gymName),
           at,
-          _details,
+          _details(l),
           // Play 가 정확한 알람 권한을 사유로 거절한 전력이 있다
           // (AndroidManifest). 조금 늦게 울려도 되는 알림이라 부정확 알람으로
           // 건다 — 이르게 울리지는 않는다.
@@ -128,13 +140,13 @@ class AgentAlarm {
     } catch (_) {}
   }
 
-  static const _details = NotificationDetails(
+  static NotificationDetails _details(L l) => NotificationDetails(
     android: AndroidNotificationDetails(
       'agent_report',
-      '에이전트 보고',
-      channelDescription: '트레이너 보고가 준비되면 알려요',
+      l.agentAlarmChannel,
+      channelDescription: l.agentAlarmChannelDesc,
     ),
-    iOS: DarwinNotificationDetails(),
+    iOS: const DarwinNotificationDetails(),
   );
 }
 

@@ -64,6 +64,37 @@ void main() {
     expect(await pending, isNull);
   });
 
+  test('서버가 error 로 돌려보내면 실패라고 말한다', () async {
+    final pending = signInViaWeb(SignInMethod.kakao, 'https://example.com');
+    await Future<void>.delayed(Duration.zero);
+    finishWebSignIn(Uri.parse('setpad://signin?error=failed'));
+    await expectLater(pending, throwsA(isA<WebSignInFailed>()));
+  });
+
+  testWidgets('끝내 안 돌아오면 그만둔 것으로 보고 조용히 끝낸다', (tester) async {
+    Object? thrown;
+    var finished = false;
+    signInViaWeb(SignInMethod.kakao, 'https://example.com').then(
+      (credential) {
+        finished = credential == null;
+      },
+      onError: (Object e) {
+        thrown = e;
+      },
+    );
+    await tester.pump(const Duration(minutes: 6));
+    expect(thrown, isNull);
+    expect(finished, isTrue);
+  });
+
+  test('같은 스티커를 다시 대면 기다리던 웹 로그인을 놓는다', () async {
+    expect(cancelWebSignIn(), isFalse, reason: '기다리는 것이 없으면 놓을 것도 없다');
+    final pending = signInViaWeb(SignInMethod.kakao, 'https://example.com');
+    await Future<void>.delayed(Duration.zero);
+    expect(cancelWebSignIn(), isTrue);
+    expect(await pending, isNull);
+  });
+
   test('브라우저를 못 열면 바로 null 이다', () async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(share, (_) async => false);

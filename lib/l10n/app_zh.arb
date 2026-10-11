@@ -221,7 +221,7 @@
   "bookingWhichGym": "哪一家健身房？",
   "tagSignIn": "登录",
   "accountDelete": "注销账号",
-  "accountDeleteAsk": "无法撤销。训练计划、记录、次卡和预约都会消失。",
+  "accountDeleteAsk": "无法撤销。训练计划、记录、次卡和预约都会消失。App Store 或 Google Play 的订阅在你于商店取消之前会继续扣费。",
   "accountDeleteDo": "确认注销",
   "accountDeleteFailed": "注销失败，请稍后再试。",
   "signInFailed": "登录失败，请稍后再试。",
@@ -883,5 +883,16 @@
   "signInTaken": "此登录方式已关联到其他账号。",
   "tagOffline": "无法连接健身房。有信号后请再碰一次。",
   "handoffMine": "这是你写好并发送的记录。请在接收者的手机上打开。",
-  "partnerErrFull": "已满员。此会话无法再加入。"
+  "partnerErrFull": "已满员。此会话无法再加入。",
+  "agentAlarmTitle": "今天的汇总已准备好",
+  "agentAlarmBody": "{gym} · 请查看智能体报告",
+  "@agentAlarmBody": {
+    "placeholders": {
+      "gym": {
+        "type": "String"
+      }
+    }
+  },
+  "agentAlarmChannel": "智能体报告",
+  "agentAlarmChannelDesc": "教练报告准备好时通知你"
 }

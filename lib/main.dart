@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'app_locale.dart';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
@@ -76,20 +77,7 @@ class SetpadApp extends StatelessWidget {
       // 기기는 zh-TW / zh-HK 처럼 **문자 체계 없이** 보낸다. 그대로 두면
       // 번체에 못 붙고 기본 zh(간체)로 떨어져 대만 사용자가 간체를 본다.
       // 나라 코드를 보고 문자 체계를 채운 뒤 평소 규칙에 넘긴다.
-      localeListResolutionCallback: (locales, supported) =>
-          basicLocaleListResolution([
-            for (final l in locales ?? const <Locale>[])
-              if (l.languageCode == 'zh' && l.scriptCode == null)
-                Locale.fromSubtags(
-                  languageCode: 'zh',
-                  scriptCode: const ['TW', 'HK', 'MO'].contains(l.countryCode)
-                      ? 'Hant'
-                      : 'Hans',
-                  countryCode: l.countryCode,
-                )
-              else
-                l,
-          ], supported),
+      localeListResolutionCallback: appLocale,
       // 기본 서체를 monospace 로 못 박지 않는다. 숫자가 줄 서는 자리에만
       // 붙이면 되고, 화면 전체를 고정폭으로 두면 한글이 성기게 벌어져 iOS
       // 앱처럼 안 보인다. 나머지는 시스템 서체(SF Pro / Apple SD Gothic Neo)를
@@ -167,6 +155,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   Note _todayOrNew() => _store.today();
 
   Future<void> _open(Note note) async {
+    _store.open.add(note);
     await Navigator.of(context).push(
       CupertinoPageRoute(
         builder: (_) => EditorPage(
@@ -179,10 +168,14 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
         ),
       ),
     );
+    _store.open.remove(note);
     // 아무것도 안 치고 나온 새 기록은 남기지 않는다.
     _store.discardIfEmpty(note);
     // 끝났다. 체육관 기록이면 지금 올린다 — 잠금 해제 때 반만 간 것도 여기서 다 간다.
-    if (note.gymId != null) unawaited(_sendPendingWorkouts());
+    // 그물 없이 끝낸 같이 하기도 여기서 간다 — 닫으면 편집기의 폴링이 멈춘다.
+    if (note.gymId != null || (note.partner?.endPending ?? false)) {
+      unawaited(_sendPendingWorkouts());
+    }
     _healthSync = _healthSync
         .then((_) => _syncHealth(note))
         .catchError((Object e) => debugPrint('건강 앱 맞추기 실패: $e'));
@@ -231,23 +224,18 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 기기 id 는 store 가 처음 켤 때 만들므로 부를 때 읽는다.
   late final _account =
       Account(deviceId: () => _store.deviceId, aiEnabled: () => _store.aiOn)
-        // 시작이 실패해도 알림 탭이 영영 기다리지 않게 늘 끝낸다.
-        ..start()
-            .whenComplete(_accountStarted.complete)
-            .then((_) => _sendPendingWorkouts());
+        ..start().then((_) => _sendPendingWorkouts());
 
   void _claimDaily() => unawaited(_account.claimDaily(_store));
 
-  /// 남겨 둔 로그인이 되살아났는가. 알림을 눌러 켜진 앱은 이것을 기다려야
-  /// 보고서를 읽을 토큰이 있다.
-  final _accountStarted = Completer<void>();
   StreamSubscription<String>? _alarmTaps;
 
   /// 보고 알림을 눌렀다. 그 도장의 트레이너 화면을 열고, 닫으면 목록의 점을
   /// 다시 센다. 이제 그 도장 직원이 아니면 화면이 서버의 말(403)을 보여 주고
   /// 그 도장 알림을 지운다.
   Future<void> _openReport(String gymId) async {
-    await _accountStarted.future;
+    // 알림을 눌러 켜진 앱은 남겨 둔 로그인이 살아나야 보고서를 읽을 토큰이 있다.
+    await _account.restored;
     if (!mounted || !_account.signedIn) return;
     await pushTrainer(context, _account, gymId);
   }
@@ -302,8 +290,9 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     // 브라우저로 간 웹 로그인이 돌아온 것. 기다리던 로그인이 받는다(sign_in.dart).
     if (finishWebSignIn(uri)) return;
     // 앱이 꺼진 채로 열렸으면 남겨 둔 로그인이 아직 안 살아났다. 그 전에 보면
-    // 로그인한 사람에게도 로그인을 묻는다.
-    await _accountStarted.future;
+    // 로그인한 사람에게도 로그인을 묻는다. start() 전체(스토어·이용권·원판)는
+    // 기다리지 않는다 — 약한 그물에서 그것이 늘어지면 스티커가 아무 말이 없었다.
+    await _account.restored;
     if (!mounted) return;
     final handoff = handoffTokenFromLink(uri);
     if (handoff != null) {
@@ -316,14 +305,30 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     }
     final gymId = gymFromTag(uri);
     if (gymId == null) return;
-    if (_handling == gymId) return;
+    if (_handling == gymId) {
+      // 같은 스티커가 또 왔다. 처음 링크와 스트림이 같은 것을 두 번 주는 것이면
+      // 무시한다. 브라우저 로그인을 기다리는 중이었으면 — 사람이 카카오 화면에서
+      // 그냥 돌아온 것이다 — 그 기다림을 놓고 새로 처리한다. 안 그러면 다섯 분
+      // 동안 스티커가 아무 말이 없다.
+      if (!cancelWebSignIn()) return;
+      await _handlingTag;
+      if (!mounted) return;
+    }
     _handling = gymId;
+    final run = _handleTag(uri, gymId);
+    _handlingTag = run;
     try {
-      await _handleTag(uri, gymId);
+      await run;
     } finally {
-      _handling = null;
+      if (identical(_handlingTag, run)) {
+        _handling = null;
+        _handlingTag = null;
+      }
     }
   }
+
+  /// 지금 처리 중인 스티커. 같은 것을 다시 댔을 때 앞의 것이 끝나기를 기다린다.
+  Future<void>? _handlingTag;
 
   Future<void> _handleTag(Uri uri, String gymId) async {
     // **여기서 로그인까지 끝낸다.** 안내만 하고 웹으로 보내면 거기서 또
@@ -363,14 +368,21 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     final started = _store.notes
         .where((n) => n.routineId == mine.id)
         .firstOrNull;
-    _open(
-      started ??
-          _store.create(
-            blocks: mine.blocks,
-            gymId: mine.gymId,
-            routineId: mine.id,
-          ),
-    );
+    final note =
+        started ??
+        _store.create(
+          blocks: mine.blocks,
+          gymId: mine.gymId,
+          routineId: mine.id,
+        );
+    // 스티커를 댄 것이 곧 출석이다 — 루틴을 열어만 보고 닫아도 트레이너 화면에 온
+    // 것은 뜬다. 루틴 완료는 세트를 적어야 된다(gym.dart sendPending).
+    if (!note.checkedIn) {
+      note.checkedIn = true;
+      _store.touch();
+      unawaited(_sendPendingWorkouts());
+    }
+    _open(note);
   }
 
   /// 회원이 아닌 사람. **댄 것이 곧 신청이다** — 한 번 더 누르게 하지 않는다.
@@ -397,7 +409,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 같은 날 두 번 대도 한 번이다. 웹이 세 시간 안의 기록을 다시 여는 것과
   /// 같은 규칙을 쓴다 — 폰이 잠겼다 돌아온 것을 두 번째 방문으로 세지 않는다.
   Future<void> _attendOnly(String gymId) async {
-    final since = DateTime.now().subtract(const Duration(hours: 3));
+    final since = NotesStore.visitWindowStart();
     final open = _store.notes
         .where((n) => n.gymId == gymId && n.createdAt.isAfter(since))
         .firstOrNull;
@@ -426,9 +438,14 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 체육관에서 시작한 기록 중 아직 못 보낸 것을 보낸다.
   /// 헬스장은 신호가 나빠 한 번에 못 갈 때가 있다.
   /// 밀린 끼니 변경(확정·수정·삭제)도 같은 기회에 같이 간다.
+  /// 그물 없이 끝낸 같이 하기도 — 편집기를 닫으면 그 화면의 폴링도 멈추므로
+  /// 여기서 안 보내면 상대에게는 세션이 영영 살아 있다.
   Future<void> _sendPendingWorkouts() async {
     await sendPending(_account.link, _store.notes, onSent: _store.touch);
     await syncMeals(_account.link, _store.notes, onSynced: _store.touch);
+    await sendPendingEnds(_account.link, _store.notes, onSent: _store.touch);
+    // 보낸 지 세 시간이 지난 빈 출석 기록은 목록에서 치운다.
+    _store.pruneVisits();
   }
 
   /// 앱이 닫혀 있다 열린 경우와, 떠 있는데 댄 경우를 한 줄기로 받는다.

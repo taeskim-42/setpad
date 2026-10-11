@@ -281,7 +281,10 @@ class RoutineEditorController extends ChangeNotifier {
     block.sets.add(
       LoggedSet(
         value: block.setup?.weight,
-        unit: block.setup?.unit ?? block.myLast?.unit ?? weightUnit,
+        unit:
+            (block.setup?.weight != null ? block.setup!.unit : null) ??
+            block.myLast?.unit ??
+            weightUnit,
         reps: reps,
       ),
     );
@@ -294,10 +297,13 @@ class RoutineEditorController extends ChangeNotifier {
     LoggedSet makeSet() => LoggedSet(
       value: parsed.value ?? blocks[_active].setup?.weight,
       // 단위를 안 쳤으면 이 운동에서 쓰던 것을 잇는다. 한 운동 안에서
-      // 세트마다 단위가 바뀌는 일은 없다.
+      // 세트마다 단위가 바뀌는 일은 없다. 설정의 단위는 무게가 있을 때만 믿는다 —
+      // 무게 없는 설정은 단위가 늘 기본 'kg' 라 lb 사용자의 단위를 가린다.
       unit:
           parsed.unit ??
-          blocks[_active].setup?.unit ??
+          (blocks[_active].setup?.weight != null
+              ? blocks[_active].setup!.unit
+              : null) ??
           blocks[_active].myLast?.unit ??
           weightUnit,
       reps: parsed.reps,
@@ -987,7 +993,9 @@ class _RoutineEditorState extends State<RoutineEditor>
       return sets[_recordSet!].unit;
     }
     final mine = _c.inBlock ? _c.blocks[_c.activeIndex].myLast : null;
-    return _setup?.unit ?? mine?.unit ?? _c.weightUnit;
+    return (_setup?.weight != null ? _setup!.unit : null) ??
+        mine?.unit ??
+        _c.weightUnit;
   }
 
   /// 지금 미는 폭. 횟수를 치는 중이면 1이다 — 횟수를 2.5씩 미는 일은 없다.
@@ -2954,6 +2962,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                                     setup,
                                   ),
                                   onEditing: _setupField,
+                                  weightUnit: _c.weightUnit,
                                 )
                               : null,
                           uniformCell: widestSetCell(context, blocks),

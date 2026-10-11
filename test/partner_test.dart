@@ -27,6 +27,7 @@ class FakeServer {
   int? failWith;
   Duration delay = Duration.zero;
   var joins = 0;
+  var recordPuts = 0;
   var n = 0;
 
   /// 서버의 시계(ms). 같이 하는 타이머의 시작 시각을 이것으로 찍는다.
@@ -185,7 +186,14 @@ class FakeServer {
       }
       return reply(200, describe(s));
     }
-    // record
+    // record — gymdojo 의 validResult 와 같은 상한.
+    recordPuts++;
+    final result = body['result'] as List;
+    if (result.length > 100 ||
+        result.any((b) => ((b as Map)['sets'] as List).length > 100) ||
+        jsonEncode(result).length > 64000) {
+      return reply(400, {'error': 'invalidInput'});
+    }
     final key = '${s['id']}/$user';
     final stored = (records[key]?['revision'] as int?) ?? 0;
     final revision = body['revision'] as int;
@@ -706,6 +714,84 @@ void main() {
     final sora = Phone(server, '소라', 'c6');
     addTearDown(sora.sync.dispose);
     expect(await sora.sync.joinWithToken(token), PartnerError.invalidCode);
+  });
+
+  test('넘치는 기록은 서버 상한에 맞춰 잘라 보내고, 그래도 거절되면 폴링마다 다시 보내지 않는다', () async {
+    final server = FakeServer();
+    final mina = Phone(server, '미나', 'a9'), jun = Phone(server, '준', 'b9');
+    addTearDown(mina.sync.dispose);
+    addTearDown(jun.sync.dispose);
+    await mina.sync.invite();
+    await jun.sync.joinWithCode(mina.note.partner!.code!);
+    await mina.sync.refresh();
+
+    // 한 운동에 세트 101개 — 100개까지 간다.
+    mina.note.blocks.add(
+      ExerciseBlock('플랭크', [
+        for (var i = 0; i < 101; i++) LoggedSet(reps: 1),
+      ]),
+    );
+    mina.sync.recordChanged();
+    await settle();
+    await jun.sync.refresh();
+    expect(jun.note.partner!.partnerBlocks.single.sets, hasLength(100));
+
+    // 잘라도 64KB 를 넘는다(긴 메모) — 한 번 거절되면 같은 번호로 또 보내지 않는다.
+    mina.note.blocks.add(
+      ExerciseBlock('메모', [
+        for (var i = 0; i < 100; i++)
+          LoggedSet(reps: 1, notes: ['가' * 500]),
+      ]),
+    );
+    mina.sync.recordChanged();
+    await settle();
+    final puts = server.recordPuts;
+    await mina.sync.refresh();
+    await mina.sync.refresh();
+    expect(server.recordPuts, puts, reason: '같은 본문을 반복해 보내지 않는다');
+    expect(mina.sync.conflict, isNull);
+  });
+
+  test('그물 없이 끝낸 같이 하기는 편집기 없이도 다음에 서버에 끝났다고 알린다', () async {
+    final server = FakeServer();
+    final mina = Phone(server, '미나', 'a10'), jun = Phone(server, '준', 'b10');
+    addTearDown(mina.sync.dispose);
+    addTearDown(jun.sync.dispose);
+    await mina.sync.invite();
+    await jun.sync.joinWithCode(mina.note.partner!.code!);
+    await mina.sync.refresh();
+
+    server.online = false;
+    await jun.sync.end();
+    expect(jun.note.partner!.endPending, isTrue);
+
+    // 앱을 껐다 켰다 — 저장된 기록에서 다시 읽는다.
+    final reopened = Note.fromJson(
+      jsonDecode(jsonEncode(jun.note.toJson())) as Map<String, dynamic>,
+    );
+    final link = GymLink(
+      endpoint: 'https://x',
+      token: '준',
+      client: server.clientFor('준'),
+    );
+    var sent = 0;
+    await sendPendingEnds(link, [reopened], onSent: () => sent++);
+    expect(reopened.partner!.endPending, isTrue, reason: '그물이 없으면 다음에');
+    expect(sent, 0);
+
+    server.online = true;
+    // 서버가 넘어져 있으면(배포 중의 502 등) 끝난 것이 아니다. 다음에 다시 보낸다.
+    server.failWith = 502;
+    await sendPendingEnds(link, [reopened], onSent: () => sent++);
+    expect(reopened.partner!.endPending, isTrue, reason: '5xx 는 다음에');
+    expect(sent, 0);
+
+    server.failWith = null;
+    await sendPendingEnds(link, [reopened], onSent: () => sent++);
+    expect(reopened.partner!.endPending, isFalse);
+    expect(sent, 1);
+    await mina.sync.refresh();
+    expect(mina.note.partner!.state, PartnerState.ended);
   });
 
   test('저장된 기록은 같이 하기가 없던 시절 것도 그대로 읽힌다', () {

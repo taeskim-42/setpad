@@ -221,7 +221,7 @@
   "bookingWhichGym": "Which gym?",
   "tagSignIn": "Sign in",
   "accountDelete": "Delete account",
-  "accountDeleteAsk": "This cannot be undone. Your routines, workout records, passes and bookings will all be gone.",
+  "accountDeleteAsk": "This cannot be undone. Your routines, workout records, passes and bookings will all be gone. An App Store or Google Play subscription keeps billing until you cancel it in the store.",
   "accountDeleteDo": "Delete",
   "accountDeleteFailed": "Could not delete the account. Please try again in a moment.",
   "signInFailed": "Could not sign in. Please try again in a moment.",
@@ -883,5 +883,16 @@
   "signInTaken": "This sign-in method is already linked to another account.",
   "tagOffline": "Couldn't reach the gym. Tap again once you have signal.",
   "handoffMine": "This is a record you wrote and sent. Open it on the recipient's phone.",
-  "partnerErrFull": "It's full. No one else can join this session."
+  "partnerErrFull": "It's full. No one else can join this session.",
+  "agentAlarmTitle": "Today's summary is ready",
+  "agentAlarmBody": "{gym} · Check the agent report",
+  "@agentAlarmBody": {
+    "placeholders": {
+      "gym": {
+        "type": "String"
+      }
+    }
+  },
+  "agentAlarmChannel": "Agent report",
+  "agentAlarmChannelDesc": "Notifies you when the trainer report is ready"
 }

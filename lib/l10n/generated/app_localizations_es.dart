@@ -875,7 +875,7 @@ class LEs extends L {
 
   @override
   String get accountDeleteAsk =>
-      'Esto no se puede deshacer. Tus rutinas, registros, bonos y reservas desaparecerán.';
+      'Esto no se puede deshacer. Tus rutinas, registros, bonos y reservas desaparecerán. Una suscripción de App Store o Google Play se sigue cobrando hasta que la canceles en la tienda.';
 
   @override
   String get accountDeleteDo => 'Eliminar';
@@ -3736,4 +3736,19 @@ class LEs extends L {
   @override
   String get partnerErrFull =>
       'Está lleno. Nadie más puede unirse a esta sesión.';
+
+  @override
+  String get agentAlarmTitle => 'El resumen de hoy está listo';
+
+  @override
+  String agentAlarmBody(String gym) {
+    return '$gym · Revisa el informe del agente';
+  }
+
+  @override
+  String get agentAlarmChannel => 'Informe del agente';
+
+  @override
+  String get agentAlarmChannelDesc =>
+      'Te avisa cuando el informe del entrenador está listo';
 }

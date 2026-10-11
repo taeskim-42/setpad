@@ -221,7 +221,7 @@
   "bookingWhichGym": "Phòng tập nào?",
   "tagSignIn": "Đăng nhập",
   "accountDelete": "Xóa tài khoản",
-  "accountDeleteAsk": "Không thể hoàn tác. Giáo án, nhật ký tập, gói tập và lịch hẹn sẽ mất hết.",
+  "accountDeleteAsk": "Không thể hoàn tác. Giáo án, nhật ký tập, gói tập và lịch hẹn sẽ mất hết. Gói đăng ký App Store hoặc Google Play vẫn tiếp tục bị tính phí cho đến khi bạn hủy trong cửa hàng.",
   "accountDeleteDo": "Xóa tài khoản",
   "accountDeleteFailed": "Không xóa được tài khoản. Vui lòng thử lại sau.",
   "signInFailed": "Không đăng nhập được. Vui lòng thử lại sau.",
@@ -883,5 +883,16 @@
   "signInTaken": "Phương thức đăng nhập này đã được liên kết với tài khoản khác.",
   "tagOffline": "Không kết nối được với phòng gym. Chạm lại khi có sóng.",
   "handoffMine": "Đây là bản ghi bạn đã viết và gửi. Hãy mở trên điện thoại của người nhận.",
-  "partnerErrFull": "Đã đầy. Không ai khác có thể tham gia phiên này."
+  "partnerErrFull": "Đã đầy. Không ai khác có thể tham gia phiên này.",
+  "agentAlarmTitle": "Bản tổng kết hôm nay đã sẵn sàng",
+  "agentAlarmBody": "{gym} · Hãy xem báo cáo của trợ lý",
+  "@agentAlarmBody": {
+    "placeholders": {
+      "gym": {
+        "type": "String"
+      }
+    }
+  },
+  "agentAlarmChannel": "Báo cáo của trợ lý",
+  "agentAlarmChannelDesc": "Báo khi báo cáo huấn luyện viên đã sẵn sàng"
 }
