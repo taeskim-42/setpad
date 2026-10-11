@@ -3633,5 +3633,13 @@
         "type": "int"
       }
     }
-  }
+  },
+  "kakao": "카카오",
+  "signInChooseTitle": "로그인 방법을 고르세요",
+  "signInWithApple": "Apple로 계속하기",
+  "signInWithGoogle": "Google로 계속하기",
+  "signInWithKakao": "카카오로 시작하기",
+  "linkSignIn": "{method} 연결",
+  "@linkSignIn": {"placeholders": {"method": {"type": "String"}}},
+  "signInTaken": "이 로그인 수단은 이미 다른 계정에 연결되어 있습니다."
 }

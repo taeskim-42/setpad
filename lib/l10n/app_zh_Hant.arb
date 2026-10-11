@@ -873,5 +873,12 @@
   "workoutImportEditSources": "編輯來源",
   "workoutImportImageLimit": "每批最多新增5張截圖。",
   "workoutImportAiOff": "AI 協助已關閉，無法讀取紀錄。可在 設定 › AI 協助 中開啟",
-  "workoutImportPartial": "有 {n} 項未能讀取。原始內容仍在，修改後可重試。"
+  "workoutImportPartial": "有 {n} 項未能讀取。原始內容仍在，修改後可重試。",
+  "kakao": "Kakao",
+  "signInChooseTitle": "選擇登入方式",
+  "signInWithApple": "透過 Apple 繼續",
+  "signInWithGoogle": "透過 Google 繼續",
+  "signInWithKakao": "使用 Kakao 開始",
+  "linkSignIn": "連結 {method}",
+  "signInTaken": "此登入方式已連結到其他帳號。"
 }

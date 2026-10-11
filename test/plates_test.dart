@@ -559,7 +559,7 @@ void main() {
         client: _server(seen),
         purchases: purchases,
         deviceId: () => 'device-id-0123456789',
-        signInWith: () => fail('로그인 창을 열면 안 된다'),
+        signInWith: (_) => fail('로그인 창을 열면 안 된다'),
       );
       await openPaywall(tester, account);
       final l = await L.delegate.load(const Locale('ko'));

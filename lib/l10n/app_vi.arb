@@ -873,5 +873,12 @@
   "workoutImportEditSources": "Sửa nguồn",
   "workoutImportImageLimit": "Mỗi lần có thể thêm tối đa 5 ảnh chụp.",
   "workoutImportAiOff": "Trợ giúp AI đang tắt nên không đọc được lịch sử. Bật trong Cài đặt › Trợ giúp AI",
-  "workoutImportPartial": "Không đọc được {n} nguồn. Nguồn vẫn còn để sửa và thử lại."
+  "workoutImportPartial": "Không đọc được {n} nguồn. Nguồn vẫn còn để sửa và thử lại.",
+  "kakao": "Kakao",
+  "signInChooseTitle": "Chọn cách đăng nhập",
+  "signInWithApple": "Tiếp tục với Apple",
+  "signInWithGoogle": "Tiếp tục với Google",
+  "signInWithKakao": "Bắt đầu với Kakao",
+  "linkSignIn": "Liên kết {method}",
+  "signInTaken": "Phương thức đăng nhập này đã được liên kết với tài khoản khác."
 }

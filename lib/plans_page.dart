@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import 'account.dart';
+import 'sign_in_sheet.dart';
 import 'editor.dart';
 import 'gym_sheets.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -198,7 +199,11 @@ class _PlansPageState extends State<PlansPage> {
                     Text(l.partnerSignIn, style: TextStyle(color: muted)),
                     const SizedBox(height: 12),
                     CupertinoButton.filled(
-                      onPressed: widget.account.signIn,
+                      onPressed: () => askSignIn(
+                        context,
+                        widget.account,
+                        message: l.partnerSignIn,
+                      ),
                       child: Text(l.partnerSignInAction),
                     ),
                   ],

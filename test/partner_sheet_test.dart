@@ -26,7 +26,7 @@ void main() {
     var attempts = 0;
     final account = Account(
       storageDir: dir,
-      signInWith: () {
+      signInWith: (_) {
         attempts++;
         return provider.future;
       },
@@ -64,6 +64,11 @@ void main() {
     final close = find.byKey(const ValueKey('partner-sheet-close'));
     final loginPosition = tester.getCenter(find.text('로그인'));
     await tester.tapAt(loginPosition);
+    // 수단을 고르는 시트가 먼저 뜬다(sign_in_sheet.dart). 고르면 제공자 창이다.
+    // 기다리는 동안 돌아가는 표시가 있어 settle 은 끝나지 않는다 — 시트가 뜰 만큼만.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const ValueKey('sign-in-apple')));
     await tester.pump();
     expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
     await tester.tapAt(loginPosition);
@@ -78,6 +83,11 @@ void main() {
       provider = Completer<Credential?>();
       verified = Completer<void>();
       await tester.tap(find.text('로그인'));
+      // 시트에서 고르는 것까지 같은 runAsync 안이다 — 밖에서 고르면 시트의
+      // 결과가 이 영역의 큐에 남아 로그인이 시작되지 않는다.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('sign-in-apple')));
     });
     await tester.pump();
     expect(attempts, 2);
@@ -88,6 +98,7 @@ void main() {
         idToken: 'id',
         nickname: '도전자',
         code: null,
+        verifier: null,
       ));
       await verified.future;
       await Future<void>.delayed(Duration.zero);

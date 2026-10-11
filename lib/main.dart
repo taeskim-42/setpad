@@ -16,6 +16,8 @@ import 'package:flutter/foundation.dart';
 import 'package:app_links/app_links.dart';
 
 import 'account.dart';
+import 'sign_in.dart';
+import 'sign_in_sheet.dart';
 import 'agent_alarm.dart';
 import 'daily.dart';
 import 'gym.dart';
@@ -271,25 +273,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   Future<void> _takeHandoff(String token) async {
     final l = L.of(context);
     if (!_account.signedIn) {
-      final go = await showCupertinoDialog<bool>(
-        context: context,
-        builder: (ctx) => CupertinoAlertDialog(
-          content: Text(l.handoffSignIn, style: const TextStyle(fontSize: 15)),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(l.cancel),
-            ),
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(l.partnerSignInAction),
-            ),
-          ],
-        ),
-      );
-      if (go != true) return;
-      await _account.signIn();
+      await askSignIn(context, _account, message: l.handoffSignIn);
       if (!mounted || !_account.signedIn) return;
     }
     final reply = await _account.link.readHandoff(token);
@@ -307,6 +291,8 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   }
 
   Future<void> _openTag(Uri uri) async {
+    // 브라우저로 간 웹 로그인이 돌아온 것. 기다리던 로그인이 받는다(sign_in.dart).
+    if (finishWebSignIn(uri)) return;
     final handoff = handoffTokenFromLink(uri);
     if (handoff != null) {
       // 같은 링크가 두 번 전달되는 일이 있다(처음 링크 + 스트림).
@@ -333,31 +319,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     // 사람이 된다. 기기가 쓰는 수단 하나로 여기서 들어오고 이어서 진행한다.
     if (!_account.signedIn) {
       final l = L.of(context);
-      final go = await showCupertinoDialog<bool>(
-        context: context,
-        builder: (ctx) => CupertinoAlertDialog(
-          content: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              l.tagSignInNeeded,
-              style: const TextStyle(fontSize: 15),
-            ),
-          ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(l.cancel),
-            ),
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(l.tagSignIn),
-            ),
-          ],
-        ),
-      );
-      if (go != true) return;
-      final ok = await _account.signIn();
+      final ok = await askSignIn(context, _account, message: l.tagSignInNeeded);
       if (!mounted) return;
       if (!ok) {
         // 사람이 스스로 닫은 것은 말할 것이 없다. 서버가 막은 것만 말한다.

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
 import 'account.dart';
+import 'sign_in_sheet.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'nearby.dart';
 import 'palette.dart';
@@ -91,7 +92,11 @@ class _PartnerSheetState extends State<_PartnerSheet> {
     if (_signingIn) return;
     setState(() => _signingIn = true);
     try {
-      final signedIn = await widget.account.signIn();
+      final signedIn = await askSignIn(
+        context,
+        widget.account,
+        message: L.of(context).partnerSignIn,
+      );
       if (signedIn && mounted && ModalRoute.of(context)?.isCurrent == true) {
         Navigator.of(context).pop();
       }

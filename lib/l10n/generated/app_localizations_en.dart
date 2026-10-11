@@ -3677,4 +3677,28 @@ class LEn extends L {
   String workoutImportPartial(int n) {
     return 'Couldn\'t read $n of the sources. They\'re still there to fix and try again.';
   }
+
+  @override
+  String get kakao => 'Kakao';
+
+  @override
+  String get signInChooseTitle => 'Choose how to sign in';
+
+  @override
+  String get signInWithApple => 'Continue with Apple';
+
+  @override
+  String get signInWithGoogle => 'Continue with Google';
+
+  @override
+  String get signInWithKakao => 'Start with Kakao';
+
+  @override
+  String linkSignIn(String method) {
+    return 'Link $method';
+  }
+
+  @override
+  String get signInTaken =>
+      'This sign-in method is already linked to another account.';
 }

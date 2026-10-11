@@ -50,9 +50,10 @@ class Account extends ChangeNotifier {
     this.storageDir,
     this.deviceId,
     this.aiEnabled,
-    Future<Credential?> Function()? signInWith,
-  }) : _purchases = purchases ?? Purchases(),
-       _signInWith = signInWith ?? signInWithPlatform;
+    Future<Credential?> Function(SignInMethod)? signInWith,
+  }) : _purchases = purchases ?? Purchases() {
+    _signInWith = signInWith ?? (method) => signInWithMethod(method, endpoint);
+  }
 
   final String endpoint;
   final Purchases _purchases;
@@ -70,12 +71,16 @@ class Account extends ChangeNotifier {
   final bool Function()? aiEnabled;
 
   /// 제공자 로그인 창을 여는 일. 테스트는 진짜 애플 창을 열 수 없다.
-  final Future<Credential?> Function() _signInWith;
+  late final Future<Credential?> Function(SignInMethod) _signInWith;
   StreamSubscription<PurchaseProof>? _watch;
 
   /// 로그인해서 받은 우리 토큰. 없으면 로그인하지 않은 것이다.
   String? token;
   String nickname = '';
+
+  /// 이 계정에 붙은 로그인 수단(`apple`·`google`·`kakao`). /api/me 가 알려 준다.
+  /// 설정 화면은 여기 없는 수단을 "연결" 로 보여 준다.
+  List<String> providers = const [];
 
   /// 서버가 확인해 준 것. 앱이 정하지 않는다.
   Plan? plan;
@@ -276,6 +281,11 @@ class Account extends ChangeNotifier {
             token = fresh;
             await _saveSession();
           }
+          final named = body is Map ? body['providers'] : null;
+          providers = [
+            for (final name in named is List ? named : const [])
+              if (name is String) name,
+          ];
           final rows = body is Map ? body['staff'] : null;
           staff = [
             for (final row in rows is List ? rows : const [])
@@ -307,24 +317,38 @@ class Account extends ChangeNotifier {
   /// 받아 준 것은 다르다 — 앞은 말할 것이 없고, 뒤는 말해 줘야 한다.
   bool signInRefused = false;
 
-  Future<bool> signIn() async {
-    signInRefused = false;
+  /// 붙이려던 수단이 이미 다른 계정의 것이라 서버가 거절했다. 로그인은 그대로다.
+  bool signInTaken = false;
+
+  /// 들어간다. [method] 가 없으면 기기가 직접 하는 수단이다. 이미 로그인해 있으면
+  /// 그 계정에 수단을 하나 더 붙인다.
+  Future<bool> signIn([SignInMethod? method]) async {
+    signInRefused = signInTaken = false;
+    final chosen = method ?? platformSignIn;
+    if (chosen == null) return false;
     Credential? credential;
     try {
-      credential = await _signInWith();
+      credential = await _signInWith(chosen);
     } catch (error) {
       // 사람이 창을 닫으면 여기로 온다. 실패가 아니라 그만둔 것이다.
       debugPrint('[로그인] 제공자 단계에서 멈췄다: $error');
       return false;
     }
     if (credential == null) return false;
-    final result = await exchange(
-      credential,
-      endpoint,
-      // 로그인 전이면 기기 토큰이다 — 서버가 이 기기에서 산 것을 계정으로 옮긴다.
-      currentToken: await ai.bearer(),
-      client: client,
-    );
+    final ({String token, String nickname})? result;
+    try {
+      result = await exchange(
+        credential,
+        endpoint,
+        // 로그인 전이면 기기 토큰이다 — 서버가 이 기기에서 산 것을 계정으로 옮긴다.
+        currentToken: await ai.bearer(),
+        client: client,
+      );
+    } on SignInTaken {
+      signInTaken = true;
+      notifyListeners();
+      return signedIn;
+    }
     if (result == null) {
       signInRefused = true;
       notifyListeners();
@@ -350,6 +374,7 @@ class Account extends ChangeNotifier {
   Future<void> signOut() async {
     token = null;
     nickname = '';
+    providers = const [];
     plan = null;
     gyms = const [];
     RecordAi.forget();

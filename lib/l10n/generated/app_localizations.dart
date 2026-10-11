@@ -5304,6 +5304,48 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{n}개는 읽지 못했어요. 원문은 그대로 있으니 고쳐서 다시 해 보세요.'**
   String workoutImportPartial(int n);
+
+  /// No description provided for @kakao.
+  ///
+  /// In ko, this message translates to:
+  /// **'카카오'**
+  String get kakao;
+
+  /// No description provided for @signInChooseTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인 방법을 고르세요'**
+  String get signInChooseTitle;
+
+  /// No description provided for @signInWithApple.
+  ///
+  /// In ko, this message translates to:
+  /// **'Apple로 계속하기'**
+  String get signInWithApple;
+
+  /// No description provided for @signInWithGoogle.
+  ///
+  /// In ko, this message translates to:
+  /// **'Google로 계속하기'**
+  String get signInWithGoogle;
+
+  /// No description provided for @signInWithKakao.
+  ///
+  /// In ko, this message translates to:
+  /// **'카카오로 시작하기'**
+  String get signInWithKakao;
+
+  /// No description provided for @linkSignIn.
+  ///
+  /// In ko, this message translates to:
+  /// **'{method} 연결'**
+  String linkSignIn(String method);
+
+  /// No description provided for @signInTaken.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 로그인 수단은 이미 다른 계정에 연결되어 있습니다.'**
+  String get signInTaken;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

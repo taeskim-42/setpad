@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 import 'account.dart';
+import 'sign_in_sheet.dart';
 import 'anatomy_page.dart';
 import 'answer_card.dart';
 import 'daily.dart';
@@ -479,7 +480,7 @@ class _NotesListPageState extends State<NotesListPage>
       if (a != null && !a.signedIn)
         action(l.noPlatesSignIn(accountWelcomePlates), () async {
           // 로그인하면 계정 지갑으로 같은 질문을 다시 묻는다.
-          if (await a.signIn() && mounted) _ask(immediately: true);
+          if (await askSignIn(context, a) && mounted) _ask(immediately: true);
         })
       else if (a != null && a.selling && !a.paid)
         action(

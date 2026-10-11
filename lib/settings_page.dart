@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show showLicensePage;
 
 import 'account.dart';
+import 'sign_in.dart';
+import 'sign_in_sheet.dart';
 import 'body_page.dart';
 import 'booking_entry.dart';
 import 'health_page.dart';
@@ -169,15 +171,26 @@ class SettingsPage extends StatelessWidget {
                 _Section(title: l.settingsAccount),
                 // **누구인지 보여주는 줄과 나가는 줄을 가른다.** 하나로 묶여
                 // 있을 때는 자기 이름을 눌러본 사람이 그대로 로그아웃됐다.
-                if (a.signedIn)
-                  _Row(label: a.nickname)
-                else
+                if (a.signedIn) ...[
+                  _Row(label: a.nickname),
+                  // 웹에서 쓰던 수단을 여기 붙이면 그쪽 기록·루틴이 같은 사람 것이
+                  // 된다. 어느 수단이 붙었는지는 서버가 알려 줘야 안다.
+                  if (a.providers.isNotEmpty)
+                    for (final method in signInMethods)
+                      if (!a.providers.contains(method.name))
+                        _Row(
+                          key: ValueKey('settings-link-${method.name}'),
+                          label: l.linkSignIn(providerName(l, method)),
+                          detail: a.signInTaken ? l.signInTaken : null,
+                          onTap: () => a.signIn(method),
+                        ),
+                ] else
                   _Row(
                     label: l.accountSignIn,
                     // 서버가 막았으면 그렇다고 적는다. 눌러도 아무 일이 없는
                     // 것처럼 보이면 사람은 앱이 고장 난 줄 안다.
                     detail: a.signInRefused ? l.signInFailed : null,
-                    onTap: a.signIn,
+                    onTap: () => askSignIn(context, a),
                   ),
                 // 원판은 로그인 전에도 있다 — 그때는 이 기기의 지갑이다.
                 if (a.plates case final plates?)

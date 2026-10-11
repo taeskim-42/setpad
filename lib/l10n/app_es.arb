@@ -873,5 +873,12 @@
   "workoutImportEditSources": "Editar fuentes",
   "workoutImportImageLimit": "Añade hasta 5 capturas por lote.",
   "workoutImportAiOff": "La ayuda de IA está desactivada, así que no se puede leer el historial. Actívala en Ajustes › Ayuda de IA",
-  "workoutImportPartial": "No se pudieron leer {n} de las fuentes. Siguen ahí para corregirlas y reintentar."
+  "workoutImportPartial": "No se pudieron leer {n} de las fuentes. Siguen ahí para corregirlas y reintentar.",
+  "kakao": "Kakao",
+  "signInChooseTitle": "Elige cómo iniciar sesión",
+  "signInWithApple": "Continuar con Apple",
+  "signInWithGoogle": "Continuar con Google",
+  "signInWithKakao": "Empezar con Kakao",
+  "linkSignIn": "Vincular {method}",
+  "signInTaken": "Este método de inicio de sesión ya está vinculado a otra cuenta."
 }

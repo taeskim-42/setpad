@@ -873,5 +873,12 @@
   "workoutImportEditSources": "Edit sources",
   "workoutImportImageLimit": "Add up to 5 screenshots per batch.",
   "workoutImportAiOff": "AI help is off, so the history can't be read. Turn it on in Settings › AI help",
-  "workoutImportPartial": "Couldn't read {n} of the sources. They're still there to fix and try again."
+  "workoutImportPartial": "Couldn't read {n} of the sources. They're still there to fix and try again.",
+  "kakao": "Kakao",
+  "signInChooseTitle": "Choose how to sign in",
+  "signInWithApple": "Continue with Apple",
+  "signInWithGoogle": "Continue with Google",
+  "signInWithKakao": "Start with Kakao",
+  "linkSignIn": "Link {method}",
+  "signInTaken": "This sign-in method is already linked to another account."
 }

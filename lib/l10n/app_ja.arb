@@ -873,5 +873,12 @@
   "workoutImportEditSources": "入力を編集",
   "workoutImportImageLimit": "画像は1回につき最大5枚まで追加できます。",
   "workoutImportAiOff": "AIヘルプがオフなので記録を読み取れません。設定 › AIヘルプ でオンにできます",
-  "workoutImportPartial": "{n}件は読み取れませんでした。元データは残っているので、直してもう一度お試しください。"
+  "workoutImportPartial": "{n}件は読み取れませんでした。元データは残っているので、直してもう一度お試しください。",
+  "kakao": "カカオ",
+  "signInChooseTitle": "ログイン方法を選んでください",
+  "signInWithApple": "Appleで続ける",
+  "signInWithGoogle": "Googleで続ける",
+  "signInWithKakao": "カカオで始める",
+  "linkSignIn": "{method}を連携",
+  "signInTaken": "このログイン方法はすでに別のアカウントに連携されています。"
 }

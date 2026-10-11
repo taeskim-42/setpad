@@ -3551,4 +3551,27 @@ class LJa extends L {
   String workoutImportPartial(int n) {
     return '$n件は読み取れませんでした。元データは残っているので、直してもう一度お試しください。';
   }
+
+  @override
+  String get kakao => 'カカオ';
+
+  @override
+  String get signInChooseTitle => 'ログイン方法を選んでください';
+
+  @override
+  String get signInWithApple => 'Appleで続ける';
+
+  @override
+  String get signInWithGoogle => 'Googleで続ける';
+
+  @override
+  String get signInWithKakao => 'カカオで始める';
+
+  @override
+  String linkSignIn(String method) {
+    return '$methodを連携';
+  }
+
+  @override
+  String get signInTaken => 'このログイン方法はすでに別のアカウントに連携されています。';
 }

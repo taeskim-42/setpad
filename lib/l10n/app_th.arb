@@ -873,5 +873,12 @@
   "workoutImportEditSources": "แก้ไขต้นฉบับ",
   "workoutImportImageLimit": "เพิ่มภาพหน้าจอได้สูงสุด 5 ภาพต่อครั้ง",
   "workoutImportAiOff": "ตัวช่วย AI ปิดอยู่ จึงอ่านประวัติไม่ได้ เปิดได้ที่ การตั้งค่า › ตัวช่วย AI",
-  "workoutImportPartial": "อ่านไม่สำเร็จ {n} รายการ ต้นฉบับยังอยู่ แก้ไขแล้วลองอีกครั้ง"
+  "workoutImportPartial": "อ่านไม่สำเร็จ {n} รายการ ต้นฉบับยังอยู่ แก้ไขแล้วลองอีกครั้ง",
+  "kakao": "Kakao",
+  "signInChooseTitle": "เลือกวิธีเข้าสู่ระบบ",
+  "signInWithApple": "ดำเนินการต่อด้วย Apple",
+  "signInWithGoogle": "ดำเนินการต่อด้วย Google",
+  "signInWithKakao": "เริ่มต้นด้วย Kakao",
+  "linkSignIn": "เชื่อมต่อ {method}",
+  "signInTaken": "วิธีเข้าสู่ระบบนี้เชื่อมกับบัญชีอื่นอยู่แล้ว"
 }

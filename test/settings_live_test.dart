@@ -40,11 +40,12 @@ void main() {
           headers: {'content-type': 'application/json'},
         );
       }),
-      signInWith: () async => (
+      signInWith: (_) async => (
         method: SignInMethod.apple,
         idToken: 'id',
         nickname: '도전자',
         code: null,
+        verifier: null,
       ),
     );
     await tester.pumpWidget(

@@ -3523,6 +3523,29 @@ class LZh extends L {
   String workoutImportPartial(int n) {
     return '有 $n 项未能读取。原始内容仍在，修改后可重试。';
   }
+
+  @override
+  String get kakao => 'Kakao';
+
+  @override
+  String get signInChooseTitle => '选择登录方式';
+
+  @override
+  String get signInWithApple => '通过 Apple 继续';
+
+  @override
+  String get signInWithGoogle => '通过 Google 继续';
+
+  @override
+  String get signInWithKakao => '使用 Kakao 开始';
+
+  @override
+  String linkSignIn(String method) {
+    return '关联 $method';
+  }
+
+  @override
+  String get signInTaken => '此登录方式已关联到其他账号。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7044,6 +7067,29 @@ class LZhHans extends LZh {
   String workoutImportPartial(int n) {
     return '有 $n 项未能读取。原始内容仍在，修改后可重试。';
   }
+
+  @override
+  String get kakao => 'Kakao';
+
+  @override
+  String get signInChooseTitle => '选择登录方式';
+
+  @override
+  String get signInWithApple => '通过 Apple 继续';
+
+  @override
+  String get signInWithGoogle => '通过 Google 继续';
+
+  @override
+  String get signInWithKakao => '使用 Kakao 开始';
+
+  @override
+  String linkSignIn(String method) {
+    return '关联 $method';
+  }
+
+  @override
+  String get signInTaken => '此登录方式已关联到其他账号。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10565,4 +10611,27 @@ class LZhHant extends LZh {
   String workoutImportPartial(int n) {
     return '有 $n 項未能讀取。原始內容仍在，修改後可重試。';
   }
+
+  @override
+  String get kakao => 'Kakao';
+
+  @override
+  String get signInChooseTitle => '選擇登入方式';
+
+  @override
+  String get signInWithApple => '透過 Apple 繼續';
+
+  @override
+  String get signInWithGoogle => '透過 Google 繼續';
+
+  @override
+  String get signInWithKakao => '使用 Kakao 開始';
+
+  @override
+  String linkSignIn(String method) {
+    return '連結 $method';
+  }
+
+  @override
+  String get signInTaken => '此登入方式已連結到其他帳號。';
 }

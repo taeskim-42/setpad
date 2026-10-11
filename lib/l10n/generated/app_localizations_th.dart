@@ -3635,4 +3635,27 @@ class LTh extends L {
   String workoutImportPartial(int n) {
     return 'อ่านไม่สำเร็จ $n รายการ ต้นฉบับยังอยู่ แก้ไขแล้วลองอีกครั้ง';
   }
+
+  @override
+  String get kakao => 'Kakao';
+
+  @override
+  String get signInChooseTitle => 'เลือกวิธีเข้าสู่ระบบ';
+
+  @override
+  String get signInWithApple => 'ดำเนินการต่อด้วย Apple';
+
+  @override
+  String get signInWithGoogle => 'ดำเนินการต่อด้วย Google';
+
+  @override
+  String get signInWithKakao => 'เริ่มต้นด้วย Kakao';
+
+  @override
+  String linkSignIn(String method) {
+    return 'เชื่อมต่อ $method';
+  }
+
+  @override
+  String get signInTaken => 'วิธีเข้าสู่ระบบนี้เชื่อมกับบัญชีอื่นอยู่แล้ว';
 }

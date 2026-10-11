@@ -156,6 +156,7 @@ void main() {
         idToken: 'id',
         nickname: '김회원',
         code: 'auth-code',
+        verifier: null,
       ),
       'https://example.com',
       client: web,
@@ -167,7 +168,13 @@ void main() {
   test('구글은 넘길 code 가 없어서 보내지 않는다', () async {
     Map<String, Object?>? sent;
     await exchange(
-      (method: SignInMethod.google, idToken: 'id', nickname: null, code: null),
+      (
+        method: SignInMethod.google,
+        idToken: 'id',
+        nickname: null,
+        code: null,
+        verifier: null,
+      ),
       'https://example.com',
       client: MockClient((request) async {
         sent = jsonDecode(request.body) as Map<String, Object?>;
@@ -189,11 +196,12 @@ void main() {
     final a = Account(
       client: MockClient((_) async => http.Response('꺼짐', 500)),
       storageDir: dir,
-      signInWith: () async => (
+      signInWith: (_) async => (
         method: SignInMethod.apple,
         idToken: 'id',
         nickname: '김회원',
         code: 'c',
+        verifier: null,
       ),
     );
     expect(await a.signIn(), isFalse);
@@ -204,7 +212,7 @@ void main() {
     final a = Account(
       client: MockClient((_) async => http.Response('{}', 200)),
       storageDir: dir,
-      signInWith: () async => throw Exception('사용자가 닫음'),
+      signInWith: (_) async => throw Exception('사용자가 닫음'),
     );
     expect(await a.signIn(), isFalse);
     expect(a.signInRefused, isFalse, reason: '스스로 그만둔 것에 경고를 띄우지 않는다');

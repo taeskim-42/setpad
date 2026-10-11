@@ -3656,4 +3656,28 @@ class LVi extends L {
   String workoutImportPartial(int n) {
     return 'Không đọc được $n nguồn. Nguồn vẫn còn để sửa và thử lại.';
   }
+
+  @override
+  String get kakao => 'Kakao';
+
+  @override
+  String get signInChooseTitle => 'Chọn cách đăng nhập';
+
+  @override
+  String get signInWithApple => 'Tiếp tục với Apple';
+
+  @override
+  String get signInWithGoogle => 'Tiếp tục với Google';
+
+  @override
+  String get signInWithKakao => 'Bắt đầu với Kakao';
+
+  @override
+  String linkSignIn(String method) {
+    return 'Liên kết $method';
+  }
+
+  @override
+  String get signInTaken =>
+      'Phương thức đăng nhập này đã được liên kết với tài khoản khác.';
 }

@@ -3559,4 +3559,27 @@ class LKo extends L {
   String workoutImportPartial(int n) {
     return '$n개는 읽지 못했어요. 원문은 그대로 있으니 고쳐서 다시 해 보세요.';
   }
+
+  @override
+  String get kakao => '카카오';
+
+  @override
+  String get signInChooseTitle => '로그인 방법을 고르세요';
+
+  @override
+  String get signInWithApple => 'Apple로 계속하기';
+
+  @override
+  String get signInWithGoogle => 'Google로 계속하기';
+
+  @override
+  String get signInWithKakao => '카카오로 시작하기';
+
+  @override
+  String linkSignIn(String method) {
+    return '$method 연결';
+  }
+
+  @override
+  String get signInTaken => '이 로그인 수단은 이미 다른 계정에 연결되어 있습니다.';
 }

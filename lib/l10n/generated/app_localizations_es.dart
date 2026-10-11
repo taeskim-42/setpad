@@ -3700,4 +3700,28 @@ class LEs extends L {
   String workoutImportPartial(int n) {
     return 'No se pudieron leer $n de las fuentes. Siguen ahí para corregirlas y reintentar.';
   }
+
+  @override
+  String get kakao => 'Kakao';
+
+  @override
+  String get signInChooseTitle => 'Elige cómo iniciar sesión';
+
+  @override
+  String get signInWithApple => 'Continuar con Apple';
+
+  @override
+  String get signInWithGoogle => 'Continuar con Google';
+
+  @override
+  String get signInWithKakao => 'Empezar con Kakao';
+
+  @override
+  String linkSignIn(String method) {
+    return 'Vincular $method';
+  }
+
+  @override
+  String get signInTaken =>
+      'Este método de inicio de sesión ya está vinculado a otra cuenta.';
 }
