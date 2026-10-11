@@ -3546,6 +3546,15 @@ class LZh extends L {
 
   @override
   String get signInTaken => '此登录方式已关联到其他账号。';
+
+  @override
+  String get tagOffline => '无法连接健身房。有信号后请再碰一次。';
+
+  @override
+  String get handoffMine => '这是你写好并发送的记录。请在接收者的手机上打开。';
+
+  @override
+  String get partnerErrFull => '已满员。此会话无法再加入。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7090,6 +7099,15 @@ class LZhHans extends LZh {
 
   @override
   String get signInTaken => '此登录方式已关联到其他账号。';
+
+  @override
+  String get tagOffline => '无法连接健身房。有信号后请再碰一次。';
+
+  @override
+  String get handoffMine => '这是你写好并发送的记录。请在接收者的手机上打开。';
+
+  @override
+  String get partnerErrFull => '已满员。此会话无法再加入。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10634,4 +10652,13 @@ class LZhHant extends LZh {
 
   @override
   String get signInTaken => '此登入方式已連結到其他帳號。';
+
+  @override
+  String get tagOffline => '無法連線到健身房。有訊號後請再碰一次。';
+
+  @override
+  String get handoffMine => '這是你寫好並送出的紀錄。請在收件者的手機上開啟。';
+
+  @override
+  String get partnerErrFull => '已額滿。此工作階段無法再加入。';
 }

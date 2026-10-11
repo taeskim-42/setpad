@@ -3724,4 +3724,16 @@ class LEs extends L {
   @override
   String get signInTaken =>
       'Este método de inicio de sesión ya está vinculado a otra cuenta.';
+
+  @override
+  String get tagOffline =>
+      'No se pudo conectar con el gimnasio. Vuelve a acercar el teléfono cuando tengas señal.';
+
+  @override
+  String get handoffMine =>
+      'Este es un registro que escribiste y enviaste. Ábrelo en el teléfono de quien lo recibe.';
+
+  @override
+  String get partnerErrFull =>
+      'Está lleno. Nadie más puede unirse a esta sesión.';
 }

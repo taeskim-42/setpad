@@ -880,5 +880,8 @@
   "signInWithGoogle": "Tiếp tục với Google",
   "signInWithKakao": "Bắt đầu với Kakao",
   "linkSignIn": "Liên kết {method}",
-  "signInTaken": "Phương thức đăng nhập này đã được liên kết với tài khoản khác."
+  "signInTaken": "Phương thức đăng nhập này đã được liên kết với tài khoản khác.",
+  "tagOffline": "Không kết nối được với phòng gym. Chạm lại khi có sóng.",
+  "handoffMine": "Đây là bản ghi bạn đã viết và gửi. Hãy mở trên điện thoại của người nhận.",
+  "partnerErrFull": "Đã đầy. Không ai khác có thể tham gia phiên này."
 }

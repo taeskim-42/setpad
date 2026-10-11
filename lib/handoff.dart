@@ -68,6 +68,8 @@ typedef Handoff = ({
   DateTime workedAt,
   int revision,
   List<ExerciseBlock> blocks,
+  /// 내가 적어 보낸 것이다. 받을 것이 아니라 보낸 것.
+  bool mine,
 });
 
 enum HandoffError { signInRequired, gone, network, server }
@@ -146,6 +148,7 @@ extension HandoffLink on GymLink {
               workedAt: at.toLocal(),
               revision: (body['revision'] as num?)?.toInt() ?? 1,
               blocks: blocks,
+              mine: body['mine'] == true,
             ),
             error: null,
           );

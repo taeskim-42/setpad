@@ -207,7 +207,7 @@ void _pending() {
     final notes = [
       made('a', gymId: 'g'),
       made('b'), // 체육관 것이 아니다 — 개인 운동은 안 나간다
-      made('c', gymId: 'g', sentAt: DateTime(2026)), // 이미 보냈다
+      made('c', gymId: 'g', sentAt: DateTime(2027)), // 이미 보냈고 그 뒤로 안 고쳤다
       // 빈 것도 나간다 — 루틴 없이 그냥 온 날의 출석이 그렇게 생겼다.
       made('d', gymId: 'g', empty: true),
     ];
@@ -216,6 +216,42 @@ void _pending() {
     expect(sent, ['a', 'd']);
     expect(notes.first.sentAt, isNotNull);
     expect(touched, 1);
+  });
+
+  test('보낸 뒤에 고친 기록은 다시 간다 — 루틴을 열어만 본 것은 안 간다', () async {
+    final sent = <String>[];
+    final link = GymLink(
+      endpoint: 'https://example.com',
+      token: 'x',
+      client: MockClient((request) async {
+        sent.add(jsonDecode(request.body)['localId'] as String);
+        return http.Response('{"id":"1"}', 200);
+      }),
+    );
+    // 잠금 해제 때 반만 올라갔다가(sentAt) 나머지 세트를 적었다(updatedAt 이 뒤).
+    final edited = made('a', gymId: 'g', sentAt: DateTime(2026, 9, 2, 10))
+      ..updatedAt = DateTime(2026, 9, 2, 11);
+    // 받은 루틴을 눌러 봤을 뿐 아무것도 안 고쳤다.
+    final looked = made('b', gymId: 'g')..routineId = 'r';
+    // 루틴을 받아서 세트를 적었다.
+    final did = made('c', gymId: 'g')
+      ..routineId = 'r'
+      ..updatedAt = DateTime(2026, 9, 4, 12);
+    await sendPending(link, [edited, looked, did], onSent: () {});
+    expect(sent, ['a', 'c']);
+    expect(edited.sentAt!.isAfter(edited.updatedAt), isTrue);
+    expect(looked.sentAt, isNull);
+  });
+
+  test('lb 는 kg 로 바꿔 보내고, 시간·거리는 무게 칸을 비운다', () {
+    final items = loggedItems([
+      ExerciseBlock('벤치프레스', [LoggedSet(value: 135, unit: 'lb', reps: 5)]),
+      ExerciseBlock('플랭크', [LoggedSet(value: 60, unit: 's')]),
+    ]);
+    final bench = (items[0]['sets'] as List).first as Map;
+    final plank = (items[1]['sets'] as List).first as Map;
+    expect(bench['kg'], 61.23);
+    expect(plank.containsKey('kg'), isFalse);
   });
 
   test('서버가 거절한 기록 하나가 뒤의 기록을 막지 않는다', () async {

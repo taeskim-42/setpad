@@ -880,5 +880,8 @@
   "signInWithGoogle": "Googleで続ける",
   "signInWithKakao": "カカオで始める",
   "linkSignIn": "{method}を連携",
-  "signInTaken": "このログイン方法はすでに別のアカウントに連携されています。"
+  "signInTaken": "このログイン方法はすでに別のアカウントに連携されています。",
+  "tagOffline": "ジムに接続できませんでした。電波が入ったらもう一度かざしてください。",
+  "handoffMine": "これはあなたが書いて送った記録です。受け取る人の端末で開いてください。",
+  "partnerErrFull": "満員です。このセッションにはこれ以上参加できません。"
 }

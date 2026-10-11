@@ -816,9 +816,19 @@ class NotesStore extends ChangeNotifier {
   /// 아무것도 안 친 메모는 목록에 남길 이유가 없다. 메모 앱과 같다. 끼니만 적은
   /// 기록(쉬는 날의 식단)은 빈 기록이 아니다.
   void discardIfEmpty(Note note) {
+    // 루틴을 열어만 봤다. 받은 루틴은 목록에 그대로 있고, 이것은 한 것이 아니다.
+    if (note.routineId != null &&
+        note.sentAt == null &&
+        !note.updatedAt.isAfter(note.createdAt)) {
+      delete(note);
+      return;
+    }
     if (note.blocks.isEmpty &&
         note.meals.isEmpty &&
         (note.draft?.text.trim().isEmpty ?? true)) {
+      // 루틴 없이 온 날의 출석은 빈 기록이다. 아직 못 보냈으면 지우지 않는다 —
+      // 지우면 신호 없던 날의 출석이 트레이너에게 영영 안 간다.
+      if (note.gymId != null && note.sentAt == null) return;
       delete(note);
     }
   }

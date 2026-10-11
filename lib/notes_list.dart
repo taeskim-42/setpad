@@ -203,6 +203,7 @@ class _NotesListPageState extends State<NotesListPage>
     // 켤 때는 남겨 둔 로그인이 이 화면보다 늦게 되살아난다. 계정을 듣고 있다가
     // 직원 목록이 오면 그때 보고서를 본다.
     widget.account?.addListener(_accountChanged);
+    _signedIn = widget.account?.signedIn ?? false;
     _staff = widget.account?.staff ?? const [];
     if (_staff.isNotEmpty) unawaited(_checkReports());
   }
@@ -210,11 +211,24 @@ class _NotesListPageState extends State<NotesListPage>
   /// /api/me 를 물을 때마다 직원 목록이 새로 온다. 그때만 다시 본다 — 계정은
   /// 결제·체육관 때문에도 자주 알린다.
   void _accountChanged() {
-    final staff = widget.account?.staff ?? const <StaffGym>[];
+    final account = widget.account;
+    // 앱 안에서 로그인했다. 켤 때는 로그인 전이라 못 물었던 루틴·체육관을 지금 묻는다.
+    final signedIn = account?.signedIn ?? false;
+    if (signedIn != _signedIn) {
+      _signedIn = signedIn;
+      if (signedIn) {
+        unawaited(_loadRoutines());
+      } else if (mounted) {
+        setState(() => _routines = const []);
+      }
+    }
+    final staff = account?.staff ?? const <StaffGym>[];
     if (identical(staff, _staff)) return;
     setState(() => _staff = staff);
     unawaited(_checkReports());
   }
+
+  bool _signedIn = false;
 
   Future<void> _checkReports() async {
     final account = widget.account;
@@ -228,7 +242,8 @@ class _NotesListPageState extends State<NotesListPage>
     // 다음에 앱을 켤 때까지 안 나타난다.
     await account.refreshGyms();
     final found = await account.link.routines();
-    if (mounted) setState(() => _routines = found);
+    // 못 물어본 것은 지우지 않는다. 있던 루틴은 그대로 둔다.
+    if (found != null && mounted) setState(() => _routines = found);
   }
 
   int _routineSets(Routine routine) =>
@@ -239,15 +254,26 @@ class _NotesListPageState extends State<NotesListPage>
   /// **자동으로 채우지 않는다.** 오늘 그걸 안 할 수도 있는데 매번 지우게 하면
   /// 개인 운동을 하려던 사람이 성가시다. 누른 사람만 받는다.
   void _startRoutine(Routine routine) {
+    // 이미 시작한 루틴이면 그 기록이다. 또 만들면 같은 루틴이 둘이 된다.
+    final started = widget.store.notes
+        .where((n) => n.routineId == routine.id)
+        .firstOrNull;
     _open(
-      widget.store.create(
-        blocks: routine.blocks,
-        gymId: routine.gymId,
-        routineId: routine.id,
-      ),
+      started ??
+          widget.store.create(
+            blocks: routine.blocks,
+            gymId: routine.gymId,
+            routineId: routine.id,
+          ),
     );
     setState(() => _routines = [..._routines]..remove(routine));
   }
+
+  /// 목록에 보일 루틴. 시작한 것은 기록 쪽에 있으니 여기서 뺀다 — 서버는 끝내서
+  /// 올릴 때까지 그것을 계속 준다.
+  Iterable<Routine> get _waitingRoutines => _routines.where(
+    (r) => !widget.store.notes.any((n) => n.routineId == r.id),
+  );
 
   void _changed() {
     if (mounted) setState(() {});
@@ -1178,7 +1204,7 @@ class _NotesListPageState extends State<NotesListPage>
                       // 트레이너가 보낸 것. 찾는 중에는 숨긴다 — 검색 결과
                       // 위에 다른 것이 끼면 무엇을 보는 중인지 흐려진다.
                       if (_query.text.trim().isEmpty)
-                        for (final routine in _routines)
+                        for (final routine in _waitingRoutines)
                           SliverToBoxAdapter(
                             child: CupertinoButton(
                               padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),

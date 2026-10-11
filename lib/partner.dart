@@ -42,6 +42,8 @@ enum PartnerError {
   routineChanged,
   emptyRoutine,
   routineStarted,
+  /// 자리가 다 찼다. 서버 탓이 아니라서 '다시 시도'로 풀리지 않는다.
+  full,
 }
 
 /// 코드에 쓰는 글자. 서버와 같다 — 0·O, 1·I 가 없다.
@@ -130,6 +132,10 @@ class PartnerSession {
   String? partnerName;
   bool? endedByMe;
 
+  /// 그물 없이 끝냈다. 서버는 아직 모른다 — 다음에 닿을 때 알린다. 앱을 껐다
+  /// 켜도 남아야 하므로 세션과 함께 저장된다.
+  bool endPending = false;
+
   /// 내 기록의 번호와, 서버가 받았다고 한 번호. 다르면 올릴 것이 밀려 있다.
   int revision, pushed;
 
@@ -204,6 +210,7 @@ class PartnerSession {
     'expiresAt': ?expiresAt?.toIso8601String(),
     'partnerName': ?partnerName,
     'endedByMe': ?endedByMe,
+    if (endPending) 'endPending': true,
     'revision': revision,
     'pushed': pushed,
     if (partnerLoaded) 'partnerBlocks': blocksToJson(partnerBlocks),
@@ -237,6 +244,7 @@ class PartnerSession {
         partnerUpdatedAt: updated is String ? DateTime.tryParse(updated) : null,
         partnerLoaded: j['partnerBlocks'] is List,
       )
+      ..endPending = j['endPending'] == true
       ..docBase = j['docBase'] is List
           ? [
               for (final b in j['docBase'] as List)
@@ -296,6 +304,7 @@ extension PartnerLink on GymLink {
             (_, 'conflict') => PartnerError.routineChanged,
             (_, 'routineFinalized') => PartnerError.routineStarted,
             (_, 'emptyRoutine') => PartnerError.emptyRoutine,
+            (_, 'full') => PartnerError.full,
             (429, _) => PartnerError.tooManyTries,
             (400, _) => PartnerError.invalidFormat,
             _ => PartnerError.server,
@@ -1092,15 +1101,13 @@ class PartnerSync extends ChangeNotifier {
       session!
         ..state = PartnerState.ended
         ..endedByMe = true
+        ..endPending = true
         ..partnerBlocks = []
         ..partnerLoaded = false;
-      _pendingEnd = s.id;
       onChanged();
       notifyListeners();
     }
   }
-
-  String? _pendingEnd;
 
   /// 화면이 보이는 동안만 돈다. 백그라운드에서 연결을 유지한다고 하지 않는다.
   void start() {
@@ -1120,10 +1127,13 @@ class PartnerSync extends ChangeNotifier {
     _listen();
     var ticks = 0;
     _poll = Timer.periodic(interval, (_) async {
-      final pending = _pendingEnd;
-      if (pending != null) {
-        final reply = await link().endPartnerSession(pending);
-        if (reply.error != PartnerError.network) _pendingEnd = null;
+      final pending = session;
+      if (pending != null && pending.endPending) {
+        final reply = await link().endPartnerSession(pending.id);
+        if (reply.error != PartnerError.network) {
+          pending.endPending = false;
+          onChanged();
+        }
       }
       if (_pendingDoc.isNotEmpty) unawaited(_flushDoc());
       _heartbeat();

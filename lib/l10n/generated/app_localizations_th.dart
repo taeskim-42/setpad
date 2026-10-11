@@ -3658,4 +3658,14 @@ class LTh extends L {
 
   @override
   String get signInTaken => 'วิธีเข้าสู่ระบบนี้เชื่อมกับบัญชีอื่นอยู่แล้ว';
+
+  @override
+  String get tagOffline => 'เชื่อมต่อกับยิมไม่ได้ เมื่อมีสัญญาณแล้วแตะอีกครั้ง';
+
+  @override
+  String get handoffMine =>
+      'นี่คือบันทึกที่คุณเขียนและส่งไป เปิดบนโทรศัพท์ของผู้รับ';
+
+  @override
+  String get partnerErrFull => 'เต็มแล้ว ไม่สามารถเข้าร่วมเซสชันนี้ได้อีก';
 }

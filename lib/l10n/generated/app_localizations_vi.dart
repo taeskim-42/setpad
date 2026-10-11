@@ -3680,4 +3680,16 @@ class LVi extends L {
   @override
   String get signInTaken =>
       'Phương thức đăng nhập này đã được liên kết với tài khoản khác.';
+
+  @override
+  String get tagOffline =>
+      'Không kết nối được với phòng gym. Chạm lại khi có sóng.';
+
+  @override
+  String get handoffMine =>
+      'Đây là bản ghi bạn đã viết và gửi. Hãy mở trên điện thoại của người nhận.';
+
+  @override
+  String get partnerErrFull =>
+      'Đã đầy. Không ai khác có thể tham gia phiên này.';
 }

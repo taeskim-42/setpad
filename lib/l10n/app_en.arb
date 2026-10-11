@@ -880,5 +880,8 @@
   "signInWithGoogle": "Continue with Google",
   "signInWithKakao": "Start with Kakao",
   "linkSignIn": "Link {method}",
-  "signInTaken": "This sign-in method is already linked to another account."
+  "signInTaken": "This sign-in method is already linked to another account.",
+  "tagOffline": "Couldn't reach the gym. Tap again once you have signal.",
+  "handoffMine": "This is a record you wrote and sent. Open it on the recipient's phone.",
+  "partnerErrFull": "It's full. No one else can join this session."
 }

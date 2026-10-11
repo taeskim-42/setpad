@@ -109,6 +109,7 @@ void main() {
     final at = DateTime(2026, 9, 21, 19, 30);
     Handoff handoff(int revision, int sets) => (
       from: '미나',
+      mine: false,
       workedAt: at,
       revision: revision,
       blocks: [
@@ -247,6 +248,7 @@ void main() {
       // 받아 두었다 — 같은 번호로는 다시 권하지 않는다.
       placeHandoff(store, token, (
         from: '준',
+        mine: false,
         workedAt: DateTime(2026, 9, 21, 19),
         revision: 2,
         blocks: [

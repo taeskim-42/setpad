@@ -3701,4 +3701,15 @@ class LEn extends L {
   @override
   String get signInTaken =>
       'This sign-in method is already linked to another account.';
+
+  @override
+  String get tagOffline =>
+      'Couldn\'t reach the gym. Tap again once you have signal.';
+
+  @override
+  String get handoffMine =>
+      'This is a record you wrote and sent. Open it on the recipient\'s phone.';
+
+  @override
+  String get partnerErrFull => 'It\'s full. No one else can join this session.';
 }

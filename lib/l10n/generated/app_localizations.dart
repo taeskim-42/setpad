@@ -5346,6 +5346,24 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'이 로그인 수단은 이미 다른 계정에 연결되어 있습니다.'**
   String get signInTaken;
+
+  /// No description provided for @tagOffline.
+  ///
+  /// In ko, this message translates to:
+  /// **'체육관에 연결하지 못했어요. 신호가 잡히면 다시 대 주세요.'**
+  String get tagOffline;
+
+  /// No description provided for @handoffMine.
+  ///
+  /// In ko, this message translates to:
+  /// **'내가 적어 보낸 기록이에요. 받는 사람의 폰에서 열어 주세요.'**
+  String get handoffMine;
+
+  /// No description provided for @partnerErrFull.
+  ///
+  /// In ko, this message translates to:
+  /// **'자리가 다 찼어요. 이 세션에는 더 들어갈 수 없어요.'**
+  String get partnerErrFull;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

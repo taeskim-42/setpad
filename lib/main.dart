@@ -181,6 +181,8 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     );
     // 아무것도 안 치고 나온 새 기록은 남기지 않는다.
     _store.discardIfEmpty(note);
+    // 끝났다. 체육관 기록이면 지금 올린다 — 잠금 해제 때 반만 간 것도 여기서 다 간다.
+    if (note.gymId != null) unawaited(_sendPendingWorkouts());
     _healthSync = _healthSync
         .then((_) => _syncHealth(note))
         .catchError((Object e) => debugPrint('건강 앱 맞추기 실패: $e'));
@@ -278,8 +280,14 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     }
     final reply = await _account.link.readHandoff(token);
     if (!mounted) return;
-    final had = _store.notes.where((n) => n.handoffToken == token).toList();
     final h = reply.handoff;
+    // 내가 적어 보낸 링크를 내 폰에서 눌렀다. 받으면 상대의 세트가 내 기록이 된다.
+    if (h?.mine ?? false) {
+      final sent = _store.notes.where((n) => n.proxy?.token == token).firstOrNull;
+      if (sent != null) return _open(sent);
+      return _tellTag(l.handoffMine);
+    }
+    final had = _store.notes.where((n) => n.handoffToken == token).toList();
     if (h == null) {
       // 못 받았어도 전에 받아 둔 것이 있으면 그것을 연다.
       if (had.isNotEmpty) return _open(had.first);
@@ -293,6 +301,10 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   Future<void> _openTag(Uri uri) async {
     // 브라우저로 간 웹 로그인이 돌아온 것. 기다리던 로그인이 받는다(sign_in.dart).
     if (finishWebSignIn(uri)) return;
+    // 앱이 꺼진 채로 열렸으면 남겨 둔 로그인이 아직 안 살아났다. 그 전에 보면
+    // 로그인한 사람에게도 로그인을 묻는다.
+    await _accountStarted.future;
+    if (!mounted) return;
     final handoff = handoffTokenFromLink(uri);
     if (handoff != null) {
       // 같은 링크가 두 번 전달되는 일이 있다(처음 링크 + 스트림).
@@ -333,6 +345,11 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
 
     final routines = await _account.link.routines();
     if (!mounted) return;
+    if (routines == null) {
+      // 못 물어봤다. 루틴이 없는 것으로 치면 빈 출석이 되거나 가입 신청이 나간다.
+      await _tellTag(L.of(context).tagOffline);
+      return;
+    }
     final mine = routines.where((r) => r.gymId == gymId).firstOrNull;
     if (mine == null) {
       // 그 체육관에 다니지 않는 것과, 다니는데 오늘 받은 것이 없는 것은
@@ -342,8 +359,17 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
       await (member ? _attendOnly(gymId) : _askJoin(gymId));
       return;
     }
+    // 이미 시작한 루틴이면 그 기록을 다시 연다. 또 만들면 같은 루틴이 둘이 된다.
+    final started = _store.notes
+        .where((n) => n.routineId == mine.id)
+        .firstOrNull;
     _open(
-      _store.create(blocks: mine.blocks, gymId: mine.gymId, routineId: mine.id),
+      started ??
+          _store.create(
+            blocks: mine.blocks,
+            gymId: mine.gymId,
+            routineId: mine.id,
+          ),
     );
   }
 
@@ -840,7 +866,17 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     // 같은 토큰이 여러 번 와도 참여는 한 번이다(PartnerSync.joinWithToken).
     _nearbyInvites = Nearby.instance.received
         .where((invite) => invite.kind == 'session')
-        .listen((invite) => _partner?.joinWithToken(invite.token));
+        .listen((invite) async {
+          final sync = _partner;
+          final account = widget.account;
+          if (sync == null || account == null) return;
+          final error = await sync.joinWithToken(invite.token);
+          // 들어갔으면 문서 위 띠가 말한다. 못 들어갔으면(로그인 필요·만료·정원)
+          // 시트가 이유를 그린다 — 참여만 부르고 말면 실패가 아무 말 없이 사라진다.
+          if (error != null && mounted) {
+            await showPartnerSheet(context, account, sync, onWriteFor: _writeFor);
+          }
+        });
     // 다시 들어왔을 때 서버에 상태를 물어 복구한다(열린 세션이 있을 때만 돈다).
     if (widget.note.partner?.open ?? false) _partner?.start();
   }

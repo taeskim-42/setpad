@@ -69,14 +69,17 @@ class GymLink {
     });
   }
 
-  Future<List<Routine>> routines() async {
+  /// 받은 루틴. **못 물어본 것은 null 이다** — 빈 목록과 다르다. 빈 목록으로
+  /// 돌려주면 스티커를 댄 사람이 신호가 약한 날 '루틴 없음'으로 빈 출석이 되고,
+  /// 목록 화면은 있던 루틴을 지운다.
+  Future<List<Routine>?> routines() async {
     if (!supported) return const [];
     return withClient((web) async {
       try {
         final response = await web
             .get(Uri.parse('$endpoint/api/routines'), headers: headers)
             .timeout(const Duration(seconds: 15));
-        if (response.statusCode != 200) return const [];
+        if (response.statusCode != 200) return null;
         final body = jsonDecode(utf8.decode(response.bodyBytes));
         return [
           for (final row in (body as Map)['routines'] as List? ?? const [])
@@ -89,7 +92,7 @@ class GymLink {
             ),
         ];
       } catch (_) {
-        return const [];
+        return null;
       }
     });
   }
@@ -179,6 +182,14 @@ List<ExerciseBlock> plannedBlocks(Object? items) => [
       ], WorkoutSetup.tryFromJson(item['setup'])),
 ];
 
+/// 서버가 아는 무게는 kg 뿐이다. lb 는 바꾸고, 시간·거리는 무게가 아니므로 비운다 —
+/// 틀린 kg(플랭크 60초가 60kg)보다 빈 칸이 낫다.
+double? kgOf(LoggedSet set) => switch (set.unit) {
+  'kg' => set.value,
+  'lb' => set.value == null ? null : (set.value! * 0.45359237 * 100).round() / 100,
+  _ => null,
+};
+
 /// 앱의 기록을 웹이 읽는 모양으로 바꾼다. 계획과 같은 모양에 done 이 붙는다.
 List<Map<String, Object?>> loggedItems(List<ExerciseBlock> blocks) => [
   for (final block in blocks)
@@ -187,7 +198,7 @@ List<Map<String, Object?>> loggedItems(List<ExerciseBlock> blocks) => [
       'sets': [
         for (final set in block.sets)
           {
-            if (set.value != null) 'kg': set.value,
+            'kg': ?kgOf(set),
             if (set.reps != null) 'reps': set.reps,
             'done': set.done,
           },
@@ -195,11 +206,24 @@ List<Map<String, Object?>> loggedItems(List<ExerciseBlock> blocks) => [
     },
 ];
 
-/// 아직 못 보낸 기록을 보낸다.
+/// 보낼 것인가. 아직 안 보냈거나, 보낸 뒤에 고쳤으면 보낸다. **루틴을 열어만 본
+/// 것은 아니다** — 고친 적이 없는 루틴 기록이 올라가면 서버가 그 루틴을 '완료'로
+/// 닫고 트레이너는 0/15세트를 본다.
+bool needsSend(Note note) {
+  if (note.gymId == null) return false;
+  if (note.routineId != null && !note.updatedAt.isAfter(note.createdAt)) {
+    return false;
+  }
+  final sent = note.sentAt;
+  return sent == null || note.updatedAt.isAfter(sent);
+}
+
+/// 아직 못 보낸 기록을 보낸다. 보낸 뒤에 고친 것도 다시 간다.
 ///
 /// **헬스장은 신호가 나쁘다.** 한 번에 못 보내는 것이 정상이라서, 앱을 켤
 /// 때마다 밀린 것을 다시 시도한다. 같은 것을 두 번 보내도 서버가 한 줄로
-/// 합치므로(local_id) 겹쳐도 해가 없다.
+/// 합치므로(local_id) 겹쳐도 해가 없다. 그래서 고친 기록도 같은 줄을 덮는다 —
+/// 세트 사이에 폰이 잠겨 반만 올라간 기록이 그대로 굳지 않는다.
 Future<void> sendPending(
   GymLink link,
   List<Note> notes, {
@@ -211,10 +235,12 @@ Future<void> sendPending(
   final waiting = [
     for (final note in notes)
       // 빈 것도 보낸다 — 루틴 없이 그냥 나온 날의 출석이 그렇게 생긴다.
-      if (note.gymId != null && note.sentAt == null) note,
+      if (needsSend(note)) note,
   ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
   for (final note in waiting) {
+    // 보내는 동안 고친 것은 다음에 또 가야 한다. 시각은 보내기 전에 찍는다.
+    final at = DateTime.now();
     final outcome = await link.sendWorkoutOutcome(
       gymId: note.gymId!,
       localId: note.id,
@@ -228,7 +254,7 @@ Future<void> sendPending(
     // 서버가 이 하나를 거절한 것이면 뒤의 것들은 상관없다. 건너뛰고 계속 간다 —
     // 이것 하나 때문에 그 뒤 몇 주치가 영영 안 올라가던 일이 있었다.
     if (outcome == SendOutcome.rejected) continue;
-    note.sentAt = DateTime.now();
+    note.sentAt = at;
     changed = true;
   }
   if (changed) onSent();

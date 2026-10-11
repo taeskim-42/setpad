@@ -3574,4 +3574,13 @@ class LJa extends L {
 
   @override
   String get signInTaken => 'このログイン方法はすでに別のアカウントに連携されています。';
+
+  @override
+  String get tagOffline => 'ジムに接続できませんでした。電波が入ったらもう一度かざしてください。';
+
+  @override
+  String get handoffMine => 'これはあなたが書いて送った記録です。受け取る人の端末で開いてください。';
+
+  @override
+  String get partnerErrFull => '満員です。このセッションにはこれ以上参加できません。';
 }

@@ -880,5 +880,8 @@
   "signInWithGoogle": "透過 Google 繼續",
   "signInWithKakao": "使用 Kakao 開始",
   "linkSignIn": "連結 {method}",
-  "signInTaken": "此登入方式已連結到其他帳號。"
+  "signInTaken": "此登入方式已連結到其他帳號。",
+  "tagOffline": "無法連線到健身房。有訊號後請再碰一次。",
+  "handoffMine": "這是你寫好並送出的紀錄。請在收件者的手機上開啟。",
+  "partnerErrFull": "已額滿。此工作階段無法再加入。"
 }
