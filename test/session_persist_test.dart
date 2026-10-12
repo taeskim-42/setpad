@@ -21,6 +21,8 @@ void main() {
   late Map<String, String> vault;
   setUp(() {
     dir = Directory.systemTemp.createTempSync('setpad-session');
+    // 이미 켜 본 설치다. 새로 깐 앱(문서함에 이 표시가 없다)은 키체인에 남은 로그인을 버린다.
+    File('${dir.path}/installed').createSync();
     FlutterSecureStorage.setMockInitialValues(vault = {});
     RecordAi.relaunch();
   });
@@ -50,6 +52,8 @@ void main() {
   });
 
   test('옛 판의 session.json(평문)은 켤 때 한 번 키체인으로 옮기고 지운다', () async {
+    // 옛 판에서 올라왔다 — 설치 표시는 아직 없다. 그래도 로그인은 이어진다.
+    File('${dir.path}/installed').deleteSync();
     final f = File('${dir.path}/session.json')
       ..writeAsStringSync(
         jsonEncode({'token': 'saved', 'nickname': '김회원', 'userId': 'u-1'}),
@@ -71,6 +75,21 @@ void main() {
     await b.restoreSession();
     expect(b.token, 'saved');
     expect(f.existsSync(), isFalse);
+  });
+
+  test('지웠다 다시 깐 앱은 키체인에 남은 로그인으로 뜨지 않는다 — 문서함의 표시가 같이 지워졌다', () async {
+    File('${dir.path}/installed').deleteSync();
+    keep({'token': 'left-behind', 'nickname': '전 주인'});
+    final a = account(MockClient((_) async => http.Response('{}', 200)));
+    await a.restoreSession();
+    expect(a.signedIn, isFalse, reason: '폰을 넘기거나 다시 깔아 로그아웃하려던 사람이다');
+    expect(kept(), isNull);
+
+    // 그 뒤로 이 설치에서 한 로그인은 다시 켜도 남는다.
+    keep({'token': 'mine', 'nickname': '새 주인'});
+    final b = account(MockClient((_) async => http.Response('{}', 200)));
+    await b.restoreSession();
+    expect(b.token, 'mine');
   });
 
   test('살아 있는 토큰을 보면 서버가 준 새 토큰으로 바꿔 둔다', () async {
@@ -395,6 +414,30 @@ void main() {
     status = 500;
     expect(await a.signOutEverywhere(), isFalse, reason: '못 끊었으면 그렇다고 말한다');
     expect(a.token, 'new');
+  });
+
+  test('모든 기기에서 로그아웃하는 사이 옛 토큰의 401 확인이 늦게 와도 이 폰의 새 토큰은 남는다', () async {
+    final me = Completer<http.Response>();
+    final a = account(
+      MockClient((request) async {
+        final path = request.url.path;
+        if (path.endsWith('/api/me/sessions/revoke')) {
+          return http.Response(jsonEncode({'token': 'new'}), 200);
+        }
+        if (path.endsWith('/api/me')) return me.future;
+        // 끊기 전에 옛 토큰으로 나간 요청(같이 하기의 2초 폴링 같은 것).
+        return http.Response('{"error":"signInRequired"}', 401);
+      }),
+    )..token = 'old';
+    await a.link.gyms(); // 401 → 옛 토큰으로 /api/me 를 묻는 중
+    expect(await a.signOutEverywhere(), isTrue);
+    me.complete(http.Response('{}', 401));
+    for (var i = 0; i < 20; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    expect(a.signedIn, isTrue, reason: '옛 토큰이 거절된 것이다 — 이 폰은 새 토큰으로 이어 간다');
+    expect(a.token, 'new');
+    expect(kept()!['token'], 'new');
   });
 
   test('로그인 시트의 \'만 14세 이상입니다\' 를 서버에 함께 낸다 — 수단을 붙일 때는 내지 않는다', () async {

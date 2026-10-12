@@ -904,7 +904,8 @@ void main() {
             ? _json({'error': 'x'}, code)
             : null,
       );
-      for (final code in [500, 503, 401, 408, 426, 429]) {
+      // 403·404 는 이 길이 내지 않는 답이다(경로·인프라 이상) — 서버가 판단한 것이 아니다.
+      for (final code in [500, 503, 401, 403, 404, 408, 426, 429]) {
         expect(await settled(answering(code)), isFalse, reason: '$code');
       }
       for (final code in [200, 400, 402, 409]) {

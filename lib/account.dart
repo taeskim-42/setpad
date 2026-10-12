@@ -293,8 +293,24 @@ class Account extends ChangeNotifier {
 
   Future<void> _loadSession() async {
     try {
-      var saved = await vaulted(() => vault.read(key: _sessionKey));
       final legacy = await _sessionFile();
+      // 키체인은 앱을 지워도 남는다(iOS). 문서함은 같이 지워지므로 거기 표시가 없으면 새로
+      // 깐 앱이다 — 지운 사람의 로그인으로 뜨지 않게 남은 것을 버린다. 폰을 넘기거나 다시
+      // 깔아 로그아웃하려던 사람의 길이다. 옛 판(session.json)에서 올라온 것은 키체인이 비어
+      // 있어 버릴 것이 없다. 기기 토큰은 기기 id 로 가른다(RecordAi._usable).
+      final mark = legacy == null
+          ? null
+          : File('${legacy.parent.path}/installed');
+      if (mark != null && !mark.existsSync()) {
+        try {
+          // 표시를 먼저 남긴다 — 못 남겼으면 버리지 않는다. 켤 때마다 로그아웃되지 않게.
+          mark.createSync();
+          await vaulted(() => vault.delete(key: _sessionKey));
+        } catch (e) {
+          debugPrint('설치 표시를 남기지 못했다: $e');
+        }
+      }
+      var saved = await vaulted(() => vault.read(key: _sessionKey));
       if (legacy != null && legacy.existsSync()) {
         // 키체인에 옮겼을 때만 지운다 — 못 옮겼으면 다음에 켤 때 다시 옮긴다.
         if (saved == null) {
@@ -354,15 +370,19 @@ class Account extends ChangeNotifier {
   /// 그물이 없어서 못 물어본 것과 서버가 거절한 것은 다르다. 거절일 때만 지운다.
   Future<bool> _stillValid() async {
     final web = client ?? apiClient;
+    final asked = token;
     try {
       // 기다리는 데도 끝이 있어야 한다. 길이 막혔을 때 여기서 매달리면 앱의 나머지
       // (체육관 목록, 밀린 전송)가 같이 멈춘다. 못 물어본 것은 로그아웃이 아니다.
       final response = await web
           .get(
             Uri.parse('$endpoint/api/me'),
-            headers: {'authorization': 'Bearer $token'},
+            headers: {'authorization': 'Bearer $asked'},
           )
           .timeout(const Duration(seconds: 15));
+      // 기다리는 사이 토큰이 바뀌었다 — 모든 기기에서 로그아웃이 이 폰의 새 토큰을 받았거나
+      // 다시 로그인했다. 이 답은 옛 토큰의 것이니 새 토큰을 지우거나 덮지 않는다.
+      if (token != asked) return true;
       if (response.statusCode == 401) {
         await signOut();
         return false;
@@ -585,9 +605,10 @@ class Account extends ChangeNotifier {
   /// 아무 말이 없으면 돈을 낸 사람은 산 줄 알고 기다린다.
   ///
   /// 서버가 확정해 답했으면 true 다 — 받았다(200), 남의 계정 것(409), 확인되지 않는
-  /// 구매(402)·잘못된 요청(400). 그때만 스토어에 거래를 닫는다([Purchases]). 서버에
-  /// 못 닿았으면(그물·시간 초과·5xx·표 없음·401) 닫지 않고 두어, 스토어가 다음에 켤
-  /// 때 다시 준다 — 결제 직후 그물이 끊긴 구매가 '복원' 을 눌러야만 서버에 닿던 길이다.
+  /// 구매(402)·잘못된 요청(400). 그때만 스토어에 거래를 닫는다([Purchases]). 그 밖의 답
+  /// (그물·시간 초과·5xx·표 없음·401·426·429, 그리고 이 길이 내지 않는 403·404 같은
+  /// 경로·인프라의 답)은 닫지 않고 두어, 스토어가 다음에 켤 때 다시 준다 — 결제 직후
+  /// 그물이 끊긴 구매가 '복원' 을 눌러야만 서버에 닿던 길이다.
   Future<bool> _send(PurchaseProof proof) async {
     final bearer = await ai.bearer();
     if (bearer == null) {
@@ -623,8 +644,7 @@ class Account extends ChangeNotifier {
         await _refresh();
         await refreshPlates(); // Pro 가 됐으면 이번 달 원판이 채워진다.
       }
-      // 401(표가 죽었다)·408·426(판 업데이트)·429 는 다시 보낼 만하다.
-      return status < 500 && !const {401, 408, 426, 429}.contains(status);
+      return const {200, 400, 402, 409}.contains(status);
     } catch (_) {
       // 그물·시간 초과. 거래는 열어 두었으니 다음에 켤 때 스토어가 다시 준다.
       purchaseProblem = PurchaseProblem.notConfirmed;
