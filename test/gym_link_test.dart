@@ -171,6 +171,22 @@ void main() {
     expect(calls, 0, reason: '토큰이 없으면 그물을 쓰지 않는다');
   });
 
+  test('스티커를 댄 체육관의 루틴만 묻는다 — 서버 목록은 체육관을 합쳐 자른다', () async {
+    final asked = <Uri>[];
+    final link = GymLink(
+      endpoint: 'https://example.com',
+      token: 'x',
+      client: MockClient((request) async {
+        asked.add(request.url);
+        return http.Response('{"routines":[]}', 200);
+      }),
+    );
+    expect(await link.routines(gymId: 'g1'), isEmpty);
+    expect(await link.routines(), isEmpty);
+    expect(asked.first.queryParameters, {'gymId': 'g1'});
+    expect(asked.last.hasQuery, isFalse, reason: '목록 화면은 전부 받는다');
+  });
+
   test('서버가 무너져도 기록하는 일은 그대로 된다', () async {
     final link = GymLink(
       endpoint: 'https://example.com',

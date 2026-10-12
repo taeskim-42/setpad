@@ -348,7 +348,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
       return;
     }
 
-    final routines = await _account.link.routines();
+    final routines = await _account.link.routines(gymId: gymId);
     if (!mounted) return;
     if (routines == null) {
       // 못 물어봤다. 루틴이 없는 것으로 치면 빈 출석이 되거나 가입 신청이 나간다.

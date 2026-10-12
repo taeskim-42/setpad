@@ -76,12 +76,22 @@ class GymLink {
   /// 받은 루틴. **못 물어본 것은 null 이다** — 빈 목록과 다르다. 빈 목록으로
   /// 돌려주면 스티커를 댄 사람이 신호가 약한 날 '루틴 없음'으로 빈 출석이 되고,
   /// 목록 화면은 있던 루틴을 지운다.
-  Future<List<Routine>?> routines() async {
+  ///
+  /// [gymId] 를 주면 그 체육관 것만 묻는다. 서버 목록은 모든 체육관을 합쳐 앞에서
+  /// 자르므로, 안 주면 다른 체육관 루틴에 밀려 스티커를 댄 곳의 루틴이 빠질 수
+  /// 있다. 옛 서버는 이 조건을 모르고 전부 준다 — 고르는 일은 부르는 쪽이 계속 한다.
+  Future<List<Routine>?> routines({String? gymId}) async {
     if (!supported) return const [];
     return withClient((web) async {
       try {
+        final url = Uri.parse('$endpoint/api/routines');
         final response = await web
-            .get(Uri.parse('$endpoint/api/routines'), headers: headers)
+            .get(
+              gymId == null
+                  ? url
+                  : url.replace(queryParameters: {'gymId': gymId}),
+              headers: headers,
+            )
             .timeout(const Duration(seconds: 15));
         if (response.statusCode != 200) return null;
         final body = jsonDecode(utf8.decode(response.bodyBytes));
