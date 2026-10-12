@@ -70,6 +70,7 @@ class Gym {
           id: b['id'] as String,
           startsAt: DateTime.parse(b['startsAt'] as String).toLocal(),
           trainer: b['trainer'] as String? ?? '',
+          trainerId: b['trainerId'] as String?,
           status: b['status'] as String,
         ),
       ),
@@ -107,11 +108,13 @@ typedef GymPass = ({
   int? remaining,
 });
 
-/// 앞으로의 PT 하나. `status` 는 pending·booked·rejected·cancelled.
+/// 앞으로의 PT 하나. `status` 는 pending·booked·rejected·cancelled. [trainerId] 는 맡은
+/// 트레이너 — 닉네임은 바뀌므로 담당 변경은 이것으로 견준다. 옛 서버는 주지 않는다.
 typedef GymBooking = ({
   String id,
   DateTime startsAt,
   String trainer,
+  String? trainerId,
   String status,
 });
 
@@ -138,27 +141,25 @@ T? tryRead<T>(T? Function() read) {
   }
 }
 
-/// 회원이 본 도장 소식 — 열쇠마다 그때의 모양: 공지는 본 적이 있는지, 예약은 상태·시각,
-/// 담당 트레이너는 누구인지(id).
+/// 회원이 본 도장 소식 — 열쇠마다 그때의 모양: 공지는 본 적이 있는지, 예약은 상태·시각·
+/// 맡은 트레이너(id), 담당 트레이너는 누구인지(id).
 ///
 /// **원격 푸시가 없다.** 트레이너가 PT 를 거절·취소하거나 시간을 옮겨도 앱만 쓰는 회원의
 /// 폰에는 아무것도 뜨지 않았다. 그래서 앱을 열 때 지난번 본 것과 견준다([gymNews]).
 Map<String, String> gymSeenOf(Gym gym) => {
   for (final n in gym.notices) 'n:${n.id}': '',
-  for (final b in gym.bookings) 'b:${b.id}': bookingSeen(b.status, b.startsAt),
+  for (final b in gym.bookings)
+    'b:${b.id}': bookingSeen(b.status, b.startsAt, b.trainerId),
   't:${gym.id}': ?gym.trainerId,
 };
 
 /// 예약 하나의 모양. 예약 화면(/api/bookings)과 도장 목록(/api/gyms)이 같은 줄을 만든다.
-///
-/// ponytail: 예약의 담당은 견주지 않는다 — 서버가 예약마다 닉네임만 주어, 트레이너가 이름을
-/// 바꾸면 앞으로의 PT 마다 '담당 변경' 이 떴다. 서버가 예약에 trainerId 를 실으면(gymdojo
-/// lib/member-home.ts) 그 id 로 견준다.
-String bookingSeen(String status, DateTime startsAt) =>
-    '$status|${startsAt.toUtc().toIso8601String()}';
+/// 맡은 트레이너는 닉네임이 아니라 id 다 — 이름만 바꾼 것은 담당 변경이 아니다.
+String bookingSeen(String status, DateTime startsAt, String? trainerId) =>
+    '$status|${startsAt.toUtc().toIso8601String()}|${trainerId ?? ''}';
 
 /// 도장에서 생긴 일. 앞의 것일수록 회원이 먼저 알아야 한다.
-enum GymChange { rejected, cancelled, moved, booked, assigned, notice }
+enum GymChange { rejected, cancelled, moved, trainer, booked, assigned, notice }
 
 typedef GymNews = ({
   String key,
@@ -196,7 +197,7 @@ List<GymNews> gymNews(Gym gym, Map<String, String> seen) {
 }
 
 GymChange? _bookingChange(String? seen, GymBooking b) {
-  if (seen == bookingSeen(b.status, b.startsAt)) return null;
+  if (seen == bookingSeen(b.status, b.startsAt, b.trainerId)) return null;
   final status = switch (b.status) {
     'booked' => GymChange.booked,
     'rejected' => GymChange.rejected,
@@ -209,7 +210,12 @@ GymChange? _bookingChange(String? seen, GymBooking b) {
   }
   if (was[0] != b.status) return status;
   if (was[1] != b.startsAt.toUtc().toIso8601String()) return GymChange.moved;
-  return null;
+  // 맡은 트레이너(대강)는 앞뒤 id 를 다 알 때만 견준다 — 옛 서버의 예약이나 담당이 탈퇴한
+  // 예약은 소식이 아니다.
+  final before = was.length > 2 ? was[2] : '', now = b.trainerId;
+  return before.isNotEmpty && now != null && before != now
+      ? GymChange.trainer
+      : null;
 }
 
 /// 트레이너가 내려준 루틴 하나.
@@ -994,6 +1000,7 @@ typedef Booking = ({
   String id,
   String gym,
   String trainer,
+  String? trainerId,
   DateTime startsAt,
   String status,
 });
@@ -1023,6 +1030,7 @@ extension BookingLink on GymLink {
                 id: row['id'] as String,
                 gym: row['gym'] as String,
                 trainer: row['trainer'] as String,
+                trainerId: row['trainer_id'] as String?,
                 startsAt: DateTime.parse(row['starts_at'] as String).toLocal(),
                 status: row['status'] as String? ?? 'booked',
               ),

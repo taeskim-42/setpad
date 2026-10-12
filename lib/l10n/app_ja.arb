@@ -884,6 +884,7 @@
   "newsRejected": "PT申請が拒否されました · {when}",
   "newsCancelled": "PTキャンセル · {when}",
   "newsMoved": "PT時間変更 · {when}",
+  "newsTrainer": "PT担当変更 · {trainer} · {when}",
   "newsAssigned": "担当トレーナー変更 · {trainer}",
   "newsNotice": "お知らせ · {title}",
   "newsMore": "{news} ほか{n}件",

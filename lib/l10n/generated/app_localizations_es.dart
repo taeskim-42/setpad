@@ -3720,6 +3720,11 @@ class LEs extends L {
   }
 
   @override
+  String newsTrainer(String trainer, String when) {
+    return 'Cambio de entrenador de PT · $trainer · $when';
+  }
+
+  @override
   String newsAssigned(String trainer) {
     return 'Nuevo entrenador · $trainer';
   }

@@ -5323,6 +5323,12 @@ abstract class L {
   /// **'PT 시간 변경 · {when}'**
   String newsMoved(String when);
 
+  /// 도장 소식: PT 를 맡는 트레이너가 바뀌었다(대강).
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 담당 변경 · {trainer} 트레이너 · {when}'**
+  String newsTrainer(String trainer, String when);
+
   /// 도장 소식: 내 담당 트레이너가 바뀌었다.
   ///
   /// In ko, this message translates to:

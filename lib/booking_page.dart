@@ -96,7 +96,8 @@ class _BookingPageState extends State<BookingPage> {
     final store = widget.store, owner = widget.account.userId;
     if (store == null || owner == null || store.gymSeenOwner != owner) return;
     store.markGymSeen({
-      for (final b in bookings) 'b:${b.id}': bookingSeen(b.status, b.startsAt),
+      for (final b in bookings)
+        'b:${b.id}': bookingSeen(b.status, b.startsAt, b.trainerId),
     });
   }
 
@@ -141,6 +142,7 @@ class _BookingPageState extends State<BookingPage> {
           id: booking.id,
           gym: booking.gym,
           trainer: booking.trainer,
+          trainerId: booking.trainerId,
           startsAt: booking.startsAt,
           status: 'cancelled',
         ),

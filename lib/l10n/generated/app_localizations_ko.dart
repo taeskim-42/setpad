@@ -3563,6 +3563,11 @@ class LKo extends L {
   }
 
   @override
+  String newsTrainer(String trainer, String when) {
+    return 'PT 담당 변경 · $trainer 트레이너 · $when';
+  }
+
+  @override
   String newsAssigned(String trainer) {
     return '담당 트레이너 변경 · $trainer';
   }

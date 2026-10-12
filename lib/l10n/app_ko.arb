@@ -3547,6 +3547,8 @@
   "@newsCancelled": {"description": "도장 소식: PT 가 취소됐다.", "placeholders": {"when": {"type": "String"}}},
   "newsMoved": "PT 시간 변경 · {when}",
   "@newsMoved": {"description": "도장 소식: 트레이너가 PT 시간을 옮겼다. when 은 새 시각.", "placeholders": {"when": {"type": "String"}}},
+  "newsTrainer": "PT 담당 변경 · {trainer} 트레이너 · {when}",
+  "@newsTrainer": {"description": "도장 소식: PT 를 맡는 트레이너가 바뀌었다(대강).", "placeholders": {"trainer": {"type": "String"}, "when": {"type": "String"}}},
   "newsAssigned": "담당 트레이너 변경 · {trainer}",
   "@newsAssigned": {"description": "도장 소식: 내 담당 트레이너가 바뀌었다.", "placeholders": {"trainer": {"type": "String"}}},
   "newsNotice": "공지 · {title}",

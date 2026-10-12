@@ -3642,6 +3642,11 @@ class LTh extends L {
   }
 
   @override
+  String newsTrainer(String trainer, String when) {
+    return 'เปลี่ยนเทรนเนอร์ PT · $trainer · $when';
+  }
+
+  @override
   String newsAssigned(String trainer) {
     return 'เปลี่ยนเทรนเนอร์ประจำ · $trainer';
   }

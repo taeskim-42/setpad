@@ -3557,6 +3557,11 @@ class LJa extends L {
   }
 
   @override
+  String newsTrainer(String trainer, String when) {
+    return 'PT担当変更 · $trainer · $when';
+  }
+
+  @override
   String newsAssigned(String trainer) {
     return '担当トレーナー変更 · $trainer';
   }

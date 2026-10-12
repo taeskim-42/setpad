@@ -396,8 +396,13 @@ void main() {
         dir.deleteSync(recursive: true);
       });
       final at = DateTime.now().add(const Duration(days: 1));
-      GymBooking booking(String status) =>
-          (id: 'b1', startsAt: at, trainer: '김코치', status: status);
+      GymBooking booking(String status) => (
+        id: 'b1',
+        startsAt: at,
+        trainer: '김코치',
+        trainerId: 't1',
+        status: status,
+      );
       // 지난번 본 것은 승인 대기였다.
       store.seedGymSeen(
         'u1',
@@ -418,6 +423,7 @@ void main() {
                               'id': 'b1',
                               'startsAt': at.toUtc().toIso8601String(),
                               'trainer': '김코치',
+                              'trainerId': 't1',
                               'status': 'rejected',
                             },
                           ],
@@ -461,7 +467,7 @@ void main() {
       await tester.tap(news);
       await tester.pumpAndSettle();
       expect(find.byType(GymPage), findsOneWidget);
-      expect(store.gymSeen['b:b1'], bookingSeen('rejected', at));
+      expect(store.gymSeen['b:b1'], bookingSeen('rejected', at, 't1'));
       await tester.pageBack();
       await tester.pumpAndSettle();
       expect(news, findsNothing, reason: '본 것은 다시 뜨지 않는다');

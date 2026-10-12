@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/account.dart';
 import 'package:setpad/booking_page.dart';
 import 'package:setpad/editor.dart' show ExerciseBlock;
@@ -37,6 +38,7 @@ void main() {
     'startsAt': when.toUtc().toIso8601String(),
     'endsAt': when.add(const Duration(minutes: 50)).toUtc().toIso8601String(),
     'trainer': '김코치',
+    'trainerId': 't1',
     'status': status,
   };
 
@@ -139,12 +141,19 @@ void main() {
     expect(passLines(l, const Gym(id: 'g', name: 'g')), ['쓸 수 있는 회원권이 없어요']);
   });
 
-  test('도장 소식은 지난번 본 것과 견준다 — 회원이 스스로 낸 신청·취소는 소식이 아니고, 무거운 것부터', () {
+  test('도장 소식은 지난번 본 것과 견준다 — 회원이 스스로 낸 신청·취소는 소식이 아니고, 무거운 것부터', () async {
     final when = DateTime.utc(2026, 10, 14, 10);
-    GymBooking b(String id, String status, {DateTime? at, String? trainer}) => (
+    GymBooking b(
+      String id,
+      String status, {
+      DateTime? at,
+      String? trainer,
+      String? trainerId = 't1',
+    }) => (
       id: id,
       startsAt: at ?? when,
       trainer: trainer ?? '김코치',
+      trainerId: trainerId,
       status: status,
     );
     Gym gym(
@@ -165,6 +174,8 @@ void main() {
       b('same', 'booked'),
       b('mv', 'booked'),
       b('tr', 'booked'),
+      b('sub', 'booked'),
+      b('old', 'booked'),
       b('x', 'booked'),
     ]);
     final seen = gymSeenOf(before);
@@ -175,8 +186,11 @@ void main() {
         b('p', 'booked'), // 승인됐다
         b('same', 'booked'),
         b('mv', 'booked', at: when.add(const Duration(hours: 1))),
-        // 같은 트레이너가 닉네임을 바꿨다 — 예약은 닉네임만 와서 담당이 바뀐 것과 가를 수 없다.
-        b('tr', 'booked', trainer: '박코치'),
+        // 같은 트레이너가 닉네임만 바꿨다 — id 가 같으니 담당 변경이 아니다.
+        b('tr', 'booked', trainer: '김트레이너'),
+        b('sub', 'booked', trainer: '박코치', trainerId: 't9'), // 대강
+        b('old', 'booked', trainerId: null), // 담당 id 를 모르는 옛 서버
+
         b('x', 'cancelled'),
         b('mine', 'pending'), // 회원이 낸 신청
         b('gone', 'cancelled'), // 처음 보는 취소 — 대개 회원이 한 것
@@ -194,6 +208,7 @@ void main() {
         ('b:no', GymChange.rejected),
         ('b:x', GymChange.cancelled),
         ('b:mv', GymChange.moved),
+        ('b:sub', GymChange.trainer),
         ('b:p', GymChange.booked),
         ('b:given', GymChange.booked),
         ('t:g1', GymChange.assigned),
@@ -201,6 +216,14 @@ void main() {
       ],
     );
     expect(gymNews(after, {...seen, ...gymSeenOf(after)}), isEmpty);
+
+    await initializeDateFormatting('ko');
+    final l = await L.delegate.load(const Locale('ko'));
+    final sub = gymNews(after, seen).firstWhere((n) => n.key == 'b:sub');
+    expect(
+      newsText(l, after, sub),
+      'PT 담당 변경 · 박코치 트레이너 · ${shortWhen(l, when)}',
+    );
   });
 
   test('본 도장 소식은 저장했다 다시 읽어도 남고, 300개를 넘으면 오래 본 것부터 버린다', () async {
@@ -332,7 +355,7 @@ void main() {
       findsOneWidget,
       reason: '무엇이 바뀌었는지 도장 화면에도 표시한다',
     );
-    expect(store.gymSeen['b:b1'], bookingSeen('rejected', at));
+    expect(store.gymSeen['b:b1'], bookingSeen('rejected', at, 't1'));
 
     await tester.pageBack();
     await tester.pumpAndSettle();
@@ -750,6 +773,7 @@ void main() {
                 'id': 'old',
                 'gym': 'BPM',
                 'trainer': '김코치',
+                'trainer_id': 't1',
                 'starts_at': soon.toUtc().toIso8601String(),
                 'status': 'booked',
               },
@@ -758,6 +782,7 @@ void main() {
                   'id': 'new',
                   'gym': 'BPM',
                   'trainer': '김코치',
+                  'trainer_id': 't1',
                   'starts_at': slot.toUtc().toIso8601String(),
                   'status': 'booked',
                 },
@@ -815,15 +840,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(store.gymSeen, {
-      'b:new': bookingSeen('booked', slot),
-      'b:old': bookingSeen('cancelled', soon),
+      'b:new': bookingSeen('booked', slot, 't1'),
+      'b:old': bookingSeen('cancelled', soon, 't1'),
     });
     final gym = Gym(
       id: 'g1',
       name: 'BPM',
       bookings: [
-        (id: 'new', startsAt: slot, trainer: '김코치', status: 'booked'),
-        (id: 'old', startsAt: soon, trainer: '김코치', status: 'cancelled'),
+        (
+          id: 'new',
+          startsAt: slot,
+          trainer: '김코치',
+          trainerId: 't1',
+          status: 'booked',
+        ),
+        (
+          id: 'old',
+          startsAt: soon,
+          trainer: '김코치',
+          trainerId: 't1',
+          status: 'cancelled',
+        ),
       ],
     );
     expect(gymNews(gym, store.gymSeen), isEmpty, reason: '회원이 방금 한 일이다');
