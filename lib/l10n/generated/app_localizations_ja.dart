@@ -3412,4 +3412,11 @@ class LJa extends L {
 
   @override
   String get agentAlarmChannelDesc => 'トレーナーの報告ができたらお知らせします';
+
+  @override
+  String get updateRequired =>
+      'このバージョンはサーバーに接続できなくなりました。アプリをアップデートしてください。記録はこの端末に残っています。';
+
+  @override
+  String get updateAction => 'アップデート';
 }

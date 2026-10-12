@@ -3493,4 +3493,11 @@ class LTh extends L {
 
   @override
   String get agentAlarmChannelDesc => 'แจ้งเตือนเมื่อรายงานของเทรนเนอร์พร้อม';
+
+  @override
+  String get updateRequired =>
+      'เวอร์ชันนี้เชื่อมต่อเซิร์ฟเวอร์ไม่ได้แล้ว โปรดอัปเดตแอป บันทึกของคุณยังอยู่ในเครื่องนี้';
+
+  @override
+  String get updateAction => 'อัปเดต';
 }

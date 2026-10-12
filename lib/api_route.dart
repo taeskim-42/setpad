@@ -34,24 +34,83 @@ const connectTimeout = Duration(seconds: 8);
 /// 영영 예비에 눌러앉지도, 요청마다 막힌 길을 먼저 두드리지도 않는다.
 const _rememberFor = Duration(minutes: 10);
 
-/// 앱의 모든 서버 요청이 쓰는 클라이언트.
+/// 서버가 견주는 앱 판 번호. `1.6.1` → 10601, 읽을 수 없으면 0.
+///
+/// **스토어의 빌드 번호를 쓰지 않는다.** 아이폰은 96 처럼 하나씩, 안드로이드는
+/// 2020년부터의 분(350만쯤)으로 매겨서, 서버의 최소 판(MIN_APP_BUILD) 하나로 두 폰을
+/// 함께 가를 수 없다 — 안드로이드 수로 올리면 아이폰이 모두 막힌다. 판 이름은 같다.
+int releaseNumber(String version) {
+  final n = version.split('.').map(int.tryParse).toList();
+  if (n.length != 3 || n.any((x) => x == null || x < 0)) return 0;
+  if (n[1]! > 99 || n[2]! > 99) return 0;
+  return n[0]! * 10000 + n[1]! * 100 + n[2]!;
+}
+
+/// 이 앱의 판 번호. 판 이름은 빌드할 때 준다(fastlane 이 pubspec 의 것을
+/// `--dart-define=SETPAD_VERSION=…` 로 넣는다). 없으면(손으로 돌린 빌드) 0 이고, 판
+/// 머리말을 보내지 않는다 — 서버는 머리말 없는 요청을 막지 않는다.
+final appBuild = releaseNumber(const String.fromEnvironment('SETPAD_VERSION'));
+
+/// 서버가 이 판을 더는 받지 않는다(426 updateRequired). 홈이 업데이트 안내를 띄운다.
+final updateRequired = ValueNotifier<bool>(false);
+
+/// 서버가 쉬었다 오라고 한 시간(429·503 의 Retry-After 초). 없으면 null.
+Duration? retryAfter(http.BaseResponse response) {
+  final seconds = int.tryParse(response.headers['retry-after'] ?? '');
+  return seconds == null || seconds < 0 ? null : Duration(seconds: seconds);
+}
+
+/// 앱 전체가 함께 쓰는 클라이언트. **닫지 않는다** — 연결을 다시 써서 요청마다
+/// TCP·TLS 를 새로 맺지 않는다(서버는 싱가포르다. 새로 맺는 데 왕복이 두세 번 든다).
+///
+/// 부르는 쪽이 시간 초과로 그만둬도 그 연결은 서버가 답할 때까지 남는다. 서버가 그
+/// 일로 값을 매기는 요청(기록 질문)은 그만둘 때 끊는다(RecordAi._ask). 오래 열어 두는
+/// 같이 하기 스트림은 저마다의 클라이언트를 열고 닫는다(partnerEvents).
+final http.Client apiClient = newApiClient();
+
+/// 서버로 가는 클라이언트를 만든다. 앱은 [apiClient] 하나를 쓴다.
 http.Client newApiClient({
   String primary = const String.fromEnvironment(
     'API_BASE',
     defaultValue: 'https://gym.darak.studio',
   ),
   String backup = apiBackup,
+  int? build,
+  @visibleForTesting http.Client? inner,
 }) {
-  // 웹에는 dart:io 가 없다. 브라우저가 연결을 쥐고 있어 여기서 할 일도 없다.
-  if (kIsWeb) return http.Client();
-  final inner = IOClient(HttpClient()..connectionTimeout = connectTimeout);
-  return backup.isEmpty
-      ? inner
-      : FailoverClient(
-          inner,
-          primary: Uri.parse(primary),
-          backup: Uri.parse(backup),
-        );
+  // 웹에는 dart:io 가 없다. 브라우저가 연결을 쥐고 있어 길을 고를 일도 없다.
+  if (kIsWeb) return _AppClient(inner ?? http.Client(), build ?? appBuild);
+  final base =
+      inner ?? IOClient(HttpClient()..connectionTimeout = connectTimeout);
+  return _AppClient(
+    backup.isEmpty
+        ? base
+        : FailoverClient(
+            base,
+            primary: Uri.parse(primary),
+            backup: Uri.parse(backup),
+          ),
+    build ?? appBuild,
+  );
+}
+
+/// 모든 요청에 앱 판을 싣고(`x-setpad-build`), 서버가 이 판을 더는 받지 않는다고
+/// 답하면(426) 알린다. 사고 난 판을 서버가 끊어 낼 수 있는 자리다.
+class _AppClient extends http.BaseClient {
+  _AppClient(this._inner, this._build);
+  final http.Client _inner;
+  final int _build;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (_build > 0) request.headers['x-setpad-build'] = '$_build';
+    final response = await _inner.send(request);
+    if (response.statusCode == 426) updateRequired.value = true;
+    return response;
+  }
+
+  @override
+  void close() => _inner.close();
 }
 
 /// 기본 주소로 가는 요청을, 연결이 안 되면 예비 주소로 **한 번** 다시 보낸다.
@@ -65,7 +124,7 @@ class FailoverClient extends http.BaseClient {
   final http.Client _inner;
   final Uri primary, backup;
 
-  /// 앱 전체가 같이 기억한다. 요청마다 클라이언트를 새로 만들기 때문이다.
+  /// 앱 전체가 같이 기억한다. 같이 하기 스트림은 저마다의 클라이언트를 쓴다.
   static DateTime? _backupUntil;
 
   @visibleForTesting

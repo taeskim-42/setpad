@@ -273,7 +273,7 @@ class Account extends ChangeNotifier {
   /// 와서 **다니는 곳이 없는 사람처럼** 보인다 — 등록을 다시 신청하게 된다.
   /// 그물이 없어서 못 물어본 것과 서버가 거절한 것은 다르다. 거절일 때만 지운다.
   Future<bool> _stillValid() async {
-    final web = client ?? newApiClient();
+    final web = client ?? apiClient;
     try {
       // 기다리는 데도 끝이 있어야 한다. 길이 막혔을 때 여기서 매달리면 앱의 나머지
       // (체육관 목록, 밀린 전송)가 같이 멈춘다. 못 물어본 것은 로그아웃이 아니다.
@@ -324,8 +324,6 @@ class Account extends ChangeNotifier {
       return true;
     } catch (_) {
       return true; // 물어보지 못했을 뿐이다. 알던 것을 그대로 쓴다.
-    } finally {
-      if (client == null) web.close();
     }
   }
 
@@ -462,7 +460,7 @@ class Account extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    final web = client ?? newApiClient();
+    final web = client ?? apiClient;
     try {
       final response = await web.post(
         Uri.parse('$endpoint/api/purchase'),
@@ -490,8 +488,6 @@ class Account extends ChangeNotifier {
       // 스토어는 이미 완료 처리했다. 복원을 눌러야 다시 보낼 수 있다고 알린다.
       purchaseProblem = PurchaseProblem.notConfirmed;
       notifyListeners();
-    } finally {
-      if (client == null) web.close();
     }
   }
 
@@ -507,7 +503,7 @@ class Account extends ChangeNotifier {
   Future<void> _refresh() async {
     // 로그인 전에는 기기 토큰이다 — 로그인 없이 산 것도 여기서 보인다.
     final bearer = await ai.bearer();
-    final web = client ?? newApiClient();
+    final web = client ?? apiClient;
     try {
       // 다른 물음과 같이 끝이 있다. 연결된 뒤 답이 멈추면 start() 가 끝나지 않는다.
       final response = await web
@@ -525,8 +521,6 @@ class Account extends ChangeNotifier {
       notifyListeners();
     } catch (_) {
       // 그물이 없으면 알던 것을 그대로 쓴다.
-    } finally {
-      if (client == null) web.close();
     }
   }
 

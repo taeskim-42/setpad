@@ -38,15 +38,9 @@ class GymLink {
 
   bool get supported => token != null;
 
-  /// 그물을 빌려 쓰고 반드시 닫는다. 확장도 같은 것을 쓴다.
-  Future<T> withClient<T>(Future<T> Function(http.Client web) run) async {
-    final web = client ?? newApiClient();
-    try {
-      return await run(web);
-    } finally {
-      if (client == null) web.close();
-    }
-  }
+  /// 그물을 빌려 쓴다(앱이 함께 쓰는 것이라 닫지 않는다). 확장도 같은 것을 쓴다.
+  Future<T> withClient<T>(Future<T> Function(http.Client web) run) =>
+      run(client ?? apiClient);
 
   Map<String, String> get headers => {'authorization': 'Bearer $token'};
 

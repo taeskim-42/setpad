@@ -3560,4 +3560,11 @@ class LEs extends L {
   @override
   String get agentAlarmChannelDesc =>
       'Te avisa cuando el informe del entrenador está listo';
+
+  @override
+  String get updateRequired =>
+      'Esta versión ya no puede conectarse al servidor. Actualiza la app; tus registros siguen en este dispositivo.';
+
+  @override
+  String get updateAction => 'Actualizar';
 }

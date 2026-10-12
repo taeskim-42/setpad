@@ -844,5 +844,7 @@
     }
   },
   "agentAlarmChannel": "智能体报告",
-  "agentAlarmChannelDesc": "教练报告准备好时通知你"
+  "agentAlarmChannelDesc": "教练报告准备好时通知你",
+  "updateRequired": "此版本已无法连接服务器。请更新应用——你的记录仍保存在本设备上。",
+  "updateAction": "更新"
 }

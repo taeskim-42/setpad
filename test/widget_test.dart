@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:setpad/api_route.dart' show updateRequired;
 import 'package:setpad/editor.dart';
 import 'package:setpad/exercises.dart';
 import 'package:setpad/parser.dart';
@@ -569,6 +570,34 @@ void keypadTests() {
       await settle(tester);
       expect(editors(), [today]);
       expect(store.notes, contains(other), reason: '닫힌 기록은 그대로 남는다');
+    });
+
+    testWidgets('서버가 이 판을 받지 않으면(426) 닫을 수 없는 업데이트 안내가 한 번 뜬다', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_update');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      addTearDown(() => updateRequired.value = false);
+      await pumpWithStore(tester, dir);
+      const asked =
+          '이 버전은 더 이상 서버와 연결할 수 없어요. 앱을 업데이트해 주세요 — 적은 기록은 이 기기에 그대로 있어요.';
+      expect(find.text(asked), findsNothing);
+
+      updateRequired.value = true;
+      await settle(tester);
+      expect(find.text(asked), findsOneWidget);
+      expect(dialogAction('업데이트'), findsOneWidget);
+
+      // 바깥을 눌러도, 안드로이드 뒤로 가기로도 닫히지 않는다.
+      await tester.tapAt(const Offset(5, 5));
+      await settle(tester);
+      await tester.binding.handlePopRoute();
+      await settle(tester);
+      expect(find.text(asked), findsOneWidget);
+
+      // 426 이 또 와도 안내는 하나다.
+      updateRequired.value = false;
+      updateRequired.value = true;
+      await settle(tester);
+      expect(find.text(asked), findsOneWidget);
     });
 
     testWidgets('목록은 이전 7일, 그 앞은 달마다 — 올해가 아니면 해까지, 달 제목은 줄의 날짜와 같다', (

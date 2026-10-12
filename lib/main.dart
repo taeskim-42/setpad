@@ -17,6 +17,7 @@ import 'package:flutter/foundation.dart';
 import 'package:app_links/app_links.dart';
 
 import 'account.dart';
+import 'api_route.dart' show updateRequired;
 import 'sign_in.dart';
 import 'sign_in_sheet.dart';
 import 'agent_alarm.dart';
@@ -126,6 +127,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    updateRequired.addListener(_askUpdate);
     _watchTags();
     _alarmTaps = _reportTaps.listen(_openReport);
     // 심박이 올 때마다 남긴다. HealthKit 이 실제로 얼마나 자주 깨워 주는지를
@@ -153,6 +155,46 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 오늘 기록을 이어 쓴다. 하루에 앱을 여러 번 여는 흐름에서 열 때마다 새 기록이
   /// 쌓이면 목록이 못 쓰게 된다.
   Note _todayOrNew() => _store.today();
+
+  bool _updateAsked = false;
+
+  /// 서버가 이 판을 더는 받지 않는다(426). 스토어로 가는 안내를 한 번 띄우고 닫지
+  /// 못하게 둔다 — 사고 난 판을 서버가 끊어 낸 것이라, 이 판으로는 서버와 다시
+  /// 이야기하지 못한다. 적은 기록은 기기에 그대로 있다.
+  void _askUpdate() {
+    if (!updateRequired.value || _updateAsked || !mounted) return;
+    _updateAsked = true;
+    unawaited(
+      showCupertinoDialog<void>(
+        context: context,
+        builder: (ctx) => PopScope(
+          canPop: false,
+          child: CupertinoAlertDialog(
+            content: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                L.of(ctx).updateRequired,
+                style: const TextStyle(fontSize: 15),
+              ),
+            ),
+            actions: [
+              CupertinoDialogAction(
+                key: const ValueKey('update-store'),
+                isDefaultAction: true,
+                onPressed: () => openUrl(_storeUrl),
+                child: Text(L.of(ctx).updateAction),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 이 앱의 스토어 쪽. 웹의 '앱 받기'(gymdojo get-app.tsx)와 같은 주소다.
+  static String get _storeUrl => defaultTargetPlatform == TargetPlatform.iOS
+      ? 'https://apps.apple.com/app/id6757940370'
+      : 'https://play.google.com/store/apps/details?id=com.taeskim.setpad';
 
   Future<void> _open(Note note) async {
     // 이미 열려 있으면 그 편집기로 돌아간다. 하나 더 열면 두 편집기가 저마다의
@@ -496,6 +538,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    updateRequired.removeListener(_askUpdate);
     _tags?.cancel();
     _store.removeListener(_claimDaily);
     _alarmTaps?.cancel();

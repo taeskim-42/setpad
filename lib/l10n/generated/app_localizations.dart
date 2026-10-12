@@ -5088,6 +5088,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'트레이너 보고가 준비되면 알려요'**
   String get agentAlarmChannelDesc;
+
+  /// 서버가 이 판을 더는 받지 않는다(426 updateRequired). 닫을 수 없는 안내창의 본문.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 버전은 더 이상 서버와 연결할 수 없어요. 앱을 업데이트해 주세요 — 적은 기록은 이 기기에 그대로 있어요.'**
+  String get updateRequired;
+
+  /// 업데이트 안내창의 단추. 스토어를 연다.
+  ///
+  /// In ko, this message translates to:
+  /// **'업데이트'**
+  String get updateAction;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

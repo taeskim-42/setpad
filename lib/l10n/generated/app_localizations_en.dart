@@ -3536,4 +3536,11 @@ class LEn extends L {
   @override
   String get agentAlarmChannelDesc =>
       'Notifies you when the trainer report is ready';
+
+  @override
+  String get updateRequired =>
+      'This version can no longer connect to the server. Please update the app — your records stay on this device.';
+
+  @override
+  String get updateAction => 'Update';
 }

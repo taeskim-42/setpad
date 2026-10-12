@@ -236,7 +236,7 @@ Future<({String token, String nickname})?> exchange(
   String? currentToken,
   http.Client? client,
 }) async {
-  final web = client ?? newApiClient();
+  final web = client ?? apiClient;
   try {
     final response = await web
         .post(
@@ -280,7 +280,5 @@ Future<({String token, String nickname})?> exchange(
     rethrow;
   } catch (_) {
     return null;
-  } finally {
-    if (client == null) web.close();
   }
 }

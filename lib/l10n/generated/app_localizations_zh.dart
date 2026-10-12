@@ -3384,6 +3384,12 @@ class LZh extends L {
 
   @override
   String get agentAlarmChannelDesc => '教练报告准备好时通知你';
+
+  @override
+  String get updateRequired => '此版本已无法连接服务器。请更新应用——你的记录仍保存在本设备上。';
+
+  @override
+  String get updateAction => '更新';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6766,6 +6772,12 @@ class LZhHans extends LZh {
 
   @override
   String get agentAlarmChannelDesc => '教练报告准备好时通知你';
+
+  @override
+  String get updateRequired => '此版本已无法连接服务器。请更新应用——你的记录仍保存在本设备上。';
+
+  @override
+  String get updateAction => '更新';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10148,4 +10160,10 @@ class LZhHant extends LZh {
 
   @override
   String get agentAlarmChannelDesc => '教練報告準備好時通知你';
+
+  @override
+  String get updateRequired => '此版本已無法連線伺服器。請更新應用程式——你的紀錄仍保存在這台裝置上。';
+
+  @override
+  String get updateAction => '更新';
 }

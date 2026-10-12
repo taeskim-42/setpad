@@ -3419,4 +3419,11 @@ class LKo extends L {
 
   @override
   String get agentAlarmChannelDesc => '트레이너 보고가 준비되면 알려요';
+
+  @override
+  String get updateRequired =>
+      '이 버전은 더 이상 서버와 연결할 수 없어요. 앱을 업데이트해 주세요 — 적은 기록은 이 기기에 그대로 있어요.';
+
+  @override
+  String get updateAction => '업데이트';
 }

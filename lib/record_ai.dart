@@ -842,13 +842,10 @@ class RecordAi {
 
   /// 계정 토큰, 없으면 이 기기의 토큰. 로그인 없이 산 것이 서버에 닿는 문이다.
   Future<String?> bearer() async {
-    final web = client ?? newApiClient();
     try {
-      return await _authorize(web);
+      return await _authorize(client ?? apiClient);
     } catch (_) {
       return null;
-    } finally {
-      if (client == null) web.close();
     }
   }
 
@@ -884,7 +881,7 @@ class RecordAi {
     Duration timeout = const Duration(seconds: 20),
     List<double>? spent,
   }) async {
-    final web = client ?? newApiClient();
+    final web = client ?? apiClient;
     try {
       for (var attempt = 0; attempt < 2; attempt++) {
         final account = accountToken?.call();
@@ -955,8 +952,6 @@ class RecordAi {
     } on IOException {
       // TLS(HandshakeException)·소켓은 ClientException 으로 싸이지 않고 온다.
       throw const RecordAiException(RecordAiStatus.unavailable, offline: true);
-    } finally {
-      if (client == null) web.close();
     }
   }
 
@@ -1007,15 +1002,12 @@ class RecordAi {
   Future<RecordAiStatus> status(String locale) async {
     if (respond != null) return RecordAiStatus.ready;
     if (!supported) return RecordAiStatus.unavailable;
-    final web = client ?? newApiClient();
     try {
-      return await _authorize(web) == null
+      return await _authorize(client ?? apiClient) == null
           ? RecordAiStatus.unavailable
           : RecordAiStatus.ready;
     } catch (_) {
       return RecordAiStatus.unavailable;
-    } finally {
-      if (client == null) web.close();
     }
   }
 

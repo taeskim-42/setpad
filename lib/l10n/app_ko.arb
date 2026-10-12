@@ -3468,5 +3468,9 @@
     }
   },
   "agentAlarmChannel": "에이전트 보고",
-  "agentAlarmChannelDesc": "트레이너 보고가 준비되면 알려요"
+  "agentAlarmChannelDesc": "트레이너 보고가 준비되면 알려요",
+  "updateRequired": "이 버전은 더 이상 서버와 연결할 수 없어요. 앱을 업데이트해 주세요 — 적은 기록은 이 기기에 그대로 있어요.",
+  "@updateRequired": {"description": "서버가 이 판을 더는 받지 않는다(426 updateRequired). 닫을 수 없는 안내창의 본문."},
+  "updateAction": "업데이트",
+  "@updateAction": {"description": "업데이트 안내창의 단추. 스토어를 연다."}
 }

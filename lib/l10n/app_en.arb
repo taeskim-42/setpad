@@ -844,5 +844,7 @@
     }
   },
   "agentAlarmChannel": "Agent report",
-  "agentAlarmChannelDesc": "Notifies you when the trainer report is ready"
+  "agentAlarmChannelDesc": "Notifies you when the trainer report is ready",
+  "updateRequired": "This version can no longer connect to the server. Please update the app — your records stay on this device.",
+  "updateAction": "Update"
 }

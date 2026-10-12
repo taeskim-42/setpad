@@ -3517,4 +3517,11 @@ class LVi extends L {
   @override
   String get agentAlarmChannelDesc =>
       'Báo khi báo cáo huấn luyện viên đã sẵn sàng';
+
+  @override
+  String get updateRequired =>
+      'Phiên bản này không còn kết nối được với máy chủ. Vui lòng cập nhật ứng dụng — bản ghi của bạn vẫn còn trên thiết bị này.';
+
+  @override
+  String get updateAction => 'Cập nhật';
 }

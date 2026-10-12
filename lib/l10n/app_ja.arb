@@ -844,5 +844,7 @@
     }
   },
   "agentAlarmChannel": "エージェント報告",
-  "agentAlarmChannelDesc": "トレーナーの報告ができたらお知らせします"
+  "agentAlarmChannelDesc": "トレーナーの報告ができたらお知らせします",
+  "updateRequired": "このバージョンはサーバーに接続できなくなりました。アプリをアップデートしてください。記録はこの端末に残っています。",
+  "updateAction": "アップデート"
 }

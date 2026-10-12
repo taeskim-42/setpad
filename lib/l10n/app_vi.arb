@@ -844,5 +844,7 @@
     }
   },
   "agentAlarmChannel": "Báo cáo của trợ lý",
-  "agentAlarmChannelDesc": "Báo khi báo cáo huấn luyện viên đã sẵn sàng"
+  "agentAlarmChannelDesc": "Báo khi báo cáo huấn luyện viên đã sẵn sàng",
+  "updateRequired": "Phiên bản này không còn kết nối được với máy chủ. Vui lòng cập nhật ứng dụng — bản ghi của bạn vẫn còn trên thiết bị này.",
+  "updateAction": "Cập nhật"
 }

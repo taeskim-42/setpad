@@ -844,5 +844,7 @@
     }
   },
   "agentAlarmChannel": "智慧代理報告",
-  "agentAlarmChannelDesc": "教練報告準備好時通知你"
+  "agentAlarmChannelDesc": "教練報告準備好時通知你",
+  "updateRequired": "此版本已無法連線伺服器。請更新應用程式——你的紀錄仍保存在這台裝置上。",
+  "updateAction": "更新"
 }

@@ -844,5 +844,7 @@
     }
   },
   "agentAlarmChannel": "Informe del agente",
-  "agentAlarmChannelDesc": "Te avisa cuando el informe del entrenador está listo"
+  "agentAlarmChannelDesc": "Te avisa cuando el informe del entrenador está listo",
+  "updateRequired": "Esta versión ya no puede conectarse al servidor. Actualiza la app; tus registros siguen en este dispositivo.",
+  "updateAction": "Actualizar"
 }

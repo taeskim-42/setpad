@@ -134,6 +134,7 @@ platform :ios do
     api_base = ENV["API_BASE"]
     sh("cd .. && flutter build ipa --release " \
        "#{api_base ? "--dart-define=API_BASE=#{api_base} " : ""}" \
+       "--dart-define=SETPAD_VERSION=#{version_name} " \
        "--build-number=#{build_number} --export-method app-store")
 
     upload_to_testflight(
@@ -321,6 +322,7 @@ platform :android do
     api_base = ENV["API_BASE"]
     sh("cd .. && flutter build appbundle --release " \
        "#{api_base ? "--dart-define=API_BASE=#{api_base} " : ""}" \
+       "--dart-define=SETPAD_VERSION=#{version_name} " \
        "--build-number=#{build_number}")
     upload_to_play_store(
       package_name: ANDROID_APP_ID,
@@ -376,6 +378,7 @@ platform :android do
   lane :production do
     build_number = ((Time.now.to_i - Time.utc(2020, 1, 1).to_i) / 60).to_s
     sh("cd .. && flutter build appbundle --release " \
+       "--dart-define=SETPAD_VERSION=#{version_name} " \
        "--build-name=#{version_name} --build-number=#{build_number}")
     upload_to_play_store(
       package_name: ANDROID_APP_ID,

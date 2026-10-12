@@ -145,4 +145,58 @@ void main() {
     client.close();
     expect(const String.fromEnvironment('API_BACKUP'), isEmpty);
   });
+
+  group('앱 판 머리말', () {
+    test('판 이름을 두 폰이 같은 수로 — 1.6.1 은 10601', () {
+      expect(releaseNumber('1.6.1'), 10601);
+      expect(releaseNumber('1.10.0'), 11000);
+      expect(releaseNumber('2.0.0'), 20000);
+      for (final bad in ['', '1.6', '1.6.1+96', '1.100.0', 'a.b.c', '1.6.-1']) {
+        expect(releaseNumber(bad), 0, reason: bad);
+      }
+    });
+
+    test('모든 요청에 판을 싣고, 판을 모르는 빌드는 머리말을 안 보낸다', () async {
+      final builds = <String?>[];
+      final inner = MockClient((request) async {
+        builds.add(request.headers['x-setpad-build']);
+        return http.Response('{}', 200);
+      });
+      await newApiClient(
+        build: 10601,
+        inner: inner,
+      ).get(Uri.parse('$primary/api/me'));
+      await newApiClient(
+        build: 10601,
+        inner: inner,
+        backup: '$backup',
+      ).post(Uri.parse('$primary/api/workouts'), body: '{}');
+      await newApiClient(
+        build: 0,
+        inner: inner,
+      ).get(Uri.parse('$primary/api/me'));
+      expect(builds, ['10601', '10601', null]);
+    });
+
+    test('서버가 이 판을 더는 받지 않으면(426) 알린다', () async {
+      addTearDown(() => updateRequired.value = false);
+      final client = newApiClient(
+        build: 10500,
+        inner: MockClient(
+          (_) async => http.Response('{"error":"updateRequired"}', 426),
+        ),
+      );
+      final response = await client.get(Uri.parse('$primary/api/me'));
+      expect(response.statusCode, 426, reason: '답은 그대로 부르는 쪽에 간다');
+      expect(updateRequired.value, isTrue);
+    });
+  });
+
+  test('client 를 주지 않으면 앱이 함께 쓰는 클라이언트를 빌려 준다 — 요청마다 새로 맺지 않는다', () async {
+    const link = GymLink(endpoint: 'https://gym.darak.studio', token: 't');
+    final first = await link.withClient((web) async => web);
+    final second = await link.withClient((web) async => web);
+    expect(first, same(apiClient));
+    expect(second, same(apiClient));
+  });
 }
