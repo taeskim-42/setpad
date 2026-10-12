@@ -72,7 +72,9 @@ void main() {
     await expectLater(pending, throwsA(isA<WebSignInFailed>()));
   });
 
-  testWidgets('끝내 안 돌아오면 그만둔 것으로 보고 조용히 끝낸다', (tester) async {
+  testWidgets('끝내 안 돌아오면 그만둔 것으로 보고 조용히 끝낸다 — 서버의 시도가 사는 열 분은 기다린다', (
+    tester,
+  ) async {
     Object? thrown;
     var finished = false;
     signInViaWeb(SignInMethod.kakao, 'https://example.com').then(
@@ -84,8 +86,22 @@ void main() {
       },
     );
     await tester.pump(const Duration(minutes: 6));
+    expect(finished, isFalse, reason: '처음 카카오에 가입하면 다섯 분을 넘기기도 한다');
+    await tester.pump(const Duration(minutes: 5));
     expect(thrown, isNull);
     expect(finished, isTrue);
+  });
+
+  testWidgets('다섯 분이 지나 돌아온 표도 받는다', (tester) async {
+    Credential? got;
+    signInViaWeb(
+      SignInMethod.kakao,
+      'https://example.com',
+    ).then((credential) => got = credential);
+    await tester.pump(const Duration(minutes: 7));
+    expect(finishWebSignIn(Uri.parse('setpad://signin?handoff=h.t.x')), isTrue);
+    await tester.pump();
+    expect(got?.idToken, 'h.t.x');
   });
 
   test('같은 스티커를 다시 대면 기다리던 웹 로그인을 놓는다', () async {

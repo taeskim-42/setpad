@@ -179,11 +179,13 @@ Future<Uri?> _viaBrowser(String url) async {
     return null;
   }
   try {
-    // 브라우저를 그냥 닫으면 돌아오는 주소가 없다. 다섯 분이 지나면 그만둔 것으로
-    // 본다 — 그만둔 사람에게 '실패' 라고 하지 않는다. 서버가 못 받아 준 것은 서버가
-    // error 를 붙여 앱으로 돌려보낸다(시도를 잃은 경우도).
+    // 브라우저를 그냥 닫으면 돌아오는 주소가 없다. 서버의 로그인 시도가 사는 열 분
+    // (oauth 시도 쿠키)을 기다리고, 그 뒤에는 그만둔 것으로 본다 — 그만둔 사람에게
+    // '실패' 라고 하지 않는다. 다섯 분에서 끊던 때는 처음 카카오에 가입하느라 늦게
+    // 돌아온 표를 버렸다. 서버가 못 받아 준 것은 서버가 error 를 붙여 앱으로
+    // 돌려보낸다(시도를 잃은 경우도).
     return await waiting.future.timeout(
-      const Duration(minutes: 5),
+      const Duration(minutes: 10),
       onTimeout: () => null,
     );
   } finally {

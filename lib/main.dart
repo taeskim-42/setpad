@@ -360,7 +360,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     if (_handling == gymId) {
       // 같은 스티커가 또 왔다. 처음 링크와 스트림이 같은 것을 두 번 주는 것이면
       // 무시한다. 브라우저 로그인을 기다리는 중이었으면 — 사람이 카카오 화면에서
-      // 그냥 돌아온 것이다 — 그 기다림을 놓고 새로 처리한다. 안 그러면 다섯 분
+      // 그냥 돌아온 것이다 — 그 기다림을 놓고 새로 처리한다. 안 그러면 열 분
       // 동안 스티커가 아무 말이 없다.
       if (!cancelWebSignIn()) return;
       await _handlingTag;
