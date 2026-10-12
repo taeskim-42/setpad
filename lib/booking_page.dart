@@ -64,15 +64,21 @@ class _BookingPageState extends State<BookingPage> {
 
   Future<void> _book(DateTime at) async {
     setState(() => _busy = true);
-    final ok = await widget.account.link.book(at, gymId: widget.gymId);
+    final problem = await widget.account.link.book(at, gymId: widget.gymId);
     if (!mounted) return;
     final l = L.of(context);
     setState(() {
-      _notice = ok ? l.bookingSent : l.bookingNone;
-      _picked = ok ? null : _picked;
+      _notice = problem == null ? l.bookingSent : _failure(l, problem);
+      _picked = problem == null ? null : _picked;
     });
-    await _load(day: ok ? null : _picked);
+    await _load(day: problem == null ? null : _picked);
   }
+
+  /// 못 한 까닭. 서버가 적은 말(이용권이 끝났다, 담당이 바뀌었다, 시작 시각이
+  /// 지났다)을 그대로 — 무엇이든 '빈 시간이 없다' 로 보이면 회원은 다른 날만 누른다.
+  /// 말이 없으면 서버에 닿지 못한 것이다.
+  String _failure(L l, String reason) =>
+      reason.isEmpty ? l.partnerErrNetwork : reason;
 
   Future<void> _cancel(Booking booking) async {
     final l = L.of(context);
@@ -98,15 +104,23 @@ class _BookingPageState extends State<BookingPage> {
     );
     if (yes != true || !mounted) return;
     setState(() => _busy = true);
-    await widget.account.link.cancelBooking(booking.id);
-    if (mounted) await _load(day: _picked);
+    final problem = await widget.account.link.cancelBooking(booking.id);
+    if (!mounted) return;
+    // 못 취소했으면 말한다. 목록에 그대로 남기만 하면 취소된 줄 알고 안 온다.
+    if (problem != null) {
+      setState(() => _notice = _failure(L.of(context), problem));
+    }
+    await _load(day: _picked);
   }
 
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
+    // 시작 시각이 지난 것은 다가오는 예약이 아니다 — 취소도 서버가 받지 않는다.
+    final now = DateTime.now();
     final upcoming = _state.bookings
         .where((b) => b.status == 'pending' || b.status == 'booked')
+        .where((b) => b.startsAt.isAfter(now))
         .toList();
 
     return CupertinoPageScaffold(

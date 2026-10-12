@@ -484,24 +484,40 @@ Future<void> sendDeletes(
   if (changed) onSent();
 }
 
+/// 답의 JSON 몸. 못 읽으면 null.
+Map<String, Object?>? _bodyOf(http.Response response) {
+  try {
+    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    return decoded is Map ? decoded.cast<String, Object?>() : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/// 서버가 거절하며 적은 까닭(한국어, 그대로 보여도 된다). 답을 못 받았거나 까닭이
+/// 없으면 ''.
+String _reason(Map<String, Object?>? body) =>
+    body?['message'] is String ? body!['message'] as String : '';
+
 extension _Posting on GymLink {
-  Future<Map<String, Object?>?> _post(String path, Map<String, Object?> body) =>
-      withClient((web) async {
-        try {
-          final response = await web
-              .post(
-                Uri.parse('$endpoint$path'),
-                headers: {...headers, 'content-type': 'application/json'},
-                body: jsonEncode(body),
-              )
-              .timeout(const Duration(seconds: 15));
-          if (response.statusCode != 200) return null;
-          final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-          return decoded is Map ? decoded.cast<String, Object?>() : null;
-        } catch (_) {
-          return null;
-        }
-      });
+  /// 서버의 답. 닿지 못했으면 null.
+  Future<({int status, Map<String, Object?>? body})?> _post(
+    String path,
+    Map<String, Object?> body,
+  ) => withClient((web) async {
+    try {
+      final response = await web
+          .post(
+            Uri.parse('$endpoint$path'),
+            headers: {...headers, 'content-type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
+      return (status: response.statusCode, body: _bodyOf(response));
+    } catch (_) {
+      return null;
+    }
+  });
 }
 
 /// 회원 등록 신청의 결과. 서버가 돌려주는 말 그대로다.
@@ -538,7 +554,8 @@ extension MemberLink on GymLink {
   Future<JoinState> requestJoin(String gymId) async {
     if (!supported) return JoinState.failed;
     final answer = await _post('/api/members', {'gymId': gymId});
-    return switch (answer?['state']) {
+    final body = answer?.status == 200 ? answer?.body : null;
+    return switch (body?['state']) {
       'requested' => JoinState.requested,
       'waiting' => JoinState.waiting,
       'member' => JoinState.member,
@@ -646,18 +663,22 @@ extension BookingLink on GymLink {
     });
   }
 
-  /// 빈 자리를 잡는다. 그 사이 남이 가져갔으면 실패한다 — 서버가 다시 센다.
-  Future<bool> book(DateTime startsAt, {String? gymId}) async {
-    if (!supported) return false;
+  /// 빈 자리를 잡는다. 잡았으면 null, 못 잡았으면 서버가 적은 까닭이다 — 그 사이 남이
+  /// 가져갔다, 이용권이 끝났다, 담당이 바뀌었다. 서버에 못 닿았거나 까닭이 없으면 ''.
+  /// 까닭을 버리면 회원은 무엇이든 '빈 시간이 없다' 로 읽고 다른 날을 계속 누른다.
+  Future<String?> book(DateTime startsAt, {String? gymId}) async {
+    if (!supported) return '';
     final answer = await _post('/api/bookings', {
       'startsAt': startsAt.toUtc().toIso8601String(),
       'gymId': ?gymId,
     });
-    return answer?['id'] is String;
+    if (answer?.status == 200 && answer!.body?['id'] is String) return null;
+    return _reason(answer?.body);
   }
 
-  Future<bool> cancelBooking(String id) async {
-    if (!supported) return false;
+  /// 예약을 취소한다. 결과는 [book] 과 같다 — 시작 시각이 지났으면 서버가 거절한다.
+  Future<String?> cancelBooking(String id) async {
+    if (!supported) return '';
     return withClient((web) async {
       try {
         final response = await web
@@ -666,9 +687,9 @@ extension BookingLink on GymLink {
               headers: headers,
             )
             .timeout(const Duration(seconds: 15));
-        return response.statusCode == 200;
+        return response.statusCode == 200 ? null : _reason(_bodyOf(response));
       } catch (_) {
-        return false;
+        return '';
       }
     });
   }

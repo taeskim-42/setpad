@@ -493,11 +493,37 @@ void _shared() {
     expect(found.slots.single.isUtc, isFalse);
   });
 
-  test('그 사이 남이 가져갔으면 잡히지 않는다', () async {
+  test('못 잡거나 못 취소하면 서버가 적은 까닭을 그대로 준다 — 못 닿았으면 빈 말', () async {
+    var status = 409;
+    var body = jsonEncode({
+      'error': 'noPass',
+      'message': 'PT 이용권의 상태·기간·잔여 횟수를 확인해 주세요.',
+    });
     final link = linkThat(
-      (_) async => http.Response('{"error":"slotTaken"}', 409),
+      (_) async => http.Response.bytes(utf8.encode(body), status),
     );
-    expect(await link.book(DateTime(2026, 9, 16, 10)), isFalse);
+    expect(
+      await link.book(DateTime(2026, 9, 16, 10)),
+      'PT 이용권의 상태·기간·잔여 횟수를 확인해 주세요.',
+    );
+    body = jsonEncode({
+      'error': 'tooLate',
+      'message': '시작 시각이 지난 예약입니다. 트레이너에게 확인해 주세요.',
+    });
+    expect(await link.cancelBooking('b1'), '시작 시각이 지난 예약입니다. 트레이너에게 확인해 주세요.');
+    // 까닭 없는 실패(서버가 넘어졌다)와 못 닿은 것은 빈 말이다.
+    status = 500;
+    body = '<html>';
+    expect(await link.book(DateTime(2026, 9, 16, 10)), '');
+    expect(await link.cancelBooking('b1'), '');
+    final offline = linkThat((_) async => throw http.ClientException('off'));
+    expect(await offline.book(DateTime(2026, 9, 16, 10)), '');
+    expect(await offline.cancelBooking('b1'), '');
+    // 잡았고 지웠다.
+    status = 200;
+    body = '{"id":"b9","status":"pending"}';
+    expect(await link.book(DateTime(2026, 9, 16, 10)), isNull);
+    expect(await link.cancelBooking('b9'), isNull);
   });
 
   test('어느 체육관인지 서버에 말한다', () async {
@@ -515,7 +541,7 @@ void _shared() {
     await link.bookings(day: DateTime(2026, 9, 16), gymId: 'g1');
     expect(asked.queryParameters['gymId'], 'g1');
     expect(asked.queryParameters['day'], '2026-09-16');
-    expect(await link.book(DateTime.utc(2026, 9, 16, 1), gymId: 'g1'), isTrue);
+    expect(await link.book(DateTime.utc(2026, 9, 16, 1), gymId: 'g1'), isNull);
     expect(posted!['gymId'], 'g1');
   });
 
