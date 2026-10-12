@@ -125,6 +125,13 @@ Completer<Uri?>? _webReturn;
 /// `setpad://signin?handoff=…` 로 돌려보낸다. 그 표를 서버에 낼 때 challenge 의 원본
 /// (verifier)을 같이 낸다 — 원본은 기기 밖으로 나간 적이 없으니, 주소창으로
 /// 오간 표만 가로채서는 쓸 수 없다(PKCE).
+///
+/// **남은 위험(안드로이드).** `setpad://` 는 검증되지 않은 스킴이라 같은 스킴을 선언한
+/// 다른 앱도 받을 수 있다. 그 앱이 **스스로** 자기 challenge 로 로그인을 시작하면(이미
+/// 카카오에 로그인된 브라우저에서) 표와 원본을 다 가진 셈이라 PKCE 가 막지 못한다
+/// (RFC 8252 §8.1). 아이폰의 앱 안 창은 표를 부른 앱에만 돌려주므로 이 길이 없다.
+/// 검증된 https 주소(App Link)로 돌려받으면 막히지만 Custom Tabs·iOS 17.4 미만에서
+/// 로그인이 깨질 수 있어 이번에는 바꾸지 않았다 — 악성 앱 설치가 전제라 위험은 낮다.
 // ponytail: verifier 는 메모리에만 있다. 브라우저에 가 있는 동안 OS 가 앱을
 // 죽이면 돌아온 표를 못 받는다 — 그때는 다시 누르면 된다. 자주 생기면 파일에 적는다.
 Future<Credential?> signInViaWeb(SignInMethod method, String endpoint) async {

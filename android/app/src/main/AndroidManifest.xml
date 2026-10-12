@@ -63,7 +63,10 @@
                       android:pathPrefix="/c/"/>
             </intent-filter>
             <!-- 웹에서 앱으로 되돌아오는 길. https 링크가 브라우저로 떨어졌을
-                 때 그 화면에서 앱을 여는 수단이다. -->
+                 때 그 화면에서 앱을 여는 수단이다. 웹 로그인(카카오)의 표도 이 길로
+                 돌아온다(setpad://signin). 검증되지 않은 스킴이라 같은 스킴을 선언한
+                 다른 앱도 받을 수 있다 — 남은 위험과 미룬 까닭은 lib/sign_in.dart
+                 signInViaWeb 에 적었다. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
