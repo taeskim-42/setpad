@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -194,4 +195,109 @@ void main() {
       expect(note.blocks, hasLength(3));
     },
   );
+
+  group('notes.json 이 상해도 기록을 잃지 않는다', () {
+    late Directory dir;
+    setUp(
+      () => dir = Directory.systemTemp.createTempSync('setpad-notes-safe-'),
+    );
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    File notesFile() => File('${dir.path}/notes.json');
+    List<File> backups() => [
+      for (final f in dir.listSync().whereType<File>())
+        if (f.path.contains('notes.json.bak-')) f,
+    ];
+
+    test('못 읽는 기록 하나는 그것만 빠지고, 오늘 기록을 써도 나머지는 남는다 — 원본은 옆에 남는다', () async {
+      final at = DateTime(2026, 10, 1, 18);
+      final first = NotesStore(directory: dir)
+        ..create(
+          at: at,
+          blocks: [
+            ExerciseBlock('벤치프레스', [LoggedSet(value: 60, reps: 10)]),
+          ],
+        )
+        ..create(
+          at: at.subtract(const Duration(days: 1)),
+          blocks: [
+            ExerciseBlock('스쿼트', [LoggedSet(value: 80, reps: 5)]),
+          ],
+        );
+      await first.flush();
+      first.dispose();
+      // 다음 판이 바꾼 저장 모양 — 이 판은 문자열 횟수를 못 읽는다.
+      final raw = jsonDecode(notesFile().readAsStringSync()) as List;
+      raw.firstWhere(
+        (n) => n['blocks'][0]['name'] == '벤치프레스',
+      )['blocks'][0]['sets'][0]['reps'] = '8-10';
+      final original = jsonEncode(raw);
+      notesFile().writeAsStringSync(original);
+
+      final store = NotesStore(directory: dir);
+      addTearDown(store.dispose);
+      await store.load();
+      expect(store.notes.map((n) => n.title), ['스쿼트']);
+      // 앱은 켜자마자 오늘 기록을 연다 — 새로 만들고 곧 저장한다.
+      store.today(now: at.add(const Duration(days: 1)));
+      await store.flush();
+
+      final saved = jsonDecode(notesFile().readAsStringSync()) as List;
+      expect(saved, hasLength(2));
+      expect(
+        [
+          for (final n in saved)
+            for (final b in n['blocks']) b['name'],
+        ],
+        ['스쿼트'],
+      );
+      expect(backups().single.readAsStringSync(), original);
+    });
+
+    test('통째로 못 읽어도 빈 채로 뜨고, 원본은 옆에 남는다', () async {
+      notesFile().writeAsStringSync('[{"id": "1"');
+      final store = NotesStore(directory: dir);
+      addTearDown(store.dispose);
+      await store.load();
+      expect(store.notes, isEmpty);
+      expect(backups().single.readAsStringSync(), '[{"id": "1"');
+    });
+
+    test('멀쩡한 파일은 옆에 아무것도 남기지 않는다', () async {
+      final first = NotesStore(directory: dir)..create();
+      await first.flush();
+      first.dispose();
+      final store = NotesStore(directory: dir);
+      addTearDown(store.dispose);
+      await store.load();
+      expect(store.notes, hasLength(1));
+      expect(backups(), isEmpty);
+    });
+
+    test('무한대 값 하나가 저장 전체를 멈추지 않는다 — 그 값만 빈다', () async {
+      final store = NotesStore(directory: dir);
+      addTearDown(store.dispose);
+      store
+        ..create(
+          blocks: [
+            ExerciseBlock('벤치프레스', [
+              LoggedSet(value: double.infinity, reps: 5),
+              LoggedSet(value: 60, reps: 5),
+            ]),
+          ],
+        )
+        ..setBody(store.body.copyWith(weightKg: double.nan, heightCm: 175));
+      await store.flush();
+
+      final reopened = NotesStore(directory: dir);
+      addTearDown(reopened.dispose);
+      await reopened.load();
+      expect(reopened.notes.single.blocks.single.sets.map((s) => s.value), [
+        null,
+        60,
+      ]);
+      expect(reopened.body.heightCm, 175);
+      expect(reopened.body.weightKg, isNull);
+    });
+  });
 }

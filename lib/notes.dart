@@ -594,6 +594,9 @@ class NotesStore extends ChangeNotifier {
   }
 
   Future<void> load() async {
+    // 처음 켰으면 기기 id 를 만든다. 저장은 기록을 다 읽은 뒤에 건다 — 읽는 사이에
+    // 저장이 돌면 아직 빈 목록이 notes.json 을 덮는다.
+    var minted = false;
     try {
       final f = await _file();
       try {
@@ -626,38 +629,58 @@ class NotesStore extends ChangeNotifier {
         debugPrint('Could not load preferences: $e');
       }
       if (_deviceId.isEmpty) {
-        // 처음 켰다. 만들어 두고 다음 저장 때 같이 나간다.
         final random = Random.secure();
         _deviceId = base64Url
             .encode(List.generate(18, (_) => random.nextInt(256)))
             .replaceAll('=', '');
-        _scheduleSave();
+        minted = true;
       }
-      if (!f.existsSync()) {
-        notifyListeners();
-        return;
-      }
-      final raw = jsonDecode(await f.readAsString()) as List;
-      _notes
-        ..clear()
-        ..addAll(raw.map((e) => Note.fromJson(e as Map<String, dynamic>)));
-      _sort();
-      for (final n in _notes) {
-        for (final b in n.blocks.reversed) {
-          // 익히는 것은 운동 이름이다 — 제목 문장('벤치 80kg 5x5')이 아니다.
-          final name = b.learnedName;
-          if (name != null &&
-              !_forgottenExercises.contains(name) &&
-              !_exerciseHistory.contains(name)) {
-            _exerciseHistory.add(name);
-          }
+      if (f.existsSync()) await _readNotes(f);
+    } catch (e) {
+      // 파일이 깨졌다고 앱이 안 뜨면 안 된다. 읽은 만큼으로 시작한다 — 원본은
+      // [_readNotes] 가 옆에 남겨 두었으니 손으로 살릴 수 있다.
+      debugPrint('notes.json 을 읽지 못했다: $e');
+    }
+    if (minted) _scheduleSave();
+    notifyListeners();
+  }
+
+  /// 기록을 하나씩 읽는다 — 하나가 깨졌다고(다음 판의 저장 모양, 손으로 고친 파일)
+  /// 나머지를 버리지 않는다. 못 읽은 것이 있으면 원본을 `notes.json.bak-<시각>` 으로
+  /// 남긴다: 다음 저장은 읽은 것만으로 notes.json 을 덮는다.
+  Future<void> _readNotes(File f) async {
+    final read = <Note>[];
+    var whole = true;
+    try {
+      for (final e in jsonDecode(await f.readAsString()) as List) {
+        try {
+          read.add(Note.fromJson(e as Map<String, dynamic>));
+        } catch (error) {
+          whole = false;
+          debugPrint('기록 하나를 읽지 못했다: $error');
         }
       }
-      notifyListeners();
-    } catch (e) {
-      // 파일이 깨졌다고 앱이 안 뜨면 안 된다. 빈 목록으로 시작하고, 원본은
-      // 덮어쓰기 전까지 그대로 있으므로 손으로 살릴 수 있다.
-      debugPrint('notes.json 을 읽지 못했다: $e');
+    } catch (error) {
+      whole = false;
+      debugPrint('notes.json 을 읽지 못했다: $error');
+    }
+    if (!whole) {
+      await f.copy('${f.path}.bak-${DateTime.now().millisecondsSinceEpoch}');
+    }
+    _notes
+      ..clear()
+      ..addAll(read);
+    _sort();
+    for (final n in _notes) {
+      for (final b in n.blocks.reversed) {
+        // 익히는 것은 운동 이름이다 — 제목 문장('벤치 80kg 5x5')이 아니다.
+        final name = b.learnedName;
+        if (name != null &&
+            !_forgottenExercises.contains(name) &&
+            !_exerciseHistory.contains(name)) {
+          _exerciseHistory.add(name);
+        }
+      }
     }
   }
 
@@ -667,10 +690,18 @@ class NotesStore extends ChangeNotifier {
     _debounce = Timer(const Duration(milliseconds: 400), flush);
   }
 
+  /// JSON 에는 무한·NaN 이 없다. 그런 값 하나(자릿수 제한 없는 입력이 double 로
+  /// 넘친 것)에 저장 전체가 실패해 그 뒤 모든 저장이 멈추지 않게, 그 값만 비운다.
+  static Object? _finiteJson(Object? value) =>
+      value is double ? null : (value as dynamic).toJson();
+
   /// 지금 당장 쓴다. 화면을 떠날 때와 앱이 내려갈 때 부른다.
   Future<void> flush() {
     _debounce?.cancel();
-    final notes = jsonEncode(_notes.map((n) => n.toJson()).toList());
+    final notes = jsonEncode(
+      _notes.map((n) => n.toJson()).toList(),
+      toEncodable: _finiteJson,
+    );
     final preferences = jsonEncode({
       'weightUnit': _weightUnit,
       'countAloud': _countAloud,
@@ -682,7 +713,7 @@ class NotesStore extends ChangeNotifier {
       'platesDay': _platesDay,
       'exercises': _exerciseHistory,
       'forgottenExercises': _forgottenExercises.toList(),
-    });
+    }, toEncodable: _finiteJson);
     return _writes = _writes.then((_) async {
       try {
         final f = await _file();
