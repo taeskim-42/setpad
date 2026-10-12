@@ -9,6 +9,7 @@ import 'meal.dart';
 import 'notes.dart';
 import 'partner.dart';
 import 'record_ai.dart';
+import 'units.dart';
 
 /// 내가 다니는 체육관 하나.
 typedef Gym = ({String id, String name, String? trainer});
@@ -257,6 +258,35 @@ double? kgOf(LoggedSet set) => switch (set.unit) {
   _ => null,
 };
 
+/// 시간·거리 세트의 값. 서버는 초(`s`)와 미터(`m`)로 받는다 — 무게는 [kgOf] 다.
+/// 러닝 5km·플랭크 60초가 트레이너 화면에 빈 세트로 보이지 않게 한다.
+({double value, String unit})? measureOf(LoggedSet set) {
+  final value = set.value, factor = baseFactor[set.unit];
+  if (value == null || !value.isFinite || factor == null) return null;
+  return (
+    value: ((value * factor * 100).round() / 100)
+        .clamp(0, _maxValue)
+        .toDouble(),
+    unit: unitById[set.unit]?.kind == UnitKind.duration ? 's' : 'm',
+  );
+}
+
+/// 세트에 남긴 메모를 운동 하나의 메모로 — 서버는 운동마다 메모 하나를 받는다.
+/// 트레이너 화면의 세트 번호를 붙인다.
+String? _noteOf(ExerciseBlock block) {
+  final lines = [
+    for (final (i, set) in block.sets.take(_maxSets).indexed)
+      if (set.notes.map((n) => n.trim()).where((n) => n.isNotEmpty).toList()
+          case final notes when notes.isNotEmpty)
+        '${i + 1}세트: ${notes.join(' · ')}',
+  ];
+  if (lines.isEmpty) return null;
+  final text = lines.join('\n');
+  return text.length > _maxNoteLength
+      ? text.substring(0, _maxNoteLength)
+      : text;
+}
+
 /// 서버가 받는 기록의 한도(isWorkoutResult). 하나라도 넘으면 서버는 기록 전체를
 /// 400 으로 거절하고 앱은 그 기록을 다시 보내 봐야 소용이 없으므로, 보내기 전에
 /// 한도 안으로 맞춘다 — 오타 하나가 그날의 출석까지 잃게 하지 않는다.
@@ -265,6 +295,8 @@ const _maxReps = 10000;
 const _maxSets = 100;
 const _maxExercises = 100;
 const _maxNameLength = 200;
+const _maxValue = 1000000;
+const _maxNoteLength = 500;
 
 /// 앱의 기록을 웹이 읽는 모양으로 바꾼다. 계획과 같은 모양에 done 이 붙는다.
 List<Map<String, Object?>> loggedItems(List<ExerciseBlock> blocks) => [
@@ -279,9 +311,14 @@ List<Map<String, Object?>> loggedItems(List<ExerciseBlock> blocks) => [
           {
             'kg': ?kgOf(set)?.clamp(0, _maxKg),
             if (set.reps != null) 'reps': set.reps!.clamp(0, _maxReps),
+            if (measureOf(set) case (:final value, :final unit)) ...{
+              'value': value,
+              'unit': unit,
+            },
             'done': set.done,
           },
       ],
+      'note': ?_noteOf(block),
     },
 ];
 

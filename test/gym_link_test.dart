@@ -365,7 +365,41 @@ void _pending() {
     final bench = (items[0]['sets'] as List).first as Map;
     final plank = (items[1]['sets'] as List).first as Map;
     expect(bench['kg'], 61.23);
+    expect(bench.containsKey('value'), isFalse, reason: '무게는 kg 칸 하나다');
     expect(plank.containsKey('kg'), isFalse);
+  });
+
+  test('시간·거리 세트는 초·미터로, 세트 메모는 운동 메모로 간다 — 트레이너에게 빈 세트로 보이지 않게', () {
+    final items = loggedItems([
+      ExerciseBlock('러닝', [
+        LoggedSet(value: 5.2, unit: 'km'),
+        LoggedSet(value: 3, unit: 'mi', notes: ['오르막']),
+      ]),
+      ExerciseBlock('플랭크', [
+        LoggedSet(value: 1.5, unit: 'min', notes: [' 허리 조심 ', '']),
+        LoggedSet(value: 45, unit: 's', notes: ['마지막은 무릎 대고', '숨참']),
+        LoggedSet(value: 2, unit: 'h'),
+        LoggedSet(value: 9e9, unit: 's'),
+      ]),
+      ExerciseBlock('스쿼트', [LoggedSet(value: 100, reps: 5)]),
+    ]);
+    List<Map> sets(int i) => (items[i]['sets'] as List).cast<Map>();
+    expect(sets(0)[0], {'value': 5200.0, 'unit': 'm', 'done': true});
+    expect(sets(0)[1]['value'], 4828.03);
+    expect(items[0]['note'], '2세트: 오르막');
+    expect([for (final s in sets(1)) s['value']], [90.0, 45.0, 7200.0, 1e6]);
+    expect(sets(1).every((s) => s['unit'] == 's'), isTrue);
+    expect(items[1]['note'], '1세트: 허리 조심\n2세트: 마지막은 무릎 대고 · 숨참');
+    expect(sets(2).single.containsKey('value'), isFalse);
+    expect(items[2].containsKey('note'), isFalse, reason: '메모가 없으면 칸도 없다');
+
+    // 서버는 운동 메모를 500자에서 자른다. 앱도 그 안으로 보낸다.
+    final long = loggedItems([
+      ExerciseBlock('데드리프트', [
+        for (var i = 0; i < 10; i++) LoggedSet(value: 100, notes: ['가' * 80]),
+      ]),
+    ]);
+    expect((long.single['note'] as String).length, 500);
   });
 
   test('서버가 거절한 기록 하나가 뒤의 기록을 막지 않는다', () async {

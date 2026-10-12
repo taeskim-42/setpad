@@ -42,6 +42,16 @@ const units = <Unit>[
 
 final unitById = {for (final u in units) u.id: u};
 
+/// 거리는 m, 시간은 초로 바꾸는 배수. 무게(kg·lb)는 없다.
+const baseFactor = {
+  'km': 1000.0,
+  'm': 1.0,
+  'mi': 1609.344,
+  's': 1.0,
+  'min': 60.0,
+  'h': 3600.0,
+};
+
 const defaultUnit = 'kg';
 
 /// 친 글자 → 단위. 여덟 언어의 표기를 다 받는다.
