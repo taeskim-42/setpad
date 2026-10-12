@@ -154,8 +154,12 @@ class Purchases {
       if (purchase.status == PurchaseStatus.pending) continue;
       final proof = proofOf(purchase);
       final settled = proof == null || (await onProof?.call(proof) ?? false);
-      if (settled && purchase.pendingCompletePurchase) {
+      if (!settled || !purchase.pendingCompletePurchase) continue;
+      try {
         await _store.completePurchase(purchase);
+      } catch (e) {
+        // 닫지 못한 거래는 스토어가 다시 준다. 같은 묶음의 다른 구매는 그대로 보낸다.
+        debugPrint('거래를 닫지 못했다: $e');
       }
     }
   }

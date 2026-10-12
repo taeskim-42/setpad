@@ -690,6 +690,14 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(sent, hasLength(2));
       expect(store.completed.last, failed);
+
+      // 하나를 닫다 실패해도 같은 묶음의 다음 구매는 보내고 닫는다.
+      store.completeFails.add('2000000125');
+      final stuck = apple('2000000125'), next = apple('2000000126');
+      store.updates.add([stuck, next]);
+      await pumpEventQueue();
+      expect(sent.skip(2), ['2000000125', '2000000126']);
+      expect(store.completed.last, next);
     });
 
     test('Play 는 닫지 않은 구매를 다시 주지 않는다 — 켤 때 확인 안 된 것만 찾아 보낸다', () async {
@@ -1040,9 +1048,16 @@ class _FakeStore implements InAppPurchase {
   @override
   Stream<List<PurchaseDetails>> get purchaseStream => updates.stream;
 
+  /// 닫다가 실패할 거래의 id.
+  final completeFails = <String>{};
+
   @override
-  Future<void> completePurchase(PurchaseDetails purchase) async =>
-      completed.add(purchase);
+  Future<void> completePurchase(PurchaseDetails purchase) async {
+    if (completeFails.contains(purchase.purchaseID)) {
+      throw StateError('finish failed');
+    }
+    completed.add(purchase);
+  }
 
   @override
   Future<void> restorePurchases({String? applicationUserName}) async =>
