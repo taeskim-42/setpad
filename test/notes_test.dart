@@ -300,4 +300,26 @@ void main() {
       expect(reopened.body.weightKg, isNull);
     });
   });
+
+  test('치는 중의 초안은 알리지 않고 저장만 한다 — 글자마다 모든 기록을 다시 세지 않는다', () async {
+    final dir = Directory.systemTemp.createTempSync('setpad-notes-draft-');
+    final store = NotesStore(directory: dir);
+    addTearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+    final note = store.create();
+    var told = 0;
+    store.addListener(() => told++);
+    final revision = store.revision;
+    store.updateDraft(note, const EditorDraft(text: '벤치'));
+    expect(told, 0);
+    expect(store.revision, revision);
+    await store.flush();
+
+    final reopened = NotesStore(directory: dir);
+    addTearDown(reopened.dispose);
+    await reopened.load();
+    expect(reopened.notes.single.draft?.text, '벤치');
+  });
 }

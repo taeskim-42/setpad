@@ -773,10 +773,13 @@ class NotesStore extends ChangeNotifier {
   /// 치다 만 것과 커서 자리. 기록이 아니므로 updatedAt 을 건드리지 않는다 — 카드를
   /// 열기만 해도 여기로 와서, 열어만 본 받은 루틴이 '고친 것' 이 되어 0세트로 완료
   /// 처리돼 올라갔다(gym.dart _lookedOnly).
+  ///
+  /// 알리지 않고 저장만 한다. 글자마다 오는 것이라, 알리면 듣는 화면(오늘 머리말의
+  /// 하루 집계, 원판 문턱 세기)이 키 하나마다 모든 기록을 다시 훑는다. 초안을 그리는
+  /// 화면은 없다 — 목록의 제목은 목록이 다시 보일 때 그린다.
   void updateDraft(Note note, EditorDraft? draft) {
     if (mapEquals(note.draft?.toJson(), draft?.toJson())) return;
     note.draft = draft;
-    notifyListeners();
     _scheduleSave();
   }
 
