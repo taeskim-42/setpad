@@ -363,7 +363,10 @@ void main() {
 
   group('화면', () {
     // 목록의 점은 앱 전체에 하나다. 앞 테스트의 값이 남지 않게 한다.
-    setUp(() => reportUnread.value = false);
+    setUp(() {
+      reportUnread.value = false;
+      ptRequestsWaiting.value = 0;
+    });
 
     Widget app(Widget home) => CupertinoApp(
       locale: const Locale('ko'),
@@ -1305,6 +1308,102 @@ void main() {
       double top(String text) => tester.getTopLeft(find.text(text)).dy;
       expect(top('다니는 체육관'), lessThan(top('트레이너')));
       expect(top('트레이너'), lessThan(top('트레이너 보고')));
+    });
+
+    /// 승인 대기 PT 신청(웹 CRM 예약 화면과 같은 GET /api/bookings?view=trainer).
+    Future<http.Response> desk(List<Map<String, Object?>> pending) async =>
+        reply({
+          'pending': pending,
+          'totals': {'pending': pending.length},
+        });
+
+    testWidgets('PT 신청은 앱에서 승인·거절한다 — 거절은 한 번 묻고, 못 했으면 서버의 말을 띄운다', (
+      tester,
+    ) async {
+      final patches = <Map>[];
+      final pending = <Map<String, Object?>>[
+        {
+          'id': 'p1',
+          'member': '정하늘',
+          'trainer': '김코치',
+          'starts_at': '2026-10-14T10:00:00.000Z',
+        },
+        {
+          'id': 'p2',
+          'member': '이영희',
+          'trainer': '최코치',
+          'starts_at': '2026-10-15T11:00:00.000Z',
+        },
+      ];
+      final a = account((request) async {
+        if (request.url.path != '/api/bookings') return server(request);
+        if (request.method == 'GET') {
+          expect(request.url.queryParameters, {
+            'gymId': gymId,
+            'view': 'trainer',
+          });
+          return desk(pending);
+        }
+        final body = jsonDecode(request.body) as Map;
+        patches.add(body);
+        if (body['id'] == 'p2') {
+          return reply({
+            'error': 'tooLate',
+            'message': '시작 시각이 지난 예약입니다. 트레이너에게 확인해 주세요.',
+          }, 409);
+        }
+        pending.removeWhere((p) => p['id'] == body['id']);
+        return reply({'ok': true});
+      })..nickname = '김코치';
+      tall(tester);
+      await tester.pumpWidget(app(TrainerPage(account: a, gymId: gymId)));
+      await tester.pumpAndSettle();
+      expect(find.text('PT 신청'), findsOneWidget);
+      expect(find.text('정하늘'), findsOneWidget);
+      // 관장은 다른 트레이너가 받은 신청도 본다 — 누구의 것인지 적는다.
+      expect(find.textContaining(RegExp(r'^최코치 트레이너 · ')), findsOneWidget);
+
+      await tester.tap(find.text('승인').first);
+      await tester.pumpAndSettle();
+      expect(patches.single, {'id': 'p1', 'gymId': gymId, 'status': 'booked'});
+      expect(find.text('정하늘'), findsNothing);
+      expect(find.text('승인했어요'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 3));
+
+      await tapText(tester, '거절');
+      expect(find.textContaining('이영희님의'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('pt-request-decline')));
+      await tester.pumpAndSettle();
+      expect(patches.last, {'id': 'p2', 'gymId': gymId, 'status': 'rejected'});
+      expect(find.text('시작 시각이 지난 예약입니다. 트레이너에게 확인해 주세요.'), findsOneWidget);
+      await tapText(tester, '확인');
+      expect(find.text('이영희'), findsOneWidget, reason: '처리되지 않았으니 남는다');
+    });
+
+    testWidgets('목록의 트레이너 입구에 승인을 기다리는 PT 신청 수가 붙는다 — 푸시가 없다', (tester) async {
+      await tester.pumpWidget(
+        app(
+          NotesListPage(
+            store: NotesStore(),
+            account: account(
+              (request) async => request.url.path == '/api/bookings'
+                  ? desk([
+                      for (final id in ['p1', 'p2'])
+                        {
+                          'id': id,
+                          'member': '정하늘',
+                          'trainer': '김코치',
+                          'starts_at': '2026-10-14T10:00:00.000Z',
+                        },
+                    ])
+                  : server(request),
+            ),
+            onOpen: (_) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('승인 대기 2'), findsOneWidget);
     });
   });
 }

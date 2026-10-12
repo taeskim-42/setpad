@@ -5203,6 +5203,48 @@ abstract class L {
   /// **'도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?'**
   String get ageConfirmAsk;
 
+  /// 거절 단추 — 도장 초대 거절, 트레이너의 PT 신청 거절.
+  ///
+  /// In ko, this message translates to:
+  /// **'거절'**
+  String get decline;
+
+  /// 트레이너 화면: 승인을 기다리는 PT 신청 칸.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 신청'**
+  String get trainerPtRequests;
+
+  /// PT 신청 승인 단추.
+  ///
+  /// In ko, this message translates to:
+  /// **'승인'**
+  String get trainerApprove;
+
+  /// PT 신청을 거절하기 전에 묻는 말. when 은 9/28(월) 19:00.
+  ///
+  /// In ko, this message translates to:
+  /// **'{member}님의 {when} PT 신청을 거절할까요?'**
+  String trainerRejectAsk(String member, String when);
+
+  /// PT 신청을 승인했다(잠깐 뜨는 알림).
+  ///
+  /// In ko, this message translates to:
+  /// **'승인했어요'**
+  String get trainerApproved;
+
+  /// PT 신청을 거절했다(잠깐 뜨는 알림).
+  ///
+  /// In ko, this message translates to:
+  /// **'거절했어요'**
+  String get trainerRejected;
+
+  /// 첫 화면 트레이너 입구: 승인을 기다리는 PT 신청 수.
+  ///
+  /// In ko, this message translates to:
+  /// **'승인 대기 {n}'**
+  String trainerPendingCount(int n);
+
   /// 설정의 계정 칸: 닉네임 바꾸기(로그인하면 제공자의 이름이 그대로 닉네임이 된다).
   ///
   /// In ko, this message translates to:

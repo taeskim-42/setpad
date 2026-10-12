@@ -14,6 +14,20 @@ import 'units.dart';
 /// 내가 다니는 체육관 하나.
 typedef Gym = ({String id, String name, String? trainer});
 
+/// 목록의 줄마다 읽고, 못 읽은 줄은 버린다 — 한 줄 때문에 전체가 안 보이는 것보다 낫다.
+List<T> eachRow<T>(Object? list, T? Function(Map m) read) => [
+  for (final m in list is List ? list : const [])
+    if (m is Map) ?tryRead(() => read(m)),
+];
+
+T? tryRead<T>(T? Function() read) {
+  try {
+    return read();
+  } catch (_) {
+    return null;
+  }
+}
+
 /// 트레이너가 내려준 루틴 하나.
 ///
 /// **날짜가 없다.** 다음에 나오는 날이 그날이고, 내려준 순서가 곧 차례다 —

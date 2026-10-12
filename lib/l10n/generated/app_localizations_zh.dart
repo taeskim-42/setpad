@@ -3447,6 +3447,31 @@ class LZh extends L {
   String get ageConfirmAsk => '须年满 14 周岁才能加入健身房。你已年满 14 周岁吗？';
 
   @override
+  String get decline => '拒绝';
+
+  @override
+  String get trainerPtRequests => 'PT 申请';
+
+  @override
+  String get trainerApprove => '批准';
+
+  @override
+  String trainerRejectAsk(String member, String when) {
+    return '要拒绝$member在$when的 PT 申请吗？';
+  }
+
+  @override
+  String get trainerApproved => '已批准';
+
+  @override
+  String get trainerRejected => '已拒绝';
+
+  @override
+  String trainerPendingCount(int n) {
+    return '待批准 $n';
+  }
+
+  @override
   String get nicknameChange => '修改昵称';
 
   @override
@@ -6902,6 +6927,31 @@ class LZhHans extends LZh {
   String get ageConfirmAsk => '须年满 14 周岁才能加入健身房。你已年满 14 周岁吗？';
 
   @override
+  String get decline => '拒绝';
+
+  @override
+  String get trainerPtRequests => 'PT 申请';
+
+  @override
+  String get trainerApprove => '批准';
+
+  @override
+  String trainerRejectAsk(String member, String when) {
+    return '要拒绝$member在$when的 PT 申请吗？';
+  }
+
+  @override
+  String get trainerApproved => '已批准';
+
+  @override
+  String get trainerRejected => '已拒绝';
+
+  @override
+  String trainerPendingCount(int n) {
+    return '待批准 $n';
+  }
+
+  @override
   String get nicknameChange => '修改昵称';
 
   @override
@@ -10355,6 +10405,31 @@ class LZhHant extends LZh {
 
   @override
   String get ageConfirmAsk => '須年滿 14 歲才能加入健身房。你已滿 14 歲嗎？';
+
+  @override
+  String get decline => '拒絕';
+
+  @override
+  String get trainerPtRequests => 'PT 申請';
+
+  @override
+  String get trainerApprove => '核准';
+
+  @override
+  String trainerRejectAsk(String member, String when) {
+    return '要拒絕$member在$when的 PT 申請嗎？';
+  }
+
+  @override
+  String get trainerApproved => '已核准';
+
+  @override
+  String get trainerRejected => '已拒絕';
+
+  @override
+  String trainerPendingCount(int n) {
+    return '待核准 $n';
+  }
 
   @override
   String get nicknameChange => '修改暱稱';

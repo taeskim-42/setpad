@@ -3589,6 +3589,31 @@ class LVi extends L {
       'Bạn phải từ 14 tuổi trở lên để đăng ký phòng tập. Bạn đã từ 14 tuổi trở lên chưa?';
 
   @override
+  String get decline => 'Từ chối';
+
+  @override
+  String get trainerPtRequests => 'Yêu cầu PT';
+
+  @override
+  String get trainerApprove => 'Duyệt';
+
+  @override
+  String trainerRejectAsk(String member, String when) {
+    return 'Từ chối yêu cầu PT của $member lúc $when?';
+  }
+
+  @override
+  String get trainerApproved => 'Đã duyệt';
+
+  @override
+  String get trainerRejected => 'Đã từ chối';
+
+  @override
+  String trainerPendingCount(int n) {
+    return '$n chờ duyệt';
+  }
+
+  @override
   String get nicknameChange => 'Đổi biệt danh';
 
   @override

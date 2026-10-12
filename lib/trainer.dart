@@ -25,20 +25,6 @@ MemberRef _member(Object? m) =>
     (id: (m as Map)['id'] as String, nickname: m['nickname'] as String);
 DateTime _at(Object? iso) => DateTime.parse(iso as String).toLocal();
 
-/// 목록의 한 줄씩을 읽고, 못 읽은 줄은 버린다 — 한 줄 때문에 보고서 전체가
-/// 안 보이는 것보다 낫다.
-List<T> _each<T>(Object? list, T? Function(Map m) read) => [
-  for (final m in list is List ? list : const [])
-    if (m is Map) ?_tryRead(() => read(m)),
-];
-T? _tryRead<T>(T? Function() read) {
-  try {
-    return read();
-  } catch (_) {
-    return null;
-  }
-}
-
 /// 내 에이전트. 시각은 한국 자정부터 분, 요일은 0 = 일요일(서버 값 그대로).
 class AgentSettings {
   AgentSettings.fromJson(Map m)
@@ -72,7 +58,7 @@ class AgentState {
       policy = Map<String, Object?>.from(m['policy'] as Map),
       owner = m['role'] == 'owner',
       telegram = TelegramLink.parse(m['telegram']),
-      runs = _each(m['runs'], AgentRun.fromJson);
+      runs = eachRow(m['runs'], AgentRun.fromJson);
 
   AgentSettings settings;
 
@@ -132,9 +118,9 @@ class AgentRun {
 class AgentReport {
   AgentReport.fromJson(Map m)
     : supported = m['version'] == 1,
-      gymName = _tryRead(() => (m['gym'] as Map)['name'] as String) ?? '',
+      gymName = tryRead(() => (m['gym'] as Map)['name'] as String) ?? '',
       summary = m['summary'] is String ? m['summary'] as String : '',
-      today = _each(
+      today = eachRow(
         m['today'],
         (t) => (
           at: _at(t['at']),
@@ -142,14 +128,14 @@ class AgentReport {
           title: t['title'] as String,
         ),
       )..sort((a, b) => a.at.compareTo(b.at)),
-      done = _each(
+      done = eachRow(
         m['done'],
         (d) => (
           member: _member(d['member']).nickname,
           detail: d['detail'] as String,
         ),
       ),
-      items = _each(m['items'], AgentItem.parse);
+      items = eachRow(m['items'], AgentItem.parse);
 
   /// 다른 판이면 읽지 않는다. 틀리게 그리느니 업데이트해 달라고 한다.
   final bool supported;
@@ -273,6 +259,15 @@ class AgentRoutine extends AgentItem {
   ];
 }
 
+/// 승인을 기다리는 PT 신청 하나. [trainer] 는 그 신청을 받은 트레이너다(관장은 도장
+/// 전체를 본다).
+typedef PtRequest = ({
+  String id,
+  String member,
+  String trainer,
+  DateTime startsAt,
+});
+
 /// 서버 답: 200 이면 [body], 아니면 서버의 [message](한국어, 그대로 보여도
 /// 된다)와 [status]. 셋 다 null 이면 답을 못 받은 것이다 — 요청이 안 갔을
 /// 수도, 서버는 처리했는데 답만 잃었을 수도 있다.
@@ -344,7 +339,7 @@ extension TrainerLink on GymLink {
     }
     final body = reply.body;
     return (
-      state: body == null ? null : _tryRead(() => AgentState.fromJson(body)),
+      state: body == null ? null : tryRead(() => AgentState.fromJson(body)),
       reply: reply,
     );
   }
@@ -403,6 +398,44 @@ extension TrainerLink on GymLink {
     '/api/agent/telegram',
     {'gymId': gymId, 'action': 'disconnect'},
   );
+
+  /// 승인을 기다리는 PT 신청과 그 전체 수(웹 CRM 의 예약 화면과 같은 답). 관장은 도장
+  /// 전체, 트레이너는 자기 것. 못 받았으면 null.
+  Future<({List<PtRequest> requests, int total})?> ptRequests(
+    String gymId,
+  ) async {
+    final body = (await _agent(
+      'GET',
+      '/api/bookings?gymId=${Uri.encodeQueryComponent(gymId)}&view=trainer',
+      null,
+      const Duration(seconds: 15),
+    )).body;
+    if (body == null) return null;
+    final requests = eachRow(
+      body['pending'],
+      (b) => (
+        id: b['id'] as String,
+        member: b['member'] as String,
+        trainer: b['trainer'] as String? ?? '',
+        startsAt: _at(b['starts_at']),
+      ),
+    );
+    final total = (body['totals'] as Map?)?['pending'];
+    return (requests: requests, total: total is int ? total : requests.length);
+  }
+
+  /// PT 신청을 승인하거나 거절한다 — 웹 CRM 과 같은 PATCH /api/bookings. **원격 푸시가
+  /// 없다.** 웹을 열지 않는 트레이너는 신청을 받을 길이 없어 회원 화면에 '승인 대기' 가
+  /// 그대로 남았고, 시각이 지나면 승인할 수도 없었다.
+  Future<AgentReply> answerPtRequest(
+    String gymId,
+    String id, {
+    required bool approve,
+  }) => _agent('PATCH', '/api/bookings', {
+    'id': id,
+    'gymId': gymId,
+    'status': approve ? 'booked' : 'rejected',
+  });
 }
 
 /// 보고 알림을 설정과 맞춘다. 설정을 받거나 저장할 때마다 부른다.
@@ -422,8 +455,12 @@ Future<void> syncAgentAlarm(
 /// 맞춘다. 트레이너 화면을 어디서 열었든(목록·설정·알림) 닫을 때 다시 센다.
 final reportUnread = ValueNotifier<bool>(false);
 
-/// [reportUnread] 를 서버와 맞춘다. 어차피 도장마다 설정을 받으므로 알림도
-/// 여기서 맞춘다.
+/// 목록 입구에 붙는 수 — 내 도장들에서 승인을 기다리는 PT 신청. 푸시가 없으니 앱을 열면
+/// 여기서 본다. [checkReports] 가 맞춘다.
+final ptRequestsWaiting = ValueNotifier<int>(0);
+
+/// [reportUnread]·[ptRequestsWaiting] 를 서버와 맞춘다. 어차피 도장마다 설정을 받으므로
+/// 알림도 여기서 맞춘다.
 // ponytail: 직원 도장 여럿 중 하나에서만 빠지면 그 도장은 staff 에 없어 여기서
 // 묻지 않는다. 그 알림은 한 번 울리고, 누르면 403 이라 agentState 가 지운다.
 Future<void> checkReports(Account account) async {
@@ -431,16 +468,22 @@ Future<void> checkReports(Account account) async {
     // 로그아웃했거나 이제 어디의 직원도 아니다.
     await AgentAlarm.clearAll();
     reportUnread.value = false;
+    ptRequestsWaiting.value = 0;
     return;
   }
-  var unread = false;
+  var unread = false, waiting = 0;
   for (final gym in account.staff) {
-    final (:state, reply: _) = await account.link.agentState(gym.gymId);
+    final ((:state, reply: _), requests) = await (
+      account.link.agentState(gym.gymId),
+      account.link.ptRequests(gym.gymId),
+    ).wait;
+    waiting += requests?.total ?? 0;
     if (state == null) continue;
     await syncAgentAlarm(gym.gymId, gym.gym, state.settings);
     unread = unread || state.unread;
   }
   reportUnread.value = unread;
+  ptRequestsWaiting.value = waiting;
 }
 
 /// 트레이너 화면으로 보낸다. 직원으로 있는 도장이 둘 이상이면 먼저 묻는다.
@@ -523,6 +566,14 @@ String uuid4() {
       '${h.substring(16, 20)}-${h.substring(20)}';
 }
 
+/// 웹 CRM 과 같은 꼴: 한국어는 '9/28(월)', '9/28(월) 07:00'. 다른 말은 그
+/// 말의 날짜 꼴을 따른다(9/28 을 28 일 9 월로 읽는 곳이 있다).
+String shortDay(L l, DateTime at) => l.localeName == 'ko'
+    ? DateFormat('M/d(E)', 'ko').format(at)
+    : DateFormat.MEd(l.localeName).format(at);
+String shortWhen(L l, DateTime at) => '${shortDay(l, at)} ${shortTime(l, at)}';
+String shortTime(L l, DateTime at) => DateFormat('HH:mm').format(at);
+
 class TrainerPage extends StatefulWidget {
   const TrainerPage({super.key, required this.account, required this.gymId});
   final Account account;
@@ -550,6 +601,9 @@ class _TrainerPageState extends State<TrainerPage> {
 
   /// 펼친 문구.
   final _expanded = <String>{};
+
+  /// 승인을 기다리는 PT 신청. 보고서와 상관없이 지금 것이다.
+  List<PtRequest> _requests = const [];
 
   String get _gymName =>
       widget.account.staff
@@ -582,12 +636,17 @@ class _TrainerPageState extends State<TrainerPage> {
   }
 
   Future<void> _load() async {
-    final (:state, :reply) = await widget.account.link.agentState(widget.gymId);
+    final link = widget.account.link;
+    final ((:state, :reply), requests) = await (
+      link.agentState(widget.gymId),
+      link.ptRequests(widget.gymId),
+    ).wait;
     if (!mounted) return;
     final refused = reply.status == 401 || reply.status == 403;
     setState(() {
       _loaded = true;
       _refused = refused;
+      if (requests != null || refused) _requests = requests?.requests ?? [];
       // 거절이면 들고 있던 보고서도 더는 볼 수 없는 것이다.
       _state = refused ? null : state ?? _state;
       // 서버가 답했으면 그 말이 '서버에 닿지 못했어요'보다 맞다.
@@ -648,6 +707,61 @@ class _TrainerPageState extends State<TrainerPage> {
     }
   }
 
+  /// PT 신청에 답한다. 거절은 한 번 묻는다 — 되돌릴 수 없고 회원은 다시 신청해야 한다.
+  /// 같은 답을 두 번 보내도 서버는 한 번으로 친다.
+  Future<void> _answer(PtRequest request, {required bool approve}) async {
+    final l = L.of(context);
+    if (!approve) {
+      final go = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (ctx) => CupertinoAlertDialog(
+          content: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              l.trainerRejectAsk(
+                request.member,
+                shortWhen(l, request.startsAt),
+              ),
+              style: const TextStyle(fontSize: 15),
+            ),
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.trainerBack),
+            ),
+            CupertinoDialogAction(
+              key: const ValueKey('pt-request-decline'),
+              isDestructiveAction: true,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.decline),
+            ),
+          ],
+        ),
+      );
+      if (go != true || !mounted) return;
+    }
+    setState(() => _busy = true);
+    final reply = await widget.account.link.answerPtRequest(
+      widget.gymId,
+      request.id,
+      approve: approve,
+    );
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      if (reply.body != null) _requests = [..._requests]..remove(request);
+    });
+    if (reply.body != null) {
+      _say(approve ? l.trainerApproved : l.trainerRejected);
+      return;
+    }
+    // 그사이 웹에서 처리했거나 시각이 지났다 — 서버의 말을 보이고 목록을 다시 받는다.
+    await tellAgent(context, reply.message ?? l.trainerActUnknown);
+    final fresh = await widget.account.link.ptRequests(widget.gymId);
+    if (mounted && fresh != null) setState(() => _requests = fresh.requests);
+  }
+
   String _key(AgentItem item) =>
       _requestKeys.putIfAbsent('${_state?.latest?.id}/${item.key}', uuid4);
 
@@ -694,7 +808,7 @@ class _TrainerPageState extends State<TrainerPage> {
         message: Text(
           '${item.member.nickname} · ${product.name} · '
           '${l.trainerPrice(product.price)} · '
-          '${l.trainerStarts(_day(l, DateTime.parse(item.startsOn!)))}\n'
+          '${l.trainerStarts(shortDay(l, DateTime.parse(item.startsOn!)))}\n'
           // 문구에는 관장의 재등록 혜택이 들어가지만 여기는 정가만 기록한다.
           '${l.trainerPaidListPrice}\n${l.trainerPayHow}',
         ),
@@ -789,6 +903,31 @@ class _TrainerPageState extends State<TrainerPage> {
                 SliverList.list(
                   children: [
                     _header(l, run),
+                    if (_requests.isNotEmpty) ...[
+                      _section(l.trainerPtRequests),
+                      for (final r in _requests)
+                        _block(
+                          [
+                            _title(r.member),
+                            // 관장은 다른 트레이너가 받은 신청도 본다.
+                            _sub(
+                              r.trainer == widget.account.nickname
+                                  ? shortWhen(l, r.startsAt)
+                                  : l.bookingNext(
+                                      r.trainer,
+                                      shortWhen(l, r.startsAt),
+                                    ),
+                            ),
+                          ],
+                          [
+                            _pill(
+                              l.trainerApprove,
+                              () => _answer(r, approve: true),
+                            ),
+                            _pill(l.decline, () => _answer(r, approve: false)),
+                          ],
+                        ),
+                    ],
                     if (report != null && report.supported) ...[
                       if (report.done.isNotEmpty) ...[
                         _section(l.trainerDone),
@@ -799,7 +938,7 @@ class _TrainerPageState extends State<TrainerPage> {
                         _section(l.trainerToday),
                         for (final t in report.today)
                           _line(
-                            [_time(l, t.at), ?t.member, t.title].join(' · '),
+                            [shortTime(l, t.at), ?t.member, t.title].join(' · '),
                           ),
                       ],
                       _section(l.trainerTodo),
@@ -843,7 +982,7 @@ class _TrainerPageState extends State<TrainerPage> {
           ),
           if (run != null)
             Text(
-              l.trainerRanAt(_when(l, run.at)),
+              l.trainerRanAt(shortWhen(l, run.at)),
               style: TextStyle(
                 fontSize: 13,
                 color: CupertinoColors.secondaryLabel.resolveFrom(context),
@@ -885,8 +1024,8 @@ class _TrainerPageState extends State<TrainerPage> {
         _title(l.trainerAttendance),
         for (final b in a.bookings)
           _sub(
-            '${b.member} · ${_when(l, b.startsAt)} · '
-            '${l.trainerVisited(_time(l, b.visitedAt))}',
+            '${b.member} · ${shortWhen(l, b.startsAt)} · '
+            '${l.trainerVisited(shortTime(l, b.visitedAt))}',
           ),
       ],
       [
@@ -901,7 +1040,7 @@ class _TrainerPageState extends State<TrainerPage> {
       _sub(l.trainerJoinRequest),
     ], const []),
     AgentPtSchedule(:final member, :final startsAt, :final basis) => _block(
-      [_title(member.nickname), _sub('${_when(l, startsAt)} · $basis')],
+      [_title(member.nickname), _sub('${shortWhen(l, startsAt)} · $basis')],
       [
         _pill(
           l.trainerBook,
@@ -943,7 +1082,7 @@ class _TrainerPageState extends State<TrainerPage> {
         if (product != null)
           _sub(
             '${product.name} · ${l.trainerPrice(product.price)} · '
-            '${l.trainerStarts(_day(l, DateTime.parse(item.startsOn!)))}',
+            '${l.trainerStarts(shortDay(l, DateTime.parse(item.startsOn!)))}',
           ),
         if (message.isNotEmpty)
           // 문구는 길다. 두 줄만 보이고 누르면 펼친다.
@@ -972,14 +1111,6 @@ class _TrainerPageState extends State<TrainerPage> {
       ],
     );
   }
-
-  /// 웹 CRM 과 같은 꼴: 한국어는 '9/28(월)', '9/28(월) 07:00'. 다른 말은 그
-  /// 말의 날짜 꼴을 따른다(9/28 을 28 일 9 월로 읽는 곳이 있다).
-  String _day(L l, DateTime at) => l.localeName == 'ko'
-      ? DateFormat('M/d(E)', 'ko').format(at)
-      : DateFormat.MEd(l.localeName).format(at);
-  String _when(L l, DateTime at) => '${_day(l, at)} ${_time(l, at)}';
-  String _time(L l, DateTime at) => DateFormat('HH:mm').format(at);
 
   Widget _block(List<Widget> lines, List<Widget> actions) => Container(
     padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),

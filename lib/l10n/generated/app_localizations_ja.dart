@@ -3479,6 +3479,31 @@ class LJa extends L {
   String get ageConfirmAsk => 'ジムに登録するには14歳以上である必要があります。14歳以上ですか？';
 
   @override
+  String get decline => '拒否';
+
+  @override
+  String get trainerPtRequests => 'PT申請';
+
+  @override
+  String get trainerApprove => '承認';
+
+  @override
+  String trainerRejectAsk(String member, String when) {
+    return '$memberさんの$whenのPT申請を拒否しますか？';
+  }
+
+  @override
+  String get trainerApproved => '承認しました';
+
+  @override
+  String get trainerRejected => '拒否しました';
+
+  @override
+  String trainerPendingCount(int n) {
+    return '承認待ち $n';
+  }
+
+  @override
   String get nicknameChange => 'ニックネームを変更';
 
   @override

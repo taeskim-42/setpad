@@ -3635,6 +3635,31 @@ class LEs extends L {
       'Debes tener 14 años o más para unirte a un gimnasio. ¿Tienes 14 años o más?';
 
   @override
+  String get decline => 'Rechazar';
+
+  @override
+  String get trainerPtRequests => 'Solicitudes de PT';
+
+  @override
+  String get trainerApprove => 'Aprobar';
+
+  @override
+  String trainerRejectAsk(String member, String when) {
+    return '¿Rechazar la solicitud de PT de $member para el $when?';
+  }
+
+  @override
+  String get trainerApproved => 'Aprobada';
+
+  @override
+  String get trainerRejected => 'Rechazada';
+
+  @override
+  String trainerPendingCount(int n) {
+    return '$n pendientes';
+  }
+
+  @override
   String get nicknameChange => 'Cambiar apodo';
 
   @override

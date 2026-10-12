@@ -3564,6 +3564,31 @@ class LTh extends L {
       'ต้องมีอายุ 14 ปีขึ้นไปจึงจะสมัครเป็นสมาชิกยิมได้ คุณอายุ 14 ปีขึ้นไปหรือไม่';
 
   @override
+  String get decline => 'ปฏิเสธ';
+
+  @override
+  String get trainerPtRequests => 'คำขอ PT';
+
+  @override
+  String get trainerApprove => 'อนุมัติ';
+
+  @override
+  String trainerRejectAsk(String member, String when) {
+    return 'ปฏิเสธคำขอ PT ของ $member เวลา $when ไหม';
+  }
+
+  @override
+  String get trainerApproved => 'อนุมัติแล้ว';
+
+  @override
+  String get trainerRejected => 'ปฏิเสธแล้ว';
+
+  @override
+  String trainerPendingCount(int n) {
+    return 'รออนุมัติ $n';
+  }
+
+  @override
   String get nicknameChange => 'เปลี่ยนชื่อเล่น';
 
   @override

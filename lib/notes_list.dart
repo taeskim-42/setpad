@@ -1421,6 +1421,25 @@ class _NotesListPageState extends State<NotesListPage>
                                           ),
                                         ),
                                 ),
+                                // 푸시가 없다 — 웹을 안 여는 트레이너는 여기서 신청을 본다.
+                                ValueListenableBuilder(
+                                  valueListenable: ptRequestsWaiting,
+                                  builder: (context, waiting, _) => waiting == 0
+                                      ? const SizedBox.shrink()
+                                      : Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 8,
+                                          ),
+                                          child: Text(
+                                            l.trainerPendingCount(waiting),
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: seal.resolveFrom(context),
+                                            ),
+                                          ),
+                                        ),
+                                ),
                                 const Spacer(),
                                 Icon(
                                   CupertinoIcons.chevron_right,

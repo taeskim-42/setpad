@@ -3608,6 +3608,31 @@ class LEn extends L {
       'You must be 14 or older to join a gym. Are you 14 or older?';
 
   @override
+  String get decline => 'Decline';
+
+  @override
+  String get trainerPtRequests => 'PT requests';
+
+  @override
+  String get trainerApprove => 'Approve';
+
+  @override
+  String trainerRejectAsk(String member, String when) {
+    return 'Decline $member\'s PT request for $when?';
+  }
+
+  @override
+  String get trainerApproved => 'Approved';
+
+  @override
+  String get trainerRejected => 'Declined';
+
+  @override
+  String trainerPendingCount(int n) {
+    return '$n awaiting approval';
+  }
+
+  @override
   String get nicknameChange => 'Change nickname';
 
   @override

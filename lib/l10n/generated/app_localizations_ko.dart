@@ -3485,6 +3485,31 @@ class LKo extends L {
   String get ageConfirmAsk => '도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?';
 
   @override
+  String get decline => '거절';
+
+  @override
+  String get trainerPtRequests => 'PT 신청';
+
+  @override
+  String get trainerApprove => '승인';
+
+  @override
+  String trainerRejectAsk(String member, String when) {
+    return '$member님의 $when PT 신청을 거절할까요?';
+  }
+
+  @override
+  String get trainerApproved => '승인했어요';
+
+  @override
+  String get trainerRejected => '거절했어요';
+
+  @override
+  String trainerPendingCount(int n) {
+    return '승인 대기 $n';
+  }
+
+  @override
   String get nicknameChange => '닉네임 바꾸기';
 
   @override
