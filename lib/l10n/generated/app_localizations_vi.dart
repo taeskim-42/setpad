@@ -3589,7 +3589,154 @@ class LVi extends L {
       'Bạn phải từ 14 tuổi trở lên để đăng ký phòng tập. Bạn đã từ 14 tuổi trở lên chưa?';
 
   @override
+  String get gymClasses => 'Đặt lớp nhóm';
+
+  @override
+  String get gymLeave => 'Rời phòng tập này';
+
+  @override
+  String gymLeaveAsk(String gym) {
+    return 'Rời $gym? Bạn sẽ không nhận bài tập nữa và buổi tập, bữa ăn sẽ không còn được chia sẻ. Các lịch PT và lớp sắp tới sẽ bị hủy; bản ghi cũ và lịch sử thanh toán vẫn ở lại phòng tập.';
+  }
+
+  @override
+  String get gymNotices => 'Thông báo';
+
+  @override
+  String passMembershipUntil(String date) {
+    return 'Thẻ hội viên đến $date';
+  }
+
+  @override
+  String get passMembershipOn => 'Thẻ hội viên đang dùng';
+
+  @override
+  String get passMembershipPaused => 'Thẻ hội viên đang tạm dừng';
+
+  @override
+  String passPtLeft(int n) {
+    return 'Còn $n buổi PT';
+  }
+
+  @override
+  String get passPtUnlimited => 'PT không giới hạn';
+
+  @override
+  String get passPtPaused => 'PT đang tạm dừng';
+
+  @override
+  String passLocker(String label) {
+    return 'Tủ đồ $label';
+  }
+
+  @override
+  String passLockerUntil(String label, String date) {
+    return 'Tủ đồ $label (đến $date)';
+  }
+
+  @override
+  String get passNone => 'Chưa có gói đang dùng';
+
+  @override
+  String get bookingRejected => 'Bị từ chối';
+
+  @override
+  String get bookingCancelled => 'Đã hủy';
+
+  @override
+  String get bookingPaused =>
+      'Gói PT của bạn đang tạm dừng. Hãy hỏi huấn luyện viên.';
+
+  @override
+  String newsBooked(String when) {
+    return 'PT đã xác nhận · $when';
+  }
+
+  @override
+  String newsRejected(String when) {
+    return 'Yêu cầu PT bị từ chối · $when';
+  }
+
+  @override
+  String newsCancelled(String when) {
+    return 'PT đã bị hủy · $when';
+  }
+
+  @override
+  String newsMoved(String when) {
+    return 'PT đổi giờ · $when';
+  }
+
+  @override
+  String newsTrainer(String trainer, String when) {
+    return 'Đổi huấn luyện viên PT · $trainer · $when';
+  }
+
+  @override
+  String newsAssigned(String trainer) {
+    return 'Đổi huấn luyện viên phụ trách · $trainer';
+  }
+
+  @override
+  String newsNotice(String title) {
+    return 'Thông báo · $title';
+  }
+
+  @override
+  String newsMore(String news, int n) {
+    return '$news và $n mục khác';
+  }
+
+  @override
+  String inviteFrom(String gym) {
+    return '$gym đã mời bạn';
+  }
+
+  @override
+  String inviteBy(String name) {
+    return 'Do $name gửi';
+  }
+
+  @override
+  String get inviteAccept => 'Đồng ý và tham gia';
+
+  @override
+  String get inviteGone => 'Lời mời này không còn nữa.';
+
+  @override
   String get decline => 'Từ chối';
+
+  @override
+  String get gymConsentNotice =>
+      'Khi tham gia, chủ và huấn luyện viên của phòng tập này sẽ thấy biệt danh, các buổi tập tại đây, bữa ăn bạn ghi và lịch hẹn của bạn. Thông tin phòng tập tự ghi — ghi chú, thành phần cơ thể, gói tập và thanh toán — do phòng tập quản lý. Nếu bạn rời phòng tập, việc chia sẻ dừng lại từ lúc đó; bản ghi cũ và lịch sử thanh toán vẫn ở lại phòng tập.';
+
+  @override
+  String get joinAsk => 'Gửi yêu cầu tham gia phòng tập này?';
+
+  @override
+  String get joinAgree => 'Đồng ý và gửi yêu cầu';
+
+  @override
+  String get classesNone => 'Không có lớp nào trong hai tuần tới.';
+
+  @override
+  String classBook(int booked, int capacity) {
+    return 'Đặt $booked/$capacity';
+  }
+
+  @override
+  String classFull(int booked, int capacity) {
+    return 'Đã đầy $booked/$capacity';
+  }
+
+  @override
+  String get classMine => 'Đã đặt · Hủy';
+
+  @override
+  String get classCancelled => 'Lớp nghỉ';
+
+  @override
+  String get classCancelAsk => 'Hủy đặt lớp này?';
 
   @override
   String get trainerPtRequests => 'Yêu cầu PT';

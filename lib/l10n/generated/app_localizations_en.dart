@@ -3608,7 +3608,160 @@ class LEn extends L {
       'You must be 14 or older to join a gym. Are you 14 or older?';
 
   @override
+  String get gymClasses => 'Group classes';
+
+  @override
+  String get gymLeave => 'Leave this gym';
+
+  @override
+  String gymLeaveAsk(String gym) {
+    return 'Leave $gym? You\'ll stop getting routines and your workouts and meals will no longer be shared. Upcoming PT and class bookings are cancelled; past records and payment history stay with the gym.';
+  }
+
+  @override
+  String get gymNotices => 'Notices';
+
+  @override
+  String passMembershipUntil(String date) {
+    return 'Membership until $date';
+  }
+
+  @override
+  String get passMembershipOn => 'Membership active';
+
+  @override
+  String get passMembershipPaused => 'Membership on hold';
+
+  @override
+  String passPtLeft(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n PT sessions left',
+      one: '1 PT session left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passPtUnlimited => 'Unlimited PT';
+
+  @override
+  String get passPtPaused => 'PT on hold';
+
+  @override
+  String passLocker(String label) {
+    return 'Locker $label';
+  }
+
+  @override
+  String passLockerUntil(String label, String date) {
+    return 'Locker $label (until $date)';
+  }
+
+  @override
+  String get passNone => 'No active pass';
+
+  @override
+  String get bookingRejected => 'Declined';
+
+  @override
+  String get bookingCancelled => 'Cancelled';
+
+  @override
+  String get bookingPaused =>
+      'Your PT pass is on hold. Please ask your trainer.';
+
+  @override
+  String newsBooked(String when) {
+    return 'PT confirmed · $when';
+  }
+
+  @override
+  String newsRejected(String when) {
+    return 'PT request declined · $when';
+  }
+
+  @override
+  String newsCancelled(String when) {
+    return 'PT cancelled · $when';
+  }
+
+  @override
+  String newsMoved(String when) {
+    return 'PT moved · $when';
+  }
+
+  @override
+  String newsTrainer(String trainer, String when) {
+    return 'PT trainer changed · $trainer · $when';
+  }
+
+  @override
+  String newsAssigned(String trainer) {
+    return 'New trainer · $trainer';
+  }
+
+  @override
+  String newsNotice(String title) {
+    return 'Notice · $title';
+  }
+
+  @override
+  String newsMore(String news, int n) {
+    return '$news +$n more';
+  }
+
+  @override
+  String inviteFrom(String gym) {
+    return '$gym invited you';
+  }
+
+  @override
+  String inviteBy(String name) {
+    return 'Sent by $name';
+  }
+
+  @override
+  String get inviteAccept => 'Agree and join';
+
+  @override
+  String get inviteGone => 'This invitation is no longer available.';
+
+  @override
   String get decline => 'Decline';
+
+  @override
+  String get gymConsentNotice =>
+      'If you join, this gym\'s owner and trainers will see your nickname, the workouts you do at this gym, the meals you log and your bookings. Information the gym records itself — notes, body composition, passes and payments — is managed by the gym. If you leave the gym, sharing stops from then on; past records and payment history stay with the gym.';
+
+  @override
+  String get joinAsk => 'Ask to join this gym?';
+
+  @override
+  String get joinAgree => 'Agree and ask';
+
+  @override
+  String get classesNone => 'No classes in the next two weeks.';
+
+  @override
+  String classBook(int booked, int capacity) {
+    return 'Book $booked/$capacity';
+  }
+
+  @override
+  String classFull(int booked, int capacity) {
+    return 'Full $booked/$capacity';
+  }
+
+  @override
+  String get classMine => 'Booked · Cancel';
+
+  @override
+  String get classCancelled => 'Cancelled';
+
+  @override
+  String get classCancelAsk => 'Cancel this class booking?';
 
   @override
   String get trainerPtRequests => 'PT requests';

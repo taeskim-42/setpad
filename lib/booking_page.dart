@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'account.dart';
 import 'gym.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'notes.dart';
 import 'palette.dart';
 
 /// PT 예약 화면.
@@ -12,9 +13,17 @@ import 'palette.dart';
 /// "그날은 빈 시간이 없어요"를 봤다. 약속을 잡는 화면은 달력을 먼저 보여
 /// 주고, 받지 않는 날은 애초에 못 누르게 한다.
 class BookingPage extends StatefulWidget {
-  const BookingPage({super.key, required this.account, required this.gymId});
+  const BookingPage({
+    super.key,
+    required this.account,
+    required this.gymId,
+    this.store,
+  });
   final Account account;
   final String gymId;
+
+  /// 도장 소식을 적는 곳. 있으면 회원이 여기서 한 신청·취소를 소식에서 뺀다.
+  final NotesStore? store;
 
   @override
   State<BookingPage> createState() => _BookingPageState();
@@ -64,6 +73,7 @@ class _BookingPageState extends State<BookingPage> {
 
   Future<void> _book(DateTime at) async {
     setState(() => _busy = true);
+    final before = {for (final b in _state.bookings) b.id};
     final problem = await widget.account.link.book(at, gymId: widget.gymId);
     if (!mounted) return;
     final l = L.of(context);
@@ -72,6 +82,23 @@ class _BookingPageState extends State<BookingPage> {
       _picked = problem == null ? null : _picked;
     });
     await _load(day: problem == null ? null : _picked);
+    if (problem == null) {
+      _mine([
+        for (final b in _state.bookings)
+          if (!before.contains(b.id)) b,
+      ]);
+    }
+  }
+
+  /// 회원이 여기서 한 신청·취소는 도장 소식이 아니다 — 첫 화면에 'PT 확정'·'PT 취소' 로
+  /// 다시 뜨지 않게 본 것으로 적는다(gym.dart gymNews).
+  void _mine(Iterable<Booking> bookings) {
+    final store = widget.store, owner = widget.account.userId;
+    if (store == null || owner == null || store.gymSeenOwner != owner) return;
+    store.markGymSeen({
+      for (final b in bookings)
+        'b:${b.id}': bookingSeen(b.status, b.startsAt, b.trainer),
+    });
   }
 
   /// 못 한 까닭. 서버가 적은 말(이용권이 끝났다, 담당이 바뀌었다, 시작 시각이
@@ -109,6 +136,16 @@ class _BookingPageState extends State<BookingPage> {
     // 못 취소했으면 말한다. 목록에 그대로 남기만 하면 취소된 줄 알고 안 온다.
     if (problem != null) {
       setState(() => _notice = _failure(L.of(context), problem));
+    } else {
+      _mine([
+        (
+          id: booking.id,
+          gym: booking.gym,
+          trainer: booking.trainer,
+          startsAt: booking.startsAt,
+          status: 'cancelled',
+        ),
+      ]);
     }
     await _load(day: _picked);
   }
@@ -168,7 +205,7 @@ class _BookingPageState extends State<BookingPage> {
           // **못 하는 이유를 먼저 말한다.** 고를 수 있게 해 놓고 신청한
           // 뒤에 거절하면 회원은 앱이 고장 난 줄 안다.
           if (_state.loaded && !_state.hasPass)
-            _why(l.bookingNoPass)
+            _why(_state.paused ? l.bookingPaused : l.bookingNoPass)
           else if (_state.loaded && !_state.receivesBookings)
             _why(l.bookingNoHours(trainer ?? ''))
           else if (remaining != null)

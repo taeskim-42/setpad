@@ -3479,7 +3479,153 @@ class LJa extends L {
   String get ageConfirmAsk => 'ジムに登録するには14歳以上である必要があります。14歳以上ですか？';
 
   @override
+  String get gymClasses => 'クラス予約';
+
+  @override
+  String get gymLeave => 'このジムを退会';
+
+  @override
+  String gymLeaveAsk(String gym) {
+    return '$gymを退会しますか？ルーティンが届かなくなり、運動と食事も共有されなくなります。今後のPT・クラス予約はキャンセルされ、これまでの記録と支払い履歴はジムに残ります。';
+  }
+
+  @override
+  String get gymNotices => 'お知らせ';
+
+  @override
+  String passMembershipUntil(String date) {
+    return '会員権 $dateまで';
+  }
+
+  @override
+  String get passMembershipOn => '会員権 利用中';
+
+  @override
+  String get passMembershipPaused => '会員権 休止中';
+
+  @override
+  String passPtLeft(int n) {
+    return 'PT 残り$n回';
+  }
+
+  @override
+  String get passPtUnlimited => 'PT 回数無制限';
+
+  @override
+  String get passPtPaused => 'PT 休止中';
+
+  @override
+  String passLocker(String label) {
+    return 'ロッカー $label';
+  }
+
+  @override
+  String passLockerUntil(String label, String date) {
+    return 'ロッカー $label（$dateまで）';
+  }
+
+  @override
+  String get passNone => '利用できる会員権がありません';
+
+  @override
+  String get bookingRejected => '拒否';
+
+  @override
+  String get bookingCancelled => 'キャンセル';
+
+  @override
+  String get bookingPaused => 'PTチケットが休止中です。トレーナーにお問い合わせください。';
+
+  @override
+  String newsBooked(String when) {
+    return 'PT確定 · $when';
+  }
+
+  @override
+  String newsRejected(String when) {
+    return 'PT申請が拒否されました · $when';
+  }
+
+  @override
+  String newsCancelled(String when) {
+    return 'PTキャンセル · $when';
+  }
+
+  @override
+  String newsMoved(String when) {
+    return 'PT時間変更 · $when';
+  }
+
+  @override
+  String newsTrainer(String trainer, String when) {
+    return 'PT担当変更 · $trainer · $when';
+  }
+
+  @override
+  String newsAssigned(String trainer) {
+    return '担当トレーナー変更 · $trainer';
+  }
+
+  @override
+  String newsNotice(String title) {
+    return 'お知らせ · $title';
+  }
+
+  @override
+  String newsMore(String news, int n) {
+    return '$news ほか$n件';
+  }
+
+  @override
+  String inviteFrom(String gym) {
+    return '$gymから招待が届きました';
+  }
+
+  @override
+  String inviteBy(String name) {
+    return '$nameさんから';
+  }
+
+  @override
+  String get inviteAccept => '同意して登録';
+
+  @override
+  String get inviteGone => 'この招待はもうありません。';
+
+  @override
   String get decline => '拒否';
+
+  @override
+  String get gymConsentNotice =>
+      '登録すると、このジムのオーナーとトレーナーがあなたのニックネーム、このジムでの運動、記録した食事、予約を見られるようになります。メモ・体組成・会員権・支払いなどジムが自分で記録する情報はジムが管理します。ジムを退会するとその時点から共有されなくなり、これまでの記録と支払い履歴はジムに残ります。';
+
+  @override
+  String get joinAsk => 'このジムに登録を申請しますか？';
+
+  @override
+  String get joinAgree => '同意して申請';
+
+  @override
+  String get classesNone => 'これから2週間のクラスはありません。';
+
+  @override
+  String classBook(int booked, int capacity) {
+    return '予約 $booked/$capacity';
+  }
+
+  @override
+  String classFull(int booked, int capacity) {
+    return '満員 $booked/$capacity';
+  }
+
+  @override
+  String get classMine => '予約済み · キャンセル';
+
+  @override
+  String get classCancelled => '休講';
+
+  @override
+  String get classCancelAsk => 'このクラスの予約をキャンセルしますか？';
 
   @override
   String get trainerPtRequests => 'PT申請';

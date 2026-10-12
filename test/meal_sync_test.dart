@@ -10,6 +10,7 @@ import 'package:http/testing.dart';
 import 'package:setpad/account.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/gym.dart';
+import 'package:setpad/gym_page.dart' show GymPage;
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/main.dart';
 import 'package:setpad/meal.dart';
@@ -382,6 +383,88 @@ void main() {
     expect(puts.last['source'], 'typed');
   });
 
+  testWidgets(
+    '트레이너가 바꾼 PT 는 편집기 머리에도 한 줄 — 앱은 편집기로 켜진다. 누르면 도장 화면이 열리고 본 것이 된다',
+    (tester) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_pt_news_');
+      final store = NotesStore(directory: dir);
+      addTearDown(() {
+        store.dispose();
+        dir.deleteSync(recursive: true);
+      });
+      final at = DateTime.now().add(const Duration(days: 1));
+      GymBooking booking(String status) =>
+          (id: 'b1', startsAt: at, trainer: '김코치', status: status);
+      // 지난번 본 것은 승인 대기였다.
+      store.seedGymSeen(
+        'u1',
+        gymSeenOf(Gym(id: gym, name: 'BPM', bookings: [booking('pending')])),
+      );
+      final account =
+          Account(
+              client: MockClient(
+                (request) async => http.Response.bytes(
+                  utf8.encode(
+                    jsonEncode({
+                      'gyms': [
+                        {
+                          'id': gym,
+                          'name': 'BPM',
+                          'bookings': [
+                            {
+                              'id': 'b1',
+                              'startsAt': at.toUtc().toIso8601String(),
+                              'trainer': '김코치',
+                              'status': 'rejected',
+                            },
+                          ],
+                        },
+                      ],
+                      'invites': [],
+                    }),
+                  ),
+                  200,
+                  headers: {'content-type': 'application/json; charset=utf-8'},
+                ),
+              ),
+              storageDir: dir,
+            )
+            ..token = 'member'
+            ..userId = 'u1'
+            ..gyms = [
+              Gym(id: gym, name: 'BPM', bookings: [booking('rejected')]),
+            ];
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: EditorPage(
+            store: store,
+            note: store.create(),
+            account: account,
+            ai: FakeAi((_) async => throw UnimplementedError()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await _confirmMeal(tester);
+      final news = find.byKey(const ValueKey('pt-news'));
+      expect(
+        find.descendant(of: news, matching: find.textContaining('PT 신청 거절 · ')),
+        findsOneWidget,
+      );
+
+      await tester.tap(news);
+      await tester.pumpAndSettle();
+      expect(find.byType(GymPage), findsOneWidget);
+      expect(store.gymSeen['b:b1'], bookingSeen('rejected', at, '김코치'));
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(news, findsNothing, reason: '본 것은 다시 뜨지 않는다');
+    },
+  );
+
   testWidgets('기록 머리가 트레이너에게 가는지 말하고, 식단 공유를 켜면 스티커를 안 댄 날의 끼니도 간다', (
     tester,
   ) async {
@@ -406,7 +489,7 @@ void main() {
             storageDir: dir,
           )
           ..token = 'member'
-          ..gyms = [(id: gym, name: 'BPM', trainer: null)];
+          ..gyms = [Gym(id: gym, name: 'BPM')];
     final note = store.create();
     await tester.pumpWidget(
       CupertinoApp(
@@ -493,7 +576,7 @@ void main() {
           )
           ..token = 'member'
           ..userId = 'u1'
-          ..gyms = [(id: gym, name: 'BPM', trainer: null)];
+          ..gyms = [Gym(id: gym, name: 'BPM')];
     final note = store.create()
       ..blocks.add(ExerciseBlock('스쿼트', [LoggedSet(value: 80, reps: 5)]));
     await tester.pumpWidget(

@@ -3635,7 +3635,160 @@ class LEs extends L {
       'Debes tener 14 años o más para unirte a un gimnasio. ¿Tienes 14 años o más?';
 
   @override
+  String get gymClasses => 'Clases grupales';
+
+  @override
+  String get gymLeave => 'Salir de este gimnasio';
+
+  @override
+  String gymLeaveAsk(String gym) {
+    return '¿Salir de $gym? Dejarás de recibir rutinas y tus entrenamientos y comidas ya no se compartirán. Se cancelan las reservas de PT y clases futuras; los registros anteriores y el historial de pagos se quedan en el gimnasio.';
+  }
+
+  @override
+  String get gymNotices => 'Avisos';
+
+  @override
+  String passMembershipUntil(String date) {
+    return 'Membresía hasta el $date';
+  }
+
+  @override
+  String get passMembershipOn => 'Membresía activa';
+
+  @override
+  String get passMembershipPaused => 'Membresía en pausa';
+
+  @override
+  String passPtLeft(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Quedan $n sesiones de PT',
+      one: 'Queda 1 sesión de PT',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passPtUnlimited => 'PT ilimitado';
+
+  @override
+  String get passPtPaused => 'PT en pausa';
+
+  @override
+  String passLocker(String label) {
+    return 'Taquilla $label';
+  }
+
+  @override
+  String passLockerUntil(String label, String date) {
+    return 'Taquilla $label (hasta el $date)';
+  }
+
+  @override
+  String get passNone => 'Sin bono activo';
+
+  @override
+  String get bookingRejected => 'Rechazada';
+
+  @override
+  String get bookingCancelled => 'Cancelada';
+
+  @override
+  String get bookingPaused =>
+      'Tu bono de PT está en pausa. Pregunta a tu entrenador.';
+
+  @override
+  String newsBooked(String when) {
+    return 'PT confirmada · $when';
+  }
+
+  @override
+  String newsRejected(String when) {
+    return 'Solicitud de PT rechazada · $when';
+  }
+
+  @override
+  String newsCancelled(String when) {
+    return 'PT cancelada · $when';
+  }
+
+  @override
+  String newsMoved(String when) {
+    return 'PT cambiada de hora · $when';
+  }
+
+  @override
+  String newsTrainer(String trainer, String when) {
+    return 'Cambio de entrenador de PT · $trainer · $when';
+  }
+
+  @override
+  String newsAssigned(String trainer) {
+    return 'Nuevo entrenador · $trainer';
+  }
+
+  @override
+  String newsNotice(String title) {
+    return 'Aviso · $title';
+  }
+
+  @override
+  String newsMore(String news, int n) {
+    return '$news y $n más';
+  }
+
+  @override
+  String inviteFrom(String gym) {
+    return '$gym te ha invitado';
+  }
+
+  @override
+  String inviteBy(String name) {
+    return 'Enviada por $name';
+  }
+
+  @override
+  String get inviteAccept => 'Aceptar y unirme';
+
+  @override
+  String get inviteGone => 'Esta invitación ya no está disponible.';
+
+  @override
   String get decline => 'Rechazar';
+
+  @override
+  String get gymConsentNotice =>
+      'Si te unes, el propietario y los entrenadores de este gimnasio verán tu apodo, los entrenamientos que hagas aquí, las comidas que registres y tus reservas. La información que el gimnasio registra por su cuenta (notas, composición corporal, bonos y pagos) la gestiona el gimnasio. Si sales del gimnasio, se deja de compartir desde ese momento; los registros anteriores y el historial de pagos se quedan en el gimnasio.';
+
+  @override
+  String get joinAsk => '¿Solicitar unirte a este gimnasio?';
+
+  @override
+  String get joinAgree => 'Aceptar y solicitar';
+
+  @override
+  String get classesNone => 'No hay clases en las próximas dos semanas.';
+
+  @override
+  String classBook(int booked, int capacity) {
+    return 'Reservar $booked/$capacity';
+  }
+
+  @override
+  String classFull(int booked, int capacity) {
+    return 'Completa $booked/$capacity';
+  }
+
+  @override
+  String get classMine => 'Reservada · Cancelar';
+
+  @override
+  String get classCancelled => 'Cancelada';
+
+  @override
+  String get classCancelAsk => '¿Cancelar la reserva de esta clase?';
 
   @override
   String get trainerPtRequests => 'Solicitudes de PT';

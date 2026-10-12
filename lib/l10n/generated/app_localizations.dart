@@ -5203,11 +5203,233 @@ abstract class L {
   /// **'도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?'**
   String get ageConfirmAsk;
 
+  /// 도장 화면의 그룹 수업 예약 줄과 수업 화면 제목.
+  ///
+  /// In ko, this message translates to:
+  /// **'수업 예약'**
+  String get gymClasses;
+
+  /// 도장 화면 맨 아래: 회원이 도장에서 나간다(DELETE /api/gyms/{id}/membership).
+  ///
+  /// In ko, this message translates to:
+  /// **'도장 나가기'**
+  String get gymLeave;
+
+  /// 나가기 전에 묻는 말. 연결만 끊기고 장부는 남으며 앞으로의 예약은 취소된다. gym 은 도장 이름.
+  ///
+  /// In ko, this message translates to:
+  /// **'{gym}에서 나갈까요? 루틴을 더 받지 않고 운동·끼니도 더는 공유되지 않아요. 앞으로의 PT·수업 예약은 취소되고, 지난 기록과 결제 장부는 도장에 남아요.'**
+  String gymLeaveAsk(String gym);
+
+  /// 도장 화면의 공지 칸 제목.
+  ///
+  /// In ko, this message translates to:
+  /// **'공지'**
+  String get gymNotices;
+
+  /// 내 회원권 한 줄. date 는 끝나는 날(12/31).
+  ///
+  /// In ko, this message translates to:
+  /// **'회원권 {date}까지'**
+  String passMembershipUntil(String date);
+
+  /// 끝나는 날이 없는 회원권.
+  ///
+  /// In ko, this message translates to:
+  /// **'회원권 이용 중'**
+  String get passMembershipOn;
+
+  /// 정지한 회원권.
+  ///
+  /// In ko, this message translates to:
+  /// **'회원권 정지 중'**
+  String get passMembershipPaused;
+
+  /// PT 이용권의 남은 횟수.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT {n}회 남음'**
+  String passPtLeft(int n);
+
+  /// 횟수 제한이 없는 PT 이용권.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 횟수 제한 없음'**
+  String get passPtUnlimited;
+
+  /// 정지한 PT 이용권.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 정지 중'**
+  String get passPtPaused;
+
+  /// 내 락커. label 은 락커 번호(A-12).
+  ///
+  /// In ko, this message translates to:
+  /// **'락커 {label}'**
+  String passLocker(String label);
+
+  /// 끝나는 날이 있는 락커.
+  ///
+  /// In ko, this message translates to:
+  /// **'락커 {label}({date}까지)'**
+  String passLockerUntil(String label, String date);
+
+  /// 이 도장에서 쓸 회원권·PT·락커가 하나도 없다.
+  ///
+  /// In ko, this message translates to:
+  /// **'쓸 수 있는 회원권이 없어요'**
+  String get passNone;
+
+  /// PT 예약 상태: 트레이너가 신청을 거절했다.
+  ///
+  /// In ko, this message translates to:
+  /// **'거절됨'**
+  String get bookingRejected;
+
+  /// PT 예약 상태: 취소됐다.
+  ///
+  /// In ko, this message translates to:
+  /// **'취소됨'**
+  String get bookingCancelled;
+
+  /// PT 예약 화면: 쓸 PT 이용권이 정지 중이다(이용권 없음과 다르다).
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 이용권이 정지 중이에요. 트레이너에게 문의해 주세요.'**
+  String get bookingPaused;
+
+  /// 도장 소식: PT 가 확정됐다(트레이너가 승인했거나 잡아 줬다). when 은 9/28(월) 19:00.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 확정 · {when}'**
+  String newsBooked(String when);
+
+  /// 도장 소식: 트레이너가 PT 신청을 거절했다.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 신청 거절 · {when}'**
+  String newsRejected(String when);
+
+  /// 도장 소식: PT 가 취소됐다.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 취소 · {when}'**
+  String newsCancelled(String when);
+
+  /// 도장 소식: 트레이너가 PT 시간을 옮겼다. when 은 새 시각.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 시간 변경 · {when}'**
+  String newsMoved(String when);
+
+  /// 도장 소식: PT 를 맡는 트레이너가 바뀌었다(대강).
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 담당 변경 · {trainer} 트레이너 · {when}'**
+  String newsTrainer(String trainer, String when);
+
+  /// 도장 소식: 내 담당 트레이너가 바뀌었다.
+  ///
+  /// In ko, this message translates to:
+  /// **'담당 트레이너 변경 · {trainer}'**
+  String newsAssigned(String trainer);
+
+  /// 도장 소식: 새 공지. title 은 공지 제목.
+  ///
+  /// In ko, this message translates to:
+  /// **'공지 · {title}'**
+  String newsNotice(String title);
+
+  /// 첫 화면 도장 줄: 가장 중요한 소식 하나와 나머지 수.
+  ///
+  /// In ko, this message translates to:
+  /// **'{news} 외 {n}건'**
+  String newsMore(String news, int n);
+
+  /// 도장이 보낸 초대(받아야 회원이 된다). gym 은 도장 이름.
+  ///
+  /// In ko, this message translates to:
+  /// **'{gym}에서 초대했어요'**
+  String inviteFrom(String gym);
+
+  /// 초대를 보낸 직원.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 님이 보냈어요'**
+  String inviteBy(String name);
+
+  /// 초대 수락 단추. 안내에 동의하고 회원이 된다.
+  ///
+  /// In ko, this message translates to:
+  /// **'동의하고 등록'**
+  String get inviteAccept;
+
+  /// 도장이 초대를 거뒀다(404).
+  ///
+  /// In ko, this message translates to:
+  /// **'이 초대는 더 이상 없어요.'**
+  String get inviteGone;
+
   /// 거절 단추 — 도장 초대 거절, 트레이너의 PT 신청 거절.
   ///
   /// In ko, this message translates to:
   /// **'거절'**
   String get decline;
+
+  /// 도장 등록 신청·초대 수락 전에 보여 주는 안내. 서버 GYM_CONSENT_VERSION(gym.dart gymConsentVersion)의 문구다 — 바꾸면 그 판도 올린다.
+  ///
+  /// In ko, this message translates to:
+  /// **'등록하면 이 도장의 관장·트레이너가 닉네임, 이 도장에서 한 운동, 기록한 끼니, 예약을 보게 돼요. 메모·체성분·이용권·결제처럼 도장이 직접 적는 정보는 도장이 관리해요. 도장에서 나가면 그때부터는 공유되지 않고, 지난 기록과 결제 장부는 도장에 남아요.'**
+  String get gymConsentNotice;
+
+  /// 스티커를 댄 사람이 아직 그 도장 회원이 아닐 때, 등록 신청 전에 묻는 말.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 도장에 등록을 신청할까요?'**
+  String get joinAsk;
+
+  /// 등록 신청 단추. 안내에 동의하고 신청한다.
+  ///
+  /// In ko, this message translates to:
+  /// **'동의하고 신청'**
+  String get joinAgree;
+
+  /// 수업 화면: 앞으로 2주 동안 수업이 없다.
+  ///
+  /// In ko, this message translates to:
+  /// **'앞으로 2주 동안 열린 수업이 없어요.'**
+  String get classesNone;
+
+  /// 수업 예약 단추와 지금 인원. booked 는 잡힌 자리, capacity 는 정원.
+  ///
+  /// In ko, this message translates to:
+  /// **'예약 {booked}/{capacity}'**
+  String classBook(int booked, int capacity);
+
+  /// 자리가 다 찬 수업.
+  ///
+  /// In ko, this message translates to:
+  /// **'마감 {booked}/{capacity}'**
+  String classFull(int booked, int capacity);
+
+  /// 내가 잡은 수업. 누르면 취소를 묻는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'예약됨 · 취소'**
+  String get classMine;
+
+  /// 휴강한 수업.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴강'**
+  String get classCancelled;
+
+  /// 수업 예약을 취소하기 전에 묻는 말.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 수업 예약을 취소할까요?'**
+  String get classCancelAsk;
 
   /// 트레이너 화면: 승인을 기다리는 PT 신청 칸.
   ///

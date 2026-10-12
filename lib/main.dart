@@ -23,6 +23,9 @@ import 'sign_in_sheet.dart';
 import 'agent_alarm.dart';
 import 'daily.dart';
 import 'gym.dart';
+import 'booking_entry.dart';
+import 'gym_page.dart'
+    show ClassesPage, askGymConsent, newsText, openGym, unseenNews;
 import 'gym_sheets.dart';
 import 'handoff.dart';
 import 'meal.dart';
@@ -355,6 +358,19 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
       _lastHandoff = null;
       return;
     }
+    // 단톡방의 수업·예약 링크. 출석도 가입 신청도 아니다 — 다니는 도장이면 그 화면을 연다.
+    if (gymScreenFromLink(uri) case (:final gymId, :final page)) {
+      if (!_account.gyms.any((g) => g.id == gymId)) return;
+      if (page == 'bookings') {
+        return openBooking(context, _account, store: _store, gymId: gymId);
+      }
+      await Navigator.of(context).push(
+        CupertinoPageRoute<void>(
+          builder: (_) => ClassesPage(account: _account, gymId: gymId),
+        ),
+      );
+      return;
+    }
     final gymId = gymFromTag(uri);
     if (gymId == null) return;
     if (_handling == gymId) {
@@ -412,8 +428,11 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
       // 그 체육관에 다니지 않는 것과, 다니는데 오늘 받은 것이 없는 것은
       // 해야 할 일이 다르다. 둘 다 **안내가 아니라 행동으로 끝난다** — 말만
       // 하고 멈추면 회원이 될 길도, 출석이 남을 길도 앱 안에 없다.
-      final member = _account.gyms.any((g) => g.id == gymId);
-      await (member ? _attendOnly(gymId) : _askJoin(gymId));
+      bool member() => _account.gyms.any((g) => g.id == gymId);
+      // 켤 때 목록을 못 받았을 수 있다. 회원에게 가입 안내를 띄우기 전에 한 번 묻는다.
+      if (!member()) await _account.refreshGyms();
+      if (!mounted) return;
+      await (member() ? _attendOnly(gymId) : _askJoin(gymId));
       return;
     }
     // 이미 시작한 루틴이면 그 기록을 다시 연다. 또 만들면 같은 루틴이 둘이 된다.
@@ -437,9 +456,19 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     _open(note);
   }
 
-  /// 회원이 아닌 사람. **댄 것이 곧 신청이다** — 한 번 더 누르게 하지 않는다.
-  /// 트레이너 화면에 바로 뜨고, 확인하면 회원이 된다.
+  /// 회원이 아닌 사람. 댄 김에 신청한다 — 트레이너 화면에 바로 뜨고, 확인하면 회원이 된다.
+  ///
+  /// **신청 전에 한 번 묻는다.** 신청이 곧 동의다: 회원이 되면 도장이 닉네임·그 도장에서 한
+  /// 운동·끼니·예약을 보고, 서버는 그때 보여 준 안내의 판을 남긴다. 예전에는 대는 순간
+  /// 신청이 나가서 무엇을 보게 되는지 말할 자리가 없었다.
   Future<void> _askJoin(String gymId) async {
+    final l = L.of(context);
+    final agreed = await askGymConsent(
+      context,
+      title: l.joinAsk,
+      agree: l.joinAgree,
+    );
+    if (agreed != true || !mounted) return;
     var state = await _account.link.requestJoin(gymId);
     if (!mounted) return;
     // '만 14세 이상' 확인 칸이 생기기 전에 만든 계정이다. 한 번 묻고 남긴 뒤 다시
@@ -1541,6 +1570,24 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     return (note.mealGymId != null ? l.shareMealsOnly : l.shareNone, false);
   }
 
+  /// 도장에서 바뀐 PT(거절·취소·시간·담당·확정). 원격 푸시가 없고 앱은 이 편집기로
+  /// 켜지므로, 목록까지 가지 않아도 보이게 여기에도 한 줄 — 누르면 그 도장 화면이 열리고
+  /// 본 것이 된다. 공지는 목록의 도장 줄에만 둔다.
+  (Gym, String)? _ptNews(L l) {
+    final a = widget.account;
+    if (a == null) return null;
+    for (final gym in a.gyms) {
+      final news = [
+        for (final n in unseenNews(a, widget.store, gym))
+          if (n.booking != null) n,
+      ];
+      if (news.isEmpty) continue;
+      final first = newsText(l, gym, news.first);
+      return (gym, news.length == 1 ? first : l.newsMore(first, news.length - 1));
+    }
+    return null;
+  }
+
   /// 스티커 없이 온 날(폰에 NFC 가 없다, 잊었다). 회원이 '오늘 이 체육관에서 한 운동' 이라고
   /// 스스로 보낸다 — 출석도 같이 남는다. 오늘 기록에 내가 적은 세트가 있고 다니는 도장이
   /// 하나일 때만.
@@ -1887,6 +1934,25 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                 minimumSize: const Size(44, 30),
                 onPressed: _sendToGym,
                 child: Text(l.shareSend, style: const TextStyle(fontSize: 13)),
+              ),
+            ),
+          if (_ptNews(l) case (final gym, final text)?)
+            Center(
+              child: CupertinoButton(
+                key: const ValueKey('pt-news'),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                minimumSize: const Size(44, 30),
+                onPressed: () =>
+                    openGym(context, widget.account!, widget.store, gym.id),
+                child: Text(
+                  text,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: seal.resolveFrom(context),
+                  ),
+                ),
               ),
             ),
           // 그날 에너지는 한 줄로 접어 둔다 — 운동을 적는 화면에서 세 칸은 컸다.

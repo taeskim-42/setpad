@@ -16,6 +16,7 @@ import 'stats.dart' as stats;
 import 'editor.dart' show SuggestionChip;
 import 'exercises.dart' show exerciseByName, langKeyOf;
 import 'gym.dart';
+import 'gym_page.dart';
 import 'booking_entry.dart';
 import 'record_ai.dart';
 import 'palette.dart';
@@ -212,6 +213,7 @@ class _NotesListPageState extends State<NotesListPage>
   /// 결제·체육관 때문에도 자주 알린다.
   void _accountChanged() {
     final account = widget.account;
+    _gymsChanged();
     // 앱 안에서 로그인했다. 켤 때는 로그인 전이라 못 물었던 루틴·체육관을 지금 묻는다.
     final signedIn = account?.signedIn ?? false;
     if (signedIn != _signedIn) {
@@ -229,6 +231,28 @@ class _NotesListPageState extends State<NotesListPage>
   }
 
   bool _signedIn = false;
+
+  /// 마지막으로 그린 도장 목록. 계정이 다시 받아 오면 새 목록이다.
+  List<Gym>? _gyms;
+
+  /// 도장 소식은 지난번 본 것과 견준다. 이 계정으로 처음 받은 것(처음 켬, 다른 계정)은
+  /// 모두 본 것으로 친다 — 그 전부터 있던 예약·공지가 한꺼번에 새 소식이 되지 않게.
+  void _gymsChanged() {
+    final account = widget.account;
+    if (account == null) return;
+    // 누구인지(/api/me)가 도장 목록보다 늦게 올 수 있다. 둘 다 왔을 때 한 번.
+    final owner = account.userId;
+    if (account.gymsLoaded &&
+        owner != null &&
+        widget.store.gymSeenOwner != owner) {
+      widget.store.seedGymSeen(owner, {
+        for (final gym in account.gyms) ...gymSeenOf(gym),
+      });
+    }
+    if (identical(account.gyms, _gyms)) return;
+    _gyms = account.gyms;
+    if (mounted) setState(() {});
+  }
 
   Future<void> _checkReports() async {
     final account = widget.account;
@@ -1178,6 +1202,27 @@ class _NotesListPageState extends State<NotesListPage>
     ];
   }
 
+  Widget _gymRow(L l, Gym gym) {
+    final account = widget.account!;
+    final news = unseenNews(account, widget.store, gym);
+    return GymRow(
+      icon: news.isEmpty
+          ? CupertinoIcons.building_2_fill
+          : CupertinoIcons.bell_fill,
+      title: gym.name,
+      detail: switch (news) {
+        [] => passLines(l, gym).join(' · '),
+        [final only] => newsText(l, gym, only),
+        [final first, ...] => l.newsMore(
+          newsText(l, gym, first),
+          news.length - 1,
+        ),
+      },
+      accent: news.isNotEmpty,
+      onTap: () => openGym(context, account, widget.store, gym.id),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
@@ -1332,6 +1377,31 @@ class _NotesListPageState extends State<NotesListPage>
                               ),
                             ),
                           ),
+                      // 도장 초대. 받아야 회원이 된다 — 안 다니는 사람에게도 온다.
+                      if (_query.text.trim().isEmpty)
+                        for (final invite
+                            in widget.account?.invites ?? const <GymInvite>[])
+                          SliverToBoxAdapter(
+                            child: GymRow(
+                              icon: CupertinoIcons.envelope_badge,
+                              title: l.inviteFrom(invite.gymName),
+                              detail: switch (invite.invitedBy) {
+                                final name? => l.inviteBy(name),
+                                null => invite.gymName,
+                              },
+                              accent: true,
+                              onTap: () => answerGymInvite(
+                                context,
+                                widget.account!,
+                                invite,
+                              ),
+                            ),
+                          ),
+                      // 다니는 도장. **푸시가 없으니 여기가 도장 소식이 닿는 곳이다** —
+                      // 새 공지, 거절·취소·옮겨진 PT 를 먼저, 없으면 내 이용권을 보인다.
+                      if (_query.text.trim().isEmpty)
+                        for (final gym in widget.account?.gyms ?? const <Gym>[])
+                          SliverToBoxAdapter(child: _gymRow(l, gym)),
                       // PT 예약. **다니는 곳이 있는 사람에게만 보인다** —
                       // 헬스장과 상관없이 혼자 기록하는 사람이 대부분이고,
                       // 그 사람 화면에 예약이 뜨면 무엇을 예약하라는 말인지
@@ -1340,8 +1410,11 @@ class _NotesListPageState extends State<NotesListPage>
                         SliverToBoxAdapter(
                           child: CupertinoButton(
                             padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
-                            onPressed: () =>
-                                openBooking(context, widget.account!),
+                            onPressed: () => openBooking(
+                              context,
+                              widget.account!,
+                              store: widget.store,
+                            ),
                             child: Row(
                               children: [
                                 Icon(

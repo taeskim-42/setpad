@@ -107,8 +107,15 @@ class Account extends ChangeNotifier {
   /// 것이다 — 서버에 못 닿았을 때 파는 화면이 뜨는 것보다 안 뜨는 편이 낫다.
   bool selling = false;
 
-  /// 내가 다니는 체육관. 없으면 앱은 그쪽 화면을 아예 안 그린다.
+  /// 내가 다니는 체육관과 도장이 알리는 것. 없으면 앱은 그쪽 화면을 아예 안 그린다.
   List<Gym> gyms = const [];
+
+  /// 아직 답하지 않은 도장 초대. 받아야 회원이 된다.
+  List<GymInvite> invites = const [];
+
+  /// 이 로그인으로 /api/gyms 를 받아 왔는가. 받기 전의 빈 목록은 '다니는 곳 없음' 이
+  /// 아니다 — 도장 소식은 받아 온 것끼리만 견준다(처음 받은 것은 모두 본 것으로 친다).
+  bool gymsLoaded = false;
 
   /// 직원으로 있는 도장. 비어 있으면 트레이너 화면이 아예 없다. /api/me 에
   /// 물어볼 때마다 새 목록이 된다 — 목록 화면은 그것으로 다시 읽을 때를 안다.
@@ -405,8 +412,23 @@ class Account extends ChangeNotifier {
   Future<void> refreshGyms() async {
     final found = await link.gyms();
     if (found == null) return;
-    gyms = found;
+    gyms = found.gyms;
+    invites = found.invites;
+    gymsLoaded = true;
     notifyListeners();
+  }
+
+  /// 이 도장에서 나간다. 나갔으면 목록에서 바로 뺀다 — 다시 읽기를 못 해도 나간 도장이
+  /// 남아 있지 않게.
+  Future<bool> leaveGym(String gymId) async {
+    if (!await link.leaveGym(gymId)) return false;
+    gyms = [
+      for (final g in gyms)
+        if (g.id != gymId) g,
+    ];
+    notifyListeners();
+    unawaited(refreshGyms());
+    return true;
   }
 
   /// 닉네임을 바꾼다. 바꿨으면 null, 아니면 [MemberLink.changeNickname] 의 까닭.
@@ -504,6 +526,8 @@ class Account extends ChangeNotifier {
     purchaseTag = null;
     _purchaseKnown = false;
     gyms = const [];
+    invites = const [];
+    gymsLoaded = false;
     RecordAi.forget();
     plates = platesSpent = null;
 

@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 
 import 'account.dart';
 import 'gym.dart' show MemberLink;
+import 'health_page.dart' show HealthDataPage;
 import 'l10n/generated/app_localizations.dart';
+import 'share.dart';
 import 'sign_in.dart';
 
 String signInLabel(L l, SignInMethod method) => switch (method) {
@@ -26,7 +28,7 @@ String providerName(L l, SignInMethod method) => switch (method) {
 ///
 /// **만 14세 미만은 계정을 만들지 않는다.** 수단을 고르기 전에 '만 14세 이상입니다' 를
 /// 채워야 한다 — 비워 두고 수단을 누르면 그 칸을 붉게 가리킬 뿐이다. 서버가 그 확인을
-/// 계정에 남긴다(sign_in.dart exchange).
+/// 계정에 남긴다(sign_in.dart exchange). 계정을 만드는 자리라 처리방침도 여기서 연다.
 Future<bool> askSignIn(
   BuildContext context,
   Account account, {
@@ -41,13 +43,28 @@ Future<bool> askSignIn(
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setState) => CupertinoActionSheet(
         title: Text(message ?? l.signInChooseTitle),
-        message: _AgeBox(
-          checked: adult,
-          nudged: nudged,
-          onChanged: (value) => setState(() {
-            adult = value;
-            nudged = false;
-          }),
+        message: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _AgeBox(
+              checked: adult,
+              nudged: nudged,
+              onChanged: (value) => setState(() {
+                adult = value;
+                nudged = false;
+              }),
+            ),
+            CupertinoButton(
+              key: const ValueKey('sign-in-privacy'),
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(44, 44),
+              onPressed: () => openUrl(HealthDataPage.privacyUrl),
+              child: Text(
+                l.healthDataPrivacy,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+          ],
         ),
         actions: [
           for (final method in methods)

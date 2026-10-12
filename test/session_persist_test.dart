@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/account.dart';
+import 'package:setpad/gym.dart';
 import 'package:setpad/purchases.dart';
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/sign_in.dart';
@@ -146,7 +147,7 @@ void main() {
         return http.Response('{"error":"signInRequired"}', 401);
       }),
     )..token = 't';
-    a.gyms = [(id: 'g1', name: 'BPM', trainer: null)];
+    a.gyms = [Gym(id: 'g1', name: 'BPM')];
     Future<void> settled() async {
       for (var i = 0; i < 20; i++) {
         await Future<void>.delayed(Duration.zero);

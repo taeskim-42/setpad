@@ -3485,7 +3485,153 @@ class LKo extends L {
   String get ageConfirmAsk => '도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?';
 
   @override
+  String get gymClasses => '수업 예약';
+
+  @override
+  String get gymLeave => '도장 나가기';
+
+  @override
+  String gymLeaveAsk(String gym) {
+    return '$gym에서 나갈까요? 루틴을 더 받지 않고 운동·끼니도 더는 공유되지 않아요. 앞으로의 PT·수업 예약은 취소되고, 지난 기록과 결제 장부는 도장에 남아요.';
+  }
+
+  @override
+  String get gymNotices => '공지';
+
+  @override
+  String passMembershipUntil(String date) {
+    return '회원권 $date까지';
+  }
+
+  @override
+  String get passMembershipOn => '회원권 이용 중';
+
+  @override
+  String get passMembershipPaused => '회원권 정지 중';
+
+  @override
+  String passPtLeft(int n) {
+    return 'PT $n회 남음';
+  }
+
+  @override
+  String get passPtUnlimited => 'PT 횟수 제한 없음';
+
+  @override
+  String get passPtPaused => 'PT 정지 중';
+
+  @override
+  String passLocker(String label) {
+    return '락커 $label';
+  }
+
+  @override
+  String passLockerUntil(String label, String date) {
+    return '락커 $label($date까지)';
+  }
+
+  @override
+  String get passNone => '쓸 수 있는 회원권이 없어요';
+
+  @override
+  String get bookingRejected => '거절됨';
+
+  @override
+  String get bookingCancelled => '취소됨';
+
+  @override
+  String get bookingPaused => 'PT 이용권이 정지 중이에요. 트레이너에게 문의해 주세요.';
+
+  @override
+  String newsBooked(String when) {
+    return 'PT 확정 · $when';
+  }
+
+  @override
+  String newsRejected(String when) {
+    return 'PT 신청 거절 · $when';
+  }
+
+  @override
+  String newsCancelled(String when) {
+    return 'PT 취소 · $when';
+  }
+
+  @override
+  String newsMoved(String when) {
+    return 'PT 시간 변경 · $when';
+  }
+
+  @override
+  String newsTrainer(String trainer, String when) {
+    return 'PT 담당 변경 · $trainer 트레이너 · $when';
+  }
+
+  @override
+  String newsAssigned(String trainer) {
+    return '담당 트레이너 변경 · $trainer';
+  }
+
+  @override
+  String newsNotice(String title) {
+    return '공지 · $title';
+  }
+
+  @override
+  String newsMore(String news, int n) {
+    return '$news 외 $n건';
+  }
+
+  @override
+  String inviteFrom(String gym) {
+    return '$gym에서 초대했어요';
+  }
+
+  @override
+  String inviteBy(String name) {
+    return '$name 님이 보냈어요';
+  }
+
+  @override
+  String get inviteAccept => '동의하고 등록';
+
+  @override
+  String get inviteGone => '이 초대는 더 이상 없어요.';
+
+  @override
   String get decline => '거절';
+
+  @override
+  String get gymConsentNotice =>
+      '등록하면 이 도장의 관장·트레이너가 닉네임, 이 도장에서 한 운동, 기록한 끼니, 예약을 보게 돼요. 메모·체성분·이용권·결제처럼 도장이 직접 적는 정보는 도장이 관리해요. 도장에서 나가면 그때부터는 공유되지 않고, 지난 기록과 결제 장부는 도장에 남아요.';
+
+  @override
+  String get joinAsk => '이 도장에 등록을 신청할까요?';
+
+  @override
+  String get joinAgree => '동의하고 신청';
+
+  @override
+  String get classesNone => '앞으로 2주 동안 열린 수업이 없어요.';
+
+  @override
+  String classBook(int booked, int capacity) {
+    return '예약 $booked/$capacity';
+  }
+
+  @override
+  String classFull(int booked, int capacity) {
+    return '마감 $booked/$capacity';
+  }
+
+  @override
+  String get classMine => '예약됨 · 취소';
+
+  @override
+  String get classCancelled => '휴강';
+
+  @override
+  String get classCancelAsk => '이 수업 예약을 취소할까요?';
 
   @override
   String get trainerPtRequests => 'PT 신청';

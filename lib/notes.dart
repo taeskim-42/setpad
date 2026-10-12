@@ -652,6 +652,44 @@ class NotesStore extends ChangeNotifier {
     _scheduleSave();
   }
 
+  /// 도장 소식(공지·PT·담당) 가운데 회원이 이미 본 것 — gym.dart 의 gymSeenOf 꼴이다.
+  /// [gymSeenOwner] 의 것이고, 처음 켰거나 다른 계정이면 그때 있던 것을 모두 본 것으로
+  /// 치고 시작한다([seedGymSeen]) — 몇 달치 예약·공지가 한꺼번에 '새 소식' 이 되지 않게.
+  final Map<String, String> _gymSeen = {};
+  String? _gymSeenOwner;
+  Map<String, String> get gymSeen => Map.unmodifiable(_gymSeen);
+  String? get gymSeenOwner => _gymSeenOwner;
+
+  void seedGymSeen(String owner, Map<String, String> seen) {
+    _gymSeenOwner = owner;
+    _gymSeen
+      ..clear()
+      ..addAll(seen);
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  /// [seen] 을 본 것으로 적는다.
+  void markGymSeen(Map<String, String> seen) {
+    var changed = false;
+    for (final MapEntry(:key, :value) in seen.entries) {
+      if (_gymSeen[key] == value) continue;
+      // 지우고 넣어 맨 뒤로 — 아래에서 오래 본 것부터 버린다.
+      _gymSeen
+        ..remove(key)
+        ..[key] = value;
+      changed = true;
+    }
+    if (!changed) return;
+    // ponytail: 300개를 넘으면 오래 본 것부터 버린다. 공지가 날마다 와도 몇 KB 이고,
+    // 버린 것이 아직 목록에 있으면 한 번 더 소식으로 뜰 뿐이다.
+    while (_gymSeen.length > 300) {
+      _gymSeen.remove(_gymSeen.keys.first);
+    }
+    notifyListeners();
+    _scheduleSave();
+  }
+
   /// 이 기기를 가리키는 무작위 문자열. 사람을 가리키지 않는다.
   ///
   /// 질문을 서버에 보낼 때 셀 대상이 필요해서 만든다. 계정도 로그인도 없고,
@@ -699,6 +737,15 @@ class NotesStore extends ChangeNotifier {
           if (data['platesDay'] case final String day) _platesDay = day;
           if (data['shareMealsSince'] case final String since) {
             _shareMealsSince = DateTime.tryParse(since);
+          }
+          if (data['gymSeenOwner'] case final String owner) {
+            _gymSeenOwner = owner;
+          }
+          if (data['gymSeen'] case final Map seen) {
+            _gymSeen.addAll({
+              for (final MapEntry(:key, :value) in seen.entries)
+                if (key is String && value is String) key: value,
+            });
           }
           _exerciseHistory
             ..clear()
@@ -809,6 +856,8 @@ class NotesStore extends ChangeNotifier {
       'deviceId': _deviceId,
       'platesDay': _platesDay,
       'shareMealsSince': ?_shareMealsSince?.toIso8601String(),
+      'gymSeenOwner': ?_gymSeenOwner,
+      if (_gymSeen.isNotEmpty) 'gymSeen': _gymSeen,
       'exercises': _exerciseHistory,
       'forgottenExercises': _forgottenExercises.toList(),
       if (_deletes.isNotEmpty)

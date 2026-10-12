@@ -7,6 +7,7 @@ import 'sign_in.dart';
 import 'sign_in_sheet.dart';
 import 'body_page.dart';
 import 'booking_entry.dart';
+import 'gym_page.dart';
 import 'health_page.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
@@ -138,19 +139,29 @@ class SettingsPage extends StatelessWidget {
                 // 다니는 곳이 없으면 무엇을 하면 생기는지 적는다. 아무것도
                 // 안 그리면 이 앱에 그런 기능이 있는 줄을 모른다.
                 _Section(title: l.settingsGym),
+                // 도장이 보낸 초대. 받아야 회원이 된다.
+                for (final invite in a.invites)
+                  _Row(
+                    label: l.inviteFrom(invite.gymName),
+                    accent: true,
+                    onTap: () => answerGymInvite(context, a, invite),
+                  ),
                 if (a.gyms.isEmpty)
                   _Note(l.settingsNoGym)
                 else ...[
+                  // 누르면 그 도장 — 공지·이용권·수업 예약·나가기.
                   for (final gym in a.gyms)
                     _Row(
+                      key: ValueKey('settings-gym-${gym.id}'),
                       label: gym.trainer == null
                           ? l.gymOnly(gym.name)
                           : l.gymMember(gym.name, gym.trainer!),
+                      onTap: () => openGym(context, a, store, gym.id),
                     ),
                   _Row(
                     label: l.bookingNew,
                     accent: true,
-                    onTap: () => openBooking(context, a),
+                    onTap: () => openBooking(context, a, store: store),
                   ),
                   // 끼니는 건강 정보라 회원이 켜야 간다(기본 꺼짐). 도장이 하나일
                   // 때만 — 여럿이면 어디로 보낼지 앱이 고르지 않는다.

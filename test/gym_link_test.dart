@@ -167,7 +167,7 @@ void main() {
         return http.Response('{}', 200);
       }),
     );
-    expect(await link.gyms(), isEmpty);
+    expect((await link.gyms())?.gyms, isEmpty);
     expect(await link.routines(), isEmpty);
     expect(calls, 0, reason: '토큰이 없으면 그물을 쓰지 않는다');
   });
@@ -595,18 +595,20 @@ void _shared() {
     expect(posted!['gymId'], 'g1');
   });
 
-  test('스티커에 댄 것이 곧 등록 신청이다', () async {
+  test('등록 신청에는 앞에서 보여 준 안내의 판을 싣는다 — 신청이 곧 동의다', () async {
     for (final (answer, expected) in [
       ('{"state":"requested"}', JoinState.requested),
       ('{"state":"waiting"}', JoinState.waiting),
       ('{"state":"member"}', JoinState.member),
       ('{"error":"noGym"}', JoinState.failed),
     ]) {
-      final link = linkThat(
-        (_) async =>
-            http.Response(answer, answer.contains('error') ? 404 : 200),
-      );
+      Object? sent;
+      final link = linkThat((request) async {
+        sent = jsonDecode(request.body);
+        return http.Response(answer, answer.contains('error') ? 404 : 200);
+      });
       expect(await link.requestJoin('g1'), expected);
+      expect(sent, {'gymId': 'g1', 'consentVersion': gymConsentVersion});
     }
     // 로그인하지 않았으면 신청할 사람이 없다.
     const anonymous = GymLink(endpoint: 'https://example.com');
@@ -672,6 +674,24 @@ void _tags() {
       'setpad://c/abc/classes',
     ]) {
       expect(gymFromTag(Uri.parse(raw)), isNull, reason: raw);
+    }
+  });
+
+  test('단톡방의 수업·PT 예약 링크는 앱의 같은 화면으로 연다 — 앱에 없는 화면은 그대로 둔다', () {
+    expect(gymScreenFromLink(Uri.parse('https://example.com/c/abc/classes')), (
+      gymId: 'abc',
+      page: 'classes',
+    ));
+    expect(
+      gymScreenFromLink(Uri.parse('https://example.com/c/abc/bookings/')),
+      (gymId: 'abc', page: 'bookings'),
+    );
+    for (final raw in [
+      'https://example.com/c/abc/meals',
+      'https://example.com/c/abc',
+      'https://example.com/c/abc/classes/x',
+    ]) {
+      expect(gymScreenFromLink(Uri.parse(raw)), isNull, reason: raw);
     }
   });
 

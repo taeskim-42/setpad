@@ -11,8 +11,118 @@ import 'partner.dart';
 import 'record_ai.dart';
 import 'units.dart';
 
-/// 내가 다니는 체육관 하나.
-typedef Gym = ({String id, String name, String? trainer});
+/// 내가 다니는 체육관 하나와, 도장이 내게 알리는 것(GET /api/gyms, 계약 C5) — 공지,
+/// 이용권, 락커, 앞으로의 PT. **앱만 쓰는 회원에게는 이것이 도장 소식의 전부다** —
+/// 스티커 주소는 앱이 가로채므로 웹의 회원 화면에 닿지 못한다.
+class Gym {
+  const Gym({
+    required this.id,
+    required this.name,
+    this.trainer,
+    this.trainerId,
+    this.notices = const [],
+    this.membership,
+    this.pt,
+    this.locker,
+    this.bookings = const [],
+  });
+
+  /// 못 읽은 공지·예약 한 줄은 버린다 — 그 한 줄 때문에 도장을 잃지 않게.
+  factory Gym.fromJson(Map m) {
+    final access = m['access'] is Map ? m['access'] as Map : const {};
+    GymPass? pass(Object? p) => p is Map
+        ? tryRead(
+            () => (
+              name: '${p['name'] ?? ''}',
+              endsOn: DateTime.tryParse('${p['endsOn']}'),
+              paused: p['paused'] == true,
+              remaining: p['remaining'] as int?,
+            ),
+          )
+        : null;
+    final locker = m['locker'];
+    return Gym(
+      id: m['id'] as String,
+      name: m['name'] as String,
+      trainer: m['trainer'] as String?,
+      trainerId: m['trainerId'] as String?,
+      notices: eachRow(
+        m['notices'],
+        (n) => (
+          id: n['id'] as String,
+          title: n['title'] as String,
+          body: n['body'] as String? ?? '',
+          pinned: n['pinned'] == true,
+          createdAt: DateTime.parse(n['createdAt'] as String).toLocal(),
+        ),
+      ),
+      membership: pass(access['membership']),
+      pt: pass(access['pt']),
+      locker: locker is Map && locker['label'] is String
+          ? (
+              label: locker['label'] as String,
+              endsOn: DateTime.tryParse('${locker['endsOn']}'),
+            )
+          : null,
+      bookings: eachRow(
+        m['bookings'],
+        (b) => (
+          id: b['id'] as String,
+          startsAt: DateTime.parse(b['startsAt'] as String).toLocal(),
+          trainer: b['trainer'] as String? ?? '',
+          status: b['status'] as String,
+        ),
+      ),
+    );
+  }
+
+  final String id, name;
+  final String? trainer, trainerId;
+
+  /// 최근 공지 다섯, 고정한 것이 먼저.
+  final List<GymNotice> notices;
+
+  /// 지금 쓰거나 곧 쓸 회원권·PT 이용권(정지한 것도). 없으면 null.
+  final GymPass? membership, pt;
+  final ({String label, DateTime? endsOn})? locker;
+
+  /// 앞으로의 PT, 시각 순. 트레이너가 거절·취소한 것도 온다 — 원격 푸시가 없어서
+  /// 앱이 지난번 본 것과 견줘 무엇이 바뀌었는지 말한다([gymNews]).
+  final List<GymBooking> bookings;
+}
+
+typedef GymNotice = ({
+  String id,
+  String title,
+  String body,
+  bool pinned,
+  DateTime createdAt,
+});
+
+/// 이용권 하나. [remaining] 은 PT 의 남은 횟수이고 null 이면 무제한이다(회원권은 늘 null).
+typedef GymPass = ({
+  String name,
+  DateTime? endsOn,
+  bool paused,
+  int? remaining,
+});
+
+/// 앞으로의 PT 하나. `status` 는 pending·booked·rejected·cancelled.
+typedef GymBooking = ({
+  String id,
+  DateTime startsAt,
+  String trainer,
+  String status,
+});
+
+/// 도장이 보낸 초대. **회원이 받아야 회원이 된다** — 닉네임만 알면 아무나 회원으로
+/// 넣고 루틴을 밀어 넣을 수 있던 길을 서버가 초대로 바꿨다.
+typedef GymInvite = ({String gymId, String gymName, String? invitedBy});
+
+/// 도장에 등록하기 전에 보여 주는 안내의 판(번역 키 gymConsentNotice). 서버의
+/// GYM_CONSENT_VERSION 과 같아야 하고, 문구나 처리방침이 바뀌면 함께 올린다 — 신청과
+/// 초대 수락이 이 판을 동의로 남긴다.
+const gymConsentVersion = '2026-10-13';
 
 /// 목록의 줄마다 읽고, 못 읽은 줄은 버린다 — 한 줄 때문에 전체가 안 보이는 것보다 낫다.
 List<T> eachRow<T>(Object? list, T? Function(Map m) read) => [
@@ -26,6 +136,77 @@ T? tryRead<T>(T? Function() read) {
   } catch (_) {
     return null;
   }
+}
+
+/// 회원이 본 도장 소식 — 열쇠마다 그때의 모양: 공지는 본 적이 있는지, 예약은 상태·시각·
+/// 담당, 담당 트레이너는 누구인지.
+///
+/// **원격 푸시가 없다.** 트레이너가 PT 를 거절·취소하거나 시간을 옮겨도 앱만 쓰는 회원의
+/// 폰에는 아무것도 뜨지 않았다. 그래서 앱을 열 때 지난번 본 것과 견준다([gymNews]).
+Map<String, String> gymSeenOf(Gym gym) => {
+  for (final n in gym.notices) 'n:${n.id}': '',
+  for (final b in gym.bookings)
+    'b:${b.id}': bookingSeen(b.status, b.startsAt, b.trainer),
+  't:${gym.id}': ?gym.trainerId,
+};
+
+/// 예약 하나의 모양. 예약 화면(/api/bookings)과 도장 목록(/api/gyms)이 같은 줄을 만든다.
+String bookingSeen(String status, DateTime startsAt, String trainer) =>
+    '$status|${startsAt.toUtc().toIso8601String()}|$trainer';
+
+/// 도장에서 생긴 일. 앞의 것일수록 회원이 먼저 알아야 한다.
+enum GymChange { rejected, cancelled, moved, trainer, booked, assigned, notice }
+
+typedef GymNews = ({
+  String key,
+  GymChange change,
+  GymNotice? notice,
+  GymBooking? booking,
+});
+
+/// [seen] 에 견줘 이 도장에서 새로 생긴 일, 무거운 것부터.
+///
+/// 처음 보는 예약은 확정·거절만 소식이다 — 승인 대기는 회원이 낸 신청이고, 취소는 대개
+/// 회원이 한 것이다. 앱에서 한 신청·취소는 예약 화면이 본 것으로 적는다.
+List<GymNews> gymNews(Gym gym, Map<String, String> seen) {
+  final all = <GymNews>[
+    for (final n in gym.notices)
+      if (!seen.containsKey('n:${n.id}'))
+        (key: 'n:${n.id}', change: GymChange.notice, notice: n, booking: null),
+    for (final b in gym.bookings)
+      if (_bookingChange(seen['b:${b.id}'], b) case final change?)
+        (key: 'b:${b.id}', change: change, notice: null, booking: b),
+    if ((seen['t:${gym.id}'], gym.trainerId) case (
+      final was?,
+      final now?,
+    ) when was != now)
+      (
+        key: 't:${gym.id}',
+        change: GymChange.assigned,
+        notice: null,
+        booking: null,
+      ),
+  ];
+  return [
+    for (final kind in GymChange.values) ...all.where((n) => n.change == kind),
+  ];
+}
+
+GymChange? _bookingChange(String? seen, GymBooking b) {
+  if (seen == bookingSeen(b.status, b.startsAt, b.trainer)) return null;
+  final status = switch (b.status) {
+    'booked' => GymChange.booked,
+    'rejected' => GymChange.rejected,
+    'cancelled' => GymChange.cancelled,
+    _ => null,
+  };
+  final was = seen?.split('|');
+  if (was == null || was.length < 3) {
+    return status == GymChange.cancelled ? null : status;
+  }
+  if (was[0] != b.status) return status;
+  if (was[1] != b.startsAt.toUtc().toIso8601String()) return GymChange.moved;
+  return GymChange.trainer;
 }
 
 /// 트레이너가 내려준 루틴 하나.
@@ -73,25 +254,29 @@ class GymLink {
 
   Map<String, String> get headers => {'authorization': 'Bearer $token'};
 
-  /// 다니는 체육관. **못 물어본 것은 null 이다** — 빈 목록과 다르다. 빈 목록으로
-  /// 돌려주면 신호가 약하거나 토큰이 거절된 순간 다니는 곳이 없는 사람처럼 보인다.
-  Future<List<Gym>?> gyms() async {
-    if (!supported) return const [];
+  /// 다니는 체육관과 아직 답하지 않은 도장 초대. **못 물어본 것은 null 이다** — 빈
+  /// 목록과 다르다. 빈 목록으로 돌려주면 신호가 약하거나 토큰이 거절된 순간 다니는
+  /// 곳이 없는 사람처럼 보인다.
+  Future<({List<Gym> gyms, List<GymInvite> invites})?> gyms() async {
+    if (!supported) return (gyms: const <Gym>[], invites: const <GymInvite>[]);
     return withClient((web) async {
       try {
         final response = await web
             .get(Uri.parse('$endpoint/api/gyms'), headers: headers)
             .timeout(const Duration(seconds: 15));
         if (response.statusCode != 200) return null;
-        final body = jsonDecode(utf8.decode(response.bodyBytes));
-        return [
-          for (final row in (body as Map)['gyms'] as List? ?? const [])
-            (
-              id: row['id'] as String,
-              name: row['name'] as String,
-              trainer: row['trainer'] as String?,
+        final body = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
+        return (
+          gyms: eachRow(body['gyms'], Gym.fromJson),
+          invites: eachRow(
+            body['invites'],
+            (i) => (
+              gymId: i['gymId'] as String,
+              gymName: i['gymName'] as String,
+              invitedBy: i['invitedBy'] as String?,
             ),
-        ];
+          ),
+        );
       } catch (_) {
         return null;
       }
@@ -562,34 +747,47 @@ String _reason(Map<String, Object?>? body) =>
 
 extension _Posting on GymLink {
   /// 서버의 답. 닿지 못했으면 null.
-  Future<({int status, Map<String, Object?>? body})?> _post(
-    String path,
-    Map<String, Object?> body,
-  ) => withClient((web) async {
+  Future<({int status, Map<String, Object?>? body})?> _call(
+    String method,
+    String path, [
+    Map<String, Object?>? body,
+  ]) => withClient((web) async {
     try {
+      final request = http.Request(method, Uri.parse('$endpoint$path'))
+        ..headers.addAll(headers);
+      if (body != null) {
+        request
+          ..headers['content-type'] = 'application/json'
+          ..body = jsonEncode(body);
+      }
       final response = await web
-          .post(
-            Uri.parse('$endpoint$path'),
-            headers: {...headers, 'content-type': 'application/json'},
-            body: jsonEncode(body),
-          )
+          .send(request)
+          .then(http.Response.fromStream)
           .timeout(const Duration(seconds: 15));
       return (status: response.statusCode, body: _bodyOf(response));
     } catch (_) {
       return null;
     }
   });
+
+  Future<({int status, Map<String, Object?>? body})?> _post(
+    String path,
+    Map<String, Object?> body,
+  ) => _call('POST', path, body);
 }
+
+/// 잡았으면(200) null, 못 잡았으면 서버가 적은 까닭, 못 닿았거나 까닭이 없으면 ''.
+String? _done(({int status, Map<String, Object?>? body})? answer) =>
+    answer?.status == 200 ? null : _reason(answer?.body);
 
 /// 회원 등록 신청의 결과. 서버가 돌려주는 말 그대로다. [ageRequired] 는 '만 14세
 /// 이상' 확인이 없는 계정이다(그 칸이 생기기 전에 만든 계정) — 한 번 묻고 다시 신청한다.
 enum JoinState { requested, waiting, member, ageRequired, failed }
 
+/// 도장 초대에 답한 결과. [gone] 은 도장이 초대를 거둔 것이다.
+enum InviteAnswer { done, gone, ageRequired, failed }
+
 extension MemberLink on GymLink {
-  /// 이 체육관에 등록을 신청한다.
-  ///
-  /// **스티커 주소는 앱이 가로챈다.** 그래서 웹의 등록 요청 화면에 닿을 수가
-  /// 없고, 신청할 길이 앱 안에 있어야 한다.
   /// 계정을 지운다. 서버가 지웠다고 하면 true.
   ///
   /// **관장·트레이너는 지울 수 없다**(서버가 409 로 막는다). 도장에 회원과
@@ -613,9 +811,17 @@ extension MemberLink on GymLink {
     });
   }
 
+  /// 이 체육관에 등록을 신청한다.
+  ///
+  /// **스티커 주소는 앱이 가로챈다.** 그래서 웹의 등록 요청 화면에 닿을 수가
+  /// 없고, 신청할 길이 앱 안에 있어야 한다. 앞에서 보여 준 안내의 판을 같이
+  /// 보낸다 — 신청이 곧 동의라 서버가 그것을 남긴다.
   Future<JoinState> requestJoin(String gymId) async {
     if (!supported) return JoinState.failed;
-    final answer = await _post('/api/members', {'gymId': gymId});
+    final answer = await _post('/api/members', {
+      'gymId': gymId,
+      'consentVersion': gymConsentVersion,
+    });
     if (answer?.body?['error'] == 'ageConfirmationRequired') {
       return JoinState.ageRequired;
     }
@@ -644,6 +850,32 @@ extension MemberLink on GymLink {
     return fresh is String && fresh.isNotEmpty ? fresh : null;
   }
 
+  /// 도장 초대에 답한다. 받을 때는 앞에서 보여 준 안내의 판을 같이 보내 동의로 남긴다.
+  Future<InviteAnswer> answerInvite(
+    String gymId, {
+    required bool accept,
+  }) async {
+    if (!supported) return InviteAnswer.failed;
+    final answer = await _post('/api/gyms/$gymId/invite', {
+      'accept': accept,
+      if (accept) 'consentVersion': gymConsentVersion,
+    });
+    return switch ((answer?.status, answer?.body?['error'])) {
+      (200, _) => InviteAnswer.done,
+      (404, _) => InviteAnswer.gone,
+      (403, 'ageConfirmationRequired') => InviteAnswer.ageRequired,
+      _ => InviteAnswer.failed,
+    };
+  }
+
+  /// 이 도장에서 나간다. 끊기는 것은 연결뿐이고 지난 기록과 결제 장부는 도장에 남는다
+  /// (앞으로의 PT·수업 예약은 서버가 취소한다). 나갔으면 true.
+  Future<bool> leaveGym(String gymId) async {
+    if (!supported) return false;
+    return (await _call('DELETE', '/api/gyms/$gymId/membership'))?.status ==
+        200;
+  }
+
   /// 닉네임을 바꾼다. 로그인하면 제공자의 이름(대개 실명)이 그대로 닉네임이 된다.
   /// 바꿨으면 null, 서버가 거절했으면 그 까닭(invalidNickname·nicknameTaken), 못
   /// 닿았으면 ''.
@@ -653,6 +885,57 @@ extension MemberLink on GymLink {
     if (answer == null || answer.status >= 500) return '';
     return answer.status == 200 ? null : '${answer.body?['error'] ?? ''}';
   }
+}
+
+/// 그룹 수업 하나(GET /api/classes). 휴강한 것도 온다 — 회원이 수업이 없어진 줄 안다.
+/// `status` 는 open·full·cancelled, [mine] 은 내가 잡은 수업이다.
+typedef GymClass = ({
+  String id,
+  String title,
+  DateTime startsAt,
+  DateTime endsAt,
+  String? trainer,
+  int capacity,
+  int booked,
+  bool mine,
+  String status,
+});
+
+/// 그룹 수업 예약. **웹 회원 화면에만 있던 길이다** — 스티커 주소를 앱이 가로채서 앱만
+/// 쓰는 회원은 GX 를 잡을 곳이 없었다.
+extension ClassLink on GymLink {
+  /// 앞으로 2주의 수업. 못 물어봤으면 null.
+  Future<List<GymClass>?> classes(String gymId) async {
+    if (!supported) return null;
+    final answer = await _call(
+      'GET',
+      '/api/classes?gym=${Uri.encodeQueryComponent(gymId)}',
+    );
+    if (answer?.status != 200) return null;
+    return eachRow(
+      answer!.body?['classes'],
+      (c) => (
+        id: c['id'] as String,
+        title: c['title'] as String,
+        startsAt: DateTime.parse(c['startsAt'] as String).toLocal(),
+        endsAt: DateTime.parse(c['endsAt'] as String).toLocal(),
+        trainer: c['trainer'] as String?,
+        capacity: c['capacity'] as int,
+        booked: c['booked'] as int,
+        mine: c['mine'] == true,
+        status: c['status'] as String,
+      ),
+    );
+  }
+
+  /// 수업을 잡는다. 잡았으면 null, 못 잡았으면 서버가 적은 까닭(자리가 찼다, 이용권이
+  /// 없다, 다른 예약과 겹친다), 못 닿았으면 ''.
+  Future<String?> bookClass(String id) async =>
+      supported ? _done(await _call('POST', '/api/classes/$id/booking')) : '';
+
+  /// 수업 예약을 취소한다. 결과는 [bookClass] 와 같다.
+  Future<String?> cancelClass(String id) async =>
+      supported ? _done(await _call('DELETE', '/api/classes/$id/booking')) : '';
 }
 
 /// 예약 화면이 그려지는 데 필요한 전부.
@@ -668,6 +951,7 @@ class Availability {
     this.durationMin = 50,
     this.hasPass = false,
     this.remaining,
+    this.paused = false,
     this.loaded = false,
   });
 
@@ -686,6 +970,9 @@ class Availability {
 
   /// 남은 횟수. null 은 무제한이거나 이용권이 없다는 뜻이다.
   final int? remaining;
+
+  /// 쓸 PT 이용권이 없는 까닭이 정지다 — '이용권 없음' 이라고 하면 회원은 끝난 줄 안다.
+  final bool paused;
 
   /// 서버에서 한 번이라도 받아 왔는가. 안 받아 온 것과 빈 것은 다르다.
   final bool loaded;
@@ -746,6 +1033,7 @@ extension BookingLink on GymLink {
           durationMin: body['duration_min'] as int? ?? 50,
           hasPass: pass is Map,
           remaining: pass is Map ? pass['remaining'] as int? : null,
+          paused: body['paused'] == true,
           loaded: true,
         );
       } catch (_) {
@@ -801,4 +1089,15 @@ String? gymFromTag(Uri uri) {
   // 커스텀 스킴에서는 'c' 가 경로가 아니라 host 로 잡힌다.
   if (uri.host == 'c' && parts.length == 1) return parts.first;
   return null;
+}
+
+/// 스티커 주소 아래의 수업·PT 예약 링크(`/c/<id>/classes`·`/c/<id>/bookings`) — 트레이너가
+/// 단톡방에 올리는 그 링크다. 앱 링크 설정이 그것까지 앱으로 넘기므로 앱의 같은 화면을 연다.
+({String gymId, String page})? gymScreenFromLink(Uri uri) {
+  final parts = uri.pathSegments.where((p) => p.isNotEmpty).toList();
+  return parts.length == 3 &&
+          parts.first == 'c' &&
+          const {'classes', 'bookings'}.contains(parts.last)
+      ? (gymId: parts[1], page: parts.last)
+      : null;
 }

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/account.dart';
+import 'package:setpad/gym.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/settings_page.dart';
@@ -209,7 +210,7 @@ void main() {
     final toggle = find.byKey(const ValueKey('settings-share-meals'));
     expect(toggle, findsNothing, reason: '다니는 곳이 없다');
 
-    account.gyms = [(id: 'g1', name: 'BPM', trainer: null)];
+    account.gyms = [Gym(id: 'g1', name: 'BPM')];
     account.notifyListeners();
     await tester.pump();
     final note = find.textContaining('BPM 트레이너가 봐요');
@@ -222,10 +223,7 @@ void main() {
     await tester.pump();
     expect(store.sharesMeals, isTrue);
 
-    account.gyms = [
-      (id: 'g1', name: 'BPM', trainer: null),
-      (id: 'g2', name: 'Core', trainer: null),
-    ];
+    account.gyms = [Gym(id: 'g1', name: 'BPM'), Gym(id: 'g2', name: 'Core')];
     account.notifyListeners();
     await tester.pump();
     expect(toggle, findsNothing, reason: '여럿이면 어디로 보낼지 앱이 고르지 않는다');

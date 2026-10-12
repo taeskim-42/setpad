@@ -3564,7 +3564,153 @@ class LTh extends L {
       'ต้องมีอายุ 14 ปีขึ้นไปจึงจะสมัครเป็นสมาชิกยิมได้ คุณอายุ 14 ปีขึ้นไปหรือไม่';
 
   @override
+  String get gymClasses => 'จองคลาส';
+
+  @override
+  String get gymLeave => 'ออกจากยิมนี้';
+
+  @override
+  String gymLeaveAsk(String gym) {
+    return 'ออกจาก $gym ไหม? คุณจะไม่ได้รับรูทีนอีก และการออกกำลังกายกับมื้ออาหารจะไม่ถูกแชร์อีก การจอง PT และคลาสที่จะถึงจะถูกยกเลิก ส่วนบันทึกเดิมและประวัติการชำระเงินยังอยู่กับยิม';
+  }
+
+  @override
+  String get gymNotices => 'ประกาศ';
+
+  @override
+  String passMembershipUntil(String date) {
+    return 'สมาชิกถึง $date';
+  }
+
+  @override
+  String get passMembershipOn => 'สมาชิกใช้งานอยู่';
+
+  @override
+  String get passMembershipPaused => 'สมาชิกพักไว้';
+
+  @override
+  String passPtLeft(int n) {
+    return 'PT เหลือ $n ครั้ง';
+  }
+
+  @override
+  String get passPtUnlimited => 'PT ไม่จำกัดครั้ง';
+
+  @override
+  String get passPtPaused => 'PT พักไว้';
+
+  @override
+  String passLocker(String label) {
+    return 'ล็อกเกอร์ $label';
+  }
+
+  @override
+  String passLockerUntil(String label, String date) {
+    return 'ล็อกเกอร์ $label (ถึง $date)';
+  }
+
+  @override
+  String get passNone => 'ไม่มีแพ็กเกจที่ใช้ได้';
+
+  @override
+  String get bookingRejected => 'ถูกปฏิเสธ';
+
+  @override
+  String get bookingCancelled => 'ยกเลิกแล้ว';
+
+  @override
+  String get bookingPaused => 'แพ็กเกจ PT ของคุณถูกพักไว้ กรุณาสอบถามเทรนเนอร์';
+
+  @override
+  String newsBooked(String when) {
+    return 'ยืนยัน PT แล้ว · $when';
+  }
+
+  @override
+  String newsRejected(String when) {
+    return 'คำขอ PT ถูกปฏิเสธ · $when';
+  }
+
+  @override
+  String newsCancelled(String when) {
+    return 'PT ถูกยกเลิก · $when';
+  }
+
+  @override
+  String newsMoved(String when) {
+    return 'เปลี่ยนเวลา PT · $when';
+  }
+
+  @override
+  String newsTrainer(String trainer, String when) {
+    return 'เปลี่ยนเทรนเนอร์ PT · $trainer · $when';
+  }
+
+  @override
+  String newsAssigned(String trainer) {
+    return 'เปลี่ยนเทรนเนอร์ประจำ · $trainer';
+  }
+
+  @override
+  String newsNotice(String title) {
+    return 'ประกาศ · $title';
+  }
+
+  @override
+  String newsMore(String news, int n) {
+    return '$news และอีก $n รายการ';
+  }
+
+  @override
+  String inviteFrom(String gym) {
+    return '$gym เชิญคุณ';
+  }
+
+  @override
+  String inviteBy(String name) {
+    return 'ส่งโดย $name';
+  }
+
+  @override
+  String get inviteAccept => 'ยอมรับและสมัคร';
+
+  @override
+  String get inviteGone => 'คำเชิญนี้ไม่มีแล้ว';
+
+  @override
   String get decline => 'ปฏิเสธ';
+
+  @override
+  String get gymConsentNotice =>
+      'เมื่อสมัคร เจ้าของยิมและเทรนเนอร์ของยิมนี้จะเห็นชื่อเล่นของคุณ การออกกำลังกายที่ยิมนี้ มื้ออาหารที่คุณบันทึก และการจองของคุณ ข้อมูลที่ยิมบันทึกเอง เช่น บันทึก องค์ประกอบร่างกาย แพ็กเกจ และการชำระเงิน ยิมเป็นผู้ดูแล หากคุณออกจากยิม จะหยุดแชร์ตั้งแต่นั้น ส่วนบันทึกเดิมและประวัติการชำระเงินยังอยู่กับยิม';
+
+  @override
+  String get joinAsk => 'ขอสมัครเป็นสมาชิกยิมนี้ไหม';
+
+  @override
+  String get joinAgree => 'ยอมรับและส่งคำขอ';
+
+  @override
+  String get classesNone => 'ไม่มีคลาสในสองสัปดาห์ข้างหน้า';
+
+  @override
+  String classBook(int booked, int capacity) {
+    return 'จอง $booked/$capacity';
+  }
+
+  @override
+  String classFull(int booked, int capacity) {
+    return 'เต็ม $booked/$capacity';
+  }
+
+  @override
+  String get classMine => 'จองแล้ว · ยกเลิก';
+
+  @override
+  String get classCancelled => 'งดคลาส';
+
+  @override
+  String get classCancelAsk => 'ยกเลิกการจองคลาสนี้ไหม';
 
   @override
   String get trainerPtRequests => 'คำขอ PT';

@@ -3447,7 +3447,153 @@ class LZh extends L {
   String get ageConfirmAsk => '须年满 14 周岁才能加入健身房。你已年满 14 周岁吗？';
 
   @override
+  String get gymClasses => '团课预约';
+
+  @override
+  String get gymLeave => '退出这家健身房';
+
+  @override
+  String gymLeaveAsk(String gym) {
+    return '要退出$gym吗？之后不会再收到训练计划，训练和饮食也不再共享。之后的 PT 和团课预约会被取消，过去的记录和付款记录仍留在健身房。';
+  }
+
+  @override
+  String get gymNotices => '公告';
+
+  @override
+  String passMembershipUntil(String date) {
+    return '会员卡至 $date';
+  }
+
+  @override
+  String get passMembershipOn => '会员卡使用中';
+
+  @override
+  String get passMembershipPaused => '会员卡暂停中';
+
+  @override
+  String passPtLeft(int n) {
+    return 'PT 剩 $n 次';
+  }
+
+  @override
+  String get passPtUnlimited => 'PT 不限次数';
+
+  @override
+  String get passPtPaused => 'PT 暂停中';
+
+  @override
+  String passLocker(String label) {
+    return '储物柜 $label';
+  }
+
+  @override
+  String passLockerUntil(String label, String date) {
+    return '储物柜 $label（至 $date）';
+  }
+
+  @override
+  String get passNone => '没有可用的会员卡';
+
+  @override
+  String get bookingRejected => '已拒绝';
+
+  @override
+  String get bookingCancelled => '已取消';
+
+  @override
+  String get bookingPaused => 'PT 次卡暂停中，请联系教练。';
+
+  @override
+  String newsBooked(String when) {
+    return 'PT 已确认 · $when';
+  }
+
+  @override
+  String newsRejected(String when) {
+    return 'PT 申请被拒绝 · $when';
+  }
+
+  @override
+  String newsCancelled(String when) {
+    return 'PT 已取消 · $when';
+  }
+
+  @override
+  String newsMoved(String when) {
+    return 'PT 时间变更 · $when';
+  }
+
+  @override
+  String newsTrainer(String trainer, String when) {
+    return 'PT 教练变更 · $trainer · $when';
+  }
+
+  @override
+  String newsAssigned(String trainer) {
+    return '负责教练变更 · $trainer';
+  }
+
+  @override
+  String newsNotice(String title) {
+    return '公告 · $title';
+  }
+
+  @override
+  String newsMore(String news, int n) {
+    return '$news 及另外 $n 条';
+  }
+
+  @override
+  String inviteFrom(String gym) {
+    return '$gym邀请了你';
+  }
+
+  @override
+  String inviteBy(String name) {
+    return '由$name发送';
+  }
+
+  @override
+  String get inviteAccept => '同意并加入';
+
+  @override
+  String get inviteGone => '这个邀请已不存在。';
+
+  @override
   String get decline => '拒绝';
+
+  @override
+  String get gymConsentNotice =>
+      '加入后，这家健身房的馆长和教练会看到你的昵称、你在这家健身房的训练、你记录的饮食和预约。备注、体成分、会员卡、付款等由健身房自己记录的信息由健身房管理。退出健身房后从那时起不再共享，过去的记录和付款记录仍留在健身房。';
+
+  @override
+  String get joinAsk => '申请加入这家健身房吗？';
+
+  @override
+  String get joinAgree => '同意并申请';
+
+  @override
+  String get classesNone => '未来两周没有团课。';
+
+  @override
+  String classBook(int booked, int capacity) {
+    return '预约 $booked/$capacity';
+  }
+
+  @override
+  String classFull(int booked, int capacity) {
+    return '已满 $booked/$capacity';
+  }
+
+  @override
+  String get classMine => '已预约 · 取消';
+
+  @override
+  String get classCancelled => '停课';
+
+  @override
+  String get classCancelAsk => '取消这节团课的预约吗？';
 
   @override
   String get trainerPtRequests => 'PT 申请';
@@ -6927,7 +7073,153 @@ class LZhHans extends LZh {
   String get ageConfirmAsk => '须年满 14 周岁才能加入健身房。你已年满 14 周岁吗？';
 
   @override
+  String get gymClasses => '团课预约';
+
+  @override
+  String get gymLeave => '退出这家健身房';
+
+  @override
+  String gymLeaveAsk(String gym) {
+    return '要退出$gym吗？之后不会再收到训练计划，训练和饮食也不再共享。之后的 PT 和团课预约会被取消，过去的记录和付款记录仍留在健身房。';
+  }
+
+  @override
+  String get gymNotices => '公告';
+
+  @override
+  String passMembershipUntil(String date) {
+    return '会员卡至 $date';
+  }
+
+  @override
+  String get passMembershipOn => '会员卡使用中';
+
+  @override
+  String get passMembershipPaused => '会员卡暂停中';
+
+  @override
+  String passPtLeft(int n) {
+    return 'PT 剩 $n 次';
+  }
+
+  @override
+  String get passPtUnlimited => 'PT 不限次数';
+
+  @override
+  String get passPtPaused => 'PT 暂停中';
+
+  @override
+  String passLocker(String label) {
+    return '储物柜 $label';
+  }
+
+  @override
+  String passLockerUntil(String label, String date) {
+    return '储物柜 $label（至 $date）';
+  }
+
+  @override
+  String get passNone => '没有可用的会员卡';
+
+  @override
+  String get bookingRejected => '已拒绝';
+
+  @override
+  String get bookingCancelled => '已取消';
+
+  @override
+  String get bookingPaused => 'PT 次卡暂停中，请联系教练。';
+
+  @override
+  String newsBooked(String when) {
+    return 'PT 已确认 · $when';
+  }
+
+  @override
+  String newsRejected(String when) {
+    return 'PT 申请被拒绝 · $when';
+  }
+
+  @override
+  String newsCancelled(String when) {
+    return 'PT 已取消 · $when';
+  }
+
+  @override
+  String newsMoved(String when) {
+    return 'PT 时间变更 · $when';
+  }
+
+  @override
+  String newsTrainer(String trainer, String when) {
+    return 'PT 教练变更 · $trainer · $when';
+  }
+
+  @override
+  String newsAssigned(String trainer) {
+    return '负责教练变更 · $trainer';
+  }
+
+  @override
+  String newsNotice(String title) {
+    return '公告 · $title';
+  }
+
+  @override
+  String newsMore(String news, int n) {
+    return '$news 及另外 $n 条';
+  }
+
+  @override
+  String inviteFrom(String gym) {
+    return '$gym邀请了你';
+  }
+
+  @override
+  String inviteBy(String name) {
+    return '由$name发送';
+  }
+
+  @override
+  String get inviteAccept => '同意并加入';
+
+  @override
+  String get inviteGone => '这个邀请已不存在。';
+
+  @override
   String get decline => '拒绝';
+
+  @override
+  String get gymConsentNotice =>
+      '加入后，这家健身房的馆长和教练会看到你的昵称、你在这家健身房的训练、你记录的饮食和预约。备注、体成分、会员卡、付款等由健身房自己记录的信息由健身房管理。退出健身房后从那时起不再共享，过去的记录和付款记录仍留在健身房。';
+
+  @override
+  String get joinAsk => '申请加入这家健身房吗？';
+
+  @override
+  String get joinAgree => '同意并申请';
+
+  @override
+  String get classesNone => '未来两周没有团课。';
+
+  @override
+  String classBook(int booked, int capacity) {
+    return '预约 $booked/$capacity';
+  }
+
+  @override
+  String classFull(int booked, int capacity) {
+    return '已满 $booked/$capacity';
+  }
+
+  @override
+  String get classMine => '已预约 · 取消';
+
+  @override
+  String get classCancelled => '停课';
+
+  @override
+  String get classCancelAsk => '取消这节团课的预约吗？';
 
   @override
   String get trainerPtRequests => 'PT 申请';
@@ -10407,7 +10699,153 @@ class LZhHant extends LZh {
   String get ageConfirmAsk => '須年滿 14 歲才能加入健身房。你已滿 14 歲嗎？';
 
   @override
+  String get gymClasses => '團課預約';
+
+  @override
+  String get gymLeave => '退出這家健身房';
+
+  @override
+  String gymLeaveAsk(String gym) {
+    return '要退出$gym嗎？之後不會再收到訓練菜單，訓練和飲食也不再分享。之後的 PT 和團課預約會被取消，過去的紀錄和付款紀錄仍留在健身房。';
+  }
+
+  @override
+  String get gymNotices => '公告';
+
+  @override
+  String passMembershipUntil(String date) {
+    return '會員資格至 $date';
+  }
+
+  @override
+  String get passMembershipOn => '會員資格使用中';
+
+  @override
+  String get passMembershipPaused => '會員資格暫停中';
+
+  @override
+  String passPtLeft(int n) {
+    return 'PT 剩 $n 堂';
+  }
+
+  @override
+  String get passPtUnlimited => 'PT 不限堂數';
+
+  @override
+  String get passPtPaused => 'PT 暫停中';
+
+  @override
+  String passLocker(String label) {
+    return '置物櫃 $label';
+  }
+
+  @override
+  String passLockerUntil(String label, String date) {
+    return '置物櫃 $label（至 $date）';
+  }
+
+  @override
+  String get passNone => '沒有可用的會員方案';
+
+  @override
+  String get bookingRejected => '已拒絕';
+
+  @override
+  String get bookingCancelled => '已取消';
+
+  @override
+  String get bookingPaused => 'PT 堂數暫停中，請聯絡教練。';
+
+  @override
+  String newsBooked(String when) {
+    return 'PT 已確認 · $when';
+  }
+
+  @override
+  String newsRejected(String when) {
+    return 'PT 申請被拒絕 · $when';
+  }
+
+  @override
+  String newsCancelled(String when) {
+    return 'PT 已取消 · $when';
+  }
+
+  @override
+  String newsMoved(String when) {
+    return 'PT 時間變更 · $when';
+  }
+
+  @override
+  String newsTrainer(String trainer, String when) {
+    return 'PT 教練變更 · $trainer · $when';
+  }
+
+  @override
+  String newsAssigned(String trainer) {
+    return '負責教練變更 · $trainer';
+  }
+
+  @override
+  String newsNotice(String title) {
+    return '公告 · $title';
+  }
+
+  @override
+  String newsMore(String news, int n) {
+    return '$news 及另外 $n 則';
+  }
+
+  @override
+  String inviteFrom(String gym) {
+    return '$gym邀請了你';
+  }
+
+  @override
+  String inviteBy(String name) {
+    return '由$name傳送';
+  }
+
+  @override
+  String get inviteAccept => '同意並加入';
+
+  @override
+  String get inviteGone => '這個邀請已不存在。';
+
+  @override
   String get decline => '拒絕';
+
+  @override
+  String get gymConsentNotice =>
+      '加入後，這家健身房的館長和教練會看到你的暱稱、你在這家健身房的訓練、你記錄的飲食和預約。備註、體組成、會員方案、付款等由健身房自行記錄的資訊由健身房管理。退出健身房後從那時起不再分享，過去的紀錄和付款紀錄仍留在健身房。';
+
+  @override
+  String get joinAsk => '申請加入這家健身房嗎？';
+
+  @override
+  String get joinAgree => '同意並申請';
+
+  @override
+  String get classesNone => '未來兩週沒有團課。';
+
+  @override
+  String classBook(int booked, int capacity) {
+    return '預約 $booked/$capacity';
+  }
+
+  @override
+  String classFull(int booked, int capacity) {
+    return '已滿 $booked/$capacity';
+  }
+
+  @override
+  String get classMine => '已預約 · 取消';
+
+  @override
+  String get classCancelled => '停課';
+
+  @override
+  String get classCancelAsk => '取消這堂團課的預約嗎？';
 
   @override
   String get trainerPtRequests => 'PT 申請';
