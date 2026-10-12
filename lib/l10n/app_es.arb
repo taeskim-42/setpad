@@ -884,7 +884,6 @@
   "newsRejected": "Solicitud de PT rechazada · {when}",
   "newsCancelled": "PT cancelada · {when}",
   "newsMoved": "PT cambiada de hora · {when}",
-  "newsTrainer": "Cambio de entrenador de PT · {trainer} · {when}",
   "newsAssigned": "Nuevo entrenador · {trainer}",
   "newsNotice": "Aviso · {title}",
   "newsMore": "{news} y {n} más",

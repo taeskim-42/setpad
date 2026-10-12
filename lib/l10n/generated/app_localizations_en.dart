@@ -3693,11 +3693,6 @@ class LEn extends L {
   }
 
   @override
-  String newsTrainer(String trainer, String when) {
-    return 'PT trainer changed · $trainer · $when';
-  }
-
-  @override
   String newsAssigned(String trainer) {
     return 'New trainer · $trainer';
   }

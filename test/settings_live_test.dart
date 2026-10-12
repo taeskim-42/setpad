@@ -205,7 +205,9 @@ void main() {
     expect(sent.where((r) => r.$1.endsWith('/api/me/age')), hasLength(1));
   });
 
-  testWidgets('식단 공유는 기본 꺼짐이고, 다니는 도장이 하나일 때만 켤 수 있다', (tester) async {
+  testWidgets('식단 공유는 기본 꺼짐이고, 다니는 도장이 하나일 때만 켤 수 있으며, 도장이 늘어도 끌 수 있다', (
+    tester,
+  ) async {
     final (store, account) = await open(tester);
     final toggle = find.byKey(const ValueKey('settings-share-meals'));
     expect(toggle, findsNothing, reason: '다니는 곳이 없다');
@@ -221,11 +223,18 @@ void main() {
       find.descendant(of: toggle, matching: find.byType(CupertinoSwitch)),
     );
     await tester.pump();
-    expect(store.sharesMeals, isTrue);
+    expect(store.shareMealsGym, 'g1', reason: '켤 때 이름을 보여 준 그 도장의 것이다');
 
-    account.gyms = [Gym(id: 'g1', name: 'BPM'), Gym(id: 'g2', name: 'Core')];
+    account.gyms = [Gym(id: 'g2', name: 'Core'), Gym(id: 'g1', name: 'BPM')];
     account.notifyListeners();
     await tester.pump();
+    expect(toggle, findsOneWidget, reason: '켠 것은 도장이 늘어도 끌 수 있어야 한다');
+    expect(note, findsOneWidget, reason: '안내는 켤 때 고른 그 도장을 말한다');
+    await tester.tap(
+      find.descendant(of: toggle, matching: find.byType(CupertinoSwitch)),
+    );
+    await tester.pump();
+    expect(store.sharesMeals, isFalse);
     expect(toggle, findsNothing, reason: '여럿이면 어디로 보낼지 앱이 고르지 않는다');
     // 저장은 모아서 한다 — 그 타이머가 끝날 때까지.
     await tester.pump(const Duration(milliseconds: 600));

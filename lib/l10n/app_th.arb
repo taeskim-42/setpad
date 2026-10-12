@@ -884,7 +884,6 @@
   "newsRejected": "คำขอ PT ถูกปฏิเสธ · {when}",
   "newsCancelled": "PT ถูกยกเลิก · {when}",
   "newsMoved": "เปลี่ยนเวลา PT · {when}",
-  "newsTrainer": "เปลี่ยนเทรนเนอร์ PT · {trainer} · {when}",
   "newsAssigned": "เปลี่ยนเทรนเนอร์ประจำ · {trainer}",
   "newsNotice": "ประกาศ · {title}",
   "newsMore": "{news} และอีก {n} รายการ",

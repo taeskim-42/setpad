@@ -884,7 +884,6 @@
   "newsRejected": "Yêu cầu PT bị từ chối · {when}",
   "newsCancelled": "PT đã bị hủy · {when}",
   "newsMoved": "PT đổi giờ · {when}",
-  "newsTrainer": "Đổi huấn luyện viên PT · {trainer} · {when}",
   "newsAssigned": "Đổi huấn luyện viên phụ trách · {trainer}",
   "newsNotice": "Thông báo · {title}",
   "newsMore": "{news} và {n} mục khác",

@@ -242,12 +242,30 @@ class _NotesListPageState extends State<NotesListPage>
     if (account == null) return;
     // 누구인지(/api/me)가 도장 목록보다 늦게 올 수 있다. 둘 다 왔을 때 한 번.
     final owner = account.userId;
+    if (account.gymsLoaded && owner != null) {
+      if (widget.store.gymSeenOwner != owner) {
+        widget.store.seedGymSeen(owner, {
+          for (final gym in account.gyms) ...gymSeenOf(gym),
+        });
+      } else {
+        // 처음 맡은 트레이너는 소식이 아니지만 남겨야 다음에 바뀐 것을 안다(gymNews) —
+        // 도장 화면을 열지 않는 회원도.
+        final seen = widget.store.gymSeen;
+        widget.store.markGymSeen({
+          for (final gym in account.gyms)
+            if (gym.trainerId case final id?
+                when !seen.containsKey('t:${gym.id}'))
+              't:${gym.id}': id,
+        });
+      }
+    }
+    // 식단 공유는 켤 때 고른 도장과의 것이다. 그 도장을 나갔으면(내보내졌거나 다른 계정이면)
+    // 끈다 — 다음에 등록한 도장으로 이어지지 않게.
+    final sharing = widget.store.shareMealsGym;
     if (account.gymsLoaded &&
-        owner != null &&
-        widget.store.gymSeenOwner != owner) {
-      widget.store.seedGymSeen(owner, {
-        for (final gym in account.gyms) ...gymSeenOf(gym),
-      });
+        sharing != null &&
+        !account.gyms.any((g) => g.id == sharing)) {
+      widget.store.setShareMeals(null);
     }
     if (identical(account.gyms, _gyms)) return;
     _gyms = account.gyms;

@@ -61,9 +61,12 @@ final _reportTaps = AgentAlarm.taps.asBroadcastStream();
 class SetpadApp extends StatelessWidget {
   /// [store] 는 테스트가 임시 폴더를 물릴 자리다. 비워 두면 앱 문서 디렉터리를
   /// 쓰는 것을 스스로 만든다 — 그건 플랫폼 채널이라 테스트에서는 못 쓴다.
-  const SetpadApp({super.key, this.store, this.tags});
+  const SetpadApp({super.key, this.store, this.tags, this.account});
 
   final NotesStore? store;
+
+  /// 테스트가 가짜 서버를 물린 계정을 끼울 자리. 비워 두면 스스로 만든다.
+  final Account? account;
 
   /// 스티커가 가리킨 주소가 오는 자리. **테스트는 비워 둔다** — 그 자리에는
   /// 읽을 태그가 없고, 네이티브 채널을 깨우면 없는 플러그인을 부른다.
@@ -90,7 +93,7 @@ class SetpadApp extends StatelessWidget {
         primaryColor: seal,
         scaffoldBackgroundColor: CupertinoColors.systemGroupedBackground,
       ),
-      home: _Home(store: store, tags: tags),
+      home: _Home(store: store, tags: tags, account: account),
       // 헬스 커넥트가 "권한을 왜 쓰는가" 를 물으면 Android 가 이 이름으로 연다
       // (MainActivity.getInitialRoute, onNewIntent).
       onGenerateRoute: (settings) => settings.name == HealthDataPage.route
@@ -109,10 +112,11 @@ class SetpadApp extends StatelessWidget {
 /// 적으려는 것이지 지난 기록을 넘겨보려는 것이 아니다. 그래서 오늘 것이 있으면
 /// 그것을, 없으면 새 기록을 곧바로 펴고, 목록은 뒤로가기 한 번 뒤에 둔다.
 class _Home extends StatefulWidget {
-  const _Home({this.store, this.tags});
+  const _Home({this.store, this.tags, this.account});
   final Stream<Uri>? tags;
 
   final NotesStore? store;
+  final Account? account;
 
   @override
   State<_Home> createState() => _HomeState();
@@ -278,7 +282,11 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 로그인과 결제. **없어도 앱은 그대로 돈다** — 켜지 않은 사람은 그냥 쓴다.
   /// 기기 id 는 store 가 처음 켤 때 만들므로 부를 때 읽는다.
   late final _account =
-      Account(deviceId: () => _store.deviceId, aiEnabled: () => _store.aiOn)
+      (widget.account ??
+            Account(
+              deviceId: () => _store.deviceId,
+              aiEnabled: () => _store.aiOn,
+            ))
         ..start().then((_) => _sendPendingWorkouts());
 
   void _claimDaily() => unawaited(_account.claimDaily(_store));
@@ -308,6 +316,9 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   String? _handling;
 
   String? _lastHandoff;
+
+  /// 지금 연 단톡방 수업·예약 링크. 처음 링크와 스트림이 같은 것을 두 번 준다.
+  String? _lastScreenLink;
 
   /// 남이 대신 적어 건네준 기록을 받는다. **받아야 내 것이 된다** — 새 운동 문서로
   /// 들어오고, 그 운동을 한 시각에 놓인다. 같은 링크를 다시 열면 같은 문서가 열리고,
@@ -360,15 +371,27 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     }
     // 단톡방의 수업·예약 링크. 출석도 가입 신청도 아니다 — 다니는 도장이면 그 화면을 연다.
     if (gymScreenFromLink(uri) case (:final gymId, :final page)) {
-      if (!_account.gyms.any((g) => g.id == gymId)) return;
-      if (page == 'bookings') {
-        return openBooking(context, _account, store: _store, gymId: gymId);
+      final key = uri.toString();
+      if (_lastScreenLink == key) return;
+      _lastScreenLink = key;
+      try {
+        bool member() => _account.gyms.any((g) => g.id == gymId);
+        // 앱이 꺼진 채 열렸으면 도장 목록이 아직 없다 — 목록 화면이 따로 묻는다. 기다리지
+        // 않고 보면 다니는 회원에게도 아무 화면이 안 뜬다. 한 번 묻는다(_handleTag 와 같다).
+        if (!member() && _account.signedIn) await _account.refreshGyms();
+        if (!mounted || !member()) return;
+        if (page == 'bookings') {
+          await openBooking(context, _account, store: _store, gymId: gymId);
+        } else {
+          await Navigator.of(context).push(
+            CupertinoPageRoute<void>(
+              builder: (_) => ClassesPage(account: _account, gymId: gymId),
+            ),
+          );
+        }
+      } finally {
+        _lastScreenLink = null;
       }
-      await Navigator.of(context).push(
-        CupertinoPageRoute<void>(
-          builder: (_) => ClassesPage(account: _account, gymId: gymId),
-        ),
-      );
       return;
     }
     final gymId = gymFromTag(uri);
@@ -533,7 +556,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     await syncMeals(
       _account.link,
       _store.notes,
-      shareMeals: _store.sharesMeals,
+      shareMealsGym: _store.shareMealsGym,
       onSynced: _store.touch,
     );
     await sendPendingEnds(_account.link, _store.notes, onSent: _store.touch);
@@ -587,7 +610,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     _tags?.cancel();
     _store.removeListener(_claimDaily);
     _alarmTaps?.cancel();
-    _account.dispose();
+    if (widget.account == null) _account.dispose();
     _store.flush();
     if (widget.store == null) _store.dispose();
     super.dispose();
@@ -883,7 +906,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     syncMeals(
       link,
       [widget.note],
-      shareMeals: widget.store.sharesMeals,
+      shareMealsGym: widget.store.shareMealsGym,
       onSynced: widget.store.touch,
     );
   }
@@ -1567,10 +1590,13 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
           : (l.shareGym, false);
     }
     if (a.gyms.isEmpty) return null;
-    return (note.mealGymId != null ? l.shareMealsOnly : l.shareNone, false);
+    // 묶인 도장과 지금 나누고 있을 때만 끼니가 간다(syncMeals).
+    final meals =
+        note.mealGymId != null && note.mealGymId == widget.store.shareMealsGym;
+    return (meals ? l.shareMealsOnly : l.shareNone, false);
   }
 
-  /// 도장에서 바뀐 PT(거절·취소·시간·담당·확정). 원격 푸시가 없고 앱은 이 편집기로
+  /// 도장에서 바뀐 PT(거절·취소·시간·확정). 원격 푸시가 없고 앱은 이 편집기로
   /// 켜지므로, 목록까지 가지 않아도 보이게 여기에도 한 줄 — 누르면 그 도장 화면이 열리고
   /// 본 것이 된다. 공지는 목록의 도장 줄에만 둔다.
   (Gym, String)? _ptNews(L l) {
@@ -1583,17 +1609,24 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
       ];
       if (news.isEmpty) continue;
       final first = newsText(l, gym, news.first);
-      return (gym, news.length == 1 ? first : l.newsMore(first, news.length - 1));
+      return (
+        gym,
+        news.length == 1 ? first : l.newsMore(first, news.length - 1),
+      );
     }
     return null;
   }
 
   /// 스티커 없이 온 날(폰에 NFC 가 없다, 잊었다). 회원이 '오늘 이 체육관에서 한 운동' 이라고
   /// 스스로 보낸다 — 출석도 같이 남는다. 오늘 기록에 내가 적은 세트가 있고 다니는 도장이
-  /// 하나일 때만.
+  /// 하나일 때만. 한 폰을 둘이 쓰면 남의 기록에는 없다(NotesStore.visit 와 같은 규칙).
   bool get _canSend {
     final a = widget.account;
-    if (a == null || !a.signedIn || note.gymId != null || a.gyms.length != 1) {
+    if (a == null ||
+        !a.signedIn ||
+        note.gymId != null ||
+        a.gyms.length != 1 ||
+        !note.ownedBy(a.userId)) {
       return false;
     }
     final now = DateTime.now(), c = note.createdAt;
@@ -1638,7 +1671,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
       syncMeals(
         a.link,
         [note],
-        shareMeals: widget.store.sharesMeals,
+        shareMealsGym: widget.store.shareMealsGym,
         onSynced: widget.store.touch,
       ),
     );

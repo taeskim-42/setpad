@@ -138,24 +138,27 @@ T? tryRead<T>(T? Function() read) {
   }
 }
 
-/// 회원이 본 도장 소식 — 열쇠마다 그때의 모양: 공지는 본 적이 있는지, 예약은 상태·시각·
-/// 담당, 담당 트레이너는 누구인지.
+/// 회원이 본 도장 소식 — 열쇠마다 그때의 모양: 공지는 본 적이 있는지, 예약은 상태·시각,
+/// 담당 트레이너는 누구인지(id).
 ///
 /// **원격 푸시가 없다.** 트레이너가 PT 를 거절·취소하거나 시간을 옮겨도 앱만 쓰는 회원의
 /// 폰에는 아무것도 뜨지 않았다. 그래서 앱을 열 때 지난번 본 것과 견준다([gymNews]).
 Map<String, String> gymSeenOf(Gym gym) => {
   for (final n in gym.notices) 'n:${n.id}': '',
-  for (final b in gym.bookings)
-    'b:${b.id}': bookingSeen(b.status, b.startsAt, b.trainer),
+  for (final b in gym.bookings) 'b:${b.id}': bookingSeen(b.status, b.startsAt),
   't:${gym.id}': ?gym.trainerId,
 };
 
 /// 예약 하나의 모양. 예약 화면(/api/bookings)과 도장 목록(/api/gyms)이 같은 줄을 만든다.
-String bookingSeen(String status, DateTime startsAt, String trainer) =>
-    '$status|${startsAt.toUtc().toIso8601String()}|$trainer';
+///
+/// ponytail: 예약의 담당은 견주지 않는다 — 서버가 예약마다 닉네임만 주어, 트레이너가 이름을
+/// 바꾸면 앞으로의 PT 마다 '담당 변경' 이 떴다. 서버가 예약에 trainerId 를 실으면(gymdojo
+/// lib/member-home.ts) 그 id 로 견준다.
+String bookingSeen(String status, DateTime startsAt) =>
+    '$status|${startsAt.toUtc().toIso8601String()}';
 
 /// 도장에서 생긴 일. 앞의 것일수록 회원이 먼저 알아야 한다.
-enum GymChange { rejected, cancelled, moved, trainer, booked, assigned, notice }
+enum GymChange { rejected, cancelled, moved, booked, assigned, notice }
 
 typedef GymNews = ({
   String key,
@@ -193,7 +196,7 @@ List<GymNews> gymNews(Gym gym, Map<String, String> seen) {
 }
 
 GymChange? _bookingChange(String? seen, GymBooking b) {
-  if (seen == bookingSeen(b.status, b.startsAt, b.trainer)) return null;
+  if (seen == bookingSeen(b.status, b.startsAt)) return null;
   final status = switch (b.status) {
     'booked' => GymChange.booked,
     'rejected' => GymChange.rejected,
@@ -201,12 +204,12 @@ GymChange? _bookingChange(String? seen, GymBooking b) {
     _ => null,
   };
   final was = seen?.split('|');
-  if (was == null || was.length < 3) {
+  if (was == null || was.length < 2) {
     return status == GymChange.cancelled ? null : status;
   }
   if (was[0] != b.status) return status;
   if (was[1] != b.startsAt.toUtc().toIso8601String()) return GymChange.moved;
-  return GymChange.trainer;
+  return null;
 }
 
 /// 트레이너가 내려준 루틴 하나.
@@ -657,12 +660,13 @@ extension MealLink on GymLink {
 /// 기회에, 서버가 거절했으면 그 하나만 포기하고 계속 간다.
 ///
 /// 스티커·받은 루틴으로 연 기록의 끼니는 언제나 간다. 식단 공유로 도장에 묶인
-/// 기록([Note.mealGymId])은 [shareMeals] 가 켜져 있는 동안만 새로 적거나 고친 것이
-/// 가고, 지운 것은 꺼져 있어도 지운다 — 코치 목록에서 내리는 것은 늘 회원의 뜻이다.
+/// 기록([Note.mealGymId])은 그 도장과 나누는 동안([shareMealsGym], NotesStore 의 것)만
+/// 새로 적거나 고친 것이 가고, 지운 것은 꺼져 있어도 지운다 — 코치 목록에서 내리는 것은
+/// 늘 회원의 뜻이다.
 Future<void> syncMeals(
   GymLink link,
   List<Note> notes, {
-  bool shareMeals = false,
+  String? shareMealsGym,
   required void Function() onSynced,
 }) async {
   if (!link.supported) return;
@@ -670,7 +674,8 @@ Future<void> syncMeals(
   for (final note in notes) {
     // 다른 계정의 끼니는 그 사람이 다시 로그인할 때까지 밀어 둔다.
     if (note.mealGym == null || !note.ownedBy(link.userId)) continue;
-    final gymId = note.gymId ?? (shareMeals ? note.mealGymId : null);
+    final gymId =
+        note.gymId ?? (note.mealGymId == shareMealsGym ? shareMealsGym : null);
     for (final id in [...note.deletedMeals]) {
       final outcome = await link.deleteMeal(id);
       if (outcome == SendOutcome.retry) {

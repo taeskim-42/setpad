@@ -163,16 +163,20 @@ class SettingsPage extends StatelessWidget {
                     accent: true,
                     onTap: () => openBooking(context, a, store: store),
                   ),
-                  // 끼니는 건강 정보라 회원이 켜야 간다(기본 꺼짐). 도장이 하나일
-                  // 때만 — 여럿이면 어디로 보낼지 앱이 고르지 않는다.
-                  if (a.gyms.length == 1) ...[
+                  // 끼니는 건강 정보라 회원이 켜야 간다(기본 꺼짐). 켜는 것은 도장이
+                  // 하나일 때만 — 여럿이면 어디로 보낼지 앱이 고르지 않는다. 켠 것은
+                  // 도장이 늘어도 끌 수 있어야 한다. 안내는 켤 때 고른 그 도장을 말한다.
+                  if (store.sharesMeals || a.gyms.length == 1) ...[
                     _Toggle(
                       key: const ValueKey('settings-share-meals'),
                       label: l.shareMealsSetting,
                       value: store.sharesMeals,
-                      onChanged: store.setShareMeals,
+                      onChanged: (on) =>
+                          store.setShareMeals(on ? a.gyms.single.id : null),
                     ),
-                    _Note(l.shareMealsNote(a.gyms.single.name)),
+                    for (final gym in a.gyms)
+                      if (gym.id == (store.shareMealsGym ?? a.gyms.single.id))
+                        _Note(l.shareMealsNote(gym.name)),
                   ],
                 ],
                 // 직원이면 에이전트 보고서로 가는 길. 목록 위 입구와 같은 곳이다.

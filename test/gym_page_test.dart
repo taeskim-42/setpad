@@ -11,6 +11,7 @@ import 'package:setpad/booking_page.dart';
 import 'package:setpad/gym.dart';
 import 'package:setpad/gym_page.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
+import 'package:setpad/main.dart' show SetpadApp;
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
 import 'package:setpad/trainer.dart' show shortWhen;
@@ -173,6 +174,7 @@ void main() {
         b('p', 'booked'), // 승인됐다
         b('same', 'booked'),
         b('mv', 'booked', at: when.add(const Duration(hours: 1))),
+        // 같은 트레이너가 닉네임을 바꿨다 — 예약은 닉네임만 와서 담당이 바뀐 것과 가를 수 없다.
         b('tr', 'booked', trainer: '박코치'),
         b('x', 'cancelled'),
         b('mine', 'pending'), // 회원이 낸 신청
@@ -191,7 +193,6 @@ void main() {
         ('b:no', GymChange.rejected),
         ('b:x', GymChange.cancelled),
         ('b:mv', GymChange.moved),
-        ('b:tr', GymChange.trainer),
         ('b:p', GymChange.booked),
         ('b:given', GymChange.booked),
         ('t:g1', GymChange.assigned),
@@ -330,7 +331,7 @@ void main() {
       findsOneWidget,
       reason: '무엇이 바뀌었는지 도장 화면에도 표시한다',
     );
-    expect(store.gymSeen['b:b1'], bookingSeen('rejected', at, '김코치'));
+    expect(store.gymSeen['b:b1'], bookingSeen('rejected', at));
 
     await tester.pageBack();
     await tester.pumpAndSettle();
@@ -340,6 +341,132 @@ void main() {
       findsOneWidget,
     );
     await tester.pump(const Duration(seconds: 1)); // 저장 디바운스
+  });
+
+  testWidgets('처음 맡은 트레이너는 소식이 아니지만 남겨 두어, 그 뒤 바뀌면 도장 화면을 안 열어도 알린다', (
+    tester,
+  ) async {
+    String? trainer, trainerId;
+    final account =
+        Account(
+            client: MockClient(
+              (request) async => request.url.path == '/api/gyms'
+                  ? json({
+                      'gyms': [
+                        {
+                          ...gymJson(),
+                          'trainer': trainer,
+                          'trainerId': trainerId,
+                        },
+                      ],
+                      'invites': [],
+                    })
+                  : json({'routines': [], 'plan': null, 'selling': false}),
+            ),
+          )
+          ..token = 'x'
+          ..userId = 'u1';
+    final store = NotesStore();
+    await tester.pumpWidget(
+      app(NotesListPage(store: store, account: account, onOpen: (_) {})),
+    );
+    await tester.pumpAndSettle();
+    expect(store.gymSeenOwner, 'u1');
+    expect(store.gymSeen.containsKey('t:g1'), isFalse, reason: '아직 담당이 없다');
+    final l = await L.delegate.load(const Locale('ko'));
+
+    (trainer, trainerId) = ('김코치', 't1');
+    unawaited(account.refreshGyms());
+    await tester.pumpAndSettle();
+    expect(store.gymSeen['t:g1'], 't1');
+    expect(find.text(l.newsAssigned('김코치')), findsNothing);
+
+    (trainer, trainerId) = ('박코치', 't2');
+    unawaited(account.refreshGyms());
+    await tester.pumpAndSettle();
+    expect(find.text(l.newsAssigned('박코치')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 1)); // 저장 디바운스
+  });
+
+  testWidgets('식단 공유는 켤 때 고른 도장과의 것이다 — 그 도장에서 나가면(내보내져도) 꺼진다', (tester) async {
+    var member = true;
+    final account =
+        Account(
+            client: MockClient(
+              (request) async => request.url.path == '/api/gyms'
+                  ? json({
+                      'gyms': [if (member) gymJson()],
+                      'invites': [],
+                    })
+                  : json({'routines': [], 'plan': null, 'selling': false}),
+            ),
+          )
+          ..token = 'x'
+          ..userId = 'u1';
+    final store = NotesStore()..setShareMeals('g1');
+    await tester.pumpWidget(
+      app(NotesListPage(store: store, account: account, onOpen: (_) {})),
+    );
+    await tester.pumpAndSettle();
+    expect(store.shareMealsGym, 'g1', reason: '아직 다닌다');
+
+    member = false; // 트레이너가 내보냈다
+    unawaited(account.refreshGyms());
+    await tester.pumpAndSettle();
+    expect(store.sharesMeals, isFalse, reason: '다음에 등록한 도장으로 이어지지 않게');
+    await tester.pump(const Duration(seconds: 1)); // 저장 디바운스
+  });
+
+  testWidgets('단톡방 수업 링크로 앱이 켜지면 도장 목록이 오기를 기다려 수업 화면을 한 번만 연다', (
+    tester,
+  ) async {
+    // 앱이 꺼진 채 링크를 눌렀다. 로그인은 남아 있고 도장 목록은 아직 안 왔다(목록 화면이
+    // 따로 묻는다). 링크는 처음 링크와 스트림으로 두 번 온다.
+    final dir = Directory.systemTemp.createTempSync('setpad-classes-link');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final gyms = Completer<void>();
+    final account = Account(
+      storageDir: dir,
+      client: MockClient((request) async {
+        switch (request.url.path) {
+          case '/api/gyms':
+            await gyms.future;
+            return json({
+              'gyms': [gymJson()],
+              'invites': [],
+            });
+          case '/api/me':
+            return json({
+              'user': {'id': 'u1', 'nickname': 'kim'},
+            });
+          case '/api/classes':
+            return json({'classes': []});
+        }
+        return json({'routines': [], 'plan': null, 'selling': false});
+      }),
+    )..token = 'x';
+    final links = StreamController<Uri>();
+    addTearDown(links.close);
+    await tester.pumpWidget(
+      SetpadApp(
+        store: NotesStore(directory: dir),
+        tags: links.stream,
+        account: account,
+      ),
+    );
+    await tester.pump();
+    final link = Uri.parse('https://gym.darak.studio/c/g1/classes');
+    links
+      ..add(link)
+      ..add(link);
+    // 가려진 화면도 센다 — 두 겹 쌓이면 아래 것은 화면 밖(offstage)에 있다.
+    final classes = find.byType(ClassesPage, skipOffstage: false);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(classes, findsNothing);
+
+    gyms.complete();
+    await tester.pumpAndSettle();
+    expect(classes, findsOneWidget);
   });
 
   testWidgets('도장 초대는 안내를 보여 주고, 받으면 그 판을 동의로 보낸다 — 나이 확인이 없는 계정은 한 번 묻는다', (
@@ -615,8 +742,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(store.gymSeen, {
-      'b:new': bookingSeen('booked', slot, '김코치'),
-      'b:old': bookingSeen('cancelled', soon, '김코치'),
+      'b:new': bookingSeen('booked', slot),
+      'b:old': bookingSeen('cancelled', soon),
     });
     final gym = Gym(
       id: 'g1',

@@ -884,7 +884,6 @@
   "newsRejected": "PT 申請被拒絕 · {when}",
   "newsCancelled": "PT 已取消 · {when}",
   "newsMoved": "PT 時間變更 · {when}",
-  "newsTrainer": "PT 教練變更 · {trainer} · {when}",
   "newsAssigned": "負責教練變更 · {trainer}",
   "newsNotice": "公告 · {title}",
   "newsMore": "{news} 及另外 {n} 則",

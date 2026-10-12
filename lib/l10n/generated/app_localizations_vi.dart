@@ -3668,11 +3668,6 @@ class LVi extends L {
   }
 
   @override
-  String newsTrainer(String trainer, String when) {
-    return 'Đổi huấn luyện viên PT · $trainer · $when';
-  }
-
-  @override
   String newsAssigned(String trainer) {
     return 'Đổi huấn luyện viên phụ trách · $trainer';
   }

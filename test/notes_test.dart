@@ -428,20 +428,20 @@ void main() {
       expect(someone.gymId, isNull);
     });
 
-    test('식단 공유는 켠 날부터 연 기록만, 도장이 하나일 때만 묶인다 — 그 전의 끼니가 쏟아지지 않는다', () async {
+    test('식단 공유는 켠 날부터 연 기록만, 켤 때 고른 그 도장에만 묶인다 — 다른 도장으로 이어지지 않는다', () async {
       final now = DateTime.now();
       final old = store.create(at: now.subtract(const Duration(days: 3)));
       final today = store.create();
       store.linkMeals(today, ['g1'], 'u1');
       expect(today.mealGymId, isNull, reason: '끼니는 건강 정보라 켜야 간다');
 
-      store.setShareMeals(true);
+      store.setShareMeals('g1');
       store.linkMeals(old, ['g1'], 'u1');
-      store.linkMeals(today, ['g1', 'g2'], 'u1');
+      store.linkMeals(today, ['g2'], 'u1');
       expect(old.mealGymId, isNull, reason: '켠 날 전의 기록');
-      expect(today.mealGymId, isNull, reason: '여럿이면 앱이 고르지 않는다');
-      store.linkMeals(today, ['g1'], 'u1');
-      expect(today.mealGymId, 'g1');
+      expect(today.mealGymId, isNull, reason: 'g1 을 나가고 등록한 다른 도장이다');
+      store.linkMeals(today, ['g2', 'g1'], 'u1');
+      expect(today.mealGymId, 'g1', reason: '도장이 늘어도 켤 때 고른 그 도장에');
       expect(today.owner, 'u1');
       expect(today.mealGym, 'g1');
       expect(needsSend(today), isFalse, reason: '운동과 출석은 가지 않는다');
@@ -461,6 +461,7 @@ void main() {
       addTearDown(reopened.dispose);
       await reopened.load();
       expect(reopened.sharesMeals, isTrue);
+      expect(reopened.shareMealsGym, 'g1');
       expect(reopened.sharesMealsOn(now), isTrue);
       expect(
         reopened.sharesMealsOn(now.subtract(const Duration(days: 1))),
@@ -469,15 +470,15 @@ void main() {
     });
 
     test('식단 공유를 껐다 다시 켜면 꺼 둔 동안 앞서 나눈 기록에 적은 끼니는 가지 않는다', () {
-      store.setShareMeals(true);
+      store.setShareMeals('g1');
       final shared = store.create(
         at: DateTime.now().subtract(const Duration(days: 2)),
       )..mealGymId = 'g1';
       final offline = MealEntry(at: shared.createdAt, kcal: 200, text: '간식');
       shared.meals.add(offline);
-      store.setShareMeals(false);
+      store.setShareMeals(null);
       expect(offline.dirty, isTrue);
-      store.setShareMeals(true);
+      store.setShareMeals('g1');
       expect(offline.dirty, isFalse);
     });
 

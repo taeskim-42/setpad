@@ -244,7 +244,10 @@ void main() {
     expect(calls, [('DELETE', '/api/meals/gone', null)]);
     expect(lunch.dirty, isTrue, reason: '공유를 끈 동안 적은 것은 보내지 않는다');
 
-    await syncMeals(link, [note], shareMeals: true, onSynced: () {});
+    await syncMeals(link, [note], shareMealsGym: 'other', onSynced: () {});
+    expect(calls, hasLength(1), reason: '지금 나누는 도장이 아니다 — 동의는 그 도장의 것이다');
+
+    await syncMeals(link, [note], shareMealsGym: gym, onSynced: () {});
     expect(calls.last, ('PUT', '/api/meals/${lunch.id}', gym));
     expect(lunch.dirty, isFalse);
   });
@@ -458,7 +461,7 @@ void main() {
       await tester.tap(news);
       await tester.pumpAndSettle();
       expect(find.byType(GymPage), findsOneWidget);
-      expect(store.gymSeen['b:b1'], bookingSeen('rejected', at, '김코치'));
+      expect(store.gymSeen['b:b1'], bookingSeen('rejected', at));
       await tester.pageBack();
       await tester.pumpAndSettle();
       expect(news, findsNothing, reason: '본 것은 다시 뜨지 않는다');
@@ -527,7 +530,7 @@ void main() {
     await write('바나나 90kcal');
     expect(puts, isEmpty, reason: '끼니는 건강 정보라 켜야 간다');
 
-    store.setShareMeals(true);
+    store.setShareMeals(gym);
     await write('닭가슴살 165kcal');
     expect(note.mealGymId, gym);
     expect(
@@ -578,6 +581,7 @@ void main() {
           ..userId = 'u1'
           ..gyms = [Gym(id: gym, name: 'BPM')];
     final note = store.create()
+      ..owner = 'u2'
       ..blocks.add(ExerciseBlock('스쿼트', [LoggedSet(value: 80, reps: 5)]));
     await tester.pumpWidget(
       CupertinoApp(
@@ -594,6 +598,14 @@ void main() {
     );
     await tester.pumpAndSettle();
     await _confirmMeal(tester);
+    expect(
+      find.byKey(const ValueKey('share-send')),
+      findsNothing,
+      reason: '한 폰을 둘이 쓴다 — 남의 기록을 내 도장에 보내지 않는다',
+    );
+    note.owner = null;
+    store.touch();
+    await tester.pump(const Duration(milliseconds: 500));
     await tester.tap(find.byKey(const ValueKey('share-send')));
     await tester.pumpAndSettle();
     expect(

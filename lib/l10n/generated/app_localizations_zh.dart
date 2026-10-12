@@ -3525,11 +3525,6 @@ class LZh extends L {
   }
 
   @override
-  String newsTrainer(String trainer, String when) {
-    return 'PT 教练变更 · $trainer · $when';
-  }
-
-  @override
   String newsAssigned(String trainer) {
     return '负责教练变更 · $trainer';
   }
@@ -7151,11 +7146,6 @@ class LZhHans extends LZh {
   }
 
   @override
-  String newsTrainer(String trainer, String when) {
-    return 'PT 教练变更 · $trainer · $when';
-  }
-
-  @override
   String newsAssigned(String trainer) {
     return '负责教练变更 · $trainer';
   }
@@ -10774,11 +10764,6 @@ class LZhHant extends LZh {
   @override
   String newsMoved(String when) {
     return 'PT 時間變更 · $when';
-  }
-
-  @override
-  String newsTrainer(String trainer, String when) {
-    return 'PT 教練變更 · $trainer · $when';
   }
 
   @override

@@ -601,26 +601,28 @@ class NotesStore extends ChangeNotifier {
     _scheduleSave();
   }
 
-  /// 식단을 트레이너와 나누기 시작한 날(그날 0시). null 이면 나누지 않는다 — 끼니는
-  /// 건강 정보라 회원이 켜야 간다. 스티커·받은 루틴으로 연 기록은 이것과 상관없이
-  /// 그 도장에 간다.
-  DateTime? _shareMealsSince;
-  bool get sharesMeals => _shareMealsSince != null;
+  /// 식단을 나누는 도장과 켠 날(그날 0시). null 이면 나누지 않는다 — 끼니는 건강 정보라
+  /// 회원이 켜야 간다. **켤 때 이름을 보여 준 그 도장에만 간다** — 그 도장을 나간 뒤 다른
+  /// 도장에 등록해도 그쪽으로 이어지지 않는다. 스티커·받은 루틴으로 연 기록은 이것과
+  /// 상관없이 그 도장에 간다.
+  ({String gymId, DateTime since})? _shareMeals;
+  String? get shareMealsGym => _shareMeals?.gymId;
+  bool get sharesMeals => _shareMeals != null;
 
   /// [day] 에 연 기록의 끼니를 나누는가. 켠 날 전의 기록은 켜도 가지 않는다 — 몇 달치
   /// 끼니가 코치 목록에 한꺼번에 쏟아지지 않게.
   bool sharesMealsOn(DateTime day) {
-    final since = _shareMealsSince;
+    final since = _shareMeals?.since;
     return since != null && !day.isBefore(since);
   }
 
-  void setShareMeals(bool on) {
-    if (on == sharesMeals) return;
+  /// [gymId] 와 식단을 나누기 시작한다. null 이면 그만둔다.
+  void setShareMeals(String? gymId) {
+    if (gymId == shareMealsGym) return;
     final now = DateTime.now();
-    final since = _shareMealsSince = on
-        ? DateTime(now.year, now.month, now.day)
-        : null;
-    if (since != null) {
+    final since = DateTime(now.year, now.month, now.day);
+    _shareMeals = gymId == null ? null : (gymId: gymId, since: since);
+    if (gymId != null) {
       // 꺼 둔 동안 앞서 나눈 기록에 적은 끼니는 다시 켰다고 가지 않는다.
       for (final n in _notes) {
         if (n.gymId == null &&
@@ -636,18 +638,19 @@ class NotesStore extends ChangeNotifier {
     _scheduleSave();
   }
 
-  /// 끼니가 바뀐 기록을 식단 공유에 묶는다. 다니는 도장이 하나일 때만이다 — 여럿이면
-  /// 어디로 보낼지 앱이 고르지 않는다. 스티커·루틴으로 연 기록은 이미 그 도장의 것이다.
+  /// 끼니가 바뀐 기록을 식단 공유에 묶는다 — 켤 때 고른 그 도장에, 아직 다니고 있을 때만.
+  /// 스티커·루틴으로 연 기록은 이미 그 도장의 것이다.
   void linkMeals(Note note, List<String> gymIds, String? user) {
+    final gymId = shareMealsGym;
     if (note.gymId != null ||
         note.mealGymId != null ||
-        gymIds.length != 1 ||
+        !gymIds.contains(gymId) ||
         !sharesMealsOn(note.createdAt) ||
         !note.ownedBy(user)) {
       return;
     }
     note
-      ..mealGymId = gymIds.single
+      ..mealGymId = gymId
       ..owner ??= user;
     _scheduleSave();
   }
@@ -735,8 +738,13 @@ class NotesStore extends ChangeNotifier {
           final saved = data['deviceId'];
           if (saved is String && saved.length >= 16) _deviceId = saved;
           if (data['platesDay'] case final String day) _platesDay = day;
-          if (data['shareMealsSince'] case final String since) {
-            _shareMealsSince = DateTime.tryParse(since);
+          if ((data['shareMealsGym'], data['shareMealsSince']) case (
+            final String gymId,
+            final String since,
+          )) {
+            if (DateTime.tryParse(since) case final day?) {
+              _shareMeals = (gymId: gymId, since: day);
+            }
           }
           if (data['gymSeenOwner'] case final String owner) {
             _gymSeenOwner = owner;
@@ -855,7 +863,8 @@ class NotesStore extends ChangeNotifier {
       'aiConsent': _aiOn,
       'deviceId': _deviceId,
       'platesDay': _platesDay,
-      'shareMealsSince': ?_shareMealsSince?.toIso8601String(),
+      'shareMealsGym': ?_shareMeals?.gymId,
+      'shareMealsSince': ?_shareMeals?.since.toIso8601String(),
       'gymSeenOwner': ?_gymSeenOwner,
       if (_gymSeen.isNotEmpty) 'gymSeen': _gymSeen,
       'exercises': _exerciseHistory,

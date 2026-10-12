@@ -68,7 +68,6 @@ String newsText(L l, Gym gym, GymNews news) {
     GymChange.rejected => l.newsRejected(at),
     GymChange.cancelled => l.newsCancelled(at),
     GymChange.moved => l.newsMoved(at),
-    GymChange.trainer => l.newsTrainer(news.booking!.trainer, at),
   };
 }
 
