@@ -45,22 +45,34 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <!-- 헬스장 스티커. autoVerify 가 있어야 브라우저를 거치지 않고
-                 앱이 바로 열린다 — 서버의 assetlinks.json 과 짝이다. -->
+                 앱이 바로 열린다 — 서버의 assetlinks.json 과 짝이다.
+                 /c/ 아래는 앱이 여는 셋만 받는다: 스티커 /c/<도장 id>, 단톡방의 수업·PT 예약
+                 /c/<id>/classes·/c/<id>/bookings. 그 밖의 하위 화면(식단 등)은 앱에 없어
+                 웹에서 열린다(서버 apple-app-site-association 의 '/c/*/*' exclude 와 짝).
+                 '.' 은 아무 글자 하나다. minSdk 26 이 아는 단순 glob 에는 '/ 가 아닌 글자' 가
+                 없어 도장 id(uuid 8-4-4-4-12)를 길이로 맞춘다 — 그것을 쓰는
+                 pathAdvancedPattern 은 API 31 부터라 그 아래 기기는 건너뛴다.
+                 한 intent-filter 의 data 는 서로 섞인다: 두 host 모두 아래 경로를 다 받는다. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https"
                       android:host="gym.darak.studio"
-                      android:pathPrefix="/c/"/>
+                      android:pathPattern="/c/........-....-....-....-............"/>
+                <data android:scheme="https"
+                      android:host="gym.darak.studio"
+                      android:pathPattern="/c/........-....-....-....-............/classes"/>
+                <data android:scheme="https"
+                      android:host="gym.darak.studio"
+                      android:pathPattern="/c/........-....-....-....-............/bookings"/>
                 <!-- 대신 적어 준 운동 기록을 건네받는 링크. -->
                 <data android:scheme="https"
                       android:host="gym.darak.studio"
                       android:pathPrefix="/r/"/>
                 <!-- 이미 나간 스티커가 옛 주소를 가리킬 수 있다. -->
                 <data android:scheme="https"
-                      android:host="web-production-9cfc2.up.railway.app"
-                      android:pathPrefix="/c/"/>
+                      android:host="web-production-9cfc2.up.railway.app"/>
             </intent-filter>
             <!-- 웹에서 앱으로 되돌아오는 길. https 링크가 브라우저로 떨어졌을
                  때 그 화면에서 앱을 여는 수단이다. 웹 로그인(카카오)의 표도 이 길로
