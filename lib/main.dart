@@ -436,11 +436,17 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 헬스장은 신호가 나빠 한 번에 못 갈 때가 있다.
   /// 밀린 끼니 변경(확정·수정·삭제)도 같은 기회에 같이 간다.
   /// 그물 없이 끝낸 같이 하기도 — 편집기를 닫으면 그 화면의 폴링도 멈추므로
-  /// 여기서 안 보내면 상대에게는 세션이 영영 살아 있다.
+  /// 여기서 안 보내면 상대에게는 세션이 영영 살아 있다. 지운 기록이 서버에 남긴
+  /// 끼니·운동 줄도 여기서 지운다.
   Future<void> _sendPendingWorkouts() async {
     await sendPending(_account.link, _store.notes, onSent: _store.touch);
     await syncMeals(_account.link, _store.notes, onSynced: _store.touch);
     await sendPendingEnds(_account.link, _store.notes, onSent: _store.touch);
+    await sendDeletes(
+      _account.link,
+      _store.pendingDeletes,
+      onSent: _store.touch,
+    );
     // 보낸 지 세 시간이 지난 빈 출석 기록은 목록에서 치운다.
     _store.pruneVisits();
   }

@@ -492,6 +492,21 @@ class _NotesListPageState extends State<NotesListPage>
     widget.onOpen(note);
   }
 
+  /// 기록을 지웠다. 서버에 올라간 끼니·운동 줄도 지금 지운다 — 못 가면 밀린 것과
+  /// 함께 다음에 간다(main.dart _sendPendingWorkouts).
+  void _delete(Note note) {
+    widget.store.delete(note);
+    final account = widget.account;
+    if (account == null) return;
+    unawaited(
+      sendDeletes(
+        account.link,
+        widget.store.pendingDeletes,
+        onSent: widget.store.touch,
+      ),
+    );
+  }
+
   /// 원판이 없어 못 물었다. 로그인 전이면 로그인을, 로그인했으면 Pro 를 권한다.
   List<Widget> _noPlates(L l) {
     final a = widget.account;
@@ -1789,7 +1804,7 @@ class _NotesListPageState extends State<NotesListPage>
                                   note: notes[i],
                                   query: _query.text.trim(),
                                   onOpen: _open,
-                                  onDelete: widget.store.delete,
+                                  onDelete: _delete,
                                   record: _recordNotes().contains(notes[i].id),
                                   weightKg: widget.store.weightOnDay(
                                     notes[i].createdAt,

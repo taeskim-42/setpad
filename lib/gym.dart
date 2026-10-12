@@ -7,6 +7,7 @@ import 'api_route.dart';
 import 'editor.dart';
 import 'meal.dart';
 import 'notes.dart';
+import 'partner.dart';
 import 'record_ai.dart';
 
 /// 내가 다니는 체육관 하나.
@@ -165,6 +166,33 @@ class GymLink {
           200 => SendOutcome.sent,
           // 401 은 토큰이 죽은 것, 408·429 는 나중에 하라는 것 — 기록 탓이 아니다.
           401 || 408 || 429 => SendOutcome.retry,
+          >= 400 && < 500 => SendOutcome.rejected,
+          _ => SendOutcome.retry,
+        };
+      } catch (_) {
+        return SendOutcome.retry;
+      }
+    });
+  }
+
+  /// 사람이 지운 기록의 운동·출석 줄을 서버에서도 지운다. 올린 것과 같은 열쇠
+  /// (기록 id)다. 없는 줄(404)은 지운 것과 같다.
+  Future<SendOutcome> deleteWorkout(String localId) async {
+    if (!supported) return SendOutcome.retry;
+    return withClient((web) async {
+      try {
+        final response = await web
+            .delete(
+              Uri.parse(
+                '$endpoint/api/workouts',
+              ).replace(queryParameters: {'clientId': localId}),
+              headers: headers,
+            )
+            .timeout(const Duration(seconds: 15));
+        return switch (response.statusCode) {
+          200 || 404 => SendOutcome.sent,
+          // 405 는 이 길을 아직 모르는 서버다. 버리지 않고 다음에 다시 보낸다.
+          401 || 405 || 408 || 429 => SendOutcome.retry,
           >= 400 && < 500 => SendOutcome.rejected,
           _ => SendOutcome.retry,
         };
@@ -395,6 +423,41 @@ Future<void> syncMeals(
     }
   }
   if (changed) onSynced();
+}
+
+/// 사람이 지운 기록이 서버에 남긴 것을 보낸다([NotesStore.delete]). 밀린 끼니와 같은
+/// 규칙이다 — 그물이 막혔으면 다음 기회에, 서버가 거절했으면 그 하나만 버린다. 다른
+/// 계정의 것은 그 사람이 다시 로그인할 때까지 둔다.
+Future<void> sendDeletes(
+  GymLink link,
+  List<ServerDelete> queue, {
+  required void Function() onSent,
+}) async {
+  if (!link.supported) return;
+  var changed = false;
+  // 운동 줄은 맨 뒤에 — 그 길을 모르는 서버(405)가 끼니 지우기까지 막지 않게.
+  for (final d in [
+    ...queue.where((d) => d.kind != 'workout'),
+    ...queue.where((d) => d.kind == 'workout'),
+  ]) {
+    if (d.owner != null && d.owner != link.userId) continue;
+    final outcome = switch (d.kind) {
+      'meal' => await link.deleteMeal(d.id),
+      'workout' => await link.deleteWorkout(d.id),
+      'session' => switch ((await link.endPartnerSession(d.id)).error) {
+        PartnerError.network ||
+        PartnerError.server ||
+        PartnerError.tooManyTries ||
+        PartnerError.signInRequired => SendOutcome.retry,
+        _ => SendOutcome.sent,
+      },
+      _ => SendOutcome.rejected,
+    };
+    if (outcome == SendOutcome.retry) break;
+    queue.remove(d);
+    changed = true;
+  }
+  if (changed) onSent();
 }
 
 extension _Posting on GymLink {

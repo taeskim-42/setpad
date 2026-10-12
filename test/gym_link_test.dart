@@ -407,6 +407,49 @@ void _pending() {
     expect(notes.every((n) => n.sentAt == null), isTrue);
     expect(touched, 0, reason: '보낸 것이 없으면 저장할 것도 없다');
   });
+
+  test('지운 기록의 끼니·운동 줄을 서버에서 지운다 — 운동 길을 모르는 서버가 끼니 지우기를 막지 않는다', () async {
+    final calls = <String>[];
+    var workouts = 405; // 아직 DELETE /api/workouts 가 없는 서버
+    final link = GymLink(
+      endpoint: 'https://example.com',
+      token: 'x',
+      userId: 'u1',
+      client: MockClient((request) async {
+        final url = request.url;
+        calls.add(
+          '${request.method} ${url.path}${url.hasQuery ? '?${url.query}' : ''}',
+        );
+        if (url.path == '/api/workouts') return http.Response('', workouts);
+        return http.Response('{"ok":true}', 200);
+      }),
+    );
+    final queue = <ServerDelete>[
+      (kind: 'workout', id: 'n1', owner: 'u1'),
+      (kind: 'meal', id: 'm1', owner: 'u1'),
+      (kind: 'session', id: 'S9', owner: null),
+      (kind: 'meal', id: 'm2', owner: 'someone-else'),
+    ];
+    var saved = 0;
+    await sendDeletes(link, queue, onSent: () => saved++);
+    expect(calls, [
+      'DELETE /api/meals/m1',
+      'POST /api/partner-sessions/S9/end',
+      'DELETE /api/workouts?clientId=n1',
+    ]);
+    expect(queue, [
+      (kind: 'workout', id: 'n1', owner: 'u1'),
+      (kind: 'meal', id: 'm2', owner: 'someone-else'),
+    ], reason: '옛 서버면 운동 줄은 기다리고, 남의 것은 그 사람의 로그인을 기다린다');
+    expect(saved, 1);
+
+    workouts = 404; // 서버에 없는 줄은 지운 것과 같다
+    calls.clear();
+    await sendDeletes(link, queue, onSent: () => saved++);
+    expect(calls, ['DELETE /api/workouts?clientId=n1']);
+    expect(queue, [(kind: 'meal', id: 'm2', owner: 'someone-else')]);
+    expect(saved, 2);
+  });
 }
 
 /// 같이 쓰기와 예약. 서버와 주고받는 모양만 못 박는다.

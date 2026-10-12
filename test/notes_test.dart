@@ -322,4 +322,49 @@ void main() {
     await reopened.load();
     expect(reopened.notes.single.draft?.text, '벤치');
   });
+
+  test('사람이 지운 체육관 기록은 서버의 끼니·운동 줄을 지울 것으로 남는다 — 빈 기록 정리는 남기지 않는다', () async {
+    final dir = Directory.systemTemp.createTempSync('setpad-notes-delete-');
+    final store = NotesStore(directory: dir);
+    addTearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+    final note = store.create(gymId: 'g')..owner = 'u1';
+    final kept = MealEntry(at: note.createdAt, kcal: 300, text: '김밥');
+    final gone = MealEntry(at: note.createdAt, kcal: 200, text: '라면');
+    note.meals.addAll([kept, gone]);
+    note.removeMeal(gone);
+    note.partner = PartnerSession(
+      id: 'S9',
+      host: true,
+      state: PartnerState.ended,
+    )..endPending = true;
+    store.delete(note);
+    final expected = [
+      (kind: 'meal', id: gone.id, owner: 'u1'),
+      (kind: 'meal', id: kept.id, owner: 'u1'),
+      (kind: 'workout', id: note.id, owner: 'u1'),
+      (kind: 'session', id: 'S9', owner: 'u1'),
+    ];
+    expect(store.pendingDeletes, expected);
+
+    // 혼자 쓴 기록은 서버에 간 것이 없다.
+    store.delete(store.create());
+    // 보낸 지 오래된 빈 출석을 치우는 것은 기기 정리다 — 서버의 출석은 그대로 둔다.
+    final visit = store.create(
+      gymId: 'g',
+      at: DateTime.now().subtract(const Duration(hours: 4)),
+    )..sentAt = DateTime.now();
+    store.discardIfEmpty(visit);
+    expect(store.notes, isEmpty);
+    expect(store.pendingDeletes, expected);
+
+    // 앱을 껐다 켜도 남아 있다가 그물이 닿으면 간다.
+    await store.flush();
+    final reopened = NotesStore(directory: dir);
+    addTearDown(reopened.dispose);
+    await reopened.load();
+    expect(reopened.pendingDeletes, expected);
+  });
 }

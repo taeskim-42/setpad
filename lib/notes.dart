@@ -464,6 +464,11 @@ class Note {
   }
 }
 
+/// 지운 기록이 서버에 남긴 것 하나 — 끼니 줄(`meal`), 운동·출석 줄(`workout`, 기록
+/// id), 끝났다고 못 알린 같이 하기(`session`). [owner] 는 그 기록의 계정이다 — 그
+/// 계정의 토큰으로만 보낸다([Note.owner]).
+typedef ServerDelete = ({String kind, String id, String? owner});
+
 /// 노트 전부를 들고 있고 디스크와 맞춰 두는 곳.
 ///
 /// ponytail: 노트 전체를 JSON 한 파일에 쓴다. 한 사람이 하루 한 장씩 몇 년을
@@ -624,6 +629,17 @@ class NotesStore extends ChangeNotifier {
             ..addAll(
               (data['forgottenExercises'] as List? ?? []).whereType<String>(),
             );
+          _deletes
+            ..clear()
+            ..addAll([
+              for (final d in data['pendingDeletes'] as List? ?? const [])
+                if (d case {'kind': final String kind, 'id': final String id})
+                  (
+                    kind: kind,
+                    id: id,
+                    owner: d['owner'] is String ? d['owner'] as String : null,
+                  ),
+            ]);
         }
       } catch (e) {
         debugPrint('Could not load preferences: $e');
@@ -713,6 +729,11 @@ class NotesStore extends ChangeNotifier {
       'platesDay': _platesDay,
       'exercises': _exerciseHistory,
       'forgottenExercises': _forgottenExercises.toList(),
+      if (_deletes.isNotEmpty)
+        'pendingDeletes': [
+          for (final d in _deletes)
+            {'kind': d.kind, 'id': d.id, 'owner': ?d.owner},
+        ],
     }, toEncodable: _finiteJson);
     return _writes = _writes.then((_) async {
       try {
@@ -846,7 +867,34 @@ class NotesStore extends ChangeNotifier {
     _scheduleSave();
   }
 
+  /// 사람이 지운 기록이 서버에 남긴 것. 기록은 이미 목록에 없으니 저장소가 들고
+  /// 있다가 그물이 닿으면 보내고(gym.dart sendDeletes), 보낸 것은 거기서 뺀다.
+  final List<ServerDelete> _deletes = [];
+  List<ServerDelete> get pendingDeletes => _deletes;
+
+  /// 사람이 기록을 지웠다. 서버에 올라갔을 수 있는 끼니와 운동·출석 줄도 지우도록
+  /// 남긴다 — 회원은 지웠다고 믿는데 코치 화면에 그대로 남아 있었다. 끝났다고 아직
+  /// 못 알린 같이 하기도 남긴다 — 기록과 함께 사라지면 상대 폰에서 세션이 안 끝난다.
+  /// 빈 기록 정리([discardIfEmpty])는 서버의 출석을 두고 기기에서만 치운다.
   void delete(Note note) {
+    final owner = note.owner;
+    if (note.gymId != null) {
+      _deletes.addAll([
+        for (final id in {
+          ...note.deletedMeals,
+          for (final m in note.meals) m.id,
+        })
+          (kind: 'meal', id: id, owner: owner),
+        (kind: 'workout', id: note.id, owner: owner),
+      ]);
+    }
+    if (note.partner case final s? when s.endPending) {
+      _deletes.add((kind: 'session', id: s.id, owner: owner));
+    }
+    _forget(note);
+  }
+
+  void _forget(Note note) {
     _notes.remove(note);
     notifyListeners();
     _scheduleSave();
@@ -867,7 +915,7 @@ class NotesStore extends ChangeNotifier {
         note.sentAt == null &&
         !note.updatedAt.isAfter(note.createdAt) &&
         _blankBesidesSets(note)) {
-      delete(note);
+      _forget(note);
       return;
     }
     if (note.blocks.isEmpty && _blankBesidesSets(note)) {
@@ -879,7 +927,7 @@ class NotesStore extends ChangeNotifier {
           (note.sentAt == null || note.createdAt.isAfter(visitWindowStart()))) {
         return;
       }
-      delete(note);
+      _forget(note);
     }
   }
 
