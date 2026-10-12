@@ -3426,4 +3426,24 @@ class LKo extends L {
 
   @override
   String get updateAction => '업데이트';
+
+  @override
+  String get shareGym => '트레이너와 공유하는 기록이에요';
+
+  @override
+  String get shareRejected => '도장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요';
+
+  @override
+  String get shareMealsOnly => '끼니만 트레이너와 공유해요 · 운동은 헬스장 스티커에 폰을 대면 공유돼요';
+
+  @override
+  String get shareNone => '트레이너와 공유하지 않는 기록이에요 · 헬스장 스티커에 폰을 대면 공유돼요';
+
+  @override
+  String get shareMealsSetting => '식단을 트레이너와 공유';
+
+  @override
+  String shareMealsNote(String gym) {
+    return '켠 날부터는 헬스장에 가지 않은 날 적은 끼니도 $gym 트레이너가 봐요. 스티커에 폰을 댄 날의 기록은 이 설정과 상관없이 공유돼요.';
+  }
 }

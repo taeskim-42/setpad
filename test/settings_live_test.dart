@@ -87,4 +87,33 @@ void main() {
     // 나가는 길은 따로 있다.
     expect(find.text('로그아웃'), findsOneWidget);
   });
+
+  testWidgets('식단 공유는 기본 꺼짐이고, 다니는 도장이 하나일 때만 켤 수 있다', (tester) async {
+    final (store, account) = await open(tester);
+    final toggle = find.byKey(const ValueKey('settings-share-meals'));
+    expect(toggle, findsNothing, reason: '다니는 곳이 없다');
+
+    account.gyms = [(id: 'g1', name: 'BPM', trainer: null)];
+    account.notifyListeners();
+    await tester.pump();
+    final note = find.textContaining('BPM 트레이너가 봐요');
+    await tester.scrollUntilVisible(note, 100);
+    expect(note, findsOneWidget);
+    expect(store.sharesMeals, isFalse, reason: '끼니는 건강 정보라 회원이 켜야 간다');
+    await tester.tap(
+      find.descendant(of: toggle, matching: find.byType(CupertinoSwitch)),
+    );
+    await tester.pump();
+    expect(store.sharesMeals, isTrue);
+
+    account.gyms = [
+      (id: 'g1', name: 'BPM', trainer: null),
+      (id: 'g2', name: 'Core', trainer: null),
+    ];
+    account.notifyListeners();
+    await tester.pump();
+    expect(toggle, findsNothing, reason: '여럿이면 어디로 보낼지 앱이 고르지 않는다');
+    // 저장은 모아서 한다 — 그 타이머가 끝날 때까지.
+    await tester.pump(const Duration(milliseconds: 600));
+  });
 }

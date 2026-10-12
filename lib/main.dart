@@ -455,15 +455,15 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     });
   }
 
-  /// 루틴이 없는 날. **온 것은 온 것이다** — 빈 기록 하나가 곧 출석이고,
+  /// 루틴이 없는 날. **온 것은 온 것이다** — 기록 하나가 곧 출석이고,
   /// 이것이 없으면 트레이너의 오늘 화면에 이 사람이 영영 안 뜬다.
   ///
   /// 같은 날 두 번 대도 한 번이다. 웹이 세 시간 안의 기록을 다시 여는 것과
   /// 같은 규칙을 쓴다 — 폰이 잠겼다 돌아온 것을 두 번째 방문으로 세지 않는다.
+  /// 오늘 먼저 적던 기록이 있으면 그것이 이 방문이 된다(NotesStore.visit).
   Future<void> _attendOnly(String gymId) async {
-    final open = _store.openVisit(gymId, _account.userId);
-    final note = open ?? (_store.create(gymId: gymId)..owner = _account.userId);
-    if (open == null) unawaited(_sendPendingWorkouts());
+    final (:note, :fresh) = _store.visit(gymId, _account.userId);
+    if (fresh) unawaited(_sendPendingWorkouts());
     if (mounted) _open(note);
   }
 
@@ -492,7 +492,12 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 끼니·운동 줄도 여기서 지운다.
   Future<void> _sendPendingWorkouts() async {
     await sendPending(_account.link, _store.notes, onSent: _store.touch);
-    await syncMeals(_account.link, _store.notes, onSynced: _store.touch);
+    await syncMeals(
+      _account.link,
+      _store.notes,
+      shareMeals: _store.sharesMeals,
+      onSynced: _store.touch,
+    );
     await sendPendingEnds(_account.link, _store.notes, onSent: _store.touch);
     await sendDeletes(
       _account.link,
@@ -823,12 +828,24 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   }
 
   /// 끼니가 바뀌었다. 먼저 이 기기에 쓰고, 그다음 서버의 같은 줄에 맞춘다 —
-  /// 그물이 없으면 밀려 있다가 다음에 간다.
+  /// 그물이 없으면 밀려 있다가 다음에 간다. 식단 공유를 켰으면 스티커를 대지 않은 날의
+  /// 기록도 다니는 도장에 묶는다(NotesStore.linkMeals).
   void _mealsChanged() {
+    final account = widget.account;
+    if (account != null && account.signedIn) {
+      widget.store.linkMeals(widget.note, [
+        for (final g in account.gyms) g.id,
+      ], account.userId);
+    }
     widget.store.touch();
-    final link = widget.account?.link;
-    if (link == null || widget.note.gymId == null) return;
-    syncMeals(link, [widget.note], onSynced: widget.store.touch);
+    final link = account?.link;
+    if (link == null || widget.note.mealGym == null) return;
+    syncMeals(
+      link,
+      [widget.note],
+      shareMeals: widget.store.sharesMeals,
+      onSynced: widget.store.touch,
+    );
   }
 
   /// 원문은 이미 저장됐다. 열량을 안 적은 끼니에 어림값을 붙여 볼 뿐이고,
@@ -1344,6 +1361,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                         note: widget.note,
                         store: widget.store,
                         ai: widget.ai,
+                        account: widget.account,
                         mealText: _mealText,
                         onMealsChanged: _mealsChanged,
                         estimating: _estimatingMeals,
@@ -1398,6 +1416,7 @@ class _DocumentHeader extends StatefulWidget {
     required this.note,
     required this.store,
     required this.ai,
+    this.account,
     this.mealText,
     this.onMealsChanged,
     this.estimating = const {},
@@ -1406,6 +1425,9 @@ class _DocumentHeader extends StatefulWidget {
   final Note note;
   final NotesStore store;
   final RecordAi ai;
+
+  /// 다니는 도장이 있으면 이 기록이 트레이너에게 가는지 한 줄로 말한다.
+  final Account? account;
 
   /// 어림을 기다리는 끼니와, 열량을 모르는 글 끼니를 다시 어림하는 길.
   final Set<MealEntry> estimating;
@@ -1479,13 +1501,30 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
   void initState() {
     super.initState();
     widget.store.addListener(_onStore);
+    widget.account?.addListener(_onStore);
     unawaited(_loadBasal());
   }
 
   @override
   void dispose() {
     widget.store.removeListener(_onStore);
+    widget.account?.removeListener(_onStore);
     super.dispose();
+  }
+
+  /// 이 기록이 트레이너에게 가는가 — 회원이 화면에서 알 수 있어야 한다. 같은 날 기록이
+  /// 가는 것과 안 가는 것으로 갈렸는데, 어느 것인지 볼 데가 없었다. 다니는 도장이
+  /// 없으면 줄도 없다. 두 번째 값은 사람이 손써야 하는 줄인가.
+  (String, bool)? _shareLine(L l) {
+    final a = widget.account;
+    if (a == null || !a.signedIn) return null;
+    if (note.gymId != null) {
+      return note.uploadRejected
+          ? (l.shareRejected, true)
+          : (l.shareGym, false);
+    }
+    if (a.gyms.isEmpty) return null;
+    return (note.mealGymId != null ? l.shareMealsOnly : l.shareNone, false);
   }
 
   Future<void> _addMeal(ImageSource source) async {
@@ -1755,6 +1794,19 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: muted),
           ),
+          if (_shareLine(l) case (final text, final act)?)
+            Padding(
+              key: const ValueKey('share-line'),
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                text,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: act ? seal.resolveFrom(context) : muted,
+                ),
+              ),
+            ),
           // 그날 에너지는 한 줄로 접어 둔다 — 운동을 적는 화면에서 세 칸은 컸다.
           // 누르면 먹은 것 · 운동 · 차이 세 칸. 둘 다 없는 날은 줄도 없다.
           if (log != null &&

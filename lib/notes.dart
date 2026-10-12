@@ -309,6 +309,26 @@ class Note {
   /// 안 보낸 것은 다음에 앱을 켤 때 다시 보낸다.
   DateTime? sentAt;
 
+  /// 서버가 이 기록을 받지 않았다(도장이 없어졌다, 루틴이 엇갈렸다). 같은 것을 다시
+  /// 보내도 같은 답이라 보낸 것으로 치고, 기록 화면이 못 올렸다고 말한다. 고치면
+  /// 다시 간다.
+  bool uploadRejected = false;
+
+  /// 스티커를 대기 전에 적던 오늘 기록이 그 방문이 된 때([NotesStore.visit]). 트레이너
+  /// 에게는 기록을 연 아침이 아니라 이때 온 것으로 간다. 처음부터 방문으로 연 기록은
+  /// null 이다 — 연 때가 곧 온 때다.
+  DateTime? visitAt;
+
+  /// 식단 공유로 끼니가 가는 도장. 스티커를 대지 않은 날의 기록에 붙는다 — 운동과
+  /// 출석은 가지 않고 끼니만 간다(gym.dart syncMeals).
+  String? mealGymId;
+
+  /// 이 기록의 끼니가 가는 도장. 없으면 끼니는 기기에만 있다.
+  String? get mealGym => gymId ?? mealGymId;
+
+  /// 체육관에 온 때. 같은 방문을 가르는 세 시간도 여기서 센다.
+  DateTime get cameAt => visitAt ?? createdAt;
+
   /// 이 기록을 체육관·같이 하기에 묶은 계정(서버의 user id). 노트는 기기에 있어
   /// 로그아웃해도 남는다 — 한 폰을 둘이 쓰면 A 가 못 보낸 운동·끼니·같이 하기
   /// 종료가 B 의 토큰으로 가서 B 의 것이 되거나, A 의 것은 보낸 셈이 되어 영영
@@ -347,7 +367,7 @@ class Note {
 
   /// 끼니를 지운다. 서버에 올라갔을 수 있는 것이면 지울 것으로 적어 둔다.
   void removeMeal(MealEntry meal) {
-    if (meals.remove(meal) && gymId != null) deletedMeals.add(meal.id);
+    if (meals.remove(meal) && mealGym != null) deletedMeals.add(meal.id);
   }
 
   /// **열량을 아는 끼니만의** 합계. 끼니가 없으면 null — 0 과 "안 적었다" 는
@@ -414,6 +434,9 @@ class Note {
     if (gymId != null) 'gymId': gymId,
     if (routineId != null) 'routineId': routineId,
     if (sentAt != null) 'sentAt': sentAt!.toIso8601String(),
+    if (uploadRejected) 'uploadRejected': true,
+    'visitAt': ?visitAt?.toIso8601String(),
+    'mealGymId': ?mealGymId,
     'owner': ?owner,
     if (meals.isNotEmpty) 'meals': [for (final m in meals) m.toJson()],
     if (deletedMeals.isNotEmpty) 'deletedMeals': deletedMeals,
@@ -442,8 +465,12 @@ class Note {
 
   /// 생성자에 없는 값을 읽은 뒤에 채운다.
   static Note _restore(Map<String, dynamic> j, Note note) {
-    final sent = j['sentAt'];
+    final sent = j['sentAt'], visit = j['visitAt'];
     if (sent is String) note.sentAt = DateTime.tryParse(sent);
+    if (visit is String) note.visitAt = DateTime.tryParse(visit);
+    note
+      ..uploadRejected = j['uploadRejected'] == true
+      ..mealGymId = j['mealGymId'] is String ? j['mealGymId'] as String : null;
     note.owner = j['owner'] as String?;
     note.healthWorkout = HealthWorkout.tryFromJson(j['healthWorkout']);
     for (final m in (j['meals'] as List? ?? const [])) {
@@ -574,6 +601,57 @@ class NotesStore extends ChangeNotifier {
     _scheduleSave();
   }
 
+  /// 식단을 트레이너와 나누기 시작한 날(그날 0시). null 이면 나누지 않는다 — 끼니는
+  /// 건강 정보라 회원이 켜야 간다. 스티커·받은 루틴으로 연 기록은 이것과 상관없이
+  /// 그 도장에 간다.
+  DateTime? _shareMealsSince;
+  bool get sharesMeals => _shareMealsSince != null;
+
+  /// [day] 에 연 기록의 끼니를 나누는가. 켠 날 전의 기록은 켜도 가지 않는다 — 몇 달치
+  /// 끼니가 코치 목록에 한꺼번에 쏟아지지 않게.
+  bool sharesMealsOn(DateTime day) {
+    final since = _shareMealsSince;
+    return since != null && !day.isBefore(since);
+  }
+
+  void setShareMeals(bool on) {
+    if (on == sharesMeals) return;
+    final now = DateTime.now();
+    final since = _shareMealsSince = on
+        ? DateTime(now.year, now.month, now.day)
+        : null;
+    if (since != null) {
+      // 꺼 둔 동안 앞서 나눈 기록에 적은 끼니는 다시 켰다고 가지 않는다.
+      for (final n in _notes) {
+        if (n.gymId == null &&
+            n.mealGymId != null &&
+            n.createdAt.isBefore(since)) {
+          for (final m in n.meals) {
+            m.dirty = false;
+          }
+        }
+      }
+    }
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  /// 끼니가 바뀐 기록을 식단 공유에 묶는다. 다니는 도장이 하나일 때만이다 — 여럿이면
+  /// 어디로 보낼지 앱이 고르지 않는다. 스티커·루틴으로 연 기록은 이미 그 도장의 것이다.
+  void linkMeals(Note note, List<String> gymIds, String? user) {
+    if (note.gymId != null ||
+        note.mealGymId != null ||
+        gymIds.length != 1 ||
+        !sharesMealsOn(note.createdAt) ||
+        !note.ownedBy(user)) {
+      return;
+    }
+    note
+      ..mealGymId = gymIds.single
+      ..owner ??= user;
+    _scheduleSave();
+  }
+
   /// 이 기기를 가리키는 무작위 문자열. 사람을 가리키지 않는다.
   ///
   /// 질문을 서버에 보낼 때 셀 대상이 필요해서 만든다. 계정도 로그인도 없고,
@@ -619,6 +697,9 @@ class NotesStore extends ChangeNotifier {
           final saved = data['deviceId'];
           if (saved is String && saved.length >= 16) _deviceId = saved;
           if (data['platesDay'] case final String day) _platesDay = day;
+          if (data['shareMealsSince'] case final String since) {
+            _shareMealsSince = DateTime.tryParse(since);
+          }
           _exerciseHistory
             ..clear()
             ..addAll(
@@ -727,6 +808,7 @@ class NotesStore extends ChangeNotifier {
       'aiConsent': _aiOn,
       'deviceId': _deviceId,
       'platesDay': _platesDay,
+      'shareMealsSince': ?_shareMealsSince?.toIso8601String(),
       'exercises': _exerciseHistory,
       'forgottenExercises': _forgottenExercises.toList(),
       if (_deletes.isNotEmpty)
@@ -878,15 +960,17 @@ class NotesStore extends ChangeNotifier {
   /// 빈 기록 정리([discardIfEmpty])는 서버의 출석을 두고 기기에서만 치운다.
   void delete(Note note) {
     final owner = note.owner;
-    if (note.gymId != null) {
+    if (note.mealGym != null) {
       _deletes.addAll([
         for (final id in {
           ...note.deletedMeals,
           for (final m in note.meals) m.id,
         })
           (kind: 'meal', id: id, owner: owner),
-        (kind: 'workout', id: note.id, owner: owner),
       ]);
+    }
+    if (note.gymId != null) {
+      _deletes.add((kind: 'workout', id: note.id, owner: owner));
     }
     if (note.partner case final s? when s.endPending) {
       _deletes.add((kind: 'session', id: s.id, owner: owner));
@@ -924,7 +1008,7 @@ class NotesStore extends ChangeNotifier {
       // 둔다: 그사이 다시 대면 이 기록을 다시 열어야 같은 방문이 둘로 세지 않는다
       // (main.dart _attendOnly). 지나면 [pruneVisits] 가 치운다.
       if (note.gymId != null &&
-          (note.sentAt == null || note.createdAt.isAfter(visitWindowStart()))) {
+          (note.sentAt == null || note.cameAt.isAfter(visitWindowStart()))) {
         return;
       }
       _forget(note);
@@ -941,10 +1025,31 @@ class NotesStore extends ChangeNotifier {
     final since = visitWindowStart();
     return _notes
         .where(
-          (n) =>
-              n.gymId == gymId && n.createdAt.isAfter(since) && n.ownedBy(user),
+          (n) => n.gymId == gymId && n.cameAt.isAfter(since) && n.ownedBy(user),
         )
         .firstOrNull;
+  }
+
+  /// 스티커를 댔다 — 이 방문의 기록과, 새로 온 것인가.
+  ///
+  /// 세 시간 안에 같은 체육관에서 연 내 기록이 있으면 같은 방문이다([openVisit]). 없으면
+  /// **오늘 먼저 적던 내 기록을 이 방문으로 삼는다.** 앱은 켤 때 오늘 기록을 열고, 회원은
+  /// 아침 끼니와 스티커를 대기 전의 세트를 거기에 적는다 — 새 기록을 따로 열면 그것들이
+  /// 체육관 없는 기록에 남아 트레이너에게 영영 안 갔다. 스티커를 댄 순간에만 붙이므로
+  /// 집에서 적은 날이 출석이 되지는 않는다. 오늘 기록이 다른 도장의 것이거나 남의
+  /// 것이면 새로 연다.
+  ({Note note, bool fresh}) visit(String gymId, String? user) {
+    final open = openVisit(gymId, user);
+    if (open != null) return (note: open, fresh: false);
+    final today = this.today();
+    final note = today.gymId == null && today.ownedBy(user)
+        ? (today
+            ..gymId = gymId
+            ..visitAt = DateTime.now())
+        : create(gymId: gymId);
+    note.owner ??= user;
+    touch();
+    return (note: note, fresh: true);
   }
 
   /// 세트 말고는 남긴 것이 없다 — 끼니도, 서버에 알릴 끼니 삭제도, 대신 적은 것도,
@@ -970,7 +1075,7 @@ class NotesStore extends ChangeNotifier {
             _blankBesidesSets(n) &&
             !open.contains(n) &&
             !(n.partner?.endPending ?? false) &&
-            !n.createdAt.isAfter(visitWindowStart()))
+            !n.cameAt.isAfter(visitWindowStart()))
           n,
     ];
     if (stale.isEmpty) return;

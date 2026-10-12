@@ -846,5 +846,11 @@
   "agentAlarmChannel": "Báo cáo của trợ lý",
   "agentAlarmChannelDesc": "Báo khi báo cáo huấn luyện viên đã sẵn sàng",
   "updateRequired": "Phiên bản này không còn kết nối được với máy chủ. Vui lòng cập nhật ứng dụng — bản ghi của bạn vẫn còn trên thiết bị này.",
-  "updateAction": "Cập nhật"
+  "updateAction": "Cập nhật",
+  "shareGym": "Bản ghi này được chia sẻ với huấn luyện viên",
+  "shareRejected": "Phòng tập không nhận bản ghi này · Hãy hỏi lại huấn luyện viên",
+  "shareMealsOnly": "Chỉ bữa ăn được chia sẻ với huấn luyện viên · Chạm điện thoại vào sticker của phòng tập để chia sẻ buổi tập",
+  "shareNone": "Bản ghi này không được chia sẻ với huấn luyện viên · Chạm điện thoại vào sticker của phòng tập để chia sẻ",
+  "shareMealsSetting": "Chia sẻ bữa ăn với huấn luyện viên",
+  "shareMealsNote": "Kể từ ngày bật, huấn luyện viên của {gym} cũng xem được các bữa ăn bạn ghi vào những ngày không đến phòng tập. Bản ghi của những ngày bạn chạm vào sticker vẫn được chia sẻ dù cài đặt thế nào."
 }

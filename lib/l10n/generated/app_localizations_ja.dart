@@ -3419,4 +3419,25 @@ class LJa extends L {
 
   @override
   String get updateAction => 'アップデート';
+
+  @override
+  String get shareGym => 'トレーナーと共有している記録です';
+
+  @override
+  String get shareRejected => 'ジムが受け付けなかった記録です · トレーナーに確認してください';
+
+  @override
+  String get shareMealsOnly =>
+      'トレーナーと共有するのは食事だけです · 運動はジムのステッカーにスマホをかざすと共有されます';
+
+  @override
+  String get shareNone => 'トレーナーと共有していない記録です · ジムのステッカーにスマホをかざすと共有されます';
+
+  @override
+  String get shareMealsSetting => '食事をトレーナーと共有';
+
+  @override
+  String shareMealsNote(String gym) {
+    return 'オンにした日から、ジムに行かない日に記録した食事も$gymのトレーナーが見られます。ステッカーにかざした日の記録は、この設定に関係なく共有されます。';
+  }
 }

@@ -3390,6 +3390,26 @@ class LZh extends L {
 
   @override
   String get updateAction => '更新';
+
+  @override
+  String get shareGym => '这条记录与教练共享';
+
+  @override
+  String get shareRejected => '健身房没有接收这条记录 · 请向教练确认';
+
+  @override
+  String get shareMealsOnly => '只与教练共享饮食 · 用手机碰一下健身房的贴纸即可共享训练';
+
+  @override
+  String get shareNone => '这条记录未与教练共享 · 用手机碰一下健身房的贴纸即可共享';
+
+  @override
+  String get shareMealsSetting => '与教练共享饮食';
+
+  @override
+  String shareMealsNote(String gym) {
+    return '从开启当天起，你在不去健身房的日子记录的饮食，$gym的教练也能看到。碰过贴纸那天的记录，无论此设置如何都会共享。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6778,6 +6798,26 @@ class LZhHans extends LZh {
 
   @override
   String get updateAction => '更新';
+
+  @override
+  String get shareGym => '这条记录与教练共享';
+
+  @override
+  String get shareRejected => '健身房没有接收这条记录 · 请向教练确认';
+
+  @override
+  String get shareMealsOnly => '只与教练共享饮食 · 用手机碰一下健身房的贴纸即可共享训练';
+
+  @override
+  String get shareNone => '这条记录未与教练共享 · 用手机碰一下健身房的贴纸即可共享';
+
+  @override
+  String get shareMealsSetting => '与教练共享饮食';
+
+  @override
+  String shareMealsNote(String gym) {
+    return '从开启当天起，你在不去健身房的日子记录的饮食，$gym的教练也能看到。碰过贴纸那天的记录，无论此设置如何都会共享。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10166,4 +10206,24 @@ class LZhHant extends LZh {
 
   @override
   String get updateAction => '更新';
+
+  @override
+  String get shareGym => '這筆紀錄與教練共享';
+
+  @override
+  String get shareRejected => '健身房沒有接收這筆紀錄 · 請向教練確認';
+
+  @override
+  String get shareMealsOnly => '只與教練共享飲食 · 用手機碰一下健身房的貼紙即可共享訓練';
+
+  @override
+  String get shareNone => '這筆紀錄未與教練共享 · 用手機碰一下健身房的貼紙即可共享';
+
+  @override
+  String get shareMealsSetting => '與教練共享飲食';
+
+  @override
+  String shareMealsNote(String gym) {
+    return '從開啟當天起，你在沒去健身房的日子記錄的飲食，$gym的教練也看得到。碰過貼紙那天的紀錄，不論此設定如何都會共享。';
+  }
 }

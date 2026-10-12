@@ -5100,6 +5100,42 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'업데이트'**
   String get updateAction;
+
+  /// 기록 머리의 날짜 밑 한 줄. 스티커·받은 루틴으로 연 기록 — 운동과 끼니가 트레이너에게 간다.
+  ///
+  /// In ko, this message translates to:
+  /// **'트레이너와 공유하는 기록이에요'**
+  String get shareGym;
+
+  /// 서버가 이 기록을 받지 않았다(도장이 없어졌다, 루틴이 엇갈렸다). 고치면 다시 보낸다.
+  ///
+  /// In ko, this message translates to:
+  /// **'도장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요'**
+  String get shareRejected;
+
+  /// 식단 공유를 켠 회원의, 스티커를 대지 않은 날의 기록. 끼니만 가고 운동·출석은 가지 않는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'끼니만 트레이너와 공유해요 · 운동은 헬스장 스티커에 폰을 대면 공유돼요'**
+  String get shareMealsOnly;
+
+  /// 다니는 도장이 있는 회원의, 스티커를 대지 않은 기록. 트레이너에게 가지 않는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'트레이너와 공유하지 않는 기록이에요 · 헬스장 스티커에 폰을 대면 공유돼요'**
+  String get shareNone;
+
+  /// 설정의 다니는 체육관 칸. 끼니는 건강 정보라 기본은 꺼짐이다.
+  ///
+  /// In ko, this message translates to:
+  /// **'식단을 트레이너와 공유'**
+  String get shareMealsSetting;
+
+  /// 식단 공유 줄 밑의 설명. gym 은 다니는 도장 이름.
+  ///
+  /// In ko, this message translates to:
+  /// **'켠 날부터는 헬스장에 가지 않은 날 적은 끼니도 {gym} 트레이너가 봐요. 스티커에 폰을 댄 날의 기록은 이 설정과 상관없이 공유돼요.'**
+  String shareMealsNote(String gym);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

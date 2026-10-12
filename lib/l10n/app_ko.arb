@@ -3472,5 +3472,17 @@
   "updateRequired": "이 버전은 더 이상 서버와 연결할 수 없어요. 앱을 업데이트해 주세요 — 적은 기록은 이 기기에 그대로 있어요.",
   "@updateRequired": {"description": "서버가 이 판을 더는 받지 않는다(426 updateRequired). 닫을 수 없는 안내창의 본문."},
   "updateAction": "업데이트",
-  "@updateAction": {"description": "업데이트 안내창의 단추. 스토어를 연다."}
+  "@updateAction": {"description": "업데이트 안내창의 단추. 스토어를 연다."},
+  "shareGym": "트레이너와 공유하는 기록이에요",
+  "@shareGym": {"description": "기록 머리의 날짜 밑 한 줄. 스티커·받은 루틴으로 연 기록 — 운동과 끼니가 트레이너에게 간다."},
+  "shareRejected": "도장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요",
+  "@shareRejected": {"description": "서버가 이 기록을 받지 않았다(도장이 없어졌다, 루틴이 엇갈렸다). 고치면 다시 보낸다."},
+  "shareMealsOnly": "끼니만 트레이너와 공유해요 · 운동은 헬스장 스티커에 폰을 대면 공유돼요",
+  "@shareMealsOnly": {"description": "식단 공유를 켠 회원의, 스티커를 대지 않은 날의 기록. 끼니만 가고 운동·출석은 가지 않는다."},
+  "shareNone": "트레이너와 공유하지 않는 기록이에요 · 헬스장 스티커에 폰을 대면 공유돼요",
+  "@shareNone": {"description": "다니는 도장이 있는 회원의, 스티커를 대지 않은 기록. 트레이너에게 가지 않는다."},
+  "shareMealsSetting": "식단을 트레이너와 공유",
+  "@shareMealsSetting": {"description": "설정의 다니는 체육관 칸. 끼니는 건강 정보라 기본은 꺼짐이다."},
+  "shareMealsNote": "켠 날부터는 헬스장에 가지 않은 날 적은 끼니도 {gym} 트레이너가 봐요. 스티커에 폰을 댄 날의 기록은 이 설정과 상관없이 공유돼요.",
+  "@shareMealsNote": {"description": "식단 공유 줄 밑의 설명. gym 은 다니는 도장 이름.", "placeholders": {"gym": {"type": "String"}}}
 }

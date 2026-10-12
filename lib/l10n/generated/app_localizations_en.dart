@@ -3543,4 +3543,27 @@ class LEn extends L {
 
   @override
   String get updateAction => 'Update';
+
+  @override
+  String get shareGym => 'Shared with your trainer';
+
+  @override
+  String get shareRejected =>
+      'Your gym didn\'t accept this record · Please check with your trainer';
+
+  @override
+  String get shareMealsOnly =>
+      'Only meals are shared with your trainer · Tap your phone on the gym sticker to share workouts';
+
+  @override
+  String get shareNone =>
+      'Not shared with your trainer · Tap your phone on the gym sticker to share';
+
+  @override
+  String get shareMealsSetting => 'Share meals with my trainer';
+
+  @override
+  String shareMealsNote(String gym) {
+    return 'From the day you turn this on, your $gym trainer also sees meals you log on days you don\'t go to the gym. Records from days you tap the sticker are shared either way.';
+  }
 }

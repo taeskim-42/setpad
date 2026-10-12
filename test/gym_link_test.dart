@@ -420,9 +420,24 @@ void _pending() {
     var touched = 0;
     await sendPending(link, notes, onSent: () => touched++);
     expect(sent, ['a', 'b'], reason: '거절은 건너뛰고 계속 간다');
-    expect(notes.first.sentAt, isNull, reason: '거절된 기록은 보낸 것으로 꾸미지 않는다');
-    expect(notes.last.sentAt, isNotNull);
+    expect(notes.first.uploadRejected, isTrue, reason: '기록 화면이 못 올렸다고 말한다');
+    expect(notes.last.uploadRejected, isFalse);
     expect(touched, 1);
+
+    // 같은 것을 다시 보내도 같은 답이다 — 켤 때·잠금 풀 때마다 다시 보내지 않는다.
+    sent.clear();
+    await sendPending(link, notes, onSent: () => touched++);
+    expect(sent, isEmpty);
+
+    // 고치면 다시 간다. 받아 주면 못 올렸다는 표시도 걷힌다.
+    notes.first.updatedAt = DateTime.now().add(const Duration(minutes: 1));
+    await sendPending(link, notes, onSent: () => touched++);
+    expect(sent, ['a']);
+    expect(notes.first.uploadRejected, isTrue);
+    final fixed = made('aa', gymId: 'g')..uploadRejected = true;
+    await sendPending(link, [fixed], onSent: () {});
+    expect(fixed.uploadRejected, isFalse);
+    expect(fixed.sentAt, isNotNull);
   });
 
   test('한 번 막히면 멈춘다 — 다음에 다시 보낸다', () async {

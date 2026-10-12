@@ -3524,4 +3524,27 @@ class LVi extends L {
 
   @override
   String get updateAction => 'Cập nhật';
+
+  @override
+  String get shareGym => 'Bản ghi này được chia sẻ với huấn luyện viên';
+
+  @override
+  String get shareRejected =>
+      'Phòng tập không nhận bản ghi này · Hãy hỏi lại huấn luyện viên';
+
+  @override
+  String get shareMealsOnly =>
+      'Chỉ bữa ăn được chia sẻ với huấn luyện viên · Chạm điện thoại vào sticker của phòng tập để chia sẻ buổi tập';
+
+  @override
+  String get shareNone =>
+      'Bản ghi này không được chia sẻ với huấn luyện viên · Chạm điện thoại vào sticker của phòng tập để chia sẻ';
+
+  @override
+  String get shareMealsSetting => 'Chia sẻ bữa ăn với huấn luyện viên';
+
+  @override
+  String shareMealsNote(String gym) {
+    return 'Kể từ ngày bật, huấn luyện viên của $gym cũng xem được các bữa ăn bạn ghi vào những ngày không đến phòng tập. Bản ghi của những ngày bạn chạm vào sticker vẫn được chia sẻ dù cài đặt thế nào.';
+  }
 }

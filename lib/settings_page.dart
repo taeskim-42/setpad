@@ -152,6 +152,17 @@ class SettingsPage extends StatelessWidget {
                     accent: true,
                     onTap: () => openBooking(context, a),
                   ),
+                  // 끼니는 건강 정보라 회원이 켜야 간다(기본 꺼짐). 도장이 하나일
+                  // 때만 — 여럿이면 어디로 보낼지 앱이 고르지 않는다.
+                  if (a.gyms.length == 1) ...[
+                    _Toggle(
+                      key: const ValueKey('settings-share-meals'),
+                      label: l.shareMealsSetting,
+                      value: store.sharesMeals,
+                      onChanged: store.setShareMeals,
+                    ),
+                    _Note(l.shareMealsNote(a.gyms.single.name)),
+                  ],
                 ],
                 // 직원이면 에이전트 보고서로 가는 길. 목록 위 입구와 같은 곳이다.
                 // 회원용 '다니는 체육관' 밖에 따로 둔다 — 그 안이면 직원만인

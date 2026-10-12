@@ -3500,4 +3500,26 @@ class LTh extends L {
 
   @override
   String get updateAction => 'อัปเดต';
+
+  @override
+  String get shareGym => 'บันทึกนี้แชร์กับเทรนเนอร์';
+
+  @override
+  String get shareRejected => 'ยิมไม่รับบันทึกนี้ · โปรดสอบถามเทรนเนอร์';
+
+  @override
+  String get shareMealsOnly =>
+      'แชร์เฉพาะมื้ออาหารกับเทรนเนอร์ · แตะโทรศัพท์ที่สติกเกอร์ของยิมเพื่อแชร์การออกกำลังกาย';
+
+  @override
+  String get shareNone =>
+      'บันทึกนี้ไม่ได้แชร์กับเทรนเนอร์ · แตะโทรศัพท์ที่สติกเกอร์ของยิมเพื่อแชร์';
+
+  @override
+  String get shareMealsSetting => 'แชร์มื้ออาหารกับเทรนเนอร์';
+
+  @override
+  String shareMealsNote(String gym) {
+    return 'ตั้งแต่วันที่เปิด เทรนเนอร์ของ $gym จะเห็นมื้ออาหารที่คุณบันทึกในวันที่ไม่ได้ไปยิมด้วย บันทึกของวันที่แตะสติกเกอร์จะแชร์อยู่แล้วไม่ว่าจะตั้งค่าอย่างไร';
+  }
 }

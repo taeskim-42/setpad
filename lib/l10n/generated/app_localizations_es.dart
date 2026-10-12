@@ -3567,4 +3567,27 @@ class LEs extends L {
 
   @override
   String get updateAction => 'Actualizar';
+
+  @override
+  String get shareGym => 'Compartido con tu entrenador';
+
+  @override
+  String get shareRejected =>
+      'Tu gimnasio no aceptó este registro · Consúltalo con tu entrenador';
+
+  @override
+  String get shareMealsOnly =>
+      'Solo las comidas se comparten con tu entrenador · Acerca tu teléfono a la pegatina del gimnasio para compartir el entrenamiento';
+
+  @override
+  String get shareNone =>
+      'No se comparte con tu entrenador · Acerca tu teléfono a la pegatina del gimnasio para compartirlo';
+
+  @override
+  String get shareMealsSetting => 'Compartir comidas con mi entrenador';
+
+  @override
+  String shareMealsNote(String gym) {
+    return 'Desde el día en que lo actives, tu entrenador de $gym también verá las comidas que registres los días que no vayas al gimnasio. Los registros de los días en que acercas el teléfono a la pegatina se comparten de todos modos.';
+  }
 }

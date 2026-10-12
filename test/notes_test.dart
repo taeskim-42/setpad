@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/gym.dart' show needsSend;
 import 'package:setpad/handoff.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/partner.dart';
@@ -366,5 +367,148 @@ void main() {
     addTearDown(reopened.dispose);
     await reopened.load();
     expect(reopened.pendingDeletes, expected);
+  });
+
+  group('트레이너에게 가는 기록', () {
+    late Directory dir;
+    late NotesStore store;
+    setUp(() {
+      dir = Directory.systemTemp.createTempSync('setpad-notes-share-');
+      store = NotesStore(directory: dir);
+    });
+    tearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+
+    test('스티커를 대면 오늘 먼저 적던 내 기록이 그 방문이 된다 — 스티커 전의 세트·끼니도 같이 간다', () {
+      final now = DateTime.now();
+      final morning = DateTime(now.year, now.month, now.day);
+      final today = store.create(at: morning)
+        ..blocks.add(ExerciseBlock('스쿼트', [LoggedSet(value: 80, reps: 5)]))
+        ..meals.add(MealEntry(at: morning, kcal: 400, text: '아침'));
+      final (:note, :fresh) = store.visit('g1', 'u1');
+      expect(note, same(today), reason: '기록이 둘로 갈리지 않는다');
+      expect(fresh, isTrue, reason: '새 방문이라 지금 보낸다');
+      expect(note.gymId, 'g1');
+      expect(note.owner, 'u1');
+      expect(note.visitAt, isNotNull, reason: '아침에 연 기록이어도 온 때는 지금이다');
+      expect(needsSend(note), isTrue);
+      expect(note.mealGym, 'g1');
+
+      final again = store.visit('g1', 'u1');
+      expect(again.note, same(today));
+      expect(again.fresh, isFalse);
+      expect(store.notes, hasLength(1));
+    });
+
+    test('같은 방문인지는 온 때로 센다 — 아침에 연 기록이 저녁에 방문이 됐어도 다시 대면 같은 방문이다', () {
+      final now = DateTime.now();
+      final adopted = store.create(at: now.subtract(const Duration(hours: 9)))
+        ..gymId = 'g1'
+        ..visitAt = now.subtract(const Duration(hours: 1));
+      expect(store.openVisit('g1', null), same(adopted));
+      adopted.visitAt = null;
+      expect(store.openVisit('g1', null), isNull, reason: '연 때만 보면 아홉 시간 전이다');
+    });
+
+    test('오늘 기록이 다른 도장의 것이거나 남의 것이면 새 방문 기록을 연다', () {
+      final other = store.create()..gymId = 'g0';
+      final first = store.visit('g1', 'u1');
+      expect(first.note, isNot(same(other)));
+      expect(first.note.gymId, 'g1');
+      expect(first.note.visitAt, isNull, reason: '처음부터 방문으로 연 기록은 연 때가 온 때다');
+      expect(other.gymId, 'g0');
+
+      store.delete(first.note);
+      store.delete(other);
+      final someone = store.create()..owner = 'u2';
+      final mine = store.visit('g1', 'u1').note;
+      expect(mine, isNot(same(someone)));
+      expect(someone.gymId, isNull);
+    });
+
+    test('식단 공유는 켠 날부터 연 기록만, 도장이 하나일 때만 묶인다 — 그 전의 끼니가 쏟아지지 않는다', () async {
+      final now = DateTime.now();
+      final old = store.create(at: now.subtract(const Duration(days: 3)));
+      final today = store.create();
+      store.linkMeals(today, ['g1'], 'u1');
+      expect(today.mealGymId, isNull, reason: '끼니는 건강 정보라 켜야 간다');
+
+      store.setShareMeals(true);
+      store.linkMeals(old, ['g1'], 'u1');
+      store.linkMeals(today, ['g1', 'g2'], 'u1');
+      expect(old.mealGymId, isNull, reason: '켠 날 전의 기록');
+      expect(today.mealGymId, isNull, reason: '여럿이면 앱이 고르지 않는다');
+      store.linkMeals(today, ['g1'], 'u1');
+      expect(today.mealGymId, 'g1');
+      expect(today.owner, 'u1');
+      expect(today.mealGym, 'g1');
+      expect(needsSend(today), isFalse, reason: '운동과 출석은 가지 않는다');
+
+      // 지운 끼니는 서버에서도 지운다. 기록째 지워도 끼니 줄만 — 출석 줄은 없다.
+      final meal = MealEntry(at: now, kcal: 500, text: '점심');
+      today.meals.add(meal);
+      today.removeMeal(meal);
+      expect(today.deletedMeals, [meal.id]);
+      today.meals.add(MealEntry(at: now, kcal: 300, text: '저녁'));
+      store.delete(today);
+      expect(store.pendingDeletes.map((d) => d.kind), ['meal', 'meal']);
+
+      // 켠 날은 앱을 껐다 켜도 남는다.
+      await store.flush();
+      final reopened = NotesStore(directory: dir);
+      addTearDown(reopened.dispose);
+      await reopened.load();
+      expect(reopened.sharesMeals, isTrue);
+      expect(reopened.sharesMealsOn(now), isTrue);
+      expect(
+        reopened.sharesMealsOn(now.subtract(const Duration(days: 1))),
+        isFalse,
+      );
+    });
+
+    test('식단 공유를 껐다 다시 켜면 꺼 둔 동안 앞서 나눈 기록에 적은 끼니는 가지 않는다', () {
+      store.setShareMeals(true);
+      final shared = store.create(
+        at: DateTime.now().subtract(const Duration(days: 2)),
+      )..mealGymId = 'g1';
+      final offline = MealEntry(at: shared.createdAt, kcal: 200, text: '간식');
+      shared.meals.add(offline);
+      store.setShareMeals(false);
+      expect(offline.dirty, isTrue);
+      store.setShareMeals(true);
+      expect(offline.dirty, isFalse);
+    });
+
+    test('못 올린 기록·방문 시각·식단 도장은 저장했다 다시 읽어도 그대로다', () {
+      final at = DateTime(2026, 10, 13, 18, 30);
+      final note =
+          Note(
+              id: 'n1',
+              createdAt: DateTime(2026, 10, 13, 8),
+              updatedAt: DateTime(2026, 10, 13, 19),
+              gymId: 'g1',
+            )
+            ..uploadRejected = true
+            ..visitAt = at
+            ..mealGymId = 'g2';
+      final back = Note.fromJson(
+        jsonDecode(jsonEncode(note.toJson())) as Map<String, dynamic>,
+      );
+      expect(back.uploadRejected, isTrue);
+      expect(back.visitAt, at);
+      expect(back.cameAt, at);
+      expect(back.mealGymId, 'g2');
+      final plain = Note.fromJson(
+        jsonDecode(
+              jsonEncode(Note(id: 'n2', createdAt: at, updatedAt: at).toJson()),
+            )
+            as Map<String, dynamic>,
+      );
+      expect(plain.uploadRejected, isFalse);
+      expect(plain.visitAt, isNull);
+      expect(plain.mealGymId, isNull);
+    });
   });
 }

@@ -366,19 +366,23 @@ Future<void> sendPending(
       gymId: note.gymId!,
       localId: note.id,
       routineId: visitOnly ? null : note.routineId,
-      startedAt: note.createdAt,
+      // 스티커 전에 적던 오늘 기록이 방문이 됐으면 댄 때가 온 때다.
+      startedAt: note.cameAt,
       // 같이 고친 기록에는 옆 사람의 세트도 있다. 트레이너에게는 내 것만.
       blocks: visitOnly ? const [] : mineOnly(note.blocks),
     );
     // 그물이 막혔으면 나머지도 막힌다. 다음 기회에.
     if (outcome == SendOutcome.retry) break;
-    // 서버가 이 하나를 거절한 것이면 뒤의 것들은 상관없다. 건너뛰고 계속 간다 —
-    // 이것 하나 때문에 그 뒤 몇 주치가 영영 안 올라가던 일이 있었다.
-    if (outcome == SendOutcome.rejected) continue;
+    // 서버가 이 하나를 거절했다(도장이 없어졌다, 루틴이 엇갈렸다). 뒤의 것들은 상관없이
+    // 계속 간다 — 이것 하나 때문에 그 뒤 몇 주치가 영영 안 올라가던 일이 있었다. 같은
+    // 것을 다시 보내도 같은 답이라 보낸 것으로 치고, 기록 화면이 못 올렸다고 말한다.
+    // 고치면 다시 간다(needsSend).
+    note.uploadRejected = outcome == SendOutcome.rejected;
     note.sentAt = at;
+    changed = true;
+    if (note.uploadRejected) continue;
     // 이 계정으로 올라갔다. 다른 계정으로 바꾼 뒤 고친 것이 그 계정 앞으로 가지 않게.
     note.owner ??= link.userId;
-    changed = true;
   }
   if (changed) onSent();
 }
@@ -387,7 +391,7 @@ Future<void> sendPending(
 ///
 /// 추정 요청은 아무것도 저장하지 않는다. 사람이 먹은 양까지 정한 끼니만 여기로
 /// 올라가고, 끼니의 id 가 열쇠라서 다시 보내도 한 줄, 고치면 그 줄이 바뀌고,
-/// 지우면 그 줄이 없어진다. 로그인한 도장 회원의 기록(gymId)만 대상이다.
+/// 지우면 그 줄이 없어진다. 로그인한 도장 회원의 기록만 대상이다([Note.mealGym]).
 extension MealLink on GymLink {
   Future<SendOutcome> _mealRequest(
     String method,
@@ -452,17 +456,22 @@ extension MealLink on GymLink {
 
 /// 밀린 끼니 변경을 보낸다. 운동 기록과 같은 규칙이다 — 그물이 막혔으면 다음
 /// 기회에, 서버가 거절했으면 그 하나만 포기하고 계속 간다.
+///
+/// 스티커·받은 루틴으로 연 기록의 끼니는 언제나 간다. 식단 공유로 도장에 묶인
+/// 기록([Note.mealGymId])은 [shareMeals] 가 켜져 있는 동안만 새로 적거나 고친 것이
+/// 가고, 지운 것은 꺼져 있어도 지운다 — 코치 목록에서 내리는 것은 늘 회원의 뜻이다.
 Future<void> syncMeals(
   GymLink link,
   List<Note> notes, {
+  bool shareMeals = false,
   required void Function() onSynced,
 }) async {
   if (!link.supported) return;
   var changed = false;
   for (final note in notes) {
-    final gymId = note.gymId;
     // 다른 계정의 끼니는 그 사람이 다시 로그인할 때까지 밀어 둔다.
-    if (gymId == null || !note.ownedBy(link.userId)) continue;
+    if (note.mealGym == null || !note.ownedBy(link.userId)) continue;
+    final gymId = note.gymId ?? (shareMeals ? note.mealGymId : null);
     for (final id in [...note.deletedMeals]) {
       final outcome = await link.deleteMeal(id);
       if (outcome == SendOutcome.retry) {
@@ -472,6 +481,7 @@ Future<void> syncMeals(
       note.deletedMeals.remove(id);
       changed = true;
     }
+    if (gymId == null) continue;
     for (final meal in [...note.meals]) {
       if (!meal.dirty) continue;
       final outcome = await link.saveMeal(gymId, meal);

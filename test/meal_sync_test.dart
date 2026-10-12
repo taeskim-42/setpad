@@ -215,6 +215,38 @@ void main() {
     expect(calls, 0);
   });
 
+  test('식단 공유로 묶인 기록은 공유를 켜 둔 동안만 끼니가 가고, 지운 것은 꺼져 있어도 지운다', () async {
+    final calls = <(String, String, Object?)>[];
+    final link = GymLink(
+      endpoint: 'https://x',
+      token: 't',
+      client: MockClient((request) async {
+        calls.add((
+          request.method,
+          request.url.path,
+          request.body.isEmpty ? null : jsonDecode(request.body)['gymId'],
+        ));
+        return http.Response('{"id":"row"}', 200);
+      }),
+    );
+    final lunch = MealEntry(
+      at: DateTime(2026, 9, 21, 12),
+      kcal: 500,
+      text: '밥',
+    );
+    final note = noteAt(null)
+      ..mealGymId = gym
+      ..meals.add(lunch)
+      ..deletedMeals.add('gone');
+    await syncMeals(link, [note], onSynced: () {});
+    expect(calls, [('DELETE', '/api/meals/gone', null)]);
+    expect(lunch.dirty, isTrue, reason: '공유를 끈 동안 적은 것은 보내지 않는다');
+
+    await syncMeals(link, [note], shareMeals: true, onSynced: () {});
+    expect(calls.last, ('PUT', '/api/meals/${lunch.id}', gym));
+    expect(lunch.dirty, isFalse);
+  });
+
   test('추정 요청은 저장하지 말라고 말하고, 글 추정은 원문을 보낸다', () async {
     final bodies = <Map<String, Object?>>[];
     final ai = RecordAi(
@@ -347,6 +379,93 @@ void main() {
     expect(ai.asked, hasLength(asked));
     expect(note.meals.last.source, MealEntry.typed);
     expect(puts.last['source'], 'typed');
+  });
+
+  testWidgets('기록 머리가 트레이너에게 가는지 말하고, 식단 공유를 켜면 스티커를 안 댄 날의 끼니도 간다', (
+    tester,
+  ) async {
+    final dir = Directory.systemTemp.createTempSync('setpad_meal_share_');
+    final store = NotesStore(directory: dir);
+    addTearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+    final puts = <Map<String, Object?>>[];
+    final account =
+        Account(
+            client: MockClient((request) async {
+              if (request.method == 'PUT') {
+                puts.add({
+                  'path': request.url.path,
+                  ...(jsonDecode(request.body) as Map).cast<String, Object?>(),
+                });
+              }
+              return http.Response('{}', 200);
+            }),
+            storageDir: dir,
+          )
+          ..token = 'member'
+          ..gyms = [(id: gym, name: 'BPM', trainer: null)];
+    final note = store.create();
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: EditorPage(
+          store: store,
+          note: note,
+          account: account,
+          ai: FakeAi((_) async => throw UnimplementedError()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _confirmMeal(tester);
+    expect(
+      find.text('트레이너와 공유하지 않는 기록이에요 · 헬스장 스티커에 폰을 대면 공유돼요'),
+      findsOneWidget,
+    );
+
+    Future<void> write(String text) async {
+      await tester.tap(find.byKey(const ValueKey('meal-button')));
+      await tester.pumpAndSettle();
+      await _confirmMeal(tester);
+      await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
+      await tester.pumpAndSettle();
+      await _confirmMeal(tester);
+      await tester.enterText(find.byType(CupertinoTextField), text);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      await _confirmMeal(tester);
+    }
+
+    await write('바나나 90kcal');
+    expect(puts, isEmpty, reason: '끼니는 건강 정보라 켜야 간다');
+
+    store.setShareMeals(true);
+    await write('닭가슴살 165kcal');
+    expect(note.mealGymId, gym);
+    expect(
+      puts.map((p) => (p['path'], p['gymId'])).toSet(),
+      {for (final m in note.meals) ('/api/meals/${m.id}', gym)},
+      reason: '켠 날 연 기록이라 그날 앞서 적은 끼니도 같이 간다',
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(
+      find.text('끼니만 트레이너와 공유해요 · 운동은 헬스장 스티커에 폰을 대면 공유돼요'),
+      findsOneWidget,
+    );
+
+    // 스티커로 방문이 된 기록, 그리고 서버가 받지 않은 기록.
+    note.gymId = gym;
+    store.touch();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('트레이너와 공유하는 기록이에요'), findsOneWidget);
+    note.uploadRejected = true;
+    store.touch();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('도장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요'), findsOneWidget);
   });
 
   test('C·식단 글 — 천 단위 쉼표는 수의 일부이고, 일부만 적은 열량은 합계로 끝내지 않는다', () {

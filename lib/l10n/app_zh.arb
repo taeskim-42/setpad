@@ -846,5 +846,11 @@
   "agentAlarmChannel": "智能体报告",
   "agentAlarmChannelDesc": "教练报告准备好时通知你",
   "updateRequired": "此版本已无法连接服务器。请更新应用——你的记录仍保存在本设备上。",
-  "updateAction": "更新"
+  "updateAction": "更新",
+  "shareGym": "这条记录与教练共享",
+  "shareRejected": "健身房没有接收这条记录 · 请向教练确认",
+  "shareMealsOnly": "只与教练共享饮食 · 用手机碰一下健身房的贴纸即可共享训练",
+  "shareNone": "这条记录未与教练共享 · 用手机碰一下健身房的贴纸即可共享",
+  "shareMealsSetting": "与教练共享饮食",
+  "shareMealsNote": "从开启当天起，你在不去健身房的日子记录的饮食，{gym}的教练也能看到。碰过贴纸那天的记录，无论此设置如何都会共享。"
 }
