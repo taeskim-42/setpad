@@ -651,8 +651,12 @@ class PartnerSync extends ChangeNotifier {
                 reply.error == PartnerError.routineStarted))) {
       _apply(reply.body!);
       onChanged();
-    } else if (reply.error == PartnerError.ended && session != null && quiet) {
-      // 세션이 서버에서 사라졌거나 권한이 풀렸다.
+    } else if (reply.error == PartnerError.ended &&
+        session != null &&
+        quiet &&
+        note.ownedBy(link().userId)) {
+      // 세션이 서버에서 사라졌거나 권한이 풀렸다. 다른 계정의 토큰으로 물은 404 는
+      // 그 사람의 세션이 끝났다는 뜻이 아니다 — 여기서 끝내면 주인이 돌아와도 안 돈다.
       session!
         ..state = PartnerState.ended
         ..partnerBlocks = []
@@ -706,7 +710,7 @@ class PartnerSync extends ChangeNotifier {
 
   Future<void> refresh() async {
     final id = session?.id;
-    if (id == null || !session!.open) return;
+    if (id == null || !session!.open || !note.ownedBy(link().userId)) return;
     await _run((l) => l.partnerSessionState(id), quiet: true);
     if (session?.state == PartnerState.active) await _push();
   }
@@ -1156,7 +1160,9 @@ class PartnerSync extends ChangeNotifier {
 
   /// 화면이 보이는 동안만 돈다. 백그라운드에서 연결을 유지한다고 하지 않는다.
   void start() {
-    if (_disposed) return;
+    // 다른 계정이 연 같이 하기는 이 토큰으로 물을 수 없다(서버는 404). 주인이 다시
+    // 로그인해 열면 그때 돈다(Note.owner).
+    if (_disposed || !note.ownedBy(link().userId)) return;
     // 이미 돌고 있어도 스트림은 연다 — 세션이 없을 때 시작했다가 초대·참여한
     // 경우다(그때는 열 세션이 없어 듣지 못했다).
     if (_poll != null) {

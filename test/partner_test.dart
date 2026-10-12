@@ -822,6 +822,36 @@ void main() {
     expect(mina.note.partner!.state, PartnerState.ended);
   });
 
+  test('다른 계정이 연 같이 하기는 지금 계정으로 묻지 않고, 404 를 끝남으로 굳히지 않는다', () async {
+    final server = FakeServer();
+    final mina = Phone(server, '미나', 'a12'), jun = Phone(server, '준', 'b12');
+    addTearDown(mina.sync.dispose);
+    addTearDown(jun.sync.dispose);
+    await mina.sync.invite();
+    await jun.sync.joinWithCode(mina.note.partner!.code!);
+    await mina.sync.refresh();
+    mina.note.owner = '미나';
+    expect(mina.note.partner!.state, PartnerState.active);
+
+    // 미나가 로그아웃하고 같은 폰에 소라가 들어와 그 기록을 열었다(편집기는 열린
+    // 세션이면 start() 한다). 서버는 소라에게 404 를 준다.
+    final sora = PartnerSync(
+      note: mina.note,
+      link: () => GymLink(
+        endpoint: 'https://x',
+        token: '소라',
+        userId: '소라',
+        client: server.clientFor('소라'),
+      ),
+      onChanged: () {},
+    );
+    addTearDown(sora.dispose);
+    sora.start();
+    await sora.refresh();
+    expect(mina.note.partner!.state, PartnerState.active);
+    expect(server.sessions.values.single['ended'], isNull);
+  });
+
   test('저장된 기록은 같이 하기가 없던 시절 것도 그대로 읽힌다', () {
     final old = Note.fromJson({
       'id': 'old',
