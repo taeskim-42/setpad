@@ -915,6 +915,124 @@ void main() {
     expect(states, greaterThan(1), reason: '쉬는 시간이 지나면 다시 묻는다');
   });
 
+  testWidgets('느린 그물에서 폴링이 상태 요청을 겹쳐 쌓지 않고, 서버에 닿지 못하면 물러섰다가 닿으면 돌아온다', (
+    tester,
+  ) async {
+    var gets = 0, open = 0, most = 0;
+    var slow = true, down = false;
+    final note =
+        Note(
+            id: 'n-backoff',
+            createdAt: DateTime(2026, 9, 21, 18),
+            updatedAt: DateTime(2026, 9, 21, 18),
+          )
+          ..partner = PartnerSession(
+            id: 'S1',
+            host: true,
+            state: PartnerState.active,
+          );
+    final sync = PartnerSync(
+      note: note,
+      link: () => GymLink(
+        endpoint: 'https://x',
+        token: 't',
+        client: MockClient((request) async {
+          // 스트림이 안 열리면 폴링이 2초마다 제 속도로 돈다.
+          if (request.url.path.endsWith('/events')) {
+            return http.Response('', 404);
+          }
+          if (request.method != 'GET') return http.Response('{}', 200);
+          gets++;
+          if (down) return http.Response('', 502);
+          most = open + 1 > most ? open + 1 : most;
+          open++;
+          if (slow) await Future<void>.delayed(const Duration(seconds: 8));
+          open--;
+          return http.Response(
+            '{"id":"S1","state":"active","role":"host"}',
+            200,
+          );
+        }),
+      ),
+      onChanged: () {},
+    );
+    sync.start();
+    // 답이 8초씩 걸린다(요청은 10초에 포기한다). 옛 앱은 2초마다 새로 물어 너덧이 함께 떠 있었다.
+    await tester.pump(const Duration(seconds: 30));
+    expect(most, 1, reason: '묻는 중이면 새로 묻지 않고 그 답을 기다린다');
+
+    slow = false;
+    down = true;
+    await tester.pump(const Duration(seconds: 12));
+    final failing = gets;
+    await tester.pump(const Duration(minutes: 2));
+    // 물러서지 않으면 2초마다, 2분에 60번 묻는다.
+    expect(gets - failing, lessThan(15), reason: '닿지 못하면 물러선다');
+
+    down = false;
+    await tester.pump(const Duration(seconds: 40));
+    final back = gets;
+    await tester.pump(const Duration(seconds: 20));
+    expect(gets - back, greaterThanOrEqualTo(9), reason: '닿으면 다시 2초마다 묻는다');
+
+    sync.dispose();
+    await tester.pump();
+  });
+
+  test('배포로 모두의 스트림이 한꺼번에 끊겨도 같은 순간에 다시 붙지 않는다 — 1~3초 사이로 흩어진다', () async {
+    final waits = <Duration>[];
+    final phones = [
+      for (var i = 0; i < 8; i++)
+        PartnerSync(
+          note:
+              Note(
+                  id: 'n-herd$i',
+                  createdAt: DateTime(2026, 9, 21, 18),
+                  updatedAt: DateTime(2026, 9, 21, 18),
+                )
+                ..partner = PartnerSession(
+                  id: 'S$i',
+                  host: true,
+                  state: PartnerState.active,
+                ),
+          link: () => GymLink(
+            endpoint: 'https://x',
+            token: 't',
+            client: MockClient((request) async {
+              final state = '{"id":"S$i","state":"active","role":"host"}';
+              // 상태 한 줄을 주고 끊긴다 — 배포로 서버가 내려갔다.
+              return http.Response(
+                request.url.path.endsWith('/events')
+                    ? 'data: $state\n\n'
+                    : state,
+                200,
+              );
+            }),
+          ),
+          onChanged: () {},
+        ),
+    ];
+    for (final phone in phones) {
+      addTearDown(phone.dispose);
+      // 다시 열기로 잡은 때를 본다. 요청 시간 제한(10·15·40초)은 이 범위 밖이다.
+      runZoned(
+        phone.start,
+        zoneSpecification: ZoneSpecification(
+          createTimer: (self, parent, zone, wait, run) {
+            if (wait >= const Duration(seconds: 1) &&
+                wait < const Duration(seconds: 3)) {
+              waits.add(wait);
+            }
+            return parent.createTimer(zone, wait, run);
+          },
+        ),
+      );
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    expect(waits, hasLength(phones.length), reason: '잘 흐르던 스트림은 곧 다시 연다');
+    expect(waits.toSet().length, greaterThan(1), reason: '같은 순간에 몰리지 않는다');
+  });
+
   test('편집기를 닫거나 앱을 내려 듣기를 그만두면 SSE 연결을 바로 끊는다 — 아무도 안 적는 쉬는 시간이어도', () async {
     // 진짜 소켓이다. 첫 상태 한 줄 다음에는 빈 줄(: keep)만 온다 — 상태가 안 바뀐다.
     final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);

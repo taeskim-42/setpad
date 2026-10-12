@@ -13,6 +13,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show Random, min;
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -506,6 +507,12 @@ class PartnerSync extends ChangeNotifier {
   /// 스트림도 다시 열지 않는다 — 사고 때 서버가 폰들을 늦출 수 있는 자리다.
   DateTime? _quietUntil;
   bool get _quiet => _quietUntil?.isAfter(DateTime.now()) ?? false;
+
+  /// 서버에 닿지 못한 상태 확인이 이어진 수와, 그래서 건너뛸 남은 폴링 수. 닿지 못할
+  /// 때마다 2·4·8·16번 안에서 흩어 골라(2초 간격이면 30초 남짓까지) 물러선다 — 배포나
+  /// 장애 때 모든 폰이 2초마다, 같은 순간에 두드리지 않는다. 닿으면 처음으로 돌아간다.
+  int _misses = 0, _skip = 0;
+  final _random = Random();
   int _generation = 0;
   bool _disposed = false;
   bool _pushing = false;
@@ -741,11 +748,29 @@ class PartnerSync extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> refresh() async {
+  Future<void>? _refreshing;
+
+  /// 서버에 지금 상태를 묻는다. 묻는 중이면 새로 묻지 않고 그 답을 같이 기다린다 —
+  /// 답이 10초 걸리는 그물에서 2초 폴링이 요청을 겹겹이 쌓지 않는다.
+  Future<void> refresh() =>
+      _refreshing ??= _refresh().whenComplete(() => _refreshing = null);
+
+  Future<void> _refresh() async {
     final id = session?.id;
     if (id == null || !session!.open || !note.ownedBy(link().userId)) return;
-    await _run((l) => l.partnerSessionState(id), quiet: true);
+    _backOff(await _run((l) => l.partnerSessionState(id), quiet: true));
     if (session?.state == PartnerState.active) await _push();
+  }
+
+  void _backOff(PartnerError? error) {
+    if (error != PartnerError.network &&
+        error != PartnerError.server &&
+        error != PartnerError.tooManyTries) {
+      _misses = _skip = 0;
+      return;
+    }
+    final most = 1 << min(++_misses, 4);
+    _skip = most ~/ 2 + _random.nextInt(most ~/ 2 + 1);
   }
 
   bool get canConfirmRoutine {
@@ -1145,7 +1170,7 @@ class PartnerSync extends ChangeNotifier {
   /// 스트림이 실제로 소식을 주고 있는가.
   bool _streaming = false;
 
-  /// 서버가 밀어 주는 상태를 듣는다. 끊기면 1초 뒤 다시 연다. 폴링은 남겨 두되
+  /// 서버가 밀어 주는 상태를 듣는다. 끊기면 곧 다시 연다([_reopen]). 폴링은 남겨 두되
   /// 듣는 동안은 드물게 한다 — 스트림이 놓친 것을 줍는 보험이다.
   void _listen() {
     final s = session;
@@ -1155,6 +1180,7 @@ class PartnerSync extends ChangeNotifier {
       if (_disposed || session?.id != id) return;
       _streaming = true;
       reachable = true;
+      _misses = _skip = 0;
       _apply(body);
       onChanged();
       notifyListeners();
@@ -1162,14 +1188,17 @@ class PartnerSync extends ChangeNotifier {
   }
 
   /// 끊겼다. 잘 흐르던 것이면 곧 다시, 처음부터 안 흐르던 것(옛 서버, 막힌
-  /// 그물)이면 느긋하게 — 그동안은 폴링이 제 속도로 돈다.
+  /// 그물)이면 느긋하게 — 그동안은 폴링이 제 속도로 돈다. 2초 안에서 흩는다: 배포로
+  /// 모두의 스트림이 한꺼번에 끊겨도 같은 순간에 다시 몰리지 않는다.
   void _reopen() {
     final was = _streaming;
     _events = null;
     _streaming = false;
     if (_disposed || _poll == null) return;
     _reconnect?.cancel();
-    var wait = Duration(seconds: was ? 1 : 15);
+    var wait = Duration(
+      milliseconds: (was ? 1000 : 15000) + _random.nextInt(2000),
+    );
     final quiet = _quietUntil?.difference(DateTime.now());
     if (quiet != null && quiet > wait) wait = quiet;
     _reconnect = Timer(wait, _listen);
@@ -1222,6 +1251,10 @@ class PartnerSync extends ChangeNotifier {
     var ticks = 0;
     _poll = Timer.periodic(interval, (_) async {
       if (_quiet) return;
+      if (_skip > 0) {
+        _skip--;
+        return;
+      }
       await sendPendingEnds(link(), [note], onSent: onChanged);
       if (_pendingDoc.isNotEmpty) unawaited(_flushDoc());
       _heartbeat();
