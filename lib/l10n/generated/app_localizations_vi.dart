@@ -3562,4 +3562,19 @@ class LVi extends L {
   @override
   String get aiBudgetExhausted =>
       'Đã hết lượt AI hôm nay. Bạn có thể dùng lại vào ngày mai.';
+
+  @override
+  String get accountSignOutEverywhere => 'Đăng xuất trên mọi thiết bị';
+
+  @override
+  String get accountSignOutEverywhereAsk =>
+      'Thao tác này đăng xuất bạn trên mọi điện thoại khác và trên web. Điện thoại này vẫn đăng nhập.';
+
+  @override
+  String get accountSignOutEverywhereDone =>
+      'Đã đăng xuất trên mọi thiết bị khác.';
+
+  @override
+  String get accountSignOutEverywhereFailed =>
+      'Không thể đăng xuất các thiết bị khác. Hãy kiểm tra kết nối và thử lại.';
 }

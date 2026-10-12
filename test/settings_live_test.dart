@@ -19,11 +19,19 @@ void main() {
   setUp(() => dir = Directory.systemTemp.createTempSync('setpad-settings'));
   tearDown(() => dir.deleteSync(recursive: true));
 
+  /// 서버가 받은 요청의 경로와 본문.
+  final sent = <(String, String)>[];
+  setUp(sent.clear);
+
   Future<(NotesStore, Account)> open(WidgetTester tester) async {
     final store = NotesStore();
     final account = Account(
       storageDir: dir,
       client: MockClient((request) async {
+        sent.add((request.url.path, request.body));
+        if (request.url.path.endsWith('/api/me/sessions/revoke')) {
+          return http.Response(jsonEncode({'token': 'fresh'}), 200);
+        }
         if (request.url.path.endsWith('/api/auth/app')) {
           return http.Response(
             jsonEncode({
@@ -86,6 +94,25 @@ void main() {
     expect(account.signedIn, isTrue, reason: '이름은 누르는 버튼이 아니다');
     // 나가는 길은 따로 있다.
     expect(find.text('로그아웃'), findsOneWidget);
+  });
+
+  testWidgets('모든 기기에서 로그아웃 — 한 번 묻고, 끊었다고 말하고, 이 폰은 새 토큰으로 이어 간다', (
+    tester,
+  ) async {
+    final (_, account) = await open(tester);
+    await tester.runAsync(() => account.signIn());
+    await tester.pump();
+    final l = await L.delegate.load(const Locale('ko'));
+    final row = find.byKey(const ValueKey('settings-sign-out-everywhere'));
+    await tester.scrollUntilVisible(row, 100);
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+    expect(find.text(l.accountSignOutEverywhereAsk), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('sign-out-everywhere-confirm')));
+    await tester.pumpAndSettle();
+    expect(find.text(l.accountSignOutEverywhereDone), findsOneWidget);
+    expect(account.token, 'fresh');
+    expect(account.signedIn, isTrue, reason: '이 폰은 로그인된 채로 남는다');
   });
 
   testWidgets('식단 공유는 기본 꺼짐이고, 다니는 도장이 하나일 때만 켤 수 있다', (tester) async {

@@ -609,9 +609,19 @@ extension MemberLink on GymLink {
       _ => JoinState.failed,
     };
   }
+
+  /// 이 사람의 토큰을 모두 끊고(모든 기기에서 로그아웃) 이 폰에 줄 새 토큰을 받는다.
+  /// 못 끊었으면 null.
+  Future<String?> revokeSessions() async {
+    if (!supported) return null;
+    final answer = await _post('/api/me/sessions/revoke', const {});
+    final body = answer?.status == 200 ? answer?.body : null;
+    final fresh = body?['token'];
+    return fresh is String && fresh.isNotEmpty ? fresh : null;
+  }
 }
 
-/// 예약 화면이 그려지는 데 필요한 전부.
+
 ///
 /// **하루치 빈 시간만으로는 화면을 못 그린다.** 트레이너가 받는 요일과 남은
 /// 횟수를 모르면 앱은 이레를 다 열어 놓고 하나씩 눌러 보게 한다.

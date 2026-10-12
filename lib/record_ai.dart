@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import 'api_route.dart';
@@ -789,6 +790,9 @@ String _wordAround(String text, int start, int end) {
 /// 기기 안의 규칙과 같은 무게로만 쓴다.
 typedef MealCheck = ({bool? judged, bool table});
 
+/// 받아 둔 기기 토큰. [expires] 를 모르면(옛 서버) 이 실행 동안만 쓴다.
+typedef _DeviceToken = ({String token, DateTime? expires, String id});
+
 class RecordAi {
   const RecordAi({
     this.endpoint = defaultEndpoint,
@@ -852,10 +856,71 @@ class RecordAi {
       (endpoint.isNotEmpty &&
           (deviceId.isNotEmpty || accountToken?.call() != null));
 
-  static String? _token;
+  /// 받아 둔 기기 토큰. **켤 때마다 새로 받지 않는다** — 서버는 주소마다 하루 발급 수를
+  /// 세는데(헬스장 와이파이·통신사 NAT 는 주소 하나를 여럿이 쓴다), 켤 때마다 받으면 그
+  /// 한도를 같이 태우고, 막힌 날에는 원판·AI·로그인 없이 산 이용권이 모두 끊겼다. 서버가
+  /// 만료(expiresAt)를 알려 주면 키체인에 두고 만료 하루 전까지 다시 쓴다(계약 C3). 401
+  /// 이면 버리고 다시 받는다([_ask]). 만료를 모르면(옛 서버) 이 실행 동안만 쓴다.
+  static _DeviceToken? _token;
 
-  /// 받아 둔 기기 토큰을 버린다. 로그인·로그아웃 때 부른다.
-  static void forget() => _token = null;
+  /// 키체인을 읽었다 — 또는 [forget] 해서 읽을 것이 없다.
+  static bool _loaded = false;
+
+  /// [forget] 이 불린 수. 키체인을 읽는 사이 버렸으면 읽은 것을 쓰지 않는다.
+  static int _forgotten = 0;
+
+  /// 이 주소의 오늘 발급이 다 찼다(429 tooManyDevices). 두드릴수록 그 수만 늘어 십 분은
+  /// 다시 받지 않는다 — 그사이 와이파이를 벗어났을 수 있다(계약 C3). 토큰이 필요 없는
+  /// 기능은 그대로 된다.
+  static DateTime? _mintPausedUntil;
+
+  static const _vaultKey = 'deviceToken';
+
+  /// 받아 둔 기기 토큰을 버린다 — 키체인에 남긴 것까지. 로그인·로그아웃 때, 서버가
+  /// 기기 토큰을 거절했을 때 부른다.
+  static void forget() {
+    _forgotten++;
+    _token = null;
+    _loaded = true;
+    _mintPausedUntil = null;
+    unawaited(vaulted(() => vault.delete(key: _vaultKey)));
+  }
+
+  /// 앱을 새로 켠 것처럼 키체인부터 다시 읽게 한다.
+  @visibleForTesting
+  static void relaunch() {
+    _token = null;
+    _loaded = false;
+    _mintPausedUntil = null;
+  }
+
+  /// 켠 뒤 처음 기기 토큰이 필요할 때 키체인에서 읽는다.
+  static Future<void> _load() async {
+    final seen = _forgotten;
+    final saved = await vaulted(() => vault.read(key: _vaultKey));
+    _loaded = true;
+    if (saved == null || seen != _forgotten) return;
+    try {
+      if (jsonDecode(saved) case {
+        'token': final String token,
+        'expiresAt': final String at,
+        'id': final String id,
+      }) {
+        _token ??= (token: token, expires: DateTime.tryParse(at), id: id);
+      }
+    } on FormatException {
+      // 깨진 값은 없는 것과 같다. 새로 받는다.
+    }
+  }
+
+  /// 이 기기의 것이고, 만료까지 하루 넘게 남았다. 다른 기기 id 의 것은 앱을 지웠다
+  /// 깔아 기기 id 가 바뀐 뒤 키체인에 남은 것이다(키체인은 앱을 지워도 남는다).
+  bool _usable(_DeviceToken t) =>
+      t.id == deviceId &&
+      (t.expires == null ||
+          DateTime.now().isBefore(
+            t.expires!.subtract(const Duration(days: 1)),
+          ));
 
   /// 계정 토큰, 없으면 이 기기의 토큰. 로그인 없이 산 것이 서버에 닿는 문이다.
   Future<String?> bearer() async {
@@ -869,7 +934,15 @@ class RecordAi {
   Future<String?> _authorize(http.Client web) async {
     final account = accountToken?.call();
     if (account != null) return account;
-    if (_token != null) return _token;
+    if (_token == null && !_loaded) await _load();
+    final held = _token;
+    if (held != null && _usable(held)) return held.token;
+    final paused = _mintPausedUntil;
+    if (paused != null && DateTime.now().isBefore(paused)) return null;
+    return _mint(web);
+  }
+
+  Future<String?> _mint(http.Client web) async {
     final response = await web
         .post(
           Uri.parse('$endpoint/api/device'),
@@ -877,6 +950,10 @@ class RecordAi {
           body: jsonEncode({'id': deviceId}),
         )
         .timeout(const Duration(seconds: 10));
+    if (response.statusCode == 429) {
+      _mintPausedUntil = DateTime.now().add(const Duration(minutes: 10));
+      return null;
+    }
     if (response.statusCode != 200) return null;
     final Object? body;
     try {
@@ -885,9 +962,25 @@ class RecordAi {
       // 200 인데 JSON 이 아니다 — 와이파이 로그인 화면이 끼어들었다. 연결 문제다.
       throw const RecordAiException(RecordAiStatus.unavailable, offline: true);
     }
-    return _token = body is Map && body['token'] is String
-        ? body['token'] as String
-        : null;
+    if (body is! Map || body['token'] is! String) return null;
+    final token = body['token'] as String, at = body['expiresAt'];
+    final expires = at is String ? DateTime.tryParse(at) : null;
+    _token = (token: token, expires: expires, id: deviceId);
+    if (expires != null) {
+      unawaited(
+        vaulted(
+          () => vault.write(
+            key: _vaultKey,
+            value: jsonEncode({
+              'token': token,
+              'expiresAt': at,
+              'id': deviceId,
+            }),
+          ),
+        ),
+      );
+    }
+    return token;
   }
 
   /// 한 번 보내고, 토큰이 상했으면 한 번만 다시 받아 재시도한다.
@@ -941,8 +1034,12 @@ class RecordAi {
         if (response.statusCode == 401 && attempt == 0) {
           // 만료됐다. 새로 받아 한 번만 더. 죽은 것이 계정 토큰이면 같은 토큰을
           // 다시 보내 봐야 또 401 이라, 로그아웃해 이 기기의 지갑으로 묻는다.
-          if (account != null && token == account) await onUnauthorized?.call();
-          _token = null;
+          // 기기 토큰이면 키체인에 남긴 것까지 버린다 — 다음에 켤 때 또 쓰지 않게.
+          if (account != null && token == account) {
+            await onUnauthorized?.call();
+          } else {
+            forget();
+          }
           continue;
         }
         Object? body;

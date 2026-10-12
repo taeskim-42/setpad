@@ -3460,4 +3460,18 @@ class LKo extends L {
 
   @override
   String get aiBudgetExhausted => '오늘 쓸 수 있는 AI 몫이 다 찼어요. 내일 다시 쓸 수 있어요.';
+
+  @override
+  String get accountSignOutEverywhere => '모든 기기에서 로그아웃';
+
+  @override
+  String get accountSignOutEverywhereAsk =>
+      '다른 폰과 웹에 남은 로그인을 모두 끊어요. 이 폰은 로그인된 채로 남아요.';
+
+  @override
+  String get accountSignOutEverywhereDone => '다른 기기의 로그인을 모두 끊었어요.';
+
+  @override
+  String get accountSignOutEverywhereFailed =>
+      '로그인을 끊지 못했어요. 연결을 확인하고 다시 해 주세요.';
 }

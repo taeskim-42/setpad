@@ -219,6 +219,12 @@ class SettingsPage extends StatelessWidget {
                 // 웹으로 보내는 것은 그 답이 아니다.
                 if (a.signedIn) ...[
                   _Row(label: l.accountSignOut, onTap: a.signOut),
+                  // 잃어버린 폰·웹에 남은 로그인을 서버에서 끊는다. 이 폰은 남는다.
+                  _Row(
+                    key: const ValueKey('settings-sign-out-everywhere'),
+                    label: l.accountSignOutEverywhere,
+                    onTap: () => _confirmSignOutEverywhere(context, a),
+                  ),
                   _Row(
                     label: l.accountDelete,
                     onTap: () => _confirmDelete(context, a),
@@ -235,6 +241,64 @@ class SettingsPage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// 모든 기기에서 로그아웃. 한 번 묻고, 끊었는지 말한다 — 못 끊었는데 조용하면
+  /// 잃어버린 폰이 끊긴 줄 안다.
+  Future<void> _confirmSignOutEverywhere(
+    BuildContext context,
+    Account account,
+  ) async {
+    final l = L.of(context);
+    final go = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: Text(l.accountSignOutEverywhere),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            l.accountSignOutEverywhereAsk,
+            style: const TextStyle(fontSize: 14),
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.cancel),
+          ),
+          CupertinoDialogAction(
+            key: const ValueKey('sign-out-everywhere-confirm'),
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.accountSignOutEverywhere),
+          ),
+        ],
+      ),
+    );
+    if (go != true || !context.mounted) return;
+    final done = await account.signOutEverywhere();
+    if (!context.mounted) return;
+    await showCupertinoDialog<void>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            done
+                ? l.accountSignOutEverywhereDone
+                : l.accountSignOutEverywhereFailed,
+            style: const TextStyle(fontSize: 15),
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l.ok),
+          ),
+        ],
       ),
     );
   }

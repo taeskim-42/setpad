@@ -3424,6 +3424,18 @@ class LZh extends L {
 
   @override
   String get aiBudgetExhausted => '今天的 AI 额度已用完，明天可以再用。';
+
+  @override
+  String get accountSignOutEverywhere => '在所有设备上退出登录';
+
+  @override
+  String get accountSignOutEverywhereAsk => '将退出其他手机和网页上的所有登录。这部手机会保持登录。';
+
+  @override
+  String get accountSignOutEverywhereDone => '已退出其他所有设备上的登录。';
+
+  @override
+  String get accountSignOutEverywhereFailed => '未能退出其他设备上的登录。请检查网络后重试。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6846,6 +6858,18 @@ class LZhHans extends LZh {
 
   @override
   String get aiBudgetExhausted => '今天的 AI 额度已用完，明天可以再用。';
+
+  @override
+  String get accountSignOutEverywhere => '在所有设备上退出登录';
+
+  @override
+  String get accountSignOutEverywhereAsk => '将退出其他手机和网页上的所有登录。这部手机会保持登录。';
+
+  @override
+  String get accountSignOutEverywhereDone => '已退出其他所有设备上的登录。';
+
+  @override
+  String get accountSignOutEverywhereFailed => '未能退出其他设备上的登录。请检查网络后重试。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10268,4 +10292,16 @@ class LZhHant extends LZh {
 
   @override
   String get aiBudgetExhausted => '今天的 AI 額度已用完，明天可以再用。';
+
+  @override
+  String get accountSignOutEverywhere => '在所有裝置上登出';
+
+  @override
+  String get accountSignOutEverywhereAsk => '將登出其他手機和網頁上的所有登入。這支手機會保持登入。';
+
+  @override
+  String get accountSignOutEverywhereDone => '已登出其他所有裝置。';
+
+  @override
+  String get accountSignOutEverywhereFailed => '未能登出其他裝置。請檢查網路後再試一次。';
 }

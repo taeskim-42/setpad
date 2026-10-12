@@ -750,6 +750,41 @@ void main() {
         );
       });
     }
+
+    test(
+      '기기 토큰을 못 받은 날에도 로그인 없이 산 이용권이 무료로 보이지 않는다 — 표 없이 물은 답으로 덮지 않는다',
+      () async {
+        var mint = 200;
+        final account = Account(
+          client: MockClient(
+            (r) async => switch (r.url.path) {
+              '/api/device' =>
+                mint == 200
+                    ? _json({'token': 'device-token'}, 200)
+                    : _json({'error': 'tooManyDevices'}, 429),
+              '/api/purchase' when r.headers['authorization'] == null => _json({
+                'plan': null,
+                'selling': true,
+              }, 200),
+              '/api/purchase' => _json({
+                'plan': 'yearly',
+                'selling': true,
+                'appAccountToken': 'a3bb189e-8bf9-3888-9912-ace4e6543002',
+              }, 200),
+              _ => _json({}, 200),
+            },
+          ),
+          deviceId: () => 'device-id-0123456789',
+        );
+        await account.refreshForTest();
+        expect(account.plan, Plan.yearly);
+        RecordAi.forget();
+        mint = 429;
+        await account.refreshForTest();
+        expect(account.plan, Plan.yearly, reason: '표 없이 물은 plan:null 로 덮지 않는다');
+        expect(account.selling, isTrue);
+      },
+    );
   });
 }
 

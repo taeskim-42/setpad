@@ -3537,4 +3537,19 @@ class LTh extends L {
   @override
   String get aiBudgetExhausted =>
       'วันนี้ใช้ AI ครบโควตาแล้ว พรุ่งนี้ใช้ได้อีกครั้ง';
+
+  @override
+  String get accountSignOutEverywhere => 'ออกจากระบบในทุกอุปกรณ์';
+
+  @override
+  String get accountSignOutEverywhereAsk =>
+      'จะออกจากระบบในโทรศัพท์เครื่องอื่นและบนเว็บทั้งหมด โทรศัพท์เครื่องนี้ยังคงเข้าสู่ระบบอยู่';
+
+  @override
+  String get accountSignOutEverywhereDone =>
+      'ออกจากระบบในอุปกรณ์อื่นทั้งหมดแล้ว';
+
+  @override
+  String get accountSignOutEverywhereFailed =>
+      'ออกจากระบบอุปกรณ์อื่นไม่สำเร็จ โปรดตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง';
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12 이상의 클라우드 백업과 기기 옮기기. backup_rules.xml 과 같은 규칙 —
+     로그인 표(flutter_secure_storage)와 옛 session.json 은 싣지 않는다. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="FlutterSecureStorage.xml"/>
+        <exclude domain="sharedpref" path="FlutterSecureKeyStorage.xml"/>
+        <exclude domain="root" path="app_flutter/session.json"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="FlutterSecureStorage.xml"/>
+        <exclude domain="sharedpref" path="FlutterSecureKeyStorage.xml"/>
+        <exclude domain="root" path="app_flutter/session.json"/>
+    </device-transfer>
+</data-extraction-rules>

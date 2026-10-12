@@ -856,5 +856,9 @@
   "shareSend": "Send to my trainer",
   "shareSendAsk": "Send this to your trainer as today's workout at {gym}? It also counts as a visit.",
   "aiBusy": "The AI is busy right now. Please try again in a moment.",
-  "aiBudgetExhausted": "Today's AI capacity is used up. You can use it again tomorrow."
+  "aiBudgetExhausted": "Today's AI capacity is used up. You can use it again tomorrow.",
+  "accountSignOutEverywhere": "Sign out on all devices",
+  "accountSignOutEverywhereAsk": "This signs you out on every other phone and on the web. This phone stays signed in.",
+  "accountSignOutEverywhereDone": "Signed out on all other devices.",
+  "accountSignOutEverywhereFailed": "Couldn't sign out the other devices. Check your connection and try again."
 }

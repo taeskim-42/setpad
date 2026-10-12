@@ -3582,4 +3582,18 @@ class LEn extends L {
   @override
   String get aiBudgetExhausted =>
       'Today\'s AI capacity is used up. You can use it again tomorrow.';
+
+  @override
+  String get accountSignOutEverywhere => 'Sign out on all devices';
+
+  @override
+  String get accountSignOutEverywhereAsk =>
+      'This signs you out on every other phone and on the web. This phone stays signed in.';
+
+  @override
+  String get accountSignOutEverywhereDone => 'Signed out on all other devices.';
+
+  @override
+  String get accountSignOutEverywhereFailed =>
+      'Couldn\'t sign out the other devices. Check your connection and try again.';
 }

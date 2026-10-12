@@ -63,6 +63,9 @@ dependencies:
   timezone: ^0.10.1
   file_selector: ^1.1.0
   crypto: ^3.0.7
+  # 로그인 표(계정·기기 토큰)를 두는 곳 — 아이폰 키체인, 안드로이드 키스토어. 문서함의
+  # 평문 파일은 기기 백업에 같이 실렸다(lib/api_route.dart vault).
+  flutter_secure_storage: ^11.2.0
 
 dev_dependencies:
   flutter_test:

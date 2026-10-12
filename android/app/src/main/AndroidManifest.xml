@@ -16,10 +16,13 @@
          USE_EXACT_ALARM)은 넣지 않는다 — Play 가 권한 사유로 거절한 전력이 있고,
          몇 분 늦는 알림으로 충분하다. POST_NOTIFICATIONS 는 플러그인이 합쳐 준다. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- 백업에서 로그인 표를 뺀다(res/xml). 기록은 그대로 백업된다. -->
     <application
         android:label="setpad"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -3606,4 +3606,20 @@ class LEs extends L {
   @override
   String get aiBudgetExhausted =>
       'Se agotó la capacidad de IA de hoy. Podrás volver a usarla mañana.';
+
+  @override
+  String get accountSignOutEverywhere =>
+      'Cerrar sesión en todos los dispositivos';
+
+  @override
+  String get accountSignOutEverywhereAsk =>
+      'Se cerrará la sesión en los demás teléfonos y en la web. Este teléfono seguirá con la sesión iniciada.';
+
+  @override
+  String get accountSignOutEverywhereDone =>
+      'Se cerró la sesión en todos los demás dispositivos.';
+
+  @override
+  String get accountSignOutEverywhereFailed =>
+      'No se pudo cerrar la sesión en los otros dispositivos. Revisa tu conexión e inténtalo de nuevo.';
 }

@@ -611,6 +611,17 @@ void _shared() {
     const anonymous = GymLink(endpoint: 'https://example.com');
     expect(await anonymous.requestJoin('g1'), JoinState.failed);
   });
+
+  test('모든 기기에서 로그아웃은 서버가 준 새 토큰을 돌려주고, 못 끊었으면 null 이다', () async {
+    final link = linkThat(
+      (request) async => request.url.path == '/api/me/sessions/revoke'
+          ? http.Response('{"token":"fresh"}', 200)
+          : http.Response('{}', 404),
+    );
+    expect(await link.revokeSessions(), 'fresh');
+    final refused = linkThat((_) async => http.Response('{}', 500));
+    expect(await refused.revokeSessions(), isNull);
+  });
 }
 
 /// 스티커가 가리키는 주소.

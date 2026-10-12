@@ -21,10 +21,35 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 
 const apiBackup = String.fromEnvironment('API_BACKUP');
+
+/// 서버가 준 표(계정 토큰·기기 토큰)를 두는 곳 — 아이폰 키체인, 안드로이드 키스토어.
+///
+/// **문서함의 평문 파일에 두지 않는다.** 그 파일은 기기·PC 백업에 같이 실렸고, 샌
+/// 계정 토큰은 /api/me 를 부를 때마다 서른 날이 새로 늘어 끝없이 쓸 수 있었다. 키체인
+/// 항목은 이 기기에서만 풀리고(첫 잠금 해제 뒤) 다른 기기로 옮겨지지 않는다. 안드로이드는
+/// 이 저장소의 파일을 백업에서 뺀다(res/xml/backup_rules.xml·data_extraction_rules.xml).
+const vault = FlutterSecureStorage(
+  iOptions: IOSOptions(
+    accessibility: KeychainAccessibility.first_unlock_this_device,
+  ),
+);
+
+/// [vault] 에 묻는다. 못 쓰면(웹, 시험, 키체인이 아직 잠긴 때) null — 표를 못 남긴 것은
+/// 다시 받거나 다시 로그인하면 되는 일이지, 앱이 멈출 일이 아니다.
+Future<T?> vaulted<T>(Future<T> Function() use) async {
+  if (kIsWeb) return null;
+  try {
+    return await use();
+  } catch (e) {
+    debugPrint('키체인을 쓰지 못했다: $e');
+    return null;
+  }
+}
 
 /// 연결 단계가 이 시간 안에 안 되면 그 길은 막힌 것으로 본다. 기다리기만 하면
 /// 운영체제 기본값(1분 남짓)까지 매달려 있고, 그동안 화면은 아무 말도 못 한다.

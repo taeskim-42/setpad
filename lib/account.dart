@@ -232,8 +232,12 @@ class Account extends ChangeNotifier {
   // 대개 앱이 꺼진 상태에서 대므로, 댈 때마다 로그인부터 하게 된다. 로그인이
   // 풀렸다 붙었다 하는 것처럼 보이던 것이 이것이다.
   //
-  // 노트·설정과 같은 자리에 같은 방식으로 쓴다. 저장소를 하나 더 들이지 않는다.
+  // 키체인에 둔다([vault]). 예전에는 문서함의 session.json(평문)이었고, 그 파일은
+  // 기기·PC 백업에 같이 실렸다.
 
+  static const _sessionKey = 'session';
+
+  /// 옛 판이 로그인을 두던 자리. 켤 때 한 번 키체인으로 옮기고 지운다.
   Future<File?> _sessionFile() async {
     if (kIsWeb) return null; // 웹에는 문서함이 없다.
     try {
@@ -247,40 +251,58 @@ class Account extends ChangeNotifier {
 
   Future<void> _loadSession() async {
     try {
-      final f = await _sessionFile();
-      if (f == null || !f.existsSync()) return;
-      final data = jsonDecode(await f.readAsString());
+      var saved = await vaulted(() => vault.read(key: _sessionKey));
+      final legacy = await _sessionFile();
+      if (legacy != null && legacy.existsSync()) {
+        // 키체인에 옮겼을 때만 지운다 — 못 옮겼으면 다음에 켤 때 다시 옮긴다.
+        if (saved == null) {
+          saved = await legacy.readAsString();
+          final moved = await vaulted(() async {
+            await vault.write(key: _sessionKey, value: saved);
+            return true;
+          });
+          if (moved == true) await legacy.delete();
+        } else {
+          await legacy.delete();
+        }
+      }
+      if (saved == null) return;
+      final data = jsonDecode(saved);
       if (data is! Map) return;
-      final saved = data['token'];
-      if (saved is! String || saved.isEmpty) return;
-      token = saved;
+      final token = data['token'];
+      if (token is! String || token.isEmpty) return;
+      this.token = token;
       nickname = data['nickname'] as String? ?? '';
       userId = data['userId'] as String?;
       notifyListeners();
     } catch (e) {
-      // 깨진 파일 때문에 앱이 안 뜨면 안 된다. 로그인만 다시 하면 된다.
-      debugPrint('session.json 을 읽지 못했다: $e');
+      // 깨진 값 때문에 앱이 안 뜨면 안 된다. 로그인만 다시 하면 된다.
+      debugPrint('남겨 둔 로그인을 읽지 못했다: $e');
     }
   }
 
   Future<void> _saveSession() async {
-    try {
-      final f = await _sessionFile();
-      if (f == null) return;
-      if (token == null) {
-        if (f.existsSync()) await f.delete();
-        return;
+    if (token == null) {
+      // 로그아웃은 옛 파일까지 지워야 끝난다 — 남으면 다음에 켤 때 옮겨져 다시 로그인된다.
+      try {
+        final legacy = await _sessionFile();
+        if (legacy != null && legacy.existsSync()) await legacy.delete();
+      } catch (e) {
+        debugPrint('session.json 을 지우지 못했다: $e');
       }
-      // 쓰다 말고 꺼져도 반쪽짜리 파일이 남지 않게 한다 — 노트와 같은 방식이다.
-      final temporary = File('${f.path}.tmp');
-      await temporary.writeAsString(
-        jsonEncode({'token': token, 'nickname': nickname, 'userId': ?userId}),
-        flush: true,
-      );
-      await temporary.rename(f.path);
-    } catch (e) {
-      debugPrint('session.json 을 쓰지 못했다: $e');
+      await vaulted(() => vault.delete(key: _sessionKey));
+      return;
     }
+    await vaulted(
+      () => vault.write(
+        key: _sessionKey,
+        value: jsonEncode({
+          'token': token,
+          'nickname': nickname,
+          'userId': ?userId,
+        }),
+      ),
+    );
   }
 
   /// 남겨 둔 토큰이 아직 살아 있는가.
@@ -444,6 +466,19 @@ class Account extends ChangeNotifier {
     unawaited(refreshPlates());
   }
 
+  /// 모든 기기에서 로그아웃 — 잃어버린 폰이나 백업에서 샌 로그인을 서버에서 끊는다.
+  /// 그때까지 나간 이 사람의 토큰은 모두 거절되고, 이 폰은 서버가 준 새 토큰으로
+  /// 이어 간다(POST /api/me/sessions/revoke). 끊었으면 true.
+  Future<bool> signOutEverywhere() async {
+    if (!signedIn) return false;
+    final fresh = await link.revokeSessions();
+    if (fresh == null) return false;
+    token = fresh;
+    await _saveSession();
+    notifyListeners();
+    return true;
+  }
+
   /// 탈퇴. 서버가 지운 뒤에 기기에 남은 로그인도 지운다.
   ///
   /// **막혔으면 이유를 그대로 올려 보낸다** — "안 됩니다"만 보여 주면 관장인
@@ -534,9 +569,13 @@ class Account extends ChangeNotifier {
           .timeout(const Duration(seconds: 15));
       if (response.statusCode != 200) return;
       final body = jsonDecode(utf8.decode(response.bodyBytes));
-      final name = body is Map ? body['plan'] : null;
-      plan = Plan.values.where((p) => p.name == name).firstOrNull;
-      selling = body is Map && body['selling'] == true;
+      if (body is! Map) return;
+      selling = body['selling'] == true;
+      // 표 없이 물은 답(plan:null)은 누구의 것도 아니다. 기기 토큰을 못 받은 날 그
+      // 답으로 덮으면 로그인 없이 산 사람이 무료로 보였다 — 알던 것을 그대로 둔다.
+      if (bearer != null) {
+        plan = Plan.values.where((p) => p.name == body['plan']).firstOrNull;
+      }
       notifyListeners();
     } catch (_) {
       // 그물이 없으면 알던 것을 그대로 쓴다.

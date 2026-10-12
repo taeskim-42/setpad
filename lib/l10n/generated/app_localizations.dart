@@ -5160,6 +5160,30 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'오늘 쓸 수 있는 AI 몫이 다 찼어요. 내일 다시 쓸 수 있어요.'**
   String get aiBudgetExhausted;
+
+  /// 설정의 계정 칸. 잃어버린 폰·웹에 남은 로그인을 서버에서 끊는다(POST /api/me/sessions/revoke).
+  ///
+  /// In ko, this message translates to:
+  /// **'모든 기기에서 로그아웃'**
+  String get accountSignOutEverywhere;
+
+  /// 모든 기기에서 로그아웃하기 전에 묻는 말.
+  ///
+  /// In ko, this message translates to:
+  /// **'다른 폰과 웹에 남은 로그인을 모두 끊어요. 이 폰은 로그인된 채로 남아요.'**
+  String get accountSignOutEverywhereAsk;
+
+  /// 모든 기기에서 로그아웃이 끝났다.
+  ///
+  /// In ko, this message translates to:
+  /// **'다른 기기의 로그인을 모두 끊었어요.'**
+  String get accountSignOutEverywhereDone;
+
+  /// 모든 기기에서 로그아웃을 서버에 알리지 못했다(그물·서버).
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인을 끊지 못했어요. 연결을 확인하고 다시 해 주세요.'**
+  String get accountSignOutEverywhereFailed;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

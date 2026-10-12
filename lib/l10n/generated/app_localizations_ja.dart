@@ -3454,4 +3454,18 @@ class LJa extends L {
 
   @override
   String get aiBudgetExhausted => '本日利用できるAIの上限に達しました。明日また使えます。';
+
+  @override
+  String get accountSignOutEverywhere => 'すべてのデバイスからログアウト';
+
+  @override
+  String get accountSignOutEverywhereAsk =>
+      'ほかのスマホやウェブに残っているログインをすべて解除します。このスマホはログインしたままです。';
+
+  @override
+  String get accountSignOutEverywhereDone => 'ほかのデバイスのログインをすべて解除しました。';
+
+  @override
+  String get accountSignOutEverywhereFailed =>
+      'ログインを解除できませんでした。接続を確認してもう一度お試しください。';
 }

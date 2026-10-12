@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 이하의 자동 백업. 로그인 표(계정·기기 토큰)는 싣지 않는다 — 키스토어의
+     열쇠는 백업되지 않아 다른 기기에서는 풀리지도 않고, 새면 그 표로 로그인할 수 있다.
+     옛 판의 session.json(평문)도 뺀다. 기록(notes.json)과 설정은 그대로 백업된다.
+     Android 12 이상은 data_extraction_rules.xml 이 같은 규칙을 둔다. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="FlutterSecureStorage.xml"/>
+    <exclude domain="sharedpref" path="FlutterSecureKeyStorage.xml"/>
+    <exclude domain="root" path="app_flutter/session.json"/>
+</full-backup-content>

@@ -856,5 +856,9 @@
   "shareSend": "傳送給教練",
   "shareSendAsk": "要把這筆紀錄當作今天在{gym}的訓練傳送給教練嗎？也會記為一次到館。",
   "aiBusy": "AI 現在很忙，請稍後再試。",
-  "aiBudgetExhausted": "今天的 AI 額度已用完，明天可以再用。"
+  "aiBudgetExhausted": "今天的 AI 額度已用完，明天可以再用。",
+  "accountSignOutEverywhere": "在所有裝置上登出",
+  "accountSignOutEverywhereAsk": "將登出其他手機和網頁上的所有登入。這支手機會保持登入。",
+  "accountSignOutEverywhereDone": "已登出其他所有裝置。",
+  "accountSignOutEverywhereFailed": "未能登出其他裝置。請檢查網路後再試一次。"
 }
