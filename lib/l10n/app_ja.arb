@@ -356,6 +356,7 @@
   "partnerInviteMore": "もう1人招待 · コード {code}",
   "proxyWhose": "誰の記録をつけますか？",
   "deleteNoteAsk": "「{title}」を削除しますか？",
+  "mealDeleteAsk": "食事「{meal}」を削除しますか？",
   "mealsTitle": "食事",
   "energyBurned": "運動",
   "energyDifference": "差",

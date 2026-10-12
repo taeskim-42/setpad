@@ -1076,6 +1076,37 @@ void main() {
     });
   });
 
+  testWidgets('VoiceOver 가 키패드의 아이콘 키와 고치는 세트의 완료 칸·지우기를 읽는다', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final c = RoutineEditorController()
+      ..addExercise('벤치프레스')
+      ..addSet('80 10');
+    await pumpEditor(tester, c);
+    expect(
+      tester.getSemantics(find.bySemanticsLabel(l.noteHint)),
+      isSemantics(isButton: true, hasTapAction: true),
+    );
+    expect(
+      tester.getSemantics(find.bySemanticsLabel(l.delete)),
+      isSemantics(isButton: true, hasTapAction: true),
+    );
+
+    await tester.tap(find.text('1 80×10'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSemantics(find.bySemanticsLabel(l.setOrdinal(1))),
+      isSemantics(
+        isButton: true,
+        hasCheckedState: true,
+        isChecked: true,
+        hasTapAction: true,
+      ),
+    );
+    // 키패드의 지우기와 고치는 세트의 ×.
+    expect(find.bySemanticsLabel(l.delete), findsNWidgets(2));
+    semantics.dispose();
+  });
+
   group('3. 세트 끌어 옮기기', () {
     RoutineEditorController three() => RoutineEditorController()
       ..addExercise('스쿼트')

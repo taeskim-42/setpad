@@ -1400,6 +1400,11 @@ class LTh extends L {
   }
 
   @override
+  String mealDeleteAsk(String meal) {
+    return 'ลบมื้ออาหาร \"$meal\" หรือไม่?';
+  }
+
+  @override
   String get mealsTitle => 'อาหาร';
 
   @override

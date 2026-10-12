@@ -356,6 +356,7 @@
   "partnerInviteMore": "Mời thêm một người · mã {code}",
   "proxyWhose": "Bạn ghi buổi tập của ai?",
   "deleteNoteAsk": "Xóa \"{title}\"?",
+  "mealDeleteAsk": "Xóa bữa ăn \"{meal}\"?",
   "mealsTitle": "Bữa ăn",
   "energyBurned": "Tập luyện",
   "energyDifference": "Chênh lệch",

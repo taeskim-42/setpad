@@ -1424,6 +1424,11 @@ class LEn extends L {
   }
 
   @override
+  String mealDeleteAsk(String meal) {
+    return 'Delete the meal \"$meal\"?';
+  }
+
+  @override
   String get mealsTitle => 'Meals';
 
   @override

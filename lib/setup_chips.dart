@@ -338,7 +338,11 @@ class _SetupChipsState extends State<SetupChips> {
               padding: const EdgeInsets.symmetric(horizontal: 6),
               minimumSize: const Size(32, 28),
               onPressed: ok ? () => _finish(submit: true) : null,
-              child: const Icon(CupertinoIcons.checkmark_alt, size: 18),
+              child: Icon(
+                CupertinoIcons.checkmark_alt,
+                size: 18,
+                semanticLabel: l.doneEditing,
+              ),
             ),
           ],
         ),

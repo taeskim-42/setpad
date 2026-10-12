@@ -1550,6 +1550,33 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
   /// 근거와 먹은 양으로 한 끼를 만든다. 열량은 여기서 한 번만 반올림된다.
   void _changed() => (widget.onMealsChanged ?? widget.store.touch)();
 
+  /// 끼니를 지운다. 묻고 지운다 — 땀 묻은 손이 '다시 어림' 옆의 × 를 스치면 사진
+  /// 어림까지 붙은 끼니가 사라지고 서버에서도 지워졌다. 기록 지우기와 같은 창이다.
+  Future<void> _deleteMeal(MealEntry meal) async {
+    final l = L.of(context);
+    final yes = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: Text(l.mealDeleteAsk(meal.description)),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l.cancel),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.delete),
+          ),
+        ],
+      ),
+    );
+    if (yes != true || !mounted) return;
+    note.removeMeal(meal);
+    _changed();
+    setState(() {});
+  }
+
   MealEntry _measured(
     ({MealBasis basis, double eaten}) picked,
     String source,
@@ -1831,7 +1858,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                     CupertinoButton(
                       key: ValueKey('meal-retry-$i'),
                       padding: const EdgeInsets.symmetric(horizontal: 6),
-                      minimumSize: const Size(32, 32),
+                      minimumSize: const Size(44, 44),
                       onPressed: () {
                         widget.onRetryMeal!(meal);
                         setState(() {});
@@ -1846,7 +1873,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                     CupertinoButton(
                       key: ValueKey('meal-sources-$i'),
                       padding: const EdgeInsets.symmetric(horizontal: 6),
-                      minimumSize: const Size(32, 32),
+                      minimumSize: const Size(44, 44),
                       onPressed: () => showMealSources(context, meal.sources),
                       child: Text(
                         l.mealSources,
@@ -1855,14 +1882,15 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                     ),
                   CupertinoButton(
                     key: ValueKey('meal-delete-$i'),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: const Size(32, 32),
-                    onPressed: () {
-                      note.removeMeal(meal);
-                      _changed();
-                      setState(() {});
-                    },
-                    child: Icon(CupertinoIcons.xmark, size: 14, color: muted),
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(44, 44),
+                    onPressed: () => _deleteMeal(meal),
+                    child: Icon(
+                      CupertinoIcons.xmark,
+                      size: 14,
+                      color: muted,
+                      semanticLabel: l.delete,
+                    ),
                   ),
                 ],
               ),

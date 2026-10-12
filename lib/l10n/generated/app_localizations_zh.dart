@@ -1345,6 +1345,11 @@ class LZh extends L {
   }
 
   @override
+  String mealDeleteAsk(String meal) {
+    return '删除餐食“$meal”？';
+  }
+
+  @override
   String get mealsTitle => '饮食';
 
   @override
@@ -4722,6 +4727,11 @@ class LZhHans extends LZh {
   }
 
   @override
+  String mealDeleteAsk(String meal) {
+    return '删除餐食“$meal”？';
+  }
+
+  @override
   String get mealsTitle => '饮食';
 
   @override
@@ -8095,6 +8105,11 @@ class LZhHant extends LZh {
   @override
   String deleteNoteAsk(String title) {
     return '刪除「$title」？';
+  }
+
+  @override
+  String mealDeleteAsk(String meal) {
+    return '刪除餐點「$meal」？';
   }
 
   @override

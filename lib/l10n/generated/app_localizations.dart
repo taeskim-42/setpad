@@ -2245,6 +2245,12 @@ abstract class L {
   /// **'\"{title}\" 기록을 지울까요?'**
   String deleteNoteAsk(String title);
 
+  /// 끼니 줄의 ×를 눌렀을 때 묻는 말
+  ///
+  /// In ko, this message translates to:
+  /// **'\"{meal}\" 끼니를 지울까요?'**
+  String mealDeleteAsk(String meal);
+
   /// No description provided for @mealsTitle.
   ///
   /// In ko, this message translates to:

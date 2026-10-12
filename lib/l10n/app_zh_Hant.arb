@@ -356,6 +356,7 @@
   "partnerInviteMore": "再邀請一人 · 代碼 {code}",
   "proxyWhose": "要記錄誰的訓練？",
   "deleteNoteAsk": "刪除「{title}」？",
+  "mealDeleteAsk": "刪除餐點「{meal}」？",
   "mealsTitle": "飲食",
   "energyBurned": "運動",
   "energyDifference": "差值",

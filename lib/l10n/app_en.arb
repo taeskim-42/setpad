@@ -356,6 +356,7 @@
   "partnerInviteMore": "Invite one more · code {code}",
   "proxyWhose": "Whose workout are you logging?",
   "deleteNoteAsk": "Delete \"{title}\"?",
+  "mealDeleteAsk": "Delete the meal \"{meal}\"?",
   "mealsTitle": "Meals",
   "energyBurned": "Exercise",
   "energyDifference": "Net",

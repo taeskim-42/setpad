@@ -1204,6 +1204,15 @@
       }
     }
   },
+  "mealDeleteAsk": "\"{meal}\" 끼니를 지울까요?",
+  "@mealDeleteAsk": {
+    "description": "끼니 줄의 ×를 눌렀을 때 묻는 말",
+    "placeholders": {
+      "meal": {
+        "type": "String"
+      }
+    }
+  },
   "mealsTitle": "먹은 것",
   "energyBurned": "운동",
   "energyDifference": "차이",

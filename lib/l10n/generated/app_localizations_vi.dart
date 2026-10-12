@@ -1412,6 +1412,11 @@ class LVi extends L {
   }
 
   @override
+  String mealDeleteAsk(String meal) {
+    return 'Xóa bữa ăn \"$meal\"?';
+  }
+
+  @override
   String get mealsTitle => 'Bữa ăn';
 
   @override

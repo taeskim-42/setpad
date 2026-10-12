@@ -356,6 +356,7 @@
   "partnerInviteMore": "再邀请一人 · 代码 {code}",
   "proxyWhose": "要记录谁的训练？",
   "deleteNoteAsk": "删除“{title}”？",
+  "mealDeleteAsk": "删除餐食“{meal}”？",
   "mealsTitle": "饮食",
   "energyBurned": "运动",
   "energyDifference": "差值",

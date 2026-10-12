@@ -1366,6 +1366,11 @@ class LKo extends L {
   }
 
   @override
+  String mealDeleteAsk(String meal) {
+    return '\"$meal\" 끼니를 지울까요?';
+  }
+
+  @override
   String get mealsTitle => '먹은 것';
 
   @override

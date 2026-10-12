@@ -667,7 +667,16 @@ void main() {
     await _confirmMeal(tester);
     await submit('엄마표 반찬 조금');
     expect(find.text(l.mealTextOffline), findsOneWidget);
+    // × 는 묻고 지운다 — 스친 손가락에 끼니가 사라지지 않는다.
     await tester.tap(find.byKey(const ValueKey('meal-delete-1')));
+    await tester.pumpAndSettle();
+    expect(find.text(l.mealDeleteAsk('엄마표 반찬 조금')), findsOneWidget);
+    await tester.tap(find.text(l.cancel));
+    await tester.pumpAndSettle();
+    expect(note.meals, hasLength(2));
+    await tester.tap(find.byKey(const ValueKey('meal-delete-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l.delete));
     await tester.pumpAndSettle();
     await _confirmMeal(tester);
     expect(note.meals.single.text, '김밥 480kcal');

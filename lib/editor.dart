@@ -3739,48 +3739,62 @@ class _SetRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final off = !set.done;
+    final l = L.of(context);
     return Row(
       children: [
-        GestureDetector(
-          onTap: onToggle,
-          behavior: HitTestBehavior.opaque,
-          child: SizedBox(
-            width: 30,
-            height: 44,
-            child: Icon(
-              off
-                  ? CupertinoIcons.circle
-                  : CupertinoIcons.check_mark_circled_solid,
-              size: 19,
-              color: off
-                  ? CupertinoColors.tertiaryLabel.resolveFrom(context)
-                  : seal.resolveFrom(context),
+        // 해냈는지는 아이콘 모양뿐이라 VoiceOver 에는 따로 말해 준다.
+        Semantics(
+          button: true,
+          checked: set.done,
+          label: l.setOrdinal(index + 1),
+          child: GestureDetector(
+            onTap: onToggle,
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Icon(
+                off
+                    ? CupertinoIcons.circle
+                    : CupertinoIcons.check_mark_circled_solid,
+                size: 19,
+                color: off
+                    ? CupertinoColors.tertiaryLabel.resolveFrom(context)
+                    : seal.resolveFrom(context),
+              ),
             ),
           ),
         ),
         SizedBox(
           width: 40,
-          child: Text(
-            L.of(context).setOrdinal(index + 1),
-            // caption 자리. 세트 번호는 값이 아니라 이름표다.
-            style: TextStyle(
-              fontSize: 13,
-              letterSpacing: -0.08,
-              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+          // 읽어 주기는 옆의 완료 칸이 한다 — 같은 말을 두 번 읽지 않는다.
+          child: ExcludeSemantics(
+            child: Text(
+              l.setOrdinal(index + 1),
+              // caption 자리. 세트 번호는 값이 아니라 이름표다.
+              style: TextStyle(
+                fontSize: 13,
+                letterSpacing: -0.08,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              ),
             ),
           ),
         ),
         Expanded(child: input ?? const SizedBox.shrink()),
-        GestureDetector(
-          onTap: onRemove,
-          behavior: HitTestBehavior.opaque,
-          child: SizedBox(
-            width: 44,
-            height: 44,
-            child: Icon(
-              CupertinoIcons.xmark,
-              size: 15,
-              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+        Semantics(
+          button: true,
+          child: GestureDetector(
+            onTap: onRemove,
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Icon(
+                CupertinoIcons.xmark,
+                size: 15,
+                semanticLabel: l.delete,
+                color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+              ),
             ),
           ),
         ),

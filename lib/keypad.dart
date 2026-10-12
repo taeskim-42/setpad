@@ -104,12 +104,12 @@ class SetKeypad extends StatelessWidget {
                     flex: 3,
                     child: Column(
                       children: [
-                        _row(const ['1', '2', '3']),
-                        _row(const ['4', '5', '6']),
-                        _row(const ['7', '8', '9']),
+                        _row(context, const ['1', '2', '3']),
+                        _row(context, const ['4', '5', '6']),
+                        _row(context, const ['7', '8', '9']),
                         // Strong 과 같은 자리에 지우기를 둔다. 숫자를 치다가
                         // 틀렸을 때 손이 가장 가까운 곳이 여기다.
-                        _row(const ['.', '0', '⌫']),
+                        _row(context, const ['.', '0', '⌫']),
                       ],
                     ),
                   ),
@@ -122,6 +122,8 @@ class SetKeypad extends StatelessWidget {
                           child: _pad(
                             _Key(
                               icon: CupertinoIcons.keyboard,
+                              // 글자판으로 넘기는 것은 곧 이 세트에 메모를 단다는 뜻이다.
+                              semanticLabel: L.of(context).noteHint,
                               onTap: onText,
                               tone: _Tone.dim,
                               height: null,
@@ -191,7 +193,7 @@ class SetKeypad extends StatelessWidget {
     );
   }
 
-  Widget _row(List<String> keys) => Row(
+  Widget _row(BuildContext context, List<String> keys) => Row(
     children: [
       for (final k in keys)
         Expanded(
@@ -201,6 +203,7 @@ class SetKeypad extends StatelessWidget {
                 // 아이콘으로 내야 무엇인지 바로 보인다.
                 ? _Key(
                     icon: CupertinoIcons.delete_left,
+                    semanticLabel: L.of(context).delete,
                     onTap: onBackspace,
                     tone: _Tone.plain,
                   )
@@ -225,6 +228,7 @@ class _Key extends StatelessWidget {
     this.label,
     this.sub,
     this.icon,
+    this.semanticLabel,
     required this.onTap,
     required this.tone,
     this.onLongPress,
@@ -240,6 +244,9 @@ class _Key extends StatelessWidget {
   /// 버튼 아래 작게 붙는 설명. −/+ 가 얼마씩 미는지 여기 적는다.
   final String? sub;
   final IconData? icon;
+
+  /// 아이콘 키를 VoiceOver 가 읽을 말. 글자 키는 글자 그대로 읽힌다.
+  final String? semanticLabel;
   final VoidCallback? onTap;
   final _Tone tone;
   final bool compact;
@@ -269,68 +276,73 @@ class _Key extends StatelessWidget {
       ),
     };
 
-    return SizedBox(
-      height: height,
-      // iOS 는 눌림을 리플이 아니라 잠깐 흐려지는 것으로 알린다.
-      child: Opacity(
-        opacity: onTap == null ? 0.4 : 1,
-        child: GestureDetector(
-          onTap: onTap,
-          onLongPress: onLongPress,
-          behavior: HitTestBehavior.opaque,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: bg,
-              // iOS 키패드의 키는 모서리 5 에 아주 옅은 그림자 하나다.
-              borderRadius: BorderRadius.circular(9),
-              boxShadow: tone == _Tone.dim
-                  ? null
-                  : [
-                      BoxShadow(
-                        color: keyShadow.resolveFrom(context),
-                        blurRadius: 0,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-            ),
-            child: Center(
-              child: icon != null
-                  ? Icon(icon, size: 19, color: fg)
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          label!,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: compact
-                                ? 14
-                                : switch (tone) {
-                                    _Tone.primary => 14.0,
-                                    _Tone.accent => 13.5,
-                                    _Tone.dim => 18.0,
-                                    _Tone.plain => 24.0,
-                                  },
-                            fontWeight: tone == _Tone.plain
-                                ? FontWeight.w400
-                                : FontWeight.w600,
-                            color: fg,
-                          ),
+    return Semantics(
+      button: true,
+      enabled: onTap != null,
+      label: semanticLabel,
+      child: SizedBox(
+        height: height,
+        // iOS 는 눌림을 리플이 아니라 잠깐 흐려지는 것으로 알린다.
+        child: Opacity(
+          opacity: onTap == null ? 0.4 : 1,
+          child: GestureDetector(
+            onTap: onTap,
+            onLongPress: onLongPress,
+            behavior: HitTestBehavior.opaque,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: bg,
+                // iOS 키패드의 키는 모서리 5 에 아주 옅은 그림자 하나다.
+                borderRadius: BorderRadius.circular(9),
+                boxShadow: tone == _Tone.dim
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: keyShadow.resolveFrom(context),
+                          blurRadius: 0,
+                          offset: const Offset(0, 1),
                         ),
-                        if (sub != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 3),
-                            child: Text(
-                              sub!,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: fg.withValues(alpha: 0.7),
-                              ),
+                      ],
+              ),
+              child: Center(
+                child: icon != null
+                    ? Icon(icon, size: 19, color: fg)
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            label!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: compact
+                                  ? 14
+                                  : switch (tone) {
+                                      _Tone.primary => 14.0,
+                                      _Tone.accent => 13.5,
+                                      _Tone.dim => 18.0,
+                                      _Tone.plain => 24.0,
+                                    },
+                              fontWeight: tone == _Tone.plain
+                                  ? FontWeight.w400
+                                  : FontWeight.w600,
+                              color: fg,
                             ),
                           ),
-                      ],
-                    ),
+                          if (sub != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 3),
+                              child: Text(
+                                sub!,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: fg.withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+              ),
             ),
           ),
         ),

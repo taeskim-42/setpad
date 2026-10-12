@@ -1361,6 +1361,11 @@ class LJa extends L {
   }
 
   @override
+  String mealDeleteAsk(String meal) {
+    return '食事「$meal」を削除しますか？';
+  }
+
+  @override
   String get mealsTitle => '食事';
 
   @override

@@ -1440,6 +1440,11 @@ class LEs extends L {
   }
 
   @override
+  String mealDeleteAsk(String meal) {
+    return '¿Eliminar la comida \"$meal\"?';
+  }
+
+  @override
   String get mealsTitle => 'Comidas';
 
   @override
