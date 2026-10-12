@@ -1609,4 +1609,66 @@ void main() {
       RecordAiStatus.unavailable,
     );
   });
+
+  test('기록 질문을 기다리다 그만두면 연결을 끊는다 — 서버가 아무도 안 받는 답에 원판을 매기지 않게', () async {
+    Future<void>? hangUp;
+    final ai = RecordAi(
+      endpoint: 'https://example.com',
+      accountToken: () => 'account',
+      client: _Hanging((request) {
+        hangUp = (request as http.Abortable).abortTrigger;
+      }),
+    );
+    await expectLater(
+      ai.ask('i', 'q', timeout: const Duration(milliseconds: 50)),
+      throwsA(
+        isA<RecordAiException>()
+            .having((e) => e.offline, 'offline', isTrue)
+            .having((e) => e.code, 'code', 'timeout')
+            .having((e) => e.charged, 'charged', isFalse),
+      ),
+    );
+    var cut = false;
+    unawaited(hangUp!.then((_) => cut = true));
+    await Future<void>.delayed(Duration.zero);
+    expect(cut, isTrue, reason: '앱이 함께 쓰는 클라이언트는 닫지 않으니 이 요청만 끊는다');
+  });
+
+  testWidgets('기록 질문은 서버가 두 번 묻는 동안(부름마다 15초) 기다린다', (tester) async {
+    Object? answer, error;
+    final ai = RecordAi(
+      endpoint: 'https://example.com',
+      accountToken: () => 'account',
+      client: MockClient((_) async {
+        await Future<void>.delayed(const Duration(seconds: 31));
+        return http.Response(jsonEncode({'intent': 'plan'}), 200);
+      }),
+    );
+    unawaited(
+      ai
+          .ask('i', 'q')
+          .then((a) => answer = a, onError: (Object e) => error = e),
+    );
+    await tester.pump(const Duration(seconds: 32));
+    expect(error, isNull, reason: '20초에 그만두던 때는 서버가 다시 묻는 동안 실패를 보였다');
+    expect(answer, 'plan');
+  });
+}
+
+/// 답하지 않는 서버. 끊는 신호를 받으면 끊긴다.
+class _Hanging extends http.BaseClient {
+  _Hanging(this._saw);
+  final void Function(http.BaseRequest) _saw;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    _saw(request);
+    final reply = Completer<http.StreamedResponse>();
+    if (request case http.Abortable(:final abortTrigger?)) {
+      abortTrigger.then(
+        (_) => reply.completeError(http.RequestAbortedException(request.url)),
+      );
+    }
+    return reply.future;
+  }
 }

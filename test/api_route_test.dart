@@ -1,4 +1,5 @@
 // 서버로 가는 길이 하나 막혀도 이어 가는가 — 그리고 막힌 것이 아닐 때는 갈아타지 않는가.
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -146,6 +147,41 @@ void main() {
     expect(const String.fromEnvironment('API_BACKUP'), isEmpty);
   });
 
+  test('끊을 수 있는 요청은 예비 길로 다시 보내도 같은 신호에 끊긴다', () async {
+    // MockClient 는 요청을 평범한 Request 로 바꿔 넘겨서 끊는 신호를 볼 수 없다.
+    final seen = <http.BaseRequest>[];
+    final client = FailoverClient(
+      _Recording((request) async {
+        seen.add(request);
+        if (request.url.host == primary.host) {
+          throw const SocketException('Connection refused');
+        }
+        return http.StreamedResponse(Stream.value(utf8.encode('{}')), 200);
+      }),
+      primary: primary,
+      backup: backup,
+    );
+    final hangUp = Completer<void>();
+    await client.send(
+      http.AbortableRequest(
+        'POST',
+        Uri.parse('$primary/api/record-query'),
+        abortTrigger: hangUp.future,
+      )..body = '{}',
+    );
+    expect(seen, hasLength(2));
+    for (final request in seen) {
+      expect(
+        request,
+        isA<http.Abortable>().having(
+          (r) => r.abortTrigger,
+          'abortTrigger',
+          same(hangUp.future),
+        ),
+      );
+    }
+  });
+
   group('앱 판 머리말', () {
     test('판 이름을 두 폰이 같은 수로 — 1.6.1 은 10601', () {
       expect(releaseNumber('1.6.1'), 10601);
@@ -199,4 +235,14 @@ void main() {
     expect(first, same(apiClient));
     expect(second, same(apiClient));
   });
+}
+
+/// 받은 요청을 그대로(끊는 신호까지) 보는 클라이언트.
+class _Recording extends http.BaseClient {
+  _Recording(this._handle);
+  final Future<http.StreamedResponse> Function(http.BaseRequest) _handle;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) =>
+      _handle(request);
 }

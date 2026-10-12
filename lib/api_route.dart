@@ -159,13 +159,26 @@ class FailoverClient extends http.BaseClient {
       return _inner.send(request);
     }
     final routes = _preferBackup ? [backup, primary] : [primary, backup];
+    // 끊을 수 있는 요청은 사본도 같은 신호에 끊긴다.
+    final abort = switch (request) {
+      http.Abortable(:final abortTrigger) => abortTrigger,
+      _ => null,
+    };
     Object? failure;
     StackTrace? trace;
     for (final route in routes) {
-      final copy = http.Request(request.method, _via(route, request.url))
-        ..headers.addAll(request.headers)
-        ..bodyBytes = request.bodyBytes
-        ..followRedirects = request.followRedirects;
+      final url = _via(route, request.url);
+      final copy =
+          (abort == null
+                ? http.Request(request.method, url)
+                : http.AbortableRequest(
+                    request.method,
+                    url,
+                    abortTrigger: abort,
+                  ))
+            ..headers.addAll(request.headers)
+            ..bodyBytes = request.bodyBytes
+            ..followRedirects = request.followRedirects;
       try {
         final response = await _inner.send(copy);
         // 답이 왔다 = 이 길은 통한다. 무슨 답이든 갈아탈 이유가 아니다.
