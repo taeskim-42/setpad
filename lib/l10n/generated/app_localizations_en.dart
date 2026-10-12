@@ -3606,4 +3606,17 @@ class LEn extends L {
   @override
   String get ageConfirmAsk =>
       'You must be 14 or older to join a gym. Are you 14 or older?';
+
+  @override
+  String get nicknameChange => 'Change nickname';
+
+  @override
+  String get nicknameHelp =>
+      'This is the name your gym sees. Use 1–20 characters.';
+
+  @override
+  String get nicknameTaken => 'That nickname is already taken.';
+
+  @override
+  String get save => 'Save';
 }

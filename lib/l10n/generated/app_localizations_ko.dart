@@ -3483,4 +3483,16 @@ class LKo extends L {
 
   @override
   String get ageConfirmAsk => '도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?';
+
+  @override
+  String get nicknameChange => '닉네임 바꾸기';
+
+  @override
+  String get nicknameHelp => '도장에 보이는 이름이에요. 1~20자로 적어 주세요.';
+
+  @override
+  String get nicknameTaken => '이미 쓰는 닉네임이에요.';
+
+  @override
+  String get save => '저장';
 }

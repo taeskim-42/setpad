@@ -3587,4 +3587,16 @@ class LVi extends L {
   @override
   String get ageConfirmAsk =>
       'Bạn phải từ 14 tuổi trở lên để đăng ký phòng tập. Bạn đã từ 14 tuổi trở lên chưa?';
+
+  @override
+  String get nicknameChange => 'Đổi biệt danh';
+
+  @override
+  String get nicknameHelp => 'Đây là tên phòng tập nhìn thấy. Dùng 1–20 ký tự.';
+
+  @override
+  String get nicknameTaken => 'Biệt danh này đã có người dùng.';
+
+  @override
+  String get save => 'Lưu';
 }

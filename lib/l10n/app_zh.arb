@@ -863,5 +863,9 @@
   "accountSignOutEverywhereFailed": "未能退出其他设备上的登录。请检查网络后重试。",
   "storeUnreachable": "无法连接商店 · 重试",
   "ageConfirm": "我已年满 14 周岁",
-  "ageConfirmAsk": "须年满 14 周岁才能加入健身房。你已年满 14 周岁吗？"
+  "ageConfirmAsk": "须年满 14 周岁才能加入健身房。你已年满 14 周岁吗？",
+  "nicknameChange": "修改昵称",
+  "nicknameHelp": "这是健身房看到的名字，请填写 1–20 个字。",
+  "nicknameTaken": "这个昵称已被使用。",
+  "save": "保存"
 }

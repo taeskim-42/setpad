@@ -863,5 +863,9 @@
   "accountSignOutEverywhereFailed": "Không thể đăng xuất các thiết bị khác. Hãy kiểm tra kết nối và thử lại.",
   "storeUnreachable": "Không kết nối được với cửa hàng · Thử lại",
   "ageConfirm": "Tôi từ 14 tuổi trở lên",
-  "ageConfirmAsk": "Bạn phải từ 14 tuổi trở lên để đăng ký phòng tập. Bạn đã từ 14 tuổi trở lên chưa?"
+  "ageConfirmAsk": "Bạn phải từ 14 tuổi trở lên để đăng ký phòng tập. Bạn đã từ 14 tuổi trở lên chưa?",
+  "nicknameChange": "Đổi biệt danh",
+  "nicknameHelp": "Đây là tên phòng tập nhìn thấy. Dùng 1–20 ký tự.",
+  "nicknameTaken": "Biệt danh này đã có người dùng.",
+  "save": "Lưu"
 }

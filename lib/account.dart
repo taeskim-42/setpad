@@ -409,6 +409,18 @@ class Account extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 닉네임을 바꾼다. 바꿨으면 null, 아니면 [MemberLink.changeNickname] 의 까닭.
+  Future<String?> changeNickname(String wanted) async {
+    // 서버도 이렇게 다듬어 남긴다 — 이 기기에 남기는 것도 같아야 한다.
+    final name = wanted.trim().replaceAll(RegExp(r'\s+'), ' ');
+    final problem = await link.changeNickname(name);
+    if (problem != null) return problem;
+    nickname = name;
+    await _saveSession();
+    notifyListeners();
+    return null;
+  }
+
   /// 마지막 로그인이 서버에서 막혔는가.
   ///
   /// **조용히 실패하면 고칠 수가 없다.** 사람이 스스로 닫은 것과 서버가 안

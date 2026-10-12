@@ -33,6 +33,12 @@ void main() {
         if (request.url.path.endsWith('/api/me/sessions/revoke')) {
           return http.Response(jsonEncode({'token': 'fresh'}), 200);
         }
+        if (request.url.path.endsWith('/api/me/nickname')) {
+          final taken = jsonDecode(request.body)['nickname'] == 'taken';
+          return taken
+              ? http.Response(jsonEncode({'error': 'nicknameTaken'}), 409)
+              : http.Response(jsonEncode({'ok': true}), 200);
+        }
         if (request.url.path.endsWith('/api/auth/app')) {
           return http.Response(
             jsonEncode({
@@ -93,8 +99,40 @@ void main() {
     await tester.tap(find.text('도전자'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(account.signedIn, isTrue, reason: '이름은 누르는 버튼이 아니다');
-    // 나가는 길은 따로 있다.
+    // 나가는 길은 따로 있다(닉네임 바꾸기 줄 밑이라 화면 아래로 밀렸을 수 있다).
+    await tester.scrollUntilVisible(find.text('로그아웃'), 100);
     expect(find.text('로그아웃'), findsOneWidget);
+  });
+
+  testWidgets('닉네임은 설정에서 바꾼다 — 서버처럼 다듬어 남기고, 남이 쓰는 이름이면 그렇다고 말한다', (
+    tester,
+  ) async {
+    final (_, account) = await open(tester);
+    await tester.runAsync(() => account.signIn());
+    await tester.pump();
+    Future<void> rename(String name) async {
+      final row = find.byKey(const ValueKey('settings-nickname'));
+      await tester.scrollUntilVisible(row, 100);
+      await tester.ensureVisible(row);
+      await tester.pumpAndSettle();
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+      expect(find.text('도장에 보이는 이름이에요. 1~20자로 적어 주세요.'), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const ValueKey('nickname-field')),
+        name,
+      );
+      await tester.tap(find.byKey(const ValueKey('nickname-save')));
+      await tester.pumpAndSettle();
+    }
+
+    await rename('  새  이름 ');
+    expect(sent.last, ('/api/me/nickname', jsonEncode({'nickname': '새 이름'})));
+    expect(account.nickname, '새 이름');
+
+    await rename('taken');
+    expect(find.text('이미 쓰는 닉네임이에요.'), findsOneWidget);
+    expect(account.nickname, '새 이름', reason: '서버가 거절한 이름은 남기지 않는다');
   });
 
   testWidgets('로그인 시트는 \'만 14세 이상입니다\' 를 채워야 수단을 고를 수 있고, 그 확인을 서버에 낸다', (

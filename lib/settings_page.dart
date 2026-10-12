@@ -181,6 +181,12 @@ class SettingsPage extends StatelessWidget {
                 // 있을 때는 자기 이름을 눌러본 사람이 그대로 로그아웃됐다.
                 if (a.signedIn) ...[
                   _Row(label: a.nickname),
+                  // 로그인하면 제공자의 이름(대개 실명)이 그대로 닉네임이 된다. 바꿀 수 있어야 한다.
+                  _Row(
+                    key: const ValueKey('settings-nickname'),
+                    label: l.nicknameChange,
+                    onTap: () => _changeNickname(context, a),
+                  ),
                   // 웹에서 쓰던 수단을 여기 붙이면 그쪽 기록·루틴이 같은 사람 것이
                   // 된다. 어느 수단이 붙었는지는 서버가 알려 줘야 안다.
                   if (a.providers.isNotEmpty)
@@ -303,6 +309,22 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
+  Future<void> _changeNickname(BuildContext context, Account account) async {
+    final l = L.of(context);
+    final wanted = await showCupertinoDialog<String>(
+      context: context,
+      builder: (_) => _NicknameDialog(current: account.nickname),
+    );
+    if (wanted == null || !context.mounted) return;
+    final problem = await account.changeNickname(wanted);
+    if (problem == null || !context.mounted) return;
+    await tellAgent(context, switch (problem) {
+      'nicknameTaken' => l.nicknameTaken,
+      'invalidNickname' => l.nicknameHelp,
+      _ => l.partnerErrNetwork,
+    });
+  }
+
   /// 탈퇴는 한 번 더 묻는다. 되돌릴 수 없고 옆에 로그아웃이 있다.
   Future<void> _confirmDelete(BuildContext context, Account account) async {
     final l = L.of(context);
@@ -375,6 +397,61 @@ class SettingsPage extends StatelessWidget {
       ),
     );
     if (choice != null) store.setWeightUnit(choice);
+  }
+}
+
+/// 닉네임 창. 처음 값은 그리기 전에 넣는다 — 치는 동안에는 칸에 손대지 않는다(IME).
+class _NicknameDialog extends StatefulWidget {
+  const _NicknameDialog({required this.current});
+  final String current;
+
+  @override
+  State<_NicknameDialog> createState() => _NicknameDialogState();
+}
+
+class _NicknameDialogState extends State<_NicknameDialog> {
+  late final _field = TextEditingController(text: widget.current);
+
+  @override
+  void dispose() {
+    _field.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    return CupertinoAlertDialog(
+      title: Text(l.nicknameChange),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(l.nicknameHelp, style: const TextStyle(fontSize: 13)),
+          ),
+          CupertinoTextField(
+            key: const ValueKey('nickname-field'),
+            controller: _field,
+            autofocus: true,
+            maxLength: 20,
+            onSubmitted: (text) => Navigator.pop(context, text),
+          ),
+        ],
+      ),
+      actions: [
+        CupertinoDialogAction(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.cancel),
+        ),
+        CupertinoDialogAction(
+          key: const ValueKey('nickname-save'),
+          isDefaultAction: true,
+          onPressed: () => Navigator.pop(context, _field.text),
+          child: Text(l.save),
+        ),
+      ],
+    );
   }
 }
 

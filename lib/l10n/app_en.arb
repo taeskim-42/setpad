@@ -863,5 +863,9 @@
   "accountSignOutEverywhereFailed": "Couldn't sign out the other devices. Check your connection and try again.",
   "storeUnreachable": "Couldn't reach the store · Try again",
   "ageConfirm": "I am 14 or older",
-  "ageConfirmAsk": "You must be 14 or older to join a gym. Are you 14 or older?"
+  "ageConfirmAsk": "You must be 14 or older to join a gym. Are you 14 or older?",
+  "nicknameChange": "Change nickname",
+  "nicknameHelp": "This is the name your gym sees. Use 1–20 characters.",
+  "nicknameTaken": "That nickname is already taken.",
+  "save": "Save"
 }

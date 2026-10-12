@@ -3562,4 +3562,16 @@ class LTh extends L {
   @override
   String get ageConfirmAsk =>
       'ต้องมีอายุ 14 ปีขึ้นไปจึงจะสมัครเป็นสมาชิกยิมได้ คุณอายุ 14 ปีขึ้นไปหรือไม่';
+
+  @override
+  String get nicknameChange => 'เปลี่ยนชื่อเล่น';
+
+  @override
+  String get nicknameHelp => 'ชื่อที่ยิมเห็น ใช้ 1–20 ตัวอักษร';
+
+  @override
+  String get nicknameTaken => 'ชื่อเล่นนี้มีคนใช้แล้ว';
+
+  @override
+  String get save => 'บันทึก';
 }

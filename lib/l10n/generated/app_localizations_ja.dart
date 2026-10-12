@@ -3477,4 +3477,16 @@ class LJa extends L {
 
   @override
   String get ageConfirmAsk => 'ジムに登録するには14歳以上である必要があります。14歳以上ですか？';
+
+  @override
+  String get nicknameChange => 'ニックネームを変更';
+
+  @override
+  String get nicknameHelp => 'ジムに表示される名前です。1〜20文字で入力してください。';
+
+  @override
+  String get nicknameTaken => 'そのニックネームは既に使われています。';
+
+  @override
+  String get save => '保存';
 }

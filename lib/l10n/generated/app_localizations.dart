@@ -5202,6 +5202,30 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?'**
   String get ageConfirmAsk;
+
+  /// 설정의 계정 칸: 닉네임 바꾸기(로그인하면 제공자의 이름이 그대로 닉네임이 된다).
+  ///
+  /// In ko, this message translates to:
+  /// **'닉네임 바꾸기'**
+  String get nicknameChange;
+
+  /// 닉네임 창의 설명이자, 서버가 길이를 거절했을 때의 말.
+  ///
+  /// In ko, this message translates to:
+  /// **'도장에 보이는 이름이에요. 1~20자로 적어 주세요.'**
+  String get nicknameHelp;
+
+  /// 이미 다른 사람이 쓰는 닉네임(409).
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 쓰는 닉네임이에요.'**
+  String get nicknameTaken;
+
+  /// 저장 단추.
+  ///
+  /// In ko, this message translates to:
+  /// **'저장'**
+  String get save;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

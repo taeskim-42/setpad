@@ -3506,5 +3506,13 @@
   "ageConfirm": "만 14세 이상입니다",
   "@ageConfirm": {"description": "로그인 시트의 확인 칸과 나이 확인 창의 단추. 수단을 고르기 전에 채워야 한다."},
   "ageConfirmAsk": "도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?",
-  "@ageConfirmAsk": {"description": "확인 칸이 생기기 전에 만든 계정이 도장에 등록할 때 한 번 묻는다(서버 403 ageConfirmationRequired)."}
+  "@ageConfirmAsk": {"description": "확인 칸이 생기기 전에 만든 계정이 도장에 등록할 때 한 번 묻는다(서버 403 ageConfirmationRequired)."},
+  "nicknameChange": "닉네임 바꾸기",
+  "@nicknameChange": {"description": "설정의 계정 칸: 닉네임 바꾸기(로그인하면 제공자의 이름이 그대로 닉네임이 된다)."},
+  "nicknameHelp": "도장에 보이는 이름이에요. 1~20자로 적어 주세요.",
+  "@nicknameHelp": {"description": "닉네임 창의 설명이자, 서버가 길이를 거절했을 때의 말."},
+  "nicknameTaken": "이미 쓰는 닉네임이에요.",
+  "@nicknameTaken": {"description": "이미 다른 사람이 쓰는 닉네임(409)."},
+  "save": "저장",
+  "@save": {"description": "저장 단추."}
 }

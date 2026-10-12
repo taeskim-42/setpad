@@ -3633,4 +3633,17 @@ class LEs extends L {
   @override
   String get ageConfirmAsk =>
       'Debes tener 14 años o más para unirte a un gimnasio. ¿Tienes 14 años o más?';
+
+  @override
+  String get nicknameChange => 'Cambiar apodo';
+
+  @override
+  String get nicknameHelp =>
+      'Es el nombre que ve tu gimnasio. Usa de 1 a 20 caracteres.';
+
+  @override
+  String get nicknameTaken => 'Ese apodo ya está en uso.';
+
+  @override
+  String get save => 'Guardar';
 }

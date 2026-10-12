@@ -3445,6 +3445,18 @@ class LZh extends L {
 
   @override
   String get ageConfirmAsk => '须年满 14 周岁才能加入健身房。你已年满 14 周岁吗？';
+
+  @override
+  String get nicknameChange => '修改昵称';
+
+  @override
+  String get nicknameHelp => '这是健身房看到的名字，请填写 1–20 个字。';
+
+  @override
+  String get nicknameTaken => '这个昵称已被使用。';
+
+  @override
+  String get save => '保存';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6888,6 +6900,18 @@ class LZhHans extends LZh {
 
   @override
   String get ageConfirmAsk => '须年满 14 周岁才能加入健身房。你已年满 14 周岁吗？';
+
+  @override
+  String get nicknameChange => '修改昵称';
+
+  @override
+  String get nicknameHelp => '这是健身房看到的名字，请填写 1–20 个字。';
+
+  @override
+  String get nicknameTaken => '这个昵称已被使用。';
+
+  @override
+  String get save => '保存';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10331,4 +10355,16 @@ class LZhHant extends LZh {
 
   @override
   String get ageConfirmAsk => '須年滿 14 歲才能加入健身房。你已滿 14 歲嗎？';
+
+  @override
+  String get nicknameChange => '修改暱稱';
+
+  @override
+  String get nicknameHelp => '這是健身房看到的名字，請填寫 1–20 個字。';
+
+  @override
+  String get nicknameTaken => '這個暱稱已被使用。';
+
+  @override
+  String get save => '儲存';
 }

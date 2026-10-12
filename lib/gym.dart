@@ -629,6 +629,16 @@ extension MemberLink on GymLink {
     final fresh = body?['token'];
     return fresh is String && fresh.isNotEmpty ? fresh : null;
   }
+
+  /// 닉네임을 바꾼다. 로그인하면 제공자의 이름(대개 실명)이 그대로 닉네임이 된다.
+  /// 바꿨으면 null, 서버가 거절했으면 그 까닭(invalidNickname·nicknameTaken), 못
+  /// 닿았으면 ''.
+  Future<String?> changeNickname(String nickname) async {
+    if (!supported) return '';
+    final answer = await _post('/api/me/nickname', {'nickname': nickname});
+    if (answer == null || answer.status >= 500) return '';
+    return answer.status == 200 ? null : '${answer.body?['error'] ?? ''}';
+  }
 }
 
 /// 예약 화면이 그려지는 데 필요한 전부.

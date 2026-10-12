@@ -863,5 +863,9 @@
   "accountSignOutEverywhereFailed": "ログインを解除できませんでした。接続を確認してもう一度お試しください。",
   "storeUnreachable": "ストアに接続できませんでした · 再試行",
   "ageConfirm": "14歳以上です",
-  "ageConfirmAsk": "ジムに登録するには14歳以上である必要があります。14歳以上ですか？"
+  "ageConfirmAsk": "ジムに登録するには14歳以上である必要があります。14歳以上ですか？",
+  "nicknameChange": "ニックネームを変更",
+  "nicknameHelp": "ジムに表示される名前です。1〜20文字で入力してください。",
+  "nicknameTaken": "そのニックネームは既に使われています。",
+  "save": "保存"
 }

@@ -863,5 +863,9 @@
   "accountSignOutEverywhereFailed": "No se pudo cerrar la sesión en los otros dispositivos. Revisa tu conexión e inténtalo de nuevo.",
   "storeUnreachable": "No se pudo conectar con la tienda · Reintentar",
   "ageConfirm": "Tengo 14 años o más",
-  "ageConfirmAsk": "Debes tener 14 años o más para unirte a un gimnasio. ¿Tienes 14 años o más?"
+  "ageConfirmAsk": "Debes tener 14 años o más para unirte a un gimnasio. ¿Tienes 14 años o más?",
+  "nicknameChange": "Cambiar apodo",
+  "nicknameHelp": "Es el nombre que ve tu gimnasio. Usa de 1 a 20 caracteres.",
+  "nicknameTaken": "Ese apodo ya está en uso.",
+  "save": "Guardar"
 }
