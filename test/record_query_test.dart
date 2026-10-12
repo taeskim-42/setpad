@@ -2766,6 +2766,12 @@ void main() {
 
 Directory _temp() {
   final dir = Directory.systemTemp.createTempSync('setpad_cache');
-  addTearDown(() => dir.deleteSync(recursive: true));
+  addTearDown(() {
+    // dispose 는 캐시 쓰기를 기다리지 않는다(unawaited flush). 그 쓰기가 지우는 사이에 끼면
+    // 'Directory not empty' 로 시험이 깨졌다 — 임시 폴더라 못 지우면 그대로 둔다.
+    try {
+      dir.deleteSync(recursive: true);
+    } on FileSystemException catch (_) {}
+  });
   return dir;
 }
