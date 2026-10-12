@@ -61,7 +61,13 @@ final _reportTaps = AgentAlarm.taps.asBroadcastStream();
 class SetpadApp extends StatelessWidget {
   /// [store] 는 테스트가 임시 폴더를 물릴 자리다. 비워 두면 앱 문서 디렉터리를
   /// 쓰는 것을 스스로 만든다 — 그건 플랫폼 채널이라 테스트에서는 못 쓴다.
-  const SetpadApp({super.key, this.store, this.tags, this.account});
+  const SetpadApp({
+    super.key,
+    this.store,
+    this.tags,
+    this.firstTag,
+    this.account,
+  });
 
   final NotesStore? store;
 
@@ -71,6 +77,10 @@ class SetpadApp extends StatelessWidget {
   /// 스티커가 가리킨 주소가 오는 자리. **테스트는 비워 둔다** — 그 자리에는
   /// 읽을 태그가 없고, 네이티브 채널을 깨우면 없는 플러그인을 부른다.
   final Stream<Uri>? tags;
+
+  /// 앱을 연 주소(콜드 스타트) — [tags] 를 준 테스트가 함께 주는 자리. 앱은
+  /// getInitialLink 로 받는다.
+  final Future<Uri?>? firstTag;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +103,12 @@ class SetpadApp extends StatelessWidget {
         primaryColor: seal,
         scaffoldBackgroundColor: CupertinoColors.systemGroupedBackground,
       ),
-      home: _Home(store: store, tags: tags, account: account),
+      home: _Home(
+        store: store,
+        tags: tags,
+        firstTag: firstTag,
+        account: account,
+      ),
       // 헬스 커넥트가 "권한을 왜 쓰는가" 를 물으면 Android 가 이 이름으로 연다
       // (MainActivity.getInitialRoute, onNewIntent).
       onGenerateRoute: (settings) => settings.name == HealthDataPage.route
@@ -111,9 +126,11 @@ class SetpadApp extends StatelessWidget {
 /// **목록이 아니라 패드로 연다.** 헬스장에서 앱을 여는 이유는 세트를 하나
 /// 적으려는 것이지 지난 기록을 넘겨보려는 것이 아니다. 그래서 오늘 것이 있으면
 /// 그것을, 없으면 새 기록을 곧바로 펴고, 목록은 뒤로가기 한 번 뒤에 둔다.
+/// 링크(스티커·건네받기·단톡방)로 켜졌으면 그 링크가 연 화면이 먼저다.
 class _Home extends StatefulWidget {
-  const _Home({this.store, this.tags, this.account});
+  const _Home({this.store, this.tags, this.firstTag, this.account});
   final Stream<Uri>? tags;
+  final Future<Uri?>? firstTag;
 
   final NotesStore? store;
   final Account? account;
@@ -151,10 +168,18 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
 
   Future<void> _boot() async {
     await _store.load();
+    // 스티커·건네받기·단톡방 링크로 켜졌으면 그 링크가 제 화면을 연다. 오늘 기록을 밑에
+    // 또 펴면 편집기가 두 겹이라 목록까지 완료를 두 번 눌러야 했다. 앱을 연 링크는 채널
+    // 한 번이면 오고 저장소를 읽는 동안 같이 물었다 — 플러그인이 답하지 않아도 오래 막지 않는다.
+    final first = await _firstLink?.timeout(
+      const Duration(seconds: 2),
+      onTimeout: () => null,
+    );
     if (!mounted) return;
     // 세트를 끝낼 때마다 저장소가 알린다. 오늘 문턱을 넘은 첫 순간에 원판을 받는다.
     _store.addListener(_claimDaily);
     setState(() => _ready = true);
+    if (first != null && _opensScreen(first)) return;
     // 첫 프레임이 그려진 뒤에 밀어 넣어야 목록이 뒤에 남는다.
     WidgetsBinding.instance.addPostFrameCallback((_) => _open(_todayOrNew()));
   }
@@ -351,6 +376,12 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     _store.touch();
     await _open(note);
   }
+
+  /// 이 링크가 제 화면을 여는가 — [_openTag] 가 가르는 셋: 건네받기, 단톡방의 수업·예약, 스티커.
+  static bool _opensScreen(Uri uri) =>
+      handoffTokenFromLink(uri) != null ||
+      gymScreenFromLink(uri) != null ||
+      gymFromTag(uri) != null;
 
   Future<void> _openTag(Uri uri) async {
     // 브라우저로 간 웹 로그인이 돌아온 것. 기다리던 로그인이 받는다(sign_in.dart).
@@ -569,24 +600,27 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     _store.pruneVisits();
   }
 
+  /// 앱을 연 링크. 없으면 null 로 끝난다. [_boot] 가 이것을 보고 오늘 기록을 펼지 정한다.
+  Future<Uri?>? _firstLink;
+
   /// 앱이 닫혀 있다 열린 경우와, 떠 있는데 댄 경우를 한 줄기로 받는다.
   void _watchTags() {
     final given = widget.tags;
+    Future<Uri?>? first;
     if (given != null) {
       _tags = given.listen(_openTag);
-      return;
+      first = widget.firstTag;
+    } else if (!kIsWeb) {
+      // 웹에는 스티커를 읽을 것이 없다. 채널을 깨우지 않는다.
+      final links = AppLinks();
+      _tags = links.uriLinkStream.listen(_openTag, onError: (Object _) {});
+      first = links.getInitialLink();
     }
-    // 웹에는 스티커를 읽을 것이 없다. 채널을 깨우지 않는다.
-    if (kIsWeb) return;
-    final links = AppLinks();
-    _tags = links.uriLinkStream.listen(_openTag, onError: (Object _) {});
+    _firstLink = first?.catchError((Object _) => null);
     unawaited(
-      links
-          .getInitialLink()
-          .then((uri) {
-            if (uri != null) _openTag(uri);
-          })
-          .catchError((Object _) {}),
+      _firstLink?.then((uri) {
+        if (uri != null) _openTag(uri);
+      }),
     );
   }
 

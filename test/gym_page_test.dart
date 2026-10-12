@@ -8,10 +8,11 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/account.dart';
 import 'package:setpad/booking_page.dart';
+import 'package:setpad/editor.dart' show ExerciseBlock;
 import 'package:setpad/gym.dart';
 import 'package:setpad/gym_page.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
-import 'package:setpad/main.dart' show SetpadApp;
+import 'package:setpad/main.dart' show EditorPage, SetpadApp;
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
 import 'package:setpad/trainer.dart' show shortWhen;
@@ -467,6 +468,78 @@ void main() {
     gyms.complete();
     await tester.pumpAndSettle();
     expect(classes, findsOneWidget);
+  });
+
+  testWidgets('스티커로 앱이 켜지면 오늘 적던 기록을 밑에 펴지 않는다 — 편집기는 받은 루틴 하나다', (
+    tester,
+  ) async {
+    // 앱이 꺼진 채 스티커를 댔다. 오늘 적던 기록이 따로 있다. 링크는 처음 링크와 스트림으로
+    // 두 번 오고, 루틴은 저장소를 읽은 뒤에 온다. 예전에는 오늘 기록이 먼저 펴지고 루틴이 그
+    // 위에 쌓여, 목록까지 완료를 두 번 눌러야 했다.
+    final dir = Directory.systemTemp.createTempSync('setpad-sticker-cold');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final store = NotesStore(directory: dir);
+    final earlier = store.create()..blocks.add(ExerciseBlock('벤치프레스'));
+    final routines = Completer<void>();
+    final account = Account(
+      storageDir: dir,
+      client: MockClient((request) async {
+        switch (request.url.path) {
+          case '/api/me':
+            return json({
+              'user': {'id': 'u1', 'nickname': 'kim'},
+            });
+          case '/api/gyms':
+            return json({
+              'gyms': [gymJson()],
+              'invites': [],
+            });
+          case '/api/routines':
+            await routines.future;
+            return json({
+              'routines': [
+                {
+                  'id': 'r1',
+                  'gym_id': 'g1',
+                  'gym': 'BPM',
+                  'title': '하체',
+                  'items': [
+                    {'name': '스쿼트', 'sets': []},
+                  ],
+                },
+              ],
+            });
+        }
+        return json({'plan': null, 'selling': false});
+      }),
+    )..token = 'x';
+    final sticker = Uri.parse('https://gym.darak.studio/c/g1');
+    final links = StreamController<Uri>();
+    addTearDown(links.close);
+    await tester.pumpWidget(
+      SetpadApp(
+        store: store,
+        tags: links.stream,
+        firstTag: Future.value(sticker),
+        account: account,
+      ),
+    );
+    links.add(sticker);
+    // 가려진 화면도 센다 — 두 겹 쌓이면 아래 것은 화면 밖(offstage)에 있다.
+    List<Note> editors() => [
+      for (final page in tester.widgetList<EditorPage>(
+        find.byType(EditorPage, skipOffstage: false),
+      ))
+        page.note,
+    ];
+    await tester.pumpAndSettle();
+    expect(editors(), isEmpty, reason: '루틴이 오기 전에 오늘 기록을 펴지 않는다');
+
+    routines.complete();
+    await tester.pumpAndSettle();
+    expect(editors().map((n) => n.routineId), ['r1']);
+    expect(store.notes, contains(earlier), reason: '오늘 적던 기록은 목록에 그대로다');
+    await tester.pump(const Duration(seconds: 1)); // 저장 디바운스
   });
 
   testWidgets('도장 초대는 안내를 보여 주고, 받으면 그 판을 동의로 보낸다 — 나이 확인이 없는 계정은 한 번 묻는다', (

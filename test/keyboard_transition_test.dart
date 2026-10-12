@@ -31,7 +31,12 @@ Future<void> _pumpPhone(WidgetTester tester) async {
   });
   final directory = Directory.systemTemp.createTempSync('setpad_keyboard_');
   addTearDown(() => directory.deleteSync(recursive: true));
-  await tester.pumpWidget(SetpadApp(store: NotesStore(directory: directory)));
+  await tester.pumpWidget(
+    SetpadApp(
+      store: NotesStore(directory: directory),
+      tags: const Stream.empty(),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 

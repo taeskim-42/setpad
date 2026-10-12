@@ -619,7 +619,9 @@ void keypadTests() {
       tester.view.physicalSize = const Size(390, 3000);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      await tester.pumpWidget(SetpadApp(store: store));
+      await tester.pumpWidget(
+        SetpadApp(store: store, tags: const Stream.empty()),
+      );
       await settle(tester);
       await tester.tap(find.byType(CupertinoNavigationBarBackButton));
       await settle(tester);
@@ -646,7 +648,9 @@ void keypadTests() {
 
       tester.platformDispatcher.localesTestValue = [const Locale('ko')];
       addTearDown(tester.platformDispatcher.clearLocalesTestValue);
-      await tester.pumpWidget(SetpadApp(store: store));
+      await tester.pumpWidget(
+        SetpadApp(store: store, tags: const Stream.empty()),
+      );
       await settle(tester);
       // Cupertino 의 뒤로가기 버튼. Material 의 BackButton 이 아니다.
       await tester.tap(find.byType(CupertinoNavigationBarBackButton));
@@ -1095,7 +1099,9 @@ void keypadTests() {
       tester.platformDispatcher.localesTestValue = [const Locale('ko')];
       addTearDown(tester.platformDispatcher.clearLocalesTestValue);
       final store = NotesStore(directory: dir);
-      await tester.pumpWidget(SetpadApp(store: store));
+      await tester.pumpWidget(
+        SetpadApp(store: store, tags: const Stream.empty()),
+      );
       await settle(tester);
 
       await tester.enterText(padField, '벤치프레스');
@@ -1123,7 +1129,9 @@ void keypadTests() {
       for (final b in [Brightness.light, Brightness.dark]) {
         tester.platformDispatcher.platformBrightnessTestValue = b;
         addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
-        await tester.pumpWidget(SetpadApp(store: store));
+        await tester.pumpWidget(
+          SetpadApp(store: store, tags: const Stream.empty()),
+        );
         await settle(tester);
         final ctx = tester.element(find.byType(CupertinoPageScaffold).first);
         expect(CupertinoTheme.brightnessOf(ctx), b, reason: '$b');
