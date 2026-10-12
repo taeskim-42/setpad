@@ -3410,6 +3410,14 @@ class LZh extends L {
   String shareMealsNote(String gym) {
     return '从开启当天起，你在不去健身房的日子记录的饮食，$gym的教练也能看到。碰过贴纸那天的记录，无论此设置如何都会共享。';
   }
+
+  @override
+  String get shareSend => '发送给教练';
+
+  @override
+  String shareSendAsk(String gym) {
+    return '要把这条记录作为今天在$gym的训练发送给教练吗？也会记为一次到店。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6818,6 +6826,14 @@ class LZhHans extends LZh {
   String shareMealsNote(String gym) {
     return '从开启当天起，你在不去健身房的日子记录的饮食，$gym的教练也能看到。碰过贴纸那天的记录，无论此设置如何都会共享。';
   }
+
+  @override
+  String get shareSend => '发送给教练';
+
+  @override
+  String shareSendAsk(String gym) {
+    return '要把这条记录作为今天在$gym的训练发送给教练吗？也会记为一次到店。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10225,5 +10241,13 @@ class LZhHant extends LZh {
   @override
   String shareMealsNote(String gym) {
     return '從開啟當天起，你在沒去健身房的日子記錄的飲食，$gym的教練也看得到。碰過貼紙那天的紀錄，不論此設定如何都會共享。';
+  }
+
+  @override
+  String get shareSend => '傳送給教練';
+
+  @override
+  String shareSendAsk(String gym) {
+    return '要把這筆紀錄當作今天在$gym的訓練傳送給教練嗎？也會記為一次到館。';
   }
 }

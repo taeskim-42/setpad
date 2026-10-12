@@ -3590,4 +3590,12 @@ class LEs extends L {
   String shareMealsNote(String gym) {
     return 'Desde el día en que lo actives, tu entrenador de $gym también verá las comidas que registres los días que no vayas al gimnasio. Los registros de los días en que acercas el teléfono a la pegatina se comparten de todos modos.';
   }
+
+  @override
+  String get shareSend => 'Enviar a mi entrenador';
+
+  @override
+  String shareSendAsk(String gym) {
+    return '¿Enviar esto a tu entrenador como el entrenamiento de hoy en $gym? También cuenta como asistencia.';
+  }
 }

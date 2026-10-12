@@ -852,5 +852,7 @@
   "shareMealsOnly": "Only meals are shared with your trainer · Tap your phone on the gym sticker to share workouts",
   "shareNone": "Not shared with your trainer · Tap your phone on the gym sticker to share",
   "shareMealsSetting": "Share meals with my trainer",
-  "shareMealsNote": "From the day you turn this on, your {gym} trainer also sees meals you log on days you don't go to the gym. Records from days you tap the sticker are shared either way."
+  "shareMealsNote": "From the day you turn this on, your {gym} trainer also sees meals you log on days you don't go to the gym. Records from days you tap the sticker are shared either way.",
+  "shareSend": "Send to my trainer",
+  "shareSendAsk": "Send this to your trainer as today's workout at {gym}? It also counts as a visit."
 }

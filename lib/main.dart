@@ -1527,6 +1527,62 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     return (note.mealGymId != null ? l.shareMealsOnly : l.shareNone, false);
   }
 
+  /// 스티커 없이 온 날(폰에 NFC 가 없다, 잊었다). 회원이 '오늘 이 체육관에서 한 운동' 이라고
+  /// 스스로 보낸다 — 출석도 같이 남는다. 오늘 기록에 내가 적은 세트가 있고 다니는 도장이
+  /// 하나일 때만.
+  bool get _canSend {
+    final a = widget.account;
+    if (a == null || !a.signedIn || note.gymId != null || a.gyms.length != 1) {
+      return false;
+    }
+    final now = DateTime.now(), c = note.createdAt;
+    return c.year == now.year &&
+        c.month == now.month &&
+        c.day == now.day &&
+        note.blocks.any((b) => b.sets.any((s) => s.mine));
+  }
+
+  Future<void> _sendToGym() async {
+    final a = widget.account!;
+    final gym = a.gyms.single;
+    final yes = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            L.of(ctx).shareSendAsk(gym.name),
+            style: const TextStyle(fontSize: 15),
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(L.of(ctx).cancel),
+          ),
+          CupertinoDialogAction(
+            key: const ValueKey('share-send-yes'),
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(L.of(ctx).shareSend),
+          ),
+        ],
+      ),
+    );
+    if (yes != true || !mounted || note.gymId != null) return;
+    widget.store.attend(note, gym.id, a.userId);
+    // 기다리지 않는다 — 못 보냈으면 편집기를 닫을 때·앱을 다시 올릴 때 간다.
+    unawaited(sendPending(a.link, [note], onSent: widget.store.touch));
+    unawaited(
+      syncMeals(
+        a.link,
+        [note],
+        shareMeals: widget.store.sharesMeals,
+        onSynced: widget.store.touch,
+      ),
+    );
+  }
+
   Future<void> _addMeal(ImageSource source) async {
     final l = L.of(context);
     // 사진을 고르기 전에 본다 — 고른 뒤에 막히면 헛걸음이다. 꺼 두었으면
@@ -1805,6 +1861,16 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                   fontSize: 12,
                   color: act ? seal.resolveFrom(context) : muted,
                 ),
+              ),
+            ),
+          if (_canSend)
+            Center(
+              child: CupertinoButton(
+                key: const ValueKey('share-send'),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                minimumSize: const Size(44, 30),
+                onPressed: _sendToGym,
+                child: Text(l.shareSend, style: const TextStyle(fontSize: 13)),
               ),
             ),
           // 그날 에너지는 한 줄로 접어 둔다 — 운동을 적는 화면에서 세 칸은 컸다.

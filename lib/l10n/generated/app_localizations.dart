@@ -5136,6 +5136,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'켠 날부터는 헬스장에 가지 않은 날 적은 끼니도 {gym} 트레이너가 봐요. 스티커에 폰을 댄 날의 기록은 이 설정과 상관없이 공유돼요.'**
   String shareMealsNote(String gym);
+
+  /// 스티커를 대지 않은 오늘 기록을 회원이 스스로 다니는 도장에 보내는 단추(출석도 남는다).
+  ///
+  /// In ko, this message translates to:
+  /// **'트레이너에게 보내기'**
+  String get shareSend;
+
+  /// 보내기 전에 묻는 말. gym 은 다니는 도장 이름.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 {gym}에서 한 운동으로 트레이너에게 보낼까요? 출석으로도 남아요.'**
+  String shareSendAsk(String gym);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

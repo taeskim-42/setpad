@@ -1042,14 +1042,23 @@ class NotesStore extends ChangeNotifier {
     final open = openVisit(gymId, user);
     if (open != null) return (note: open, fresh: false);
     final today = this.today();
-    final note = today.gymId == null && today.ownedBy(user)
-        ? (today
-            ..gymId = gymId
-            ..visitAt = DateTime.now())
-        : create(gymId: gymId);
-    note.owner ??= user;
+    if (today.gymId == null && today.ownedBy(user)) {
+      attend(today, gymId, user);
+      return (note: today, fresh: true);
+    }
+    final note = create(gymId: gymId)..owner = user;
     touch();
     return (note: note, fresh: true);
+  }
+
+  /// [note] 를 [gymId] 에 온 기록으로 삼는다 — 스티커를 대 오늘 기록이 방문이 될 때와,
+  /// 스티커 없이 온 회원이 스스로 보낼 때. 그때가 온 때다.
+  void attend(Note note, String gymId, String? user) {
+    note
+      ..gymId = gymId
+      ..visitAt = DateTime.now()
+      ..owner ??= user;
+    touch();
   }
 
   /// 세트 말고는 남긴 것이 없다 — 끼니도, 서버에 알릴 끼니 삭제도, 대신 적은 것도,

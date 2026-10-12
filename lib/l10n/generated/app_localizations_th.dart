@@ -3522,4 +3522,12 @@ class LTh extends L {
   String shareMealsNote(String gym) {
     return 'ตั้งแต่วันที่เปิด เทรนเนอร์ของ $gym จะเห็นมื้ออาหารที่คุณบันทึกในวันที่ไม่ได้ไปยิมด้วย บันทึกของวันที่แตะสติกเกอร์จะแชร์อยู่แล้วไม่ว่าจะตั้งค่าอย่างไร';
   }
+
+  @override
+  String get shareSend => 'ส่งให้เทรนเนอร์';
+
+  @override
+  String shareSendAsk(String gym) {
+    return 'ส่งบันทึกนี้ให้เทรนเนอร์เป็นการออกกำลังกายวันนี้ที่ $gym ไหม? จะนับเป็นการเข้ายิมด้วย';
+  }
 }

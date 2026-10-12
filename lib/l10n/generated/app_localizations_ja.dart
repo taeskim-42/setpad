@@ -3440,4 +3440,12 @@ class LJa extends L {
   String shareMealsNote(String gym) {
     return 'オンにした日から、ジムに行かない日に記録した食事も$gymのトレーナーが見られます。ステッカーにかざした日の記録は、この設定に関係なく共有されます。';
   }
+
+  @override
+  String get shareSend => 'トレーナーに送る';
+
+  @override
+  String shareSendAsk(String gym) {
+    return '今日$gymでした運動としてトレーナーに送りますか？来館としても記録されます。';
+  }
 }

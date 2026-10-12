@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/account.dart';
+import 'package:setpad/editor.dart';
 import 'package:setpad/gym.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/main.dart';
@@ -466,6 +467,67 @@ void main() {
     store.touch();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('도장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요'), findsOneWidget);
+  });
+
+  testWidgets('스티커 없이 온 날은 회원이 스스로 오늘 기록을 트레이너에게 보낸다 — 출석도 남는다', (
+    tester,
+  ) async {
+    final dir = Directory.systemTemp.createTempSync('setpad_share_send_');
+    final store = NotesStore(directory: dir);
+    addTearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+    final uploads = <Map<String, Object?>>[];
+    final account =
+        Account(
+            client: MockClient((request) async {
+              if (request.url.path == '/api/workouts') {
+                uploads.add(
+                  (jsonDecode(request.body) as Map).cast<String, Object?>(),
+                );
+              }
+              return http.Response('{"id":"w1"}', 200);
+            }),
+            storageDir: dir,
+          )
+          ..token = 'member'
+          ..userId = 'u1'
+          ..gyms = [(id: gym, name: 'BPM', trainer: null)];
+    final note = store.create()
+      ..blocks.add(ExerciseBlock('스쿼트', [LoggedSet(value: 80, reps: 5)]));
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: EditorPage(
+          store: store,
+          note: note,
+          account: account,
+          ai: FakeAi((_) async => throw UnimplementedError()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _confirmMeal(tester);
+    await tester.tap(find.byKey(const ValueKey('share-send')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('오늘 BPM에서 한 운동으로 트레이너에게 보낼까요? 출석으로도 남아요.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('share-send-yes')));
+    await tester.pumpAndSettle();
+    expect(note.gymId, gym);
+    expect(note.visitAt, isNotNull, reason: '보낸 때가 온 때다');
+    expect(note.owner, 'u1');
+    expect(uploads.single['gymId'], gym);
+    expect(uploads.single['localId'], note.id);
+    expect((uploads.single['result'] as List).single['name'], '스쿼트');
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byKey(const ValueKey('share-send')), findsNothing);
+    expect(find.text('트레이너와 공유하는 기록이에요'), findsOneWidget);
   });
 
   test('C·식단 글 — 천 단위 쉼표는 수의 일부이고, 일부만 적은 열량은 합계로 끝내지 않는다', () {

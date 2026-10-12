@@ -3566,4 +3566,12 @@ class LEn extends L {
   String shareMealsNote(String gym) {
     return 'From the day you turn this on, your $gym trainer also sees meals you log on days you don\'t go to the gym. Records from days you tap the sticker are shared either way.';
   }
+
+  @override
+  String get shareSend => 'Send to my trainer';
+
+  @override
+  String shareSendAsk(String gym) {
+    return 'Send this to your trainer as today\'s workout at $gym? It also counts as a visit.';
+  }
 }

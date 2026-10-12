@@ -3547,4 +3547,12 @@ class LVi extends L {
   String shareMealsNote(String gym) {
     return 'Kể từ ngày bật, huấn luyện viên của $gym cũng xem được các bữa ăn bạn ghi vào những ngày không đến phòng tập. Bản ghi của những ngày bạn chạm vào sticker vẫn được chia sẻ dù cài đặt thế nào.';
   }
+
+  @override
+  String get shareSend => 'Gửi cho huấn luyện viên';
+
+  @override
+  String shareSendAsk(String gym) {
+    return 'Gửi bản ghi này cho huấn luyện viên như buổi tập hôm nay tại $gym? Cũng sẽ được tính là một lần đến phòng tập.';
+  }
 }

@@ -3446,4 +3446,12 @@ class LKo extends L {
   String shareMealsNote(String gym) {
     return '켠 날부터는 헬스장에 가지 않은 날 적은 끼니도 $gym 트레이너가 봐요. 스티커에 폰을 댄 날의 기록은 이 설정과 상관없이 공유돼요.';
   }
+
+  @override
+  String get shareSend => '트레이너에게 보내기';
+
+  @override
+  String shareSendAsk(String gym) {
+    return '오늘 $gym에서 한 운동으로 트레이너에게 보낼까요? 출석으로도 남아요.';
+  }
 }
