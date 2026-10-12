@@ -1,5 +1,6 @@
 Có gì mới
 
-· Đăng nhập bằng Kakao hoặc Google — dùng tài khoản bạn đã có trên web (gym.darak.studio), và liên kết các cách đăng nhập khác trong Cài đặt › Tài khoản
-· Sửa bản ghi ở phòng gym sẽ được gửi lại cho huấn luyện viên, và mức tạ lb được đổi sang kg khi gửi
-· Sửa các lỗi nhỏ ở bài tập nhận được, Tập cùng nhau và ghi hộ bạn tập
+· Đăng nhập Kakao và Google giờ mở trong cửa sổ đăng nhập ngay trong ứng dụng
+· Bài tập nhận được chỉ hoàn thành khi bạn ghi một hiệp — chỉ mở xem sẽ không còn bị tính là xong
+· Khi đổi tài khoản trên cùng một điện thoại, bản ghi của tài khoản trước không còn bị gửi lên tài khoản mới
+· Khi kế hoạch chung quá dài để lưu, ứng dụng sẽ cho bạn biết lý do

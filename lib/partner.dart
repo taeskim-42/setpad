@@ -44,6 +44,8 @@ enum PartnerError {
   routineStarted,
   /// 자리가 다 찼다. 서버 탓이 아니라서 '다시 시도'로 풀리지 않는다.
   full,
+  /// 계획 글이 서버 한도(한 줄 120자·운동 60개)를 넘었다. 코드 형식 오류가 아니다.
+  planTooLong,
 }
 
 /// 코드에 쓰는 글자. 서버와 같다 — 0·O, 1·I 가 없다.
@@ -421,7 +423,9 @@ Future<void> sendPendingEnds(
   var changed = false;
   for (final note in notes) {
     final s = note.partner;
-    if (s == null || !s.endPending) continue;
+    // 다른 계정이 연 세션은 이 토큰으로 끝낼 수 없다 — 서버가 404 로 답하고, 그것을
+    // 끝난 것으로 쳐서 지우면 상대 폰에서 세션이 영영 안 끝난다. 그 사람을 기다린다.
+    if (s == null || !s.endPending || !note.ownedBy(link.userId)) continue;
     final reply = await link.endPartnerSession(s.id);
     if (reply.error == PartnerError.network ||
         reply.error == PartnerError.server ||
@@ -602,6 +606,8 @@ class PartnerSync extends ChangeNotifier {
         ..partnerLoaded = false;
     }
     note.partner = next;
+    // 같이 하기를 연 계정. 끝났다는 알림이 밀리면 이 계정으로만 간다.
+    note.owner ??= link().userId;
     _receiveDoc(next);
   }
 

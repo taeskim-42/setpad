@@ -752,6 +752,9 @@ extension PlanLink on GymLink {
             // 여섯 명이 찼다. 서버 고장이 아니다 — 다시 해도 안 들어간다.
             (_, 'full') => PartnerError.full,
             (429, _) => PartnerError.tooManyTries,
+            // 계획 글이 한도(한 줄 120자·운동 60개)를 넘으면 서버가 이렇게 거절한다 —
+            // 초대 코드 문구("여섯 글자")로 보이면 안 된다.
+            (400, 'invalidInput') => PartnerError.planTooLong,
             (400, _) => PartnerError.invalidFormat,
             _ => PartnerError.server,
           },

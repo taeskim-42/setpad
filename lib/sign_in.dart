@@ -5,12 +5,13 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import 'api_route.dart';
-import 'share.dart' show openUrl;
+import 'share.dart' show openSignInSheet, openUrl;
 
 /// 로그인. **켜지 않아도 앱은 그대로 돌아간다.**
 ///
@@ -117,15 +118,14 @@ Future<Credential?> signInWithMethod(
 /// 돌아오기를 기다리는 웹 로그인. 한 번에 하나다.
 Completer<Uri?>? _webReturn;
 
-/// 웹 로그인을 기기 브라우저로 거쳐 받는다.
+/// 웹 로그인을 거쳐 받는다. 아이폰은 앱 안의 로그인 창, 안드로이드는 기기 브라우저다.
 ///
 /// 앱에는 카카오 SDK 가 없고 들이지 않는다 — 웹이 이미 카카오 로그인을 한다.
-/// 브라우저로 `/api/auth/kakao?app=<challenge>` 를 열면 서버가 로그인을 끝내고
-/// `setpad://signin?handoff=…` 로 돌아온다(main.dart 의 링크 처리가
-/// [finishWebSignIn] 을 부른다). 그 표를 서버에 낼 때 challenge 의 원본
+/// `/api/auth/kakao?app=<challenge>` 를 열면 서버가 로그인을 끝내고
+/// `setpad://signin?handoff=…` 로 돌려보낸다. 그 표를 서버에 낼 때 challenge 의 원본
 /// (verifier)을 같이 낸다 — 원본은 기기 밖으로 나간 적이 없으니, 주소창으로
 /// 오간 표만 가로채서는 쓸 수 없다(PKCE).
-// ponytail: verifier 는 메모리에만 있다. 브라우저에 가 있는 동안 iOS 가 앱을
+// ponytail: verifier 는 메모리에만 있다. 브라우저에 가 있는 동안 OS 가 앱을
 // 죽이면 돌아온 표를 못 받는다 — 그때는 다시 누르면 된다. 자주 생기면 파일에 적는다.
 Future<Credential?> signInViaWeb(SignInMethod method, String endpoint) async {
   final verifier = _randomUrlSafe();
@@ -133,28 +133,10 @@ Future<Credential?> signInViaWeb(SignInMethod method, String endpoint) async {
   final path = method == SignInMethod.kakao
       ? '/api/auth/kakao'
       : '/api/signin/${method.name}';
-
-  // 앞서 기다리던 것이 있으면 그만둔다. 돌아오는 표는 하나의 verifier 에만 맞는다.
-  final before = _webReturn;
-  if (before != null && !before.isCompleted) before.complete(null);
-  final waiting = _webReturn = Completer<Uri?>();
-
-  if (!await openUrl('$endpoint$path?app=$challenge')) {
-    if (identical(_webReturn, waiting)) _webReturn = null;
-    return null;
-  }
-  final Uri? back;
-  try {
-    // 안드로이드에서 브라우저를 그냥 닫으면 돌아오는 주소가 없다. 다섯 분이 지나면
-    // 그만둔 것으로 본다 — 그만둔 사람에게 '실패' 라고 하지 않는다. 서버가 못 받아 준
-    // 것은 서버가 error 를 붙여 앱으로 돌려보낸다(시도를 잃은 경우도).
-    back = await waiting.future.timeout(
-      const Duration(minutes: 5),
-      onTimeout: () => null,
-    );
-  } finally {
-    if (identical(_webReturn, waiting)) _webReturn = null;
-  }
+  final url = '$endpoint$path?app=$challenge';
+  final back = defaultTargetPlatform == TargetPlatform.iOS
+      ? await _viaSheet(url)
+      : await _viaBrowser(url);
 
   // 사람이 그만둔 것(cancelled)과 다시 눌러 앞의 것을 버린 것(null)은 말할 것이
   // 없다. 그 밖의 error 는 서버가 못 받아 준 것이다.
@@ -171,9 +153,47 @@ Future<Credential?> signInViaWeb(SignInMethod method, String endpoint) async {
   );
 }
 
+/// 아이폰: 앱 안의 로그인 창(ASWebAuthenticationSession, AppDelegate.swift).
+/// 기본 브라우저로 내보내면 심사가 4.0(로그인하러 앱 밖으로 나간다)으로
+/// 돌려보낸다. 창이 `setpad://signin` 을 직접 받아 돌려주므로 링크 처리를 거치지
+/// 않고, 사람이 닫으면 null 이다.
+Future<Uri?> _viaSheet(String url) async {
+  try {
+    final back = await openSignInSheet(url);
+    return back == null ? null : Uri.tryParse(back);
+  } on PlatformException {
+    throw const WebSignInFailed();
+  }
+}
+
+/// 안드로이드: 기기 브라우저. 돌아오는 `setpad://signin` 은 main.dart 의 링크
+/// 처리가 [finishWebSignIn] 으로 넘긴다.
+Future<Uri?> _viaBrowser(String url) async {
+  // 앞서 기다리던 것이 있으면 그만둔다. 돌아오는 표는 하나의 verifier 에만 맞는다.
+  final before = _webReturn;
+  if (before != null && !before.isCompleted) before.complete(null);
+  final waiting = _webReturn = Completer<Uri?>();
+
+  if (!await openUrl(url)) {
+    if (identical(_webReturn, waiting)) _webReturn = null;
+    return null;
+  }
+  try {
+    // 브라우저를 그냥 닫으면 돌아오는 주소가 없다. 다섯 분이 지나면 그만둔 것으로
+    // 본다 — 그만둔 사람에게 '실패' 라고 하지 않는다. 서버가 못 받아 준 것은 서버가
+    // error 를 붙여 앱으로 돌려보낸다(시도를 잃은 경우도).
+    return await waiting.future.timeout(
+      const Duration(minutes: 5),
+      onTimeout: () => null,
+    );
+  } finally {
+    if (identical(_webReturn, waiting)) _webReturn = null;
+  }
+}
+
 /// 기다리던 웹 로그인을 그만둔다(null 로 끝낸다). 기다리던 것이 있었으면 true.
 ///
-/// 브라우저는 앱 밖에서 열려, 사람이 카카오 화면에서 그냥 돌아오면 앱은 알 길이
+/// 안드로이드의 브라우저는 앱 밖에서 열려, 사람이 카카오 화면에서 그냥 돌아오면 앱은 알 길이
 /// 없다. 같은 스티커를 다시 대는 것이 그 신호다(main.dart _openTag).
 bool cancelWebSignIn() {
   final waiting = _webReturn;

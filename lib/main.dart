@@ -370,11 +370,11 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
         .firstOrNull;
     final note =
         started ??
-        _store.create(
+        (_store.create(
           blocks: mine.blocks,
           gymId: mine.gymId,
           routineId: mine.id,
-        );
+        )..owner = _account.userId);
     // 스티커를 댄 것이 곧 출석이다 — 루틴을 열어만 보고 닫아도 트레이너 화면에 온
     // 것은 뜬다. 루틴 완료는 세트를 적어야 된다(gym.dart sendPending).
     if (!note.checkedIn) {
@@ -409,11 +409,8 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 같은 날 두 번 대도 한 번이다. 웹이 세 시간 안의 기록을 다시 여는 것과
   /// 같은 규칙을 쓴다 — 폰이 잠겼다 돌아온 것을 두 번째 방문으로 세지 않는다.
   Future<void> _attendOnly(String gymId) async {
-    final since = NotesStore.visitWindowStart();
-    final open = _store.notes
-        .where((n) => n.gymId == gymId && n.createdAt.isAfter(since))
-        .firstOrNull;
-    final note = open ?? _store.create(gymId: gymId);
+    final open = _store.openVisit(gymId, _account.userId);
+    final note = open ?? (_store.create(gymId: gymId)..owner = _account.userId);
     if (open == null) unawaited(_sendPendingWorkouts());
     if (mounted) _open(note);
   }
@@ -870,6 +867,12 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   /// 이 화면을 연 때의 기록.
   late final String _openedJson = jsonEncode(blocksToJson(widget.note.blocks));
 
+  /// 마지막으로 저장한 기록. 카드를 열고 닫기만 해도 편집기는 알린다 — 그때마다
+  /// 저장하면 updatedAt 이 움직여, 열어만 본 받은 루틴이 '고친 것' 이 되어 0세트로
+  /// 완료 처리돼 올라갔다(gym.dart _lookedOnly). 연 때가 아니라 마지막 저장과
+  /// 견준다 — 세트를 적었다 지운 것도 고친 것이라 다시 가야 한다.
+  late String _savedJson = _openedJson;
+
   @override
   void initState() {
     super.initState();
@@ -1049,14 +1052,17 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     // 연 때의 기록과 견준다. note.blocks 는 첫 저장 뒤로 편집기의 목록 그 자체라
     // 서로 견주면 늘 같았다 — 건네받은 기록을 고쳐도 다시 받기가 덮었다.
     // 같이 고치는 사람에게서 온 변경은 내가 고친 것이 아니다.
+    final json = jsonEncode(blocksToJson(_editor.blocks));
     if (note.handoffToken != null &&
         !note.handoffTouched &&
         !_editor.remote &&
-        jsonEncode(blocksToJson(_editor.blocks)) != _openedJson) {
+        json != _openedJson) {
       // 건네받은 기록을 내가 고쳤다. 이제 내 것이다 — 보낸 사람이 더 적어 보내도
       // 이 문서를 덮지 않는다.
       note.handoffTouched = true;
     }
+    if (json == _savedJson) return;
+    _savedJson = json;
     widget.store.update(widget.note, _editor.blocks);
     // 내 기록은 방금 이 기기에 저장됐다. 그다음에 상대에게 보낸다.
     _partner?.recordChanged();

@@ -315,6 +315,7 @@
   "partnerEndedByMe": "你已结束一起训练，你的记录保留不变。",
   "partnerEndedByThem": "{name} 已结束一起训练，你的记录保留不变。",
   "partnerErrFormat": "代码为六位，请再确认。",
+  "partnerErrPlanTooLong": "每行最多 120 个字，最多 60 个动作。请缩短过长的一行。",
   "partnerErrInvalid": "没有这个代码，可能已被使用或输入有误。",
   "partnerErrExpired": "代码已过期，请让对方重新生成。",
   "partnerErrEnded": "该邀请已结束。",

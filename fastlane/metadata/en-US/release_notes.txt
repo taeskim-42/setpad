@@ -1,5 +1,6 @@
 What's new
 
-· Sign in with Kakao or Google — use the account you already have on the web (gym.darak.studio), and link other sign-in methods under Settings › Account
-· Edits to a gym workout now reach your trainer again, and lb weights are converted to kg when sent
-· Fixes for received routines, Together and writing for a partner
+· Kakao and Google sign-in now open in an in-app sign-in sheet
+· A received routine is completed only once you log a set — just opening it no longer marks it done
+· After switching accounts on one phone, the previous account's records no longer go to the new one
+· When a shared plan is too long to save, the app now tells you why

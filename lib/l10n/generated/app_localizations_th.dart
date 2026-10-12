@@ -1252,6 +1252,10 @@ class LTh extends L {
   String get partnerErrFormat => 'รหัสมี 6 ตัวอักษร กรุณาตรวจอีกครั้ง';
 
   @override
+  String get partnerErrPlanTooLong =>
+      'หนึ่งบรรทัดยาวได้ไม่เกิน 120 ตัวอักษร และหนึ่งแผนมีได้ไม่เกิน 60 ท่า กรุณาทำบรรทัดที่ยาวให้สั้นลง';
+
+  @override
   String get partnerErrInvalid => 'ไม่พบรหัสนี้ อาจถูกใช้ไปแล้วหรือพิมพ์ผิด';
 
   @override

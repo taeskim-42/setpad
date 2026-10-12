@@ -2,4 +2,4 @@ Novedades
 
 · Inicia sesión con Kakao o Google: usa la cuenta que ya tienes en la web (gym.darak.studio) y vincula otros métodos en Ajustes › Cuenta
 · Los cambios en un entrenamiento del gimnasio vuelven a llegar a tu entrenador, y los pesos en lb se envían convertidos a kg
-· Correcciones en rutinas recibidas, Juntos y anotar por un compañero
+· Una rutina recibida solo se completa al anotar una serie, y cambiar de cuenta en un teléfono ya no mezcla los registros

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -102,6 +103,60 @@ void main() {
       await signInViaWeb(SignInMethod.kakao, 'https://example.com'),
       isNull,
     );
+  });
+
+  group('아이폰은 앱 안 로그인 창으로 연다(기본 브라우저로 내보내면 심사 4.0)', () {
+    setUp(() => debugDefaultTargetPlatformOverride = TargetPlatform.iOS);
+    tearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    void sheet(Future<Object?> Function(String url) answer) {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(share, (call) async {
+            final url = (call.arguments as Map)['url'] as String;
+            if (call.method == 'open') {
+              opened = url;
+              return true;
+            }
+            return call.method == 'signIn' ? answer(url) : null;
+          });
+    }
+
+    test('창이 돌려준 표를 쓰고, 기본 브라우저는 열지 않는다', () async {
+      String? asked;
+      sheet((url) async {
+        asked = url;
+        return 'setpad://signin?handoff=x.y.z';
+      });
+      final credential = (await signInViaWeb(
+        SignInMethod.google,
+        'https://example.com',
+      ))!;
+      expect(Uri.parse(asked!).path, '/api/signin/google');
+      expect(credential.idToken, 'x.y.z');
+      expect(credential.verifier, hasLength(43));
+      expect(opened, isNull);
+    });
+
+    test('창을 닫으면 조용히 null 이다', () async {
+      sheet((_) async => null);
+      expect(
+        await signInViaWeb(SignInMethod.kakao, 'https://example.com'),
+        isNull,
+      );
+    });
+
+    test('창이 실패하거나 서버가 error 로 돌려보내면 실패라고 말한다', () async {
+      sheet((_) async => throw PlatformException(code: 'failed'));
+      await expectLater(
+        signInViaWeb(SignInMethod.kakao, 'https://example.com'),
+        throwsA(isA<WebSignInFailed>()),
+      );
+      sheet((_) async => 'setpad://signin?error=failed');
+      await expectLater(
+        signInViaWeb(SignInMethod.kakao, 'https://example.com'),
+        throwsA(isA<WebSignInFailed>()),
+      );
+    });
   });
 
   test('표는 handoff·verifier 로 내고, 남의 수단이면 SignInTaken 이다', () async {

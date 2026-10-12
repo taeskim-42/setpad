@@ -315,6 +315,7 @@
   "partnerEndedByMe": "Bạn đã dừng tập cùng nhau. Ghi chép của bạn vẫn còn.",
   "partnerEndedByThem": "{name} đã dừng tập cùng nhau. Ghi chép của bạn vẫn còn.",
   "partnerErrFormat": "Mã có sáu ký tự. Hãy kiểm tra lại.",
+  "partnerErrPlanTooLong": "Mỗi dòng tối đa 120 ký tự và mỗi kế hoạch tối đa 60 bài tập. Hãy rút ngắn dòng quá dài.",
   "partnerErrInvalid": "Không có mã này. Có thể đã dùng hoặc gõ sai.",
   "partnerErrExpired": "Mã đã hết hạn. Hãy xin mã mới.",
   "partnerErrEnded": "Lời mời này đã kết thúc.",

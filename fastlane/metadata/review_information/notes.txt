@@ -25,4 +25,4 @@ What plates are
 
 Pro (Settings › Pro; Monthly/Yearly, no trial) is bought and restored without signing in. Optional sign-in later moves it to the account for the user's other devices (5.1.1(v)).
 
-Sign-in is optional (Settings › Account): Apple (native), Google or Kakao (our website in the browser, back via setpad://); Sign in with Apple is always offered. It enables Together (up to 6 people edit one record live) and gym connection; trainer mode shows only for gym staff. Delete account: Settings › Account.
+Sign-in is optional (Settings › Account): Apple (native), Google or Kakao (our website in an in-app sign-in sheet); Sign in with Apple is always offered. It enables Together (up to 6 people edit one record live) and gym connection; trainer mode shows only for gym staff. Delete account: Settings › Account.

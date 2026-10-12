@@ -315,6 +315,7 @@
   "partnerEndedByMe": "You stopped working out together. Your record is kept.",
   "partnerEndedByThem": "{name} stopped working out together. Your record is kept.",
   "partnerErrFormat": "A code has six characters. Check it again.",
+  "partnerErrPlanTooLong": "A line can be up to 120 characters and a plan up to 60 exercises. Please shorten the long line.",
   "partnerErrInvalid": "No such code. It may already be used or mistyped.",
   "partnerErrExpired": "That code has expired. Ask for a new one.",
   "partnerErrEnded": "That invite has already ended.",

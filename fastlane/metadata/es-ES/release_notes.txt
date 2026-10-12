@@ -1,5 +1,6 @@
 Novedades
 
-· Inicia sesión con Kakao o Google: usa la cuenta que ya tienes en la web (gym.darak.studio) y vincula otros métodos en Ajustes › Cuenta
-· Los cambios en un entrenamiento del gimnasio vuelven a llegar a tu entrenador, y los pesos en lb se envían convertidos a kg
-· Correcciones en rutinas recibidas, Juntos y anotar por un compañero
+· El inicio de sesión con Kakao y Google se abre en una ventana dentro de la app
+· Una rutina recibida solo se completa al anotar una serie; abrirla ya no la marca como hecha
+· Al cambiar de cuenta en un mismo teléfono, los registros de la cuenta anterior ya no pasan a la nueva
+· Si un plan compartido es demasiado largo para guardarse, la app te dice por qué

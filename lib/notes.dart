@@ -309,6 +309,16 @@ class Note {
   /// 안 보낸 것은 다음에 앱을 켤 때 다시 보낸다.
   DateTime? sentAt;
 
+  /// 이 기록을 체육관·같이 하기에 묶은 계정(서버의 user id). 노트는 기기에 있어
+  /// 로그아웃해도 남는다 — 한 폰을 둘이 쓰면 A 가 못 보낸 운동·끼니·같이 하기
+  /// 종료가 B 의 토큰으로 가서 B 의 것이 되거나, A 의 것은 보낸 셈이 되어 영영
+  /// 안 갔다. 다른 계정으로 로그인해 있는 동안은 보내지 않고 기다린다. 이 표시가
+  /// 생기기 전의 기록은 null — 예전처럼 지금 계정이 보낸다.
+  String? owner;
+
+  /// [user] 가 보내도 되는 기록인가.
+  bool ownedBy(String? user) => owner == null || owner == user;
+
   /// 이 운동이 시작된 공동 루틴과 그 버전. 계획은 출발점일 뿐이다 — 여기서 실제
   /// 값을 고쳐도 계획은 바뀌지 않고, 계획이 나중에 바뀌어도 이 운동은 그대로다.
   String? planId;
@@ -412,6 +422,7 @@ class Note {
     if (gymId != null) 'gymId': gymId,
     if (routineId != null) 'routineId': routineId,
     if (sentAt != null) 'sentAt': sentAt!.toIso8601String(),
+    'owner': ?owner,
     if (meals.isNotEmpty) 'meals': [for (final m in meals) m.toJson()],
     if (deletedMeals.isNotEmpty) 'deletedMeals': deletedMeals,
     if (partner != null) 'partner': partner!.toJson(),
@@ -444,6 +455,7 @@ class Note {
   static Note _restore(Map<String, dynamic> j, Note note) {
     final sent = j['sentAt'];
     if (sent is String) note.sentAt = DateTime.tryParse(sent);
+    note.owner = j['owner'] as String?;
     note.healthWorkout = HealthWorkout.tryFromJson(j['healthWorkout']);
     for (final m in (j['meals'] as List? ?? const [])) {
       final meal = MealEntry.tryFromJson(m);
@@ -742,11 +754,12 @@ class NotesStore extends ChangeNotifier {
     _scheduleSave();
   }
 
+  /// 치다 만 것과 커서 자리. 기록이 아니므로 updatedAt 을 건드리지 않는다 — 카드를
+  /// 열기만 해도 여기로 와서, 열어만 본 받은 루틴이 '고친 것' 이 되어 0세트로 완료
+  /// 처리돼 올라갔다(gym.dart _lookedOnly).
   void updateDraft(Note note, EditorDraft? draft) {
     if (mapEquals(note.draft?.toJson(), draft?.toJson())) return;
     note.draft = draft;
-    note.updatedAt = DateTime.now();
-    _sort();
     notifyListeners();
     _scheduleSave();
   }
@@ -854,6 +867,18 @@ class NotesStore extends ChangeNotifier {
   /// 같은 방문으로 보는 시간. 웹이 열린 운동을 다시 여는 세 시간과 같다.
   static const visitWindow = Duration(hours: 3);
   static DateTime visitWindowStart() => DateTime.now().subtract(visitWindow);
+
+  /// 세 시간 안에 같은 체육관에서 연 [user] 의 기록. 다른 계정의 방문을 다시
+  /// 열면 내 출석이 안 생긴다(main.dart _attendOnly).
+  Note? openVisit(String gymId, String? user) {
+    final since = visitWindowStart();
+    return _notes
+        .where(
+          (n) =>
+              n.gymId == gymId && n.createdAt.isAfter(since) && n.ownedBy(user),
+        )
+        .firstOrNull;
+  }
 
   /// 세트 말고는 남긴 것이 없다 — 끼니도, 서버에 알릴 끼니 삭제도, 대신 적은 것도,
   /// 친 글도. 이것이 아니면 기록을 지울 때 그것들이 같이 사라진다.

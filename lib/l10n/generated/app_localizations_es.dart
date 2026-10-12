@@ -1287,6 +1287,10 @@ class LEs extends L {
   String get partnerErrFormat => 'El código tiene seis caracteres. Revísalo.';
 
   @override
+  String get partnerErrPlanTooLong =>
+      'Cada línea admite hasta 120 caracteres y el plan hasta 60 ejercicios. Acorta la línea larga.';
+
+  @override
   String get partnerErrInvalid =>
       'No existe ese código. Puede estar usado o mal escrito.';
 

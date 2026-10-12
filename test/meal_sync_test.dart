@@ -160,6 +160,33 @@ void main() {
     expect(note.deletedMeals, isEmpty);
   });
 
+  test('A 가 밀어 둔 끼니 저장·삭제는 B 로 로그인해 있는 동안 안 가고 그대로 남는다', () async {
+    final calls = <(String, String)>[];
+    GymLink signedIn(String user) => GymLink(
+      endpoint: 'https://x',
+      token: user,
+      userId: user,
+      client: MockClient((request) async {
+        calls.add((user, request.method));
+        return http.Response('{"deleted":0}', 200);
+      }),
+    );
+    final meal = MealEntry(at: DateTime(2026, 9, 21, 12), kcal: 300, text: '밥');
+    final note = noteAt(gym)
+      ..owner = 'A'
+      ..meals.add(meal)
+      ..deletedMeals.add('gone');
+    await syncMeals(signedIn('B'), [note], onSynced: () {});
+    expect(calls, isEmpty);
+    expect(meal.dirty, isTrue);
+    expect(note.deletedMeals, ['gone']);
+
+    await syncMeals(signedIn('A'), [note], onSynced: () {});
+    expect(calls, [('A', 'DELETE'), ('A', 'PUT')]);
+    expect(meal.dirty, isFalse);
+    expect(note.deletedMeals, isEmpty);
+  });
+
   test('도장 기록이 아니면 서버로 가지 않고, 예전 끼니는 한꺼번에 올라가지 않는다', () async {
     var calls = 0;
     final link = GymLink(

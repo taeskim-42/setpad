@@ -25,6 +25,7 @@ String partnerErrorText(L l, PartnerError error) => switch (error) {
   PartnerError.emptyRoutine => l.partnerRoutineEmpty,
   PartnerError.routineStarted => l.partnerRoutineStarted,
   PartnerError.full => l.partnerErrFull,
+  PartnerError.planTooLong => l.partnerErrPlanTooLong,
 };
 
 /// 같이 하기.

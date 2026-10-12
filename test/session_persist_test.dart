@@ -63,6 +63,31 @@ void main() {
     );
   });
 
+  test('누구로 로그인했는지 남겨 두고, 로그아웃하면 지운다', () async {
+    // 밀린 기록을 그 주인의 토큰으로만 보내려면 지금 계정을 알아야 한다(Note.owner).
+    final f = File('${dir.path}/session.json')
+      ..writeAsStringSync(jsonEncode({'token': 't', 'nickname': '김회원'}));
+    final a = account(
+      MockClient((request) async {
+        if (request.url.path.endsWith('/api/me')) {
+          return http.Response(
+            jsonEncode({
+              'user': {'id': 'u-1', 'nickname': 'kim'},
+              'token': 't',
+            }),
+            200,
+          );
+        }
+        return http.Response(jsonEncode({'plan': null, 'selling': false}), 200);
+      }),
+    );
+    await a.restoreSession();
+    expect(a.link.userId, 'u-1');
+    expect(jsonDecode(f.readAsStringSync())['userId'], 'u-1');
+    await a.signOut();
+    expect(a.link.userId, isNull);
+  });
+
   test('서버가 거절한 토큰은 지운다', () async {
     final f = File('${dir.path}/session.json')
       ..writeAsStringSync(jsonEncode({'token': 'expired', 'nickname': '김회원'}));

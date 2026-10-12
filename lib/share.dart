@@ -19,6 +19,12 @@ Future<bool> openUrl(String url) async {
   }
 }
 
+/// 아이폰의 앱 안 로그인 창(ASWebAuthenticationSession)으로 [url] 을 연다.
+/// `setpad://` 로 돌아온 주소를 돌려주고, 사람이 닫으면 null 이다. 창을 못
+/// 띄웠거나 로그인 창이 실패하면 PlatformException 이 그대로 나간다.
+Future<String?> openSignInSheet(String url) =>
+    _channel.invokeMethod<String>('signIn', {'url': url});
+
 Future<bool> shareText(String text) async {
   try {
     return await _channel.invokeMethod<bool>('share', {'text': text}) ?? false;

@@ -794,6 +794,34 @@ void main() {
     expect(mina.note.partner!.state, PartnerState.ended);
   });
 
+  test('다른 계정이 연 같이 하기의 밀린 종료는 지금 계정으로 보내지도 지우지도 않는다', () async {
+    final server = FakeServer();
+    final mina = Phone(server, '미나', 'a11'), jun = Phone(server, '준', 'b11');
+    addTearDown(mina.sync.dispose);
+    addTearDown(jun.sync.dispose);
+    await mina.sync.invite();
+    await jun.sync.joinWithCode(mina.note.partner!.code!);
+    server.online = false;
+    await jun.sync.end();
+    server.online = true;
+    jun.note.owner = '준';
+    GymLink signedIn(String user) => GymLink(
+      endpoint: 'https://x',
+      token: user,
+      userId: user,
+      client: server.clientFor(user),
+    );
+
+    // 준이 로그아웃하고 같은 폰에 소라가 들어왔다. 서버는 404 를 줄 것이다.
+    await sendPendingEnds(signedIn('소라'), [jun.note], onSent: () {});
+    expect(jun.note.partner!.endPending, isTrue);
+
+    await sendPendingEnds(signedIn('준'), [jun.note], onSent: () {});
+    expect(jun.note.partner!.endPending, isFalse);
+    await mina.sync.refresh();
+    expect(mina.note.partner!.state, PartnerState.ended);
+  });
+
   test('저장된 기록은 같이 하기가 없던 시절 것도 그대로 읽힌다', () {
     final old = Note.fromJson({
       'id': 'old',

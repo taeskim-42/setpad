@@ -260,11 +260,11 @@ class _NotesListPageState extends State<NotesListPage>
         .firstOrNull;
     _open(
       started ??
-          widget.store.create(
+          (widget.store.create(
             blocks: routine.blocks,
             gymId: routine.gymId,
             routineId: routine.id,
-          ),
+          )..owner = widget.account?.userId),
     );
     setState(() => _routines = [..._routines]..remove(routine));
   }

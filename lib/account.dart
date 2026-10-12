@@ -78,6 +78,10 @@ class Account extends ChangeNotifier {
   String? token;
   String nickname = '';
 
+  /// 로그인한 사람의 id(/api/me 의 user.id). 이 기기의 기록에 주인을 적고, 밀린
+  /// 것을 그 주인의 토큰으로만 보내는 데 쓴다(Note.owner). 아직 모르면 null.
+  String? userId;
+
   /// 이 계정에 붙은 로그인 수단(`apple`·`google`·`kakao`). /api/me 가 알려 준다.
   /// 설정 화면은 여기 없는 수단을 "연결" 로 보여 준다.
   List<String> providers = const [];
@@ -100,7 +104,8 @@ class Account extends ChangeNotifier {
   List<StaffGym> staff = const [];
 
   /// 체육관에서 온 것들을 가져오는 문. 로그인하지 않았으면 아무것도 안 온다.
-  GymLink get link => GymLink(endpoint: endpoint, token: token, client: client);
+  GymLink get link =>
+      GymLink(endpoint: endpoint, token: token, userId: userId, client: client);
 
   /// AI 에 묻는 문. 로그인했으면 계정의 지갑, 아니면 이 기기의 지갑을 쓴다.
   RecordAi get ai => RecordAi(
@@ -234,6 +239,7 @@ class Account extends ChangeNotifier {
       if (saved is! String || saved.isEmpty) return;
       token = saved;
       nickname = data['nickname'] as String? ?? '';
+      userId = data['userId'] as String?;
       notifyListeners();
     } catch (e) {
       // 깨진 파일 때문에 앱이 안 뜨면 안 된다. 로그인만 다시 하면 된다.
@@ -252,7 +258,7 @@ class Account extends ChangeNotifier {
       // 쓰다 말고 꺼져도 반쪽짜리 파일이 남지 않게 한다 — 노트와 같은 방식이다.
       final temporary = File('${f.path}.tmp');
       await temporary.writeAsString(
-        jsonEncode({'token': token, 'nickname': nickname}),
+        jsonEncode({'token': token, 'nickname': nickname, 'userId': ?userId}),
         flush: true,
       );
       await temporary.rename(f.path);
@@ -287,10 +293,18 @@ class Account extends ChangeNotifier {
         try {
           final body = jsonDecode(utf8.decode(response.bodyBytes));
           final fresh = body is Map ? body['token'] : null;
+          final user = body is Map ? body['user'] : null;
+          final id = user is Map ? user['id'] : null;
+          var save = false;
           if (fresh is String && fresh.isNotEmpty && fresh != token) {
             token = fresh;
-            await _saveSession();
+            save = true;
           }
+          if (id is String && id != userId) {
+            userId = id;
+            save = true;
+          }
+          if (save) await _saveSession();
           final named = body is Map ? body['providers'] : null;
           providers = [
             for (final name in named is List ? named : const [])
@@ -392,6 +406,7 @@ class Account extends ChangeNotifier {
   Future<void> signOut() async {
     token = null;
     nickname = '';
+    userId = null;
     // 로그인한 채로 수단을 붙이다 실패한 표시가 로그아웃 뒤 로그인 줄에 남지 않게.
     signInRefused = signInTaken = false;
     lastSignIn = null;

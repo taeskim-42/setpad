@@ -1222,6 +1222,10 @@ class LKo extends L {
   String get partnerErrFormat => '코드는 여섯 글자입니다. 다시 확인해 주세요.';
 
   @override
+  String get partnerErrPlanTooLong =>
+      '한 줄은 120자, 운동은 60개까지 저장할 수 있어요. 긴 줄을 줄여 주세요.';
+
+  @override
   String get partnerErrInvalid => '맞는 코드가 없습니다. 이미 사용됐거나 잘못 입력했을 수 있어요.';
 
   @override

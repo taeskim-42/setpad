@@ -1202,6 +1202,9 @@ class LZh extends L {
   String get partnerErrFormat => '代码为六位，请再确认。';
 
   @override
+  String get partnerErrPlanTooLong => '每行最多 120 个字，最多 60 个动作。请缩短过长的一行。';
+
+  @override
   String get partnerErrInvalid => '没有这个代码，可能已被使用或输入有误。';
 
   @override
@@ -4770,6 +4773,9 @@ class LZhHans extends LZh {
   String get partnerErrFormat => '代码为六位，请再确认。';
 
   @override
+  String get partnerErrPlanTooLong => '每行最多 120 个字，最多 60 个动作。请缩短过长的一行。';
+
+  @override
   String get partnerErrInvalid => '没有这个代码，可能已被使用或输入有误。';
 
   @override
@@ -8335,6 +8341,9 @@ class LZhHant extends LZh {
 
   @override
   String get partnerErrFormat => '代碼為六位，請再確認。';
+
+  @override
+  String get partnerErrPlanTooLong => '每行最多 120 個字，最多 60 個動作。請縮短過長的一行。';
 
   @override
   String get partnerErrInvalid => '沒有這個代碼，可能已被使用或輸入有誤。';

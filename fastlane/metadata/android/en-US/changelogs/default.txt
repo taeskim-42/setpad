@@ -2,4 +2,4 @@ What's new
 
 · Sign in with Kakao or Google — use the account you already have on the web (gym.darak.studio), and link other sign-in methods under Settings › Account
 · Edits to a gym workout now reach your trainer again, and lb weights are converted to kg when sent
-· Fixes for received routines, Together and writing for a partner
+· A received routine is completed only once you log a set, and switching accounts on one phone no longer mixes up records

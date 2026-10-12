@@ -1261,6 +1261,10 @@ class LVi extends L {
   String get partnerErrFormat => 'Mã có sáu ký tự. Hãy kiểm tra lại.';
 
   @override
+  String get partnerErrPlanTooLong =>
+      'Mỗi dòng tối đa 120 ký tự và mỗi kế hoạch tối đa 60 bài tập. Hãy rút ngắn dòng quá dài.';
+
+  @override
   String get partnerErrInvalid =>
       'Không có mã này. Có thể đã dùng hoặc gõ sai.';
 

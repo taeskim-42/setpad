@@ -315,6 +315,7 @@
   "partnerEndedByMe": "Dejaste de entrenar juntos. Tu registro se conserva.",
   "partnerEndedByThem": "{name} dejó de entrenar contigo. Tu registro se conserva.",
   "partnerErrFormat": "El código tiene seis caracteres. Revísalo.",
+  "partnerErrPlanTooLong": "Cada línea admite hasta 120 caracteres y el plan hasta 60 ejercicios. Acorta la línea larga.",
   "partnerErrInvalid": "No existe ese código. Puede estar usado o mal escrito.",
   "partnerErrExpired": "Ese código ha caducado. Pide uno nuevo.",
   "partnerErrEnded": "Esa invitación ya terminó.",

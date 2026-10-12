@@ -1999,6 +1999,12 @@ abstract class L {
   /// **'코드는 여섯 글자입니다. 다시 확인해 주세요.'**
   String get partnerErrFormat;
 
+  /// No description provided for @partnerErrPlanTooLong.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 줄은 120자, 운동은 60개까지 저장할 수 있어요. 긴 줄을 줄여 주세요.'**
+  String get partnerErrPlanTooLong;
+
   /// No description provided for @partnerErrInvalid.
   ///
   /// In ko, this message translates to:

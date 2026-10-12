@@ -93,6 +93,22 @@ void main() {
     expect((await plans.join('AB3K9Z')).error, PartnerError.full);
   });
 
+  test('계획 저장이 400 invalidInput 으로 거절되면 코드 문구가 아니라 길이 오류다', () async {
+    final dir = Directory.systemTemp.createTempSync('setpad_plan_long_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final plans = PlanStore(
+      directory: dir,
+      link: () => GymLink(
+        endpoint: 'https://x',
+        token: 'member',
+        client: MockClient(
+          (_) async => http.Response('{"error":"invalidInput"}', 400),
+        ),
+      ),
+    );
+    expect((await plans.join('AB3K9Z')).error, PartnerError.planTooLong);
+  });
+
   test('메모장처럼 친 글을 계획으로 읽고, 사용자 운동명을 그대로 둔다', () {
     final plan = parsePlanText('''
 내일 하체

@@ -315,6 +315,7 @@
   "partnerEndedByMe": "你已結束一起訓練，你的紀錄保留不變。",
   "partnerEndedByThem": "{name} 已結束一起訓練，你的紀錄保留不變。",
   "partnerErrFormat": "代碼為六位，請再確認。",
+  "partnerErrPlanTooLong": "每行最多 120 個字，最多 60 個動作。請縮短過長的一行。",
   "partnerErrInvalid": "沒有這個代碼，可能已被使用或輸入有誤。",
   "partnerErrExpired": "代碼已過期，請對方重新產生。",
   "partnerErrEnded": "該邀請已結束。",

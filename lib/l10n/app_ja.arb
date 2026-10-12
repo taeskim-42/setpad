@@ -315,6 +315,7 @@
   "partnerEndedByMe": "一緒の運動を終了しました。自分の記録はそのまま残ります。",
   "partnerEndedByThem": "{name}さんが一緒の運動を終了しました。自分の記録はそのまま残ります。",
   "partnerErrFormat": "コードは6文字です。もう一度確認してください。",
+  "partnerErrPlanTooLong": "1行は120文字、種目は60個まで保存できます。長い行を短くしてください。",
   "partnerErrInvalid": "一致するコードがありません。使用済みか入力ミスの可能性があります。",
   "partnerErrExpired": "期限切れのコードです。新しいコードをもらってください。",
   "partnerErrEnded": "この招待はすでに終了しています。",

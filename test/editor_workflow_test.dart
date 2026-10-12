@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/gym.dart';
 import 'package:setpad/keypad.dart';
 import 'package:setpad/collapsing_drag.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
@@ -567,4 +568,50 @@ void main() {
       }
     },
   );
+
+  testWidgets('받은 루틴은 카드를 열고 닫기만 해서는 고친 것이 아니고, 세트를 적었다 지우면 다시 고친 것이다', (
+    tester,
+  ) async {
+    final dir = Directory.systemTemp.createTempSync('setpad_looked_');
+    final store = NotesStore(directory: dir);
+    addTearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+    final note = store.create(
+      blocks: [
+        ExerciseBlock('벤치프레스', [LoggedSet(value: 80, reps: 10, done: false)]),
+      ],
+      gymId: 'g1',
+      routineId: 'r1',
+    );
+    await pumpPage(tester, EditorPage(store: store, note: note));
+    final c = tester
+        .widget<RoutineEditor>(find.byType(RoutineEditor))
+        .controller;
+    // 목표 중량을 보려고 카드를 눌렀다 닫았다.
+    await tester.tap(find.text('벤치프레스').first);
+    await tester.pumpAndSettle();
+    c.closeBlock();
+    await tester.pumpAndSettle();
+    expect(note.updatedAt, note.createdAt);
+    expect(needsSend(note), isFalse);
+
+    Future<void> later() => tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 5)),
+    );
+    await later();
+    c.toggleDone(0, 0);
+    await tester.pump();
+    final logged = note.updatedAt;
+    expect(logged.isAfter(note.createdAt), isTrue);
+    expect(needsSend(note), isTrue);
+    // 적었다 지웠다 — 연 때와 같아졌어도 고친 것이라 다시 가야 한다.
+    await later();
+    c.toggleDone(0, 0);
+    await tester.pump();
+    expect(note.updatedAt.isAfter(logged), isTrue);
+    await tester.pumpWidget(const SizedBox());
+    await flush(tester, store);
+  });
 }

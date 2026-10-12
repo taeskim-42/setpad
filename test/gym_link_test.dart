@@ -289,6 +289,31 @@ void _pending() {
     expect(looked.sentAt, isNull);
   });
 
+  test('A 가 못 보낸 기록은 B 로 로그인해 있는 동안 안 가고, A 가 돌아오면 간다', () async {
+    final sent = <(String, String)>[];
+    GymLink signedIn(String user) => GymLink(
+      endpoint: 'https://example.com',
+      token: user,
+      userId: user,
+      client: MockClient((request) async {
+        sent.add((user, jsonDecode(request.body)['localId'] as String));
+        return http.Response('{"id":"1"}', 200);
+      }),
+    );
+    final mine = made('a', gymId: 'g')..owner = 'A';
+    // 표시가 생기기 전의 기록은 예전처럼 지금 계정이 보내고, 그 계정의 것이 된다.
+    final legacy = made('bb', gymId: 'g');
+    await sendPending(signedIn('B'), [mine, legacy], onSent: () {});
+    expect(sent, [('B', 'bb')]);
+    expect(mine.sentAt, isNull);
+    expect(legacy.owner, 'B');
+
+    await sendPending(signedIn('A'), [mine, legacy], onSent: () {});
+    expect(sent.last, ('A', 'a'));
+    expect(sent, hasLength(2));
+    expect(mine.sentAt, isNotNull);
+  });
+
   test('스티커로 연 루틴은 열어만 봐도 방문으로 가고, 적으면 같은 줄에 루틴이 붙는다', () async {
     final sent = <Map<String, Object?>>[];
     final link = GymLink(

@@ -26,9 +26,13 @@ typedef Routine = ({
 
 /// 체육관에서 온 것들. 로그인하지 않았거나 어디에도 안 다니면 전부 비어 있다.
 class GymLink {
-  const GymLink({required this.endpoint, this.token, this.client});
+  const GymLink({required this.endpoint, this.token, this.userId, this.client});
   final String endpoint;
   final String? token;
+
+  /// 토큰의 주인(서버의 user id). 밀린 것을 보낼 때 남의 기록을 이 토큰으로
+  /// 보내지 않으려고 든다([Note.owner]). 아직 모르면 null.
+  final String? userId;
   final http.Client? client;
 
   bool get supported => token != null;
@@ -250,7 +254,7 @@ Future<void> sendPending(
   final waiting = [
     for (final note in notes)
       // 빈 것도 보낸다 — 루틴 없이 그냥 나온 날의 출석이 그렇게 생긴다.
-      if (needsSend(note)) note,
+      if (needsSend(note) && note.ownedBy(link.userId)) note,
   ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
   for (final note in waiting) {
@@ -273,6 +277,8 @@ Future<void> sendPending(
     // 이것 하나 때문에 그 뒤 몇 주치가 영영 안 올라가던 일이 있었다.
     if (outcome == SendOutcome.rejected) continue;
     note.sentAt = at;
+    // 이 계정으로 올라갔다. 다른 계정으로 바꾼 뒤 고친 것이 그 계정 앞으로 가지 않게.
+    note.owner ??= link.userId;
     changed = true;
   }
   if (changed) onSent();
@@ -356,7 +362,8 @@ Future<void> syncMeals(
   var changed = false;
   for (final note in notes) {
     final gymId = note.gymId;
-    if (gymId == null) continue;
+    // 다른 계정의 끼니는 그 사람이 다시 로그인할 때까지 밀어 둔다.
+    if (gymId == null || !note.ownedBy(link.userId)) continue;
     for (final id in [...note.deletedMeals]) {
       final outcome = await link.deleteMeal(id);
       if (outcome == SendOutcome.retry) {

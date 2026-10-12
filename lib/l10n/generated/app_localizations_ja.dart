@@ -1216,6 +1216,9 @@ class LJa extends L {
   String get partnerErrFormat => 'コードは6文字です。もう一度確認してください。';
 
   @override
+  String get partnerErrPlanTooLong => '1行は120文字、種目は60個まで保存できます。長い行を短くしてください。';
+
+  @override
   String get partnerErrInvalid => '一致するコードがありません。使用済みか入力ミスの可能性があります。';
 
   @override

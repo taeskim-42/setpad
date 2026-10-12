@@ -1272,6 +1272,10 @@ class LEn extends L {
   String get partnerErrFormat => 'A code has six characters. Check it again.';
 
   @override
+  String get partnerErrPlanTooLong =>
+      'A line can be up to 120 characters and a plan up to 60 exercises. Please shorten the long line.';
+
+  @override
   String get partnerErrInvalid =>
       'No such code. It may already be used or mistyped.';
 

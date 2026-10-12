@@ -102,6 +102,20 @@ void main() {
     expect(store.notes, contains(now));
   });
 
+  test('스티커를 다시 대면 세 시간 안의 내 방문을 열고, 다른 계정의 방문은 열지 않는다', () {
+    final store = NotesStore(directory: Directory.systemTemp);
+    addTearDown(store.dispose);
+    final hourAgo = DateTime.now().subtract(const Duration(hours: 1));
+    final a = store.create(gymId: 'g', at: hourAgo)
+      ..owner = 'A'
+      ..sentAt = hourAgo;
+    expect(store.openVisit('g', 'A'), a);
+    expect(store.openVisit('g', 'B'), isNull, reason: 'B 의 출석이 따로 생겨야 한다');
+    // 표시가 생기기 전의 방문은 예전처럼 다시 연다.
+    final legacy = store.create(gymId: 'h', at: hourAgo);
+    expect(store.openVisit('h', 'B'), legacy);
+  });
+
   test('그물 없이 끝낸 같이 하기가 남은 빈 기록은 지우지 않는다', () {
     final store = NotesStore(directory: Directory.systemTemp);
     addTearDown(store.dispose);
