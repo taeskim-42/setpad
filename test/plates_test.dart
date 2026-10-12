@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -521,6 +522,50 @@ void main() {
       currencyCode: 'KRW',
     );
 
+    test('스토어를 끼워 실제 길을 돈다 — 상품을 읽고, 산 것은 증거로 넘기고 닫고, 복원은 스토어에 묻는다', () async {
+      final store = _FakeStore()
+        ..products = [
+          product('com.tskim.workoutlog.yearly', '₩29,000'),
+          product('com.tskim.workoutlog.lifetime', '₩99,000'),
+        ];
+      final purchases = Purchases(store: store);
+      addTearDown(purchases.dispose);
+      expect(await purchases.start(), isTrue);
+      expect(store.asked, {
+        'com.tskim.workoutlog.yearly',
+        'com.tskim.workoutlog.monthly',
+      });
+      expect(purchases.offers.keys, [Plan.yearly], reason: '평생 이용권은 팔지 않는다');
+      expect(purchases.offers[Plan.yearly]!.price, '₩29,000');
+
+      final proofs = <PurchaseProof>[];
+      purchases.proofs.listen(proofs.add);
+      final bought = PurchaseDetails(
+        purchaseID: '2000000123',
+        productID: 'com.tskim.workoutlog.yearly',
+        verificationData: PurchaseVerificationData(
+          localVerificationData: '{}',
+          serverVerificationData: 'jws',
+          source: 'app_store',
+        ),
+        transactionDate: null,
+        status: PurchaseStatus.purchased,
+      )..pendingCompletePurchase = true;
+      store.updates.add([bought]);
+      await Future<void>.delayed(Duration.zero);
+      expect(proofs, [(plan: Plan.yearly, token: '2000000123', apple: true)]);
+      expect(store.completed, [bought], reason: '스토어는 닫을 때까지 같은 구매를 다시 준다');
+
+      await purchases.restore();
+      expect(store.restores, 1);
+
+      // 결제 채널이 없는 기기 — 팔 것이 없다고 답하고 지나간다.
+      final none = Purchases(store: _FakeStore()..available = false);
+      addTearDown(none.dispose);
+      expect(await none.start(), isFalse);
+      expect(none.offers, isEmpty);
+    });
+
     testWidgets('값이 있는 요금제만 판다 — 체험 문구는 없다', (tester) async {
       final purchases = Purchases()
         ..offers = {
@@ -627,4 +672,39 @@ void main() {
       });
     }
   });
+}
+
+/// 결제 채널 대신 끼우는 스토어. 물은 것과 닫은 것을 적어 둔다.
+class _FakeStore implements InAppPurchase {
+  var available = true;
+  List<ProductDetails> products = const [];
+  Set<String>? asked;
+  final updates = StreamController<List<PurchaseDetails>>.broadcast();
+  final completed = <PurchaseDetails>[];
+  var restores = 0;
+
+  @override
+  Future<bool> isAvailable() async => available;
+
+  @override
+  Future<ProductDetailsResponse> queryProductDetails(
+    Set<String> identifiers,
+  ) async {
+    asked = identifiers;
+    return ProductDetailsResponse(productDetails: products, notFoundIDs: []);
+  }
+
+  @override
+  Stream<List<PurchaseDetails>> get purchaseStream => updates.stream;
+
+  @override
+  Future<void> completePurchase(PurchaseDetails purchase) async =>
+      completed.add(purchase);
+
+  @override
+  Future<void> restorePurchases({String? applicationUserName}) async =>
+      restores++;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
