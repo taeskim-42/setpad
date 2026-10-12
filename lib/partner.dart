@@ -1156,13 +1156,20 @@ class PartnerSync extends ChangeNotifier {
     }
   }
 
-  /// 화면이 보이는 동안만 돈다. 백그라운드에서 연결을 유지한다고 하지 않는다.
+  /// 화면이 보이는 동안, 열린 같이 하기가 있을 때만 돈다. 백그라운드에서 연결을
+  /// 유지한다고 하지 않는다.
   void start() {
+    // 열린 세션이 없으면 물을 것도 들을 것도 없다. 편집기는 앱을 다시 올릴 때마다
+    // 부르므로, 여기서 막지 않으면 혼자 쓰는 기록에서도 2초 타이머가 돈다. 세션이
+    // 열리면 편집기가 다시 부른다.
     // 다른 계정이 연 같이 하기는 이 토큰으로 물을 수 없다(서버는 404). 주인이 다시
     // 로그인해 열면 그때 돈다(Note.owner).
-    if (_disposed || !note.ownedBy(link().userId)) return;
-    // 이미 돌고 있어도 스트림은 연다 — 세션이 없을 때 시작했다가 초대·참여한
-    // 경우다(그때는 열 세션이 없어 듣지 못했다).
+    if (_disposed ||
+        !(session?.open ?? false) ||
+        !note.ownedBy(link().userId)) {
+      return;
+    }
+    // 이미 돌고 있으면 스트림만 본다 — 끊겨 있으면 다시 연다.
     if (_poll != null) {
       // 다시 열기로 한 때를 기다리는 중이면 앞당기지 않는다.
       if (_reconnect?.isActive != true) _listen();

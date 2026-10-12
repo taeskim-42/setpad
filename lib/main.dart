@@ -898,7 +898,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
           }
         });
     // 다시 들어왔을 때 서버에 상태를 물어 복구한다(열린 세션이 있을 때만 돈다).
-    if (widget.note.partner?.open ?? false) _partner?.start();
+    _partner?.start();
   }
 
   /// 오늘 한 장 — 그날 한 세트 전부, 먹은 것, 섭취−운동을 한 화면에.

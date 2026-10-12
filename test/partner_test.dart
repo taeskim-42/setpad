@@ -2,6 +2,7 @@
 //
 // 서버는 lib/partner-sessions.ts 와 같은 규칙의 가짜다. 진짜 서버의 규칙은
 // gymdojo 의 partner-sessions.test.ts 가 실제 Postgres 로 지킨다.
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -850,6 +851,29 @@ void main() {
     await sora.refresh();
     expect(mina.note.partner!.state, PartnerState.active);
     expect(server.sessions.values.single['ended'], isNull);
+  });
+
+  test('열린 같이 하기가 없으면 start() 해도 2초 폴링이 걸리지 않는다 — 편집기는 앱을 올릴 때마다 부른다', () async {
+    final server = FakeServer();
+    final mina = Phone(server, '미나', 'a13'), jun = Phone(server, '준', 'b13');
+    addTearDown(mina.sync.dispose);
+    addTearDown(jun.sync.dispose);
+    var polls = 0;
+    void start(PartnerSync sync) => runZoned(
+      sync.start,
+      zoneSpecification: ZoneSpecification(
+        createPeriodicTimer: (self, parent, zone, period, tick) {
+          polls++;
+          return parent.createPeriodicTimer(zone, period, tick);
+        },
+      ),
+    );
+
+    start(jun.sync);
+    expect(polls, 0, reason: '혼자 쓰는 기록이다');
+    await mina.sync.invite();
+    start(mina.sync);
+    expect(polls, 1, reason: '초대를 연 기록은 돈다');
   });
 
   test('저장된 기록은 같이 하기가 없던 시절 것도 그대로 읽힌다', () {
