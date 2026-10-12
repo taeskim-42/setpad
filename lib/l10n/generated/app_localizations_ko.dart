@@ -3454,4 +3454,10 @@ class LKo extends L {
   String shareSendAsk(String gym) {
     return '오늘 $gym에서 한 운동으로 트레이너에게 보낼까요? 출석으로도 남아요.';
   }
+
+  @override
+  String get aiBusy => '지금 AI 가 붐벼요. 잠시 뒤 다시 해 주세요.';
+
+  @override
+  String get aiBudgetExhausted => '오늘 쓸 수 있는 AI 몫이 다 찼어요. 내일 다시 쓸 수 있어요.';
 }

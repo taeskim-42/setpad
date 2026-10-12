@@ -3598,4 +3598,12 @@ class LEs extends L {
   String shareSendAsk(String gym) {
     return '¿Enviar esto a tu entrenador como el entrenamiento de hoy en $gym? También cuenta como asistencia.';
   }
+
+  @override
+  String get aiBusy =>
+      'La IA está ocupada en este momento. Vuelve a intentarlo en un momento.';
+
+  @override
+  String get aiBudgetExhausted =>
+      'Se agotó la capacidad de IA de hoy. Podrás volver a usarla mañana.';
 }

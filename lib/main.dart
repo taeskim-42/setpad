@@ -885,6 +885,9 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
         failure = switch ((e.status, e.code)) {
           (RecordAiStatus.aiOff, _) => l.aiOff,
           (RecordAiStatus.quotaExceeded, _) => l.inputQuotaSpent,
+          // 붐빔·오늘 몫 소진은 연결 문제가 아니다(계약 C1).
+          (RecordAiStatus.busy, _) => l.aiBusy,
+          (RecordAiStatus.budgetExhausted, _) => l.aiBudgetExhausted,
           (_, 'unknownFood' || 'notFood') => l.mealTextUnknown,
           (_, 'ambiguousAmount') => l.mealTextNeedsReview,
           // 서버도 적은 합보다 작은 어림을 내보내지 않는다 — 아래의 같은 까닭이다.
@@ -1675,6 +1678,8 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
         text: switch (e.status) {
           RecordAiStatus.quotaExceeded => l.inputQuotaSpent,
           RecordAiStatus.aiOff => l.aiOffPhoto,
+          RecordAiStatus.busy => l.aiBusy,
+          RecordAiStatus.budgetExhausted => l.aiBudgetExhausted,
           _ => l.mealFailed,
         },
         meal: null,

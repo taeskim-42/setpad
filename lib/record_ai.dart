@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 
 import 'api_route.dart';
 import 'body.dart';
+import 'l10n/generated/app_localizations.dart';
 import 'meal.dart';
 
 import 'parser.dart';
@@ -40,7 +41,23 @@ enum RecordAiStatus {
   /// 사람이 AI 도움(DeepSeek)을 꺼 두었다. 아무것도 보내지 않았다 — 친 글과
   /// 적은 kcal 은 그대로 쓴다. 설정에서 켠다.
   aiOff,
+
+  /// 서버의 AI 가 붐빈다(동시 부름이 다 찼다, 503 busy). 한 번 쉬었다 다시 물어도
+  /// 그랬다. 연결 문제가 아니다 — 잠시 뒤 다시 하면 된다.
+  busy,
+
+  /// 오늘 쓸 수 있는 AI 몫이 다 찼다(서비스 전체·이 주소의 하루 한도, 429). 한국 시각
+  /// 자정에 풀린다. 연결 문제가 아니다.
+  budgetExhausted,
 }
+
+/// 서버가 AI 를 거절한 까닭의 문구 — 붐빔·오늘 몫 소진(계약 C1). '연결이 안 된다' 고
+/// 말하지 않는다. 그 밖의 실패면 null 이고, 화면이 제 말을 한다.
+String? refusalText(L l, RecordAiStatus? status) => switch (status) {
+  RecordAiStatus.busy => l.aiBusy,
+  RecordAiStatus.budgetExhausted => l.aiBudgetExhausted,
+  _ => null,
+};
 
 /// 사진 한 장의 어림 칼로리와 알아본 음식.
 class MealEstimate {
@@ -947,21 +964,46 @@ class RecordAi {
         if (response.statusCode == 402) {
           throw const RecordAiException(RecordAiStatus.noPlates);
         }
-        // 오늘 적기 도움을 다 쓴 것(scope: input)만 한도 소진이다. 같은 IP
-        // (헬스장 와이파이)나 서버 전체의 하루 한도는 내일 풀린다 — 실패로 둔다.
+        // 서버가 까닭을 적었으면 싣는다 — '모르는 음식' 과 '연결 안 됨' 은 할 말이 다르다.
+        // 원판이 실려 왔으면 모델은 불렸고 값이 나갔다(502 upstream: 답이 깨짐).
+        final error = body is Map && body['error'] is String
+            ? body['error'] as String
+            : null;
+        final charged = body is Map && body['plates'] is Map;
+        // 오늘 적기 도움을 다 쓴 것(scope: input)은 이 사람의 한도다.
         if (response.statusCode == 429 &&
             body is Map &&
             body['scope'] == 'input') {
           throw const RecordAiException(RecordAiStatus.quotaExceeded);
         }
-        // 서버가 까닭을 적었으면 싣는다 — '모르는 음식' 과 '연결 안 됨' 은 할 말이 다르다.
-        // 원판이 실려 왔으면 모델은 불렸고 값이 나갔다(502 upstream: 답이 깨짐).
+        // 그 밖의 429 는 하루 몫이다 — 서비스 전체(budgetExhausted)나 이 주소(헬스장
+        // 와이파이)의 오늘 몫이 찼고 한국 자정에 풀린다. 연결 문제가 아니다(계약 C1).
+        if (response.statusCode == 429 || error == 'budgetExhausted') {
+          throw RecordAiException(
+            RecordAiStatus.budgetExhausted,
+            code: error,
+            charged: charged,
+          );
+        }
+        // 붐빈다(동시 부름이 찼다). 원판이 나가지 않았으면 서버가 말한 만큼(길어야 10초)
+        // 쉬고 한 번만 다시 묻는다 — 몰린 순간을 넘기고, 사람이 다시 누를 일을 던다.
+        // 부르는 쪽이 그만큼 기다리지 않으면(끼니 판단의 몇 초) 다시 묻지 않는다.
+        if (error == 'busy') {
+          final wait = _busyWait(response);
+          if (attempt == 0 && !charged && wait < timeout) {
+            await Future<void>.delayed(wait);
+            continue;
+          }
+          throw RecordAiException(
+            RecordAiStatus.busy,
+            code: error,
+            charged: charged,
+          );
+        }
         throw RecordAiException(
           RecordAiStatus.unavailable,
-          code: body is Map && body['error'] is String
-              ? body['error'] as String
-              : null,
-          charged: body is Map && body['plates'] is Map,
+          code: error,
+          charged: charged,
         );
       }
       throw const RecordAiException(RecordAiStatus.unavailable);
@@ -971,6 +1013,13 @@ class RecordAi {
       // TLS(HandshakeException)·소켓은 ClientException 으로 싸이지 않고 온다.
       throw const RecordAiException(RecordAiStatus.unavailable, offline: true);
     }
+  }
+
+  /// 붐빈다는 답(503 busy) 뒤에 다시 묻기까지 — 서버가 Retry-After 로 말한 만큼, 길어야 10초.
+  static Duration _busyWait(http.BaseResponse response) {
+    const most = Duration(seconds: 10);
+    final hint = retryAfter(response);
+    return hint == null || hint > most ? most : hint;
   }
 
   /// 답에 원판 잔액이 있으면 알린다. 질문의 답은 `plates` 안에, 지갑 조회와

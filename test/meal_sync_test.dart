@@ -789,6 +789,50 @@ void main() {
     },
   );
 
+  testWidgets('끼니 어림이 붐빔·오늘 몫 소진으로 거절되면 연결 문구가 아니라 그 까닭을 말한다(C1)', (
+    tester,
+  ) async {
+    final dir = Directory.systemTemp.createTempSync('setpad_meal_refused_');
+    final store = NotesStore(directory: dir);
+    addTearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+    final l = lookupL(const Locale('ko'));
+    var refusal = RecordAiStatus.busy;
+    final ai = FakeAi((_) async => throw RecordAiException(refusal));
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: EditorPage(store: store, note: store.create(), ai: ai),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _confirmMeal(tester);
+    Future<void> logMeal(String text) async {
+      await tester.tap(find.byKey(const ValueKey('meal-button')));
+      await tester.pumpAndSettle();
+      await _confirmMeal(tester);
+      await tester.tap(find.byKey(const ValueKey('meal-text-toggle')));
+      await tester.pumpAndSettle();
+      await _confirmMeal(tester);
+      await tester.enterText(find.byType(CupertinoTextField), text);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      await _confirmMeal(tester);
+    }
+
+    await logMeal('김밥');
+    expect(find.text(l.aiBusy), findsOneWidget);
+    expect(find.text(l.mealTextOffline), findsNothing);
+    refusal = RecordAiStatus.budgetExhausted;
+    await logMeal('라면');
+    expect(find.text(l.aiBudgetExhausted), findsOneWidget);
+    expect(find.text(l.mealTextOffline), findsNothing);
+  });
+
   testWidgets('C·끼니 어림 실패 말은 사람이 그 끼니를 고치거나 지우면 사라진다', (tester) async {
     final dir = Directory.systemTemp.createTempSync('setpad_meal_stale_');
     final store = NotesStore(directory: dir);

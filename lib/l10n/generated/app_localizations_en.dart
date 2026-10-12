@@ -3574,4 +3574,12 @@ class LEn extends L {
   String shareSendAsk(String gym) {
     return 'Send this to your trainer as today\'s workout at $gym? It also counts as a visit.';
   }
+
+  @override
+  String get aiBusy =>
+      'The AI is busy right now. Please try again in a moment.';
+
+  @override
+  String get aiBudgetExhausted =>
+      'Today\'s AI capacity is used up. You can use it again tomorrow.';
 }

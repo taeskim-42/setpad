@@ -3530,4 +3530,11 @@ class LTh extends L {
   String shareSendAsk(String gym) {
     return 'ส่งบันทึกนี้ให้เทรนเนอร์เป็นการออกกำลังกายวันนี้ที่ $gym ไหม? จะนับเป็นการเข้ายิมด้วย';
   }
+
+  @override
+  String get aiBusy => 'ขณะนี้ AI มีผู้ใช้งานมาก โปรดลองอีกครั้งในอีกสักครู่';
+
+  @override
+  String get aiBudgetExhausted =>
+      'วันนี้ใช้ AI ครบโควตาแล้ว พรุ่งนี้ใช้ได้อีกครั้ง';
 }

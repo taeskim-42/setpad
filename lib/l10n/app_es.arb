@@ -854,5 +854,7 @@
   "shareMealsSetting": "Compartir comidas con mi entrenador",
   "shareMealsNote": "Desde el día en que lo actives, tu entrenador de {gym} también verá las comidas que registres los días que no vayas al gimnasio. Los registros de los días en que acercas el teléfono a la pegatina se comparten de todos modos.",
   "shareSend": "Enviar a mi entrenador",
-  "shareSendAsk": "¿Enviar esto a tu entrenador como el entrenamiento de hoy en {gym}? También cuenta como asistencia."
+  "shareSendAsk": "¿Enviar esto a tu entrenador como el entrenamiento de hoy en {gym}? También cuenta como asistencia.",
+  "aiBusy": "La IA está ocupada en este momento. Vuelve a intentarlo en un momento.",
+  "aiBudgetExhausted": "Se agotó la capacidad de IA de hoy. Podrás volver a usarla mañana."
 }

@@ -9,6 +9,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/query_cache.dart';
 import 'package:setpad/quantities.dart';
 import 'package:setpad/record_query.dart';
+import 'package:setpad/routine.dart';
 import 'package:setpad/stats.dart';
 
 import 'package:setpad/record_ai.dart';
@@ -1544,6 +1545,49 @@ void main() {
         (true, false, null),
       );
       search.dispose();
+    });
+
+    test('붐비거나 오늘 AI 몫이 차면 연결 실패가 아니라 그 까닭이다 — 기록 질문도 루틴 지시문도(C1)', () async {
+      var reply = http.Response(
+        jsonEncode({'error': 'busy'}),
+        503,
+        headers: {'retry-after': '0'},
+      );
+      final ai = RecordAi(
+        endpoint: 'https://example.test',
+        accountToken: () => 'account',
+        client: MockClient((_) async => reply),
+      );
+      final search = RecordSearch(ai, cache: QueryCache(directory: _temp()));
+      // 답을 기다린다 — 캐시는 진짜 파일이라 몇 바퀴에 끝날지 정해져 있지 않다.
+      Future<void> answered() async {
+        for (var i = 0; i < 400 && search.busy; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+        }
+      }
+
+      await search.refresh('ko');
+      search.search('스쿼트 최고', 'ko', names, 'kg', immediately: true);
+      await answered();
+      expect(
+        (search.refused, search.failed, search.offline),
+        (RecordAiStatus.busy, false, false),
+      );
+      reply = http.Response(jsonEncode({'error': 'budgetExhausted'}), 429);
+      search.search('벤치프레스 최고', 'ko', names, 'kg', immediately: true);
+      await answered();
+      expect(
+        (search.refused, search.failed),
+        (RecordAiStatus.budgetExhausted, false),
+      );
+      final routine = RoutineSearch(ai, cache: QueryCache(directory: _temp()));
+      await routine.submit('하체로 짜줘', 'ko', 'kg', names);
+      expect(
+        (routine.refused, routine.failed, routine.status),
+        (RecordAiStatus.budgetExhausted, false, RecordAiStatus.ready),
+      );
+      search.dispose();
+      routine.dispose();
     });
 
     test('1단계가 모델 쪽에서 실패하면 한 지시문으로 묻고, 쓴 원판은 두 부름의 합이다', () async {

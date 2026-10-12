@@ -1577,7 +1577,7 @@ void main() {
     expect(find.byKey(const ValueKey('setup-merge')), findsNothing);
   });
 
-  test('429 중 IP 하루 한도는 적기 도움 한도가 아니다', () async {
+  test('429 중 IP 하루 한도는 적기 도움 한도가 아니라 오늘 AI 몫 소진이다', () async {
     Future<RecordAiStatus?> statusOf(Map<String, Object?> body) async {
       final ai = RecordAi(
         endpoint: 'https://example.com',
@@ -1606,7 +1606,7 @@ void main() {
         'limit': 300,
         'scope': 'address',
       }),
-      RecordAiStatus.unavailable,
+      RecordAiStatus.budgetExhausted,
     );
   });
 

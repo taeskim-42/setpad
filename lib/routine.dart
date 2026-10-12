@@ -3518,6 +3518,10 @@ class RoutineSearch extends ChangeNotifier {
       _disposed = false;
   int _version = 0;
 
+  /// 서버가 AI 를 거절했다 — 붐빔이나 오늘 몫 소진. 연결 문제가 아니라 그렇게 말하고
+  /// ([refusalText]), 다시 시도할 수 있다.
+  RecordAiStatus? refused;
+
   /// 글(담는 열쇠)마다 깨진 답을 받은 횟수.
   final _broken = <String, int>{};
 
@@ -3532,6 +3536,7 @@ class RoutineSearch extends ChangeNotifier {
     answer = null;
     busy = failed = aiOff = noPlates = charged = chargedBefore = tooLong =
         misread = retry = false;
+    refused = null;
   }
 
   /// 치는 중 — 담아 둔 답만 본다. 원판은 나가지 않는다.
@@ -3561,12 +3566,14 @@ class RoutineSearch extends ChangeNotifier {
       tooLong = t.length > maxQuestionLength;
       misread = !tooLong;
       retry = failed = aiOff = noPlates = false;
+      refused = null;
       if (!_disposed) notifyListeners();
       return;
     }
     final version = ++_version;
     busy = true;
     failed = aiOff = noPlates = misread = retry = false;
+    refused = null;
     notifyListeners();
     await _cache.load();
     answer ??= _cache[key];
@@ -3627,6 +3634,15 @@ class RoutineSearch extends ChangeNotifier {
       } else if (e is RecordAiException && e.status == RecordAiStatus.aiOff) {
         // AI 도움을 꺼 두었다. 아무것도 보내지 않았다 — 기기가 기록으로만 짠다.
         aiOff = true;
+      } else if (e is RecordAiException &&
+          (e.status == RecordAiStatus.busy ||
+              e.status == RecordAiStatus.budgetExhausted)) {
+        // 붐비거나 오늘 몫이 찼다. 연결이 아니다 — 서버는 닿았다.
+        refused = e.status;
+        if (e.charged) {
+          charged = true;
+          _charged.add(key);
+        }
       } else if (e is RecordAiException && e.charged) {
         // 서버는 모델을 불렀고 원판이 나갔는데 답이 깨졌다(502 upstream). 연결이 아니다.
         broken();

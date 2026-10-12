@@ -206,11 +206,13 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
           mime: _mime(image),
         ),
     ];
-    // One source that cannot be read does not cost the others.
+    // One source that cannot be read does not cost the others. A refusal for the
+    // whole day (input help used up, today's AI capacity) or a busy server is not
+    // that source's fault: the rest would be refused too, so stop and say why.
     var failed = 0;
-    var spent = false;
+    String? stopped;
     for (final read in sources) {
-      if (spent) {
+      if (stopped != null) {
         failed++;
         continue;
       }
@@ -218,7 +220,9 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
         _readResult(await read(), workouts, unparsed);
       } on RecordAiException catch (e) {
         failed++;
-        spent = e.status == RecordAiStatus.quotaExceeded;
+        stopped = e.status == RecordAiStatus.quotaExceeded
+            ? l.inputQuotaSpent
+            : refusalText(l, e.status);
       } catch (_) {
         failed++;
       }
@@ -232,17 +236,14 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
     setState(() {
       _busy = false;
       if (workouts.isEmpty) {
-        _error = spent ? l.inputQuotaSpent : l.workoutImportFailed;
+        _error = stopped ?? l.workoutImportFailed;
         return;
       }
       _workouts = workouts;
       _unparsed = unparsed;
       _error = failed == 0
           ? null
-          : [
-              l.workoutImportPartial(failed),
-              if (spent) l.inputQuotaSpent,
-            ].join('\n');
+          : [l.workoutImportPartial(failed), ?stopped].join('\n');
     });
   }
 

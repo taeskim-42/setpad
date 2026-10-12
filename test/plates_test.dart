@@ -161,7 +161,7 @@ void main() {
       ));
     });
 
-    test('429 는 적기 도움(input)만 한도 소진이고 나머지는 실패다', () async {
+    test('429 는 적기 도움(input)이면 그 사람의 한도, 나머지는 오늘 AI 몫 소진이다', () async {
       expect(
         (await statusOf(429, {
           'error': 'quotaExceeded',
@@ -170,18 +170,97 @@ void main() {
         })).$1,
         RecordAiStatus.quotaExceeded,
       );
-      for (final scope in ['address', 'global', null]) {
+      // 이 주소(헬스장 와이파이)·서비스 전체의 하루 몫 — 연결 문제가 아니다(C1).
+      for (final body in <Map<String, Object?>>[
+        {'error': 'quotaExceeded', 'scope': 'address', 'limit': 300},
+        {'error': 'quotaExceeded', 'limit': 300},
+        {'error': 'budgetExhausted'},
+      ]) {
         expect(
-          (await statusOf(429, {
-            'error': 'quotaExceeded',
-            'scope': ?scope,
-            'limit': 300,
-          })).$1,
-          RecordAiStatus.unavailable,
-          reason: '$scope',
+          (await statusOf(429, body)).$1,
+          RecordAiStatus.budgetExhausted,
+          reason: '$body',
         );
       }
+      // 몫을 나누기 전의 서버는 하루 전체 몫이 차면 503 budgetExhausted 였다.
+      expect(
+        (await statusOf(503, {'error': 'budgetExhausted'})).$1,
+        RecordAiStatus.budgetExhausted,
+      );
     });
+
+    test(
+      '붐비면(503 busy) Retry-After 만큼 쉬고 한 번만 다시 묻는다 — 또 붐비면 붐빈다고 한다',
+      () async {
+        Future<(List<int>, Object?)> run(
+          List<http.Response> replies, {
+          Duration timeout = const Duration(seconds: 40),
+        }) async {
+          final sent = <int>[];
+          final ai = RecordAi(
+            endpoint: 'https://example.test',
+            accountToken: () => 'account-token',
+            client: MockClient((request) async {
+              sent.add(sent.length);
+              return replies[sent.length - 1];
+            }),
+          );
+          try {
+            return (
+              sent,
+              await ai.ask('i', 'q', contract: 2, timeout: timeout),
+            );
+          } catch (e) {
+            return (sent, e);
+          }
+        }
+
+        http.Response busy({Map<String, Object?>? plates}) => http.Response(
+          jsonEncode({'error': 'busy', 'plates': ?plates}),
+          503,
+          headers: {'retry-after': '0'},
+        );
+        final ok = _json({'intent': 'plan'}, 200);
+
+        var (sent, got) = await run([busy(), ok]);
+        expect((sent.length, got), (2, 'plan'), reason: '두 번째에 받는다');
+
+        (sent, got) = await run([busy(), busy()]);
+        expect(sent, hasLength(2), reason: '다시 묻는 것은 한 번뿐이다');
+        expect(
+          got,
+          isA<RecordAiException>()
+              .having((e) => e.status, 'status', RecordAiStatus.busy)
+              .having((e) => e.offline, 'offline', isFalse),
+        );
+
+        // 원판이 이미 나간 붐빔은 다시 묻지 않는다 — 또 사는 것은 사람이 정한다.
+        (sent, got) = await run([
+          busy(plates: {'spent': 0.5, 'balance': 4.5}),
+          ok,
+        ]);
+        expect(sent, hasLength(1));
+        expect(
+          got,
+          isA<RecordAiException>().having((e) => e.charged, 'charged', isTrue),
+        );
+
+        // 기다릴 수 있는 것보다 오래 쉬라고 하면(끼니 판단의 몇 초) 다시 묻지 않는다.
+        (sent, got) = await run([
+          http.Response('{"error":"busy"}', 503, headers: {'retry-after': '5'}),
+          ok,
+        ], timeout: const Duration(seconds: 3));
+        expect(sent, hasLength(1));
+        expect(
+          got,
+          isA<RecordAiException>().having(
+            (e) => e.status,
+            'status',
+            RecordAiStatus.busy,
+          ),
+        );
+      },
+    );
 
     test('질문에 쓴 원판과 남은 원판을 받는다', () async {
       final account = Account(

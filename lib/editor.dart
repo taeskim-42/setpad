@@ -1738,6 +1738,10 @@ class _RoutineEditorState extends State<RoutineEditor>
     RecordAiException(status: RecordAiStatus.quotaExceeded) =>
       (l) => l.aiFallbackQuota,
     RecordAiException(status: RecordAiStatus.aiOff) => (l) => l.aiOff,
+    // 붐빔·오늘 몫 소진은 연결 문제가 아니다(계약 C1).
+    RecordAiException(status: RecordAiStatus.busy) => (l) => l.aiBusy,
+    RecordAiException(status: RecordAiStatus.budgetExhausted) =>
+      (l) => l.aiBudgetExhausted,
     RecordAiException(offline: true) => (l) => l.aiFallbackOffline,
     RecordAiException() => (l) => l.aiFallbackServer,
     _ => (l) => l.aiFallbackUnread,

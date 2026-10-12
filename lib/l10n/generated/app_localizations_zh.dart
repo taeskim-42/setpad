@@ -3418,6 +3418,12 @@ class LZh extends L {
   String shareSendAsk(String gym) {
     return '要把这条记录作为今天在$gym的训练发送给教练吗？也会记为一次到店。';
   }
+
+  @override
+  String get aiBusy => 'AI 现在很忙，请稍后再试。';
+
+  @override
+  String get aiBudgetExhausted => '今天的 AI 额度已用完，明天可以再用。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6834,6 +6840,12 @@ class LZhHans extends LZh {
   String shareSendAsk(String gym) {
     return '要把这条记录作为今天在$gym的训练发送给教练吗？也会记为一次到店。';
   }
+
+  @override
+  String get aiBusy => 'AI 现在很忙，请稍后再试。';
+
+  @override
+  String get aiBudgetExhausted => '今天的 AI 额度已用完，明天可以再用。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10250,4 +10262,10 @@ class LZhHant extends LZh {
   String shareSendAsk(String gym) {
     return '要把這筆紀錄當作今天在$gym的訓練傳送給教練嗎？也會記為一次到館。';
   }
+
+  @override
+  String get aiBusy => 'AI 現在很忙，請稍後再試。';
+
+  @override
+  String get aiBudgetExhausted => '今天的 AI 額度已用完，明天可以再用。';
 }

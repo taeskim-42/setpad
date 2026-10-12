@@ -3448,4 +3448,10 @@ class LJa extends L {
   String shareSendAsk(String gym) {
     return '今日$gymでした運動としてトレーナーに送りますか？来館としても記録されます。';
   }
+
+  @override
+  String get aiBusy => 'いまAIが混み合っています。少し待ってからもう一度お試しください。';
+
+  @override
+  String get aiBudgetExhausted => '本日利用できるAIの上限に達しました。明日また使えます。';
 }

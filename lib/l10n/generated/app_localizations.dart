@@ -5148,6 +5148,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'오늘 {gym}에서 한 운동으로 트레이너에게 보낼까요? 출석으로도 남아요.'**
   String shareSendAsk(String gym);
+
+  /// 서버의 AI 가 붐빈다(503 busy). 한 번 쉬었다 다시 물어도 그랬다. 연결 문제로 말하지 않는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금 AI 가 붐벼요. 잠시 뒤 다시 해 주세요.'**
+  String get aiBusy;
+
+  /// 오늘 쓸 수 있는 AI 몫이 다 찼다(서비스 전체·이 주소의 하루 한도, 429). 한국 자정에 풀린다.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 쓸 수 있는 AI 몫이 다 찼어요. 내일 다시 쓸 수 있어요.'**
+  String get aiBudgetExhausted;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

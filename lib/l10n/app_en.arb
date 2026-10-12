@@ -854,5 +854,7 @@
   "shareMealsSetting": "Share meals with my trainer",
   "shareMealsNote": "From the day you turn this on, your {gym} trainer also sees meals you log on days you don't go to the gym. Records from days you tap the sticker are shared either way.",
   "shareSend": "Send to my trainer",
-  "shareSendAsk": "Send this to your trainer as today's workout at {gym}? It also counts as a visit."
+  "shareSendAsk": "Send this to your trainer as today's workout at {gym}? It also counts as a visit.",
+  "aiBusy": "The AI is busy right now. Please try again in a moment.",
+  "aiBudgetExhausted": "Today's AI capacity is used up. You can use it again tomorrow."
 }

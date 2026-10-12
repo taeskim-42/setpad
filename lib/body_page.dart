@@ -72,11 +72,14 @@ class _BodyPageState extends State<BodyPage> {
     } on RecordAiException catch (e) {
       if (mounted) {
         setState(
-          () => _scanError = e.status == RecordAiStatus.quotaExceeded
-              ? l.inputQuotaSpent
-              : e.status == RecordAiStatus.aiOff
-              ? l.aiOffPhoto
-              : l.bodyScanFailed,
+          () => _scanError = switch (e.status) {
+            RecordAiStatus.quotaExceeded => l.inputQuotaSpent,
+            RecordAiStatus.aiOff => l.aiOffPhoto,
+            // 붐빔·오늘 몫 소진은 결과지를 못 읽은 것이 아니다(계약 C1).
+            RecordAiStatus.busy => l.aiBusy,
+            RecordAiStatus.budgetExhausted => l.aiBudgetExhausted,
+            _ => l.bodyScanFailed,
+          },
         );
       }
     } catch (_) {

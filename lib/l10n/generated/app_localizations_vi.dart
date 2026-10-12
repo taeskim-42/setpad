@@ -3555,4 +3555,11 @@ class LVi extends L {
   String shareSendAsk(String gym) {
     return 'Gửi bản ghi này cho huấn luyện viên như buổi tập hôm nay tại $gym? Cũng sẽ được tính là một lần đến phòng tập.';
   }
+
+  @override
+  String get aiBusy => 'AI đang bận. Vui lòng thử lại sau giây lát.';
+
+  @override
+  String get aiBudgetExhausted =>
+      'Đã hết lượt AI hôm nay. Bạn có thể dùng lại vào ngày mai.';
 }

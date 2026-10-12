@@ -854,5 +854,7 @@
   "shareMealsSetting": "Chia sẻ bữa ăn với huấn luyện viên",
   "shareMealsNote": "Kể từ ngày bật, huấn luyện viên của {gym} cũng xem được các bữa ăn bạn ghi vào những ngày không đến phòng tập. Bản ghi của những ngày bạn chạm vào sticker vẫn được chia sẻ dù cài đặt thế nào.",
   "shareSend": "Gửi cho huấn luyện viên",
-  "shareSendAsk": "Gửi bản ghi này cho huấn luyện viên như buổi tập hôm nay tại {gym}? Cũng sẽ được tính là một lần đến phòng tập."
+  "shareSendAsk": "Gửi bản ghi này cho huấn luyện viên như buổi tập hôm nay tại {gym}? Cũng sẽ được tính là một lần đến phòng tập.",
+  "aiBusy": "AI đang bận. Vui lòng thử lại sau giây lát.",
+  "aiBudgetExhausted": "Đã hết lượt AI hôm nay. Bạn có thể dùng lại vào ngày mai."
 }

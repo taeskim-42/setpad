@@ -823,7 +823,14 @@ class _NotesListPageState extends State<NotesListPage>
         final mine = r.text == text;
         final failed =
             mine &&
-            (r.failed || r.noPlates || r.misread || r.tooLong || r.aiOff);
+            (r.failed ||
+                r.noPlates ||
+                r.misread ||
+                r.tooLong ||
+                r.aiOff ||
+                r.refused != null);
+        // 붐빔·오늘 몫 소진 — 연결 문구가 아니다(계약 C1).
+        final refusal = mine ? refusalText(l, r.refused) : null;
         if (r.busy) {
           status.add(l.routineWorking);
           return bare();
@@ -832,7 +839,8 @@ class _NotesListPageState extends State<NotesListPage>
         if (failed || misread) {
           // 까닭마다 다른 말(원칙 4): 연결 · 원판 없음 · 모델이 깨진 답 · 너무 긴 글.
           // 다시 시도는 연결 실패와 첫 깨진 답에만 — 긴 글은 다시 해도 같다.
-          final canRetry = mine && (r.failed || (r.misread && r.retry));
+          final canRetry =
+              mine && (r.failed || refusal != null || (r.misread && r.retry));
           RoutineAction retry() =>
               (label: l.routineRetry, onTap: () => _ask(immediately: true));
           if (medicalText(text)) {
@@ -850,13 +858,14 @@ class _NotesListPageState extends State<NotesListPage>
             status.add(
               mine && r.aiOff
                   ? l.aiOff
-                  : l.routineHeldBack(
-                      misread || (mine && r.misread)
-                          ? 'misread'
-                          : mine && r.noPlates
-                          ? 'noPlates'
-                          : 'offline',
-                    ),
+                  : refusal ??
+                        l.routineHeldBack(
+                          misread || (mine && r.misread)
+                              ? 'misread'
+                              : mine && r.noPlates
+                              ? 'noPlates'
+                              : 'offline',
+                        ),
             );
             actions.add(plain());
             if (canRetry) actions.add(retry());
@@ -866,11 +875,12 @@ class _NotesListPageState extends State<NotesListPage>
           status.add(
             mine && r.aiOff
                 ? l.aiOff
-                : misread || (mine && r.misread)
-                ? l.routineMisread
-                : mine && r.noPlates
-                ? l.routineNoPlates
-                : l.routineOffline,
+                : refusal ??
+                      (misread || (mine && r.misread)
+                          ? l.routineMisread
+                          : mine && r.noPlates
+                          ? l.routineNoPlates
+                          : l.routineOffline),
           );
           if (canRetry) actions.add(retry());
         } else {
@@ -982,6 +992,7 @@ class _NotesListPageState extends State<NotesListPage>
           _search.unreadable ||
           _search.noPlates ||
           _search.unrepresentable != null ||
+          _search.refused != null ||
           _search.tooLong ||
           _search.offline ||
           _search.aiOff);
@@ -1446,6 +1457,13 @@ class _NotesListPageState extends State<NotesListPage>
                                 if (_search.failed)
                                   Text(
                                     l.queryFailed,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                // 붐비거나 오늘 몫이 찼다 — 연결 문구가 아니다(계약 C1).
+                                if (refusalText(l, _search.refused)
+                                    case final refusal?)
+                                  Text(
+                                    refusal,
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 // 모델이 읽을 수 없는 답을 두 번 냈다 — 연결 문제가

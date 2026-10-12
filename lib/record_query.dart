@@ -4228,8 +4228,12 @@ extension RecordQueryAi on RecordAi {
     try {
       first = await plan();
     } on RecordAiException catch (e) {
-      // 2단계 답을 못 읽었어도 1단계(갈래 고르기)에 쓴 원판은 나갔다 — 화면이 그 값을 말한다.
-      if (e.code == 'unreadable' && spent.isNotEmpty) {
+      // 2단계 답을 못 읽었어도(붐벼 거절돼도) 1단계(갈래 고르기)에 쓴 원판은 나갔다 —
+      // 화면이 그 값을 말한다.
+      if (spent.isNotEmpty &&
+          (e.code == 'unreadable' ||
+              e.status == RecordAiStatus.busy ||
+              e.status == RecordAiStatus.budgetExhausted)) {
         throw RecordAiException(e.status, code: e.code, charged: true);
       }
       rethrow;
@@ -4673,6 +4677,10 @@ class RecordSearch extends ChangeNotifier {
   /// 물어도 같다 — "다시 시도" 가 아니라 무엇에 걸렸는지 말하고, 그 답을 담아
   /// 두어 원판이 또 나가지 않는다. 모델의 모양 실수는 이것이 아니라 [misread] 다.
   String? unrepresentable;
+
+  /// 서버가 AI 를 거절했다 — 붐빔([RecordAiStatus.busy])이나 오늘 몫 소진
+  /// ([RecordAiStatus.budgetExhausted]). 연결 문제가 아니라 그렇게 말한다([refusalText]).
+  RecordAiStatus? refused;
   int _version = 0;
   bool _generating = false;
   Future<void> _tail = Future.value();
@@ -4714,6 +4722,7 @@ class RecordSearch extends ChangeNotifier {
     noPlates = false;
     charged = false;
     unrepresentable = null;
+    refused = null;
     tooLong = false;
     offline = false;
     aiOff = false;
@@ -4842,6 +4851,12 @@ class RecordSearch extends ChangeNotifier {
               e.status == RecordAiStatus.aiOff) {
             // AI 도움을 꺼 두었다. 아무것도 보내지 않았고, 목록과 칩은 그대로다.
             aiOff = true;
+          } else if (e is RecordAiException &&
+              (e.status == RecordAiStatus.busy ||
+                  e.status == RecordAiStatus.budgetExhausted)) {
+            // 붐비거나 오늘 몫이 찼다. 연결이 아니다 — 그렇게 말한다.
+            refused = e.status;
+            charged = e.charged;
           } else {
             failed = true;
           }
