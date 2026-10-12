@@ -810,11 +810,22 @@ class PartnerSync extends ChangeNotifier {
     );
   }
 
+  /// 마지막으로 번호를 올린 내 기록(세션과 함께).
+  (String, String)? _lastRecord;
+
   /// 내 기록이 바뀌었다. 번호를 올려 **먼저 저장**하고, 조금 모아서 보낸다.
+  ///
+  /// 남이 고친 문서를 받아도 편집기가 다시 저장하며 여기로 온다. 내 기록이 그대로면
+  /// 올릴 것이 없다 — 그때마다 올리면 같이 하는 사람 수만큼 쓰기가 늘고, 그 쓰기마다
+  /// 모두에게 전체 상태가 다시 간다. 남이 더한 빈 운동 칸은 내 기록에도 있으니
+  /// ([mineOnly]) 그것은 바뀐 것이다.
   void recordChanged() {
     final s = session;
     if (s == null || !s.open) return;
     pushDoc();
+    final mine = (s.id, jsonEncode(docOf(mineOnly(note.blocks))));
+    if (mine == _lastRecord) return;
+    _lastRecord = mine;
     s.revision++;
     onChanged();
     _debounce?.cancel();

@@ -1033,6 +1033,36 @@ void main() {
     expect(waits.toSet().length, greaterThan(1), reason: '같은 순간에 몰리지 않는다');
   });
 
+  test('남이 고친 문서를 받아 다시 저장해도 내 기록이 그대로면 올리지 않는다', () async {
+    final server = FakeServer();
+    final mina = Phone(server, '미나', 'a14'), jun = Phone(server, '준', 'b14');
+    addTearDown(mina.sync.dispose);
+    addTearDown(jun.sync.dispose);
+    await mina.sync.invite();
+    await jun.sync.joinWithCode(mina.note.partner!.code!);
+    jun.log('풀업', LoggedSet(reps: 8));
+    await settle();
+    final puts = server.recordPuts, revision = jun.note.partner!.revision;
+    expect(puts, greaterThan(0));
+
+    // 미나의 세트가 같이 고치는 문서로 들어와 준의 편집기가 다시 저장했다. 준의 기록은
+    // 그대로다 — 옛 앱은 이때마다 번호를 올리고 같은 기록을 다시 올렸다.
+    jun.note.blocks.single.sets.add(LoggedSet(reps: 5, author: '미나'));
+    jun.sync.recordChanged();
+    jun.sync.recordChanged();
+    await settle();
+    expect(server.recordPuts, puts);
+    expect(jun.note.partner!.revision, revision);
+
+    // 남이 더한 빈 운동 칸은 같이 짠 목록이라 내 기록에도 있다 — 바뀐 것이다.
+    jun.note.blocks.add(ExerciseBlock('딥스'));
+    jun.sync.recordChanged();
+    await settle();
+    expect(server.recordPuts, puts + 1);
+    await mina.sync.refresh();
+    expect(mina.note.partner!.partnerBlocks.map((b) => b.name), ['풀업', '딥스']);
+  });
+
   test('편집기를 닫거나 앱을 내려 듣기를 그만두면 SSE 연결을 바로 끊는다 — 아무도 안 적는 쉬는 시간이어도', () async {
     // 진짜 소켓이다. 첫 상태 한 줄 다음에는 빈 줄(: keep)만 온다 — 상태가 안 바뀐다.
     final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
