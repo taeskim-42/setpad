@@ -373,10 +373,27 @@ extension PartnerLink on GymLink {
       _partner('PUT', '/api/partner-sessions/$id/presence', where);
 
   /// 서버가 밀어 주는 세션 상태(SSE). 한 줄이 한 상태다. 끊기면 스트림이 끝난다 —
-  /// 다시 여는 것은 부르는 쪽이 한다.
-  Stream<Map<String, Object?>> partnerEvents(String id) async* {
-    if (!supported) return;
+  /// 다시 여는 것은 부르는 쪽이 한다. 듣기를 그만두면(cancel) 연결을 바로 끊는다.
+  Stream<Map<String, Object?>> partnerEvents(String id) {
+    if (!supported) return const Stream.empty();
     final web = client ?? newApiClient();
+    StreamSubscription<Map<String, Object?>>? inner;
+    late final StreamController<Map<String, Object?>> out;
+    out = StreamController(
+      onListen: () =>
+          inner = _events(id, web).listen(out.add, onDone: out.close),
+      // async* 는 다음 data 줄에 닿아야 멈춘다. 쉬는 세션(빈 줄만 온다)이나 잠긴
+      // 아이폰이면 그때까지 소켓이 열려 있고, 서버는 그 스트림을 계속 읽는다. 지금
+      // 끊는다 — 서버는 끊김(abort)을 보고 멈춘다.
+      onCancel: () {
+        if (client == null) web.close();
+        return inner?.cancel();
+      },
+    );
+    return out.stream;
+  }
+
+  Stream<Map<String, Object?>> _events(String id, http.Client web) async* {
     try {
       final request = http.Request(
         'GET',

@@ -915,6 +915,53 @@ void main() {
     expect(states, greaterThan(1), reason: '쉬는 시간이 지나면 다시 묻는다');
   });
 
+  test('편집기를 닫거나 앱을 내려 듣기를 그만두면 SSE 연결을 바로 끊는다 — 아무도 안 적는 쉬는 시간이어도', () async {
+    // 진짜 소켓이다. 첫 상태 한 줄 다음에는 빈 줄(: keep)만 온다 — 상태가 안 바뀐다.
+    final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(server.close);
+    final hungUp = Completer<void>();
+    void gone([Object? _]) {
+      if (!hungUp.isCompleted) hungUp.complete();
+    }
+
+    server.listen((socket) {
+      socket
+        ..listen((_) {}, onDone: gone, onError: gone)
+        ..done.then(gone, onError: gone)
+        ..write(
+          'HTTP/1.1 200 OK\r\ncontent-type: text/event-stream\r\n'
+          'connection: close\r\n\r\n'
+          'data: {"id":"S1","state":"active"}\n\n',
+        );
+      final keep = Timer.periodic(
+        const Duration(milliseconds: 50),
+        (_) => socket.write(': keep\n\n'),
+      );
+      unawaited(
+        hungUp.future.then((_) {
+          keep.cancel();
+          socket.destroy();
+        }),
+      );
+    });
+    // 위젯 시험 바인딩은 HttpClient 를 400 만 주는 가짜로 바꿔 둔다. 이 시험은 진짜로 간다.
+    await HttpOverrides.runWithHttpOverrides(() async {
+      final link = GymLink(
+        endpoint: 'http://127.0.0.1:${server.port}',
+        token: 't',
+      );
+      final first = Completer<Map<String, Object?>>();
+      final events = link.partnerEvents('S1').listen(first.complete);
+      expect((await first.future)['id'], 'S1');
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(hungUp.isCompleted, isFalse, reason: '듣는 동안은 열려 있다');
+
+      unawaited(events.cancel());
+      // 옛 앱은 다음 data 줄이 올 때까지 소켓을 쥐고 있었다(그동안 서버는 계속 읽는다).
+      await hungUp.future.timeout(const Duration(seconds: 2));
+    }, _RealHttp());
+  });
+
   test('저장된 기록은 같이 하기가 없던 시절 것도 그대로 읽힌다', () {
     final old = Note.fromJson({
       'id': 'old',
@@ -935,3 +982,6 @@ void main() {
     expect(PartnerSession.tryFromJson({'nope': 1}), isNull);
   });
 }
+
+/// 진짜 [HttpClient] — 위젯 시험 바인딩이 깔아 둔 가짜(모든 요청에 400)를 이 영역에서만 걷는다.
+class _RealHttp extends HttpOverrides {}
