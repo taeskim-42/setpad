@@ -654,15 +654,15 @@ extension BookingLink on GymLink {
 ///
 /// 태그에는 `https://<서버>/c/<체육관 id>` 하나만 들어 있다. 로직도 배터리도
 /// 없고, 앱이 없는 사람은 그 주소가 웹으로 열린다 — 같은 스티커가 둘 다 된다.
+///
+/// **그 아래 주소는 스티커가 아니다.** `/c/<id>/classes`·`bookings`·`meals` 는 웹
+/// 화면이고, 앱 링크 설정(/c/ 아래 전부)이 그것까지 앱으로 넘긴다. 스티커로 읽으면
+/// 단톡방의 수업 링크를 누른 회원이 집에서 출석하거나 가입 신청이 나갔다.
 String? gymFromTag(Uri uri) {
-  final parts = uri.pathSegments;
-  if (parts.length >= 2 && parts.first == 'c' && parts[1].isNotEmpty) {
-    return parts[1];
-  }
+  final parts = uri.pathSegments.where((p) => p.isNotEmpty).toList();
+  if (parts.length == 2 && parts.first == 'c') return parts[1];
   // `setpad://c/<체육관 id>` — 웹 화면의 "앱에서 열기"가 이것으로 부른다.
   // 커스텀 스킴에서는 'c' 가 경로가 아니라 host 로 잡힌다.
-  if (uri.host == 'c' && parts.isNotEmpty && parts.first.isNotEmpty) {
-    return parts.first;
-  }
+  if (uri.host == 'c' && parts.length == 1) return parts.first;
   return null;
 }

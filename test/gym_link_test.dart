@@ -541,11 +541,22 @@ void _shared() {
 void _tags() {
   test('태그 주소에서 체육관을 꺼낸다', () {
     expect(gymFromTag(Uri.parse('https://example.com/c/abc-123')), 'abc-123');
-    // 뒤에 뭐가 더 붙어도 체육관은 같다.
-    expect(gymFromTag(Uri.parse('https://example.com/c/abc/classes')), 'abc');
+    expect(gymFromTag(Uri.parse('https://example.com/c/abc-123/')), 'abc-123');
+    expect(gymFromTag(Uri.parse('https://example.com/c/abc?src=nfc')), 'abc');
     // 웹 화면의 "앱에서 열기"가 부르는 모양. 여기서는 'c' 가 host 다.
     expect(gymFromTag(Uri.parse('setpad://c/abc-123')), 'abc-123');
     expect(gymFromTag(Uri.parse('setpad://c/')), isNull);
+  });
+
+  test('그 아래 웹 화면 링크는 스티커가 아니다 — 출석도 가입 신청도 하지 않는다', () {
+    for (final raw in [
+      'https://example.com/c/abc/classes',
+      'https://example.com/c/abc/bookings',
+      'https://example.com/c/abc/meals',
+      'setpad://c/abc/classes',
+    ]) {
+      expect(gymFromTag(Uri.parse(raw)), isNull, reason: raw);
+    }
   });
 
   test('체육관 주소가 아니면 아무것도 열지 않는다', () {
