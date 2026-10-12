@@ -61,4 +61,55 @@ void main() {
     await open(tester, member: false);
     expect(find.text('PT 예약'), findsNothing);
   });
+
+  testWidgets(
+    '제어 센터·알림 센터(inactive)만 거쳐 돌아오면 체육관·루틴을 다시 묻지 않는다 — 앱을 내렸다 오면 묻는다',
+    (tester) async {
+      final asked = <String>[];
+      final inner = server(member: true);
+      final account = Account(
+        client: MockClient((request) async {
+          asked.add(request.url.path);
+          return http.Response.fromStream(await inner.send(request));
+        }),
+      )..token = 'x';
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: NotesListPage(
+            store: NotesStore(),
+            account: account,
+            onOpen: (_) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      int gyms() => asked.where((p) => p.endsWith('/api/gyms')).length;
+      final before = gyms();
+
+      for (final state in [
+        AppLifecycleState.inactive,
+        AppLifecycleState.resumed,
+      ]) {
+        tester.binding.handleAppLifecycleStateChanged(state);
+      }
+      await tester.pumpAndSettle();
+      expect(gyms(), before);
+
+      for (final state in [
+        AppLifecycleState.inactive,
+        AppLifecycleState.hidden,
+        AppLifecycleState.paused,
+        AppLifecycleState.hidden,
+        AppLifecycleState.inactive,
+        AppLifecycleState.resumed,
+      ]) {
+        tester.binding.handleAppLifecycleStateChanged(state);
+      }
+      await tester.pumpAndSettle();
+      expect(gyms(), before + 1);
+    },
+  );
 }

@@ -342,9 +342,18 @@ class _NotesListPageState extends State<NotesListPage>
     }
   }
 
+  /// 앱을 정말 내렸다(hidden·paused). 제어 센터·알림 센터·Face ID 는 inactive 만
+  /// 거쳐 돌아온다 — 그때마다 루틴·보고서·검색 상태를 다시 묻지 않는다.
+  bool _away = false;
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.paused) {
+      _away = true;
+    }
+    if (state == AppLifecycleState.resumed && _away) {
+      _away = false;
       _confirmed = null;
       // 자리를 비운 사이 트레이너가 등록해 주거나 루틴을 보냈을 수 있다.
       unawaited(_loadRoutines());

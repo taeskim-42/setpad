@@ -558,12 +558,13 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   StreamSubscription<({String kind, String token})>? _nearbyInvites;
 
   /// 화면이 보이는 동안만 상대의 변경을 확인한다. 백그라운드에서는 멈추고,
-  /// 돌아오면 바로 최신 상태를 다시 묻는다.
+  /// 돌아오면 바로 최신 상태를 다시 묻는다. 제어 센터·알림 센터·Face ID 는
+  /// inactive 만 거쳐 돌아온다 — 그때마다 끊고 다시 붙지 않는다.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _partner?.start();
-    } else {
+    } else if (state != AppLifecycleState.inactive) {
       _partner?.stop();
     }
   }

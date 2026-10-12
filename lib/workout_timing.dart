@@ -505,9 +505,14 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     spec = null;
   }
 
+  /// 앱을 내렸을 때만 멈춘다. 제어 센터·알림 센터·Face ID 는 inactive 만 거쳐
+  /// 돌아온다 — 음악을 바꾸려고 제어 센터를 내렸다고 타바타가 서면 안 된다.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed) pause();
+    if (state != AppLifecycleState.resumed &&
+        state != AppLifecycleState.inactive) {
+      pause();
+    }
   }
 
   @override

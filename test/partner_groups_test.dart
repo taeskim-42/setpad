@@ -64,9 +64,13 @@ class Scripted {
   };
   final handoffs = <Map<String, Object?>>[];
 
+  /// 새로 연 이벤트 스트림 수. 끊었다 다시 붙으면 는다.
+  var streams = 0;
+
   late final client = MockClient((request) async {
     http.Response reply(Map<String, Object?> json) =>
         http.Response.bytes(utf8.encode(jsonEncode(json)), 200);
+    if (request.url.path.endsWith('/events')) streams++;
     if (request.url.path == '/api/handoffs') {
       handoffs.add((jsonDecode(request.body) as Map).cast<String, Object?>());
       return reply({'token': 'HANDOFF-TOKEN-0123456789ab', 'revision': 1});
@@ -361,6 +365,55 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1500));
     expect(server.handoffs.last['forKey'], 'bbbb2222');
     expect(server.handoffs.last['forName'], '소라');
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('제어 센터·알림 센터(inactive)를 내렸다 올려도 같이 하기를 끊었다 다시 붙지 않는다', (
+    tester,
+  ) async {
+    final server = Scripted();
+    final dir = Directory.systemTemp.createTempSync('setpad_group_inactive_');
+    final store = NotesStore(directory: dir);
+    addTearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+    final account = Account(storageDir: dir, client: server.client)
+      ..token = 'me';
+    final note = store.create()
+      ..partner = PartnerSession(
+        id: 'S1',
+        host: true,
+        state: PartnerState.active,
+      );
+    await tester.pumpWidget(
+      app(EditorPage(store: store, note: note, account: account)),
+    );
+    await tester.pump();
+    expect(server.streams, 1);
+
+    void go(List<AppLifecycleState> states) {
+      for (final state in states) {
+        tester.binding.handleAppLifecycleStateChanged(state);
+      }
+    }
+
+    go([AppLifecycleState.inactive, AppLifecycleState.resumed]);
+    await tester.pump();
+    expect(server.streams, 1, reason: '보이는 채로 돌아왔다 — 그대로 듣는다');
+
+    go([
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]);
+    await tester.pump();
+    expect(server.streams, 2, reason: '앱을 내렸다 오면 다시 붙는다');
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 3));

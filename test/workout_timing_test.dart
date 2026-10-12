@@ -157,7 +157,10 @@ void main() {
       now = const Duration(seconds: 110);
       timer.tick();
       expect(timer.remaining, 13);
+      // 제어 센터·알림 센터는 inactive 만 거친다 — 타바타는 계속 돈다.
       timer.didChangeAppLifecycleState(AppLifecycleState.inactive);
+      expect(timer.running, isTrue);
+      timer.didChangeAppLifecycleState(AppLifecycleState.hidden);
       expect(timer.running, isFalse);
       timer.toggle(owner, const TimingSpec(bpm: 90));
       audio.onInterrupted!();
