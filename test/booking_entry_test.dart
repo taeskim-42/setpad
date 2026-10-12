@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,7 +15,10 @@ import 'package:setpad/notes_list.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  http.Client server({required bool member}) => MockClient((request) async {
+  Future<http.Response> reply(
+    http.Request request, {
+    required bool member,
+  }) async {
     final path = request.url.path;
     if (path.endsWith('/api/gyms')) {
       return http.Response(
@@ -34,7 +38,10 @@ void main() {
       200,
       headers: {'content-type': 'application/json'},
     );
-  });
+  }
+
+  http.Client server({required bool member}) =>
+      MockClient((request) => reply(request, member: member));
 
   Future<void> open(WidgetTester tester, {required bool member}) async {
     final account = Account(client: server(member: member))..token = 'x';
@@ -63,30 +70,56 @@ void main() {
     expect(find.text('PT 예약'), findsNothing);
   });
 
+  /// 앱을 내렸다 올린다(잠금 → 해제).
+  void away(WidgetTester tester) {
+    for (final state in [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+    }
+  }
+
+  /// 목록 화면과, 그 화면이 물은 길. [now] 는 목록의 시계다.
+  Future<(List<String>, GlobalKey<NavigatorState>)> list(
+    WidgetTester tester,
+    DateTime Function() now,
+  ) async {
+    final asked = <String>[];
+    final account = Account(
+      client: MockClient((request) async {
+        asked.add(request.url.path);
+        return reply(request, member: true);
+      }),
+    )..token = 'x';
+    final navigator = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      CupertinoApp(
+        navigatorKey: navigator,
+        locale: const Locale('ko'),
+        localizationsDelegates: L.localizationsDelegates,
+        supportedLocales: L.supportedLocales,
+        home: NotesListPage(
+          store: NotesStore(),
+          account: account,
+          onOpen: (_) {},
+          now: now,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return (asked, navigator);
+  }
+
   testWidgets(
     '제어 센터·알림 센터(inactive)만 거쳐 돌아오면 체육관·루틴을 다시 묻지 않는다 — 앱을 내렸다 오면 묻는다',
     (tester) async {
-      final asked = <String>[];
-      final inner = server(member: true);
-      final account = Account(
-        client: MockClient((request) async {
-          asked.add(request.url.path);
-          return http.Response.fromStream(await inner.send(request));
-        }),
-      )..token = 'x';
-      await tester.pumpWidget(
-        CupertinoApp(
-          locale: const Locale('ko'),
-          localizationsDelegates: L.localizationsDelegates,
-          supportedLocales: L.supportedLocales,
-          home: NotesListPage(
-            store: NotesStore(),
-            account: account,
-            onOpen: (_) {},
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
+      var now = DateTime(2026, 10, 13, 18);
+      final (asked, _) = await list(tester, () => now);
       int gyms() => asked.where((p) => p.endsWith('/api/gyms')).length;
       final before = gyms();
 
@@ -99,20 +132,56 @@ void main() {
       await tester.pumpAndSettle();
       expect(gyms(), before);
 
-      for (final state in [
-        AppLifecycleState.inactive,
-        AppLifecycleState.hidden,
-        AppLifecycleState.paused,
-        AppLifecycleState.hidden,
-        AppLifecycleState.inactive,
-        AppLifecycleState.resumed,
-      ]) {
-        tester.binding.handleAppLifecycleStateChanged(state);
-      }
+      now = now.add(const Duration(minutes: 6));
+      away(tester);
       await tester.pumpAndSettle();
       expect(gyms(), before + 1);
     },
   );
+
+  testWidgets('세트마다 잠금을 풀어도 체육관·루틴은 5분에 한 번만 묻고, 날이 바뀌면 바로 묻는다', (
+    tester,
+  ) async {
+    var now = DateTime(2026, 10, 13, 23, 50);
+    final (asked, _) = await list(tester, () => now);
+    int count(String path) => asked.where((p) => p.endsWith(path)).length;
+    expect((count('/api/gyms'), count('/api/routines')), (1, 1));
+
+    for (var set = 0; set < 3; set++) {
+      now = now.add(const Duration(minutes: 1, seconds: 30));
+      away(tester);
+      await tester.pumpAndSettle();
+    }
+    expect((count('/api/gyms'), count('/api/routines')), (1, 1));
+
+    now = now.add(const Duration(minutes: 1)); // 0시를 넘었다 — 오늘의 루틴이 왔다
+    away(tester);
+    await tester.pumpAndSettle();
+    expect((count('/api/gyms'), count('/api/routines')), (2, 2));
+  });
+
+  testWidgets('편집기가 위에 있을 때 돌아오면 묻지 않고, 목록이 다시 보일 때 묻는다', (tester) async {
+    var now = DateTime(2026, 10, 13, 18);
+    final (asked, navigator) = await list(tester, () => now);
+    int gyms() => asked.where((p) => p.endsWith('/api/gyms')).length;
+    unawaited(
+      navigator.currentState!.push(
+        CupertinoPageRoute<void>(
+          builder: (_) => const CupertinoPageScaffold(child: SizedBox()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    now = now.add(const Duration(minutes: 10));
+    away(tester);
+    await tester.pumpAndSettle();
+    expect(gyms(), 1, reason: '세트를 적는 동안 목록의 루틴은 쓸 데가 없다');
+
+    navigator.currentState!.pop();
+    await tester.pumpAndSettle();
+    expect(gyms(), 2);
+  });
 
   testWidgets('못 잡거나 못 취소하면 서버가 적은 까닭을 보이고, 시작이 지난 예약은 다가오는 예약에 없다', (
     tester,

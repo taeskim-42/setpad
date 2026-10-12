@@ -239,11 +239,48 @@ class _NotesListPageState extends State<NotesListPage>
     final account = widget.account;
     if (account == null || !account.signedIn) return;
     // 트레이너가 방금 등록해 줬을 수 있다. 다시 묻지 않으면 예약 칸이
-    // 다음에 앱을 켤 때까지 안 나타난다.
-    await account.refreshGyms();
-    final found = await account.link.routines();
+    // 다음에 앱을 켤 때까지 안 나타난다. 둘은 서로 기다릴 까닭이 없다.
+    final (_, found) = await (
+      account.refreshGyms(),
+      account.link.routines(),
+    ).wait;
     // 못 물어본 것은 지우지 않는다. 있던 루틴은 그대로 둔다.
-    if (found != null && mounted) setState(() => _routines = found);
+    if (found == null) return;
+    _caughtUpAt = widget.now();
+    if (mounted) setState(() => _routines = found);
+  }
+
+  /// 마지막으로 체육관·루틴을 받아 온 때.
+  DateTime? _caughtUpAt;
+
+  /// 다시 물을 때가 됐는가. 헬스장에서는 세트마다 잠금을 풀어서, 풀 때마다 물으면
+  /// 체육관·루틴·보고서 요청이 세트 수만큼 나갔다. 5분에 한 번, 날이 바뀌면 바로
+  /// (루틴은 날마다 온다).
+  bool get _stale {
+    final at = _caughtUpAt, now = widget.now();
+    return at == null ||
+        now.difference(at) >= const Duration(minutes: 5) ||
+        dayOf(at) != dayOf(now);
+  }
+
+  /// 편집기가 위에 있는 동안 돌아왔다. 목록이 다시 보일 때 묻는다.
+  bool _owed = false;
+
+  /// 자리를 비운 사이의 일을 다시 묻는다 — 체육관·루틴, 직원이면 보고서, 검색 상태.
+  void _catchUp() {
+    if (!_stale) return;
+    // 자리를 비운 사이 트레이너가 등록해 주거나 루틴을 보냈을 수 있다.
+    unawaited(_loadRoutines());
+    // 그사이 에이전트가 새 보고서를 썼을 수 있다.
+    if (_staff.isNotEmpty) unawaited(_checkReports());
+    unawaited(
+      _search.refresh(_locale ?? 'en').then((_) {
+        // 칩으로 고른 표는 고른 그대로 둔다. 다시 물으면 확인 줄이 겹친다.
+        // 담아 둔 답만 다시 푼다(날짜가 바뀌었을 수 있다). 돌아왔다고 원판을
+        // 쓰지 않는다 — 묻는 것은 제출할 때뿐이다.
+        if (mounted && _query.text.isNotEmpty && _chip == null) _ask();
+      }),
+    );
   }
 
   int _routineSets(Routine routine) =>
@@ -334,7 +371,12 @@ class _NotesListPageState extends State<NotesListPage>
   void didChangeDependencies() {
     super.didChangeDependencies();
     // 가려지면 TickerMode 가 꺼진다. 다시 보이면 이 뒤에 build 가 돈다.
-    _shown = TickerMode.valuesOf(context).enabled;
+    final shown = TickerMode.valuesOf(context).enabled;
+    if (shown && !_shown && _owed) {
+      _owed = false;
+      _catchUp();
+    }
+    _shown = shown;
     final locale = Localizations.localeOf(context).toLanguageTag();
     if (locale != _locale) {
       _locale = locale;
@@ -355,18 +397,12 @@ class _NotesListPageState extends State<NotesListPage>
     if (state == AppLifecycleState.resumed && _away) {
       _away = false;
       _confirmed = null;
-      // 자리를 비운 사이 트레이너가 등록해 주거나 루틴을 보냈을 수 있다.
-      unawaited(_loadRoutines());
-      // 그사이 에이전트가 새 보고서를 썼을 수 있다.
-      if (_staff.isNotEmpty) unawaited(_checkReports());
-      unawaited(
-        _search.refresh(_locale ?? 'en').then((_) {
-          // 칩으로 고른 표는 고른 그대로 둔다. 다시 물으면 확인 줄이 겹친다.
-          // 담아 둔 답만 다시 푼다(날짜가 바뀌었을 수 있다). 돌아왔다고 원판을
-          // 쓰지 않는다 — 묻는 것은 제출할 때뿐이다.
-          if (mounted && _query.text.isNotEmpty && _chip == null) _ask();
-        }),
-      );
+      // 편집기 밑에 가려져 있으면 지금 묻지 않는다 — 세트를 적는 동안 쓸 데가 없다.
+      if (_shown) {
+        _catchUp();
+      } else {
+        _owed = true;
+      }
     }
     // 가려질 때 기다리던 질문을 버리지 않는다. 서버는 이미 값을 받고 답하는 중이라
     // 버리면 낸 원판만 잃는다. 돌아오면 그 답이 그대로 뜬다.
