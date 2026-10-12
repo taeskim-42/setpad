@@ -11,6 +11,7 @@ import 'package:setpad/keypad.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/main.dart';
 import 'package:setpad/notes.dart';
+import 'package:setpad/notes_list.dart';
 import 'package:setpad/palette.dart';
 import 'package:setpad/units.dart';
 
@@ -534,6 +535,40 @@ void keypadTests() {
       await settle(tester);
       expect(find.text('모든 운동'), findsOneWidget);
       expect(find.text('스쿼트'), findsOneWidget);
+    });
+
+    testWidgets('같은 기록은 편집기 하나로만 열린다 — 이미 열려 있으면 그 편집기로 돌아간다', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_open_once');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final store = await pumpWithStore(tester, dir);
+      List<Note> editors() => [
+        for (final page in tester.widgetList<EditorPage>(
+          find.byType(EditorPage, skipOffstage: false),
+        ))
+          page.note,
+      ];
+      // 켜자마자 오늘 기록이 열려 있다. 스티커·건네받기·목록이 모두 이 길로 연다.
+      final today = editors().single;
+      final open = tester
+          .widget<NotesListPage>(
+            find.byType(NotesListPage, skipOffstage: false),
+          )
+          .onOpen;
+      open(today);
+      await settle(tester);
+      expect(editors(), [today], reason: '두 편집기가 같은 기록을 덮어쓰지 않는다');
+
+      // 다른 기록은 위에 열린다. 아래에 열린 기록을 다시 열면 그리로 돌아간다.
+      final other = store.create(
+        at: DateTime.now().subtract(const Duration(days: 1)),
+      )..blocks.add(ExerciseBlock('스쿼트'));
+      open(other);
+      await settle(tester);
+      expect(editors(), [today, other]);
+      open(today);
+      await settle(tester);
+      expect(editors(), [today]);
+      expect(store.notes, contains(other), reason: '닫힌 기록은 그대로 남는다');
     });
 
     testWidgets('목록은 이전 7일, 그 앞은 달마다 — 올해가 아니면 해까지, 달 제목은 줄의 날짜와 같다', (

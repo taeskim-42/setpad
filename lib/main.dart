@@ -155,9 +155,19 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   Note _todayOrNew() => _store.today();
 
   Future<void> _open(Note note) async {
+    // 이미 열려 있으면 그 편집기로 돌아간다. 하나 더 열면 두 편집기가 저마다의
+    // 목록을 들고 있다가, 아래 것이 저장할 때 위에서 더한 운동을 덮는다. 스티커·
+    // 건네받기·목록이 모두 여기로 온다.
+    if (_store.open.contains(note)) {
+      Navigator.of(
+        context,
+      ).popUntil((r) => r.settings.name == note.id || r.isFirst);
+      return;
+    }
     _store.open.add(note);
     await Navigator.of(context).push(
       CupertinoPageRoute(
+        settings: RouteSettings(name: note.id),
         builder: (_) => EditorPage(
           store: _store,
           note: note,
