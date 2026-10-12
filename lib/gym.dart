@@ -27,7 +27,13 @@ typedef Routine = ({
 
 /// 체육관에서 온 것들. 로그인하지 않았거나 어디에도 안 다니면 전부 비어 있다.
 class GymLink {
-  const GymLink({required this.endpoint, this.token, this.userId, this.client});
+  const GymLink({
+    required this.endpoint,
+    this.token,
+    this.userId,
+    this.client,
+    this.onUnauthorized,
+  });
   final String endpoint;
   final String? token;
 
@@ -36,22 +42,32 @@ class GymLink {
   final String? userId;
   final http.Client? client;
 
+  /// 서버가 이 토큰을 거절했다(401). 한 곳(Account)이 정말 죽었는지 확인한다 — 길마다
+  /// 따로 다루면 어떤 길은 로그아웃하고 어떤 길은 '다니는 곳 없음' 으로 보이며
+  /// 2초마다 계속 묻는다.
+  final void Function()? onUnauthorized;
+
   bool get supported => token != null;
 
   /// 그물을 빌려 쓴다(앱이 함께 쓰는 것이라 닫지 않는다). 확장도 같은 것을 쓴다.
-  Future<T> withClient<T>(Future<T> Function(http.Client web) run) =>
-      run(client ?? apiClient);
+  Future<T> withClient<T>(Future<T> Function(http.Client web) run) {
+    final web = client ?? apiClient;
+    final watch = onUnauthorized;
+    return run(watch == null ? web : _Unauthorized(web, watch));
+  }
 
   Map<String, String> get headers => {'authorization': 'Bearer $token'};
 
-  Future<List<Gym>> gyms() async {
+  /// 다니는 체육관. **못 물어본 것은 null 이다** — 빈 목록과 다르다. 빈 목록으로
+  /// 돌려주면 신호가 약하거나 토큰이 거절된 순간 다니는 곳이 없는 사람처럼 보인다.
+  Future<List<Gym>?> gyms() async {
     if (!supported) return const [];
     return withClient((web) async {
       try {
         final response = await web
             .get(Uri.parse('$endpoint/api/gyms'), headers: headers)
             .timeout(const Duration(seconds: 15));
-        if (response.statusCode != 200) return const [];
+        if (response.statusCode != 200) return null;
         final body = jsonDecode(utf8.decode(response.bodyBytes));
         return [
           for (final row in (body as Map)['gyms'] as List? ?? const [])
@@ -62,8 +78,7 @@ class GymLink {
             ),
         ];
       } catch (_) {
-        // 그물이 없으면 체육관이 없는 것처럼 군다. 기록하는 일은 그대로 된다.
-        return const [];
+        return null;
       }
     });
   }
@@ -194,6 +209,21 @@ class GymLink {
         return SendOutcome.retry;
       }
     });
+  }
+}
+
+/// 401 이면 알린다. 답은 그대로 부르는 쪽에 간다 — 기록 올리기는 401 이어도
+/// 기록을 버리지 않고 다음에 다시 보낸다.
+class _Unauthorized extends http.BaseClient {
+  _Unauthorized(this._inner, this._onUnauthorized);
+  final http.Client _inner;
+  final void Function() _onUnauthorized;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final response = await _inner.send(request);
+    if (response.statusCode == 401) _onUnauthorized();
+    return response;
   }
 }
 

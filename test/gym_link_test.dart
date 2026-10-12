@@ -193,7 +193,8 @@ void main() {
       token: 'x',
       client: MockClient((_) async => http.Response('꺼짐', 500)),
     );
-    expect(await link.gyms(), isEmpty);
+    // 못 물어본 것은 '다니는 곳 없음' 이 아니다.
+    expect(await link.gyms(), isNull);
     expect(
       await link.sendWorkout(
         gymId: 'g',

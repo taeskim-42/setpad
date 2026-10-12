@@ -104,8 +104,24 @@ class Account extends ChangeNotifier {
   List<StaffGym> staff = const [];
 
   /// 체육관에서 온 것들을 가져오는 문. 로그인하지 않았으면 아무것도 안 온다.
-  GymLink get link =>
-      GymLink(endpoint: endpoint, token: token, userId: userId, client: client);
+  GymLink get link => GymLink(
+    endpoint: endpoint,
+    token: token,
+    userId: userId,
+    client: client,
+    onUnauthorized: _recheck,
+  );
+
+  Future<void>? _rechecking;
+
+  /// 어느 길에서든 서버가 계정 토큰을 거절했다(401). /api/me 로 한 번 확인한다 —
+  /// 정말 죽었으면 로그아웃하고([_stillValid]), 그물 탓이면 그대로 둔다. 같이 하기의
+  /// 2초 폴링처럼 겹쳐 와도 묻는 것은 한 번이다. 로그아웃하면 토큰이 없어 그 길들은
+  /// 더 묻지 않는다.
+  void _recheck() {
+    if (token == null) return;
+    _rechecking ??= _stillValid().whenComplete(() => _rechecking = null);
+  }
 
   /// AI 에 묻는 문. 로그인했으면 계정의 지갑, 아니면 이 기기의 지갑을 쓴다.
   RecordAi get ai => RecordAi(
@@ -327,9 +343,12 @@ class Account extends ChangeNotifier {
     }
   }
 
-  /// 다니는 체육관을 다시 읽는다. 트레이너가 방금 등록했을 수 있다.
+  /// 다니는 체육관을 다시 읽는다. 트레이너가 방금 등록했을 수 있다. 못 물어봤으면
+  /// 알던 것을 그대로 둔다 — 신호가 약한 헬스장에서 다니는 곳이 없는 사람이 되지 않게.
   Future<void> refreshGyms() async {
-    gyms = await link.gyms();
+    final found = await link.gyms();
+    if (found == null) return;
+    gyms = found;
     notifyListeners();
   }
 

@@ -97,6 +97,46 @@ void main() {
     expect(f.existsSync(), isFalse);
   });
 
+  test('어느 길에서든 401 이면 /api/me 로 한 번 확인한다 — 죽었으면 로그아웃, 아니면 그대로', () async {
+    var me = 200, meCalls = 0;
+    final a = account(
+      MockClient((request) async {
+        if (request.url.path.endsWith('/api/me')) {
+          meCalls++;
+          return http.Response(
+            jsonEncode({
+              'user': {'id': 'u-1', 'nickname': 'kim'},
+              'token': 't',
+            }),
+            me,
+          );
+        }
+        // 체육관·같이 하기·기록 올리기 — GymLink 의 모든 길.
+        return http.Response('{"error":"signInRequired"}', 401);
+      }),
+    )..token = 't';
+    a.gyms = [(id: 'g1', name: 'BPM', trainer: null)];
+    Future<void> settled() async {
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+    }
+
+    // 2초 폴링처럼 겹쳐 와도 묻는 것은 한 번이다.
+    await Future.wait([a.refreshGyms(), a.link.gyms(), a.link.gyms()]);
+    await settled();
+    expect(meCalls, 1);
+    expect(a.signedIn, isTrue, reason: '/api/me 가 받아 주면 로그인은 그대로다');
+    expect(a.gyms, hasLength(1), reason: '거절된 순간 다니는 곳이 없는 사람이 되지 않는다');
+
+    me = 401;
+    await a.link.gyms();
+    await settled();
+    expect(meCalls, 2);
+    expect(a.signedIn, isFalse, reason: '정말 죽은 토큰이면 로그아웃이다');
+    expect(a.link.supported, isFalse, reason: '그 뒤로 그 길들은 더 묻지 않는다');
+  });
+
   test('그물이 없을 뿐이면 로그인을 지키지 않고 버리지 않는다', () async {
     File(
       '${dir.path}/session.json',
