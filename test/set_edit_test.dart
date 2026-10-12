@@ -957,6 +957,123 @@ void main() {
       expect(field(tester).selection, const TextSelection.collapsed(offset: 1));
       debugDefaultTargetPlatformOverride = null;
     });
+
+    testWidgets(
+      '같이 고치는 사람이 내가 메모를 달던 세트를 지워도 치는 중인 칸에 쓰지 않는다 — Enter 때 버리고 다른 세트에 붙이지 않는다',
+      (tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        final c = RoutineEditorController()
+          ..addExercise('벤치프레스')
+          ..addSet('80 10')
+          ..addSet('70 8');
+        c.blocks.single.sets.first.notes.add('어깨');
+        await pumpEditor(tester, c);
+        await tester.tap(find.text('어깨'));
+        await tester.pumpAndSettle();
+        void type(String text, int base, int extent) =>
+            tester.testTextInput.updateEditingValue(
+              TextEditingValue(
+                text: text,
+                selection: TextSelection(
+                  baseOffset: base,
+                  extentOffset: extent,
+                ),
+              ),
+            );
+        type('어깨 조', 4, 4);
+        await tester.pump();
+        tester.testTextInput.log.clear();
+        // 상대가 그 세트를 지웠다 — 내 자판은 음절을 고르고 지우고 넣는 사이다.
+        final bench = c.blocks.single;
+        c.replaceBlocks([
+          ExerciseBlock(bench.name, [bench.sets.last], bench.setup, bench.id),
+        ]);
+        await tester.pump();
+        type('어깨 조', 3, 4);
+        await tester.pump();
+        type('어깨 ', 3, 3);
+        await tester.pump();
+        type('어깨 조심', 5, 5);
+        await tester.pump();
+        expect(field(tester).text, '어깨 조심', reason: '음절이 깨지지 않는다');
+        expect(pushed(tester), isEmpty, reason: '치는 동안 앱은 칸에 쓰지 않는다');
+
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+        expect(field(tester).text, isEmpty);
+        expect(
+          c.blocks.single.sets.single.notes,
+          isEmpty,
+          reason: '쓰던 메모가 남은 세트에 붙지 않는다',
+        );
+        debugDefaultTargetPlatformOverride = null;
+      },
+    );
+
+    testWidgets('같이 고치는 사람이 내가 이름을 고치던 운동을 지워도 칸에 쓰지 않고, 입력칸을 떠날 때 버린다', (
+      tester,
+    ) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 10')
+        ..addExercise('스쿼트')
+        ..addSet('100 5');
+      await pumpEditor(tester, c);
+      await tester.tap(find.text('스쿼트'));
+      await tester.pumpAndSettle();
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: '스쿼트 와',
+          selection: TextSelection.collapsed(offset: 5),
+        ),
+      );
+      await tester.pump();
+      tester.testTextInput.log.clear();
+      c.replaceBlocks([c.blocks.first]);
+      await tester.pump();
+      expect(field(tester).text, '스쿼트 와', reason: '치는 중인 칸을 비우지 않는다');
+      expect(pushed(tester), isEmpty);
+
+      // 입력칸을 떠났다(지워졌다는 안내 창이 뜨거나 다른 곳을 누름) — 이제 버린다.
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      expect(field(tester).text.trim(), isEmpty);
+      expect(c.blocks.map((b) => b.name), ['벤치프레스']);
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('남이 지운 운동의 이름이던 글은 다른 카드로 갔다 와도 입력칸에 돌아오지 않는다', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 10')
+        ..addExercise('스쿼트')
+        ..addSet('100 5');
+      await pumpEditor(tester, c);
+      await tester.tap(find.text('스쿼트'));
+      await tester.pumpAndSettle();
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: '스쿼트 와',
+          selection: TextSelection.collapsed(offset: 5),
+        ),
+      );
+      await tester.pump();
+      c.replaceBlocks([c.blocks.first]);
+      await tester.pump();
+      // 남은 카드의 빈 세트 칸을 눌러 그 운동으로 갔다가 끝내고 나온다.
+      await tester.tap(find.byKey(const ValueKey('add-set-cell')));
+      await tester.pumpAndSettle();
+      pad(tester).onSubmit();
+      await tester.pumpAndSettle();
+      expect(c.naming, isTrue);
+      expect(field(tester).text.trim(), isEmpty);
+      debugDefaultTargetPlatformOverride = null;
+    });
   });
 
   group('3. 세트 끌어 옮기기', () {

@@ -930,6 +930,28 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// [_onInput] 이 마지막으로 본 글. 글이 바뀐 알림만 표지를 볼 일이 있다.
   String _seenText = '';
 
+  /// 같이 고치는 사람이 내가 치던 글의 자리(이름을 고치던 운동, 메모를 달던 세트)를
+  /// 지웠다. 그 글은 갈 곳이 없지만 그 순간 자판이 치는 중일 수 있어 바로 비우지
+  /// 않는다 — 앱이 끼어 쓰면 음절이 깨진다. 사람이 다음에 손을 댈 때(Enter, 입력칸을
+  /// 떠남) 버린다([_dropOrphan]). 앱이 그 전에 줄을 바꿔 썼으면 이미 덮인 것이다.
+  bool _orphaned = false;
+
+  /// 갈 곳 잃은 글을 버린다. 사람이 손을 댄 뒤라 자판이 치는 중이 아니다.
+  void _dropOrphan() {
+    final memo = _wantText;
+    _input.clear();
+    setState(() {
+      _orphaned = false;
+      _wantText = false;
+    });
+    if (memo) SystemChannels.textInput.invokeMethod('TextInput.hide');
+    _saveDraft();
+  }
+
+  void _onFocus() {
+    if (!_focus.hasFocus && _orphaned && mounted) _dropOrphan();
+  }
+
   bool _aiBusy = false;
 
   /// 바쁜 까닭이 끼니인지 운동인지 묻는 것이다 — 끼니일 수도 있어 '운동 설정 중' 이라고
@@ -1453,6 +1475,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     _c.addListener(_onChanged);
     // Keep memo mode until it is explicitly saved, even if the IME loses focus.
     _input.addListener(_onInput);
+    _focus.addListener(_onFocus);
     _workoutTimer.addListener(_followTimer);
     _recovery.addListener(_followHeart);
     widget.partner?.addListener(_followShared);
@@ -2128,8 +2151,8 @@ class _RoutineEditorState extends State<RoutineEditor>
       if (_wantText) return;
     }
     // 치던 운동 이름(답을 기다리던 문장까지)은 버리지 않는다. 그 카드를 끝내고
-    // 나오면 입력칸으로 돌아온다(X12).
-    if (_c.naming && _text.trim().isNotEmpty) {
+    // 나오면 입력칸으로 돌아온다(X12). 남이 지운 운동의 이름이던 글은 갈 곳이 없다.
+    if (_c.naming && _text.trim().isNotEmpty && !_orphaned) {
       _resume = EditorDraft(text: _text, resume: _resume);
     }
     _input.clear();
@@ -2212,7 +2235,11 @@ class _RoutineEditorState extends State<RoutineEditor>
     // 이름을 고치던 운동이 지워졌다. 고치기를 그만둔다 — 남아 있으면 편집기가 막힌다.
     if (_recordTitle && !_c.inBlock) {
       _recordTitle = false;
-      _input.clear();
+      if (_c.remote) {
+        _orphaned = true;
+      } else {
+        _input.clear();
+      }
     }
     final editing = _editing, id = _editingSetId;
     if (editing != null && id != null) {
@@ -2225,8 +2252,13 @@ class _RoutineEditorState extends State<RoutineEditor>
         // 메모가 달린 세트나 그 메모가 사라졌다. 쓰던 글을 다른 세트에 붙이지 않는다.
         _editing = null;
         _editingSetId = null;
-        _wantText = false;
-        _input.clear();
+        if (_c.remote) {
+          // 남이 지웠다. 자판이 치는 중일 수 있어 글자판과 글을 그대로 둔다.
+          _orphaned = true;
+        } else {
+          _wantText = false;
+          _input.clear();
+        }
       } else if (block != b || set != st) {
         _editing = (block, set, n);
       }
@@ -2273,7 +2305,11 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (text != _seenText) {
       _seenText = text;
       // 자판이 준 값이 아니다 — 앱이 줄을 비우거나 바꿨다. 그때만 표지를 본다.
-      if (_input.value != _keyboardValue) _plant();
+      // 갈 곳 잃은 글([_orphaned])도 그것으로 덮였다.
+      if (_input.value != _keyboardValue) {
+        _orphaned = false;
+        _plant();
+      }
     }
     if (_editingRecord) _applyRecordEdit();
     _tellPresence();
@@ -2506,6 +2542,8 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   void _commit([String? pick]) {
+    // 고치던 자리를 남이 지웠다. 친 글을 다른 세트의 메모나 새 운동으로 넣지 않는다.
+    if (_orphaned && pick == null) return _dropOrphan();
     if (_editingRecord) {
       _finishRecordEdit();
       return;
