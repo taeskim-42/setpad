@@ -860,5 +860,6 @@
   "accountSignOutEverywhere": "すべてのデバイスからログアウト",
   "accountSignOutEverywhereAsk": "ほかのスマホやウェブに残っているログインをすべて解除します。このスマホはログインしたままです。",
   "accountSignOutEverywhereDone": "ほかのデバイスのログインをすべて解除しました。",
-  "accountSignOutEverywhereFailed": "ログインを解除できませんでした。接続を確認してもう一度お試しください。"
+  "accountSignOutEverywhereFailed": "ログインを解除できませんでした。接続を確認してもう一度お試しください。",
+  "storeUnreachable": "ストアに接続できませんでした · 再試行"
 }

@@ -3577,4 +3577,7 @@ class LVi extends L {
   @override
   String get accountSignOutEverywhereFailed =>
       'Không thể đăng xuất các thiết bị khác. Hãy kiểm tra kết nối và thử lại.';
+
+  @override
+  String get storeUnreachable => 'Không kết nối được với cửa hàng · Thử lại';
 }

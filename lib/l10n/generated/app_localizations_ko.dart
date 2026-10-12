@@ -3474,4 +3474,7 @@ class LKo extends L {
   @override
   String get accountSignOutEverywhereFailed =>
       '로그인을 끊지 못했어요. 연결을 확인하고 다시 해 주세요.';
+
+  @override
+  String get storeUnreachable => '스토어에 연결하지 못했어요 · 다시 시도';
 }

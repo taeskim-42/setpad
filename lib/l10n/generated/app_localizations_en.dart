@@ -3596,4 +3596,7 @@ class LEn extends L {
   @override
   String get accountSignOutEverywhereFailed =>
       'Couldn\'t sign out the other devices. Check your connection and try again.';
+
+  @override
+  String get storeUnreachable => 'Couldn\'t reach the store · Try again';
 }

@@ -3552,4 +3552,7 @@ class LTh extends L {
   @override
   String get accountSignOutEverywhereFailed =>
       'ออกจากระบบอุปกรณ์อื่นไม่สำเร็จ โปรดตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง';
+
+  @override
+  String get storeUnreachable => 'เชื่อมต่อสโตร์ไม่ได้ · ลองอีกครั้ง';
 }

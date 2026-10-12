@@ -3622,4 +3622,8 @@ class LEs extends L {
   @override
   String get accountSignOutEverywhereFailed =>
       'No se pudo cerrar la sesión en los otros dispositivos. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get storeUnreachable =>
+      'No se pudo conectar con la tienda · Reintentar';
 }

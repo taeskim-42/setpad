@@ -537,6 +537,8 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     } else {
       // 돌아왔다. 그동안 신호가 잡혔을 수 있다.
       unawaited(_sendPendingWorkouts());
+      // 켤 때 못 읽은 이용권·요금제가 있으면 다시 읽는다(읽었으면 묻지 않는다).
+      unawaited(_account.reloadStore());
     }
   }
 

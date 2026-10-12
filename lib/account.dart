@@ -53,6 +53,7 @@ class Account extends ChangeNotifier {
     Future<Credential?> Function(SignInMethod)? signInWith,
   }) : _purchases = purchases ?? Purchases() {
     _signInWith = signInWith ?? (method) => signInWithMethod(method, endpoint);
+    _purchases.onProof = _send;
   }
 
   final String endpoint;
@@ -72,7 +73,6 @@ class Account extends ChangeNotifier {
 
   /// 제공자 로그인 창을 여는 일. 테스트는 진짜 애플 창을 열 수 없다.
   late final Future<Credential?> Function(SignInMethod) _signInWith;
-  StreamSubscription<PurchaseProof>? _watch;
 
   /// 로그인해서 받은 우리 토큰. 없으면 로그인하지 않은 것이다.
   String? token;
@@ -88,6 +88,17 @@ class Account extends ChangeNotifier {
 
   /// 서버가 확인해 준 것. 앱이 정하지 않는다.
   Plan? plan;
+
+  /// 다음 App Store 구매에 실을 표(appAccountToken, GET /api/purchase 가 준다). 산
+  /// 구매가 이 계정·기기에 묶여, 새어 나간 거래 id 만으로는 남이 가져가지 못한다. 모르면
+  /// 없이 산다 — 서버는 표 없는 구매를 예전처럼 받는다.
+  String? purchaseTag;
+
+  /// 이 지갑(계정·기기)의 이용권을 서버에서 읽었다. 못 읽었으면 [reloadStore] 가 다시 묻는다.
+  bool _purchaseKnown = false;
+
+  /// 스토어에서 요금제를 읽는 중. 결제 화면은 그동안 '연결하지 못했다' 고 하지 않는다.
+  bool storeLoading = false;
 
   /// **이용권을 팔고 있는가.** 서버가 정한다.
   ///
@@ -205,7 +216,6 @@ class Account extends ChangeNotifier {
   final _restored = Completer<void>();
 
   Future<void> start() async {
-    _watch ??= _purchases.proofs.listen(_send);
     try {
       await restoreSession();
     } finally {
@@ -217,6 +227,31 @@ class Account extends ChangeNotifier {
     // 사람에게는 무엇을 파는지도, 무료가 몇 번인지도 영영 안 보인다.
     await _refresh();
     await refreshPlates();
+  }
+
+  bool _reloading = false;
+
+  /// 파는데 스토어에서 요금제를 못 읽었다.
+  bool get _storeMissing => selling && !paid && offers.isEmpty;
+
+  /// 켤 때 못 읽은 것을 다시 읽는다 — 이 지갑의 이용권·파는지(서버)와 스토어의 요금제.
+  ///
+  /// **켤 때 한 번만 읽으면 그 실행 동안 살 수 없었다.** 지하 헬스장처럼 신호 없는
+  /// 곳에서 켜면 Pro 로 가는 길이 숨거나, 결제 화면에 단추 없이 문구만 남았다. 결제
+  /// 화면을 열 때와 앱으로 돌아올 때 부른다. 이미 읽었으면 묻지 않는다.
+  Future<void> reloadStore() async {
+    if (_reloading || (_purchaseKnown && !_storeMissing)) return;
+    // 알리지 않는다 — 결제 화면은 그릴 때 읽고, 화면을 그리는 중에 불릴 수 있다.
+    _reloading = storeLoading = true;
+    try {
+      if (!_purchaseKnown) await _refresh();
+      if (_storeMissing) {
+        await _purchases.start(apple: platformSignIn == SignInMethod.apple);
+      }
+    } finally {
+      _reloading = storeLoading = false;
+      notifyListeners();
+    }
   }
 
   /// 남겨 둔 로그인을 되살린다. 스토어를 건드리지 않아 테스트가 이것만 부른다.
@@ -451,6 +486,9 @@ class Account extends ChangeNotifier {
     lastSignIn = null;
     providers = const [];
     plan = null;
+    // 이제 이 기기의 지갑이다. 그 이용권과 구매 표는 결제 화면이 열릴 때 다시 읽는다.
+    purchaseTag = null;
+    _purchaseKnown = false;
     gyms = const [];
     RecordAi.forget();
     plates = platesSpent = null;
@@ -496,7 +534,7 @@ class Account extends ChangeNotifier {
   Future<bool> buy(Plan wanted) async {
     purchaseProblem = null;
     notifyListeners();
-    await _purchases.buy(wanted);
+    await _purchases.buy(wanted, appAccountToken: purchaseTag);
     return true;
   }
 
@@ -507,28 +545,37 @@ class Account extends ChangeNotifier {
 
   /// 스토어가 준 구매를 서버에 넘긴다. **서버의 답을 읽는다** — 거절당했는데
   /// 아무 말이 없으면 돈을 낸 사람은 산 줄 알고 기다린다.
-  Future<void> _send(PurchaseProof proof) async {
+  ///
+  /// 서버가 확정해 답했으면 true 다 — 받았다(200), 남의 계정 것(409), 확인되지 않는
+  /// 구매(402)·잘못된 요청(400). 그때만 스토어에 거래를 닫는다([Purchases]). 서버에
+  /// 못 닿았으면(그물·시간 초과·5xx·표 없음·401) 닫지 않고 두어, 스토어가 다음에 켤
+  /// 때 다시 준다 — 결제 직후 그물이 끊긴 구매가 '복원' 을 눌러야만 서버에 닿던 길이다.
+  Future<bool> _send(PurchaseProof proof) async {
     final bearer = await ai.bearer();
     if (bearer == null) {
       purchaseProblem = PurchaseProblem.notConfirmed;
       notifyListeners();
-      return;
+      return false;
     }
     final web = client ?? apiClient;
     try {
-      final response = await web.post(
-        Uri.parse('$endpoint/api/purchase'),
-        headers: {
-          'content-type': 'application/json',
-          'authorization': 'Bearer $bearer',
-        },
-        body: jsonEncode({
-          'store': proof.apple ? 'apple' : 'google',
-          'plan': proof.plan.name,
-          'token': proof.token,
-        }),
-      );
-      purchaseProblem = switch (response.statusCode) {
+      final response = await web
+          .post(
+            Uri.parse('$endpoint/api/purchase'),
+            headers: {
+              'content-type': 'application/json',
+              'authorization': 'Bearer $bearer',
+            },
+            body: jsonEncode({
+              'store': proof.apple ? 'apple' : 'google',
+              'plan': proof.plan.name,
+              'token': proof.token,
+            }),
+          )
+          // 서버는 스토어에 되물어 답한다. 그래도 끝없이 기다리지는 않는다.
+          .timeout(const Duration(seconds: 20));
+      final status = response.statusCode;
+      purchaseProblem = switch (status) {
         200 => null,
         409 => PurchaseProblem.otherAccount,
         _ => PurchaseProblem.notConfirmed,
@@ -538,10 +585,13 @@ class Account extends ChangeNotifier {
         await _refresh();
         await refreshPlates(); // Pro 가 됐으면 이번 달 원판이 채워진다.
       }
+      // 401(표가 죽었다)·408·426(판 업데이트)·429 는 다시 보낼 만하다.
+      return status < 500 && !const {401, 408, 426, 429}.contains(status);
     } catch (_) {
-      // 스토어는 이미 완료 처리했다. 복원을 눌러야 다시 보낼 수 있다고 알린다.
+      // 그물·시간 초과. 거래는 열어 두었으니 다음에 켤 때 스토어가 다시 준다.
       purchaseProblem = PurchaseProblem.notConfirmed;
       notifyListeners();
+      return false;
     }
   }
 
@@ -550,9 +600,9 @@ class Account extends ChangeNotifier {
   @visibleForTesting
   Future<void> refreshForTest() => _refresh();
 
-  /// 스토어 없이 구매 하나를 서버에 넘겨 본다.
+  /// 스토어 없이 구매 하나를 서버에 넘겨 본다. 서버가 확정해 답했으면 true.
   @visibleForTesting
-  Future<void> sendForTest(PurchaseProof proof) => _send(proof);
+  Future<bool> sendForTest(PurchaseProof proof) => _send(proof);
 
   Future<void> _refresh() async {
     // 로그인 전에는 기기 토큰이다 — 로그인 없이 산 것도 여기서 보인다.
@@ -575,6 +625,9 @@ class Account extends ChangeNotifier {
       // 답으로 덮으면 로그인 없이 산 사람이 무료로 보였다 — 알던 것을 그대로 둔다.
       if (bearer != null) {
         plan = Plan.values.where((p) => p.name == body['plan']).firstOrNull;
+        final tag = body['appAccountToken'];
+        purchaseTag = tag is String && tag.isNotEmpty ? tag : null;
+        _purchaseKnown = true;
       }
       notifyListeners();
     } catch (_) {
@@ -584,7 +637,6 @@ class Account extends ChangeNotifier {
 
   @override
   void dispose() {
-    _watch?.cancel();
     _purchases.dispose();
     super.dispose();
   }

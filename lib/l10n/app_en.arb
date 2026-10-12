@@ -860,5 +860,6 @@
   "accountSignOutEverywhere": "Sign out on all devices",
   "accountSignOutEverywhereAsk": "This signs you out on every other phone and on the web. This phone stays signed in.",
   "accountSignOutEverywhereDone": "Signed out on all other devices.",
-  "accountSignOutEverywhereFailed": "Couldn't sign out the other devices. Check your connection and try again."
+  "accountSignOutEverywhereFailed": "Couldn't sign out the other devices. Check your connection and try again.",
+  "storeUnreachable": "Couldn't reach the store · Try again"
 }

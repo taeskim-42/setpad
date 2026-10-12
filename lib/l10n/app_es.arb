@@ -860,5 +860,6 @@
   "accountSignOutEverywhere": "Cerrar sesión en todos los dispositivos",
   "accountSignOutEverywhereAsk": "Se cerrará la sesión en los demás teléfonos y en la web. Este teléfono seguirá con la sesión iniciada.",
   "accountSignOutEverywhereDone": "Se cerró la sesión en todos los demás dispositivos.",
-  "accountSignOutEverywhereFailed": "No se pudo cerrar la sesión en los otros dispositivos. Revisa tu conexión e inténtalo de nuevo."
+  "accountSignOutEverywhereFailed": "No se pudo cerrar la sesión en los otros dispositivos. Revisa tu conexión e inténtalo de nuevo.",
+  "storeUnreachable": "No se pudo conectar con la tienda · Reintentar"
 }

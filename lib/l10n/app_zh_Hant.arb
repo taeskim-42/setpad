@@ -860,5 +860,6 @@
   "accountSignOutEverywhere": "在所有裝置上登出",
   "accountSignOutEverywhereAsk": "將登出其他手機和網頁上的所有登入。這支手機會保持登入。",
   "accountSignOutEverywhereDone": "已登出其他所有裝置。",
-  "accountSignOutEverywhereFailed": "未能登出其他裝置。請檢查網路後再試一次。"
+  "accountSignOutEverywhereFailed": "未能登出其他裝置。請檢查網路後再試一次。",
+  "storeUnreachable": "無法連線至商店 · 重試"
 }

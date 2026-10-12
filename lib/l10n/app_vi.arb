@@ -860,5 +860,6 @@
   "accountSignOutEverywhere": "Đăng xuất trên mọi thiết bị",
   "accountSignOutEverywhereAsk": "Thao tác này đăng xuất bạn trên mọi điện thoại khác và trên web. Điện thoại này vẫn đăng nhập.",
   "accountSignOutEverywhereDone": "Đã đăng xuất trên mọi thiết bị khác.",
-  "accountSignOutEverywhereFailed": "Không thể đăng xuất các thiết bị khác. Hãy kiểm tra kết nối và thử lại."
+  "accountSignOutEverywhereFailed": "Không thể đăng xuất các thiết bị khác. Hãy kiểm tra kết nối và thử lại.",
+  "storeUnreachable": "Không kết nối được với cửa hàng · Thử lại"
 }

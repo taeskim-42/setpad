@@ -860,5 +860,6 @@
   "accountSignOutEverywhere": "在所有设备上退出登录",
   "accountSignOutEverywhereAsk": "将退出其他手机和网页上的所有登录。这部手机会保持登录。",
   "accountSignOutEverywhereDone": "已退出其他所有设备上的登录。",
-  "accountSignOutEverywhereFailed": "未能退出其他设备上的登录。请检查网络后重试。"
+  "accountSignOutEverywhereFailed": "未能退出其他设备上的登录。请检查网络后重试。",
+  "storeUnreachable": "无法连接商店 · 重试"
 }

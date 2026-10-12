@@ -618,7 +618,10 @@ void main() {
       expect(purchases.offers[Plan.yearly]!.price, '₩29,000');
 
       final proofs = <PurchaseProof>[];
-      purchases.proofs.listen(proofs.add);
+      purchases.onProof = (proof) async {
+        proofs.add(proof);
+        return true;
+      };
       final bought = PurchaseDetails(
         purchaseID: '2000000123',
         productID: 'com.tskim.workoutlog.yearly',
@@ -644,6 +647,134 @@ void main() {
       expect(await none.start(), isFalse);
       expect(none.offers, isEmpty);
     });
+
+    PurchaseDetails apple(String id, {PurchaseStatus? status}) =>
+        PurchaseDetails(
+          purchaseID: id,
+          productID: 'com.tskim.workoutlog.yearly',
+          verificationData: PurchaseVerificationData(
+            localVerificationData: '{}',
+            serverVerificationData: 'jws',
+            source: 'app_store',
+          ),
+          transactionDate: null,
+          status: status ?? PurchaseStatus.purchased,
+        )..pendingCompletePurchase = true;
+
+    test('서버가 확정해 답하기 전에는 거래를 닫지 않는다 — 다음에 켤 때 스토어가 다시 준다', () async {
+      // 켤 때 상품을 못 읽어도(신호 없음) 스토어가 다시 주는 지난 거래는 받는다.
+      final store = _FakeStore()..queryFails = true;
+      final purchases = Purchases(store: store);
+      addTearDown(purchases.dispose);
+      var reached = false;
+      final sent = <String>[];
+      purchases.onProof = (proof) async {
+        sent.add(proof.token);
+        return reached;
+      };
+      expect(await purchases.start(), isFalse);
+      final bought = apple('2000000123');
+      store.updates.add([bought]);
+      await Future<void>.delayed(Duration.zero);
+      expect(sent, ['2000000123']);
+      expect(store.completed, isEmpty, reason: '서버에 못 닿았으면 열어 둔다');
+
+      reached = true;
+      store.updates.add([bought]); // 다음 실행에 스토어가 다시 준 것
+      await Future<void>.delayed(Duration.zero);
+      expect(store.completed, [bought]);
+
+      // 산 것도 복원한 것도 아닌 거래(실패)는 서버에 보낼 것이 없다 — 바로 닫는다.
+      final failed = apple('2000000124', status: PurchaseStatus.error);
+      store.updates.add([failed]);
+      await Future<void>.delayed(Duration.zero);
+      expect(sent, hasLength(2));
+      expect(store.completed.last, failed);
+    });
+
+    test('Play 는 닫지 않은 구매를 다시 주지 않는다 — 켤 때 확인 안 된 것만 찾아 보낸다', () async {
+      PurchaseWrapper wrapper(String token, {required bool acknowledged}) =>
+          PurchaseWrapper(
+            orderId: 'GPA.$token',
+            packageName: 'com.taeskim.setpad',
+            purchaseTime: 0,
+            purchaseToken: token,
+            signature: '',
+            products: const ['yearly'],
+            isAutoRenewing: true,
+            originalJson: '{}',
+            isAcknowledged: acknowledged,
+            purchaseState: PurchaseStateWrapper.purchased,
+          );
+      final store = _FakeStore()
+        ..play = _FakePlay([
+          ...GooglePlayPurchaseDetails.fromPurchase(
+            wrapper('settled', acknowledged: true),
+          ),
+          ...GooglePlayPurchaseDetails.fromPurchase(
+            wrapper('open', acknowledged: false),
+          ),
+        ]);
+      final purchases = Purchases(store: store);
+      addTearDown(purchases.dispose);
+      final sent = <PurchaseProof>[];
+      purchases.onProof = (proof) async {
+        sent.add(proof);
+        return true;
+      };
+      await purchases.start(apple: false);
+      await Future<void>.delayed(Duration.zero);
+      expect(sent, [(plan: Plan.yearly, token: 'open', apple: false)]);
+      expect(
+        store.completed.map((p) => p.verificationData.serverVerificationData),
+        ['open'],
+        reason: '서버가 받아 준 뒤 확인한다 — 사흘 안에 확인하지 않으면 Play 가 환불한다',
+      );
+    });
+
+    test(
+      'App Store 구매에는 서버가 준 표(appAccountToken)를 싣고, Play 에는 싣지 않는다',
+      () async {
+        final store = _FakeStore()
+          ..products = [product('com.tskim.workoutlog.yearly', '₩29,000')];
+        final purchases = Purchases(store: store);
+        addTearDown(purchases.dispose);
+        await purchases.start();
+        const tag = 'a3bb189e-8bf9-3888-9912-ace4e6543002';
+        await purchases.buy(Plan.yearly, appAccountToken: tag);
+        expect(store.bought.single.applicationUserName, tag);
+
+        final play = GooglePlayProductDetails.fromProductDetails(
+          const ProductDetailsWrapper(
+            description: '',
+            name: '연 이용권',
+            productId: 'yearly',
+            productType: ProductType.subs,
+            title: '연 이용권',
+            subscriptionOfferDetails: [
+              SubscriptionOfferDetailsWrapper(
+                basePlanId: 'yearly',
+                offerTags: [],
+                offerIdToken: 'base-token',
+                pricingPhases: [
+                  PricingPhaseWrapper(
+                    billingCycleCount: 0,
+                    billingPeriod: 'P1Y',
+                    formattedPrice: '₩29,000',
+                    priceAmountMicros: 29000000000,
+                    priceCurrencyCode: 'KRW',
+                    recurrenceMode: RecurrenceMode.infiniteRecurring,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+        purchases.offers = {Plan.yearly: (buy: play.single, price: '₩29,000')};
+        await purchases.buy(Plan.yearly, appAccountToken: tag);
+        expect(store.bought.last.applicationUserName, isNull);
+      },
+    );
 
     testWidgets('값이 있는 요금제만 판다 — 체험 문구는 없다', (tester) async {
       final purchases = Purchases()
@@ -724,7 +855,7 @@ void main() {
           ),
         )..token = 'account-token';
         await openPaywall(tester, account);
-        await tester.runAsync(
+        final settled = await tester.runAsync(
           () => account.sendForTest((
             plan: Plan.yearly,
             token: 'receipt',
@@ -733,6 +864,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(account.purchaseProblem, problem);
+        expect(settled, isTrue, reason: '서버가 확정해 답했다 — 거래를 닫는다');
         final sent = seen.lastWhere((r) => r.method == 'POST');
         expect(jsonDecode(sent.body), {
           'store': 'apple',
@@ -750,6 +882,42 @@ void main() {
         );
       });
     }
+
+    test('서버에 못 닿은 구매는 확정이 아니다 — 거래를 열어 두어 다음에 켤 때 다시 보낸다', () async {
+      Future<bool> settled(
+        http.Client web, {
+        String? token = 'account-token',
+        String Function()? deviceId,
+      }) => (Account(client: web, deviceId: deviceId)..token = token)
+          .sendForTest((plan: Plan.yearly, token: 'receipt', apple: true));
+      http.Client answering(int code) => _server(
+        [],
+        (r) => r.url.path == '/api/purchase' && r.method == 'POST'
+            ? _json({'error': 'x'}, code)
+            : null,
+      );
+      for (final code in [500, 503, 401, 408, 426, 429]) {
+        expect(await settled(answering(code)), isFalse, reason: '$code');
+      }
+      for (final code in [200, 400, 402, 409]) {
+        expect(await settled(answering(code)), isTrue, reason: '$code');
+      }
+      expect(
+        await settled(
+          MockClient((_) async => throw const SocketException('offline')),
+        ),
+        isFalse,
+      );
+      // 로그인 없이 샀는데 기기 토큰도 못 받았다 — 보낼 표가 없다.
+      expect(
+        await settled(
+          MockClient((_) async => _json({'error': 'tooManyDevices'}, 429)),
+          token: null,
+          deviceId: () => 'device-id-0123456789',
+        ),
+        isFalse,
+      );
+    });
 
     test(
       '기기 토큰을 못 받은 날에도 로그인 없이 산 이용권이 무료로 보이지 않는다 — 표 없이 물은 답으로 덮지 않는다',
@@ -777,7 +945,10 @@ void main() {
           deviceId: () => 'device-id-0123456789',
         );
         await account.refreshForTest();
-        expect(account.plan, Plan.yearly);
+        expect(
+          (account.plan, account.purchaseTag),
+          (Plan.yearly, 'a3bb189e-8bf9-3888-9912-ace4e6543002'),
+        );
         RecordAi.forget();
         mint = 429;
         await account.refreshForTest();
@@ -785,6 +956,52 @@ void main() {
         expect(account.selling, isTrue);
       },
     );
+
+    test('읽을 것이 없으면 다시 묻지 않고, 로그아웃해 지갑이 바뀌면 다시 읽는다', () async {
+      final seen = <http.Request>[];
+      final account = Account(
+        client: _server(
+          seen,
+          (r) => r.url.path == '/api/purchase'
+              ? _json({'plan': null, 'selling': false}, 200)
+              : null,
+        ),
+        deviceId: () => 'device-id-0123456789',
+      )..token = 'account-token';
+      int asked() => seen.where((r) => r.url.path == '/api/purchase').length;
+      await account.reloadStore();
+      await account.reloadStore();
+      expect(asked(), 1, reason: '앱으로 돌아올 때마다 묻지 않는다');
+      await account.signOut();
+      await account.reloadStore();
+      expect(asked(), 2, reason: '이제 이 기기의 지갑이다');
+      expect(_bearer(seen.last), 'Bearer device-token');
+    });
+
+    testWidgets('켤 때 스토어에 못 닿았으면 결제 화면이 그렇다고 말하고, 누르면 다시 묻는다', (tester) async {
+      final store = _FakeStore()
+        ..queryFails = true
+        ..products = [product('com.tskim.workoutlog.yearly', '₩29,000')];
+      final account = Account(
+        client: _server(
+          [],
+          (r) => r.url.path == '/api/purchase'
+              ? _json({'plan': null, 'selling': true}, 200)
+              : null,
+        ),
+        purchases: Purchases(store: store),
+      )..token = 'account-token';
+      await openPaywall(tester, account);
+      final l = await L.delegate.load(const Locale('ko'));
+      expect(find.text(l.storeUnreachable), findsOneWidget);
+      expect(find.textContaining(l.planYearly), findsNothing);
+
+      store.queryFails = false;
+      await tester.tap(find.byKey(const ValueKey('paywall-store-retry')));
+      await tester.pumpAndSettle();
+      expect(find.text(l.storeUnreachable), findsNothing);
+      expect(find.text('${l.planYearly} · ₩29,000'), findsOneWidget);
+    });
   });
 }
 
@@ -792,10 +1009,15 @@ void main() {
 class _FakeStore implements InAppPurchase {
   var available = true;
   List<ProductDetails> products = const [];
+
+  /// 상품 조회가 그물 없이 실패한다(지하 헬스장에서 켰다).
+  var queryFails = false;
   Set<String>? asked;
   final updates = StreamController<List<PurchaseDetails>>.broadcast();
   final completed = <PurchaseDetails>[];
+  final bought = <PurchaseParam>[];
   var restores = 0;
+  _FakePlay? play;
 
   @override
   Future<bool> isAvailable() async => available;
@@ -805,7 +1027,14 @@ class _FakeStore implements InAppPurchase {
     Set<String> identifiers,
   ) async {
     asked = identifiers;
+    if (queryFails) throw const SocketException('offline');
     return ProductDetailsResponse(productDetails: products, notFoundIDs: []);
+  }
+
+  @override
+  Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) async {
+    bought.add(purchaseParam);
+    return true;
   }
 
   @override
@@ -818,6 +1047,24 @@ class _FakeStore implements InAppPurchase {
   @override
   Future<void> restorePurchases({String? applicationUserName}) async =>
       restores++;
+
+  // getPlatformAddition<InAppPurchaseAndroidPlatformAddition>() 은 Play 의 자리를 준다.
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      invocation.memberName == #getPlatformAddition
+      ? play
+      : super.noSuchMethod(invocation);
+}
+
+/// Play 의 지난 구매를 주는 자리.
+class _FakePlay implements InAppPurchaseAndroidPlatformAddition {
+  _FakePlay(this.past);
+  final List<GooglePlayPurchaseDetails> past;
+
+  @override
+  Future<QueryPurchaseDetailsResponse> queryPastPurchases({
+    String? applicationUserName,
+  }) async => QueryPurchaseDetailsResponse(pastPurchases: past);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

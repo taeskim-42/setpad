@@ -3436,6 +3436,9 @@ class LZh extends L {
 
   @override
   String get accountSignOutEverywhereFailed => '未能退出其他设备上的登录。请检查网络后重试。';
+
+  @override
+  String get storeUnreachable => '无法连接商店 · 重试';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6870,6 +6873,9 @@ class LZhHans extends LZh {
 
   @override
   String get accountSignOutEverywhereFailed => '未能退出其他设备上的登录。请检查网络后重试。';
+
+  @override
+  String get storeUnreachable => '无法连接商店 · 重试';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10304,4 +10310,7 @@ class LZhHant extends LZh {
 
   @override
   String get accountSignOutEverywhereFailed => '未能登出其他裝置。請檢查網路後再試一次。';
+
+  @override
+  String get storeUnreachable => '無法連線至商店 · 重試';
 }

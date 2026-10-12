@@ -100,9 +100,9 @@ class Purchases {
   InAppPurchase get _store => _given ?? InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _watch;
 
-  /// 확인된 구매가 올라올 자리. 화면이 이걸 서버로 넘긴다.
-  final _proofs = StreamController<PurchaseProof>.broadcast();
-  Stream<PurchaseProof> get proofs => _proofs.stream;
+  /// 스토어가 준 구매를 서버에 넘기는 일([Account] 가 단다). 서버가 확정해 답했으면
+  /// true 이고, 그때만 거래를 닫는다.
+  Future<bool> Function(PurchaseProof proof)? onProof;
 
   Map<Plan, Offer> offers = const {};
 
@@ -114,11 +114,14 @@ class Purchases {
   Future<bool> start({bool apple = true}) async {
     try {
       if (!await _store.isAvailable()) return false;
+      // 상품을 묻기 전에 듣는다 — 그물이 없어 상품을 못 읽어도, 닫지 않은 지난 거래는
+      // 스토어가 켤 때 다시 준다(App Store). Play 는 다시 주지 않아 직접 찾는다.
+      _watch ??= _store.purchaseStream.listen(_onPurchases);
+      if (!apple) unawaited(_unfinishedOnPlay());
       final found = await _store.queryProductDetails({
         for (final plan in Plan.values) storeId(plan, apple: apple),
       });
       offers = offersFrom(found.productDetails);
-      _watch ??= _store.purchaseStream.listen(_onPurchases);
       return offers.isNotEmpty;
     } catch (e) {
       debugPrint('스토어에 붙지 못했다: $e');
@@ -126,22 +129,49 @@ class Purchases {
     }
   }
 
-  void _onPurchases(List<PurchaseDetails> purchases) {
+  /// Play 에서 아직 확인(acknowledge)하지 않은 구매 — 결제 직후 서버에 못 닿은 것.
+  /// **Play 는 사흘 안에 확인하지 않은 구매를 환불한다.** 그 전에 서버가 받아 주면 닫힌다.
+  Future<void> _unfinishedOnPlay() async {
+    try {
+      final past = await _store
+          .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>()
+          .queryPastPurchases();
+      await _onPurchases([
+        for (final purchase in past.pastPurchases)
+          if (purchase.pendingCompletePurchase) purchase,
+      ]);
+    } catch (e) {
+      debugPrint('Play 의 지난 구매를 읽지 못했다: $e');
+    }
+  }
+
+  Future<void> _onPurchases(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
-      if (proofOf(purchase) case final proof?) _proofs.add(proof);
-      // 스토어는 완료를 알릴 때까지 같은 구매를 계속 준다. 서버 확인과 무관하게
-      // 닫아야 하며, 권한은 서버가 돌려주는 답으로만 바뀐다.
-      if (purchase.pendingCompletePurchase) {
-        unawaited(_store.completePurchase(purchase));
+      // 스토어는 닫을 때까지 같은 구매를 다시 준다. **서버가 확정해 답한 뒤에 닫는다** —
+      // 먼저 닫으면 서버에 못 닿은 구매는 '복원' 을 눌러야만 다시 갔다. 권한은 서버가
+      // 돌려주는 답으로만 바뀐다. 산 것도 복원한 것도 아닌 거래(실패·취소)는 바로 닫는다.
+      // 결제가 아직 끝나지 않은 것(pending — 부모 승인, 느린 결제 수단)은 닫을 수 없다.
+      if (purchase.status == PurchaseStatus.pending) continue;
+      final proof = proofOf(purchase);
+      final settled = proof == null || (await onProof?.call(proof) ?? false);
+      if (settled && purchase.pendingCompletePurchase) {
+        await _store.completePurchase(purchase);
       }
     }
   }
 
-  Future<void> buy(Plan plan) async {
+  /// [appAccountToken] 은 App Store 구매에 싣는 표(서버가 준 UUID)다 — 구매가 이
+  /// 계정·기기에 묶인다. Play 에는 싣지 않는다.
+  Future<void> buy(Plan plan, {String? appAccountToken}) async {
     final detail = offers[plan]?.buy;
     if (detail == null) return;
     // Play 는 넘긴 상품이 가리키는 요금제·오퍼로 산다.
-    final param = PurchaseParam(productDetails: detail);
+    final param = PurchaseParam(
+      productDetails: detail,
+      applicationUserName: detail is GooglePlayProductDetails
+          ? null
+          : appAccountToken,
+    );
     // in_app_purchase 는 구독도 non-consumable 문으로 산다.
     await _store.buyNonConsumable(purchaseParam: param);
   }
@@ -151,6 +181,5 @@ class Purchases {
 
   void dispose() {
     _watch?.cancel();
-    _proofs.close();
   }
 }

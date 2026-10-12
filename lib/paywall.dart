@@ -42,6 +42,8 @@ class _PaywallState extends State<Paywall> {
     super.initState();
     // 달이 바뀌었으면 Pro 원판이 채워져 있다. 여기서 보이는 수가 맞아야 한다.
     unawaited(widget.account.refreshPlates());
+    // 켤 때 스토어나 서버에 못 닿았으면 그 실행 동안 단추가 없었다. 열 때 다시 묻는다.
+    unawaited(widget.account.reloadStore());
   }
 
   Future<void> _buy(Plan plan) async {
@@ -140,6 +142,22 @@ class _PaywallState extends State<Paywall> {
                         fontSize: 14,
                         color: CupertinoColors.systemRed.resolveFrom(context),
                       ),
+                    ),
+                  ),
+                // 파는데 스토어에서 요금제를 못 읽었다(신호 없는 곳에서 켰다). 단추 없이
+                // 말없이 두지 않는다 — 누르면 다시 묻는다.
+                if (account.selling &&
+                    offers.isEmpty &&
+                    owned == null &&
+                    !account.storeLoading)
+                  CupertinoButton(
+                    key: const ValueKey('paywall-store-retry'),
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(44, 44),
+                    onPressed: account.reloadStore,
+                    child: Text(
+                      l.storeUnreachable,
+                      style: const TextStyle(fontSize: 14),
                     ),
                   ),
                 // 스토어가 값을 준 요금제만 판다. 값 없이 파는 단추는 그리지 않는다.

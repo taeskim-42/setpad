@@ -3468,4 +3468,7 @@ class LJa extends L {
   @override
   String get accountSignOutEverywhereFailed =>
       'ログインを解除できませんでした。接続を確認してもう一度お試しください。';
+
+  @override
+  String get storeUnreachable => 'ストアに接続できませんでした · 再試行';
 }

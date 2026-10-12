@@ -5184,6 +5184,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'로그인을 끊지 못했어요. 연결을 확인하고 다시 해 주세요.'**
   String get accountSignOutEverywhereFailed;
+
+  /// 결제 화면: 스토어에서 요금제를 읽지 못했다. 누르면 다시 묻는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'스토어에 연결하지 못했어요 · 다시 시도'**
+  String get storeUnreachable;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
