@@ -26,7 +26,8 @@ class Nearby {
   static const _channel = MethodChannel('setpad/nearby');
   final _received = StreamController<({String kind, String token})>.broadcast();
 
-  /// 가까이 댄 상대가 건넨 초대. kind 는 'session'(같이 하기) 또는 'plan'(공동 루틴).
+  /// 가까이 댄 상대가 건넨 초대. kind 는 'session'(같이 하기)뿐이다 — 받는 쪽은
+  /// 다른 kind 를 무시한다(편집기가 'session' 만 거른다).
   Stream<({String kind, String token})> get received => _received.stream;
 
   bool? _supported;

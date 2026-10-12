@@ -50,10 +50,6 @@
                 <data android:scheme="https"
                       android:host="gym.darak.studio"
                       android:pathPrefix="/c/"/>
-                <!-- 공동 루틴 초대 링크. 앱이 받아서 바로 참여한다. -->
-                <data android:scheme="https"
-                      android:host="gym.darak.studio"
-                      android:pathPrefix="/plan/"/>
                 <!-- 대신 적어 준 운동 기록을 건네받는 링크. -->
                 <data android:scheme="https"
                       android:host="gym.darak.studio"

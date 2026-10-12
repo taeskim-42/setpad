@@ -28,9 +28,6 @@ class SettingsPage extends StatelessWidget {
   final NotesStore store;
   final Account? account;
 
-  /// 공동 루틴 목록을 연다. 홈 화면에서 뺀 뒤로 목록에 가는 길은 여기다 —
-  /// 없으면 이미 만들었거나 초대받은 루틴을 다시 열 수 없다.
-
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);

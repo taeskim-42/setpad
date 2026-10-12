@@ -133,12 +133,6 @@ class LEs extends L {
   String get activeEnergy => 'Energía activa';
 
   @override
-  String get energyUnavailable => 'Sin datos';
-
-  @override
-  String get energySource => 'Salud · Durante este registro';
-
-  @override
   String get doneEditing => 'Listo';
 
   @override
@@ -1287,10 +1281,6 @@ class LEs extends L {
   String get partnerErrFormat => 'El código tiene seis caracteres. Revísalo.';
 
   @override
-  String get partnerErrPlanTooLong =>
-      'Cada línea admite hasta 120 caracteres y el plan hasta 60 ejercicios. Acorta la línea larga.';
-
-  @override
   String get partnerErrInvalid =>
       'No existe ese código. Puede estar usado o mal escrito.';
 
@@ -1330,188 +1320,8 @@ class LEs extends L {
       'Compartir el registro de este dispositivo';
 
   @override
-  String get plansTitle => 'Planes compartidos';
-
-  @override
-  String get planNew => 'Nuevo plan compartido';
-
-  @override
-  String get planJoin => 'Unirse con código';
-
-  @override
-  String get planHint =>
-      'La primera línea es el título; luego un ejercicio por línea\np. ej. Sentadilla 4 series';
-
-  @override
-  String get planDateNone => 'Sin fecha';
-
-  @override
-  String planSetsCount(int n) {
-    return '$n series';
-  }
-
-  @override
-  String get planSave => 'Proponer';
-
-  @override
-  String get planStateLocal =>
-      'Borrador solo en este dispositivo · aún no está en el servidor';
-
-  @override
-  String get planStateDraft => 'Borrador · aún sin compañero';
-
-  @override
-  String planStateWaiting(int v) {
-    return 'Esperando a tu compañero · versión $v';
-  }
-
-  @override
-  String planStateNeedsMe(String name, int v) {
-    return '$name lo cambió · la versión $v necesita tu OK';
-  }
-
-  @override
-  String planStateAgreed(int v) {
-    return 'Acordado · versión $v';
-  }
-
-  @override
-  String get planStateWithdrawn =>
-      'La planificación compartida terminó · se conservan el plan acordado y tus objetivos';
-
-  @override
-  String planAccept(int v) {
-    return 'Aceptar versión $v';
-  }
-
-  @override
-  String get planChanged => 'Cambios desde el último plan acordado';
-
-  @override
-  String planAdded(String x) {
-    return 'Añadido: $x';
-  }
-
-  @override
-  String planRemoved(String x) {
-    return 'Quitado: $x';
-  }
-
-  @override
-  String planSetsChanged(String x) {
-    return 'Series cambiadas: $x';
-  }
-
-  @override
-  String get planReordered => 'Cambió el orden';
-
-  @override
-  String get planDateChanged => 'Cambió la fecha';
-
-  @override
-  String get planTitleChanged => 'Cambió el título';
-
-  @override
-  String planLastAgreed(int v) {
-    return 'Último plan acordado · versión $v';
-  }
-
-  @override
-  String get planConflict =>
-      'Tu compañero lo cambió antes. Tu borrador sigue aquí.';
-
-  @override
-  String planLatest(int v) {
-    return 'Último plan de tu compañero · versión $v';
-  }
-
-  @override
-  String get planKeepMine => 'Volver a proponer mi borrador';
-
-  @override
-  String get planTakeLatest => 'Usar el plan más reciente';
-
-  @override
-  String get planMyTarget => 'Mi objetivo';
-
-  @override
-  String planPartnerTarget(String name, String t) {
-    return '$name: $t';
-  }
-
-  @override
-  String get planTargetHint => 'p. ej. 100 5 o 100kg 5 reps x3 nota';
-
-  @override
-  String get planInvite => 'Crear código de invitación';
-
-  @override
-  String get planStart => 'Empezar este plan';
-
-  @override
-  String get planStartSolo => 'Empezar mi propia copia';
-
-  @override
-  String get planStartSoloNote =>
-      'Aún no hay acuerdo. Si empiezas ahora usarás tu propia copia, no un plan acordado.';
-
-  @override
-  String get planOpenWorkout => 'Abrir el entrenamiento';
-
-  @override
-  String get planCopyNext => 'Copiar al siguiente entrenamiento';
-
-  @override
-  String get planWithdraw => 'Salir de este plan compartido';
-
-  @override
-  String get planCompare => 'Plan y realidad';
-
-  @override
-  String planDoneSets(String name, int planned, int done) {
-    return '$name · plan $planned · hechas $done';
-  }
-
-  @override
-  String planAddedActual(String x) {
-    return 'Fuera del plan: $x';
-  }
-
-  @override
-  String planSkipped(String x) {
-    return 'Omitido: $x';
-  }
-
-  @override
-  String planStartedFrom(int v) {
-    return 'Empezó desde el plan acordado (versión $v)';
-  }
-
-  @override
-  String planStartedSolo(int v) {
-    return 'Empezó desde tu propia copia (versión $v, sin acuerdo)';
-  }
-
-  @override
-  String get planShareLink => 'Enviar enlace de invitación';
-
-  @override
-  String planShareText(String url) {
-    return 'Planeemos juntos el entrenamiento en setpad: $url';
-  }
-
-  @override
-  String get planLinkCopied => 'Enlace copiado. Sirve una vez, durante un día.';
-
-  @override
-  String get planLinkJoining => 'Uniéndote al plan al que te invitaron…';
-
-  @override
   String get nearbyHint =>
       'Entre iPhones también puedes conectar acercando los dos teléfonos con esta pantalla abierta.';
-
-  @override
-  String get planPropose => 'Proponer plan';
 
   @override
   String get togetherStart => 'Empezar juntos';
@@ -1623,16 +1433,6 @@ class LEs extends L {
 
   @override
   String get proxyWhose => '¿De quién es el entrenamiento?';
-
-  @override
-  String planMemberAccepted(String name) {
-    return '$name de acuerdo';
-  }
-
-  @override
-  String planMemberWaiting(String name) {
-    return '$name aún no ha confirmado';
-  }
 
   @override
   String deleteNoteAsk(String title) {

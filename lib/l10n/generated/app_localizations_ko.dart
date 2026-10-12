@@ -133,12 +133,6 @@ class LKo extends L {
   String get activeEnergy => '활동 칼로리';
 
   @override
-  String get energyUnavailable => '기록 없음';
-
-  @override
-  String get energySource => '건강 앱 · 기록 시간대';
-
-  @override
   String get doneEditing => '완료';
 
   @override
@@ -1222,10 +1216,6 @@ class LKo extends L {
   String get partnerErrFormat => '코드는 여섯 글자입니다. 다시 확인해 주세요.';
 
   @override
-  String get partnerErrPlanTooLong =>
-      '한 줄은 120자, 운동은 60개까지 저장할 수 있어요. 긴 줄을 줄여 주세요.';
-
-  @override
   String get partnerErrInvalid => '맞는 코드가 없습니다. 이미 사용됐거나 잘못 입력했을 수 있어요.';
 
   @override
@@ -1260,183 +1250,7 @@ class LKo extends L {
   String get partnerShareThisDevice => '이 기기의 기록으로 공유하기';
 
   @override
-  String get plansTitle => '공동 루틴';
-
-  @override
-  String get planNew => '새 공동 루틴';
-
-  @override
-  String get planJoin => '코드로 참여';
-
-  @override
-  String get planHint => '첫 줄은 제목, 그다음은 한 줄에 한 종목\n예: 스쿼트 4세트';
-
-  @override
-  String get planDateNone => '날짜 미정';
-
-  @override
-  String planSetsCount(int n) {
-    return '$n세트';
-  }
-
-  @override
-  String get planSave => '제안하기';
-
-  @override
-  String get planStateLocal => '이 기기에만 있는 초안 · 서버에 아직 올라가지 않았습니다';
-
-  @override
-  String get planStateDraft => '초안 · 아직 혼자입니다';
-
-  @override
-  String planStateWaiting(int v) {
-    return '상대 확인 대기 · 버전 $v';
-  }
-
-  @override
-  String planStateNeedsMe(String name, int v) {
-    return '$name 님이 고쳤습니다 · 버전 $v 확인이 필요합니다';
-  }
-
-  @override
-  String planStateAgreed(int v) {
-    return '합의 완료 · 버전 $v';
-  }
-
-  @override
-  String get planStateWithdrawn => '함께 계획이 끝났습니다 · 합의본과 내 목표는 남아 있습니다';
-
-  @override
-  String planAccept(int v) {
-    return '버전 $v 수락';
-  }
-
-  @override
-  String get planChanged => '마지막 합의본에서 바뀐 것';
-
-  @override
-  String planAdded(String x) {
-    return '추가: $x';
-  }
-
-  @override
-  String planRemoved(String x) {
-    return '빠짐: $x';
-  }
-
-  @override
-  String planSetsChanged(String x) {
-    return '세트 수 변경: $x';
-  }
-
-  @override
-  String get planReordered => '순서가 바뀌었습니다';
-
-  @override
-  String get planDateChanged => '예정 날짜가 바뀌었습니다';
-
-  @override
-  String get planTitleChanged => '제목이 바뀌었습니다';
-
-  @override
-  String planLastAgreed(int v) {
-    return '마지막 합의본 · 버전 $v';
-  }
-
-  @override
-  String get planConflict => '상대가 먼저 고쳤습니다. 내 초안은 그대로 있습니다.';
-
-  @override
-  String planLatest(int v) {
-    return '상대가 고친 최신 계획 · 버전 $v';
-  }
-
-  @override
-  String get planKeepMine => '내 초안으로 다시 제안';
-
-  @override
-  String get planTakeLatest => '최신 계획으로 바꾸기';
-
-  @override
-  String get planMyTarget => '내 목표';
-
-  @override
-  String planPartnerTarget(String name, String t) {
-    return '$name: $t';
-  }
-
-  @override
-  String get planTargetHint => '예: 100 5 또는 100kg 5회 x3 메모';
-
-  @override
-  String get planInvite => '초대 코드 만들기';
-
-  @override
-  String get planStart => '이 루틴으로 시작';
-
-  @override
-  String get planStartSolo => '본인용 사본으로 시작';
-
-  @override
-  String get planStartSoloNote =>
-      '아직 합의 전입니다. 지금 시작하면 공동 합의본이 아니라 본인용 사본으로 시작합니다.';
-
-  @override
-  String get planOpenWorkout => '시작한 운동 열기';
-
-  @override
-  String get planCopyNext => '다음 운동으로 복사';
-
-  @override
-  String get planWithdraw => '함께 계획 그만두기';
-
-  @override
-  String get planCompare => '계획과 실제';
-
-  @override
-  String planDoneSets(String name, int planned, int done) {
-    return '$name · 계획 $planned세트 · 수행 $done세트';
-  }
-
-  @override
-  String planAddedActual(String x) {
-    return '계획에 없던 운동: $x';
-  }
-
-  @override
-  String planSkipped(String x) {
-    return '하지 않은 운동: $x';
-  }
-
-  @override
-  String planStartedFrom(int v) {
-    return '공동 루틴 합의본(버전 $v)에서 시작했습니다';
-  }
-
-  @override
-  String planStartedSolo(int v) {
-    return '본인용 사본(버전 $v, 합의 전)에서 시작했습니다';
-  }
-
-  @override
-  String get planShareLink => '초대 링크 보내기';
-
-  @override
-  String planShareText(String url) {
-    return 'setpad에서 운동 계획을 같이 짜요: $url';
-  }
-
-  @override
-  String get planLinkCopied => '링크를 복사했습니다. 하루 동안 한 번 쓸 수 있습니다.';
-
-  @override
-  String get planLinkJoining => '초대받은 계획에 참여하는 중…';
-
-  @override
   String get nearbyHint => '아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결됩니다.';
-
-  @override
-  String get planPropose => '공동 루틴으로 제안';
 
   @override
   String get togetherStart => '같이 시작';
@@ -1545,16 +1359,6 @@ class LKo extends L {
 
   @override
   String get proxyWhose => '누구의 기록을 적을까요?';
-
-  @override
-  String planMemberAccepted(String name) {
-    return '$name 님 동의함';
-  }
-
-  @override
-  String planMemberWaiting(String name) {
-    return '$name 님 확인 전';
-  }
 
   @override
   String deleteNoteAsk(String title) {

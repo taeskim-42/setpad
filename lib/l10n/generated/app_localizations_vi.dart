@@ -133,12 +133,6 @@ class LVi extends L {
   String get activeEnergy => 'Năng lượng hoạt động';
 
   @override
-  String get energyUnavailable => 'Chưa có dữ liệu';
-
-  @override
-  String get energySource => 'Sức khỏe · Trong thời gian ghi lại';
-
-  @override
   String get doneEditing => 'Xong';
 
   @override
@@ -1261,10 +1255,6 @@ class LVi extends L {
   String get partnerErrFormat => 'Mã có sáu ký tự. Hãy kiểm tra lại.';
 
   @override
-  String get partnerErrPlanTooLong =>
-      'Mỗi dòng tối đa 120 ký tự và mỗi kế hoạch tối đa 60 bài tập. Hãy rút ngắn dòng quá dài.';
-
-  @override
   String get partnerErrInvalid =>
       'Không có mã này. Có thể đã dùng hoặc gõ sai.';
 
@@ -1302,187 +1292,8 @@ class LVi extends L {
   String get partnerShareThisDevice => 'Chia sẻ bản ghi của máy này';
 
   @override
-  String get plansTitle => 'Kế hoạch chung';
-
-  @override
-  String get planNew => 'Kế hoạch chung mới';
-
-  @override
-  String get planJoin => 'Tham gia bằng mã';
-
-  @override
-  String get planHint =>
-      'Dòng đầu là tiêu đề, sau đó mỗi dòng một bài\nVD: Squat 4 hiệp';
-
-  @override
-  String get planDateNone => 'Chưa có ngày';
-
-  @override
-  String planSetsCount(int n) {
-    return '$n hiệp';
-  }
-
-  @override
-  String get planSave => 'Đề xuất';
-
-  @override
-  String get planStateLocal => 'Bản nháp chỉ trên máy này · chưa lên máy chủ';
-
-  @override
-  String get planStateDraft => 'Bản nháp · chưa có bạn tập';
-
-  @override
-  String planStateWaiting(int v) {
-    return 'Chờ bạn tập xác nhận · phiên bản $v';
-  }
-
-  @override
-  String planStateNeedsMe(String name, int v) {
-    return '$name đã sửa · cần bạn xác nhận phiên bản $v';
-  }
-
-  @override
-  String planStateAgreed(int v) {
-    return 'Đã thống nhất · phiên bản $v';
-  }
-
-  @override
-  String get planStateWithdrawn =>
-      'Đã dừng lập kế hoạch chung · kế hoạch đã thống nhất và mục tiêu của bạn vẫn còn';
-
-  @override
-  String planAccept(int v) {
-    return 'Chấp nhận phiên bản $v';
-  }
-
-  @override
-  String get planChanged => 'Thay đổi so với bản đã thống nhất';
-
-  @override
-  String planAdded(String x) {
-    return 'Thêm: $x';
-  }
-
-  @override
-  String planRemoved(String x) {
-    return 'Bỏ: $x';
-  }
-
-  @override
-  String planSetsChanged(String x) {
-    return 'Đổi số hiệp: $x';
-  }
-
-  @override
-  String get planReordered => 'Thứ tự đã đổi';
-
-  @override
-  String get planDateChanged => 'Ngày đã đổi';
-
-  @override
-  String get planTitleChanged => 'Tiêu đề đã đổi';
-
-  @override
-  String planLastAgreed(int v) {
-    return 'Bản thống nhất gần nhất · phiên bản $v';
-  }
-
-  @override
-  String get planConflict => 'Bạn tập đã sửa trước. Bản nháp của bạn vẫn còn.';
-
-  @override
-  String planLatest(int v) {
-    return 'Kế hoạch mới nhất của bạn tập · phiên bản $v';
-  }
-
-  @override
-  String get planKeepMine => 'Đề xuất lại bản nháp của tôi';
-
-  @override
-  String get planTakeLatest => 'Dùng kế hoạch mới nhất';
-
-  @override
-  String get planMyTarget => 'Mục tiêu của tôi';
-
-  @override
-  String planPartnerTarget(String name, String t) {
-    return '$name: $t';
-  }
-
-  @override
-  String get planTargetHint => 'VD: 100 5 hoặc 100kg 5 lần x3 ghi chú';
-
-  @override
-  String get planInvite => 'Tạo mã mời';
-
-  @override
-  String get planStart => 'Bắt đầu theo kế hoạch này';
-
-  @override
-  String get planStartSolo => 'Bắt đầu bản sao của tôi';
-
-  @override
-  String get planStartSoloNote =>
-      'Chưa thống nhất. Bắt đầu bây giờ sẽ dùng bản sao của riêng bạn, không phải kế hoạch đã thống nhất.';
-
-  @override
-  String get planOpenWorkout => 'Mở buổi tập đã bắt đầu';
-
-  @override
-  String get planCopyNext => 'Sao chép sang buổi sau';
-
-  @override
-  String get planWithdraw => 'Rời kế hoạch chung này';
-
-  @override
-  String get planCompare => 'Kế hoạch và thực tế';
-
-  @override
-  String planDoneSets(String name, int planned, int done) {
-    return '$name · kế hoạch $planned · đã làm $done';
-  }
-
-  @override
-  String planAddedActual(String x) {
-    return 'Ngoài kế hoạch: $x';
-  }
-
-  @override
-  String planSkipped(String x) {
-    return 'Bỏ qua: $x';
-  }
-
-  @override
-  String planStartedFrom(int v) {
-    return 'Bắt đầu từ kế hoạch đã thống nhất (phiên bản $v)';
-  }
-
-  @override
-  String planStartedSolo(int v) {
-    return 'Bắt đầu từ bản sao của bạn (phiên bản $v, chưa thống nhất)';
-  }
-
-  @override
-  String get planShareLink => 'Gửi liên kết mời';
-
-  @override
-  String planShareText(String url) {
-    return 'Cùng lên kế hoạch tập trong setpad: $url';
-  }
-
-  @override
-  String get planLinkCopied =>
-      'Đã sao chép liên kết. Dùng được một lần trong một ngày.';
-
-  @override
-  String get planLinkJoining => 'Đang tham gia kế hoạch được mời…';
-
-  @override
   String get nearbyHint =>
       'Giữa các iPhone, bạn cũng có thể kết nối bằng cách đưa hai máy lại gần nhau khi đang mở màn hình này.';
-
-  @override
-  String get planPropose => 'Đề xuất kế hoạch';
 
   @override
   String get togetherStart => 'Bắt đầu cùng nhau';
@@ -1594,16 +1405,6 @@ class LVi extends L {
 
   @override
   String get proxyWhose => 'Bạn ghi buổi tập của ai?';
-
-  @override
-  String planMemberAccepted(String name) {
-    return '$name đã đồng ý';
-  }
-
-  @override
-  String planMemberWaiting(String name) {
-    return '$name chưa xác nhận';
-  }
 
   @override
   String deleteNoteAsk(String title) {

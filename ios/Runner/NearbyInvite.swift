@@ -16,7 +16,7 @@ import UIKit
 struct SetpadInvite: GroupActivity {
   static let activityIdentifier = "com.tskim.workoutlog.invite"
 
-  /// "session"(같이 하기) 또는 "plan"(공동 루틴).
+  /// "session"(같이 하기). 받는 앱은 다른 값을 무시한다.
   let kind: String
   let token: String
   let title: String

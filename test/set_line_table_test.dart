@@ -1,14 +1,13 @@
-/// 세트 줄과 계획 줄을 읽는 규칙의 정답 표.
+/// 세트 줄을 읽는 규칙의 정답 표.
 ///
 /// 한 줄은 (친 글, main(b29894a) 이 읽은 것, 지금 읽어야 하는 것, main 과 다른
-/// 까닭). main 칸은 비교용 기록이다 — b29894a 의 parser.dart·plans.dart 를
-/// 그대로 돌린 값이다. 지난 리뷰 두 번(세트 줄·계획 줄)에 나온 줄을 모두 넣었다.
+/// 까닭). main 칸은 비교용 기록이다 — b29894a 의 parser.dart 를 그대로 돌린
+/// 값이다. 지난 세트 줄 리뷰에 나온 줄을 모두 넣었다.
 /// main 과 다른 줄은 까닭이 있어야 하고, 같은 줄은 까닭이 비어야 한다.
 library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/parser.dart';
-import 'package:setpad/plans.dart';
 import 'package:setpad/units.dart';
 import 'package:setpad/workout_timing.dart';
 
@@ -38,21 +37,6 @@ const list =
 const ordinal =
     "줄 앞의 'N세트' 뒤에 무게와 횟수가 다 오면 세트 번호라 메모에 둔다 — main 은 같은 세트를 N개 지어냈다";
 
-// main 과 다른 까닭(계획 줄). main 은 줄 끝의 세트 표기만 떼고 나머지를 전부
-// 이름에 두었다.
-const axb = "'AxB' 는 세트 수×횟수 — main 은 A 를 이름에 섞고 B 를 세트 수로 읽었다";
-const target = '무게·횟수·시간 표기는 목표 글로 — main 은 이름에 섞었다';
-const timer = "타바타의 초·xN 은 타이머라 이름에 남는다 — main 은 xN 을 세트 수로 떼었다";
-const cap50 = '세트 수는 50까지 — 넘는 표기는 목표 글에 친 그대로(main 은 50으로 잘랐거나 A 를 이름에 섞었다)';
-const second = '두 번째 세트 표기는 목표 글에 — main 은 앞의 것을 이름에 섞었다';
-const middle = '줄 가운데의 세트 표기도 세트 수 — main 은 줄 끝만 봐서 0세트였다';
-const range = "횟수 범위('8-12', '10-12회')는 목표 글 — main 은 이름에 섞었다";
-const joiner =
-    "수 표기 사이의 이음말('x'·'@'·'of'·'/'·괄호)은 목표 글에 친 그대로 — main 은 이름에 섞었다";
-const listMark =
-    "줄 앞의 목록 표지('1.'·'-')와 이름 끝의 ':' 는 글의 모양이라 이름에 넣지 않는다 — main 은 이름에 섞었다";
-const axWord = "'A x 낱말'('3 x max', '3x실패')은 A 세트, 낱말은 목표 글 — main 은 이름에 섞었다";
-
 /// 표기: 값단위×횟수, x세트, 「메모」. 빈 자리는 '-', null 은 '거절'(세트가
 /// 아니다 — 입력칸에 글이 남는다).
 String show(ParsedSet? p) => p == null
@@ -63,19 +47,6 @@ String show(ParsedSet? p) => p == null
         if (p.count > 1) 'x${p.count}',
         if (p.note != null) '「${p.note}」',
       ].join(' ');
-
-/// 타이머가 실제로 쓰는 것 — 템포, 그리고 타바타일 때만 운동/휴식 초와 라운드.
-(int?, bool, int?, int?, int?)? timing(String name) =>
-    switch (TimingSpec.parse(name)) {
-      null => null,
-      final t => (
-        t.bpm,
-        t.tabata,
-        t.tabata ? t.work : null,
-        t.tabata ? t.rest : null,
-        t.tabata ? t.rounds : null,
-      ),
-    };
 
 const setLines = [
   // 맨숫자만 — 하나는 횟수, 둘은 무게·횟수, 남는 수는 메모.
@@ -375,201 +346,6 @@ const setLines = [
   ('Set 1: 100kg x 5', '100kg×5 「Set 1: x」', '100kg×5 「Set 1: x」', ''),
 ];
 
-const planLines = [
-  // 세트 수 표기와 사람이 지은 이름.
-  ('스쿼트 4세트', '스쿼트(4)', ('스쿼트', 4, null), ''),
-  ('루마니안 데드리프트 3세트', '루마니안 데드리프트(3)', ('루마니안 데드리프트', 3, null), ''),
-  ('민수식 로우 2', '민수식 로우 2(0)', ('민수식 로우 2', 0, null), ''),
-  ('레그컬 x3', '레그컬(3)', ('레그컬', 3, null), ''),
-  ('Hip thrust 5 sets', 'Hip thrust(5)', ('Hip thrust', 5, null), ''),
-  // 'AxB' 는 세트 수×횟수, 무게·횟수·시간은 목표 글.
-  ('벤치 3x10', '벤치 3(10)', ('벤치', 3, '10reps'), axb),
-  ('스쿼트 5×5', '스쿼트 5(5)', ('스쿼트', 5, '5reps'), axb),
-  ('벤치 10회 3세트', '벤치 10회(3)', ('벤치', 3, '10회'), target),
-  ('벤치 80kg 5세트', '벤치 80kg(5)', ('벤치', 5, '80kg'), target),
-  ('데드 3 x 5', '데드 3(5)', ('데드', 3, '5reps'), axb),
-  ('로우 80 10', '로우 80 10(0)', ('로우', 0, '80 10'), target),
-  ('케틀벨 16kg 스윙 3세트', '케틀벨 16kg 스윙(3)', ('케틀벨 스윙', 3, '16kg'), target),
-  ('EMOM 10분 버피', 'EMOM 10분 버피(0)', ('EMOM 버피', 0, '10분'), target),
-  ('스쿼트 20회 bpm 30 3세트', '스쿼트 20회 bpm 30(3)', ('스쿼트 bpm 30', 3, '20회'), target),
-  ('스쿼트 20회 30 bpm 3세트', '스쿼트 20회 30 bpm(3)', ('스쿼트 30 bpm', 3, '20회'), target),
-  ('스쿼트 20회 30bpm 3세트', '스쿼트 20회 30bpm(3)', ('스쿼트 30bpm', 3, '20회'), target),
-  // 타이머 표기(bpm·타바타 초·xN·라운드)는 이름에 남는다.
-  ('타바타 버피 x6 2세트', '타바타 버피 x6(2)', ('타바타 버피 x6', 2, null), ''),
-  (
-    '타바타 버피 30초 / 15초 x8',
-    '타바타 버피 30초 / 15초(8)',
-    ('타바타 버피 30초 / 15초 x8', 0, null),
-    timer,
-  ),
-  ('타바타 버피 20 x8', '타바타 버피 20(8)', ('타바타 버피 20 x8', 0, null), timer),
-  ('타바타 30 80 kg x5', '타바타 30 80 kg(5)', ('타바타 30 x5', 0, '80kg'), timer),
-  ('타바타 버피 8 라운드 2세트', '타바타 버피 8 라운드(2)', ('타바타 버피 8 라운드', 2, null), ''),
-  // 세트 수로 못 쓰는 표기는 목표 글에 친 그대로.
-  ('벤치 60세트', '벤치(50)', ('벤치', 0, '60세트'), cap),
-  ('스쿼트 80x10', '스쿼트 80(10)', ('스쿼트', 0, '80x10'), cap),
-  ('런지 x3 x4', '런지 x3(4)', ('런지', 3, 'x4'), second),
-  ('3x10 벤치', '3x10 벤치(0)', ('3x10 벤치', 0, null), ''),
-  ('로우 80,10', '로우 80,10(0)', ('로우', 0, '80,10'), target),
-  ('벤치 80kg 5 3세트', '벤치 80kg 5(3)', ('벤치', 3, '80kg 5'), target),
-  ('플랭크 1분', '플랭크 1분(0)', ('플랭크', 0, '1분'), target),
-  ('스쿼트 bpm 30 20', '스쿼트 bpm 30 20(0)', ('스쿼트 bpm 30 20', 0, null), ''),
-  (
-    '벤치 80kg 5회 무릎 조심',
-    '벤치 80kg 5회 무릎 조심(0)',
-    ('벤치 무릎 조심', 0, '80kg 5회'),
-    target,
-  ),
-  // bpm 옆의 세트·횟수 수는 템포가 아니다.
-  ('푸시업 bpm 3세트', '푸시업 bpm(3)', ('푸시업 bpm', 3, null), ''),
-  ('푸시업 3세트 bpm', '푸시업 3세트 bpm(0)', ('푸시업 bpm', 3, null), middle),
-  ('스쿼트 3x10 bpm 30', '스쿼트 3x10 bpm 30(0)', ('스쿼트 bpm 30', 3, '10reps'), axb),
-  ('스쿼트 5x5 bpm 60', '스쿼트 5x5 bpm 60(0)', ('스쿼트 bpm 60', 5, '5reps'), axb),
-  (
-    '스쿼트 3 x 10 bpm 30',
-    '스쿼트 3 x 10 bpm 30(0)',
-    ('스쿼트 bpm 30', 3, '10reps'),
-    axb,
-  ),
-  ('푸시업 bpm 100개', '푸시업 bpm 100개(0)', ('푸시업 bpm', 0, '100개'), target),
-  ('스쿼트 bpm 60 3세트', '스쿼트 bpm 60(3)', ('스쿼트 bpm 60', 3, null), ''),
-  ('bpm 푸시업 3세트', 'bpm 푸시업(3)', ('bpm 푸시업', 3, null), ''),
-  ('스쿼트 bpm x3', '스쿼트 bpm(3)', ('스쿼트 bpm', 3, null), ''),
-  ('푸시업 bpm 3 sets', '푸시업 bpm(3)', ('푸시업 bpm', 3, null), ''),
-  ('스쿼트 3x10 bpm', '스쿼트 3x10 bpm(0)', ('스쿼트 bpm', 3, '10reps'), axb),
-  ('버피 60bpm 5세트', '버피 60bpm(5)', ('버피 60bpm', 5, null), ''),
-  ('푸시업 bpm60 x4', '푸시업 bpm60(4)', ('푸시업 bpm60', 4, null), ''),
-  ('벤치프레스 5x5 100kg', '벤치프레스 5x5 100kg(0)', ('벤치프레스', 5, '5reps 100kg'), axb),
-  ('벤치 x3 80kg 10회', '벤치 x3 80kg 10회(0)', ('벤치', 3, '80kg 10회'), middle),
-  ('데드리프트 1x5 140kg', '데드리프트 1x5 140kg(0)', ('데드리프트', 1, '5reps 140kg'), axb),
-  ('스쿼트 5세트 5세트', '스쿼트 5세트(5)', ('스쿼트', 5, '5세트'), second),
-  ('레그프레스 4 세트', '레그프레스(4)', ('레그프레스', 4, null), ''),
-  ('풀업', '풀업(0)', ('풀업', 0, null), ''),
-  ('풀업 최대', '풀업 최대(0)', ('풀업 최대', 0, null), ''),
-  ('MTS100 로우 3세트', 'MTS100 로우(3)', ('MTS100 로우', 3, null), ''),
-  // 여덟 언어의 흔한 줄.
-  ('Bench press 3x10', 'Bench press 3(10)', ('Bench press', 3, '10reps'), axb),
-  ('Squat 5 sets', 'Squat(5)', ('Squat', 5, null), ''),
-  (
-    'Deadlift 1x5 140kg',
-    'Deadlift 1x5 140kg(0)',
-    ('Deadlift', 1, '5reps 140kg'),
-    axb,
-  ),
-  ('Pull-ups x4', 'Pull-ups(4)', ('Pull-ups', 4, null), ''),
-  ('Plank 3 sets 60s', 'Plank 3 sets 60s(0)', ('Plank', 3, '60s'), middle),
-  (
-    'Burpees 60 bpm 5 sets',
-    'Burpees 60 bpm(5)',
-    ('Burpees 60 bpm', 5, null),
-    '',
-  ),
-  ('ベンチプレス 3セット', 'ベンチプレス(3)', ('ベンチプレス', 3, null), ''),
-  ('スクワット 5×5', 'スクワット 5(5)', ('スクワット', 5, '5reps'), axb),
-  (
-    'デッドリフト 100kg 5回 3セット',
-    'デッドリフト 100kg 5回(3)',
-    ('デッドリフト', 3, '100kg 5回'),
-    target,
-  ),
-  ('卧推 3组', '卧推(3)', ('卧推', 3, null), ''),
-  ('深蹲 5x5', '深蹲 5(5)', ('深蹲', 5, '5reps'), axb),
-  ('硬拉 100公斤 5次 3组', '硬拉 100公斤 5次(3)', ('硬拉', 3, '100公斤 5次'), target),
-  ('臥推 4組', '臥推(4)', ('臥推', 4, null), ''),
-  ('深蹲 3組 10次', '深蹲 3組 10次(0)', ('深蹲', 3, '10次'), middle),
-  ('Press banca 4 series', 'Press banca(4)', ('Press banca', 4, null), ''),
-  ('Sentadilla 3x12', 'Sentadilla 3(12)', ('Sentadilla', 3, '12reps'), axb),
-  (
-    'Peso muerto 100 kg 5 series',
-    'Peso muerto 100 kg(5)',
-    ('Peso muerto', 5, '100kg'),
-    target,
-  ),
-  ('Đẩy ngực 3 hiệp', 'Đẩy ngực(3)', ('Đẩy ngực', 3, null), ''),
-  (
-    'Squat 4 hiệp 10 lần',
-    'Squat 4 hiệp 10 lần(0)',
-    ('Squat', 4, '10lần'),
-    middle,
-  ),
-  ('สควอท 3 เซ็ต', 'สควอท(3)', ('สควอท', 3, null), ''),
-  (
-    'เบนช์เพรส 80kg 5 ครั้ง 3 เซ็ต',
-    'เบนช์เพรส 80kg 5 ครั้ง(3)',
-    ('เบนช์เพรส', 3, '80kg 5ครั้ง'),
-    target,
-  ),
-  // 줄 앞의 수 표기는 이름이다.
-  ('400m 인터벌 x6', '400m 인터벌(6)', ('400m 인터벌', 6, null), ''),
-  ('21s 바벨컬 3세트', '21s 바벨컬(3)', ('21s 바벨컬', 3, null), ''),
-  ('3 x 10 벤치', '3 x 10 벤치(0)', ('3 x 10 벤치', 0, null), ''),
-  ('런닝 5km 30분', '런닝 5km 30분(0)', ('런닝', 0, '5km 30분'), target),
-  ('스쿼트 3세트 무릎 조심', '스쿼트 3세트 무릎 조심(0)', ('스쿼트 무릎 조심', 3, null), middle),
-  ('레그컬 x 3', '레그컬(3)', ('레그컬', 3, null), ''),
-  ('스쿼트 x3 5회', '스쿼트 x3 5회(0)', ('스쿼트', 3, '5회'), middle),
-  ('100m 달리기 x5', '100m 달리기(5)', ('100m 달리기', 5, null), ''),
-  // 공격 검토(2af1c40)에서 나온 줄.
-  ('스쿼트 bpm 3 x 10', '스쿼트 bpm 3(10)', ('스쿼트 bpm', 3, '10reps'), axb),
-  ('벤치 80kg x 5 x 3', '벤치 80kg x 5(3)', ('벤치', 3, '80kg x5'), target),
-  ('벤치 3세트 x 10회', '벤치 3세트 x 10회(0)', ('벤치', 3, 'x 10회'), middle),
-  (
-    '벤치 3 sets x 10 reps',
-    '벤치 3 sets x 10 reps(0)',
-    ('벤치', 3, 'x 10reps'),
-    middle,
-  ),
-  (
-    '벤치 3 x 10 x 60kg',
-    '벤치 3 x 10 x 60kg(0)',
-    ('벤치', 3, '10reps x 60kg'),
-    middle,
-  ),
-  ('스쿼트 5 X 5', '스쿼트 5(5)', ('스쿼트', 5, '5reps'), axb),
-  ('벤치 3X10', '벤치 3(10)', ('벤치', 3, '10reps'), axb),
-  ('벤치 3x8-12', '벤치 3x8-12(0)', ('벤치', 3, '8-12reps'), range),
-  ('벤치 4x8~10', '벤치 4x8~10(0)', ('벤치', 4, '8~10reps'), range),
-  ('Row 4 x 8-10', 'Row 4 x 8-10(0)', ('Row', 4, '8-10reps'), range),
-  ('스쿼트 3세트 10-12회', '스쿼트 3세트 10-12회(0)', ('스쿼트', 3, '10-12회'), range),
-  ('Squat 3 sets of 5', 'Squat 3 sets of 5(0)', ('Squat', 3, 'of 5'), joiner),
-  (
-    'Squat 5 x 5 @ 225 lbs',
-    'Squat 5 x 5 @ 225 lbs(0)',
-    ('Squat', 5, '5reps @ 225lbs'),
-    joiner,
-  ),
-  ('스쿼트 5x5@80kg', '스쿼트 5x5@80kg(0)', ('스쿼트', 5, '5reps @ 80kg'), joiner),
-  ('벤치 3x10 (60kg)', '벤치 3x10 (60kg)(0)', ('벤치', 3, '10reps (60kg)'), joiner),
-  ('버피 30초 / 15초 x8', '버피 30초 / 15초(8)', ('버피', 8, '30초 / 15초'), joiner),
-  ('벤치 5 x 100kg', '벤치 5 x 100kg(0)', ('벤치', 0, '5 x 100kg'), target),
-  ('1. 스쿼트 5x5', '1. 스쿼트 5(5)', ('스쿼트', 5, '5reps'), listMark),
-  ('- 벤치 3x10', '- 벤치 3(10)', ('벤치', 3, '10reps'), listMark),
-  ('스쿼트: 5x5', '스쿼트: 5(5)', ('스쿼트', 5, '5reps'), listMark),
-  ('딥스 3 x max', '딥스 3 x max(0)', ('딥스', 3, 'max'), axWord),
-  ('풀업 3x실패', '풀업 3x실패(0)', ('풀업', 3, '실패'), axWord),
-  // 이름에 붙여 친 표기.
-  ('벤치3세트', '벤치(3)', ('벤치', 3, null), ''),
-  ('레그컬x3', '레그컬(3)', ('레그컬', 3, null), ''),
-  ('스쿼트5x5', '스쿼트5(5)', ('스쿼트', 5, '5reps'), axb),
-  ('深蹲5x5', '深蹲5(5)', ('深蹲', 5, '5reps'), axb),
-  // 슈퍼세트 표지('A1.', 'B2)')의 수는 붙여 친 표기가 아니다 — 이름에 그대로.
-  ('A1. 벤치 3x10', 'A1. 벤치 3(10)', ('A1. 벤치', 3, '10reps'), axb),
-  ('B2) 로우 3x12', 'B2) 로우 3(12)', ('B2) 로우', 3, '12reps'), axb),
-  ('벤치 60kg×10×3', '벤치 60kg×10(3)', ('벤치', 3, '60kg ×10'), target),
-  (
-    'ベンチプレス 80kg×10回×3セット',
-    'ベンチプレス 80kg×10回×(3)',
-    ('ベンチプレス', 3, '80kg × 10回 ×'),
-    target,
-  ),
-  ('スクワット 3セット×10回', 'スクワット 3セット×10回(0)', ('スクワット', 3, '× 10回'), middle),
-  ('스쿼트 3세트×10회', '스쿼트 3세트×10회(0)', ('스쿼트', 3, '× 10회'), middle),
-  ('深蹲 5组5次', '深蹲 5组5次(0)', ('深蹲', 5, '5次'), middle),
-  // 줄 앞의 표기는 이름이다('5x5 스트렝스' 가 제목으로 남는 것과 같은 규칙).
-  ('3세트 스쿼트', '3세트 스쿼트(0)', ('3세트 스쿼트', 0, null), ''),
-  ('5x5 Squat', '5x5 Squat(0)', ('5x5 Squat', 0, null), ''),
-  ('3x5 Squat 100kg', '3x5 Squat 100kg(0)', ('3x5 Squat', 0, '100kg'), target),
-];
-
 void main() {
   test('세트 줄 정답 표 — main 과 다른 줄은 까닭이 있다', () {
     expect(setLines.length, greaterThanOrEqualTo(150));
@@ -584,53 +360,6 @@ void main() {
       }
       // 거절한 줄 중 20세트 초과만 까닭이 따로 있다.
       expect(tooManySets(line), want == '거절' && why == cap, reason: line);
-    }
-  });
-
-  test('계획 줄 정답 표 — 이름·세트 수·목표 글, 타이머와 다시 열기', () {
-    expect(planLines.length, greaterThanOrEqualTo(60));
-    expect(planLines.map((r) => r.$1).toSet().length, planLines.length);
-    const formats = [
-      '세트', ' sets', 'セット', '组', '組', ' series', ' hiệp', ' เซ็ต', //
-    ];
-    for (final (line, main, want, why) in planLines) {
-      final plan = parsePlanText('하체\n$line');
-      final item = plan.items.single;
-      expect(
-        (item.name, item.sets, plan.targets[item.id]),
-        want,
-        reason: '$line (main: $main)',
-      );
-      expect(
-        why.isNotEmpty,
-        main != '${want.$1}(${want.$2})' || want.$3 != null,
-        reason: '$line: 까닭 칸',
-      );
-      // 타이머는 이름에서 붙는다 — 친 줄에서 읽은 것과 같아야 한다.
-      expect(timing(item.name), timing(line), reason: '$line: 타이머');
-      // 목표 글은 세트 줄 파서로 읽히고, 못 읽는 것은 메모로 남는다.
-      if (plan.targets[item.id] case final t?) {
-        expect(planTarget(t, 'kg')?.isEmpty, isFalse, reason: line);
-      }
-      // 다시 열어도 같은 계획이다 — 어느 언어의 세트 표기로 그려도.
-      for (final f in [
-        ...formats.map(
-          (f) =>
-              (int n) => '$n$f',
-        ),
-        (int n) => 'x$n',
-      ]) {
-        final again = parsePlanText(
-          planText(plan.title, plan.items, f),
-          previous: plan.items,
-          title: plan.title,
-        );
-        expect(
-          again.items.map((i) => (i.id, i.name, i.sets)),
-          [(item.id, item.name, item.sets)],
-          reason: '$line → ${planText(plan.title, plan.items, f)}',
-        );
-      }
     }
   });
 
@@ -675,47 +404,6 @@ void main() {
         asks,
         reason: line,
       );
-    }
-  });
-
-  test('계획 글의 제목 — 빈 첫 줄, 저장된 제목, 종목처럼 적은 첫 줄', () {
-    // main 은 첫 글 줄을 늘 제목으로 먹었다.
-    const item = '첫 줄이 종목처럼(세트·목표) 적혔으면 제목으로 먹지 않는다 — 저장된 제목이 없을 때';
-    const blank = '빈 첫 줄은 제목 없음 — planText 가 제목 없는 계획을 그렇게 그린다';
-    // (글, 저장된 제목, main 제목, 지금 제목, 종목 이름들, main 과 다른 까닭)
-    const texts = [
-      ('내일 하체\n스쿼트 4세트', '', '내일 하체', '내일 하체', ['스쿼트'], ''),
-      ('Leg day\nSquat 5 sets', '', 'Leg day', 'Leg day', ['Squat'], ''),
-      ('脚の日\nスクワット 5セット', '', '脚の日', '脚の日', ['スクワット'], ''),
-      ('5x5 스트렝스\n스쿼트 5x5', '', '5x5 스트렝스', '5x5 스트렝스', ['스쿼트'], ''),
-      ('민수식 로우 2\n스쿼트', '', '민수식 로우 2', '민수식 로우 2', ['스쿼트'], ''),
-      ('3x10 벤치\n스쿼트', '', '3x10 벤치', '3x10 벤치', ['스쿼트'], ''),
-      ('하체 bpm 60\n스쿼트', '', '하체 bpm 60', '하체 bpm 60', ['스쿼트'], ''),
-      ('스쿼트 4세트\n벤치 3세트', '', '스쿼트 4세트', '', ['스쿼트', '벤치'], item),
-      ('벤치 80kg\n스쿼트 5세트', '', '벤치 80kg', '', ['벤치', '스쿼트'], item),
-      ('푸시업 bpm 3세트\n스쿼트', '', '푸시업 bpm 3세트', '', ['푸시업 bpm', '스쿼트'], item),
-      ('400m 인터벌 x6\n스쿼트', '', '400m 인터벌 x6', '', ['400m 인터벌', '스쿼트'], item),
-      ('스트롱리프트 5x5\n스쿼트 5세트', '', '스트롱리프트 5x5', '', ['스트롱리프트', '스쿼트'], item),
-      ('스쿼트 4세트\n벤치', '하체', '스쿼트 4세트', '', ['스쿼트', '벤치'], item),
-      // 저장된 제목과 같은 첫 줄은 수가 들어 있어도, 앞에 빈 줄이 있어도 제목이다.
-      (
-        '스트롱리프트 5x5\n스쿼트 5세트',
-        '스트롱리프트 5x5',
-        '스트롱리프트 5x5',
-        '스트롱리프트 5x5',
-        ['스쿼트'],
-        '',
-      ),
-      ('\n하체\n스쿼트 5세트', '하체', '하체', '하체', ['스쿼트'], ''),
-      ('  \n\n하체\n스쿼트 5세트', '하체', '하체', '하체', ['스쿼트'], ''),
-      ('\n벤치\n스쿼트 5세트', '', '벤치', '', ['벤치', '스쿼트'], blank),
-      ('\n스쿼트 5세트', '하체', '스쿼트 5세트', '', ['스쿼트'], blank),
-    ];
-    for (final (text, saved, main, title, names, why) in texts) {
-      final plan = parsePlanText(text, title: saved);
-      expect(plan.title, title, reason: text);
-      expect(plan.items.map((i) => i.name), names, reason: text);
-      expect(why.isNotEmpty, main != title, reason: '$text: 까닭 칸');
     }
   });
 }

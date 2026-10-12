@@ -120,8 +120,6 @@
   },
   "noteHint": "이 세트에 남길 메모",
   "activeEnergy": "활동 칼로리",
-  "energyUnavailable": "기록 없음",
-  "energySource": "건강 앱 · 기록 시간대",
   "doneEditing": "완료",
   "setInputHint": "무게  횟수",
   "setRequired": "세트를 먼저 입력해 주세요. 예: 60 12",
@@ -1087,7 +1085,6 @@
     }
   },
   "partnerErrFormat": "코드는 여섯 글자입니다. 다시 확인해 주세요.",
-  "partnerErrPlanTooLong": "한 줄은 120자, 운동은 60개까지 저장할 수 있어요. 긴 줄을 줄여 주세요.",
   "partnerErrInvalid": "맞는 코드가 없습니다. 이미 사용됐거나 잘못 입력했을 수 있어요.",
   "partnerErrExpired": "만료된 코드입니다. 상대에게 새 코드를 받아 주세요.",
   "partnerErrEnded": "이미 종료된 초대입니다.",
@@ -1099,185 +1096,7 @@
   "partnerReadOnly": "읽기 전용",
   "partnerConflict": "다른 기기에서 더 새 기록을 공유했습니다. 이 기기의 기록은 그대로 저장돼 있고, 공유만 멈춘 상태입니다.",
   "partnerShareThisDevice": "이 기기의 기록으로 공유하기",
-  "plansTitle": "공동 루틴",
-  "planNew": "새 공동 루틴",
-  "planJoin": "코드로 참여",
-  "planHint": "첫 줄은 제목, 그다음은 한 줄에 한 종목\n예: 스쿼트 4세트",
-  "planDateNone": "날짜 미정",
-  "planSetsCount": "{n}세트",
-  "@planSetsCount": {
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "planSave": "제안하기",
-  "planStateLocal": "이 기기에만 있는 초안 · 서버에 아직 올라가지 않았습니다",
-  "planStateDraft": "초안 · 아직 혼자입니다",
-  "planStateWaiting": "상대 확인 대기 · 버전 {v}",
-  "@planStateWaiting": {
-    "placeholders": {
-      "v": {
-        "type": "int"
-      }
-    }
-  },
-  "planStateNeedsMe": "{name} 님이 고쳤습니다 · 버전 {v} 확인이 필요합니다",
-  "@planStateNeedsMe": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "v": {
-        "type": "int"
-      }
-    }
-  },
-  "planStateAgreed": "합의 완료 · 버전 {v}",
-  "@planStateAgreed": {
-    "placeholders": {
-      "v": {
-        "type": "int"
-      }
-    }
-  },
-  "planStateWithdrawn": "함께 계획이 끝났습니다 · 합의본과 내 목표는 남아 있습니다",
-  "planAccept": "버전 {v} 수락",
-  "@planAccept": {
-    "placeholders": {
-      "v": {
-        "type": "int"
-      }
-    }
-  },
-  "planChanged": "마지막 합의본에서 바뀐 것",
-  "planAdded": "추가: {x}",
-  "@planAdded": {
-    "placeholders": {
-      "x": {
-        "type": "String"
-      }
-    }
-  },
-  "planRemoved": "빠짐: {x}",
-  "@planRemoved": {
-    "placeholders": {
-      "x": {
-        "type": "String"
-      }
-    }
-  },
-  "planSetsChanged": "세트 수 변경: {x}",
-  "@planSetsChanged": {
-    "placeholders": {
-      "x": {
-        "type": "String"
-      }
-    }
-  },
-  "planReordered": "순서가 바뀌었습니다",
-  "planDateChanged": "예정 날짜가 바뀌었습니다",
-  "planTitleChanged": "제목이 바뀌었습니다",
-  "planLastAgreed": "마지막 합의본 · 버전 {v}",
-  "@planLastAgreed": {
-    "placeholders": {
-      "v": {
-        "type": "int"
-      }
-    }
-  },
-  "planConflict": "상대가 먼저 고쳤습니다. 내 초안은 그대로 있습니다.",
-  "planLatest": "상대가 고친 최신 계획 · 버전 {v}",
-  "@planLatest": {
-    "placeholders": {
-      "v": {
-        "type": "int"
-      }
-    }
-  },
-  "planKeepMine": "내 초안으로 다시 제안",
-  "planTakeLatest": "최신 계획으로 바꾸기",
-  "planMyTarget": "내 목표",
-  "planPartnerTarget": "{name}: {t}",
-  "@planPartnerTarget": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "t": {
-        "type": "String"
-      }
-    }
-  },
-  "planTargetHint": "예: 100 5 또는 100kg 5회 x3 메모",
-  "planInvite": "초대 코드 만들기",
-  "planStart": "이 루틴으로 시작",
-  "planStartSolo": "본인용 사본으로 시작",
-  "planStartSoloNote": "아직 합의 전입니다. 지금 시작하면 공동 합의본이 아니라 본인용 사본으로 시작합니다.",
-  "planOpenWorkout": "시작한 운동 열기",
-  "planCopyNext": "다음 운동으로 복사",
-  "planWithdraw": "함께 계획 그만두기",
-  "planCompare": "계획과 실제",
-  "planDoneSets": "{name} · 계획 {planned}세트 · 수행 {done}세트",
-  "@planDoneSets": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "planned": {
-        "type": "int"
-      },
-      "done": {
-        "type": "int"
-      }
-    }
-  },
-  "planAddedActual": "계획에 없던 운동: {x}",
-  "@planAddedActual": {
-    "placeholders": {
-      "x": {
-        "type": "String"
-      }
-    }
-  },
-  "planSkipped": "하지 않은 운동: {x}",
-  "@planSkipped": {
-    "placeholders": {
-      "x": {
-        "type": "String"
-      }
-    }
-  },
-  "planStartedFrom": "공동 루틴 합의본(버전 {v})에서 시작했습니다",
-  "@planStartedFrom": {
-    "placeholders": {
-      "v": {
-        "type": "int"
-      }
-    }
-  },
-  "planStartedSolo": "본인용 사본(버전 {v}, 합의 전)에서 시작했습니다",
-  "@planStartedSolo": {
-    "placeholders": {
-      "v": {
-        "type": "int"
-      }
-    }
-  },
-  "planShareLink": "초대 링크 보내기",
-  "planShareText": "setpad에서 운동 계획을 같이 짜요: {url}",
-  "planLinkCopied": "링크를 복사했습니다. 하루 동안 한 번 쓸 수 있습니다.",
-  "planLinkJoining": "초대받은 계획에 참여하는 중…",
-  "@planShareText": {
-    "placeholders": {
-      "url": {
-        "type": "String"
-      }
-    }
-  },
   "nearbyHint": "아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결됩니다.",
-  "planPropose": "공동 루틴으로 제안",
   "togetherStart": "같이 시작",
   "togetherAlternate": "교대로",
   "togetherWaiting": "{name} 님을 기다리는 중…",
@@ -1377,22 +1196,6 @@
     }
   },
   "proxyWhose": "누구의 기록을 적을까요?",
-  "planMemberAccepted": "{name} 님 동의함",
-  "@planMemberAccepted": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "planMemberWaiting": "{name} 님 확인 전",
-  "@planMemberWaiting": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "deleteNoteAsk": "\"{title}\" 기록을 지울까요?",
   "@deleteNoteAsk": {
     "placeholders": {

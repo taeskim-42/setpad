@@ -133,12 +133,6 @@ class LJa extends L {
   String get activeEnergy => 'アクティブカロリー';
 
   @override
-  String get energyUnavailable => '記録なし';
-
-  @override
-  String get energySource => 'ヘルスケア · この記録の時間帯';
-
-  @override
   String get doneEditing => '完了';
 
   @override
@@ -1216,9 +1210,6 @@ class LJa extends L {
   String get partnerErrFormat => 'コードは6文字です。もう一度確認してください。';
 
   @override
-  String get partnerErrPlanTooLong => '1行は120文字、種目は60個まで保存できます。長い行を短くしてください。';
-
-  @override
   String get partnerErrInvalid => '一致するコードがありません。使用済みか入力ミスの可能性があります。';
 
   @override
@@ -1253,182 +1244,7 @@ class LJa extends L {
   String get partnerShareThisDevice => 'この端末の記録で共有する';
 
   @override
-  String get plansTitle => '共同ルーティン';
-
-  @override
-  String get planNew => '新しい共同ルーティン';
-
-  @override
-  String get planJoin => 'コードで参加';
-
-  @override
-  String get planHint => '1行目はタイトル、その後は1行に1種目\n例: スクワット 4セット';
-
-  @override
-  String get planDateNone => '日付未定';
-
-  @override
-  String planSetsCount(int n) {
-    return '$nセット';
-  }
-
-  @override
-  String get planSave => '提案する';
-
-  @override
-  String get planStateLocal => 'この端末だけの下書き · まだサーバーにありません';
-
-  @override
-  String get planStateDraft => '下書き · まだ一人です';
-
-  @override
-  String planStateWaiting(int v) {
-    return '相手の確認待ち · バージョン$v';
-  }
-
-  @override
-  String planStateNeedsMe(String name, int v) {
-    return '$nameさんが変更しました · バージョン$vの確認が必要です';
-  }
-
-  @override
-  String planStateAgreed(int v) {
-    return '合意済み · バージョン$v';
-  }
-
-  @override
-  String get planStateWithdrawn => '共同の計画は終了しました · 合意した計画と自分の目標は残ります';
-
-  @override
-  String planAccept(int v) {
-    return 'バージョン$vを承認';
-  }
-
-  @override
-  String get planChanged => '最後の合意から変わった点';
-
-  @override
-  String planAdded(String x) {
-    return '追加: $x';
-  }
-
-  @override
-  String planRemoved(String x) {
-    return '削除: $x';
-  }
-
-  @override
-  String planSetsChanged(String x) {
-    return 'セット数変更: $x';
-  }
-
-  @override
-  String get planReordered => '順番が変わりました';
-
-  @override
-  String get planDateChanged => '予定日が変わりました';
-
-  @override
-  String get planTitleChanged => 'タイトルが変わりました';
-
-  @override
-  String planLastAgreed(int v) {
-    return '最後の合意 · バージョン$v';
-  }
-
-  @override
-  String get planConflict => '相手が先に変更しました。自分の下書きはそのままです。';
-
-  @override
-  String planLatest(int v) {
-    return '相手の最新の計画 · バージョン$v';
-  }
-
-  @override
-  String get planKeepMine => '自分の下書きで再提案';
-
-  @override
-  String get planTakeLatest => '最新の計画に切り替える';
-
-  @override
-  String get planMyTarget => '自分の目標';
-
-  @override
-  String planPartnerTarget(String name, String t) {
-    return '$name: $t';
-  }
-
-  @override
-  String get planTargetHint => '例: 100 5 または 100kg 5回 x3 メモ';
-
-  @override
-  String get planInvite => '招待コードを作る';
-
-  @override
-  String get planStart => 'このルーティンで始める';
-
-  @override
-  String get planStartSolo => '自分用のコピーで始める';
-
-  @override
-  String get planStartSoloNote => 'まだ合意前です。今始めると合意済みの計画ではなく自分用のコピーで始まります。';
-
-  @override
-  String get planOpenWorkout => '始めた運動を開く';
-
-  @override
-  String get planCopyNext => '次の運動にコピー';
-
-  @override
-  String get planWithdraw => 'この共同計画をやめる';
-
-  @override
-  String get planCompare => '計画と実績';
-
-  @override
-  String planDoneSets(String name, int planned, int done) {
-    return '$name · 計画$plannedセット · 実施$doneセット';
-  }
-
-  @override
-  String planAddedActual(String x) {
-    return '計画になかった種目: $x';
-  }
-
-  @override
-  String planSkipped(String x) {
-    return '行わなかった種目: $x';
-  }
-
-  @override
-  String planStartedFrom(int v) {
-    return '合意した共同ルーティン（バージョン$v）から開始';
-  }
-
-  @override
-  String planStartedSolo(int v) {
-    return '自分用のコピー（バージョン$v、合意前）から開始';
-  }
-
-  @override
-  String get planShareLink => '招待リンクを送る';
-
-  @override
-  String planShareText(String url) {
-    return 'setpadで一緒にトレーニング計画を立てよう: $url';
-  }
-
-  @override
-  String get planLinkCopied => 'リンクをコピーしました。1日間、1回だけ使えます。';
-
-  @override
-  String get planLinkJoining => '招待された計画に参加しています…';
-
-  @override
   String get nearbyHint => 'iPhone同士なら、この画面を開いたまま2台を近づけても接続できます。';
-
-  @override
-  String get planPropose => '共同ルーティンに提案';
 
   @override
   String get togetherStart => '一緒にスタート';
@@ -1538,16 +1354,6 @@ class LJa extends L {
 
   @override
   String get proxyWhose => '誰の記録をつけますか？';
-
-  @override
-  String planMemberAccepted(String name) {
-    return '$nameさん 同意済み';
-  }
-
-  @override
-  String planMemberWaiting(String name) {
-    return '$nameさん 未確認';
-  }
 
   @override
   String deleteNoteAsk(String title) {

@@ -826,13 +826,6 @@ const _end = '[,.!~)]*';
 
 final _unit = RegExp('^($_num)\\s*($_units)$_tail\$', caseSensitive: false);
 
-/// 숫자와 단위를 띄어 쓰는 언어가 있다 — "10 lần", "100 kg". 붙여 놓고
-/// 시작해야 한 토큰으로 읽힌다.
-final _spacedUnit = RegExp(
-  '(\\d)\\s+($_units)(?=$_tail(?:\\s|\$))',
-  caseSensitive: false,
-);
-
 /// 세트 수 "x3", "x3 sets".
 final _repeat = RegExp('^[x×*](\\d+)($_setWords)?\$', caseSensitive: false);
 
@@ -897,10 +890,6 @@ String _halfWidth(String s) => s.replaceAllMapped(
   RegExp('[\uFF01-\uFF5E]'),
   (m) => String.fromCharCode(m[0]!.codeUnitAt(0) - 0xFEE0),
 );
-
-/// 띄어 쓴 수와 단위를 붙인다. "5 sets" → "5sets".
-String joinSpacedUnits(String text) =>
-    text.replaceAllMapped(_spacedUnit, (m) => '${m[1]}${m[2]}');
 
 /// 한 줄로 반복할 수 있는 세트 수. 넘으면 자르지 않고 거절한다 — 입력칸에
 /// 글이 남고 [tooManySets] 가 이유를 말한다.

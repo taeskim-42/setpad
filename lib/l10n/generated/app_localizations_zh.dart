@@ -133,12 +133,6 @@ class LZh extends L {
   String get activeEnergy => '活动热量';
 
   @override
-  String get energyUnavailable => '暂无记录';
-
-  @override
-  String get energySource => '健康 · 本次记录时段';
-
-  @override
   String get doneEditing => '完成';
 
   @override
@@ -1202,9 +1196,6 @@ class LZh extends L {
   String get partnerErrFormat => '代码为六位，请再确认。';
 
   @override
-  String get partnerErrPlanTooLong => '每行最多 120 个字，最多 60 个动作。请缩短过长的一行。';
-
-  @override
   String get partnerErrInvalid => '没有这个代码，可能已被使用或输入有误。';
 
   @override
@@ -1238,182 +1229,7 @@ class LZh extends L {
   String get partnerShareThisDevice => '用本机记录共享';
 
   @override
-  String get plansTitle => '共同计划';
-
-  @override
-  String get planNew => '新建共同计划';
-
-  @override
-  String get planJoin => '用代码加入';
-
-  @override
-  String get planHint => '第一行是标题，之后每行一个动作\n例：深蹲 4组';
-
-  @override
-  String get planDateNone => '日期未定';
-
-  @override
-  String planSetsCount(int n) {
-    return '$n组';
-  }
-
-  @override
-  String get planSave => '提出';
-
-  @override
-  String get planStateLocal => '仅在本机的草稿 · 尚未上传';
-
-  @override
-  String get planStateDraft => '草稿 · 还没有同伴';
-
-  @override
-  String planStateWaiting(int v) {
-    return '等待对方确认 · 版本 $v';
-  }
-
-  @override
-  String planStateNeedsMe(String name, int v) {
-    return '$name 已修改 · 版本 $v 需要你确认';
-  }
-
-  @override
-  String planStateAgreed(int v) {
-    return '已达成一致 · 版本 $v';
-  }
-
-  @override
-  String get planStateWithdrawn => '共同计划已结束 · 已达成的计划和你的目标保留';
-
-  @override
-  String planAccept(int v) {
-    return '接受版本 $v';
-  }
-
-  @override
-  String get planChanged => '与上次一致版本相比的变化';
-
-  @override
-  String planAdded(String x) {
-    return '新增：$x';
-  }
-
-  @override
-  String planRemoved(String x) {
-    return '移除：$x';
-  }
-
-  @override
-  String planSetsChanged(String x) {
-    return '组数变化：$x';
-  }
-
-  @override
-  String get planReordered => '顺序已变化';
-
-  @override
-  String get planDateChanged => '日期已变化';
-
-  @override
-  String get planTitleChanged => '标题已变化';
-
-  @override
-  String planLastAgreed(int v) {
-    return '上次一致的计划 · 版本 $v';
-  }
-
-  @override
-  String get planConflict => '对方先修改了，你的草稿仍然保留。';
-
-  @override
-  String planLatest(int v) {
-    return '对方的最新计划 · 版本 $v';
-  }
-
-  @override
-  String get planKeepMine => '用我的草稿重新提出';
-
-  @override
-  String get planTakeLatest => '改用最新计划';
-
-  @override
-  String get planMyTarget => '我的目标';
-
-  @override
-  String planPartnerTarget(String name, String t) {
-    return '$name：$t';
-  }
-
-  @override
-  String get planTargetHint => '例：100 5 或 100kg 5次 x3 备注';
-
-  @override
-  String get planInvite => '生成邀请代码';
-
-  @override
-  String get planStart => '按此计划开始';
-
-  @override
-  String get planStartSolo => '用我自己的副本开始';
-
-  @override
-  String get planStartSoloNote => '尚未达成一致。现在开始将使用你自己的副本，而不是已达成一致的计划。';
-
-  @override
-  String get planOpenWorkout => '打开已开始的训练';
-
-  @override
-  String get planCopyNext => '复制到下一次训练';
-
-  @override
-  String get planWithdraw => '退出此共同计划';
-
-  @override
-  String get planCompare => '计划与实际';
-
-  @override
-  String planDoneSets(String name, int planned, int done) {
-    return '$name · 计划 $planned 组 · 完成 $done 组';
-  }
-
-  @override
-  String planAddedActual(String x) {
-    return '计划外：$x';
-  }
-
-  @override
-  String planSkipped(String x) {
-    return '未做：$x';
-  }
-
-  @override
-  String planStartedFrom(int v) {
-    return '从已达成一致的共同计划（版本 $v）开始';
-  }
-
-  @override
-  String planStartedSolo(int v) {
-    return '从你自己的副本（版本 $v，未达成一致）开始';
-  }
-
-  @override
-  String get planShareLink => '发送邀请链接';
-
-  @override
-  String planShareText(String url) {
-    return '在 setpad 一起制定训练计划：$url';
-  }
-
-  @override
-  String get planLinkCopied => '已复制链接，一天内可使用一次。';
-
-  @override
-  String get planLinkJoining => '正在加入受邀的计划…';
-
-  @override
   String get nearbyHint => 'iPhone 之间，保持此画面打开并将两台手机靠近也可以连接。';
-
-  @override
-  String get planPropose => '提议为共同计划';
 
   @override
   String get togetherStart => '一起开始';
@@ -1522,16 +1338,6 @@ class LZh extends L {
 
   @override
   String get proxyWhose => '要记录谁的训练？';
-
-  @override
-  String planMemberAccepted(String name) {
-    return '$name 已同意';
-  }
-
-  @override
-  String planMemberWaiting(String name) {
-    return '$name 尚未确认';
-  }
 
   @override
   String deleteNoteAsk(String title) {
@@ -3704,12 +3510,6 @@ class LZhHans extends LZh {
   String get activeEnergy => '活动热量';
 
   @override
-  String get energyUnavailable => '暂无记录';
-
-  @override
-  String get energySource => '健康 · 本次记录时段';
-
-  @override
   String get doneEditing => '完成';
 
   @override
@@ -4773,9 +4573,6 @@ class LZhHans extends LZh {
   String get partnerErrFormat => '代码为六位，请再确认。';
 
   @override
-  String get partnerErrPlanTooLong => '每行最多 120 个字，最多 60 个动作。请缩短过长的一行。';
-
-  @override
   String get partnerErrInvalid => '没有这个代码，可能已被使用或输入有误。';
 
   @override
@@ -4809,182 +4606,7 @@ class LZhHans extends LZh {
   String get partnerShareThisDevice => '用本机记录共享';
 
   @override
-  String get plansTitle => '共同计划';
-
-  @override
-  String get planNew => '新建共同计划';
-
-  @override
-  String get planJoin => '用代码加入';
-
-  @override
-  String get planHint => '第一行是标题，之后每行一个动作\n例：深蹲 4组';
-
-  @override
-  String get planDateNone => '日期未定';
-
-  @override
-  String planSetsCount(int n) {
-    return '$n组';
-  }
-
-  @override
-  String get planSave => '提出';
-
-  @override
-  String get planStateLocal => '仅在本机的草稿 · 尚未上传';
-
-  @override
-  String get planStateDraft => '草稿 · 还没有同伴';
-
-  @override
-  String planStateWaiting(int v) {
-    return '等待对方确认 · 版本 $v';
-  }
-
-  @override
-  String planStateNeedsMe(String name, int v) {
-    return '$name 已修改 · 版本 $v 需要你确认';
-  }
-
-  @override
-  String planStateAgreed(int v) {
-    return '已达成一致 · 版本 $v';
-  }
-
-  @override
-  String get planStateWithdrawn => '共同计划已结束 · 已达成的计划和你的目标保留';
-
-  @override
-  String planAccept(int v) {
-    return '接受版本 $v';
-  }
-
-  @override
-  String get planChanged => '与上次一致版本相比的变化';
-
-  @override
-  String planAdded(String x) {
-    return '新增：$x';
-  }
-
-  @override
-  String planRemoved(String x) {
-    return '移除：$x';
-  }
-
-  @override
-  String planSetsChanged(String x) {
-    return '组数变化：$x';
-  }
-
-  @override
-  String get planReordered => '顺序已变化';
-
-  @override
-  String get planDateChanged => '日期已变化';
-
-  @override
-  String get planTitleChanged => '标题已变化';
-
-  @override
-  String planLastAgreed(int v) {
-    return '上次一致的计划 · 版本 $v';
-  }
-
-  @override
-  String get planConflict => '对方先修改了，你的草稿仍然保留。';
-
-  @override
-  String planLatest(int v) {
-    return '对方的最新计划 · 版本 $v';
-  }
-
-  @override
-  String get planKeepMine => '用我的草稿重新提出';
-
-  @override
-  String get planTakeLatest => '改用最新计划';
-
-  @override
-  String get planMyTarget => '我的目标';
-
-  @override
-  String planPartnerTarget(String name, String t) {
-    return '$name：$t';
-  }
-
-  @override
-  String get planTargetHint => '例：100 5 或 100kg 5次 x3 备注';
-
-  @override
-  String get planInvite => '生成邀请代码';
-
-  @override
-  String get planStart => '按此计划开始';
-
-  @override
-  String get planStartSolo => '用我自己的副本开始';
-
-  @override
-  String get planStartSoloNote => '尚未达成一致。现在开始将使用你自己的副本，而不是已达成一致的计划。';
-
-  @override
-  String get planOpenWorkout => '打开已开始的训练';
-
-  @override
-  String get planCopyNext => '复制到下一次训练';
-
-  @override
-  String get planWithdraw => '退出此共同计划';
-
-  @override
-  String get planCompare => '计划与实际';
-
-  @override
-  String planDoneSets(String name, int planned, int done) {
-    return '$name · 计划 $planned 组 · 完成 $done 组';
-  }
-
-  @override
-  String planAddedActual(String x) {
-    return '计划外：$x';
-  }
-
-  @override
-  String planSkipped(String x) {
-    return '未做：$x';
-  }
-
-  @override
-  String planStartedFrom(int v) {
-    return '从已达成一致的共同计划（版本 $v）开始';
-  }
-
-  @override
-  String planStartedSolo(int v) {
-    return '从你自己的副本（版本 $v，未达成一致）开始';
-  }
-
-  @override
-  String get planShareLink => '发送邀请链接';
-
-  @override
-  String planShareText(String url) {
-    return '在 setpad 一起制定训练计划：$url';
-  }
-
-  @override
-  String get planLinkCopied => '已复制链接，一天内可使用一次。';
-
-  @override
-  String get planLinkJoining => '正在加入受邀的计划…';
-
-  @override
   String get nearbyHint => 'iPhone 之间，保持此画面打开并将两台手机靠近也可以连接。';
-
-  @override
-  String get planPropose => '提议为共同计划';
 
   @override
   String get togetherStart => '一起开始';
@@ -5093,16 +4715,6 @@ class LZhHans extends LZh {
 
   @override
   String get proxyWhose => '要记录谁的训练？';
-
-  @override
-  String planMemberAccepted(String name) {
-    return '$name 已同意';
-  }
-
-  @override
-  String planMemberWaiting(String name) {
-    return '$name 尚未确认';
-  }
 
   @override
   String deleteNoteAsk(String title) {
@@ -7275,12 +6887,6 @@ class LZhHant extends LZh {
   String get activeEnergy => '活動熱量';
 
   @override
-  String get energyUnavailable => '暫無紀錄';
-
-  @override
-  String get energySource => '健康 · 本次紀錄時段';
-
-  @override
   String get doneEditing => '完成';
 
   @override
@@ -8343,9 +7949,6 @@ class LZhHant extends LZh {
   String get partnerErrFormat => '代碼為六位，請再確認。';
 
   @override
-  String get partnerErrPlanTooLong => '每行最多 120 個字，最多 60 個動作。請縮短過長的一行。';
-
-  @override
   String get partnerErrInvalid => '沒有這個代碼，可能已被使用或輸入有誤。';
 
   @override
@@ -8379,182 +7982,7 @@ class LZhHant extends LZh {
   String get partnerShareThisDevice => '用本機紀錄分享';
 
   @override
-  String get plansTitle => '共同計畫';
-
-  @override
-  String get planNew => '新增共同計畫';
-
-  @override
-  String get planJoin => '用代碼加入';
-
-  @override
-  String get planHint => '第一行是標題，之後每行一個動作\n例：深蹲 4組';
-
-  @override
-  String get planDateNone => '日期未定';
-
-  @override
-  String planSetsCount(int n) {
-    return '$n組';
-  }
-
-  @override
-  String get planSave => '提出';
-
-  @override
-  String get planStateLocal => '僅在本機的草稿 · 尚未上傳';
-
-  @override
-  String get planStateDraft => '草稿 · 還沒有同伴';
-
-  @override
-  String planStateWaiting(int v) {
-    return '等待對方確認 · 版本 $v';
-  }
-
-  @override
-  String planStateNeedsMe(String name, int v) {
-    return '$name 已修改 · 版本 $v 需要你確認';
-  }
-
-  @override
-  String planStateAgreed(int v) {
-    return '已達成一致 · 版本 $v';
-  }
-
-  @override
-  String get planStateWithdrawn => '共同計畫已結束 · 已達成的計畫和你的目標保留';
-
-  @override
-  String planAccept(int v) {
-    return '接受版本 $v';
-  }
-
-  @override
-  String get planChanged => '與上次一致版本相比的變化';
-
-  @override
-  String planAdded(String x) {
-    return '新增：$x';
-  }
-
-  @override
-  String planRemoved(String x) {
-    return '移除：$x';
-  }
-
-  @override
-  String planSetsChanged(String x) {
-    return '組數變化：$x';
-  }
-
-  @override
-  String get planReordered => '順序已變化';
-
-  @override
-  String get planDateChanged => '日期已變化';
-
-  @override
-  String get planTitleChanged => '標題已變化';
-
-  @override
-  String planLastAgreed(int v) {
-    return '上次一致的計畫 · 版本 $v';
-  }
-
-  @override
-  String get planConflict => '對方先修改了，你的草稿仍然保留。';
-
-  @override
-  String planLatest(int v) {
-    return '對方的最新計畫 · 版本 $v';
-  }
-
-  @override
-  String get planKeepMine => '用我的草稿重新提出';
-
-  @override
-  String get planTakeLatest => '改用最新計畫';
-
-  @override
-  String get planMyTarget => '我的目標';
-
-  @override
-  String planPartnerTarget(String name, String t) {
-    return '$name：$t';
-  }
-
-  @override
-  String get planTargetHint => '例：100 5 或 100kg 5次 x3 備註';
-
-  @override
-  String get planInvite => '產生邀請代碼';
-
-  @override
-  String get planStart => '按此計畫開始';
-
-  @override
-  String get planStartSolo => '用我自己的副本開始';
-
-  @override
-  String get planStartSoloNote => '尚未達成一致。現在開始將使用你自己的副本，而不是已達成一致的計畫。';
-
-  @override
-  String get planOpenWorkout => '開啟已開始的訓練';
-
-  @override
-  String get planCopyNext => '複製到下一次訓練';
-
-  @override
-  String get planWithdraw => '退出此共同計畫';
-
-  @override
-  String get planCompare => '計畫與實際';
-
-  @override
-  String planDoneSets(String name, int planned, int done) {
-    return '$name · 計畫 $planned 組 · 完成 $done 組';
-  }
-
-  @override
-  String planAddedActual(String x) {
-    return '計畫外：$x';
-  }
-
-  @override
-  String planSkipped(String x) {
-    return '未做：$x';
-  }
-
-  @override
-  String planStartedFrom(int v) {
-    return '從已達成一致的共同計畫（版本 $v）開始';
-  }
-
-  @override
-  String planStartedSolo(int v) {
-    return '從你自己的副本（版本 $v，未達成一致）開始';
-  }
-
-  @override
-  String get planShareLink => '傳送邀請連結';
-
-  @override
-  String planShareText(String url) {
-    return '在 setpad 一起制定訓練計畫：$url';
-  }
-
-  @override
-  String get planLinkCopied => '已複製連結，一天內可使用一次。';
-
-  @override
-  String get planLinkJoining => '正在加入受邀的計畫…';
-
-  @override
   String get nearbyHint => 'iPhone 之間，保持此畫面開啟並將兩支手機靠近也可以連線。';
-
-  @override
-  String get planPropose => '提議為共同計畫';
 
   @override
   String get togetherStart => '一起開始';
@@ -8663,16 +8091,6 @@ class LZhHant extends LZh {
 
   @override
   String get proxyWhose => '要記錄誰的訓練？';
-
-  @override
-  String planMemberAccepted(String name) {
-    return '$name 已同意';
-  }
-
-  @override
-  String planMemberWaiting(String name) {
-    return '$name 尚未確認';
-  }
 
   @override
   String deleteNoteAsk(String title) {

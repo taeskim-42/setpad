@@ -31,7 +31,7 @@ import UserNotifications
     restAlarm = RestAlarm(messenger: engineBridge.applicationRegistrar.messenger())
     let webSignIn = self.webSignIn
 
-    // 공유 시트. 글 한 줄(공동 루틴 초대 링크)을 올리는 것이 전부라 플러그인 없이 둔다.
+    // 공유 시트. 글 한 줄(대신 적은 기록의 링크)을 올리는 것이 전부라 플러그인 없이 둔다.
     FlutterMethodChannel(
       name: "setpad/share",
       binaryMessenger: engineBridge.applicationRegistrar.messenger()

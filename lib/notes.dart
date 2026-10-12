@@ -319,14 +319,6 @@ class Note {
   /// [user] 가 보내도 되는 기록인가.
   bool ownedBy(String? user) => owner == null || owner == user;
 
-  /// 이 운동이 시작된 공동 루틴과 그 버전. 계획은 출발점일 뿐이다 — 여기서 실제
-  /// 값을 고쳐도 계획은 바뀌지 않고, 계획이 나중에 바뀌어도 이 운동은 그대로다.
-  String? planId;
-  int? planVersion;
-
-  /// 둘이 합의한 버전으로 시작했는가. false 면 합의 전에 본인용 사본으로 시작했다.
-  bool planAgreed = false;
-
   /// 같이 하기. 상대의 기록은 **여기에만** 있다 — [blocks] 에 섞이지 않으므로
   /// 내 통계·하루 집계·업로드 어디에도 들어가지 않는다.
   PartnerSession? partner;
@@ -431,9 +423,6 @@ class Note {
     'handoffRevision': ?handoffRevision,
     if (handoffTouched) 'handoffTouched': true,
     if (checkedIn) 'checkedIn': true,
-    'planId': ?planId,
-    'planVersion': ?planVersion,
-    if (planAgreed) 'planAgreed': true,
     'blocks': blocksToJson(blocks),
   };
 
@@ -468,10 +457,6 @@ class Note {
       ..handoffRevision = (j['handoffRevision'] as num?)?.toInt()
       ..handoffTouched = j['handoffTouched'] == true
       ..checkedIn = j['checkedIn'] == true;
-    note
-      ..planId = j['planId'] as String?
-      ..planVersion = (j['planVersion'] as num?)?.toInt()
-      ..planAgreed = j['planAgreed'] == true;
     note.deletedMeals.addAll(
       (j['deletedMeals'] as List? ?? const []).whereType<String>(),
     );

@@ -133,12 +133,6 @@ class LEn extends L {
   String get activeEnergy => 'Active energy';
 
   @override
-  String get energyUnavailable => 'No data';
-
-  @override
-  String get energySource => 'Health · During this entry';
-
-  @override
   String get doneEditing => 'Done';
 
   @override
@@ -1272,10 +1266,6 @@ class LEn extends L {
   String get partnerErrFormat => 'A code has six characters. Check it again.';
 
   @override
-  String get partnerErrPlanTooLong =>
-      'A line can be up to 120 characters and a plan up to 60 exercises. Please shorten the long line.';
-
-  @override
   String get partnerErrInvalid =>
       'No such code. It may already be used or mistyped.';
 
@@ -1314,188 +1304,8 @@ class LEn extends L {
   String get partnerShareThisDevice => 'Share this device\'s record';
 
   @override
-  String get plansTitle => 'Shared plans';
-
-  @override
-  String get planNew => 'New shared plan';
-
-  @override
-  String get planJoin => 'Join with a code';
-
-  @override
-  String get planHint =>
-      'First line is the title, then one exercise per line\ne.g. Squat 4 sets';
-
-  @override
-  String get planDateNone => 'No date yet';
-
-  @override
-  String planSetsCount(int n) {
-    return '$n sets';
-  }
-
-  @override
-  String get planSave => 'Propose';
-
-  @override
-  String get planStateLocal =>
-      'Draft on this device only · not on the server yet';
-
-  @override
-  String get planStateDraft => 'Draft · no partner yet';
-
-  @override
-  String planStateWaiting(int v) {
-    return 'Waiting for your partner · version $v';
-  }
-
-  @override
-  String planStateNeedsMe(String name, int v) {
-    return '$name changed it · version $v needs your OK';
-  }
-
-  @override
-  String planStateAgreed(int v) {
-    return 'Agreed · version $v';
-  }
-
-  @override
-  String get planStateWithdrawn =>
-      'Shared planning ended · the agreed plan and your targets are kept';
-
-  @override
-  String planAccept(int v) {
-    return 'Accept version $v';
-  }
-
-  @override
-  String get planChanged => 'Changed since the last agreed plan';
-
-  @override
-  String planAdded(String x) {
-    return 'Added: $x';
-  }
-
-  @override
-  String planRemoved(String x) {
-    return 'Removed: $x';
-  }
-
-  @override
-  String planSetsChanged(String x) {
-    return 'Sets changed: $x';
-  }
-
-  @override
-  String get planReordered => 'The order changed';
-
-  @override
-  String get planDateChanged => 'The date changed';
-
-  @override
-  String get planTitleChanged => 'The title changed';
-
-  @override
-  String planLastAgreed(int v) {
-    return 'Last agreed plan · version $v';
-  }
-
-  @override
-  String get planConflict =>
-      'Your partner changed it first. Your draft is still here.';
-
-  @override
-  String planLatest(int v) {
-    return 'Your partner\'s latest plan · version $v';
-  }
-
-  @override
-  String get planKeepMine => 'Propose my draft again';
-
-  @override
-  String get planTakeLatest => 'Use the latest plan';
-
-  @override
-  String get planMyTarget => 'My target';
-
-  @override
-  String planPartnerTarget(String name, String t) {
-    return '$name: $t';
-  }
-
-  @override
-  String get planTargetHint => 'e.g. 100 5 or 100kg 5 reps x3 note';
-
-  @override
-  String get planInvite => 'Create an invite code';
-
-  @override
-  String get planStart => 'Start this plan';
-
-  @override
-  String get planStartSolo => 'Start my own copy';
-
-  @override
-  String get planStartSoloNote =>
-      'Not agreed yet. Starting now uses your own copy, not an agreed plan.';
-
-  @override
-  String get planOpenWorkout => 'Open the workout';
-
-  @override
-  String get planCopyNext => 'Copy to the next workout';
-
-  @override
-  String get planWithdraw => 'Leave this shared plan';
-
-  @override
-  String get planCompare => 'Plan and actual';
-
-  @override
-  String planDoneSets(String name, int planned, int done) {
-    return '$name · planned $planned · done $done';
-  }
-
-  @override
-  String planAddedActual(String x) {
-    return 'Not in the plan: $x';
-  }
-
-  @override
-  String planSkipped(String x) {
-    return 'Skipped: $x';
-  }
-
-  @override
-  String planStartedFrom(int v) {
-    return 'Started from the agreed shared plan (version $v)';
-  }
-
-  @override
-  String planStartedSolo(int v) {
-    return 'Started from your own copy (version $v, not agreed)';
-  }
-
-  @override
-  String get planShareLink => 'Send an invite link';
-
-  @override
-  String planShareText(String url) {
-    return 'Let\'s plan our workout together in setpad: $url';
-  }
-
-  @override
-  String get planLinkCopied => 'Link copied. It works once, for one day.';
-
-  @override
-  String get planLinkJoining => 'Joining the plan you were invited to…';
-
-  @override
   String get nearbyHint =>
       'Between iPhones, you can also connect by holding the two phones close with this screen open.';
-
-  @override
-  String get planPropose => 'Propose plan';
 
   @override
   String get togetherStart => 'Start together';
@@ -1607,16 +1417,6 @@ class LEn extends L {
 
   @override
   String get proxyWhose => 'Whose workout are you logging?';
-
-  @override
-  String planMemberAccepted(String name) {
-    return '$name agreed';
-  }
-
-  @override
-  String planMemberWaiting(String name) {
-    return '$name has not confirmed yet';
-  }
 
   @override
   String deleteNoteAsk(String title) {

@@ -61,26 +61,4 @@ void main() {
     await open(tester, member: false);
     expect(find.text('PT 예약'), findsNothing);
   });
-
-  testWidgets('공동 루틴은 첫 화면에도 설정에도 없다 — 같이 짜는 것은 함께 운동하기가 한다', (tester) async {
-    final account = Account(client: server(member: false))..token = 'x';
-    await tester.pumpWidget(
-      CupertinoApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: L.localizationsDelegates,
-        supportedLocales: L.supportedLocales,
-        home: NotesListPage(
-          store: NotesStore(),
-          account: account,
-          onOpen: (_) {},
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('공동 루틴'), findsNothing);
-    await tester.tap(find.byIcon(CupertinoIcons.gear));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('settings-plans')), findsNothing);
-    expect(find.text('공동 루틴'), findsNothing);
-  });
 }

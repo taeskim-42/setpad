@@ -133,12 +133,6 @@ class LTh extends L {
   String get activeEnergy => 'พลังงานจากกิจกรรม';
 
   @override
-  String get energyUnavailable => 'ไม่มีข้อมูล';
-
-  @override
-  String get energySource => 'สุขภาพ · ช่วงเวลาของบันทึกนี้';
-
-  @override
   String get doneEditing => 'เสร็จสิ้น';
 
   @override
@@ -1252,10 +1246,6 @@ class LTh extends L {
   String get partnerErrFormat => 'รหัสมี 6 ตัวอักษร กรุณาตรวจอีกครั้ง';
 
   @override
-  String get partnerErrPlanTooLong =>
-      'หนึ่งบรรทัดยาวได้ไม่เกิน 120 ตัวอักษร และหนึ่งแผนมีได้ไม่เกิน 60 ท่า กรุณาทำบรรทัดที่ยาวให้สั้นลง';
-
-  @override
   String get partnerErrInvalid => 'ไม่พบรหัสนี้ อาจถูกใช้ไปแล้วหรือพิมพ์ผิด';
 
   @override
@@ -1291,186 +1281,8 @@ class LTh extends L {
   String get partnerShareThisDevice => 'แชร์บันทึกของเครื่องนี้';
 
   @override
-  String get plansTitle => 'แผนร่วม';
-
-  @override
-  String get planNew => 'แผนร่วมใหม่';
-
-  @override
-  String get planJoin => 'เข้าร่วมด้วยรหัส';
-
-  @override
-  String get planHint =>
-      'บรรทัดแรกคือชื่อ จากนั้นบรรทัดละหนึ่งท่า\nเช่น สควอต 4 เซ็ต';
-
-  @override
-  String get planDateNone => 'ยังไม่กำหนดวัน';
-
-  @override
-  String planSetsCount(int n) {
-    return '$n เซ็ต';
-  }
-
-  @override
-  String get planSave => 'เสนอ';
-
-  @override
-  String get planStateLocal => 'ร่างเฉพาะในเครื่องนี้ · ยังไม่ขึ้นเซิร์ฟเวอร์';
-
-  @override
-  String get planStateDraft => 'ร่าง · ยังไม่มีคู่';
-
-  @override
-  String planStateWaiting(int v) {
-    return 'รอคู่ยืนยัน · เวอร์ชัน $v';
-  }
-
-  @override
-  String planStateNeedsMe(String name, int v) {
-    return '$name แก้ไขแล้ว · ต้องยืนยันเวอร์ชัน $v';
-  }
-
-  @override
-  String planStateAgreed(int v) {
-    return 'ตกลงแล้ว · เวอร์ชัน $v';
-  }
-
-  @override
-  String get planStateWithdrawn =>
-      'การวางแผนร่วมสิ้นสุดแล้ว · แผนที่ตกลงและเป้าหมายของคุณยังอยู่';
-
-  @override
-  String planAccept(int v) {
-    return 'ยอมรับเวอร์ชัน $v';
-  }
-
-  @override
-  String get planChanged => 'สิ่งที่เปลี่ยนจากแผนที่ตกลงล่าสุด';
-
-  @override
-  String planAdded(String x) {
-    return 'เพิ่ม: $x';
-  }
-
-  @override
-  String planRemoved(String x) {
-    return 'เอาออก: $x';
-  }
-
-  @override
-  String planSetsChanged(String x) {
-    return 'เปลี่ยนจำนวนเซ็ต: $x';
-  }
-
-  @override
-  String get planReordered => 'ลำดับเปลี่ยน';
-
-  @override
-  String get planDateChanged => 'วันที่เปลี่ยน';
-
-  @override
-  String get planTitleChanged => 'ชื่อเปลี่ยน';
-
-  @override
-  String planLastAgreed(int v) {
-    return 'แผนที่ตกลงล่าสุด · เวอร์ชัน $v';
-  }
-
-  @override
-  String get planConflict => 'คู่ของคุณแก้ไขก่อน ร่างของคุณยังอยู่';
-
-  @override
-  String planLatest(int v) {
-    return 'แผนล่าสุดของคู่ · เวอร์ชัน $v';
-  }
-
-  @override
-  String get planKeepMine => 'เสนอร่างของฉันอีกครั้ง';
-
-  @override
-  String get planTakeLatest => 'ใช้แผนล่าสุด';
-
-  @override
-  String get planMyTarget => 'เป้าหมายของฉัน';
-
-  @override
-  String planPartnerTarget(String name, String t) {
-    return '$name: $t';
-  }
-
-  @override
-  String get planTargetHint => 'เช่น 100 5 หรือ 100kg 5 ครั้ง x3 โน้ต';
-
-  @override
-  String get planInvite => 'สร้างรหัสเชิญ';
-
-  @override
-  String get planStart => 'เริ่มด้วยแผนนี้';
-
-  @override
-  String get planStartSolo => 'เริ่มด้วยสำเนาของฉัน';
-
-  @override
-  String get planStartSoloNote =>
-      'ยังไม่ได้ตกลงกัน หากเริ่มตอนนี้จะใช้สำเนาของคุณเอง ไม่ใช่แผนที่ตกลงแล้ว';
-
-  @override
-  String get planOpenWorkout => 'เปิดการออกกำลังที่เริ่มแล้ว';
-
-  @override
-  String get planCopyNext => 'คัดลอกไปครั้งถัดไป';
-
-  @override
-  String get planWithdraw => 'ออกจากแผนร่วมนี้';
-
-  @override
-  String get planCompare => 'แผนกับที่ทำจริง';
-
-  @override
-  String planDoneSets(String name, int planned, int done) {
-    return '$name · แผน $planned · ทำ $done';
-  }
-
-  @override
-  String planAddedActual(String x) {
-    return 'ไม่ได้อยู่ในแผน: $x';
-  }
-
-  @override
-  String planSkipped(String x) {
-    return 'ไม่ได้ทำ: $x';
-  }
-
-  @override
-  String planStartedFrom(int v) {
-    return 'เริ่มจากแผนร่วมที่ตกลงแล้ว (เวอร์ชัน $v)';
-  }
-
-  @override
-  String planStartedSolo(int v) {
-    return 'เริ่มจากสำเนาของคุณ (เวอร์ชัน $v ยังไม่ตกลง)';
-  }
-
-  @override
-  String get planShareLink => 'ส่งลิงก์เชิญ';
-
-  @override
-  String planShareText(String url) {
-    return 'มาวางแผนออกกำลังด้วยกันใน setpad: $url';
-  }
-
-  @override
-  String get planLinkCopied => 'คัดลอกลิงก์แล้ว ใช้ได้หนึ่งครั้งภายในหนึ่งวัน';
-
-  @override
-  String get planLinkJoining => 'กำลังเข้าร่วมแผนที่ได้รับเชิญ…';
-
-  @override
   String get nearbyHint =>
       'ระหว่าง iPhone ด้วยกัน เปิดหน้านี้ค้างไว้แล้วนำสองเครื่องมาใกล้กันก็เชื่อมต่อได้';
-
-  @override
-  String get planPropose => 'เสนอแผนร่วม';
 
   @override
   String get togetherStart => 'เริ่มพร้อมกัน';
@@ -1581,16 +1393,6 @@ class LTh extends L {
 
   @override
   String get proxyWhose => 'จะบันทึกของใคร?';
-
-  @override
-  String planMemberAccepted(String name) {
-    return '$name เห็นด้วยแล้ว';
-  }
-
-  @override
-  String planMemberWaiting(String name) {
-    return '$name ยังไม่ยืนยัน';
-  }
 
   @override
   String deleteNoteAsk(String title) {

@@ -172,4 +172,26 @@ void main() {
     store.pruneVisits();
     expect(store.notes, contains(looked));
   });
+
+  test(
+    'repeated exercise names stay concise while all completed sets count',
+    () {
+      final note = Note(
+        id: 'test',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+        blocks: [
+          ExerciseBlock('벤치프레스', [LoggedSet(reps: 10)]),
+          ExerciseBlock('스쿼트', [LoggedSet(reps: 10, done: false)]),
+          ExerciseBlock('벤치프레스', [LoggedSet(reps: 8)]),
+        ],
+      );
+      expect(note.title, '벤치프레스 · 스쿼트');
+      expect(
+        note.summary(setOrdinal: (n) => '$n세트', reps: (n) => '$n회'),
+        '2세트',
+      );
+      expect(note.blocks, hasLength(3));
+    },
+  );
 }
