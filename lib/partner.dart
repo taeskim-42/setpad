@@ -268,7 +268,12 @@ class PartnerSession {
   }
 }
 
-typedef PartnerReply = ({Map<String, Object?>? body, PartnerError? error});
+/// 서버의 답. [retryAfter] 는 서버가 쉬었다 오라고 한 시간이다(429·5xx 의 Retry-After).
+typedef PartnerReply = ({
+  Map<String, Object?>? body,
+  PartnerError? error,
+  Duration? retryAfter,
+});
 
 extension PartnerLink on GymLink {
   Future<PartnerReply> _partner(
@@ -276,7 +281,9 @@ extension PartnerLink on GymLink {
     String path, [
     Map<String, Object?>? body,
   ]) async {
-    if (!supported) return (body: null, error: PartnerError.signInRequired);
+    if (!supported) {
+      return (body: null, error: PartnerError.signInRequired, retryAfter: null);
+    }
     return withClient((web) async {
       try {
         final request = http.Request(method, Uri.parse('$endpoint$path'))
@@ -291,10 +298,13 @@ extension PartnerLink on GymLink {
         } catch (_) {}
         final map = decoded is Map ? decoded.cast<String, Object?>() : null;
         if (response.statusCode == 200 && map != null) {
-          return (body: map, error: null);
+          return (body: map, error: null, retryAfter: null);
         }
         return (
           body: map,
+          retryAfter: response.statusCode == 429 || response.statusCode >= 500
+              ? retryAfter(response)
+              : null,
           error: switch ((response.statusCode, map?['error'])) {
             (401, _) => PartnerError.signInRequired,
             (_, 'invalidCode') => PartnerError.invalidCode,
@@ -312,7 +322,7 @@ extension PartnerLink on GymLink {
         );
       } catch (_) {
         // 시간 초과와 끊긴 그물. 코드 탓이 아니다.
-        return (body: null, error: PartnerError.network);
+        return (body: null, error: PartnerError.network, retryAfter: null);
       }
     });
   }
@@ -474,6 +484,11 @@ class PartnerSync extends ChangeNotifier {
   ({int seq, ({int ms, int beat})? left})? _myTimerMove;
 
   Timer? _poll, _debounce;
+
+  /// 서버가 쉬었다 오라고 한 때(429·5xx 의 Retry-After). 그때까지 폴링하지 않고 끊긴
+  /// 스트림도 다시 열지 않는다 — 사고 때 서버가 폰들을 늦출 수 있는 자리다.
+  DateTime? _quietUntil;
+  bool get _quiet => _quietUntil?.isAfter(DateTime.now()) ?? false;
   int _generation = 0;
   bool _disposed = false;
   bool _pushing = false;
@@ -624,6 +639,9 @@ class PartnerSync extends ChangeNotifier {
     }
     final sent = clock.monotonic;
     final reply = await call(link());
+    if (reply.retryAfter case final wait?) {
+      _quietUntil = DateTime.now().add(wait);
+    }
     final serverNow = reply.body?['now'];
     if (serverNow is num) {
       clock.sample(sent, clock.monotonic, serverNow.toInt());
@@ -1134,7 +1152,10 @@ class PartnerSync extends ChangeNotifier {
     _streaming = false;
     if (_disposed || _poll == null) return;
     _reconnect?.cancel();
-    _reconnect = Timer(Duration(seconds: was ? 1 : 15), _listen);
+    var wait = Duration(seconds: was ? 1 : 15);
+    final quiet = _quietUntil?.difference(DateTime.now());
+    if (quiet != null && quiet > wait) wait = quiet;
+    _reconnect = Timer(wait, _listen);
   }
 
   /// 같이 하기를 끝낸다. 내 운동은 남는다. 그물이 없어도 이 기기에서는 끝난
@@ -1183,6 +1204,7 @@ class PartnerSync extends ChangeNotifier {
     _listen();
     var ticks = 0;
     _poll = Timer.periodic(interval, (_) async {
+      if (_quiet) return;
       await sendPendingEnds(link(), [note], onSent: onChanged);
       if (_pendingDoc.isNotEmpty) unawaited(_flushDoc());
       _heartbeat();

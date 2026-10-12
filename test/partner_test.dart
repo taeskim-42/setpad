@@ -876,6 +876,45 @@ void main() {
     expect(polls, 1, reason: '초대를 연 기록은 돈다');
   });
 
+  test('서버가 쉬었다 오라고 하면(503·429 Retry-After) 그때까지 폴링하지 않는다', () async {
+    var states = 0;
+    final note = Note(
+      id: 'n-quiet',
+      createdAt: DateTime(2026, 9, 21, 18),
+      updatedAt: DateTime(2026, 9, 21, 18),
+    )..partner = PartnerSession(id: 'S1', host: true, state: PartnerState.active);
+    final sync = PartnerSync(
+      note: note,
+      link: () => GymLink(
+        endpoint: 'https://x',
+        token: 't',
+        client: MockClient((request) async {
+          // 스트림이 안 열리면 폴링이 제 속도로 돈다 — 그 속도를 늦출 수 있어야 한다.
+          if (request.url.path.endsWith('/events')) {
+            return http.Response('', 404);
+          }
+          if (request.method == 'GET') {
+            states++;
+            return http.Response(
+              '{"error":"busy"}',
+              503,
+              headers: {'retry-after': '1'},
+            );
+          }
+          return http.Response('{}', 200);
+        }),
+      ),
+      onChanged: () {},
+      interval: const Duration(milliseconds: 20),
+    );
+    addTearDown(sync.dispose);
+    sync.start();
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    expect(states, 1, reason: '20ms 마다 다시 묻지 않는다');
+    await Future<void>.delayed(const Duration(milliseconds: 900));
+    expect(states, greaterThan(1), reason: '쉬는 시간이 지나면 다시 묻는다');
+  });
+
   test('저장된 기록은 같이 하기가 없던 시절 것도 그대로 읽힌다', () {
     final old = Note.fromJson({
       'id': 'old',
