@@ -440,8 +440,17 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 회원이 아닌 사람. **댄 것이 곧 신청이다** — 한 번 더 누르게 하지 않는다.
   /// 트레이너 화면에 바로 뜨고, 확인하면 회원이 된다.
   Future<void> _askJoin(String gymId) async {
-    final state = await _account.link.requestJoin(gymId);
+    var state = await _account.link.requestJoin(gymId);
     if (!mounted) return;
+    // '만 14세 이상' 확인 칸이 생기기 전에 만든 계정이다. 한 번 묻고 남긴 뒤 다시
+    // 신청한다 — 아니라고 하면 신청하지 않는다(만 14세 미만은 도장에 등록하지 않는다).
+    // 남기지 못했으면 아래에서 신청하지 못했다고 말한다.
+    if (state == JoinState.ageRequired) {
+      final recorded = await confirmAge(context, _account);
+      if (recorded == null || !mounted) return;
+      if (recorded) state = await _account.link.requestJoin(gymId);
+      if (!mounted) return;
+    }
     if (state == JoinState.member) {
       // 방금 트레이너가 확인해 준 참이다. 안내 대신 하러 온 일을 시작한다.
       await _account.refreshGyms();

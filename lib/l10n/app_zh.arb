@@ -861,5 +861,7 @@
   "accountSignOutEverywhereAsk": "将退出其他手机和网页上的所有登录。这部手机会保持登录。",
   "accountSignOutEverywhereDone": "已退出其他所有设备上的登录。",
   "accountSignOutEverywhereFailed": "未能退出其他设备上的登录。请检查网络后重试。",
-  "storeUnreachable": "无法连接商店 · 重试"
+  "storeUnreachable": "无法连接商店 · 重试",
+  "ageConfirm": "我已年满 14 周岁",
+  "ageConfirmAsk": "须年满 14 周岁才能加入健身房。你已年满 14 周岁吗？"
 }

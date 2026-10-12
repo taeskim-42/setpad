@@ -567,8 +567,9 @@ extension _Posting on GymLink {
   });
 }
 
-/// 회원 등록 신청의 결과. 서버가 돌려주는 말 그대로다.
-enum JoinState { requested, waiting, member, failed }
+/// 회원 등록 신청의 결과. 서버가 돌려주는 말 그대로다. [ageRequired] 는 '만 14세
+/// 이상' 확인이 없는 계정이다(그 칸이 생기기 전에 만든 계정) — 한 번 묻고 다시 신청한다.
+enum JoinState { requested, waiting, member, ageRequired, failed }
 
 extension MemberLink on GymLink {
   /// 이 체육관에 등록을 신청한다.
@@ -601,6 +602,9 @@ extension MemberLink on GymLink {
   Future<JoinState> requestJoin(String gymId) async {
     if (!supported) return JoinState.failed;
     final answer = await _post('/api/members', {'gymId': gymId});
+    if (answer?.body?['error'] == 'ageConfirmationRequired') {
+      return JoinState.ageRequired;
+    }
     final body = answer?.status == 200 ? answer?.body : null;
     return switch (body?['state']) {
       'requested' => JoinState.requested,
@@ -608,6 +612,12 @@ extension MemberLink on GymLink {
       'member' => JoinState.member,
       _ => JoinState.failed,
     };
+  }
+
+  /// '만 14세 이상입니다' 를 계정에 남긴다(POST /api/me/age). 남겼으면 true.
+  Future<bool> confirmAge() async {
+    if (!supported) return false;
+    return (await _post('/api/me/age', const {}))?.status == 200;
   }
 
   /// 이 사람의 토큰을 모두 끊고(모든 기기에서 로그아웃) 이 폰에 줄 새 토큰을 받는다.
@@ -621,7 +631,7 @@ extension MemberLink on GymLink {
   }
 }
 
-
+/// 예약 화면이 그려지는 데 필요한 전부.
 ///
 /// **하루치 빈 시간만으로는 화면을 못 그린다.** 트레이너가 받는 요일과 남은
 /// 횟수를 모르면 앱은 이레를 다 열어 놓고 하나씩 눌러 보게 한다.

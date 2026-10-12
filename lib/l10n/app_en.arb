@@ -861,5 +861,7 @@
   "accountSignOutEverywhereAsk": "This signs you out on every other phone and on the web. This phone stays signed in.",
   "accountSignOutEverywhereDone": "Signed out on all other devices.",
   "accountSignOutEverywhereFailed": "Couldn't sign out the other devices. Check your connection and try again.",
-  "storeUnreachable": "Couldn't reach the store · Try again"
+  "storeUnreachable": "Couldn't reach the store · Try again",
+  "ageConfirm": "I am 14 or older",
+  "ageConfirmAsk": "You must be 14 or older to join a gym. Are you 14 or older?"
 }

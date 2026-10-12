@@ -232,11 +232,15 @@ class SignInTaken implements Exception {
 }
 
 /// 제공자 토큰을 우리 토큰으로 바꾼다. 이 토큰이 있어야 백업과 체육관 연결이 된다.
+///
+/// [ageConfirmed] 는 로그인 시트의 '만 14세 이상입니다' 칸이다. 서버가 그 시각을
+/// 계정에 남긴다 — 도장 등록과 초대 수락은 그것이 있어야 받는다.
 Future<({String token, String nickname})?> exchange(
   Credential credential,
   String endpoint, {
   String? currentToken,
   http.Client? client,
+  bool ageConfirmed = false,
 }) async {
   final web = client ?? apiClient;
   try {
@@ -248,8 +252,8 @@ Future<({String token, String nickname})?> exchange(
             // 이미 로그인해 있으면 수단을 하나 더 붙인다.
             if (currentToken != null) 'authorization': 'Bearer $currentToken',
           },
-          body: jsonEncode(
-            credential.verifier != null
+          body: jsonEncode({
+            ...credential.verifier != null
                 ? {
                     'handoff': credential.idToken,
                     'verifier': credential.verifier,
@@ -266,7 +270,8 @@ Future<({String token, String nickname})?> exchange(
                       'nickname': credential.nickname,
                     if (credential.code != null) 'code': credential.code,
                   },
-          ),
+            if (ageConfirmed) 'ageConfirmed': true,
+          }),
         )
         .timeout(const Duration(seconds: 20));
     if (response.statusCode == 409) throw const SignInTaken();

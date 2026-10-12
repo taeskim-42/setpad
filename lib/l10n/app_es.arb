@@ -861,5 +861,7 @@
   "accountSignOutEverywhereAsk": "Se cerrará la sesión en los demás teléfonos y en la web. Este teléfono seguirá con la sesión iniciada.",
   "accountSignOutEverywhereDone": "Se cerró la sesión en todos los demás dispositivos.",
   "accountSignOutEverywhereFailed": "No se pudo cerrar la sesión en los otros dispositivos. Revisa tu conexión e inténtalo de nuevo.",
-  "storeUnreachable": "No se pudo conectar con la tienda · Reintentar"
+  "storeUnreachable": "No se pudo conectar con la tienda · Reintentar",
+  "ageConfirm": "Tengo 14 años o más",
+  "ageConfirmAsk": "Debes tener 14 años o más para unirte a un gimnasio. ¿Tienes 14 años o más?"
 }

@@ -861,5 +861,7 @@
   "accountSignOutEverywhereAsk": "Thao tác này đăng xuất bạn trên mọi điện thoại khác và trên web. Điện thoại này vẫn đăng nhập.",
   "accountSignOutEverywhereDone": "Đã đăng xuất trên mọi thiết bị khác.",
   "accountSignOutEverywhereFailed": "Không thể đăng xuất các thiết bị khác. Hãy kiểm tra kết nối và thử lại.",
-  "storeUnreachable": "Không kết nối được với cửa hàng · Thử lại"
+  "storeUnreachable": "Không kết nối được với cửa hàng · Thử lại",
+  "ageConfirm": "Tôi từ 14 tuổi trở lên",
+  "ageConfirmAsk": "Bạn phải từ 14 tuổi trở lên để đăng ký phòng tập. Bạn đã từ 14 tuổi trở lên chưa?"
 }

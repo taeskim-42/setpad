@@ -3626,4 +3626,11 @@ class LEs extends L {
   @override
   String get storeUnreachable =>
       'No se pudo conectar con la tienda · Reintentar';
+
+  @override
+  String get ageConfirm => 'Tengo 14 años o más';
+
+  @override
+  String get ageConfirmAsk =>
+      'Debes tener 14 años o más para unirte a un gimnasio. ¿Tienes 14 años o más?';
 }

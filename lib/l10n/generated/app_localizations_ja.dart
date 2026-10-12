@@ -3471,4 +3471,10 @@ class LJa extends L {
 
   @override
   String get storeUnreachable => 'ストアに接続できませんでした · 再試行';
+
+  @override
+  String get ageConfirm => '14歳以上です';
+
+  @override
+  String get ageConfirmAsk => 'ジムに登録するには14歳以上である必要があります。14歳以上ですか？';
 }

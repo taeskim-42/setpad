@@ -3555,4 +3555,11 @@ class LTh extends L {
 
   @override
   String get storeUnreachable => 'เชื่อมต่อสโตร์ไม่ได้ · ลองอีกครั้ง';
+
+  @override
+  String get ageConfirm => 'ฉันอายุ 14 ปีขึ้นไป';
+
+  @override
+  String get ageConfirmAsk =>
+      'ต้องมีอายุ 14 ปีขึ้นไปจึงจะสมัครเป็นสมาชิกยิมได้ คุณอายุ 14 ปีขึ้นไปหรือไม่';
 }

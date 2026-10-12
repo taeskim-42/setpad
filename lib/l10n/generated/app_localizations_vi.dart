@@ -3580,4 +3580,11 @@ class LVi extends L {
 
   @override
   String get storeUnreachable => 'Không kết nối được với cửa hàng · Thử lại';
+
+  @override
+  String get ageConfirm => 'Tôi từ 14 tuổi trở lên';
+
+  @override
+  String get ageConfirmAsk =>
+      'Bạn phải từ 14 tuổi trở lên để đăng ký phòng tập. Bạn đã từ 14 tuổi trở lên chưa?';
 }

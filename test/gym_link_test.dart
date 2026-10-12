@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -610,6 +611,34 @@ void _shared() {
     // 로그인하지 않았으면 신청할 사람이 없다.
     const anonymous = GymLink(endpoint: 'https://example.com');
     expect(await anonymous.requestJoin('g1'), JoinState.failed);
+  });
+
+  test('\'만 14세 이상\' 확인이 없는 계정이면 그렇다고 알고, 확인을 남긴 뒤 다시 신청한다', () async {
+    var adult = false;
+    final asked = <String>[];
+    final link = linkThat((request) async {
+      asked.add('${request.method} ${request.url.path}');
+      if (request.url.path == '/api/me/age') {
+        adult = true;
+        return http.Response('{"ok":true}', 200);
+      }
+      return adult
+          ? http.Response('{"state":"requested"}', 200)
+          : http.Response('{"error":"ageConfirmationRequired"}', 403);
+    });
+    expect(await link.requestJoin('g1'), JoinState.ageRequired);
+    expect(await link.confirmAge(), isTrue);
+    expect(await link.requestJoin('g1'), JoinState.requested);
+    expect(asked, [
+      'POST /api/members',
+      'POST /api/me/age',
+      'POST /api/members',
+    ]);
+    // 서버에 못 닿았으면 남기지 못한 것이다.
+    final offline = linkThat(
+      (_) async => throw const SocketException('no route'),
+    );
+    expect(await offline.confirmAge(), isFalse);
   });
 
   test('모든 기기에서 로그아웃은 서버가 준 새 토큰을 돌려주고, 못 끊었으면 null 이다', () async {

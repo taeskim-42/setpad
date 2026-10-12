@@ -3599,4 +3599,11 @@ class LEn extends L {
 
   @override
   String get storeUnreachable => 'Couldn\'t reach the store · Try again';
+
+  @override
+  String get ageConfirm => 'I am 14 or older';
+
+  @override
+  String get ageConfirmAsk =>
+      'You must be 14 or older to join a gym. Are you 14 or older?';
 }

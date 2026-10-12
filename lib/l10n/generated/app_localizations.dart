@@ -5190,6 +5190,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'스토어에 연결하지 못했어요 · 다시 시도'**
   String get storeUnreachable;
+
+  /// 로그인 시트의 확인 칸과 나이 확인 창의 단추. 수단을 고르기 전에 채워야 한다.
+  ///
+  /// In ko, this message translates to:
+  /// **'만 14세 이상입니다'**
+  String get ageConfirm;
+
+  /// 확인 칸이 생기기 전에 만든 계정이 도장에 등록할 때 한 번 묻는다(서버 403 ageConfirmationRequired).
+  ///
+  /// In ko, this message translates to:
+  /// **'도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?'**
+  String get ageConfirmAsk;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

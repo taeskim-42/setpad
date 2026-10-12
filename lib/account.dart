@@ -422,8 +422,9 @@ class Account extends ChangeNotifier {
   SignInMethod? lastSignIn;
 
   /// 들어간다. [method] 가 없으면 기기가 직접 하는 수단이다. 이미 로그인해 있으면
-  /// 그 계정에 수단을 하나 더 붙인다.
-  Future<bool> signIn([SignInMethod? method]) async {
+  /// 그 계정에 수단을 하나 더 붙인다. [ageConfirmed] 는 로그인 시트의 '만 14세
+  /// 이상입니다' 칸이다 — 서버가 계정에 남긴다(만드는 계정도, 이미 있는 계정도).
+  Future<bool> signIn({SignInMethod? method, bool ageConfirmed = false}) async {
     signInRefused = signInTaken = false;
     final chosen = method ?? platformSignIn;
     if (chosen == null) return false;
@@ -449,6 +450,7 @@ class Account extends ChangeNotifier {
         // 로그인 전이면 기기 토큰이다 — 서버가 이 기기에서 산 것을 계정으로 옮긴다.
         currentToken: await ai.bearer(),
         client: client,
+        ageConfirmed: ageConfirmed,
       );
     } on SignInTaken {
       signInTaken = true;

@@ -3439,6 +3439,12 @@ class LZh extends L {
 
   @override
   String get storeUnreachable => '无法连接商店 · 重试';
+
+  @override
+  String get ageConfirm => '我已年满 14 周岁';
+
+  @override
+  String get ageConfirmAsk => '须年满 14 周岁才能加入健身房。你已年满 14 周岁吗？';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6876,6 +6882,12 @@ class LZhHans extends LZh {
 
   @override
   String get storeUnreachable => '无法连接商店 · 重试';
+
+  @override
+  String get ageConfirm => '我已年满 14 周岁';
+
+  @override
+  String get ageConfirmAsk => '须年满 14 周岁才能加入健身房。你已年满 14 周岁吗？';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10313,4 +10325,10 @@ class LZhHant extends LZh {
 
   @override
   String get storeUnreachable => '無法連線至商店 · 重試';
+
+  @override
+  String get ageConfirm => '我已滿 14 歲';
+
+  @override
+  String get ageConfirmAsk => '須年滿 14 歲才能加入健身房。你已滿 14 歲嗎？';
 }

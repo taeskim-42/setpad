@@ -68,6 +68,9 @@ void main() {
     // 기다리는 동안 돌아가는 표시가 있어 settle 은 끝나지 않는다 — 시트가 뜰 만큼만.
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
+    // 수단을 고르기 전에 '만 14세 이상입니다' 를 채운다.
+    await tester.tap(find.byKey(const ValueKey('sign-in-age')));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('sign-in-apple')));
     await tester.pump();
     expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
@@ -87,6 +90,8 @@ void main() {
       // 결과가 이 영역의 큐에 남아 로그인이 시작되지 않는다.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('sign-in-age')));
+      await tester.pump();
       await tester.tap(find.byKey(const ValueKey('sign-in-apple')));
     });
     await tester.pump();

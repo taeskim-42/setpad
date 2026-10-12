@@ -3477,4 +3477,10 @@ class LKo extends L {
 
   @override
   String get storeUnreachable => '스토어에 연결하지 못했어요 · 다시 시도';
+
+  @override
+  String get ageConfirm => '만 14세 이상입니다';
+
+  @override
+  String get ageConfirmAsk => '도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?';
 }

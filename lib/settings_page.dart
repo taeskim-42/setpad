@@ -197,7 +197,7 @@ class SettingsPage extends StatelessWidget {
                               : a.signInRefused
                               ? l.signInFailed
                               : null,
-                          onTap: () => a.signIn(method),
+                          onTap: () => a.signIn(method: method),
                         ),
                 ] else
                   _Row(

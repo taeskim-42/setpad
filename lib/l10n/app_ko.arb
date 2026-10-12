@@ -3502,5 +3502,9 @@
   "accountSignOutEverywhereFailed": "로그인을 끊지 못했어요. 연결을 확인하고 다시 해 주세요.",
   "@accountSignOutEverywhereFailed": {"description": "모든 기기에서 로그아웃을 서버에 알리지 못했다(그물·서버)."},
   "storeUnreachable": "스토어에 연결하지 못했어요 · 다시 시도",
-  "@storeUnreachable": {"description": "결제 화면: 스토어에서 요금제를 읽지 못했다. 누르면 다시 묻는다."}
+  "@storeUnreachable": {"description": "결제 화면: 스토어에서 요금제를 읽지 못했다. 누르면 다시 묻는다."},
+  "ageConfirm": "만 14세 이상입니다",
+  "@ageConfirm": {"description": "로그인 시트의 확인 칸과 나이 확인 창의 단추. 수단을 고르기 전에 채워야 한다."},
+  "ageConfirmAsk": "도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?",
+  "@ageConfirmAsk": {"description": "확인 칸이 생기기 전에 만든 계정이 도장에 등록할 때 한 번 묻는다(서버 403 ageConfirmationRequired)."}
 }

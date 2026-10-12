@@ -319,7 +319,7 @@ void main() {
         verifier: 'v',
       ),
     );
-    expect(await a.signIn(SignInMethod.kakao), isFalse);
+    expect(await a.signIn(method: SignInMethod.kakao), isFalse);
     expect(a.signInRefused, isTrue);
     expect(a.lastSignIn, SignInMethod.kakao);
     await a.signOut();
@@ -357,7 +357,7 @@ void main() {
       storageDir: dir,
       signInWith: (_) async => throw const WebSignInFailed(),
     );
-    expect(await a.signIn(SignInMethod.kakao), isFalse);
+    expect(await a.signIn(method: SignInMethod.kakao), isFalse);
     expect(a.signInRefused, isTrue);
   });
 
@@ -394,6 +394,40 @@ void main() {
     status = 500;
     expect(await a.signOutEverywhere(), isFalse, reason: '못 끊었으면 그렇다고 말한다');
     expect(a.token, 'new');
+  });
+
+  test('로그인 시트의 \'만 14세 이상입니다\' 를 서버에 함께 낸다 — 수단을 붙일 때는 내지 않는다', () async {
+    final sent = <Map<String, Object?>>[];
+    Account signingIn() => Account(
+      client: MockClient((request) async {
+        if (request.url.path.endsWith('/api/auth/app')) {
+          sent.add(jsonDecode(request.body) as Map<String, Object?>);
+          return http.Response(
+            jsonEncode({
+              'token': 't',
+              'user': {'nickname': 'kim'},
+            }),
+            200,
+          );
+        }
+        return http.Response('{}', 200);
+      }),
+      storageDir: dir,
+      signInWith: (method) async => (
+        method: method,
+        idToken: 'id',
+        nickname: null,
+        code: null,
+        verifier: null,
+      ),
+    );
+    expect(
+      await signingIn().signIn(method: SignInMethod.apple, ageConfirmed: true),
+      isTrue,
+    );
+    expect(sent.last['ageConfirmed'], isTrue);
+    await signingIn().signIn(method: SignInMethod.google);
+    expect(sent.last.containsKey('ageConfirmed'), isFalse);
   });
 
   group('기기 토큰도 남긴다 — 켤 때마다 새로 받지 않는다(계약 C3)', () {
