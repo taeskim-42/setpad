@@ -145,13 +145,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(l.ageConfirm), findsOneWidget);
 
-    // 비워 두고 누르면 아무 일도 없고, 칸을 붉게 가리킨다.
+    // 비워 두고 누르면 아무 일도 없고, 칸을 붉게 가리킨다. 붉은 글자를 못 보는 사람에게는
+    // 무엇을 먼저 할지 읽어 준다(VoiceOver·TalkBack).
+    tester.takeAnnouncements();
     await tester.tap(find.byKey(const ValueKey('sign-in-apple')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('sign-in-apple')), findsOneWidget);
     expect(
       tester.widget<Text>(find.text(l.ageConfirm)).style?.color?.toARGB32(),
       CupertinoColors.systemRed.color.toARGB32(),
+    );
+    expect(
+      tester.takeAnnouncements(),
+      contains(isAccessibilityAnnouncement(l.ageConfirmFirst)),
     );
     expect(account.signedIn, isFalse);
 

@@ -911,5 +911,9 @@
   "nicknameChange": "ニックネームを変更",
   "nicknameHelp": "ジムに表示される名前です。1〜20文字で入力してください。",
   "nicknameTaken": "そのニックネームは既に使われています。",
-  "save": "保存"
+  "save": "保存",
+  "gymLinkNotMember": "このジムの会員だけが開けます。",
+  "ageConfirmFirst": "先に「14歳以上です」にチェックしてください。",
+  "noticeNew": "新しいお知らせ",
+  "noticePinned": "固定"
 }

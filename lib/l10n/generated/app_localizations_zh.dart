@@ -3628,6 +3628,18 @@ class LZh extends L {
 
   @override
   String get save => '保存';
+
+  @override
+  String get gymLinkNotMember => '只有这家健身房的会员才能打开。';
+
+  @override
+  String get ageConfirmFirst => '请先勾选“我已年满 14 周岁”。';
+
+  @override
+  String get noticeNew => '新公告';
+
+  @override
+  String get noticePinned => '已置顶';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7254,6 +7266,18 @@ class LZhHans extends LZh {
 
   @override
   String get save => '保存';
+
+  @override
+  String get gymLinkNotMember => '只有这家健身房的会员才能打开。';
+
+  @override
+  String get ageConfirmFirst => '请先勾选“我已年满 14 周岁”。';
+
+  @override
+  String get noticeNew => '新公告';
+
+  @override
+  String get noticePinned => '已置顶';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10880,4 +10904,16 @@ class LZhHant extends LZh {
 
   @override
   String get save => '儲存';
+
+  @override
+  String get gymLinkNotMember => '只有這家健身房的會員才能開啟。';
+
+  @override
+  String get ageConfirmFirst => '請先勾選「我已滿 14 歲」。';
+
+  @override
+  String get noticeNew => '新公告';
+
+  @override
+  String get noticePinned => '已置頂';
 }

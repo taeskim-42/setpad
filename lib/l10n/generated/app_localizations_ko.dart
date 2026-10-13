@@ -3666,4 +3666,16 @@ class LKo extends L {
 
   @override
   String get save => '저장';
+
+  @override
+  String get gymLinkNotMember => '이 도장의 회원만 열 수 있어요.';
+
+  @override
+  String get ageConfirmFirst => '먼저 ‘만 14세 이상입니다’를 확인해 주세요.';
+
+  @override
+  String get noticeNew => '새 공지';
+
+  @override
+  String get noticePinned => '고정됨';
 }

@@ -443,15 +443,19 @@ class _GymPageState extends State<GymPage> {
           children: [
             Row(
               children: [
+                // 점과 압정은 눈으로만 보인다 — 화면 읽기에도 새것·고정을 이름으로 준다.
                 if (_fresh.containsKey('n:${n.id}'))
                   Padding(
                     padding: const EdgeInsets.only(right: 6),
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: seal.resolveFrom(context),
-                        shape: BoxShape.circle,
+                    child: Semantics(
+                      label: l.noticeNew,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: seal.resolveFrom(context),
+                          shape: BoxShape.circle,
+                        ),
                       ),
                     ),
                   ),
@@ -462,6 +466,7 @@ class _GymPageState extends State<GymPage> {
                       CupertinoIcons.pin_fill,
                       size: 13,
                       color: seal.resolveFrom(context),
+                      semanticLabel: l.noticePinned,
                     ),
                   ),
                 Expanded(

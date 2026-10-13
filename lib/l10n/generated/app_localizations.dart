@@ -5490,6 +5490,30 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'저장'**
   String get save;
+
+  /// 단톡방 수업·PT 예약 링크(/c/<id>/classes·bookings)를 연 사람이 그 도장 회원이 아닐 때.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 도장의 회원만 열 수 있어요.'**
+  String get gymLinkNotMember;
+
+  /// 로그인 시트에서 나이 칸을 비운 채 수단을 눌렀을 때 화면 읽기(VoiceOver·TalkBack)가 읽어 주는 말. ageConfirm 의 글을 그대로 가리킨다.
+  ///
+  /// In ko, this message translates to:
+  /// **'먼저 ‘만 14세 이상입니다’를 확인해 주세요.'**
+  String get ageConfirmFirst;
+
+  /// 도장 화면 공지 줄의 새 소식 점을 화면 읽기가 읽는 이름.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 공지'**
+  String get noticeNew;
+
+  /// 도장 화면 공지 줄의 압정(고정한 공지)을 화면 읽기가 읽는 이름.
+  ///
+  /// In ko, this message translates to:
+  /// **'고정됨'**
+  String get noticePinned;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -911,5 +911,9 @@
   "nicknameChange": "修改暱稱",
   "nicknameHelp": "這是健身房看到的名字，請填寫 1–20 個字。",
   "nicknameTaken": "這個暱稱已被使用。",
-  "save": "儲存"
+  "save": "儲存",
+  "gymLinkNotMember": "只有這家健身房的會員才能開啟。",
+  "ageConfirmFirst": "請先勾選「我已滿 14 歲」。",
+  "noticeNew": "新公告",
+  "noticePinned": "已置頂"
 }

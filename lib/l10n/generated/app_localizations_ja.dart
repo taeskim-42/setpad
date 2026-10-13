@@ -3660,4 +3660,16 @@ class LJa extends L {
 
   @override
   String get save => '保存';
+
+  @override
+  String get gymLinkNotMember => 'このジムの会員だけが開けます。';
+
+  @override
+  String get ageConfirmFirst => '先に「14歳以上です」にチェックしてください。';
+
+  @override
+  String get noticeNew => '新しいお知らせ';
+
+  @override
+  String get noticePinned => '固定';
 }

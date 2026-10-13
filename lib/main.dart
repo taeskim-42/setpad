@@ -406,11 +406,36 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
       if (_lastScreenLink == key) return;
       _lastScreenLink = key;
       try {
+        // 이 앱이 링크를 받으니 웹 화면으로는 갈 수 없다 — 말없이 빈 목록에 두지 않는다.
+        // 로그인이 풀린 폰(새 폰, 로그아웃, 끊긴 토큰)이면 스티커처럼 여기서 로그인한다.
+        if (!_account.signedIn) {
+          final ok = await askSignIn(
+            context,
+            _account,
+            message: L.of(context).tagSignInNeeded,
+          );
+          if (!mounted) return;
+          if (!ok) {
+            if (_account.signInRefused) {
+              await _tellTag(L.of(context).signInFailed);
+            }
+            return;
+          }
+        }
         bool member() => _account.gyms.any((g) => g.id == gymId);
         // 앱이 꺼진 채 열렸으면 도장 목록이 아직 없다 — 목록 화면이 따로 묻는다. 기다리지
         // 않고 보면 다니는 회원에게도 아무 화면이 안 뜬다. 한 번 묻는다(_handleTag 와 같다).
-        if (!member() && _account.signedIn) await _account.refreshGyms();
-        if (!mounted || !member()) return;
+        if (!member()) await _account.refreshGyms();
+        if (!mounted) return;
+        if (!member()) {
+          // 목록을 한 번도 못 받았으면 그물 탓이다. 받았는데 없으면 이 도장 회원이 아니다.
+          await _tellTag(
+            _account.gymsLoaded
+                ? L.of(context).gymLinkNotMember
+                : L.of(context).partnerErrNetwork,
+          );
+          return;
+        }
         if (page == 'bookings') {
           await openBooking(context, _account, store: _store, gymId: gymId);
         } else {

@@ -911,5 +911,9 @@
   "nicknameChange": "Đổi biệt danh",
   "nicknameHelp": "Đây là tên phòng tập nhìn thấy. Dùng 1–20 ký tự.",
   "nicknameTaken": "Biệt danh này đã có người dùng.",
-  "save": "Lưu"
+  "save": "Lưu",
+  "gymLinkNotMember": "Chỉ hội viên của phòng tập này mới mở được.",
+  "ageConfirmFirst": "Hãy đánh dấu “Tôi từ 14 tuổi trở lên” trước.",
+  "noticeNew": "Thông báo mới",
+  "noticePinned": "Đã ghim"
 }

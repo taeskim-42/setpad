@@ -3745,4 +3745,16 @@ class LTh extends L {
 
   @override
   String get save => 'บันทึก';
+
+  @override
+  String get gymLinkNotMember => 'เฉพาะสมาชิกของยิมนี้เท่านั้นที่เปิดได้';
+
+  @override
+  String get ageConfirmFirst => 'โปรดทำเครื่องหมาย “ฉันอายุ 14 ปีขึ้นไป” ก่อน';
+
+  @override
+  String get noticeNew => 'ประกาศใหม่';
+
+  @override
+  String get noticePinned => 'ปักหมุด';
 }

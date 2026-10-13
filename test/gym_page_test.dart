@@ -493,6 +493,85 @@ void main() {
     expect(classes, findsOneWidget);
   });
 
+  testWidgets(
+    '단톡방 수업 링크는 말없이 끝나지 않는다 — 로그인이 풀렸으면 로그인을, 목록을 못 받았거나 회원이 아니면 그렇다고 말한다',
+    (tester) async {
+      tester.platformDispatcher.localesTestValue = [const Locale('ko')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+      final l = await L.delegate.load(const Locale('ko'));
+      final dir = Directory.systemTemp.createTempSync('setpad-classes-link-no');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final link = Uri.parse('https://gym.darak.studio/c/g1/classes');
+
+      Future<void> tap(Account account) async {
+        final links = StreamController<Uri>();
+        addTearDown(links.close);
+        // 앞의 앱을 내린다 — 같은 위젯이면 앞의 상태(계정·링크 구독)를 그대로 쓴다.
+        await tester.pumpWidget(const SizedBox());
+        await tester.pumpWidget(
+          SetpadApp(
+            store: NotesStore(directory: dir),
+            tags: links.stream,
+            account: account,
+          ),
+        );
+        await tester.pump();
+        links.add(link);
+        await tester.pumpAndSettle();
+      }
+
+      /// [gyms] 가 null 이면 도장 목록을 못 받는다(헬스장의 약한 그물).
+      Account signedIn({required List<Object?>? gyms}) => Account(
+        storageDir: dir,
+        client: MockClient((request) async {
+          switch (request.url.path) {
+            case '/api/gyms':
+              if (gyms == null) throw const SocketException('꺼짐');
+              return json({'gyms': gyms, 'invites': []});
+            case '/api/me':
+              return json({
+                'user': {'id': 'u1', 'nickname': 'kim'},
+              });
+          }
+          return json({'routines': [], 'plan': null, 'selling': false});
+        }),
+      )..token = 'x';
+
+      Finder inDialog(String text) => find.descendant(
+        of: find.byType(CupertinoAlertDialog),
+        matching: find.text(text),
+      );
+
+      // 로그인이 풀린 폰(새 폰, 로그아웃) — 스티커처럼 여기서 로그인한다.
+      await tap(
+        Account(storageDir: dir, client: MockClient((_) async => json({}))),
+      );
+      expect(find.text(l.tagSignInNeeded), findsOneWidget);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(CupertinoActionSheet),
+          matching: find.text(l.cancel),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ClassesPage), findsNothing);
+
+      // 헬스장에서 신호가 없어 도장 목록을 못 받았다.
+      await tap(signedIn(gyms: null));
+      expect(inDialog(l.partnerErrNetwork), findsOneWidget);
+      await tester.tap(inDialog(l.ok));
+      await tester.pumpAndSettle();
+
+      // 목록은 받았는데 이 도장에 다니지 않는다.
+      await tap(signedIn(gyms: []));
+      expect(inDialog(l.gymLinkNotMember), findsOneWidget);
+      expect(find.byType(ClassesPage), findsNothing);
+      await tester.tap(inDialog(l.ok));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1)); // 저장 디바운스
+    },
+  );
+
   testWidgets('스티커로 앱이 켜지면 오늘 적던 기록을 밑에 펴지 않는다 — 편집기는 받은 루틴 하나다', (
     tester,
   ) async {
@@ -675,6 +754,46 @@ void main() {
     expect(sent, contains('DELETE /api/gyms/g1/membership'));
     expect(account.gyms, isEmpty);
     expect(find.byType(GymPage), findsNothing);
+  });
+
+  testWidgets('화면을 읽어 주는 사람도 공지가 새것인지, 고정된 것인지 듣는다', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final l = await L.delegate.load(const Locale('ko'));
+    final account =
+        Account(
+            client: MockClient(
+              (_) async => json({
+                'gyms': [gymJson()],
+                'invites': [],
+              }),
+            ),
+          )
+          ..token = 'x'
+          ..userId = 'u1'
+          ..gyms = [Gym.fromJson(gymJson())];
+    // 이 계정으로 본 것이 아직 없다 — 고정한 공지가 새 소식이다.
+    final store = NotesStore()..seedGymSeen('u1', {});
+    final navigator = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(app(const SizedBox(), navigator: navigator));
+    unawaited(
+      navigator.currentState!.push(
+        CupertinoPageRoute<void>(
+          builder: (_) => GymPage(account: account, store: store, gymId: 'g1'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('추석 연휴 휴관'), findsOneWidget);
+    // 공지 한 줄을 한 번에 읽는다 — '새 공지, 고정됨, 추석 연휴 휴관, …'.
+    for (final said in [l.noticeNew, l.noticePinned]) {
+      expect(
+        find.bySemanticsLabel(RegExp(RegExp.escape(said))),
+        findsOneWidget,
+        reason: said,
+      );
+    }
+    semantics.dispose();
+    await tester.pump(const Duration(seconds: 1)); // 저장 디바운스
   });
 
   testWidgets('수업은 날짜로 묶어 보이고, 못 잡으면 서버가 적은 까닭을, 내 수업은 한 번 묻고 취소한다', (

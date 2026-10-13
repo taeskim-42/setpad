@@ -3797,4 +3797,16 @@ class LEn extends L {
 
   @override
   String get save => 'Save';
+
+  @override
+  String get gymLinkNotMember => 'Only members of this gym can open this.';
+
+  @override
+  String get ageConfirmFirst => 'First check “I am 14 or older”.';
+
+  @override
+  String get noticeNew => 'New notice';
+
+  @override
+  String get noticePinned => 'Pinned';
 }

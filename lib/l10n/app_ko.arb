@@ -3602,5 +3602,13 @@
   "nicknameTaken": "이미 쓰는 닉네임이에요.",
   "@nicknameTaken": {"description": "이미 다른 사람이 쓰는 닉네임(409)."},
   "save": "저장",
-  "@save": {"description": "저장 단추."}
+  "@save": {"description": "저장 단추."},
+  "gymLinkNotMember": "이 도장의 회원만 열 수 있어요.",
+  "@gymLinkNotMember": {"description": "단톡방 수업·PT 예약 링크(/c/<id>/classes·bookings)를 연 사람이 그 도장 회원이 아닐 때."},
+  "ageConfirmFirst": "먼저 ‘만 14세 이상입니다’를 확인해 주세요.",
+  "@ageConfirmFirst": {"description": "로그인 시트에서 나이 칸을 비운 채 수단을 눌렀을 때 화면 읽기(VoiceOver·TalkBack)가 읽어 주는 말. ageConfirm 의 글을 그대로 가리킨다."},
+  "noticeNew": "새 공지",
+  "@noticeNew": {"description": "도장 화면 공지 줄의 새 소식 점을 화면 읽기가 읽는 이름."},
+  "noticePinned": "고정됨",
+  "@noticePinned": {"description": "도장 화면 공지 줄의 압정(고정한 공지)을 화면 읽기가 읽는 이름."}
 }

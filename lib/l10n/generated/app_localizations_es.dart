@@ -3824,4 +3824,17 @@ class LEs extends L {
 
   @override
   String get save => 'Guardar';
+
+  @override
+  String get gymLinkNotMember =>
+      'Solo los miembros de este gimnasio pueden abrir esto.';
+
+  @override
+  String get ageConfirmFirst => 'Primero marca «Tengo 14 años o más».';
+
+  @override
+  String get noticeNew => 'Aviso nuevo';
+
+  @override
+  String get noticePinned => 'Fijado';
 }

@@ -911,5 +911,9 @@
   "nicknameChange": "Cambiar apodo",
   "nicknameHelp": "Es el nombre que ve tu gimnasio. Usa de 1 a 20 caracteres.",
   "nicknameTaken": "Ese apodo ya está en uso.",
-  "save": "Guardar"
+  "save": "Guardar",
+  "gymLinkNotMember": "Solo los miembros de este gimnasio pueden abrir esto.",
+  "ageConfirmFirst": "Primero marca «Tengo 14 años o más».",
+  "noticeNew": "Aviso nuevo",
+  "noticePinned": "Fijado"
 }

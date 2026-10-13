@@ -911,5 +911,9 @@
   "nicknameChange": "修改昵称",
   "nicknameHelp": "这是健身房看到的名字，请填写 1–20 个字。",
   "nicknameTaken": "这个昵称已被使用。",
-  "save": "保存"
+  "save": "保存",
+  "gymLinkNotMember": "只有这家健身房的会员才能打开。",
+  "ageConfirmFirst": "请先勾选“我已年满 14 周岁”。",
+  "noticeNew": "新公告",
+  "noticePinned": "已置顶"
 }

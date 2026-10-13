@@ -3771,4 +3771,16 @@ class LVi extends L {
 
   @override
   String get save => 'Lưu';
+
+  @override
+  String get gymLinkNotMember => 'Chỉ hội viên của phòng tập này mới mở được.';
+
+  @override
+  String get ageConfirmFirst => 'Hãy đánh dấu “Tôi từ 14 tuổi trở lên” trước.';
+
+  @override
+  String get noticeNew => 'Thông báo mới';
+
+  @override
+  String get noticePinned => 'Đã ghim';
 }

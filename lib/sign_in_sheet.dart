@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/semantics.dart' show SemanticsService;
 
 import 'account.dart';
 import 'gym.dart' show MemberLink;
@@ -70,9 +71,17 @@ Future<bool> askSignIn(
           for (final method in methods)
             CupertinoActionSheetAction(
               key: ValueKey('sign-in-${method.name}'),
-              onPressed: () => adult
-                  ? Navigator.pop(ctx, method)
-                  : setState(() => nudged = true),
+              onPressed: () {
+                if (adult) return Navigator.pop(ctx, method);
+                setState(() => nudged = true);
+                // 붉은 글자는 화면을 읽는 사람에게 닿지 않는다. 눌러도 아무 말이 없으면 로그인이
+                // 고장 난 줄 안다 — 무엇을 먼저 할지 읽어 준다.
+                SemanticsService.sendAnnouncement(
+                  View.of(ctx),
+                  l.ageConfirmFirst,
+                  Directionality.of(ctx),
+                );
+              },
               child: Text(
                 signInLabel(l, method),
                 style: adult

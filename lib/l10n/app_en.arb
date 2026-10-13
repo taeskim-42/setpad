@@ -911,5 +911,9 @@
   "nicknameChange": "Change nickname",
   "nicknameHelp": "This is the name your gym sees. Use 1–20 characters.",
   "nicknameTaken": "That nickname is already taken.",
-  "save": "Save"
+  "save": "Save",
+  "gymLinkNotMember": "Only members of this gym can open this.",
+  "ageConfirmFirst": "First check “I am 14 or older”.",
+  "noticeNew": "New notice",
+  "noticePinned": "Pinned"
 }
