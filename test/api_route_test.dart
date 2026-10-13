@@ -3,12 +3,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/api_route.dart';
 import 'package:setpad/gym.dart';
 import 'package:setpad/notes.dart';
+import 'package:setpad/partner.dart';
 
 final primary = Uri.parse('https://gym.darak.studio');
 final backup = Uri.parse('https://relay.example.org');
@@ -236,6 +238,48 @@ void main() {
       final response = await client.get(Uri.parse('$primary/api/me'));
       expect(response.statusCode, 426, reason: '답은 그대로 부르는 쪽에 간다');
       expect(updateRequired.value, isTrue);
+    });
+  });
+
+  group('앱의 언어 머리말', () {
+    test('화면과 같은 규칙으로 고른다 — 번체는 나라로, 모르는 언어는 화면처럼 영어', () {
+      expect(appLanguage([const Locale('ko', 'KR')]), 'ko');
+      expect(appLanguage([const Locale('en', 'US')]), 'en');
+      expect(appLanguage([const Locale('zh', 'TW')]), 'zh-Hant');
+      expect(appLanguage([const Locale('zh', 'CN')]), 'zh-Hans');
+      expect(
+        appLanguage([const Locale('fr', 'FR'), const Locale('ja', 'JP')]),
+        'ja',
+      );
+      expect(appLanguage([const Locale('fr', 'FR')]), 'en');
+    });
+
+    test('모든 요청에 싣는다 — 예비 길로 다시 보낸 것과 같이 하기 스트림까지', () async {
+      final seen = <String>[];
+      final inner = MockClient((request) async {
+        seen.add('${request.url.host} ${request.headers['accept-language']}');
+        if (request.url.host == primary.host && request.method == 'PUT') {
+          throw const SocketException('Connection refused');
+        }
+        return http.Response('{}', 200);
+      });
+      final client = newApiClient(
+        language: () => 'zh-Hant',
+        backup: '$backup',
+        inner: inner,
+      );
+      await client.get(Uri.parse('$primary/api/gyms'));
+      await client.put(Uri.parse('$primary/api/meals/m1'), body: '{}');
+      FailoverClient.forget();
+      // 같이 하기 스트림(SSE)은 저마다 newApiClient 를 연다 — 같은 머리말이 붙는다.
+      final link = GymLink(endpoint: '$primary', token: 't', client: client);
+      await link.partnerEvents('s1').toList();
+      expect(seen, [
+        '${primary.host} zh-Hant',
+        '${primary.host} zh-Hant',
+        '${backup.host} zh-Hant',
+        '${primary.host} zh-Hant',
+      ]);
     });
   });
 

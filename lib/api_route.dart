@@ -19,11 +19,15 @@ library;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
+
+import 'app_locale.dart';
+import 'l10n/generated/app_localizations.dart';
 
 const apiBackup = String.fromEnvironment('API_BACKUP');
 
@@ -77,6 +81,15 @@ int releaseNumber(String version) {
 /// 머리말을 보내지 않는다 — 서버는 머리말 없는 요청을 막지 않는다.
 final appBuild = releaseNumber(const String.fromEnvironment('SETPAD_VERSION'));
 
+/// 앱이 보여 주는 언어의 태그(`ko`, `en`, `zh-Hant` …). 화면과 같은 규칙([appLocale])으로
+/// 기기 언어에서 고른다 — 앱 안에 따로 언어 설정이 없다. 모든 요청에 `accept-language` 로
+/// 실어, 서버가 사람에게 쓰는 말(거절의 까닭, 알림)을 화면과 같은 언어로 고르게 한다
+/// (gymdojo 는 ko 면 한국어, 그 밖은 영어). [device] 는 시험이 기기 언어를 줄 자리다.
+String appLanguage([List<Locale>? device]) => appLocale(
+  device ?? PlatformDispatcher.instance.locales,
+  L.supportedLocales,
+).toLanguageTag();
+
 /// 서버가 이 판을 더는 받지 않는다(426 updateRequired). 홈이 업데이트 안내를 띄운다.
 final updateRequired = ValueNotifier<bool>(false);
 
@@ -102,10 +115,13 @@ http.Client newApiClient({
   ),
   String backup = apiBackup,
   int? build,
+  @visibleForTesting String Function() language = appLanguage,
   @visibleForTesting http.Client? inner,
 }) {
   // 웹에는 dart:io 가 없다. 브라우저가 연결을 쥐고 있어 길을 고를 일도 없다.
-  if (kIsWeb) return _AppClient(inner ?? http.Client(), build ?? appBuild);
+  if (kIsWeb) {
+    return _AppClient(inner ?? http.Client(), build ?? appBuild, language);
+  }
   final base =
       inner ?? IOClient(HttpClient()..connectionTimeout = connectTimeout);
   return _AppClient(
@@ -117,19 +133,23 @@ http.Client newApiClient({
             backup: Uri.parse(backup),
           ),
     build ?? appBuild,
+    language,
   );
 }
 
-/// 모든 요청에 앱 판을 싣고(`x-setpad-build`), 서버가 이 판을 더는 받지 않는다고
-/// 답하면(426) 알린다. 사고 난 판을 서버가 끊어 낼 수 있는 자리다.
+/// 모든 요청에 앱 판(`x-setpad-build`)과 앱의 언어(`accept-language`, [appLanguage])를
+/// 싣고, 서버가 이 판을 더는 받지 않는다고 답하면(426) 알린다. 사고 난 판을 서버가 끊어
+/// 낼 수 있는 자리다. 같이 하기 스트림도 이 클라이언트로 가므로 같은 머리말을 단다.
 class _AppClient extends http.BaseClient {
-  _AppClient(this._inner, this._build);
+  _AppClient(this._inner, this._build, this._language);
   final http.Client _inner;
   final int _build;
+  final String Function() _language;
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     if (_build > 0) request.headers['x-setpad-build'] = '$_build';
+    request.headers['accept-language'] = _language();
     final response = await _inner.send(request);
     if (response.statusCode == 426) updateRequired.value = true;
     return response;
