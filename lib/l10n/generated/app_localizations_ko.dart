@@ -3678,4 +3678,45 @@ class LKo extends L {
 
   @override
   String get noticePinned => '고정됨';
+
+  @override
+  String get refusedSignIn => '다시 로그인해 주세요.';
+
+  @override
+  String get refusedGone => '이미 없어진 예약이나 수업이에요.';
+
+  @override
+  String get refusedBookingTime => '예약 날짜와 시간을 확인해 주세요.';
+
+  @override
+  String get refusedBookingForbidden => '이 예약을 처리할 권한이 없어요.';
+
+  @override
+  String get refusedNoTrainer => '아직 담당 트레이너가 없어요. 도장에 문의해 주세요.';
+
+  @override
+  String get refusedBookingChanged => '이미 처리됐거나 바뀐 예약이에요.';
+
+  @override
+  String get refusedSlotTaken => '그 시간은 닫혔거나 다른 예약과 겹쳐요.';
+
+  @override
+  String get refusedNoPass => 'PT 이용권의 상태·기간·남은 횟수를 확인해 주세요.';
+
+  @override
+  String get refusedTooLate => '시작 시각이 지난 예약이에요.';
+
+  @override
+  String get refusedClassFull => '정원이 찼어요.';
+
+  @override
+  String get refusedClassNoAccess =>
+      '수업 날에 쓸 수 있는 회원권이 없어요. 기간이나 정지 상태를 도장에 확인해 주세요.';
+
+  @override
+  String get refusedClassCancelled => '휴강한 수업이에요.';
+
+  @override
+  String get refusedAccountBlocked =>
+      '도장의 관장이나 트레이너예요. 도장에서 나오거나 도장을 지운 뒤에 탈퇴할 수 있어요.';
 }

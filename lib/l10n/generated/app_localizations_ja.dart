@@ -3672,4 +3672,44 @@ class LJa extends L {
 
   @override
   String get noticePinned => '固定';
+
+  @override
+  String get refusedSignIn => 'もう一度ログインしてください。';
+
+  @override
+  String get refusedGone => 'この予約またはクラスはもうありません。';
+
+  @override
+  String get refusedBookingTime => '予約の日付と時間を確認してください。';
+
+  @override
+  String get refusedBookingForbidden => 'この予約を変更する権限がありません。';
+
+  @override
+  String get refusedNoTrainer => 'まだ担当トレーナーがいません。ジムにお問い合わせください。';
+
+  @override
+  String get refusedBookingChanged => 'この予約はすでに処理されたか、変更されています。';
+
+  @override
+  String get refusedSlotTaken => 'その時間は受け付けていないか、ほかの予約と重なっています。';
+
+  @override
+  String get refusedNoPass => 'PTチケットの状態・期間・残り回数を確認してください。';
+
+  @override
+  String get refusedTooLate => 'この予約は開始時刻を過ぎています。';
+
+  @override
+  String get refusedClassFull => 'このクラスは満員です。';
+
+  @override
+  String get refusedClassNoAccess => 'クラスの日に使える会員権がありません。期間や休止状態をジムに確認してください。';
+
+  @override
+  String get refusedClassCancelled => 'このクラスは休講になりました。';
+
+  @override
+  String get refusedAccountBlocked =>
+      'ジムのオーナーまたはトレーナーです。ジムを抜けるかジムを削除してから、アカウントを削除してください。';
 }

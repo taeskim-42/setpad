@@ -3640,6 +3640,45 @@ class LZh extends L {
 
   @override
   String get noticePinned => '已置顶';
+
+  @override
+  String get refusedSignIn => '请重新登录。';
+
+  @override
+  String get refusedGone => '这个预约或团课已不存在。';
+
+  @override
+  String get refusedBookingTime => '请检查预约的日期和时间。';
+
+  @override
+  String get refusedBookingForbidden => '你无权处理这个预约。';
+
+  @override
+  String get refusedNoTrainer => '你还没有负责教练，请联系健身房。';
+
+  @override
+  String get refusedBookingChanged => '这个预约已被处理或已更改。';
+
+  @override
+  String get refusedSlotTaken => '该时间已关闭或与其他预约冲突。';
+
+  @override
+  String get refusedNoPass => '请检查 PT 次卡的状态、有效期和剩余次数。';
+
+  @override
+  String get refusedTooLate => '这个预约已过开始时间。';
+
+  @override
+  String get refusedClassFull => '这节团课已满。';
+
+  @override
+  String get refusedClassNoAccess => '你没有可在上课当天使用的会员卡，请向健身房确认有效期或暂停状态。';
+
+  @override
+  String get refusedClassCancelled => '这节团课已停课。';
+
+  @override
+  String get refusedAccountBlocked => '你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7278,6 +7317,45 @@ class LZhHans extends LZh {
 
   @override
   String get noticePinned => '已置顶';
+
+  @override
+  String get refusedSignIn => '请重新登录。';
+
+  @override
+  String get refusedGone => '这个预约或团课已不存在。';
+
+  @override
+  String get refusedBookingTime => '请检查预约的日期和时间。';
+
+  @override
+  String get refusedBookingForbidden => '你无权处理这个预约。';
+
+  @override
+  String get refusedNoTrainer => '你还没有负责教练，请联系健身房。';
+
+  @override
+  String get refusedBookingChanged => '这个预约已被处理或已更改。';
+
+  @override
+  String get refusedSlotTaken => '该时间已关闭或与其他预约冲突。';
+
+  @override
+  String get refusedNoPass => '请检查 PT 次卡的状态、有效期和剩余次数。';
+
+  @override
+  String get refusedTooLate => '这个预约已过开始时间。';
+
+  @override
+  String get refusedClassFull => '这节团课已满。';
+
+  @override
+  String get refusedClassNoAccess => '你没有可在上课当天使用的会员卡，请向健身房确认有效期或暂停状态。';
+
+  @override
+  String get refusedClassCancelled => '这节团课已停课。';
+
+  @override
+  String get refusedAccountBlocked => '你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -10916,4 +10994,43 @@ class LZhHant extends LZh {
 
   @override
   String get noticePinned => '已置頂';
+
+  @override
+  String get refusedSignIn => '請重新登入。';
+
+  @override
+  String get refusedGone => '這個預約或團課已不存在。';
+
+  @override
+  String get refusedBookingTime => '請確認預約的日期和時間。';
+
+  @override
+  String get refusedBookingForbidden => '你無權處理這個預約。';
+
+  @override
+  String get refusedNoTrainer => '你還沒有負責教練，請聯絡健身房。';
+
+  @override
+  String get refusedBookingChanged => '這個預約已被處理或已變更。';
+
+  @override
+  String get refusedSlotTaken => '該時間已關閉或與其他預約衝突。';
+
+  @override
+  String get refusedNoPass => '請確認 PT 堂數的狀態、有效期間和剩餘堂數。';
+
+  @override
+  String get refusedTooLate => '這個預約已過開始時間。';
+
+  @override
+  String get refusedClassFull => '這堂團課已滿。';
+
+  @override
+  String get refusedClassNoAccess => '你沒有可在上課當天使用的會員資格，請向健身房確認有效期間或暫停狀態。';
+
+  @override
+  String get refusedClassCancelled => '這堂團課已停課。';
+
+  @override
+  String get refusedAccountBlocked => '你是健身房的館長或教練。請先退出或刪除健身房，再註銷帳號。';
 }

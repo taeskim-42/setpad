@@ -241,7 +241,7 @@ void main() {
     expect(f.existsSync(), isFalse);
   });
 
-  test('관장은 탈퇴가 막히고 이유가 그대로 온다', () async {
+  test('관장은 탈퇴가 막히고 이유(코드와 서버의 말)가 그대로 온다', () async {
     final a = account(
       MockClient(
         (_) async => http.Response(
@@ -251,7 +251,10 @@ void main() {
         ),
       ),
     )..token = 'good';
-    expect(await a.deleteAccount(), '도장을 먼저 지워 주세요.');
+    expect(await a.deleteAccount(), (
+      code: 'blocked',
+      message: '도장을 먼저 지워 주세요.',
+    ));
     expect(a.signedIn, isTrue, reason: '못 지웠으면 로그인은 그대로여야 한다');
   });
 

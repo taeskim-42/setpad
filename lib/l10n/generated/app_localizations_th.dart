@@ -3757,4 +3757,47 @@ class LTh extends L {
 
   @override
   String get noticePinned => 'ปักหมุด';
+
+  @override
+  String get refusedSignIn => 'โปรดเข้าสู่ระบบอีกครั้ง';
+
+  @override
+  String get refusedGone => 'การจองหรือคลาสนี้ไม่มีอยู่แล้ว';
+
+  @override
+  String get refusedBookingTime => 'โปรดตรวจสอบวันและเวลาที่จอง';
+
+  @override
+  String get refusedBookingForbidden => 'คุณไม่มีสิทธิ์จัดการการจองนี้';
+
+  @override
+  String get refusedNoTrainer => 'คุณยังไม่มีเทรนเนอร์ประจำตัว กรุณาสอบถามยิม';
+
+  @override
+  String get refusedBookingChanged =>
+      'การจองนี้ได้รับการจัดการแล้วหรือมีการเปลี่ยนแปลง';
+
+  @override
+  String get refusedSlotTaken => 'เวลานั้นปิดรับแล้วหรือซ้อนกับการจองอื่น';
+
+  @override
+  String get refusedNoPass =>
+      'โปรดตรวจสอบแพ็กเกจ PT ซึ่งอาจถูกพักไว้ หมดอายุ หรือใช้ครบแล้ว';
+
+  @override
+  String get refusedTooLate => 'การจองนี้เลยเวลาเริ่มแล้ว';
+
+  @override
+  String get refusedClassFull => 'คลาสนี้เต็มแล้ว';
+
+  @override
+  String get refusedClassNoAccess =>
+      'คุณไม่มีสมาชิกที่ใช้ได้ในวันที่มีคลาส โปรดสอบถามระยะเวลาหรือสถานะการพักกับยิม';
+
+  @override
+  String get refusedClassCancelled => 'คลาสนี้งดแล้ว';
+
+  @override
+  String get refusedAccountBlocked =>
+      'คุณเป็นเจ้าของหรือเทรนเนอร์ของยิม โปรดออกจากยิมหรือลบยิมก่อน แล้วจึงลบบัญชี';
 }

@@ -268,16 +268,22 @@ typedef PtRequest = ({
   DateTime startsAt,
 });
 
-/// 서버 답: 200 이면 [body], 아니면 서버의 [message](한국어, 그대로 보여도
-/// 된다)와 [status]. 셋 다 null 이면 답을 못 받은 것이다 — 요청이 안 갔을
-/// 수도, 서버는 처리했는데 답만 잃었을 수도 있다.
+/// 서버 답: 200 이면 [body], 아니면 서버의 [error] 코드와 [message](앱의 언어로 —
+/// accept-language. 옛 서버는 한국어, 그대로 보여도 된다)와 [status]. 넷 다 null 이면
+/// 답을 못 받은 것이다 — 요청이 안 갔을 수도, 서버는 처리했는데 답만 잃었을 수도 있다.
 typedef AgentReply = ({
   Map<String, Object?>? body,
+  String? error,
   String? message,
   int? status,
 });
 
-const AgentReply _noReply = (body: null, message: null, status: null);
+const AgentReply _noReply = (
+  body: null,
+  error: null,
+  message: null,
+  status: null,
+);
 
 extension TrainerLink on GymLink {
   Future<AgentReply> _agent(
@@ -299,11 +305,12 @@ extension TrainerLink on GymLink {
         final decoded = jsonDecode(utf8.decode(response.bodyBytes));
         final map = decoded is Map ? Map<String, Object?>.from(decoded) : null;
         if (response.statusCode == 200 && map != null) {
-          return (body: map, message: null, status: 200);
+          return (body: map, error: null, message: null, status: 200);
         }
-        final message = map?['message'];
+        final error = map?['error'], message = map?['message'];
         return (
           body: null,
+          error: error is String ? error : null,
           message: message is String ? message : null,
           status: response.statusCode,
         );
@@ -756,8 +763,15 @@ class _TrainerPageState extends State<TrainerPage> {
       _say(approve ? l.trainerApproved : l.trainerRejected);
       return;
     }
-    // 그사이 웹에서 처리했거나 시각이 지났다 — 서버의 말을 보이고 목록을 다시 받는다.
-    await tellAgent(context, reply.message ?? l.trainerActUnknown);
+    // 그사이 웹에서 처리했거나 시각이 지났다 — 그 까닭(예약의 코드, refusalMessage)을
+    // 보이고 목록을 다시 받는다.
+    await tellAgent(
+      context,
+      refusalMessage(l, (
+        code: reply.error ?? '',
+        message: reply.message ?? '',
+      ), fallback: l.trainerActUnknown),
+    );
     final fresh = await widget.account.link.ptRequests(widget.gymId);
     if (mounted && fresh != null) setState(() => _requests = fresh.requests);
   }

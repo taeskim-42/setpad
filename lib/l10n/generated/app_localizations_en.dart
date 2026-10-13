@@ -3809,4 +3809,50 @@ class LEn extends L {
 
   @override
   String get noticePinned => 'Pinned';
+
+  @override
+  String get refusedSignIn => 'Please sign in again.';
+
+  @override
+  String get refusedGone => 'This booking or class no longer exists.';
+
+  @override
+  String get refusedBookingTime => 'Check the booking date and time.';
+
+  @override
+  String get refusedBookingForbidden =>
+      'You can\'t make changes to this booking.';
+
+  @override
+  String get refusedNoTrainer =>
+      'You don\'t have an assigned trainer yet. Please ask your gym.';
+
+  @override
+  String get refusedBookingChanged =>
+      'This booking has already been handled or changed.';
+
+  @override
+  String get refusedSlotTaken =>
+      'That time is closed or overlaps another booking.';
+
+  @override
+  String get refusedNoPass =>
+      'Check the PT pass — it may be on hold, expired or used up.';
+
+  @override
+  String get refusedTooLate => 'This session has already started.';
+
+  @override
+  String get refusedClassFull => 'This class is full.';
+
+  @override
+  String get refusedClassNoAccess =>
+      'You don\'t have a membership you can use on the class day. Check its dates or hold status with your gym.';
+
+  @override
+  String get refusedClassCancelled => 'This class was cancelled.';
+
+  @override
+  String get refusedAccountBlocked =>
+      'You\'re an owner or trainer at a gym. Leave the gym or delete it, then delete your account.';
 }

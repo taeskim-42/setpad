@@ -915,5 +915,18 @@
   "gymLinkNotMember": "只有这家健身房的会员才能打开。",
   "ageConfirmFirst": "请先勾选“我已年满 14 周岁”。",
   "noticeNew": "新公告",
-  "noticePinned": "已置顶"
+  "noticePinned": "已置顶",
+  "refusedSignIn": "请重新登录。",
+  "refusedGone": "这个预约或团课已不存在。",
+  "refusedBookingTime": "请检查预约的日期和时间。",
+  "refusedBookingForbidden": "你无权处理这个预约。",
+  "refusedNoTrainer": "你还没有负责教练，请联系健身房。",
+  "refusedBookingChanged": "这个预约已被处理或已更改。",
+  "refusedSlotTaken": "该时间已关闭或与其他预约冲突。",
+  "refusedNoPass": "请检查 PT 次卡的状态、有效期和剩余次数。",
+  "refusedTooLate": "这个预约已过开始时间。",
+  "refusedClassFull": "这节团课已满。",
+  "refusedClassNoAccess": "你没有可在上课当天使用的会员卡，请向健身房确认有效期或暂停状态。",
+  "refusedClassCancelled": "这节团课已停课。",
+  "refusedAccountBlocked": "你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。"
 }

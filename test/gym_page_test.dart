@@ -64,14 +64,17 @@ void main() {
     'bookings': bookings,
   };
 
-  Widget app(Widget home, {GlobalKey<NavigatorState>? navigator}) =>
-      CupertinoApp(
-        navigatorKey: navigator,
-        locale: const Locale('ko'),
-        localizationsDelegates: L.localizationsDelegates,
-        supportedLocales: L.supportedLocales,
-        home: home,
-      );
+  Widget app(
+    Widget home, {
+    GlobalKey<NavigatorState>? navigator,
+    Locale locale = const Locale('ko'),
+  }) => CupertinoApp(
+    navigatorKey: navigator,
+    locale: locale,
+    localizationsDelegates: L.localizationsDelegates,
+    supportedLocales: L.supportedLocales,
+    home: home,
+  );
 
   test('도장 목록은 공지·이용권·락커·앞으로의 PT·초대를 읽고, 못 읽은 한 줄만 버린다', () async {
     final link = GymLink(
@@ -290,7 +293,7 @@ void main() {
     }
 
     answer = json({'error': 'full', 'message': '자리가 다 찼어요.'}, 409);
-    expect(await link.bookClass('c1'), '자리가 다 찼어요.');
+    expect(await link.bookClass('c1'), (code: 'full', message: '자리가 다 찼어요.'));
     expect(sent.last, 'POST /api/classes/c1/booking');
     answer = json({'ok': true});
     expect(await link.cancelClass('c1'), isNull);
@@ -302,7 +305,10 @@ void main() {
       client: MockClient((_) async => throw const SocketException('꺼짐')),
     );
     expect(await offline.leaveGym('g1'), isFalse);
-    expect(await offline.bookClass('c1'), '', reason: '못 닿았으면 까닭이 없다');
+    expect(await offline.bookClass('c1'), (
+      code: '',
+      message: '',
+    ), reason: '못 닿았으면 까닭이 없다');
     expect(await offline.classes('g1'), isNull, reason: '수업이 없는 것과 다르다');
     expect(await offline.changeNickname('누구'), '');
   });
@@ -871,6 +877,62 @@ void main() {
     await tester.pumpAndSettle();
     expect(sent, contains('DELETE /api/classes/c3/booking?'));
     expect(find.text('자리가 다 찼어요.'), findsNothing, reason: '이번에는 잘됐다');
+  });
+
+  testWidgets('한국어가 아니면 아는 거절 코드는 앱의 말로, 모르는 코드는 서버의 말로 보인다', (tester) async {
+    final en = await L.delegate.load(const Locale('en'));
+    final start = DateTime.now().add(const Duration(days: 2));
+    final asked = <String>[];
+    var refusal = <String, Object?>{'error': 'full', 'message': '정원이 찼습니다.'};
+    final account = Account(
+      client: MockClient((request) async {
+        asked.add(request.headers['accept-language'] ?? '');
+        if (request.method == 'POST') return json(refusal, 409);
+        return json({
+          'classes': [
+            {
+              'id': 'c1',
+              'title': 'Yoga',
+              'startsAt': start.toUtc().toIso8601String(),
+              'endsAt': start
+                  .add(const Duration(minutes: 50))
+                  .toUtc()
+                  .toIso8601String(),
+              'trainer': 'Kim',
+              'capacity': 10,
+              'booked': 3,
+              'mine': false,
+              'status': 'open',
+            },
+          ],
+        });
+      }),
+    )..token = 'x';
+    await tester.pumpWidget(
+      app(
+        ClassesPage(account: account, gymId: 'g1'),
+        locale: const Locale('en'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 옛 서버는 언어를 몰라 한국어로 답한다 — 코드를 알면 그 말을 보이지 않는다.
+    await tester.tap(find.text(en.classBook(3, 10)));
+    await tester.pumpAndSettle();
+    expect(find.text(en.refusedClassFull), findsOneWidget);
+    expect(find.text('정원이 찼습니다.'), findsNothing);
+
+    // conflict 는 그 밖의 모든 까닭을 담는다 — 앱이 할 말이 없으니 서버의 말을 보인다.
+    refusal = {
+      'error': 'conflict',
+      'message': 'This overlaps a PT session or group class.',
+    };
+    await tester.tap(find.text(en.classBook(3, 10)));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('This overlaps a PT session or group class.'),
+      findsOneWidget,
+    );
   });
 
   Account bookingServer({

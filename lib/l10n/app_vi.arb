@@ -915,5 +915,18 @@
   "gymLinkNotMember": "Chỉ hội viên của phòng tập này mới mở được.",
   "ageConfirmFirst": "Hãy đánh dấu “Tôi từ 14 tuổi trở lên” trước.",
   "noticeNew": "Thông báo mới",
-  "noticePinned": "Đã ghim"
+  "noticePinned": "Đã ghim",
+  "refusedSignIn": "Vui lòng đăng nhập lại.",
+  "refusedGone": "Lịch hẹn hoặc lớp này không còn nữa.",
+  "refusedBookingTime": "Hãy kiểm tra ngày và giờ của lịch hẹn.",
+  "refusedBookingForbidden": "Bạn không có quyền xử lý lịch hẹn này.",
+  "refusedNoTrainer": "Bạn chưa có huấn luyện viên phụ trách. Hãy hỏi phòng tập.",
+  "refusedBookingChanged": "Lịch hẹn này đã được xử lý hoặc đã thay đổi.",
+  "refusedSlotTaken": "Khung giờ đó đã đóng hoặc trùng với lịch hẹn khác.",
+  "refusedNoPass": "Hãy kiểm tra gói PT — gói có thể đang tạm dừng, đã hết hạn hoặc đã dùng hết.",
+  "refusedTooLate": "Lịch hẹn này đã qua giờ bắt đầu.",
+  "refusedClassFull": "Lớp này đã đầy.",
+  "refusedClassNoAccess": "Bạn không có thẻ hội viên dùng được vào ngày học. Hãy hỏi phòng tập về thời hạn hoặc trạng thái tạm dừng.",
+  "refusedClassCancelled": "Lớp này đã nghỉ.",
+  "refusedAccountBlocked": "Bạn là chủ hoặc huấn luyện viên của một phòng tập. Hãy rời hoặc xóa phòng tập trước, rồi mới xóa tài khoản."
 }

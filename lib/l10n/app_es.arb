@@ -915,5 +915,18 @@
   "gymLinkNotMember": "Solo los miembros de este gimnasio pueden abrir esto.",
   "ageConfirmFirst": "Primero marca «Tengo 14 años o más».",
   "noticeNew": "Aviso nuevo",
-  "noticePinned": "Fijado"
+  "noticePinned": "Fijado",
+  "refusedSignIn": "Vuelve a iniciar sesión.",
+  "refusedGone": "Esta reserva o clase ya no existe.",
+  "refusedBookingTime": "Revisa la fecha y la hora de la reserva.",
+  "refusedBookingForbidden": "No puedes hacer cambios en esta reserva.",
+  "refusedNoTrainer": "Aún no tienes un entrenador asignado. Consulta con tu gimnasio.",
+  "refusedBookingChanged": "Esta reserva ya se gestionó o ha cambiado.",
+  "refusedSlotTaken": "Esa hora está cerrada o coincide con otra reserva.",
+  "refusedNoPass": "Revisa el bono de PT: puede estar en pausa, vencido o agotado.",
+  "refusedTooLate": "Esta sesión ya ha empezado.",
+  "refusedClassFull": "Esta clase está completa.",
+  "refusedClassNoAccess": "No tienes una membresía válida para el día de la clase. Consulta las fechas o la pausa con tu gimnasio.",
+  "refusedClassCancelled": "Esta clase se canceló.",
+  "refusedAccountBlocked": "Eres propietario o entrenador de un gimnasio. Sal del gimnasio o elimínalo y luego elimina tu cuenta."
 }

@@ -101,11 +101,10 @@ class _BookingPageState extends State<BookingPage> {
     });
   }
 
-  /// 못 한 까닭. 서버가 적은 말(이용권이 끝났다, 담당이 바뀌었다, 시작 시각이
-  /// 지났다)을 그대로 — 무엇이든 '빈 시간이 없다' 로 보이면 회원은 다른 날만 누른다.
-  /// 말이 없으면 서버에 닿지 못한 것이다.
-  String _failure(L l, String reason) =>
-      reason.isEmpty ? l.partnerErrNetwork : reason;
+  /// 못 한 까닭(이용권이 끝났다, 담당이 바뀌었다, 시작 시각이 지났다) — 무엇이든 '빈
+  /// 시간이 없다' 로 보이면 회원은 다른 날만 누른다. 아무 말이 없으면 서버에 닿지 못한 것이다.
+  String _failure(L l, Refusal reason) =>
+      refusalMessage(l, reason, fallback: l.partnerErrNetwork);
 
   Future<void> _cancel(Booking booking) async {
     final l = L.of(context);

@@ -635,9 +635,9 @@ class _ClassesPageState extends State<ClassesPage> {
     }
   }
 
-  /// 잡거나 취소하고 목록을 다시 받는다. 못 했으면 서버가 적은 까닭을 그대로 — 자리가
-  /// 찼다, 이용권이 없다, 다른 예약과 겹친다. 까닭이 없으면 서버에 닿지 못한 것이다.
-  Future<void> _settle(Future<String?> Function() act) async {
+  /// 잡거나 취소하고 목록을 다시 받는다. 못 했으면 그 까닭을 — 자리가 찼다, 이용권이
+  /// 없다, 다른 예약과 겹친다. 아무 말이 없으면 서버에 닿지 못한 것이다.
+  Future<void> _settle(Future<Refusal?> Function() act) async {
     setState(() {
       _busy = true;
       _notice = null;
@@ -648,11 +648,9 @@ class _ClassesPageState extends State<ClassesPage> {
     final l = L.of(context);
     setState(() {
       _busy = false;
-      _notice = switch (problem) {
-        null => null,
-        '' => l.partnerErrNetwork,
-        _ => problem,
-      };
+      _notice = problem == null
+          ? null
+          : refusalMessage(l, problem, fallback: l.partnerErrNetwork);
     });
   }
 

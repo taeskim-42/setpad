@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/gym.dart';
+import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/workout_timing.dart';
@@ -543,7 +545,7 @@ void _shared() {
     expect(found.slots.single.isUtc, isFalse);
   });
 
-  test('못 잡거나 못 취소하면 서버가 적은 까닭을 그대로 준다 — 못 닿았으면 빈 말', () async {
+  test('못 잡거나 못 취소하면 서버가 거절한 까닭(코드와 말)을 그대로 준다 — 못 닿았으면 빈 것', () async {
     var status = 409;
     var body = jsonEncode({
       'error': 'noPass',
@@ -552,28 +554,96 @@ void _shared() {
     final link = linkThat(
       (_) async => http.Response.bytes(utf8.encode(body), status),
     );
-    expect(
-      await link.book(DateTime(2026, 9, 16, 10)),
-      'PT 이용권의 상태·기간·잔여 횟수를 확인해 주세요.',
-    );
+    expect(await link.book(DateTime(2026, 9, 16, 10)), (
+      code: 'noPass',
+      message: 'PT 이용권의 상태·기간·잔여 횟수를 확인해 주세요.',
+    ));
     body = jsonEncode({
       'error': 'tooLate',
       'message': '시작 시각이 지난 예약입니다. 트레이너에게 확인해 주세요.',
     });
-    expect(await link.cancelBooking('b1'), '시작 시각이 지난 예약입니다. 트레이너에게 확인해 주세요.');
-    // 까닭 없는 실패(서버가 넘어졌다)와 못 닿은 것은 빈 말이다.
+    expect(await link.cancelBooking('b1'), (
+      code: 'tooLate',
+      message: '시작 시각이 지난 예약입니다. 트레이너에게 확인해 주세요.',
+    ));
+    // 까닭 없는 실패(서버가 넘어졌다)와 못 닿은 것은 빈 것이다.
+    const nothing = (code: '', message: '');
     status = 500;
     body = '<html>';
-    expect(await link.book(DateTime(2026, 9, 16, 10)), '');
-    expect(await link.cancelBooking('b1'), '');
+    expect(await link.book(DateTime(2026, 9, 16, 10)), nothing);
+    expect(await link.cancelBooking('b1'), nothing);
     final offline = linkThat((_) async => throw http.ClientException('off'));
-    expect(await offline.book(DateTime(2026, 9, 16, 10)), '');
-    expect(await offline.cancelBooking('b1'), '');
+    expect(await offline.book(DateTime(2026, 9, 16, 10)), nothing);
+    expect(await offline.cancelBooking('b1'), nothing);
     // 잡았고 지웠다.
     status = 200;
     body = '{"id":"b9","status":"pending"}';
     expect(await link.book(DateTime(2026, 9, 16, 10)), isNull);
     expect(await link.cancelBooking('b9'), isNull);
+  });
+
+  test('거절의 말 — 한국어는 서버의 문장 그대로, 다른 언어는 아는 코드면 앱의 말, 모르면 서버의 말', () async {
+    final ko = await L.delegate.load(const Locale('ko'));
+    final en = await L.delegate.load(const Locale('en'));
+    final ja = await L.delegate.load(const Locale('ja'));
+    const overlap = (
+      code: 'slotTaken',
+      message: '그룹 수업과 시간이 겹칩니다. 다른 시간을 선택해 주세요.',
+    );
+    // 서버는 같은 코드를 상황마다 다른 문장으로 가른다 — 한국어 사용자는 보던 글 그대로.
+    expect(refusalMessage(ko, overlap, fallback: '?'), overlap.message);
+    // 옛 서버는 누구에게나 한국어, 새 서버는 한국어가 아니면 영어 — 아는 코드는 앱의 말.
+    expect(refusalMessage(en, overlap, fallback: '?'), en.refusedSlotTaken);
+    expect(
+      refusalMessage(ja, (
+        code: 'slotTaken',
+        message: 'That time overlaps a group class.',
+      ), fallback: '?'),
+      ja.refusedSlotTaken,
+    );
+    // 모르는 코드는 서버의 말, 말도 없으면 부르는 쪽의 말(서버에 닿지 못했다).
+    expect(
+      refusalMessage(ja, (
+        code: 'conflict',
+        message: 'Already started.',
+      ), fallback: '?'),
+      'Already started.',
+    );
+    expect(
+      refusalMessage(ja, (code: 'conflict', message: ''), fallback: '?'),
+      '?',
+    );
+    expect(refusalMessage(ko, (code: '', message: ''), fallback: '?'), '?');
+    // 코드만 오고 문장이 없으면 한국어도 앱의 말이다 — '서버에 닿지 못했다' 가 아니다.
+    expect(
+      refusalMessage(ko, (code: 'notFound', message: ''), fallback: '?'),
+      ko.refusedGone,
+    );
+    // 예약·수업·탈퇴에서 서버가 보내는 코드마다 아홉 언어 모두 서로 다른 앱의 말이 있다.
+    const codes = [
+      'signInRequired',
+      'notFound',
+      'invalidInput',
+      'forbidden',
+      'noTrainer',
+      'invalidTransition',
+      'slotTaken',
+      'noPass',
+      'tooLate',
+      'full',
+      'noAccess',
+      'cancelled',
+      'blocked',
+    ];
+    for (final locale in L.supportedLocales) {
+      final l = lookupL(locale);
+      final said = {
+        for (final code in codes)
+          refusalMessage(l, (code: code, message: ''), fallback: '?'),
+      };
+      expect(said, hasLength(codes.length), reason: '$locale');
+      expect(said, isNot(contains('?')), reason: '$locale');
+    }
   });
 
   test('어느 체육관인지 서버에 말한다', () async {

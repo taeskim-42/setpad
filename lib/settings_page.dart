@@ -7,6 +7,7 @@ import 'sign_in.dart';
 import 'sign_in_sheet.dart';
 import 'body_page.dart';
 import 'booking_entry.dart';
+import 'gym.dart' show refusalMessage;
 import 'gym_page.dart';
 import 'health_page.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -368,14 +369,18 @@ class SettingsPage extends StatelessWidget {
 
     final problem = await account.deleteAccount();
     if (problem == null || !context.mounted) return;
-    // 서버가 왜 막았는지 말해 준다. 빈 문자열이면 서버에 닿지 못한 것이다.
+    // 서버가 왜 막았는지 말해 준다. 아무 말이 없으면 서버에 닿지 못한 것이다.
     await showCupertinoDialog<void>(
       context: context,
       builder: (ctx) => CupertinoAlertDialog(
         content: Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text(
-            problem.isEmpty ? L.of(ctx).accountDeleteFailed : problem,
+            refusalMessage(
+              L.of(ctx),
+              problem,
+              fallback: L.of(ctx).accountDeleteFailed,
+            ),
             style: const TextStyle(fontSize: 15),
           ),
         ),

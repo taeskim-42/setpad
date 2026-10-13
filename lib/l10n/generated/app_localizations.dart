@@ -5514,6 +5514,84 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'고정됨'**
   String get noticePinned;
+
+  /// 서버가 예약·수업·탈퇴 요청을 로그인이 풀렸다며 거절했다(401 signInRequired). 한국어 화면은 서버가 적은 문장이 있으면 그것을 보인다(gym.dart refusalMessage).
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 로그인해 주세요.'**
+  String get refusedSignIn;
+
+  /// 취소하거나 잡으려던 PT 예약·그룹 수업이 서버에 없다(404 notFound). 예약과 수업이 같은 코드를 쓴다.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 없어진 예약이나 수업이에요.'**
+  String get refusedGone;
+
+  /// PT 예약 요청의 날짜·시간이 맞지 않다(400 invalidInput) — 대개 고른 시각이 그새 지났다.
+  ///
+  /// In ko, this message translates to:
+  /// **'예약 날짜와 시간을 확인해 주세요.'**
+  String get refusedBookingTime;
+
+  /// 이 PT 예약을 처리할 권한이 없다(403 forbidden) — 남의 예약을 취소하거나, 트레이너가 맡지 않은 신청을 승인했다.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 예약을 처리할 권한이 없어요.'**
+  String get refusedBookingForbidden;
+
+  /// PT 를 신청한 회원에게 담당 트레이너가 없다(403 noTrainer).
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 담당 트레이너가 없어요. 도장에 문의해 주세요.'**
+  String get refusedNoTrainer;
+
+  /// 그사이 처리됐거나(승인·거절·취소) 담당이 바뀐 PT 예약이다(409 invalidTransition).
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 처리됐거나 바뀐 예약이에요.'**
+  String get refusedBookingChanged;
+
+  /// 그 PT 시간을 잡을 수 없다(409 slotTaken) — 닫힌 시간이거나 다른 PT·그룹 수업과 겹친다. 회원의 신청과 트레이너의 승인 둘 다에서 뜨므로 '다른 시간을 고르라'고 하지 않는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'그 시간은 닫혔거나 다른 예약과 겹쳐요.'**
+  String get refusedSlotTaken;
+
+  /// 그날 쓸 수 있는 PT 이용권이 없다(409 noPass) — 정지·기간 끝·횟수 소진.
+  ///
+  /// In ko, this message translates to:
+  /// **'PT 이용권의 상태·기간·남은 횟수를 확인해 주세요.'**
+  String get refusedNoPass;
+
+  /// 시작 시각이 지난 PT 예약이라 취소·승인할 수 없다(409 tooLate).
+  ///
+  /// In ko, this message translates to:
+  /// **'시작 시각이 지난 예약이에요.'**
+  String get refusedTooLate;
+
+  /// 그룹 수업의 정원이 찼다(409 full).
+  ///
+  /// In ko, this message translates to:
+  /// **'정원이 찼어요.'**
+  String get refusedClassFull;
+
+  /// 수업 날에 쓸 수 있는 회원권이 없다(409 noAccess) — 기간이 끝났거나 정지 중이거나 이 도장 회원이 아니다.
+  ///
+  /// In ko, this message translates to:
+  /// **'수업 날에 쓸 수 있는 회원권이 없어요. 기간이나 정지 상태를 도장에 확인해 주세요.'**
+  String get refusedClassNoAccess;
+
+  /// 휴강한 그룹 수업이다(409 cancelled).
+  ///
+  /// In ko, this message translates to:
+  /// **'휴강한 수업이에요.'**
+  String get refusedClassCancelled;
+
+  /// 도장의 관장·트레이너라서 탈퇴할 수 없다(409 blocked, DELETE /api/me).
+  ///
+  /// In ko, this message translates to:
+  /// **'도장의 관장이나 트레이너예요. 도장에서 나오거나 도장을 지운 뒤에 탈퇴할 수 있어요.'**
+  String get refusedAccountBlocked;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

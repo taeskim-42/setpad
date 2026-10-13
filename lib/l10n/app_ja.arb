@@ -915,5 +915,18 @@
   "gymLinkNotMember": "このジムの会員だけが開けます。",
   "ageConfirmFirst": "先に「14歳以上です」にチェックしてください。",
   "noticeNew": "新しいお知らせ",
-  "noticePinned": "固定"
+  "noticePinned": "固定",
+  "refusedSignIn": "もう一度ログインしてください。",
+  "refusedGone": "この予約またはクラスはもうありません。",
+  "refusedBookingTime": "予約の日付と時間を確認してください。",
+  "refusedBookingForbidden": "この予約を変更する権限がありません。",
+  "refusedNoTrainer": "まだ担当トレーナーがいません。ジムにお問い合わせください。",
+  "refusedBookingChanged": "この予約はすでに処理されたか、変更されています。",
+  "refusedSlotTaken": "その時間は受け付けていないか、ほかの予約と重なっています。",
+  "refusedNoPass": "PTチケットの状態・期間・残り回数を確認してください。",
+  "refusedTooLate": "この予約は開始時刻を過ぎています。",
+  "refusedClassFull": "このクラスは満員です。",
+  "refusedClassNoAccess": "クラスの日に使える会員権がありません。期間や休止状態をジムに確認してください。",
+  "refusedClassCancelled": "このクラスは休講になりました。",
+  "refusedAccountBlocked": "ジムのオーナーまたはトレーナーです。ジムを抜けるかジムを削除してから、アカウントを削除してください。"
 }

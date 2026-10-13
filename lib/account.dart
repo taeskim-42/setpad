@@ -589,11 +589,11 @@ class Account extends ChangeNotifier {
   /// 탈퇴. 서버가 지운 뒤에 기기에 남은 로그인도 지운다.
   ///
   /// **막혔으면 이유를 그대로 올려 보낸다** — "안 됩니다"만 보여 주면 관장인
-  /// 자기 계정을 왜 못 지우는지 알 길이 없다.
-  Future<String?> deleteAccount() async {
+  /// 자기 계정을 왜 못 지우는지 알 길이 없다([refusalMessage]).
+  Future<Refusal?> deleteAccount() async {
     if (!signedIn) return null;
-    final result = await link.deleteAccount();
-    if (!result.ok) return result.reason ?? '';
+    final problem = await link.deleteAccount();
+    if (problem != null) return problem;
     await signOut();
     return null;
   }

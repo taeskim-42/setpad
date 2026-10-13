@@ -3837,4 +3837,50 @@ class LEs extends L {
 
   @override
   String get noticePinned => 'Fijado';
+
+  @override
+  String get refusedSignIn => 'Vuelve a iniciar sesión.';
+
+  @override
+  String get refusedGone => 'Esta reserva o clase ya no existe.';
+
+  @override
+  String get refusedBookingTime => 'Revisa la fecha y la hora de la reserva.';
+
+  @override
+  String get refusedBookingForbidden =>
+      'No puedes hacer cambios en esta reserva.';
+
+  @override
+  String get refusedNoTrainer =>
+      'Aún no tienes un entrenador asignado. Consulta con tu gimnasio.';
+
+  @override
+  String get refusedBookingChanged =>
+      'Esta reserva ya se gestionó o ha cambiado.';
+
+  @override
+  String get refusedSlotTaken =>
+      'Esa hora está cerrada o coincide con otra reserva.';
+
+  @override
+  String get refusedNoPass =>
+      'Revisa el bono de PT: puede estar en pausa, vencido o agotado.';
+
+  @override
+  String get refusedTooLate => 'Esta sesión ya ha empezado.';
+
+  @override
+  String get refusedClassFull => 'Esta clase está completa.';
+
+  @override
+  String get refusedClassNoAccess =>
+      'No tienes una membresía válida para el día de la clase. Consulta las fechas o la pausa con tu gimnasio.';
+
+  @override
+  String get refusedClassCancelled => 'Esta clase se canceló.';
+
+  @override
+  String get refusedAccountBlocked =>
+      'Eres propietario o entrenador de un gimnasio. Sal del gimnasio o elimínalo y luego elimina tu cuenta.';
 }

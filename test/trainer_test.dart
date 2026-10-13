@@ -368,12 +368,13 @@ void main() {
       ptRequestsWaiting.value = 0;
     });
 
-    Widget app(Widget home) => CupertinoApp(
-      locale: const Locale('ko'),
-      localizationsDelegates: L.localizationsDelegates,
-      supportedLocales: L.supportedLocales,
-      home: home,
-    );
+    Widget app(Widget home, {Locale locale = const Locale('ko')}) =>
+        CupertinoApp(
+          locale: locale,
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: home,
+        );
 
     Account account(
       Future<http.Response> Function(http.Request) handle, {
@@ -1378,6 +1379,41 @@ void main() {
       expect(find.text('시작 시각이 지난 예약입니다. 트레이너에게 확인해 주세요.'), findsOneWidget);
       await tapText(tester, '확인');
       expect(find.text('이영희'), findsOneWidget, reason: '처리되지 않았으니 남는다');
+    });
+
+    testWidgets('한국어가 아니면 PT 신청을 못 처리한 까닭은 코드를 보고 앱의 말로 — 옛 서버의 한국어 대신', (
+      tester,
+    ) async {
+      final en = lookupL(const Locale('en'));
+      final a = account((request) async {
+        if (request.url.path != '/api/bookings') return server(request);
+        if (request.method == 'GET') {
+          return desk([
+            {
+              'id': 'p1',
+              'member': 'Sky',
+              'trainer': 'Kim',
+              'starts_at': '2026-10-14T10:00:00.000Z',
+            },
+          ]);
+        }
+        return reply({
+          'error': 'tooLate',
+          'message': '시작 시각이 지난 예약입니다. 트레이너에게 확인해 주세요.',
+        }, 409);
+      })..nickname = 'Kim';
+      tall(tester);
+      await tester.pumpWidget(
+        app(
+          TrainerPage(account: a, gymId: gymId),
+          locale: const Locale('en'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(en.trainerApprove).first);
+      await tester.pumpAndSettle();
+      expect(find.text(en.refusedTooLate), findsOneWidget);
+      expect(find.textContaining('시작 시각'), findsNothing);
     });
 
     testWidgets('목록의 트레이너 입구에 승인을 기다리는 PT 신청 수가 붙는다 — 푸시가 없다', (tester) async {

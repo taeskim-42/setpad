@@ -184,85 +184,97 @@ void main() {
     expect(gyms(), 2);
   });
 
-  testWidgets('못 잡거나 못 취소하면 서버가 적은 까닭을 보이고, 시작이 지난 예약은 다가오는 예약에 없다', (
-    tester,
-  ) async {
-    final now = DateTime.now();
-    final tomorrow = DateTime(now.year, now.month, now.day + 1);
-    http.Response json(Object body, [int status = 200]) => http.Response.bytes(
-      utf8.encode(jsonEncode(body)),
-      status,
-      headers: {'content-type': 'application/json; charset=utf-8'},
-    );
-    final account = Account(
-      client: MockClient((request) async {
-        if (request.method == 'POST') {
+  // 한국어는 서버가 적은 문장 그대로(보던 글이 바뀌지 않는다), 다른 언어는 코드를 보고 앱의
+  // 말로 — 서버는 영어로만, 옛 서버는 한국어로만 답한다(gym.dart refusalMessage).
+  const tooLate = '시작 시각이 지난 예약입니다. 트레이너에게 확인해 주세요.';
+  const noPass = 'PT 이용권의 상태·기간·잔여 횟수를 확인해 주세요.';
+  final ja = lookupL(const Locale('ja'));
+  for (final (locale, saidTooLate, saidNoPass) in [
+    (const Locale('ko'), tooLate, noPass),
+    (const Locale('ja'), ja.refusedTooLate, ja.refusedNoPass),
+  ]) {
+    testWidgets('못 잡거나 못 취소하면 그 까닭을 보이고, 시작이 지난 예약은 다가오는 예약에 없다 ($locale)', (
+      tester,
+    ) async {
+      final l = lookupL(locale);
+      final now = DateTime.now();
+      final tomorrow = DateTime(now.year, now.month, now.day + 1);
+      http.Response json(Object body, [int status = 200]) =>
+          http.Response.bytes(
+            utf8.encode(jsonEncode(body)),
+            status,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+      final account = Account(
+        client: MockClient((request) async {
+          if (request.method == 'POST') {
+            return json({'error': 'noPass', 'message': noPass}, 409);
+          }
+          if (request.method == 'DELETE') {
+            return json({'error': 'tooLate', 'message': tooLate}, 409);
+          }
           return json({
-            'error': 'noPass',
-            'message': 'PT 이용권의 상태·기간·잔여 횟수를 확인해 주세요.',
-          }, 409);
-        }
-        if (request.method == 'DELETE') {
-          return json({
-            'error': 'tooLate',
-            'message': '시작 시각이 지난 예약입니다. 트레이너에게 확인해 주세요.',
-          }, 409);
-        }
-        return json({
-          'bookings': [
-            for (final (id, at) in [
-              ('past', now.subtract(const Duration(hours: 1))),
-              ('soon', tomorrow.add(const Duration(hours: 10))),
-            ])
-              {
-                'id': id,
-                'gym': 'BPM',
-                'trainer': '김코치',
-                'starts_at': at.toUtc().toIso8601String(),
-                'status': 'booked',
-              },
-          ],
-          'slots': request.url.queryParameters.containsKey('day')
-              ? [
-                  tomorrow
-                      .add(const Duration(hours: 15))
-                      .toUtc()
-                      .toIso8601String(),
-                ]
-              : [],
-          'weekdays': [0, 1, 2, 3, 4, 5, 6],
-          'trainer': '김코치',
-          'duration_min': 50,
-          'pass': {'remaining': 3},
-        });
-      }),
-    )..token = 'x';
-    await tester.pumpWidget(
-      CupertinoApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: L.localizationsDelegates,
-        supportedLocales: L.supportedLocales,
-        home: BookingPage(account: account, gymId: 'g1'),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('예약 취소'), findsOneWidget, reason: '시작이 지난 예약은 취소도 받지 않는다');
+            'bookings': [
+              for (final (id, at) in [
+                ('past', now.subtract(const Duration(hours: 1))),
+                ('soon', tomorrow.add(const Duration(hours: 10))),
+              ])
+                {
+                  'id': id,
+                  'gym': 'BPM',
+                  'trainer': '김코치',
+                  'starts_at': at.toUtc().toIso8601String(),
+                  'status': 'booked',
+                },
+            ],
+            'slots': request.url.queryParameters.containsKey('day')
+                ? [
+                    tomorrow
+                        .add(const Duration(hours: 15))
+                        .toUtc()
+                        .toIso8601String(),
+                  ]
+                : [],
+            'weekdays': [0, 1, 2, 3, 4, 5, 6],
+            'trainer': '김코치',
+            'duration_min': 50,
+            'pass': {'remaining': 3},
+          });
+        }),
+      )..token = 'x';
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: locale,
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          home: BookingPage(account: account, gymId: 'g1'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text(l.bookingCancel),
+        findsOneWidget,
+        reason: '시작이 지난 예약은 취소도 받지 않는다',
+      );
 
-    await tester.tap(find.text('예약 취소'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CupertinoDialogAction, '예약 취소'));
-    await tester.pumpAndSettle();
-    expect(
-      find.text('시작 시각이 지난 예약입니다. 트레이너에게 확인해 주세요.'),
-      findsOneWidget,
-      reason: '못 취소했는데 아무 말이 없으면 취소된 줄 알고 안 온다',
-    );
+      await tester.tap(find.text(l.bookingCancel));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.widgetWithText(CupertinoDialogAction, l.bookingCancel),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text(saidTooLate),
+        findsOneWidget,
+        reason: '못 취소했는데 아무 말이 없으면 취소된 줄 알고 안 온다',
+      );
 
-    await tester.tap(find.text('${tomorrow.day}'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('15:00'));
-    await tester.pumpAndSettle();
-    expect(find.text('PT 이용권의 상태·기간·잔여 횟수를 확인해 주세요.'), findsOneWidget);
-    expect(find.text('그날은 빈 시간이 없어요.'), findsNothing);
-  });
+      await tester.tap(find.text('${tomorrow.day}'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('15:00'));
+      await tester.pumpAndSettle();
+      expect(find.text(saidNoPass), findsOneWidget);
+      expect(find.text(l.bookingNone), findsNothing);
+    });
+  }
 }

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'api_route.dart';
 
 import 'editor.dart';
+import 'l10n/generated/app_localizations.dart';
 import 'meal.dart';
 import 'notes.dart';
 import 'partner.dart';
@@ -751,10 +752,51 @@ Map<String, Object?>? _bodyOf(http.Response response) {
   }
 }
 
-/// 서버가 거절하며 적은 까닭(한국어, 그대로 보여도 된다). 답을 못 받았거나 까닭이
-/// 없으면 ''.
-String _reason(Map<String, Object?>? body) =>
-    body?['message'] is String ? body!['message'] as String : '';
+/// 서버가 거절한 까닭 — 기계가 읽는 [code](`error`)와 사람이 읽는 [message](요청의 언어,
+/// [appLanguage]. 옛 서버는 늘 한국어). 서버에 닿지 못했으면 둘 다 ''. 화면은
+/// [refusalMessage] 로 보일 말을 고른다.
+typedef Refusal = ({String code, String message});
+
+const Refusal _unreached = (code: '', message: '');
+
+Refusal _refusal(Map<String, Object?>? body) => (
+  code: body?['error'] is String ? body!['error'] as String : '',
+  message: body?['message'] is String ? body!['message'] as String : '',
+);
+
+/// 예약·수업·탈퇴를 서버가 거절했을 때 보일 말. 앱이 아는 코드는 앱의 말(아홉 언어)로,
+/// 모르는 코드는 서버가 적은 말로, 서버에 닿지 못했거나 아무 말이 없으면 [fallback].
+///
+/// **한국어 화면은 서버의 문장을 그대로 보인다.** 서버는 처음부터 한국어로 쓰고, 한 코드를
+/// 상황마다 다른 문장으로 가른다 — slotTaken 하나가 '그룹 수업과 겹친다'·'이미 PT 가 있다'·
+/// '담당이 바뀌었다' 다. 코드 하나에 한 문장인 앱의 말보다 자세하고, 한국어 사용자가 보던
+/// 글이 그대로다. 다른 언어는 서버가 영어로만(옛 서버는 한국어로만) 답하고 앱은 아홉
+/// 언어라, 아는 코드면 앱의 말이 낫다. 'conflict' 는 수업 예약의 그 밖의 모든 까닭을
+/// 담는 코드라 모르는 코드로 친다.
+String refusalMessage(L l, Refusal refusal, {required String fallback}) {
+  final (:code, :message) = refusal;
+  if (l.localeName == 'ko' && message.isNotEmpty) return message;
+  return switch (code) {
+        'signInRequired' => l.refusedSignIn,
+        'notFound' => l.refusedGone,
+        // PT 예약(POST·DELETE·PATCH /api/bookings, pt-bookings.ts BookingError)
+        'invalidInput' => l.refusedBookingTime,
+        'forbidden' => l.refusedBookingForbidden,
+        'noTrainer' => l.refusedNoTrainer,
+        'invalidTransition' => l.refusedBookingChanged,
+        'slotTaken' => l.refusedSlotTaken,
+        'noPass' => l.refusedNoPass,
+        'tooLate' => l.refusedTooLate,
+        // 그룹 수업(/api/classes/{id}/booking, class-bookings.ts ClassError)
+        'full' => l.refusedClassFull,
+        'noAccess' => l.refusedClassNoAccess,
+        'cancelled' => l.refusedClassCancelled,
+        // 탈퇴(DELETE /api/me) — 도장의 관장·트레이너다
+        'blocked' => l.refusedAccountBlocked,
+        _ => null,
+      } ??
+      (message.isEmpty ? fallback : message);
+}
 
 extension _Posting on GymLink {
   /// 서버의 답. 닿지 못했으면 null.
@@ -787,9 +829,9 @@ extension _Posting on GymLink {
   ) => _call('POST', path, body);
 }
 
-/// 잡았으면(200) null, 못 잡았으면 서버가 적은 까닭, 못 닿았거나 까닭이 없으면 ''.
-String? _done(({int status, Map<String, Object?>? body})? answer) =>
-    answer?.status == 200 ? null : _reason(answer?.body);
+/// 잡았으면(200) null, 못 잡았으면 서버가 거절한 까닭(못 닿았으면 [_unreached]).
+Refusal? _done(({int status, Map<String, Object?>? body})? answer) =>
+    answer?.status == 200 ? null : _refusal(answer?.body);
 
 /// 회원 등록 신청의 결과. 서버가 돌려주는 말 그대로다. [ageRequired] 는 '만 14세
 /// 이상' 확인이 없는 계정이다(그 칸이 생기기 전에 만든 계정) — 한 번 묻고 다시 신청한다.
@@ -799,25 +841,20 @@ enum JoinState { requested, waiting, member, ageRequired, failed }
 enum InviteAnswer { done, gone, ageRequired, failed }
 
 extension MemberLink on GymLink {
-  /// 계정을 지운다. 서버가 지웠다고 하면 true.
+  /// 계정을 지운다. 서버가 지웠으면 null, 아니면 거절한 까닭(못 닿았으면 [_unreached]).
   ///
-  /// **관장·트레이너는 지울 수 없다**(서버가 409 로 막는다). 도장에 회원과
+  /// **관장·트레이너는 지울 수 없다**(서버가 409 blocked 로 막는다). 도장에 회원과
   /// 예약이 매달려 있어서, 넘기거나 접는 것이 먼저다.
-  Future<({bool ok, String? reason})> deleteAccount() async {
-    if (!supported) return (ok: false, reason: null);
+  Future<Refusal?> deleteAccount() async {
+    if (!supported) return _unreached;
     return withClient((web) async {
       try {
         final response = await web
             .delete(Uri.parse('$endpoint/api/me'), headers: headers)
             .timeout(const Duration(seconds: 20));
-        if (response.statusCode == 200) return (ok: true, reason: null);
-        final body = jsonDecode(utf8.decode(response.bodyBytes));
-        return (
-          ok: false,
-          reason: body is Map ? body['message'] as String? : null,
-        );
+        return response.statusCode == 200 ? null : _refusal(_bodyOf(response));
       } catch (_) {
-        return (ok: false, reason: null);
+        return _unreached;
       }
     });
   }
@@ -939,14 +976,16 @@ extension ClassLink on GymLink {
     );
   }
 
-  /// 수업을 잡는다. 잡았으면 null, 못 잡았으면 서버가 적은 까닭(자리가 찼다, 이용권이
-  /// 없다, 다른 예약과 겹친다), 못 닿았으면 ''.
-  Future<String?> bookClass(String id) async =>
-      supported ? _done(await _call('POST', '/api/classes/$id/booking')) : '';
+  /// 수업을 잡는다. 잡았으면 null, 못 잡았으면 서버가 거절한 까닭(자리가 찼다, 이용권이
+  /// 없다, 다른 예약과 겹친다), 못 닿았으면 [_unreached].
+  Future<Refusal?> bookClass(String id) async => supported
+      ? _done(await _call('POST', '/api/classes/$id/booking'))
+      : _unreached;
 
   /// 수업 예약을 취소한다. 결과는 [bookClass] 와 같다.
-  Future<String?> cancelClass(String id) async =>
-      supported ? _done(await _call('DELETE', '/api/classes/$id/booking')) : '';
+  Future<Refusal?> cancelClass(String id) async => supported
+      ? _done(await _call('DELETE', '/api/classes/$id/booking'))
+      : _unreached;
 }
 
 /// 예약 화면이 그려지는 데 필요한 전부.
@@ -1055,35 +1094,23 @@ extension BookingLink on GymLink {
     });
   }
 
-  /// 빈 자리를 잡는다. 잡았으면 null, 못 잡았으면 서버가 적은 까닭이다 — 그 사이 남이
-  /// 가져갔다, 이용권이 끝났다, 담당이 바뀌었다. 서버에 못 닿았거나 까닭이 없으면 ''.
+  /// 빈 자리를 잡는다. 잡았으면 null, 못 잡았으면 서버가 거절한 까닭이다 — 그 사이 남이
+  /// 가져갔다, 이용권이 끝났다, 담당이 바뀌었다. 서버에 못 닿았으면 [_unreached].
   /// 까닭을 버리면 회원은 무엇이든 '빈 시간이 없다' 로 읽고 다른 날을 계속 누른다.
-  Future<String?> book(DateTime startsAt, {String? gymId}) async {
-    if (!supported) return '';
+  Future<Refusal?> book(DateTime startsAt, {String? gymId}) async {
+    if (!supported) return _unreached;
     final answer = await _post('/api/bookings', {
       'startsAt': startsAt.toUtc().toIso8601String(),
       'gymId': ?gymId,
     });
     if (answer?.status == 200 && answer!.body?['id'] is String) return null;
-    return _reason(answer?.body);
+    return _refusal(answer?.body);
   }
 
   /// 예약을 취소한다. 결과는 [book] 과 같다 — 시작 시각이 지났으면 서버가 거절한다.
-  Future<String?> cancelBooking(String id) async {
-    if (!supported) return '';
-    return withClient((web) async {
-      try {
-        final response = await web
-            .delete(
-              Uri.parse('$endpoint/api/bookings?id=$id'),
-              headers: headers,
-            )
-            .timeout(const Duration(seconds: 15));
-        return response.statusCode == 200 ? null : _reason(_bodyOf(response));
-      } catch (_) {
-        return '';
-      }
-    });
+  Future<Refusal?> cancelBooking(String id) async {
+    if (!supported) return _unreached;
+    return _done(await _call('DELETE', '/api/bookings?id=$id'));
   }
 }
 

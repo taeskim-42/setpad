@@ -915,5 +915,18 @@
   "gymLinkNotMember": "只有這家健身房的會員才能開啟。",
   "ageConfirmFirst": "請先勾選「我已滿 14 歲」。",
   "noticeNew": "新公告",
-  "noticePinned": "已置頂"
+  "noticePinned": "已置頂",
+  "refusedSignIn": "請重新登入。",
+  "refusedGone": "這個預約或團課已不存在。",
+  "refusedBookingTime": "請確認預約的日期和時間。",
+  "refusedBookingForbidden": "你無權處理這個預約。",
+  "refusedNoTrainer": "你還沒有負責教練，請聯絡健身房。",
+  "refusedBookingChanged": "這個預約已被處理或已變更。",
+  "refusedSlotTaken": "該時間已關閉或與其他預約衝突。",
+  "refusedNoPass": "請確認 PT 堂數的狀態、有效期間和剩餘堂數。",
+  "refusedTooLate": "這個預約已過開始時間。",
+  "refusedClassFull": "這堂團課已滿。",
+  "refusedClassNoAccess": "你沒有可在上課當天使用的會員資格，請向健身房確認有效期間或暫停狀態。",
+  "refusedClassCancelled": "這堂團課已停課。",
+  "refusedAccountBlocked": "你是健身房的館長或教練。請先退出或刪除健身房，再註銷帳號。"
 }

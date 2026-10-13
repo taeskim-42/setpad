@@ -3783,4 +3783,50 @@ class LVi extends L {
 
   @override
   String get noticePinned => 'Đã ghim';
+
+  @override
+  String get refusedSignIn => 'Vui lòng đăng nhập lại.';
+
+  @override
+  String get refusedGone => 'Lịch hẹn hoặc lớp này không còn nữa.';
+
+  @override
+  String get refusedBookingTime => 'Hãy kiểm tra ngày và giờ của lịch hẹn.';
+
+  @override
+  String get refusedBookingForbidden =>
+      'Bạn không có quyền xử lý lịch hẹn này.';
+
+  @override
+  String get refusedNoTrainer =>
+      'Bạn chưa có huấn luyện viên phụ trách. Hãy hỏi phòng tập.';
+
+  @override
+  String get refusedBookingChanged =>
+      'Lịch hẹn này đã được xử lý hoặc đã thay đổi.';
+
+  @override
+  String get refusedSlotTaken =>
+      'Khung giờ đó đã đóng hoặc trùng với lịch hẹn khác.';
+
+  @override
+  String get refusedNoPass =>
+      'Hãy kiểm tra gói PT — gói có thể đang tạm dừng, đã hết hạn hoặc đã dùng hết.';
+
+  @override
+  String get refusedTooLate => 'Lịch hẹn này đã qua giờ bắt đầu.';
+
+  @override
+  String get refusedClassFull => 'Lớp này đã đầy.';
+
+  @override
+  String get refusedClassNoAccess =>
+      'Bạn không có thẻ hội viên dùng được vào ngày học. Hãy hỏi phòng tập về thời hạn hoặc trạng thái tạm dừng.';
+
+  @override
+  String get refusedClassCancelled => 'Lớp này đã nghỉ.';
+
+  @override
+  String get refusedAccountBlocked =>
+      'Bạn là chủ hoặc huấn luyện viên của một phòng tập. Hãy rời hoặc xóa phòng tập trước, rồi mới xóa tài khoản.';
 }
