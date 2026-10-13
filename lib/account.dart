@@ -148,7 +148,10 @@ class Account extends ChangeNotifier {
     client: client,
     accountToken: () => token,
     onPlates: _setPlates,
-    onUnauthorized: signOut,
+    // 모든 기기에서 로그아웃하는 중에 받은 401 은 이 폰의 로그아웃이 아니다 — 새 토큰이 곧 온다.
+    onUnauthorized: () async {
+      if (!_revoking) await signOut();
+    },
     enabled: aiEnabled,
   );
 
@@ -381,8 +384,9 @@ class Account extends ChangeNotifier {
           )
           .timeout(const Duration(seconds: 15));
       // 기다리는 사이 토큰이 바뀌었다 — 모든 기기에서 로그아웃이 이 폰의 새 토큰을 받았거나
-      // 다시 로그인했다. 이 답은 옛 토큰의 것이니 새 토큰을 지우거나 덮지 않는다.
-      if (token != asked) return true;
+      // 다시 로그인했다. 이 답은 옛 토큰의 것이니 새 토큰을 지우거나 덮지 않는다. 지금
+      // 끊는 중이면 새 토큰이 아직 오는 중이다 — 그 답도 이 폰의 것이 아니다.
+      if (token != asked || _revoking) return true;
       if (response.statusCode == 401) {
         await signOut();
         return false;
@@ -562,12 +566,19 @@ class Account extends ChangeNotifier {
     unawaited(refreshPlates());
   }
 
+  /// [signOutEverywhere] 가 서버에 묻는 중이다. 서버가 끊은 직후 옛 토큰으로 나간 요청이
+  /// 받은 401 은 새 토큰의 답보다 먼저 올 수 있다 — 그것으로 이 폰을 로그아웃하지 않는다.
+  bool _revoking = false;
+
   /// 모든 기기에서 로그아웃 — 잃어버린 폰이나 백업에서 샌 로그인을 서버에서 끊는다.
   /// 그때까지 나간 이 사람의 토큰은 모두 거절되고, 이 폰은 서버가 준 새 토큰으로
   /// 이어 간다(POST /api/me/sessions/revoke). 끊었으면 true.
   Future<bool> signOutEverywhere() async {
     if (!signedIn) return false;
-    final fresh = await link.revokeSessions();
+    _revoking = true;
+    final fresh = await link.revokeSessions().whenComplete(
+      () => _revoking = false,
+    );
     if (fresh == null) return false;
     token = fresh;
     await _saveSession();

@@ -717,10 +717,14 @@ class NotesStore extends ChangeNotifier {
     return File('${dir.path}/notes.json');
   }
 
+  /// 저장소를 읽는 중이다. 그동안의 저장은 미룬다([flush]).
+  bool _loading = false;
+
   Future<void> load() async {
     // 처음 켰으면 기기 id 를 만든다. 저장은 기록을 다 읽은 뒤에 건다 — 읽는 사이에
     // 저장이 돌면 아직 빈 목록이 notes.json 을 덮는다.
     var minted = false;
+    _loading = true;
     try {
       final f = await _file();
       try {
@@ -792,6 +796,8 @@ class NotesStore extends ChangeNotifier {
       // 파일이 깨졌다고 앱이 안 뜨면 안 된다. 읽은 만큼으로 시작한다 — 원본은
       // [_readNotes] 가 옆에 남겨 두었으니 손으로 살릴 수 있다.
       debugPrint('notes.json 을 읽지 못했다: $e');
+    } finally {
+      _loading = false;
     }
     if (minted) _scheduleSave();
     notifyListeners();
@@ -848,7 +854,15 @@ class NotesStore extends ChangeNotifier {
       value is double ? null : (value as dynamic).toJson();
 
   /// 지금 당장 쓴다. 화면을 떠날 때와 앱이 내려갈 때 부른다.
+  ///
+  /// **읽는 중이면 쓰지 않고 미룬다.** 켜자마자 앱이 내려가면(두 번째 스티커, 바로 다른
+  /// 앱으로) 아직 빈 목록과 기본 설정이 notes.json·preferences.json 을 덮었다 — 그 뒤
+  /// 앱이 죽으면 기록·설정·기기 id 가 모두 사라진다. 다 읽은 뒤에 쓴다.
   Future<void> flush() {
+    if (_loading) {
+      _scheduleSave();
+      return _writes;
+    }
     _debounce?.cancel();
     final notes = jsonEncode(
       _notes.map((n) => n.toJson()).toList(),
@@ -1013,8 +1027,9 @@ class NotesStore extends ChangeNotifier {
   List<ServerDelete> get pendingDeletes => _deletes;
 
   /// 사람이 기록을 지웠다. 서버에 올라갔을 수 있는 끼니와 운동·출석 줄도 지우도록
-  /// 남긴다 — 회원은 지웠다고 믿는데 코치 화면에 그대로 남아 있었다. 끝났다고 아직
-  /// 못 알린 같이 하기도 남긴다 — 기록과 함께 사라지면 상대 폰에서 세션이 안 끝난다.
+  /// 남긴다 — 회원은 지웠다고 믿는데 코치 화면에 그대로 남아 있었다. 아직 열린 같이
+  /// 하기와 끝났다고 못 알린 같이 하기는 끝내도록(손님이면 나가도록) 남긴다 — 기록과
+  /// 함께 사라지면 상대 폰에서 세션이 안 끝난다.
   /// 빈 기록 정리([discardIfEmpty])는 서버의 출석을 두고 기기에서만 치운다.
   void delete(Note note) {
     final owner = note.owner;
@@ -1030,7 +1045,7 @@ class NotesStore extends ChangeNotifier {
     if (note.gymId != null) {
       _deletes.add((kind: 'workout', id: note.id, owner: owner));
     }
-    if (note.partner case final s? when s.endPending) {
+    if (note.partner case final s? when s.liveOnServer) {
       _deletes.add((kind: 'session', id: s.id, owner: owner));
     }
     _forget(note);
@@ -1045,9 +1060,9 @@ class NotesStore extends ChangeNotifier {
   /// 아무것도 안 친 메모는 목록에 남길 이유가 없다. 메모 앱과 같다. 끼니만 적은
   /// 기록(쉬는 날의 식단)은 빈 기록이 아니다.
   void discardIfEmpty(Note note) {
-    // 그물 없이 끝낸 같이 하기는 이 기록에만 '끝났다고 알릴 것' 이 남아 있다. 지우면
-    // 상대 폰에서 세션이 안 끝난다.
-    if (note.partner?.endPending ?? false) return;
+    // 열린 같이 하기와 그물 없이 끝낸 같이 하기는 이 기록에만 매달려 있다. 지우면 상대
+    // 폰에서 세션이 안 끝난다 — 아무것도 안 쳤어도 남겨 두어 끝낼 수 있게 한다.
+    if (note.partner?.liveOnServer ?? false) return;
     // 루틴을 열어만 봤다. 받은 루틴은 목록에 그대로 있고, 이것은 한 것이 아니다.
     // 끼니·대신 적기는 touch() 로만 저장돼 updatedAt 이 그대로다 — 그것까지 봐야
     // 세트 없이 끼니 사진만 남긴 루틴 기록이 끼니째 지워지지 않는다. 스티커로 연
@@ -1141,7 +1156,7 @@ class NotesStore extends ChangeNotifier {
             n.blocks.isEmpty &&
             _blankBesidesSets(n) &&
             !open.contains(n) &&
-            !(n.partner?.endPending ?? false) &&
+            !(n.partner?.liveOnServer ?? false) &&
             !n.cameAt.isAfter(visitWindowStart()))
           n,
     ];

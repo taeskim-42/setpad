@@ -202,6 +202,10 @@ class PartnerSession {
   bool get open =>
       state == PartnerState.waiting || state == PartnerState.active;
 
+  /// 서버에서는 아직 열려 있다 — 열린 세션이거나, 끝냈는데 아직 못 알렸다. 이런 세션이 든
+  /// 기록을 말없이 버리면 상대 폰에서 세션이 안 끝난다(서버는 저절로 끝내지 않는다).
+  bool get liveOnServer => open || endPending;
+
   Map<String, Object?> toJson() => {
     'id': id,
     'host': host,

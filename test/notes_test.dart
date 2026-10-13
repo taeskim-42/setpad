@@ -128,6 +128,43 @@ void main() {
     expect(store.notes, contains(note), reason: '지우면 상대 폰에서 세션이 안 끝난다');
   });
 
+  test('열린 같이 하기가 든 기록 — 지우면 끝내도록(손님이면 나가도록) 남기고, 아무것도 안 쳤어도 치우지 않는다', () {
+    final store = NotesStore(directory: Directory.systemTemp);
+    addTearDown(store.dispose);
+    final fourHoursAgo = DateTime.now().subtract(const Duration(hours: 4));
+    for (final (state, host) in [
+      (PartnerState.waiting, true),
+      (PartnerState.active, false),
+    ]) {
+      final id = 'S-${state.name}';
+      final note = store.create(gymId: 'g', at: fourHoursAgo)
+        ..owner = 'u1'
+        ..sentAt = fourHoursAgo
+        ..partner = PartnerSession(id: id, host: host, state: state);
+      store.discardIfEmpty(note);
+      store.pruneVisits();
+      expect(store.notes, contains(note), reason: '말없이 버리면 상대 폰에서 세션이 안 끝난다');
+
+      store.delete(note);
+      expect(
+        store.pendingDeletes,
+        contains((kind: 'session', id: id, owner: 'u1')),
+        reason: '서버는 열린 세션을 저절로 끝내지 않는다',
+      );
+    }
+
+    // 이미 끝난 세션은 알릴 것이 없다.
+    store.delete(
+      store.create()
+        ..partner = PartnerSession(
+          id: 'E',
+          host: true,
+          state: PartnerState.ended,
+        ),
+    );
+    expect(store.pendingDeletes.where((d) => d.id == 'E'), isEmpty);
+  });
+
   test('열려 있는 출석 기록과, 끼니 삭제·대신 적기가 남은 빈 기록은 치우지 않는다', () {
     final store = NotesStore(directory: Directory.systemTemp);
     addTearDown(store.dispose);
@@ -262,6 +299,43 @@ void main() {
       await store.load();
       expect(store.notes, isEmpty);
       expect(backups().single.readAsStringSync(), '[{"id": "1"');
+    });
+
+    test('읽는 사이에 앱이 내려가도 빈 목록·기본 설정으로 저장소를 덮지 않는다', () async {
+      final first = NotesStore(directory: dir);
+      await first.load(); // 기기 id 를 만든다
+      first.setWeightUnit('lb');
+      for (var day = 0; day < 200; day++) {
+        first.create(
+          at: DateTime(2026, 1, 1).add(Duration(days: day)),
+          blocks: [
+            ExerciseBlock('스쿼트', [LoggedSet(value: 100, reps: 5)]),
+          ],
+        );
+      }
+      await first.flush();
+      final device = first.deviceId;
+      first.dispose();
+
+      final store = NotesStore(directory: dir);
+      addTearDown(store.dispose);
+      final loading = store.load();
+      // 켜자마자 앱이 내려갔다(두 번째 스티커, 바로 다른 앱) — 아직 다 읽기 전이다.
+      await store.flush();
+      await loading;
+      final saved = jsonDecode(notesFile().readAsStringSync()) as List;
+      final preferences =
+          jsonDecode(File('${dir.path}/preferences.json').readAsStringSync())
+              as Map;
+      expect(saved, hasLength(200), reason: '여기서 앱이 죽으면 다음에 켤 때 기록이 없다');
+      expect(preferences['weightUnit'], 'lb');
+      expect(
+        preferences['deviceId'],
+        device,
+        reason: '기기 지갑과 구매가 이 id 에 묶여 있다',
+      );
+      expect(store.notes, hasLength(200));
+      expect(store.weightUnit, 'lb');
     });
 
     test('멀쩡한 파일은 옆에 아무것도 남기지 않는다', () async {

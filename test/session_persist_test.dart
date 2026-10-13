@@ -440,6 +440,56 @@ void main() {
     expect(kept()!['token'], 'new');
   });
 
+  test('모든 기기에서 로그아웃하는 사이 옛 토큰의 원판·AI 요청이 401 을 받아도 이 폰은 로그아웃하지 않는다', () async {
+    // 401 이 새 토큰보다 늦게 온 경우와 먼저 온 경우. 서버는 끊은 뒤의 옛 토큰을 거절한다.
+    for (final revokedFirst in [true, false]) {
+      final held = Completer<http.Response>(), revoke = Completer<http.Response>();
+      final plates = <String?>[];
+      Future<http.Response> server(http.Request request) async {
+        final path = request.url.path;
+        if (path.endsWith('/api/me/sessions/revoke')) return revoke.future;
+        if (!path.endsWith('/api/plates')) return http.Response('{}', 200);
+        final bearer = request.headers['authorization'];
+        plates.add(bearer);
+        if (plates.length == 1) return held.future; // 끊기 전에 나간 것
+        return bearer == 'Bearer new'
+            ? http.Response(jsonEncode({'balance': 3}), 200)
+            : http.Response('{"error":"signInRequired"}', 401);
+      }
+
+      final a = account(MockClient(server))
+        ..token = 'old'
+        ..nickname = '김회원'
+        ..userId = 'u1';
+      final refreshing = a.refreshPlates();
+      await pumpEventQueue();
+      final revoking = a.signOutEverywhere();
+      await pumpEventQueue();
+      final rejected = http.Response('{"error":"signInRequired"}', 401);
+      final fresh = http.Response(jsonEncode({'token': 'new'}), 200);
+      if (revokedFirst) {
+        revoke.complete(fresh);
+        expect(await revoking, isTrue);
+        held.complete(rejected);
+      } else {
+        held.complete(rejected);
+        await pumpEventQueue();
+        revoke.complete(fresh);
+        expect(await revoking, isTrue);
+      }
+      await refreshing;
+      await pumpEventQueue();
+      final why = revokedFirst ? '새 토큰 뒤에 온 401' : '새 토큰보다 먼저 온 401';
+      expect(a.signedIn, isTrue, reason: why);
+      expect((a.token, a.nickname, a.userId), ('new', '김회원', 'u1'), reason: why);
+      expect(kept()!['token'], 'new', reason: why);
+      if (revokedFirst) {
+        expect(plates.last, 'Bearer new', reason: '거절된 것은 옛 토큰이다 — 새 토큰으로 다시 묻는다');
+        expect(a.plates, 3);
+      }
+    }
+  });
+
   test('로그인 시트의 \'만 14세 이상입니다\' 를 서버에 함께 낸다 — 수단을 붙일 때는 내지 않는다', () async {
     final sent = <Map<String, Object?>>[];
     Account signingIn() => Account(

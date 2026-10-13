@@ -1036,7 +1036,9 @@ class RecordAi {
           // 다시 보내 봐야 또 401 이라, 로그아웃해 이 기기의 지갑으로 묻는다.
           // 기기 토큰이면 키체인에 남긴 것까지 버린다 — 다음에 켤 때 또 쓰지 않게.
           if (account != null && token == account) {
-            await onUnauthorized?.call();
+            // 묻는 사이 토큰이 바뀌었으면(모든 기기에서 로그아웃이 준 새 토큰, 다시 로그인)
+            // 거절된 것은 옛 토큰이다. 지금 토큰을 지우지 않고 그것으로 다시 묻는다.
+            if (accountToken?.call() == account) await onUnauthorized?.call();
           } else {
             forget();
           }
