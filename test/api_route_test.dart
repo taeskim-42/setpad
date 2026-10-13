@@ -140,10 +140,21 @@ void main() {
     expect(note.meals.single.dirty, isFalse);
   });
 
-  test('예비 주소가 없으면 길은 하나이고, 앱은 우리 도메인만 부른다', () {
-    final client = newApiClient(backup: '');
-    expect(client, isNot(isA<FailoverClient>()));
-    client.close();
+  test('예비 주소가 없으면 길은 하나이고, 앱은 우리 도메인만 부른다', () async {
+    // 길이 막혀도 다른 주소로 가지 않는다 — 한 번 묻고, 막힌 것을 부르는 쪽에 그대로 준다.
+    final hosts = <String>[];
+    final client = newApiClient(
+      backup: '',
+      inner: MockClient((request) async {
+        hosts.add(request.url.host);
+        throw const SocketException('Connection refused');
+      }),
+    );
+    await expectLater(
+      client.get(Uri.parse('$primary/api/me')),
+      throwsA(isA<SocketException>()),
+    );
+    expect(hosts, [primary.host]);
     expect(const String.fromEnvironment('API_BACKUP'), isEmpty);
   });
 

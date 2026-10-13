@@ -122,6 +122,8 @@ void main() {
       final (asked, _) = await list(tester, () => now);
       int gyms() => asked.where((p) => p.endsWith('/api/gyms')).length;
       final before = gyms();
+      // 다시 물을 때(5분)는 지났다 — 막는 것은 '앱을 내렸는가' 하나다.
+      now = now.add(const Duration(minutes: 6));
 
       for (final state in [
         AppLifecycleState.inactive,
@@ -132,7 +134,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(gyms(), before);
 
-      now = now.add(const Duration(minutes: 6));
       away(tester);
       await tester.pumpAndSettle();
       expect(gyms(), before + 1);
