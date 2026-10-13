@@ -1,5 +1,7 @@
 Novedades
 
-· Inicia sesión con Kakao o Google: usa la cuenta que ya tienes en la web (gym.darak.studio) y vincula otros métodos en Ajustes › Cuenta
-· Los cambios en un entrenamiento del gimnasio vuelven a llegar a tu entrenador, y los pesos en lb se envían convertidos a kg
-· Una rutina recibida solo se completa al anotar una serie, y cambiar de cuenta en un teléfono ya no mezcla los registros
+· Avisos del gimnasio, pases, taquilla y próximas sesiones de PT en la app, y reserva de clases grupales
+· Las invitaciones de un gimnasio esperan tu aprobación, y puedes salir cuando quieras
+· Los entrenadores aprueban o rechazan solicitudes de PT desde la app
+· Registro más seguro: una entrada dañada no afecta a las demás y una compra no se pierde si se corta la conexión
+· Entrenar juntos es más ligero, y llegan Cerrar sesión en todos los dispositivos y mejor VoiceOver

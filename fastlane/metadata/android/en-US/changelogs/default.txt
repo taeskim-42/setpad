@@ -1,5 +1,7 @@
 What's new
 
-· Sign in with Kakao or Google — use the account you already have on the web (gym.darak.studio), and link other sign-in methods under Settings › Account
-· Edits to a gym workout now reach your trainer again, and lb weights are converted to kg when sent
-· A received routine is completed only once you log a set, and switching accounts on one phone no longer mixes up records
+· See your gym's notices, passes, locker and upcoming PT sessions in the app, and book group classes
+· Gym invites now wait for your OK before you're linked, and you can leave a gym anytime
+· Trainers can approve or decline PT requests right in the app
+· Your log is safer: one damaged entry no longer takes the rest with it, and a purchase survives a dropped connection
+· Work out together is lighter, plus Sign out on all devices and better VoiceOver support

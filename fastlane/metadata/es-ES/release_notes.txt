@@ -1,6 +1,7 @@
 Novedades
 
-· El inicio de sesión con Kakao y Google se abre en una ventana dentro de la app
-· Una rutina recibida solo se completa al anotar una serie; abrirla ya no la marca como hecha
-· Al cambiar de cuenta en un mismo teléfono, los registros de la cuenta anterior ya no pasan a la nueva
-· Si un plan compartido es demasiado largo para guardarse, la app te dice por qué
+· Avisos del gimnasio, pases, taquilla y próximas sesiones de PT en la app, y reserva de clases grupales
+· Las invitaciones de un gimnasio esperan tu aprobación, y puedes salir cuando quieras
+· Los entrenadores aprueban o rechazan solicitudes de PT desde la app
+· Registro más seguro: una entrada dañada no afecta a las demás y una compra no se pierde si se corta la conexión
+· Entrenar juntos es más ligero, y llegan Cerrar sesión en todos los dispositivos y mejor VoiceOver

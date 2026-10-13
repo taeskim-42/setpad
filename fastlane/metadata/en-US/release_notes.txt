@@ -1,6 +1,7 @@
 What's new
 
-· Kakao and Google sign-in now open in an in-app sign-in sheet
-· A received routine is completed only once you log a set — just opening it no longer marks it done
-· After switching accounts on one phone, the previous account's records no longer go to the new one
-· When a shared plan is too long to save, the app now tells you why
+· See your gym's notices, passes, locker and upcoming PT sessions in the app, and book group classes
+· Gym invites now wait for your OK before you're linked, and you can leave a gym anytime
+· Trainers can approve or decline PT requests right in the app
+· Your log is safer: one damaged entry no longer takes the rest with it, and a purchase survives a dropped connection
+· Work out together is lighter, plus Sign out on all devices and better VoiceOver support
