@@ -1143,6 +1143,31 @@ void main() {
     },
   );
 
+  test('적기 도움 지시문은 서버 상한(7,000자) 안이다 — 붙여 넣은 긴 운동 이름도 잘라 보낸다', () async {
+    RecordAi.forget();
+    String? instructions;
+    await RecordAi(
+      endpoint: 'https://example.com',
+      deviceId: 'device',
+      client: MockClient((request) async {
+        if (request.url.path == '/api/device') {
+          return http.Response(jsonEncode({'token': 't'}), 200);
+        }
+        instructions =
+            (jsonDecode(request.body) as Map)['instructions'] as String;
+        return http.Response.bytes(
+          utf8.encode(jsonEncode({'intent': benchAnswer})),
+          200,
+        );
+      }),
+    ).interpret('벤치 80kg 10회', 'ko', [
+      for (var i = 0; i < 8; i++) '벤치${'"' * 2000}$i',
+    ]);
+    expect(instructions, contains('벤치'));
+    expect(instructions!.length, lessThanOrEqualTo(7000));
+    RecordAi.forget();
+  });
+
   test('X4: 와이파이 로그인 화면(HTML)·TLS·소켓 실패는 연결 문제다 — "읽지 못함" 이 아니다', () async {
     for (final handler in <MockClientHandler>[
       (_) async => http.Response('<html>login</html>', 200),

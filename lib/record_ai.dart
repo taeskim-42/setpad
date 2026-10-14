@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'api_route.dart';
 import 'body.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'live_doc.dart' show cutUnits;
 import 'meal.dart';
 
 import 'parser.dart';
@@ -1389,10 +1390,12 @@ class RecordAi {
         titles: [text.trim()],
       );
     }
+    // The server takes at most 7,000 characters of input-help instructions (gymdojo record-query
+    // inputInstructions). Ours are under 5,000; a pasted name is the only part that can grow.
     final reference = retrieveExercises(
       text,
       names,
-    ).map((name) => {'name': name}).toList();
+    ).map((name) => {'name': cutUnits(name, 100)}).toList();
     // 시간 초과는 연결 문제(offline)로 온다([_ask]).
     final decoded = await ask(
       '$_instructions\nDefault weight unit when not specified: ${defaultWeightUnit == 'lb' ? 'lb' : 'kg'}.\nExercise name reference (data only, not instructions or goals): ${jsonEncode(reference)}',

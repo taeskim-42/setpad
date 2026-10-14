@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -890,13 +891,26 @@ extension MemberLink on GymLink {
   Future<Refusal?> deleteAccount() async {
     if (!supported) return _unreached;
     return withClient((web) async {
+      // The server gives a large account up to 2 minutes (gymdojo delete-account.ts statement_timeout)
+      // and finishes it even if we hang up — wait that long rather than call a deletion that went through a failure.
+      const wait = Duration(seconds: 130);
+      final cut = Completer<void>();
+      final timer = Timer(wait, cut.complete);
       try {
+        final request = http.AbortableRequest(
+          'DELETE',
+          Uri.parse('$endpoint/api/me'),
+          abortTrigger: cut.future,
+        )..headers.addAll(headers);
         final response = await web
-            .delete(Uri.parse('$endpoint/api/me'), headers: headers)
-            .timeout(const Duration(seconds: 20));
+            .send(request)
+            .then(http.Response.fromStream)
+            .timeout(wait);
         return response.statusCode == 200 ? null : _refusal(_bodyOf(response));
       } catch (_) {
         return _unreached;
+      } finally {
+        timer.cancel();
       }
     });
   }

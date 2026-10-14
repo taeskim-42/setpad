@@ -144,6 +144,7 @@ class SettingsPage extends StatelessWidget {
                 for (final invite in a.invites)
                   _Row(
                     label: l.inviteFrom(invite.gymName),
+                    detail: invite.verified ? null : l.gymUnverified,
                     accent: true,
                     onTap: () => answerGymInvite(context, a, invite),
                   ),
