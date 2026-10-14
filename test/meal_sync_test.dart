@@ -131,7 +131,8 @@ void main() {
       'kcal': 375,
       'source': 'label',
       'items': ['그래놀라'],
-      'amount': '150g',
+      'amountValue': 150,
+      'amountUnit': 'g',
     });
     expect(first.dirty, isFalse);
     expect(saves, 1);

@@ -8,7 +8,6 @@ import 'api_route.dart';
 import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'live_doc.dart';
-import 'meal.dart';
 import 'notes.dart';
 import 'partner.dart';
 import 'record_ai.dart';
@@ -680,14 +679,12 @@ extension MealLink on GymLink {
       'source': ?meal.source,
       'text': ?meal.currentText,
       'items': meal.items,
-      // 코치가 읽는 줄은 서버가 한국어로 짓는다. 단위 이름도 거기에 맞춘다.
-      if (basis != null && eaten != null)
-        'amount': switch (basis.unit) {
-          MealBasis.serving => '${amountText(eaten)}회분',
-          MealBasis.package => '포장 전체 × ${amountText(eaten)}',
-          MealBasis.photo => '사진 속 음식 × ${amountText(eaten)}',
-          _ => '${amountText(eaten)}${basis.unit}',
-        },
+      // The amount goes as a value and its unit ('serving'·'package'·'photo' or a printed unit);
+      // the server writes the coach's line in the coach's language.
+      if (basis != null && eaten != null) ...{
+        'amountValue': eaten,
+        'amountUnit': basis.unit,
+      },
     });
   }
 
