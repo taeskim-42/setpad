@@ -282,6 +282,40 @@ void main() {
       timer.dispose();
     },
   );
+  testWidgets('타바타+bpm 네 칸 스테퍼가 375pt 폰 내용 폭(343)에서 넘치지 않는다', (tester) async {
+    final timer = WorkoutTimer(audio: FakeAudio());
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        supportedLocales: L.supportedLocales,
+        localizationsDelegates: L.localizationsDelegates,
+        home: CupertinoPageScaffold(
+          child: Center(
+            child: SizedBox(
+              width: 343,
+              child: WorkoutTimingControls(
+                owner: Object(),
+                spec: const TimingSpec(tabata: true, bpm: 60),
+                timer: timer,
+                settingsOpen: true,
+                onChanged: (_) {},
+                onStart: () {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.byIcon(CupertinoIcons.plus), findsNWidgets(4));
+    expect(tester.takeException(), isNull);
+    // Keys stay 44 pt tall even where they are 40 pt wide.
+    expect(
+      tester.getSize(find.byType(CupertinoButton).first).height,
+      greaterThanOrEqualTo(44),
+    );
+    await tester.pumpWidget(const SizedBox());
+    timer.dispose();
+  });
   _adjustable();
   _counting();
   _aloud();

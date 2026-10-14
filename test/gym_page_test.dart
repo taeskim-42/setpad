@@ -273,6 +273,7 @@ void main() {
         json({'error': 'ageConfirmationRequired'}, 403),
         InviteAnswer.ageRequired,
       ),
+      (json({'error': 'signInRequired'}, 401), InviteAnswer.signIn),
       (json({}, 500), InviteAnswer.failed),
     ]) {
       answer = reply;

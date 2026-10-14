@@ -1304,6 +1304,22 @@ void main() {
         expect(within(short[1], 2, 4), isTrue, reason: '${short[1]}');
         expect(within(short[2], 4, 8), isTrue, reason: '${short[2]}');
 
+        // Three young deaths, then one that lived 30 s+ (a deploy): it comes back in 1–2 s.
+        var drops = 0;
+        for (final want in [1, 2, 4]) {
+          final Duration base;
+          (base, drops) = PartnerSync.reopenBackoff(
+            streamed: true,
+            short: true,
+            drops: drops,
+          );
+          expect(base, Duration(seconds: want));
+        }
+        expect(
+          PartnerSync.reopenBackoff(streamed: true, short: false, drops: 6),
+          (const Duration(seconds: 1), 0),
+        );
+
         final never = await reopenWaits(() => http.Response('', 404), 1);
         expect(within(never.first, 15, 30), isTrue, reason: '${never.first}');
 

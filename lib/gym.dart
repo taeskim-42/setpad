@@ -872,8 +872,8 @@ Refusal? _done(({int status, Map<String, Object?>? body})? answer) =>
 enum JoinState { requested, waiting, member, ageRequired, failed }
 
 /// 도장 초대에 답한 결과. [gone] 은 도장이 초대를 거둔 것이다. [unreached] 는 서버에
-/// 닿지 못한 것, [failed] 는 서버가 다른 까닭으로 받지 않은 것이다.
-enum InviteAnswer { done, gone, ageRequired, unreached, failed }
+/// 닿지 못한 것, [signIn] 은 토큰이 죽은 것(401), [failed] 는 서버가 다른 까닭으로 받지 않은 것이다.
+enum InviteAnswer { done, gone, ageRequired, unreached, signIn, failed }
 
 /// What to say when a call did not get what it asked for: no answer → the connection; 401 → sign
 /// in again; any other answer → the server's trouble. An answer is never "no connection".
@@ -969,6 +969,7 @@ extension MemberLink on GymLink {
       (404, _) => InviteAnswer.gone,
       (403, 'ageConfirmationRequired') => InviteAnswer.ageRequired,
       (null, _) => InviteAnswer.unreached,
+      (401, _) => InviteAnswer.signIn,
       _ => InviteAnswer.failed,
     };
   }

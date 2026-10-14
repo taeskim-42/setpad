@@ -1139,11 +1139,16 @@ class _Stepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget key(IconData icon, VoidCallback? tap, String semantics) =>
-        _RepeatingKey(
-          onTap: tap,
-          child: Icon(icon, size: 16, semanticLabel: semantics),
-        );
+    Widget key(
+      IconData icon,
+      VoidCallback? tap,
+      String semantics,
+    ) => _RepeatingKey(
+      onTap: tap,
+      // Two keys per cell, up to four cells (tabata + bpm) on a 343 pt row: 44 wide overflows.
+      minWidth: 40,
+      child: Icon(icon, size: 16, semanticLabel: semantics),
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1171,9 +1176,14 @@ class _Stepper extends StatelessWidget {
 
 /// 누르고 있으면 되풀이한다 — 20초를 600초로 올릴 때 116번 두드리지 않게.
 class _RepeatingKey extends StatefulWidget {
-  const _RepeatingKey({required this.onTap, required this.child});
+  const _RepeatingKey({
+    required this.onTap,
+    required this.child,
+    this.minWidth = 44,
+  });
   final VoidCallback? onTap;
   final Widget child;
+  final double minWidth;
 
   @override
   State<_RepeatingKey> createState() => _RepeatingKeyState();
@@ -1205,7 +1215,7 @@ class _RepeatingKeyState extends State<_RepeatingKey> {
     onLongPressCancel: _stop,
     child: CupertinoButton(
       padding: EdgeInsets.zero,
-      minimumSize: const Size(44, 44),
+      minimumSize: Size(widget.minWidth, 44),
       onPressed: widget.onTap,
       child: widget.child,
     ),

@@ -1272,13 +1272,32 @@ class PartnerSync extends ChangeNotifier {
     _reconnect?.cancel();
     // A stream that keeps dying young backs off 1, 2, 4 … 60 s; a healthy one (lived 30 s+)
     // comes back in a second or two. One that never streamed waits 15–30 s. Jitter spreads a herd.
-    final base = Duration(seconds: was ? min(60, 1 << _drops) : 15);
-    _drops = short ? min(_drops + 1, 6) : 0;
+    final (base, drops) = reopenBackoff(
+      streamed: was,
+      short: short,
+      drops: _drops,
+    );
+    _drops = drops;
     var wait =
         base + Duration(milliseconds: _random.nextInt(base.inMilliseconds + 1));
     final quiet = _quietUntil?.difference(DateTime.now());
     if (quiet != null && quiet > wait) wait = quiet;
     _reconnect = Timer(wait, _listen);
+  }
+
+  /// The reopen base wait and the next drop count. A long-lived stream clears the count *before*
+  /// the wait is taken, so a recovered stream is not charged for the young deaths before it.
+  @visibleForTesting
+  static (Duration, int) reopenBackoff({
+    required bool streamed,
+    required bool short,
+    required int drops,
+  }) {
+    final n = short ? drops : 0;
+    return (
+      Duration(seconds: streamed ? min(60, 1 << n) : 15),
+      short ? min(n + 1, 6) : 0,
+    );
   }
 
   /// 같이 하기를 끝낸다. 내 운동은 남는다. 그물이 없어도 이 기기에서는 끝난

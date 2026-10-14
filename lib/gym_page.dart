@@ -188,6 +188,7 @@ Future<void> answerGymInvite(
   await tellAgent(context, switch (answer) {
     InviteAnswer.gone => l.inviteGone,
     InviteAnswer.unreached => l.partnerErrNetwork,
+    InviteAnswer.signIn => l.refusedSignIn,
     _ => l.partnerErrServer,
   });
 }
