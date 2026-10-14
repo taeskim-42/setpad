@@ -1206,7 +1206,9 @@ class PartnerSync extends ChangeNotifier {
           if (place == null) break;
           final reply = await link().partnerPresence(s.id, place);
           _heed(reply.retryAfter);
-          if (reply.error != null || want == _presenceWant) break;
+          // A failed PUT still lets a newer place go (stop()'s cursor-clear must not be lost),
+          // unless the server asked for quiet.
+          if (want == _presenceWant || _quiet) break;
         }
       } finally {
         _presenceBusy = false;

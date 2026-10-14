@@ -1088,6 +1088,38 @@ void main() {
       expect(most, 1);
     });
 
+    test('가던 presence 가 실패해도 stop() 의 커서 지우기는 간다', () async {
+      final places = <Object?>[];
+      final first = Completer<void>();
+      final sync = PartnerSync(
+        note: activeNote('n-presence-stop'),
+        link: () => GymLink(
+          endpoint: 'https://x',
+          token: 't',
+          client: MockClient((request) async {
+            if (!request.url.path.endsWith('/presence')) {
+              return http.Response(state, 200);
+            }
+            places.add(jsonDecode(request.body)['block']);
+            if (places.length == 1) {
+              await first.future;
+              return http.Response('{"error":"oops"}', 500);
+            }
+            return http.Response('{}', 200);
+          }),
+        ),
+        onChanged: () {},
+        interval: const Duration(milliseconds: 20),
+      );
+      addTearDown(sync.dispose);
+      sync.presence(block: 'b0');
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      sync.stop();
+      first.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(places, ['b0', null], reason: '남은 커서가 20초 동안 남의 손을 막지 않는다');
+    });
+
     test(
       'presence 가 Retry-After 를 받으면 그동안 presence 도 기록 PUT 도 가지 않는다',
       () async {
@@ -1133,6 +1165,58 @@ void main() {
         expect(puts.where((p) => p == 'presence'), hasLength(2));
       },
     );
+
+    test('같이 고치기 PUT 도 Retry-After 동안은 가지 않는다', () async {
+      final edits = <List<Object?>>[];
+      var busy = true;
+      final note = activeNote('n-quiet-doc')
+        ..blocks.add(ExerciseBlock('스쿼트', [LoggedSet(value: 80, reps: 5)]));
+      final sync = PartnerSync(
+        note: note,
+        link: () => GymLink(
+          endpoint: 'https://x',
+          token: 't',
+          client: MockClient((request) async {
+            if (request.method == 'GET') return http.Response(state, 200);
+            final body = jsonDecode(request.body) as Map;
+            if (!request.url.path.endsWith('/doc') ||
+                body['action'] != 'edit') {
+              return http.Response('{"version":1}', 200);
+            }
+            edits.add(body['ops'] as List);
+            if (busy) {
+              busy = false;
+              return http.Response(
+                '{"error":"busy"}',
+                503,
+                headers: {'retry-after': '1'},
+              );
+            }
+            return http.Response('{"version":2}', 200);
+          }),
+        ),
+        onChanged: () {},
+        interval: const Duration(milliseconds: 20),
+      );
+      addTearDown(sync.dispose);
+      await sync.refresh(); // the host plants the doc
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      note.blocks.single.sets.add(LoggedSet(value: 90, reps: 5));
+      sync.pushDoc();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(edits, hasLength(1));
+      final refused = edits.single;
+      note.blocks.single.sets.add(LoggedSet(value: 100, reps: 5));
+      sync.pushDoc();
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      expect(edits, hasLength(1), reason: '쉬는 1초 동안은 0번');
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      note.blocks.single.sets.add(LoggedSet(value: 110, reps: 5));
+      sync.pushDoc();
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(edits.length, greaterThan(1));
+      expect(edits[1], refused, reason: '못 간 것부터 차례대로 다시 간다');
+    });
 
     test('스트림이 살아 있으면 상태 GET 은 서른 틱에 한 번이다', () async {
       var gets = 0;

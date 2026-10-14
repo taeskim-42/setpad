@@ -22,6 +22,7 @@ import 'anatomy.dart' show moveKey, moves;
 import 'daily.dart' show sessionEnd;
 import 'editor.dart' show ExerciseBlock, LoggedSet;
 import 'exercises.dart';
+import 'live_doc.dart' show cutUnits;
 import 'notes.dart';
 import 'parser.dart';
 import 'query_cache.dart';
@@ -1391,7 +1392,7 @@ RoutineAsk decodeRoutineAsk(
       for (final e in r.entries) {
         final k = _refusals.contains('${e.key}') ? '${e.key}' : 'other';
         final v = e.value is String ? (e.value as String).trim() : '';
-        refused[k] = v.length > 40 ? v.substring(0, 40) : v;
+        refused[k] = cutUnits(v, 40);
       }
     }
   }

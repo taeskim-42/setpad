@@ -616,7 +616,8 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 끼니·운동 줄도 여기서 지운다.
   ///
   /// 한 번에 하나만 돈다. 도는 중에 또 부르면 끝난 뒤 한 번 더 전부 돈다 — 편집기를
-  /// 닫은 기록이 빠지지 않게. [later] 는 첫 번만 쓴다.
+  /// 닫은 기록이 빠지지 않게. [later] 는 첫 번만 쓴다 — 올리는 중에 온 복귀는 열린
+  /// 기록도 마저 올린다(겹친 부름 하나에 한 번이라 괜찮다).
   Future<void> _sendPendingWorkouts({bool Function(Note note)? later}) {
     if (_syncing case final running?) {
       _syncAgain = true;

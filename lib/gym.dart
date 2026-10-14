@@ -8,6 +8,7 @@ import 'api_route.dart';
 import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'live_doc.dart';
+import 'meal.dart' show amountText;
 import 'notes.dart';
 import 'partner.dart';
 import 'record_ai.dart';
@@ -684,6 +685,10 @@ extension MealLink on GymLink {
       if (basis != null && eaten != null) ...{
         'amountValue': eaten,
         'amountUnit': basis.unit,
+        // The server keeps a unit of at most 12 characters; a longer printed unit
+        // (the sheet allows 20) still reaches the coach as the old phrase.
+        if (basis.unit.trim().length > 12)
+          'amount': '${amountText(eaten)}${basis.unit}',
       },
     });
   }

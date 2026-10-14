@@ -151,6 +151,20 @@ void main() {
     expect(calls.last.$2, '/api/meals/${first.id}');
     expect(calls.last.$3!['kcal'], 250);
 
+    // 서버는 12자까지의 단위만 받는다 — 더 긴 인쇄 단위는 예전 문장으로도 간다.
+    note.meals[0] = MealEntry(
+      id: first.id,
+      at: first.at,
+      kcal: 250,
+      items: first.items,
+      source: MealEntry.label,
+      basis: const MealBasis(kcal: 250, amount: 1, unit: 'big spoon of jam'),
+      eaten: 2,
+    );
+    await syncMeals(link, [note], onSynced: () {});
+    expect(calls.last.$3!['amountUnit'], 'big spoon of jam');
+    expect(calls.last.$3!['amount'], '2big spoon of jam');
+
     // 지우면 그 줄을 지운다. 그물이 없을 때 지운 것도 밀렸다가 간다.
     online = false;
     note.removeMeal(note.meals.single);
