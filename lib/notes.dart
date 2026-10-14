@@ -727,10 +727,14 @@ class NotesStore extends ChangeNotifier {
     _loading = true;
     try {
       final f = await _file();
+      final preferences = File('${f.parent.path}/preferences.json');
       try {
-        final preferences = File('${f.parent.path}/preferences.json');
         if (preferences.existsSync()) {
           final data = jsonDecode(await preferences.readAsString()) as Map;
+          // First: a field below that does not read must not cost the device its id (and with it
+          // the wallet bought without signing in).
+          final saved = data['deviceId'];
+          if (saved is String && saved.length >= 16) _deviceId = saved;
           _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
           _countAloud = data['countAloud'] == true;
           _body = BodyProfile.fromJson(data['body']);
@@ -739,8 +743,6 @@ class NotesStore extends ChangeNotifier {
               ?BodyRecord.tryFromJson(r),
           ]..sort((a, b) => a.on.compareTo(b.on));
           _aiOn = data['aiConsent'] != false;
-          final saved = data['deviceId'];
-          if (saved is String && saved.length >= 16) _deviceId = saved;
           if (data['platesDay'] case final String day) _platesDay = day;
           if ((data['shareMealsGym'], data['shareMealsSince']) case (
             final String gymId,
@@ -783,6 +785,12 @@ class NotesStore extends ChangeNotifier {
         }
       } catch (e) {
         debugPrint('Could not load preferences: $e');
+        // The next save writes defaults over what did not read — keep the original beside it.
+        try {
+          await preferences.copy(
+            '${preferences.path}.bak-${DateTime.now().millisecondsSinceEpoch}',
+          );
+        } catch (_) {}
       }
       if (_deviceId.isEmpty) {
         final random = Random.secure();
@@ -823,7 +831,12 @@ class NotesStore extends ChangeNotifier {
       debugPrint('notes.json 을 읽지 못했다: $error');
     }
     if (!whole) {
-      await f.copy('${f.path}.bak-${DateTime.now().millisecondsSinceEpoch}');
+      // A failed copy (a full disk, in practice) must not cost what did read.
+      try {
+        await f.copy('${f.path}.bak-${DateTime.now().millisecondsSinceEpoch}');
+      } catch (error) {
+        debugPrint('notes.json 사본을 남기지 못했다: $error');
+      }
     }
     _notes
       ..clear()

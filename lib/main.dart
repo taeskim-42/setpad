@@ -141,6 +141,10 @@ class _Home extends StatefulWidget {
 
 class _HomeState extends State<_Home> with WidgetsBindingObserver {
   late final NotesStore _store = widget.store ?? NotesStore();
+
+  /// 저장소를 다 읽었다. 링크도 이것을 기다린다 — 읽기 전에 만든 기록은 읽기가 끝나며
+  /// 지워지고, 이미 시작한 루틴을 찾는 확인도 빈 목록을 본다.
+  late final Future<void> _loaded = _store.load();
   final _health = HealthLink();
 
   /// 서버에 묻는 쪽. 로그인했으면 계정으로, 아니면 이 기기로 묻는다.
@@ -167,7 +171,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   }
 
   Future<void> _boot() async {
-    await _store.load();
+    await _loaded;
     // 스티커·건네받기·단톡방 링크로 켜졌으면 그 링크가 제 화면을 연다. 오늘 기록을 밑에
     // 또 펴면 편집기가 두 겹이라 목록까지 완료를 두 번 눌러야 했다. 앱을 연 링크는 채널
     // 한 번이면 오고 저장소를 읽는 동안 같이 물었다 — 플러그인이 답하지 않아도 오래 막지 않는다.
@@ -362,7 +366,9 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     final h = reply.handoff;
     // 내가 적어 보낸 링크를 내 폰에서 눌렀다. 받으면 상대의 세트가 내 기록이 된다.
     if (h?.mine ?? false) {
-      final sent = _store.notes.where((n) => n.proxy?.token == token).firstOrNull;
+      final sent = _store.notes
+          .where((n) => n.proxy?.token == token)
+          .firstOrNull;
       if (sent != null) return _open(sent);
       return _tellTag(l.handoffMine);
     }
@@ -389,6 +395,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     // 앱이 꺼진 채로 열렸으면 남겨 둔 로그인이 아직 안 살아났다. 그 전에 보면
     // 로그인한 사람에게도 로그인을 묻는다. start() 전체(스토어·이용권·원판)는
     // 기다리지 않는다 — 약한 그물에서 그것이 늘어지면 스티커가 아무 말이 없었다.
+    await _loaded;
     await _account.restored;
     if (!mounted) return;
     final handoff = handoffTokenFromLink(uri);
@@ -1137,7 +1144,12 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
           // 들어갔으면 문서 위 띠가 말한다. 못 들어갔으면(로그인 필요·만료·정원)
           // 시트가 이유를 그린다 — 참여만 부르고 말면 실패가 아무 말 없이 사라진다.
           if (error != null && mounted) {
-            await showPartnerSheet(context, account, sync, onWriteFor: _writeFor);
+            await showPartnerSheet(
+              context,
+              account,
+              sync,
+              onWriteFor: _writeFor,
+            );
           }
         });
     // 다시 들어왔을 때 서버에 상태를 물어 복구한다(열린 세션이 있을 때만 돈다).

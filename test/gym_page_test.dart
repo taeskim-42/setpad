@@ -650,6 +650,72 @@ void main() {
     await tester.pump(const Duration(seconds: 1)); // 저장 디바운스
   });
 
+  testWidgets('저장소를 다 읽기 전에 온 스티커는 읽기가 끝난 뒤에 기록을 만든다 — 읽기가 지우지 않는다', (
+    tester,
+  ) async {
+    final dir = Directory.systemTemp.createTempSync('setpad-sticker-load');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final before = NotesStore(directory: dir)
+      ..create().blocks.add(ExerciseBlock('벤치프레스'));
+    await tester.runAsync(before.flush);
+    before.dispose();
+    final gate = Completer<void>();
+    final store = _GatedStore(dir, gate.future);
+    final account = Account(
+      storageDir: dir,
+      client: MockClient((request) async {
+        switch (request.url.path) {
+          case '/api/me':
+            return json({
+              'user': {'id': 'u1', 'nickname': 'kim'},
+            });
+          case '/api/gyms':
+            return json({
+              'gyms': [gymJson()],
+              'invites': [],
+            });
+          case '/api/routines':
+            return json({
+              'routines': [
+                {
+                  'id': 'r1',
+                  'gym_id': 'g1',
+                  'gym': 'BPM',
+                  'title': '하체',
+                  'items': [
+                    {'name': '스쿼트', 'sets': []},
+                  ],
+                },
+              ],
+            });
+        }
+        return json({'plan': null, 'selling': false});
+      }),
+    )..token = 'x';
+    await tester.pumpWidget(
+      SetpadApp(
+        store: store,
+        tags: const Stream.empty(),
+        firstTag: Future.value(Uri.parse('https://gym.darak.studio/c/g1')),
+        account: account,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(store.notes, isEmpty, reason: '읽기 전에는 루틴 기록을 만들지 않는다');
+
+    gate.complete();
+    // The store reads real files — let them finish outside the fake clock.
+    for (var i = 0; i < 20 && store.notes.length < 2; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pumpAndSettle();
+    }
+    expect(store.notes.map((n) => n.routineId), contains('r1'));
+    expect(store.notes, hasLength(2), reason: '읽어 온 기록도 그대로다');
+    await tester.pump(const Duration(seconds: 1)); // 저장 디바운스
+  });
+
   testWidgets('도장 초대는 안내를 보여 주고, 받으면 그 판을 동의로 보낸다 — 나이 확인이 없는 계정은 한 번 묻는다', (
     tester,
   ) async {
@@ -1047,4 +1113,16 @@ void main() {
     expect(gymNews(gym, store.gymSeen), isEmpty, reason: '회원이 방금 한 일이다');
     await tester.pump(const Duration(seconds: 1)); // 저장 디바운스
   });
+}
+
+/// 저장소 읽기가 [gate] 가 열릴 때까지 멈춘다 — 앱이 켜지며 링크가 먼저 온 순간.
+class _GatedStore extends NotesStore {
+  _GatedStore(Directory dir, this.gate) : super(directory: dir);
+  final Future<void> gate;
+
+  @override
+  Future<void> load() async {
+    await gate;
+    return super.load();
+  }
 }

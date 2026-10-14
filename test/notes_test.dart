@@ -169,7 +169,8 @@ void main() {
     final store = NotesStore(directory: Directory.systemTemp);
     addTearDown(store.dispose);
     final fourHoursAgo = DateTime.now().subtract(const Duration(hours: 4));
-    final opened = store.create(gymId: 'g', at: fourHoursAgo)..sentAt = fourHoursAgo;
+    final opened = store.create(gymId: 'g', at: fourHoursAgo)
+      ..sentAt = fourHoursAgo;
     store.open.add(opened);
     store.pruneVisits();
     expect(store.notes, contains(opened), reason: '편집기가 쥐고 있다');
@@ -200,14 +201,19 @@ void main() {
     expect(store.notes, isNot(contains(emptied)));
 
     // 열어만 본 루틴은 블록이 차 있다 — 치우지 않는다.
-    final looked = store.create(
-      gymId: 'g',
-      routineId: 'r2',
-      at: fourHoursAgo,
-      blocks: [ExerciseBlock('스쿼트', [LoggedSet(value: 60, reps: 5, done: false)])],
-    )
-      ..checkedIn = true
-      ..sentAt = fourHoursAgo;
+    final looked =
+        store.create(
+            gymId: 'g',
+            routineId: 'r2',
+            at: fourHoursAgo,
+            blocks: [
+              ExerciseBlock('스쿼트', [
+                LoggedSet(value: 60, reps: 5, done: false),
+              ]),
+            ],
+          )
+          ..checkedIn = true
+          ..sentAt = fourHoursAgo;
     store.pruneVisits();
     expect(store.notes, contains(looked));
   });
@@ -299,6 +305,36 @@ void main() {
       await store.load();
       expect(store.notes, isEmpty);
       expect(backups().single.readAsStringSync(), '[{"id": "1"');
+    });
+
+    List<File> preferenceBackups() => [
+      for (final f in dir.listSync().whereType<File>())
+        if (f.path.contains('preferences.json.bak-')) f,
+    ];
+
+    test('설정의 한 칸이 상해도 기기 id 는 그대로이고, 원본은 옆에 남는다', () async {
+      const id = 'device-id-012345678';
+      final original = jsonEncode({
+        'deviceId': id,
+        'bodyRecords': 'broken-shape',
+        'shareMealsGym': 'g1',
+        'shareMealsSince': '2026-10-01',
+      });
+      File('${dir.path}/preferences.json').writeAsStringSync(original);
+      final store = NotesStore(directory: dir);
+      addTearDown(store.dispose);
+      await store.load();
+      expect(store.deviceId, id, reason: '기기 지갑과 구매가 이 id 에 묶여 있다');
+      expect(preferenceBackups().single.readAsStringSync(), original);
+    });
+
+    test('JSON 이 아닌 설정 파일도 옆에 남기고 새 id 로 뜬다', () async {
+      File('${dir.path}/preferences.json').writeAsStringSync('{"deviceId": "');
+      final store = NotesStore(directory: dir);
+      addTearDown(store.dispose);
+      await store.load();
+      expect(store.deviceId, isNotEmpty);
+      expect(preferenceBackups().single.readAsStringSync(), '{"deviceId": "');
     });
 
     test('읽는 사이에 앱이 내려가도 빈 목록·기본 설정으로 저장소를 덮지 않는다', () async {
