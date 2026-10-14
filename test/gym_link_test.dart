@@ -8,6 +8,7 @@ import 'package:http/testing.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/gym.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
+import 'package:setpad/live_doc.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/workout_timing.dart';
@@ -15,6 +16,8 @@ import 'package:setpad/workout_timing.dart';
 /// 체육관과 주고받는 모양. 웹이 쓰는 모양과 앱의 칸이 어긋나면 조용히 빈
 /// 운동이 되므로, 양방향 변환을 글자 단위로 못 박아 둔다.
 void main() {
+  setUp(forgetUploadPause);
+
   test('트레이너가 적은 계획이 운동 칸이 된다', () {
     final blocks = plannedBlocks([
       {
@@ -389,10 +392,10 @@ void _pending() {
     List<Map> sets(int i) => (items[i]['sets'] as List).cast<Map>();
     expect(sets(0)[0], {'value': 5200.0, 'unit': 'm', 'done': true});
     expect(sets(0)[1]['value'], 4828.03);
-    expect(items[0]['note'], '2세트: 오르막');
+    expect(items[0]['note'], '#2: 오르막');
     expect([for (final s in sets(1)) s['value']], [90.0, 45.0, 7200.0, 1e6]);
     expect(sets(1).every((s) => s['unit'] == 's'), isTrue);
-    expect(items[1]['note'], '1세트: 허리 조심\n2세트: 마지막은 무릎 대고 · 숨참');
+    expect(items[1]['note'], '#1: 허리 조심\n#2: 마지막은 무릎 대고 · 숨참');
     expect(sets(2).single.containsKey('value'), isFalse);
     expect(items[2].containsKey('note'), isFalse, reason: '메모가 없으면 칸도 없다');
 
@@ -459,6 +462,101 @@ void _pending() {
     expect(calls, 1, reason: '하나가 막히면 나머지도 막힌다');
     expect(notes.every((n) => n.sentAt == null), isTrue);
     expect(touched, 0, reason: '보낸 것이 없으면 저장할 것도 없다');
+  });
+
+  test('426(이 판은 끊겼다)은 기록 탓이 아니다 — 굳히지도 버리지도 않고 새 판이 보낸다', () async {
+    final link = GymLink(
+      endpoint: 'https://example.com',
+      token: 'x',
+      userId: 'u1',
+      client: MockClient(
+        (_) async => http.Response('{"error":"updateRequired"}', 426),
+      ),
+    );
+    final note = made('a', gymId: 'g');
+    await sendPending(link, [note], onSent: () {});
+    expect(note.sentAt, isNull);
+    expect(note.uploadRejected, isFalse);
+
+    final meal = MealEntry(at: DateTime(2026, 9, 21, 12), kcal: 300);
+    note.meals.add(meal);
+    note.deletedMeals.add('gone');
+    await syncMeals(link, [note], onSynced: () {});
+    expect(meal.dirty, isTrue);
+    expect(note.deletedMeals, ['gone']);
+
+    final queue = <ServerDelete>[
+      (kind: 'meal', id: 'm1', owner: 'u1'),
+      (kind: 'workout', id: 'w1', owner: 'u1'),
+    ];
+    await sendDeletes(link, queue, onSent: () {});
+    expect(queue, hasLength(2));
+  });
+
+  test('서버가 쉬었다 오라고 하면(503 + Retry-After) 그동안 올리기를 두드리지 않는다', () async {
+    var calls = 0;
+    final link = GymLink(
+      endpoint: 'https://example.com',
+      token: 'x',
+      client: MockClient((_) async {
+        calls++;
+        return http.Response('busy', 503, headers: {'retry-after': '60'});
+      }),
+    );
+    final notes = [made('a', gymId: 'g'), made('b', gymId: 'g')];
+    await sendPending(link, notes, onSent: () {});
+    expect(calls, 1);
+    await sendPending(link, notes, onSent: () {});
+    await syncMeals(link, notes, onSynced: () {});
+    await sendDeletes(link, [
+      (kind: 'meal', id: 'm', owner: null),
+    ], onSent: () {});
+    expect(calls, 1, reason: '60초 동안은 요청 0번');
+    forgetUploadPause();
+    await sendPending(link, notes, onSent: () {});
+    expect(calls, 2);
+  });
+
+  test('편집 중이라 미룬 기록(later)은 건너뛰고, 뒤의 기록은 간다', () async {
+    final sent = <String>[];
+    final link = GymLink(
+      endpoint: 'https://example.com',
+      token: 'x',
+      client: MockClient((request) async {
+        sent.add(jsonDecode(request.body)['localId'] as String);
+        return http.Response('{"id":"1"}', 200);
+      }),
+    );
+    final notes = [made('a', gymId: 'g'), made('bb', gymId: 'g')];
+    await sendPending(link, notes, onSent: () {}, later: (n) => n.id == 'a');
+    expect(sent, ['bb']);
+    expect(notes.first.sentAt, isNull);
+  });
+
+  test('이모지 경계에서 잘라도 반쪽 서로게이트를 보내지 않는다 — 서버가 세는 UTF-16 단위로', () {
+    // Lone surrogates show up in runes as their own code unit.
+    Iterable<int> lone(String s) =>
+        s.runes.where((r) => r >= 0xD800 && r <= 0xDFFF);
+    final cut = cutUnits('${'a' * 499}😀', 500);
+    expect(cut.length, 499);
+    expect(lone(cut), isEmpty);
+    expect(cutUnits('abc', 500), 'abc');
+    expect(cutUnits('${'a' * 498}😀b', 500), '${'a' * 498}😀');
+
+    // 세트 메모를 합친 것이 501 단위이고 500 번째 단위가 이모지의 앞쪽 반이다.
+    final head = '#1: ';
+    final note = '${'가' * (499 - head.length)}😀';
+    final items = loggedItems([
+      ExerciseBlock('${'b' * 199}😀', [
+        LoggedSet(value: 1, notes: [note]),
+      ]),
+    ]);
+    final sentNote = items.single['note'] as String;
+    expect('$head$note'.length, 501);
+    expect(sentNote.length, 499);
+    expect((items.single['name'] as String).length, 199);
+    expect(lone(sentNote), isEmpty);
+    expect(lone(items.single['name'] as String), isEmpty);
   });
 
   test('지운 기록의 끼니·운동 줄을 서버에서 지운다 — 운동 길을 모르는 서버가 끼니 지우기를 막지 않는다', () async {

@@ -21,19 +21,24 @@ typedef Json = Map<String, Object?>;
 const _maxNumber = 100000, _maxNotes = 20, _maxNote = 500, _maxName = 200;
 const _maxSets = 100;
 
-String _cut(String s, int n) =>
-    s.runes.length <= n ? s : String.fromCharCodes(s.runes.take(n));
+/// The first [n] UTF-16 units — the server counts length that way — without leaving half an
+/// emoji at the end: a lone surrogate makes jsonb refuse the whole upload.
+String cutUnits(String s, int n) {
+  if (s.length <= n) return s;
+  final end = (s.codeUnitAt(n - 1) & 0xFC00) == 0xD800 ? n - 1 : n;
+  return s.substring(0, end);
+}
 
 Json _setJson(LoggedSet s) => {
   'id': s.id,
   'value': s.value != null && s.value!.abs() <= _maxNumber ? s.value : null,
-  'unit': _cut(s.unit, 16),
+  'unit': cutUnits(s.unit, 16),
   'reps': s.reps != null && s.reps! >= 0 && s.reps! <= _maxNumber
       ? s.reps
       : null,
   // 복사한다. 편집기의 목록을 그대로 실으면 메모를 고치는 순간 "받은 문서" 도
   // 같이 바뀌어 차이가 없어 보이고, 고친 메모가 영영 안 올라간다.
-  'notes': [for (final n in s.notes.take(_maxNotes)) _cut(n, _maxNote)],
+  'notes': [for (final n in s.notes.take(_maxNotes)) cutUnits(n, _maxNote)],
   'done': s.done,
   // 지난 세션에서 남이 적은 세트는 그 이름을 싣는다. 키는 싣지 않는다 — 서버가
   // 이름만 남겨 누구의 "내 세트" 도 되지 않게 한다.
@@ -45,7 +50,7 @@ List<Json> docOf(List<ExerciseBlock> blocks) => [
   for (final b in blocks)
     {
       'id': b.id,
-      'name': _cut(b.name, _maxName),
+      'name': cutUnits(b.name, _maxName),
       if (b.setup != null) 'setup': b.setup!.toJson(),
       'sets': [for (final s in b.sets.take(_maxSets)) _setJson(s)],
     },

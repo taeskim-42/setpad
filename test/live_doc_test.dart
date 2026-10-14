@@ -250,6 +250,19 @@ void main() {
     expect((sj['notes'] as List).length, 20);
     expect(((sj['notes'] as List).first as String).length, 500);
     expect((json['name'] as String).length, 200);
+    // The server counts UTF-16 units: an emoji-heavy name is cut to 200 units, never mid-pair.
+    final emoji = docOf([
+      ExerciseBlock('${'a' * 199}😀😀', [], null, 'E'),
+      ExerciseBlock('💪' * 150, [], null, 'F'),
+    ]);
+    expect((emoji[0]['name'] as String).length, 199);
+    expect((emoji[1]['name'] as String).length, 200);
+    for (final b in emoji) {
+      expect(
+        (b['name'] as String).runes.where((r) => r >= 0xD800 && r <= 0xDFFF),
+        isEmpty,
+      );
+    }
     // 메모를 고치면 차이가 난다 — 보낸 문서가 편집기의 목록을 붙잡고 있지 않다.
     final t = LoggedSet(id: 't', value: 60, reps: 5);
     final shadow = docOf([

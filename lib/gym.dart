@@ -1,11 +1,13 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import 'api_route.dart';
 
 import 'editor.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'live_doc.dart';
 import 'meal.dart';
 import 'notes.dart';
 import 'partner.dart';
@@ -381,13 +383,8 @@ class GymLink {
               }),
             )
             .timeout(const Duration(seconds: 20));
-        return switch (response.statusCode) {
-          200 => SendOutcome.sent,
-          // 401 은 토큰이 죽은 것, 408·429 는 나중에 하라는 것 — 기록 탓이 아니다.
-          401 || 408 || 429 => SendOutcome.retry,
-          >= 400 && < 500 => SendOutcome.rejected,
-          _ => SendOutcome.retry,
-        };
+        _heed(response);
+        return outcomeOf(response.statusCode);
       } catch (_) {
         return SendOutcome.retry;
       }
@@ -408,12 +405,12 @@ class GymLink {
               headers: headers,
             )
             .timeout(const Duration(seconds: 15));
+        _heed(response);
         return switch (response.statusCode) {
           200 || 404 => SendOutcome.sent,
           // 405 는 이 길을 아직 모르는 서버다. 버리지 않고 다음에 다시 보낸다.
-          401 || 405 || 408 || 429 => SendOutcome.retry,
-          >= 400 && < 500 => SendOutcome.rejected,
-          _ => SendOutcome.retry,
+          405 => SendOutcome.retry,
+          final s => outcomeOf(s),
         };
       } catch (_) {
         return SendOutcome.retry;
@@ -440,6 +437,33 @@ class _Unauthorized extends http.BaseClient {
 /// 올리기의 결과. 보냈거나, 다음에 다시 보내거나, 서버가 이 기록을 거절했거나.
 enum SendOutcome { sent, retry, rejected }
 
+/// 401: the token died. 408·429: later. 426: this build is cut off — the record is fine and the
+/// updated app sends it. Only a 4xx about the record itself is final.
+SendOutcome outcomeOf(int status) => switch (status) {
+  200 => SendOutcome.sent,
+  401 || 408 || 426 || 429 => SendOutcome.retry,
+  >= 400 && < 500 => SendOutcome.rejected,
+  _ => SendOutcome.retry,
+};
+
+/// The server asked uploads to wait (429·5xx Retry-After). Everything here is retried on the
+/// next chance anyway, so until then we do not knock. Capped: a bad header must not stop
+/// uploads for a day.
+DateTime? _uploadsQuietUntil;
+bool get _uploadsQuiet => _uploadsQuietUntil?.isAfter(DateTime.now()) ?? false;
+
+void _heed(http.BaseResponse r) {
+  final wait = r.statusCode == 429 || r.statusCode >= 500
+      ? retryAfter(r)
+      : null;
+  if (wait == null) return;
+  const most = Duration(minutes: 10);
+  _uploadsQuietUntil = DateTime.now().add(wait > most ? most : wait);
+}
+
+@visibleForTesting
+void forgetUploadPause() => _uploadsQuietUntil = null;
+
 /// 트레이너가 적은 계획을 앱의 운동 칸으로 바꾼다.
 ///
 /// 웹의 모양은 `[{name, sets:[{kg, reps}]}]` 이고 앱의 모양과 거의 같다.
@@ -463,7 +487,8 @@ List<ExerciseBlock> plannedBlocks(Object? items) => [
 /// 틀린 kg(플랭크 60초가 60kg)보다 빈 칸이 낫다.
 double? kgOf(LoggedSet set) => switch (set.unit) {
   'kg' => set.value,
-  'lb' => set.value == null ? null : (set.value! * 0.45359237 * 100).round() / 100,
+  'lb' =>
+    set.value == null ? null : (set.value! * 0.45359237 * 100).round() / 100,
   _ => null,
 };
 
@@ -487,13 +512,10 @@ String? _noteOf(ExerciseBlock block) {
     for (final (i, set) in block.sets.take(_maxSets).indexed)
       if (set.notes.map((n) => n.trim()).where((n) => n.isNotEmpty).toList()
           case final notes when notes.isNotEmpty)
-        '${i + 1}세트: ${notes.join(' · ')}',
+        '#${i + 1}: ${notes.join(' · ')}',
   ];
   if (lines.isEmpty) return null;
-  final text = lines.join('\n');
-  return text.length > _maxNoteLength
-      ? text.substring(0, _maxNoteLength)
-      : text;
+  return cutUnits(lines.join('\n'), _maxNoteLength);
 }
 
 /// 서버가 받는 기록의 한도(isWorkoutResult). 하나라도 넘으면 서버는 기록 전체를
@@ -512,9 +534,7 @@ List<Map<String, Object?>> loggedItems(List<ExerciseBlock> blocks) => [
   for (final block
       in blocks.where((b) => b.exercise.trim().isNotEmpty).take(_maxExercises))
     {
-      'name': block.exercise.length > _maxNameLength
-          ? block.exercise.substring(0, _maxNameLength)
-          : block.exercise,
+      'name': cutUnits(block.exercise, _maxNameLength),
       'sets': [
         for (final set in block.sets.take(_maxSets))
           {
@@ -551,18 +571,25 @@ bool _lookedOnly(Note note) =>
 /// 때마다 밀린 것을 다시 시도한다. 같은 것을 두 번 보내도 서버가 한 줄로
 /// 합치므로(local_id) 겹쳐도 해가 없다. 그래서 고친 기록도 같은 줄을 덮는다 —
 /// 세트 사이에 폰이 잠겨 반만 올라간 기록이 그대로 굳지 않는다.
+///
+/// [later] 가 참인 기록은 이번에 건너뛴다(편집 중이고 방금 올린 것 — 홈 복귀마다 다시
+/// 올리지 않는다). 뒤의 기록은 계속 간다.
 Future<void> sendPending(
   GymLink link,
   List<Note> notes, {
   required void Function() onSent,
+  bool Function(Note note)? later,
 }) async {
-  if (!link.supported) return;
+  if (!link.supported || _uploadsQuiet) return;
   var changed = false;
   // 오래된 것부터. 트레이너가 보는 차례가 실제 순서와 같아야 한다.
   final waiting = [
     for (final note in notes)
       // 빈 것도 보낸다 — 루틴 없이 그냥 나온 날의 출석이 그렇게 생긴다.
-      if (needsSend(note) && note.ownedBy(link.userId)) note,
+      if (needsSend(note) &&
+          note.ownedBy(link.userId) &&
+          !(later?.call(note) ?? false))
+        note,
   ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
   for (final note in waiting) {
@@ -619,12 +646,8 @@ extension MealLink on GymLink {
             .send(request)
             .timeout(const Duration(seconds: 15));
         await response.stream.drain<void>();
-        return switch (response.statusCode) {
-          200 => SendOutcome.sent,
-          401 || 408 || 429 => SendOutcome.retry,
-          >= 400 && < 500 => SendOutcome.rejected,
-          _ => SendOutcome.retry,
-        };
+        _heed(response);
+        return outcomeOf(response.statusCode);
       } catch (_) {
         return SendOutcome.retry;
       }
@@ -676,7 +699,7 @@ Future<void> syncMeals(
   String? shareMealsGym,
   required void Function() onSynced,
 }) async {
-  if (!link.supported) return;
+  if (!link.supported || _uploadsQuiet) return;
   var changed = false;
   for (final note in notes) {
     // 다른 계정의 끼니는 그 사람이 다시 로그인할 때까지 밀어 둔다.
@@ -715,7 +738,7 @@ Future<void> sendDeletes(
   List<ServerDelete> queue, {
   required void Function() onSent,
 }) async {
-  if (!link.supported) return;
+  if (!link.supported || _uploadsQuiet) return;
   var changed = false;
   // 운동 줄은 맨 뒤에 — 그 길을 모르는 서버(405)가 끼니 지우기까지 막지 않게.
   for (final d in [
