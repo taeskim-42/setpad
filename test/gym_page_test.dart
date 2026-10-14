@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show SemanticsFlags, Tristate;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -100,6 +101,7 @@ void main() {
               'gymName': '짐박스',
               'invitedBy': '이관장',
               'createdAt': '2026-10-12T00:00:00.000Z',
+              'verified': false,
             },
           ],
         }),
@@ -123,6 +125,7 @@ void main() {
       gymId: 'g3',
       gymName: '짐박스',
       invitedBy: '이관장',
+      verified: false,
     ));
   });
 
@@ -277,8 +280,13 @@ void main() {
     }
 
     answer = json({'ok': true});
-    expect(await link.leaveGym('g1'), isTrue);
+    expect(await link.leaveGym('g1'), 200);
     expect(sent.last, 'DELETE /api/gyms/g1/membership');
+    answer = json({}, 500);
+    expect(await link.leaveGym('g1'), 500);
+    answer = json({'error': 'noAccess'}, 403);
+    expect(await link.classes('g1'), (classes: null, status: 403));
+    answer = json({'ok': true});
 
     expect(await link.changeNickname('새이름'), isNull);
     expect(sent.last, 'POST /api/me/nickname');
@@ -304,12 +312,19 @@ void main() {
       token: 'x',
       client: MockClient((_) async => throw const SocketException('꺼짐')),
     );
-    expect(await offline.leaveGym('g1'), isFalse);
+    expect(await offline.leaveGym('g1'), isNull);
+    expect(
+      await offline.answerInvite('g1', accept: true),
+      InviteAnswer.unreached,
+    );
     expect(await offline.bookClass('c1'), (
       code: '',
       message: '',
     ), reason: '못 닿았으면 까닭이 없다');
-    expect(await offline.classes('g1'), isNull, reason: '수업이 없는 것과 다르다');
+    expect(await offline.classes('g1'), (
+      classes: null,
+      status: null,
+    ), reason: '수업이 없는 것과 다르다');
     expect(await offline.changeNickname('누구'), '');
   });
 
@@ -732,7 +747,12 @@ void main() {
                     'gyms': [if (member) gymJson()],
                     'invites': [
                       if (!member)
-                        {'gymId': 'g1', 'gymName': 'BPM', 'invitedBy': '이관장'},
+                        {
+                          'gymId': 'g1',
+                          'gymName': 'BPM',
+                          'invitedBy': '이관장',
+                          'verified': false,
+                        },
                     ],
                   });
                 case '/api/gyms/g1/invite':
@@ -755,11 +775,16 @@ void main() {
       app(NotesListPage(store: NotesStore(), account: account, onOpen: (_) {})),
     );
     await tester.pumpAndSettle();
-    expect(find.text('이관장 님이 보냈어요'), findsOneWidget);
+    // 누구나 도장을 만들 수 있다 — 아직 확인하지 않은 도장은 받기 전에 그렇다고 보인다.
+    expect(find.text('이관장 님이 보냈어요 · 확인 전 도장'), findsOneWidget);
 
     await tester.tap(find.text('BPM에서 초대했어요'));
     await tester.pumpAndSettle();
     expect(find.textContaining('관장·트레이너가 닉네임'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('gym-consent-unverified')),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('gym-consent-privacy')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('gym-consent-agree')));
     await tester.pumpAndSettle();
@@ -864,8 +889,69 @@ void main() {
         reason: said,
       );
     }
+    // 공지 줄은 펼치는 단추다 — 접혔는지 펼쳤는지도 듣는다.
+    SemanticsFlags row() => tester
+        .getSemantics(find.bySemanticsLabel(RegExp('추석 연휴 휴관')))
+        .getSemanticsData()
+        .flagsCollection;
+    expect(row().isButton, isTrue);
+    expect(row().isExpanded, Tristate.isFalse);
+    await tester.tap(find.text('추석 연휴 휴관'));
+    await tester.pumpAndSettle();
+    expect(row().isExpanded, Tristate.isTrue);
     semantics.dispose();
     await tester.pump(const Duration(seconds: 1)); // 저장 디바운스
+  });
+
+  testWidgets('수업을 못 받으면 까닭대로 말한다 — 회원이 아님·서버 문제·연결 안 됨은 다르다', (tester) async {
+    final l = await L.delegate.load(const Locale('ko'));
+    for (final (reply, said) in [
+      (() => json({'error': 'noAccess'}, 403), l.classesNotMember),
+      (() => json({}, 500), l.partnerErrServer),
+      (() => json({}, 401), l.refusedSignIn),
+      (() => throw const SocketException('꺼짐'), l.partnerErrNetwork),
+    ]) {
+      final account = Account(client: MockClient((_) async => reply()))
+        ..token = 'x';
+      await tester.pumpWidget(
+        app(ClassesPage(key: UniqueKey(), account: account, gymId: 'g1')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(said), findsOneWidget, reason: said);
+    }
+  });
+
+  testWidgets('도장 나가기가 서버에서 실패하면 연결 탓으로 말하지 않는다', (tester) async {
+    final l = await L.delegate.load(const Locale('ko'));
+    final account =
+        Account(
+            client: MockClient(
+              (request) async => request.method == 'DELETE'
+                  ? json({}, 500)
+                  : json({
+                      'gyms': [gymJson()],
+                      'invites': [],
+                    }),
+            ),
+          )
+          ..token = 'x'
+          ..gyms = [Gym.fromJson(gymJson())];
+    await tester.pumpWidget(
+      app(GymPage(account: account, store: NotesStore(), gymId: 'g1')),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('gym-leave')),
+      100,
+    );
+    await tester.tap(find.byKey(const ValueKey('gym-leave')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('gym-leave-confirm')));
+    await tester.pumpAndSettle();
+    expect(find.text(l.partnerErrServer), findsOneWidget);
+    expect(find.text(l.partnerErrNetwork), findsNothing);
+    expect(account.gyms, hasLength(1));
+    await tester.pump(const Duration(seconds: 1));
   });
 
   testWidgets('수업은 날짜로 묶어 보이고, 못 잡으면 서버가 적은 까닭을, 내 수업은 한 번 묻고 취소한다', (

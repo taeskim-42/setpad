@@ -712,7 +712,7 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
             ),
             CupertinoButton(
               padding: const EdgeInsets.only(left: 4),
-              minimumSize: const Size(38, 44),
+              minimumSize: const Size(44, 44),
               onPressed: () => setState(() {
                 workout.exercises.remove(exercise);
                 exercise.dispose();
@@ -733,7 +733,7 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
               children: [
                 CupertinoButton(
                   padding: EdgeInsets.zero,
-                  minimumSize: const Size(34, 40),
+                  minimumSize: const Size(44, 44),
                   onPressed: () => setState(() => set.done = !set.done),
                   child: Icon(
                     set.done
@@ -785,7 +785,7 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
                 ),
                 CupertinoButton(
                   padding: const EdgeInsets.only(left: 4),
-                  minimumSize: const Size(38, 40),
+                  minimumSize: const Size(44, 44),
                   onPressed: () => setState(() {
                     exercise.sets.remove(set);
                     set.dispose();

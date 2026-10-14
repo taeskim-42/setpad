@@ -1442,7 +1442,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                                 'partner-routine-confirm-editor',
                               ),
                               padding: const EdgeInsets.only(left: 4),
-                              minimumSize: const Size(44, 28),
+                              minimumSize: const Size(44, 44),
                               onPressed:
                                   widget.note.partner!.myRoutineAccepted ||
                                       !_partner.canConfirmRoutine ||
@@ -1463,7 +1463,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                             CupertinoButton(
                               key: const ValueKey('write-for'),
                               padding: EdgeInsets.zero,
-                              minimumSize: const Size(44, 28),
+                              minimumSize: const Size(44, 44),
                               onPressed: _writeFor,
                               child: Text(
                                 l.proxyWrite,
@@ -2076,7 +2076,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
               child: CupertinoButton(
                 key: const ValueKey('share-send'),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                minimumSize: const Size(44, 30),
+                minimumSize: const Size(44, 44),
                 onPressed: _sendToGym,
                 child: Text(l.shareSend, style: const TextStyle(fontSize: 13)),
               ),
@@ -2086,7 +2086,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
               child: CupertinoButton(
                 key: const ValueKey('pt-news'),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                minimumSize: const Size(44, 30),
+                minimumSize: const Size(44, 44),
                 onPressed: () =>
                     openGym(context, widget.account!, widget.store, gym.id),
                 child: Text(
@@ -2126,7 +2126,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                             CupertinoButton(
                               key: const ValueKey('day-summary-fold'),
                               padding: const EdgeInsets.only(top: 2),
-                              minimumSize: const Size(44, 30),
+                              minimumSize: const Size(44, 44),
                               onPressed: () =>
                                   setState(() => _energyOpen = false),
                               child: Row(
@@ -2437,13 +2437,13 @@ class _Strip extends StatelessWidget {
         if (second != null)
           CupertinoButton(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            minimumSize: const Size(44, 36),
+            minimumSize: const Size(44, 44),
             onPressed: onSecond,
             child: Text(second!, style: const TextStyle(fontSize: 13)),
           ),
         CupertinoButton(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          minimumSize: const Size(44, 36),
+          minimumSize: const Size(44, 44),
           onPressed: onAction,
           child: Text(
             action,

@@ -1764,7 +1764,7 @@ class _RoutineEditorState extends State<RoutineEditor>
         CupertinoButton(
           key: const ValueKey('meal-undo'),
           padding: EdgeInsets.zero,
-          minimumSize: const Size(44, 32),
+          minimumSize: const Size(44, 44),
           onPressed: _undoMeal,
           child: Text(
             l.mealAutoUndo,
@@ -1791,7 +1791,7 @@ class _RoutineEditorState extends State<RoutineEditor>
         CupertinoButton(
           key: const ValueKey('exercise-to-meal'),
           padding: EdgeInsets.zero,
-          minimumSize: const Size(44, 32),
+          minimumSize: const Size(44, 44),
           onPressed: _exerciseToMeal,
           child: Text(
             l.exerciseAutoUndo,
@@ -1851,7 +1851,7 @@ class _RoutineEditorState extends State<RoutineEditor>
         CupertinoButton(
           key: const ValueKey('setup-merge'),
           padding: EdgeInsets.zero,
-          minimumSize: const Size(44, 32),
+          minimumSize: const Size(44, 44),
           onPressed: _mergeSplit,
           child: Text(
             l.setupMergeAll,

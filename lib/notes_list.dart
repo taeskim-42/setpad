@@ -1403,10 +1403,13 @@ class _NotesListPageState extends State<NotesListPage>
                             child: GymRow(
                               icon: CupertinoIcons.envelope_badge,
                               title: l.inviteFrom(invite.gymName),
-                              detail: switch (invite.invitedBy) {
-                                final name? => l.inviteBy(name),
-                                null => invite.gymName,
-                              },
+                              detail: [
+                                switch (invite.invitedBy) {
+                                  final name? => l.inviteBy(name),
+                                  null => invite.gymName,
+                                },
+                                if (!invite.verified) l.gymUnverified,
+                              ].join(' · '),
                               accent: true,
                               onTap: () => answerGymInvite(
                                 context,

@@ -284,7 +284,7 @@ class _AnatomyPageState extends State<AnatomyPage> {
                                 child: CupertinoButton(
                                   key: const ValueKey('anatomy-zoom-reset'),
                                   padding: EdgeInsets.zero,
-                                  minimumSize: const Size(44, 32),
+                                  minimumSize: const Size(44, 44),
                                   onPressed: () => setState(
                                     () => _zoom.value = Matrix4.identity(),
                                   ),

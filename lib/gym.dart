@@ -122,8 +122,14 @@ typedef GymBooking = ({
 });
 
 /// 도장이 보낸 초대. **회원이 받아야 회원이 된다** — 닉네임만 알면 아무나 회원으로
-/// 넣고 루틴을 밀어 넣을 수 있던 길을 서버가 초대로 바꿨다.
-typedef GymInvite = ({String gymId, String gymName, String? invitedBy});
+/// 넣고 루틴을 밀어 넣을 수 있던 길을 서버가 초대로 바꿨다. [verified] 가 false 면 아직
+/// 확인하지 않은 도장이다 — 누구나 도장을 만들 수 있으니 받기 전에 그렇다고 보인다.
+typedef GymInvite = ({
+  String gymId,
+  String gymName,
+  String? invitedBy,
+  bool verified,
+});
 
 /// 도장에 등록하기 전에 보여 주는 안내의 판(번역 키 gymConsentNotice). 서버의
 /// GYM_CONSENT_VERSION 과 같아야 하고, 문구나 처리방침이 바뀌면 함께 올린다 — 신청과
@@ -286,6 +292,8 @@ class GymLink {
               gymId: i['gymId'] as String,
               gymName: i['gymName'] as String,
               invitedBy: i['invitedBy'] as String?,
+              // A server without the key predates the check — say nothing rather than alarm.
+              verified: i['verified'] != false,
             ),
           ),
         );
@@ -860,8 +868,17 @@ Refusal? _done(({int status, Map<String, Object?>? body})? answer) =>
 /// 이상' 확인이 없는 계정이다(그 칸이 생기기 전에 만든 계정) — 한 번 묻고 다시 신청한다.
 enum JoinState { requested, waiting, member, ageRequired, failed }
 
-/// 도장 초대에 답한 결과. [gone] 은 도장이 초대를 거둔 것이다.
-enum InviteAnswer { done, gone, ageRequired, failed }
+/// 도장 초대에 답한 결과. [gone] 은 도장이 초대를 거둔 것이다. [unreached] 는 서버에
+/// 닿지 못한 것, [failed] 는 서버가 다른 까닭으로 받지 않은 것이다.
+enum InviteAnswer { done, gone, ageRequired, unreached, failed }
+
+/// What to say when a call did not get what it asked for: no answer → the connection; 401 → sign
+/// in again; any other answer → the server's trouble. An answer is never "no connection".
+String failedCall(L l, int? status) => switch (status) {
+  null => l.partnerErrNetwork,
+  401 => l.refusedSignIn,
+  _ => l.partnerErrServer,
+};
 
 extension MemberLink on GymLink {
   /// 계정을 지운다. 서버가 지웠으면 null, 아니면 거절한 까닭(못 닿았으면 [_unreached]).
@@ -926,7 +943,7 @@ extension MemberLink on GymLink {
     String gymId, {
     required bool accept,
   }) async {
-    if (!supported) return InviteAnswer.failed;
+    if (!supported) return InviteAnswer.unreached;
     final answer = await _post('/api/gyms/$gymId/invite', {
       'accept': accept,
       if (accept) 'consentVersion': gymConsentVersion,
@@ -935,16 +952,16 @@ extension MemberLink on GymLink {
       (200, _) => InviteAnswer.done,
       (404, _) => InviteAnswer.gone,
       (403, 'ageConfirmationRequired') => InviteAnswer.ageRequired,
+      (null, _) => InviteAnswer.unreached,
       _ => InviteAnswer.failed,
     };
   }
 
   /// 이 도장에서 나간다. 끊기는 것은 연결뿐이고 지난 기록과 결제 장부는 도장에 남는다
-  /// (앞으로의 PT·수업 예약은 서버가 취소한다). 나갔으면 true.
-  Future<bool> leaveGym(String gymId) async {
-    if (!supported) return false;
-    return (await _call('DELETE', '/api/gyms/$gymId/membership'))?.status ==
-        200;
+  /// (앞으로의 PT·수업 예약은 서버가 취소한다). 서버의 답(200 = 나갔다), 못 닿았으면 null.
+  Future<int?> leaveGym(String gymId) async {
+    if (!supported) return null;
+    return (await _call('DELETE', '/api/gyms/$gymId/membership'))?.status;
   }
 
   /// 닉네임을 바꾼다. 로그인하면 제공자의 이름(대개 실명)이 그대로 닉네임이 된다.
@@ -975,15 +992,15 @@ typedef GymClass = ({
 /// 그룹 수업 예약. **웹 회원 화면에만 있던 길이다** — 스티커 주소를 앱이 가로채서 앱만
 /// 쓰는 회원은 GX 를 잡을 곳이 없었다.
 extension ClassLink on GymLink {
-  /// 앞으로 2주의 수업. 못 물어봤으면 null.
-  Future<List<GymClass>?> classes(String gymId) async {
-    if (!supported) return null;
+  /// 앞으로 2주의 수업. 못 받았으면 classes 가 null 이고, status 는 서버의 답(못 닿았으면 null)이다.
+  Future<({List<GymClass>? classes, int? status})> classes(String gymId) async {
+    if (!supported) return (classes: null, status: null);
     final answer = await _call(
       'GET',
       '/api/classes?gym=${Uri.encodeQueryComponent(gymId)}',
     );
-    if (answer?.status != 200) return null;
-    return eachRow(
+    if (answer?.status != 200) return (classes: null, status: answer?.status);
+    final found = eachRow(
       answer!.body?['classes'],
       (c) => (
         id: c['id'] as String,
@@ -997,6 +1014,7 @@ extension ClassLink on GymLink {
         status: c['status'] as String,
       ),
     );
+    return (classes: found, status: 200);
   }
 
   /// 수업을 잡는다. 잡았으면 null, 못 잡았으면 서버가 거절한 까닭(자리가 찼다, 이용권이

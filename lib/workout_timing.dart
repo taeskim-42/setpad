@@ -990,7 +990,7 @@ class _WorkoutTimingControlsState extends State<WorkoutTimingControls> {
                     ),
                     CupertinoButton(
                       padding: EdgeInsets.zero,
-                      minimumSize: const Size(0, 32),
+                      minimumSize: const Size(44, 44),
                       onPressed: duo.onCancel,
                       child: Text(
                         l.cancel,
@@ -1205,7 +1205,7 @@ class _RepeatingKeyState extends State<_RepeatingKey> {
     onLongPressCancel: _stop,
     child: CupertinoButton(
       padding: EdgeInsets.zero,
-      minimumSize: const Size(40, 32),
+      minimumSize: const Size(44, 44),
       onPressed: widget.onTap,
       child: widget.child,
     ),

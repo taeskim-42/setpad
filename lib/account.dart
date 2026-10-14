@@ -443,16 +443,17 @@ class Account extends ChangeNotifier {
   }
 
   /// 이 도장에서 나간다. 나갔으면 목록에서 바로 뺀다 — 다시 읽기를 못 해도 나간 도장이
-  /// 남아 있지 않게.
-  Future<bool> leaveGym(String gymId) async {
-    if (!await link.leaveGym(gymId)) return false;
+  /// 남아 있지 않게. 서버의 답(200 = 나갔다)을 돌려준다. 못 닿았으면 null.
+  Future<int?> leaveGym(String gymId) async {
+    final status = await link.leaveGym(gymId);
+    if (status != 200) return status;
     gyms = [
       for (final g in gyms)
         if (g.id != gymId) g,
     ];
     notifyListeners();
     unawaited(refreshGyms());
-    return true;
+    return status;
   }
 
   /// 닉네임을 바꾼다. 바꿨으면 null, 아니면 [MemberLink.changeNickname] 의 까닭.

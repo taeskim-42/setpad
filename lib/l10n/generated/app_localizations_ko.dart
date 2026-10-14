@@ -3459,7 +3459,8 @@ class LKo extends L {
   String get aiBusy => '지금 AI 가 붐벼요. 잠시 뒤 다시 해 주세요.';
 
   @override
-  String get aiBudgetExhausted => '오늘 쓸 수 있는 AI 몫이 다 찼어요. 내일 다시 쓸 수 있어요.';
+  String get aiBudgetExhausted =>
+      '오늘 쓸 수 있는 AI 몫이 다 찼어요. 와이파이에 있다면 셀룰러로 바꿔 다시 해 보세요. 아니면 내일 다시 쓸 수 있어요.';
 
   @override
   String get accountSignOutEverywhere => '모든 기기에서 로그아웃';
@@ -3613,6 +3614,12 @@ class LKo extends L {
 
   @override
   String get classesNone => '앞으로 2주 동안 열린 수업이 없어요.';
+
+  @override
+  String get classesNotMember => '이 도장의 회원만 수업을 볼 수 있어요. 회원 등록은 도장에 확인해 주세요.';
+
+  @override
+  String get gymUnverified => '확인 전 도장';
 
   @override
   String classBook(int booked, int capacity) {

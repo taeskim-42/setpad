@@ -224,7 +224,7 @@ class _MealReviewSheetState extends State<_MealReviewSheet> {
                       child: CupertinoButton(
                         key: ValueKey('meal-review-choose-$i'),
                         padding: EdgeInsets.zero,
-                        minimumSize: const Size(44, 32),
+                        minimumSize: const Size(44, 44),
                         onPressed: () => _choose(i),
                         child: Text(
                           l.mealChooseProduct,

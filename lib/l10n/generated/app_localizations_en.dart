@@ -3581,7 +3581,7 @@ class LEn extends L {
 
   @override
   String get aiBudgetExhausted =>
-      'Today\'s AI capacity is used up. You can use it again tomorrow.';
+      'Today\'s AI capacity is used up. If you\'re on Wi-Fi, switch to cellular and try again. Otherwise you can use it again tomorrow.';
 
   @override
   String get accountSignOutEverywhere => 'Sign out on all devices';
@@ -3743,6 +3743,13 @@ class LEn extends L {
 
   @override
   String get classesNone => 'No classes in the next two weeks.';
+
+  @override
+  String get classesNotMember =>
+      'Only members of this gym can see its classes. Please check your membership with the gym.';
+
+  @override
+  String get gymUnverified => 'Unverified gym';
 
   @override
   String classBook(int booked, int capacity) {

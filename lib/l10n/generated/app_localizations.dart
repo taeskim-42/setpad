@@ -5158,7 +5158,7 @@ abstract class L {
   /// 오늘 쓸 수 있는 AI 몫이 다 찼다(서비스 전체·이 주소의 하루 한도, 429). 한국 자정에 풀린다.
   ///
   /// In ko, this message translates to:
-  /// **'오늘 쓸 수 있는 AI 몫이 다 찼어요. 내일 다시 쓸 수 있어요.'**
+  /// **'오늘 쓸 수 있는 AI 몫이 다 찼어요. 와이파이에 있다면 셀룰러로 바꿔 다시 해 보세요. 아니면 내일 다시 쓸 수 있어요.'**
   String get aiBudgetExhausted;
 
   /// 설정의 계정 칸. 잃어버린 폰·웹에 남은 로그인을 서버에서 끊는다(POST /api/me/sessions/revoke).
@@ -5400,6 +5400,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'앞으로 2주 동안 열린 수업이 없어요.'**
   String get classesNone;
+
+  /// 수업 화면: 서버가 403 — 이 도장의 회원이 아니라 수업을 볼 수 없다.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 도장의 회원만 수업을 볼 수 있어요. 회원 등록은 도장에 확인해 주세요.'**
+  String get classesNotMember;
+
+  /// 도장 초대 카드와 동의 시트: 아직 확인(검증)되지 않은 도장이라는 표시.
+  ///
+  /// In ko, this message translates to:
+  /// **'확인 전 도장'**
+  String get gymUnverified;
 
   /// 수업 예약 단추와 지금 인원. booked 는 잡힌 자리, capacity 는 정원.
   ///

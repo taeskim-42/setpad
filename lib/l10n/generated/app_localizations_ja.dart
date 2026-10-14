@@ -3453,7 +3453,8 @@ class LJa extends L {
   String get aiBusy => 'いまAIが混み合っています。少し待ってからもう一度お試しください。';
 
   @override
-  String get aiBudgetExhausted => '本日利用できるAIの上限に達しました。明日また使えます。';
+  String get aiBudgetExhausted =>
+      '本日利用できるAIの上限に達しました。Wi-Fiに接続中ならモバイル通信に切り替えてもう一度お試しください。それ以外は明日また使えます。';
 
   @override
   String get accountSignOutEverywhere => 'すべてのデバイスからログアウト';
@@ -3607,6 +3608,12 @@ class LJa extends L {
 
   @override
   String get classesNone => 'これから2週間のクラスはありません。';
+
+  @override
+  String get classesNotMember => 'このジムの会員だけがクラスを見られます。会員登録についてはジムに確認してください。';
+
+  @override
+  String get gymUnverified => '未確認のジム';
 
   @override
   String classBook(int booked, int capacity) {

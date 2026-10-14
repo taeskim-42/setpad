@@ -3536,7 +3536,7 @@ class LTh extends L {
 
   @override
   String get aiBudgetExhausted =>
-      'วันนี้ใช้ AI ครบโควตาแล้ว พรุ่งนี้ใช้ได้อีกครั้ง';
+      'วันนี้ใช้ AI ครบโควตาแล้ว หากใช้ Wi-Fi อยู่ ลองเปลี่ยนเป็นเครือข่ายมือถือแล้วลองอีกครั้ง หรือใช้ได้อีกครั้งพรุ่งนี้';
 
   @override
   String get accountSignOutEverywhere => 'ออกจากระบบในทุกอุปกรณ์';
@@ -3692,6 +3692,13 @@ class LTh extends L {
 
   @override
   String get classesNone => 'ไม่มีคลาสในสองสัปดาห์ข้างหน้า';
+
+  @override
+  String get classesNotMember =>
+      'เฉพาะสมาชิกของยิมนี้เท่านั้นที่ดูคลาสได้ โปรดตรวจสอบการเป็นสมาชิกกับยิม';
+
+  @override
+  String get gymUnverified => 'ยิมที่ยังไม่ได้ยืนยัน';
 
   @override
   String classBook(int booked, int capacity) {

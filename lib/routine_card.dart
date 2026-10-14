@@ -267,7 +267,7 @@ class RoutineCard extends StatelessWidget {
               if (onRestore != null)
                 CupertinoButton(
                   padding: EdgeInsets.zero,
-                  minimumSize: const Size(44, 36),
+                  minimumSize: const Size(44, 44),
                   onPressed: () => onRestore!(r.key),
                   child: Text(
                     l.routineRestore,
@@ -477,7 +477,7 @@ class _DetailsState extends State<_Details> {
         CupertinoButton(
           key: const ValueKey('routine-details'),
           padding: EdgeInsets.zero,
-          minimumSize: const Size(44, 36),
+          minimumSize: const Size(44, 44),
           onPressed: () => setState(() => _open = !_open),
           child: Row(
             mainAxisSize: MainAxisSize.min,

@@ -612,6 +612,11 @@ void main() {
     note.owner = null;
     store.touch();
     await tester.pump(const Duration(milliseconds: 500));
+    expect(
+      tester.getSize(find.byKey(const ValueKey('share-send'))).height,
+      greaterThanOrEqualTo(44),
+      reason: '손가락으로 누르는 단추는 44pt 이상이다',
+    );
     await tester.tap(find.byKey(const ValueKey('share-send')));
     await tester.pumpAndSettle();
     expect(

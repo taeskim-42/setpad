@@ -3423,7 +3423,8 @@ class LZh extends L {
   String get aiBusy => 'AI 现在很忙，请稍后再试。';
 
   @override
-  String get aiBudgetExhausted => '今天的 AI 额度已用完，明天可以再用。';
+  String get aiBudgetExhausted =>
+      '今天的 AI 额度已用完。如果正在使用 Wi-Fi，请切换到移动网络后再试，否则明天可以再用。';
 
   @override
   String get accountSignOutEverywhere => '在所有设备上退出登录';
@@ -3575,6 +3576,12 @@ class LZh extends L {
 
   @override
   String get classesNone => '未来两周没有团课。';
+
+  @override
+  String get classesNotMember => '只有这家健身房的会员才能查看团课。请向健身房确认会员登记。';
+
+  @override
+  String get gymUnverified => '未验证的健身房';
 
   @override
   String classBook(int booked, int capacity) {
@@ -7100,7 +7107,8 @@ class LZhHans extends LZh {
   String get aiBusy => 'AI 现在很忙，请稍后再试。';
 
   @override
-  String get aiBudgetExhausted => '今天的 AI 额度已用完，明天可以再用。';
+  String get aiBudgetExhausted =>
+      '今天的 AI 额度已用完。如果正在使用 Wi-Fi，请切换到移动网络后再试，否则明天可以再用。';
 
   @override
   String get accountSignOutEverywhere => '在所有设备上退出登录';
@@ -7252,6 +7260,12 @@ class LZhHans extends LZh {
 
   @override
   String get classesNone => '未来两周没有团课。';
+
+  @override
+  String get classesNotMember => '只有这家健身房的会员才能查看团课。请向健身房确认会员登记。';
+
+  @override
+  String get gymUnverified => '未验证的健身房';
 
   @override
   String classBook(int booked, int capacity) {
@@ -10777,7 +10791,8 @@ class LZhHant extends LZh {
   String get aiBusy => 'AI 現在很忙，請稍後再試。';
 
   @override
-  String get aiBudgetExhausted => '今天的 AI 額度已用完，明天可以再用。';
+  String get aiBudgetExhausted =>
+      '今天的 AI 額度已用完。如果正在使用 Wi-Fi，請切換到行動網路後再試，否則明天可以再用。';
 
   @override
   String get accountSignOutEverywhere => '在所有裝置上登出';
@@ -10929,6 +10944,12 @@ class LZhHant extends LZh {
 
   @override
   String get classesNone => '未來兩週沒有團課。';
+
+  @override
+  String get classesNotMember => '只有這家健身房的會員才能查看團課。請向健身房確認會員登記。';
+
+  @override
+  String get gymUnverified => '未驗證的健身房';
 
   @override
   String classBook(int booked, int capacity) {

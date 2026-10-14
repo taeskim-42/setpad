@@ -3605,7 +3605,7 @@ class LEs extends L {
 
   @override
   String get aiBudgetExhausted =>
-      'Se agotó la capacidad de IA de hoy. Podrás volver a usarla mañana.';
+      'Se agotó la capacidad de IA de hoy. Si estás en Wi-Fi, cambia a datos móviles e inténtalo de nuevo. Si no, podrás volver a usarla mañana.';
 
   @override
   String get accountSignOutEverywhere =>
@@ -3770,6 +3770,13 @@ class LEs extends L {
 
   @override
   String get classesNone => 'No hay clases en las próximas dos semanas.';
+
+  @override
+  String get classesNotMember =>
+      'Solo los miembros de este gimnasio pueden ver sus clases. Consulta tu membresía con el gimnasio.';
+
+  @override
+  String get gymUnverified => 'Gimnasio sin verificar';
 
   @override
   String classBook(int booked, int capacity) {

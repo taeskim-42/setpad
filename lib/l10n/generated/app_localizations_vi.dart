@@ -3561,7 +3561,7 @@ class LVi extends L {
 
   @override
   String get aiBudgetExhausted =>
-      'Đã hết lượt AI hôm nay. Bạn có thể dùng lại vào ngày mai.';
+      'Đã hết lượt AI hôm nay. Nếu đang dùng Wi-Fi, hãy chuyển sang dữ liệu di động rồi thử lại. Nếu không, bạn có thể dùng lại vào ngày mai.';
 
   @override
   String get accountSignOutEverywhere => 'Đăng xuất trên mọi thiết bị';
@@ -3718,6 +3718,13 @@ class LVi extends L {
 
   @override
   String get classesNone => 'Không có lớp nào trong hai tuần tới.';
+
+  @override
+  String get classesNotMember =>
+      'Chỉ hội viên của phòng tập này mới xem được lớp. Vui lòng hỏi phòng tập về việc đăng ký hội viên.';
+
+  @override
+  String get gymUnverified => 'Phòng tập chưa xác minh';
 
   @override
   String classBook(int booked, int capacity) {

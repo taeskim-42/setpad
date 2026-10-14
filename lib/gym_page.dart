@@ -100,6 +100,7 @@ Future<bool?> askGymConsent(
   required String title,
   required String agree,
   String? decline,
+  bool unverified = false,
 }) {
   final l = L.of(context);
   return showCupertinoModalPopup<bool>(
@@ -109,6 +110,18 @@ Future<bool?> askGymConsent(
       message: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (unverified)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                l.gymUnverified,
+                key: const ValueKey('gym-consent-unverified'),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: CupertinoColors.systemOrange.resolveFrom(context),
+                ),
+              ),
+            ),
           Text(l.gymConsentNotice, style: const TextStyle(height: 1.45)),
           CupertinoButton(
             key: const ValueKey('gym-consent-privacy'),
@@ -158,6 +171,7 @@ Future<void> answerGymInvite(
     title: l.inviteFrom(invite.gymName),
     agree: l.inviteAccept,
     decline: l.decline,
+    unverified: !invite.verified,
   );
   if (accept == null || !context.mounted) return;
   var answer = await account.link.answerInvite(invite.gymId, accept: accept);
@@ -171,10 +185,11 @@ Future<void> answerGymInvite(
   }
   await account.refreshGyms();
   if (!context.mounted || answer == InviteAnswer.done) return;
-  await tellAgent(
-    context,
-    answer == InviteAnswer.gone ? l.inviteGone : l.partnerErrNetwork,
-  );
+  await tellAgent(context, switch (answer) {
+    InviteAnswer.gone => l.inviteGone,
+    InviteAnswer.unreached => l.partnerErrNetwork,
+    _ => l.partnerErrServer,
+  });
 }
 
 /// 첫 화면의 한 줄(초대·도장). 받은 루틴·PT 예약 줄과 같은 꼴이다.
@@ -320,13 +335,13 @@ class _GymPageState extends State<GymPage> {
     );
     if (go != true || !mounted) return;
     setState(() => _busy = true);
-    final left = await widget.account.leaveGym(gym.id);
+    final status = await widget.account.leaveGym(gym.id);
     if (!mounted) return;
     setState(() => _busy = false);
-    if (left) {
+    if (status == 200) {
       Navigator.of(context).pop();
     } else {
-      await tellAgent(context, l.partnerErrNetwork);
+      await tellAgent(context, failedCall(l, status));
     }
   }
 
@@ -407,8 +422,7 @@ class _GymPageState extends State<GymPage> {
         l.gymClasses,
         () => Navigator.of(context).push(
           CupertinoPageRoute<void>(
-            builder: (_) =>
-                ClassesPage(account: widget.account, gymId: gym.id),
+            builder: (_) => ClassesPage(account: widget.account, gymId: gym.id),
           ),
         ),
       ),
@@ -430,74 +444,81 @@ class _GymPageState extends State<GymPage> {
   /// 공지 하나. 고정한 것은 압정, 새것은 점. 본문은 두 줄만 — 누르면 펼친다.
   Widget _notice(L l, GymNotice n) {
     final open = _expanded.contains(n.id);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => setState(() {
-        if (!_expanded.remove(n.id)) _expanded.add(n.id);
-      }),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-        decoration: _divider(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                // 점과 압정은 눈으로만 보인다 — 화면 읽기에도 새것·고정을 이름으로 준다.
-                if (_fresh.containsKey('n:${n.id}'))
-                  Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: Semantics(
-                      label: l.noticeNew,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: seal.resolveFrom(context),
-                          shape: BoxShape.circle,
+    // A screen reader hears a button that is folded or unfolded, not just a tap target.
+    return Semantics(
+      button: true,
+      expanded: open,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => setState(() {
+          if (!_expanded.remove(n.id)) _expanded.add(n.id);
+        }),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+          decoration: _divider(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // 점과 압정은 눈으로만 보인다 — 화면 읽기에도 새것·고정을 이름으로 준다.
+                  if (_fresh.containsKey('n:${n.id}'))
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Semantics(
+                        label: l.noticeNew,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: seal.resolveFrom(context),
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                if (n.pinned)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: Icon(
-                      CupertinoIcons.pin_fill,
-                      size: 13,
-                      color: seal.resolveFrom(context),
-                      semanticLabel: l.noticePinned,
+                  if (n.pinned)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Icon(
+                        CupertinoIcons.pin_fill,
+                        size: 13,
+                        color: seal.resolveFrom(context),
+                        semanticLabel: l.noticePinned,
+                      ),
+                    ),
+                  Expanded(
+                    child: Text(
+                      n.title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                Expanded(
-                  child: Text(
-                    n.title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                  Text(
+                    shortDate(l, n.createdAt),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
                     ),
                   ),
-                ),
-                Text(
-                  shortDate(l, n.createdAt),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                  ),
-                ),
-              ],
-            ),
-            if (n.body.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  n.body,
-                  maxLines: open ? null : 2,
-                  overflow: open ? null : TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 14, height: 1.4),
-                ),
+                ],
               ),
-          ],
+              if (n.body.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    n.body,
+                    maxLines: open ? null : 2,
+                    overflow: open ? null : TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 14, height: 1.4),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -586,6 +607,9 @@ class ClassesPage extends StatefulWidget {
 class _ClassesPageState extends State<ClassesPage> {
   /// 못 받았으면 null — 빈 목록('수업이 없다')과 다르다.
   List<GymClass>? _classes;
+
+  /// 마지막으로 물었을 때 서버의 답(못 닿았으면 null) — 못 받은 까닭을 말한다.
+  int? _status;
   bool _loaded = false, _busy = false;
   String? _notice;
 
@@ -600,7 +624,8 @@ class _ClassesPageState extends State<ClassesPage> {
     if (!mounted) return;
     setState(() {
       _loaded = true;
-      _classes = found ?? _classes;
+      _status = found.status;
+      _classes = found.classes ?? _classes;
     });
   }
 
@@ -684,7 +709,11 @@ class _ClassesPageState extends State<ClassesPage> {
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: Text(
-                      classes == null ? l.partnerErrNetwork : l.classesNone,
+                      classes != null
+                          ? l.classesNone
+                          : _status == 403
+                          ? l.classesNotMember
+                          : failedCall(l, _status),
                       style: TextStyle(
                         fontSize: 14,
                         color: CupertinoColors.secondaryLabel.resolveFrom(

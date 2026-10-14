@@ -369,7 +369,7 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage>
                 trailing: s.runMinutes.length > 1
                     ? CupertinoButton(
                         padding: EdgeInsets.zero,
-                        minimumSize: const Size(44, 32),
+                        minimumSize: const Size(44, 44),
                         onPressed: _busy
                             ? null
                             : () => _save({

@@ -312,7 +312,7 @@ class _MealAmountSheetState extends State<_MealAmountSheet> {
                         padding: const EdgeInsets.only(right: 8),
                         child: CupertinoButton(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          minimumSize: const Size(44, 32),
+                          minimumSize: const Size(44, 44),
                           color: CupertinoColors.tertiarySystemFill.resolveFrom(
                             context,
                           ),
