@@ -99,13 +99,57 @@ Duration? retryAfter(http.BaseResponse response) {
   return seconds == null || seconds < 0 ? null : Duration(seconds: seconds);
 }
 
+/// Callers give up after 10–20 s ([Future.timeout]). Giving up alone leaves the socket open until
+/// the server answers; this cut closes it, so a stalled server does not pile up connections per
+/// phone. Longer calls bring their own trigger (RecordAi._ask, TrainerLink._agent).
+const requestDeadline = Duration(seconds: 25);
+
+HttpClient _newHttp() => HttpClient()
+  ..connectionTimeout = connectTimeout
+  // A phone normally uses one; four bounds what a stalled server can pile up. SSE has its own client.
+  ..maxConnectionsPerHost = 4;
+
+/// The io client under [apiClient]; [releaseIdleConnections] swaps it.
+class _SwappableIO extends http.BaseClient {
+  HttpClient _http = _newHttp();
+  late IOClient _io = IOClient(_http);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) =>
+      _io.send(request);
+
+  void renew() {
+    final old = _http;
+    _http = _newHttp();
+    _io = IOClient(_http);
+    // force: false — idle sockets close now, requests still running finish.
+    old.close();
+  }
+
+  @override
+  void close() => _io.close();
+}
+
+// Top-level finals are built on first use — never on the web.
+final _sharedIO = _SwappableIO();
+
 /// 앱 전체가 함께 쓰는 클라이언트. **닫지 않는다** — 연결을 다시 써서 요청마다
 /// TCP·TLS 를 새로 맺지 않는다(서버는 싱가포르다. 새로 맺는 데 왕복이 두세 번 든다).
 ///
-/// 부르는 쪽이 시간 초과로 그만둬도 그 연결은 서버가 답할 때까지 남는다. 서버가 그
-/// 일로 값을 매기는 요청(기록 질문)은 그만둘 때 끊는다(RecordAi._ask). 오래 열어 두는
-/// 같이 하기 스트림은 저마다의 클라이언트를 열고 닫는다(partnerEvents).
-final http.Client apiClient = newApiClient();
+/// 부르는 쪽이 시간 초과로 그만두면 [requestDeadline] 에 연결도 끊는다 — 서버가 멈춰도
+/// 폰마다 연결이 쌓이지 않는다. 앱이 내려가면 쉬는 연결을 놓아준다
+/// ([releaseIdleConnections]). 오래 열어 두는 같이 하기 스트림은 저마다의 클라이언트를
+/// 열고 닫는다(partnerEvents).
+final http.Client apiClient = kIsWeb
+    ? newApiClient()
+    : newApiClient(inner: _sharedIO);
+
+/// iOS suspends a backgrounded app without closing its sockets, and the edge then holds each one
+/// until its 60 s idle cut. Called when the app leaves the screen: idle sockets close now,
+/// requests still running finish on the old client (HttpClient.close(force: false)).
+void releaseIdleConnections() {
+  if (!kIsWeb) _sharedIO.renew();
+}
 
 /// 서버로 가는 클라이언트를 만든다. 앱은 [apiClient] 하나를 쓴다.
 http.Client newApiClient({
@@ -116,14 +160,19 @@ http.Client newApiClient({
   String backup = apiBackup,
   int? build,
   @visibleForTesting String Function() language = appLanguage,
-  @visibleForTesting http.Client? inner,
+  http.Client? inner,
+  @visibleForTesting Duration deadline = requestDeadline,
 }) {
   // 웹에는 dart:io 가 없다. 브라우저가 연결을 쥐고 있어 길을 고를 일도 없다.
   if (kIsWeb) {
-    return _AppClient(inner ?? http.Client(), build ?? appBuild, language);
+    return _AppClient(
+      inner ?? http.Client(),
+      build ?? appBuild,
+      language,
+      deadline,
+    );
   }
-  final base =
-      inner ?? IOClient(HttpClient()..connectionTimeout = connectTimeout);
+  final base = inner ?? IOClient(_newHttp());
   return _AppClient(
     backup.isEmpty
         ? base
@@ -134,23 +183,73 @@ http.Client newApiClient({
           ),
     build ?? appBuild,
     language,
+    deadline,
   );
 }
 
 /// 모든 요청에 앱 판(`x-setpad-build`)과 앱의 언어(`accept-language`, [appLanguage])를
 /// 싣고, 서버가 이 판을 더는 받지 않는다고 답하면(426) 알린다. 사고 난 판을 서버가 끊어
 /// 낼 수 있는 자리다. 같이 하기 스트림도 이 클라이언트로 가므로 같은 머리말을 단다.
+///
+/// 끊을 수 없는 요청은 [requestDeadline] 에 끊기는 사본으로 보낸다. 같이 하기 스트림과
+/// 스스로 끊는 요청은 그대로다.
 class _AppClient extends http.BaseClient {
-  _AppClient(this._inner, this._build, this._language);
+  _AppClient(this._inner, this._build, this._language, this._deadline);
   final http.Client _inner;
   final int _build;
   final String Function() _language;
+  final Duration _deadline;
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     if (_build > 0) request.headers['x-setpad-build'] = '$_build';
     request.headers['accept-language'] = _language();
-    final response = await _inner.send(request);
+    if (request is! http.Request ||
+        request is http.Abortable ||
+        request.headers['accept'] == 'text/event-stream') {
+      return _heard(await _inner.send(request));
+    }
+    final cut = Completer<void>();
+    final timer = Timer(_deadline, cut.complete);
+    final http.StreamedResponse response;
+    try {
+      response = await _inner.send(
+        http.AbortableRequest(
+            request.method,
+            request.url,
+            abortTrigger: cut.future,
+          )
+          ..headers.addAll(request.headers)
+          ..bodyBytes = request.bodyBytes
+          ..followRedirects = request.followRedirects
+          ..maxRedirects = request.maxRedirects
+          ..persistentConnection = request.persistentConnection,
+      );
+    } catch (_) {
+      timer.cancel();
+      rethrow;
+    }
+    // The cut stays armed while the body streams and is disarmed once it is read.
+    return http.StreamedResponse(
+      response.stream.transform(
+        StreamTransformer.fromHandlers(
+          handleDone: (sink) {
+            timer.cancel();
+            sink.close();
+          },
+        ),
+      ),
+      _heard(response).statusCode,
+      contentLength: response.contentLength,
+      request: response.request,
+      headers: response.headers,
+      isRedirect: response.isRedirect,
+      persistentConnection: response.persistentConnection,
+      reasonPhrase: response.reasonPhrase,
+    );
+  }
+
+  http.StreamedResponse _heard(http.StreamedResponse response) {
     if (response.statusCode == 426) updateRequired.value = true;
     return response;
   }

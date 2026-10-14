@@ -283,6 +283,64 @@ void main() {
     });
   });
 
+  group('시간 초과가 연결을 끊는다', () {
+    test('보통 요청은 끊기는 사본으로 가고, 스트림과 스스로 끊는 요청은 그대로 간다', () async {
+      final seen = <http.BaseRequest>[];
+      final client = newApiClient(
+        build: 10701,
+        inner: _Recording((request) async {
+          seen.add(request);
+          return http.StreamedResponse(Stream.value(utf8.encode('{}')), 200);
+        }),
+      );
+      final response = await client.post(
+        Uri.parse('$primary/api/workouts'),
+        headers: {'authorization': 'Bearer t'},
+        body: '{"localId":"a"}',
+      );
+      expect(response.body, '{}');
+      final cut = seen.single as http.Request;
+      expect(cut, isA<http.Abortable>());
+      expect((cut as http.Abortable).abortTrigger, isNotNull);
+      expect(cut.headers['x-setpad-build'], '10701');
+      expect(cut.headers['accept-language'], isNotEmpty);
+      expect(cut.headers['authorization'], 'Bearer t');
+      expect(cut.body, '{"localId":"a"}');
+
+      seen.clear();
+      await client.send(
+        http.Request('GET', Uri.parse('$primary/api/partner-sessions/s/events'))
+          ..headers['accept'] = 'text/event-stream',
+      );
+      expect(seen.single, isNot(isA<http.Abortable>()), reason: '스트림은 오래 연다');
+
+      seen.clear();
+      final own = Completer<void>();
+      await client.send(
+        http.AbortableRequest(
+          'POST',
+          Uri.parse('$primary/api/meals/estimate'),
+          abortTrigger: own.future,
+        ),
+      );
+      expect((seen.single as http.Abortable).abortTrigger, same(own.future));
+    });
+
+    test('답이 오지 않으면 마감에 끊긴다', () async {
+      final client = newApiClient(
+        deadline: const Duration(milliseconds: 50),
+        inner: _Recording((request) async {
+          await (request as http.Abortable).abortTrigger;
+          throw http.RequestAbortedException(request.url);
+        }),
+      );
+      await expectLater(
+        client.get(Uri.parse('$primary/api/me')),
+        throwsA(isA<http.RequestAbortedException>()),
+      );
+    });
+  });
+
   test('client 를 주지 않으면 앱이 함께 쓰는 클라이언트를 빌려 준다 — 요청마다 새로 맺지 않는다', () async {
     const link = GymLink(endpoint: 'https://gym.darak.studio', token: 't');
     final first = await link.withClient((web) async => web);

@@ -295,13 +295,20 @@ extension TrainerLink on GymLink {
     if (!supported) return _noReply;
     return withClient((web) async {
       try {
-        final request = http.Request(method, Uri.parse('$endpoint$path'))
-          ..headers.addAll({...headers, 'content-type': 'application/json'});
+        // Cut at our own wait — the shared client's 25 s cut would stop the 60 s summary.
+        final cut = Completer<void>();
+        final timer = Timer(wait, cut.complete);
+        final request = http.AbortableRequest(
+          method,
+          Uri.parse('$endpoint$path'),
+          abortTrigger: cut.future,
+        )..headers.addAll({...headers, 'content-type': 'application/json'});
         if (body != null) request.body = jsonEncode(body);
         final response = await web
             .send(request)
             .then(http.Response.fromStream)
-            .timeout(wait);
+            .timeout(wait)
+            .whenComplete(timer.cancel);
         final decoded = jsonDecode(utf8.decode(response.bodyBytes));
         final map = decoded is Map ? Map<String, Object?>.from(decoded) : null;
         if (response.statusCode == 200 && map != null) {
@@ -952,7 +959,11 @@ class _TrainerPageState extends State<TrainerPage> {
                         _section(l.trainerToday),
                         for (final t in report.today)
                           _line(
-                            [shortTime(l, t.at), ?t.member, t.title].join(' · '),
+                            [
+                              shortTime(l, t.at),
+                              ?t.member,
+                              t.title,
+                            ].join(' · '),
                           ),
                       ],
                       _section(l.trainerTodo),
