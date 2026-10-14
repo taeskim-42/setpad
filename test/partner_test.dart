@@ -728,9 +728,7 @@ void main() {
 
     // 한 운동에 세트 101개 — 100개까지 간다.
     mina.note.blocks.add(
-      ExerciseBlock('플랭크', [
-        for (var i = 0; i < 101; i++) LoggedSet(reps: 1),
-      ]),
+      ExerciseBlock('플랭크', [for (var i = 0; i < 101; i++) LoggedSet(reps: 1)]),
     );
     mina.sync.recordChanged();
     await settle();
@@ -740,8 +738,7 @@ void main() {
     // 잘라도 64KB 를 넘는다(긴 메모) — 한 번 거절되면 같은 번호로 또 보내지 않는다.
     mina.note.blocks.add(
       ExerciseBlock('메모', [
-        for (var i = 0; i < 100; i++)
-          LoggedSet(reps: 1, notes: ['가' * 500]),
+        for (var i = 0; i < 100; i++) LoggedSet(reps: 1, notes: ['가' * 500]),
       ]),
     );
     mina.sync.recordChanged();
@@ -853,36 +850,45 @@ void main() {
     expect(server.sessions.values.single['ended'], isNull);
   });
 
-  test('열린 같이 하기가 없으면 start() 해도 2초 폴링이 걸리지 않는다 — 편집기는 앱을 올릴 때마다 부른다', () async {
-    final server = FakeServer();
-    final mina = Phone(server, '미나', 'a13'), jun = Phone(server, '준', 'b13');
-    addTearDown(mina.sync.dispose);
-    addTearDown(jun.sync.dispose);
-    var polls = 0;
-    void start(PartnerSync sync) => runZoned(
-      sync.start,
-      zoneSpecification: ZoneSpecification(
-        createPeriodicTimer: (self, parent, zone, period, tick) {
-          polls++;
-          return parent.createPeriodicTimer(zone, period, tick);
-        },
-      ),
-    );
+  test(
+    '열린 같이 하기가 없으면 start() 해도 2초 폴링이 걸리지 않는다 — 편집기는 앱을 올릴 때마다 부른다',
+    () async {
+      final server = FakeServer();
+      final mina = Phone(server, '미나', 'a13'), jun = Phone(server, '준', 'b13');
+      addTearDown(mina.sync.dispose);
+      addTearDown(jun.sync.dispose);
+      var polls = 0;
+      void start(PartnerSync sync) => runZoned(
+        sync.start,
+        zoneSpecification: ZoneSpecification(
+          createPeriodicTimer: (self, parent, zone, period, tick) {
+            polls++;
+            return parent.createPeriodicTimer(zone, period, tick);
+          },
+        ),
+      );
 
-    start(jun.sync);
-    expect(polls, 0, reason: '혼자 쓰는 기록이다');
-    await mina.sync.invite();
-    start(mina.sync);
-    expect(polls, 1, reason: '초대를 연 기록은 돈다');
-  });
+      start(jun.sync);
+      expect(polls, 0, reason: '혼자 쓰는 기록이다');
+      await mina.sync.invite();
+      start(mina.sync);
+      expect(polls, 1, reason: '초대를 연 기록은 돈다');
+    },
+  );
 
   test('서버가 쉬었다 오라고 하면(503·429 Retry-After) 그때까지 폴링하지 않는다', () async {
     var states = 0;
-    final note = Note(
-      id: 'n-quiet',
-      createdAt: DateTime(2026, 9, 21, 18),
-      updatedAt: DateTime(2026, 9, 21, 18),
-    )..partner = PartnerSession(id: 'S1', host: true, state: PartnerState.active);
+    final note =
+        Note(
+            id: 'n-quiet',
+            createdAt: DateTime(2026, 9, 21, 18),
+            updatedAt: DateTime(2026, 9, 21, 18),
+          )
+          ..partner = PartnerSession(
+            id: 'S1',
+            host: true,
+            state: PartnerState.active,
+          );
     final sync = PartnerSync(
       note: note,
       link: () => GymLink(
@@ -1031,6 +1037,203 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 200));
     expect(waits, hasLength(phones.length), reason: '잘 흐르던 스트림은 곧 다시 연다');
     expect(waits.toSet().length, greaterThan(1), reason: '같은 순간에 몰리지 않는다');
+  });
+
+  group('정체 때 덜 두드린다', () {
+    Note activeNote(String id) =>
+        Note(
+            id: id,
+            createdAt: DateTime(2026, 9, 21, 18),
+            updatedAt: DateTime(2026, 9, 21, 18),
+          )
+          ..partner = PartnerSession(
+            id: 'S1',
+            host: true,
+            state: PartnerState.active,
+          );
+    const state = '{"id":"S1","state":"active","role":"host"}';
+
+    test('presence 는 한 번에 하나만 가고, 풀리면 마지막 자리 하나만 더 간다', () async {
+      final places = <Object?>[];
+      var open = 0, most = 0;
+      final first = Completer<void>();
+      final sync = PartnerSync(
+        note: activeNote('n-presence'),
+        link: () => GymLink(
+          endpoint: 'https://x',
+          token: 't',
+          client: MockClient((request) async {
+            if (!request.url.path.endsWith('/presence')) {
+              return http.Response(state, 200);
+            }
+            places.add(jsonDecode(request.body)['block']);
+            most = ++open > most ? open : most;
+            if (places.length == 1) await first.future;
+            open--;
+            return http.Response('{}', 200);
+          }),
+        ),
+        onChanged: () {},
+        interval: const Duration(milliseconds: 20),
+      );
+      addTearDown(sync.dispose);
+      for (var i = 0; i < 5; i++) {
+        sync.presence(block: 'b$i');
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+      }
+      expect(places, ['b0'], reason: '멈춘 서버에 치는 만큼 연결을 쌓지 않는다');
+      first.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      expect(places, ['b0', 'b4']);
+      expect(most, 1);
+    });
+
+    test(
+      'presence 가 Retry-After 를 받으면 그동안 presence 도 기록 PUT 도 가지 않는다',
+      () async {
+        final puts = <String>[];
+        var busy = true;
+        final note = activeNote('n-quiet-put')
+          ..blocks.add(ExerciseBlock('스쿼트', [LoggedSet(value: 80, reps: 5)]));
+        final sync = PartnerSync(
+          note: note,
+          link: () => GymLink(
+            endpoint: 'https://x',
+            token: 't',
+            client: MockClient((request) async {
+              if (request.method == 'GET') return http.Response(state, 200);
+              puts.add(request.url.pathSegments.last);
+              if (busy) {
+                busy = false;
+                return http.Response(
+                  '{"error":"busy"}',
+                  503,
+                  headers: {'retry-after': '1'},
+                );
+              }
+              return http.Response('{"revision":1}', 200);
+            }),
+          ),
+          onChanged: () {},
+          interval: const Duration(milliseconds: 20),
+        );
+        addTearDown(sync.dispose);
+        sync.presence(block: 'b0');
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(puts, ['presence']);
+        sync.presence(block: 'b1');
+        sync.recordChanged();
+        await Future<void>.delayed(const Duration(milliseconds: 600));
+        expect(puts, ['presence'], reason: '쉬는 1초 동안은 0번');
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+        sync.presence(block: 'b2');
+        await sync.refresh();
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        expect(puts, containsAll(['presence', 'record']));
+        expect(puts.where((p) => p == 'presence'), hasLength(2));
+      },
+    );
+
+    test('스트림이 살아 있으면 상태 GET 은 서른 틱에 한 번이다', () async {
+      var gets = 0;
+      final events = StreamController<List<int>>();
+      final sync = PartnerSync(
+        note: activeNote('n-insurance'),
+        link: () => GymLink(
+          endpoint: 'https://x',
+          token: 't',
+          client: MockClient.streaming((request, _) async {
+            if (request.url.path.endsWith('/events')) {
+              events.add(utf8.encode('data: $state\n\n'));
+              return http.StreamedResponse(events.stream, 200);
+            }
+            if (request.method == 'GET') gets++;
+            return http.StreamedResponse(Stream.value(utf8.encode(state)), 200);
+          }),
+        ),
+        onChanged: () {},
+        interval: const Duration(milliseconds: 20),
+      );
+      addTearDown(events.close);
+      addTearDown(sync.dispose);
+      sync.start();
+      await Future<void>.delayed(const Duration(milliseconds: 1300));
+      // ~65 ticks: the first refresh plus one every 30 ticks — not one per tick.
+      expect(gets, inInclusiveRange(1, 4));
+    });
+
+    test(
+      '일찍 죽는 스트림은 1·2·4초로 물러서고, 처음부터 안 흐르면 15~30초, Retry-After 면 그만큼 쉰다',
+      () async {
+        // Records each reopen wait and fires it at once, so the test does not sit through them.
+        Future<List<Duration>> reopenWaits(
+          http.Response Function() events,
+          int count,
+        ) async {
+          final waits = <Duration>[];
+          final sync = PartnerSync(
+            note: activeNote('n-drop'),
+            link: () => GymLink(
+              endpoint: 'https://x',
+              token: 't',
+              client: MockClient(
+                (request) async => request.url.path.endsWith('/events')
+                    ? events()
+                    : http.Response(state, 200),
+              ),
+            ),
+            onChanged: () {},
+          );
+          runZoned(
+            sync.start,
+            zoneSpecification: ZoneSpecification(
+              createTimer: (self, parent, zone, wait, run) {
+                // Request time limits are fixed; reopen waits carry jitter.
+                const limits = [
+                  Duration(seconds: 10),
+                  Duration(seconds: 15),
+                  Duration(seconds: 40),
+                ];
+                if (wait < const Duration(seconds: 1) ||
+                    limits.contains(wait)) {
+                  return parent.createTimer(zone, wait, run);
+                }
+                waits.add(wait);
+                return parent.createTimer(zone, Duration.zero, run);
+              },
+            ),
+          );
+          for (var i = 0; i < 100 && waits.length < count; i++) {
+            await Future<void>.delayed(const Duration(milliseconds: 10));
+          }
+          sync.dispose();
+          return waits;
+        }
+
+        bool within(Duration d, int lo, int hi) =>
+            d >= Duration(seconds: lo) && d <= Duration(seconds: hi);
+        final short = await reopenWaits(
+          () => http.Response('data: $state\n\n', 200),
+          3,
+        );
+        expect(within(short[0], 1, 2), isTrue, reason: '${short[0]}');
+        expect(within(short[1], 2, 4), isTrue, reason: '${short[1]}');
+        expect(within(short[2], 4, 8), isTrue, reason: '${short[2]}');
+
+        final never = await reopenWaits(() => http.Response('', 404), 1);
+        expect(within(never.first, 15, 30), isTrue, reason: '${never.first}');
+
+        final refused = await reopenWaits(
+          () => http.Response('', 503, headers: {'retry-after': '45'}),
+          1,
+        );
+        expect(
+          within(refused.first, 44, 45),
+          isTrue,
+          reason: '${refused.first}',
+        );
+      },
+    );
   });
 
   test('남이 고친 문서를 받아 다시 저장해도 내 기록이 그대로면 올리지 않는다', () async {

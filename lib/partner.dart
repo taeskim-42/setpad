@@ -43,6 +43,7 @@ enum PartnerError {
   routineChanged,
   emptyRoutine,
   routineStarted,
+
   /// 자리가 다 찼다. 서버 탓이 아니라서 '다시 시도'로 풀리지 않는다.
   full,
 }
@@ -379,14 +380,21 @@ extension PartnerLink on GymLink {
 
   /// 서버가 밀어 주는 세션 상태(SSE). 한 줄이 한 상태다. 끊기면 스트림이 끝난다 —
   /// 다시 여는 것은 부르는 쪽이 한다. 듣기를 그만두면(cancel) 연결을 바로 끊는다.
-  Stream<Map<String, Object?>> partnerEvents(String id) {
+  /// 서버가 열기를 거절하며 쉬었다 오라고 하면(429·5xx Retry-After) [onRetryAfter] 로 알린다.
+  Stream<Map<String, Object?>> partnerEvents(
+    String id, {
+    void Function(Duration wait)? onRetryAfter,
+  }) {
     if (!supported) return const Stream.empty();
     final web = client ?? newApiClient();
     StreamSubscription<Map<String, Object?>>? inner;
     late final StreamController<Map<String, Object?>> out;
     out = StreamController(
-      onListen: () =>
-          inner = _events(id, web).listen(out.add, onDone: out.close),
+      onListen: () => inner = _events(
+        id,
+        web,
+        onRetryAfter,
+      ).listen(out.add, onDone: out.close),
       // async* 는 다음 data 줄에 닿아야 멈춘다. 쉬는 세션(빈 줄만 온다)이나 잠긴
       // 아이폰이면 그때까지 소켓이 열려 있고, 서버는 그 스트림을 계속 읽는다. 지금
       // 끊는다 — 서버는 끊김(abort)을 보고 멈춘다.
@@ -398,7 +406,11 @@ extension PartnerLink on GymLink {
     return out.stream;
   }
 
-  Stream<Map<String, Object?>> _events(String id, http.Client web) async* {
+  Stream<Map<String, Object?>> _events(
+    String id,
+    http.Client web,
+    void Function(Duration wait)? onRetryAfter,
+  ) async* {
     try {
       final request = http.Request(
         'GET',
@@ -407,7 +419,13 @@ extension PartnerLink on GymLink {
       final response = await web
           .send(request)
           .timeout(const Duration(seconds: 15));
-      if (response.statusCode != 200) return;
+      if (response.statusCode != 200) {
+        final status = response.statusCode;
+        if (status == 429 || status >= 500) {
+          if (retryAfter(response) case final wait?) onRetryAfter?.call(wait);
+        }
+        return;
+      }
       var buffer = '';
       // 서버는 15초마다 빈 줄을 보낸다. 40초 동안 아무것도 없으면 연결이 죽은
       // 것이다(반쯤 열린 소켓) — 끊고 다시 연다.
@@ -511,6 +529,11 @@ class PartnerSync extends ChangeNotifier {
   /// 스트림도 다시 열지 않는다 — 사고 때 서버가 폰들을 늦출 수 있는 자리다.
   DateTime? _quietUntil;
   bool get _quiet => _quietUntil?.isAfter(DateTime.now()) ?? false;
+
+  /// Every call — polls, PUTs, the stream opening — keeps the server's Retry-After.
+  void _heed(Duration? wait) {
+    if (wait != null) _quietUntil = DateTime.now().add(wait);
+  }
 
   /// 서버에 닿지 못한 상태 확인이 이어진 수와, 그래서 건너뛸 남은 폴링 수. 닿지 못할
   /// 때마다 2·4·8·16번 안에서 흩어 골라(2초 간격이면 30초 남짓까지) 물러선다 — 배포나
@@ -667,9 +690,7 @@ class PartnerSync extends ChangeNotifier {
     }
     final sent = clock.monotonic;
     final reply = await call(link());
-    if (reply.retryAfter case final wait?) {
-      _quietUntil = DateTime.now().add(wait);
-    }
+    _heed(reply.retryAfter);
     final serverNow = reply.body?['now'];
     if (serverNow is num) {
       clock.sample(sent, clock.monotonic, serverNow.toInt());
@@ -839,6 +860,7 @@ class PartnerSync extends ChangeNotifier {
   Future<void> _push() async {
     final s = session;
     if (s == null ||
+        _quiet ||
         s.state != PartnerState.active ||
         s.pushed >= s.revision ||
         (s.id, s.revision) == _refused ||
@@ -856,6 +878,7 @@ class PartnerSync extends ChangeNotifier {
       base: s.pushed,
     );
     _pushing = false;
+    _heed(reply.retryAfter);
     if (_disposed || session?.id != s.id) return;
     reachable = reply.error != PartnerError.network;
     if (reply.error == null) {
@@ -1113,12 +1136,16 @@ class PartnerSync extends ChangeNotifier {
     final s = session;
     if (_sendingDoc || s == null) return;
     _sendingDoc = true;
-    while (_pendingDoc.isNotEmpty && !_disposed && session?.id == s.id) {
+    while (_pendingDoc.isNotEmpty &&
+        !_disposed &&
+        !_quiet &&
+        session?.id == s.id) {
       final batch = _pendingDoc.first;
       final reply = await link().partnerDoc(s.id, {
         'action': 'edit',
         'ops': batch,
       });
+      _heed(reply.retryAfter);
       final refused = const {
         'invalidInput',
         'tooBig',
@@ -1150,7 +1177,8 @@ class PartnerSync extends ChangeNotifier {
     final s = session;
     if (s == null || s.state != PartnerState.active) return;
     _presencePending = {'block': block, 'set': set, 'text': text};
-    _presenceTimer ??= Timer(const Duration(milliseconds: 150), () {
+    // The server shows presence once a second — gathering faster only adds PUTs.
+    _presenceTimer ??= Timer(interval ~/ 2, () {
       _presenceTimer = null;
       final where = _presencePending;
       if (where == null || mapEquals(where, _presenceSent)) return;
@@ -1158,12 +1186,32 @@ class PartnerSync extends ChangeNotifier {
     });
   }
 
+  int _presenceWant = 0;
+  bool _presenceBusy = false;
+
   void _sendPresence(Map<String, Object?> where) {
     final s = session;
-    if (s == null || s.state != PartnerState.active) return;
+    if (s == null || s.state != PartnerState.active || _quiet) return;
     _presenceSent = where;
     _presenceAt = DateTime.now();
-    unawaited(link().partnerPresence(s.id, where));
+    _presenceWant++;
+    if (_presenceBusy) return;
+    // One PUT at a time: a stalled server otherwise holds a connection per keystroke. The newest
+    // place goes when the last answer is back. Runs after dispose too — stop() clears my cursor.
+    _presenceBusy = true;
+    unawaited(() async {
+      try {
+        while (true) {
+          final want = _presenceWant, place = _presenceSent;
+          if (place == null) break;
+          final reply = await link().partnerPresence(s.id, place);
+          _heed(reply.retryAfter);
+          if (reply.error != null || want == _presenceWant) break;
+        }
+      } finally {
+        _presenceBusy = false;
+      }
+    }());
   }
 
   /// 상대 화면에 무언가 보이는 자리인가(운동 안이거나 새 이름을 치는 중).
@@ -1185,13 +1233,18 @@ class PartnerSync extends ChangeNotifier {
   /// 스트림이 실제로 소식을 주고 있는가.
   bool _streaming = false;
 
+  /// When the stream was last opened, and how many times in a row it died young (< 30 s).
+  DateTime? _openedAt;
+  int _drops = 0;
+
   /// 서버가 밀어 주는 상태를 듣는다. 끊기면 곧 다시 연다([_reopen]). 폴링은 남겨 두되
   /// 듣는 동안은 드물게 한다 — 스트림이 놓친 것을 줍는 보험이다.
   void _listen() {
     final s = session;
     if (_events != null || _disposed || s == null || !s.open) return;
     final id = s.id;
-    _events = link().partnerEvents(id).listen((body) {
+    _openedAt = DateTime.now();
+    _events = link().partnerEvents(id, onRetryAfter: _heed).listen((body) {
       if (_disposed || session?.id != id) return;
       _streaming = true;
       reachable = true;
@@ -1203,17 +1256,24 @@ class PartnerSync extends ChangeNotifier {
   }
 
   /// 끊겼다. 잘 흐르던 것이면 곧 다시, 처음부터 안 흐르던 것(옛 서버, 막힌
-  /// 그물)이면 느긋하게 — 그동안은 폴링이 제 속도로 돈다. 2초 안에서 흩는다: 배포로
+  /// 그물)이면 느긋하게 — 그동안은 폴링이 제 속도로 돈다. 흩어서 기다린다: 배포로
   /// 모두의 스트림이 한꺼번에 끊겨도 같은 순간에 다시 몰리지 않는다.
   void _reopen() {
     final was = _streaming;
+    final short =
+        was &&
+        _openedAt != null &&
+        DateTime.now().difference(_openedAt!) < const Duration(seconds: 30);
     _events = null;
     _streaming = false;
     if (_disposed || _poll == null) return;
     _reconnect?.cancel();
-    var wait = Duration(
-      milliseconds: (was ? 1000 : 15000) + _random.nextInt(2000),
-    );
+    // A stream that keeps dying young backs off 1, 2, 4 … 60 s; a healthy one (lived 30 s+)
+    // comes back in a second or two. One that never streamed waits 15–30 s. Jitter spreads a herd.
+    final base = Duration(seconds: was ? min(60, 1 << _drops) : 15);
+    _drops = short ? min(_drops + 1, 6) : 0;
+    var wait =
+        base + Duration(milliseconds: _random.nextInt(base.inMilliseconds + 1));
     final quiet = _quietUntil?.difference(DateTime.now());
     if (quiet != null && quiet > wait) wait = quiet;
     _reconnect = Timer(wait, _listen);
@@ -1273,8 +1333,14 @@ class PartnerSync extends ChangeNotifier {
       await sendPendingEnds(link(), [note], onSent: onChanged);
       if (_pendingDoc.isNotEmpty) unawaited(_flushDoc());
       _heartbeat();
-      // 스트림이 살아 있으면 폴링은 열 번에 한 번만.
-      if (!_streaming || ++ticks % 10 == 0) await refresh();
+      ticks++;
+      // The stream carries every change; the poll is insurance (once a minute) and the retry of
+      // a record PUT that failed (every 20 s, as before).
+      if (!_streaming || ticks % 30 == 0) {
+        await refresh();
+      } else if (ticks % 10 == 0) {
+        await _push();
+      }
     });
   }
 
