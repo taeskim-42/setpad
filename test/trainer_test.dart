@@ -1311,7 +1311,7 @@ void main() {
       expect(top('트레이너'), lessThan(top('트레이너 보고')));
     });
 
-    /// 승인 대기 PT 신청(웹 CRM 예약 화면과 같은 GET /api/bookings?view=trainer).
+    /// 승인 대기 PT 신청(대기 줄과 수만 주는 GET /api/bookings?view=pending).
     Future<http.Response> desk(List<Map<String, Object?>> pending) async =>
         reply({
           'pending': pending,
@@ -1341,7 +1341,7 @@ void main() {
         if (request.method == 'GET') {
           expect(request.url.queryParameters, {
             'gymId': gymId,
-            'view': 'trainer',
+            'view': 'pending',
           });
           return desk(pending);
         }

@@ -17,7 +17,7 @@ import 'package:flutter/foundation.dart';
 import 'package:app_links/app_links.dart';
 
 import 'account.dart';
-import 'api_route.dart' show updateRequired;
+import 'api_route.dart' show releaseIdleConnections, updateRequired;
 import 'sign_in.dart';
 import 'sign_in_sheet.dart';
 import 'agent_alarm.dart';
@@ -607,8 +607,33 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   /// 그물 없이 끝낸 같이 하기도 — 편집기를 닫으면 그 화면의 폴링도 멈추므로
   /// 여기서 안 보내면 상대에게는 세션이 영영 살아 있다. 지운 기록이 서버에 남긴
   /// 끼니·운동 줄도 여기서 지운다.
-  Future<void> _sendPendingWorkouts() async {
-    await sendPending(_account.link, _store.notes, onSent: _store.touch);
+  ///
+  /// 한 번에 하나만 돈다. 도는 중에 또 부르면 끝난 뒤 한 번 더 전부 돈다 — 편집기를
+  /// 닫은 기록이 빠지지 않게. [later] 는 첫 번만 쓴다.
+  Future<void> _sendPendingWorkouts({bool Function(Note note)? later}) {
+    if (_syncing case final running?) {
+      _syncAgain = true;
+      return running;
+    }
+    return _syncing = () async {
+      do {
+        _syncAgain = false;
+        await _syncOnce(later);
+        later = null;
+      } while (_syncAgain && mounted);
+    }().whenComplete(() => _syncing = null);
+  }
+
+  Future<void>? _syncing;
+  bool _syncAgain = false;
+
+  Future<void> _syncOnce(bool Function(Note note)? later) async {
+    await sendPending(
+      _account.link,
+      _store.notes,
+      onSent: _store.touch,
+      later: later,
+    );
     await syncMeals(
       _account.link,
       _store.notes,
@@ -649,14 +674,30 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     );
   }
 
+  /// 앱을 정말 내렸다(hidden·paused). 제어 센터·알림 센터·Face ID 는 inactive 만
+  /// 거쳐 돌아온다 — 그때마다 열린 기록을 다시 올리고 스토어를 다시 묻지 않는다.
+  bool _away = false;
+
+  /// 열린 편집기의 기록을 5분 안에 이미 올렸다. 잠금을 풀 때마다 다시 올리지 않고,
+  /// 편집기를 닫을 때 마저 올린다.
+  bool _settling(Note note) =>
+      _store.open.contains(note) &&
+      note.sentAt != null &&
+      DateTime.now().difference(note.sentAt!) < const Duration(minutes: 5);
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 앱이 내려갈 때는 디바운스를 기다리지 않는다.
-    if (state != AppLifecycleState.resumed) {
-      _store.flush();
-    } else {
+    if (state != AppLifecycleState.resumed) _store.flush();
+    if (state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.paused) {
+      if (!_away) releaseIdleConnections();
+      _away = true;
+    }
+    if (state == AppLifecycleState.resumed && _away) {
+      _away = false;
       // 돌아왔다. 그동안 신호가 잡혔을 수 있다.
-      unawaited(_sendPendingWorkouts());
+      unawaited(_sendPendingWorkouts(later: _settling));
       // 켤 때 못 읽은 이용권·요금제가 있으면 다시 읽는다(읽었으면 묻지 않는다).
       unawaited(_account.reloadStore());
     }

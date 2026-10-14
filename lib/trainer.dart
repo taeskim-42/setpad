@@ -420,7 +420,8 @@ extension TrainerLink on GymLink {
   ) async {
     final body = (await _agent(
       'GET',
-      '/api/bookings?gymId=${Uri.encodeQueryComponent(gymId)}&view=trainer',
+      // Pending rows and count only (gymdojo g-crm §7) — the server ships first.
+      '/api/bookings?gymId=${Uri.encodeQueryComponent(gymId)}&view=pending',
       null,
       const Duration(seconds: 15),
     )).body;
