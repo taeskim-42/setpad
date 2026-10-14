@@ -1,7 +1,5 @@
 Có gì mới
 
-· Xem thông báo, gói tập, tủ đồ và buổi PT sắp tới của phòng tập trong ứng dụng, và đặt lớp tập nhóm
-· Lời mời từ phòng tập chỉ liên kết sau khi bạn đồng ý, và bạn có thể rời phòng tập bất cứ lúc nào
-· Huấn luyện viên duyệt hoặc từ chối yêu cầu PT ngay trong ứng dụng
-· Nhật ký an toàn hơn: một mục hỏng không ảnh hưởng mục khác, giao dịch mua không mất khi rớt mạng
-· Tập cùng nhau nhẹ hơn, thêm Đăng xuất trên mọi thiết bị và hỗ trợ VoiceOver tốt hơn
+· Tải nhật ký lên và Tập cùng nhau ít bị gián đoạn hơn vào giờ cao điểm, và chờ một lát khi máy chủ đang bận
+· Xóa tài khoản sẽ chờ máy chủ xử lý xong và cho bạn biết lý do nếu không thành công
+· Cài đặt Tabata và BPM hiển thị vừa trên màn hình nhỏ, các nút dễ bấm hơn

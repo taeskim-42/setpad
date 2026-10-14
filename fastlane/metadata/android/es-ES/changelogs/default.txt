@@ -1,7 +1,5 @@
 Novedades
 
-· Avisos del gimnasio, pases, taquilla y próximas sesiones de PT en la app, y reserva de clases grupales
-· Las invitaciones de un gimnasio esperan tu aprobación, y puedes salir cuando quieras
-· Los entrenadores aprueban o rechazan solicitudes de PT desde la app
-· Registro más seguro: una entrada dañada no afecta a las demás y una compra no se pierde si se corta la conexión
-· Entrenar juntos es más ligero, y llegan Cerrar sesión en todos los dispositivos y mejor VoiceOver
+· Subir tu registro y Entrenar juntos funcionan mejor en horas de mucho uso, y esperan un momento si el servidor está ocupado
+· Eliminar la cuenta espera a que el servidor termine y, si falla, te dice el motivo
+· Los ajustes de Tabata y BPM caben en pantallas pequeñas, y los botones son más fáciles de pulsar

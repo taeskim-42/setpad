@@ -1,7 +1,5 @@
 What's new
 
-· See your gym's notices, passes, locker and upcoming PT sessions in the app, and book group classes
-· Gym invites now wait for your OK before you're linked, and you can leave a gym anytime
-· Trainers can approve or decline PT requests right in the app
-· Your log is safer: one damaged entry no longer takes the rest with it, and a purchase survives a dropped connection
-· Work out together is lighter, plus Sign out on all devices and better VoiceOver support
+· Uploading your log and Work out together hold up better at busy times, and wait a moment when the server is busy instead of retrying right away
+· Deleting your account now waits until the server is done, and tells you why if it fails
+· Tabata and BPM settings fit on small screens, and buttons are easier to tap
