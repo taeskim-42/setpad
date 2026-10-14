@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 import 'package:setpad/account.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
@@ -740,6 +742,98 @@ void main() {
       );
     });
 
+    test('App Store 의 열린 거래는 켤 때 직접 읽는다 — 서버가 확정한 것만 닫는다', () async {
+      SK2Transaction tx(String id) => SK2Transaction(
+        id: id,
+        originalId: id,
+        productId: 'com.tskim.workoutlog.monthly',
+        purchaseDate: '0',
+        appAccountToken: null,
+      );
+      for (final confirmed in [true, false]) {
+        final finished = <int>[];
+        final purchases = Purchases(
+          store: _FakeStore(),
+          appleUnfinished: () async => [tx('42')],
+          appleFinish: (id) async => finished.add(id),
+        );
+        addTearDown(purchases.dispose);
+        final sent = <PurchaseProof>[];
+        purchases.onProof = (proof) async {
+          sent.add(proof);
+          return confirmed;
+        };
+        await purchases.start();
+        await pumpEventQueue();
+        expect(sent, [(plan: Plan.monthly, token: '42', apple: true)]);
+        expect(finished, confirmed ? [42] : isEmpty);
+      }
+    });
+
+    test('같은 상품의 열린 거래가 새 구매를 막으면 그 거래를 서버에 보낸다', () async {
+      final store = _FakeStore()
+        ..products = [product('com.tskim.workoutlog.yearly', '₩29,000')]
+        ..buyFails = PlatformException(
+          code: 'storekit_duplicate_product_object',
+        );
+      final purchases = Purchases(
+        store: store,
+        appleUnfinished: () async => [
+          SK2Transaction(
+            id: '7',
+            originalId: '7',
+            productId: 'com.tskim.workoutlog.yearly',
+            purchaseDate: '0',
+            appAccountToken: null,
+          ),
+        ],
+        appleFinish: (_) async {},
+      );
+      addTearDown(purchases.dispose);
+      await purchases.start();
+      await pumpEventQueue();
+      final sent = <String>[];
+      purchases.onProof = (proof) async {
+        sent.add(proof.token);
+        return false;
+      };
+      await purchases.buy(Plan.yearly);
+      expect(sent, ['7']);
+
+      store.buyFails = PlatformException(code: 'storekit_no_response');
+      await expectLater(
+        purchases.buy(Plan.yearly),
+        throwsA(isA<PlatformException>()),
+      );
+    });
+
+    test('App Store 의 복원은 서버가 확정하면 닫는다 — Play 의 복원은 그대로 둔다', () async {
+      final store = _FakeStore();
+      final purchases = Purchases(
+        store: store,
+        appleUnfinished: () async => [],
+      );
+      addTearDown(purchases.dispose);
+      purchases.onProof = (_) async => true;
+      await purchases.start();
+      final restored = apple('2000000200', status: PurchaseStatus.restored)
+        ..pendingCompletePurchase = false;
+      final playRestored = PurchaseDetails(
+        purchaseID: 'GPA.1',
+        productID: 'yearly',
+        verificationData: PurchaseVerificationData(
+          localVerificationData: '{}',
+          serverVerificationData: 'token',
+          source: 'google_play',
+        ),
+        transactionDate: null,
+        status: PurchaseStatus.restored,
+      );
+      store.updates.add([restored, playRestored]);
+      await pumpEventQueue();
+      expect(store.completed, [restored]);
+    });
+
     test(
       'App Store 구매에는 서버가 준 표(appAccountToken)를 싣고, Play 에는 싣지 않는다',
       () async {
@@ -1040,8 +1134,12 @@ class _FakeStore implements InAppPurchase {
     return ProductDetailsResponse(productDetails: products, notFoundIDs: []);
   }
 
+  /// 사려 할 때 플러그인이 던질 예외.
+  PlatformException? buyFails;
+
   @override
   Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) async {
+    if (buyFails case final e?) throw e;
     bought.add(purchaseParam);
     return true;
   }

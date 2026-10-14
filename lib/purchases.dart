@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 
 /// 살 수 있는 것. 파는 화면에 이 순서로 놓인다 — 연간이 먼저다.
 ///
@@ -91,7 +93,17 @@ Map<Plan, Offer> offersFrom(Iterable<ProductDetails> found) {
 /// 으로 유료가 된다. 앱이 하는 일은 구매를 시작하고 증거를 받아 서버에 넘기는
 /// 것까지다 — 진짜인지는 서버가 스토어에 직접 물어 정한다.
 class Purchases {
-  Purchases({InAppPurchase? store}) : _given = store;
+  Purchases({
+    InAppPurchase? store,
+    this.appleUnfinished = SK2Transaction.unfinishedTransactions,
+    this.appleFinish = SK2Transaction.finish,
+  }) : _given = store;
+
+  /// App Store 의 열린 거래를 읽는 문과 닫는 문. 시험이 바꿔 끼운다.
+  @visibleForTesting
+  final Future<List<SK2Transaction>> Function() appleUnfinished;
+  @visibleForTesting
+  final Future<void> Function(int id) appleFinish;
 
   // **만들 때 스토어를 깨우지 않는다.** InAppPurchase.instance 는 곧바로
   // 결제 채널에 붙는데, 결제와 상관없는 자리에서 Account 를 만들기만 해도
@@ -114,10 +126,11 @@ class Purchases {
   Future<bool> start({bool apple = true}) async {
     try {
       if (!await _store.isAvailable()) return false;
-      // 상품을 묻기 전에 듣는다 — 그물이 없어 상품을 못 읽어도, 닫지 않은 지난 거래는
-      // 스토어가 켤 때 다시 준다(App Store). Play 는 다시 주지 않아 직접 찾는다.
+      // 상품을 묻기 전에 듣는다. 닫지 않은 지난 거래는 두 스토어 모두 직접 찾는다 —
+      // Play 는 다시 주지 않고, App Store 는 켤 때 한 번만 주는데 우리는 로그인 확인
+      // 뒤에야 들으므로 놓칠 수 있다.
       _watch ??= _store.purchaseStream.listen(_onPurchases);
-      if (!apple) unawaited(_unfinishedOnPlay());
+      unawaited(apple ? _unfinishedOnApple() : _unfinishedOnPlay());
       final found = await _store.queryProductDetails({
         for (final plan in Plan.values) storeId(plan, apple: apple),
       });
@@ -145,6 +158,26 @@ class Purchases {
     }
   }
 
+  /// App Store hands an open transaction to Transaction.updates once, at launch — we listen only after
+  /// the sign-in check, so we may miss it. Read the open ones directly and close each the server settled.
+  Future<void> _unfinishedOnApple() async {
+    try {
+      for (final t in await appleUnfinished()) {
+        final plan = planForStoreId(t.productId);
+        if (plan == null) continue;
+        if (await onProof?.call((plan: plan, token: t.id, apple: true)) ??
+            false) {
+          // finish never answers for a transaction it cannot find — do not wait forever.
+          await appleFinish(
+            int.parse(t.id),
+          ).timeout(const Duration(seconds: 10));
+        }
+      }
+    } catch (e) {
+      debugPrint('App Store 의 열린 거래를 읽지 못했다: $e');
+    }
+  }
+
   Future<void> _onPurchases(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
       // 스토어는 닫을 때까지 같은 구매를 다시 준다. **서버가 확정해 답한 뒤에 닫는다** —
@@ -154,9 +187,18 @@ class Purchases {
       if (purchase.status == PurchaseStatus.pending) continue;
       final proof = proofOf(purchase);
       final settled = proof == null || (await onProof?.call(proof) ?? false);
-      if (!settled || !purchase.pendingCompletePurchase) continue;
+      if (!settled) continue;
+      // StoreKit 2 marks a restored transaction as nothing to close, yet it may be one we left
+      // open when the server could not confirm it. Closing a closed transaction does nothing.
+      if (!purchase.pendingCompletePurchase &&
+          !(proof?.apple == true &&
+              purchase.status == PurchaseStatus.restored)) {
+        continue;
+      }
       try {
-        await _store.completePurchase(purchase);
+        await _store
+            .completePurchase(purchase)
+            .timeout(const Duration(seconds: 10));
       } catch (e) {
         // 닫지 못한 거래는 스토어가 다시 준다. 같은 묶음의 다른 구매는 그대로 보낸다.
         debugPrint('거래를 닫지 못했다: $e');
@@ -177,7 +219,14 @@ class Purchases {
           : appAccountToken,
     );
     // in_app_purchase 는 구독도 non-consumable 문으로 산다.
-    await _store.buyNonConsumable(purchaseParam: param);
+    try {
+      await _store.buyNonConsumable(purchaseParam: param);
+    } on PlatformException catch (e) {
+      // An open transaction for this product blocks a new one. Settle it: the server's answer
+      // makes it Pro, or shows 'not confirmed' again with the restore hint.
+      if (e.code != 'storekit_duplicate_product_object') rethrow;
+      await _unfinishedOnApple();
+    }
   }
 
   /// 애플이 요구한다 — 없으면 심사에서 막힌다. 기기를 바꾼 사람의 유일한 길이다.
