@@ -4429,4 +4429,13 @@ class LEs extends L {
 
   @override
   String get settingsBodyHealth => 'Cuerpo y salud';
+
+  @override
+  String get timerStopLeaveAsk => '¿Detener el temporizador en marcha y salir?';
+
+  @override
+  String get timerStopLeave => 'Detener y salir';
+
+  @override
+  String get timerDiscardLeave => 'Descartar y salir';
 }

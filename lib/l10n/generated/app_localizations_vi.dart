@@ -4326,4 +4326,13 @@ class LVi extends L {
 
   @override
   String get settingsBodyHealth => 'Cơ thể và sức khỏe';
+
+  @override
+  String get timerStopLeaveAsk => 'Dừng bộ hẹn giờ đang chạy và thoát?';
+
+  @override
+  String get timerStopLeave => 'Dừng và thoát';
+
+  @override
+  String get timerDiscardLeave => 'Bỏ và thoát';
 }

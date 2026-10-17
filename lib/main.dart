@@ -916,6 +916,9 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
           )
           ..restore(proxy.blocks)
           ..addListener(_persistProxy);
+    // My editor stays (behind) with its timer, rest and run; only my cursor
+    // goes from the others' screens.
+    _partner?.presence(block: null, set: null, text: '');
     setState(() => _writingFor = true);
   }
 
@@ -1450,9 +1453,30 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  /// Back, done or the Android back while my editor holds a run: it asks
+  /// first ([RoutineEditorController.okToLeave]).
+  Future<void> _leave() async {
+    final ok = await (_editor.okToLeave?.call() ?? Future.value(true));
+    if (ok && mounted) Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
+    return ValueListenableBuilder<bool>(
+      valueListenable: _editor.holdsRun,
+      builder: (context, holds, page) => PopScope(
+        canPop: !holds,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) unawaited(_leave());
+        },
+        child: page!,
+      ),
+      child: _page(context, l),
+    );
+  }
+
+  Widget _page(BuildContext context, L l) {
     return CupertinoPageScaffold(
       // One shared keyboard area is managed by the editor.
       resizeToAvoidBottomInset: false,
@@ -1495,7 +1519,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
             ),
             CupertinoButton(
               padding: EdgeInsets.zero,
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(context).maybePop(),
               child: Text(
                 l.doneEditing,
                 style: const TextStyle(fontWeight: FontWeight.w600),
@@ -1648,113 +1672,36 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                     second: l.proxyBack,
                     onSecond: () => setState(() => _writingFor = false),
                   ),
-                if (_writingFor)
-                  Expanded(
-                    child: RoutineEditor(
-                      // 다른 칸을 적는 다른 편집기다. 내 기록의 타이머·식단·공유가
-                      // 여기로 새지 않게 아무것도 넘기지 않는다.
-                      key: const ValueKey('proxy-editor'),
-                      countAloud: widget.store.countAloud,
-                      hapticsOn: widget.store.hapticsOn,
-                      onCountAloud: widget.store.setCountAloud,
-                      onHaptics: widget.store.setHapticsOn,
-                      controller: _proxyEditor!,
-                      ai: widget.ai,
-                    ),
-                  )
-                else
-                  Expanded(
-                    child: RoutineEditor(
-                      key: const ValueKey('own-editor'),
-                      // The set stage: my other records, the rest per
-                      // exercise and its notification permission.
-                      history: () =>
-                          widget.store.notes.where((n) => n != widget.note),
-                      restFor: widget.store.restFor,
-                      onRestChanged: widget.store.setRestFor,
-                      askRestNotify: () => askFocusNotifyOnce(widget.store),
-                      countAloud: widget.store.countAloud,
-                      hapticsOn: widget.store.hapticsOn,
-                      onCountAloud: widget.store.setCountAloud,
-                      onHaptics: widget.store.setHapticsOn,
-                      controller: _editor,
-                      partner: _partner,
-                      // 같이 고치는 사람들이 지금 만지는 자리와, 내가 만지는 자리.
-                      presence:
-                          widget.note.partner?.state == PartnerState.active
-                          ? widget.note.partner!.presence
-                          : const [],
-                      onPresence: _partner == null
-                          ? null
-                          : (block, set, text) => _partner.presence(
-                              block: block,
-                              set: set,
-                              text: text,
-                            ),
-                      ai: widget.ai,
-                      header: _DocumentHeader(
-                        key: _documentHeaderKey,
-                        note: widget.note,
-                        store: widget.store,
-                        ai: widget.ai,
-                        account: widget.account,
-                        mealText: _mealText,
-                        onMealsChanged: _mealsChanged,
-                        estimating: _estimatingMeals,
-                        onRetryMeal: _estimateMealText,
-                        // 같이 하기의 문. 메뉴 안에만 두면 있는 줄도 모른다.
-                        onPartner:
-                            _partner != null &&
-                                (widget.account?.signedIn ?? false)
-                            ? _openPartnerSheet
-                            : null,
-                        partnerActive:
-                            widget.note.partner?.state == PartnerState.active,
-                      ),
-                      emptyHint: ListenableBuilder(
-                        listenable: widget.store,
-                        builder: (_, _) =>
-                            widget.store.firstRunHintSeen ||
-                                widget.store.notes.length > 1
-                            ? const SizedBox.shrink()
-                            : FirstRunHint(
-                                onClose: widget.store.dismissFirstRunHint,
-                              ),
-                      ),
-                      footer: switch (_lastWeek) {
-                        (final n, final w) => Padding(
-                          padding: const EdgeInsets.only(top: 20),
-                          child: _PastCard(
-                            note: n,
-                            title:
-                                (w == 1
-                                ? l.lastWeekDay
-                                : (String a, String b) =>
-                                      l.weeksAgoDay(w, a, b))(
-                                  l.weekdayLabel(n.createdAt),
-                                  l.routineDate(n.createdAt),
-                                ),
-                          ),
+                // My editor is never taken down for the proxy one: it stays
+                // behind (no focus, no tickers, no stage opening by itself)
+                // with its running timer, rest, logged rounds and draft.
+                Expanded(
+                  child: IndexedStack(
+                    index: _writingFor ? 1 : 0,
+                    sizing: StackFit.expand,
+                    children: [
+                      ExcludeFocus(
+                        excluding: _writingFor,
+                        child: TickerMode(
+                          enabled: !_writingFor,
+                          child: _ownEditor(l),
                         ),
-                        _ => null,
-                      },
-                      mealText: _mealText,
-                      onMealText: _saveMealText,
-                      recentMeals: <String>{
-                        for (final n in widget.store.notes)
-                          for (final m in n.meals.reversed)
-                            if (m.text != null) ?m.currentText,
-                      }.take(24).toList(),
-                      doneExercises: () => widget.store.doneExercises,
-                      initialDraft: widget.note.draft,
-                      onDraftChanged: (draft) =>
-                          widget.store.updateDraft(widget.note, draft),
-                      onForgetExercise: widget.store.forgetExercise,
-                      records: (b) => _records()[b.id] ?? const {},
-                      onMealPhoto: () =>
-                          _documentHeaderKey.currentState?._pick(),
-                    ),
+                      ),
+                      if (_writingFor)
+                        RoutineEditor(
+                          // 다른 칸을 적는 다른 편집기다. 내 기록의 타이머·식단·공유가
+                          // 여기로 새지 않게 아무것도 넘기지 않는다.
+                          key: const ValueKey('proxy-editor'),
+                          countAloud: widget.store.countAloud,
+                          hapticsOn: widget.store.hapticsOn,
+                          onCountAloud: widget.store.setCountAloud,
+                          onHaptics: widget.store.setHapticsOn,
+                          controller: _proxyEditor!,
+                          ai: widget.ai,
+                        ),
+                    ],
                   ),
+                ),
               ],
             ),
           ),
@@ -1762,6 +1709,83 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
       ),
     );
   }
+
+  Widget _ownEditor(L l) => RoutineEditor(
+    key: const ValueKey('own-editor'),
+    // The set stage: my other records, the rest per
+    // exercise and its notification permission.
+    history: () => widget.store.notes.where((n) => n != widget.note),
+    restFor: widget.store.restFor,
+    onRestChanged: widget.store.setRestFor,
+    askRestNotify: () => askFocusNotifyOnce(widget.store),
+    countAloud: widget.store.countAloud,
+    hapticsOn: widget.store.hapticsOn,
+    onCountAloud: widget.store.setCountAloud,
+    onHaptics: widget.store.setHapticsOn,
+    controller: _editor,
+    partner: _partner,
+    // 같이 고치는 사람들이 지금 만지는 자리와, 내가 만지는 자리.
+    presence: widget.note.partner?.state == PartnerState.active
+        ? widget.note.partner!.presence
+        : const [],
+    onPresence: _partner == null
+        ? null
+        : (block, set, text) =>
+              _partner.presence(block: block, set: set, text: text),
+    ai: widget.ai,
+    header: _DocumentHeader(
+      key: _documentHeaderKey,
+      note: widget.note,
+      store: widget.store,
+      ai: widget.ai,
+      account: widget.account,
+      mealText: _mealText,
+      onMealsChanged: _mealsChanged,
+      estimating: _estimatingMeals,
+      onRetryMeal: _estimateMealText,
+      // 같이 하기의 문. 메뉴 안에만 두면 있는 줄도 모른다.
+      onPartner: _partner != null && (widget.account?.signedIn ?? false)
+          ? _openPartnerSheet
+          : null,
+      partnerActive: widget.note.partner?.state == PartnerState.active,
+    ),
+    emptyHint: ListenableBuilder(
+      listenable: widget.store,
+      builder: (_, _) =>
+          widget.store.firstRunHintSeen || widget.store.notes.length > 1
+          ? const SizedBox.shrink()
+          : FirstRunHint(onClose: widget.store.dismissFirstRunHint),
+    ),
+    footer: switch (_lastWeek) {
+      (final n, final w) => Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: _PastCard(
+          note: n,
+          title: (w == 1
+              ? l.lastWeekDay
+              : (String a, String b) => l.weeksAgoDay(
+                  w,
+                  a,
+                  b,
+                ))(l.weekdayLabel(n.createdAt), l.routineDate(n.createdAt)),
+        ),
+      ),
+      _ => null,
+    },
+    mealText: _mealText,
+    onMealText: _saveMealText,
+    recentMeals: <String>{
+      for (final n in widget.store.notes)
+        for (final m in n.meals.reversed)
+          if (m.text != null) ?m.currentText,
+    }.take(24).toList(),
+    doneExercises: () => widget.store.doneExercises,
+    initialDraft: widget.note.draft,
+    onDraftChanged: (draft) => widget.store.updateDraft(widget.note, draft),
+    onForgetExercise: widget.store.forgetExercise,
+    records: (b) => _records()[b.id] ?? const {},
+    onMealPhoto: () => _documentHeaderKey.currentState?._pick(),
+  );
 }
 
 class _DocumentHeader extends StatefulWidget {

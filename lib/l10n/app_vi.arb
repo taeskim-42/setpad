@@ -1067,5 +1067,8 @@
   "focusRepsTitle": "Số lần",
   "focusRestOverTitle": "Hết giờ nghỉ",
   "focusDistanceTitle": "Quãng đường",
-  "settingsBodyHealth": "Cơ thể và sức khỏe"
+  "settingsBodyHealth": "Cơ thể và sức khỏe",
+  "timerStopLeaveAsk": "Dừng bộ hẹn giờ đang chạy và thoát?",
+  "timerStopLeave": "Dừng và thoát",
+  "timerDiscardLeave": "Bỏ và thoát"
 }

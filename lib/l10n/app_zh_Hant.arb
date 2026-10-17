@@ -1067,5 +1067,8 @@
   "focusRepsTitle": "次數",
   "focusRestOverTitle": "休息結束",
   "focusDistanceTitle": "距離",
-  "settingsBodyHealth": "身體與健康"
+  "settingsBodyHealth": "身體與健康",
+  "timerStopLeaveAsk": "停止正在運行的計時器並離開嗎?",
+  "timerStopLeave": "停止並離開",
+  "timerDiscardLeave": "捨棄並離開"
 }

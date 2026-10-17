@@ -1067,5 +1067,8 @@
   "focusRepsTitle": "回数",
   "focusRestOverTitle": "休憩終了",
   "focusDistanceTitle": "距離",
-  "settingsBodyHealth": "体と健康"
+  "settingsBodyHealth": "体と健康",
+  "timerStopLeaveAsk": "動いているタイマーを止めて、閉じますか?",
+  "timerStopLeave": "止めて閉じる",
+  "timerDiscardLeave": "破棄して閉じる"
 }

@@ -4179,6 +4179,15 @@ class LZh extends L {
 
   @override
   String get settingsBodyHealth => '身体与健康';
+
+  @override
+  String get timerStopLeaveAsk => '停止正在运行的计时器并离开吗?';
+
+  @override
+  String get timerStopLeave => '停止并离开';
+
+  @override
+  String get timerDiscardLeave => '丢弃并离开';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -8356,6 +8365,15 @@ class LZhHans extends LZh {
 
   @override
   String get settingsBodyHealth => '身体与健康';
+
+  @override
+  String get timerStopLeaveAsk => '停止正在运行的计时器并离开吗?';
+
+  @override
+  String get timerStopLeave => '停止并离开';
+
+  @override
+  String get timerDiscardLeave => '丢弃并离开';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -12533,4 +12551,13 @@ class LZhHant extends LZh {
 
   @override
   String get settingsBodyHealth => '身體與健康';
+
+  @override
+  String get timerStopLeaveAsk => '停止正在運行的計時器並離開嗎?';
+
+  @override
+  String get timerStopLeave => '停止並離開';
+
+  @override
+  String get timerDiscardLeave => '捨棄並離開';
 }

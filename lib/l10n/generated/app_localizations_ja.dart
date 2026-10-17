@@ -4207,4 +4207,13 @@ class LJa extends L {
 
   @override
   String get settingsBodyHealth => '体と健康';
+
+  @override
+  String get timerStopLeaveAsk => '動いているタイマーを止めて、閉じますか?';
+
+  @override
+  String get timerStopLeave => '止めて閉じる';
+
+  @override
+  String get timerDiscardLeave => '破棄して閉じる';
 }

@@ -1,11 +1,14 @@
 import 'package:flutter/services.dart';
 import 'timing_audio_contract.dart';
 
-TimingAudio createTimingAudio() => _NativeAudio();
+/// The platform audio: one for the app, since the native side has one
+/// channel and one handler. Share it through `TimingAudioMux.shared`.
+TimingAudio createTimingAudio() => _NativeAudio._one;
 
 class _NativeAudio extends TimingAudio {
   static const _channel = MethodChannel('setpad/timing');
-  _NativeAudio() {
+  static final _one = _NativeAudio._();
+  _NativeAudio._() {
     _channel.setMethodCallHandler((call) async {
       if (call.method == 'interrupted') onInterrupted?.call();
       if (call.method == 'resumed') onResumed?.call();
@@ -42,9 +45,10 @@ class _NativeAudio extends TimingAudio {
         'rate': rate,
       });
 
+  /// Goes quiet. The handler stays: this is the app's only instance, and a
+  /// newer owner may already listen through it.
   @override
   Future<void> dispose() async {
-    _channel.setMethodCallHandler(null);
     try {
       await configure(active: false);
     } on PlatformException {

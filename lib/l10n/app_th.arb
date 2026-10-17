@@ -1067,5 +1067,8 @@
   "focusRepsTitle": "จำนวนครั้ง",
   "focusRestOverTitle": "หมดเวลาพัก",
   "focusDistanceTitle": "ระยะทาง",
-  "settingsBodyHealth": "ร่างกายและสุขภาพ"
+  "settingsBodyHealth": "ร่างกายและสุขภาพ",
+  "timerStopLeaveAsk": "หยุดตัวจับเวลาที่ทำงานอยู่ แล้วออกไหม",
+  "timerStopLeave": "หยุดแล้วออก",
+  "timerDiscardLeave": "ทิ้งแล้วออก"
 }

@@ -22,6 +22,11 @@ class FakeHealth extends HealthLink {
 
   /// A background read refused.
   void fail() => _beats.addError(StateError('refused'));
+
+  /// Asked before (the set rest listens only then).
+  bool asked = true;
+  @override
+  Future<bool> mayWatchHeart() async => asked;
 }
 
 /// Every feed ends at once (a poll that gave up).
@@ -222,5 +227,29 @@ void main() {
     final before = timer.elapsed;
     timer.skipRest();
     expect(timer.elapsed, before, reason: '시계를 건드리지 않는다');
+  });
+
+  test('a set rest listens only with the permission already given: no '
+      'permission sheet mid-rest', () async {
+    final health = FakeHealth()..asked = false;
+    final recovery = RestRecovery(health: health);
+    recovery.listenQuietly();
+    await pumpEventQueue();
+    expect(health.watched, isFalse);
+    // Asked since (the tabata's ask): the next rest listens.
+    health.asked = true;
+    recovery.listenQuietly();
+    await pumpEventQueue();
+    expect(health.watched, isTrue);
+    recovery.stop();
+    // Stopped before the answer came: it stays quiet.
+    final later = RestRecovery(health: FakeHealth());
+    later
+      ..listenQuietly()
+      ..stop();
+    await pumpEventQueue();
+    expect(later.listening, isFalse);
+    recovery.dispose();
+    later.dispose();
   });
 }

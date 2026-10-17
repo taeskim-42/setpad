@@ -82,6 +82,26 @@ class HealthLink {
     }
   }
 
+  /// Heart rate reads without a permission sheet: the person was asked
+  /// already. Never asks. iOS keeps whether reading was allowed to itself,
+  /// so the workout write asked in the same sheet ([authorize]) stands for
+  /// it; Android tells about heart rate itself.
+  Future<bool> mayWatchHeart() async {
+    if (!supported) return false;
+    final ios = _platform == TargetPlatform.iOS;
+    try {
+      await _ensureConfigured();
+      return await _health.hasPermissions(
+            [ios ? HealthDataType.WORKOUT : HealthDataType.HEART_RATE],
+            permissions: [ios ? HealthDataAccess.WRITE : HealthDataAccess.READ],
+          ) ??
+          false;
+    } catch (e) {
+      debugPrint('건강 권한 확인 실패: $e');
+      return false;
+    }
+  }
+
   /// 그 시간 동안 워치가 잰 활동 칼로리 합. 잰 것이 없으면 null.
   ///
   /// 0 이 아니라 null 인 이유는 "0 킬로칼로리를 태웠다"와 "아무도 재지

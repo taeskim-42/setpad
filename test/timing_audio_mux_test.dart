@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/timing_audio.dart';
 import 'package:setpad/timing_audio_mux.dart';
@@ -12,6 +13,11 @@ class RealAudio extends TimingAudio {
   int disposed = 0;
   Completer<void>? gate;
 
+  /// The native side: what it holds after the last call. A failing call
+  /// runs stop() there and errors.
+  bool nativeActive = false;
+  String? failOn;
+
   @override
   Future<void> configure({
     required bool active,
@@ -22,6 +28,11 @@ class RealAudio extends TimingAudio {
     calls.add('${active ? 'on' : 'off'} bpm=$bpm cue=$cue');
     final g = gate;
     if (g != null) await g.future;
+    if (cue != null && cue == failOn) {
+      nativeActive = false;
+      throw PlatformException(code: 'audioUnavailable');
+    }
+    nativeActive = active;
   }
 
   @override
@@ -191,4 +202,68 @@ void main() {
       expect(real.calls.last, 'off bpm=null cue=null');
     },
   );
+
+  test(
+    'after a failed call the merge goes out again (native stopped)',
+    () async {
+      final stage = mux.port('stage'), rest = mux.port('rest');
+      real.failOn = 'ready';
+      await stage.configure(active: true);
+      await rest.configure(active: true);
+      await rest
+          .configure(active: true, cue: 'ready')
+          .catchError((Object _) {});
+      expect(real.nativeActive, isFalse);
+      await rest.configure(active: false);
+      expect(real.nativeActive, isTrue, reason: 'the stage still keeps it on');
+    },
+  );
+
+  test('during a call a workout pause does not switch the session back on; '
+      'the end of it does', () async {
+    var clock = Duration.zero;
+    final timer = WorkoutTimer(
+      audio: mux.port('workout'),
+      now: () => clock,
+      haptic: (_) {},
+    );
+    await mux.port('stage').configure(active: true);
+    timer.toggle(Object(), const TimingSpec(tabata: true, bpm: 120));
+    clock = const Duration(seconds: 4);
+    timer.tick();
+    await pumpEventQueue();
+    real.calls.clear();
+    real.onInterrupted!();
+    await pumpEventQueue();
+    expect(timer.running, isFalse);
+    expect(real.calls, isEmpty);
+    real.onResumed!();
+    await pumpEventQueue();
+    expect(timer.running, isTrue);
+    expect(real.calls.last, startsWith('on bpm=120'));
+    // Started again before the system said so: it goes out at once.
+    real.onInterrupted!();
+    await pumpEventQueue();
+    real.calls.clear();
+    timer.resume();
+    await pumpEventQueue();
+    expect(real.calls.single, startsWith('on bpm=120'));
+    timer.dispose();
+  });
+
+  test('two owners (two editors) on one mux: one leaving keeps the other on, '
+      'both workouts hear interruptions, the last one active leads', () async {
+    final a = mux.port('workout#1'), b = mux.port('workout#2');
+    final heard = <String>[];
+    a.onInterrupted = () => heard.add('a');
+    b.onInterrupted = () => heard.add('b');
+    await a.configure(active: true, bpm: 60);
+    await b.configure(active: true, bpm: 90);
+    expect(real.calls.last, 'on bpm=90 cue=null');
+    await b.dispose();
+    expect(real.calls.last, 'on bpm=60 cue=null');
+    real.onInterrupted!();
+    expect(heard, ['a']);
+    expect(real.disposed, 0);
+  });
 }
