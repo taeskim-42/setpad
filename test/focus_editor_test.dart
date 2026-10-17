@@ -39,8 +39,10 @@ Widget app(Widget child) => CupertinoApp(
 class FakeNotifier implements RestNotifier {
   final log = <String>[];
   @override
-  Future<void> schedule(DateTime at, String title, String body) async =>
-      log.add('schedule $title $body');
+  Future<bool> schedule(DateTime at, String title, String body) async {
+    log.add('schedule $title $body');
+    return false;
+  }
   @override
   Future<void> cancel() async => log.add('cancel');
   @override

@@ -129,7 +129,7 @@ Android (`TimingBridge.kt`, `MainActivity.kt`):
 
 웹(`web/timing_audio.js` — N, `lib/timing_audio_web.dart` — A): `setpadTiming.configure(active, bpm, cue, phase)` 가 phase 로 클릭 격자를 맞추고, `setpadTiming.speak(text, locale, rate)` 가 rate 를 쓴다.
 
-`docs/timer-device-checklist.md`(N): 잠금 중 소리(iOS), 제어 센터·알림 센터·Face ID 뒤 계속, 전화 뒤 자동 재개(iOS), Android 화면 끄고 2분 뒤 자리(벽시계 보정)·소리, 블루투스 이어폰, 무음 스위치(playback 은 무시 — 의도), 설치 뒤 첫 실행 준비 3초 안에 "하나·둘", zh 기기 세는 말 언어, 잠금 중 진동 없음(의도), 심사 노트 문구("타이머 신호음·박자 세기를 잠금화면에서도 내기 위한 오디오 재생"), keep-alive 반려 시 상수 false.
+`docs/timer-device-checklist.md`(N): 잠금 중 소리(iOS), 제어 센터·알림 센터·Face ID 뒤 계속, 전화 뒤 자동 재개(iOS), Android 화면 끄고 2분 뒤 자리(벽시계 보정)·소리, 블루투스 이어폰, 무음 스위치(playback 은 무시 — 의도), 설치 뒤 첫 실행 준비 3초 안에 "하나·둘", zh 기기 세는 말 언어, 잠금 중 진동 없음(의도), 심사 노트 문구(`docs/ios-app-review-notes.md` — 들리는 박자 클릭·세는 말만 백그라운드 오디오, 소리 없는 구간은 로컬 알림).
 
 ## 6. 실행 무대 (`lib/run_page.dart`, `lib/stage_palette.dart`) — 레인 S
 

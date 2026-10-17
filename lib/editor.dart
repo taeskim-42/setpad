@@ -1746,8 +1746,8 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// it. So ask before a run first starts here — alone (▶), proposing or
   /// accepting a shared one (it starts later, maybe in the background) —
   /// never at launch: the same once-for-the-app question as the set stage's
-  /// (askRestNotify, NotesStore.focusNotifyAsked). Android only; the iOS lane
-  /// may add its own request at these spots.
+  /// (askRestNotify, NotesStore.focusNotifyAsked). Android only; iOS asks
+  /// before ▶ (_askPermissions) and before a shared run (_askSharedNotices).
   Future<void> _askRunNotify() async {
     if (defaultTargetPlatform != TargetPlatform.android || _focusAsked) return;
     _focusAsked = true;

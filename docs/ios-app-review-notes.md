@@ -18,10 +18,12 @@ Background audio (UIBackgroundModes: audio)
 setpad is a workout log with a built-in workout timer. The user can turn an
 exercise into a metronome (e.g. "Squat 60bpm") or an interval (Tabata) timer.
 While the user runs one, the app plays audible content: a metronome click on
-every beat and, if enabled, recorded spoken counts ("One, Two, Three...") and
-recorded interval cues ("Round 2, go!", "Rest!"). People keep the phone on the
-floor or in a pocket and lock it while training, so this sound must continue
-on the lock screen. That is why the app declares the audio background mode.
+every beat and, if enabled, recorded spoken counts ("One, Two, Three...").
+People keep the phone on the floor or in a pocket and lock it while training,
+so this sound must continue on the lock screen. That is why the app declares
+the audio background mode. In the foreground the app also speaks recorded
+interval cues ("Round 2, go!", "Rest!"); in the background those cues come as
+local notifications instead (see below).
 
 The app only plays audio the user started, only while that timer runs, and
 it mixes with music the user is playing (it does not stop other audio). It
@@ -34,6 +36,12 @@ each upcoming interval start ("Rest", "Round 2", "Workout complete") with the
 same recorded voice as its sound, and removes them when the user returns to
 the app. Notification permission is requested before the first timer run,
 not at launch. No Time Sensitive or Critical Alert entitlement is used.
+
+Other permissions: starting a Tabata timer for the first time also asks for
+Health access (heart rate, read to end a rest once the heart rate has
+recovered) and, on iOS 26.1 or later, for AlarmKit (to alert the end of such
+a rest on the paired Apple Watch). Both are optional; the timer works without
+them.
 
 Steps to verify the background audio:
 1. Open setpad and open today's log.

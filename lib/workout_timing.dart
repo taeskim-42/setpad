@@ -387,12 +387,7 @@ String? phraseKey(
 /// (ready included), [phase] the interval it begins (work, rest, complete),
 /// [round] the tabata round (1 for a metronome), [voice] the recorded phrase
 /// said there (a Flutter asset), null when none is.
-typedef Boundary = ({
-  Duration at,
-  TimingPhase phase,
-  int round,
-  String? voice,
-});
+typedef Boundary = ({Duration at, TimingPhase phase, int round, String? voice});
 
 /// The boundaries of a run of [s] that come after [from] by at least
 /// [lead], earliest first, at most [limit]. A boundary sooner than [lead] is
@@ -893,6 +888,10 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   /// notification says.
   Set<int> _covered = const {};
 
+  /// How long the app surely stays awake after going away (the native 3 s
+  /// background task, less a margin): boundaries sooner are not notified.
+  static const awakeAway = Duration(milliseconds: 2500);
+
   /// Bumped by every schedule and cancel: a schedule that returns after a
   /// newer one, or after the cancel, covers nothing.
   int _coverGen = 0;
@@ -912,6 +911,11 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
       countAloud: countAloud,
       limit: maxBoundaryNotices,
     );
+    // The app stays awake the first seconds away (the native side holds a
+    // 3 s background task to set these): a boundary that soon is the app's
+    // own to say, so it neither sounds twice while the notices are being set
+    // nor goes unsaid.
+    list.removeWhere((b) => b.at - from < awakeAway);
     if (list.isEmpty) return;
     final gen = ++_coverGen;
     _scheduled = true;

@@ -56,7 +56,7 @@ class TimingService : Service() {
         private val handler = Handler(Looper.getMainLooper())
         private val ending = Runnable { if (!wanted) running?.end() }
 
-        /// Best effort, like the iOS keep-alive: if Android refuses (the app is in
+        /// Best effort: if Android refuses (the app is in
         /// the background, e.g. a partner's run arriving), the timer runs without
         /// it until [retry] when the app comes to the front.
         fun start(context: Context) {

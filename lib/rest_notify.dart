@@ -27,9 +27,9 @@ class LocalRestNotifier implements RestNotifier {
   static Future<bool> ensurePermission() => AgentAlarm.ensurePermission();
 
   @override
-  Future<void> schedule(DateTime at, String title, String body) async {
+  Future<bool> schedule(DateTime at, String title, String body) async {
     final plugin = await AgentAlarm.plugin;
-    if (plugin == null) return;
+    if (plugin == null) return false;
     final asset = voice?.call();
     // Ready since the stage opened; this only looks it up.
     if (asset != null) await NotificationSounds.prepare([asset]);
@@ -38,7 +38,9 @@ class LocalRestNotifier implements RestNotifier {
         id,
         title,
         body,
-        tz.TZDateTime.from(at, tz.UTC),
+        // The calendar trigger keeps whole seconds: rounded up, never before
+        // the rest's end (lib/boundary_notify.dart).
+        tz.TZDateTime.from(wholeSecondUp(at), tz.UTC),
         _details(
           title,
           sound: asset == null ? null : NotificationSounds.of(asset),
@@ -49,7 +51,16 @@ class LocalRestNotifier implements RestNotifier {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-    } catch (_) {}
+    } catch (_) {
+      return false;
+    }
+    if (defaultTargetPlatform != TargetPlatform.iOS) return false;
+    final allowed = await plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >()
+        ?.checkPermissions();
+    return allowed != null && allowed.isEnabled && allowed.isSoundEnabled;
   }
 
   // The channel is named after what it says ("Rest's over"): no separate
@@ -69,8 +80,9 @@ class LocalRestNotifier implements RestNotifier {
   /// Android schedules inexactly (no exact-alarm permission): with the
   /// workout service keeping the app alive, the end sound has just played
   /// and the scheduled notice could still come minutes later, in the next
-  /// set. So it is replaced by one shown now. iOS schedules exactly: its
-  /// notice comes with the end sound already, left alone.
+  /// set. So it is replaced by one shown now. iOS schedules to the second
+  /// (rounded up) and its notice carries the recorded "Go!", which the app
+  /// then does not say again (RestTimer): left alone.
   @override
   Future<void> endedAway(String title, String body) async {
     if (defaultTargetPlatform != TargetPlatform.android) return;

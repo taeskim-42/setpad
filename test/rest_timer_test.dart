@@ -30,9 +30,14 @@ class FakeAudio extends TimingAudio {
 
 class FakeNotifier implements RestNotifier {
   final log = <String>[];
+
+  /// What [schedule] answers: does the notice sound the end itself.
+  bool sounds = false;
   @override
-  Future<void> schedule(DateTime at, String title, String body) async =>
-      log.add('schedule ${at.toIso8601String()} $title / $body');
+  Future<bool> schedule(DateTime at, String title, String body) async {
+    log.add('schedule ${at.toIso8601String()} $title / $body');
+    return sounds;
+  }
 
   @override
   Future<void> cancel() async => log.add('cancel');
@@ -333,6 +338,39 @@ void main() {
         expect(File(v.asset).existsSync(), isTrue, reason: v.asset);
       }
     });
+
+    test(
+      'awake in the background at the end: a notice that sounds says '
+      '"Go!", the app does not; one that cannot sound leaves it to the app',
+      () async {
+        for (final sounds in [true, false]) {
+          audio = FakeAudio();
+          notifier = FakeNotifier()..sounds = sounds;
+          clock = Duration.zero;
+          rest.dispose();
+          rest = make();
+          rest.notice = () => (title: 't', body: 'b');
+          rest.start(Object(), const Duration(seconds: 20));
+          rest.didChangeAppLifecycleState(AppLifecycleState.paused);
+          await pumpEventQueue(); // the notice's answer comes back
+          for (var ms = 50; ms <= 20000; ms += 50) {
+            at(ms);
+          }
+          await pumpEventQueue();
+          expect(rest.running, isFalse);
+          expect(
+            audio.voices.map((v) => v.asset),
+            sounds ? isEmpty : [m('start')],
+            reason: 'notice sounds: $sounds',
+          );
+          expect(
+            audio.calls.last,
+            'off complete',
+            reason: 'the end ding stays',
+          );
+        }
+      },
+    );
 
     test(
       'a rest under 30 s has no "Ten seconds!"; skip and stop say nothing',

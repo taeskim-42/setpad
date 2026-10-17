@@ -132,9 +132,12 @@ final class TimingBridge {
       handoff = UIApplication.shared.beginBackgroundTask(withName: "setpad.timing.notices") { [weak self] in
         Task { @MainActor in self?.endHandoff() }
       }
+      // Ends only this task: locking again within 3 s starts a new one, which
+      // keeps its own full 3 s to schedule the notices.
+      let mine = handoff
       Task { @MainActor [weak self] in
         try? await Task.sleep(nanoseconds: 3_000_000_000)
-        self?.endHandoff()
+        if let self, self.handoff == mine { self.endHandoff() }
       }
     }
     settle()

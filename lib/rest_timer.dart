@@ -7,7 +7,10 @@ import 'workout_timing.dart' show TimerHaptic, phraseVoice, platformHaptic;
 
 /// Puts the end of a rest on the lock screen while the app is away.
 abstract class RestNotifier {
-  Future<void> schedule(DateTime at, String title, String body);
+  /// True when the notice sounds the rest's end itself (iOS: notifications
+  /// and their sound allowed): then the app, if still awake in the
+  /// background, does not say "Go!" a second time.
+  Future<bool> schedule(DateTime at, String title, String body);
   Future<void> cancel();
 
   /// The rest ended while away and the app is alive to see it: the notice
@@ -73,6 +76,10 @@ class RestTimer extends ChangeNotifier with WidgetsBindingObserver {
 
   bool get running => _running;
   bool _running = false, _away = false, _disposed = false;
+
+  /// The notice set while away says "Go!" itself ([RestNotifier.schedule]).
+  bool _noticeSounds = false;
+  int _noticeGen = 0;
 
   Duration get length => _length;
   Duration _length = Duration.zero;
@@ -161,7 +168,8 @@ class RestTimer extends ChangeNotifier with WidgetsBindingObserver {
       _counted = _length;
       // One call: stopping without a cue would cut the end sound.
       _cue(active: false, cue: 'complete', haptic: TimerHaptic.success);
-      _say('start');
+      // Away with a notice that sounds: it says "Go!", not the app as well.
+      if (!(_away && _noticeSounds)) _say('start');
       final n = notifier, text = _away ? notice?.call() : null;
       if (n != null && text != null) {
         unawaited(n.endedAway(text.title, text.body));
@@ -236,6 +244,8 @@ class RestTimer extends ChangeNotifier with WidgetsBindingObserver {
     final n = notifier;
     if (n == null) return;
     unawaited(n.cancel());
+    _noticeSounds = false;
+    _noticeGen++;
     if (_away && _running) _schedule(n);
   }
 
@@ -243,7 +253,10 @@ class RestTimer extends ChangeNotifier with WidgetsBindingObserver {
     final text = notice?.call();
     if (text == null) return;
     final at = (_wallNow ?? DateTime.now)().add(remaining);
-    unawaited(n.schedule(at, text.title, text.body));
+    final gen = ++_noticeGen;
+    n.schedule(at, text.title, text.body).then((sounds) {
+      if (gen == _noticeGen && _away) _noticeSounds = sounds;
+    }, onError: (Object _) {});
   }
 
   @override
@@ -257,6 +270,8 @@ class RestTimer extends ChangeNotifier with WidgetsBindingObserver {
         final was = _away;
         _away = false;
         if (was) {
+          _noticeSounds = false;
+          _noticeGen++;
           unawaited(notifier?.cancel());
           _correctClock();
           // It ended while the app was away (suspended): the notice said so.

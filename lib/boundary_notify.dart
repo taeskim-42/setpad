@@ -222,8 +222,8 @@ class LocalBoundaryNotifier implements BoundaryNotifier {
 }
 
 /// The calendar trigger keeps whole seconds (flutter_local_notifications'
-/// iOS side drops the fraction): rounded up, a notice is never early.
-@visibleForTesting
+/// iOS side drops the fraction): rounded up, a notice is never early. The
+/// set-rest notice uses it too (lib/rest_notify.dart).
 DateTime wholeSecondUp(DateTime t) {
   final r = t.microsecondsSinceEpoch % Duration.microsecondsPerSecond;
   return r == 0

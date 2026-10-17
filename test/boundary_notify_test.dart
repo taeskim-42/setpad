@@ -23,7 +23,8 @@ class FakeNotifier implements BoundaryNotifier {
   int cancels = 0;
 
   @override
-  Future<void> prepare(Iterable<String> voices) async => prepared.addAll(voices);
+  Future<void> prepare(Iterable<String> voices) async =>
+      prepared.addAll(voices);
 
   @override
   Future<int> schedule(
@@ -87,10 +88,10 @@ void main() {
         '83000 complete 3 done',
       ]);
       // tail keeps the last rest; one round says "Go!".
-      expect(
-        runBoundaries(tabata.copyWith(tail: true)).map(key).skip(5),
-        ['83000 rest 3 rest', '93000 complete 3 done'],
-      );
+      expect(runBoundaries(tabata.copyWith(tail: true)).map(key).skip(5), [
+        '83000 rest 3 rest',
+        '93000 complete 3 done',
+      ]);
       expect(runBoundaries(tabata.copyWith(rounds: 1)).map(key), [
         '3000 work 1 start',
         '23000 complete 1 done',
@@ -111,15 +112,19 @@ void main() {
         runBoundaries(tabata, voiceCues: false).map((b) => b.voice).toSet(),
         {null},
       );
-      expect(runBoundaries(tabata, sex: 'w').first.voice,
-          'assets/voice/en/w/round_1.m4a');
+      expect(
+        runBoundaries(tabata, sex: 'w').first.voice,
+        'assets/voice/en/w/round_1.m4a',
+      );
     });
 
     test('metronome: the start; the end only with a goal', () {
       const metronome = TimingSpec(bpm: 60);
       expect(runBoundaries(metronome).map(key), ['3000 work 1 start']);
-      expect(runBoundaries(metronome, from: const Duration(seconds: 5)),
-          isEmpty);
+      expect(
+        runBoundaries(metronome, from: const Duration(seconds: 5)),
+        isEmpty,
+      );
       // 10 counts at 60 bpm: 3 + 9 + 0.5 + 0.05 s, as the engine's total.
       expect(runBoundaries(metronome, target: 10).map(key), [
         '3000 work 1 start',
@@ -139,9 +144,10 @@ void main() {
         ],
       );
       expect(
-        runBoundaries(tabata, from: const Duration(milliseconds: 52500))
-            .first
-            .at,
+        runBoundaries(
+          tabata,
+          from: const Duration(milliseconds: 52500),
+        ).first.at,
         const Duration(seconds: 63),
       );
     });
@@ -167,16 +173,24 @@ void main() {
       ];
       expect(titles, ['라운드 1', '휴식', '라운드 2', '휴식', '마지막 라운드', '운동 끝']);
       expect(
-        boundaryTitle(l, const TimingSpec(bpm: 60),
-            runBoundaries(const TimingSpec(bpm: 60)).single),
+        boundaryTitle(
+          l,
+          const TimingSpec(bpm: 60),
+          runBoundaries(const TimingSpec(bpm: 60)).single,
+        ),
         '시작',
       );
     });
   });
 
   group('engine and notifications', () {
-    ({WorkoutTimer timer, FakeAudio audio, FakeNotifier notifier,
-        void Function(Duration) at}) make() {
+    ({
+      WorkoutTimer timer,
+      FakeAudio audio,
+      FakeNotifier notifier,
+      void Function(Duration) at,
+    })
+    make() {
       var now = Duration.zero;
       final audio = FakeAudio(), notifier = FakeNotifier();
       final timer = WorkoutTimer(audio: audio, now: () => now)
@@ -220,8 +234,10 @@ void main() {
       expect(t.notifier.cancels, 1);
       await settle();
       expect(t.timer.round, 2);
-      expect(t.audio.log.skip(sent).where((e) => e.startsWith('voice:')),
-          isEmpty);
+      expect(
+        t.audio.log.skip(sent).where((e) => e.startsWith('voice:')),
+        isEmpty,
+      );
       t.timer.dispose();
     });
 
@@ -262,49 +278,75 @@ void main() {
       timer.dispose();
     });
 
-    test('awake in the background: cues sound, the covered phrases do not',
-        () async {
+    test('a boundary in the first seconds away is the app\'s own to say: '
+        'not notified, so neither double nor lost', () async {
       final t = make();
       t.timer.toggle(Object(), tabata);
-      t.at(const Duration(seconds: 10));
+      t.at(const Duration(seconds: 22)); // rest 1 begins at 23 s
       t.timer.didChangeAppLifecycleState(AppLifecycleState.paused);
       await settle();
+      expect(WorkoutTimer.awakeAway, const Duration(milliseconds: 2500));
+      expect(t.notifier.scheduled.single.first.at, const Duration(seconds: 33));
       final sent = t.audio.log.length;
-      for (var ms = 10000; ms <= 84000; ms += 50) {
+      for (var ms = 22050; ms <= 23500; ms += 50) {
         t.at(Duration(milliseconds: ms));
       }
       await settle();
-      final heard = t.audio.log.skip(sent).toList();
-      expect(heard.where((e) => e.startsWith('voice:')), isEmpty);
-      expect(heard, containsAll(['rest', 'work', 'complete']));
-      // The end's own notification is due as it ends: not cancelled.
-      expect(t.notifier.cancels, 0);
-      // Back in front: what was delivered comes off the lock screen, as
-      // after a suspension.
-      t.timer.didChangeAppLifecycleState(AppLifecycleState.resumed);
-      expect(t.notifier.cancels, 1);
+      expect(t.audio.log.skip(sent).where((e) => e.startsWith('voice:')), [
+        'voice:rest',
+      ]);
       t.timer.dispose();
     });
 
-    test('the system takes only some: the engine says the phrases past them',
-        () async {
-      final t = make();
-      t.notifier.room = 1;
-      t.timer.toggle(Object(), tabata);
-      t.at(const Duration(seconds: 10));
-      t.timer.didChangeAppLifecycleState(AppLifecycleState.paused);
-      await settle();
-      final sent = t.audio.log.length;
-      for (var ms = 10000; ms <= 40000; ms += 50) {
-        t.at(Duration(milliseconds: ms));
-      }
-      await settle();
-      final said = t.audio.log.skip(sent).where((e) => e.startsWith('voice:'));
-      // Rest 1 (23 s) is the notice's; round 2 (33 s) is the app's.
-      expect(said.where((e) => e == 'voice:rest'), isEmpty);
-      expect(said.where((e) => e == 'voice:round_2'), hasLength(1));
-      t.timer.dispose();
-    });
+    test(
+      'awake in the background: cues sound, the covered phrases do not',
+      () async {
+        final t = make();
+        t.timer.toggle(Object(), tabata);
+        t.at(const Duration(seconds: 10));
+        t.timer.didChangeAppLifecycleState(AppLifecycleState.paused);
+        await settle();
+        final sent = t.audio.log.length;
+        for (var ms = 10000; ms <= 84000; ms += 50) {
+          t.at(Duration(milliseconds: ms));
+        }
+        await settle();
+        final heard = t.audio.log.skip(sent).toList();
+        expect(heard.where((e) => e.startsWith('voice:')), isEmpty);
+        expect(heard, containsAll(['rest', 'work', 'complete']));
+        // The end's own notification is due as it ends: not cancelled.
+        expect(t.notifier.cancels, 0);
+        // Back in front: what was delivered comes off the lock screen, as
+        // after a suspension.
+        t.timer.didChangeAppLifecycleState(AppLifecycleState.resumed);
+        expect(t.notifier.cancels, 1);
+        t.timer.dispose();
+      },
+    );
+
+    test(
+      'the system takes only some: the engine says the phrases past them',
+      () async {
+        final t = make();
+        t.notifier.room = 1;
+        t.timer.toggle(Object(), tabata);
+        t.at(const Duration(seconds: 10));
+        t.timer.didChangeAppLifecycleState(AppLifecycleState.paused);
+        await settle();
+        final sent = t.audio.log.length;
+        for (var ms = 10000; ms <= 40000; ms += 50) {
+          t.at(Duration(milliseconds: ms));
+        }
+        await settle();
+        final said = t.audio.log
+            .skip(sent)
+            .where((e) => e.startsWith('voice:'));
+        // Rest 1 (23 s) is the notice's; round 2 (33 s) is the app's.
+        expect(said.where((e) => e == 'voice:rest'), isEmpty);
+        expect(said.where((e) => e == 'voice:round_2'), hasLength(1));
+        t.timer.dispose();
+      },
+    );
 
     for (final c in [
       (
@@ -312,8 +354,11 @@ void main() {
         const TimingSpec(tabata: true, work: 20, rest: 10, rounds: 3, bpm: 60),
         25,
       ),
-      ('metronome: let go in the count-in, back in the work',
-          const TimingSpec(bpm: 60), 1),
+      (
+        'metronome: let go in the count-in, back in the work',
+        const TimingSpec(bpm: 60),
+        1,
+      ),
     ]) {
       test('${c.$1}: the clicks go on', () async {
         var wall = DateTime(2026, 10, 17, 9);
@@ -349,21 +394,23 @@ void main() {
       });
     }
 
-    test('not allowed (or no sound): the engine says its phrases as before',
-        () async {
-      final t = make();
-      t.notifier.sounds = false;
-      t.timer.toggle(Object(), tabata);
-      t.at(const Duration(seconds: 10));
-      t.timer.didChangeAppLifecycleState(AppLifecycleState.paused);
-      await settle();
-      for (var ms = 10000; ms <= 34000; ms += 50) {
-        t.at(Duration(milliseconds: ms));
-      }
-      await settle();
-      expect(t.audio.phrases, ['round_1', 'rest', 'round_2']);
-      t.timer.dispose();
-    });
+    test(
+      'not allowed (or no sound): the engine says its phrases as before',
+      () async {
+        final t = make();
+        t.notifier.sounds = false;
+        t.timer.toggle(Object(), tabata);
+        t.at(const Duration(seconds: 10));
+        t.timer.didChangeAppLifecycleState(AppLifecycleState.paused);
+        await settle();
+        for (var ms = 10000; ms <= 34000; ms += 50) {
+          t.at(Duration(milliseconds: ms));
+        }
+        await settle();
+        expect(t.audio.phrases, ['round_1', 'rest', 'round_2']);
+        t.timer.dispose();
+      },
+    );
 
     test('pause, reset and a new run cancel; paused or finished away '
         'schedules nothing', () async {
@@ -391,18 +438,20 @@ void main() {
       t.timer.dispose();
     });
 
-    test('a shared run put back in place while away is covered again',
-        () async {
-      final t = make();
-      final owner = Object();
-      t.timer.follow(owner, tabata, const Duration(seconds: 10));
-      t.timer.didChangeAppLifecycleState(AppLifecycleState.paused);
-      expect(t.notifier.froms, [const Duration(seconds: 10)]);
-      t.timer.follow(owner, tabata, const Duration(seconds: 12));
-      expect(t.notifier.cancels, 1);
-      expect(t.notifier.froms.last, const Duration(seconds: 12));
-      t.timer.dispose();
-    });
+    test(
+      'a shared run put back in place while away is covered again',
+      () async {
+        final t = make();
+        final owner = Object();
+        t.timer.follow(owner, tabata, const Duration(seconds: 10));
+        t.timer.didChangeAppLifecycleState(AppLifecycleState.paused);
+        expect(t.notifier.froms, [const Duration(seconds: 10)]);
+        t.timer.follow(owner, tabata, const Duration(seconds: 12));
+        expect(t.notifier.cancels, 1);
+        expect(t.notifier.froms.last, const Duration(seconds: 12));
+        t.timer.dispose();
+      },
+    );
   });
 
   group('LocalBoundaryNotifier', () {
@@ -414,8 +463,12 @@ void main() {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       final n = Recording();
       expect(
-        await n.schedule(tabata, list,
-            from: const Duration(seconds: 10), now: now),
+        await n.schedule(
+          tabata,
+          list,
+          from: const Duration(seconds: 10),
+          now: now,
+        ),
         0,
       );
       await n.cancel();
@@ -430,34 +483,56 @@ void main() {
       const channel = MethodChannel('setpad/timing');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
-        expect(call.method, 'notificationSounds');
-        return {'assets/voice/en/m/rest.m4a': 'setpad-101-rest.caf'};
-      });
-      addTearDown(() => TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, null));
+            expect(call.method, 'notificationSounds');
+            return {'assets/voice/en/m/rest.m4a': 'setpad-101-rest.caf'};
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
       await NotificationSounds.prepare(['assets/voice/en/m/rest.m4a']);
-      final sounds = await n.schedule(tabata, list,
-          from: const Duration(seconds: 10), now: now);
+      final sounds = await n.schedule(
+        tabata,
+        list,
+        from: const Duration(seconds: 10),
+        now: now,
+      );
       expect(sounds, 5);
       expect(n.added.map((a) => (a.id, a.at, a.sound)), [
-        (LocalBoundaryNotifier.firstId, now.add(const Duration(seconds: 13)),
-            'setpad-101-rest.caf'),
-        (LocalBoundaryNotifier.firstId + 1,
-            now.add(const Duration(seconds: 23)), null),
-        (LocalBoundaryNotifier.firstId + 2,
-            now.add(const Duration(seconds: 43)), 'setpad-101-rest.caf'),
-        (LocalBoundaryNotifier.firstId + 3,
-            now.add(const Duration(seconds: 53)), null),
-        (LocalBoundaryNotifier.firstId + 4,
-            now.add(const Duration(seconds: 73)), null),
+        (
+          LocalBoundaryNotifier.firstId,
+          now.add(const Duration(seconds: 13)),
+          'setpad-101-rest.caf',
+        ),
+        (
+          LocalBoundaryNotifier.firstId + 1,
+          now.add(const Duration(seconds: 23)),
+          null,
+        ),
+        (
+          LocalBoundaryNotifier.firstId + 2,
+          now.add(const Duration(seconds: 43)),
+          'setpad-101-rest.caf',
+        ),
+        (
+          LocalBoundaryNotifier.firstId + 3,
+          now.add(const Duration(seconds: 53)),
+          null,
+        ),
+        (
+          LocalBoundaryNotifier.firstId + 4,
+          now.add(const Duration(seconds: 73)),
+          null,
+        ),
       ]);
       expect(n.added.first.title, 'rest 1');
       await n.cancel();
       expect(n.removed, [for (final a in n.added) a.id]);
       // Clear of the set rest's id and inside a 32-bit int.
-      expect(LocalBoundaryNotifier.firstId + LocalBoundaryNotifier.idCount,
-          lessThan(2147480000));
+      expect(
+        LocalBoundaryNotifier.firstId + LocalBoundaryNotifier.idCount,
+        lessThan(2147480000),
+      );
     });
 
     test('iOS not allowed: nothing; allowed without sound: shown, but the '
@@ -465,58 +540,86 @@ void main() {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
       final n = Recording()..allowed = (enabled: false, sound: false);
       expect(
-        await n.schedule(tabata, list,
-            from: const Duration(seconds: 10), now: now),
+        await n.schedule(
+          tabata,
+          list,
+          from: const Duration(seconds: 10),
+          now: now,
+        ),
         0,
       );
       expect(n.added, isEmpty);
       n.allowed = null; // plugin not started
       expect(
-        await n.schedule(tabata, list,
-            from: const Duration(seconds: 10), now: now),
+        await n.schedule(
+          tabata,
+          list,
+          from: const Duration(seconds: 10),
+          now: now,
+        ),
         0,
       );
       n.allowed = (enabled: true, sound: false);
       expect(
-        await n.schedule(tabata, list,
-            from: const Duration(seconds: 10), now: now),
+        await n.schedule(
+          tabata,
+          list,
+          from: const Duration(seconds: 10),
+          now: now,
+        ),
         0,
       );
       expect(n.added.length, list.length);
       await n.cancel();
     });
 
-    test('iOS: under the 64 the system holds, one left for the set rest',
-        () async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-      const long = TimingSpec(tabata: true, work: 5, rest: 5, rounds: 99);
-      final many = runBoundaries(long, limit: maxBoundaryNotices);
-      final n = Recording()..others = 30;
-      expect(await n.schedule(long, many, from: Duration.zero, now: now), 33);
-      expect(n.added.length, 33);
-      await n.cancel();
-      n.others = 63;
-      expect(await n.schedule(long, many, from: Duration.zero, now: now), 0);
-      expect(n.added.length, 33);
-    });
+    test(
+      'iOS: under the 64 the system holds, one left for the set rest',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        const long = TimingSpec(tabata: true, work: 5, rest: 5, rounds: 99);
+        final many = runBoundaries(long, limit: maxBoundaryNotices);
+        final n = Recording()..others = 30;
+        expect(await n.schedule(long, many, from: Duration.zero, now: now), 33);
+        expect(n.added.length, 33);
+        await n.cancel();
+        n.others = 63;
+        expect(await n.schedule(long, many, from: Duration.zero, now: now), 0);
+        expect(n.added.length, 33);
+      },
+    );
 
     test('iOS: two runs away at once hold their own ids; a cancel drops '
         'only its own; launch clears the whole range', () async {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
       final a = Recording(), b = Recording();
-      await a.schedule(tabata, list,
-          from: const Duration(seconds: 10), now: now);
-      await b.schedule(tabata, list,
-          from: const Duration(seconds: 10), now: now);
+      await a.schedule(
+        tabata,
+        list,
+        from: const Duration(seconds: 10),
+        now: now,
+      );
+      await b.schedule(
+        tabata,
+        list,
+        from: const Duration(seconds: 10),
+        now: now,
+      );
       final ids = {...a.added.map((x) => x.id), ...b.added.map((x) => x.id)};
       expect(ids.length, list.length * 2);
       await a.cancel();
       expect(a.removed, [for (final x in a.added) x.id]);
       // a's ids are free again; b keeps its own.
-      await a.schedule(tabata, list,
-          from: const Duration(seconds: 10), now: now);
-      expect(a.added.skip(list.length).map((x) => x.id),
-          a.added.take(list.length).map((x) => x.id));
+      await a.schedule(
+        tabata,
+        list,
+        from: const Duration(seconds: 10),
+        now: now,
+      );
+      expect(
+        a.added.skip(list.length).map((x) => x.id),
+        a.added.take(list.length).map((x) => x.id),
+      );
       await a.cancel();
       await b.cancel();
       final fresh = Recording();
@@ -531,14 +634,20 @@ void main() {
         'seconds): never early', () async {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
       final n = Recording();
-      await n.schedule(tabata, list,
-          from: const Duration(seconds: 10, milliseconds: 400), now: now);
+      await n.schedule(
+        tabata,
+        list,
+        from: const Duration(seconds: 10, milliseconds: 400),
+        now: now,
+      );
       // Rest 1 at 23 s is 12.6 s away: 13 s, not 12.
       expect(n.added.first.at, now.add(const Duration(seconds: 13)));
       await n.cancel();
       expect(wholeSecondUp(now), now);
-      expect(wholeSecondUp(now.add(const Duration(microseconds: 1))),
-          now.add(const Duration(seconds: 1)));
+      expect(
+        wholeSecondUp(now.add(const Duration(microseconds: 1))),
+        now.add(const Duration(seconds: 1)),
+      );
     });
   });
 
@@ -552,12 +661,15 @@ void main() {
         const channel = MethodChannel('setpad/timing');
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (call) async {
-          calls.add(call);
-          return null;
-        });
-        addTearDown(() => TestDefaultBinaryMessengerBinding
-            .instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, null));
+              calls.add(call);
+              return null;
+            });
+        addTearDown(
+          () => TestDefaultBinaryMessengerBinding
+              .instance
+              .defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, null),
+        );
         await createTimingAudio().keepAlive(true, linger: true);
         expect(calls.map((c) => c.method), ['keepAlive']);
         expect(calls.single.arguments, {'on': true, 'linger': true});

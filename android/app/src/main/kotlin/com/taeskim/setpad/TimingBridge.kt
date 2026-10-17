@@ -165,8 +165,9 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                 result.success(null)
             }
             else if (call.method == "keepAlive") {
-                // Where iOS starts and stops its keep-alive loop, minus the set
-                // stage alone (lib/timing_audio_mux.dart). A finishing cue (0.7 s
+                // While a sounding timer runs (a workout run or a set rest; the
+                // set stage alone does not count, lib/timing_audio_mux.dart),
+                // the same signal iOS uses for its audio session. A finishing cue (0.7 s
                 // ding, then done.m4a 2.5 s or "Go!") keeps it 6 s more.
                 if (call.argument<Boolean>("on") == true) TimingService.start(activity.applicationContext)
                 else TimingService.stop(if (call.argument<Boolean>("linger") == true) 6000L else 0L)
