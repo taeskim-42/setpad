@@ -38,12 +38,8 @@ class _NativeAudio extends TimingAudio {
   });
 
   @override
-  Future<void> speak(String text, String locale, {double rate = 1.15}) =>
-      _channel.invokeMethod<void>('speak', {
-        'text': text,
-        'locale': locale,
-        'rate': rate,
-      });
+  Future<void> playVoice(String asset, {bool onBeat = false}) =>
+      _channel.invokeMethod<void>('voice', {'asset': asset, 'onBeat': onBeat});
 
   /// Goes quiet. The handler stays: this is the app's only instance, and a
   /// newer owner may already listen through it.

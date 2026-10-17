@@ -332,11 +332,6 @@ class LVi extends L {
   }
 
   @override
-  String timingRoundDone(int n) {
-    return 'Xong hiệp $n';
-  }
-
-  @override
   String get timingMetronome => 'Máy đếm nhịp';
 
   @override
@@ -4341,4 +4336,20 @@ class LVi extends L {
 
   @override
   String get focusPickDistance => 'Chọn quãng đường';
+
+  @override
+  String get voiceSetting => 'Giọng';
+
+  @override
+  String get voiceMale => 'Nam';
+
+  @override
+  String get voiceFemale => 'Nữ';
+
+  @override
+  String get voiceSettingHelp =>
+      'Đếm nhịp và lời nhắc khi tập là bản ghi âm tiếng Anh.';
+
+  @override
+  String get voiceCuesSetting => 'Lời nhắc bằng giọng nói khi tập';
 }

@@ -1,5 +1,5 @@
 (() => {
-  let context, beat, tempo, wake, beatStartedAt = 0, cueEndsAt = 0, pendingSpeech;
+  let context, beat, tempo, wake, beatStartedAt = 0, cueEndsAt = 0;
   // Pitch, partials, length and loudness measured from Tempo's cue recordings
   // (bpm.mp3, prebpm.mp3, end_3s.mp3), so the two apps sound like one.
   const ding = [[1787, 1], [2664, .38], [1010, .29]];
@@ -20,10 +20,15 @@
     }
     return buffer;
   };
-  const dropPending = () => { clearTimeout(pendingSpeech); pendingSpeech = null; };
-  const cancelSpeech = () => { dropPending(); window.speechSynthesis?.cancel(); };
+  // Recorded words (lib/workout_timing.dart countVoice, phraseVoice); Flutter
+  // web serves an asset under assets/.
+  const voices = new Map();
+  let voice, pendingCount = null, pendingPhrase = null;
+  const sounding = () => voice && !voice.paused && !voice.ended ? Math.max(0, (voice.duration || 0) - voice.currentTime) : 0;
+  const dropPending = () => { clearTimeout(pendingCount); pendingCount = null; };
+  const cancelVoice = () => { dropPending(); clearTimeout(pendingPhrase); pendingPhrase = null; if (voice) { voice.pause(); voice = null; } };
   const silence = () => { if (beat) { beat.stop(); beat = null; } tempo = null; if (wake) { wake.release(); wake = null; } };
-  const stop = () => { cancelSpeech(); silence(); };
+  const stop = () => { cancelVoice(); silence(); };
   window.setpadTiming = { configure: async (active, bpm, cue, phase = 0) => {
     // Pausing or stopping cuts the voice.
     if (!active && !cue) { stop(); if (context) await context.suspend(); return; }
@@ -55,26 +60,28 @@
     }
     if (active && !wake && navigator.wakeLock) { try { wake = await navigator.wakeLock.request('screen'); } catch (_) {} }
   }};
-  // Match Tempo: read half a beat after the click, capped at one second.
-  setpadTiming.speak = (text, locale, rate) => {
-    const speech = window.speechSynthesis;
-    if (!context || !text || !speech || speech.speaking || speech.pending || pendingSpeech != null) return;
-    const at = context.currentTime;
-    // A Tabata with no BPM still announces its rounds, so there may be no beat to wait for.
-    const into = beat ? (at - beatStartedAt) % beat.buffer.duration : 0;
-    const delay = beat
-      ? Math.max(0, Math.min(30 / tempo, 1) - into, cueEndsAt - at)
-      : Math.max(0, cueEndsAt - at);
-    pendingSpeech = setTimeout(() => {
-      pendingSpeech = null;
-      if (speech.speaking || speech.pending) return;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = locale;
-      utterance.rate = rate || 1.2;
-      speech.speak(utterance);
-    }, delay > 0 ? delay * 1000 + 5 : 0);
+  // A count (onBeat) matches Tempo: half a beat after the click, capped at one
+  // second, dropped if the word before is still sounding then. A phrase comes
+  // once the cue and the word sounding are over; counts wait out a phrase.
+  setpadTiming.voice = (asset, onBeat) => {
+    if (!context || !asset || (onBeat && pendingPhrase != null)) return;
+    let audio = voices.get(asset);
+    if (!audio) { audio = new Audio('assets/' + asset); audio.preload = 'auto'; voices.set(asset, audio); }
+    const at = context.currentTime, into = beat ? (at - beatStartedAt) % beat.buffer.duration : 0;
+    const delay = onBeat
+      ? Math.max(0, beat ? Math.min(30 / tempo, 1) - into : 0, cueEndsAt - at)
+      : Math.max(0, cueEndsAt - at, sounding());
+    const play = () => {
+      if (onBeat) { pendingCount = null; if (sounding() > 0) return; } else pendingPhrase = null;
+      if (voice) voice.pause();
+      voice = audio;
+      if (audio.currentTime) audio.currentTime = 0;
+      audio.play().catch(() => {}); // the browser blocked it: the beat goes on
+    };
+    const wait = delay > 0 ? delay * 1000 + 5 : 0;
+    if (onBeat) { dropPending(); pendingCount = setTimeout(play, wait); }
+    else { clearTimeout(pendingPhrase); pendingPhrase = setTimeout(play, wait); }
   };
   document.addEventListener('visibilitychange', () => { if (document.hidden) { stop(); if (context) context.suspend(); } });
   window.addEventListener('pagehide', stop);
 })();
-

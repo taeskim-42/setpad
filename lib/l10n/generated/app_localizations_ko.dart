@@ -325,11 +325,6 @@ class LKo extends L {
   }
 
   @override
-  String timingRoundDone(int n) {
-    return '$n라운드 종료';
-  }
-
-  @override
   String get timingMetronome => '메트로놈';
 
   @override
@@ -4227,4 +4222,19 @@ class LKo extends L {
 
   @override
   String get focusPickDistance => '거리 정하기';
+
+  @override
+  String get voiceSetting => '목소리';
+
+  @override
+  String get voiceMale => '남자';
+
+  @override
+  String get voiceFemale => '여자';
+
+  @override
+  String get voiceSettingHelp => '세는 말과 운동 안내는 영어 녹음으로 나와요.';
+
+  @override
+  String get voiceCuesSetting => '운동 음성 안내';
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/rest_timer.dart';
@@ -16,8 +18,11 @@ class FakeAudio extends TimingAudio {
   }) async =>
       calls.add('${active ? 'on' : 'off'}${cue == null ? '' : ' $cue'}');
 
+  /// Recorded words asked for, each with the configure calls made before it.
+  final voices = <({String asset, bool onBeat, int after})>[];
   @override
-  Future<void> speak(String text, String locale, {double rate = 1.15}) async {}
+  Future<void> playVoice(String asset, {bool onBeat = false}) async =>
+      voices.add((asset: asset, onBeat: onBeat, after: calls.length));
 
   @override
   Future<void> dispose() async => disposed++;
@@ -272,6 +277,66 @@ void main() {
       expect(notifier.log, isEmpty);
     },
   );
+
+  group('recorded words', () {
+    String m(String key) => 'assets/voice/en/m/$key.m4a';
+
+    test('"Ten seconds!" with 10 s left of a 30 s rest, "Go!" after the end '
+        'sound; no system speech', () async {
+      rest.start(Object(), const Duration(seconds: 30));
+      for (var ms = 50; ms <= 30000; ms += 50) {
+        at(ms);
+      }
+      await pumpEventQueue();
+      expect(audio.voices, [
+        (asset: m('ten_left'), onBeat: false, after: 1),
+        (asset: m('start'), onBeat: false, after: 5),
+      ]);
+      expect(
+        audio.calls[4],
+        'off complete',
+        reason: '"Go!" after the end sound',
+      );
+      for (final v in audio.voices) {
+        expect(File(v.asset).existsSync(), isTrue, reason: v.asset);
+      }
+    });
+
+    test(
+      'a rest under 30 s has no "Ten seconds!"; skip and stop say nothing',
+      () async {
+        rest.start(Object(), const Duration(seconds: 29));
+        at(19000);
+        rest.skip();
+        rest.start(Object(), const Duration(seconds: 60));
+        rest.stop();
+        await pumpEventQueue();
+        expect(audio.voices, isEmpty);
+      },
+    );
+
+    test('muted (the workout timer runs) or cues off: no words; the voice '
+        'is the setting\'s', () async {
+      muted = true;
+      rest.start(Object(), const Duration(seconds: 30));
+      at(20000);
+      at(30000);
+      muted = false;
+      rest.voiceCues = false;
+      rest.start(Object(), const Duration(seconds: 30));
+      at(50000);
+      at(60000);
+      await pumpEventQueue();
+      expect(audio.voices, isEmpty);
+      rest
+        ..voiceCues = true
+        ..voice = 'w'
+        ..start(Object(), const Duration(seconds: 2));
+      at(62000);
+      await pumpEventQueue();
+      expect(audio.voices.single.asset, 'assets/voice/en/w/start.m4a');
+    });
+  });
 
   test('dispose cancels a running rest and lets go of its port', () async {
     final other = make();

@@ -22,8 +22,15 @@ final class TimingBridge {
   private var cues: [String: AVAudioPlayer] = [:]
   private var sessionActive = false
   private var observers: [NSObjectProtocol] = []
-  private let speech = AVSpeechSynthesizer()
-  private var pendingSpeech: Task<Void, Never>?
+  /// Recorded words (Flutter assets, lib/workout_timing.dart countVoice and
+  /// phraseVoice), prepared once; the latest [voiceCache] are kept.
+  private static let voiceCache = 40
+  private var voices: [String: AVAudioPlayer] = [:]
+  private var voiceOrder: [String] = []
+  /// The word sounding, or the last one.
+  private var voice: AVAudioPlayer?
+  private var pendingCount: Task<Void, Never>?
+  private var pendingPhrase: Task<Void, Never>?
 
   init(messenger: FlutterBinaryMessenger) {
     channel = FlutterMethodChannel(name: "setpad/timing", binaryMessenger: messenger)
@@ -35,9 +42,8 @@ final class TimingBridge {
         result(nil)
         return
       }
-      if call.method == "speak" {
-        self.speak(args["text"] as? String ?? "", locale: args["locale"] as? String ?? "en",
-                   rate: args["rate"] as? Double ?? 1.15)
+      if call.method == "voice" {
+        self.playVoice(args["asset"] as? String ?? "", onBeat: args["onBeat"] as? Bool ?? false)
         result(nil)
         return
       }
@@ -76,11 +82,16 @@ final class TimingBridge {
     })
   }
 
-  /// Build the cue players ahead of the first cue. No sound and no session
-  /// activation; the category is set first so preparing cannot duck music.
+  /// Build the cue players and the first words (both voices) ahead of the
+  /// first cue. No sound and no session activation; the category is set first
+  /// so preparing cannot duck music.
   private func warmUp() {
     try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
     for name in ["ready", "work", "rest", "complete"] { _ = try? cuePlayer(name) }
+    for sex in ["m", "w"] {
+      for n in 1...10 { _ = voicePlayer("assets/voice/count/en/\(sex)/\(n).m4a") }
+      for key in ["start", "rest"] { _ = voicePlayer("assets/voice/en/\(sex)/\(key).m4a") }
+    }
   }
 
   private func activateSession() throws {
@@ -90,51 +101,80 @@ final class TimingBridge {
     sessionActive = true
   }
 
-  /// Match Tempo: click, then count half a beat later (at most one second).
+  /// A count ([onBeat]) matches Tempo: click, then the count half a beat
+  /// later (at most one second).
   ///
   /// The count comes from Dart's clock and the click from this player, which
   /// started a few tens of milliseconds later. So when a count arrives the click
   /// it belongs to may not have sounded yet (the loop is near its end): then
   /// wait for that click, not for the one after half a beat ago.
   /// A newer count replaces one still waiting. If the previous word is still
-  /// sounding, wait a little for it instead of dropping this count or cutting
-  /// that one off.
-  private func speak(_ text: String, locale: String, rate: Double) {
-    guard !text.isEmpty else { return }
-    pendingSpeech?.cancel(); pendingSpeech = nil
-    var countRemaining = 0.0, patience = 0.15
-    if let tempo, let beat {
-      let period = 60.0 / Double(tempo), half = min(period / 2, 1.0), at = beat.currentTime
-      countRemaining = at > period * 0.75 ? period - at + half : max(0, half - at)
-      // Start no later than a quarter beat after the planned moment, so a late
-      // word never lands on the next click and lateness cannot pile up.
-      patience = period * 0.25
+  /// sounding, wait a little for it instead of cutting it off, then give up.
+  ///
+  /// A phrase ("Round 3, go!", "Rest!") waits for the cue and for the word
+  /// sounding or about to; a count arriving meanwhile is dropped.
+  private func playVoice(_ asset: String, onBeat: Bool) {
+    if onBeat && pendingPhrase != nil { return }
+    guard let player = voicePlayer(asset) else { return }
+    var countRemaining = 0.0, patience = 3.0
+    if onBeat {
+      pendingCount?.cancel(); pendingCount = nil
+      patience = 0.15
+      if let tempo, let beat {
+        let period = 60.0 / Double(tempo), half = min(period / 2, 1.0), at = beat.currentTime
+        countRemaining = at > period * 0.75 ? period - at + half : max(0, half - at)
+        // Start no later than a quarter beat after the planned moment, so a late
+        // word never lands on the next click and lateness cannot pile up.
+        patience = period * 0.25
+      }
+    } else {
+      pendingPhrase?.cancel(); pendingPhrase = nil
     }
     let cueRemaining = cue.flatMap { $0.isPlaying ? max(0, $0.duration - $0.currentTime) : nil } ?? 0
     let delay = max(countRemaining, cueRemaining)
-    pendingSpeech = Task { @MainActor [weak self] in
+    let task = Task { @MainActor [weak self] in
       if delay > 0 {
         try? await Task.sleep(nanoseconds: UInt64((delay + 0.005) * 1_000_000_000))
       }
       let giveUp = Date().addingTimeInterval(patience)
-      while let self, self.speech.isSpeaking, Date() < giveUp, !Task.isCancelled {
+      while let self, self.voice?.isPlaying == true || (!onBeat && self.pendingCount != nil),
+            Date() < giveUp, !Task.isCancelled {
         try? await Task.sleep(nanoseconds: 20_000_000)
       }
       guard !Task.isCancelled, let self else { return }
-      self.pendingSpeech = nil
-      guard !self.speech.isSpeaking else { return }
-      let utterance = AVSpeechUtterance(string: text)
-      utterance.voice = AVSpeechSynthesisVoice(language: locale)
-        ?? AVSpeechSynthesisVoice(language: Locale.current.identifier)
-      utterance.rate = min(AVSpeechUtteranceMaximumSpeechRate,
-                           AVSpeechUtteranceDefaultSpeechRate * Float(rate))
-      self.speech.speak(utterance)
+      if onBeat { self.pendingCount = nil } else { self.pendingPhrase = nil }
+      if self.voice?.isPlaying == true {
+        if onBeat { return }
+        self.voice?.stop()
+      }
+      player.currentTime = 0
+      if player.play() { self.voice = player } else { NSLog("[timing] voice did not play: \(asset)") }
     }
+    if onBeat { pendingCount = task } else { pendingPhrase = task }
   }
 
-  private func cancelSpeech() {
-    pendingSpeech?.cancel(); pendingSpeech = nil
-    speech.stopSpeaking(at: .immediate)
+  /// The prepared player of a Flutter asset; nil when it is not in the bundle.
+  private func voicePlayer(_ asset: String) -> AVAudioPlayer? {
+    voiceOrder.removeAll { $0 == asset }
+    voiceOrder.append(asset)
+    if let player = voices[asset] { return player }
+    if voiceOrder.count > Self.voiceCache { voices[voiceOrder.removeFirst()] = nil }
+    let key = FlutterDartProject.lookupKey(forAsset: asset)
+    guard let path = Bundle.main.path(forResource: key, ofType: nil),
+          let player = try? AVAudioPlayer(contentsOf: URL(fileURLWithPath: path)) else {
+      NSLog("[timing] no voice \(asset)")
+      return nil
+    }
+    player.prepareToPlay(); voices[asset] = player
+    return player
+  }
+
+  private func dropPendingCount() { pendingCount?.cancel(); pendingCount = nil }
+
+  private func cancelVoice() {
+    dropPendingCount()
+    pendingPhrase?.cancel(); pendingPhrase = nil
+    voice?.stop(); voice = nil
   }
 
   private func configure(active: Bool, bpm: Int?, cueName: String?, phase: Double) throws {
@@ -157,7 +197,7 @@ final class TimingBridge {
       // Pausing or stopping cuts the voice. A tempo change while running
       // (Tabata work to rest) only drops a count still waiting, and finishing
       // (the complete cue) drops nothing: the last number is allowed to finish.
-      if active { pendingSpeech?.cancel(); pendingSpeech = nil } else if cueName == nil { cancelSpeech() }
+      if active { dropPendingCount() } else if cueName == nil { cancelVoice() }
       beat?.stop(); beat = nil; tempo = validTempo
       if let bpm = validTempo {
         let player = try beatPlayer(bpm)
@@ -201,7 +241,7 @@ final class TimingBridge {
   }
 
   private func stop() {
-    cancelSpeech()
+    cancelVoice()
     beat?.stop(); beat = nil; cue?.stop(); cue = nil; tempo = nil; keepAlive?.stop()
     UIApplication.shared.isIdleTimerDisabled = false
     try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])

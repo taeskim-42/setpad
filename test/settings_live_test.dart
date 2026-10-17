@@ -91,6 +91,51 @@ void main() {
     expect(find.text('lb'), findsOneWidget, reason: '저장소 변화가 화면에 닿아야 한다');
   });
 
+  testWidgets('목소리는 남·여에서 고르고, 운동 음성 안내는 끌 수 있다 — 그 자리에서 바뀐다', (tester) async {
+    final (store, _) = await open(tester);
+    final l = await L.delegate.load(const Locale('ko'));
+    final row = find.byKey(const ValueKey('settings-voice'));
+    expect(
+      find.descendant(of: row, matching: find.text(l.voiceMale)),
+      findsOneWidget,
+      reason: '기본은 남자 목소리',
+    );
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+    expect(find.text(l.voiceSettingHelp), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('voice-w')));
+    await tester.pumpAndSettle();
+    expect(store.voice, 'w');
+    expect(
+      find.descendant(of: row, matching: find.text(l.voiceFemale)),
+      findsOneWidget,
+    );
+    final cues = find.byKey(const ValueKey('settings-voice-cues'));
+    expect(store.voiceCues, isTrue, reason: '기본 켜짐');
+    await tester.tap(
+      find.descendant(of: cues, matching: find.byType(CupertinoSwitch)),
+    );
+    await tester.pump();
+    expect(store.voiceCues, isFalse);
+    // 저장은 모아서 한다 — 그 타이머가 끝날 때까지.
+    await tester.pump(const Duration(milliseconds: 600));
+  });
+
+  test('목소리와 운동 음성 안내는 다시 열어도 그대로다', () async {
+    final store = NotesStore(directory: dir);
+    addTearDown(store.dispose);
+    store.create();
+    store
+      ..setVoice('w')
+      ..setVoiceCues(false)
+      ..setVoice('x'); // not a voice: ignored
+    await store.flush();
+    final reopened = NotesStore(directory: dir);
+    addTearDown(reopened.dispose);
+    await reopened.load();
+    expect((reopened.voice, reopened.voiceCues), ('w', false));
+  });
+
   testWidgets('운동 기록 가져오기는 설정에서 연다', (tester) async {
     await open(tester);
     await tester.tap(find.byKey(const ValueKey('settings-workout-import')));

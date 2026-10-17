@@ -80,7 +80,6 @@
   "timingBpm": "{n} BPM",
   "timingProtocol": "塔巴塔 {work}秒 / {rest}秒 · {rounds}輪",
   "timingRound": "第{n}/{total}輪",
-  "timingRoundDone": "第{n}輪結束",
   "timingMetronome": "節拍器",
   "timingReady": "準備",
   "timingWork": "運動",
@@ -1072,5 +1071,10 @@
   "timerStopLeave": "停止並離開",
   "timerDiscardLeave": "捨棄並離開",
   "focusPickTime": "設定時間",
-  "focusPickDistance": "設定距離"
+  "focusPickDistance": "設定距離",
+  "voiceSetting": "聲音",
+  "voiceMale": "男聲",
+  "voiceFemale": "女聲",
+  "voiceSettingHelp": "計數和訓練提示使用英語錄音。",
+  "voiceCuesSetting": "訓練語音提示"
 }

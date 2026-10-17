@@ -589,12 +589,6 @@ abstract class L {
   /// **'{n}/{total}라운드'**
   String timingRound(int n, int total);
 
-  /// 라운드가 끝날 때 소리로 읽어 주는 말.
-  ///
-  /// In ko, this message translates to:
-  /// **'{n}라운드 종료'**
-  String timingRoundDone(int n);
-
   /// No description provided for @timingMetronome.
   ///
   /// In ko, this message translates to:
@@ -6456,6 +6450,36 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'거리 정하기'**
   String get focusPickDistance;
+
+  /// No description provided for @voiceSetting.
+  ///
+  /// In ko, this message translates to:
+  /// **'목소리'**
+  String get voiceSetting;
+
+  /// No description provided for @voiceMale.
+  ///
+  /// In ko, this message translates to:
+  /// **'남자'**
+  String get voiceMale;
+
+  /// No description provided for @voiceFemale.
+  ///
+  /// In ko, this message translates to:
+  /// **'여자'**
+  String get voiceFemale;
+
+  /// No description provided for @voiceSettingHelp.
+  ///
+  /// In ko, this message translates to:
+  /// **'세는 말과 운동 안내는 영어 녹음으로 나와요.'**
+  String get voiceSettingHelp;
+
+  /// No description provided for @voiceCuesSetting.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 음성 안내'**
+  String get voiceCuesSetting;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

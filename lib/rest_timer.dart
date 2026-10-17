@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 
 import 'timing_audio.dart';
-import 'workout_timing.dart' show TimerHaptic, platformHaptic;
+import 'workout_timing.dart' show TimerHaptic, phraseVoice, platformHaptic;
 
 /// Puts the end of a rest on the lock screen while the app is away.
 abstract class RestNotifier {
@@ -57,6 +57,12 @@ class RestTimer extends ChangeNotifier with WidgetsBindingObserver {
   Object? owner;
 
   bool haptics = true;
+
+  /// The recorded voice ('m'/'w') and whether it speaks: "Go!" after the end
+  /// sound, "Ten seconds!" with 10 s left of a rest of 30 s or more
+  /// (NotesStore.voice, voiceCues). Muted, it says nothing either.
+  String voice = 'm';
+  bool voiceCues = true;
 
   /// Natural end (0 s) or [skip]; not [stop].
   VoidCallback? onDone;
@@ -151,10 +157,12 @@ class RestTimer extends ChangeNotifier with WidgetsBindingObserver {
       _counted = _length;
       // One call: stopping without a cue would cut the end sound.
       _cue(active: false, cue: 'complete', haptic: TimerHaptic.success);
+      _say('start');
       notifyListeners();
       onDone?.call();
       return;
     }
+    if (left == 10 && _length >= const Duration(seconds: 30)) _say('ten_left');
     if (left <= 3) _cue(active: true, cue: 'ready', haptic: TimerHaptic.tick);
     notifyListeners();
   }
@@ -177,6 +185,14 @@ class RestTimer extends ChangeNotifier with WidgetsBindingObserver {
     if (quiet && active) return;
     _sound(active: active, cue: quiet ? null : cue);
     if (haptics && !quiet) _haptic(haptic);
+  }
+
+  /// After the cue sent just before it (the port keeps the order).
+  void _say(String key) {
+    if (_disposed || !voiceCues || _quiet) return;
+    unawaited(
+      audio.playVoice(phraseVoice(voice, key)).catchError((Object _) {}),
+    );
   }
 
   void _sound({required bool active, String? cue}) {

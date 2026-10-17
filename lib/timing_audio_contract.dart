@@ -5,8 +5,8 @@ abstract class TimingAudio {
   /// may resume (iOS interruption ended with shouldResume).
   void Function()? onResumed;
 
-  /// Builds the speech engine and cue players ahead of time, silently. Safe to
-  /// call any number of times.
+  /// Builds the cue players and loads the first recorded words ahead of time,
+  /// silently. Safe to call any number of times.
   Future<void> warmUp() async {}
 
   /// [phase]: how far into the current beat the timer is, in seconds. The
@@ -19,12 +19,14 @@ abstract class TimingAudio {
     double? phase,
   });
 
-  /// Read half a beat after the click this count belongs to (at most one
-  /// second). [rate] multiplies the platform's default speech rate. A newer
-  /// count replaces one still waiting; if the previous word is still sounding,
-  /// wait briefly rather than cut it off, then give up.
-  /// Cancel pending counts when playback stops.
-  Future<void> speak(String text, String locale, {double rate = 1.15});
+  /// Plays a recorded word, a Flutter asset path ([countVoice],
+  /// [phraseVoice]). [onBeat] (a count): half a beat after the click it
+  /// belongs to (at most one second); a newer count replaces one still
+  /// waiting, and if the previous word is still sounding it waits briefly,
+  /// then gives up. Otherwise (a phrase) once the cue and the word still
+  /// sounding are over; a count never cuts in on it. Pausing or stopping
+  /// cuts both; finishing (the complete cue) does not.
+  Future<void> playVoice(String asset, {bool onBeat = false}) async {}
 
   Future<void> dispose();
 }

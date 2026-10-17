@@ -20,14 +20,34 @@ class FakeAudio extends TimingAudio {
     events.add(active ? "configure" : "stop");
     calls.add((active: active, bpm: bpm, cue: cue));
     phases.add(phase);
+    if (cue != null) log.add(cue);
   }
 
-  final spoken = <String>[];
+  /// Cues and words in the order they were sent: 'work', 'voice:round_1'.
+  final log = <String>[];
+
+  /// Recorded words asked for, as asset paths; [onBeat] alongside.
+  final voices = <String>[];
+  final onBeat = <bool>[];
   @override
-  Future<void> speak(String text, String locale, {double rate = 1.15}) async {
-    events.add('speak');
-    spoken.add(text);
+  Future<void> playVoice(String asset, {bool onBeat = false}) async {
+    events.add('voice');
+    voices.add(asset);
+    this.onBeat.add(onBeat);
+    log.add('voice:${asset.split('/').last.split('.').first}');
   }
+
+  /// The counts read, as numbers.
+  List<int> get counts => [
+    for (final v in voices)
+      if (v.contains('/count/')) int.parse(v.split('/').last.split('.').first),
+  ];
+
+  /// The phrases said ('round_1', 'rest', 'done').
+  List<String> get phrases => [
+    for (final v in voices)
+      if (!v.contains('/count/')) v.split('/').last.split('.').first,
+  ];
 
   @override
   Future<void> dispose() async {}
@@ -96,11 +116,10 @@ void main() {
       timer.dispose();
     },
   );
-  test('운동 구간이 끝나면 몇 라운드를 마쳤는지 말한다', () async {
+  test('구간이 바뀔 때 녹음으로 말한다 — 라운드, 휴식, 마지막 라운드, 완료', () async {
     var now = Duration.zero;
     final audio = FakeAudio(), owner = Object();
-    final timer = WorkoutTimer(audio: audio, now: () => now)
-      ..announceRound = ((n) => '$n라운드 종료');
+    final timer = WorkoutTimer(audio: audio, now: () => now);
     timer.toggle(
       owner,
       const TimingSpec(tabata: true, work: 5, rest: 4, rounds: 2),
@@ -108,13 +127,27 @@ void main() {
     for (var ms = 0; ms <= 21500; ms += 50) {
       now = Duration(milliseconds: ms);
       timer.tick();
-      // 실제와 같이 매 눈금마다 소리 명령이 흘러가게 둔다. 몰아서 흘리면
-      // 완료가 앞선 말까지 취소해 버려 이 검사가 무엇도 못 본다.
+      // 실제와 같이 매 눈금마다 소리 명령이 흘러가게 둔다.
       await Future<void>.delayed(Duration.zero);
     }
-    // 쉬는 구간에 들어갈 때 한 번씩. 마지막 라운드는 쉬지 않고 끝나므로 완료
-    // 소리와 겹치지 않게 말하지 않는다.
-    expect(audio.spoken, ['1라운드 종료']);
+    expect(audio.voices, [
+      'assets/voice/en/m/round_1.m4a',
+      'assets/voice/en/m/rest.m4a',
+      'assets/voice/en/m/last_round.m4a',
+      'assets/voice/en/m/done.m4a',
+    ]);
+    // Each right after the cue of its boundary, to sound once that is over.
+    expect(audio.onBeat, everyElement(isFalse));
+    expect(audio.log.where((e) => e != 'ready'), [
+      'work',
+      'voice:round_1',
+      'rest',
+      'voice:rest',
+      'work',
+      'voice:last_round',
+      'complete',
+      'voice:done',
+    ]);
     timer.dispose();
   });
 
@@ -185,6 +218,192 @@ void main() {
   _counting();
   _aloud();
   _engine();
+  _voices();
+}
+
+void _voices() {
+  group('녹음 음성', () {
+    ({WorkoutTimer timer, FakeAudio audio, void Function(int) to}) make() {
+      var now = Duration.zero;
+      final audio = FakeAudio();
+      final timer = WorkoutTimer(audio: audio, now: () => now, haptic: (_) {});
+      return (
+        timer: timer,
+        audio: audio,
+        to: (int ms) {
+          // Every 50 ms, as the real ticker, so no boundary is missed.
+          for (var t = now.inMilliseconds + 50; t <= ms; t += 50) {
+            now = Duration(milliseconds: t);
+            timer.tick();
+          }
+        },
+      );
+    }
+
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+
+    /// Every word is a recording that ships: no system speech is left.
+    void allRecorded(FakeAudio audio) {
+      expect(
+        audio.events.toSet().difference({'configure', 'stop', 'voice'}),
+        isEmpty,
+      );
+      for (final v in audio.voices.toSet()) {
+        expect(File(v).existsSync(), isTrue, reason: v);
+        expect(pubspec, contains('- ${File(v).parent.path}/'), reason: v);
+      }
+    }
+
+    test('타바타 8라운드 — 라운드·휴식·마지막·완료가 녹음이고, 시스템 음성은 한 마디도 없다', () async {
+      final t = make();
+      t.timer.toggle(Object(), const TimingSpec(tabata: true));
+      t.to(233000);
+      await pumpEventQueue();
+      expect(t.timer.phase, TimingPhase.complete);
+      expect(t.audio.phrases, [
+        for (var n = 1; n <= 7; n++) ...['round_$n', 'rest'],
+        'last_round',
+        'done',
+      ]);
+      allRecorded(t.audio);
+      t.timer.dispose();
+    });
+
+    test('박자 세기를 켜면 운동 시작의 말 대신 첫 숫자가 시작을 알린다 — 타바타 박자도, 메트로놈 30회도', () async {
+      final t = make();
+      t.timer
+        ..countAloud = true
+        ..toggle(
+          Object(),
+          const TimingSpec(tabata: true, bpm: 60, work: 5, rest: 4, rounds: 2),
+        );
+      t.to(21500);
+      await pumpEventQueue();
+      expect(t.audio.log.where((e) => e.startsWith('voice:')), [
+        for (var n = 1; n <= 5; n++) 'voice:$n',
+        'voice:rest',
+        for (var n = 1; n <= 5; n++) 'voice:$n',
+        'voice:done',
+      ]);
+      expect(t.audio.onBeat, [
+        ...List.filled(5, true),
+        false,
+        ...List.filled(5, true),
+        false,
+      ]);
+      allRecorded(t.audio);
+      t.timer.dispose();
+
+      final m = make();
+      m.timer
+        ..countAloud = true
+        ..toggle(Object(), const TimingSpec(bpm: 60), target: 30);
+      m.to(33000);
+      await pumpEventQueue();
+      expect(m.timer.phase, TimingPhase.complete);
+      expect(m.audio.counts, [for (var n = 1; n <= 30; n++) n]);
+      expect(m.audio.phrases, ['done']);
+      allRecorded(m.audio);
+      m.timer.dispose();
+    });
+
+    test('세지 않는 메트로놈은 "Go!" 로 시작한다', () async {
+      final t = make();
+      t.timer.toggle(Object(), const TimingSpec(bpm: 60), target: 3);
+      t.to(6000);
+      await pumpEventQueue();
+      expect(t.audio.phrases, ['start', 'done']);
+      expect(t.audio.counts, isEmpty);
+      t.timer.dispose();
+    });
+
+    test(
+      '라운드는 30 까지 번호로, 그 위는 "Go!", 마지막은 last_round; 한 라운드짜리는 "Go!"',
+      () async {
+        final t = make();
+        t.timer.toggle(Object(), const TimingSpec(tabata: true, rounds: 32));
+        while (t.timer.phase != TimingPhase.complete) {
+          t.timer.skip();
+          // A tap at a time: a skip drops the words still queued before it.
+          await pumpEventQueue();
+        }
+        await pumpEventQueue();
+        final works = [
+          for (final p in t.audio.phrases)
+            if (p != 'rest' && p != 'done') p,
+        ];
+        expect(works, [
+          for (var n = 1; n <= 30; n++) 'round_$n',
+          'start',
+          'last_round',
+        ]);
+        t.timer.dispose();
+
+        final one = make();
+        one.timer.toggle(Object(), const TimingSpec(tabata: true, rounds: 1));
+        one.to(24000);
+        await pumpEventQueue();
+        expect(one.audio.phrases, ['start', 'done']);
+        one.timer.dispose();
+      },
+    );
+
+    test('같이 하기가 자리를 다시 맞춰도 같은 말을 두 번 하지 않는다 — 경계를 거꾸로 넘어도', () async {
+      final t = make();
+      final block = Object();
+      const spec = TimingSpec(tabata: true);
+      t.timer.follow(block, spec, const Duration(seconds: 2));
+      t.to(1500); // 3.5 s into the run: work 1
+      await pumpEventQueue();
+      t.timer.follow(block, spec, const Duration(seconds: 4)); // jump ahead
+      t.to(20000); // 22.5 s: still work 1
+      t.to(21000); // 23.5 s: rest 1
+      await pumpEventQueue();
+      expect(t.audio.phrases, ['round_1', 'rest']);
+      // Put back 1.5 s, into work 1, then over the same boundary again.
+      t.timer.follow(block, spec, const Duration(seconds: 22));
+      t.to(23500);
+      await pumpEventQueue();
+      expect(t.audio.phrases, ['round_1', 'rest'], reason: '두 번 말하지 않는다');
+      t.timer.dispose();
+    });
+
+    test('운동 음성 안내를 끄면 구간 말은 없고 세는 말은 그대로; 여자 목소리는 w 녹음', () async {
+      final t = make();
+      t.timer
+        ..voiceCues = false
+        ..countAloud = true
+        ..toggle(Object(), const TimingSpec(bpm: 60), target: 3);
+      t.to(6000);
+      await pumpEventQueue();
+      expect(t.audio.phrases, isEmpty);
+      expect(t.audio.counts, [1, 2, 3]);
+      t.timer.dispose();
+
+      final w = make();
+      w.timer
+        ..voice = 'w'
+        ..toggle(Object(), const TimingSpec(tabata: true, rounds: 2));
+      w.to(4000);
+      await pumpEventQueue();
+      expect(w.audio.voices, ['assets/voice/en/w/round_1.m4a']);
+      w.timer.dispose();
+    });
+
+    test('멈추면 줄 서 있던 말은 버리고, 다시 켜도 그 구간의 말을 되풀이하지 않는다', () async {
+      final t = make();
+      t.timer.toggle(Object(), const TimingSpec(tabata: true));
+      t.to(3000);
+      t.timer.pause(); // before the queued "Round 1" went out
+      await pumpEventQueue();
+      expect(t.audio.voices, isEmpty);
+      t.timer.resume();
+      t.to(4000);
+      await pumpEventQueue();
+      expect(t.audio.voices, isEmpty, reason: '이어 가기는 새 시작이 아니다');
+      t.timer.dispose();
+    });
+  });
 }
 
 void _aloud() {
@@ -194,14 +413,14 @@ void _aloud() {
     Future<List<String>> run(
       WidgetTester tester, {
       required bool aloud,
-      required String locale,
       required int ticks,
+      String voice = 'm',
     }) async {
       var now = Duration.zero;
       final audio = FakeAudio();
       final timer = WorkoutTimer(audio: audio, now: () => now)
         ..countAloud = aloud
-        ..voiceLocale = locale;
+        ..voice = voice;
       timer.toggle(Object(), const TimingSpec(bpm: 60)); // 1초에 한 박
       await tester.idle();
       // 앞 3초는 준비 카운트다운이라 박자가 없다.
@@ -214,15 +433,15 @@ void _aloud() {
       timer.pause();
       await tester.idle(); // 소리 명령이 차례로 흘러가게 둔다
       timer.dispose();
-      return audio.spoken;
+      return [
+        for (final v in audio.voices)
+          if (v.contains('/count/')) v,
+      ];
     }
 
-    testWidgets('켜면 박자마다 세는 말을 읽는다', (tester) async {
-      expect(await run(tester, aloud: true, locale: 'ko', ticks: 3), [
-        '하나',
-        '둘',
-        '셋',
-        '넷',
+    testWidgets('켜면 박자마다 녹음한 세는 말을 박에 맞춰 낸다', (tester) async {
+      expect(await run(tester, aloud: true, ticks: 3), [
+        for (var n = 1; n <= 4; n++) 'assets/voice/count/en/m/$n.m4a',
       ]);
     });
 
@@ -258,12 +477,12 @@ void _aloud() {
       timer.toggle(Object(), const TimingSpec(bpm: 60));
       timer.pause();
       await tester.idle();
-      expect(audio.spoken, isEmpty);
+      expect(audio.voices, isEmpty);
       expect(audio.events.last, 'stop');
       timer.dispose();
     });
 
-    Future<List<String>> counts(
+    Future<List<int>> counts(
       WidgetTester tester,
       int bpm,
       int beats, {
@@ -272,8 +491,7 @@ void _aloud() {
       var now = Duration.zero;
       final audio = FakeAudio();
       final timer = WorkoutTimer(audio: audio, now: () => now)
-        ..countAloud = true
-        ..voiceLocale = 'ko';
+        ..countAloud = true;
       timer.toggle(Object(), TimingSpec(bpm: bpm));
       // 50ms 마다 본다 — 실제 타이머와 같은 간격. [jitter] 면 틱이 세 번에 한 번
       // 40ms 늦게 돈다(프레임 빌드·GC). 박자를 알아채는 때가 들쭉날쭉해진다.
@@ -286,56 +504,17 @@ void _aloud() {
       timer.pause();
       await tester.idle();
       timer.dispose();
-      return audio.spoken;
+      return audio.counts;
     }
 
-    testWidgets('100bpm 에서 스물일곱도 빠지지 않는다 — 빨리 읽어 한 박에 넣는다', (tester) async {
-      final said = await counts(tester, 100, 40);
-      expect(said, [
-        for (var n = 1; n <= said.length; n++) spokenCount(n, 'ko'),
-      ]);
-      expect(said.length, greaterThanOrEqualTo(40));
-      expect(countPace('스물일곱', 'ko', 100).rate, lessThanOrEqualTo(2.0));
-      expect(
-        countPace('스물일곱', 'ko', 100).seconds,
-        lessThanOrEqualTo(0.6),
-        reason: '다음 박자 전에 끝난다',
-      );
+    testWidgets('백까지 박마다 녹음을 내고, 101 부터는 읽지 않는다 — 클릭만 간다', (tester) async {
+      final said = await counts(tester, TimingSpec.maxBpm, 105);
+      expect(said, [for (var n = 1; n <= 100; n++) n]);
     });
 
-    testWidgets('가장 빠른 120bpm — 아흔아홉까지는 다 읽고, 세 자리는 앞 말이 끝난 뒤 첫 박자에서 읽는다', (
-      tester,
-    ) async {
-      final first = await counts(tester, TimingSpec.maxBpm, 135);
-      final second = await counts(tester, TimingSpec.maxBpm, 135);
-      expect(first, second, reason: '빠지는 박자를 운에 맡기지 않는다');
-      expect(first.take(99), [
-        for (var n = 1; n <= 99; n++) spokenCount(n, 'ko'),
-      ]);
-      final numbers = [
-        for (final t in first)
-          List.generate(
-            999,
-            (i) => i + 1,
-          ).firstWhere((n) => spokenCount(n, 'ko') == t),
-      ];
-      expect(numbers.last, greaterThan(100));
-      expect(numbers.length, lessThan(numbers.last), reason: '세 자리는 건너뛰며 읽는다');
-      // 어림값으로 보면 읽는 말끼리 겹치지 않는다.
-      for (var i = 1; i < numbers.length; i++) {
-        final gap = (numbers[i] - numbers[i - 1]) * 60 / TimingSpec.maxBpm;
-        expect(
-          countPace(first[i - 1], 'ko', TimingSpec.maxBpm).seconds,
-          lessThanOrEqualTo(gap + 0.001),
-        );
-      }
-    });
-
-    testWidgets('틱이 들쭉날쭉 늦어도 120bpm 에서 아흔아홉까지 하나도 안 빠진다', (tester) async {
-      final said = await counts(tester, TimingSpec.maxBpm, 99, jitter: true);
-      expect(said.take(99), [
-        for (var n = 1; n <= 99; n++) spokenCount(n, 'ko'),
-      ]);
+    testWidgets('틱이 들쭉날쭉 늦어도 120bpm 에서 백까지 하나도 안 빠진다', (tester) async {
+      final said = await counts(tester, TimingSpec.maxBpm, 100, jitter: true);
+      expect(said, [for (var n = 1; n <= 100; n++) n]);
     });
 
     testWidgets('박 중간에서 다시 켜면 클릭을 그 자리에서 잇고, 읽을 때가 지난 숫자는 다시 읽지 않는다', (
@@ -344,8 +523,7 @@ void _aloud() {
       var now = Duration.zero;
       final audio = FakeAudio();
       final timer = WorkoutTimer(audio: audio, now: () => now)
-        ..countAloud = true
-        ..voiceLocale = 'ko';
+        ..countAloud = true;
       final spec = const TimingSpec(bpm: 60); // 한 박 1초
       timer.toggle(Object(), spec);
       for (var ms = 50; ms <= 5000; ms += 50) {
@@ -358,7 +536,7 @@ void _aloud() {
       timer.tick();
       timer.toggle(timer.owner!, spec);
       await tester.idle();
-      final before = audio.spoken.length;
+      final before = audio.counts.length;
       now = const Duration(milliseconds: 5800);
       timer.toggle(timer.owner!, spec);
       await tester.idle();
@@ -367,27 +545,26 @@ void _aloud() {
         closeTo(0.7, 0.01),
         reason: '클릭이 박 안의 그 자리에서 시작한다',
       );
-      expect(audio.spoken.length, before, reason: '반 박이 지나 셋은 다시 읽지 않는다');
+      expect(audio.counts.length, before, reason: '반 박이 지나 셋은 다시 읽지 않는다');
       for (var ms = 5850; ms <= 6900; ms += 50) {
         now = Duration(milliseconds: ms);
         timer.tick();
       }
       await tester.idle();
-      expect(audio.spoken.last, '넷');
+      expect(audio.counts.last, 4);
       timer.pause();
       await tester.idle();
       timer.dispose();
     });
 
-    testWidgets('꺼져 있으면 아무 말도 안 한다', (tester) async {
-      expect(await run(tester, aloud: false, locale: 'ko', ticks: 2), isEmpty);
+    testWidgets('꺼져 있으면 세지 않는다', (tester) async {
+      expect(await run(tester, aloud: false, ticks: 2), isEmpty);
     });
 
-    testWidgets('언어를 따라 말이 바뀐다', (tester) async {
-      // 일본어는 숫자를 읽는 말이 곧 세는 말이라 숫자를 그대로 넘긴다.
-      expect(await run(tester, aloud: true, locale: 'ja', ticks: 1), [
-        '1',
-        '2',
+    testWidgets('여자 목소리를 고르면 그 녹음으로 센다 — 앱 언어와 상관없이 영어', (tester) async {
+      expect(await run(tester, aloud: true, ticks: 1, voice: 'w'), [
+        'assets/voice/count/en/w/1.m4a',
+        'assets/voice/count/en/w/2.m4a',
       ]);
     });
   });
@@ -540,9 +717,8 @@ void _engine() {
       t.timer.dispose();
     });
 
-    test('tail 이면 마지막 라운드 종료도 말한다', () async {
+    test('tail 이면 마지막 라운드 뒤 휴식도 말한다', () async {
       final t = make();
-      t.timer.announceRound = (n) => '$n';
       t.timer.toggle(
         Object(),
         const TimingSpec(tabata: true, work: 5, rest: 4, rounds: 2, tail: true),
@@ -551,7 +727,13 @@ void _engine() {
         t.at(Duration(milliseconds: ms));
         await Future<void>.delayed(Duration.zero);
       }
-      expect(t.audio.spoken, ['1', '2']);
+      expect(t.audio.phrases, [
+        'round_1',
+        'rest',
+        'last_round',
+        'rest',
+        'done',
+      ]);
       t.timer.dispose();
     });
 
@@ -718,15 +900,13 @@ void _engine() {
 
     test('back 뒤에는 묵음이 아니다: 말 대기가 풀리고 클릭이 새 자리에 다시 놓인다', () async {
       final t = make();
-      t.timer
-        ..countAloud = true
-        ..voiceLocale = 'ko';
+      t.timer.countAloud = true;
       const spec = TimingSpec(tabata: true, bpm: 60, work: 40);
       t.timer.toggle(Object(), spec);
       walk(t.at, 50, 30000); // 27 counts into work 1
       await Future<void>.delayed(Duration.zero);
-      expect(t.audio.spoken.last, '스물여덟');
-      final calls = t.audio.calls.length, said = t.audio.spoken.length;
+      expect(t.audio.counts.last, 28);
+      final calls = t.audio.calls.length, said = t.audio.counts.length;
       t.timer.back(); // → start of work 1 (3 s)
       await Future<void>.delayed(Duration.zero);
       // The same interval: no cue, but the loop is re-placed on the new grid.
@@ -735,7 +915,7 @@ void _engine() {
       expect(t.audio.phases.last, closeTo(0, 0.001));
       walk(t.at, 30050, 32100);
       await Future<void>.delayed(Duration.zero);
-      expect(t.audio.spoken.sublist(said), ['하나', '둘', '셋']);
+      expect(t.audio.counts.sublist(said), [1, 2, 3]);
       t.timer.dispose();
     });
 
@@ -743,18 +923,16 @@ void _engine() {
       // From ready into work 1, and from rest 1 (23..33 s) into work 2.
       for (final from in [1000, 25000]) {
         final t = make();
-        t.timer
-          ..countAloud = true
-          ..voiceLocale = 'ko';
+        t.timer.countAloud = true;
         t.timer.toggle(Object(), const TimingSpec(tabata: true, bpm: 60));
         walk(t.at, 50, from);
         await Future<void>.delayed(Duration.zero);
-        final said = t.audio.spoken.length;
+        final said = t.audio.counts.length;
         t.timer.skip();
         expect(t.timer.phase, TimingPhase.work);
         walk(t.at, from + 50, from + 2100);
         await Future<void>.delayed(Duration.zero);
-        expect(t.audio.spoken.sublist(said), ['하나', '둘', '셋'], reason: '$from');
+        expect(t.audio.counts.sublist(said), [1, 2, 3], reason: '$from');
         t.timer.dispose();
       }
     });
@@ -1036,23 +1214,6 @@ void _engine() {
       addTearDown(reopened.dispose);
       await reopened.load();
       expect(reopened.hapticsOn, isFalse);
-    });
-
-    test('중국어 화면 언어는 음성 엔진이 아는 지역 태그로', () {
-      final t = make();
-      for (final (tag, want) in [
-        ('zh', 'zh-CN'),
-        ('zh-Hans', 'zh-CN'),
-        ('zh-Hans-CN', 'zh-CN'),
-        ('zh-Hant', 'zh-TW'),
-        ('zh-Hant-TW', 'zh-TW'),
-        ('ko', 'ko'),
-        ('en-US', 'en-US'),
-      ]) {
-        t.timer.voiceLocale = tag;
-        expect(t.timer.voiceLocale, want, reason: tag);
-      }
-      t.timer.dispose();
     });
   });
 }

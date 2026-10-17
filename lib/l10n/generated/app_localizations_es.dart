@@ -332,11 +332,6 @@ class LEs extends L {
   }
 
   @override
-  String timingRoundDone(int n) {
-    return 'Ronda $n completada';
-  }
-
-  @override
   String get timingMetronome => 'Metrónomo';
 
   @override
@@ -4444,4 +4439,20 @@ class LEs extends L {
 
   @override
   String get focusPickDistance => 'Elegir distancia';
+
+  @override
+  String get voiceSetting => 'Voz';
+
+  @override
+  String get voiceMale => 'Masculina';
+
+  @override
+  String get voiceFemale => 'Femenina';
+
+  @override
+  String get voiceSettingHelp =>
+      'Los conteos y las indicaciones del entrenamiento son grabaciones en inglés.';
+
+  @override
+  String get voiceCuesSetting => 'Indicaciones de voz del entrenamiento';
 }

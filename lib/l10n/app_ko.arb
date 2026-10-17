@@ -347,15 +347,6 @@
       }
     }
   },
-  "timingRoundDone": "{n}라운드 종료",
-  "@timingRoundDone": {
-    "description": "라운드가 끝날 때 소리로 읽어 주는 말.",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
   "timingMetronome": "메트로놈",
   "timingReady": "준비",
   "timingWork": "운동",
@@ -3783,5 +3774,10 @@
   "timerStopLeave": "멈추고 나가기",
   "timerDiscardLeave": "버리고 나가기",
   "focusPickTime": "시간 정하기",
-  "focusPickDistance": "거리 정하기"
+  "focusPickDistance": "거리 정하기",
+  "voiceSetting": "목소리",
+  "voiceMale": "남자",
+  "voiceFemale": "여자",
+  "voiceSettingHelp": "세는 말과 운동 안내는 영어 녹음으로 나와요.",
+  "voiceCuesSetting": "운동 음성 안내"
 }

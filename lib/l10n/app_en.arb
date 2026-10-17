@@ -80,7 +80,6 @@
   "timingBpm": "{n} BPM",
   "timingProtocol": "Tabata {work}s / {rest}s · {rounds} rounds",
   "timingRound": "Round {n}/{total}",
-  "timingRoundDone": "Round {n} done",
   "timingMetronome": "Metronome",
   "timingReady": "Ready",
   "timingWork": "Work",
@@ -1072,5 +1071,10 @@
   "timerStopLeave": "Stop and leave",
   "timerDiscardLeave": "Discard and leave",
   "focusPickTime": "Set the time",
-  "focusPickDistance": "Set the distance"
+  "focusPickDistance": "Set the distance",
+  "voiceSetting": "Voice",
+  "voiceMale": "Male",
+  "voiceFemale": "Female",
+  "voiceSettingHelp": "Counts and workout cues are English recordings.",
+  "voiceCuesSetting": "Workout voice cues"
 }

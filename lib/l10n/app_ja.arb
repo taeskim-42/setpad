@@ -80,7 +80,6 @@
   "timingBpm": "{n} BPM",
   "timingProtocol": "タバタ {work}秒 / {rest}秒 · {rounds}ラウンド",
   "timingRound": "{n}/{total}ラウンド",
-  "timingRoundDone": "{n}ラウンド終了",
   "timingMetronome": "メトロノーム",
   "timingReady": "準備",
   "timingWork": "運動",
@@ -1072,5 +1071,10 @@
   "timerStopLeave": "止めて閉じる",
   "timerDiscardLeave": "破棄して閉じる",
   "focusPickTime": "時間を決める",
-  "focusPickDistance": "距離を決める"
+  "focusPickDistance": "距離を決める",
+  "voiceSetting": "声",
+  "voiceMale": "男性",
+  "voiceFemale": "女性",
+  "voiceSettingHelp": "カウントと運動の案内は英語の録音で流れます。",
+  "voiceCuesSetting": "運動の音声案内"
 }

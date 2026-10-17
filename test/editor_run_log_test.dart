@@ -205,17 +205,43 @@ void main() {
     timer.reset();
   });
 
-  testWidgets('round ends are not read aloud: the editor gives the timer '
-      'no announcement, and a whole run says nothing', (tester) async {
-    await start(tester, [ExerciseBlock('버피 타바타 5/5 x2')]);
-    expect(timer.announceRound, isNull);
+  testWidgets('round ends are not read by a system voice: a whole run plays '
+      'only the recorded English cues', (tester) async {
+    // Built inside the test body: the timer's command chain must live in the
+    // test's fake-async zone (one made in setUp never runs its sounds here).
+    final voiced = FakeAudio();
+    final own = WorkoutTimer(audio: voiced, now: () => now, haptic: (_) {});
+    addTearDown(own.dispose);
+    final c = RoutineEditorController()
+      ..restore([ExerciseBlock('버피 타바타 5/5 x2')]);
+    await tester.pumpWidget(
+      app(
+        RoutineEditor(
+          controller: c,
+          timer: own,
+          history: () => const [],
+          askTimerPermissions: () async {},
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('timer-start')));
+    await tester.pumpAndSettle();
     for (var s = 1; s <= 23; s++) {
-      await advance(tester, Duration(seconds: s));
+      now = Duration(seconds: s);
+      own.tick();
+      await tester.pump();
     }
-    expect(timer.phase, TimingPhase.complete);
-    expect(audio.spoken, isEmpty);
+    expect(own.phase, TimingPhase.complete);
+    // There is no TTS path any more; every spoken word is a bundled
+    // recording ("Rest!" where "N라운드 종료" used to be read).
+    expect(voiced.phrases, ['round_1', 'rest', 'last_round', 'done']);
+    expect(
+      voiced.voices.every((a) => a.startsWith('assets/voice/')),
+      isTrue,
+      reason: '${voiced.voices}',
+    );
     await tester.pumpWidget(const SizedBox());
-    timer.reset();
+    own.reset();
   });
 
   testWidgets('a run or the set stage takes the keyboard down with its '

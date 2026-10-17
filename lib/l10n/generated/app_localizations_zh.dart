@@ -324,11 +324,6 @@ class LZh extends L {
   }
 
   @override
-  String timingRoundDone(int n) {
-    return '第$n轮结束';
-  }
-
-  @override
   String get timingMetronome => '节拍器';
 
   @override
@@ -4194,6 +4189,21 @@ class LZh extends L {
 
   @override
   String get focusPickDistance => '设定距离';
+
+  @override
+  String get voiceSetting => '声音';
+
+  @override
+  String get voiceMale => '男声';
+
+  @override
+  String get voiceFemale => '女声';
+
+  @override
+  String get voiceSettingHelp => '计数和训练提示使用英语录音。';
+
+  @override
+  String get voiceCuesSetting => '训练语音提示';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -4516,11 +4526,6 @@ class LZhHans extends LZh {
   }
 
   @override
-  String timingRoundDone(int n) {
-    return '第$n轮结束';
-  }
-
-  @override
   String get timingMetronome => '节拍器';
 
   @override
@@ -8386,6 +8391,21 @@ class LZhHans extends LZh {
 
   @override
   String get focusPickDistance => '设定距离';
+
+  @override
+  String get voiceSetting => '声音';
+
+  @override
+  String get voiceMale => '男声';
+
+  @override
+  String get voiceFemale => '女声';
+
+  @override
+  String get voiceSettingHelp => '计数和训练提示使用英语录音。';
+
+  @override
+  String get voiceCuesSetting => '训练语音提示';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -8705,11 +8725,6 @@ class LZhHant extends LZh {
   @override
   String timingRound(int n, int total) {
     return '第$n/$total輪';
-  }
-
-  @override
-  String timingRoundDone(int n) {
-    return '第$n輪結束';
   }
 
   @override
@@ -12578,4 +12593,19 @@ class LZhHant extends LZh {
 
   @override
   String get focusPickDistance => '設定距離';
+
+  @override
+  String get voiceSetting => '聲音';
+
+  @override
+  String get voiceMale => '男聲';
+
+  @override
+  String get voiceFemale => '女聲';
+
+  @override
+  String get voiceSettingHelp => '計數和訓練提示使用英語錄音。';
+
+  @override
+  String get voiceCuesSetting => '訓練語音提示';
 }

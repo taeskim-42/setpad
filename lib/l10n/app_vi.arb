@@ -80,7 +80,6 @@
   "timingBpm": "{n} BPM",
   "timingProtocol": "Tabata {work}giây / {rest}giây · {rounds} vòng",
   "timingRound": "Vòng {n}/{total}",
-  "timingRoundDone": "Xong hiệp {n}",
   "timingMetronome": "Máy đếm nhịp",
   "timingReady": "Chuẩn bị",
   "timingWork": "Tập",
@@ -1072,5 +1071,10 @@
   "timerStopLeave": "Dừng và thoát",
   "timerDiscardLeave": "Bỏ và thoát",
   "focusPickTime": "Chọn thời gian",
-  "focusPickDistance": "Chọn quãng đường"
+  "focusPickDistance": "Chọn quãng đường",
+  "voiceSetting": "Giọng",
+  "voiceMale": "Nam",
+  "voiceFemale": "Nữ",
+  "voiceSettingHelp": "Đếm nhịp và lời nhắc khi tập là bản ghi âm tiếng Anh.",
+  "voiceCuesSetting": "Lời nhắc bằng giọng nói khi tập"
 }

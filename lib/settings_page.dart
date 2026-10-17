@@ -62,6 +62,18 @@ class SettingsPage extends StatelessWidget {
                     value: store.countAloud,
                     onChanged: (v) => store.setCountAloud(v),
                   ),
+                  SettingsRow(
+                    key: const ValueKey('settings-voice'),
+                    label: l.voiceSetting,
+                    detail: store.voice == 'w' ? l.voiceFemale : l.voiceMale,
+                    onTap: () => _pickVoice(context),
+                  ),
+                  SettingsToggle(
+                    key: const ValueKey('settings-voice-cues'),
+                    label: l.voiceCuesSetting,
+                    value: store.voiceCues,
+                    onChanged: store.setVoiceCues,
+                  ),
                   SettingsToggle(
                     key: const ValueKey('settings-haptics'),
                     label: l.timerHapticsSetting,
@@ -467,6 +479,33 @@ class SettingsPage extends StatelessWidget {
       onChanged: store.setRestSeconds,
     ),
   );
+
+  /// The recorded voice of the counts and workout cues (English in every
+  /// app language).
+  Future<void> _pickVoice(BuildContext context) async {
+    final l = L.of(context);
+    final choice = await showCupertinoModalPopup<String>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: Text(l.voiceSetting),
+        message: Text(l.voiceSettingHelp),
+        actions: [
+          for (final (v, label) in [('m', l.voiceMale), ('w', l.voiceFemale)])
+            CupertinoActionSheetAction(
+              key: ValueKey('voice-$v'),
+              isDefaultAction: v == store.voice,
+              onPressed: () => Navigator.pop(ctx, v),
+              child: Text('${v == store.voice ? '✓ ' : ''}$label'),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(l.cancel),
+        ),
+      ),
+    );
+    if (choice != null) store.setVoice(choice);
+  }
 
   Future<void> _pickUnit(BuildContext context) async {
     final l = L.of(context);

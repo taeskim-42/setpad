@@ -542,6 +542,15 @@ class NotesStore extends ChangeNotifier {
   bool _hapticsOn = true;
   bool get hapticsOn => _hapticsOn;
 
+  /// The recorded voice of the counts and workout cues: 'm' (default) or 'w'.
+  String _voice = 'm';
+  String get voice => _voice;
+
+  /// The timers say the interval starts and the end ("Round 3, go!",
+  /// "Rest!"). On by default.
+  bool _voiceCues = true;
+  bool get voiceCues => _voiceCues;
+
   /// Default rest between sets on the set stage, seconds (15..600). Changed
   /// only in settings.
   int _restSeconds = 90;
@@ -768,6 +777,8 @@ class NotesStore extends ChangeNotifier {
           _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
           _countAloud = data['countAloud'] == true;
           _hapticsOn = data['hapticsOn'] != false;
+          _voice = data['voice'] == 'w' ? 'w' : 'm';
+          _voiceCues = data['voiceCues'] != false;
           if (data['restSeconds'] case final int seconds) {
             _restSeconds = _restRange(seconds);
           }
@@ -927,6 +938,8 @@ class NotesStore extends ChangeNotifier {
       'weightUnit': _weightUnit,
       'countAloud': _countAloud,
       'hapticsOn': _hapticsOn,
+      'voice': _voice,
+      'voiceCues': _voiceCues,
       'restSeconds': _restSeconds,
       if (_restByExercise.isNotEmpty) 'restByExercise': _restByExercise,
       if (_focusNotifyAsked) 'focusNotifyAsked': true,
@@ -986,6 +999,20 @@ class NotesStore extends ChangeNotifier {
   void setHapticsOn(bool value) {
     if (value == _hapticsOn) return;
     _hapticsOn = value;
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  void setVoice(String value) {
+    if (value == _voice || (value != 'm' && value != 'w')) return;
+    _voice = value;
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  void setVoiceCues(bool value) {
+    if (value == _voiceCues) return;
+    _voiceCues = value;
     notifyListeners();
     _scheduleSave();
   }

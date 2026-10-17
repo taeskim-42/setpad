@@ -33,9 +33,6 @@ class FakeAudio extends TimingAudio {
   }) async {}
 
   @override
-  Future<void> speak(String text, String locale, {double rate = 1.15}) async {}
-
-  @override
   Future<void> dispose() async {}
 }
 
