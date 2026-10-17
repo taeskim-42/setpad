@@ -35,9 +35,11 @@ String partnerErrorText(L l, PartnerError error) => switch (error) {
 /// 코드(와 살아 있으면 링크)를 시스템 공유 시트로. 받는 사람은 메신저에서 링크를 누르거나
 /// 앱에서 코드를 친다 — 어디서 치는지도 같이 적는다.
 /// 공유 시트를 못 띄우는 곳(데스크톱)에서는 같은 글을 복사해 둔다.
+/// The link only when the server says it serves `/j/` ([PartnerSession.joinLink]):
+/// on an older server it would open a missing page, so the code goes alone.
 Future<void> sharePartnerInvite(L l, PartnerSync sync, PartnerSession s) async {
   final code = s.code ?? '';
-  final token = s.token;
+  final token = s.joinLink ? s.token : null;
   final text = token == null
       ? l.partnerShareText(code)
       : l.partnerShareTextLink(code, sync.link().partnerInviteUrl(token));

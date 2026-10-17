@@ -150,6 +150,7 @@ class PartnerSession {
     required this.state,
     this.code,
     this.token,
+    this.joinLink = false,
     this.expiresAt,
     this.partnerName,
     this.endedByMe,
@@ -166,6 +167,11 @@ class PartnerSession {
 
   /// 기다리는 동안 호스트만 가진다. 코드는 사람이 불러 주고, 토큰은 무선으로 건넨다.
   String? code, token;
+
+  /// The server serves the invite page for [token] (`/j/<token>` and its app
+  /// links), so the shared invite may carry the link. Older servers send the
+  /// token without this; the invite is then the code only.
+  final bool joinLink;
   DateTime? expiresAt;
   String? partnerName;
   bool? endedByMe;
@@ -253,6 +259,7 @@ class PartnerSession {
     'state': state.name,
     'code': ?code,
     'token': ?token,
+    if (joinLink) 'joinLink': true,
     'expiresAt': ?expiresAt?.toIso8601String(),
     'partnerName': ?partnerName,
     'endedByMe': ?endedByMe,
@@ -280,6 +287,7 @@ class PartnerSession {
             PartnerState.values.asNameMap()[j['state']] ?? PartnerState.ended,
         code: j['code'] is String ? j['code'] as String : null,
         token: j['token'] is String ? j['token'] as String : null,
+        joinLink: j['joinLink'] == true,
         expiresAt: expires is String ? DateTime.tryParse(expires) : null,
         partnerName: j['partnerName'] is String
             ? j['partnerName'] as String
@@ -605,6 +613,7 @@ class PartnerSync extends ChangeNotifier {
       state: state,
       code: body['code'] as String?,
       token: body['token'] as String?,
+      joinLink: body['joinLink'] == true,
       expiresAt: DateTime.tryParse('${body['expiresAt']}'),
       // 끝난 세션의 답은 '나 아닌 첫 사람' 하나만 준다. 같은 세션이면 이어 붙인 이름(셋 이상)과
       // 마지막에 함께 있던 사람을 지킨다 — 홈의 '첫 사람 +N' 과 종료 띠가 그것을 쓴다.

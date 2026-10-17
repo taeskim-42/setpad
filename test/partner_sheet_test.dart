@@ -537,7 +537,7 @@ void main() {
   });
 
   testWidgets(
-    '코드 입력을 누르면 클립보드의 코드를 한 번만 읽어 칩으로 권하고, 누르면 그 코드로 참여한다 · 기다리는 코드는 공유한다',
+    '코드 입력을 누르면 클립보드의 코드를 한 번만 읽어 칩으로 권하고, 누르면 그 코드로 참여한다 · 기다리는 코드는 공유하고, 링크는 /j/ 를 아는 서버에서만 붙인다',
     (tester) async {
       final dir = Directory.systemTemp.createTempSync('setpad_partner_paste_');
       addTearDown(() => dir.deleteSync(recursive: true));
@@ -628,14 +628,35 @@ void main() {
         'XY34ZW',
       );
 
-      // 서버는 기다리는 초대(내 코드)를 말한다 — 코드와 링크를 공유 시트로 보낸다.
+      // 서버는 기다리는 초대(내 코드)를 말한다. 토큰이 와도 joinLink 가 없으면(/j/ 페이지가
+      // 없는 옛 서버) 코드만 공유 시트로 보낸다 — 링크는 없는 페이지를 연다.
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('AB23CD'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('partner-share')));
       await tester.pump();
       expect(shared, contains('AB23CD'));
-      expect(shared, contains('/j/tok_abcdefghijklmnopqrstu'));
+      expect(shared, isNot(contains('/j/')));
+      expect(shared, isNot(contains('tok_abcdefghijklmnopqrstu')));
+      // /j/ 를 아는 서버는 joinLink: true 를 싣는다 — 그때는 링크도 함께.
+      t.state['joinLink'] = true;
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump();
+      shared = null;
+      await tester.tap(find.byKey(const ValueKey('partner-share')));
+      await tester.pump();
+      expect(shared, contains('AB23CD'));
+      expect(
+        shared,
+        contains('https://gym.darak.studio/j/tok_abcdefghijklmnopqrstu'),
+      );
       expect(copied, isNull);
+      expect(
+        PartnerSession.tryFromJson(
+          jsonDecode(jsonEncode(note.partner!.toJson())),
+        )!.joinLink,
+        isTrue,
+        reason: '앱을 다시 켜도 링크로 초대한다',
+      );
 
       await tester.pumpWidget(const SizedBox());
       store.dispose();
