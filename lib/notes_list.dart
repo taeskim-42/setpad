@@ -15,7 +15,7 @@ import 'daily.dart';
 import 'milestones.dart';
 import 'record_query.dart';
 import 'stats.dart' as stats;
-import 'editor.dart' show SuggestionChip;
+import 'editor.dart' show ExerciseBlock, SuggestionChip;
 import 'exercises.dart' show exerciseByName, langKeyOf;
 import 'gym.dart';
 import 'gym_page.dart';
@@ -857,6 +857,82 @@ class _NotesListPageState extends State<NotesListPage>
     };
   }
 
+  /// 시작한 카드에서 고친 것(✕·넣기·+운동·바꾸기)을 시작한 기록에도 옮긴다 — 몸 그림의
+  /// "오늘 루틴에 넣기" 와 같은 길([NotesStore.update]). 카드는 계속 "시작함" 이고 그
+  /// 기록을 보인다. 빠진 운동의 칸은 해낸 세트가 없을 때만 지운다(적은 세트는 지우지
+  /// 않는다). 바꾸기면 새 칸이 빠진 칸의 자리에 든다.
+  void _editStarted(
+    String text,
+    RoutineAsk ask,
+    RoutineEdits edits,
+    Note started,
+    void Function() change, {
+    bool swap = false,
+  }) {
+    final before = _compose(ask, edits);
+    _edit(text, () {
+      change();
+      final after = _compose(ask, edits);
+      final had = {for (final i in before.items) i.key};
+      final keep = {for (final i in after.items) i.key};
+      final inRecord = {
+        for (final b in started.blocks) exerciseKey(b.exercise),
+      };
+      final fresh = [
+        for (final i in after.items)
+          if (!inRecord.contains(i.key)) i,
+      ];
+      final blocks = <ExerciseBlock>[];
+      for (final b in started.blocks) {
+        final key = exerciseKey(b.exercise);
+        final gone =
+            had.contains(key) &&
+            !keep.contains(key) &&
+            !b.sets.any((s) => s.done);
+        if (!gone) {
+          blocks.add(b);
+        } else if (swap && fresh.isNotEmpty) {
+          blocks.add(startBlock(fresh.removeAt(0)));
+        }
+      }
+      blocks.addAll(fresh.map(startBlock));
+      widget.store.update(started, blocks);
+      edits.startedMark = draftMark(after);
+    });
+  }
+
+  /// 시작 취소: 안 한 세트(○)뿐이면 기록을 지우고, 적은 세트가 있으면 묻는다. 카드는 다시
+  /// [시작] 이 된다.
+  Future<void> _unstart(String text, RoutineEdits edits, Note started) async {
+    if (started.blocks.any((b) => b.sets.any((s) => s.done))) {
+      final l = L.of(context);
+      final ok = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (dialog) => CupertinoAlertDialog(
+          title: Text(l.routineUnstartAsk),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(dialog).pop(false),
+              child: Text(l.cancel),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.of(dialog).pop(true),
+              child: Text(l.delete),
+            ),
+          ],
+        ),
+      );
+      if (ok != true || !mounted) return;
+    }
+    _delete(started);
+    _edit(text, () {
+      edits
+        ..started = null
+        ..startedMark = null;
+    });
+  }
+
   /// 이 초안 그대로 시작한 기록.
   Note? _started(RoutineDraft draft, RoutineEdits edits) =>
       edits.startedMark == draftMark(draft)
@@ -1071,6 +1147,10 @@ class _NotesListPageState extends State<NotesListPage>
     if (ask.ask case final question? when _askedToo?.$1 != question) {
       status.add(l.routinePlateCost(l.routineAskToo(question)));
     }
+    // 칸을 고치는 칩: 시작한 카드면 시작한 기록에도 옮긴다.
+    void change(void Function() f, {bool swap = false}) => started == null
+        ? _edit(text, f)
+        : _editStarted(text, ask!, edits, started, f, swap: swap);
     final account = widget.account;
     // 원판 줄: 이 글로 서버가 답했으면(깨진 답 뒤에 칩으로 짠 카드여도) 원판이
     // 나갔다. 다시 친 글이 이번엔 보내지 않았어도 앞서 원판이 나갔으면 그렇게 말한다.
@@ -1090,21 +1170,25 @@ class _NotesListPageState extends State<NotesListPage>
           ? () => _startDraft(text, draft, edits)
           : null,
       started: started != null,
-      onRemove: (item) => _edit(text, () {
+      onRemove: (item) => change(() {
         edits.restored.remove(item.key);
         edits.removed.add(removalKey(draft, item.key));
       }),
-      onRestore: (key) => _edit(text, () {
+      onRestore: (key) => change(() {
         edits.removed.remove(removalKey(draft, key));
         edits.restored.add(key);
       }),
-      onAdd: (key) => _edit(text, () => edits.added.add(key)),
+      onAdd: (key) => change(() => edits.added.add(key)),
+      onUnstart: started == null
+          ? null
+          : () => unawaited(_unstart(text, edits, started)),
       onOther: () => _edit(text, () => edits.alt++),
       onPrevious: () => _edit(text, () => edits.previous = true),
       onPart: () => _edit(text, () => edits.part = draft.partChip),
       onStep: () => _edit(text, () => edits.step = true),
       onMode: (mode) => _edit(text, () => edits.mode = mode),
-      onSwap: (item, key) => _edit(text, () => edits.swap(item.key, key)),
+      onSwap: (item, key) =>
+          change(() => edits.swap(item.key, key), swap: true),
       spent: !charged
           ? (before ? l.routinePlatesBefore : null)
           : account?.platesSpent != null

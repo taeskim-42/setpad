@@ -941,5 +941,7 @@
   "routineBpmChip": "To a {bpm}bpm beat",
   "routineSwap": "Swap",
   "routineSwapTitle": "Instead of {name} — same body part and equipment, done in the last 28 days",
-  "routineFirstPlan": "First time, so this follows the weekly plan ({factor}) · fill in numbers as you log"
+  "routineFirstPlan": "First time, so this follows the weekly plan ({factor}) · fill in numbers as you log",
+  "routineUnstart": "Cancel start",
+  "routineUnstartAsk": "This workout has logged sets. Delete the workout too?"
 }

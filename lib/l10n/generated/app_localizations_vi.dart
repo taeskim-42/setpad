@@ -3885,4 +3885,11 @@ class LVi extends L {
   String routineFirstPlan(String factor) {
     return 'Lần đầu nên xếp theo lịch tuần ($factor) · số liệu điền khi ghi';
   }
+
+  @override
+  String get routineUnstart => 'Hủy bắt đầu';
+
+  @override
+  String get routineUnstartAsk =>
+      'Buổi tập này có hiệp đã ghi. Xóa luôn buổi tập?';
 }

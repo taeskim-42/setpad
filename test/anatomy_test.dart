@@ -1323,8 +1323,11 @@ void main() {
       expect(find.text(l.routineStarted), findsOneWidget);
     });
 
-    testWidgets('시작 뒤 ✕ 로 카드를 바꾸면 새 루틴 — 몸 그림으로 넣어도 시작한 기록인 척하지 않고 '
-        '그 기록을 바꾸지 않는다', (tester) async {
+    // 검토 #6(루틴 레인): 시작한 카드의 ✕ 는 새 루틴이 아니라 시작한 기록에서 그 칸(○ 뿐)을
+    // 뺀다 — 몸 그림으로 넣은 것도 그 기록에 붙는다(기록은 하나, 시작함 그대로).
+    testWidgets('시작 뒤 ✕ 는 시작한 기록에서 그 칸을 빼고, 몸 그림으로 넣어도 그 기록에 붙는다', (
+      tester,
+    ) async {
       final store = await pumpHome(tester);
       await add(tester, Muscle.chest, 'done:벤치프레스');
       await tester.tap(find.text(l.routineStart));
@@ -1332,16 +1335,15 @@ void main() {
       final before = names(store.created.single);
       expect(before, contains('덤벨 프레스'));
       await removeOnCard(tester, '덤벨 프레스');
+      // 카드가 채운 다음 칸(○)까지 기록은 카드 그대로다.
+      expect(names(store.created.single), isNot(contains('덤벨 프레스')));
+      expect(cardTitles(tester), names(store.created.single));
       await add(tester, Muscle.chest, 'try:케이블 크로스오버');
-      expect(names(store.created.single), before);
-      expect(find.text(l.routineStarted), findsNothing);
-      expect(find.text(l.routineStart), findsOneWidget);
-      expect(
-        find.text(l.routineRemoved('덤벨 프레스', l.routineRemovedWhy('user'))),
-        findsOneWidget,
-      );
+      expect(store.created, hasLength(1));
+      expect(names(store.created.single), contains('케이블 크로스오버'));
+      expect(find.text(l.routineStarted), findsOneWidget);
       expect(cardTitles(tester), isNot(contains('덤벨 프레스')));
-      expect(cardTitles(tester), contains('케이블 크로스오버'));
+      expect(cardTitles(tester), names(store.created.single));
     });
 
     Future<void> typedChestCard(WidgetTester tester) async {

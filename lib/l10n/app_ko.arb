@@ -3662,5 +3662,9 @@
   "routineSwapTitle": "{name} 대신 — 최근 28일에 한 같은 부위·기구 운동",
   "@routineSwapTitle": {"description": "'바꾸기' 시트 제목. 고르면 그 운동을 마지막으로 한 날의 내 세트가 든다.", "placeholders": {"name": {"type": "String"}}},
   "routineFirstPlan": "처음이라 요일표({factor})로 짰어요 · 숫자는 적으면서 채워요",
-  "@routineFirstPlan": {"description": "기록이 하나도 없을 때의 기본 루틴: 요일표 요인의 사전 운동을 숫자 없이 넣었다.", "placeholders": {"factor": {"type": "String"}}}
+  "@routineFirstPlan": {"description": "기록이 하나도 없을 때의 기본 루틴: 요일표 요인의 사전 운동을 숫자 없이 넣었다.", "placeholders": {"factor": {"type": "String"}}},
+  "routineUnstart": "시작 취소",
+  "@routineUnstart": {"description": "루틴 카드에서 [시작] 으로 만든 기록을 거둔다. 안 한 세트뿐이면 바로 지우고, 적은 세트가 있으면 묻는다."},
+  "routineUnstartAsk": "이 기록에 적은 세트가 있어요. 기록까지 지울까요?",
+  "@routineUnstartAsk": {"description": "시작 취소를 눌렀는데 시작한 기록에 해낸 세트가 있을 때 묻는 말. [취소]/[삭제]."}
 }

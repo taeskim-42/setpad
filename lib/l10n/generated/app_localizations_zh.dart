@@ -3735,6 +3735,12 @@ class LZh extends L {
   String routineFirstPlan(String factor) {
     return '第一次，所以按周表($factor)安排 · 数字边记边填';
   }
+
+  @override
+  String get routineUnstart => '取消开始';
+
+  @override
+  String get routineUnstartAsk => '这条记录里有已记下的组。连记录一起删除吗？';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7468,6 +7474,12 @@ class LZhHans extends LZh {
   String routineFirstPlan(String factor) {
     return '第一次，所以按周表($factor)安排 · 数字边记边填';
   }
+
+  @override
+  String get routineUnstart => '取消开始';
+
+  @override
+  String get routineUnstartAsk => '这条记录里有已记下的组。连记录一起删除吗？';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11201,4 +11213,10 @@ class LZhHant extends LZh {
   String routineFirstPlan(String factor) {
     return '第一次，所以按週表($factor)安排 · 數字邊記邊填';
   }
+
+  @override
+  String get routineUnstart => '取消開始';
+
+  @override
+  String get routineUnstartAsk => '這條紀錄裡有已記下的組。連紀錄一起刪除嗎？';
 }

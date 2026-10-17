@@ -3856,4 +3856,10 @@ class LTh extends L {
   String routineFirstPlan(String factor) {
     return 'ครั้งแรกเลยจัดตามตารางสัปดาห์ ($factor) · ตัวเลขเติมระหว่างจด';
   }
+
+  @override
+  String get routineUnstart => 'ยกเลิกการเริ่ม';
+
+  @override
+  String get routineUnstartAsk => 'บันทึกนี้มีเซ็ตที่จดแล้ว จะลบบันทึกด้วยไหม?';
 }

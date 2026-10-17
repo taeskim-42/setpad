@@ -3768,4 +3768,10 @@ class LJa extends L {
   String routineFirstPlan(String factor) {
     return '初めてなので週間表($factor)で組みました · 数字は記録しながら埋めます';
   }
+
+  @override
+  String get routineUnstart => '開始を取り消す';
+
+  @override
+  String get routineUnstartAsk => 'この記録には記入済みのセットがあります。記録ごと削除しますか?';
 }

@@ -941,5 +941,7 @@
   "routineBpmChip": "Theo nhịp {bpm}bpm",
   "routineSwap": "Đổi",
   "routineSwapTitle": "Thay cho {name} — cùng vùng cơ và dụng cụ, đã tập trong 28 ngày qua",
-  "routineFirstPlan": "Lần đầu nên xếp theo lịch tuần ({factor}) · số liệu điền khi ghi"
+  "routineFirstPlan": "Lần đầu nên xếp theo lịch tuần ({factor}) · số liệu điền khi ghi",
+  "routineUnstart": "Hủy bắt đầu",
+  "routineUnstartAsk": "Buổi tập này có hiệp đã ghi. Xóa luôn buổi tập?"
 }

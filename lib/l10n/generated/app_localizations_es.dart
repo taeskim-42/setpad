@@ -3940,4 +3940,11 @@ class LEs extends L {
   String routineFirstPlan(String factor) {
     return 'Es la primera vez: sigue el plan semanal ($factor) · los números se llenan al registrar';
   }
+
+  @override
+  String get routineUnstart => 'Cancelar inicio';
+
+  @override
+  String get routineUnstartAsk =>
+      'Este entrenamiento tiene series registradas. ¿Eliminarlo también?';
 }

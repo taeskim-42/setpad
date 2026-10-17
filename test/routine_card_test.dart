@@ -49,6 +49,14 @@ class _Records extends NotesStore {
     notifyListeners();
     return note;
   }
+
+  final deleted = <Note>[];
+  @override
+  void delete(Note note) {
+    records.remove(note);
+    deleted.add(note);
+    notifyListeners();
+  }
 }
 
 /// 오늘 루틴 카드(설계 §12.1 카드 + 검토 G1·G14·G16·G18).
@@ -372,6 +380,84 @@ void main() {
     await type(tester, '오늘 루틴 짜줘');
     expect(find.text('레그프레스'), findsOneWidget);
     expect(find.text('레그컬'), findsNothing);
+  });
+
+  group('시작한 뒤 카드에서 고치면 시작한 기록에 옮긴다(검토 #6)', () {
+    Finder started() => find.widgetWithText(CupertinoButton, l.routineStarted);
+
+    testWidgets('✕ 는 기록에서 그 칸을 빼고, 바꾸기는 그 자리에 새 칸 — 기록은 하나, 시작함 그대로', (
+      tester,
+    ) async {
+      final store = await pump(tester);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      final note = store.created.single;
+      await tester.tap(find.text(l.routineSwap).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('레그프레스 · '));
+      await tester.pumpAndSettle();
+      expect(note.blocks.map((b) => b.name), ['스쿼트', '루마니안 데드리프트', '레그프레스']);
+      expect(note.blocks.last.sets.every((s) => !s.done), isTrue);
+      expect(started(), findsOneWidget);
+      await tester.tap(find.byIcon(CupertinoIcons.xmark).at(1));
+      await tester.pumpAndSettle();
+      expect(note.blocks.map((b) => b.name), ['스쿼트', '레그프레스']);
+      expect(started(), findsOneWidget);
+      // 넣기로 되살리면 기록 끝에 붙는다.
+      await tester.tap(find.text(l.routineRestore));
+      await tester.pumpAndSettle();
+      expect(note.blocks.map((b) => b.name), ['스쿼트', '레그프레스', '루마니안 데드리프트']);
+      expect(store.created, hasLength(1));
+      await tester.tap(started());
+      await tester.pumpAndSettle();
+      expect(store.created, hasLength(1));
+    });
+
+    testWidgets('적은 세트가 있는 칸은 ✕ 로도 기록에서 지우지 않는다', (tester) async {
+      final store = await pump(tester);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      final note = store.created.single;
+      note.blocks.last.sets.first.done = true;
+      await tester.tap(find.byIcon(CupertinoIcons.xmark).last);
+      await tester.pumpAndSettle();
+      expect(note.blocks.map((b) => b.name), contains('레그컬'));
+    });
+
+    testWidgets('시작 취소: ○ 뿐이면 바로 지우고 [시작] 으로', (tester) async {
+      final store = await pump(tester);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.routineUnstart));
+      await tester.pumpAndSettle();
+      expect(store.deleted, store.created);
+      expect(startButton(), findsOneWidget);
+      expect(find.text(l.routineUnstart), findsNothing);
+    });
+
+    testWidgets('시작 취소: 적은 세트가 있으면 묻고, 취소하면 그대로', (tester) async {
+      final store = await pump(tester);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      store.created.single.blocks.first.sets.first.done = true;
+      await tester.tap(find.text(l.routineUnstart));
+      await tester.pumpAndSettle();
+      expect(find.text(l.routineUnstartAsk), findsOneWidget);
+      await tester.tap(find.text(l.cancel));
+      await tester.pumpAndSettle();
+      expect(store.deleted, isEmpty);
+      expect(started(), findsOneWidget);
+      await tester.tap(find.text(l.routineUnstart));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.delete));
+      await tester.pumpAndSettle();
+      expect(store.deleted, hasLength(1));
+      expect(startButton(), findsOneWidget);
+    });
   });
 
   testWidgets('다른 루틴은 다음 순위의 날을 보인다', (tester) async {

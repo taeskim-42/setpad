@@ -40,6 +40,7 @@ class RoutineCard extends StatelessWidget {
     this.onStep,
     this.onMode,
     this.onSwap,
+    this.onUnstart,
     this.spent,
     this.lang = 'ko',
   });
@@ -62,6 +63,9 @@ class RoutineCard extends StatelessWidget {
 
   /// 방식 칩([RoutineDraft.modeChips]) — 누르면 [RoutineEdits.mode].
   final void Function(String mode)? onMode;
+
+  /// 시작 취소 — 시작한 카드에서만.
+  final VoidCallback? onUnstart;
 
   /// "바꾸기" — 칸을 [RoutineItem.swaps] 의 운동으로 바꾼다.
   final void Function(RoutineItem item, String key)? onSwap;
@@ -345,6 +349,16 @@ class RoutineCard extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
+              if (started && onUnstart != null)
+                CupertinoButton(
+                  padding: const EdgeInsets.only(left: 12),
+                  minimumSize: const Size(44, 44),
+                  onPressed: onUnstart,
+                  child: Text(
+                    l.routineUnstart,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
               const SizedBox(width: 12),
               // 원판을 쓴 때만 적는다 — 기기가 짠 루틴의 '원판 0장' 은 읽을 것이 없다.
               if (spent case final s?) Expanded(child: Text(s, style: faint)),

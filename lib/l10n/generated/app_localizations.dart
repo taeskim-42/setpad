@@ -5670,6 +5670,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'처음이라 요일표({factor})로 짰어요 · 숫자는 적으면서 채워요'**
   String routineFirstPlan(String factor);
+
+  /// 루틴 카드에서 [시작] 으로 만든 기록을 거둔다. 안 한 세트뿐이면 바로 지우고, 적은 세트가 있으면 묻는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'시작 취소'**
+  String get routineUnstart;
+
+  /// 시작 취소를 눌렀는데 시작한 기록에 해낸 세트가 있을 때 묻는 말. [취소]/[삭제].
+  ///
+  /// In ko, this message translates to:
+  /// **'이 기록에 적은 세트가 있어요. 기록까지 지울까요?'**
+  String get routineUnstartAsk;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

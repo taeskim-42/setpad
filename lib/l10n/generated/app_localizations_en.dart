@@ -3912,4 +3912,11 @@ class LEn extends L {
   String routineFirstPlan(String factor) {
     return 'First time, so this follows the weekly plan ($factor) · fill in numbers as you log';
   }
+
+  @override
+  String get routineUnstart => 'Cancel start';
+
+  @override
+  String get routineUnstartAsk =>
+      'This workout has logged sets. Delete the workout too?';
 }
