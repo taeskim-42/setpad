@@ -5,6 +5,7 @@ import 'exercises.dart';
 import 'gym.dart' show Routine;
 import 'l10n/generated/app_localizations.dart';
 import 'gym_page.dart' show GymRow;
+import 'keep_all_text.dart';
 import 'palette.dart';
 import 'record_query.dart' show exerciseKey, notComputableLines;
 import 'routine.dart';
@@ -263,7 +264,7 @@ class RoutineCard extends StatelessWidget {
       for (final line in [?why, ?counts])
         Padding(
           padding: const EdgeInsets.only(top: 4),
-          child: Text(line, style: faint),
+          child: KeepAllText(line, style: faint),
         ),
       // 읽은 조건은 모델이 알아들은 것을 되비추는 말이라 목록보다 한 단계 옅게 둔다.
       // 꼭 알아야 할 줄(거절·아픈 곳·못 맞춘 조건)은 본문 그대로.

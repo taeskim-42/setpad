@@ -627,6 +627,17 @@ void main() {
     });
   });
 
+  testWidgets('the total left counts without the 3 s ready, as the card '
+      'and the summary do: 3:50 through the ready, then down', (t) async {
+    final r = Rig()..startAt(tabata, const Duration(seconds: 1));
+    await mount(t, r);
+    expect(find.text('전체 남은 3:50'), findsWidgets);
+    expect(find.textContaining('3:52'), findsNothing);
+    await advance(t, r, const Duration(seconds: 12)); // 13 s: 10 s of work
+    expect(find.text('전체 남은 3:40'), findsWidgets);
+    await done(t, r);
+  });
+
   group('logging', () {
     testWidgets('rest log: − n + [log] → onLogRound(round, n)', (t) async {
       final r = Rig()..startAt(tabata, const Duration(seconds: 13));
@@ -639,6 +650,11 @@ void main() {
       );
       await advance(t, r, const Duration(seconds: 12)); // 25 s: rest of round 1
       expect(t.widget<Text>(key('together-count')).data, '12');
+      // What the box counts, over it: not the rest's countdown.
+      final label = t.getRect(find.text('이번 라운드 횟수').first);
+      final box = t.getRect(key('together-count'));
+      expect(label.bottom, lessThanOrEqualTo(box.top));
+      expect(label.center.dx, moreOrLessEquals(box.center.dx, epsilon: 1));
       await t.tap(key('run-plus'));
       await t.pump();
       await t.tap(key('together-log'));

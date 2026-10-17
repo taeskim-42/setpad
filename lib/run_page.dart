@@ -1110,7 +1110,12 @@ class _Info extends StatelessWidget {
         _ => null,
       };
       if (next != null) left = (l.timerNext(next), l.timerNext(next));
-      final rest = math.max(0, _ceilSeconds(t.total! - t.elapsed));
+      // Without the 3 s ready, as TimingSpec.shownSeconds: the ready shows
+      // the card's total, not 3 s more.
+      final rest = math.max(
+        0,
+        math.min(s.shownSeconds, _ceilSeconds(t.total! - t.elapsed)),
+      );
       right = (
         l.timerLeftTotal(_clock(rest)),
         l.timerLeftTotal(_spoken(l, rest)),
@@ -1956,6 +1961,8 @@ class _RestLogState extends State<_RestLog> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
+        // The keys sit beside the box, under its label.
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           StageStepKey(
             key: const ValueKey('run-minus'),
@@ -1964,35 +1971,55 @@ class _RestLogState extends State<_RestLog> {
             onStep: _n > 0 ? () => _step(-1) : null,
           ),
           Expanded(
-            child: Semantics(
-              label: l.timerRestLog,
-              value: '$_n',
-              child: ExcludeSemantics(
-                child: Container(
-                  height: 56,
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: _P.bg,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  alignment: Alignment.center,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      '$_n',
-                      key: const ValueKey('together-count'),
-                      textScaler: TextScaler.noScaling,
-                      style: const TextStyle(
-                        fontSize: 44,
-                        height: 1.2,
-                        fontWeight: FontWeight.w700,
-                        fontFeatures: _tnum,
-                        color: _P.text,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // What the box counts, over it: the number is not the
+                // rest's countdown above.
+                ExcludeSemantics(
+                  child: StageFaces(
+                    builder: (ink) => FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        l.timerRestLog,
+                        maxLines: 1,
+                        style: _small.copyWith(color: ink.sub),
                       ),
                     ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 4),
+                Semantics(
+                  label: l.timerRestLog,
+                  value: '$_n',
+                  child: ExcludeSemantics(
+                    child: Container(
+                      height: 56,
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: _P.bg,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      alignment: Alignment.center,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '$_n',
+                          key: const ValueKey('together-count'),
+                          textScaler: TextScaler.noScaling,
+                          style: const TextStyle(
+                            fontSize: 44,
+                            height: 1.2,
+                            fontWeight: FontWeight.w700,
+                            fontFeatures: _tnum,
+                            color: _P.text,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           StageStepKey(

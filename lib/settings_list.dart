@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter/cupertino.dart';
 
+import 'keep_all_text.dart';
 import 'metrics.dart';
 import 'palette.dart';
 
@@ -39,7 +40,7 @@ class SettingsSection extends StatelessWidget {
           );
     final note = footer == null
         ? null
-        : Text(
+        : KeepAllText(
             footer!,
             style: TextStyle(fontSize: 13, height: 1.35, color: muted),
           );
@@ -83,6 +84,15 @@ class SettingsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final faint = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final style = TextStyle(
+      fontSize: 16,
+      fontWeight: accent ? FontWeight.w600 : FontWeight.w400,
+      color: accent
+          ? seal.resolveFrom(context)
+          : muted
+          ? faint
+          : CupertinoColors.label.resolveFrom(context),
+    );
     return CupertinoListTile(
       onTap: onTap,
       padding: _padding,
@@ -92,20 +102,20 @@ class SettingsRow extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  label,
-                  maxLines: _wrap,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: accent ? FontWeight.w600 : FontWeight.w400,
-                    color: accent
-                        ? seal.resolveFrom(context)
-                        : muted
-                        ? faint
-                        : CupertinoColors.label.resolveFrom(context),
-                  ),
-                ),
+                // The guidance line is a sentence: Korean wraps between words.
+                child: muted
+                    ? KeepAllText(
+                        label,
+                        maxLines: _wrap,
+                        overflow: TextOverflow.ellipsis,
+                        style: style,
+                      )
+                    : Text(
+                        label,
+                        maxLines: _wrap,
+                        overflow: TextOverflow.ellipsis,
+                        style: style,
+                      ),
               ),
               if (detail case final d?) ...[
                 const SizedBox(width: 8),

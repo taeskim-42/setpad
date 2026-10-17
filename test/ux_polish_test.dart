@@ -15,6 +15,7 @@ import 'package:setpad/body.dart';
 import 'package:setpad/body_page.dart';
 import 'package:setpad/gym.dart';
 import 'package:setpad/gym_page.dart';
+import 'package:setpad/keep_all_text.dart';
 import 'package:setpad/settings_list.dart';
 import 'package:setpad/settings_page.dart';
 import 'package:setpad/keypad.dart';
@@ -72,6 +73,29 @@ int textColor(WidgetTester tester, Finder finder) {
 
 Finder rowOf(Note n) =>
     find.byWidgetPredicate((w) => w is Dismissible && w.key == ValueKey(n.id));
+
+/// [f] wraps, and every line but the last ends at a space: no Korean word
+/// split across lines ('여기 / 서').
+void expectWordBreaks(WidgetTester tester, Finder f) {
+  final p = tester.renderObject<RenderParagraph>(
+    find.descendant(of: f, matching: find.byType(RichText)),
+  );
+  final text = p.text.toPlainText();
+  double y(int i) => p.getOffsetForCaret(TextPosition(offset: i), Rect.zero).dy;
+  var breaks = 0;
+  for (var i = 1; i < text.length; i++) {
+    if (y(i) <= y(i - 1) + 1) continue;
+    breaks++;
+    expect(
+      text[i - 1],
+      ' ',
+      reason:
+          'a line starts inside a word: '
+          '${text.substring(0, i).replaceAll('\u200D', '')} / ...',
+    );
+  }
+  expect(breaks, greaterThan(0), reason: 'it wraps');
+}
 
 void main() {
   group('P1. sealOn — 금색 바탕 위의 글자', () {
@@ -359,6 +383,30 @@ void main() {
         );
         expect(tester.getRect(day).width, lessThanOrEqualTo(34.01));
         await tester.pump(const Duration(seconds: 1));
+      });
+    }
+  });
+
+  group('L5. 입력 줄의 세트 라벨', () {
+    for (final scale in [1.0, 1.5, 2.0]) {
+      testWidgets('글자 $scale: 라벨과 자리표시 사이에 틈이 남는다', (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        final c = RoutineEditorController()
+          ..addExercise('벤치프레스')
+          ..addSet('80 5')
+          ..addSet('80 5')
+          ..addSet('80 5');
+        await pumpApp(
+          tester,
+          CupertinoPageScaffold(
+            child: SafeArea(child: RoutineEditor(controller: c)),
+          ),
+        );
+        final label = tester.getRect(find.text('4세트'));
+        final line = tester.getRect(find.byType(CupertinoTextField));
+        // Not "4세트무게": the label never runs into the weight hint.
+        expect(line.left - label.right, greaterThanOrEqualTo(5.99));
       });
     }
   });
@@ -1198,7 +1246,7 @@ void main() {
       expect(find.byType(CupertinoListSection), findsWidgets);
       expect(find.byType(CupertinoListTile), findsWidgets);
       final toggle = find.byKey(const ValueKey('settings-ai'));
-      final note = find.text(l.aiSettingNote);
+      final note = find.text(keepAll(l.aiSettingNote));
       expect(toggle, findsOneWidget);
       expect(note, findsOneWidget);
       final gap = tester.getTopLeft(note).dy - tester.getBottomLeft(toggle).dy;
@@ -1208,6 +1256,29 @@ void main() {
       expect(l.aiSettingNote, contains('끄면'));
       // Section rows are 44 tall at least.
       expect(tester.getSize(toggle).height, greaterThanOrEqualTo(44));
+    });
+
+    test('keepAll: 한글 낱말 안에만 이음 표지, 라틴 낱말과 띄어쓰기는 그대로', () {
+      expect(
+        keepAll('여기서 받아요. AI 로'),
+        '여\u200D기\u200D서 받\u200D아\u200D요\u200D. AI 로',
+      );
+    });
+
+    testWidgets('안내 행과 꼬리글은 낱말 가운데서 줄을 바꾸지 않는다', (tester) async {
+      tester.view.physicalSize = const Size(375, 812);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final semantics = tester.ensureSemantics();
+      await openSettings(tester, account: member());
+      final l = await L.delegate.load(const Locale('ko'));
+      expectWordBreaks(tester, find.text(keepAll(l.aiSettingNote)));
+      // The screen reader reads the sentence as written.
+      expect(find.bySemanticsLabel(l.aiSettingNote), findsOneWidget);
+      final notice = find.text(keepAll(l.settingsNoGym));
+      await tester.scrollUntilVisible(notice, 100);
+      expectWordBreaks(tester, notice);
+      semantics.dispose();
     });
 
     testWidgets('닉네임은 한 줄이다 — 이름이 값이고 누르면 바꾼다', (tester) async {
@@ -1235,7 +1306,7 @@ void main() {
       final account = member();
       await openSettings(tester, account: account);
       final l = await L.delegate.load(const Locale('ko'));
-      final notice = find.text(l.settingsNoGym);
+      final notice = find.text(keepAll(l.settingsNoGym));
       await tester.scrollUntilVisible(notice, 100); // lazy list: build it first
       expect(notice, findsOneWidget);
       // A row in the gym section's box — not a header and a caption over nothing.
@@ -1255,7 +1326,7 @@ void main() {
       account.gyms = [const Gym(id: 'g1', name: 'BPM')];
       account.notifyListeners();
       await tester.pumpAndSettle();
-      expect(find.text(l.settingsNoGym), findsNothing);
+      expect(find.text(keepAll(l.settingsNoGym)), findsNothing);
       expect(find.byKey(const ValueKey('settings-gym-g1')), findsOneWidget);
       final share = find.byKey(const ValueKey('settings-share-meals'));
       await tester.scrollUntilVisible(share, 100);

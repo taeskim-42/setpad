@@ -1694,9 +1694,7 @@ class _RoutineEditorState extends State<RoutineEditor>
           target: t.spec.tabata ? null : _targetFor(block),
         );
         if (joining && _workoutTimer.running) {
-          _focus.unfocus();
-          SystemChannels.textInput.invokeMethod('TextInput.hide');
-          _timingKeyboardHidden = true;
+          _hideKeyboard();
           // Open the stage only over this screen, and only once — not from
           // an editor kept behind another (the proxy editor's, TickerMode).
           if ((ModalRoute.of(context)?.isCurrent ?? false) &&
@@ -2146,11 +2144,15 @@ class _RoutineEditorState extends State<RoutineEditor>
     _followTimer();
   }
 
+  /// A run or the set stage takes the screen: the keyboard goes down, and
+  /// the candidate bar above it with it. Tapping the line ([_reopen]) brings
+  /// both back.
   void _hideKeyboard() {
     _focus.unfocus();
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     setState(() {
       _timingKeyboardHidden = true;
+      _textKeyboardHidden = true;
       _setupOpen = null;
     });
   }
@@ -4843,19 +4845,23 @@ class _BlockView extends StatelessWidget {
                         SizedBox(
                           width: 44,
                           // One line, shrunk to fit: at large text "5세트" broke
-                          // mid-word into "5세 / 트".
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: AlignmentDirectional.centerStart,
-                            child: Text(
-                              L.of(context).setOrdinal(block.sets.length + 1),
-                              maxLines: 1,
-                              softWrap: false,
-                              style: TextStyle(
-                                fontSize: 13,
-                                letterSpacing: -0.08,
-                                color: CupertinoColors.tertiaryLabel
-                                    .resolveFrom(context),
+                          // mid-word into "5세 / 트". Shrunk, it filled the
+                          // column and ran into the hint ("4세트무게").
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.only(end: 6),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: AlignmentDirectional.centerStart,
+                              child: Text(
+                                L.of(context).setOrdinal(block.sets.length + 1),
+                                maxLines: 1,
+                                softWrap: false,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  letterSpacing: -0.08,
+                                  color: CupertinoColors.tertiaryLabel
+                                      .resolveFrom(context),
+                                ),
                               ),
                             ),
                           ),

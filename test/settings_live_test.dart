@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/account.dart';
 import 'package:setpad/gym.dart';
+import 'package:setpad/keep_all_text.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/settings_page.dart';
@@ -231,7 +232,7 @@ void main() {
     account.gyms = [Gym(id: 'g1', name: 'BPM')];
     account.notifyListeners();
     await tester.pump();
-    final note = find.textContaining('BPM 트레이너가 봐요');
+    final note = find.textContaining(keepAll('BPM 트레이너가 봐요'));
     await tester.scrollUntilVisible(note, 100);
     expect(note, findsOneWidget);
     expect(store.sharesMeals, isFalse, reason: '끼니는 건강 정보라 회원이 켜야 간다');

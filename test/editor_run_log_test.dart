@@ -3,6 +3,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/focus_page.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/run_page.dart';
 import 'package:setpad/workout_timing.dart';
@@ -198,6 +199,47 @@ void main() {
     await tester.pumpAndSettle();
     expect(c.holdsRun.value, isFalse);
     expect(await c.okToLeave!(), isTrue);
+    await tester.pumpWidget(const SizedBox());
+    timer.reset();
+  });
+
+  testWidgets('a run or the set stage takes the keyboard down with its '
+      'candidate bar; tapping the line brings both back', (tester) async {
+    final c = RoutineEditorController()
+      ..restore([ExerciseBlock('버피 타바타 5/5 x2')]);
+    await tester.pumpWidget(
+      app(
+        RoutineEditor(
+          controller: c,
+          timer: timer,
+          history: () => const [],
+          askTimerPermissions: () async {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final bar = find.byKey(const ValueKey('exercise-suggestions'));
+    expect(bar, findsOneWidget, reason: 'the empty name line, typing');
+    Future<void> backToTheLine() async {
+      await tester.tap(find.byType(CupertinoTextField));
+      await tester.pumpAndSettle();
+      expect(bar, findsOneWidget);
+      expect(tester.testTextInput.isVisible, isTrue);
+    }
+
+    await tester.tap(find.byKey(const ValueKey('timer-start')));
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.byType(RunPage))).pop();
+    await tester.pumpAndSettle();
+    expect(bar, findsNothing, reason: 'no keyboard under it');
+    await backToTheLine();
+
+    c.openFocus!();
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.byType(FocusPage))).pop();
+    await tester.pumpAndSettle();
+    expect(bar, findsNothing);
+    await backToTheLine();
     await tester.pumpWidget(const SizedBox());
     timer.reset();
   });

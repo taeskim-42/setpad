@@ -12,6 +12,7 @@ import 'package:setpad/editor.dart';
 import 'package:setpad/gym.dart'
     show inWeightUnit, kgOf, routineFromRow, routineToRow;
 import 'package:setpad/gym_page.dart' show GymRow;
+import 'package:setpad/keep_all_text.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
@@ -24,6 +25,7 @@ import 'package:setpad/routine.dart';
 import 'package:setpad/routine_card.dart';
 
 import 'routine_fixture.dart';
+import 'ux_polish_test.dart' show expectWordBreaks;
 
 /// 기록을 손에 쥔 가게. 시작하면 새 기록이 목록 맨 앞에 든다.
 class _Records extends NotesStore {
@@ -1814,7 +1816,9 @@ void main() {
     await type(tester, '오늘 루틴 짜줘');
     final d = DateTime(2026, 9, 2);
     expect(
-      find.text(l.routineWhyWeekday(1, l.weekdayLabel(d), l.routineDate(d))),
+      find.text(
+        keepAll(l.routineWhyWeekday(1, l.weekdayLabel(d), l.routineDate(d))),
+      ),
       findsOneWidget,
     );
     // 9/2: 본운동(첫 칸) 스쿼트의 작업 세트 3×5 → 순발력 날. 뒤의 루마니안·레그컬(3×10)은
@@ -1849,9 +1853,11 @@ void main() {
     final mon = DateTime(2026, 9, 14);
     expect(
       find.text(
-        l.routineWhyFactor(
-          'strength',
-          '${l.weekdayLabel(mon)}(${l.routineDate(mon)})',
+        keepAll(
+          l.routineWhyFactor(
+            'strength',
+            '${l.weekdayLabel(mon)}(${l.routineDate(mon)})',
+          ),
         ),
       ),
       findsOneWidget,
@@ -1865,7 +1871,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('routine-details')));
     await tester.pumpAndSettle();
     expect(
-      find.textContaining('${l.routineFactor('strength')} 1'),
+      find.textContaining(keepAll('${l.routineFactor('strength')} 1')),
       findsOneWidget,
     );
     // 내가 쓴 bpm(목요일 30bpm)으로 짜는 칩도 — 수를 적는다.
@@ -1937,14 +1943,19 @@ void main() {
       expect(find.textContaining('20/10×'), findsNothing);
       // Sentences (why this day, the 7-day count) are lines, not two-line pills.
       final why = find.text(
-        l.routineWhyFactorNoDay(
-          l.routineFactor('cardio'),
-          '${l.weekdayLabel(thu)}(${l.routineDate(thu)})',
+        keepAll(
+          l.routineWhyFactorNoDay(
+            l.routineFactor('cardio'),
+            '${l.weekdayLabel(thu)}(${l.routineDate(thu)})',
+          ),
         ),
       );
       expect(why, findsOneWidget);
       expect(pill(why), isFalse);
-      expect(pill(find.textContaining('최근 7일(')), isFalse);
+      expectWordBreaks(tester, why);
+      final count = find.textContaining(keepAll('최근 7일('));
+      expect(count, findsOneWidget);
+      expect(pill(count), isFalse);
       // The how-to-log hint waits behind "근거 보기".
       expect(find.textContaining(l.routineFillHint), findsNothing);
       await tester.tap(find.byKey(const ValueKey('routine-details')));
@@ -1991,12 +2002,12 @@ void main() {
     expect(find.text(l.routineDrift('근력', '심폐')), findsOneWidget);
     // 셈은 접지 않고 알약으로 보인다.
     expect(
-      find.textContaining('${l.routineFactor('strength')} 1'),
+      find.textContaining(keepAll('${l.routineFactor('strength')} 1')),
       findsOneWidget,
     );
     await tester.tap(find.text(l.routineFactorChip('strength', 1)));
     await tester.pumpAndSettle();
-    expect(find.textContaining('이번 주 근력이 부족해서'), findsOneWidget);
+    expect(find.textContaining(keepAll('이번 주 근력이 부족해서')), findsOneWidget);
     expect(find.text(l.routineDrift('근력', '심폐')), findsNothing);
   });
 }
