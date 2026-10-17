@@ -852,6 +852,8 @@ class RoutineEditor extends StatefulWidget {
     required this.controller,
     this.countAloud = false,
     this.hapticsOn = true,
+    this.voice = 'm',
+    this.voiceCues = true,
     this.onCountAloud,
     this.onHaptics,
     this.askTimerPermissions,
@@ -928,6 +930,10 @@ class RoutineEditor extends StatefulWidget {
 
   /// Timer vibration (NotesStore.hapticsOn).
   final bool hapticsOn;
+
+  /// The recorded voice and its workout cues (NotesStore.voice, voiceCues).
+  final String voice;
+  final bool voiceCues;
 
   /// The timer sheet's sound and vibration switches change the app settings.
   /// Without them the sheet hides those switches.
@@ -2129,7 +2135,10 @@ class _RoutineEditorState extends State<RoutineEditor>
       ..weightUnit = _c.weightUnit
       ..recovery = _recovery
       ..sharedTimerRunning = _sharedBehindFocus;
-    _rest.haptics = _buzz;
+    _rest
+      ..haptics = _buzz
+      ..voice = widget.voice
+      ..voiceCues = widget.voiceCues;
     if (_focusNotify) return;
     _focusNotify = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -3845,15 +3854,15 @@ class _RoutineEditorState extends State<RoutineEditor>
     // 커서가 든 카드가 입력 줄을 품는다.
     final openIndex = _c.activeIndex;
 
-    // 읽어 줄지와 어느 말로 읽을지는 화면이 정한다 — 타이머는 소리만 낸다.
+    // 읽어 줄지와 어느 목소리로 읽을지는 설정이 정한다 — 타이머는 소리만 낸다.
     _workoutTimer
       ..countAloud = _aloud
       ..haptics = _buzz
-      ..voiceLocale = Localizations.localeOf(context).toLanguageTag()
-      ..announceRound = L.of(context).timingRoundDone;
+      ..voice = widget.voice
+      ..voiceCues = widget.voiceCues;
     _syncLink();
     _syncFocus();
-    // The first count of the first run should not wait for the speech engine.
+    // The first count of the first run should not wait for its recording.
     if (!_warmed && blocks.any((b) => TimingSpec.parse(b.name) != null)) {
       _warmed = true;
       unawaited(_workoutTimer.warmUp());

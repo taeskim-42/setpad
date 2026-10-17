@@ -332,11 +332,6 @@ class LTh extends L {
   }
 
   @override
-  String timingRoundDone(int n) {
-    return 'จบรอบที่ $n';
-  }
-
-  @override
   String get timingMetronome => 'เครื่องเคาะจังหวะ';
 
   @override
@@ -4309,4 +4304,20 @@ class LTh extends L {
 
   @override
   String get focusPickDistance => 'ตั้งระยะทาง';
+
+  @override
+  String get voiceSetting => 'เสียง';
+
+  @override
+  String get voiceMale => 'ผู้ชาย';
+
+  @override
+  String get voiceFemale => 'ผู้หญิง';
+
+  @override
+  String get voiceSettingHelp =>
+      'เสียงนับและคำแนะนำการออกกำลังกายเป็นเสียงบันทึกภาษาอังกฤษ';
+
+  @override
+  String get voiceCuesSetting => 'คำแนะนำด้วยเสียงระหว่างออกกำลังกาย';
 }

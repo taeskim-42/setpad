@@ -10,7 +10,7 @@ import 'timing_audio.dart';
 /// switch each other off. Each owner gets a [port]; a port's configure only
 /// changes that port's state and the mux sends the merge, in call order, on
 /// one chain: active = any port active; bpm/phase = the leading active
-/// workout port's; cue = the call's own.
+/// workout port's; cue = the call's own. Recorded words go on the same chain.
 class TimingAudioMux {
   TimingAudioMux(this.audio) {
     audio.onInterrupted = () {
@@ -137,9 +137,17 @@ class _Port extends TimingAudio {
     return _mux._send(cue, from: this, turnedOn: turnedOn);
   }
 
+  /// After everything already sent: the word comes after the cue the same
+  /// owner just asked for (a rest's end sound, then "Go!").
   @override
-  Future<void> speak(String text, String locale, {double rate = 1.15}) =>
-      _mux.audio.speak(text, locale, rate: rate);
+  Future<void> playVoice(String asset, {bool onBeat = false}) {
+    if (_closed || _mux._disposed) return Future.value();
+    final call = _mux._chain.then(
+      (_) => _mux.audio.playVoice(asset, onBeat: onBeat),
+    );
+    _mux._chain = call.catchError((Object _) {});
+    return call;
+  }
 
   /// Inactive and gone; the real audio stays open. Later calls do nothing.
   @override

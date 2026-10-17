@@ -9,8 +9,8 @@ external JSPromise<JSAny?> _configure(
   JSNumber? phase,
 );
 
-@JS('setpadTiming.speak')
-external void _speak(JSString text, JSString locale, JSNumber rate);
+@JS('setpadTiming.voice')
+external void _voice(JSString asset, JSBoolean onBeat);
 
 TimingAudio createTimingAudio() => _WebAudio();
 
@@ -31,11 +31,11 @@ class _WebAudio extends TimingAudio {
   }
 
   @override
-  Future<void> speak(String text, String locale, {double rate = 1.15}) async {
+  Future<void> playVoice(String asset, {bool onBeat = false}) async {
     try {
-      _speak(text.toJS, locale.toJS, rate.toJS);
+      _voice(asset.toJS, onBeat.toJS);
     } catch (_) {
-      /* 브라우저가 음성 합성을 막아 두었다. 박자는 계속 간다. */
+      /* 브라우저가 소리를 막아 두었다. 박자는 계속 간다. */
     }
   }
 

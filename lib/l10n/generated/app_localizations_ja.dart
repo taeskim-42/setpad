@@ -324,11 +324,6 @@ class LJa extends L {
   }
 
   @override
-  String timingRoundDone(int n) {
-    return '$nラウンド終了';
-  }
-
-  @override
   String get timingMetronome => 'メトロノーム';
 
   @override
@@ -4222,4 +4217,19 @@ class LJa extends L {
 
   @override
   String get focusPickDistance => '距離を決める';
+
+  @override
+  String get voiceSetting => '声';
+
+  @override
+  String get voiceMale => '男性';
+
+  @override
+  String get voiceFemale => '女性';
+
+  @override
+  String get voiceSettingHelp => 'カウントと運動の案内は英語の録音で流れます。';
+
+  @override
+  String get voiceCuesSetting => '運動の音声案内';
 }

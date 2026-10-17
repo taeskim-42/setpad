@@ -332,11 +332,6 @@ class LEn extends L {
   }
 
   @override
-  String timingRoundDone(int n) {
-    return 'Round $n done';
-  }
-
-  @override
   String get timingMetronome => 'Metronome';
 
   @override
@@ -4410,4 +4405,20 @@ class LEn extends L {
 
   @override
   String get focusPickDistance => 'Set the distance';
+
+  @override
+  String get voiceSetting => 'Voice';
+
+  @override
+  String get voiceMale => 'Male';
+
+  @override
+  String get voiceFemale => 'Female';
+
+  @override
+  String get voiceSettingHelp =>
+      'Counts and workout cues are English recordings.';
+
+  @override
+  String get voiceCuesSetting => 'Workout voice cues';
 }

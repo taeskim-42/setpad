@@ -234,6 +234,8 @@ class TimingSpec {
 ///
 /// 천을 넘으면 숫자로 돌아간다. 한 세트에 천 번을 세는 일은 없고, 그때는
 /// 말이 길어져 힐끗 보고 못 읽는다.
+///
+/// 화면에 쓰는 말이다. 소리는 언어와 상관없이 영어 녹음이다([countVoice]).
 String spokenCount(int n, String languageCode) {
   if (languageCode != 'ko' || n < 1 || n > 999) return '$n';
   const ones = ['', '하나', '둘', '셋', '넷', '다섯', '여섯', '일곱', '여덟', '아홉'];
@@ -242,32 +244,20 @@ String spokenCount(int n, String languageCode) {
   return '${sino[n ~/ 100]}${tens[n % 100 ~/ 10]}${ones[n % 10]}';
 }
 
-/// 세는 말 한 마디를 얼마나 빨리 읽고, 그러면 얼마나 걸리는가.
+/// 소리는 녹음이다 — 시스템 음성(TTS)은 쓰지 않는다. 기계가 읽는 말로 들렸다.
+/// 앱 언어와 상관없이 영어다 — Tempo 와 같다(사용자 결정 2026-10-17). [sex]
+/// 는 'm'·'w'(NotesStore.voice).
 ///
-/// 말이 다음 박자 전에 끝나야 숫자가 안 빠진다. "스물일곱" 은 네 음절이라
-/// 100bpm(0.6초)에 기본 속도로는 안 들어간다. 박자에 맞춰 빠르게 읽되 최대
-/// 두 배까지만 — 그 이상은 알아듣기 어렵다.
-///
-/// 말은 클릭 뒤 반 박에 시작하므로(템포 앱과 같다) 반 박보다 긴 숫자는 다음
-/// 클릭 위로 이어진다. 의도한 것이다 — 숫자끼리 겹치지만 않으면 된다.
-///
-/// ponytail: 음절당 시간은 어림값이다. 기기 음성이 더 느리면 [syllableSeconds]
-/// 를 올린다(실기기에서 숫자가 빠지면 이것부터).
-const syllableSeconds = 0.2, speechLead = 0.08;
-({double rate, double seconds}) countPace(
-  String text,
-  String languageCode,
-  int bpm,
-) {
-  // 한국어는 글자가 곧 음절이다. 다른 말은 숫자 한 자리를 두세 음절로 본다 —
-  // seventy-seven 은 다섯, setenta y siete 는 여섯이다. 넉넉히 잡는다.
-  final syllables = languageCode == 'ko' ? text.length : text.length * 2.5;
-  final budget = 60 / bpm * 0.9 - speechLead;
-  final rate = budget <= 0
-      ? 2.0
-      : (syllables * syllableSeconds / budget).clamp(1.15, 2.0).toDouble();
-  return (rate: rate, seconds: speechLead + syllables * syllableSeconds / rate);
-}
+/// 세는 말 "One".."One hundred": tool/make_count_voices.py 가 만든다. 101 부터는
+/// 녹음이 없어 읽지 않고 클릭만 간다(Tempo 와 같다).
+const maxSpokenCount = 100;
+String countVoice(String sex, int n) => 'assets/voice/count/en/$sex/$n.m4a';
+
+/// 구간 음성: Tempo 의 녹음(healthopia tool/make_voices.py) — start "Go!",
+/// rest "Rest!", round_1..[maxVoicedRound] "Round n, go!", last_round, done,
+/// ten_left.
+const maxVoicedRound = 30;
+String phraseVoice(String sex, String key) => 'assets/voice/en/$sex/$key.m4a';
 
 /// "0:53", "3:53".
 String timerClock(int seconds) =>
@@ -339,21 +329,12 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   /// Buzz along with the cues (NotesStore.hapticsOn).
   bool haptics = true;
 
-  /// 어느 말로 읽을까. 화면 언어를 그대로 따른다. Chinese script tags become
-  /// the region tags the speech engines know.
-  String get voiceLocale => _voiceLocale;
-  set voiceLocale(String tag) => _voiceLocale = tag == 'zh'
-      ? 'zh-CN'
-      : tag.startsWith('zh-Hans')
-      ? 'zh-CN'
-      : tag.startsWith('zh-Hant')
-      ? 'zh-TW'
-      : tag;
-  String _voiceLocale = 'en';
-  String get _language => _voiceLocale.split('-').first;
+  /// The recorded voice, 'm' or 'w' (NotesStore.voice): counts and phrases.
+  String voice = 'm';
 
-  /// 라운드가 끝날 때 뭐라고 알릴까. 말은 화면이 만든다 — 타이머는 소리만 낸다.
-  String Function(int round)? announceRound;
+  /// Say the interval starts and the end (NotesStore.voiceCues): "Round 3,
+  /// go!", "Rest!", "Workout complete, great job!".
+  bool voiceCues = true;
 
   /// Once per run: natural completion or [end] (not an end under 10 s).
   VoidCallback? onComplete;
@@ -635,7 +616,6 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   void _start({bool resumed = false}) {
     assert(!running);
     soundFailed = false;
-    _voiceFreeAt = 0;
     _started = _time;
     _markClocks();
     running = true;
@@ -653,6 +633,9 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
         ? 'work'
         : null;
     _sound(cue: cue);
+    // Joining a shared run at work, or going on after a skip made while
+    // paused; said once, so a plain resume or a re-sync says nothing.
+    if (cue == 'work') _phrase(phase);
     if (resumed) {
       _buzz(TimerHaptic.medium);
     } else if (cue != null) {
@@ -672,33 +655,47 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   int _lastBeat = 0, _lastCount = 0;
   int _voiceGeneration = 0;
 
-  /// 앞 말이 끝나는 때(지난 시간, 초). 이보다 이른 박자는 읽지 않는다.
-  double _voiceFreeAt = 0;
+  /// How far this run's phrases went: (run, round × 4 + phase). They only
+  /// go forward, so putting a shared run back in place ([follow]), even back
+  /// over a boundary, never says one twice. A seek starts afresh.
+  (int, int)? _phrased;
 
+  /// Beat [n]'s count. When a word runs past the next click the platform
+  /// waits a little, then drops that count (a long number at a fast tempo).
   void _say(int n) {
-    final bpm = spec?.bpm;
-    if (bpm == null) return;
-    final text = spokenCount(n, _language);
-    final pace = countPace(text, _language, bpm);
-    // 박자가 **시작한** 때로 잰다. 틱이 알아챈 때(0~50ms 늦다)로 재면 늦게
-    // 알아챈 박자 뒤의 숫자가 운에 따라 빠진다.
-    final start = elapsed.inMicroseconds / 1e6 - (_intoBeat ?? 0);
-    // 빨리 읽어도 한 박에 안 들어가면, 앞 말이 끝난 뒤 첫 박자에서 읽는다.
-    // 예전에는 네이티브가 "아직 말하는 중" 이면 그냥 버려서 어느 숫자가 빠질지
-    // 운이었다 — 여기서 미리 정하면 빠지는 박자가 늘 같다.
-    if (start + 0.01 < _voiceFreeAt) return;
-    _voiceFreeAt = start + pace.seconds;
-    _speak(text, rate: pace.rate);
+    if (n <= maxSpokenCount) _voice(countVoice(voice, n), onBeat: true);
+  }
+
+  /// What is said as [next] begins (Tempo's _phaseVoice): the round at a
+  /// tabata's work ("Round 3, go!", the last of several "Last round"), "Go!"
+  /// at a metronome's, "Rest!", and "Workout complete" at the end. Not over
+  /// the counts: counting aloud, the first count marks the work start, as in
+  /// Tempo's metronome.
+  void _phrase(TimingPhase next) {
+    final s = spec!, n = round, step = n * 4 + next.index, last = _phrased;
+    if (!voiceCues || (last?.$1 == _runId && last!.$2 >= step)) return;
+    _phrased = (_runId, step);
+    final key = switch (next) {
+      TimingPhase.ready => null,
+      TimingPhase.rest => 'rest',
+      TimingPhase.complete => 'done',
+      _ when countAloud && s.bpm != null => null,
+      _ when !s.tabata || s.rounds == 1 => 'start',
+      _ when n == s.rounds => 'last_round',
+      _ when n <= maxVoicedRound => 'round_$n',
+      _ => 'start',
+    };
+    if (key != null) _voice(phraseVoice(voice, key));
   }
 
   /// 세대가 바뀌면(멈춤·되감기) 줄 서 있던 말은 버린다.
-  void _speak(String text, {double rate = 1.15}) {
+  void _voice(String asset, {bool onBeat = false}) {
     final generation = _voiceGeneration;
     _commands = _commands.then((_) async {
       if (_disposed || generation != _voiceGeneration) return;
-      // 읽다 실패해도 박자는 계속 간다. 소리는 덤이지 타이머의 전제가 아니다.
+      // 못 내도 박자는 계속 간다. 소리는 덤이지 타이머의 전제가 아니다.
       try {
-        await _audio.speak(text, voiceLocale, rate: rate);
+        await _audio.playVoice(asset, onBeat: onBeat);
       } catch (_) {}
     });
   }
@@ -729,13 +726,7 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     }
     if (next != _lastPhase || round != _lastRound) {
       _cue(next == TimingPhase.work ? 'work' : 'rest');
-      // 운동 구간이 끝나면 몇 라운드를 마쳤는지 말한다. 쉬는 동안이라 시작
-      // 신호나 박자 세는 말과 겹치지 않는다. The last round of a plain tabata
-      // ends in completion, not rest, so its number never runs into that cue.
-      if (next == TimingPhase.rest && _lastPhase == TimingPhase.work) {
-        final said = announceRound?.call(round);
-        if (said != null) _speak(said);
-      }
+      _phrase(next);
     } else if ((next == TimingPhase.ready || spec!.tabata) &&
         remaining <= 3 &&
         remaining != _lastRemaining) {
@@ -773,6 +764,7 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _finished = true;
     _ticker?.cancel();
     _cue('complete');
+    _phrase(TimingPhase.complete);
     notifyListeners();
     onComplete?.call();
   }
@@ -809,8 +801,8 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _sound();
   }
 
-  /// Prepares the speech engine and cue players (no sound), so the first run
-  /// counts on time.
+  /// Prepares the cue players and the first recorded words (no sound), so
+  /// the first run counts on time.
   Future<void> warmUp() async {
     try {
       await _audio.warmUp();
@@ -926,8 +918,9 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _started = _time;
     _markClocks();
     _voiceGeneration++;
-    _voiceFreeAt = 0;
-    // The tick below reads the beat landed in, as a natural entry would.
+    // The tick below reads the beat and says the phrase of the interval
+    // landed in, as a natural entry would.
+    _phrased = null;
     _lastBeat = _unread ? beat - 1 : beat;
     _sound();
     if (running) {

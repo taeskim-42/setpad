@@ -80,7 +80,6 @@
   "timingBpm": "{n} BPM",
   "timingProtocol": "Tabata {work}s / {rest}s · {rounds} rondas",
   "timingRound": "Ronda {n}/{total}",
-  "timingRoundDone": "Ronda {n} completada",
   "timingMetronome": "Metrónomo",
   "timingReady": "Preparación",
   "timingWork": "Ejercicio",
@@ -1072,5 +1071,10 @@
   "timerStopLeave": "Detener y salir",
   "timerDiscardLeave": "Descartar y salir",
   "focusPickTime": "Elegir tiempo",
-  "focusPickDistance": "Elegir distancia"
+  "focusPickDistance": "Elegir distancia",
+  "voiceSetting": "Voz",
+  "voiceMale": "Masculina",
+  "voiceFemale": "Femenina",
+  "voiceSettingHelp": "Los conteos y las indicaciones del entrenamiento son grabaciones en inglés.",
+  "voiceCuesSetting": "Indicaciones de voz del entrenamiento"
 }

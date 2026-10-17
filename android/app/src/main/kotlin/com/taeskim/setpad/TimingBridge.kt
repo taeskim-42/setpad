@@ -4,14 +4,16 @@ import android.app.Activity
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
-import android.speech.tts.TextToSpeech
+import android.media.MediaMetadataRetriever
+import android.media.SoundPool
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.WindowManager
-import java.util.Locale
+import io.flutter.FlutterInjector
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
+import java.util.concurrent.Executors
 import kotlin.math.PI
 import kotlin.math.exp
 import kotlin.math.sin
@@ -25,87 +27,121 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
     // milliseconds between the moment a phase ends and the sound.
     private val beats = mutableMapOf<Int, AudioTrack>()
     private val cues = mutableMapOf<String, AudioTrack>()
-    private var speech: TextToSpeech? = null
-    private var speechReady = false
     private val handler = Handler(Looper.getMainLooper())
-    private var pendingSpeech: Runnable? = null
     private var cueEndsAt = 0L
-    private var spokenLocale: String? = null
 
-    private fun prepareSpeech() {
-        if (speech == null) speech = TextToSpeech(activity) { status ->
-            speechReady = status == TextToSpeech.SUCCESS
-        }
+    // Recorded words (Flutter assets, lib/workout_timing.dart countVoice and
+    // phraseVoice), decoded once by SoundPool. Media usage like the cue tracks,
+    // so they share the media volume and silent mode does not mute only the
+    // words; no audio focus is taken, music goes on underneath.
+    private val pool = SoundPool.Builder().setMaxStreams(2).setAudioAttributes(
+        AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
+    ).build()
+    private val loaded = mutableSetOf<Int>()
+    private val lengths = mutableMapOf<String, Long>()
+    // The latest 40 assets stay loaded: asset → sound id.
+    private val sounds = object : LinkedHashMap<String, Int>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Int>) =
+            (size > 40).also { if (it) { pool.unload(eldest.value); loaded.remove(eldest.value) } }
     }
+    private var voiceStream = 0
+    private var voiceEndsAt = 0L
+    private var pendingCount: Runnable? = null
+    private var pendingPhrase: Runnable? = null
+    private val measuring = Executors.newSingleThreadExecutor()
 
-    // Match Tempo: read half a beat after the click, capped at one second.
-    // The count comes from Dart's clock and the click from this track, which
-    // started a little later — near the end of the loop the click this count
-    // belongs to has not sounded yet, so wait for it. A newer count replaces one
-    // still waiting; if the previous word is still sounding, wait briefly for it
-    // instead of dropping this count or cutting that one off.
-    private fun speak(text: String, locale: String, rate: Float) {
-        val engine = speech ?: return
-        if (text.isEmpty() || !speechReady) return
-        pendingSpeech?.let { handler.removeCallbacks(it) }; pendingSpeech = null
-        val player = track
-        val bpm = tempo
-        var patience = 150L
-        // A Tabata with no BPM still announces its rounds, so there may be no beat to wait for.
-        val countRemaining = if (player != null && bpm != null) {
-            val frames = (60.0 / bpm * 22050).toInt()
-            val period = 60000L / bpm
-            val half = minOf(30000L / bpm, 1000L)
-            val at = ((player.playbackHeadPosition.toLong() and 0xffffffffL) % frames) * 1000 / 22050
-            // No later than a quarter beat after the planned moment: a late word
-            // never lands on the next click and lateness cannot pile up.
-            patience = period / 4
-            if (at > period * 3 / 4) period - at + half else maxOf(0L, half - at)
-        } else 0L
+    private fun sound(asset: String): Int? = sounds[asset] ?: runCatching {
+        val key = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset(asset)
+        // Its length, for "still sounding": measured once, off the main thread.
+        if (asset !in lengths) measuring.execute {
+            runCatching {
+                activity.assets.openFd(key).use { fd ->
+                    MediaMetadataRetriever().run {
+                        try {
+                            setDataSource(fd.fileDescriptor, fd.startOffset, fd.length)
+                            extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
+                        } finally { release() }
+                    }
+                }
+            }.getOrNull()?.let { ms -> handler.post { lengths[asset] = ms } }
+        }
+        activity.assets.openFd(key).use { pool.load(it, 1) }
+    }.getOrNull()?.also { sounds[asset] = it }
+
+    // A count (onBeat) matches Tempo: half a beat after the click, capped at
+    // one second. The count comes from Dart's clock and the click from this
+    // track, which started a little later — near the end of the loop the click
+    // this count belongs to has not sounded yet, so wait for it. A newer count
+    // replaces one still waiting; if the previous word is still sounding, wait
+    // briefly for it instead of cutting it off, then give up. A phrase waits for
+    // the cue and for the word sounding or about to; a count arriving meanwhile
+    // is dropped.
+    private fun playVoice(asset: String, onBeat: Boolean) {
+        if (onBeat && pendingPhrase != null) return
+        val id = sound(asset) ?: return
+        var patience = 3000L
+        var countRemaining = 0L
+        if (onBeat) {
+            dropPending()
+            patience = 150L
+            val player = track
+            val bpm = tempo
+            if (player != null && bpm != null) {
+                val frames = (60.0 / bpm * 22050).toInt()
+                val period = 60000L / bpm
+                val half = minOf(30000L / bpm, 1000L)
+                val at = ((player.playbackHeadPosition.toLong() and 0xffffffffL) % frames) * 1000 / 22050
+                // No later than a quarter beat after the planned moment: a late word
+                // never lands on the next click and lateness cannot pile up.
+                patience = period / 4
+                countRemaining = if (at > period * 3 / 4) period - at + half else maxOf(0L, half - at)
+            }
+        } else { pendingPhrase?.let { handler.removeCallbacks(it) }; pendingPhrase = null }
         val delay = maxOf(countRemaining, cueEndsAt - SystemClock.elapsedRealtime(), 0L)
         val giveUpAt = SystemClock.elapsedRealtime() + delay + patience
         lateinit var task: Runnable
         task = Runnable {
-            if (engine.isSpeaking && SystemClock.elapsedRealtime() < giveUpAt) {
-                handler.postDelayed(task, 20); return@Runnable
-            }
-            pendingSpeech = null
-            if (!engine.isSpeaking) {
-                // Setting the language is a binder call; only when it changes.
-                if (locale != spokenLocale) {
-                    runCatching { engine.language = Locale.forLanguageTag(locale) }
-                    spokenLocale = locale
-                }
-                engine.setSpeechRate(rate)
-                engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "count")
-            }
+            val now = SystemClock.elapsedRealtime()
+            val busy = now < voiceEndsAt || id !in loaded || (!onBeat && pendingCount != null)
+            if (busy && now < giveUpAt) { handler.postDelayed(task, 20); return@Runnable }
+            if (onBeat) pendingCount = null else pendingPhrase = null
+            if (id !in loaded || (onBeat && now < voiceEndsAt)) return@Runnable
+            pool.stop(voiceStream)
+            voiceStream = pool.play(id, 1f, 1f, 1, 0, 1f)
+            // Not measured yet (only right after loading): a long count.
+            voiceEndsAt = if (voiceStream != 0) now + (lengths[asset] ?: 1200L) else 0L
         }
-        pendingSpeech = task
+        if (onBeat) pendingCount = task else pendingPhrase = task
         handler.postDelayed(task, if (delay > 0) delay + 5 else 0)
     }
 
-    private fun cancelSpeech() {
-        pendingSpeech?.let { handler.removeCallbacks(it) }; pendingSpeech = null
-        runCatching { speech?.stop() }
+    private fun cancelVoice() {
+        dropPending()
+        pendingPhrase?.let { handler.removeCallbacks(it) }; pendingPhrase = null
+        pool.stop(voiceStream); voiceStream = 0; voiceEndsAt = 0L
     }
 
     init {
+        pool.setOnLoadCompleteListener { _, id, status -> if (status == 0) loaded.add(id) }
         channel.setMethodCallHandler { call, result ->
             if (call.method == "warmUp") {
-                // Build the speech engine and the cue tracks ahead of the first
-                // cue, so "one, two" in the first 3 s are not lost. No sound.
+                // Build the cue tracks and load the first words (both voices)
+                // ahead of the first cue, so "one, two" are not lost. No sound.
                 runCatching {
-                    prepareSpeech()
                     for (name in listOf("ready", "work", "rest", "complete")) {
                         cues.getOrPut(name) { staticTrack(samples(cueTone(name))) }
+                    }
+                    for (sex in listOf("m", "w")) {
+                        for (n in 1..10) sound("assets/voice/count/en/$sex/$n.m4a")
+                        for (key in listOf("start", "rest")) sound("assets/voice/en/$sex/$key.m4a")
                     }
                 }
                 result.success(null)
             }
-            else if (call.method == "speak") {
+            else if (call.method == "voice") {
                 runCatching {
-                    speak(call.argument<String>("text") ?: "", call.argument<String>("locale") ?: "en",
-                        (call.argument<Double>("rate") ?: 1.15).toFloat())
+                    playVoice(call.argument<String>("asset") ?: "", call.argument<Boolean>("onBeat") == true)
                 }
                 result.success(null)
             }
@@ -115,17 +151,16 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                 // The app allows 10 BPM; anything slower than this range is a typo.
                 val bpm = if (active) call.argument<Int>("bpm")?.takeIf { it in 10..300 } else null
                 val cue = call.argument<String>("cue")
-                if (active) prepareSpeech()
                 // Pausing or stopping cuts the voice; finishing (the complete
                 // cue) lets the last number finish.
-                if (!active && cue == null) cancelSpeech()
+                if (!active && cue == null) cancelVoice()
                 if (active) activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 else activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 if (bpm != tempo) {
                     // A tempo change while running (Tabata work to rest) only
                     // drops a count still waiting: the round's last number is
                     // allowed to finish.
-                    if (active) dropPending() else if (cue == null) cancelSpeech()
+                    if (active) dropPending() else if (cue == null) cancelVoice()
                     stopClick()
                     if (bpm != null) {
                         val player = beats.getOrPut(bpm) {
@@ -191,12 +226,11 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
         check(player.write(samples, 0, samples.size) == samples.size)
         return player
     }
-    private fun dropPending() { pendingSpeech?.let { handler.removeCallbacks(it) }; pendingSpeech = null }
+    private fun dropPending() { pendingCount?.let { handler.removeCallbacks(it) }; pendingCount = null }
     private fun stopClick() { track?.let { runCatching { it.stop() } }; track = null; tempo = null }
-    private fun stopBeat() { cancelSpeech(); stopClick() }
-    private fun stop() { stopBeat(); runCatching { speech?.stop() }; runCatching { cueTrack?.stop() }; cueTrack = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
+    private fun stop() { cancelVoice(); stopClick(); runCatching { cueTrack?.stop() }; cueTrack = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     fun close() {
-        stop(); speech?.shutdown(); speech = null; speechReady = false
+        stop(); pool.release(); measuring.shutdown()
         (beats.values + cues.values).forEach { runCatching { it.release() } }
         beats.clear(); cues.clear()
         channel.setMethodCallHandler(null)
