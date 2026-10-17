@@ -3686,6 +3686,16 @@ class LZh extends L {
 
   @override
   String get refusedAccountBlocked => '你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return '按周表今天是$planned日，但上次这一天是$own日 — 照搬又会是$own日';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7370,6 +7380,16 @@ class LZhHans extends LZh {
 
   @override
   String get refusedAccountBlocked => '你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return '按周表今天是$planned日，但上次这一天是$own日 — 照搬又会是$own日';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11054,4 +11074,14 @@ class LZhHant extends LZh {
 
   @override
   String get refusedAccountBlocked => '你是健身房的館長或教練。請先退出或刪除健身房，再註銷帳號。';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return '按週表今天是$planned日，但上次這一天是$own日 — 照搬又會是$own日';
+  }
 }

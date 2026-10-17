@@ -930,5 +930,7 @@
   "refusedClassFull": "Lớp này đã đầy.",
   "refusedClassNoAccess": "Bạn không có thẻ hội viên dùng được vào ngày học. Hãy hỏi phòng tập về thời hạn hoặc trạng thái tạm dừng.",
   "refusedClassCancelled": "Lớp này đã nghỉ.",
-  "refusedAccountBlocked": "Bạn là chủ hoặc huấn luyện viên của một phòng tập. Hãy rời hoặc xóa phòng tập trước, rồi mới xóa tài khoản."
+  "refusedAccountBlocked": "Bạn là chủ hoặc huấn luyện viên của một phòng tập. Hãy rời hoặc xóa phòng tập trước, rồi mới xóa tài khoản.",
+  "routineWeekdayFactor": "{day} = {factor}",
+  "routineDrift": "Theo lịch tuần hôm nay là {planned}, nhưng lần trước ngày này là {own} — chép lại sẽ lại là {own}"
 }

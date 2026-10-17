@@ -3890,4 +3890,14 @@ class LEs extends L {
   @override
   String get refusedAccountBlocked =>
       'Eres propietario o entrenador de un gimnasio. Sal del gimnasio o elimínalo y luego elimina tu cuenta.';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return 'El plan semanal dice $planned hoy, pero este día la última vez fue $own — copiarlo repite $own';
+  }
 }

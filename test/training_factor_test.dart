@@ -412,4 +412,23 @@ void main() {
       ]);
     });
   });
+
+  test('요일표: 월 근력 · 화 근지구력 · 수 지속력 · 목 근력 · 금 심폐, 주말은 없다', () {
+    expect(
+      [for (var d = 1; d <= 7; d++) weekdayFactor[d]],
+      [
+        Factor.strength,
+        Factor.endurance,
+        Factor.sustain,
+        Factor.strength,
+        Factor.cardio,
+        null,
+        null,
+      ],
+    );
+    // 주간 목표 수는 요일표의 개수다.
+    for (final f in factorGoal.keys) {
+      expect(weekdayFactor.values.where((x) => x == f).length, factorGoal[f]);
+    }
+  });
 }

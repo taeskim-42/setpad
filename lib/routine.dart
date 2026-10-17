@@ -1623,6 +1623,10 @@ class RoutineDraft {
   /// 원천 날의 체력 요인과 근거 — 설명만 한다(고른 날을 바꾸지 않는다).
   ({Factor factor, FactorRead read})? factor;
 
+  /// The weekday table's factor for [day] ([weekdayFactor]) when the routine was
+  /// picked by the weekday rules (no source named) — the card says "월요일 = 근력".
+  Factor? planned;
+
   /// factor: 채우려는 요인(순발력은 근력 칸)과 이번 주 그 요인이 모자랐는가.
   Factor? target;
   bool short = false;
@@ -2382,6 +2386,11 @@ RoutineDraft composeRoutine(
   }
 
   var picks = <DateTime>[];
+  // Weekday table factor: shown whenever the day was picked by the weekday rules
+  // (or by a timer chip on such a card).
+  if (draft.source == 'none' || const {'tabata', 'bpm'}.contains(e.mode)) {
+    draft.planned = weekdayFactor[day.weekday];
+  }
   if (draft.source == 'none') {
     final mode = e.mode ?? (day.weekday >= 6 ? 'factor' : 'weekday');
     // 요인은 거른 뒤 남는 칸으로 가른다 — "스쿼트 말고" 로 채우기 칸이 빠진 날은 근지구력
@@ -2503,14 +2512,30 @@ RoutineDraft composeRoutine(
           for (final d in passed)
             if (byDay.containsKey(d) && !usable(d)) d,
         ];
-        // 이 날의 요인을 이번 주 다 채웠고 모자란 요인이 있으면 칩 하나.
+        // One factor chip. The weekday table comes first: when the template day
+        // drifted from this weekday's factor (last Monday was cardio) and that
+        // factor is short this week, offer it and say so — otherwise copying last
+        // week repeats the drift every week. When the day matches the table, offer
+        // the most deficient factor once this day's factor is already filled.
         final own = draft.factor == null ? null : merged(draft.factor!.factor);
-        if (own != null && counts[own]! >= factorGoal[own]!) {
-          for (final f in rankFactors(counts, last)) {
-            if (factorGoal[f]! > counts[f]! && daysOf(f).isNotEmpty) {
-              draft.modeChips.add((mode: f.name, count: counts[f]));
-              break;
-            }
+        final planned = draft.planned;
+        bool short(Factor f) => factorGoal[f]! > counts[f]!;
+        final chip =
+            planned != null &&
+                own != planned &&
+                short(planned) &&
+                daysOf(planned).isNotEmpty
+            ? planned
+            : own != null && !short(own)
+            ? rankFactors(
+                counts,
+                last,
+              ).where((f) => short(f) && daysOf(f).isNotEmpty).firstOrNull
+            : null;
+        if (chip != null) {
+          draft.modeChips.add((mode: chip.name, count: counts[chip]));
+          if (chip == planned && own != null) {
+            draft.lines.add(RoutineLine('drift', [chip.name, own.name]));
           }
         }
       }

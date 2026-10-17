@@ -507,4 +507,40 @@ void main() {
     // 레그컬(허벅지 뒤)은 데드리프트(허리·엉덩이)와 주동 근육이 겹치지 않는다.
     expect(d.items[1].recent, isNull);
   });
+
+  group('요일표(월 근력·화 근지구력·수 지속력·목 근력·금 심폐)', () {
+    test('평일 카드는 이 요일의 요인을 말한다 — 원천은 그대로 지난주 같은 요일', () {
+      final d = make(split, thu);
+      expect(d.planned, Factor.strength);
+      expect(d.source, 'weekday');
+      expect(d.lines.where((x) => x.code == 'drift'), isEmpty);
+    });
+
+    // 월요일에 심폐(타바타)를 해 온 주: 지난주 월요일 그대로 옮기면 이번 월요일도 심폐다.
+    final drifted = {...methodPlan, 1: methodPlan[5]!, 3: methodPlan[3]!};
+    final log = weekLog(DateTime(2026, 8, 31), 14, drifted);
+    final mon = DateTime(2026, 9, 14, 18);
+
+    test('지난주 월요일이 요일표(근력)에서 벗어났으면 줄로 말하고 근력 칩 — 이번 주 근력 셈과', () {
+      final d = make(log, mon);
+      expect((d.source, d.sourceDay), ('weekday', DateTime(2026, 9, 7)));
+      expect(d.factor?.factor, Factor.cardio);
+      expect(d.planned, Factor.strength);
+      expect(d.modeChips, [(mode: 'strength', count: 1)]);
+      expect(texts(d), contains(l.routineDrift('근력', '심폐')));
+      // 칩을 누르면 근력 날(수요일 3×10) — 숫자는 그날 내 세트 그대로.
+      final forced = make(log, mon, edits: RoutineEdits()..mode = 'strength');
+      expect(forced.source, 'factor');
+      expect(forced.target, Factor.strength);
+      expect(forced.sourceDay?.weekday, DateTime.wednesday);
+      expect(forced.planned, Factor.strength);
+    });
+
+    test('요일표와 같고 그 요인이 아직 모자라면 칩도 줄도 없다', () {
+      final d = make(weekLog(DateTime(2026, 8, 31), 14, methodPlan), mon);
+      expect(d.factor?.factor, Factor.power);
+      expect(d.modeChips, isEmpty);
+      expect(d.lines.where((x) => x.code == 'drift'), isEmpty);
+    });
+  });
 }

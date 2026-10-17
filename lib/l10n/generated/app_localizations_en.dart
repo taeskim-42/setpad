@@ -3862,4 +3862,14 @@ class LEn extends L {
   @override
   String get refusedAccountBlocked =>
       'You\'re an owner or trainer at a gym. Leave the gym or delete it, then delete your account.';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return 'The weekly plan says $planned today, but this weekday last time was $own — copying it repeats $own';
+  }
 }

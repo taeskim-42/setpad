@@ -3807,4 +3807,14 @@ class LTh extends L {
   @override
   String get refusedAccountBlocked =>
       'คุณเป็นเจ้าของหรือเทรนเนอร์ของยิม โปรดออกจากยิมหรือลบยิมก่อน แล้วจึงลบบัญชี';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return 'ตามตารางสัปดาห์วันนี้คือ$planned แต่วันนี้ครั้งก่อนเป็น$own — ถ้าคัดลอกจะเป็น$ownอีก';
+  }
 }

@@ -165,14 +165,27 @@ class RoutineCard extends StatelessWidget {
         ),
       _ => null,
     };
-    // 최근 7일 요인 셈(모자란 요인으로 짠 날만).
-    final counts = switch (d.weekCounts) {
-      final c? when d.source == 'factor' => l.routineWeekCounts(
-        '${date(DateTime(d.day.year, d.day.month, d.day.day - 6))}–'
-        '${date(d.future ? d.today : d.day)}',
-        [for (final e in c.entries) '${l.routineFactor(e.key.name)} ${e.value}']
-            .join(' · '),
+    // 이 요일의 요인(요일표): "월요일 = 근력".
+    final planned = switch (d.planned) {
+      final f? => l.routineWeekdayFactor(
+        l.weekdayLabel(d.day),
+        l.routineFactor(f.name),
       ),
+      null => null,
+    };
+    // 최근 7일 요인 셈 — 모자란 요인으로 짠 날(주말)과 요일표에서 벗어난 날엔 왜 이
+    // 날인지의 핵심이라 알약으로 올린다.
+    final counts = switch (d.weekCounts) {
+      final c?
+          when d.source == 'factor' || d.lines.any((x) => x.code == 'drift') =>
+        l.routineWeekCounts(
+          '${date(DateTime(d.day.year, d.day.month, d.day.day - 6))}–'
+          '${date(d.future ? d.today : d.day)}',
+          [
+            for (final e in c.entries)
+              '${l.routineFactor(e.key.name)} ${e.value}',
+          ].join(' · '),
+        ),
       _ => null,
     };
     final rest = d.partRest.entries
@@ -192,7 +205,6 @@ class RoutineCard extends StatelessWidget {
         if (line.code != 'recentMemo') ...routineLineTexts(l, line),
     ];
     final details = [
-      ?counts,
       if (rest.isNotEmpty) l.routinePartRest(rest.join(' · ')),
       if (d.items.isNotEmpty) pace,
       ...memos,
@@ -229,9 +241,11 @@ class RoutineCard extends StatelessWidget {
           spacing: 6,
           runSpacing: 6,
           children: [
+            if (planned != null) _Pill(planned),
             if (factor != null) _Pill(factor),
             if (d.items.isNotEmpty) _Pill(l.routineEstimate(d.minutes)),
             if (why != null) _Pill(why),
+            if (counts != null) _Pill(counts),
           ],
         ),
       ),
@@ -676,6 +690,7 @@ List<String> routineLineTexts(L l, RoutineLine line) {
       ),
     ],
     'doneToday' => [l.routineDoneToday((a[0] as List).join('·'))],
+    'drift' => [l.routineDrift(l.routineFactor(s(0)), l.routineFactor(s(1)))],
     'fillHint' => [l.routineFillHint],
     'lightKept' => [l.routineLightKept((a[0] as List).join('·'))],
     _ => [line.toString()],

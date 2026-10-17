@@ -3640,5 +3640,9 @@
   "refusedClassCancelled": "휴강한 수업이에요.",
   "@refusedClassCancelled": {"description": "휴강한 그룹 수업이다(409 cancelled)."},
   "refusedAccountBlocked": "도장의 관장이나 트레이너예요. 도장에서 나오거나 도장을 지운 뒤에 탈퇴할 수 있어요.",
-  "@refusedAccountBlocked": {"description": "도장의 관장·트레이너라서 탈퇴할 수 없다(409 blocked, DELETE /api/me)."}
+  "@refusedAccountBlocked": {"description": "도장의 관장·트레이너라서 탈퇴할 수 없다(409 blocked, DELETE /api/me)."},
+  "routineWeekdayFactor": "{day} = {factor}",
+  "@routineWeekdayFactor": {"description": "요일표(repstack)의 이 요일 요인 알약 — '월요일 = 근력'.", "placeholders": {"day": {"type": "String"}, "factor": {"type": "String"}}},
+  "routineDrift": "요일표로는 {planned} 날인데 지난번 이 요일은 {own} 날이었어요 — 그대로 두면 또 {own} 날이 돼요",
+  "@routineDrift": {"description": "고른 날(지난주 같은 요일)의 요인이 요일표와 다를 때. 아래에 요일표 요인으로 짜는 칩이 있다.", "placeholders": {"planned": {"type": "String"}, "own": {"type": "String"}}}
 }

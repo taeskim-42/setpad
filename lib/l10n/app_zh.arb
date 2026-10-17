@@ -930,5 +930,7 @@
   "refusedClassFull": "这节团课已满。",
   "refusedClassNoAccess": "你没有可在上课当天使用的会员卡，请向健身房确认有效期或暂停状态。",
   "refusedClassCancelled": "这节团课已停课。",
-  "refusedAccountBlocked": "你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。"
+  "refusedAccountBlocked": "你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。",
+  "routineWeekdayFactor": "{day} = {factor}",
+  "routineDrift": "按周表今天是{planned}日，但上次这一天是{own}日 — 照搬又会是{own}日"
 }

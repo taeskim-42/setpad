@@ -44,6 +44,17 @@ const factorGoal = {
   Factor.cardio: 1,
 };
 
+/// The repstack weekday table (memory routine-fitness-factors): Mon strength,
+/// Tue endurance, Wed sustain, Thu strength, Fri cardio. Weekends have no fixed
+/// factor — they fill the factor this week is short of.
+const weekdayFactor = {
+  DateTime.monday: Factor.strength,
+  DateTime.tuesday: Factor.endurance,
+  DateTime.wednesday: Factor.sustain,
+  DateTime.thursday: Factor.strength,
+  DateTime.friday: Factor.cardio,
+};
+
 Factor merged(Factor f) => f == Factor.power ? Factor.strength : f;
 
 final _fillWord = RegExp(

@@ -5604,6 +5604,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'도장의 관장이나 트레이너예요. 도장에서 나오거나 도장을 지운 뒤에 탈퇴할 수 있어요.'**
   String get refusedAccountBlocked;
+
+  /// 요일표(repstack)의 이 요일 요인 알약 — '월요일 = 근력'.
+  ///
+  /// In ko, this message translates to:
+  /// **'{day} = {factor}'**
+  String routineWeekdayFactor(String day, String factor);
+
+  /// 고른 날(지난주 같은 요일)의 요인이 요일표와 다를 때. 아래에 요일표 요인으로 짜는 칩이 있다.
+  ///
+  /// In ko, this message translates to:
+  /// **'요일표로는 {planned} 날인데 지난번 이 요일은 {own} 날이었어요 — 그대로 두면 또 {own} 날이 돼요'**
+  String routineDrift(String planned, String own);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

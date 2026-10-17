@@ -930,5 +930,7 @@
   "refusedClassFull": "This class is full.",
   "refusedClassNoAccess": "You don't have a membership you can use on the class day. Check its dates or hold status with your gym.",
   "refusedClassCancelled": "This class was cancelled.",
-  "refusedAccountBlocked": "You're an owner or trainer at a gym. Leave the gym or delete it, then delete your account."
+  "refusedAccountBlocked": "You're an owner or trainer at a gym. Leave the gym or delete it, then delete your account.",
+  "routineWeekdayFactor": "{day} = {factor}",
+  "routineDrift": "The weekly plan says {planned} today, but this weekday last time was {own} — copying it repeats {own}"
 }

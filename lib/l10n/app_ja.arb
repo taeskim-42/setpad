@@ -930,5 +930,7 @@
   "refusedClassFull": "このクラスは満員です。",
   "refusedClassNoAccess": "クラスの日に使える会員権がありません。期間や休止状態をジムに確認してください。",
   "refusedClassCancelled": "このクラスは休講になりました。",
-  "refusedAccountBlocked": "ジムのオーナーまたはトレーナーです。ジムを抜けるかジムを削除してから、アカウントを削除してください。"
+  "refusedAccountBlocked": "ジムのオーナーまたはトレーナーです。ジムを抜けるかジムを削除してから、アカウントを削除してください。",
+  "routineWeekdayFactor": "{day} = {factor}",
+  "routineDrift": "週間表では{planned}の日ですが、前回のこの曜日は{own}の日でした — そのままだとまた{own}の日になります"
 }

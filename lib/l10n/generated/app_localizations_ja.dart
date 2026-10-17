@@ -3719,4 +3719,14 @@ class LJa extends L {
   @override
   String get refusedAccountBlocked =>
       'ジムのオーナーまたはトレーナーです。ジムを抜けるかジムを削除してから、アカウントを削除してください。';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return '週間表では$plannedの日ですが、前回のこの曜日は$ownの日でした — そのままだとまた$ownの日になります';
+  }
 }

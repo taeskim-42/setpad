@@ -930,5 +930,7 @@
   "refusedClassFull": "Esta clase está completa.",
   "refusedClassNoAccess": "No tienes una membresía válida para el día de la clase. Consulta las fechas o la pausa con tu gimnasio.",
   "refusedClassCancelled": "Esta clase se canceló.",
-  "refusedAccountBlocked": "Eres propietario o entrenador de un gimnasio. Sal del gimnasio o elimínalo y luego elimina tu cuenta."
+  "refusedAccountBlocked": "Eres propietario o entrenador de un gimnasio. Sal del gimnasio o elimínalo y luego elimina tu cuenta.",
+  "routineWeekdayFactor": "{day} = {factor}",
+  "routineDrift": "El plan semanal dice {planned} hoy, pero este día la última vez fue {own} — copiarlo repite {own}"
 }

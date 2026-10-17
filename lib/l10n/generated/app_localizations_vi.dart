@@ -3836,4 +3836,14 @@ class LVi extends L {
   @override
   String get refusedAccountBlocked =>
       'Bạn là chủ hoặc huấn luyện viên của một phòng tập. Hãy rời hoặc xóa phòng tập trước, rồi mới xóa tài khoản.';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return 'Theo lịch tuần hôm nay là $planned, nhưng lần trước ngày này là $own — chép lại sẽ lại là $own';
+  }
 }

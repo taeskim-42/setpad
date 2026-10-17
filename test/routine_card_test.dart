@@ -1126,6 +1126,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('스쿼트 30bpm'), findsOneWidget);
   });
+
+  testWidgets('요일표 알약: 이 요일의 요인, 벗어난 날엔 줄·셈 알약·요일표 칩 — 누르면 그 요인 날', (
+    tester,
+  ) async {
+    final drifted = {...methodPlan, 1: methodPlan[5]!, 3: methodPlan[3]!};
+    final mon = DateTime(2026, 9, 14, 18);
+    await pump(
+      tester,
+      records: weekLog(DateTime(2026, 8, 31), 14, drifted),
+      now: mon,
+    );
+    await type(tester, '오늘 루틴 짜줘');
+    expect(
+      find.text(l.routineWeekdayFactor(l.weekdayLabel(mon), '근력')),
+      findsOneWidget,
+    );
+    expect(find.text(l.routineDrift('근력', '심폐')), findsOneWidget);
+    // 셈은 접지 않고 알약으로 보인다.
+    expect(
+      find.textContaining('${l.routineFactor('strength')} 1'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text(l.routineFactorChip('strength', 1)));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('이번 주 근력이 부족해서'), findsOneWidget);
+    expect(find.text(l.routineDrift('근력', '심폐')), findsNothing);
+  });
 }
 
 typedef Routine = ({
