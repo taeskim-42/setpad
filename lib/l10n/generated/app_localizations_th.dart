@@ -9,9 +9,6 @@ class LTh extends L {
   LTh([String locale = 'th']) : super(locale);
 
   @override
-  String get appTitle => 'การฝึกวันนี้';
-
-  @override
   String get copy => 'คัดลอก';
 
   @override
@@ -147,81 +144,10 @@ class LTh extends L {
   }
 
   @override
-  String get aiTitle => 'ตั้งค่าด้วยประโยคเดียว';
-
-  @override
-  String get aiReady => 'พร้อมใช้งาน';
-
-  @override
-  String get aiChecking => 'กำลังตรวจสอบ';
-
-  @override
-  String get aiSetupNeeded => 'ต้องตั้งค่า';
-
-  @override
-  String get aiPreparing => 'กำลังเตรียม';
-
-  @override
-  String get aiUnavailable => 'ป้อนเอง';
-
-  @override
-  String get aiReadyBody =>
-      'พิมพ์เช่น “เบนช์เพรส 80kg ให้ครบ 100 ครั้ง” แล้วกด Enter เพื่อตั้งค่าน้ำหนักและเป้าหมาย ข้อความจะประมวลผลบนอุปกรณ์นี้';
-
-  @override
-  String get aiDisabledBody =>
-      'เปิดการตั้งค่า → Apple Intelligence และ Siri แล้วเปิด Apple Intelligence เมื่อโมเดลพร้อม กลับเข้าแอปเพื่อตรวจสอบอัตโนมัติ';
-
-  @override
-  String get aiOsBody =>
-      'ต้องใช้ iOS 26 ขึ้นไปและอุปกรณ์ที่รองรับ Apple Intelligence ตรวจสอบการตั้งค่า → ทั่วไป → รายการอัปเดตซอฟต์แวร์';
-
-  @override
-  String get aiDeviceBody =>
-      'อุปกรณ์นี้ไม่รองรับ Apple Intelligence จึงใช้การตั้งค่าด้วยประโยคเดียวไม่ได้';
-
-  @override
-  String get aiPreparingBody =>
-      'อุปกรณ์กำลังเตรียมโมเดล AI เชื่อมต่อ Wi-Fi แล้วตรวจสอบอีกครั้งภายหลัง';
-
-  @override
-  String get aiDownloadBody =>
-      'ดาวน์โหลดโมเดล AI ได้ แนะนำให้ใช้ Wi-Fi การดาวน์โหลดต้องใช้เวลาและพื้นที่จัดเก็บ เมื่อพร้อมแล้ว ข้อความจะประมวลผลบนอุปกรณ์';
-
-  @override
-  String get aiLanguageBody =>
-      'โมเดล AI ไม่รองรับภาษาของแอป เปลี่ยนเป็นภาษาที่รองรับแล้วตรวจสอบอีกครั้ง';
-
-  @override
-  String get aiPlatformBody =>
-      'ใช้ AI บนอุปกรณ์ในสภาพแวดล้อมนี้ไม่ได้ โปรดใช้แอปบน iPhone หรือ Android ที่รองรับ';
-
-  @override
-  String get aiUnavailableBody =>
-      'ยังใช้ AI ไม่ได้ ขึ้นอยู่กับอุปกรณ์ ระบบปฏิบัติการ และบริการ AI ของระบบ หากเพิ่งตั้งค่าอุปกรณ์ ให้เชื่อมต่ออินเทอร์เน็ตแล้วตรวจสอบอีกครั้ง';
-
-  @override
-  String get aiManualBody =>
-      'ยังบันทึกการออกกำลังกายได้ตามปกติ เลือกท่าแล้วป้อน “80 20” หรือจำนวนครั้งสำหรับแต่ละเซ็ต';
-
-  @override
-  String get aiPrepare => 'เตรียมโมเดล';
-
-  @override
-  String get aiRetry => 'ตรวจสอบอีกครั้ง';
-
-  @override
   String get aiWorking => 'กำลังตั้งค่าท่า…';
 
   @override
   String get aiJudging => 'กำลังอ่าน…';
-
-  @override
-  String get aiFailure =>
-      'ตีความข้อความไม่ได้ โปรดแก้ไขแล้วลองใหม่ หรือใช้เป็นชื่อท่า';
-
-  @override
-  String get aiUseName => 'ใช้เป็นชื่อท่า';
 
   @override
   String get aiFallbackQuota =>
@@ -442,17 +368,6 @@ class LTh extends L {
   String get timingSoundFailed => 'เล่นเสียงไม่ได้ แต่ตัวจับเวลายังทำงาน';
 
   @override
-  String get queryTitle => 'ถามจากบันทึก';
-
-  @override
-  String get queryReadyBody =>
-      'ถามว่า “สควอตหนักสุดเท่าไร” “เดือนก่อนวิดพื้นกี่ครั้ง” หรือ “เบนช์เดือนนี้ดีขึ้นไหม” AI บนอุปกรณ์ตีความคำถามแล้วคำนวณจากบันทึก';
-
-  @override
-  String get queryManualBody =>
-      'คำถามภาษาธรรมชาติต้องใช้ AI บนอุปกรณ์ที่พร้อมใช้งาน ค้นหาชื่อท่าและโน้ตได้เสมอ';
-
-  @override
   String get queryWorking => 'กำลังตีความคำถาม…';
 
   @override
@@ -492,16 +407,7 @@ class LTh extends L {
   String get queryAverage => 'น้ำหนักเฉลี่ยต่อเซต';
 
   @override
-  String get queryMissingData =>
-      'บันทึกไม่มีท่าหรือค่าที่วัดซึ่งจำเป็นต่อคำถามนี้';
-
-  @override
   String get queryAmbiguous => 'โปรดระบุท่าและบันทึกที่ต้องการให้ชัดเจนขึ้น';
-
-  @override
-  String queryRank(int n) {
-    return 'อันดับ $n';
-  }
 
   @override
   String timingWorkSeconds(int n) {
@@ -728,9 +634,6 @@ class LTh extends L {
   String get queryCompareChip => 'เปรียบเทียบ';
 
   @override
-  String get queryNoRecord => 'ไม่มีบันทึก';
-
-  @override
   String get settingsTitle => 'การตั้งค่า';
 
   @override
@@ -838,9 +741,6 @@ class LTh extends L {
   String get bookingWhichGym => 'ยิมไหน';
 
   @override
-  String get tagSignIn => 'เข้าสู่ระบบ';
-
-  @override
   String get accountDelete => 'ลบบัญชี';
 
   @override
@@ -900,9 +800,6 @@ class LTh extends L {
   String get ok => 'ตกลง';
 
   @override
-  String get mealPhoto => 'รูปอาหาร';
-
-  @override
   String get mealAdd => 'บันทึกมื้ออาหาร';
 
   @override
@@ -922,20 +819,7 @@ class LTh extends L {
   String get mealEstimating => 'กำลังประมาณแคลอรี…';
 
   @override
-  String mealIntake(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return 'รับประทาน ≈ $nString kcal';
-  }
-
-  @override
   String get mealFailed => 'ประมาณแคลอรีจากรูปนี้ไม่ได้ ลองถ่ายใหม่';
-
-  @override
-  String get mealEstimateNote => 'ประมาณจากรูปถ่าย';
 
   @override
   String mealServingsOption(String n) {
@@ -944,16 +828,6 @@ class LTh extends L {
 
   @override
   String get fitAll => 'การออกกำลังวันนี้';
-
-  @override
-  String sameDayToday(String time) {
-    return 'บันทึกแยกของวันนี้ เวลา $time';
-  }
-
-  @override
-  String sameDayOn(String date, String time) {
-    return 'บันทึกแยกของวันที่ $date เวลา $time';
-  }
 
   @override
   String sameDayMore(String first, int n) {
@@ -988,16 +862,6 @@ class LTh extends L {
 
   @override
   String get mealKcalUnknown => 'ไม่ทราบแคลอรี';
-
-  @override
-  String mealIntakePartial(int n, int m) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return 'รับประทาน $nString kcal + ไม่ทราบแคลอรี $m รายการ';
-  }
 
   @override
   String get mealAmountAsk => 'กินไปเท่าไร';
@@ -1173,16 +1037,9 @@ class LTh extends L {
   }
 
   @override
-  String get dayBurnedMissing =>
-      'ยังไม่ได้วัดพลังงานที่ใช้ออกกำลัง · คำนวณส่วนต่างไม่ได้';
-
-  @override
   String dayBurnedOnly(String n) {
     return 'ออกกำลัง $n kcal · ยังไม่ได้บันทึกอาหาร';
   }
-
-  @override
-  String get intakeLabel => 'กิน';
 
   @override
   String get partnerSignIn => 'ต้องเข้าสู่ระบบเพื่อออกกำลังด้วยกัน';
@@ -2439,11 +2296,6 @@ class LTh extends L {
   }
 
   @override
-  String routineRecent(String part, String when) {
-    return '$part · $when';
-  }
-
-  @override
   String routineDaysAgo(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -2919,18 +2771,8 @@ class LTh extends L {
   }
 
   @override
-  String anatomySetsLine(String week, String month) {
-    return 'เซ็ต — 7 วันล่าสุด: $week · 28 วัน: $month';
-  }
-
-  @override
   String anatomyBreakdown(int primary, int secondary) {
     return '28 วัน: กล้ามเนื้อหลัก $primary · ช่วย $secondary (นับครึ่ง)';
-  }
-
-  @override
-  String anatomyLast(String date, String ago) {
-    return 'ครั้งล่าสุด: $date ($ago)';
   }
 
   @override
@@ -3391,9 +3233,6 @@ class LTh extends L {
   String get workoutImportAnalyze => 'สร้างตัวอย่าง';
 
   @override
-  String get workoutImportWorking => 'กำลังอ่านประวัติ…';
-
-  @override
   String get workoutImportEmpty => 'เพิ่มข้อความหรือภาพหน้าจอก่อน';
 
   @override
@@ -3837,4 +3676,17 @@ class LTh extends L {
 
   @override
   String get shareSending => 'กำลังส่งให้เทรนเนอร์ · จะส่งเมื่อมีสัญญาณ';
+
+  @override
+  String get aiSettingNote =>
+      'เมื่อเปิด AI บนเซิร์ฟเวอร์จะอ่านข้อความท่าออกกำลังกายและมื้ออาหารที่คุณพิมพ์ รูปอาหาร และคำถามเกี่ยวกับบันทึก เมื่อปิด จะไม่ส่งอะไรไปยัง AI และสิ่งที่พิมพ์จะคงไว้ตามเดิม';
+
+  @override
+  String get nicknameLabel => 'ชื่อเล่น';
+
+  @override
+  String get moreChips => 'ดูเพิ่ม';
+
+  @override
+  String get allExercises => 'บันทึกทั้งหมด';
 }

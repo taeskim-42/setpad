@@ -4,6 +4,7 @@ import 'editor.dart' show SuggestionChip;
 import 'exercises.dart';
 import 'gym.dart' show Routine;
 import 'l10n/generated/app_localizations.dart';
+import 'gym_page.dart' show GymRow;
 import 'palette.dart';
 import 'record_query.dart' show exerciseKey, notComputableLines;
 import 'routine.dart';
@@ -76,22 +77,13 @@ class RoutineCard extends StatelessWidget {
     const body = TextStyle(fontSize: 14);
     final d = draft;
     // 칩이 없으면 자리도 없다 — 빈 줄의 여백이 [시작] 위 간격을 들쭉날쭉하게 했다.
-    Widget chips(List<RoutineAction> list) => list.isEmpty
+    // [fold]: how many of the leading chips may be folded behind "더 보기" (the
+    // addable exercises — they are unbounded, the rest are a handful).
+    Widget chips(List<RoutineAction> list, {int fold = 0}) => list.isEmpty
         ? const SizedBox.shrink()
         : Padding(
             padding: const EdgeInsets.only(top: 6, bottom: 2),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 0,
-              children: [
-                for (final a in list)
-                  SuggestionChip(
-                    label: a.label,
-                    selected: false,
-                    onTap: a.onTap,
-                  ),
-              ],
-            ),
+            child: _ChipWrap(list, fold: fold),
           );
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
@@ -102,32 +94,12 @@ class RoutineCard extends StatelessWidget {
           if (actions.isNotEmpty) chips(actions),
           // 쌤이 보낸 루틴은 맨 위(검색 중에는 목록에서 숨는다).
           for (final r in trainer)
-            CupertinoButton(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              minimumSize: const Size(44, 44),
-              onPressed: onTrainer == null ? null : () => onTrainer!(r),
-              child: Row(
-                children: [
-                  Icon(
-                    CupertinoIcons.person_crop_circle,
-                    size: 18,
-                    color: seal.resolveFrom(context),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '${r.title} · ${l.routineFromTrainer(r.gym)}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: CupertinoColors.label.resolveFrom(context),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            GymRow(
+              icon: CupertinoIcons.person_crop_circle,
+              title: '${r.title} · ${l.routineFromTrainer(r.gym)}',
+              // The card already has its own side padding.
+              horizontal: 0,
+              onTap: onTrainer == null ? null : () => onTrainer!(r),
             ),
           if (d != null) ..._draft(context, l, d, faint, body, chips),
         ],
@@ -141,7 +113,7 @@ class RoutineCard extends StatelessWidget {
     RoutineDraft d,
     TextStyle faint,
     TextStyle body,
-    Widget Function(List<RoutineAction>) chips,
+    Widget Function(List<RoutineAction>, {int fold}) chips,
   ) {
     String date(DateTime x) => l.routineDate(x);
     final a = ask;
@@ -277,7 +249,7 @@ class RoutineCard extends StatelessWidget {
             ],
           ),
       ],
-      chips([
+      chips(fold: onAdd == null ? 0 : d.addable.length, [
         if (onAdd != null)
           for (final k in d.addable)
             (label: l.routineAdd(_name(k)), onTap: () => onAdd!(k)),
@@ -434,6 +406,48 @@ class RoutineCard extends StatelessWidget {
 }
 
 /// 짠 루틴의 요약 알약 하나(순발력 날 · 약 61분 · 지난주 금요일 그대로).
+/// 칩 줄. 앞의 [fold] 개(넣을 수 있는 운동)는 [_foldAt] 개까지만 보이고 나머지는 '더 보기'
+/// 뒤에 접힌다 — 한 번에 예닐곱 개가 쌓이지 않게.
+class _ChipWrap extends StatefulWidget {
+  const _ChipWrap(this.items, {required this.fold});
+  final List<RoutineAction> items;
+  final int fold;
+
+  @override
+  State<_ChipWrap> createState() => _ChipWrapState();
+}
+
+const _foldAt = 4;
+
+class _ChipWrapState extends State<_ChipWrap> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = widget.items;
+    final folded = !_open && widget.fold > _foldAt;
+    Widget chip(RoutineAction a) =>
+        SuggestionChip(label: a.label, selected: false, onTap: a.onTap);
+    return Wrap(
+      spacing: 8,
+      runSpacing: 0,
+      children: [
+        for (final (i, a) in items.indexed) ...[
+          // The fold chip sits right where the hidden ones would have started.
+          if (folded && i == _foldAt)
+            SuggestionChip(
+              key: const ValueKey('routine-more-chips'),
+              label: L.of(context).moreChips,
+              selected: false,
+              onTap: () => setState(() => _open = true),
+            ),
+          if (!(folded && i >= _foldAt && i < widget.fold)) chip(a),
+        ],
+      ],
+    );
+  }
+}
+
 class _Pill extends StatelessWidget {
   const _Pill(this.text);
   final String text;

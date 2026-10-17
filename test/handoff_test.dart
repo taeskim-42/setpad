@@ -241,7 +241,7 @@ void main() {
         offer: offer,
       );
       await tester.pump(const Duration(milliseconds: 2200));
-      expect(find.text('준 님이 내 기록을 적어 주었습니다'), findsOneWidget);
+      expect(find.text('준 님이 내 기록을 적어 주었어요'), findsOneWidget);
       await tester.tap(find.text('받기'));
       expect(taken, [token]);
 

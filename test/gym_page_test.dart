@@ -777,7 +777,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     // 누구나 도장을 만들 수 있다 — 아직 확인하지 않은 도장은 받기 전에 그렇다고 보인다.
-    expect(find.text('이관장 님이 보냈어요 · 확인 전 도장'), findsOneWidget);
+    expect(find.text('이관장 님이 보냈어요 · 확인 전 헬스장'), findsOneWidget);
 
     await tester.tap(find.text('BPM에서 초대했어요'));
     await tester.pumpAndSettle();
@@ -1147,7 +1147,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('PT 이용권이 정지 중이에요. 트레이너에게 문의해 주세요.'), findsOneWidget);
-    expect(find.text('PT 이용권이 없습니다. 트레이너에게 문의해 주세요.'), findsNothing);
+    expect(find.text('PT 이용권이 없어요. 트레이너에게 문의해 주세요.'), findsNothing);
   });
 
   testWidgets('예약 화면에서 회원이 한 신청·취소는 첫 화면의 도장 소식이 되지 않는다', (tester) async {

@@ -581,7 +581,7 @@ void main() {
     note.uploadRejected = true;
     store.touch();
     await tester.pump(const Duration(milliseconds: 500));
-    expect(find.text('도장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요'), findsOneWidget);
+    expect(find.text('헬스장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요'), findsOneWidget);
   });
 
   testWidgets('스티커 없이 온 날은 회원이 스스로 오늘 기록을 트레이너에게 보낸다 — 출석도 남는다', (

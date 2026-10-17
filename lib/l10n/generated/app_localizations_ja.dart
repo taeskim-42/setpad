@@ -9,9 +9,6 @@ class LJa extends L {
   LJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appTitle => '今日のトレーニング';
-
-  @override
   String get copy => 'コピー';
 
   @override
@@ -147,79 +144,10 @@ class LJa extends L {
   }
 
   @override
-  String get aiTitle => '一文で設定';
-
-  @override
-  String get aiReady => '利用可能';
-
-  @override
-  String get aiChecking => '確認中';
-
-  @override
-  String get aiSetupNeeded => '設定が必要';
-
-  @override
-  String get aiPreparing => '準備中';
-
-  @override
-  String get aiUnavailable => '手動入力';
-
-  @override
-  String get aiReadyBody =>
-      '種目欄に「ベンチ80kgで合計100回」のように入力してEnterを押すと、重量と目標を設定します。文章は端末内で処理されます。';
-
-  @override
-  String get aiDisabledBody =>
-      '設定 → Apple IntelligenceとSiriでApple Intelligenceをオンにしてください。モデルの準備後にアプリへ戻ると、自動で再確認します。';
-
-  @override
-  String get aiOsBody =>
-      '一文での設定にはiOS 26以降とApple Intelligence対応端末が必要です。対応端末では設定 → 一般 → ソフトウェアアップデートを確認してください。';
-
-  @override
-  String get aiDeviceBody =>
-      'この端末はApple Intelligenceに対応していないため、一文での設定は利用できません。';
-
-  @override
-  String get aiPreparingBody =>
-      '端末がAIモデルを準備しています。Wi-Fiに接続して、しばらくしてから再確認してください。';
-
-  @override
-  String get aiDownloadBody =>
-      'AIモデルをダウンロードできます。Wi-Fi接続を推奨します。時間と空き容量が必要です。準備後は文章を端末内で処理します。';
-
-  @override
-  String get aiLanguageBody => '端末のAIモデルがアプリの言語に対応していません。対応言語に変更して再確認してください。';
-
-  @override
-  String get aiPlatformBody =>
-      'この環境では端末内AIを利用できません。対応するiPhoneまたはAndroid端末のアプリをご利用ください。';
-
-  @override
-  String get aiUnavailableBody =>
-      '現在AIを利用できません。端末、OS、システムAIサービスの対応状況や準備状態によって異なります。端末を設定した直後はネット接続後に再確認してください。';
-
-  @override
-  String get aiManualBody =>
-      '通常の運動記録は利用できます。種目を選び、セットごとに「80 20」または回数だけを入力してください。';
-
-  @override
-  String get aiPrepare => 'モデルを準備';
-
-  @override
-  String get aiRetry => '再確認';
-
-  @override
   String get aiWorking => '種目を設定中…';
 
   @override
   String get aiJudging => '読み取り中…';
-
-  @override
-  String get aiFailure => '文章を解釈できませんでした。修正して再入力するか、種目名として使用してください。';
-
-  @override
-  String get aiUseName => '種目名として使用';
 
   @override
   String get aiFallbackQuota => '今日の入力サポートを使い切ったので、入力どおりに追加しました';
@@ -431,16 +359,6 @@ class LJa extends L {
   String get timingSoundFailed => '音を再生できません。タイマーは動作しています。';
 
   @override
-  String get queryTitle => '記録に質問';
-
-  @override
-  String get queryReadyBody =>
-      '「スクワットの最高重量は？」「先月の腕立ては何回？」「今月のベンチは先月より伸びた？」などと質問できます。端末内AIが意味を読み取り、保存した記録から計算します。';
-
-  @override
-  String get queryManualBody => '自然な言葉での質問には端末内AIの準備が必要です。運動名やメモの検索はいつでも使えます。';
-
-  @override
   String get queryWorking => '質問を読み取っています…';
 
   @override
@@ -479,15 +397,7 @@ class LJa extends L {
   String get queryAverage => 'セットあたりの平均重量';
 
   @override
-  String get queryMissingData => '質問に必要な運動や測定情報が記録にありません。';
-
-  @override
   String get queryAmbiguous => 'どの運動のどの記録か、もう少し具体的に入力してください。';
-
-  @override
-  String queryRank(int n) {
-    return '$n位';
-  }
 
   @override
   String timingWorkSeconds(int n) {
@@ -712,9 +622,6 @@ class LJa extends L {
   String get queryCompareChip => '比較';
 
   @override
-  String get queryNoRecord => '記録なし';
-
-  @override
   String get settingsTitle => '設定';
 
   @override
@@ -818,9 +725,6 @@ class LJa extends L {
   String get bookingWhichGym => 'どのジムですか？';
 
   @override
-  String get tagSignIn => 'ログイン';
-
-  @override
   String get accountDelete => 'アカウント削除';
 
   @override
@@ -879,9 +783,6 @@ class LJa extends L {
   String get ok => 'OK';
 
   @override
-  String get mealPhoto => '食事の写真';
-
-  @override
   String get mealAdd => '食事を記録';
 
   @override
@@ -900,20 +801,7 @@ class LJa extends L {
   String get mealEstimating => 'カロリーを推定中…';
 
   @override
-  String mealIntake(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '摂取 約${nString}kcal';
-  }
-
-  @override
   String get mealFailed => '写真からカロリーを推定できませんでした。撮り直してください。';
-
-  @override
-  String get mealEstimateNote => '写真からの推定値です';
 
   @override
   String mealServingsOption(String n) {
@@ -922,16 +810,6 @@ class LJa extends L {
 
   @override
   String get fitAll => '今日の運動';
-
-  @override
-  String sameDayToday(String time) {
-    return '今日 $time に別に残した記録';
-  }
-
-  @override
-  String sameDayOn(String date, String time) {
-    return '$date $time に別に残した記録';
-  }
 
   @override
   String sameDayMore(String first, int n) {
@@ -966,16 +844,6 @@ class LJa extends L {
 
   @override
   String get mealKcalUnknown => 'カロリー不明';
-
-  @override
-  String mealIntakePartial(int n, int m) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '摂取 ${nString}kcal + カロリー不明 $m件';
-  }
 
   @override
   String get mealAmountAsk => 'どれくらい食べましたか？';
@@ -1140,15 +1008,9 @@ class LJa extends L {
   }
 
   @override
-  String get dayBurnedMissing => '運動消費は未計測 · 差は計算できません';
-
-  @override
   String dayBurnedOnly(String n) {
     return '運動 ${n}kcal · 食事は未記録';
   }
-
-  @override
-  String get intakeLabel => '摂取';
 
   @override
   String get partnerSignIn => '一緒に行うにはログインが必要です。';
@@ -2389,11 +2251,6 @@ class LJa extends L {
   }
 
   @override
-  String routineRecent(String part, String when) {
-    return '$part · $when';
-  }
-
-  @override
   String routineDaysAgo(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -2857,18 +2714,8 @@ class LJa extends L {
   }
 
   @override
-  String anatomySetsLine(String week, String month) {
-    return '直近7日 $weekセット · 28日 $monthセット';
-  }
-
-  @override
   String anatomyBreakdown(int primary, int secondary) {
     return '28日のうち主に使ったセット $primary · 補助 $secondary(半分で計算)';
-  }
-
-  @override
-  String anatomyLast(String date, String ago) {
-    return '最後: $date($ago)';
   }
 
   @override
@@ -3315,9 +3162,6 @@ class LJa extends L {
   String get workoutImportAnalyze => 'プレビューを作成';
 
   @override
-  String get workoutImportWorking => '記録を読み取り中…';
-
-  @override
   String get workoutImportEmpty => 'テキストか画像を追加してください。';
 
   @override
@@ -3748,4 +3592,17 @@ class LJa extends L {
 
   @override
   String get shareSending => 'トレーナーに送信中 · 電波がつながると送られます';
+
+  @override
+  String get aiSettingNote =>
+      'オンにすると、書いた運動・食事の文、食事の写真、記録への質問をサーバーのAIが読み取ります。オフにするとAIには送られず、書いた文はそのまま残ります。';
+
+  @override
+  String get nicknameLabel => 'ニックネーム';
+
+  @override
+  String get moreChips => 'もっと見る';
+
+  @override
+  String get allExercises => 'すべての記録';
 }

@@ -1370,55 +1370,17 @@ class _NotesListPageState extends State<NotesListPage>
                       if (_query.text.trim().isEmpty)
                         for (final routine in _waitingRoutines)
                           SliverToBoxAdapter(
-                            child: CupertinoButton(
-                              padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
-                              onPressed: () => _startRoutine(routine),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    CupertinoIcons.person_crop_circle,
-                                    size: 18,
-                                    color: seal.resolveFrom(context),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          routine.title,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w600,
-                                            color: CupertinoColors.label
-                                                .resolveFrom(context),
-                                          ),
-                                        ),
-                                        Text(
-                                          // 무엇이 들어 있는지 한 줄. 세트가 있으면
-                                          // 세트 수를, 누적 목표뿐이면 이름만.
-                                          [
-                                            l.routineFromTrainer(routine.gym),
-                                            if (_routineSets(routine) > 0)
-                                              l.setOrdinal(
-                                                _routineSets(routine),
-                                              ),
-                                          ].join(' · '),
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: CupertinoColors
-                                                .secondaryLabel
-                                                .resolveFrom(context),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            child: GymRow(
+                              icon: CupertinoIcons.person_crop_circle,
+                              title: routine.title,
+                              // 무엇이 들어 있는지 한 줄. 세트가 있으면
+                              // 세트 수를, 누적 목표뿐이면 이름만.
+                              detail: [
+                                l.routineFromTrainer(routine.gym),
+                                if (_routineSets(routine) > 0)
+                                  l.setOrdinal(_routineSets(routine)),
+                              ].join(' · '),
+                              onTap: () => _startRoutine(routine),
                             ),
                           ),
                       // 도장 초대. 받아야 회원이 된다 — 안 다니는 사람에게도 온다.
@@ -1455,40 +1417,13 @@ class _NotesListPageState extends State<NotesListPage>
                       // 알 수가 없다. 설정 안에만 두면 회원이 찾지 못한다.
                       if (_query.text.trim().isEmpty && _hasGym)
                         SliverToBoxAdapter(
-                          child: CupertinoButton(
-                            padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
-                            onPressed: () => openBooking(
+                          child: GymRow(
+                            icon: CupertinoIcons.calendar,
+                            title: l.bookingNew,
+                            onTap: () => openBooking(
                               context,
                               widget.account!,
                               store: widget.store,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  CupertinoIcons.calendar,
-                                  size: 18,
-                                  color: seal.resolveFrom(context),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    l.bookingNew,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: CupertinoColors.label.resolveFrom(
-                                        context,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Icon(
-                                  CupertinoIcons.chevron_right,
-                                  size: 15,
-                                  color: CupertinoColors.tertiaryLabel
-                                      .resolveFrom(context),
-                                ),
-                              ],
                             ),
                           ),
                         ),
@@ -1496,28 +1431,13 @@ class _NotesListPageState extends State<NotesListPage>
                       // 무엇을 보라는 말인지 알 수 없다.
                       if (_query.text.trim().isEmpty && _staff.isNotEmpty)
                         SliverToBoxAdapter(
-                          child: CupertinoButton(
-                            padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
-                            onPressed: () =>
-                                openTrainer(context, widget.account!),
-                            child: Row(
+                          child: GymRow(
+                            icon: CupertinoIcons.doc_text,
+                            title: l.trainerReport,
+                            onTap: () => openTrainer(context, widget.account!),
+                            titleSuffix: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
-                                  CupertinoIcons.doc_text,
-                                  size: 18,
-                                  color: seal.resolveFrom(context),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  l.trainerReport,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: CupertinoColors.label.resolveFrom(
-                                      context,
-                                    ),
-                                  ),
-                                ),
                                 ValueListenableBuilder(
                                   valueListenable: reportUnread,
                                   builder: (context, unread, _) => !unread
@@ -1559,13 +1479,6 @@ class _NotesListPageState extends State<NotesListPage>
                                             ),
                                           ),
                                         ),
-                                ),
-                                const Spacer(),
-                                Icon(
-                                  CupertinoIcons.chevron_right,
-                                  size: 15,
-                                  color: CupertinoColors.tertiaryLabel
-                                      .resolveFrom(context),
                                 ),
                               ],
                             ),

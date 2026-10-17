@@ -555,7 +555,7 @@ Future<void> tellAgent(BuildContext context, String message) =>
     showCupertinoDialog<void>(
       context: context,
       builder: (ctx) => CupertinoAlertDialog(
-        content: Text(message, style: const TextStyle(fontSize: 15)),
+        content: Text(message, style: const TextStyle(fontSize: 13)),
         actions: [
           CupertinoDialogAction(
             isDefaultAction: true,
@@ -737,7 +737,7 @@ class _TrainerPageState extends State<TrainerPage> {
                 request.member,
                 shortWhen(l, request.startsAt),
               ),
-              style: const TextStyle(fontSize: 15),
+              style: const TextStyle(fontSize: 13),
             ),
           ),
           actions: [
@@ -796,7 +796,7 @@ class _TrainerPageState extends State<TrainerPage> {
           padding: const EdgeInsets.only(top: 8),
           child: Text(
             l.trainerFinishAsk(item.bookings.length),
-            style: const TextStyle(fontSize: 15),
+            style: const TextStyle(fontSize: 13),
           ),
         ),
         actions: [

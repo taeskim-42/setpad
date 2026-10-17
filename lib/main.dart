@@ -10,6 +10,7 @@ import 'day_energy.dart';
 import 'editor.dart';
 import 'milestones.dart';
 import 'unfold.dart';
+import 'body_page.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'health.dart';
 import 'health_page.dart';
@@ -217,7 +218,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 L.of(ctx).updateRequired,
-                style: const TextStyle(fontSize: 15),
+                style: const TextStyle(fontSize: 13),
               ),
             ),
             actions: [
@@ -603,7 +604,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     builder: (ctx) => CupertinoAlertDialog(
       content: Padding(
         padding: const EdgeInsets.only(top: 8),
-        child: Text(message, style: const TextStyle(fontSize: 15)),
+        child: Text(message, style: const TextStyle(fontSize: 13)),
       ),
       actions: [
         CupertinoDialogAction(
@@ -1289,7 +1290,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
             builder: (ctx) => CupertinoAlertDialog(
               content: Text(
                 L.of(ctx).liveExerciseRemoved(lost.name),
-                style: const TextStyle(fontSize: 15),
+                style: const TextStyle(fontSize: 13),
               ),
               actions: [
                 CupertinoDialogAction(
@@ -1415,7 +1416,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                       onWriteFor: _writeFor,
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 2, 16, 2),
+                      padding: const EdgeInsets.fromLTRB(gutter, 2, gutter, 2),
                       child: Row(
                         children: [
                           Icon(
@@ -1426,28 +1427,41 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              [
-                                if (!_partner!.reachable) l.partnerReconnecting,
-                                if (widget.note.partner!.routinePlanning) ...[
-                                  l.partnerRoutinePlanning,
-                                  l.partnerRoutineProgress(
-                                    widget.note.partner!.routineAcceptedCount,
-                                    widget
-                                        .note
-                                        .partner!
-                                        .routineParticipantCount,
-                                  ),
-                                ] else if (widget.note.partner!.routineReady)
-                                  l.partnerRoutineReadyTitle
-                                else
-                                  l.partnerWith(
-                                    widget.note.partner!.partnerName ?? '',
-                                  ),
-                              ].join(' · '),
+                              // 연결이 끊긴 동안은 그 말만 — 세션 이름까지 한 줄에 넣으면
+                              // 정작 이 상태가 말줄임표에 잘렸다.
+                              !_partner!.reachable
+                                  ? l.partnerReconnecting
+                                  : [
+                                      if (widget
+                                          .note
+                                          .partner!
+                                          .routinePlanning) ...[
+                                        l.partnerRoutinePlanning,
+                                        l.partnerRoutineProgress(
+                                          widget
+                                              .note
+                                              .partner!
+                                              .routineAcceptedCount,
+                                          widget
+                                              .note
+                                              .partner!
+                                              .routineParticipantCount,
+                                        ),
+                                      ] else if (widget
+                                          .note
+                                          .partner!
+                                          .routineReady)
+                                        l.partnerRoutineReadyTitle
+                                      else
+                                        l.partnerWith(
+                                          widget.note.partner!.partnerName ??
+                                              '',
+                                        ),
+                                    ].join(' · '),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: CupertinoColors.secondaryLabel
                                     .resolveFrom(context),
                               ),
@@ -1791,7 +1805,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
           padding: const EdgeInsets.only(top: 8),
           child: Text(
             L.of(ctx).shareSendAsk(gym.name),
-            style: const TextStyle(fontSize: 15),
+            style: const TextStyle(fontSize: 13),
           ),
         ),
         actions: [
@@ -2155,7 +2169,18 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                           children: [
                             DayEnergy(log, basal: basal),
                             if (log.macros != null || target != null)
-                              DayMacros(log, target: target),
+                              DayMacros(
+                                log,
+                                target: target,
+                                onGoal: () => Navigator.of(context).push(
+                                  CupertinoPageRoute<void>(
+                                    builder: (_) => BodyPage(
+                                      store: widget.store,
+                                      ai: widget.account?.ai,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             CupertinoButton(
                               key: const ValueKey('day-summary-fold'),
                               padding: const EdgeInsets.only(top: 2),

@@ -158,7 +158,7 @@ Future<bool?> confirmAge(BuildContext context, Account account) async {
     builder: (ctx) => CupertinoAlertDialog(
       content: Padding(
         padding: const EdgeInsets.only(top: 8),
-        child: Text(l.ageConfirmAsk, style: const TextStyle(fontSize: 15)),
+        child: Text(l.ageConfirmAsk, style: const TextStyle(fontSize: 13)),
       ),
       actions: [
         CupertinoDialogAction(

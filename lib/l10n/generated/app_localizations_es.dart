@@ -9,9 +9,6 @@ class LEs extends L {
   LEs([String locale = 'es']) : super(locale);
 
   @override
-  String get appTitle => 'Entrenamiento de Hoy';
-
-  @override
   String get copy => 'Copiar';
 
   @override
@@ -147,81 +144,10 @@ class LEs extends L {
   }
 
   @override
-  String get aiTitle => 'Configurar con una frase';
-
-  @override
-  String get aiReady => 'Disponible';
-
-  @override
-  String get aiChecking => 'Comprobando';
-
-  @override
-  String get aiSetupNeeded => 'Requiere configuración';
-
-  @override
-  String get aiPreparing => 'Preparando';
-
-  @override
-  String get aiUnavailable => 'Entrada manual';
-
-  @override
-  String get aiReadyBody =>
-      'Escribe «press banca 80kg, llegar a 100 repeticiones» y pulsa Enter. El peso y las metas se configuran automáticamente. El texto se procesa en el dispositivo.';
-
-  @override
-  String get aiDisabledBody =>
-      'Abre Ajustes → Apple Intelligence y Siri y activa Apple Intelligence. Vuelve cuando el modelo esté listo; se comprobará automáticamente.';
-
-  @override
-  String get aiOsBody =>
-      'Se requiere iOS 26 o posterior y un dispositivo compatible con Apple Intelligence. Comprueba Ajustes → General → Actualización de software.';
-
-  @override
-  String get aiDeviceBody =>
-      'Este dispositivo no es compatible con Apple Intelligence. La configuración con una frase no está disponible.';
-
-  @override
-  String get aiPreparingBody =>
-      'El dispositivo está preparando el modelo de IA. Conéctate a Wi-Fi y compruébalo más tarde.';
-
-  @override
-  String get aiDownloadBody =>
-      'Puedes descargar el modelo de IA. Se recomienda Wi-Fi; la descarga requiere tiempo y espacio. Después, el texto se procesa en el dispositivo.';
-
-  @override
-  String get aiLanguageBody =>
-      'El modelo de IA no admite el idioma de la app. Cambia a un idioma compatible y vuelve a comprobarlo.';
-
-  @override
-  String get aiPlatformBody =>
-      'La IA local no está disponible en este entorno. Usa la app en un iPhone o Android compatible.';
-
-  @override
-  String get aiUnavailableBody =>
-      'La IA no está disponible ahora. Depende del dispositivo, el sistema y su servicio de IA. Si acabas de configurar el dispositivo, conéctate a internet y vuelve a comprobarlo.';
-
-  @override
-  String get aiManualBody =>
-      'Puedes seguir registrando entrenamientos. Elige un ejercicio e introduce «80 20» o solo las repeticiones por serie.';
-
-  @override
-  String get aiPrepare => 'Preparar modelo';
-
-  @override
-  String get aiRetry => 'Comprobar de nuevo';
-
-  @override
   String get aiWorking => 'Configurando ejercicio…';
 
   @override
   String get aiJudging => 'Leyendo…';
-
-  @override
-  String get aiFailure =>
-      'No se pudo interpretar la entrada. Edítala o úsala como nombre del ejercicio.';
-
-  @override
-  String get aiUseName => 'Usar como nombre';
 
   @override
   String get aiFallbackQuota =>
@@ -443,17 +369,6 @@ class LEs extends L {
       'No se puede reproducir sonido. El temporizador sigue activo.';
 
   @override
-  String get queryTitle => 'Pregunta a tus registros';
-
-  @override
-  String get queryReadyBody =>
-      'Pregunta “¿Cuál es mi máximo en sentadilla?”, “¿Cuántas flexiones hice el mes pasado?” o “¿Mejoró mi press este mes?”. La IA del dispositivo interpreta la pregunta; los cálculos usan tus registros.';
-
-  @override
-  String get queryManualBody =>
-      'Las preguntas en lenguaje natural requieren la IA del dispositivo. La búsqueda de ejercicios y notas siempre está disponible.';
-
-  @override
   String get queryWorking => 'Interpretando tu pregunta…';
 
   @override
@@ -495,16 +410,7 @@ class LEs extends L {
   String get queryAverage => 'Peso medio por serie';
 
   @override
-  String get queryMissingData =>
-      'Tus registros no contienen el ejercicio o medición necesarios.';
-
-  @override
   String get queryAmbiguous => 'Aclara a qué ejercicio y registro te refieres.';
-
-  @override
-  String queryRank(int n) {
-    return 'Puesto $n';
-  }
 
   @override
   String timingWorkSeconds(int n) {
@@ -731,9 +637,6 @@ class LEs extends L {
   String get queryCompareChip => 'Comparar';
 
   @override
-  String get queryNoRecord => 'Sin registros';
-
-  @override
   String get settingsTitle => 'Ajustes';
 
   @override
@@ -862,9 +765,6 @@ class LEs extends L {
   String get bookingWhichGym => '¿Qué gimnasio?';
 
   @override
-  String get tagSignIn => 'Iniciar sesión';
-
-  @override
   String get accountDelete => 'Eliminar cuenta';
 
   @override
@@ -926,9 +826,6 @@ class LEs extends L {
   String get ok => 'Aceptar';
 
   @override
-  String get mealPhoto => 'Foto de comida';
-
-  @override
   String get mealAdd => 'Registrar comida';
 
   @override
@@ -948,21 +845,8 @@ class LEs extends L {
   String get mealEstimating => 'Estimando calorías…';
 
   @override
-  String mealIntake(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return 'Ingesta ≈ $nString kcal';
-  }
-
-  @override
   String get mealFailed =>
       'No se pudieron estimar las calorías de esa foto. Prueba otra.';
-
-  @override
-  String get mealEstimateNote => 'Estimado a partir de la foto';
 
   @override
   String mealServingsOption(String n) {
@@ -971,16 +855,6 @@ class LEs extends L {
 
   @override
   String get fitAll => 'Entrenamiento de hoy';
-
-  @override
-  String sameDayToday(String time) {
-    return 'Registro aparte de hoy, $time';
-  }
-
-  @override
-  String sameDayOn(String date, String time) {
-    return 'Registro aparte del $date, $time';
-  }
 
   @override
   String sameDayMore(String first, int n) {
@@ -1015,16 +889,6 @@ class LEs extends L {
 
   @override
   String get mealKcalUnknown => 'kcal desconocidas';
-
-  @override
-  String mealIntakePartial(int n, int m) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return 'Ingesta $nString kcal + $m sin kcal conocidas';
-  }
 
   @override
   String get mealAmountAsk => '¿Cuánto comiste?';
@@ -1208,16 +1072,9 @@ class LEs extends L {
   }
 
   @override
-  String get dayBurnedMissing =>
-      'Energía del ejercicio sin medir · sin diferencia';
-
-  @override
   String dayBurnedOnly(String n) {
     return 'Ejercicio $n kcal · sin comidas registradas';
   }
-
-  @override
-  String get intakeLabel => 'Ingesta';
 
   @override
   String get partnerSignIn => 'Inicia sesión para entrenar juntos.';
@@ -2483,11 +2340,6 @@ class LEs extends L {
   }
 
   @override
-  String routineRecent(String part, String when) {
-    return '$part · $when';
-  }
-
-  @override
   String routineDaysAgo(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -2974,18 +2826,8 @@ class LEs extends L {
   }
 
   @override
-  String anatomySetsLine(String week, String month) {
-    return 'Series — últimos 7 días: $week · 28 días: $month';
-  }
-
-  @override
   String anatomyBreakdown(int primary, int secondary) {
     return '28 días: como principal $primary · como auxiliar $secondary (cuenta la mitad)';
-  }
-
-  @override
-  String anatomyLast(String date, String ago) {
-    return 'Última vez: $date ($ago)';
   }
 
   @override
@@ -3452,9 +3294,6 @@ class LEs extends L {
 
   @override
   String get workoutImportAnalyze => 'Crear vista previa';
-
-  @override
-  String get workoutImportWorking => 'Leyendo entrenamientos…';
 
   @override
   String get workoutImportEmpty => 'Añade texto o capturas primero.';
@@ -3924,4 +3763,17 @@ class LEs extends L {
   @override
   String get shareSending =>
       'Enviando a tu entrenador · se enviará cuando haya señal';
+
+  @override
+  String get aiSettingNote =>
+      'Si está activada, un IA en nuestro servidor lee el texto de ejercicios y comidas que escribes, las fotos de comidas y las preguntas sobre tus registros. Si la desactivas, no se envía nada a la IA y lo escrito queda tal cual.';
+
+  @override
+  String get nicknameLabel => 'Apodo';
+
+  @override
+  String get moreChips => 'Ver más';
+
+  @override
+  String get allExercises => 'Todos los registros';
 }

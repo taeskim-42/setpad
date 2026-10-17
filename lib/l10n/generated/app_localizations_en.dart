@@ -9,9 +9,6 @@ class LEn extends L {
   LEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Today\'s Workout';
-
-  @override
   String get copy => 'Copy';
 
   @override
@@ -147,81 +144,10 @@ class LEn extends L {
   }
 
   @override
-  String get aiTitle => 'One-line setup';
-
-  @override
-  String get aiReady => 'Available';
-
-  @override
-  String get aiChecking => 'Checking';
-
-  @override
-  String get aiSetupNeeded => 'Setup needed';
-
-  @override
-  String get aiPreparing => 'Preparing';
-
-  @override
-  String get aiUnavailable => 'Manual entry';
-
-  @override
-  String get aiReadyBody =>
-      'Type “bench 80kg, reach 100 reps” in the exercise field and press Enter. Weight and goals are set automatically. Your text is processed on this device.';
-
-  @override
-  String get aiDisabledBody =>
-      'Open Settings → Apple Intelligence & Siri and turn on Apple Intelligence. Return after the model is ready; availability is checked again automatically.';
-
-  @override
-  String get aiOsBody =>
-      'One-line setup needs iOS 26 or later and an Apple Intelligence-compatible device. On a supported device, check Settings → General → Software Update.';
-
-  @override
-  String get aiDeviceBody =>
-      'This device does not support Apple Intelligence, so one-line setup is unavailable.';
-
-  @override
-  String get aiPreparingBody =>
-      'The device is preparing its AI model. Connect to Wi-Fi and check again later.';
-
-  @override
-  String get aiDownloadBody =>
-      'The AI model for one-line setup is available to download. Wi-Fi is recommended; the download needs time and storage. Once ready, your text is processed on this device.';
-
-  @override
-  String get aiLanguageBody =>
-      'This device’s AI model does not support the app language. Switch to a supported language and check again.';
-
-  @override
-  String get aiPlatformBody =>
-      'On-device AI is unavailable in this environment. Use the app on a supported iPhone or Android device.';
-
-  @override
-  String get aiUnavailableBody =>
-      'AI is currently unavailable. Availability depends on the device, OS, and system AI service. If the device was recently set up, connect to the internet and check again later.';
-
-  @override
-  String get aiManualBody =>
-      'You can still log workouts normally. Choose an exercise, then enter “80 20” or just the reps for each set.';
-
-  @override
-  String get aiPrepare => 'Prepare model';
-
-  @override
-  String get aiRetry => 'Check again';
-
-  @override
   String get aiWorking => 'Setting up exercise…';
 
   @override
   String get aiJudging => 'Reading…';
-
-  @override
-  String get aiFailure =>
-      'Could not interpret this entry. Edit it and try again, or use it as an exercise name.';
-
-  @override
-  String get aiUseName => 'Use as exercise name';
 
   @override
   String get aiFallbackQuota =>
@@ -443,17 +369,6 @@ class LEn extends L {
       'Sound is unavailable. The timer is still running.';
 
   @override
-  String get queryTitle => 'Ask your records';
-
-  @override
-  String get queryReadyBody =>
-      'Ask “What is my squat best?”, “How many push-ups last month?”, or “Has my bench improved this month?”. On-device AI interprets the question; saved records supply the numbers.';
-
-  @override
-  String get queryManualBody =>
-      'Natural-language questions need on-device AI to be ready. Exercise-name and note searches always work.';
-
-  @override
   String get queryWorking => 'Interpreting your question…';
 
   @override
@@ -494,17 +409,8 @@ class LEn extends L {
   String get queryAverage => 'Average weight per set';
 
   @override
-  String get queryMissingData =>
-      'The exercise or measurement needed for this question is not in your records.';
-
-  @override
   String get queryAmbiguous =>
       'Please clarify which exercise and record you mean.';
-
-  @override
-  String queryRank(int n) {
-    return 'Rank $n';
-  }
 
   @override
   String timingWorkSeconds(int n) {
@@ -731,9 +637,6 @@ class LEn extends L {
   String get queryCompareChip => 'Compare';
 
   @override
-  String get queryNoRecord => 'No records';
-
-  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -855,9 +758,6 @@ class LEn extends L {
   String get bookingWhichGym => 'Which gym?';
 
   @override
-  String get tagSignIn => 'Sign in';
-
-  @override
   String get accountDelete => 'Delete account';
 
   @override
@@ -918,9 +818,6 @@ class LEn extends L {
   String get ok => 'OK';
 
   @override
-  String get mealPhoto => 'Meal photo';
-
-  @override
   String get mealAdd => 'Log a meal';
 
   @override
@@ -940,21 +837,8 @@ class LEn extends L {
   String get mealEstimating => 'Estimating calories…';
 
   @override
-  String mealIntake(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return 'Intake ≈ $nString kcal';
-  }
-
-  @override
   String get mealFailed =>
       'Couldn\'t estimate calories from that photo. Try another.';
-
-  @override
-  String get mealEstimateNote => 'Estimated from the photo';
 
   @override
   String mealServingsOption(String n) {
@@ -963,16 +847,6 @@ class LEn extends L {
 
   @override
   String get fitAll => 'Today\'s workout';
-
-  @override
-  String sameDayToday(String time) {
-    return 'Separate record from today, $time';
-  }
-
-  @override
-  String sameDayOn(String date, String time) {
-    return 'Separate record from $date, $time';
-  }
 
   @override
   String sameDayMore(String first, int n) {
@@ -1007,16 +881,6 @@ class LEn extends L {
 
   @override
   String get mealKcalUnknown => 'kcal unknown';
-
-  @override
-  String mealIntakePartial(int n, int m) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return 'Intake $nString kcal + $m with unknown kcal';
-  }
 
   @override
   String get mealAmountAsk => 'How much did you eat?';
@@ -1195,15 +1059,9 @@ class LEn extends L {
   }
 
   @override
-  String get dayBurnedMissing => 'Exercise energy not measured · no difference';
-
-  @override
   String dayBurnedOnly(String n) {
     return 'Exercise $n kcal · no meals logged';
   }
-
-  @override
-  String get intakeLabel => 'Intake';
 
   @override
   String get partnerSignIn => 'Sign in to work out together.';
@@ -2466,11 +2324,6 @@ class LEn extends L {
   }
 
   @override
-  String routineRecent(String part, String when) {
-    return '$part · $when';
-  }
-
-  @override
   String routineDaysAgo(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -2954,18 +2807,8 @@ class LEn extends L {
   }
 
   @override
-  String anatomySetsLine(String week, String month) {
-    return 'Sets — last 7 days: $week · 28 days: $month';
-  }
-
-  @override
   String anatomyBreakdown(int primary, int secondary) {
     return '28 days: main muscle $primary · assisting $secondary (counted as half)';
-  }
-
-  @override
-  String anatomyLast(String date, String ago) {
-    return 'Last: $date ($ago)';
   }
 
   @override
@@ -3431,9 +3274,6 @@ class LEn extends L {
   String get workoutImportAnalyze => 'Build preview';
 
   @override
-  String get workoutImportWorking => 'Reading workouts…';
-
-  @override
   String get workoutImportEmpty => 'Add text or screenshots first.';
 
   @override
@@ -3892,4 +3732,17 @@ class LEn extends L {
   @override
   String get shareSending =>
       'Sending to your trainer · goes when you have signal';
+
+  @override
+  String get aiSettingNote =>
+      'When on, the workout and meal text you write, meal photos and record questions are read by an AI on our server. When off, nothing is sent to the AI and what you wrote stays as typed.';
+
+  @override
+  String get nicknameLabel => 'Nickname';
+
+  @override
+  String get moreChips => 'More';
+
+  @override
+  String get allExercises => 'All Workouts';
 }

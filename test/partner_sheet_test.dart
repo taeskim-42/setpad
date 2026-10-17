@@ -125,10 +125,12 @@ void main() {
     // 서버가 말하는 상태. 테스트가 바꾼다.
     var state = 'waiting';
     Object? record;
+    var down = false;
     final account = Account(
       storageDir: dir,
       client: MockClient((request) async {
         final path = request.url.path;
+        if (down) throw http.ClientException('offline');
         if (path.endsWith('/end')) state = 'ended';
         if (path.endsWith('/join')) {
           return http.Response('{"error":"invalidCode"}', 404);
@@ -173,7 +175,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('menu-partner')));
     await tester.pumpAndSettle();
-    expect(find.text('같이 하려면 로그인이 필요합니다.'), findsOneWidget);
+    expect(find.text('같이 하려면 로그인이 필요해요.'), findsOneWidget);
     account
       ..token = 'member'
       ..notifyListeners(); // 로그인이 끝났다 — 같은 창이 다음 단계로 간다.
@@ -207,7 +209,7 @@ void main() {
     await tester.ensureVisible(submit);
     await tester.tap(submit);
     await tester.pump();
-    expect(find.text('코드는 여섯 글자입니다. 다시 확인해 주세요.'), findsOneWidget);
+    expect(find.text('코드는 여섯 글자예요. 다시 확인해 주세요.'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.ensureVisible(code);
     await tester.enterText(code, 'zzzzz9');
@@ -247,11 +249,27 @@ void main() {
     await tester.pump();
     expect(find.byKey(const ValueKey('partner-banner')), findsOneWidget);
     expect(find.text('준 님과 함께 운동 중'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('준 님과 함께 운동 중')).style!.fontSize,
+      13,
+      reason: '12 로는 작았다 — 보조 줄은 13',
+    );
+
+    // 연결이 끊기면 그 말만 — 이름을 같이 넣으면 정작 이 상태가 잘렸다.
+    down = true;
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
+    expect(find.text('연결 복구 중 · 내 기록은 계속 저장돼요'), findsOneWidget);
+    expect(find.text('준 님과 함께 운동 중'), findsNothing);
+    down = false;
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pump();
+    expect(find.text('준 님과 함께 운동 중'), findsOneWidget);
 
     // 상태 줄을 누르면 상대 기록. 아직 없으면 "없음" 이라고 말한다.
     await tester.tap(find.byKey(const ValueKey('partner-banner')));
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('아직 올라온 기록이 없습니다.'), findsOneWidget);
+    expect(find.text('아직 올라온 기록이 없어요.'), findsOneWidget);
     record = {
       'revision': 1,
       'updatedAt': DateTime.now().toIso8601String(),
@@ -282,7 +300,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
     expect(note.partner!.state, PartnerState.ended);
-    expect(find.textContaining('내 기록은 그대로 남아 있습니다'), findsOneWidget);
+    expect(find.textContaining('내 기록은 그대로 남아 있어요'), findsOneWidget);
     await tester.tap(close);
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.byKey(const ValueKey('partner-banner')), findsNothing);

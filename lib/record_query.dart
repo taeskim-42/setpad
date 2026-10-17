@@ -3748,7 +3748,7 @@ RecordResult? runPlan(
         // 먹은 것·운동 소모는 운동의 것이 아니다 — '모든 운동' 제목을 달지 않는다.
         : metrics.every(energyMetrics.contains)
         ? ''
-        : l.allNotes,
+        : l.allExercises,
     columns: columns,
     rows: rows,
     lines: lines,
@@ -3820,7 +3820,7 @@ String _namesPart(QueryScope v, L l, String Function(String name) label) =>
     ? v.exercises.map(label).join(' · ')
     : v.part != null
     ? l.queryPart(v.part!)
-    : l.allNotes;
+    : l.allExercises;
 
 String metricLabel(L l, Metric m) => switch (m) {
   Metric.max => l.metricMax,
@@ -4115,7 +4115,7 @@ String describePlan(
                 ].join('·'),
               )
       else
-        l.allNotes,
+        l.allExercises,
       for (final k in keys)
         if ((book.members[k]?.map(statName).toSet().length ?? 0) > 1)
           l.queryAlias(

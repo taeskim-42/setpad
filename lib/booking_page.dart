@@ -113,7 +113,7 @@ class _BookingPageState extends State<BookingPage> {
       builder: (ctx) => CupertinoAlertDialog(
         content: Padding(
           padding: const EdgeInsets.only(top: 8),
-          child: Text(l.bookingCancelAsk, style: const TextStyle(fontSize: 15)),
+          child: Text(l.bookingCancelAsk, style: const TextStyle(fontSize: 13)),
         ),
         actions: [
           CupertinoDialogAction(

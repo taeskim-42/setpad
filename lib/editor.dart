@@ -2083,7 +2083,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   Future<void> _say(String message) => showCupertinoDialog<void>(
     context: context,
     builder: (ctx) => CupertinoAlertDialog(
-      content: Text(message, style: const TextStyle(fontSize: 15)),
+      content: Text(message, style: const TextStyle(fontSize: 13)),
       actions: [
         CupertinoDialogAction(
           isDefaultAction: true,

@@ -109,12 +109,6 @@ abstract class L {
     Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
   ];
 
-  /// 앱 바 제목
-  ///
-  /// In ko, this message translates to:
-  /// **'오늘 운동'**
-  String get appTitle;
-
   /// No description provided for @copy.
   ///
   /// In ko, this message translates to:
@@ -124,7 +118,7 @@ abstract class L {
   /// No description provided for @copied.
   ///
   /// In ko, this message translates to:
-  /// **'복사했습니다'**
+  /// **'복사했어요'**
   String get copied;
 
   /// No description provided for @exerciseNameHint.
@@ -166,13 +160,13 @@ abstract class L {
   /// No description provided for @allNotes.
   ///
   /// In ko, this message translates to:
-  /// **'모든 운동'**
+  /// **'모든 기록'**
   String get allNotes;
 
   /// No description provided for @noteCount.
   ///
   /// In ko, this message translates to:
-  /// **'{n}개의 운동'**
+  /// **'{n}개의 기록'**
   String noteCount(int n);
 
   /// No description provided for @previous7Days.
@@ -208,13 +202,13 @@ abstract class L {
   /// No description provided for @noNotesYet.
   ///
   /// In ko, this message translates to:
-  /// **'아직 기록이 없습니다'**
+  /// **'아직 기록이 없어요'**
   String get noNotesYet;
 
   /// No description provided for @noSearchResults.
   ///
   /// In ko, this message translates to:
-  /// **'찾는 기록이 없습니다'**
+  /// **'찾는 기록이 없어요'**
   String get noSearchResults;
 
   /// 목록의 날짜. 요일 또는 날짜
@@ -250,13 +244,13 @@ abstract class L {
   /// No description provided for @deleteExerciseBody.
   ///
   /// In ko, this message translates to:
-  /// **'{n}개 세트가 함께 지워집니다. 되돌릴 수 없습니다.'**
+  /// **'{n}개 세트가 함께 지워져요. 되돌릴 수 없어요.'**
   String deleteExerciseBody(int n);
 
   /// No description provided for @deleteExerciseEmptyBody.
   ///
   /// In ko, this message translates to:
-  /// **'이 운동을 지웁니다.'**
+  /// **'이 운동을 지워요.'**
   String get deleteExerciseEmptyBody;
 
   /// No description provided for @next.
@@ -319,114 +313,6 @@ abstract class L {
   /// **'한 번에 {n}세트까지예요. 줄을 나눠 적어 주세요.'**
   String setsPerLineMax(int n);
 
-  /// No description provided for @aiTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'한 줄 설정'**
-  String get aiTitle;
-
-  /// No description provided for @aiReady.
-  ///
-  /// In ko, this message translates to:
-  /// **'사용 가능'**
-  String get aiReady;
-
-  /// No description provided for @aiChecking.
-  ///
-  /// In ko, this message translates to:
-  /// **'확인 중'**
-  String get aiChecking;
-
-  /// No description provided for @aiSetupNeeded.
-  ///
-  /// In ko, this message translates to:
-  /// **'설정 필요'**
-  String get aiSetupNeeded;
-
-  /// No description provided for @aiPreparing.
-  ///
-  /// In ko, this message translates to:
-  /// **'준비 중'**
-  String get aiPreparing;
-
-  /// No description provided for @aiUnavailable.
-  ///
-  /// In ko, this message translates to:
-  /// **'기본 입력'**
-  String get aiUnavailable;
-
-  /// No description provided for @aiReadyBody.
-  ///
-  /// In ko, this message translates to:
-  /// **'운동 이름 칸에 “벤치 80kg 100개 채우기”처럼 적고 엔터를 누르세요. 무게와 목표를 자동으로 설정합니다. 문장은 기기 안에서 처리됩니다.'**
-  String get aiReadyBody;
-
-  /// No description provided for @aiDisabledBody.
-  ///
-  /// In ko, this message translates to:
-  /// **'설정 앱 → Apple Intelligence 및 Siri에서 Apple Intelligence를 켜 주세요. 모델 준비가 끝난 뒤 앱으로 돌아오면 자동으로 다시 확인합니다.'**
-  String get aiDisabledBody;
-
-  /// No description provided for @aiOsBody.
-  ///
-  /// In ko, this message translates to:
-  /// **'한 줄 설정에는 iOS 26 이상과 Apple Intelligence 지원 기기가 필요합니다. 지원 기기라면 설정 → 일반 → 소프트웨어 업데이트를 확인해 주세요.'**
-  String get aiOsBody;
-
-  /// No description provided for @aiDeviceBody.
-  ///
-  /// In ko, this message translates to:
-  /// **'이 기기는 Apple Intelligence를 지원하지 않아 한 줄 설정을 사용할 수 없습니다.'**
-  String get aiDeviceBody;
-
-  /// No description provided for @aiPreparingBody.
-  ///
-  /// In ko, this message translates to:
-  /// **'기기에서 AI 모델을 준비하고 있습니다. Wi-Fi에 연결한 뒤 잠시 후 다시 확인해 주세요.'**
-  String get aiPreparingBody;
-
-  /// No description provided for @aiDownloadBody.
-  ///
-  /// In ko, this message translates to:
-  /// **'한 줄 설정에 필요한 AI 모델을 다운로드할 수 있습니다. Wi-Fi 연결을 권장하며, 다운로드에는 시간과 저장 공간이 필요합니다. 준비가 끝나면 문장은 기기 안에서 처리됩니다.'**
-  String get aiDownloadBody;
-
-  /// No description provided for @aiLanguageBody.
-  ///
-  /// In ko, this message translates to:
-  /// **'현재 기기의 AI 모델이 앱 언어를 지원하지 않습니다. 지원되는 언어로 변경한 뒤 다시 확인해 주세요.'**
-  String get aiLanguageBody;
-
-  /// No description provided for @aiPlatformBody.
-  ///
-  /// In ko, this message translates to:
-  /// **'이 환경에서는 기기 내 AI를 사용할 수 없습니다. 지원되는 iPhone 또는 Android 기기의 앱에서 사용할 수 있습니다.'**
-  String get aiPlatformBody;
-
-  /// No description provided for @aiUnavailableBody.
-  ///
-  /// In ko, this message translates to:
-  /// **'현재 기기에서 AI를 사용할 수 없습니다. 기기·OS·시스템 AI 서비스의 지원 및 준비 상태에 따라 달라집니다. 새 기기를 설정한 직후라면 네트워크에 연결한 뒤 다시 확인해 주세요.'**
-  String get aiUnavailableBody;
-
-  /// No description provided for @aiManualBody.
-  ///
-  /// In ko, this message translates to:
-  /// **'기본 운동 기록은 그대로 사용할 수 있습니다. 운동 이름을 선택한 뒤 세트마다 “80 20” 또는 횟수만 입력하세요.'**
-  String get aiManualBody;
-
-  /// No description provided for @aiPrepare.
-  ///
-  /// In ko, this message translates to:
-  /// **'모델 준비'**
-  String get aiPrepare;
-
-  /// No description provided for @aiRetry.
-  ///
-  /// In ko, this message translates to:
-  /// **'다시 확인'**
-  String get aiRetry;
-
   /// No description provided for @aiWorking.
   ///
   /// In ko, this message translates to:
@@ -438,18 +324,6 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'읽는 중…'**
   String get aiJudging;
-
-  /// No description provided for @aiFailure.
-  ///
-  /// In ko, this message translates to:
-  /// **'문장을 해석하지 못했습니다. 내용을 고쳐 다시 입력하거나 운동 이름으로 사용할 수 있습니다.'**
-  String get aiFailure;
-
-  /// No description provided for @aiUseName.
-  ///
-  /// In ko, this message translates to:
-  /// **'운동 이름으로 사용'**
-  String get aiUseName;
 
   /// No description provided for @aiFallbackQuota.
   ///
@@ -622,7 +496,7 @@ abstract class L {
   /// No description provided for @weightUnitHelp.
   ///
   /// In ko, this message translates to:
-  /// **'새로 입력하는 운동의 기본 단위입니다. 기존 기록의 무게와 단위는 바뀌지 않습니다.'**
+  /// **'새로 입력하는 운동의 기본 단위예요. 기존 기록의 무게와 단위는 바뀌지 않아요.'**
   String get weightUnitHelp;
 
   /// No description provided for @answerDays.
@@ -778,26 +652,8 @@ abstract class L {
   /// No description provided for @timingSoundFailed.
   ///
   /// In ko, this message translates to:
-  /// **'소리를 재생할 수 없습니다. 타이머는 계속 동작합니다.'**
+  /// **'소리를 재생할 수 없어요. 타이머는 계속 동작해요.'**
   String get timingSoundFailed;
-
-  /// No description provided for @queryTitle.
-  ///
-  /// In ko, this message translates to:
-  /// **'기록에 질문'**
-  String get queryTitle;
-
-  /// No description provided for @queryReadyBody.
-  ///
-  /// In ko, this message translates to:
-  /// **'“스쿼트 최대 무게”, “지난달 푸시업 몇 개 했어?”, “이번 달 벤치는 지난달보다 늘었어?”처럼 물어보세요. 기기 내 AI가 질문을 해석하고 저장된 기록으로 계산합니다.'**
-  String get queryReadyBody;
-
-  /// No description provided for @queryManualBody.
-  ///
-  /// In ko, this message translates to:
-  /// **'자연어 질문은 기기 내 AI가 준비되면 사용할 수 있습니다. 일반 운동명·메모 검색은 항상 가능합니다.'**
-  String get queryManualBody;
 
   /// No description provided for @queryWorking.
   ///
@@ -808,7 +664,7 @@ abstract class L {
   /// No description provided for @queryFailed.
   ///
   /// In ko, this message translates to:
-  /// **'답변을 가져오지 못했습니다. 다시 시도해 주세요.'**
+  /// **'답변을 가져오지 못했어요. 다시 시도해 주세요.'**
   String get queryFailed;
 
   /// No description provided for @queryUnsupported.
@@ -871,23 +727,11 @@ abstract class L {
   /// **'세트당 평균 중량'**
   String get queryAverage;
 
-  /// No description provided for @queryMissingData.
-  ///
-  /// In ko, this message translates to:
-  /// **'질문에 필요한 운동이나 측정 정보가 기록에 없습니다.'**
-  String get queryMissingData;
-
   /// No description provided for @queryAmbiguous.
   ///
   /// In ko, this message translates to:
   /// **'어떤 운동의 어떤 기록을 말하는지 조금 더 구체적으로 적어 주세요.'**
   String get queryAmbiguous;
-
-  /// No description provided for @queryRank.
-  ///
-  /// In ko, this message translates to:
-  /// **'{n}위'**
-  String queryRank(int n);
 
   /// No description provided for @timingWorkSeconds.
   ///
@@ -1255,12 +1099,6 @@ abstract class L {
   /// **'비교'**
   String get queryCompareChip;
 
-  /// 표에서 지목한 운동에 이 범위의 기록이 하나도 없을 때.
-  ///
-  /// In ko, this message translates to:
-  /// **'기록 없음'**
-  String get queryNoRecord;
-
   /// No description provided for @settingsTitle.
   ///
   /// In ko, this message translates to:
@@ -1282,13 +1120,13 @@ abstract class L {
   /// No description provided for @settingsGym.
   ///
   /// In ko, this message translates to:
-  /// **'다니는 체육관'**
+  /// **'다니는 헬스장'**
   String get settingsGym;
 
   /// No description provided for @settingsNoGym.
   ///
   /// In ko, this message translates to:
-  /// **'헬스장 스티커에 폰을 대면 트레이너가 짠 루틴을 여기서 받습니다.'**
+  /// **'헬스장 스티커에 폰을 대면 트레이너가 짠 루틴을 여기서 받아요.'**
   String get settingsNoGym;
 
   /// No description provided for @proTitle.
@@ -1300,7 +1138,7 @@ abstract class L {
   /// No description provided for @proBody.
   ///
   /// In ko, this message translates to:
-  /// **'기록에 묻는 질문은 원판을 씁니다. 질문 하나에 보통 1장쯤 들고, 답에 실제로 쓴 만큼만 빠집니다. 운동과 식단을 적을 때 돕는 적기 도움은 원판을 쓰지 않습니다.'**
+  /// **'기록에 묻는 질문은 원판을 써요. 질문 하나에 보통 1장쯤 들고, 답에 실제로 쓴 만큼만 빠져요. 운동과 식단을 적을 때 돕는 적기 도움은 원판을 쓰지 않아요.'**
   String get proBody;
 
   /// No description provided for @proFree.
@@ -1318,19 +1156,19 @@ abstract class L {
   /// No description provided for @proEverythingElseFree.
   ///
   /// In ko, this message translates to:
-  /// **'기록·타이머·손목 알림·건강 앱 연동·같이 하기·체육관은 이용권 없이도 전부 됩니다.'**
+  /// **'기록·타이머·손목 알림·건강 앱 연동·같이 하기·헬스장은 이용권 없이도 전부 돼요.'**
   String get proEverythingElseFree;
 
   /// No description provided for @proOwned.
   ///
   /// In ko, this message translates to:
-  /// **'이용 중입니다. 고맙습니다.'**
+  /// **'이용 중이에요. 고마워요.'**
   String get proOwned;
 
   /// No description provided for @proSignInOptional.
   ///
   /// In ko, this message translates to:
-  /// **'로그인 없이도 살 수 있습니다. 로그인하면 다른 기기에서도 이용권을 씁니다.'**
+  /// **'로그인 없이도 살 수 있어요. 로그인하면 다른 기기에서도 이용권을 써요.'**
   String get proSignInOptional;
 
   /// 원판 잔액. 1.5 처럼 소수가 있다.
@@ -1366,37 +1204,37 @@ abstract class L {
   /// No description provided for @purchaseNotConfirmed.
   ///
   /// In ko, this message translates to:
-  /// **'구매를 확인하지 못했습니다. 결제가 됐다면 잠시 뒤 ‘구매 복원’을 눌러 주세요.'**
+  /// **'구매를 확인하지 못했어요. 결제가 됐다면 잠시 뒤 ‘구매 복원’을 눌러 주세요.'**
   String get purchaseNotConfirmed;
 
   /// No description provided for @purchaseOtherAccount.
   ///
   /// In ko, this message translates to:
-  /// **'이 구매는 다른 계정에 연결돼 있습니다. 그 계정으로 로그인해 주세요.'**
+  /// **'이 구매는 다른 계정에 연결돼 있어요. 그 계정으로 로그인해 주세요.'**
   String get purchaseOtherAccount;
 
   /// No description provided for @tagSignInNeeded.
   ///
   /// In ko, this message translates to:
-  /// **'헬스장과 연결하려면 로그인이 필요합니다.'**
+  /// **'헬스장과 연결하려면 로그인이 필요해요.'**
   String get tagSignInNeeded;
 
   /// No description provided for @tagJoinSent.
   ///
   /// In ko, this message translates to:
-  /// **'등록을 신청했습니다. 트레이너가 확인하면 바로 시작할 수 있습니다.'**
+  /// **'등록을 신청했어요. 트레이너가 확인하면 바로 시작할 수 있어요.'**
   String get tagJoinSent;
 
   /// No description provided for @tagJoinWaiting.
   ///
   /// In ko, this message translates to:
-  /// **'이미 신청하셨습니다. 트레이너가 확인하는 중입니다.'**
+  /// **'이미 신청했어요. 트레이너가 확인하는 중이에요.'**
   String get tagJoinWaiting;
 
   /// No description provided for @tagJoinFailed.
   ///
   /// In ko, this message translates to:
-  /// **'신청하지 못했습니다. 잠시 뒤 다시 대주세요.'**
+  /// **'신청하지 못했어요. 잠시 뒤 다시 대 주세요.'**
   String get tagJoinFailed;
 
   /// No description provided for @bookingPending.
@@ -1410,12 +1248,6 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'어느 헬스장인가요?'**
   String get bookingWhichGym;
-
-  /// No description provided for @tagSignIn.
-  ///
-  /// In ko, this message translates to:
-  /// **'로그인'**
-  String get tagSignIn;
 
   /// No description provided for @accountDelete.
   ///
@@ -1438,13 +1270,13 @@ abstract class L {
   /// No description provided for @accountDeleteFailed.
   ///
   /// In ko, this message translates to:
-  /// **'탈퇴하지 못했습니다. 잠시 뒤 다시 시도해 주세요.'**
+  /// **'탈퇴하지 못했어요. 잠시 뒤 다시 시도해 주세요.'**
   String get accountDeleteFailed;
 
   /// No description provided for @signInFailed.
   ///
   /// In ko, this message translates to:
-  /// **'로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.'**
+  /// **'로그인하지 못했어요. 잠시 뒤 다시 시도해 주세요.'**
   String get signInFailed;
 
   /// No description provided for @bookingTitle.
@@ -1468,13 +1300,13 @@ abstract class L {
   /// No description provided for @bookingNoPass.
   ///
   /// In ko, this message translates to:
-  /// **'PT 이용권이 없습니다. 트레이너에게 문의해 주세요.'**
+  /// **'PT 이용권이 없어요. 트레이너에게 문의해 주세요.'**
   String get bookingNoPass;
 
   /// No description provided for @bookingNoHours.
   ///
   /// In ko, this message translates to:
-  /// **'{trainer} 트레이너가 아직 받을 시간을 열지 않았습니다.'**
+  /// **'{trainer} 트레이너가 아직 받을 시간을 열지 않았어요.'**
   String bookingNoHours(String trainer);
 
   /// No description provided for @bookingPick.
@@ -1492,7 +1324,7 @@ abstract class L {
   /// No description provided for @bookingSent.
   ///
   /// In ko, this message translates to:
-  /// **'신청했습니다. 트레이너가 승인하면 확정됩니다.'**
+  /// **'신청했어요. 트레이너가 승인하면 확정돼요.'**
   String get bookingSent;
 
   /// No description provided for @bookingUpcoming.
@@ -1504,7 +1336,7 @@ abstract class L {
   /// No description provided for @bookingClosedDay.
   ///
   /// In ko, this message translates to:
-  /// **'이날은 받지 않습니다.'**
+  /// **'이날은 받지 않아요.'**
   String get bookingClosedDay;
 
   /// No description provided for @bookingCancelAsk.
@@ -1518,12 +1350,6 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'확인'**
   String get ok;
-
-  /// No description provided for @mealPhoto.
-  ///
-  /// In ko, this message translates to:
-  /// **'식단 사진'**
-  String get mealPhoto;
 
   /// No description provided for @mealAdd.
   ///
@@ -1561,23 +1387,11 @@ abstract class L {
   /// **'칼로리 어림하는 중…'**
   String get mealEstimating;
 
-  /// No description provided for @mealIntake.
-  ///
-  /// In ko, this message translates to:
-  /// **'섭취 약 {n}kcal'**
-  String mealIntake(int n);
-
   /// No description provided for @mealFailed.
   ///
   /// In ko, this message translates to:
   /// **'사진에서 칼로리를 어림하지 못했어요. 다시 찍어 주세요.'**
   String get mealFailed;
-
-  /// No description provided for @mealEstimateNote.
-  ///
-  /// In ko, this message translates to:
-  /// **'사진으로 어림한 값이에요'**
-  String get mealEstimateNote;
 
   /// No description provided for @mealServingsOption.
   ///
@@ -1588,20 +1402,8 @@ abstract class L {
   /// No description provided for @fitAll.
   ///
   /// In ko, this message translates to:
-  /// **'오늘 운동'**
+  /// **'오늘 한 장'**
   String get fitAll;
-
-  /// No description provided for @sameDayToday.
-  ///
-  /// In ko, this message translates to:
-  /// **'오늘 {time}에 따로 남긴 기록'**
-  String sameDayToday(String time);
-
-  /// No description provided for @sameDayOn.
-  ///
-  /// In ko, this message translates to:
-  /// **'{date} {time}에 따로 남긴 기록'**
-  String sameDayOn(String date, String time);
 
   /// No description provided for @sameDayMore.
   ///
@@ -1644,12 +1446,6 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'열량 미상'**
   String get mealKcalUnknown;
-
-  /// No description provided for @mealIntakePartial.
-  ///
-  /// In ko, this message translates to:
-  /// **'확인된 섭취 {n}kcal · 열량 미상 {m}건'**
-  String mealIntakePartial(int n, int m);
 
   /// No description provided for @mealAmountAsk.
   ///
@@ -1867,28 +1663,16 @@ abstract class L {
   /// **'먹은 것 {intake} · 운동 {burned} = {diff}kcal (추정)'**
   String dayEnergyApprox(String intake, String burned, String diff);
 
-  /// No description provided for @dayBurnedMissing.
-  ///
-  /// In ko, this message translates to:
-  /// **'운동 소모량 미측정 · 차이 계산 불가'**
-  String get dayBurnedMissing;
-
   /// No description provided for @dayBurnedOnly.
   ///
   /// In ko, this message translates to:
   /// **'운동 {n}kcal · 식단 미기록'**
   String dayBurnedOnly(String n);
 
-  /// No description provided for @intakeLabel.
-  ///
-  /// In ko, this message translates to:
-  /// **'섭취'**
-  String get intakeLabel;
-
   /// No description provided for @partnerSignIn.
   ///
   /// In ko, this message translates to:
-  /// **'같이 하려면 로그인이 필요합니다.'**
+  /// **'같이 하려면 로그인이 필요해요.'**
   String get partnerSignIn;
 
   /// No description provided for @partnerSignInAction.
@@ -1918,7 +1702,7 @@ abstract class L {
   /// No description provided for @partnerExpired.
   ///
   /// In ko, this message translates to:
-  /// **'코드가 만료되었습니다.'**
+  /// **'코드가 만료되었어요.'**
   String get partnerExpired;
 
   /// No description provided for @partnerNewCode.
@@ -1942,7 +1726,7 @@ abstract class L {
   /// No description provided for @partnerReconnecting.
   ///
   /// In ko, this message translates to:
-  /// **'연결 복구 중 · 내 기록은 계속 저장됩니다'**
+  /// **'연결 복구 중 · 내 기록은 계속 저장돼요'**
   String get partnerReconnecting;
 
   /// No description provided for @partnerTheirRecord.
@@ -1954,7 +1738,7 @@ abstract class L {
   /// No description provided for @partnerNoRecordYet.
   ///
   /// In ko, this message translates to:
-  /// **'아직 올라온 기록이 없습니다.'**
+  /// **'아직 올라온 기록이 없어요.'**
   String get partnerNoRecordYet;
 
   /// No description provided for @partnerLoading.
@@ -1972,19 +1756,19 @@ abstract class L {
   /// No description provided for @partnerEndedByMe.
   ///
   /// In ko, this message translates to:
-  /// **'함께 운동을 종료했습니다. 내 기록은 그대로 남아 있습니다.'**
+  /// **'함께 운동을 종료했어요. 내 기록은 그대로 남아 있어요.'**
   String get partnerEndedByMe;
 
   /// No description provided for @partnerEndedByThem.
   ///
   /// In ko, this message translates to:
-  /// **'{name} 님이 함께 운동을 종료했습니다. 내 기록은 그대로 남아 있습니다.'**
+  /// **'{name} 님이 함께 운동을 종료했어요. 내 기록은 그대로 남아 있어요.'**
   String partnerEndedByThem(String name);
 
   /// No description provided for @partnerErrFormat.
   ///
   /// In ko, this message translates to:
-  /// **'코드는 여섯 글자입니다. 다시 확인해 주세요.'**
+  /// **'코드는 여섯 글자예요. 다시 확인해 주세요.'**
   String get partnerErrFormat;
 
   /// No description provided for @partnerErrInvalid.
@@ -1996,37 +1780,37 @@ abstract class L {
   /// No description provided for @partnerErrExpired.
   ///
   /// In ko, this message translates to:
-  /// **'만료된 코드입니다. 상대에게 새 코드를 받아 주세요.'**
+  /// **'만료된 코드예요. 상대에게 새 코드를 받아 주세요.'**
   String get partnerErrExpired;
 
   /// No description provided for @partnerErrEnded.
   ///
   /// In ko, this message translates to:
-  /// **'이미 종료된 초대입니다.'**
+  /// **'이미 종료된 초대예요.'**
   String get partnerErrEnded;
 
   /// No description provided for @partnerErrOwn.
   ///
   /// In ko, this message translates to:
-  /// **'내가 만든 코드입니다. 상대의 기기에서 입력해 주세요.'**
+  /// **'내가 만든 코드예요. 상대의 기기에서 입력해 주세요.'**
   String get partnerErrOwn;
 
   /// No description provided for @partnerErrTries.
   ///
   /// In ko, this message translates to:
-  /// **'시도가 너무 많습니다. 잠시 뒤에 다시 해 주세요.'**
+  /// **'시도가 너무 많아요. 잠시 뒤에 다시 해 주세요.'**
   String get partnerErrTries;
 
   /// No description provided for @partnerErrNetwork.
   ///
   /// In ko, this message translates to:
-  /// **'서버에 연결하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.'**
+  /// **'서버에 연결하지 못했어요. 네트워크를 확인하고 다시 시도해 주세요.'**
   String get partnerErrNetwork;
 
   /// No description provided for @partnerErrServer.
   ///
   /// In ko, this message translates to:
-  /// **'서버에 문제가 있습니다. 잠시 뒤에 다시 시도해 주세요.'**
+  /// **'서버에 문제가 있어요. 잠시 뒤에 다시 시도해 주세요.'**
   String get partnerErrServer;
 
   /// No description provided for @partnerRetry.
@@ -2044,7 +1828,7 @@ abstract class L {
   /// No description provided for @partnerConflict.
   ///
   /// In ko, this message translates to:
-  /// **'다른 기기에서 더 새 기록을 공유했습니다. 이 기기의 기록은 그대로 저장돼 있고, 공유만 멈춘 상태입니다.'**
+  /// **'다른 기기에서 더 새 기록을 공유했어요. 이 기기의 기록은 그대로 저장돼 있고, 공유만 멈춘 상태예요.'**
   String get partnerConflict;
 
   /// No description provided for @partnerShareThisDevice.
@@ -2056,7 +1840,7 @@ abstract class L {
   /// No description provided for @nearbyHint.
   ///
   /// In ko, this message translates to:
-  /// **'아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결됩니다.'**
+  /// **'아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결돼요.'**
   String get nearbyHint;
 
   /// No description provided for @togetherStart.
@@ -2080,13 +1864,13 @@ abstract class L {
   /// No description provided for @togetherWaitingHint.
   ///
   /// In ko, this message translates to:
-  /// **'상대 화면에 요청이 뜹니다. 안 보이면 상대 앱이 최신인지 확인하세요.'**
+  /// **'상대 화면에 요청이 떠요. 안 보이면 상대 앱이 최신인지 확인해 주세요.'**
   String get togetherWaitingHint;
 
   /// No description provided for @togetherInvite.
   ///
   /// In ko, this message translates to:
-  /// **'{name} 님이 같이 하자고 합니다'**
+  /// **'{name} 님이 같이 하자고 해요'**
   String togetherInvite(String name);
 
   /// No description provided for @togetherInviteAlternate.
@@ -2200,13 +1984,13 @@ abstract class L {
   /// No description provided for @proxyShareText.
   ///
   /// In ko, this message translates to:
-  /// **'같이 운동하며 대신 적은 기록입니다. setpad 에서 열어 받으면 내 운동 기록이 됩니다.\n{url}'**
+  /// **'같이 운동하며 대신 적은 기록이에요. setpad 에서 열어 받으면 내 운동 기록이 돼요.\n{url}'**
   String proxyShareText(String url);
 
   /// No description provided for @handoffOffer.
   ///
   /// In ko, this message translates to:
-  /// **'{name} 님이 내 기록을 적어 주었습니다'**
+  /// **'{name} 님이 내 기록을 적어 주었어요'**
   String handoffOffer(String name);
 
   /// No description provided for @handoffTake.
@@ -2218,13 +2002,13 @@ abstract class L {
   /// No description provided for @handoffFailed.
   ///
   /// In ko, this message translates to:
-  /// **'기록을 받지 못했습니다. 링크가 만료됐거나 네트워크 문제일 수 있습니다.'**
+  /// **'기록을 받지 못했어요. 링크가 만료됐거나 네트워크 문제일 수 있어요.'**
   String get handoffFailed;
 
   /// No description provided for @handoffSignIn.
   ///
   /// In ko, this message translates to:
-  /// **'건네받은 기록을 받으려면 로그인이 필요합니다.'**
+  /// **'건네받은 기록을 받으려면 로그인이 필요해요.'**
   String get handoffSignIn;
 
   /// No description provided for @partnerInviteMore.
@@ -3762,12 +3546,6 @@ abstract class L {
   /// **'{date} 메모: {memo}'**
   String routineMemo(String date, String memo);
 
-  /// No description provided for @routineRecent.
-  ///
-  /// In ko, this message translates to:
-  /// **'{part} · {when}'**
-  String routineRecent(String part, String when);
-
   /// No description provided for @routineDaysAgo.
   ///
   /// In ko, this message translates to:
@@ -4251,7 +4029,7 @@ abstract class L {
   /// No description provided for @anatomyCountNote.
   ///
   /// In ko, this message translates to:
-  /// **'근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.'**
+  /// **'근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 세어요.'**
   String get anatomyCountNote;
 
   /// No description provided for @anatomyLimits.
@@ -4278,23 +4056,11 @@ abstract class L {
   /// **'{days}일 {sets}세트'**
   String anatomySets(int days, String sets);
 
-  /// No description provided for @anatomySetsLine.
-  ///
-  /// In ko, this message translates to:
-  /// **'최근 7일 {week}세트 · 28일 {month}세트'**
-  String anatomySetsLine(String week, String month);
-
   /// No description provided for @anatomyBreakdown.
   ///
   /// In ko, this message translates to:
   /// **'28일 중 주로 쓴 세트 {primary} · 보조로 쓴 세트 {secondary}(반으로 셈)'**
   String anatomyBreakdown(int primary, int secondary);
-
-  /// No description provided for @anatomyLast.
-  ///
-  /// In ko, this message translates to:
-  /// **'마지막: {date}({ago})'**
-  String anatomyLast(String date, String ago);
 
   /// No description provided for @anatomyNever.
   ///
@@ -4605,13 +4371,13 @@ abstract class L {
   /// No description provided for @bodyRecordsNote.
   ///
   /// In ko, this message translates to:
-  /// **'기록은 기기 안에만 둡니다. 길게 누르면 지웁니다.'**
+  /// **'기록은 기기 안에만 둬요. 길게 누르면 지워요.'**
   String get bodyRecordsNote;
 
   /// No description provided for @bodyScanNote.
   ///
   /// In ko, this message translates to:
-  /// **'인바디 같은 결과지를 찍으면 AI 가 적힌 값을 읽어요. 사진은 읽을 때만 보내고 남기지 않아요. 확인한 값만 기기에 저장하고, 가장 최근 몸무게가 기초대사량과 운동 칼로리 어림에 쓰여요. 길게 누르면 지웁니다.'**
+  /// **'인바디 같은 결과지를 찍으면 AI 가 적힌 값을 읽어요. 사진은 읽을 때만 보내고 남기지 않아요. 확인한 값만 기기에 저장하고, 가장 최근 몸무게가 기초대사량과 운동 칼로리 어림에 쓰여요. 길게 누르면 지워요.'**
   String get bodyScanNote;
 
   /// No description provided for @bodyScanCamera.
@@ -4840,7 +4606,7 @@ abstract class L {
   /// No description provided for @partnerRoutineFinalized.
   ///
   /// In ko, this message translates to:
-  /// **'모두 확인했어요. 내 운동 기록으로 옮겼습니다.'**
+  /// **'모두 확인했어요. 내 운동 기록으로 옮겼어요.'**
   String get partnerRoutineFinalized;
 
   /// No description provided for @partnerRoutineChanged.
@@ -4858,7 +4624,7 @@ abstract class L {
   /// No description provided for @partnerRoutineStarted.
   ///
   /// In ko, this message translates to:
-  /// **'이미 확정된 루틴입니다.'**
+  /// **'이미 확정된 루틴이에요.'**
   String get partnerRoutineStarted;
 
   /// No description provided for @workoutImportTitle.
@@ -4870,7 +4636,7 @@ abstract class L {
   /// No description provided for @workoutImportHint.
   ///
   /// In ko, this message translates to:
-  /// **'메모를 붙여넣거나 텍스트 파일과 여러 캡처를 추가하세요. 원본은 미리보기 전까지 저장되지 않습니다.'**
+  /// **'메모를 붙여넣거나 텍스트 파일과 여러 캡처를 추가해 주세요. 원본은 미리보기 전까지 저장되지 않아요.'**
   String get workoutImportHint;
 
   /// No description provided for @workoutImportTextPlaceholder.
@@ -4902,12 +4668,6 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'미리보기 만들기'**
   String get workoutImportAnalyze;
-
-  /// No description provided for @workoutImportWorking.
-  ///
-  /// In ko, this message translates to:
-  /// **'기록을 읽는 중…'**
-  String get workoutImportWorking;
 
   /// No description provided for @workoutImportEmpty.
   ///
@@ -5044,13 +4804,13 @@ abstract class L {
   /// No description provided for @signInTaken.
   ///
   /// In ko, this message translates to:
-  /// **'이 로그인 수단은 이미 다른 계정에 연결되어 있습니다.'**
+  /// **'이 로그인 수단은 이미 다른 계정에 연결되어 있어요.'**
   String get signInTaken;
 
   /// No description provided for @tagOffline.
   ///
   /// In ko, this message translates to:
-  /// **'체육관에 연결하지 못했어요. 신호가 잡히면 다시 대 주세요.'**
+  /// **'헬스장에 연결하지 못했어요. 신호가 잡히면 다시 대 주세요.'**
   String get tagOffline;
 
   /// No description provided for @handoffMine.
@@ -5110,7 +4870,7 @@ abstract class L {
   /// 서버가 이 기록을 받지 않았다(도장이 없어졌다, 루틴이 엇갈렸다). 고치면 다시 보낸다.
   ///
   /// In ko, this message translates to:
-  /// **'도장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요'**
+  /// **'헬스장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요'**
   String get shareRejected;
 
   /// 식단 공유를 켠 회원의, 스티커를 대지 않은 날의 기록. 끼니만 가고 운동·출석은 가지 않는다.
@@ -5200,7 +4960,7 @@ abstract class L {
   /// 확인 칸이 생기기 전에 만든 계정이 도장에 등록할 때 한 번 묻는다(서버 403 ageConfirmationRequired).
   ///
   /// In ko, this message translates to:
-  /// **'도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?'**
+  /// **'헬스장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?'**
   String get ageConfirmAsk;
 
   /// 도장 화면의 그룹 수업 예약 줄과 수업 화면 제목.
@@ -5212,13 +4972,13 @@ abstract class L {
   /// 도장 화면 맨 아래: 회원이 도장에서 나간다(DELETE /api/gyms/{id}/membership).
   ///
   /// In ko, this message translates to:
-  /// **'도장 나가기'**
+  /// **'헬스장 나가기'**
   String get gymLeave;
 
   /// 나가기 전에 묻는 말. 연결만 끊기고 장부는 남으며 앞으로의 예약은 취소된다. gym 은 도장 이름.
   ///
   /// In ko, this message translates to:
-  /// **'{gym}에서 나갈까요? 루틴을 더 받지 않고 운동·끼니도 더는 공유되지 않아요. 앞으로의 PT·수업 예약은 취소되고, 지난 기록과 결제 장부는 도장에 남아요.'**
+  /// **'{gym}에서 나갈까요? 루틴을 더 받지 않고 운동·끼니도 더는 공유되지 않아요. 앞으로의 PT·수업 예약은 취소되고, 지난 기록과 결제 장부는 헬스장에 남아요.'**
   String gymLeaveAsk(String gym);
 
   /// 도장 화면의 공지 칸 제목.
@@ -5380,13 +5140,13 @@ abstract class L {
   /// 도장 등록 신청·초대 수락 전에 보여 주는 안내. 서버 GYM_CONSENT_VERSION(gym.dart gymConsentVersion)의 문구다 — 바꾸면 그 판도 올린다.
   ///
   /// In ko, this message translates to:
-  /// **'등록하면 이 도장의 관장·트레이너가 닉네임, 이 도장에서 한 운동, 기록한 끼니, 예약을 보게 돼요. 메모·체성분·이용권·결제처럼 도장이 직접 적는 정보는 도장이 관리해요. 도장에서 나가면 그때부터는 공유되지 않고, 지난 기록과 결제 장부는 도장에 남아요.'**
+  /// **'등록하면 이 헬스장의 관장·트레이너가 닉네임, 이 헬스장에서 한 운동, 기록한 끼니, 예약을 보게 돼요. 메모·체성분·이용권·결제처럼 헬스장이 직접 적는 정보는 헬스장이 관리해요. 헬스장에서 나가면 그때부터는 공유되지 않고, 지난 기록과 결제 장부는 헬스장에 남아요.'**
   String get gymConsentNotice;
 
   /// 스티커를 댄 사람이 아직 그 도장 회원이 아닐 때, 등록 신청 전에 묻는 말.
   ///
   /// In ko, this message translates to:
-  /// **'이 도장에 등록을 신청할까요?'**
+  /// **'이 헬스장에 등록을 신청할까요?'**
   String get joinAsk;
 
   /// 등록 신청 단추. 안내에 동의하고 신청한다.
@@ -5404,13 +5164,13 @@ abstract class L {
   /// 수업 화면: 서버가 403 — 이 도장의 회원이 아니라 수업을 볼 수 없다.
   ///
   /// In ko, this message translates to:
-  /// **'이 도장의 회원만 수업을 볼 수 있어요. 회원 등록은 도장에 확인해 주세요.'**
+  /// **'이 헬스장의 회원만 수업을 볼 수 있어요. 회원 등록은 헬스장에 확인해 주세요.'**
   String get classesNotMember;
 
   /// 도장 초대 카드와 동의 시트: 아직 확인(검증)되지 않은 도장이라는 표시.
   ///
   /// In ko, this message translates to:
-  /// **'확인 전 도장'**
+  /// **'확인 전 헬스장'**
   String get gymUnverified;
 
   /// 수업 예약 단추와 지금 인원. booked 는 잡힌 자리, capacity 는 정원.
@@ -5488,7 +5248,7 @@ abstract class L {
   /// 닉네임 창의 설명이자, 서버가 길이를 거절했을 때의 말.
   ///
   /// In ko, this message translates to:
-  /// **'도장에 보이는 이름이에요. 1~20자로 적어 주세요.'**
+  /// **'헬스장에 보이는 이름이에요. 1~20자로 적어 주세요.'**
   String get nicknameHelp;
 
   /// 이미 다른 사람이 쓰는 닉네임(409).
@@ -5506,7 +5266,7 @@ abstract class L {
   /// 단톡방 수업·PT 예약 링크(/c/<id>/classes·bookings)를 연 사람이 그 도장 회원이 아닐 때.
   ///
   /// In ko, this message translates to:
-  /// **'이 도장의 회원만 열 수 있어요.'**
+  /// **'이 헬스장의 회원만 열 수 있어요.'**
   String get gymLinkNotMember;
 
   /// 로그인 시트에서 나이 칸을 비운 채 수단을 눌렀을 때 화면 읽기(VoiceOver·TalkBack)가 읽어 주는 말. ageConfirm 의 글을 그대로 가리킨다.
@@ -5554,7 +5314,7 @@ abstract class L {
   /// PT 를 신청한 회원에게 담당 트레이너가 없다(403 noTrainer).
   ///
   /// In ko, this message translates to:
-  /// **'아직 담당 트레이너가 없어요. 도장에 문의해 주세요.'**
+  /// **'아직 담당 트레이너가 없어요. 헬스장에 문의해 주세요.'**
   String get refusedNoTrainer;
 
   /// 그사이 처리됐거나(승인·거절·취소) 담당이 바뀐 PT 예약이다(409 invalidTransition).
@@ -5590,7 +5350,7 @@ abstract class L {
   /// 수업 날에 쓸 수 있는 회원권이 없다(409 noAccess) — 기간이 끝났거나 정지 중이거나 이 도장 회원이 아니다.
   ///
   /// In ko, this message translates to:
-  /// **'수업 날에 쓸 수 있는 회원권이 없어요. 기간이나 정지 상태를 도장에 확인해 주세요.'**
+  /// **'수업 날에 쓸 수 있는 회원권이 없어요. 기간이나 정지 상태를 헬스장에 확인해 주세요.'**
   String get refusedClassNoAccess;
 
   /// 휴강한 그룹 수업이다(409 cancelled).
@@ -5658,6 +5418,30 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'트레이너에게 보내는 중 · 신호 잡히면 가요'**
   String get shareSending;
+
+  /// 설정의 AI 도움 토글 바로 아래 한 줄: 무엇이 서버 AI 로 가는지, 끄면 무엇이 멈추는지(RecordAi.enabled 가 모델로 가는 문을 모두 막는다).
+  ///
+  /// In ko, this message translates to:
+  /// **'켜 두면 적은 운동·식단 글, 식단 사진, 기록 질문을 서버의 AI 가 읽어요. 끄면 AI 로 보내지 않고, 적은 글은 그대로 남아요.'**
+  String get aiSettingNote;
+
+  /// 설정의 계정 칸: 현재 닉네임을 값으로 보이는 한 줄의 이름(누르면 바꾼다).
+  ///
+  /// In ko, this message translates to:
+  /// **'닉네임'**
+  String get nicknameLabel;
+
+  /// 접힌 칩을 펼치는 칩(루틴 카드의 '+ 운동' 칩이 넷을 넘을 때)
+  ///
+  /// In ko, this message translates to:
+  /// **'더 보기'**
+  String get moreChips;
+
+  /// 기록 질문의 범위 라벨: 운동을 가리지 않고 모두(확인 줄·표 제목). 목록 제목인 allNotes 와 다른 말이다.
+  ///
+  /// In ko, this message translates to:
+  /// **'모든 운동'**
+  String get allExercises;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

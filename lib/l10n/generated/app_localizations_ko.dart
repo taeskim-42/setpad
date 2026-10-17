@@ -9,13 +9,10 @@ class LKo extends L {
   LKo([String locale = 'ko']) : super(locale);
 
   @override
-  String get appTitle => '오늘 운동';
-
-  @override
   String get copy => '복사';
 
   @override
-  String get copied => '복사했습니다';
+  String get copied => '복사했어요';
 
   @override
   String get exerciseNameHint => '운동 이름';
@@ -40,11 +37,11 @@ class LKo extends L {
   }
 
   @override
-  String get allNotes => '모든 운동';
+  String get allNotes => '모든 기록';
 
   @override
   String noteCount(int n) {
-    return '$n개의 운동';
+    return '$n개의 기록';
   }
 
   @override
@@ -65,10 +62,10 @@ class LKo extends L {
   String get untitledNote => '새 운동';
 
   @override
-  String get noNotesYet => '아직 기록이 없습니다';
+  String get noNotesYet => '아직 기록이 없어요';
 
   @override
-  String get noSearchResults => '찾는 기록이 없습니다';
+  String get noSearchResults => '찾는 기록이 없어요';
 
   @override
   String dayLabel(DateTime d) {
@@ -94,11 +91,11 @@ class LKo extends L {
 
   @override
   String deleteExerciseBody(int n) {
-    return '$n개 세트가 함께 지워집니다. 되돌릴 수 없습니다.';
+    return '$n개 세트가 함께 지워져요. 되돌릴 수 없어요.';
   }
 
   @override
-  String get deleteExerciseEmptyBody => '이 운동을 지웁니다.';
+  String get deleteExerciseEmptyBody => '이 운동을 지워요.';
 
   @override
   String get next => '다음';
@@ -147,80 +144,10 @@ class LKo extends L {
   }
 
   @override
-  String get aiTitle => '한 줄 설정';
-
-  @override
-  String get aiReady => '사용 가능';
-
-  @override
-  String get aiChecking => '확인 중';
-
-  @override
-  String get aiSetupNeeded => '설정 필요';
-
-  @override
-  String get aiPreparing => '준비 중';
-
-  @override
-  String get aiUnavailable => '기본 입력';
-
-  @override
-  String get aiReadyBody =>
-      '운동 이름 칸에 “벤치 80kg 100개 채우기”처럼 적고 엔터를 누르세요. 무게와 목표를 자동으로 설정합니다. 문장은 기기 안에서 처리됩니다.';
-
-  @override
-  String get aiDisabledBody =>
-      '설정 앱 → Apple Intelligence 및 Siri에서 Apple Intelligence를 켜 주세요. 모델 준비가 끝난 뒤 앱으로 돌아오면 자동으로 다시 확인합니다.';
-
-  @override
-  String get aiOsBody =>
-      '한 줄 설정에는 iOS 26 이상과 Apple Intelligence 지원 기기가 필요합니다. 지원 기기라면 설정 → 일반 → 소프트웨어 업데이트를 확인해 주세요.';
-
-  @override
-  String get aiDeviceBody =>
-      '이 기기는 Apple Intelligence를 지원하지 않아 한 줄 설정을 사용할 수 없습니다.';
-
-  @override
-  String get aiPreparingBody =>
-      '기기에서 AI 모델을 준비하고 있습니다. Wi-Fi에 연결한 뒤 잠시 후 다시 확인해 주세요.';
-
-  @override
-  String get aiDownloadBody =>
-      '한 줄 설정에 필요한 AI 모델을 다운로드할 수 있습니다. Wi-Fi 연결을 권장하며, 다운로드에는 시간과 저장 공간이 필요합니다. 준비가 끝나면 문장은 기기 안에서 처리됩니다.';
-
-  @override
-  String get aiLanguageBody =>
-      '현재 기기의 AI 모델이 앱 언어를 지원하지 않습니다. 지원되는 언어로 변경한 뒤 다시 확인해 주세요.';
-
-  @override
-  String get aiPlatformBody =>
-      '이 환경에서는 기기 내 AI를 사용할 수 없습니다. 지원되는 iPhone 또는 Android 기기의 앱에서 사용할 수 있습니다.';
-
-  @override
-  String get aiUnavailableBody =>
-      '현재 기기에서 AI를 사용할 수 없습니다. 기기·OS·시스템 AI 서비스의 지원 및 준비 상태에 따라 달라집니다. 새 기기를 설정한 직후라면 네트워크에 연결한 뒤 다시 확인해 주세요.';
-
-  @override
-  String get aiManualBody =>
-      '기본 운동 기록은 그대로 사용할 수 있습니다. 운동 이름을 선택한 뒤 세트마다 “80 20” 또는 횟수만 입력하세요.';
-
-  @override
-  String get aiPrepare => '모델 준비';
-
-  @override
-  String get aiRetry => '다시 확인';
-
-  @override
   String get aiWorking => '운동 설정 중…';
 
   @override
   String get aiJudging => '읽는 중…';
-
-  @override
-  String get aiFailure => '문장을 해석하지 못했습니다. 내용을 고쳐 다시 입력하거나 운동 이름으로 사용할 수 있습니다.';
-
-  @override
-  String get aiUseName => '운동 이름으로 사용';
 
   @override
   String get aiFallbackQuota => '오늘 적기 도움을 다 써서 적은 그대로 만들었어요';
@@ -320,7 +247,7 @@ class LKo extends L {
   String get weightUnitSetting => '기본 무게 단위';
 
   @override
-  String get weightUnitHelp => '새로 입력하는 운동의 기본 단위입니다. 기존 기록의 무게와 단위는 바뀌지 않습니다.';
+  String get weightUnitHelp => '새로 입력하는 운동의 기본 단위예요. 기존 기록의 무게와 단위는 바뀌지 않아요.';
 
   @override
   String answerDays(int n) {
@@ -430,24 +357,13 @@ class LKo extends L {
   String get timingInvalid => 'BPM 10–120, 운동·휴식 1–600초, 라운드 1–99로 입력하세요.';
 
   @override
-  String get timingSoundFailed => '소리를 재생할 수 없습니다. 타이머는 계속 동작합니다.';
-
-  @override
-  String get queryTitle => '기록에 질문';
-
-  @override
-  String get queryReadyBody =>
-      '“스쿼트 최대 무게”, “지난달 푸시업 몇 개 했어?”, “이번 달 벤치는 지난달보다 늘었어?”처럼 물어보세요. 기기 내 AI가 질문을 해석하고 저장된 기록으로 계산합니다.';
-
-  @override
-  String get queryManualBody =>
-      '자연어 질문은 기기 내 AI가 준비되면 사용할 수 있습니다. 일반 운동명·메모 검색은 항상 가능합니다.';
+  String get timingSoundFailed => '소리를 재생할 수 없어요. 타이머는 계속 동작해요.';
 
   @override
   String get queryWorking => '질문을 해석하고 있습니다…';
 
   @override
-  String get queryFailed => '답변을 가져오지 못했습니다. 다시 시도해 주세요.';
+  String get queryFailed => '답변을 가져오지 못했어요. 다시 시도해 주세요.';
 
   @override
   String get queryUnsupported => '운동 기록과 관련된 질문을 해주세요.';
@@ -482,15 +398,7 @@ class LKo extends L {
   String get queryAverage => '세트당 평균 중량';
 
   @override
-  String get queryMissingData => '질문에 필요한 운동이나 측정 정보가 기록에 없습니다.';
-
-  @override
   String get queryAmbiguous => '어떤 운동의 어떤 기록을 말하는지 조금 더 구체적으로 적어 주세요.';
-
-  @override
-  String queryRank(int n) {
-    return '$n위';
-  }
 
   @override
   String timingWorkSeconds(int n) {
@@ -715,9 +623,6 @@ class LKo extends L {
   String get queryCompareChip => '비교';
 
   @override
-  String get queryNoRecord => '기록 없음';
-
-  @override
   String get settingsTitle => '설정';
 
   @override
@@ -727,17 +632,17 @@ class LKo extends L {
   String get settingsAccount => '계정';
 
   @override
-  String get settingsGym => '다니는 체육관';
+  String get settingsGym => '다니는 헬스장';
 
   @override
-  String get settingsNoGym => '헬스장 스티커에 폰을 대면 트레이너가 짠 루틴을 여기서 받습니다.';
+  String get settingsNoGym => '헬스장 스티커에 폰을 대면 트레이너가 짠 루틴을 여기서 받아요.';
 
   @override
   String get proTitle => 'Pro 이용권';
 
   @override
   String get proBody =>
-      '기록에 묻는 질문은 원판을 씁니다. 질문 하나에 보통 1장쯤 들고, 답에 실제로 쓴 만큼만 빠집니다. 운동과 식단을 적을 때 돕는 적기 도움은 원판을 쓰지 않습니다.';
+      '기록에 묻는 질문은 원판을 써요. 질문 하나에 보통 1장쯤 들고, 답에 실제로 쓴 만큼만 빠져요. 운동과 식단을 적을 때 돕는 적기 도움은 원판을 쓰지 않아요.';
 
   @override
   String proFree(int n, int sets) {
@@ -751,13 +656,13 @@ class LKo extends L {
 
   @override
   String get proEverythingElseFree =>
-      '기록·타이머·손목 알림·건강 앱 연동·같이 하기·체육관은 이용권 없이도 전부 됩니다.';
+      '기록·타이머·손목 알림·건강 앱 연동·같이 하기·헬스장은 이용권 없이도 전부 돼요.';
 
   @override
-  String get proOwned => '이용 중입니다. 고맙습니다.';
+  String get proOwned => '이용 중이에요. 고마워요.';
 
   @override
-  String get proSignInOptional => '로그인 없이도 살 수 있습니다. 로그인하면 다른 기기에서도 이용권을 씁니다.';
+  String get proSignInOptional => '로그인 없이도 살 수 있어요. 로그인하면 다른 기기에서도 이용권을 써요.';
 
   @override
   String platesBalance(num n) {
@@ -798,31 +703,28 @@ class LKo extends L {
 
   @override
   String get purchaseNotConfirmed =>
-      '구매를 확인하지 못했습니다. 결제가 됐다면 잠시 뒤 ‘구매 복원’을 눌러 주세요.';
+      '구매를 확인하지 못했어요. 결제가 됐다면 잠시 뒤 ‘구매 복원’을 눌러 주세요.';
 
   @override
-  String get purchaseOtherAccount => '이 구매는 다른 계정에 연결돼 있습니다. 그 계정으로 로그인해 주세요.';
+  String get purchaseOtherAccount => '이 구매는 다른 계정에 연결돼 있어요. 그 계정으로 로그인해 주세요.';
 
   @override
-  String get tagSignInNeeded => '헬스장과 연결하려면 로그인이 필요합니다.';
+  String get tagSignInNeeded => '헬스장과 연결하려면 로그인이 필요해요.';
 
   @override
-  String get tagJoinSent => '등록을 신청했습니다. 트레이너가 확인하면 바로 시작할 수 있습니다.';
+  String get tagJoinSent => '등록을 신청했어요. 트레이너가 확인하면 바로 시작할 수 있어요.';
 
   @override
-  String get tagJoinWaiting => '이미 신청하셨습니다. 트레이너가 확인하는 중입니다.';
+  String get tagJoinWaiting => '이미 신청했어요. 트레이너가 확인하는 중이에요.';
 
   @override
-  String get tagJoinFailed => '신청하지 못했습니다. 잠시 뒤 다시 대주세요.';
+  String get tagJoinFailed => '신청하지 못했어요. 잠시 뒤 다시 대 주세요.';
 
   @override
   String get bookingPending => '승인 대기';
 
   @override
   String get bookingWhichGym => '어느 헬스장인가요?';
-
-  @override
-  String get tagSignIn => '로그인';
 
   @override
   String get accountDelete => '회원 탈퇴';
@@ -835,10 +737,10 @@ class LKo extends L {
   String get accountDeleteDo => '탈퇴합니다';
 
   @override
-  String get accountDeleteFailed => '탈퇴하지 못했습니다. 잠시 뒤 다시 시도해 주세요.';
+  String get accountDeleteFailed => '탈퇴하지 못했어요. 잠시 뒤 다시 시도해 주세요.';
 
   @override
-  String get signInFailed => '로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.';
+  String get signInFailed => '로그인하지 못했어요. 잠시 뒤 다시 시도해 주세요.';
 
   @override
   String get bookingTitle => 'PT 예약';
@@ -852,11 +754,11 @@ class LKo extends L {
   }
 
   @override
-  String get bookingNoPass => 'PT 이용권이 없습니다. 트레이너에게 문의해 주세요.';
+  String get bookingNoPass => 'PT 이용권이 없어요. 트레이너에게 문의해 주세요.';
 
   @override
   String bookingNoHours(String trainer) {
-    return '$trainer 트레이너가 아직 받을 시간을 열지 않았습니다.';
+    return '$trainer 트레이너가 아직 받을 시간을 열지 않았어요.';
   }
 
   @override
@@ -868,22 +770,19 @@ class LKo extends L {
   }
 
   @override
-  String get bookingSent => '신청했습니다. 트레이너가 승인하면 확정됩니다.';
+  String get bookingSent => '신청했어요. 트레이너가 승인하면 확정돼요.';
 
   @override
   String get bookingUpcoming => '다가오는 예약';
 
   @override
-  String get bookingClosedDay => '이날은 받지 않습니다.';
+  String get bookingClosedDay => '이날은 받지 않아요.';
 
   @override
   String get bookingCancelAsk => '이 예약을 취소할까요?';
 
   @override
   String get ok => '확인';
-
-  @override
-  String get mealPhoto => '식단 사진';
 
   @override
   String get mealAdd => '식단 남기기';
@@ -904,20 +803,7 @@ class LKo extends L {
   String get mealEstimating => '칼로리 어림하는 중…';
 
   @override
-  String mealIntake(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '섭취 약 ${nString}kcal';
-  }
-
-  @override
   String get mealFailed => '사진에서 칼로리를 어림하지 못했어요. 다시 찍어 주세요.';
-
-  @override
-  String get mealEstimateNote => '사진으로 어림한 값이에요';
 
   @override
   String mealServingsOption(String n) {
@@ -925,17 +811,7 @@ class LKo extends L {
   }
 
   @override
-  String get fitAll => '오늘 운동';
-
-  @override
-  String sameDayToday(String time) {
-    return '오늘 $time에 따로 남긴 기록';
-  }
-
-  @override
-  String sameDayOn(String date, String time) {
-    return '$date $time에 따로 남긴 기록';
-  }
+  String get fitAll => '오늘 한 장';
 
   @override
   String sameDayMore(String first, int n) {
@@ -970,16 +846,6 @@ class LKo extends L {
 
   @override
   String get mealKcalUnknown => '열량 미상';
-
-  @override
-  String mealIntakePartial(int n, int m) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '확인된 섭취 ${nString}kcal · 열량 미상 $m건';
-  }
 
   @override
   String get mealAmountAsk => '얼마나 드셨나요?';
@@ -1146,18 +1012,12 @@ class LKo extends L {
   }
 
   @override
-  String get dayBurnedMissing => '운동 소모량 미측정 · 차이 계산 불가';
-
-  @override
   String dayBurnedOnly(String n) {
     return '운동 ${n}kcal · 식단 미기록';
   }
 
   @override
-  String get intakeLabel => '섭취';
-
-  @override
-  String get partnerSignIn => '같이 하려면 로그인이 필요합니다.';
+  String get partnerSignIn => '같이 하려면 로그인이 필요해요.';
 
   @override
   String get partnerSignInAction => '로그인';
@@ -1174,7 +1034,7 @@ class LKo extends L {
   }
 
   @override
-  String get partnerExpired => '코드가 만료되었습니다.';
+  String get partnerExpired => '코드가 만료되었어요.';
 
   @override
   String get partnerNewCode => '새 코드';
@@ -1188,7 +1048,7 @@ class LKo extends L {
   }
 
   @override
-  String get partnerReconnecting => '연결 복구 중 · 내 기록은 계속 저장됩니다';
+  String get partnerReconnecting => '연결 복구 중 · 내 기록은 계속 저장돼요';
 
   @override
   String partnerTheirRecord(String name) {
@@ -1196,7 +1056,7 @@ class LKo extends L {
   }
 
   @override
-  String get partnerNoRecordYet => '아직 올라온 기록이 없습니다.';
+  String get partnerNoRecordYet => '아직 올라온 기록이 없어요.';
 
   @override
   String get partnerLoading => '불러오는 중…';
@@ -1205,36 +1065,36 @@ class LKo extends L {
   String get partnerEnd => '함께 운동 종료';
 
   @override
-  String get partnerEndedByMe => '함께 운동을 종료했습니다. 내 기록은 그대로 남아 있습니다.';
+  String get partnerEndedByMe => '함께 운동을 종료했어요. 내 기록은 그대로 남아 있어요.';
 
   @override
   String partnerEndedByThem(String name) {
-    return '$name 님이 함께 운동을 종료했습니다. 내 기록은 그대로 남아 있습니다.';
+    return '$name 님이 함께 운동을 종료했어요. 내 기록은 그대로 남아 있어요.';
   }
 
   @override
-  String get partnerErrFormat => '코드는 여섯 글자입니다. 다시 확인해 주세요.';
+  String get partnerErrFormat => '코드는 여섯 글자예요. 다시 확인해 주세요.';
 
   @override
   String get partnerErrInvalid => '맞는 코드가 없습니다. 이미 사용됐거나 잘못 입력했을 수 있어요.';
 
   @override
-  String get partnerErrExpired => '만료된 코드입니다. 상대에게 새 코드를 받아 주세요.';
+  String get partnerErrExpired => '만료된 코드예요. 상대에게 새 코드를 받아 주세요.';
 
   @override
-  String get partnerErrEnded => '이미 종료된 초대입니다.';
+  String get partnerErrEnded => '이미 종료된 초대예요.';
 
   @override
-  String get partnerErrOwn => '내가 만든 코드입니다. 상대의 기기에서 입력해 주세요.';
+  String get partnerErrOwn => '내가 만든 코드예요. 상대의 기기에서 입력해 주세요.';
 
   @override
-  String get partnerErrTries => '시도가 너무 많습니다. 잠시 뒤에 다시 해 주세요.';
+  String get partnerErrTries => '시도가 너무 많아요. 잠시 뒤에 다시 해 주세요.';
 
   @override
-  String get partnerErrNetwork => '서버에 연결하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.';
+  String get partnerErrNetwork => '서버에 연결하지 못했어요. 네트워크를 확인하고 다시 시도해 주세요.';
 
   @override
-  String get partnerErrServer => '서버에 문제가 있습니다. 잠시 뒤에 다시 시도해 주세요.';
+  String get partnerErrServer => '서버에 문제가 있어요. 잠시 뒤에 다시 시도해 주세요.';
 
   @override
   String get partnerRetry => '다시 시도';
@@ -1244,13 +1104,13 @@ class LKo extends L {
 
   @override
   String get partnerConflict =>
-      '다른 기기에서 더 새 기록을 공유했습니다. 이 기기의 기록은 그대로 저장돼 있고, 공유만 멈춘 상태입니다.';
+      '다른 기기에서 더 새 기록을 공유했어요. 이 기기의 기록은 그대로 저장돼 있고, 공유만 멈춘 상태예요.';
 
   @override
   String get partnerShareThisDevice => '이 기기의 기록으로 공유하기';
 
   @override
-  String get nearbyHint => '아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결됩니다.';
+  String get nearbyHint => '아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결돼요.';
 
   @override
   String get togetherStart => '같이 시작';
@@ -1264,11 +1124,11 @@ class LKo extends L {
   }
 
   @override
-  String get togetherWaitingHint => '상대 화면에 요청이 뜹니다. 안 보이면 상대 앱이 최신인지 확인하세요.';
+  String get togetherWaitingHint => '상대 화면에 요청이 떠요. 안 보이면 상대 앱이 최신인지 확인해 주세요.';
 
   @override
   String togetherInvite(String name) {
-    return '$name 님이 같이 하자고 합니다';
+    return '$name 님이 같이 하자고 해요';
   }
 
   @override
@@ -1335,22 +1195,22 @@ class LKo extends L {
 
   @override
   String proxyShareText(String url) {
-    return '같이 운동하며 대신 적은 기록입니다. setpad 에서 열어 받으면 내 운동 기록이 됩니다.\n$url';
+    return '같이 운동하며 대신 적은 기록이에요. setpad 에서 열어 받으면 내 운동 기록이 돼요.\n$url';
   }
 
   @override
   String handoffOffer(String name) {
-    return '$name 님이 내 기록을 적어 주었습니다';
+    return '$name 님이 내 기록을 적어 주었어요';
   }
 
   @override
   String get handoffTake => '받기';
 
   @override
-  String get handoffFailed => '기록을 받지 못했습니다. 링크가 만료됐거나 네트워크 문제일 수 있습니다.';
+  String get handoffFailed => '기록을 받지 못했어요. 링크가 만료됐거나 네트워크 문제일 수 있어요.';
 
   @override
-  String get handoffSignIn => '건네받은 기록을 받으려면 로그인이 필요합니다.';
+  String get handoffSignIn => '건네받은 기록을 받으려면 로그인이 필요해요.';
 
   @override
   String partnerInviteMore(String code) {
@@ -2395,11 +2255,6 @@ class LKo extends L {
   }
 
   @override
-  String routineRecent(String part, String when) {
-    return '$part · $when';
-  }
-
-  @override
   String routineDaysAgo(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -2846,7 +2701,7 @@ class LKo extends L {
 
   @override
   String get anatomyCountNote =>
-      '근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.';
+      '근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 세어요.';
 
   @override
   String get anatomyLimits => '영상·자세 분석은 하지 않아요. 통증이 있으면 멈추고 전문가와 상의하세요.';
@@ -2863,18 +2718,8 @@ class LKo extends L {
   }
 
   @override
-  String anatomySetsLine(String week, String month) {
-    return '최근 7일 $week세트 · 28일 $month세트';
-  }
-
-  @override
   String anatomyBreakdown(int primary, int secondary) {
     return '28일 중 주로 쓴 세트 $primary · 보조로 쓴 세트 $secondary(반으로 셈)';
-  }
-
-  @override
-  String anatomyLast(String date, String ago) {
-    return '마지막: $date($ago)';
   }
 
   @override
@@ -3150,11 +2995,11 @@ class LKo extends L {
   String get bodyRecordsEmpty => '아직 기록이 없어요';
 
   @override
-  String get bodyRecordsNote => '기록은 기기 안에만 둡니다. 길게 누르면 지웁니다.';
+  String get bodyRecordsNote => '기록은 기기 안에만 둬요. 길게 누르면 지워요.';
 
   @override
   String get bodyScanNote =>
-      '인바디 같은 결과지를 찍으면 AI 가 적힌 값을 읽어요. 사진은 읽을 때만 보내고 남기지 않아요. 확인한 값만 기기에 저장하고, 가장 최근 몸무게가 기초대사량과 운동 칼로리 어림에 쓰여요. 길게 누르면 지웁니다.';
+      '인바디 같은 결과지를 찍으면 AI 가 적힌 값을 읽어요. 사진은 읽을 때만 보내고 남기지 않아요. 확인한 값만 기기에 저장하고, 가장 최근 몸무게가 기초대사량과 운동 칼로리 어림에 쓰여요. 길게 누르면 지워요.';
 
   @override
   String get bodyScanCamera => '결과지 찍기';
@@ -3287,7 +3132,7 @@ class LKo extends L {
   String get partnerRoutineConfirmed => '확인 완료';
 
   @override
-  String get partnerRoutineFinalized => '모두 확인했어요. 내 운동 기록으로 옮겼습니다.';
+  String get partnerRoutineFinalized => '모두 확인했어요. 내 운동 기록으로 옮겼어요.';
 
   @override
   String get partnerRoutineChanged => '루틴이 바뀌었어요. 최신 내용을 확인해 주세요.';
@@ -3296,14 +3141,14 @@ class LKo extends L {
   String get partnerRoutineEmpty => '운동을 하나 이상 추가해 주세요.';
 
   @override
-  String get partnerRoutineStarted => '이미 확정된 루틴입니다.';
+  String get partnerRoutineStarted => '이미 확정된 루틴이에요.';
 
   @override
   String get workoutImportTitle => '운동 기록 가져오기';
 
   @override
   String get workoutImportHint =>
-      '메모를 붙여넣거나 텍스트 파일과 여러 캡처를 추가하세요. 원본은 미리보기 전까지 저장되지 않습니다.';
+      '메모를 붙여넣거나 텍스트 파일과 여러 캡처를 추가해 주세요. 원본은 미리보기 전까지 저장되지 않아요.';
 
   @override
   String get workoutImportTextPlaceholder => '운동 기록을 여기에 붙여넣으세요';
@@ -3319,9 +3164,6 @@ class LKo extends L {
 
   @override
   String get workoutImportAnalyze => '미리보기 만들기';
-
-  @override
-  String get workoutImportWorking => '기록을 읽는 중…';
 
   @override
   String get workoutImportEmpty => '텍스트나 캡처를 추가해 주세요.';
@@ -3395,10 +3237,10 @@ class LKo extends L {
   }
 
   @override
-  String get signInTaken => '이 로그인 수단은 이미 다른 계정에 연결되어 있습니다.';
+  String get signInTaken => '이 로그인 수단은 이미 다른 계정에 연결되어 있어요.';
 
   @override
-  String get tagOffline => '체육관에 연결하지 못했어요. 신호가 잡히면 다시 대 주세요.';
+  String get tagOffline => '헬스장에 연결하지 못했어요. 신호가 잡히면 다시 대 주세요.';
 
   @override
   String get handoffMine => '내가 적어 보낸 기록이에요. 받는 사람의 폰에서 열어 주세요.';
@@ -3431,7 +3273,7 @@ class LKo extends L {
   String get shareGym => '트레이너와 공유하는 기록이에요';
 
   @override
-  String get shareRejected => '도장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요';
+  String get shareRejected => '헬스장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요';
 
   @override
   String get shareMealsOnly => '끼니만 트레이너와 공유해요 · 운동은 헬스장 스티커에 폰을 대면 공유돼요';
@@ -3483,17 +3325,17 @@ class LKo extends L {
   String get ageConfirm => '만 14세 이상입니다';
 
   @override
-  String get ageConfirmAsk => '도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?';
+  String get ageConfirmAsk => '헬스장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?';
 
   @override
   String get gymClasses => '수업 예약';
 
   @override
-  String get gymLeave => '도장 나가기';
+  String get gymLeave => '헬스장 나가기';
 
   @override
   String gymLeaveAsk(String gym) {
-    return '$gym에서 나갈까요? 루틴을 더 받지 않고 운동·끼니도 더는 공유되지 않아요. 앞으로의 PT·수업 예약은 취소되고, 지난 기록과 결제 장부는 도장에 남아요.';
+    return '$gym에서 나갈까요? 루틴을 더 받지 않고 운동·끼니도 더는 공유되지 않아요. 앞으로의 PT·수업 예약은 취소되고, 지난 기록과 결제 장부는 헬스장에 남아요.';
   }
 
   @override
@@ -3604,10 +3446,10 @@ class LKo extends L {
 
   @override
   String get gymConsentNotice =>
-      '등록하면 이 도장의 관장·트레이너가 닉네임, 이 도장에서 한 운동, 기록한 끼니, 예약을 보게 돼요. 메모·체성분·이용권·결제처럼 도장이 직접 적는 정보는 도장이 관리해요. 도장에서 나가면 그때부터는 공유되지 않고, 지난 기록과 결제 장부는 도장에 남아요.';
+      '등록하면 이 헬스장의 관장·트레이너가 닉네임, 이 헬스장에서 한 운동, 기록한 끼니, 예약을 보게 돼요. 메모·체성분·이용권·결제처럼 헬스장이 직접 적는 정보는 헬스장이 관리해요. 헬스장에서 나가면 그때부터는 공유되지 않고, 지난 기록과 결제 장부는 헬스장에 남아요.';
 
   @override
-  String get joinAsk => '이 도장에 등록을 신청할까요?';
+  String get joinAsk => '이 헬스장에 등록을 신청할까요?';
 
   @override
   String get joinAgree => '동의하고 신청';
@@ -3616,10 +3458,10 @@ class LKo extends L {
   String get classesNone => '앞으로 2주 동안 열린 수업이 없어요.';
 
   @override
-  String get classesNotMember => '이 도장의 회원만 수업을 볼 수 있어요. 회원 등록은 도장에 확인해 주세요.';
+  String get classesNotMember => '이 헬스장의 회원만 수업을 볼 수 있어요. 회원 등록은 헬스장에 확인해 주세요.';
 
   @override
-  String get gymUnverified => '확인 전 도장';
+  String get gymUnverified => '확인 전 헬스장';
 
   @override
   String classBook(int booked, int capacity) {
@@ -3666,7 +3508,7 @@ class LKo extends L {
   String get nicknameChange => '닉네임 바꾸기';
 
   @override
-  String get nicknameHelp => '도장에 보이는 이름이에요. 1~20자로 적어 주세요.';
+  String get nicknameHelp => '헬스장에 보이는 이름이에요. 1~20자로 적어 주세요.';
 
   @override
   String get nicknameTaken => '이미 쓰는 닉네임이에요.';
@@ -3675,7 +3517,7 @@ class LKo extends L {
   String get save => '저장';
 
   @override
-  String get gymLinkNotMember => '이 도장의 회원만 열 수 있어요.';
+  String get gymLinkNotMember => '이 헬스장의 회원만 열 수 있어요.';
 
   @override
   String get ageConfirmFirst => '먼저 ‘만 14세 이상입니다’를 확인해 주세요.';
@@ -3699,7 +3541,7 @@ class LKo extends L {
   String get refusedBookingForbidden => '이 예약을 처리할 권한이 없어요.';
 
   @override
-  String get refusedNoTrainer => '아직 담당 트레이너가 없어요. 도장에 문의해 주세요.';
+  String get refusedNoTrainer => '아직 담당 트레이너가 없어요. 헬스장에 문의해 주세요.';
 
   @override
   String get refusedBookingChanged => '이미 처리됐거나 바뀐 예약이에요.';
@@ -3718,7 +3560,7 @@ class LKo extends L {
 
   @override
   String get refusedClassNoAccess =>
-      '수업 날에 쓸 수 있는 회원권이 없어요. 기간이나 정지 상태를 도장에 확인해 주세요.';
+      '수업 날에 쓸 수 있는 회원권이 없어요. 기간이나 정지 상태를 헬스장에 확인해 주세요.';
 
   @override
   String get refusedClassCancelled => '휴강한 수업이에요.';
@@ -3755,4 +3597,17 @@ class LKo extends L {
 
   @override
   String get shareSending => '트레이너에게 보내는 중 · 신호 잡히면 가요';
+
+  @override
+  String get aiSettingNote =>
+      '켜 두면 적은 운동·식단 글, 식단 사진, 기록 질문을 서버의 AI 가 읽어요. 끄면 AI 로 보내지 않고, 적은 글은 그대로 남아요.';
+
+  @override
+  String get nicknameLabel => '닉네임';
+
+  @override
+  String get moreChips => '더 보기';
+
+  @override
+  String get allExercises => '모든 운동';
 }

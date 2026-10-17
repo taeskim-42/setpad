@@ -9,7 +9,9 @@ import 'gym.dart';
 import 'health_page.dart' show HealthDataPage;
 import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
+import 'metrics.dart';
 import 'palette.dart';
+import 'settings_list.dart';
 import 'share.dart';
 import 'sign_in_sheet.dart';
 import 'trainer.dart' show shortTime, shortWhen, tellAgent;
@@ -193,27 +195,40 @@ Future<void> answerGymInvite(
   });
 }
 
-/// 첫 화면의 한 줄(초대·도장). 받은 루틴·PT 예약 줄과 같은 꼴이다.
+/// 첫 화면의 한 줄 — 받은 루틴·도장 초대·도장·PT 예약·트레이너 보고가 모두 이 모양이다.
+/// 아이콘, 제목(+뒤에 붙는 배지), 있으면 한두 줄 설명, 오른쪽 ›.
 class GymRow extends StatelessWidget {
   const GymRow({
     super.key,
     required this.icon,
     required this.title,
-    required this.detail,
+    this.detail,
     this.accent = false,
+    this.titleSuffix,
+    this.horizontal = gutter + 4,
     required this.onTap,
   });
 
   final IconData icon;
-  final String title, detail;
+  final String title;
+
+  /// 제목 밑 한두 줄. 없으면 제목만이다(PT 예약·보고).
+  final String? detail;
 
   /// 알려야 할 것(새 소식·초대)이 있다.
   final bool accent;
-  final VoidCallback onTap;
+
+  /// 제목 바로 뒤에 붙는 것(안 읽은 점·대기 수).
+  final Widget? titleSuffix;
+
+  /// 좌우 여백. 이미 여백이 있는 카드 안에서는 0 이다.
+  final double horizontal;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => CupertinoButton(
-    padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
+    padding: EdgeInsets.symmetric(horizontal: horizontal, vertical: 6),
+    minimumSize: const Size.fromHeight(minTap),
     onPressed: onTap,
     child: Row(
       children: [
@@ -223,36 +238,45 @@ class GymRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: CupertinoColors.label.resolveFrom(context),
-                ),
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: CupertinoColors.label.resolveFrom(context),
+                      ),
+                    ),
+                  ),
+                  ?titleSuffix,
+                ],
               ),
-              Text(
-                detail,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: accent ? FontWeight.w600 : FontWeight.w400,
-                  color: accent
-                      ? seal.resolveFrom(context)
-                      : CupertinoColors.secondaryLabel.resolveFrom(context),
+              if (detail != null)
+                Text(
+                  detail!,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: accent ? FontWeight.w600 : FontWeight.w400,
+                    color: accent
+                        ? seal.resolveFrom(context)
+                        : CupertinoColors.secondaryLabel.resolveFrom(context),
+                  ),
                 ),
-              ),
             ],
           ),
         ),
-        Icon(
-          CupertinoIcons.chevron_right,
-          size: 15,
-          color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-        ),
+        if (onTap != null)
+          Icon(
+            CupertinoIcons.chevron_right,
+            size: 15,
+            color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+          ),
       ],
     ),
   );
@@ -317,7 +341,7 @@ class _GymPageState extends State<GymPage> {
           padding: const EdgeInsets.only(top: 8),
           child: Text(
             l.gymLeaveAsk(gym.name),
-            style: const TextStyle(fontSize: 15),
+            style: const TextStyle(fontSize: 13),
           ),
         ),
         actions: [
@@ -356,8 +380,9 @@ class _GymPageState extends State<GymPage> {
         return CupertinoPageScaffold(
           navigationBar: CupertinoNavigationBar(middle: Text(gym?.name ?? '')),
           child: SafeArea(
+            // 도장 목록을 아직 못 받았으면 빈 화면이 아니라 돌아가는 표시를 둔다.
             child: gym == null
-                ? const SizedBox.shrink()
+                ? const Center(child: CupertinoActivityIndicator())
                 : ListView(
                     padding: const EdgeInsets.only(bottom: 40),
                     children: _rows(l, gym),
@@ -373,7 +398,7 @@ class _GymPageState extends State<GymPage> {
     final accent = seal.resolveFrom(context);
     return [
       Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+        padding: const EdgeInsets.fromLTRB(gutter + 4, 16, gutter + 4, 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -393,51 +418,65 @@ class _GymPageState extends State<GymPage> {
           ],
         ),
       ),
-      if (gym.notices.isNotEmpty) ...[
-        _section(l.gymNotices),
-        for (final n in gym.notices) _notice(l, n),
-      ],
-      if (gym.bookings.isNotEmpty) ...[
-        _section(l.bookingUpcoming),
-        for (final b in gym.bookings)
-          _line(
-            l.bookingNext(b.trainer, shortWhen(l, b.startsAt)),
-            switch (_fresh['b:${b.id}']) {
-              final news? => newsText(l, gym, news),
-              null => bookingStatus(l, b.status),
-            },
-            highlight: _fresh.containsKey('b:${b.id}'),
-          ),
-      ],
-      const SizedBox(height: 12),
-      _action(
-        l.bookingNew,
-        () => openBooking(
-          context,
-          widget.account,
-          store: widget.store,
-          gymId: gym.id,
+      if (gym.notices.isNotEmpty)
+        SettingsSection(
+          title: l.gymNotices,
+          children: [for (final n in gym.notices) _notice(l, n)],
         ),
+      if (gym.bookings.isNotEmpty)
+        SettingsSection(
+          title: l.bookingUpcoming,
+          children: [
+            for (final b in gym.bookings)
+              _line(
+                l.bookingNext(b.trainer, shortWhen(l, b.startsAt)),
+                switch (_fresh['b:${b.id}']) {
+                  final news? => newsText(l, gym, news),
+                  null => bookingStatus(l, b.status),
+                },
+                highlight: _fresh.containsKey('b:${b.id}'),
+              ),
+          ],
+        ),
+      SettingsSection(
+        children: [
+          SettingsRow(
+            label: l.bookingNew,
+            accent: true,
+            onTap: () => openBooking(
+              context,
+              widget.account,
+              store: widget.store,
+              gymId: gym.id,
+            ),
+          ),
+          SettingsRow(
+            label: l.gymClasses,
+            accent: true,
+            onTap: () => Navigator.of(context).push(
+              CupertinoPageRoute<void>(
+                builder: (_) =>
+                    ClassesPage(account: widget.account, gymId: gym.id),
+              ),
+            ),
+          ),
+        ],
       ),
-      _action(
-        l.gymClasses,
-        () => Navigator.of(context).push(
-          CupertinoPageRoute<void>(
-            builder: (_) => ClassesPage(account: widget.account, gymId: gym.id),
+      SettingsSection(
+        children: [
+          CupertinoButton(
+            key: const ValueKey('gym-leave'),
+            minimumSize: const Size.fromHeight(minTap),
+            onPressed: _busy ? null : () => _leave(gym),
+            child: Text(
+              l.gymLeave,
+              style: const TextStyle(
+                fontSize: 15,
+                color: CupertinoColors.destructiveRed,
+              ),
+            ),
           ),
-        ),
-      ),
-      const SizedBox(height: 24),
-      CupertinoButton(
-        key: const ValueKey('gym-leave'),
-        onPressed: _busy ? null : () => _leave(gym),
-        child: Text(
-          l.gymLeave,
-          style: const TextStyle(
-            fontSize: 15,
-            color: CupertinoColors.destructiveRed,
-          ),
-        ),
+        ],
       ),
     ];
   }
@@ -455,8 +494,7 @@ class _GymPageState extends State<GymPage> {
           if (!_expanded.remove(n.id)) _expanded.add(n.id);
         }),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-          decoration: _divider(),
+          padding: const EdgeInsets.fromLTRB(20, 10, 14, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -527,8 +565,8 @@ class _GymPageState extends State<GymPage> {
 
   Widget _line(String title, String detail, {bool highlight = false}) =>
       Container(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-        decoration: _divider(),
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(20, 10, 14, 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -546,51 +584,6 @@ class _GymPageState extends State<GymPage> {
           ],
         ),
       );
-
-  Widget _action(String label, VoidCallback onTap) => CupertinoButton(
-    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-    onPressed: onTap,
-    child: Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: seal.resolveFrom(context),
-            ),
-          ),
-        ),
-        Icon(
-          CupertinoIcons.chevron_right,
-          size: 15,
-          color: CupertinoColors.tertiaryLabel.resolveFrom(context),
-        ),
-      ],
-    ),
-  );
-
-  BoxDecoration _divider() => BoxDecoration(
-    border: Border(
-      top: BorderSide(
-        color: CupertinoColors.separator.resolveFrom(context),
-        width: 0.5,
-      ),
-    ),
-  );
-
-  Widget _section(String title) => Padding(
-    padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
-    child: Text(
-      title,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: CupertinoColors.secondaryLabel.resolveFrom(context),
-      ),
-    ),
-  );
 }
 
 /// 그룹 수업 예약 — 앞으로 2주. 휴강도 보인다. **앱에는 수업 화면이 없었다**: GX 를 여는
@@ -640,7 +633,7 @@ class _ClassesPageState extends State<ClassesPage> {
       builder: (ctx) => CupertinoAlertDialog(
         content: Padding(
           padding: const EdgeInsets.only(top: 8),
-          child: Text(l.classCancelAsk, style: const TextStyle(fontSize: 15)),
+          child: Text(l.classCancelAsk, style: const TextStyle(fontSize: 13)),
         ),
         actions: [
           CupertinoDialogAction(

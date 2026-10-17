@@ -1,11 +1,7 @@
 {
   "@@locale": "ko",
-  "appTitle": "오늘 운동",
-  "@appTitle": {
-    "description": "앱 바 제목"
-  },
   "copy": "복사",
-  "copied": "복사했습니다",
+  "copied": "복사했어요",
   "exerciseNameHint": "운동 이름",
   "repeatPrevious": "이전과 같이",
   "@repeatPrevious": {
@@ -31,8 +27,8 @@
       }
     }
   },
-  "allNotes": "모든 운동",
-  "noteCount": "{n}개의 운동",
+  "allNotes": "모든 기록",
+  "noteCount": "{n}개의 기록",
   "@noteCount": {
     "placeholders": {
       "n": {
@@ -53,8 +49,8 @@
   "search": "찾거나 물어보세요",
   "newNote": "새 운동",
   "untitledNote": "새 운동",
-  "noNotesYet": "아직 기록이 없습니다",
-  "noSearchResults": "찾는 기록이 없습니다",
+  "noNotesYet": "아직 기록이 없어요",
+  "noSearchResults": "찾는 기록이 없어요",
   "dayLabel": "{d}",
   "@dayLabel": {
     "description": "목록의 날짜. 요일 또는 날짜",
@@ -79,7 +75,7 @@
       }
     }
   },
-  "deleteExerciseBody": "{n}개 세트가 함께 지워집니다. 되돌릴 수 없습니다.",
+  "deleteExerciseBody": "{n}개 세트가 함께 지워져요. 되돌릴 수 없어요.",
   "@deleteExerciseBody": {
     "placeholders": {
       "n": {
@@ -87,7 +83,7 @@
       }
     }
   },
-  "deleteExerciseEmptyBody": "이 운동을 지웁니다.",
+  "deleteExerciseEmptyBody": "이 운동을 지워요.",
   "next": "다음",
   "stepSizeTitle": "{unit} 단위",
   "@stepSizeTitle": {
@@ -131,31 +127,11 @@
       }
     }
   },
-  "aiTitle": "한 줄 설정",
-  "aiReady": "사용 가능",
-  "aiChecking": "확인 중",
-  "aiSetupNeeded": "설정 필요",
-  "aiPreparing": "준비 중",
-  "aiUnavailable": "기본 입력",
-  "aiReadyBody": "운동 이름 칸에 “벤치 80kg 100개 채우기”처럼 적고 엔터를 누르세요. 무게와 목표를 자동으로 설정합니다. 문장은 기기 안에서 처리됩니다.",
-  "aiDisabledBody": "설정 앱 → Apple Intelligence 및 Siri에서 Apple Intelligence를 켜 주세요. 모델 준비가 끝난 뒤 앱으로 돌아오면 자동으로 다시 확인합니다.",
-  "aiOsBody": "한 줄 설정에는 iOS 26 이상과 Apple Intelligence 지원 기기가 필요합니다. 지원 기기라면 설정 → 일반 → 소프트웨어 업데이트를 확인해 주세요.",
-  "aiDeviceBody": "이 기기는 Apple Intelligence를 지원하지 않아 한 줄 설정을 사용할 수 없습니다.",
-  "aiPreparingBody": "기기에서 AI 모델을 준비하고 있습니다. Wi-Fi에 연결한 뒤 잠시 후 다시 확인해 주세요.",
-  "aiDownloadBody": "한 줄 설정에 필요한 AI 모델을 다운로드할 수 있습니다. Wi-Fi 연결을 권장하며, 다운로드에는 시간과 저장 공간이 필요합니다. 준비가 끝나면 문장은 기기 안에서 처리됩니다.",
-  "aiLanguageBody": "현재 기기의 AI 모델이 앱 언어를 지원하지 않습니다. 지원되는 언어로 변경한 뒤 다시 확인해 주세요.",
-  "aiPlatformBody": "이 환경에서는 기기 내 AI를 사용할 수 없습니다. 지원되는 iPhone 또는 Android 기기의 앱에서 사용할 수 있습니다.",
-  "aiUnavailableBody": "현재 기기에서 AI를 사용할 수 없습니다. 기기·OS·시스템 AI 서비스의 지원 및 준비 상태에 따라 달라집니다. 새 기기를 설정한 직후라면 네트워크에 연결한 뒤 다시 확인해 주세요.",
-  "aiManualBody": "기본 운동 기록은 그대로 사용할 수 있습니다. 운동 이름을 선택한 뒤 세트마다 “80 20” 또는 횟수만 입력하세요.",
-  "aiPrepare": "모델 준비",
-  "aiRetry": "다시 확인",
   "aiWorking": "운동 설정 중…",
   "aiJudging": "읽는 중…",
   "@aiJudging": {
     "description": "운동 이름 줄에 친 글이 운동인지 끼니인지 판정자에게 묻는 동안 — 끼니일 수도 있어 '운동 설정 중' 이라고 하지 않는다"
   },
-  "aiFailure": "문장을 해석하지 못했습니다. 내용을 고쳐 다시 입력하거나 운동 이름으로 사용할 수 있습니다.",
-  "aiUseName": "운동 이름으로 사용",
   "aiFallbackQuota": "오늘 적기 도움을 다 써서 적은 그대로 만들었어요",
   "aiFallbackOffline": "연결이 안 돼 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요",
   "aiFallbackServer": "서버가 답하지 않아 적은 그대로 만들었어요. 설정은 칸의 ⚙에서 붙일 수 있어요",
@@ -232,7 +208,7 @@
   "moveSetEarlier": "앞으로 옮기기",
   "moveSetLater": "뒤로 옮기기",
   "weightUnitSetting": "기본 무게 단위",
-  "weightUnitHelp": "새로 입력하는 운동의 기본 단위입니다. 기존 기록의 무게와 단위는 바뀌지 않습니다.",
+  "weightUnitHelp": "새로 입력하는 운동의 기본 단위예요. 기존 기록의 무게와 단위는 바뀌지 않아요.",
   "answerDays": "{n}일 기록",
   "@answerDays": {
     "placeholders": {
@@ -389,12 +365,9 @@
   "timingPause": "일시정지",
   "timingReset": "초기화",
   "timingInvalid": "BPM 10–120, 운동·휴식 1–600초, 라운드 1–99로 입력하세요.",
-  "timingSoundFailed": "소리를 재생할 수 없습니다. 타이머는 계속 동작합니다.",
-  "queryTitle": "기록에 질문",
-  "queryReadyBody": "“스쿼트 최대 무게”, “지난달 푸시업 몇 개 했어?”, “이번 달 벤치는 지난달보다 늘었어?”처럼 물어보세요. 기기 내 AI가 질문을 해석하고 저장된 기록으로 계산합니다.",
-  "queryManualBody": "자연어 질문은 기기 내 AI가 준비되면 사용할 수 있습니다. 일반 운동명·메모 검색은 항상 가능합니다.",
+  "timingSoundFailed": "소리를 재생할 수 없어요. 타이머는 계속 동작해요.",
   "queryWorking": "질문을 해석하고 있습니다…",
-  "queryFailed": "답변을 가져오지 못했습니다. 다시 시도해 주세요.",
+  "queryFailed": "답변을 가져오지 못했어요. 다시 시도해 주세요.",
   "queryUnsupported": "운동 기록과 관련된 질문을 해주세요.",
   "queryOffline": "연결되면 물어볼 수 있어요.",
   "@queryOffline": {
@@ -418,16 +391,7 @@
   "querySetUnit": "세트",
   "queryDayUnit": "일",
   "queryAverage": "세트당 평균 중량",
-  "queryMissingData": "질문에 필요한 운동이나 측정 정보가 기록에 없습니다.",
   "queryAmbiguous": "어떤 운동의 어떤 기록을 말하는지 조금 더 구체적으로 적어 주세요.",
-  "queryRank": "{n}위",
-  "@queryRank": {
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
   "timingWorkSeconds": "운동 {n}초",
   "@timingWorkSeconds": {
     "placeholders": {
@@ -661,17 +625,13 @@
   "@queryCompareChip": {
     "description": "운동 이름이 둘 이상 잡혔을 때 뜨는 칩. 누르면 모델 없이 최고·운동한 날·마지막을 나란히 본다."
   },
-  "queryNoRecord": "기록 없음",
-  "@queryNoRecord": {
-    "description": "표에서 지목한 운동에 이 범위의 기록이 하나도 없을 때."
-  },
   "settingsTitle": "설정",
   "settingsRecording": "기록",
   "settingsAccount": "계정",
-  "settingsGym": "다니는 체육관",
-  "settingsNoGym": "헬스장 스티커에 폰을 대면 트레이너가 짠 루틴을 여기서 받습니다.",
+  "settingsGym": "다니는 헬스장",
+  "settingsNoGym": "헬스장 스티커에 폰을 대면 트레이너가 짠 루틴을 여기서 받아요.",
   "proTitle": "Pro 이용권",
-  "proBody": "기록에 묻는 질문은 원판을 씁니다. 질문 하나에 보통 1장쯤 들고, 답에 실제로 쓴 만큼만 빠집니다. 운동과 식단을 적을 때 돕는 적기 도움은 원판을 쓰지 않습니다.",
+  "proBody": "기록에 묻는 질문은 원판을 써요. 질문 하나에 보통 1장쯤 들고, 답에 실제로 쓴 만큼만 빠져요. 운동과 식단을 적을 때 돕는 적기 도움은 원판을 쓰지 않아요.",
   "proFree": "무료: 적기 도움 하루 {n}번 · 세트 {sets}개를 채운 날 원판 1장",
   "@proFree": {
     "placeholders": {
@@ -694,9 +654,9 @@
       }
     }
   },
-  "proEverythingElseFree": "기록·타이머·손목 알림·건강 앱 연동·같이 하기·체육관은 이용권 없이도 전부 됩니다.",
-  "proOwned": "이용 중입니다. 고맙습니다.",
-  "proSignInOptional": "로그인 없이도 살 수 있습니다. 로그인하면 다른 기기에서도 이용권을 씁니다.",
+  "proEverythingElseFree": "기록·타이머·손목 알림·건강 앱 연동·같이 하기·헬스장은 이용권 없이도 전부 돼요.",
+  "proOwned": "이용 중이에요. 고마워요.",
+  "proSignInOptional": "로그인 없이도 살 수 있어요. 로그인하면 다른 기기에서도 이용권을 써요.",
   "platesBalance": "남은 원판 {n}장",
   "@platesBalance": {
     "description": "원판 잔액. 1.5 처럼 소수가 있다.",
@@ -744,20 +704,19 @@
       }
     }
   },
-  "purchaseNotConfirmed": "구매를 확인하지 못했습니다. 결제가 됐다면 잠시 뒤 ‘구매 복원’을 눌러 주세요.",
-  "purchaseOtherAccount": "이 구매는 다른 계정에 연결돼 있습니다. 그 계정으로 로그인해 주세요.",
-  "tagSignInNeeded": "헬스장과 연결하려면 로그인이 필요합니다.",
-  "tagJoinSent": "등록을 신청했습니다. 트레이너가 확인하면 바로 시작할 수 있습니다.",
-  "tagJoinWaiting": "이미 신청하셨습니다. 트레이너가 확인하는 중입니다.",
-  "tagJoinFailed": "신청하지 못했습니다. 잠시 뒤 다시 대주세요.",
+  "purchaseNotConfirmed": "구매를 확인하지 못했어요. 결제가 됐다면 잠시 뒤 ‘구매 복원’을 눌러 주세요.",
+  "purchaseOtherAccount": "이 구매는 다른 계정에 연결돼 있어요. 그 계정으로 로그인해 주세요.",
+  "tagSignInNeeded": "헬스장과 연결하려면 로그인이 필요해요.",
+  "tagJoinSent": "등록을 신청했어요. 트레이너가 확인하면 바로 시작할 수 있어요.",
+  "tagJoinWaiting": "이미 신청했어요. 트레이너가 확인하는 중이에요.",
+  "tagJoinFailed": "신청하지 못했어요. 잠시 뒤 다시 대 주세요.",
   "bookingPending": "승인 대기",
   "bookingWhichGym": "어느 헬스장인가요?",
-  "tagSignIn": "로그인",
   "accountDelete": "회원 탈퇴",
   "accountDeleteAsk": "되돌릴 수 없습니다. 받은 루틴, 운동 기록, 이용권, 예약이 모두 사라집니다. App Store·Google Play 구독은 스토어에서 직접 해지하기 전까지 계속 결제됩니다.",
   "accountDeleteDo": "탈퇴합니다",
-  "accountDeleteFailed": "탈퇴하지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
-  "signInFailed": "로그인하지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
+  "accountDeleteFailed": "탈퇴하지 못했어요. 잠시 뒤 다시 시도해 주세요.",
+  "signInFailed": "로그인하지 못했어요. 잠시 뒤 다시 시도해 주세요.",
   "bookingTitle": "PT 예약",
   "bookingConfirmed": "확정",
   "bookingRemaining": "남은 횟수 {n}회",
@@ -768,8 +727,8 @@
       }
     }
   },
-  "bookingNoPass": "PT 이용권이 없습니다. 트레이너에게 문의해 주세요.",
-  "bookingNoHours": "{trainer} 트레이너가 아직 받을 시간을 열지 않았습니다.",
+  "bookingNoPass": "PT 이용권이 없어요. 트레이너에게 문의해 주세요.",
+  "bookingNoHours": "{trainer} 트레이너가 아직 받을 시간을 열지 않았어요.",
   "@bookingNoHours": {
     "placeholders": {
       "trainer": {
@@ -789,29 +748,18 @@
       }
     }
   },
-  "bookingSent": "신청했습니다. 트레이너가 승인하면 확정됩니다.",
+  "bookingSent": "신청했어요. 트레이너가 승인하면 확정돼요.",
   "bookingUpcoming": "다가오는 예약",
-  "bookingClosedDay": "이날은 받지 않습니다.",
+  "bookingClosedDay": "이날은 받지 않아요.",
   "bookingCancelAsk": "이 예약을 취소할까요?",
   "ok": "확인",
-  "mealPhoto": "식단 사진",
   "mealAdd": "식단 남기기",
   "mealWrite": "글로 적기",
   "mealTypeHint": "음식은 운동 이름 줄에 바로 쳐도 식단으로 남아요",
   "mealCamera": "카메라",
   "mealGallery": "앨범에서",
   "mealEstimating": "칼로리 어림하는 중…",
-  "mealIntake": "섭취 약 {n}kcal",
   "mealFailed": "사진에서 칼로리를 어림하지 못했어요. 다시 찍어 주세요.",
-  "mealEstimateNote": "사진으로 어림한 값이에요",
-  "@mealIntake": {
-    "placeholders": {
-      "n": {
-        "type": "int",
-        "format": "decimalPattern"
-      }
-    }
-  },
   "mealServingsOption": "{n}회분",
   "@mealServingsOption": {
     "placeholders": {
@@ -820,16 +768,7 @@
       }
     }
   },
-  "fitAll": "오늘 운동",
-  "sameDayToday": "오늘 {time}에 따로 남긴 기록",
-  "@sameDayToday": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "sameDayOn": "{date} {time}에 따로 남긴 기록",
+  "fitAll": "오늘 한 장",
   "sameDayMore": "{first} 외 {n}개",
   "lastWeekDay": "지난주 {weekday}({date}) 운동",
   "@lastWeekDay": {
@@ -856,16 +795,6 @@
       }
     }
   },
-  "@sameDayOn": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      },
-      "time": {
-        "type": "String"
-      }
-    }
-  },
   "@sameDayMore": {
     "placeholders": {
       "first": {
@@ -888,18 +817,6 @@
     }
   },
   "mealKcalUnknown": "열량 미상",
-  "mealIntakePartial": "확인된 섭취 {n}kcal · 열량 미상 {m}건",
-  "@mealIntakePartial": {
-    "placeholders": {
-      "n": {
-        "type": "int",
-        "format": "decimalPattern"
-      },
-      "m": {
-        "type": "int"
-      }
-    }
-  },
   "mealAmountAsk": "얼마나 드셨나요?",
   "mealBasis": "기준",
   "mealEaten": "먹은 양",
@@ -1030,7 +947,6 @@
       }
     }
   },
-  "dayBurnedMissing": "운동 소모량 미측정 · 차이 계산 불가",
   "dayBurnedOnly": "운동 {n}kcal · 식단 미기록",
   "@dayBurnedOnly": {
     "placeholders": {
@@ -1039,8 +955,7 @@
       }
     }
   },
-  "intakeLabel": "섭취",
-  "partnerSignIn": "같이 하려면 로그인이 필요합니다.",
+  "partnerSignIn": "같이 하려면 로그인이 필요해요.",
   "partnerSignInAction": "로그인",
   "partnerMakeCode": "코드 만들기",
   "partnerCopy": "복사",
@@ -1052,7 +967,7 @@
       }
     }
   },
-  "partnerExpired": "코드가 만료되었습니다.",
+  "partnerExpired": "코드가 만료되었어요.",
   "partnerNewCode": "새 코드",
   "partnerStopWaiting": "그만두기",
   "partnerWith": "{name} 님과 함께 운동 중",
@@ -1063,7 +978,7 @@
       }
     }
   },
-  "partnerReconnecting": "연결 복구 중 · 내 기록은 계속 저장됩니다",
+  "partnerReconnecting": "연결 복구 중 · 내 기록은 계속 저장돼요",
   "partnerTheirRecord": "{name} 님의 기록",
   "@partnerTheirRecord": {
     "placeholders": {
@@ -1072,11 +987,11 @@
       }
     }
   },
-  "partnerNoRecordYet": "아직 올라온 기록이 없습니다.",
+  "partnerNoRecordYet": "아직 올라온 기록이 없어요.",
   "partnerLoading": "불러오는 중…",
   "partnerEnd": "함께 운동 종료",
-  "partnerEndedByMe": "함께 운동을 종료했습니다. 내 기록은 그대로 남아 있습니다.",
-  "partnerEndedByThem": "{name} 님이 함께 운동을 종료했습니다. 내 기록은 그대로 남아 있습니다.",
+  "partnerEndedByMe": "함께 운동을 종료했어요. 내 기록은 그대로 남아 있어요.",
+  "partnerEndedByThem": "{name} 님이 함께 운동을 종료했어요. 내 기록은 그대로 남아 있어요.",
   "@partnerEndedByThem": {
     "placeholders": {
       "name": {
@@ -1084,19 +999,19 @@
       }
     }
   },
-  "partnerErrFormat": "코드는 여섯 글자입니다. 다시 확인해 주세요.",
+  "partnerErrFormat": "코드는 여섯 글자예요. 다시 확인해 주세요.",
   "partnerErrInvalid": "맞는 코드가 없습니다. 이미 사용됐거나 잘못 입력했을 수 있어요.",
-  "partnerErrExpired": "만료된 코드입니다. 상대에게 새 코드를 받아 주세요.",
-  "partnerErrEnded": "이미 종료된 초대입니다.",
-  "partnerErrOwn": "내가 만든 코드입니다. 상대의 기기에서 입력해 주세요.",
-  "partnerErrTries": "시도가 너무 많습니다. 잠시 뒤에 다시 해 주세요.",
-  "partnerErrNetwork": "서버에 연결하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.",
-  "partnerErrServer": "서버에 문제가 있습니다. 잠시 뒤에 다시 시도해 주세요.",
+  "partnerErrExpired": "만료된 코드예요. 상대에게 새 코드를 받아 주세요.",
+  "partnerErrEnded": "이미 종료된 초대예요.",
+  "partnerErrOwn": "내가 만든 코드예요. 상대의 기기에서 입력해 주세요.",
+  "partnerErrTries": "시도가 너무 많아요. 잠시 뒤에 다시 해 주세요.",
+  "partnerErrNetwork": "서버에 연결하지 못했어요. 네트워크를 확인하고 다시 시도해 주세요.",
+  "partnerErrServer": "서버에 문제가 있어요. 잠시 뒤에 다시 시도해 주세요.",
   "partnerRetry": "다시 시도",
   "partnerReadOnly": "읽기 전용",
-  "partnerConflict": "다른 기기에서 더 새 기록을 공유했습니다. 이 기기의 기록은 그대로 저장돼 있고, 공유만 멈춘 상태입니다.",
+  "partnerConflict": "다른 기기에서 더 새 기록을 공유했어요. 이 기기의 기록은 그대로 저장돼 있고, 공유만 멈춘 상태예요.",
   "partnerShareThisDevice": "이 기기의 기록으로 공유하기",
-  "nearbyHint": "아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결됩니다.",
+  "nearbyHint": "아이폰끼리는 이 화면을 연 채 두 기기를 가까이 대도 연결돼요.",
   "togetherStart": "같이 시작",
   "togetherAlternate": "교대로",
   "togetherWaiting": "{name} 님을 기다리는 중…",
@@ -1107,8 +1022,8 @@
       }
     }
   },
-  "togetherWaitingHint": "상대 화면에 요청이 뜹니다. 안 보이면 상대 앱이 최신인지 확인하세요.",
-  "togetherInvite": "{name} 님이 같이 하자고 합니다",
+  "togetherWaitingHint": "상대 화면에 요청이 떠요. 안 보이면 상대 앱이 최신인지 확인해 주세요.",
+  "togetherInvite": "{name} 님이 같이 하자고 해요",
   "@togetherInvite": {
     "placeholders": {
       "name": {
@@ -1168,7 +1083,7 @@
   "proxyDefaultName": "상대",
   "proxyHand": "건네기",
   "proxyBack": "내 기록으로",
-  "proxyShareText": "같이 운동하며 대신 적은 기록입니다. setpad 에서 열어 받으면 내 운동 기록이 됩니다.\n{url}",
+  "proxyShareText": "같이 운동하며 대신 적은 기록이에요. setpad 에서 열어 받으면 내 운동 기록이 돼요.\n{url}",
   "@proxyShareText": {
     "placeholders": {
       "url": {
@@ -1176,7 +1091,7 @@
       }
     }
   },
-  "handoffOffer": "{name} 님이 내 기록을 적어 주었습니다",
+  "handoffOffer": "{name} 님이 내 기록을 적어 주었어요",
   "@handoffOffer": {
     "placeholders": {
       "name": {
@@ -1185,8 +1100,8 @@
     }
   },
   "handoffTake": "받기",
-  "handoffFailed": "기록을 받지 못했습니다. 링크가 만료됐거나 네트워크 문제일 수 있습니다.",
-  "handoffSignIn": "건네받은 기록을 받으려면 로그인이 필요합니다.",
+  "handoffFailed": "기록을 받지 못했어요. 링크가 만료됐거나 네트워크 문제일 수 있어요.",
+  "handoffSignIn": "건네받은 기록을 받으려면 로그인이 필요해요.",
   "partnerInviteMore": "한 명 더 초대 · 코드 {code}",
   "@partnerInviteMore": {
     "placeholders": {
@@ -2499,17 +2414,6 @@
       }
     }
   },
-  "routineRecent": "{part} · {when}",
-  "@routineRecent": {
-    "placeholders": {
-      "part": {
-        "type": "String"
-      },
-      "when": {
-        "type": "String"
-      }
-    }
-  },
   "routineDaysAgo": "{n, plural, =0{오늘} =1{어제} other{{n}일 전}}",
   "@routineDaysAgo": {
     "placeholders": {
@@ -2930,7 +2834,7 @@
       }
     }
   },
-  "anatomyCountNote": "근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 셉니다.",
+  "anatomyCountNote": "근육은 ExRx.net·ACE 분류를 따른 어림이에요. * 가 붙은 운동은 근육 배정이 해석이에요. 주로 쓰는 근육은 한 세트, 보조로 쓰는 근육은 반 세트로 세고, 워밍업 세트도 한 세트로 세어요.",
   "anatomyLimits": "영상·자세 분석은 하지 않아요. 통증이 있으면 멈추고 전문가와 상의하세요.",
   "anatomyTapHint": "근육을 눌러 주세요 — 아래 목록에서도 고를 수 있어요",
   "anatomyNoSurface": "몸 안쪽 근육이라 그림에는 없어요",
@@ -2945,17 +2849,6 @@
       }
     }
   },
-  "anatomySetsLine": "최근 7일 {week}세트 · 28일 {month}세트",
-  "@anatomySetsLine": {
-    "placeholders": {
-      "week": {
-        "type": "String"
-      },
-      "month": {
-        "type": "String"
-      }
-    }
-  },
   "anatomyBreakdown": "28일 중 주로 쓴 세트 {primary} · 보조로 쓴 세트 {secondary}(반으로 셈)",
   "@anatomyBreakdown": {
     "placeholders": {
@@ -2964,17 +2857,6 @@
       },
       "secondary": {
         "type": "int"
-      }
-    }
-  },
-  "anatomyLast": "마지막: {date}({ago})",
-  "@anatomyLast": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      },
-      "ago": {
-        "type": "String"
       }
     }
   },
@@ -3291,8 +3173,8 @@
   },
   "bodyRecordsTitle": "체성분 기록",
   "bodyRecordsEmpty": "아직 기록이 없어요",
-  "bodyRecordsNote": "기록은 기기 안에만 둡니다. 길게 누르면 지웁니다.",
-  "bodyScanNote": "인바디 같은 결과지를 찍으면 AI 가 적힌 값을 읽어요. 사진은 읽을 때만 보내고 남기지 않아요. 확인한 값만 기기에 저장하고, 가장 최근 몸무게가 기초대사량과 운동 칼로리 어림에 쓰여요. 길게 누르면 지웁니다.",
+  "bodyRecordsNote": "기록은 기기 안에만 둬요. 길게 누르면 지워요.",
+  "bodyScanNote": "인바디 같은 결과지를 찍으면 AI 가 적힌 값을 읽어요. 사진은 읽을 때만 보내고 남기지 않아요. 확인한 값만 기기에 저장하고, 가장 최근 몸무게가 기초대사량과 운동 칼로리 어림에 쓰여요. 길게 누르면 지워요.",
   "bodyScanCamera": "결과지 찍기",
   "bodyScanLibrary": "사진에서 고르기",
   "bodyScanReading": "결과지를 읽는 중…",
@@ -3411,18 +3293,17 @@
   },
   "partnerRoutineConfirm": "내 루틴 확인",
   "partnerRoutineConfirmed": "확인 완료",
-  "partnerRoutineFinalized": "모두 확인했어요. 내 운동 기록으로 옮겼습니다.",
+  "partnerRoutineFinalized": "모두 확인했어요. 내 운동 기록으로 옮겼어요.",
   "partnerRoutineChanged": "루틴이 바뀌었어요. 최신 내용을 확인해 주세요.",
   "partnerRoutineEmpty": "운동을 하나 이상 추가해 주세요.",
-  "partnerRoutineStarted": "이미 확정된 루틴입니다.",
+  "partnerRoutineStarted": "이미 확정된 루틴이에요.",
   "workoutImportTitle": "운동 기록 가져오기",
-  "workoutImportHint": "메모를 붙여넣거나 텍스트 파일과 여러 캡처를 추가하세요. 원본은 미리보기 전까지 저장되지 않습니다.",
+  "workoutImportHint": "메모를 붙여넣거나 텍스트 파일과 여러 캡처를 추가해 주세요. 원본은 미리보기 전까지 저장되지 않아요.",
   "workoutImportTextPlaceholder": "운동 기록을 여기에 붙여넣으세요",
   "workoutImportPaste": "붙여넣기",
   "workoutImportTextFiles": "텍스트 파일",
   "workoutImportScreenshots": "캡처 추가",
   "workoutImportAnalyze": "미리보기 만들기",
-  "workoutImportWorking": "기록을 읽는 중…",
   "workoutImportEmpty": "텍스트나 캡처를 추가해 주세요.",
   "workoutImportFailed": "읽지 못했어요. 원본을 유지했으니 다시 시도해 주세요.",
   "workoutImportReview": "날짜와 운동을 확인하고 고친 뒤 모두 저장하세요.",
@@ -3454,8 +3335,8 @@
   "signInWithKakao": "카카오로 시작하기",
   "linkSignIn": "{method} 연결",
   "@linkSignIn": {"placeholders": {"method": {"type": "String"}}},
-  "signInTaken": "이 로그인 수단은 이미 다른 계정에 연결되어 있습니다.",
-  "tagOffline": "체육관에 연결하지 못했어요. 신호가 잡히면 다시 대 주세요.",
+  "signInTaken": "이 로그인 수단은 이미 다른 계정에 연결되어 있어요.",
+  "tagOffline": "헬스장에 연결하지 못했어요. 신호가 잡히면 다시 대 주세요.",
   "handoffMine": "내가 적어 보낸 기록이에요. 받는 사람의 폰에서 열어 주세요.",
   "partnerErrFull": "자리가 다 찼어요. 이 세션에는 더 들어갈 수 없어요.",
   "agentAlarmTitle": "오늘 정리가 준비됐어요",
@@ -3475,7 +3356,7 @@
   "@updateAction": {"description": "업데이트 안내창의 단추. 스토어를 연다."},
   "shareGym": "트레이너와 공유하는 기록이에요",
   "@shareGym": {"description": "기록 머리의 날짜 밑 한 줄. 스티커·받은 루틴으로 연 기록 — 운동과 끼니가 트레이너에게 간다."},
-  "shareRejected": "도장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요",
+  "shareRejected": "헬스장에 올리지 못한 기록이에요 · 트레이너에게 확인해 주세요",
   "@shareRejected": {"description": "서버가 이 기록을 받지 않았다(도장이 없어졌다, 루틴이 엇갈렸다). 고치면 다시 보낸다."},
   "shareMealsOnly": "끼니만 트레이너와 공유해요 · 운동은 헬스장 스티커에 폰을 대면 공유돼요",
   "@shareMealsOnly": {"description": "식단 공유를 켠 회원의, 스티커를 대지 않은 날의 기록. 끼니만 가고 운동·출석은 가지 않는다."},
@@ -3505,13 +3386,13 @@
   "@storeUnreachable": {"description": "결제 화면: 스토어에서 요금제를 읽지 못했다. 누르면 다시 묻는다."},
   "ageConfirm": "만 14세 이상입니다",
   "@ageConfirm": {"description": "로그인 시트의 확인 칸과 나이 확인 창의 단추. 수단을 고르기 전에 채워야 한다."},
-  "ageConfirmAsk": "도장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?",
+  "ageConfirmAsk": "헬스장에 등록하려면 만 14세 이상이어야 해요. 만 14세 이상인가요?",
   "@ageConfirmAsk": {"description": "확인 칸이 생기기 전에 만든 계정이 도장에 등록할 때 한 번 묻는다(서버 403 ageConfirmationRequired)."},
   "gymClasses": "수업 예약",
   "@gymClasses": {"description": "도장 화면의 그룹 수업 예약 줄과 수업 화면 제목."},
-  "gymLeave": "도장 나가기",
+  "gymLeave": "헬스장 나가기",
   "@gymLeave": {"description": "도장 화면 맨 아래: 회원이 도장에서 나간다(DELETE /api/gyms/{id}/membership)."},
-  "gymLeaveAsk": "{gym}에서 나갈까요? 루틴을 더 받지 않고 운동·끼니도 더는 공유되지 않아요. 앞으로의 PT·수업 예약은 취소되고, 지난 기록과 결제 장부는 도장에 남아요.",
+  "gymLeaveAsk": "{gym}에서 나갈까요? 루틴을 더 받지 않고 운동·끼니도 더는 공유되지 않아요. 앞으로의 PT·수업 예약은 취소되고, 지난 기록과 결제 장부는 헬스장에 남아요.",
   "@gymLeaveAsk": {"description": "나가기 전에 묻는 말. 연결만 끊기고 장부는 남으며 앞으로의 예약은 취소된다. gym 은 도장 이름.", "placeholders": {"gym": {"type": "String"}}},
   "gymNotices": "공지",
   "@gymNotices": {"description": "도장 화면의 공지 칸 제목."},
@@ -3565,17 +3446,17 @@
   "@inviteGone": {"description": "도장이 초대를 거뒀다(404)."},
   "decline": "거절",
   "@decline": {"description": "거절 단추 — 도장 초대 거절, 트레이너의 PT 신청 거절."},
-  "gymConsentNotice": "등록하면 이 도장의 관장·트레이너가 닉네임, 이 도장에서 한 운동, 기록한 끼니, 예약을 보게 돼요. 메모·체성분·이용권·결제처럼 도장이 직접 적는 정보는 도장이 관리해요. 도장에서 나가면 그때부터는 공유되지 않고, 지난 기록과 결제 장부는 도장에 남아요.",
+  "gymConsentNotice": "등록하면 이 헬스장의 관장·트레이너가 닉네임, 이 헬스장에서 한 운동, 기록한 끼니, 예약을 보게 돼요. 메모·체성분·이용권·결제처럼 헬스장이 직접 적는 정보는 헬스장이 관리해요. 헬스장에서 나가면 그때부터는 공유되지 않고, 지난 기록과 결제 장부는 헬스장에 남아요.",
   "@gymConsentNotice": {"description": "도장 등록 신청·초대 수락 전에 보여 주는 안내. 서버 GYM_CONSENT_VERSION(gym.dart gymConsentVersion)의 문구다 — 바꾸면 그 판도 올린다."},
-  "joinAsk": "이 도장에 등록을 신청할까요?",
+  "joinAsk": "이 헬스장에 등록을 신청할까요?",
   "@joinAsk": {"description": "스티커를 댄 사람이 아직 그 도장 회원이 아닐 때, 등록 신청 전에 묻는 말."},
   "joinAgree": "동의하고 신청",
   "@joinAgree": {"description": "등록 신청 단추. 안내에 동의하고 신청한다."},
   "classesNone": "앞으로 2주 동안 열린 수업이 없어요.",
   "@classesNone": {"description": "수업 화면: 앞으로 2주 동안 수업이 없다."},
-  "classesNotMember": "이 도장의 회원만 수업을 볼 수 있어요. 회원 등록은 도장에 확인해 주세요.",
+  "classesNotMember": "이 헬스장의 회원만 수업을 볼 수 있어요. 회원 등록은 헬스장에 확인해 주세요.",
   "@classesNotMember": {"description": "수업 화면: 서버가 403 — 이 도장의 회원이 아니라 수업을 볼 수 없다."},
-  "gymUnverified": "확인 전 도장",
+  "gymUnverified": "확인 전 헬스장",
   "@gymUnverified": {"description": "도장 초대 카드와 동의 시트: 아직 확인(검증)되지 않은 도장이라는 표시."},
   "classBook": "예약 {booked}/{capacity}",
   "@classBook": {"description": "수업 예약 단추와 지금 인원. booked 는 잡힌 자리, capacity 는 정원.", "placeholders": {"booked": {"type": "int"}, "capacity": {"type": "int"}}},
@@ -3601,13 +3482,13 @@
   "@trainerPendingCount": {"description": "첫 화면 트레이너 입구: 승인을 기다리는 PT 신청 수.", "placeholders": {"n": {"type": "int"}}},
   "nicknameChange": "닉네임 바꾸기",
   "@nicknameChange": {"description": "설정의 계정 칸: 닉네임 바꾸기(로그인하면 제공자의 이름이 그대로 닉네임이 된다)."},
-  "nicknameHelp": "도장에 보이는 이름이에요. 1~20자로 적어 주세요.",
+  "nicknameHelp": "헬스장에 보이는 이름이에요. 1~20자로 적어 주세요.",
   "@nicknameHelp": {"description": "닉네임 창의 설명이자, 서버가 길이를 거절했을 때의 말."},
   "nicknameTaken": "이미 쓰는 닉네임이에요.",
   "@nicknameTaken": {"description": "이미 다른 사람이 쓰는 닉네임(409)."},
   "save": "저장",
   "@save": {"description": "저장 단추."},
-  "gymLinkNotMember": "이 도장의 회원만 열 수 있어요.",
+  "gymLinkNotMember": "이 헬스장의 회원만 열 수 있어요.",
   "@gymLinkNotMember": {"description": "단톡방 수업·PT 예약 링크(/c/<id>/classes·bookings)를 연 사람이 그 도장 회원이 아닐 때."},
   "ageConfirmFirst": "먼저 ‘만 14세 이상입니다’를 확인해 주세요.",
   "@ageConfirmFirst": {"description": "로그인 시트에서 나이 칸을 비운 채 수단을 눌렀을 때 화면 읽기(VoiceOver·TalkBack)가 읽어 주는 말. ageConfirm 의 글을 그대로 가리킨다."},
@@ -3623,7 +3504,7 @@
   "@refusedBookingTime": {"description": "PT 예약 요청의 날짜·시간이 맞지 않다(400 invalidInput) — 대개 고른 시각이 그새 지났다."},
   "refusedBookingForbidden": "이 예약을 처리할 권한이 없어요.",
   "@refusedBookingForbidden": {"description": "이 PT 예약을 처리할 권한이 없다(403 forbidden) — 남의 예약을 취소하거나, 트레이너가 맡지 않은 신청을 승인했다."},
-  "refusedNoTrainer": "아직 담당 트레이너가 없어요. 도장에 문의해 주세요.",
+  "refusedNoTrainer": "아직 담당 트레이너가 없어요. 헬스장에 문의해 주세요.",
   "@refusedNoTrainer": {"description": "PT 를 신청한 회원에게 담당 트레이너가 없다(403 noTrainer)."},
   "refusedBookingChanged": "이미 처리됐거나 바뀐 예약이에요.",
   "@refusedBookingChanged": {"description": "그사이 처리됐거나(승인·거절·취소) 담당이 바뀐 PT 예약이다(409 invalidTransition)."},
@@ -3635,7 +3516,7 @@
   "@refusedTooLate": {"description": "시작 시각이 지난 PT 예약이라 취소·승인할 수 없다(409 tooLate)."},
   "refusedClassFull": "정원이 찼어요.",
   "@refusedClassFull": {"description": "그룹 수업의 정원이 찼다(409 full)."},
-  "refusedClassNoAccess": "수업 날에 쓸 수 있는 회원권이 없어요. 기간이나 정지 상태를 도장에 확인해 주세요.",
+  "refusedClassNoAccess": "수업 날에 쓸 수 있는 회원권이 없어요. 기간이나 정지 상태를 헬스장에 확인해 주세요.",
   "@refusedClassNoAccess": {"description": "수업 날에 쓸 수 있는 회원권이 없다(409 noAccess) — 기간이 끝났거나 정지 중이거나 이 도장 회원이 아니다."},
   "refusedClassCancelled": "휴강한 수업이에요.",
   "@refusedClassCancelled": {"description": "휴강한 그룹 수업이다(409 cancelled)."},
@@ -3653,5 +3534,13 @@
   "noteRemoved": "기록을 지웠어요",
   "@noteRemoved": {"description": "목록에서 기록을 지운 직후 '되돌리기' 줄 앞부분"},
   "shareSending": "트레이너에게 보내는 중 · 신호 잡히면 가요",
-  "@shareSending": {"description": "트레이너와 공유하는 기록이 아직 한 번도 서버에 못 올라갔을 때 편집기 머리의 한 줄"}
+  "@shareSending": {"description": "트레이너와 공유하는 기록이 아직 한 번도 서버에 못 올라갔을 때 편집기 머리의 한 줄"},
+  "aiSettingNote": "켜 두면 적은 운동·식단 글, 식단 사진, 기록 질문을 서버의 AI 가 읽어요. 끄면 AI 로 보내지 않고, 적은 글은 그대로 남아요.",
+  "@aiSettingNote": {"description": "설정의 AI 도움 토글 바로 아래 한 줄: 무엇이 서버 AI 로 가는지, 끄면 무엇이 멈추는지(RecordAi.enabled 가 모델로 가는 문을 모두 막는다)."},
+  "nicknameLabel": "닉네임",
+  "@nicknameLabel": {"description": "설정의 계정 칸: 현재 닉네임을 값으로 보이는 한 줄의 이름(누르면 바꾼다)."},
+  "moreChips": "더 보기",
+  "@moreChips": {"description": "접힌 칩을 펼치는 칩(루틴 카드의 '+ 운동' 칩이 넷을 넘을 때)"},
+  "allExercises": "모든 운동",
+  "@allExercises": {"description": "기록 질문의 범위 라벨: 운동을 가리지 않고 모두(확인 줄·표 제목). 목록 제목인 allNotes 와 다른 말이다."}
 }

@@ -9,9 +9,6 @@ class LZh extends L {
   LZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appTitle => '今日训练';
-
-  @override
   String get copy => '复制';
 
   @override
@@ -147,74 +144,10 @@ class LZh extends L {
   }
 
   @override
-  String get aiTitle => '一句话设置';
-
-  @override
-  String get aiReady => '可用';
-
-  @override
-  String get aiChecking => '正在检查';
-
-  @override
-  String get aiSetupNeeded => '需要设置';
-
-  @override
-  String get aiPreparing => '准备中';
-
-  @override
-  String get aiUnavailable => '手动输入';
-
-  @override
-  String get aiReadyBody =>
-      '在动作名称栏输入“卧推80kg，累计完成100次”并按回车，即可自动设置重量和目标。文字在设备内处理。';
-
-  @override
-  String get aiDisabledBody =>
-      '请在设置 → Apple Intelligence与Siri中开启Apple Intelligence。模型准备完成后返回应用，将自动重新检查。';
-
-  @override
-  String get aiOsBody =>
-      '一句话设置需要iOS 26或更新版本和支持Apple Intelligence的设备。请在设置 → 通用 → 软件更新中检查。';
-
-  @override
-  String get aiDeviceBody => '此设备不支持Apple Intelligence，无法使用一句话设置。';
-
-  @override
-  String get aiPreparingBody => '设备正在准备AI模型。请连接Wi-Fi，稍后再检查。';
-
-  @override
-  String get aiDownloadBody => '可以下载AI模型。建议连接Wi-Fi；下载需要时间和储存空间。准备完成后，文字在设备内处理。';
-
-  @override
-  String get aiLanguageBody => '设备的AI模型不支持应用语言。请切换到支持的语言后重试。';
-
-  @override
-  String get aiPlatformBody => '此环境无法使用设备内AI。请在支持的iPhone或Android设备上使用应用。';
-
-  @override
-  String get aiUnavailableBody =>
-      '目前无法使用AI，取决于设备、系统及系统AI服务的支持和准备情况。刚完成设备设置时，请联网后稍后重试。';
-
-  @override
-  String get aiManualBody => '仍可正常记录运动。选择动作后，每组输入“80 20”或仅输入次数。';
-
-  @override
-  String get aiPrepare => '准备模型';
-
-  @override
-  String get aiRetry => '重新检查';
-
-  @override
   String get aiWorking => '正在设置动作…';
 
   @override
   String get aiJudging => '正在读取…';
-
-  @override
-  String get aiFailure => '无法理解此内容。请修改后重试，或将其作为动作名称。';
-
-  @override
-  String get aiUseName => '用作动作名称';
 
   @override
   String get aiFallbackQuota => '今天的输入辅助已用完，已按原文添加';
@@ -426,16 +359,6 @@ class LZh extends L {
   String get timingSoundFailed => '无法播放声音，计时器仍在运行。';
 
   @override
-  String get queryTitle => '询问记录';
-
-  @override
-  String get queryReadyBody =>
-      '可以问“深蹲最重是多少？”“上个月做了多少俯卧撑？”“这个月卧推有进步吗？”。设备端AI理解问题，并从已保存的记录计算数值。';
-
-  @override
-  String get queryManualBody => '自然语言提问需要设备端AI准备就绪。运动名称和备注搜索始终可用。';
-
-  @override
   String get queryWorking => '正在理解问题…';
 
   @override
@@ -474,15 +397,7 @@ class LZh extends L {
   String get queryAverage => '每组平均重量';
 
   @override
-  String get queryMissingData => '记录中没有此问题所需的运动或测量信息。';
-
-  @override
   String get queryAmbiguous => '请具体说明你指的是哪项运动的什么记录。';
-
-  @override
-  String queryRank(int n) {
-    return '第$n名';
-  }
 
   @override
   String timingWorkSeconds(int n) {
@@ -707,9 +622,6 @@ class LZh extends L {
   String get queryCompareChip => '比较';
 
   @override
-  String get queryNoRecord => '无记录';
-
-  @override
   String get settingsTitle => '设置';
 
   @override
@@ -812,9 +724,6 @@ class LZh extends L {
   String get bookingWhichGym => '哪一家健身房？';
 
   @override
-  String get tagSignIn => '登录';
-
-  @override
   String get accountDelete => '注销账号';
 
   @override
@@ -873,9 +782,6 @@ class LZh extends L {
   String get ok => '好';
 
   @override
-  String get mealPhoto => '餐食照片';
-
-  @override
   String get mealAdd => '记录饮食';
 
   @override
@@ -894,20 +800,7 @@ class LZh extends L {
   String get mealEstimating => '正在估算热量…';
 
   @override
-  String mealIntake(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '摄入约 $nString 千卡';
-  }
-
-  @override
   String get mealFailed => '无法从这张照片估算热量，请重新拍摄。';
-
-  @override
-  String get mealEstimateNote => '根据照片估算';
 
   @override
   String mealServingsOption(String n) {
@@ -916,16 +809,6 @@ class LZh extends L {
 
   @override
   String get fitAll => '今天的训练';
-
-  @override
-  String sameDayToday(String time) {
-    return '今天 $time 另外保存的记录';
-  }
-
-  @override
-  String sameDayOn(String date, String time) {
-    return '$date $time 另外保存的记录';
-  }
 
   @override
   String sameDayMore(String first, int n) {
@@ -960,16 +843,6 @@ class LZh extends L {
 
   @override
   String get mealKcalUnknown => '热量未知';
-
-  @override
-  String mealIntakePartial(int n, int m) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '摄入 $nString 千卡 + $m 项热量未知';
-  }
 
   @override
   String get mealAmountAsk => '吃了多少？';
@@ -1126,15 +999,9 @@ class LZh extends L {
   }
 
   @override
-  String get dayBurnedMissing => '运动消耗未测量 · 无法计算差值';
-
-  @override
   String dayBurnedOnly(String n) {
     return '运动 $n 千卡 · 未记录饮食';
   }
-
-  @override
-  String get intakeLabel => '摄入';
 
   @override
   String get partnerSignIn => '需要登录才能一起训练。';
@@ -2363,11 +2230,6 @@ class LZh extends L {
   }
 
   @override
-  String routineRecent(String part, String when) {
-    return '$part · $when';
-  }
-
-  @override
   String routineDaysAgo(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -2830,18 +2692,8 @@ class LZh extends L {
   }
 
   @override
-  String anatomySetsLine(String week, String month) {
-    return '最近7天 $week组 · 28天 $month组';
-  }
-
-  @override
   String anatomyBreakdown(int primary, int secondary) {
     return '28天中主要使用 $primary组 · 辅助 $secondary组（按半组算）';
-  }
-
-  @override
-  String anatomyLast(String date, String ago) {
-    return '最近一次：$date（$ago）';
   }
 
   @override
@@ -3287,9 +3139,6 @@ class LZh extends L {
   String get workoutImportAnalyze => '生成预览';
 
   @override
-  String get workoutImportWorking => '正在读取训练记录…';
-
-  @override
   String get workoutImportEmpty => '请先添加文本或截图。';
 
   @override
@@ -3715,6 +3564,19 @@ class LZh extends L {
 
   @override
   String get shareSending => '正在发送给教练 · 有信号时会发出';
+
+  @override
+  String get aiSettingNote =>
+      '开启后，你输入的训练和饮食文字、饮食照片以及对记录的提问会由服务器上的 AI 读取。关闭后不会发送给 AI，你输入的内容原样保留。';
+
+  @override
+  String get nicknameLabel => '昵称';
+
+  @override
+  String get moreChips => '更多';
+
+  @override
+  String get allExercises => '所有记录';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -3722,9 +3584,6 @@ class LZhHans extends LZh {
   LZhHans() : super('zh_Hans');
 
   @override
-  String get appTitle => '今日训练';
-
-  @override
   String get copy => '复制';
 
   @override
@@ -3860,74 +3719,10 @@ class LZhHans extends LZh {
   }
 
   @override
-  String get aiTitle => '一句话设置';
-
-  @override
-  String get aiReady => '可用';
-
-  @override
-  String get aiChecking => '正在检查';
-
-  @override
-  String get aiSetupNeeded => '需要设置';
-
-  @override
-  String get aiPreparing => '准备中';
-
-  @override
-  String get aiUnavailable => '手动输入';
-
-  @override
-  String get aiReadyBody =>
-      '在动作名称栏输入“卧推80kg，累计完成100次”并按回车，即可自动设置重量和目标。文字在设备内处理。';
-
-  @override
-  String get aiDisabledBody =>
-      '请在设置 → Apple Intelligence与Siri中开启Apple Intelligence。模型准备完成后返回应用，将自动重新检查。';
-
-  @override
-  String get aiOsBody =>
-      '一句话设置需要iOS 26或更新版本和支持Apple Intelligence的设备。请在设置 → 通用 → 软件更新中检查。';
-
-  @override
-  String get aiDeviceBody => '此设备不支持Apple Intelligence，无法使用一句话设置。';
-
-  @override
-  String get aiPreparingBody => '设备正在准备AI模型。请连接Wi-Fi，稍后再检查。';
-
-  @override
-  String get aiDownloadBody => '可以下载AI模型。建议连接Wi-Fi；下载需要时间和储存空间。准备完成后，文字在设备内处理。';
-
-  @override
-  String get aiLanguageBody => '设备的AI模型不支持应用语言。请切换到支持的语言后重试。';
-
-  @override
-  String get aiPlatformBody => '此环境无法使用设备内AI。请在支持的iPhone或Android设备上使用应用。';
-
-  @override
-  String get aiUnavailableBody =>
-      '目前无法使用AI，取决于设备、系统及系统AI服务的支持和准备情况。刚完成设备设置时，请联网后稍后重试。';
-
-  @override
-  String get aiManualBody => '仍可正常记录运动。选择动作后，每组输入“80 20”或仅输入次数。';
-
-  @override
-  String get aiPrepare => '准备模型';
-
-  @override
-  String get aiRetry => '重新检查';
-
-  @override
   String get aiWorking => '正在设置动作…';
 
   @override
   String get aiJudging => '正在读取…';
-
-  @override
-  String get aiFailure => '无法理解此内容。请修改后重试，或将其作为动作名称。';
-
-  @override
-  String get aiUseName => '用作动作名称';
 
   @override
   String get aiFallbackQuota => '今天的输入辅助已用完，已按原文添加';
@@ -4139,16 +3934,6 @@ class LZhHans extends LZh {
   String get timingSoundFailed => '无法播放声音，计时器仍在运行。';
 
   @override
-  String get queryTitle => '询问记录';
-
-  @override
-  String get queryReadyBody =>
-      '可以问“深蹲最重是多少？”“上个月做了多少俯卧撑？”“这个月卧推有进步吗？”。设备端AI理解问题，并从已保存的记录计算数值。';
-
-  @override
-  String get queryManualBody => '自然语言提问需要设备端AI准备就绪。运动名称和备注搜索始终可用。';
-
-  @override
   String get queryWorking => '正在理解问题…';
 
   @override
@@ -4187,15 +3972,7 @@ class LZhHans extends LZh {
   String get queryAverage => '每组平均重量';
 
   @override
-  String get queryMissingData => '记录中没有此问题所需的运动或测量信息。';
-
-  @override
   String get queryAmbiguous => '请具体说明你指的是哪项运动的什么记录。';
-
-  @override
-  String queryRank(int n) {
-    return '第$n名';
-  }
 
   @override
   String timingWorkSeconds(int n) {
@@ -4420,9 +4197,6 @@ class LZhHans extends LZh {
   String get queryCompareChip => '比较';
 
   @override
-  String get queryNoRecord => '无记录';
-
-  @override
   String get settingsTitle => '设置';
 
   @override
@@ -4525,9 +4299,6 @@ class LZhHans extends LZh {
   String get bookingWhichGym => '哪一家健身房？';
 
   @override
-  String get tagSignIn => '登录';
-
-  @override
   String get accountDelete => '注销账号';
 
   @override
@@ -4586,9 +4357,6 @@ class LZhHans extends LZh {
   String get ok => '好';
 
   @override
-  String get mealPhoto => '餐食照片';
-
-  @override
   String get mealAdd => '记录饮食';
 
   @override
@@ -4607,20 +4375,7 @@ class LZhHans extends LZh {
   String get mealEstimating => '正在估算热量…';
 
   @override
-  String mealIntake(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '摄入约 $nString 千卡';
-  }
-
-  @override
   String get mealFailed => '无法从这张照片估算热量，请重新拍摄。';
-
-  @override
-  String get mealEstimateNote => '根据照片估算';
 
   @override
   String mealServingsOption(String n) {
@@ -4629,16 +4384,6 @@ class LZhHans extends LZh {
 
   @override
   String get fitAll => '今天的训练';
-
-  @override
-  String sameDayToday(String time) {
-    return '今天 $time 另外保存的记录';
-  }
-
-  @override
-  String sameDayOn(String date, String time) {
-    return '$date $time 另外保存的记录';
-  }
 
   @override
   String sameDayMore(String first, int n) {
@@ -4673,16 +4418,6 @@ class LZhHans extends LZh {
 
   @override
   String get mealKcalUnknown => '热量未知';
-
-  @override
-  String mealIntakePartial(int n, int m) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '摄入 $nString 千卡 + $m 项热量未知';
-  }
 
   @override
   String get mealAmountAsk => '吃了多少？';
@@ -4839,15 +4574,9 @@ class LZhHans extends LZh {
   }
 
   @override
-  String get dayBurnedMissing => '运动消耗未测量 · 无法计算差值';
-
-  @override
   String dayBurnedOnly(String n) {
     return '运动 $n 千卡 · 未记录饮食';
   }
-
-  @override
-  String get intakeLabel => '摄入';
 
   @override
   String get partnerSignIn => '需要登录才能一起训练。';
@@ -6076,11 +5805,6 @@ class LZhHans extends LZh {
   }
 
   @override
-  String routineRecent(String part, String when) {
-    return '$part · $when';
-  }
-
-  @override
   String routineDaysAgo(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -6543,18 +6267,8 @@ class LZhHans extends LZh {
   }
 
   @override
-  String anatomySetsLine(String week, String month) {
-    return '最近7天 $week组 · 28天 $month组';
-  }
-
-  @override
   String anatomyBreakdown(int primary, int secondary) {
     return '28天中主要使用 $primary组 · 辅助 $secondary组（按半组算）';
-  }
-
-  @override
-  String anatomyLast(String date, String ago) {
-    return '最近一次：$date（$ago）';
   }
 
   @override
@@ -7000,9 +6714,6 @@ class LZhHans extends LZh {
   String get workoutImportAnalyze => '生成预览';
 
   @override
-  String get workoutImportWorking => '正在读取训练记录…';
-
-  @override
   String get workoutImportEmpty => '请先添加文本或截图。';
 
   @override
@@ -7428,14 +7139,24 @@ class LZhHans extends LZh {
 
   @override
   String get shareSending => '正在发送给教练 · 有信号时会发出';
+
+  @override
+  String get aiSettingNote =>
+      '开启后，你输入的训练和饮食文字、饮食照片以及对记录的提问会由服务器上的 AI 读取。关闭后不会发送给 AI，你输入的内容原样保留。';
+
+  @override
+  String get nicknameLabel => '昵称';
+
+  @override
+  String get moreChips => '更多';
+
+  @override
+  String get allExercises => '所有记录';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
 class LZhHant extends LZh {
   LZhHant() : super('zh_Hant');
-
-  @override
-  String get appTitle => '今日訓練';
 
   @override
   String get copy => '複製';
@@ -7573,74 +7294,10 @@ class LZhHant extends LZh {
   }
 
   @override
-  String get aiTitle => '一句話設定';
-
-  @override
-  String get aiReady => '可用';
-
-  @override
-  String get aiChecking => '正在檢查';
-
-  @override
-  String get aiSetupNeeded => '需要設定';
-
-  @override
-  String get aiPreparing => '準備中';
-
-  @override
-  String get aiUnavailable => '手動輸入';
-
-  @override
-  String get aiReadyBody =>
-      '在動作名稱欄輸入「臥推80kg，累計完成100次」並按Enter，即可自動設定重量和目標。文字在裝置內處理。';
-
-  @override
-  String get aiDisabledBody =>
-      '請在設定 → Apple Intelligence與Siri中開啟Apple Intelligence。模型準備完成後返回App，將自動重新檢查。';
-
-  @override
-  String get aiOsBody =>
-      '一句話設定需要iOS 26或更新版本和支援Apple Intelligence的裝置。請在設定 → 一般 → 軟體更新中檢查。';
-
-  @override
-  String get aiDeviceBody => '此裝置不支援Apple Intelligence，無法使用一句話設定。';
-
-  @override
-  String get aiPreparingBody => '裝置正在準備AI模型。請連接Wi-Fi，稍後再檢查。';
-
-  @override
-  String get aiDownloadBody => '可以下載AI模型。建議連接Wi-Fi；下載需要時間和儲存空間。準備完成後，文字在裝置內處理。';
-
-  @override
-  String get aiLanguageBody => '裝置的AI模型不支援App語言。請切換到支援的語言後重試。';
-
-  @override
-  String get aiPlatformBody => '此環境無法使用裝置內AI。請在支援的iPhone或Android裝置上使用App。';
-
-  @override
-  String get aiUnavailableBody =>
-      '目前無法使用AI，取決於裝置、系統及系統AI服務的支援和準備情況。剛完成裝置設定時，請連網後稍後重試。';
-
-  @override
-  String get aiManualBody => '仍可正常記錄運動。選擇動作後，每組輸入「80 20」或僅輸入次數。';
-
-  @override
-  String get aiPrepare => '準備模型';
-
-  @override
-  String get aiRetry => '重新檢查';
-
-  @override
   String get aiWorking => '正在設定動作…';
 
   @override
   String get aiJudging => '正在讀取…';
-
-  @override
-  String get aiFailure => '無法理解此內容。請修改後重試，或將其作為動作名稱。';
-
-  @override
-  String get aiUseName => '用作動作名稱';
 
   @override
   String get aiFallbackQuota => '今天的輸入輔助已用完，已按原文新增';
@@ -7852,16 +7509,6 @@ class LZhHant extends LZh {
   String get timingSoundFailed => '無法播放聲音，計時器仍在運行。';
 
   @override
-  String get queryTitle => '詢問紀錄';
-
-  @override
-  String get queryReadyBody =>
-      '可以問「深蹲最重是多少？」「上個月做了多少伏地挺身？」「這個月臥推有進步嗎？」。裝置端AI理解問題，並從已儲存的紀錄計算數值。';
-
-  @override
-  String get queryManualBody => '自然語言提問需要裝置端AI準備就緒。運動名稱和備註搜尋隨時可用。';
-
-  @override
   String get queryWorking => '正在理解問題…';
 
   @override
@@ -7900,15 +7547,7 @@ class LZhHant extends LZh {
   String get queryAverage => '每組平均重量';
 
   @override
-  String get queryMissingData => '紀錄中沒有此問題所需的運動或測量資訊。';
-
-  @override
   String get queryAmbiguous => '請具體說明你指的是哪項運動的什麼紀錄。';
-
-  @override
-  String queryRank(int n) {
-    return '第$n名';
-  }
 
   @override
   String timingWorkSeconds(int n) {
@@ -8133,9 +7772,6 @@ class LZhHant extends LZh {
   String get queryCompareChip => '比較';
 
   @override
-  String get queryNoRecord => '無記錄';
-
-  @override
   String get settingsTitle => '設定';
 
   @override
@@ -8237,9 +7873,6 @@ class LZhHant extends LZh {
   String get bookingWhichGym => '哪一家健身房？';
 
   @override
-  String get tagSignIn => '登入';
-
-  @override
   String get accountDelete => '註銷帳號';
 
   @override
@@ -8298,9 +7931,6 @@ class LZhHant extends LZh {
   String get ok => '好';
 
   @override
-  String get mealPhoto => '餐食照片';
-
-  @override
   String get mealAdd => '記錄飲食';
 
   @override
@@ -8319,20 +7949,7 @@ class LZhHant extends LZh {
   String get mealEstimating => '正在估算熱量…';
 
   @override
-  String mealIntake(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '攝取約 $nString 大卡';
-  }
-
-  @override
   String get mealFailed => '無法從這張照片估算熱量，請重新拍攝。';
-
-  @override
-  String get mealEstimateNote => '依照片估算';
 
   @override
   String mealServingsOption(String n) {
@@ -8341,16 +7958,6 @@ class LZhHant extends LZh {
 
   @override
   String get fitAll => '今天的訓練';
-
-  @override
-  String sameDayToday(String time) {
-    return '今天 $time 另外保存的紀錄';
-  }
-
-  @override
-  String sameDayOn(String date, String time) {
-    return '$date $time 另外保存的紀錄';
-  }
 
   @override
   String sameDayMore(String first, int n) {
@@ -8385,16 +7992,6 @@ class LZhHant extends LZh {
 
   @override
   String get mealKcalUnknown => '熱量未知';
-
-  @override
-  String mealIntakePartial(int n, int m) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return '攝取 $nString 大卡 + $m 項熱量未知';
-  }
 
   @override
   String get mealAmountAsk => '吃了多少？';
@@ -8551,15 +8148,9 @@ class LZhHant extends LZh {
   }
 
   @override
-  String get dayBurnedMissing => '運動消耗未測量 · 無法計算差值';
-
-  @override
   String dayBurnedOnly(String n) {
     return '運動 $n 大卡 · 未記錄飲食';
   }
-
-  @override
-  String get intakeLabel => '攝取';
 
   @override
   String get partnerSignIn => '需要登入才能一起訓練。';
@@ -9789,11 +9380,6 @@ class LZhHant extends LZh {
   }
 
   @override
-  String routineRecent(String part, String when) {
-    return '$part · $when';
-  }
-
-  @override
   String routineDaysAgo(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -10256,18 +9842,8 @@ class LZhHant extends LZh {
   }
 
   @override
-  String anatomySetsLine(String week, String month) {
-    return '最近7天 $week組 · 28天 $month組';
-  }
-
-  @override
   String anatomyBreakdown(int primary, int secondary) {
     return '28天中主要使用 $primary組 · 輔助 $secondary組（按半組算）';
-  }
-
-  @override
-  String anatomyLast(String date, String ago) {
-    return '最近一次：$date（$ago）';
   }
 
   @override
@@ -10713,9 +10289,6 @@ class LZhHant extends LZh {
   String get workoutImportAnalyze => '建立預覽';
 
   @override
-  String get workoutImportWorking => '正在讀取訓練紀錄…';
-
-  @override
   String get workoutImportEmpty => '請先新增文字或截圖。';
 
   @override
@@ -11141,4 +10714,17 @@ class LZhHant extends LZh {
 
   @override
   String get shareSending => '正在傳送給教練 · 有訊號時會送出';
+
+  @override
+  String get aiSettingNote =>
+      '開啟後，你輸入的訓練和飲食文字、飲食照片以及對記錄的提問會由伺服器上的 AI 讀取。關閉後不會傳送給 AI，你輸入的內容原樣保留。';
+
+  @override
+  String get nicknameLabel => '暱稱';
+
+  @override
+  String get moreChips => '更多';
+
+  @override
+  String get allExercises => '所有記錄';
 }

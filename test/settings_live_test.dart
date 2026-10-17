@@ -97,11 +97,15 @@ void main() {
     await tester.runAsync(() => account.signIn());
     await tester.pump();
     expect(find.text('도전자'), findsOneWidget);
+    // 이름은 닉네임 줄의 값이다 — 누르면 닉네임을 바꾸는 창이 열릴 뿐 로그아웃되지 않는다.
     await tester.tap(find.text('도전자'));
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(account.signedIn, isTrue, reason: '이름은 누르는 버튼이 아니다');
-    // 나가는 길은 따로 있다(닉네임 바꾸기 줄 밑이라 화면 아래로 밀렸을 수 있다).
-    await tester.scrollUntilVisible(find.text('로그아웃'), 100);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('nickname-field')), findsOneWidget);
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+    expect(account.signedIn, isTrue, reason: '이름을 눌러도 로그아웃되지 않는다');
+    // 나가는 길은 따로 있다(닉네임 줄 밑이라 화면 아래로 밀렸을 수 있다).
+    await tester.ensureVisible(find.text('로그아웃'));
     expect(find.text('로그아웃'), findsOneWidget);
   });
 
@@ -118,7 +122,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(row);
       await tester.pumpAndSettle();
-      expect(find.text('도장에 보이는 이름이에요. 1~20자로 적어 주세요.'), findsOneWidget);
+      expect(find.text('헬스장에 보이는 이름이에요. 1~20자로 적어 주세요.'), findsOneWidget);
       await tester.enterText(
         find.byKey(const ValueKey('nickname-field')),
         name,
@@ -178,7 +182,8 @@ void main() {
     await tester.pump();
     final l = await L.delegate.load(const Locale('ko'));
     final row = find.byKey(const ValueKey('settings-sign-out-everywhere'));
-    await tester.scrollUntilVisible(row, 100);
+    await tester.ensureVisible(row);
+    await tester.pumpAndSettle();
     await tester.tap(row);
     await tester.pumpAndSettle();
     expect(find.text(l.accountSignOutEverywhereAsk), findsOneWidget);

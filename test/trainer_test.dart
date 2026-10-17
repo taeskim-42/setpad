@@ -1307,7 +1307,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       double top(String text) => tester.getTopLeft(find.text(text)).dy;
-      expect(top('다니는 체육관'), lessThan(top('트레이너')));
+      expect(top('다니는 헬스장'), lessThan(top('트레이너')));
       expect(top('트레이너'), lessThan(top('트레이너 보고')));
     });
 

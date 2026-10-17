@@ -220,9 +220,12 @@ String energyLine(L l, DayLog day, ({double kcal, bool estimate})? basal) {
 /// 그날 먹은 탄단지와, 운동 목적을 정했으면 그 목표. "탄 180/250 · 단 95/144 · 지 50/62g".
 /// 탄단지를 모르는 끼니는 합에 안 들어가고 그 수를 옆에 적는다.
 class DayMacros extends StatelessWidget {
-  const DayMacros(this.day, {super.key, this.target});
+  const DayMacros(this.day, {super.key, this.target, this.onGoal});
   final DayLog day;
   final MacroTarget? target;
+
+  /// 목표 줄을 눌렀다 — 몸 정보(운동 목적을 바꾸는 곳)로 간다. null 이면 글자만이다.
+  final VoidCallback? onGoal;
 
   @override
   Widget build(BuildContext context) {
@@ -249,9 +252,34 @@ class DayMacros extends StatelessWidget {
         children: [
           Text(line, style: const TextStyle(fontSize: 14)),
           if (t != null)
-            Text(
-              l.dayMacrosGoal(t.kcal.round()),
-              style: TextStyle(fontSize: 12, color: muted),
+            GestureDetector(
+              key: const ValueKey('day-macros-goal'),
+              behavior: HitTestBehavior.opaque,
+              onTap: onGoal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: onGoal == null ? 0 : 44),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l.dayMacrosGoal(t.kcal.round()),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: onGoal == null
+                              ? muted
+                              : seal.resolveFrom(context),
+                        ),
+                      ),
+                    ),
+                    if (onGoal != null)
+                      Icon(
+                        CupertinoIcons.chevron_right,
+                        size: 12,
+                        color: muted,
+                      ),
+                  ],
+                ),
+              ),
             ),
           if (missing > 0 && m != null)
             Text(

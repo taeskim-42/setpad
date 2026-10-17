@@ -604,7 +604,7 @@ void main() {
       await jun.sync.refresh();
       await tester.pump();
       expect(find.byKey(const ValueKey('together-invite')), findsOneWidget);
-      expect(find.text('미나 님이 같이 하자고 합니다'), findsOneWidget);
+      expect(find.text('미나 님이 같이 하자고 해요'), findsOneWidget);
       expect(jun.timer.running, isFalse);
       expect(c.blocks.length, 1, reason: '받기 전에는 내 기록에 아무것도 생기지 않는다');
 

@@ -9,9 +9,6 @@ class LVi extends L {
   LVi([String locale = 'vi']) : super(locale);
 
   @override
-  String get appTitle => 'Buổi Tập Hôm Nay';
-
-  @override
   String get copy => 'Sao chép';
 
   @override
@@ -147,81 +144,10 @@ class LVi extends L {
   }
 
   @override
-  String get aiTitle => 'Thiết lập bằng một câu';
-
-  @override
-  String get aiReady => 'Sẵn sàng';
-
-  @override
-  String get aiChecking => 'Đang kiểm tra';
-
-  @override
-  String get aiSetupNeeded => 'Cần thiết lập';
-
-  @override
-  String get aiPreparing => 'Đang chuẩn bị';
-
-  @override
-  String get aiUnavailable => 'Nhập thủ công';
-
-  @override
-  String get aiReadyBody =>
-      'Nhập “đẩy ngực 80kg, đạt tổng 100 lần” rồi nhấn Enter. Tạ và mục tiêu được thiết lập tự động. Văn bản được xử lý trên thiết bị.';
-
-  @override
-  String get aiDisabledBody =>
-      'Mở Cài đặt → Apple Intelligence & Siri và bật Apple Intelligence. Quay lại khi mô hình sẵn sàng; ứng dụng sẽ tự kiểm tra lại.';
-
-  @override
-  String get aiOsBody =>
-      'Cần iOS 26 trở lên và thiết bị hỗ trợ Apple Intelligence. Kiểm tra Cài đặt → Cài đặt chung → Cập nhật phần mềm.';
-
-  @override
-  String get aiDeviceBody =>
-      'Thiết bị này không hỗ trợ Apple Intelligence nên không thể thiết lập bằng một câu.';
-
-  @override
-  String get aiPreparingBody =>
-      'Thiết bị đang chuẩn bị mô hình AI. Kết nối Wi-Fi và kiểm tra lại sau.';
-
-  @override
-  String get aiDownloadBody =>
-      'Có thể tải mô hình AI. Nên dùng Wi-Fi; quá trình tải cần thời gian và dung lượng. Khi sẵn sàng, văn bản được xử lý trên thiết bị.';
-
-  @override
-  String get aiLanguageBody =>
-      'Mô hình AI chưa hỗ trợ ngôn ngữ ứng dụng. Chuyển sang ngôn ngữ được hỗ trợ và kiểm tra lại.';
-
-  @override
-  String get aiPlatformBody =>
-      'AI trên thiết bị không khả dụng trong môi trường này. Hãy dùng ứng dụng trên iPhone hoặc Android được hỗ trợ.';
-
-  @override
-  String get aiUnavailableBody =>
-      'AI hiện chưa khả dụng. Điều này phụ thuộc thiết bị, hệ điều hành và dịch vụ AI hệ thống. Nếu vừa thiết lập thiết bị, hãy kết nối mạng và kiểm tra lại sau.';
-
-  @override
-  String get aiManualBody =>
-      'Bạn vẫn có thể ghi bài tập bình thường. Chọn bài tập rồi nhập “80 20” hoặc chỉ số lần cho mỗi hiệp.';
-
-  @override
-  String get aiPrepare => 'Chuẩn bị mô hình';
-
-  @override
-  String get aiRetry => 'Kiểm tra lại';
-
-  @override
   String get aiWorking => 'Đang thiết lập bài tập…';
 
   @override
   String get aiJudging => 'Đang đọc…';
-
-  @override
-  String get aiFailure =>
-      'Không hiểu được nội dung. Hãy sửa rồi thử lại, hoặc dùng làm tên bài tập.';
-
-  @override
-  String get aiUseName => 'Dùng làm tên bài tập';
 
   @override
   String get aiFallbackQuota =>
@@ -443,17 +369,6 @@ class LVi extends L {
       'Không phát được âm thanh. Bộ đếm giờ vẫn chạy.';
 
   @override
-  String get queryTitle => 'Hỏi về bản ghi';
-
-  @override
-  String get queryReadyBody =>
-      'Hỏi “Squat nặng nhất bao nhiêu?”, “Tháng trước chống đẩy bao nhiêu lần?” hoặc “Bench tháng này có tiến bộ không?”. AI trên thiết bị hiểu câu hỏi; số liệu được tính từ bản ghi.';
-
-  @override
-  String get queryManualBody =>
-      'Câu hỏi tự nhiên cần AI trên thiết bị sẵn sàng. Luôn có thể tìm tên bài tập và ghi chú.';
-
-  @override
   String get queryWorking => 'Đang hiểu câu hỏi…';
 
   @override
@@ -494,16 +409,7 @@ class LVi extends L {
   String get queryAverage => 'Mức tạ trung bình mỗi hiệp';
 
   @override
-  String get queryMissingData =>
-      'Bản ghi không có bài tập hoặc dữ liệu đo cần thiết.';
-
-  @override
   String get queryAmbiguous => 'Hãy làm rõ bài tập và bản ghi bạn muốn hỏi.';
-
-  @override
-  String queryRank(int n) {
-    return 'Hạng $n';
-  }
 
   @override
   String timingWorkSeconds(int n) {
@@ -730,9 +636,6 @@ class LVi extends L {
   String get queryCompareChip => 'So sánh';
 
   @override
-  String get queryNoRecord => 'Chưa có bản ghi';
-
-  @override
   String get settingsTitle => 'Cài đặt';
 
   @override
@@ -843,9 +746,6 @@ class LVi extends L {
   String get bookingWhichGym => 'Phòng tập nào?';
 
   @override
-  String get tagSignIn => 'Đăng nhập';
-
-  @override
   String get accountDelete => 'Xóa tài khoản';
 
   @override
@@ -906,9 +806,6 @@ class LVi extends L {
   String get ok => 'OK';
 
   @override
-  String get mealPhoto => 'Ảnh bữa ăn';
-
-  @override
   String get mealAdd => 'Ghi bữa ăn';
 
   @override
@@ -928,20 +825,7 @@ class LVi extends L {
   String get mealEstimating => 'Đang ước tính calo…';
 
   @override
-  String mealIntake(int n) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return 'Nạp vào ≈ $nString kcal';
-  }
-
-  @override
   String get mealFailed => 'Không ước tính được calo từ ảnh này. Hãy chụp lại.';
-
-  @override
-  String get mealEstimateNote => 'Ước tính từ ảnh';
 
   @override
   String mealServingsOption(String n) {
@@ -950,16 +834,6 @@ class LVi extends L {
 
   @override
   String get fitAll => 'Buổi tập hôm nay';
-
-  @override
-  String sameDayToday(String time) {
-    return 'Bản ghi riêng hôm nay lúc $time';
-  }
-
-  @override
-  String sameDayOn(String date, String time) {
-    return 'Bản ghi riêng ngày $date lúc $time';
-  }
 
   @override
   String sameDayMore(String first, int n) {
@@ -994,16 +868,6 @@ class LVi extends L {
 
   @override
   String get mealKcalUnknown => 'Chưa rõ kcal';
-
-  @override
-  String mealIntakePartial(int n, int m) {
-    final intl.NumberFormat nNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String nString = nNumberFormat.format(n);
-
-    return 'Nạp vào $nString kcal + $m món chưa rõ kcal';
-  }
 
   @override
   String get mealAmountAsk => 'Bạn đã ăn bao nhiêu?';
@@ -1182,16 +1046,9 @@ class LVi extends L {
   }
 
   @override
-  String get dayBurnedMissing =>
-      'Chưa đo năng lượng tập · không tính được chênh lệch';
-
-  @override
   String dayBurnedOnly(String n) {
     return 'Tập $n kcal · chưa ghi bữa ăn';
   }
-
-  @override
-  String get intakeLabel => 'Nạp';
 
   @override
   String get partnerSignIn => 'Cần đăng nhập để tập cùng nhau.';
@@ -2456,11 +2313,6 @@ class LVi extends L {
   }
 
   @override
-  String routineRecent(String part, String when) {
-    return '$part · $when';
-  }
-
-  @override
   String routineDaysAgo(int n) {
     String _temp0 = intl.Intl.pluralLogic(
       n,
@@ -2936,18 +2788,8 @@ class LVi extends L {
   }
 
   @override
-  String anatomySetsLine(String week, String month) {
-    return 'Số hiệp — 7 ngày qua: $week · 28 ngày: $month';
-  }
-
-  @override
   String anatomyBreakdown(int primary, int secondary) {
     return '28 ngày: cơ chính $primary · hỗ trợ $secondary (tính một nửa)';
-  }
-
-  @override
-  String anatomyLast(String date, String ago) {
-    return 'Lần cuối: $date ($ago)';
   }
 
   @override
@@ -3411,9 +3253,6 @@ class LVi extends L {
   String get workoutImportAnalyze => 'Tạo bản xem trước';
 
   @override
-  String get workoutImportWorking => 'Đang đọc lịch sử…';
-
-  @override
   String get workoutImportEmpty => 'Hãy thêm văn bản hoặc ảnh trước.';
 
   @override
@@ -3866,4 +3705,17 @@ class LVi extends L {
   @override
   String get shareSending =>
       'Đang gửi cho huấn luyện viên · sẽ gửi khi có sóng';
+
+  @override
+  String get aiSettingNote =>
+      'Khi bật, AI trên máy chủ sẽ đọc nội dung bài tập và bữa ăn bạn gõ, ảnh bữa ăn và câu hỏi về bản ghi. Khi tắt, không gửi gì cho AI và nội dung bạn gõ được giữ nguyên.';
+
+  @override
+  String get nicknameLabel => 'Biệt danh';
+
+  @override
+  String get moreChips => 'Xem thêm';
+
+  @override
+  String get allExercises => 'Tất cả bản ghi';
 }

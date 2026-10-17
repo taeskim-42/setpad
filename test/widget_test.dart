@@ -534,7 +534,7 @@ void keypadTests() {
       // Cupertino 의 뒤로가기 버튼. Material 의 BackButton 이 아니다.
       await tester.tap(find.byType(CupertinoNavigationBarBackButton));
       await settle(tester);
-      expect(find.text('모든 운동'), findsOneWidget);
+      expect(find.text('모든 기록'), findsOneWidget);
       expect(find.text('스쿼트'), findsOneWidget);
     });
 
@@ -888,7 +888,7 @@ void keypadTests() {
       await settle(tester);
 
       expect(find.text('벤치프레스 삭제'), findsOneWidget);
-      expect(find.textContaining('되돌릴 수 없습니다'), findsOneWidget);
+      expect(find.textContaining('되돌릴 수 없어요'), findsOneWidget);
 
       await tester.tap(find.text('취소'));
       await settle(tester);
@@ -936,7 +936,7 @@ void keypadTests() {
       await tester.tap(back); // 이제 운동 차례 — 물어야 한다
       await settle(tester);
       expect(find.text('벤치프레스 삭제'), findsOneWidget);
-      expect(find.textContaining('이 운동을 지웁니다'), findsOneWidget);
+      expect(find.textContaining('이 운동을 지워요'), findsOneWidget);
 
       await tester.tap(find.text('취소'));
       await settle(tester);

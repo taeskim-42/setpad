@@ -312,7 +312,7 @@ class AnswerCard extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: DefaultTextStyle(
-                  style: TextStyle(color: ink, fontFamily: '.SF Pro Text'),
+                  style: TextStyle(color: ink),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -673,7 +673,7 @@ class TableCard extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: DefaultTextStyle(
-                  style: TextStyle(color: ink, fontFamily: '.SF Pro Text'),
+                  style: TextStyle(color: ink),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,

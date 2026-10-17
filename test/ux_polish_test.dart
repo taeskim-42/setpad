@@ -10,7 +10,11 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:setpad/account.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/body.dart';
+import 'package:setpad/body_page.dart';
 import 'package:setpad/gym.dart';
+import 'package:setpad/gym_page.dart';
+import 'package:setpad/settings_page.dart';
 import 'package:setpad/keypad.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/main.dart';
@@ -18,6 +22,8 @@ import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
 import 'package:setpad/paywall.dart';
 import 'package:setpad/palette.dart';
+import 'package:setpad/routine.dart';
+import 'package:setpad/routine_card.dart';
 import 'package:setpad/setup_chips.dart';
 
 const _darkOn = 0xFF332B19;
@@ -696,6 +702,418 @@ void main() {
         isTrue,
         reason: '짧은 제목 옆 빈 곳까지 제목 고치기가 되지 않는다',
       );
+    });
+  });
+
+  group('S1·S2·S3. 설정', () {
+    Account member({List<Gym> gyms = const []}) =>
+        Account(client: MockClient((_) async => http.Response('{}', 404)))
+          ..token = 'member'
+          ..nickname = '도전자'
+          ..gyms = gyms;
+
+    Future<void> openSettings(WidgetTester tester, {Account? account}) async {
+      final store = makeStore(tester);
+      await pumpApp(tester, SettingsPage(store: store, account: account));
+    }
+
+    testWidgets('묶음 목록(inset grouped)이고, AI 도움 바로 아래에 설명이 한 줄 있다', (
+      tester,
+    ) async {
+      await openSettings(tester);
+      final l = await L.delegate.load(const Locale('ko'));
+      expect(find.byType(CupertinoListSection), findsWidgets);
+      expect(find.byType(CupertinoListTile), findsWidgets);
+      final toggle = find.byKey(const ValueKey('settings-ai'));
+      final note = find.text(l.aiSettingNote);
+      expect(toggle, findsOneWidget);
+      expect(note, findsOneWidget);
+      final gap = tester.getTopLeft(note).dy - tester.getBottomLeft(toggle).dy;
+      expect(gap, inInclusiveRange(0, 24), reason: '토글 바로 밑이다');
+      // The note says what leaves the phone and what stops when it is off.
+      expect(l.aiSettingNote, contains('서버'));
+      expect(l.aiSettingNote, contains('끄면'));
+      // Section rows are 44 tall at least.
+      expect(tester.getSize(toggle).height, greaterThanOrEqualTo(44));
+    });
+
+    testWidgets('닉네임은 한 줄이다 — 이름이 값이고 누르면 바꾼다', (tester) async {
+      final account = member();
+      await openSettings(tester, account: account);
+      final l = await L.delegate.load(const Locale('ko'));
+      final row = find.byKey(const ValueKey('settings-nickname'));
+      await tester.ensureVisible(row);
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(of: row, matching: find.text(l.nicknameLabel)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: row, matching: find.text('도전자')),
+        findsOneWidget,
+      );
+      expect(find.text('도전자'), findsOneWidget, reason: '이름만 보이는 줄이 따로 없다');
+      expect(find.text(l.nicknameChange), findsNothing);
+    });
+
+    testWidgets('다니는 곳이 없으면 묶음 밑에 안내를, 있으면 도장 줄과 식단 공유를 둔다', (tester) async {
+      final account = member();
+      await openSettings(tester, account: account);
+      final l = await L.delegate.load(const Locale('ko'));
+      expect(find.text(l.settingsNoGym), findsOneWidget);
+      account.gyms = [const Gym(id: 'g1', name: 'BPM')];
+      account.notifyListeners();
+      await tester.pumpAndSettle();
+      expect(find.text(l.settingsNoGym), findsNothing);
+      expect(find.byKey(const ValueKey('settings-gym-g1')), findsOneWidget);
+      final share = find.byKey(const ValueKey('settings-share-meals'));
+      await tester.scrollUntilVisible(share, 100);
+      expect(share, findsOneWidget);
+    });
+
+    testWidgets('375pt·큰 글자 2.0 에서 넘치지 않는다', (tester) async {
+      tester.view.physicalSize = const Size(375, 812);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(() {
+        tester.view.reset();
+        tester.platformDispatcher.clearTextScaleFactorTestValue();
+      });
+      await openSettings(
+        tester,
+        account: member(
+          gyms: [const Gym(id: 'g1', name: 'BPM', trainer: '김코치')],
+        ),
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('대화상자 본문은 13', (tester) async {
+      final account = member();
+      await openSettings(tester, account: account);
+      final l = await L.delegate.load(const Locale('ko'));
+      final row = find.byKey(const ValueKey('settings-sign-out-everywhere'));
+      await tester.ensureVisible(row);
+      await tester.pumpAndSettle();
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<Text>(find.text(l.accountSignOutEverywhereAsk))
+            .style!
+            .fontSize,
+        13,
+      );
+    });
+  });
+
+  group('G1·G2. 도장 화면', () {
+    Future<Account> pumpGym(WidgetTester tester, List<Gym> gyms) async {
+      final account =
+          Account(client: MockClient((_) async => http.Response('{}', 404)))
+            ..token = 'member'
+            ..gyms = gyms;
+      final store = makeStore(tester);
+      await pumpApp(
+        tester,
+        GymPage(account: account, store: store, gymId: 'g1'),
+      );
+      return account;
+    }
+
+    testWidgets('도장 목록을 아직 못 받았으면 돌아가는 표시를 둔다', (tester) async {
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          theme: setpadTheme,
+          home: GymPage(
+            account: Account(
+              client: MockClient((_) async => http.Response('{}', 404)),
+            )..token = 'member',
+            store: makeStore(tester),
+            gymId: 'g1',
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+    });
+
+    testWidgets('공지·예약·바로가기·나가기가 묶음 목록이고 나가기는 44 이상이다', (tester) async {
+      await pumpGym(tester, [
+        Gym(
+          id: 'g1',
+          name: 'BPM',
+          trainer: '김코치',
+          notices: [
+            (
+              id: 'n1',
+              title: '추석 연휴 휴관',
+              body: '10/5~10/7 쉽니다.',
+              pinned: true,
+              createdAt: DateTime(2026, 10, 1),
+            ),
+          ],
+        ),
+      ]);
+      expect(find.byType(CupertinoListSection), findsWidgets);
+      expect(find.text('추석 연휴 휴관'), findsOneWidget);
+      final leave = find.byKey(const ValueKey('gym-leave'));
+      await tester.ensureVisible(leave);
+      expect(tester.getSize(leave).height, greaterThanOrEqualTo(44));
+    });
+
+    testWidgets('375pt·큰 글자 2.0 에서 넘치지 않는다', (tester) async {
+      tester.view.physicalSize = const Size(375, 812);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(() {
+        tester.view.reset();
+        tester.platformDispatcher.clearTextScaleFactorTestValue();
+      });
+      await pumpGym(tester, [
+        Gym(
+          id: 'g1',
+          name: 'BPM 스트렝스 클럽',
+          trainer: '김코치',
+          notices: [
+            (
+              id: 'n1',
+              title: '추석 연휴 휴관 안내드립니다',
+              body: '10/5~10/7 쉬어요. 그 주 PT 는 앞뒤로 옮겨 주세요.',
+              pinned: true,
+              createdAt: DateTime(2026, 10, 1),
+            ),
+          ],
+        ),
+      ]);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('L3. GymRow 하나로', () {
+    testWidgets('PT 예약·초대·도장 줄이 모두 GymRow 이고 PT 줄은 설명 없이 제목만이다', (
+      tester,
+    ) async {
+      final store = makeStore(tester);
+      final account =
+          Account(client: MockClient((_) async => http.Response('{}', 404)))
+            ..token = 'member'
+            ..gyms = [const Gym(id: 'g1', name: 'BPM')];
+      await pumpApp(
+        tester,
+        NotesListPage(store: store, account: account, onOpen: (_) {}),
+      );
+      final l = await L.delegate.load(const Locale('ko'));
+      final booking = find.widgetWithText(GymRow, l.bookingNew);
+      expect(booking, findsOneWidget);
+      expect(find.byType(GymRow), findsAtLeastNWidgets(2));
+      expect(tester.getSize(booking).height, greaterThanOrEqualTo(44));
+    });
+
+    testWidgets('GymRow: 제목 뒤 배지와 설명을 같이 놓을 수 있고 ›가 붙는다', (tester) async {
+      await pumpApp(
+        tester,
+        Center(
+          child: GymRow(
+            icon: CupertinoIcons.doc_text,
+            title: '보고',
+            detail: '두 줄째 설명',
+            titleSuffix: const Text('2건'),
+            onTap: () {},
+          ),
+        ),
+      );
+      expect(find.text('보고'), findsOneWidget);
+      expect(find.text('2건'), findsOneWidget);
+      expect(find.text('두 줄째 설명'), findsOneWidget);
+      expect(find.byIcon(CupertinoIcons.chevron_right), findsOneWidget);
+    });
+  });
+
+  group('R1·N2. 루틴 칩·몸 정보 링크', () {
+    testWidgets('그날 에너지의 목표 줄을 누르면 몸 정보가 열린다', (tester) async {
+      final store = makeStore(tester);
+      store.setBody(
+        const BodyProfile(
+          heightCm: 178,
+          weightKg: 80,
+          birthYear: 1996,
+          sex: 'm',
+          goal: 'gain',
+        ),
+      );
+      final note =
+          store.create(
+              blocks: [
+                ExerciseBlock('스쿼트', [LoggedSet(value: 80, reps: 5)]),
+              ],
+            )
+            ..calories = 300
+            ..meals.add(
+              MealEntry(
+                at: DateTime.now(),
+                kcal: 600,
+                text: '닭가슴살',
+                source: MealEntry.estimate,
+                macros: (carbs: 20, protein: 50, fat: 10),
+              ),
+            );
+      await pumpApp(tester, EditorPage(store: store, note: note));
+      await tester.tap(find.byKey(const ValueKey('day-summary-line')));
+      await tester.pumpAndSettle();
+      final goal = find.byKey(const ValueKey('day-macros-goal'));
+      expect(goal, findsOneWidget);
+      expect(tester.getSize(goal).height, greaterThanOrEqualTo(44));
+      await tester.tap(goal);
+      await tester.pumpAndSettle();
+      expect(find.byType(BodyPage), findsOneWidget);
+    });
+  });
+
+  group('R1. 루틴 카드의 넣을 운동 칩', () {
+    Future<L> pumpCard(WidgetTester tester, int addable) async {
+      final today = DateTime(2026, 9, 9, 18);
+      final draft = RoutineDraft(day: today, today: today)
+        ..addable.addAll([for (var i = 0; i < addable; i++) '운동$i']);
+      await pumpApp(
+        tester,
+        CupertinoPageScaffold(
+          child: ListView(
+            children: [RoutineCard(draft: draft, onAdd: (_) {})],
+          ),
+        ),
+      );
+      return L.delegate.load(const Locale('ko'));
+    }
+
+    testWidgets('넷을 넘으면 넷만 보이고 더 보기를 누르면 나머지가 나온다', (tester) async {
+      final l = await pumpCard(tester, 7);
+      for (var i = 0; i < 7; i++) {
+        expect(
+          find.text(l.routineAdd('운동$i')),
+          i < 4 ? findsOneWidget : findsNothing,
+          reason: '$i',
+        );
+      }
+      final more = find.byKey(const ValueKey('routine-more-chips'));
+      expect(more, findsOneWidget);
+      expect(find.text(l.moreChips), findsOneWidget);
+      await tester.tap(more);
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 7; i++) {
+        expect(find.text(l.routineAdd('운동$i')), findsOneWidget);
+      }
+      expect(more, findsNothing);
+    });
+
+    testWidgets('넷 이하면 더 보기가 없다', (tester) async {
+      final l = await pumpCard(tester, 4);
+      expect(find.byKey(const ValueKey('routine-more-chips')), findsNothing);
+      expect(find.text(l.routineAdd('운동3')), findsOneWidget);
+    });
+  });
+
+  group('문구(ko)', () {
+    test('모든 기록·n개의 기록·오늘 한 장, 회원 화면에는 헬스장 하나, 트레이너 화면만 도장', () async {
+      final l = await L.delegate.load(const Locale('ko'));
+      expect(l.allNotes, '모든 기록');
+      expect(l.noteCount(3), '3개의 기록');
+      expect(l.fitAll, '오늘 한 장');
+      final member = {
+        'settingsGym': l.settingsGym,
+        'settingsNoGym': l.settingsNoGym,
+        'proEverythingElseFree': l.proEverythingElseFree,
+        'tagSignInNeeded': l.tagSignInNeeded,
+        'tagOffline': l.tagOffline,
+        'shareRejected': l.shareRejected,
+        'ageConfirmAsk': l.ageConfirmAsk,
+        'gymLeave': l.gymLeave,
+        'gymLeaveAsk': l.gymLeaveAsk('BPM'),
+        'gymConsentNotice': l.gymConsentNotice,
+        'joinAsk': l.joinAsk,
+        'classesNotMember': l.classesNotMember,
+        'gymUnverified': l.gymUnverified,
+        'nicknameHelp': l.nicknameHelp,
+        'gymLinkNotMember': l.gymLinkNotMember,
+        'refusedNoTrainer': l.refusedNoTrainer,
+        'refusedClassNoAccess': l.refusedClassNoAccess,
+      };
+      for (final MapEntry(:key, :value) in member.entries) {
+        expect(value, isNot(contains('도장')), reason: key);
+        expect(value, isNot(contains('체육관')), reason: key);
+      }
+      // The trainer's own screens keep the word.
+      expect(l.trainerWhichGym, contains('도장'));
+      expect(l.gymPolicy, contains('도장'));
+    });
+
+    test('회원 화면의 안내·오류는 해요체다 — 법·계약 문구만 합쇼', () async {
+      final l = await L.delegate.load(const Locale('ko'));
+      final haeyo = [
+        l.noNotesYet,
+        l.noSearchResults,
+        l.queryFailed,
+        l.signInFailed,
+        l.partnerErrNetwork,
+        l.partnerErrServer,
+        l.partnerEndedByMe,
+        l.handoffFailed,
+        l.bookingSent,
+        l.tagJoinSent,
+      ];
+      for (final text in haeyo) {
+        expect(text, isNot(matches(RegExp(r'(니다|니까)[.!?]?$'))), reason: text);
+      }
+      for (final text in [l.subscriptionRenews, l.accountDeleteAsk]) {
+        expect(text, matches(RegExp(r'니다\.$')), reason: '법·계약 문구는 합쇼 그대로');
+      }
+    });
+  });
+
+  group('l10n 키', () {
+    Set<String> keysOf(String lang) =>
+        (jsonDecode(File('lib/l10n/app_$lang.arb').readAsStringSync()) as Map)
+            .keys
+            .cast<String>()
+            .where((k) => !k.startsWith('@'))
+            .toSet();
+
+    test('아홉 언어가 같은 키를 가진다 — 지운 죽은 키가 한 곳에 남지 않는다', () {
+      final ko = keysOf('ko');
+      for (final lang in [
+        'en',
+        'ja',
+        'es',
+        'th',
+        'vi',
+        'zh',
+        'zh_Hans',
+        'zh_Hant',
+      ]) {
+        final other = keysOf(lang);
+        expect(other.difference(ko), isEmpty, reason: '$lang 에만 있는 키');
+        expect(ko.difference(other), isEmpty, reason: '$lang 에 없는 키');
+      }
+    });
+
+    test('Apple Intelligence 시절의 안내 키는 코드와 번역에서 모두 사라졌다', () {
+      final ko = keysOf('ko');
+      for (final key in [
+        'aiTitle',
+        'aiReady',
+        'aiReadyBody',
+        'aiUseName',
+        'queryTitle',
+        'queryReadyBody',
+        'mealPhoto',
+        'intakeLabel',
+        'tagSignIn',
+      ]) {
+        expect(ko, isNot(contains(key)), reason: key);
+      }
     });
   });
 }
