@@ -3987,6 +3987,192 @@ class LZh extends L {
   String timerUnloggedReps(int n) {
     return '有 $n 次还没记录';
   }
+
+  @override
+  String get focusOpen => '训练界面';
+
+  @override
+  String focusExerciseOf(int n, int total) {
+    return '动作 $n/$total';
+  }
+
+  @override
+  String get focusPrevExercise => '上一个动作';
+
+  @override
+  String get focusNextExerciseA11y => '下一个动作';
+
+  @override
+  String focusSetLabel(int n) {
+    return '第 $n 组';
+  }
+
+  @override
+  String get focusPlanned => '计划';
+
+  @override
+  String get focusLastTimeSame => '上次同一组';
+
+  @override
+  String get focusSameAsLast => '同上一组';
+
+  @override
+  String get focusFromSetup => '按设置';
+
+  @override
+  String get focusPickValues => '设定重量和次数';
+
+  @override
+  String get focusPickButton => '设定重量·次数';
+
+  @override
+  String get focusPlanDone => '计划完成';
+
+  @override
+  String focusLastTimeLine(String set) {
+    return '上次这里 $set';
+  }
+
+  @override
+  String get focusBodyweight => '徒手';
+
+  @override
+  String get focusDone => '完成';
+
+  @override
+  String get focusNextSetNow => '立即下一组';
+
+  @override
+  String get focusStartRest => '开始休息';
+
+  @override
+  String focusNextUp(String set) {
+    return '下一组 · $set';
+  }
+
+  @override
+  String focusRestLength(String time) {
+    return '休息 $time';
+  }
+
+  @override
+  String focusRestPillA11y(String time) {
+    return '另一个动作还剩 $time 休息';
+  }
+
+  @override
+  String get focusRestLess => '休息减 15 秒';
+
+  @override
+  String get focusRestMore => '休息加 15 秒';
+
+  @override
+  String focusWeightUp(String step) {
+    return '加 $step';
+  }
+
+  @override
+  String focusWeightDown(String step) {
+    return '减 $step';
+  }
+
+  @override
+  String get focusRepsUp => '多一次';
+
+  @override
+  String get focusRepsDown => '少一次';
+
+  @override
+  String get focusTodaySets => '今天的组数';
+
+  @override
+  String get focusExerciseDone => '结束此动作';
+
+  @override
+  String focusNextExercise(String name) {
+    return '下一个动作: $name';
+  }
+
+  @override
+  String get focusOneMore => '再来一组';
+
+  @override
+  String focusSummaryTitle(String name) {
+    return '$name 完成!';
+  }
+
+  @override
+  String get focusSets => '组数';
+
+  @override
+  String get focusVolume => '总量';
+
+  @override
+  String get focusTotalTime => '总时间';
+
+  @override
+  String get focusTotalDistance => '总距离';
+
+  @override
+  String get focusTotalReps => '次数';
+
+  @override
+  String get focusBest => '最佳';
+
+  @override
+  String focusLastTime(String when, String value) {
+    return '上次 · $when · $value';
+  }
+
+  @override
+  String get focusSame => '相同';
+
+  @override
+  String get focusUndo => '撤销';
+
+  @override
+  String focusLogged(String set) {
+    return '已记录 $set';
+  }
+
+  @override
+  String get focusHeartBack => '心率已恢复 · 下一组';
+
+  @override
+  String focusRestPill(String time) {
+    return '休息 $time · 打开';
+  }
+
+  @override
+  String get focusSharedTimer => '共用计时器 · 打开';
+
+  @override
+  String get focusStartTimer => '开始计时';
+
+  @override
+  String focusHeroA11y(String set) {
+    return '$set';
+  }
+
+  @override
+  String focusRestA11y(String time) {
+    return '休息剩余 $time';
+  }
+
+  @override
+  String get focusRestDefault => '组间休息默认值';
+
+  @override
+  String get focusRestTitle => '休息时间';
+
+  @override
+  String get focusWeightTitle => '重量';
+
+  @override
+  String get focusRepsTitle => '次数';
+
+  @override
+  String get focusRestOverTitle => '休息结束';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7972,6 +8158,192 @@ class LZhHans extends LZh {
   String timerUnloggedReps(int n) {
     return '有 $n 次还没记录';
   }
+
+  @override
+  String get focusOpen => '训练界面';
+
+  @override
+  String focusExerciseOf(int n, int total) {
+    return '动作 $n/$total';
+  }
+
+  @override
+  String get focusPrevExercise => '上一个动作';
+
+  @override
+  String get focusNextExerciseA11y => '下一个动作';
+
+  @override
+  String focusSetLabel(int n) {
+    return '第 $n 组';
+  }
+
+  @override
+  String get focusPlanned => '计划';
+
+  @override
+  String get focusLastTimeSame => '上次同一组';
+
+  @override
+  String get focusSameAsLast => '同上一组';
+
+  @override
+  String get focusFromSetup => '按设置';
+
+  @override
+  String get focusPickValues => '设定重量和次数';
+
+  @override
+  String get focusPickButton => '设定重量·次数';
+
+  @override
+  String get focusPlanDone => '计划完成';
+
+  @override
+  String focusLastTimeLine(String set) {
+    return '上次这里 $set';
+  }
+
+  @override
+  String get focusBodyweight => '徒手';
+
+  @override
+  String get focusDone => '完成';
+
+  @override
+  String get focusNextSetNow => '立即下一组';
+
+  @override
+  String get focusStartRest => '开始休息';
+
+  @override
+  String focusNextUp(String set) {
+    return '下一组 · $set';
+  }
+
+  @override
+  String focusRestLength(String time) {
+    return '休息 $time';
+  }
+
+  @override
+  String focusRestPillA11y(String time) {
+    return '另一个动作还剩 $time 休息';
+  }
+
+  @override
+  String get focusRestLess => '休息减 15 秒';
+
+  @override
+  String get focusRestMore => '休息加 15 秒';
+
+  @override
+  String focusWeightUp(String step) {
+    return '加 $step';
+  }
+
+  @override
+  String focusWeightDown(String step) {
+    return '减 $step';
+  }
+
+  @override
+  String get focusRepsUp => '多一次';
+
+  @override
+  String get focusRepsDown => '少一次';
+
+  @override
+  String get focusTodaySets => '今天的组数';
+
+  @override
+  String get focusExerciseDone => '结束此动作';
+
+  @override
+  String focusNextExercise(String name) {
+    return '下一个动作: $name';
+  }
+
+  @override
+  String get focusOneMore => '再来一组';
+
+  @override
+  String focusSummaryTitle(String name) {
+    return '$name 完成!';
+  }
+
+  @override
+  String get focusSets => '组数';
+
+  @override
+  String get focusVolume => '总量';
+
+  @override
+  String get focusTotalTime => '总时间';
+
+  @override
+  String get focusTotalDistance => '总距离';
+
+  @override
+  String get focusTotalReps => '次数';
+
+  @override
+  String get focusBest => '最佳';
+
+  @override
+  String focusLastTime(String when, String value) {
+    return '上次 · $when · $value';
+  }
+
+  @override
+  String get focusSame => '相同';
+
+  @override
+  String get focusUndo => '撤销';
+
+  @override
+  String focusLogged(String set) {
+    return '已记录 $set';
+  }
+
+  @override
+  String get focusHeartBack => '心率已恢复 · 下一组';
+
+  @override
+  String focusRestPill(String time) {
+    return '休息 $time · 打开';
+  }
+
+  @override
+  String get focusSharedTimer => '共用计时器 · 打开';
+
+  @override
+  String get focusStartTimer => '开始计时';
+
+  @override
+  String focusHeroA11y(String set) {
+    return '$set';
+  }
+
+  @override
+  String focusRestA11y(String time) {
+    return '休息剩余 $time';
+  }
+
+  @override
+  String get focusRestDefault => '组间休息默认值';
+
+  @override
+  String get focusRestTitle => '休息时间';
+
+  @override
+  String get focusWeightTitle => '重量';
+
+  @override
+  String get focusRepsTitle => '次数';
+
+  @override
+  String get focusRestOverTitle => '休息结束';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11957,4 +12329,190 @@ class LZhHant extends LZh {
   String timerUnloggedReps(int n) {
     return '有 $n 次還沒記錄';
   }
+
+  @override
+  String get focusOpen => '訓練介面';
+
+  @override
+  String focusExerciseOf(int n, int total) {
+    return '動作 $n/$total';
+  }
+
+  @override
+  String get focusPrevExercise => '上一個動作';
+
+  @override
+  String get focusNextExerciseA11y => '下一個動作';
+
+  @override
+  String focusSetLabel(int n) {
+    return '第 $n 組';
+  }
+
+  @override
+  String get focusPlanned => '計畫';
+
+  @override
+  String get focusLastTimeSame => '上次同一組';
+
+  @override
+  String get focusSameAsLast => '同上一組';
+
+  @override
+  String get focusFromSetup => '依設定';
+
+  @override
+  String get focusPickValues => '設定重量和次數';
+
+  @override
+  String get focusPickButton => '設定重量·次數';
+
+  @override
+  String get focusPlanDone => '計畫完成';
+
+  @override
+  String focusLastTimeLine(String set) {
+    return '上次這裡 $set';
+  }
+
+  @override
+  String get focusBodyweight => '徒手';
+
+  @override
+  String get focusDone => '完成';
+
+  @override
+  String get focusNextSetNow => '立即下一組';
+
+  @override
+  String get focusStartRest => '開始休息';
+
+  @override
+  String focusNextUp(String set) {
+    return '下一組 · $set';
+  }
+
+  @override
+  String focusRestLength(String time) {
+    return '休息 $time';
+  }
+
+  @override
+  String focusRestPillA11y(String time) {
+    return '另一個動作還剩 $time 休息';
+  }
+
+  @override
+  String get focusRestLess => '休息減 15 秒';
+
+  @override
+  String get focusRestMore => '休息加 15 秒';
+
+  @override
+  String focusWeightUp(String step) {
+    return '加 $step';
+  }
+
+  @override
+  String focusWeightDown(String step) {
+    return '減 $step';
+  }
+
+  @override
+  String get focusRepsUp => '多一次';
+
+  @override
+  String get focusRepsDown => '少一次';
+
+  @override
+  String get focusTodaySets => '今天的組數';
+
+  @override
+  String get focusExerciseDone => '結束此動作';
+
+  @override
+  String focusNextExercise(String name) {
+    return '下一個動作: $name';
+  }
+
+  @override
+  String get focusOneMore => '再來一組';
+
+  @override
+  String focusSummaryTitle(String name) {
+    return '$name 完成!';
+  }
+
+  @override
+  String get focusSets => '組數';
+
+  @override
+  String get focusVolume => '總量';
+
+  @override
+  String get focusTotalTime => '總時間';
+
+  @override
+  String get focusTotalDistance => '總距離';
+
+  @override
+  String get focusTotalReps => '次數';
+
+  @override
+  String get focusBest => '最佳';
+
+  @override
+  String focusLastTime(String when, String value) {
+    return '上次 · $when · $value';
+  }
+
+  @override
+  String get focusSame => '相同';
+
+  @override
+  String get focusUndo => '復原';
+
+  @override
+  String focusLogged(String set) {
+    return '已記錄 $set';
+  }
+
+  @override
+  String get focusHeartBack => '心率已恢復 · 下一組';
+
+  @override
+  String focusRestPill(String time) {
+    return '休息 $time · 開啟';
+  }
+
+  @override
+  String get focusSharedTimer => '共用計時器 · 開啟';
+
+  @override
+  String get focusStartTimer => '開始計時';
+
+  @override
+  String focusHeroA11y(String set) {
+    return '$set';
+  }
+
+  @override
+  String focusRestA11y(String time) {
+    return '休息剩餘 $time';
+  }
+
+  @override
+  String get focusRestDefault => '組間休息預設值';
+
+  @override
+  String get focusRestTitle => '休息時間';
+
+  @override
+  String get focusWeightTitle => '重量';
+
+  @override
+  String get focusRepsTitle => '次數';
+
+  @override
+  String get focusRestOverTitle => '休息結束';
 }

@@ -6102,6 +6102,318 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'적지 않은 {n}회가 있어요'**
   String timerUnloggedReps(int n);
+
+  /// No description provided for @focusOpen.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 화면'**
+  String get focusOpen;
+
+  /// No description provided for @focusExerciseOf.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 {n}/{total}'**
+  String focusExerciseOf(int n, int total);
+
+  /// No description provided for @focusPrevExercise.
+  ///
+  /// In ko, this message translates to:
+  /// **'앞 운동'**
+  String get focusPrevExercise;
+
+  /// No description provided for @focusNextExerciseA11y.
+  ///
+  /// In ko, this message translates to:
+  /// **'다음 운동'**
+  String get focusNextExerciseA11y;
+
+  /// No description provided for @focusSetLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}세트'**
+  String focusSetLabel(int n);
+
+  /// No description provided for @focusPlanned.
+  ///
+  /// In ko, this message translates to:
+  /// **'계획'**
+  String get focusPlanned;
+
+  /// No description provided for @focusLastTimeSame.
+  ///
+  /// In ko, this message translates to:
+  /// **'지난번 이 자리'**
+  String get focusLastTimeSame;
+
+  /// No description provided for @focusSameAsLast.
+  ///
+  /// In ko, this message translates to:
+  /// **'지난 세트와 같이'**
+  String get focusSameAsLast;
+
+  /// No description provided for @focusFromSetup.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정대로'**
+  String get focusFromSetup;
+
+  /// No description provided for @focusPickValues.
+  ///
+  /// In ko, this message translates to:
+  /// **'무게와 횟수를 정해요'**
+  String get focusPickValues;
+
+  /// No description provided for @focusPickButton.
+  ///
+  /// In ko, this message translates to:
+  /// **'무게·횟수 정하기'**
+  String get focusPickButton;
+
+  /// No description provided for @focusPlanDone.
+  ///
+  /// In ko, this message translates to:
+  /// **'계획 끝'**
+  String get focusPlanDone;
+
+  /// No description provided for @focusLastTimeLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'지난번 이 자리 {set}'**
+  String focusLastTimeLine(String set);
+
+  /// No description provided for @focusBodyweight.
+  ///
+  /// In ko, this message translates to:
+  /// **'맨몸'**
+  String get focusBodyweight;
+
+  /// No description provided for @focusDone.
+  ///
+  /// In ko, this message translates to:
+  /// **'했어요'**
+  String get focusDone;
+
+  /// No description provided for @focusNextSetNow.
+  ///
+  /// In ko, this message translates to:
+  /// **'바로 다음 세트'**
+  String get focusNextSetNow;
+
+  /// No description provided for @focusStartRest.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식 시작'**
+  String get focusStartRest;
+
+  /// No description provided for @focusNextUp.
+  ///
+  /// In ko, this message translates to:
+  /// **'다음 · {set}'**
+  String focusNextUp(String set);
+
+  /// No description provided for @focusRestLength.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식 {time}'**
+  String focusRestLength(String time);
+
+  /// No description provided for @focusRestPillA11y.
+  ///
+  /// In ko, this message translates to:
+  /// **'다른 운동의 휴식 {time} 남음'**
+  String focusRestPillA11y(String time);
+
+  /// No description provided for @focusRestLess.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식 15초 줄이기'**
+  String get focusRestLess;
+
+  /// No description provided for @focusRestMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식 15초 늘리기'**
+  String get focusRestMore;
+
+  /// No description provided for @focusWeightUp.
+  ///
+  /// In ko, this message translates to:
+  /// **'{step} 올리기'**
+  String focusWeightUp(String step);
+
+  /// No description provided for @focusWeightDown.
+  ///
+  /// In ko, this message translates to:
+  /// **'{step} 내리기'**
+  String focusWeightDown(String step);
+
+  /// No description provided for @focusRepsUp.
+  ///
+  /// In ko, this message translates to:
+  /// **'횟수 하나 올리기'**
+  String get focusRepsUp;
+
+  /// No description provided for @focusRepsDown.
+  ///
+  /// In ko, this message translates to:
+  /// **'횟수 하나 내리기'**
+  String get focusRepsDown;
+
+  /// No description provided for @focusTodaySets.
+  ///
+  /// In ko, this message translates to:
+  /// **'오늘 세트'**
+  String get focusTodaySets;
+
+  /// No description provided for @focusExerciseDone.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 운동 끝'**
+  String get focusExerciseDone;
+
+  /// No description provided for @focusNextExercise.
+  ///
+  /// In ko, this message translates to:
+  /// **'다음 운동: {name}'**
+  String focusNextExercise(String name);
+
+  /// No description provided for @focusOneMore.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 세트 더'**
+  String get focusOneMore;
+
+  /// No description provided for @focusSummaryTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 끝!'**
+  String focusSummaryTitle(String name);
+
+  /// No description provided for @focusSets.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트'**
+  String get focusSets;
+
+  /// No description provided for @focusVolume.
+  ///
+  /// In ko, this message translates to:
+  /// **'볼륨'**
+  String get focusVolume;
+
+  /// No description provided for @focusTotalTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'총 시간'**
+  String get focusTotalTime;
+
+  /// No description provided for @focusTotalDistance.
+  ///
+  /// In ko, this message translates to:
+  /// **'총 거리'**
+  String get focusTotalDistance;
+
+  /// No description provided for @focusTotalReps.
+  ///
+  /// In ko, this message translates to:
+  /// **'횟수'**
+  String get focusTotalReps;
+
+  /// No description provided for @focusBest.
+  ///
+  /// In ko, this message translates to:
+  /// **'최고'**
+  String get focusBest;
+
+  /// No description provided for @focusLastTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'지난번 · {when} · {value}'**
+  String focusLastTime(String when, String value);
+
+  /// No description provided for @focusSame.
+  ///
+  /// In ko, this message translates to:
+  /// **'같아요'**
+  String get focusSame;
+
+  /// No description provided for @focusUndo.
+  ///
+  /// In ko, this message translates to:
+  /// **'되돌리기'**
+  String get focusUndo;
+
+  /// No description provided for @focusLogged.
+  ///
+  /// In ko, this message translates to:
+  /// **'{set} 적었어요'**
+  String focusLogged(String set);
+
+  /// No description provided for @focusHeartBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'심박이 돌아왔어요 · 바로 다음 세트'**
+  String get focusHeartBack;
+
+  /// No description provided for @focusRestPill.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식 {time} · 열기'**
+  String focusRestPill(String time);
+
+  /// No description provided for @focusSharedTimer.
+  ///
+  /// In ko, this message translates to:
+  /// **'같이 하는 타이머 · 열기'**
+  String get focusSharedTimer;
+
+  /// No description provided for @focusStartTimer.
+  ///
+  /// In ko, this message translates to:
+  /// **'타이머 시작'**
+  String get focusStartTimer;
+
+  /// No description provided for @focusHeroA11y.
+  ///
+  /// In ko, this message translates to:
+  /// **'{set}'**
+  String focusHeroA11y(String set);
+
+  /// No description provided for @focusRestA11y.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식 남은 시간 {time}'**
+  String focusRestA11y(String time);
+
+  /// No description provided for @focusRestDefault.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트 사이 휴식 기본'**
+  String get focusRestDefault;
+
+  /// No description provided for @focusRestTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식 시간'**
+  String get focusRestTitle;
+
+  /// No description provided for @focusWeightTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'무게'**
+  String get focusWeightTitle;
+
+  /// No description provided for @focusRepsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'횟수'**
+  String get focusRepsTitle;
+
+  /// No description provided for @focusRestOverTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식 끝'**
+  String get focusRestOverTitle;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

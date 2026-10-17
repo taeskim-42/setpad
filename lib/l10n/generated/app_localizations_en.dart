@@ -4203,4 +4203,190 @@ class LEn extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get focusOpen => 'Workout view';
+
+  @override
+  String focusExerciseOf(int n, int total) {
+    return 'Exercise $n/$total';
+  }
+
+  @override
+  String get focusPrevExercise => 'Previous exercise';
+
+  @override
+  String get focusNextExerciseA11y => 'Next exercise';
+
+  @override
+  String focusSetLabel(int n) {
+    return 'Set $n';
+  }
+
+  @override
+  String get focusPlanned => 'Planned';
+
+  @override
+  String get focusLastTimeSame => 'Same as last time';
+
+  @override
+  String get focusSameAsLast => 'Same as last set';
+
+  @override
+  String get focusFromSetup => 'From your setup';
+
+  @override
+  String get focusPickValues => 'Set the weight and reps';
+
+  @override
+  String get focusPickButton => 'Set weight and reps';
+
+  @override
+  String get focusPlanDone => 'Plan done';
+
+  @override
+  String focusLastTimeLine(String set) {
+    return 'Last time here: $set';
+  }
+
+  @override
+  String get focusBodyweight => 'Bodyweight';
+
+  @override
+  String get focusDone => 'Done';
+
+  @override
+  String get focusNextSetNow => 'Next set now';
+
+  @override
+  String get focusStartRest => 'Start rest';
+
+  @override
+  String focusNextUp(String set) {
+    return 'Next · $set';
+  }
+
+  @override
+  String focusRestLength(String time) {
+    return 'Rest $time';
+  }
+
+  @override
+  String focusRestPillA11y(String time) {
+    return '$time of rest left on another exercise';
+  }
+
+  @override
+  String get focusRestLess => '15 s less rest';
+
+  @override
+  String get focusRestMore => '15 s more rest';
+
+  @override
+  String focusWeightUp(String step) {
+    return 'Add $step';
+  }
+
+  @override
+  String focusWeightDown(String step) {
+    return 'Remove $step';
+  }
+
+  @override
+  String get focusRepsUp => 'One more rep';
+
+  @override
+  String get focusRepsDown => 'One fewer rep';
+
+  @override
+  String get focusTodaySets => 'Today\'s sets';
+
+  @override
+  String get focusExerciseDone => 'Finish exercise';
+
+  @override
+  String focusNextExercise(String name) {
+    return 'Next: $name';
+  }
+
+  @override
+  String get focusOneMore => 'One more set';
+
+  @override
+  String focusSummaryTitle(String name) {
+    return '$name done!';
+  }
+
+  @override
+  String get focusSets => 'Sets';
+
+  @override
+  String get focusVolume => 'Volume';
+
+  @override
+  String get focusTotalTime => 'Total time';
+
+  @override
+  String get focusTotalDistance => 'Total distance';
+
+  @override
+  String get focusTotalReps => 'Reps';
+
+  @override
+  String get focusBest => 'Best';
+
+  @override
+  String focusLastTime(String when, String value) {
+    return 'Last time · $when · $value';
+  }
+
+  @override
+  String get focusSame => 'Same';
+
+  @override
+  String get focusUndo => 'Undo';
+
+  @override
+  String focusLogged(String set) {
+    return 'Logged $set';
+  }
+
+  @override
+  String get focusHeartBack => 'Heart rate is back · next set';
+
+  @override
+  String focusRestPill(String time) {
+    return 'Rest $time · Open';
+  }
+
+  @override
+  String get focusSharedTimer => 'Shared timer · Open';
+
+  @override
+  String get focusStartTimer => 'Start timer';
+
+  @override
+  String focusHeroA11y(String set) {
+    return '$set';
+  }
+
+  @override
+  String focusRestA11y(String time) {
+    return '$time of rest left';
+  }
+
+  @override
+  String get focusRestDefault => 'Default rest between sets';
+
+  @override
+  String get focusRestTitle => 'Rest time';
+
+  @override
+  String get focusWeightTitle => 'Weight';
+
+  @override
+  String get focusRepsTitle => 'Reps';
+
+  @override
+  String get focusRestOverTitle => 'Rest\'s over';
 }

@@ -4015,4 +4015,190 @@ class LJa extends L {
   String timerUnloggedReps(int n) {
     return '未記録の$n回があります';
   }
+
+  @override
+  String get focusOpen => 'ワークアウト画面';
+
+  @override
+  String focusExerciseOf(int n, int total) {
+    return '種目 $n/$total';
+  }
+
+  @override
+  String get focusPrevExercise => '前の種目';
+
+  @override
+  String get focusNextExerciseA11y => '次の種目';
+
+  @override
+  String focusSetLabel(int n) {
+    return '$nセット目';
+  }
+
+  @override
+  String get focusPlanned => '予定';
+
+  @override
+  String get focusLastTimeSame => '前回のこの位置';
+
+  @override
+  String get focusSameAsLast => '前のセットと同じ';
+
+  @override
+  String get focusFromSetup => '設定どおり';
+
+  @override
+  String get focusPickValues => '重さと回数を決めます';
+
+  @override
+  String get focusPickButton => '重さ・回数を決める';
+
+  @override
+  String get focusPlanDone => '予定終了';
+
+  @override
+  String focusLastTimeLine(String set) {
+    return '前回のこの位置 $set';
+  }
+
+  @override
+  String get focusBodyweight => '自重';
+
+  @override
+  String get focusDone => 'やりました';
+
+  @override
+  String get focusNextSetNow => 'すぐ次のセット';
+
+  @override
+  String get focusStartRest => '休憩開始';
+
+  @override
+  String focusNextUp(String set) {
+    return '次 · $set';
+  }
+
+  @override
+  String focusRestLength(String time) {
+    return '休憩 $time';
+  }
+
+  @override
+  String focusRestPillA11y(String time) {
+    return '別の種目の休憩が残り $time';
+  }
+
+  @override
+  String get focusRestLess => '休憩を15秒減らす';
+
+  @override
+  String get focusRestMore => '休憩を15秒増やす';
+
+  @override
+  String focusWeightUp(String step) {
+    return '$step 増やす';
+  }
+
+  @override
+  String focusWeightDown(String step) {
+    return '$step 減らす';
+  }
+
+  @override
+  String get focusRepsUp => '1回増やす';
+
+  @override
+  String get focusRepsDown => '1回減らす';
+
+  @override
+  String get focusTodaySets => '今日のセット';
+
+  @override
+  String get focusExerciseDone => 'この種目を終える';
+
+  @override
+  String focusNextExercise(String name) {
+    return '次の種目: $name';
+  }
+
+  @override
+  String get focusOneMore => 'もう1セット';
+
+  @override
+  String focusSummaryTitle(String name) {
+    return '$name 完了!';
+  }
+
+  @override
+  String get focusSets => 'セット';
+
+  @override
+  String get focusVolume => 'ボリューム';
+
+  @override
+  String get focusTotalTime => '合計時間';
+
+  @override
+  String get focusTotalDistance => '合計距離';
+
+  @override
+  String get focusTotalReps => '回数';
+
+  @override
+  String get focusBest => '最高';
+
+  @override
+  String focusLastTime(String when, String value) {
+    return '前回 · $when · $value';
+  }
+
+  @override
+  String get focusSame => '同じ';
+
+  @override
+  String get focusUndo => '元に戻す';
+
+  @override
+  String focusLogged(String set) {
+    return '$set を記録しました';
+  }
+
+  @override
+  String get focusHeartBack => '心拍が戻りました · すぐ次のセット';
+
+  @override
+  String focusRestPill(String time) {
+    return '休憩 $time · 開く';
+  }
+
+  @override
+  String get focusSharedTimer => '一緒に使うタイマー · 開く';
+
+  @override
+  String get focusStartTimer => 'タイマー開始';
+
+  @override
+  String focusHeroA11y(String set) {
+    return '$set';
+  }
+
+  @override
+  String focusRestA11y(String time) {
+    return '休憩の残り $time';
+  }
+
+  @override
+  String get focusRestDefault => 'セット間の休憩の既定';
+
+  @override
+  String get focusRestTitle => '休憩時間';
+
+  @override
+  String get focusWeightTitle => '重さ';
+
+  @override
+  String get focusRepsTitle => '回数';
+
+  @override
+  String get focusRestOverTitle => '休憩終了';
 }

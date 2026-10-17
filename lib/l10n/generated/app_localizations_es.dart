@@ -4237,4 +4237,190 @@ class LEs extends L {
     );
     return '$_temp0';
   }
+
+  @override
+  String get focusOpen => 'Vista de entrenamiento';
+
+  @override
+  String focusExerciseOf(int n, int total) {
+    return 'Ejercicio $n/$total';
+  }
+
+  @override
+  String get focusPrevExercise => 'Ejercicio anterior';
+
+  @override
+  String get focusNextExerciseA11y => 'Siguiente ejercicio';
+
+  @override
+  String focusSetLabel(int n) {
+    return 'Serie $n';
+  }
+
+  @override
+  String get focusPlanned => 'Plan';
+
+  @override
+  String get focusLastTimeSame => 'Igual que la última vez';
+
+  @override
+  String get focusSameAsLast => 'Igual que la serie anterior';
+
+  @override
+  String get focusFromSetup => 'Según tu ajuste';
+
+  @override
+  String get focusPickValues => 'Elige el peso y las repeticiones';
+
+  @override
+  String get focusPickButton => 'Elegir peso y reps';
+
+  @override
+  String get focusPlanDone => 'Plan completado';
+
+  @override
+  String focusLastTimeLine(String set) {
+    return 'Última vez aquí: $set';
+  }
+
+  @override
+  String get focusBodyweight => 'Peso corporal';
+
+  @override
+  String get focusDone => 'Hecho';
+
+  @override
+  String get focusNextSetNow => 'Siguiente serie ya';
+
+  @override
+  String get focusStartRest => 'Empezar descanso';
+
+  @override
+  String focusNextUp(String set) {
+    return 'Siguiente · $set';
+  }
+
+  @override
+  String focusRestLength(String time) {
+    return 'Descanso $time';
+  }
+
+  @override
+  String focusRestPillA11y(String time) {
+    return 'Quedan $time de descanso en otro ejercicio';
+  }
+
+  @override
+  String get focusRestLess => '15 s menos de descanso';
+
+  @override
+  String get focusRestMore => '15 s más de descanso';
+
+  @override
+  String focusWeightUp(String step) {
+    return 'Añadir $step';
+  }
+
+  @override
+  String focusWeightDown(String step) {
+    return 'Quitar $step';
+  }
+
+  @override
+  String get focusRepsUp => 'Una repetición más';
+
+  @override
+  String get focusRepsDown => 'Una repetición menos';
+
+  @override
+  String get focusTodaySets => 'Series de hoy';
+
+  @override
+  String get focusExerciseDone => 'Terminar ejercicio';
+
+  @override
+  String focusNextExercise(String name) {
+    return 'Siguiente: $name';
+  }
+
+  @override
+  String get focusOneMore => 'Una serie más';
+
+  @override
+  String focusSummaryTitle(String name) {
+    return '¡$name listo!';
+  }
+
+  @override
+  String get focusSets => 'Series';
+
+  @override
+  String get focusVolume => 'Volumen';
+
+  @override
+  String get focusTotalTime => 'Tiempo total';
+
+  @override
+  String get focusTotalDistance => 'Distancia total';
+
+  @override
+  String get focusTotalReps => 'Repeticiones';
+
+  @override
+  String get focusBest => 'Mejor';
+
+  @override
+  String focusLastTime(String when, String value) {
+    return 'Última vez · $when · $value';
+  }
+
+  @override
+  String get focusSame => 'Igual';
+
+  @override
+  String get focusUndo => 'Deshacer';
+
+  @override
+  String focusLogged(String set) {
+    return 'Registrado $set';
+  }
+
+  @override
+  String get focusHeartBack => 'Pulso recuperado · siguiente serie';
+
+  @override
+  String focusRestPill(String time) {
+    return 'Descanso $time · Abrir';
+  }
+
+  @override
+  String get focusSharedTimer => 'Temporizador compartido · Abrir';
+
+  @override
+  String get focusStartTimer => 'Iniciar temporizador';
+
+  @override
+  String focusHeroA11y(String set) {
+    return '$set';
+  }
+
+  @override
+  String focusRestA11y(String time) {
+    return 'Quedan $time de descanso';
+  }
+
+  @override
+  String get focusRestDefault => 'Descanso predeterminado entre series';
+
+  @override
+  String get focusRestTitle => 'Tiempo de descanso';
+
+  @override
+  String get focusWeightTitle => 'Peso';
+
+  @override
+  String get focusRepsTitle => 'Repeticiones';
+
+  @override
+  String get focusRestOverTitle => 'Fin del descanso';
 }

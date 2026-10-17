@@ -4020,4 +4020,190 @@ class LKo extends L {
   String timerUnloggedReps(int n) {
     return '적지 않은 $n회가 있어요';
   }
+
+  @override
+  String get focusOpen => '운동 화면';
+
+  @override
+  String focusExerciseOf(int n, int total) {
+    return '운동 $n/$total';
+  }
+
+  @override
+  String get focusPrevExercise => '앞 운동';
+
+  @override
+  String get focusNextExerciseA11y => '다음 운동';
+
+  @override
+  String focusSetLabel(int n) {
+    return '$n세트';
+  }
+
+  @override
+  String get focusPlanned => '계획';
+
+  @override
+  String get focusLastTimeSame => '지난번 이 자리';
+
+  @override
+  String get focusSameAsLast => '지난 세트와 같이';
+
+  @override
+  String get focusFromSetup => '설정대로';
+
+  @override
+  String get focusPickValues => '무게와 횟수를 정해요';
+
+  @override
+  String get focusPickButton => '무게·횟수 정하기';
+
+  @override
+  String get focusPlanDone => '계획 끝';
+
+  @override
+  String focusLastTimeLine(String set) {
+    return '지난번 이 자리 $set';
+  }
+
+  @override
+  String get focusBodyweight => '맨몸';
+
+  @override
+  String get focusDone => '했어요';
+
+  @override
+  String get focusNextSetNow => '바로 다음 세트';
+
+  @override
+  String get focusStartRest => '휴식 시작';
+
+  @override
+  String focusNextUp(String set) {
+    return '다음 · $set';
+  }
+
+  @override
+  String focusRestLength(String time) {
+    return '휴식 $time';
+  }
+
+  @override
+  String focusRestPillA11y(String time) {
+    return '다른 운동의 휴식 $time 남음';
+  }
+
+  @override
+  String get focusRestLess => '휴식 15초 줄이기';
+
+  @override
+  String get focusRestMore => '휴식 15초 늘리기';
+
+  @override
+  String focusWeightUp(String step) {
+    return '$step 올리기';
+  }
+
+  @override
+  String focusWeightDown(String step) {
+    return '$step 내리기';
+  }
+
+  @override
+  String get focusRepsUp => '횟수 하나 올리기';
+
+  @override
+  String get focusRepsDown => '횟수 하나 내리기';
+
+  @override
+  String get focusTodaySets => '오늘 세트';
+
+  @override
+  String get focusExerciseDone => '이 운동 끝';
+
+  @override
+  String focusNextExercise(String name) {
+    return '다음 운동: $name';
+  }
+
+  @override
+  String get focusOneMore => '한 세트 더';
+
+  @override
+  String focusSummaryTitle(String name) {
+    return '$name 끝!';
+  }
+
+  @override
+  String get focusSets => '세트';
+
+  @override
+  String get focusVolume => '볼륨';
+
+  @override
+  String get focusTotalTime => '총 시간';
+
+  @override
+  String get focusTotalDistance => '총 거리';
+
+  @override
+  String get focusTotalReps => '횟수';
+
+  @override
+  String get focusBest => '최고';
+
+  @override
+  String focusLastTime(String when, String value) {
+    return '지난번 · $when · $value';
+  }
+
+  @override
+  String get focusSame => '같아요';
+
+  @override
+  String get focusUndo => '되돌리기';
+
+  @override
+  String focusLogged(String set) {
+    return '$set 적었어요';
+  }
+
+  @override
+  String get focusHeartBack => '심박이 돌아왔어요 · 바로 다음 세트';
+
+  @override
+  String focusRestPill(String time) {
+    return '휴식 $time · 열기';
+  }
+
+  @override
+  String get focusSharedTimer => '같이 하는 타이머 · 열기';
+
+  @override
+  String get focusStartTimer => '타이머 시작';
+
+  @override
+  String focusHeroA11y(String set) {
+    return '$set';
+  }
+
+  @override
+  String focusRestA11y(String time) {
+    return '휴식 남은 시간 $time';
+  }
+
+  @override
+  String get focusRestDefault => '세트 사이 휴식 기본';
+
+  @override
+  String get focusRestTitle => '휴식 시간';
+
+  @override
+  String get focusWeightTitle => '무게';
+
+  @override
+  String get focusRepsTitle => '횟수';
+
+  @override
+  String get focusRestOverTitle => '휴식 끝';
 }
