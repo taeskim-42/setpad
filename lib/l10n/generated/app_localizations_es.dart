@@ -4348,7 +4348,7 @@ class LEs extends L {
 
   @override
   String focusSummaryTitle(String name) {
-    return '¡$name listo!';
+    return '¡Terminaste $name!';
   }
 
   @override
@@ -4426,4 +4426,10 @@ class LEs extends L {
 
   @override
   String get focusDistanceTitle => 'Distancia';
+
+  @override
+  String get focusPickTime => 'Elegir tiempo';
+
+  @override
+  String get focusPickDistance => 'Elegir distancia';
 }

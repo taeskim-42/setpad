@@ -4181,7 +4181,7 @@ class LVi extends L {
   }
 
   @override
-  String get focusBodyweight => 'Tạ cơ thể';
+  String get focusBodyweight => 'Trọng lượng cơ thể';
 
   @override
   String get focusDone => 'Xong';
@@ -4323,4 +4323,10 @@ class LVi extends L {
 
   @override
   String get focusDistanceTitle => 'Quãng đường';
+
+  @override
+  String get focusPickTime => 'Chọn thời gian';
+
+  @override
+  String get focusPickDistance => 'Chọn quãng đường';
 }

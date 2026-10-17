@@ -1044,7 +1044,7 @@
   "focusExerciseDone": "Terminar ejercicio",
   "focusNextExercise": "Siguiente: {name}",
   "focusOneMore": "Una serie más",
-  "focusSummaryTitle": "¡{name} listo!",
+  "focusSummaryTitle": "¡Terminaste {name}!",
   "focusSets": "Series",
   "focusVolume": "Volumen",
   "focusTotalTime": "Tiempo total",
@@ -1066,5 +1066,7 @@
   "focusWeightTitle": "Peso",
   "focusRepsTitle": "Repeticiones",
   "focusRestOverTitle": "Fin del descanso",
-  "focusDistanceTitle": "Distancia"
+  "focusDistanceTitle": "Distancia",
+  "focusPickTime": "Elegir tiempo",
+  "focusPickDistance": "Elegir distancia"
 }

@@ -1066,5 +1066,7 @@
   "focusWeightTitle": "น้ำหนัก",
   "focusRepsTitle": "จำนวนครั้ง",
   "focusRestOverTitle": "หมดเวลาพัก",
-  "focusDistanceTitle": "ระยะทาง"
+  "focusDistanceTitle": "ระยะทาง",
+  "focusPickTime": "ตั้งเวลา",
+  "focusPickDistance": "ตั้งระยะทาง"
 }

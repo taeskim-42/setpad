@@ -4291,4 +4291,10 @@ class LTh extends L {
 
   @override
   String get focusDistanceTitle => 'ระยะทาง';
+
+  @override
+  String get focusPickTime => 'ตั้งเวลา';
+
+  @override
+  String get focusPickDistance => 'ตั้งระยะทาง';
 }

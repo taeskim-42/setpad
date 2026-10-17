@@ -1066,5 +1066,7 @@
   "focusWeightTitle": "Weight",
   "focusRepsTitle": "Reps",
   "focusRestOverTitle": "Rest's over",
-  "focusDistanceTitle": "Distance"
+  "focusDistanceTitle": "Distance",
+  "focusPickTime": "Set the time",
+  "focusPickDistance": "Set the distance"
 }

@@ -4392,4 +4392,10 @@ class LEn extends L {
 
   @override
   String get focusDistanceTitle => 'Distance';
+
+  @override
+  String get focusPickTime => 'Set the time';
+
+  @override
+  String get focusPickDistance => 'Set the distance';
 }

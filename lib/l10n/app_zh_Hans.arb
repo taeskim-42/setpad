@@ -1026,12 +1026,12 @@
   "focusPickValues": "设定重量和次数",
   "focusPickButton": "设定重量·次数",
   "focusPlanDone": "计划完成",
-  "focusLastTimeLine": "上次这里 {set}",
+  "focusLastTimeLine": "上次同一组 {set}",
   "focusBodyweight": "徒手",
   "focusDone": "完成",
   "focusNextSetNow": "立即下一组",
   "focusStartRest": "开始休息",
-  "focusNextUp": "下一组 · {set}",
+  "focusNextUp": "接下来 · {set}",
   "focusRestLength": "休息 {time}",
   "focusRestPillA11y": "另一个动作还剩 {time} 休息",
   "focusRestLess": "休息减 15 秒",
@@ -1066,5 +1066,7 @@
   "focusWeightTitle": "重量",
   "focusRepsTitle": "次数",
   "focusRestOverTitle": "休息结束",
-  "focusDistanceTitle": "距离"
+  "focusDistanceTitle": "距离",
+  "focusPickTime": "设定时间",
+  "focusPickDistance": "设定距离"
 }

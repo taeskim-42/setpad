@@ -4209,4 +4209,10 @@ class LKo extends L {
 
   @override
   String get focusDistanceTitle => '거리';
+
+  @override
+  String get focusPickTime => '시간 정하기';
+
+  @override
+  String get focusPickDistance => '거리 정하기';
 }

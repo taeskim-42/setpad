@@ -1027,7 +1027,7 @@
   "focusPickButton": "Chọn tạ · số lần",
   "focusPlanDone": "Hết kế hoạch",
   "focusLastTimeLine": "Lần trước ở đây: {set}",
-  "focusBodyweight": "Tạ cơ thể",
+  "focusBodyweight": "Trọng lượng cơ thể",
   "focusDone": "Xong",
   "focusNextSetNow": "Hiệp tiếp theo ngay",
   "focusStartRest": "Bắt đầu nghỉ",
@@ -1066,5 +1066,7 @@
   "focusWeightTitle": "Mức tạ",
   "focusRepsTitle": "Số lần",
   "focusRestOverTitle": "Hết giờ nghỉ",
-  "focusDistanceTitle": "Quãng đường"
+  "focusDistanceTitle": "Quãng đường",
+  "focusPickTime": "Chọn thời gian",
+  "focusPickDistance": "Chọn quãng đường"
 }

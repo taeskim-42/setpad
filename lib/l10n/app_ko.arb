@@ -3776,5 +3776,7 @@
   "focusWeightTitle": "무게",
   "focusRepsTitle": "횟수",
   "focusRestOverTitle": "휴식 끝",
-  "focusDistanceTitle": "거리"
+  "focusDistanceTitle": "거리",
+  "focusPickTime": "시간 정하기",
+  "focusPickDistance": "거리 정하기"
 }

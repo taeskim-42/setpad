@@ -4039,7 +4039,7 @@ class LJa extends L {
   String get focusPlanned => '予定';
 
   @override
-  String get focusLastTimeSame => '前回のこの位置';
+  String get focusLastTimeSame => '前回の同じセット';
 
   @override
   String get focusSameAsLast => '前のセットと同じ';
@@ -4058,14 +4058,14 @@ class LJa extends L {
 
   @override
   String focusLastTimeLine(String set) {
-    return '前回のこの位置 $set';
+    return '前回の同じセット $set';
   }
 
   @override
   String get focusBodyweight => '自重';
 
   @override
-  String get focusDone => 'やりました';
+  String get focusDone => '完了';
 
   @override
   String get focusNextSetNow => 'すぐ次のセット';
@@ -4204,4 +4204,10 @@ class LJa extends L {
 
   @override
   String get focusDistanceTitle => '距離';
+
+  @override
+  String get focusPickTime => '時間を決める';
+
+  @override
+  String get focusPickDistance => '距離を決める';
 }
