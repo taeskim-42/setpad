@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Running-timer notification (TimingService). -->
+    <string name="timing_channel">운동 타이머</string>
+    <string name="timing_running">운동 타이머가 돌고 있어요</string>
+</resources>

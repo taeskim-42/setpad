@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Running-timer notification (TimingService). -->
+    <string name="timing_channel">ตัวจับเวลาออกกำลังกาย</string>
+    <string name="timing_running">ตัวจับเวลาออกกำลังกายกำลังทำงาน</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Running-timer notification (TimingService). -->
+    <string name="timing_channel">運動タイマー</string>
+    <string name="timing_running">運動タイマーが動作中です</string>
+</resources>

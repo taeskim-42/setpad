@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Running-timer notification (TimingService). -->
+    <string name="timing_channel">運動計時器</string>
+    <string name="timing_running">運動計時器正在運行</string>
+</resources>

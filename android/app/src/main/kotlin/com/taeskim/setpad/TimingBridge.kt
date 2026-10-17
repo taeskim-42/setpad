@@ -156,6 +156,10 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                 if (!active && cue == null) cancelVoice()
                 if (active) activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 else activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                // Where iOS starts and stops its keep-alive loop. A finishing cue
+                // (0.7 s ding, then done.m4a 2.5 s or "Go!") keeps it 6 s more.
+                if (active) TimingService.start(activity.applicationContext)
+                else TimingService.stop(if (cue != null) 6000L else 0L)
                 if (bpm != tempo) {
                     // A tempo change while running (Tabata work to rest) only
                     // drops a count still waiting: the round's last number is
@@ -228,7 +232,7 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
     }
     private fun dropPending() { pendingCount?.let { handler.removeCallbacks(it) }; pendingCount = null }
     private fun stopClick() { track?.let { runCatching { it.stop() } }; track = null; tempo = null }
-    private fun stop() { cancelVoice(); stopClick(); runCatching { cueTrack?.stop() }; cueTrack = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
+    private fun stop() { cancelVoice(); stopClick(); runCatching { cueTrack?.stop() }; cueTrack = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); TimingService.stop() }
     fun close() {
         stop(); pool.release(); measuring.shutdown()
         (beats.values + cues.values).forEach { runCatching { it.release() } }
