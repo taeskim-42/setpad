@@ -1036,6 +1036,76 @@ void main() {
       );
     });
 
+    for (final (width, scale) in [(430.0, 1.5), (375.0, 2.0), (375.0, 1.0)]) {
+      testWidgets(
+        '${width.round()}pt·글자 $scale: 키패드 글자는 낱말 가운데서 끊기지 않고 두 열 바닥이 맞는다',
+        (tester) async {
+          tester.view.physicalSize = Size(width, 812);
+          tester.view.devicePixelRatio = 1;
+          tester.platformDispatcher.textScaleFactorTestValue = scale;
+          addTearDown(() {
+            tester.view.reset();
+            tester.platformDispatcher.clearTextScaleFactorTestValue();
+          });
+          await pumpApp(
+            tester,
+            CupertinoPageScaffold(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: SetKeypad(
+                  onKey: (_) {},
+                  onBackspace: () {},
+                  onAddSet: () {},
+                  onSubmit: () {},
+                  submitLabel: '운동 완료',
+                  onText: () {},
+                  onAdjust: (_) {},
+                  stepLabel: '2.5kg',
+                  onStepPick: () {},
+                  onRepeat: () {},
+                  repeatLabel: '65kg · 8회',
+                ),
+              ),
+            ),
+          );
+          expect(tester.takeException(), isNull);
+          // One line each: '2.5k/g' and '세트 추/가' broke inside the word.
+          final texts = find.descendant(
+            of: find.byType(SetKeypad),
+            matching: find.byType(RichText),
+          );
+          expect(texts, findsWidgets);
+          for (final e in texts.evaluate()) {
+            final p = e.renderObject! as RenderParagraph;
+            final all = p.text.toPlainText();
+            final tops = p
+                .getBoxesForSelection(
+                  TextSelection(baseOffset: 0, extentOffset: all.length),
+                )
+                .map((b) => b.top.round())
+                .toSet();
+            expect(tops, hasLength(1), reason: '"$all" 한 줄');
+          }
+          Rect face(String label) => tester.getRect(
+            find
+                .ancestor(
+                  of: find.text(label),
+                  matching: find.byType(DecoratedBox),
+                )
+                .first,
+          );
+          // The number grid and the action column end on the same line.
+          expect(face('0').bottom, moreOrLessEquals(face('운동 완료').bottom));
+          expect(
+            face('1').top,
+            moreOrLessEquals(face('−').top - 52, epsilon: 0.5),
+          );
+          // Keys keep their size; the text fits the key, not the other way.
+          expect(face('1').height, moreOrLessEquals(46));
+        },
+      );
+    }
+
     testWidgets('운동 제목: 누르는 상자는 44, 제목 옆 빈 곳은 제목 고치기가 아니다', (tester) async {
       final c = RoutineEditorController()
         ..addExercise('벤치')

@@ -90,14 +90,12 @@ class SetKeypad extends StatelessWidget {
                 ),
               ),
             ),
-            // 오른쪽 열이 왼쪽 격자와 같은 높이를 갖게 한다. 그래야 그 안에서
-            // Expanded 로 나눌 수 있다 — 바깥 Column 이 높이를 정하지
-            // 않으므로(MainAxisSize.min) 이것 없이는 설 자리가 없다.
-            //
-            // ponytail: IntrinsicHeight 는 자식을 한 번 더 재므로 공짜가
-            // 아니다. 여기는 키 열몇 개짜리 트리라 값이 안 느껴진다. 키패드가
-            // 더 복잡해지면 왼쪽 격자 높이를 직접 계산해 넘기는 쪽으로.
-            IntrinsicHeight(
+            // 두 열이 한 높이(숫자 키 네 줄)를 나눠 쓴다. 키는 글자 크기로 자라지
+            // 않고 글자가 키에 맞춰 줄어든다([_Key]) — 키 높이를 글자로 재던 때는
+            // 글자를 키운 폰에서 오른쪽 열(−/+ 의 두 줄 글자)이 숫자 격자보다 길어져
+            // 두 열 바닥이 어긋났다. iOS 키보드도 글자 크기로 자라지 않는다.
+            SizedBox(
+              height: 4 * (_keyHeight + 2 * _gap),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -127,7 +125,6 @@ class SetKeypad extends StatelessWidget {
                               semanticLabel: L.of(context).noteHint,
                               onTap: onText,
                               tone: _Tone.dim,
-                              height: null,
                             ),
                           ),
                         ),
@@ -142,7 +139,6 @@ class SetKeypad extends StatelessWidget {
                                     onTap: () => onAdjust(-1),
                                     onLongPress: onStepPick,
                                     tone: _Tone.dim,
-                                    height: null,
                                   ),
                                 ),
                               ),
@@ -154,7 +150,6 @@ class SetKeypad extends StatelessWidget {
                                     onTap: () => onAdjust(1),
                                     onLongPress: onStepPick,
                                     tone: _Tone.dim,
-                                    height: null,
                                   ),
                                 ),
                               ),
@@ -167,7 +162,6 @@ class SetKeypad extends StatelessWidget {
                               label: addLabel ?? L.of(context).addSet,
                               onTap: onAddSet,
                               tone: _Tone.primary,
-                              height: null,
                             ),
                           ),
                         ),
@@ -177,7 +171,6 @@ class SetKeypad extends StatelessWidget {
                               label: submitLabel,
                               onTap: onSubmit,
                               tone: _Tone.primary,
-                              height: null,
                               compact: true,
                             ),
                           ),
@@ -194,33 +187,39 @@ class SetKeypad extends StatelessWidget {
     );
   }
 
-  Widget _row(BuildContext context, List<String> keys) => Row(
-    children: [
-      for (final k in keys)
-        Expanded(
-          child: _pad(
-            k == '⌫'
-                // 지우기는 글자가 아니라 동작이다. 숫자 키 사이에 있지만
-                // 아이콘으로 내야 무엇인지 바로 보인다.
-                ? _Key(
-                    icon: CupertinoIcons.delete_left,
-                    semanticLabel: L.of(context).delete,
-                    onTap: onBackspace,
-                    tone: _Tone.plain,
-                  )
-                : _Key(
-                    label: k,
-                    onTap: () => onKey(k == '␣' ? ' ' : k),
-                    tone: _Tone.plain,
-                  ),
+  Widget _row(BuildContext context, List<String> keys) => Expanded(
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final k in keys)
+          Expanded(
+            child: _pad(
+              k == '⌫'
+                  // 지우기는 글자가 아니라 동작이다. 숫자 키 사이에 있지만
+                  // 아이콘으로 내야 무엇인지 바로 보인다.
+                  ? _Key(
+                      icon: CupertinoIcons.delete_left,
+                      semanticLabel: L.of(context).delete,
+                      onTap: onBackspace,
+                      tone: _Tone.plain,
+                    )
+                  : _Key(
+                      label: k,
+                      onTap: () => onKey(k == '␣' ? ' ' : k),
+                      tone: _Tone.plain,
+                    ),
+            ),
           ),
-        ),
-    ],
+      ],
+    ),
   );
 
   Widget _pad(Widget child) =>
-      Padding(padding: const EdgeInsets.all(3), child: child);
+      Padding(padding: const EdgeInsets.all(_gap), child: child);
 }
+
+/// 숫자 키 높이와 키 사이 반 간격.
+const _keyHeight = 46.0, _gap = 3.0;
 
 enum _Tone { plain, dim, primary, accent }
 
@@ -233,7 +232,7 @@ class _Key extends StatelessWidget {
     required this.onTap,
     required this.tone,
     this.onLongPress,
-    this.height = 46,
+    this.height,
     this.compact = false,
   });
 
@@ -308,40 +307,48 @@ class _Key extends StatelessWidget {
               child: Center(
                 child: icon != null
                     ? Icon(icon, size: 19, color: fg)
-                    : Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            label!,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: compact
-                                  ? 14
-                                  : switch (tone) {
-                                      _Tone.primary => 14.0,
-                                      _Tone.accent => 13.5,
-                                      _Tone.dim => 18.0,
-                                      _Tone.plain => 24.0,
-                                    },
-                              fontWeight: tone == _Tone.plain
-                                  ? FontWeight.w400
-                                  : FontWeight.w600,
-                              color: fg,
-                            ),
-                          ),
-                          if (sub != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 3),
-                              child: Text(
-                                sub!,
+                    // 한 줄로 두고 키에 맞춰 줄인다 — 감기면 '2.5kg' 이 '2.5k/g',
+                    // '세트 추가' 가 '세트 추/가' 처럼 낱말 가운데서 끊겼다.
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                label!,
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: fg.withValues(alpha: 0.7),
+                                  fontSize: compact
+                                      ? 14
+                                      : switch (tone) {
+                                          _Tone.primary => 14.0,
+                                          _Tone.accent => 13.5,
+                                          _Tone.dim => 18.0,
+                                          _Tone.plain => 24.0,
+                                        },
+                                  fontWeight: tone == _Tone.plain
+                                      ? FontWeight.w400
+                                      : FontWeight.w600,
+                                  color: fg,
                                 ),
                               ),
-                            ),
-                        ],
+                              if (sub != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 3),
+                                  child: Text(
+                                    sub!,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: fg.withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
               ),
             ),
