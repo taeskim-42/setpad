@@ -3872,4 +3872,12 @@ class LVi extends L {
   String routineBpmChip(int bpm) {
     return 'Theo nhịp ${bpm}bpm';
   }
+
+  @override
+  String get routineSwap => 'Đổi';
+
+  @override
+  String routineSwapTitle(String name) {
+    return 'Thay cho $name — cùng vùng cơ và dụng cụ, đã tập trong 28 ngày qua';
+  }
 }

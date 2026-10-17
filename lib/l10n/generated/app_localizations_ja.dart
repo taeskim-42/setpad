@@ -3755,4 +3755,12 @@ class LJa extends L {
   String routineBpmChip(int bpm) {
     return '${bpm}bpmのテンポで';
   }
+
+  @override
+  String get routineSwap => '替える';
+
+  @override
+  String routineSwapTitle(String name) {
+    return '$nameの代わりに — 最近28日にやった同じ部位・器具の種目';
+  }
 }

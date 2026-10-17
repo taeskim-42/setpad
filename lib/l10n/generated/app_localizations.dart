@@ -5652,6 +5652,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{bpm}bpm 박자로'**
   String routineBpmChip(int bpm);
+
+  /// 루틴 칸을 같은 부위·같은 기구의 다른 운동으로 바꾸는 단추(✕ 옆).
+  ///
+  /// In ko, this message translates to:
+  /// **'바꾸기'**
+  String get routineSwap;
+
+  /// '바꾸기' 시트 제목. 고르면 그 운동을 마지막으로 한 날의 내 세트가 든다.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 대신 — 최근 28일에 한 같은 부위·기구 운동'**
+  String routineSwapTitle(String name);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

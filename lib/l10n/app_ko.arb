@@ -3656,5 +3656,9 @@
   "routineEstimateNoFirst": "약 {minutes}분 · 처음 칸 빼고",
   "@routineEstimateNoFirst": {"description": "시간 어림 알약. 세트가 없는(처음 하는) 칸은 시간에 넣지 않았다.", "placeholders": {"minutes": {"type": "int"}}},
   "routineBpmChip": "{bpm}bpm 박자로",
-  "@routineBpmChip": {"description": "심폐 날 방식 칩: 내가 마지막으로 쓴 bpm 으로 박자 타이머를 붙여 짠다.", "placeholders": {"bpm": {"type": "int"}}}
+  "@routineBpmChip": {"description": "심폐 날 방식 칩: 내가 마지막으로 쓴 bpm 으로 박자 타이머를 붙여 짠다.", "placeholders": {"bpm": {"type": "int"}}},
+  "routineSwap": "바꾸기",
+  "@routineSwap": {"description": "루틴 칸을 같은 부위·같은 기구의 다른 운동으로 바꾸는 단추(✕ 옆)."},
+  "routineSwapTitle": "{name} 대신 — 최근 28일에 한 같은 부위·기구 운동",
+  "@routineSwapTitle": {"description": "'바꾸기' 시트 제목. 고르면 그 운동을 마지막으로 한 날의 내 세트가 든다.", "placeholders": {"name": {"type": "String"}}}
 }

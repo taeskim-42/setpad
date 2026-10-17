@@ -938,5 +938,7 @@
   "routineDeviceExcluded": "Đã đọc trên máy — bỏ: {list}",
   "routinePlateCost": "1 bánh tạ: {list}",
   "routineEstimateNoFirst": "~{minutes} phút · chưa tính bài mới",
-  "routineBpmChip": "Theo nhịp {bpm}bpm"
+  "routineBpmChip": "Theo nhịp {bpm}bpm",
+  "routineSwap": "Đổi",
+  "routineSwapTitle": "Thay cho {name} — cùng vùng cơ và dụng cụ, đã tập trong 28 ngày qua"
 }

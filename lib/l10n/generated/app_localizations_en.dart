@@ -3899,4 +3899,12 @@ class LEn extends L {
   String routineBpmChip(int bpm) {
     return 'To a ${bpm}bpm beat';
   }
+
+  @override
+  String get routineSwap => 'Swap';
+
+  @override
+  String routineSwapTitle(String name) {
+    return 'Instead of $name — same body part and equipment, done in the last 28 days';
+  }
 }

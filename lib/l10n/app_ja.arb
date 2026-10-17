@@ -938,5 +938,7 @@
   "routineDeviceExcluded": "除く種目は端末で読みました: {list}",
   "routinePlateCost": "プレート1枚: {list}",
   "routineEstimateNoFirst": "約{minutes}分 · 初めての種目を除く",
-  "routineBpmChip": "{bpm}bpmのテンポで"
+  "routineBpmChip": "{bpm}bpmのテンポで",
+  "routineSwap": "替える",
+  "routineSwapTitle": "{name}の代わりに — 最近28日にやった同じ部位・器具の種目"
 }

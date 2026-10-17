@@ -1660,6 +1660,10 @@ class RoutineItem {
 
   /// 스스로 올려 온 폭을 더했다: 폭과 근거.
   ({double step, String unit, String evidence})? stepped;
+
+  /// "바꾸기" 후보: 같은 부위·같은 기구로 최근 28일에 한 운동 가운데 오래 쉰 것(셋까지)과
+  /// 그 운동을 마지막으로 한 날의 내 세트 — 바꾸면 그 세트가 그대로 든다.
+  List<({String key, List<PlanSet> sets})> swaps = const [];
 }
 
 class RoutineRemoved {
@@ -1749,6 +1753,17 @@ class RoutineEdits {
 
   /// 칩으로 넣은 운동(숫자 없는 칸).
   final added = <String>[];
+
+  /// "바꾸기": 원래 운동 열쇠 → 바꾼 운동 열쇠.
+  final swapped = <String, String>{};
+
+  /// [from] 칸을 [to] 로 바꾼다. 이미 바꾼 칸을 또 바꾸면 원래 운동에서 잇는다.
+  void swap(String from, String to) {
+    final origin =
+        swapped.entries.where((x) => x.value == from).firstOrNull?.key ?? from;
+    swapped[origin] = to;
+  }
+
   bool step = false, previous = false;
   int alt = 0;
 
@@ -1767,6 +1782,7 @@ class RoutineEdits {
     if (removed.isNotEmpty) 'removed': [...removed],
     if (restored.isNotEmpty) 'restored': [...restored],
     if (added.isNotEmpty) 'added': added,
+    if (swapped.isNotEmpty) 'swapped': swapped,
     if (step) 'step': true,
     if (previous) 'previous': true,
     if (alt != 0) 'alt': alt,
@@ -1791,6 +1807,13 @@ class RoutineEdits {
     e.removed.addAll(strings(raw['removed']));
     e.restored.addAll(strings(raw['restored']));
     e.added.addAll(strings(raw['added']));
+    if (raw['swapped'] case final Map m) {
+      for (final x in m.entries) {
+        if (x.key is String && x.value is String) {
+          e.swapped[x.key as String] = x.value as String;
+        }
+      }
+    }
     e.step = raw['step'] == true;
     e.previous = raw['previous'] == true;
     e.alt = raw['alt'] is int ? raw['alt'] as int : 0;
@@ -2849,6 +2872,32 @@ RoutineDraft composeRoutine(
   final removedKeys = <String>{};
   draft.removed.retainWhere((r) => removedKeys.add(r.key));
 
+  // 사람이 "바꾸기" 로 바꾼 칸: 그 자리에 바꾼 운동을 마지막으로 한 날의 칸(숫자는 그날
+  // 내 세트). 원래 칸의 자리·개수 셈을 잇는다.
+  // 바꾼 운동이 채울 후보(다른 날 칸)로 이미 있으면 그것을 거두어 이 자리로 옮긴다.
+  final swappedIn = <String>{};
+  for (final from in e.swapped.keys) {
+    final i = chosen.indexWhere((c) => c.key == from);
+    final to = e.swapped[from]!;
+    final last = lastBlock(to);
+    if (i < 0 || to == from || last == null) continue;
+    final there = chosen.indexWhere((c) => c.key == to);
+    if (there >= 0 && chosen[there].fixed) continue;
+    final c = chosen[i];
+    if (there >= 0) chosen.removeAt(there);
+    seen.add(to);
+    swappedIn.add(to);
+    if (firstSession != null && firstSession.contains(c.key)) {
+      firstSession.add(to);
+    }
+    chosen[chosen.indexOf(c)] = (
+      key: to,
+      block: last.block,
+      day: last.day,
+      fixed: c.fixed,
+    );
+  }
+
   // 사람이 ✕ 로 뺀 칸.
   String edKey(String key) => removalKey(draft, key);
   final userRemoved = [
@@ -2904,7 +2953,7 @@ RoutineDraft composeRoutine(
             .where((b) => factorOf(b)?.why == 'distance')
             .toList();
   int rank(({String key, ExerciseBlock? block, DateTime? day, bool fixed}) c) =>
-      c.day != draft.sourceDay
+      c.day != draft.sourceDay && !swappedIn.contains(c.key)
       ? 3
       : identical(c.block, dayMain)
       ? 0
@@ -3408,6 +3457,32 @@ RoutineDraft composeRoutine(
     }
   }
   draft.addable.removeWhere(seen.contains);
+
+  // "바꾸기" 후보(검토 #5): 같은 부위·같은 기구, 최근 28일에 한 운동 가운데 오래 쉰 것부터
+  // 셋. 숫자는 그 운동을 마지막으로 한 날의 내 세트 — 지어내지 않는다.
+  if (!draft.held) {
+    final inRoutine = {for (final i in draft.items) i.key};
+    final pool =
+        [
+          for (final x in lastDone.entries)
+            if (_days(x.value, today) <= 28 && !inRoutine.contains(x.key))
+              x.key,
+        ]..sort((a, b) {
+          final ra = rest(a), rb = rest(b);
+          return ra != rb ? rb.compareTo(ra) : a.compareTo(b);
+        });
+    for (final i in draft.items) {
+      final p = _part(i.key);
+      if (p == null) continue;
+      i.swaps = [
+        for (final k in pool)
+          if (_part(k) == p &&
+              gearOf(k) == gearOf(i.key) &&
+              filtered(k, k, named: false) == null)
+            (key: k, sets: daySets(k, lastDone[k]!)),
+      ].take(3).toList();
+    }
+  }
 
   // 시간 어림(§8).
   draft.seconds = [for (final c in list) estimate(c)].fold(0, (a, b) => a + b);

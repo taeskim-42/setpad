@@ -39,6 +39,7 @@ class RoutineCard extends StatelessWidget {
     this.onPart,
     this.onStep,
     this.onMode,
+    this.onSwap,
     this.spent,
     this.lang = 'ko',
   });
@@ -61,6 +62,9 @@ class RoutineCard extends StatelessWidget {
 
   /// 방식 칩([RoutineDraft.modeChips]) — 누르면 [RoutineEdits.mode].
   final void Function(String mode)? onMode;
+
+  /// "바꾸기" — 칸을 [RoutineItem.swaps] 의 운동으로 바꾼다.
+  final void Function(RoutineItem item, String key)? onSwap;
 
   /// 원판 줄(서버가 답했을 때만). 없으면 기기가 짠 것 — "원판 0장".
   final String? spent;
@@ -435,6 +439,14 @@ class RoutineCard extends StatelessWidget {
               ],
             ),
           ),
+          // 같은 부위·같은 기구의 다른 운동으로(숫자는 그 운동의 내 세트).
+          if (onSwap != null && i.swaps.isNotEmpty && i.why != 'record')
+            CupertinoButton(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              minimumSize: const Size(44, 44),
+              onPressed: () => _pickSwap(context, l, i),
+              child: Text(l.routineSwap, style: const TextStyle(fontSize: 13)),
+            ),
           // 시작한 기록에만 있는 칸은 ✕ 가 없다 — 카드에서 뺄 것이 없다(기록에서 뺀다).
           if (onRemove != null && i.why != 'record')
             CupertinoButton(
@@ -452,6 +464,36 @@ class RoutineCard extends StatelessWidget {
       ),
     );
   }
+}
+
+extension on RoutineCard {
+  /// 바꿀 운동 고르기 — 시트에 운동과 그 운동의 내 세트(옮겨 올 숫자)를 보인다.
+  Future<void> _pickSwap(BuildContext context, L l, RoutineItem i) =>
+      showCupertinoModalPopup<void>(
+        context: context,
+        builder: (sheet) => CupertinoActionSheet(
+          title: Text(l.routineSwapTitle(_label(i.title))),
+          actions: [
+            for (final s in i.swaps)
+              CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.of(sheet).pop();
+                  onSwap!(i, s.key);
+                },
+                child: Text(
+                  [
+                    _name(s.key),
+                    if (s.sets.isNotEmpty) setsText(l, s.sets),
+                  ].join(' · '),
+                ),
+              ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.of(sheet).pop(),
+            child: Text(l.cancel),
+          ),
+        ),
+      );
 }
 
 /// 짠 루틴의 요약 알약 하나(순발력 날 · 약 61분 · 지난주 금요일 그대로).

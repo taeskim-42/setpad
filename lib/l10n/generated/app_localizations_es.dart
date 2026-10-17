@@ -3927,4 +3927,12 @@ class LEs extends L {
   String routineBpmChip(int bpm) {
     return 'Al ritmo de ${bpm}bpm';
   }
+
+  @override
+  String get routineSwap => 'Cambiar';
+
+  @override
+  String routineSwapTitle(String name) {
+    return 'En lugar de $name: misma zona y equipo, hecho en los últimos 28 días';
+  }
 }

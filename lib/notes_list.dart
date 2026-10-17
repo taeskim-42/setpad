@@ -1104,6 +1104,7 @@ class _NotesListPageState extends State<NotesListPage>
       onPart: () => _edit(text, () => edits.part = draft.partChip),
       onStep: () => _edit(text, () => edits.step = true),
       onMode: (mode) => _edit(text, () => edits.mode = mode),
+      onSwap: (item, key) => _edit(text, () => edits.swap(item.key, key)),
       spent: !charged
           ? (before ? l.routinePlatesBefore : null)
           : account?.platesSpent != null

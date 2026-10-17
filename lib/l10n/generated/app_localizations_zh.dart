@@ -3722,6 +3722,14 @@ class LZh extends L {
   String routineBpmChip(int bpm) {
     return '按${bpm}bpm节拍';
   }
+
+  @override
+  String get routineSwap => '换';
+
+  @override
+  String routineSwapTitle(String name) {
+    return '代替$name — 最近28天做过的同部位、同器械动作';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7442,6 +7450,14 @@ class LZhHans extends LZh {
   String routineBpmChip(int bpm) {
     return '按${bpm}bpm节拍';
   }
+
+  @override
+  String get routineSwap => '换';
+
+  @override
+  String routineSwapTitle(String name) {
+    return '代替$name — 最近28天做过的同部位、同器械动作';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11161,5 +11177,13 @@ class LZhHant extends LZh {
   @override
   String routineBpmChip(int bpm) {
     return '按${bpm}bpm節拍';
+  }
+
+  @override
+  String get routineSwap => '換';
+
+  @override
+  String routineSwapTitle(String name) {
+    return '代替$name — 最近28天做過的同部位、同器械動作';
   }
 }

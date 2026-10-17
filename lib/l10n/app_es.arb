@@ -938,5 +938,7 @@
   "routineDeviceExcluded": "Leído en el teléfono — sin: {list}",
   "routinePlateCost": "1 disco: {list}",
   "routineEstimateNoFirst": "~{minutes} min · sin contar los nuevos",
-  "routineBpmChip": "Al ritmo de {bpm}bpm"
+  "routineBpmChip": "Al ritmo de {bpm}bpm",
+  "routineSwap": "Cambiar",
+  "routineSwapTitle": "En lugar de {name}: misma zona y equipo, hecho en los últimos 28 días"
 }

@@ -3843,4 +3843,12 @@ class LTh extends L {
   String routineBpmChip(int bpm) {
     return 'ตามจังหวะ ${bpm}bpm';
   }
+
+  @override
+  String get routineSwap => 'เปลี่ยน';
+
+  @override
+  String routineSwapTitle(String name) {
+    return 'แทน $name — ท่าส่วนเดียวกันและอุปกรณ์เดียวกันที่ทำใน 28 วันที่ผ่านมา';
+  }
 }

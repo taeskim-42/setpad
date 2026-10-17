@@ -350,6 +350,26 @@ void main() {
     expect(find.text(l.routineClose), findsOneWidget);
   });
 
+  testWidgets('바꾸기: 시트에서 고르면 그 운동의 내 세트로 바뀌고, 다시 켜도 남는다', (tester) async {
+    final edits = QueryCache(
+      directory: Directory.systemTemp.createTempSync('routine_edits'),
+      fileName: 'routine_edits.json',
+    );
+    final store = await pump(tester, edits: edits);
+    await type(tester, '오늘 루틴 짜줘');
+    await tester.tap(find.text(l.routineSwap).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('레그프레스 · '));
+    await tester.pumpAndSettle();
+    expect(find.text('레그컬'), findsNothing);
+    expect(find.text('레그프레스'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await pump(tester, into: store, edits: edits);
+    await type(tester, '오늘 루틴 짜줘');
+    expect(find.text('레그프레스'), findsOneWidget);
+    expect(find.text('레그컬'), findsNothing);
+  });
+
   testWidgets('다른 루틴은 다음 순위의 날을 보인다', (tester) async {
     await pump(tester);
     await type(tester, '오늘 루틴 짜줘');

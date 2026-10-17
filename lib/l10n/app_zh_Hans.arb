@@ -938,5 +938,7 @@
   "routineDeviceExcluded": "已在手机上读出要去掉的动作：{list}",
   "routinePlateCost": "用1片：{list}",
   "routineEstimateNoFirst": "约{minutes}分钟 · 不含第一次做的",
-  "routineBpmChip": "按{bpm}bpm节拍"
+  "routineBpmChip": "按{bpm}bpm节拍",
+  "routineSwap": "换",
+  "routineSwapTitle": "代替{name} — 最近28天做过的同部位、同器械动作"
 }

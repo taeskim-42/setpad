@@ -3762,4 +3762,12 @@ class LKo extends L {
   String routineBpmChip(int bpm) {
     return '${bpm}bpm 박자로';
   }
+
+  @override
+  String get routineSwap => '바꾸기';
+
+  @override
+  String routineSwapTitle(String name) {
+    return '$name 대신 — 최근 28일에 한 같은 부위·기구 운동';
+  }
 }

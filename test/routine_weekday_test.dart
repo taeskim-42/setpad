@@ -613,4 +613,27 @@ void main() {
       );
     });
   });
+
+  test('바꾸기: 같은 부위·같은 기구로 28일 안에 한 운동, 숫자는 그 운동의 마지막 날 세트', () {
+    final wed = routineToday;
+    final d = make(defaultLog(), wed);
+    expect(d.items.map((i) => i.key), ['스쿼트', '루마니안 데드리프트', '레그컬']);
+    final curl = d.items.last;
+    expect(curl.swaps.map((s) => s.key), ['레그프레스']);
+    expect(
+      curl.swaps.single.sets,
+      List.filled(3, (value: 330.0, unit: 'lb', reps: 10)),
+    );
+    final edits = RoutineEdits()..swap('레그컬', '레그프레스');
+    final s = make(defaultLog(), wed, edits: edits);
+    expect(s.items.map((i) => i.key), ['스쿼트', '루마니안 데드리프트', '레그프레스']);
+    expect(s.items.last.sets, curl.swaps.single.sets);
+    expect(s.items.last.day, DateTime(2026, 8, 26));
+    // 또 바꾸면 원래 운동에서 잇는다(레그컬 → 레그프레스 → 레그컬).
+    edits.swap('레그프레스', '레그컬');
+    expect(edits.swapped, {'레그컬': '레그컬'});
+    expect(make(defaultLog(), wed, edits: edits).items.last.key, '레그컬');
+    // 남긴다.
+    expect(RoutineEdits.fromJson(edits.toJson()).swapped, edits.swapped);
+  });
 }
