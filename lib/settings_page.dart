@@ -606,11 +606,14 @@ class _Toggle extends StatelessWidget {
         ),
       ),
     ),
-    child: Row(
-      children: [
-        Expanded(child: Text(label, style: const TextStyle(fontSize: 16))),
-        CupertinoSwitch(value: value, onChanged: onChanged),
-      ],
+    // One node: what the switch turns on, and whether it is on.
+    child: MergeSemantics(
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: const TextStyle(fontSize: 16))),
+          CupertinoSwitch(value: value, onChanged: onChanged),
+        ],
+      ),
     ),
   );
 }

@@ -746,38 +746,39 @@ void main() {
       await done(t, r);
     });
 
-    testWidgets('folding the summary keeps the picked counts; no second flash', (
-      t,
-    ) async {
-      const spec = TimingSpec(tabata: true, rounds: 3);
-      final r = Rig()..startAt(spec, const Duration(seconds: 84));
-      await mount(t, r);
-      await t.tap(key('run-round-1'));
-      await sheet(t);
-      await t.tap(key('count-sheet-plus'));
-      await t.pump();
-      await t.tap(key('count-sheet-done'));
-      await sheet(t);
-      expect(find.text('1R 11'), findsOneWidget);
-      await t.tap(key('run-summary-close'));
-      await sheet(t);
-      expect(find.byType(RunPage), findsNothing);
-      expect(r.rounds, isEmpty);
-      await t.tap(key('open'));
-      await t.pump();
-      await t.pump(const Duration(milliseconds: 50));
-      final glow = t
-          .widgetList<ColoredBox>(find.byType(ColoredBox))
-          .where((b) => b.color.toARGB32() & 0xFFFFFF == 0xFFFFFF);
-      expect(glow.map((b) => b.color.a), everyElement(0), reason: 'no flash');
-      await sheet(t);
-      expect(find.text('1R 11'), findsOneWidget);
-      expect(find.text('3세트 적기'), findsOneWidget);
-      await t.tap(key('run-log'));
-      await sheet(t);
-      expect(r.rounds, [(1, 11), (2, null), (3, null)]);
-      await done(t, r);
-    });
+    testWidgets(
+      'folding the summary keeps the picked counts; no second flash',
+      (t) async {
+        const spec = TimingSpec(tabata: true, rounds: 3);
+        final r = Rig()..startAt(spec, const Duration(seconds: 84));
+        await mount(t, r);
+        await t.tap(key('run-round-1'));
+        await sheet(t);
+        await t.tap(key('count-sheet-plus'));
+        await t.pump();
+        await t.tap(key('count-sheet-done'));
+        await sheet(t);
+        expect(find.text('1R 11'), findsOneWidget);
+        await t.tap(key('run-summary-close'));
+        await sheet(t);
+        expect(find.byType(RunPage), findsNothing);
+        expect(r.rounds, isEmpty);
+        await t.tap(key('open'));
+        await t.pump();
+        await t.pump(const Duration(milliseconds: 50));
+        final glow = t
+            .widgetList<ColoredBox>(find.byType(ColoredBox))
+            .where((b) => b.color.toARGB32() & 0xFFFFFF == 0xFFFFFF);
+        expect(glow.map((b) => b.color.a), everyElement(0), reason: 'no flash');
+        await sheet(t);
+        expect(find.text('1R 11'), findsOneWidget);
+        expect(find.text('3세트 적기'), findsOneWidget);
+        await t.tap(key('run-log'));
+        await sheet(t);
+        expect(r.rounds, [(1, 11), (2, null), (3, null)]);
+        await done(t, r);
+      },
+    );
   });
 
   group('together', () {
@@ -796,9 +797,7 @@ void main() {
       more: more,
       partnerLeft: gone,
       onPropose: (_) {},
-      onToggle: () => true,
       onCancel: () {},
-      onLog: (_) {},
     );
 
     testWidgets('no skip, hold to leave, then rejoin', (t) async {

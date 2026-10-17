@@ -976,9 +976,7 @@ class TogetherTiming {
   const TogetherTiming({
     required this.partner,
     required this.onPropose,
-    required this.onToggle,
     required this.onCancel,
-    required this.onLog,
     this.waiting = false,
     this.busy = false,
     this.live = false,
@@ -1015,10 +1013,5 @@ class TogetherTiming {
   final List<({String name, List<int?> counts})> more;
 
   final void Function(bool alternate) onPropose;
-
-  /// 시작·정지를 눌렀다. true 를 돌려주면 같이 하기가 처리한 것이다(그만두기·
-  /// 다시 들어가기). false 면 혼자 쓰는 타이머가 평소대로 움직인다.
-  final bool Function() onToggle;
   final VoidCallback onCancel;
-  final ValueChanged<int> onLog;
 }

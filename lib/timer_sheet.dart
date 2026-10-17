@@ -157,11 +157,14 @@ class _TimerSheetState extends State<TimerSheet> {
       Key key,
     ) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Expanded(child: Text(label, style: const TextStyle(fontSize: 17))),
-          CupertinoSwitch(key: key, value: value, onChanged: onChanged),
-        ],
+      // One node: what the switch turns on, and whether it is on.
+      child: MergeSemantics(
+        child: Row(
+          children: [
+            Expanded(child: Text(label, style: const TextStyle(fontSize: 17))),
+            CupertinoSwitch(key: key, value: value, onChanged: onChanged),
+          ],
+        ),
       ),
     );
     return SafeArea(
@@ -191,9 +194,9 @@ class _TimerSheetState extends State<TimerSheet> {
                         ),
                       ),
                     ),
-                    CupertinoButton(
+                    _Done(
                       key: const ValueKey('timer-sheet-done'),
-                      minimumSize: const Size(44, 44),
+                      bold: true,
                       onPressed: name == null
                           ? null
                           : () => Navigator.pop<TimerSheetResult>(
@@ -205,10 +208,6 @@ class _TimerSheetState extends State<TimerSheet> {
                                     )
                                   : null,
                             ),
-                      child: Text(
-                        l.doneEditing,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
                     ),
                   ],
                 ),
@@ -295,14 +294,17 @@ class _TimerSheetState extends State<TimerSheet> {
                             children: [
                               TimerMiniBar(spec: _spec!, width: 64),
                               const SizedBox(width: 8),
-                              Text(
-                                l.timerTotalLine(timerClock(_spec!.duration)),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: muted,
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures(),
-                                  ],
+                              Flexible(
+                                child: Text(
+                                  l.timerTotalLine(timerClock(_spec!.duration)),
+                                  maxLines: 2,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: muted,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
@@ -459,102 +461,134 @@ class _ValueSheetState extends State<ValueSheet> {
       color: CupertinoColors.systemBackground.resolveFrom(context),
       child: SafeArea(
         top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      widget.title,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  CupertinoButton(
-                    key: const ValueKey('value-done'),
-                    minimumSize: const Size(44, 44),
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(L.of(context).doneEditing),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _RepeatKey(
-                    key: const ValueKey('value-less'),
-                    icon: CupertinoIcons.minus,
-                    onStep: () => _set(_index - 1),
-                  ),
-                  Expanded(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
+        // Large text on a small phone: scroll, so the presets stay in reach.
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
                       child: Text(
-                        widget.label(_values[_index]),
-                        key: const ValueKey('value-number'),
-                        textScaler: TextScaler.noScaling,
+                        widget.title,
                         style: const TextStyle(
-                          fontSize: 44,
-                          fontWeight: FontWeight.w700,
-                          fontFeatures: [FontFeature.tabularFigures()],
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                  ),
-                  _RepeatKey(
-                    key: const ValueKey('value-more'),
-                    icon: CupertinoIcons.plus,
-                    onStep: () => _set(_index + 1),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 18,
-                child: Text(
-                  _hint ?? '',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: CupertinoColors.secondaryLabel.resolveFrom(context),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 180,
-                child: MediaQuery.withNoTextScaling(
-                  child: CupertinoPicker(
-                    scrollController: _wheel,
-                    itemExtent: 36,
-                    onSelectedItemChanged: (i) => _set(i, fromWheel: true),
-                    children: [
-                      for (final v in _values)
-                        Center(child: Text(widget.label(v))),
-                    ],
-                  ),
-                ),
-              ),
-              Wrap(
-                alignment: WrapAlignment.center,
-                children: [
-                  for (final p in widget.presets)
-                    _ValueChip(
-                      key: ValueKey('value-preset-$p'),
-                      text: widget.label(p),
-                      selected: _values[_index] == p,
-                      onTap: () => _set(_values.indexOf(p)),
+                    _Done(
+                      key: const ValueKey('value-done'),
+                      onPressed: () => Navigator.pop(context),
                     ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _RepeatKey(
+                      key: const ValueKey('value-less'),
+                      icon: CupertinoIcons.minus,
+                      onStep: () => _set(_index - 1),
+                    ),
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          widget.label(_values[_index]),
+                          key: const ValueKey('value-number'),
+                          textScaler: TextScaler.noScaling,
+                          style: const TextStyle(
+                            fontSize: 44,
+                            fontWeight: FontWeight.w700,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ),
+                    ),
+                    _RepeatKey(
+                      key: const ValueKey('value-more'),
+                      icon: CupertinoIcons.plus,
+                      onStep: () => _set(_index + 1),
+                    ),
+                  ],
+                ),
+                // At least the room of one small line; large text takes more.
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 18),
+                  child: Text(
+                    _hint ?? '',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 180,
+                  child: MediaQuery.withNoTextScaling(
+                    child: CupertinoPicker(
+                      scrollController: _wheel,
+                      itemExtent: 36,
+                      onSelectedItemChanged: (i) => _set(i, fromWheel: true),
+                      children: [
+                        for (final v in _values)
+                          Center(child: Text(widget.label(v))),
+                      ],
+                    ),
+                  ),
+                ),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  children: [
+                    for (final p in widget.presets)
+                      _ValueChip(
+                        key: ValueKey('value-preset-$p'),
+                        text: widget.label(p),
+                        selected: _values[_index] == p,
+                        onTap: () => _set(_values.indexOf(p)),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+/// [완료] in a sheet header: at most half the width, shrinking its label
+/// rather than pushing the title row over the edge (large text, long words).
+class _Done extends StatelessWidget {
+  const _Done({super.key, required this.onPressed, this.bold = false});
+  final VoidCallback? onPressed;
+  final bool bold;
+
+  @override
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width / 2),
+    child: CupertinoButton(
+      minimumSize: const Size(44, 44),
+      onPressed: onPressed,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          L.of(context).doneEditing,
+          maxLines: 1,
+          style: bold ? const TextStyle(fontWeight: FontWeight.w600) : null,
+        ),
+      ),
+    ),
+  );
 }
 
 /// −/+ that repeats while held: after 300 ms, every 100 ms.
@@ -633,7 +667,6 @@ class _ValueChip extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 44),
         margin: const EdgeInsets.fromLTRB(0, 4, 8, 4),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: sealTint.resolveFrom(context),
           border: selected
@@ -641,14 +674,20 @@ class _ValueChip extends StatelessWidget {
               : null,
           borderRadius: BorderRadius.circular(22),
         ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 15,
-            color: onTap == null
-                ? CupertinoColors.secondaryLabel.resolveFrom(context)
-                : seal.resolveFrom(context),
-            fontFeatures: const [FontFeature.tabularFigures()],
+        // Hug the text: a Wrap hands out the full width (a chip a row made
+        // the value sheet taller than a small phone).
+        child: Center(
+          widthFactor: 1,
+          heightFactor: 1,
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 15,
+              color: onTap == null
+                  ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                  : seal.resolveFrom(context),
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
           ),
         ),
       ),

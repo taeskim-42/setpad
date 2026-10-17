@@ -832,6 +832,12 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// A ▶ is being handled (asks, permissions): a second one is ignored.
   bool _starting = false;
 
+  /// Cards whose metronome goal from the total (what is left of it) was
+  /// turned off in the sheet. The total itself stays as typed.
+  /// ponytail: kept while this editor lives, not saved; a reopened record
+  /// shows the goal again. Save it with the setup if that bites.
+  final _noGoal = <String>{};
+
   /// The sheet changes these settings while the page that passed them in
   /// does not rebuild; the latest of either wins.
   late bool _aloud = widget.countAloud, _buzz = widget.hapticsOn;
@@ -1516,9 +1522,7 @@ class _RoutineEditorState extends State<RoutineEditor>
       onPropose: (alternate) => unawaited(
         _proposeShared(block, TimingSpec.parse(block.name)!, alternate),
       ),
-      onToggle: () => _togetherToggle(block),
       onCancel: sync.clearTimer,
-      onLog: (n) => _c.logReps(block, n),
     );
   }
 
@@ -1542,7 +1546,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     final setup = block.setup;
     final goal =
         setup?.repsPerSet ??
-        (setup?.totalReps == null
+        (setup?.totalReps == null || _noGoal.contains(block.id)
             ? null
             : max(0, setup!.totalReps! - block.completedReps));
     return goal == null || goal == 0 ? null : goal;
@@ -1762,8 +1766,15 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   /// The timer sheet for [block]: rewrites the title (the title is the
   /// timer) and the metronome goal (reps per set).
-  Future<void> _editTimer(ExerciseBlock block) async {
-    _hideKeyboard();
+  ///
+  /// Only the keyboard goes down under the sheet: an open ⋯ chip row stays,
+  /// and the keypad comes back after it — also for a card made [fresh] for
+  /// it, as a typed name would.
+  Future<void> _editTimer(ExerciseBlock block, {bool fresh = false}) async {
+    final hadPad = !_timingKeyboardHidden;
+    _focus.unfocus();
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    setState(() => _timingKeyboardHidden = true);
     final t = _workoutTimer;
     // The title is the timer: changing it clears this card's run. One that
     // is going, paused or still owes sets stays as it is — read only, saying
@@ -1771,13 +1782,14 @@ class _RoutineEditorState extends State<RoutineEditor>
     final mine = identical(t.owner, block);
     final over = t.phase == TimingPhase.complete || t.endedEarly;
     final owes = mine && owesLog(t, _link);
+    // The goal the card shows (reps per set, else what is left of the total).
+    final shown = _targetFor(block) ?? 0;
     final result = await showTimerSheet(
       context,
       name: block.name,
-      target: block.setup?.repsPerSet ?? 0,
+      target: shown,
       readOnly:
-          owes ||
-          (mine && !over && (t.running || t.elapsed > Duration.zero)),
+          owes || (mine && !over && (t.running || t.elapsed > Duration.zero)),
       readOnlyNote: owes ? owesText(L.of(context), t, _link) : null,
       countAloud: _aloud,
       onCountAloud: widget.onCountAloud == null
@@ -1794,13 +1806,19 @@ class _RoutineEditorState extends State<RoutineEditor>
               widget.onHaptics!(v);
             },
     );
-    if (result == null || !mounted) return;
+    if (!mounted) return;
+    if (hadPad || fresh) _reopen();
+    if (result == null) return;
     var index = _c.blocks.indexOf(block);
     if (index < 0) return;
     if (result.name != block.name) {
       _c.renameBlock(index, result.name, learn: false);
     }
+    // Untouched, the setup stays as typed: a goal from the total is not
+    // made into reps per set. Off turns that one off too.
+    if (result.target == shown) return;
     final goal = result.target == 0 ? null : result.target;
+    goal == null ? _noGoal.add(block.id) : _noGoal.remove(block.id);
     if (goal != block.setup?.repsPerSet) {
       index = _c.blocks.indexOf(block);
       _c.updateSetup(
@@ -1816,14 +1834,15 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   /// A candidate chip on the empty name line: a new tabata or metronome card,
-  /// then its sheet. Nothing is written into the text field.
+  /// then its sheet. Nothing is written into the text field, and the
+  /// placeholder name is not learned as an exercise.
   void _newTimer(bool tabata) {
     final name = tabata
         ? tabataWord(Localizations.localeOf(context).languageCode)
         : newBpmName;
-    _c.addExercise(name);
+    _c.addExercise(name, learnAs: '');
     final block = _c.blocks.last;
-    unawaited(_editTimer(block));
+    unawaited(_editTimer(block, fresh: true));
   }
 
   @override

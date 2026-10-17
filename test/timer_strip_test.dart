@@ -6,10 +6,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/keypad.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/rest_recovery.dart';
 import 'package:setpad/run_link.dart';
 import 'package:setpad/run_page.dart';
+import 'package:setpad/setup_chips.dart';
 import 'package:setpad/timer_sheet.dart';
 import 'package:setpad/timer_strip.dart';
 import 'package:setpad/workout_timing.dart';
@@ -396,9 +398,7 @@ void main() {
     await finish(tester);
   });
 
-  testWidgets('권한을 묻는 동안 ▶ 을 또 눌러도 한 번만 시작한다(일시정지로 뒤집히지 않음)', (
-    tester,
-  ) async {
+  testWidgets('권한을 묻는 동안 ▶ 을 또 눌러도 한 번만 시작한다(일시정지로 뒤집히지 않음)', (tester) async {
     final gate = Completer<void>();
     final c = RoutineEditorController()
       ..addExercise('버피 타바타')
@@ -530,9 +530,7 @@ void main() {
             waiting: waiting,
             busy: busy,
             onPropose: proposed.add,
-            onToggle: () => false,
             onCancel: () => cancelled++,
-            onLog: (_) {},
           );
 
       await mount(tester, tabata, duo(), onStart: () => started++);
@@ -582,9 +580,7 @@ void main() {
     final duo = TogetherTiming(
       partner: 'Mina',
       onPropose: (_) {},
-      onToggle: () => false,
       onCancel: () {},
-      onLog: (_) {},
     );
     for (final lang in ['ko', 'en', 'es', 'th', 'vi']) {
       for (final scale in [1.0, 2.0]) {
@@ -645,6 +641,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('timer-sheet-done')));
       await tester.pumpAndSettle();
       expect(c.blocks.single.name, word);
+      expect(c.recentExercises, isEmpty, reason: 'a placeholder, not a name');
     }
     final c = RoutineEditorController();
     await tester.pumpWidget(
@@ -655,6 +652,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(c.blocks.single.name, '60bpm');
     expect(TimingSpec.parse(c.blocks.single.name)!.bpm, 60);
+    await tester.tap(find.byKey(const ValueKey('timer-sheet-done')));
+    await tester.pumpAndSettle();
+    expect(c.recentExercises, isEmpty);
+    expect(find.byType(SetKeypad), findsOneWidget, reason: 'sets go in next');
     // Typed text hides the chips (the name line is not empty any more).
     await finish(tester);
   });
@@ -681,7 +682,40 @@ void main() {
     await tester.pumpAndSettle();
     expect(c.blocks.single.name, '푸시업 60bpm');
     expect(find.byType(TimerStrip), findsOneWidget);
-    expect(find.text('60 BPM'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('timer-summary')),
+        matching: find.text('60 BPM'),
+      ),
+      findsOneWidget,
+    );
+    await finish(tester);
+  });
+
+  testWidgets('⋯ 칩 줄에서 연 타이머 시트를 닫으면(완료든 취소든) 칩 줄과 키패드가 그대로다', (tester) async {
+    final c = RoutineEditorController()..addExercise('푸시업');
+    await tester.pumpWidget(app(RoutineEditor(controller: c, timer: timer)));
+    await tester.pumpAndSettle();
+    expect(find.byType(SetKeypad), findsOneWidget);
+    await tester.tap(
+      find.byKey(ValueKey('exercise-settings-${c.blocks.single.id}')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(SetupChips), findsOneWidget);
+    for (final close in ['timer-sheet-done', null]) {
+      await tester.tap(find.byKey(const ValueKey('setup-timer')));
+      await tester.pumpAndSettle();
+      expect(find.byType(TimerSheet), findsOneWidget);
+      if (close == null) {
+        await tester.tapAt(const Offset(10, 10)); // the barrier
+      } else {
+        await tester.tap(find.byKey(ValueKey(close)));
+      }
+      await tester.pumpAndSettle();
+      expect(find.byType(TimerSheet), findsNothing);
+      expect(find.byType(SetupChips), findsOneWidget, reason: '$close');
+      expect(find.byType(SetKeypad), findsOneWidget, reason: '$close');
+    }
     await finish(tester);
   });
 

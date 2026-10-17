@@ -1,10 +1,12 @@
 // 타이머 시트 — [완료] 가 제목을 다시 쓰고(제목이 곧 설정), 박자 목표는 칸의 설정에,
 // 값 시트는 범위 안에서만, 돌고 있는 칸은 읽기 전용, 설정 화면의 진동 토글.
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
+import 'package:setpad/record_ai.dart' show WorkoutSetup;
 import 'package:setpad/run_page.dart';
 import 'package:setpad/settings_page.dart';
 import 'package:setpad/timer_sheet.dart';
@@ -79,13 +81,21 @@ void main() {
   tearDown(() => timer.dispose());
 
   Future<void> openSheet(WidgetTester tester, RoutineEditorController c) async {
-    await tester.tap(
-      find.byKey(ValueKey('exercise-settings-${c.blocks.single.id}')),
-    );
-    await tester.pumpAndSettle();
+    // The ⋯ chip row stays open after the sheet; open it only when shut.
+    if (find.byKey(const ValueKey('setup-timer')).evaluate().isEmpty) {
+      await tester.tap(
+        find.byKey(ValueKey('exercise-settings-${c.blocks.single.id}')),
+      );
+      await tester.pumpAndSettle();
+    }
     await tester.tap(find.byKey(const ValueKey('setup-timer')));
     await tester.pumpAndSettle();
   }
+
+  Finder stripText(String text) => find.descendant(
+    of: find.byKey(const ValueKey('timer-summary')),
+    matching: find.text(text),
+  );
 
   testWidgets('값 시트: −/+ 는 범위 끝에서 멈추고 알리며, 프리셋·휠이 같은 값을 쓴다', (tester) async {
     final c = RoutineEditorController()
@@ -176,7 +186,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(c.blocks.single.name, '푸시업 60bpm');
     expect(c.blocks.single.setup?.repsPerSet, 30);
-    expect(find.text('60 BPM · 목표 30회'), findsOneWidget);
+    expect(stripText('60 BPM · 목표 30회'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('timer-start')));
     await tester.pumpAndSettle();
@@ -199,6 +209,169 @@ void main() {
     );
     await tester.pumpWidget(const SizedBox());
     timer.reset();
+  });
+
+  testWidgets('카드가 보이는 목표(총 개수에서 남은 수)를 시트도 보이고, 없음을 고르면 엔진 목표도 꺼진다', (
+    tester,
+  ) async {
+    final c = RoutineEditorController()
+      ..addExercise(
+        '푸시업 60bpm',
+        setup: const WorkoutSetup(name: '푸시업 60bpm', totalReps: 100),
+      )
+      ..closeBlock();
+    await tester.pumpWidget(
+      app(
+        RoutineEditor(
+          controller: c,
+          timer: timer,
+          askTimerPermissions: () async {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(stripText('60 BPM · 목표 100회'), findsOneWidget);
+    await openSheet(tester, c);
+    expect(find.text('목표 100회'), findsOneWidget);
+    // Untouched: the setup stays as typed (no reps per set made up).
+    await tester.tap(find.byKey(const ValueKey('timer-sheet-done')));
+    await tester.pumpAndSettle();
+    expect(c.blocks.single.setup?.repsPerSet, isNull);
+    await openSheet(tester, c);
+    await tester.tap(find.byKey(const ValueKey('timer-target')));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(CupertinoPicker), const Offset(0, 6000));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<Text>(find.byKey(const ValueKey('value-number'))).data,
+      '목표 없음',
+    );
+    await tester.tap(find.byKey(const ValueKey('value-done')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('timer-sheet-done')));
+    await tester.pumpAndSettle();
+    expect(c.blocks.single.setup?.totalReps, 100, reason: 'the total stays');
+    expect(stripText('60 BPM'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('timer-start')));
+    await tester.pumpAndSettle();
+    expect(timer.target, isNull, reason: 'counts on, no goal');
+    Navigator.of(tester.element(find.byType(RunPage))).pop();
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
+    timer.reset();
+  });
+
+  testWidgets(
+    '320×568·글자 2.0·9개 언어: 시트·값 시트가 넘치지 않고, 프리셋에 닿으며, 한계 안내가 잘리지 않는다',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      for (final locale in L.supportedLocales) {
+        final l = await L.delegate.load(locale);
+        await tester.pumpWidget(
+          app(
+            Builder(
+              builder: (context) => CupertinoButton(
+                key: const ValueKey('go'),
+                onPressed: () => showTimerSheet(
+                  context,
+                  name: '버피 타바타 45/15 x8 100bpm',
+                  target: 30,
+                  onCountAloud: (_) {},
+                  onHaptics: (_) {},
+                ),
+                child: const Text('go'),
+              ),
+            ),
+            locale: locale,
+            scale: 2.0,
+          ),
+        );
+        await tester.tap(find.byKey(const ValueKey('go')));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull, reason: '$locale sheet');
+        await tester.ensureVisible(find.byKey(const ValueKey('timer-rounds')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('timer-rounds')));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull, reason: '$locale value sheet');
+        for (var i = 0; i < 8; i++) {
+          await tester.tap(find.byKey(const ValueKey('value-less')));
+          await tester.pump();
+        }
+        final hint = tester.renderObject<RenderParagraph>(
+          find.text(l.timerMinValue),
+        );
+        expect(
+          hint.size.height,
+          greaterThanOrEqualTo(hint.getMaxIntrinsicHeight(hint.size.width)),
+          reason: '$locale hint clipped',
+        );
+        expect(tester.takeException(), isNull, reason: '$locale hint');
+        await tester.ensureVisible(
+          find.byKey(const ValueKey('value-preset-12')),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('value-preset-12')));
+        await tester.pump();
+        expect(
+          tester.widget<Text>(find.byKey(const ValueKey('value-number'))).data,
+          '12',
+          reason: '$locale presets in reach',
+        );
+        await tester.pumpWidget(const SizedBox());
+      }
+    },
+  );
+
+  testWidgets('스위치는 무엇을 켜는지 읽힌다(시트 넷, 설정 화면의 토글)', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      app(
+        TimerSheet(
+          name: '버피 타바타 45/15 x8 100bpm',
+          target: 30,
+          onCountAloud: (_) {},
+          onHaptics: (_) {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    for (final (k, label) in [
+      ('timer-tabata', '타바타'),
+      ('timer-beat', '박자'),
+      ('timer-aloud', '박자를 소리내어 세기'),
+      ('timer-haptics', '진동'),
+    ]) {
+      expect(
+        tester.getSemantics(find.byKey(ValueKey(k))).label,
+        label,
+        reason: k,
+      );
+    }
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        supportedLocales: L.supportedLocales,
+        localizationsDelegates: L.localizationsDelegates,
+        home: SettingsPage(store: NotesStore()),
+      ),
+    );
+    expect(
+      tester
+          .getSemantics(
+            find.descendant(
+              of: find.byKey(const ValueKey('settings-haptics')),
+              matching: find.byType(CupertinoSwitch),
+            ),
+          )
+          .label,
+      '타이머 진동',
+    );
+    semantics.dispose();
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 2));
   });
 
   testWidgets('둘 다 끄면 이름이 남을 때만 [완료], 타이머만이던 이름은 먼저 적게 한다', (tester) async {
