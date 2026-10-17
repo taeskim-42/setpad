@@ -51,10 +51,13 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
     private var pendingPhrase: Runnable? = null
     private val measuring = Executors.newSingleThreadExecutor()
 
-    private fun sound(asset: String): Int? = sounds[asset] ?: runCatching {
-        val key = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset(asset)
-        // Its length, for "still sounding": measured once, off the main thread.
-        if (asset !in lengths) measuring.execute {
+    private fun key(asset: String) = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset(asset)
+
+    /// Its length, for "still sounding": measured once, off the main thread.
+    private fun measure(asset: String) {
+        if (asset in lengths) return
+        val key = key(asset)
+        measuring.execute {
             runCatching {
                 activity.assets.openFd(key).use { fd ->
                     MediaMetadataRetriever().run {
@@ -66,8 +69,14 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                 }
             }.getOrNull()?.let { ms -> handler.post { lengths[asset] = ms } }
         }
-        activity.assets.openFd(key).use { pool.load(it, 1) }
+    }
+
+    private fun sound(asset: String): Int? = sounds[asset] ?: runCatching {
+        measure(asset)
+        activity.assets.openFd(key(asset)).use { pool.load(it, 1) }
     }.getOrNull()?.also { sounds[asset] = it }
+
+    private val countAsset = Regex("^(assets/voice/count/en/[mw]/)(\\d+)\\.m4a$")
 
     // A count (onBeat) matches Tempo: half a beat after the click, capped at
     // one second. The count comes from Dart's clock and the click from this
@@ -80,6 +89,12 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
     private fun playVoice(asset: String, onBeat: Boolean) {
         if (onBeat && pendingPhrase != null) return
         val id = sound(asset) ?: return
+        // Counts go in order: load the next two now, so neither waits on SoundPool
+        // at its beat (only the latest 40 words stay loaded).
+        countAsset.find(asset)?.let { m ->
+            val n = m.groupValues[2].toInt()
+            for (next in n + 1..minOf(n + 2, 100)) sound("${m.groupValues[1]}$next.m4a")
+        }
         var patience = 3000L
         var countRemaining = 0L
         if (onBeat) {
@@ -135,6 +150,9 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                     for (sex in listOf("m", "w")) {
                         for (n in 1..10) sound("assets/voice/count/en/$sex/$n.m4a")
                         for (key in listOf("start", "rest")) sound("assets/voice/en/$sex/$key.m4a")
+                        // Every count's length now, so none is taken for 1.2 s on first use
+                        // (the app's plan of counts, countsSaid, counts on the real length).
+                        for (n in 11..100) measure("assets/voice/count/en/$sex/$n.m4a")
                     }
                 }
                 result.success(null)

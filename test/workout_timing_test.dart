@@ -510,8 +510,8 @@ void _aloud() {
       return audio.counts;
     }
 
-    // At 120 bpm "Two" would hold up "Three": every 2nd from Two, every 5th
-    // from Thirty-five ("Thirty" would hold up "Thirty-two").
+    // At 120 bpm "Two" would hold up "Three": every 2nd from Two to Thirty,
+    // every 5th from Thirty-five ("Thirty-two" would hold up "Thirty-four").
     final fast = [
       1,
       for (var n = 2; n <= 30; n += 2) n,
@@ -1234,12 +1234,13 @@ void _engine() {
 
 void _countPlan() {
   group('세는 말 고르기', () {
-    // Each platform's own rule, apart from the plan: a count is tried half a
-    // beat after its click (Android 5 ms later), waits while the word before
-    // sounds (looking every 20 ms), and is dropped when that word still sounds
-    // a quarter beat after its moment. A word sounds from its start for its
-    // audible length on iOS (AVAudioPlayer.duration) and for the file's length
-    // on Android (MediaMetadataRetriever, encoder priming included).
+    // Each platform's own rule, apart from the plan (TimingBridge playVoice):
+    // a count is first tried 5 ms after its moment (half a beat after its
+    // click) and again every 20 ms while the word before sounds; a try at or
+    // past the give-up time drops it — a quarter beat after the moment on
+    // Android, after the first try on iOS. A word sounds from its start for
+    // its audible length on iOS (AVAudioPlayer.duration) and for the file's
+    // length on Android (MediaMetadataRetriever, encoder priming included).
     // Returns the counts dropped and the latest start, in ms past a moment.
     ({List<int> dropped, double late}) device(
       String platform,
@@ -1252,14 +1253,18 @@ void _countPlan() {
       var end = double.negativeInfinity, late = 0.0;
       final dropped = <int>[];
       for (final n in said) {
-        final at = (n - 1) * period + half + (platform == 'android' ? 5 : 0);
-        if (end > at + period / 4) {
+        final at = (n - 1) * period + half;
+        final giveUp = at + period / 4 + (platform == 'ios' ? 5 : 0);
+        var tried = at + 5;
+        while (tried < end && tried < giveUp) {
+          tried += 20;
+        }
+        if (tried < end) {
           dropped.add(n);
           continue;
         }
-        final start = end <= at ? at : at + ((end - at) / 20).ceil() * 20;
-        late = math.max(late, start - at);
-        end = start + length[voice]![n - 1];
+        late = math.max(late, tried - at);
+        end = tried + length[voice]![n - 1];
       }
       return (dropped: dropped, late: late);
     }
