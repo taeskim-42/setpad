@@ -577,4 +577,36 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 2));
   });
+
+  test('a timer action answered after the record closed does not notify '
+      'the disposed PartnerSync', () async {
+    final gate = Completer<void>();
+    final client = MockClient((request) async {
+      if (request.url.path.endsWith('/timer')) await gate.future;
+      return http.Response.bytes(
+        utf8.encode(jsonEncode({'error': 'unavailable'})),
+        503,
+      );
+    });
+    final note =
+        Note(
+            id: 'n1',
+            createdAt: DateTime(2026, 10, 17),
+            updatedAt: DateTime(2026, 10, 17),
+          )
+          ..partner = PartnerSession(
+            id: 'S1',
+            host: true,
+            state: PartnerState.active,
+          );
+    final sync = PartnerSync(
+      note: note,
+      link: () => GymLink(endpoint: 'https://x', token: 'me', client: client),
+      onChanged: () {},
+    );
+    final pending = sync.clearTimer();
+    sync.dispose();
+    gate.complete();
+    await expectLater(pending, completes);
+  });
 }

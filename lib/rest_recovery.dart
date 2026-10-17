@@ -81,10 +81,32 @@ class RestRecovery extends ChangeNotifier {
     _feed = feed;
   }
 
+  /// [listen], but only when the heart rate reads without asking
+  /// ([HealthLink.mayWatchHeart]): a set rest never brings up a permission
+  /// sheet (spec focus-stage-1.8 §5 "권한은 새로 묻지 않는다"). A yes is kept;
+  /// a no is asked again at the next rest (the tabata may have asked since).
+  void listenQuietly() {
+    if (_feed != null) return;
+    _wanted = true;
+    if (_mayWatch) return listen();
+    if (_checking) return;
+    _checking = true;
+    unawaited(
+      health.mayWatchHeart().then((ok) {
+        _checking = false;
+        _mayWatch = ok;
+        if (ok && _wanted && !_disposed) listen();
+      }),
+    );
+  }
+
+  bool _wanted = false, _mayWatch = false, _checking = false, _disposed = false;
+
   /// 심박 받기를 멈춘다. 타바타가 멈추면 부른다 — 휴식을 끊을 일이 없는데 계속
   /// 읽지 않는다(Android 는 10초마다 읽고, iOS 는 워치가 쓸 때마다 앱을 깨운다).
   /// 받아 둔 값은 남긴다 — 다시 켜면 같은 값은 [_took] 이 거른다.
   void stop() {
+    _wanted = false;
     _feed?.cancel();
     _feed = null;
   }
@@ -126,6 +148,7 @@ class RestRecovery extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _feed?.cancel();
     _feed = null;
     super.dispose();

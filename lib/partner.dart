@@ -1038,7 +1038,7 @@ class PartnerSync extends ChangeNotifier {
       conflict = null;
       onChanged();
     }
-    notifyListeners();
+    if (!_disposed) notifyListeners();
   }
 
   /// 마지막 타이머 동작이 왜 안 됐는가. 성공하면 비운다. 화면(타이머 칸)이 한 줄로
@@ -1051,7 +1051,10 @@ class PartnerSync extends ChangeNotifier {
   Future<void> _timerAction(Map<String, Object?> action) async {
     final s = session;
     if (s == null || s.state != PartnerState.active) return;
-    timerError = await _run((l) => l.partnerTimer(s.id, action), quiet: true);
+    final error = await _run((l) => l.partnerTimer(s.id, action), quiet: true);
+    // The record page closed while it was on its way.
+    if (_disposed) return;
+    timerError = error;
     _failedTimerAction = timerError == null ? null : action;
     notifyListeners();
   }
