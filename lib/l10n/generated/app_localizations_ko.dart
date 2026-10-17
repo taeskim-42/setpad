@@ -3731,6 +3731,12 @@ class LKo extends L {
   String get partnerErrLeft => '같이 하던 사람이 나갔어요.';
 
   @override
+  String get partnerErrBusy => '이미 열린 같이 하기가 있어요. 그것을 끝낸 뒤 다시 들어와 주세요.';
+
+  @override
+  String get partnerEndedGroup => '함께 운동이 종료됐습니다. 내 기록은 그대로 남아 있습니다.';
+
+  @override
   String get partnerNotYours => '상대가 적은 세트는 고칠 수 없어요. 그 사람의 기록이에요.';
 
   @override

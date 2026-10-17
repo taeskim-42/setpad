@@ -3812,6 +3812,14 @@ class LTh extends L {
   String get partnerErrLeft => 'คนที่ออกกำลังด้วยกันออกไปแล้ว';
 
   @override
+  String get partnerErrBusy =>
+      'คุณกำลังออกกำลังด้วยกันอยู่แล้ว จบก่อนแล้วค่อยเข้าร่วมใหม่';
+
+  @override
+  String get partnerEndedGroup =>
+      'การออกกำลังด้วยกันจบแล้ว บันทึกของคุณยังอยู่';
+
+  @override
   String get partnerNotYours => 'แก้เซ็ตที่อีกคนบันทึกไม่ได้ เป็นบันทึกของเขา';
 
   @override

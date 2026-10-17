@@ -932,6 +932,8 @@
   "refusedClassCancelled": "Lớp này đã nghỉ.",
   "refusedAccountBlocked": "Bạn là chủ hoặc huấn luyện viên của một phòng tập. Hãy rời hoặc xóa phòng tập trước, rồi mới xóa tài khoản.",
   "partnerErrLeft": "Những người tập cùng bạn đã rời đi.",
+  "partnerErrBusy": "Bạn đang tập cùng nhau rồi. Hãy kết thúc trước rồi tham gia lại.",
+  "partnerEndedGroup": "Buổi tập cùng nhau đã kết thúc. Ghi chép của bạn vẫn còn.",
   "partnerNotYours": "Bạn không thể sửa hiệp do người khác ghi. Đó là bản ghi của họ.",
   "partnerRoutinePlan": "Chốt thành lịch tập",
   "partnerCodeHint": "Nhập sáu ký tự hiện trên màn hình của người kia.",

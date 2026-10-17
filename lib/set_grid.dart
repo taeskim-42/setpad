@@ -158,6 +158,7 @@ class SetGrid extends StatelessWidget {
     final scaler = MediaQuery.textScalerOf(context);
     final label = CupertinoColors.label.resolveFrom(context);
     final faint = CupertinoColors.tertiaryLabel.resolveFrom(context);
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
     final green = CupertinoColors.systemGreen.resolveFrom(context);
     final style = _cellStyle(context);
     InlineSpan span(int i, LoggedSet set) =>
@@ -197,6 +198,9 @@ class SetGrid extends StatelessWidget {
           2 => needs[i],
           _ => widest > avail ? avail : widest,
         };
+        // 남이 적은 세트(고치는 자리에서). 칸 전체를 흐리면 글자 대비가 AA 아래로 떨어진다 —
+        // 글자는 조금만 옅게, 바탕·테두리를 옅게 하고, 이름 첫 글자는 그 사람 색 그대로다.
+        bool theirs(LoggedSet set) => set.theirs && onTapSet != null;
         // 칸 하나의 상자. [target] 이면 끌어 온 세트가 놓일 자리라 호박색 테두리다.
         Widget cellBox(int i, LoggedSet set, {bool target = false}) => SizedBox(
           // 열 폭의 합이 반올림으로 줄 폭을 넘지 않게 조금 덜 준다.
@@ -225,7 +229,7 @@ class SetGrid extends StatelessWidget {
                   color: i == editingSet
                       ? sealTint.resolveFrom(context)
                       : onTapSet != null && set.done
-                      ? green.withValues(alpha: 0.14)
+                      ? green.withValues(alpha: theirs(set) ? 0.07 : 0.14)
                       : null,
                   border: target
                       ? Border.all(color: seal.resolveFrom(context), width: 2)
@@ -237,7 +241,9 @@ class SetGrid extends StatelessWidget {
                       ? null
                       : Border.all(
                           color: set.done
-                              ? green.withValues(alpha: 0.45)
+                              ? green.withValues(
+                                  alpha: theirs(set) ? 0.25 : 0.45,
+                                )
                               : CupertinoColors.separator.resolveFrom(context),
                           width: set.done ? 1 : 0.5,
                         ),
@@ -247,7 +253,13 @@ class SetGrid extends StatelessWidget {
                   span(i, set),
                   maxLines: 1,
                   softWrap: false,
-                  style: style.copyWith(color: set.done ? label : faint),
+                  style: style.copyWith(
+                    color: theirs(set)
+                        ? (set.done ? label.withValues(alpha: 0.7) : muted)
+                        : set.done
+                        ? label
+                        : faint,
+                  ),
                 ),
               ),
               if (records.contains(i))
@@ -265,7 +277,7 @@ class SetGrid extends StatelessWidget {
             ],
           ),
         );
-        // 남이 적은 세트는 그 사람의 기록이다 — 흐리게 두고(이름 첫 글자는 그대로) 끌리지 않는다.
+        // 남이 적은 세트는 그 사람의 기록이다 — 옅게 두고 끌리지 않는다.
         // 누르면 편집기가 고칠 수 없다고 말한다.
         Widget tile(int i, LoggedSet set, {bool target = false}) =>
             GestureDetector(
@@ -277,12 +289,7 @@ class SetGrid extends StatelessWidget {
                       _repsSide(context, l, i, set, d.localPosition.dx),
                     ),
               behavior: HitTestBehavior.opaque,
-              child: set.theirs && onTapSet != null
-                  ? Opacity(
-                      opacity: 0.5,
-                      child: cellBox(i, set, target: target),
-                    )
-                  : cellBox(i, set, target: target),
+              child: cellBox(i, set, target: target),
             );
         // 세트를 길게 눌러 끌어다 다른 칸에 놓으면 그 자리로 옮긴다. 누르기(고치기)와
         // 목록 스크롤은 그대로다 — 길게 눌러야 끌린다.
@@ -312,9 +319,20 @@ class SetGrid extends StatelessWidget {
           children: [
             for (final (i, set) in block.sets.indexed)
               Semantics(
-                button: onTapSet != null,
-                label:
-                    '${l.setOrdinal(i + 1)} ${setLabel(value: set.value, unit: set.unit, reps: set.reps, formatReps: l.repsCount)}',
+                // 남의 세트는 고칠 수 없다 — 버튼이라 하지 않고, 누구 것인지와 읽기 전용임을
+                // 말한다(눈으로는 이름 첫 글자와 옅은 칸으로 안다). 누르면 이유를 말한다.
+                button: onTapSet != null && !set.theirs,
+                label: [
+                  if (set.theirs) l.partnerTheirRecord(set.author!),
+                  l.setOrdinal(i + 1),
+                  setLabel(
+                    value: set.value,
+                    unit: set.unit,
+                    reps: set.reps,
+                    formatReps: l.repsCount,
+                  ),
+                ].join(' '),
+                hint: set.theirs ? l.partnerReadOnly : null,
                 // 해낸 세트인지는 색만이 아니라 읽어 주는 말로도 전한다.
                 checked: set.done,
                 // 읽어 주기에서도 누르고(고치기) 옮긴다 — 끌기는 손가락으로만 된다.

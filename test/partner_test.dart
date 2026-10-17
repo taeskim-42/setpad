@@ -1560,9 +1560,10 @@ void main() {
         isTrue,
         reason: '한 명이라도 확인하면 계획 중',
       );
+      // 누가 고쳐 확인이 풀려도 계획에 머문다 — 확인하지 않은 사람의 확인 자리가 남는다.
       (t.state['doc'] as Map)['accepted'] = <String>[];
       await t.sync.refresh();
-      expect(t.note.partner!.routinePlanning, isFalse);
+      expect(t.note.partner!.routinePlanning, isTrue);
     });
 
     test(

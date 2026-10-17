@@ -2626,6 +2626,11 @@ class _RoutineEditorState extends State<RoutineEditor>
     final memo =
         pick == null && (editing != null || (_wantText && _c.lastSet != null));
     final wasText = _wantText;
+    // 남의 세트뿐인 운동이다 — 메모는 붙지 않는다. 친 글을 지우지 않고 이유를 말한다.
+    if (memo && editing == null && _c.lastSet!.theirs) {
+      unawaited(_say(L.of(context).partnerNotYours));
+      return;
+    }
     // Text entered inside an exercise must never become another exercise name.
     if (pick == null &&
         _c.inBlock &&
@@ -4090,7 +4095,10 @@ class _TogetherInvite extends StatelessWidget {
               CupertinoIcons.xmark,
               size: 18,
               color: muted,
-              semanticLabel: l.cancel,
+              // 내 화면에서만 접는다 — 상대의 제안을 취소하지 않는다.
+              semanticLabel: CupertinoLocalizations.of(
+                context,
+              ).modalBarrierDismissLabel,
             ),
           ),
         ],

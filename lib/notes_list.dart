@@ -351,6 +351,23 @@ class _NotesListPageState extends State<NotesListPage>
 
   /// 목록에 보일 루틴. 시작한 것은 기록 쪽에 있으니 여기서 뺀다 — 서버는 끝내서
   /// 올릴 때까지 그것을 계속 준다.
+  /// 맨 위 '함께 운동 중' 줄의 기록 — 최근(12시간 안)에 고친 것 중 가장 최근 하나.
+  /// 상태는 이 기기에 남은 것이고 서버는 저절로 끝내지 않는다. 둘 다 끝내기를 안 누르고
+  /// 떠난 지난 세션이 며칠 뒤에도 '진행 중'으로 쌓이지 않게 기간을 둔다.
+  Note? get _liveNote {
+    Note? live;
+    for (final note in widget.store.notes) {
+      if (note.partner?.state == PartnerState.active &&
+          note.ownedBy(widget.account?.userId) &&
+          DateTime.now().difference(note.updatedAt) <
+              const Duration(hours: 12) &&
+          (live == null || note.updatedAt.isAfter(live.updatedAt))) {
+        live = note;
+      }
+    }
+    return live;
+  }
+
   Iterable<Routine> get _waitingRoutines => _routines.where(
     (r) => !widget.store.notes.any((n) => n.routineId == r.id),
   );
@@ -1343,24 +1360,22 @@ class _NotesListPageState extends State<NotesListPage>
                       // 같이 운동 중인 기록. 편집기를 닫으면 같이 하기는 멈춰 있다 —
                       // 맨 위에서 바로 돌아간다. 다른 계정이 연 것은 이 계정으로 못 잇는다.
                       if (_query.text.trim().isEmpty)
-                        for (final note in widget.store.notes)
-                          if (note.partner?.state == PartnerState.active &&
-                              note.ownedBy(widget.account?.userId))
-                            SliverToBoxAdapter(
-                              key: ValueKey('partner-live-${note.id}'),
-                              child: GymRow(
-                                icon: CupertinoIcons.person_2_fill,
-                                title: l.partnerWith(
-                                  note.partner!.partnerName ?? '',
-                                ),
-                                detail: [
-                                  note.title ?? l.untitledNote,
-                                  l.partnerHomeOpen,
-                                ].join(' · '),
-                                accent: true,
-                                onTap: () => _open(note),
+                        if (_liveNote case final note?)
+                          SliverToBoxAdapter(
+                            key: ValueKey('partner-live-${note.id}'),
+                            child: GymRow(
+                              icon: CupertinoIcons.person_2_fill,
+                              title: l.partnerWith(
+                                note.partner!.partnerName ?? '',
                               ),
+                              detail: [
+                                note.title ?? l.untitledNote,
+                                l.partnerHomeOpen,
+                              ].join(' · '),
+                              accent: true,
+                              onTap: () => _open(note),
                             ),
+                          ),
                       // 트레이너가 보낸 것. 찾는 중에는 숨긴다 — 검색 결과
                       // 위에 다른 것이 끼면 무엇을 보는 중인지 흐려진다.
                       if (_query.text.trim().isEmpty)
@@ -2115,14 +2130,23 @@ class _Row extends StatelessWidget {
         ? null
         : note.intake;
     // 같이 한 기록 — 상대 이름(셋 이상이면 첫 사람 +N). 문서에 남의 세트가 섞여 있는 까닭이다.
-    final together = switch (note.partner) {
-      final p?
-          when (p.state == PartnerState.active ||
-                  p.state == PartnerState.ended) &&
-              (p.partnerName ?? '').isNotEmpty =>
-        p.partnerName!.split(', '),
-      _ => null,
-    };
+    // 근거는 문서다: 같은 기록으로 다시 연 초대가 기다리거나 만료돼도 남의 세트는 남는다.
+    // 남의 세트가 아직 없으면(막 시작했다) 세션의 이름으로 대신한다.
+    final authors = {
+      for (final b in note.blocks)
+        for (final s in b.sets)
+          if (s.author case final a? when a.isNotEmpty) a,
+    }.toList();
+    final together = authors.isNotEmpty
+        ? authors
+        : switch (note.partner) {
+            final p?
+                when (p.state == PartnerState.active ||
+                        p.state == PartnerState.ended) &&
+                    (p.partnerName ?? '').isNotEmpty =>
+              p.partnerName!.split(', '),
+            _ => null,
+          };
     // 숫자만 한 줄로: (같이) · 세트 · 운동 칼로리 · 먹은 칼로리.
     final meta = <InlineSpan>[
       for (final part

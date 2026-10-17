@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -211,6 +212,24 @@ void main() {
     expect(find.textContaining('소라 님의 기록'), findsOneWidget);
     expect(find.textContaining('ABCD23'), findsOneWidget);
     expect(find.byKey(const ValueKey('invite-more')), findsOneWidget);
+    // '한 명 더 초대' 줄은 조용히 복사하지 않고 공유 시트를 띄운다.
+    String? shared;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('setpad/share'),
+      (call) async {
+        shared = (call.arguments as Map)['text'] as String?;
+        return true;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        const MethodChannel('setpad/share'),
+        null,
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('invite-more')));
+    await tester.pump();
+    expect(shared, contains('ABCD23'));
     await tester.pumpWidget(const SizedBox());
     sync.dispose();
     await tester.pump(const Duration(seconds: 3));

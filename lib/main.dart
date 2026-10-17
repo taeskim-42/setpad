@@ -400,7 +400,9 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     }
     final note = _todayOrNew();
     pendingPartnerJoin.value = (noteId: note.id, token: token);
-    await _open(note);
+    // 편집기가 닫힐 때까지 기다리지 않는다 — 그동안 같은 링크를 다시 누르면(참여가
+    // 실패했다) 다시 시도해야 한다. 겹친 참여는 joinWithToken 이 거른다.
+    unawaited(_open(note));
   }
 
   /// 이 링크가 제 화면을 여는가 — [_openTag] 가 가르는 넷: 건네받기, 같이 하기 초대,
@@ -1547,7 +1549,10 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                 if (_endedBy case final name? when !_writingFor)
                   _Strip(
                     key: const ValueKey('partner-ended'),
-                    text: l.partnerEndedByThem(name),
+                    // 셋 이상이면 누가 끝냈는지 모른다 — 이름 없이 알린다.
+                    text: name.isEmpty || name.contains(', ')
+                        ? l.partnerEndedGroup
+                        : l.partnerEndedByThem(name),
                     action: l.ok,
                     onAction: () => setState(() => _endedBy = null),
                   ),
@@ -2565,10 +2570,9 @@ class _Strip extends StatelessWidget {
     child: Row(
       children: [
         Expanded(
+          // 줄이 늘어나도 된다 — 큰 글자에서 잘리면 뒤의 말(내 기록은 남는다)이 사라진다.
           child: Text(
             text,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 13,
               fontWeight: strong ? FontWeight.w600 : FontWeight.w400,

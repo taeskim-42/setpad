@@ -1076,6 +1076,31 @@ void main() {
     });
   });
 
+  testWidgets('남의 세트뿐인 운동에서 친 메모는 버리지 않고, 남의 기록이라 붙지 않는다고 말한다', (tester) async {
+    final c = RoutineEditorController()
+      ..replaceBlocks([
+        ExerciseBlock('벤치프레스', [
+          LoggedSet(value: 50, unit: 'kg', reps: 7, author: '준'),
+        ]),
+      ])
+      ..openBlock(0);
+    await pumpEditor(tester, c);
+    await tester.tap(find.bySemanticsLabel(l.noteHint));
+    await tester.pumpAndSettle();
+    tester.testTextInput.updateEditingValue(
+      const TextEditingValue(
+        text: '무릎 아픔',
+        selection: TextSelection.collapsed(offset: 5),
+      ),
+    );
+    await tester.pump();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(find.text(l.partnerNotYours), findsOneWidget);
+    expect(field(tester).text, '무릎 아픔', reason: '친 글을 지우지 않는다');
+    expect(c.blocks.single.sets.single.notes, isEmpty);
+  });
+
   testWidgets('VoiceOver 가 키패드의 아이콘 키와 고치는 세트의 완료 칸·지우기를 읽는다', (tester) async {
     final semantics = tester.ensureSemantics();
     final c = RoutineEditorController()

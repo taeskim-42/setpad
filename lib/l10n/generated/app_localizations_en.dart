@@ -3864,7 +3864,15 @@ class LEn extends L {
       'You\'re an owner or trainer at a gym. Leave the gym or delete it, then delete your account.';
 
   @override
-  String get partnerErrLeft => 'The people you were training with have left.';
+  String get partnerErrLeft => 'Everyone you were training with has left.';
+
+  @override
+  String get partnerErrBusy =>
+      'You\'re already in a workout together. End it first, then join again.';
+
+  @override
+  String get partnerEndedGroup =>
+      'The workout together has ended. Your record is kept.';
 
   @override
   String get partnerNotYours =>
@@ -3875,7 +3883,7 @@ class LEn extends L {
 
   @override
   String get partnerCodeHint =>
-      'Enter the six letters shown on the other person\'s screen.';
+      'Enter the six-character code shown on the other person\'s screen.';
 
   @override
   String partnerPaste(String code) {

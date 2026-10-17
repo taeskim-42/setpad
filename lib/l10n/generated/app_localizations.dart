@@ -5611,6 +5611,18 @@ abstract class L {
   /// **'같이 하던 사람이 나갔어요.'**
   String get partnerErrLeft;
 
+  /// 링크·가까이 대기·코드로 다른 초대에 들어가려는데 이 기록에 같이 하기가 이미 열려 있다.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 열린 같이 하기가 있어요. 그것을 끝낸 뒤 다시 들어와 주세요.'**
+  String get partnerErrBusy;
+
+  /// 셋 이상의 같이 하기가 남의 손으로 끝났다. 누가 끝냈는지 몰라 이름 없이 알린다(편집기 띠).
+  ///
+  /// In ko, this message translates to:
+  /// **'함께 운동이 종료됐습니다. 내 기록은 그대로 남아 있습니다.'**
+  String get partnerEndedGroup;
+
   /// 같이 고치는 기록에서 남이 적은 세트를 누르거나 고치려 했다(읽기 전용, 서버 409 notYours).
   ///
   /// In ko, this message translates to:
