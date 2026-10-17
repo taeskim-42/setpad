@@ -3775,5 +3775,6 @@
   "focusRestTitle": "휴식 시간",
   "focusWeightTitle": "무게",
   "focusRepsTitle": "횟수",
-  "focusRestOverTitle": "휴식 끝"
+  "focusRestOverTitle": "휴식 끝",
+  "focusDistanceTitle": "거리"
 }

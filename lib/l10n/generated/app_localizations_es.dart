@@ -4423,4 +4423,7 @@ class LEs extends L {
 
   @override
   String get focusRestOverTitle => 'Fin del descanso';
+
+  @override
+  String get focusDistanceTitle => 'Distancia';
 }

@@ -4173,6 +4173,9 @@ class LZh extends L {
 
   @override
   String get focusRestOverTitle => '休息结束';
+
+  @override
+  String get focusDistanceTitle => '距离';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -8344,6 +8347,9 @@ class LZhHans extends LZh {
 
   @override
   String get focusRestOverTitle => '休息结束';
+
+  @override
+  String get focusDistanceTitle => '距离';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -12515,4 +12521,7 @@ class LZhHant extends LZh {
 
   @override
   String get focusRestOverTitle => '休息結束';
+
+  @override
+  String get focusDistanceTitle => '距離';
 }

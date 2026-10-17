@@ -1065,5 +1065,6 @@
   "focusRestTitle": "Rest time",
   "focusWeightTitle": "Weight",
   "focusRepsTitle": "Reps",
-  "focusRestOverTitle": "Rest's over"
+  "focusRestOverTitle": "Rest's over",
+  "focusDistanceTitle": "Distance"
 }

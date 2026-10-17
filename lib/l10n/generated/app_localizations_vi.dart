@@ -4320,4 +4320,7 @@ class LVi extends L {
 
   @override
   String get focusRestOverTitle => 'Hết giờ nghỉ';
+
+  @override
+  String get focusDistanceTitle => 'Quãng đường';
 }

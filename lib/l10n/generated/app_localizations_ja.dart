@@ -4201,4 +4201,7 @@ class LJa extends L {
 
   @override
   String get focusRestOverTitle => '休憩終了';
+
+  @override
+  String get focusDistanceTitle => '距離';
 }
