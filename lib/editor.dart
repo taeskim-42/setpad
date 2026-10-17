@@ -4813,13 +4813,20 @@ class _BlockView extends StatelessWidget {
                       children: [
                         SizedBox(
                           width: 44,
-                          child: Text(
-                            L.of(context).setOrdinal(block.sets.length + 1),
-                            style: TextStyle(
-                              fontSize: 13,
-                              letterSpacing: -0.08,
-                              color: CupertinoColors.tertiaryLabel.resolveFrom(
-                                context,
+                          // One line, shrunk to fit: at large text "5세트" broke
+                          // mid-word into "5세 / 트".
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: AlignmentDirectional.centerStart,
+                            child: Text(
+                              L.of(context).setOrdinal(block.sets.length + 1),
+                              maxLines: 1,
+                              softWrap: false,
+                              style: TextStyle(
+                                fontSize: 13,
+                                letterSpacing: -0.08,
+                                color: CupertinoColors.tertiaryLabel
+                                    .resolveFrom(context),
                               ),
                             ),
                           ),
