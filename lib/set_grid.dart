@@ -269,6 +269,8 @@ class SetGrid extends StatelessWidget {
             ],
           ),
         );
+        // 남이 적은 세트는 그 사람의 기록이다 — 흐리게 두고(이름 첫 글자는 그대로) 끌리지 않는다.
+        // 누르면 편집기가 고칠 수 없다고 말한다.
         Widget tile(int i, LoggedSet set, {bool target = false}) =>
             GestureDetector(
               key: ValueKey('set-cell-$i'),
@@ -279,7 +281,12 @@ class SetGrid extends StatelessWidget {
                       _repsSide(context, l, i, set, d.localPosition.dx),
                     ),
               behavior: HitTestBehavior.opaque,
-              child: cellBox(i, set, target: target),
+              child: set.theirs && onTapSet != null
+                  ? Opacity(
+                      opacity: 0.5,
+                      child: cellBox(i, set, target: target),
+                    )
+                  : cellBox(i, set, target: target),
             );
         // 세트를 길게 눌러 끌어다 다른 칸에 놓으면 그 자리로 옮긴다. 누르기(고치기)와
         // 목록 스크롤은 그대로다 — 길게 눌러야 끌린다.
@@ -317,7 +324,7 @@ class SetGrid extends StatelessWidget {
                 checked: set.done,
                 // 읽어 주기에서도 누르고(고치기) 옮긴다 — 끌기는 손가락으로만 된다.
                 onTap: onTapSet == null ? null : () => onTapSet!(i, false),
-                customSemanticsActions: onMove == null
+                customSemanticsActions: onMove == null || set.theirs
                     ? null
                     : {
                         if (i > 0)
@@ -328,7 +335,9 @@ class SetGrid extends StatelessWidget {
                               onMove!(i, i + 1),
                       },
                 excludeSemantics: true,
-                child: onMove == null ? tile(i, set) : movable(i, set),
+                child: onMove == null || set.theirs
+                    ? tile(i, set)
+                    : movable(i, set),
               ),
             // 빈 칸은 늘 있다. 줄이 꽉 찼으면 다음 줄로 내려간다.
             if (onAdd != null)

@@ -375,21 +375,18 @@ void main() {
       ]);
     });
 
-    test('사본은 끝에 붙고 적은 사람을 물려받는다 — 상대 세트가 내 세트로 바뀌지 않는다', () {
+    test('사본은 끝에 붙는다 — 상대 세트는 그 사람의 것이라 메모도 사본도 붙지 않는다', () {
       final c = RoutineEditorController()
         ..addExercise('벤치프레스')
         ..addSet('60 10')
         ..addSet('50 12');
       c.blocks.single.sets.first.author = '민수';
-      c.extendSet(0, 0, note: '좋았음', count: 3);
+      c
+        ..extendSet(0, 0, note: '좋았음', count: 3)
+        ..extendSet(0, 1, note: '내 메모', count: 2);
       expect(
         c.blocks.single.sets.map((s) => (s.value, s.author, s.notes.join(','))),
-        [
-          (60.0, '민수', '좋았음'),
-          (50.0, null, ''),
-          (60.0, '민수', '좋았음'),
-          (60.0, '민수', '좋았음'),
-        ],
+        [(60.0, '민수', ''), (50.0, null, '내 메모'), (50.0, null, '내 메모')],
       );
     });
 

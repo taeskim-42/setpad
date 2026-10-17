@@ -70,6 +70,10 @@
                 <data android:scheme="https"
                       android:host="gym.darak.studio"
                       android:pathPrefix="/r/"/>
+                <!-- 같이 하기 초대 링크. 앱이 그 토큰으로 참여한다(서버 AASA '/j/*' 와 짝). -->
+                <data android:scheme="https"
+                      android:host="gym.darak.studio"
+                      android:pathPrefix="/j/"/>
                 <!-- 이미 나간 스티커가 옛 주소를 가리킬 수 있다. -->
                 <data android:scheme="https"
                       android:host="web-production-9cfc2.up.railway.app"/>

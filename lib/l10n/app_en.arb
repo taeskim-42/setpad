@@ -916,5 +916,16 @@
   "routineSwapTitle": "Instead of {name} — same body part and equipment, done in the last 28 days",
   "routineFirstPlan": "First time, so this follows the weekly plan ({factor}) · fill in numbers as you log",
   "routineUnstart": "Cancel start",
-  "routineUnstartAsk": "This workout has logged sets. Delete the workout too?"
+  "routineUnstartAsk": "This workout has logged sets. Delete the workout too?",
+  "partnerErrLeft": "The people you were training with have left.",
+  "partnerNotYours": "You can't change a set someone else logged. It's their record.",
+  "partnerRoutinePlan": "Make it a routine",
+  "partnerCodeHint": "Enter the six letters shown on the other person's screen.",
+  "partnerPaste": "Paste {code}",
+  "partnerShare": "Share",
+  "partnerShareText": "setpad train-together code {code}\nIn the app: a log → ⋯ → Work out together → Enter a code",
+  "partnerShareTextLink": "setpad train-together code {code}\nIn the app: a log → ⋯ → Work out together → Enter a code, or join right away with this link:\n{url}",
+  "partnerInviteMoreNew": "Invite one more · new code",
+  "partnerHomeOpen": "Open",
+  "togetherInviteSomeone": "Someone wants to do this together"
 }

@@ -3774,4 +3774,45 @@ class LVi extends L {
   @override
   String get routineUnstartAsk =>
       'Buổi tập này có hiệp đã ghi. Xóa luôn buổi tập?';
+
+  @override
+  String get partnerErrLeft => 'Những người tập cùng bạn đã rời đi.';
+
+  @override
+  String get partnerNotYours =>
+      'Bạn không thể sửa hiệp do người khác ghi. Đó là bản ghi của họ.';
+
+  @override
+  String get partnerRoutinePlan => 'Chốt thành lịch tập';
+
+  @override
+  String get partnerCodeHint =>
+      'Nhập sáu ký tự hiện trên màn hình của người kia.';
+
+  @override
+  String partnerPaste(String code) {
+    return 'Dán $code';
+  }
+
+  @override
+  String get partnerShare => 'Chia sẻ';
+
+  @override
+  String partnerShareText(String code) {
+    return 'Mã tập cùng nhau setpad $code\nTrong ứng dụng: bản ghi → ⋯ → Tập cùng nhau → Nhập mã';
+  }
+
+  @override
+  String partnerShareTextLink(String code, String url) {
+    return 'Mã tập cùng nhau setpad $code\nTrong ứng dụng: bản ghi → ⋯ → Tập cùng nhau → Nhập mã, hoặc tham gia ngay bằng liên kết này:\n$url';
+  }
+
+  @override
+  String get partnerInviteMoreNew => 'Mời thêm một người · mã mới';
+
+  @override
+  String get partnerHomeOpen => 'Mở';
+
+  @override
+  String get togetherInviteSomeone => 'Có người rủ bạn tập cùng';
 }

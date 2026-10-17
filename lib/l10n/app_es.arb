@@ -916,5 +916,16 @@
   "routineSwapTitle": "En lugar de {name}: misma zona y equipo, hecho en los últimos 28 días",
   "routineFirstPlan": "Es la primera vez: sigue el plan semanal ({factor}) · los números se llenan al registrar",
   "routineUnstart": "Cancelar inicio",
-  "routineUnstartAsk": "Este entrenamiento tiene series registradas. ¿Eliminarlo también?"
+  "routineUnstartAsk": "Este entrenamiento tiene series registradas. ¿Eliminarlo también?",
+  "partnerErrLeft": "Las personas con las que entrenabas se han ido.",
+  "partnerNotYours": "No puedes cambiar una serie que registró otra persona. Es su registro.",
+  "partnerRoutinePlan": "Convertir en rutina",
+  "partnerCodeHint": "Introduce las seis letras que aparecen en la pantalla de la otra persona.",
+  "partnerPaste": "Pegar {code}",
+  "partnerShare": "Compartir",
+  "partnerShareText": "Código de setpad para entrenar juntos: {code}\nEn la app: un registro → ⋯ → Entrenar juntos → Introducir código",
+  "partnerShareTextLink": "Código de setpad para entrenar juntos: {code}\nEn la app: un registro → ⋯ → Entrenar juntos → Introducir código, o únete ya con este enlace:\n{url}",
+  "partnerInviteMoreNew": "Invitar a uno más · código nuevo",
+  "partnerHomeOpen": "Abrir",
+  "togetherInviteSomeone": "Alguien quiere hacerlo contigo"
 }

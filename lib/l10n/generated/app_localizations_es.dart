@@ -3833,4 +3833,46 @@ class LEs extends L {
   @override
   String get routineUnstartAsk =>
       'Este entrenamiento tiene series registradas. ¿Eliminarlo también?';
+
+  @override
+  String get partnerErrLeft =>
+      'Las personas con las que entrenabas se han ido.';
+
+  @override
+  String get partnerNotYours =>
+      'No puedes cambiar una serie que registró otra persona. Es su registro.';
+
+  @override
+  String get partnerRoutinePlan => 'Convertir en rutina';
+
+  @override
+  String get partnerCodeHint =>
+      'Introduce las seis letras que aparecen en la pantalla de la otra persona.';
+
+  @override
+  String partnerPaste(String code) {
+    return 'Pegar $code';
+  }
+
+  @override
+  String get partnerShare => 'Compartir';
+
+  @override
+  String partnerShareText(String code) {
+    return 'Código de setpad para entrenar juntos: $code\nEn la app: un registro → ⋯ → Entrenar juntos → Introducir código';
+  }
+
+  @override
+  String partnerShareTextLink(String code, String url) {
+    return 'Código de setpad para entrenar juntos: $code\nEn la app: un registro → ⋯ → Entrenar juntos → Introducir código, o únete ya con este enlace:\n$url';
+  }
+
+  @override
+  String get partnerInviteMoreNew => 'Invitar a uno más · código nuevo';
+
+  @override
+  String get partnerHomeOpen => 'Abrir';
+
+  @override
+  String get togetherInviteSomeone => 'Alguien quiere hacerlo contigo';
 }

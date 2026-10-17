@@ -916,5 +916,16 @@
   "routineSwapTitle": "แทน {name} — ท่าส่วนเดียวกันและอุปกรณ์เดียวกันที่ทำใน 28 วันที่ผ่านมา",
   "routineFirstPlan": "ครั้งแรกเลยจัดตามตารางสัปดาห์ ({factor}) · ตัวเลขเติมระหว่างจด",
   "routineUnstart": "ยกเลิกการเริ่ม",
-  "routineUnstartAsk": "บันทึกนี้มีเซ็ตที่จดแล้ว จะลบบันทึกด้วยไหม?"
+  "routineUnstartAsk": "บันทึกนี้มีเซ็ตที่จดแล้ว จะลบบันทึกด้วยไหม?",
+  "partnerErrLeft": "คนที่ออกกำลังด้วยกันออกไปแล้ว",
+  "partnerNotYours": "แก้เซ็ตที่อีกคนบันทึกไม่ได้ เป็นบันทึกของเขา",
+  "partnerRoutinePlan": "ยืนยันเป็นรูทีน",
+  "partnerCodeHint": "ใส่ตัวอักษร 6 ตัวที่แสดงบนหน้าจอของอีกคน",
+  "partnerPaste": "วาง {code}",
+  "partnerShare": "แชร์",
+  "partnerShareText": "รหัสออกกำลังด้วยกันของ setpad {code}\nในแอป: บันทึก → ⋯ → ออกกำลังด้วยกัน → ใส่รหัส",
+  "partnerShareTextLink": "รหัสออกกำลังด้วยกันของ setpad {code}\nในแอป: บันทึก → ⋯ → ออกกำลังด้วยกัน → ใส่รหัส หรือเข้าร่วมทันทีด้วยลิงก์นี้:\n{url}",
+  "partnerInviteMoreNew": "ชวนอีกคน · รหัสใหม่",
+  "partnerHomeOpen": "เปิด",
+  "togetherInviteSomeone": "มีคนชวนทำด้วยกัน"
 }

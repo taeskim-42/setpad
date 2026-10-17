@@ -14,6 +14,7 @@ import 'package:setpad/gym_page.dart' show GymRow;
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
+import 'package:setpad/partner.dart' show PartnerSession, PartnerState;
 import 'package:setpad/query_cache.dart';
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/record_query.dart'
@@ -462,6 +463,19 @@ void main() {
       expect(note.blocks.map((b) => b.name), contains('레그컬'));
     });
 
+    testWidgets('같이 하는 사람이 적은 세트가 있는 칸도 ✕ 로 기록에서 지우지 않는다', (tester) async {
+      final store = await pump(tester);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      final note = store.created.single;
+      note.blocks.last.sets.first.author = '준';
+      expect(note.blocks.last.sets.first.done, isFalse);
+      await tester.tap(find.byIcon(CupertinoIcons.xmark).last);
+      await tester.pumpAndSettle();
+      expect(note.blocks.map((b) => b.name), contains('레그컬'));
+    });
+
     testWidgets('시작 취소: ○ 뿐이면 바로 지우고 [시작] 으로', (tester) async {
       final store = await pump(tester);
       await type(tester, '오늘 루틴 짜줘');
@@ -493,6 +507,20 @@ void main() {
       await tester.pumpAndSettle();
       expect(store.deleted, hasLength(1));
       expect(startButton(), findsOneWidget);
+    });
+
+    testWidgets('시작 취소: 같이 하는 사람이 적은 세트가 있어도 묻는다', (tester) async {
+      final store = await pump(tester);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      store.created.single.blocks.first.sets.first.author = '준';
+      await tester.tap(find.text(l.routineUnstart));
+      await tester.pumpAndSettle();
+      expect(find.text(l.routineUnstartAsk), findsOneWidget);
+      await tester.tap(find.text(l.cancel));
+      await tester.pumpAndSettle();
+      expect(store.deleted, isEmpty);
     });
 
     testWidgets('시작 취소를 되돌리면 그 기록이 돌아오고 카드도 다시 시작함 — 기록은 하나', (tester) async {
@@ -618,6 +646,74 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(minutes: 1)); // 저장·재시도 타이머
     });
+  });
+
+  testWidgets('홈 맨 위 줄: 같이 운동 중 → 쌤 루틴 → 오늘 루틴 → 초대(나머지는 그대로)', (tester) async {
+    final dir = Directory.systemTemp.createTempSync('home_rows');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final account =
+        Account(
+            storageDir: dir,
+            client: MockClient((request) async {
+              final body = switch (request.url.path) {
+                '/api/routines' => {
+                  'routines': [
+                    {
+                      'id': 'r1',
+                      'gym_id': 'g1',
+                      'gym': 'OO짐',
+                      'title': '하체 B',
+                      'items': [
+                        {
+                          'name': '스쿼트',
+                          'sets': [
+                            {'kg': 60, 'reps': 5},
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                '/api/gyms' => {
+                  'gyms': [],
+                  'invites': [
+                    {'gymId': 'g2', 'gymName': 'XX짐', 'verified': true},
+                  ],
+                },
+                _ => {},
+              };
+              return http.Response.bytes(utf8.encode(jsonEncode(body)), 200);
+            }),
+          )
+          ..token = 'x'
+          ..userId = 'u1';
+    final live =
+        Note(id: 'live', createdAt: routineToday, updatedAt: routineToday)
+          ..partner = PartnerSession(
+            id: 'S1',
+            host: true,
+            state: PartnerState.active,
+            partnerName: '준',
+          );
+    await pump(
+      tester,
+      records: [live, ...defaultLog()],
+      account: account,
+      edits: QueryCache(directory: dir, fileName: 'routine_edits.json'),
+    );
+    final tops = [
+      find.descendant(
+        of: find.byKey(const ValueKey('partner-live-live')),
+        matching: find.byType(GymRow),
+      ),
+      find.text('하체 B'),
+      find.widgetWithText(GymRow, l.routineHeaderToday),
+      find.text(l.inviteFrom('XX짐')),
+    ].map((f) => tester.getTopLeft(f).dy).toList();
+    expect(tops, [...tops]..sort());
+    expect(tops.toSet(), hasLength(4));
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(minutes: 1)); // 저장·재시도 타이머
   });
 
   testWidgets('다른 루틴은 다음 순위의 날을 보인다', (tester) async {

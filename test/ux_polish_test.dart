@@ -418,6 +418,52 @@ void main() {
       await tester.pump(const Duration(seconds: 6));
     });
 
+    testWidgets('지운 바로 뒤 같이 하기가 시작되면 되돌리기 줄을 거둔다', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_ux_join_');
+      final store = NotesStore(directory: dir);
+      final note = store.create();
+      final partner = PartnerSync(
+        note: note,
+        link: () => GymLink(
+          endpoint: 'https://example.com',
+          token: 'x',
+          client: MockClient((_) async => http.Response('{}', 200)),
+        ),
+        onChanged: () {},
+      );
+      addTearDown(() {
+        partner.dispose();
+        store.dispose();
+        dir.deleteSync(recursive: true);
+      });
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 10')
+        ..addSet('70 8')
+        ..closeBlock();
+      Future<void> show() => pumpApp(
+        tester,
+        CupertinoPageScaffold(
+          child: RoutineEditor(controller: c, partner: partner),
+        ),
+      );
+      await show();
+      await tester.tap(find.text('2 70×8'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(CupertinoIcons.xmark).first);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('set-undo')), findsOneWidget);
+      note.partner = PartnerSession(
+        id: 'S1',
+        host: true,
+        state: PartnerState.active,
+      );
+      await show();
+      expect(find.byKey(const ValueKey('set-undo')), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 6));
+    });
+
     testWidgets('5초가 지나면 줄이 접히고, 연달아 지운 것은 끝의 것부터 돌아온다', (tester) async {
       final c = RoutineEditorController()
         ..addExercise('스쿼트')
@@ -796,6 +842,44 @@ void main() {
       expect(hint, findsNothing);
       await drag();
       expect(hint, findsNothing, reason: '한 번만');
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('남이 적은 세트는 길게 눌러도 끌리지 않는다 — 내 세트만 끌리고 안내도 그때', (tester) async {
+      dragHintShown = false;
+      final c = RoutineEditorController()
+        ..restore([
+          ExerciseBlock('스쿼트', [
+            LoggedSet(id: 'a', value: 60, unit: 'kg', reps: 10, author: '준'),
+            LoggedSet(id: 'b', value: 80, unit: 'kg', reps: 8),
+            LoggedSet(id: 'c', value: 90, unit: 'kg', reps: 6),
+          ]),
+        ]);
+      await pumpApp(
+        tester,
+        CupertinoPageScaffold(child: RoutineEditor(controller: c)),
+      );
+      final l = await L.delegate.load(const Locale('ko'));
+      Future<void> drag(int from, int to) async {
+        final g = await tester.startGesture(
+          tester.getCenter(find.byKey(ValueKey('set-cell-$from'))),
+        );
+        await tester.pump(
+          kLongPressTimeout + const Duration(milliseconds: 100),
+        );
+        await g.moveTo(tester.getCenter(find.byKey(ValueKey('set-cell-$to'))));
+        await tester.pump();
+        await g.up();
+        await tester.pump();
+      }
+
+      await drag(0, 2);
+      expect(c.blocks.single.sets.map((s) => s.id), ['a', 'b', 'c']);
+      expect(find.text(l.setDragHint), findsNothing);
+      await drag(2, 1);
+      expect(c.blocks.single.sets.map((s) => s.id), ['a', 'c', 'b']);
+      expect(find.text(l.setDragHint), findsOneWidget);
+      await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
     });
   });

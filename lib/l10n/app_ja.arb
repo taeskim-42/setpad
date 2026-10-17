@@ -916,5 +916,16 @@
   "routineSwapTitle": "{name}の代わりに — 最近28日にやった同じ部位・器具の種目",
   "routineFirstPlan": "初めてなので週間表({factor})で組みました · 数字は記録しながら埋めます",
   "routineUnstart": "開始を取り消す",
-  "routineUnstartAsk": "この記録には記入済みのセットがあります。記録ごと削除しますか?"
+  "routineUnstartAsk": "この記録には記入済みのセットがあります。記録ごと削除しますか?",
+  "partnerErrLeft": "一緒に運動していた人が退出しました。",
+  "partnerNotYours": "相手が記録したセットは変更できません。その人の記録です。",
+  "partnerRoutinePlan": "ルーティンとして確定",
+  "partnerCodeHint": "相手の画面に表示されている6文字を入力してください。",
+  "partnerPaste": "貼り付け {code}",
+  "partnerShare": "共有",
+  "partnerShareText": "setpad 一緒にやるコード {code}\nアプリで記録 → ⋯ → 一緒にやる → 番号を入力",
+  "partnerShareTextLink": "setpad 一緒にやるコード {code}\nアプリで記録 → ⋯ → 一緒にやる → 番号を入力、またはこのリンクからすぐ参加:\n{url}",
+  "partnerInviteMoreNew": "もう1人招待 · 新しいコード",
+  "partnerHomeOpen": "開く",
+  "togetherInviteSomeone": "一緒にやろうと誘われています"
 }

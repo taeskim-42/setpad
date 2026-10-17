@@ -1432,6 +1432,263 @@ void main() {
     expect(old.blocks.single.sets.single.notes, ['가볍다']);
     expect(PartnerSession.tryFromJson({'nope': 1}), isNull);
   });
+
+  group('같이 기록이 기본이고, 남의 세트는 그 사람의 것이다', () {
+    Map<String, Object?> setJson(
+      String id,
+      int reps,
+      String key,
+      String name,
+    ) => {
+      'id': id,
+      'value': 60,
+      'unit': 'kg',
+      'reps': reps,
+      'notes': <String>[],
+      'done': true,
+      'by': {'key': key, 'name': name},
+    };
+
+    /// 서버가 할 말을 시험이 정한다. 요청은 전부 적어 둔다.
+    ({
+      Map<String, Object?> state,
+      List<(String, String, Map<String, Object?>)> asked,
+      PartnerSync sync,
+      Note note,
+      void Function(int status, Map<String, Object?> body) answerDoc,
+      void Function(int status, Map<String, Object?> body) answerTimer,
+    })
+    scripted() {
+      final state = <String, Object?>{
+        'id': 'S1',
+        'state': 'active',
+        'role': 'host',
+        'partner': '준',
+        'myRevision': 0,
+        'now': 1700000000000,
+        'me': 'mmmm',
+        'members': [
+          {'key': 'jjjj', 'name': '준', 'record': null},
+        ],
+        'room': 4,
+        'doc': {
+          'version': 1,
+          'blocks': [
+            {
+              'id': 'B',
+              'name': '벤치',
+              'sets': [
+                setJson('m1', 10, 'mmmm', '미나'),
+                setJson('j1', 8, 'jjjj', '준'),
+              ],
+            },
+          ],
+          'accepted': <String>[],
+          'finalizedVersion': null,
+        },
+      };
+      final asked = <(String, String, Map<String, Object?>)>[];
+      var doc = (200, <String, Object?>{'version': 2});
+      var timer = (200, <String, Object?>{});
+      final client = MockClient((request) async {
+        final body = request.body.isEmpty
+            ? const <String, Object?>{}
+            : (jsonDecode(request.body) as Map).cast<String, Object?>();
+        final path = request.url.path;
+        asked.add((request.method, path, body));
+        http.Response reply(int status, Map<String, Object?> json) =>
+            http.Response.bytes(utf8.encode(jsonEncode(json)), status);
+        if (path.endsWith('/doc')) {
+          if (body['action'] == 'init') return reply(200, {});
+          if (body['action'] == 'accept') {
+            (state['doc'] as Map)['accepted'] = ['mmmm'];
+            return reply(200, state);
+          }
+          return reply(doc.$1, doc.$2.isEmpty ? state : doc.$2);
+        }
+        if (path.endsWith('/timer')) {
+          return reply(timer.$1, timer.$2.isEmpty ? state : timer.$2);
+        }
+        if (path.endsWith('/record')) return reply(200, {'revision': 1});
+        return reply(200, state);
+      });
+      final note =
+          Note(
+              id: 'n1',
+              createdAt: DateTime(2026, 10, 17),
+              updatedAt: DateTime(2026, 10, 17),
+            )
+            ..partner = PartnerSession(
+              id: 'S1',
+              host: true,
+              state: PartnerState.active,
+            );
+      final sync = PartnerSync(
+        note: note,
+        link: () => GymLink(endpoint: 'https://x', token: 'me', client: client),
+        onChanged: () {},
+      );
+      addTearDown(sync.dispose);
+      return (
+        state: state,
+        asked: asked,
+        sync: sync,
+        note: note,
+        answerDoc: (status, body) => doc = (status, body),
+        answerTimer: (status, body) => timer = (status, body),
+      );
+    }
+
+    Future<void> settle() =>
+        Future<void>.delayed(const Duration(milliseconds: 30));
+
+    /// 편집기가 하는 일: 새로 온 문서를 내 기록으로 놓는다.
+    void take(PartnerSync sync, Note note) {
+      if (sync.takeDoc() case final blocks?) note.blocks = blocks;
+    }
+
+    test('문서가 있어도 아무도 확인하지 않았으면 같이 기록하는 중이다 — 누가 확인하면 그때 루틴 짜기다', () async {
+      final t = scripted();
+      await t.sync.refresh();
+      final s = t.note.partner!;
+      expect(s.routineAcceptedKeys, isEmpty);
+      expect(s.routinePlanning, isFalse, reason: '기본은 같이 기록이다');
+      (t.state['doc'] as Map)['accepted'] = ['jjjj'];
+      await t.sync.refresh();
+      expect(
+        t.note.partner!.routinePlanning,
+        isTrue,
+        reason: '한 명이라도 확인하면 계획 중',
+      );
+      (t.state['doc'] as Map)['accepted'] = <String>[];
+      await t.sync.refresh();
+      expect(t.note.partner!.routinePlanning, isFalse);
+    });
+
+    test(
+      '루틴으로 확정하기: 계획에 들어가 지금 문서를 확인하고, 모두 확인하면 그때까지 해낸 내 세트는 해낸 채로 남는다',
+      () async {
+        final t = scripted();
+        await t.sync.refresh();
+        take(t.sync, t.note);
+        expect(t.note.blocks.single.sets.map((x) => x.author), [null, '준']);
+        await t.sync.planRoutine();
+        expect(
+          t.asked.where((a) => a.$3['action'] == 'accept').single.$3['version'],
+          1,
+        );
+        final s = t.note.partner!;
+        expect(s.routinePlanningEntered && s.routinePlanning, isTrue);
+        expect(
+          PartnerSession.tryFromJson(
+            jsonDecode(jsonEncode(s.toJson())),
+          )!.routinePlanningEntered,
+          isTrue,
+          reason: '앱을 다시 켜도 계획 중이다',
+        );
+        // 누가 고쳐 확인이 풀려도 들어온 사람은 계획에 머문다.
+        (t.state['doc'] as Map)['accepted'] = <String>[];
+        await t.sync.refresh();
+        expect(t.note.partner!.routinePlanning, isTrue);
+
+        (t.state['doc'] as Map)
+          ..['accepted'] = ['mmmm', 'jjjj']
+          ..['finalizedVersion'] = 1;
+        await t.sync.refresh();
+        take(t.sync, t.note);
+        expect(
+          t.note.blocks.single.sets.map((x) => (x.id, x.done, x.author)),
+          [('m1', true, null), ('j1', false, null)],
+          reason: '내 세트는 해낸 기록 그대로, 상대 세트는 내 계획',
+        );
+      },
+    );
+
+    test('서버가 남의 세트라며 거절하면(409 notYours) 그 묶음을 버리고 서버 문서로 돌아간다', () async {
+      final t = scripted();
+      await t.sync.refresh();
+      take(t.sync, t.note);
+      t.answerDoc(409, {'error': 'notYours'});
+      // 옛 판이나 경합으로 남의 세트를 건드린 수정이 나갔다고 치자.
+      t.note.blocks.single.sets.removeAt(1);
+      t.sync.pushDoc();
+      await settle();
+      expect(t.sync.error, PartnerError.notYours);
+      take(t.sync, t.note);
+      expect(t.note.blocks.single.sets.map((x) => x.id), ['m1', 'j1']);
+      final edits = t.asked.where((a) => a.$3['action'] == 'edit').length;
+      await t.sync.refresh();
+      await settle();
+      expect(
+        t.asked.where((a) => a.$3['action'] == 'edit').length,
+        edits,
+        reason: '같은 묶음을 다시 보내지 않는다',
+      );
+    });
+
+    test(
+      '서버에 문서가 없다(409 noDoc)면 같은 수정을 계속 보내지 않고, 호스트는 내 기록으로 다시 심는다',
+      () async {
+        final t = scripted();
+        await t.sync.refresh();
+        take(t.sync, t.note);
+        t.answerDoc(409, {'error': 'noDoc'});
+        t.state['doc'] = null;
+        t.note.blocks.single.sets.add(
+          LoggedSet(value: 70, unit: 'kg', reps: 5),
+        );
+        t.sync.pushDoc();
+        await settle();
+        expect(t.asked.where((a) => a.$3['action'] == 'edit').length, 1);
+        expect(
+          t.asked.where((a) => a.$3['action'] == 'init').length,
+          1,
+          reason: '서버본(없음)에서 다시 세운다 — 호스트가 심는다',
+        );
+        await t.sync.refresh();
+        await settle();
+        expect(t.asked.where((a) => a.$3['action'] == 'edit').length, 1);
+      },
+    );
+
+    test(
+      '타이머 동작이 안 되면 이유를 남긴다 — 상대가 나갔으면(409 notJoined) 상태를 다시 묻고, 426 은 업데이트다',
+      () async {
+        final t = scripted();
+        await t.sync.refresh();
+        t.answerTimer(409, {'error': 'notJoined'});
+        final before = t.asked.where((a) => a.$1 == 'GET').length;
+        await t.sync.acceptTimer();
+        await settle();
+        expect(t.sync.timerError, PartnerError.partnerLeft);
+        expect(t.asked.where((a) => a.$1 == 'GET').length, before + 1);
+        t.answerTimer(426, {'error': 'updateRequired'});
+        await t.sync.acceptTimer();
+        expect(t.sync.timerError, PartnerError.updateRequired);
+        t.answerTimer(200, {});
+        await t.sync.acceptTimer();
+        expect(t.sync.timerError, isNull);
+      },
+    );
+  });
+
+  test('같이 하기 초대 링크에서 토큰을 읽는다 — /j/ 와 setpad://p/ 만', () {
+    const token = 'abcdefghijklmnopqrstuvwx';
+    expect(
+      partnerTokenFromLink(Uri.parse('https://gym.darak.studio/j/$token')),
+      token,
+    );
+    expect(partnerTokenFromLink(Uri.parse('setpad://p/$token')), token);
+    expect(
+      partnerTokenFromLink(Uri.parse('https://gym.darak.studio/r/$token')),
+      isNull,
+    );
+    expect(
+      partnerTokenFromLink(Uri.parse('https://gym.darak.studio/j/short')),
+      isNull,
+    );
+    expect(partnerTokenFromLink(Uri.parse('setpad://r/$token')), isNull);
+  });
 }
 
 /// 진짜 [HttpClient] — 위젯 시험 바인딩이 깔아 둔 가짜(모든 요청에 400)를 이 영역에서만 걷는다.

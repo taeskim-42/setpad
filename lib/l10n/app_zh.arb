@@ -916,5 +916,16 @@
   "routineSwapTitle": "代替{name} — 最近28天做过的同部位、同器械动作",
   "routineFirstPlan": "第一次，所以按周表({factor})安排 · 数字边记边填",
   "routineUnstart": "取消开始",
-  "routineUnstartAsk": "这条记录里有已记下的组。连记录一起删除吗？"
+  "routineUnstartAsk": "这条记录里有已记下的组。连记录一起删除吗？",
+  "partnerErrLeft": "一起训练的人已离开。",
+  "partnerNotYours": "不能修改对方记录的组，那是对方的记录。",
+  "partnerRoutinePlan": "确定为训练计划",
+  "partnerCodeHint": "输入对方屏幕上显示的六个字符。",
+  "partnerPaste": "粘贴 {code}",
+  "partnerShare": "分享",
+  "partnerShareText": "setpad 一起训练代码 {code}\n在应用中：记录 → ⋯ → 一起训练 → 输入号码",
+  "partnerShareTextLink": "setpad 一起训练代码 {code}\n在应用中：记录 → ⋯ → 一起训练 → 输入号码，或通过此链接直接加入：\n{url}",
+  "partnerInviteMoreNew": "再邀请一人 · 新代码",
+  "partnerHomeOpen": "打开",
+  "togetherInviteSomeone": "有人邀请你一起做"
 }

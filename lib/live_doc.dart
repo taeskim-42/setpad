@@ -88,21 +88,18 @@ List<ExerciseBlock> blocksOfDoc(
   return blocks;
 }
 
-/// Keep performed work separate from the routine being planned. [planned] sets are the plan itself,
-/// not work already done.
-List<Json> completedBeforeRoutine(
-  List<ExerciseBlock> blocks, {
-  Set<String> planned = const {},
-}) => [
+/// What I have done so far: my own done sets, as they are. Taken when the routine is agreed — what was
+/// done by then is performed work, whether it was typed before or while the routine was planned.
+List<Json> completedBeforeRoutine(List<ExerciseBlock> blocks) => [
   for (final b in blocks)
-    if (b.sets.any((s) => s.mine && s.done && !planned.contains(s.id)))
+    if (b.sets.any((s) => s.mine))
       {
         'id': b.id,
         'name': b.name,
         if (b.setup != null) 'setup': b.setup!.toJson(),
         'sets': [
           for (final s in b.sets)
-            if (s.mine && s.done && !planned.contains(s.id))
+            if (s.mine)
               {
                 'id': s.id,
                 'value': s.value,
@@ -115,12 +112,13 @@ List<Json> completedBeforeRoutine(
       },
 ];
 
-/// Everyone receives the same unfinished routine while keeping performed sets.
+/// Everyone receives the agreed routine. A set I already did stays done where it stands; everything
+/// else — the sets still to do, the ones someone else wrote — becomes my plan (not done, mine).
 List<ExerciseBlock> personalRoutine(List<Json> doc, List<Json> completed) {
   final history = blocksFromJson(completed);
-  final completedIds = {
+  final done = {
     for (final b in history)
-      for (final s in b.sets) s.id,
+      for (final s in b.sets) s.id: s,
   };
   final planned = blocksFromJson([
     for (final b in doc)
@@ -128,20 +126,27 @@ List<ExerciseBlock> personalRoutine(List<Json> doc, List<Json> completed) {
         ...b,
         'sets': [
           for (final s in b['sets'] as List)
-            {
-              ...(s as Map),
-              if (completedIds.contains(s['id'])) 'id': newId(),
-              'author': null,
-              'done': false,
-            },
+            {...(s as Map), 'author': null, 'done': false},
         ],
       },
   ]);
-  final historyById = {for (final b in history) b.id: b};
   for (final b in planned) {
-    b.sets.addAll(historyById.remove(b.id)?.sets ?? const []);
+    for (final (i, s) in b.sets.indexed) {
+      if (done.remove(s.id) case final kept?) b.sets[i] = kept;
+    }
   }
-  return [...planned, ...historyById.values];
+  // Done sets the routine no longer has (an exercise dropped from it) are still work I did.
+  for (final b in history) {
+    b.sets.retainWhere((s) => done.containsKey(s.id));
+  }
+  final rest = {
+    for (final b in history)
+      if (b.sets.isNotEmpty) b.id: b,
+  };
+  for (final b in planned) {
+    b.sets.addAll(rest.remove(b.id)?.sets ?? const []);
+  }
+  return [...planned, ...rest.values];
 }
 
 /// 견줄 때의 모양. 서버를 한 번 거치면 60.0 이 60 이 되고(JSON), jsonb 는 키

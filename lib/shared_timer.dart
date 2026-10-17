@@ -58,6 +58,7 @@ class SharedTimer {
     this.partnerLeft,
     this.joined = true,
     this.others = const [],
+    this.byName,
   });
 
   /// 제안마다 오른다. 옛 제안을 향한 동작은 서버가 버린다.
@@ -85,6 +86,9 @@ class SharedTimer {
 
   /// 같이 돌리는 다른 사람들과 각자 그만둔 자리.
   final List<({String key, String name, ({int ms, int beat})? left})> others;
+
+  /// 제안한 사람의 이름. 옛 서버는 주지 않는다 — 그때는 null 이다.
+  final String? byName;
 
   bool get started => startAt != null;
 
@@ -125,6 +129,7 @@ class SharedTimer {
     partnerLeft: partnerLeft,
     joined: joined,
     others: others,
+    byName: byName,
   );
 
   static SharedTimer? tryFromJson(Object? j) {
@@ -168,6 +173,10 @@ class SharedTimer {
               left: left(o['left']),
             ),
       ],
+      byName: switch (j['by']) {
+        {'name': final String name} when name.isNotEmpty => name,
+        _ => null,
+      },
     );
     return timer.personal.valid ? timer : null;
   }

@@ -3660,4 +3660,43 @@ class LJa extends L {
 
   @override
   String get routineUnstartAsk => 'この記録には記入済みのセットがあります。記録ごと削除しますか?';
+
+  @override
+  String get partnerErrLeft => '一緒に運動していた人が退出しました。';
+
+  @override
+  String get partnerNotYours => '相手が記録したセットは変更できません。その人の記録です。';
+
+  @override
+  String get partnerRoutinePlan => 'ルーティンとして確定';
+
+  @override
+  String get partnerCodeHint => '相手の画面に表示されている6文字を入力してください。';
+
+  @override
+  String partnerPaste(String code) {
+    return '貼り付け $code';
+  }
+
+  @override
+  String get partnerShare => '共有';
+
+  @override
+  String partnerShareText(String code) {
+    return 'setpad 一緒にやるコード $code\nアプリで記録 → ⋯ → 一緒にやる → 番号を入力';
+  }
+
+  @override
+  String partnerShareTextLink(String code, String url) {
+    return 'setpad 一緒にやるコード $code\nアプリで記録 → ⋯ → 一緒にやる → 番号を入力、またはこのリンクからすぐ参加:\n$url';
+  }
+
+  @override
+  String get partnerInviteMoreNew => 'もう1人招待 · 新しいコード';
+
+  @override
+  String get partnerHomeOpen => '開く';
+
+  @override
+  String get togetherInviteSomeone => '一緒にやろうと誘われています';
 }
