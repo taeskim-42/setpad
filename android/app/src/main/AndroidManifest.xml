@@ -36,7 +36,9 @@
          (above) is granted only by users who allow heart rate, so a user who
          refuses it would lose the service (startForeground throws). This normal
          permission (no prompt) is the condition that holds for every user. The
-         app reads no motion sensors itself. -->
+         app reads no motion sensors itself, and the Play declaration says so;
+         keeping it is an open decision (docs/android-fgs-play-declaration.md,
+         "열린 결정"). -->
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
     <!-- Held only while a timer runs AND the app is not visible (TimingService). -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>

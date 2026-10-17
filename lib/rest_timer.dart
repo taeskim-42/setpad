@@ -9,6 +9,10 @@ import 'workout_timing.dart' show TimerHaptic, phraseVoice, platformHaptic;
 abstract class RestNotifier {
   Future<void> schedule(DateTime at, String title, String body);
   Future<void> cancel();
+
+  /// The rest ended while away and the app is alive to see it: the notice
+  /// belongs to now, not to a scheduled time that may still be ahead.
+  Future<void> endedAway(String title, String body);
 }
 
 /// The rest between sets on the set stage (spec focus-stage-1.8 §5).
@@ -158,6 +162,10 @@ class RestTimer extends ChangeNotifier with WidgetsBindingObserver {
       // One call: stopping without a cue would cut the end sound.
       _cue(active: false, cue: 'complete', haptic: TimerHaptic.success);
       _say('start');
+      final n = notifier, text = _away ? notice?.call() : null;
+      if (n != null && text != null) {
+        unawaited(n.endedAway(text.title, text.body));
+      }
       notifyListeners();
       onDone?.call();
       return;

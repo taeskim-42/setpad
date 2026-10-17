@@ -43,6 +43,9 @@ class FakeNotifier implements RestNotifier {
       log.add('schedule $title $body');
   @override
   Future<void> cancel() async => log.add('cancel');
+  @override
+  Future<void> endedAway(String title, String body) async =>
+      log.add('ended $title $body');
 }
 
 FocusLink stageLink(WidgetTester tester) =>

@@ -4,6 +4,7 @@
 // 서버의 규칙은 partner_test.dart 의 가짜가 흉내 내고, 진짜 규칙은 gymdojo 의
 // partner-sessions.test.ts 가 실제 Postgres 로 지킨다.
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/editor.dart';
 import 'package:setpad/gym.dart';
@@ -378,8 +379,9 @@ void main() {
     Future<void> mountEditor(
       WidgetTester tester,
       Device device,
-      RoutineEditorController c,
-    ) async {
+      RoutineEditorController c, {
+      Future<void> Function()? askRestNotify,
+    }) async {
       await tester.pumpWidget(
         CupertinoApp(
           locale: const Locale('ko'),
@@ -392,6 +394,7 @@ void main() {
                 controller: c,
                 partner: device.sync,
                 timer: device.timer,
+                askRestNotify: askRestNotify,
               ),
             ),
           ),
@@ -399,6 +402,48 @@ void main() {
       );
       await tester.pump();
     }
+
+    testWidgets('Android: 같이 하기를 받거나 제안할 때도 알림 권한을 run 전에 한 번 묻는다', (
+      tester,
+    ) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      final (_, mina, jun) = await pair();
+      var asked = 0;
+      Future<void> ask() async => asked++;
+
+      // Accepting: the shared run starts right after, without ▶.
+      await mountEditor(
+        tester,
+        jun,
+        RoutineEditorController(),
+        askRestNotify: ask,
+      );
+      await mina.sync.proposeTimer('버피 타바타 20/10 x8', tabata);
+      await jun.sync.refresh();
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('together-accept')));
+      await tester.pump();
+      expect(asked, 1);
+      await mina.sync.clearTimer();
+      await jun.sync.refresh();
+      await tester.pumpWidget(const SizedBox());
+
+      // Proposing: the run starts when the partner accepts, maybe with the
+      // app in the background.
+      asked = 0;
+      final c = RoutineEditorController()
+        ..addExercise('스쿼트 60bpm')
+        ..closeBlock();
+      await mountEditor(tester, mina, c, askRestNotify: ask);
+      await tester.tap(find.byKey(const ValueKey('together-start')));
+      await tester.pump();
+      expect(asked, 1);
+
+      await tester.pumpWidget(const SizedBox());
+      mina.timer.dispose();
+      jun.timer.dispose();
+      debugDefaultTargetPlatformOverride = null;
+    });
 
     // The stage covers the editor once the shared timer runs.
     String typed(WidgetTester tester) => tester

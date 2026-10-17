@@ -36,6 +36,9 @@ class FakeNotifier implements RestNotifier {
 
   @override
   Future<void> cancel() async => log.add('cancel');
+  @override
+  Future<void> endedAway(String title, String body) async =>
+      log.add('ended $title / $body');
 }
 
 void main() {
@@ -257,26 +260,33 @@ void main() {
     },
   );
 
-  test(
-    'natural end while away leaves the notice to ring; no text, no notice',
-    () {
-      wall = DateTime.utc(2026, 10, 17, 9);
-      rest.dispose();
-      rest = make();
-      rest.start(Object(), const Duration(seconds: 5));
-      rest.didChangeAppLifecycleState(AppLifecycleState.paused);
-      expect(notifier.log, ['cancel']); // no notice text set
-      rest.notice = () => (title: 't', body: 'b');
-      rest.didChangeAppLifecycleState(AppLifecycleState.resumed);
-      rest.didChangeAppLifecycleState(AppLifecycleState.paused);
-      notifier.log.clear();
-      clock = const Duration(seconds: 5);
-      wall = wall!.add(const Duration(seconds: 5));
-      rest.tick();
-      expect(rest.running, isFalse);
-      expect(notifier.log, isEmpty);
-    },
-  );
+  test('natural end while away: the notice is for now (endedAway); in front or '
+      'no text, no notice', () {
+    wall = DateTime.utc(2026, 10, 17, 9);
+    rest.dispose();
+    rest = make();
+    rest.start(Object(), const Duration(seconds: 5));
+    rest.didChangeAppLifecycleState(AppLifecycleState.paused);
+    expect(notifier.log, ['cancel']); // no notice text set
+    rest.notice = () => (title: 't', body: 'b');
+    rest.didChangeAppLifecycleState(AppLifecycleState.resumed);
+    rest.didChangeAppLifecycleState(AppLifecycleState.paused);
+    notifier.log.clear();
+    clock = const Duration(seconds: 5);
+    wall = wall!.add(const Duration(seconds: 5));
+    rest.tick();
+    expect(rest.running, isFalse);
+    expect(notifier.log, ['ended t / b']);
+    // In front: the end sound alone, no notice.
+    rest.didChangeAppLifecycleState(AppLifecycleState.resumed);
+    rest.start(Object(), const Duration(seconds: 5));
+    notifier.log.clear();
+    clock = const Duration(seconds: 10);
+    wall = wall!.add(const Duration(seconds: 5));
+    rest.tick();
+    expect(rest.running, isFalse);
+    expect(notifier.log, isEmpty);
+  });
 
   group('recorded words', () {
     String m(String key) => 'assets/voice/en/m/$key.m4a';

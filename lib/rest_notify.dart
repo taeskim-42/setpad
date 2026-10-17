@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -29,23 +30,41 @@ class LocalRestNotifier implements RestNotifier {
         title,
         body,
         tz.TZDateTime.from(at, tz.UTC),
-        NotificationDetails(
-          // The channel is named after what it says ("Rest's over"): no
-          // separate string to translate.
-          android: AndroidNotificationDetails(
-            'focus_rest',
-            title,
-            importance: Importance.high,
-            priority: Priority.high,
-          ),
-          iOS: const DarwinNotificationDetails(),
-        ),
+        _details(title),
         // Play refused the exact-alarm permission before (AndroidManifest):
         // inexact, never early.
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
+    } catch (_) {}
+  }
+
+  // The channel is named after what it says ("Rest's over"): no separate
+  // string to translate.
+  static NotificationDetails _details(String title) => NotificationDetails(
+    android: AndroidNotificationDetails(
+      'focus_rest',
+      title,
+      importance: Importance.high,
+      priority: Priority.high,
+    ),
+    iOS: const DarwinNotificationDetails(),
+  );
+
+  /// Android schedules inexactly (no exact-alarm permission): with the
+  /// workout service keeping the app alive, the end sound has just played
+  /// and the scheduled notice could still come minutes later, in the next
+  /// set. So it is replaced by one shown now. iOS schedules exactly: its
+  /// notice comes with the end sound already, left alone.
+  @override
+  Future<void> endedAway(String title, String body) async {
+    if (defaultTargetPlatform != TargetPlatform.android) return;
+    final plugin = await AgentAlarm.plugin;
+    if (plugin == null) return;
+    try {
+      await plugin.cancel(id);
+      await plugin.show(id, title, body, _details(title));
     } catch (_) {}
   }
 

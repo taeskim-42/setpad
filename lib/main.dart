@@ -1690,8 +1690,11 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                       if (_writingFor)
                         RoutineEditor(
                           // 다른 칸을 적는 다른 편집기다. 내 기록의 타이머·식단·공유가
-                          // 여기로 새지 않게 아무것도 넘기지 않는다.
+                          // 여기로 새지 않게 아무것도 넘기지 않는다. The app-wide
+                          // notification question is no record data: a first
+                          // run or set stage here asks it too (Android).
                           key: const ValueKey('proxy-editor'),
+                          askRestNotify: () => askFocusNotifyOnce(widget.store),
                           countAloud: widget.store.countAloud,
                           hapticsOn: widget.store.hapticsOn,
                           voice: widget.store.voice,

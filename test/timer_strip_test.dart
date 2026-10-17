@@ -136,48 +136,49 @@ void main() {
     await finish(tester);
   });
 
-  testWidgets('Android: 첫 run 전에 알림 권한을 한 번 묻는다(무대 전), iOS 는 여기서 묻지 않는다', (
-    tester,
-  ) async {
-    for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
-      debugDefaultTargetPlatformOverride = platform;
-      final c = RoutineEditorController()
-        ..addExercise('버피 타바타')
-        ..closeBlock();
-      final asked = <bool>[];
-      await tester.pumpWidget(
-        app(
-          RoutineEditor(
-            key: ValueKey(platform),
-            controller: c,
-            timer: timer,
-            askTimerPermissions: () async {},
-            askRestNotify: () async =>
-                asked.add(find.byType(RunPage).evaluate().isNotEmpty),
+  testWidgets(
+    'Android: 첫 run 전에 알림 권한을 한 번 묻는다(run 화면이 뜨기 전, 편집기 안에서), iOS 는 여기서 묻지 않는다',
+    (tester) async {
+      for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+        debugDefaultTargetPlatformOverride = platform;
+        final c = RoutineEditorController()
+          ..addExercise('버피 타바타')
+          ..closeBlock();
+        final asked = <bool>[];
+        await tester.pumpWidget(
+          app(
+            RoutineEditor(
+              key: ValueKey(platform),
+              controller: c,
+              timer: timer,
+              askTimerPermissions: () async {},
+              askRestNotify: () async =>
+                  asked.add(find.byType(RunPage).evaluate().isNotEmpty),
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('timer-start')));
-      await tester.pumpAndSettle();
-      expect(timer.running, isTrue);
-      await fold(tester);
-      timer.reset();
-      await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('timer-start')));
-      await tester.pumpAndSettle();
-      await fold(tester);
-      expect(
-        asked,
-        platform == TargetPlatform.android ? [false] : isEmpty,
-        reason: '$platform: once, before the stage opened',
-      );
-      timer.reset();
-      await tester.pumpWidget(const SizedBox());
-      debugDefaultTargetPlatformOverride = null;
-    }
-    await finish(tester);
-  });
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('timer-start')));
+        await tester.pumpAndSettle();
+        expect(timer.running, isTrue);
+        await fold(tester);
+        timer.reset();
+        await tester.pump();
+        await tester.tap(find.byKey(const ValueKey('timer-start')));
+        await tester.pumpAndSettle();
+        await fold(tester);
+        expect(
+          asked,
+          platform == TargetPlatform.android ? [false] : isEmpty,
+          reason: '$platform: once, in the editor before RunPage opened',
+        );
+        timer.reset();
+        await tester.pumpWidget(const SizedBox());
+        debugDefaultTargetPlatformOverride = null;
+      }
+      await finish(tester);
+    },
+  );
 
   testWidgets('라운드 세트는 같은 세트를 고치고, 비우면 지우고, 박자는 센 수로 한 세트; 다른 run 이면 새로', (
     tester,

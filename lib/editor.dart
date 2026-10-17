@@ -1728,6 +1728,19 @@ class _RoutineEditorState extends State<RoutineEditor>
     widget.partner?.leaveTimer(at, beat);
   }
 
+  /// Android 13+: the workout-recording notification (TimingService) shows
+  /// in the drawer only with POST_NOTIFICATIONS; the service runs without
+  /// it. So ask before a run first starts here — alone (▶), proposing or
+  /// accepting a shared one (it starts later, maybe in the background) —
+  /// never at launch: the same once-for-the-app question as the set stage's
+  /// (askRestNotify, NotesStore.focusNotifyAsked). Android only; the iOS lane
+  /// may add its own request at these spots.
+  Future<void> _askRunNotify() async {
+    if (defaultTargetPlatform != TargetPlatform.android || _focusAsked) return;
+    _focusAsked = true;
+    await widget.askRestNotify?.call();
+  }
+
   Future<void> _proposeShared(
     ExerciseBlock block,
     TimingSpec spec,
@@ -1735,6 +1748,8 @@ class _RoutineEditorState extends State<RoutineEditor>
   ) async {
     // Once accepted, the shared run replaces a finished one: ask now.
     if (!await _okToDrop()) return;
+    await _askRunNotify();
+    if (!mounted) return;
     final t = _shared;
     _sharedBlock = block;
     // 상대가 같은 것을 먼저 제안해 두었다면 그것을 받는 것이 곧 같이 시작이다.
@@ -1747,6 +1762,8 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   Future<void> _acceptShared() async {
     if (!await _okToDrop()) return;
+    await _askRunNotify();
+    if (!mounted) return;
     final t = _shared;
     if (t == null || t.joined) return;
     _sharedBlock = _blockFor(t) ?? _c.addBlockQuietly(t.title);
@@ -2195,17 +2212,8 @@ class _RoutineEditorState extends State<RoutineEditor>
       _hideKeyboard();
       // Alone: withdraw my unanswered proposal, leave a shared run elsewhere.
       if (_togetherToggle(block)) return;
-      // Android 13+: the workout-recording notification (TimingService) shows
-      // in the drawer only with POST_NOTIFICATIONS; the service runs without
-      // it. So ask before the first run starts, never at launch: the same
-      // once-for-the-app question as the set stage's (askRestNotify,
-      // NotesStore.focusNotifyAsked). Android only here; the iOS lane may add
-      // its own request at this spot.
-      if (defaultTargetPlatform == TargetPlatform.android && !_focusAsked) {
-        _focusAsked = true;
-        await widget.askRestNotify?.call();
-        if (!mounted) return;
-      }
+      await _askRunNotify();
+      if (!mounted) return;
       if (spec.tabata && !_timerAsked) {
         _timerAsked = true;
         await (widget.askTimerPermissions ?? _askPermissions)();
