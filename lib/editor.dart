@@ -893,8 +893,10 @@ class RoutineEditor extends StatefulWidget {
   final int Function(String key)? restFor;
   final void Function(String key, int seconds)? onRestChanged;
 
-  /// Called when the set stage first opens in this editor: the rest
-  /// notification permission (asked once, NotesStore.focusNotifyAsked).
+  /// Called when the set stage first opens in this editor, and on Android
+  /// before the first timer run too: the notification permission (asked
+  /// once, NotesStore.focusNotifyAsked) for the rest notice and the
+  /// workout-recording notification.
   final Future<void> Function()? askRestNotify;
 
   /// The real audio the timer, the rest and the stage share through one
@@ -2193,6 +2195,17 @@ class _RoutineEditorState extends State<RoutineEditor>
       _hideKeyboard();
       // Alone: withdraw my unanswered proposal, leave a shared run elsewhere.
       if (_togetherToggle(block)) return;
+      // Android 13+: the workout-recording notification (TimingService) shows
+      // in the drawer only with POST_NOTIFICATIONS; the service runs without
+      // it. So ask before the first run starts, never at launch: the same
+      // once-for-the-app question as the set stage's (askRestNotify,
+      // NotesStore.focusNotifyAsked). Android only here; the iOS lane may add
+      // its own request at this spot.
+      if (defaultTargetPlatform == TargetPlatform.android && !_focusAsked) {
+        _focusAsked = true;
+        await widget.askRestNotify?.call();
+        if (!mounted) return;
+      }
       if (spec.tabata && !_timerAsked) {
         _timerAsked = true;
         await (widget.askTimerPermissions ?? _askPermissions)();

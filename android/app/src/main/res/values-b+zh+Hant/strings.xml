@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Running-timer notification (TimingService). -->
-    <string name="timing_channel">運動計時器</string>
-    <string name="timing_running">運動計時器正在運行</string>
+    <!-- Workout-recording notification (TimingService, health FGS): it names
+         the workout being recorded, not media. -->
+    <string name="timing_channel">運動記錄</string>
+    <string name="timing_running">正在記錄運動 · 計時器運行中</string>
 </resources>

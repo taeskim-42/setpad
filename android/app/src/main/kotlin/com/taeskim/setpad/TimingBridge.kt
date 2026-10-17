@@ -161,6 +161,7 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                 runCatching {
                     playVoice(call.argument<String>("asset") ?: "", call.argument<Boolean>("onBeat") == true)
                 }
+                TimingService.renew(clicking = tempo != null)
                 result.success(null)
             }
             else if (call.method == "keepAlive") {
@@ -218,6 +219,9 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                         cues.getOrPut(name) { staticTrack(samples(cueTone(name))) }
                     }
                 } else if (!active) { cueTrack = null }
+                // The service's wake lock: its timeout starts over, and a beat
+                // loop that sounds keeps the CPU awake in its place.
+                TimingService.renew(clicking = tempo != null)
                 result.success(null)
             } catch (_: Exception) { stop(); result.error("audioUnavailable", null, null) }
         }

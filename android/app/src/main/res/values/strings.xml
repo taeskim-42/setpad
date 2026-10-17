@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Running-timer notification (TimingService). English is the fallback, as in
+    <!-- Workout-recording notification (TimingService, health FGS): it names
+         the workout being recorded, not media. English is the fallback, as in
          Flutter (lib/app_locale.dart). values-zh is Simplified (app_zh / zh_Hans);
          zh-TW/HK/MO resolve to Hant on Android 7+ as appLocale does. -->
-    <string name="timing_channel">Workout timer</string>
-    <string name="timing_running">Workout timer running</string>
+    <string name="timing_channel">Workout recording</string>
+    <string name="timing_running">Recording your workout · timer running</string>
 </resources>
