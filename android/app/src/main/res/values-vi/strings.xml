@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Running-timer notification (TimingService). -->
-    <string name="timing_channel">Bộ đếm giờ tập luyện</string>
-    <string name="timing_running">Bộ đếm giờ tập luyện đang chạy</string>
+    <!-- Workout-recording notification (TimingService, health FGS): it names
+         the workout being recorded, not media. -->
+    <string name="timing_channel">Ghi buổi tập</string>
+    <string name="timing_running">Đang ghi buổi tập · bộ đếm giờ đang chạy</string>
 </resources>

@@ -116,8 +116,8 @@ class RunLink extends ChangeNotifier {
 iOS (`TimingBridge.swift`, `Info.plist`):
 - `UIBackgroundModes: [audio]`.
 - `willResignActiveNotification` 관찰 삭제. `AVAudioSession.interruptionNotification`: began → stop + `interrupted`; ended 에 `.shouldResume` 이면 세션 재활성 + `resumed`.
-- **keep-alive**: `private static let keepAliveLoop = true`. active 인 동안 0 샘플 1초 버퍼를 `numberOfLoops = -1` 로 튼다(휴식처럼 소리가 없는 동안 앱이 멈추지 않게). active:false 에서 끈다. 상수 false 면 Tempo 방식(멈췄다 돌아오면 제자리, 놓친 신호 없음).
-- **complete 는 말을 끊지 않는다**: `configure(active:false, cue:'complete')` 는 클릭 루프·keep-alive 만 멈추고 대기·진행 중 말을 남긴다. `cue == nil && !active`(일시정지·정지)만 말을 끊는다.
+- **keep-alive (지움, 2026-10-17)**: 처음엔 active 동안 무음 버퍼를 반복 재생해 앱을 깨워 두었다. 애플의 audio 모드 정의 ("The app plays audible content in the background")와 App Review 2.5.4 에 어긋나 지웠다. 오디오 세션은 소리를 내는 타이머가 도는 동안만 켜고, 소리 없는 구간의 신호는 앱이 화면 밖에 있을 때 로컬 알림으로 낸다(`lib/boundary_notify.dart`, `docs/ios-app-review-notes.md`).
+- **complete 는 말을 끊지 않는다**: `configure(active:false, cue:'complete')` 는 클릭 루프만 멈추고 대기·진행 중 말을 남긴다. `cue == nil && !active`(일시정지·정지)만 말을 끊는다.
 - `warmUp`: `AVSpeechSynthesizer` 첫 발화 지연을 줄이려고 큐 플레이어 4개 prepare + 빈 문자열 말하기는 하지 않는다(소리 없음 보장) — 플레이어만.
 - 화면 켜 둠(`isIdleTimerDisabled = active`) 유지. `.playback + .mixWithOthers` 유지.
 

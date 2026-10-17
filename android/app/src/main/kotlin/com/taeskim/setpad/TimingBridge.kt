@@ -161,6 +161,7 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                 runCatching {
                     playVoice(call.argument<String>("asset") ?: "", call.argument<Boolean>("onBeat") == true)
                 }
+                TimingService.renew(clicking = tempo != null)
                 result.success(null)
             }
             else if (call.method == "keepAlive") {
@@ -218,8 +219,17 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                         cues.getOrPut(name) { staticTrack(samples(cueTone(name))) }
                     }
                 } else if (!active) { cueTrack = null }
+                // The service's wake lock: its timeout starts over, and a beat
+                // loop that sounds keeps the CPU awake in its place.
+                TimingService.renew(clicking = tempo != null)
                 result.success(null)
-            } catch (_: Exception) { stop(); result.error("audioUnavailable", null, null) }
+            } catch (_: Exception) {
+                // Only the sound stops. The run goes on in Dart, so the workout
+                // service stays until keepAlive(off): Android would refuse to
+                // start it again from the background.
+                silence(); TimingService.renew(clicking = false)
+                result.error("audioUnavailable", null, null)
+            }
         }
     }
     // Pitch, partials, length and loudness measured from Tempo's cue recordings
@@ -254,7 +264,8 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
     }
     private fun dropPending() { pendingCount?.let { handler.removeCallbacks(it) }; pendingCount = null }
     private fun stopClick() { track?.let { runCatching { it.stop() } }; track = null; tempo = null }
-    private fun stop() { cancelVoice(); stopClick(); runCatching { cueTrack?.stop() }; cueTrack = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); TimingService.stop() }
+    private fun silence() { cancelVoice(); stopClick(); runCatching { cueTrack?.stop() }; cueTrack = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
+    private fun stop() { silence(); TimingService.stop() }
     /// The app is in front again: a service refused in the background starts now.
     fun resumed() = TimingService.retry(activity.applicationContext)
     fun close() {

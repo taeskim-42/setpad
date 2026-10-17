@@ -894,8 +894,10 @@ class RoutineEditor extends StatefulWidget {
   final int Function(String key)? restFor;
   final void Function(String key, int seconds)? onRestChanged;
 
-  /// Called when the set stage first opens in this editor: the rest
-  /// notification permission (asked once, NotesStore.focusNotifyAsked).
+  /// Called when the set stage first opens in this editor, and on Android
+  /// before the first timer run too: the notification permission (asked
+  /// once, NotesStore.focusNotifyAsked) for the rest notice and the
+  /// workout-recording notification.
   final Future<void> Function()? askRestNotify;
 
   /// The real audio the timer, the rest and the stage share through one
@@ -1739,6 +1741,29 @@ class _RoutineEditorState extends State<RoutineEditor>
     widget.partner?.leaveTimer(at, beat);
   }
 
+  /// Android 13+: the workout-recording notification (TimingService) shows
+  /// in the drawer only with POST_NOTIFICATIONS; the service runs without
+  /// it. So ask before a run first starts here — alone (▶), proposing or
+  /// accepting a shared one (it starts later, maybe in the background) —
+  /// never at launch: the same once-for-the-app question as the set stage's
+  /// (askRestNotify, NotesStore.focusNotifyAsked). Android only; the iOS lane
+  /// may add its own request at these spots.
+  Future<void> _askRunNotify() async {
+    if (defaultTargetPlatform != TargetPlatform.android || _focusAsked) return;
+    _focusAsked = true;
+    await widget.askRestNotify?.call();
+  }
+
+  /// iOS: a shared run's boundaries also come as notifications while the app
+  /// is away (lib/boundary_notify.dart), so proposing or accepting one asks
+  /// first, the same question as before a run started alone (▶).
+  Future<void> _askSharedNotices() async {
+    if (!_iosNotices || _noticesAsked) return;
+    _noticesAsked = true;
+    await (widget.askTimerPermissions ??
+        () => _askPermissions(tabata: false))();
+  }
+
   Future<void> _proposeShared(
     ExerciseBlock block,
     TimingSpec spec,
@@ -1746,6 +1771,10 @@ class _RoutineEditorState extends State<RoutineEditor>
   ) async {
     // Once accepted, the shared run replaces a finished one: ask now.
     if (!await _okToDrop()) return;
+    await _askRunNotify();
+    if (!mounted) return;
+    await _askSharedNotices();
+    if (!mounted) return;
     final t = _shared;
     _sharedBlock = block;
     // 상대가 같은 것을 먼저 제안해 두었다면 그것을 받는 것이 곧 같이 시작이다.
@@ -1758,6 +1787,10 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   Future<void> _acceptShared() async {
     if (!await _okToDrop()) return;
+    await _askRunNotify();
+    if (!mounted) return;
+    await _askSharedNotices();
+    if (!mounted) return;
     final t = _shared;
     if (t == null || t.joined) return;
     _sharedBlock = _blockFor(t) ?? _c.addBlockQuietly(t.title);
@@ -2208,6 +2241,8 @@ class _RoutineEditorState extends State<RoutineEditor>
       _hideKeyboard();
       // Alone: withdraw my unanswered proposal, leave a shared run elsewhere.
       if (_togetherToggle(block)) return;
+      await _askRunNotify();
+      if (!mounted) return;
       final tabata = spec.tabata && !_timerAsked;
       if (tabata || (_iosNotices && !_noticesAsked)) {
         _timerAsked |= spec.tabata;

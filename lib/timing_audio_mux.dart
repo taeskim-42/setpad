@@ -101,8 +101,9 @@ class TimingAudioMux {
         phase: workout?._phase,
       ),
     );
-    // A failed call stopped the native side (it runs stop()): the next call
-    // sends the merge again instead of taking it as already there.
+    // A failed call stopped the native sound (iOS: stop(); Android keeps its
+    // workout service): the next call sends the merge again instead of
+    // taking it as already there.
     _chain = call.catchError((Object _) {
       _sent = null;
       _kept = null;

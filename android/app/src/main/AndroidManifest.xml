@@ -16,11 +16,31 @@
          USE_EXACT_ALARM)은 넣지 않는다 — Play 가 권한 사유로 거절한 전력이 있고,
          몇 분 늦는 알림으로 충분하다. POST_NOTIFICATIONS 는 플러그인이 합쳐 준다. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <!-- 타이머가 도는 동안 백그라운드·화면 꺼짐에도 신호·세기가 이어지게 하는 포그라운드
-         서비스(TimingService, iOS 의 keep-alive 와 짝). Play Console 의 포그라운드 서비스
-         권한 선언이 필요하다 — docs/android-fgs-play-declaration.md. -->
+    <!-- Workout recording foreground service (TimingService): while a workout
+         timer run or a set rest runs, the app keeps counting, cueing and
+         recording the workout with the screen off or the app in the background.
+         Type "health": Google's FGS types page describes it as "Any long-running
+         use cases to support apps in the fitness category such as exercise
+         trackers", and the Play FAQ says "an exercise app that tracks a user's
+         exercise can declare the "health" foreground service type". Not
+         mediaPlayback ("Continue audio or video playback from the background"):
+         the service also runs through long silent stretches (rest, a Tabata
+         without a beat), and Play says "Don't declare invalid or inaccurate FGS
+         types". Play Console declaration: docs/android-fgs-play-declaration.md. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH"/>
+    <!-- The health type's runtime prerequisite on Android 14+: "At least one of
+         the following conditions must be true: Declare the
+         HIGH_SAMPLING_RATE_SENSORS permission in your manifest. Request and be
+         granted at least one of ... READ_HEART_RATE ...". READ_HEART_RATE
+         (above) is granted only by users who allow heart rate, so a user who
+         refuses it would lose the service (startForeground throws). This normal
+         permission (no prompt) is the condition that holds for every user. The
+         app reads no motion sensors itself, and the Play declaration says so;
+         keeping it is an open decision (docs/android-fgs-play-declaration.md,
+         "열린 결정"). -->
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
+    <!-- Held only while a timer runs AND the app is not visible (TimingService). -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <!-- 백업에서 로그인 표를 뺀다(res/xml). 기록은 그대로 백업된다. -->
     <application
@@ -116,7 +136,7 @@
             android:name=".TimingService"
             android:exported="false"
             android:stopWithTask="true"
-            android:foregroundServiceType="mediaPlayback"/>
+            android:foregroundServiceType="health"/>
         <!-- 걸어 둔 알림을 띄우고, 재부팅·앱 업데이트 뒤 다시 거는 플러그인 리시버. -->
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">

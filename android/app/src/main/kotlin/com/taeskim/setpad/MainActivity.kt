@@ -48,6 +48,18 @@ class MainActivity : FlutterFragmentActivity() {
         if (isRationale(intent)) flutterEngine?.navigationChannel?.pushRoute("/health-data")
     }
 
+    // Visible or not: the timer's wake lock is held only while the app is not
+    // (TimingService). onStop also comes with the screen turned off.
+    override fun onStart() {
+        super.onStart()
+        TimingService.visible(true)
+    }
+
+    override fun onStop() {
+        TimingService.visible(false)
+        super.onStop()
+    }
+
     override fun onResume() {
         super.onResume()
         timing?.resumed()

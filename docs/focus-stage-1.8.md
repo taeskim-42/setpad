@@ -48,12 +48,12 @@ FocusSuggestion nextSet(ExerciseBlock block, Iterable<Note> earlier, {required S
 - `stats(sets)`(요약): 세트 수, weight 면 볼륨 = Σ(무게×reps) — 단위는 첫 무게 세트의 단위, 다른 무게 단위는 환산(1 kg = 2.20462 lb), 맨몸 세트는 볼륨에 0·횟수 합에 더함; duration 은 Σ시간, distance 는 Σ거리, 맨몸만이면 Σreps. `best` = 가장 무거운 무게(같으면 많은 횟수); 맨몸은 가장 많은 횟수; duration/distance 는 가장 긴 것.
 
 ## 4. 오디오 하나를 나눠 쓰기 (레인 K: `lib/timing_audio_mux.dart`)
-🟩 네이티브 `configure(active,bpm,cue,phase)` 의 active 는 하나다: 화면 켜 둠(iOS isIdleTimerDisabled, Android FLAG_KEEP_SCREEN_ON)·keep-alive 루프·세션이 이것을 따른다. 두 객체가 따로 보내면 서로 끈다.
+🟩 네이티브 `configure(active,bpm,cue,phase)` 의 active 는 하나다: 화면 켜 둠(iOS isIdleTimerDisabled, Android FLAG_KEEP_SCREEN_ON)·세션이 이것을 따른다(무음 keep-alive 루프는 2026-10-17 에 지웠다 — 애플 2.5.4). 두 객체가 따로 보내면 서로 끈다.
 🟦 `TimingAudioMux` 가 진짜 `TimingAudio` 하나를 쥐고 **포트**를 나눠 준다: `mux.port('workout')`, `mux.port('rest')`, `mux.port('stage')`. 각 포트는 `TimingAudio` 를 구현한다.
 - 포트의 configure(active, bpm, cue, phase) 는 그 포트의 상태만 바꾸고, mux 가 합쳐 한 번 보낸다: `active = 어느 포트든 active`, `bpm/phase = workout 포트가 active 일 때 그 값`, `cue = 이번 호출의 cue`. 명령은 mux 의 직렬 체인 하나로 나간다.
 - speak 는 그대로 넘긴다. onInterrupted/onResumed 는 workout 포트에만 전한다(휴식은 인터럽션에도 시계를 그대로 센다).
 - 포트 dispose 는 그 포트를 inactive 로 하고 합친 상태를 보낼 뿐 진짜 audio 를 닫지 않는다. 진짜 audio 는 mux 주인(편집기)이 마지막에 닫는다. warmUp 은 넘긴다.
-- 편집기는 `WorkoutTimer(audio: mux.port('workout'))`, `RestTimer(audio: mux.port('rest'))`, 무대가 열리면 `port('stage').configure(active: true)`(화면 켜 둠·keep-alive), 닫히면 false. **네이티브는 바꾸지 않는다.**
+- 편집기는 `WorkoutTimer(audio: mux.port('workout'))`, `RestTimer(audio: mux.port('rest'))`, 무대가 열리면 `port('stage').configure(active: true)`(화면 켜 둠), 닫히면 false. **네이티브는 바꾸지 않는다.**
 
 ## 5. 휴식 타이머 (레인 K: `lib/rest_timer.dart`)
 ```dart
