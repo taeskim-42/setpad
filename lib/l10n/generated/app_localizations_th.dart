@@ -4102,4 +4102,190 @@ class LTh extends L {
   String timerUnloggedReps(int n) {
     return 'มี $n ครั้งที่ยังไม่ได้บันทึก';
   }
+
+  @override
+  String get focusOpen => 'หน้าออกกำลังกาย';
+
+  @override
+  String focusExerciseOf(int n, int total) {
+    return 'ท่าที่ $n/$total';
+  }
+
+  @override
+  String get focusPrevExercise => 'ท่าก่อนหน้า';
+
+  @override
+  String get focusNextExerciseA11y => 'ท่าถัดไป';
+
+  @override
+  String focusSetLabel(int n) {
+    return 'เซ็ตที่ $n';
+  }
+
+  @override
+  String get focusPlanned => 'แผน';
+
+  @override
+  String get focusLastTimeSame => 'เหมือนครั้งก่อน';
+
+  @override
+  String get focusSameAsLast => 'เหมือนเซ็ตที่แล้ว';
+
+  @override
+  String get focusFromSetup => 'ตามที่ตั้งไว้';
+
+  @override
+  String get focusPickValues => 'กำหนดน้ำหนักและจำนวนครั้ง';
+
+  @override
+  String get focusPickButton => 'ตั้งน้ำหนัก·จำนวนครั้ง';
+
+  @override
+  String get focusPlanDone => 'จบแผนแล้ว';
+
+  @override
+  String focusLastTimeLine(String set) {
+    return 'ครั้งก่อนตรงนี้ $set';
+  }
+
+  @override
+  String get focusBodyweight => 'น้ำหนักตัว';
+
+  @override
+  String get focusDone => 'เสร็จแล้ว';
+
+  @override
+  String get focusNextSetNow => 'เซ็ตถัดไปเลย';
+
+  @override
+  String get focusStartRest => 'เริ่มพัก';
+
+  @override
+  String focusNextUp(String set) {
+    return 'ถัดไป · $set';
+  }
+
+  @override
+  String focusRestLength(String time) {
+    return 'พัก $time';
+  }
+
+  @override
+  String focusRestPillA11y(String time) {
+    return 'ท่าอื่นพักเหลือ $time';
+  }
+
+  @override
+  String get focusRestLess => 'ลดเวลาพัก 15 วินาที';
+
+  @override
+  String get focusRestMore => 'เพิ่มเวลาพัก 15 วินาที';
+
+  @override
+  String focusWeightUp(String step) {
+    return 'เพิ่ม $step';
+  }
+
+  @override
+  String focusWeightDown(String step) {
+    return 'ลด $step';
+  }
+
+  @override
+  String get focusRepsUp => 'เพิ่มอีก 1 ครั้ง';
+
+  @override
+  String get focusRepsDown => 'ลดลง 1 ครั้ง';
+
+  @override
+  String get focusTodaySets => 'เซ็ตวันนี้';
+
+  @override
+  String get focusExerciseDone => 'จบท่านี้';
+
+  @override
+  String focusNextExercise(String name) {
+    return 'ท่าถัดไป: $name';
+  }
+
+  @override
+  String get focusOneMore => 'อีกหนึ่งเซ็ต';
+
+  @override
+  String focusSummaryTitle(String name) {
+    return '$name เสร็จแล้ว!';
+  }
+
+  @override
+  String get focusSets => 'เซ็ต';
+
+  @override
+  String get focusVolume => 'วอลลุ่ม';
+
+  @override
+  String get focusTotalTime => 'เวลารวม';
+
+  @override
+  String get focusTotalDistance => 'ระยะทางรวม';
+
+  @override
+  String get focusTotalReps => 'จำนวนครั้ง';
+
+  @override
+  String get focusBest => 'ดีที่สุด';
+
+  @override
+  String focusLastTime(String when, String value) {
+    return 'ครั้งก่อน · $when · $value';
+  }
+
+  @override
+  String get focusSame => 'เท่าเดิม';
+
+  @override
+  String get focusUndo => 'เลิกทำ';
+
+  @override
+  String focusLogged(String set) {
+    return 'บันทึก $set แล้ว';
+  }
+
+  @override
+  String get focusHeartBack => 'หัวใจกลับมาปกติ · เซ็ตถัดไป';
+
+  @override
+  String focusRestPill(String time) {
+    return 'พัก $time · เปิด';
+  }
+
+  @override
+  String get focusSharedTimer => 'ตัวจับเวลาร่วมกัน · เปิด';
+
+  @override
+  String get focusStartTimer => 'เริ่มจับเวลา';
+
+  @override
+  String focusHeroA11y(String set) {
+    return '$set';
+  }
+
+  @override
+  String focusRestA11y(String time) {
+    return 'พักเหลือ $time';
+  }
+
+  @override
+  String get focusRestDefault => 'เวลาพักระหว่างเซ็ตเริ่มต้น';
+
+  @override
+  String get focusRestTitle => 'เวลาพัก';
+
+  @override
+  String get focusWeightTitle => 'น้ำหนัก';
+
+  @override
+  String get focusRepsTitle => 'จำนวนครั้ง';
+
+  @override
+  String get focusRestOverTitle => 'หมดเวลาพัก';
 }

@@ -4134,4 +4134,190 @@ class LVi extends L {
   String timerUnloggedReps(int n) {
     return 'Có $n lần chưa ghi';
   }
+
+  @override
+  String get focusOpen => 'Màn hình tập';
+
+  @override
+  String focusExerciseOf(int n, int total) {
+    return 'Bài tập $n/$total';
+  }
+
+  @override
+  String get focusPrevExercise => 'Bài tập trước';
+
+  @override
+  String get focusNextExerciseA11y => 'Bài tập tiếp theo';
+
+  @override
+  String focusSetLabel(int n) {
+    return 'Hiệp $n';
+  }
+
+  @override
+  String get focusPlanned => 'Kế hoạch';
+
+  @override
+  String get focusLastTimeSame => 'Giống lần trước';
+
+  @override
+  String get focusSameAsLast => 'Giống hiệp trước';
+
+  @override
+  String get focusFromSetup => 'Theo thiết lập';
+
+  @override
+  String get focusPickValues => 'Chọn mức tạ và số lần';
+
+  @override
+  String get focusPickButton => 'Chọn tạ · số lần';
+
+  @override
+  String get focusPlanDone => 'Hết kế hoạch';
+
+  @override
+  String focusLastTimeLine(String set) {
+    return 'Lần trước ở đây: $set';
+  }
+
+  @override
+  String get focusBodyweight => 'Tạ cơ thể';
+
+  @override
+  String get focusDone => 'Xong';
+
+  @override
+  String get focusNextSetNow => 'Hiệp tiếp theo ngay';
+
+  @override
+  String get focusStartRest => 'Bắt đầu nghỉ';
+
+  @override
+  String focusNextUp(String set) {
+    return 'Tiếp theo · $set';
+  }
+
+  @override
+  String focusRestLength(String time) {
+    return 'Nghỉ $time';
+  }
+
+  @override
+  String focusRestPillA11y(String time) {
+    return 'Còn $time nghỉ ở bài tập khác';
+  }
+
+  @override
+  String get focusRestLess => 'Bớt nghỉ 15 giây';
+
+  @override
+  String get focusRestMore => 'Thêm nghỉ 15 giây';
+
+  @override
+  String focusWeightUp(String step) {
+    return 'Thêm $step';
+  }
+
+  @override
+  String focusWeightDown(String step) {
+    return 'Bớt $step';
+  }
+
+  @override
+  String get focusRepsUp => 'Thêm 1 lần';
+
+  @override
+  String get focusRepsDown => 'Bớt 1 lần';
+
+  @override
+  String get focusTodaySets => 'Hiệp hôm nay';
+
+  @override
+  String get focusExerciseDone => 'Xong bài tập này';
+
+  @override
+  String focusNextExercise(String name) {
+    return 'Tiếp theo: $name';
+  }
+
+  @override
+  String get focusOneMore => 'Thêm một hiệp';
+
+  @override
+  String focusSummaryTitle(String name) {
+    return 'Xong $name!';
+  }
+
+  @override
+  String get focusSets => 'Hiệp';
+
+  @override
+  String get focusVolume => 'Khối lượng';
+
+  @override
+  String get focusTotalTime => 'Tổng thời gian';
+
+  @override
+  String get focusTotalDistance => 'Tổng quãng đường';
+
+  @override
+  String get focusTotalReps => 'Số lần';
+
+  @override
+  String get focusBest => 'Tốt nhất';
+
+  @override
+  String focusLastTime(String when, String value) {
+    return 'Lần trước · $when · $value';
+  }
+
+  @override
+  String get focusSame => 'Giống';
+
+  @override
+  String get focusUndo => 'Hoàn tác';
+
+  @override
+  String focusLogged(String set) {
+    return 'Đã ghi $set';
+  }
+
+  @override
+  String get focusHeartBack => 'Nhịp tim đã hồi · hiệp tiếp theo';
+
+  @override
+  String focusRestPill(String time) {
+    return 'Nghỉ $time · Mở';
+  }
+
+  @override
+  String get focusSharedTimer => 'Hẹn giờ chung · Mở';
+
+  @override
+  String get focusStartTimer => 'Bắt đầu hẹn giờ';
+
+  @override
+  String focusHeroA11y(String set) {
+    return '$set';
+  }
+
+  @override
+  String focusRestA11y(String time) {
+    return 'Còn $time nghỉ';
+  }
+
+  @override
+  String get focusRestDefault => 'Nghỉ mặc định giữa các hiệp';
+
+  @override
+  String get focusRestTitle => 'Thời gian nghỉ';
+
+  @override
+  String get focusWeightTitle => 'Mức tạ';
+
+  @override
+  String get focusRepsTitle => 'Số lần';
+
+  @override
+  String get focusRestOverTitle => 'Hết giờ nghỉ';
 }
