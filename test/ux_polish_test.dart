@@ -1096,7 +1096,7 @@ void main() {
       await openSettings(tester, account: account);
       final l = await L.delegate.load(const Locale('ko'));
       final row = find.byKey(const ValueKey('settings-nickname'));
-      await tester.ensureVisible(row);
+      await tester.scrollUntilVisible(row, 200); // lazy list: build it first
       await tester.pumpAndSettle();
       expect(
         find.descendant(of: row, matching: find.text(l.nicknameLabel)),
@@ -1215,7 +1215,7 @@ void main() {
       await openSettings(tester, account: account);
       final l = await L.delegate.load(const Locale('ko'));
       final row = find.byKey(const ValueKey('settings-sign-out-everywhere'));
-      await tester.ensureVisible(row);
+      await tester.scrollUntilVisible(row, 200); // lazy list: build it first
       await tester.pumpAndSettle();
       await tester.tap(row);
       await tester.pumpAndSettle();

@@ -34,6 +34,7 @@ import 'meal_amount_sheet.dart';
 import 'meal_review_sheet.dart';
 import 'anatomy_page.dart' show registerArtworkLicense;
 import 'notes.dart';
+import 'rest_notify.dart';
 import 'metrics.dart';
 import 'palette.dart';
 import 'partner.dart';
@@ -781,6 +782,18 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
   }
 }
 
+/// The rest notification permission, asked the first time any set stage
+/// opens (NotesStore.focusNotifyAsked). Refused: the rest ends with sound
+/// only.
+Future<void> askFocusNotifyOnce(
+  NotesStore store, [
+  Future<bool> Function() ask = LocalRestNotifier.ensurePermission,
+]) async {
+  if (store.focusNotifyAsked) return;
+  store.setFocusNotifyAsked();
+  await ask();
+}
+
 class EditorPage extends StatefulWidget {
   const EditorPage({
     super.key,
@@ -1451,8 +1464,25 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 위 막대에는 … 와 완료뿐이다. 나머지는 전부 메뉴 안에 — 버튼이 넷씩
-            // 늘어서 있으면 어느 것도 눈에 안 들어온다.
+            // 위 막대에는 ▶ 와 … 와 완료뿐이다. 나머지는 전부 메뉴 안에 — 버튼이 넷씩
+            // 늘어서 있으면 어느 것도 눈에 안 들어온다. ▶ 는 운동이 있을 때, 내 기록일 때만
+            // (대신 적기 편집기에는 세트 무대가 없다).
+            ListenableBuilder(
+              listenable: _editor,
+              builder: (context, _) => _writingFor || _editor.blocks.isEmpty
+                  ? const SizedBox.shrink()
+                  : CupertinoButton(
+                      key: const ValueKey('focus-open'),
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(44, 44),
+                      onPressed: () => _editor.openFocus?.call(),
+                      child: Icon(
+                        CupertinoIcons.play_circle,
+                        size: 23,
+                        semanticLabel: l.focusOpen,
+                      ),
+                    ),
+            ),
             CupertinoButton(
               key: const ValueKey('record-menu'),
               padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -1636,6 +1666,13 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                   Expanded(
                     child: RoutineEditor(
                       key: const ValueKey('own-editor'),
+                      // The set stage: my other records, the rest per
+                      // exercise and its notification permission.
+                      history: () =>
+                          widget.store.notes.where((n) => n != widget.note),
+                      restFor: widget.store.restFor,
+                      onRestChanged: widget.store.setRestFor,
+                      askRestNotify: () => askFocusNotifyOnce(widget.store),
                       countAloud: widget.store.countAloud,
                       hapticsOn: widget.store.hapticsOn,
                       onCountAloud: widget.store.setCountAloud,

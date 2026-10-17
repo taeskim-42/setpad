@@ -19,6 +19,8 @@ import 'purchases.dart';
 import 'settings_list.dart';
 import 'trainer.dart';
 import 'workout_import.dart';
+import 'workout_timing.dart' show timerClock;
+import 'timer_sheet.dart' show ValueSheet;
 
 /// 설정.
 ///
@@ -62,6 +64,12 @@ class SettingsPage extends StatelessWidget {
                     label: l.timerHapticsSetting,
                     value: store.hapticsOn,
                     onChanged: store.setHapticsOn,
+                  ),
+                  SettingsRow(
+                    key: const ValueKey('settings-rest'),
+                    label: l.focusRestDefault,
+                    detail: timerClock(store.restSeconds),
+                    onTap: () => _pickRest(context),
                   ),
                 ],
               ),
@@ -440,6 +448,20 @@ class SettingsPage extends StatelessWidget {
       ),
     );
   }
+
+  /// The default rest between sets (15 s – 10 min), on a wheel — no
+  /// keyboard. Each exercise's own rest, set on the stage, stays.
+  Future<void> _pickRest(BuildContext context) => showCupertinoModalPopup<void>(
+    context: context,
+    builder: (_) => ValueSheet(
+      title: L.of(context).focusRestTitle,
+      value: store.restSeconds,
+      values: [for (var s = 15; s <= 600; s += 15) s],
+      presets: const [60, 90, 120, 180],
+      label: timerClock,
+      onChanged: store.setRestSeconds,
+    ),
+  );
 
   Future<void> _pickUnit(BuildContext context) async {
     final l = L.of(context);

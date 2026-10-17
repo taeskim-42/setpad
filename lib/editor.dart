@@ -15,6 +15,9 @@ import 'record_ai.dart';
 import 'setup_chips.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'exercises.dart';
+import 'focus.dart';
+import 'focus_link.dart';
+import 'focus_page.dart';
 import 'health.dart';
 import 'rest_alarm.dart';
 import 'rest_recovery.dart';
@@ -22,12 +25,18 @@ import 'run_link.dart';
 import 'run_page.dart';
 import 'set_grid.dart';
 import 'metrics.dart';
+import 'notes.dart' show Note;
+import 'record_query.dart' show exerciseKey;
+import 'rest_notify.dart';
+import 'rest_timer.dart';
 import 'palette.dart';
 import 'parser.dart';
 import 'partner.dart';
 import 'shared_timer.dart';
 import 'timer_sheet.dart';
 import 'timer_strip.dart';
+import 'timing_audio.dart';
+import 'timing_audio_mux.dart';
 import 'units.dart';
 import 'workout_timing.dart';
 
@@ -536,6 +545,68 @@ class RoutineEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// What the set stage wrote, for [undoFocusSet]: set id → the planned set
+  /// as it was, null for a set the stage added.
+  final _focusWritten = <String, LoggedSet?>{};
+
+  /// The set stage's [Done] (spec focus-stage-1.8 §8). The planned set is
+  /// found again by [plannedId] now — a partner's set may have come in since
+  /// the suggestion — and gets [values] and done. Missing, done or someone
+  /// else's: a new set at the end, like every new set. Returns its id; null
+  /// when [b] is gone.
+  String? logFocusSet(ExerciseBlock b, String? plannedId, LoggedSet values) {
+    if (!blocks.contains(b)) return null;
+    // Weight 0 is bodyweight: no value.
+    final value = values.value == 0 ? null : values.value;
+    final at = plannedId == null
+        ? -1
+        : b.sets.indexWhere((s) => s.id == plannedId);
+    if (at >= 0 && !b.sets[at].theirs && !b.sets[at].done) {
+      final before = b.sets[at];
+      _focusWritten[before.id] = before;
+      b.sets[at] = LoggedSet(
+        id: before.id,
+        value: value,
+        unit: values.unit,
+        reps: values.reps,
+        notes: [...before.notes],
+      );
+      notifyListeners();
+      return before.id;
+    }
+    final set = LoggedSet(value: value, unit: values.unit, reps: values.reps);
+    b.sets.add(set);
+    _focusWritten[set.id] = null;
+    notifyListeners();
+    return set.id;
+  }
+
+  /// Takes back [logFocusSet]'s [setId]: a new set goes, a planned one gets
+  /// its old values and ○ again. Anything else is left alone.
+  void undoFocusSet(ExerciseBlock b, String setId) {
+    if (!_focusWritten.containsKey(setId)) return;
+    final before = _focusWritten.remove(setId);
+    final at = b.sets.indexWhere((s) => s.id == setId);
+    if (!blocks.contains(b) || at < 0 || b.sets[at].theirs) return;
+    if (before == null) {
+      b.sets.removeAt(at);
+    } else {
+      b.sets[at] = LoggedSet(
+        id: before.id,
+        value: before.value,
+        unit: before.unit,
+        reps: before.reps,
+        notes: [...b.sets[at].notes],
+        done: before.done,
+      );
+    }
+    notifyListeners();
+  }
+
+  /// Set by the editor showing this controller: opens the set stage (the
+  /// note page's ▶). Null while no editor offers it (the proxy editor).
+  VoidCallback? openFocus;
+
   /// 운동 통째로 삭제.
   void removeBlock(int block) {
     blocks.removeAt(block);
@@ -768,8 +839,36 @@ class RoutineEditor extends StatefulWidget {
     this.onPresence,
     this.timer,
     this.records,
+    this.history,
+    this.restFor,
+    this.onRestChanged,
+    this.askRestNotify,
+    this.audio,
+    this.rest,
   });
   final RoutineEditorController controller;
+
+  /// My records other than this one (the set stage's suggestions and last
+  /// time). Null: no set stage here (the proxy editor) — no ▶.
+  final Iterable<Note> Function()? history;
+
+  /// The rest length of an exercise key in seconds (NotesStore.restFor) and
+  /// where the stage's ±15 saves it. Without: 90 s, not saved.
+  final int Function(String key)? restFor;
+  final void Function(String key, int seconds)? onRestChanged;
+
+  /// Called when the set stage first opens in this editor: the rest
+  /// notification permission (asked once, NotesStore.focusNotifyAsked).
+  final Future<void> Function()? askRestNotify;
+
+  /// The real audio the timer, the rest and the stage share through one
+  /// [TimingAudioMux]. Null: the platform's, closed with the editor. Tests
+  /// pass one and close it themselves.
+  final TimingAudio? audio;
+
+  /// The set rest. Null: made here on the shared audio. Tests pass one with
+  /// their clock; it is stopped, not disposed, with the editor.
+  final RestTimer? rest;
 
   /// 운동 칸마다 최고 무게를 새로 넘긴 세트 번호([weightRecords]). 그 칸에 ★.
   final Set<int> Function(ExerciseBlock block)? records;
@@ -845,7 +944,22 @@ class _RoutineEditorState extends State<RoutineEditor>
   final _input = TextEditingController();
   final _focus = FocusNode();
   final _scroll = ScrollController();
-  late final _workoutTimer = widget.timer ?? WorkoutTimer();
+
+  /// One native audio for the workout timer, the set rest and the stage
+  /// (spec focus-stage-1.8 §4): each owner has a port, so one going quiet
+  /// does not turn the screen-on and keep-alive off under another.
+  late final _mux = TimingAudioMux(widget.audio ?? createTimingAudio());
+  late final _workoutTimer =
+      widget.timer ?? WorkoutTimer(audio: _mux.port('workout'));
+  late final _rest =
+      widget.rest ??
+      RestTimer(
+        audio: _mux.port('rest'),
+        muted: () => _workoutTimer.running,
+        notifier: const LocalRestNotifier(),
+      );
+  late final _stagePort = _mux.port('stage');
+  late final _focusLink = FocusLink(rest: _rest);
   late final _recovery = widget.recovery ?? RestRecovery(health: HealthLink());
   late final _link = RunLink(_workoutTimer);
 
@@ -1385,6 +1499,18 @@ class _RoutineEditorState extends State<RoutineEditor>
       _run = _workoutTimer.runId;
       _roundSets.clear();
     }
+    _syncShared();
+    // The timer comes first; without it a set rest on the stage listens too
+    // (spec focus-stage-1.8 §5) — its baselines come from the stage
+    // (onLift/onRested), so a timer notify must not reset them.
+    if (!_workoutTimer.wantsHeart && _rest.running) {
+      if (_backgrounded) {
+        _recovery.stop();
+      } else {
+        _recovery.listen();
+      }
+      return;
+    }
     if (!_workoutTimer.wantsHeart) {
       _recovery.stop();
       if (_seenPhase != null) {
@@ -1649,6 +1775,14 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 값이 없거나 늦게 오면 아무 일도 일어나지 않고 시간이 끊는다.
   void _followHeart() {
     if (!_recovery.recovered) return;
+    // A set rest: the person ends it. One heavy tap, no sound (not to be
+    // taken for the 3·2·1); the stage's ♥ line says it.
+    if (!_workoutTimer.wantsHeart && _rest.running) {
+      if (_heartTold) return;
+      _heartTold = true;
+      if (_buzz) unawaited(HapticFeedback.heavyImpact());
+      return;
+    }
     final resting = _workoutTimer.phase == TimingPhase.rest;
     _workoutTimer.skipRest();
     // 심박이 휴식을 끝냈다. 폰의 시작 신호에 더해 손목까지 — 폰을 안 보고 있어도.
@@ -1744,6 +1878,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (_runOpen || !mounted) return;
     _syncLink();
     _runOpen = true;
+    _syncShared();
     final route = CupertinoPageRoute<void>(
       fullscreenDialog: true,
       builder: (_) => RunPage(link: _link),
@@ -1758,6 +1893,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     };
     await Navigator.of(context).push(route);
     _runOpen = false;
+    _syncShared();
     if (mounted) setState(() {});
   }
 
@@ -1792,6 +1928,149 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   bool _linkNotify = false;
+
+  // ── 세트 무대 ─────────────────────────────────────────────
+
+  bool _focusOpen = false, _focusAsked = false, _focusNotify = false;
+  bool _restWasRunning = false;
+
+  /// The heart-rate tap of this rest was given.
+  bool _heartTold = false;
+
+  /// A shared run goes while its stage is not open — over the set stage
+  /// (the timer stage opens itself only over the editor), the set stage's
+  /// strip opens it.
+  bool get _sharedBehindFocus =>
+      _workoutTimer.shared && _workoutTimer.running && !_runOpen;
+
+  /// A partner's run starts behind the set stage: its strip, at once.
+  void _syncShared() {
+    if (_focusLink.sharedTimerRunning == _sharedBehindFocus) return;
+    _focusLink
+      ..sharedTimerRunning = _sharedBehindFocus
+      ..changed();
+  }
+
+  Iterable<Note> get _history => widget.history?.call() ?? const [];
+
+  FocusSuggestion _suggest(ExerciseBlock b) => nextSet(
+    b,
+    _history,
+    key: exerciseKey(b.exercise),
+    weightUnit: _c.weightUnit,
+  );
+
+  /// The block the stage starts on (spec focus-stage-1.8 §2): the cursor's,
+  /// else the first with a planned ○ left, else the last.
+  ExerciseBlock? get _focusStart {
+    final blocks = _c.blocks, at = _c.activeIndex;
+    if (at >= 0 && at < blocks.length) return blocks[at];
+    return blocks
+            .where((b) => b.sets.any((s) => !s.theirs && !s.done))
+            .firstOrNull ??
+        blocks.lastOrNull;
+  }
+
+  void _openFocusTap() => unawaited(_openFocus());
+
+  /// The set stage over this screen, on [at] or [_focusStart]. While it is
+  /// open the stage port keeps the screen on.
+  Future<void> _openFocus([ExerciseBlock? at]) async {
+    final start = at ?? _focusStart;
+    if (_focusOpen || !mounted || start == null) return;
+    _hideKeyboard();
+    _focusOpen = true;
+    _focusLink.currentId = start.id;
+    _syncFocus();
+    if (!_focusAsked) {
+      _focusAsked = true;
+      unawaited(widget.askRestNotify?.call());
+    }
+    unawaited(_stagePort.configure(active: true).catchError((Object _) {}));
+    await FocusPage.open(context, _focusLink);
+    _focusOpen = false;
+    unawaited(_stagePort.configure(active: false).catchError((Object _) {}));
+    if (mounted) setState(() {});
+  }
+
+  /// The stage's link: wired once; the rest is read again here.
+  void _wireFocus() {
+    _focusLink
+      ..suggest = _suggest
+      ..lastTime = ((b) => lastTimeOf(_history, exerciseKey(b.exercise)))
+      ..restFor = ((b) => Duration(
+        seconds: widget.restFor?.call(exerciseKey(b.exercise)) ?? 90,
+      ))
+      ..onRestChanged = ((b, d) =>
+          widget.onRestChanged?.call(exerciseKey(b.exercise), d.inSeconds))
+      ..onLog = _c.logFocusSet
+      ..onUndo = _c.undoFocusSet
+      ..onStartTimer = ((b) => unawaited(_startTimer(b)))
+      ..onOpenSharedTimer = (() => unawaited(_openRun()))
+      // The timer's rounds own the baseline while it runs.
+      ..onLift = ((_) {
+        if (!_workoutTimer.wantsHeart) _recovery.beginRound();
+      })
+      ..onRested = ((_) {
+        _heartTold = false;
+        if (!_workoutTimer.wantsHeart) _recovery.beginRest();
+      });
+    // Cleared in dispose, so the context is there when it is read.
+    _rest.notice = () {
+      final owner = _rest.owner;
+      final l = L.of(context);
+      if (owner is! ExerciseBlock || !_c.blocks.contains(owner)) {
+        return (title: l.focusRestOverTitle, body: '');
+      }
+      final v = _suggest(owner).values;
+      final n = owner.sets.where((s) => s.mine).length + 1;
+      final set = setLabel(
+        value: v.value,
+        unit: v.unit,
+        reps: v.reps,
+        formatReps: l.repsCount,
+      );
+      return (
+        title: l.focusRestOverTitle,
+        body: l.focusNextUp('${l.focusSetLabel(n)} $set'.trim()),
+      );
+    };
+  }
+
+  /// What the stage reads, refreshed on every rebuild and partner news; the
+  /// notice comes a frame later, never inside build.
+  void _syncFocus() {
+    final link = _focusLink;
+    final blocks = List<ExerciseBlock>.of(_c.blocks);
+    final id = link.currentId;
+    if (id != null && !blocks.any((b) => b.id == id)) {
+      // The block on screen went: the one now at its place, none if empty.
+      final was = link.blocks.indexWhere((b) => b.id == id);
+      link.currentId = blocks.isEmpty
+          ? null
+          : blocks[max(0, was).clamp(0, blocks.length - 1)].id;
+    }
+    link
+      ..blocks = blocks
+      ..weightUnit = _c.weightUnit
+      ..recovery = _recovery
+      ..sharedTimerRunning = _sharedBehindFocus;
+    _rest.haptics = _buzz;
+    if (_focusNotify) return;
+    _focusNotify = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNotify = false;
+      if (mounted) link.changed();
+    });
+  }
+
+  /// The heart rate listens while a set rest runs.
+  void _onRest() {
+    final running = _rest.running;
+    if (running == _restWasRunning) return;
+    _restWasRunning = running;
+    _followTimer();
+  }
 
   void _hideKeyboard() {
     _focus.unfocus();
@@ -1982,6 +2261,9 @@ class _RoutineEditorState extends State<RoutineEditor>
       ..onLeave = _leaveShared
       ..onRejoin = () => unawaited(widget.partner?.rejoinTimer());
     _recovery.addListener(_followHeart);
+    _rest.addListener(_onRest);
+    _wireFocus();
+    if (widget.history != null) _c.openFocus = _openFocusTap;
     widget.partner?.addListener(_followShared);
     WidgetsBinding.instance.addObserver(this);
     // 운동이 있는 기록을 열었으면 첫 입력 연결이 표지를 처음부터 가져간다.
@@ -2931,8 +3213,19 @@ class _RoutineEditorState extends State<RoutineEditor>
       _workoutTimer.onComplete = null;
     }
     _link.dispose();
+    if (_c.openFocus == _openFocusTap) _c.openFocus = null;
+    // Leaving the record ends its rest quietly, notice included.
+    _rest
+      ..removeListener(_onRest)
+      ..notice = null
+      ..stop();
+    if (widget.rest == null) _rest.dispose();
+    _focusLink.dispose();
     // 밖에서 받은 것은 밖에서 버린다.
     if (widget.timer == null) _workoutTimer.dispose();
+    unawaited(_stagePort.dispose().catchError((Object _) {}));
+    // The real audio last, after every port's goodbye.
+    if (widget.audio == null) unawaited(_mux.dispose());
     _recovery.removeListener(_followHeart);
     // 밖에서 받은 것은 밖에서 버린다.
     if (widget.recovery == null) _recovery.dispose();
@@ -3425,6 +3718,7 @@ class _RoutineEditorState extends State<RoutineEditor>
       ..voiceLocale = Localizations.localeOf(context).toLanguageTag()
       ..announceRound = L.of(context).timingRoundDone;
     _syncLink();
+    _syncFocus();
     // The first count of the first run should not wait for the speech engine.
     if (!_warmed && blocks.any((b) => TimingSpec.parse(b.name) != null)) {
       _warmed = true;
@@ -3433,6 +3727,26 @@ class _RoutineEditorState extends State<RoutineEditor>
     final incoming = _shared;
     return Column(
       children: [
+        // The stage folded with a rest still running: its countdown, a tap
+        // back to it.
+        ListenableBuilder(
+          listenable: _rest,
+          builder: (context, _) {
+            final owner = _rest.owner;
+            return _rest.running && !_focusOpen
+                ? _RestStrip(
+                    left: _rest.remaining,
+                    onTap: () => unawaited(
+                      _openFocus(
+                        owner is ExerciseBlock && _c.blocks.contains(owner)
+                            ? owner
+                            : null,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink();
+          },
+        ),
         // 상대가 같이 하자고 했다. 목록과 함께 흘러가지 않게 맨 위에 붙여 둔다 —
         // 받아야 시작하는데 안 보이면 상대는 하염없이 기다린다.
         // 이미 시작한 것에도 들어갈 수 있다(돌고 있는 시계에 들어선다). 교대는 둘의
@@ -4656,6 +4970,46 @@ class SuggestionChip extends StatelessWidget {
 }
 
 /// 상대의 "같이 하자". 받으면 몇 초 뒤 두 폰이 같이 3·2·1 을 센다.
+/// "Rest 0:42 · Open" above the record while the folded stage rests.
+class _RestStrip extends StatelessWidget {
+  const _RestStrip({required this.left, required this.onTap});
+  final Duration left;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final seconds = (left.inMilliseconds / 1000).ceil();
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        key: const ValueKey('focus-rest-strip'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 44),
+          margin: const EdgeInsets.fromLTRB(gutter, 4, gutter, 0),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          alignment: AlignmentDirectional.centerStart,
+          decoration: BoxDecoration(
+            color: CupertinoColors.secondarySystemBackground.resolveFrom(
+              context,
+            ),
+            borderRadius: BorderRadius.circular(radiusCard),
+          ),
+          child: Text(
+            L.of(context).focusRestPill(timerClock(seconds)),
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _TogetherInvite extends StatelessWidget {
   const _TogetherInvite({
     required this.name,
