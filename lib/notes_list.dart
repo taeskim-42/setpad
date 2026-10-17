@@ -83,9 +83,26 @@ class _NotesListPageState extends State<NotesListPage>
   late final _search = RecordSearch(widget.ai, cache: _cache);
   late final _routine = RoutineSearch(widget.ai, cache: _cache);
 
-  /// 글마다 카드에서 고친 것(✕·넣기·칩). 다시 짜도(앱 복귀·날짜 바뀜) 남는다.
+  /// 글마다 카드에서 고친 것(✕·넣기·칩). 다시 짜도(앱 복귀) 그날 안에는 남는다.
   /// 오늘 날짜와 글을 열쇠로 [_editsStore] 에도 남겨 앱을 다시 켜도 잇는다.
+  /// 읽고 쓸 때는 [_todayEdits] 로 — 날이 바뀌면 비운다.
   final _edits = <String, RoutineEdits>{};
+
+  /// [_edits] 가 담은 날.
+  DateTime? _editsDay;
+
+  /// 오늘의 [_edits]. 날이 바뀌었으면 비워 오늘 열쇠로 다시 읽게 한다 — 앱을 켠 채
+  /// 자정을 넘기면 어제 카드에서 고친 것(다른 루틴·칩·방식·바꾸기)이 오늘 카드에
+  /// 남았고, 다음 고침이 그것을 오늘 열쇠로 디스크에 옮겼다.
+  Map<String, RoutineEdits> get _todayEdits {
+    final day = dayOf(widget.now());
+    if (_editsDay != day) {
+      _edits.clear();
+      _editsDay = day;
+    }
+    return _edits;
+  }
+
   late final _editsStore =
       widget.routineEdits ?? QueryCache(fileName: 'routine_edits.json');
 
@@ -106,7 +123,7 @@ class _NotesListPageState extends State<NotesListPage>
   /// 이 글의 고친 것 — 메모리에 없으면 남겨 둔 것에서 읽는다.
   RoutineEdits _editsOf(String text) {
     final key = _editsText(text);
-    return _edits.putIfAbsent(
+    return _todayEdits.putIfAbsent(
       key,
       () => RoutineEdits.fromJson(_editsStore[_editsKey(key)]),
     );
@@ -115,7 +132,7 @@ class _NotesListPageState extends State<NotesListPage>
   /// 고친 것을 남긴다. 바로 쓴다 — 시작하고 곧 앱이 꺼져도 "시작함" 이 남게.
   void _keepEdits(String text) {
     final key = _editsText(text);
-    final e = _edits[key];
+    final e = _todayEdits[key];
     if (e == null) return;
     _editsStore.put(_editsKey(key), e.toJson());
     unawaited(_editsStore.flush());

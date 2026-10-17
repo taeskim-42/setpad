@@ -1100,6 +1100,9 @@ class NotesStore extends ChangeNotifier {
       routineId: routineId,
     );
     _notes.insert(0, note);
+    // 새 기록이 생기면 되돌리기를 거둔다. 그사이 같은 쌤 루틴(routineId)·같은 루틴
+    // 시작·같은 날 기록을 새로 만들었으면, 옛 기록을 되살리는 순간 둘이 된다.
+    _lastDelete = null;
     notifyListeners();
     _scheduleSave();
     return note;
@@ -1143,7 +1146,7 @@ class NotesStore extends ChangeNotifier {
   ({Note note, int index, List<ServerDelete> queued})? _lastDelete;
 
   /// 방금 지운 기록. 서버 지우기가 아직 하나도 안 나갔을 때만 — 하나라도 나갔으면 서버
-  /// 쪽은 되돌릴 수 없어 null 이다.
+  /// 쪽은 되돌릴 수 없어 null 이다. 그 뒤 새 기록이 생겨도 null 이다([create]).
   Note? get undoableDelete {
     final last = _lastDelete;
     if (last == null || !last.queued.every(_deletes.contains)) return null;

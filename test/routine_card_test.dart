@@ -425,6 +425,46 @@ void main() {
     expect(find.text('레그컬'), findsNothing);
   });
 
+  testWidgets(
+    '앱을 켠 채 자정을 넘기면 어제 카드에서 고친 것(다른 루틴)이 오늘 카드에 남지 않는다 — 새로 켠 것과 같다',
+    (tester) async {
+      final edits = QueryCache(
+        directory: Directory.systemTemp.createTempSync('routine_edits'),
+        fileName: 'routine_edits.json',
+      );
+      var clock = routineToday; // Wed 9/9 18:00
+      final store = await pump(tester, edits: edits, clock: () => clock);
+      final home = find.widgetWithText(GymRow, l.routineHeaderToday);
+      List<String> shown() => [
+        for (final t in tester.widgetList<Text>(
+          find.descendant(
+            of: find.byType(RoutineCard),
+            matching: find.byType(Text),
+          ),
+        ))
+          if (t.data != null) t.data!,
+      ];
+      await tester.tap(home);
+      await tester.pumpAndSettle();
+      final plain = shown();
+      await tester.tap(find.text(l.routineOther));
+      await tester.pumpAndSettle();
+      expect(shown(), isNot(plain));
+      await tester.tap(find.text(l.routineClose));
+      await tester.pumpAndSettle();
+      // The night passes with the app alive; Thursday morning, the same row.
+      clock = DateTime(2026, 9, 10, 8);
+      await tester.tap(home);
+      await tester.pumpAndSettle();
+      final alive = shown();
+      await tester.pumpWidget(const SizedBox());
+      await pump(tester, into: store, edits: edits, clock: () => clock);
+      await tester.tap(home);
+      await tester.pumpAndSettle();
+      expect(alive, shown());
+    },
+  );
+
   group('시작한 뒤 카드에서 고치면 시작한 기록에 옮긴다(검토 #6)', () {
     Finder started() => find.widgetWithText(CupertinoButton, l.routineStarted);
 
@@ -548,6 +588,54 @@ void main() {
       await tester.pumpAndSettle();
       expect(store.created, hasLength(1));
     });
+
+    testWidgets(
+      '시작 취소 뒤 [시작] 으로 새 기록을 만들면 되돌리기는 거둬진다 — 같은 날 루틴 기록이 둘이 되지 않는다',
+      (tester) async {
+        final dir = Directory.systemTemp.createTempSync('undo_restart');
+        final store = NotesStore(directory: dir);
+        addTearDown(store.dispose);
+        await tester.pumpWidget(
+          CupertinoApp(
+            locale: const Locale('ko'),
+            localizationsDelegates: L.localizationsDelegates,
+            supportedLocales: L.supportedLocales,
+            home: NotesListPage(
+              store: store,
+              onOpen: (_) {},
+              now: () => routineToday,
+              routineEdits: QueryCache(
+                directory: dir,
+                fileName: 'routine_edits.json',
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        Future<void> press(Finder f) async {
+          await tester.ensureVisible(f);
+          await tester.pumpAndSettle();
+          await tester.tap(f);
+          await tester.pumpAndSettle();
+        }
+
+        await press(find.widgetWithText(GymRow, l.routineHeaderToday));
+        await press(startButton());
+        final first = store.notes.single;
+        await press(find.text(l.routineUnstart));
+        final undo = find.byKey(const ValueKey('note-undo'));
+        expect(store.notes, isEmpty);
+        expect(undo, findsOneWidget);
+        // Start again inside the undo window: a new record C.
+        await press(startButton());
+        expect(undo, findsNothing, reason: '옛 기록을 되살리면 루틴 기록이 둘이 된다');
+        expect(store.undoDelete(), isFalse);
+        expect(store.notes, hasLength(1));
+        expect(store.notes.single, isNot(same(first)));
+        expect(started(), findsOneWidget);
+        await tester.pump(const Duration(seconds: 6));
+      },
+    );
 
     testWidgets('시작 취소: 끼니·출석이 든 기록은 지우지 않고 안 한 칸만 걷는다 — 묻지도 지우지도 않는다', (
       tester,

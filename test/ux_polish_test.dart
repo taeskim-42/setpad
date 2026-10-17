@@ -633,6 +633,28 @@ void main() {
       expect(store.notes, isEmpty);
     });
 
+    test('되돌리기 창 안에 새 기록을 만들면 되돌리기를 거둔다 — 같은 쌤 루틴이 둘이 되지 않는다', () {
+      final dir = Directory.systemTemp.createTempSync('setpad_ux_undo_new_');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final store = NotesStore(directory: dir);
+      addTearDown(store.dispose);
+      final first = store.create(
+        gymId: 'g1',
+        routineId: 'r1',
+        blocks: [
+          ExerciseBlock('스쿼트', [LoggedSet(value: 80, reps: 5)]),
+        ],
+      );
+      store.delete(first);
+      expect(store.undoableDelete, same(first));
+      // The trainer routine row is back at once; tapping it starts r1 again.
+      store.create(gymId: 'g1', routineId: 'r1');
+      expect(store.undoableDelete, isNull);
+      expect(store.heldDeletes, isEmpty, reason: '거둔 지우기는 이제 서버로 간다');
+      expect(store.undoDelete(), isFalse);
+      expect(store.notes.where((n) => n.routineId == 'r1'), hasLength(1));
+    });
+
     test('되돌리기가 열린 동안에는 동기화가 그 지우기를 서버로 보내지 않는다', () async {
       final dir = Directory.systemTemp.createTempSync('setpad_ux_hold_');
       addTearDown(() => dir.deleteSync(recursive: true));
