@@ -4389,4 +4389,7 @@ class LEn extends L {
 
   @override
   String get focusRestOverTitle => 'Rest\'s over';
+
+  @override
+  String get focusDistanceTitle => 'Distance';
 }

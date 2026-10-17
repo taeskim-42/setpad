@@ -1065,5 +1065,6 @@
   "focusRestTitle": "休憩時間",
   "focusWeightTitle": "重さ",
   "focusRepsTitle": "回数",
-  "focusRestOverTitle": "休憩終了"
+  "focusRestOverTitle": "休憩終了",
+  "focusDistanceTitle": "距離"
 }

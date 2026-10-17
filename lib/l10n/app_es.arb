@@ -1065,5 +1065,6 @@
   "focusRestTitle": "Tiempo de descanso",
   "focusWeightTitle": "Peso",
   "focusRepsTitle": "Repeticiones",
-  "focusRestOverTitle": "Fin del descanso"
+  "focusRestOverTitle": "Fin del descanso",
+  "focusDistanceTitle": "Distancia"
 }

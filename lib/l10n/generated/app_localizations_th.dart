@@ -4288,4 +4288,7 @@ class LTh extends L {
 
   @override
   String get focusRestOverTitle => 'หมดเวลาพัก';
+
+  @override
+  String get focusDistanceTitle => 'ระยะทาง';
 }

@@ -6414,6 +6414,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'휴식 끝'**
   String get focusRestOverTitle;
+
+  /// No description provided for @focusDistanceTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'거리'**
+  String get focusDistanceTitle;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

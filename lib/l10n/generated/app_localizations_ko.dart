@@ -4206,4 +4206,7 @@ class LKo extends L {
 
   @override
   String get focusRestOverTitle => '휴식 끝';
+
+  @override
+  String get focusDistanceTitle => '거리';
 }
