@@ -3,28 +3,41 @@ import 'dart:async';
 import 'timing_audio.dart';
 
 /// One real [TimingAudio] shared by the workout timer, the set rest and the
-/// set stage (spec focus-stage-1.8 §4).
+/// set stage (spec focus-stage-1.8 §4) — of every editor open: [shared].
 ///
 /// The native side has one `active`: keep the screen on, the keep-alive loop
 /// and the audio session all follow it, so two owners sending their own would
 /// switch each other off. Each owner gets a [port]; a port's configure only
 /// changes that port's state and the mux sends the merge, in call order, on
-/// one chain: active = any port active; bpm/phase = the 'workout' port's
-/// while it is active; cue = the call's own.
+/// one chain: active = any port active; bpm/phase = the leading active
+/// workout port's; cue = the call's own.
 class TimingAudioMux {
   TimingAudioMux(this.audio) {
     audio.onInterrupted = () {
-      // The native side stopped on its own: what was sent no longer holds.
+      // The native side stopped on its own: what was sent no longer holds,
+      // and nothing turns it back on until the interruption is over.
       _sent = null;
-      _ports['workout']?.onInterrupted?.call();
+      _interrupted = true;
+      for (final p in _workouts) {
+        p.onInterrupted?.call();
+      }
     };
     audio.onResumed = () {
-      _ports['workout']?.onResumed?.call();
+      _interrupted = false;
+      for (final p in _workouts) {
+        p.onResumed?.call();
+      }
       // An interruption stopped the keep-alive natively; whoever is still
       // active (a rest, the stage) gets it back.
       if (_ports.values.any((p) => p._active)) _send(null);
     };
   }
+
+  /// The app's one mux over the platform audio. Every editor takes its own
+  /// ports from it, so two editors (a record over another, the proxy editor)
+  /// never take the native channel from each other. Never disposed: the
+  /// ports are.
+  static final shared = TimingAudioMux(createTimingAudio());
 
   /// The real audio. The mux owner disposes it with [dispose], last.
   final TimingAudio audio;
@@ -33,22 +46,41 @@ class TimingAudioMux {
   ({bool active, int? bpm})? _sent;
   bool _disposed = false;
 
-  /// The port named [name] ('workout', 'rest', 'stage'); the same one until
-  /// it is disposed.
+  /// A call or an interruption began: the native side stays off until it
+  /// ends or someone turns a port on (or plays a cue).
+  bool _interrupted = false;
+
+  /// The workout port whose beat sounds while two are active.
+  _Port? _lead;
+
+  /// The port named [name]: its kind ('workout', 'rest', 'stage'), then
+  /// optionally '#' and the owner (`workout#2`) when several owners share
+  /// the mux. The same one until it is disposed.
   TimingAudio port(String name) =>
       _ports.putIfAbsent(name, () => _Port(this, name));
 
-  Future<void> _send(String? cue, {_Port? from}) {
+  Iterable<_Port> get _workouts => [..._ports.values.where((p) => p._workout)];
+
+  Future<void> _send(String? cue, {_Port? from, bool turnedOn = false}) {
     if (_disposed) return Future.value();
+    if (_interrupted) {
+      // Only someone starting again, or a cue, ends it before the system
+      // does: a pause during a call must not switch the session back on.
+      if (cue == null && !turnedOn) return Future.value();
+      _interrupted = false;
+    }
+    if (from != null && from._workout && from._active) _lead = from;
     final active = _ports.values.any((p) => p._active);
-    final workout = _ports['workout'];
-    final beat = workout != null && workout._active;
-    final bpm = beat ? workout._bpm : null;
+    final lead = _lead;
+    final workout = lead != null && lead._active && !lead._closed
+        ? lead
+        : _workouts.where((p) => p._active).firstOrNull;
+    final bpm = workout?._bpm;
     final state = (active: active, bpm: bpm);
     // Another owner's call that changes nothing would only cut the workout's
     // speech or a cue still sounding (native: inactive without a cue stops
     // both). The workout's own calls always go through as before.
-    if (cue == null && from?.name != 'workout' && state == _sent) {
+    if (cue == null && from?._workout != true && state == _sent) {
       return Future.value();
     }
     _sent = state;
@@ -57,10 +89,12 @@ class TimingAudioMux {
         active: active,
         bpm: bpm,
         cue: cue,
-        phase: beat ? workout._phase : null,
+        phase: workout?._phase,
       ),
     );
-    _chain = call.catchError((Object _) {});
+    // A failed call stopped the native side (it runs stop()): the next call
+    // sends the merge again instead of taking it as already there.
+    _chain = call.catchError((Object _) => _sent = null);
     return call;
   }
 
@@ -75,9 +109,12 @@ class TimingAudioMux {
 }
 
 class _Port extends TimingAudio {
-  _Port(this._mux, this.name);
+  _Port(this._mux, this.name) : _workout = name.split('#').first == 'workout';
   final TimingAudioMux _mux;
   final String name;
+
+  /// Interruptions reach it and its beat is the one sent.
+  final bool _workout;
   bool _active = false, _closed = false;
   int? _bpm;
   double? _phase;
@@ -93,10 +130,11 @@ class _Port extends TimingAudio {
     double? phase,
   }) {
     if (_closed) return Future.value();
+    final turnedOn = active && !_active;
     _active = active;
     _bpm = bpm;
     _phase = phase;
-    return _mux._send(cue, from: this);
+    return _mux._send(cue, from: this, turnedOn: turnedOn);
   }
 
   @override
