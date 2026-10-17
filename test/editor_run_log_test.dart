@@ -22,10 +22,12 @@ Widget app(Widget child) => CupertinoApp(
 
 void main() {
   late Duration now;
+  late FakeAudio audio;
   late WorkoutTimer timer;
   setUp(() {
     now = Duration.zero;
-    timer = WorkoutTimer(audio: FakeAudio(), now: () => now, haptic: (_) {});
+    audio = FakeAudio();
+    timer = WorkoutTimer(audio: audio, now: () => now, haptic: (_) {});
   });
   tearDown(() => timer.dispose());
 
@@ -199,6 +201,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(c.holdsRun.value, isFalse);
     expect(await c.okToLeave!(), isTrue);
+    await tester.pumpWidget(const SizedBox());
+    timer.reset();
+  });
+
+  testWidgets('round ends are not read aloud: the editor gives the timer '
+      'no announcement, and a whole run says nothing', (tester) async {
+    await start(tester, [ExerciseBlock('버피 타바타 5/5 x2')]);
+    expect(timer.announceRound, isNull);
+    for (var s = 1; s <= 23; s++) {
+      await advance(tester, Duration(seconds: s));
+    }
+    expect(timer.phase, TimingPhase.complete);
+    expect(audio.spoken, isEmpty);
     await tester.pumpWidget(const SizedBox());
     timer.reset();
   });

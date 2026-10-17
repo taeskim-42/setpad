@@ -3877,11 +3877,11 @@ class _RoutineEditorState extends State<RoutineEditor>
     final openIndex = _c.activeIndex;
 
     // 읽어 줄지와 어느 말로 읽을지는 화면이 정한다 — 타이머는 소리만 낸다.
+    // 라운드 끝("2라운드 종료")은 시스템 음성으로 읽지 않는다(announceRound 없음).
     _workoutTimer
       ..countAloud = _aloud
       ..haptics = _buzz
-      ..voiceLocale = Localizations.localeOf(context).toLanguageTag()
-      ..announceRound = L.of(context).timingRoundDone;
+      ..voiceLocale = Localizations.localeOf(context).toLanguageTag();
     _syncLink();
     _syncFocus();
     // The first count of the first run should not wait for the speech engine.

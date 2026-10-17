@@ -301,6 +301,69 @@ void main() {
       await done(t, r);
     });
 
+    test('screen corners: by the iPhone screen size, square with a home '
+        'button, 32 on Android', () {
+      const notch = EdgeInsets.only(top: 59, bottom: 34);
+      for (final (w, h, radius) in const [
+        (375.0, 812.0, 39.0),
+        (414.0, 896.0, 41.5),
+        (390.0, 844.0, 47.33),
+        (428.0, 926.0, 53.33),
+        (393.0, 852.0, 55.0),
+        (430.0, 932.0, 55.0),
+        (402.0, 874.0, 62.0),
+        (420.0, 912.0, 62.0),
+        (440.0, 956.0, 62.0),
+        (400.0, 900.0, 55.0), // not in the table, a home indicator
+      ]) {
+        for (final size in [Size(w, h), Size(h, w)]) {
+          expect(
+            displayCornerRadius(size, notch, TargetPlatform.iOS),
+            radius,
+            reason: '$size',
+          );
+        }
+      }
+      expect(
+        displayCornerRadius(
+          const Size(375, 667),
+          const EdgeInsets.only(top: 20),
+          TargetPlatform.iOS,
+        ),
+        0,
+      );
+      expect(
+        displayCornerRadius(
+          const Size(412, 915),
+          EdgeInsets.zero,
+          TargetPlatform.android,
+        ),
+        32,
+      );
+    });
+
+    testWidgets(
+      'the last round\'s frame is the screen corners\' round rect, 3 pt in',
+      (t) async {
+        t.view.viewPadding = const FakeViewPadding(top: 59, bottom: 34);
+        t.view.padding = const FakeViewPadding(top: 59, bottom: 34);
+        final r = Rig()
+          ..startAt(tabata, const Duration(seconds: 3 + 30 * 7 + 5));
+        await mount(t, r); // 393 x 852: corners of 55
+        final frame = t.widget<DecoratedBox>(key('run-last-border'));
+        expect(
+          (frame.decoration as BoxDecoration).borderRadius,
+          BorderRadius.circular(52),
+        );
+        expect(
+          t.getRect(key('run-last-border')),
+          const Rect.fromLTRB(3, 3, 390, 849),
+        );
+        await done(t, r);
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    );
+
     testWidgets('the number layer and the flood stay within their budgets', (
       t,
     ) async {

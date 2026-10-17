@@ -125,6 +125,28 @@ abstract final class StagePortrait {
 /// ignores the OS scale.
 const kStageMaxTextScale = 1.5;
 
+/// The screen's corner radius in logical pixels, for a frame that follows
+/// the corners instead of being cut by them. Flutter does not say it (and
+/// UIScreen's is private): iOS by the screen's size — square on home-button
+/// phones (no bottom inset) — Android a common 32.
+double displayCornerRadius(
+  Size size,
+  EdgeInsets viewPadding,
+  TargetPlatform platform,
+) {
+  if (platform == TargetPlatform.android) return 32;
+  if (platform != TargetPlatform.iOS || viewPadding.bottom == 0) return 0;
+  return switch ((size.shortestSide.round(), size.longestSide.round())) {
+    (375, 812) => 39,
+    (414, 896) => 41.5,
+    (390, 844) => 47.33,
+    (428, 926) => 53.33,
+    (393, 852) || (430, 932) => 55,
+    (402, 874) || (420, 912) || (440, 956) => 62,
+    _ => 55,
+  };
+}
+
 class _RunPageState extends State<RunPage> {
   late final _water = StageWaterLevel(_read());
   Animation<double>? _routeIn;
@@ -333,20 +355,36 @@ class _RunPageState extends State<RunPage> {
               child: _body(context, locked),
             ),
           ),
-          if (lastRound)
-            const Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  key: ValueKey('run-last-border'),
-                  decoration: BoxDecoration(
-                    border: Border.fromBorderSide(
-                      BorderSide(color: _P.text, width: 6),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          if (lastRound) _lastRoundFrame(context),
         ],
+      ),
+    );
+  }
+
+  /// The last round's frame, a few points in from the edge and as round as
+  /// the screen's corners, so the corners do not cut it off.
+  Widget _lastRoundFrame(BuildContext context) {
+    final platform = defaultTargetPlatform;
+    final inset = platform == TargetPlatform.android ? 4.0 : 3.0;
+    final corner = displayCornerRadius(
+      MediaQuery.sizeOf(context),
+      MediaQuery.viewPaddingOf(context),
+      platform,
+    );
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Padding(
+          padding: EdgeInsets.all(inset),
+          child: DecoratedBox(
+            key: const ValueKey('run-last-border'),
+            decoration: BoxDecoration(
+              border: const Border.fromBorderSide(
+                BorderSide(color: _P.text, width: 6),
+              ),
+              borderRadius: BorderRadius.circular(math.max(0, corner - inset)),
+            ),
+          ),
+        ),
       ),
     );
   }
