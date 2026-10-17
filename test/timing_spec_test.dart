@@ -84,6 +84,76 @@ void main() {
     expect(const TimingSpec(tabata: true).applyTo(''), 'Tabata');
   });
 
+  test("타바타 제목의 'bpm 100 x6' 은 6라운드다 — 옛 앱이 그렇게 적었다", () {
+    for (final name in ['버피 타바타 bpm 100 x6', '버피 bpm:100 x6 타바타']) {
+      expect(TimingSpec.parse(name)!.rounds, 6, reason: name);
+      expect(TimingSpec.parse(name)!.bpm, 100, reason: name);
+      expect(statName(name), '버피', reason: name);
+    }
+    const name = '버피 타바타 bpm 100 x6';
+    expect(
+      TimingSpec.parse(name)!.copyWith(rounds: 4).applyTo(name),
+      '버피 타바타 bpm 100 x4',
+    );
+    // Without a tabata word it is a tempo and three sets ([tempoPattern]):
+    // the x is not a timer token there.
+    expect('스쿼트 bpm 30 x3'.replaceAll(timerTokens, '#'), '스쿼트 # x3');
+    expect(TimingSpec.parse('스쿼트 bpm 30 x3'), const TimingSpec(bpm: 30));
+    expect(statName('스쿼트 bpm 30 x3'), '스쿼트 x3');
+  });
+
+  test('간격이나 맨 수 뒤의 3x10 도 세트 표기다', () {
+    for (final name in ['버피 타바타 30/15 3x10', '스쿼트 100 3x10 타바타']) {
+      final spec = TimingSpec.parse(name)!;
+      expect(spec.rounds, 8, reason: name);
+      final out = spec.copyWith(rounds: 6).applyTo(name);
+      expect(out, contains('3x10'), reason: out);
+      expect(TimingSpec.parse(out), spec.copyWith(rounds: 6), reason: out);
+    }
+    expect(TimingSpec.removeFrom('스쿼트 100 3x10 타바타'), '스쿼트 100 3x10');
+    // Right after an interval an x is still rounds.
+    expect(TimingSpec.parse('타바타 20/10x6')!.rounds, 6);
+  });
+
+  test("removeFrom 은 applyTo 가 붙인 '·x6' 을 점째 떼고, 사람이 쓴 '·' 는 둔다", () {
+    const spec = TimingSpec(tabata: true, rounds: 6);
+    final name = spec.applyTo('타바타 버피 3');
+    expect(name, '타바타 버피 3 ·x6');
+    expect(TimingSpec.removeFrom(name), '버피 3');
+    expect(statName(name), '버피 3');
+    expect(
+      spec.applyTo(TimingSpec.removeFrom(name), tabataWord: '타바타'),
+      '버피 3 타바타 x6',
+    );
+    expect(TimingSpec.removeFrom('버피 · 점프 타바타'), '버피 · 점프');
+  });
+
+  test(
+    'applyTo 왕복은 다른 종류의 타이머 낱말이 없는 이름에서 지켜지고, 종류를 바꿀 때는 removeFrom 을 거친다',
+    () {
+      for (final (spec, name) in [
+        (const TimingSpec(tabata: true, rounds: 6), '버피 타바타 20/10 x8'),
+        (const TimingSpec(tabata: true, work: 30, rest: 15), '타바타 버피 3'),
+        (const TimingSpec(bpm: 90), '푸시업 60bpm'),
+        (const TimingSpec(bpm: 90), '스쿼트 3x10'),
+        (
+          const TimingSpec(tabata: true, bpm: 100, rounds: 4),
+          '버피 타바타 bpm 120 x6',
+        ),
+      ]) {
+        final out = spec.applyTo(name);
+        expect(TimingSpec.parse(out), spec, reason: '"$name" → "$out"');
+      }
+      // Another kind's word stays in the name.
+      const tabata = TimingSpec(tabata: true, rounds: 6);
+      expect(TimingSpec.parse(tabata.applyTo('스쿼트 bpm'))!.bpm, 120);
+      expect(
+        TimingSpec.parse(tabata.applyTo(TimingSpec.removeFrom('스쿼트 bpm'))),
+        tabata,
+      );
+    },
+  );
+
   test('removeFrom 은 타이머만 떼고, 남는 것이 없으면 빈 글이다', () {
     expect(TimingSpec.removeFrom('타바타'), '');
     expect(TimingSpec.removeFrom('60bpm'), '');
