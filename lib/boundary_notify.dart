@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -52,14 +54,28 @@ class LocalBoundaryNotifier implements BoundaryNotifier {
   /// The lock-screen title of a boundary of a run of the given spec.
   final String Function(TimingSpec spec, Boundary b) title;
 
-  /// Ids [firstId] .. [firstId] + [maxBoundaryNotices] - 1: under the set
-  /// rest's (LocalRestNotifier.id, 2147480000), above every trainer report
-  /// id (< 2,016,000,000).
+  /// Ids [firstId] .. [firstId] + [idCount] - 1: under the set rest's
+  /// (LocalRestNotifier.id, 2147480000), above every trainer report id
+  /// (< 2,016,000,000).
   static const firstId = 2147470000;
 
-  /// Plugin calls in order: a cancel never overtakes a schedule.
-  Future<void> _chain = Future.value();
-  Future<T> _serial<T>(Future<T> Function() f) {
+  /// Room for two runs away at once: my record's and a proxy one's editor
+  /// each have a timer.
+  static const idCount = 2 * maxBoundaryNotices;
+
+  /// Apple: "a limit of 64 for how many simultaneous notification requests
+  /// can be active/pending at one time per app" (forum, Apple staff).
+  static const systemLimit = 64;
+
+  /// Ids held by any run's notices in this process, and this run's.
+  static final _taken = <int>{};
+  final _mine = <int>[];
+
+  /// Plugin calls in order, for every run (one plugin): a cancel never
+  /// overtakes a schedule, and a count of what is pending stays true until
+  /// the schedule after it is done.
+  static Future<void> _chain = Future.value();
+  static Future<T> _serial<T>(Future<T> Function() f) {
     final next = _chain.then((_) => f());
     _chain = next.then((_) {}, onError: (Object _) {});
     return next;
@@ -68,50 +84,97 @@ class LocalBoundaryNotifier implements BoundaryNotifier {
   @protected
   bool get onIOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
+  /// A run does not outlive the process: what one of an earlier process left
+  /// (killed by the user or the system) goes. Once, at launch (main).
+  static Future<void> clearStale() =>
+      LocalBoundaryNotifier(title: (_, _) => '').clearRange();
+
+  @visibleForTesting
+  Future<void> clearRange() => onIOS
+      ? _serial(() async {
+          for (var id = firstId; id < firstId + idCount; id++) {
+            try {
+              await remove(id);
+            } catch (_) {}
+          }
+        })
+      : Future.value();
+
   @override
   Future<void> prepare(Iterable<String> voices) =>
       onIOS ? prepareSounds(voices) : Future.value();
 
   @override
-  Future<bool> schedule(
+  Future<int> schedule(
     TimingSpec spec,
     List<Boundary> boundaries, {
     required Duration from,
     required DateTime now,
   }) {
-    if (!onIOS) return Future.value(false);
+    if (!onIOS) return Future.value(0);
     return _serial(() async {
       try {
+        await _drop();
         final allowed = await permission();
-        if (allowed == null || !allowed.enabled) return false;
-        for (final (i, b) in boundaries.take(maxBoundaryNotices).indexed) {
-          final voice = b.voice;
+        if (allowed == null || !allowed.enabled) return 0;
+        // Under the system limit with the trainer reports and one left for
+        // the set rest: what goes over it, Apple does not say.
+        final room = systemLimit - await held() - 1;
+        final free = [
+          for (var id = firstId; id < firstId + idCount; id++)
+            if (!_taken.contains(id)) id,
+        ];
+        final n = [
+          boundaries.length,
+          maxBoundaryNotices,
+          room,
+          free.length,
+        ].reduce(math.min);
+        for (var i = 0; i < n; i++) {
+          final b = boundaries[i], voice = b.voice, id = free[i];
+          _taken.add(id);
+          _mine.add(id);
           await add(
-            firstId + i,
+            id,
             title(spec, b),
-            now.add(b.at - from),
+            wholeSecondUp(now.add(b.at - from)),
             voice == null ? null : NotificationSounds.of(voice),
           );
         }
         // Allowed without sound: the lock screen shows them, and the app
         // keeps saying its phrases while it is awake.
-        return allowed.sound;
+        return allowed.sound ? math.max(n, 0) : 0;
       } catch (_) {
-        return false;
+        return 0;
       }
     });
   }
 
   @override
-  Future<void> cancel() => onIOS
-      ? _serial(() async {
-          for (var i = 0; i < maxBoundaryNotices; i++) {
-            try {
-              await remove(firstId + i);
-            } catch (_) {}
-          }
-        })
-      : Future.value();
+  Future<void> cancel() => onIOS ? _serial(_drop) : Future.value();
+
+  /// Removes this run's notices, pending or delivered.
+  Future<void> _drop() async {
+    for (final id in _mine) {
+      _taken.remove(id);
+      try {
+        await remove(id);
+      } catch (_) {}
+    }
+    _mine.clear();
+  }
+
+  /// The app's notification requests the system holds now, pending or
+  /// delivered (the limit's "active/pending": counted both ways, the
+  /// conservative reading).
+  @protected
+  Future<int> held() async {
+    final plugin = await AgentAlarm.plugin;
+    if (plugin == null) return 0;
+    final pending = await plugin.pendingNotificationRequests();
+    final shown = await plugin.getActiveNotifications();
+    return pending.length + shown.length;
+  }
 
   /// Notifications allowed, and with sound; null when unavailable (the
   /// plugin did not start: web, tests).
@@ -156,4 +219,14 @@ class LocalBoundaryNotifier implements BoundaryNotifier {
   @protected
   Future<void> prepareSounds(Iterable<String> voices) =>
       NotificationSounds.prepare(voices);
+}
+
+/// The calendar trigger keeps whole seconds (flutter_local_notifications'
+/// iOS side drops the fraction): rounded up, a notice is never early.
+@visibleForTesting
+DateTime wholeSecondUp(DateTime t) {
+  final r = t.microsecondsSinceEpoch % Duration.microsecondsPerSecond;
+  return r == 0
+      ? t
+      : t.add(Duration(microseconds: Duration.microsecondsPerSecond - r));
 }

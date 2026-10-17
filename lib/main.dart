@@ -43,6 +43,7 @@ import 'notes_list.dart';
 import 'record_ai.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'boundary_notify.dart';
 import 'set_grid.dart';
 import 'settings.dart';
 import 'share.dart';
@@ -54,6 +55,10 @@ void main() {
   // 트레이너 보고 알림. 알림을 눌러 켜졌으면 그 탭을 여기서 받아 두었다가
   // AgentAlarm.taps 로 넘긴다. 테스트는 main 을 부르지 않으니 채널도 안 깬다.
   unawaited(AgentAlarm.init());
+  // A timer run or a set rest does not outlive the process: notices one of
+  // an earlier process left (killed by the user or the system) go.
+  unawaited(LocalBoundaryNotifier.clearStale());
+  unawaited(const LocalRestNotifier().cancel());
 }
 
 /// 보고 알림 탭. AgentAlarm.taps 는 한 번만 들을 수 있는 스트림이라 여기서 한 번

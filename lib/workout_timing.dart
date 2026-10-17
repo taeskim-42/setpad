@@ -457,9 +457,9 @@ abstract class BoundaryNotifier {
   Future<void> prepare(Iterable<String> voices);
 
   /// Schedules [boundaries] of a run of [spec], the run being at [from] at
-  /// the wall-clock time [now]. True when they will sound (allowed, with
-  /// sound); false when nothing that sounds was scheduled.
-  Future<bool> schedule(
+  /// the wall-clock time [now]. How many of them, from the first, will sound
+  /// (allowed, with sound, under the system's limit); 0: none.
+  Future<int> schedule(
     TimingSpec spec,
     List<Boundary> boundaries, {
     required Duration from,
@@ -917,8 +917,8 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _scheduled = true;
     final now = (_wallNow ?? DateTime.now)();
     n.schedule(s, list, from: from, now: now).then((sounds) {
-      if (sounds && gen == _coverGen) {
-        _covered = {for (final b in list) b.at.inMicroseconds};
+      if (gen == _coverGen) {
+        _covered = {for (final b in list.take(sounds)) b.at.inMicroseconds};
       }
     }, onError: (Object _) {});
   }
@@ -1024,10 +1024,10 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     }
     if (_away && at == null) {
       // Its own notification is due now: cancelling could beat it. Every
-      // other one scheduled came before the end.
+      // other one scheduled came before the end. They stay [_scheduled]:
+      // coming back clears them off the lock screen, as after a suspension.
       _coverGen++;
       _covered = const {};
-      _scheduled = false;
     } else {
       _uncover();
     }
@@ -1233,6 +1233,10 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
         _away = false;
         _uncover();
         tick(quiet: was);
+        // The click loop may have stopped meanwhile (a rest in the background
+        // let the session go, or the system refused to start it there): put
+        // back on the beat. Natively a no-op when it still runs.
+        if (was && running) _sound();
       case AppLifecycleState.detached:
         pause();
       case AppLifecycleState.inactive:

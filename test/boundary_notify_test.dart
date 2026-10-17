@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -12,6 +14,9 @@ import 'workout_timing_test.dart' show FakeAudio;
 /// What the engine handed over, and what a schedule answers.
 class FakeNotifier implements BoundaryNotifier {
   bool sounds = true;
+
+  /// How many the system takes (its limit); null: all.
+  int? room;
   final scheduled = <List<Boundary>>[];
   final froms = <Duration>[];
   final prepared = <String>{};
@@ -21,7 +26,7 @@ class FakeNotifier implements BoundaryNotifier {
   Future<void> prepare(Iterable<String> voices) async => prepared.addAll(voices);
 
   @override
-  Future<bool> schedule(
+  Future<int> schedule(
     TimingSpec spec,
     List<Boundary> boundaries, {
     required Duration from,
@@ -29,7 +34,7 @@ class FakeNotifier implements BoundaryNotifier {
   }) async {
     scheduled.add(boundaries);
     froms.add(from);
-    return sounds;
+    return sounds ? math.min(boundaries.length, room ?? boundaries.length) : 0;
   }
 
   @override
@@ -40,6 +45,9 @@ class FakeNotifier implements BoundaryNotifier {
 class Recording extends LocalBoundaryNotifier {
   Recording() : super(title: (spec, b) => '${b.phase.name} ${b.round}');
   ({bool enabled, bool sound})? allowed = (enabled: true, sound: true);
+
+  /// Requests the system holds already (trainer reports, ...).
+  int others = 0;
   final added = <({int id, String title, DateTime at, String? sound})>[];
   final removed = <int>[];
 
@@ -52,6 +60,9 @@ class Recording extends LocalBoundaryNotifier {
 
   @override
   Future<void> remove(int id) async => removed.add(id);
+
+  @override
+  Future<int> held() async => others + added.length - removed.length;
 
   @override
   Future<void> prepareSounds(Iterable<String> voices) async {}
@@ -268,8 +279,75 @@ void main() {
       expect(heard, containsAll(['rest', 'work', 'complete']));
       // The end's own notification is due as it ends: not cancelled.
       expect(t.notifier.cancels, 0);
+      // Back in front: what was delivered comes off the lock screen, as
+      // after a suspension.
+      t.timer.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      expect(t.notifier.cancels, 1);
       t.timer.dispose();
     });
+
+    test('the system takes only some: the engine says the phrases past them',
+        () async {
+      final t = make();
+      t.notifier.room = 1;
+      t.timer.toggle(Object(), tabata);
+      t.at(const Duration(seconds: 10));
+      t.timer.didChangeAppLifecycleState(AppLifecycleState.paused);
+      await settle();
+      final sent = t.audio.log.length;
+      for (var ms = 10000; ms <= 40000; ms += 50) {
+        t.at(Duration(milliseconds: ms));
+      }
+      await settle();
+      final said = t.audio.log.skip(sent).where((e) => e.startsWith('voice:'));
+      // Rest 1 (23 s) is the notice's; round 2 (33 s) is the app's.
+      expect(said.where((e) => e == 'voice:rest'), isEmpty);
+      expect(said.where((e) => e == 'voice:round_2'), hasLength(1));
+      t.timer.dispose();
+    });
+
+    for (final c in [
+      (
+        'tabata with a tempo: let go in a rest, back in a work',
+        const TimingSpec(tabata: true, work: 20, rest: 10, rounds: 3, bpm: 60),
+        25,
+      ),
+      ('metronome: let go in the count-in, back in the work',
+          const TimingSpec(bpm: 60), 1),
+    ]) {
+      test('${c.$1}: the clicks go on', () async {
+        var wall = DateTime(2026, 10, 17, 9);
+        var now = Duration.zero;
+        final audio = FakeAudio();
+        final timer = WorkoutTimer(
+          audio: audio,
+          now: () => now,
+          wallNow: () => wall,
+        )..notifier = FakeNotifier();
+        timer.toggle(Object(), c.$2);
+        for (var ms = 0; ms <= c.$3 * 1000; ms += 50) {
+          now = Duration(milliseconds: ms);
+          wall = DateTime(2026, 10, 17, 9).add(now);
+          timer.tick();
+        }
+        timer.didChangeAppLifecycleState(AppLifecycleState.paused);
+        await settle();
+        expect(audio.calls.last.bpm, isNull);
+        // Suspended 10 s: the wall moved, the monotonic clock did not.
+        wall = wall.add(const Duration(seconds: 10));
+        timer.didChangeAppLifecycleState(AppLifecycleState.resumed);
+        for (var ms = 50; ms <= 2000; ms += 50) {
+          now = Duration(milliseconds: c.$3 * 1000 + ms);
+          wall = wall.add(const Duration(milliseconds: 50));
+          timer.tick();
+        }
+        await settle();
+        expect(timer.phase, TimingPhase.work);
+        expect(audio.calls.last.bpm, 60);
+        expect(audio.calls.last.cue, isNull);
+        timer.dispose();
+      });
+    }
 
     test('not allowed (or no sound): the engine says its phrases as before',
         () async {
@@ -338,7 +416,7 @@ void main() {
       expect(
         await n.schedule(tabata, list,
             from: const Duration(seconds: 10), now: now),
-        isFalse,
+        0,
       );
       await n.cancel();
       expect(n.added, isEmpty);
@@ -361,7 +439,7 @@ void main() {
       await NotificationSounds.prepare(['assets/voice/en/m/rest.m4a']);
       final sounds = await n.schedule(tabata, list,
           from: const Duration(seconds: 10), now: now);
-      expect(sounds, isTrue);
+      expect(sounds, 5);
       expect(n.added.map((a) => (a.id, a.at, a.sound)), [
         (LocalBoundaryNotifier.firstId, now.add(const Duration(seconds: 13)),
             'setpad-101-rest.caf'),
@@ -376,12 +454,9 @@ void main() {
       ]);
       expect(n.added.first.title, 'rest 1');
       await n.cancel();
-      expect(n.removed, [
-        for (var i = 0; i < maxBoundaryNotices; i++)
-          LocalBoundaryNotifier.firstId + i,
-      ]);
+      expect(n.removed, [for (final a in n.added) a.id]);
       // Clear of the set rest's id and inside a 32-bit int.
-      expect(LocalBoundaryNotifier.firstId + maxBoundaryNotices,
+      expect(LocalBoundaryNotifier.firstId + LocalBoundaryNotifier.idCount,
           lessThan(2147480000));
     });
 
@@ -392,22 +467,78 @@ void main() {
       expect(
         await n.schedule(tabata, list,
             from: const Duration(seconds: 10), now: now),
-        isFalse,
+        0,
       );
       expect(n.added, isEmpty);
       n.allowed = null; // plugin not started
       expect(
         await n.schedule(tabata, list,
             from: const Duration(seconds: 10), now: now),
-        isFalse,
+        0,
       );
       n.allowed = (enabled: true, sound: false);
       expect(
         await n.schedule(tabata, list,
             from: const Duration(seconds: 10), now: now),
-        isFalse,
+        0,
       );
       expect(n.added.length, list.length);
+      await n.cancel();
+    });
+
+    test('iOS: under the 64 the system holds, one left for the set rest',
+        () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      const long = TimingSpec(tabata: true, work: 5, rest: 5, rounds: 99);
+      final many = runBoundaries(long, limit: maxBoundaryNotices);
+      final n = Recording()..others = 30;
+      expect(await n.schedule(long, many, from: Duration.zero, now: now), 33);
+      expect(n.added.length, 33);
+      await n.cancel();
+      n.others = 63;
+      expect(await n.schedule(long, many, from: Duration.zero, now: now), 0);
+      expect(n.added.length, 33);
+    });
+
+    test('iOS: two runs away at once hold their own ids; a cancel drops '
+        'only its own; launch clears the whole range', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      final a = Recording(), b = Recording();
+      await a.schedule(tabata, list,
+          from: const Duration(seconds: 10), now: now);
+      await b.schedule(tabata, list,
+          from: const Duration(seconds: 10), now: now);
+      final ids = {...a.added.map((x) => x.id), ...b.added.map((x) => x.id)};
+      expect(ids.length, list.length * 2);
+      await a.cancel();
+      expect(a.removed, [for (final x in a.added) x.id]);
+      // a's ids are free again; b keeps its own.
+      await a.schedule(tabata, list,
+          from: const Duration(seconds: 10), now: now);
+      expect(a.added.skip(list.length).map((x) => x.id),
+          a.added.take(list.length).map((x) => x.id));
+      await a.cancel();
+      await b.cancel();
+      final fresh = Recording();
+      await fresh.clearRange();
+      expect(fresh.removed, [
+        for (var i = 0; i < LocalBoundaryNotifier.idCount; i++)
+          LocalBoundaryNotifier.firstId + i,
+      ]);
+    });
+
+    test('iOS: a fraction of a second rounds up (the trigger keeps whole '
+        'seconds): never early', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      final n = Recording();
+      await n.schedule(tabata, list,
+          from: const Duration(seconds: 10, milliseconds: 400), now: now);
+      // Rest 1 at 23 s is 12.6 s away: 13 s, not 12.
+      expect(n.added.first.at, now.add(const Duration(seconds: 13)));
+      await n.cancel();
+      expect(wholeSecondUp(now), now);
+      expect(wholeSecondUp(now.add(const Duration(microseconds: 1))),
+          now.add(const Duration(seconds: 1)));
     });
   });
 
