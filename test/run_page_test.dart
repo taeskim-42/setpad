@@ -510,6 +510,89 @@ void main() {
       await done(t, r);
     });
 
+    testWidgets('paused while locked: the end slot says how to unlock', (
+      t,
+    ) async {
+      final r = Rig()..startAt(tabata, const Duration(seconds: 13));
+      await mount(t, r);
+      final g = await hold(t, key('run-lock'), _ms * 2100);
+      await g.up();
+      await t.pump();
+      r.timer.pause(); // a call
+      await t.pump();
+      expect(key('run-resume'), findsOneWidget);
+      expect(find.text('자물쇠를 2초 눌러 풀어요'), findsOneWidget);
+      double ground() => t.widget<Opacity>(key('run-hold-ground')).opacity;
+      expect(ground(), 0.35);
+      await t.tap(key('run-resume'), warnIfMissed: false);
+      await t.pump();
+      expect(r.timer.running, isFalse);
+      expect(ground(), 0.7, reason: 'a swallowed touch brightens the hint');
+      await t.pump(const Duration(milliseconds: 400));
+      await t.tap(key('run-end'), warnIfMissed: false);
+      await t.pump();
+      expect(r.timer.endedEarly, isFalse);
+      expect(ground(), 0.7);
+      await t.pump(const Duration(milliseconds: 400));
+      await t.binding.handlePopRoute();
+      await t.pump();
+      expect(find.byType(RunPage), findsOneWidget);
+      expect(ground(), 0.7);
+      await t.pump(const Duration(milliseconds: 400));
+      await done(t, r);
+    });
+
+    testWidgets('finished while locked: [again] starts unlocked', (t) async {
+      final r = Rig()..startAt(tabata, const Duration(seconds: 5));
+      await mount(t, r);
+      final g = await hold(t, key('run-lock'), _ms * 2100);
+      await g.up();
+      await t.pump();
+      await advance(t, r, const Duration(seconds: 300));
+      expect(r.timer.phase, TimingPhase.complete);
+      await t.tap(key('run-again'));
+      await t.pump();
+      expect(r.timer.running, isTrue);
+      expect(find.text('자물쇠를 2초 눌러 풀어요'), findsNothing);
+      await t.tap(key('run-pause'));
+      await t.pump();
+      expect(r.timer.running, isFalse);
+      await done(t, r);
+    });
+
+    testWidgets('opened again while folding: portrait stays held', (t) async {
+      final calls = <Object?>[];
+      t.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (c) async {
+          if (c.method == 'SystemChrome.setPreferredOrientations') {
+            calls.add(c.arguments);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => t.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      final r = Rig()..startAt(tabata, const Duration(seconds: 13));
+      await mount(t, r);
+      await t.tap(key('run-collapse'));
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 100)); // still folding
+      await t.tap(key('open'));
+      await sheet(t);
+      expect(find.byType(RunPage), findsOneWidget);
+      expect(calls.last, ['DeviceOrientation.portraitUp']);
+      await t.tap(key('run-collapse'));
+      await sheet(t);
+      expect(find.byType(RunPage), findsNothing);
+      expect(calls.last, isEmpty);
+      await done(t, r);
+    });
+
     testWidgets('collapse pops, the timer keeps running; portrait is held', (
       t,
     ) async {
@@ -727,11 +810,18 @@ void main() {
       expect(key('run-next'), findsNothing);
       expect(find.text('길게 눌러 그만'), findsOneWidget);
       expect(find.text('미나 님과 같이'), findsNWidgets(2));
+      // Where the partner stopped replaces "with Mina" while working.
+      r.link
+        ..together = duo(gone: '미나 님은 3라운드에서 멈춤')
+        ..changed();
+      await t.pump();
+      expect(find.text('미나 님은 3라운드에서 멈춤'), findsNWidgets(2));
       final g = await hold(t, key('run-hold-end'), _ms * 1100);
       await g.up();
       await t.pump();
       expect(r.leaves, 1);
       expect(r.timer.endedEarly, isFalse);
+      expect(r.timer.running, isTrue, reason: 'leaving is the editor’s job');
       // The editor leaves (pause + leaveTimer) and says so.
       r.timer.pause();
       r.link
@@ -819,6 +909,7 @@ void main() {
       expect(key('run-people'), findsOneWidget);
       expect(find.text('12  –'), findsOneWidget);
       expect(find.text('14  13'), findsOneWidget);
+      expect(find.text('소라'), findsOneWidget);
       expect(find.text('–  –'), findsOneWidget, reason: '소라 logged nothing');
       expect(find.text('소라 님은 1라운드에서 멈춤'), findsOneWidget);
       expect(key('run-again'), findsNothing);

@@ -104,6 +104,10 @@ class RunPage extends StatefulWidget {
 }
 
 class _RunPageState extends State<RunPage> {
+  /// Stages alive. Opened again while the last one is still folding away,
+  /// the old one's dispose must not let go of portrait under the new one.
+  static int _open = 0;
+
   late final _water = ValueNotifier<_Water>(_read());
   Timer? _clockTimer;
   bool? _still;
@@ -117,6 +121,7 @@ class _RunPageState extends State<RunPage> {
   @override
   void initState() {
     super.initState();
+    _open++;
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _timer.addListener(_sync);
   }
@@ -141,7 +146,7 @@ class _RunPageState extends State<RunPage> {
     _clockTimer?.cancel();
     _timer.removeListener(_sync);
     _water.dispose();
-    SystemChrome.setPreferredOrientations([]);
+    if (--_open == 0) SystemChrome.setPreferredOrientations([]);
     super.dispose();
   }
 
@@ -210,8 +215,12 @@ class _RunPageState extends State<RunPage> {
     if (!_over) _close();
   }
 
-  /// A new run: the link forgets this one's log by itself (runId).
-  void _restart() => _timer.restart();
+  /// A new run: the link forgets this one's log by itself (runId). A lock
+  /// from the run before does not carry over — the summary showed it open.
+  void _restart() {
+    if (_locked) setState(() => _locked = false);
+    _timer.restart();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -566,14 +575,24 @@ class _RunPageState extends State<RunPage> {
               const SizedBox(width: 12),
             ],
             Expanded(
-              child: gate(
-                l.timerEnd,
-                _Button(
-                  key: const ValueKey('run-end'),
-                  label: t.shared ? l.togetherLeave : l.timerEnd,
-                  onTap: _end,
-                ),
-              ),
+              // Locked, the end says how to unlock and lights up on a touch,
+              // as it does while running.
+              child: locked
+                  ? _HoldToEnd(
+                      key: const ValueKey('run-end'),
+                      label: t.shared ? l.togetherLeave : l.timerEnd,
+                      a11y: t.shared ? l.togetherLeave : l.timerEnd,
+                      lockedLabel: l.timerLockedHint,
+                      locked: true,
+                      nudge: _nudge,
+                      onBlocked: _nudgeLock,
+                      onEnd: _end,
+                    )
+                  : _Button(
+                      key: const ValueKey('run-end'),
+                      label: t.shared ? l.togetherLeave : l.timerEnd,
+                      onTap: _end,
+                    ),
             ),
           ],
         ),
