@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -37,6 +38,24 @@ void main() {
           closeTo(mdhdMs(countVoice(sex, n)), 2),
           reason: countVoice(sex, n),
         );
+      }
+    }
+  });
+
+  test('재생 길이 표는 녹음 파일의 iTunSMPB 유효 프레임과 같고, 파일 길이보다 짧다', () {
+    final smpb = RegExp(r'iTunSMPB[\s\S]{0,40}?data[\s\S]{8}([ 0-9A-Fa-f]+)');
+    for (final sex in ['m', 'w']) {
+      expect(countVoicePlayMs[sex], hasLength(maxSpokenCount));
+      for (var n = 1; n <= maxSpokenCount; n++) {
+        final path = countVoice(sex, n);
+        final text = latin1.decode(File(path).readAsBytesSync());
+        final valid = int.parse(
+          smpb.firstMatch(text)!.group(1)!.trim().split(' ')[3],
+          radix: 16,
+        );
+        final ms = countVoicePlayMs[sex]![n - 1];
+        expect(ms, (valid * 1000 / 44100).ceil(), reason: path);
+        expect(ms, lessThan(countVoiceMs[sex]![n - 1]), reason: path);
       }
     }
   });

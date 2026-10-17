@@ -14,8 +14,9 @@ no network and nothing outside the standard library.
 
 Every run ends by writing lib/count_voice_lengths.dart: the length of each
 recording as the file declares it (MP4 'mdhd', encoder priming included, so
-never shorter than what plays). The engine picks how many counts it can say
-from it; test/count_voice_lengths_test.dart keeps it equal to the files.
+never shorter than what plays) and as it plays (iTunSMPB valid frames). The
+engine picks how many counts it can say from them;
+test/count_voice_lengths_test.dart keeps them equal to the files.
 
 Silence is not trimmed again here: polish() already cut at -40 dBFS with a
 30 ms / 50 ms pad, and measured at -45 dBFS a 15 ms / 40 ms trim would save
@@ -27,6 +28,7 @@ import glob
 import json
 import math
 import os
+import re
 import struct
 import subprocess
 import sys
@@ -145,9 +147,21 @@ def mdhd_ms(path):
     return math.ceil(length * 1000 / scale)
 
 
+def play_ms(path):
+    """What plays: the valid frames afconvert's iTunSMPB declares (priming and
+    remainder left out, as AVAudioPlayer plays it), in ms at 44.1 kHz."""
+    with open(path, 'rb') as f:
+        m = re.search(rb'iTunSMPB.{0,40}?data.{8}([ 0-9A-Fa-f]+)', f.read(), re.S)
+    if not m:
+        raise ValueError(f'{path}: no iTunSMPB')
+    return math.ceil(int(m.group(1).split()[3], 16) * 1000 / 44100)
+
+
 def write_lengths():
-    counts = {sex: [mdhd_ms(os.path.join(OUT, sex, f'{n}.m4a')) for n in range(1, 101)]
-              for sex in VOICES}
+    files = {sex: [os.path.join(OUT, sex, f'{n}.m4a') for n in range(1, 101)]
+             for sex in VOICES}
+    counts = {sex: [mdhd_ms(p) for p in ps] for sex, ps in files.items()}
+    plays = {sex: [play_ms(p) for p in ps] for sex, ps in files.items()}
     phrases = {sex: {os.path.basename(p)[:-4]: mdhd_ms(p)
                      for p in sorted(glob.glob(os.path.join(PHRASES, sex, '*.m4a')))}
                for sex in VOICES}
@@ -159,6 +173,14 @@ def write_lengths():
            '/// as the file declares it (encoder priming included).',
            'const countVoiceMs = <String, List<int>>{']
     for sex, ms in counts.items():
+        out.append(f"  '{sex}': [")
+        out += ['    ' + ', '.join(map(str, ms[i:i + 10])) + ',' for i in range(0, 100, 10)]
+        out.append('  ],')
+    out += ['};', '',
+            '/// Length in ms of each recorded count as it plays (iTunSMPB valid frames:',
+            '/// no encoder priming or remainder), by voice: [n - 1] is "n".',
+            'const countVoicePlayMs = <String, List<int>>{']
+    for sex, ms in plays.items():
         out.append(f"  '{sex}': [")
         out += ['    ' + ', '.join(map(str, ms[i:i + 10])) + ',' for i in range(0, 100, 10)]
         out.append('  ],')

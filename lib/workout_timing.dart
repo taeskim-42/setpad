@@ -262,22 +262,50 @@ const countGapMs = 80;
 /// The work cue sounds 220 ms before the phrase after it can start.
 const _workCueMs = 220;
 
-/// Say only every [countStride]-th count: the smallest of 1, 2, 5, 10 at which
-/// every count that can be said (multiples of it up to [last], at most
-/// [maxSpokenCount]) ends [countGapMs] before the next one said starts. Each
-/// count starts half a beat after its click, so two said counts are always
-/// s beats apart. The recordings run 0.53–1.25 s ([countVoiceMs]); without
-/// this the platform waits a quarter beat for a long word, then drops the
-/// next count, and fast tempos skipped numbers at random.
+/// Say only every [countStride]-th count. 1 — every beat, as before — when
+/// the platforms would say them all ([_everyCountSaid]). Otherwise the
+/// smallest of 2, 5, 10 at which every count that can be said (multiples of
+/// it up to [last], at most [maxSpokenCount]) ends [countGapMs] before the
+/// next one said starts; each count starts half a beat after its click, so
+/// two said counts are s beats apart. The recordings run 0.53–1.25 s
+/// ([countVoiceMs]): a long word at a fast tempo made the platform drop the
+/// next count, so fast tempos skipped numbers at random. Never a stride with
+/// no multiple up to [last]: then the largest that has one.
 int countStride(String sex, int bpm, int last) {
+  final top = math.max(1, math.min(last, maxSpokenCount));
+  final period = 60000 / bpm;
+  if (_everyCountSaid(
+    countVoicePlayMs[sex] ?? countVoicePlayMs['m']!,
+    period,
+    top,
+  )) {
+    return 1;
+  }
   final ms = countVoiceMs[sex] ?? countVoiceMs['m']!;
-  final top = math.min(last, maxSpokenCount), period = 60000 / bpm;
-  return const [1, 2, 5, 10].firstWhere(
+  final strides = const [2, 5, 10].where((s) => s <= top).toList();
+  return strides.firstWhere(
     (s) => [
       for (var n = s; n <= top; n += s) ms[n - 1],
     ].every((d) => d + countGapMs <= s * period),
-    orElse: () => 10,
+    orElse: () => strides.last,
   );
+}
+
+/// Whether the platforms say all of counts 1..[top], each sent on its beat
+/// (TimingBridge playVoice, iOS and Android): it starts half a beat after its
+/// click, or when the word before has played out (they look every 20 ms);
+/// a word still sounding a quarter beat after that count's moment drops it.
+/// [ms] is what plays ([countVoicePlayMs]). E.g. 60 bpm, the man's voice:
+/// all 100, at most 236 ms late (Eighty) of the 250 allowed.
+bool _everyCountSaid(List<int> ms, double period, int top) {
+  final half = math.min(period / 2, 1000);
+  var end = double.negativeInfinity;
+  for (var n = 1; n <= top; n++) {
+    final at = (n - 1) * period + half;
+    if (end > at + period / 4) return false;
+    end = (end > at ? end + 20 : at) + ms[n - 1];
+  }
+  return true;
 }
 
 /// 구간 음성: Tempo 의 녹음(healthopia tool/make_voices.py) — start "Go!",
@@ -703,7 +731,11 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   /// (see [countStride]) — the platform would drop that one, irregularly.
   void _say(int n) {
     if (n > maxSpokenCount || n % _stride != 0) return;
-    final phrase = voiceCues ? _workPhrase : null;
+    // Only while this work's phrase is out: a pause or seek since cut it or
+    // never said it (back within the interval), so no count waits for it.
+    final phrase = _workPhraseOut == (_voiceGeneration, round)
+        ? _workPhrase
+        : null;
     if (phrase != null) {
       // Counts start half a beat after their click; the phrase after the cue.
       final period = 60000 / spec!.bpm!;
@@ -726,8 +758,13 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
       TimingPhase.complete => 'done',
       TimingPhase.work => _workPhrase,
     };
-    if (key != null) _voice(phraseVoice(voice, key));
+    if (key == null) return;
+    if (next == TimingPhase.work) _workPhraseOut = (_voiceGeneration, n);
+    _voice(phraseVoice(voice, key));
   }
+
+  /// (voice generation, round) of the last work phrase sent.
+  (int, int)? _workPhraseOut;
 
   /// The round at a tabata's work ("Round 3, go!", the last of several "Last
   /// round"), "Go!" at a metronome's. Not over the counts: counting every
