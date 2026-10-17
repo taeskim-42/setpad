@@ -3779,6 +3779,14 @@ class LVi extends L {
   String get partnerErrLeft => 'Những người tập cùng bạn đã rời đi.';
 
   @override
+  String get partnerErrBusy =>
+      'Bạn đang tập cùng nhau rồi. Hãy kết thúc trước rồi tham gia lại.';
+
+  @override
+  String get partnerEndedGroup =>
+      'Buổi tập cùng nhau đã kết thúc. Ghi chép của bạn vẫn còn.';
+
+  @override
   String get partnerNotYours =>
       'Bạn không thể sửa hiệp do người khác ghi. Đó là bản ghi của họ.';
 

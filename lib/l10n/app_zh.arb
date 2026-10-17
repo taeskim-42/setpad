@@ -918,6 +918,8 @@
   "routineUnstart": "取消开始",
   "routineUnstartAsk": "这条记录里有已记下的组。连记录一起删除吗？",
   "partnerErrLeft": "一起训练的人已离开。",
+  "partnerErrBusy": "你已在一起训练中。请先结束，再重新加入。",
+  "partnerEndedGroup": "一起训练已结束，你的记录保留不变。",
   "partnerNotYours": "不能修改对方记录的组，那是对方的记录。",
   "partnerRoutinePlan": "确定为训练计划",
   "partnerCodeHint": "输入对方屏幕上显示的六个字符。",

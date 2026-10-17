@@ -687,8 +687,9 @@ void main() {
           )
           ..token = 'x'
           ..userId = 'u1';
+    // '함께 운동 중' 줄은 12시간 안에 고친 기록만 — 지금 고친 것.
     final live =
-        Note(id: 'live', createdAt: routineToday, updatedAt: routineToday)
+        Note(id: 'live', createdAt: routineToday, updatedAt: DateTime.now())
           ..partner = PartnerSession(
             id: 'S1',
             host: true,

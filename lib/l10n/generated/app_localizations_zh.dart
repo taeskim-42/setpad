@@ -3637,6 +3637,12 @@ class LZh extends L {
   String get partnerErrLeft => '一起训练的人已离开。';
 
   @override
+  String get partnerErrBusy => '你已在一起训练中。请先结束，再重新加入。';
+
+  @override
+  String get partnerEndedGroup => '一起训练已结束，你的记录保留不变。';
+
+  @override
   String get partnerNotYours => '不能修改对方记录的组，那是对方的记录。';
 
   @override
@@ -7306,6 +7312,12 @@ class LZhHans extends LZh {
   String get partnerErrLeft => '一起训练的人已离开。';
 
   @override
+  String get partnerErrBusy => '你已在一起训练中。请先结束，再重新加入。';
+
+  @override
+  String get partnerEndedGroup => '一起训练已结束，你的记录保留不变。';
+
+  @override
   String get partnerNotYours => '不能修改对方记录的组，那是对方的记录。';
 
   @override
@@ -10973,6 +10985,12 @@ class LZhHant extends LZh {
 
   @override
   String get partnerErrLeft => '一起訓練的人已離開。';
+
+  @override
+  String get partnerErrBusy => '你已在一起訓練中。請先結束，再重新加入。';
+
+  @override
+  String get partnerEndedGroup => '一起訓練已結束，你的紀錄保留不變。';
 
   @override
   String get partnerNotYours => '不能修改對方記錄的組，那是對方的紀錄。';

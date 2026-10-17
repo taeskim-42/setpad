@@ -56,6 +56,11 @@ enum PartnerError {
 
   /// 서버가 이 판을 더는 받지 않는다(426). 홈이 업데이트를 안내한다.
   updateRequired,
+
+  /// 이 기록으로 이미 다른 사람과 같이 하는 중이다. 그것을 끝내야 다른 초대에 들어간다 —
+  /// 그대로 들어가면 지금 문서가 새 세션 문서로 바뀌고 옛 세션은 상대 폰에 남는다.
+  /// (아무도 안 들어온 내 초대는 막지 않는다 — 상대의 초대로 들어가는 흔한 길이다.)
+  alreadyInSession,
 }
 
 /// 같이 하기 초대 링크의 토큰 — `https://gym.darak.studio/j/<token>` 또는 `setpad://p/<token>`.
@@ -222,7 +227,8 @@ class PartnerSession {
       state == PartnerState.active &&
       routineAcceptedKeys != null &&
       !routineReady &&
-      (routinePlanningEntered || routineAcceptedKeys!.isNotEmpty);
+      // 지금 있는 사람의 확인만 센다 — 확인하고 나간 사람이 남은 사람을 끌어들이지 않는다.
+      (routinePlanningEntered || routineAcceptedCount > 0);
   bool get myRoutineAccepted => routineAcceptedKeys?.contains(me) ?? false;
   int get routineParticipantCount => others.length + 1;
   int get routineAcceptedCount =>
@@ -600,7 +606,14 @@ class PartnerSync extends ChangeNotifier {
       code: body['code'] as String?,
       token: body['token'] as String?,
       expiresAt: DateTime.tryParse('${body['expiresAt']}'),
-      partnerName: body['partner'] as String? ?? old?.partnerName,
+      // 끝난 세션의 답은 '나 아닌 첫 사람' 하나만 준다. 같은 세션이면 이어 붙인 이름(셋 이상)과
+      // 마지막에 함께 있던 사람을 지킨다 — 홈의 '첫 사람 +N' 과 종료 띠가 그것을 쓴다.
+      partnerName:
+          (state == PartnerState.ended && old?.id == body['id']
+              ? old?.partnerName
+              : null) ??
+          body['partner'] as String? ??
+          old?.partnerName,
       endedByMe: body['endedByMe'] as bool?,
       // 내 번호는 이 기기가 센다. 서버가 더 크면(다른 기기에서 올렸다) 따라간다.
       revision: [
@@ -700,6 +713,11 @@ class PartnerSync extends ChangeNotifier {
         next.partnerName = next.others.map((p) => p.name).join(', ');
       }
     }
+    // 지금 있는 누가 루틴을 확인했다 — 계획이 시작됐다. 누가 고쳐 확인이 풀려도
+    // 아직 확인하지 않은 사람의 확인 자리가 사라지지 않게 남긴다.
+    if (!next.routineReady && next.routineAcceptedCount > 0) {
+      next.routinePlanningEntered = true;
+    }
     final offered = body['handoff'];
     if (offered is Map && offered['token'] is String) {
       next.handoff = (
@@ -713,6 +731,14 @@ class PartnerSync extends ChangeNotifier {
       next
         ..partnerBlocks = []
         ..partnerLoaded = false;
+    }
+    if (old != null && old.id != next.id) {
+      // 다른 세션이 됐다. 옛 세션의 문서와 밀린 수정을 새 문서에 얹지 않는다 — 새 세션은
+      // 처음 참여하는 것처럼 내 기록과 합친다([_receiveDoc] 의 joinDoc).
+      _shadow = null;
+      _pendingDoc.clear();
+      _ackedDoc = 0;
+      _docFresh = false;
     }
     note.partner = next;
     // 같이 하기를 연 계정. 끝났다는 알림이 밀리면 이 계정으로만 간다.
@@ -790,10 +816,9 @@ class PartnerSync extends ChangeNotifier {
   /// 코드로 참여한다. 모양이 틀리면 서버에 묻지 않는다.
   Future<PartnerError?> joinWithCode(String typed) {
     final code = normalizePartnerCode(typed);
-    if (code == null) {
-      error = PartnerError.invalidFormat;
-      notifyListeners();
-      return Future.value(error);
+    if (code == null) return _refuse(PartnerError.invalidFormat);
+    if (_together && code != session!.code) {
+      return _refuse(PartnerError.alreadyInSession);
     }
     return _run((l) => l.joinPartnerSession(note.id, code: code), undo: true);
   }
@@ -806,8 +831,20 @@ class PartnerSync extends ChangeNotifier {
     if (token == _lastToken && (busy || (session?.open ?? false))) {
       return Future.value(null);
     }
+    // 이 기록에 다른 같이 하기가 열려 있다. 묻지 않고 들어가면 지금 문서가 갈린다.
+    if (_together && token != session!.token) {
+      return _refuse(PartnerError.alreadyInSession);
+    }
     _lastToken = token;
     return _run((l) => l.joinPartnerSession(note.id, token: token), undo: true);
+  }
+
+  bool get _together => session?.state == PartnerState.active;
+
+  Future<PartnerError?> _refuse(PartnerError e) {
+    error = e;
+    notifyListeners();
+    return Future.value(e);
   }
 
   /// 진행 중인 초대·참여를 **그만둔다**. 늦게 오는 답은 무시되고, 그 요청이 만든
@@ -1227,6 +1264,14 @@ class PartnerSync extends ChangeNotifier {
         break;
       }
       if (reply.error != null && !refused) break;
+      if (reply.error == PartnerError.notYours && batch.length > 1) {
+        // 서버는 남의 세트를 건드리는 op 하나로 묶음째 거절한다. 같이 실린 내 수정까지
+        // 버리지 않게 하나씩 다시 보낸다 — 거절되는 것은 그 op 하나뿐이다.
+        _pendingDoc.replaceRange(0, 1, [
+          for (final op in batch) [op],
+        ]);
+        continue;
+      }
       if (reply.error == PartnerError.notYours) {
         error = PartnerError.notYours;
       }

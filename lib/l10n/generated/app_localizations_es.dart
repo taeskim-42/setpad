@@ -3839,6 +3839,14 @@ class LEs extends L {
       'Las personas con las que entrenabas se han ido.';
 
   @override
+  String get partnerErrBusy =>
+      'Ya estás entrenando con alguien. Termina primero y vuelve a unirte.';
+
+  @override
+  String get partnerEndedGroup =>
+      'El entrenamiento conjunto ha terminado. Tu registro se conserva.';
+
+  @override
   String get partnerNotYours =>
       'No puedes cambiar una serie que registró otra persona. Es su registro.';
 
@@ -3847,7 +3855,7 @@ class LEs extends L {
 
   @override
   String get partnerCodeHint =>
-      'Introduce las seis letras que aparecen en la pantalla de la otra persona.';
+      'Introduce el código de seis caracteres que aparece en la pantalla de la otra persona.';
 
   @override
   String partnerPaste(String code) {

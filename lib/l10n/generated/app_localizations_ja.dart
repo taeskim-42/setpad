@@ -3665,6 +3665,12 @@ class LJa extends L {
   String get partnerErrLeft => '一緒に運動していた人が退出しました。';
 
   @override
+  String get partnerErrBusy => 'すでに一緒の運動が開いています。終了してから参加し直してください。';
+
+  @override
+  String get partnerEndedGroup => '一緒の運動が終了しました。自分の記録はそのまま残ります。';
+
+  @override
   String get partnerNotYours => '相手が記録したセットは変更できません。その人の記録です。';
 
   @override

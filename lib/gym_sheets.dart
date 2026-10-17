@@ -29,6 +29,7 @@ String partnerErrorText(L l, PartnerError error) => switch (error) {
   PartnerError.partnerLeft => l.partnerErrLeft,
   PartnerError.notYours => l.partnerNotYours,
   PartnerError.updateRequired => l.updateRequired,
+  PartnerError.alreadyInSession => l.partnerErrBusy,
 };
 
 /// 코드(와 살아 있으면 링크)를 시스템 공유 시트로. 받는 사람은 메신저에서 링크를 누르거나
@@ -88,11 +89,16 @@ class _PartnerSheetState extends State<_PartnerSheet> {
   bool _nearby = false;
   String? _offered;
 
-  /// 코드 칸을 눌렀을 때 클립보드에 있던 코드. 칩으로만 보이고, 칩을 눌러야 쓴다.
+  /// '코드 입력'을 눌렀을 때 클립보드에 있던 코드. 칩으로만 보이고, 칩을 눌러야 쓴다.
   String? _clipboardCode;
+  bool _peeked = false;
 
-  /// 클립보드는 사람이 칸을 눌렀을 때만 읽는다(iOS 가 붙여넣기 허락을 묻는다).
+  /// 클립보드는 사람이 '코드 입력'을 눌렀을 때 한 번만 읽는다(iOS 가 붙여넣기 허락을
+  /// 묻는다 — 칸을 누를 때마다 읽으면 그 창이 거듭 뜬다). 칸은 저절로 포커스되니
+  /// 칸을 누를 때 읽으면 대부분은 칩을 못 본다.
   Future<void> _peekClipboard() async {
+    if (_peeked) return;
+    _peeked = true;
     final data = await Clipboard.getData(Clipboard.kTextPlain);
     final code = normalizePartnerCode(data?.text ?? '');
     if (!mounted || code == null || code == normalizePartnerCode(_code.text)) {
@@ -332,7 +338,12 @@ class _PartnerSheetState extends State<_PartnerSheet> {
         child: Text(
           session!.endedByMe ?? true
               ? l.partnerEndedByMe
-              : l.partnerEndedByThem(session.partnerName ?? ''),
+              : switch (session.partnerName ?? '') {
+                  // 셋 이상이면 누가 끝냈는지 모른다 — 이름 없이 알린다.
+                  final name when name.isEmpty || name.contains(', ') =>
+                    l.partnerEndedGroup,
+                  final name => l.partnerEndedByThem(name),
+                },
           style: TextStyle(fontSize: 13, color: muted),
         ),
       ),
@@ -357,7 +368,6 @@ class _PartnerSheetState extends State<_PartnerSheet> {
         key: const ValueKey('partner-code'),
         controller: _code,
         autofocus: true,
-        onTap: _peekClipboard,
         // 헬스장에서 불러 주는 코드다. 자판을 오래 두드릴 자리가 아니다.
         // 글자 수를 막지 않는다 — 받은 문구를 통째로 붙여 넣으면 코드는 끝에
         // 있고, 칸이 앞에서 자르면 코드가 사라진다(normalizePartnerCode 가 뽑는다).
@@ -407,7 +417,10 @@ class _PartnerSheetState extends State<_PartnerSheet> {
       ),
       const SizedBox(height: 8),
       CupertinoButton(
-        onPressed: () => setState(() => _typing = true),
+        onPressed: () {
+          setState(() => _typing = true);
+          _peekClipboard();
+        },
         child: Text(l.partnerEnter),
       ),
     ],
@@ -519,8 +532,8 @@ class _PartnerSheetState extends State<_PartnerSheet> {
               key: const ValueKey('invite-more'),
               padding: EdgeInsets.zero,
               alignment: Alignment.centerLeft,
-              onPressed: () =>
-                  Clipboard.setData(ClipboardData(text: session.code ?? '')),
+              // '초대'로 읽히는 줄이다 — 조용히 복사만 하지 않고 공유 시트를 띄운다.
+              onPressed: () => sharePartnerInvite(l, sync, session),
               child: Text(
                 l.partnerInviteMore(session.code!),
                 style: const TextStyle(fontSize: 14),
