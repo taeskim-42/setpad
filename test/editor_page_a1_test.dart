@@ -118,6 +118,75 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('opened on the name line, the date row is whole or gone: the '
+      'caret reveal as the keyboard comes up, after the push or while the '
+      'page slides in, never stops inside it', (tester) async {
+    // iPhone 17 Pro Max; the 1.8 check: three exercises, no draft.
+    tester.view.physicalSize = const Size(1206, 2622);
+    tester.view.devicePixelRatio = 3;
+    tester.view.viewPadding = const FakeViewPadding(top: 186, bottom: 102);
+    tester.view.padding = const FakeViewPadding(top: 186, bottom: 102);
+    addTearDown(tester.view.reset);
+    List<ExerciseBlock> three() => [
+      ExerciseBlock('벤치프레스', [
+        LoggedSet(value: 60, reps: 10),
+        LoggedSet(value: 80, reps: 5, done: false),
+        LoggedSet(value: 80, reps: 5, done: false),
+      ]),
+      ExerciseBlock('버피 타바타 20/10 x8'),
+      ExerciseBlock('푸시업 60bpm'),
+    ];
+    Future<void> keyboard(double h) async {
+      tester.view.viewInsets = FakeViewPadding(bottom: h * 3);
+      tester.view.padding = FakeViewPadding(top: 186, bottom: h > 0 ? 0 : 102);
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+
+    void wholeOrGone(String why) {
+      final view = tester.getRect(find.byType(CustomScrollView).first);
+      // Scrolled past, it is offstage (or not built at all).
+      final row = find.textContaining('요일', skipOffstage: false);
+      if (row.evaluate().isNotEmpty) {
+        final date = tester.getRect(row.first);
+        expect(
+          date.top >= view.top - 0.01 || date.bottom <= view.top + 0.01,
+          isTrue,
+          reason: '$why: the date row $date cut at ${view.top}',
+        );
+      }
+      final line = tester.getRect(find.byType(CupertinoTextField).first);
+      expect(
+        line.top >= view.top && line.bottom <= view.bottom + 0.01,
+        isTrue,
+        reason: '$why: the line $line outside $view',
+      );
+    }
+
+    await push(tester, three());
+    await tester.pumpAndSettle();
+    // Around the height where the line meets the candidate bar.
+    for (final h in [290.0, 296.0, 300.0, 304.0, 308.0, 336.0]) {
+      await keyboard(0);
+      list(tester).jumpTo(0);
+      for (final step in [h * 0.5, h * 0.96, h]) {
+        await keyboard(step);
+      }
+      await tester.pumpAndSettle();
+      wholeOrGone('keyboard up to $h');
+    }
+    await close(tester);
+
+    await keyboard(0);
+    await push(tester, three());
+    for (final h in [100.0, 222.0, 292.0, 298.0, 306.0, 308.0]) {
+      await keyboard(h);
+      await tester.pump(const Duration(milliseconds: 60));
+    }
+    await tester.pumpAndSettle();
+    wholeOrGone('keyboard up during the push');
+    await close(tester);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
   testWidgets('the line being typed at the end of a long record still '
       'shows when it opens', (tester) async {
     tester.view.physicalSize = const Size(1206, 2622);

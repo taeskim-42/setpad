@@ -2155,9 +2155,11 @@ class _RoutineEditorState extends State<RoutineEditor>
     });
   }
 
-  /// ▶ on a card. Another card's timer is stopped only after asking; a
-  /// finished one that owes sets offers to log them first. One ▶ at a time:
-  /// another while asking (permissions too) would toggle it back to paused.
+  /// Every start alone comes here: ▶ on a card, [start timer] on the set
+  /// stage. Another card's timer is stopped only after asking; a finished
+  /// run that owes sets — this card's too — offers to log them first. One ▶
+  /// at a time: another while asking (permissions too) would toggle it back
+  /// to paused.
   Future<void> _startTimer(ExerciseBlock block) async {
     final spec = TimingSpec.parse(block.name);
     if (spec == null || !spec.valid || _starting) return;
@@ -2174,7 +2176,7 @@ class _RoutineEditorState extends State<RoutineEditor>
           (L.of(context).timerSwitchConfirm, true),
         ]);
         if (go != true || !mounted) return;
-      } else if (other && !await _okToDrop()) {
+      } else if (!await _okToDrop()) {
         return;
       }
       _hideKeyboard();
@@ -2381,7 +2383,16 @@ class _RoutineEditorState extends State<RoutineEditor>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _locale = Localizations.localeOf(context).toLanguageTag();
+    // The keyboard coming up: after the line's caret reveal (scheduled when
+    // the metrics changed, before this build), keep the head whole or gone.
+    final inset = MediaQuery.viewInsetsOf(context).bottom;
+    if (inset > _inset) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _settleHead());
+    }
+    _inset = inset;
   }
+
+  double _inset = 0;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -3433,36 +3444,54 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (!_textKeyboardHidden) setState(() => _textKeyboardHidden = true);
   }
 
-  /// Once the page is in place (its push done), [_settleOpenScroll].
+  /// Once the page is in place (its push done), [_settleHead].
   void _afterOpen() {
     if (!mounted) return;
     final push = ModalRoute.of(context)?.animation;
+    void settle(_) => _settleHead(open: true);
     if (push == null || push.isCompleted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _settleOpenScroll());
+      WidgetsBinding.instance.addPostFrameCallback(settle);
       return;
     }
     void done(AnimationStatus status) {
       if (!status.isCompleted) return;
       push.removeStatusListener(done);
-      WidgetsBinding.instance.addPostFrameCallback((_) => _settleOpenScroll());
+      WidgetsBinding.instance.addPostFrameCallback(settle);
     }
 
     push.addStatusListener(done);
   }
 
-  /// A record opens at its top — the date row whole — whenever the line
-  /// being typed shows there too. The autofocused line reveals its caret
-  /// (EditableText) on the first layouts, still settling while the page
-  /// slides in and the keypad takes the keyboard's place; that left the
-  /// list a few points down with the date row cut under the nav bar.
-  void _settleOpenScroll() {
-    if (!mounted || !_scroll.hasClients || _scroll.offset <= 0) return;
-    final box = _inputKey.currentContext?.findRenderObject();
-    if (box is! RenderBox || !box.attached) return;
-    final viewport = RenderAbstractViewport.maybeOf(box);
-    // The offset that puts the line's bottom at the list's end.
-    if (viewport != null && viewport.getOffsetToReveal(box, 1).offset <= 0) {
+  /// The record's head (the date row, the day's meals) shows whole or not at
+  /// all. The line's caret reveal (EditableText) moves the list just enough
+  /// for the caret and its padding — on the first layouts, still settling
+  /// while the page slides in, and again as the keyboard comes up — which
+  /// could stop inside the head, the date row cut under the nav bar.
+  ///
+  /// Back to the top when the line shows there too (a record that just
+  /// opened, from anywhere); otherwise past the head, the line still in
+  /// view, where the next reveal has nothing to move. Only scrolls.
+  void _settleHead({bool open = false}) {
+    if (!mounted || !_scroll.hasClients) return;
+    final line = _inputKey.currentContext?.findRenderObject();
+    if (line is! RenderBox || !line.attached) return;
+    final viewport = RenderAbstractViewport.maybeOf(line);
+    if (viewport == null) return;
+    final head = _headerKey.currentContext?.findRenderObject();
+    final shown = head is RenderBox && head.hasSize;
+    final top = shown ? viewport.getOffsetToReveal(head, 0).offset : 0.0;
+    final end = shown ? top + head.size.height : 0.0;
+    final offset = _scroll.offset;
+    if (offset <= 0 || (!open && offset >= end)) return;
+    // The offsets that put the line's bottom at the list's end, its top at
+    // the list's top.
+    if (viewport.getOffsetToReveal(line, 1).offset <= 0) {
       _scroll.jumpTo(0);
+    } else if (offset > top && offset < end) {
+      final past = min(end, _scroll.position.maxScrollExtent);
+      if (viewport.getOffsetToReveal(line, 0).offset >= past) {
+        _scroll.jumpTo(past);
+      }
     }
   }
 

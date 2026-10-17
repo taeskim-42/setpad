@@ -336,6 +336,33 @@ void main() {
     });
   });
 
+  group('L4. 홈 목록 날짜', () {
+    for (final scale in [1.5, 2.0]) {
+      testWidgets('글자 $scale: 두 자리 날짜 숫자도 한 줄, 날짜 칸 안', (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        final store = makeStore(tester);
+        store.create(
+          at: DateTime(2026, 9, 17, 9),
+          blocks: [
+            ExerciseBlock('스쿼트', [LoggedSet(value: 80, reps: 5)]),
+          ],
+        );
+        await pumpApp(tester, NotesListPage(store: store, onOpen: (_) {}));
+        final day = find.text('17');
+        // One line of the 20 pt number (height 1.15), not '1 / 7'.
+        expect(
+          tester.getSize(day).height,
+          lessThan(
+            MediaQuery.textScalerOf(tester.element(day)).scale(20) * 1.15 * 1.5,
+          ),
+        );
+        expect(tester.getRect(day).width, lessThanOrEqualTo(34.01));
+        await tester.pump(const Duration(seconds: 1));
+      });
+    }
+  });
+
   group('E5. 되돌리기', () {
     testWidgets('세트를 지우면 한 줄이 뜨고, 되돌리면 같은 자리에 같은 세트가 돌아온다', (tester) async {
       final c = RoutineEditorController()

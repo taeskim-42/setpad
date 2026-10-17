@@ -201,4 +201,48 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     timer.reset();
   });
+
+  testWidgets('[start timer] on the set stage, on the card whose finished '
+      'run still owes rounds, asks before the new run drops them', (
+    tester,
+  ) async {
+    final c = await start(tester, [ExerciseBlock('버피 타바타 5/5 x2')]);
+    await advance(tester, const Duration(seconds: 23));
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.byType(RunPage))).pop();
+    await tester.pumpAndSettle();
+    c.openFocus!();
+    await tester.pumpAndSettle();
+    Future<void> startHere() async {
+      await tester.tap(find.byKey(const ValueKey('focus-start-timer')));
+      await tester.pumpAndSettle();
+      expect(find.text('적지 않은 2라운드가 있어요'), findsOneWidget);
+    }
+
+    // Cancel: the finished run and its rounds stay.
+    await startHere();
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+    expect([timer.phase, timer.running], [TimingPhase.complete, false]);
+    expect(find.byType(RunPage), findsNothing);
+
+    // Log first: its summary, still owing both rounds.
+    await startHere();
+    await tester.tap(find.text('먼저 적기'));
+    await tester.pumpAndSettle();
+    expect(timer.phase, TimingPhase.complete);
+    expect(find.text('2세트 적기'), findsOneWidget);
+    Navigator.of(tester.element(find.byType(RunPage))).pop();
+    await tester.pumpAndSettle();
+
+    // Discard and start: a new run from the top.
+    await startHere();
+    await tester.tap(find.text('버리고 시작'));
+    await tester.pumpAndSettle();
+    expect(timer.running, isTrue);
+    expect(timer.phase, TimingPhase.ready);
+    expect(c.blocks.single.sets, isEmpty);
+    await tester.pumpWidget(const SizedBox());
+    timer.reset();
+  });
 }

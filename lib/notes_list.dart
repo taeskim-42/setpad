@@ -2511,14 +2511,21 @@ class _Row extends StatelessWidget {
                 width: 34,
                 child: Column(
                   children: [
-                    Text(
-                      '${note.createdAt.day}',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        height: 1.15,
-                        color: CupertinoColors.label.resolveFrom(context),
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                    // One line, shrunk to fit: at large text "17" broke into
+                    // "1 / 7".
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '${note.createdAt.day}',
+                        maxLines: 1,
+                        softWrap: false,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          height: 1.15,
+                          color: CupertinoColors.label.resolveFrom(context),
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
                     ),
                     Text(
