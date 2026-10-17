@@ -2699,17 +2699,17 @@ class LEs extends L {
 
   @override
   String routineAskToo(String text) {
-    return 'Preguntar también: $text · discos';
+    return 'Preguntar también: $text';
   }
 
   @override
-  String get routineAsQuestion => 'Preguntar sobre el registro · discos';
+  String get routineAsQuestion => 'Preguntar sobre el registro';
 
   @override
   String get routineNoConditions => 'Armar ya sin condiciones';
 
   @override
-  String get routineWithConditions => 'Leer también las condiciones · discos';
+  String get routineWithConditions => 'Leer también las condiciones';
 
   @override
   String get routineMake => 'Armar la rutina de hoy';
@@ -3911,5 +3911,10 @@ class LEs extends L {
   @override
   String routineDeviceExcluded(String list) {
     return 'Leído en el teléfono — sin: $list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '1 disco: $list';
   }
 }

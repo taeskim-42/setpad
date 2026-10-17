@@ -1024,15 +1024,21 @@ RoutineAsk decodeRoutineAsk(
     throw const FormatException('Unknown routine key');
   }
   final dropped = <RoutineLine>[];
-  void unmet(Object? what) => dropped.add(
-    RoutineLine('unmet', [what is String ? what : jsonEncode(what)]),
-  );
+  // The card names the condition (routineKeyName), never the model's raw value —
+  // one line per key.
+  void unmet(String key) {
+    final line = RoutineLine('unmet', [key]);
+    if (!dropped.any((l) => l.code == 'unmet' && l.args.first == key)) {
+      dropped.add(line);
+    }
+  }
+
   void notStated(num v) => dropped.add(RoutineLine('notStated', [_num(v)]));
 
   if (m['kind'] == 'lookup' || m['kind'] == 'question') {
     return const RoutineAsk(question: true, keys: {'kind'});
   }
-  if (m['kind'] != null && m['kind'] != 'routine') unmet(m['kind']);
+  if (m['kind'] != null && m['kind'] != 'routine') unmet('kind');
   // 뜻이 같은 값은 고친다: lower 는 하체(legs)다.
   for (final k in const ['parts', 'avoid']) {
     if (m[k] is List) {
@@ -1049,9 +1055,9 @@ RoutineAsk decodeRoutineAsk(
     final out = <String>[];
     for (final x in list) {
       if (x is! String || x.trim().isEmpty || x.length > len) {
-        unmet(x);
+        unmet(key);
       } else if (out.length >= max) {
-        unmet(x);
+        unmet(key);
       } else if (!out.contains(x.trim())) {
         out.add(x.trim());
       }
@@ -1062,7 +1068,7 @@ RoutineAsk decodeRoutineAsk(
   List<String> partList(String key) {
     final out = <String>[];
     for (final p in strings(key, 3)) {
-      routineParts.contains(p) ? out.add(p) : unmet(p);
+      routineParts.contains(p) ? out.add(p) : unmet(key);
     }
     return out;
   }
@@ -1071,7 +1077,7 @@ RoutineAsk decodeRoutineAsk(
     final v = m[key];
     if (v == null) return null;
     if (v is! num || v != v.roundToDouble() || v < lo || v > hi) {
-      unmet(v);
+      unmet(key);
       return null;
     }
     if (!statedAs(text, v, role)) {
@@ -1089,7 +1095,7 @@ RoutineAsk decodeRoutineAsk(
   } else if (w is int && w >= 1 && w <= 7) {
     when = w;
   } else if (w != null && w != 'today') {
-    unmet(w);
+    unmet('when');
   }
   // 모델이 앞날을 빼면 기기가 읽은 것으로 채운다 — 내일 글에 오늘 [시작] 카드가
   // 뜨면 안 된다. 오늘을 말한 글("내일은 쉬니까 오늘")과 지난날을 되풀이하는 답
@@ -1102,17 +1108,17 @@ RoutineAsk decodeRoutineAsk(
   Map<String, Object?>? from;
   if (m['from'] case final Object f) {
     if (f is! Map) {
-      unmet(f);
+      unmet('from');
     } else {
       final kept = <String, Object?>{};
       for (final e in f.entries) {
         final k = '${e.key}';
         if (!_fromKeys.contains(k)) {
-          unmet('$k: ${jsonEncode(e.value)}');
+          unmet('from');
         } else if (k == 'pattern' && e.value != 'push' && e.value != 'pull') {
-          unmet(e.value);
+          unmet('from');
         } else if (k == 'part' && !routineParts.contains(e.value)) {
-          unmet(e.value);
+          unmet('from');
         } else {
           kept[k] = e.value;
         }
@@ -1144,7 +1150,7 @@ RoutineAsk decodeRoutineAsk(
         // 키를 모두 뺐으면 "마지막 운동" 으로 뜻이 바뀐다 — from 자체를 뺀다.
         from = kept.isEmpty && f.isNotEmpty ? null : kept;
       } on FormatException {
-        unmet(kept);
+        unmet('from');
       }
     }
   }
@@ -1157,13 +1163,13 @@ RoutineAsk decodeRoutineAsk(
   } else if (pat is String) {
     pattern = pat;
   } else if (pat != null) {
-    unmet(pat);
+    unmet('pattern');
   }
   if (pattern != null && pattern != 'push' && pattern != 'pull') {
     if (routineParts.contains(pattern) && !parts.contains(pattern)) {
       parts.add(pattern);
     } else {
-      unmet(pattern);
+      unmet('pattern');
     }
     pattern = null;
   }
@@ -1190,16 +1196,16 @@ RoutineAsk decodeRoutineAsk(
       pain = s.trim();
     case null || false:
       break;
-    case final other:
+    case _:
       pain = '';
-      unmet(other);
+      unmet('pain');
   }
 
   // 기구: only·without 을 함께 받는다. 러닝머신은 기구가 아니라 운동이다(G8).
   final only = <String>{}, without = <String>{};
   if (m['equipment'] case final Object e) {
     if (e is! Map) {
-      unmet(e);
+      unmet('equipment');
     } else {
       for (final entry in e.entries) {
         final side = switch ('${entry.key}') {
@@ -1208,7 +1214,7 @@ RoutineAsk decodeRoutineAsk(
           _ => null,
         };
         if (side == null) {
-          unmet('${entry.key}');
+          unmet('equipment');
           continue;
         }
         for (final g
@@ -1228,7 +1234,7 @@ RoutineAsk decodeRoutineAsk(
           } else if (_gears.contains(gear)) {
             side.add(gear);
           } else {
-            unmet(g);
+            unmet('equipment');
           }
         }
       }
@@ -1253,20 +1259,20 @@ RoutineAsk decodeRoutineAsk(
       intensity = m['intensity'] as String;
     case null || 'normal' || 'moderate':
       break;
-    case final other:
-      unmet(other);
+    case _:
+      unmet('intensity');
   }
 
   RoutineTimer? timer;
   if (m['timer'] case final Object t) {
     if (t is! Map || (t['kind'] != 'tabata' && t['kind'] != 'bpm')) {
-      unmet(t);
+      unmet('timer');
     } else {
       int? field(String key, int lo, int hi, String role) {
         final v = t[key];
         if (v == null) return null;
         if (v is! num || v != v.roundToDouble() || v < lo || v > hi) {
-          unmet(v);
+          unmet('timer');
           return null;
         }
         if (!statedAs(text, v, role)) {
@@ -1278,7 +1284,7 @@ RoutineAsk decodeRoutineAsk(
 
       for (final k in t.keys) {
         if (!const {'kind', 'work', 'rest', 'rounds', 'bpm'}.contains('$k')) {
-          unmet('$k');
+          unmet('timer');
         }
       }
       timer = t['kind'] == 'tabata'
@@ -1298,11 +1304,11 @@ RoutineAsk decodeRoutineAsk(
       if (t is! Map ||
           t['exercise'] is! String ||
           (t['exercise'] as String).trim().isEmpty) {
-        unmet(t);
+        unmet('targets');
         continue;
       }
       if (targets.length >= 6) {
-        unmet(t['exercise']);
+        unmet('targets');
         continue;
       }
       num? n(String key, num lo, num hi, String role, {bool whole = true}) {
@@ -1312,7 +1318,7 @@ RoutineAsk decodeRoutineAsk(
             (whole && v != v.roundToDouble()) ||
             v < lo ||
             v > hi) {
-          unmet(v);
+          unmet('targets');
           return null;
         }
         if (!statedAs(text, v, role)) {
@@ -1358,7 +1364,7 @@ RoutineAsk decodeRoutineAsk(
   if (m['delta'] case final Object d) {
     final v = d is Map ? d['value'] : null;
     if (v is! num || v == 0 || v.abs() > 100) {
-      unmet(d);
+      unmet('delta');
     } else {
       final sign = _deltaSign(text, v.abs());
       final said = _weightUnits(text, v.abs());
@@ -1387,7 +1393,7 @@ RoutineAsk decodeRoutineAsk(
   final refused = <String, String>{};
   if (m['refused'] case final Object r) {
     if (r is! Map) {
-      unmet(r);
+      unmet('refused');
     } else {
       for (final e in r.entries) {
         final k = _refusals.contains('${e.key}') ? '${e.key}' : 'other';
@@ -1402,7 +1408,7 @@ RoutineAsk decodeRoutineAsk(
   String? ask;
   if (m['ask'] case final Object a) {
     if (a is! String || a.trim().isEmpty) {
-      unmet(a);
+      unmet('ask');
     } else if (text.contains(a.trim())) {
       ask = a.trim();
     } else {

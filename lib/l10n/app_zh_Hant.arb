@@ -643,10 +643,10 @@
   "routinePrevious": "更早({date})",
   "routineByPart": "照{part}安排",
   "routineStepChip": "+{step}(你自己的加重幅度)",
-  "routineAskToo": "也問問: {text} · 片",
-  "routineAsQuestion": "當作紀錄問題來問 · 片",
+  "routineAskToo": "也問問: {text}",
+  "routineAsQuestion": "當作紀錄問題來問",
   "routineNoConditions": "不帶條件直接排",
-  "routineWithConditions": "連條件一起讀 · 片",
+  "routineWithConditions": "連條件一起讀",
   "routineMake": "安排今天的訓練",
   "routineMakePart": "安排今天的{part}訓練",
   "routineStart": "開始",
@@ -935,5 +935,6 @@
   "routineDrift": "按週表今天是{planned}日，但上次這一天是{own}日 — 照搬又會是{own}日",
   "routineWeekendDetail": "週末 · 補本週缺的要素",
   "routineClose": "關閉",
-  "routineDeviceExcluded": "已在手機上讀出要去掉的動作：{list}"
+  "routineDeviceExcluded": "已在手機上讀出要去掉的動作：{list}",
+  "routinePlateCost": "用1片：{list}"
 }

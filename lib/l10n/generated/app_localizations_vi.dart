@@ -2668,17 +2668,17 @@ class LVi extends L {
 
   @override
   String routineAskToo(String text) {
-    return 'Hỏi thêm: $text · bánh tạ';
+    return 'Hỏi thêm: $text';
   }
 
   @override
-  String get routineAsQuestion => 'Hỏi như câu hỏi nhật ký · bánh tạ';
+  String get routineAsQuestion => 'Hỏi như câu hỏi nhật ký';
 
   @override
   String get routineNoConditions => 'Xếp ngay không điều kiện';
 
   @override
-  String get routineWithConditions => 'Đọc cả điều kiện · bánh tạ';
+  String get routineWithConditions => 'Đọc cả điều kiện';
 
   @override
   String get routineMake => 'Xếp bài hôm nay';
@@ -3856,5 +3856,10 @@ class LVi extends L {
   @override
   String routineDeviceExcluded(String list) {
     return 'Đã đọc trên máy — bỏ: $list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '1 bánh tạ: $list';
   }
 }

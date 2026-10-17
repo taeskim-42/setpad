@@ -625,7 +625,8 @@ String? routineWhy(L l, RoutineDraft d) {
   };
 }
 
-/// 카드 줄 하나의 문구(화면 언어). 줄이 없어지는 일은 없다 — 모르는 줄은 코드를 보인다.
+/// 카드 줄 하나의 문구(화면 언어). 모르는 줄은 숨긴다 — 코드(`code[args]`)를 사람에게
+/// 보이지 않는다(조건이 빠졌는지는 C12·C13 채점이 줄 목록으로 본다).
 List<String> routineLineTexts(L l, RoutineLine line) {
   final a = line.args;
   String s(int i) => '${a[i]}';
@@ -634,8 +635,10 @@ List<String> routineLineTexts(L l, RoutineLine line) {
     'refused' => [l.routineRefused(s(0))],
     'notComputable' => notComputableLines(l, (a[0] as List).cast<String>()),
     'notStated' => [l.routineNotStated(s(0))],
-    'unmet' => [l.routineUnmet(s(0))],
-    'unmetKey' || 'heldKey' => [l.routineUnmet(l.routineKeyName(s(0)))],
+    // 못 맞춘 조건은 키 이름으로 — 모델이 낸 날값(JSON)을 보이지 않는다.
+    'unmet' ||
+    'unmetKey' ||
+    'heldKey' => [l.routineUnmet(l.routineKeyName(s(0)))],
     'unknownName' => [l.routineUnknownName(s(0))],
     'noSuchDay' => [l.routineNoSuchDay],
     'excludeAbsent' => [l.routineExcludeAbsent(s(0))],
@@ -693,7 +696,7 @@ List<String> routineLineTexts(L l, RoutineLine line) {
     'drift' => [l.routineDrift(l.routineFactor(s(0)), l.routineFactor(s(1)))],
     'fillHint' => [l.routineFillHint],
     'lightKept' => [l.routineLightKept((a[0] as List).join('·'))],
-    _ => [line.toString()],
+    _ => const [],
   };
 }
 

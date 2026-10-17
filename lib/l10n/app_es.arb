@@ -643,10 +643,10 @@
   "routinePrevious": "Anterior ({date})",
   "routineByPart": "Armar rutina de {part}",
   "routineStepChip": "+{step} (tu propio incremento)",
-  "routineAskToo": "Preguntar también: {text} · discos",
-  "routineAsQuestion": "Preguntar sobre el registro · discos",
+  "routineAskToo": "Preguntar también: {text}",
+  "routineAsQuestion": "Preguntar sobre el registro",
   "routineNoConditions": "Armar ya sin condiciones",
-  "routineWithConditions": "Leer también las condiciones · discos",
+  "routineWithConditions": "Leer también las condiciones",
   "routineMake": "Armar la rutina de hoy",
   "routineMakePart": "Armar rutina de {part} de hoy",
   "routineStart": "Empezar",
@@ -935,5 +935,6 @@
   "routineDrift": "El plan semanal dice {planned} hoy, pero este día la última vez fue {own} — copiarlo repite {own}",
   "routineWeekendDetail": "Fin de semana · lo que le falta a esta semana",
   "routineClose": "Cerrar",
-  "routineDeviceExcluded": "Leído en el teléfono — sin: {list}"
+  "routineDeviceExcluded": "Leído en el teléfono — sin: {list}",
+  "routinePlateCost": "1 disco: {list}"
 }

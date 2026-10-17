@@ -643,10 +643,10 @@
   "routinePrevious": "Before ({date})",
   "routineByPart": "Build a {part} routine",
   "routineStepChip": "+{step} (your own step)",
-  "routineAskToo": "Also ask: {text} · plates",
-  "routineAsQuestion": "Ask as a record question · plates",
+  "routineAskToo": "Also ask: {text}",
+  "routineAsQuestion": "Ask as a record question",
   "routineNoConditions": "Build now without conditions",
-  "routineWithConditions": "Read the conditions too · plates",
+  "routineWithConditions": "Read the conditions too",
   "routineMake": "Make today's routine",
   "routineMakePart": "Make today's {part} routine",
   "routineStart": "Start",
@@ -935,5 +935,6 @@
   "routineDrift": "The weekly plan says {planned} today, but this weekday last time was {own} — copying it repeats {own}",
   "routineWeekendDetail": "Weekend · fills what this week is short of",
   "routineClose": "Close",
-  "routineDeviceExcluded": "Read on the phone — leaving out: {list}"
+  "routineDeviceExcluded": "Read on the phone — leaving out: {list}",
+  "routinePlateCost": "1 plate: {list}"
 }

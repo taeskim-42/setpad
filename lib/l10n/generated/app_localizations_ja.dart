@@ -2597,17 +2597,17 @@ class LJa extends L {
 
   @override
   String routineAskToo(String text) {
-    return 'これも聞く: $text · プレート';
+    return 'これも聞く: $text';
   }
 
   @override
-  String get routineAsQuestion => '記録の質問として聞く · プレート';
+  String get routineAsQuestion => '記録の質問として聞く';
 
   @override
   String get routineNoConditions => '条件なしですぐ組む';
 
   @override
-  String get routineWithConditions => '条件まで読んで組む · プレート';
+  String get routineWithConditions => '条件まで読んで組む';
 
   @override
   String get routineMake => '今日のルーティンを作る';
@@ -3739,5 +3739,10 @@ class LJa extends L {
   @override
   String routineDeviceExcluded(String list) {
     return '除く種目は端末で読みました: $list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return 'プレート1枚: $list';
   }
 }

@@ -643,10 +643,10 @@
   "routinePrevious": "Trước đó ({date})",
   "routineByPart": "Xếp bài {part}",
   "routineStepChip": "+{step} (mức bạn tự tăng)",
-  "routineAskToo": "Hỏi thêm: {text} · bánh tạ",
-  "routineAsQuestion": "Hỏi như câu hỏi nhật ký · bánh tạ",
+  "routineAskToo": "Hỏi thêm: {text}",
+  "routineAsQuestion": "Hỏi như câu hỏi nhật ký",
   "routineNoConditions": "Xếp ngay không điều kiện",
-  "routineWithConditions": "Đọc cả điều kiện · bánh tạ",
+  "routineWithConditions": "Đọc cả điều kiện",
   "routineMake": "Xếp bài hôm nay",
   "routineMakePart": "Xếp bài {part} hôm nay",
   "routineStart": "Bắt đầu",
@@ -935,5 +935,6 @@
   "routineDrift": "Theo lịch tuần hôm nay là {planned}, nhưng lần trước ngày này là {own} — chép lại sẽ lại là {own}",
   "routineWeekendDetail": "Cuối tuần · bù yếu tố tuần này còn thiếu",
   "routineClose": "Đóng",
-  "routineDeviceExcluded": "Đã đọc trên máy — bỏ: {list}"
+  "routineDeviceExcluded": "Đã đọc trên máy — bỏ: {list}",
+  "routinePlateCost": "1 bánh tạ: {list}"
 }

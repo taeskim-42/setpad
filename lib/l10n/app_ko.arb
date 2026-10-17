@@ -2730,7 +2730,7 @@
       }
     }
   },
-  "routineAskToo": "이것도 물을까요: {text} · 원판",
+  "routineAskToo": "이것도 물을까요: {text}",
   "@routineAskToo": {
     "placeholders": {
       "text": {
@@ -2738,9 +2738,9 @@
       }
     }
   },
-  "routineAsQuestion": "기록 질문으로 묻기 · 원판",
+  "routineAsQuestion": "기록 질문으로 묻기",
   "routineNoConditions": "조건 없이 바로 짜기",
-  "routineWithConditions": "조건까지 읽어 짜기 · 원판",
+  "routineWithConditions": "조건까지 읽어 짜기",
   "routineMake": "오늘 루틴 만들기",
   "routineMakePart": "오늘 {part} 루틴 만들기",
   "@routineMakePart": {
@@ -3650,5 +3650,7 @@
   "routineClose": "닫기",
   "@routineClose": {"description": "홈의 '오늘 루틴' 줄로 연 카드를 닫는 칩."},
   "routineDeviceExcluded": "뺄 운동은 기기에서 읽었어요: {list}",
-  "@routineDeviceExcluded": {"description": "모델을 못 쓸 때 기기가 'X 말고' 의 X(운동 이름)를 읽어 뺐다. 이 줄 다음에 조건을 못 읽은 까닭 줄이 온다.", "placeholders": {"list": {"type": "String"}}}
+  "@routineDeviceExcluded": {"description": "모델을 못 쓸 때 기기가 'X 말고' 의 X(운동 이름)를 읽어 뺐다. 이 줄 다음에 조건을 못 읽은 까닭 줄이 온다.", "placeholders": {"list": {"type": "String"}}},
+  "routinePlateCost": "원판 1장: {list}",
+  "@routinePlateCost": {"description": "모델에 묻는 칩(조건까지 읽기·기록 질문·이것도 물을까요)이 원판을 쓴다는 한 줄. 칩 라벨에는 원판을 붙이지 않는다.", "placeholders": {"list": {"type": "String"}}}
 }

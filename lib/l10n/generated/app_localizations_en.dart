@@ -2680,17 +2680,17 @@ class LEn extends L {
 
   @override
   String routineAskToo(String text) {
-    return 'Also ask: $text · plates';
+    return 'Also ask: $text';
   }
 
   @override
-  String get routineAsQuestion => 'Ask as a record question · plates';
+  String get routineAsQuestion => 'Ask as a record question';
 
   @override
   String get routineNoConditions => 'Build now without conditions';
 
   @override
-  String get routineWithConditions => 'Read the conditions too · plates';
+  String get routineWithConditions => 'Read the conditions too';
 
   @override
   String get routineMake => 'Make today\'s routine';
@@ -3883,5 +3883,10 @@ class LEn extends L {
   @override
   String routineDeviceExcluded(String list) {
     return 'Read on the phone — leaving out: $list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '1 plate: $list';
   }
 }

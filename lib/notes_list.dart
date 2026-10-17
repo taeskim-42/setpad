@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
+import 'package:flutter/services.dart' show SystemChannels;
 import 'package:intl/intl.dart';
 
 import 'l10n/generated/app_localizations.dart';
@@ -675,31 +676,51 @@ class _NotesListPageState extends State<NotesListPage>
   /// 기록 검색이 루틴 요청이라고 했을 때: 조건 없이 바로(원판 0) / 조건까지 읽어(원판).
   /// 의료 글은 조건 없이 짜지 않는다(G3). 루틴 지시문이 이미 기록 질문이라 한 글은
   /// 다시 넘기지 않는다([conditions] false).
-  Widget _escapeChips(L l, String text, {bool conditions = true}) => Wrap(
-    spacing: 8,
-    runSpacing: 6,
+  Widget _escapeChips(L l, String text, {bool conditions = true}) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      if (medicalText(text))
-        Text(l.routineRefused('medical'), style: const TextStyle(fontSize: 14))
-      else
-        SuggestionChip(
-          label: l.routineNoConditions,
-          selected: false,
-          onTap: () => setState(
-            () => _device = (text, deviceAsk(text, _recorded, bare: true)),
-          ),
-        ),
+      Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        children: [
+          if (medicalText(text))
+            Text(
+              l.routineRefused('medical'),
+              style: const TextStyle(fontSize: 14),
+            )
+          else
+            SuggestionChip(
+              label: l.routineNoConditions,
+              selected: false,
+              onTap: () => setState(
+                () => _device = (text, deviceAsk(text, _recorded, bare: true)),
+              ),
+            ),
+          if (conditions && !medicalText(text))
+            SuggestionChip(
+              label: l.routineWithConditions,
+              selected: false,
+              onTap: () {
+                setState(() {
+                  _asRoutine = text;
+                  if (_asQuestion == text) _asQuestion = null;
+                });
+                _ask(immediately: true);
+              },
+            ),
+        ],
+      ),
+      // 원판은 칩마다가 아니라 한 줄로 말한다.
       if (conditions && !medicalText(text))
-        SuggestionChip(
-          label: l.routineWithConditions,
-          selected: false,
-          onTap: () {
-            setState(() {
-              _asRoutine = text;
-              if (_asQuestion == text) _asQuestion = null;
-            });
-            _ask(immediately: true);
-          },
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            l.routinePlateCost(l.routineWithConditions),
+            style: TextStyle(
+              fontSize: 13,
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
+            ),
+          ),
         ),
     ],
   );
@@ -719,7 +740,7 @@ class _NotesListPageState extends State<NotesListPage>
       final started = _addFromAnatomy(key, part);
       text = _device!.$1;
       if (started != null) {
-        _query.text = text;
+        _setQuery(text);
         setState(() {});
         _open(started);
         return;
@@ -727,7 +748,7 @@ class _NotesListPageState extends State<NotesListPage>
     } else {
       text = got.search ?? '';
     }
-    _query.text = text;
+    _setQuery(text);
     setState(() {
       _pick = null;
       _chip = null;
@@ -806,6 +827,14 @@ class _NotesListPageState extends State<NotesListPage>
       ..startedMark = draftMark(draft);
     _keepEdits(text);
     _open(note);
+  }
+
+  /// 앱이 검색칸에 글을 넣는다(칩·몸 그림·되돌아가기). 자판이 떠 있을 수 있는
+  /// 동안 쓰면 한글 조합이 깨진다(IME 규칙) — 먼저 칸을 놓고 자판을 내린 뒤 쓴다.
+  void _setQuery(String text) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
+    _query.text = text;
   }
 
   /// 홈의 "오늘 루틴" 줄 — 맨 요청("오늘 루틴 짜줘")과 같은 기기 카드(원판 0).
@@ -914,6 +943,7 @@ class _NotesListPageState extends State<NotesListPage>
           misread = true;
         }
         if (ask != null && ask.question) {
+          status.add(l.routinePlateCost(l.routineAsQuestion));
           actions.add((
             label: l.routineAsQuestion,
             onTap: () {
@@ -1028,7 +1058,7 @@ class _NotesListPageState extends State<NotesListPage>
       actions.add((
         label: l.routineAskToo(question),
         onTap: () {
-          _query.text = question;
+          _setQuery(question);
           setState(() {
             _asQuestion = question;
             _askedToo = (question, text);
@@ -1036,6 +1066,10 @@ class _NotesListPageState extends State<NotesListPage>
           _ask(immediately: true);
         },
       ));
+    }
+    // 원판을 쓰는 칩(모델에 묻는 것)은 라벨에 원판을 붙이지 않고 한 줄로 모은다.
+    if (ask.ask case final question? when _askedToo?.$1 != question) {
+      status.add(l.routinePlateCost(l.routineAskToo(question)));
     }
     final account = widget.account;
     // 원판 줄: 이 글로 서버가 답했으면(깨진 답 뒤에 칩으로 짠 카드여도) 원판이
@@ -1721,7 +1755,7 @@ class _NotesListPageState extends State<NotesListPage>
                                     label: l.routineBack,
                                     selected: false,
                                     onTap: () {
-                                      _query.text = original;
+                                      _setQuery(original);
                                       setState(() => _askedToo = null);
                                       _ask();
                                     },
@@ -1863,7 +1897,7 @@ class _NotesListPageState extends State<NotesListPage>
                                           label: label,
                                           selected: _pick == metric,
                                           onTap: () {
-                                            _query.text = name;
+                                            _setQuery(name);
                                             _confirmed = null;
                                             _search.search(
                                               '',

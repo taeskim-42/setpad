@@ -3975,13 +3975,13 @@ abstract class L {
   /// No description provided for @routineAskToo.
   ///
   /// In ko, this message translates to:
-  /// **'이것도 물을까요: {text} · 원판'**
+  /// **'이것도 물을까요: {text}'**
   String routineAskToo(String text);
 
   /// No description provided for @routineAsQuestion.
   ///
   /// In ko, this message translates to:
-  /// **'기록 질문으로 묻기 · 원판'**
+  /// **'기록 질문으로 묻기'**
   String get routineAsQuestion;
 
   /// No description provided for @routineNoConditions.
@@ -3993,7 +3993,7 @@ abstract class L {
   /// No description provided for @routineWithConditions.
   ///
   /// In ko, this message translates to:
-  /// **'조건까지 읽어 짜기 · 원판'**
+  /// **'조건까지 읽어 짜기'**
   String get routineWithConditions;
 
   /// No description provided for @routineMake.
@@ -5634,6 +5634,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'뺄 운동은 기기에서 읽었어요: {list}'**
   String routineDeviceExcluded(String list);
+
+  /// 모델에 묻는 칩(조건까지 읽기·기록 질문·이것도 물을까요)이 원판을 쓴다는 한 줄. 칩 라벨에는 원판을 붙이지 않는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'원판 1장: {list}'**
+  String routinePlateCost(String list);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

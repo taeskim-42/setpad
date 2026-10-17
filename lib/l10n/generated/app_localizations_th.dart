@@ -2652,17 +2652,17 @@ class LTh extends L {
 
   @override
   String routineAskToo(String text) {
-    return 'ถามด้วย: $text · แผ่น';
+    return 'ถามด้วย: $text';
   }
 
   @override
-  String get routineAsQuestion => 'ถามเป็นคำถามบันทึก · แผ่น';
+  String get routineAsQuestion => 'ถามเป็นคำถามบันทึก';
 
   @override
   String get routineNoConditions => 'จัดเลยโดยไม่มีเงื่อนไข';
 
   @override
-  String get routineWithConditions => 'อ่านเงื่อนไขด้วย · แผ่น';
+  String get routineWithConditions => 'อ่านเงื่อนไขด้วย';
 
   @override
   String get routineMake => 'จัดรูทีนวันนี้';
@@ -3827,5 +3827,10 @@ class LTh extends L {
   @override
   String routineDeviceExcluded(String list) {
     return 'อ่านในเครื่องแล้ว — ไม่เอา: $list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return 'ใช้ 1 แผ่น: $list';
   }
 }

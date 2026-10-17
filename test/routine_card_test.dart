@@ -423,6 +423,12 @@ void main() {
     expect(calls, ['v3']);
     expect(find.text(l.routineFromQuestion), findsOneWidget);
     expect(find.text(l.routineWithConditions), findsOneWidget);
+    // 원판은 칩 라벨이 아니라 한 줄로.
+    expect(l.routineWithConditions, isNot(contains('원판')));
+    expect(
+      find.text(l.routinePlateCost(l.routineWithConditions)),
+      findsOneWidget,
+    );
     await tester.tap(find.text(l.routineNoConditions));
     await tester.pumpAndSettle();
     expect(find.text(l.routineHeaderToday), findsOneWidget);

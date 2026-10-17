@@ -2571,17 +2571,17 @@ class LZh extends L {
 
   @override
   String routineAskToo(String text) {
-    return '也问问: $text · 片';
+    return '也问问: $text';
   }
 
   @override
-  String get routineAsQuestion => '作为记录问题来问 · 片';
+  String get routineAsQuestion => '作为记录问题来问';
 
   @override
   String get routineNoConditions => '不带条件直接排';
 
   @override
-  String get routineWithConditions => '连条件一起读 · 片';
+  String get routineWithConditions => '连条件一起读';
 
   @override
   String get routineMake => '安排今天的训练';
@@ -3706,6 +3706,11 @@ class LZh extends L {
   @override
   String routineDeviceExcluded(String list) {
     return '已在手机上读出要去掉的动作：$list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '用1片：$list';
   }
 }
 
@@ -6276,17 +6281,17 @@ class LZhHans extends LZh {
 
   @override
   String routineAskToo(String text) {
-    return '也问问: $text · 片';
+    return '也问问: $text';
   }
 
   @override
-  String get routineAsQuestion => '作为记录问题来问 · 片';
+  String get routineAsQuestion => '作为记录问题来问';
 
   @override
   String get routineNoConditions => '不带条件直接排';
 
   @override
-  String get routineWithConditions => '连条件一起读 · 片';
+  String get routineWithConditions => '连条件一起读';
 
   @override
   String get routineMake => '安排今天的训练';
@@ -7411,6 +7416,11 @@ class LZhHans extends LZh {
   @override
   String routineDeviceExcluded(String list) {
     return '已在手机上读出要去掉的动作：$list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '用1片：$list';
   }
 }
 
@@ -9981,17 +9991,17 @@ class LZhHant extends LZh {
 
   @override
   String routineAskToo(String text) {
-    return '也問問: $text · 片';
+    return '也問問: $text';
   }
 
   @override
-  String get routineAsQuestion => '當作紀錄問題來問 · 片';
+  String get routineAsQuestion => '當作紀錄問題來問';
 
   @override
   String get routineNoConditions => '不帶條件直接排';
 
   @override
-  String get routineWithConditions => '連條件一起讀 · 片';
+  String get routineWithConditions => '連條件一起讀';
 
   @override
   String get routineMake => '安排今天的訓練';
@@ -11116,5 +11126,10 @@ class LZhHant extends LZh {
   @override
   String routineDeviceExcluded(String list) {
     return '已在手機上讀出要去掉的動作：$list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '用1片：$list';
   }
 }

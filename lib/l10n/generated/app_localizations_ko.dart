@@ -2603,17 +2603,17 @@ class LKo extends L {
 
   @override
   String routineAskToo(String text) {
-    return '이것도 물을까요: $text · 원판';
+    return '이것도 물을까요: $text';
   }
 
   @override
-  String get routineAsQuestion => '기록 질문으로 묻기 · 원판';
+  String get routineAsQuestion => '기록 질문으로 묻기';
 
   @override
   String get routineNoConditions => '조건 없이 바로 짜기';
 
   @override
-  String get routineWithConditions => '조건까지 읽어 짜기 · 원판';
+  String get routineWithConditions => '조건까지 읽어 짜기';
 
   @override
   String get routineMake => '오늘 루틴 만들기';
@@ -3746,5 +3746,10 @@ class LKo extends L {
   @override
   String routineDeviceExcluded(String list) {
     return '뺄 운동은 기기에서 읽었어요: $list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '원판 1장: $list';
   }
 }
