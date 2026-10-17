@@ -281,11 +281,10 @@ class RoutineCard extends StatelessWidget {
           padding: const EdgeInsets.only(top: 12),
           child: Row(
             children: [
-              CupertinoButton.filled(
+              sealButton(
+                context,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 minimumSize: const Size(44, 40),
-                // 어두울 때 금색 바탕에 흰 글자는 묻힌다 — [sealOn].
-                foregroundColor: sealOn.resolveFrom(context),
                 onPressed: onStart,
                 child: Text(
                   started ? l.routineStarted : l.routineStart,

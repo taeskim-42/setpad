@@ -7,6 +7,7 @@ import 'l10n/generated/app_localizations.dart';
 import 'notes.dart';
 import 'record_ai.dart';
 import 'units.dart';
+import 'palette.dart';
 
 /// 내 몸 정보 — 키·몸무게·태어난 해·성별. 기초대사량 셈에만 쓰고 기기 안에만 둔다.
 class BodyPage extends StatefulWidget {
@@ -505,7 +506,8 @@ class _BodyReviewSheetState extends State<_BodyReviewSheet> {
                       ),
                     ),
                     Expanded(
-                      child: CupertinoButton.filled(
+                      child: sealButton(
+                        context,
                         key: const ValueKey('body-review-save'),
                         onPressed: _record.empty
                             ? null

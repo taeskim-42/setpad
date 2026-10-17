@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
+import 'package:flutter/semantics.dart' show SemanticsService;
 import 'package:intl/intl.dart';
 
 import 'l10n/generated/app_localizations.dart';
@@ -588,7 +589,19 @@ class _NotesListPageState extends State<NotesListPage>
   void _delete(Note note) {
     if (_undoTimer?.isActive ?? false) _settleDelete();
     widget.store.delete(note);
-    _undoTimer = Timer(const Duration(seconds: 5), _settleDelete);
+    final l = L.of(context);
+    // 화면을 보지 않는 사람에게도 되돌릴 수 있다고 알리고, 시간을 더 준다.
+    unawaited(
+      SemanticsService.sendAnnouncement(
+        View.of(context),
+        '${l.noteRemoved} · ${l.undo}',
+        Directionality.of(context),
+      ),
+    );
+    _undoTimer = Timer(
+      Duration(seconds: MediaQuery.accessibleNavigationOf(context) ? 15 : 5),
+      _settleDelete,
+    );
   }
 
   Timer? _undoTimer;
@@ -609,6 +622,7 @@ class _NotesListPageState extends State<NotesListPage>
         account.link,
         widget.store.pendingDeletes,
         onSent: widget.store.touch,
+        held: widget.store.heldDeletes,
       ),
     );
   }
@@ -1267,6 +1281,688 @@ class _NotesListPageState extends State<NotesListPage>
     );
   }
 
+  // 목록의 빈 곳을 누르면 자판이 내려간다. 메모 앱이 그렇고, 올라온
+  // 자판이 화면 절반을 가리면 방금 찾은 것을 볼 수가 없다.
+  Widget _list(BuildContext context, L l) => GestureDetector(
+    behavior: HitTestBehavior.translucent,
+    onTap: () => FocusScope.of(context).unfocus(),
+    child: Builder(
+      builder: (context) {
+        final text = _query.text.trim();
+        final route = _routeOf(text);
+        final routineMode =
+            (route != null && route != HomeRoute.question) ||
+            _device?.$1 == text;
+        final mentioned = routineMode ? const <String>[] : _mentioned;
+        final asked = routineMode ? null : _search.plan;
+        // "혹시 ○○?" 로 이름을 바꿨으면 그 plan 이다(모델도 원판도 안 쓴다).
+        final plan = switch (_swap) {
+          (final from, final to) when identical(from, asked) => to,
+          _ => asked,
+        };
+        // 자신 있게 틀릴 위험이 있으면 답을 내지 않고 한 번 묻는다.
+        // 틀린 숫자보다 탭 한 번이 싸다.
+        final doubtful =
+            plan != null && plan.requiresConfirmation && !_isConfirmed(plan);
+        // 칩과 연결이 안 될 때의 plan 은 기기가 만든 것이라 묻지 않는다.
+        final local = _localPlan(mentioned, l);
+        final query =
+            local ??
+            (plan == null || doubtful || plan.kind != 'query' ? null : plan);
+        final result = query == null
+            ? null
+            : _resultFor(
+                query,
+                local: local != null,
+                l: l,
+                confirmed: local != null || _isConfirmed(query),
+              );
+        final recordedKeys = {for (final r in _recorded) exerciseKey(r)};
+        final unrecorded = [
+          for (final n in mentioned)
+            if (!recordedKeys.contains(exerciseKey(n))) n,
+        ];
+        // 루틴으로 가르는 글이어도 치는 동안의 기록 목록(글자·글이 가리킨
+        // 운동·기간)은 카드 아래에 그대로 둔다 — "타바타", "스쿼트 5x5" 로
+        // 찾던 기록이 사라지지 않는다.
+        final visible = routineMode
+            ? _visible(null, null, _mentioned)
+            : _visible(plan, result, mentioned);
+        final groups = _grouped(visible, l);
+        return CustomScrollView(
+          slivers: [
+            // 큰 제목은 스크롤하면 가운데 작은 제목으로 접힌다. iOS
+            // 목록 화면의 기본 동작이고, 직접 흉내 내면 티가 난다.
+            CupertinoSliverNavigationBar(
+              largeTitle: Text(l.allNotes),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: _openAnatomy,
+                    // 사람 아이콘은 계정으로 읽힌다 — 몸 모양을 쓴다.
+                    child: Icon(
+                      Icons.accessibility_new,
+                      size: 22,
+                      semanticLabel: l.anatomyOpen,
+                    ),
+                  ),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => showWeightSettings(
+                      context,
+                      widget.store,
+                      account: widget.account,
+                    ),
+                    child: Icon(
+                      CupertinoIcons.gear,
+                      size: 21,
+                      semanticLabel: l.settingsTitle,
+                    ),
+                  ),
+                ],
+              ),
+              border: null,
+            ),
+            // 트레이너가 보낸 것. 찾는 중에는 숨긴다 — 검색 결과
+            // 위에 다른 것이 끼면 무엇을 보는 중인지 흐려진다.
+            if (_query.text.trim().isEmpty)
+              for (final routine in _waitingRoutines)
+                SliverToBoxAdapter(
+                  child: GymRow(
+                    icon: CupertinoIcons.person_crop_circle,
+                    title: routine.title,
+                    // 무엇이 들어 있는지 한 줄. 세트가 있으면
+                    // 세트 수를, 누적 목표뿐이면 이름만.
+                    detail: [
+                      l.routineFromTrainer(routine.gym),
+                      if (_routineSets(routine) > 0)
+                        l.setOrdinal(_routineSets(routine)),
+                    ].join(' · '),
+                    onTap: () => _startRoutine(routine),
+                  ),
+                ),
+            // 도장 초대. 받아야 회원이 된다 — 안 다니는 사람에게도 온다.
+            if (_query.text.trim().isEmpty)
+              for (final invite
+                  in widget.account?.invites ?? const <GymInvite>[])
+                SliverToBoxAdapter(
+                  child: GymRow(
+                    icon: CupertinoIcons.envelope_badge,
+                    title: l.inviteFrom(invite.gymName),
+                    detail: [
+                      switch (invite.invitedBy) {
+                        final name? => l.inviteBy(name),
+                        null => invite.gymName,
+                      },
+                      if (!invite.verified) l.gymUnverified,
+                    ].join(' · '),
+                    accent: true,
+                    onTap: () =>
+                        answerGymInvite(context, widget.account!, invite),
+                  ),
+                ),
+            // 다니는 도장. **푸시가 없으니 여기가 도장 소식이 닿는 곳이다** —
+            // 새 공지, 거절·취소·옮겨진 PT 를 먼저, 없으면 내 이용권을 보인다.
+            if (_query.text.trim().isEmpty)
+              for (final gym in widget.account?.gyms ?? const <Gym>[])
+                SliverToBoxAdapter(child: _gymRow(l, gym)),
+            // PT 예약. **다니는 곳이 있는 사람에게만 보인다** —
+            // 헬스장과 상관없이 혼자 기록하는 사람이 대부분이고,
+            // 그 사람 화면에 예약이 뜨면 무엇을 예약하라는 말인지
+            // 알 수가 없다. 설정 안에만 두면 회원이 찾지 못한다.
+            if (_query.text.trim().isEmpty && _hasGym)
+              SliverToBoxAdapter(
+                child: GymRow(
+                  icon: CupertinoIcons.calendar,
+                  title: l.bookingNew,
+                  onTap: () => openBooking(
+                    context,
+                    widget.account!,
+                    store: widget.store,
+                  ),
+                ),
+              ),
+            // 트레이너 보고. **직원에게만 보인다** — 회원 화면에 뜨면
+            // 무엇을 보라는 말인지 알 수 없다.
+            if (_query.text.trim().isEmpty && _staff.isNotEmpty)
+              SliverToBoxAdapter(
+                child: GymRow(
+                  icon: CupertinoIcons.doc_text,
+                  title: l.trainerReport,
+                  onTap: () => openTrainer(context, widget.account!),
+                  titleSuffix: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ValueListenableBuilder(
+                        valueListenable: reportUnread,
+                        builder: (context, unread, _) => !unread
+                            ? const SizedBox.shrink()
+                            : Padding(
+                                padding: const EdgeInsets.only(left: 6),
+                                child: Semantics(
+                                  label: l.trainerUnread,
+                                  child: Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: seal.resolveFrom(context),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                      ),
+                      // 푸시가 없다 — 웹을 안 여는 트레이너는 여기서 신청을 본다.
+                      ValueListenableBuilder(
+                        valueListenable: ptRequestsWaiting,
+                        builder: (context, waiting, _) => waiting == 0
+                            ? const SizedBox.shrink()
+                            : Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Text(
+                                  l.trainerPendingCount(waiting),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: seal.resolveFrom(context),
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (routineMode)
+              SliverToBoxAdapter(child: _routineCard(l, text, route))
+            else if (_askedToo case (
+              final asked,
+              final original,
+            ) when asked == text)
+              // "이것도 물을까요" 로 물은 조각의 답 위에 친 루틴 부분(카드)을 둔다.
+              SliverToBoxAdapter(
+                child: _routineCard(l, original, _routeOf(original)),
+              ),
+            if (_query.text.trim().isNotEmpty && !routineMode)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_search.busy)
+                        Text(
+                          l.queryWorking,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      if (_search.failed)
+                        Text(
+                          l.queryFailed,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      // 붐비거나 오늘 몫이 찼다 — 연결 문구가 아니다(계약 C1).
+                      if (refusalText(l, _search.refused) case final refusal?)
+                        Text(refusal, style: const TextStyle(fontSize: 14)),
+                      // 모델이 읽을 수 없는 답을 두 번 냈다 — 연결 문제가
+                      // 아니고 그 답에는 원판이 나가지 않았다(1단계 몫은
+                      // 원판 줄이 말한다). 글에 적힌 운동은 그동안 기기에서
+                      // 세고, 같은 글로 다시 묻는다.
+                      if (_search.unreadable) ...[
+                        Text(
+                          [
+                            _search.charged
+                                ? l.queryUnreadablePaid
+                                : l.queryUnreadable,
+                            if (local != null) l.queryUnreadableLocal,
+                          ].join(' '),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(44, 44),
+                          onPressed: () => _ask(immediately: true),
+                          child: Text(
+                            l.queryAskAgain,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ],
+                      // 서버는 답했다 — 연결 문구가 아니라 읽지 못했다고
+                      // 말하고, 말을 바꾸면 다시 읽는다고 알린다.
+                      if (_search.misread)
+                        Text(
+                          _misread && local != null
+                              ? l.queryMisreadLocal
+                              : l.queryMisread,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      // 다시 해도 같은 거절이다. "다시 시도" 가 아니라
+                      // 무엇을 못 하는지 말한다.
+                      if (_search.unrepresentable case final kind?)
+                        Text(
+                          l.queryLimit(kind),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      if (_search.tooLong)
+                        Text(
+                          l.queryTooLong(maxQuestionLength),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      if (_search.aiOff)
+                        Text(l.aiOff, style: const TextStyle(fontSize: 14)),
+                      if (_search.noPlates) ..._noPlates(l),
+                      // "이것도 물을까요" 로 온 조각 — 원래 글(루틴 카드)로 돌아간다.
+                      if (_askedToo case (
+                        final asked,
+                        final original,
+                      ) when asked == text)
+                        SuggestionChip(
+                          label: l.routineBack,
+                          selected: false,
+                          onTap: () {
+                            _query.text = original;
+                            setState(() => _askedToo = null);
+                            _ask();
+                          },
+                        ),
+                      // 기록 검색이 루틴 요청으로 읽었다 — 두 길을 칩으로. 루틴
+                      // 지시문이 이미 기록 질문이라 한 글이면 넘기지 않고
+                      // 셀 수 없다고 말한다(원판 0 길은 남긴다).
+                      if (plan?.kind == 'routine') ...[
+                        if (!medicalText(text))
+                          Text(
+                            !_bounced
+                                ? l.routineFromQuestion
+                                : local != null
+                                ? l.queryMisreadLocal
+                                : l.queryMisread,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        _escapeChips(l, text, conditions: !_bounced),
+                      ],
+                      // 거절도 까닭별이다: 무관한 질문, 무엇을 셀지 모름,
+                      // 기록에 없는 것만 물음(무엇이 없는지 적는다).
+                      if (local == null && plan?.kind == 'unsupported')
+                        Text(
+                          refusalLines(plan!, l).join('\n'),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      // 이름만 찾았는데 적은 적 없는 운동.
+                      if (local == null &&
+                          plan?.kind == 'find' &&
+                          plan!.never.isNotEmpty)
+                        Text(
+                          l.queryNeverRows(
+                            plan.never
+                                .map((k) => plan.names[k] ?? k)
+                                .join(', '),
+                          ),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      // 줄마다 0·까닭이 있으면 표가 말한다. 셀 것이 하나도
+                      // 없을 때만 이 줄이다.
+                      if (result != null &&
+                          !result.rows.any(
+                            (r) => r.cells.any(
+                              (c) =>
+                                  c.answer != null ||
+                                  cellReason(l, c.reason) != null,
+                            ),
+                          ) &&
+                          result.header.isEmpty)
+                        Text(
+                          l.queryNoData,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      // 원판을 쓴 질문에만 한 줄. 담아 둔 답은 안 쓴다.
+                      if (_search.charged &&
+                          widget.account?.platesSpent != null)
+                        Text(
+                          l.platesSpent(
+                            widget.account!.platesSpent!,
+                            widget.account!.plates!,
+                          ),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: CupertinoColors.secondaryLabel.resolveFrom(
+                              context,
+                            ),
+                          ),
+                        ),
+                      // 서버에 못 닿았을 때만 알린다. 준비 상태를
+                      // 늘어놓던 줄은 읽을 것이 없어 뺐다. 칩이 뜬
+                      // 글이어도 Enter 를 눌렀으면 왜 답이 없는지 말한다.
+                      // 글에 운동이 있으면 기기에서 세고 그렇다고 말한다.
+                      if (_unreached && local != null)
+                        Text(
+                          l.queryOfflineLocal,
+                          style: const TextStyle(fontSize: 14),
+                        )
+                      else if (_search.offline ||
+                          (mentioned.isEmpty &&
+                              _search.status == RecordAiStatus.unavailable))
+                        Text(
+                          l.queryOffline,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            if (mentioned.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                  // 이름과 칩을 한 Wrap 에 섞으면 이름이 길 때 칩이
+                  // 이름 끝에 매달려 두 줄로 갈라진다. 이름은 제 줄에
+                  // 두고 칩은 그 아래에서 시작한다.
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        mentioned.join(' · '),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.23,
+                          color: CupertinoColors.label.resolveFrom(context),
+                        ),
+                      ),
+                      // 안 적은 운동도 칩이 뜬다. 답이 없을 때는 여기서
+                      // 먼저 말한다(답이 있으면 답 위 줄이 말한다).
+                      if (unrecorded.isNotEmpty && result == null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            l.queryNeverRows(unrecorded.join(', ')),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: CupertinoColors.secondaryLabel.resolveFrom(
+                                context,
+                              ),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 0,
+                        children: [
+                          if (mentioned case [final name])
+                            for (final (metric, label) in [
+                              ('best', l.metricMax),
+                              ('weightChange', l.metricTrend),
+                              ('latest', l.metricLast),
+                              ('trainingDays', l.metricSessions),
+                              ('volume', l.metricVolume),
+                            ])
+                              SuggestionChip(
+                                label: label,
+                                selected: _pick == metric,
+                                onTap: () {
+                                  _query.text = name;
+                                  _confirmed = null;
+                                  _search.search(
+                                    '',
+                                    _locale ?? 'en',
+                                    _recorded,
+                                    widget.store.weightUnit,
+                                  );
+                                  setState(
+                                    () =>
+                                        _pick = _pick == metric ? null : metric,
+                                  );
+                                },
+                              )
+                          else
+                            // 글자는 그대로 두고 모델 결과만 비운다.
+                            for (final (i, (label, _)) in _multiChips(
+                              l,
+                            ).indexed)
+                              SuggestionChip(
+                                label: label,
+                                selected: _chip == i,
+                                onTap: () {
+                                  _confirmed = null;
+                                  _search.search(
+                                    '',
+                                    _locale ?? 'en',
+                                    _recorded,
+                                    widget.store.weightUnit,
+                                  );
+                                  setState(() => _chip = _chip == i ? null : i);
+                                },
+                              ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (doubtful)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        '${l.readAsConfirm} · ${describePlan(plan, l, widget.store.weightUnit, notes: widget.store.notes)}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: CupertinoColors.label.resolveFrom(context),
+                        ),
+                      ),
+                      SuggestionChip(
+                        label: l.confirmYes,
+                        selected: false,
+                        onTap: () => setState(() {
+                          _confirmed = plan;
+                          _confirmedContext = _confirmationContext;
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            // "혹시 ○○?" — 적은 적 없는 이름에 가까운 운동. 누르면 그
+            // 이름으로 다시 센다(모델도 원판도 안 쓴다).
+            if (local == null && plan != null && plan.maybe.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 0,
+                    children: [
+                      for (final MapEntry(key: from, value: names)
+                          in plan.maybe.entries)
+                        for (final to in names)
+                          SuggestionChip(
+                            label: l.queryMaybe(to),
+                            selected: false,
+                            onTap: () => setState(() {
+                              final swapped = plan.withName(from, to);
+                              // 이미 "맞아요" 한 읽기면 이름만 바꾼 것도 확인된 것이다.
+                              if (_isConfirmed(plan)) {
+                                _confirmed = swapped;
+                              }
+                              _swap = (asked!, swapped);
+                            }),
+                          ),
+                    ],
+                  ),
+                ),
+              ),
+            if (local == null &&
+                !doubtful &&
+                plan != null &&
+                plan.readAs.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+                  child: Text(
+                    plan.readAs.entries
+                        .map((e) => l.readAsNote(e.value, e.key))
+                        .join(' · '),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            if (query != null && result != null)
+              SliverToBoxAdapter(child: _answer(query, result, l)),
+            // 비어 있고 찾는 글도 없으면 "0개" 는 정보가 아니다 — 아래 빈 상태가 말한다.
+            if (!routineMode &&
+                !(visible.isEmpty && _query.text.trim().isEmpty))
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
+                  child: Text(
+                    l.noteCount(visible.length),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            if (routineMode && groups.isEmpty)
+              const SliverToBoxAdapter(child: SizedBox.shrink())
+            else if (groups.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _query.text.isEmpty ? l.noNotesYet : l.noSearchResults,
+                        style: TextStyle(
+                          fontSize: 17,
+                          letterSpacing: -0.41,
+                          color: CupertinoColors.secondaryLabel.resolveFrom(
+                            context,
+                          ),
+                        ),
+                      ),
+                      // 기록이 없어도 몸 그림에서 운동을 고를 수 있다.
+                      if (_query.text.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: SuggestionChip(
+                            label: l.anatomyPick,
+                            selected: false,
+                            onTap: _openAnatomy,
+                          ),
+                        ),
+                      // 치는 동안은 글자로만 찾는다. 0건이면 질문이
+                      // 거절된 것처럼 보이니, 물어볼 수 있다고 알린다.
+                      if (_unasked(plan))
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            l.queryPressEnter,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: CupertinoColors.secondaryLabel.resolveFrom(
+                                context,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              // 달 제목은 그 달을 지나는 동안 위에 붙어 있다 — 어느 달을
+              // 보는 중인지 늘 보인다. 다음 달이 오면 밀려난다.
+              for (final (title, notes) in groups)
+                SliverMainAxisGroup(
+                  slivers: [
+                    PinnedHeaderSliver(child: _GroupHeader(title)),
+                    // 보이는 줄만 만든다 — 한 해치 200여 줄을 통째로 짓던
+                    // 것이 목록을 다시 그릴 때마다의 대부분이었다.
+                    SliverList.separated(
+                      itemCount: notes.length,
+                      itemBuilder: (context, i) => _Row(
+                        key: ValueKey(notes[i].id),
+                        note: notes[i],
+                        query: _query.text.trim(),
+                        onOpen: _open,
+                        onDelete: _delete,
+                        record: _recordNotes().contains(notes[i].id),
+                        weightKg: widget.store.weightOnDay(notes[i].createdAt),
+                      ),
+                      separatorBuilder: (context, _) => Padding(
+                        // 구분선은 글자가 시작하는 자리부터 그린다.
+                        padding: const EdgeInsets.only(left: 20),
+                        child: Container(
+                          height: 0.5,
+                          color: CupertinoColors.separator.resolveFrom(context),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+            // 검색창에 마지막 줄이 가리지 않도록 띄운다.
+            const SliverToBoxAdapter(child: SizedBox(height: 12)),
+          ],
+        );
+      },
+    ),
+  );
+
+  /// '기록을 지웠어요 · 되돌리기' 띠. 화면 아래에 고정이다.
+  Widget _undoBar(BuildContext context, L l) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+      border: Border(
+        top: BorderSide(
+          color: CupertinoColors.separator.resolveFrom(context),
+          width: 0.5,
+        ),
+      ),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '${l.noteRemoved} · ',
+              style: TextStyle(
+                fontSize: 14,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              ),
+            ),
+          ),
+          CupertinoButton(
+            key: const ValueKey('note-undo'),
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(minTap, minTap),
+            onPressed: _undoDelete,
+            child: Text(
+              l.undo,
+              style: TextStyle(fontSize: 14, color: seal.resolveFrom(context)),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final l = L.of(context);
@@ -1275,712 +1971,19 @@ class _NotesListPageState extends State<NotesListPage>
       child: Column(
         children: [
           Expanded(
-            // 목록의 빈 곳을 누르면 자판이 내려간다. 메모 앱이 그렇고, 올라온
-            // 자판이 화면 절반을 가리면 방금 찾은 것을 볼 수가 없다.
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => FocusScope.of(context).unfocus(),
-              child: Builder(
-                builder: (context) {
-                  final text = _query.text.trim();
-                  final route = _routeOf(text);
-                  final routineMode =
-                      (route != null && route != HomeRoute.question) ||
-                      _device?.$1 == text;
-                  final mentioned = routineMode ? const <String>[] : _mentioned;
-                  final asked = routineMode ? null : _search.plan;
-                  // "혹시 ○○?" 로 이름을 바꿨으면 그 plan 이다(모델도 원판도 안 쓴다).
-                  final plan = switch (_swap) {
-                    (final from, final to) when identical(from, asked) => to,
-                    _ => asked,
-                  };
-                  // 자신 있게 틀릴 위험이 있으면 답을 내지 않고 한 번 묻는다.
-                  // 틀린 숫자보다 탭 한 번이 싸다.
-                  final doubtful =
-                      plan != null &&
-                      plan.requiresConfirmation &&
-                      !_isConfirmed(plan);
-                  // 칩과 연결이 안 될 때의 plan 은 기기가 만든 것이라 묻지 않는다.
-                  final local = _localPlan(mentioned, l);
-                  final query =
-                      local ??
-                      (plan == null || doubtful || plan.kind != 'query'
-                          ? null
-                          : plan);
-                  final result = query == null
-                      ? null
-                      : _resultFor(
-                          query,
-                          local: local != null,
-                          l: l,
-                          confirmed: local != null || _isConfirmed(query),
-                        );
-                  final recordedKeys = {
-                    for (final r in _recorded) exerciseKey(r),
-                  };
-                  final unrecorded = [
-                    for (final n in mentioned)
-                      if (!recordedKeys.contains(exerciseKey(n))) n,
-                  ];
-                  // 루틴으로 가르는 글이어도 치는 동안의 기록 목록(글자·글이 가리킨
-                  // 운동·기간)은 카드 아래에 그대로 둔다 — "타바타", "스쿼트 5x5" 로
-                  // 찾던 기록이 사라지지 않는다.
-                  final visible = routineMode
-                      ? _visible(null, null, _mentioned)
-                      : _visible(plan, result, mentioned);
-                  final groups = _grouped(visible, l);
-                  return CustomScrollView(
-                    slivers: [
-                      // 큰 제목은 스크롤하면 가운데 작은 제목으로 접힌다. iOS
-                      // 목록 화면의 기본 동작이고, 직접 흉내 내면 티가 난다.
-                      CupertinoSliverNavigationBar(
-                        largeTitle: Text(l.allNotes),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: _openAnatomy,
-                              // 사람 아이콘은 계정으로 읽힌다 — 몸 모양을 쓴다.
-                              child: Icon(
-                                Icons.accessibility_new,
-                                size: 22,
-                                semanticLabel: l.anatomyOpen,
-                              ),
-                            ),
-                            CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () => showWeightSettings(
-                                context,
-                                widget.store,
-                                account: widget.account,
-                              ),
-                              child: Icon(
-                                CupertinoIcons.gear,
-                                size: 21,
-                                semanticLabel: l.settingsTitle,
-                              ),
-                            ),
-                          ],
-                        ),
-                        border: null,
-                      ),
-                      // 트레이너가 보낸 것. 찾는 중에는 숨긴다 — 검색 결과
-                      // 위에 다른 것이 끼면 무엇을 보는 중인지 흐려진다.
-                      if (_query.text.trim().isEmpty)
-                        for (final routine in _waitingRoutines)
-                          SliverToBoxAdapter(
-                            child: GymRow(
-                              icon: CupertinoIcons.person_crop_circle,
-                              title: routine.title,
-                              // 무엇이 들어 있는지 한 줄. 세트가 있으면
-                              // 세트 수를, 누적 목표뿐이면 이름만.
-                              detail: [
-                                l.routineFromTrainer(routine.gym),
-                                if (_routineSets(routine) > 0)
-                                  l.setOrdinal(_routineSets(routine)),
-                              ].join(' · '),
-                              onTap: () => _startRoutine(routine),
-                            ),
-                          ),
-                      // 도장 초대. 받아야 회원이 된다 — 안 다니는 사람에게도 온다.
-                      if (_query.text.trim().isEmpty)
-                        for (final invite
-                            in widget.account?.invites ?? const <GymInvite>[])
-                          SliverToBoxAdapter(
-                            child: GymRow(
-                              icon: CupertinoIcons.envelope_badge,
-                              title: l.inviteFrom(invite.gymName),
-                              detail: [
-                                switch (invite.invitedBy) {
-                                  final name? => l.inviteBy(name),
-                                  null => invite.gymName,
-                                },
-                                if (!invite.verified) l.gymUnverified,
-                              ].join(' · '),
-                              accent: true,
-                              onTap: () => answerGymInvite(
-                                context,
-                                widget.account!,
-                                invite,
-                              ),
-                            ),
-                          ),
-                      // 다니는 도장. **푸시가 없으니 여기가 도장 소식이 닿는 곳이다** —
-                      // 새 공지, 거절·취소·옮겨진 PT 를 먼저, 없으면 내 이용권을 보인다.
-                      if (_query.text.trim().isEmpty)
-                        for (final gym in widget.account?.gyms ?? const <Gym>[])
-                          SliverToBoxAdapter(child: _gymRow(l, gym)),
-                      // PT 예약. **다니는 곳이 있는 사람에게만 보인다** —
-                      // 헬스장과 상관없이 혼자 기록하는 사람이 대부분이고,
-                      // 그 사람 화면에 예약이 뜨면 무엇을 예약하라는 말인지
-                      // 알 수가 없다. 설정 안에만 두면 회원이 찾지 못한다.
-                      if (_query.text.trim().isEmpty && _hasGym)
-                        SliverToBoxAdapter(
-                          child: GymRow(
-                            icon: CupertinoIcons.calendar,
-                            title: l.bookingNew,
-                            onTap: () => openBooking(
-                              context,
-                              widget.account!,
-                              store: widget.store,
-                            ),
-                          ),
-                        ),
-                      // 트레이너 보고. **직원에게만 보인다** — 회원 화면에 뜨면
-                      // 무엇을 보라는 말인지 알 수 없다.
-                      if (_query.text.trim().isEmpty && _staff.isNotEmpty)
-                        SliverToBoxAdapter(
-                          child: GymRow(
-                            icon: CupertinoIcons.doc_text,
-                            title: l.trainerReport,
-                            onTap: () => openTrainer(context, widget.account!),
-                            titleSuffix: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                ValueListenableBuilder(
-                                  valueListenable: reportUnread,
-                                  builder: (context, unread, _) => !unread
-                                      ? const SizedBox.shrink()
-                                      : Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 6,
-                                          ),
-                                          child: Semantics(
-                                            label: l.trainerUnread,
-                                            child: Container(
-                                              width: 8,
-                                              height: 8,
-                                              decoration: BoxDecoration(
-                                                color: seal.resolveFrom(
-                                                  context,
-                                                ),
-                                                shape: BoxShape.circle,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                ),
-                                // 푸시가 없다 — 웹을 안 여는 트레이너는 여기서 신청을 본다.
-                                ValueListenableBuilder(
-                                  valueListenable: ptRequestsWaiting,
-                                  builder: (context, waiting, _) => waiting == 0
-                                      ? const SizedBox.shrink()
-                                      : Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 8,
-                                          ),
-                                          child: Text(
-                                            l.trainerPendingCount(waiting),
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                              color: seal.resolveFrom(context),
-                                            ),
-                                          ),
-                                        ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      if (routineMode)
-                        SliverToBoxAdapter(child: _routineCard(l, text, route))
-                      else if (_askedToo case (
-                        final asked,
-                        final original,
-                      ) when asked == text)
-                        // "이것도 물을까요" 로 물은 조각의 답 위에 친 루틴 부분(카드)을 둔다.
-                        SliverToBoxAdapter(
-                          child: _routineCard(l, original, _routeOf(original)),
-                        ),
-                      if (_query.text.trim().isNotEmpty && !routineMode)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (_search.busy)
-                                  Text(
-                                    l.queryWorking,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                if (_search.failed)
-                                  Text(
-                                    l.queryFailed,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                // 붐비거나 오늘 몫이 찼다 — 연결 문구가 아니다(계약 C1).
-                                if (refusalText(l, _search.refused)
-                                    case final refusal?)
-                                  Text(
-                                    refusal,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                // 모델이 읽을 수 없는 답을 두 번 냈다 — 연결 문제가
-                                // 아니고 그 답에는 원판이 나가지 않았다(1단계 몫은
-                                // 원판 줄이 말한다). 글에 적힌 운동은 그동안 기기에서
-                                // 세고, 같은 글로 다시 묻는다.
-                                if (_search.unreadable) ...[
-                                  Text(
-                                    [
-                                      _search.charged
-                                          ? l.queryUnreadablePaid
-                                          : l.queryUnreadable,
-                                      if (local != null) l.queryUnreadableLocal,
-                                    ].join(' '),
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                  CupertinoButton(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: const Size(44, 44),
-                                    onPressed: () => _ask(immediately: true),
-                                    child: Text(
-                                      l.queryAskAgain,
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  ),
-                                ],
-                                // 서버는 답했다 — 연결 문구가 아니라 읽지 못했다고
-                                // 말하고, 말을 바꾸면 다시 읽는다고 알린다.
-                                if (_search.misread)
-                                  Text(
-                                    _misread && local != null
-                                        ? l.queryMisreadLocal
-                                        : l.queryMisread,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                // 다시 해도 같은 거절이다. "다시 시도" 가 아니라
-                                // 무엇을 못 하는지 말한다.
-                                if (_search.unrepresentable case final kind?)
-                                  Text(
-                                    l.queryLimit(kind),
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                if (_search.tooLong)
-                                  Text(
-                                    l.queryTooLong(maxQuestionLength),
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                if (_search.aiOff)
-                                  Text(
-                                    l.aiOff,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                if (_search.noPlates) ..._noPlates(l),
-                                // "이것도 물을까요" 로 온 조각 — 원래 글(루틴 카드)로 돌아간다.
-                                if (_askedToo case (
-                                  final asked,
-                                  final original,
-                                ) when asked == text)
-                                  SuggestionChip(
-                                    label: l.routineBack,
-                                    selected: false,
-                                    onTap: () {
-                                      _query.text = original;
-                                      setState(() => _askedToo = null);
-                                      _ask();
-                                    },
-                                  ),
-                                // 기록 검색이 루틴 요청으로 읽었다 — 두 길을 칩으로. 루틴
-                                // 지시문이 이미 기록 질문이라 한 글이면 넘기지 않고
-                                // 셀 수 없다고 말한다(원판 0 길은 남긴다).
-                                if (plan?.kind == 'routine') ...[
-                                  if (!medicalText(text))
-                                    Text(
-                                      !_bounced
-                                          ? l.routineFromQuestion
-                                          : local != null
-                                          ? l.queryMisreadLocal
-                                          : l.queryMisread,
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  _escapeChips(l, text, conditions: !_bounced),
-                                ],
-                                // 거절도 까닭별이다: 무관한 질문, 무엇을 셀지 모름,
-                                // 기록에 없는 것만 물음(무엇이 없는지 적는다).
-                                if (local == null &&
-                                    plan?.kind == 'unsupported')
-                                  Text(
-                                    refusalLines(plan!, l).join('\n'),
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                // 이름만 찾았는데 적은 적 없는 운동.
-                                if (local == null &&
-                                    plan?.kind == 'find' &&
-                                    plan!.never.isNotEmpty)
-                                  Text(
-                                    l.queryNeverRows(
-                                      plan.never
-                                          .map((k) => plan.names[k] ?? k)
-                                          .join(', '),
-                                    ),
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                // 줄마다 0·까닭이 있으면 표가 말한다. 셀 것이 하나도
-                                // 없을 때만 이 줄이다.
-                                if (result != null &&
-                                    !result.rows.any(
-                                      (r) => r.cells.any(
-                                        (c) =>
-                                            c.answer != null ||
-                                            cellReason(l, c.reason) != null,
-                                      ),
-                                    ) &&
-                                    result.header.isEmpty)
-                                  Text(
-                                    l.queryNoData,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                // 원판을 쓴 질문에만 한 줄. 담아 둔 답은 안 쓴다.
-                                if (_search.charged &&
-                                    widget.account?.platesSpent != null)
-                                  Text(
-                                    l.platesSpent(
-                                      widget.account!.platesSpent!,
-                                      widget.account!.plates!,
-                                    ),
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: CupertinoColors.secondaryLabel
-                                          .resolveFrom(context),
-                                    ),
-                                  ),
-                                // 서버에 못 닿았을 때만 알린다. 준비 상태를
-                                // 늘어놓던 줄은 읽을 것이 없어 뺐다. 칩이 뜬
-                                // 글이어도 Enter 를 눌렀으면 왜 답이 없는지 말한다.
-                                // 글에 운동이 있으면 기기에서 세고 그렇다고 말한다.
-                                if (_unreached && local != null)
-                                  Text(
-                                    l.queryOfflineLocal,
-                                    style: const TextStyle(fontSize: 14),
-                                  )
-                                else if (_search.offline ||
-                                    (mentioned.isEmpty &&
-                                        _search.status ==
-                                            RecordAiStatus.unavailable))
-                                  Text(
-                                    l.queryOffline,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      if (mentioned.isNotEmpty)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-                            // 이름과 칩을 한 Wrap 에 섞으면 이름이 길 때 칩이
-                            // 이름 끝에 매달려 두 줄로 갈라진다. 이름은 제 줄에
-                            // 두고 칩은 그 아래에서 시작한다.
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  mentioned.join(' · '),
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: -0.23,
-                                    color: CupertinoColors.label.resolveFrom(
-                                      context,
-                                    ),
-                                  ),
-                                ),
-                                // 안 적은 운동도 칩이 뜬다. 답이 없을 때는 여기서
-                                // 먼저 말한다(답이 있으면 답 위 줄이 말한다).
-                                if (unrecorded.isNotEmpty && result == null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 2),
-                                    child: Text(
-                                      l.queryNeverRows(unrecorded.join(', ')),
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: CupertinoColors.secondaryLabel
-                                            .resolveFrom(context),
-                                      ),
-                                    ),
-                                  ),
-                                const SizedBox(height: 8),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 0,
-                                  children: [
-                                    if (mentioned case [final name])
-                                      for (final (metric, label) in [
-                                        ('best', l.metricMax),
-                                        ('weightChange', l.metricTrend),
-                                        ('latest', l.metricLast),
-                                        ('trainingDays', l.metricSessions),
-                                        ('volume', l.metricVolume),
-                                      ])
-                                        SuggestionChip(
-                                          label: label,
-                                          selected: _pick == metric,
-                                          onTap: () {
-                                            _query.text = name;
-                                            _confirmed = null;
-                                            _search.search(
-                                              '',
-                                              _locale ?? 'en',
-                                              _recorded,
-                                              widget.store.weightUnit,
-                                            );
-                                            setState(
-                                              () => _pick = _pick == metric
-                                                  ? null
-                                                  : metric,
-                                            );
-                                          },
-                                        )
-                                    else
-                                      // 글자는 그대로 두고 모델 결과만 비운다.
-                                      for (final (i, (label, _)) in _multiChips(
-                                        l,
-                                      ).indexed)
-                                        SuggestionChip(
-                                          label: label,
-                                          selected: _chip == i,
-                                          onTap: () {
-                                            _confirmed = null;
-                                            _search.search(
-                                              '',
-                                              _locale ?? 'en',
-                                              _recorded,
-                                              widget.store.weightUnit,
-                                            );
-                                            setState(
-                                              () =>
-                                                  _chip = _chip == i ? null : i,
-                                            );
-                                          },
-                                        ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      if (doubtful)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-                            child: Wrap(
-                              spacing: 8,
-                              runSpacing: 6,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                Text(
-                                  '${l.readAsConfirm} · ${describePlan(plan, l, widget.store.weightUnit, notes: widget.store.notes)}',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: CupertinoColors.label.resolveFrom(
-                                      context,
-                                    ),
-                                  ),
-                                ),
-                                SuggestionChip(
-                                  label: l.confirmYes,
-                                  selected: false,
-                                  onTap: () => setState(() {
-                                    _confirmed = plan;
-                                    _confirmedContext = _confirmationContext;
-                                  }),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      // "혹시 ○○?" — 적은 적 없는 이름에 가까운 운동. 누르면 그
-                      // 이름으로 다시 센다(모델도 원판도 안 쓴다).
-                      if (local == null &&
-                          plan != null &&
-                          plan.maybe.isNotEmpty)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                            child: Wrap(
-                              spacing: 8,
-                              runSpacing: 0,
-                              children: [
-                                for (final MapEntry(key: from, value: names)
-                                    in plan.maybe.entries)
-                                  for (final to in names)
-                                    SuggestionChip(
-                                      label: l.queryMaybe(to),
-                                      selected: false,
-                                      onTap: () => setState(() {
-                                        final swapped = plan.withName(from, to);
-                                        // 이미 "맞아요" 한 읽기면 이름만 바꾼 것도 확인된 것이다.
-                                        if (_isConfirmed(plan)) {
-                                          _confirmed = swapped;
-                                        }
-                                        _swap = (asked!, swapped);
-                                      }),
-                                    ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      if (local == null &&
-                          !doubtful &&
-                          plan != null &&
-                          plan.readAs.isNotEmpty)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
-                            child: Text(
-                              plan.readAs.entries
-                                  .map((e) => l.readAsNote(e.value, e.key))
-                                  .join(' · '),
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: CupertinoColors.secondaryLabel
-                                    .resolveFrom(context),
-                              ),
-                            ),
-                          ),
-                        ),
-                      if (query != null && result != null)
-                        SliverToBoxAdapter(child: _answer(query, result, l)),
-                      if (widget.store.undoableDelete != null)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                            child: Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                Text(
-                                  '${l.noteRemoved} · ',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: CupertinoColors.secondaryLabel
-                                        .resolveFrom(context),
-                                  ),
-                                ),
-                                CupertinoButton(
-                                  key: const ValueKey('note-undo'),
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(minTap, minTap),
-                                  onPressed: _undoDelete,
-                                  child: Text(
-                                    l.undo,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: seal.resolveFrom(context),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      // 비어 있고 찾는 글도 없으면 "0개" 는 정보가 아니다 — 아래 빈 상태가 말한다.
-                      if (!routineMode &&
-                          !(visible.isEmpty && _query.text.trim().isEmpty))
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
-                            child: Text(
-                              l.noteCount(visible.length),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: CupertinoColors.secondaryLabel
-                                    .resolveFrom(context),
-                              ),
-                            ),
-                          ),
-                        ),
-                      if (routineMode && groups.isEmpty)
-                        const SliverToBoxAdapter(child: SizedBox.shrink())
-                      else if (groups.isEmpty)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _query.text.isEmpty
-                                      ? l.noNotesYet
-                                      : l.noSearchResults,
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    letterSpacing: -0.41,
-                                    color: CupertinoColors.secondaryLabel
-                                        .resolveFrom(context),
-                                  ),
-                                ),
-                                // 기록이 없어도 몸 그림에서 운동을 고를 수 있다.
-                                if (_query.text.isEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 12),
-                                    child: SuggestionChip(
-                                      label: l.anatomyPick,
-                                      selected: false,
-                                      onTap: _openAnatomy,
-                                    ),
-                                  ),
-                                // 치는 동안은 글자로만 찾는다. 0건이면 질문이
-                                // 거절된 것처럼 보이니, 물어볼 수 있다고 알린다.
-                                if (_unasked(plan))
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 6),
-                                    child: Text(
-                                      l.queryPressEnter,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: CupertinoColors.secondaryLabel
-                                            .resolveFrom(context),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        // 달 제목은 그 달을 지나는 동안 위에 붙어 있다 — 어느 달을
-                        // 보는 중인지 늘 보인다. 다음 달이 오면 밀려난다.
-                        for (final (title, notes) in groups)
-                          SliverMainAxisGroup(
-                            slivers: [
-                              PinnedHeaderSliver(child: _GroupHeader(title)),
-                              // 보이는 줄만 만든다 — 한 해치 200여 줄을 통째로 짓던
-                              // 것이 목록을 다시 그릴 때마다의 대부분이었다.
-                              SliverList.separated(
-                                itemCount: notes.length,
-                                itemBuilder: (context, i) => _Row(
-                                  key: ValueKey(notes[i].id),
-                                  note: notes[i],
-                                  query: _query.text.trim(),
-                                  onOpen: _open,
-                                  onDelete: _delete,
-                                  record: _recordNotes().contains(notes[i].id),
-                                  weightKg: widget.store.weightOnDay(
-                                    notes[i].createdAt,
-                                  ),
-                                ),
-                                separatorBuilder: (context, _) => Padding(
-                                  // 구분선은 글자가 시작하는 자리부터 그린다.
-                                  padding: const EdgeInsets.only(left: 20),
-                                  child: Container(
-                                    height: 0.5,
-                                    color: CupertinoColors.separator
-                                        .resolveFrom(context),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                      // 검색창에 마지막 줄이 가리지 않도록 띄운다.
-                      const SliverToBoxAdapter(child: SizedBox(height: 12)),
-                    ],
-                  );
-                },
-              ),
+            child: Stack(
+              children: [
+                Positioned.fill(child: _list(context, l)),
+                // 되돌리기는 목록 밖, 검색창 바로 위에 뜬다 — 목록을 내려 지워도
+                // 보이고, 떴다 사라질 때 보이는 줄들을 밀지 않는다.
+                if (widget.store.undoableDelete != null)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: _undoBar(context, l),
+                  ),
+              ],
             ),
           ),
           _SearchBar(

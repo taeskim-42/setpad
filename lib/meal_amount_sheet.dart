@@ -351,7 +351,8 @@ class _MealAmountSheetState extends State<_MealAmountSheet> {
                       ),
                     ),
                     Expanded(
-                      child: CupertinoButton.filled(
+                      child: sealButton(
+                        context,
                         key: const ValueKey('meal-review-confirm'),
                         onPressed: kcal == null
                             ? null

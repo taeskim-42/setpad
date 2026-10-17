@@ -743,18 +743,24 @@ Future<void> syncMeals(
 
 /// 사람이 지운 기록이 서버에 남긴 것을 보낸다([NotesStore.delete]). 밀린 끼니와 같은
 /// 규칙이다 — 그물이 막혔으면 다음 기회에, 서버가 거절했으면 그 하나만 버린다. 다른
-/// 계정의 것은 그 사람이 다시 로그인할 때까지 둔다.
+/// 계정의 것은 그 사람이 다시 로그인할 때까지 둔다. [held] 는 아직 되돌릴 수 있는
+/// 지우기라 이번에는 보내지 않는다([NotesStore.heldDeletes]).
 Future<void> sendDeletes(
   GymLink link,
   List<ServerDelete> queue, {
   required void Function() onSent,
+  List<ServerDelete> held = const [],
 }) async {
   if (!link.supported || _uploadsQuiet) return;
   var changed = false;
+  final ready = [
+    for (final d in queue)
+      if (!held.contains(d)) d,
+  ];
   // 운동 줄은 맨 뒤에 — 그 길을 모르는 서버(405)가 끼니 지우기까지 막지 않게.
   for (final d in [
-    ...queue.where((d) => d.kind != 'workout'),
-    ...queue.where((d) => d.kind == 'workout'),
+    ...ready.where((d) => d.kind != 'workout'),
+    ...ready.where((d) => d.kind == 'workout'),
   ]) {
     if (d.owner != null && d.owner != link.userId) continue;
     final outcome = switch (d.kind) {

@@ -66,37 +66,93 @@ class SettingsSection extends StatelessWidget {
   }
 }
 
-/// 한 줄. [onTap] 이 있으면 누를 수 있고 ›가 붙는다. [detail] 은 오른쪽의 현재 값.
+/// 한 줄. [onTap] 이 있으면 누를 수 있고 ›가 붙는다. [detail] 은 오른쪽의 현재 값,
+/// [note] 는 라벨 아래 한 줄 더(로그인 실패처럼 잘리면 뜻이 사라지는 말).
+///
+/// CupertinoListTile 은 제목을 한 줄로 자르고 오른쪽 값(additionalInfo)은 폭 제한 없이
+/// 놓는다 — 긴 이용권 설명이 잘리고, 긴 닉네임은 줄을 넘쳐 라벨을 0폭으로 만들었다.
+/// 그래서 라벨·값·설명을 제목 자리 안에 직접 놓는다: 라벨은 감기고, 값은 화면 폭의
+/// 40% 안에서 감긴다.
 class SettingsRow extends StatelessWidget {
   const SettingsRow({
     super.key,
     required this.label,
     this.detail,
+    this.note,
     this.accent = false,
     this.onTap,
   });
   final String label;
   final String? detail;
+  final String? note;
   final bool accent;
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) => CupertinoListTile(
-    onTap: onTap,
-    title: Text(
-      label,
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: accent ? FontWeight.w600 : FontWeight.w400,
-        color: accent
-            ? seal.resolveFrom(context)
-            : CupertinoColors.label.resolveFrom(context),
+  Widget build(BuildContext context) {
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    return CupertinoListTile(
+      onTap: onTap,
+      padding: _padding,
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: _wrap,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: accent ? FontWeight.w600 : FontWeight.w400,
+                    color: accent
+                        ? seal.resolveFrom(context)
+                        : CupertinoColors.label.resolveFrom(context),
+                  ),
+                ),
+              ),
+              if (detail case final d?) ...[
+                const SizedBox(width: 8),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.sizeOf(context).width * 0.4,
+                  ),
+                  child: Text(
+                    d,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(fontSize: 16, color: muted),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          if (note case final n?)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                n,
+                maxLines: _wrap,
+                style: TextStyle(fontSize: 13, height: 1.3, color: muted),
+              ),
+            ),
+        ],
       ),
-    ),
-    additionalInfo: detail == null ? null : Text(detail!),
-    trailing: onTap == null ? null : const CupertinoListTileChevron(),
-  );
+      trailing: onTap == null ? null : const CupertinoListTileChevron(),
+    );
+  }
 }
+
+/// 라벨이 감길 수 있는 줄 수. CupertinoListTile 의 한 줄 제한을 덮는다 — Text 에 직접
+/// 준 maxLines 는 위의 DefaultTextStyle 보다 앞선다.
+const _wrap = 6;
+
+/// CupertinoListTile 의 기본 여백에 위아래 4 를 더한다 — 한 줄이면 여전히 44, 감긴
+/// 줄은 가장자리에 붙지 않는다.
+const _padding = EdgeInsetsDirectional.fromSTEB(20, 4, 14, 4);
 
 /// 켜고 끄는 한 줄.
 class SettingsToggle extends StatelessWidget {
@@ -112,7 +168,13 @@ class SettingsToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => CupertinoListTile(
-    title: Text(label, style: const TextStyle(fontSize: 16)),
+    padding: _padding,
+    title: Text(
+      label,
+      maxLines: _wrap,
+      overflow: TextOverflow.ellipsis,
+      style: const TextStyle(fontSize: 16),
+    ),
     trailing: CupertinoSwitch(value: value, onChanged: onChanged),
   );
 }

@@ -246,7 +246,7 @@ class SettingsPage extends StatelessWidget {
                               key: ValueKey('settings-link-${method.name}'),
                               label: l.linkSignIn(providerName(l, method)),
                               // 실패 문구는 방금 시도한 수단의 줄에만 붙인다.
-                              detail: a.lastSignIn != method
+                              note: a.lastSignIn != method
                                   ? null
                                   : a.signInTaken
                                   ? l.signInTaken
@@ -260,7 +260,7 @@ class SettingsPage extends StatelessWidget {
                         label: l.accountSignIn,
                         // 서버가 막았으면 그렇다고 적는다. 눌러도 아무 일이 없는
                         // 것처럼 보이면 사람은 앱이 고장 난 줄 안다.
-                        detail: a.signInRefused ? l.signInFailed : null,
+                        note: a.signInRefused ? l.signInFailed : null,
                         onTap: () => askSignIn(context, a),
                       ),
                     // 원판은 로그인 전에도 있다 — 그때는 이 기기의 지갑이다.

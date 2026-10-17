@@ -380,9 +380,21 @@ class _GymPageState extends State<GymPage> {
         return CupertinoPageScaffold(
           navigationBar: CupertinoNavigationBar(middle: Text(gym?.name ?? '')),
           child: SafeArea(
-            // 도장 목록을 아직 못 받았으면 빈 화면이 아니라 돌아가는 표시를 둔다.
+            // 도장 목록을 아직 못 받았으면 돌아가는 표시를 둔다. 받았는데 없으면
+            // (그사이 내보내졌거나 다른 기기에서 나갔다) 더 기다릴 것이 없다고 말한다.
             child: gym == null
-                ? const Center(child: CupertinoActivityIndicator())
+                ? Center(
+                    child: widget.account.gymsLoaded
+                        ? Padding(
+                            padding: const EdgeInsets.all(gutter),
+                            child: Text(
+                              l.gymLinkNotMember,
+                              key: const ValueKey('gym-gone'),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : const CupertinoActivityIndicator(),
+                  )
                 : ListView(
                     padding: const EdgeInsets.only(bottom: 40),
                     children: _rows(l, gym),

@@ -1091,6 +1091,10 @@ class NotesStore extends ChangeNotifier {
   /// 되돌리기를 접는다 — 지운 기록은 이제 되살리지 않는다.
   void forgetUndoableDelete() => _lastDelete = null;
 
+  /// 되돌리기 창이 열린 동안 서버로 보내지 않을 지우기들([sendDeletes] 의 held).
+  /// 보내는 중에 되돌리면 앱에서는 되살아나고 서버에서는 지워진 채 어긋난다.
+  List<ServerDelete> get heldDeletes => _lastDelete?.queued ?? const [];
+
   void _deleteNote(Note note, String? owner) {
     if (note.mealGym != null) {
       _deletes.addAll([

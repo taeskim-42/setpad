@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -14,6 +15,7 @@ import 'package:setpad/body.dart';
 import 'package:setpad/body_page.dart';
 import 'package:setpad/gym.dart';
 import 'package:setpad/gym_page.dart';
+import 'package:setpad/settings_list.dart';
 import 'package:setpad/settings_page.dart';
 import 'package:setpad/keypad.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
@@ -21,10 +23,15 @@ import 'package:setpad/main.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
 import 'package:setpad/paywall.dart';
+import 'package:setpad/record_ai.dart' show WorkoutSetup;
 import 'package:setpad/palette.dart';
+import 'package:setpad/partner.dart';
 import 'package:setpad/routine.dart';
 import 'package:setpad/routine_card.dart';
 import 'package:setpad/setup_chips.dart';
+import 'package:setpad/workout_timing.dart';
+
+import 'workout_timing_test.dart' show FakeAudio;
 
 const _darkOn = 0xFF332B19;
 
@@ -82,15 +89,15 @@ void main() {
       expect(ratio(seal.color, sealOn.color), greaterThan(4.5));
     });
 
-    testWidgets('앱 테마의 채운 단추는 어두운 모드에서 sealOn 글자다', (tester) async {
+    testWidgets('켜진 sealButton 은 어두운 모드에서 sealOn 글자다', (tester) async {
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
       await pumpApp(
         tester,
         Center(
-          child: CupertinoButton.filled(
-            onPressed: () {},
-            child: const Text('x'),
+          child: Builder(
+            builder: (context) =>
+                sealButton(context, onPressed: () {}, child: const Text('x')),
           ),
         ),
       );
@@ -114,16 +121,58 @@ void main() {
       await pumpApp(
         tester,
         Center(
-          child: CupertinoButton.filled(
-            onPressed: () {},
-            child: const Text('x'),
+          child: Builder(
+            builder: (context) =>
+                sealButton(context, onPressed: () {}, child: const Text('x')),
           ),
         ),
       );
       expect(textColor(tester, find.text('x')), 0xFFFFFFFF);
     });
 
-    testWidgets('결제 화면의 채운 구매 단추는 어두운 모드에서 sealOn 글자다', (tester) async {
+    testWidgets('어두운 모드의 꺼진 채운 단추도 글자가 회색 바탕 위에서 읽힌다', (tester) async {
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+      await pumpApp(
+        tester,
+        Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Builder(
+                builder: (context) => sealButton(
+                  context,
+                  onPressed: null,
+                  child: const Text('a'),
+                ),
+              ),
+              // A raw filled button takes the theme's contrasting colour.
+              const CupertinoButton.filled(onPressed: null, child: Text('b')),
+            ],
+          ),
+        ),
+      );
+      // Disabled pill: tertiarySystemFill (dark) over the dark page.
+      const page = Color(0xFF000000);
+      final pill = Color.alphaBlend(
+        CupertinoColors.tertiarySystemFill.darkColor,
+        page,
+      );
+      double ratio(Color a, Color b) {
+        final x = a.computeLuminance(), y = b.computeLuminance();
+        return ((x > y ? x : y) + 0.05) / ((x > y ? y : x) + 0.05);
+      }
+
+      for (final label in ['a', 'b']) {
+        final ink = Color(textColor(tester, find.text(label)));
+        expect(ink.toARGB32(), isNot(_darkOn), reason: label);
+        expect(ratio(ink, pill), greaterThan(4.5), reason: label);
+      }
+    });
+
+    testWidgets('결제 화면의 이미 산(꺼진) 채운 단추는 어두운 모드에서 sealOn 으로 묻히지 않는다', (
+      tester,
+    ) async {
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
       http.Response json(Object body) => http.Response(
@@ -154,7 +203,10 @@ void main() {
       final l = await L.delegate.load(const Locale('ko'));
       final label = find.text('${l.planYearly} · ${l.planActive}');
       expect(label, findsOneWidget);
-      expect(tester.widget<Text>(label).style!.color!.toARGB32(), _darkOn);
+      // Owned = disabled grey pill: the label falls back to the button's own
+      // disabled colour instead of the dark-gold sealOn.
+      expect(tester.widget<Text>(label).style!.color, isNull);
+      expect(textColor(tester, label), isNot(_darkOn));
     });
 
     testWidgets('식단 단추가 눌린 모양일 때 아이콘은 sealOn 이다', (tester) async {
@@ -305,6 +357,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(c.blocks.single.sets, hasLength(2));
       expect(find.text('${l.setRemoved(2)} · '), findsOneWidget);
+      expect(
+        tester.takeAnnouncements().map((a) => a.message),
+        contains('${l.setRemoved(2)} · ${l.undo}'),
+        reason: '보조기기에도 되돌릴 수 있다고 알린다',
+      );
       final undo = find.byKey(const ValueKey('set-undo'));
       expect(tester.getSize(undo).height, greaterThanOrEqualTo(44));
       await tester.tap(undo);
@@ -313,6 +370,52 @@ void main() {
       expect(c.blocks.single.sets[1].value, middle.value);
       expect(c.blocks.single.sets[1].reps, 8);
       expect(find.byKey(const ValueKey('set-undo')), findsNothing);
+    });
+
+    testWidgets('같이 하는 중에는 세트 되돌리기를 내지 않는다(위치·주인을 서버와 맞출 수 없다)', (
+      tester,
+    ) async {
+      final dir = Directory.systemTemp.createTempSync('setpad_ux_together_');
+      final store = NotesStore(directory: dir);
+      final note = store.create()
+        ..partner = PartnerSession(
+          id: 'S1',
+          host: true,
+          state: PartnerState.active,
+        );
+      final partner = PartnerSync(
+        note: note,
+        link: () => GymLink(
+          endpoint: 'https://example.com',
+          token: 'x',
+          client: MockClient((_) async => http.Response('{}', 200)),
+        ),
+        onChanged: () {},
+      );
+      addTearDown(() {
+        partner.dispose();
+        store.dispose();
+        dir.deleteSync(recursive: true);
+      });
+      final c = RoutineEditorController()
+        ..addExercise('벤치프레스')
+        ..addSet('80 10')
+        ..addSet('70 8')
+        ..closeBlock();
+      await pumpApp(
+        tester,
+        CupertinoPageScaffold(
+          child: RoutineEditor(controller: c, partner: partner),
+        ),
+      );
+      await tester.tap(find.text('2 70×8'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(CupertinoIcons.xmark).first);
+      await tester.pumpAndSettle();
+      expect(c.blocks.single.sets, hasLength(1));
+      expect(find.byKey(const ValueKey('set-undo')), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 6));
     });
 
     testWidgets('5초가 지나면 줄이 접히고, 연달아 지운 것은 끝의 것부터 돌아온다', (tester) async {
@@ -394,6 +497,54 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
     });
 
+    testWidgets('목록을 내려 지워도 되돌리기가 화면에 보이고, 위의 줄들은 밀리지 않으며, 보조기기에 알린다', (
+      tester,
+    ) async {
+      final store = makeStore(tester);
+      final notes = [
+        for (var i = 0; i < 60; i++)
+          store.create(
+            at: DateTime.now().subtract(Duration(days: i + 1)),
+            blocks: [
+              ExerciseBlock('스쿼트 $i', [LoggedSet(value: 80, reps: 5)]),
+            ],
+          ),
+      ];
+      await pumpApp(tester, NotesListPage(store: store, onOpen: (_) {}));
+      final l = await L.delegate.load(const Locale('ko'));
+      final gone = notes[20];
+      await tester.scrollUntilVisible(
+        rowOf(gone),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      double top(Note n) => tester.getTopLeft(rowOf(n)).dy;
+      // The nearest row drawn above the one we delete.
+      final above = notes
+          .where((n) => n != gone && rowOf(n).evaluate().isNotEmpty)
+          .where((n) => top(n) < top(gone))
+          .reduce((a, b) => top(a) > top(b) ? a : b);
+      final y = top(above);
+      await tester.drag(rowOf(gone), const Offset(-500, 0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.delete).last);
+      await tester.pumpAndSettle();
+      final undo = find.byKey(const ValueKey('note-undo'));
+      expect(undo.hitTestable(), findsOneWidget, reason: '스크롤한 채로도 누를 수 있다');
+      expect(top(above), y, reason: '위의 줄이 밀리지 않는다');
+      expect(
+        tester.takeAnnouncements().map((a) => a.message),
+        contains('${l.noteRemoved} · ${l.undo}'),
+      );
+      await tester.tap(undo);
+      await tester.pumpAndSettle();
+      expect(store.notes, contains(gone));
+      expect(top(above), y);
+      expect(undo, findsNothing);
+      await tester.pump(const Duration(seconds: 6));
+    });
+
     testWidgets('5초가 지나면 줄이 접히고 되돌릴 수 없다', (tester) async {
       final store = makeStore(tester);
       final gone = store.create(
@@ -434,6 +585,47 @@ void main() {
       expect(store.undoableDelete, isNull);
       expect(store.undoDelete(), isFalse);
       expect(store.notes, isEmpty);
+    });
+
+    test('되돌리기가 열린 동안에는 동기화가 그 지우기를 서버로 보내지 않는다', () async {
+      final dir = Directory.systemTemp.createTempSync('setpad_ux_hold_');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final store = NotesStore(directory: dir);
+      addTearDown(store.dispose);
+      final calls = <String>[];
+      final link = GymLink(
+        endpoint: 'https://example.com',
+        token: 'x',
+        client: MockClient((r) async {
+          calls.add('${r.method} ${r.url.path}');
+          return http.Response('{"ok":true}', 200);
+        }),
+      );
+      final note = store.create(gymId: 'g1');
+      store.delete(note);
+      // A sync (editor close, app resume) runs while the undo line is up.
+      await sendDeletes(
+        link,
+        store.pendingDeletes,
+        onSent: () {},
+        held: store.heldDeletes,
+      );
+      expect(calls, isEmpty, reason: '되돌릴 수 있는 동안은 서버를 건드리지 않는다');
+      expect(store.undoDelete(), isTrue);
+      expect(store.notes, [note]);
+      expect(store.pendingDeletes, isEmpty);
+
+      // Once the window closes, the delete goes out.
+      store.delete(note);
+      store.forgetUndoableDelete();
+      await sendDeletes(
+        link,
+        store.pendingDeletes,
+        onSent: () {},
+        held: store.heldDeletes,
+      );
+      expect(calls, ['DELETE /api/workouts']);
+      expect(store.pendingDeletes, isEmpty);
     });
   });
 
@@ -509,6 +701,65 @@ void main() {
       );
       expect(tester.getSize(box.first).shortestSide, 44);
     });
+
+    testWidgets(
+      '늘 보이는 ≡ 위에서 시작한 스크롤은 순서 바꾸기가 되지 않고, 길게 눌러야 끌린다 — 타이머는 그대로 돈다',
+      (tester) async {
+        var now = Duration.zero;
+        final timer = WorkoutTimer(audio: FakeAudio(), now: () => now);
+        addTearDown(timer.dispose);
+        final c = RoutineEditorController();
+        for (var i = 0; i < 8; i++) {
+          c
+            ..addExercise('운동 ${i + 1}')
+            ..addSet('50 10')
+            ..closeBlock();
+        }
+        c.blocks.first.name = '버피 60 bpm';
+        final spec = TimingSpec.parse(c.blocks.first.name)!;
+        timer.toggle(c.blocks.first, spec);
+        expect(timer.running, isTrue);
+        await pumpApp(
+          tester,
+          CupertinoPageScaffold(
+            child: RoutineEditor(controller: c, timer: timer),
+          ),
+        );
+        final more = find.byIcon(CupertinoIcons.ellipsis);
+        final before = more.evaluate().length;
+        expect(before, greaterThan(0));
+        final handle = find.byIcon(CupertinoIcons.line_horizontal_3).at(1);
+
+        // A quick flick that happens to start on the handle scrolls the list.
+        final scrollable = tester.state<ScrollableState>(
+          find.byType(Scrollable).first,
+        );
+        final top = scrollable.position.pixels;
+        await tester.dragFrom(
+          tester.getCenter(handle),
+          const Offset(-20, -300),
+        );
+        await tester.pumpAndSettle();
+        expect(more.evaluate().length, before, reason: '카드가 접히지 않았다');
+        expect(scrollable.position.pixels, greaterThan(top), reason: '스크롤됐다');
+        expect(timer.running, isTrue);
+
+        // A long press on the handle starts the reorder; the timer keeps going.
+        final g = await tester.startGesture(tester.getCenter(handle));
+        await tester.pump(
+          kLongPressTimeout + const Duration(milliseconds: 100),
+        );
+        await g.moveBy(const Offset(0, 40));
+        await tester.pump();
+        await tester.pump();
+        expect(more, findsNothing, reason: '순서 바꾸기 모드는 모든 카드를 접는다');
+        expect(timer.running, isTrue);
+        await g.up();
+        await tester.pumpAndSettle();
+        expect(timer.running, isTrue);
+        timer.pause();
+      },
+    );
 
     testWidgets('세트를 처음 길게 눌러 끌 때만 한 번 안내가 뜬다', (tester) async {
       dragHintShown = false;
@@ -705,6 +956,25 @@ void main() {
     });
   });
 
+  testWidgets('운동 제목 아래 목표 진행 줄을 누르면 이름 고치기가 아니라 카드가 열린다', (tester) async {
+    final c = RoutineEditorController()
+      ..addExercise('벤치', setup: const WorkoutSetup(name: '벤치', totalSets: 5))
+      ..addSet('80 10')
+      ..closeBlock();
+    await pumpApp(
+      tester,
+      CupertinoPageScaffold(child: RoutineEditor(controller: c)),
+    );
+    final l = await L.delegate.load(const Locale('ko'));
+    final progress = find.textContaining(l.setProgress(1, 5));
+    expect(progress, findsOneWidget);
+    expect(c.activeIndex, isNot(0));
+    await tester.tap(progress);
+    await tester.pumpAndSettle();
+    expect(c.activeIndex, 0, reason: '카드가 열린다');
+    expect(find.byType(SetKeypad), findsOneWidget, reason: '세트 입력 키패드');
+  });
+
   group('S1·S2·S3. 설정', () {
     Account member({List<Gym> gyms = const []}) =>
         Account(client: MockClient((_) async => http.Response('{}', 404)))
@@ -788,6 +1058,74 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    for (final scale in [1.0, 2.0]) {
+      testWidgets('375pt·글자 $scale: 긴 라벨은 감기고, 20자 닉네임·로그인 실패 문구도 넘치지 않는다', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(375, 1600);
+        tester.view.devicePixelRatio = 1;
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(() {
+          tester.view.reset();
+          tester.platformDispatcher.clearTextScaleFactorTestValue();
+        });
+        final l = await L.delegate.load(const Locale('ko'));
+        final nickname = '가' * 20;
+        await pumpApp(
+          tester,
+          CupertinoPageScaffold(
+            child: ListView(
+              children: [
+                SettingsSection(
+                  children: [
+                    SettingsRow(
+                      label: l.proPaid(300, 20),
+                      accent: true,
+                      onTap: () {},
+                    ),
+                    SettingsRow(
+                      label: l.nicknameLabel,
+                      detail: nickname,
+                      onTap: () {},
+                    ),
+                    SettingsRow(
+                      label: l.linkSignIn('Apple'),
+                      note: l.signInTaken,
+                      onTap: () {},
+                    ),
+                    SettingsToggle(
+                      label: l.proPaid(300, 20),
+                      value: true,
+                      onChanged: (_) {},
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+        expect(tester.takeException(), isNull, reason: '넘침 없음');
+        bool cut(Finder text) => tester
+            .renderObjectList<RenderParagraph>(
+              find.descendant(of: text, matching: find.byType(RichText)),
+            )
+            .any((p) => p.didExceedMaxLines);
+        for (final t in find.text(l.proPaid(300, 20)).evaluate()) {
+          expect(
+            cut(find.byWidget(t.widget)),
+            isFalse,
+            reason: '혜택 문구가 잘리지 않는다',
+          );
+        }
+        expect(cut(find.text(l.signInTaken)), isFalse);
+        expect(
+          tester.getSize(find.text(l.nicknameLabel)).width,
+          greaterThan(30),
+          reason: '긴 닉네임이 라벨을 0폭으로 밀지 않는다',
+        );
+      });
+    }
+
     testWidgets('대화상자 본문은 13', (tester) async {
       final account = member();
       await openSettings(tester, account: account);
@@ -839,6 +1177,21 @@ void main() {
       );
       await tester.pump();
       expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+    });
+
+    testWidgets('목록을 받았는데 그 도장이 없으면 끝없이 돌지 않고 회원이 아니라고 말한다', (tester) async {
+      final account =
+          Account(client: MockClient((_) async => http.Response('{}', 404)))
+            ..token = 'member'
+            ..gyms = []
+            ..gymsLoaded = true;
+      await pumpApp(
+        tester,
+        GymPage(account: account, store: makeStore(tester), gymId: 'g1'),
+      );
+      final l = await L.delegate.load(const Locale('ko'));
+      expect(find.byType(CupertinoActivityIndicator), findsNothing);
+      expect(find.text(l.gymLinkNotMember), findsOneWidget);
     });
 
     testWidgets('공지·예약·바로가기·나가기가 묶음 목록이고 나가기는 44 이상이다', (tester) async {
@@ -1032,7 +1385,6 @@ void main() {
         'ageConfirmAsk': l.ageConfirmAsk,
         'gymLeave': l.gymLeave,
         'gymLeaveAsk': l.gymLeaveAsk('BPM'),
-        'gymConsentNotice': l.gymConsentNotice,
         'joinAsk': l.joinAsk,
         'classesNotMember': l.classesNotMember,
         'gymUnverified': l.gymUnverified,
@@ -1045,9 +1397,19 @@ void main() {
         expect(value, isNot(contains('도장')), reason: key);
         expect(value, isNot(contains('체육관')), reason: key);
       }
+      // The consent notice is the text of a recorded consent version
+      // (gymConsentVersion / server GYM_CONSENT_VERSION): it stays word for word
+      // until both versions are bumped together.
+      expect(l.gymConsentNotice, startsWith('등록하면 이 도장의 관장·트레이너가'));
       // The trainer's own screens keep the word.
       expect(l.trainerWhichGym, contains('도장'));
       expect(l.gymPolicy, contains('도장'));
+    });
+
+    test('스페인어 AI 도움 설명은 IA 를 여성형으로 쓴다', () async {
+      final es = await L.delegate.load(const Locale('es'));
+      expect(es.aiSettingNote, contains('una IA'));
+      expect(es.aiSettingNote, isNot(contains('un IA')));
     });
 
     test('회원 화면의 안내·오류는 해요체다 — 법·계약 문구만 합쇼', () async {

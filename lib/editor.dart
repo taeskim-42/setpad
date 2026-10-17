@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart' show RenderEditable;
+import 'package:flutter/semantics.dart' show SemanticsService;
 import 'package:flutter/services.dart';
 
 import 'keypad.dart';
@@ -861,19 +862,38 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   void _removeSet(int block, int set) {
+    // 같이 고치는 기록은 되돌리지 않는다 — 지우기는 이미 서버로 나갔고, 되살린 세트는
+    // 새 세트로 맨 뒤에 붙으며 남의 세트면 주인 표시도 잃는다(세트 끌기를 막은 것과
+    // 같은 이유: 세트 순서를 맞출 op 가 없다).
+    if (_together) {
+      _c.removeSet(block, set);
+      return;
+    }
     final b = _c.blocks[block];
     _removedSets.add((block: b, index: set, set: b.sets[set]));
     _removedSetsTimer?.cancel();
-    _removedSetsTimer = Timer(const Duration(seconds: 5), _forgetRemovedSets);
+    _removedSetsTimer = Timer(_undoWindow, _forgetRemovedSets);
     _c.removeSet(block, set);
+    final l = L.of(context);
+    unawaited(
+      SemanticsService.sendAnnouncement(
+        View.of(context),
+        '${l.setRemoved(set + 1)} · ${l.undo}',
+        Directionality.of(context),
+      ),
+    );
   }
+
+  /// 되돌리기 줄이 떠 있는 시간. 보조기기를 쓰면 더 준다.
+  Duration get _undoWindow =>
+      Duration(seconds: MediaQuery.accessibleNavigationOf(context) ? 15 : 5);
 
   void _undoRemoveSet() {
     if (_removedSets.isEmpty) return;
     final last = _removedSets.removeLast();
     _removedSetsTimer?.cancel();
     if (_removedSets.isNotEmpty) {
-      _removedSetsTimer = Timer(const Duration(seconds: 5), _forgetRemovedSets);
+      _removedSetsTimer = Timer(_undoWindow, _forgetRemovedSets);
     }
     _c.restoreSet(last.block, last.index, last.set);
     setState(() {});
@@ -2295,8 +2315,9 @@ class _RoutineEditorState extends State<RoutineEditor>
     assert(block == null || identical(_c.blocks[_editing!.$1], block));
   }
 
+  /// 순서 바꾸기는 운동 타이머를 건드리지 않는다 — 멈췄다가 다시 켤 길이 없어서
+  /// (같이 하는 타이머는 다시 켜면 처음부터다) 끌기 한 번에 타바타가 조용히 섰다.
   Future<Offset?> _prepareReorder(ExerciseBlock block, Offset pointer) async {
-    _workoutTimer.pause();
     if (_editingRecord && !_finishRecordEdit()) return null;
     if (!mounted || _reordering) return null;
     final index = _c.blocks.indexOf(block);
@@ -3006,6 +3027,9 @@ class _RoutineEditorState extends State<RoutineEditor>
                               : (from, to) => _c.moveSet(i, from, to),
                           dragHandle: CollapsingDragStartListener(
                             index: i,
+                            // ⋯ 를 열지 않아도 보이는 핸들은 길게 눌러야 끌린다 —
+                            // 목록을 밀다 핸들에 닿은 스크롤을 가로채지 않게.
+                            delayed: _setupOpen != blocks[i].id,
                             prepare: (pointer) =>
                                 _prepareReorder(blocks[i], pointer),
                             onCanceled: _finishReorder,
@@ -3662,21 +3686,26 @@ class _BlockView extends StatelessWidget {
               Expanded(
                 // The title is the tap target for renaming: a full 44 tall, which
                 // the row already is because of the ⋯ button beside it.
-                // The box is only as wide as the text: empty space beside a short title
-                // still opens the card.
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  widthFactor: 1,
-                  child: GestureDetector(
-                    onTap: collapsed || titleInput != null ? null : onEditTitle,
-                    behavior: HitTestBehavior.opaque,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: minTap),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          titleInput ??
+                // The box is only as wide as the title: empty space beside a short
+                // title, and the progress line below it, still open the card.
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      key: const ValueKey('block-title-tap'),
+                      onTap: collapsed || titleInput != null
+                          ? null
+                          : onEditTitle,
+                      behavior: HitTestBehavior.opaque,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minHeight: minTap),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: 1,
+                          heightFactor: 1,
+                          child:
+                              titleInput ??
                               Padding(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 2,
@@ -3694,17 +3723,15 @@ class _BlockView extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                          if (!collapsed &&
-                              setup == null &&
-                              progress.isNotEmpty)
-                            Text(
-                              progress,
-                              style: TextStyle(fontSize: 13, color: muted),
-                            ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                    if (!collapsed && setup == null && progress.isNotEmpty)
+                      Text(
+                        progress,
+                        style: TextStyle(fontSize: 13, color: muted),
+                      ),
+                  ],
                 ),
               ),
               // 여섯이 한 운동에 몰려도 제목을 밀어내지 않는다 — 둘까지 이름, 나머지는 수.
@@ -4180,7 +4207,8 @@ class _TogetherInvite extends StatelessWidget {
               ],
             ),
           ),
-          CupertinoButton.filled(
+          sealButton(
+            context,
             key: const ValueKey('together-accept'),
             padding: const EdgeInsets.symmetric(horizontal: 16),
             minimumSize: const Size(0, minTap),

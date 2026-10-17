@@ -34,6 +34,25 @@ const sealOn = CupertinoDynamicColor.withBrightness(
   darkColor: Color(0xFF332B19),
 );
 
+/// 금색으로 채운 단추. 켜져 있을 때만 글자를 [sealOn] 으로 칠한다 — 꺼진 단추는
+/// 바탕이 회색(tertiarySystemFill)으로 바뀌는데, 그 위에 어두운 [sealOn] 을 두면
+/// 어두운 모드에서 글자가 사라진다(약 1.1:1). 꺼졌을 때는 테마의 흰 글자로 둔다.
+CupertinoButton sealButton(
+  BuildContext context, {
+  Key? key,
+  required VoidCallback? onPressed,
+  required Widget child,
+  EdgeInsetsGeometry? padding,
+  Size? minimumSize,
+}) => CupertinoButton.filled(
+  key: key,
+  padding: padding,
+  minimumSize: minimumSize,
+  foregroundColor: onPressed == null ? null : sealOn.resolveFrom(context),
+  onPressed: onPressed,
+  child: child,
+);
+
 /// 해낸 세트 줄에 깔리는 옅은 초록.
 const doneTint = CupertinoDynamicColor.withBrightness(
   color: Color(0xFFF1F7F4),

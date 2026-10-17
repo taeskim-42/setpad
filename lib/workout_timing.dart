@@ -1120,7 +1120,8 @@ class _CountEntryState extends State<_CountEntry> {
         child: const Icon(CupertinoIcons.plus_circle, size: 30),
       ),
       const Spacer(),
-      CupertinoButton.filled(
+      sealButton(
+        context,
         key: const ValueKey('together-log'),
         padding: const EdgeInsets.symmetric(horizontal: 18),
         minimumSize: const Size(0, 36),

@@ -7,6 +7,7 @@ import 'meal.dart';
 import 'meal_amount_sheet.dart';
 import 'record_ai.dart';
 import 'units.dart';
+import 'palette.dart';
 
 /// 사람이 확인한 끼니: 열량, 고친 양이 든 글, 그리고 모든 음식에 값이 있으면 탄단지.
 typedef ReviewedMeal = ({
@@ -307,7 +308,8 @@ class _MealReviewSheetState extends State<_MealReviewSheet> {
                       ),
                     ),
                     Expanded(
-                      child: CupertinoButton.filled(
+                      child: sealButton(
+                        context,
                         key: const ValueKey('meal-review-confirm'),
                         // 서버가 대신 채운 제품은 사람이 고르기 전에는 저장하지 않는다.
                         onPressed:

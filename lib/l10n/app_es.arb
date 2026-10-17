@@ -900,7 +900,7 @@
   "setDragHint": "Suelta una serie en otra casilla para cambiar el orden",
   "noteRemoved": "Registro eliminado",
   "shareSending": "Enviando a tu entrenador · se enviará cuando haya señal",
-  "aiSettingNote": "Si está activada, un IA en nuestro servidor lee el texto de ejercicios y comidas que escribes, las fotos de comidas y las preguntas sobre tus registros. Si la desactivas, no se envía nada a la IA y lo escrito queda tal cual.",
+  "aiSettingNote": "Si está activada, una IA en nuestro servidor lee el texto de ejercicios y comidas que escribes, las fotos de comidas y las preguntas sobre tus registros. Si la desactivas, no se envía nada a la IA y lo escrito queda tal cual.",
   "nicknameLabel": "Apodo",
   "moreChips": "Ver más",
   "allExercises": "Todos los registros"

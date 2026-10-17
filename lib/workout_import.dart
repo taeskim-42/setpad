@@ -838,7 +838,8 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               child: SizedBox(
                 width: double.infinity,
-                child: CupertinoButton.filled(
+                child: sealButton(
+                  context,
                   key: const ValueKey('workout-import-primary'),
                   onPressed: _busy || needsReview
                       ? null
@@ -847,7 +848,9 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
                       : _analyze,
                   child: _busy
                       ? CupertinoActivityIndicator(
-                          color: sealOn.resolveFrom(context),
+                          // Busy means the button is disabled (grey pill), so
+                          // white reads in both modes; sealOn would vanish in dark.
+                          color: CupertinoColors.white,
                         )
                       : Text(
                           preview

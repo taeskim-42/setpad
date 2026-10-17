@@ -501,7 +501,8 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage>
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: CupertinoButton.filled(
+                child: sealButton(
+                  context,
                   onPressed: _busy ? null : _savePolicy,
                   child: Text(l.policySave),
                 ),

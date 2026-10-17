@@ -370,6 +370,49 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
   });
 
+  testWidgets('대신 적는 중에는 ⋯ 메뉴에 내 기록의 식단 남기기가 없다', (tester) async {
+    final server = Scripted();
+    final dir = Directory.systemTemp.createTempSync('setpad_group_proxy_menu_');
+    final store = NotesStore(directory: dir);
+    addTearDown(() {
+      store.dispose();
+      dir.deleteSync(recursive: true);
+    });
+    final account = Account(storageDir: dir, client: server.client)
+      ..token = 'me';
+    final note = store.create()
+      ..partner = PartnerSession(
+        id: 'S1',
+        host: true,
+        state: PartnerState.active,
+      );
+    await tester.pumpWidget(
+      app(EditorPage(store: store, note: note, account: account)),
+    );
+    await tester.pump(const Duration(milliseconds: 2300));
+    await tester.tap(find.byKey(const ValueKey('record-menu')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('menu-meal')), findsOneWidget);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('write-for')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('소라').last);
+    await tester.pumpAndSettle();
+    expect(find.text('소라 님의 기록을 적는 중'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('record-menu')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('menu-meal')),
+      findsNothing,
+      reason: '내 기록의 식단 머리가 화면에 없어 누르면 아무 일도 없었다',
+    );
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 3));
+  });
+
   testWidgets('제어 센터·알림 센터(inactive)를 내렸다 올려도 같이 하기를 끊었다 다시 붙지 않는다', (
     tester,
   ) async {

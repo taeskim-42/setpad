@@ -319,7 +319,8 @@ class _PartnerSheetState extends State<_PartnerSheet> {
         onSubmitted: (_) => sync.joinWithCode(_code.text),
       ),
       const SizedBox(height: 8),
-      CupertinoButton.filled(
+      sealButton(
+        context,
         onPressed: sync.busy ? null : () => sync.joinWithCode(_code.text),
         child: sync.busy
             ? const CupertinoActivityIndicator()
@@ -331,7 +332,8 @@ class _PartnerSheetState extends State<_PartnerSheet> {
               ),
       ),
     ] else ...[
-      CupertinoButton.filled(
+      sealButton(
+        context,
         onPressed: sync.busy ? null : () => sync.invite(),
         child: sync.busy
             ? const CupertinoActivityIndicator()

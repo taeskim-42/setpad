@@ -2,6 +2,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 /// Let the compact layout settle before Flutter captures the dragged item's size.
+///
+/// [delayed] handles start only after a long press, like
+/// [ReorderableDelayedDragStartListener]: a handle that is always on screen
+/// otherwise wins a vertical scroll that happens to start on it.
 class CollapsingDragStartListener extends ReorderableDragStartListener {
   const CollapsingDragStartListener({
     super.key,
@@ -9,19 +13,21 @@ class CollapsingDragStartListener extends ReorderableDragStartListener {
     required super.index,
     required this.prepare,
     required this.onCanceled,
+    this.delayed = false,
   });
   final Future<Offset?> Function(Offset) prepare;
   final VoidCallback onCanceled;
+  final bool delayed;
 
   @override
-  MultiDragGestureRecognizer createRecognizer() =>
-      _CompactRecognizer(prepare, onCanceled);
+  MultiDragGestureRecognizer createRecognizer() => delayed
+      ? _DelayedCompactRecognizer(prepare, onCanceled)
+      : _CompactRecognizer(prepare, onCanceled);
 }
 
-class _CompactRecognizer extends ImmediateMultiDragGestureRecognizer {
-  _CompactRecognizer(this.prepare, this.onCanceled);
-  final Future<Offset?> Function(Offset) prepare;
-  final VoidCallback onCanceled;
+mixin _Compact on MultiDragGestureRecognizer {
+  Future<Offset?> Function(Offset) get prepare;
+  VoidCallback get onCanceled;
 
   @override
   set onStart(GestureMultiDragStartCallback? callback) {
@@ -29,6 +35,24 @@ class _CompactRecognizer extends ImmediateMultiDragGestureRecognizer {
         ? null
         : (position) => _PendingDrag(position, callback, prepare, onCanceled);
   }
+}
+
+class _CompactRecognizer extends ImmediateMultiDragGestureRecognizer
+    with _Compact {
+  _CompactRecognizer(this.prepare, this.onCanceled);
+  @override
+  final Future<Offset?> Function(Offset) prepare;
+  @override
+  final VoidCallback onCanceled;
+}
+
+class _DelayedCompactRecognizer extends DelayedMultiDragGestureRecognizer
+    with _Compact {
+  _DelayedCompactRecognizer(this.prepare, this.onCanceled);
+  @override
+  final Future<Offset?> Function(Offset) prepare;
+  @override
+  final VoidCallback onCanceled;
 }
 
 class _PendingDrag extends Drag {

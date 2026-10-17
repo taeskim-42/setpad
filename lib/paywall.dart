@@ -309,7 +309,9 @@ class _BuyButton extends StatelessWidget {
               child: Text(
                 text,
                 style: TextStyle(
-                  color: sealOn.resolveFrom(context),
+                  // 꺼진(이미 산) 단추는 회색 바탕이라 [sealOn] 이 어두운 모드에서
+                  // 묻힌다 — 그때는 단추의 기본 글자색에 맡긴다.
+                  color: onPressed == null ? null : sealOn.resolveFrom(context),
                   fontWeight: FontWeight.w600,
                 ),
               ),

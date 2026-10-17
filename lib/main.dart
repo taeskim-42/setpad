@@ -60,12 +60,11 @@ void main() {
 /// 두 번 붙다가 깨지지 않는다. 처음 붙을 때 쌓여 있던 콜드 스타트 탭이 온다.
 final _reportTaps = AgentAlarm.taps.asBroadcastStream();
 
-/// 앱 테마. [CupertinoButton.filled] 은 바탕을 primaryColor(seal), 글자를
-/// primaryContrastingColor 로 칠한다 — 어두울 때 금색 위에 흰 글자가 묻히지 않도록
-/// 글자 쪽은 [sealOn] 이다.
+/// 앱 테마. 채운 단추의 글자색은 테마(흰색)에 두고, 켜진 단추만 [sealButton] 이
+/// [sealOn] 으로 바꾼다 — Flutter 는 꺼진 채운 단추에도 primaryContrastingColor 를
+/// 쓰므로 여기서 바꾸면 어두운 모드의 회색 꺼진 단추 위 글자가 사라진다.
 const setpadTheme = CupertinoThemeData(
   primaryColor: seal,
-  primaryContrastingColor: sealOn,
   scaffoldBackgroundColor: CupertinoColors.systemGroupedBackground,
 );
 
@@ -661,6 +660,8 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
       _account.link,
       _store.pendingDeletes,
       onSent: _store.touch,
+      // 목록의 '되돌리기' 가 떠 있는 동안 그 지우기는 내보내지 않는다.
+      held: _store.heldDeletes,
     );
     // 보낸 지 세 시간이 지난 빈 출석 기록은 목록에서 치운다.
     _store.pruneVisits();
@@ -1238,15 +1239,16 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
               child: Text(l.partnerInvite),
             ),
           // 자판을 내렸거나 세트를 치는 중이면 입력 줄 위의 식단 단추가 없다 —
-          // 끼니는 여기서도 남긴다.
-          CupertinoActionSheetAction(
-            key: const ValueKey('menu-meal'),
-            onPressed: () {
-              Navigator.pop(ctx);
-              _documentHeaderKey.currentState?._pick();
-            },
-            child: Text(l.mealAdd),
-          ),
+          // 끼니는 여기서도 남긴다. 대신 적는 중에는 내 기록의 식단이 화면에 없다.
+          if (!_writingFor)
+            CupertinoActionSheetAction(
+              key: const ValueKey('menu-meal'),
+              onPressed: () {
+                Navigator.pop(ctx);
+                _documentHeaderKey.currentState?._pick();
+              },
+              child: Text(l.mealAdd),
+            ),
           CupertinoActionSheetAction(
             key: const ValueKey('menu-settings'),
             onPressed: () async {

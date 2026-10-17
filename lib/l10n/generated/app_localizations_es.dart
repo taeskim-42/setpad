@@ -3766,7 +3766,7 @@ class LEs extends L {
 
   @override
   String get aiSettingNote =>
-      'Si está activada, un IA en nuestro servidor lee el texto de ejercicios y comidas que escribes, las fotos de comidas y las preguntas sobre tus registros. Si la desactivas, no se envía nada a la IA y lo escrito queda tal cual.';
+      'Si está activada, una IA en nuestro servidor lee el texto de ejercicios y comidas que escribes, las fotos de comidas y las preguntas sobre tus registros. Si la desactivas, no se envía nada a la IA y lo escrito queda tal cual.';
 
   @override
   String get nicknameLabel => 'Apodo';
