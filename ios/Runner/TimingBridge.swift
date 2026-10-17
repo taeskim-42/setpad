@@ -10,6 +10,12 @@ final class TimingBridge {
   private var beat: AVAudioPlayer?
   private var cue: AVAudioPlayer?
   private var tempo: Int?
+  /// Silence looped while the timer runs, so the app is not suspended in the
+  /// background during stretches with no sound (rest, a Tabata without BPM).
+  /// If App Review rejects it, set this to false: the timer then catches up on
+  /// return (Tempo's way) and the signals missed while suspended stay silent.
+  private static let keepAliveLoop = true
+  private var keepAlive: AVAudioPlayer?
   /// Built once and replayed. Creating an AVAudioPlayer per cue put tens of
   /// milliseconds between the moment a phase ends and the sound.
   private var beats: [Int: AVAudioPlayer] = [:]
@@ -24,6 +30,11 @@ final class TimingBridge {
     channel.setMethodCallHandler { [weak self] call, result in
       guard let self else { result(FlutterMethodNotImplemented); return }
       let args = call.arguments as? [String: Any] ?? [:]
+      if call.method == "warmUp" {
+        self.warmUp()
+        result(nil)
+        return
+      }
       if call.method == "speak" {
         self.speak(args["text"] as? String ?? "", locale: args["locale"] as? String ?? "en",
                    rate: args["rate"] as? Double ?? 1.15)
@@ -41,11 +52,42 @@ final class TimingBridge {
         result(FlutterError(code: "audioUnavailable", message: nil, details: nil))
       }
     }
-    for name in [UIApplication.willResignActiveNotification, AVAudioSession.interruptionNotification] {
-      observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-        Task { @MainActor in self?.stop(); self?.channel.invokeMethod("interrupted", arguments: nil) }
-      })
-    }
+    // Only a real audio interruption (a call, Siri, an alarm) stops the timer.
+    // Control Center, Notification Center, Face ID and locking the phone no
+    // longer do: with background audio the timer keeps running and sounding.
+    observers.append(NotificationCenter.default.addObserver(
+      forName: AVAudioSession.interruptionNotification, object: nil, queue: .main
+    ) { [weak self] note in
+      let info = note.userInfo ?? [:]
+      let type = (info[AVAudioSessionInterruptionTypeKey] as? UInt).flatMap(AVAudioSession.InterruptionType.init)
+      let options = AVAudioSession.InterruptionOptions(rawValue: info[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0)
+      Task { @MainActor in
+        guard let self else { return }
+        switch type {
+        case .began:
+          self.stop()
+          self.channel.invokeMethod("interrupted", arguments: nil)
+        case .ended where options.contains(.shouldResume):
+          guard (try? self.activateSession()) != nil else { return }
+          self.channel.invokeMethod("resumed", arguments: nil)
+        default: break
+        }
+      }
+    })
+  }
+
+  /// Build the cue players ahead of the first cue. No sound and no session
+  /// activation; the category is set first so preparing cannot duck music.
+  private func warmUp() {
+    try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
+    for name in ["ready", "work", "rest", "complete"] { _ = try? cuePlayer(name) }
+  }
+
+  private func activateSession() throws {
+    let session = AVAudioSession.sharedInstance()
+    try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+    try session.setActive(true)
+    sessionActive = true
   }
 
   /// Match Tempo: click, then count half a beat later (at most one second).
@@ -96,22 +138,26 @@ final class TimingBridge {
   }
 
   private func configure(active: Bool, bpm: Int?, cueName: String?, phase: Double) throws {
-    let session = AVAudioSession.sharedInstance()
     // Activating the session costs tens of milliseconds, so do it once and
     // keep it. Doing it per cue was what put a lag before every beep.
-    if (active || cueName != nil), !sessionActive {
-      try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
-      try session.setActive(true)
-      sessionActive = true
-    }
+    if (active || cueName != nil), !sessionActive { try activateSession() }
     UIApplication.shared.isIdleTimerDisabled = active
+    // Best effort: without it the timer still runs, it only may be suspended
+    // in silent stretches, so a failure here never fails the cue or the click.
+    if active, Self.keepAliveLoop, keepAlive?.isPlaying != true {
+      keepAlive = keepAlive ?? (try? AVAudioPlayer(data: wave(Self.silence, length: 1)))
+      keepAlive?.numberOfLoops = -1
+      _ = keepAlive?.play()
+    } else if !active {
+      keepAlive?.stop()
+    }
     // The app allows 10 BPM; anything slower than this range is a typo.
     let validTempo = active ? bpm.flatMap { (10...300).contains($0) ? $0 : nil } : nil
     if validTempo != tempo || !active {
-      // Stopping cuts the voice. A tempo change while running (Tabata work to
-      // rest) only drops a count still waiting: the last number of the round
-      // is allowed to finish.
-      if active { pendingSpeech?.cancel(); pendingSpeech = nil } else { cancelSpeech() }
+      // Pausing or stopping cuts the voice. A tempo change while running
+      // (Tabata work to rest) only drops a count still waiting, and finishing
+      // (the complete cue) drops nothing: the last number is allowed to finish.
+      if active { pendingSpeech?.cancel(); pendingSpeech = nil } else if cueName == nil { cancelSpeech() }
       beat?.stop(); beat = nil; tempo = validTempo
       if let bpm = validTempo {
         let player = try beatPlayer(bpm)
@@ -135,7 +181,7 @@ final class TimingBridge {
       }
     } else if !active {
       cue?.stop(); cue = nil
-      try? session.setActive(false, options: [.notifyOthersOnDeactivation])
+      try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
       sessionActive = false
     }
   }
@@ -156,7 +202,7 @@ final class TimingBridge {
 
   private func stop() {
     cancelSpeech()
-    beat?.stop(); beat = nil; cue?.stop(); cue = nil; tempo = nil
+    beat?.stop(); beat = nil; cue?.stop(); cue = nil; tempo = nil; keepAlive?.stop()
     UIApplication.shared.isIdleTimerDisabled = false
     try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
     sessionActive = false
@@ -165,6 +211,7 @@ final class TimingBridge {
   /// Pitch, partials, length and loudness measured from Tempo's cue recordings
   /// (bpm.mp3, prebpm.mp3, end_3s.mp3), so the two apps sound like one.
   private struct Tone { let partials: [(Double, Double)]; let seconds: Double; let decay: Bool; let gain: Double }
+  private static let silence = Tone(partials: [(0, 1)], seconds: 0, decay: false, gain: 0)
   private static let click = Tone(partials: [(655, 1), (1965, 0.1)], seconds: 0.12, decay: true, gain: 0.45)
   private static let ding: [(Double, Double)] = [(1787, 1), (2664, 0.38), (1010, 0.29)]
   private static func cue(_ name: String) -> Tone {

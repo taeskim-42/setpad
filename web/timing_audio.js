@@ -20,23 +20,29 @@
     }
     return buffer;
   };
-  const cancelSpeech = () => {
-    clearTimeout(pendingSpeech); pendingSpeech = null;
-    window.speechSynthesis?.cancel();
-  };
-  const stop = () => { cancelSpeech(); if (beat) { beat.stop(); beat = null; } tempo = null; if (wake) { wake.release(); wake = null; } };
-  window.setpadTiming = { configure: async (active, bpm, cue) => {
+  const dropPending = () => { clearTimeout(pendingSpeech); pendingSpeech = null; };
+  const cancelSpeech = () => { dropPending(); window.speechSynthesis?.cancel(); };
+  const silence = () => { if (beat) { beat.stop(); beat = null; } tempo = null; if (wake) { wake.release(); wake = null; } };
+  const stop = () => { cancelSpeech(); silence(); };
+  window.setpadTiming = { configure: async (active, bpm, cue, phase = 0) => {
+    // Pausing or stopping cuts the voice.
     if (!active && !cue) { stop(); if (context) await context.suspend(); return; }
     context ??= new AudioContext();
     await context.resume();
-    if (!active) stop();
+    // Finishing (the complete cue) stops the click but lets the last number finish.
+    if (!active) silence();
     if (bpm !== tempo) {
-      cancelSpeech();
+      // A tempo change while running only drops a count still waiting.
+      if (active) dropPending();
       if (beat) { beat.stop(); beat = null; }
       tempo = bpm;
       // The app allows 10 BPM; anything slower than this range is a typo.
       if (active && bpm >= 10 && bpm <= 300) {
-        beat = context.createBufferSource(); beat.buffer = render(TONES.click, 60 / bpm); beat.loop = true; beat.connect(context.destination); beatStartedAt = context.currentTime; beat.start(beatStartedAt);
+        beat = context.createBufferSource(); beat.buffer = render(TONES.click, 60 / bpm); beat.loop = true; beat.connect(context.destination);
+        // Start where the timer is inside its beat, not at a fresh click: after a
+        // pause or a re-sync the clicks stay on the timer's beat grid.
+        const offset = Math.min(Math.max(0, phase || 0), beat.buffer.duration - .001);
+        beatStartedAt = context.currentTime - offset; beat.start(context.currentTime, offset);
       }
     }
     if (cue) {
@@ -50,7 +56,7 @@
     if (active && !wake && navigator.wakeLock) { try { wake = await navigator.wakeLock.request('screen'); } catch (_) {} }
   }};
   // Match Tempo: read half a beat after the click, capped at one second.
-  setpadTiming.speak = (text, locale) => {
+  setpadTiming.speak = (text, locale, rate) => {
     const speech = window.speechSynthesis;
     if (!context || !text || !speech || speech.speaking || speech.pending || pendingSpeech != null) return;
     const at = context.currentTime;
@@ -64,7 +70,7 @@
       if (speech.speaking || speech.pending) return;
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = locale;
-      utterance.rate = 1.2;
+      utterance.rate = rate || 1.2;
       speech.speak(utterance);
     }, delay > 0 ? delay * 1000 + 5 : 0);
   };

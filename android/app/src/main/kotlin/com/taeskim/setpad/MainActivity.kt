@@ -48,8 +48,6 @@ class MainActivity : FlutterFragmentActivity() {
         if (isRationale(intent)) flutterEngine?.navigationChannel?.pushRoute("/health-data")
     }
 
-    override fun onPause() { timing?.interrupt(); super.onPause() }
-
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         timing?.close(); timing = null
         super.cleanUpFlutterEngine(flutterEngine)
