@@ -1066,5 +1066,8 @@
   "focusWeightTitle": "Peso",
   "focusRepsTitle": "Repeticiones",
   "focusRestOverTitle": "Fin del descanso",
-  "focusDistanceTitle": "Distancia"
+  "focusDistanceTitle": "Distancia",
+  "timerStopLeaveAsk": "¿Detener el temporizador en marcha y salir?",
+  "timerStopLeave": "Detener y salir",
+  "timerDiscardLeave": "Descartar y salir"
 }

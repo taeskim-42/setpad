@@ -4209,4 +4209,13 @@ class LKo extends L {
 
   @override
   String get focusDistanceTitle => '거리';
+
+  @override
+  String get timerStopLeaveAsk => '도는 타이머를 멈추고 나갈까요?';
+
+  @override
+  String get timerStopLeave => '멈추고 나가기';
+
+  @override
+  String get timerDiscardLeave => '버리고 나가기';
 }

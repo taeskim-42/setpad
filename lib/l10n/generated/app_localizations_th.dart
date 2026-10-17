@@ -4291,4 +4291,13 @@ class LTh extends L {
 
   @override
   String get focusDistanceTitle => 'ระยะทาง';
+
+  @override
+  String get timerStopLeaveAsk => 'หยุดตัวจับเวลาที่ทำงานอยู่ แล้วออกไหม';
+
+  @override
+  String get timerStopLeave => 'หยุดแล้วออก';
+
+  @override
+  String get timerDiscardLeave => 'ทิ้งแล้วออก';
 }

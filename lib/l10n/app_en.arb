@@ -1066,5 +1066,8 @@
   "focusWeightTitle": "Weight",
   "focusRepsTitle": "Reps",
   "focusRestOverTitle": "Rest's over",
-  "focusDistanceTitle": "Distance"
+  "focusDistanceTitle": "Distance",
+  "timerStopLeaveAsk": "Stop the running timer and leave?",
+  "timerStopLeave": "Stop and leave",
+  "timerDiscardLeave": "Discard and leave"
 }

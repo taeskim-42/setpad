@@ -6420,6 +6420,24 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'거리'**
   String get focusDistanceTitle;
+
+  /// 기록 화면을 닫을 때 타이머가 돌고 있으면 묻는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'도는 타이머를 멈추고 나갈까요?'**
+  String get timerStopLeaveAsk;
+
+  /// No description provided for @timerStopLeave.
+  ///
+  /// In ko, this message translates to:
+  /// **'멈추고 나가기'**
+  String get timerStopLeave;
+
+  /// No description provided for @timerDiscardLeave.
+  ///
+  /// In ko, this message translates to:
+  /// **'버리고 나가기'**
+  String get timerDiscardLeave;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

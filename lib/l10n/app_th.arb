@@ -1066,5 +1066,8 @@
   "focusWeightTitle": "น้ำหนัก",
   "focusRepsTitle": "จำนวนครั้ง",
   "focusRestOverTitle": "หมดเวลาพัก",
-  "focusDistanceTitle": "ระยะทาง"
+  "focusDistanceTitle": "ระยะทาง",
+  "timerStopLeaveAsk": "หยุดตัวจับเวลาที่ทำงานอยู่ แล้วออกไหม",
+  "timerStopLeave": "หยุดแล้วออก",
+  "timerDiscardLeave": "ทิ้งแล้วออก"
 }

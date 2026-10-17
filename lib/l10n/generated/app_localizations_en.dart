@@ -4392,4 +4392,13 @@ class LEn extends L {
 
   @override
   String get focusDistanceTitle => 'Distance';
+
+  @override
+  String get timerStopLeaveAsk => 'Stop the running timer and leave?';
+
+  @override
+  String get timerStopLeave => 'Stop and leave';
+
+  @override
+  String get timerDiscardLeave => 'Discard and leave';
 }

@@ -1066,5 +1066,8 @@
   "focusWeightTitle": "重量",
   "focusRepsTitle": "次数",
   "focusRestOverTitle": "休息结束",
-  "focusDistanceTitle": "距离"
+  "focusDistanceTitle": "距离",
+  "timerStopLeaveAsk": "停止正在运行的计时器并离开吗?",
+  "timerStopLeave": "停止并离开",
+  "timerDiscardLeave": "丢弃并离开"
 }

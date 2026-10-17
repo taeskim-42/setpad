@@ -1066,5 +1066,8 @@
   "focusWeightTitle": "Mức tạ",
   "focusRepsTitle": "Số lần",
   "focusRestOverTitle": "Hết giờ nghỉ",
-  "focusDistanceTitle": "Quãng đường"
+  "focusDistanceTitle": "Quãng đường",
+  "timerStopLeaveAsk": "Dừng bộ hẹn giờ đang chạy và thoát?",
+  "timerStopLeave": "Dừng và thoát",
+  "timerDiscardLeave": "Bỏ và thoát"
 }

@@ -4,7 +4,8 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart' show RenderEditable;
+import 'package:flutter/rendering.dart'
+    show RenderAbstractViewport, RenderEditable;
 import 'package:flutter/semantics.dart' show SemanticsService;
 import 'package:flutter/services.dart';
 
@@ -296,19 +297,37 @@ class RoutineEditorController extends ChangeNotifier {
 
   /// 횟수만으로 한 세트. 같이 하는 타이머의 쉬는 구간에서 한 번 눌러 적는다.
   /// 횟수를 안 센 라운드는 null 이다('–') — 지어내지 않는다.
-  void logReps(ExerciseBlock block, int? reps) {
-    if (!blocks.contains(block)) return;
-    block.sets.add(
-      LoggedSet(
-        value: block.setup?.weight,
-        unit:
-            (block.setup?.weight != null ? block.setup!.unit : null) ??
-            block.myLast?.unit ??
-            weightUnit,
+  ///
+  /// A planned set of mine (○, a routine's) is filled first — its value and
+  /// unit stay, it is done now — so a timed card ends with its plan done,
+  /// not the plan plus as many new sets. Returns the set; null when [block]
+  /// is gone.
+  LoggedSet? logReps(ExerciseBlock block, int? reps) {
+    if (!blocks.contains(block)) return null;
+    final at = block.sets.indexWhere((s) => !s.done && !s.theirs);
+    if (at >= 0) {
+      final planned = block.sets[at];
+      final set = block.sets[at] = LoggedSet(
+        id: planned.id,
+        value: planned.value,
+        unit: planned.unit,
         reps: reps,
-      ),
+        notes: [...planned.notes],
+      );
+      notifyListeners();
+      return set;
+    }
+    final set = LoggedSet(
+      value: block.setup?.weight,
+      unit:
+          (block.setup?.weight != null ? block.setup!.unit : null) ??
+          block.myLast?.unit ??
+          weightUnit,
+      reps: reps,
     );
+    block.sets.add(set);
     notifyListeners();
+    return set;
   }
 
   bool addSet(String line) {
@@ -607,6 +626,21 @@ class RoutineEditorController extends ChangeNotifier {
   /// note page's ▶). Null while no editor offers it (the proxy editor).
   VoidCallback? openFocus;
 
+  /// Kept by the editor showing this controller: leaving the record now
+  /// would drop a run — a timer going, or a finished one owing sets. The
+  /// note page asks [okToLeave] then instead of just closing.
+  final holdsRun = ValueNotifier<bool>(false);
+
+  /// Set by the editor showing this controller: asks before a run is
+  /// dropped (stop and leave; log first or discard). True: it may close.
+  Future<bool> Function()? okToLeave;
+
+  @override
+  void dispose() {
+    holdsRun.dispose();
+    super.dispose();
+  }
+
   /// 운동 통째로 삭제.
   void removeBlock(int block) {
     blocks.removeAt(block);
@@ -862,8 +896,8 @@ class RoutineEditor extends StatefulWidget {
   final Future<void> Function()? askRestNotify;
 
   /// The real audio the timer, the rest and the stage share through one
-  /// [TimingAudioMux]. Null: the platform's, closed with the editor. Tests
-  /// pass one and close it themselves.
+  /// [TimingAudioMux]. Null: the platform's, through [TimingAudioMux.shared]
+  /// (never closed). Tests pass one and close it themselves.
   final TimingAudio? audio;
 
   /// The set rest. Null: made here on the shared audio. Tests pass one with
@@ -943,22 +977,31 @@ class _RoutineEditorState extends State<RoutineEditor>
     with WidgetsBindingObserver {
   final _input = TextEditingController();
   final _focus = FocusNode();
-  final _scroll = ScrollController();
+  // Not kept in the page's storage: my editor and the proxy one share a
+  // page, and one list must not open at the other's place.
+  final _scroll = ScrollController(keepScrollOffset: false);
 
   /// One native audio for the workout timer, the set rest and the stage
-  /// (spec focus-stage-1.8 §4): each owner has a port, so one going quiet
-  /// does not turn the screen-on and keep-alive off under another.
-  late final _mux = TimingAudioMux(widget.audio ?? createTimingAudio());
+  /// (spec focus-stage-1.8 §4) — and for every other editor open: each owner
+  /// has a port, so one going quiet does not turn the screen-on and
+  /// keep-alive off under another.
+  late final _mux = widget.audio == null
+      ? TimingAudioMux.shared
+      : TimingAudioMux(widget.audio!);
+
+  /// This editor's ports on the shared mux (`workout#3`).
+  static int _editors = 0;
+  final _tag = '#${_editors++}';
   late final _workoutTimer =
-      widget.timer ?? WorkoutTimer(audio: _mux.port('workout'));
+      widget.timer ?? WorkoutTimer(audio: _mux.port('workout$_tag'));
   late final _rest =
       widget.rest ??
       RestTimer(
-        audio: _mux.port('rest'),
+        audio: _mux.port('rest$_tag'),
         muted: () => _workoutTimer.running,
         notifier: const LocalRestNotifier(),
       );
-  late final _stagePort = _mux.port('stage');
+  late final _stagePort = _mux.port('stage$_tag');
   late final _focusLink = FocusLink(rest: _rest);
   late final _recovery = widget.recovery ?? RestRecovery(health: HealthLink());
   late final _link = RunLink(_workoutTimer);
@@ -1018,7 +1061,12 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 방금 × 로 뗀 세트들(최근 것이 끝). '되돌리기' 는 끝의 것부터 같은 자리에 되끼운다.
   /// 마지막으로 지운 지 5초 뒤에 접는다. 다음 세트를 고치려고 입력 줄이 채워져도 접지
   /// 않는다 — 세트를 잇달아 지우는 것이 흔하다.
-  final _removedSets = <({ExerciseBlock block, int index, LoggedSet set})>[];
+  /// A set a timer run logged keeps its round ([round], of run [run]) so
+  /// that removing it makes the round unlogged again and undo takes it back.
+  final _removedSets =
+      <
+        ({ExerciseBlock block, int index, LoggedSet set, int? round, int? run})
+      >[];
   Timer? _removedSetsTimer;
 
   /// 잠깐 떴다 사라지는 한 줄(예: 세트 끌기 안내).
@@ -1034,6 +1082,7 @@ class _RoutineEditorState extends State<RoutineEditor>
   void _removeSet(int block, int set) {
     // 남이 적은 세트는 지우지 않는다(컨트롤러가 막는다) — 되돌릴 것도 없다.
     if (_c.blocks[block].sets[set].theirs) return;
+    final round = _forgetRound(_c.blocks[block].sets[set].id);
     // 같이 고치는 기록은 되돌리지 않는다 — 지우기는 이미 서버로 나갔고, 되살린 세트는
     // 새 세트로 맨 뒤에 붙으며 남의 세트면 주인 표시도 잃는다(세트 끌기를 막은 것과
     // 같은 이유: 세트 순서를 맞출 op 가 없다).
@@ -1042,7 +1091,13 @@ class _RoutineEditorState extends State<RoutineEditor>
       return;
     }
     final b = _c.blocks[block];
-    _removedSets.add((block: b, index: set, set: b.sets[set]));
+    _removedSets.add((
+      block: b,
+      index: set,
+      set: b.sets[set],
+      round: round,
+      run: _run,
+    ));
     _removedSetsTimer?.cancel();
     _removedSetsTimer = Timer(_undoWindow, _forgetRemovedSets);
     _c.removeSet(block, set);
@@ -1067,8 +1122,40 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (_removedSets.isNotEmpty) {
       _removedSetsTimer = Timer(_undoWindow, _forgetRemovedSets);
     }
+    final round = last.round;
+    if (round != null) {
+      // The run logged that round again meanwhile: back would make it two.
+      if (last.run != _run || _roundSets.containsKey(round)) {
+        setState(() {});
+        return;
+      }
+      _roundSets[round] = last.set.id;
+      _setRoundReps(round, last.set.reps);
+    }
     _c.restoreSet(last.block, last.index, last.set);
     setState(() {});
+  }
+
+  /// The round of this run [setId] was logged as, now unlogged; null when
+  /// it was none.
+  int? _forgetRound(String setId) {
+    final round = _roundSets.entries
+        .where((e) => e.value == setId)
+        .firstOrNull
+        ?.key;
+    if (round == null) return null;
+    _roundSets.remove(round);
+    _setRoundReps(round, null);
+    return round;
+  }
+
+  void _setRoundReps(int round, int? reps) {
+    final log = _link.roundReps;
+    while (log.length < round) {
+      log.add(null);
+    }
+    log[round - 1] = reps;
+    _link.changed();
   }
 
   void _showFlash(String text) {
@@ -1507,7 +1594,8 @@ class _RoutineEditorState extends State<RoutineEditor>
       if (_backgrounded) {
         _recovery.stop();
       } else {
-        _recovery.listen();
+        // Only with the permission already there: no sheet mid-rest.
+        _recovery.listenQuietly();
       }
       return;
     }
@@ -1609,8 +1697,10 @@ class _RoutineEditorState extends State<RoutineEditor>
           _focus.unfocus();
           SystemChannels.textInput.invokeMethod('TextInput.hide');
           _timingKeyboardHidden = true;
-          // Open the stage only over this screen, and only once.
-          if (ModalRoute.of(context)?.isCurrent ?? false) {
+          // Open the stage only over this screen, and only once — not from
+          // an editor kept behind another (the proxy editor's, TickerMode).
+          if ((ModalRoute.of(context)?.isCurrent ?? false) &&
+              TickerMode.valuesOf(context).enabled) {
             unawaited(_openRun());
           }
         }
@@ -1714,7 +1804,12 @@ class _RoutineEditorState extends State<RoutineEditor>
       final theirs =
           blocks.where((b) => b.name == t!.title).firstOrNull ??
           blocks.where((b) => TimingSpec.parse(b.name) == t!.spec).firstOrNull;
-      return [for (final s in theirs?.sets ?? const <LoggedSet>[]) s.reps];
+      // What they did: a planned ○ (a routine's, a confirmed plan) is not a
+      // count.
+      return [
+        for (final s in theirs?.sets ?? const <LoggedSet>[])
+          if (s.done) s.reps,
+      ];
     }
 
     final gone = [
@@ -1750,7 +1845,7 @@ class _RoutineEditorState extends State<RoutineEditor>
       mine: started
           ? [
               for (final s in block.sets)
-                if (s.author == null) s.reps,
+                if (s.mine) s.reps,
             ]
           : const [],
       theirs: started && people.isNotEmpty
@@ -1825,15 +1920,14 @@ class _RoutineEditorState extends State<RoutineEditor>
         LoggedSet(value: set.value, unit: set.unit, reps: reps),
       );
     } else {
-      _c.logReps(block, reps);
-      _roundSets[round] = block.sets.last.id;
+      final set = _c.logReps(block, reps);
+      if (set != null) _roundSets[round] = set.id;
+      // A removed set of this round can no longer come back: it would be two.
+      final before = _removedSets.length;
+      _removedSets.removeWhere((r) => r.round == round && r.run == _run);
+      if (_removedSets.length != before && mounted) setState(() {});
     }
-    final log = _link.roundReps;
-    while (log.length < round) {
-      log.add(null);
-    }
-    log[round - 1] = reps;
-    _link.changed();
+    _setRoundReps(round, reps);
   }
 
   /// Removes the set [round] was logged as (the summary's "clear").
@@ -1918,7 +2012,7 @@ class _RoutineEditorState extends State<RoutineEditor>
       ..recovery = _recovery
       ..heartShared = _workoutTimer.shared
       // RestLog's default: my last set on this card (not a partner's).
-      ..lastReps = block?.sets.where((s) => s.author == null).lastOrNull?.reps;
+      ..lastReps = block?.sets.where((s) => s.mine).lastOrNull?.reps;
     if (_linkNotify) return;
     _linkNotify = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2015,26 +2109,6 @@ class _RoutineEditorState extends State<RoutineEditor>
         _heartTold = false;
         if (!_workoutTimer.wantsHeart) _recovery.beginRest();
       });
-    // Cleared in dispose, so the context is there when it is read.
-    _rest.notice = () {
-      final owner = _rest.owner;
-      final l = L.of(context);
-      if (owner is! ExerciseBlock || !_c.blocks.contains(owner)) {
-        return (title: l.focusRestOverTitle, body: '');
-      }
-      final v = _suggest(owner).values;
-      final n = owner.sets.where((s) => s.mine).length + 1;
-      final set = setLabel(
-        value: v.value,
-        unit: v.unit,
-        reps: v.reps,
-        formatReps: l.repsCount,
-      );
-      return (
-        title: l.focusRestOverTitle,
-        body: l.focusNextUp('${l.focusSetLabel(n)} $set'.trim()),
-      );
-    };
   }
 
   /// What the stage reads, refreshed on every rebuild and partner news; the
@@ -2120,18 +2194,36 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   /// Before another run replaces a finished one that owes sets ([owesLog]):
-  /// log first (the stage's summary) or drop it. True when it may go.
-  Future<bool> _okToDrop() async {
+  /// log first (the stage's summary) or drop it ([drop], "discard and
+  /// start" by default). True when it may go.
+  Future<bool> _okToDrop({String? drop}) async {
     final t = _workoutTimer;
     if (!owesLog(t, _link)) return true;
     final l = L.of(context);
     final go = await _ask(owesText(l, t, _link), [
       (l.timerLogFirst, false),
-      (l.timerDiscardStart, true),
+      (drop ?? l.timerDiscardStart, true),
     ]);
     if (go == false && mounted) unawaited(_openRun());
     return go == true && mounted;
   }
+
+  /// Before the record closes: a timer going asks to stop it (together, I
+  /// leave the shared run), a finished run owing sets asks to log them
+  /// first. The set rest stops quietly, as before (spec focus-stage-1.8 §2).
+  Future<bool> _okToLeave() async {
+    final t = _workoutTimer;
+    final l = L.of(context);
+    if (!t.running) return _okToDrop(drop: l.timerDiscardLeave);
+    final go = await _ask(l.timerStopLeaveAsk, [(l.timerStopLeave, true)]);
+    if (go != true || !mounted) return false;
+    if (t.shared) _leaveShared();
+    return true;
+  }
+
+  /// [RoutineEditorController.holdsRun] follows the timer and its log.
+  void _syncHold() => _c.holdsRun.value =
+      _workoutTimer.running || owesLog(_workoutTimer, _link);
 
   /// Health (heart rate) first, then the rest alarm — before the stage, not
   /// in the middle of a round.
@@ -2263,9 +2355,16 @@ class _RoutineEditorState extends State<RoutineEditor>
     _recovery.addListener(_followHeart);
     _rest.addListener(_onRest);
     _wireFocus();
-    if (widget.history != null) _c.openFocus = _openFocusTap;
+    if (widget.history != null) {
+      _c
+        ..openFocus = _openFocusTap
+        ..okToLeave = _okToLeave;
+    }
+    _workoutTimer.addListener(_syncHold);
+    _link.addListener(_syncHold);
     widget.partner?.addListener(_followShared);
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _afterOpen());
     // 운동이 있는 기록을 열었으면 첫 입력 연결이 표지를 처음부터 가져간다.
     _plant();
     _seenText = _input.text;
@@ -3208,12 +3307,15 @@ class _RoutineEditorState extends State<RoutineEditor>
     _focus.dispose();
     _scroll.dispose();
     widget.partner?.removeListener(_followShared);
-    _workoutTimer.removeListener(_followTimer);
+    _workoutTimer
+      ..removeListener(_followTimer)
+      ..removeListener(_syncHold);
     if (_workoutTimer.onComplete == _onTimerComplete) {
       _workoutTimer.onComplete = null;
     }
     _link.dispose();
     if (_c.openFocus == _openFocusTap) _c.openFocus = null;
+    if (_c.okToLeave == _okToLeave) _c.okToLeave = null;
     // Leaving the record ends its rest quietly, notice included.
     _rest
       ..removeListener(_onRest)
@@ -3223,9 +3325,8 @@ class _RoutineEditorState extends State<RoutineEditor>
     _focusLink.dispose();
     // 밖에서 받은 것은 밖에서 버린다.
     if (widget.timer == null) _workoutTimer.dispose();
+    // The ports go; the real audio stays for the app (and other editors).
     unawaited(_stagePort.dispose().catchError((Object _) {}));
-    // The real audio last, after every port's goodbye.
-    if (widget.audio == null) unawaited(_mux.dispose());
     _recovery.removeListener(_followHeart);
     // 밖에서 받은 것은 밖에서 버린다.
     if (widget.recovery == null) _recovery.dispose();
@@ -3330,6 +3431,39 @@ class _RoutineEditorState extends State<RoutineEditor>
     if (!_focus.hasFocus) _focus.requestFocus();
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     if (!_textKeyboardHidden) setState(() => _textKeyboardHidden = true);
+  }
+
+  /// Once the page is in place (its push done), [_settleOpenScroll].
+  void _afterOpen() {
+    if (!mounted) return;
+    final push = ModalRoute.of(context)?.animation;
+    if (push == null || push.isCompleted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _settleOpenScroll());
+      return;
+    }
+    void done(AnimationStatus status) {
+      if (!status.isCompleted) return;
+      push.removeStatusListener(done);
+      WidgetsBinding.instance.addPostFrameCallback((_) => _settleOpenScroll());
+    }
+
+    push.addStatusListener(done);
+  }
+
+  /// A record opens at its top — the date row whole — whenever the line
+  /// being typed shows there too. The autofocused line reveals its caret
+  /// (EditableText) on the first layouts, still settling while the page
+  /// slides in and the keypad takes the keyboard's place; that left the
+  /// list a few points down with the date row cut under the nav bar.
+  void _settleOpenScroll() {
+    if (!mounted || !_scroll.hasClients || _scroll.offset <= 0) return;
+    final box = _inputKey.currentContext?.findRenderObject();
+    if (box is! RenderBox || !box.attached) return;
+    final viewport = RenderAbstractViewport.maybeOf(box);
+    // The offset that puts the line's bottom at the list's end.
+    if (viewport != null && viewport.getOffsetToReveal(box, 1).offset <= 0) {
+      _scroll.jumpTo(0);
+    }
   }
 
   /// 입력 줄이 가려졌을 때만, 모자란 만큼만 움직인다. 그냥 ensureVisible 은
@@ -4969,7 +5103,6 @@ class SuggestionChip extends StatelessWidget {
   }
 }
 
-/// 상대의 "같이 하자". 받으면 몇 초 뒤 두 폰이 같이 3·2·1 을 센다.
 /// "Rest 0:42 · Open" above the record while the folded stage rests.
 class _RestStrip extends StatelessWidget {
   const _RestStrip({required this.left, required this.onTap});
@@ -5010,6 +5143,7 @@ class _RestStrip extends StatelessWidget {
   }
 }
 
+/// 상대의 "같이 하자". 받으면 몇 초 뒤 두 폰이 같이 3·2·1 을 센다.
 class _TogetherInvite extends StatelessWidget {
   const _TogetherInvite({
     required this.name,

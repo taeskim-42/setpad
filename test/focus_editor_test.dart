@@ -321,6 +321,8 @@ void main() {
           ),
         ),
       );
+      // The stage sets the notice with the start (its own next set).
+      rest.notice = () => (title: '휴식 끝', body: '다음 · 2세트 60kg');
       rest.start(b, const Duration(seconds: 90));
       // The app went away mid-rest: the notice is set, with the next set.
       rest.didChangeAppLifecycleState(AppLifecycleState.paused);
@@ -442,6 +444,8 @@ void main() {
       link.onLift!(b);
       rest.start(b, const Duration(seconds: 90));
       link.onRested!(b);
+      // It listens once the permission check (no sheet) says yes.
+      await tester.pump();
       expect(health.watched, isTrue);
       final at = DateTime.now();
       health.push(150, at);

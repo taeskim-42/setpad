@@ -4323,4 +4323,13 @@ class LVi extends L {
 
   @override
   String get focusDistanceTitle => 'Quãng đường';
+
+  @override
+  String get timerStopLeaveAsk => 'Dừng bộ hẹn giờ đang chạy và thoát?';
+
+  @override
+  String get timerStopLeave => 'Dừng và thoát';
+
+  @override
+  String get timerDiscardLeave => 'Bỏ và thoát';
 }
