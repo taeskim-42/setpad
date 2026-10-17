@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -38,7 +39,7 @@ class _Records extends NotesStore {
     String? id,
     DateTime? at,
   }) {
-    final now = at ?? DateTime.now();
+    final now = at ?? clock?.call() ?? DateTime.now();
     final note = Note(
       id: id ?? 'new${created.length}',
       createdAt: now,
@@ -56,6 +57,9 @@ class _Records extends NotesStore {
   String unit = 'kg';
   @override
   String get weightUnit => unit;
+
+  /// 새 기록의 시각(없으면 지금).
+  DateTime Function()? clock;
 
   final deleted = <Note>[];
   @override
@@ -80,13 +84,15 @@ void main() {
     _Records? into,
     QueryCache? edits,
     Account? account,
+    Locale locale = const Locale('ko'),
+    DateTime Function()? clock,
   }) async {
     final store = into ?? _Records(records ?? defaultLog());
     if (into == null) addTearDown(store.dispose);
     final opened = <Note>[];
     await tester.pumpWidget(
       CupertinoApp(
-        locale: const Locale('ko'),
+        locale: locale,
         localizationsDelegates: L.localizationsDelegates,
         supportedLocales: L.supportedLocales,
         home: NotesListPage(
@@ -94,7 +100,7 @@ void main() {
           onOpen: opened.add,
           ai: ai,
           // 요일 규칙이 있어 시계를 못 박는다 — 기준일 9/9(수) 18시.
-          now: () => now ?? routineToday,
+          now: clock ?? () => now ?? routineToday,
           routineEdits: edits,
           account: account,
         ),
@@ -467,6 +473,126 @@ void main() {
       expect(store.deleted, hasLength(1));
       expect(startButton(), findsOneWidget);
     });
+
+    testWidgets('시작 취소: 끼니·출석이 든 기록은 지우지 않고 안 한 칸만 걷는다 — 묻지도 지우지도 않는다', (
+      tester,
+    ) async {
+      final store = await pump(tester);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      final note = store.created.single;
+      // 연필(오늘 기록)로 아침 끼니를 적고 스티커를 댔다.
+      note.meals.add(MealEntry(at: routineToday, kcal: 500, text: '아침'));
+      note.gymId = 'g1';
+      note.blocks.first.sets.first.done = true;
+      await tester.tap(find.text(l.routineUnstart));
+      await tester.pumpAndSettle();
+      expect(find.text(l.routineUnstartAsk), findsNothing);
+      expect(store.deleted, isEmpty);
+      expect(store.records, contains(note));
+      expect(note.meals, hasLength(1));
+      expect(note.gymId, 'g1');
+      // 적은 세트가 있는 칸만 남는다.
+      expect(note.blocks.map((b) => b.name), ['스쿼트']);
+      expect(startButton(), findsOneWidget);
+    });
+
+    testWidgets('앱을 켠 채 자정을 넘기면 어제 시작해 다 한 기록은 오늘 카드의 기록에 든다 — 새로 켠 것과 같다', (
+      tester,
+    ) async {
+      var clock = routineToday;
+      final store = _Records(defaultLog())..clock = () => clock;
+      addTearDown(store.dispose);
+      await pump(tester, into: store, clock: () => clock);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      for (final b in store.created.single.blocks) {
+        for (final s in b.sets) {
+          s.done = true;
+        }
+      }
+      clock = DateTime(2026, 9, 10, 8);
+      await type(tester, '');
+      await type(tester, '오늘 루틴 짜줘');
+      expect(started(), findsNothing);
+      expect(startButton(), findsOneWidget);
+      List<String> shown() => [
+        for (final t in tester.widgetList<Text>(find.byType(Text)))
+          if (t.data != null) t.data!,
+      ];
+      final alive = shown();
+      await tester.pumpWidget(const SizedBox());
+      await pump(tester, into: store, clock: () => clock);
+      await type(tester, '오늘 루틴 짜줘');
+      expect(alive, shown());
+    });
+
+    testWidgets('홈 "오늘 루틴" 줄로 시작한 뒤 "오늘 루틴 짜줘" 를 쳐도 시작함 — 기록은 하나', (
+      tester,
+    ) async {
+      final store = await pump(tester);
+      await tester.tap(find.widgetWithText(GymRow, l.routineHeaderToday));
+      await tester.pumpAndSettle();
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      await type(tester, '오늘 루틴 짜줘');
+      expect(startButton(), findsNothing);
+      expect(started(), findsOneWidget);
+      await tester.tap(started());
+      await tester.pumpAndSettle();
+      expect(store.created, hasLength(1));
+      // 다른 날을 짜는 맨 요청은 그 기록을 가져가지 않는다.
+      await type(tester, '내일 루틴 짜줘');
+      expect(started(), findsNothing);
+    });
+
+    testWidgets('320pt·글자 2배에서도 시작 줄이 넘치지 않고 시작 취소를 누를 수 있다', (tester) async {
+      tester.view.physicalSize = const Size(320 * 3, 568 * 3);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      final store = _Records(defaultLog());
+      addTearDown(store.dispose);
+      await tester.pumpWidget(
+        CupertinoApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: L.localizationsDelegates,
+          supportedLocales: L.supportedLocales,
+          builder: (c, child) => MediaQuery(
+            data: MediaQuery.of(
+              c,
+            ).copyWith(textScaler: const TextScaler.linear(2)),
+            child: child!,
+          ),
+          home: NotesListPage(
+            store: store,
+            onOpen: (_) {},
+            now: () => routineToday,
+            routineEdits: QueryCache(fileName: 'layout_320.json'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(GymRow, l.routineHeaderToday));
+      await tester.pumpAndSettle();
+      // 카드가 화면보다 길다 — 단추를 직접 누른다.
+      void press(Finder f) => tester
+          .widget<CupertinoButton>(
+            find.ancestor(of: f, matching: find.byType(CupertinoButton)).first,
+          )
+          .onPressed!();
+      press(find.text(l.routineStart));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getRect(find.text(l.routineUnstart)).right,
+        lessThanOrEqualTo(320),
+      );
+      press(find.text(l.routineUnstart));
+      await tester.pumpAndSettle();
+      expect(store.deleted, hasLength(1));
+    });
   });
 
   group('쌤 루틴(검토 #10·#17)', () {
@@ -570,6 +696,45 @@ void main() {
       expect(find.text('하체 B'), findsNothing);
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(minutes: 1)); // 저장·재시도 타이머
+    });
+
+    testWidgets('받는 사이 계정이 바뀌면 늦게 온 목록은 보이지도 새 계정 열쇠로 남지도 않는다', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('routine_switch');
+      final edits = QueryCache(directory: dir, fileName: 'routine_edits.json');
+      final reply = Completer<http.Response>();
+      final account =
+          Account(
+              storageDir: dir,
+              client: MockClient((request) async {
+                if (request.url.path == '/api/routines') return reply.future;
+                if (request.url.path == '/api/gyms') {
+                  return http.Response(
+                    jsonEncode({'gyms': [], 'invites': []}),
+                    200,
+                  );
+                }
+                return http.Response('{}', 200);
+              }),
+            )
+            ..token = 'x'
+            ..userId = 'u1';
+      await pump(tester, edits: edits, account: account);
+      account.userId = 'u2';
+      reply.complete(
+        http.Response.bytes(
+          utf8.encode(
+            jsonEncode({
+              'routines': [row],
+            }),
+          ),
+          200,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('하체 B'), findsNothing);
+      expect(edits[jsonEncode(['t1', 'u2'])], isNull);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(minutes: 1));
     });
   });
 
@@ -711,6 +876,18 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('레그프레스'), findsOneWidget);
+    });
+
+    testWidgets('영어 화면: 기기가 읽은 뺄 운동은 화면 언어 이름으로', (tester) async {
+      final en = lookupL(const Locale('en'));
+      await pump(
+        tester,
+        locale: const Locale('en'),
+        ai: RecordAi(respond: (_, _) async => throw Exception('offline')),
+      );
+      await type(tester, 'leg routine without deadlift', enter: true);
+      expect(find.text(en.routineDeviceExcluded('Deadlift')), findsOneWidget);
+      expect(find.textContaining('데드리프트'), findsNothing);
     });
 
     testWidgets('빼기 낱말이 없으면 기기가 읽은 것으로 짜고 까닭을 말한다', (tester) async {
@@ -1338,6 +1515,13 @@ void main() {
     );
     const text = '지난주 스쿼트 최고 보여주고 오늘 하체 짜줘';
     await type(tester, text, enter: true);
+    // 원판 줄: 값은 쓴 토큰만큼이라 수를 못박지 않고, 질문을 다시 적지 않는다.
+    expect(find.text(l.routinePlateCost(l.routineAskTooName)), findsOneWidget);
+    expect(l.routinePlateCost('x'), isNot(contains('1')));
+    expect(
+      find.text(l.routinePlateCost(l.routineAskToo('지난주 스쿼트 최고 보여주고'))),
+      findsNothing,
+    );
     await tester.tap(find.text(l.routineAskToo('지난주 스쿼트 최고 보여주고')));
     await tester.pumpAndSettle();
     expect(calls, ['routine', 'v3']);

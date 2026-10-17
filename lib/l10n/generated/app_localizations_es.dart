@@ -3898,7 +3898,7 @@ class LEs extends L {
 
   @override
   String routineDrift(String planned, String own) {
-    return 'El plan semanal dice $planned hoy, pero este día la última vez fue $own — copiarlo repite $own';
+    return 'En el plan semanal este día es $planned, pero la última vez fue $own — copiarlo repite $own';
   }
 
   @override
@@ -3915,7 +3915,7 @@ class LEs extends L {
 
   @override
   String routinePlateCost(String list) {
-    return '1 disco: $list';
+    return 'Usa discos (lo que se use): $list';
   }
 
   @override
@@ -3940,6 +3940,19 @@ class LEs extends L {
   String routineFirstPlan(String factor) {
     return 'Es la primera vez: sigue el plan semanal ($factor) · los números se llenan al registrar';
   }
+
+  @override
+  String routineFirstPlanWeekend(String factor) {
+    return 'Es la primera vez: cubre lo que falta esta semana ($factor) · los números se llenan al registrar';
+  }
+
+  @override
+  String routineDriftKept(String planned) {
+    return 'En el plan semanal este día es $planned, pero ya cumpliste $planned esta semana — se mantiene el de la última vez';
+  }
+
+  @override
+  String get routineAskTooName => 'Preguntar también';
 
   @override
   String get routineUnstart => 'Cancelar inicio';

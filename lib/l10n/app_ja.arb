@@ -936,12 +936,15 @@
   "routineWeekendDetail": "週末 · 今週足りない要素で",
   "routineClose": "閉じる",
   "routineDeviceExcluded": "除く種目は端末で読みました: {list}",
-  "routinePlateCost": "プレート1枚: {list}",
+  "routinePlateCost": "プレートを使います(使った分): {list}",
   "routineEstimateNoFirst": "約{minutes}分 · 初めての種目を除く",
   "routineBpmChip": "{bpm}bpmのテンポで",
   "routineSwap": "替える",
   "routineSwapTitle": "{name}の代わりに — 最近28日にやった同じ部位・器具の種目",
   "routineFirstPlan": "初めてなので週間表({factor})で組みました · 数字は記録しながら埋めます",
+  "routineFirstPlanWeekend": "初めてなので今週足りない要素({factor})で組みました · 数字は記録しながら埋めます",
+  "routineDriftKept": "週間表では{planned}の日ですが、今週の{planned}はもう済んだので前回のこの曜日のままです",
+  "routineAskTooName": "これも聞く",
   "routineUnstart": "開始を取り消す",
   "routineUnstartAsk": "この記録には記入済みのセットがあります。記録ごと削除しますか?"
 }

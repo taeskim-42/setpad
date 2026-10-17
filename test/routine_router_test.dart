@@ -392,6 +392,31 @@ void main() {
       expect(names('without squat, legs'), ['스쿼트']);
       expect(names('무릎 쓰는 거 말고'), isEmpty);
     });
+    test('빼기 낱말에 바로 붙은 이름만 — 하자고 한 운동·빼기가 아닌 말은 빼지 않는다', () {
+      const rec = ['스쿼트', '데드리프트', '런지', '벤치프레스'];
+      List<String> n(String t) => readExcludes(t, rec).names;
+      bool reads(String t) => deviceReadsConditions(t, rec);
+      expect(n('데드리프트 하는 날인데 스쿼트 말고'), ['스쿼트']);
+      expect(n('벤치프레스 위주로 스쿼트 말고'), ['스쿼트']);
+      expect(deviceAsk('데드리프트 하는 날인데 스쿼트 말고', rec).exercises, ['데드리프트']);
+      // 빼기가 아니다: 못 읽은 글(말고도·없이·no 는 카드 보류) 이거나 빼기 없이 짠다.
+      for (final t in [
+        '스쿼트 말고도 런지 넣어줘',
+        '스쿼트 쉬는 시간 없이 5세트',
+        'no more than 3 sets of squat',
+      ]) {
+        expect(n(t), isEmpty, reason: t);
+        expect(reads(t), isFalse, reason: t);
+      }
+      expect(n('스쿼트 무게 5키로 빼서'), isEmpty);
+      // 조사·줄임말·두 낱말 이름·관사는 붙은 것으로 읽는다.
+      expect(n('스쿼트는 말고'), ['스쿼트']);
+      expect(n('벤치 말고'), ['벤치프레스']);
+      expect(readExcludes('루마니안 데드리프트 빼고', ['루마니안 데드리프트']).names, [
+        '루마니안 데드리프트',
+      ]);
+      expect(n('skip the squat today'), ['스쿼트']);
+    });
     test('다 읽었는가: 이름 없는 빼기·아픈 곳이 남으면 아니다', () {
       expect(deviceReadsConditions('스쿼트 말고 하체 짜줘', recorded), isTrue);
       expect(deviceReadsConditions('무릎 아파서 스쿼트 말고', recorded), isFalse);

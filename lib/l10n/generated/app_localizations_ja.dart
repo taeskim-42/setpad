@@ -3743,7 +3743,7 @@ class LJa extends L {
 
   @override
   String routinePlateCost(String list) {
-    return 'プレート1枚: $list';
+    return 'プレートを使います(使った分): $list';
   }
 
   @override
@@ -3768,6 +3768,19 @@ class LJa extends L {
   String routineFirstPlan(String factor) {
     return '初めてなので週間表($factor)で組みました · 数字は記録しながら埋めます';
   }
+
+  @override
+  String routineFirstPlanWeekend(String factor) {
+    return '初めてなので今週足りない要素($factor)で組みました · 数字は記録しながら埋めます';
+  }
+
+  @override
+  String routineDriftKept(String planned) {
+    return '週間表では$plannedの日ですが、今週の$plannedはもう済んだので前回のこの曜日のままです';
+  }
+
+  @override
+  String get routineAskTooName => 'これも聞く';
 
   @override
   String get routineUnstart => '開始を取り消す';

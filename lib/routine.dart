@@ -1509,11 +1509,87 @@ String? _backToOriginal(
 
 // Exclusion words the device can read. Korean·Japanese put the name before the
 // word ("스쿼트 말고"); English·Chinese·Spanish put it after ("without squats").
-final _excludeAfterName = _re(r'말고|빼고|빼서|빼줘|빼 줘|없이|제외(?:하고)?|なしで|抜きで|以外');
+// "말고도" adds ("스쿼트 말고도 런지"), "빼서" is "take off" ("5키로 빼서") and "no"
+// is mostly "no more than" — none of them leave an exercise out.
+final _excludeAfterName = _re(r'말고(?!도)|빼고|빼줘|빼 줘|없이|제외(?:하고)?|なしで|抜きで|以外');
 final _excludeBeforeName = _re(
-  r'\bwithout\b|\bskip\b|\bexcept\b|\bno\b|除了|不要|\bsin\b',
+  r'\bwithout\b|\bskip\b|\bexcept\b|除了|不要|\bsin\b',
 );
+final _articles = _re(r'^\s*(?:(?:the|a|an|my|any|el|la|los|las)\s+)+');
+final _trailingParticle = _re(r'(?:은|는|을|를|이|가|도)\s*$');
+
 final _clauseBreak = _re(r'[,，.。;!?？]|그리고|\s하고\s|\band\b');
+
+/// 이름을 잇는 말("스쿼트랑 레그프레스 빼고", "不要深蹲和卧推").
+final _listTail = _re(r'(?:이랑|랑|하고|와|과|및|や|と|、|/)$');
+final _listHead = _re(r'^(?:and|y|和|跟|、|/)');
+
+/// [span] 에 든 운동 중 빼기 낱말에 바로 붙은 것만 — 이름이 빼기 낱말 바로 앞(한·일)
+/// 이나 바로 뒤(영·중·스페인어)에 있고 사이엔 조사·관사뿐이다(잇는 말로 이은 이름은
+/// 함께). "데드리프트 하는 날인데 스쿼트 말고" 는 스쿼트만, "스쿼트 쉬는 시간 없이" 는
+/// 아무것도 아니다.
+List<String> _namesBeside(
+  String span,
+  List<String> pool, {
+  required bool before,
+}) {
+  final found = namedExercises(span, pool, fuzzy: false);
+  if (found.isEmpty) return const [];
+  final keyed = [
+    for (final n in found)
+      for (final k in exerciseByName[n.toLowerCase()]?.keys ?? [n])
+        if (searchKey(k).length >= 2) (searchKey(k), n),
+  ]..sort((a, b) => b.$1.length.compareTo(a.$1.length));
+  // The name touching the edge of [rest] (compact) and what is left beyond it.
+  (String, String)? take(String rest) {
+    for (final r in [
+      rest,
+      if (before) rest.replaceFirst(_trailingParticle, ''),
+    ]) {
+      for (final (k, n) in keyed) {
+        if (before ? r.endsWith(k) : r.startsWith(k)) {
+          return (
+            n,
+            before
+                ? r.substring(0, r.length - k.length)
+                : r.substring(k.length),
+          );
+        }
+      }
+    }
+    return null;
+  }
+
+  var next = take(searchKey(before ? span : span.replaceFirst(_articles, '')));
+  if (next == null) {
+    // A shortened name in the touching word ("벤치 말고").
+    final words = span.trim().split(RegExp(r'\s+'));
+    final edge = namedExercises(
+      before ? stripParticle(words.last) : words.first,
+      pool,
+      fuzzy: false,
+    );
+    if (edge.length == 1) {
+      final others = before
+          ? words.sublist(0, words.length - 1)
+          : words.sublist(1);
+      next = (edge.single, searchKey(others.join(' ')));
+    }
+  }
+  final out = <String>{};
+  while (next != null) {
+    out.add(next.$1);
+    final m = (before ? _listTail : _listHead).firstMatch(next.$2);
+    if (m == null) break;
+    next = take(
+      before ? next.$2.substring(0, m.start) : next.$2.substring(m.end),
+    );
+  }
+  return [
+    for (final n in found)
+      if (out.contains(n)) n,
+  ];
+}
 
 /// 기기가 읽는 뺄 운동: "X 말고·빼고·없이·제외" 의 X 가 기록·사전 운동 이름이면 뺀다
 /// (모델을 못 써도 "스쿼트 말고" 가 스쿼트를 넣지 않게). [rest] 는 이름을 읽어 낸
@@ -1545,7 +1621,7 @@ final _clauseBreak = _re(r'[,，.。;!?？]|그리고|\s하고\s|\band\b');
       from = m.end;
       to = stop == null ? hi : m.end + stop.start;
     }
-    final found = namedExercises(text.substring(from, to), pool, fuzzy: false);
+    final found = _namesBeside(text.substring(from, to), pool, before: after);
     if (found.isEmpty) continue;
     for (final n in found) {
       if (!names.contains(n)) names.add(n);
@@ -1960,6 +2036,8 @@ List<Note> _fromNotes(
   return hits;
 }
 
+final _tempo = RegExp(tempoPattern, caseSensitive: false);
+
 /// 내가 마지막으로 쓴 bpm(내 세트가 있는 칸의 제목, 10–120). 없으면 null.
 int? lastBpm(List<Note> notes) {
   final sorted = [...notes]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -1969,7 +2047,8 @@ int? lastBpm(List<Note> notes) {
       if (bpm != null &&
           bpm >= TimingSpec.minBpm &&
           bpm <= TimingSpec.maxBpm &&
-          RegExp(r'\d').hasMatch(b.name)) {
+          // A tempo number actually written — a bare "bpm" parses as 120.
+          _tempo.hasMatch(b.name)) {
         return bpm;
       }
     }
@@ -2095,6 +2174,8 @@ RoutineDraft composeRoutine(
 }) {
   final e = edits ?? RoutineEdits();
   if (e.part != null) ask = ask.withParts([e.part!]);
+  final timerMode =
+      const {'tabata', 'bpm'}.contains(e.mode) && ask.timer == null;
   if (e.mode == 'tabata') ask = ask.withTimer(const RoutineTimer.tabata());
   // "박자로" 칩: 내가 마지막으로 쓴 bpm 을 수로 적어 붙인다(수 없는 "bpm" 은 120 으로
   // 읽힌다 — 지어낸 템포다).
@@ -2110,6 +2191,10 @@ RoutineDraft composeRoutine(
     final int w => plus((w - today.weekday) % 7),
     _ => today,
   };
+  // A timer chip pressed on a weekday card: the timer rides on the titles of the
+  // day the weekday rules pick — it does not throw that template away. On a
+  // weekend (cardio missing) it still picks timer/bodyweight exercises.
+  final chipTimer = timerMode && weekdayFactor[day.weekday] != null;
   final draft = RoutineDraft(day: day, today: today);
   final recorded = recordedExercises(notes);
   if (ask.when != null) draft.applied.add('when');
@@ -2142,7 +2227,9 @@ RoutineDraft composeRoutine(
   // [시작] 으로 되돌아가 기록이 둘이 됐다).
   final history = [
     for (final n in notes)
-      if (n.id != e.started &&
+      // Only today's started note — yesterday's (app left open past
+      // midnight) is a done day and must count.
+      if ((n.id != e.started || _day(n.createdAt) != today) &&
           _mineBlocks(n).isNotEmpty &&
           !_day(n.createdAt).isAfter(today))
         n,
@@ -2304,7 +2391,7 @@ RoutineDraft composeRoutine(
     for (final k in front)
       if (ask.named.contains(k)) k,
   ];
-  final timerSelects = ask.timer != null && userNamed.isEmpty;
+  final timerSelects = ask.timer != null && userNamed.isEmpty && !chipTimer;
   bool timed(String key) => userNamed.isEmpty || userNamed.contains(key);
   final conditions =
       ask.parts.isNotEmpty ||
@@ -2559,13 +2646,20 @@ RoutineDraft composeRoutine(
   }
 
   var picks = <DateTime>[];
+  // Weekday card whose factor had no day to copy: build that factor's first-week
+  // card instead of repeating whatever day rotation finds.
+  Factor? firstFor;
   // Weekday table factor: shown whenever the day was picked by the weekday rules
   // (or by a timer chip on such a card).
   if (draft.source == 'none' || const {'tabata', 'bpm'}.contains(e.mode)) {
     draft.planned = weekdayFactor[day.weekday];
   }
   if (draft.source == 'none') {
-    final mode = e.mode ?? (day.weekday >= 6 ? 'factor' : 'weekday');
+    final mode =
+        (chipTimer ? null : e.mode) ??
+        (day.weekday >= 6 ? 'factor' : 'weekday');
+    // Weekday card that fell back to the weekday factor's own days (source factor).
+    var byFactor = false;
     // 요인은 거른 뒤 남는 칸으로 가른다 — "스쿼트 말고" 로 채우기 칸이 빠진 날은 근지구력
     // 날이 아니다. 거르기 전 요인은 건너뛴 까닭(거름 · 날 없음)을 가를 때만 쓴다.
     final factorOn = {
@@ -2595,11 +2689,17 @@ RoutineDraft composeRoutine(
     // 쓴 적 있는 bpm. 고른 날이 이미 타바타 날이면 타바타 칩은 없다.
     void timerChips() {
       bool has(String m) => draft.modeChips.any((c) => c.mode == m);
-      if (draft.factor?.read.why != 'tabata' && !has('tabata')) {
+      if (e.mode != 'tabata' &&
+          draft.factor?.read.why != 'tabata' &&
+          !has('tabata')) {
         draft.modeChips.add((mode: 'tabata', count: null));
       }
-      if (lastBpm(notes) case final b? when !has('bpm')) {
+      if (lastBpm(notes) case final b? when e.mode != 'bpm' && !has('bpm')) {
         draft.modeChips.add((mode: 'bpm', count: b));
+      }
+      // The way back to the plain card once a timer chip is on.
+      if (chipTimer && !has('weekday')) {
+        draft.modeChips.add((mode: 'weekday', count: null));
       }
     }
 
@@ -2616,6 +2716,22 @@ RoutineDraft composeRoutine(
             if (usable(ago(n))) ago(n),
         ]..sort(byRest),
       ];
+      wantTimers = draft.planned == Factor.cardio;
+      // No same or neighbouring weekday to copy (first weeks): follow the weekday
+      // table — that factor's days in the last 28, else its first-week exercises.
+      if (picks.isEmpty && draft.planned != null) {
+        final f = draft.planned!;
+        final pool = daysOf(f);
+        if (pool.isNotEmpty) {
+          picks = pool;
+          byFactor = true;
+          draft.target = f;
+          draft.short = factorGoal[f]! > counts[f]!;
+        } else if (!hadDay(f) && window.isNotEmpty) {
+          // (Nothing in 28 days at all: the last session with blank weights, G11.)
+          firstFor = f;
+        }
+      }
     } else {
       // 모자람이 큰 요인부터, 그 요인으로 한 날이 28일 안에 있는 첫 요인. 없는 요인은
       // 조용히 버리지 않고 줄로 말한다.
@@ -2632,7 +2748,9 @@ RoutineDraft composeRoutine(
         picks = pool;
         break;
       }
-      if (draft.missing.isNotEmpty) {
+      // No records at all: every factor is "missing" — that is not news to a
+      // first-timer, the first-week line says it.
+      if (draft.missing.isNotEmpty && history.isNotEmpty) {
         draft.lines.add(
           RoutineLine('factorMissing', [
             [for (final f in draft.missing) f.name],
@@ -2667,7 +2785,7 @@ RoutineDraft composeRoutine(
     if (i < picks.length) {
       final pick = picks[i];
       final gap = _days(pick, day);
-      draft.source = mode == 'weekday' ? 'weekday' : 'factor';
+      draft.source = mode == 'weekday' && !byFactor ? 'weekday' : 'factor';
       draft.sourceDay = pick;
       draft.restDays = restOn(pick);
       // 칩을 가를 요인(거른 뒤 칸). 카드의 요인은 자른 뒤 남은 칸으로 다시 가른다(아래).
@@ -2718,11 +2836,20 @@ RoutineDraft composeRoutine(
                 last,
               ).where((f) => short(f) && daysOf(f).isNotEmpty).firstOrNull
             : null;
-        wantTimers = planned == Factor.cardio;
         if (chip != null) {
           draft.modeChips.add((mode: chip.name, count: counts[chip]));
-          if (chip == planned && own != null) {
-            draft.lines.add(RoutineLine('drift', [chip.name, own.name]));
+        }
+        // Pills say "Monday = strength" and "cardio day" — always say why they
+        // differ, chip or not (no such day in 28, or already filled this week).
+        if (planned != null && own != null && own != planned) {
+          if (short(planned)) {
+            draft.lines.add(RoutineLine('drift', [planned.name, own.name]));
+            if (daysOf(planned).isEmpty &&
+                (planned == Factor.endurance || planned == Factor.sustain)) {
+              draft.lines.add(const RoutineLine('fillHint'));
+            }
+          } else {
+            draft.lines.add(RoutineLine('driftKept', [planned.name]));
           }
         }
       }
@@ -2746,7 +2873,16 @@ RoutineDraft composeRoutine(
         }
       }
     }
-    if (wantTimers) timerChips();
+    // First week (no records): the first-week card has no timer path.
+    if (wantTimers && history.isNotEmpty) timerChips();
+  }
+  // A weekend timer chip turned the card into a timer pick — keep a way back
+  // (last week's same day) even when nothing timed was found.
+  if (timerMode && !chipTimer && draft.source == 'conditions') {
+    final week = DateTime(day.year, day.month, day.day - 7);
+    if (window.any((n) => _day(n.createdAt) == week && kept(n).isNotEmpty)) {
+      draft.modeChips.add((mode: 'weekday', count: null));
+    }
   }
 
   if (draft.source == 'none' ||
@@ -2776,9 +2912,12 @@ RoutineDraft composeRoutine(
       final ra = restOf(a), rb = restOf(b);
       return ra != rb ? rb.compareTo(ra) : b.createdAt.compareTo(a.createdAt);
     });
-    if (ranked.isNotEmpty) {
-      final pick = ranked[(e.alt - picks.length) % ranked.length];
-      draft.hasOther = picks.length + ranked.length > 1;
+    // The weekday factor's first-week card comes first; rotation is "다른 루틴".
+    final first = draft.source == 'none' && firstFor != null ? 1 : 0;
+    if (first == 1) draft.hasOther = ranked.isNotEmpty;
+    if (ranked.isNotEmpty && e.alt >= picks.length + first) {
+      final pick = ranked[(e.alt - picks.length - first) % ranked.length];
+      draft.hasOther = picks.length + first + ranked.length > 1;
       if (draft.source == 'none') draft.source = 'rotation';
       draft.sourceDay = _day(pick.createdAt);
       draft.restDays = restOf(pick);
@@ -2810,18 +2949,23 @@ RoutineDraft composeRoutine(
 
   // 첫 주(기록 0, 조건 없음): 요일표의 요인으로 사전 운동을 숫자 없이 넣는다(검토 #7).
   // 주말은 모자란 요인인데 기록이 없으니 모두 0 — 근력부터(rankFactors 순서).
+  // 기록이 있어도 이 요일 요인의 날이 없으면(첫 주 둘째 날부터) 같은 길이다 — 숫자는
+  // 그 운동을 한 적이 있을 때만 내 세트로.
   final firstKeys = <String>[];
-  if (history.isEmpty && draft.source == 'none') {
-    final f = weekdayFactor[day.weekday] ?? Factor.strength;
+  if (draft.source == 'none' && (history.isEmpty || firstFor != null)) {
+    final planned = weekdayFactor[day.weekday];
+    final f = firstFor ?? planned ?? Factor.strength;
     draft.source = 'first';
     draft.target = f;
-    draft.lines.add(RoutineLine('firstPlan', [f.name]));
+    draft.lines.add(
+      RoutineLine(planned == null ? 'firstPlanWeekend' : 'firstPlan', [f.name]),
+    );
     for (final k in firstWeekExercises[f]!) {
       if (filtered(k, k, named: false) == null && !gearMismatch(k)) {
         firstKeys.add(k);
       }
     }
-    draft.addable.addAll(starterExercises);
+    if (history.isEmpty) draft.addable.addAll(starterExercises);
   }
 
   // from 의 칸도 거름을 지난다(G6). 걸린 것은 줄로.
@@ -2875,7 +3019,8 @@ RoutineDraft composeRoutine(
     take(c.key, c.block, c.day, fixed: e.added.contains(c.key));
   }
   for (final k in firstKeys) {
-    take(k, null, null);
+    final last = lastBlock(k);
+    take(k, last?.block, last?.day);
   }
   for (final k in e.added) {
     if (!seen.contains(k)) {

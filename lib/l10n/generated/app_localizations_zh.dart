@@ -3694,7 +3694,7 @@ class LZh extends L {
 
   @override
   String routineDrift(String planned, String own) {
-    return '按周表今天是$planned日，但上次这一天是$own日 — 照搬又会是$own日';
+    return '按周表这一天是$planned日，但上次这一天是$own日 — 照搬又会是$own日';
   }
 
   @override
@@ -3710,7 +3710,7 @@ class LZh extends L {
 
   @override
   String routinePlateCost(String list) {
-    return '用1片：$list';
+    return '会用片（按用量）：$list';
   }
 
   @override
@@ -3735,6 +3735,19 @@ class LZh extends L {
   String routineFirstPlan(String factor) {
     return '第一次，所以按周表($factor)安排 · 数字边记边填';
   }
+
+  @override
+  String routineFirstPlanWeekend(String factor) {
+    return '第一次，所以按本周欠缺的($factor)安排 · 数字边记边填';
+  }
+
+  @override
+  String routineDriftKept(String planned) {
+    return '按周表这一天是$planned日，但本周$planned已练够 — 照上次这一天安排';
+  }
+
+  @override
+  String get routineAskTooName => '也问问';
 
   @override
   String get routineUnstart => '取消开始';
@@ -7433,7 +7446,7 @@ class LZhHans extends LZh {
 
   @override
   String routineDrift(String planned, String own) {
-    return '按周表今天是$planned日，但上次这一天是$own日 — 照搬又会是$own日';
+    return '按周表这一天是$planned日，但上次这一天是$own日 — 照搬又会是$own日';
   }
 
   @override
@@ -7449,7 +7462,7 @@ class LZhHans extends LZh {
 
   @override
   String routinePlateCost(String list) {
-    return '用1片：$list';
+    return '会用片（按用量）：$list';
   }
 
   @override
@@ -7474,6 +7487,19 @@ class LZhHans extends LZh {
   String routineFirstPlan(String factor) {
     return '第一次，所以按周表($factor)安排 · 数字边记边填';
   }
+
+  @override
+  String routineFirstPlanWeekend(String factor) {
+    return '第一次，所以按本周欠缺的($factor)安排 · 数字边记边填';
+  }
+
+  @override
+  String routineDriftKept(String planned) {
+    return '按周表这一天是$planned日，但本周$planned已练够 — 照上次这一天安排';
+  }
+
+  @override
+  String get routineAskTooName => '也问问';
 
   @override
   String get routineUnstart => '取消开始';
@@ -11172,7 +11198,7 @@ class LZhHant extends LZh {
 
   @override
   String routineDrift(String planned, String own) {
-    return '按週表今天是$planned日，但上次這一天是$own日 — 照搬又會是$own日';
+    return '按週表這一天是$planned日，但上次這一天是$own日 — 照搬又會是$own日';
   }
 
   @override
@@ -11188,7 +11214,7 @@ class LZhHant extends LZh {
 
   @override
   String routinePlateCost(String list) {
-    return '用1片：$list';
+    return '會用片（按用量）：$list';
   }
 
   @override
@@ -11213,6 +11239,19 @@ class LZhHant extends LZh {
   String routineFirstPlan(String factor) {
     return '第一次，所以按週表($factor)安排 · 數字邊記邊填';
   }
+
+  @override
+  String routineFirstPlanWeekend(String factor) {
+    return '第一次，所以按本週欠缺的($factor)安排 · 數字邊記邊填';
+  }
+
+  @override
+  String routineDriftKept(String planned) {
+    return '按週表這一天是$planned日，但本週$planned已練夠 — 照上次這一天安排';
+  }
+
+  @override
+  String get routineAskTooName => '也問問';
 
   @override
   String get routineUnstart => '取消開始';

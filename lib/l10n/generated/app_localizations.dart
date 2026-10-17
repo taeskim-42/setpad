@@ -5611,7 +5611,7 @@ abstract class L {
   /// **'{day} = {factor}'**
   String routineWeekdayFactor(String day, String factor);
 
-  /// 고른 날(지난주 같은 요일)의 요인이 요일표와 다를 때. 아래에 요일표 요인으로 짜는 칩이 있다.
+  /// 고른 날(지난주 같은 요일)의 요인이 요일표와 다르고 요일표 요인이 이번 주 모자랄 때. 그 요인 날이 28일 안에 있으면 아래에 요일표 요인으로 짜는 칩이 있다.
   ///
   /// In ko, this message translates to:
   /// **'요일표로는 {planned} 날인데 지난번 이 요일은 {own} 날이었어요 — 그대로 두면 또 {own} 날이 돼요'**
@@ -5635,10 +5635,10 @@ abstract class L {
   /// **'뺄 운동은 기기에서 읽었어요: {list}'**
   String routineDeviceExcluded(String list);
 
-  /// 모델에 묻는 칩(조건까지 읽기·기록 질문·이것도 물을까요)이 원판을 쓴다는 한 줄. 칩 라벨에는 원판을 붙이지 않는다.
+  /// 모델에 묻는 칩(조건까지 읽기·기록 질문·이것도 물을까요)이 원판을 쓴다는 한 줄. 값은 쓴 토큰만큼이라 수를 적지 않는다. 칩 라벨에는 원판을 붙이지 않는다.
   ///
   /// In ko, this message translates to:
-  /// **'원판 1장: {list}'**
+  /// **'원판을 써요(쓴 만큼): {list}'**
   String routinePlateCost(String list);
 
   /// 시간 어림 알약. 세트가 없는(처음 하는) 칸은 시간에 넣지 않았다.
@@ -5670,6 +5670,24 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'처음이라 요일표({factor})로 짰어요 · 숫자는 적으면서 채워요'**
   String routineFirstPlan(String factor);
+
+  /// 기록이 하나도 없는 주말의 기본 루틴. 주말은 요일표 요인이 없고 이번 주 모자란 요인으로 짠다(셈이 모두 0이라 근력부터).
+  ///
+  /// In ko, this message translates to:
+  /// **'처음이라 이번 주 모자란 요인({factor})으로 짰어요 · 숫자는 적으면서 채워요'**
+  String routineFirstPlanWeekend(String factor);
+
+  /// 고른 날의 요인이 요일표와 다르지만 요일표 요인을 이번 주 이미 다 채워 지난번 이 요일 그대로 짰다.
+  ///
+  /// In ko, this message translates to:
+  /// **'요일표로는 {planned} 날인데 이번 주 {planned} 날은 이미 채워서 지난번 이 요일 그대로 짰어요'**
+  String routineDriftKept(String planned);
+
+  /// 원판 줄(routinePlateCost)에 넣는 '이것도 물을까요' 칩의 짧은 이름. 질문은 칩에 이미 있다.
+  ///
+  /// In ko, this message translates to:
+  /// **'이것도 묻기'**
+  String get routineAskTooName;
 
   /// 루틴 카드에서 [시작] 으로 만든 기록을 거둔다. 안 한 세트뿐이면 바로 지우고, 적은 세트가 있으면 묻는다.
   ///

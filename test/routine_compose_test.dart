@@ -385,10 +385,12 @@ void main() {
           ),
         ]),
       ];
+      // 수요일(지속력) 날이 없어 첫 루틴이 먼저다 — 기록한 날은 "다른 루틴"(회전).
       final light = compose(
         {'intensity': 'light'},
         '가볍게 하고 싶어',
         notes: log,
+        edits: RoutineEdits()..alt = 1,
       ).items.single;
       // F5: 무게는 내 값 그대로, 마지막 세트 하나를 뺀다.
       expect(light.setup?.weight, 100);
@@ -522,6 +524,8 @@ void main() {
         },
         '어깨 아파서 어깨 빼고',
         notes: log,
+        // 회전 원천(이 기록) — 첫 루틴이 먼저라 "다른 루틴".
+        edits: RoutineEdits()..alt = 1,
       );
       expect(keys(avoid), isNot(contains('오버헤드프레스')));
       expect(keys(avoid), isNot(contains('민수식 로우')));
@@ -534,6 +538,8 @@ void main() {
         },
         '스쿼트 빼고',
         notes: log,
+        // 회전 원천(이 기록) — 첫 루틴이 먼저라 "다른 루틴".
+        edits: RoutineEdits()..alt = 1,
       );
       expect(keys(squat), isNot(contains('고블릿 스쿼트')));
       expect(keys(squat), isNot(contains('핵스쿼트')));
@@ -543,6 +549,8 @@ void main() {
         },
         '로우 빼고',
         notes: log,
+        // 회전 원천(이 기록) — 첫 루틴이 먼저라 "다른 루틴".
+        edits: RoutineEdits()..alt = 1,
       );
       expect(keys(row), isNot(contains('민수식 로우')));
     });
