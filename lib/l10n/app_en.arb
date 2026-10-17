@@ -937,5 +937,6 @@
   "routineClose": "Close",
   "routineDeviceExcluded": "Read on the phone — leaving out: {list}",
   "routinePlateCost": "1 plate: {list}",
-  "routineEstimateNoFirst": "~{minutes} min · not counting new ones"
+  "routineEstimateNoFirst": "~{minutes} min · not counting new ones",
+  "routineBpmChip": "To a {bpm}bpm beat"
 }

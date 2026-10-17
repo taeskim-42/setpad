@@ -3717,6 +3717,11 @@ class LZh extends L {
   String routineEstimateNoFirst(int minutes) {
     return '约$minutes分钟 · 不含第一次做的';
   }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return '按${bpm}bpm节拍';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7432,6 +7437,11 @@ class LZhHans extends LZh {
   String routineEstimateNoFirst(int minutes) {
     return '约$minutes分钟 · 不含第一次做的';
   }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return '按${bpm}bpm节拍';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11146,5 +11156,10 @@ class LZhHant extends LZh {
   @override
   String routineEstimateNoFirst(int minutes) {
     return '約$minutes分鐘 · 不含第一次做的';
+  }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return '按${bpm}bpm節拍';
   }
 }

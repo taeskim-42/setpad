@@ -3922,4 +3922,9 @@ class LEs extends L {
   String routineEstimateNoFirst(int minutes) {
     return '~$minutes min · sin contar los nuevos';
   }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return 'Al ritmo de ${bpm}bpm';
+  }
 }

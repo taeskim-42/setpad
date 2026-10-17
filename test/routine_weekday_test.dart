@@ -12,6 +12,7 @@ import 'package:setpad/routine.dart';
 import 'package:setpad/routine_card.dart'
     show factorWhy, routineLineTexts, routineWhy;
 import 'package:setpad/training_factor.dart';
+import 'package:setpad/workout_timing.dart' show TimingSpec;
 
 import '../tool/routine_grading.dart';
 import 'routine_fixture.dart';
@@ -541,6 +542,75 @@ void main() {
       expect(d.factor?.factor, Factor.power);
       expect(d.modeChips, isEmpty);
       expect(d.lines.where((x) => x.code == 'drift'), isEmpty);
+    });
+  });
+
+  group('금요일(요일표 심폐)엔 타이머 블록 칩', () {
+    final plan = {...methodPlan, 5: splitPlan[5]!};
+    final log = [
+      ...weekLog(DateTime(2026, 8, 31), 14, plan),
+      ...weekLog(DateTime(2026, 9, 14), 4, plan),
+      // 토요일에 한 맨몸 운동 — "타바타로" 가 고를 기록한 맨몸 운동.
+      at(DateTime(2026, 9, 12, 10), [
+        ExerciseBlock('버피', times(3, () => reps(15))),
+      ]),
+    ];
+    final fri = DateTime(2026, 9, 18, 18);
+
+    RoutineDraft chip(String mode) {
+      final d = composeRoutine(
+        log,
+        bare,
+        now: fri,
+        edits: RoutineEdits()..mode = mode,
+      );
+      final asked = bare.withTimer(
+        mode == 'bpm'
+            ? RoutineTimer.bpm(lastBpm(log))
+            : const RoutineTimer.tabata(),
+      );
+      expect(routineViolations(d, asked, log, '오늘 루틴 짜줘'), isEmpty);
+      return d;
+    }
+
+    test('타바타로 · 내가 쓴 bpm(30)으로 — 수 없는 bpm 을 쓰지 않는다', () {
+      final d = make(log, fri);
+      expect(d.planned, Factor.cardio);
+      expect(d.factor?.factor, Factor.strength);
+      expect(lastBpm(log), 30);
+      expect(
+        d.modeChips,
+        containsAll([(mode: 'tabata', count: null), (mode: 'bpm', count: 30)]),
+      );
+      final b = chip('bpm');
+      expect(b.planned, Factor.cardio);
+      expect(b.items, isNotEmpty);
+      expect(b.items.every((i) => i.title.contains('30bpm')), isTrue);
+      final t = chip('tabata');
+      expect(t.items, isNotEmpty);
+      expect(
+        t.items.every((i) => TimingSpec.parse(i.title)?.tabata ?? false),
+        isTrue,
+      );
+    });
+
+    test('목요일(근력)엔 타이머 칩이 없다', () {
+      final d = make(log, DateTime(2026, 9, 17, 18));
+      expect(
+        d.modeChips.where((c) => c.mode == 'tabata' || c.mode == 'bpm'),
+        isEmpty,
+      );
+    });
+
+    test('bpm 을 수 없이 적은 기록은 내 bpm 이 아니다', () {
+      expect(
+        lastBpm([
+          at(DateTime(2026, 9, 1, 19), [
+            ExerciseBlock('푸시업 bpm', times(3, () => reps(20))),
+          ]),
+        ]),
+        isNull,
+      );
     });
   });
 }

@@ -3757,4 +3757,9 @@ class LKo extends L {
   String routineEstimateNoFirst(int minutes) {
     return '약 $minutes분 · 처음 칸 빼고';
   }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return '${bpm}bpm 박자로';
+  }
 }

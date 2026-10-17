@@ -363,6 +363,11 @@ void main() {
     );
     final d = saturday();
     expect(d.target, Factor.cardio);
+    // 심폐를 채우는 날: 타이머 블록 칩 — 9/1 러닝은 타바타 날이 아니고, 내가 쓴 bpm 은 60.
+    expect(
+      d.modeChips,
+      containsAll([(mode: 'tabata', count: null), (mode: 'bpm', count: 60)]),
+    );
     expect(d.missing, [Factor.endurance, Factor.sustain]);
     expect(d.sourceDay, DateTime(2026, 9, 1));
     final alt = saturday(alt: 1);

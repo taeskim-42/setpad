@@ -1711,8 +1711,9 @@ class RoutineDraft {
   /// 그 요인의 날은 있지만 거른 칸을 빼면 그 요인 날이 아니어서 건너뛴 요인(줄로).
   final factorFiltered = <Factor>[];
 
-  /// 방식 칩: 'weekday'(지난주 ○요일처럼) · 'tabata'(타바타로) · 요인 이름(그 요인
-  /// 으로 짜기, [count] 는 이번 주 셈). 누르면 [RoutineEdits.mode].
+  /// 방식 칩: 'weekday'(지난주 ○요일처럼) · 'tabata'(타바타로) · 'bpm'(내 bpm 으로,
+  /// [count] 는 그 bpm) · 요인 이름(그 요인으로 짜기, [count] 는 이번 주 셈). 누르면
+  /// [RoutineEdits.mode].
   final modeChips = <({String mode, int? count})>[];
   final items = <RoutineItem>[];
   final removed = <RoutineRemoved>[];
@@ -1925,6 +1926,23 @@ List<Note> _fromNotes(
   return hits;
 }
 
+/// 내가 마지막으로 쓴 bpm(내 세트가 있는 칸의 제목, 10–120). 없으면 null.
+int? lastBpm(List<Note> notes) {
+  final sorted = [...notes]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  for (final n in sorted) {
+    for (final b in _mineBlocks(n)) {
+      final bpm = TimingSpec.parse(b.name)?.bpm;
+      if (bpm != null &&
+          bpm >= TimingSpec.minBpm &&
+          bpm <= TimingSpec.maxBpm &&
+          RegExp(r'\d').hasMatch(b.name)) {
+        return bpm;
+      }
+    }
+  }
+  return null;
+}
+
 /// 세트당 속도(초) — 최근 60일, 내 세트 셋 이상인 운동 중 최근 10번의
 /// (끝 − 시작) ÷ 내 세트 수의 중앙값. 10–180분이고 4시간에 잘리지 않은 것만.
 ({int pace, int sessions}) ownPace(List<Note> notes, DateTime today) {
@@ -2044,6 +2062,11 @@ RoutineDraft composeRoutine(
   final e = edits ?? RoutineEdits();
   if (e.part != null) ask = ask.withParts([e.part!]);
   if (e.mode == 'tabata') ask = ask.withTimer(const RoutineTimer.tabata());
+  // "박자로" 칩: 내가 마지막으로 쓴 bpm 을 수로 적어 붙인다(수 없는 "bpm" 은 120 으로
+  // 읽힌다 — 지어낸 템포다).
+  if (e.mode == 'bpm') {
+    if (lastBpm(notes) case final b?) ask = ask.withTimer(RoutineTimer.bpm(b));
+  }
   final today = _day(now ?? DateTime.now());
   // 달력 날로 더한다 — 24시간을 더하면 서머타임이 끝나는 날 하루가 어긋난다.
   DateTime plus(int n) => DateTime(today.year, today.month, today.day + n);
@@ -2534,7 +2557,20 @@ RoutineDraft composeRoutine(
         if (factorOn[d] != null && merged(factorOn[d]!) == f && usable(d)) d,
     ]..sort(byRest);
     DateTime ago(int n) => DateTime(day.year, day.month, day.day - n);
+    // 심폐 날(요일표의 금요일, 주말에 모자란 심폐)엔 타이머 블록 칩 — 타바타, 그리고 내가
+    // 쓴 적 있는 bpm. 고른 날이 이미 타바타 날이면 타바타 칩은 없다.
+    void timerChips() {
+      bool has(String m) => draft.modeChips.any((c) => c.mode == m);
+      if (draft.factor?.read.why != 'tabata' && !has('tabata')) {
+        draft.modeChips.add((mode: 'tabata', count: null));
+      }
+      if (lastBpm(notes) case final b? when !has('bpm')) {
+        draft.modeChips.add((mode: 'bpm', count: b));
+      }
+    }
+
     final w1 = [for (var k = 1; k <= 4; k++) ago(7 * k)];
+    var wantTimers = false;
     if (mode == 'weekday') {
       // W1 같은 요일 1–4주 전(최근 것부터) → W2 지난 몇 주의 이웃 요일(±1). 어제·그제는
       // 이웃이 아니다 — 어제 한 것을 오늘 다시 권하게 된다.
@@ -2582,9 +2618,9 @@ RoutineDraft composeRoutine(
           ]),
         );
       }
-      if (draft.missing.contains(Factor.cardio)) {
-        draft.modeChips.add((mode: 'tabata', count: null));
-      }
+      wantTimers =
+          draft.missing.contains(Factor.cardio) ||
+          draft.target == Factor.cardio;
       if (usable(ago(7))) draft.modeChips.add((mode: 'weekday', count: null));
     }
     final others = [
@@ -2648,6 +2684,7 @@ RoutineDraft composeRoutine(
                 last,
               ).where((f) => short(f) && daysOf(f).isNotEmpty).firstOrNull
             : null;
+        wantTimers = planned == Factor.cardio;
         if (chip != null) {
           draft.modeChips.add((mode: chip.name, count: counts[chip]));
           if (chip == planned && own != null) {
@@ -2675,6 +2712,7 @@ RoutineDraft composeRoutine(
         }
       }
     }
+    if (wantTimers) timerChips();
   }
 
   if (draft.source == 'none' ||

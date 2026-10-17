@@ -3867,4 +3867,9 @@ class LVi extends L {
   String routineEstimateNoFirst(int minutes) {
     return '~$minutes phút · chưa tính bài mới';
   }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return 'Theo nhịp ${bpm}bpm';
+  }
 }

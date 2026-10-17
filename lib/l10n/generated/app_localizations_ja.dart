@@ -3750,4 +3750,9 @@ class LJa extends L {
   String routineEstimateNoFirst(int minutes) {
     return '約$minutes分 · 初めての種目を除く';
   }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return '${bpm}bpmのテンポで';
+  }
 }

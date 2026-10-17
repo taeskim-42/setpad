@@ -312,6 +312,7 @@ class RoutineCard extends StatelessWidget {
             (
               label: switch (c.mode) {
                 'tabata' => l.routineTabataChip,
+                'bpm' => l.routineBpmChip(c.count ?? 0),
                 'weekday' => l.routineLikeLastWeek(l.weekdayLabel(d.day)),
                 final f => l.routineFactorChip(f, c.count ?? 0),
               },

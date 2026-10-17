@@ -937,5 +937,6 @@
   "routineClose": "ปิด",
   "routineDeviceExcluded": "อ่านในเครื่องแล้ว — ไม่เอา: {list}",
   "routinePlateCost": "ใช้ 1 แผ่น: {list}",
-  "routineEstimateNoFirst": "ประมาณ {minutes} นาที · ไม่นับท่าใหม่"
+  "routineEstimateNoFirst": "ประมาณ {minutes} นาที · ไม่นับท่าใหม่",
+  "routineBpmChip": "ตามจังหวะ {bpm}bpm"
 }

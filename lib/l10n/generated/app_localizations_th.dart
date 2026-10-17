@@ -3838,4 +3838,9 @@ class LTh extends L {
   String routineEstimateNoFirst(int minutes) {
     return 'ประมาณ $minutes นาที · ไม่นับท่าใหม่';
   }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return 'ตามจังหวะ ${bpm}bpm';
+  }
 }

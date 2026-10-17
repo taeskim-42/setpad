@@ -79,6 +79,9 @@ List<String> routineViolations(
   final typedNumbers = {
     for (final x in statedNumbers(text)) x.value,
     if (ask.timer != null) ...[20, 10, 8],
+    // "박자로" 칩의 bpm 은 내가 쓴 템포다(lastBpm) — 모델 답의 bpm 은 디코더가 글에 있는
+    // 수만 받는다.
+    ?ask.timer?.bpm,
   };
   bool weighed(({double? value, String unit, int? reps}) s) =>
       s.value != null && (s.unit == 'kg' || s.unit == 'lb');

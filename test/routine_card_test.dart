@@ -1229,6 +1229,8 @@ void main() {
       find.textContaining('${l.routineFactor('strength')} 1'),
       findsOneWidget,
     );
+    // 내가 쓴 bpm(목요일 30bpm)으로 짜는 칩도 — 수를 적는다.
+    expect(find.text(l.routineBpmChip(30)), findsOneWidget);
     await tester.tap(find.text(l.routineTabataChip));
     await tester.pumpAndSettle();
     expect(find.textContaining('타바타'), findsWidgets);

@@ -5646,6 +5646,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'약 {minutes}분 · 처음 칸 빼고'**
   String routineEstimateNoFirst(int minutes);
+
+  /// 심폐 날 방식 칩: 내가 마지막으로 쓴 bpm 으로 박자 타이머를 붙여 짠다.
+  ///
+  /// In ko, this message translates to:
+  /// **'{bpm}bpm 박자로'**
+  String routineBpmChip(int bpm);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {
