@@ -3852,4 +3852,9 @@ class LVi extends L {
 
   @override
   String get routineClose => 'Đóng';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return 'Đã đọc trên máy — bỏ: $list';
+  }
 }

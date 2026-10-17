@@ -934,5 +934,6 @@
   "routineWeekdayFactor": "{day} = {factor}",
   "routineDrift": "Theo lịch tuần hôm nay là {planned}, nhưng lần trước ngày này là {own} — chép lại sẽ lại là {own}",
   "routineWeekendDetail": "Cuối tuần · bù yếu tố tuần này còn thiếu",
-  "routineClose": "Đóng"
+  "routineClose": "Đóng",
+  "routineDeviceExcluded": "Đã đọc trên máy — bỏ: {list}"
 }

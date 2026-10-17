@@ -934,5 +934,6 @@
   "routineWeekdayFactor": "{day} = {factor}",
   "routineDrift": "按週表今天是{planned}日，但上次這一天是{own}日 — 照搬又會是{own}日",
   "routineWeekendDetail": "週末 · 補本週缺的要素",
-  "routineClose": "關閉"
+  "routineClose": "關閉",
+  "routineDeviceExcluded": "已在手機上讀出要去掉的動作：{list}"
 }

@@ -3735,4 +3735,9 @@ class LJa extends L {
 
   @override
   String get routineClose => '閉じる';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return '除く種目は端末で読みました: $list';
+  }
 }

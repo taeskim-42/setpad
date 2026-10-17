@@ -5628,6 +5628,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'닫기'**
   String get routineClose;
+
+  /// 모델을 못 쓸 때 기기가 'X 말고' 의 X(운동 이름)를 읽어 뺐다. 이 줄 다음에 조건을 못 읽은 까닭 줄이 온다.
+  ///
+  /// In ko, this message translates to:
+  /// **'뺄 운동은 기기에서 읽었어요: {list}'**
+  String routineDeviceExcluded(String list);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -686,10 +686,7 @@ class _NotesListPageState extends State<NotesListPage>
           label: l.routineNoConditions,
           selected: false,
           onTap: () => setState(
-            () => _device = (
-              text,
-              RoutineAsk(when: readWhen(text), device: true),
-            ),
+            () => _device = (text, deviceAsk(text, _recorded, bare: true)),
           ),
         ),
       if (conditions && !medicalText(text))
@@ -857,7 +854,7 @@ class _NotesListPageState extends State<NotesListPage>
     RoutineAction plain() => (
       label: l.routineNoConditions,
       onTap: () => setState(
-        () => _device = (text, RoutineAsk(when: readWhen(text), device: true)),
+        () => _device = (text, deviceAsk(text, recorded, bare: true)),
       ),
     );
     // 원판이 없으면 로그인·Pro 권유(기존 문구)를 카드 위에.
@@ -897,10 +894,7 @@ class _NotesListPageState extends State<NotesListPage>
         actions.add((
           label: l.routineMake,
           onTap: () => setState(
-            () => _device = (
-              text,
-              RoutineAsk(when: readWhen(text), device: true),
-            ),
+            () => _device = (text, deviceAsk(text, recorded, bare: true)),
           ),
         ));
       }
@@ -968,7 +962,9 @@ class _NotesListPageState extends State<NotesListPage>
             actions.add(plain());
             return bare();
           }
-          if (unreadableConditions(text)) {
+          // 뺄 운동 이름만 있는 글("스쿼트 말고 하체")은 기기가 읽는다 — 막다른 길이 없다.
+          if (unreadableConditions(text) &&
+              !deviceReadsConditions(text, recorded)) {
             status.add(
               mine && r.aiOff
                   ? l.aiOff
@@ -986,6 +982,9 @@ class _NotesListPageState extends State<NotesListPage>
             return bare();
           }
           ask = deviceAsk(text, recorded);
+          if (ask.exclude.isNotEmpty) {
+            status.add(l.routineDeviceExcluded(ask.exclude.join('·')));
+          }
           status.add(
             mine && r.aiOff
                 ? l.aiOff

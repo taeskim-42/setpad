@@ -934,5 +934,6 @@
   "routineWeekdayFactor": "{day} = {factor}",
   "routineDrift": "El plan semanal dice {planned} hoy, pero este día la última vez fue {own} — copiarlo repite {own}",
   "routineWeekendDetail": "Fin de semana · lo que le falta a esta semana",
-  "routineClose": "Cerrar"
+  "routineClose": "Cerrar",
+  "routineDeviceExcluded": "Leído en el teléfono — sin: {list}"
 }

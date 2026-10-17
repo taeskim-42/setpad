@@ -1490,27 +1490,91 @@ String? _backToOriginal(
   return text.substring(hit.first.$3, hit.last.$4).trim();
 }
 
+// Exclusion words the device can read. Korean·Japanese put the name before the
+// word ("스쿼트 말고"); English·Chinese·Spanish put it after ("without squats").
+final _excludeAfterName = _re(r'말고|빼고|빼서|빼줘|빼 줘|없이|제외(?:하고)?|なしで|抜きで|以外');
+final _excludeBeforeName = _re(
+  r'\bwithout\b|\bskip\b|\bexcept\b|\bno\b|除了|不要|\bsin\b',
+);
+final _clauseBreak = _re(r'[,，.。;!?？]|그리고|\s하고\s|\band\b');
+
+/// 기기가 읽는 뺄 운동: "X 말고·빼고·없이·제외" 의 X 가 기록·사전 운동 이름이면 뺀다
+/// (모델을 못 써도 "스쿼트 말고" 가 스쿼트를 넣지 않게). [rest] 는 이름을 읽어 낸
+/// 빼기 낱말을 지운 글이다 — 거기에 빼기·아픈 곳 낱말이 남으면 다 읽지 못한 것이다.
+({List<String> names, String rest}) readExcludes(
+  String text,
+  List<String> recorded,
+) {
+  final pool = {...recorded, ...seedNames('ko')}.toList();
+  final names = <String>[];
+  final cut = <(int, int)>[];
+  final words = [
+    ..._excludeAfterName.allMatches(text).map((m) => (m, true)),
+    ..._excludeBeforeName.allMatches(text).map((m) => (m, false)),
+  ]..sort((a, b) => a.$1.start.compareTo(b.$1.start));
+  for (final (i, (m, after)) in words.indexed) {
+    // The name sits between this word and the previous/next word or clause break.
+    final int from, to;
+    if (after) {
+      final lo = i == 0 ? 0 : words[i - 1].$1.end;
+      final breaks = _clauseBreak
+          .allMatches(text.substring(lo, m.start))
+          .map((b) => lo + b.end);
+      from = breaks.isEmpty ? lo : breaks.last;
+      to = m.start;
+    } else {
+      final hi = i + 1 < words.length ? words[i + 1].$1.start : text.length;
+      final stop = _clauseBreak.firstMatch(text.substring(m.end, hi));
+      from = m.end;
+      to = stop == null ? hi : m.end + stop.start;
+    }
+    final found = namedExercises(text.substring(from, to), pool, fuzzy: false);
+    if (found.isEmpty) continue;
+    for (final n in found) {
+      if (!names.contains(n)) names.add(n);
+    }
+    // Only the word is cut: whatever else the clause says (아파서) must still count.
+    cut.add((m.start, m.end));
+  }
+  var rest = text;
+  for (final (a, b) in cut.reversed) {
+    rest = '${rest.substring(0, a)} ${rest.substring(b)}';
+  }
+  return (names: names, rest: rest);
+}
+
+/// 기기가 이 글의 빼기·아픈 곳 조건을 다 읽을 수 있는가 — 뺄 운동 이름만 있는 글.
+bool deviceReadsConditions(String text, List<String> recorded) =>
+    !unreadableConditions(readExcludes(text, recorded).rest);
+
 /// 모델 없이 글에서 읽은 요청 — 맨 요청, 이름만 친 칩, 모델을 못 쓸 때.
-/// 앞날·부위 낱말과 글에 정확히 적힌 운동만 읽는다. 빼기·아픈 곳 낱말은 읽지
-/// 않는다 — 그런 글은 [unreadableConditions] 가 카드 대신 까닭을 보이게 한다.
+/// 앞날·부위 낱말과 글에 정확히 적힌 운동, 이름을 댄 뺄 운동([readExcludes])만
+/// 읽는다. 아픈 곳·부위 빼기는 읽지 않는다 — 그런 글은 [unreadableConditions] 가
+/// 카드 대신 까닭을 보이게 한다. [bare] 는 조건 없이 짜기지만, 이름을 댄 뺄 운동은
+/// 그래도 뺀다("스쿼트 말고" 의 "조건 없이 바로 짜기" 가 스쿼트를 넣지 않게).
 RoutineAsk deviceAsk(String text, List<String> recorded, {bool bare = false}) {
   final when = readWhen(text);
+  final excluded = readExcludes(text, recorded).names;
   if (bare) {
     return RoutineAsk(
       when: when,
+      exclude: excluded,
       device: true,
-      keys: {if (when != null) 'when'},
+      keys: {if (when != null) 'when', if (excluded.isNotEmpty) 'exclude'},
     );
   }
   final parts = readParts(text);
   final pool = {...recorded, ...seedNames('ko')}.toList();
+  final out = {for (final n in excluded) exerciseKey(n)};
   final names = [
-    for (final n in namedExercises(text, pool, fuzzy: false)) exerciseKey(n),
+    for (final n in namedExercises(text, pool, fuzzy: false))
+      if (!out.contains(exerciseKey(n))) exerciseKey(n),
   ];
   return RoutineAsk(
     when: when,
     parts: parts,
     exercises: names,
+    exclude: excluded,
     named: names.toSet(),
     // 의료 글은 기기가 짜지 않는다(G3) — 어느 길로 와도 시작할 카드가 없다.
     refused: medicalText(text) ? const {'medical': ''} : const {},
@@ -1519,6 +1583,7 @@ RoutineAsk deviceAsk(String text, List<String> recorded, {bool bare = false}) {
       if (when != null) 'when',
       if (parts.isNotEmpty) 'parts',
       if (names.isNotEmpty) 'exercises',
+      if (excluded.isNotEmpty) 'exclude',
     },
   );
 }

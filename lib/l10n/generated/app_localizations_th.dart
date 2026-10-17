@@ -3823,4 +3823,9 @@ class LTh extends L {
 
   @override
   String get routineClose => 'ปิด';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return 'อ่านในเครื่องแล้ว — ไม่เอา: $list';
+  }
 }

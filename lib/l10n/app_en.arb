@@ -934,5 +934,6 @@
   "routineWeekdayFactor": "{day} = {factor}",
   "routineDrift": "The weekly plan says {planned} today, but this weekday last time was {own} — copying it repeats {own}",
   "routineWeekendDetail": "Weekend · fills what this week is short of",
-  "routineClose": "Close"
+  "routineClose": "Close",
+  "routineDeviceExcluded": "Read on the phone — leaving out: {list}"
 }

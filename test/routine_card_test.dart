@@ -431,7 +431,8 @@ void main() {
   });
 
   group('G1: 모델을 못 쓰면 빼기·아픈 곳 글로 [시작] 카드를 띄우지 않는다', () {
-    final texts = ['어깨 아파서 어깨 빼고', '스쿼트 말고', '하체 근육통 심함 하체 빼줘'];
+    // 이름을 댄 뺄 운동("스쿼트 말고")은 기기가 읽는다(아래) — 여기는 이름 없는 빼기.
+    final texts = ['어깨 아파서 어깨 빼고', '무릎 쓰는 거 말고', '하체 근육통 심함 하체 빼줘'];
     // 검토#10 까닭마다 제 말: 연결 · 원판 없음 · 답을 읽지 못함.
     final modes = <String, (RecordAi, String)>{
       '연결': (
@@ -464,6 +465,25 @@ void main() {
       }
     }
 
+    testWidgets('뺄 운동 이름만 있으면 기기가 빼고 짠다 — "조건 없이" 가 스쿼트를 넣지 않는다', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        ai: RecordAi(respond: (_, _) async => throw Exception('offline')),
+      );
+      await type(tester, '스쿼트 말고 하체 짜줘', enter: true);
+      expect(startButton(), findsOneWidget);
+      expect(find.text(l.routineDeviceExcluded('스쿼트')), findsOneWidget);
+      expect(find.text(l.routineOffline), findsOneWidget);
+      expect(find.text('스쿼트'), findsNothing);
+      expect(
+        find.text(l.routineRemoved('스쿼트', l.routineRemovedWhy('named'))),
+        findsOneWidget,
+      );
+      expect(find.text('레그프레스'), findsOneWidget);
+    });
+
     testWidgets('빼기 낱말이 없으면 기기가 읽은 것으로 짜고 까닭을 말한다', (tester) async {
       await pump(
         tester,
@@ -494,8 +514,9 @@ void main() {
       expect(find.text(l.routineOffline), findsNothing);
       expect(find.text(l.routineRetry), findsNothing, reason: '다시 눌러도 같다');
       expect(startButton(), findsOneWidget);
-      // 빼기 글은 기기가 조건을 못 읽으니 [시작] 없이 까닭과 조건 없이 짜기만(G1).
-      await type(tester, '스쿼트 말고', enter: true);
+      // 이름 없는 빼기 글은 기기가 조건을 못 읽으니 [시작] 없이 까닭과 조건 없이
+      // 짜기만(G1).
+      await type(tester, '무릎 쓰는 거 말고', enter: true);
       expect(sent, isEmpty);
       expect(find.text(l.aiOff), findsOneWidget);
       expect(find.text(l.routineHeldBack('offline')), findsNothing);
@@ -677,12 +698,12 @@ void main() {
         },
       ),
     );
-    await type(tester, '스쿼트 말고', enter: true);
+    await type(tester, '무릎 쓰는 거 말고', enter: true);
     await tester.tap(find.text(l.routineRetry));
     await tester.pumpAndSettle();
     expect(asked, 2);
     await type(tester, '하체 루틴');
-    await type(tester, '스쿼트 말고', enter: true);
+    await type(tester, '무릎 쓰는 거 말고', enter: true);
     // 깨진 답을 두 번 받은 글은 보내지 않는다 — 이번엔 원판이 나가지 않았다.
     expect(asked, 2);
     await tester.tap(find.text(l.routineNoConditions));
@@ -780,7 +801,7 @@ void main() {
           },
         ),
       );
-      await type(tester, '스쿼트 말고 하체 짜줘', enter: true);
+      await type(tester, '무릎 쓰는 거 말고 하체 짜줘', enter: true);
       expect(startButton(), findsNothing);
       expect(find.text(l.routineHeldBack('misread')), findsOneWidget);
       expect(find.text(l.routineRetry), findsOneWidget);
@@ -987,7 +1008,7 @@ void main() {
       tester,
       ai: RecordAi(respond: (_, _) async => {'type': 'json_object'}),
     );
-    await type(tester, '스쿼트 말고 하체 짜줘', enter: true);
+    await type(tester, '무릎 쓰는 거 말고 하체 짜줘', enter: true);
     await tester.tap(find.text(l.routineNoConditions));
     await tester.pumpAndSettle();
     expect(startButton(), findsOneWidget);

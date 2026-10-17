@@ -3702,6 +3702,11 @@ class LZh extends L {
 
   @override
   String get routineClose => '关闭';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return '已在手机上读出要去掉的动作：$list';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7402,6 +7407,11 @@ class LZhHans extends LZh {
 
   @override
   String get routineClose => '关闭';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return '已在手机上读出要去掉的动作：$list';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11102,4 +11112,9 @@ class LZhHant extends LZh {
 
   @override
   String get routineClose => '關閉';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return '已在手機上讀出要去掉的動作：$list';
+  }
 }

@@ -3879,4 +3879,9 @@ class LEn extends L {
 
   @override
   String get routineClose => 'Close';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return 'Read on the phone — leaving out: $list';
+  }
 }

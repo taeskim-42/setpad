@@ -3907,4 +3907,9 @@ class LEs extends L {
 
   @override
   String get routineClose => 'Cerrar';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return 'Leído en el teléfono — sin: $list';
+  }
 }

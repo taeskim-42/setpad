@@ -3742,4 +3742,9 @@ class LKo extends L {
 
   @override
   String get routineClose => '닫기';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return '뺄 운동은 기기에서 읽었어요: $list';
+  }
 }
