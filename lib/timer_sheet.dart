@@ -167,17 +167,20 @@ class _TimerSheetState extends State<TimerSheet> {
         ),
       ),
     );
-    return SafeArea(
-      top: false,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+    // The ground runs under the home indicator; only the content keeps
+    // clear of it.
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+      ),
+      child: Container(
+        key: const ValueKey('timer-sheet-ground'),
+        decoration: BoxDecoration(
+          color: CupertinoColors.systemBackground.resolveFrom(context),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: CupertinoColors.systemBackground.resolveFrom(context),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-          ),
+        child: SafeArea(
+          top: false,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -296,7 +299,9 @@ class _TimerSheetState extends State<TimerSheet> {
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
-                                  l.timerTotalLine(timerClock(_spec!.duration)),
+                                  l.timerTotalLine(
+                                    timerClock(_spec!.shownSeconds),
+                                  ),
                                   maxLines: 2,
                                   style: TextStyle(
                                     fontSize: 13,
@@ -712,7 +717,10 @@ class TimerMiniBar extends StatelessWidget {
         child: spec.tabata
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(4),
+                // Stretch: a ColoredBox with no child takes the least
+                // height a loose box allows — none.
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Expanded(
                       flex: spec.work,

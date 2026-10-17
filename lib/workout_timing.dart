@@ -136,7 +136,8 @@ class TimingSpec {
 
   /// One card line: "20s work · 10s rest × 8 · 3:53", "60 BPM · Target 30".
   String summary(L l, {int? target}) => [
-    if (tabata) l.timerSummaryTabata(work, rest, rounds, timerClock(duration)),
+    if (tabata)
+      l.timerSummaryTabata(work, rest, rounds, timerClock(shownSeconds)),
     if (bpm != null)
       [
         l.timingBpm(bpm!),
@@ -157,6 +158,10 @@ class TimingSpec {
   /// rest unless [tail].
   int get duration =>
       3 + work * rounds + rest * (rounds - 1) + (tail ? rest : 0);
+
+  /// The workout's length on screen (card, sheet, strip, summary): without
+  /// the 3 s ready, so every place shows the same total.
+  int get shownSeconds => duration - 3;
 
   static final _bpmWord = RegExp(
     r'(?<![a-z])bpm(?![a-z])',

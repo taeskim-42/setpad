@@ -87,7 +87,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('운동 20초 · 휴식 10초 × 8 · 3:53'), findsOneWidget);
+    expect(find.text('운동 20초 · 휴식 10초 × 8 · 3:50'), findsOneWidget);
     expect(find.textContaining('준비'), findsNothing);
     // The old row was 4 + 44 + 6.
     expect(
@@ -257,7 +257,7 @@ void main() {
     await finish(tester);
   });
 
-  testWidgets('완료하면 카드에 "완료 · 8라운드 · 3:53 [적기 ▸][↺]", 적기는 무대 요약, ↺ 는 대기', (
+  testWidgets('완료하면 카드에 "완료 · 8라운드 · 3:50 [적기 ▸][↺]", 적기는 무대 요약, ↺ 는 대기', (
     tester,
   ) async {
     final c = RoutineEditorController()
@@ -277,7 +277,7 @@ void main() {
     await fold(tester);
     await advance(tester, const Duration(seconds: 233));
     expect(timer.phase, TimingPhase.complete);
-    expect(find.text('완료 · 8라운드 · 3:53'), findsOneWidget);
+    expect(find.text('완료 · 8라운드 · 3:50'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('timer-log-now')));
     await tester.pumpAndSettle();
     expect(find.byType(RunPage), findsOneWidget);
@@ -474,7 +474,7 @@ void main() {
         if (paused) {
           expect(timer.elapsed, greaterThan(Duration.zero));
         } else {
-          expect(find.text('완료 · 8라운드 · 3:53'), findsOneWidget);
+          expect(find.text('완료 · 8라운드 · 3:50'), findsOneWidget);
           // Logged: nothing is lost any more, the sheet may change it.
           await tester.tap(find.byKey(const ValueKey('timer-log-now')));
           await tester.pumpAndSettle();
@@ -764,17 +764,63 @@ void main() {
     }
   });
 
+  testWidgets('미니 띠는 8pt 로 보이고, 큰 글자에선 띠·요약이 한 줄·알약은 그 아래 왼쪽, '
+      '완료 [적기 ▸] 는 ↺ 바로 옆 오른쪽 끝', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    Widget strip(double scale) => app(
+      TimerStrip(
+        owner: 'card',
+        spec: tabata,
+        timer: timer,
+        link: RunLink(timer),
+        onStart: () {},
+        onOpen: () {},
+        onEdit: () {},
+      ),
+      scale: scale,
+    );
+    await tester.pumpWidget(strip(1));
+    final segments = find.descendant(
+      of: find.byType(TimerMiniBar),
+      matching: find.byType(ColoredBox),
+    );
+    expect(segments, findsNWidgets(2));
+    for (var i = 0; i < 2; i++) {
+      expect(tester.getSize(segments.at(i)).height, 8);
+    }
+
+    await tester.pumpWidget(strip(1.5));
+    final bar = tester.getRect(find.byType(TimerMiniBar));
+    final summary = tester.getRect(find.byKey(const ValueKey('timer-summary')));
+    final start = tester.getRect(find.byKey(const ValueKey('timer-start')));
+    expect(bar.center.dy, inInclusiveRange(summary.top, summary.bottom));
+    expect(start.top, greaterThanOrEqualTo(summary.bottom));
+    expect(start.left, moreOrLessEquals(bar.left, epsilon: 1));
+
+    timer.toggle('card', tabata);
+    await advance(tester, Duration(seconds: tabata.duration));
+    expect(timer.phase, TimingPhase.complete);
+    await tester.pumpWidget(strip(1));
+    expect(find.text('완료 · 8라운드 · 3:50'), findsOneWidget);
+    final log = tester.getRect(find.byKey(const ValueKey('timer-log-now')));
+    final reset = tester.getRect(find.byKey(const ValueKey('timer-reset')));
+    expect(log.right, moreOrLessEquals(reset.left, epsilon: 1));
+    await finish(tester);
+  });
+
   test('summary: 타바타·박자·목표, 둘 다면 " · "', () async {
     final l = await L.delegate.load(const Locale('ko'));
     expect(
       const TimingSpec(tabata: true).summary(l),
-      '운동 20초 · 휴식 10초 × 8 · 3:53',
+      '운동 20초 · 휴식 10초 × 8 · 3:50',
     );
     expect(const TimingSpec(bpm: 60).summary(l, target: 30), '60 BPM · 목표 30회');
     expect(const TimingSpec(bpm: 60).summary(l), '60 BPM');
     expect(
       const TimingSpec(tabata: true, bpm: 100, rounds: 2).summary(l),
-      '운동 20초 · 휴식 10초 × 2 · 0:53 · 100 BPM',
+      '운동 20초 · 휴식 10초 × 2 · 0:50 · 100 BPM',
     );
   });
 }

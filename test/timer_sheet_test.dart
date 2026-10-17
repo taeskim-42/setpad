@@ -70,6 +70,34 @@ void main() {
     });
   });
 
+  testWidgets('시트 바탕은 홈 인디케이터 밑까지 깔리고, 총 시간은 준비 3초를 뺀다', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    tester.view.padding = const FakeViewPadding(bottom: 34);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        supportedLocales: L.supportedLocales,
+        localizationsDelegates: L.localizationsDelegates,
+        home: const Align(
+          alignment: Alignment.bottomCenter,
+          child: TimerSheet(name: '버피 타바타 20/10 x8', target: 0),
+        ),
+      ),
+    );
+    expect(find.text('총 3:50'), findsOneWidget);
+    // The ground reaches the screen's bottom; the content stays above the
+    // home indicator.
+    final ground = find.byKey(const ValueKey('timer-sheet-ground'));
+    expect(tester.getRect(ground).bottom, 852);
+    final content = find.descendant(
+      of: find.descendant(of: ground, matching: find.byType(SafeArea)),
+      matching: find.byType(Column),
+    );
+    expect(tester.getRect(content.first).bottom, lessThanOrEqualTo(852 - 34));
+  });
+
   late WorkoutTimer timer;
   setUp(
     () => timer = WorkoutTimer(
