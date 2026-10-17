@@ -19,6 +19,20 @@ class FakeHealth extends HealthLink {
 
   /// 누가 심박을 받고 있는가.
   bool get watched => _beats.hasListener;
+
+  /// A background read refused.
+  void fail() => _beats.addError(StateError('refused'));
+}
+
+/// Every feed ends at once (a poll that gave up).
+class EndedHealth extends HealthLink {
+  EndedHealth() : super(platform: TargetPlatform.android);
+  var opened = 0;
+  @override
+  Stream<HeartBeat> beats({Duration poll = const Duration(seconds: 10)}) {
+    opened++;
+    return const Stream.empty();
+  }
 }
 
 class SilentAudio extends TimingAudio {
@@ -129,6 +143,27 @@ void main() {
     expect(health.watched, isTrue);
     await push(160);
     expect(recovery.bpm, 160);
+  });
+
+  test('받기가 오류로 끊기면 다음 listen 이 다시 붙는다', () async {
+    health.fail();
+    await Future<void>.delayed(Duration.zero);
+    expect(recovery.listening, isFalse);
+    expect(health.watched, isFalse);
+    recovery.listen();
+    expect(health.watched, isTrue);
+    await push(150);
+    expect(recovery.bpm, 150);
+  });
+
+  test('받기가 끝나도 다음 listen 이 다시 붙는다', () async {
+    final ended = EndedHealth();
+    final r = RestRecovery(health: ended)..listen();
+    addTearDown(r.dispose);
+    await Future<void>.delayed(Duration.zero);
+    expect(r.listening, isFalse);
+    r.listen();
+    expect(ended.opened, 2);
   });
 
   test('심박은 타바타가 도는 동안에만 쓴다', () {

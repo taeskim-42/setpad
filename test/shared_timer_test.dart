@@ -707,4 +707,27 @@ void main() {
       jun.timer.dispose();
     });
   });
+
+  test('같이 하는 타바타는 233초에 끝나고, 교대는 마지막 휴식(상대 차례)까지 간다', () {
+    SharedTimer shared({required bool alternate}) => SharedTimer(
+      seq: 1,
+      title: '버피 타바타',
+      spec: tabata,
+      alternate: alternate,
+      mine: true,
+      startAt: 0,
+    );
+    final together = shared(alternate: false);
+    expect(together.personal.tail, isFalse);
+    expect(together.personal.duration, 233);
+    expect(together.overAt(232999), isFalse);
+    expect(together.overAt(233000), isTrue);
+    final turns = shared(alternate: true);
+    expect(turns.personal.tail, isTrue);
+    expect(turns.personal.rest, 40);
+    // 3 + (20 + 40) × 8: my last rest is the partner's last turn.
+    expect(turns.personal.duration, 483);
+    expect(turns.overAt(482999), isFalse);
+    expect(turns.overAt(483000), isTrue);
+  });
 }

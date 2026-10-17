@@ -6,10 +6,11 @@ external JSPromise<JSAny?> _configure(
   JSBoolean active,
   JSNumber bpm,
   JSString cue,
+  JSNumber? phase,
 );
 
 @JS('setpadTiming.speak')
-external void _speak(JSString text, JSString locale);
+external void _speak(JSString text, JSString locale, JSNumber rate);
 
 TimingAudio createTimingAudio() => _WebAudio();
 
@@ -21,13 +22,18 @@ class _WebAudio extends TimingAudio {
     String? cue,
     double? phase,
   }) async {
-    await _configure(active.toJS, (bpm ?? 0).toJS, (cue ?? '').toJS).toDart;
+    await _configure(
+      active.toJS,
+      (bpm ?? 0).toJS,
+      (cue ?? '').toJS,
+      phase?.toJS,
+    ).toDart;
   }
 
   @override
   Future<void> speak(String text, String locale, {double rate = 1.15}) async {
     try {
-      _speak(text.toJS, locale.toJS);
+      _speak(text.toJS, locale.toJS, rate.toJS);
     } catch (_) {
       /* 브라우저가 음성 합성을 막아 두었다. 박자는 계속 간다. */
     }

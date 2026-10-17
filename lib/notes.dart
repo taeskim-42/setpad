@@ -538,6 +538,10 @@ class NotesStore extends ChangeNotifier {
   bool _countAloud = false;
   bool get countAloud => _countAloud;
 
+  /// Timer haptics along with its cues. On by default; a screen-on extra.
+  bool _hapticsOn = true;
+  bool get hapticsOn => _hapticsOn;
+
   /// 내 몸 정보(기초대사량 셈에만). 기기 밖으로 보내지 않는다.
   BodyProfile _body = const BodyProfile();
   BodyProfile get body => _body;
@@ -737,6 +741,7 @@ class NotesStore extends ChangeNotifier {
           if (saved is String && saved.length >= 16) _deviceId = saved;
           _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
           _countAloud = data['countAloud'] == true;
+          _hapticsOn = data['hapticsOn'] != false;
           _body = BodyProfile.fromJson(data['body']);
           _bodyRecords = [
             for (final r in (data['bodyRecords'] as List? ?? const []))
@@ -884,6 +889,7 @@ class NotesStore extends ChangeNotifier {
     final preferences = jsonEncode({
       'weightUnit': _weightUnit,
       'countAloud': _countAloud,
+      'hapticsOn': _hapticsOn,
       'body': _body.toJson(),
       if (_bodyRecords.isNotEmpty)
         'bodyRecords': [for (final r in _bodyRecords) r.toJson()],
@@ -932,6 +938,13 @@ class NotesStore extends ChangeNotifier {
   void setCountAloud(bool value) {
     if (value == _countAloud) return;
     _countAloud = value;
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  void setHapticsOn(bool value) {
+    if (value == _hapticsOn) return;
+    _hapticsOn = value;
     notifyListeners();
     _scheduleSave();
   }

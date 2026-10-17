@@ -248,12 +248,19 @@ bool _isCondition(String word) {
       _conditionWords.hasMatch(stripParticle(bare));
 }
 
+/// Tabata rounds ("x8", "× 8", "8라운드") — the count is group 1 or 2. An x
+/// right after a number is set notation ("3x10", "3 x 10"), not rounds, unless
+/// that number closes an interval ("20/10 x6"). [TimingSpec.roundsPattern] and
+/// [timerTokens] both use this one pattern.
+const timerRoundsPattern =
+    r'(?<!(?:^|[^/／\d\s])\s*\d+\s*)[x×]\s*(\d+)|(\d+)\s*(?:라운드|rounds?|ラウンド)';
+
 /// 타이머 토큰(60bpm, bpm 60, 30/15, x8, 10라운드). 글의 수가 모두 여기 쓰였으면
 /// 그 글은 타이머 이름이라 묻지 않고 바로 만든다.
 final timerTokens = RegExp(
   '$tempoPattern|'
-  r'\d+\s*(?:초|s|sec)?\s*[/／]\s*\d+\s*(?:초|s|sec)?|[x×]\s*\d+|'
-  r'\d+\s*(?:라운드|rounds?|ラウンド)',
+  r'\d+\s*(?:초|s|sec)?\s*[/／]\s*\d+\s*(?:초|s|sec)?|'
+  '$timerRoundsPattern',
   caseSensitive: false,
 );
 

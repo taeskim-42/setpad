@@ -349,18 +349,7 @@ const _topKeys = {..._seriesKeys, ..._planKeys};
 /// 10라운드')은 타이머 토큰과 타바타·bpm 낱말을 뺀 이름이다 — 타이머는 `timer`
 /// 거름으로만 남는다. 타이머 제목이 아니면 그대로다.
 String statName(String title) {
-  if (TimingSpec.parse(title) == null) return title.trim();
-  final bare = title
-      .replaceAll(timerTokens, ' ')
-      .replaceAll(
-        RegExp(
-          r'타바타|タバタ|(?<![a-z])tabata(?![a-z])|(?<![a-z])bpm(?![a-z])',
-          caseSensitive: false,
-        ),
-        ' ',
-      )
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .trim();
+  final bare = TimingSpec.removeFrom(title);
   return bare.isEmpty ? title.trim() : bare;
 }
 

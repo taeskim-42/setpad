@@ -138,13 +138,14 @@ void main() {
       expect(d.items[1].sets.first.unit, 'lb');
     });
 
-    test('r-034 10분 타바타 → 타바타 두 칸 = 8분 6초', () {
+    test('r-034 10분 타바타 → 10분에 가장 가까운 타바타 세 칸 = 11분 39초(칸마다 233초)', () {
       final d = compose({
         'minutes': 10,
         'timer': {'kind': 'tabata'},
       }, '10분 타바타로 끝내자');
-      expect(d.items, hasLength(2));
-      expect(d.seconds, 486);
+      // 233 s a block: three (699 s) are nearer 600 than two (466 s).
+      expect(d.items, hasLength(3));
+      expect(d.seconds, 699);
       expect(d.items.first.key, '버피');
       for (final i in d.items) {
         expect(TimingSpec.parse(i.title)?.tabata, isTrue, reason: i.title);

@@ -1,6 +1,14 @@
 abstract class TimingAudio {
   void Function()? onInterrupted;
 
+  /// The interruption that paused the timer is over and the system says play
+  /// may resume (iOS interruption ended with shouldResume).
+  void Function()? onResumed;
+
+  /// Builds the speech engine and cue players ahead of time, silently. Safe to
+  /// call any number of times.
+  Future<void> warmUp() async {}
+
   /// [phase]: how far into the current beat the timer is, in seconds. The
   /// click loop starts there, so after a pause or a re-sync the clicks stay on
   /// the timer's beat grid instead of restarting from wherever play() lands.
