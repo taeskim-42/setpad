@@ -381,4 +381,29 @@ void main() {
       expect(unreadableConditions('하체로 짜줘'), isFalse);
     });
   });
+
+  group('기기가 읽는 뺄 운동(모델을 못 써도)', () {
+    const recorded = ['스쿼트', '레그프레스', '벤치프레스'];
+    List<String> names(String t) => readExcludes(t, recorded).names;
+    test('이름 뒤의 빼기 낱말', () {
+      expect(names('스쿼트 말고 하체'), ['스쿼트']);
+      expect(names('스쿼트랑 레그프레스 빼고'), ['스쿼트', '레그프레스']);
+      expect(names('벤치 하고 스쿼트 말고'), ['스쿼트']);
+      expect(names('without squat, legs'), ['스쿼트']);
+      expect(names('무릎 쓰는 거 말고'), isEmpty);
+    });
+    test('다 읽었는가: 이름 없는 빼기·아픈 곳이 남으면 아니다', () {
+      expect(deviceReadsConditions('스쿼트 말고 하체 짜줘', recorded), isTrue);
+      expect(deviceReadsConditions('무릎 아파서 스쿼트 말고', recorded), isFalse);
+      expect(deviceReadsConditions('어깨 빼고', recorded), isFalse);
+    });
+    test('deviceAsk: 뺀 운동은 지목한 운동이 아니다, 맨 요청도 뺀다', () {
+      final a = deviceAsk('스쿼트 말고 하체', recorded);
+      expect(a.exclude, ['스쿼트']);
+      expect(a.exercises, isEmpty);
+      expect(a.parts, ['legs']);
+      expect(a.keys, containsAll(['exclude', 'parts']));
+      expect(deviceAsk('스쿼트 말고 짜줘', recorded, bare: true).exclude, ['스쿼트']);
+    });
+  });
 }

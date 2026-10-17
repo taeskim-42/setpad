@@ -9,6 +9,7 @@ import 'package:setpad/notes.dart';
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/record_query.dart' show recordedExercises;
 import 'package:setpad/routine.dart';
+import 'package:setpad/training_factor.dart';
 import 'package:setpad/workout_timing.dart';
 
 import '../tool/routine_grading.dart';
@@ -235,14 +236,61 @@ void main() {
         'delta': {'value': 5, 'unit': 'kg'},
       }, '저번 하체 +5kg');
       expect(d.sourceDay, DateTime(2026, 9, 2));
-      expect(d.items.first.sets.map((s) => s.value), [65, 97.5, 97.5, 97.5]);
+      // 몸풀기 60kg 은 그대로 — 작업 세트만 +5(검토 #12).
+      expect(d.items.first.sets.map((s) => s.value), [60, 97.5, 97.5, 97.5]);
+      expect(d.items.first.setup, isNull);
     });
 
-    test('r-124 기록 0 → 처음, 고를 칩(숫자 없음, D1)', () {
-      final d = compose({}, '헬스 처음인데 뭐 해야 돼', notes: const []);
-      expect(d.items, isEmpty);
-      expect(d.addable, starterExercises);
-      expect(codes(d), contains('firstTime'));
+    test('r-124 기록 0 → 요일표로 짠 처음 루틴(숫자 없음) + 고를 칩(검토 #7)', () {
+      const text = '헬스 처음인데 뭐 해야 돼';
+      final d = compose({}, text, notes: const []);
+      // 9/9 수요일 = 지속력: 머신으로 같은 횟수 여러 세트 하기 좋은 하체·가슴·등.
+      expect(d.source, 'first');
+      expect(d.target, Factor.sustain);
+      expect(keys(d), firstWeekExercises[Factor.sustain]);
+      expect(d.items.every((i) => i.sets.isEmpty && i.why == 'first'), isTrue);
+      expect(d.seconds, 0);
+      expect(d.startable, isTrue);
+      expect(d.addable, ['스쿼트', '벤치프레스', '랫풀다운', '오버헤드프레스', '플랭크']);
+      expect(codes(d), contains('firstPlan'));
+      expect(
+        routineViolations(
+          d,
+          decodeRoutineAsk({}, text, const [], today: today),
+          const [],
+          text,
+        ),
+        isEmpty,
+      );
+      // 금요일은 심폐, 주말은 근력(모두 0 이라 근력부터), ✕ 는 그 칸만 뺀다.
+      RoutineDraft on(DateTime t, [RoutineEdits? e]) => composeRoutine(
+        const [],
+        const RoutineAsk(device: true),
+        now: t,
+        edits: e,
+      );
+      expect(
+        keys(on(DateTime(2026, 9, 11, 9))),
+        firstWeekExercises[Factor.cardio],
+      );
+      expect(
+        keys(on(DateTime(2026, 9, 12, 9))),
+        firstWeekExercises[Factor.strength],
+      );
+      final mon = DateTime(2026, 9, 14, 9);
+      final cut = RoutineEdits()..removed.add(removalKey(on(mon), '벤치프레스'));
+      expect(keys(on(mon, cut)), ['스쿼트', '바벨로우']);
+      // 조건이 있으면 기본 루틴이 아니다(고를 칩).
+      expect(
+        compose(
+          {
+            'parts': ['legs'],
+          },
+          '하체',
+          notes: const [],
+        ).items,
+        isEmpty,
+      );
     });
 
     test('기록 없는 근육 성장 목표도 맞는 운동을 골라 시작할 수 있다', () {
@@ -1080,5 +1128,85 @@ void main() {
     for (final k in exercisePattern.keys) {
       expect(exerciseByName[k.toLowerCase()], isNotNull, reason: k);
     }
+  });
+
+  group('숫자 손질(검토 #12·#13·#16)', () {
+    test('증감은 작업 세트에만: 맨 무거운 세트 앞의 몸풀기는 그대로, 뒤의 백오프는 작업 세트', () {
+      final log = [
+        session('b', 9, 7, [
+          ExerciseBlock('벤치프레스', [
+            kg(60, 10),
+            kg(85, 3),
+            kg(82.5, 5),
+            kg(82.5, 5),
+          ]),
+        ]),
+      ];
+      final d = compose(
+        {
+          'from': {},
+          'delta': {'value': 2.5, 'unit': 'kg'},
+        },
+        '지난번이랑 같은데 2.5키로씩 더',
+        notes: log,
+      );
+      expect(d.items.single.sets.map((s) => s.value), [60, 87.5, 85, 85]);
+      expect(
+        routineViolations(
+          d,
+          decodeRoutineAsk(
+            {
+              'from': {},
+              'delta': {'value': 2.5, 'unit': 'kg'},
+            },
+            '지난번이랑 같은데 2.5키로씩 더',
+            recordedExercises(log),
+            today: today,
+          ),
+          log,
+          '지난번이랑 같은데 2.5키로씩 더',
+        ),
+        isEmpty,
+      );
+    });
+
+    test('처음 하는 칸(세트 없음)은 시간 어림에 넣지 않는다', () {
+      final d = compose(
+        const RoutineAsk(
+          exercises: ['케틀벨 스윙', '벤치프레스'],
+          named: {'케틀벨 스윙', '벤치프레스'},
+          device: true,
+          keys: {'exercises'},
+        ),
+        '케틀벨 스윙이랑 벤치',
+      );
+      final first = d.items.firstWhere((i) => i.sets.isEmpty);
+      expect(first.seconds, 0);
+      expect(d.seconds, d.items.fold(0, (a, i) => a + i.seconds));
+      expect(d.seconds, greaterThan(0));
+    });
+
+    test('최고 기록은 단위가 섞여도 kg 로 견준다', () {
+      final log = [
+        session('a', 9, 1, [
+          ExerciseBlock('벤치프레스', times(3, () => kg(100, 3))),
+        ]),
+        session('b', 9, 7, [
+          ExerciseBlock('벤치프레스', times(3, () => lb(235, 2))),
+        ]),
+      ];
+      final d = composeRoutine(
+        log,
+        const RoutineAsk(
+          from: {},
+          intensity: 'max',
+          keys: {'from', 'intensity'},
+        ),
+        now: today,
+      );
+      final best = d.items.single.reference!;
+      expect(best.best, isTrue);
+      expect(best.sets.single, (value: 235.0, unit: 'lb', reps: 2));
+    });
   });
 }

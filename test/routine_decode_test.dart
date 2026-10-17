@@ -1,6 +1,9 @@
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/record_query.dart' show recordedExercises;
 import 'package:setpad/routine.dart';
+import 'package:setpad/routine_card.dart' show routineLineTexts;
 
 import 'routine_fixture.dart';
 
@@ -104,7 +107,7 @@ void main() {
       }, '덤벨만 있고 바벨·벤치는 없어 스미스는 있어');
       expect(a.only, {'dumbbell'});
       expect(a.without, {'barbell', 'bench'});
-      expect(a.dropped.single.args, ['smith']);
+      expect(a.dropped.single.args, ['equipment']);
     });
 
     test('흔한 이름은 고친다: deload→light, normal→없음, pullupBar→bar, 러닝머신→러닝(G8)', () {
@@ -128,7 +131,7 @@ void main() {
       }, '가슴 등 어깨 팔 다 하고 허리 아파');
       expect(a.parts, hasLength(3));
       expect(a.pain, '');
-      expect(a.dropped.single.args, ['arms']);
+      expect(a.dropped.single.args, ['parts']);
     });
   });
 
@@ -480,5 +483,24 @@ void main() {
     }, '벤치 하고 싶은데 덤벨만 있어');
     expect(a.named, contains('벤치프레스'));
     expect(a.named, isNot(contains('스쿼트')));
+  });
+
+  test('못 맞춘 값은 날값(JSON)이 아니라 키 이름으로, 키마다 한 줄', () {
+    final a = decode({
+      'when': 9,
+      'from': {
+        'mood': {'days': 3},
+      },
+      'parts': ['hips', 'wings'],
+    }, '지난번 그대로');
+    expect(
+      [for (final x in a.dropped) '${x.code}${x.args}'],
+      ['unmet[when]', 'unmet[from]', 'unmet[parts]'],
+    );
+    final l = lookupL(const Locale('ko'));
+    expect(routineLineTexts(l, a.dropped.first), [
+      l.routineUnmet(l.routineKeyName('when')),
+    ]);
+    expect(routineLineTexts(l, const RoutineLine('mystery', [1])), isEmpty);
   });
 }

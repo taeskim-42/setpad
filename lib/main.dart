@@ -535,7 +535,7 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     final note =
         started ??
         (_store.create(
-          blocks: mine.blocks,
+          blocks: inWeightUnit(mine.blocks, _store.weightUnit),
           gymId: mine.gymId,
           routineId: mine.id,
         )..owner = _account.userId);

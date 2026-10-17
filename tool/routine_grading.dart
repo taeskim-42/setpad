@@ -79,6 +79,9 @@ List<String> routineViolations(
   final typedNumbers = {
     for (final x in statedNumbers(text)) x.value,
     if (ask.timer != null) ...[20, 10, 8],
+    // "박자로" 칩의 bpm 은 내가 쓴 템포다(lastBpm) — 모델 답의 bpm 은 디코더가 글에 있는
+    // 수만 받는다.
+    ?ask.timer?.bpm,
   };
   bool weighed(({double? value, String unit, int? reps}) s) =>
       s.value != null && (s.unit == 'kg' || s.unit == 'lb');
@@ -101,7 +104,12 @@ List<String> routineViolations(
         !inText) {
       out.add('C1 $k');
     }
-    if (!recordedKeys.contains(k) && !ask.named.contains(k) && !ask.device) {
+    // 첫 주 기본 루틴(source first)은 앱의 요일표 운동이다 — 모델이 고른 것이 아니고
+    // 숫자가 없다(C5 가 본다).
+    if (!recordedKeys.contains(k) &&
+        !ask.named.contains(k) &&
+        !ask.device &&
+        d.source != 'first') {
       out.add('C1/D1 기록에 없고 말하지 않은 $k');
     }
     // C2 뺄 것.

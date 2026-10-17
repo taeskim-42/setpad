@@ -2551,17 +2551,17 @@ class LEs extends L {
 
   @override
   String routineAskToo(String text) {
-    return 'Preguntar también: $text · discos';
+    return 'Preguntar también: $text';
   }
 
   @override
-  String get routineAsQuestion => 'Preguntar sobre el registro · discos';
+  String get routineAsQuestion => 'Preguntar sobre el registro';
 
   @override
   String get routineNoConditions => 'Armar ya sin condiciones';
 
   @override
-  String get routineWithConditions => 'Leer también las condiciones · discos';
+  String get routineWithConditions => 'Leer también las condiciones';
 
   @override
   String get routineMake => 'Armar la rutina de hoy';
@@ -3776,4 +3776,61 @@ class LEs extends L {
 
   @override
   String get allExercises => 'Todos los registros';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return 'El plan semanal dice $planned hoy, pero este día la última vez fue $own — copiarlo repite $own';
+  }
+
+  @override
+  String get routineWeekendDetail =>
+      'Fin de semana · lo que le falta a esta semana';
+
+  @override
+  String get routineClose => 'Cerrar';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return 'Leído en el teléfono — sin: $list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '1 disco: $list';
+  }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '~$minutes min · sin contar los nuevos';
+  }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return 'Al ritmo de ${bpm}bpm';
+  }
+
+  @override
+  String get routineSwap => 'Cambiar';
+
+  @override
+  String routineSwapTitle(String name) {
+    return 'En lugar de $name: misma zona y equipo, hecho en los últimos 28 días';
+  }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return 'Es la primera vez: sigue el plan semanal ($factor) · los números se llenan al registrar';
+  }
+
+  @override
+  String get routineUnstart => 'Cancelar inicio';
+
+  @override
+  String get routineUnstartAsk =>
+      'Este entrenamiento tiene series registradas. ¿Eliminarlo también?';
 }

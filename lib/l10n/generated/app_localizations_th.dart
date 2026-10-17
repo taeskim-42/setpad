@@ -2504,17 +2504,17 @@ class LTh extends L {
 
   @override
   String routineAskToo(String text) {
-    return 'ถามด้วย: $text · แผ่น';
+    return 'ถามด้วย: $text';
   }
 
   @override
-  String get routineAsQuestion => 'ถามเป็นคำถามบันทึก · แผ่น';
+  String get routineAsQuestion => 'ถามเป็นคำถามบันทึก';
 
   @override
   String get routineNoConditions => 'จัดเลยโดยไม่มีเงื่อนไข';
 
   @override
-  String get routineWithConditions => 'อ่านเงื่อนไขด้วย · แผ่น';
+  String get routineWithConditions => 'อ่านเงื่อนไขด้วย';
 
   @override
   String get routineMake => 'จัดรูทีนวันนี้';
@@ -3689,4 +3689,59 @@ class LTh extends L {
 
   @override
   String get allExercises => 'บันทึกทั้งหมด';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return 'ตามตารางสัปดาห์วันนี้คือ$planned แต่วันนี้ครั้งก่อนเป็น$own — ถ้าคัดลอกจะเป็น$ownอีก';
+  }
+
+  @override
+  String get routineWeekendDetail => 'สุดสัปดาห์ · เติมสิ่งที่สัปดาห์นี้ยังขาด';
+
+  @override
+  String get routineClose => 'ปิด';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return 'อ่านในเครื่องแล้ว — ไม่เอา: $list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return 'ใช้ 1 แผ่น: $list';
+  }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return 'ประมาณ $minutes นาที · ไม่นับท่าใหม่';
+  }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return 'ตามจังหวะ ${bpm}bpm';
+  }
+
+  @override
+  String get routineSwap => 'เปลี่ยน';
+
+  @override
+  String routineSwapTitle(String name) {
+    return 'แทน $name — ท่าส่วนเดียวกันและอุปกรณ์เดียวกันที่ทำใน 28 วันที่ผ่านมา';
+  }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return 'ครั้งแรกเลยจัดตามตารางสัปดาห์ ($factor) · ตัวเลขเติมระหว่างจด';
+  }
+
+  @override
+  String get routineUnstart => 'ยกเลิกการเริ่ม';
+
+  @override
+  String get routineUnstartAsk => 'บันทึกนี้มีเซ็ตที่จดแล้ว จะลบบันทึกด้วยไหม?';
 }

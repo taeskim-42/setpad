@@ -2454,17 +2454,17 @@ class LJa extends L {
 
   @override
   String routineAskToo(String text) {
-    return 'これも聞く: $text · プレート';
+    return 'これも聞く: $text';
   }
 
   @override
-  String get routineAsQuestion => '記録の質問として聞く · プレート';
+  String get routineAsQuestion => '記録の質問として聞く';
 
   @override
   String get routineNoConditions => '条件なしですぐ組む';
 
   @override
-  String get routineWithConditions => '条件まで読んで組む · プレート';
+  String get routineWithConditions => '条件まで読んで組む';
 
   @override
   String get routineMake => '今日のルーティンを作る';
@@ -3605,4 +3605,59 @@ class LJa extends L {
 
   @override
   String get allExercises => 'すべての記録';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return '週間表では$plannedの日ですが、前回のこの曜日は$ownの日でした — そのままだとまた$ownの日になります';
+  }
+
+  @override
+  String get routineWeekendDetail => '週末 · 今週足りない要素で';
+
+  @override
+  String get routineClose => '閉じる';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return '除く種目は端末で読みました: $list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return 'プレート1枚: $list';
+  }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '約$minutes分 · 初めての種目を除く';
+  }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return '${bpm}bpmのテンポで';
+  }
+
+  @override
+  String get routineSwap => '替える';
+
+  @override
+  String routineSwapTitle(String name) {
+    return '$nameの代わりに — 最近28日にやった同じ部位・器具の種目';
+  }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return '初めてなので週間表($factor)で組みました · 数字は記録しながら埋めます';
+  }
+
+  @override
+  String get routineUnstart => '開始を取り消す';
+
+  @override
+  String get routineUnstartAsk => 'この記録には記入済みのセットがあります。記録ごと削除しますか?';
 }

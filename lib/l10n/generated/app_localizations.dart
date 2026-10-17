@@ -3753,13 +3753,13 @@ abstract class L {
   /// No description provided for @routineAskToo.
   ///
   /// In ko, this message translates to:
-  /// **'이것도 물을까요: {text} · 원판'**
+  /// **'이것도 물을까요: {text}'**
   String routineAskToo(String text);
 
   /// No description provided for @routineAsQuestion.
   ///
   /// In ko, this message translates to:
-  /// **'기록 질문으로 묻기 · 원판'**
+  /// **'기록 질문으로 묻기'**
   String get routineAsQuestion;
 
   /// No description provided for @routineNoConditions.
@@ -3771,7 +3771,7 @@ abstract class L {
   /// No description provided for @routineWithConditions.
   ///
   /// In ko, this message translates to:
-  /// **'조건까지 읽어 짜기 · 원판'**
+  /// **'조건까지 읽어 짜기'**
   String get routineWithConditions;
 
   /// No description provided for @routineMake.
@@ -5442,6 +5442,84 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'모든 운동'**
   String get allExercises;
+
+  /// 요일표(repstack)의 이 요일 요인 알약 — '월요일 = 근력'.
+  ///
+  /// In ko, this message translates to:
+  /// **'{day} = {factor}'**
+  String routineWeekdayFactor(String day, String factor);
+
+  /// 고른 날(지난주 같은 요일)의 요인이 요일표와 다를 때. 아래에 요일표 요인으로 짜는 칩이 있다.
+  ///
+  /// In ko, this message translates to:
+  /// **'요일표로는 {planned} 날인데 지난번 이 요일은 {own} 날이었어요 — 그대로 두면 또 {own} 날이 돼요'**
+  String routineDrift(String planned, String own);
+
+  /// 홈의 '오늘 루틴' 줄 둘째 줄(주말). 평일은 routineWeekdayFactor.
+  ///
+  /// In ko, this message translates to:
+  /// **'주말 · 이번 주 모자란 요인으로'**
+  String get routineWeekendDetail;
+
+  /// 홈의 '오늘 루틴' 줄로 연 카드를 닫는 칩.
+  ///
+  /// In ko, this message translates to:
+  /// **'닫기'**
+  String get routineClose;
+
+  /// 모델을 못 쓸 때 기기가 'X 말고' 의 X(운동 이름)를 읽어 뺐다. 이 줄 다음에 조건을 못 읽은 까닭 줄이 온다.
+  ///
+  /// In ko, this message translates to:
+  /// **'뺄 운동은 기기에서 읽었어요: {list}'**
+  String routineDeviceExcluded(String list);
+
+  /// 모델에 묻는 칩(조건까지 읽기·기록 질문·이것도 물을까요)이 원판을 쓴다는 한 줄. 칩 라벨에는 원판을 붙이지 않는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'원판 1장: {list}'**
+  String routinePlateCost(String list);
+
+  /// 시간 어림 알약. 세트가 없는(처음 하는) 칸은 시간에 넣지 않았다.
+  ///
+  /// In ko, this message translates to:
+  /// **'약 {minutes}분 · 처음 칸 빼고'**
+  String routineEstimateNoFirst(int minutes);
+
+  /// 심폐 날 방식 칩: 내가 마지막으로 쓴 bpm 으로 박자 타이머를 붙여 짠다.
+  ///
+  /// In ko, this message translates to:
+  /// **'{bpm}bpm 박자로'**
+  String routineBpmChip(int bpm);
+
+  /// 루틴 칸을 같은 부위·같은 기구의 다른 운동으로 바꾸는 단추(✕ 옆).
+  ///
+  /// In ko, this message translates to:
+  /// **'바꾸기'**
+  String get routineSwap;
+
+  /// '바꾸기' 시트 제목. 고르면 그 운동을 마지막으로 한 날의 내 세트가 든다.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name} 대신 — 최근 28일에 한 같은 부위·기구 운동'**
+  String routineSwapTitle(String name);
+
+  /// 기록이 하나도 없을 때의 기본 루틴: 요일표 요인의 사전 운동을 숫자 없이 넣었다.
+  ///
+  /// In ko, this message translates to:
+  /// **'처음이라 요일표({factor})로 짰어요 · 숫자는 적으면서 채워요'**
+  String routineFirstPlan(String factor);
+
+  /// 루틴 카드에서 [시작] 으로 만든 기록을 거둔다. 안 한 세트뿐이면 바로 지우고, 적은 세트가 있으면 묻는다.
+  ///
+  /// In ko, this message translates to:
+  /// **'시작 취소'**
+  String get routineUnstart;
+
+  /// 시작 취소를 눌렀는데 시작한 기록에 해낸 세트가 있을 때 묻는 말. [취소]/[삭제].
+  ///
+  /// In ko, this message translates to:
+  /// **'이 기록에 적은 세트가 있어요. 기록까지 지울까요?'**
+  String get routineUnstartAsk;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

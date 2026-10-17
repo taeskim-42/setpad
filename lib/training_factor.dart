@@ -44,10 +44,23 @@ const factorGoal = {
   Factor.cardio: 1,
 };
 
+/// The repstack weekday table (memory routine-fitness-factors): Mon strength,
+/// Tue endurance, Wed sustain, Thu strength, Fri cardio. Weekends have no fixed
+/// factor — they fill the factor this week is short of.
+const weekdayFactor = {
+  DateTime.monday: Factor.strength,
+  DateTime.tuesday: Factor.endurance,
+  DateTime.wednesday: Factor.sustain,
+  DateTime.thursday: Factor.strength,
+  DateTime.friday: Factor.cardio,
+};
+
 Factor merged(Factor f) => f == Factor.power ? Factor.strength : f;
 
+// 채우기 낱말. "총 100개"·"total 100"·"reach 100" 처럼 횟수 목표일 때만 — "총 3세트"·
+// "오버헤드 reach" 는 채우기가 아니다.
 final _fillWord = RegExp(
-  r'채우|총\s?\d|\btotal\b|\breach\b',
+  r'채우|총\s?\d+\s?(개|회|번|reps?\b)|\btotal\b(?!\s*\d+\s*sets?\b)|\breach\s?\d',
   caseSensitive: false,
 );
 const _minutes = {'s': 1 / 60, 'min': 1.0, 'h': 60.0};

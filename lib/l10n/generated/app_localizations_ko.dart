@@ -2458,17 +2458,17 @@ class LKo extends L {
 
   @override
   String routineAskToo(String text) {
-    return '이것도 물을까요: $text · 원판';
+    return '이것도 물을까요: $text';
   }
 
   @override
-  String get routineAsQuestion => '기록 질문으로 묻기 · 원판';
+  String get routineAsQuestion => '기록 질문으로 묻기';
 
   @override
   String get routineNoConditions => '조건 없이 바로 짜기';
 
   @override
-  String get routineWithConditions => '조건까지 읽어 짜기 · 원판';
+  String get routineWithConditions => '조건까지 읽어 짜기';
 
   @override
   String get routineMake => '오늘 루틴 만들기';
@@ -3610,4 +3610,59 @@ class LKo extends L {
 
   @override
   String get allExercises => '모든 운동';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return '요일표로는 $planned 날인데 지난번 이 요일은 $own 날이었어요 — 그대로 두면 또 $own 날이 돼요';
+  }
+
+  @override
+  String get routineWeekendDetail => '주말 · 이번 주 모자란 요인으로';
+
+  @override
+  String get routineClose => '닫기';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return '뺄 운동은 기기에서 읽었어요: $list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '원판 1장: $list';
+  }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '약 $minutes분 · 처음 칸 빼고';
+  }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return '${bpm}bpm 박자로';
+  }
+
+  @override
+  String get routineSwap => '바꾸기';
+
+  @override
+  String routineSwapTitle(String name) {
+    return '$name 대신 — 최근 28일에 한 같은 부위·기구 운동';
+  }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return '처음이라 요일표($factor)로 짰어요 · 숫자는 적으면서 채워요';
+  }
+
+  @override
+  String get routineUnstart => '시작 취소';
+
+  @override
+  String get routineUnstartAsk => '이 기록에 적은 세트가 있어요. 기록까지 지울까요?';
 }

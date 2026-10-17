@@ -2520,17 +2520,17 @@ class LVi extends L {
 
   @override
   String routineAskToo(String text) {
-    return 'Hỏi thêm: $text · bánh tạ';
+    return 'Hỏi thêm: $text';
   }
 
   @override
-  String get routineAsQuestion => 'Hỏi như câu hỏi nhật ký · bánh tạ';
+  String get routineAsQuestion => 'Hỏi như câu hỏi nhật ký';
 
   @override
   String get routineNoConditions => 'Xếp ngay không điều kiện';
 
   @override
-  String get routineWithConditions => 'Đọc cả điều kiện · bánh tạ';
+  String get routineWithConditions => 'Đọc cả điều kiện';
 
   @override
   String get routineMake => 'Xếp bài hôm nay';
@@ -3718,4 +3718,60 @@ class LVi extends L {
 
   @override
   String get allExercises => 'Tất cả bản ghi';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return 'Theo lịch tuần hôm nay là $planned, nhưng lần trước ngày này là $own — chép lại sẽ lại là $own';
+  }
+
+  @override
+  String get routineWeekendDetail => 'Cuối tuần · bù yếu tố tuần này còn thiếu';
+
+  @override
+  String get routineClose => 'Đóng';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return 'Đã đọc trên máy — bỏ: $list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '1 bánh tạ: $list';
+  }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '~$minutes phút · chưa tính bài mới';
+  }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return 'Theo nhịp ${bpm}bpm';
+  }
+
+  @override
+  String get routineSwap => 'Đổi';
+
+  @override
+  String routineSwapTitle(String name) {
+    return 'Thay cho $name — cùng vùng cơ và dụng cụ, đã tập trong 28 ngày qua';
+  }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return 'Lần đầu nên xếp theo lịch tuần ($factor) · số liệu điền khi ghi';
+  }
+
+  @override
+  String get routineUnstart => 'Hủy bắt đầu';
+
+  @override
+  String get routineUnstartAsk =>
+      'Buổi tập này có hiệp đã ghi. Xóa luôn buổi tập?';
 }

@@ -40,6 +40,8 @@ class RoutineCard extends StatelessWidget {
     this.onPart,
     this.onStep,
     this.onMode,
+    this.onSwap,
+    this.onUnstart,
     this.spent,
     this.lang = 'ko',
   });
@@ -62,6 +64,12 @@ class RoutineCard extends StatelessWidget {
 
   /// 방식 칩([RoutineDraft.modeChips]) — 누르면 [RoutineEdits.mode].
   final void Function(String mode)? onMode;
+
+  /// 시작 취소 — 시작한 카드에서만.
+  final VoidCallback? onUnstart;
+
+  /// "바꾸기" — 칸을 [RoutineItem.swaps] 의 운동으로 바꾼다.
+  final void Function(RoutineItem item, String key)? onSwap;
 
   /// 원판 줄(서버가 답했을 때만). 없으면 기기가 짠 것 — "원판 0장".
   final String? spent;
@@ -137,14 +145,27 @@ class RoutineCard extends StatelessWidget {
         ),
       _ => null,
     };
-    // 최근 7일 요인 셈(모자란 요인으로 짠 날만).
-    final counts = switch (d.weekCounts) {
-      final c? when d.source == 'factor' => l.routineWeekCounts(
-        '${date(DateTime(d.day.year, d.day.month, d.day.day - 6))}–'
-        '${date(d.future ? d.today : d.day)}',
-        [for (final e in c.entries) '${l.routineFactor(e.key.name)} ${e.value}']
-            .join(' · '),
+    // 이 요일의 요인(요일표): "월요일 = 근력".
+    final planned = switch (d.planned) {
+      final f? => l.routineWeekdayFactor(
+        l.weekdayLabel(d.day),
+        l.routineFactor(f.name),
       ),
+      null => null,
+    };
+    // 최근 7일 요인 셈 — 모자란 요인으로 짠 날(주말)과 요일표에서 벗어난 날엔 왜 이
+    // 날인지의 핵심이라 알약으로 올린다.
+    final counts = switch (d.weekCounts) {
+      final c?
+          when d.source == 'factor' || d.lines.any((x) => x.code == 'drift') =>
+        l.routineWeekCounts(
+          '${date(DateTime(d.day.year, d.day.month, d.day.day - 6))}–'
+          '${date(d.future ? d.today : d.day)}',
+          [
+            for (final e in c.entries)
+              '${l.routineFactor(e.key.name)} ${e.value}',
+          ].join(' · '),
+        ),
       _ => null,
     };
     final rest = d.partRest.entries
@@ -164,7 +185,6 @@ class RoutineCard extends StatelessWidget {
         if (line.code != 'recentMemo') ...routineLineTexts(l, line),
     ];
     final details = [
-      ?counts,
       if (rest.isNotEmpty) l.routinePartRest(rest.join(' · ')),
       if (d.items.isNotEmpty) pace,
       ...memos,
@@ -201,9 +221,17 @@ class RoutineCard extends StatelessWidget {
           spacing: 6,
           runSpacing: 6,
           children: [
+            if (planned != null) _Pill(planned),
             if (factor != null) _Pill(factor),
-            if (d.items.isNotEmpty) _Pill(l.routineEstimate(d.minutes)),
+            // 세트 없는 칸(처음)은 시간에 넣지 않았다 — 그렇다고 말하고, 다 처음이면 뺀다.
+            if (d.seconds > 0)
+              _Pill(
+                d.items.any((i) => i.sets.isEmpty)
+                    ? l.routineEstimateNoFirst(d.minutes)
+                    : l.routineEstimate(d.minutes),
+              ),
             if (why != null) _Pill(why),
+            if (counts != null) _Pill(counts),
           ],
         ),
       ),
@@ -264,6 +292,7 @@ class RoutineCard extends StatelessWidget {
             (
               label: switch (c.mode) {
                 'tabata' => l.routineTabataChip,
+                'bpm' => l.routineBpmChip(c.count ?? 0),
                 'weekday' => l.routineLikeLastWeek(l.weekdayLabel(d.day)),
                 final f => l.routineFactorChip(f, c.count ?? 0),
               },
@@ -291,6 +320,16 @@ class RoutineCard extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
+              if (started && onUnstart != null)
+                CupertinoButton(
+                  padding: const EdgeInsets.only(left: 12),
+                  minimumSize: const Size(44, 44),
+                  onPressed: onUnstart,
+                  child: Text(
+                    l.routineUnstart,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
               const SizedBox(width: 12),
               // 원판을 쓴 때만 적는다 — 기기가 짠 루틴의 '원판 0장' 은 읽을 것이 없다.
               if (spent case final s?) Expanded(child: Text(s, style: faint)),
@@ -385,6 +424,14 @@ class RoutineCard extends StatelessWidget {
               ],
             ),
           ),
+          // 같은 부위·같은 기구의 다른 운동으로(숫자는 그 운동의 내 세트).
+          if (onSwap != null && i.swaps.isNotEmpty && i.why != 'record')
+            CupertinoButton(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              minimumSize: const Size(44, 44),
+              onPressed: () => _pickSwap(context, l, i),
+              child: Text(l.routineSwap, style: const TextStyle(fontSize: 13)),
+            ),
           // 시작한 기록에만 있는 칸은 ✕ 가 없다 — 카드에서 뺄 것이 없다(기록에서 뺀다).
           if (onRemove != null && i.why != 'record')
             CupertinoButton(
@@ -402,6 +449,36 @@ class RoutineCard extends StatelessWidget {
       ),
     );
   }
+}
+
+extension on RoutineCard {
+  /// 바꿀 운동 고르기 — 시트에 운동과 그 운동의 내 세트(옮겨 올 숫자)를 보인다.
+  Future<void> _pickSwap(BuildContext context, L l, RoutineItem i) =>
+      showCupertinoModalPopup<void>(
+        context: context,
+        builder: (sheet) => CupertinoActionSheet(
+          title: Text(l.routineSwapTitle(_label(i.title))),
+          actions: [
+            for (final s in i.swaps)
+              CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.of(sheet).pop();
+                  onSwap!(i, s.key);
+                },
+                child: Text(
+                  [
+                    _name(s.key),
+                    if (s.sets.isNotEmpty) setsText(l, s.sets),
+                  ].join(' · '),
+                ),
+              ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.of(sheet).pop(),
+            child: Text(l.cancel),
+          ),
+        ),
+      );
 }
 
 /// 짠 루틴의 요약 알약 하나(순발력 날 · 약 61분 · 지난주 금요일 그대로).
@@ -624,7 +701,8 @@ String? routineWhy(L l, RoutineDraft d) {
   };
 }
 
-/// 카드 줄 하나의 문구(화면 언어). 줄이 없어지는 일은 없다 — 모르는 줄은 코드를 보인다.
+/// 카드 줄 하나의 문구(화면 언어). 모르는 줄은 숨긴다 — 코드(`code[args]`)를 사람에게
+/// 보이지 않는다(조건이 빠졌는지는 C12·C13 채점이 줄 목록으로 본다).
 List<String> routineLineTexts(L l, RoutineLine line) {
   final a = line.args;
   String s(int i) => '${a[i]}';
@@ -633,8 +711,10 @@ List<String> routineLineTexts(L l, RoutineLine line) {
     'refused' => [l.routineRefused(s(0))],
     'notComputable' => notComputableLines(l, (a[0] as List).cast<String>()),
     'notStated' => [l.routineNotStated(s(0))],
-    'unmet' => [l.routineUnmet(s(0))],
-    'unmetKey' || 'heldKey' => [l.routineUnmet(l.routineKeyName(s(0)))],
+    // 못 맞춘 조건은 키 이름으로 — 모델이 낸 날값(JSON)을 보이지 않는다.
+    'unmet' ||
+    'unmetKey' ||
+    'heldKey' => [l.routineUnmet(l.routineKeyName(s(0)))],
     'unknownName' => [l.routineUnknownName(s(0))],
     'noSuchDay' => [l.routineNoSuchDay],
     'excludeAbsent' => [l.routineExcludeAbsent(s(0))],
@@ -665,6 +745,7 @@ List<String> routineLineTexts(L l, RoutineLine line) {
             ),
     ],
     'firstTime' => [l.routineFirstTime],
+    'firstPlan' => [l.routineFirstPlan(l.routineFactor(s(0)))],
     'countFit' => [l.routineCountFit(a[0] as int, a[1] as int)],
     'overUsual' => [l.routineOverUsual(a[0] as int, a[1] as int)],
     'noMore' => [l.routineNoMore(a[0] as int)],
@@ -689,9 +770,10 @@ List<String> routineLineTexts(L l, RoutineLine line) {
       ),
     ],
     'doneToday' => [l.routineDoneToday((a[0] as List).join('·'))],
+    'drift' => [l.routineDrift(l.routineFactor(s(0)), l.routineFactor(s(1)))],
     'fillHint' => [l.routineFillHint],
     'lightKept' => [l.routineLightKept((a[0] as List).join('·'))],
-    _ => [line.toString()],
+    _ => const [],
   };
 }
 

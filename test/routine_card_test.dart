@@ -1,14 +1,20 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:setpad/account.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/gym.dart'
+    show inWeightUnit, kgOf, routineFromRow, routineToRow;
+import 'package:setpad/gym_page.dart' show GymRow;
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
+import 'package:setpad/query_cache.dart';
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/record_query.dart'
     show familyInstructions, maxQuestionLength;
@@ -46,6 +52,45 @@ class _Records extends NotesStore {
     notifyListeners();
     return note;
   }
+
+  String unit = 'kg';
+  @override
+  String get weightUnit => unit;
+
+  final deleted = <Note>[];
+  @override
+  void delete(Note note) {
+    records.remove(note);
+    deleted.add(note);
+    notifyListeners();
+  }
+}
+
+/// 지운 기록을 되돌릴 수 있는 가게 — 목록의 '되돌리기' 띠가 뜬다.
+class _UndoableRecords extends _Records {
+  _UndoableRecords(super.records);
+  Note? _undo;
+  @override
+  void delete(Note note) {
+    _undo = note;
+    super.delete(note);
+  }
+
+  @override
+  Note? get undoableDelete => _undo;
+  @override
+  bool undoDelete() {
+    final note = _undo;
+    if (note == null) return false;
+    _undo = null;
+    deleted.remove(note);
+    records.insert(0, note);
+    notifyListeners();
+    return true;
+  }
+
+  @override
+  void forgetUndoableDelete() => _undo = null;
 }
 
 /// 오늘 루틴 카드(설계 §12.1 카드 + 검토 G1·G14·G16·G18).
@@ -59,9 +104,12 @@ void main() {
     RecordAi ai = const RecordAi(),
     List<Note>? records,
     DateTime? now,
+    _Records? into,
+    QueryCache? edits,
+    Account? account,
   }) async {
-    final store = _Records(records ?? defaultLog());
-    addTearDown(store.dispose);
+    final store = into ?? _Records(records ?? defaultLog());
+    if (into == null) addTearDown(store.dispose);
     final opened = <Note>[];
     await tester.pumpWidget(
       CupertinoApp(
@@ -74,6 +122,8 @@ void main() {
           ai: ai,
           // 요일 규칙이 있어 시계를 못 박는다 — 기준일 9/9(수) 18시.
           now: () => now ?? routineToday,
+          routineEdits: edits,
+          account: account,
         ),
       ),
     );
@@ -249,6 +299,327 @@ void main() {
     expect(find.text('레그컬'), findsOneWidget);
   });
 
+  test('카드 고침은 파일에 남는다 — 새로 연 저장소가 그대로 읽는다', () async {
+    final dir = Directory.systemTemp.createTempSync('routine_edits');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final e = RoutineEdits()
+      ..removed.add('2026-09-02|레그컬')
+      ..restored.add('스쿼트')
+      ..added.add('플랭크')
+      ..alt = 2
+      ..mode = 'strength'
+      ..started = 'n1'
+      ..startedMark = '[["스쿼트"]]';
+    final a = QueryCache(directory: dir, fileName: 'routine_edits.json');
+    a.put('k', e.toJson());
+    await a.flush();
+    final b = QueryCache(directory: dir, fileName: 'routine_edits.json');
+    await b.load();
+    final back = RoutineEdits.fromJson(b['k']);
+    expect(back.toJson(), e.toJson());
+    expect(back.isEmpty, isFalse);
+    expect(RoutineEdits.fromJson({'alt': 'x', 'removed': 3}).isEmpty, isTrue);
+    // 기록 검색의 담은 답과 다른 파일이다.
+    expect(File('${dir.path}/queries.json').existsSync(), isFalse);
+  });
+
+  testWidgets('앱을 다시 켜도 시작한 카드는 "시작함 · 열기" — 새 기록을 또 만들지 않는다', (tester) async {
+    final edits = QueryCache(
+      directory: Directory.systemTemp.createTempSync('routine_edits'),
+      fileName: 'routine_edits.json',
+    );
+    final store = await pump(tester, edits: edits);
+    await type(tester, '오늘 루틴 짜줘');
+    await tester.tap(find.byIcon(CupertinoIcons.xmark).last);
+    await tester.pumpAndSettle();
+    await tester.tap(startButton());
+    await tester.pumpAndSettle();
+    expect(store.created, hasLength(1));
+    // 화면을 통째로 내렸다가(앱 종료) 같은 저장소로 다시 연다.
+    await tester.pumpWidget(const SizedBox());
+    await pump(tester, into: store, edits: edits);
+    await type(tester, '오늘 루틴 짜줘');
+    expect(find.text('레그컬'), findsNothing);
+    await tester.tap(find.widgetWithText(CupertinoButton, l.routineStarted));
+    await tester.pumpAndSettle();
+    expect(store.created, hasLength(1));
+  });
+
+  testWidgets('홈의 "오늘 루틴" 줄: 글을 치지 않고 기기 카드(원판 0), 검색칸에 쓰지 않는다', (
+    tester,
+  ) async {
+    final calls = <String>[];
+    final store = await pump(
+      tester,
+      ai: RecordAi(
+        respond: (i, _) async {
+          calls.add(i);
+          return {};
+        },
+      ),
+    );
+    final row = find.widgetWithText(GymRow, l.routineHeaderToday);
+    expect(row, findsOneWidget);
+    // 9/9 수요일 = 지속력.
+    expect(
+      find.text(l.routineWeekdayFactor(l.weekdayLabel(routineToday), '지속력')),
+      findsOneWidget,
+    );
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+    expect(row, findsNothing);
+    expect(startButton(), findsOneWidget);
+    expect(find.text('루마니안 데드리프트'), findsOneWidget);
+    expect(
+      tester.widget<CupertinoSearchTextField>(search).controller!.text,
+      isEmpty,
+    );
+    expect(calls, isEmpty);
+    await tester.tap(startButton());
+    await tester.pumpAndSettle();
+    expect(store.created, hasLength(1));
+    // 닫으면 줄로 돌아간다.
+    await tester.tap(find.text(l.routineClose));
+    await tester.pumpAndSettle();
+    expect(row, findsOneWidget);
+    expect(startButton(), findsNothing);
+  });
+
+  testWidgets('기록이 하나도 없어도 빈 목록에 "오늘 루틴 만들기" 칩과 줄', (tester) async {
+    await pump(tester, records: []);
+    expect(find.widgetWithText(GymRow, l.routineHeaderToday), findsOneWidget);
+    await tester.tap(find.text(l.routineMake));
+    await tester.pumpAndSettle();
+    expect(find.text(l.routineHeaderToday), findsOneWidget);
+    expect(find.text(l.routineClose), findsOneWidget);
+    // 첫 주 기본 루틴: 수요일 = 지속력, 숫자 없이 [시작] 할 수 있다.
+    expect(find.text(l.routineFirstPlan('지속력')), findsOneWidget);
+    expect(find.text('레그프레스'), findsOneWidget);
+    expect(startButton(), findsOneWidget);
+  });
+
+  testWidgets('바꾸기: 시트에서 고르면 그 운동의 내 세트로 바뀌고, 다시 켜도 남는다', (tester) async {
+    final edits = QueryCache(
+      directory: Directory.systemTemp.createTempSync('routine_edits'),
+      fileName: 'routine_edits.json',
+    );
+    final store = await pump(tester, edits: edits);
+    await type(tester, '오늘 루틴 짜줘');
+    await tester.tap(find.text(l.routineSwap).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('레그프레스 · '));
+    await tester.pumpAndSettle();
+    expect(find.text('레그컬'), findsNothing);
+    expect(find.text('레그프레스'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await pump(tester, into: store, edits: edits);
+    await type(tester, '오늘 루틴 짜줘');
+    expect(find.text('레그프레스'), findsOneWidget);
+    expect(find.text('레그컬'), findsNothing);
+  });
+
+  group('시작한 뒤 카드에서 고치면 시작한 기록에 옮긴다(검토 #6)', () {
+    Finder started() => find.widgetWithText(CupertinoButton, l.routineStarted);
+
+    testWidgets('✕ 는 기록에서 그 칸을 빼고, 바꾸기는 그 자리에 새 칸 — 기록은 하나, 시작함 그대로', (
+      tester,
+    ) async {
+      final store = await pump(tester);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      final note = store.created.single;
+      await tester.tap(find.text(l.routineSwap).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('레그프레스 · '));
+      await tester.pumpAndSettle();
+      expect(note.blocks.map((b) => b.name), ['스쿼트', '루마니안 데드리프트', '레그프레스']);
+      expect(note.blocks.last.sets.every((s) => !s.done), isTrue);
+      expect(started(), findsOneWidget);
+      await tester.tap(find.byIcon(CupertinoIcons.xmark).at(1));
+      await tester.pumpAndSettle();
+      expect(note.blocks.map((b) => b.name), ['스쿼트', '레그프레스']);
+      expect(started(), findsOneWidget);
+      // 넣기로 되살리면 기록 끝에 붙는다.
+      await tester.tap(find.text(l.routineRestore));
+      await tester.pumpAndSettle();
+      expect(note.blocks.map((b) => b.name), ['스쿼트', '레그프레스', '루마니안 데드리프트']);
+      expect(store.created, hasLength(1));
+      await tester.tap(started());
+      await tester.pumpAndSettle();
+      expect(store.created, hasLength(1));
+    });
+
+    testWidgets('적은 세트가 있는 칸은 ✕ 로도 기록에서 지우지 않는다', (tester) async {
+      final store = await pump(tester);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      final note = store.created.single;
+      note.blocks.last.sets.first.done = true;
+      await tester.tap(find.byIcon(CupertinoIcons.xmark).last);
+      await tester.pumpAndSettle();
+      expect(note.blocks.map((b) => b.name), contains('레그컬'));
+    });
+
+    testWidgets('시작 취소: ○ 뿐이면 바로 지우고 [시작] 으로', (tester) async {
+      final store = await pump(tester);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.routineUnstart));
+      await tester.pumpAndSettle();
+      expect(store.deleted, store.created);
+      expect(startButton(), findsOneWidget);
+      expect(find.text(l.routineUnstart), findsNothing);
+    });
+
+    testWidgets('시작 취소: 적은 세트가 있으면 묻고, 취소하면 그대로', (tester) async {
+      final store = await pump(tester);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      store.created.single.blocks.first.sets.first.done = true;
+      await tester.tap(find.text(l.routineUnstart));
+      await tester.pumpAndSettle();
+      expect(find.text(l.routineUnstartAsk), findsOneWidget);
+      await tester.tap(find.text(l.cancel));
+      await tester.pumpAndSettle();
+      expect(store.deleted, isEmpty);
+      expect(started(), findsOneWidget);
+      await tester.tap(find.text(l.routineUnstart));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.delete));
+      await tester.pumpAndSettle();
+      expect(store.deleted, hasLength(1));
+      expect(startButton(), findsOneWidget);
+    });
+
+    testWidgets('시작 취소를 되돌리면 그 기록이 돌아오고 카드도 다시 시작함 — 기록은 하나', (tester) async {
+      final store = _UndoableRecords(defaultLog());
+      addTearDown(store.dispose);
+      await pump(tester, into: store);
+      await type(tester, '오늘 루틴 짜줘');
+      await tester.tap(startButton());
+      await tester.pumpAndSettle();
+      final note = store.created.single;
+      await tester.tap(find.text(l.routineUnstart));
+      await tester.pumpAndSettle();
+      expect(startButton(), findsOneWidget);
+      await tester.tap(find.text(l.undo));
+      await tester.pumpAndSettle();
+      expect(store.records, contains(note));
+      expect(started(), findsOneWidget);
+      await tester.tap(started());
+      await tester.pumpAndSettle();
+      expect(store.created, hasLength(1));
+    });
+  });
+
+  group('쌤 루틴(검토 #10·#17)', () {
+    final row = {
+      'id': 'r1',
+      'gym_id': 'g1',
+      'gym': 'OO짐',
+      'title': '하체 B',
+      'items': [
+        {
+          'name': '스쿼트',
+          'sets': [
+            {'kg': 60, 'reps': 5},
+            {'kg': 60, 'reps': 5},
+          ],
+          'setup': {'name': '스쿼트', 'weight': 60, 'unit': 'kg', 'totalSets': 2},
+        },
+      ],
+    };
+
+    test('lb 로 적는 사람에게는 lb 로 — 올릴 때 kgOf 가 같은 kg 로 되돌린다', () {
+      final r = routineFromRow(row);
+      expect(inWeightUnit(r.blocks, 'kg'), same(r.blocks));
+      final b = inWeightUnit(r.blocks, 'lb').single;
+      expect(b.sets.map((s) => (s.value, s.unit, s.reps, s.done)), [
+        (132.28, 'lb', 5, false),
+        (132.28, 'lb', 5, false),
+      ]);
+      expect((b.setup?.weight, b.setup?.unit), (132.28, 'lb'));
+      expect(kgOf(b.sets.first), 60);
+      // 남겼다 읽어도 같은 루틴.
+      final back = routineFromRow(routineToRow(r));
+      expect(
+        (back.id, back.gymId, back.gym, back.title),
+        ('r1', 'g1', 'OO짐', '하체 B'),
+      );
+      expect(back.blocks.single.sets.map((s) => (s.value, s.reps)), [
+        (60.0, 5),
+        (60.0, 5),
+      ]);
+      expect(back.blocks.single.setup?.totalSets, 2);
+    });
+
+    testWidgets('받은 쌤 루틴은 남겨 두었다가 다음에 못 받아도 보이고, 누르면 내 단위로', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('routine_trainer');
+      final edits = QueryCache(directory: dir, fileName: 'routine_edits.json');
+      Account account({required bool online}) =>
+          Account(
+              storageDir: dir,
+              client: MockClient((request) async {
+                if (request.url.path == '/api/routines') {
+                  return online
+                      ? http.Response.bytes(
+                          utf8.encode(
+                            jsonEncode({
+                              'routines': [row],
+                            }),
+                          ),
+                          200,
+                        )
+                      : http.Response('', 503);
+                }
+                if (request.url.path == '/api/gyms') {
+                  return http.Response(
+                    jsonEncode({'gyms': [], 'invites': []}),
+                    200,
+                  );
+                }
+                return http.Response('{}', 200);
+              }),
+            )
+            ..token = 'x'
+            ..userId = 'u1';
+      final store = await pump(
+        tester,
+        edits: edits,
+        account: account(online: true),
+      );
+      expect(find.text('하체 B'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+      await pump(
+        tester,
+        into: store,
+        edits: edits,
+        account: account(online: false),
+      );
+      expect(find.text('하체 B'), findsOneWidget);
+      store.unit = 'lb';
+      await tester.tap(find.text('하체 B'));
+      await tester.pumpAndSettle();
+      final sets = store.created.single.blocks.single.sets;
+      expect(sets.map((s) => (s.value, s.unit)).toSet(), {(132.28, 'lb')});
+      // 다른 계정에는 보이지 않는다.
+      await tester.pumpWidget(const SizedBox());
+      await pump(
+        tester,
+        into: _Records([]),
+        edits: edits,
+        account: account(online: false)..userId = 'u2',
+      );
+      expect(find.text('하체 B'), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(minutes: 1)); // 저장·재시도 타이머
+    });
+  });
+
   testWidgets('다른 루틴은 다음 순위의 날을 보인다', (tester) async {
     await pump(tester);
     await type(tester, '오늘 루틴 짜줘');
@@ -322,6 +693,12 @@ void main() {
     expect(calls, ['v3']);
     expect(find.text(l.routineFromQuestion), findsOneWidget);
     expect(find.text(l.routineWithConditions), findsOneWidget);
+    // 원판은 칩 라벨이 아니라 한 줄로.
+    expect(l.routineWithConditions, isNot(contains('원판')));
+    expect(
+      find.text(l.routinePlateCost(l.routineWithConditions)),
+      findsOneWidget,
+    );
     await tester.tap(find.text(l.routineNoConditions));
     await tester.pumpAndSettle();
     expect(find.text(l.routineHeaderToday), findsOneWidget);
@@ -330,7 +707,8 @@ void main() {
   });
 
   group('G1: 모델을 못 쓰면 빼기·아픈 곳 글로 [시작] 카드를 띄우지 않는다', () {
-    final texts = ['어깨 아파서 어깨 빼고', '스쿼트 말고', '하체 근육통 심함 하체 빼줘'];
+    // 이름을 댄 뺄 운동("스쿼트 말고")은 기기가 읽는다(아래) — 여기는 이름 없는 빼기.
+    final texts = ['어깨 아파서 어깨 빼고', '무릎 쓰는 거 말고', '하체 근육통 심함 하체 빼줘'];
     // 검토#10 까닭마다 제 말: 연결 · 원판 없음 · 답을 읽지 못함.
     final modes = <String, (RecordAi, String)>{
       '연결': (
@@ -363,6 +741,25 @@ void main() {
       }
     }
 
+    testWidgets('뺄 운동 이름만 있으면 기기가 빼고 짠다 — "조건 없이" 가 스쿼트를 넣지 않는다', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        ai: RecordAi(respond: (_, _) async => throw Exception('offline')),
+      );
+      await type(tester, '스쿼트 말고 하체 짜줘', enter: true);
+      expect(startButton(), findsOneWidget);
+      expect(find.text(l.routineDeviceExcluded('스쿼트')), findsOneWidget);
+      expect(find.text(l.routineOffline), findsOneWidget);
+      expect(find.text('스쿼트'), findsNothing);
+      expect(
+        find.text(l.routineRemoved('스쿼트', l.routineRemovedWhy('named'))),
+        findsOneWidget,
+      );
+      expect(find.text('레그프레스'), findsOneWidget);
+    });
+
     testWidgets('빼기 낱말이 없으면 기기가 읽은 것으로 짜고 까닭을 말한다', (tester) async {
       await pump(
         tester,
@@ -393,8 +790,9 @@ void main() {
       expect(find.text(l.routineOffline), findsNothing);
       expect(find.text(l.routineRetry), findsNothing, reason: '다시 눌러도 같다');
       expect(startButton(), findsOneWidget);
-      // 빼기 글은 기기가 조건을 못 읽으니 [시작] 없이 까닭과 조건 없이 짜기만(G1).
-      await type(tester, '스쿼트 말고', enter: true);
+      // 이름 없는 빼기 글은 기기가 조건을 못 읽으니 [시작] 없이 까닭과 조건 없이
+      // 짜기만(G1).
+      await type(tester, '무릎 쓰는 거 말고', enter: true);
       expect(sent, isEmpty);
       expect(find.text(l.aiOff), findsOneWidget);
       expect(find.text(l.routineHeldBack('offline')), findsNothing);
@@ -576,12 +974,12 @@ void main() {
         },
       ),
     );
-    await type(tester, '스쿼트 말고', enter: true);
+    await type(tester, '무릎 쓰는 거 말고', enter: true);
     await tester.tap(find.text(l.routineRetry));
     await tester.pumpAndSettle();
     expect(asked, 2);
     await type(tester, '하체 루틴');
-    await type(tester, '스쿼트 말고', enter: true);
+    await type(tester, '무릎 쓰는 거 말고', enter: true);
     // 깨진 답을 두 번 받은 글은 보내지 않는다 — 이번엔 원판이 나가지 않았다.
     expect(asked, 2);
     await tester.tap(find.text(l.routineNoConditions));
@@ -679,7 +1077,7 @@ void main() {
           },
         ),
       );
-      await type(tester, '스쿼트 말고 하체 짜줘', enter: true);
+      await type(tester, '무릎 쓰는 거 말고 하체 짜줘', enter: true);
       expect(startButton(), findsNothing);
       expect(find.text(l.routineHeldBack('misread')), findsOneWidget);
       expect(find.text(l.routineRetry), findsOneWidget);
@@ -886,7 +1284,7 @@ void main() {
       tester,
       ai: RecordAi(respond: (_, _) async => {'type': 'json_object'}),
     );
-    await type(tester, '스쿼트 말고 하체 짜줘', enter: true);
+    await type(tester, '무릎 쓰는 거 말고 하체 짜줘', enter: true);
     await tester.tap(find.text(l.routineNoConditions));
     await tester.pumpAndSettle();
     expect(startButton(), findsOneWidget);
@@ -1101,6 +1499,8 @@ void main() {
       find.textContaining('${l.routineFactor('strength')} 1'),
       findsOneWidget,
     );
+    // 내가 쓴 bpm(목요일 30bpm)으로 짜는 칩도 — 수를 적는다.
+    expect(find.text(l.routineBpmChip(30)), findsOneWidget);
     await tester.tap(find.text(l.routineTabataChip));
     await tester.pumpAndSettle();
     expect(find.textContaining('타바타'), findsWidgets);
@@ -1125,6 +1525,33 @@ void main() {
     await tester.tap(find.text(l.routineFactorChip('sustain', 0)));
     await tester.pumpAndSettle();
     expect(find.text('스쿼트 30bpm'), findsOneWidget);
+  });
+
+  testWidgets('요일표 알약: 이 요일의 요인, 벗어난 날엔 줄·셈 알약·요일표 칩 — 누르면 그 요인 날', (
+    tester,
+  ) async {
+    final drifted = {...methodPlan, 1: methodPlan[5]!, 3: methodPlan[3]!};
+    final mon = DateTime(2026, 9, 14, 18);
+    await pump(
+      tester,
+      records: weekLog(DateTime(2026, 8, 31), 14, drifted),
+      now: mon,
+    );
+    await type(tester, '오늘 루틴 짜줘');
+    expect(
+      find.text(l.routineWeekdayFactor(l.weekdayLabel(mon), '근력')),
+      findsOneWidget,
+    );
+    expect(find.text(l.routineDrift('근력', '심폐')), findsOneWidget);
+    // 셈은 접지 않고 알약으로 보인다.
+    expect(
+      find.textContaining('${l.routineFactor('strength')} 1'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text(l.routineFactorChip('strength', 1)));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('이번 주 근력이 부족해서'), findsOneWidget);
+    expect(find.text(l.routineDrift('근력', '심폐')), findsNothing);
   });
 }
 

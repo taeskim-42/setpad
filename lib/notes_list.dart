@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/semantics.dart' show SemanticsService;
+import 'package:flutter/services.dart' show SystemChannels;
 import 'package:intl/intl.dart';
 
 import 'l10n/generated/app_localizations.dart';
@@ -14,7 +16,7 @@ import 'daily.dart';
 import 'milestones.dart';
 import 'record_query.dart';
 import 'stats.dart' as stats;
-import 'editor.dart' show SuggestionChip;
+import 'editor.dart' show ExerciseBlock, SuggestionChip;
 import 'exercises.dart' show exerciseByName, langKeyOf;
 import 'gym.dart';
 import 'gym_page.dart';
@@ -29,6 +31,7 @@ import 'routine.dart';
 import 'routine_card.dart';
 import 'settings.dart';
 import 'trainer.dart';
+import 'training_factor.dart' show weekdayFactor;
 
 /// 운동 기록 목록.
 ///
@@ -46,9 +49,15 @@ class NotesListPage extends StatefulWidget {
     this.ai = const RecordAi(),
     this.account,
     this.now = DateTime.now,
+    this.routineEdits,
   });
 
   final NotesStore store;
+
+  /// 오늘 루틴 카드에서 고친 것(✕·넣기·칩·시작한 기록)과 마지막으로 받은 쌤 루틴을
+  /// 담는 곳. 없으면 문서 폴더의 routine_edits.json — 앱을 다시 켜도 "시작함" 과 쌤
+  /// 루틴이 남는다.
+  final QueryCache? routineEdits;
 
   /// 오늘 루틴을 짜는 시계. 요일로 원천이 갈리므로 테스트가 못 박는다.
   final DateTime Function() now;
@@ -74,7 +83,36 @@ class _NotesListPageState extends State<NotesListPage>
   late final _routine = RoutineSearch(widget.ai, cache: _cache);
 
   /// 글마다 카드에서 고친 것(✕·넣기·칩). 다시 짜도(앱 복귀·날짜 바뀜) 남는다.
+  /// 오늘 날짜와 글을 열쇠로 [_editsStore] 에도 남겨 앱을 다시 켜도 잇는다.
   final _edits = <String, RoutineEdits>{};
+  late final _editsStore =
+      widget.routineEdits ?? QueryCache(fileName: 'routine_edits.json');
+
+  String _editsKey(String text) => jsonEncode([
+    'e1',
+    dayOf(widget.now()).toIso8601String().substring(0, 10),
+    text,
+  ]);
+
+  /// 이 글의 고친 것 — 메모리에 없으면 남겨 둔 것에서 읽는다.
+  RoutineEdits _editsOf(String text) => _edits.putIfAbsent(
+    text,
+    () => RoutineEdits.fromJson(_editsStore[_editsKey(text)]),
+  );
+
+  /// 고친 것을 남긴다. 바로 쓴다 — 시작하고 곧 앱이 꺼져도 "시작함" 이 남게.
+  void _keepEdits(String text) {
+    final e = _edits[text];
+    if (e == null) return;
+    _editsStore.put(_editsKey(text), e.toJson());
+    unawaited(_editsStore.flush());
+  }
+
+  /// 카드에서 고친다: 바꾸고, 다시 그리고, 남긴다.
+  void _edit(String text, void Function() change) => setState(() {
+    change();
+    _keepEdits(text);
+  });
 
   /// 모델 없이 기기가 짜기로 한 글과 그 요청 — 이름만 친 글의 칩, "조건 없이 바로
   /// 짜기", 거절 뒤 "오늘 루틴 만들기".
@@ -202,6 +240,14 @@ class _NotesListPageState extends State<NotesListPage>
     _search.addListener(_changed);
     _routine.addListener(_changed);
     WidgetsBinding.instance.addObserver(this);
+    // 남겨 둔 카드 고침을 읽는다. 읽기 전에 그린 빈 고침은 버려 다시 읽게 한다.
+    unawaited(
+      _editsStore.load().then((_) {
+        if (!mounted) return;
+        setState(() => _edits.removeWhere((_, e) => e.isEmpty));
+        _restoreRoutines();
+      }),
+    );
     _loadRoutines();
     // 켤 때는 남겨 둔 로그인이 이 화면보다 늦게 되살아난다. 계정을 듣고 있다가
     // 직원 목록이 오면 그때 보고서를 본다.
@@ -216,6 +262,7 @@ class _NotesListPageState extends State<NotesListPage>
   void _accountChanged() {
     final account = widget.account;
     _gymsChanged();
+    _restoreRoutines();
     // 앱 안에서 로그인했다. 켤 때는 로그인 전이라 못 물었던 루틴·체육관을 지금 묻는다.
     final signedIn = account?.signedIn ?? false;
     if (signedIn != _signedIn) {
@@ -292,6 +339,37 @@ class _NotesListPageState extends State<NotesListPage>
     if (found == null) return;
     _caughtUpAt = widget.now();
     if (mounted) setState(() => _routines = found);
+    if (_routinesKey case final key?) {
+      _editsStore.put(key, [for (final r in found) routineToRow(r)]);
+      unawaited(_editsStore.flush());
+    }
+  }
+
+  /// 받은 쌤 루틴을 남기는 열쇠 — 계정마다(다른 계정의 루틴이 보이지 않게).
+  String? get _routinesKey => switch (widget.account?.userId) {
+    final id? => jsonEncode(['t1', id]),
+    null => null,
+  };
+
+  /// 켤 때 아직 못 받았으면 지난번 받은 쌤 루틴을 먼저 보인다(신호가 약한 헬스장에서도
+  /// 목록에 뜬다). 받으면 그것으로 바뀐다.
+  void _restoreRoutines() {
+    if (_caughtUpAt != null ||
+        _routines.isNotEmpty ||
+        !(widget.account?.signedIn ?? false)) {
+      return;
+    }
+    final raw = switch (_routinesKey) {
+      final key? => _editsStore[key],
+      null => null,
+    };
+    if (raw is! List) return;
+    try {
+      final kept = [for (final row in raw) routineFromRow(row as Map)];
+      if (kept.isNotEmpty && mounted) setState(() => _routines = kept);
+    } catch (_) {
+      // 남긴 것은 덤이다 — 못 읽으면 받을 때까지 비워 둔다.
+    }
   }
 
   /// 마지막으로 체육관·루틴을 받아 온 때.
@@ -342,7 +420,7 @@ class _NotesListPageState extends State<NotesListPage>
     _open(
       started ??
           (widget.store.create(
-            blocks: routine.blocks,
+            blocks: inWeightUnit(routine.blocks, widget.store.weightUnit),
             gymId: routine.gymId,
             routineId: routine.id,
           )..owner = widget.account?.userId),
@@ -629,7 +707,17 @@ class _NotesListPageState extends State<NotesListPage>
 
   void _undoDelete() {
     _undoTimer?.cancel();
-    widget.store.undoDelete();
+    final id = widget.store.undoableDelete?.id;
+    final unstarted = _unstarted;
+    _unstarted = null;
+    if (!widget.store.undoDelete()) return;
+    if (unstarted != null && unstarted.id == id) {
+      _edit(unstarted.text, () {
+        unstarted.edits
+          ..started = unstarted.id
+          ..startedMark = unstarted.mark;
+      });
+    }
   }
 
   /// 원판이 없어 못 물었다. 로그인 전이면 로그인을, 로그인했으면 Pro 를 권한다.
@@ -670,34 +758,51 @@ class _NotesListPageState extends State<NotesListPage>
   /// 기록 검색이 루틴 요청이라고 했을 때: 조건 없이 바로(원판 0) / 조건까지 읽어(원판).
   /// 의료 글은 조건 없이 짜지 않는다(G3). 루틴 지시문이 이미 기록 질문이라 한 글은
   /// 다시 넘기지 않는다([conditions] false).
-  Widget _escapeChips(L l, String text, {bool conditions = true}) => Wrap(
-    spacing: 8,
-    runSpacing: 0,
+  Widget _escapeChips(L l, String text, {bool conditions = true}) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      if (medicalText(text))
-        Text(l.routineRefused('medical'), style: const TextStyle(fontSize: 14))
-      else
-        SuggestionChip(
-          label: l.routineNoConditions,
-          selected: false,
-          onTap: () => setState(
-            () => _device = (
-              text,
-              RoutineAsk(when: readWhen(text), device: true),
+      Wrap(
+        spacing: 8,
+        runSpacing: 0,
+        children: [
+          if (medicalText(text))
+            Text(
+              l.routineRefused('medical'),
+              style: const TextStyle(fontSize: 14),
+            )
+          else
+            SuggestionChip(
+              label: l.routineNoConditions,
+              selected: false,
+              onTap: () => setState(
+                () => _device = (text, deviceAsk(text, _recorded, bare: true)),
+              ),
+            ),
+          if (conditions && !medicalText(text))
+            SuggestionChip(
+              label: l.routineWithConditions,
+              selected: false,
+              onTap: () {
+                setState(() {
+                  _asRoutine = text;
+                  if (_asQuestion == text) _asQuestion = null;
+                });
+                _ask(immediately: true);
+              },
+            ),
+        ],
+      ),
+      // 원판은 칩마다가 아니라 한 줄로 말한다.
+      if (conditions && !medicalText(text))
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            l.routinePlateCost(l.routineWithConditions),
+            style: TextStyle(
+              fontSize: 13,
+              color: CupertinoColors.secondaryLabel.resolveFrom(context),
             ),
           ),
-        ),
-      if (conditions && !medicalText(text))
-        SuggestionChip(
-          label: l.routineWithConditions,
-          selected: false,
-          onTap: () {
-            setState(() {
-              _asRoutine = text;
-              if (_asQuestion == text) _asQuestion = null;
-            });
-            _ask(immediately: true);
-          },
         ),
     ],
   );
@@ -717,7 +822,7 @@ class _NotesListPageState extends State<NotesListPage>
       final started = _addFromAnatomy(key, part);
       text = _device!.$1;
       if (started != null) {
-        _query.text = text;
+        _setQuery(text);
         setState(() {});
         _open(started);
         return;
@@ -725,7 +830,7 @@ class _NotesListPageState extends State<NotesListPage>
     } else {
       text = got.search ?? '';
     }
-    _query.text = text;
+    _setQuery(text);
     setState(() {
       _pick = null;
       _chip = null;
@@ -755,9 +860,7 @@ class _NotesListPageState extends State<NotesListPage>
       parts.map((p) => partName(l, p)).join('·'),
     );
     final edits =
-        (prev == null ? null : _edits.remove(prev.$1)) ??
-        _edits[text] ??
-        RoutineEdits();
+        (prev == null ? null : _edits.remove(prev.$1)) ?? _editsOf(text);
     // 넣기 전 카드(몸 그림 카드, 없으면 같은 글의 칩 카드)가 시작한 그대로인가.
     final before = prev?.$2 ?? (_device?.$1 == text ? _device!.$2 : null);
     final started = before == null
@@ -770,7 +873,10 @@ class _NotesListPageState extends State<NotesListPage>
     edits.removed.removeWhere((r) => r.endsWith('|$key'));
     edits.restored.add(key);
     if (!edits.added.contains(key)) edits.added.add(key);
-    if (started == null) return null;
+    if (started == null) {
+      _keepEdits(text);
+      return null;
+    }
     final draft = _compose(ask, edits);
     final item = draft.items.where((i) => i.key == key).firstOrNull;
     if (item != null &&
@@ -780,6 +886,7 @@ class _NotesListPageState extends State<NotesListPage>
     // 카드가 바뀌었어도 시작한 기록은 이것이다 — [시작함] 은 이 기록을 열고, 카드는
     // 이 기록을 보인다.
     edits.startedMark = draftMark(draft);
+    _keepEdits(text);
     return started;
   }
 
@@ -795,13 +902,124 @@ class _NotesListPageState extends State<NotesListPage>
   /// 시작 = 트레이너 루틴과 같은 길(새 기록 + 편집기). 누를 때마다 새 칸이다 — 이미
   /// 시작한 카드는 [시작함] 이 그 기록을 연다(두 번 눌러도 기록은 하나다, G18).
   /// 카드가 바뀌었으면(다른 루틴·✕·넣기) 시작한 기록을 열지 않고 새로 시작한다.
-  void _startDraft(RoutineDraft draft, RoutineEdits edits) {
+  void _startDraft(String text, RoutineDraft draft, RoutineEdits edits) {
     final note = widget.store.create(blocks: startBlocks(draft));
     edits
       ..started = note.id
       ..startedMark = draftMark(draft);
+    _keepEdits(text);
     _open(note);
   }
+
+  /// 앱이 검색칸에 글을 넣는다(칩·몸 그림·되돌아가기). 자판이 떠 있을 수 있는
+  /// 동안 쓰면 한글 조합이 깨진다(IME 규칙) — 먼저 칸을 놓고 자판을 내린 뒤 쓴다.
+  void _setQuery(String text) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    unawaited(SystemChannels.textInput.invokeMethod<void>('TextInput.hide'));
+    _query.text = text;
+  }
+
+  /// 홈의 "오늘 루틴" 줄 — 맨 요청("오늘 루틴 짜줘")과 같은 기기 카드(원판 0).
+  /// 검색칸에는 쓰지 않는다: 자판이 떠 있을 수 있는 칸에 앱이 글을 쓰면 한글 조합이
+  /// 깨진다(IME 규칙). 빈 글을 열쇠로 [_device] 를 바로 세우고 자판은 내린다.
+  void _openTodayRoutine() {
+    FocusScope.of(context).unfocus();
+    setState(() => _device = ('', deviceAsk('', _recorded, bare: true)));
+  }
+
+  /// "오늘 루틴" 줄의 둘째 줄: 평일은 요일표 요인, 주말은 모자란 요인.
+  String _todayRoutineDetail(L l) {
+    final now = widget.now();
+    return switch (weekdayFactor[now.weekday]) {
+      final f? => l.routineWeekdayFactor(
+        l.weekdayLabel(now),
+        l.routineFactor(f.name),
+      ),
+      null => l.routineWeekendDetail,
+    };
+  }
+
+  /// 시작한 카드에서 고친 것(✕·넣기·+운동·바꾸기)을 시작한 기록에도 옮긴다 — 몸 그림의
+  /// "오늘 루틴에 넣기" 와 같은 길([NotesStore.update]). 카드는 계속 "시작함" 이고 그
+  /// 기록을 보인다. 빠진 운동의 칸은 해낸 세트가 없을 때만 지운다(적은 세트는 지우지
+  /// 않는다). 바꾸기면 새 칸이 빠진 칸의 자리에 든다.
+  void _editStarted(
+    String text,
+    RoutineAsk ask,
+    RoutineEdits edits,
+    Note started,
+    void Function() change, {
+    bool swap = false,
+  }) {
+    final before = _compose(ask, edits);
+    _edit(text, () {
+      change();
+      final after = _compose(ask, edits);
+      final had = {for (final i in before.items) i.key};
+      final keep = {for (final i in after.items) i.key};
+      final inRecord = {
+        for (final b in started.blocks) exerciseKey(b.exercise),
+      };
+      final fresh = [
+        for (final i in after.items)
+          if (!inRecord.contains(i.key)) i,
+      ];
+      final blocks = <ExerciseBlock>[];
+      for (final b in started.blocks) {
+        final key = exerciseKey(b.exercise);
+        final gone =
+            had.contains(key) &&
+            !keep.contains(key) &&
+            !b.sets.any((s) => s.done);
+        if (!gone) {
+          blocks.add(b);
+        } else if (swap && fresh.isNotEmpty) {
+          blocks.add(startBlock(fresh.removeAt(0)));
+        }
+      }
+      blocks.addAll(fresh.map(startBlock));
+      widget.store.update(started, blocks);
+      edits.startedMark = draftMark(after);
+    });
+  }
+
+  /// 시작 취소: 안 한 세트(○)뿐이면 기록을 지우고, 적은 세트가 있으면 묻는다. 카드는 다시
+  /// [시작] 이 된다.
+  Future<void> _unstart(String text, RoutineEdits edits, Note started) async {
+    if (started.blocks.any((b) => b.sets.any((s) => s.done))) {
+      final l = L.of(context);
+      final ok = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (dialog) => CupertinoAlertDialog(
+          title: Text(l.routineUnstartAsk),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(dialog).pop(false),
+              child: Text(l.cancel),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.of(dialog).pop(true),
+              child: Text(l.delete),
+            ),
+          ],
+        ),
+      );
+      if (ok != true || !mounted) return;
+    }
+    final mark = edits.startedMark;
+    _delete(started);
+    _unstarted = (text: text, edits: edits, id: started.id, mark: mark);
+    _edit(text, () {
+      edits
+        ..started = null
+        ..startedMark = null;
+    });
+  }
+
+  /// 시작 취소로 지운 기록과 그때의 카드 — '되돌리기' 로 살리면 카드도 그 기록을 다시
+  /// "시작함" 으로 잇는다(안 그러면 [시작] 이 같은 날 기록을 하나 더 만든다).
+  ({String text, RoutineEdits edits, String id, String? mark})? _unstarted;
 
   /// 이 초안 그대로 시작한 기록.
   Note? _started(RoutineDraft draft, RoutineEdits edits) =>
@@ -816,14 +1034,20 @@ class _NotesListPageState extends State<NotesListPage>
   Widget _routineCard(L l, String text, HomeRoute? route) {
     final recorded = _recorded;
     final lang = _lang;
-    final edits = _edits.putIfAbsent(text, RoutineEdits.new);
+    final edits = _editsOf(text);
     final status = <String>[];
-    final actions = <RoutineAction>[];
+    final actions = <RoutineAction>[
+      // 홈의 "오늘 루틴" 줄로 연 카드 — 검색칸이 비어 있어 지울 글이 없다.
+      if (text.isEmpty)
+        (label: l.routineClose, onTap: () => setState(() => _device = null)),
+    ];
+    // 빈 검색이면 목록 위에 쌤 루틴 줄이 이미 있다 — 카드에 또 두지 않는다.
+    final trainer = text.isEmpty ? const <Routine>[] : _routines;
     final extra = <Widget>[];
     RoutineAction plain() => (
       label: l.routineNoConditions,
       onTap: () => setState(
-        () => _device = (text, RoutineAsk(when: readWhen(text), device: true)),
+        () => _device = (text, deviceAsk(text, recorded, bare: true)),
       ),
     );
     // 원판이 없으면 로그인·Pro 권유(기존 문구)를 카드 위에.
@@ -846,7 +1070,7 @@ class _NotesListPageState extends State<NotesListPage>
       RoutineCard(
         status: status,
         actions: actions,
-        trainer: _routines,
+        trainer: trainer,
         onTrainer: _startRoutine,
       ),
     );
@@ -863,10 +1087,7 @@ class _NotesListPageState extends State<NotesListPage>
         actions.add((
           label: l.routineMake,
           onTap: () => setState(
-            () => _device = (
-              text,
-              RoutineAsk(when: readWhen(text), device: true),
-            ),
+            () => _device = (text, deviceAsk(text, recorded, bare: true)),
           ),
         ));
       }
@@ -886,6 +1107,7 @@ class _NotesListPageState extends State<NotesListPage>
           misread = true;
         }
         if (ask != null && ask.question) {
+          status.add(l.routinePlateCost(l.routineAsQuestion));
           actions.add((
             label: l.routineAsQuestion,
             onTap: () {
@@ -934,7 +1156,9 @@ class _NotesListPageState extends State<NotesListPage>
             actions.add(plain());
             return bare();
           }
-          if (unreadableConditions(text)) {
+          // 뺄 운동 이름만 있는 글("스쿼트 말고 하체")은 기기가 읽는다 — 막다른 길이 없다.
+          if (unreadableConditions(text) &&
+              !deviceReadsConditions(text, recorded)) {
             status.add(
               mine && r.aiOff
                   ? l.aiOff
@@ -952,6 +1176,9 @@ class _NotesListPageState extends State<NotesListPage>
             return bare();
           }
           ask = deviceAsk(text, recorded);
+          if (ask.exclude.isNotEmpty) {
+            status.add(l.routineDeviceExcluded(ask.exclude.join('·')));
+          }
           status.add(
             mine && r.aiOff
                 ? l.aiOff
@@ -995,7 +1222,7 @@ class _NotesListPageState extends State<NotesListPage>
       actions.add((
         label: l.routineAskToo(question),
         onTap: () {
-          _query.text = question;
+          _setQuery(question);
           setState(() {
             _asQuestion = question;
             _askedToo = (question, text);
@@ -1004,6 +1231,14 @@ class _NotesListPageState extends State<NotesListPage>
         },
       ));
     }
+    // 원판을 쓰는 칩(모델에 묻는 것)은 라벨에 원판을 붙이지 않고 한 줄로 모은다.
+    if (ask.ask case final question? when _askedToo?.$1 != question) {
+      status.add(l.routinePlateCost(l.routineAskToo(question)));
+    }
+    // 칸을 고치는 칩: 시작한 카드면 시작한 기록에도 옮긴다.
+    void change(void Function() f, {bool swap = false}) => started == null
+        ? _edit(text, f)
+        : _editStarted(text, ask!, edits, started, f, swap: swap);
     final account = widget.account;
     // 원판 줄: 이 글로 서버가 답했으면(깨진 답 뒤에 칩으로 짠 카드여도) 원판이
     // 나갔다. 다시 친 글이 이번엔 보내지 않았어도 앞서 원판이 나갔으면 그렇게 말한다.
@@ -1015,28 +1250,33 @@ class _NotesListPageState extends State<NotesListPage>
       ask: ask,
       status: status,
       actions: actions,
-      trainer: _routines,
+      trainer: trainer,
       onTrainer: _startRoutine,
       onStart: started != null
           ? () => _open(started)
           : draft.startable
-          ? () => _startDraft(draft, edits)
+          ? () => _startDraft(text, draft, edits)
           : null,
       started: started != null,
-      onRemove: (item) => setState(() {
+      onRemove: (item) => change(() {
         edits.restored.remove(item.key);
         edits.removed.add(removalKey(draft, item.key));
       }),
-      onRestore: (key) => setState(() {
+      onRestore: (key) => change(() {
         edits.removed.remove(removalKey(draft, key));
         edits.restored.add(key);
       }),
-      onAdd: (key) => setState(() => edits.added.add(key)),
-      onOther: () => setState(() => edits.alt++),
-      onPrevious: () => setState(() => edits.previous = true),
-      onPart: () => setState(() => edits.part = draft.partChip),
-      onStep: () => setState(() => edits.step = true),
-      onMode: (mode) => setState(() => edits.mode = mode),
+      onAdd: (key) => change(() => edits.added.add(key)),
+      onUnstart: started == null
+          ? null
+          : () => unawaited(_unstart(text, edits, started)),
+      onOther: () => _edit(text, () => edits.alt++),
+      onPrevious: () => _edit(text, () => edits.previous = true),
+      onPart: () => _edit(text, () => edits.part = draft.partChip),
+      onStep: () => _edit(text, () => edits.step = true),
+      onMode: (mode) => _edit(text, () => edits.mode = mode),
+      onSwap: (item, key) =>
+          change(() => edits.swap(item.key, key), swap: true),
       spent: !charged
           ? (before ? l.routinePlatesBefore : null)
           : account?.platesSpent != null
@@ -1058,6 +1298,7 @@ class _NotesListPageState extends State<NotesListPage>
     _routine.removeListener(_changed);
     _routine.dispose();
     _search.dispose();
+    _editsStore.dispose();
     _query.dispose();
     super.dispose();
   }
@@ -1383,6 +1624,16 @@ class _NotesListPageState extends State<NotesListPage>
                     onTap: () => _startRoutine(routine),
                   ),
                 ),
+            // 오늘 루틴 — 글을 치지 않아도 짠다(맨 요청과 같은 기기 카드).
+            if (_query.text.trim().isEmpty && _device?.$1 != '')
+              SliverToBoxAdapter(
+                child: GymRow(
+                  icon: CupertinoIcons.list_bullet,
+                  title: l.routineHeaderToday,
+                  detail: _todayRoutineDetail(l),
+                  onTap: _openTodayRoutine,
+                ),
+              ),
             // 도장 초대. 받아야 회원이 된다 — 안 다니는 사람에게도 온다.
             if (_query.text.trim().isEmpty)
               for (final invite
@@ -1562,7 +1813,7 @@ class _NotesListPageState extends State<NotesListPage>
                           label: l.routineBack,
                           selected: false,
                           onTap: () {
-                            _query.text = original;
+                            _setQuery(original);
                             setState(() => _askedToo = null);
                             _ask();
                           },
@@ -1702,7 +1953,7 @@ class _NotesListPageState extends State<NotesListPage>
                                 label: label,
                                 selected: _pick == metric,
                                 onTap: () {
-                                  _query.text = name;
+                                  _setQuery(name);
                                   _confirmed = null;
                                   _search.search(
                                     '',
@@ -1856,14 +2107,27 @@ class _NotesListPageState extends State<NotesListPage>
                           ),
                         ),
                       ),
-                      // 기록이 없어도 몸 그림에서 운동을 고를 수 있다.
+                      // 기록이 없어도 몸 그림에서 운동을 고르거나 오늘 루틴을
+                      // 짤 수 있다.
                       if (_query.text.isEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 12),
-                          child: SuggestionChip(
-                            label: l.anatomyPick,
-                            selected: false,
-                            onTap: _openAnatomy,
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 0,
+                            alignment: WrapAlignment.center,
+                            children: [
+                              SuggestionChip(
+                                label: l.routineMake,
+                                selected: false,
+                                onTap: _openTodayRoutine,
+                              ),
+                              SuggestionChip(
+                                label: l.anatomyPick,
+                                selected: false,
+                                onTap: _openAnatomy,
+                              ),
+                            ],
                           ),
                         ),
                       // 치는 동안은 글자로만 찾는다. 0건이면 질문이
@@ -1989,6 +2253,8 @@ class _NotesListPageState extends State<NotesListPage>
           _SearchBar(
             controller: _query,
             onChanged: (_) {
+              // 홈 줄로 연 카드는 글을 치면 닫는다(검색칸을 비워도 다시 뜨지 않는다).
+              if (_device?.$1 == '') _device = null;
               _pick = null;
               _chip = null;
               _confirmed = null;

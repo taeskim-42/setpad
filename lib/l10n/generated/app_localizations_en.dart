@@ -2533,17 +2533,17 @@ class LEn extends L {
 
   @override
   String routineAskToo(String text) {
-    return 'Also ask: $text · plates';
+    return 'Also ask: $text';
   }
 
   @override
-  String get routineAsQuestion => 'Ask as a record question · plates';
+  String get routineAsQuestion => 'Ask as a record question';
 
   @override
   String get routineNoConditions => 'Build now without conditions';
 
   @override
-  String get routineWithConditions => 'Read the conditions too · plates';
+  String get routineWithConditions => 'Read the conditions too';
 
   @override
   String get routineMake => 'Make today\'s routine';
@@ -3745,4 +3745,61 @@ class LEn extends L {
 
   @override
   String get allExercises => 'All Workouts';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return 'The weekly plan says $planned today, but this weekday last time was $own — copying it repeats $own';
+  }
+
+  @override
+  String get routineWeekendDetail =>
+      'Weekend · fills what this week is short of';
+
+  @override
+  String get routineClose => 'Close';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return 'Read on the phone — leaving out: $list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '1 plate: $list';
+  }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '~$minutes min · not counting new ones';
+  }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return 'To a ${bpm}bpm beat';
+  }
+
+  @override
+  String get routineSwap => 'Swap';
+
+  @override
+  String routineSwapTitle(String name) {
+    return 'Instead of $name — same body part and equipment, done in the last 28 days';
+  }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return 'First time, so this follows the weekly plan ($factor) · fill in numbers as you log';
+  }
+
+  @override
+  String get routineUnstart => 'Cancel start';
+
+  @override
+  String get routineUnstartAsk =>
+      'This workout has logged sets. Delete the workout too?';
 }

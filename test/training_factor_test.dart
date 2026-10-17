@@ -39,6 +39,12 @@ void main() {
       final x = of('푸시업 100개 채우기', [reps(30), reps(30)])!;
       expect((x.factor, x.sure, x.why), (Factor.endurance, false, 'fillTitle'));
       expect(f('푸시업 total 100', [reps(50), reps(50)]), Factor.endurance);
+      expect(f('푸시업 총 100개', [reps(50), reps(50)]), Factor.endurance);
+      expect(f('푸시업 reach 100', [reps(50), reps(50)]), Factor.endurance);
+      // 횟수 목표가 아닌 "총"·"reach" 는 채우기가 아니다.
+      expect(of('벤치 총 3세트', times(3, () => kg(60, 10)))?.why, 'sets');
+      expect(of('오버헤드 reach', times(3, () => kg(20, 10)))?.why, 'sets');
+      expect(of('squat total 3 sets', times(3, () => kg(60, 10)))?.why, 'sets');
     });
 
     test('4 시간·거리 세트: 유산소 부위면 심폐, 아니면(플랭크) 없음', () {
@@ -411,5 +417,24 @@ void main() {
         Factor.cardio,
       ]);
     });
+  });
+
+  test('요일표: 월 근력 · 화 근지구력 · 수 지속력 · 목 근력 · 금 심폐, 주말은 없다', () {
+    expect(
+      [for (var d = 1; d <= 7; d++) weekdayFactor[d]],
+      [
+        Factor.strength,
+        Factor.endurance,
+        Factor.sustain,
+        Factor.strength,
+        Factor.cardio,
+        null,
+        null,
+      ],
+    );
+    // 주간 목표 수는 요일표의 개수다.
+    for (final f in factorGoal.keys) {
+      expect(weekdayFactor.values.where((x) => x == f).length, factorGoal[f]);
+    }
   });
 }

@@ -2433,17 +2433,17 @@ class LZh extends L {
 
   @override
   String routineAskToo(String text) {
-    return '也问问: $text · 片';
+    return '也问问: $text';
   }
 
   @override
-  String get routineAsQuestion => '作为记录问题来问 · 片';
+  String get routineAsQuestion => '作为记录问题来问';
 
   @override
   String get routineNoConditions => '不带条件直接排';
 
   @override
-  String get routineWithConditions => '连条件一起读 · 片';
+  String get routineWithConditions => '连条件一起读';
 
   @override
   String get routineMake => '安排今天的训练';
@@ -3577,6 +3577,61 @@ class LZh extends L {
 
   @override
   String get allExercises => '所有记录';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return '按周表今天是$planned日，但上次这一天是$own日 — 照搬又会是$own日';
+  }
+
+  @override
+  String get routineWeekendDetail => '周末 · 补本周缺的要素';
+
+  @override
+  String get routineClose => '关闭';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return '已在手机上读出要去掉的动作：$list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '用1片：$list';
+  }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '约$minutes分钟 · 不含第一次做的';
+  }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return '按${bpm}bpm节拍';
+  }
+
+  @override
+  String get routineSwap => '换';
+
+  @override
+  String routineSwapTitle(String name) {
+    return '代替$name — 最近28天做过的同部位、同器械动作';
+  }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return '第一次，所以按周表($factor)安排 · 数字边记边填';
+  }
+
+  @override
+  String get routineUnstart => '取消开始';
+
+  @override
+  String get routineUnstartAsk => '这条记录里有已记下的组。连记录一起删除吗？';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -6008,17 +6063,17 @@ class LZhHans extends LZh {
 
   @override
   String routineAskToo(String text) {
-    return '也问问: $text · 片';
+    return '也问问: $text';
   }
 
   @override
-  String get routineAsQuestion => '作为记录问题来问 · 片';
+  String get routineAsQuestion => '作为记录问题来问';
 
   @override
   String get routineNoConditions => '不带条件直接排';
 
   @override
-  String get routineWithConditions => '连条件一起读 · 片';
+  String get routineWithConditions => '连条件一起读';
 
   @override
   String get routineMake => '安排今天的训练';
@@ -7152,6 +7207,61 @@ class LZhHans extends LZh {
 
   @override
   String get allExercises => '所有记录';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return '按周表今天是$planned日，但上次这一天是$own日 — 照搬又会是$own日';
+  }
+
+  @override
+  String get routineWeekendDetail => '周末 · 补本周缺的要素';
+
+  @override
+  String get routineClose => '关闭';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return '已在手机上读出要去掉的动作：$list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '用1片：$list';
+  }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '约$minutes分钟 · 不含第一次做的';
+  }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return '按${bpm}bpm节拍';
+  }
+
+  @override
+  String get routineSwap => '换';
+
+  @override
+  String routineSwapTitle(String name) {
+    return '代替$name — 最近28天做过的同部位、同器械动作';
+  }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return '第一次，所以按周表($factor)安排 · 数字边记边填';
+  }
+
+  @override
+  String get routineUnstart => '取消开始';
+
+  @override
+  String get routineUnstartAsk => '这条记录里有已记下的组。连记录一起删除吗？';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -9583,17 +9693,17 @@ class LZhHant extends LZh {
 
   @override
   String routineAskToo(String text) {
-    return '也問問: $text · 片';
+    return '也問問: $text';
   }
 
   @override
-  String get routineAsQuestion => '當作紀錄問題來問 · 片';
+  String get routineAsQuestion => '當作紀錄問題來問';
 
   @override
   String get routineNoConditions => '不帶條件直接排';
 
   @override
-  String get routineWithConditions => '連條件一起讀 · 片';
+  String get routineWithConditions => '連條件一起讀';
 
   @override
   String get routineMake => '安排今天的訓練';
@@ -10727,4 +10837,59 @@ class LZhHant extends LZh {
 
   @override
   String get allExercises => '所有記錄';
+
+  @override
+  String routineWeekdayFactor(String day, String factor) {
+    return '$day = $factor';
+  }
+
+  @override
+  String routineDrift(String planned, String own) {
+    return '按週表今天是$planned日，但上次這一天是$own日 — 照搬又會是$own日';
+  }
+
+  @override
+  String get routineWeekendDetail => '週末 · 補本週缺的要素';
+
+  @override
+  String get routineClose => '關閉';
+
+  @override
+  String routineDeviceExcluded(String list) {
+    return '已在手機上讀出要去掉的動作：$list';
+  }
+
+  @override
+  String routinePlateCost(String list) {
+    return '用1片：$list';
+  }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '約$minutes分鐘 · 不含第一次做的';
+  }
+
+  @override
+  String routineBpmChip(int bpm) {
+    return '按${bpm}bpm節拍';
+  }
+
+  @override
+  String get routineSwap => '換';
+
+  @override
+  String routineSwapTitle(String name) {
+    return '代替$name — 最近28天做過的同部位、同器械動作';
+  }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return '第一次，所以按週表($factor)安排 · 數字邊記邊填';
+  }
+
+  @override
+  String get routineUnstart => '取消開始';
+
+  @override
+  String get routineUnstartAsk => '這條紀錄裡有已記下的組。連紀錄一起刪除嗎？';
 }
