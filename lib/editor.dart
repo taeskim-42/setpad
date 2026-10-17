@@ -1625,7 +1625,9 @@ class _RoutineEditorState extends State<RoutineEditor>
           : formatValue(block!.setup!.weight!, block.setup!.unit)
       ..together = block == null ? null : _togetherFor(block, l)
       ..recovery = _recovery
-      ..heartShared = _workoutTimer.shared;
+      ..heartShared = _workoutTimer.shared
+      // RestLog's default: my last set on this card (not a partner's).
+      ..lastReps = block?.sets.where((s) => s.author == null).lastOrNull?.reps;
     if (_linkNotify) return;
     _linkNotify = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
