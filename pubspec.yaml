@@ -96,6 +96,14 @@ flutter:
     # 96x96 회색 잡음 한 장. 타일로 깔아 그레인을 만든다 — 실행 중에 점을
     # 수천 개 찍는 것보다 싸고, 셰이더를 들이는 것보다 단순하다.
     - assets/grain.png
+    # 타이머가 내는 말 — 시스템 음성(TTS) 대신 녹음(ElevenLabs, 영어, 남·여).
+    # 세는 말 1..100 은 tool/make_count_voices.py, 구간 음성은 Tempo(healthopia)
+    # 의 assets/audio/voice/en 그대로. 경로는 lib/workout_timing.dart 의
+    # countVoice·phraseVoice.
+    - assets/voice/count/en/m/
+    - assets/voice/count/en/w/
+    - assets/voice/en/m/
+    - assets/voice/en/w/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
