@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -83,6 +82,17 @@ String _setText(L l, LoggedSet v, String weightUnit) {
   };
 }
 
+/// A chip's set: the grid's "80×5", a time as the hero shows it ("1:00").
+String _chipText(L l, LoggedSet s, String weightUnit) =>
+    kindOf(s) == FocusKind.duration
+    ? _clock(_seconds(s))
+    : cellLabel(s, shared: weightUnit, formatReps: l.repsCount);
+
+/// A set's number everywhere on the stage: its place among my sets (planned
+/// and done) — someone else's sets are not counted and have none.
+int? _numberOf(ExerciseBlock b, LoggedSet s) =>
+    s.theirs ? null : b.sets.where((x) => !x.theirs).toList().indexOf(s) + 1;
+
 /// For screen readers: "80kg 5회".
 String _spokenSet(L l, LoggedSet v) => [
   if (v.value != null) formatValue(v.value!, v.unit),
@@ -106,11 +116,24 @@ class FocusPage extends StatefulWidget {
   State<FocusPage> createState() => _FocusPageState();
 }
 
+/// A rest [Done] replaced (a superset: the bench rest when the row is
+/// logged), for [Undo] to bring back.
+typedef _Before = ({
+  Object? owner,
+  Duration left,
+  ({String title, String body}) Function()? notice,
+});
+
 /// What [Done] just wrote, for [Undo].
-typedef _Logged = ({String blockId, String setId, bool rested});
+typedef _Logged = ({
+  String blockId,
+  String setId,
+  bool rested,
+  _Before? before,
+});
 
 class _FocusPageState extends State<FocusPage> {
-  final _water = _Water();
+  final _water = StageWaterLevel((level: 0, fill: _P.fillRest));
   Animation<double>? _routeIn;
   Timer? _clockTimer;
   bool? _still;
@@ -122,7 +145,6 @@ class _FocusPageState extends State<FocusPage> {
 
   final _sugg = <String, FocusSuggestion>{};
   final _draft = <String, LoggedSet>{};
-  final _hadPlan = <String, bool>{};
   final _edited = <String>{};
 
   bool _summary = false;
@@ -135,7 +157,11 @@ class _FocusPageState extends State<FocusPage> {
   _Logged? _undo;
   Timer? _undoTimer;
 
-  bool _wasResting = false, _heartBuzzed = false, _gone = false;
+  bool _wasResting = false, _gone = false;
+
+  /// What [Done] just wrote, said once by the live state line (no separate
+  /// announcement on top of it) until that block's state changes.
+  ({String id, String text})? _said;
 
   FocusLink get _link => widget.link;
 
@@ -151,7 +177,6 @@ class _FocusPageState extends State<FocusPage> {
     _wasResting = _link.rest.running;
     _link.addListener(_onLink);
     _link.rest.addListener(_onRest);
-    _link.recovery?.addListener(_onHeart);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final b = _block;
       if (b != null && mounted && !_restsOn(b)) _link.onLift?.call(b);
@@ -193,7 +218,6 @@ class _FocusPageState extends State<FocusPage> {
     _brightTimer?.cancel();
     _link.removeListener(_onLink);
     _link.rest.removeListener(_onRest);
-    _link.recovery?.removeListener(_onHeart);
     _water.dispose();
     StagePortrait.leave();
     super.dispose();
@@ -225,7 +249,8 @@ class _FocusPageState extends State<FocusPage> {
   /// Reads the suggestion again: on entering a block, after [Done], after
   /// undo and when the rest ends — never on [FocusLink.changed].
   void _refresh(ExerciseBlock b) {
-    _hadPlan.putIfAbsent(b.id, () => b.sets.any((s) => !s.theirs && !s.done));
+    _link.notePlan(b);
+    if (_said?.id == b.id) _said = null;
     final s =
         _link.suggest?.call(b) ??
         FocusSuggestion(
@@ -269,19 +294,8 @@ class _FocusPageState extends State<FocusPage> {
         _refresh(b);
         _link.onLift?.call(b);
       }
-      _heartBuzzed = false;
     }
     _wasResting = running;
-  }
-
-  /// Heart rate back mid-rest: one heavy buzz, no sound (not the 3·2·1).
-  void _onHeart() {
-    final r = _link.recovery;
-    if (r == null || !_link.rest.running || _heartBuzzed || !r.recovered) {
-      return;
-    }
-    _heartBuzzed = true;
-    if (_link.rest.haptics) unawaited(HapticFeedback.heavyImpact());
   }
 
   void _setDraft(ExerciseBlock b, LoggedSet v) => setState(() {
@@ -303,6 +317,7 @@ class _FocusPageState extends State<FocusPage> {
       _id = id;
       _index = i;
       _summary = false;
+      _said = null;
       _link.currentId = id;
     });
   }
@@ -353,6 +368,10 @@ class _FocusPageState extends State<FocusPage> {
     if (id == null) return;
     final l = L.of(context);
     final rested = _rests(v);
+    final rest = _link.rest;
+    final _Before? before = rested && rest.running
+        ? (owner: rest.owner, left: rest.remaining, notice: rest.notice)
+        : null;
     final fresh = _find(b.id) ?? b;
     _refresh(fresh);
     if (rested) _startRest(fresh, l);
@@ -361,19 +380,18 @@ class _FocusPageState extends State<FocusPage> {
       if (mounted) setState(() => _cool = null);
     });
     _undoTimer?.cancel();
-    _undo = (blockId: b.id, setId: id, rested: rested);
+    _undo = (blockId: b.id, setId: id, rested: rested, before: before);
     _undoTimer = Timer(
       Duration(seconds: MediaQuery.accessibleNavigationOf(context) ? 15 : 5),
       () {
         if (mounted) setState(() => _undo = null);
       },
     );
-    SemanticsService.sendAnnouncement(
-      View.of(context),
-      l.focusLogged(_spokenSet(l, v)),
-      Directionality.of(context),
-    );
-    setState(() => _summary = false);
+    setState(() {
+      _summary = false;
+      // The live state line says it once, with the rest it started.
+      _said = (id: b.id, text: l.focusLogged(_spokenSet(l, v)));
+    });
   }
 
   void _startRest(ExerciseBlock b, L l) {
@@ -388,7 +406,6 @@ class _FocusPageState extends State<FocusPage> {
     rest.notice = () => (title: title, body: body);
     rest.start(b, _link.restFor?.call(b) ?? const Duration(seconds: 90));
     _wasResting = true;
-    _heartBuzzed = false;
     _link.onRested?.call(b);
   }
 
@@ -398,8 +415,16 @@ class _FocusPageState extends State<FocusPage> {
     if (u == null) return;
     final b = _find(u.blockId);
     if (b != null) _link.onUndo?.call(b, u.setId);
-    if (u.rested && _link.rest.running && _ownerId == u.blockId) {
-      _link.rest.stop();
+    final rest = _link.rest;
+    if (u.rested && rest.running && _ownerId == u.blockId) {
+      final before = u.before;
+      if (before != null && before.owner != null) {
+        // The rest this tap replaced comes back with what was left of it.
+        rest.notice = before.notice;
+        rest.start(before.owner!, before.left);
+      } else {
+        rest.stop();
+      }
     }
     _undoTimer?.cancel();
     _cool?.cancel();
@@ -412,10 +437,15 @@ class _FocusPageState extends State<FocusPage> {
     });
   }
 
+  /// ±15 on this rest. What is kept for the exercise is its own length ±15
+  /// on the 15 s grid — not this rest's length, which the "5 s left" floor
+  /// may have cut.
   void _restBy(ExerciseBlock b, int seconds) {
     final rest = _link.rest;
+    final base = (_link.restFor?.call(b) ?? rest.length).inSeconds;
     rest.add(Duration(seconds: seconds));
-    _link.onRestChanged?.call(b, rest.length);
+    final kept = (((base + seconds) / 15).round() * 15).clamp(15, 600);
+    _link.onRestChanged?.call(b, Duration(seconds: kept));
   }
 
   /// The set's number: the planned one's place among mine, else one past my
@@ -657,17 +687,21 @@ class _FocusPageState extends State<FocusPage> {
     final resting = _restsOn(b);
     final v = _draft[b.id]!;
     final s = _sugg[b.id]!;
-    final done = !timer && planDone(b, hadPlan: _hadPlan[b.id] ?? false);
+    final done = !timer && planDone(b, hadPlan: _link.hadPlan.contains(b.id));
     final n = _setNumber(b);
     final next = _index + 1 < blocks.length ? blocks[_index + 1] : null;
 
-    final String status;
+    // [state] is what the live region reads (only when it changes); the
+    // source after it is shown and read on focus, not announced on a step.
+    final String state;
+    String? source;
     if (resting) {
-      status = l.timingRest;
+      state = l.timingRest;
     } else if (timer) {
-      status = l.timerSheetTitle;
+      state = l.timerSheetTitle;
     } else {
-      final source = done
+      state = l.focusSetLabel(n);
+      source = done
           ? l.focusPlanDone
           : _edited.contains(b.id)
           ? null
@@ -678,8 +712,10 @@ class _FocusPageState extends State<FocusPage> {
               FocusSource.setup => l.focusFromSetup,
               FocusSource.none => l.focusPickValues,
             };
-      status = [l.focusSetLabel(n), ?source].join(' · ');
     }
+    final status = [state, ?source].join(' · ');
+    final said = _said?.id == b.id ? _said!.text : null;
+    final live = [?said, state, if (done) ?source].join(' · ');
 
     // Top strip: a shared timer started over the stage.
     final shared = link.sharedTimerRunning && link.onOpenSharedTimer != null
@@ -707,11 +743,47 @@ class _FocusPageState extends State<FocusPage> {
           )
         : null;
 
-    final restPill = rest.running && !resting && _find(_ownerId) != null
+    // Too long for the top row: the words go, never the 44 pt targets —
+    // the collapse and undo keep their icons, the pill its time, the
+    // counter its numbers. The labels stay for screen readers.
+    final width = MediaQuery.sizeOf(context).width;
+    final scaler = MediaQuery.textScalerOf(context);
+    double textW(String t, TextStyle st) {
+      final p = TextPainter(
+        text: TextSpan(text: t, style: st),
+        textScaler: scaler,
+        textDirection: Directionality.of(context),
+        maxLines: 1,
+      )..layout();
+      final w = p.width;
+      p.dispose();
+      return w;
+    }
+
+    final pillStyle = _small.copyWith(fontWeight: FontWeight.w600);
+    final restLeft = _clock(_ceil(rest.remaining));
+    final showPill = rest.running && !resting && _find(_ownerId) != null;
+    final counter = l.focusExerciseOf(_index + 1, blocks.length);
+    final roomy =
+        8 +
+            12 +
+            18 +
+            6 +
+            textW(l.timerCollapse, pillStyle) +
+            12 +
+            8 +
+            textW(counter, _small) +
+            (showPill
+                ? 8 + 24 + textW(l.focusRestLength(restLeft), pillStyle)
+                : 0) +
+            (_undo != null ? 8 + 24 + 20 + textW(l.focusUndo, pillStyle) : 0) +
+            16 <=
+        width;
+    final restPill = showPill
         ? _Pill(
             key: const ValueKey('focus-rest-pill'),
-            text: l.focusRestLength(_clock(_ceil(rest.remaining))),
-            a11y: l.focusRestPillA11y(_clock(_ceil(rest.remaining))),
+            text: roomy ? l.focusRestLength(restLeft) : restLeft,
+            a11y: l.focusRestPillA11y(restLeft),
             onTap: _locked ? _nudgeLock : () => _goTo(_ownerId!),
           )
         : null;
@@ -721,24 +793,41 @@ class _FocusPageState extends State<FocusPage> {
             l.focusUndo,
             _Pill(
               key: const ValueKey('focus-undo'),
-              text: l.focusUndo,
+              text: roomy ? l.focusUndo : null,
               a11y: l.focusUndo,
               icon: CupertinoIcons.arrow_uturn_left,
               onTap: _takeBack,
             ),
           );
 
+    // One line each, so its height is known before layout.
     Widget faces(String text, TextStyle style, {Key? key, bool sub = true}) =>
-        StageFaces(
-          builder: (ink) => Text(
-            text,
-            key: ink.first ? key : null,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: style.copyWith(color: sub ? ink.sub : ink.main),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: StageFaces(
+            builder: (ink) => FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                text,
+                key: ink.first ? key : null,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                style: style.copyWith(color: sub ? ink.sub : ink.main),
+              ),
+            ),
           ),
         );
+    double lineH(TextStyle st) {
+      final p = TextPainter(
+        text: TextSpan(text: 'Hg', style: st),
+        textScaler: scaler,
+        textDirection: Directionality.of(context),
+        maxLines: 1,
+      )..layout();
+      final h = p.height;
+      p.dispose();
+      return h;
+    }
 
     final heart = link.recovery;
     final String? heartLine = !resting || heart == null
@@ -749,122 +838,189 @@ class _FocusPageState extends State<FocusPage> {
         ? l.timingHeart(heart.bpm!, heart.target!)
         : null;
 
-    // Long words on a narrow phone shrink the top row's buttons instead of
-    // pushing it over the edge.
-    final width = MediaQuery.sizeOf(context).width;
-    Widget fit(double share, Widget child) => ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: width * share),
-      child: FittedBox(fit: BoxFit.scaleDown, child: child),
+    final top = Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+      child: Row(
+        children: [
+          _gate(
+            l.timerCollapseA11y,
+            StageCollapseButton(onTap: _close, compact: !roomy),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: StageFaces(
+              builder: (ink) => Text(
+                roomy ? counter : '${_index + 1}/${blocks.length}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: _small.copyWith(color: ink.sub, fontFeatures: _tnum),
+              ),
+            ),
+          ),
+          if (restPill != null) ...[const SizedBox(width: 8), restPill],
+          if (undo != null) ...[const SizedBox(width: 8), undo],
+        ],
+      ),
     );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ?shared,
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-          child: Row(
-            children: [
-              fit(
-                0.32,
-                _gate(l.timerCollapseA11y, StageCollapseButton(onTap: _close)),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: StageFaces(
-                  builder: (ink) => Text(
-                    l.focusExerciseOf(_index + 1, blocks.length),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: _small.copyWith(color: ink.sub, fontFeatures: _tnum),
-                  ),
-                ),
-              ),
-              if (restPill != null) ...[
-                const SizedBox(width: 8),
-                fit(0.25, restPill),
-              ],
-              if (undo != null) ...[const SizedBox(width: 8), fit(0.25, undo)],
-            ],
+    final name = Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+      child: StageFaces(
+        builder: (ink) => FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(
+            b.name,
+            key: ink.first ? const ValueKey('focus-name') : null,
+            maxLines: 1,
+            style: _title1.copyWith(color: ink.main),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+      ),
+    );
+    final statusLine = Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      // Read when the state changes only.
+      child: Semantics(
+        key: const ValueKey('focus-live'),
+        container: true,
+        liveRegion: true,
+        label: live,
+        value: done ? null : source,
+        child: ExcludeSemantics(
           child: StageFaces(
             builder: (ink) => FittedBox(
               fit: BoxFit.scaleDown,
               alignment: AlignmentDirectional.centerStart,
               child: Text(
-                b.name,
-                key: ink.first ? const ValueKey('focus-name') : null,
+                status,
+                key: ink.first ? const ValueKey('focus-label') : null,
                 maxLines: 1,
-                style: _title1.copyWith(color: ink.main),
+                style: _title3.copyWith(color: ink.sub),
               ),
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-          // Read when the state changes only.
-          child: Semantics(
-            container: true,
-            liveRegion: true,
-            label: status,
-            child: ExcludeSemantics(
-              child: StageFaces(
-                builder: (ink) => FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    status,
-                    key: ink.first ? const ValueKey('focus-label') : null,
-                    maxLines: 1,
-                    style: _title3.copyWith(color: ink.sub),
-                  ),
+      ),
+    );
+
+    // A small phone with large text (and the shared strip): the hero keeps
+    // a floor and the extras under it go first — chips, then last time,
+    // then the heart line — rather than the column running over the edge.
+    const lastStyle = TextStyle(fontSize: 13, height: 18 / 13);
+    final lastLine = !resting && !timer && s.lastTimeSame != null;
+    final hasChips = !timer && b.sets.isNotEmpty;
+    final chipGap = short ? 6.0 : 8.0;
+    return LayoutBuilder(
+      builder: (context, box) {
+        final controls = timer
+            ? 0.0
+            : resting
+            ? 56.0
+            : !_rests(v)
+            ? 56.0 + (_canStartRest(b) ? 8 + 56 : 0)
+            : box.maxWidth - 32 >= 400
+            ? 56.0
+            : 56.0 + 8 + 56;
+        final fixed =
+            (shared == null ? 0 : 4 + math.max(44.0, lineH(_label))) +
+            8 +
+            math.max(44.0, lineH(_small)) +
+            4 +
+            lineH(_title1) +
+            lineH(_title3) +
+            (short ? 2 : 8) +
+            (short ? 6 : 12) +
+            controls +
+            (short ? 8 : 12) +
+            88 +
+            12 +
+            56 +
+            (short ? 8 : 24);
+        var room = box.maxHeight - fixed - box.maxHeight * 0.12;
+        bool fits(bool want, double h) {
+          if (!want || h > room) return false;
+          room -= h;
+          return true;
+        }
+
+        final showHeart = fits(heartLine != null, lineH(_title3));
+        final showLast = fits(lastLine, lineH(lastStyle));
+        final showChips = fits(hasChips, 44 + chipGap);
+        return _column(
+          shared: shared,
+          top: top,
+          name: name,
+          status: statusLine,
+          short: short,
+          hero: _hero(context, b, v, n, resting, timer),
+          extras: [
+            if (showLast)
+              faces(
+                l.focusLastTimeLine(
+                  _setText(l, s.lastTimeSame!, link.weightUnit),
                 ),
+                lastStyle,
+                key: const ValueKey('focus-last-line'),
               ),
-            ),
-          ),
-        ),
-        SizedBox(height: short ? 2 : 8),
-        Expanded(child: _hero(context, b, v, n, resting, timer)),
-        if (!resting && !timer && s.lastTimeSame != null)
-          faces(
-            l.focusLastTimeLine(_setText(l, s.lastTimeSame!, link.weightUnit)),
-            const TextStyle(fontSize: 13, height: 18 / 13),
-            key: const ValueKey('focus-last-line'),
-          ),
-        if (heartLine != null)
-          faces(
-            heartLine,
-            _title3,
-            key: const ValueKey('focus-heart'),
-            sub: false,
-          ),
-        SizedBox(height: short ? 6 : 12),
-        if (!timer)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: resting ? _restControls(l, b) : _liftControls(l, b, v),
-          ),
-        if (!timer && b.sets.isNotEmpty) ...[
-          SizedBox(height: short ? 6 : 8),
-          _chips(l, b),
-        ],
-        SizedBox(height: short ? 8 : 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: _barRow(l, b, v, resting: resting, timer: timer),
-        ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: _bottomRow(l, b, done ? next : null),
-        ),
-        SizedBox(height: short ? 8 : 24),
-      ],
+            if (showHeart)
+              faces(
+                heartLine!,
+                _title3,
+                key: const ValueKey('focus-heart'),
+                sub: false,
+              ),
+          ],
+          controls: timer
+              ? null
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: resting ? _restControls(l, b) : _liftControls(l, b, v),
+                ),
+          chips: showChips
+              ? [SizedBox(height: chipGap), _chips(l, b)]
+              : const [],
+          bar: _barRow(l, b, v, resting: resting, timer: timer),
+          bottom: _bottomRow(l, b, done ? next : null),
+        );
+      },
     );
   }
+
+  Widget _column({
+    required Widget? shared,
+    required Widget top,
+    required Widget name,
+    required Widget status,
+    required bool short,
+    required Widget hero,
+    required List<Widget> extras,
+    required Widget? controls,
+    required List<Widget> chips,
+    required Widget bar,
+    required Widget bottom,
+  }) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      ?shared,
+      top,
+      name,
+      status,
+      SizedBox(height: short ? 2 : 8),
+      Expanded(child: hero),
+      ...extras,
+      SizedBox(height: short ? 6 : 12),
+      ?controls,
+      ...chips,
+      SizedBox(height: short ? 8 : 12),
+      Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: bar),
+      const SizedBox(height: 12),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: bottom,
+      ),
+      SizedBox(height: short ? 8 : 24),
+    ],
+  );
 
   /// The big number, drawn twice over the waterline.
   Widget _hero(
@@ -885,16 +1041,35 @@ class _FocusPageState extends State<FocusPage> {
       color: c,
     );
     if (timer) {
-      final spec = TimingSpec.parse(b.name)!;
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: StageFaces(
-            builder: (ink) => Text(
-              spec.summary(l),
-              key: ink.first ? const ValueKey('focus-timer-summary') : null,
-              textAlign: TextAlign.center,
-              style: _title1.copyWith(color: ink.main, fontFeatures: _tnum),
+      // One piece per line ("·" never starts a line), the block fitted into
+      // the hero's room.
+      final pieces = TimingSpec.parse(b.name)!.summary(l).split(' · ');
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Semantics(
+          container: true,
+          label: pieces.join(' · '),
+          child: ExcludeSemantics(
+            child: StageFaces(
+              builder: (ink) => FittedBox(
+                key: ink.first ? const ValueKey('focus-timer-summary') : null,
+                fit: BoxFit.scaleDown,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final p in pieces)
+                      Text(
+                        p,
+                        maxLines: 1,
+                        softWrap: false,
+                        style: _title1.copyWith(
+                          color: ink.main,
+                          fontFeatures: _tnum,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -1002,6 +1177,10 @@ class _FocusPageState extends State<FocusPage> {
   }
 
   /// Weight (or time, distance) and reps: [−] value [+], a wheel on the value.
+  /// Time and distance: [Start rest] once one is logged and none runs.
+  bool _canStartRest(ExerciseBlock b) =>
+      b.sets.any((s) => s.mine) && !_link.rest.running;
+
   Widget _liftControls(L l, ExerciseBlock b, LoggedSet v) {
     final kind = kindOf(v);
     final unitKind = unitById[v.unit]?.kind ?? UnitKind.weight;
@@ -1029,7 +1208,7 @@ class _FocusPageState extends State<FocusPage> {
     );
     if (!_rests(v)) {
       // Time and distance: no reps; the rest is started by hand.
-      final canRest = b.sets.any((s) => s.mine) && !_link.rest.running;
+      final canRest = _canStartRest(b);
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1109,7 +1288,7 @@ class _FocusPageState extends State<FocusPage> {
           itemBuilder: (context, i) {
             final s = b.sets[i];
             final text =
-                '${i + 1}  ${cellLabel(s, shared: _link.weightUnit, formatReps: l.repsCount)}';
+                '${_numberOf(b, s) ?? s.author}  ${_chipText(l, s, _link.weightUnit)}';
             final chip = Container(
               key: ValueKey('focus-chip-$i'),
               constraints: const BoxConstraints(minWidth: 56),
@@ -1188,7 +1367,11 @@ class _FocusPageState extends State<FocusPage> {
       bar = StageBar(
         key: const ValueKey('focus-pick'),
         icon: CupertinoIcons.slider_horizontal_3,
-        label: l.focusPickButton,
+        label: switch (kindOf(v)) {
+          FocusKind.duration => l.focusPickTime,
+          FocusKind.distance => l.focusPickDistance,
+          _ => l.focusPickButton,
+        },
         onTap: () => _pickBoth(b),
       );
     } else {
@@ -1202,8 +1385,18 @@ class _FocusPageState extends State<FocusPage> {
     final blocks = _link.blocks;
     Widget side(int delta) {
       final i = _index + delta;
-      if (i < 0 || i >= blocks.length) return const SizedBox(width: 56);
       final label = delta < 0 ? l.focusPrevExercise : l.focusNextExerciseA11y;
+      if (i < 0 || i >= blocks.length) {
+        // Kept in place, dim and off, so the bar stays centered.
+        return StageRoundButton(
+          key: ValueKey(delta < 0 ? 'focus-prev-off' : 'focus-next-off'),
+          icon: delta < 0
+              ? CupertinoIcons.chevron_left_2
+              : CupertinoIcons.chevron_right_2,
+          label: label,
+          onTap: null,
+        );
+      }
       return _gate(
         label,
         StageRoundButton(
@@ -1283,9 +1476,13 @@ class _FocusPageState extends State<FocusPage> {
 
   // ---- Summary.
 
-  /// "1200kg", "4:30", "5km", "36회" for [st]'s total.
+  /// "1,892.5kg": a volume to the tenth, grouped the language's way.
+  String _grouped(L l, double v, String unit) =>
+      '${NumberFormat('#,##0.#', l.localeName).format((v * 10).round() / 10)}${_unit(unit)}';
+
+  /// "1,200kg", "4:30", "5km", "36회" for [st]'s total.
   String _total(L l, FocusStats st) => switch (st.kind) {
-    FocusKind.weight => formatValue((st.total * 10).round() / 10, st.unit),
+    FocusKind.weight => _grouped(l, st.total, st.unit),
     FocusKind.duration => _clock(
       (st.total * (baseFactor[st.unit] ?? 1)).round(),
     ),
@@ -1310,7 +1507,8 @@ class _FocusPageState extends State<FocusPage> {
     final sign = r > 0 ? '+' : '−';
     final abs = r.abs();
     final text = switch (now.kind) {
-      FocusKind.weight || FocusKind.distance => formatValue(abs, now.unit),
+      FocusKind.weight => _grouped(l, abs, now.unit),
+      FocusKind.distance => formatValue(abs, now.unit),
       FocusKind.duration => _clock((abs * (baseFactor[now.unit] ?? 1)).round()),
       FocusKind.reps => l.repsCount(abs.round()),
     };
@@ -1368,7 +1566,7 @@ class _FocusPageState extends State<FocusPage> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      for (final (i, s) in mine.indexed)
+                      for (final s in mine)
                         Container(
                           constraints: const BoxConstraints(
                             minHeight: 44,
@@ -1383,7 +1581,7 @@ class _FocusPageState extends State<FocusPage> {
                             widthFactor: 1,
                             heightFactor: 1,
                             child: Text(
-                              '${i + 1}  ${cellLabel(s, shared: link.weightUnit, formatReps: l.repsCount)}',
+                              '${_numberOf(b, s)}  ${_chipText(l, s, link.weightUnit)}',
                               style: _label.copyWith(
                                 color: _P.text,
                                 fontFeatures: _tnum,
@@ -1490,22 +1688,6 @@ class _FocusPageState extends State<FocusPage> {
   }
 }
 
-/// The flood level; [repaint] tells the flood and the clips to paint again
-/// at an unchanged level.
-class _Water extends ChangeNotifier implements ValueListenable<StageWater> {
-  StageWater _value = (level: 0, fill: _P.fillRest);
-
-  @override
-  StageWater get value => _value;
-  set value(StageWater v) {
-    if (v == _value) return;
-    _value = v;
-    notifyListeners();
-  }
-
-  void repaint() => notifyListeners();
-}
-
 /// [−] value [+]: the value cell opens a wheel; − and + repeat while held.
 class _Stepper extends StatelessWidget {
   const _Stepper({
@@ -1595,7 +1777,10 @@ class _Pill extends StatelessWidget {
     required this.onTap,
     this.icon,
   });
-  final String text, a11y;
+
+  /// Null: the icon alone (a narrow top row).
+  final String? text;
+  final String a11y;
   final VoidCallback onTap;
   final IconData? icon;
 
@@ -1617,17 +1802,16 @@ class _Pill extends StatelessWidget {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (icon != null) ...[
-              Icon(icon, size: 16, color: _P.bg),
-              const SizedBox(width: 4),
-            ],
-            Flexible(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
+            if (icon != null) Icon(icon, size: 16, color: _P.bg),
+            if (icon != null && text != null) const SizedBox(width: 4),
+            if (text case final text?)
+              Flexible(
                 child: Text(
                   text,
                   maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: _small.copyWith(
                     fontWeight: FontWeight.w600,
                     color: _P.onFill,
@@ -1635,7 +1819,6 @@ class _Pill extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),

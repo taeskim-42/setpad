@@ -14,11 +14,14 @@ import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/record_query.dart' show exerciseKey;
+import 'package:setpad/rest_recovery.dart';
 import 'package:setpad/rest_timer.dart';
 import 'package:setpad/run_page.dart' show StageStepKey;
 import 'package:setpad/stage_palette.dart';
 import 'package:setpad/timer_sheet.dart' show ValueSheet;
 import 'package:setpad/timing_audio.dart';
+
+import 'rest_recovery_test.dart' show FakeHealth;
 
 class FakeAudio extends TimingAudio {
   @override
@@ -663,7 +666,7 @@ void main() {
       await tapKey(t, 'focus-finish');
       expect(key('focus-summary'), findsOneWidget);
       expect(find.text('벤치프레스 끝!'), findsOneWidget);
-      expect(find.text('1400kg'), findsOneWidget); // 600 + 400 + 400
+      expect(find.text('1,400kg'), findsOneWidget); // 600 + 400 + 400
       expect(find.text('80 × 5'), findsOneWidget); // best
       expect(find.text('3'), findsOneWidget);
       expect(
@@ -794,6 +797,318 @@ void main() {
             await t.pump(const Duration(seconds: 1));
             await tapKey(t, 'focus-finish');
             expect(t.takeException(), isNull, reason: 'summary x$scale');
+            await done(t, r);
+          }
+        });
+      }
+    }
+  });
+
+  group('review fixes (focus-review 1.8)', () {
+    testWidgets('fold and reopen after the last ○: still "계획 끝" and next', (
+      t,
+    ) async {
+      final b = bench([s(80, 5, done: false)]);
+      final row = ExerciseBlock('로우', [s(50, 10, done: false)]);
+      final r = Rig([b, row]);
+      await mount(t, r);
+      await tapKey(t, 'focus-done');
+      await t.tap(key('run-collapse'));
+      await settle(t);
+      // Reopened on the bench (the rest strip) while it rests.
+      r.link.currentId = b.id;
+      await t.tap(key('open'));
+      await settle(t);
+      await advance(t, r, const Duration(seconds: 91));
+      await t.pump();
+      expect(text(t, 'focus-label'), '2세트 · 계획 끝');
+      expect(key('focus-next-exercise'), findsOneWidget);
+      await done(t, r);
+    });
+
+    testWidgets('○ ticked in the editor before the stage opened: plan over', (
+      t,
+    ) async {
+      final b = bench([s(80, 5, done: false)]);
+      final r = Rig([
+        b,
+        ExerciseBlock('로우', [s(50, 10)]),
+      ]);
+      // The editor fills the link while ○ is open, then the person ticks it.
+      b.sets[0] = LoggedSet(id: b.sets[0].id, value: 80, unit: 'kg', reps: 5);
+      await mount(t, r);
+      expect(text(t, 'focus-label'), '2세트 · 계획 끝');
+      await done(t, r);
+    });
+
+    testWidgets('heart back mid-rest: the stage itself does not buzz', (
+      t,
+    ) async {
+      final buzz = <Object?>[];
+      t.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'HapticFeedback.vibrate') buzz.add(call.arguments);
+          return null;
+        },
+      );
+      addTearDown(
+        () => t.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      final health = FakeHealth();
+      final recovery = RestRecovery(health: health, minimumRest: Duration.zero)
+        ..listen();
+      addTearDown(recovery.dispose);
+      final r = Rig([
+        bench([s(80, 5)]),
+      ]);
+      r.link.recovery = recovery;
+      await mount(t, r);
+      await tapKey(t, 'focus-done');
+      recovery.beginRest();
+      buzz.clear();
+      final now = DateTime.now();
+      health.push(150, now);
+      await t.pump();
+      health.push(120, now.add(const Duration(seconds: 1)));
+      await t.pump();
+      await t.pump();
+      expect(recovery.recovered, isTrue);
+      expect(text(t, 'focus-heart'), '심박이 돌아왔어요 · 바로 다음 세트');
+      // The editor's _followHeart is the one buzz (it rings folded too).
+      expect(buzz, isEmpty);
+      await done(t, r);
+    });
+
+    testWidgets('superset undo brings the bench rest back', (t) async {
+      final b = bench([s(80, 5)]);
+      final row = ExerciseBlock('바벨로우', [s(60, 10)]);
+      final r = Rig([b, row]);
+      await mount(t, r);
+      await tapKey(t, 'focus-done');
+      await advance(t, r, const Duration(seconds: 30));
+      await tapKey(t, 'focus-next');
+      await tapKey(t, 'focus-done');
+      expect((r.rest.owner as ExerciseBlock?)?.id, row.id);
+      await tapKey(t, 'focus-undo');
+      expect(r.rest.running, isTrue);
+      expect((r.rest.owner as ExerciseBlock?)?.id, b.id);
+      expect(r.rest.remaining, const Duration(seconds: 60));
+      expect(key('focus-rest-pill'), findsOneWidget);
+      // No rest before: undo still just stops the one it started.
+      await advance(t, r, const Duration(seconds: 61));
+      await t.pump(const Duration(seconds: 1));
+      await tapKey(t, 'focus-done');
+      await tapKey(t, 'focus-undo');
+      expect(r.rest.running, isFalse);
+      await done(t, r);
+    });
+
+    testWidgets('−15 twice near the end keeps 60 s for the exercise', (
+      t,
+    ) async {
+      final r = Rig([
+        bench([s(80, 5)]),
+      ]);
+      await mount(t, r);
+      await tapKey(t, 'focus-done');
+      await advance(t, r, const Duration(milliseconds: 80300)); // 9.7 s left
+      await tapKey(t, 'focus-rest-less');
+      await tapKey(t, 'focus-rest-less');
+      expect(r.restOf.values.single, const Duration(seconds: 60));
+      // This rest still keeps its last 5 s.
+      expect(
+        r.rest.remaining,
+        greaterThanOrEqualTo(const Duration(seconds: 5)),
+      );
+      await done(t, r);
+    });
+
+    testWidgets("one numbering: mine count, someone else's chip has a name", (
+      t,
+    ) async {
+      final r = Rig([
+        bench([
+          s(60, 10),
+          s(70, 8, author: '준'),
+          s(80, 5, done: false),
+          s(75, 8, author: '준'),
+        ]),
+      ]);
+      await mount(t, r);
+      expect(text(t, 'focus-label'), '2세트 · 계획');
+      String chip(int i) => t
+          .widget<Text>(
+            find.descendant(
+              of: key('focus-chip-$i'),
+              matching: find.byType(Text),
+            ),
+          )
+          .data!;
+      expect(chip(0), '1  60×10');
+      expect(chip(1), '준  70×8');
+      expect(chip(2), '2  80×5');
+      await tapKey(t, 'focus-done');
+      await t.pump(const Duration(seconds: 1));
+      await tapKey(t, 'focus-skip');
+      await tapKey(t, 'focus-finish');
+      expect(find.text('2  80×5'), findsOneWidget);
+      await done(t, r);
+    });
+
+    testWidgets('time and distance at 0: the bar asks for that, not reps', (
+      t,
+    ) async {
+      var r = Rig([
+        ExerciseBlock('플랭크', [s(10, null, unit: 's')]),
+      ]);
+      await mount(t, r);
+      await tapKey(t, 'focus-value-less');
+      expect(find.text('시간 정하기'), findsOneWidget);
+      expect(find.text('무게·횟수 정하기'), findsNothing);
+      await done(t, r);
+      r = Rig([
+        ExerciseBlock('러닝', [s(0.5, null, unit: 'km')]),
+      ]);
+      await mount(t, r);
+      await tapKey(t, 'focus-value-less');
+      expect(find.text('거리 정하기'), findsOneWidget);
+      await done(t, r);
+    });
+
+    testWidgets('screen reader: the state line is read once per change', (
+      t,
+    ) async {
+      final h = t.ensureSemantics();
+      final r = Rig([
+        bench([s(60, 10), s(80, 5, done: false)]),
+      ]);
+      await mount(t, r);
+      SemanticsData live() =>
+          t.getSemantics(key('focus-live')).getSemanticsData();
+      expect(live().label, '2세트');
+      expect(live().value, '계획');
+      // A step drops the source; the live label (what is announced) stays.
+      await tapKey(t, 'focus-reps-more');
+      expect(live().label, '2세트');
+      t.takeAnnouncements();
+      await tapKey(t, 'focus-done');
+      // One utterance: what was written and the rest it started.
+      expect(live().label, '80kg 6회 적었어요 · 휴식');
+      expect(t.takeAnnouncements(), isEmpty);
+      await done(t, r);
+      h.dispose();
+    });
+
+    testWidgets('a time set reads the same on the chip as on the hero', (
+      t,
+    ) async {
+      final r = Rig([
+        ExerciseBlock('플랭크', [s(60, null, unit: 's')]),
+      ]);
+      await mount(t, r);
+      expect(text(t, 'focus-hero'), '1:00');
+      expect(find.text('1  1:00'), findsOneWidget);
+      await done(t, r);
+    });
+
+    testWidgets(
+      'first block: « stays in place, dim and off; the bar centered',
+      (t) async {
+        final r = Rig([
+          bench([s(80, 5)]),
+          ExerciseBlock('스쿼트', [s(100, 5)]),
+        ]);
+        await mount(t, r);
+        expect(key('focus-prev-off'), findsOneWidget);
+        expect(
+          t.getCenter(key('focus-done')).dx,
+          moreOrLessEquals(phone.width / 2, epsilon: 1),
+        );
+        await t.tap(key('focus-prev-off'));
+        await t.pump();
+        expect(text(t, 'focus-name'), '벤치프레스');
+        await done(t, r);
+      },
+    );
+
+    testWidgets('volume grouped the language\'s way', (t) async {
+      final r = Rig([
+        bench([s(100, 10), s(100, 10), s(92.5, 10)]),
+      ]);
+      await mount(t, r, lang: 'en');
+      await tapKey(t, 'focus-finish');
+      expect(find.text('2,925kg'), findsOneWidget);
+      await done(t, r);
+    });
+  });
+
+  group('no overflow: strip, timer block, lock, small phone', () {
+    for (final size in const [Size(320, 568), Size(375, 667)]) {
+      for (final lang in const ['ko', 'en', 'es', 'th', 'vi']) {
+        testWidgets('${size.width.toInt()}x${size.height.toInt()} $lang', (
+          t,
+        ) async {
+          for (final scale in const [1.0, 1.5, 2.0]) {
+            final why = '$lang x$scale';
+            final r = Rig(
+              [
+                bench([s(82.5, 12), s(80, 5, done: false)]),
+                ExerciseBlock('바벨로우 · 아주 긴 이름의 운동', [s(60, 10)]),
+                ExerciseBlock('버피 타바타 20/10 x8'),
+              ],
+              history: [lastWeek],
+            );
+            r.link.sharedTimerRunning = true;
+            await mount(t, r, size: size, scale: scale, lang: lang);
+            expect(t.takeException(), isNull, reason: 'lift $why');
+            expect(
+              t.getSize(key('focus-hero')).height,
+              greaterThan(30),
+              reason: 'hero $why',
+            );
+            await tapKey(t, 'focus-done');
+            await t.pump(const Duration(seconds: 1));
+            expect(t.takeException(), isNull, reason: 'rest $why');
+            await tapKey(t, 'focus-next');
+            await t.pump(const Duration(seconds: 1));
+            await tapKey(t, 'focus-done');
+            await tapKey(t, 'focus-prev');
+            // Rest pill and undo side by side with the collapse.
+            expect(t.takeException(), isNull, reason: 'top row $why');
+            for (final k in ['run-collapse', 'focus-rest-pill']) {
+              final rect = t.getRect(key(k));
+              expect(rect.height, greaterThanOrEqualTo(44), reason: '$k $why');
+              expect(rect.width, greaterThanOrEqualTo(44), reason: '$k $why');
+              expect(rect.right, lessThanOrEqualTo(size.width), reason: k);
+            }
+            await tapKey(t, 'focus-next');
+            final undo = t.getRect(key('focus-undo'));
+            expect(undo.height, greaterThanOrEqualTo(44), reason: 'undo $why');
+            expect(undo.right, lessThanOrEqualTo(size.width), reason: why);
+            await tapKey(t, 'focus-next');
+            expect(t.takeException(), isNull, reason: 'timer $why');
+            for (final p in t.renderObjectList<RenderParagraph>(
+              find.descendant(
+                of: key('focus-timer-summary'),
+                matching: find.byType(RichText),
+              ),
+            )) {
+              expect(p.didExceedMaxLines, isFalse, reason: 'summary $why');
+            }
+            final box = t.getRect(key('focus-timer-summary'));
+            expect(box.right, lessThanOrEqualTo(size.width), reason: why);
+            final g = await t.startGesture(t.getCenter(key('focus-lock')));
+            await t.pump(const Duration(milliseconds: 150));
+            await t.pump();
+            await t.pump(const Duration(milliseconds: 2100));
+            await g.up();
+            await t.pump();
+            expect(key('focus-locked-hint'), findsOneWidget);
+            expect(t.takeException(), isNull, reason: 'locked $why');
             await done(t, r);
           }
         });

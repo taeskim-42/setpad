@@ -126,7 +126,8 @@ abstract final class StagePortrait {
 const kStageMaxTextScale = 1.5;
 
 class _RunPageState extends State<RunPage> {
-  late final _water = ValueNotifier<StageWater>(_read());
+  late final _water = StageWaterLevel(_read());
+  Animation<double>? _routeIn;
   Timer? _clockTimer;
   bool? _still;
   bool _locked = false;
@@ -146,6 +147,14 @@ class _RunPageState extends State<RunPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // The dark faces are clipped at the waterline in screen space; a level
+    // that does not move (paused) never repaints them, so the clip painted
+    // while the page slid in would stay. Paint again once it has arrived.
+    final routeIn = ModalRoute.of(context)?.animation;
+    if (!identical(routeIn, _routeIn)) {
+      _routeIn?.removeStatusListener(_arrived);
+      _routeIn = routeIn?..addStatusListener(_arrived);
+    }
     // The flood reads the level on its own clock, not on engine notifies.
     // Reduce motion: once a second.
     final still = MediaQuery.disableAnimationsOf(context);
@@ -158,8 +167,13 @@ class _RunPageState extends State<RunPage> {
     );
   }
 
+  void _arrived(AnimationStatus s) {
+    if (s.isCompleted) _water.repaint();
+  }
+
   @override
   void dispose() {
+    _routeIn?.removeStatusListener(_arrived);
     _clockTimer?.cancel();
     _timer.removeListener(_sync);
     _water.dispose();
@@ -656,6 +670,24 @@ void _clearRound(RunLink link, int round) {
 
 // ---- Flood ("수위") and the two faces of text over it.
 
+/// The flood level; [repaint] tells the flood and the clips to paint again
+/// at an unchanged level (the clips were painted while the page slid in).
+class StageWaterLevel extends ChangeNotifier
+    implements ValueListenable<StageWater> {
+  StageWaterLevel(this._value);
+  StageWater _value;
+
+  @override
+  StageWater get value => _value;
+  set value(StageWater v) {
+    if (v == _value) return;
+    _value = v;
+    notifyListeners();
+  }
+
+  void repaint() => notifyListeners();
+}
+
 class StageWaterScope extends InheritedWidget {
   const StageWaterScope({super.key, required this.water, required super.child});
   final ValueListenable<StageWater> water;
@@ -812,8 +844,15 @@ class RenderStageFloodClip extends RenderProxyBox {
 // ---- Top, number, info.
 
 class StageCollapseButton extends StatelessWidget {
-  const StageCollapseButton({super.key, required this.onTap});
+  const StageCollapseButton({
+    super.key,
+    required this.onTap,
+    this.compact = false,
+  });
   final VoidCallback onTap;
+
+  /// The chevron alone (a crowded top row); the label stays for readers.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -836,16 +875,19 @@ class StageCollapseButton extends StatelessWidget {
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(CupertinoIcons.chevron_down, size: 18, color: _P.text),
-              const SizedBox(width: 6),
-              Text(
-                l.timerCollapse,
-                style: _small.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: _P.text,
+              if (!compact) ...[
+                const SizedBox(width: 6),
+                Text(
+                  l.timerCollapse,
+                  style: _small.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: _P.text,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -1545,26 +1587,32 @@ class StageRoundButton extends StatelessWidget {
   });
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+
+  /// Null: there is nothing that way — drawn dim, disabled for readers.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
+    enabled: onTap != null,
     label: label,
     onTap: onTap,
     excludeSemantics: true,
     child: GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: _P.bg,
-          shape: BoxShape.circle,
-          border: Border.all(color: _P.text, width: 2),
+      child: Opacity(
+        opacity: onTap == null ? StageGate.dim : 1,
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: _P.bg,
+            shape: BoxShape.circle,
+            border: Border.all(color: _P.text, width: 2),
+          ),
+          child: Icon(icon, size: 28, color: _P.text),
         ),
-        child: Icon(icon, size: 28, color: _P.text),
       ),
     ),
   );

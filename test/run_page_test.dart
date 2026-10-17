@@ -943,4 +943,31 @@ void main() {
       }
     }
   });
+
+  testWidgets('opened paused mid-interval: the number above the water is '
+      'repainted light once the page has slid in', (t) async {
+    final r = Rig();
+    r.startAt(tabata, const Duration(seconds: 13)); // 10 s into the work
+    r.timer.pause();
+    await mount(t, r);
+    await t.pump(const Duration(milliseconds: 600));
+    final level = r.timer.level;
+    expect(level, inExclusiveRange(0.2, 0.8));
+    final line = 852 - 852 * level;
+    final rect = t.getRect(key('run-number'));
+    expect(rect.top, lessThan(line));
+    final px = await pixels(t);
+    var light = 0;
+    for (
+      var y = rect.top.ceil();
+      y < math.min(line, rect.bottom).floor();
+      y++
+    ) {
+      for (var x = rect.left.ceil(); x < rect.right.floor(); x++) {
+        if (px(x, y) == rgb(StagePalette.text)) light++;
+      }
+    }
+    expect(light, greaterThan(100));
+    await done(t, r);
+  });
 }
