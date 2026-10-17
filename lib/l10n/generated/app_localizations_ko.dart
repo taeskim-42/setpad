@@ -3726,4 +3726,33 @@ class LKo extends L {
   @override
   String get refusedAccountBlocked =>
       '도장의 관장이나 트레이너예요. 도장에서 나오거나 도장을 지운 뒤에 탈퇴할 수 있어요.';
+
+  @override
+  String get firstRunHint1 => '운동 이름을 적어요. 예: 벤치프레스';
+
+  @override
+  String get firstRunHint2 => '그다음 \"80 10\" 처럼 무게와 횟수를 적어요';
+
+  @override
+  String get firstRunHint3 => '\"타바타\"나 \"60bpm\" 을 적으면 타이머가 붙어요';
+
+  @override
+  String get firstRunClose => '안내 닫기';
+
+  @override
+  String get undo => '되돌리기';
+
+  @override
+  String setRemoved(int n) {
+    return '$n세트를 지웠어요';
+  }
+
+  @override
+  String get setDragHint => '세트를 다른 칸으로 끌어 놓으면 순서가 바뀌어요';
+
+  @override
+  String get noteRemoved => '기록을 지웠어요';
+
+  @override
+  String get shareSending => '트레이너에게 보내는 중 · 신호 잡히면 가요';
 }

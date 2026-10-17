@@ -930,5 +930,14 @@
   "refusedClassFull": "这节团课已满。",
   "refusedClassNoAccess": "你没有可在上课当天使用的会员卡，请向健身房确认有效期或暂停状态。",
   "refusedClassCancelled": "这节团课已停课。",
-  "refusedAccountBlocked": "你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。"
+  "refusedAccountBlocked": "你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。",
+  "firstRunHint1": "输入动作名称，例如卧推",
+  "firstRunHint2": "然后输入重量和次数，例如“80 10”",
+  "firstRunHint3": "输入“tabata”或“60bpm”就会出现计时器",
+  "firstRunClose": "关闭提示",
+  "undo": "撤销",
+  "setRemoved": "已删除第 {n} 组",
+  "setDragHint": "把一组拖到另一格即可调整顺序",
+  "noteRemoved": "已删除记录",
+  "shareSending": "正在发送给教练 · 有信号时会发出"
 }

@@ -930,5 +930,14 @@
   "refusedClassFull": "Esta clase está completa.",
   "refusedClassNoAccess": "No tienes una membresía válida para el día de la clase. Consulta las fechas o la pausa con tu gimnasio.",
   "refusedClassCancelled": "Esta clase se canceló.",
-  "refusedAccountBlocked": "Eres propietario o entrenador de un gimnasio. Sal del gimnasio o elimínalo y luego elimina tu cuenta."
+  "refusedAccountBlocked": "Eres propietario o entrenador de un gimnasio. Sal del gimnasio o elimínalo y luego elimina tu cuenta.",
+  "firstRunHint1": "Escribe el nombre del ejercicio, por ejemplo Press de banca",
+  "firstRunHint2": "Luego escribe peso y repeticiones, como \"80 10\"",
+  "firstRunHint3": "Escribe \"tabata\" o \"60bpm\" para tener un temporizador",
+  "firstRunClose": "Cerrar consejos",
+  "undo": "Deshacer",
+  "setRemoved": "Serie {n} eliminada",
+  "setDragHint": "Suelta una serie en otra casilla para cambiar el orden",
+  "noteRemoved": "Registro eliminado",
+  "shareSending": "Enviando a tu entrenador · se enviará cuando haya señal"
 }

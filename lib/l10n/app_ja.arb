@@ -930,5 +930,14 @@
   "refusedClassFull": "このクラスは満員です。",
   "refusedClassNoAccess": "クラスの日に使える会員権がありません。期間や休止状態をジムに確認してください。",
   "refusedClassCancelled": "このクラスは休講になりました。",
-  "refusedAccountBlocked": "ジムのオーナーまたはトレーナーです。ジムを抜けるかジムを削除してから、アカウントを削除してください。"
+  "refusedAccountBlocked": "ジムのオーナーまたはトレーナーです。ジムを抜けるかジムを削除してから、アカウントを削除してください。",
+  "firstRunHint1": "種目名を書きます。例: ベンチプレス",
+  "firstRunHint2": "次に「80 10」のように重さと回数を書きます",
+  "firstRunHint3": "「タバタ」や「60bpm」と書くとタイマーが付きます",
+  "firstRunClose": "ヒントを閉じる",
+  "undo": "元に戻す",
+  "setRemoved": "{n}セット目を消しました",
+  "setDragHint": "セットを別のマスにドラッグすると順番が変わります",
+  "noteRemoved": "記録を削除しました",
+  "shareSending": "トレーナーに送信中 · 電波がつながると送られます"
 }

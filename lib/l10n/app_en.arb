@@ -930,5 +930,14 @@
   "refusedClassFull": "This class is full.",
   "refusedClassNoAccess": "You don't have a membership you can use on the class day. Check its dates or hold status with your gym.",
   "refusedClassCancelled": "This class was cancelled.",
-  "refusedAccountBlocked": "You're an owner or trainer at a gym. Leave the gym or delete it, then delete your account."
+  "refusedAccountBlocked": "You're an owner or trainer at a gym. Leave the gym or delete it, then delete your account.",
+  "firstRunHint1": "Type an exercise name, like Bench press",
+  "firstRunHint2": "Then type weight and reps, like \"80 10\"",
+  "firstRunHint3": "Type \"tabata\" or \"60bpm\" to get a timer",
+  "firstRunClose": "Close tips",
+  "undo": "Undo",
+  "setRemoved": "Set {n} removed",
+  "setDragHint": "Drop a set on another cell to reorder",
+  "noteRemoved": "Record deleted",
+  "shareSending": "Sending to your trainer · goes when you have signal"
 }

@@ -526,7 +526,7 @@ class _UnknownNames extends StatelessWidget {
         const SizedBox(height: 4),
         Wrap(
           spacing: 8,
-          runSpacing: 6,
+          runSpacing: 0,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             for (final name in names.take(5))
@@ -678,7 +678,7 @@ class _MuscleSheetState extends State<_MuscleSheet> {
               padding: const EdgeInsets.only(top: 8, bottom: 8),
               child: Wrap(
                 spacing: 8,
-                runSpacing: 6,
+                runSpacing: 0,
                 children: [
                   SuggestionChip(
                     label: l.anatomyAddRoutine,

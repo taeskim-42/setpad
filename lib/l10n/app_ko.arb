@@ -3640,5 +3640,18 @@
   "refusedClassCancelled": "휴강한 수업이에요.",
   "@refusedClassCancelled": {"description": "휴강한 그룹 수업이다(409 cancelled)."},
   "refusedAccountBlocked": "도장의 관장이나 트레이너예요. 도장에서 나오거나 도장을 지운 뒤에 탈퇴할 수 있어요.",
-  "@refusedAccountBlocked": {"description": "도장의 관장·트레이너라서 탈퇴할 수 없다(409 blocked, DELETE /api/me)."}
+  "@refusedAccountBlocked": {"description": "도장의 관장·트레이너라서 탈퇴할 수 없다(409 blocked, DELETE /api/me)."},
+  "firstRunHint1": "운동 이름을 적어요. 예: 벤치프레스",
+  "firstRunHint2": "그다음 \"80 10\" 처럼 무게와 횟수를 적어요",
+  "firstRunHint3": "\"타바타\"나 \"60bpm\" 을 적으면 타이머가 붙어요",
+  "firstRunClose": "안내 닫기",
+  "undo": "되돌리기",
+  "@undo": {"description": "방금 한 일을 되돌리는 단추"},
+  "setRemoved": "{n}세트를 지웠어요",
+  "@setRemoved": {"description": "세트 × 뒤 '되돌리기' 줄 앞부분. n 은 지운 세트 번호(1부터)", "placeholders": {"n": {"type": "int"}}},
+  "setDragHint": "세트를 다른 칸으로 끌어 놓으면 순서가 바뀌어요",
+  "noteRemoved": "기록을 지웠어요",
+  "@noteRemoved": {"description": "목록에서 기록을 지운 직후 '되돌리기' 줄 앞부분"},
+  "shareSending": "트레이너에게 보내는 중 · 신호 잡히면 가요",
+  "@shareSending": {"description": "트레이너와 공유하는 기록이 아직 한 번도 서버에 못 올라갔을 때 편집기 머리의 한 줄"}
 }

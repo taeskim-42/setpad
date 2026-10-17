@@ -3807,4 +3807,34 @@ class LTh extends L {
   @override
   String get refusedAccountBlocked =>
       'คุณเป็นเจ้าของหรือเทรนเนอร์ของยิม โปรดออกจากยิมหรือลบยิมก่อน แล้วจึงลบบัญชี';
+
+  @override
+  String get firstRunHint1 => 'พิมพ์ชื่อท่า เช่น เบนช์เพรส';
+
+  @override
+  String get firstRunHint2 => 'จากนั้นพิมพ์น้ำหนักและจำนวนครั้ง เช่น \"80 10\"';
+
+  @override
+  String get firstRunHint3 =>
+      'พิมพ์ \"tabata\" หรือ \"60bpm\" เพื่อให้มีตัวจับเวลา';
+
+  @override
+  String get firstRunClose => 'ปิดคำแนะนำ';
+
+  @override
+  String get undo => 'เลิกทำ';
+
+  @override
+  String setRemoved(int n) {
+    return 'ลบเซ็ต $n แล้ว';
+  }
+
+  @override
+  String get setDragHint => 'ลากเซ็ตไปวางที่ช่องอื่นเพื่อสลับลำดับ';
+
+  @override
+  String get noteRemoved => 'ลบบันทึกแล้ว';
+
+  @override
+  String get shareSending => 'กำลังส่งให้เทรนเนอร์ · จะส่งเมื่อมีสัญญาณ';
 }

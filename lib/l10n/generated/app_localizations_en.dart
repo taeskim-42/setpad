@@ -3862,4 +3862,34 @@ class LEn extends L {
   @override
   String get refusedAccountBlocked =>
       'You\'re an owner or trainer at a gym. Leave the gym or delete it, then delete your account.';
+
+  @override
+  String get firstRunHint1 => 'Type an exercise name, like Bench press';
+
+  @override
+  String get firstRunHint2 => 'Then type weight and reps, like \"80 10\"';
+
+  @override
+  String get firstRunHint3 => 'Type \"tabata\" or \"60bpm\" to get a timer';
+
+  @override
+  String get firstRunClose => 'Close tips';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String setRemoved(int n) {
+    return 'Set $n removed';
+  }
+
+  @override
+  String get setDragHint => 'Drop a set on another cell to reorder';
+
+  @override
+  String get noteRemoved => 'Record deleted';
+
+  @override
+  String get shareSending =>
+      'Sending to your trainer · goes when you have signal';
 }

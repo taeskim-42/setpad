@@ -3719,4 +3719,33 @@ class LJa extends L {
   @override
   String get refusedAccountBlocked =>
       'ジムのオーナーまたはトレーナーです。ジムを抜けるかジムを削除してから、アカウントを削除してください。';
+
+  @override
+  String get firstRunHint1 => '種目名を書きます。例: ベンチプレス';
+
+  @override
+  String get firstRunHint2 => '次に「80 10」のように重さと回数を書きます';
+
+  @override
+  String get firstRunHint3 => '「タバタ」や「60bpm」と書くとタイマーが付きます';
+
+  @override
+  String get firstRunClose => 'ヒントを閉じる';
+
+  @override
+  String get undo => '元に戻す';
+
+  @override
+  String setRemoved(int n) {
+    return '$nセット目を消しました';
+  }
+
+  @override
+  String get setDragHint => 'セットを別のマスにドラッグすると順番が変わります';
+
+  @override
+  String get noteRemoved => '記録を削除しました';
+
+  @override
+  String get shareSending => 'トレーナーに送信中 · 電波がつながると送られます';
 }

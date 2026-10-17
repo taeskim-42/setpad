@@ -82,7 +82,7 @@ class RoutineCard extends StatelessWidget {
             padding: const EdgeInsets.only(top: 6, bottom: 2),
             child: Wrap(
               spacing: 8,
-              runSpacing: 6,
+              runSpacing: 0,
               children: [
                 for (final a in list)
                   SuggestionChip(

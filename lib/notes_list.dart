@@ -19,6 +19,7 @@ import 'gym.dart';
 import 'gym_page.dart';
 import 'booking_entry.dart';
 import 'record_ai.dart';
+import 'metrics.dart';
 import 'palette.dart';
 import 'parser.dart';
 import 'paywall.dart';
@@ -581,8 +582,26 @@ class _NotesListPageState extends State<NotesListPage>
 
   /// 기록을 지웠다. 서버에 올라간 끼니·운동 줄도 지금 지운다 — 못 가면 밀린 것과
   /// 함께 다음에 간다(main.dart _sendPendingWorkouts).
+  ///
+  /// 5초 동안은 목록 위에 '되돌리기' 가 뜬다. 서버로 가는 지우기는 그 뒤에 보낸다 —
+  /// 이미 나간 뒤에는 되돌릴 수 없어 줄이 사라진다([NotesStore.undoableDelete]).
   void _delete(Note note) {
+    if (_undoTimer?.isActive ?? false) _settleDelete();
     widget.store.delete(note);
+    _undoTimer = Timer(const Duration(seconds: 5), _settleDelete);
+  }
+
+  Timer? _undoTimer;
+
+  /// 지운 것을 확정한다 — 되돌리기를 접고 서버 지우기를 보낸다.
+  void _settleDelete() {
+    _commitDelete();
+    if (mounted) setState(() {});
+  }
+
+  void _commitDelete() {
+    _undoTimer?.cancel();
+    widget.store.forgetUndoableDelete();
     final account = widget.account;
     if (account == null) return;
     unawaited(
@@ -592,6 +611,11 @@ class _NotesListPageState extends State<NotesListPage>
         onSent: widget.store.touch,
       ),
     );
+  }
+
+  void _undoDelete() {
+    _undoTimer?.cancel();
+    widget.store.undoDelete();
   }
 
   /// 원판이 없어 못 물었다. 로그인 전이면 로그인을, 로그인했으면 Pro 를 권한다.
@@ -634,7 +658,7 @@ class _NotesListPageState extends State<NotesListPage>
   /// 다시 넘기지 않는다([conditions] false).
   Widget _escapeChips(L l, String text, {bool conditions = true}) => Wrap(
     spacing: 8,
-    runSpacing: 6,
+    runSpacing: 0,
     children: [
       if (medicalText(text))
         Text(l.routineRefused('medical'), style: const TextStyle(fontSize: 14))
@@ -1011,6 +1035,8 @@ class _NotesListPageState extends State<NotesListPage>
 
   @override
   void dispose() {
+    // 화면을 떠나도 지운 것은 서버에 가야 한다.
+    if (_undoTimer?.isActive ?? false) _commitDelete();
     widget.store.removeListener(_storeChanged);
     WidgetsBinding.instance.removeObserver(this);
     widget.account?.removeListener(_accountChanged);
@@ -1767,7 +1793,7 @@ class _NotesListPageState extends State<NotesListPage>
                                 const SizedBox(height: 8),
                                 Wrap(
                                   spacing: 8,
-                                  runSpacing: 8,
+                                  runSpacing: 0,
                                   children: [
                                     if (mentioned case [final name])
                                       for (final (metric, label) in [
@@ -1864,7 +1890,7 @@ class _NotesListPageState extends State<NotesListPage>
                             padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
                             child: Wrap(
                               spacing: 8,
-                              runSpacing: 6,
+                              runSpacing: 0,
                               children: [
                                 for (final MapEntry(key: from, value: names)
                                     in plan.maybe.entries)
@@ -1906,7 +1932,41 @@ class _NotesListPageState extends State<NotesListPage>
                         ),
                       if (query != null && result != null)
                         SliverToBoxAdapter(child: _answer(query, result, l)),
-                      if (!routineMode)
+                      if (widget.store.undoableDelete != null)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                            child: Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  '${l.noteRemoved} · ',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: CupertinoColors.secondaryLabel
+                                        .resolveFrom(context),
+                                  ),
+                                ),
+                                CupertinoButton(
+                                  key: const ValueKey('note-undo'),
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(minTap, minTap),
+                                  onPressed: _undoDelete,
+                                  child: Text(
+                                    l.undo,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: seal.resolveFrom(context),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      // 비어 있고 찾는 글도 없으면 "0개" 는 정보가 아니다 — 아래 빈 상태가 말한다.
+                      if (!routineMode &&
+                          !(visible.isEmpty && _query.text.trim().isEmpty))
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),

@@ -320,7 +320,8 @@ void main() {
         isNot(TextDecoration.lineThrough),
       );
       expect(find.byIcon(CupertinoIcons.trash), findsNothing);
-      expect(find.byIcon(CupertinoIcons.line_horizontal_3), findsNothing);
+      // With two or more exercises the order handle is always there, dimmed.
+      expect(find.byIcon(CupertinoIcons.line_horizontal_3), findsNWidgets(3));
       final destination =
           tester.getCenter(
             find.byKey(ValueKey('exercise-settings-${c.blocks.last.id}')),
@@ -333,7 +334,7 @@ void main() {
       final handles = find.byWidgetPredicate(
         (w) => w is ReorderableDragStartListener,
       );
-      expect(handles, findsOneWidget);
+      expect(handles, findsNWidgets(3));
       final gesture = await tester.startGesture(
         tester.getCenter(handles.first),
       );

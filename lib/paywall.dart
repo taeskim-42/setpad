@@ -308,8 +308,8 @@ class _BuyButton extends StatelessWidget {
               onPressed: onPressed,
               child: Text(
                 text,
-                style: const TextStyle(
-                  color: CupertinoColors.white,
+                style: TextStyle(
+                  color: sealOn.resolveFrom(context),
                   fontWeight: FontWeight.w600,
                 ),
               ),

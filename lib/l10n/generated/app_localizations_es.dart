@@ -3890,4 +3890,38 @@ class LEs extends L {
   @override
   String get refusedAccountBlocked =>
       'Eres propietario o entrenador de un gimnasio. Sal del gimnasio o elimínalo y luego elimina tu cuenta.';
+
+  @override
+  String get firstRunHint1 =>
+      'Escribe el nombre del ejercicio, por ejemplo Press de banca';
+
+  @override
+  String get firstRunHint2 =>
+      'Luego escribe peso y repeticiones, como \"80 10\"';
+
+  @override
+  String get firstRunHint3 =>
+      'Escribe \"tabata\" o \"60bpm\" para tener un temporizador';
+
+  @override
+  String get firstRunClose => 'Cerrar consejos';
+
+  @override
+  String get undo => 'Deshacer';
+
+  @override
+  String setRemoved(int n) {
+    return 'Serie $n eliminada';
+  }
+
+  @override
+  String get setDragHint =>
+      'Suelta una serie en otra casilla para cambiar el orden';
+
+  @override
+  String get noteRemoved => 'Registro eliminado';
+
+  @override
+  String get shareSending =>
+      'Enviando a tu entrenador · se enviará cuando haya señal';
 }

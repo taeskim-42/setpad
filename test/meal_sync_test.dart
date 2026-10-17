@@ -569,6 +569,14 @@ void main() {
     note.gymId = gym;
     store.touch();
     await tester.pump(const Duration(milliseconds: 500));
+    expect(
+      find.text('트레이너에게 보내는 중 · 신호 잡히면 가요'),
+      findsOneWidget,
+      reason: '아직 한 번도 못 올렸다',
+    );
+    note.sentAt = DateTime.now();
+    store.touch();
+    await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('트레이너와 공유하는 기록이에요'), findsOneWidget);
     note.uploadRejected = true;
     store.touch();

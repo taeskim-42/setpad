@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import 'l10n/generated/app_localizations.dart';
+import 'metrics.dart';
 import 'palette.dart';
 import 'parser.dart';
 import 'record_ai.dart';
@@ -372,26 +373,34 @@ class _Chip extends StatelessWidget {
     child: GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(0, 2, 6, 2),
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-        decoration: BoxDecoration(
-          color: ghost ? null : sealTint.resolveFrom(context),
-          border: ghost
-              ? Border.all(
-                  color: CupertinoColors.separator.resolveFrom(context),
-                  width: 0.5,
-                )
-              : null,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 13,
-            color: ghost
-                ? CupertinoColors.secondaryLabel.resolveFrom(context)
-                : seal.resolveFrom(context),
+      // The chip keeps its look; the touch box around it is a full 44 tall.
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: minTap),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          widthFactor: 1,
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(0, 0, 6, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+            decoration: BoxDecoration(
+              color: ghost ? null : sealTint.resolveFrom(context),
+              border: ghost
+                  ? Border.all(
+                      color: CupertinoColors.separator.resolveFrom(context),
+                      width: 0.5,
+                    )
+                  : null,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 13,
+                color: ghost
+                    ? CupertinoColors.secondaryLabel.resolveFrom(context)
+                    : seal.resolveFrom(context),
+              ),
+            ),
           ),
         ),
       ),

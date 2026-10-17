@@ -846,8 +846,8 @@ class _WorkoutImportPageState extends State<WorkoutImportPage> {
                       ? _save
                       : _analyze,
                   child: _busy
-                      ? const CupertinoActivityIndicator(
-                          color: CupertinoColors.white,
+                      ? CupertinoActivityIndicator(
+                          color: sealOn.resolveFrom(context),
                         )
                       : Text(
                           preview

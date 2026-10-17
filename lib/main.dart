@@ -33,6 +33,7 @@ import 'meal_amount_sheet.dart';
 import 'meal_review_sheet.dart';
 import 'anatomy_page.dart' show registerArtworkLicense;
 import 'notes.dart';
+import 'metrics.dart';
 import 'palette.dart';
 import 'partner.dart';
 import 'nearby.dart';
@@ -57,6 +58,15 @@ void main() {
 /// 붙이고 나눠 듣는다 — 홈이 다시 만들어져도(테스트가 앱을 여러 번 띄운다)
 /// 두 번 붙다가 깨지지 않는다. 처음 붙을 때 쌓여 있던 콜드 스타트 탭이 온다.
 final _reportTaps = AgentAlarm.taps.asBroadcastStream();
+
+/// 앱 테마. [CupertinoButton.filled] 은 바탕을 primaryColor(seal), 글자를
+/// primaryContrastingColor 로 칠한다 — 어두울 때 금색 위에 흰 글자가 묻히지 않도록
+/// 글자 쪽은 [sealOn] 이다.
+const setpadTheme = CupertinoThemeData(
+  primaryColor: seal,
+  primaryContrastingColor: sealOn,
+  scaffoldBackgroundColor: CupertinoColors.systemGroupedBackground,
+);
 
 class SetpadApp extends StatelessWidget {
   /// [store] 는 테스트가 임시 폴더를 물릴 자리다. 비워 두면 앱 문서 디렉터리를
@@ -99,10 +109,7 @@ class SetpadApp extends StatelessWidget {
       // 붙이면 되고, 화면 전체를 고정폭으로 두면 한글이 성기게 벌어져 iOS
       // 앱처럼 안 보인다. 나머지는 시스템 서체(SF Pro / Apple SD Gothic Neo)를
       // 그대로 쓴다.
-      theme: const CupertinoThemeData(
-        primaryColor: seal,
-        scaffoldBackgroundColor: CupertinoColors.systemGroupedBackground,
-      ),
+      theme: setpadTheme,
       home: _Home(
         store: store,
         tags: tags,
@@ -1229,6 +1236,16 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
               },
               child: Text(l.partnerInvite),
             ),
+          // 자판을 내렸거나 세트를 치는 중이면 입력 줄 위의 식단 단추가 없다 —
+          // 끼니는 여기서도 남긴다.
+          CupertinoActionSheetAction(
+            key: const ValueKey('menu-meal'),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _documentHeaderKey.currentState?._pick();
+            },
+            child: Text(l.mealAdd),
+          ),
           CupertinoActionSheetAction(
             key: const ValueKey('menu-settings'),
             onPressed: () async {
@@ -1546,6 +1563,16 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                         estimating: _estimatingMeals,
                         onRetryMeal: _estimateMealText,
                       ),
+                      emptyHint: ListenableBuilder(
+                        listenable: widget.store,
+                        builder: (_, _) =>
+                            widget.store.firstRunHintSeen ||
+                                widget.store.notes.length > 1
+                            ? const SizedBox.shrink()
+                            : FirstRunHint(
+                                onClose: widget.store.dismissFirstRunHint,
+                              ),
+                      ),
                       footer: switch (_lastWeek) {
                         (final n, final w) => Padding(
                           padding: const EdgeInsets.only(top: 20),
@@ -1698,8 +1725,13 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
     final a = widget.account;
     if (a == null || !a.signedIn) return null;
     if (note.gymId != null) {
+      // 헬스장은 신호가 나쁘다 — 아직 한 번도 못 올렸으면 그렇다고 말한다(올라가면
+      // [sendPending] 이 sentAt 을 찍고 이 줄이 바뀐다). 루틴을 열어만 본 기록은
+      // 보내지 않으니([needsSend]) 기다린다고 하지 않는다.
       return note.uploadRejected
           ? (l.shareRejected, true)
+          : note.sentAt == null && needsSend(note)
+          ? (l.shareSending, false)
           : (l.shareGym, false);
     }
     if (a.gyms.isEmpty) return null;
@@ -2107,7 +2139,7 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
               (log.intake != null || log.burned != null || basal != null))
             Padding(
               key: const ValueKey('day-summary'),
-              padding: const EdgeInsets.only(top: 6, bottom: 2),
+              padding: const EdgeInsets.only(bottom: 2),
               // 한 줄 ↔ 세 칸을 부드럽게 바꾼다.
               child: AnimatedSize(
                 duration: Unfold.duration,
@@ -2150,27 +2182,35 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                           key: const ValueKey('day-summary-line'),
                           behavior: HitTestBehavior.opaque,
                           onTap: () => setState(() => _energyOpen = true),
-                          child: Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  [
-                                    energyLine(l, log, basal),
-                                    if ((log.difference ?? 0) > 0)
-                                      l.energySurplus,
-                                    if ((log.difference ?? 0) < 0)
-                                      l.energyDeficit,
-                                  ].join(' · '),
-                                  style: TextStyle(fontSize: 13, color: muted),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              minHeight: minTap,
+                            ),
+                            child: Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    [
+                                      energyLine(l, log, basal),
+                                      if ((log.difference ?? 0) > 0)
+                                        l.energySurplus,
+                                      if ((log.difference ?? 0) < 0)
+                                        l.energyDeficit,
+                                    ].join(' · '),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: muted,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                CupertinoIcons.chevron_down,
-                                size: 12,
-                                color: muted,
-                              ),
-                            ],
+                                const SizedBox(width: 4),
+                                Icon(
+                                  CupertinoIcons.chevron_down,
+                                  size: 12,
+                                  color: muted,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                 ),
@@ -2188,8 +2228,8 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
                       key: ValueKey('meal-$i'),
                       behavior: HitTestBehavior.opaque,
                       onTap: () => _editMeal(i),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minHeight: minTap),
                         child: Row(
                           children: [
                             Expanded(
@@ -2340,7 +2380,7 @@ class _PastCardState extends State<_PastCard> {
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
       decoration: BoxDecoration(
         color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(radiusCard),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2349,8 +2389,8 @@ class _PastCardState extends State<_PastCard> {
             key: ValueKey('past-${n.id}'),
             behavior: HitTestBehavior.opaque,
             onTap: () => setState(() => _open = !_open),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: minTap),
               child: Row(
                 children: [
                   Icon(CupertinoIcons.calendar, size: 14, color: muted),
@@ -2414,13 +2454,13 @@ class _Strip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+    margin: const EdgeInsets.fromLTRB(gutter, 4, gutter, 0),
     padding: const EdgeInsets.fromLTRB(12, 2, 4, 2),
     decoration: BoxDecoration(
       color: strong
           ? seal.resolveFrom(context).withValues(alpha: 0.12)
           : CupertinoColors.secondarySystemBackground.resolveFrom(context),
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(radiusCard),
     ),
     child: Row(
       children: [

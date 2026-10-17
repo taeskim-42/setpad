@@ -3836,4 +3836,34 @@ class LVi extends L {
   @override
   String get refusedAccountBlocked =>
       'Bạn là chủ hoặc huấn luyện viên của một phòng tập. Hãy rời hoặc xóa phòng tập trước, rồi mới xóa tài khoản.';
+
+  @override
+  String get firstRunHint1 => 'Gõ tên bài tập, ví dụ Bench press';
+
+  @override
+  String get firstRunHint2 => 'Sau đó gõ mức tạ và số lần, ví dụ \"80 10\"';
+
+  @override
+  String get firstRunHint3 => 'Gõ \"tabata\" hoặc \"60bpm\" để có bộ hẹn giờ';
+
+  @override
+  String get firstRunClose => 'Đóng gợi ý';
+
+  @override
+  String get undo => 'Hoàn tác';
+
+  @override
+  String setRemoved(int n) {
+    return 'Đã xóa hiệp $n';
+  }
+
+  @override
+  String get setDragHint => 'Kéo một hiệp sang ô khác để đổi thứ tự';
+
+  @override
+  String get noteRemoved => 'Đã xóa bản ghi';
+
+  @override
+  String get shareSending =>
+      'Đang gửi cho huấn luyện viên · sẽ gửi khi có sóng';
 }

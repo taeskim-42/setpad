@@ -5604,6 +5604,60 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'도장의 관장이나 트레이너예요. 도장에서 나오거나 도장을 지운 뒤에 탈퇴할 수 있어요.'**
   String get refusedAccountBlocked;
+
+  /// No description provided for @firstRunHint1.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 이름을 적어요. 예: 벤치프레스'**
+  String get firstRunHint1;
+
+  /// No description provided for @firstRunHint2.
+  ///
+  /// In ko, this message translates to:
+  /// **'그다음 \"80 10\" 처럼 무게와 횟수를 적어요'**
+  String get firstRunHint2;
+
+  /// No description provided for @firstRunHint3.
+  ///
+  /// In ko, this message translates to:
+  /// **'\"타바타\"나 \"60bpm\" 을 적으면 타이머가 붙어요'**
+  String get firstRunHint3;
+
+  /// No description provided for @firstRunClose.
+  ///
+  /// In ko, this message translates to:
+  /// **'안내 닫기'**
+  String get firstRunClose;
+
+  /// 방금 한 일을 되돌리는 단추
+  ///
+  /// In ko, this message translates to:
+  /// **'되돌리기'**
+  String get undo;
+
+  /// 세트 × 뒤 '되돌리기' 줄 앞부분. n 은 지운 세트 번호(1부터)
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}세트를 지웠어요'**
+  String setRemoved(int n);
+
+  /// No description provided for @setDragHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트를 다른 칸으로 끌어 놓으면 순서가 바뀌어요'**
+  String get setDragHint;
+
+  /// 목록에서 기록을 지운 직후 '되돌리기' 줄 앞부분
+  ///
+  /// In ko, this message translates to:
+  /// **'기록을 지웠어요'**
+  String get noteRemoved;
+
+  /// 트레이너와 공유하는 기록이 아직 한 번도 서버에 못 올라갔을 때 편집기 머리의 한 줄
+  ///
+  /// In ko, this message translates to:
+  /// **'트레이너에게 보내는 중 · 신호 잡히면 가요'**
+  String get shareSending;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

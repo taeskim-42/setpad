@@ -122,6 +122,7 @@ class SetGrid extends StatelessWidget {
     required this.block,
     this.onTapSet,
     this.onMove,
+    this.onDragStart,
     this.onAdd,
     this.editingSet,
     this.uniform,
@@ -146,6 +147,9 @@ class SetGrid extends StatelessWidget {
   /// 칸을 길게 눌러 끌어다 놓았다: [from] 의 세트가 [to] 자리로(옮긴 뒤의 번호).
   /// null 이면 끌 수 없다 — 같이 고치는 기록은 세트 순서를 서로 맞추지 못한다.
   final void Function(int from, int to)? onMove;
+
+  /// 세트를 길게 눌러 끌기 시작했다.
+  final VoidCallback? onDragStart;
 
   /// 마지막에 빈 칸 하나. 누르면 다음 세트를 받는다 — 칸이 늘 하나 비어 있어야
   /// "여기에 적는다" 가 보인다.
@@ -284,6 +288,7 @@ class SetGrid extends StatelessWidget {
           onAcceptWithDetails: (d) => onMove!(d.data, i),
           builder: (context, candidate, _) => LongPressDraggable<int>(
             data: i,
+            onDragStarted: onDragStart,
             feedback: Opacity(
               opacity: 0.9,
               child: DecoratedBox(

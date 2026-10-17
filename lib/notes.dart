@@ -601,6 +601,17 @@ class NotesStore extends ChangeNotifier {
     _scheduleSave();
   }
 
+  /// 빈 기록의 첫 사용 안내를 닫았는가. 한 번 닫으면 다시 뜨지 않는다.
+  bool _firstRunHintSeen = false;
+  bool get firstRunHintSeen => _firstRunHintSeen;
+
+  void dismissFirstRunHint() {
+    if (_firstRunHintSeen) return;
+    _firstRunHintSeen = true;
+    notifyListeners();
+    _scheduleSave();
+  }
+
   /// 식단을 나누는 도장과 켠 날(그날 0시). null 이면 나누지 않는다 — 끼니는 건강 정보라
   /// 회원이 켜야 간다. **켤 때 이름을 보여 준 그 도장에만 간다** — 그 도장을 나간 뒤 다른
   /// 도장에 등록해도 그쪽으로 이어지지 않는다. 스티커·받은 루틴으로 연 기록은 이것과
@@ -743,6 +754,7 @@ class NotesStore extends ChangeNotifier {
               ?BodyRecord.tryFromJson(r),
           ]..sort((a, b) => a.on.compareTo(b.on));
           _aiOn = data['aiConsent'] != false;
+          _firstRunHintSeen = data['firstRunHintSeen'] == true;
           if (data['platesDay'] case final String day) _platesDay = day;
           if ((data['shareMealsGym'], data['shareMealsSince']) case (
             final String gymId,
@@ -888,6 +900,7 @@ class NotesStore extends ChangeNotifier {
       if (_bodyRecords.isNotEmpty)
         'bodyRecords': [for (final r in _bodyRecords) r.toJson()],
       'aiConsent': _aiOn,
+      if (_firstRunHintSeen) 'firstRunHintSeen': true,
       'deviceId': _deviceId,
       'platesDay': _platesDay,
       'shareMealsGym': ?_shareMeals?.gymId,
@@ -1046,6 +1059,39 @@ class NotesStore extends ChangeNotifier {
   /// 빈 기록 정리([discardIfEmpty])는 서버의 출석을 두고 기기에서만 치운다.
   void delete(Note note) {
     final owner = note.owner;
+    final index = _notes.indexOf(note);
+    final queued = _deletes.length;
+    _deleteNote(note, owner);
+    _lastDelete = (note: note, index: index, queued: _deletes.sublist(queued));
+  }
+
+  /// 방금 지운 기록 하나와 그 때문에 서버 지우기 줄에 선 것들. [undoDelete] 용이다.
+  ({Note note, int index, List<ServerDelete> queued})? _lastDelete;
+
+  /// 방금 지운 기록. 서버 지우기가 아직 하나도 안 나갔을 때만 — 하나라도 나갔으면 서버
+  /// 쪽은 되돌릴 수 없어 null 이다.
+  Note? get undoableDelete {
+    final last = _lastDelete;
+    if (last == null || !last.queued.every(_deletes.contains)) return null;
+    return last.note;
+  }
+
+  /// 방금 지운 기록을 같은 자리에 되살린다(서버에 나가기 전이면). 되살렸으면 true.
+  bool undoDelete() {
+    final last = _lastDelete;
+    if (last == null || undoableDelete == null) return false;
+    _deletes.removeWhere(last.queued.contains);
+    _notes.insert(last.index.clamp(0, _notes.length), last.note);
+    _lastDelete = null;
+    notifyListeners();
+    _scheduleSave();
+    return true;
+  }
+
+  /// 되돌리기를 접는다 — 지운 기록은 이제 되살리지 않는다.
+  void forgetUndoableDelete() => _lastDelete = null;
+
+  void _deleteNote(Note note, String? owner) {
     if (note.mealGym != null) {
       _deletes.addAll([
         for (final id in {

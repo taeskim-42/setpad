@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'l10n/generated/app_localizations.dart';
+import 'metrics.dart';
 import 'palette.dart';
 
 /// 세트를 칠 때만 뜨는 키패드.
@@ -85,7 +86,7 @@ class SetKeypad extends StatelessWidget {
                   ].join('  '),
                   onTap: repeatLabel == null ? null : onRepeat,
                   tone: _Tone.accent,
-                  height: 38,
+                  height: minTap,
                 ),
               ),
             ),

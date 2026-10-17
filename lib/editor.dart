@@ -18,6 +18,7 @@ import 'health.dart';
 import 'rest_alarm.dart';
 import 'rest_recovery.dart';
 import 'set_grid.dart';
+import 'metrics.dart';
 import 'palette.dart';
 import 'parser.dart';
 import 'partner.dart';
@@ -509,6 +510,14 @@ class RoutineEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// [removeSet] 으로 뗀 세트를 같은 자리에 다시 끼운다. 그 운동이 이미 없으면 아무것도
+  /// 하지 않는다.
+  void restoreSet(ExerciseBlock block, int index, LoggedSet set) {
+    if (!blocks.contains(block)) return;
+    block.sets.insert(index.clamp(0, block.sets.length), set);
+    notifyListeners();
+  }
+
   /// 운동 통째로 삭제.
   void removeBlock(int block) {
     blocks.removeAt(block);
@@ -721,6 +730,7 @@ class RoutineEditor extends StatefulWidget {
     this.countAloud = false,
     this.header,
     this.footer,
+    this.emptyHint,
     this.ai = const RecordAi(),
     this.initialDraft,
     this.onDraftChanged,
@@ -764,6 +774,9 @@ class RoutineEditor extends StatefulWidget {
 
   /// 입력 줄 아래에 놓이는 것 — 같은 날의 다른 기록처럼 읽기만 하는 자리.
   final Widget? footer;
+
+  /// 운동이 하나도 없는 동안 입력 줄 위에 놓이는 첫 사용 안내.
+  final Widget? emptyHint;
 
   /// 질문을 해석해 주는 쪽. 서버에 묻는다.
   final RecordAi ai;
@@ -830,6 +843,49 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 운동 이름 줄에 친 글을 알아서 끼니로 남겼다. 입력 줄 위에 '운동으로 바꾸기'
   /// 가 한 줄 뜬다 — 다음에 무언가 칠 때까지.
   ({String text, VoidCallback? undo})? _autoMeal;
+
+  /// 방금 × 로 뗀 세트들(최근 것이 끝). '되돌리기' 는 끝의 것부터 같은 자리에 되끼운다.
+  /// 마지막으로 지운 지 5초 뒤에 접는다. 다음 세트를 고치려고 입력 줄이 채워져도 접지
+  /// 않는다 — 세트를 잇달아 지우는 것이 흔하다.
+  final _removedSets = <({ExerciseBlock block, int index, LoggedSet set})>[];
+  Timer? _removedSetsTimer;
+
+  /// 잠깐 떴다 사라지는 한 줄(예: 세트 끌기 안내).
+  String? _flash;
+  Timer? _flashTimer;
+
+  void _forgetRemovedSets() {
+    _removedSetsTimer?.cancel();
+    if (_removedSets.isEmpty) return;
+    setState(_removedSets.clear);
+  }
+
+  void _removeSet(int block, int set) {
+    final b = _c.blocks[block];
+    _removedSets.add((block: b, index: set, set: b.sets[set]));
+    _removedSetsTimer?.cancel();
+    _removedSetsTimer = Timer(const Duration(seconds: 5), _forgetRemovedSets);
+    _c.removeSet(block, set);
+  }
+
+  void _undoRemoveSet() {
+    if (_removedSets.isEmpty) return;
+    final last = _removedSets.removeLast();
+    _removedSetsTimer?.cancel();
+    if (_removedSets.isNotEmpty) {
+      _removedSetsTimer = Timer(const Duration(seconds: 5), _forgetRemovedSets);
+    }
+    _c.restoreSet(last.block, last.index, last.set);
+    setState(() {});
+  }
+
+  void _showFlash(String text) {
+    _flashTimer?.cancel();
+    _flashTimer = Timer(const Duration(seconds: 4), () {
+      if (mounted) setState(() => _flash = null);
+    });
+    setState(() => _flash = text);
+  }
 
   /// 운동 이름 줄에 친 글을 근거 없이 운동 칸으로 만들었다(음식 표에 없거나 그물이
   /// 없었다). 새 칸 아래 '끼니로 바꾸기' 가 한 줄 뜬다 — 그 칸에 무언가 칠 때까지.
@@ -1775,6 +1831,45 @@ class _RoutineEditorState extends State<RoutineEditor>
     );
   }
 
+  /// '무엇을 했어요 · 되돌리기' 한 줄. [_autoMealLine] 과 같은 모양이다.
+  Widget _undoLine(
+    BuildContext context,
+    String text, {
+    required Key key,
+    required VoidCallback onPressed,
+  }) {
+    final l = L.of(context);
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(
+          '$text · ',
+          style: TextStyle(
+            fontSize: 13,
+            color: CupertinoColors.secondaryLabel.resolveFrom(context),
+          ),
+        ),
+        CupertinoButton(
+          key: key,
+          padding: EdgeInsets.zero,
+          minimumSize: const Size(minTap, minTap),
+          onPressed: onPressed,
+          child: Text(
+            l.undo,
+            style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 세트를 처음 길게 눌러 끌기 시작했다 — 한 번만 이렇게 하는 것이라고 알려 준다.
+  void _onDragSet() {
+    if (dragHintShown) return;
+    dragHintShown = true;
+    _showFlash(L.of(context).setDragHint);
+  }
+
   Widget? _autoExerciseLine(BuildContext context) {
     if (!_autoExerciseOpen) return null;
     final l = L.of(context);
@@ -2355,6 +2450,8 @@ class _RoutineEditorState extends State<RoutineEditor>
     WidgetsBinding.instance.removeObserver(this);
     _aiRequest++;
     widget.ai.cancel();
+    _removedSetsTimer?.cancel();
+    _flashTimer?.cancel();
     widget.mealText?.removeListener(_onMealRequest);
     _c.removeListener(_onChanged);
     _input.removeListener(_onInput);
@@ -2898,6 +2995,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                         itemBuilder: (context, i) => _BlockView(
                           key: ObjectKey(blocks[i]),
                           collapsed: _reordering,
+                          reorderable: blocks.length > 1,
                           onEditTitle: () => _editTitle(blocks[i]),
                           onEditSet: (set, reps) =>
                               _editSet(blocks[i], set, reps: reps),
@@ -2920,10 +3018,11 @@ class _RoutineEditorState extends State<RoutineEditor>
                                 ),
                                 width: 44,
                                 height: 44,
-                                child: const Icon(
+                                child: Icon(
                                   CupertinoIcons.line_horizontal_3,
                                   size: 18,
-                                  color: CupertinoColors.systemGrey,
+                                  color: CupertinoColors.tertiaryLabel
+                                      .resolveFrom(context),
                                 ),
                               ),
                             ),
@@ -2974,8 +3073,21 @@ class _RoutineEditorState extends State<RoutineEditor>
                           // 적용한다 — "x3" 이면 그 사본은 남는다.
                           onRemoveSet: (set) {
                             _finishRecordEdit(validate: false);
-                            _c.removeSet(i, set);
+                            _removeSet(i, set);
                           },
+                          belowLine:
+                              _removedSets.isNotEmpty &&
+                                  _removedSets.last.block == blocks[i]
+                              ? _undoLine(
+                                  context,
+                                  L
+                                      .of(context)
+                                      .setRemoved(_removedSets.last.index + 1),
+                                  key: const ValueKey('set-undo'),
+                                  onPressed: _undoRemoveSet,
+                                )
+                              : null,
+                          onDragSet: _onDragSet,
                           onRemoveBlock: (block) {
                             // 다른 운동을 지우면 고치던 줄은 평소처럼 확정한다 —
                             // 못 읽는 글이면 입력칸에 이유와 함께 남는다.
@@ -3022,6 +3134,7 @@ class _RoutineEditorState extends State<RoutineEditor>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              if (blocks.isEmpty) ?widget.emptyHint,
                               ?_autoMealLine(context),
                               _buildInput(bold: true),
                               for (final p in widget.presence)
@@ -3078,6 +3191,18 @@ class _RoutineEditorState extends State<RoutineEditor>
             ),
           ),
         ),
+        if (_flash case final text?)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(gutter, 4, gutter, 4),
+            child: Text(
+              text,
+              key: const ValueKey('editor-flash'),
+              style: TextStyle(
+                fontSize: 13,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+              ),
+            ),
+          ),
         if ((matches.isNotEmpty ||
                 widget.onMealPhoto != null ||
                 widget.mealText != null) &&
@@ -3439,7 +3564,19 @@ class _BlockView extends StatelessWidget {
     this.setup,
     this.uniformCell,
     this.cursors = const [],
+    this.belowLine,
+    this.onDragSet,
+    this.reorderable = false,
   });
+
+  /// 카드 맨 아래 한 줄(예: 세트를 지운 뒤의 '되돌리기').
+  final Widget? belowLine;
+
+  /// 세트를 끌기 시작했다.
+  final VoidCallback? onDragSet;
+
+  /// 운동이 둘 이상이라 순서를 바꿀 수 있다 — 그러면 ≡ 를 늘 흐리게 둔다.
+  final bool reorderable;
 
   final ExerciseBlock block;
 
@@ -3523,35 +3660,51 @@ class _BlockView extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    titleInput ??
-                        GestureDetector(
-                          onTap: collapsed ? null : onEditTitle,
-                          behavior: HitTestBehavior.opaque,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 2),
-                            child: Text(
-                              block.name,
-                              maxLines: collapsed ? 1 : null,
-                              overflow: collapsed
-                                  ? TextOverflow.ellipsis
-                                  : null,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: -0.41,
+                // The title is the tap target for renaming: a full 44 tall, which
+                // the row already is because of the ⋯ button beside it.
+                // The box is only as wide as the text: empty space beside a short title
+                // still opens the card.
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: 1,
+                  child: GestureDetector(
+                    onTap: collapsed || titleInput != null ? null : onEditTitle,
+                    behavior: HitTestBehavior.opaque,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: minTap),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          titleInput ??
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 2,
+                                ),
+                                child: Text(
+                                  block.name,
+                                  maxLines: collapsed ? 1 : null,
+                                  overflow: collapsed
+                                      ? TextOverflow.ellipsis
+                                      : null,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: -0.41,
+                                  ),
+                                ),
                               ),
+                          if (!collapsed &&
+                              setup == null &&
+                              progress.isNotEmpty)
+                            Text(
+                              progress,
+                              style: TextStyle(fontSize: 13, color: muted),
                             ),
-                          ),
-                        ),
-                    if (!collapsed && setup == null && progress.isNotEmpty)
-                      Text(
-                        progress,
-                        style: TextStyle(fontSize: 13, color: muted),
+                        ],
                       ),
-                  ],
+                    ),
+                  ),
                 ),
               ),
               // 여섯이 한 운동에 몰려도 제목을 밀어내지 않는다 — 둘까지 이름, 나머지는 수.
@@ -3572,7 +3725,7 @@ class _BlockView extends StatelessWidget {
                     style: TextStyle(fontSize: 13, color: muted),
                   ),
                 ),
-              if (collapsed || setup != null) dragHandle,
+              if (collapsed || setup != null || reorderable) dragHandle,
               if (!collapsed && setup != null)
                 CupertinoButton(
                   padding: EdgeInsets.zero,
@@ -3613,6 +3766,7 @@ class _BlockView extends StatelessWidget {
                 uniform: uniformCell,
                 onTapSet: onEditSet,
                 onMove: onMoveSet,
+                onDragStart: onDragSet,
                 // 빈 칸 하나가 늘 남아 있다. 누르면 이 운동에 다음 세트를 적는다.
                 onAdd: input == null ? onOpen : null,
                 editingSet: editingSet,
@@ -3717,6 +3871,7 @@ class _BlockView extends StatelessWidget {
                         Expanded(child: input!),
                       ],
                     ),
+            ?belowLine,
           ],
         ],
       ),
@@ -3872,7 +4027,7 @@ class _Suggestions extends StatelessWidget {
                       size: 18,
                       semanticLabel: L.of(context).mealAdd,
                       color: mealMode
-                          ? CupertinoColors.white
+                          ? sealOn.resolveFrom(context)
                           : seal.resolveFrom(context),
                     ),
                   ),
@@ -3936,7 +4091,8 @@ class SuggestionChip extends StatelessWidget {
       onLongPress: onLongPress,
       child: CupertinoButton(
         padding: EdgeInsets.zero,
-        minimumSize: Size.zero,
+        // The pill keeps its look; the touch box around it is a full 44 tall.
+        minimumSize: const Size(0, minTap),
         onPressed: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -3991,11 +4147,11 @@ class _TogetherInvite extends StatelessWidget {
     final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
     return Container(
       key: const ValueKey('together-invite'),
-      margin: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+      margin: const EdgeInsets.fromLTRB(gutter, 6, gutter, 0),
       padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
       decoration: BoxDecoration(
         color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(radiusCard),
       ),
       child: Row(
         children: [
@@ -4027,7 +4183,7 @@ class _TogetherInvite extends StatelessWidget {
           CupertinoButton.filled(
             key: const ValueKey('together-accept'),
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            minimumSize: const Size(0, 38),
+            minimumSize: const Size(0, minTap),
             onPressed: onAccept,
             child: Text(l.togetherStart),
           ),
@@ -4141,4 +4297,67 @@ class _SentinelCaretState extends State<_SentinelCaret> {
       ),
     ),
   );
+}
+
+/// 세트 끌기 안내를 이번 실행에서 이미 보였는가. 한 번만 알린다.
+@visibleForTesting
+bool dragHintShown = false;
+
+/// 빈 기록의 첫 사용 안내 — 운동 이름, 세트, 타이머를 어떻게 적는지 세 줄. 한 번 닫으면
+/// 다시 뜨지 않는다(NotesStore.dismissFirstRunHint).
+class FirstRunHint extends StatelessWidget {
+  const FirstRunHint({super.key, required this.onClose});
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = L.of(context);
+    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(left: 12),
+      decoration: BoxDecoration(
+        color: CupertinoColors.secondarySystemBackground.resolveFrom(context),
+        borderRadius: BorderRadius.circular(radiusCard),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final (i, line) in [
+                    l.firstRunHint1,
+                    l.firstRunHint2,
+                    l.firstRunHint3,
+                  ].indexed)
+                    Padding(
+                      padding: EdgeInsets.only(top: i == 0 ? 0 : 4),
+                      child: Text(
+                        '${i + 1}. $line',
+                        style: TextStyle(fontSize: 13, color: muted),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          CupertinoButton(
+            key: const ValueKey('first-run-close'),
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(minTap, minTap),
+            onPressed: onClose,
+            child: Icon(
+              CupertinoIcons.xmark,
+              size: 16,
+              semanticLabel: l.firstRunClose,
+              color: CupertinoColors.tertiaryLabel.resolveFrom(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

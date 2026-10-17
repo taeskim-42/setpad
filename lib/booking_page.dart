@@ -329,7 +329,7 @@ class _BookingPageState extends State<BookingPage> {
                     style: TextStyle(
                       fontSize: 12,
                       color: chosen
-                          ? CupertinoColors.white
+                          ? sealOn.resolveFrom(context)
                           : CupertinoColors.secondaryLabel.resolveFrom(context),
                     ),
                   ),
@@ -340,7 +340,7 @@ class _BookingPageState extends State<BookingPage> {
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
                       color: chosen
-                          ? CupertinoColors.white
+                          ? sealOn.resolveFrom(context)
                           : CupertinoColors.label.resolveFrom(context),
                     ),
                   ),

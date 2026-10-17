@@ -395,7 +395,7 @@ class _TrainerSettingsPageState extends State<TrainerSettingsPage>
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Wrap(
                 spacing: 8,
-                runSpacing: 8,
+                runSpacing: 0,
                 children: [
                   for (var d = 0; d < 7; d++)
                     SuggestionChip(

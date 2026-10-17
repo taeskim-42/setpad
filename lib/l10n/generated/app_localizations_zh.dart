@@ -3686,6 +3686,35 @@ class LZh extends L {
 
   @override
   String get refusedAccountBlocked => '你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。';
+
+  @override
+  String get firstRunHint1 => '输入动作名称，例如卧推';
+
+  @override
+  String get firstRunHint2 => '然后输入重量和次数，例如“80 10”';
+
+  @override
+  String get firstRunHint3 => '输入“tabata”或“60bpm”就会出现计时器';
+
+  @override
+  String get firstRunClose => '关闭提示';
+
+  @override
+  String get undo => '撤销';
+
+  @override
+  String setRemoved(int n) {
+    return '已删除第 $n 组';
+  }
+
+  @override
+  String get setDragHint => '把一组拖到另一格即可调整顺序';
+
+  @override
+  String get noteRemoved => '已删除记录';
+
+  @override
+  String get shareSending => '正在发送给教练 · 有信号时会发出';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7370,6 +7399,35 @@ class LZhHans extends LZh {
 
   @override
   String get refusedAccountBlocked => '你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。';
+
+  @override
+  String get firstRunHint1 => '输入动作名称，例如卧推';
+
+  @override
+  String get firstRunHint2 => '然后输入重量和次数，例如“80 10”';
+
+  @override
+  String get firstRunHint3 => '输入“tabata”或“60bpm”就会出现计时器';
+
+  @override
+  String get firstRunClose => '关闭提示';
+
+  @override
+  String get undo => '撤销';
+
+  @override
+  String setRemoved(int n) {
+    return '已删除第 $n 组';
+  }
+
+  @override
+  String get setDragHint => '把一组拖到另一格即可调整顺序';
+
+  @override
+  String get noteRemoved => '已删除记录';
+
+  @override
+  String get shareSending => '正在发送给教练 · 有信号时会发出';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11054,4 +11112,33 @@ class LZhHant extends LZh {
 
   @override
   String get refusedAccountBlocked => '你是健身房的館長或教練。請先退出或刪除健身房，再註銷帳號。';
+
+  @override
+  String get firstRunHint1 => '輸入動作名稱，例如臥推';
+
+  @override
+  String get firstRunHint2 => '然後輸入重量和次數，例如「80 10」';
+
+  @override
+  String get firstRunHint3 => '輸入「tabata」或「60bpm」就會出現計時器';
+
+  @override
+  String get firstRunClose => '關閉提示';
+
+  @override
+  String get undo => '復原';
+
+  @override
+  String setRemoved(int n) {
+    return '已刪除第 $n 組';
+  }
+
+  @override
+  String get setDragHint => '把一組拖到另一格即可調整順序';
+
+  @override
+  String get noteRemoved => '已刪除記錄';
+
+  @override
+  String get shareSending => '正在傳送給教練 · 有訊號時會送出';
 }
