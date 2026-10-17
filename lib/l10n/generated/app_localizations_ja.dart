@@ -3763,4 +3763,9 @@ class LJa extends L {
   String routineSwapTitle(String name) {
     return '$nameの代わりに — 最近28日にやった同じ部位・器具の種目';
   }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return '初めてなので週間表($factor)で組みました · 数字は記録しながら埋めます';
+  }
 }

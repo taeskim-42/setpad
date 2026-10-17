@@ -3880,4 +3880,9 @@ class LVi extends L {
   String routineSwapTitle(String name) {
     return 'Thay cho $name — cùng vùng cơ và dụng cụ, đã tập trong 28 ngày qua';
   }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return 'Lần đầu nên xếp theo lịch tuần ($factor) · số liệu điền khi ghi';
+  }
 }

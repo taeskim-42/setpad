@@ -104,7 +104,12 @@ List<String> routineViolations(
         !inText) {
       out.add('C1 $k');
     }
-    if (!recordedKeys.contains(k) && !ask.named.contains(k) && !ask.device) {
+    // 첫 주 기본 루틴(source first)은 앱의 요일표 운동이다 — 모델이 고른 것이 아니고
+    // 숫자가 없다(C5 가 본다).
+    if (!recordedKeys.contains(k) &&
+        !ask.named.contains(k) &&
+        !ask.device &&
+        d.source != 'first') {
       out.add('C1/D1 기록에 없고 말하지 않은 $k');
     }
     // C2 뺄 것.

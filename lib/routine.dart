@@ -254,6 +254,17 @@ bool _inPart(String key, String part) {
 /// 처음 루틴의 칩(기록 0). 넣는 것은 사람이 고른다 — 숫자 없이.
 const starterExercises = ['스쿼트', '벤치프레스', '랫풀다운', '오버헤드프레스', '플랭크'];
 
+/// 첫 주(기록 0)의 기본 루틴: 요일표의 요인마다 하체·가슴·등(심폐는 유산소) 한 개씩,
+/// 숫자 없이. 요인은 방식(세트·횟수)으로 갈리는데 처음엔 적은 수가 없으니, 그 방식에
+/// 맞기 쉬운 운동을 둔다 — 근력은 바벨, 근지구력은 맨몸·많은 횟수, 지속력은 머신으로 같은
+/// 횟수를 여러 세트, 심폐는 달리기·타바타 하기 좋은 맨몸.
+const firstWeekExercises = {
+  Factor.strength: ['스쿼트', '벤치프레스', '바벨로우'],
+  Factor.endurance: ['런지', '푸시업', '랫풀다운'],
+  Factor.sustain: ['레그프레스', '체스트 프레스', '시티드 로우'],
+  Factor.cardio: ['러닝', '버피', '점핑잭'],
+};
+
 // ─── 가르기: 홈 검색칸의 글 → 기기 / 루틴 지시문 / 기록 질문 ────────────────
 
 enum HomeRoute { bare, routine, question, refuse }
@@ -2797,6 +2808,22 @@ RoutineDraft composeRoutine(
     }
   }
 
+  // 첫 주(기록 0, 조건 없음): 요일표의 요인으로 사전 운동을 숫자 없이 넣는다(검토 #7).
+  // 주말은 모자란 요인인데 기록이 없으니 모두 0 — 근력부터(rankFactors 순서).
+  final firstKeys = <String>[];
+  if (history.isEmpty && draft.source == 'none') {
+    final f = weekdayFactor[day.weekday] ?? Factor.strength;
+    draft.source = 'first';
+    draft.target = f;
+    draft.lines.add(RoutineLine('firstPlan', [f.name]));
+    for (final k in firstWeekExercises[f]!) {
+      if (filtered(k, k, named: false) == null && !gearMismatch(k)) {
+        firstKeys.add(k);
+      }
+    }
+    draft.addable.addAll(starterExercises);
+  }
+
   // from 의 칸도 거름을 지난다(G6). 걸린 것은 줄로.
   if (draft.source == 'from') {
     final keep = <({String key, ExerciseBlock block, DateTime day})>[];
@@ -2846,6 +2873,9 @@ RoutineDraft composeRoutine(
   // 사람이 넣은 운동(몸 그림·넣기 칩)은 후보에 있어도 고정 — 개수 맞추기가 자르지 않는다.
   for (final c in candidates) {
     take(c.key, c.block, c.day, fixed: e.added.contains(c.key));
+  }
+  for (final k in firstKeys) {
+    take(k, null, null);
   }
   for (final k in e.added) {
     if (!seen.contains(k)) {

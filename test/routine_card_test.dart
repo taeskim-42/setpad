@@ -348,6 +348,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(l.routineHeaderToday), findsOneWidget);
     expect(find.text(l.routineClose), findsOneWidget);
+    // 첫 주 기본 루틴: 수요일 = 지속력, 숫자 없이 [시작] 할 수 있다.
+    expect(find.text(l.routineFirstPlan('지속력')), findsOneWidget);
+    expect(find.text('레그프레스'), findsOneWidget);
+    expect(startButton(), findsOneWidget);
   });
 
   testWidgets('바꾸기: 시트에서 고르면 그 운동의 내 세트로 바뀌고, 다시 켜도 남는다', (tester) async {

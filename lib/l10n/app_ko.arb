@@ -3660,5 +3660,7 @@
   "routineSwap": "바꾸기",
   "@routineSwap": {"description": "루틴 칸을 같은 부위·같은 기구의 다른 운동으로 바꾸는 단추(✕ 옆)."},
   "routineSwapTitle": "{name} 대신 — 최근 28일에 한 같은 부위·기구 운동",
-  "@routineSwapTitle": {"description": "'바꾸기' 시트 제목. 고르면 그 운동을 마지막으로 한 날의 내 세트가 든다.", "placeholders": {"name": {"type": "String"}}}
+  "@routineSwapTitle": {"description": "'바꾸기' 시트 제목. 고르면 그 운동을 마지막으로 한 날의 내 세트가 든다.", "placeholders": {"name": {"type": "String"}}},
+  "routineFirstPlan": "처음이라 요일표({factor})로 짰어요 · 숫자는 적으면서 채워요",
+  "@routineFirstPlan": {"description": "기록이 하나도 없을 때의 기본 루틴: 요일표 요인의 사전 운동을 숫자 없이 넣었다.", "placeholders": {"factor": {"type": "String"}}}
 }

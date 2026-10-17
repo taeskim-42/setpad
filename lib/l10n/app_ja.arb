@@ -940,5 +940,6 @@
   "routineEstimateNoFirst": "約{minutes}分 · 初めての種目を除く",
   "routineBpmChip": "{bpm}bpmのテンポで",
   "routineSwap": "替える",
-  "routineSwapTitle": "{name}の代わりに — 最近28日にやった同じ部位・器具の種目"
+  "routineSwapTitle": "{name}の代わりに — 最近28日にやった同じ部位・器具の種目",
+  "routineFirstPlan": "初めてなので週間表({factor})で組みました · 数字は記録しながら埋めます"
 }

@@ -3770,4 +3770,9 @@ class LKo extends L {
   String routineSwapTitle(String name) {
     return '$name 대신 — 최근 28일에 한 같은 부위·기구 운동';
   }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return '처음이라 요일표($factor)로 짰어요 · 숫자는 적으면서 채워요';
+  }
 }

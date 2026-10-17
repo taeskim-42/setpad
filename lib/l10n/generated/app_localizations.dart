@@ -5664,6 +5664,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'{name} 대신 — 최근 28일에 한 같은 부위·기구 운동'**
   String routineSwapTitle(String name);
+
+  /// 기록이 하나도 없을 때의 기본 루틴: 요일표 요인의 사전 운동을 숫자 없이 넣었다.
+  ///
+  /// In ko, this message translates to:
+  /// **'처음이라 요일표({factor})로 짰어요 · 숫자는 적으면서 채워요'**
+  String routineFirstPlan(String factor);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

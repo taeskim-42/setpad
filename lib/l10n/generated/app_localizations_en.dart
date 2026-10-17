@@ -3907,4 +3907,9 @@ class LEn extends L {
   String routineSwapTitle(String name) {
     return 'Instead of $name — same body part and equipment, done in the last 28 days';
   }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return 'First time, so this follows the weekly plan ($factor) · fill in numbers as you log';
+  }
 }

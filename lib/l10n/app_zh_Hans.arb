@@ -940,5 +940,6 @@
   "routineEstimateNoFirst": "约{minutes}分钟 · 不含第一次做的",
   "routineBpmChip": "按{bpm}bpm节拍",
   "routineSwap": "换",
-  "routineSwapTitle": "代替{name} — 最近28天做过的同部位、同器械动作"
+  "routineSwapTitle": "代替{name} — 最近28天做过的同部位、同器械动作",
+  "routineFirstPlan": "第一次，所以按周表({factor})安排 · 数字边记边填"
 }

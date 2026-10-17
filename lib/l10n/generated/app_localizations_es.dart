@@ -3935,4 +3935,9 @@ class LEs extends L {
   String routineSwapTitle(String name) {
     return 'En lugar de $name: misma zona y equipo, hecho en los últimos 28 días';
   }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return 'Es la primera vez: sigue el plan semanal ($factor) · los números se llenan al registrar';
+  }
 }

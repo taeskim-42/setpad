@@ -940,5 +940,6 @@
   "routineEstimateNoFirst": "~{minutes} min · not counting new ones",
   "routineBpmChip": "To a {bpm}bpm beat",
   "routineSwap": "Swap",
-  "routineSwapTitle": "Instead of {name} — same body part and equipment, done in the last 28 days"
+  "routineSwapTitle": "Instead of {name} — same body part and equipment, done in the last 28 days",
+  "routineFirstPlan": "First time, so this follows the weekly plan ({factor}) · fill in numbers as you log"
 }

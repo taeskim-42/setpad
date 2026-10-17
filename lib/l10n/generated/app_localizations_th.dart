@@ -3851,4 +3851,9 @@ class LTh extends L {
   String routineSwapTitle(String name) {
     return 'แทน $name — ท่าส่วนเดียวกันและอุปกรณ์เดียวกันที่ทำใน 28 วันที่ผ่านมา';
   }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return 'ครั้งแรกเลยจัดตามตารางสัปดาห์ ($factor) · ตัวเลขเติมระหว่างจด';
+  }
 }

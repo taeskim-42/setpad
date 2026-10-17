@@ -940,5 +940,6 @@
   "routineEstimateNoFirst": "~{minutes} min · sin contar los nuevos",
   "routineBpmChip": "Al ritmo de {bpm}bpm",
   "routineSwap": "Cambiar",
-  "routineSwapTitle": "En lugar de {name}: misma zona y equipo, hecho en los últimos 28 días"
+  "routineSwapTitle": "En lugar de {name}: misma zona y equipo, hecho en los últimos 28 días",
+  "routineFirstPlan": "Es la primera vez: sigue el plan semanal ({factor}) · los números se llenan al registrar"
 }

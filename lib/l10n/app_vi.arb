@@ -940,5 +940,6 @@
   "routineEstimateNoFirst": "~{minutes} phút · chưa tính bài mới",
   "routineBpmChip": "Theo nhịp {bpm}bpm",
   "routineSwap": "Đổi",
-  "routineSwapTitle": "Thay cho {name} — cùng vùng cơ và dụng cụ, đã tập trong 28 ngày qua"
+  "routineSwapTitle": "Thay cho {name} — cùng vùng cơ và dụng cụ, đã tập trong 28 ngày qua",
+  "routineFirstPlan": "Lần đầu nên xếp theo lịch tuần ({factor}) · số liệu điền khi ghi"
 }

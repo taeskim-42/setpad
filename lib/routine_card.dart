@@ -718,6 +718,7 @@ List<String> routineLineTexts(L l, RoutineLine line) {
             ),
     ],
     'firstTime' => [l.routineFirstTime],
+    'firstPlan' => [l.routineFirstPlan(l.routineFactor(s(0)))],
     'countFit' => [l.routineCountFit(a[0] as int, a[1] as int)],
     'overUsual' => [l.routineOverUsual(a[0] as int, a[1] as int)],
     'noMore' => [l.routineNoMore(a[0] as int)],

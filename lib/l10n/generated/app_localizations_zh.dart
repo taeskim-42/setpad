@@ -3730,6 +3730,11 @@ class LZh extends L {
   String routineSwapTitle(String name) {
     return '代替$name — 最近28天做过的同部位、同器械动作';
   }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return '第一次，所以按周表($factor)安排 · 数字边记边填';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7458,6 +7463,11 @@ class LZhHans extends LZh {
   String routineSwapTitle(String name) {
     return '代替$name — 最近28天做过的同部位、同器械动作';
   }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return '第一次，所以按周表($factor)安排 · 数字边记边填';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11185,5 +11195,10 @@ class LZhHant extends LZh {
   @override
   String routineSwapTitle(String name) {
     return '代替$name — 最近28天做過的同部位、同器械動作';
+  }
+
+  @override
+  String routineFirstPlan(String factor) {
+    return '第一次，所以按週表($factor)安排 · 數字邊記邊填';
   }
 }
