@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'l10n/generated/app_localizations.dart';
-import 'palette.dart';
-import 'parser.dart' show tempoPattern;
-import 'rest_recovery.dart';
+import 'parser.dart'
+    show tempoPattern, timerRoundsPattern, timerTabataWord, timerTokens;
 import 'timing_audio.dart';
 
 /// Timing is derived from the saved title, so old records need no migration.
@@ -14,32 +15,91 @@ class TimingSpec {
     this.work = 20,
     this.rest = 10,
     this.rounds = 8,
+    this.tail = false,
   });
   final int? bpm;
   final bool tabata;
   final int work, rest, rounds;
 
-  // 10~120 을 10 씩. voom-frontend 의 BPM 타이머와 같은 눈금이다 — 같은 사람이
-  // 두 앱을 쓰는데 한 번 누르는 폭이 다르면 손이 헷갈린다.
-  static const minBpm = 10, maxBpm = 120, bpmStep = 10;
+  /// The last round keeps its rest. Only alternating shared timers set it
+  /// ([SharedTimer.personal]): the partner's last turn lives in my last rest.
+  /// Never written to or read from a title or JSON.
+  final bool tail;
+
+  static const minBpm = 10, maxBpm = 120;
   static const minSeconds = 1, maxSeconds = 600;
 
-  TimingSpec copyWith({int? bpm, int? work, int? rest, int? rounds}) =>
-      TimingSpec(
-        bpm: bpm ?? this.bpm,
-        tabata: tabata,
-        work: work ?? this.work,
-        rest: rest ?? this.rest,
-        rounds: rounds ?? this.rounds,
-      );
+  /// Tempo written by places that create a new metronome (candidate chip,
+  /// sheet). [parse] keeps 120 for a bare 'bpm' so old titles keep their meaning.
+  static const newBpm = 60;
+
+  /// The one rounds pattern ([parse], [applyTo], [marks], parser's timerTokens).
+  static const roundsPattern = timerRoundsPattern;
+
+  TimingSpec copyWith({
+    int? bpm,
+    int? work,
+    int? rest,
+    int? rounds,
+    bool? tail,
+  }) => TimingSpec(
+    bpm: bpm ?? this.bpm,
+    tabata: tabata,
+    work: work ?? this.work,
+    rest: rest ?? this.rest,
+    rounds: rounds ?? this.rounds,
+    tail: tail ?? this.tail,
+  );
 
   /// 이 설정을 제목에 다시 적는다.
   ///
   /// **설정을 따로 저장하지 않는다.** 제목이 곧 설정이라 옛 기록에 옮길 것이
   /// 없고, 사람이 글로 고쳐도 버튼으로 고쳐도 같은 곳이 바뀐다. 두 군데에
   /// 두면 언젠가 어긋난다.
-  String applyTo(String name) {
+  ///
+  /// A tabata name without a tabata word gets [tabataWord] (the caller picks
+  /// the locale's word). `parse(applyTo(n)) == this` ([tail] aside, it is
+  /// never written) when [n] has no timer word or token of a kind this spec
+  /// lacks: a bpm word left in a tabata-only name reads back as a tempo, a
+  /// tabata word in a metronome's as a tabata, and a metronome still reads an
+  /// interval or rounds in [n] ("3/4 스쿼트" comes back with work 3 / rest 4,
+  /// which a metronome does not use). Switching kinds is
+  /// `applyTo(removeFrom(n))`.
+  String applyTo(String name, {String tabataWord = 'Tabata'}) {
+    String add(String out, String token) =>
+        out.trim().isEmpty ? token : '${out.trimRight()} $token';
     var out = name;
+    if (tabata) {
+      if (!_tabataWord.hasMatch(out)) out = add(out, tabataWord);
+      final interval = RegExp(
+        r'(\d+)(\s*(?:초|s|sec)?\s*[/／]\s*)(\d+)(\s*(?:초|s|sec)?)',
+        caseSensitive: false,
+      );
+      if (interval.hasMatch(out)) {
+        out = out.replaceFirstMapped(
+          interval,
+          (m) => '$work${m[2]}$rest${m[4]}',
+        );
+      } else if (work != 20 || rest != 10) {
+        // 기본값은 안 적는다. 안 바꾼 것까지 제목에 붙으면 지저분해진다.
+        out = add(out, '$work/$rest');
+      }
+      if (_repetitions.hasMatch(out)) {
+        // Only the count changes; "x 6" keeps its space, "6라운드" its word.
+        out = out.replaceFirstMapped(_repetitions, (m) {
+          final whole = m[0]!;
+          return m[1] != null
+              ? '${whole.substring(0, whole.length - m[1]!.length)}$rounds'
+              : '$rounds${whole.substring(m[2]!.length)}';
+        });
+      } else if (rounds != 8) {
+        // After a bare number " x6" reads as set notation ("3 x6"); "·x6" not.
+        final appended = add(out, 'x$rounds');
+        out = _repetitions.hasMatch(appended)
+            ? appended
+            : '${out.trimRight()} ·x$rounds';
+      }
+    }
     if (bpm != null) {
       // 템포 수만 바꾼다 — "bpm 3세트" 의 3 은 세트 수라 그대로 둔다.
       if (_tempo.hasMatch(out)) {
@@ -52,38 +112,37 @@ class TimingSpec {
       } else if (_bpmWord.hasMatch(out)) {
         out = out.replaceFirst(_bpmWord, '${bpm}bpm');
       } else {
-        out = '${out.trimRight()} ${bpm}bpm';
-      }
-    }
-    if (tabata) {
-      final interval = RegExp(
-        r'(\d+)(\s*(?:초|s|sec)?\s*[/／]\s*)(\d+)(\s*(?:초|s|sec)?)',
-        caseSensitive: false,
-      );
-      if (interval.hasMatch(out)) {
-        out = out.replaceFirstMapped(
-          interval,
-          (m) => '$work${m[2]}$rest${m[4]}',
-        );
-      } else if (work != 20 || rest != 10) {
-        // 기본값은 안 적는다. 안 바꾼 것까지 제목에 붙으면 지저분해진다.
-        out = '${out.trimRight()} $work/$rest';
-      }
-      final reps = RegExp(
-        r'([x×]\s*)(\d+)|(\d+)(\s*(?:라운드|rounds?|ラウンド))',
-        caseSensitive: false,
-      );
-      if (reps.hasMatch(out)) {
-        out = out.replaceFirstMapped(
-          reps,
-          (m) => m[1] != null ? '${m[1]}$rounds' : '$rounds${m[4]}',
-        );
-      } else if (rounds != 8) {
-        out = '${out.trimRight()} x$rounds';
+        out = add(out, '${bpm}bpm');
       }
     }
     return out;
   }
+
+  /// [name] without its timer: tempo, interval and rounds tokens (rounds with
+  /// the "·" [applyTo] may put before them) and the tabata/bpm words. '' when
+  /// nothing else is left. A name that is not a timer comes back trimmed and
+  /// otherwise untouched.
+  static String removeFrom(String name) {
+    if (parse(name) == null) return name.trim();
+    return name
+        // Dot and rounds go together: without the dot "3 x6" is set notation.
+        .replaceAll(_dotRounds, ' ')
+        .replaceAll(timerTokens, ' ')
+        .replaceAll(_tabataWord, ' ')
+        .replaceAll(_bpmWord, ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  /// One card line: "20s work · 10s rest × 8 · 3:53", "60 BPM · Target 30".
+  String summary(L l, {int? target}) => [
+    if (tabata) l.timerSummaryTabata(work, rest, rounds, timerClock(duration)),
+    if (bpm != null)
+      [
+        l.timingBpm(bpm!),
+        if (target != null && target > 0) l.timerTargetChip(target),
+      ].join(' · '),
+  ].join(' · ');
 
   bool get valid =>
       (bpm == null || (bpm! >= minBpm && bpm! <= maxBpm)) &&
@@ -93,23 +152,25 @@ class TimingSpec {
       rest <= maxSeconds &&
       rounds >= 1 &&
       rounds <= 99;
-  int get duration => 3 + (work + rest) * rounds;
+
+  /// Tabata length in seconds: 3 s ready, then rounds; the last round has no
+  /// rest unless [tail].
+  int get duration =>
+      3 + work * rounds + rest * (rounds - 1) + (tail ? rest : 0);
 
   static final _bpmWord = RegExp(
     r'(?<![a-z])bpm(?![a-z])',
     caseSensitive: false,
   );
-  static final _tabataWord = RegExp(
-    r'타바타|タバタ|(?<![a-z])tabata(?![a-z])',
-    caseSensitive: false,
-  );
+  static final _tabataWord = RegExp(timerTabataWord, caseSensitive: false);
   static final _tempo = RegExp(tempoPattern, caseSensitive: false);
   static final _interval = RegExp(
     r'(\d+)\s*(?:초|s|sec)?\s*[/／]\s*(\d+)\s*(?:초|s|sec)?',
     caseSensitive: false,
   );
-  static final _repetitions = RegExp(
-    r'[x×]\s*(\d+)|(\d+)\s*(?:라운드|rounds?|ラウンド)',
+  static final _repetitions = RegExp(roundsPattern, caseSensitive: false);
+  static final _dotRounds = RegExp(
+    '·\\s*(?:$roundsPattern)',
     caseSensitive: false,
   );
 
@@ -152,9 +213,10 @@ class TimingSpec {
       tabata == other.tabata &&
       work == other.work &&
       rest == other.rest &&
-      rounds == other.rounds;
+      rounds == other.rounds &&
+      tail == other.tail;
   @override
-  int get hashCode => Object.hash(bpm, tabata, work, rest, rounds);
+  int get hashCode => Object.hash(bpm, tabata, work, rest, rounds, tail);
 }
 
 /// 세는 말. 한국어는 헬스장에서 "일, 이, 삼" 이라 세지 않는다 — "하나, 둘, 셋"
@@ -202,34 +264,110 @@ const syllableSeconds = 0.2, speechLead = 0.08;
   return (rate: rate, seconds: speechLead + syllables * syllableSeconds / rate);
 }
 
+/// "0:53", "3:53".
+String timerClock(int seconds) =>
+    '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+
 enum TimingPhase { ready, work, rest, complete }
+
+/// selectionClick / mediumImpact / heavyImpact / heavyImpact twice (150 ms).
+enum TimerHaptic { tick, medium, heavy, success }
+
+void _platformHaptic(TimerHaptic kind) {
+  Future<void> buzz(Future<void> Function() f) =>
+      f().catchError((Object _) {}); // No haptics engine (tests, web).
+  switch (kind) {
+    case TimerHaptic.tick:
+      buzz(HapticFeedback.selectionClick);
+    case TimerHaptic.medium:
+      buzz(HapticFeedback.mediumImpact);
+    case TimerHaptic.heavy:
+      buzz(HapticFeedback.heavyImpact);
+    case TimerHaptic.success:
+      buzz(HapticFeedback.heavyImpact);
+      Timer(
+        const Duration(milliseconds: 150),
+        () => buzz(HapticFeedback.heavyImpact),
+      );
+  }
+}
+
+const _readyUs = 3000000;
 
 /// A monotonic clock determines phases; delayed frames never lengthen a round.
 class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
-  WorkoutTimer({TimingAudio? audio, Duration Function()? now})
-    : _audio = audio ?? createTimingAudio() {
-    _now = now;
+  /// [now] replaces the monotonic clock and [wallNow] the wall clock (tests).
+  /// With [now] injected and no [wallNow] the wall-clock correction is off, so
+  /// a hand-driven clock is never "corrected" by real time passing.
+  WorkoutTimer({
+    TimingAudio? audio,
+    Duration Function()? now,
+    DateTime Function()? wallNow,
+    void Function(TimerHaptic)? haptic,
+  }) : _audio = audio ?? createTimingAudio(),
+       _now = now,
+       _wallNow = wallNow ?? (now == null ? DateTime.now : null),
+       _haptic = haptic ?? _platformHaptic {
     _watch.start();
-    _audio.onInterrupted = pause;
+    _audio.onInterrupted = _onInterrupted;
+    _audio.onResumed = _onResumed;
     WidgetsBinding.instance.addObserver(this);
   }
   final TimingAudio _audio;
-  late final Duration Function()? _now;
+  final Duration Function()? _now;
+  final DateTime Function()? _wallNow;
+  final void Function(TimerHaptic) _haptic;
   final _watch = Stopwatch();
   Duration get _time => _now?.call() ?? _watch.elapsed;
   Timer? _ticker;
   Object? owner;
   TimingSpec? spec;
+
+  /// Metronome goal in counts (each phone its own). Ignored for tabata.
+  int? target;
   bool running = false, soundFailed = false, _disposed = false;
 
   /// 박자마다 몇 번째인지 읽어 줄까. 화면을 안 보고 운동할 때 쓴다.
   bool countAloud = false;
 
-  /// 어느 말로 읽을까. 화면 언어를 그대로 따른다.
-  String voiceLocale = 'en';
+  /// Buzz along with the cues (NotesStore.hapticsOn).
+  bool haptics = true;
+
+  /// 어느 말로 읽을까. 화면 언어를 그대로 따른다. Chinese script tags become
+  /// the region tags the speech engines know.
+  String get voiceLocale => _voiceLocale;
+  set voiceLocale(String tag) => _voiceLocale = tag == 'zh'
+      ? 'zh-CN'
+      : tag.startsWith('zh-Hans')
+      ? 'zh-CN'
+      : tag.startsWith('zh-Hant')
+      ? 'zh-TW'
+      : tag;
+  String _voiceLocale = 'en';
+  String get _language => _voiceLocale.split('-').first;
 
   /// 라운드가 끝날 때 뭐라고 알릴까. 말은 화면이 만든다 — 타이머는 소리만 낸다.
   String Function(int round)? announceRound;
+
+  /// Once per run: natural completion or [end] (not an end under 10 s).
+  VoidCallback? onComplete;
+
+  /// The run was ended by [end] rather than by the clock.
+  bool get endedEarly => _endedEarly;
+  bool _endedEarly = false;
+
+  /// Completed or ended; [follow] leaves the same run alone until a reset.
+  bool _finished = false;
+
+  /// Which run this is. Starting from the top ([toggle] on a new or finished
+  /// run, [restart], following another shared run) and [reset]/[clear] count
+  /// up; pause, resume, skip, back and re-syncing a shared run do not. What
+  /// was logged belongs to one run.
+  int get runId => _runId;
+  int _runId = 0;
+  int? _countAtEnd;
+  bool _interrupted = false;
+
   Duration _elapsed = Duration.zero, _started = Duration.zero;
   Future<void> _commands = Future.value();
   Duration get elapsed =>
@@ -240,22 +378,57 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   bool get wantsHeart =>
       running && spec?.tabata == true && phase != TimingPhase.complete;
 
+  /// Whole run length: tabata [TimingSpec.duration]; a metronome with a
+  /// [target] ends just after the target count is read (half a beat, at most a
+  /// second, plus 50 ms) and before the next click. Otherwise endless (null).
+  Duration? get total {
+    final s = spec;
+    if (s == null) return null;
+    if (s.tabata) return Duration(seconds: s.duration);
+    final goal = target, bpm = s.bpm;
+    if (goal == null || goal < 1 || bpm == null) return null;
+    final p = 60 / bpm;
+    return Duration(
+      microseconds: ((3 + (goal - 1) * p + math.min(p / 2, 1.0) + 0.05) * 1e6)
+          .round(),
+    );
+  }
+
+  /// The interval the timer is in, as (start, end) in µs from the start; end
+  /// is null for an endless metronome. Null when complete.
+  (int, int?)? get _segment {
+    final s = spec;
+    final us = elapsed.inMicroseconds;
+    if (s == null) return (0, _readyUs);
+    if (us < _readyUs) return (0, _readyUs);
+    final t = total?.inMicroseconds;
+    if (t != null && us >= t) return null;
+    if (!s.tabata) return (_readyUs, t);
+    final cycle = (s.work + s.rest) * 1000000, work = s.work * 1000000;
+    final start = _readyUs + (us - _readyUs) ~/ cycle * cycle;
+    return us - start < work
+        ? (start, start + work)
+        : (start + work, start + cycle);
+  }
+
   /// 시작 전 3초. 메트로놈도 센다 — 첫 클릭이 바로 울리면 손이 자리에 없다.
   /// 템포 앱의 "Start in 3s" 와 같다: 띠·띠·띠 뒤에 한 옥타브 위 긴 소리.
   TimingPhase get phase {
-    final seconds = elapsed.inMilliseconds / 1000;
-    if (seconds < 3) return TimingPhase.ready;
+    final us = elapsed.inMicroseconds;
+    if (us < _readyUs) return TimingPhase.ready;
+    final t = total;
+    if (t != null && elapsed >= t) return TimingPhase.complete;
     if (spec?.tabata != true) return TimingPhase.work;
-    if (seconds >= spec!.duration) return TimingPhase.complete;
-    return (seconds - 3) % (spec!.work + spec!.rest) < spec!.work
+    final cycle = (spec!.work + spec!.rest) * 1000000;
+    return (us - _readyUs) % cycle < spec!.work * 1000000
         ? TimingPhase.work
         : TimingPhase.rest;
   }
 
   int get round => spec?.tabata != true
       ? 1
-      : ((elapsed.inMilliseconds / 1000 - 3) / (spec!.work + spec!.rest))
-                .floor()
+      : ((elapsed.inMicroseconds - _readyUs) ~/
+                    ((spec!.work + spec!.rest) * 1000000))
                 .clamp(0, spec!.rounds - 1) +
             1;
 
@@ -263,16 +436,26 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   ///
   /// 네이티브 오디오가 버퍼를 반복 재생하므로 박자마다 콜백이 오지 않는다.
   /// 지난 시간으로 세면 콜백을 기다릴 필요가 없고 어긋나지도 않는다.
-  int get beat {
+  int get beat => running ? _liveCount : 0;
+
+  /// Beats counted in the current work interval; kept while paused. Frozen at
+  /// the value it had when the run completed or was ended.
+  int get count {
+    if (_finished || phase == TimingPhase.complete) return _countAtEnd ?? 0;
+    return _liveCount;
+  }
+
+  int get _liveCount {
     final bpm = spec?.bpm;
-    if (bpm == null || !running || phase != TimingPhase.work) return 0;
+    if (bpm == null || phase != TimingPhase.work) return 0;
     return (_intoWork * bpm / 60).floor() + 1;
   }
 
   /// 운동 구간에 들어선 지 몇 초.
   double get _intoWork {
-    final seconds = elapsed.inMilliseconds / 1000 - 3;
-    return spec!.tabata ? seconds % (spec!.work + spec!.rest) : seconds;
+    final us = elapsed.inMicroseconds - _readyUs;
+    return (spec!.tabata ? us % ((spec!.work + spec!.rest) * 1000000) : us) /
+        1e6;
   }
 
   /// 지금 박자에 들어선 지 몇 초. 박자가 없으면 null. 나머지(%)로 구하지
@@ -284,50 +467,101 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     return into < 0 ? 0 : into;
   }
 
-  int get remaining {
-    final seconds = elapsed.inMilliseconds / 1000;
-    if (phase == TimingPhase.ready) return (3 - seconds).ceil();
-    if (spec?.tabata != true) return elapsed.inSeconds - 3;
-    if (phase == TimingPhase.complete) return 0;
-    final within = (seconds - 3) % (spec!.work + spec!.rest);
-    return ((phase == TimingPhase.work ? spec!.work : spec!.work + spec!.rest) -
-            within)
-        .ceil();
+  /// Landed in a beat whose number is not read yet: its time (half a beat in)
+  /// has not come. [_start] and [_seek] land mid-beat.
+  bool get _unread {
+    final into = _intoBeat;
+    return into != null && into < 60 / spec!.bpm! / 2;
   }
 
-  /// 지금 쉬는 중이면 남은 휴식을 건너뛰고 다음 세트로 간다.
-  ///
-  /// 시계를 앞으로 당기는 것으로 끝낸다 — 구간·라운드·소리는 전부 지난
-  /// 시간에서 나오므로, 이 한 줄이면 tick 이 알아서 다음 구간의 신호를 낸다.
-  /// 되감는 길은 두지 않는다. 휴식은 짧아지기만 한다.
-  void skipRest() {
-    // 같이 하는 중에는 건너뛰지 않는다 — 나만 앞서 가면 같이 하는 것이 아니다.
-    if (!running || shared || phase != TimingPhase.rest) return;
-    final seconds = elapsed.inMilliseconds / 1000;
-    final cycle = spec!.work + spec!.rest;
-    final within = (seconds - 3) % cycle;
-    _elapsed += Duration(milliseconds: ((cycle - within) * 1000).round());
-    tick();
+  int get remaining {
+    final seconds = elapsed.inMicroseconds / 1e6;
+    final current = phase;
+    if (current == TimingPhase.ready) return (3 - seconds).ceil();
+    if (spec?.tabata != true) return elapsed.inSeconds - 3;
+    final segment = _segment;
+    if (segment == null) return 0;
+    return ((segment.$2! - elapsed.inMicroseconds) / 1e6).ceil();
+  }
+
+  /// How far into the current interval (ready, work, rest); zero when complete.
+  Duration get phaseElapsed {
+    final segment = _segment;
+    if (segment == null) return Duration.zero;
+    final us = elapsed.inMicroseconds - segment.$1;
+    return Duration(microseconds: us < 0 ? 0 : us);
+  }
+
+  /// Water level 0..1 for the stage: ready drains over 3 s, a tabata interval
+  /// over its length, a metronome with a target by counts; 1 without a target.
+  double get level {
+    final current = phase;
+    if (current == TimingPhase.complete) return 0;
+    final us = elapsed.inMicroseconds;
+    if (current == TimingPhase.ready) {
+      return (1 - us / _readyUs).clamp(0.0, 1.0).toDouble();
+    }
+    final s = spec!;
+    if (!s.tabata) {
+      final goal = target;
+      if (goal == null || goal < 1 || s.bpm == null) return 1;
+      return (1 - count / goal).clamp(0.0, 1.0).toDouble();
+    }
+    final (start, end) = _segment!;
+    return ((end! - us) / (end - start)).clamp(0.0, 1.0).toDouble();
   }
 
   /// 상대와 같은 시각에 맞춰 도는 중인가([follow]). 혼자 시작하면 꺼진다.
   bool shared = false;
 
-  void toggle(Object block, TimingSpec value) {
+  /// Started since the last rewind — "paused at 0 s" is not "not started".
+  bool _begun = false;
+
+  bool get _paused => !running && spec != null && _begun && !_finished;
+
+  /// Over by the clock with no tick to see it yet: the end came between ticks,
+  /// or a goal came down to what was already counted.
+  bool get _due => _begun && !_finished && phase == TimingPhase.complete;
+
+  /// Skip and back work on a solo tabata, running or paused, until it ends.
+  bool get canSkip =>
+      spec?.tabata == true &&
+      !shared &&
+      (running || _paused) &&
+      phase != TimingPhase.complete;
+
+  /// Different owner/spec: reset and start. Same: start or pause.
+  void toggle(Object block, TimingSpec value, {int? target}) {
     if (!value.valid) return;
+    _interrupted = false;
     if (!identical(owner, block) || spec != value || shared) {
-      pause();
+      _halt();
       owner = block;
       spec = value;
       shared = false;
-      _elapsed = Duration.zero;
+      _rewind();
     }
+    // A new goal (a set was logged meanwhile) does not restart the run; one
+    // it already passed ends it.
+    if (_retarget(target)) return;
     if (running) {
       pause();
       return;
     }
-    if (phase == TimingPhase.complete) _elapsed = Duration.zero;
-    _start();
+    if (_finished || phase == TimingPhase.complete) _rewind();
+    _start(resumed: _begun);
+  }
+
+  /// Sets [target]; true when that leaves the run over (see [_due]) and so
+  /// completes it. A goal that came down under the count keeps the time and
+  /// the count the run had reached.
+  bool _retarget(int? goal) {
+    final live = phase != TimingPhase.complete, counted = count;
+    target = goal;
+    if (!_due) return false;
+    if (live) _lastCount = counted;
+    _complete(at: live ? elapsed : null);
+    return true;
   }
 
   /// 같이 하는 타이머의 자리 [at] 에 맞춘다. 이미 그 자리에서 돌고 있으면 아무
@@ -336,46 +570,91 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   ///
   /// [at] 은 음수일 수 있다: 아직 시작 전이거나, 교대에서 내 차례가 뒤다. 그동안은
   /// 준비 구간이고 남은 초가 3 보다 크게 보인다.
-  void follow(Object block, TimingSpec value, Duration at) {
+  ///
+  /// A run that completed or was ended stays over: following it again does
+  /// nothing until [toggle], [reset], [clear] or [restart].
+  void follow(Object block, TimingSpec value, Duration at, {int? target}) {
     if (!value.valid) return;
     final same = shared && identical(owner, block) && spec == value;
+    if (same && _finished) return;
+    if (same && _retarget(target)) return;
+    this.target = target;
     // 0.3초 안쪽의 차이는 고치지 않는다. 고칠 때마다 소리가 끊긴다.
     if (same && running && (elapsed - at).inMilliseconds.abs() < 300) return;
-    pause();
+    _interrupted = false;
+    _halt();
     owner = block;
     spec = value;
     shared = true;
+    // Put back in place (late, resumed, rejoined): still the same run.
+    if (!same) _rewind();
     _elapsed = at;
     _start();
   }
 
-  void _start() {
+  void _rewind() {
+    _runId++;
+    _elapsed = Duration.zero;
+    _begun = false;
+    _finished = false;
+    _endedEarly = false;
+    _countAtEnd = null;
+  }
+
+  DateTime? _wallMark;
+  Duration _monoMark = Duration.zero;
+
+  void _markClocks() {
+    _wallMark = _wallNow?.call();
+    _monoMark = _time;
+  }
+
+  /// The monotonic clock stops while the device sleeps; the wall clock does
+  /// not. A gap of 1 s..1 h is added to the run (cues it skipped stay silent).
+  /// A shorter one is kept to add up with the next: short sleeps between
+  /// ticks are not dropped one by one. A shared timer is put back in place by
+  /// [follow] instead.
+  void _correctClock() {
+    final wall = _wallNow?.call(), mark = _wallMark;
+    if (wall != null && mark != null && !shared) {
+      final gap = wall.difference(mark) - (_time - _monoMark);
+      if (gap >= Duration.zero && gap < const Duration(seconds: 1)) return;
+      if (gap >= const Duration(seconds: 1) && gap < const Duration(hours: 1)) {
+        _elapsed += gap;
+      }
+    }
+    _markClocks();
+  }
+
+  void _start({bool resumed = false}) {
+    assert(!running);
     soundFailed = false;
     _voiceFreeAt = 0;
     _started = _time;
+    _markClocks();
     running = true;
+    _begun = true;
     _lastPhase = phase;
     _lastRound = round;
     _lastRemaining = remaining;
     _lastBeat = beat;
-    _sound(
-      cue: phase == TimingPhase.ready
-          // 같이 할 때는 준비가 3초보다 길 수 있다. 그동안은 조용하다.
-          ? (remaining <= 3 ? 'ready' : null)
-          // 같이 하는 타이머에는 쉬는 도중에 들어올 수도 있다. 그때는 시작 신호가 아니다.
-          : spec!.tabata && (phase == TimingPhase.work || !shared)
-          ? 'work'
-          : null,
-    );
+    _lastCount = count;
+    final cue = phase == TimingPhase.ready
+        // 같이 할 때는 준비가 3초보다 길 수 있다. 그동안은 조용하다.
+        ? (remaining <= 3 ? 'ready' : null)
+        // 같이 하는 타이머에는 쉬는 도중에 들어올 수도 있다. 그때는 시작 신호가 아니다.
+        : spec!.tabata && (phase == TimingPhase.work || !shared)
+        ? 'work'
+        : null;
+    _sound(cue: cue);
+    if (resumed) {
+      _buzz(TimerHaptic.medium);
+    } else if (cue != null) {
+      _buzz(_cueHaptic(cue));
+    }
     // 박 중간에서 다시 시작했으면(멈췄다 켬, 같이 하기 재동기화) 그 박자의 숫자는
     // 읽을 때(반 박)가 아직 안 왔을 때만 읽는다. 지났으면 다음 박자부터.
-    final into = _intoBeat;
-    if (countAloud &&
-        _lastBeat > 0 &&
-        into != null &&
-        into < 60 / spec!.bpm! / 2) {
-      _say(_lastBeat);
-    }
+    if (countAloud && _unread) _say(_lastBeat);
     // 100ms 마다 보면 구간이 바뀐 것을 최대 100ms 늦게 안다 — 그만큼 소리가
     // 밀린다. 50ms 로 보면 절반이고, 하는 일은 값 비교뿐이라 싸다.
     _ticker = Timer.periodic(const Duration(milliseconds: 50), (_) => tick());
@@ -384,7 +663,7 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
 
   TimingPhase? _lastPhase;
   int? _lastRound, _lastRemaining;
-  int _lastBeat = 0;
+  int _lastBeat = 0, _lastCount = 0;
   int _voiceGeneration = 0;
 
   /// 앞 말이 끝나는 때(지난 시간, 초). 이보다 이른 박자는 읽지 않는다.
@@ -393,11 +672,11 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   void _say(int n) {
     final bpm = spec?.bpm;
     if (bpm == null) return;
-    final text = spokenCount(n, voiceLocale);
-    final pace = countPace(text, voiceLocale, bpm);
+    final text = spokenCount(n, _language);
+    final pace = countPace(text, _language, bpm);
     // 박자가 **시작한** 때로 잰다. 틱이 알아챈 때(0~50ms 늦다)로 재면 늦게
     // 알아챈 박자 뒤의 숫자가 운에 따라 빠진다.
-    final start = elapsed.inMilliseconds / 1000 - (_intoBeat ?? 0);
+    final start = elapsed.inMicroseconds / 1e6 - (_intoBeat ?? 0);
     // 빨리 읽어도 한 박에 안 들어가면, 앞 말이 끝난 뒤 첫 박자에서 읽는다.
     // 예전에는 네이티브가 "아직 말하는 중" 이면 그냥 버려서 어느 숫자가 빠질지
     // 운이었다 — 여기서 미리 정하면 빠지는 박자가 늘 같다.
@@ -418,22 +697,35 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     });
   }
 
+  static TimerHaptic _cueHaptic(String cue) => switch (cue) {
+    'work' => TimerHaptic.heavy,
+    'rest' => TimerHaptic.medium,
+    'complete' => TimerHaptic.success,
+    _ => TimerHaptic.tick,
+  };
+
+  void _buzz(TimerHaptic kind) {
+    if (haptics) _haptic(kind);
+  }
+
+  void _cue(String cue) {
+    _sound(cue: cue);
+    _buzz(_cueHaptic(cue));
+  }
+
   void tick() {
     if (!running) return;
+    _correctClock();
     final next = phase;
     if (next == TimingPhase.complete) {
-      _elapsed = Duration(seconds: spec!.duration);
-      running = false;
-      _ticker?.cancel();
-      _voiceGeneration++;
-      _sound(cue: 'complete');
-      notifyListeners();
+      _complete();
       return;
     }
     if (next != _lastPhase || round != _lastRound) {
-      _sound(cue: next == TimingPhase.work ? 'work' : 'rest');
+      _cue(next == TimingPhase.work ? 'work' : 'rest');
       // 운동 구간이 끝나면 몇 라운드를 마쳤는지 말한다. 쉬는 동안이라 시작
-      // 신호나 박자 세는 말과 겹치지 않는다.
+      // 신호나 박자 세는 말과 겹치지 않는다. The last round of a plain tabata
+      // ends in completion, not rest, so its number never runs into that cue.
       if (next == TimingPhase.rest && _lastPhase == TimingPhase.work) {
         final said = announceRound?.call(round);
         if (said != null) _speak(said);
@@ -443,21 +735,40 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
         remaining != _lastRemaining) {
       // 구간마다 마지막 3초를 띠·띠·띠 하고 센다 — 타바타 앱들의 공통 신호다.
       // 화면을 안 보고도 다음 구간이 오는 것을 몸이 안다. 준비 3초도 같은 소리.
-      _sound(cue: 'ready');
+      _cue('ready');
     }
     final counted = beat;
     if (counted != _lastBeat) {
       _lastBeat = counted;
       if (countAloud && counted > 0) _say(counted);
     }
+    final counts = count;
     if (next != _lastPhase ||
         remaining != _lastRemaining ||
-        round != _lastRound) {
+        round != _lastRound ||
+        counts != _lastCount) {
       _lastPhase = next;
       _lastRound = round;
       _lastRemaining = remaining;
+      _lastCount = counts;
       notifyListeners();
     }
+  }
+
+  /// The clock ran out (or a skip reached the end): the run ends at [total],
+  /// a metronome's count at its goal — or, when the goal came down under the
+  /// count, at [at] with the beats it had counted. Speech already queued is
+  /// left to finish — the last count is read after the run is over.
+  void _complete({Duration? at}) {
+    final goal = spec!.tabata ? null : target;
+    _countAtEnd = goal == null ? _lastCount : math.max(goal, _lastCount);
+    _elapsed = at ?? total!;
+    running = false;
+    _finished = true;
+    _ticker?.cancel();
+    _cue('complete');
+    notifyListeners();
+    onComplete?.call();
   }
 
   void _sound({String? cue}) {
@@ -482,20 +793,47 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     });
   }
 
-  void pause() {
+  /// Stops the clock and the sound without telling anyone.
+  void _halt() {
     if (!running) return;
     _elapsed = elapsed;
     running = false;
     _voiceGeneration++;
     _ticker?.cancel();
     _sound();
+  }
+
+  /// Prepares the speech engine and cue players (no sound), so the first run
+  /// counts on time.
+  Future<void> warmUp() async {
+    try {
+      await _audio.warmUp();
+    } catch (_) {}
+  }
+
+  void pause() {
+    if (!running) return;
+    if (_due) {
+      _complete();
+      return;
+    }
+    _halt();
+    _buzz(TimerHaptic.medium);
     notifyListeners();
   }
 
+  void resume() {
+    if (running || spec == null || _finished) return;
+    if (phase == TimingPhase.complete) return;
+    _interrupted = false;
+    _start(resumed: true);
+  }
+
   void reset() {
-    pause();
-    _elapsed = Duration.zero;
+    _halt();
+    _rewind();
     shared = false;
+    _interrupted = false;
     notifyListeners();
   }
 
@@ -503,16 +841,118 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     reset();
     owner = null;
     spec = null;
+    target = null;
   }
 
-  /// 앱을 내렸을 때만 멈춘다. 제어 센터·알림 센터·Face ID 는 inactive 만 거쳐
-  /// 돌아온다 — 음악을 바꾸려고 제어 센터를 내렸다고 타바타가 서면 안 된다.
+  /// From the top, running. Not while shared — the start time is agreed.
+  void restart() {
+    if (spec == null || shared) return;
+    _halt();
+    _rewind();
+    _interrupted = false;
+    _start();
+  }
+
+  /// Stop here and keep the result: paused with [endedEarly], then
+  /// [onComplete] once, without the 'complete' cue. Under 10 s there is
+  /// nothing worth keeping, so it resets and [onComplete] is not called.
+  void end() {
+    if (spec == null || _finished) return;
+    _interrupted = false;
+    if (_due) {
+      _complete();
+      return;
+    }
+    if (elapsed < const Duration(seconds: 10)) {
+      reset();
+      return;
+    }
+    _halt();
+    _countAtEnd = count;
+    _finished = true;
+    _endedEarly = true;
+    notifyListeners();
+    onComplete?.call();
+  }
+
+  /// To the end of this interval: ready → work, work → rest (the last work →
+  /// complete), rest → next work.
+  void skip() {
+    if (!canSkip) return;
+    final end = _segment?.$2;
+    if (end == null) return;
+    _buzz(TimerHaptic.tick);
+    _seek(Duration(microseconds: end));
+  }
+
+  /// To the start of this interval once 2 s in, else of the one before.
+  void back() {
+    if (!canSkip) return;
+    final s = spec!;
+    final (start, _) = _segment!;
+    final us = elapsed.inMicroseconds;
+    final int to;
+    if (us - start > 2000000 || start == 0) {
+      to = start;
+    } else if (start == _readyUs) {
+      to = 0;
+    } else {
+      // The interval before starts one work or one rest earlier.
+      final intoCycle = (start - _readyUs) % ((s.work + s.rest) * 1000000);
+      to = start - (intoCycle == 0 ? s.rest : s.work) * 1000000;
+    }
+    _buzz(TimerHaptic.tick);
+    _seek(Duration(microseconds: to));
+  }
+
+  /// 지금 쉬는 중이면 남은 휴식을 건너뛰고 다음 세트로 간다. 휴식은 짧아지기만
+  /// 한다. 같이 하는 중에는 건너뛰지 않는다 — 나만 앞서 가면 같이 하는 것이 아니다.
+  void skipRest() {
+    if (!running || shared || phase != TimingPhase.rest) return;
+    _seek(Duration(microseconds: _segment!.$2!));
+  }
+
+  /// Moves the clock. Queued words are dropped and the next beat is read
+  /// afresh; the click loop is re-placed on the new beat grid every time,
+  /// even when the interval does not change.
+  void _seek(Duration to) {
+    _elapsed = to;
+    _started = _time;
+    _markClocks();
+    _voiceGeneration++;
+    _voiceFreeAt = 0;
+    // The tick below reads the beat landed in, as a natural entry would.
+    _lastBeat = _unread ? beat - 1 : beat;
+    _sound();
+    if (running) {
+      tick();
+    } else {
+      if (phase == TimingPhase.complete) {
+        _complete();
+        return;
+      }
+      notifyListeners();
+    }
+  }
+
+  void _onInterrupted() {
+    if (!running) return;
+    pause();
+    _interrupted = true;
+  }
+
+  void _onResumed() {
+    if (_interrupted && !running && phase != TimingPhase.complete) resume();
+    _interrupted = false;
+  }
+
+  /// 제어 센터·알림 센터·Face ID·화면 꺼짐·홈 버튼에는 멈추지 않는다 — 소리는
+  /// 백그라운드에서도 난다. Only a detached engine pauses. Coming back puts the
+  /// clock right (sleep gap) and catches up.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed &&
-        state != AppLifecycleState.inactive) {
-      pause();
-    }
+    if (state == AppLifecycleState.detached) pause();
+    if (state == AppLifecycleState.resumed) tick();
   }
 
   @override
@@ -522,6 +962,7 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _watch.stop();
     WidgetsBinding.instance.removeObserver(this);
     _audio.onInterrupted = null;
+    _audio.onResumed = null;
     unawaited(_commands.then((_) => _audio.dispose()));
     super.dispose();
   }
@@ -535,9 +976,7 @@ class TogetherTiming {
   const TogetherTiming({
     required this.partner,
     required this.onPropose,
-    required this.onToggle,
     required this.onCancel,
-    required this.onLog,
     this.waiting = false,
     this.busy = false,
     this.live = false,
@@ -573,739 +1012,6 @@ class TogetherTiming {
   /// 셋 이상이 같이 할 때 [partner] 말고 나머지 사람들의 줄.
   final List<({String name, List<int?> counts})> more;
 
-  /// 가장 많이 적은 사람의 세트 수. 짧은 줄은 여기까지 – 로 채운다.
-  int get longest => [
-    mine.length,
-    theirs.length,
-    for (final p in more) p.counts.length,
-  ].reduce((a, b) => a > b ? a : b);
-
   final void Function(bool alternate) onPropose;
-
-  /// 시작·정지를 눌렀다. true 를 돌려주면 같이 하기가 처리한 것이다(그만두기·
-  /// 다시 들어가기). false 면 혼자 쓰는 타이머가 평소대로 움직인다.
-  final bool Function() onToggle;
   final VoidCallback onCancel;
-  final ValueChanged<int> onLog;
-}
-
-class WorkoutTimingControls extends StatefulWidget {
-  const WorkoutTimingControls({
-    super.key,
-    required this.owner,
-    required this.spec,
-    required this.timer,
-    required this.onStart,
-    this.onChanged,
-    this.recovery,
-    this.together,
-    this.settingsOpen,
-  });
-
-  /// 같이 운동 중일 때만 있다.
-  final TogetherTiming? together;
-  final Object owner;
-  final TimingSpec spec;
-  final WorkoutTimer timer;
-  final VoidCallback onStart;
-
-  /// 심박으로 휴식을 끊어 주는 쪽. 없으면 심박을 그리지 않는다.
-  final RestRecovery? recovery;
-
-  /// 버튼으로 고친 설정. 받는 쪽이 운동 이름을 다시 적는다 — 제목이 설정이다.
-  final ValueChanged<TimingSpec>? onChanged;
-
-  /// When provided, the exercise's settings button controls this panel.
-  final bool? settingsOpen;
-
-  @override
-  State<WorkoutTimingControls> createState() => _WorkoutTimingControlsState();
-}
-
-class _WorkoutTimingControlsState extends State<WorkoutTimingControls> {
-  bool _settingsOpen = false;
-
-  bool get _canPropose {
-    final duo = widget.together;
-    return duo != null &&
-        !duo.live &&
-        !duo.waiting &&
-        !duo.busy &&
-        !(identical(widget.timer.owner, widget.owner) &&
-            widget.timer.running) &&
-        widget.spec.valid;
-  }
-
-  bool get _canAlternate =>
-      widget.spec.tabata &&
-      widget.spec.work + 2 * widget.spec.rest <= TimingSpec.maxSeconds;
-
-  void _propose(bool alternate) {
-    // The session may change while the start menu is open.
-    if (!_canPropose || (alternate && !_canAlternate)) return;
-    setState(() => _settingsOpen = false);
-    widget.onStart();
-    widget.together!.onPropose(alternate);
-  }
-
-  void _chooseStart() {
-    final l = L.of(context);
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (sheet) => CupertinoActionSheet(
-        actions: [
-          for (final (label, alternate) in [
-            (l.togetherStart, false),
-            (l.togetherAlternate, true),
-          ])
-            CupertinoActionSheetAction(
-              key: ValueKey(
-                alternate ? 'together-alternate' : 'together-simultaneous',
-              ),
-              onPressed: () {
-                Navigator.pop(sheet);
-                if (mounted) _propose(alternate);
-              },
-              child: Text(label),
-            ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(sheet),
-          child: Text(l.cancel),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => ListenableBuilder(
-    // 심박이 바뀌어도 다시 그려야 한다. 둘 다 듣는다.
-    listenable: widget.recovery == null
-        ? widget.timer
-        : Listenable.merge([widget.timer, widget.recovery]),
-    builder: (context, _) {
-      final owner = widget.owner, timer = widget.timer;
-      final spec = widget.spec, together = widget.together;
-      final recovery = widget.recovery, onChanged = widget.onChanged;
-      final l = L.of(context);
-      final selected = identical(timer.owner, owner);
-      final running = selected && timer.running;
-      final phase = selected ? timer.phase : TimingPhase.ready;
-      final seconds = selected ? timer.remaining : 3;
-      final beat = selected ? timer.beat : 0;
-      final counted = spokenCount(beat, l.localeName.split('_').first);
-      // 템포 앱처럼 초를 맨숫자로 크게. "0:20" 보다 "20" 이 힐끗 봐도 읽힌다.
-      // 1분을 넘는 구간만 분:초. 메트로놈은 준비 뒤로는 몇 번째 박자인지.
-      final big = !selected
-          ? ''
-          : !spec.tabata && phase != TimingPhase.ready
-          ? (beat > 0 ? '$beat' : '')
-          : seconds < 60
-          ? '$seconds'
-          : '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
-      final bigColor = switch (phase) {
-        TimingPhase.work => seal.resolveFrom(context),
-        TimingPhase.rest => CupertinoColors.systemGreen.resolveFrom(context),
-        TimingPhase.ready when selected && timer.running =>
-          CupertinoColors.label.resolveFrom(context),
-        _ => CupertinoColors.tertiaryLabel.resolveFrom(context),
-      };
-      final round = selected ? timer.round : 1;
-      final doneRounds = switch (phase) {
-        TimingPhase.complete => spec.rounds,
-        TimingPhase.ready => 0,
-        _ => round - 1,
-      };
-      final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
-      // 돌아가는 중에 길이를 바꾸면 남은 시간이 튄다. 멈춘 뒤에 바꾸게 한다.
-      final editable =
-          onChanged != null &&
-          !running &&
-          !(together?.live ?? false) &&
-          !(together?.waiting ?? false);
-      void change(TimingSpec next) {
-        if (next.valid && next != spec) onChanged!(next);
-      }
-
-      int lessSeconds(int n) => n - 5 < 5 ? TimingSpec.minSeconds : n - 5;
-
-      final duo = together;
-      final sharing = duo != null && duo.live && selected && timer.shared;
-      // 교대에서는 내가 쉬는 동안이 곧 상대의 차례다. 시작 전 긴 준비도 그렇다.
-      final theirTurn =
-          sharing &&
-          duo.alternate &&
-          running &&
-          (phase == TimingPhase.rest ||
-              (phase == TimingPhase.ready && seconds > 3));
-      final phaseLabel = theirTurn
-          ? l.togetherTheirTurn
-          : switch (phase) {
-              TimingPhase.ready => l.timingReady,
-              TimingPhase.work => l.timingWork,
-              TimingPhase.rest => l.timingRest,
-              TimingPhase.complete => l.timingComplete,
-            };
-      // 심박은 쉬는 동안에만 붙인다. 세트 중에는 볼 겨를도 없고, 회복을
-      // 재는 것은 휴식이다. 값이 낡았으면 아무것도 안 쓴다 — 옛 숫자를
-      // 지금 심박인 척 보여 주면 안 된다.
-      final heart = recovery;
-      final showHeart =
-          heart != null &&
-          selected &&
-          phase == TimingPhase.rest &&
-          heart.fresh &&
-          heart.target != null;
-      final heartLine = showHeart
-          ? ' · ${l.timingHeart(heart.bpm!, heart.target!)}'
-          : '';
-      final status = spec.tabata
-          ? '$phaseLabel · ${l.timingRound(round, spec.rounds)}'
-                '${beat > 0 ? ' · ${l.timingBeat(counted)}' : ''}$heartLine'
-          : selected && phase == TimingPhase.ready
-          ? phaseLabel
-          // 박자는 큰 숫자로 이미 보인다. 옆에는 무엇인지만 적는다 —
-          // "5 · 다섯" 처럼 같은 것을 두 번 쓰지 않는다.
-          : l.timingMetronome;
-      void toggle() {
-        if (_canPropose) {
-          _propose(false);
-          return;
-        }
-        if (duo != null && !duo.live && !running) return;
-        setState(() => _settingsOpen = false);
-        if (duo != null && duo.onToggle()) return;
-        if (!running) widget.onStart();
-        timer.toggle(owner, spec);
-      }
-
-      final canPropose = _canPropose;
-      final canToggle = duo == null || duo.live || running || canPropose;
-      // 쉬는 동안, 방금 끝난 라운드를 아직 안 적었으면 한 번 눌러 적게 한다.
-      // 숨이 찬 10초에 숫자판을 열어 치라고 할 수는 없다.
-      final owesCount =
-          sharing &&
-          spec.tabata &&
-          running &&
-          phase == TimingPhase.rest &&
-          duo.mine.length < round;
-
-      // 칸 너비를 똑같이 고정한다. 예전에는 Wrap 이라 5초→10초 처럼 글자가
-      // 한 자 늘면 마지막 칸이 다음 줄로 떨어지고 카드 아래가 통째로 밀렸다.
-      final cells = <Widget>[
-        if (spec.bpm != null)
-          _Stepper(
-            label: l.timingBpm(spec.bpm!),
-            onLess: editable && spec.bpm! > TimingSpec.minBpm
-                ? () =>
-                      change(spec.copyWith(bpm: spec.bpm! - TimingSpec.bpmStep))
-                : null,
-            onMore: editable && spec.bpm! < TimingSpec.maxBpm
-                ? () =>
-                      change(spec.copyWith(bpm: spec.bpm! + TimingSpec.bpmStep))
-                : null,
-          ),
-        if (spec.tabata) ...[
-          _Stepper(
-            label: l.timingWorkSeconds(spec.work),
-            onLess: editable && spec.work > TimingSpec.minSeconds
-                ? () => change(spec.copyWith(work: lessSeconds(spec.work)))
-                : null,
-            onMore: editable && spec.work < TimingSpec.maxSeconds
-                ? () => change(spec.copyWith(work: spec.work + 5))
-                : null,
-          ),
-          _Stepper(
-            label: l.timingRestSeconds(spec.rest),
-            onLess: editable && spec.rest > TimingSpec.minSeconds
-                ? () => change(spec.copyWith(rest: lessSeconds(spec.rest)))
-                : null,
-            onMore: editable && spec.rest < TimingSpec.maxSeconds
-                ? () => change(spec.copyWith(rest: spec.rest + 5))
-                : null,
-          ),
-          _Stepper(
-            label: l.timingRounds(spec.rounds),
-            onLess: editable && spec.rounds > 1
-                ? () => change(spec.copyWith(rounds: spec.rounds - 1))
-                : null,
-            onMore: editable && spec.rounds < 99
-                ? () => change(spec.copyWith(rounds: spec.rounds + 1))
-                : null,
-          ),
-        ],
-      ];
-      return Padding(
-        padding: const EdgeInsets.only(top: 4, bottom: 6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (editable &&
-                ((widget.settingsOpen ?? _settingsOpen) || !spec.valid))
-              Row(children: [for (final c in cells) Expanded(child: c)]),
-            if (!spec.valid)
-              Text(
-                l.timingInvalid,
-                style: TextStyle(fontSize: 13, color: muted),
-              )
-            else ...[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // 템포 앱처럼 숫자 자체를 눌러도 시작·정지. 헬스장에서 작은
-                  // 글자 버튼을 겨누기 어렵다.
-                  Expanded(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: selected && canToggle ? toggle : null,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          if (big.isNotEmpty) ...[
-                            Text(
-                              big,
-                              style: TextStyle(
-                                fontSize: 44,
-                                fontWeight: FontWeight.w700,
-                                color: bigColor,
-                                letterSpacing: -1,
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                          ],
-                          Flexible(
-                            child: Text(
-                              status,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: muted,
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (!(duo?.waiting ?? false) || running)
-                    CupertinoButton(
-                      key: canPropose ? const ValueKey('together-start') : null,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      minimumSize: const Size(44, 44),
-                      color: sealTint.resolveFrom(context),
-                      borderRadius: BorderRadius.circular(22),
-                      onPressed: !canToggle
-                          ? null
-                          : canPropose && _canAlternate
-                          ? _chooseStart
-                          : toggle,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            duo != null && duo.live
-                                ? (duo.left
-                                      ? l.togetherRejoin
-                                      : l.togetherLeave)
-                                : running
-                                ? l.timingPause
-                                : duo != null
-                                ? l.togetherStart
-                                : l.timingStart,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: seal.resolveFrom(context),
-                            ),
-                          ),
-                          if (canPropose && _canAlternate) ...[
-                            const SizedBox(width: 6),
-                            Icon(
-                              CupertinoIcons.chevron_down,
-                              size: 12,
-                              color: seal.resolveFrom(context),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  if (selected && !(duo?.live ?? false))
-                    CupertinoButton(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      onPressed: timer.reset,
-                      child: Icon(
-                        CupertinoIcons.arrow_counterclockwise,
-                        size: 18,
-                        semanticLabel: l.timingReset,
-                      ),
-                    ),
-                  if (editable && widget.settingsOpen == null)
-                    CupertinoButton(
-                      key: const ValueKey('timing-settings-toggle'),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      minimumSize: const Size(44, 44),
-                      onPressed: () =>
-                          setState(() => _settingsOpen = !_settingsOpen),
-                      child: Icon(
-                        _settingsOpen
-                            ? CupertinoIcons.chevron_up
-                            : CupertinoIcons.slider_horizontal_3,
-                        size: 18,
-                        semanticLabel: l.settingsTitle,
-                      ),
-                    ),
-                ],
-              ),
-              // 라운드마다 한 칸. 템포 앱의 고리를 글줄에 맞게 눕힌 것이다.
-              if (spec.tabata && selected)
-                _RoundBar(
-                  rounds: spec.rounds,
-                  done: doneRounds,
-                  current:
-                      running &&
-                          (phase == TimingPhase.work ||
-                              phase == TimingPhase.rest)
-                      ? doneRounds
-                      : null,
-                  color: bigColor,
-                ),
-            ],
-            if (duo != null && spec.valid) ...[
-              if (duo.waiting) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l.togetherWaiting(duo.partner),
-                        style: TextStyle(fontSize: 14, color: muted),
-                      ),
-                    ),
-                    CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(44, 44),
-                      onPressed: duo.onCancel,
-                      child: Text(
-                        l.cancel,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  l.togetherWaitingHint,
-                  style: TextStyle(fontSize: 12, color: muted),
-                ),
-              ],
-              if (owesCount)
-                _CountEntry(
-                  // 라운드가 바뀌면 새로 센다.
-                  key: ValueKey('together-count-$round'),
-                  initial:
-                      duo.mine.whereType<int>().lastOrNull ??
-                      duo.theirs.whereType<int>().lastOrNull ??
-                      10,
-                  label: l.togetherLog,
-                  onLog: duo.onLog,
-                ),
-              if (duo.longest > 0)
-                for (final (name, counts) in [
-                  (l.togetherMe, duo.mine),
-                  (duo.partner, duo.theirs),
-                  for (final p in duo.more) (p.name, p.counts),
-                ])
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 64,
-                          child: Text(
-                            name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 13, color: muted),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            // 짧은 쪽은 – 로 채운다. 안 적은 것이지 0 이 아니다.
-                            [
-                              ...counts,
-                              for (var i = counts.length; i < duo.longest; i++)
-                                null,
-                            ].map((n) => n ?? '–').join('  '),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              fontFeatures: [FontFeature.tabularFigures()],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              if (duo.partnerLeft != null)
-                Text(
-                  duo.partnerLeft!,
-                  style: TextStyle(fontSize: 13, color: muted),
-                )
-              // 표에 이미 상대 이름이 있으면 또 적지 않는다.
-              else if (duo.live && duo.longest == 0)
-                Text(
-                  l.togetherWith(duo.partner),
-                  style: TextStyle(fontSize: 13, color: muted),
-                ),
-            ],
-            if (selected && timer.soundFailed)
-              Text(
-                l.timingSoundFailed,
-                style: TextStyle(fontSize: 13, color: muted),
-              ),
-          ],
-        ),
-      );
-    },
-  );
-}
-
-/// 방금 한 라운드의 횟수를 한 번에 적는다: − 12 + [기록].
-class _CountEntry extends StatefulWidget {
-  const _CountEntry({
-    super.key,
-    required this.initial,
-    required this.label,
-    required this.onLog,
-  });
-  final int initial;
-  final String label;
-  final ValueChanged<int> onLog;
-  @override
-  State<_CountEntry> createState() => _CountEntryState();
-}
-
-class _CountEntryState extends State<_CountEntry> {
-  late int _n = widget.initial;
-  @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      _RepeatingKey(
-        onTap: _n > 0 ? () => setState(() => _n--) : null,
-        child: const Icon(CupertinoIcons.minus_circle, size: 30),
-      ),
-      SizedBox(
-        width: 56,
-        child: Text(
-          '$_n',
-          key: const ValueKey('together-count'),
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.w700,
-            fontFeatures: [FontFeature.tabularFigures()],
-          ),
-        ),
-      ),
-      _RepeatingKey(
-        onTap: _n < 999 ? () => setState(() => _n++) : null,
-        child: const Icon(CupertinoIcons.plus_circle, size: 30),
-      ),
-      const Spacer(),
-      sealButton(
-        context,
-        key: const ValueKey('together-log'),
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        minimumSize: const Size(0, 36),
-        onPressed: () => widget.onLog(_n),
-        child: Text(widget.label),
-      ),
-    ],
-  );
-}
-
-/// 값 한 줄 위에, −/+ 한 줄 아래. 칸 너비는 부모가 고정한다.
-class _Stepper extends StatelessWidget {
-  const _Stepper({required this.label, this.onLess, this.onMore});
-  final String label;
-  final VoidCallback? onLess, onMore;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget key(
-      IconData icon,
-      VoidCallback? tap,
-      String semantics,
-    ) => _RepeatingKey(
-      onTap: tap,
-      // Two keys per cell, up to four cells (tabata + bpm) on a 343 pt row: 44 wide overflows.
-      minWidth: 40,
-      child: Icon(icon, size: 16, semanticLabel: semantics),
-    );
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 13,
-            color: CupertinoColors.secondaryLabel.resolveFrom(context),
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            key(CupertinoIcons.minus, onLess, '-'),
-            key(CupertinoIcons.plus, onMore, '+'),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-/// 누르고 있으면 되풀이한다 — 20초를 600초로 올릴 때 116번 두드리지 않게.
-class _RepeatingKey extends StatefulWidget {
-  const _RepeatingKey({
-    required this.onTap,
-    required this.child,
-    this.minWidth = 44,
-  });
-  final VoidCallback? onTap;
-  final Widget child;
-  final double minWidth;
-
-  @override
-  State<_RepeatingKey> createState() => _RepeatingKeyState();
-}
-
-class _RepeatingKeyState extends State<_RepeatingKey> {
-  Timer? _repeat;
-
-  void _stop() {
-    _repeat?.cancel();
-    _repeat = null;
-  }
-
-  @override
-  void dispose() {
-    _stop();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onLongPressStart: widget.onTap == null
-        ? null
-        : (_) => _repeat = Timer.periodic(
-            const Duration(milliseconds: 120),
-            (_) => widget.onTap == null ? _stop() : widget.onTap!(),
-          ),
-    onLongPressEnd: (_) => _stop(),
-    onLongPressCancel: _stop,
-    child: CupertinoButton(
-      padding: EdgeInsets.zero,
-      minimumSize: Size(widget.minWidth, 44),
-      onPressed: widget.onTap,
-      child: widget.child,
-    ),
-  );
-}
-
-/// 라운드 칸. 지금 하는 칸은 깜빡여서 어디쯤인지 눈으로 잡힌다.
-class _RoundBar extends StatefulWidget {
-  const _RoundBar({
-    required this.rounds,
-    required this.done,
-    required this.current,
-    required this.color,
-  });
-  final int rounds, done;
-
-  /// 지금 진행 중인 칸(0부터). 멈춰 있거나 준비·완료면 null.
-  final int? current;
-  final Color color;
-
-  @override
-  State<_RoundBar> createState() => _RoundBarState();
-}
-
-class _RoundBarState extends State<_RoundBar>
-    with SingleTickerProviderStateMixin {
-  late final _pulse = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 650),
-    value: 1,
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    _sync();
-  }
-
-  @override
-  void didUpdateWidget(covariant _RoundBar old) {
-    super.didUpdateWidget(old);
-    _sync();
-  }
-
-  void _sync() {
-    if (widget.current == null) {
-      _pulse
-        ..stop()
-        ..value = 1;
-    } else if (!_pulse.isAnimating) {
-      _pulse.repeat(reverse: true, min: 0.2, max: 1);
-    }
-  }
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final idle = CupertinoColors.systemFill.resolveFrom(context);
-    final done = seal.resolveFrom(context);
-    return Padding(
-      padding: const EdgeInsets.only(top: 2, bottom: 4),
-      child: AnimatedBuilder(
-        animation: _pulse,
-        builder: (context, _) => Row(
-          children: [
-            for (var i = 0; i < widget.rounds; i++) ...[
-              if (i > 0) const SizedBox(width: 2),
-              Expanded(
-                child: Container(
-                  height: 3,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(1.5),
-                    color: i == widget.current
-                        ? widget.color.withValues(alpha: _pulse.value)
-                        : i < widget.done
-                        ? done
-                        : idle,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
 }

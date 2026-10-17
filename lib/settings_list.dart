@@ -166,15 +166,18 @@ class SettingsToggle extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
 
+  // One node: what the switch turns on, and whether it is on.
   @override
-  Widget build(BuildContext context) => CupertinoListTile(
-    padding: _padding,
-    title: Text(
-      label,
-      maxLines: _wrap,
-      overflow: TextOverflow.ellipsis,
-      style: const TextStyle(fontSize: 16),
+  Widget build(BuildContext context) => MergeSemantics(
+    child: CupertinoListTile(
+      padding: _padding,
+      title: Text(
+        label,
+        maxLines: _wrap,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 16),
+      ),
+      trailing: CupertinoSwitch(value: value, onChanged: onChanged),
     ),
-    trailing: CupertinoSwitch(value: value, onChanged: onChanged),
   );
 }

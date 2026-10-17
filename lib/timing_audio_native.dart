@@ -8,8 +8,19 @@ class _NativeAudio extends TimingAudio {
   _NativeAudio() {
     _channel.setMethodCallHandler((call) async {
       if (call.method == 'interrupted') onInterrupted?.call();
+      if (call.method == 'resumed') onResumed?.call();
     });
   }
+
+  @override
+  Future<void> warmUp() async {
+    try {
+      await _channel.invokeMethod<void>('warmUp');
+    } on MissingPluginException {
+      /* Older native side or widget tests: nothing to warm up. */
+    }
+  }
+
   @override
   Future<void> configure({
     required bool active,

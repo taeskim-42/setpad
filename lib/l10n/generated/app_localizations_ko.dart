@@ -3723,4 +3723,301 @@ class LKo extends L {
 
   @override
   String get togetherInviteSomeone => '같이 하자고 해요';
+
+  @override
+  String get timerCollapse => '접기';
+
+  @override
+  String get timerCollapseA11y => '접기, 타이머는 계속 돌아요';
+
+  @override
+  String get timerPaused => '일시정지';
+
+  @override
+  String get timerResume => '계속';
+
+  @override
+  String get timerRestart => '처음부터';
+
+  @override
+  String get timerEnd => '종료';
+
+  @override
+  String get timerHoldEnd => '길게 눌러 종료';
+
+  @override
+  String get timerHoldLeave => '길게 눌러 그만';
+
+  @override
+  String get timerLock => '화면 잠금';
+
+  @override
+  String get timerUnlock => '잠금 해제';
+
+  @override
+  String get timerLockHint => '두 번 탭해 잠가요';
+
+  @override
+  String get timerUnlockHint => '두 번 탭해 풀어요';
+
+  @override
+  String get timerLockedHint => '자물쇠를 2초 눌러 풀어요';
+
+  @override
+  String get timerLockedAnnounce => '화면을 잠갔어요';
+
+  @override
+  String get timerUnlockedAnnounce => '잠금을 풀었어요';
+
+  @override
+  String get timerSkipNext => '다음 구간';
+
+  @override
+  String get timerSkipBack => '이전 구간';
+
+  @override
+  String get timerLastRound => '마지막 라운드';
+
+  @override
+  String timerRoundShort(int n, int total) {
+    return 'R $n/$total';
+  }
+
+  @override
+  String timerNext(String items) {
+    return '다음 · $items';
+  }
+
+  @override
+  String timerLeftTotal(String time) {
+    return '전체 남은 $time';
+  }
+
+  @override
+  String timerElapsed(String time) {
+    return '경과 $time';
+  }
+
+  @override
+  String timerAboutLeft(String time) {
+    return '남은 약 $time';
+  }
+
+  @override
+  String get timerGo => '시작!';
+
+  @override
+  String timerTarget(int target) {
+    return '/ $target회';
+  }
+
+  @override
+  String timerBeatLine(String count) {
+    return '$count';
+  }
+
+  @override
+  String timerBeatA11y(int n) {
+    return '$n번째 박자';
+  }
+
+  @override
+  String timerCountA11y(int count, int target) {
+    return '$count / $target회';
+  }
+
+  @override
+  String timerRemainingA11y(String time) {
+    return '이번 구간 남은 시간 $time';
+  }
+
+  @override
+  String get timerHeartShared => '같이 할 땐 심박으로 휴식을 끊지 않아요';
+
+  @override
+  String get timerRestLog => '이번 라운드 횟수';
+
+  @override
+  String timerLogged(int n) {
+    return '$n회 적었어요';
+  }
+
+  @override
+  String get timerDone => '끝!';
+
+  @override
+  String get timerStopped => '여기까지 했어요';
+
+  @override
+  String timerRoundsDone(int n) {
+    return '$n라운드';
+  }
+
+  @override
+  String timerRepsDone(int n) {
+    return '$n회';
+  }
+
+  @override
+  String timerRepsOfTarget(int n, int target) {
+    return '$n / $target회';
+  }
+
+  @override
+  String get timerTotal => '총 시간';
+
+  @override
+  String get timerTime => '시간';
+
+  @override
+  String get timerTempo => '박자';
+
+  @override
+  String timerRoundChip(int n, String reps) {
+    return '${n}R $reps';
+  }
+
+  @override
+  String timerRoundCountTitle(int n) {
+    return '$n라운드 횟수';
+  }
+
+  @override
+  String timerFillRest(int n) {
+    return '남은 라운드 모두 $n회';
+  }
+
+  @override
+  String get timerClear => '비우기';
+
+  @override
+  String get timerLogSets => '세트로 적기';
+
+  @override
+  String timerLogSetsCount(int n) {
+    return '$n세트 적기';
+  }
+
+  @override
+  String get timerAgain => '다시 하기';
+
+  @override
+  String get timerClose => '닫기';
+
+  @override
+  String timerLastRest(int from, int to) {
+    return '마지막 휴식 ♥ $from → $to';
+  }
+
+  @override
+  String timerSummaryTabata(int work, int rest, int rounds, String total) {
+    return '운동 $work초 · 휴식 $rest초 × $rounds · $total';
+  }
+
+  @override
+  String timerTargetChip(int n) {
+    return '목표 $n회';
+  }
+
+  @override
+  String get timerNoTarget => '목표 없음';
+
+  @override
+  String get timerOpen => '열기';
+
+  @override
+  String timerDoneLine(int rounds, String time) {
+    return '완료 · $rounds라운드 · $time';
+  }
+
+  @override
+  String timerDoneBpmLine(int count, String time) {
+    return '완료 · $count회 · $time';
+  }
+
+  @override
+  String get timerLogNow => '적기';
+
+  @override
+  String get timerTogether => '같이';
+
+  @override
+  String get timerSwitchAsk => '도는 타이머를 멈추고 이것을 시작할까요?';
+
+  @override
+  String get timerSwitchConfirm => '멈추고 시작';
+
+  @override
+  String timerUnloggedAsk(int n) {
+    return '적지 않은 $n라운드가 있어요';
+  }
+
+  @override
+  String get timerLogFirst => '먼저 적기';
+
+  @override
+  String get timerDiscardStart => '버리고 시작';
+
+  @override
+  String get timerActionFailed => '요청을 못 보냈어요 · 다시';
+
+  @override
+  String get timerSheetTitle => '타이머';
+
+  @override
+  String get timerAddChip => '+ 타이머';
+
+  @override
+  String get timerTabata => '타바타';
+
+  @override
+  String get timerBeat => '박자';
+
+  @override
+  String timerTotalLine(String time) {
+    return '총 $time';
+  }
+
+  @override
+  String get timerHaptics => '진동';
+
+  @override
+  String get timerHapticsSetting => '타이머 진동';
+
+  @override
+  String get timerReadOnly => '멈춘 뒤 바꿀 수 있어요';
+
+  @override
+  String get timerNameNeeded => '이름을 먼저 적어요';
+
+  @override
+  String get timerWorkTitle => '운동 시간';
+
+  @override
+  String get timerRestTitle => '휴식 시간';
+
+  @override
+  String get timerRoundsTitle => '라운드';
+
+  @override
+  String get timerBpmTitle => '박자 빠르기';
+
+  @override
+  String get timerTargetTitle => '목표 횟수';
+
+  @override
+  String timerSecondsValue(int n) {
+    return '$n초';
+  }
+
+  @override
+  String get timerMinValue => '최솟값이에요';
+
+  @override
+  String get timerMaxValue => '최댓값이에요';
+
+  @override
+  String timerUnloggedReps(int n) {
+    return '적지 않은 $n회가 있어요';
+  }
 }

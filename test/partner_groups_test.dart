@@ -18,6 +18,7 @@ import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/main.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/partner.dart';
+import 'package:setpad/run_page.dart';
 import 'package:setpad/shared_timer.dart';
 import 'package:setpad/workout_timing.dart';
 
@@ -235,47 +236,6 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
   });
 
-  testWidgets('타이머 칸: 셋이면 세 줄이다', (tester) async {
-    var now = Duration.zero;
-    final timer = WorkoutTimer(audio: FakeAudio(), now: () => now);
-    final owner = Object();
-    const spec = TimingSpec(tabata: true);
-    timer.follow(owner, spec, const Duration(seconds: 25));
-    await tester.pumpWidget(
-      app(
-        CupertinoPageScaffold(
-          child: SafeArea(
-            child: WorkoutTimingControls(
-              owner: owner,
-              spec: spec,
-              timer: timer,
-              onStart: () {},
-              together: TogetherTiming(
-                partner: '준',
-                live: true,
-                mine: const [12],
-                theirs: const [14, 13],
-                more: const [(name: '소라', counts: <int?>[])],
-                partnerLeft: '소라 님은 1라운드에서 멈춤',
-                onPropose: (_) {},
-                onToggle: () => true,
-                onCancel: () {},
-                onLog: (_) {},
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    expect(find.text('12  –'), findsOneWidget);
-    expect(find.text('14  13'), findsOneWidget);
-    expect(find.text('–  –'), findsOneWidget, reason: '소라는 아직 하나도 안 적었다');
-    expect(find.text('소라'), findsOneWidget);
-    expect(find.text('소라 님은 1라운드에서 멈춤'), findsOneWidget);
-    now = const Duration(seconds: 1);
-    timer.dispose();
-  });
-
   testWidgets('다른 둘이 시작한 타이머에 내 폰은 끌려가지 않고, 받으면 돌고 있는 자리로 들어간다', (
     tester,
   ) async {
@@ -350,6 +310,14 @@ void main() {
     expect(timer.running && timer.shared, isTrue);
     expect(timer.elapsed, const Duration(seconds: 20));
     expect(find.byKey(const ValueKey('together-invite')), findsNothing);
+    // The stage reads one row per person: me, 준, then 소라.
+    await tester.pumpAndSettle();
+    final together = tester
+        .widget<RunPage>(find.byType(RunPage))
+        .link
+        .together!;
+    expect(together.partner, '준');
+    expect(together.more.map((p) => p.name), ['소라']);
 
     await tester.pumpWidget(const SizedBox());
     sync.dispose();

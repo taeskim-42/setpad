@@ -63,8 +63,22 @@ class RestRecovery extends ChangeNotifier {
   int? get target => _peak == null ? null : _peak! - drop;
 
   /// 심박 받기를 시작한다. 이미 받고 있으면 아무 일도 하지 않는다.
+  /// A feed that errors or ends (a background read refused) is let go, so the
+  /// next [listen] attaches a fresh one.
   void listen() {
-    _feed ??= health.beats().listen(_took, onError: (_) {});
+    if (_feed != null) return;
+    late final StreamSubscription<HeartBeat> feed;
+    void drop() {
+      if (identical(_feed, feed)) _feed = null;
+      feed.cancel();
+    }
+
+    feed = health.beats().listen(
+      _took,
+      onError: (Object _) => drop(),
+      onDone: drop,
+    );
+    _feed = feed;
   }
 
   /// 심박 받기를 멈춘다. 타바타가 멈추면 부른다 — 휴식을 끊을 일이 없는데 계속

@@ -7,6 +7,7 @@ import 'palette.dart';
 import 'parser.dart';
 import 'record_ai.dart';
 import 'units.dart';
+import 'workout_timing.dart' show TimingSpec;
 
 /// 빈칸은 null, 읽을 수 없는 글('8-12', '60kg')은 NaN — 규칙이 거절하므로 칩
 /// 밑에 이유가 뜨고 적용되지 않는다. 빈칸으로 바꿔 저장하지 않는다(X15). 수 읽기는
@@ -53,7 +54,15 @@ class SetupChips extends StatefulWidget {
     required this.onChanged,
     required this.onEditing,
     this.weightUnit = defaultUnit,
+    this.timerLabel,
+    this.onTimer,
   });
+
+  /// The timer chip: its summary, or "+ Timer" on a card without one.
+  final String? timerLabel;
+
+  /// Opens the timer sheet. Null hides the chip.
+  final VoidCallback? onTimer;
 
   /// 이 사람이 무게를 적는 단위. 무게가 아직 없는 설정의 단위 칩은 이것으로 연다.
   final String weightUnit;
@@ -215,6 +224,14 @@ class _SetupChipsState extends State<SetupChips> {
           Wrap(
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
+              if (widget.onTimer case final onTimer?)
+                _Chip(
+                  key: const ValueKey('setup-timer'),
+                  text: widget.timerLabel ?? '',
+                  ghost: TimingSpec.parse(widget.title) == null,
+                  semantics: L.of(context).timerSheetTitle,
+                  onTap: onTimer,
+                ),
               // 제목이 곧 운동 이름이면 두 번 적지 않는다. 제목이 친 문장이면
               // 통계가 볼 이름이 무엇인지 여기서 보인다.
               if (s.name != widget.title || widget.open || _key == 'name')

@@ -91,7 +91,18 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
 
     init {
         channel.setMethodCallHandler { call, result ->
-            if (call.method == "speak") {
+            if (call.method == "warmUp") {
+                // Build the speech engine and the cue tracks ahead of the first
+                // cue, so "one, two" in the first 3 s are not lost. No sound.
+                runCatching {
+                    prepareSpeech()
+                    for (name in listOf("ready", "work", "rest", "complete")) {
+                        cues.getOrPut(name) { staticTrack(samples(cueTone(name))) }
+                    }
+                }
+                result.success(null)
+            }
+            else if (call.method == "speak") {
                 runCatching {
                     speak(call.argument<String>("text") ?: "", call.argument<String>("locale") ?: "en",
                         (call.argument<Double>("rate") ?: 1.15).toFloat())
@@ -103,15 +114,18 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                 val active = call.argument<Boolean>("active") == true
                 // The app allows 10 BPM; anything slower than this range is a typo.
                 val bpm = if (active) call.argument<Int>("bpm")?.takeIf { it in 10..300 } else null
+                val cue = call.argument<String>("cue")
                 if (active) prepareSpeech()
-                if (!active) cancelSpeech()
+                // Pausing or stopping cuts the voice; finishing (the complete
+                // cue) lets the last number finish.
+                if (!active && cue == null) cancelSpeech()
                 if (active) activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 else activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 if (bpm != tempo) {
-                    // Stopping cuts the voice. A tempo change while running (Tabata
-                    // work to rest) only drops a count still waiting: the round's
-                    // last number is allowed to finish.
-                    if (active) dropPending() else cancelSpeech()
+                    // A tempo change while running (Tabata work to rest) only
+                    // drops a count still waiting: the round's last number is
+                    // allowed to finish.
+                    if (active) dropPending() else if (cue == null) cancelSpeech()
                     stopClick()
                     if (bpm != null) {
                         val player = beats.getOrPut(bpm) {
@@ -130,7 +144,6 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
                         player.play(); tempo = bpm
                     }
                 }
-                val cue = call.argument<String>("cue")
                 if (cue != null) {
                     val tone = cueTone(cue)
                     val player = cues.getOrPut(cue) { staticTrack(samples(tone)) }
@@ -182,7 +195,6 @@ class TimingBridge(private val activity: Activity, messenger: BinaryMessenger) {
     private fun stopClick() { track?.let { runCatching { it.stop() } }; track = null; tempo = null }
     private fun stopBeat() { cancelSpeech(); stopClick() }
     private fun stop() { stopBeat(); runCatching { speech?.stop() }; runCatching { cueTrack?.stop() }; cueTrack = null; activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
-    fun interrupt() { stop(); channel.invokeMethod("interrupted", null) }
     fun close() {
         stop(); speech?.shutdown(); speech = null; speechReady = false
         (beats.values + cues.values).forEach { runCatching { it.release() } }

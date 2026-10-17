@@ -57,6 +57,12 @@ class SettingsPage extends StatelessWidget {
                     value: store.countAloud,
                     onChanged: (v) => store.setCountAloud(v),
                   ),
+                  SettingsToggle(
+                    key: const ValueKey('settings-haptics'),
+                    label: l.timerHapticsSetting,
+                    value: store.hapticsOn,
+                    onChanged: store.setHapticsOn,
+                  ),
                 ],
               ),
               // 기본은 켜짐. 끄면 모델로 가는 것이 모두 멈추고 기기 안에서만 한다.

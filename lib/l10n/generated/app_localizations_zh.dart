@@ -3690,6 +3690,303 @@ class LZh extends L {
 
   @override
   String get togetherInviteSomeone => '有人邀请你一起做';
+
+  @override
+  String get timerCollapse => '收起';
+
+  @override
+  String get timerCollapseA11y => '收起，计时器继续运行';
+
+  @override
+  String get timerPaused => '已暂停';
+
+  @override
+  String get timerResume => '继续';
+
+  @override
+  String get timerRestart => '从头开始';
+
+  @override
+  String get timerEnd => '结束';
+
+  @override
+  String get timerHoldEnd => '长按结束';
+
+  @override
+  String get timerHoldLeave => '长按退出';
+
+  @override
+  String get timerLock => '锁定屏幕';
+
+  @override
+  String get timerUnlock => '解锁';
+
+  @override
+  String get timerLockHint => '双击锁定';
+
+  @override
+  String get timerUnlockHint => '双击解锁';
+
+  @override
+  String get timerLockedHint => '长按锁 2 秒解锁';
+
+  @override
+  String get timerLockedAnnounce => '屏幕已锁定';
+
+  @override
+  String get timerUnlockedAnnounce => '已解锁';
+
+  @override
+  String get timerSkipNext => '下一段';
+
+  @override
+  String get timerSkipBack => '上一段';
+
+  @override
+  String get timerLastRound => '最后一轮';
+
+  @override
+  String timerRoundShort(int n, int total) {
+    return 'R $n/$total';
+  }
+
+  @override
+  String timerNext(String items) {
+    return '下一个 · $items';
+  }
+
+  @override
+  String timerLeftTotal(String time) {
+    return '总共剩余 $time';
+  }
+
+  @override
+  String timerElapsed(String time) {
+    return '已用 $time';
+  }
+
+  @override
+  String timerAboutLeft(String time) {
+    return '剩余约 $time';
+  }
+
+  @override
+  String get timerGo => '开始!';
+
+  @override
+  String timerTarget(int target) {
+    return '/ $target次';
+  }
+
+  @override
+  String timerBeatLine(String count) {
+    return '第 $count 拍';
+  }
+
+  @override
+  String timerBeatA11y(int n) {
+    return '第 $n 拍';
+  }
+
+  @override
+  String timerCountA11y(int count, int target) {
+    return '$target次中的第$count次';
+  }
+
+  @override
+  String timerRemainingA11y(String time) {
+    return '本段剩余 $time';
+  }
+
+  @override
+  String get timerHeartShared => '一起做时不会按心率提前结束休息';
+
+  @override
+  String get timerRestLog => '本轮次数';
+
+  @override
+  String timerLogged(int n) {
+    return '已记录 $n 次';
+  }
+
+  @override
+  String get timerDone => '结束!';
+
+  @override
+  String get timerStopped => '做到这里了';
+
+  @override
+  String timerRoundsDone(int n) {
+    return '$n 轮';
+  }
+
+  @override
+  String timerRepsDone(int n) {
+    return '$n次';
+  }
+
+  @override
+  String timerRepsOfTarget(int n, int target) {
+    return '$n / $target次';
+  }
+
+  @override
+  String get timerTotal => '总时间';
+
+  @override
+  String get timerTime => '时间';
+
+  @override
+  String get timerTempo => '节拍';
+
+  @override
+  String timerRoundChip(int n, String reps) {
+    return 'R$n $reps';
+  }
+
+  @override
+  String timerRoundCountTitle(int n) {
+    return '第 $n 轮次数';
+  }
+
+  @override
+  String timerFillRest(int n) {
+    return '剩余每轮 $n 次';
+  }
+
+  @override
+  String get timerClear => '清空';
+
+  @override
+  String get timerLogSets => '记为组';
+
+  @override
+  String timerLogSetsCount(int n) {
+    return '记录 $n 组';
+  }
+
+  @override
+  String get timerAgain => '再来一次';
+
+  @override
+  String get timerClose => '关闭';
+
+  @override
+  String timerLastRest(int from, int to) {
+    return '最后一次休息 ♥ $from → $to';
+  }
+
+  @override
+  String timerSummaryTabata(int work, int rest, int rounds, String total) {
+    return '运动 $work 秒 · 休息 $rest 秒 × $rounds · $total';
+  }
+
+  @override
+  String timerTargetChip(int n) {
+    return '目标 $n 次';
+  }
+
+  @override
+  String get timerNoTarget => '无目标';
+
+  @override
+  String get timerOpen => '打开';
+
+  @override
+  String timerDoneLine(int rounds, String time) {
+    return '完成 · $rounds 轮 · $time';
+  }
+
+  @override
+  String timerDoneBpmLine(int count, String time) {
+    return '完成 · $count次 · $time';
+  }
+
+  @override
+  String get timerLogNow => '记录';
+
+  @override
+  String get timerTogether => '一起';
+
+  @override
+  String get timerSwitchAsk => '停止正在运行的计时器并开始这个吗?';
+
+  @override
+  String get timerSwitchConfirm => '停止并开始';
+
+  @override
+  String timerUnloggedAsk(int n) {
+    return '有 $n 轮还没记录';
+  }
+
+  @override
+  String get timerLogFirst => '先记录';
+
+  @override
+  String get timerDiscardStart => '丢弃并开始';
+
+  @override
+  String get timerActionFailed => '发送失败 · 重试';
+
+  @override
+  String get timerSheetTitle => '计时器';
+
+  @override
+  String get timerAddChip => '+ 计时器';
+
+  @override
+  String get timerTabata => 'Tabata';
+
+  @override
+  String get timerBeat => '节拍器';
+
+  @override
+  String timerTotalLine(String time) {
+    return '共 $time';
+  }
+
+  @override
+  String get timerHaptics => '振动';
+
+  @override
+  String get timerHapticsSetting => '计时器振动';
+
+  @override
+  String get timerReadOnly => '停止后才能修改';
+
+  @override
+  String get timerNameNeeded => '请先填写名称';
+
+  @override
+  String get timerWorkTitle => '运动时间';
+
+  @override
+  String get timerRestTitle => '休息时间';
+
+  @override
+  String get timerRoundsTitle => '轮数';
+
+  @override
+  String get timerBpmTitle => '速度 (BPM)';
+
+  @override
+  String get timerTargetTitle => '目标次数';
+
+  @override
+  String timerSecondsValue(int n) {
+    return '$n 秒';
+  }
+
+  @override
+  String get timerMinValue => '已是最小值';
+
+  @override
+  String get timerMaxValue => '已是最大值';
+
+  @override
+  String timerUnloggedReps(int n) {
+    return '有 $n 次还没记录';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7378,6 +7675,303 @@ class LZhHans extends LZh {
 
   @override
   String get togetherInviteSomeone => '有人邀请你一起做';
+
+  @override
+  String get timerCollapse => '收起';
+
+  @override
+  String get timerCollapseA11y => '收起，计时器继续运行';
+
+  @override
+  String get timerPaused => '已暂停';
+
+  @override
+  String get timerResume => '继续';
+
+  @override
+  String get timerRestart => '从头开始';
+
+  @override
+  String get timerEnd => '结束';
+
+  @override
+  String get timerHoldEnd => '长按结束';
+
+  @override
+  String get timerHoldLeave => '长按退出';
+
+  @override
+  String get timerLock => '锁定屏幕';
+
+  @override
+  String get timerUnlock => '解锁';
+
+  @override
+  String get timerLockHint => '双击锁定';
+
+  @override
+  String get timerUnlockHint => '双击解锁';
+
+  @override
+  String get timerLockedHint => '长按锁 2 秒解锁';
+
+  @override
+  String get timerLockedAnnounce => '屏幕已锁定';
+
+  @override
+  String get timerUnlockedAnnounce => '已解锁';
+
+  @override
+  String get timerSkipNext => '下一段';
+
+  @override
+  String get timerSkipBack => '上一段';
+
+  @override
+  String get timerLastRound => '最后一轮';
+
+  @override
+  String timerRoundShort(int n, int total) {
+    return 'R $n/$total';
+  }
+
+  @override
+  String timerNext(String items) {
+    return '下一个 · $items';
+  }
+
+  @override
+  String timerLeftTotal(String time) {
+    return '总共剩余 $time';
+  }
+
+  @override
+  String timerElapsed(String time) {
+    return '已用 $time';
+  }
+
+  @override
+  String timerAboutLeft(String time) {
+    return '剩余约 $time';
+  }
+
+  @override
+  String get timerGo => '开始!';
+
+  @override
+  String timerTarget(int target) {
+    return '/ $target次';
+  }
+
+  @override
+  String timerBeatLine(String count) {
+    return '第 $count 拍';
+  }
+
+  @override
+  String timerBeatA11y(int n) {
+    return '第 $n 拍';
+  }
+
+  @override
+  String timerCountA11y(int count, int target) {
+    return '$target次中的第$count次';
+  }
+
+  @override
+  String timerRemainingA11y(String time) {
+    return '本段剩余 $time';
+  }
+
+  @override
+  String get timerHeartShared => '一起做时不会按心率提前结束休息';
+
+  @override
+  String get timerRestLog => '本轮次数';
+
+  @override
+  String timerLogged(int n) {
+    return '已记录 $n 次';
+  }
+
+  @override
+  String get timerDone => '结束!';
+
+  @override
+  String get timerStopped => '做到这里了';
+
+  @override
+  String timerRoundsDone(int n) {
+    return '$n 轮';
+  }
+
+  @override
+  String timerRepsDone(int n) {
+    return '$n次';
+  }
+
+  @override
+  String timerRepsOfTarget(int n, int target) {
+    return '$n / $target次';
+  }
+
+  @override
+  String get timerTotal => '总时间';
+
+  @override
+  String get timerTime => '时间';
+
+  @override
+  String get timerTempo => '节拍';
+
+  @override
+  String timerRoundChip(int n, String reps) {
+    return 'R$n $reps';
+  }
+
+  @override
+  String timerRoundCountTitle(int n) {
+    return '第 $n 轮次数';
+  }
+
+  @override
+  String timerFillRest(int n) {
+    return '剩余每轮 $n 次';
+  }
+
+  @override
+  String get timerClear => '清空';
+
+  @override
+  String get timerLogSets => '记为组';
+
+  @override
+  String timerLogSetsCount(int n) {
+    return '记录 $n 组';
+  }
+
+  @override
+  String get timerAgain => '再来一次';
+
+  @override
+  String get timerClose => '关闭';
+
+  @override
+  String timerLastRest(int from, int to) {
+    return '最后一次休息 ♥ $from → $to';
+  }
+
+  @override
+  String timerSummaryTabata(int work, int rest, int rounds, String total) {
+    return '运动 $work 秒 · 休息 $rest 秒 × $rounds · $total';
+  }
+
+  @override
+  String timerTargetChip(int n) {
+    return '目标 $n 次';
+  }
+
+  @override
+  String get timerNoTarget => '无目标';
+
+  @override
+  String get timerOpen => '打开';
+
+  @override
+  String timerDoneLine(int rounds, String time) {
+    return '完成 · $rounds 轮 · $time';
+  }
+
+  @override
+  String timerDoneBpmLine(int count, String time) {
+    return '完成 · $count次 · $time';
+  }
+
+  @override
+  String get timerLogNow => '记录';
+
+  @override
+  String get timerTogether => '一起';
+
+  @override
+  String get timerSwitchAsk => '停止正在运行的计时器并开始这个吗?';
+
+  @override
+  String get timerSwitchConfirm => '停止并开始';
+
+  @override
+  String timerUnloggedAsk(int n) {
+    return '有 $n 轮还没记录';
+  }
+
+  @override
+  String get timerLogFirst => '先记录';
+
+  @override
+  String get timerDiscardStart => '丢弃并开始';
+
+  @override
+  String get timerActionFailed => '发送失败 · 重试';
+
+  @override
+  String get timerSheetTitle => '计时器';
+
+  @override
+  String get timerAddChip => '+ 计时器';
+
+  @override
+  String get timerTabata => 'Tabata';
+
+  @override
+  String get timerBeat => '节拍器';
+
+  @override
+  String timerTotalLine(String time) {
+    return '共 $time';
+  }
+
+  @override
+  String get timerHaptics => '振动';
+
+  @override
+  String get timerHapticsSetting => '计时器振动';
+
+  @override
+  String get timerReadOnly => '停止后才能修改';
+
+  @override
+  String get timerNameNeeded => '请先填写名称';
+
+  @override
+  String get timerWorkTitle => '运动时间';
+
+  @override
+  String get timerRestTitle => '休息时间';
+
+  @override
+  String get timerRoundsTitle => '轮数';
+
+  @override
+  String get timerBpmTitle => '速度 (BPM)';
+
+  @override
+  String get timerTargetTitle => '目标次数';
+
+  @override
+  String timerSecondsValue(int n) {
+    return '$n 秒';
+  }
+
+  @override
+  String get timerMinValue => '已是最小值';
+
+  @override
+  String get timerMaxValue => '已是最大值';
+
+  @override
+  String timerUnloggedReps(int n) {
+    return '有 $n 次还没记录';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11066,4 +11660,301 @@ class LZhHant extends LZh {
 
   @override
   String get togetherInviteSomeone => '有人邀請你一起做';
+
+  @override
+  String get timerCollapse => '收合';
+
+  @override
+  String get timerCollapseA11y => '收合，計時器繼續運行';
+
+  @override
+  String get timerPaused => '已暫停';
+
+  @override
+  String get timerResume => '繼續';
+
+  @override
+  String get timerRestart => '從頭開始';
+
+  @override
+  String get timerEnd => '結束';
+
+  @override
+  String get timerHoldEnd => '長按結束';
+
+  @override
+  String get timerHoldLeave => '長按退出';
+
+  @override
+  String get timerLock => '鎖定螢幕';
+
+  @override
+  String get timerUnlock => '解鎖';
+
+  @override
+  String get timerLockHint => '點兩下鎖定';
+
+  @override
+  String get timerUnlockHint => '點兩下解鎖';
+
+  @override
+  String get timerLockedHint => '長按鎖頭 2 秒解鎖';
+
+  @override
+  String get timerLockedAnnounce => '螢幕已鎖定';
+
+  @override
+  String get timerUnlockedAnnounce => '已解鎖';
+
+  @override
+  String get timerSkipNext => '下一段';
+
+  @override
+  String get timerSkipBack => '上一段';
+
+  @override
+  String get timerLastRound => '最後一輪';
+
+  @override
+  String timerRoundShort(int n, int total) {
+    return 'R $n/$total';
+  }
+
+  @override
+  String timerNext(String items) {
+    return '下一個 · $items';
+  }
+
+  @override
+  String timerLeftTotal(String time) {
+    return '總共剩餘 $time';
+  }
+
+  @override
+  String timerElapsed(String time) {
+    return '已用 $time';
+  }
+
+  @override
+  String timerAboutLeft(String time) {
+    return '剩餘約 $time';
+  }
+
+  @override
+  String get timerGo => '開始!';
+
+  @override
+  String timerTarget(int target) {
+    return '/ $target次';
+  }
+
+  @override
+  String timerBeatLine(String count) {
+    return '第 $count 拍';
+  }
+
+  @override
+  String timerBeatA11y(int n) {
+    return '第 $n 拍';
+  }
+
+  @override
+  String timerCountA11y(int count, int target) {
+    return '$target次中的第$count次';
+  }
+
+  @override
+  String timerRemainingA11y(String time) {
+    return '本段剩餘 $time';
+  }
+
+  @override
+  String get timerHeartShared => '一起做時不會依心率提前結束休息';
+
+  @override
+  String get timerRestLog => '本輪次數';
+
+  @override
+  String timerLogged(int n) {
+    return '已記錄 $n 次';
+  }
+
+  @override
+  String get timerDone => '結束!';
+
+  @override
+  String get timerStopped => '做到這裡了';
+
+  @override
+  String timerRoundsDone(int n) {
+    return '$n 輪';
+  }
+
+  @override
+  String timerRepsDone(int n) {
+    return '$n次';
+  }
+
+  @override
+  String timerRepsOfTarget(int n, int target) {
+    return '$n / $target次';
+  }
+
+  @override
+  String get timerTotal => '總時間';
+
+  @override
+  String get timerTime => '時間';
+
+  @override
+  String get timerTempo => '節拍';
+
+  @override
+  String timerRoundChip(int n, String reps) {
+    return 'R$n $reps';
+  }
+
+  @override
+  String timerRoundCountTitle(int n) {
+    return '第 $n 輪次數';
+  }
+
+  @override
+  String timerFillRest(int n) {
+    return '剩餘每輪 $n 次';
+  }
+
+  @override
+  String get timerClear => '清空';
+
+  @override
+  String get timerLogSets => '記為組';
+
+  @override
+  String timerLogSetsCount(int n) {
+    return '記錄 $n 組';
+  }
+
+  @override
+  String get timerAgain => '再來一次';
+
+  @override
+  String get timerClose => '關閉';
+
+  @override
+  String timerLastRest(int from, int to) {
+    return '最後一次休息 ♥ $from → $to';
+  }
+
+  @override
+  String timerSummaryTabata(int work, int rest, int rounds, String total) {
+    return '運動 $work 秒 · 休息 $rest 秒 × $rounds · $total';
+  }
+
+  @override
+  String timerTargetChip(int n) {
+    return '目標 $n 次';
+  }
+
+  @override
+  String get timerNoTarget => '無目標';
+
+  @override
+  String get timerOpen => '開啟';
+
+  @override
+  String timerDoneLine(int rounds, String time) {
+    return '完成 · $rounds 輪 · $time';
+  }
+
+  @override
+  String timerDoneBpmLine(int count, String time) {
+    return '完成 · $count次 · $time';
+  }
+
+  @override
+  String get timerLogNow => '記錄';
+
+  @override
+  String get timerTogether => '一起';
+
+  @override
+  String get timerSwitchAsk => '停止正在運行的計時器並開始這個嗎?';
+
+  @override
+  String get timerSwitchConfirm => '停止並開始';
+
+  @override
+  String timerUnloggedAsk(int n) {
+    return '有 $n 輪還沒記錄';
+  }
+
+  @override
+  String get timerLogFirst => '先記錄';
+
+  @override
+  String get timerDiscardStart => '捨棄並開始';
+
+  @override
+  String get timerActionFailed => '傳送失敗 · 重試';
+
+  @override
+  String get timerSheetTitle => '計時器';
+
+  @override
+  String get timerAddChip => '+ 計時器';
+
+  @override
+  String get timerTabata => 'Tabata';
+
+  @override
+  String get timerBeat => '節拍器';
+
+  @override
+  String timerTotalLine(String time) {
+    return '共 $time';
+  }
+
+  @override
+  String get timerHaptics => '震動';
+
+  @override
+  String get timerHapticsSetting => '計時器震動';
+
+  @override
+  String get timerReadOnly => '停止後才能修改';
+
+  @override
+  String get timerNameNeeded => '請先填寫名稱';
+
+  @override
+  String get timerWorkTitle => '運動時間';
+
+  @override
+  String get timerRestTitle => '休息時間';
+
+  @override
+  String get timerRoundsTitle => '輪數';
+
+  @override
+  String get timerBpmTitle => '速度 (BPM)';
+
+  @override
+  String get timerTargetTitle => '目標次數';
+
+  @override
+  String timerSecondsValue(int n) {
+    return '$n 秒';
+  }
+
+  @override
+  String get timerMinValue => '已是最小值';
+
+  @override
+  String get timerMaxValue => '已是最大值';
+
+  @override
+  String timerUnloggedReps(int n) {
+    return '有 $n 次還沒記錄';
+  }
 }

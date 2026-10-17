@@ -5616,6 +5616,492 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'같이 하자고 해요'**
   String get togetherInviteSomeone;
+
+  /// No description provided for @timerCollapse.
+  ///
+  /// In ko, this message translates to:
+  /// **'접기'**
+  String get timerCollapse;
+
+  /// No description provided for @timerCollapseA11y.
+  ///
+  /// In ko, this message translates to:
+  /// **'접기, 타이머는 계속 돌아요'**
+  String get timerCollapseA11y;
+
+  /// No description provided for @timerPaused.
+  ///
+  /// In ko, this message translates to:
+  /// **'일시정지'**
+  String get timerPaused;
+
+  /// No description provided for @timerResume.
+  ///
+  /// In ko, this message translates to:
+  /// **'계속'**
+  String get timerResume;
+
+  /// No description provided for @timerRestart.
+  ///
+  /// In ko, this message translates to:
+  /// **'처음부터'**
+  String get timerRestart;
+
+  /// No description provided for @timerEnd.
+  ///
+  /// In ko, this message translates to:
+  /// **'종료'**
+  String get timerEnd;
+
+  /// No description provided for @timerHoldEnd.
+  ///
+  /// In ko, this message translates to:
+  /// **'길게 눌러 종료'**
+  String get timerHoldEnd;
+
+  /// No description provided for @timerHoldLeave.
+  ///
+  /// In ko, this message translates to:
+  /// **'길게 눌러 그만'**
+  String get timerHoldLeave;
+
+  /// No description provided for @timerLock.
+  ///
+  /// In ko, this message translates to:
+  /// **'화면 잠금'**
+  String get timerLock;
+
+  /// No description provided for @timerUnlock.
+  ///
+  /// In ko, this message translates to:
+  /// **'잠금 해제'**
+  String get timerUnlock;
+
+  /// No description provided for @timerLockHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'두 번 탭해 잠가요'**
+  String get timerLockHint;
+
+  /// No description provided for @timerUnlockHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'두 번 탭해 풀어요'**
+  String get timerUnlockHint;
+
+  /// No description provided for @timerLockedHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'자물쇠를 2초 눌러 풀어요'**
+  String get timerLockedHint;
+
+  /// No description provided for @timerLockedAnnounce.
+  ///
+  /// In ko, this message translates to:
+  /// **'화면을 잠갔어요'**
+  String get timerLockedAnnounce;
+
+  /// No description provided for @timerUnlockedAnnounce.
+  ///
+  /// In ko, this message translates to:
+  /// **'잠금을 풀었어요'**
+  String get timerUnlockedAnnounce;
+
+  /// No description provided for @timerSkipNext.
+  ///
+  /// In ko, this message translates to:
+  /// **'다음 구간'**
+  String get timerSkipNext;
+
+  /// No description provided for @timerSkipBack.
+  ///
+  /// In ko, this message translates to:
+  /// **'이전 구간'**
+  String get timerSkipBack;
+
+  /// No description provided for @timerLastRound.
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막 라운드'**
+  String get timerLastRound;
+
+  /// No description provided for @timerRoundShort.
+  ///
+  /// In ko, this message translates to:
+  /// **'R {n}/{total}'**
+  String timerRoundShort(int n, int total);
+
+  /// No description provided for @timerNext.
+  ///
+  /// In ko, this message translates to:
+  /// **'다음 · {items}'**
+  String timerNext(String items);
+
+  /// No description provided for @timerLeftTotal.
+  ///
+  /// In ko, this message translates to:
+  /// **'전체 남은 {time}'**
+  String timerLeftTotal(String time);
+
+  /// No description provided for @timerElapsed.
+  ///
+  /// In ko, this message translates to:
+  /// **'경과 {time}'**
+  String timerElapsed(String time);
+
+  /// No description provided for @timerAboutLeft.
+  ///
+  /// In ko, this message translates to:
+  /// **'남은 약 {time}'**
+  String timerAboutLeft(String time);
+
+  /// No description provided for @timerGo.
+  ///
+  /// In ko, this message translates to:
+  /// **'시작!'**
+  String get timerGo;
+
+  /// No description provided for @timerTarget.
+  ///
+  /// In ko, this message translates to:
+  /// **'/ {target}회'**
+  String timerTarget(int target);
+
+  /// No description provided for @timerBeatLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count}'**
+  String timerBeatLine(String count);
+
+  /// No description provided for @timerBeatA11y.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}번째 박자'**
+  String timerBeatA11y(int n);
+
+  /// No description provided for @timerCountA11y.
+  ///
+  /// In ko, this message translates to:
+  /// **'{count} / {target}회'**
+  String timerCountA11y(int count, int target);
+
+  /// No description provided for @timerRemainingA11y.
+  ///
+  /// In ko, this message translates to:
+  /// **'이번 구간 남은 시간 {time}'**
+  String timerRemainingA11y(String time);
+
+  /// No description provided for @timerHeartShared.
+  ///
+  /// In ko, this message translates to:
+  /// **'같이 할 땐 심박으로 휴식을 끊지 않아요'**
+  String get timerHeartShared;
+
+  /// No description provided for @timerRestLog.
+  ///
+  /// In ko, this message translates to:
+  /// **'이번 라운드 횟수'**
+  String get timerRestLog;
+
+  /// No description provided for @timerLogged.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}회 적었어요'**
+  String timerLogged(int n);
+
+  /// No description provided for @timerDone.
+  ///
+  /// In ko, this message translates to:
+  /// **'끝!'**
+  String get timerDone;
+
+  /// No description provided for @timerStopped.
+  ///
+  /// In ko, this message translates to:
+  /// **'여기까지 했어요'**
+  String get timerStopped;
+
+  /// No description provided for @timerRoundsDone.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}라운드'**
+  String timerRoundsDone(int n);
+
+  /// No description provided for @timerRepsDone.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}회'**
+  String timerRepsDone(int n);
+
+  /// No description provided for @timerRepsOfTarget.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n} / {target}회'**
+  String timerRepsOfTarget(int n, int target);
+
+  /// No description provided for @timerTotal.
+  ///
+  /// In ko, this message translates to:
+  /// **'총 시간'**
+  String get timerTotal;
+
+  /// No description provided for @timerTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'시간'**
+  String get timerTime;
+
+  /// No description provided for @timerTempo.
+  ///
+  /// In ko, this message translates to:
+  /// **'박자'**
+  String get timerTempo;
+
+  /// No description provided for @timerRoundChip.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}R {reps}'**
+  String timerRoundChip(int n, String reps);
+
+  /// No description provided for @timerRoundCountTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}라운드 횟수'**
+  String timerRoundCountTitle(int n);
+
+  /// No description provided for @timerFillRest.
+  ///
+  /// In ko, this message translates to:
+  /// **'남은 라운드 모두 {n}회'**
+  String timerFillRest(int n);
+
+  /// No description provided for @timerClear.
+  ///
+  /// In ko, this message translates to:
+  /// **'비우기'**
+  String get timerClear;
+
+  /// No description provided for @timerLogSets.
+  ///
+  /// In ko, this message translates to:
+  /// **'세트로 적기'**
+  String get timerLogSets;
+
+  /// No description provided for @timerLogSetsCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}세트 적기'**
+  String timerLogSetsCount(int n);
+
+  /// No description provided for @timerAgain.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시 하기'**
+  String get timerAgain;
+
+  /// No description provided for @timerClose.
+  ///
+  /// In ko, this message translates to:
+  /// **'닫기'**
+  String get timerClose;
+
+  /// No description provided for @timerLastRest.
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막 휴식 ♥ {from} → {to}'**
+  String timerLastRest(int from, int to);
+
+  /// No description provided for @timerSummaryTabata.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 {work}초 · 휴식 {rest}초 × {rounds} · {total}'**
+  String timerSummaryTabata(int work, int rest, int rounds, String total);
+
+  /// No description provided for @timerTargetChip.
+  ///
+  /// In ko, this message translates to:
+  /// **'목표 {n}회'**
+  String timerTargetChip(int n);
+
+  /// No description provided for @timerNoTarget.
+  ///
+  /// In ko, this message translates to:
+  /// **'목표 없음'**
+  String get timerNoTarget;
+
+  /// No description provided for @timerOpen.
+  ///
+  /// In ko, this message translates to:
+  /// **'열기'**
+  String get timerOpen;
+
+  /// No description provided for @timerDoneLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'완료 · {rounds}라운드 · {time}'**
+  String timerDoneLine(int rounds, String time);
+
+  /// No description provided for @timerDoneBpmLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'완료 · {count}회 · {time}'**
+  String timerDoneBpmLine(int count, String time);
+
+  /// No description provided for @timerLogNow.
+  ///
+  /// In ko, this message translates to:
+  /// **'적기'**
+  String get timerLogNow;
+
+  /// No description provided for @timerTogether.
+  ///
+  /// In ko, this message translates to:
+  /// **'같이'**
+  String get timerTogether;
+
+  /// No description provided for @timerSwitchAsk.
+  ///
+  /// In ko, this message translates to:
+  /// **'도는 타이머를 멈추고 이것을 시작할까요?'**
+  String get timerSwitchAsk;
+
+  /// No description provided for @timerSwitchConfirm.
+  ///
+  /// In ko, this message translates to:
+  /// **'멈추고 시작'**
+  String get timerSwitchConfirm;
+
+  /// No description provided for @timerUnloggedAsk.
+  ///
+  /// In ko, this message translates to:
+  /// **'적지 않은 {n}라운드가 있어요'**
+  String timerUnloggedAsk(int n);
+
+  /// No description provided for @timerLogFirst.
+  ///
+  /// In ko, this message translates to:
+  /// **'먼저 적기'**
+  String get timerLogFirst;
+
+  /// No description provided for @timerDiscardStart.
+  ///
+  /// In ko, this message translates to:
+  /// **'버리고 시작'**
+  String get timerDiscardStart;
+
+  /// No description provided for @timerActionFailed.
+  ///
+  /// In ko, this message translates to:
+  /// **'요청을 못 보냈어요 · 다시'**
+  String get timerActionFailed;
+
+  /// No description provided for @timerSheetTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'타이머'**
+  String get timerSheetTitle;
+
+  /// No description provided for @timerAddChip.
+  ///
+  /// In ko, this message translates to:
+  /// **'+ 타이머'**
+  String get timerAddChip;
+
+  /// No description provided for @timerTabata.
+  ///
+  /// In ko, this message translates to:
+  /// **'타바타'**
+  String get timerTabata;
+
+  /// No description provided for @timerBeat.
+  ///
+  /// In ko, this message translates to:
+  /// **'박자'**
+  String get timerBeat;
+
+  /// No description provided for @timerTotalLine.
+  ///
+  /// In ko, this message translates to:
+  /// **'총 {time}'**
+  String timerTotalLine(String time);
+
+  /// No description provided for @timerHaptics.
+  ///
+  /// In ko, this message translates to:
+  /// **'진동'**
+  String get timerHaptics;
+
+  /// No description provided for @timerHapticsSetting.
+  ///
+  /// In ko, this message translates to:
+  /// **'타이머 진동'**
+  String get timerHapticsSetting;
+
+  /// No description provided for @timerReadOnly.
+  ///
+  /// In ko, this message translates to:
+  /// **'멈춘 뒤 바꿀 수 있어요'**
+  String get timerReadOnly;
+
+  /// No description provided for @timerNameNeeded.
+  ///
+  /// In ko, this message translates to:
+  /// **'이름을 먼저 적어요'**
+  String get timerNameNeeded;
+
+  /// No description provided for @timerWorkTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 시간'**
+  String get timerWorkTitle;
+
+  /// No description provided for @timerRestTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식 시간'**
+  String get timerRestTitle;
+
+  /// No description provided for @timerRoundsTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'라운드'**
+  String get timerRoundsTitle;
+
+  /// No description provided for @timerBpmTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'박자 빠르기'**
+  String get timerBpmTitle;
+
+  /// No description provided for @timerTargetTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'목표 횟수'**
+  String get timerTargetTitle;
+
+  /// No description provided for @timerSecondsValue.
+  ///
+  /// In ko, this message translates to:
+  /// **'{n}초'**
+  String timerSecondsValue(int n);
+
+  /// No description provided for @timerMinValue.
+  ///
+  /// In ko, this message translates to:
+  /// **'최솟값이에요'**
+  String get timerMinValue;
+
+  /// No description provided for @timerMaxValue.
+  ///
+  /// In ko, this message translates to:
+  /// **'최댓값이에요'**
+  String get timerMaxValue;
+
+  /// No description provided for @timerUnloggedReps.
+  ///
+  /// In ko, this message translates to:
+  /// **'적지 않은 {n}회가 있어요'**
+  String timerUnloggedReps(int n);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

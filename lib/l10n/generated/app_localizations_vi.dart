@@ -3836,4 +3836,302 @@ class LVi extends L {
 
   @override
   String get togetherInviteSomeone => 'Có người rủ bạn tập cùng';
+
+  @override
+  String get timerCollapse => 'Thu nhỏ';
+
+  @override
+  String get timerCollapseA11y => 'Thu nhỏ, bộ hẹn giờ vẫn chạy';
+
+  @override
+  String get timerPaused => 'Tạm dừng';
+
+  @override
+  String get timerResume => 'Tiếp tục';
+
+  @override
+  String get timerRestart => 'Làm lại từ đầu';
+
+  @override
+  String get timerEnd => 'Kết thúc';
+
+  @override
+  String get timerHoldEnd => 'Giữ để kết thúc';
+
+  @override
+  String get timerHoldLeave => 'Giữ để dừng';
+
+  @override
+  String get timerLock => 'Khóa màn hình';
+
+  @override
+  String get timerUnlock => 'Mở khóa';
+
+  @override
+  String get timerLockHint => 'Chạm đúp để khóa';
+
+  @override
+  String get timerUnlockHint => 'Chạm đúp để mở khóa';
+
+  @override
+  String get timerLockedHint => 'Giữ ổ khóa 2 giây để mở khóa';
+
+  @override
+  String get timerLockedAnnounce => 'Đã khóa màn hình';
+
+  @override
+  String get timerUnlockedAnnounce => 'Đã mở khóa';
+
+  @override
+  String get timerSkipNext => 'Chặng tiếp theo';
+
+  @override
+  String get timerSkipBack => 'Chặng trước';
+
+  @override
+  String get timerLastRound => 'Hiệp cuối';
+
+  @override
+  String timerRoundShort(int n, int total) {
+    return 'R $n/$total';
+  }
+
+  @override
+  String timerNext(String items) {
+    return 'Tiếp · $items';
+  }
+
+  @override
+  String timerLeftTotal(String time) {
+    return 'Còn $time tổng cộng';
+  }
+
+  @override
+  String timerElapsed(String time) {
+    return 'Đã qua $time';
+  }
+
+  @override
+  String timerAboutLeft(String time) {
+    return 'Còn khoảng $time';
+  }
+
+  @override
+  String get timerGo => 'Bắt đầu!';
+
+  @override
+  String timerTarget(int target) {
+    return '/ $target lần';
+  }
+
+  @override
+  String timerBeatLine(String count) {
+    return 'Nhịp $count';
+  }
+
+  @override
+  String timerBeatA11y(int n) {
+    return 'Nhịp thứ $n';
+  }
+
+  @override
+  String timerCountA11y(int count, int target) {
+    return '$count / $target lần';
+  }
+
+  @override
+  String timerRemainingA11y(String time) {
+    return 'Còn $time trong chặng này';
+  }
+
+  @override
+  String get timerHeartShared =>
+      'Khi tập cùng nhau, nhịp tim không rút ngắn thời gian nghỉ';
+
+  @override
+  String get timerRestLog => 'Số lần hiệp này';
+
+  @override
+  String timerLogged(int n) {
+    return 'Đã ghi $n lần';
+  }
+
+  @override
+  String get timerDone => 'Xong!';
+
+  @override
+  String get timerStopped => 'Đến đây thôi';
+
+  @override
+  String timerRoundsDone(int n) {
+    return '$n hiệp';
+  }
+
+  @override
+  String timerRepsDone(int n) {
+    return '$n lần';
+  }
+
+  @override
+  String timerRepsOfTarget(int n, int target) {
+    return '$n / $target lần';
+  }
+
+  @override
+  String get timerTotal => 'Tổng thời gian';
+
+  @override
+  String get timerTime => 'Thời gian';
+
+  @override
+  String get timerTempo => 'Nhịp độ';
+
+  @override
+  String timerRoundChip(int n, String reps) {
+    return 'H$n $reps';
+  }
+
+  @override
+  String timerRoundCountTitle(int n) {
+    return 'Số lần hiệp $n';
+  }
+
+  @override
+  String timerFillRest(int n) {
+    return 'Mọi hiệp còn lại: $n lần';
+  }
+
+  @override
+  String get timerClear => 'Xóa';
+
+  @override
+  String get timerLogSets => 'Ghi thành hiệp';
+
+  @override
+  String timerLogSetsCount(int n) {
+    return 'Ghi $n hiệp';
+  }
+
+  @override
+  String get timerAgain => 'Làm lại';
+
+  @override
+  String get timerClose => 'Đóng';
+
+  @override
+  String timerLastRest(int from, int to) {
+    return 'Lần nghỉ cuối ♥ $from → $to';
+  }
+
+  @override
+  String timerSummaryTabata(int work, int rest, int rounds, String total) {
+    return 'Tập ${work}s · Nghỉ ${rest}s × $rounds · $total';
+  }
+
+  @override
+  String timerTargetChip(int n) {
+    return 'Mục tiêu $n lần';
+  }
+
+  @override
+  String get timerNoTarget => 'Không có mục tiêu';
+
+  @override
+  String get timerOpen => 'Mở';
+
+  @override
+  String timerDoneLine(int rounds, String time) {
+    return 'Hoàn tất · $rounds hiệp · $time';
+  }
+
+  @override
+  String timerDoneBpmLine(int count, String time) {
+    return 'Hoàn tất · $count lần · $time';
+  }
+
+  @override
+  String get timerLogNow => 'Ghi';
+
+  @override
+  String get timerTogether => 'Cùng nhau';
+
+  @override
+  String get timerSwitchAsk => 'Dừng bộ hẹn giờ đang chạy và bắt đầu cái này?';
+
+  @override
+  String get timerSwitchConfirm => 'Dừng và bắt đầu';
+
+  @override
+  String timerUnloggedAsk(int n) {
+    return 'Có $n hiệp chưa ghi';
+  }
+
+  @override
+  String get timerLogFirst => 'Ghi trước';
+
+  @override
+  String get timerDiscardStart => 'Bỏ và bắt đầu';
+
+  @override
+  String get timerActionFailed => 'Không gửi được · Thử lại';
+
+  @override
+  String get timerSheetTitle => 'Bộ hẹn giờ';
+
+  @override
+  String get timerAddChip => '+ Hẹn giờ';
+
+  @override
+  String get timerTabata => 'Tabata';
+
+  @override
+  String get timerBeat => 'Máy đếm nhịp';
+
+  @override
+  String timerTotalLine(String time) {
+    return 'Tổng $time';
+  }
+
+  @override
+  String get timerHaptics => 'Rung';
+
+  @override
+  String get timerHapticsSetting => 'Rung của bộ hẹn giờ';
+
+  @override
+  String get timerReadOnly => 'Dừng bộ hẹn giờ để thay đổi';
+
+  @override
+  String get timerNameNeeded => 'Hãy nhập tên trước';
+
+  @override
+  String get timerWorkTitle => 'Thời gian tập';
+
+  @override
+  String get timerRestTitle => 'Thời gian nghỉ';
+
+  @override
+  String get timerRoundsTitle => 'Số hiệp';
+
+  @override
+  String get timerBpmTitle => 'Tốc độ (BPM)';
+
+  @override
+  String get timerTargetTitle => 'Số lần mục tiêu';
+
+  @override
+  String timerSecondsValue(int n) {
+    return '${n}s';
+  }
+
+  @override
+  String get timerMinValue => 'Đã là giá trị nhỏ nhất';
+
+  @override
+  String get timerMaxValue => 'Đã là giá trị lớn nhất';
+
+  @override
+  String timerUnloggedReps(int n) {
+    return 'Có $n lần chưa ghi';
+  }
 }

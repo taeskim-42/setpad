@@ -93,9 +93,11 @@ class SharedTimer {
   bool get started => startAt != null;
 
   /// 이 사람이 실제로 돌리는 설정. 교대에서는 내 휴식이 상대의 운동과 두 번의
-  /// 자리바꿈을 덮는다: [내 운동][바꿈][상대 운동][바꿈].
-  TimingSpec get personal =>
-      alternate ? spec.copyWith(rest: spec.work + 2 * spec.rest) : spec;
+  /// 자리바꿈을 덮는다: [내 운동][바꿈][상대 운동][바꿈]. My last rest is kept
+  /// ([TimingSpec.tail]) — the partner's last turn happens in it.
+  TimingSpec get personal => alternate
+      ? spec.copyWith(rest: spec.work + 2 * spec.rest, tail: true)
+      : spec;
 
   /// 내 타이머가 지금 있어야 할 자리. 음수면 아직 시작 전이다 — 교대에서 뒤에
   /// 하는 사람은 상대의 첫 운동이 끝날 때까지 준비 구간에 머문다.

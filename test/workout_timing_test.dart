@@ -1,9 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/workout_timing.dart';
 import 'package:setpad/timing_audio.dart';
-import 'package:setpad/editor.dart';
-import 'package:setpad/l10n/generated/app_localizations.dart';
+import 'package:setpad/notes.dart';
 
 class FakeAudio extends TimingAudio {
   final events = <String>[];
@@ -79,7 +80,12 @@ void main() {
       timer.tick();
       expect(timer.round, 4);
       expect(timer.phase, TimingPhase.work);
-      now = const Duration(seconds: 243);
+      // 3 + 20×8 + 10×7: the last round has no rest.
+      now = const Duration(milliseconds: 232900);
+      timer.tick();
+      expect(timer.phase, TimingPhase.work);
+      expect(timer.round, 8);
+      now = const Duration(seconds: 233);
       timer.tick();
       expect(timer.phase, TimingPhase.complete);
       expect(timer.running, isFalse);
@@ -106,8 +112,9 @@ void main() {
       // 완료가 앞선 말까지 취소해 버려 이 검사가 무엇도 못 본다.
       await Future<void>.delayed(Duration.zero);
     }
-    // 쉬는 구간에 들어갈 때 한 번씩, 마지막 라운드까지. 박자 세기와 무관하다.
-    expect(audio.spoken, ['1라운드 종료', '2라운드 종료']);
+    // 쉬는 구간에 들어갈 때 한 번씩. 마지막 라운드는 쉬지 않고 끝나므로 완료
+    // 소리와 겹치지 않게 말하지 않는다.
+    expect(audio.spoken, ['1라운드 종료']);
     timer.dispose();
   });
 
@@ -135,8 +142,6 @@ void main() {
         ...tick,
         'work',
         ...tick,
-        'rest',
-        ...tick,
         'complete',
       ]);
       timer.dispose();
@@ -160,7 +165,11 @@ void main() {
       // 제어 센터·알림 센터는 inactive 만 거친다 — 타바타는 계속 돈다.
       timer.didChangeAppLifecycleState(AppLifecycleState.inactive);
       expect(timer.running, isTrue);
+      // 화면 꺼짐·홈 버튼에도 계속 돈다 — 소리는 백그라운드에서 난다.
       timer.didChangeAppLifecycleState(AppLifecycleState.hidden);
+      timer.didChangeAppLifecycleState(AppLifecycleState.paused);
+      expect(timer.running, isTrue);
+      timer.didChangeAppLifecycleState(AppLifecycleState.detached);
       expect(timer.running, isFalse);
       timer.toggle(owner, const TimingSpec(bpm: 90));
       audio.onInterrupted!();
@@ -172,153 +181,10 @@ void main() {
       timer.dispose();
     },
   );
-  testWidgets(
-    'timer settings open on demand and collapse when the edited timer starts',
-    (tester) async {
-      var now = Duration.zero;
-      final timer = WorkoutTimer(audio: FakeAudio(), now: () => now);
-      final c = RoutineEditorController()
-        ..addExercise('버피 타바타')
-        ..closeBlock();
-      await tester.pumpWidget(
-        CupertinoApp(
-          locale: const Locale('ko'),
-          supportedLocales: L.supportedLocales,
-          localizationsDelegates: L.localizationsDelegates,
-          home: CupertinoPageScaffold(
-            child: RoutineEditor(controller: c, timer: timer),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.byType(WorkoutTimingControls), findsOneWidget);
-      expect(find.text('시작'), findsOneWidget);
-      final settings = find.byKey(
-        ValueKey('exercise-settings-${c.blocks.single.id}'),
-      );
-      expect(
-        find.byKey(const ValueKey('timing-settings-toggle')),
-        findsNothing,
-      );
-      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
-      expect(find.text('3'), findsNothing);
-      expect(find.byIcon(CupertinoIcons.arrow_counterclockwise), findsNothing);
-      await tester.tap(settings);
-      await tester.pump();
-      expect(find.text('운동 20초'), findsOneWidget);
-      await tester.tap(find.byIcon(CupertinoIcons.plus).first);
-      await tester.pump();
-      expect(TimingSpec.parse(c.blocks.single.name)!.work, 25);
-      await tester.tap(find.text('시작'));
-      await tester.pump();
-      expect(timer.running, isTrue);
-      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
-      expect(find.text('3'), findsOneWidget);
-      expect(find.text('일시정지'), findsOneWidget);
-      expect(
-        find.byIcon(CupertinoIcons.arrow_counterclockwise),
-        findsOneWidget,
-      );
-      now = const Duration(seconds: 3);
-      timer.tick();
-      await tester.pump();
-      expect(find.text('25'), findsOneWidget);
-      await tester.tap(find.text('일시정지'));
-      await tester.pumpAndSettle();
-      expect(settings, findsOneWidget);
-      expect(c.blocks.single.sets, isEmpty);
-      c.renameBlock(0, '버피');
-      await tester.pumpAndSettle();
-      expect(find.byType(WorkoutTimingControls), findsNothing);
-      await tester.pumpWidget(const SizedBox());
-      timer.dispose();
-    },
-  );
-  testWidgets(
-    'external settings state controls editing without a second toggle',
-    (tester) async {
-      final timer = WorkoutTimer(audio: FakeAudio());
-      final owner = Object();
-      var spec = const TimingSpec(tabata: true);
-      Future<void> show(bool open) => tester.pumpWidget(
-        CupertinoApp(
-          locale: const Locale('ko'),
-          supportedLocales: L.supportedLocales,
-          localizationsDelegates: L.localizationsDelegates,
-          home: CupertinoPageScaffold(
-            child: WorkoutTimingControls(
-              owner: owner,
-              spec: spec,
-              timer: timer,
-              settingsOpen: open,
-              onChanged: (next) => spec = next,
-              onStart: () {},
-            ),
-          ),
-        ),
-      );
-      await show(false);
-      expect(
-        find.byKey(const ValueKey('timing-settings-toggle')),
-        findsNothing,
-      );
-      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
-      await show(true);
-      expect(
-        find.byKey(const ValueKey('timing-settings-toggle')),
-        findsNothing,
-      );
-      await tester.tap(find.byIcon(CupertinoIcons.plus).first);
-      expect(spec.work, 25);
-      await show(false);
-      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
-      await show(true);
-      expect(find.text('운동 25초'), findsOneWidget);
-      await tester.tap(find.text('시작'));
-      await tester.pump();
-      expect(timer.running, isTrue);
-      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
-      await tester.pumpWidget(const SizedBox());
-      timer.dispose();
-    },
-  );
-  testWidgets('타바타+bpm 네 칸 스테퍼가 375pt 폰 내용 폭(343)에서 넘치지 않는다', (tester) async {
-    final timer = WorkoutTimer(audio: FakeAudio());
-    await tester.pumpWidget(
-      CupertinoApp(
-        locale: const Locale('ko'),
-        supportedLocales: L.supportedLocales,
-        localizationsDelegates: L.localizationsDelegates,
-        home: CupertinoPageScaffold(
-          child: Center(
-            child: SizedBox(
-              width: 343,
-              child: WorkoutTimingControls(
-                owner: Object(),
-                spec: const TimingSpec(tabata: true, bpm: 60),
-                timer: timer,
-                settingsOpen: true,
-                onChanged: (_) {},
-                onStart: () {},
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    expect(find.byIcon(CupertinoIcons.plus), findsNWidgets(4));
-    expect(tester.takeException(), isNull);
-    // Keys stay 44 pt tall even where they are 40 pt wide.
-    expect(
-      tester.getSize(find.byType(CupertinoButton).first).height,
-      greaterThanOrEqualTo(44),
-    );
-    await tester.pumpWidget(const SizedBox());
-    timer.dispose();
-  });
   _adjustable();
   _counting();
   _aloud();
+  _engine();
 }
 
 void _aloud() {
@@ -573,10 +439,10 @@ void _adjustable() {
       expect(const TimingSpec(bpm: 121).valid, isFalse);
     });
 
-    test('눈금은 10 이다', () {
-      expect(TimingSpec.bpmStep, 10);
+    test('범위는 10~120 이고 새 박자는 60 이다', () {
       expect(TimingSpec.minBpm, 10);
       expect(TimingSpec.maxBpm, 120);
+      expect(TimingSpec.newBpm, 60);
     });
 
     test('제목에 적힌 숫자를 고쳐 쓴다', () {
@@ -621,6 +487,572 @@ void _adjustable() {
       final spec = TimingSpec.parse('버피 타바타 30/15 x6 100bpm')!;
       final next = spec.copyWith(bpm: 75, work: 45, rest: 25, rounds: 4);
       expect(TimingSpec.parse(next.applyTo('버피 타바타 30/15 x6 100bpm')), next);
+    });
+  });
+}
+
+void _engine() {
+  group('엔진', () {
+    // A hand-driven clock and a list of what the timer buzzed.
+    ({
+      WorkoutTimer timer,
+      FakeAudio audio,
+      List<TimerHaptic> buzzes,
+      void Function(Duration) at,
+    })
+    make({DateTime Function()? wall}) {
+      var now = Duration.zero;
+      final audio = FakeAudio(), buzzes = <TimerHaptic>[];
+      final timer = WorkoutTimer(
+        audio: audio,
+        now: () => now,
+        wallNow: wall,
+        haptic: buzzes.add,
+      );
+      return (
+        timer: timer,
+        audio: audio,
+        buzzes: buzzes,
+        at: (Duration d) {
+          now = d;
+          timer.tick();
+        },
+      );
+    }
+
+    void walk(void Function(Duration) at, int fromMs, int toMs) {
+      for (var ms = fromMs; ms <= toMs; ms += 50) {
+        at(Duration(milliseconds: ms));
+      }
+    }
+
+    test('타바타 8×20/10 은 233초에 끝난다 — 마지막 라운드는 쉬지 않는다; tail 이면 243초', () {
+      expect(const TimingSpec(tabata: true).duration, 233);
+      expect(const TimingSpec(tabata: true, tail: true).duration, 243);
+      final t = make();
+      t.timer.toggle(Object(), const TimingSpec(tabata: true, tail: true));
+      t.at(const Duration(milliseconds: 233500));
+      expect(t.timer.phase, TimingPhase.rest);
+      expect(t.timer.round, 8);
+      t.at(const Duration(seconds: 243));
+      expect(t.timer.phase, TimingPhase.complete);
+      expect(t.timer.total, const Duration(seconds: 243));
+      t.timer.dispose();
+    });
+
+    test('tail 이면 마지막 라운드 종료도 말한다', () async {
+      final t = make();
+      t.timer.announceRound = (n) => '$n';
+      t.timer.toggle(
+        Object(),
+        const TimingSpec(tabata: true, work: 5, rest: 4, rounds: 2, tail: true),
+      );
+      for (var ms = 0; ms <= 21500; ms += 50) {
+        t.at(Duration(milliseconds: ms));
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(t.audio.spoken, ['1', '2']);
+      t.timer.dispose();
+    });
+
+    test('박자 목표 30 @60bpm: 30번째 숫자를 읽은 뒤 32.55초에 끝나고 30을 지킨다', () {
+      final t = make();
+      var completed = 0;
+      t.timer.onComplete = () => completed++;
+      t.timer.toggle(Object(), const TimingSpec(bpm: 60), target: 30);
+      expect(t.timer.total, const Duration(milliseconds: 32550));
+      expect(t.timer.level, 1);
+      t.at(const Duration(seconds: 18)); // 15 counts in
+      expect(t.timer.count, 16);
+      expect(t.timer.level, closeTo(1 - 16 / 30, 1e-9));
+      t.at(const Duration(milliseconds: 32540));
+      expect(t.timer.phase, TimingPhase.work);
+      expect(t.timer.count, 30);
+      t.at(const Duration(milliseconds: 32550));
+      expect(t.timer.phase, TimingPhase.complete);
+      expect(t.timer.running, isFalse);
+      expect(t.timer.count, 30);
+      expect(t.timer.level, 0);
+      expect(completed, 1);
+      expect(t.buzzes.last, TimerHaptic.success);
+      t.timer.dispose();
+    });
+
+    test('박자는 멈춰도 센 수를 지키고, 목표가 없으면 끝나지 않는다', () {
+      final t = make();
+      t.timer.toggle(Object(), const TimingSpec(bpm: 60));
+      t.at(const Duration(milliseconds: 9500));
+      expect(t.timer.count, 7);
+      t.timer.pause();
+      expect(t.timer.beat, 0, reason: '소리용 박자는 멈추면 0');
+      expect(t.timer.count, 7);
+      expect(t.timer.total, isNull);
+      t.timer.resume();
+      t.at(const Duration(hours: 5));
+      expect(t.timer.phase, TimingPhase.work);
+      expect(t.timer.level, 1);
+      t.timer.dispose();
+    });
+
+    test('수위: 준비는 3초에 걸쳐, 타바타는 구간 남은 비율로 줄어든다', () {
+      final t = make();
+      t.timer.toggle(Object(), const TimingSpec(tabata: true));
+      expect(t.timer.level, 1);
+      t.at(const Duration(milliseconds: 1500));
+      expect(t.timer.level, closeTo(0.5, 1e-9));
+      t.at(const Duration(seconds: 8)); // 5 s into 20 s of work
+      expect(t.timer.level, closeTo(0.75, 1e-9));
+      expect(t.timer.phaseElapsed, const Duration(seconds: 5));
+      t.at(const Duration(seconds: 25)); // 2 s into 10 s of rest
+      expect(t.timer.level, closeTo(0.8, 1e-9));
+      expect(t.timer.phaseElapsed, const Duration(seconds: 2));
+      t.timer.dispose();
+    });
+
+    test('skip: 준비→운동→휴식→다음 운동, 마지막 운동은 완료', () {
+      final t = make();
+      var completed = 0;
+      t.timer.onComplete = () => completed++;
+      const spec = TimingSpec(tabata: true, rounds: 2);
+      t.timer.toggle(Object(), spec);
+      expect(t.timer.canSkip, isTrue);
+      t.timer.skip();
+      expect(t.timer.phase, TimingPhase.work);
+      expect(t.timer.remaining, 20);
+      t.timer.skip();
+      expect(t.timer.phase, TimingPhase.rest);
+      t.timer.skip();
+      expect((t.timer.phase, t.timer.round), (TimingPhase.work, 2));
+      t.timer.skip();
+      expect(t.timer.phase, TimingPhase.complete);
+      expect(completed, 1);
+      expect(t.timer.canSkip, isFalse);
+      t.timer.dispose();
+    });
+
+    test('back: 2초가 지났으면 구간 처음, 아니면 앞 구간 처음; 멈춘 채로도 된다', () {
+      final t = make();
+      t.timer.toggle(Object(), const TimingSpec(tabata: true));
+      t.at(const Duration(seconds: 10)); // 7 s into work 1
+      t.timer.back();
+      expect(t.timer.elapsed, const Duration(seconds: 3));
+      t.timer.back(); // under 2 s into work 1 → ready
+      expect(t.timer.elapsed, Duration.zero);
+      t.timer.back(); // ready stays at 0
+      expect(t.timer.elapsed, Duration.zero);
+      // The clock moved by 10 s of seeks: 44 s on it is 34 s into the run.
+      t.at(const Duration(seconds: 44)); // 1 s into work 2
+      expect(t.timer.elapsed, const Duration(seconds: 34));
+      t.timer.pause();
+      expect(t.timer.canSkip, isTrue);
+      t.timer.back(); // → rest 1
+      expect(t.timer.elapsed, const Duration(seconds: 23));
+      expect(t.timer.phase, TimingPhase.rest);
+      t.timer.back(); // under 2 s into rest 1 → work 1
+      expect(t.timer.elapsed, const Duration(seconds: 3));
+      expect(t.timer.running, isFalse);
+      t.timer.dispose();
+    });
+
+    test('runId: 처음부터 시작·restart·reset·clear·다른 같이 run 만 새 run 이다', () {
+      final t = make();
+      final card = Object(), other = Object();
+      const spec = TimingSpec(tabata: true);
+      final ids = <int>[];
+      void mark() => ids.add(t.timer.runId);
+      t.timer.toggle(card, spec);
+      mark(); // new
+      t.at(const Duration(seconds: 24));
+      t.timer.pause();
+      t.timer.resume();
+      t.timer.skip();
+      t.timer.back();
+      t.timer.back();
+      t.timer.back(); // to the ready: still this run
+      t.timer.toggle(card, spec); // pause
+      t.timer.toggle(card, spec); // resume
+      mark();
+      t.timer.restart();
+      mark();
+      t.timer.reset();
+      mark();
+      t.timer.follow(card, spec, const Duration(seconds: 10));
+      mark(); // a shared run
+      t.timer.follow(card, spec, const Duration(seconds: 12)); // re-sync
+      t.timer.pause(); // left
+      t.timer.follow(card, spec, const Duration(seconds: 14)); // rejoined
+      mark();
+      t.timer.follow(other, spec, const Duration(seconds: 1));
+      mark();
+      t.timer.toggle(other, spec); // solo after shared
+      mark();
+      t.at(const Duration(seconds: 40));
+      t.timer.end(); // the summary is this run
+      mark();
+      t.timer.toggle(other, spec); // from the top after the end
+      mark();
+      t.timer.clear();
+      mark();
+      final first = ids.first;
+      expect(ids.map((id) => id - first), [0, 0, 1, 2, 3, 3, 4, 5, 5, 6, 7]);
+      t.timer.dispose();
+    });
+
+    test('skip·back 은 같이 하는 중에는 아무 일도 안 한다', () {
+      final t = make();
+      t.timer.follow(
+        Object(),
+        const TimingSpec(tabata: true),
+        const Duration(seconds: 10),
+      );
+      expect(t.timer.canSkip, isFalse);
+      final before = t.timer.elapsed;
+      t.timer.skip();
+      t.timer.back();
+      t.at(const Duration(seconds: 15)); // 25 s in: rest
+      t.timer.skipRest();
+      expect(t.timer.phase, TimingPhase.rest);
+      expect(t.timer.elapsed - before, const Duration(seconds: 15));
+      t.timer.dispose();
+    });
+
+    test('back 뒤에는 묵음이 아니다: 말 대기가 풀리고 클릭이 새 자리에 다시 놓인다', () async {
+      final t = make();
+      t.timer
+        ..countAloud = true
+        ..voiceLocale = 'ko';
+      const spec = TimingSpec(tabata: true, bpm: 60, work: 40);
+      t.timer.toggle(Object(), spec);
+      walk(t.at, 50, 30000); // 27 counts into work 1
+      await Future<void>.delayed(Duration.zero);
+      expect(t.audio.spoken.last, '스물여덟');
+      final calls = t.audio.calls.length, said = t.audio.spoken.length;
+      t.timer.back(); // → start of work 1 (3 s)
+      await Future<void>.delayed(Duration.zero);
+      // The same interval: no cue, but the loop is re-placed on the new grid.
+      expect(t.audio.calls.length, calls + 1);
+      expect(t.audio.calls.last, (active: true, bpm: 60, cue: null));
+      expect(t.audio.phases.last, closeTo(0, 0.001));
+      walk(t.at, 30050, 32100);
+      await Future<void>.delayed(Duration.zero);
+      expect(t.audio.spoken.sublist(said), ['하나', '둘', '셋']);
+      t.timer.dispose();
+    });
+
+    test('skip 으로 운동 구간 처음에 오면 저절로 들어올 때처럼 첫 박부터 읽는다', () async {
+      // From ready into work 1, and from rest 1 (23..33 s) into work 2.
+      for (final from in [1000, 25000]) {
+        final t = make();
+        t.timer
+          ..countAloud = true
+          ..voiceLocale = 'ko';
+        t.timer.toggle(Object(), const TimingSpec(tabata: true, bpm: 60));
+        walk(t.at, 50, from);
+        await Future<void>.delayed(Duration.zero);
+        final said = t.audio.spoken.length;
+        t.timer.skip();
+        expect(t.timer.phase, TimingPhase.work);
+        walk(t.at, from + 50, from + 2100);
+        await Future<void>.delayed(Duration.zero);
+        expect(t.audio.spoken.sublist(said), ['하나', '둘', '셋'], reason: '$from');
+        t.timer.dispose();
+      }
+    });
+
+    test('멈춘 채 0초로 돌아와도 멈춤이다 — skip·back 이 듣고, 다시 켜면 이어 간다', () {
+      final t = make();
+      final block = Object();
+      const spec = TimingSpec(tabata: true);
+      t.timer.toggle(block, spec);
+      t.timer.pause(); // before the clock moved
+      expect(t.timer.canSkip, isTrue);
+      t.timer.toggle(block, spec);
+      t.at(const Duration(seconds: 4)); // 1 s into work 1
+      t.timer.pause();
+      t.timer.back(); // under 2 s into work 1 → ready, 0 s
+      expect(
+        (t.timer.elapsed, t.timer.phase, t.timer.running),
+        (Duration.zero, TimingPhase.ready, false),
+      );
+      expect(t.timer.canSkip, isTrue);
+      t.timer.skip();
+      expect(t.timer.elapsed, const Duration(seconds: 3));
+      t.timer.back();
+      t.buzzes.clear();
+      t.timer.toggle(block, spec);
+      expect(t.timer.running, isTrue);
+      expect(t.buzzes, [TimerHaptic.medium], reason: '새 시작이 아니라 이어 가기');
+      t.timer.reset();
+      expect(t.timer.canSkip, isFalse);
+      t.timer.dispose();
+    });
+
+    test(
+      'end: 10초 미만은 처음으로, 넘으면 endedEarly 와 onComplete 한 번, 완료 소리 없이',
+      () async {
+        final t = make();
+        var completed = 0;
+        t.timer.onComplete = () => completed++;
+        const spec = TimingSpec(tabata: true);
+        t.timer.toggle(Object(), spec);
+        t.at(const Duration(seconds: 9));
+        t.timer.end();
+        expect(t.timer.elapsed, Duration.zero);
+        expect(t.timer.running, isFalse);
+        expect(t.timer.endedEarly, isFalse);
+        expect(completed, 0);
+        t.timer.toggle(t.timer.owner!, spec);
+        t.at(const Duration(seconds: 59)); // 9+50: 2 rounds done, in work 3
+        t.timer.end();
+        t.timer.end();
+        expect(t.timer.endedEarly, isTrue);
+        expect(t.timer.running, isFalse);
+        expect(t.timer.round, 2);
+        expect(completed, 1);
+        await Future<void>.delayed(Duration.zero);
+        expect(t.audio.calls.map((c) => c.cue), isNot(contains('complete')));
+        t.timer.resume();
+        expect(t.timer.running, isFalse, reason: '끝난 run 은 이어 가지 않는다');
+        t.timer.restart();
+        expect(t.timer.running, isTrue);
+        expect(t.timer.elapsed, Duration.zero);
+        expect(t.timer.endedEarly, isFalse);
+        t.timer.dispose();
+      },
+    );
+
+    test('박자 목표가 센 수 아래로 내려오면 그 자리에서 끝난다 — 센 박과 시간을 지키고 onComplete 는 한 번', () {
+      const spec = TimingSpec(bpm: 60);
+      final block = Object();
+      // toggle while running, toggle while paused, follow while running.
+      for (final how in ['running', 'paused', 'follow']) {
+        final t = make();
+        var completed = 0;
+        t.timer.onComplete = () => completed++;
+        if (how == 'follow') {
+          t.timer.follow(block, spec, Duration.zero, target: 30);
+        } else {
+          t.timer.toggle(block, spec, target: 30);
+        }
+        t.at(const Duration(seconds: 23));
+        expect(t.timer.count, 21);
+        if (how == 'paused') t.timer.toggle(block, spec, target: 30);
+        if (how == 'follow') {
+          t.timer.follow(block, spec, const Duration(seconds: 23), target: 10);
+        } else {
+          t.timer.toggle(block, spec, target: 10);
+        }
+        t.at(const Duration(milliseconds: 23050));
+        expect(
+          (t.timer.phase, t.timer.running, t.timer.count, t.timer.level),
+          (TimingPhase.complete, false, 21, 0.0),
+          reason: how,
+        );
+        expect(t.timer.elapsed, const Duration(seconds: 23), reason: how);
+        expect(completed, 1, reason: how);
+        expect(t.buzzes.last, TimerHaptic.success, reason: how);
+        t.timer.resume();
+        t.timer.end();
+        expect((t.timer.running, t.timer.endedEarly), (false, false));
+        expect(completed, 1, reason: how);
+        t.timer.dispose();
+      }
+    });
+
+    test('끝난 뒤 첫 tick 전에 멈추거나 끝내도 그 run 은 완료다', () {
+      for (final stop in [
+        (WorkoutTimer t) => t.pause(),
+        (WorkoutTimer t) => t.end(),
+      ]) {
+        var now = Duration.zero, completed = 0;
+        final timer = WorkoutTimer(
+          audio: FakeAudio(),
+          now: () => now,
+          haptic: (_) {},
+        )..onComplete = () => completed++;
+        timer.toggle(Object(), const TimingSpec(bpm: 60), target: 5);
+        now = const Duration(milliseconds: 7500);
+        timer.tick();
+        now = const Duration(milliseconds: 7560); // over at 7.55 s, not ticked
+        stop(timer);
+        expect(
+          (timer.phase, timer.count, timer.endedEarly, completed),
+          (TimingPhase.complete, 5, false, 1),
+        );
+        timer.dispose();
+      }
+    });
+
+    test('end 는 박자 수를 그 순간 값으로 굳힌다', () {
+      final t = make();
+      t.timer.toggle(Object(), const TimingSpec(bpm: 60), target: 30);
+      t.at(const Duration(milliseconds: 15500));
+      t.timer.end();
+      t.at(const Duration(seconds: 40));
+      expect(t.timer.count, 13);
+      expect(t.timer.phase, TimingPhase.work);
+      t.timer.dispose();
+    });
+
+    test('같이 하는 박자가 목표에서 끝나면 follow 가 다시 켜지 않는다', () {
+      final t = make();
+      final block = Object();
+      const spec = TimingSpec(bpm: 60);
+      var completed = 0;
+      t.timer.onComplete = () => completed++;
+      t.timer.follow(block, spec, Duration.zero, target: 5);
+      t.at(const Duration(seconds: 8));
+      expect(t.timer.phase, TimingPhase.complete);
+      expect(t.timer.count, 5);
+      t.timer.follow(block, spec, const Duration(seconds: 9), target: 5);
+      t.timer.follow(block, spec, const Duration(seconds: 20), target: 5);
+      expect(t.timer.running, isFalse);
+      expect(t.timer.count, 5);
+      expect(completed, 1);
+      // A reset lets the same run be followed again.
+      t.timer.reset();
+      t.timer.follow(block, spec, const Duration(seconds: 1), target: 5);
+      expect(t.timer.running, isTrue);
+      t.timer.dispose();
+    });
+
+    test('수명주기: 인터럽션은 멈추고 끝나면 다시 켠다', () {
+      final t = make();
+      const spec = TimingSpec(tabata: true);
+      t.timer.toggle(Object(), spec);
+      t.at(const Duration(seconds: 5));
+      t.audio.onInterrupted!();
+      expect(t.timer.running, isFalse);
+      t.at(const Duration(seconds: 30));
+      t.audio.onResumed!();
+      expect(t.timer.running, isTrue);
+      expect(t.timer.elapsed, const Duration(seconds: 5));
+
+      // Resumed by hand before the system said so: the late resumed is ignored.
+      t.audio.onInterrupted!();
+      t.timer.toggle(t.timer.owner!, spec);
+      t.at(const Duration(seconds: 32));
+      t.audio.onResumed!();
+      expect(t.timer.elapsed, const Duration(seconds: 7));
+
+      // Reset during the interruption: nothing comes back.
+      t.audio.onInterrupted!();
+      t.timer.reset();
+      t.audio.onResumed!();
+      expect(t.timer.running, isFalse);
+      t.timer.dispose();
+    });
+
+    test('기기가 잠들어 단조 시계가 멈춘 만큼 벽시계로 채운다 — 놓친 신호는 울리지 않는다', () async {
+      var wall = DateTime(2026, 10, 17, 9);
+      final t = make(wall: () => wall);
+      t.timer.toggle(Object(), const TimingSpec(tabata: true));
+      wall = wall.add(const Duration(seconds: 1));
+      t.at(const Duration(seconds: 1));
+      expect(t.timer.elapsed, const Duration(seconds: 1));
+      await Future<void>.delayed(Duration.zero);
+      final cues = t.audio.calls.length;
+      // The device slept: 2 s on the monotonic clock, 62 s on the wall.
+      wall = wall.add(const Duration(seconds: 62));
+      t.at(const Duration(seconds: 3));
+      expect(t.timer.elapsed, const Duration(seconds: 63));
+      t.timer.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      expect(t.timer.elapsed, const Duration(seconds: 63));
+      expect((t.timer.phase, t.timer.round), (TimingPhase.work, 3));
+      await Future<void>.delayed(Duration.zero);
+      // One cue for where it is now, none for the intervals it slept through.
+      expect(t.audio.calls.skip(cues).map((c) => c.cue).whereType<String>(), [
+        'work',
+      ]);
+      t.timer.dispose();
+    });
+
+    test('1초가 안 되는 잠도 버리지 않고 모아서 채운다', () {
+      var wall = DateTime(2026, 10, 17, 9);
+      final t = make(wall: () => wall);
+      t.timer.toggle(Object(), const TimingSpec(tabata: true));
+      // Ten 0.8 s sleeps: 50 ms on the monotonic clock, 850 ms on the wall.
+      for (var i = 1; i <= 10; i++) {
+        wall = wall.add(const Duration(milliseconds: 850));
+        t.at(Duration(milliseconds: 50 * i));
+      }
+      expect(t.timer.elapsed, const Duration(milliseconds: 8500));
+      t.timer.dispose();
+    });
+
+    test('햅틱은 소리와 같은 자리에서, 꺼 두면 없다', () {
+      final t = make();
+      t.timer.toggle(
+        Object(),
+        const TimingSpec(tabata: true, work: 5, rest: 4, rounds: 1),
+      );
+      walk(t.at, 50, 8000);
+      t.timer.toggle(Object(), const TimingSpec(tabata: true));
+      t.timer.pause();
+      t.timer.resume();
+      t.timer.skip();
+      expect(t.buzzes, [
+        ...List.filled(3, TimerHaptic.tick), // ready
+        TimerHaptic.heavy, // work
+        ...List.filled(3, TimerHaptic.tick), // last three seconds
+        TimerHaptic.success,
+        TimerHaptic.tick, // a new run's ready
+        TimerHaptic.medium, // pause
+        TimerHaptic.medium, // resume
+        TimerHaptic.tick, // skip
+        TimerHaptic.heavy, // into work
+      ]);
+      t.buzzes.clear();
+      t.timer.haptics = false;
+      t.timer.skip();
+      t.timer.pause();
+      expect(t.buzzes, isEmpty);
+      t.timer.dispose();
+    });
+
+    test('박자마다 한 번 알린다', () {
+      final t = make();
+      var notes = 0;
+      t.timer.toggle(Object(), const TimingSpec(bpm: 120));
+      t.at(const Duration(seconds: 3));
+      t.timer.addListener(() => notes++);
+      walk(t.at, 3050, 5000); // 2 s at 120 bpm: 4 beats
+      expect(notes, 4);
+      t.timer.dispose();
+    });
+
+    test('타이머 진동은 기본 켜짐이고, 끈 것은 다시 열어도 꺼져 있다', () async {
+      final dir = Directory.systemTemp.createTempSync('setpad_haptics_');
+      final store = NotesStore(directory: dir);
+      addTearDown(() {
+        store.dispose();
+        dir.deleteSync(recursive: true);
+      });
+      expect(store.hapticsOn, isTrue);
+      store.create();
+      store.setHapticsOn(false);
+      await store.flush();
+      final reopened = NotesStore(directory: dir);
+      addTearDown(reopened.dispose);
+      await reopened.load();
+      expect(reopened.hapticsOn, isFalse);
+    });
+
+    test('중국어 화면 언어는 음성 엔진이 아는 지역 태그로', () {
+      final t = make();
+      for (final (tag, want) in [
+        ('zh', 'zh-CN'),
+        ('zh-Hans', 'zh-CN'),
+        ('zh-Hans-CN', 'zh-CN'),
+        ('zh-Hant', 'zh-TW'),
+        ('zh-Hant-TW', 'zh-TW'),
+        ('ko', 'ko'),
+        ('en-US', 'en-US'),
+      ]) {
+        t.timer.voiceLocale = tag;
+        expect(t.timer.voiceLocale, want, reason: tag);
+      }
+      t.timer.dispose();
     });
   });
 }

@@ -236,6 +236,9 @@ final _conditionWords = RegExp(
 /// 은 템포 30 에 3세트다(계획 글이 그렇게 적는다). "bpm N" 의 N 은 두 자리
 /// 이상이다 — 템포는 10 부터다(TimingSpec.minBpm). 타이머([TimingSpec]), 계획
 /// 줄, 입력 줄의 길 나누기가 이 한 정규식을 쓴다.
+/// In a tabata title that x is rounds instead ("버피 타바타 bpm 100 x6", as the
+/// old app wrote it); without a tabata word it is no timer token
+/// ([timerRoundsPattern]).
 final tempoPattern =
     '(?<![\\d.,]|(?<![a-z])[x×*]\\s*)([+-]?\\d+(?:[.,]\\d+)?)\\s*bpm(?![a-z])|'
     '(?<![a-z])bpm\\s*[:=]?\\s*(?=[+-]?\\d\\d)([+-]?\\d+(?:[.,]\\d+)?)(?![\\d.,])'
@@ -248,12 +251,25 @@ bool _isCondition(String word) {
       _conditionWords.hasMatch(stripParticle(bare));
 }
 
+/// The tabata word, in any of the app's spellings.
+const timerTabataWord = r'타바타|タバタ|(?<![a-z])tabata(?![a-z])';
+
+/// Tabata rounds ("x8", "× 8", "8라운드") — the count is group 1 or 2. An x
+/// right after a number is set notation ("3x10", "3 x 10", "30/15 3x10",
+/// "100 3x10"), not rounds, unless that number closes an interval ("20/10 x6")
+/// or, in a title with a tabata word, is the tempo ("버피 타바타 bpm 100 x6").
+/// [TimingSpec.roundsPattern] and [timerTokens] both use this one pattern.
+const timerRoundsPattern =
+    r'(?:(?<!\d\s*)|(?<=[/／]\s*\d+\s*)|(?<=(?<![a-z])bpm\s*[:=]?\s*\d+\s*)'
+    '(?:(?<=(?:$timerTabataWord).*)|(?=.*(?:$timerTabataWord))))'
+    r'[x×]\s*(\d+)|(\d+)\s*(?:라운드|rounds?|ラウンド)';
+
 /// 타이머 토큰(60bpm, bpm 60, 30/15, x8, 10라운드). 글의 수가 모두 여기 쓰였으면
 /// 그 글은 타이머 이름이라 묻지 않고 바로 만든다.
 final timerTokens = RegExp(
   '$tempoPattern|'
-  r'\d+\s*(?:초|s|sec)?\s*[/／]\s*\d+\s*(?:초|s|sec)?|[x×]\s*\d+|'
-  r'\d+\s*(?:라운드|rounds?|ラウンド)',
+  r'\d+\s*(?:초|s|sec)?\s*[/／]\s*\d+\s*(?:초|s|sec)?|'
+  '$timerRoundsPattern',
   caseSensitive: false,
 );
 

@@ -1625,6 +1625,9 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                       // 여기로 새지 않게 아무것도 넘기지 않는다.
                       key: const ValueKey('proxy-editor'),
                       countAloud: widget.store.countAloud,
+                      hapticsOn: widget.store.hapticsOn,
+                      onCountAloud: widget.store.setCountAloud,
+                      onHaptics: widget.store.setHapticsOn,
                       controller: _proxyEditor!,
                       ai: widget.ai,
                     ),
@@ -1634,6 +1637,9 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                     child: RoutineEditor(
                       key: const ValueKey('own-editor'),
                       countAloud: widget.store.countAloud,
+                      hapticsOn: widget.store.hapticsOn,
+                      onCountAloud: widget.store.setCountAloud,
+                      onHaptics: widget.store.setHapticsOn,
                       controller: _editor,
                       partner: _partner,
                       // 같이 고치는 사람들이 지금 만지는 자리와, 내가 만지는 자리.
