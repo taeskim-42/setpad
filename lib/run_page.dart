@@ -73,7 +73,7 @@ int runNumberBuilds = 0;
 int floodPaints = 0;
 
 /// Level of the fill (0..1) and its color, read from the engine.
-typedef _Water = ({double level, Color fill});
+typedef StageWater = ({double level, Color fill});
 
 /// Screen y of the waterline, whole pixels so the fill and the clip of the
 /// dark faces meet exactly. The status bar strip above [top] stays empty.
@@ -103,12 +103,30 @@ class RunPage extends StatefulWidget {
   State<RunPage> createState() => _RunPageState();
 }
 
-class _RunPageState extends State<RunPage> {
-  /// Stages alive. Opened again while the last one is still folding away,
-  /// the old one's dispose must not let go of portrait under the new one.
+/// Portrait while any full-screen stage (timer or set stage) is alive.
+/// Opened again while the last one is still folding away, the old one's
+/// [leave] must not let go of portrait under the new one.
+abstract final class StagePortrait {
   static int _open = 0;
 
-  late final _water = ValueNotifier<_Water>(_read());
+  /// In a stage's initState.
+  static void enter() {
+    _open++;
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  }
+
+  /// In a stage's dispose.
+  static void leave() {
+    if (--_open == 0) SystemChrome.setPreferredOrientations([]);
+  }
+}
+
+/// Labels on the stages stop growing at this text scale; the big number
+/// ignores the OS scale.
+const kStageMaxTextScale = 1.5;
+
+class _RunPageState extends State<RunPage> {
+  late final _water = ValueNotifier<StageWater>(_read());
   Timer? _clockTimer;
   bool? _still;
   bool _locked = false;
@@ -121,8 +139,7 @@ class _RunPageState extends State<RunPage> {
   @override
   void initState() {
     super.initState();
-    _open++;
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    StagePortrait.enter();
     _timer.addListener(_sync);
   }
 
@@ -146,11 +163,11 @@ class _RunPageState extends State<RunPage> {
     _clockTimer?.cancel();
     _timer.removeListener(_sync);
     _water.dispose();
-    if (--_open == 0) SystemChrome.setPreferredOrientations([]);
+    StagePortrait.leave();
     super.dispose();
   }
 
-  _Water _read() {
+  StageWater _read() {
     final t = _timer;
     final fill = !t.running
         ? _P.paused
@@ -232,7 +249,7 @@ class _RunPageState extends State<RunPage> {
       ),
       // Every label row stops at 1.5x; the number ignores the OS scale.
       child: MediaQuery.withClampedTextScaling(
-        maxScaleFactor: 1.5,
+        maxScaleFactor: kStageMaxTextScale,
         child: CupertinoTheme(
           data: const CupertinoThemeData(
             brightness: Brightness.dark,
@@ -286,13 +303,13 @@ class _RunPageState extends State<RunPage> {
         s.rounds > 1 &&
         t.phase == TimingPhase.work &&
         t.round == s.rounds;
-    return _WaterScope(
+    return StageWaterScope(
       water: _water,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          _Flood(water: _water),
-          _EndPulse(timer: t),
+          StageFlood(water: _water),
+          StageEndPulse(listenable: t, beat: () => _endBeat(t)),
           SafeArea(
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
@@ -378,7 +395,7 @@ class _RunPageState extends State<RunPage> {
 
     Widget line(String text, TextStyle style, {bool sub = true}) => Padding(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-      child: _Faces(
+      child: StageFaces(
         builder: (ink) => Text(
           text,
           textAlign: TextAlign.center,
@@ -400,11 +417,11 @@ class _RunPageState extends State<RunPage> {
           label: label,
           side: side,
           a11y: a11y,
-          collapse: _Gate(
+          collapse: StageGate(
             locked: locked,
             label: l.timerCollapseA11y,
             onBlocked: _nudgeLock,
-            child: _CollapseButton(onTap: _close),
+            child: StageCollapseButton(onTap: _close),
           ),
         ),
         SizedBox(height: short ? 4 : 8),
@@ -422,7 +439,7 @@ class _RunPageState extends State<RunPage> {
         else if (restLog)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: _Gate(
+            child: StageGate(
               locked: locked,
               label: l.timerRestLog,
               onBlocked: _nudgeLock,
@@ -449,7 +466,7 @@ class _RunPageState extends State<RunPage> {
   }) {
     final t = _timer;
     final canSkip = t.canSkip;
-    Widget gate(String label, Widget child) => _Gate(
+    Widget gate(String label, Widget child) => StageGate(
       locked: locked,
       label: label,
       onBlocked: _nudgeLock,
@@ -457,7 +474,7 @@ class _RunPageState extends State<RunPage> {
     );
     final back = gate(
       l.timerSkipBack,
-      _RoundButton(
+      StageRoundButton(
         key: const ValueKey('run-back'),
         icon: CupertinoIcons.backward_end_fill,
         label: l.timerSkipBack,
@@ -466,14 +483,14 @@ class _RunPageState extends State<RunPage> {
     );
     final next = gate(
       l.timerSkipNext,
-      _RoundButton(
+      StageRoundButton(
         key: const ValueKey('run-next'),
         icon: CupertinoIcons.forward_end_fill,
         label: l.timerSkipNext,
         onTap: t.skip,
       ),
     );
-    final lock = _LockButton(
+    final lock = StageLockButton(
       key: const ValueKey('run-lock'),
       locked: locked,
       onToggle: _toggleLock,
@@ -492,7 +509,7 @@ class _RunPageState extends State<RunPage> {
         Row(
           children: [
             Expanded(
-              child: _Button(
+              child: StageButton(
                 key: const ValueKey('run-rejoin'),
                 label: l.togetherRejoin,
                 primary: true,
@@ -501,7 +518,7 @@ class _RunPageState extends State<RunPage> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _Button(
+              child: StageButton(
                 key: const ValueKey('run-close'),
                 label: l.timerClose,
                 onTap: _close,
@@ -515,7 +532,7 @@ class _RunPageState extends State<RunPage> {
         bar(
           gate(
             l.timingPause,
-            _PauseBar(
+            StageBar(
               key: const ValueKey('run-pause'),
               icon: CupertinoIcons.pause_fill,
               label: l.timingPause,
@@ -548,7 +565,7 @@ class _RunPageState extends State<RunPage> {
         bar(
           gate(
             l.timerResume,
-            _PauseBar(
+            StageBar(
               key: const ValueKey('run-resume'),
               icon: CupertinoIcons.play_fill,
               label: l.timerResume,
@@ -565,7 +582,7 @@ class _RunPageState extends State<RunPage> {
               Expanded(
                 child: gate(
                   l.timerRestart,
-                  _Button(
+                  StageButton(
                     key: const ValueKey('run-restart'),
                     label: l.timerRestart,
                     onTap: _restart,
@@ -588,7 +605,7 @@ class _RunPageState extends State<RunPage> {
                       onBlocked: _nudgeLock,
                       onEnd: _end,
                     )
-                  : _Button(
+                  : StageButton(
                       key: const ValueKey('run-end'),
                       label: t.shared ? l.togetherLeave : l.timerEnd,
                       onTap: _end,
@@ -639,21 +656,21 @@ void _clearRound(RunLink link, int round) {
 
 // ---- Flood ("수위") and the two faces of text over it.
 
-class _WaterScope extends InheritedWidget {
-  const _WaterScope({required this.water, required super.child});
-  final ValueListenable<_Water> water;
+class StageWaterScope extends InheritedWidget {
+  const StageWaterScope({super.key, required this.water, required super.child});
+  final ValueListenable<StageWater> water;
 
-  static ValueListenable<_Water> of(BuildContext context) =>
-      context.getInheritedWidgetOfExactType<_WaterScope>()!.water;
+  static ValueListenable<StageWater> of(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<StageWaterScope>()!.water;
 
   @override
-  bool updateShouldNotify(_WaterScope old) => water != old.water;
+  bool updateShouldNotify(StageWaterScope old) => water != old.water;
 }
 
 /// Full-screen fill from the bottom. Repaints on the level alone.
-class _Flood extends StatelessWidget {
-  const _Flood({required this.water});
-  final ValueListenable<_Water> water;
+class StageFlood extends StatelessWidget {
+  const StageFlood({super.key, required this.water});
+  final ValueListenable<StageWater> water;
 
   @override
   Widget build(BuildContext context) => RepaintBoundary(
@@ -667,7 +684,7 @@ class _Flood extends StatelessWidget {
 
 class _FloodPainter extends CustomPainter {
   _FloodPainter(this.water, this.top) : super(repaint: water);
-  final ValueListenable<_Water> water;
+  final ValueListenable<StageWater> water;
   final double top;
 
   @override
@@ -687,60 +704,63 @@ class _FloodPainter extends CustomPainter {
 }
 
 /// Ink of one face: light on the empty part, dark on the fill.
-class _Ink {
-  const _Ink(this.main, this.sub, {required this.first});
+class StageInk {
+  const StageInk(this.main, this.sub, {required this.first});
   final Color main, sub;
 
   /// The face screen readers and keyed test finders see.
   final bool first;
 }
 
-const _onEmpty = _Ink(_P.text, _P.textSecondary, first: true);
-const _onFill = _Ink(_P.onFill, _P.onFill, first: false);
+const _onEmpty = StageInk(_P.text, _P.textSecondary, first: true);
+const _onFill = StageInk(_P.onFill, _P.onFill, first: false);
 
 /// [builder] drawn twice with the same layout: the dark face is clipped to
 /// the fill, so a glyph on the waterline changes color half-way.
-class _Faces extends StatelessWidget {
-  const _Faces({required this.builder});
-  final Widget Function(_Ink ink) builder;
+class StageFaces extends StatelessWidget {
+  const StageFaces({super.key, required this.builder});
+  final Widget Function(StageInk ink) builder;
 
   @override
   Widget build(BuildContext context) => Stack(
     fit: StackFit.passthrough,
     children: [
       builder(_onEmpty),
-      _FloodClip(
-        water: _WaterScope.of(context),
+      StageFloodClip(
+        water: StageWaterScope.of(context),
         child: ExcludeSemantics(child: builder(_onFill)),
       ),
     ],
   );
 }
 
-class _FloodClip extends SingleChildRenderObjectWidget {
-  const _FloodClip({required this.water, required super.child});
-  final ValueListenable<_Water> water;
+class StageFloodClip extends SingleChildRenderObjectWidget {
+  const StageFloodClip({super.key, required this.water, required super.child});
+  final ValueListenable<StageWater> water;
 
   @override
-  RenderObject createRenderObject(BuildContext context) => _RenderFloodClip(
+  RenderObject createRenderObject(BuildContext context) => RenderStageFloodClip(
     water,
     MediaQuery.sizeOf(context).height,
     _statusTop(context),
   );
 
   @override
-  void updateRenderObject(BuildContext context, _RenderFloodClip r) => r
+  void updateRenderObject(
+    BuildContext context,
+    RenderStageFloodClip renderObject,
+  ) => renderObject
     ..water = water
     ..screenHeight = MediaQuery.sizeOf(context).height
     ..top = _statusTop(context);
 }
 
-class _RenderFloodClip extends RenderProxyBox {
-  _RenderFloodClip(this._water, this._screenHeight, this._top);
-  ValueListenable<_Water> _water;
+class RenderStageFloodClip extends RenderProxyBox {
+  RenderStageFloodClip(this._water, this._screenHeight, this._top);
+  ValueListenable<StageWater> _water;
   double _screenHeight, _top;
 
-  set water(ValueListenable<_Water> v) {
+  set water(ValueListenable<StageWater> v) {
     if (identical(v, _water)) return;
     if (attached) _water.removeListener(markNeedsPaint);
     _water = v;
@@ -791,8 +811,8 @@ class _RenderFloodClip extends RenderProxyBox {
 
 // ---- Top, number, info.
 
-class _CollapseButton extends StatelessWidget {
-  const _CollapseButton({required this.onTap});
+class StageCollapseButton extends StatelessWidget {
+  const StageCollapseButton({super.key, required this.onTap});
   final VoidCallback onTap;
 
   @override
@@ -857,7 +877,7 @@ class _Top extends StatelessWidget {
             collapse,
             const SizedBox(width: 8),
             Expanded(
-              child: _Faces(
+              child: StageFaces(
                 builder: (ink) => Text(
                   title,
                   maxLines: 1,
@@ -882,7 +902,7 @@ class _Top extends StatelessWidget {
                   liveRegion: true,
                   label: a11y,
                   child: ExcludeSemantics(
-                    child: _Faces(
+                    child: StageFaces(
                       builder: (ink) => FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: AlignmentDirectional.centerStart,
@@ -900,7 +920,7 @@ class _Top extends StatelessWidget {
               if (side != null) ...[
                 const SizedBox(width: 8),
                 ExcludeSemantics(
-                  child: _Faces(
+                  child: StageFaces(
                     builder: (ink) => Text(
                       side!,
                       style: _title3.copyWith(
@@ -962,7 +982,7 @@ class _Number extends StatelessWidget {
         a11y = '$a11y, ${l.timerBeatA11y(n)}';
       }
     }
-    Widget hero(_Ink ink) => FittedBox(
+    Widget hero(StageInk ink) => FittedBox(
       key: ink.first ? const ValueKey('run-number') : null,
       fit: BoxFit.scaleDown,
       child: Text(
@@ -979,7 +999,7 @@ class _Number extends StatelessWidget {
         ),
       ),
     );
-    Widget faces(Animation<double>? pulse) => _Faces(
+    Widget faces(Animation<double>? pulse) => StageFaces(
       builder: (ink) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -1069,7 +1089,7 @@ class _Info extends StatelessWidget {
       }
     }
     final shownLeft = left, shownRight = right;
-    Widget text((String, String) v, _Ink ink) => FittedBox(
+    Widget text((String, String) v, StageInk ink) => FittedBox(
       fit: BoxFit.scaleDown,
       child: Text(
         v.$1,
@@ -1084,7 +1104,7 @@ class _Info extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _Faces(
+          StageFaces(
             builder: (ink) => MergeSemantics(
               child: Wrap(
                 alignment: shownRight == null
@@ -1164,17 +1184,38 @@ class _RoundBar extends StatelessWidget {
 
 // ---- Pulses.
 
-/// White flash at 3, 2 and 1 s before a tabata interval ends. Off for
-/// intervals under 4 s, reduce motion, pause and the summary; under the text.
-class _EndPulse extends StatefulWidget {
-  const _EndPulse({required this.timer});
-  final WorkoutTimer timer;
-
-  @override
-  State<_EndPulse> createState() => _EndPulseState();
+/// The second a tabata interval's end pulse is for: 3, 2 and 1 s before the
+/// end. None for intervals under 4 s, pause and the summary.
+Object? _endBeat(WorkoutTimer t) {
+  final s = t.spec;
+  if (!t.running || s == null || !s.tabata) return null;
+  final phase = t.phase;
+  if (phase != TimingPhase.work && phase != TimingPhase.rest) return null;
+  if ((phase == TimingPhase.work ? s.work : s.rest) < 4) return null;
+  final left = t.remaining;
+  if (left < 1 || left > 3) return null;
+  return (t.round, phase, left);
 }
 
-class _EndPulseState extends State<_EndPulse>
+/// White flash once for each new [beat] while [listenable] notifies (the
+/// tabata stage: [_endBeat]; the set stage: the rest's 3, 2, 1). Off under
+/// reduce motion; under the text.
+class StageEndPulse extends StatefulWidget {
+  const StageEndPulse({
+    super.key,
+    required this.listenable,
+    required this.beat,
+  });
+  final Listenable listenable;
+
+  /// What this moment pulses for (a value that changes per flash), or null.
+  final Object? Function() beat;
+
+  @override
+  State<StageEndPulse> createState() => _EndPulseState();
+}
+
+class _EndPulseState extends State<StageEndPulse>
     with SingleTickerProviderStateMixin {
   static const _peak = 0.18;
   static final _alpha = TweenSequence<double>([
@@ -1195,32 +1236,33 @@ class _EndPulseState extends State<_EndPulse>
     animationBehavior: AnimationBehavior.preserve,
   );
 
-  /// Interval and second already pulsed.
-  (int, TimingPhase, int)? _last;
+  /// The beat already pulsed.
+  Object? _last;
 
   @override
   void initState() {
     super.initState();
-    widget.timer.addListener(_onTick);
+    widget.listenable.addListener(_onTick);
+  }
+
+  @override
+  void didUpdateWidget(StageEndPulse old) {
+    super.didUpdateWidget(old);
+    if (identical(old.listenable, widget.listenable)) return;
+    old.listenable.removeListener(_onTick);
+    widget.listenable.addListener(_onTick);
   }
 
   @override
   void dispose() {
-    widget.timer.removeListener(_onTick);
+    widget.listenable.removeListener(_onTick);
     _ac.dispose();
     super.dispose();
   }
 
   void _onTick() {
-    final t = widget.timer, s = t.spec;
-    if (!t.running || s == null || !s.tabata) return;
-    final phase = t.phase;
-    if (phase != TimingPhase.work && phase != TimingPhase.rest) return;
-    if ((phase == TimingPhase.work ? s.work : s.rest) < 4) return;
-    final left = t.remaining;
-    if (left < 1 || left > 3) return;
-    final key = (t.round, phase, left);
-    if (key == _last) return;
+    final key = widget.beat();
+    if (key == null || key == _last) return;
     _last = key;
     if (!mounted || MediaQuery.disableAnimationsOf(context)) return;
     _ac.forward(from: 0);
@@ -1349,8 +1391,9 @@ class _PulseBox extends StatelessWidget {
 
 /// While locked: dimmed, out of the focus order, disabled for a screen
 /// reader; a touch only nudges.
-class _Gate extends StatelessWidget {
-  const _Gate({
+class StageGate extends StatelessWidget {
+  const StageGate({
+    super.key,
     required this.locked,
     required this.label,
     required this.onBlocked,
@@ -1386,7 +1429,7 @@ class _Gate extends StatelessWidget {
 }
 
 /// One line that shrinks instead of breaking.
-Widget _oneLine(String text, TextStyle style) => FittedBox(
+Widget stageOneLine(String text, TextStyle style) => FittedBox(
   fit: BoxFit.scaleDown,
   child: Padding(
     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -1395,8 +1438,8 @@ Widget _oneLine(String text, TextStyle style) => FittedBox(
 );
 
 /// The 88 pt bar for the thumb: pause, or resume.
-class _PauseBar extends StatelessWidget {
-  const _PauseBar({
+class StageBar extends StatelessWidget {
+  const StageBar({
     super.key,
     required this.icon,
     required this.label,
@@ -1404,11 +1447,14 @@ class _PauseBar extends StatelessWidget {
   });
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+
+  /// Null: shown but not pressable (dimmed, disabled for a screen reader).
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
+    enabled: onTap == null ? false : null,
     label: label,
     onTap: onTap,
     excludeSemantics: true,
@@ -1418,7 +1464,7 @@ class _PauseBar extends StatelessWidget {
       child: Container(
         height: 88,
         decoration: BoxDecoration(
-          color: _P.text,
+          color: onTap == null ? _P.text.withValues(alpha: 0.5) : _P.text,
           borderRadius: BorderRadius.circular(16),
         ),
         alignment: Alignment.center,
@@ -1451,8 +1497,8 @@ class _PauseBar extends StatelessWidget {
 }
 
 /// A 56 pt button: outlined on the dark ground, or white when [primary].
-class _Button extends StatelessWidget {
-  const _Button({
+class StageButton extends StatelessWidget {
+  const StageButton({
     super.key,
     required this.label,
     required this.onTap,
@@ -1480,7 +1526,7 @@ class _Button extends StatelessWidget {
           border: primary ? null : Border.all(color: _P.outline, width: 1.5),
         ),
         alignment: Alignment.center,
-        child: _oneLine(
+        child: stageOneLine(
           label,
           _label.copyWith(color: primary ? _P.bg : _P.text),
         ),
@@ -1490,8 +1536,8 @@ class _Button extends StatelessWidget {
 }
 
 /// « and »: 56 pt circles.
-class _RoundButton extends StatelessWidget {
-  const _RoundButton({
+class StageRoundButton extends StatelessWidget {
+  const StageRoundButton({
     super.key,
     required this.icon,
     required this.label,
@@ -1526,18 +1572,22 @@ class _RoundButton extends StatelessWidget {
 
 /// Lock / unlock: a 56 pt circle held [kHoldToLock]. A screen reader's
 /// double tap (and Enter / Space) toggles at once.
-class _LockButton extends StatefulWidget {
-  const _LockButton({super.key, required this.locked, required this.onToggle});
+class StageLockButton extends StatefulWidget {
+  const StageLockButton({
+    super.key,
+    required this.locked,
+    required this.onToggle,
+  });
   final bool locked;
   final VoidCallback onToggle;
 
   static const size = 56.0;
 
   @override
-  State<_LockButton> createState() => _LockButtonState();
+  State<StageLockButton> createState() => _LockButtonState();
 }
 
-class _LockButtonState extends State<_LockButton>
+class _LockButtonState extends State<StageLockButton>
     with SingleTickerProviderStateMixin {
   // preserve: "remove animations" must not run the 2 s hold in 100 ms.
   late final AnimationController _c =
@@ -1589,7 +1639,7 @@ class _LockButtonState extends State<_LockButton>
               _c,
               locked ? _P.text : _P.outline,
               locked ? _P.bg : _P.text,
-              radius: _LockButton.size / 2,
+              radius: StageLockButton.size / 2,
             ),
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -1597,7 +1647,7 @@ class _LockButtonState extends State<_LockButton>
                 color: locked ? _P.text : _P.bg,
               ),
               child: SizedBox.square(
-                dimension: _LockButton.size,
+                dimension: StageLockButton.size,
                 child: Icon(
                   locked
                       ? CupertinoIcons.lock_fill
@@ -1694,7 +1744,7 @@ class _HoldToEndState extends State<_HoldToEnd>
             children: [
               Opacity(
                 key: const ValueKey('run-hold-ground'),
-                opacity: locked ? (_bright ? 0.7 : _Gate.dim) : 1,
+                opacity: locked ? (_bright ? 0.7 : StageGate.dim) : 1,
                 child: CustomPaint(
                   painter: _HoldBorder(_c, _P.outline, _P.text),
                   child: const DecoratedBox(
@@ -1708,7 +1758,7 @@ class _HoldToEndState extends State<_HoldToEnd>
               ),
               Positioned.fill(
                 child: Center(
-                  child: _oneLine(
+                  child: stageOneLine(
                     locked ? widget.lockedLabel : widget.label,
                     _label.copyWith(
                       color: _P.text.withValues(
@@ -1765,8 +1815,8 @@ class _HoldBorder extends CustomPainter {
 }
 
 /// A 56 pt − or + that repeats while held.
-class _StepKey extends StatefulWidget {
-  const _StepKey({
+class StageStepKey extends StatefulWidget {
+  const StageStepKey({
     super.key,
     required this.icon,
     required this.label,
@@ -1777,10 +1827,10 @@ class _StepKey extends StatefulWidget {
   final VoidCallback? onStep;
 
   @override
-  State<_StepKey> createState() => _StepKeyState();
+  State<StageStepKey> createState() => _StepKeyState();
 }
 
-class _StepKeyState extends State<_StepKey> {
+class _StepKeyState extends State<StageStepKey> {
   Timer? _repeat;
 
   void _stop() {
@@ -1859,7 +1909,7 @@ class _RestLogState extends State<_RestLog> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          _StepKey(
+          StageStepKey(
             key: const ValueKey('run-minus'),
             icon: CupertinoIcons.minus,
             label: '${l.timerRestLog} −',
@@ -1897,7 +1947,7 @@ class _RestLogState extends State<_RestLog> {
               ),
             ),
           ),
-          _StepKey(
+          StageStepKey(
             key: const ValueKey('run-plus'),
             icon: CupertinoIcons.plus,
             label: '${l.timerRestLog} +',
@@ -1906,7 +1956,7 @@ class _RestLogState extends State<_RestLog> {
           const SizedBox(width: 12),
           SizedBox(
             width: 88,
-            child: _Button(
+            child: StageButton(
               key: const ValueKey('together-log'),
               label: l.togetherLog,
               primary: true,
@@ -2209,7 +2259,7 @@ class _SummaryState extends State<_Summary>
                 ],
                 const Spacer(),
                 SizedBox(height: short ? 8 : 16),
-                _Button(
+                StageButton(
                   key: const ValueKey('run-log'),
                   label: primary,
                   primary: true,
@@ -2217,7 +2267,7 @@ class _SummaryState extends State<_Summary>
                 ),
                 if (!t.shared) ...[
                   const SizedBox(height: 8),
-                  _Button(
+                  StageButton(
                     key: const ValueKey('run-again'),
                     label: l.timerAgain,
                     onTap: widget.onAgain,
@@ -2225,7 +2275,7 @@ class _SummaryState extends State<_Summary>
                 ],
                 if (canLog) ...[
                   const SizedBox(height: 8),
-                  _Button(
+                  StageButton(
                     key: const ValueKey('run-summary-close'),
                     label: l.timerClose,
                     onTap: widget.onClose,
@@ -2390,7 +2440,7 @@ class _CountSheetState extends State<_CountSheet> {
     final media = MediaQuery.of(context);
     void pop(({int? reps, bool fill}) v) => Navigator.of(context).pop(v);
     return MediaQuery.withClampedTextScaling(
-      maxScaleFactor: 1.5,
+      maxScaleFactor: kStageMaxTextScale,
       child: CupertinoTheme(
         data: const CupertinoThemeData(brightness: Brightness.dark),
         child: Container(
@@ -2420,7 +2470,7 @@ class _CountSheetState extends State<_CountSheet> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      _StepKey(
+                      StageStepKey(
                         key: const ValueKey('count-sheet-minus'),
                         icon: CupertinoIcons.minus,
                         label: '${l.timerRoundCountTitle(widget.round)} −',
@@ -2446,7 +2496,7 @@ class _CountSheetState extends State<_CountSheet> {
                           ),
                         ),
                       ),
-                      _StepKey(
+                      StageStepKey(
                         key: const ValueKey('count-sheet-plus'),
                         icon: CupertinoIcons.plus,
                         label: '${l.timerRoundCountTitle(widget.round)} +',
@@ -2471,7 +2521,7 @@ class _CountSheetState extends State<_CountSheet> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _Button(
+                  StageButton(
                     key: const ValueKey('count-sheet-done'),
                     label: l.doneEditing,
                     primary: true,
@@ -2479,14 +2529,14 @@ class _CountSheetState extends State<_CountSheet> {
                   ),
                   if (widget.canFill) ...[
                     const SizedBox(height: 8),
-                    _Button(
+                    StageButton(
                       key: const ValueKey('count-sheet-fill'),
                       label: l.timerFillRest(_n),
                       onTap: () => pop((reps: _n, fill: true)),
                     ),
                   ],
                   const SizedBox(height: 8),
-                  _Button(
+                  StageButton(
                     key: const ValueKey('count-sheet-clear'),
                     label: l.timerClear,
                     onTap: () => pop((reps: null, fill: false)),

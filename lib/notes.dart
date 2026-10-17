@@ -542,6 +542,21 @@ class NotesStore extends ChangeNotifier {
   bool _hapticsOn = true;
   bool get hapticsOn => _hapticsOn;
 
+  /// Default rest between sets on the set stage, seconds (15..600). Changed
+  /// only in settings.
+  int _restSeconds = 90;
+  int get restSeconds => _restSeconds;
+
+  /// Rest per exercise key (exerciseKey → seconds), oldest first; at most
+  /// [restByExerciseMax], the oldest dropped.
+  final Map<String, int> _restByExercise = {};
+  Map<String, int> get restByExercise => Map.unmodifiable(_restByExercise);
+  static const restByExerciseMax = 200;
+
+  /// The notification permission was asked once (on the first set stage).
+  bool _focusNotifyAsked = false;
+  bool get focusNotifyAsked => _focusNotifyAsked;
+
   /// 내 몸 정보(기초대사량 셈에만). 기기 밖으로 보내지 않는다.
   BodyProfile _body = const BodyProfile();
   BodyProfile get body => _body;
@@ -753,6 +768,16 @@ class NotesStore extends ChangeNotifier {
           _weightUnit = data['weightUnit'] == 'lb' ? 'lb' : defaultUnit;
           _countAloud = data['countAloud'] == true;
           _hapticsOn = data['hapticsOn'] != false;
+          if (data['restSeconds'] case final int seconds) {
+            _restSeconds = _restRange(seconds);
+          }
+          if (data['restByExercise'] case final Map rests) {
+            _restByExercise.addAll({
+              for (final MapEntry(:key, :value) in rests.entries)
+                if (key is String && value is int) key: _restRange(value),
+            });
+          }
+          _focusNotifyAsked = data['focusNotifyAsked'] == true;
           _body = BodyProfile.fromJson(data['body']);
           _bodyRecords = [
             for (final r in (data['bodyRecords'] as List? ?? const []))
@@ -902,6 +927,9 @@ class NotesStore extends ChangeNotifier {
       'weightUnit': _weightUnit,
       'countAloud': _countAloud,
       'hapticsOn': _hapticsOn,
+      'restSeconds': _restSeconds,
+      if (_restByExercise.isNotEmpty) 'restByExercise': _restByExercise,
+      if (_focusNotifyAsked) 'focusNotifyAsked': true,
       'body': _body.toJson(),
       if (_bodyRecords.isNotEmpty)
         'bodyRecords': [for (final r in _bodyRecords) r.toJson()],
@@ -958,6 +986,39 @@ class NotesStore extends ChangeNotifier {
   void setHapticsOn(bool value) {
     if (value == _hapticsOn) return;
     _hapticsOn = value;
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  static int _restRange(int seconds) => seconds.clamp(15, 600);
+
+  void setRestSeconds(int seconds) {
+    final value = _restRange(seconds);
+    if (value == _restSeconds) return;
+    _restSeconds = value;
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  /// This exercise's rest, else the default ([restSeconds]).
+  int restFor(String key) => _restByExercise[key] ?? _restSeconds;
+
+  /// Remembers [key]'s rest as the newest entry.
+  void setRestFor(String key, int seconds) {
+    final value = _restRange(seconds);
+    if (_restByExercise[key] == value) return;
+    _restByExercise.remove(key);
+    _restByExercise[key] = value;
+    while (_restByExercise.length > restByExerciseMax) {
+      _restByExercise.remove(_restByExercise.keys.first);
+    }
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  void setFocusNotifyAsked() {
+    if (_focusNotifyAsked) return;
+    _focusNotifyAsked = true;
     notifyListeners();
     _scheduleSave();
   }

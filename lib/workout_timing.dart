@@ -273,7 +273,8 @@ enum TimingPhase { ready, work, rest, complete }
 /// selectionClick / mediumImpact / heavyImpact / heavyImpact twice (150 ms).
 enum TimerHaptic { tick, medium, heavy, success }
 
-void _platformHaptic(TimerHaptic kind) {
+/// The device haptic for [kind] (no engine: nothing).
+void platformHaptic(TimerHaptic kind) {
   Future<void> buzz(Future<void> Function() f) =>
       f().catchError((Object _) {}); // No haptics engine (tests, web).
   switch (kind) {
@@ -307,7 +308,7 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   }) : _audio = audio ?? createTimingAudio(),
        _now = now,
        _wallNow = wallNow ?? (now == null ? DateTime.now : null),
-       _haptic = haptic ?? _platformHaptic {
+       _haptic = haptic ?? platformHaptic {
     _watch.start();
     _audio.onInterrupted = _onInterrupted;
     _audio.onResumed = _onResumed;

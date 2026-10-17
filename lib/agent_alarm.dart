@@ -60,6 +60,12 @@ class AgentAlarm {
   /// [init] 이 성공했을 때만 true — 아니면 부르는 쪽이 모두 건너뛴다.
   static Future<bool> get _ready async => _started != null && await _started!;
 
+  /// The plugin [init] set up, for the app's other local notices (the set
+  /// rest, rest_notify.dart): one initialization, one tap handler. Null where
+  /// [init] did not run or failed (web, tests).
+  static Future<FlutterLocalNotificationsPlugin?> get plugin async =>
+      await _ready ? _plugin : null;
+
   /// 거절했으면 false. 이미 정해진 답이면 창 없이 그 답을 돌려준다.
   static Future<bool> ensurePermission() async {
     if (!await _ready) return false;
@@ -132,7 +138,8 @@ class AgentAlarm {
     } catch (_) {}
   }
 
-  /// 로그아웃하거나 직원이 아니게 되면. 이 앱이 거는 로컬 알림은 이것뿐이다.
+  /// 로그아웃하거나 직원이 아니게 되면. 세트 휴식 알림(rest_notify.dart)도 같이
+  /// 지운다 — 몇 분짜리라 잃어도 상관없다.
   static Future<void> clearAll() async {
     if (!await _ready) return;
     try {
