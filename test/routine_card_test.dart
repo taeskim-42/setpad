@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +10,7 @@ import 'package:setpad/editor.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
+import 'package:setpad/query_cache.dart';
 import 'package:setpad/record_ai.dart';
 import 'package:setpad/record_query.dart'
     show familyInstructions, maxQuestionLength;
@@ -59,9 +61,11 @@ void main() {
     RecordAi ai = const RecordAi(),
     List<Note>? records,
     DateTime? now,
+    _Records? into,
+    QueryCache? edits,
   }) async {
-    final store = _Records(records ?? defaultLog());
-    addTearDown(store.dispose);
+    final store = into ?? _Records(records ?? defaultLog());
+    if (into == null) addTearDown(store.dispose);
     final opened = <Note>[];
     await tester.pumpWidget(
       CupertinoApp(
@@ -74,6 +78,7 @@ void main() {
           ai: ai,
           // 요일 규칙이 있어 시계를 못 박는다 — 기준일 9/9(수) 18시.
           now: () => now ?? routineToday,
+          routineEdits: edits,
         ),
       ),
     );
@@ -247,6 +252,52 @@ void main() {
     await tester.tap(find.text(l.routineRestore));
     await tester.pumpAndSettle();
     expect(find.text('레그컬'), findsOneWidget);
+  });
+
+  test('카드 고침은 파일에 남는다 — 새로 연 저장소가 그대로 읽는다', () async {
+    final dir = Directory.systemTemp.createTempSync('routine_edits');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final e = RoutineEdits()
+      ..removed.add('2026-09-02|레그컬')
+      ..restored.add('스쿼트')
+      ..added.add('플랭크')
+      ..alt = 2
+      ..mode = 'strength'
+      ..started = 'n1'
+      ..startedMark = '[["스쿼트"]]';
+    final a = QueryCache(directory: dir, fileName: 'routine_edits.json');
+    a.put('k', e.toJson());
+    await a.flush();
+    final b = QueryCache(directory: dir, fileName: 'routine_edits.json');
+    await b.load();
+    final back = RoutineEdits.fromJson(b['k']);
+    expect(back.toJson(), e.toJson());
+    expect(back.isEmpty, isFalse);
+    expect(RoutineEdits.fromJson({'alt': 'x', 'removed': 3}).isEmpty, isTrue);
+    // 기록 검색의 담은 답과 다른 파일이다.
+    expect(File('${dir.path}/queries.json').existsSync(), isFalse);
+  });
+
+  testWidgets('앱을 다시 켜도 시작한 카드는 "시작함 · 열기" — 새 기록을 또 만들지 않는다', (tester) async {
+    final edits = QueryCache(
+      directory: Directory.systemTemp.createTempSync('routine_edits'),
+      fileName: 'routine_edits.json',
+    );
+    final store = await pump(tester, edits: edits);
+    await type(tester, '오늘 루틴 짜줘');
+    await tester.tap(find.byIcon(CupertinoIcons.xmark).last);
+    await tester.pumpAndSettle();
+    await tester.tap(startButton());
+    await tester.pumpAndSettle();
+    expect(store.created, hasLength(1));
+    // 화면을 통째로 내렸다가(앱 종료) 같은 저장소로 다시 연다.
+    await tester.pumpWidget(const SizedBox());
+    await pump(tester, into: store, edits: edits);
+    await type(tester, '오늘 루틴 짜줘');
+    expect(find.text('레그컬'), findsNothing);
+    await tester.tap(find.widgetWithText(CupertinoButton, l.routineStarted));
+    await tester.pumpAndSettle();
+    expect(store.created, hasLength(1));
   });
 
   testWidgets('다른 루틴은 다음 순위의 날을 보인다', (tester) async {

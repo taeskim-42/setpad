@@ -14,8 +14,13 @@ import 'package:path_provider/path_provider.dart';
 ///
 /// 기기에 남는다. 앱을 껐다 켜도 어제 물어본 말투는 서버에 안 간다.
 class QueryCache {
-  QueryCache({Directory? directory}) : _override = directory;
+  QueryCache({Directory? directory, this.fileName = 'queries.json'})
+    : _override = directory;
   final Directory? _override;
+
+  /// The file in the documents directory. The routine card's edits live in their
+  /// own file so they never push out answered questions.
+  final String fileName;
   final _entries = <String, Object?>{};
   Timer? _debounce;
   Future<void> _writes = Future.value();
@@ -27,7 +32,7 @@ class QueryCache {
 
   Future<File> _file() async {
     final dir = _override ?? await getApplicationDocumentsDirectory();
-    return File('${dir.path}/queries.json');
+    return File('${dir.path}/$fileName');
   }
 
   Future<void> load() async {
@@ -43,7 +48,7 @@ class QueryCache {
       }
     } catch (e) {
       // 캐시는 덤이다. 못 읽으면 없는 셈 치고 간다.
-      debugPrint('queries.json 을 읽지 못했다: $e');
+      debugPrint('$fileName 을 읽지 못했다: $e');
     }
   }
 
@@ -67,7 +72,7 @@ class QueryCache {
       try {
         await (await _file()).writeAsString(payload);
       } catch (e) {
-        debugPrint('queries.json 을 쓰지 못했다: $e');
+        debugPrint('$fileName 을 쓰지 못했다: $e');
       }
     });
   }

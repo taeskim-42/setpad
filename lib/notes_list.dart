@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
 import 'package:intl/intl.dart';
@@ -44,9 +45,14 @@ class NotesListPage extends StatefulWidget {
     this.ai = const RecordAi(),
     this.account,
     this.now = DateTime.now,
+    this.routineEdits,
   });
 
   final NotesStore store;
+
+  /// 오늘 루틴 카드에서 고친 것(✕·넣기·칩·시작한 기록)을 담는 곳. 없으면 문서 폴더의
+  /// routine_edits.json — 앱을 다시 켜도 "시작함" 이 남는다.
+  final QueryCache? routineEdits;
 
   /// 오늘 루틴을 짜는 시계. 요일로 원천이 갈리므로 테스트가 못 박는다.
   final DateTime Function() now;
@@ -72,7 +78,36 @@ class _NotesListPageState extends State<NotesListPage>
   late final _routine = RoutineSearch(widget.ai, cache: _cache);
 
   /// 글마다 카드에서 고친 것(✕·넣기·칩). 다시 짜도(앱 복귀·날짜 바뀜) 남는다.
+  /// 오늘 날짜와 글을 열쇠로 [_editsStore] 에도 남겨 앱을 다시 켜도 잇는다.
   final _edits = <String, RoutineEdits>{};
+  late final _editsStore =
+      widget.routineEdits ?? QueryCache(fileName: 'routine_edits.json');
+
+  String _editsKey(String text) => jsonEncode([
+    'e1',
+    dayOf(widget.now()).toIso8601String().substring(0, 10),
+    text,
+  ]);
+
+  /// 이 글의 고친 것 — 메모리에 없으면 남겨 둔 것에서 읽는다.
+  RoutineEdits _editsOf(String text) => _edits.putIfAbsent(
+    text,
+    () => RoutineEdits.fromJson(_editsStore[_editsKey(text)]),
+  );
+
+  /// 고친 것을 남긴다. 바로 쓴다 — 시작하고 곧 앱이 꺼져도 "시작함" 이 남게.
+  void _keepEdits(String text) {
+    final e = _edits[text];
+    if (e == null) return;
+    _editsStore.put(_editsKey(text), e.toJson());
+    unawaited(_editsStore.flush());
+  }
+
+  /// 카드에서 고친다: 바꾸고, 다시 그리고, 남긴다.
+  void _edit(String text, void Function() change) => setState(() {
+    change();
+    _keepEdits(text);
+  });
 
   /// 모델 없이 기기가 짜기로 한 글과 그 요청 — 이름만 친 글의 칩, "조건 없이 바로
   /// 짜기", 거절 뒤 "오늘 루틴 만들기".
@@ -200,6 +235,13 @@ class _NotesListPageState extends State<NotesListPage>
     _search.addListener(_changed);
     _routine.addListener(_changed);
     WidgetsBinding.instance.addObserver(this);
+    // 남겨 둔 카드 고침을 읽는다. 읽기 전에 그린 빈 고침은 버려 다시 읽게 한다.
+    unawaited(
+      _editsStore.load().then((_) {
+        if (!mounted) return;
+        setState(() => _edits.removeWhere((_, e) => e.isEmpty));
+      }),
+    );
     _loadRoutines();
     // 켤 때는 남겨 둔 로그인이 이 화면보다 늦게 되살아난다. 계정을 듣고 있다가
     // 직원 목록이 오면 그때 보고서를 본다.
@@ -717,9 +759,7 @@ class _NotesListPageState extends State<NotesListPage>
       parts.map((p) => partName(l, p)).join('·'),
     );
     final edits =
-        (prev == null ? null : _edits.remove(prev.$1)) ??
-        _edits[text] ??
-        RoutineEdits();
+        (prev == null ? null : _edits.remove(prev.$1)) ?? _editsOf(text);
     // 넣기 전 카드(몸 그림 카드, 없으면 같은 글의 칩 카드)가 시작한 그대로인가.
     final before = prev?.$2 ?? (_device?.$1 == text ? _device!.$2 : null);
     final started = before == null
@@ -732,7 +772,10 @@ class _NotesListPageState extends State<NotesListPage>
     edits.removed.removeWhere((r) => r.endsWith('|$key'));
     edits.restored.add(key);
     if (!edits.added.contains(key)) edits.added.add(key);
-    if (started == null) return null;
+    if (started == null) {
+      _keepEdits(text);
+      return null;
+    }
     final draft = _compose(ask, edits);
     final item = draft.items.where((i) => i.key == key).firstOrNull;
     if (item != null &&
@@ -742,6 +785,7 @@ class _NotesListPageState extends State<NotesListPage>
     // 카드가 바뀌었어도 시작한 기록은 이것이다 — [시작함] 은 이 기록을 열고, 카드는
     // 이 기록을 보인다.
     edits.startedMark = draftMark(draft);
+    _keepEdits(text);
     return started;
   }
 
@@ -757,11 +801,12 @@ class _NotesListPageState extends State<NotesListPage>
   /// 시작 = 트레이너 루틴과 같은 길(새 기록 + 편집기). 누를 때마다 새 칸이다 — 이미
   /// 시작한 카드는 [시작함] 이 그 기록을 연다(두 번 눌러도 기록은 하나다, G18).
   /// 카드가 바뀌었으면(다른 루틴·✕·넣기) 시작한 기록을 열지 않고 새로 시작한다.
-  void _startDraft(RoutineDraft draft, RoutineEdits edits) {
+  void _startDraft(String text, RoutineDraft draft, RoutineEdits edits) {
     final note = widget.store.create(blocks: startBlocks(draft));
     edits
       ..started = note.id
       ..startedMark = draftMark(draft);
+    _keepEdits(text);
     _open(note);
   }
 
@@ -778,7 +823,7 @@ class _NotesListPageState extends State<NotesListPage>
   Widget _routineCard(L l, String text, HomeRoute? route) {
     final recorded = _recorded;
     final lang = _lang;
-    final edits = _edits.putIfAbsent(text, RoutineEdits.new);
+    final edits = _editsOf(text);
     final status = <String>[];
     final actions = <RoutineAction>[];
     final extra = <Widget>[];
@@ -982,23 +1027,23 @@ class _NotesListPageState extends State<NotesListPage>
       onStart: started != null
           ? () => _open(started)
           : draft.startable
-          ? () => _startDraft(draft, edits)
+          ? () => _startDraft(text, draft, edits)
           : null,
       started: started != null,
-      onRemove: (item) => setState(() {
+      onRemove: (item) => _edit(text, () {
         edits.restored.remove(item.key);
         edits.removed.add(removalKey(draft, item.key));
       }),
-      onRestore: (key) => setState(() {
+      onRestore: (key) => _edit(text, () {
         edits.removed.remove(removalKey(draft, key));
         edits.restored.add(key);
       }),
-      onAdd: (key) => setState(() => edits.added.add(key)),
-      onOther: () => setState(() => edits.alt++),
-      onPrevious: () => setState(() => edits.previous = true),
-      onPart: () => setState(() => edits.part = draft.partChip),
-      onStep: () => setState(() => edits.step = true),
-      onMode: (mode) => setState(() => edits.mode = mode),
+      onAdd: (key) => _edit(text, () => edits.added.add(key)),
+      onOther: () => _edit(text, () => edits.alt++),
+      onPrevious: () => _edit(text, () => edits.previous = true),
+      onPart: () => _edit(text, () => edits.part = draft.partChip),
+      onStep: () => _edit(text, () => edits.step = true),
+      onMode: (mode) => _edit(text, () => edits.mode = mode),
       spent: !charged
           ? (before ? l.routinePlatesBefore : null)
           : account?.platesSpent != null
@@ -1018,6 +1063,7 @@ class _NotesListPageState extends State<NotesListPage>
     _routine.removeListener(_changed);
     _routine.dispose();
     _search.dispose();
+    _editsStore.dispose();
     _query.dispose();
     super.dispose();
   }

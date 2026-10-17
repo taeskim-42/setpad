@@ -1689,6 +1689,45 @@ class RoutineEdits {
   /// 시작한 기록의 id — 다시 누르면 새로 만들지 않고 그 기록을 연다. 시작한 뒤
   /// 카드가 바뀌면([startedMark] 와 다르면) 새로 시작한다.
   String? started, startedMark;
+
+  /// Saved next to the query cache so a restart keeps ✕·넣기·칩 and "시작함".
+  Map<String, Object?> toJson() => {
+    if (removed.isNotEmpty) 'removed': [...removed],
+    if (restored.isNotEmpty) 'restored': [...restored],
+    if (added.isNotEmpty) 'added': added,
+    if (step) 'step': true,
+    if (previous) 'previous': true,
+    if (alt != 0) 'alt': alt,
+    'part': ?part,
+    'mode': ?mode,
+    'started': ?started,
+    'startedMark': ?startedMark,
+  };
+
+  bool get isEmpty => toJson().isEmpty;
+
+  /// Reads [toJson]; anything malformed is dropped (the cache is a convenience).
+  static RoutineEdits fromJson(Object? raw) {
+    final e = RoutineEdits();
+    if (raw is! Map) return e;
+    List<String> strings(Object? v) => [
+      if (v is List)
+        for (final x in v)
+          if (x is String) x,
+    ];
+    String? text(Object? v) => v is String ? v : null;
+    e.removed.addAll(strings(raw['removed']));
+    e.restored.addAll(strings(raw['restored']));
+    e.added.addAll(strings(raw['added']));
+    e.step = raw['step'] == true;
+    e.previous = raw['previous'] == true;
+    e.alt = raw['alt'] is int ? raw['alt'] as int : 0;
+    e.part = text(raw['part']);
+    e.mode = text(raw['mode']);
+    e.started = text(raw['started']);
+    e.startedMark = text(raw['startedMark']);
+    return e;
+  }
 }
 
 DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
