@@ -1970,9 +1970,15 @@ RoutineDraft composeRoutine(
   }
 
   // 기록: 이 날 전까지(오늘 한 것은 쉰 날 셈에 든다). 내 세트가 있는 기록만.
+  // 이 카드로 시작한 기록은 뺀다 — 하고 있는 루틴이 제 원천을 흔들면 안 된다(세트를
+  // 하나 적으면 그 운동의 쉰 날이 0 이 되어 주말·회전이 다른 날을 고르고, 카드가
+  // [시작] 으로 되돌아가 기록이 둘이 됐다).
   final history = [
     for (final n in notes)
-      if (_mineBlocks(n).isNotEmpty && !_day(n.createdAt).isAfter(today)) n,
+      if (n.id != e.started &&
+          _mineBlocks(n).isNotEmpty &&
+          !_day(n.createdAt).isAfter(today))
+        n,
   ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   final lastDone = <String, DateTime>{};
   for (final n in history) {
@@ -3108,12 +3114,12 @@ RoutineDraft composeRoutine(
   }
 
   // 오늘 이미 한 운동이 들었다 — 원천은 그대로 두고 말한다(다른 루틴을 누를 수 있다).
-  // 이 카드로 시작한 기록은 빼고 본다(하고 있는 루틴이다).
+  // 이 카드로 시작한 기록은 [history] 에 없다(하고 있는 루틴이다).
   if (!draft.future &&
       const {'weekday', 'factor', 'rotation'}.contains(draft.source)) {
     final doneKeys = {
       for (final n in history)
-        if (n.id != e.started && _day(n.createdAt) == today)
+        if (_day(n.createdAt) == today)
           for (final b in _mineBlocks(n)) exerciseKey(b.exercise),
     };
     final done = [

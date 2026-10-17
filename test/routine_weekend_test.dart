@@ -417,4 +417,49 @@ void main() {
       contains(startsWith('C14')),
     );
   });
+
+  group('시작한 기록은 제 원천을 흔들지 않는다(세트를 적어도 같은 카드 · "시작함" 유지)', () {
+    // 시작한 칸의 세트를 모두 해낸 것으로 적은 기록.
+    Note doing(RoutineDraft d, DateTime t) => Note(
+      id: 'started',
+      createdAt: t,
+      updatedAt: t,
+      blocks: [
+        for (final b in startBlocks(d))
+          ExerciseBlock(b.name, [
+            for (final s in b.sets)
+              LoggedSet(value: s.value, unit: s.unit, reps: s.reps),
+          ], b.setup),
+      ],
+    );
+
+    void same(List<Note> log, DateTime now) {
+      final d = make(log, now);
+      final edits = RoutineEdits()
+        ..started = 'started'
+        ..startedMark = draftMark(d);
+      final withSets = [doing(d, now.add(const Duration(minutes: 5))), ...log];
+      final again = make(withSets, now, edits: edits);
+      expect(again.sourceDay, d.sourceDay);
+      expect(draftMark(again), edits.startedMark);
+      // 이 카드가 아니면(시작 표지 없음) 오늘 한 것으로 센다 — 다른 날을 고른다.
+      expect(make(withSets, now).sourceDay, isNot(d.sourceDay));
+    }
+
+    test('주말: 모자란 요인 셈이 오늘 한 세트로 바뀌지 않는다', () => same(mw, sat));
+
+    test('회전: 오늘 한 운동의 쉰 날이 0 이 되지 않는다', () {
+      final log = [
+        at(DateTime(2026, 9, 14, 19), [
+          ExerciseBlock('벤치프레스', times(3, () => kg(60, 10))),
+        ]),
+        at(DateTime(2026, 9, 15, 19), [
+          ExerciseBlock('스쿼트', times(3, () => kg(80, 5))),
+        ]),
+      ];
+      final wed = DateTime(2026, 9, 16, 18);
+      expect(make(log, wed).source, 'rotation');
+      same(log, wed);
+    });
+  });
 }
