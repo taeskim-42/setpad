@@ -210,13 +210,8 @@ class _RunPageState extends State<RunPage> {
     if (!_over) _close();
   }
 
-  void _restart() {
-    _timer.restart();
-    _link
-      ..roundReps.clear()
-      ..logged = false
-      ..changed();
-  }
+  /// A new run: the link forgets this one's log by itself (runId).
+  void _restart() => _timer.restart();
 
   @override
   Widget build(BuildContext context) {
@@ -591,16 +586,11 @@ class _RunPageState extends State<RunPage> {
   }
 }
 
-/// Reps logged for [round] (1-based) in this run, by the rest log or a
-/// shared table; null when not logged.
-int? _roundLogged(RunLink link, int round) {
-  final i = round - 1;
-  if (i < link.roundReps.length && link.roundReps[i] != null) {
-    return link.roundReps[i];
-  }
-  final mine = link.together?.mine ?? const [];
-  return i < mine.length ? mine[i] : null;
-}
+/// Reps logged for [round] (1-based) in this run; null when not logged.
+/// Only this run's log counts — not the sets already on the card, not a
+/// shared table (those are in set order, not round order).
+int? _roundLogged(RunLink link, int round) =>
+    round <= link.roundReps.length ? link.roundReps[round - 1] : null;
 
 /// Rest log start: this run's last, the block's last set, then 10.
 int _restDefault(RunLink link) =>
@@ -611,12 +601,20 @@ int _restDefault(RunLink link) =>
     10;
 
 /// Writes one round (1-based) into this run and hands it to the editor.
+/// Null reps is a set without a count ('–'), not a clear.
 void _logRound(RunLink link, int round, int? reps) {
   while (link.roundReps.length < round) {
     link.roundReps.add(null);
   }
   link.roundReps[round - 1] = reps;
   link.onLogRound?.call(round, reps);
+  link.changed();
+}
+
+/// Takes a logged round's set away again: the round is owed once more.
+void _clearRound(RunLink link, int round) {
+  if (round <= link.roundReps.length) link.roundReps[round - 1] = null;
+  link.onClearRound?.call(round);
   link.changed();
 }
 
@@ -1919,22 +1917,24 @@ class _Summary extends StatefulWidget {
 
 class _SummaryState extends State<_Summary>
     with SingleTickerProviderStateMixin {
-  /// Reps picked for rounds not logged yet (1-based); logged on the button.
-  final _draft = <int, int?>{};
   late final _flash = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 300),
     value: 1,
   );
-  var _flashed = false;
 
   RunLink get _link => widget.link;
+
+  /// Reps picked for rounds not logged yet (1-based); logged on the button.
+  /// On the link, so folding the summary and opening it again keeps them.
+  Map<int, int?> get _draft => _link.drafts;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_flashed) return;
-    _flashed = true;
+    // Once per run, not again when the summary is opened again.
+    if (_link.flashed) return;
+    _link.flashed = true;
     if (!_link.timer.endedEarly && !MediaQuery.disableAnimationsOf(context)) {
       _flash.forward(from: 0);
     }
@@ -2008,7 +2008,9 @@ class _SummaryState extends State<_Summary>
     );
     if (res == null || !mounted) return;
     if (logged) {
-      _logRound(_link, round, res.reps);
+      res.reps == null
+          ? _clearRound(_link, round)
+          : _logRound(_link, round, res.reps);
       return;
     }
     setState(() {
@@ -2027,6 +2029,14 @@ class _SummaryState extends State<_Summary>
     final link = _link, t = link.timer, s = t.spec!;
     final short = MediaQuery.sizeOf(context).height < 600;
     final duo = t.shared ? link.together : null;
+    // My row is this run's rounds; the others are their sets on the card.
+    final people = [
+      if (duo != null) ...[
+        (l.togetherMe, link.roundReps),
+        (duo.partner, duo.theirs),
+        for (final p in duo.more) (p.name, p.counts),
+      ],
+    ];
     final chip = [
       if (s.tabata) l.timingProtocol(s.work, s.rest, s.rounds),
       if (s.bpm != null) l.timingBpm(s.bpm!),
@@ -2170,9 +2180,9 @@ class _SummaryState extends State<_Summary>
                     ],
                   ),
                 ],
-                if (duo != null && duo.longest > 0) ...[
+                if (people.any((p) => p.$2.isNotEmpty)) ...[
                   const SizedBox(height: 16),
-                  _People(duo: duo),
+                  _People(rows: people, left: duo!.partnerLeft),
                 ],
                 if (lastRest != null) ...[
                   const SizedBox(height: 12),
@@ -2278,21 +2288,20 @@ class _RoundChip extends StatelessWidget {
 
 /// Together: one row per person, '–' where nothing was logged (not 0).
 class _People extends StatelessWidget {
-  const _People({required this.duo});
-  final TogetherTiming duo;
+  const _People({required this.rows, required this.left});
+  final List<(String, List<int?>)> rows;
+
+  /// Where the others left, if they did.
+  final String? left;
 
   @override
   Widget build(BuildContext context) {
-    final l = L.of(context);
+    final longest = rows.map((r) => r.$2.length).reduce(math.max);
     return Column(
       key: const ValueKey('run-people'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final (name, counts) in [
-          (l.togetherMe, duo.mine),
-          (duo.partner, duo.theirs),
-          for (final p in duo.more) (p.name, p.counts),
-        ])
+        for (final (name, counts) in rows)
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Row(
@@ -2313,7 +2322,7 @@ class _People extends StatelessWidget {
                   child: Text(
                     [
                       ...counts,
-                      for (var i = counts.length; i < duo.longest; i++) null,
+                      for (var i = counts.length; i < longest; i++) null,
                     ].map((n) => n ?? '–').join('  '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -2323,11 +2332,11 @@ class _People extends StatelessWidget {
               ],
             ),
           ),
-        if (duo.partnerLeft != null)
+        if (left != null)
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              duo.partnerLeft!,
+              left!,
               style: const TextStyle(fontSize: 13, color: _P.textSecondary),
             ),
           ),

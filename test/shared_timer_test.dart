@@ -527,6 +527,93 @@ void main() {
     });
   });
 
+  testWidgets('같이: 건너뛴 라운드는 다음 라운드 값을 빌리지 않고, 요약의 [N세트 적기] 는 N 세트를 남기며, '
+      '끝난 뒤 혼자 다시 돌리면 1라운드를 다시 적는다', (tester) async {
+    final (_, mina, jun) = await pair();
+    final c = RoutineEditorController()
+      ..addExercise('버피 타바타 5/5 x4')
+      ..closeBlock();
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        supportedLocales: L.supportedLocales,
+        localizationsDelegates: L.localizationsDelegates,
+        home: CupertinoPageScaffold(
+          resizeToAvoidBottomInset: false,
+          child: SafeArea(
+            child: RoutineEditor(
+              controller: c,
+              partner: mina.sync,
+              timer: mina.timer,
+              askTimerPermissions: () async {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('together-start')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('together-simultaneous')));
+    await tester.pumpAndSettle();
+    await jun.sync.refresh();
+    await jun.sync.acceptTimer();
+    world += 2500;
+    await mina.sync.refresh();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(mina.timer.running && mina.timer.shared, isTrue);
+    expect(find.byType(RunPage), findsOneWidget);
+
+    Future<void> to(int sec) async {
+      world += sec * 1000 - mina.timer.elapsed.inMilliseconds;
+      mina.timer.tick();
+      await tester.pump();
+      await tester.pump();
+    }
+
+    await to(9); // round 1 rest
+    await tester.tap(find.byKey(const ValueKey('together-log')));
+    await tester.pump();
+    await to(19); // round 2 rest: not logged
+    expect(find.byKey(const ValueKey('together-log')), findsOneWidget);
+    await to(29); // round 3 rest
+    await tester.tap(find.byKey(const ValueKey('run-plus')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('together-log')));
+    await tester.pump();
+    await to(39);
+    expect(mina.timer.phase, TimingPhase.complete);
+    await tester.pump();
+    for (final chip in ['1R 10', '2R –', '3R 11', '4R –']) {
+      expect(find.text(chip), findsOneWidget, reason: chip);
+    }
+    expect(find.text('2세트 적기'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('run-log')));
+    await tester.pumpAndSettle();
+    expect(c.blocks.single.sets.map((s) => s.reps), [10, 11, null, null]);
+
+    // Alone on the same card: a new run, round 1 is owed again.
+    await tester.tap(find.byKey(const ValueKey('timer-reset')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('timer-start')));
+    await tester.pumpAndSettle();
+    expect(mina.timer.shared, isFalse);
+    world += 9000;
+    mina.timer.tick();
+    await tester.pump();
+    await tester.pump();
+    expect(mina.timer.phase, TimingPhase.rest);
+    expect(find.byKey(const ValueKey('together-log')), findsOneWidget);
+    expect(find.textContaining('적었어요'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 200));
+    mina.timer.reset();
+    mina.timer.dispose();
+    jun.timer.dispose();
+  });
+
   testWidgets('같이 하는 박자가 내 목표에 닿으면 끝나고 그만(leave)을 보내며, 다음 소식에 다시 켜지지 않는다', (
     tester,
   ) async {

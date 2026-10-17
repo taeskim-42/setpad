@@ -650,12 +650,49 @@ void main() {
     testWidgets('again restarts from the top and forgets this run', (t) async {
       final r = Rig()..startAt(tabata, const Duration(seconds: 300));
       r.link.roundReps.add(10);
+      r.link.drafts[2] = 12;
       await mount(t, r);
+      expect(r.link.flashed, isTrue);
       await t.tap(key('run-again'));
       await t.pump();
       expect(r.timer.running, isTrue);
       expect(r.timer.phase, TimingPhase.ready);
       expect(r.link.roundReps, isEmpty);
+      expect(r.link.drafts, isEmpty);
+      expect(r.link.flashed, isFalse);
+      await done(t, r);
+    });
+
+    testWidgets('folding the summary keeps the picked counts; no second flash', (
+      t,
+    ) async {
+      const spec = TimingSpec(tabata: true, rounds: 3);
+      final r = Rig()..startAt(spec, const Duration(seconds: 84));
+      await mount(t, r);
+      await t.tap(key('run-round-1'));
+      await sheet(t);
+      await t.tap(key('count-sheet-plus'));
+      await t.pump();
+      await t.tap(key('count-sheet-done'));
+      await sheet(t);
+      expect(find.text('1R 11'), findsOneWidget);
+      await t.tap(key('run-summary-close'));
+      await sheet(t);
+      expect(find.byType(RunPage), findsNothing);
+      expect(r.rounds, isEmpty);
+      await t.tap(key('open'));
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 50));
+      final glow = t
+          .widgetList<ColoredBox>(find.byType(ColoredBox))
+          .where((b) => b.color.toARGB32() & 0xFFFFFF == 0xFFFFFF);
+      expect(glow.map((b) => b.color.a), everyElement(0), reason: 'no flash');
+      await sheet(t);
+      expect(find.text('1R 11'), findsOneWidget);
+      expect(find.text('3세트 적기'), findsOneWidget);
+      await t.tap(key('run-log'));
+      await sheet(t);
+      expect(r.rounds, [(1, 11), (2, null), (3, null)]);
       await done(t, r);
     });
   });
@@ -731,12 +768,47 @@ void main() {
       await done(t, r);
     });
 
+    testWidgets('this run decides what is logged, not the sets on the card', (
+      t,
+    ) async {
+      // Two sets of mine from before this run: round 1 is still owed.
+      final r = Rig();
+      r.timer.follow(r.owner, tabata, const Duration(seconds: 25));
+      r.link.together = duo(mine: const [10, 10]);
+      await mount(t, r);
+      expect(r.timer.phase, TimingPhase.rest);
+      expect(key('together-log'), findsOneWidget);
+      expect(find.textContaining('적었어요'), findsNothing);
+      await done(t, r);
+    });
+
+    testWidgets('a skipped round is not borrowed from the next one', (t) async {
+      const spec = TimingSpec(tabata: true, rounds: 3);
+      final r = Rig();
+      r.timer.follow(r.owner, spec, const Duration(seconds: 84));
+      r.link.roundReps.addAll([10, null, 11]);
+      r.link.together = duo(mine: const [10, 11], theirs: const [9, 9, 9]);
+      await mount(t, r);
+      expect(r.timer.phase, TimingPhase.complete);
+      expect(find.text('1R 10'), findsOneWidget);
+      expect(find.text('2R –'), findsOneWidget);
+      expect(find.text('3R 11'), findsOneWidget);
+      expect(find.text('1세트 적기'), findsOneWidget);
+      expect(find.text('10  –  11'), findsOneWidget, reason: 'my row by round');
+      await t.tap(key('run-log'));
+      await sheet(t);
+      expect(r.rounds, [(2, null)]);
+      await done(t, r);
+    });
+
     testWidgets('the summary has one row per person', (t) async {
       const spec = TimingSpec(tabata: true, rounds: 2);
       final r = Rig();
       r.timer.follow(r.owner, spec, const Duration(seconds: 52));
+      r.link.roundReps.add(12);
       r.link.together = duo(
-        mine: const [12],
+        // Every set of mine on the card, older runs too: not this table.
+        mine: const [8, 12],
         theirs: const [14, 13],
         more: const [(name: '소라', counts: <int?>[])],
         gone: '소라 님은 1라운드에서 멈춤',

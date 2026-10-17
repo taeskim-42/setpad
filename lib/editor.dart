@@ -280,7 +280,8 @@ class RoutineEditorController extends ChangeNotifier {
   }
 
   /// 횟수만으로 한 세트. 같이 하는 타이머의 쉬는 구간에서 한 번 눌러 적는다.
-  void logReps(ExerciseBlock block, int reps) {
+  /// 횟수를 안 센 라운드는 null 이다('–') — 지어내지 않는다.
+  void logReps(ExerciseBlock block, int? reps) {
     if (!blocks.contains(block)) return;
     block.sets.add(
       LoggedSet(
@@ -822,8 +823,10 @@ class _RoutineEditorState extends State<RoutineEditor>
   late final _recovery = widget.recovery ?? RestRecovery(health: HealthLink());
   late final _link = RunLink(_workoutTimer);
 
-  /// Round (1-based) → id of the set it was logged as, for this run.
+  /// Round (1-based) → id of the set it was logged as, for this run
+  /// ([WorkoutTimer.runId] [_run]).
   final _roundSets = <int, String>{};
+  int? _run;
   bool _runOpen = false, _timerAsked = false, _warmed = false;
 
   /// The sheet changes these settings while the page that passed them in
@@ -1272,14 +1275,12 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 타이머가 구간을 넘길 때마다 기준선을 다시 잡는다. 세트가 시작되면
   /// 최고 심박을 새로 세고, 휴식이 시작되면 그때부터 회복을 본다.
   void _followTimer() {
-    // Nothing is logged during a run's 3 s ready: logs still here belong to
-    // the run before (reset, restart, another card).
-    if (_workoutTimer.phase == TimingPhase.ready &&
-        (_link.roundReps.isNotEmpty || _roundSets.isNotEmpty || _link.logged)) {
+    // A new run (from the top, restart, reset, another card, another shared
+    // run) logs new sets; « back to the ready stays in the run. The link
+    // forgets its log the same way.
+    if (_workoutTimer.runId != _run) {
+      _run = _workoutTimer.runId;
       _roundSets.clear();
-      _link.roundReps.clear();
-      _link.logged = false;
-      _link.changed();
     }
     if (!_workoutTimer.wantsHeart) {
       _recovery.stop();
@@ -1343,10 +1344,12 @@ class _RoutineEditorState extends State<RoutineEditor>
       final block = _blockFor(t);
       final at = t.elapsedAt(widget.partner!.clock.now);
       if (block != null && at != null) {
-        // A finished run ignores follow() until reset; a new proposal (seq)
-        // on the same card and spec is a new run.
+        // A new proposal (seq) is a new run, even on the same card and spec
+        // (a finished run also ignores follow() until reset). The first one
+        // this editor sees may be the run already going.
         if (t.seq != _followedSeq &&
-            (_workoutTimer.phase == TimingPhase.complete ||
+            (_followedSeq != null ||
+                _workoutTimer.phase == TimingPhase.complete ||
                 _workoutTimer.endedEarly)) {
           _workoutTimer.reset();
         }
@@ -1539,17 +1542,14 @@ class _RoutineEditorState extends State<RoutineEditor>
     return owner is ExerciseBlock && _c.blocks.contains(owner) ? owner : null;
   }
 
-  /// Writes or fixes the set of [round] (1-based); null reps removes it.
+  /// Writes or fixes the set of [round] (1-based). Null reps is a set
+  /// without a count ('–'): the round was done, its reps not counted.
   void _logRound(int round, int? reps) {
     final block = _timedBlock;
     if (block == null || round < 1) return;
     final index = _c.blocks.indexOf(block);
-    final id = _roundSets[round];
-    final at = id == null ? -1 : block.sets.indexWhere((s) => s.id == id);
-    if (reps == null) {
-      _roundSets.remove(round);
-      if (at >= 0) _c.removeSet(index, at);
-    } else if (at >= 0) {
+    final at = _roundAt(block, round);
+    if (at >= 0) {
       final set = block.sets[at];
       _c.updateSet(
         index,
@@ -1566,6 +1566,23 @@ class _RoutineEditorState extends State<RoutineEditor>
     }
     log[round - 1] = reps;
     _link.changed();
+  }
+
+  /// Removes the set [round] was logged as (the summary's "clear").
+  void _clearRound(int round) {
+    final block = _timedBlock;
+    if (block == null || round < 1) return;
+    final at = _roundAt(block, round);
+    _roundSets.remove(round);
+    if (at >= 0) _c.removeSet(_c.blocks.indexOf(block), at);
+    if (round <= _link.roundReps.length) _link.roundReps[round - 1] = null;
+    _link.changed();
+  }
+
+  /// Where the set of [round] is in [block], or -1.
+  int _roundAt(ExerciseBlock block, int round) {
+    final id = _roundSets[round];
+    return id == null ? -1 : block.sets.indexWhere((s) => s.id == id);
   }
 
   void _logCount(int reps) {
@@ -1623,7 +1640,11 @@ class _RoutineEditorState extends State<RoutineEditor>
       ..weightLabel = block?.setup?.weight == null
           ? null
           : formatValue(block!.setup!.weight!, block.setup!.unit)
-      ..together = block == null ? null : _togetherFor(block, l)
+      // Only a shared run is together: a solo run on the same card later
+      // must not read that table.
+      ..together = block == null || !_workoutTimer.shared
+          ? null
+          : _togetherFor(block, l)
       ..recovery = _recovery
       ..heartShared = _workoutTimer.shared
       // RestLog's default: my last set on this card (not a partner's).
@@ -1784,6 +1805,7 @@ class _RoutineEditorState extends State<RoutineEditor>
     _workoutTimer.onComplete = _onTimerComplete;
     _link
       ..onLogRound = _logRound
+      ..onClearRound = _clearRound
       ..onLogCount = _logCount
       ..onLeave = _leaveShared
       ..onRejoin = () => unawaited(widget.partner?.rejoinTimer());

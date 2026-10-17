@@ -160,7 +160,7 @@ void main() {
     expect(block.sets.single.id, id, reason: 'fixed in place');
     link.onLogRound!(3, 9);
     expect(link.roundReps, [13, null, 9]);
-    link.onLogRound!(3, null);
+    link.onClearRound!(3);
     expect(block.sets.map((s) => s.reps), [13]);
     expect(link.roundReps, [13, null, null]);
 
@@ -171,6 +171,84 @@ void main() {
     await advance(tester, const Duration(seconds: 48));
     link.onLogRound!(1, 10);
     expect(block.sets.map((s) => s.reps), [13, 10]);
+    await fold(tester);
+    await finish(tester);
+  });
+
+  testWidgets('요약 [N세트 적기] 는 고르지 않은 라운드도 reps:null 세트로 남기고(N = 생긴 세트), '
+      '비우기는 이미 적은 라운드의 세트를 지운다', (tester) async {
+    final c = RoutineEditorController()
+      ..addExercise('버피 타바타 5/5 x2')
+      ..closeBlock();
+    await tester.pumpWidget(
+      app(
+        RoutineEditor(
+          controller: c,
+          timer: timer,
+          askTimerPermissions: () async {},
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('timer-start')));
+    await tester.pumpAndSettle();
+    final block = c.blocks.single;
+    await advance(tester, const Duration(seconds: 10)); // round 1 rest
+    await tester.tap(find.byKey(const ValueKey('together-log')));
+    await tester.pump();
+    expect(block.sets.map((s) => s.reps), [10]);
+    await advance(tester, const Duration(seconds: 18));
+    expect(timer.phase, TimingPhase.complete);
+    await tester.pumpAndSettle();
+    expect(find.text('1R 10'), findsOneWidget);
+    expect(find.text('1세트 적기'), findsOneWidget);
+    // Clear the logged round: its set goes, the round is owed again.
+    await tester.tap(find.byKey(const ValueKey('run-round-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('count-sheet-clear')));
+    await tester.pumpAndSettle();
+    expect(block.sets, isEmpty);
+    expect(find.text('1R –'), findsOneWidget);
+    expect(find.text('2세트 적기'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('run-log')));
+    await tester.pumpAndSettle();
+    expect(find.byType(RunPage), findsNothing);
+    expect(block.sets.map((s) => s.reps), [null, null], reason: '2 = 2');
+    expect(find.byKey(const ValueKey('timer-log-now')), findsNothing);
+    await finish(tester);
+  });
+
+  testWidgets('« 로 준비 구간까지 되감아도 같은 run 이다 — 적은 라운드를 다시 적게 하지 않는다', (
+    tester,
+  ) async {
+    final c = RoutineEditorController()
+      ..addExercise('버피 타바타')
+      ..closeBlock();
+    await tester.pumpWidget(
+      app(
+        RoutineEditor(
+          controller: c,
+          timer: timer,
+          askTimerPermissions: () async {},
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('timer-start')));
+    await tester.pumpAndSettle();
+    final link = stageLink(tester);
+    await advance(tester, const Duration(seconds: 24)); // round 1 rest
+    await tester.tap(find.byKey(const ValueKey('together-log')));
+    await tester.pump();
+    timer.back(); // rest -> round 1 work
+    timer.back(); // round 1 work -> ready
+    await tester.pump();
+    expect(timer.phase, TimingPhase.ready);
+    expect(link.roundReps, [10], reason: 'the same run');
+    await advance(tester, const Duration(seconds: 48)); // round 1 rest again
+    expect(timer.phase, TimingPhase.rest);
+    expect(find.byKey(const ValueKey('together-log')), findsNothing);
+    expect(find.text('10회 적었어요'), findsNWidgets(2));
+    link.onLogRound!(1, 11);
+    expect(c.blocks.single.sets.map((s) => s.reps), [11], reason: 'fixed');
     await fold(tester);
     await finish(tester);
   });

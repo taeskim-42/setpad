@@ -358,6 +358,13 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Completed or ended; [follow] leaves the same run alone until a reset.
   bool _finished = false;
+
+  /// Which run this is. Starting from the top ([toggle] on a new or finished
+  /// run, [restart], following another shared run) and [reset]/[clear] count
+  /// up; pause, resume, skip, back and re-syncing a shared run do not. What
+  /// was logged belongs to one run.
+  int get runId => _runId;
+  int _runId = 0;
   int? _countAtEnd;
   bool _interrupted = false;
 
@@ -579,12 +586,14 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     owner = block;
     spec = value;
     shared = true;
-    _rewind();
+    // Put back in place (late, resumed, rejoined): still the same run.
+    if (!same) _rewind();
     _elapsed = at;
     _start();
   }
 
   void _rewind() {
+    _runId++;
     _elapsed = Duration.zero;
     _begun = false;
     _finished = false;
@@ -1004,13 +1013,6 @@ class TogetherTiming {
 
   /// 셋 이상이 같이 할 때 [partner] 말고 나머지 사람들의 줄.
   final List<({String name, List<int?> counts})> more;
-
-  /// 가장 많이 적은 사람의 세트 수. 짧은 줄은 여기까지 – 로 채운다.
-  int get longest => [
-    mine.length,
-    theirs.length,
-    for (final p in more) p.counts.length,
-  ].reduce((a, b) => a > b ? a : b);
 
   final void Function(bool alternate) onPropose;
 

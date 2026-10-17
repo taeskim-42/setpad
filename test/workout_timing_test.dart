@@ -654,6 +654,50 @@ void _engine() {
       t.timer.dispose();
     });
 
+    test('runId: 처음부터 시작·restart·reset·clear·다른 같이 run 만 새 run 이다', () {
+      final t = make();
+      final card = Object(), other = Object();
+      const spec = TimingSpec(tabata: true);
+      final ids = <int>[];
+      void mark() => ids.add(t.timer.runId);
+      t.timer.toggle(card, spec);
+      mark(); // new
+      t.at(const Duration(seconds: 24));
+      t.timer.pause();
+      t.timer.resume();
+      t.timer.skip();
+      t.timer.back();
+      t.timer.back();
+      t.timer.back(); // to the ready: still this run
+      t.timer.toggle(card, spec); // pause
+      t.timer.toggle(card, spec); // resume
+      mark();
+      t.timer.restart();
+      mark();
+      t.timer.reset();
+      mark();
+      t.timer.follow(card, spec, const Duration(seconds: 10));
+      mark(); // a shared run
+      t.timer.follow(card, spec, const Duration(seconds: 12)); // re-sync
+      t.timer.pause(); // left
+      t.timer.follow(card, spec, const Duration(seconds: 14)); // rejoined
+      mark();
+      t.timer.follow(other, spec, const Duration(seconds: 1));
+      mark();
+      t.timer.toggle(other, spec); // solo after shared
+      mark();
+      t.at(const Duration(seconds: 40));
+      t.timer.end(); // the summary is this run
+      mark();
+      t.timer.toggle(other, spec); // from the top after the end
+      mark();
+      t.timer.clear();
+      mark();
+      final first = ids.first;
+      expect(ids.map((id) => id - first), [0, 0, 1, 2, 3, 3, 4, 5, 5, 6, 7]);
+      t.timer.dispose();
+    });
+
     test('skip·back 은 같이 하는 중에는 아무 일도 안 한다', () {
       final t = make();
       t.timer.follow(
