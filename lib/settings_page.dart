@@ -45,6 +45,9 @@ class SettingsPage extends StatelessWidget {
           listenable: a == null ? store : Listenable.merge([store, a]),
           builder: (context, _) => ListView(
             padding: const EdgeInsets.only(top: 8),
+            // 머리글 없는 묶음은 꼬리글이 설명하는 켜고 끄기 한 줄(AI 도움·끼니 보내기)과
+            // 맨 끝 라이선스 한 줄뿐이다. 나머지 줄은 모두 머리글 아래에 둔다 — 머리글 없는
+            // 여러 줄 묶음이 섞여 머리글이 들쭉날쭉했다.
             children: [
               SettingsSection(
                 title: l.settingsRecording,
@@ -71,23 +74,6 @@ class SettingsPage extends StatelessWidget {
                     detail: timerClock(store.restSeconds),
                     onTap: () => _pickRest(context),
                   ),
-                ],
-              ),
-              // 기본은 켜짐. 끄면 모델로 가는 것이 모두 멈추고 기기 안에서만 한다.
-              // 무엇이 나가고 끄면 무엇이 멈추는지를 바로 아래에 적는다.
-              SettingsSection(
-                footer: l.aiSettingNote,
-                children: [
-                  SettingsToggle(
-                    key: const ValueKey('settings-ai'),
-                    label: l.aiSetting,
-                    value: store.aiOn,
-                    onChanged: store.setAiOn,
-                  ),
-                ],
-              ),
-              SettingsSection(
-                children: [
                   SettingsRow(
                     key: const ValueKey('settings-workout-import'),
                     label: l.workoutImportTitle,
@@ -117,6 +103,24 @@ class SettingsPage extends StatelessWidget {
                         await ringRestAlarm('다음 라운드 — 시험');
                       },
                     ),
+                ],
+              ),
+              // 기본은 켜짐. 끄면 모델로 가는 것이 모두 멈추고 기기 안에서만 한다.
+              // 무엇이 나가고 끄면 무엇이 멈추는지를 바로 아래에 적는다.
+              SettingsSection(
+                footer: l.aiSettingNote,
+                children: [
+                  SettingsToggle(
+                    key: const ValueKey('settings-ai'),
+                    label: l.aiSetting,
+                    value: store.aiOn,
+                    onChanged: store.setAiOn,
+                  ),
+                ],
+              ),
+              SettingsSection(
+                title: l.settingsBodyHealth,
+                children: [
                   // 기초대사량 셈에 쓰는 키·몸무게·나이·성별. 기기 안에만 둔다.
                   SettingsRow(
                     key: const ValueKey('settings-body'),
@@ -170,7 +174,8 @@ class SettingsPage extends StatelessWidget {
                   ),
 
                 // 다니는 곳이 없으면 무엇을 하면 생기는지 적는다. 아무것도
-                // 안 그리면 이 앱에 그런 기능이 있는 줄을 모른다.
+                // 안 그리면 이 앱에 그런 기능이 있는 줄을 모른다. 행이 없으면
+                // 이 안내가 흐린 행 하나로 묶음 안에 선다(빈 묶음처럼 보이지 않게).
                 SettingsSection(
                   title: l.settingsGym,
                   footer: a.gyms.isEmpty ? l.settingsNoGym : null,

@@ -4209,4 +4209,7 @@ class LKo extends L {
 
   @override
   String get focusDistanceTitle => '거리';
+
+  @override
+  String get settingsBodyHealth => '몸과 건강';
 }

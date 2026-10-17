@@ -11,8 +11,8 @@ import 'palette.dart';
 
 /// 제목(선택)과 행 묶음 하나, 그리고 묶음 아래 한 줄 설명(선택).
 ///
-/// 행이 하나도 없으면 상자는 그리지 않고 제목과 설명만 놓는다 — 빈 상자는 아무것도
-/// 아닌 것으로 보인다.
+/// 행이 하나도 없으면 설명을 흐린 행 하나로 상자 안에 놓는다 — 제목과 설명만 놓던
+/// 때는 빈 묶음으로 보였다(다니는 헬스장이 없을 때).
 class SettingsSection extends StatelessWidget {
   const SettingsSection({
     super.key,
@@ -43,25 +43,13 @@ class SettingsSection extends StatelessWidget {
             footer!,
             style: TextStyle(fontSize: 13, height: 1.35, color: muted),
           );
-    if (children.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(gutter + 4, 16, gutter + 4, 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ?header,
-            if (header != null && note != null) const SizedBox(height: 6),
-            ?note,
-          ],
-        ),
-      );
-    }
+    final empty = children.isEmpty && footer != null;
     return CupertinoListSection.insetGrouped(
       header: header,
-      footer: note,
+      footer: empty ? null : note,
       hasLeading: false,
       margin: const EdgeInsetsDirectional.fromSTEB(gutter, 0, gutter, 10),
-      children: children,
+      children: empty ? [SettingsRow(label: footer!, muted: true)] : children,
     );
   }
 }
@@ -80,17 +68,21 @@ class SettingsRow extends StatelessWidget {
     this.detail,
     this.note,
     this.accent = false,
+    this.muted = false,
     this.onTap,
   });
   final String label;
   final String? detail;
   final String? note;
   final bool accent;
+
+  /// 누를 수 없는 안내 줄 — 라벨이 흐리다.
+  final bool muted;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final muted = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final faint = CupertinoColors.secondaryLabel.resolveFrom(context);
     return CupertinoListTile(
       onTap: onTap,
       padding: _padding,
@@ -109,6 +101,8 @@ class SettingsRow extends StatelessWidget {
                     fontWeight: accent ? FontWeight.w600 : FontWeight.w400,
                     color: accent
                         ? seal.resolveFrom(context)
+                        : muted
+                        ? faint
                         : CupertinoColors.label.resolveFrom(context),
                   ),
                 ),
@@ -124,7 +118,7 @@ class SettingsRow extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.end,
-                    style: TextStyle(fontSize: 16, color: muted),
+                    style: TextStyle(fontSize: 16, color: faint),
                   ),
                 ),
               ],
@@ -136,7 +130,7 @@ class SettingsRow extends StatelessWidget {
               child: Text(
                 n,
                 maxLines: _wrap,
-                style: TextStyle(fontSize: 13, height: 1.3, color: muted),
+                style: TextStyle(fontSize: 13, height: 1.3, color: faint),
               ),
             ),
         ],

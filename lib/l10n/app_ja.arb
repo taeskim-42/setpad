@@ -1066,5 +1066,6 @@
   "focusWeightTitle": "重さ",
   "focusRepsTitle": "回数",
   "focusRestOverTitle": "休憩終了",
-  "focusDistanceTitle": "距離"
+  "focusDistanceTitle": "距離",
+  "settingsBodyHealth": "体と健康"
 }

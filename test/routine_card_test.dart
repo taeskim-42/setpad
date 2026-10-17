@@ -1876,6 +1876,83 @@ void main() {
     expect(find.text(l.routineTabataChip), findsNothing);
   });
 
+  testWidgets(
+    '홈 루틴 카드: 닫기는 머리 줄 끝, 왜·셈 문장은 알약 아닌 줄 글, 타이머 표기는 제목대로(x8), 채우기 안내는 근거 안',
+    (tester) async {
+      tester.view.physicalSize = const Size(430, 932);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final thu = DateTime(2026, 9, 17);
+      await pump(
+        tester,
+        records: [
+          at(DateTime(2026, 9, 14, 19), [
+            ExerciseBlock('벤치프레스', times(3, () => kg(80, 5))),
+          ]),
+          at(DateTime(2026, 9, 15, 19), [
+            ExerciseBlock('스쿼트', times(3, () => kg(90, 5))),
+          ]),
+          at(DateTime(2026, 9, 16, 19), [
+            ExerciseBlock('데드리프트', times(3, () => kg(100, 5))),
+          ]),
+          at(DateTime(2026, 9, 17, 19), [
+            ExerciseBlock('버피 타바타 20/10 x8', [reps(12), reps(11)]),
+            ExerciseBlock('데드리프트', [kg(100, 5), kg(110, 5)]),
+          ]),
+        ],
+        now: DateTime(2026, 9, 19, 10),
+      );
+      await tester.tap(find.widgetWithText(GymRow, l.routineHeaderToday));
+      await tester.pumpAndSettle();
+      // Close belongs to the card: the end of its head line, after "다른 루틴".
+      final head = tester.getRect(find.text(l.routineHeaderToday));
+      final close = tester.getRect(find.text(l.routineClose));
+      expect(close.center.dy, moreOrLessEquals(head.center.dy, epsilon: 4));
+      expect(
+        close.left,
+        greaterThan(tester.getRect(find.text(l.routineOther)).right),
+      );
+      bool pill(Finder f) => find
+          .ancestor(
+            of: f,
+            matching: find.byWidgetPredicate(
+              (w) =>
+                  w is Container &&
+                  w.decoration is BoxDecoration &&
+                  (w.decoration! as BoxDecoration).borderRadius != null,
+            ),
+          )
+          .evaluate()
+          .isNotEmpty;
+      // Short tags stay pills; the timer reads as the title writes it.
+      final factor = find.text(
+        l.routineFactorDay(
+          l.routineFactor('cardio'),
+          l.routineFactorWhy('tabata', '20/10 x8', ''),
+        ),
+      );
+      expect(factor, findsOneWidget);
+      expect(pill(factor), isTrue);
+      expect(find.text('버피 타바타 20/10 x8'), findsWidgets);
+      expect(find.textContaining('20/10×'), findsNothing);
+      // Sentences (why this day, the 7-day count) are lines, not two-line pills.
+      final why = find.text(
+        l.routineWhyFactorNoDay(
+          l.routineFactor('cardio'),
+          '${l.weekdayLabel(thu)}(${l.routineDate(thu)})',
+        ),
+      );
+      expect(why, findsOneWidget);
+      expect(pill(why), isFalse);
+      expect(pill(find.textContaining('최근 7일(')), isFalse);
+      // The how-to-log hint waits behind "근거 보기".
+      expect(find.textContaining(l.routineFillHint), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('routine-details')));
+      await tester.pumpAndSettle();
+      expect(find.textContaining(l.routineFillHint), findsOneWidget);
+    },
+  );
+
   testWidgets('평일 조정 칩: 누르면 그 요인으로 한 날', (tester) async {
     final changed = {
       ...methodPlan,

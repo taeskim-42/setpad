@@ -1066,5 +1066,6 @@
   "focusWeightTitle": "น้ำหนัก",
   "focusRepsTitle": "จำนวนครั้ง",
   "focusRestOverTitle": "หมดเวลาพัก",
-  "focusDistanceTitle": "ระยะทาง"
+  "focusDistanceTitle": "ระยะทาง",
+  "settingsBodyHealth": "ร่างกายและสุขภาพ"
 }

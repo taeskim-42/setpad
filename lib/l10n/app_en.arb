@@ -1066,5 +1066,6 @@
   "focusWeightTitle": "Weight",
   "focusRepsTitle": "Reps",
   "focusRestOverTitle": "Rest's over",
-  "focusDistanceTitle": "Distance"
+  "focusDistanceTitle": "Distance",
+  "settingsBodyHealth": "Body & health"
 }

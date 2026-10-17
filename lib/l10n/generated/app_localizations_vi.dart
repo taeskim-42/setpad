@@ -4323,4 +4323,7 @@ class LVi extends L {
 
   @override
   String get focusDistanceTitle => 'Quãng đường';
+
+  @override
+  String get settingsBodyHealth => 'Cơ thể và sức khỏe';
 }

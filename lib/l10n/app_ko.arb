@@ -3776,5 +3776,6 @@
   "focusWeightTitle": "무게",
   "focusRepsTitle": "횟수",
   "focusRestOverTitle": "휴식 끝",
-  "focusDistanceTitle": "거리"
+  "focusDistanceTitle": "거리",
+  "settingsBodyHealth": "몸과 건강"
 }

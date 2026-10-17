@@ -21,7 +21,7 @@ void main() {
       final x = of('버피 타바타', [reps(10)])!;
       expect(x.factor, Factor.cardio);
       expect(x.sure, isTrue);
-      expect(show(x), 'cardio tabata 20/10×8');
+      expect(show(x), 'cardio tabata 20/10 x8');
     });
 
     test('2 설정 totalReps → 근지구력(확실)', () {

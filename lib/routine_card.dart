@@ -42,6 +42,7 @@ class RoutineCard extends StatelessWidget {
     this.onMode,
     this.onSwap,
     this.onUnstart,
+    this.onClose,
     this.spent,
     this.lang = 'ko',
   });
@@ -67,6 +68,10 @@ class RoutineCard extends StatelessWidget {
 
   /// 시작 취소 — 시작한 카드에서만.
   final VoidCallback? onUnstart;
+
+  /// 닫기 — 홈의 "오늘 루틴" 줄로 연 카드. 머리 줄 끝에 둔다(카드 위에 혼자 뜬
+  /// 칩은 어느 것을 닫는지 알기 어려웠다).
+  final VoidCallback? onClose;
 
   /// "바꾸기" — 칸을 [RoutineItem.swaps] 의 운동으로 바꾼다.
   final void Function(RoutineItem item, String key)? onSwap;
@@ -175,15 +180,17 @@ class RoutineCard extends StatelessWidget {
     final pace = d.paceSessions > 0
         ? l.routinePaceOwn(d.paceSessions, _minSec(l, d.pace))
         : l.routinePaceDefault(_minSec(l, d.pace));
-    // 위에는 짠 것과 꼭 알아야 할 것만, 까닭(메모·부위별 쉰 날·시간 셈)은
-    // '근거 보기' 안에 — 줄이 열 개 넘게 쌓이면 루틴이 안 보였다.
+    // 위에는 짠 것과 꼭 알아야 할 것만, 까닭(메모·부위별 쉰 날·시간 셈)과 적는 법
+    // 안내(채우기 목표 수)는 '근거 보기' 안에 — 줄이 열 개 넘게 쌓이면 루틴이 안 보였다.
+    bool folded(RoutineLine x) =>
+        x.code == 'recentMemo' || x.code == 'fillHint';
     final memos = [
       for (final line in d.lines)
-        if (line.code == 'recentMemo') ...routineLineTexts(l, line, lang: lang),
+        if (folded(line)) ...routineLineTexts(l, line, lang: lang),
     ];
     final shown = [
       for (final line in d.lines)
-        if (line.code != 'recentMemo') ...routineLineTexts(l, line, lang: lang),
+        if (!folded(line)) ...routineLineTexts(l, line, lang: lang),
     ];
     final details = [
       if (rest.isNotEmpty) l.routinePartRest(rest.join(' · ')),
@@ -193,10 +200,16 @@ class RoutineCard extends StatelessWidget {
     return [
       Padding(
         padding: const EdgeInsets.only(top: 6),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
+        // Wrap, not Row: two chips beside the title squeezed it to a letter a
+        // line at large text — they drop under it instead. Full width, so the
+        // chips sit at the right end when they fit.
+        child: SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
                 head,
                 style: TextStyle(
                   fontSize: 20,
@@ -205,17 +218,28 @@ class RoutineCard extends StatelessWidget {
                   color: CupertinoColors.label.resolveFrom(context),
                 ),
               ),
-            ),
-            if (d.hasOther && onOther != null)
-              SuggestionChip(
-                label: l.routineOther,
-                selected: false,
-                onTap: onOther!,
+              Wrap(
+                spacing: 8,
+                children: [
+                  if (d.hasOther && onOther != null)
+                    SuggestionChip(
+                      label: l.routineOther,
+                      selected: false,
+                      onTap: onOther!,
+                    ),
+                  if (onClose != null)
+                    SuggestionChip(
+                      label: l.routineClose,
+                      selected: false,
+                      onTap: onClose!,
+                    ),
+                ],
               ),
-          ],
+            ],
+          ),
         ),
       ),
-      // 어떤 날인지·얼마나 걸리는지·어디서 왔는지를 알약 몇 개로.
+      // 어떤 날인지·얼마나 걸리는지를 알약 몇 개로.
       Padding(
         padding: const EdgeInsets.only(top: 6, bottom: 2),
         child: Wrap(
@@ -231,11 +255,16 @@ class RoutineCard extends StatelessWidget {
                     ? l.routineEstimateNoFirst(d.minutes)
                     : l.routineEstimate(d.minutes),
               ),
-            if (why != null) _Pill(why),
-            if (counts != null) _Pill(counts),
           ],
         ),
       ),
+      // 왜 이 날인지(원천·최근 7일 셈)는 문장이라 알약이 아니라 줄 글로 — 알약에
+      // 넣으면 두 줄로 감겨 길쭉한 칩이 됐다.
+      for (final line in [?why, ?counts])
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(line, style: faint),
+        ),
       // 읽은 조건은 모델이 알아들은 것을 되비추는 말이라 목록보다 한 단계 옅게 둔다.
       // 꼭 알아야 할 줄(거절·아픈 곳·못 맞춘 조건)은 본문 그대로.
       if (readAs != null)
@@ -486,7 +515,6 @@ extension on RoutineCard {
       );
 }
 
-/// 짠 루틴의 요약 알약 하나(순발력 날 · 약 61분 · 지난주 금요일 그대로).
 /// 칩 줄. 앞의 [fold] 개(넣을 수 있는 운동)는 [_foldAt] 개까지만 보이고 나머지는 '더 보기'
 /// 뒤에 접힌다 — 한 번에 예닐곱 개가 쌓이지 않게.
 class _ChipWrap extends StatefulWidget {
@@ -529,6 +557,7 @@ class _ChipWrapState extends State<_ChipWrap> {
   }
 }
 
+/// 짠 루틴의 요약 알약 하나(순발력 날 · 약 61분). 문장은 알약에 넣지 않는다.
 class _Pill extends StatelessWidget {
   const _Pill(this.text);
   final String text;
@@ -789,7 +818,7 @@ List<String> routineLineTexts(L l, RoutineLine line, {String lang = 'ko'}) {
   };
 }
 
-/// 요인을 가른 근거 한 줄("3×10", "채우기 100개", "타바타 20/10×8" …).
+/// 요인을 가른 근거 한 줄("3×10", "채우기 100개", "타바타 20/10 x8" …).
 String factorWhy(L l, FactorRead r) => l.routineFactorWhy(
   r.why,
   r.args.firstOrNull ?? '',

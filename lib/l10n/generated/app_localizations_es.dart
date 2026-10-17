@@ -4426,4 +4426,7 @@ class LEs extends L {
 
   @override
   String get focusDistanceTitle => 'Distancia';
+
+  @override
+  String get settingsBodyHealth => 'Cuerpo y salud';
 }

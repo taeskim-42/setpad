@@ -4392,4 +4392,7 @@ class LEn extends L {
 
   @override
   String get focusDistanceTitle => 'Distance';
+
+  @override
+  String get settingsBodyHealth => 'Body & health';
 }

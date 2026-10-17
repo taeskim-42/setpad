@@ -559,6 +559,8 @@ void main() {
       ),
     );
     await tester.pump();
+    // The row is last on the page — below the fold on a short screen.
+    await tester.scrollUntilVisible(find.text(l.openSourceLicenses), 100);
     await tester.tap(find.text(l.openSourceLicenses));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));

@@ -4291,4 +4291,7 @@ class LTh extends L {
 
   @override
   String get focusDistanceTitle => 'ระยะทาง';
+
+  @override
+  String get settingsBodyHealth => 'ร่างกายและสุขภาพ';
 }

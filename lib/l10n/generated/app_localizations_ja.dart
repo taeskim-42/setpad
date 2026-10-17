@@ -4204,4 +4204,7 @@ class LJa extends L {
 
   @override
   String get focusDistanceTitle => '距離';
+
+  @override
+  String get settingsBodyHealth => '体と健康';
 }

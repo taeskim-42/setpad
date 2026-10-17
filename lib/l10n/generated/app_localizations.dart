@@ -6420,6 +6420,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'거리'**
   String get focusDistanceTitle;
+
+  /// No description provided for @settingsBodyHealth.
+  ///
+  /// In ko, this message translates to:
+  /// **'몸과 건강'**
+  String get settingsBodyHealth;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

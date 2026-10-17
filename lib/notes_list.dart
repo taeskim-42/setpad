@@ -1097,11 +1097,7 @@ class _NotesListPageState extends State<NotesListPage>
     final lang = _lang;
     final edits = _editsOf(text);
     final status = <String>[];
-    final actions = <RoutineAction>[
-      // 홈의 "오늘 루틴" 줄로 연 카드 — 검색칸이 비어 있어 지울 글이 없다.
-      if (text.isEmpty)
-        (label: l.routineClose, onTap: () => setState(() => _device = null)),
-    ];
+    final actions = <RoutineAction>[];
     // 빈 검색이면 목록 위에 쌤 루틴 줄이 이미 있다 — 카드에 또 두지 않는다.
     final trainer = text.isEmpty ? const <Routine>[] : _routines;
     final extra = <Widget>[];
@@ -1346,6 +1342,8 @@ class _NotesListPageState extends State<NotesListPage>
       onMode: (mode) => _edit(text, () => edits.mode = mode),
       onSwap: (item, key) =>
           change(() => edits.swap(item.key, key), swap: true),
+      // 홈의 "오늘 루틴" 줄로 연 카드 — 검색칸이 비어 있어 지울 글이 없다.
+      onClose: text.isEmpty ? () => setState(() => _device = null) : null,
       spent: !charged
           ? (before ? l.routinePlatesBefore : null)
           : account?.platesSpent != null

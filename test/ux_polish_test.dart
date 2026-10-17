@@ -1202,11 +1202,29 @@ void main() {
       expect(find.text(l.nicknameChange), findsNothing);
     });
 
-    testWidgets('다니는 곳이 없으면 묶음 밑에 안내를, 있으면 도장 줄과 식단 공유를 둔다', (tester) async {
+    testWidgets('다니는 곳이 없으면 묶음 안에 흐린 안내 행을, 있으면 도장 줄과 식단 공유를 둔다', (
+      tester,
+    ) async {
       final account = member();
       await openSettings(tester, account: account);
       final l = await L.delegate.load(const Locale('ko'));
-      expect(find.text(l.settingsNoGym), findsOneWidget);
+      final notice = find.text(l.settingsNoGym);
+      await tester.scrollUntilVisible(notice, 100); // lazy list: build it first
+      expect(notice, findsOneWidget);
+      // A row in the gym section's box — not a header and a caption over nothing.
+      final row = find.ancestor(of: notice, matching: find.byType(SettingsRow));
+      expect(tester.widget<SettingsRow>(row).muted, isTrue);
+      expect(tester.widget<SettingsRow>(row).onTap, isNull);
+      expect(
+        find.descendant(
+          of: find.ancestor(
+            of: row,
+            matching: find.byType(CupertinoListSection),
+          ),
+          matching: find.text(l.settingsGym),
+        ),
+        findsOneWidget,
+      );
       account.gyms = [const Gym(id: 'g1', name: 'BPM')];
       account.notifyListeners();
       await tester.pumpAndSettle();
@@ -1215,6 +1233,37 @@ void main() {
       final share = find.byKey(const ValueKey('settings-share-meals'));
       await tester.scrollUntilVisible(share, 100);
       expect(share, findsOneWidget);
+    });
+
+    testWidgets('머리글 없는 묶음은 꼬리글이 설명하는 한 줄과 맨 끝 라이선스뿐, 빈 묶음은 없다', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(430, 4000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      for (final gyms in [
+        const <Gym>[],
+        [const Gym(id: 'g1', name: 'BPM')],
+      ]) {
+        await openSettings(tester, account: member(gyms: gyms));
+        final sections = tester
+            .widgetList<CupertinoListSection>(find.byType(CupertinoListSection))
+            .toList();
+        expect(sections.length, greaterThanOrEqualTo(5));
+        for (final (i, s) in sections.indexed) {
+          final rows = s.children ?? const <Widget>[];
+          expect(rows, isNotEmpty, reason: '묶음 $i 에 행이 있다');
+          final explainedToggle = rows.length == 1 && s.footer != null;
+          final licenses =
+              i == sections.length - 1 &&
+              rows.single.key == const ValueKey('settings-licenses');
+          expect(
+            s.header != null || explainedToggle || licenses,
+            isTrue,
+            reason: '묶음 $i(${rows.map((r) => r.key).join(', ')}) 에 머리글이 있다',
+          );
+        }
+      }
     });
 
     testWidgets('375pt·큰 글자 2.0 에서 넘치지 않는다', (tester) async {

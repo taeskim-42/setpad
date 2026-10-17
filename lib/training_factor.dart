@@ -86,7 +86,8 @@ FactorRead? factorOf(ExerciseBlock b) {
   final u = b.setup;
   if (spec != null && spec.tabata) {
     return read(Factor.cardio, 'tabata', [
-      '${spec.work}/${spec.rest}×${spec.rounds}',
+      // 제목에 적는 그대로(TimingSpec.applyTo 의 'x8') — 같은 카드의 칸 제목과 같게.
+      '${spec.work}/${spec.rest} x${spec.rounds}',
     ], sure: true);
   }
   if (u?.totalReps != null) {

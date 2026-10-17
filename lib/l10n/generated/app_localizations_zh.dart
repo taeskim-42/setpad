@@ -4176,6 +4176,9 @@ class LZh extends L {
 
   @override
   String get focusDistanceTitle => '距离';
+
+  @override
+  String get settingsBodyHealth => '身体与健康';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -8350,6 +8353,9 @@ class LZhHans extends LZh {
 
   @override
   String get focusDistanceTitle => '距离';
+
+  @override
+  String get settingsBodyHealth => '身体与健康';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -12524,4 +12530,7 @@ class LZhHant extends LZh {
 
   @override
   String get focusDistanceTitle => '距離';
+
+  @override
+  String get settingsBodyHealth => '身體與健康';
 }
