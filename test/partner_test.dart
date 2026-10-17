@@ -1671,6 +1671,36 @@ void main() {
         expect(t.sync.timerError, isNull);
       },
     );
+
+    test(
+      '타이머 실패 줄을 누르면: 그물·서버 탓이면 같은 동작을 다시 보내고, 다시 보내도 같은 답일 까닭이면 줄만 거둔다',
+      () async {
+        final t = scripted();
+        await t.sync.refresh();
+        List<Map<String, Object?>> timerPuts() => [
+          for (final a in t.asked)
+            if (a.$2.endsWith('/timer')) a.$3,
+        ];
+        t.answerTimer(503, {'error': 'unavailable'});
+        await t.sync.acceptTimer();
+        expect(t.sync.timerError, PartnerError.server);
+        t.answerTimer(200, {});
+        await t.sync.retryTimer();
+        expect(timerPuts(), hasLength(2));
+        expect(timerPuts().last, timerPuts().first, reason: '같은 동작을 그대로');
+        expect(t.sync.timerError, isNull);
+        // Nothing failed: a tap has nothing to send.
+        await t.sync.retryTimer();
+        expect(timerPuts(), hasLength(2));
+
+        t.answerTimer(426, {'error': 'updateRequired'});
+        await t.sync.clearTimer();
+        expect(t.sync.timerError, PartnerError.updateRequired);
+        await t.sync.retryTimer();
+        expect(timerPuts(), hasLength(3), reason: '다시 보내도 같은 답이다');
+        expect(t.sync.timerError, isNull);
+      },
+    );
   });
 
   test('같이 하기 초대 링크에서 토큰을 읽는다 — /j/ 와 setpad://p/ 만', () {

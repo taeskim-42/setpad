@@ -1036,11 +1036,33 @@ class PartnerSync extends ChangeNotifier {
   /// 보일 수 있게 값만 둔다 — 시트의 [error] 와 달리 동작마다 바뀐다.
   PartnerError? timerError;
 
+  /// The action that set [timerError]; [retryTimer] sends it as it was.
+  Map<String, Object?>? _failedTimerAction;
+
   Future<void> _timerAction(Map<String, Object?> action) async {
     final s = session;
     if (s == null || s.state != PartnerState.active) return;
     timerError = await _run((l) => l.partnerTimer(s.id, action), quiet: true);
+    _failedTimerAction = timerError == null ? null : action;
     notifyListeners();
+  }
+
+  /// The timer card's failure line was tapped. A network or server failure
+  /// (or "come back later") sends the same action again; any other reason
+  /// (signed out, everyone left, update needed…) would get the same answer,
+  /// so the line just goes. A late resend is harmless: the server drops
+  /// actions aimed at an older proposal.
+  Future<void> retryTimer() async {
+    final again = switch (timerError) {
+      PartnerError.network ||
+      PartnerError.server ||
+      PartnerError.tooManyTries => _failedTimerAction,
+      _ => null,
+    };
+    timerError = null;
+    _failedTimerAction = null;
+    notifyListeners();
+    if (again != null) await _timerAction(again);
   }
 
   /// 같이 하자고 제안한다. 상대가 받아들여야 시작한다.

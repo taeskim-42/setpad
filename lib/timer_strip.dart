@@ -129,19 +129,42 @@ class TimerStrip extends StatelessWidget {
           selected && (timer.phase == TimingPhase.complete || timer.endedEarly);
       final going =
           selected && !over && (timer.running || timer.elapsed > Duration.zero);
+      final line = !spec.valid
+          ? _invalid(context)
+          : over
+          ? _over(context)
+          : going
+          ? _going(context)
+          : together?.waiting ?? false
+          ? _waiting(context)
+          : _idle(context);
+      final retry = together?.onRetry;
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: !spec.valid
-            ? _invalid(context)
-            : over
-            ? _over(context)
-            : going
-            ? _going(context)
-            : together?.waiting ?? false
-            ? _waiting(context)
-            : _idle(context),
+        child: retry == null
+            ? line
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [line, _failed(context, retry)],
+              ),
       );
     },
+  );
+
+  /// A together action did not go through. Tapping sends it again.
+  Widget _failed(BuildContext context, VoidCallback retry) => Semantics(
+    liveRegion: true,
+    child: CupertinoButton(
+      key: const ValueKey('timer-action-failed'),
+      padding: EdgeInsets.zero,
+      minimumSize: const Size(44, 44),
+      alignment: Alignment.centerLeft,
+      onPressed: retry,
+      child: Text(
+        L.of(context).timerActionFailed,
+        style: TextStyle(fontSize: 13, color: seal.resolveFrom(context)),
+      ),
+    ),
   );
 
   Widget _invalid(BuildContext context) => GestureDetector(

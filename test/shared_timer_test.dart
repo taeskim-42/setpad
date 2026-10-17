@@ -535,6 +535,71 @@ void main() {
       mina.timer.dispose();
       jun.timer.dispose();
     });
+
+    testWidgets(
+      '같이 하기 요청이 안 가면 그 칸의 타이머 띠에 한 줄 — 누르면 다시 보내고, 다시 보내도 같은 답일 까닭이면 줄만 거둔다',
+      (tester) async {
+        final (server, mina, jun) = await pair();
+        final c = RoutineEditorController()
+          ..addExercise('벤치프레스')
+          ..closeBlock()
+          ..addExercise('스쿼트 60bpm')
+          ..closeBlock()
+          ..addExercise('런지 60bpm')
+          ..closeBlock();
+        await mountEditor(tester, mina, c);
+        final failed = find.byKey(const ValueKey('timer-action-failed'));
+        expect(failed, findsNothing);
+
+        // 그물이 끊긴 채 같이 하자고 했다 — 그 칸(스쿼트)에만 한 줄.
+        server.online = false;
+        await tester.tap(find.byKey(const ValueKey('together-start')).first);
+        await tester.pump();
+        await tester.pump();
+        expect(mina.sync.timerError, PartnerError.network);
+        expect(find.text('요청을 못 보냈어요 · 다시'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byKey(ObjectKey(c.blocks[1])),
+            matching: failed,
+          ),
+          findsOneWidget,
+        );
+
+        // 다시 이어진 뒤 누르면 같은 제안을 다시 보낸다.
+        server.online = true;
+        await tester.tap(failed);
+        await tester.pump();
+        await tester.pump();
+        expect(failed, findsNothing);
+        expect(mina.sync.timerError, isNull);
+        await mina.sync.refresh();
+        await tester.pump();
+        expect(find.text('준 님을 기다리는 중…'), findsOneWidget);
+        expect(mina.shared?.title, '스쿼트 60bpm');
+
+        // 다시 보내도 같은 답일 까닭(426: 업데이트)이면 누르면 줄만 접는다 — 취소를 다시
+        // 보내지 않으니 제안은 그대로다.
+        server.failWith = 426;
+        await tester.tap(find.byKey(const ValueKey('together-cancel')));
+        await tester.pump();
+        await tester.pump();
+        expect(mina.sync.timerError, PartnerError.updateRequired);
+        expect(failed, findsOneWidget);
+        server.failWith = null;
+        await tester.tap(failed);
+        await tester.pump();
+        await tester.pump();
+        expect(failed, findsNothing);
+        await mina.sync.refresh();
+        await tester.pump();
+        expect(find.text('준 님을 기다리는 중…'), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox());
+        mina.timer.dispose();
+        jun.timer.dispose();
+      },
+    );
   });
 
   testWidgets('같이: 건너뛴 라운드는 다음 라운드 값을 빌리지 않고, 요약의 [N세트 적기] 는 N 세트를 남기며, '

@@ -986,6 +986,7 @@ class TogetherTiming {
     this.mine = const [],
     this.theirs = const [],
     this.more = const [],
+    this.onRetry,
   });
   final String partner;
 
@@ -1014,4 +1015,9 @@ class TogetherTiming {
 
   final void Function(bool alternate) onPropose;
   final VoidCallback onCancel;
+
+  /// Set while the last together action about this card did not go through
+  /// ([PartnerSync.timerError]): the card shows one line, and a tap calls
+  /// this — the same action again, or only clearing the line.
+  final VoidCallback? onRetry;
 }

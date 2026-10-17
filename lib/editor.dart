@@ -1606,6 +1606,13 @@ class _RoutineEditorState extends State<RoutineEditor>
               : l.togetherLeftBeat(p.name, p.left!.beat),
     ];
     final started = mineToo && t.started;
+    // The card the last together action was about: the one I proposed on or
+    // accepted into, else the one the shared timer runs on.
+    final acted = _c.blocks.contains(_sharedBlock)
+        ? _sharedBlock
+        : t == null
+        ? null
+        : _blockFor(t);
     return TogetherTiming(
       partner: people.firstOrNull?.name ?? session.partnerName ?? '',
       waiting: here && !t.started && t.mine,
@@ -1632,6 +1639,9 @@ class _RoutineEditorState extends State<RoutineEditor>
         _proposeShared(block, TimingSpec.parse(block.name)!, alternate),
       ),
       onCancel: sync.clearTimer,
+      onRetry: sync.timerError != null && identical(block, acted)
+          ? () => unawaited(sync.retryTimer())
+          : null,
     );
   }
 
