@@ -19,6 +19,8 @@ Play Console → setpad → **앱 콘텐츠(App content)** → **포그라운드
 
 > setpad plays a workout timer's audio: interval cue tones, a metronome click and recorded spoken counts and phrases ("Round 2, go!", "Rest!", "One, two, three…") during Tabata/interval runs, metronome runs and rest between sets. The user starts the timer and expects it to keep sounding when the screen turns off or the phone goes in a pocket mid-workout. The foreground service runs only while a timer is running (the user can pause or stop it at any time, and it stops when the run ends), shows an ongoing notification "Workout timer running", and is never started for any other purpose. Without it Android freezes the app in the background and the cues stop mid-workout.
 
+서비스는 소리를 내는 타이머(운동 타이머 run, 세트 사이 휴식)가 도는 동안에만 켜진다. 세트 무대만 열어 둔 상태는 화면만 켜 둘 뿐 서비스를 켜지 않는다(`lib/timing_audio_mux.dart` 의 keepAlive).
+
 사용자 영향 질문이 나오면: 사용자가 직접 시작한 타이머이고, 멈추거나 끝나면 서비스도 즉시 내려간다(마지막 신호음과 음성을 위해 최대 6초 더 유지). 알림을 누르면 앱이 열린다.
 
 ## 영상 찍기 (30초~1분, 실기기)

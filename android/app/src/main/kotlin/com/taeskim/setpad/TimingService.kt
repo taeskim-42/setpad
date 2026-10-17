@@ -16,7 +16,8 @@ import android.os.PowerManager
 import android.util.Log
 
 /// Android's counterpart of the iOS keep-alive loop (ios/Runner/TimingBridge.swift):
-/// while a timer runs (TimingBridge's `active`) the process is a foreground
+/// while a timer that sounds runs (TimingBridge's `keepAlive`: a workout run or
+/// a set rest, not the set stage alone) the process is a foreground
 /// service, so it is not cached and frozen in the background, and a partial
 /// wake lock keeps the CPU awake between cues with the screen off. Without it
 /// the Dart ticker stops and the run silently drifts.
@@ -37,17 +38,24 @@ class TimingService : Service() {
 
         /// Best effort, like the iOS keep-alive: if Android refuses (the app is in
         /// the background, e.g. a partner's run arriving), the timer runs without
-        /// it and the next active configure tries again.
+        /// it until [retry] when the app comes to the front.
         fun start(context: Context) {
             handler.removeCallbacks(ending)
-            if (wanted) return
             wanted = true
-            if (running != null) return
+            running?.let { it.hold(); return }
+            launch(context)
+        }
+
+        /// The activity resumed: a start refused in the background goes now.
+        fun retry(context: Context) {
+            if (wanted && running == null) launch(context)
+        }
+
+        private fun launch(context: Context) {
             try {
                 context.startForegroundService(Intent(context, TimingService::class.java))
             } catch (e: Exception) {
                 // ForegroundServiceStartNotAllowedException is an IllegalStateException.
-                wanted = false
                 Log.w(TAG, "not started", e)
             }
         }
@@ -78,18 +86,29 @@ class TimingService : Service() {
                 startForeground(NOTIFICATION, notification)
             }
         } catch (e: Exception) {
+            // Not best effort, and not recoverable: started with
+            // startForegroundService, so ending without startForeground makes
+            // the system kill the app ("did not then call startForeground"),
+            // and so does staying until its timeout. Not seen: the manifest
+            // declares the type and its permission. Only a refused start
+            // (start() above) is the skippable case.
             Log.w(TAG, "startForeground refused", e)
-            wanted = false // the next active configure tries again
+            wanted = false
             end()
             return START_NOT_STICKY
         }
         if (!wanted) { end(); return START_NOT_STICKY }
-        if (wakeLock == null) {
-            wakeLock = (getSystemService(POWER_SERVICE) as PowerManager)
-                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "setpad:timing")
-                .apply { setReferenceCounted(false); acquire(WAKE_TIMEOUT_MS) }
-        }
+        hold()
         return START_NOT_STICKY
+    }
+
+    /// Takes the wake lock, or takes it again once its timeout let it go.
+    private fun hold() {
+        val lock = wakeLock ?: (getSystemService(POWER_SERVICE) as PowerManager)
+            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "setpad:timing")
+            .apply { setReferenceCounted(false) }
+            .also { wakeLock = it }
+        if (!lock.isHeld) lock.acquire(WAKE_TIMEOUT_MS)
     }
 
     private fun notification(): Notification {
