@@ -26,6 +26,10 @@ class RunLink extends ChangeNotifier {
   /// Together, heart rate never cuts the rest short.
   bool heartShared = false;
 
+  /// Reps of the block's last set before this run: where the stage's rest
+  /// log starts when this run has logged nothing yet.
+  int? lastReps;
+
   /// Reps logged per round in this run (index 0 = round 1); null = not logged.
   final List<int?> roundReps = [];
 
