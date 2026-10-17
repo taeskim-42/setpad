@@ -52,8 +52,9 @@ class NotesListPage extends StatefulWidget {
 
   final NotesStore store;
 
-  /// 오늘 루틴 카드에서 고친 것(✕·넣기·칩·시작한 기록)을 담는 곳. 없으면 문서 폴더의
-  /// routine_edits.json — 앱을 다시 켜도 "시작함" 이 남는다.
+  /// 오늘 루틴 카드에서 고친 것(✕·넣기·칩·시작한 기록)과 마지막으로 받은 쌤 루틴을
+  /// 담는 곳. 없으면 문서 폴더의 routine_edits.json — 앱을 다시 켜도 "시작함" 과 쌤
+  /// 루틴이 남는다.
   final QueryCache? routineEdits;
 
   /// 오늘 루틴을 짜는 시계. 요일로 원천이 갈리므로 테스트가 못 박는다.
@@ -242,6 +243,7 @@ class _NotesListPageState extends State<NotesListPage>
       _editsStore.load().then((_) {
         if (!mounted) return;
         setState(() => _edits.removeWhere((_, e) => e.isEmpty));
+        _restoreRoutines();
       }),
     );
     _loadRoutines();
@@ -258,6 +260,7 @@ class _NotesListPageState extends State<NotesListPage>
   void _accountChanged() {
     final account = widget.account;
     _gymsChanged();
+    _restoreRoutines();
     // 앱 안에서 로그인했다. 켤 때는 로그인 전이라 못 물었던 루틴·체육관을 지금 묻는다.
     final signedIn = account?.signedIn ?? false;
     if (signedIn != _signedIn) {
@@ -334,6 +337,37 @@ class _NotesListPageState extends State<NotesListPage>
     if (found == null) return;
     _caughtUpAt = widget.now();
     if (mounted) setState(() => _routines = found);
+    if (_routinesKey case final key?) {
+      _editsStore.put(key, [for (final r in found) routineToRow(r)]);
+      unawaited(_editsStore.flush());
+    }
+  }
+
+  /// 받은 쌤 루틴을 남기는 열쇠 — 계정마다(다른 계정의 루틴이 보이지 않게).
+  String? get _routinesKey => switch (widget.account?.userId) {
+    final id? => jsonEncode(['t1', id]),
+    null => null,
+  };
+
+  /// 켤 때 아직 못 받았으면 지난번 받은 쌤 루틴을 먼저 보인다(신호가 약한 헬스장에서도
+  /// 목록에 뜬다). 받으면 그것으로 바뀐다.
+  void _restoreRoutines() {
+    if (_caughtUpAt != null ||
+        _routines.isNotEmpty ||
+        !(widget.account?.signedIn ?? false)) {
+      return;
+    }
+    final raw = switch (_routinesKey) {
+      final key? => _editsStore[key],
+      null => null,
+    };
+    if (raw is! List) return;
+    try {
+      final kept = [for (final row in raw) routineFromRow(row as Map)];
+      if (kept.isNotEmpty && mounted) setState(() => _routines = kept);
+    } catch (_) {
+      // 남긴 것은 덤이다 — 못 읽으면 받을 때까지 비워 둔다.
+    }
   }
 
   /// 마지막으로 체육관·루틴을 받아 온 때.
@@ -384,7 +418,7 @@ class _NotesListPageState extends State<NotesListPage>
     _open(
       started ??
           (widget.store.create(
-            blocks: routine.blocks,
+            blocks: inWeightUnit(routine.blocks, widget.store.weightUnit),
             gymId: routine.gymId,
             routineId: routine.id,
           )..owner = widget.account?.userId),

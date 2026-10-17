@@ -328,13 +328,7 @@ class GymLink {
         final body = jsonDecode(utf8.decode(response.bodyBytes));
         return [
           for (final row in (body as Map)['routines'] as List? ?? const [])
-            (
-              id: row['id'] as String,
-              gymId: row['gym_id'] as String,
-              gym: row['gym'] as String,
-              title: row['title'] as String,
-              blocks: plannedBlocks(row['items']),
-            ),
+            routineFromRow(row as Map),
         ];
       } catch (_) {
         return null;
@@ -473,6 +467,33 @@ void _heed(http.BaseResponse r) {
 @visibleForTesting
 void forgetUploadPause() => _uploadsQuietUntil = null;
 
+/// 서버 /api/routines 의 행 하나. 모양이 틀리면 던진다.
+Routine routineFromRow(Map<Object?, Object?> row) => (
+  id: row['id'] as String,
+  gymId: row['gym_id'] as String,
+  gym: row['gym'] as String,
+  title: row['title'] as String,
+  blocks: plannedBlocks(row['items']),
+);
+
+/// [routineFromRow] 의 역 — 받은 목록을 기기에 남겨 다음에 켤 때 먼저 보인다.
+Map<String, Object?> routineToRow(Routine r) => {
+  'id': r.id,
+  'gym_id': r.gymId,
+  'gym': r.gym,
+  'title': r.title,
+  'items': [
+    for (final b in r.blocks)
+      {
+        'name': b.name,
+        'sets': [
+          for (final s in b.sets) {'kg': s.value, 'reps': s.reps},
+        ],
+        if (b.setup != null) 'setup': b.setup!.toJson(),
+      },
+  ],
+};
+
 /// 트레이너가 적은 계획을 앱의 운동 칸으로 바꾼다.
 ///
 /// 웹의 모양은 `[{name, sets:[{kg, reps}]}]` 이고 앱의 모양과 거의 같다.
@@ -491,6 +512,46 @@ List<ExerciseBlock> plannedBlocks(Object? items) => [
             ),
       ], WorkoutSetup.tryFromJson(item['setup'])),
 ];
+
+/// 받은 계획(kg)을 내 무게 단위로 — lb 로 적는 사람에게 kg 계획이 들어오지 않게.
+/// [kgOf] 의 역(소수 둘째 자리): 올릴 때 kgOf 가 같은 kg 로 되돌린다. 시간·거리
+/// 세트와 단위가 다른 설정은 그대로다.
+List<ExerciseBlock> inWeightUnit(List<ExerciseBlock> blocks, String unit) {
+  if (unit != 'lb') return blocks;
+  double lb(double kg) => (kg / 0.45359237 * 100).round() / 100;
+  return [
+    for (final b in blocks)
+      ExerciseBlock(
+        b.name,
+        [
+          for (final s in b.sets)
+            s.unit == 'kg' && s.value != null
+                ? LoggedSet(
+                    value: lb(s.value!),
+                    unit: 'lb',
+                    reps: s.reps,
+                    done: s.done,
+                    author: s.author,
+                    notes: s.notes,
+                  )
+                : s,
+        ],
+        switch (b.setup) {
+          final u? when u.unit == 'kg' && u.weight != null => WorkoutSetup(
+            name: u.name,
+            weight: lb(u.weight!),
+            unit: 'lb',
+            totalReps: u.totalReps,
+            repsPerSet: u.repsPerSet,
+            totalSets: u.totalSets,
+            repsOnly: u.repsOnly,
+          ),
+          final u => u,
+        },
+        b.id,
+      ),
+  ];
+}
 
 /// 서버가 아는 무게는 kg 뿐이다. lb 는 바꾸고, 시간·거리는 무게가 아니므로 비운다 —
 /// 틀린 kg(플랭크 60초가 60kg)보다 빈 칸이 낫다.

@@ -6,7 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:setpad/account.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/gym.dart'
+    show inWeightUnit, kgOf, routineFromRow, routineToRow;
 import 'package:setpad/gym_page.dart' show GymRow;
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
@@ -50,6 +53,10 @@ class _Records extends NotesStore {
     return note;
   }
 
+  String unit = 'kg';
+  @override
+  String get weightUnit => unit;
+
   final deleted = <Note>[];
   @override
   void delete(Note note) {
@@ -72,6 +79,7 @@ void main() {
     DateTime? now,
     _Records? into,
     QueryCache? edits,
+    Account? account,
   }) async {
     final store = into ?? _Records(records ?? defaultLog());
     if (into == null) addTearDown(store.dispose);
@@ -88,6 +96,7 @@ void main() {
           // 요일 규칙이 있어 시계를 못 박는다 — 기준일 9/9(수) 18시.
           now: () => now ?? routineToday,
           routineEdits: edits,
+          account: account,
         ),
       ),
     );
@@ -457,6 +466,110 @@ void main() {
       await tester.pumpAndSettle();
       expect(store.deleted, hasLength(1));
       expect(startButton(), findsOneWidget);
+    });
+  });
+
+  group('쌤 루틴(검토 #10·#17)', () {
+    final row = {
+      'id': 'r1',
+      'gym_id': 'g1',
+      'gym': 'OO짐',
+      'title': '하체 B',
+      'items': [
+        {
+          'name': '스쿼트',
+          'sets': [
+            {'kg': 60, 'reps': 5},
+            {'kg': 60, 'reps': 5},
+          ],
+          'setup': {'name': '스쿼트', 'weight': 60, 'unit': 'kg', 'totalSets': 2},
+        },
+      ],
+    };
+
+    test('lb 로 적는 사람에게는 lb 로 — 올릴 때 kgOf 가 같은 kg 로 되돌린다', () {
+      final r = routineFromRow(row);
+      expect(inWeightUnit(r.blocks, 'kg'), same(r.blocks));
+      final b = inWeightUnit(r.blocks, 'lb').single;
+      expect(b.sets.map((s) => (s.value, s.unit, s.reps, s.done)), [
+        (132.28, 'lb', 5, false),
+        (132.28, 'lb', 5, false),
+      ]);
+      expect((b.setup?.weight, b.setup?.unit), (132.28, 'lb'));
+      expect(kgOf(b.sets.first), 60);
+      // 남겼다 읽어도 같은 루틴.
+      final back = routineFromRow(routineToRow(r));
+      expect(
+        (back.id, back.gymId, back.gym, back.title),
+        ('r1', 'g1', 'OO짐', '하체 B'),
+      );
+      expect(back.blocks.single.sets.map((s) => (s.value, s.reps)), [
+        (60.0, 5),
+        (60.0, 5),
+      ]);
+      expect(back.blocks.single.setup?.totalSets, 2);
+    });
+
+    testWidgets('받은 쌤 루틴은 남겨 두었다가 다음에 못 받아도 보이고, 누르면 내 단위로', (tester) async {
+      final dir = Directory.systemTemp.createTempSync('routine_trainer');
+      final edits = QueryCache(directory: dir, fileName: 'routine_edits.json');
+      Account account({required bool online}) =>
+          Account(
+              storageDir: dir,
+              client: MockClient((request) async {
+                if (request.url.path == '/api/routines') {
+                  return online
+                      ? http.Response.bytes(
+                          utf8.encode(
+                            jsonEncode({
+                              'routines': [row],
+                            }),
+                          ),
+                          200,
+                        )
+                      : http.Response('', 503);
+                }
+                if (request.url.path == '/api/gyms') {
+                  return http.Response(
+                    jsonEncode({'gyms': [], 'invites': []}),
+                    200,
+                  );
+                }
+                return http.Response('{}', 200);
+              }),
+            )
+            ..token = 'x'
+            ..userId = 'u1';
+      final store = await pump(
+        tester,
+        edits: edits,
+        account: account(online: true),
+      );
+      expect(find.text('하체 B'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+      await pump(
+        tester,
+        into: store,
+        edits: edits,
+        account: account(online: false),
+      );
+      expect(find.text('하체 B'), findsOneWidget);
+      store.unit = 'lb';
+      await tester.tap(find.text('하체 B'));
+      await tester.pumpAndSettle();
+      final sets = store.created.single.blocks.single.sets;
+      expect(sets.map((s) => (s.value, s.unit)).toSet(), {(132.28, 'lb')});
+      // 다른 계정에는 보이지 않는다.
+      await tester.pumpWidget(const SizedBox());
+      await pump(
+        tester,
+        into: _Records([]),
+        edits: edits,
+        account: account(online: false)..userId = 'u2',
+      );
+      expect(find.text('하체 B'), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(minutes: 1)); // 저장·재시도 타이머
     });
   });
 
