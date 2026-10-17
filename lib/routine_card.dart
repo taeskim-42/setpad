@@ -157,7 +157,8 @@ class RoutineCard extends StatelessWidget {
     // 날인지의 핵심이라 알약으로 올린다.
     final counts = switch (d.weekCounts) {
       final c?
-          when d.source == 'factor' || d.lines.any((x) => x.code == 'drift') =>
+          when d.source == 'factor' ||
+              d.lines.any((x) => x.code == 'drift' || x.code == 'driftKept') =>
         l.routineWeekCounts(
           '${date(DateTime(d.day.year, d.day.month, d.day.day - 6))}–'
           '${date(d.future ? d.today : d.day)}',
@@ -178,11 +179,11 @@ class RoutineCard extends StatelessWidget {
     // '근거 보기' 안에 — 줄이 열 개 넘게 쌓이면 루틴이 안 보였다.
     final memos = [
       for (final line in d.lines)
-        if (line.code == 'recentMemo') ...routineLineTexts(l, line),
+        if (line.code == 'recentMemo') ...routineLineTexts(l, line, lang: lang),
     ];
     final shown = [
       for (final line in d.lines)
-        if (line.code != 'recentMemo') ...routineLineTexts(l, line),
+        if (line.code != 'recentMemo') ...routineLineTexts(l, line, lang: lang),
     ];
     final details = [
       if (rest.isNotEmpty) l.routinePartRest(rest.join(' · ')),
@@ -308,7 +309,12 @@ class RoutineCard extends StatelessWidget {
         Padding(
           // 목록과 [시작] 사이는 칩이 있든 없든 같은 숨을 둔다.
           padding: const EdgeInsets.only(top: 12),
-          child: Row(
+          // Wrap, not Row: [시작함] + 시작 취소 + 원판 줄 overflow a 320pt phone
+          // at large text — the cancel button must stay reachable.
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               sealButton(
                 context,
@@ -322,7 +328,7 @@ class RoutineCard extends StatelessWidget {
               ),
               if (started && onUnstart != null)
                 CupertinoButton(
-                  padding: const EdgeInsets.only(left: 12),
+                  padding: EdgeInsets.zero,
                   minimumSize: const Size(44, 44),
                   onPressed: onUnstart,
                   child: Text(
@@ -330,9 +336,8 @@ class RoutineCard extends StatelessWidget {
                     style: const TextStyle(fontSize: 14),
                   ),
                 ),
-              const SizedBox(width: 12),
               // 원판을 쓴 때만 적는다 — 기기가 짠 루틴의 '원판 0장' 은 읽을 것이 없다.
-              if (spent case final s?) Expanded(child: Text(s, style: faint)),
+              if (spent case final s?) Text(s, style: faint),
             ],
           ),
         ),
@@ -703,7 +708,7 @@ String? routineWhy(L l, RoutineDraft d) {
 
 /// 카드 줄 하나의 문구(화면 언어). 모르는 줄은 숨긴다 — 코드(`code[args]`)를 사람에게
 /// 보이지 않는다(조건이 빠졌는지는 C12·C13 채점이 줄 목록으로 본다).
-List<String> routineLineTexts(L l, RoutineLine line) {
+List<String> routineLineTexts(L l, RoutineLine line, {String lang = 'ko'}) {
   final a = line.args;
   String s(int i) => '${a[i]}';
   return switch (line.code) {
@@ -717,7 +722,12 @@ List<String> routineLineTexts(L l, RoutineLine line) {
     'heldKey' => [l.routineUnmet(l.routineKeyName(s(0)))],
     'unknownName' => [l.routineUnknownName(s(0))],
     'noSuchDay' => [l.routineNoSuchDay],
-    'excludeAbsent' => [l.routineExcludeAbsent(s(0))],
+    // The arg is the dictionary key (Korean) — show it in the screen language.
+    'excludeAbsent' => [
+      l.routineExcludeAbsent(
+        exerciseByName[s(0).toLowerCase()]?.name(lang) ?? s(0),
+      ),
+    ],
     'noneMatched' => [
       l.routineNoneMatched(switch (s(0).split(':')) {
         ['part', final p] => p.split(',').map((p) => partName(l, p)).join('·'),
@@ -746,6 +756,7 @@ List<String> routineLineTexts(L l, RoutineLine line) {
     ],
     'firstTime' => [l.routineFirstTime],
     'firstPlan' => [l.routineFirstPlan(l.routineFactor(s(0)))],
+    'firstPlanWeekend' => [l.routineFirstPlanWeekend(l.routineFactor(s(0)))],
     'countFit' => [l.routineCountFit(a[0] as int, a[1] as int)],
     'overUsual' => [l.routineOverUsual(a[0] as int, a[1] as int)],
     'noMore' => [l.routineNoMore(a[0] as int)],
@@ -771,6 +782,7 @@ List<String> routineLineTexts(L l, RoutineLine line) {
     ],
     'doneToday' => [l.routineDoneToday((a[0] as List).join('·'))],
     'drift' => [l.routineDrift(l.routineFactor(s(0)), l.routineFactor(s(1)))],
+    'driftKept' => [l.routineDriftKept(l.routineFactor(s(0)))],
     'fillHint' => [l.routineFillHint],
     'lightKept' => [l.routineLightKept((a[0] as List).join('·'))],
     _ => const [],

@@ -95,17 +95,29 @@ class _NotesListPageState extends State<NotesListPage>
     text,
   ]);
 
+  /// 고친 것의 열쇠 글. 오늘을 짜는 맨 요청("오늘 루틴 짜줘")은 홈 "오늘 루틴" 줄('')과
+  /// 같은 카드다 — 고친 것과 시작을 나눠 가져야 한 루틴이 기록 둘로 갈리지 않는다(G18).
+  String _editsText(String text) {
+    if (text.isEmpty || routeHome(text) != HomeRoute.bare) return text;
+    final when = readWhen(text);
+    return when == null || when == widget.now().weekday ? '' : text;
+  }
+
   /// 이 글의 고친 것 — 메모리에 없으면 남겨 둔 것에서 읽는다.
-  RoutineEdits _editsOf(String text) => _edits.putIfAbsent(
-    text,
-    () => RoutineEdits.fromJson(_editsStore[_editsKey(text)]),
-  );
+  RoutineEdits _editsOf(String text) {
+    final key = _editsText(text);
+    return _edits.putIfAbsent(
+      key,
+      () => RoutineEdits.fromJson(_editsStore[_editsKey(key)]),
+    );
+  }
 
   /// 고친 것을 남긴다. 바로 쓴다 — 시작하고 곧 앱이 꺼져도 "시작함" 이 남게.
   void _keepEdits(String text) {
-    final e = _edits[text];
+    final key = _editsText(text);
+    final e = _edits[key];
     if (e == null) return;
-    _editsStore.put(_editsKey(text), e.toJson());
+    _editsStore.put(_editsKey(key), e.toJson());
     unawaited(_editsStore.flush());
   }
 
@@ -271,6 +283,9 @@ class _NotesListPageState extends State<NotesListPage>
       if (signedIn) {
         unawaited(_loadRoutines());
       } else if (mounted) {
+        // The next account must not inherit "already caught up" — it would skip
+        // showing its own kept list.
+        _caughtUpAt = null;
         setState(() => _routines = const []);
       }
     }
@@ -330,6 +345,7 @@ class _NotesListPageState extends State<NotesListPage>
   Future<void> _loadRoutines() async {
     final account = widget.account;
     if (account == null || !account.signedIn) return;
+    final owner = account.userId;
     // 트레이너가 방금 등록해 줬을 수 있다. 다시 묻지 않으면 예약 칸이
     // 다음에 앱을 켤 때까지 안 나타난다. 둘은 서로 기다릴 까닭이 없다.
     final (_, found) = await (
@@ -337,7 +353,8 @@ class _NotesListPageState extends State<NotesListPage>
       account.link.routines(),
     ).wait;
     // 못 물어본 것은 지우지 않는다. 있던 루틴은 그대로 둔다.
-    if (found == null) return;
+    // Signed out or switched accounts while waiting: this list is not theirs.
+    if (found == null || widget.account?.userId != owner) return;
     _caughtUpAt = widget.now();
     if (mounted) setState(() => _routines = found);
     if (_routinesKey case final key?) {
@@ -1002,32 +1019,41 @@ class _NotesListPageState extends State<NotesListPage>
   }
 
   /// 시작 취소: 안 한 세트(○)뿐이면 기록을 지우고, 적은 세트(같이 하는 사람의 것도)가
-  /// 있으면 묻는다. 카드는 다시 [시작] 이 된다.
+  /// 있으면 묻는다. 카드는 다시 [시작] 이 된다. 기록에 끼니·출석·보낸 것·열린 같이 하기가
+  /// 매달려 있으면 지우지 않는다 — 지우면 그것들도 서버에서 지워진다. 그때는 안 한
+  /// 칸(○ 뿐이고 남의 세트도 없는 칸)만 걷는다.
   Future<void> _unstart(String text, RoutineEdits edits, Note started) async {
-    if (started.blocks.any((b) => b.sets.any((s) => s.done || s.theirs))) {
-      final l = L.of(context);
-      final ok = await showCupertinoDialog<bool>(
-        context: context,
-        builder: (dialog) => CupertinoAlertDialog(
-          title: Text(l.routineUnstartAsk),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.of(dialog).pop(false),
-              child: Text(l.cancel),
-            ),
-            CupertinoDialogAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(dialog).pop(true),
-              child: Text(l.delete),
-            ),
-          ],
-        ),
-      );
-      if (ok != true || !mounted) return;
+    if (!NotesStore.onlySets(started)) {
+      widget.store.update(started, [
+        for (final b in started.blocks)
+          if (b.sets.any((s) => s.done || s.theirs)) b,
+      ]);
+    } else {
+      if (started.blocks.any((b) => b.sets.any((s) => s.done || s.theirs))) {
+        final l = L.of(context);
+        final ok = await showCupertinoDialog<bool>(
+          context: context,
+          builder: (dialog) => CupertinoAlertDialog(
+            title: Text(l.routineUnstartAsk),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.of(dialog).pop(false),
+                child: Text(l.cancel),
+              ),
+              CupertinoDialogAction(
+                isDestructiveAction: true,
+                onPressed: () => Navigator.of(dialog).pop(true),
+                child: Text(l.delete),
+              ),
+            ],
+          ),
+        );
+        if (ok != true || !mounted) return;
+      }
+      final mark = edits.startedMark;
+      _delete(started);
+      _unstarted = (text: text, edits: edits, id: started.id, mark: mark);
     }
-    final mark = edits.startedMark;
-    _delete(started);
-    _unstarted = (text: text, edits: edits, id: started.id, mark: mark);
     _edit(text, () {
       edits
         ..started = null
@@ -1195,7 +1221,15 @@ class _NotesListPageState extends State<NotesListPage>
           }
           ask = deviceAsk(text, recorded);
           if (ask.exclude.isNotEmpty) {
-            status.add(l.routineDeviceExcluded(ask.exclude.join('·')));
+            status.add(
+              l.routineDeviceExcluded(
+                ask.exclude
+                    .map(
+                      (n) => exerciseByName[n.toLowerCase()]?.name(lang) ?? n,
+                    )
+                    .join('·'),
+              ),
+            );
           }
           status.add(
             mine && r.aiOff
@@ -1251,7 +1285,7 @@ class _NotesListPageState extends State<NotesListPage>
     }
     // 원판을 쓰는 칩(모델에 묻는 것)은 라벨에 원판을 붙이지 않고 한 줄로 모은다.
     if (ask.ask case final question? when _askedToo?.$1 != question) {
-      status.add(l.routinePlateCost(l.routineAskToo(question)));
+      status.add(l.routinePlateCost(l.routineAskTooName));
     }
     // 칸을 고치는 칩: 시작한 카드면 시작한 기록에도 옮긴다.
     void change(void Function() f, {bool swap = false}) => started == null

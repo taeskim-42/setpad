@@ -3697,7 +3697,7 @@ class LTh extends L {
 
   @override
   String routineDrift(String planned, String own) {
-    return 'ตามตารางสัปดาห์วันนี้คือ$planned แต่วันนี้ครั้งก่อนเป็น$own — ถ้าคัดลอกจะเป็น$ownอีก';
+    return 'ตามตารางสัปดาห์ วันในสัปดาห์นี้คือ$planned แต่ครั้งก่อนวันเดียวกันเป็น$own — ถ้าคัดลอกจะเป็น$ownอีก';
   }
 
   @override
@@ -3713,7 +3713,7 @@ class LTh extends L {
 
   @override
   String routinePlateCost(String list) {
-    return 'ใช้ 1 แผ่น: $list';
+    return 'ใช้แผ่น (ตามที่ใช้จริง): $list';
   }
 
   @override
@@ -3738,6 +3738,19 @@ class LTh extends L {
   String routineFirstPlan(String factor) {
     return 'ครั้งแรกเลยจัดตามตารางสัปดาห์ ($factor) · ตัวเลขเติมระหว่างจด';
   }
+
+  @override
+  String routineFirstPlanWeekend(String factor) {
+    return 'ครั้งแรกเลยจัดตามสิ่งที่สัปดาห์นี้ยังขาด ($factor) · ตัวเลขเติมระหว่างจด';
+  }
+
+  @override
+  String routineDriftKept(String planned) {
+    return 'ตามตารางสัปดาห์ วันในสัปดาห์นี้คือ$planned แต่สัปดาห์นี้ทำ$plannedครบแล้ว — จึงจัดตามครั้งก่อน';
+  }
+
+  @override
+  String get routineAskTooName => 'ถามด้วย';
 
   @override
   String get routineUnstart => 'ยกเลิกการเริ่ม';

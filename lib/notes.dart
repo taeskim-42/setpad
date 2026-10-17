@@ -1205,6 +1205,14 @@ class NotesStore extends ChangeNotifier {
       n.proxy == null &&
       (n.draft?.text.trim().isEmpty ?? true);
 
+  /// 세트 말고는 아무것도 매달려 있지 않다 — 끼니·출석·보낸 것·열린 같이 하기도 없다.
+  /// 이것일 때만 지워도 세트 말고 잃는 것이 없다(루틴 "시작 취소").
+  static bool onlySets(Note n) =>
+      _blankBesidesSets(n) &&
+      n.gymId == null &&
+      n.sentAt == null &&
+      !(n.partner?.liveOnServer ?? false);
+
   /// 편집기가 지금 열어 둔 기록. 정리하다 지우면 그 뒤에 친 것이 목록에 없는 기록에
   /// 쓰여 사라진다.
   final Set<Note> open = {};

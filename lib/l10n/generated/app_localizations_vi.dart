@@ -3726,7 +3726,7 @@ class LVi extends L {
 
   @override
   String routineDrift(String planned, String own) {
-    return 'Theo lịch tuần hôm nay là $planned, nhưng lần trước ngày này là $own — chép lại sẽ lại là $own';
+    return 'Theo lịch tuần thứ này là $planned, nhưng lần trước thứ này là $own — chép lại sẽ lại là $own';
   }
 
   @override
@@ -3742,7 +3742,7 @@ class LVi extends L {
 
   @override
   String routinePlateCost(String list) {
-    return '1 bánh tạ: $list';
+    return 'Dùng bánh tạ (theo mức dùng): $list';
   }
 
   @override
@@ -3767,6 +3767,19 @@ class LVi extends L {
   String routineFirstPlan(String factor) {
     return 'Lần đầu nên xếp theo lịch tuần ($factor) · số liệu điền khi ghi';
   }
+
+  @override
+  String routineFirstPlanWeekend(String factor) {
+    return 'Lần đầu nên xếp theo yếu tố còn thiếu tuần này ($factor) · số liệu điền khi ghi';
+  }
+
+  @override
+  String routineDriftKept(String planned) {
+    return 'Theo lịch tuần thứ này là $planned, nhưng tuần này đã đủ $planned — giữ như lần trước';
+  }
+
+  @override
+  String get routineAskTooName => 'Hỏi thêm';
 
   @override
   String get routineUnstart => 'Hủy bắt đầu';

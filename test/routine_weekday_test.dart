@@ -100,10 +100,11 @@ void main() {
     expect(d.restDays, 6);
   });
 
-  test('S2″ 같은 요일도 이웃도 없으면 지금의 회전', () {
+  test('S2″ 같은 요일도 이웃도 없으면 요일표 요인의 날(목 = 근력 → 월요일 근력 날), 다음은 회전', () {
     final mondays = weekLog(DateTime(2026, 8, 31), 17, {1: splitPlan[1]!});
     final d = make(mondays, thu);
-    expect(d.source, 'rotation');
+    expect((d.source, d.target), ('factor', Factor.strength));
+    expect(d.sourceDay?.weekday, DateTime.monday);
     expect(d.weeksAgo, isNull);
   });
 
@@ -537,6 +538,28 @@ void main() {
       expect(forced.planned, Factor.strength);
     });
 
+    test('요일표 요인을 이번 주 이미 채웠으면 칩은 없어도 왜 지난번 그대로인지 줄로 말한다', () {
+      final d = make(
+        weekLog(DateTime(2026, 8, 31), 14, methodPlan),
+        DateTime(2026, 9, 16, 18),
+      );
+      expect(d.planned, Factor.sustain);
+      expect(d.factor?.factor, Factor.strength);
+      expect(d.modeChips.where((c) => c.mode == 'sustain'), isEmpty);
+      expect(texts(d), contains(l.routineDriftKept('지속력')));
+    });
+
+    test('요일표 요인의 날이 28일 안에 없어도(칩 없음) 벗어난 까닭 줄은 있다', () {
+      final d = make(
+        weekLog(DateTime(2026, 8, 31), 18, {...methodPlan, 5: splitPlan[5]!}),
+        DateTime(2026, 9, 18, 18),
+      );
+      expect(d.planned, Factor.cardio);
+      expect(d.factor?.factor, Factor.strength);
+      expect(d.modeChips.where((c) => c.mode == 'cardio'), isEmpty);
+      expect(texts(d), contains(l.routineDrift('심폐', '근력')));
+    });
+
     test('요일표와 같고 그 요인이 아직 모자라면 칩도 줄도 없다', () {
       final d = make(weekLog(DateTime(2026, 8, 31), 14, methodPlan), mon);
       expect(d.factor?.factor, Factor.power);
@@ -594,6 +617,29 @@ void main() {
       );
     });
 
+    test('맨몸 기록이 없어도 타이머 칩은 지난 금요일 칸에 타이머만 붙이고, 돌아갈 칩이 있다', () {
+      final plain = weekLog(DateTime(2026, 8, 31), 18, plan);
+      final before = make(plain, fri);
+      expect(before.sourceDay, DateTime(2026, 9, 11));
+      for (final mode in ['tabata', 'bpm']) {
+        final d = composeRoutine(
+          plain,
+          bare,
+          now: fri,
+          edits: RoutineEdits()..mode = mode,
+        );
+        expect((d.source, d.sourceDay), ('weekday', DateTime(2026, 9, 11)));
+        expect(keys(d), keys(before), reason: mode);
+        expect(d.startable, isTrue);
+        expect(d.modeChips, contains((mode: 'weekday', count: null)));
+        expect(d.modeChips.where((c) => c.mode == mode), isEmpty);
+      }
+      // 되돌리기 칩을 누르면 처음 카드 그대로.
+      final back = make(plain, fri, edits: RoutineEdits()..mode = 'weekday');
+      expect(back.sourceDay, before.sourceDay);
+      expect(keys(back), keys(before));
+    });
+
     test('목요일(근력)엔 타이머 칩이 없다', () {
       final d = make(log, DateTime(2026, 9, 17, 18));
       expect(
@@ -611,6 +657,19 @@ void main() {
         ]),
         isNull,
       );
+    });
+    test('bpm 뒤의 세트·횟수 수는 템포가 아니다 — 기본 120 을 내 bpm 으로 짓지 않는다', () {
+      for (final title in ['스쿼트 bpm 5세트', '푸시업 bpm 3x20']) {
+        expect(
+          lastBpm([
+            at(DateTime(2026, 9, 1, 19), [
+              ExerciseBlock(title, times(3, () => reps(20))),
+            ]),
+          ]),
+          isNull,
+          reason: title,
+        );
+      }
     });
   });
 
@@ -635,5 +694,80 @@ void main() {
     expect(make(defaultLog(), wed, edits: edits).items.last.key, '레그컬');
     // 남긴다.
     expect(RoutineEdits.fromJson(edits.toJson()).swapped, edits.swapped);
+  });
+
+  group('첫 주: 요일 요인의 날이 없으면 그 요인의 첫 루틴(둘째 날부터도)', () {
+    // 월요일에 첫 루틴(스쿼트·벤치·바벨로우)과 푸시업을 했다.
+    final log = [
+      at(DateTime(2026, 9, 14, 19), [
+        ExerciseBlock('스쿼트', times(3, () => kg(60, 10))),
+        ExerciseBlock('벤치프레스', times(3, () => kg(40, 10))),
+        ExerciseBlock('바벨로우', times(3, () => kg(40, 10))),
+        ExerciseBlock('푸시업', times(3, () => reps(15))),
+      ]),
+    ];
+
+    test('화요일은 근지구력 운동 — 한 적 있는 푸시업만 내 세트로', () {
+      final d = make(log, DateTime(2026, 9, 15, 18));
+      expect(d.planned, Factor.endurance);
+      expect(d.source, 'first');
+      expect(keys(d), firstWeekExercises[Factor.endurance]);
+      expect(texts(d), contains(l.routineFirstPlan('근지구력')));
+      final push = d.items.firstWhere((i) => i.key == '푸시업');
+      expect(push.sets, hasLength(3));
+      expect(
+        d.items.where((i) => i.key != '푸시업').every((i) => i.sets.isEmpty),
+        isTrue,
+      );
+      // 다른 루틴은 회전(월요일).
+      expect(d.hasOther, isTrue);
+      final alt = make(
+        log,
+        DateTime(2026, 9, 15, 18),
+        edits: RoutineEdits()..alt = 1,
+      );
+      expect((alt.source, alt.sourceDay), ('rotation', DateTime(2026, 9, 14)));
+    });
+
+    test('금요일은 심폐 운동과 타이머 칩', () {
+      final d = make(log, DateTime(2026, 9, 18, 18));
+      expect(d.source, 'first');
+      expect(keys(d), firstWeekExercises[Factor.cardio]);
+      expect(d.modeChips, contains((mode: 'tabata', count: null)));
+    });
+
+    test('목요일(근력)은 28일 안의 근력 날(월요일)', () {
+      final d = make(log, DateTime(2026, 9, 17, 18));
+      expect((d.source, d.sourceDay), ('factor', DateTime(2026, 9, 14)));
+      expect(d.target, Factor.strength);
+    });
+
+    test('기록 0 주말: 주말 문구 한 줄뿐, 타이머 칩 없음', () {
+      final d = make(const [], DateTime(2026, 9, 12, 18));
+      expect(d.source, 'first');
+      expect(d.lines.map((x) => x.code), ['firstPlanWeekend']);
+      expect(texts(d), [l.routineFirstPlanWeekend('근력')]);
+      expect(
+        d.modeChips.where((c) => c.mode == 'tabata' || c.mode == 'bpm'),
+        isEmpty,
+      );
+    });
+  });
+
+  test('줄 문구: 이탈은 요일 기준(오늘이라 하지 않는다), 없는 뺄 운동은 화면 언어로', () {
+    final en = lookupL(const Locale('en'));
+    final drift = routineLineTexts(
+      en,
+      const RoutineLine('drift', ['strength', 'cardio']),
+    );
+    expect(drift.single, isNot(contains('today')));
+    expect(
+      routineLineTexts(
+        en,
+        const RoutineLine('excludeAbsent', ['데드리프트']),
+        lang: 'en',
+      ).single,
+      en.routineExcludeAbsent('Deadlift'),
+    );
   });
 }

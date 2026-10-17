@@ -268,7 +268,7 @@ void main() {
     });
   });
 
-  test('S7 첫 주(월·화만): 수요일은 회전, 토요일은 한 번이라도 한 요인만 — 나머지는 줄', () {
+  test('S7 첫 주(월·화만): 수요일은 지속력 첫 루틴, 토요일은 한 번이라도 한 요인만 — 나머지는 줄', () {
     final log = [
       at(DateTime(2026, 9, 14, 19), [
         ExerciseBlock('벤치프레스', times(3, () => kg(60, 10))),
@@ -277,7 +277,8 @@ void main() {
         ExerciseBlock('러닝', [timed(5, 'km')]),
       ]),
     ];
-    expect(make(log, DateTime(2026, 9, 16, 18)).source, 'rotation');
+    final wed = make(log, DateTime(2026, 9, 16, 18));
+    expect((wed.source, wed.target), ('first', Factor.sustain));
     final d = make(log, sat);
     expect(d.source, 'factor');
     expect(d.missing, [Factor.endurance, Factor.sustain]);
@@ -438,9 +439,10 @@ void main() {
       ],
     );
 
-    void same(List<Note> log, DateTime now) {
-      final d = make(log, now);
+    void same(List<Note> log, DateTime now, {int alt = 0}) {
+      final d = make(log, now, edits: RoutineEdits()..alt = alt);
       final edits = RoutineEdits()
+        ..alt = alt
         ..started = 'started'
         ..startedMark = draftMark(d);
       final withSets = [doing(d, now.add(const Duration(minutes: 5))), ...log];
@@ -448,7 +450,10 @@ void main() {
       expect(again.sourceDay, d.sourceDay);
       expect(draftMark(again), edits.startedMark);
       // 이 카드가 아니면(시작 표지 없음) 오늘 한 것으로 센다 — 다른 날을 고른다.
-      expect(make(withSets, now).sourceDay, isNot(d.sourceDay));
+      expect(
+        make(withSets, now, edits: RoutineEdits()..alt = alt).sourceDay,
+        isNot(d.sourceDay),
+      );
     }
 
     test('주말: 모자란 요인 셈이 오늘 한 세트로 바뀌지 않는다', () => same(mw, sat));
@@ -463,8 +468,10 @@ void main() {
         ]),
       ];
       final wed = DateTime(2026, 9, 16, 18);
-      expect(make(log, wed).source, 'rotation');
-      same(log, wed);
+      // 수요일(지속력) 날이 없어 첫 루틴이 먼저 — 회전은 "다른 루틴".
+      expect(make(log, wed).source, 'first');
+      expect(make(log, wed, edits: RoutineEdits()..alt = 1).source, 'rotation');
+      same(log, wed, alt: 1);
     });
   });
 }

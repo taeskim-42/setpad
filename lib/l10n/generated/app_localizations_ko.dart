@@ -3634,7 +3634,7 @@ class LKo extends L {
 
   @override
   String routinePlateCost(String list) {
-    return '원판 1장: $list';
+    return '원판을 써요(쓴 만큼): $list';
   }
 
   @override
@@ -3659,6 +3659,19 @@ class LKo extends L {
   String routineFirstPlan(String factor) {
     return '처음이라 요일표($factor)로 짰어요 · 숫자는 적으면서 채워요';
   }
+
+  @override
+  String routineFirstPlanWeekend(String factor) {
+    return '처음이라 이번 주 모자란 요인($factor)으로 짰어요 · 숫자는 적으면서 채워요';
+  }
+
+  @override
+  String routineDriftKept(String planned) {
+    return '요일표로는 $planned 날인데 이번 주 $planned 날은 이미 채워서 지난번 이 요일 그대로 짰어요';
+  }
+
+  @override
+  String get routineAskTooName => '이것도 묻기';
 
   @override
   String get routineUnstart => '시작 취소';

@@ -3753,7 +3753,7 @@ class LEn extends L {
 
   @override
   String routineDrift(String planned, String own) {
-    return 'The weekly plan says $planned today, but this weekday last time was $own — copying it repeats $own';
+    return 'In the weekly plan this weekday is $planned, but last time it was $own — copying it repeats $own';
   }
 
   @override
@@ -3770,7 +3770,7 @@ class LEn extends L {
 
   @override
   String routinePlateCost(String list) {
-    return '1 plate: $list';
+    return 'Uses plates (as used): $list';
   }
 
   @override
@@ -3795,6 +3795,19 @@ class LEn extends L {
   String routineFirstPlan(String factor) {
     return 'First time, so this follows the weekly plan ($factor) · fill in numbers as you log';
   }
+
+  @override
+  String routineFirstPlanWeekend(String factor) {
+    return 'First time, so this fills what the week is short of ($factor) · fill in numbers as you log';
+  }
+
+  @override
+  String routineDriftKept(String planned) {
+    return 'In the weekly plan this weekday is $planned, but $planned is already done this week — kept last time\'s day';
+  }
+
+  @override
+  String get routineAskTooName => 'Also ask';
 
   @override
   String get routineUnstart => 'Cancel start';
