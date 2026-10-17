@@ -3807,4 +3807,297 @@ class LTh extends L {
   @override
   String get refusedAccountBlocked =>
       'คุณเป็นเจ้าของหรือเทรนเนอร์ของยิม โปรดออกจากยิมหรือลบยิมก่อน แล้วจึงลบบัญชี';
+
+  @override
+  String get timerCollapse => 'ย่อ';
+
+  @override
+  String get timerCollapseA11y => 'ย่อ ตัวจับเวลายังทำงานต่อ';
+
+  @override
+  String get timerPaused => 'หยุดชั่วคราว';
+
+  @override
+  String get timerResume => 'เล่นต่อ';
+
+  @override
+  String get timerRestart => 'เริ่มใหม่';
+
+  @override
+  String get timerEnd => 'จบ';
+
+  @override
+  String get timerHoldEnd => 'กดค้างเพื่อจบ';
+
+  @override
+  String get timerHoldLeave => 'กดค้างเพื่อหยุด';
+
+  @override
+  String get timerLock => 'ล็อกหน้าจอ';
+
+  @override
+  String get timerUnlock => 'ปลดล็อก';
+
+  @override
+  String get timerLockHint => 'แตะสองครั้งเพื่อล็อก';
+
+  @override
+  String get timerUnlockHint => 'แตะสองครั้งเพื่อปลดล็อก';
+
+  @override
+  String get timerLockedHint => 'กดค้างที่กุญแจ 2 วินาทีเพื่อปลดล็อก';
+
+  @override
+  String get timerLockedAnnounce => 'ล็อกหน้าจอแล้ว';
+
+  @override
+  String get timerUnlockedAnnounce => 'ปลดล็อกแล้ว';
+
+  @override
+  String get timerSkipNext => 'ช่วงถัดไป';
+
+  @override
+  String get timerSkipBack => 'ช่วงก่อนหน้า';
+
+  @override
+  String get timerLastRound => 'รอบสุดท้าย';
+
+  @override
+  String timerRoundShort(int n, int total) {
+    return 'R $n/$total';
+  }
+
+  @override
+  String timerNext(String items) {
+    return 'ถัดไป · $items';
+  }
+
+  @override
+  String timerLeftTotal(String time) {
+    return 'เหลือทั้งหมด $time';
+  }
+
+  @override
+  String timerElapsed(String time) {
+    return 'ผ่านไป $time';
+  }
+
+  @override
+  String timerAboutLeft(String time) {
+    return 'เหลือประมาณ $time';
+  }
+
+  @override
+  String get timerGo => 'เริ่ม!';
+
+  @override
+  String timerTarget(int target) {
+    return '/ $target ครั้ง';
+  }
+
+  @override
+  String timerBeatLine(String count) {
+    return 'จังหวะ $count';
+  }
+
+  @override
+  String timerBeatA11y(int n) {
+    return 'จังหวะที่ $n';
+  }
+
+  @override
+  String timerCountA11y(int count, int target) {
+    return '$count จาก $target ครั้ง';
+  }
+
+  @override
+  String timerRemainingA11y(String time) {
+    return 'เหลือ $time ในช่วงนี้';
+  }
+
+  @override
+  String get timerHeartShared =>
+      'ตอนทำด้วยกัน จะไม่ตัดพักตามอัตราการเต้นของหัวใจ';
+
+  @override
+  String get timerRestLog => 'จำนวนครั้งรอบนี้';
+
+  @override
+  String timerLogged(int n) {
+    return 'บันทึก $n ครั้งแล้ว';
+  }
+
+  @override
+  String get timerDone => 'เสร็จ!';
+
+  @override
+  String get timerStopped => 'ทำถึงตรงนี้';
+
+  @override
+  String timerRoundsDone(int n) {
+    return '$n รอบ';
+  }
+
+  @override
+  String timerRepsDone(int n) {
+    return '$n ครั้ง';
+  }
+
+  @override
+  String timerRepsOfTarget(int n, int target) {
+    return '$n / $target ครั้ง';
+  }
+
+  @override
+  String get timerTotal => 'เวลารวม';
+
+  @override
+  String get timerTime => 'เวลา';
+
+  @override
+  String get timerTempo => 'จังหวะ';
+
+  @override
+  String timerRoundChip(int n, String reps) {
+    return 'R$n $reps';
+  }
+
+  @override
+  String timerRoundCountTitle(int n) {
+    return 'จำนวนครั้งรอบที่ $n';
+  }
+
+  @override
+  String timerFillRest(int n) {
+    return 'ทุกรอบที่เหลือ $n ครั้ง';
+  }
+
+  @override
+  String get timerClear => 'ล้าง';
+
+  @override
+  String get timerLogSets => 'บันทึกเป็นเซ็ต';
+
+  @override
+  String timerLogSetsCount(int n) {
+    return 'บันทึก $n เซ็ต';
+  }
+
+  @override
+  String get timerAgain => 'ทำอีกครั้ง';
+
+  @override
+  String get timerClose => 'ปิด';
+
+  @override
+  String timerLastRest(int from, int to) {
+    return 'พักครั้งสุดท้าย ♥ $from → $to';
+  }
+
+  @override
+  String timerSummaryTabata(int work, int rest, int rounds, String total) {
+    return 'ออกแรง $work วิ · พัก $rest วิ × $rounds · $total';
+  }
+
+  @override
+  String timerTargetChip(int n) {
+    return 'เป้าหมาย $n ครั้ง';
+  }
+
+  @override
+  String get timerNoTarget => 'ไม่มีเป้าหมาย';
+
+  @override
+  String get timerOpen => 'เปิด';
+
+  @override
+  String timerDoneLine(int rounds, String time) {
+    return 'เสร็จสิ้น · $rounds รอบ · $time';
+  }
+
+  @override
+  String timerDoneBpmLine(int count, String time) {
+    return 'เสร็จสิ้น · $count ครั้ง · $time';
+  }
+
+  @override
+  String get timerLogNow => 'บันทึก';
+
+  @override
+  String get timerTogether => 'ด้วยกัน';
+
+  @override
+  String get timerSwitchAsk => 'หยุดตัวจับเวลาที่ทำงานอยู่ แล้วเริ่มอันนี้ไหม';
+
+  @override
+  String get timerSwitchConfirm => 'หยุดแล้วเริ่ม';
+
+  @override
+  String timerUnloggedAsk(int n) {
+    return 'มี $n รอบที่ยังไม่ได้บันทึก';
+  }
+
+  @override
+  String get timerLogFirst => 'บันทึกก่อน';
+
+  @override
+  String get timerDiscardStart => 'ทิ้งแล้วเริ่ม';
+
+  @override
+  String get timerActionFailed => 'ส่งไม่สำเร็จ · ลองใหม่';
+
+  @override
+  String get timerSheetTitle => 'ตัวจับเวลา';
+
+  @override
+  String get timerAddChip => '+ ตัวจับเวลา';
+
+  @override
+  String get timerTabata => 'Tabata';
+
+  @override
+  String get timerBeat => 'เครื่องเคาะจังหวะ';
+
+  @override
+  String timerTotalLine(String time) {
+    return 'รวม $time';
+  }
+
+  @override
+  String get timerHaptics => 'การสั่น';
+
+  @override
+  String get timerHapticsSetting => 'การสั่นของตัวจับเวลา';
+
+  @override
+  String get timerReadOnly => 'หยุดตัวจับเวลาก่อนจึงจะแก้ได้';
+
+  @override
+  String get timerNameNeeded => 'ใส่ชื่อก่อน';
+
+  @override
+  String get timerWorkTitle => 'เวลาออกแรง';
+
+  @override
+  String get timerRestTitle => 'เวลาพัก';
+
+  @override
+  String get timerRoundsTitle => 'รอบ';
+
+  @override
+  String get timerBpmTitle => 'ความเร็ว (BPM)';
+
+  @override
+  String get timerTargetTitle => 'จำนวนครั้งเป้าหมาย';
+
+  @override
+  String timerSecondsValue(int n) {
+    return '$n วิ';
+  }
+
+  @override
+  String get timerMinValue => 'ต่ำสุดแล้ว';
+
+  @override
+  String get timerMaxValue => 'สูงสุดแล้ว';
 }

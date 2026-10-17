@@ -3719,4 +3719,296 @@ class LJa extends L {
   @override
   String get refusedAccountBlocked =>
       'ジムのオーナーまたはトレーナーです。ジムを抜けるかジムを削除してから、アカウントを削除してください。';
+
+  @override
+  String get timerCollapse => '小さくする';
+
+  @override
+  String get timerCollapseA11y => '小さくします。タイマーは動き続けます';
+
+  @override
+  String get timerPaused => '一時停止中';
+
+  @override
+  String get timerResume => '再開';
+
+  @override
+  String get timerRestart => '最初から';
+
+  @override
+  String get timerEnd => '終了';
+
+  @override
+  String get timerHoldEnd => '長押しで終了';
+
+  @override
+  String get timerHoldLeave => '長押しでやめる';
+
+  @override
+  String get timerLock => '画面ロック';
+
+  @override
+  String get timerUnlock => 'ロック解除';
+
+  @override
+  String get timerLockHint => 'ダブルタップでロック';
+
+  @override
+  String get timerUnlockHint => 'ダブルタップで解除';
+
+  @override
+  String get timerLockedHint => '鍵を2秒長押しで解除';
+
+  @override
+  String get timerLockedAnnounce => '画面をロックしました';
+
+  @override
+  String get timerUnlockedAnnounce => 'ロックを解除しました';
+
+  @override
+  String get timerSkipNext => '次の区間';
+
+  @override
+  String get timerSkipBack => '前の区間';
+
+  @override
+  String get timerLastRound => '最終ラウンド';
+
+  @override
+  String timerRoundShort(int n, int total) {
+    return 'R $n/$total';
+  }
+
+  @override
+  String timerNext(String items) {
+    return '次 · $items';
+  }
+
+  @override
+  String timerLeftTotal(String time) {
+    return '全体の残り $time';
+  }
+
+  @override
+  String timerElapsed(String time) {
+    return '経過 $time';
+  }
+
+  @override
+  String timerAboutLeft(String time) {
+    return '残り約 $time';
+  }
+
+  @override
+  String get timerGo => 'スタート!';
+
+  @override
+  String timerTarget(int target) {
+    return '/ $target回';
+  }
+
+  @override
+  String timerBeatLine(String count) {
+    return '$count拍目';
+  }
+
+  @override
+  String timerBeatA11y(int n) {
+    return '$n拍目';
+  }
+
+  @override
+  String timerCountA11y(int count, int target) {
+    return '$target回中$count回';
+  }
+
+  @override
+  String timerRemainingA11y(String time) {
+    return 'この区間の残り $time';
+  }
+
+  @override
+  String get timerHeartShared => '一緒のときは心拍で休憩を切り上げません';
+
+  @override
+  String get timerRestLog => 'このラウンドの回数';
+
+  @override
+  String timerLogged(int n) {
+    return '$n回を記録しました';
+  }
+
+  @override
+  String get timerDone => '終了!';
+
+  @override
+  String get timerStopped => 'ここまでやりました';
+
+  @override
+  String timerRoundsDone(int n) {
+    return '$nラウンド';
+  }
+
+  @override
+  String timerRepsDone(int n) {
+    return '$n回';
+  }
+
+  @override
+  String timerRepsOfTarget(int n, int target) {
+    return '$n / $target回';
+  }
+
+  @override
+  String get timerTotal => '合計時間';
+
+  @override
+  String get timerTime => '時間';
+
+  @override
+  String get timerTempo => 'テンポ';
+
+  @override
+  String timerRoundChip(int n, String reps) {
+    return 'R$n $reps';
+  }
+
+  @override
+  String timerRoundCountTitle(int n) {
+    return 'ラウンド$nの回数';
+  }
+
+  @override
+  String timerFillRest(int n) {
+    return '残りのラウンドすべて $n回';
+  }
+
+  @override
+  String get timerClear => 'クリア';
+
+  @override
+  String get timerLogSets => 'セットとして記録';
+
+  @override
+  String timerLogSetsCount(int n) {
+    return '$nセットを記録';
+  }
+
+  @override
+  String get timerAgain => 'もう一度';
+
+  @override
+  String get timerClose => '閉じる';
+
+  @override
+  String timerLastRest(int from, int to) {
+    return '最後の休憩 ♥ $from → $to';
+  }
+
+  @override
+  String timerSummaryTabata(int work, int rest, int rounds, String total) {
+    return '運動$work秒 · 休憩$rest秒 × $rounds · $total';
+  }
+
+  @override
+  String timerTargetChip(int n) {
+    return '目標$n回';
+  }
+
+  @override
+  String get timerNoTarget => '目標なし';
+
+  @override
+  String get timerOpen => '開く';
+
+  @override
+  String timerDoneLine(int rounds, String time) {
+    return '完了 · $roundsラウンド · $time';
+  }
+
+  @override
+  String timerDoneBpmLine(int count, String time) {
+    return '完了 · $count回 · $time';
+  }
+
+  @override
+  String get timerLogNow => '記録';
+
+  @override
+  String get timerTogether => '一緒に';
+
+  @override
+  String get timerSwitchAsk => '動いているタイマーを止めて、これを開始しますか?';
+
+  @override
+  String get timerSwitchConfirm => '止めて開始';
+
+  @override
+  String timerUnloggedAsk(int n) {
+    return '未記録の$nラウンドがあります';
+  }
+
+  @override
+  String get timerLogFirst => '先に記録';
+
+  @override
+  String get timerDiscardStart => '破棄して開始';
+
+  @override
+  String get timerActionFailed => '送信できませんでした · 再試行';
+
+  @override
+  String get timerSheetTitle => 'タイマー';
+
+  @override
+  String get timerAddChip => '+ タイマー';
+
+  @override
+  String get timerTabata => 'タバタ';
+
+  @override
+  String get timerBeat => 'メトロノーム';
+
+  @override
+  String timerTotalLine(String time) {
+    return '合計 $time';
+  }
+
+  @override
+  String get timerHaptics => '振動';
+
+  @override
+  String get timerHapticsSetting => 'タイマーの振動';
+
+  @override
+  String get timerReadOnly => '止めてから変更できます';
+
+  @override
+  String get timerNameNeeded => '先に名前を入力してください';
+
+  @override
+  String get timerWorkTitle => '運動時間';
+
+  @override
+  String get timerRestTitle => '休憩時間';
+
+  @override
+  String get timerRoundsTitle => 'ラウンド';
+
+  @override
+  String get timerBpmTitle => 'テンポ (BPM)';
+
+  @override
+  String get timerTargetTitle => '目標回数';
+
+  @override
+  String timerSecondsValue(int n) {
+    return '$n秒';
+  }
+
+  @override
+  String get timerMinValue => '最小値です';
+
+  @override
+  String get timerMaxValue => '最大値です';
 }

@@ -3862,4 +3862,332 @@ class LEn extends L {
   @override
   String get refusedAccountBlocked =>
       'You\'re an owner or trainer at a gym. Leave the gym or delete it, then delete your account.';
+
+  @override
+  String get timerCollapse => 'Minimize';
+
+  @override
+  String get timerCollapseA11y => 'Minimize, the timer keeps running';
+
+  @override
+  String get timerPaused => 'Paused';
+
+  @override
+  String get timerResume => 'Resume';
+
+  @override
+  String get timerRestart => 'Restart';
+
+  @override
+  String get timerEnd => 'End';
+
+  @override
+  String get timerHoldEnd => 'Hold to end';
+
+  @override
+  String get timerHoldLeave => 'Hold to leave';
+
+  @override
+  String get timerLock => 'Lock screen';
+
+  @override
+  String get timerUnlock => 'Unlock';
+
+  @override
+  String get timerLockHint => 'Double-tap to lock';
+
+  @override
+  String get timerUnlockHint => 'Double-tap to unlock';
+
+  @override
+  String get timerLockedHint => 'Hold the lock for 2 s to unlock';
+
+  @override
+  String get timerLockedAnnounce => 'Screen locked';
+
+  @override
+  String get timerUnlockedAnnounce => 'Unlocked';
+
+  @override
+  String get timerSkipNext => 'Next interval';
+
+  @override
+  String get timerSkipBack => 'Previous interval';
+
+  @override
+  String get timerLastRound => 'Last round';
+
+  @override
+  String timerRoundShort(int n, int total) {
+    return 'R $n/$total';
+  }
+
+  @override
+  String timerNext(String items) {
+    return 'Next · $items';
+  }
+
+  @override
+  String timerLeftTotal(String time) {
+    return '$time left in total';
+  }
+
+  @override
+  String timerElapsed(String time) {
+    return 'Elapsed $time';
+  }
+
+  @override
+  String timerAboutLeft(String time) {
+    return 'About $time left';
+  }
+
+  @override
+  String get timerGo => 'Go!';
+
+  @override
+  String timerTarget(int target) {
+    return '/ $target';
+  }
+
+  @override
+  String timerBeatLine(String count) {
+    return 'Beat $count';
+  }
+
+  @override
+  String timerBeatA11y(int n) {
+    return 'Beat $n';
+  }
+
+  @override
+  String timerCountA11y(int count, int target) {
+    return '$count of $target';
+  }
+
+  @override
+  String timerRemainingA11y(String time) {
+    return '$time left in this interval';
+  }
+
+  @override
+  String get timerHeartShared => 'Rest isn\'t cut by heart rate while together';
+
+  @override
+  String get timerRestLog => 'Reps this round';
+
+  @override
+  String timerLogged(int n) {
+    return 'Logged $n';
+  }
+
+  @override
+  String get timerDone => 'Done!';
+
+  @override
+  String get timerStopped => 'That\'s all for now';
+
+  @override
+  String timerRoundsDone(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n rounds',
+      one: '1 round',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timerRepsDone(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n reps',
+      one: '1 rep',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timerRepsOfTarget(int n, int target) {
+    return '$n / $target reps';
+  }
+
+  @override
+  String get timerTotal => 'Total';
+
+  @override
+  String get timerTime => 'Time';
+
+  @override
+  String get timerTempo => 'Tempo';
+
+  @override
+  String timerRoundChip(int n, String reps) {
+    return 'R$n $reps';
+  }
+
+  @override
+  String timerRoundCountTitle(int n) {
+    return 'Round $n reps';
+  }
+
+  @override
+  String timerFillRest(int n) {
+    return 'All remaining rounds: $n';
+  }
+
+  @override
+  String get timerClear => 'Clear';
+
+  @override
+  String get timerLogSets => 'Log as sets';
+
+  @override
+  String timerLogSetsCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Log $n sets',
+      one: 'Log 1 set',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get timerAgain => 'Again';
+
+  @override
+  String get timerClose => 'Close';
+
+  @override
+  String timerLastRest(int from, int to) {
+    return 'Last rest ♥ $from → $to';
+  }
+
+  @override
+  String timerSummaryTabata(int work, int rest, int rounds, String total) {
+    return '${work}s work · ${rest}s rest × $rounds · $total';
+  }
+
+  @override
+  String timerTargetChip(int n) {
+    return 'Target $n';
+  }
+
+  @override
+  String get timerNoTarget => 'No target';
+
+  @override
+  String get timerOpen => 'Open';
+
+  @override
+  String timerDoneLine(int rounds, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      rounds,
+      locale: localeName,
+      other: '$rounds rounds',
+      one: '1 round',
+    );
+    return 'Done · $_temp0 · $time';
+  }
+
+  @override
+  String timerDoneBpmLine(int count, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reps',
+      one: '1 rep',
+    );
+    return 'Done · $_temp0 · $time';
+  }
+
+  @override
+  String get timerLogNow => 'Log';
+
+  @override
+  String get timerTogether => 'Together';
+
+  @override
+  String get timerSwitchAsk => 'Stop the running timer and start this one?';
+
+  @override
+  String get timerSwitchConfirm => 'Stop and start';
+
+  @override
+  String timerUnloggedAsk(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n rounds aren\'t logged yet',
+      one: '1 round isn\'t logged yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get timerLogFirst => 'Log first';
+
+  @override
+  String get timerDiscardStart => 'Discard and start';
+
+  @override
+  String get timerActionFailed => 'Couldn\'t send · Retry';
+
+  @override
+  String get timerSheetTitle => 'Timer';
+
+  @override
+  String get timerAddChip => '+ Timer';
+
+  @override
+  String get timerTabata => 'Tabata';
+
+  @override
+  String get timerBeat => 'Metronome';
+
+  @override
+  String timerTotalLine(String time) {
+    return 'Total $time';
+  }
+
+  @override
+  String get timerHaptics => 'Vibration';
+
+  @override
+  String get timerHapticsSetting => 'Timer vibration';
+
+  @override
+  String get timerReadOnly => 'Stop the timer to change this';
+
+  @override
+  String get timerNameNeeded => 'Add a name first';
+
+  @override
+  String get timerWorkTitle => 'Work time';
+
+  @override
+  String get timerRestTitle => 'Rest time';
+
+  @override
+  String get timerRoundsTitle => 'Rounds';
+
+  @override
+  String get timerBpmTitle => 'Tempo (BPM)';
+
+  @override
+  String get timerTargetTitle => 'Target reps';
+
+  @override
+  String timerSecondsValue(int n) {
+    return '${n}s';
+  }
+
+  @override
+  String get timerMinValue => 'That\'s the minimum';
+
+  @override
+  String get timerMaxValue => 'That\'s the maximum';
 }
