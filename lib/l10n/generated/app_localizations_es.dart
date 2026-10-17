@@ -3900,4 +3900,11 @@ class LEs extends L {
   String routineDrift(String planned, String own) {
     return 'El plan semanal dice $planned hoy, pero este día la última vez fue $own — copiarlo repite $own';
   }
+
+  @override
+  String get routineWeekendDetail =>
+      'Fin de semana · lo que le falta a esta semana';
+
+  @override
+  String get routineClose => 'Cerrar';
 }

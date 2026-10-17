@@ -932,5 +932,7 @@
   "refusedClassCancelled": "这节团课已停课。",
   "refusedAccountBlocked": "你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。",
   "routineWeekdayFactor": "{day} = {factor}",
-  "routineDrift": "按周表今天是{planned}日，但上次这一天是{own}日 — 照搬又会是{own}日"
+  "routineDrift": "按周表今天是{planned}日，但上次这一天是{own}日 — 照搬又会是{own}日",
+  "routineWeekendDetail": "周末 · 补本周缺的要素",
+  "routineClose": "关闭"
 }

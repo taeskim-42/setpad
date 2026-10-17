@@ -3872,4 +3872,11 @@ class LEn extends L {
   String routineDrift(String planned, String own) {
     return 'The weekly plan says $planned today, but this weekday last time was $own — copying it repeats $own';
   }
+
+  @override
+  String get routineWeekendDetail =>
+      'Weekend · fills what this week is short of';
+
+  @override
+  String get routineClose => 'Close';
 }

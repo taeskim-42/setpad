@@ -3817,4 +3817,10 @@ class LTh extends L {
   String routineDrift(String planned, String own) {
     return 'ตามตารางสัปดาห์วันนี้คือ$planned แต่วันนี้ครั้งก่อนเป็น$own — ถ้าคัดลอกจะเป็น$ownอีก';
   }
+
+  @override
+  String get routineWeekendDetail => 'สุดสัปดาห์ · เติมสิ่งที่สัปดาห์นี้ยังขาด';
+
+  @override
+  String get routineClose => 'ปิด';
 }

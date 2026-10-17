@@ -5616,6 +5616,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'요일표로는 {planned} 날인데 지난번 이 요일은 {own} 날이었어요 — 그대로 두면 또 {own} 날이 돼요'**
   String routineDrift(String planned, String own);
+
+  /// 홈의 '오늘 루틴' 줄 둘째 줄(주말). 평일은 routineWeekdayFactor.
+  ///
+  /// In ko, this message translates to:
+  /// **'주말 · 이번 주 모자란 요인으로'**
+  String get routineWeekendDetail;
+
+  /// 홈의 '오늘 루틴' 줄로 연 카드를 닫는 칩.
+  ///
+  /// In ko, this message translates to:
+  /// **'닫기'**
+  String get routineClose;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

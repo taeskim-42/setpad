@@ -3696,6 +3696,12 @@ class LZh extends L {
   String routineDrift(String planned, String own) {
     return '按周表今天是$planned日，但上次这一天是$own日 — 照搬又会是$own日';
   }
+
+  @override
+  String get routineWeekendDetail => '周末 · 补本周缺的要素';
+
+  @override
+  String get routineClose => '关闭';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7390,6 +7396,12 @@ class LZhHans extends LZh {
   String routineDrift(String planned, String own) {
     return '按周表今天是$planned日，但上次这一天是$own日 — 照搬又会是$own日';
   }
+
+  @override
+  String get routineWeekendDetail => '周末 · 补本周缺的要素';
+
+  @override
+  String get routineClose => '关闭';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11084,4 +11096,10 @@ class LZhHant extends LZh {
   String routineDrift(String planned, String own) {
     return '按週表今天是$planned日，但上次這一天是$own日 — 照搬又會是$own日';
   }
+
+  @override
+  String get routineWeekendDetail => '週末 · 補本週缺的要素';
+
+  @override
+  String get routineClose => '關閉';
 }

@@ -932,5 +932,7 @@
   "refusedClassCancelled": "Esta clase se canceló.",
   "refusedAccountBlocked": "Eres propietario o entrenador de un gimnasio. Sal del gimnasio o elimínalo y luego elimina tu cuenta.",
   "routineWeekdayFactor": "{day} = {factor}",
-  "routineDrift": "El plan semanal dice {planned} hoy, pero este día la última vez fue {own} — copiarlo repite {own}"
+  "routineDrift": "El plan semanal dice {planned} hoy, pero este día la última vez fue {own} — copiarlo repite {own}",
+  "routineWeekendDetail": "Fin de semana · lo que le falta a esta semana",
+  "routineClose": "Cerrar"
 }

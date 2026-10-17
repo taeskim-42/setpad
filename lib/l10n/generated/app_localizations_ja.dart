@@ -3729,4 +3729,10 @@ class LJa extends L {
   String routineDrift(String planned, String own) {
     return '週間表では$plannedの日ですが、前回のこの曜日は$ownの日でした — そのままだとまた$ownの日になります';
   }
+
+  @override
+  String get routineWeekendDetail => '週末 · 今週足りない要素で';
+
+  @override
+  String get routineClose => '閉じる';
 }

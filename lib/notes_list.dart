@@ -28,6 +28,7 @@ import 'routine.dart';
 import 'routine_card.dart';
 import 'settings.dart';
 import 'trainer.dart';
+import 'training_factor.dart' show weekdayFactor;
 
 /// 운동 기록 목록.
 ///
@@ -810,6 +811,26 @@ class _NotesListPageState extends State<NotesListPage>
     _open(note);
   }
 
+  /// 홈의 "오늘 루틴" 줄 — 맨 요청("오늘 루틴 짜줘")과 같은 기기 카드(원판 0).
+  /// 검색칸에는 쓰지 않는다: 자판이 떠 있을 수 있는 칸에 앱이 글을 쓰면 한글 조합이
+  /// 깨진다(IME 규칙). 빈 글을 열쇠로 [_device] 를 바로 세우고 자판은 내린다.
+  void _openTodayRoutine() {
+    FocusScope.of(context).unfocus();
+    setState(() => _device = ('', deviceAsk('', _recorded, bare: true)));
+  }
+
+  /// "오늘 루틴" 줄의 둘째 줄: 평일은 요일표 요인, 주말은 모자란 요인.
+  String _todayRoutineDetail(L l) {
+    final now = widget.now();
+    return switch (weekdayFactor[now.weekday]) {
+      final f? => l.routineWeekdayFactor(
+        l.weekdayLabel(now),
+        l.routineFactor(f.name),
+      ),
+      null => l.routineWeekendDetail,
+    };
+  }
+
   /// 이 초안 그대로 시작한 기록.
   Note? _started(RoutineDraft draft, RoutineEdits edits) =>
       edits.startedMark == draftMark(draft)
@@ -825,7 +846,13 @@ class _NotesListPageState extends State<NotesListPage>
     final lang = _lang;
     final edits = _editsOf(text);
     final status = <String>[];
-    final actions = <RoutineAction>[];
+    final actions = <RoutineAction>[
+      // 홈의 "오늘 루틴" 줄로 연 카드 — 검색칸이 비어 있어 지울 글이 없다.
+      if (text.isEmpty)
+        (label: l.routineClose, onTap: () => setState(() => _device = null)),
+    ];
+    // 빈 검색이면 목록 위에 쌤 루틴 줄이 이미 있다 — 카드에 또 두지 않는다.
+    final trainer = text.isEmpty ? const <Routine>[] : _routines;
     final extra = <Widget>[];
     RoutineAction plain() => (
       label: l.routineNoConditions,
@@ -853,7 +880,7 @@ class _NotesListPageState extends State<NotesListPage>
       RoutineCard(
         status: status,
         actions: actions,
-        trainer: _routines,
+        trainer: trainer,
         onTrainer: _startRoutine,
       ),
     );
@@ -1022,7 +1049,7 @@ class _NotesListPageState extends State<NotesListPage>
       ask: ask,
       status: status,
       actions: actions,
-      trainer: _routines,
+      trainer: trainer,
       onTrainer: _startRoutine,
       onStart: started != null
           ? () => _open(started)
@@ -1441,6 +1468,16 @@ class _NotesListPageState extends State<NotesListPage>
                               ),
                             ),
                           ),
+                      // 오늘 루틴 — 글을 치지 않아도 짠다(맨 요청과 같은 기기 카드).
+                      if (_query.text.trim().isEmpty && _device?.$1 != '')
+                        SliverToBoxAdapter(
+                          child: GymRow(
+                            icon: CupertinoIcons.list_bullet,
+                            title: l.routineHeaderToday,
+                            detail: _todayRoutineDetail(l),
+                            onTap: _openTodayRoutine,
+                          ),
+                        ),
                       // 도장 초대. 받아야 회원이 된다 — 안 다니는 사람에게도 온다.
                       if (_query.text.trim().isEmpty)
                         for (final invite
@@ -1986,14 +2023,27 @@ class _NotesListPageState extends State<NotesListPage>
                                         .resolveFrom(context),
                                   ),
                                 ),
-                                // 기록이 없어도 몸 그림에서 운동을 고를 수 있다.
+                                // 기록이 없어도 몸 그림에서 운동을 고르거나 오늘 루틴을
+                                // 짤 수 있다.
                                 if (_query.text.isEmpty)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 12),
-                                    child: SuggestionChip(
-                                      label: l.anatomyPick,
-                                      selected: false,
-                                      onTap: _openAnatomy,
+                                    child: Wrap(
+                                      spacing: 8,
+                                      runSpacing: 6,
+                                      alignment: WrapAlignment.center,
+                                      children: [
+                                        SuggestionChip(
+                                          label: l.routineMake,
+                                          selected: false,
+                                          onTap: _openTodayRoutine,
+                                        ),
+                                        SuggestionChip(
+                                          label: l.anatomyPick,
+                                          selected: false,
+                                          onTap: _openAnatomy,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 // 치는 동안은 글자로만 찾는다. 0건이면 질문이
@@ -2059,6 +2109,8 @@ class _NotesListPageState extends State<NotesListPage>
           _SearchBar(
             controller: _query,
             onChanged: (_) {
+              // 홈 줄로 연 카드는 글을 치면 닫는다(검색칸을 비워도 다시 뜨지 않는다).
+              if (_device?.$1 == '') _device = null;
               _pick = null;
               _chip = null;
               _confirmed = null;

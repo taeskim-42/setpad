@@ -932,5 +932,7 @@
   "refusedClassCancelled": "Lớp này đã nghỉ.",
   "refusedAccountBlocked": "Bạn là chủ hoặc huấn luyện viên của một phòng tập. Hãy rời hoặc xóa phòng tập trước, rồi mới xóa tài khoản.",
   "routineWeekdayFactor": "{day} = {factor}",
-  "routineDrift": "Theo lịch tuần hôm nay là {planned}, nhưng lần trước ngày này là {own} — chép lại sẽ lại là {own}"
+  "routineDrift": "Theo lịch tuần hôm nay là {planned}, nhưng lần trước ngày này là {own} — chép lại sẽ lại là {own}",
+  "routineWeekendDetail": "Cuối tuần · bù yếu tố tuần này còn thiếu",
+  "routineClose": "Đóng"
 }

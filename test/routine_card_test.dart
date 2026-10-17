@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:setpad/editor.dart';
+import 'package:setpad/gym_page.dart' show GymRow;
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/notes_list.dart';
@@ -298,6 +299,55 @@ void main() {
     await tester.tap(find.widgetWithText(CupertinoButton, l.routineStarted));
     await tester.pumpAndSettle();
     expect(store.created, hasLength(1));
+  });
+
+  testWidgets('홈의 "오늘 루틴" 줄: 글을 치지 않고 기기 카드(원판 0), 검색칸에 쓰지 않는다', (
+    tester,
+  ) async {
+    final calls = <String>[];
+    final store = await pump(
+      tester,
+      ai: RecordAi(
+        respond: (i, _) async {
+          calls.add(i);
+          return {};
+        },
+      ),
+    );
+    final row = find.widgetWithText(GymRow, l.routineHeaderToday);
+    expect(row, findsOneWidget);
+    // 9/9 수요일 = 지속력.
+    expect(
+      find.text(l.routineWeekdayFactor(l.weekdayLabel(routineToday), '지속력')),
+      findsOneWidget,
+    );
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+    expect(row, findsNothing);
+    expect(startButton(), findsOneWidget);
+    expect(find.text('루마니안 데드리프트'), findsOneWidget);
+    expect(
+      tester.widget<CupertinoSearchTextField>(search).controller!.text,
+      isEmpty,
+    );
+    expect(calls, isEmpty);
+    await tester.tap(startButton());
+    await tester.pumpAndSettle();
+    expect(store.created, hasLength(1));
+    // 닫으면 줄로 돌아간다.
+    await tester.tap(find.text(l.routineClose));
+    await tester.pumpAndSettle();
+    expect(row, findsOneWidget);
+    expect(startButton(), findsNothing);
+  });
+
+  testWidgets('기록이 하나도 없어도 빈 목록에 "오늘 루틴 만들기" 칩과 줄', (tester) async {
+    await pump(tester, records: []);
+    expect(find.widgetWithText(GymRow, l.routineHeaderToday), findsOneWidget);
+    await tester.tap(find.text(l.routineMake));
+    await tester.pumpAndSettle();
+    expect(find.text(l.routineHeaderToday), findsOneWidget);
+    expect(find.text(l.routineClose), findsOneWidget);
   });
 
   testWidgets('다른 루틴은 다음 순위의 날을 보인다', (tester) async {

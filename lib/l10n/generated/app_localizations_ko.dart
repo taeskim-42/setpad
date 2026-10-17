@@ -3736,4 +3736,10 @@ class LKo extends L {
   String routineDrift(String planned, String own) {
     return '요일표로는 $planned 날인데 지난번 이 요일은 $own 날이었어요 — 그대로 두면 또 $own 날이 돼요';
   }
+
+  @override
+  String get routineWeekendDetail => '주말 · 이번 주 모자란 요인으로';
+
+  @override
+  String get routineClose => '닫기';
 }

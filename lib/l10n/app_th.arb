@@ -932,5 +932,7 @@
   "refusedClassCancelled": "คลาสนี้งดแล้ว",
   "refusedAccountBlocked": "คุณเป็นเจ้าของหรือเทรนเนอร์ของยิม โปรดออกจากยิมหรือลบยิมก่อน แล้วจึงลบบัญชี",
   "routineWeekdayFactor": "{day} = {factor}",
-  "routineDrift": "ตามตารางสัปดาห์วันนี้คือ{planned} แต่วันนี้ครั้งก่อนเป็น{own} — ถ้าคัดลอกจะเป็น{own}อีก"
+  "routineDrift": "ตามตารางสัปดาห์วันนี้คือ{planned} แต่วันนี้ครั้งก่อนเป็น{own} — ถ้าคัดลอกจะเป็น{own}อีก",
+  "routineWeekendDetail": "สุดสัปดาห์ · เติมสิ่งที่สัปดาห์นี้ยังขาด",
+  "routineClose": "ปิด"
 }

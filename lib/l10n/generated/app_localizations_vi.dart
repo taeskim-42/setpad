@@ -3846,4 +3846,10 @@ class LVi extends L {
   String routineDrift(String planned, String own) {
     return 'Theo lịch tuần hôm nay là $planned, nhưng lần trước ngày này là $own — chép lại sẽ lại là $own';
   }
+
+  @override
+  String get routineWeekendDetail => 'Cuối tuần · bù yếu tố tuần này còn thiếu';
+
+  @override
+  String get routineClose => 'Đóng';
 }
