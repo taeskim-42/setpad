@@ -16,6 +16,12 @@
          USE_EXACT_ALARM)은 넣지 않는다 — Play 가 권한 사유로 거절한 전력이 있고,
          몇 분 늦는 알림으로 충분하다. POST_NOTIFICATIONS 는 플러그인이 합쳐 준다. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- 타이머가 도는 동안 백그라운드·화면 꺼짐에도 신호·세기가 이어지게 하는 포그라운드
+         서비스(TimingService, iOS 의 keep-alive 와 짝). Play Console 의 포그라운드 서비스
+         권한 선언이 필요하다 — docs/android-fgs-play-declaration.md. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <!-- 백업에서 로그인 표를 뺀다(res/xml). 기록은 그대로 백업된다. -->
     <application
         android:label="setpad"
@@ -106,6 +112,11 @@
                 <category android:name="android.intent.category.HEALTH_PERMISSIONS"/>
             </intent-filter>
         </activity-alias>
+        <service
+            android:name=".TimingService"
+            android:exported="false"
+            android:stopWithTask="true"
+            android:foregroundServiceType="mediaPlayback"/>
         <!-- 걸어 둔 알림을 띄우고, 재부팅·앱 업데이트 뒤 다시 거는 플러그인 리시버. -->
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">

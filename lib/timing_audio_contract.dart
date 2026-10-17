@@ -28,5 +28,13 @@ abstract class TimingAudio {
   /// cuts both; finishing (the complete cue) does not.
   Future<void> playVoice(String asset, {bool onBeat = false}) async {}
 
+  /// Whether a timer that sounds (a workout run or a set rest) is running,
+  /// as opposed to `active`, which the set stage alone also holds to keep
+  /// the screen on. Android runs its foreground service and wake lock only
+  /// while this is on. [linger]: it went off with a finishing cue, so the
+  /// last sound and the words queued behind it still play with the screen
+  /// off.
+  Future<void> keepAlive(bool on, {bool linger = false}) async {}
+
   Future<void> dispose();
 }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Running-timer notification (TimingService). -->
+    <string name="timing_channel">Temporizador de entrenamiento</string>
+    <string name="timing_running">Temporizador de entrenamiento activo</string>
+</resources>

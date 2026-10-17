@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'timing_audio_contract.dart';
 
@@ -36,6 +37,22 @@ class _NativeAudio extends TimingAudio {
     'cue': cue,
     'phase': phase,
   });
+
+  @override
+  Future<void> keepAlive(bool on, {bool linger = false}) async {
+    // iOS keeps its keep-alive loop on `active`; only Android listens.
+    if (defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      await _channel.invokeMethod<void>('keepAlive', {
+        'on': on,
+        'linger': linger,
+      });
+    } on MissingPluginException {
+      /* Widget tests. */
+    } on PlatformException {
+      /* Best effort, like the service itself. */
+    }
+  }
 
   @override
   Future<void> playVoice(String asset, {bool onBeat = false}) =>

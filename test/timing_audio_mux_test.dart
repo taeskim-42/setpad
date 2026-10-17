@@ -39,6 +39,13 @@ class RealAudio extends TimingAudio {
   Future<void> playVoice(String asset, {bool onBeat = false}) async =>
       calls.add('voice $asset${onBeat ? ' onBeat' : ''}');
 
+  /// keepAlive calls, apart from [calls].
+  final kept = <String>[];
+
+  @override
+  Future<void> keepAlive(bool on, {bool linger = false}) async =>
+      kept.add('${on ? 'keep' : 'drop'}${linger ? ' linger' : ''}');
+
   @override
   Future<void> dispose() async => disposed++;
 }
@@ -290,5 +297,31 @@ void main() {
     real.onInterrupted!();
     expect(heard, ['a']);
     expect(real.disposed, 0);
+  });
+
+  test('the stage alone keeps the screen on but no keep-alive (Android '
+      'service); a rest or a run does, and a finishing cue lingers', () async {
+    final stage = mux.port('stage'), rest = mux.port('rest');
+    final workout = mux.port('workout');
+    await stage.configure(active: true);
+    expect(real.calls.last, 'on bpm=null cue=null');
+    await pumpEventQueue();
+    expect(real.kept, ['drop']);
+    await rest.configure(active: true);
+    await pumpEventQueue();
+    expect(real.kept.last, 'keep');
+    // A quiet rest end under the open stage changes nothing else.
+    await rest.configure(active: false);
+    await pumpEventQueue();
+    expect(real.kept.last, 'drop');
+    await workout.configure(active: true, bpm: 60);
+    await workout.configure(active: false, cue: 'complete');
+    await pumpEventQueue();
+    expect(real.kept, ['drop', 'keep', 'drop', 'keep', 'drop linger']);
+    // The stage closing sends nothing more to the keep-alive.
+    await stage.configure(active: false);
+    await pumpEventQueue();
+    expect(real.kept, hasLength(5));
+    expect(real.calls.last, 'off bpm=null cue=null');
   });
 }
