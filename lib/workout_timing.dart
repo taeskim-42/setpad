@@ -254,39 +254,47 @@ String spokenCount(int n, String languageCode) {
 const maxSpokenCount = 100;
 String countVoice(String sex, int n) => 'assets/voice/count/en/$sex/$n.m4a';
 
-/// Silence kept between a word's end and the next count once counting is
-/// spread out: the platforms start a word up to ~20 ms late (they poll) and
-/// the tick sees a beat up to 50 ms late.
-const countGapMs = 80;
+/// Slack the plan keeps for the platforms' polling (20 ms), Android's first
+/// try 5 ms late and timer jitter: off the quarter-beat wait while counting
+/// every beat, and between a word's end and the next count once spread out.
+const countGapMs = 40;
 
 /// The counts said in a run counting to [last] at [bpm] in voice [sex].
 ///
-/// Every beat while the platforms say each one, exactly as before: a count
-/// starts half a beat after its click, or as the word before ends (they look
-/// every 20 ms), and a word still sounding a quarter beat after the next
-/// count's moment drops that count (TimingBridge playVoice, iOS and
-/// Android). Just before a word would do that, counting widens to every 2nd,
-/// then 5th, then 10th count, never back; a widened count is said only when
-/// the word before ended [countGapMs] before its moment. So a long number at
-/// a fast tempo never drops the next one at random: 80 bpm in the man's
-/// voice is One … Sixteen, Eighteen, Twenty … (the recordings run
-/// 0.5–1.2 s, [countVoicePlayMs]). "One" is always said: it marks the start.
+/// The platforms (TimingBridge playVoice: iOS, Android, web) start a count
+/// half a beat after its click, or as the word before ends (they look every
+/// 20 ms), and drop it when that word still sounds a quarter beat after its
+/// moment. A word ends its file's length after it starts: Android takes the
+/// length with the encoder's priming ([countVoiceMs]), iOS and web the
+/// shorter audible one, so the plan takes the longer.
+///
+/// Every beat while each count starts within that wait (less [countGapMs]).
+/// Just before a word would not, counting widens to every 2nd, then 5th, then
+/// 10th count, never back, and a widened count is said only when the word
+/// before ended [countGapMs] before its moment. So a long number at a fast
+/// tempo never drops the next one at random: 80 bpm in the man's voice is
+/// One … Sixteen, Eighteen, Twenty …; 60 bpm counts every beat to Forty-six.
+/// "One" is always said: it marks the start.
 Set<int> countsSaid(String sex, int bpm, int last) {
   final top = math.min(math.max(last, 1), maxSpokenCount);
   final period = 60000 / bpm, half = math.min(period / 2, 1000);
-  final play = countVoicePlayMs[sex] ?? countVoicePlayMs['m']!;
+  final ms = countVoiceMs[sex] ?? countVoiceMs['m']!;
+  final wait = period / 4 - countGapMs;
   double at(int n) => (n - 1) * period + half;
   bool reaches(double end, int n, int s) =>
-      s == 1 ? end <= at(n) + period / 4 : end + countGapMs <= at(n);
+      s == 1 ? end <= at(n) + wait : end + countGapMs <= at(n);
   final said = <int>{};
   var s = 1;
   var end = double.negativeInfinity;
   for (var n = 1; n <= top; n++) {
     if (n % s != 0 || !reaches(end, n, s)) continue;
-    final mine = (s == 1 && end > at(n) ? end + 20 : at(n)) + play[n - 1];
+    final start = end <= at(n)
+        ? at(n)
+        : at(n) + ((end - at(n)) / 20).ceil() * 20;
+    final mine = start + ms[n - 1];
     if (n + s <= top && !reaches(mine, n + s, s)) {
-      // This word would run into the next count: widen now. Off the wider
-      // grid it goes unsaid, except "One".
+      // This word would hold up the next count too long: widen now. Off the
+      // wider grid it goes unsaid, except "One".
       final from = s;
       s = const [2, 5, 10].firstWhere(
         (w) =>

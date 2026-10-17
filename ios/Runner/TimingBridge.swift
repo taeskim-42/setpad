@@ -29,6 +29,11 @@ final class TimingBridge {
   private var voiceOrder: [String] = []
   /// The word sounding, or the last one.
   private var voice: AVAudioPlayer?
+  /// When [voice] stops sounding: its start plus its recording's length. Not
+  /// isPlaying, which stays on about 0.1 s past the last sample — the plan of
+  /// which counts to say (lib/workout_timing.dart countsSaid) counts on this.
+  private var voiceEndsAt = Date.distantPast
+  private var voiceSounding: Bool { voice != nil && Date() < voiceEndsAt }
   private var pendingCount: Task<Void, Never>?
   private var pendingPhrase: Task<Void, Never>?
 
@@ -137,18 +142,23 @@ final class TimingBridge {
         try? await Task.sleep(nanoseconds: UInt64((delay + 0.005) * 1_000_000_000))
       }
       let giveUp = Date().addingTimeInterval(patience)
-      while let self, self.voice?.isPlaying == true || (!onBeat && self.pendingCount != nil),
+      while let self, self.voiceSounding || (!onBeat && self.pendingCount != nil),
             Date() < giveUp, !Task.isCancelled {
         try? await Task.sleep(nanoseconds: 20_000_000)
       }
       guard !Task.isCancelled, let self else { return }
       if onBeat { self.pendingCount = nil } else { self.pendingPhrase = nil }
-      if self.voice?.isPlaying == true {
+      if self.voiceSounding {
         if onBeat { return }
         self.voice?.stop()
       }
       player.currentTime = 0
-      if player.play() { self.voice = player } else { NSLog("[timing] voice did not play: \(asset)") }
+      if player.play() {
+        self.voice = player
+        self.voiceEndsAt = Date().addingTimeInterval(player.duration)
+      } else {
+        NSLog("[timing] voice did not play: \(asset)")
+      }
     }
     if onBeat { pendingCount = task } else { pendingPhrase = task }
   }
@@ -174,7 +184,7 @@ final class TimingBridge {
   private func cancelVoice() {
     dropPendingCount()
     pendingPhrase?.cancel(); pendingPhrase = nil
-    voice?.stop(); voice = nil
+    voice?.stop(); voice = nil; voiceEndsAt = .distantPast
   }
 
   private func configure(active: Bool, bpm: Int?, cueName: String?, phase: Double) throws {

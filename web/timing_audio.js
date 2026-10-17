@@ -61,8 +61,10 @@
     if (active && !wake && navigator.wakeLock) { try { wake = await navigator.wakeLock.request('screen'); } catch (_) {} }
   }};
   // A count (onBeat) matches Tempo: half a beat after the click, capped at one
-  // second, dropped if the word before is still sounding then. A phrase comes
-  // once the cue and the word sounding are over; counts wait out a phrase.
+  // second. If the word before is still sounding then it waits for it, as on
+  // iOS and Android, at most a quarter beat (0.15 s without a click), then is
+  // dropped. A phrase comes once the cue and the word sounding are over;
+  // counts wait out a phrase.
   setpadTiming.voice = (asset, onBeat) => {
     if (!context || !asset || (onBeat && pendingPhrase != null)) return;
     let audio = voices.get(asset);
@@ -71,8 +73,19 @@
     const delay = onBeat
       ? Math.max(0, beat ? Math.min(30 / tempo, 1) - into : 0, cueEndsAt - at)
       : Math.max(0, cueEndsAt - at, sounding());
+    const patience = beat ? 15 / tempo : 0.15;
+    let waited = 0;
     const play = () => {
-      if (onBeat) { pendingCount = null; if (sounding() > 0) return; } else pendingPhrase = null;
+      if (onBeat) {
+        pendingCount = null;
+        const left = sounding();
+        if (left > 0) {
+          if (waited + left > patience) return;
+          waited += left + 0.02;
+          pendingCount = setTimeout(play, Math.round(left * 1000) + 20);
+          return;
+        }
+      } else pendingPhrase = null;
       if (voice) voice.pause();
       voice = audio;
       if (audio.currentTime) audio.currentTime = 0;

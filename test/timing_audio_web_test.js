@@ -4,7 +4,7 @@ const vm = require('node:vm');
 const test = require('node:test');
 
 function harness() {
-  const timers = new Map(), played = [], starts = [];
+  const timers = new Map(), played = [], starts = [], words = [];
   let id = 0;
   class AudioContext {
     currentTime = 0;
@@ -18,7 +18,7 @@ function harness() {
   }
   // A recorded word: plays until the test ends it.
   class Audio {
-    constructor(src) { this.src = src; this.paused = true; this.ended = false; this.duration = 0.8; this.currentTime = 0; }
+    constructor(src) { this.src = src; this.paused = true; this.ended = false; this.duration = 0.8; this.currentTime = 0; words.push(this); }
     play() { this.paused = false; played.push(this.src); return Promise.resolve(); }
     pause() { this.paused = true; }
   }
@@ -31,7 +31,7 @@ function harness() {
   context.window = context;
   vm.runInContext(fs.readFileSync('web/timing_audio.js', 'utf8'), context);
   const fire = () => { const [k, t] = [...timers.entries()][0]; timers.delete(k); t.fn(); return t.delay; };
-  return { audio: context.setpadTiming, timers, played, starts, fire };
+  return { audio: context.setpadTiming, timers, played, starts, words, fire };
 }
 
 const one = 'voice/count/en/m/1.m4a', two = 'voice/count/en/m/2.m4a';
@@ -72,6 +72,27 @@ test('a newer count replaces one waiting; a count is dropped while the word befo
   h.audio.voice(one, true);
   h.fire(); // "Two" is still sounding
   assert.deepEqual(h.played, ['assets/' + two]);
+});
+
+test('a count waits for the word before at most a quarter beat, as on iOS and Android', async () => {
+  const h = harness();
+  await h.audio.configure(true, 60, '');
+  h.audio.voice(two, true);
+  h.fire();
+  h.words[0].currentTime = 0.7; // "Two" ends in 0.1 s
+  h.audio.voice(one, true);
+  assert.equal(h.fire(), 505); // its moment: "Two" still sounding
+  assert.deepEqual(h.played, ['assets/' + two]);
+  assert.equal(h.timers.size, 1, 'it waits');
+  h.words[0].ended = true;
+  assert.equal(h.fire(), 120);
+  assert.deepEqual(h.played, ['assets/' + two, 'assets/' + one]);
+  // A word ending later than a quarter beat (0.25 s at 60 bpm) drops the count.
+  h.words[1].currentTime = 0.4;
+  h.audio.voice(two, true);
+  h.fire();
+  assert.equal(h.timers.size, 0);
+  assert.deepEqual(h.played, ['assets/' + two, 'assets/' + one]);
 });
 
 test('click loop starts at the timer\'s phase inside the beat, and counts follow that grid', async () => {

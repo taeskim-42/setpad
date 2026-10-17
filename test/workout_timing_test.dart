@@ -510,14 +510,11 @@ void _aloud() {
       return audio.counts;
     }
 
-    // At 120 bpm "Five" would run into "Six", then "Thirty-one" into
-    // "Thirty-two" two beats on: every 2nd from 6, every 5th from 35.
+    // At 120 bpm "Two" would hold up "Three": every 2nd from Two, every 5th
+    // from Thirty-five ("Thirty" would hold up "Thirty-two").
     final fast = [
       1,
-      2,
-      3,
-      4,
-      for (var n = 6; n <= 30; n += 2) n,
+      for (var n = 2; n <= 30; n += 2) n,
       for (var n = 35; n <= 100; n += 5) n,
     ];
 
@@ -1237,48 +1234,55 @@ void _engine() {
 
 void _countPlan() {
   group('세는 말 고르기', () {
-    // The platforms' rule (TimingBridge playVoice): a count starts half a beat
-    // after its click, or 20 ms after the word before ends; a word still
-    // sounding a quarter beat after a count's moment drops that count.
-    // Returns the counts that would be dropped, playing [said] in order.
-    List<int> dropped(String voice, int bpm, Iterable<int> said) {
+    // Each platform's own rule, apart from the plan: a count is tried half a
+    // beat after its click (Android 5 ms later), waits while the word before
+    // sounds (looking every 20 ms), and is dropped when that word still sounds
+    // a quarter beat after its moment. A word sounds from its start for its
+    // audible length on iOS (AVAudioPlayer.duration) and for the file's length
+    // on Android (MediaMetadataRetriever, encoder priming included).
+    // Returns the counts dropped and the latest start, in ms past a moment.
+    ({List<int> dropped, double late}) device(
+      String platform,
+      String voice,
+      int bpm,
+      Iterable<int> said,
+    ) {
       final period = 60000 / bpm, half = math.min(period / 2, 1000);
-      var end = double.negativeInfinity;
-      final out = <int>[];
+      final length = platform == 'ios' ? countVoicePlayMs : countVoiceMs;
+      var end = double.negativeInfinity, late = 0.0;
+      final dropped = <int>[];
       for (final n in said) {
-        final at = (n - 1) * period + half;
+        final at = (n - 1) * period + half + (platform == 'android' ? 5 : 0);
         if (end > at + period / 4) {
-          out.add(n);
+          dropped.add(n);
           continue;
         }
-        end = (end > at ? end + 20 : at) + countVoicePlayMs[voice]![n - 1];
+        final start = end <= at ? at : at + ((end - at) / 20).ceil() * 20;
+        late = math.max(late, start - at);
+        end = start + length[voice]![n - 1];
       }
-      return out;
+      return (dropped: dropped, late: late);
     }
 
-    test('처음 빠질 숫자 전까지는 예전처럼 박마다 센다 — 모든 템포·목소리·목표', () {
-      for (final voice in ['m', 'w']) {
-        for (var bpm = TimingSpec.minBpm; bpm <= TimingSpec.maxBpm; bpm++) {
-          // Before: the engine sent every count and the platform dropped some.
-          final before = dropped(voice, bpm, [
-            for (var n = 1; n <= 100; n++) n,
-          ]);
-          for (final last in [1, 2, 3, 5, 10, 17, 20, 30, 50, 100]) {
-            final said = countsSaid(voice, bpm, last).toList()..sort();
-            final firstDrop = before.where((n) => n <= last).firstOrNull;
-            if (firstDrop == null) {
+    List<int> plan(String voice, int bpm, int last) =>
+        countsSaid(voice, bpm, last).toList()..sort();
+    List<int> run(int from, int to, [int step = 1]) => [
+      for (var n = from; n <= to; n += step) n,
+    ];
+
+    test('고른 숫자는 iOS 도 Android 도 하나도 버리지 않는다 — 모든 템포·목소리·목표', () {
+      for (final platform in ['ios', 'android']) {
+        for (final voice in ['m', 'w']) {
+          for (var bpm = TimingSpec.minBpm; bpm <= TimingSpec.maxBpm; bpm++) {
+            for (var last = 1; last <= maxSpokenCount; last++) {
+              final said = plan(voice, bpm, last);
+              final why = '$platform $voice $bpm bpm to $last';
+              expect(said.first, 1, reason: '$why: "One" marks the start');
+              expect(said.last, lessThanOrEqualTo(last), reason: why);
               expect(
-                said,
-                [for (var n = 1; n <= last; n++) n],
-                reason: '$voice $bpm bpm to $last: nothing was dropped before',
-              );
-            } else {
-              // At most one count earlier than the old first drop: the word
-              // that would have caused it goes unsaid when it is off the grid.
-              expect(
-                said.takeWhile((n) => n < firstDrop - 1),
-                [for (var n = 1; n < firstDrop - 1; n++) n],
-                reason: '$voice $bpm bpm to $last',
+                device(platform, voice, bpm, said).dropped,
+                isEmpty,
+                reason: why,
               );
             }
           }
@@ -1286,36 +1290,22 @@ void _countPlan() {
       }
     });
 
-    test('고른 숫자는 기기가 하나도 버리지 않고, 넓힌 뒤에는 늦지 않게 제때 난다', () {
+    test('예전처럼 모든 숫자를 보내도 두 기기가 제때(1/4박 − 40ms 안에) 다 읽던 곳은 그대로 박마다 센다', () {
       for (final voice in ['m', 'w']) {
         for (var bpm = TimingSpec.minBpm; bpm <= TimingSpec.maxBpm; bpm++) {
-          for (var last = 1; last <= maxSpokenCount; last++) {
-            final said = countsSaid(voice, bpm, last).toList()..sort();
-            final why = '$voice $bpm bpm to $last';
-            expect(said.first, 1, reason: '$why: "One" marks the start');
-            expect(said.last, lessThanOrEqualTo(last), reason: why);
-            expect(dropped(voice, bpm, said), isEmpty, reason: why);
-            // Once a count is skipped, each one said starts on its moment:
-            // the word before has ended [countGapMs] earlier.
-            final period = 60000 / bpm, half = math.min(period / 2, 1000);
-            final skip = [
-              for (var i = 0; i < said.length; i++)
-                if (said[i] != i + 1) i,
-            ].firstOrNull;
-            if (skip == null) continue;
-            var end = double.negativeInfinity;
-            for (var i = 0; i < said.length; i++) {
-              final at = (said[i] - 1) * period + half;
-              if (i >= skip) {
-                expect(
-                  end + countGapMs,
-                  lessThanOrEqualTo(at),
-                  reason: '$why: ${said[i]} late',
-                );
-              }
-              end =
-                  (end > at ? end + 20 : at) +
-                  countVoicePlayMs[voice]![said[i] - 1];
+          for (final last in [5, 10, 20, 30, 50, 100]) {
+            final every = run(1, last);
+            final ok = ['ios', 'android'].every((p) {
+              final d = device(p, voice, bpm, every);
+              return d.dropped.isEmpty &&
+                  d.late <= 60000 / bpm / 4 - countGapMs;
+            });
+            if (ok) {
+              expect(
+                plan(voice, bpm, last),
+                every,
+                reason: '$voice $bpm bpm to $last',
+              );
             }
           }
         }
@@ -1326,7 +1316,7 @@ void _countPlan() {
       for (final voice in ['m', 'w']) {
         for (var bpm = TimingSpec.minBpm; bpm <= TimingSpec.maxBpm; bpm++) {
           for (final last in [20, 30, 50, 100]) {
-            final said = countsSaid(voice, bpm, last).toList()..sort();
+            final said = plan(voice, bpm, last);
             var stride = 1;
             for (var i = 1; i < said.length; i++) {
               final n = said[i], why = '$voice $bpm bpm to $last at $n';
@@ -1345,30 +1335,20 @@ void _countPlan() {
     });
 
     test('자주 쓰는 템포에서 고르는 숫자', () {
-      List<int> run(int from, int to, int step) => [
-        for (var n = from; n <= to; n += step) n,
-      ];
-      expect(countsSaid('m', 60, 100).toList()..sort(), run(1, 100, 1));
-      expect(countsSaid('w', 60, 100).toList()..sort(), [
-        ...run(1, 66, 1),
-        ...run(68, 100, 2),
-      ]);
-      expect(countsSaid('m', 80, 100).toList()..sort(), [
-        ...run(1, 16, 1),
-        ...run(18, 100, 2),
-      ]);
-      expect(countsSaid('m', 80, 20).toList()..sort(), [
-        ...run(1, 16, 1),
-        18,
-        20,
-      ]);
-      expect(countsSaid('w', 100, 100).toList()..sort(), [
-        ...run(1, 6, 1),
-        ...run(8, 74, 2),
+      for (final voice in ['m', 'w']) {
+        expect(plan(voice, 60, 30), run(1, 30), reason: voice);
+        expect(plan(voice, 60, 100), [...run(1, 46), ...run(48, 100, 2)]);
+      }
+      expect(plan('m', 80, 100), [...run(1, 16), ...run(18, 100, 2)]);
+      expect(plan('m', 80, 20), [...run(1, 16), 18, 20]);
+      expect(plan('w', 90, 100), [...run(1, 6), ...run(8, 100, 2)]);
+      expect(plan('m', 100, 100), [
+        ...run(1, 4),
+        ...run(6, 74, 2),
         ...run(80, 100, 5),
       ]);
-      expect(countsSaid('m', 120, 3).toList()..sort(), [1, 2, 3]);
-      expect(countsSaid('w', 120, 20).toList()..sort(), [1, ...run(2, 20, 2)]);
+      expect(plan('w', 120, 20), [1, ...run(4, 20, 2)]);
+      expect(plan('m', 120, 3), [1, 2]);
     });
 
     ({WorkoutTimer timer, FakeAudio audio, void Function(int) to}) make({
@@ -1391,8 +1371,13 @@ void _countPlan() {
       );
     }
 
-    test('run 하나가 보내는 숫자는 고른 숫자 그대로이고, 세는 동안 "Go!" 는 없다', () async {
+    test('run 하나가 보내는 숫자는 그 run 의 목표까지의 계획 그대로이고, 세는 동안 "Go!" 는 없다', () async {
+      // 90 bpm, goal 13: "Thirteen" is the last, so nothing after it to hold
+      // up — said, though counting to 100 it is not.
+      expect(plan('m', 90, 13), run(1, 13));
+      expect(plan('m', 90, 100).take(13), [...run(1, 12), 14]);
       for (final (voice, bpm, goal) in [
+        ('m', 90, 13),
         ('m', 80, null),
         ('w', 60, 30),
         ('m', 120, 20),
@@ -1405,7 +1390,7 @@ void _countPlan() {
         await pumpEventQueue();
         expect(
           t.audio.counts,
-          countsSaid(voice, bpm, goal ?? maxSpokenCount).toList()..sort(),
+          plan(voice, bpm, goal ?? maxSpokenCount),
           reason: '$voice $bpm $goal',
         );
         expect(t.audio.phrases.contains('start'), isFalse);
@@ -1424,7 +1409,7 @@ void _countPlan() {
       t.timer.toggle(block, spec); // pause
       t.timer.toggle(block, spec); // resume: beat 7 is unread, and not said
       await pumpEventQueue();
-      expect(t.audio.counts, [1, 2, 3, 4, 6]);
+      expect(t.audio.counts, [1, 2, 4, 6]);
       // Beat 8's count goes out; then 50 ms into beat 10 the pause drops its
       // queued count, and the resume says it again.
       t.to(7450);
@@ -1434,22 +1419,24 @@ void _countPlan() {
       t.timer.toggle(block, spec);
       t.to(9000);
       await pumpEventQueue();
-      expect(t.audio.counts, [1, 2, 3, 4, 6, 8, 10, 12]);
+      expect(t.audio.counts, [1, 2, 4, 6, 8, 10, 12]);
       t.timer.dispose();
     });
 
-    test('박자 타바타는 라운드마다 운동 박자까지의 고른 숫자를 다시 센다', () async {
+    test('박자 타바타는 라운드마다 운동 박자 수까지의 계획으로 다시 센다', () async {
+      // 70 bpm, 16 s work: 19 beats, and "Nineteen" ends the work, so it is
+      // said, though counting to 100 it is not.
+      expect(plan('m', 70, 19), run(1, 19));
+      expect(plan('m', 70, 100).contains(19), isFalse);
       final t = make();
-      const spec = TimingSpec(tabata: true, bpm: 120, rounds: 2);
+      const spec = TimingSpec(tabata: true, bpm: 70, work: 16, rounds: 2);
       t.timer.toggle(Object(), spec);
       t.to(3000 + spec.shownSeconds * 1000 + 500);
       await pumpEventQueue();
-      final round = countsSaid('m', 120, 40).toList()..sort();
-      expect(round, [1, 2, 3, 4, for (var n = 6; n <= 30; n += 2) n, 35, 40]);
       expect(t.audio.log.where((e) => e.startsWith('voice:')), [
-        for (final n in round) 'voice:$n',
+        for (final n in run(1, 19)) 'voice:$n',
         'voice:rest',
-        for (final n in round) 'voice:$n',
+        for (final n in run(1, 19)) 'voice:$n',
         'voice:done',
       ]);
       t.timer.dispose();
