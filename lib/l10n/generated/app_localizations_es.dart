@@ -3917,4 +3917,9 @@ class LEs extends L {
   String routinePlateCost(String list) {
     return '1 disco: $list';
   }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '~$minutes min · sin contar los nuevos';
+  }
 }

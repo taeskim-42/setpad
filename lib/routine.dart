@@ -2829,13 +2829,6 @@ RoutineDraft composeRoutine(
   final pace = ownPace(notes, today);
   draft.pace = pace.pace;
   draft.paceSessions = pace.sessions;
-  final setsPerBlock = () {
-    final xs = [
-      for (final n in history.take(20))
-        for (final b in _mineBlocks(n)) _mineOf(b).length,
-    ];
-    return xs.isEmpty ? 3 : math.max(1, _median(xs).round());
-  }();
   int estimate(
     ({String key, ExerciseBlock? block, DateTime? day, bool fixed}) c,
   ) {
@@ -2844,9 +2837,11 @@ RoutineDraft composeRoutine(
         ? _typedTabata(ask.timer!, TimingSpec.parse(title))
         : TimingSpec.parse(title);
     if (spec != null && spec.tabata) return spec.duration;
+    // 처음 하는 칸(옮긴 세트가 없다)은 카드에 세트가 없다 — 보이지 않는 세트로 시간을
+    // 세지 않는다(0초, 카드는 "처음 칸 빼고" 라고 말한다).
     final n =
         targetByKey[c.key]?.sets ??
-        (c.block == null ? setsPerBlock : daySets(c.key, c.day!).length);
+        (c.block == null ? 0 : daySets(c.key, c.day!).length);
     return n * pace.pace;
   }
 
@@ -3085,13 +3080,18 @@ RoutineDraft composeRoutine(
       changed = true;
     }
 
-    // 증감(친 수): 같은 단위의 무게 세트에만. 0 이하면 비운다.
+    // 증감(친 수): 같은 단위의 작업 세트에만. 0 이하면 비운다. 가장 무거운 세트보다
+    // 앞의 가벼운 세트는 몸풀기라 그대로 둔다(60kg 몸풀기가 62.5 가 되지 않는다) —
+    // 뒤에 이은 가벼운 세트(백오프)는 작업 세트다.
     if (ask.delta != null && blank == null) {
       final d = ask.delta!;
       final other = sets.any((s) => _weighed(s) && s.unit != d.unit);
+      bool unitSet(PlanSet s) => _weighed(s) && s.unit == d.unit;
+      final top = sets.where(unitSet).map((s) => s.value!).fold(0.0, math.max);
+      final firstTop = sets.indexWhere((s) => unitSet(s) && s.value == top);
       sets = [
-        for (final s in sets)
-          _weighed(s) && s.unit == d.unit
+        for (final (i, s) in sets.indexed)
+          unitSet(s) && !(i < firstTop && s.value! < top)
               ? (
                   value: s.value! + d.value > 0 ? s.value! + d.value : null,
                   unit: s.unit,
@@ -3144,9 +3144,11 @@ RoutineDraft composeRoutine(
     WorkoutSetup? setup = src?.setup;
     if (changed && setup != null) {
       // 작업 세트만 바꿨으면 설정의 무게는 친 무게, 횟수·세트는 옮긴 그대로다.
+      // 설정의 무게는 작업 세트(가장 무거운 세트) — 몸풀기 무게가 아니다.
       final weighedSets = retyped != null
           ? sets.where((s) => s.value == target!.weight).toList()
-          : sets.where(_weighed).toList();
+          : (sets.where(_weighed).toList()
+              ..sort((a, b) => _kg(b).compareTo(_kg(a))));
       final typed = target != null && retyped == null;
       // 세트만 뺐으면 무게는 설정 그대로, 세트 수만 줄인다.
       final onlyDropped = dropped && ask.delta == null && blank == null;
@@ -3448,11 +3450,10 @@ RoutineRef? _best(List<Note> history, String key) {
     for (final b in _mineBlocks(n)) {
       if (exerciseKey(b.exercise) != key) continue;
       for (final s in _mineOf(b).where(_weighed)) {
+        // 단위가 섞여도 kg 로 견준다 — lb 로 적은 더 무거운 세트를 놓치지 않는다.
         if (top == null ||
-            (s.unit == top.unit &&
-                (s.value! > top.value! ||
-                    (s.value == top.value &&
-                        (s.reps ?? 0) > (top.reps ?? 0))))) {
+            _kg(s) > _kg(top) ||
+            (_kg(s) == _kg(top) && (s.reps ?? 0) > (top.reps ?? 0))) {
           top = s;
           at = _day(n.createdAt);
         }

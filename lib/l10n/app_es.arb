@@ -936,5 +936,6 @@
   "routineWeekendDetail": "Fin de semana · lo que le falta a esta semana",
   "routineClose": "Cerrar",
   "routineDeviceExcluded": "Leído en el teléfono — sin: {list}",
-  "routinePlateCost": "1 disco: {list}"
+  "routinePlateCost": "1 disco: {list}",
+  "routineEstimateNoFirst": "~{minutes} min · sin contar los nuevos"
 }

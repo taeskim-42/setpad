@@ -3889,4 +3889,9 @@ class LEn extends L {
   String routinePlateCost(String list) {
     return '1 plate: $list';
   }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '~$minutes min · not counting new ones';
+  }
 }

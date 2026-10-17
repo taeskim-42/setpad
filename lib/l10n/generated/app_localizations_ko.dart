@@ -3752,4 +3752,9 @@ class LKo extends L {
   String routinePlateCost(String list) {
     return '원판 1장: $list';
   }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '약 $minutes분 · 처음 칸 빼고';
+  }
 }

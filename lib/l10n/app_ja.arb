@@ -936,5 +936,6 @@
   "routineWeekendDetail": "週末 · 今週足りない要素で",
   "routineClose": "閉じる",
   "routineDeviceExcluded": "除く種目は端末で読みました: {list}",
-  "routinePlateCost": "プレート1枚: {list}"
+  "routinePlateCost": "プレート1枚: {list}",
+  "routineEstimateNoFirst": "約{minutes}分 · 初めての種目を除く"
 }

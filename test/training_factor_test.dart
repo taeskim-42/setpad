@@ -39,6 +39,12 @@ void main() {
       final x = of('푸시업 100개 채우기', [reps(30), reps(30)])!;
       expect((x.factor, x.sure, x.why), (Factor.endurance, false, 'fillTitle'));
       expect(f('푸시업 total 100', [reps(50), reps(50)]), Factor.endurance);
+      expect(f('푸시업 총 100개', [reps(50), reps(50)]), Factor.endurance);
+      expect(f('푸시업 reach 100', [reps(50), reps(50)]), Factor.endurance);
+      // 횟수 목표가 아닌 "총"·"reach" 는 채우기가 아니다.
+      expect(of('벤치 총 3세트', times(3, () => kg(60, 10)))?.why, 'sets');
+      expect(of('오버헤드 reach', times(3, () => kg(20, 10)))?.why, 'sets');
+      expect(of('squat total 3 sets', times(3, () => kg(60, 10)))?.why, 'sets');
     });
 
     test('4 시간·거리 세트: 유산소 부위면 심폐, 아니면(플랭크) 없음', () {

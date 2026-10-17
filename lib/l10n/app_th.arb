@@ -936,5 +936,6 @@
   "routineWeekendDetail": "สุดสัปดาห์ · เติมสิ่งที่สัปดาห์นี้ยังขาด",
   "routineClose": "ปิด",
   "routineDeviceExcluded": "อ่านในเครื่องแล้ว — ไม่เอา: {list}",
-  "routinePlateCost": "ใช้ 1 แผ่น: {list}"
+  "routinePlateCost": "ใช้ 1 แผ่น: {list}",
+  "routineEstimateNoFirst": "ประมาณ {minutes} นาที · ไม่นับท่าใหม่"
 }

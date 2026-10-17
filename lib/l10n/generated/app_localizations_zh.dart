@@ -3712,6 +3712,11 @@ class LZh extends L {
   String routinePlateCost(String list) {
     return '用1片：$list';
   }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '约$minutes分钟 · 不含第一次做的';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7422,6 +7427,11 @@ class LZhHans extends LZh {
   String routinePlateCost(String list) {
     return '用1片：$list';
   }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '约$minutes分钟 · 不含第一次做的';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11131,5 +11141,10 @@ class LZhHant extends LZh {
   @override
   String routinePlateCost(String list) {
     return '用1片：$list';
+  }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '約$minutes分鐘 · 不含第一次做的';
   }
 }

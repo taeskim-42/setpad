@@ -3862,4 +3862,9 @@ class LVi extends L {
   String routinePlateCost(String list) {
     return '1 bánh tạ: $list';
   }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '~$minutes phút · chưa tính bài mới';
+  }
 }

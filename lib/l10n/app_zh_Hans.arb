@@ -936,5 +936,6 @@
   "routineWeekendDetail": "周末 · 补本周缺的要素",
   "routineClose": "关闭",
   "routineDeviceExcluded": "已在手机上读出要去掉的动作：{list}",
-  "routinePlateCost": "用1片：{list}"
+  "routinePlateCost": "用1片：{list}",
+  "routineEstimateNoFirst": "约{minutes}分钟 · 不含第一次做的"
 }

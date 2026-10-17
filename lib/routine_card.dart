@@ -243,7 +243,13 @@ class RoutineCard extends StatelessWidget {
           children: [
             if (planned != null) _Pill(planned),
             if (factor != null) _Pill(factor),
-            if (d.items.isNotEmpty) _Pill(l.routineEstimate(d.minutes)),
+            // 세트 없는 칸(처음)은 시간에 넣지 않았다 — 그렇다고 말하고, 다 처음이면 뺀다.
+            if (d.seconds > 0)
+              _Pill(
+                d.items.any((i) => i.sets.isEmpty)
+                    ? l.routineEstimateNoFirst(d.minutes)
+                    : l.routineEstimate(d.minutes),
+              ),
             if (why != null) _Pill(why),
             if (counts != null) _Pill(counts),
           ],

@@ -3652,5 +3652,7 @@
   "routineDeviceExcluded": "뺄 운동은 기기에서 읽었어요: {list}",
   "@routineDeviceExcluded": {"description": "모델을 못 쓸 때 기기가 'X 말고' 의 X(운동 이름)를 읽어 뺐다. 이 줄 다음에 조건을 못 읽은 까닭 줄이 온다.", "placeholders": {"list": {"type": "String"}}},
   "routinePlateCost": "원판 1장: {list}",
-  "@routinePlateCost": {"description": "모델에 묻는 칩(조건까지 읽기·기록 질문·이것도 물을까요)이 원판을 쓴다는 한 줄. 칩 라벨에는 원판을 붙이지 않는다.", "placeholders": {"list": {"type": "String"}}}
+  "@routinePlateCost": {"description": "모델에 묻는 칩(조건까지 읽기·기록 질문·이것도 물을까요)이 원판을 쓴다는 한 줄. 칩 라벨에는 원판을 붙이지 않는다.", "placeholders": {"list": {"type": "String"}}},
+  "routineEstimateNoFirst": "약 {minutes}분 · 처음 칸 빼고",
+  "@routineEstimateNoFirst": {"description": "시간 어림 알약. 세트가 없는(처음 하는) 칸은 시간에 넣지 않았다.", "placeholders": {"minutes": {"type": "int"}}}
 }

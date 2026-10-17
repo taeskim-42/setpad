@@ -3833,4 +3833,9 @@ class LTh extends L {
   String routinePlateCost(String list) {
     return 'ใช้ 1 แผ่น: $list';
   }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return 'ประมาณ $minutes นาที · ไม่นับท่าใหม่';
+  }
 }

@@ -5640,6 +5640,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'원판 1장: {list}'**
   String routinePlateCost(String list);
+
+  /// 시간 어림 알약. 세트가 없는(처음 하는) 칸은 시간에 넣지 않았다.
+  ///
+  /// In ko, this message translates to:
+  /// **'약 {minutes}분 · 처음 칸 빼고'**
+  String routineEstimateNoFirst(int minutes);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

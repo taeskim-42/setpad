@@ -3745,4 +3745,9 @@ class LJa extends L {
   String routinePlateCost(String list) {
     return 'プレート1枚: $list';
   }
+
+  @override
+  String routineEstimateNoFirst(int minutes) {
+    return '約$minutes分 · 初めての種目を除く';
+  }
 }
