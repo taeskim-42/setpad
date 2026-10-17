@@ -930,5 +930,16 @@
   "refusedClassFull": "Esta clase está completa.",
   "refusedClassNoAccess": "No tienes una membresía válida para el día de la clase. Consulta las fechas o la pausa con tu gimnasio.",
   "refusedClassCancelled": "Esta clase se canceló.",
-  "refusedAccountBlocked": "Eres propietario o entrenador de un gimnasio. Sal del gimnasio o elimínalo y luego elimina tu cuenta."
+  "refusedAccountBlocked": "Eres propietario o entrenador de un gimnasio. Sal del gimnasio o elimínalo y luego elimina tu cuenta.",
+  "partnerErrLeft": "Las personas con las que entrenabas se han ido.",
+  "partnerNotYours": "No puedes cambiar una serie que registró otra persona. Es su registro.",
+  "partnerRoutinePlan": "Convertir en rutina",
+  "partnerCodeHint": "Introduce las seis letras que aparecen en la pantalla de la otra persona.",
+  "partnerPaste": "Pegar {code}",
+  "partnerShare": "Compartir",
+  "partnerShareText": "Código de setpad para entrenar juntos: {code}\nEn la app: un registro → ⋯ → Entrenar juntos → Introducir código",
+  "partnerShareTextLink": "Código de setpad para entrenar juntos: {code}\nEn la app: un registro → ⋯ → Entrenar juntos → Introducir código, o únete ya con este enlace:\n{url}",
+  "partnerInviteMoreNew": "Invitar a uno más · código nuevo",
+  "partnerHomeOpen": "Abrir",
+  "togetherInviteSomeone": "Alguien quiere hacerlo contigo"
 }

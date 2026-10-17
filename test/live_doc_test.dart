@@ -107,7 +107,7 @@ void main() {
     expect(diffDoc(server, local), isEmpty);
   });
 
-  test('확정된 루틴은 미완료 계획으로 복사하고, 기존에 수행한 세트는 개인 기록에 보존한다', () {
+  test('확정된 루틴은 미완료 계획으로 복사하고, 내가 해낸 세트는 그 자리에 해낸 채로 한 번만 남는다', () {
     final prior = [
       ExerciseBlock(
         '벤치',
@@ -124,14 +124,11 @@ void main() {
 
     final result = personalRoutine(planned, completedBeforeRoutine(prior));
     expect(result.map((b) => b.name), ['벤치', '스쿼트', '로우']);
-    expect(result[0].sets.map((s) => s.done), [false, true]);
     expect(
-      result[0].sets.first.id,
-      isNot('same-id'),
-      reason: '계획 세트와 완료 세트의 id 는 분리한다',
+      result[0].sets.map((s) => (s.id, s.reps, s.done)),
+      [('same-id', 10, true)],
+      reason: '해낸 세트는 계획으로 한 번 더 생기지 않는다 — 내 값 그대로',
     );
-    expect(result[0].sets.last.id, 'same-id');
-    expect(result[0].sets.last.reps, 10);
     expect(
       result[1].sets.single.done,
       isFalse,
@@ -318,36 +315,75 @@ void main() {
     expect(sets.map((s) => s.author), [null, '미나']);
   });
 
-  test('루틴을 짜는 동안 적은 세트는 계획이다 — 확정해도 두 번, 한 번은 한 것으로 생기지 않는다', () {
-    final done = LoggedSet(value: 40, unit: 'kg', reps: 10);
-    final before = [
-      ExerciseBlock('벤치', [done]),
+  test('확정할 때까지 해낸 내 세트는 수행 기록이다 — 남의 세트와 안 한 세트만 계획이 되고, 두 번 생기지 않는다', () {
+    final before = LoggedSet(value: 40, unit: 'kg', reps: 10);
+    final during = LoggedSet(value: 60, unit: 'kg', reps: 8);
+    final notYet = LoggedSet(value: 60, unit: 'kg', reps: 8, done: false);
+    final theirs = LoggedSet(value: 50, unit: 'kg', reps: 7, author: '준');
+    final atFinal = [
+      ExerciseBlock('벤치', [before, during, notYet, theirs]),
     ];
-    final snapshot = completedBeforeRoutine(before);
-    final planning = [
-      ExerciseBlock(
-        '벤치',
-        [
-          done,
-          LoggedSet(value: 60, unit: 'kg', reps: 8),
-          LoggedSet(value: 60, unit: 'kg', reps: 8),
-        ],
-        null,
-        before.single.id,
-      ),
+    // 확정 시점의 내 세트로 잰다 — 계획을 시작한 때가 아니다.
+    final mine = personalRoutine(
+      docOf(atFinal),
+      completedBeforeRoutine(atFinal),
+    );
+    expect(
+      mine.single.sets.map((s) => (s.reps, s.done, s.author)),
+      [(10, true, null), (8, true, null), (8, false, null), (7, false, null)],
+      reason: '같이 기록하다 확정해도 방금 한 세트가 계획으로 바뀌지 않는다',
+    );
+    expect(mine.single.sets.map((s) => s.id).toSet().length, 4);
+    expect(
+      mine.single.sets.where((s) => s.mine).length,
+      2,
+      reason: '내 통계에는 해낸 두 세트만',
+    );
+  });
+
+  test('내 폰의 편집은 남이 적은 세트를 건드리지 못한다 — 고치기·지우기·수행 표시·메모·옮기기 모두', () {
+    final c = RoutineEditorController()
+      ..restore([
+        ExerciseBlock(
+          '벤치',
+          [
+            LoggedSet(
+              id: 'theirs',
+              value: 50,
+              unit: 'kg',
+              reps: 7,
+              notes: ['준 메모'],
+              author: '준',
+            ),
+            LoggedSet(id: 'mine', value: 60, unit: 'kg', reps: 8),
+          ],
+          null,
+          'B',
+        ),
+      ]);
+    final before = docOf(c.blocks);
+    c
+      ..updateSet(0, 0, LoggedSet(value: 1, unit: 'kg', reps: 1))
+      ..toggleDone(0, 0)
+      ..editNote(0, 0, 0, '고침')
+      ..removeNote(0, 0, 0)
+      ..extendSet(0, 0, note: '덧붙임', count: 3)
+      ..moveSet(0, 0, 1)
+      ..removeSet(0, 0);
+    final touched = [
+      for (final batch in diffDoc(before, docOf(c.blocks)))
+        for (final op in batch)
+          if (op['set'] == 'theirs' || (op['set'] as Map?)?['id'] == 'theirs')
+            op,
     ];
-    final doc = docOf(planning);
-    final mine = personalRoutine(doc, snapshot);
-    expect(mine.single.sets.map((s) => (s.reps, s.done)), [
-      (10, false),
-      (8, false),
-      (8, false),
-      (10, true),
-    ], reason: '미리 한 세트만 한 것으로 남는다');
-    final planned = {
-      for (final b in doc)
-        for (final s in b['sets'] as List) '${(s as Map)['id']}',
-    };
-    expect(completedBeforeRoutine(planning, planned: planned), isEmpty);
+    expect(touched, isEmpty);
+    expect(
+      diffDoc(before, docOf(c.blocks)),
+      isEmpty,
+      reason: '내 세트는 그대로라 보낼 것도 없다',
+    );
+    // 내 세트는 고친다.
+    c.toggleDone(0, 1);
+    expect(diffDoc(before, docOf(c.blocks)).single.single['kind'], 'set');
   });
 }

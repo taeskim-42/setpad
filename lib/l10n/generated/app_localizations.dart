@@ -5604,6 +5604,72 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'도장의 관장이나 트레이너예요. 도장에서 나오거나 도장을 지운 뒤에 탈퇴할 수 있어요.'**
   String get refusedAccountBlocked;
+
+  /// 같이 하기 요청에 서버가 409 notJoined — 함께하던 사람이 모두 나갔다.
+  ///
+  /// In ko, this message translates to:
+  /// **'같이 하던 사람이 나갔어요.'**
+  String get partnerErrLeft;
+
+  /// 같이 고치는 기록에서 남이 적은 세트를 누르거나 고치려 했다(읽기 전용, 서버 409 notYours).
+  ///
+  /// In ko, this message translates to:
+  /// **'상대가 적은 세트는 고칠 수 없어요. 그 사람의 기록이에요.'**
+  String get partnerNotYours;
+
+  /// 같이 하기 시트의 부차 액션. 같이 기록하던 것을 루틴으로 짜기 시작하고 지금 문서를 내 루틴으로 확인한다.
+  ///
+  /// In ko, this message translates to:
+  /// **'루틴으로 확정하기'**
+  String get partnerRoutinePlan;
+
+  /// 같이 하기 코드 입력칸 위 안내 한 줄.
+  ///
+  /// In ko, this message translates to:
+  /// **'상대 화면에 보이는 여섯 글자를 입력하세요.'**
+  String get partnerCodeHint;
+
+  /// 클립보드에 있던 같이 하기 코드를 붙여 넣고 참여하는 칩.
+  ///
+  /// In ko, this message translates to:
+  /// **'붙여넣기 {code}'**
+  String partnerPaste(String code);
+
+  /// 같이 하기 코드를 시스템 공유 시트로 보내는 버튼.
+  ///
+  /// In ko, this message translates to:
+  /// **'공유'**
+  String get partnerShare;
+
+  /// 같이 하기 코드 공유 문구(링크 없을 때). ⋯ 는 기록 화면의 메뉴 버튼.
+  ///
+  /// In ko, this message translates to:
+  /// **'setpad 같이 하기 코드 {code}\n앱에서 기록 → ⋯ → 같이 하기 → 코드 입력'**
+  String partnerShareText(String code);
+
+  /// 같이 하기 코드 공유 문구(초대 링크 포함).
+  ///
+  /// In ko, this message translates to:
+  /// **'setpad 같이 하기 코드 {code}\n앱에서 기록 → ⋯ → 같이 하기 → 코드 입력, 또는 이 링크로 바로 참여:\n{url}'**
+  String partnerShareTextLink(String code, String url);
+
+  /// 같이 하는 중 코드가 만료돼 새 코드로 한 명 더 초대하는 버튼.
+  ///
+  /// In ko, this message translates to:
+  /// **'한 명 더 초대 · 새 코드'**
+  String get partnerInviteMoreNew;
+
+  /// 홈 목록 맨 위 같이 하기 진행 줄의 보조 문구 — 누르면 그 기록을 연다.
+  ///
+  /// In ko, this message translates to:
+  /// **'열기'**
+  String get partnerHomeOpen;
+
+  /// 셋 이상일 때 제안자 이름을 모르는 같이 하기 타이머 초대(이름 생략).
+  ///
+  /// In ko, this message translates to:
+  /// **'같이 하자고 합니다'**
+  String get togetherInviteSomeone;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -4,8 +4,9 @@
 /// 받든 그것은 초대를 건네받은 것뿐이고, "같이 운동 중" 은 서버가 참여를
 /// 확정해 [PartnerState.active] 를 돌려준 뒤다. 화면은 서버가 말한 상태만 믿는다.
 ///
-/// **각자의 기록은 각자의 것이다.** 내 기록은 내가 쓰고 상대는 읽는다. 상대의
-/// 기록은 [PartnerSession.partnerBlocks] 에만 있고 내 운동 칸에 섞이지 않는다.
+/// **각자의 기록은 각자의 것이다.** 같이 고치는 한 문서에 모두의 세트가 놓이지만,
+/// 남이 적은 세트(`author`)는 내 폰에서 읽기만 한다 — 값·수행 표시를 바꾸거나 지우지
+/// 않는다(편집기와 서버 둘 다 막는다). 내 통계·업로드·공유에는 내 세트만 간다.
 ///
 /// **내 기록은 먼저 이 기기에 저장된다.** 그물이 끊겨도 기록은 계속되고, 밀린
 /// 것은 다음 기회에 올라간다. 서버·세션이 없어져도 내 운동은 그대로 남는다.
@@ -46,7 +47,37 @@ enum PartnerError {
 
   /// 자리가 다 찼다. 서버 탓이 아니라서 '다시 시도'로 풀리지 않는다.
   full,
+
+  /// 같이 하던 사람이 모두 나갔다(409 notJoined). 상태를 다시 묻는다.
+  partnerLeft,
+
+  /// 남이 적은 세트를 고치려 했다(409 notYours). 그 사람의 기록이다.
+  notYours,
+
+  /// 서버가 이 판을 더는 받지 않는다(426). 홈이 업데이트를 안내한다.
+  updateRequired,
 }
+
+/// 같이 하기 초대 링크의 토큰 — `https://gym.darak.studio/j/<token>` 또는 `setpad://p/<token>`.
+/// 건네받기(`/r/`)와 같은 모양의 토큰이다.
+String? partnerTokenFromLink(Uri uri) {
+  final parts = uri.pathSegments;
+  final token =
+      uri.scheme != 'setpad' && parts.length >= 2 && parts.first == 'j'
+      ? parts[1]
+      : uri.scheme == 'setpad' && uri.host == 'p' && parts.isNotEmpty
+      ? parts.first
+      : null;
+  return token != null && RegExp(r'^[A-Za-z0-9_-]{22,64}$').hasMatch(token)
+      ? token
+      : null;
+}
+
+/// 링크로 받은 초대를 그 기록의 편집기에 건넨다. 편집기가 이미 떠 있으면 듣고 있다가,
+/// 새로 열리면 처음에 읽어 참여한다 — 다른 기록의 편집기는 건드리지 않는다.
+final pendingPartnerJoin = ValueNotifier<({String noteId, String token})?>(
+  null,
+);
 
 /// 코드에 쓰는 글자. 서버와 같다 — 0·O, 1·I 가 없다.
 final _codeShape = RegExp(r'^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$');
@@ -179,11 +210,19 @@ class PartnerSession {
   int? routineAppliedVersion;
   List<Json>? routineCompleted;
 
+  /// 내가 "루틴으로 확정하기" 를 눌렀다(또는 내 루틴을 확인했다). 서버는 문서가 있는
+  /// 세션마다 확인 목록을 보내지만, 그것만으로 계획 중인 것은 아니다 — 같이 하기의
+  /// 기본은 같이 기록하는 것이다. 저장한다: 앱을 다시 켜도 계획 중이다.
+  bool routinePlanningEntered = false;
+
   bool get routineReady => routineFinalizedVersion != null;
+
+  /// 루틴을 같이 짜는 중 — 누군가 확인했거나 내가 확정하기로 들어왔을 때만.
   bool get routinePlanning =>
       state == PartnerState.active &&
       routineAcceptedKeys != null &&
-      !routineReady;
+      !routineReady &&
+      (routinePlanningEntered || routineAcceptedKeys!.isNotEmpty);
   bool get myRoutineAccepted => routineAcceptedKeys?.contains(me) ?? false;
   int get routineParticipantCount => others.length + 1;
   int get routineAcceptedCount =>
@@ -191,11 +230,6 @@ class PartnerSession {
           ?.where((key) => key == me || others.any((p) => p.key == key))
           .length ??
       0;
-  Set<String> get preservedSetIds => {
-    for (final b in routineCompleted ?? const <Json>[])
-      for (final s in b['sets'] as List)
-        if ((s as Map)['id'] is String) s['id'] as String,
-  };
 
   /// 상대가 내 세트를 대신 적어 주고 있다. 받기 전에는 내 기록이 아니다.
   ({String token, int revision, String from})? handoff;
@@ -227,6 +261,7 @@ class PartnerSession {
     'routineFinalizedVersion': ?routineFinalizedVersion,
     'routineAppliedVersion': ?routineAppliedVersion,
     'routineCompleted': ?routineCompleted,
+    if (routinePlanningEntered) 'routinePlanningEntered': true,
   };
 
   static PartnerSession? tryFromJson(Object? j) {
@@ -265,6 +300,7 @@ class PartnerSession {
           : null
       ..routineFinalizedVersion = j['routineFinalizedVersion'] as int?
       ..routineAppliedVersion = j['routineAppliedVersion'] as int?
+      ..routinePlanningEntered = j['routinePlanningEntered'] == true
       ..routineCompleted = j['routineCompleted'] is List
           ? [
               for (final b in j['routineCompleted'] as List)
@@ -321,6 +357,9 @@ extension PartnerLink on GymLink {
             (_, 'routineFinalized') => PartnerError.routineStarted,
             (_, 'emptyRoutine') => PartnerError.emptyRoutine,
             (_, 'full') => PartnerError.full,
+            (_, 'notJoined') => PartnerError.partnerLeft,
+            (_, 'notYours') => PartnerError.notYours,
+            (426, _) => PartnerError.updateRequired,
             (429, _) => PartnerError.tooManyTries,
             (400, _) => PartnerError.invalidFormat,
             _ => PartnerError.server,
@@ -455,6 +494,10 @@ extension PartnerLink on GymLink {
 
   Future<PartnerReply> endPartnerSession(String id) =>
       _partner('POST', '/api/partner-sessions/$id/end');
+
+  /// 초대 링크. 앱이 있으면 앱이 받아 토큰으로 참여하고([partnerTokenFromLink]), 없으면
+  /// 서버의 안내 페이지가 앱 열기·받기를 보여 준다.
+  String partnerInviteUrl(String token) => '$endpoint/j/$token';
 }
 
 /// 그물 없이 끝낸 같이 하기를 서버에 알린다. 편집기의 폴링은 끝난 세션에서
@@ -477,7 +520,8 @@ Future<void> sendPendingEnds(
     final reply = await link.endPartnerSession(s.id);
     if (reply.error == PartnerError.network ||
         reply.error == PartnerError.server ||
-        reply.error == PartnerError.tooManyTries) {
+        reply.error == PartnerError.tooManyTries ||
+        reply.error == PartnerError.updateRequired) {
       break;
     }
     if (reply.error == PartnerError.signInRequired) continue;
@@ -599,7 +643,8 @@ class PartnerSync extends ChangeNotifier {
         ..docBaseVersion = old.docBaseVersion
         ..routineAppliedVersion = old.routineAppliedVersion
         ..routineFinalizedVersion = old.routineFinalizedVersion
-        ..routineCompleted = old.routineCompleted;
+        ..routineCompleted = old.routineCompleted
+        ..routinePlanningEntered = old.routinePlanningEntered;
     }
     final docJson = body['doc'];
     if (docJson is Map &&
@@ -732,6 +777,8 @@ class PartnerSync extends ChangeNotifier {
       busy = false;
       error = reply.error;
     }
+    // 같이 하던 사람이 모두 나갔다. 화면이 옛 "함께 운동 중" 에 머물지 않게 다시 묻는다.
+    if (reply.error == PartnerError.partnerLeft) unawaited(refresh());
     notifyListeners();
     return reply.error;
   }
@@ -790,7 +837,8 @@ class PartnerSync extends ChangeNotifier {
   void _backOff(PartnerError? error) {
     if (error != PartnerError.network &&
         error != PartnerError.server &&
-        error != PartnerError.tooManyTries) {
+        error != PartnerError.tooManyTries &&
+        error != PartnerError.updateRequired) {
       _misses = _skip = 0;
       return;
     }
@@ -816,10 +864,29 @@ class PartnerSync extends ChangeNotifier {
         diffDoc(_shadow!, docOf(note.blocks)).isEmpty;
   }
 
+  /// "루틴으로 확정하기" — 같이 기록하던 것을 루틴으로 짜기 시작하고, 지금 화면의 문서를
+  /// 내 루틴으로 확인한다. 모두 확인하면 확정되고, 그때까지 내가 해낸 세트는 수행
+  /// 기록으로 남는다([personalRoutine]).
+  Future<PartnerError?> planRoutine() {
+    final s = session;
+    if (s == null || s.routineAcceptedKeys == null) return Future.value(null);
+    if (!s.routinePlanningEntered) {
+      s.routinePlanningEntered = true;
+      onChanged();
+      notifyListeners();
+    }
+    return confirmRoutine();
+  }
+
   /// Confirm only the version on screen, after every local edit reached the server.
   Future<PartnerError?> confirmRoutine() {
     final s = session;
     if (s?.routineReady == true) return Future.value(null);
+    // 확인한 사람은 계획 중에 머문다 — 누가 고쳐 확인이 풀려도 다시 확인할 자리가 남는다.
+    if (s != null && !s.routinePlanningEntered && s.routinePlanning) {
+      s.routinePlanningEntered = true;
+      onChanged();
+    }
     if (!canConfirmRoutine) {
       error = !reachable
           ? PartnerError.network
@@ -928,10 +995,15 @@ class PartnerSync extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 마지막 타이머 동작이 왜 안 됐는가. 성공하면 비운다. 화면(타이머 칸)이 한 줄로
+  /// 보일 수 있게 값만 둔다 — 시트의 [error] 와 달리 동작마다 바뀐다.
+  PartnerError? timerError;
+
   Future<void> _timerAction(Map<String, Object?> action) async {
     final s = session;
     if (s == null || s.state != PartnerState.active) return;
-    await _run((l) => l.partnerTimer(s.id, action), quiet: true);
+    timerError = await _run((l) => l.partnerTimer(s.id, action), quiet: true);
+    notifyListeners();
   }
 
   /// 같이 하자고 제안한다. 상대가 받아들여야 시작한다.
@@ -1006,17 +1078,10 @@ class PartnerSync extends ChangeNotifier {
           agreed == null) {
         return null;
       }
-      // Taken when planning started ([_receiveDoc]). Without it, sets in the agreed routine are the
-      // plan, not work done — counting them would add every planned set twice, once as done.
+      // What I had done when the routine was agreed stays done; the rest of the routine is the plan.
+      // Taken once and saved, so applying again (restart) does not count the plan as done.
       final completed =
-          s.routineCompleted ??
-          completedBeforeRoutine(
-            note.blocks,
-            planned: {
-              for (final b in agreed)
-                for (final set in b['sets'] as List) '${(set as Map)['id']}',
-            },
-          );
+          s.routineCompleted ?? completedBeforeRoutine(note.blocks);
       s
         ..routineCompleted = completed
         ..routineAppliedVersion = version;
@@ -1045,10 +1110,6 @@ class PartnerSync extends ChangeNotifier {
       // 잇는다 — "처음 참여" 로 합치면 내 옛 사본이 남의 새 값을 덮는다.
       // 다른 세션이 되면 [_apply] 가 옮겨 오지 않으므로 저절로 버려진다.
       return;
-    }
-    // What was done before planning stays performed work; sets typed while planning are the plan.
-    if (s.routinePlanning && s.routineCompleted == null) {
-      s.routineCompleted = completedBeforeRoutine(note.blocks);
     }
     // 화면을 다시 열었거나 앱을 다시 켰다. 마지막으로 받은 문서와 내 기록의 차이가
     // 곧 아직 못 올린 내 수정이다(오프라인에서 적은 세트 포함) — 그것을 다시 싣는다.
@@ -1149,8 +1210,26 @@ class PartnerSync extends ChangeNotifier {
       final refused = const {
         'invalidInput',
         'tooBig',
+        'notYours',
       }.contains(reply.body?['error']);
+      if (reply.body?['error'] == 'noDoc') {
+        // 서버에 문서가 없다(끝난 직후, 또는 아직 안 심었다). 같은 수정을 폴링마다 다시
+        // 보내지 않는다 — 내가 믿던 문서를 버리고 서버가 말하는 것에서 다시 세운다.
+        // 호스트면 내 기록으로 다시 심는다([_receiveDoc]).
+        _pendingDoc.clear();
+        _shadow = null;
+        session?.docBase = null;
+        unawaited(refresh());
+        break;
+      }
+      if (reply.error == PartnerError.partnerLeft) {
+        unawaited(refresh());
+        break;
+      }
       if (reply.error != null && !refused) break;
+      if (reply.error == PartnerError.notYours) {
+        error = PartnerError.notYours;
+      }
       reachable = true;
       final v = reply.body?['version'];
       if (v is int && v > _ackedDoc) _ackedDoc = v;

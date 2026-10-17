@@ -3807,4 +3807,43 @@ class LTh extends L {
   @override
   String get refusedAccountBlocked =>
       'คุณเป็นเจ้าของหรือเทรนเนอร์ของยิม โปรดออกจากยิมหรือลบยิมก่อน แล้วจึงลบบัญชี';
+
+  @override
+  String get partnerErrLeft => 'คนที่ออกกำลังด้วยกันออกไปแล้ว';
+
+  @override
+  String get partnerNotYours => 'แก้เซ็ตที่อีกคนบันทึกไม่ได้ เป็นบันทึกของเขา';
+
+  @override
+  String get partnerRoutinePlan => 'ยืนยันเป็นรูทีน';
+
+  @override
+  String get partnerCodeHint => 'ใส่ตัวอักษร 6 ตัวที่แสดงบนหน้าจอของอีกคน';
+
+  @override
+  String partnerPaste(String code) {
+    return 'วาง $code';
+  }
+
+  @override
+  String get partnerShare => 'แชร์';
+
+  @override
+  String partnerShareText(String code) {
+    return 'รหัสออกกำลังด้วยกันของ setpad $code\nในแอป: บันทึก → ⋯ → ออกกำลังด้วยกัน → ใส่รหัส';
+  }
+
+  @override
+  String partnerShareTextLink(String code, String url) {
+    return 'รหัสออกกำลังด้วยกันของ setpad $code\nในแอป: บันทึก → ⋯ → ออกกำลังด้วยกัน → ใส่รหัส หรือเข้าร่วมทันทีด้วยลิงก์นี้:\n$url';
+  }
+
+  @override
+  String get partnerInviteMoreNew => 'ชวนอีกคน · รหัสใหม่';
+
+  @override
+  String get partnerHomeOpen => 'เปิด';
+
+  @override
+  String get togetherInviteSomeone => 'มีคนชวนทำด้วยกัน';
 }

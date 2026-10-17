@@ -930,5 +930,16 @@
   "refusedClassFull": "這堂團課已滿。",
   "refusedClassNoAccess": "你沒有可在上課當天使用的會員資格，請向健身房確認有效期間或暫停狀態。",
   "refusedClassCancelled": "這堂團課已停課。",
-  "refusedAccountBlocked": "你是健身房的館長或教練。請先退出或刪除健身房，再註銷帳號。"
+  "refusedAccountBlocked": "你是健身房的館長或教練。請先退出或刪除健身房，再註銷帳號。",
+  "partnerErrLeft": "一起訓練的人已離開。",
+  "partnerNotYours": "不能修改對方記錄的組，那是對方的紀錄。",
+  "partnerRoutinePlan": "確定為訓練計畫",
+  "partnerCodeHint": "輸入對方螢幕上顯示的六個字元。",
+  "partnerPaste": "貼上 {code}",
+  "partnerShare": "分享",
+  "partnerShareText": "setpad 一起訓練代碼 {code}\n在 App 中：紀錄 → ⋯ → 一起訓練 → 輸入號碼",
+  "partnerShareTextLink": "setpad 一起訓練代碼 {code}\n在 App 中：紀錄 → ⋯ → 一起訓練 → 輸入號碼，或透過此連結直接加入：\n{url}",
+  "partnerInviteMoreNew": "再邀請一人 · 新代碼",
+  "partnerHomeOpen": "打開",
+  "togetherInviteSomeone": "有人邀請你一起做"
 }

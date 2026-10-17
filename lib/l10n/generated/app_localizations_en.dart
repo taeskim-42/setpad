@@ -3862,4 +3862,45 @@ class LEn extends L {
   @override
   String get refusedAccountBlocked =>
       'You\'re an owner or trainer at a gym. Leave the gym or delete it, then delete your account.';
+
+  @override
+  String get partnerErrLeft => 'The people you were training with have left.';
+
+  @override
+  String get partnerNotYours =>
+      'You can\'t change a set someone else logged. It\'s their record.';
+
+  @override
+  String get partnerRoutinePlan => 'Make it a routine';
+
+  @override
+  String get partnerCodeHint =>
+      'Enter the six letters shown on the other person\'s screen.';
+
+  @override
+  String partnerPaste(String code) {
+    return 'Paste $code';
+  }
+
+  @override
+  String get partnerShare => 'Share';
+
+  @override
+  String partnerShareText(String code) {
+    return 'setpad train-together code $code\nIn the app: a log → ⋯ → Work out together → Enter a code';
+  }
+
+  @override
+  String partnerShareTextLink(String code, String url) {
+    return 'setpad train-together code $code\nIn the app: a log → ⋯ → Work out together → Enter a code, or join right away with this link:\n$url';
+  }
+
+  @override
+  String get partnerInviteMoreNew => 'Invite one more · new code';
+
+  @override
+  String get partnerHomeOpen => 'Open';
+
+  @override
+  String get togetherInviteSomeone => 'Someone wants to do this together';
 }

@@ -143,6 +143,16 @@ void main() {
       isFalse,
     );
     expect(SharedTimer.tryFromJson(null), isNull);
+    // 제안한 사람의 이름. 옛 서버는 주지 않는다 — 그때는 모른다고 한다.
+    expect(
+      SharedTimer.tryFromJson({
+        ...json(),
+        'by': {'key': 'k', 'name': '소라'},
+      })!.byName,
+      '소라',
+    );
+    expect(SharedTimer.tryFromJson(json())!.byName, isNull);
+    expect(SharedTimer.tryFromJson({...json(), 'by': 'x'})!.byName, isNull);
     // 교대로 늘어난 휴식이 앱이 돌릴 수 없는 길이면 받지 않는다.
     expect(
       SharedTimer.tryFromJson({

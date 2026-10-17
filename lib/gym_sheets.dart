@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
 import 'account.dart';
+import 'share.dart';
 import 'sign_in_sheet.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'nearby.dart';
@@ -25,7 +26,24 @@ String partnerErrorText(L l, PartnerError error) => switch (error) {
   PartnerError.emptyRoutine => l.partnerRoutineEmpty,
   PartnerError.routineStarted => l.partnerRoutineStarted,
   PartnerError.full => l.partnerErrFull,
+  PartnerError.partnerLeft => l.partnerErrLeft,
+  PartnerError.notYours => l.partnerNotYours,
+  PartnerError.updateRequired => l.updateRequired,
 };
+
+/// 코드(와 살아 있으면 링크)를 시스템 공유 시트로. 받는 사람은 메신저에서 링크를 누르거나
+/// 앱에서 코드를 친다 — 어디서 치는지도 같이 적는다.
+/// 공유 시트를 못 띄우는 곳(데스크톱)에서는 같은 글을 복사해 둔다.
+Future<void> sharePartnerInvite(L l, PartnerSync sync, PartnerSession s) async {
+  final code = s.code ?? '';
+  final token = s.token;
+  final text = token == null
+      ? l.partnerShareText(code)
+      : l.partnerShareTextLink(code, sync.link().partnerInviteUrl(token));
+  if (!await shareText(text)) {
+    await Clipboard.setData(ClipboardData(text: text));
+  }
+}
 
 /// 같이 하기.
 ///
@@ -69,6 +87,28 @@ class _PartnerSheetState extends State<_PartnerSheet> {
   Timer? _tick;
   bool _nearby = false;
   String? _offered;
+
+  /// 코드 칸을 눌렀을 때 클립보드에 있던 코드. 칩으로만 보이고, 칩을 눌러야 쓴다.
+  String? _clipboardCode;
+
+  /// 클립보드는 사람이 칸을 눌렀을 때만 읽는다(iOS 가 붙여넣기 허락을 묻는다).
+  Future<void> _peekClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final code = normalizePartnerCode(data?.text ?? '');
+    if (!mounted || code == null || code == normalizePartnerCode(_code.text)) {
+      return;
+    }
+    setState(() => _clipboardCode = code);
+  }
+
+  /// 칩을 눌렀다. 자판(IME)이 떠 있는 칸에 앱이 글을 쓰지 않는다 — 먼저 내리고 쓴 뒤 참여한다.
+  void _pasteCode(String code) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    _code.text = code;
+    setState(() => _clipboardCode = null);
+    sync.joinWithCode(code);
+  }
 
   /// 기다리는 초대가 있으면 가까이 대서 건넬 수 있게 걸어 두고, 없어지면 거둔다.
   void _syncNearby() {
@@ -305,10 +345,19 @@ class _PartnerSheetState extends State<_PartnerSheet> {
         ),
       ),
     if (_typing) ...[
+      Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Text(
+          l.partnerCodeHint,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: muted),
+        ),
+      ),
       CupertinoTextField(
         key: const ValueKey('partner-code'),
         controller: _code,
         autofocus: true,
+        onTap: _peekClipboard,
         // 헬스장에서 불러 주는 코드다. 자판을 오래 두드릴 자리가 아니다.
         // 글자 수를 막지 않는다 — 받은 문구를 통째로 붙여 넣으면 코드는 끝에
         // 있고, 칸이 앞에서 자르면 코드가 사라진다(normalizePartnerCode 가 뽑는다).
@@ -318,6 +367,23 @@ class _PartnerSheetState extends State<_PartnerSheet> {
         style: const TextStyle(fontSize: 24, letterSpacing: 5),
         onSubmitted: (_) => sync.joinWithCode(_code.text),
       ),
+      if (_clipboardCode case final code?)
+        Center(
+          child: CupertinoButton(
+            key: const ValueKey('partner-paste'),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            minimumSize: const Size(44, 44),
+            onPressed: sync.busy ? null : () => _pasteCode(code),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(CupertinoIcons.doc_on_clipboard, size: 16),
+                const SizedBox(width: 6),
+                Text(l.partnerPaste(code)),
+              ],
+            ),
+          ),
+        ),
       const SizedBox(height: 8),
       CupertinoButton.filled(
         onPressed: sync.busy ? null : () => sync.joinWithCode(_code.text),
@@ -378,6 +444,22 @@ class _PartnerSheetState extends State<_PartnerSheet> {
           ),
         ],
       ),
+      if (!over)
+        Center(
+          child: CupertinoButton(
+            key: const ValueKey('partner-share'),
+            minimumSize: const Size(44, 44),
+            onPressed: () => sharePartnerInvite(l, sync, session),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(CupertinoIcons.share, size: 18),
+                const SizedBox(width: 6),
+                Text(l.partnerShare),
+              ],
+            ),
+          ),
+        ),
       Text(
         over
             ? l.partnerExpired
@@ -426,6 +508,47 @@ class _PartnerSheetState extends State<_PartnerSheet> {
       l.partnerWith(session.partnerName ?? ''),
       style: const TextStyle(fontSize: 15),
     ),
+    // 한 명 더 — 맨 위에 둔다. 초대가 살아 있으면 코드와 공유, 지났으면(호스트만) 새 코드.
+    if (session.code != null && session.room > 0)
+      Row(
+        children: [
+          Expanded(
+            child: CupertinoButton(
+              key: const ValueKey('invite-more'),
+              padding: EdgeInsets.zero,
+              alignment: Alignment.centerLeft,
+              onPressed: () =>
+                  Clipboard.setData(ClipboardData(text: session.code ?? '')),
+              child: Text(
+                l.partnerInviteMore(session.code!),
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+          ),
+          CupertinoButton(
+            key: const ValueKey('partner-share'),
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(44, 44),
+            onPressed: () => sharePartnerInvite(l, sync, session),
+            child: Icon(
+              CupertinoIcons.share,
+              size: 18,
+              semanticLabel: l.partnerShare,
+            ),
+          ),
+        ],
+      )
+    else if (session.host && session.room > 0)
+      CupertinoButton(
+        key: const ValueKey('invite-more'),
+        padding: EdgeInsets.zero,
+        alignment: Alignment.centerLeft,
+        onPressed: sync.busy ? null : () => sync.invite(renew: true),
+        child: Text(
+          l.partnerInviteMoreNew,
+          style: const TextStyle(fontSize: 14),
+        ),
+      ),
     if (session.routinePlanning) ...[
       const SizedBox(height: 12),
       Text(
@@ -460,7 +583,18 @@ class _PartnerSheetState extends State<_PartnerSheet> {
         l.partnerRoutineFinalized,
         style: TextStyle(fontSize: 13, color: muted),
       ),
-    ],
+    ] else if (session.routineAcceptedKeys != null)
+      // 기본은 같이 기록하는 것이다. 루틴으로 굳히는 것은 고르는 사람만 — 작게 둔다.
+      CupertinoButton(
+        key: const ValueKey('partner-routine-plan'),
+        padding: EdgeInsets.zero,
+        alignment: Alignment.centerLeft,
+        onPressed: sync.busy ? null : sync.planRoutine,
+        child: Text(
+          l.partnerRoutinePlan,
+          style: TextStyle(fontSize: 14, color: muted),
+        ),
+      ),
     if (!sync.reachable)
       Text(l.partnerReconnecting, style: TextStyle(fontSize: 13, color: muted)),
     if (sync.conflict != null) ...[
@@ -477,25 +611,6 @@ class _PartnerSheetState extends State<_PartnerSheet> {
         ),
       ),
     ],
-    // 초대가 살아 있고 자리가 있으면 한 명 더 들어올 수 있다. 호스트에게만 코드가 온다.
-    if (session.code != null && session.room > 0)
-      CupertinoButton(
-        key: const ValueKey('invite-more'),
-        padding: EdgeInsets.zero,
-        onPressed: () =>
-            Clipboard.setData(ClipboardData(text: session.code ?? '')),
-        child: Text(
-          l.partnerInviteMore(session.code!),
-          style: const TextStyle(fontSize: 14),
-        ),
-      )
-    else if (session.host && session.room > 0)
-      CupertinoButton(
-        key: const ValueKey('invite-more'),
-        padding: EdgeInsets.zero,
-        onPressed: sync.busy ? null : () => sync.invite(renew: true),
-        child: Text(l.partnerNewCode, style: const TextStyle(fontSize: 14)),
-      ),
     const SizedBox(height: 10),
     ConstrainedBox(
       constraints: BoxConstraints(

@@ -119,6 +119,10 @@ class LoggedSet {
   String? author;
   bool get mine => done && author == null;
 
+  /// 남이 적은 세트. 그 사람의 기록이라 이 폰에서는 읽기만 한다 — 값·메모·수행 표시를
+  /// 고치거나 지우거나 옮기지 않는다([RoutineEditorController] 가 막는다).
+  bool get theirs => author != null;
+
   /// 무게든 거리든 시간이든, 친 숫자 그대로.
   final double? value;
 
@@ -395,7 +399,8 @@ class RoutineEditorController extends ChangeNotifier {
     if (block < 0 ||
         block >= blocks.length ||
         index < 0 ||
-        index >= blocks[block].sets.length) {
+        index >= blocks[block].sets.length ||
+        blocks[block].sets[index].theirs) {
       return;
     }
     final previous = blocks[block].sets[index];
@@ -416,6 +421,7 @@ class RoutineEditorController extends ChangeNotifier {
   /// 세트를 끝에 붙이므로 순서가 어긋나지 않는다. 사본은 적은 사람을 물려받는다.
   void extendSet(int block, int index, {String? note, int count = 1}) {
     final set = blocks[block].sets[index];
+    if (set.theirs) return;
     if (note != null) set.notes.add(note);
     blocks[block].sets.addAll([
       for (var i = 1; i < count; i++)
@@ -452,7 +458,7 @@ class RoutineEditorController extends ChangeNotifier {
     if (!inBlock) return;
     // 내 마지막 세트에 단다 — 치는 사이 옆 사람이 세트를 더해도 그쪽에 붙지 않는다.
     final set = blocks[_active].myLast;
-    if (set == null) return;
+    if (set == null || set.theirs) return;
     final clean = text.trim();
     if (clean.isEmpty) return;
     set.notes.add(clean);
@@ -461,6 +467,7 @@ class RoutineEditorController extends ChangeNotifier {
 
   /// 메모 한 줄을 고친다. 빈 글이면 지운 것으로 본다.
   void editNote(int block, int set, int index, String text) {
+    if (blocks[block].sets[set].theirs) return;
     final notes = blocks[block].sets[set].notes;
     if (index < 0 || index >= notes.length) return;
     final clean = text.trim();
@@ -474,6 +481,7 @@ class RoutineEditorController extends ChangeNotifier {
 
   /// 메모 한 줄을 지운다.
   void removeNote(int block, int set, int index) {
+    if (blocks[block].sets[set].theirs) return;
     final notes = blocks[block].sets[set].notes;
     if (index < 0 || index >= notes.length) return;
     notes.removeAt(index);
@@ -482,6 +490,7 @@ class RoutineEditorController extends ChangeNotifier {
 
   /// 해낸 세트인지 뒤집는다. 잘못 눌렀을 때 되돌릴 방법이 있어야 한다.
   void toggleDone(int block, int set) {
+    if (blocks[block].sets[set].theirs) return;
     blocks[block].sets[set].done = !blocks[block].sets[set].done;
     notifyListeners();
   }
@@ -495,7 +504,8 @@ class RoutineEditorController extends ChangeNotifier {
         from < 0 ||
         from >= sets.length ||
         to < 0 ||
-        to >= sets.length) {
+        to >= sets.length ||
+        sets[from].theirs) {
       return;
     }
     sets.insert(to, sets.removeAt(from));
@@ -505,6 +515,7 @@ class RoutineEditorController extends ChangeNotifier {
   /// 세트 하나 취소.
   void removeSet(int block, int set) {
     final b = blocks[block];
+    if (b.sets[set].theirs) return;
     b.sets.removeAt(set);
     notifyListeners();
   }
@@ -984,6 +995,10 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   /// 메모 한 줄을 입력칸으로 불러온다. 커밋하면 그 자리를 덮어쓴다.
   void _startEditNote(int block, int set, int note) {
+    if (_c.blocks[block].sets[set].theirs) {
+      unawaited(_say(L.of(context).partnerNotYours));
+      return;
+    }
     if (_editingRecord && !_finishRecordEdit()) return;
     widget.mealText?.value = null;
     final text = _c.blocks[block].sets[set].notes[note];
@@ -1272,6 +1287,21 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   /// 다른 사람과 이 기록을 같이 고치는 중.
   bool get _together => widget.partner?.session?.state == PartnerState.active;
+
+  /// 내가 X 로 접은 같이 하기 제안. 서버의 제안은 그대로다(제안한 사람만 거둔다).
+  int? _dismissedSeq;
+
+  /// 제안을 처음 본 때. 메트로놈은 끝이 없어 받지 않은 사람의 초대가 세션 내내 남는다 —
+  /// 10분 지나면 접는다.
+  (int, DateTime)? _inviteSeen;
+  bool _inviteStale(SharedTimer t) {
+    final seen = _inviteSeen;
+    if (seen == null || seen.$1 != t.seq) {
+      _inviteSeen = (t.seq, DateTime.now());
+      return false;
+    }
+    return DateTime.now().difference(seen.$2) > const Duration(minutes: 10);
+  }
 
   bool _live(SharedTimer? t) =>
       t != null && t.started && !t.overAt(widget.partner?.clock.now);
@@ -1976,6 +2006,11 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   void _editTitle(ExerciseBlock block) => _beginRecordEdit(block, null);
   void _editSet(ExerciseBlock block, int index, {bool reps = false}) {
+    // 남이 적은 세트는 그 사람의 기록이다. 읽기만 한다.
+    if (block.sets[index].theirs) {
+      unawaited(_say(L.of(context).partnerNotYours));
+      return;
+    }
     // 같은 세트를 둘이 동시에 고치면 나중 것만 남는다. 먼저 잡은 사람에게 둔다.
     final busy = _busyOn(block, block.sets[index]);
     if (busy != null) {
@@ -2756,9 +2791,10 @@ class _RoutineEditorState extends State<RoutineEditor>
       _c.backspace();
       return;
     }
-    // 돌아갈 곳은 **내** 마지막 세트다. 남이 고치는 중이면 잡지 않는다.
-    final mine = block.sets.lastIndexWhere((s) => s.author == null);
-    final at = mine < 0 ? block.sets.length - 1 : mine;
+    // 돌아갈 곳은 **내** 마지막 세트다. 남의 세트는 고치지 않으니 없으면 그만이다.
+    // 남이 고치는 중이면 잡지 않는다.
+    final at = block.sets.lastIndexWhere((s) => !s.theirs);
+    if (at < 0) return;
     final busy = _busyOn(block, block.sets[at]);
     if (busy != null) {
       unawaited(_say(L.of(context).liveSetBusy(busy)));
@@ -2855,12 +2891,20 @@ class _RoutineEditorState extends State<RoutineEditor>
         if (incoming != null &&
             !incoming.joined &&
             !(incoming.started && incoming.alternate) &&
-            !incoming.overAt(widget.partner!.clock.now))
+            !incoming.overAt(widget.partner!.clock.now) &&
+            incoming.seq != _dismissedSeq &&
+            !_inviteStale(incoming))
           _TogetherInvite(
-            name: widget.partner!.session!.partnerName ?? '',
+            // 제안한 사람. 옛 서버가 안 알려 주면 둘일 때는 상대, 셋 이상이면 이름 없이.
+            name:
+                incoming.byName ??
+                (widget.partner!.session!.others.length > 1
+                    ? ''
+                    : widget.partner!.session!.partnerName ?? ''),
             timer: incoming,
             onAccept: _acceptShared,
-            onDecline: widget.partner!.clearTimer,
+            // 거절은 내 화면에서만 — 서버에서 치우면 셋 이상일 때 돌고 있는 남의 타이머가 멈춘다.
+            onDecline: () => setState(() => _dismissedSeq = incoming.seq),
           ),
         Expanded(
           child: GestureDetector(
@@ -2977,6 +3021,12 @@ class _RoutineEditorState extends State<RoutineEditor>
                             _c.removeSet(i, set);
                           },
                           onRemoveBlock: (block) {
+                            // 같이 하는 동안 남이 적은 세트가 든 운동은 지우지 않는다 —
+                            // 그 사람의 기록까지 지워진다(서버도 거절한다).
+                            if (_together && block.sets.any((s) => s.theirs)) {
+                              unawaited(_say(L.of(context).partnerNotYours));
+                              return;
+                            }
                             // 다른 운동을 지우면 고치던 줄은 평소처럼 확정한다 —
                             // 못 읽는 글이면 입력칸에 이유와 함께 남는다.
                             _finishRecordEdit(validate: i != openIndex);
@@ -4004,7 +4054,9 @@ class _TogetherInvite extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l.togetherInvite(name),
+                  name.isEmpty
+                      ? l.togetherInviteSomeone
+                      : l.togetherInvite(name),
                   style: TextStyle(fontSize: 13, color: muted),
                 ),
                 Text(

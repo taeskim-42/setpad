@@ -3686,6 +3686,45 @@ class LZh extends L {
 
   @override
   String get refusedAccountBlocked => '你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。';
+
+  @override
+  String get partnerErrLeft => '一起训练的人已离开。';
+
+  @override
+  String get partnerNotYours => '不能修改对方记录的组，那是对方的记录。';
+
+  @override
+  String get partnerRoutinePlan => '确定为训练计划';
+
+  @override
+  String get partnerCodeHint => '输入对方屏幕上显示的六个字符。';
+
+  @override
+  String partnerPaste(String code) {
+    return '粘贴 $code';
+  }
+
+  @override
+  String get partnerShare => '分享';
+
+  @override
+  String partnerShareText(String code) {
+    return 'setpad 一起训练代码 $code\n在应用中：记录 → ⋯ → 一起训练 → 输入号码';
+  }
+
+  @override
+  String partnerShareTextLink(String code, String url) {
+    return 'setpad 一起训练代码 $code\n在应用中：记录 → ⋯ → 一起训练 → 输入号码，或通过此链接直接加入：\n$url';
+  }
+
+  @override
+  String get partnerInviteMoreNew => '再邀请一人 · 新代码';
+
+  @override
+  String get partnerHomeOpen => '打开';
+
+  @override
+  String get togetherInviteSomeone => '有人邀请你一起做';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7370,6 +7409,45 @@ class LZhHans extends LZh {
 
   @override
   String get refusedAccountBlocked => '你是健身房的馆长或教练。请先退出或删除健身房，再注销账号。';
+
+  @override
+  String get partnerErrLeft => '一起训练的人已离开。';
+
+  @override
+  String get partnerNotYours => '不能修改对方记录的组，那是对方的记录。';
+
+  @override
+  String get partnerRoutinePlan => '确定为训练计划';
+
+  @override
+  String get partnerCodeHint => '输入对方屏幕上显示的六个字符。';
+
+  @override
+  String partnerPaste(String code) {
+    return '粘贴 $code';
+  }
+
+  @override
+  String get partnerShare => '分享';
+
+  @override
+  String partnerShareText(String code) {
+    return 'setpad 一起训练代码 $code\n在应用中：记录 → ⋯ → 一起训练 → 输入号码';
+  }
+
+  @override
+  String partnerShareTextLink(String code, String url) {
+    return 'setpad 一起训练代码 $code\n在应用中：记录 → ⋯ → 一起训练 → 输入号码，或通过此链接直接加入：\n$url';
+  }
+
+  @override
+  String get partnerInviteMoreNew => '再邀请一人 · 新代码';
+
+  @override
+  String get partnerHomeOpen => '打开';
+
+  @override
+  String get togetherInviteSomeone => '有人邀请你一起做';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11054,4 +11132,43 @@ class LZhHant extends LZh {
 
   @override
   String get refusedAccountBlocked => '你是健身房的館長或教練。請先退出或刪除健身房，再註銷帳號。';
+
+  @override
+  String get partnerErrLeft => '一起訓練的人已離開。';
+
+  @override
+  String get partnerNotYours => '不能修改對方記錄的組，那是對方的紀錄。';
+
+  @override
+  String get partnerRoutinePlan => '確定為訓練計畫';
+
+  @override
+  String get partnerCodeHint => '輸入對方螢幕上顯示的六個字元。';
+
+  @override
+  String partnerPaste(String code) {
+    return '貼上 $code';
+  }
+
+  @override
+  String get partnerShare => '分享';
+
+  @override
+  String partnerShareText(String code) {
+    return 'setpad 一起訓練代碼 $code\n在 App 中：紀錄 → ⋯ → 一起訓練 → 輸入號碼';
+  }
+
+  @override
+  String partnerShareTextLink(String code, String url) {
+    return 'setpad 一起訓練代碼 $code\n在 App 中：紀錄 → ⋯ → 一起訓練 → 輸入號碼，或透過此連結直接加入：\n$url';
+  }
+
+  @override
+  String get partnerInviteMoreNew => '再邀請一人 · 新代碼';
+
+  @override
+  String get partnerHomeOpen => '打開';
+
+  @override
+  String get togetherInviteSomeone => '有人邀請你一起做';
 }

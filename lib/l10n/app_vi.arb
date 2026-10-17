@@ -930,5 +930,16 @@
   "refusedClassFull": "Lớp này đã đầy.",
   "refusedClassNoAccess": "Bạn không có thẻ hội viên dùng được vào ngày học. Hãy hỏi phòng tập về thời hạn hoặc trạng thái tạm dừng.",
   "refusedClassCancelled": "Lớp này đã nghỉ.",
-  "refusedAccountBlocked": "Bạn là chủ hoặc huấn luyện viên của một phòng tập. Hãy rời hoặc xóa phòng tập trước, rồi mới xóa tài khoản."
+  "refusedAccountBlocked": "Bạn là chủ hoặc huấn luyện viên của một phòng tập. Hãy rời hoặc xóa phòng tập trước, rồi mới xóa tài khoản.",
+  "partnerErrLeft": "Những người tập cùng bạn đã rời đi.",
+  "partnerNotYours": "Bạn không thể sửa hiệp do người khác ghi. Đó là bản ghi của họ.",
+  "partnerRoutinePlan": "Chốt thành lịch tập",
+  "partnerCodeHint": "Nhập sáu ký tự hiện trên màn hình của người kia.",
+  "partnerPaste": "Dán {code}",
+  "partnerShare": "Chia sẻ",
+  "partnerShareText": "Mã tập cùng nhau setpad {code}\nTrong ứng dụng: bản ghi → ⋯ → Tập cùng nhau → Nhập mã",
+  "partnerShareTextLink": "Mã tập cùng nhau setpad {code}\nTrong ứng dụng: bản ghi → ⋯ → Tập cùng nhau → Nhập mã, hoặc tham gia ngay bằng liên kết này:\n{url}",
+  "partnerInviteMoreNew": "Mời thêm một người · mã mới",
+  "partnerHomeOpen": "Mở",
+  "togetherInviteSomeone": "Có người rủ bạn tập cùng"
 }

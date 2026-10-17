@@ -930,5 +930,16 @@
   "refusedClassFull": "คลาสนี้เต็มแล้ว",
   "refusedClassNoAccess": "คุณไม่มีสมาชิกที่ใช้ได้ในวันที่มีคลาส โปรดสอบถามระยะเวลาหรือสถานะการพักกับยิม",
   "refusedClassCancelled": "คลาสนี้งดแล้ว",
-  "refusedAccountBlocked": "คุณเป็นเจ้าของหรือเทรนเนอร์ของยิม โปรดออกจากยิมหรือลบยิมก่อน แล้วจึงลบบัญชี"
+  "refusedAccountBlocked": "คุณเป็นเจ้าของหรือเทรนเนอร์ของยิม โปรดออกจากยิมหรือลบยิมก่อน แล้วจึงลบบัญชี",
+  "partnerErrLeft": "คนที่ออกกำลังด้วยกันออกไปแล้ว",
+  "partnerNotYours": "แก้เซ็ตที่อีกคนบันทึกไม่ได้ เป็นบันทึกของเขา",
+  "partnerRoutinePlan": "ยืนยันเป็นรูทีน",
+  "partnerCodeHint": "ใส่ตัวอักษร 6 ตัวที่แสดงบนหน้าจอของอีกคน",
+  "partnerPaste": "วาง {code}",
+  "partnerShare": "แชร์",
+  "partnerShareText": "รหัสออกกำลังด้วยกันของ setpad {code}\nในแอป: บันทึก → ⋯ → ออกกำลังด้วยกัน → ใส่รหัส",
+  "partnerShareTextLink": "รหัสออกกำลังด้วยกันของ setpad {code}\nในแอป: บันทึก → ⋯ → ออกกำลังด้วยกัน → ใส่รหัส หรือเข้าร่วมทันทีด้วยลิงก์นี้:\n{url}",
+  "partnerInviteMoreNew": "ชวนอีกคน · รหัสใหม่",
+  "partnerHomeOpen": "เปิด",
+  "togetherInviteSomeone": "มีคนชวนทำด้วยกัน"
 }

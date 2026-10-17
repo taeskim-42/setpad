@@ -383,9 +383,31 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
     await _open(note);
   }
 
-  /// 이 링크가 제 화면을 여는가 — [_openTag] 가 가르는 셋: 건네받기, 단톡방의 수업·예약, 스티커.
+  /// 지금 처리 중인 같이 하기 초대 링크. 처음 링크와 스트림이 같은 것을 두 번 준다.
+  String? _lastPartnerLink;
+
+  /// 같이 하기 초대 링크를 받았다. 오늘 기록을 열고 그 편집기가 토큰으로 참여한다 —
+  /// 가까이 대서 받은 토큰과 같은 길이다(PartnerSync.joinWithToken). 로그인은 여기서 먼저:
+  /// 참여한 뒤에 로그인하라고 하면 토큰을 다시 받을 길이 없다.
+  Future<void> _joinFromLink(String token) async {
+    if (!_account.signedIn) {
+      final ok = await askSignIn(
+        context,
+        _account,
+        message: L.of(context).partnerSignIn,
+      );
+      if (!mounted || !ok) return;
+    }
+    final note = _todayOrNew();
+    pendingPartnerJoin.value = (noteId: note.id, token: token);
+    await _open(note);
+  }
+
+  /// 이 링크가 제 화면을 여는가 — [_openTag] 가 가르는 넷: 건네받기, 같이 하기 초대,
+  /// 단톡방의 수업·예약, 스티커.
   static bool _opensScreen(Uri uri) =>
       handoffTokenFromLink(uri) != null ||
+      partnerTokenFromLink(uri) != null ||
       gymScreenFromLink(uri) != null ||
       gymFromTag(uri) != null;
 
@@ -405,6 +427,16 @@ class _HomeState extends State<_Home> with WidgetsBindingObserver {
       _lastHandoff = handoff;
       await _takeHandoff(handoff);
       _lastHandoff = null;
+      return;
+    }
+    if (partnerTokenFromLink(uri) case final token?) {
+      if (token == _lastPartnerLink) return;
+      _lastPartnerLink = token;
+      try {
+        await _joinFromLink(token);
+      } finally {
+        _lastPartnerLink = null;
+      }
       return;
     }
     // 단톡방의 수업·예약 링크. 출석도 가입 신청도 아니다 — 다니는 도장이면 그 화면을 연다.
@@ -1153,9 +1185,39 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
             );
           }
         });
+    // 링크로 받은 초대. 이 기록 앞으로 온 것만 — 열려 있는 동안 와도 받는다.
+    pendingPartnerJoin.addListener(_joinPending);
+    _joinPending();
+    _wasActive = widget.note.partner?.state == PartnerState.active;
     // 다시 들어왔을 때 서버에 상태를 물어 복구한다(열린 세션이 있을 때만 돈다).
     _partner?.start();
   }
+
+  /// 링크로 받은 같이 하기 초대를 이 기록으로 받는다. 못 들어갔으면 시트가 이유를 말한다.
+  Future<void> _joinPending() async {
+    final pending = pendingPartnerJoin.value;
+    final sync = _partner, account = widget.account;
+    if (pending == null || pending.noteId != widget.note.id) return;
+    pendingPartnerJoin.value = null;
+    if (sync == null || account == null) return;
+    final error = await sync.joinWithToken(pending.token);
+    if (error != null && mounted) {
+      await showPartnerSheet(context, account, sync, onWriteFor: _writeFor);
+    }
+  }
+
+  /// 같이 하던 중이었는가 — 남이 끝냈을 때 한 줄로 알리려고 지난 상태를 기억한다.
+  bool _wasActive = false;
+
+  /// 남이 끝낸 같이 하기. 띠로 한 번 알리고, 닫으면 사라진다.
+  String? _endedBy;
+
+  void _openPartnerSheet() => showPartnerSheet(
+    context,
+    widget.account!,
+    _partner!,
+    onWriteFor: _writeFor,
+  );
 
   /// 오늘 한 장 — 그날 한 세트 전부, 먹은 것, 섭취−운동을 한 화면에.
   void _showDaySheet() {
@@ -1257,6 +1319,17 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
     if (!mounted) return;
     // 세션이 열리면 돌고, 끝나면 멈춘다.
     (widget.note.partner?.open ?? false) ? _partner!.start() : _partner!.stop();
+    // 함께하던 것이 남의 손으로 끝났다. 띠만 조용히 사라지면 무슨 일인지 모른다.
+    final now = widget.note.partner;
+    final active = now?.state == PartnerState.active;
+    if (_wasActive &&
+        now?.state == PartnerState.ended &&
+        now?.endedByMe != true) {
+      _endedBy = now?.partnerName ?? '';
+    } else if (active) {
+      _endedBy = null;
+    }
+    _wasActive = active;
     // 같이 고치는 문서가 새로 왔다. 편집기를 그것으로 — 내 커서는 그 운동을 따라간다.
     final appliedVersion = widget.note.partner?.routineAppliedVersion;
     final doc = _partner.takeDoc();
@@ -1328,6 +1401,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _nearbyInvites?.cancel();
+    pendingPartnerJoin.removeListener(_joinPending);
     _partner?.removeListener(_partnerChanged);
     _partner?.dispose();
     _proxySend?.cancel();
@@ -1391,12 +1465,7 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                   GestureDetector(
                     key: const ValueKey('partner-banner'),
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => showPartnerSheet(
-                      context,
-                      widget.account!,
-                      _partner,
-                      onWriteFor: _writeFor,
-                    ),
+                    onTap: _openPartnerSheet,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 2, 16, 2),
                       child: Row(
@@ -1475,6 +1544,13 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                       ),
                     ),
                   ),
+                if (_endedBy case final name? when !_writingFor)
+                  _Strip(
+                    key: const ValueKey('partner-ended'),
+                    text: l.partnerEndedByThem(name),
+                    action: l.ok,
+                    onAction: () => setState(() => _endedBy = null),
+                  ),
                 if (_offered != null && !_writingFor)
                   _Strip(
                     key: const ValueKey('handoff-offer'),
@@ -1545,6 +1621,14 @@ class _EditorPageState extends State<EditorPage> with WidgetsBindingObserver {
                         onMealsChanged: _mealsChanged,
                         estimating: _estimatingMeals,
                         onRetryMeal: _estimateMealText,
+                        // 같이 하기의 문. 메뉴 안에만 두면 있는 줄도 모른다.
+                        onPartner:
+                            _partner != null &&
+                                (widget.account?.signedIn ?? false)
+                            ? _openPartnerSheet
+                            : null,
+                        partnerActive:
+                            widget.note.partner?.state == PartnerState.active,
                       ),
                       footer: switch (_lastWeek) {
                         (final n, final w) => Padding(
@@ -1600,10 +1684,18 @@ class _DocumentHeader extends StatefulWidget {
     this.onMealsChanged,
     this.estimating = const {},
     this.onRetryMeal,
+    this.onPartner,
+    this.partnerActive = false,
   });
   final Note note;
   final NotesStore store;
   final RecordAi ai;
+
+  /// 같이 하기 창을 연다. 로그인하지 않았으면 null — 단추가 없다.
+  final VoidCallback? onPartner;
+
+  /// 같이 운동 중이다. 단추에 점을 찍는다.
+  final bool partnerActive;
 
   /// 다니는 도장이 있으면 이 기록이 트레이너에게 가는지 한 줄로 말한다.
   final Account? account;
@@ -2054,11 +2146,59 @@ class _DocumentHeaderState extends State<_DocumentHeader> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            '${l.dayLabel(at)} · ${l.weekdayLabel(at)}',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: muted),
-          ),
+          if (widget.onPartner == null)
+            Text(
+              '${l.dayLabel(at)} · ${l.weekdayLabel(at)}',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: muted),
+            )
+          else
+            // 날짜는 가운데 그대로, 오른쪽 끝에 같이 하기. 왼쪽에 같은 폭을 비워 둔다.
+            Row(
+              children: [
+                const SizedBox(width: 44),
+                Expanded(
+                  child: Text(
+                    '${l.dayLabel(at)} · ${l.weekdayLabel(at)}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13, color: muted),
+                  ),
+                ),
+                CupertinoButton(
+                  key: const ValueKey('header-partner'),
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(44, 44),
+                  onPressed: widget.onPartner,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(
+                        CupertinoIcons.person_2,
+                        size: 20,
+                        color: widget.partnerActive
+                            ? seal.resolveFrom(context)
+                            : muted,
+                        semanticLabel: l.partnerInvite,
+                      ),
+                      if (widget.partnerActive)
+                        Positioned(
+                          key: const ValueKey('header-partner-dot'),
+                          right: -2,
+                          top: -1,
+                          child: Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              color: seal.resolveFrom(context),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           if (_shareLine(l) case (final text, final act)?)
             Padding(
               key: const ValueKey('share-line'),

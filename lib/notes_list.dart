@@ -21,6 +21,7 @@ import 'booking_entry.dart';
 import 'record_ai.dart';
 import 'palette.dart';
 import 'parser.dart';
+import 'partner.dart' show PartnerState;
 import 'paywall.dart';
 import 'query_cache.dart';
 import 'routine.dart';
@@ -1339,6 +1340,27 @@ class _NotesListPageState extends State<NotesListPage>
                         ),
                         border: null,
                       ),
+                      // 같이 운동 중인 기록. 편집기를 닫으면 같이 하기는 멈춰 있다 —
+                      // 맨 위에서 바로 돌아간다. 다른 계정이 연 것은 이 계정으로 못 잇는다.
+                      if (_query.text.trim().isEmpty)
+                        for (final note in widget.store.notes)
+                          if (note.partner?.state == PartnerState.active &&
+                              note.ownedBy(widget.account?.userId))
+                            SliverToBoxAdapter(
+                              key: ValueKey('partner-live-${note.id}'),
+                              child: GymRow(
+                                icon: CupertinoIcons.person_2_fill,
+                                title: l.partnerWith(
+                                  note.partner!.partnerName ?? '',
+                                ),
+                                detail: [
+                                  note.title ?? l.untitledNote,
+                                  l.partnerHomeOpen,
+                                ].join(' · '),
+                                accent: true,
+                                onTap: () => _open(note),
+                              ),
+                            ),
                       // 트레이너가 보낸 것. 찾는 중에는 숨긴다 — 검색 결과
                       // 위에 다른 것이 끼면 무엇을 보는 중인지 흐려진다.
                       if (_query.text.trim().isEmpty)
@@ -2092,10 +2114,28 @@ class _Row extends StatelessWidget {
     final intake = note.meals.isEmpty || note.unknownMeals == note.meals.length
         ? null
         : note.intake;
-    // 숫자만 한 줄로: 세트 · 운동 칼로리 · 먹은 칼로리.
+    // 같이 한 기록 — 상대 이름(셋 이상이면 첫 사람 +N). 문서에 남의 세트가 섞여 있는 까닭이다.
+    final together = switch (note.partner) {
+      final p?
+          when (p.state == PartnerState.active ||
+                  p.state == PartnerState.ended) &&
+              (p.partnerName ?? '').isNotEmpty =>
+        p.partnerName!.split(', '),
+      _ => null,
+    };
+    // 숫자만 한 줄로: (같이) · 세트 · 운동 칼로리 · 먹은 칼로리.
     final meta = <InlineSpan>[
       for (final part
           in <List<InlineSpan>>[
+            if (together != null)
+              [
+                icon(CupertinoIcons.person_2),
+                TextSpan(
+                  text: together.length > 1
+                      ? '${together.first} +${together.length - 1}'
+                      : together.first,
+                ),
+              ],
             if (summary.isNotEmpty) [TextSpan(text: summary)],
             if (note.calories case final c?)
               [icon(CupertinoIcons.flame), TextSpan(text: l.kcal(c.round()))]

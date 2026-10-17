@@ -3726,4 +3726,43 @@ class LKo extends L {
   @override
   String get refusedAccountBlocked =>
       '도장의 관장이나 트레이너예요. 도장에서 나오거나 도장을 지운 뒤에 탈퇴할 수 있어요.';
+
+  @override
+  String get partnerErrLeft => '같이 하던 사람이 나갔어요.';
+
+  @override
+  String get partnerNotYours => '상대가 적은 세트는 고칠 수 없어요. 그 사람의 기록이에요.';
+
+  @override
+  String get partnerRoutinePlan => '루틴으로 확정하기';
+
+  @override
+  String get partnerCodeHint => '상대 화면에 보이는 여섯 글자를 입력하세요.';
+
+  @override
+  String partnerPaste(String code) {
+    return '붙여넣기 $code';
+  }
+
+  @override
+  String get partnerShare => '공유';
+
+  @override
+  String partnerShareText(String code) {
+    return 'setpad 같이 하기 코드 $code\n앱에서 기록 → ⋯ → 같이 하기 → 코드 입력';
+  }
+
+  @override
+  String partnerShareTextLink(String code, String url) {
+    return 'setpad 같이 하기 코드 $code\n앱에서 기록 → ⋯ → 같이 하기 → 코드 입력, 또는 이 링크로 바로 참여:\n$url';
+  }
+
+  @override
+  String get partnerInviteMoreNew => '한 명 더 초대 · 새 코드';
+
+  @override
+  String get partnerHomeOpen => '열기';
+
+  @override
+  String get togetherInviteSomeone => '같이 하자고 합니다';
 }

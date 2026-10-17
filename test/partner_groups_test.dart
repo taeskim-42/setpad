@@ -67,6 +67,9 @@ class Scripted {
   /// 새로 연 이벤트 스트림 수. 끊었다 다시 붙으면 는다.
   var streams = 0;
 
+  /// 타이머에 보낸 동작들.
+  final timerActions = <Object?>[];
+
   late final client = MockClient((request) async {
     http.Response reply(Map<String, Object?> json) =>
         http.Response.bytes(utf8.encode(jsonEncode(json)), 200);
@@ -76,6 +79,9 @@ class Scripted {
       return reply({'token': 'HANDOFF-TOKEN-0123456789ab', 'revision': 1});
     }
     if (request.url.path.endsWith('/record')) return reply({'revision': 1});
+    if (request.url.path.endsWith('/timer')) {
+      timerActions.add((jsonDecode(request.body) as Map)['action']);
+    }
     return reply(state);
   });
 }
@@ -417,5 +423,96 @@ void main() {
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('셋일 때 초대 배너는 제안한 사람의 이름을 쓰고(모르면 이름 없이), X 는 내 화면에서만 접는다', (
+    tester,
+  ) async {
+    final server = Scripted();
+    Map<String, Object?> proposal({Map<String, Object?>? by}) => {
+      'seq': 1,
+      'title': '스쿼트 60bpm',
+      'alternate': false,
+      'mine': false,
+      'joined': false,
+      'startAt': 1700000000000 - 20000,
+      'spec': {'bpm': 60, 'tabata': false, 'work': 20, 'rest': 10, 'rounds': 8},
+      'myLeft': null,
+      'partnerLeft': null,
+      'others': [
+        {'key': 'aaaa1111', 'name': '준', 'left': null},
+      ],
+      'by': ?by,
+    };
+    server.state = {
+      ...server.state,
+      'timer': proposal(by: {'key': 'bbbb2222', 'name': '소라'}),
+    };
+    final note =
+        Note(
+            id: 'n1',
+            createdAt: DateTime(2026, 9, 21),
+            updatedAt: DateTime(2026, 9, 21),
+          )
+          ..partner = PartnerSession(
+            id: 'S1',
+            host: true,
+            state: PartnerState.active,
+          );
+    final sync = PartnerSync(
+      note: note,
+      clock: ServerClock(monotonic: () => Duration.zero),
+      link: () =>
+          GymLink(endpoint: 'https://x', token: 'me', client: server.client),
+      onChanged: () {},
+    );
+    final timer = WorkoutTimer(audio: FakeAudio(), now: () => Duration.zero);
+    final c = RoutineEditorController();
+    await tester.pumpWidget(
+      app(
+        CupertinoPageScaffold(
+          resizeToAvoidBottomInset: false,
+          child: SafeArea(
+            child: RoutineEditor(controller: c, partner: sync, timer: timer),
+          ),
+        ),
+      ),
+    );
+    await sync.refresh();
+    await tester.pump();
+    expect(find.text('소라 님이 같이 하자고 합니다'), findsOneWidget);
+    expect(find.textContaining('준, 소라'), findsNothing);
+
+    // 옛 서버는 제안자를 모른다 — 셋 이상이면 모두의 이름 대신 이름 없이.
+    server.state = {...server.state, 'timer': proposal()};
+    await sync.refresh();
+    await tester.pump();
+    expect(find.text('같이 하자고 합니다'), findsOneWidget);
+
+    // 거절: 배너만 접힌다. 서버에 clear 를 보내면 돌고 있던 둘의 타이머가 멈춘다.
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('together-invite')),
+        matching: find.byIcon(CupertinoIcons.xmark),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('together-invite')), findsNothing);
+    expect(server.timerActions, isEmpty);
+    // 같은 제안이 다시 와도 접힌 채다. 새 제안은 다시 뜬다.
+    await sync.refresh();
+    await tester.pump();
+    expect(find.byKey(const ValueKey('together-invite')), findsNothing);
+    server.state = {
+      ...server.state,
+      'timer': {...proposal(), 'seq': 2},
+    };
+    await sync.refresh();
+    await tester.pump();
+    expect(find.byKey(const ValueKey('together-invite')), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    sync.dispose();
+    timer.dispose();
   });
 }

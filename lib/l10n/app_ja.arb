@@ -930,5 +930,16 @@
   "refusedClassFull": "このクラスは満員です。",
   "refusedClassNoAccess": "クラスの日に使える会員権がありません。期間や休止状態をジムに確認してください。",
   "refusedClassCancelled": "このクラスは休講になりました。",
-  "refusedAccountBlocked": "ジムのオーナーまたはトレーナーです。ジムを抜けるかジムを削除してから、アカウントを削除してください。"
+  "refusedAccountBlocked": "ジムのオーナーまたはトレーナーです。ジムを抜けるかジムを削除してから、アカウントを削除してください。",
+  "partnerErrLeft": "一緒に運動していた人が退出しました。",
+  "partnerNotYours": "相手が記録したセットは変更できません。その人の記録です。",
+  "partnerRoutinePlan": "ルーティンとして確定",
+  "partnerCodeHint": "相手の画面に表示されている6文字を入力してください。",
+  "partnerPaste": "貼り付け {code}",
+  "partnerShare": "共有",
+  "partnerShareText": "setpad 一緒にやるコード {code}\nアプリで記録 → ⋯ → 一緒にやる → 番号を入力",
+  "partnerShareTextLink": "setpad 一緒にやるコード {code}\nアプリで記録 → ⋯ → 一緒にやる → 番号を入力、またはこのリンクからすぐ参加:\n{url}",
+  "partnerInviteMoreNew": "もう1人招待 · 新しいコード",
+  "partnerHomeOpen": "開く",
+  "togetherInviteSomeone": "一緒にやろうと誘われています"
 }
