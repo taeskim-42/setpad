@@ -4,9 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:setpad/workout_timing.dart';
 import 'package:setpad/timing_audio.dart';
-import 'package:setpad/editor.dart';
 import 'package:setpad/notes.dart';
-import 'package:setpad/l10n/generated/app_localizations.dart';
 
 class FakeAudio extends TimingAudio {
   final events = <String>[];
@@ -183,150 +181,6 @@ void main() {
       timer.dispose();
     },
   );
-  testWidgets(
-    'timer settings open on demand and collapse when the edited timer starts',
-    (tester) async {
-      var now = Duration.zero;
-      final timer = WorkoutTimer(audio: FakeAudio(), now: () => now);
-      final c = RoutineEditorController()
-        ..addExercise('버피 타바타')
-        ..closeBlock();
-      await tester.pumpWidget(
-        CupertinoApp(
-          locale: const Locale('ko'),
-          supportedLocales: L.supportedLocales,
-          localizationsDelegates: L.localizationsDelegates,
-          home: CupertinoPageScaffold(
-            child: RoutineEditor(controller: c, timer: timer),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.byType(WorkoutTimingControls), findsOneWidget);
-      expect(find.text('시작'), findsOneWidget);
-      final settings = find.byKey(
-        ValueKey('exercise-settings-${c.blocks.single.id}'),
-      );
-      expect(
-        find.byKey(const ValueKey('timing-settings-toggle')),
-        findsNothing,
-      );
-      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
-      expect(find.text('3'), findsNothing);
-      expect(find.byIcon(CupertinoIcons.arrow_counterclockwise), findsNothing);
-      await tester.tap(settings);
-      await tester.pump();
-      expect(find.text('운동 20초'), findsOneWidget);
-      await tester.tap(find.byIcon(CupertinoIcons.plus).first);
-      await tester.pump();
-      expect(TimingSpec.parse(c.blocks.single.name)!.work, 25);
-      await tester.tap(find.text('시작'));
-      await tester.pump();
-      expect(timer.running, isTrue);
-      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
-      expect(find.text('3'), findsOneWidget);
-      expect(find.text('일시정지'), findsOneWidget);
-      expect(
-        find.byIcon(CupertinoIcons.arrow_counterclockwise),
-        findsOneWidget,
-      );
-      now = const Duration(seconds: 3);
-      timer.tick();
-      await tester.pump();
-      expect(find.text('25'), findsOneWidget);
-      await tester.tap(find.text('일시정지'));
-      await tester.pumpAndSettle();
-      expect(settings, findsOneWidget);
-      expect(c.blocks.single.sets, isEmpty);
-      c.renameBlock(0, '버피');
-      await tester.pumpAndSettle();
-      expect(find.byType(WorkoutTimingControls), findsNothing);
-      await tester.pumpWidget(const SizedBox());
-      timer.dispose();
-    },
-  );
-  testWidgets(
-    'external settings state controls editing without a second toggle',
-    (tester) async {
-      final timer = WorkoutTimer(audio: FakeAudio());
-      final owner = Object();
-      var spec = const TimingSpec(tabata: true);
-      Future<void> show(bool open) => tester.pumpWidget(
-        CupertinoApp(
-          locale: const Locale('ko'),
-          supportedLocales: L.supportedLocales,
-          localizationsDelegates: L.localizationsDelegates,
-          home: CupertinoPageScaffold(
-            child: WorkoutTimingControls(
-              owner: owner,
-              spec: spec,
-              timer: timer,
-              settingsOpen: open,
-              onChanged: (next) => spec = next,
-              onStart: () {},
-            ),
-          ),
-        ),
-      );
-      await show(false);
-      expect(
-        find.byKey(const ValueKey('timing-settings-toggle')),
-        findsNothing,
-      );
-      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
-      await show(true);
-      expect(
-        find.byKey(const ValueKey('timing-settings-toggle')),
-        findsNothing,
-      );
-      await tester.tap(find.byIcon(CupertinoIcons.plus).first);
-      expect(spec.work, 25);
-      await show(false);
-      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
-      await show(true);
-      expect(find.text('운동 25초'), findsOneWidget);
-      await tester.tap(find.text('시작'));
-      await tester.pump();
-      expect(timer.running, isTrue);
-      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
-      await tester.pumpWidget(const SizedBox());
-      timer.dispose();
-    },
-  );
-  testWidgets('타바타+bpm 네 칸 스테퍼가 375pt 폰 내용 폭(343)에서 넘치지 않는다', (tester) async {
-    final timer = WorkoutTimer(audio: FakeAudio());
-    await tester.pumpWidget(
-      CupertinoApp(
-        locale: const Locale('ko'),
-        supportedLocales: L.supportedLocales,
-        localizationsDelegates: L.localizationsDelegates,
-        home: CupertinoPageScaffold(
-          child: Center(
-            child: SizedBox(
-              width: 343,
-              child: WorkoutTimingControls(
-                owner: Object(),
-                spec: const TimingSpec(tabata: true, bpm: 60),
-                timer: timer,
-                settingsOpen: true,
-                onChanged: (_) {},
-                onStart: () {},
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    expect(find.byIcon(CupertinoIcons.plus), findsNWidgets(4));
-    expect(tester.takeException(), isNull);
-    // Keys stay 44 pt tall even where they are 40 pt wide.
-    expect(
-      tester.getSize(find.byType(CupertinoButton).first).height,
-      greaterThanOrEqualTo(44),
-    );
-    await tester.pumpWidget(const SizedBox());
-    timer.dispose();
-  });
   _adjustable();
   _counting();
   _aloud();
@@ -585,10 +439,10 @@ void _adjustable() {
       expect(const TimingSpec(bpm: 121).valid, isFalse);
     });
 
-    test('눈금은 10 이다', () {
-      expect(TimingSpec.bpmStep, 10);
+    test('범위는 10~120 이고 새 박자는 60 이다', () {
       expect(TimingSpec.minBpm, 10);
       expect(TimingSpec.maxBpm, 120);
+      expect(TimingSpec.newBpm, 60);
     });
 
     test('제목에 적힌 숫자를 고쳐 쓴다', () {

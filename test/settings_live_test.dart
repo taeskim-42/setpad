@@ -64,6 +64,11 @@ void main() {
         verifier: null,
       ),
     );
+    // Tall enough that the account rows are built without scrolling (the
+    // timer vibration row pushed them past the 600 pt default).
+    tester.view.physicalSize = const Size(800, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
       CupertinoApp(
         locale: const Locale('ko'),

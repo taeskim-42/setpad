@@ -17,11 +17,15 @@ import 'exercises.dart';
 import 'health.dart';
 import 'rest_alarm.dart';
 import 'rest_recovery.dart';
+import 'run_link.dart';
+import 'run_page.dart';
 import 'set_grid.dart';
 import 'palette.dart';
 import 'parser.dart';
 import 'partner.dart';
 import 'shared_timer.dart';
+import 'timer_sheet.dart';
+import 'timer_strip.dart';
 import 'units.dart';
 import 'workout_timing.dart';
 
@@ -719,6 +723,10 @@ class RoutineEditor extends StatefulWidget {
     super.key,
     required this.controller,
     this.countAloud = false,
+    this.hapticsOn = true,
+    this.onCountAloud,
+    this.onHaptics,
+    this.askTimerPermissions,
     this.header,
     this.footer,
     this.ai = const RecordAi(),
@@ -760,6 +768,17 @@ class RoutineEditor extends StatefulWidget {
 
   /// 박자마다 몇 번째인지 읽어 줄까. 설정에서 켠다.
   final bool countAloud;
+
+  /// Timer vibration (NotesStore.hapticsOn).
+  final bool hapticsOn;
+
+  /// The timer sheet's sound and vibration switches change the app settings.
+  /// Without them the sheet hides those switches.
+  final ValueChanged<bool>? onCountAloud, onHaptics;
+
+  /// Asked once before the first tabata stage opens: health (heart rate) and
+  /// the rest alarm. Tests count it; null asks the platform.
+  final Future<void> Function()? askTimerPermissions;
   final Widget? header;
 
   /// 입력 줄 아래에 놓이는 것 — 같은 날의 다른 기록처럼 읽기만 하는 자리.
@@ -801,6 +820,19 @@ class _RoutineEditorState extends State<RoutineEditor>
   final _scroll = ScrollController();
   late final _workoutTimer = widget.timer ?? WorkoutTimer();
   late final _recovery = widget.recovery ?? RestRecovery(health: HealthLink());
+  late final _link = RunLink(_workoutTimer);
+
+  /// Round (1-based) → id of the set it was logged as, for this run.
+  final _roundSets = <int, String>{};
+  bool _runOpen = false, _timerAsked = false, _warmed = false;
+
+  /// The sheet changes these settings while the page that passed them in
+  /// does not rebuild; the latest of either wins.
+  late bool _aloud = widget.countAloud, _buzz = widget.hapticsOn;
+
+  /// Android stops reading heart rate while the app is in the background.
+  bool _backgrounded = false;
+  int? _followedSeq;
   bool _timingKeyboardHidden = false;
   final _listKey = GlobalKey();
   final _headerKey = GlobalKey();
@@ -1240,6 +1272,15 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 타이머가 구간을 넘길 때마다 기준선을 다시 잡는다. 세트가 시작되면
   /// 최고 심박을 새로 세고, 휴식이 시작되면 그때부터 회복을 본다.
   void _followTimer() {
+    // Nothing is logged during a run's 3 s ready: logs still here belong to
+    // the run before (reset, restart, another card).
+    if (_workoutTimer.phase == TimingPhase.ready &&
+        (_link.roundReps.isNotEmpty || _roundSets.isNotEmpty || _link.logged)) {
+      _roundSets.clear();
+      _link.roundReps.clear();
+      _link.logged = false;
+      _link.changed();
+    }
     if (!_workoutTimer.wantsHeart) {
       _recovery.stop();
       if (_seenPhase != null) {
@@ -1247,6 +1288,10 @@ class _RoutineEditorState extends State<RoutineEditor>
         _seenRound = null;
         _recovery.reset();
       }
+      return;
+    }
+    if (_backgrounded) {
+      _recovery.stop();
       return;
     }
     _recovery.listen();
@@ -1298,12 +1343,29 @@ class _RoutineEditorState extends State<RoutineEditor>
       final block = _blockFor(t);
       final at = t.elapsedAt(widget.partner!.clock.now);
       if (block != null && at != null) {
+        // A finished run ignores follow() until reset; a new proposal (seq)
+        // on the same card and spec is a new run.
+        if (t.seq != _followedSeq &&
+            (_workoutTimer.phase == TimingPhase.complete ||
+                _workoutTimer.endedEarly)) {
+          _workoutTimer.reset();
+        }
+        _followedSeq = t.seq;
         final joining = !_workoutTimer.shared || !_workoutTimer.running;
-        _workoutTimer.follow(block, t.personal, at);
+        _workoutTimer.follow(
+          block,
+          t.personal,
+          at,
+          target: t.spec.tabata ? null : _targetFor(block),
+        );
         if (joining && _workoutTimer.running) {
           _focus.unfocus();
           SystemChannels.textInput.invokeMethod('TextInput.hide');
           _timingKeyboardHidden = true;
+          // Open the stage only over this screen, and only once.
+          if (ModalRoute.of(context)?.isCurrent ?? false) {
+            unawaited(_openRun());
+          }
         }
       }
     } else if (_workoutTimer.shared &&
@@ -1317,7 +1379,8 @@ class _RoutineEditorState extends State<RoutineEditor>
 
   /// 나만 그만둔다. 상대에게는 어디서 멈췄는지가 간다.
   void _leaveShared() {
-    final at = _workoutTimer.elapsed, beat = _workoutTimer.beat;
+    // count, not beat: it holds while paused and after a metronome goal.
+    final at = _workoutTimer.elapsed, beat = _workoutTimer.count;
     _workoutTimer.pause();
     widget.partner?.leaveTimer(at, beat);
   }
@@ -1448,14 +1511,6 @@ class _RoutineEditorState extends State<RoutineEditor>
   /// 회복했으면 남은 휴식을 건너뛴다. 심박은 휴식을 짧게 할 뿐이다 —
   /// 값이 없거나 늦게 오면 아무 일도 일어나지 않고 시간이 끊는다.
   void _followHeart() {
-    // 타바타 중 심박이 처음 들어오면 경보 권한을 한 번 묻는다 — 쓸 때가 된 순간이다.
-    if (!_restAlarmAsked &&
-        _recovery.fresh &&
-        _workoutTimer.running &&
-        _workoutTimer.spec?.tabata == true) {
-      _restAlarmAsked = true;
-      unawaited(authorizeRestAlarm());
-    }
     if (!_recovery.recovered) return;
     final resting = _workoutTimer.phase == TimingPhase.rest;
     _workoutTimer.skipRest();
@@ -1465,7 +1520,254 @@ class _RoutineEditorState extends State<RoutineEditor>
     }
   }
 
-  bool _restAlarmAsked = false;
+  // ── 타이머 칸·무대 ─────────────────────────────────────────────
+
+  /// The metronome goal on this card: reps per set, else what is left of the
+  /// total; none when neither (or nothing left).
+  int? _targetFor(ExerciseBlock block) {
+    final setup = block.setup;
+    final goal =
+        setup?.repsPerSet ??
+        (setup?.totalReps == null
+            ? null
+            : max(0, setup!.totalReps! - block.completedReps));
+    return goal == null || goal == 0 ? null : goal;
+  }
+
+  ExerciseBlock? get _timedBlock {
+    final owner = _workoutTimer.owner;
+    return owner is ExerciseBlock && _c.blocks.contains(owner) ? owner : null;
+  }
+
+  /// Writes or fixes the set of [round] (1-based); null reps removes it.
+  void _logRound(int round, int? reps) {
+    final block = _timedBlock;
+    if (block == null || round < 1) return;
+    final index = _c.blocks.indexOf(block);
+    final id = _roundSets[round];
+    final at = id == null ? -1 : block.sets.indexWhere((s) => s.id == id);
+    if (reps == null) {
+      _roundSets.remove(round);
+      if (at >= 0) _c.removeSet(index, at);
+    } else if (at >= 0) {
+      final set = block.sets[at];
+      _c.updateSet(
+        index,
+        at,
+        LoggedSet(value: set.value, unit: set.unit, reps: reps),
+      );
+    } else {
+      _c.logReps(block, reps);
+      _roundSets[round] = block.sets.last.id;
+    }
+    final log = _link.roundReps;
+    while (log.length < round) {
+      log.add(null);
+    }
+    log[round - 1] = reps;
+    _link.changed();
+  }
+
+  void _logCount(int reps) {
+    final block = _timedBlock;
+    if (block == null || reps < 1) return;
+    _c.logReps(block, reps);
+    _link.logged = true;
+    _link.changed();
+  }
+
+  void _onTimerComplete() {
+    // Together, a metronome that reached its goal (or was ended) leaves the
+    // shared run; follow() would otherwise keep it there.
+    if (_workoutTimer.shared && _workoutTimer.spec?.tabata != true) {
+      final at = _workoutTimer.elapsed, count = _workoutTimer.count;
+      widget.partner?.leaveTimer(at, count);
+    } else if (_workoutTimer.shared && _workoutTimer.endedEarly) {
+      _leaveShared();
+    }
+    if (mounted) setState(() {});
+  }
+
+  /// The stage, full screen. One at a time; the timer keeps going when folded.
+  Future<void> _openRun() async {
+    if (_runOpen || !mounted) return;
+    _syncLink();
+    _runOpen = true;
+    final route = CupertinoPageRoute<void>(
+      fullscreenDialog: true,
+      builder: (_) => RunPage(link: _link),
+    );
+    _link.onLogged = () {
+      _link.logged = true;
+      _link.changed();
+      // The stage may close itself; only pop it if it is still on top.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (route.isCurrent) route.navigator?.pop();
+      });
+    };
+    await Navigator.of(context).push(route);
+    _runOpen = false;
+    if (mounted) setState(() {});
+  }
+
+  /// What the stage reads, refreshed on every rebuild and partner news.
+  void _syncLink() {
+    final block = _timedBlock;
+    final l = L.of(context);
+    _link
+      ..title = block == null
+          ? ''
+          : (TimingSpec.removeFrom(block.name).isEmpty
+                ? block.name
+                : TimingSpec.removeFrom(block.name))
+      ..weightLabel = block?.setup?.weight == null
+          ? null
+          : formatValue(block!.setup!.weight!, block.setup!.unit)
+      ..together = block == null ? null : _togetherFor(block, l)
+      ..recovery = _recovery
+      ..heartShared = _workoutTimer.shared;
+    if (_linkNotify) return;
+    _linkNotify = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _linkNotify = false;
+      if (mounted) _link.changed();
+    });
+  }
+
+  bool _linkNotify = false;
+
+  void _hideKeyboard() {
+    _focus.unfocus();
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    setState(() {
+      _timingKeyboardHidden = true;
+      _setupOpen = null;
+    });
+  }
+
+  /// ▶ on a card. Another card's timer is stopped only after asking; a
+  /// finished one with unlogged rounds offers to log them first.
+  Future<void> _startTimer(ExerciseBlock block) async {
+    final spec = TimingSpec.parse(block.name);
+    if (spec == null || !spec.valid) return;
+    final t = _workoutTimer;
+    final other = t.owner != null && !identical(t.owner, block);
+    final over = t.phase == TimingPhase.complete || t.endedEarly;
+    if (other &&
+        t.spec != null &&
+        !over &&
+        (t.running || t.elapsed > Duration.zero)) {
+      final go = await _ask(L.of(context).timerSwitchAsk, [
+        (L.of(context).timerSwitchConfirm, true),
+      ]);
+      if (go != true || !mounted) return;
+    } else if (other && over && unloggedRounds(t, _link) > 0) {
+      final l = L.of(context);
+      final go = await _ask(l.timerUnloggedAsk(unloggedRounds(t, _link)), [
+        (l.timerLogFirst, false),
+        (l.timerDiscardStart, true),
+      ]);
+      if (go == false && mounted) unawaited(_openRun());
+      if (go != true || !mounted) return;
+    }
+    _hideKeyboard();
+    // Alone: withdraw my unanswered proposal, leave a shared run elsewhere.
+    if (_togetherToggle(block)) return;
+    if (spec.tabata && !_timerAsked) {
+      _timerAsked = true;
+      await (widget.askTimerPermissions ?? _askPermissions)();
+      if (!mounted) return;
+    }
+    // A new owner or spec, a shared or finished run all start from the top.
+    t.toggle(block, spec, target: spec.tabata ? null : _targetFor(block));
+    unawaited(_openRun());
+  }
+
+  /// Health (heart rate) first, then the rest alarm — before the stage, not
+  /// in the middle of a round.
+  Future<void> _askPermissions() async {
+    await _recovery.health.authorize();
+    await authorizeRestAlarm();
+  }
+
+  /// An action sheet: null when cancelled.
+  Future<bool?> _ask(String title, List<(String, bool)> actions) =>
+      showCupertinoModalPopup<bool>(
+        context: context,
+        builder: (sheet) => CupertinoActionSheet(
+          title: Text(title),
+          actions: [
+            for (final (label, value) in actions)
+              CupertinoActionSheetAction(
+                key: ValueKey('timer-ask-$value'),
+                isDestructiveAction: value,
+                onPressed: () => Navigator.pop(sheet, value),
+                child: Text(label),
+              ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(sheet),
+            child: Text(L.of(context).cancel),
+          ),
+        ),
+      );
+
+  /// The timer sheet for [block]: rewrites the title (the title is the
+  /// timer) and the metronome goal (reps per set).
+  Future<void> _editTimer(ExerciseBlock block) async {
+    _hideKeyboard();
+    final t = _workoutTimer;
+    final result = await showTimerSheet(
+      context,
+      name: block.name,
+      target: block.setup?.repsPerSet ?? 0,
+      readOnly: identical(t.owner, block) && t.running,
+      countAloud: _aloud,
+      onCountAloud: widget.onCountAloud == null
+          ? null
+          : (v) {
+              _workoutTimer.countAloud = _aloud = v;
+              widget.onCountAloud!(v);
+            },
+      haptics: _buzz,
+      onHaptics: widget.onHaptics == null
+          ? null
+          : (v) {
+              _workoutTimer.haptics = _buzz = v;
+              widget.onHaptics!(v);
+            },
+    );
+    if (result == null || !mounted) return;
+    var index = _c.blocks.indexOf(block);
+    if (index < 0) return;
+    if (result.name != block.name) {
+      _c.renameBlock(index, result.name, learn: false);
+    }
+    final goal = result.target == 0 ? null : result.target;
+    if (goal != block.setup?.repsPerSet) {
+      index = _c.blocks.indexOf(block);
+      _c.updateSetup(
+        index,
+        block.setup == null
+            ? WorkoutSetup(name: block.name, repsPerSet: goal)
+            : WorkoutSetup.fromJson({
+                ...block.setup!.toJson(),
+                'repsPerSet': goal,
+              }),
+      );
+    }
+  }
+
+  /// A candidate chip on the empty name line: a new tabata or metronome card,
+  /// then its sheet. Nothing is written into the text field.
+  void _newTimer(bool tabata) {
+    final name = tabata
+        ? tabataWord(Localizations.localeOf(context).languageCode)
+        : newBpmName;
+    _c.addExercise(name);
+    final block = _c.blocks.last;
+    unawaited(_editTimer(block));
+  }
 
   @override
   void initState() {
@@ -1477,12 +1779,25 @@ class _RoutineEditorState extends State<RoutineEditor>
     _input.addListener(_onInput);
     _focus.addListener(_onFocus);
     _workoutTimer.addListener(_followTimer);
+    _workoutTimer.onComplete = _onTimerComplete;
+    _link
+      ..onLogRound = _logRound
+      ..onLogCount = _logCount
+      ..onLeave = _leaveShared
+      ..onRejoin = () => unawaited(widget.partner?.rejoinTimer());
     _recovery.addListener(_followHeart);
     widget.partner?.addListener(_followShared);
     WidgetsBinding.instance.addObserver(this);
     // 운동이 있는 기록을 열었으면 첫 입력 연결이 표지를 처음부터 가져간다.
     _plant();
     _seenText = _input.text;
+  }
+
+  @override
+  void didUpdateWidget(covariant RoutineEditor old) {
+    super.didUpdateWidget(old);
+    if (widget.countAloud != old.countAloud) _aloud = widget.countAloud;
+    if (widget.hapticsOn != old.hapticsOn) _buzz = widget.hapticsOn;
   }
 
   @override
@@ -1497,6 +1812,12 @@ class _RoutineEditorState extends State<RoutineEditor>
     // 답을 기다리다 앱을 내려도 요청은 버리지 않는다(X11) — 늦은 답이 오면 확인
     // 창이 열려 있고, 돌아온 사람이 거기서 고른다. 다시 물어 한도를 또 쓰지 않는다.
     if (state == AppLifecycleState.resumed) _followShared();
+    // Health Connect is not read in the background (no background permission).
+    if (defaultTargetPlatform == TargetPlatform.android &&
+        state != AppLifecycleState.inactive) {
+      _backgrounded = state != AppLifecycleState.resumed;
+      _followTimer();
+    }
   }
 
   /// 운동 이름을 적는 줄에 친 글 → 끼니인가 운동인가 한 번 판단해 남긴다.
@@ -2363,6 +2684,10 @@ class _RoutineEditorState extends State<RoutineEditor>
     _scroll.dispose();
     widget.partner?.removeListener(_followShared);
     _workoutTimer.removeListener(_followTimer);
+    if (_workoutTimer.onComplete == _onTimerComplete) {
+      _workoutTimer.onComplete = null;
+    }
+    _link.dispose();
     // 밖에서 받은 것은 밖에서 버린다.
     if (widget.timer == null) _workoutTimer.dispose();
     _recovery.removeListener(_followHeart);
@@ -2517,6 +2842,10 @@ class _RoutineEditorState extends State<RoutineEditor>
     _c.forgetExercise(name);
     widget.onForgetExercise?.call(name);
   }
+
+  /// [타바타]·[박자] on the candidate bar while the name line is empty.
+  bool get _timerChips =>
+      _c.naming && !_mealMode && !_editingRecord && _text.trim().isEmpty;
 
   List<String> get _matches => _mealMode
       ? widget.recentMeals
@@ -2842,9 +3171,16 @@ class _RoutineEditorState extends State<RoutineEditor>
 
     // 읽어 줄지와 어느 말로 읽을지는 화면이 정한다 — 타이머는 소리만 낸다.
     _workoutTimer
-      ..countAloud = widget.countAloud
+      ..countAloud = _aloud
+      ..haptics = _buzz
       ..voiceLocale = Localizations.localeOf(context).toLanguageTag()
       ..announceRound = L.of(context).timingRoundDone;
+    _syncLink();
+    // The first count of the first run should not wait for the speech engine.
+    if (!_warmed && blocks.any((b) => TimingSpec.parse(b.name) != null)) {
+      _warmed = true;
+      unawaited(_workoutTimer.warmUp());
+    }
     final incoming = _shared;
     return Column(
       children: [
@@ -2931,33 +3267,19 @@ class _RoutineEditorState extends State<RoutineEditor>
                           block: blocks[i],
                           timing: TimingSpec.parse(blocks[i].name) == null
                               ? null
-                              : WorkoutTimingControls(
+                              : TimerStrip(
                                   owner: blocks[i],
                                   spec: TimingSpec.parse(blocks[i].name)!,
                                   timer: _workoutTimer,
-                                  recovery: _recovery,
-                                  settingsOpen: _setupOpen == blocks[i].id,
+                                  link: _link,
+                                  target: _targetFor(blocks[i]),
                                   together: _togetherFor(
                                     blocks[i],
                                     L.of(context),
                                   ),
-                                  onStart: () {
-                                    _focus.unfocus();
-                                    SystemChannels.textInput.invokeMethod(
-                                      'TextInput.hide',
-                                    );
-                                    setState(() {
-                                      _timingKeyboardHidden = true;
-                                      _setupOpen = null;
-                                    });
-                                  },
-                                  // 설정을 따로 저장하지 않는다. 제목을 다시
-                                  // 적으면 글로 고친 것과 같은 자리가 바뀐다.
-                                  onChanged: (next) => _c.renameBlock(
-                                    i,
-                                    next.applyTo(blocks[i].name),
-                                    learn: false,
-                                  ),
+                                  onStart: () => _startTimer(blocks[i]),
+                                  onOpen: () => unawaited(_openRun()),
+                                  onEdit: () => _editTimer(blocks[i]),
                                 ),
                           titleInput:
                               i == openIndex && _recordTitle && !_reordering
@@ -3005,6 +3327,16 @@ class _RoutineEditorState extends State<RoutineEditor>
                                   ),
                                   onEditing: _setupField,
                                   weightUnit: _c.weightUnit,
+                                  timerLabel:
+                                      TimingSpec.parse(blocks[i].name) == null
+                                      ? L.of(context).timerAddChip
+                                      : TimingSpec.parse(
+                                          blocks[i].name,
+                                        )!.summary(
+                                          L.of(context),
+                                          target: _targetFor(blocks[i]),
+                                        ),
+                                  onTimer: () => _editTimer(blocks[i]),
                                 )
                               : null,
                           uniformCell: widestSetCell(context, blocks),
@@ -3080,10 +3412,12 @@ class _RoutineEditorState extends State<RoutineEditor>
         ),
         if ((matches.isNotEmpty ||
                 widget.onMealPhoto != null ||
-                widget.mealText != null) &&
+                widget.mealText != null ||
+                _timerChips) &&
             !_textKeyboardHidden &&
             !_padMode)
           _Suggestions(
+            onTimer: _timerChips ? _newTimer : null,
             matches: matches,
             highlight: _highlight,
             onPick: (name) => _commit(name),
@@ -3815,7 +4149,11 @@ class _Suggestions extends StatelessWidget {
     required this.onForget,
     this.onMeal,
     this.mealMode = false,
+    this.onTimer,
   });
+
+  /// New tabata (true) or metronome card. Null hides the two chips.
+  final ValueChanged<bool>? onTimer;
 
   /// 식단 아이콘. 식단을 남길 길이 없으면 null.
   final VoidCallback? onMeal;
@@ -3888,9 +4226,23 @@ class _Suggestions extends StatelessWidget {
               Expanded(
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemCount: matches.length,
+                  itemCount: matches.length + (onTimer == null ? 0 : 2),
                   separatorBuilder: (_, _) => const SizedBox(width: 6),
                   itemBuilder: (context, i) {
+                    if (onTimer != null && i < 2) {
+                      final l = L.of(context);
+                      return Center(
+                        child: SuggestionChip(
+                          key: ValueKey(
+                            i == 0 ? 'candidate-tabata' : 'candidate-beat',
+                          ),
+                          label: i == 0 ? l.timerTabata : l.timerBeat,
+                          selected: false,
+                          onTap: () => onTimer!(i == 0),
+                        ),
+                      );
+                    }
+                    if (onTimer != null) i -= 2;
                     final on = i == highlight;
                     return Center(
                       child: SuggestionChip(

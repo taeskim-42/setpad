@@ -11,6 +11,8 @@ import 'package:setpad/keypad.dart';
 import 'package:setpad/l10n/generated/app_localizations.dart';
 import 'package:setpad/notes.dart';
 import 'package:setpad/partner.dart';
+import 'package:setpad/record_ai.dart' show WorkoutSetup;
+import 'package:setpad/run_page.dart';
 import 'package:setpad/shared_timer.dart';
 import 'package:setpad/workout_timing.dart';
 
@@ -362,202 +364,6 @@ void main() {
     jun.timer.dispose();
   });
 
-  group('타이머 칸', () {
-    Future<void> mount(
-      WidgetTester tester,
-      WorkoutTimer timer,
-      Object owner,
-      TimingSpec spec,
-      TogetherTiming? together,
-    ) => tester.pumpWidget(
-      CupertinoApp(
-        locale: const Locale('ko'),
-        supportedLocales: L.supportedLocales,
-        localizationsDelegates: L.localizationsDelegates,
-        home: CupertinoPageScaffold(
-          child: SafeArea(
-            child: WorkoutTimingControls(
-              owner: owner,
-              spec: spec,
-              timer: timer,
-              onStart: () {},
-              onChanged: (_) {},
-              together: together,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    testWidgets('같이 운동 중이 아니면 예전 그대로다', (tester) async {
-      final timer = WorkoutTimer(audio: FakeAudio());
-      await mount(tester, timer, Object(), tabata, null);
-      expect(find.text('같이 시작'), findsNothing);
-      expect(find.text('시작'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('timing-settings-toggle')));
-      await tester.pump();
-      expect(find.text('운동 20초'), findsOneWidget);
-      await tester.tap(find.text('시작'));
-      await tester.pump();
-      expect(timer.running, isTrue);
-      expect(find.text('일시정지'), findsOneWidget);
-      expect(find.byIcon(CupertinoIcons.plus), findsNothing);
-      timer.dispose();
-    });
-
-    testWidgets('제안 → 기다림 → 같이 하는 중의 버튼과 말', (tester) async {
-      final timer = WorkoutTimer(audio: FakeAudio());
-      final owner = Object();
-      final proposed = <bool>[];
-      var cancelled = 0;
-      TogetherTiming duo({bool waiting = false, bool busy = false}) =>
-          TogetherTiming(
-            partner: '미나',
-            waiting: waiting,
-            busy: busy,
-            onPropose: proposed.add,
-            onToggle: () => false,
-            onCancel: () => cancelled++,
-            onLog: (_) {},
-          );
-
-      await mount(tester, timer, owner, tabata, duo());
-      expect(find.text('시작'), findsNothing);
-      expect(find.text('같이 시작'), findsOneWidget);
-      expect(find.text('교대로'), findsNothing);
-      expect(find.byKey(const ValueKey('together-mode')), findsNothing);
-      await tester.tap(find.byKey(const ValueKey('together-start')));
-      await tester.pumpAndSettle();
-      expect(proposed, isEmpty);
-      await tester.tap(find.byKey(const ValueKey('together-simultaneous')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('together-start')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('together-alternate')));
-      await tester.pumpAndSettle();
-      expect(proposed, [false, true]);
-      expect(
-        timer.running,
-        isFalse,
-        reason: 'Proposing must not start a solo timer.',
-      );
-
-      // 박자만 있는 운동에는 번갈아 할 구간이 없다.
-      await mount(tester, timer, owner, const TimingSpec(bpm: 60), duo());
-      expect(find.text('같이 시작'), findsOneWidget);
-      expect(find.text('교대로'), findsNothing);
-      await tester.tap(find.byKey(const ValueKey('together-start')));
-      await tester.pump();
-      expect(proposed, [false, true, false]);
-      expect(find.byType(CupertinoActionSheet), findsNothing);
-
-      await mount(tester, timer, owner, tabata, duo(waiting: true));
-      expect(find.text('미나 님을 기다리는 중…'), findsOneWidget);
-      expect(find.text('같이 시작'), findsNothing);
-      expect(
-        find.byKey(const ValueKey('timing-settings-toggle')),
-        findsNothing,
-      );
-      expect(find.text('시작'), findsNothing);
-      await tester.tap(find.textContaining('준비'));
-      await tester.pump();
-      expect(timer.running, isFalse);
-      await tester.tap(find.text('취소'));
-      expect(cancelled, 1);
-
-      await mount(tester, timer, owner, tabata, duo(busy: true));
-      await tester.tap(find.text('같이 시작'));
-      await tester.tap(find.textContaining('준비'));
-      await tester.pump();
-      expect(timer.running, isFalse);
-      expect(proposed, [false, true, false]);
-
-      timer.toggle(owner, tabata);
-      await tester.pump();
-      await tester.tap(find.text('일시정지'));
-      await tester.pump();
-      expect(
-        timer.running,
-        isFalse,
-        reason: 'An existing solo timer can still pause.',
-      );
-      timer.dispose();
-    });
-
-    testWidgets('쉬는 동안 방금 라운드를 한 번에 적고, 나와 상대의 횟수가 나란히 보인다', (tester) async {
-      var now = Duration.zero;
-      final timer = WorkoutTimer(audio: FakeAudio(), now: () => now);
-      final owner = Object();
-      final logged = <int>[];
-      var toggles = 0;
-      TogetherTiming duo({
-        List<int?> mine = const [],
-        bool left = false,
-        String? gone,
-      }) => TogetherTiming(
-        partner: '미나',
-        live: true,
-        left: left,
-        partnerLeft: gone,
-        mine: mine,
-        theirs: const [14, null, 9],
-        onPropose: (_) {},
-        onToggle: () {
-          toggles++;
-          return true;
-        },
-        onCancel: () {},
-        onLog: logged.add,
-      );
-
-      // 1라운드 운동 중: 적을 것이 아직 없다.
-      timer.follow(owner, tabata, const Duration(seconds: 10));
-      await mount(tester, timer, owner, tabata, duo());
-      expect(find.byKey(const ValueKey('together-log')), findsNothing);
-      expect(find.text('그만'), findsOneWidget);
-      expect(
-        find.byKey(const ValueKey('timing-settings-toggle')),
-        findsNothing,
-      );
-      // 표에 상대 이름이 이미 있으면 "같이" 를 또 적지 않는다.
-      expect(find.text('미나 님과 같이'), findsNothing);
-      expect(find.text('–  –  –'), findsOneWidget, reason: '내 줄은 아직 비어 있다');
-
-      // 1라운드 휴식: 상대의 마지막 숫자(9)에서 시작해 한 번 올리고 적는다.
-      now = const Duration(seconds: 15);
-      timer.tick();
-      await tester.pump();
-      expect(find.byKey(const ValueKey('together-count')), findsOneWidget);
-      expect(find.text('9'), findsOneWidget);
-      await tester.tap(find.byIcon(CupertinoIcons.plus_circle));
-      await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('together-log')));
-      expect(logged, [10]);
-
-      // 적고 나면 칸이 사라지고, 안 적은 세트는 0 이 아니라 – 다.
-      await mount(tester, timer, owner, tabata, duo(mine: [10]));
-      expect(find.byKey(const ValueKey('together-log')), findsNothing);
-      expect(find.text('10  –  –'), findsOneWidget);
-      expect(find.text('14  –  9'), findsOneWidget);
-
-      // 같이 하는 동안 시작·정지는 그만두기다 — 타이머를 혼자 멈추거나 되감지 않는다.
-      await tester.tap(find.text('그만'));
-      expect(toggles, 1);
-      expect(timer.running, isTrue);
-
-      await mount(
-        tester,
-        timer,
-        owner,
-        tabata,
-        duo(left: true, gone: '미나 님은 3라운드에서 멈춤'),
-      );
-      expect(find.text('다시 들어가기'), findsOneWidget);
-      expect(find.text('미나 님은 3라운드에서 멈춤'), findsOneWidget);
-      timer.dispose();
-    });
-  });
-
   group('에디터', () {
     Future<void> mountEditor(
       WidgetTester tester,
@@ -584,8 +390,11 @@ void main() {
       await tester.pump();
     }
 
+    // The stage covers the editor once the shared timer runs.
     String typed(WidgetTester tester) => tester
-        .widget<CupertinoTextField>(find.byType(CupertinoTextField).first)
+        .widget<CupertinoTextField>(
+          find.byType(CupertinoTextField, skipOffstage: false).first,
+        )
         .controller!
         .text
         .replaceAll(String.fromCharCode(0x200B), '');
@@ -618,6 +427,10 @@ void main() {
       expect(find.byKey(const ValueKey('together-invite')), findsNothing);
       expect(jun.timer.running && jun.timer.shared, isTrue);
       expect(identical(jun.timer.owner, c.blocks[1]), isTrue);
+      expect(find.byType(RunPage), findsOneWidget, reason: 'opens by itself');
+      final link = tester.widget<RunPage>(find.byType(RunPage)).link;
+      expect(link.together?.live, isTrue);
+      expect(link.together?.partner, '미나');
 
       // 미나의 폰도 같은 자리다.
       world += 2500 + 3000 + 4000;
@@ -627,13 +440,14 @@ void main() {
       expect(jun.timer.elapsed, mina.timer.elapsed);
       expect(jun.timer.phase, TimingPhase.work);
 
-      // 쉬는 구간에 한 번 눌러 적으면 내 기록에 세트로 남는다.
+      // 쉬는 구간에 한 번 눌러 적으면 내 기록에 세트로 남는다(무대의 RestLog).
       world += 17000;
       jun.timer.tick();
       await tester.pump();
-      await tester.ensureVisible(find.byKey(const ValueKey('together-log')));
-      await tester.tap(find.byKey(const ValueKey('together-log')));
+      expect(jun.timer.phase, TimingPhase.rest);
+      link.onLogRound!(1, 10);
       await tester.pump();
+      expect(link.together?.mine, [10]);
       expect(c.blocks[1].sets.single.reps, 10);
       expect(c.blocks[0].sets, isEmpty);
       expect(typed(tester), '62.5');
@@ -659,6 +473,7 @@ void main() {
         ..closeBlock();
       await mountEditor(tester, mina, c);
 
+      expect(find.byKey(const ValueKey('timer-start')), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('together-start')));
       await tester.pump();
       await mina.sync.refresh();
@@ -674,9 +489,13 @@ void main() {
       await tester.pump();
       expect(mina.timer.running && mina.timer.shared, isTrue);
       expect(mina.timer.beat, 47);
-      expect(find.text('준 님과 같이'), findsOneWidget);
+      await tester.pumpAndSettle();
+      final link = tester.widget<RunPage>(find.byType(RunPage)).link;
+      expect(link.together?.live, isTrue);
+      expect(link.heartShared, isTrue);
 
-      await tester.tap(find.text('그만'));
+      // 그만·다시 들어가기는 무대의 버튼이 부른다.
+      link.onLeave!();
       await tester.pump();
       expect(mina.timer.running, isFalse);
       await jun.sync.refresh();
@@ -685,10 +504,10 @@ void main() {
       await mina.sync.refresh();
       await tester.pump();
       expect(mina.timer.running, isFalse);
-      expect(find.text('다시 들어가기'), findsOneWidget);
+      expect(link.together?.left, isTrue);
 
       world += 5000;
-      await tester.tap(find.text('다시 들어가기'));
+      link.onRejoin!();
       await tester.pump();
       await mina.sync.refresh();
       await tester.pump();
@@ -706,6 +525,59 @@ void main() {
       mina.timer.dispose();
       jun.timer.dispose();
     });
+  });
+
+  testWidgets('같이 하는 박자가 내 목표에 닿으면 끝나고 그만(leave)을 보내며, 다음 소식에 다시 켜지지 않는다', (
+    tester,
+  ) async {
+    final (_, mina, jun) = await pair();
+    final c = RoutineEditorController()
+      ..addExercise(
+        '푸시업 60bpm',
+        setup: const WorkoutSetup(name: '푸시업 60bpm', repsPerSet: 5),
+      )
+      ..closeBlock();
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        supportedLocales: L.supportedLocales,
+        localizationsDelegates: L.localizationsDelegates,
+        home: CupertinoPageScaffold(
+          resizeToAvoidBottomInset: false,
+          child: RoutineEditor(
+            controller: c,
+            partner: mina.sync,
+            timer: mina.timer,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('together-start')));
+    await tester.pump();
+    await jun.sync.refresh();
+    await jun.sync.acceptTimer();
+    world += 2500 + 3000;
+    await mina.sync.refresh();
+    await tester.pump();
+    expect(mina.timer.running && mina.timer.shared, isTrue);
+    expect(mina.timer.target, 5);
+    // 3 s ready + 4 beats + half a beat + 50 ms.
+    world += 4600;
+    mina.timer.tick();
+    await tester.pump();
+    expect(mina.timer.phase, TimingPhase.complete);
+    expect(mina.timer.count, 5);
+    await jun.sync.refresh();
+    expect(jun.shared!.partnerLeft?.beat, 5);
+    world += 2000;
+    await mina.sync.refresh();
+    await tester.pump();
+    expect(mina.timer.running, isFalse, reason: 'no clicks over the summary');
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 200));
+    mina.timer.dispose();
+    jun.timer.dispose();
   });
 
   test('같이 하는 타바타는 233초에 끝나고, 교대는 마지막 휴식(상대 차례)까지 간다', () {
