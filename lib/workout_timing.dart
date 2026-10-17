@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'count_voice_lengths.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'parser.dart'
     show tempoPattern, timerRoundsPattern, timerTabataWord, timerTokens;
@@ -252,6 +253,32 @@ String spokenCount(int n, String languageCode) {
 /// 녹음이 없어 읽지 않고 클릭만 간다(Tempo 와 같다).
 const maxSpokenCount = 100;
 String countVoice(String sex, int n) => 'assets/voice/count/en/$sex/$n.m4a';
+
+/// Silence kept between one word's end and the next count's start: the
+/// platforms start a word up to ~20 ms late (they poll), and before the first
+/// count it also absorbs the ≤50 ms the tick takes to see work begin.
+const countGapMs = 80;
+
+/// The work cue sounds 220 ms before the phrase after it can start.
+const _workCueMs = 220;
+
+/// Say only every [countStride]-th count: the smallest of 1, 2, 5, 10 at which
+/// every count that can be said (multiples of it up to [last], at most
+/// [maxSpokenCount]) ends [countGapMs] before the next one said starts. Each
+/// count starts half a beat after its click, so two said counts are always
+/// s beats apart. The recordings run 0.53–1.25 s ([countVoiceMs]); without
+/// this the platform waits a quarter beat for a long word, then drops the
+/// next count, and fast tempos skipped numbers at random.
+int countStride(String sex, int bpm, int last) {
+  final ms = countVoiceMs[sex] ?? countVoiceMs['m']!;
+  final top = math.min(last, maxSpokenCount), period = 60000 / bpm;
+  return const [1, 2, 5, 10].firstWhere(
+    (s) => [
+      for (var n = s; n <= top; n += s) ms[n - 1],
+    ].every((d) => d + countGapMs <= s * period),
+    orElse: () => 10,
+  );
+}
 
 /// 구간 음성: Tempo 의 녹음(healthopia tool/make_voices.py) — start "Go!",
 /// rest "Rest!", round_1..[maxVoicedRound] "Round n, go!", last_round, done,
@@ -660,32 +687,60 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   /// over a boundary, never says one twice. A seek starts afresh.
   (int, int)? _phrased;
 
-  /// Beat [n]'s count. When a word runs past the next click the platform
-  /// waits a little, then drops that count (a long number at a fast tempo).
-  void _say(int n) {
-    if (n <= maxSpokenCount) _voice(countVoice(voice, n), onBeat: true);
+  /// [countStride] of this run: up to its goal, or a tabata work's beats.
+  int get _stride {
+    final s = spec!, bpm = s.bpm;
+    if (bpm == null) return 1;
+    final goal = target;
+    final last = s.tabata
+        ? (s.work * bpm / 60).ceil()
+        : (goal == null || goal < 1 ? maxSpokenCount : goal);
+    return countStride(voice, bpm, last);
   }
 
-  /// What is said as [next] begins (Tempo's _phaseVoice): the round at a
-  /// tabata's work ("Round 3, go!", the last of several "Last round"), "Go!"
-  /// at a metronome's, "Rest!", and "Workout complete" at the end. Not over
-  /// the counts: counting aloud, the first count marks the work start, as in
-  /// Tempo's metronome.
+  /// Beat [n]'s count, when it is on the stride and clear of the work phrase.
+  /// Never said: a count that would still be sounding when the next one is due
+  /// (see [countStride]) — the platform would drop that one, irregularly.
+  void _say(int n) {
+    if (n > maxSpokenCount || n % _stride != 0) return;
+    final phrase = voiceCues ? _workPhrase : null;
+    if (phrase != null) {
+      // Counts start half a beat after their click; the phrase after the cue.
+      final period = 60000 / spec!.bpm!;
+      final at = (n - 1) * period + math.min(period / 2, 1000);
+      final ms = phraseVoiceMs[voice] ?? phraseVoiceMs['m']!;
+      if (at < _workCueMs + (ms[phrase] ?? 0) + countGapMs) return;
+    }
+    _voice(countVoice(voice, n), onBeat: true);
+  }
+
+  /// What is said as [next] begins (Tempo's _phaseVoice): [_workPhrase] at
+  /// work, "Rest!", and "Workout complete" at the end.
   void _phrase(TimingPhase next) {
-    final s = spec!, n = round, step = n * 4 + next.index, last = _phrased;
+    final n = round, step = n * 4 + next.index, last = _phrased;
     if (!voiceCues || (last?.$1 == _runId && last!.$2 >= step)) return;
     _phrased = (_runId, step);
     final key = switch (next) {
       TimingPhase.ready => null,
       TimingPhase.rest => 'rest',
       TimingPhase.complete => 'done',
-      _ when countAloud && s.bpm != null => null,
-      _ when !s.tabata || s.rounds == 1 => 'start',
-      _ when n == s.rounds => 'last_round',
-      _ when n <= maxVoicedRound => 'round_$n',
-      _ => 'start',
+      TimingPhase.work => _workPhrase,
     };
     if (key != null) _voice(phraseVoice(voice, key));
+  }
+
+  /// The round at a tabata's work ("Round 3, go!", the last of several "Last
+  /// round"), "Go!" at a metronome's. Not over the counts: counting every
+  /// beat aloud, the first count marks the work start, as in Tempo's
+  /// metronome. Counting every 2nd, 5th or 10th ([countStride]) the first
+  /// count said is late, so the phrase marks it — and counts before the
+  /// phrase is over are not said.
+  String? get _workPhrase {
+    final s = spec!, n = round;
+    if (countAloud && s.bpm != null && _stride == 1) return null;
+    if (!s.tabata || s.rounds == 1) return 'start';
+    if (n == s.rounds) return 'last_round';
+    return n <= maxVoicedRound ? 'round_$n' : 'start';
   }
 
   /// 세대가 바뀌면(멈춤·되감기) 줄 서 있던 말은 버린다.

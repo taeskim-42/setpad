@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:setpad/count_voice_lengths.dart';
 import 'package:setpad/workout_timing.dart';
 import 'package:setpad/timing_audio.dart';
 import 'package:setpad/notes.dart';
@@ -219,6 +221,7 @@ void main() {
   _aloud();
   _engine();
   _voices();
+  _stride();
 }
 
 void _voices() {
@@ -269,43 +272,52 @@ void _voices() {
       t.timer.dispose();
     });
 
-    test('박자 세기를 켜면 운동 시작의 말 대신 첫 숫자가 시작을 알린다 — 타바타 박자도, 메트로놈 30회도', () async {
-      final t = make();
-      t.timer
-        ..countAloud = true
-        ..toggle(
-          Object(),
-          const TimingSpec(tabata: true, bpm: 60, work: 5, rest: 4, rounds: 2),
-        );
-      t.to(21500);
-      await pumpEventQueue();
-      expect(t.audio.log.where((e) => e.startsWith('voice:')), [
-        for (var n = 1; n <= 5; n++) 'voice:$n',
-        'voice:rest',
-        for (var n = 1; n <= 5; n++) 'voice:$n',
-        'voice:done',
-      ]);
-      expect(t.audio.onBeat, [
-        ...List.filled(5, true),
-        false,
-        ...List.filled(5, true),
-        false,
-      ]);
-      allRecorded(t.audio);
-      t.timer.dispose();
+    test(
+      '박자마다 다 셀 수 있으면 운동 시작의 말 대신 첫 숫자가 시작을 알린다 — 타바타 박자도, 메트로놈 10회도',
+      () async {
+        final t = make();
+        t.timer
+          ..countAloud = true
+          ..toggle(
+            Object(),
+            const TimingSpec(
+              tabata: true,
+              bpm: 60,
+              work: 5,
+              rest: 4,
+              rounds: 2,
+            ),
+          );
+        t.to(21500);
+        await pumpEventQueue();
+        expect(t.audio.log.where((e) => e.startsWith('voice:')), [
+          for (var n = 1; n <= 5; n++) 'voice:$n',
+          'voice:rest',
+          for (var n = 1; n <= 5; n++) 'voice:$n',
+          'voice:done',
+        ]);
+        expect(t.audio.onBeat, [
+          ...List.filled(5, true),
+          false,
+          ...List.filled(5, true),
+          false,
+        ]);
+        allRecorded(t.audio);
+        t.timer.dispose();
 
-      final m = make();
-      m.timer
-        ..countAloud = true
-        ..toggle(Object(), const TimingSpec(bpm: 60), target: 30);
-      m.to(33000);
-      await pumpEventQueue();
-      expect(m.timer.phase, TimingPhase.complete);
-      expect(m.audio.counts, [for (var n = 1; n <= 30; n++) n]);
-      expect(m.audio.phrases, ['done']);
-      allRecorded(m.audio);
-      m.timer.dispose();
-    });
+        final m = make();
+        m.timer
+          ..countAloud = true
+          ..toggle(Object(), const TimingSpec(bpm: 60), target: 10);
+        m.to(13000);
+        await pumpEventQueue();
+        expect(m.timer.phase, TimingPhase.complete);
+        expect(m.audio.counts, [for (var n = 1; n <= 10; n++) n]);
+        expect(m.audio.phrases, ['done']);
+        allRecorded(m.audio);
+        m.timer.dispose();
+      },
+    );
 
     test('세지 않는 메트로놈은 "Go!" 로 시작한다', () async {
       final t = make();
@@ -421,7 +433,8 @@ void _aloud() {
       final timer = WorkoutTimer(audio: audio, now: () => now)
         ..countAloud = aloud
         ..voice = voice;
-      timer.toggle(Object(), const TimingSpec(bpm: 60)); // 1초에 한 박
+      // 1초에 한 박. 목표 10 이면 숫자가 모두 한 박 안에 끝난다(countStride 1).
+      timer.toggle(Object(), const TimingSpec(bpm: 60), target: 10);
       await tester.idle();
       // 앞 3초는 준비 카운트다운이라 박자가 없다.
       for (var i = 1; i <= ticks + 3; i++) {
@@ -507,14 +520,18 @@ void _aloud() {
       return audio.counts;
     }
 
-    testWidgets('백까지 박마다 녹음을 내고, 101 부터는 읽지 않는다 — 클릭만 간다', (tester) async {
+    testWidgets('120bpm 은 다섯마다 백까지 녹음을 내고, 101 부터는 읽지 않는다 — 클릭만 간다', (
+      tester,
+    ) async {
+      // "Seventy-six" is longer than two beats at 120 bpm: every 5th count.
+      expect(countStride('m', TimingSpec.maxBpm, maxSpokenCount), 5);
       final said = await counts(tester, TimingSpec.maxBpm, 105);
-      expect(said, [for (var n = 1; n <= 100; n++) n]);
+      expect(said, [for (var n = 5; n <= 100; n += 5) n]);
     });
 
-    testWidgets('틱이 들쭉날쭉 늦어도 120bpm 에서 백까지 하나도 안 빠진다', (tester) async {
+    testWidgets('틱이 들쭉날쭉 늦어도 120bpm 에서 백까지 다섯마다 하나도 안 빠진다', (tester) async {
       final said = await counts(tester, TimingSpec.maxBpm, 100, jitter: true);
-      expect(said, [for (var n = 1; n <= 100; n++) n]);
+      expect(said, [for (var n = 5; n <= 100; n += 5) n]);
     });
 
     testWidgets('박 중간에서 다시 켜면 클릭을 그 자리에서 잇고, 읽을 때가 지난 숫자는 다시 읽지 않는다', (
@@ -901,11 +918,12 @@ void _engine() {
     test('back 뒤에는 묵음이 아니다: 말 대기가 풀리고 클릭이 새 자리에 다시 놓인다', () async {
       final t = make();
       t.timer.countAloud = true;
-      const spec = TimingSpec(tabata: true, bpm: 60, work: 40);
+      // Ten beats a work: every count fits (countStride 1).
+      const spec = TimingSpec(tabata: true, bpm: 60, work: 10);
       t.timer.toggle(Object(), spec);
-      walk(t.at, 50, 30000); // 27 counts into work 1
+      walk(t.at, 50, 10000); // 7 s into work 1
       await Future<void>.delayed(Duration.zero);
-      expect(t.audio.counts.last, 28);
+      expect(t.audio.counts.last, 8);
       final calls = t.audio.calls.length, said = t.audio.counts.length;
       t.timer.back(); // → start of work 1 (3 s)
       await Future<void>.delayed(Duration.zero);
@@ -913,18 +931,22 @@ void _engine() {
       expect(t.audio.calls.length, calls + 1);
       expect(t.audio.calls.last, (active: true, bpm: 60, cue: null));
       expect(t.audio.phases.last, closeTo(0, 0.001));
-      walk(t.at, 30050, 32100);
+      walk(t.at, 10050, 12100);
       await Future<void>.delayed(Duration.zero);
       expect(t.audio.counts.sublist(said), [1, 2, 3]);
       t.timer.dispose();
     });
 
     test('skip 으로 운동 구간 처음에 오면 저절로 들어올 때처럼 첫 박부터 읽는다', () async {
-      // From ready into work 1, and from rest 1 (23..33 s) into work 2.
-      for (final from in [1000, 25000]) {
+      // From ready into work 1, and from rest 1 (13..23 s) into work 2. Ten
+      // beats a work: every count fits (countStride 1).
+      for (final from in [1000, 15000]) {
         final t = make();
         t.timer.countAloud = true;
-        t.timer.toggle(Object(), const TimingSpec(tabata: true, bpm: 60));
+        t.timer.toggle(
+          Object(),
+          const TimingSpec(tabata: true, bpm: 60, work: 10),
+        );
         walk(t.at, 50, from);
         await Future<void>.delayed(Duration.zero);
         final said = t.audio.counts.length;
@@ -1214,6 +1236,179 @@ void _engine() {
       addTearDown(reopened.dispose);
       await reopened.load();
       expect(reopened.hapticsOn, isFalse);
+    });
+  });
+}
+
+void _stride() {
+  group('세는 간격', () {
+    ({WorkoutTimer timer, FakeAudio audio, void Function(int) to}) make({
+      String voice = 'm',
+    }) {
+      var now = Duration.zero;
+      final audio = FakeAudio();
+      final timer = WorkoutTimer(audio: audio, now: () => now, haptic: (_) {})
+        ..countAloud = true
+        ..voice = voice;
+      return (
+        timer: timer,
+        audio: audio,
+        to: (int ms) {
+          for (var t = now.inMilliseconds + 50; t <= ms; t += 50) {
+            now = Duration(milliseconds: t);
+            timer.tick();
+          }
+        },
+      );
+    }
+
+    // Measured from the recordings (lib/count_voice_lengths.dart): goal null
+    // counts to 100.
+    test('템포·목소리·목표마다 다 들어가는 가장 촘촘한 간격을 고른다', () {
+      const expected = {
+        40: {null: 1, 30: 1, 10: 1},
+        60: {null: 2, 30: 2, 10: 1},
+        80: {null: 2, 30: 2, 10: 2},
+        100: {null: 5, 30: 2, 10: 2},
+        120: {null: 5, 30: 5, 10: 2},
+      };
+      for (final voice in ['m', 'w']) {
+        for (final MapEntry(key: bpm, value: byGoal) in expected.entries) {
+          for (final MapEntry(key: goal, value: stride) in byGoal.entries) {
+            expect(
+              countStride(voice, bpm, goal ?? maxSpokenCount),
+              stride,
+              reason: '$voice $bpm bpm goal $goal',
+            );
+          }
+        }
+      }
+    });
+
+    test('고른 간격에서는 모든 숫자가 다음 숫자 전에 끝나고, 더 촘촘한 간격은 그렇지 않다', () {
+      bool fits(String voice, int bpm, int last, int s) => [
+        for (var n = s; n <= last; n += s) countVoiceMs[voice]![n - 1],
+      ].every((ms) => ms + countGapMs <= s * 60000 / bpm);
+      for (final voice in ['m', 'w']) {
+        for (var bpm = TimingSpec.minBpm; bpm <= TimingSpec.maxBpm; bpm++) {
+          for (final last in [1, 5, 10, 20, 30, 50, 100]) {
+            final s = countStride(voice, bpm, last);
+            expect(fits(voice, bpm, last, s), isTrue, reason: '$voice $bpm');
+            for (final finer in [1, 2, 5].where((f) => f < s)) {
+              expect(fits(voice, bpm, last, finer), isFalse);
+            }
+          }
+        }
+      }
+    });
+
+    // A whole run, as the engine sends it: every count said is on the
+    // stride, starts after "Go!" is over, and ends before the next one said.
+    for (final voice in ['m', 'w']) {
+      for (final bpm in [40, 60, 80, 100, 120]) {
+        for (final goal in [null, 10, 30]) {
+          test('$voice $bpm bpm 목표 $goal: 고른 간격의 배수만, 빠짐없이, 겹치지 않게', () async {
+            final t = make(voice: voice);
+            t.timer.toggle(Object(), TimingSpec(bpm: bpm), target: goal);
+            final beats = goal ?? 105;
+            t.to(3000 + (beats + 1) * 60000 ~/ bpm);
+            await pumpEventQueue();
+            final s = countStride(voice, bpm, goal ?? maxSpokenCount);
+            final said = t.audio.counts, period = 60000 / bpm;
+            double at(int n) => (n - 1) * period + math.min(period / 2, 1000);
+            final go = s > 1;
+            expect(
+              t.audio.phrases.contains('start'),
+              go,
+              reason: 'Go! iff s>1',
+            );
+            final first = said.first;
+            if (go) {
+              final end = 220 + phraseVoiceMs[voice]!['start']! + countGapMs;
+              expect(at(first), greaterThanOrEqualTo(end));
+              expect(at(first - s), lessThan(end), reason: 'none left out');
+            } else {
+              expect(first, 1);
+            }
+            expect(said, [
+              for (var n = first; n <= math.min(beats, 100); n += s) n,
+            ]);
+            for (var i = 1; i < said.length; i++) {
+              final a = said[i - 1], b = said[i];
+              expect(
+                countVoiceMs[voice]![a - 1] + countGapMs,
+                lessThanOrEqualTo(at(b) - at(a)),
+                reason: '$a runs into $b',
+              );
+            }
+            t.timer.dispose();
+          });
+        }
+      }
+    }
+
+    test('다 셀 수 있는 60bpm 10회는 지금과 같다: 숫자마다, "Go!" 없이', () async {
+      final t = make();
+      t.timer.toggle(Object(), const TimingSpec(bpm: 60), target: 10);
+      t.to(14000);
+      await pumpEventQueue();
+      expect(t.audio.counts, [for (var n = 1; n <= 10; n++) n]);
+      expect(t.audio.phrases, ['done']);
+      t.timer.dispose();
+    });
+
+    test('운동 음성 안내를 끄면 "Go!" 없이 간격의 첫 배수부터 센다', () async {
+      final t = make();
+      t.timer.voiceCues = false;
+      t.timer.toggle(Object(), const TimingSpec(bpm: 80), target: 10);
+      t.to(12000);
+      await pumpEventQueue();
+      expect(t.audio.counts, [2, 4, 6, 8, 10]);
+      expect(t.audio.phrases, isEmpty);
+      t.timer.dispose();
+    });
+
+    test('120bpm 에서 박 7 초입에 멈췄다 켜도 7 을 읽지 않고, 박 10 초입이면 10 을 읽는다', () async {
+      final t = make();
+      const spec = TimingSpec(bpm: 120);
+      final block = Object();
+      t.timer.toggle(block, spec);
+      // Beat 7 starts at 3 s + 6 × 0.5 s; 50 ms in, its count is not due yet.
+      t.to(6050);
+      await pumpEventQueue();
+      t.timer.toggle(block, spec); // pause
+      t.timer.toggle(block, spec); // resume: beat 7 is still unread
+      await pumpEventQueue();
+      expect(t.audio.counts, [5]);
+      // 50 ms into beat 10; the pause drops its queued count, the resume
+      // says it again.
+      t.to(7550);
+      t.timer.toggle(block, spec);
+      t.timer.toggle(block, spec);
+      t.to(9000);
+      await pumpEventQueue();
+      expect(t.audio.counts, [5, 10]);
+      t.timer.dispose();
+    });
+
+    test('박자 타바타도 라운드마다 "Round n" 이 끝난 뒤 간격의 배수만 센다', () async {
+      final t = make();
+      const spec = TimingSpec(tabata: true, bpm: 120, rounds: 2);
+      t.timer.toggle(Object(), spec);
+      expect(countStride('m', 120, 40), 5);
+      t.to(3000 + spec.shownSeconds * 1000 + 500);
+      await pumpEventQueue();
+      // Round 1 ("Round 1, go!" 1.9 s) and the last ("Last round" 2.6 s):
+      // the 5th beat is said 2.25 s in, after the first phrase only.
+      expect(t.audio.log.where((e) => e.startsWith('voice:')), [
+        'voice:round_1',
+        for (var n = 5; n <= 40; n += 5) 'voice:$n',
+        'voice:rest',
+        'voice:last_round',
+        for (var n = 10; n <= 40; n += 5) 'voice:$n',
+        'voice:done',
+      ]);
+      t.timer.dispose();
     });
   });
 }
