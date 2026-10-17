@@ -3781,5 +3781,7 @@
   "timerStopLeaveAsk": "도는 타이머를 멈추고 나갈까요?",
   "@timerStopLeaveAsk": {"description": "기록 화면을 닫을 때 타이머가 돌고 있으면 묻는다."},
   "timerStopLeave": "멈추고 나가기",
-  "timerDiscardLeave": "버리고 나가기"
+  "timerDiscardLeave": "버리고 나가기",
+  "focusPickTime": "시간 정하기",
+  "focusPickDistance": "거리 정하기"
 }

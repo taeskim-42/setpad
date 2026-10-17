@@ -1070,5 +1070,7 @@
   "settingsBodyHealth": "ร่างกายและสุขภาพ",
   "timerStopLeaveAsk": "หยุดตัวจับเวลาที่ทำงานอยู่ แล้วออกไหม",
   "timerStopLeave": "หยุดแล้วออก",
-  "timerDiscardLeave": "ทิ้งแล้วออก"
+  "timerDiscardLeave": "ทิ้งแล้วออก",
+  "focusPickTime": "ตั้งเวลา",
+  "focusPickDistance": "ตั้งระยะทาง"
 }

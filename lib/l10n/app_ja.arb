@@ -1020,15 +1020,15 @@
   "focusNextExerciseA11y": "次の種目",
   "focusSetLabel": "{n}セット目",
   "focusPlanned": "予定",
-  "focusLastTimeSame": "前回のこの位置",
+  "focusLastTimeSame": "前回の同じセット",
   "focusSameAsLast": "前のセットと同じ",
   "focusFromSetup": "設定どおり",
   "focusPickValues": "重さと回数を決めます",
   "focusPickButton": "重さ・回数を決める",
   "focusPlanDone": "予定終了",
-  "focusLastTimeLine": "前回のこの位置 {set}",
+  "focusLastTimeLine": "前回の同じセット {set}",
   "focusBodyweight": "自重",
-  "focusDone": "やりました",
+  "focusDone": "完了",
   "focusNextSetNow": "すぐ次のセット",
   "focusStartRest": "休憩開始",
   "focusNextUp": "次 · {set}",
@@ -1070,5 +1070,7 @@
   "settingsBodyHealth": "体と健康",
   "timerStopLeaveAsk": "動いているタイマーを止めて、閉じますか?",
   "timerStopLeave": "止めて閉じる",
-  "timerDiscardLeave": "破棄して閉じる"
+  "timerDiscardLeave": "破棄して閉じる",
+  "focusPickTime": "時間を決める",
+  "focusPickDistance": "距離を決める"
 }

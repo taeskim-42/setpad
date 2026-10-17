@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 
 import 'l10n/generated/app_localizations.dart';
@@ -190,13 +192,14 @@ class TimerStrip extends StatelessWidget {
     final duo = together;
     final canPropose =
         duo != null && !duo.live && !duo.waiting && !duo.busy && spec.valid;
-    final summary = GestureDetector(
+    // Stacked (large text) it may take two lines beside the preview.
+    Widget summary(int lines) => GestureDetector(
       key: const ValueKey('timer-summary'),
       onTap: onEdit,
       behavior: HitTestBehavior.opaque,
       child: Text(
         spec.summary(l, target: target),
-        maxLines: 1,
+        maxLines: lines,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: 13,
@@ -239,11 +242,15 @@ class TimerStrip extends StatelessWidget {
         final wide =
             MediaQuery.textScalerOf(context).scale(13) > 15 ||
             28 + 16 + 72 + pills > box.maxWidth;
-        return wide ? _stacked(buttons, summary) : _inline(buttons, summary);
+        return wide
+            ? _stacked(buttons, summary(2))
+            : _inline(buttons, summary(1));
       },
     );
   }
 
+  /// Large text: the preview stays with what it previews (bar and summary
+  /// on one line), the pills start under it from the same edge.
   Widget _stacked(List<Widget> buttons, Widget summary) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -251,20 +258,18 @@ class TimerStrip extends StatelessWidget {
         children: [
           TimerMiniBar(spec: spec),
           const SizedBox(width: 8),
-          Expanded(
-            child: Wrap(
-              alignment: WrapAlignment.end,
-              spacing: 6,
-              runSpacing: 4,
-              children: [
-                for (final b in buttons)
-                  if (b is! SizedBox) b,
-              ],
-            ),
-          ),
+          Expanded(child: summary),
         ],
       ),
-      summary,
+      const SizedBox(height: 4),
+      Wrap(
+        spacing: 6,
+        runSpacing: 4,
+        children: [
+          for (final b in buttons)
+            if (b is! SizedBox) b,
+        ],
+      ),
     ],
   );
 
@@ -417,7 +422,8 @@ class TimerStrip extends StatelessWidget {
 
   Widget _over(BuildContext context) {
     final l = L.of(context);
-    final time = timerClock(timer.elapsed.inSeconds);
+    // Without the 3 s ready, as the summary and TimingSpec.shownSeconds.
+    final time = timerClock(math.max(0, timer.elapsed.inSeconds - 3));
     final line = spec.tabata
         ? l.timerDoneLine(roundsDone(timer), time)
         : l.timerDoneBpmLine(timer.count, time);
@@ -438,8 +444,11 @@ class TimerStrip extends StatelessWidget {
             ),
           ),
         ),
+        // Its own width at the right end, next to ↺ (a Flexible beside the
+        // Expanded line took half the row and floated it to the middle).
         if (owes)
-          Flexible(
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 180),
             child: CupertinoButton(
               key: const ValueKey('timer-log-now'),
               padding: const EdgeInsets.symmetric(horizontal: 8),

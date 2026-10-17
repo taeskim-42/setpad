@@ -13,7 +13,21 @@ class FocusLink extends ChangeNotifier {
   final RestTimer rest;
 
   /// In document order, timer blocks included.
-  List<ExerciseBlock> blocks = const [];
+  List<ExerciseBlock> get blocks => _blocks;
+  List<ExerciseBlock> _blocks = const [];
+  set blocks(List<ExerciseBlock> v) {
+    _blocks = v;
+    v.forEach(notePlan);
+  }
+
+  /// Blocks that had a planned ○ of mine while this editor lived (spec §3
+  /// `planDone`): outlives the stage, so a stage opened again after the last
+  /// ○ was done still says the plan is over.
+  final hadPlan = <String>{};
+
+  void notePlan(ExerciseBlock b) {
+    if (b.sets.any((s) => !s.theirs && !s.done)) hadPlan.add(b.id);
+  }
 
   /// The block on screen. Gone: the nearest one; none left: the stage closes.
   String? currentId;

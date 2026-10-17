@@ -4221,4 +4221,10 @@ class LKo extends L {
 
   @override
   String get timerDiscardLeave => '버리고 나가기';
+
+  @override
+  String get focusPickTime => '시간 정하기';
+
+  @override
+  String get focusPickDistance => '거리 정하기';
 }

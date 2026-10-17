@@ -6444,6 +6444,18 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'버리고 나가기'**
   String get timerDiscardLeave;
+
+  /// No description provided for @focusPickTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'시간 정하기'**
+  String get focusPickTime;
+
+  /// No description provided for @focusPickDistance.
+  ///
+  /// In ko, this message translates to:
+  /// **'거리 정하기'**
+  String get focusPickDistance;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

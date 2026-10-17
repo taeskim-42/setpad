@@ -120,7 +120,8 @@ FocusKind kindOf(LoggedSet s) =>
     s.value == null ? FocusKind.reps : _kindOfUnit(s.unit);
 
 /// The block's plan is over: none of my ○ left and — when [hadPlan] (the
-/// block had ○ sets when the stage first saw it) — that is all; otherwise the
+/// block had ○ sets while the editor was open, FocusLink.hadPlan) — that is
+/// all; otherwise the
 /// setup's total sets, or its total reps, are reached. Else false.
 bool planDone(ExerciseBlock block, {bool hadPlan = false}) {
   if (block.sets.any((s) => !s.theirs && !s.done)) return false;

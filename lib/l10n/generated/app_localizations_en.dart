@@ -4404,4 +4404,10 @@ class LEn extends L {
 
   @override
   String get timerDiscardLeave => 'Discard and leave';
+
+  @override
+  String get focusPickTime => 'Set the time';
+
+  @override
+  String get focusPickDistance => 'Set the distance';
 }

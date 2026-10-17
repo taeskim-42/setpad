@@ -1044,7 +1044,7 @@
   "focusExerciseDone": "Terminar ejercicio",
   "focusNextExercise": "Siguiente: {name}",
   "focusOneMore": "Una serie más",
-  "focusSummaryTitle": "¡{name} listo!",
+  "focusSummaryTitle": "¡Terminaste {name}!",
   "focusSets": "Series",
   "focusVolume": "Volumen",
   "focusTotalTime": "Tiempo total",
@@ -1070,5 +1070,7 @@
   "settingsBodyHealth": "Cuerpo y salud",
   "timerStopLeaveAsk": "¿Detener el temporizador en marcha y salir?",
   "timerStopLeave": "Detener y salir",
-  "timerDiscardLeave": "Descartar y salir"
+  "timerDiscardLeave": "Descartar y salir",
+  "focusPickTime": "Elegir tiempo",
+  "focusPickDistance": "Elegir distancia"
 }

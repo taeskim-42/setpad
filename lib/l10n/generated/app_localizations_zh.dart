@@ -4030,7 +4030,7 @@ class LZh extends L {
 
   @override
   String focusLastTimeLine(String set) {
-    return '上次这里 $set';
+    return '上次同一组 $set';
   }
 
   @override
@@ -4047,7 +4047,7 @@ class LZh extends L {
 
   @override
   String focusNextUp(String set) {
-    return '下一组 · $set';
+    return '接下来 · $set';
   }
 
   @override
@@ -4188,6 +4188,12 @@ class LZh extends L {
 
   @override
   String get timerDiscardLeave => '丢弃并离开';
+
+  @override
+  String get focusPickTime => '设定时间';
+
+  @override
+  String get focusPickDistance => '设定距离';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -8216,7 +8222,7 @@ class LZhHans extends LZh {
 
   @override
   String focusLastTimeLine(String set) {
-    return '上次这里 $set';
+    return '上次同一组 $set';
   }
 
   @override
@@ -8233,7 +8239,7 @@ class LZhHans extends LZh {
 
   @override
   String focusNextUp(String set) {
-    return '下一组 · $set';
+    return '接下来 · $set';
   }
 
   @override
@@ -8374,6 +8380,12 @@ class LZhHans extends LZh {
 
   @override
   String get timerDiscardLeave => '丢弃并离开';
+
+  @override
+  String get focusPickTime => '设定时间';
+
+  @override
+  String get focusPickDistance => '设定距离';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -12402,7 +12414,7 @@ class LZhHant extends LZh {
 
   @override
   String focusLastTimeLine(String set) {
-    return '上次這裡 $set';
+    return '上次同一組 $set';
   }
 
   @override
@@ -12419,7 +12431,7 @@ class LZhHant extends LZh {
 
   @override
   String focusNextUp(String set) {
-    return '下一組 · $set';
+    return '接下來 · $set';
   }
 
   @override
@@ -12560,4 +12572,10 @@ class LZhHant extends LZh {
 
   @override
   String get timerDiscardLeave => '捨棄並離開';
+
+  @override
+  String get focusPickTime => '設定時間';
+
+  @override
+  String get focusPickDistance => '設定距離';
 }

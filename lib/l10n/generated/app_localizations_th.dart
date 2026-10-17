@@ -4303,4 +4303,10 @@ class LTh extends L {
 
   @override
   String get timerDiscardLeave => 'ทิ้งแล้วออก';
+
+  @override
+  String get focusPickTime => 'ตั้งเวลา';
+
+  @override
+  String get focusPickDistance => 'ตั้งระยะทาง';
 }

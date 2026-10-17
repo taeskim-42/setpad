@@ -1070,5 +1070,7 @@
   "settingsBodyHealth": "Body & health",
   "timerStopLeaveAsk": "Stop the running timer and leave?",
   "timerStopLeave": "Stop and leave",
-  "timerDiscardLeave": "Discard and leave"
+  "timerDiscardLeave": "Discard and leave",
+  "focusPickTime": "Set the time",
+  "focusPickDistance": "Set the distance"
 }
