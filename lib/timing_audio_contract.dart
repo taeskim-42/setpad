@@ -31,9 +31,10 @@ abstract class TimingAudio {
   /// Whether a timer that sounds (a workout run or a set rest) is running,
   /// as opposed to `active`, which the set stage alone also holds to keep
   /// the screen on. Android runs its foreground service and wake lock only
-  /// while this is on. [linger]: it went off with a finishing cue, so the
-  /// last sound and the words queued behind it still play with the screen
-  /// off.
+  /// while this is on; iOS keeps its audio session active only while this is
+  /// on (in front) or a sound plays. [linger]: it went off with a finishing
+  /// cue, so the last sound and the words queued behind it still play with
+  /// the screen off (iOS lets whatever is playing or queued finish anyway).
   Future<void> keepAlive(bool on, {bool linger = false}) async {}
 
   Future<void> dispose();

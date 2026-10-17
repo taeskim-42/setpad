@@ -1076,5 +1076,10 @@
   "voiceMale": "Nam",
   "voiceFemale": "Nữ",
   "voiceSettingHelp": "Đếm nhịp và lời nhắc khi tập là bản ghi âm tiếng Anh.",
-  "voiceCuesSetting": "Lời nhắc bằng giọng nói khi tập"
+  "voiceCuesSetting": "Lời nhắc bằng giọng nói khi tập",
+  "timerNoticeRound": "Hiệp {n}",
+  "timerNoticeLastRound": "Hiệp cuối",
+  "timerNoticeGo": "Bắt đầu",
+  "timerNoticeRest": "Nghỉ",
+  "timerNoticeDone": "Hoàn thành bài tập"
 }

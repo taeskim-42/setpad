@@ -4455,4 +4455,21 @@ class LEs extends L {
 
   @override
   String get voiceCuesSetting => 'Indicaciones de voz del entrenamiento';
+
+  @override
+  String timerNoticeRound(int n) {
+    return 'Ronda $n';
+  }
+
+  @override
+  String get timerNoticeLastRound => 'Última ronda';
+
+  @override
+  String get timerNoticeGo => '¡Ya!';
+
+  @override
+  String get timerNoticeRest => 'Descanso';
+
+  @override
+  String get timerNoticeDone => 'Entrenamiento terminado';
 }

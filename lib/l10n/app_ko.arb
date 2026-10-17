@@ -3779,5 +3779,15 @@
   "voiceMale": "남자",
   "voiceFemale": "여자",
   "voiceSettingHelp": "세는 말과 운동 안내는 영어 녹음으로 나와요.",
-  "voiceCuesSetting": "운동 음성 안내"
+  "voiceCuesSetting": "운동 음성 안내",
+  "timerNoticeRound": "라운드 {n}",
+  "@timerNoticeRound": {"description": "iOS 잠금 화면 알림 제목: 타바타 n라운드 운동이 시작된다(앱이 백그라운드일 때).", "placeholders": {"n": {"type": "int"}}},
+  "timerNoticeLastRound": "마지막 라운드",
+  "@timerNoticeLastRound": {"description": "iOS 잠금 화면 알림 제목: 타바타 마지막 라운드가 시작된다."},
+  "timerNoticeGo": "시작",
+  "@timerNoticeGo": {"description": "iOS 잠금 화면 알림 제목: 준비 3초가 끝나 운동이 시작된다(메트로놈, 1라운드 타바타)."},
+  "timerNoticeRest": "휴식",
+  "@timerNoticeRest": {"description": "iOS 잠금 화면 알림 제목: 타바타 휴식 구간이 시작된다."},
+  "timerNoticeDone": "운동 끝",
+  "@timerNoticeDone": {"description": "iOS 잠금 화면 알림 제목: 운동 타이머가 끝났다."}
 }

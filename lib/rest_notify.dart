@@ -2,6 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'agent_alarm.dart';
+import 'boundary_notify.dart';
 import 'rest_timer.dart';
 
 /// The end of a set rest as a local notification, for when the app is away
@@ -9,7 +10,12 @@ import 'rest_timer.dart';
 /// where that did not start (web, tests) everything quietly does nothing —
 /// the sound in front is the main signal, this is the backup.
 class LocalRestNotifier implements RestNotifier {
-  const LocalRestNotifier();
+  const LocalRestNotifier({this.voice});
+
+  /// The recorded "Go!" the rest ends with in the app (a Flutter asset), as
+  /// the notification's sound on iOS; null (voice cues off): the default
+  /// sound.
+  final String? Function()? voice;
 
   /// One notice at a time. Above every [agentAlarmSlots] id (< 2,016,000,000)
   /// and inside a 32-bit int (Android).
@@ -23,6 +29,9 @@ class LocalRestNotifier implements RestNotifier {
   Future<void> schedule(DateTime at, String title, String body) async {
     final plugin = await AgentAlarm.plugin;
     if (plugin == null) return;
+    final asset = voice?.call();
+    // Ready since the stage opened; this only looks it up.
+    if (asset != null) await NotificationSounds.prepare([asset]);
     try {
       await plugin.zonedSchedule(
         id,
@@ -38,7 +47,9 @@ class LocalRestNotifier implements RestNotifier {
             importance: Importance.high,
             priority: Priority.high,
           ),
-          iOS: const DarwinNotificationDetails(),
+          iOS: DarwinNotificationDetails(
+            sound: asset == null ? null : NotificationSounds.of(asset),
+          ),
         ),
         // Play refused the exact-alarm permission before (AndroidManifest):
         // inexact, never early.

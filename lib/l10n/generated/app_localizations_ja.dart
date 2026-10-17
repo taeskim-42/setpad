@@ -4232,4 +4232,21 @@ class LJa extends L {
 
   @override
   String get voiceCuesSetting => '運動の音声案内';
+
+  @override
+  String timerNoticeRound(int n) {
+    return 'ラウンド$n';
+  }
+
+  @override
+  String get timerNoticeLastRound => '最終ラウンド';
+
+  @override
+  String get timerNoticeGo => 'スタート';
+
+  @override
+  String get timerNoticeRest => '休憩';
+
+  @override
+  String get timerNoticeDone => '運動終了';
 }

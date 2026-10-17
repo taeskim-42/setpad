@@ -278,6 +278,28 @@ void main() {
     },
   );
 
+  test('ended while away (suspended): back in front it ends quietly — the '
+      'notice said it, nothing is played late', () async {
+    wall = DateTime.utc(2026, 10, 17, 9);
+    rest.dispose();
+    rest = make();
+    var done = 0;
+    rest.onDone = () => done++;
+    rest.notice = () => (title: 't', body: 'b');
+    rest.start(Object(), const Duration(seconds: 30));
+    rest.didChangeAppLifecycleState(AppLifecycleState.paused);
+    // Suspended: no ticks; the wall clock moves on 40 s.
+    wall = wall!.add(const Duration(seconds: 40));
+    rest.didChangeAppLifecycleState(AppLifecycleState.resumed);
+    await pumpEventQueue();
+    expect(rest.running, isFalse);
+    expect(done, 1);
+    expect(audio.calls, ['on', 'off']);
+    expect(audio.voices, isEmpty);
+    expect(buzz, isEmpty);
+    expect(notifier.log.last, 'cancel');
+  });
+
   group('recorded words', () {
     String m(String key) => 'assets/voice/en/m/$key.m4a';
 

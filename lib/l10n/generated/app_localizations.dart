@@ -6480,6 +6480,36 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'운동 음성 안내'**
   String get voiceCuesSetting;
+
+  /// iOS 잠금 화면 알림 제목: 타바타 n라운드 운동이 시작된다(앱이 백그라운드일 때).
+  ///
+  /// In ko, this message translates to:
+  /// **'라운드 {n}'**
+  String timerNoticeRound(int n);
+
+  /// iOS 잠금 화면 알림 제목: 타바타 마지막 라운드가 시작된다.
+  ///
+  /// In ko, this message translates to:
+  /// **'마지막 라운드'**
+  String get timerNoticeLastRound;
+
+  /// iOS 잠금 화면 알림 제목: 준비 3초가 끝나 운동이 시작된다(메트로놈, 1라운드 타바타).
+  ///
+  /// In ko, this message translates to:
+  /// **'시작'**
+  String get timerNoticeGo;
+
+  /// iOS 잠금 화면 알림 제목: 타바타 휴식 구간이 시작된다.
+  ///
+  /// In ko, this message translates to:
+  /// **'휴식'**
+  String get timerNoticeRest;
+
+  /// iOS 잠금 화면 알림 제목: 운동 타이머가 끝났다.
+  ///
+  /// In ko, this message translates to:
+  /// **'운동 끝'**
+  String get timerNoticeDone;
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

@@ -4204,6 +4204,23 @@ class LZh extends L {
 
   @override
   String get voiceCuesSetting => '训练语音提示';
+
+  @override
+  String timerNoticeRound(int n) {
+    return '第$n轮';
+  }
+
+  @override
+  String get timerNoticeLastRound => '最后一轮';
+
+  @override
+  String get timerNoticeGo => '开始';
+
+  @override
+  String get timerNoticeRest => '休息';
+
+  @override
+  String get timerNoticeDone => '训练结束';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -8406,6 +8423,23 @@ class LZhHans extends LZh {
 
   @override
   String get voiceCuesSetting => '训练语音提示';
+
+  @override
+  String timerNoticeRound(int n) {
+    return '第$n轮';
+  }
+
+  @override
+  String get timerNoticeLastRound => '最后一轮';
+
+  @override
+  String get timerNoticeGo => '开始';
+
+  @override
+  String get timerNoticeRest => '休息';
+
+  @override
+  String get timerNoticeDone => '训练结束';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -12608,4 +12642,21 @@ class LZhHant extends LZh {
 
   @override
   String get voiceCuesSetting => '訓練語音提示';
+
+  @override
+  String timerNoticeRound(int n) {
+    return '第$n輪';
+  }
+
+  @override
+  String get timerNoticeLastRound => '最後一輪';
+
+  @override
+  String get timerNoticeGo => '開始';
+
+  @override
+  String get timerNoticeRest => '休息';
+
+  @override
+  String get timerNoticeDone => '訓練結束';
 }

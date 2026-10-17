@@ -40,8 +40,12 @@ class _NativeAudio extends TimingAudio {
 
   @override
   Future<void> keepAlive(bool on, {bool linger = false}) async {
-    // iOS keeps its keep-alive loop on `active`; only Android listens.
-    if (defaultTargetPlatform != TargetPlatform.android) return;
+    // Android: its foreground service. iOS: its audio session, active only
+    // while there is sound to make.
+    if (defaultTargetPlatform != TargetPlatform.android &&
+        defaultTargetPlatform != TargetPlatform.iOS) {
+      return;
+    }
     try {
       await _channel.invokeMethod<void>('keepAlive', {
         'on': on,

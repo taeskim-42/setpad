@@ -28,6 +28,7 @@ import 'set_grid.dart';
 import 'metrics.dart';
 import 'notes.dart' show Note;
 import 'record_query.dart' show exerciseKey;
+import 'boundary_notify.dart';
 import 'rest_notify.dart';
 import 'rest_timer.dart';
 import 'palette.dart';
@@ -999,14 +1000,23 @@ class _RoutineEditorState extends State<RoutineEditor>
   static int _editors = 0;
   final _tag = '#${_editors++}';
   late final _workoutTimer =
-      widget.timer ?? WorkoutTimer(audio: _mux.port('workout$_tag'));
+      widget.timer ??
+      (WorkoutTimer(audio: _mux.port('workout$_tag'))
+        ..notifier = LocalBoundaryNotifier(
+          title: (spec, b) =>
+              mounted ? boundaryTitle(L.of(context), spec, b) : '',
+        ));
   late final _rest =
       widget.rest ??
       RestTimer(
         audio: _mux.port('rest$_tag'),
         muted: () => _workoutTimer.running,
-        notifier: const LocalRestNotifier(),
+        notifier: LocalRestNotifier(voice: () => _restVoice),
       );
+
+  /// The rest's "Go!", for its notification's sound; null with voice cues off.
+  String? get _restVoice =>
+      widget.voiceCues ? phraseVoice(widget.voice, 'start') : null;
   late final _stagePort = _mux.port('stage$_tag');
   late final _focusLink = FocusLink(rest: _rest);
   late final _recovery = widget.recovery ?? RestRecovery(health: HealthLink());
@@ -1017,6 +1027,9 @@ class _RoutineEditorState extends State<RoutineEditor>
   final _roundSets = <int, String>{};
   int? _run;
   bool _runOpen = false, _timerAsked = false, _warmed = false;
+
+  /// iOS: notification permission asked before the first run of any timer.
+  bool _noticesAsked = false;
 
   /// A ▶ is being handled (asks, permissions): a second one is ignored.
   bool _starting = false;
@@ -2085,6 +2098,8 @@ class _RoutineEditorState extends State<RoutineEditor>
       unawaited(widget.askRestNotify?.call());
     }
     unawaited(_stagePort.configure(active: true).catchError((Object _) {}));
+    final go = _restVoice;
+    if (go != null) unawaited(NotificationSounds.prepare([go]));
     await FocusPage.open(context, _focusLink);
     _focusOpen = false;
     unawaited(_stagePort.configure(active: false).catchError((Object _) {}));
@@ -2193,9 +2208,12 @@ class _RoutineEditorState extends State<RoutineEditor>
       _hideKeyboard();
       // Alone: withdraw my unanswered proposal, leave a shared run elsewhere.
       if (_togetherToggle(block)) return;
-      if (spec.tabata && !_timerAsked) {
-        _timerAsked = true;
-        await (widget.askTimerPermissions ?? _askPermissions)();
+      final tabata = spec.tabata && !_timerAsked;
+      if (tabata || (_iosNotices && !_noticesAsked)) {
+        _timerAsked |= spec.tabata;
+        _noticesAsked = true;
+        await (widget.askTimerPermissions ??
+            () => _askPermissions(tabata: tabata))();
         if (!mounted) return;
       }
       // A new owner or spec, a shared or finished run all start from the top.
@@ -2238,9 +2256,18 @@ class _RoutineEditorState extends State<RoutineEditor>
   void _syncHold() => _c.holdsRun.value =
       _workoutTimer.running || owesLog(_workoutTimer, _link);
 
-  /// Health (heart rate) first, then the rest alarm — before the stage, not
-  /// in the middle of a round.
-  Future<void> _askPermissions() async {
+  /// iOS shows a run's boundaries as notifications while the app is away
+  /// (lib/boundary_notify.dart).
+  static bool get _iosNotices =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
+  /// Before the first run, not at launch and not in the middle of a round:
+  /// on iOS notifications (the boundaries while away; one system prompt,
+  /// later calls return the answer given), then for a tabata health (heart
+  /// rate) and the rest alarm.
+  Future<void> _askPermissions({required bool tabata}) async {
+    if (_iosNotices) await LocalRestNotifier.ensurePermission();
+    if (!tabata) return;
     await _recovery.health.authorize();
     await authorizeRestAlarm();
   }

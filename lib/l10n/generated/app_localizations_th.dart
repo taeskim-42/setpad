@@ -4320,4 +4320,21 @@ class LTh extends L {
 
   @override
   String get voiceCuesSetting => 'คำแนะนำด้วยเสียงระหว่างออกกำลังกาย';
+
+  @override
+  String timerNoticeRound(int n) {
+    return 'รอบที่ $n';
+  }
+
+  @override
+  String get timerNoticeLastRound => 'รอบสุดท้าย';
+
+  @override
+  String get timerNoticeGo => 'เริ่ม';
+
+  @override
+  String get timerNoticeRest => 'พัก';
+
+  @override
+  String get timerNoticeDone => 'ออกกำลังกายเสร็จแล้ว';
 }

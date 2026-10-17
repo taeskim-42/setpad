@@ -4352,4 +4352,21 @@ class LVi extends L {
 
   @override
   String get voiceCuesSetting => 'Lời nhắc bằng giọng nói khi tập';
+
+  @override
+  String timerNoticeRound(int n) {
+    return 'Hiệp $n';
+  }
+
+  @override
+  String get timerNoticeLastRound => 'Hiệp cuối';
+
+  @override
+  String get timerNoticeGo => 'Bắt đầu';
+
+  @override
+  String get timerNoticeRest => 'Nghỉ';
+
+  @override
+  String get timerNoticeDone => 'Hoàn thành bài tập';
 }

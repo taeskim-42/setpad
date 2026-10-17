@@ -10,12 +10,25 @@ final class TimingBridge {
   private var beat: AVAudioPlayer?
   private var cue: AVAudioPlayer?
   private var tempo: Int?
-  /// Silence looped while the timer runs, so the app is not suspended in the
-  /// background during stretches with no sound (rest, a Tabata without BPM).
-  /// If App Review rejects it, set this to false: the timer then catches up on
-  /// return (Tempo's way) and the signals missed while suspended stay silent.
-  private static let keepAliveLoop = true
-  private var keepAlive: AVAudioPlayer?
+  /// A timer that makes sound runs (a workout run or a set rest; Dart's
+  /// keepAlive). The set stage alone keeps the screen on but is not one.
+  ///
+  /// The audio session is active only while there is sound to make: while
+  /// such a timer runs in front, and around each sound. Nothing silent is ever
+  /// played to keep the app awake (Apple, Audio Session Programming Guide:
+  /// "Use a background task instead of streaming silence to keep the app from
+  /// being suspended"); in the background the session goes as soon as nothing
+  /// sounds ("If the app is not actively playing or recording audio when it
+  /// transitions to the background, deactivate its audio session"), and
+  /// boundaries that fall in silence come as local notifications
+  /// (lib/boundary_notify.dart).
+  private var sounding = false
+  private var inBackground = false
+  private var releasing: Task<Void, Never>?
+  /// Lets Dart put the boundary notifications in place after the app went
+  /// to the background, then ends (Apple: "That method has five seconds to
+  /// perform any tasks and return").
+  private var handoff: UIBackgroundTaskIdentifier = .invalid
   /// Built once and replayed. Creating an AVAudioPlayer per cue put tens of
   /// milliseconds between the moment a phase ends and the sound.
   private var beats: [Int: AVAudioPlayer] = [:]
@@ -52,6 +65,20 @@ final class TimingBridge {
         result(nil)
         return
       }
+      if call.method == "keepAlive" {
+        self.setSounding(args["on"] as? Bool ?? false)
+        result(nil)
+        return
+      }
+      if call.method == "notificationSounds" {
+        let assets = args["assets"] as? [String] ?? []
+        // Off the main thread: converting reads and writes files.
+        DispatchQueue.global(qos: .utility).async {
+          let files = NotificationSounds.prepare(assets)
+          DispatchQueue.main.async { result(files) }
+        }
+        return
+      }
       guard call.method == "configure" else { result(FlutterMethodNotImplemented); return }
       do {
         try self.configure(active: args["active"] as? Bool ?? false,
@@ -64,8 +91,9 @@ final class TimingBridge {
       }
     }
     // Only a real audio interruption (a call, Siri, an alarm) stops the timer.
-    // Control Center, Notification Center, Face ID and locking the phone no
-    // longer do: with background audio the timer keeps running and sounding.
+    // Control Center, Notification Center, Face ID and locking the phone do
+    // not: the timer keeps time, its clicks and words keep sounding while they
+    // sound, and boundaries in silence come as local notifications.
     observers.append(NotificationCenter.default.addObserver(
       forName: AVAudioSession.interruptionNotification, object: nil, queue: .main
     ) { [weak self] note in
@@ -81,10 +109,90 @@ final class TimingBridge {
         case .ended where options.contains(.shouldResume):
           guard (try? self.activateSession()) != nil else { return }
           self.channel.invokeMethod("resumed", arguments: nil)
+          self.settle()
         default: break
         }
       }
     })
+    observers.append(NotificationCenter.default.addObserver(
+      forName: UIScene.didEnterBackgroundNotification, object: nil, queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor in self?.enteredBackground() }
+    })
+    observers.append(NotificationCenter.default.addObserver(
+      forName: UIScene.willEnterForegroundNotification, object: nil, queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor in self?.willEnterForeground() }
+    })
+  }
+
+  private func enteredBackground() {
+    inBackground = true
+    if sounding, handoff == .invalid {
+      handoff = UIApplication.shared.beginBackgroundTask(withName: "setpad.timing.notices") { [weak self] in
+        Task { @MainActor in self?.endHandoff() }
+      }
+      Task { @MainActor [weak self] in
+        try? await Task.sleep(nanoseconds: 3_000_000_000)
+        self?.endHandoff()
+      }
+    }
+    settle()
+  }
+
+  private func willEnterForeground() {
+    inBackground = false
+    endHandoff()
+    // Ready before the next sound, so the first beep in front has no lag.
+    if sounding, !sessionActive { try? activateSession() }
+  }
+
+  private func endHandoff() {
+    guard handoff != .invalid else { return }
+    UIApplication.shared.endBackgroundTask(handoff)
+    handoff = .invalid
+  }
+
+  private func setSounding(_ on: Bool) {
+    sounding = on
+    if on, !inBackground, !sessionActive { try? activateSession() }
+    settle()
+  }
+
+  /// Something sounds now or is about to: a click loop, a cue, a word.
+  private var playing: Bool {
+    beat != nil || cue?.isPlaying == true || voiceSounding || pendingCount != nil || pendingPhrase != nil
+  }
+
+  /// Deactivates the session once nothing sounds or waits to, when no
+  /// sounding timer runs or the app is in the background. The finishing cue
+  /// and the words queued behind it play out first.
+  private func settle() {
+    guard sessionActive, !sounding || inBackground, releasing == nil else { return }
+    releasing = Task { @MainActor [weak self] in
+      var quietSince: Date?
+      while let self, !Task.isCancelled {
+        guard self.sessionActive, !self.sounding || self.inBackground else { break }
+        // A click loop ends with a configure, which settles again: no need
+        // to poll through a whole metronome run.
+        if self.beat != nil { break }
+        if self.playing {
+          quietSince = nil
+        } else if let since = quietSince, Date().timeIntervalSince(since) >= 0.3 {
+          self.deactivateSession()
+          break
+        } else if quietSince == nil {
+          quietSince = Date()
+        }
+        try? await Task.sleep(nanoseconds: 100_000_000)
+      }
+      self?.releasing = nil
+    }
+  }
+
+  private func deactivateSession() {
+    try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+    sessionActive = false
   }
 
   /// Build the cue players and the first words (both voices) ahead of the
@@ -152,6 +260,10 @@ final class TimingBridge {
         if onBeat { return }
         self.voice?.stop()
       }
+      if !self.sessionActive, (try? self.activateSession()) == nil {
+        NSLog("[timing] no session for voice: \(asset)")
+        return
+      }
       player.currentTime = 0
       if player.play() {
         self.voice = player
@@ -159,6 +271,7 @@ final class TimingBridge {
       } else {
         NSLog("[timing] voice did not play: \(asset)")
       }
+      self.settle()
     }
     if onBeat { pendingCount = task } else { pendingPhrase = task }
   }
@@ -188,21 +301,23 @@ final class TimingBridge {
   }
 
   private func configure(active: Bool, bpm: Int?, cueName: String?, phase: Double) throws {
-    // Activating the session costs tens of milliseconds, so do it once and
-    // keep it. Doing it per cue was what put a lag before every beep.
-    if (active || cueName != nil), !sessionActive { try activateSession() }
-    UIApplication.shared.isIdleTimerDisabled = active
-    // Best effort: without it the timer still runs, it only may be suspended
-    // in silent stretches, so a failure here never fails the cue or the click.
-    if active, Self.keepAliveLoop, keepAlive?.isPlaying != true {
-      keepAlive = keepAlive ?? (try? AVAudioPlayer(data: wave(Self.silence, length: 1)))
-      keepAlive?.numberOfLoops = -1
-      _ = keepAlive?.play()
-    } else if !active {
-      keepAlive?.stop()
-    }
     // The app allows 10 BPM; anything slower than this range is a typo.
     let validTempo = active ? bpm.flatMap { (10...300).contains($0) ? $0 : nil } : nil
+    // Only when something is about to sound. A sounding timer in front keeps
+    // the session (setSounding): activating costs tens of milliseconds, and
+    // doing it per cue was what put a lag before every beep.
+    UIApplication.shared.isIdleTimerDisabled = active
+    if (cueName != nil || validTempo != nil), !sessionActive {
+      do {
+        try activateSession()
+      } catch {
+        // The system may not start audio for an app in the background; the
+        // boundary notifications speak then. Not a failure of the timer.
+        guard inBackground else { throw error }
+        NSLog("[timing] no session in the background: \(error)")
+        return
+      }
+    }
     if validTempo != tempo || !active {
       // Pausing or stopping cuts the voice. A tempo change while running
       // (Tabata work to rest) only drops a count still waiting, and finishing
@@ -231,9 +346,9 @@ final class TimingBridge {
       }
     } else if !active {
       cue?.stop(); cue = nil
-      try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
-      sessionActive = false
+      deactivateSession()
     }
+    settle()
   }
 
   private func beatPlayer(_ bpm: Int) throws -> AVAudioPlayer {
@@ -250,18 +365,19 @@ final class TimingBridge {
     return player
   }
 
+  /// Everything off. Dart sends keepAlive again when it needs it (the mux
+  /// forgets what it sent on an interruption or a failed call).
   private func stop() {
     cancelVoice()
-    beat?.stop(); beat = nil; cue?.stop(); cue = nil; tempo = nil; keepAlive?.stop()
+    beat?.stop(); beat = nil; cue?.stop(); cue = nil; tempo = nil
+    sounding = false
     UIApplication.shared.isIdleTimerDisabled = false
-    try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
-    sessionActive = false
+    deactivateSession()
   }
 
   /// Pitch, partials, length and loudness measured from Tempo's cue recordings
   /// (bpm.mp3, prebpm.mp3, end_3s.mp3), so the two apps sound like one.
   private struct Tone { let partials: [(Double, Double)]; let seconds: Double; let decay: Bool; let gain: Double }
-  private static let silence = Tone(partials: [(0, 1)], seconds: 0, decay: false, gain: 0)
   private static let click = Tone(partials: [(655, 1), (1965, 0.1)], seconds: 0.12, decay: true, gain: 0.45)
   private static let ding: [(Double, Double)] = [(1787, 1), (2664, 0.38), (1010, 0.29)]
   private static func cue(_ name: String) -> Tone {
@@ -289,6 +405,85 @@ final class TimingBridge {
       word(Int16(sample * envelope * tone.gain * 32000))
     }
     return data
+  }
+}
+
+// MARK: - Recorded words as notification sounds
+
+/// Copies recorded words (Flutter assets, AAC in .m4a) into Library/Sounds as
+/// 16-bit linear PCM CAF, the place and format a local notification can play
+/// them from (UNNotificationSound: "Linear PCM, MA4 (IMA/ADPCM), µLaw, aLaw"
+/// in "aiff, wav, or caf"; "less than 30 seconds"; "The /Library/Sounds
+/// directory of the app's container directory"). Once per file and build.
+enum NotificationSounds {
+  /// Copies from other builds are dropped once per launch: a recording may
+  /// have changed with the app.
+  private static var swept = false
+  private static let lock = NSLock()
+
+  /// Asset → sound file name, for the assets that are ready.
+  static func prepare(_ assets: [String]) -> [String: String] {
+    lock.lock(); defer { lock.unlock() }
+    let files = FileManager.default
+    guard let library = files.urls(for: .libraryDirectory, in: .userDomainMask).first else { return [:] }
+    let dir = library.appendingPathComponent("Sounds", isDirectory: true)
+    try? files.createDirectory(at: dir, withIntermediateDirectories: true)
+    let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
+    let prefix = "setpad-\(build)-"
+    if !swept {
+      swept = true
+      for name in (try? files.contentsOfDirectory(atPath: dir.path)) ?? []
+      where name.hasPrefix("setpad-") && !name.hasPrefix(prefix) {
+        try? files.removeItem(at: dir.appendingPathComponent(name))
+      }
+    }
+    var ready: [String: String] = [:]
+    for asset in Set(assets) {
+      let base = (asset as NSString).deletingPathExtension.replacingOccurrences(of: "/", with: "_")
+      let name = "\(prefix)\(base).caf"
+      let target = dir.appendingPathComponent(name)
+      if files.fileExists(atPath: target.path) || convert(asset, to: target) { ready[asset] = name }
+    }
+    return ready
+  }
+
+  private static func convert(_ asset: String, to target: URL) -> Bool {
+    let key = FlutterDartProject.lookupKey(forAsset: asset)
+    guard let path = Bundle.main.path(forResource: key, ofType: nil) else { return false }
+    let partial = FileManager.default.temporaryDirectory.appendingPathComponent(target.lastPathComponent)
+    try? FileManager.default.removeItem(at: partial)
+    do {
+      try write(from: URL(fileURLWithPath: path), to: partial)
+      try FileManager.default.moveItem(at: partial, to: target)
+      return true
+    } catch {
+      NSLog("[timing] no notification sound for \(asset): \(error)")
+      try? FileManager.default.removeItem(at: partial)
+      return false
+    }
+  }
+
+  /// Its own function so both files are closed when it returns.
+  private static func write(from source: URL, to target: URL) throws {
+    let input = try AVAudioFile(forReading: source)
+    let format = input.processingFormat
+    // Longer plays the default sound instead; the phrases are 1–2 s.
+    guard input.length > 0, Double(input.length) / format.sampleRate < 29 else {
+      throw NSError(domain: "setpad.timing", code: 3)
+    }
+    let output = try AVAudioFile(forWriting: target, settings: [
+      AVFormatIDKey: kAudioFormatLinearPCM,
+      AVSampleRateKey: format.sampleRate,
+      AVNumberOfChannelsKey: format.channelCount,
+      AVLinearPCMBitDepthKey: 16,
+      AVLinearPCMIsFloatKey: false,
+      AVLinearPCMIsBigEndianKey: false,
+    ], commonFormat: format.commonFormat, interleaved: format.isInterleaved)
+    guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(input.length)) else {
+      throw NSError(domain: "setpad.timing", code: 4)
+    }
+    try input.read(into: buffer)
+    try output.write(from: buffer)
   }
 }
 

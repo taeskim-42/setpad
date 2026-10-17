@@ -5,9 +5,9 @@ import 'timing_audio.dart';
 /// One real [TimingAudio] shared by the workout timer, the set rest and the
 /// set stage (spec focus-stage-1.8 §4) — of every editor open: [shared].
 ///
-/// The native side has one `active`: keep the screen on, the keep-alive loop
-/// and the audio session all follow it, so two owners sending their own would
-/// switch each other off. Each owner gets a [port]; a port's configure only
+/// The native side has one `active` (the screen kept on) and one keepAlive
+/// (Android's foreground service, iOS's audio session), so two owners sending
+/// their own would switch each other off. Each owner gets a [port]; a port's configure only
 /// changes that port's state and the mux sends the merge, in call order, on
 /// one chain: active = any port active; bpm/phase = the leading active
 /// workout port's; cue = the call's own; keepAlive = any port but the stage
@@ -29,8 +29,8 @@ class TimingAudioMux {
       for (final p in _workouts) {
         p.onResumed?.call();
       }
-      // An interruption stopped the keep-alive natively; whoever is still
-      // active (a rest, the stage) gets it back.
+      // An interruption stopped the native side; whoever is still active (a
+      // rest, the stage) gets it back.
       if (_ports.values.any((p) => p._active)) _send(null);
     };
   }

@@ -1076,5 +1076,10 @@
   "voiceMale": "ผู้ชาย",
   "voiceFemale": "ผู้หญิง",
   "voiceSettingHelp": "เสียงนับและคำแนะนำการออกกำลังกายเป็นเสียงบันทึกภาษาอังกฤษ",
-  "voiceCuesSetting": "คำแนะนำด้วยเสียงระหว่างออกกำลังกาย"
+  "voiceCuesSetting": "คำแนะนำด้วยเสียงระหว่างออกกำลังกาย",
+  "timerNoticeRound": "รอบที่ {n}",
+  "timerNoticeLastRound": "รอบสุดท้าย",
+  "timerNoticeGo": "เริ่ม",
+  "timerNoticeRest": "พัก",
+  "timerNoticeDone": "ออกกำลังกายเสร็จแล้ว"
 }

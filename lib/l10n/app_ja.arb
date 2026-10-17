@@ -1076,5 +1076,10 @@
   "voiceMale": "男性",
   "voiceFemale": "女性",
   "voiceSettingHelp": "カウントと運動の案内は英語の録音で流れます。",
-  "voiceCuesSetting": "運動の音声案内"
+  "voiceCuesSetting": "運動の音声案内",
+  "timerNoticeRound": "ラウンド{n}",
+  "timerNoticeLastRound": "最終ラウンド",
+  "timerNoticeGo": "スタート",
+  "timerNoticeRest": "休憩",
+  "timerNoticeDone": "運動終了"
 }

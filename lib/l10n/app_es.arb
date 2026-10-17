@@ -1076,5 +1076,10 @@
   "voiceMale": "Masculina",
   "voiceFemale": "Femenina",
   "voiceSettingHelp": "Los conteos y las indicaciones del entrenamiento son grabaciones en inglés.",
-  "voiceCuesSetting": "Indicaciones de voz del entrenamiento"
+  "voiceCuesSetting": "Indicaciones de voz del entrenamiento",
+  "timerNoticeRound": "Ronda {n}",
+  "timerNoticeLastRound": "Última ronda",
+  "timerNoticeGo": "¡Ya!",
+  "timerNoticeRest": "Descanso",
+  "timerNoticeDone": "Entrenamiento terminado"
 }

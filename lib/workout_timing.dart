@@ -347,6 +347,136 @@ void platformHaptic(TimerHaptic kind) {
 
 const _readyUs = 3000000;
 
+/// Whole run length: tabata [TimingSpec.duration]; a metronome with a
+/// [target] ends just after the target count is read (half a beat, at most a
+/// second, plus 50 ms) and before the next click. Otherwise endless (null).
+Duration? runLength(TimingSpec s, int? target) {
+  if (s.tabata) return Duration(seconds: s.duration);
+  final bpm = s.bpm;
+  if (target == null || target < 1 || bpm == null) return null;
+  final p = 60 / bpm;
+  return Duration(
+    microseconds: ((3 + (target - 1) * p + math.min(p / 2, 1.0) + 0.05) * 1e6)
+        .round(),
+  );
+}
+
+/// What is said as [next] begins in round [n] (Tempo's _phaseVoice): the
+/// round at a tabata's work ("Round 3, go!", the last of several "Last
+/// round"), "Go!" at a metronome's, "Rest!", and "Workout complete" at the
+/// end. Null when nothing is: the ready, and a work start while counting
+/// aloud with a tempo — the first count ("One", always said) marks it, as in
+/// Tempo's metronome.
+String? phraseKey(
+  TimingSpec s,
+  TimingPhase next,
+  int n, {
+  required bool countAloud,
+}) => switch (next) {
+  TimingPhase.ready => null,
+  TimingPhase.rest => 'rest',
+  TimingPhase.complete => 'done',
+  _ when countAloud && s.bpm != null => null,
+  _ when !s.tabata || s.rounds == 1 => 'start',
+  _ when n == s.rounds => 'last_round',
+  _ when n <= maxVoicedRound => 'round_$n',
+  _ => 'start',
+};
+
+/// A moment a run's interval changes: [at] is its time from the run's start
+/// (ready included), [phase] the interval it begins (work, rest, complete),
+/// [round] the tabata round (1 for a metronome), [voice] the recorded phrase
+/// said there (a Flutter asset), null when none is.
+typedef Boundary = ({
+  Duration at,
+  TimingPhase phase,
+  int round,
+  String? voice,
+});
+
+/// The boundaries of a run of [s] that come after [from] by at least
+/// [lead], earliest first, at most [limit]. A boundary sooner than [lead] is
+/// left to the running engine. Voices follow [phraseKey] in voice [sex];
+/// none when [voiceCues] is off.
+List<Boundary> runBoundaries(
+  TimingSpec s, {
+  int? target,
+  Duration from = Duration.zero,
+  String sex = 'm',
+  bool voiceCues = true,
+  bool countAloud = false,
+  Duration lead = const Duration(seconds: 1),
+  int? limit,
+}) {
+  final out = <Boundary>[];
+  void add(int us, TimingPhase phase, int round) {
+    final at = Duration(microseconds: us);
+    if (at - from < lead) return;
+    final key = phraseKey(s, phase, round, countAloud: countAloud);
+    out.add((
+      at: at,
+      phase: phase,
+      round: round,
+      voice: voiceCues && key != null ? phraseVoice(sex, key) : null,
+    ));
+  }
+
+  final end = runLength(s, target);
+  if (s.tabata) {
+    final cycle = (s.work + s.rest) * 1000000, work = s.work * 1000000;
+    for (var r = 1; r <= s.rounds; r++) {
+      final start = _readyUs + (r - 1) * cycle;
+      add(start, TimingPhase.work, r);
+      if (r < s.rounds || s.tail) add(start + work, TimingPhase.rest, r);
+    }
+  } else {
+    add(_readyUs, TimingPhase.work, 1);
+  }
+  if (end != null) {
+    add(end.inMicroseconds, TimingPhase.complete, s.tabata ? s.rounds : 1);
+  }
+  return limit == null || out.length <= limit ? out : out.sublist(0, limit);
+}
+
+/// The lock-screen title of [b] in a run of [s]: "Round 3", "Last round",
+/// "Go" (a metronome or a one-round tabata), "Rest", "Workout complete".
+String boundaryTitle(L l, TimingSpec s, Boundary b) => switch (b.phase) {
+  TimingPhase.rest => l.timerNoticeRest,
+  TimingPhase.complete => l.timerNoticeDone,
+  _ when !s.tabata || s.rounds == 1 => l.timerNoticeGo,
+  _ when b.round == s.rounds => l.timerNoticeLastRound,
+  _ => l.timerNoticeRound(b.round),
+};
+
+/// Puts a run's upcoming boundaries on the lock screen while the app is away
+/// (iOS: lib/boundary_notify.dart). The engine stays quiet on the phrases a
+/// schedule covers.
+abstract class BoundaryNotifier {
+  /// Gets the sounds of [voices] ready (once per file), when a run starts:
+  /// nothing heavy happens on the way to the background.
+  Future<void> prepare(Iterable<String> voices);
+
+  /// Schedules [boundaries] of a run of [spec], the run being at [from] at
+  /// the wall-clock time [now]. True when they will sound (allowed, with
+  /// sound); false when nothing that sounds was scheduled.
+  Future<bool> schedule(
+    TimingSpec spec,
+    List<Boundary> boundaries, {
+    required Duration from,
+    required DateTime now,
+  });
+
+  /// Drops every boundary notification still pending.
+  Future<void> cancel();
+}
+
+/// At most this many boundary notifications are pending, the earliest
+/// first. iOS keeps 64 pending local notifications per app (Apple staff,
+/// developer forums thread 811171: "a limit of 64 for how many simultaneous
+/// notification requests can be active/pending at one time per app"); the
+/// set rest and the trainer reports need the rest.
+const maxBoundaryNotices = 40;
+
 /// A monotonic clock determines phases; delayed frames never lengthen a round.
 class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   /// [now] replaces the monotonic clock and [wallNow] the wall clock (tests).
@@ -422,20 +552,10 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   bool get wantsHeart =>
       running && spec?.tabata == true && phase != TimingPhase.complete;
 
-  /// Whole run length: tabata [TimingSpec.duration]; a metronome with a
-  /// [target] ends just after the target count is read (half a beat, at most a
-  /// second, plus 50 ms) and before the next click. Otherwise endless (null).
+  /// [runLength] of this run.
   Duration? get total {
     final s = spec;
-    if (s == null) return null;
-    if (s.tabata) return Duration(seconds: s.duration);
-    final goal = target, bpm = s.bpm;
-    if (goal == null || goal < 1 || bpm == null) return null;
-    final p = 60 / bpm;
-    return Duration(
-      microseconds: ((3 + (goal - 1) * p + math.min(p / 2, 1.0) + 0.05) * 1e6)
-          .round(),
-    );
+    return s == null ? null : runLength(s, target);
   }
 
   /// The interval the timer is in, as (start, end) in µs from the start; end
@@ -704,7 +824,26 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     // 100ms 마다 보면 구간이 바뀐 것을 최대 100ms 늦게 안다 — 그만큼 소리가
     // 밀린다. 50ms 로 보면 절반이고, 하는 일은 값 비교뿐이라 싸다.
     _ticker = Timer.periodic(const Duration(milliseconds: 50), (_) => tick());
+    if (!resumed) _prepareNotices();
+    _cover();
     notifyListeners();
+  }
+
+  /// The sounds the run's notifications may use, made ready as it starts.
+  void _prepareNotices() {
+    final n = notifier, s = spec;
+    if (n == null || s == null || !voiceCues) return;
+    final voices = {
+      for (final b in runBoundaries(
+        s,
+        target: target,
+        sex: voice,
+        countAloud: countAloud,
+        lead: Duration.zero,
+      ))
+        ?b.voice,
+    };
+    n.prepare(voices).catchError((Object _) {});
   }
 
   TimingPhase? _lastPhase;
@@ -731,26 +870,66 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _voice(countVoice(voice, n), onBeat: true);
   }
 
-  /// What is said as [next] begins (Tempo's _phaseVoice): the round at a
-  /// tabata's work ("Round 3, go!", the last of several "Last round"), "Go!"
-  /// at a metronome's, "Rest!", and "Workout complete" at the end. Not over
-  /// the counts: counting aloud, the first count ("One", always said) marks
-  /// the work start, as in Tempo's metronome.
+  /// [phraseKey] as [next] begins, once. Not when a scheduled notification
+  /// says it ([_covered]): the app may still be awake in the background.
   void _phrase(TimingPhase next) {
-    final s = spec!, n = round, step = n * 4 + next.index, last = _phrased;
+    final n = round, step = n * 4 + next.index, last = _phrased;
     if (!voiceCues || (last?.$1 == _runId && last!.$2 >= step)) return;
     _phrased = (_runId, step);
-    final key = switch (next) {
-      TimingPhase.ready => null,
-      TimingPhase.rest => 'rest',
-      TimingPhase.complete => 'done',
-      _ when countAloud && s.bpm != null => null,
-      _ when !s.tabata || s.rounds == 1 => 'start',
-      _ when n == s.rounds => 'last_round',
-      _ when n <= maxVoicedRound => 'round_$n',
-      _ => 'start',
-    };
+    final at = next == TimingPhase.complete ? total : null;
+    final boundary = at?.inMicroseconds ?? _segment?.$1;
+    if (_covered.contains(boundary)) return;
+    final key = phraseKey(spec!, next, n, countAloud: countAloud);
     if (key != null) _voice(phraseVoice(voice, key));
+  }
+
+  /// Boundary notifications ([BoundaryNotifier]); null: none (web, tests).
+  BoundaryNotifier? notifier;
+
+  /// The app is in the background (hidden or paused).
+  bool _away = false;
+
+  /// Boundary times (µs from the start) whose phrase a scheduled
+  /// notification says.
+  Set<int> _covered = const {};
+
+  /// Bumped by every schedule and cancel: a schedule that returns after a
+  /// newer one, or after the cancel, covers nothing.
+  int _coverGen = 0;
+  bool _scheduled = false;
+
+  /// While away and running: the boundaries ahead go to [notifier].
+  void _cover() {
+    final n = notifier, s = spec;
+    if (n == null || s == null || !_away || !running) return;
+    final from = elapsed;
+    final list = runBoundaries(
+      s,
+      target: target,
+      from: from,
+      sex: voice,
+      voiceCues: voiceCues,
+      countAloud: countAloud,
+      limit: maxBoundaryNotices,
+    );
+    if (list.isEmpty) return;
+    final gen = ++_coverGen;
+    _scheduled = true;
+    final now = (_wallNow ?? DateTime.now)();
+    n.schedule(s, list, from: from, now: now).then((sounds) {
+      if (sounds && gen == _coverGen) {
+        _covered = {for (final b in list) b.at.inMicroseconds};
+      }
+    }, onError: (Object _) {});
+  }
+
+  /// Drops what [_cover] scheduled; the engine says its phrases again.
+  void _uncover() {
+    _coverGen++;
+    _covered = const {};
+    if (!_scheduled) return;
+    _scheduled = false;
+    notifier?.cancel().catchError((Object _) {});
   }
 
   /// 세대가 바뀌면(멈춤·되감기) 줄 서 있던 말은 버린다.
@@ -781,18 +960,26 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _buzz(_cueHaptic(cue));
   }
 
-  void tick() {
+  /// [quiet]: back in front after the background — the boundaries passed
+  /// meanwhile were the notifications' (or went unheard); they are not
+  /// played late. The run lands where the clock says, silently.
+  void tick({bool quiet = false}) {
     if (!running) return;
     _correctClock();
     final next = phase;
     if (next == TimingPhase.complete) {
-      _complete();
+      _complete(quiet: quiet);
       return;
     }
     if (next != _lastPhase || round != _lastRound) {
-      _cue(next == TimingPhase.work ? 'work' : 'rest');
-      _phrase(next);
-    } else if ((next == TimingPhase.ready || spec!.tabata) &&
+      if (quiet) {
+        _phrased = (_runId, round * 4 + next.index);
+      } else {
+        _cue(next == TimingPhase.work ? 'work' : 'rest');
+        _phrase(next);
+      }
+    } else if (!quiet &&
+        (next == TimingPhase.ready || spec!.tabata) &&
         remaining <= 3 &&
         remaining != _lastRemaining) {
       // 구간마다 마지막 3초를 띠·띠·띠 하고 센다 — 타바타 앱들의 공통 신호다.
@@ -802,7 +989,7 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     final counted = beat;
     if (counted != _lastBeat) {
       _lastBeat = counted;
-      if (countAloud && counted > 0) _say(counted);
+      if (countAloud && counted > 0 && !quiet) _say(counted);
     }
     final counts = count;
     if (next != _lastPhase ||
@@ -821,15 +1008,29 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
   /// a metronome's count at its goal — or, when the goal came down under the
   /// count, at [at] with the beats it had counted. Speech already queued is
   /// left to finish — the last count is read after the run is over.
-  void _complete({Duration? at}) {
+  /// [quiet]: it ended while the app was away (see [tick]); no end sound.
+  void _complete({Duration? at, bool quiet = false}) {
     final goal = spec!.tabata ? null : target;
     _countAtEnd = goal == null ? _lastCount : math.max(goal, _lastCount);
     _elapsed = at ?? total!;
     running = false;
     _finished = true;
     _ticker?.cancel();
-    _cue('complete');
-    _phrase(TimingPhase.complete);
+    if (quiet) {
+      _sound();
+    } else {
+      _cue('complete');
+      _phrase(TimingPhase.complete);
+    }
+    if (_away && at == null) {
+      // Its own notification is due now: cancelling could beat it. Every
+      // other one scheduled came before the end.
+      _coverGen++;
+      _covered = const {};
+      _scheduled = false;
+    } else {
+      _uncover();
+    }
     notifyListeners();
     onComplete?.call();
   }
@@ -863,6 +1064,7 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     running = false;
     _voiceGeneration++;
     _ticker?.cancel();
+    _uncover();
     _sound();
   }
 
@@ -989,6 +1191,9 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _lastBeat = _unread ? beat - 1 : beat;
     _sound();
     if (running) {
+      // The boundaries moved with the clock.
+      _uncover();
+      _cover();
       tick();
     } else {
       if (phase == TimingPhase.complete) {
@@ -1010,17 +1215,34 @@ class WorkoutTimer extends ChangeNotifier with WidgetsBindingObserver {
     _interrupted = false;
   }
 
-  /// 제어 센터·알림 센터·Face ID·화면 꺼짐·홈 버튼에는 멈추지 않는다 — 소리는
-  /// 백그라운드에서도 난다. Only a detached engine pauses. Coming back puts the
-  /// clock right (sleep gap) and catches up.
+  /// 제어 센터·알림 센터·Face ID·화면 꺼짐·홈 버튼에는 멈추지 않는다. Only a
+  /// detached engine pauses. Going away (hidden, or paused — iOS sends both
+  /// when locking or switching apps, first one wins) hands the boundaries
+  /// ahead to [notifier]: the app may be suspended in a silent stretch.
+  /// Coming back drops them all before anything sounds, puts the clock right
+  /// (sleep gap) and lands there quietly.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached) pause();
-    if (state == AppLifecycleState.resumed) tick();
+    switch (state) {
+      case AppLifecycleState.hidden || AppLifecycleState.paused:
+        if (_away) return;
+        _away = true;
+        _cover();
+      case AppLifecycleState.resumed:
+        final was = _away;
+        _away = false;
+        _uncover();
+        tick(quiet: was);
+      case AppLifecycleState.detached:
+        pause();
+      case AppLifecycleState.inactive:
+        break;
+    }
   }
 
   @override
   void dispose() {
+    _uncover();
     _disposed = true;
     _ticker?.cancel();
     _watch.stop();

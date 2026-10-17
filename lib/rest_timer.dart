@@ -248,7 +248,20 @@ class RestTimer extends ChangeNotifier with WidgetsBindingObserver {
       case AppLifecycleState.resumed:
         final was = _away;
         _away = false;
-        if (was) unawaited(notifier?.cancel());
+        if (was) {
+          unawaited(notifier?.cancel());
+          _correctClock();
+          // It ended while the app was away (suspended): the notice said so.
+          // The end sound and "Go!" are not played late.
+          if (_running && _left <= 0) {
+            _halt();
+            _counted = _length;
+            _sound(active: false);
+            notifyListeners();
+            onDone?.call();
+            return;
+          }
+        }
         tick();
       case AppLifecycleState.inactive || AppLifecycleState.detached:
         break;

@@ -1076,5 +1076,10 @@
   "voiceMale": "男聲",
   "voiceFemale": "女聲",
   "voiceSettingHelp": "計數和訓練提示使用英語錄音。",
-  "voiceCuesSetting": "訓練語音提示"
+  "voiceCuesSetting": "訓練語音提示",
+  "timerNoticeRound": "第{n}輪",
+  "timerNoticeLastRound": "最後一輪",
+  "timerNoticeGo": "開始",
+  "timerNoticeRest": "休息",
+  "timerNoticeDone": "訓練結束"
 }

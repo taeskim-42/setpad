@@ -4421,4 +4421,21 @@ class LEn extends L {
 
   @override
   String get voiceCuesSetting => 'Workout voice cues';
+
+  @override
+  String timerNoticeRound(int n) {
+    return 'Round $n';
+  }
+
+  @override
+  String get timerNoticeLastRound => 'Last round';
+
+  @override
+  String get timerNoticeGo => 'Go';
+
+  @override
+  String get timerNoticeRest => 'Rest';
+
+  @override
+  String get timerNoticeDone => 'Workout complete';
 }

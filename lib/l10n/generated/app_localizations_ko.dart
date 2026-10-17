@@ -4237,4 +4237,21 @@ class LKo extends L {
 
   @override
   String get voiceCuesSetting => '운동 음성 안내';
+
+  @override
+  String timerNoticeRound(int n) {
+    return '라운드 $n';
+  }
+
+  @override
+  String get timerNoticeLastRound => '마지막 라운드';
+
+  @override
+  String get timerNoticeGo => '시작';
+
+  @override
+  String get timerNoticeRest => '휴식';
+
+  @override
+  String get timerNoticeDone => '운동 끝';
 }

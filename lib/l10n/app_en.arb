@@ -1076,5 +1076,10 @@
   "voiceMale": "Male",
   "voiceFemale": "Female",
   "voiceSettingHelp": "Counts and workout cues are English recordings.",
-  "voiceCuesSetting": "Workout voice cues"
+  "voiceCuesSetting": "Workout voice cues",
+  "timerNoticeRound": "Round {n}",
+  "timerNoticeLastRound": "Last round",
+  "timerNoticeGo": "Go",
+  "timerNoticeRest": "Rest",
+  "timerNoticeDone": "Workout complete"
 }
