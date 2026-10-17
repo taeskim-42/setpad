@@ -1,5 +1,7 @@
 // 카드 띠·편집기 연결 — 대기·도는 중(접힘)·완료 세 상태, 같이 ▾, 다른 칸 시작 확인,
 // 권한 시점, 무대 열기, 라운드 세트 적기, 후보 막대·⋯ 칩 진입, 심박 폴링 수명주기.
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -348,6 +350,145 @@ void main() {
     await fold(tester);
     await finish(tester);
   });
+
+  testWidgets('적지 않은 박자도 다른 칸 ▶ 에서 묻는다(카드 [적기] 와 같은 규칙) — "적지 않은 18회"', (
+    tester,
+  ) async {
+    final c = RoutineEditorController()
+      ..addExercise('푸시업 60bpm')
+      ..closeBlock()
+      ..addExercise('버피 타바타')
+      ..closeBlock();
+    await tester.pumpWidget(
+      app(
+        RoutineEditor(
+          controller: c,
+          timer: timer,
+          askTimerPermissions: () async {},
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('timer-start')).first);
+    await tester.pumpAndSettle();
+    now = const Duration(seconds: 20);
+    timer.tick();
+    timer.end();
+    await tester.pumpAndSettle();
+    await fold(tester);
+    expect(timer.count, 18);
+    expect(find.byKey(const ValueKey('timer-log-now')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('timer-start')));
+    await tester.pumpAndSettle();
+    expect(find.text('적지 않은 18회가 있어요'), findsOneWidget);
+    await tester.tap(find.text('먼저 적기'));
+    await tester.pumpAndSettle();
+    expect(find.byType(RunPage), findsOneWidget);
+    expect(identical(timer.owner, c.blocks[0]), isTrue);
+    await tester.tap(find.byKey(const ValueKey('run-log')));
+    await tester.pumpAndSettle();
+    expect(c.blocks[0].sets.single.reps, 18);
+    // Logged: nothing left to ask about.
+    await tester.tap(find.byKey(const ValueKey('timer-start')));
+    await tester.pumpAndSettle();
+    expect(find.byType(CupertinoActionSheet), findsNothing);
+    expect(identical(timer.owner, c.blocks[1]), isTrue);
+    await fold(tester);
+    await finish(tester);
+  });
+
+  testWidgets('권한을 묻는 동안 ▶ 을 또 눌러도 한 번만 시작한다(일시정지로 뒤집히지 않음)', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    final c = RoutineEditorController()
+      ..addExercise('버피 타바타')
+      ..closeBlock();
+    await tester.pumpWidget(
+      app(
+        RoutineEditor(
+          controller: c,
+          timer: timer,
+          askTimerPermissions: () => gate.future,
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('timer-start')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('timer-start')));
+    await tester.pump();
+    gate.complete();
+    await tester.pumpAndSettle();
+    expect(timer.running, isTrue);
+    expect(find.byType(RunPage), findsOneWidget);
+    await fold(tester);
+    await finish(tester);
+  });
+
+  for (final paused in [true, false]) {
+    testWidgets(
+      '${paused ? '멈춘' : '적지 않고 끝난'} run 이 있는 칸의 시트는 읽기 전용이고 까닭을 말한다',
+      (tester) async {
+        final c = RoutineEditorController()
+          ..addExercise('버피 타바타')
+          ..closeBlock();
+        await tester.pumpWidget(
+          app(
+            RoutineEditor(
+              controller: c,
+              timer: timer,
+              askTimerPermissions: () async {},
+            ),
+          ),
+        );
+        await tester.tap(find.byKey(const ValueKey('timer-start')));
+        await tester.pumpAndSettle();
+        await fold(tester);
+        await advance(tester, Duration(seconds: paused ? 100 : 233));
+        if (paused) {
+          timer.pause();
+          await tester.pump();
+        }
+        Future<TimerSheet> openSheet() async {
+          if (find.byKey(const ValueKey('setup-timer')).evaluate().isEmpty) {
+            await tester.tap(
+              find.byKey(ValueKey('exercise-settings-${c.blocks.single.id}')),
+            );
+            await tester.pumpAndSettle();
+          }
+          await tester.tap(find.byKey(const ValueKey('setup-timer')));
+          await tester.pumpAndSettle();
+          return tester.widget<TimerSheet>(find.byType(TimerSheet));
+        }
+
+        expect((await openSheet()).readOnly, isTrue);
+        expect(
+          find.text(paused ? '멈춘 뒤 바꿀 수 있어요' : '적지 않은 8라운드가 있어요'),
+          findsOneWidget,
+        );
+        await tester.tap(find.byKey(const ValueKey('timer-beat')));
+        await tester.pump();
+        await tester.tap(find.byKey(const ValueKey('timer-sheet-done')));
+        await tester.pumpAndSettle();
+        expect(c.blocks.single.name, '버피 타바타');
+        expect(identical(timer.owner, c.blocks.single), isTrue);
+        if (paused) {
+          expect(timer.elapsed, greaterThan(Duration.zero));
+        } else {
+          expect(find.text('완료 · 8라운드 · 3:53'), findsOneWidget);
+          // Logged: nothing is lost any more, the sheet may change it.
+          await tester.tap(find.byKey(const ValueKey('timer-log-now')));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const ValueKey('run-log')));
+          await tester.pumpAndSettle();
+          expect(c.blocks.single.sets, hasLength(8));
+          expect((await openSheet()).readOnly, isFalse);
+          await tester.tap(find.byKey(const ValueKey('timer-sheet-done')));
+          await tester.pumpAndSettle();
+        }
+        await finish(tester);
+      },
+    );
+  }
 
   group('같이 하기', () {
     Future<void> mount(

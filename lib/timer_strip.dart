@@ -26,6 +26,26 @@ int unloggedRounds(WorkoutTimer timer, RunLink link) {
   return (roundsDone(timer) - logged).clamp(0, 99);
 }
 
+/// A finished run still owes sets: tabata rounds, or a metronome's count.
+/// The one rule for the card's [적기] and for every ask before another run
+/// replaces this one (▶ elsewhere, together, the timer sheet).
+bool owesLog(WorkoutTimer timer, RunLink link) {
+  final spec = timer.spec;
+  if (spec == null ||
+      !(timer.phase == TimingPhase.complete || timer.endedEarly)) {
+    return false;
+  }
+  return spec.tabata
+      ? unloggedRounds(timer, link) > 0
+      : !link.logged && timer.count > 0;
+}
+
+/// What [owesLog] owes, the way the ask says it: rounds, or reps.
+String owesText(L l, WorkoutTimer timer, RunLink link) =>
+    timer.spec?.tabata ?? false
+    ? l.timerUnloggedAsk(unloggedRounds(timer, link))
+    : l.timerUnloggedReps(timer.count);
+
 /// The timer line on an exercise card. Waiting: preview, summary, ▶ start
 /// (and "together ▾" in a session). Running with the stage folded: phase
 /// colour, the number, the phase and round, pause and open. Over: what was
@@ -378,9 +398,7 @@ class TimerStrip extends StatelessWidget {
     final line = spec.tabata
         ? l.timerDoneLine(roundsDone(timer), time)
         : l.timerDoneBpmLine(timer.count, time);
-    final owes = spec.tabata
-        ? unloggedRounds(timer, link) > 0
-        : !link.logged && timer.count > 0;
+    final owes = owesLog(timer, link);
     final ink = seal.resolveFrom(context);
     return Row(
       children: [

@@ -1010,5 +1010,6 @@
   "timerTargetTitle": "จำนวนครั้งเป้าหมาย",
   "timerSecondsValue": "{n} วิ",
   "timerMinValue": "ต่ำสุดแล้ว",
-  "timerMaxValue": "สูงสุดแล้ว"
+  "timerMaxValue": "สูงสุดแล้ว",
+  "timerUnloggedReps": "มี {n} ครั้งที่ยังไม่ได้บันทึก"
 }

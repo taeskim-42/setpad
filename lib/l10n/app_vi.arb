@@ -1010,5 +1010,6 @@
   "timerTargetTitle": "Số lần mục tiêu",
   "timerSecondsValue": "{n}s",
   "timerMinValue": "Đã là giá trị nhỏ nhất",
-  "timerMaxValue": "Đã là giá trị lớn nhất"
+  "timerMaxValue": "Đã là giá trị lớn nhất",
+  "timerUnloggedReps": "Có {n} lần chưa ghi"
 }

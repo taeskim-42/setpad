@@ -4190,4 +4190,15 @@ class LEn extends L {
 
   @override
   String get timerMaxValue => 'That\'s the maximum';
+
+  @override
+  String timerUnloggedReps(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n reps aren\'t logged yet',
+      one: '1 rep isn\'t logged yet',
+    );
+    return '$_temp0';
+  }
 }

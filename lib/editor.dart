@@ -829,6 +829,9 @@ class _RoutineEditorState extends State<RoutineEditor>
   int? _run;
   bool _runOpen = false, _timerAsked = false, _warmed = false;
 
+  /// A ▶ is being handled (asks, permissions): a second one is ignored.
+  bool _starting = false;
+
   /// The sheet changes these settings while the page that passed them in
   /// does not rebuild; the latest of either wins.
   late bool _aloud = widget.countAloud, _buzz = widget.hapticsOn;
@@ -1388,7 +1391,13 @@ class _RoutineEditorState extends State<RoutineEditor>
     widget.partner?.leaveTimer(at, beat);
   }
 
-  void _proposeShared(ExerciseBlock block, TimingSpec spec, bool alternate) {
+  Future<void> _proposeShared(
+    ExerciseBlock block,
+    TimingSpec spec,
+    bool alternate,
+  ) async {
+    // Once accepted, the shared run replaces a finished one: ask now.
+    if (!await _okToDrop()) return;
     final t = _shared;
     _sharedBlock = block;
     // 상대가 같은 것을 먼저 제안해 두었다면 그것을 받는 것이 곧 같이 시작이다.
@@ -1399,7 +1408,8 @@ class _RoutineEditorState extends State<RoutineEditor>
     }
   }
 
-  void _acceptShared() {
+  Future<void> _acceptShared() async {
+    if (!await _okToDrop()) return;
     final t = _shared;
     if (t == null || t.joined) return;
     _sharedBlock = _blockFor(t) ?? _c.addBlockQuietly(t.title);
@@ -1503,8 +1513,9 @@ class _RoutineEditorState extends State<RoutineEditor>
           for (final p in people.skip(1))
             (name: p.name, counts: counts(p.blocks)),
       ],
-      onPropose: (alternate) =>
-          _proposeShared(block, TimingSpec.parse(block.name)!, alternate),
+      onPropose: (alternate) => unawaited(
+        _proposeShared(block, TimingSpec.parse(block.name)!, alternate),
+      ),
       onToggle: () => _togetherToggle(block),
       onCancel: sync.clearTimer,
       onLog: (n) => _c.logReps(block, n),
@@ -1669,41 +1680,55 @@ class _RoutineEditorState extends State<RoutineEditor>
   }
 
   /// ▶ on a card. Another card's timer is stopped only after asking; a
-  /// finished one with unlogged rounds offers to log them first.
+  /// finished one that owes sets offers to log them first. One ▶ at a time:
+  /// another while asking (permissions too) would toggle it back to paused.
   Future<void> _startTimer(ExerciseBlock block) async {
     final spec = TimingSpec.parse(block.name);
-    if (spec == null || !spec.valid) return;
+    if (spec == null || !spec.valid || _starting) return;
+    _starting = true;
+    try {
+      final t = _workoutTimer;
+      final other = t.owner != null && !identical(t.owner, block);
+      final over = t.phase == TimingPhase.complete || t.endedEarly;
+      if (other &&
+          t.spec != null &&
+          !over &&
+          (t.running || t.elapsed > Duration.zero)) {
+        final go = await _ask(L.of(context).timerSwitchAsk, [
+          (L.of(context).timerSwitchConfirm, true),
+        ]);
+        if (go != true || !mounted) return;
+      } else if (other && !await _okToDrop()) {
+        return;
+      }
+      _hideKeyboard();
+      // Alone: withdraw my unanswered proposal, leave a shared run elsewhere.
+      if (_togetherToggle(block)) return;
+      if (spec.tabata && !_timerAsked) {
+        _timerAsked = true;
+        await (widget.askTimerPermissions ?? _askPermissions)();
+        if (!mounted) return;
+      }
+      // A new owner or spec, a shared or finished run all start from the top.
+      t.toggle(block, spec, target: spec.tabata ? null : _targetFor(block));
+      unawaited(_openRun());
+    } finally {
+      _starting = false;
+    }
+  }
+
+  /// Before another run replaces a finished one that owes sets ([owesLog]):
+  /// log first (the stage's summary) or drop it. True when it may go.
+  Future<bool> _okToDrop() async {
     final t = _workoutTimer;
-    final other = t.owner != null && !identical(t.owner, block);
-    final over = t.phase == TimingPhase.complete || t.endedEarly;
-    if (other &&
-        t.spec != null &&
-        !over &&
-        (t.running || t.elapsed > Duration.zero)) {
-      final go = await _ask(L.of(context).timerSwitchAsk, [
-        (L.of(context).timerSwitchConfirm, true),
-      ]);
-      if (go != true || !mounted) return;
-    } else if (other && over && unloggedRounds(t, _link) > 0) {
-      final l = L.of(context);
-      final go = await _ask(l.timerUnloggedAsk(unloggedRounds(t, _link)), [
-        (l.timerLogFirst, false),
-        (l.timerDiscardStart, true),
-      ]);
-      if (go == false && mounted) unawaited(_openRun());
-      if (go != true || !mounted) return;
-    }
-    _hideKeyboard();
-    // Alone: withdraw my unanswered proposal, leave a shared run elsewhere.
-    if (_togetherToggle(block)) return;
-    if (spec.tabata && !_timerAsked) {
-      _timerAsked = true;
-      await (widget.askTimerPermissions ?? _askPermissions)();
-      if (!mounted) return;
-    }
-    // A new owner or spec, a shared or finished run all start from the top.
-    t.toggle(block, spec, target: spec.tabata ? null : _targetFor(block));
-    unawaited(_openRun());
+    if (!owesLog(t, _link)) return true;
+    final l = L.of(context);
+    final go = await _ask(owesText(l, t, _link), [
+      (l.timerLogFirst, false),
+      (l.timerDiscardStart, true),
+    ]);
+    if (go == false && mounted) unawaited(_openRun());
+    return go == true && mounted;
   }
 
   /// Health (heart rate) first, then the rest alarm — before the stage, not
@@ -1740,11 +1765,20 @@ class _RoutineEditorState extends State<RoutineEditor>
   Future<void> _editTimer(ExerciseBlock block) async {
     _hideKeyboard();
     final t = _workoutTimer;
+    // The title is the timer: changing it clears this card's run. One that
+    // is going, paused or still owes sets stays as it is — read only, saying
+    // why (stop it, or log it, first).
+    final mine = identical(t.owner, block);
+    final over = t.phase == TimingPhase.complete || t.endedEarly;
+    final owes = mine && owesLog(t, _link);
     final result = await showTimerSheet(
       context,
       name: block.name,
       target: block.setup?.repsPerSet ?? 0,
-      readOnly: identical(t.owner, block) && t.running,
+      readOnly:
+          owes ||
+          (mine && !over && (t.running || t.elapsed > Duration.zero)),
+      readOnlyNote: owes ? owesText(L.of(context), t, _link) : null,
       countAloud: _aloud,
       onCountAloud: widget.onCountAloud == null
           ? null
@@ -3219,7 +3253,7 @@ class _RoutineEditorState extends State<RoutineEditor>
           _TogetherInvite(
             name: widget.partner!.session!.partnerName ?? '',
             timer: incoming,
-            onAccept: _acceptShared,
+            onAccept: () => unawaited(_acceptShared()),
             onDecline: widget.partner!.clearTimer,
           ),
         Expanded(

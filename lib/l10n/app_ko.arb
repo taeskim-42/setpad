@@ -3746,5 +3746,7 @@
   "timerSecondsValue": "{n}초",
   "@timerSecondsValue": {"placeholders": {"n": {"type": "int"}}},
   "timerMinValue": "최솟값이에요",
-  "timerMaxValue": "최댓값이에요"
+  "timerMaxValue": "최댓값이에요",
+  "timerUnloggedReps": "적지 않은 {n}회가 있어요",
+  "@timerUnloggedReps": {"placeholders": {"n": {"type": "int"}}}
 }

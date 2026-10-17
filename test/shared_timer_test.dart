@@ -614,6 +614,96 @@ void main() {
     jun.timer.dispose();
   });
 
+  testWidgets('적지 않고 끝난 run 이 있으면 같이 ▾ 제안·초대 받기도 먼저 묻는다', (tester) async {
+    final (_, mina, jun) = await pair();
+    final c = RoutineEditorController()
+      ..addExercise('버피 타바타')
+      ..closeBlock()
+      ..addExercise('스쿼트 타바타')
+      ..closeBlock();
+    await tester.pumpWidget(
+      CupertinoApp(
+        locale: const Locale('ko'),
+        supportedLocales: L.supportedLocales,
+        localizationsDelegates: L.localizationsDelegates,
+        home: CupertinoPageScaffold(
+          resizeToAvoidBottomInset: false,
+          child: SafeArea(
+            child: RoutineEditor(
+              controller: c,
+              partner: mina.sync,
+              timer: mina.timer,
+              askTimerPermissions: () async {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    // Alone on the first card, to the end, not logged.
+    await tester.tap(find.byKey(const ValueKey('timer-start')).first);
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.byType(RunPage))).pop();
+    await tester.pumpAndSettle();
+    world += 233000;
+    mina.timer.tick();
+    await tester.pump();
+    expect(find.byKey(const ValueKey('timer-log-now')), findsOneWidget);
+    const ask = '적지 않은 8라운드가 있어요';
+
+    // Proposing on the other card asks; cancel proposes nothing.
+    Future<void> propose() async {
+      await tester.tap(find.byKey(const ValueKey('together-start')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('together-simultaneous')));
+      await tester.pumpAndSettle();
+    }
+
+    await propose();
+    expect(find.text(ask), findsOneWidget);
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+    await jun.sync.refresh();
+    expect(jun.shared, isNull);
+    await propose();
+    await tester.tap(find.text('버리고 시작'));
+    await tester.pumpAndSettle();
+    await jun.sync.refresh();
+    expect(jun.shared?.title, '스쿼트 타바타');
+    await mina.sync.clearTimer();
+    await tester.pump();
+
+    // An invitation: log first opens the summary and does not join.
+    await jun.sync.proposeTimer('스쿼트 타바타', tabata);
+    await mina.sync.refresh();
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('together-accept')));
+    await tester.pumpAndSettle();
+    expect(find.text(ask), findsOneWidget);
+    await tester.tap(find.text('먼저 적기'));
+    await tester.pumpAndSettle();
+    expect(find.byType(RunPage), findsOneWidget);
+    expect(mina.shared!.joined, isFalse);
+    Navigator.of(tester.element(find.byType(RunPage))).pop();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('together-accept')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('버리고 시작'));
+    await tester.pumpAndSettle();
+    await mina.sync.refresh();
+    world += 2500;
+    await mina.sync.refresh();
+    await tester.pump();
+    expect(mina.timer.running && mina.timer.shared, isTrue);
+    expect(identical(mina.timer.owner, c.blocks[1]), isTrue);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 200));
+    mina.timer.reset();
+    mina.timer.dispose();
+    jun.timer.dispose();
+  });
+
   testWidgets('같이 하는 박자가 내 목표에 닿으면 끝나고 그만(leave)을 보내며, 다음 소식에 다시 켜지지 않는다', (
     tester,
   ) async {

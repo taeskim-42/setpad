@@ -4100,4 +4100,9 @@ class LTh extends L {
 
   @override
   String get timerMaxValue => 'สูงสุดแล้ว';
+
+  @override
+  String timerUnloggedReps(int n) {
+    return 'มี $n ครั้งที่ยังไม่ได้บันทึก';
+  }
 }

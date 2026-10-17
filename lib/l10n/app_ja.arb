@@ -1010,5 +1010,6 @@
   "timerTargetTitle": "目標回数",
   "timerSecondsValue": "{n}秒",
   "timerMinValue": "最小値です",
-  "timerMaxValue": "最大値です"
+  "timerMaxValue": "最大値です",
+  "timerUnloggedReps": "未記録の{n}回があります"
 }

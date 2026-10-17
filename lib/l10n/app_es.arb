@@ -1010,5 +1010,6 @@
   "timerTargetTitle": "Reps objetivo",
   "timerSecondsValue": "{n} s",
   "timerMinValue": "Es el mínimo",
-  "timerMaxValue": "Es el máximo"
+  "timerMaxValue": "Es el máximo",
+  "timerUnloggedReps": "{n, plural, =1{Hay 1 repetición sin registrar} other{Hay {n} repeticiones sin registrar}}"
 }

@@ -1010,5 +1010,6 @@
   "timerTargetTitle": "Target reps",
   "timerSecondsValue": "{n}s",
   "timerMinValue": "That's the minimum",
-  "timerMaxValue": "That's the maximum"
+  "timerMaxValue": "That's the maximum",
+  "timerUnloggedReps": "{n, plural, =1{1 rep isn't logged yet} other{{n} reps aren't logged yet}}"
 }

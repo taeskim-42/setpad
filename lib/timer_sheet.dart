@@ -50,6 +50,7 @@ Future<TimerSheetResult?> showTimerSheet(
   required String name,
   required int target,
   bool readOnly = false,
+  String? readOnlyNote,
   bool countAloud = false,
   ValueChanged<bool>? onCountAloud,
   bool haptics = true,
@@ -60,6 +61,7 @@ Future<TimerSheetResult?> showTimerSheet(
     name: name,
     target: target,
     readOnly: readOnly,
+    readOnlyNote: readOnlyNote,
     countAloud: countAloud,
     onCountAloud: onCountAloud,
     haptics: haptics,
@@ -73,6 +75,7 @@ class TimerSheet extends StatefulWidget {
     required this.name,
     required this.target,
     this.readOnly = false,
+    this.readOnlyNote,
     this.countAloud = false,
     this.onCountAloud,
     this.haptics = true,
@@ -81,6 +84,9 @@ class TimerSheet extends StatefulWidget {
   final String name;
   final int target;
   final bool readOnly, countAloud, haptics;
+
+  /// Why it is read-only, when not because the timer is going.
+  final String? readOnlyNote;
   final ValueChanged<bool>? onCountAloud, onHaptics;
 
   @override
@@ -217,7 +223,7 @@ class _TimerSheetState extends State<TimerSheet> {
                         Semantics(
                           liveRegion: true,
                           child: Text(
-                            l.timerReadOnly,
+                            widget.readOnlyNote ?? l.timerReadOnly,
                             style: TextStyle(fontSize: 13, color: muted),
                           ),
                         ),

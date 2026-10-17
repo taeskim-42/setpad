@@ -4011,4 +4011,9 @@ class LJa extends L {
 
   @override
   String get timerMaxValue => '最大値です';
+
+  @override
+  String timerUnloggedReps(int n) {
+    return '未記録の$n回があります';
+  }
 }

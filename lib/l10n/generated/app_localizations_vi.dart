@@ -4129,4 +4129,9 @@ class LVi extends L {
 
   @override
   String get timerMaxValue => 'Đã là giá trị lớn nhất';
+
+  @override
+  String timerUnloggedReps(int n) {
+    return 'Có $n lần chưa ghi';
+  }
 }

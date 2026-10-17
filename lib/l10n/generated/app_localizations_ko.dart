@@ -4018,4 +4018,9 @@ class LKo extends L {
 
   @override
   String get timerMaxValue => '최댓값이에요';
+
+  @override
+  String timerUnloggedReps(int n) {
+    return '적지 않은 $n회가 있어요';
+  }
 }

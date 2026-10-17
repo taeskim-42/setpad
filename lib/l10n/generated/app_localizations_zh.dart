@@ -3978,6 +3978,11 @@ class LZh extends L {
 
   @override
   String get timerMaxValue => '已是最大值';
+
+  @override
+  String timerUnloggedReps(int n) {
+    return '有 $n 次还没记录';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7954,6 +7959,11 @@ class LZhHans extends LZh {
 
   @override
   String get timerMaxValue => '已是最大值';
+
+  @override
+  String timerUnloggedReps(int n) {
+    return '有 $n 次还没记录';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -11930,4 +11940,9 @@ class LZhHant extends LZh {
 
   @override
   String get timerMaxValue => '已是最大值';
+
+  @override
+  String timerUnloggedReps(int n) {
+    return '有 $n 次還沒記錄';
+  }
 }

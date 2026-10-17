@@ -6084,6 +6084,12 @@ abstract class L {
   /// In ko, this message translates to:
   /// **'최댓값이에요'**
   String get timerMaxValue;
+
+  /// No description provided for @timerUnloggedReps.
+  ///
+  /// In ko, this message translates to:
+  /// **'적지 않은 {n}회가 있어요'**
+  String timerUnloggedReps(int n);
 }
 
 class _LDelegate extends LocalizationsDelegate<L> {

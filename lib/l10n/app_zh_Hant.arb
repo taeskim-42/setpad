@@ -1010,5 +1010,6 @@
   "timerTargetTitle": "目標次數",
   "timerSecondsValue": "{n} 秒",
   "timerMinValue": "已是最小值",
-  "timerMaxValue": "已是最大值"
+  "timerMaxValue": "已是最大值",
+  "timerUnloggedReps": "有 {n} 次還沒記錄"
 }

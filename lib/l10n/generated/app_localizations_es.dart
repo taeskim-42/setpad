@@ -4220,4 +4220,15 @@ class LEs extends L {
 
   @override
   String get timerMaxValue => 'Es el máximo';
+
+  @override
+  String timerUnloggedReps(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Hay $n repeticiones sin registrar',
+      one: 'Hay 1 repetición sin registrar',
+    );
+    return '$_temp0';
+  }
 }
