@@ -36,8 +36,8 @@ class RealAudio extends TimingAudio {
   }
 
   @override
-  Future<void> speak(String text, String locale, {double rate = 1.15}) async =>
-      calls.add('speak $text');
+  Future<void> playVoice(String asset, {bool onBeat = false}) async =>
+      calls.add('voice $asset${onBeat ? ' onBeat' : ''}');
 
   @override
   Future<void> dispose() async => disposed++;
@@ -143,7 +143,7 @@ void main() {
   );
 
   test(
-    'calls go out one at a time, in call order; speak and warmUp pass',
+    'calls go out one at a time, in call order; words and warmUp pass',
     () async {
       final workout = mux.port('workout'), rest = mux.port('rest');
       real.gate = Completer();
@@ -159,11 +159,33 @@ void main() {
         'on bpm=120 cue=null',
         'on bpm=120 cue=complete',
       ]);
-      await workout.speak('하나', 'ko');
+      await workout.playVoice('assets/voice/count/en/m/1.m4a', onBeat: true);
       await workout.warmUp();
-      expect(real.calls.last, 'speak 하나');
+      expect(real.calls.last, 'voice assets/voice/count/en/m/1.m4a onBeat');
     },
   );
+
+  test('a word waits for the cue sent before it — the rest\'s end sound, '
+      'then "Go!"', () async {
+    final rest = mux.port('rest');
+    await rest.configure(active: true);
+    real.gate = Completer();
+    // RestTimer does not wait for the cue before asking for the word.
+    final cue = rest.configure(active: false, cue: 'complete');
+    final word = rest.playVoice('assets/voice/en/m/start.m4a');
+    await pumpEventQueue();
+    expect(real.calls.last, 'off bpm=null cue=complete', reason: 'not yet');
+    real.gate!.complete();
+    await Future.wait([cue, word]);
+    expect(real.calls.sublist(1), [
+      'off bpm=null cue=complete',
+      'voice assets/voice/en/m/start.m4a',
+    ]);
+    // A closed port says nothing more.
+    await rest.dispose();
+    await rest.playVoice('assets/voice/en/m/rest.m4a');
+    expect(real.calls.last, isNot(contains('rest.m4a')));
+  });
 
   test(
     'WorkoutTimer on a port: runs as before, its pause leaves the rest active',
@@ -193,8 +215,11 @@ void main() {
       timer.tick();
       expect(timer.phase, TimingPhase.complete);
       await pumpEventQueue();
-      // Its complete cue plays, the rest keeps the session on.
-      expect(real.calls.last, 'on bpm=null cue=complete');
+      // Its complete cue plays, then the words; the rest keeps the session on.
+      expect(real.calls.sublist(real.calls.length - 2), [
+        'on bpm=null cue=complete',
+        'voice assets/voice/en/m/done.m4a',
+      ]);
       timer.dispose();
       await pumpEventQueue();
       expect(real.disposed, 0);

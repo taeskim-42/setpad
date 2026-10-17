@@ -19,6 +19,9 @@ void main() {
         home: SettingsPage(store: NotesStore()),
       ),
     );
+    // Below the voice rows the row sits past a 600 pt screen: scroll to it.
+    await tester.ensureVisible(find.byKey(const ValueKey('settings-health')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('settings-health')));
     await tester.pumpAndSettle();
     expect(find.byType(HealthDataPage), findsOneWidget);
